@@ -10,16 +10,6 @@ app = web.Application()
 sio.attach(app)
 
 
-async def background_task():
-    """Example of how to send server generated events to clients."""
-    count = 0
-    while True:
-        await sio.sleep(10)
-        count += 1
-        await sio.emit('my response', {'data': 'Server generated event'},
-                       namespace='/planarally')
-
-
 async def index(request):
     with open('planarally.html') as f:
         return web.Response(text=f.read(), content_type='text/html')
@@ -85,7 +75,6 @@ app.router.add_get('/', index)
 
 
 if __name__ == '__main__':
-    sio.start_background_task(background_task)
     if os.path.isdir("cert"):
         import ssl
         ctx = ssl.SSLContext(protocol=ssl.PROTOCOL_TLS)

@@ -31,7 +31,9 @@ function Shape(x, y, w, h, fill) {
     this.h = h || 1;
     this.fill = fill || '#000';
 }
-
+Shape.prototype.asDict = function() {
+    return {x: this.x, y: this.y, w: this.w, h: this.h, c: this.fill, type: "shape"};
+};
 Shape.prototype.draw = function (ctx) {
     ctx.fillStyle = this.fill;
     ctx.fillRect(this.x, this.y, this.w, this.h);
@@ -89,15 +91,18 @@ Shape.prototype.showContextMenu = function (mouse) {
     });
 };
 
-function Token(img, x, y, w, h) {
+function Token(img, x, y, w, h, uuid) {
+    this.uuid = uuid || uuidv4();
     this.img = img;
     this.x = x;
     this.y = y;
     this.w = w;
     this.h = h;
 }
-
 Token.prototype = Object.create(Shape.prototype);
+Token.prototype.asDict = function() {
+    return {x: this.x, y: this.y, w: this.w, h: this.h, img: this.img.src, uuid: this.uuid, type: 'token'};
+};
 Token.prototype.draw = function (ctx) {
     ctx.drawImage(this.img, this.x, this.y, this.w, this.h);
 };
@@ -152,7 +157,7 @@ LayerState.prototype.invalidate = function (sync) {
 LayerState.prototype.getShapesAsDict = function () {
     var s = [];
     this.shapes.forEach(function (e) {
-        s.push({x: e.x, y: e.y, w: e.w, h: e.h, c: e.fill});
+        s.push(e.asDict());
     });
     return s;
 };
@@ -163,7 +168,19 @@ LayerState.prototype.addShape = function (shape) {
 LayerState.prototype.setShapes = function (shapes) {
     var t = [];
     shapes.forEach(function (shape) {
-        t.push(new Shape(shape.x, shape.y, shape.w, shape.h, shape.c));
+        var sh;
+        if (shape.type === 'shape') sh = new Shape(shape.x, shape.y, shape.w, shape.h, shape.c);
+        if (shape.type === 'token') {
+            if (layerManager.imageMap.has(shape.uuid))
+                sh = new Token(layerManager.imageMap.get(shape.uuid), shape.x, shape.y, shape.w, shape.h, shape.uuid);
+            else {
+                var img = new Image(shape.w, shape.h);
+                img.src = shape.img;
+                sh = new Token(img, shape.x, shape.y, shape.w, shape.h);
+                layerManager.imageMap.set(sh.uuid, img);
+            }
+        }
+        t.push(sh);
     });
     this.shapes = t;
     this.invalidate(false);
@@ -246,6 +263,8 @@ function LayerManager(layers) {
     this.width = window.innerWidth;
     this.height = window.innerHeight;
     this.selectedLayer = 0;
+
+    this.imageMap = new Map();
 
     var layerManager = this;
 
@@ -464,11 +483,6 @@ var layerManager = new LayerManager(layers);
 layerManager.drawGrid();
 layerManager.setLayer(1);
 
-var img = $('#throt')[0];
-img.onload = function () {
-    layerManager.getLayer(1).addShape(new Token(img, 200, 100, 50, 50));
-};
-
 
 // **** SETUP UI ****
 
@@ -541,6 +555,17 @@ $("#grid-layer").droppable({
         width = ui.helper[0].width;
         height = ui.helper[0].height;
 
-        l.addShape(new Token(ui.draggable[0], x, y, width, height));
+        var token = new Token(ui.draggable[0], x, y, width, height);
+        l.addShape(token);
+        layerManager.imageMap.set(token.uuid, token.img);
     }
 });
+
+
+// https://stackoverflow.com/questions/105034/create-guid-uuid-in-javascript
+function uuidv4() {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+    var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+    return v.toString(16);
+  });
+}

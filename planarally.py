@@ -54,7 +54,29 @@ class Shape:
             'y': self.y,
             'w': self.width,
             'h': self.height,
-            'c': self.colour
+            'c': self.colour,
+            'type': "shape"
+        }
+
+
+class Token:
+    def __init__(self, img, x, y, width, height, uuid):
+        self.img = img
+        self.x = x
+        self.y = y
+        self.width = width
+        self.height = height
+        self.uuid = uuid
+
+    def as_dict(self):
+        return {
+            'x': self.x,
+            'y': self.y,
+            'w': self.width,
+            'h': self.height,
+            'img': self.img,
+            'uuid': self.uuid,
+            'type': "token"
         }
 
 

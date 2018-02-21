@@ -12,8 +12,6 @@ sio = socketio.AsyncServer(async_mode='aiohttp')
 app = web.Application()
 sio.attach(app)
 
-print(PA.layer_manager.as_dict())
-
 
 async def index(request):
     with open('planarally.html') as f:
@@ -29,8 +27,6 @@ async def client_init(sid):
 async def layer_invalid(sid, message):
     if PA.clients[sid].initialised:
         PA.layer_manager.layers[message['layer']].shapes = message['shapes']
-        print(message['shapes'])
-        print(PA.layer_manager.as_dict())
         d = PA.layer_manager.layers[message['layer']].as_dict()
         d['layer'] = message['layer']
         await sio.emit('layer set', d, room="skt", skip_sid=sid, namespace='/planarally')

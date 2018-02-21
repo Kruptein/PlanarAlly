@@ -1,8 +1,9 @@
 import asyncio
+import os
+import socketio
 
 from aiohttp import web
 
-import socketio
 
 sio = socketio.AsyncServer(async_mode='aiohttp')
 app = web.Application()
@@ -85,7 +86,11 @@ app.router.add_get('/', index)
 
 if __name__ == '__main__':
     sio.start_background_task(background_task)
-    import ssl
-    ctx = ssl.SSLContext(protocol=ssl.PROTOCOL_TLS)
-    ctx.load_cert_chain("cert/fullchain.pem", "cert/privkey.pem")
-    web.run_app(app, port=8000, ssl_context=ctx)
+    if os.path.isdir("cert"):
+        import ssl
+        ctx = ssl.SSLContext(protocol=ssl.PROTOCOL_TLS)
+        ctx.load_cert_chain("cert/fullchain.pem", "cert/privkey.pem")
+        web.run_app(app, port=8000, ssl_context=ctx)
+    else:
+        print(" RUNNING IN NON SSL CONTEXT ")
+        web.run_app(app, port=8000)

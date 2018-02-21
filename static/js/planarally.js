@@ -492,3 +492,19 @@ $("#grid-layer").droppable({
     l.addShape(new Token(ui.draggable[0], x, y, width, height));
   }
 });
+
+
+// **** WebSocket ****
+
+var protocol = document.domain === 'localhost' ? "http://" : "https://";
+var socket = io.connect(protocol + document.domain + ":8000/planarally");
+socket.on("connect", function(){
+  console.log("Connected");
+  socket.emit("my event", {data: "I'm connected!"});
+});
+socket.on("disconnect", function() {
+  console.log("Disconnected");
+});
+socket.on("my response", function(msg) {
+  console.log("Msg: " + msg.data);
+});

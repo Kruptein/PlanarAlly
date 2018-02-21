@@ -46,6 +46,7 @@ async def disconnect_request(sid):
 async def test_connect(sid, environ):
     PA.add_client(sid)
     sio.enter_room(sid, "skt", namespace='/planarally')
+    await sio.emit('token list', os.listdir(os.path.join("static", "img")), room=sid, namespace='/planarally')
     await sio.emit('board init', PA.layer_manager.as_dict(), room=sid, namespace='/planarally')
 
 

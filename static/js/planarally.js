@@ -9,6 +9,17 @@ socket.on("connect", function () {
 socket.on("disconnect", function () {
     console.log("Disconnected");
 });
+socket.on("token list", function (tokens) {
+    var m = $("#menu-tokens");
+    m.empty();
+    tokens.forEach(function(token) {
+        m.append("<div class='draggable'><img src='/static/img/" + token + "' width='35'>" + token + "</div>");
+    });
+    $(".draggable").draggable({
+        helper: "clone",
+        appendTo: "#board"
+    });
+});
 socket.on("board init", function (board) {
     for (var i = 0; i < board.layers.length; i++) {
         if (board.layers[i].grid) continue;
@@ -371,6 +382,17 @@ function LayerManager(layers) {
             layer.selection.y = diff + Math.floor(my / gs) * gs;
             layer.invalidate();
         }
+        if (layer.resizing) {
+            var sel = layer.selection;
+            if (sel.w < 0) {
+                sel.x += sel.w;
+                sel.w = Math.abs(sel.w);
+            }
+            if (sel.h < 0) {
+                sel.y += sel.h;
+                sel.h = Math.abs(sel.h);
+            }
+        }
         layer.dragging = false;
         layer.resizing = false;
     });
@@ -450,24 +472,6 @@ LayerManager.prototype.invalidate = function () {
         this.layers[i].invalidate();
     }
 };
-LayerManager.prototype.getShapeAtLocation = function (mouse) {
-    var layer = this.getLayer();
-    var mx = mouse.x;
-    var my = mouse.y;
-
-    if (mx < 200 && $('#menu').is(":visible")) {
-        return;
-    }
-
-    var shapes = layer.shapes;
-    var l = shapes.length;
-    for (var i = l - 1; i >= 0; i--) {
-        if (shapes[i].contains(mx, my)) {
-            return shapes[i];
-        }
-    }
-    return;
-};
 
 
 // **** SETUP LAYERMANAGER ****
@@ -503,7 +507,6 @@ function handleContextMenu(menu, token) {
     var action = menu.data("action");
     var layer = layerManager.getLayer();
     var ls = layer.shapes;
-    var i;
     switch (action) {
         case 'moveToFront':
             layer.moveShapeOrder(token, ls.length - 1);
@@ -542,25 +545,29 @@ window.onresize = function () {
     layerManager.drawGrid();
 };
 
-
-$(".draggable").draggable({
-    helper: "clone"
-});
 $("#grid-layer").droppable({
     drop: function (event, ui) {
         var l = layerManager.getLayer();
         var offset = $(l.canvas).offset();
         x = parseInt(ui.offset.left - offset.left);
         y = parseInt(ui.offset.top - offset.top);
-        width = ui.helper[0].width;
-        height = ui.helper[0].height;
-
-        var token = new Token(ui.draggable[0], x, y, width, height);
+        // width = ui.helper[0].width;
+        // height = ui.helper[0].height;
+        var img = ui.draggable[0].children[0];
+        var token = new Token(img, x, y, img.width, img.height);
         l.addShape(token);
         layerManager.imageMap.set(token.uuid, token.img);
     }
 });
 
+$('.accordion').each(function(idx) {
+    $(this).on("click", function(){
+        $(this).toggleClass("accordion-active");
+        $(this).next().toggle();
+    });
+});
+
+// **** UTILS ****
 
 // https://stackoverflow.com/questions/105034/create-guid-uuid-in-javascript
 function uuidv4() {

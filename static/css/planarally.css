@@ -152,3 +152,43 @@ a, a:visited, a:hover, a:active {
 .context-clickable {
     cursor: pointer;
 }
+
+.accordion {
+    background-color: #eee;
+    color: #444;
+    cursor: pointer;
+    padding: 18px;
+    width: 100%;
+    text-align: left;
+    border: none;
+    outline: none;
+    transition: 0.4s;
+}
+
+.accordion-active, .accordion:hover {
+    background-color: #ccc;
+}
+
+.accordion-panel {
+    background-color: white;
+    display: none;
+    overflow: hidden;
+}
+
+#menu-tokens {
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+}
+
+#menu-tokens div {
+    margin-top: 5px;
+    display: flex;
+    align-items:center;
+    justify-content: flex-start;
+}
+
+#menu-tokens div > * {
+    padding: 0 10px;
+}

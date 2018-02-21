@@ -4,6 +4,9 @@ import socketio
 
 from aiohttp import web
 
+from planarally import PlanarAlly
+
+PA = PlanarAlly()
 
 sio = socketio.AsyncServer(async_mode='aiohttp')
 app = web.Application()
@@ -15,10 +18,15 @@ async def index(request):
         return web.Response(text=f.read(), content_type='text/html')
 
 
-@sio.on('my event', namespace='/planarally')
-async def test_message(sid, message):
-    await sio.emit('my response', {'data': message['data']}, room=sid,
-                   namespace='/planarally')
+@sio.on("client initialised", namespace='/planarally')
+async def client_init(sid):
+    PA.clients[sid].initialised = True
+
+@sio.on('layer invalidate', namespace='/planarally')
+async def layer_invalid(sid, message):
+    if PA.clients[sid].initialised:
+        PA.layer_manager.layers[message['layer']].shapes = message['shapes']
+        await sio.emit('layer set', PA.layer_manager.as_dict(), room=sid, namespace='/planarally')
 
 
 @sio.on('my broadcast event', namespace='/planarally')
@@ -61,8 +69,8 @@ async def disconnect_request(sid):
 
 @sio.on('connect', namespace='/planarally')
 async def test_connect(sid, environ):
-    await sio.emit('my response', {'data': 'Connected', 'count': 0}, room=sid,
-                   namespace='/planarally')
+    PA.add_client(sid)
+    await sio.emit('board init', PA.layer_manager.as_dict(), room=sid, namespace='/planarally')
 
 
 @sio.on('disconnect', namespace='/planarally')

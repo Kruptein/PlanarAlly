@@ -1,3 +1,28 @@
+// **** WebSocket ****
+
+var protocol = document.domain === 'localhost' ? "http://" : "https://";
+var socket = io.connect(protocol + document.domain + ":8000/planarally");
+socket.on("connect", function(){
+  console.log("Connected");
+});
+socket.on("disconnect", function() {
+  console.log("Disconnected");
+});
+socket.on("board init", function(board) {
+  for (var i=0; i<board.layers.length; i++) {
+    console.log(board.layers[i]);
+    if (board.layers[i].grid) continue;
+    var shapes = [];
+    board.layers[i].shapes.forEach(function(shape){
+      shapes.push(new Shape(shape.x, shape.y, shape.w, shape.h, shape.c));
+    });
+    layerManager.getLayer(i).setShapes(shapes);
+  }
+  socket.emit("client initialised");
+});
+
+
+
 // **** BOARD ELEMENTS ****
 
 function Shape(x, y, w, h, fill) {
@@ -42,7 +67,7 @@ Shape.prototype.getCorner = function(mx, my) {
 Shape.prototype.showContextMenu = function(mouse) {
   var l = layerManager.getLayer();
   l.selection = this;
-  l.valid = false;
+  l.invalidate();
   var token = this;
   $menu.show();
   $menu.empty();
@@ -113,13 +138,31 @@ function LayerState(canvas) {
   this.interval = 30;
   setInterval(function() { state.draw(); }, state.interval);
 }
+LayerState.prototype.invalidate = function(sync) {
+  if (sync === undefined) sync = true;
+  this.valid = false;
+  if (sync) {
+    socket.emit("layer invalidate", {layer: layerManager.layers.indexOf(this), shapes: this.getShapesAsDict()});
+  }
+}
+LayerState.prototype.getShapesAsDict = function(){
+  var s = [];
+  this.shapes.forEach(function(e){
+    s.push({x: e.x, y: e.y, w: e.w, h: e.y});
+  });
+  return s;
+}
 LayerState.prototype.addShape = function(shape) {
   this.shapes.push(shape);
-  this.valid = false;
+  this.invalidate();
+}
+LayerState.prototype.setShapes = function(shapes) {
+  this.shapes = shapes;
+  this.invalidate();
 }
 LayerState.prototype.removeShape = function(shape) {
   this.shapes.splice(this.shapes.indexOf(shape), 1);
-  this.valid = false;
+  this.invalidate();
 }
 LayerState.prototype.clear = function() {
   this.ctx.clearRect(0, 0, this.width, this.height);
@@ -184,7 +227,7 @@ LayerState.prototype.moveShapeOrder = function(shape, destinationIndex) {
   if (destinationIndex !== idx){
     ls.splice(idx, 1);
     ls.splice(destinationIndex, 0, shape);
-    this.valid = false;
+    this.invalidate();
   }
 }
 
@@ -224,7 +267,7 @@ function LayerManager(layers) {
         layer.selection = shapes[i];
         layer.resizing = true;
         layer.resizedir = corn;
-        layer.valid = false;
+        layer.invalidate();
         return;
       } else if (shapes[i].contains(mx, my)) {
         var sel = shapes[i];
@@ -232,13 +275,13 @@ function LayerManager(layers) {
         layer.dragging = true;
         layer.dragoffx = mx - sel.x;
         layer.dragoffy = my - sel.y;
-        layer.valid = false;
+        layer.invalidate();
         return;
       }
     }
     if (layer.selection) {
       layer.selection = null;
-      layer.valid = false;
+      layer.invalidate();
     }
   });
   window.addEventListener('mousemove', function(e) {
@@ -248,7 +291,7 @@ function LayerManager(layers) {
     if (layer.dragging){
       sel.x = mouse.x - layer.dragoffx;
       sel.y = mouse.y - layer.dragoffy;   
-      layer.valid = false;
+      layer.invalidate();
     } else if (layer.resizing) {
       if (layer.resizedir === 'nw') {
         sel.w = sel.x + sel.w - mouse.x;
@@ -267,7 +310,7 @@ function LayerManager(layers) {
         sel.h = mouse.y - sel.y;
         sel.x = mouse.x;
       } 
-      layer.valid = false;
+      layer.invalidate();
     } else if (sel) {
       if (sel.inCorner(mouse.x, mouse.y, "nw")) {
         document.body.style.cursor = "nw-resize";
@@ -294,7 +337,7 @@ function LayerManager(layers) {
       var diff = (gs - layer.selection.w) / 2;
       layer.selection.x = diff + Math.floor(mx / gs) * gs;
       layer.selection.y = diff + Math.floor(my / gs) * gs;
-      layer.valid = false;
+      layer.invalidate();
     }
     layer.dragging = false;
     layer.resizing = false;
@@ -339,7 +382,7 @@ LayerManager.prototype.setLayer = function(index) {
       } else {
         l.ctx.globalAlpha = 1.0;
       }
-      l.valid = false;
+      l.invalidate();
     }
   } else {
     alert("Invalid layer index");
@@ -371,7 +414,7 @@ LayerManager.prototype.setGridSize = function(gridSize, layer) {
 }
 LayerManager.prototype.invalidate = function() {
   for(var i=0; i < this.layers.length - 1; i++) {
-    this.layers[i].valid = false;
+    this.layers[i].invalidate();
   }
 }
 LayerManager.prototype.getShapeAtLocation = function(mouse) {
@@ -405,10 +448,6 @@ for (var i = 0; i < layers.length; i++) {
 }
 
 var layerManager = new LayerManager(layers);
-layerManager.getLayer(0).addShape(new Shape(40,40,50,50));
-layerManager.getLayer(1).addShape(new Shape(80,40,50,50, "red"));
-layerManager.getLayer(1).addShape(new Shape(40,80,50,50, "red"));
-layerManager.getLayer(2).addShape(new Shape(80,80,50,50, "blue"));
 layerManager.drawGrid();
 layerManager.setLayer(1);
 
@@ -491,20 +530,4 @@ $("#grid-layer").droppable({
 
     l.addShape(new Token(ui.draggable[0], x, y, width, height));
   }
-});
-
-
-// **** WebSocket ****
-
-var protocol = document.domain === 'localhost' ? "http://" : "https://";
-var socket = io.connect(protocol + document.domain + ":8000/planarally");
-socket.on("connect", function(){
-  console.log("Connected");
-  socket.emit("my event", {data: "I'm connected!"});
-});
-socket.on("disconnect", function() {
-  console.log("Disconnected");
-});
-socket.on("my response", function(msg) {
-  console.log("Msg: " + msg.data);
 });

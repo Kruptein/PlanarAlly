@@ -1,3 +1,8 @@
+"""
+PlayerAlly data representation classes.
+"""
+
+
 class Client:
     def __init__(self, sid):
         self.sid = sid

@@ -1,4 +1,8 @@
-import asyncio
+"""
+PlanarAlly backend server code.
+This is the code responsible for starting the backend and reacting to socket IO events.
+"""
+
 import os
 import socketio
 

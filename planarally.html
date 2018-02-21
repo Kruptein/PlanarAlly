@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>VTT</title>
+        <link rel="stylesheet" type="text/css" href="/static/css/planarally.css">
+        <script defer src="/static/js/planarally.js"></script>
+        <script src="https://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
+        <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js" integrity="sha256-VazP97ZCwtekAsvgPBSUwPFKdrwD3unUfSGVYrahUqU=" crossorigin="anonymous"></script>
+    </head>
+    <body>
+        <div id="main">
+            <div id="board">
+                <div id="menu">
+                    <img src="static/img/Aboleth.png" width="50" class="draggable">
+                    <img src="static/img/Throt.png" width="50" class="draggable" id='throt'>
+                </div>
+                <div id="menutoggle"></div>
+                <div id="layers">
+                    <canvas id="map-layer" style="z-index: 0;"></canvas>
+                    <canvas id="token-layer" style="z-index: 2;"></canvas>
+                    <canvas id="dm-layer" style="z-index: 3;"></canvas>
+                    <canvas id="grid-layer" style="z-index: 1"></canvas>
+                </div>
+                <div id="layerselect">
+                    <ul>
+                        <li id='select-map'><a href='#'>M</a></li>
+                        <li id='select-tokens' class='layer-selected'><a href='#'>T</a></li>
+                        <li id='select-dm'><a href='#'>D</a></li>
+                        <!-- <li id='select-vision'><a href='#'>V</a></li> -->
+                    </ul>
+                </div>
+            </div>
+            <div id='contextMenu'>
+            </div>
+        </div>
+    </body>
+</html>

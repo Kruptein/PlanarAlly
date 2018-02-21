@@ -1,0 +1,154 @@
+html, body, #main {
+    height: 100%;
+}
+
+body {
+    margin: 0;
+}
+
+a, a:visited, a:hover, a:active {
+  color: inherit;
+}
+
+#main {
+    display: flex;
+}
+
+#menu {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width:200px;
+    z-index:11;
+    background-color: red;
+    display: none;
+}
+
+#board {
+    position: relative;
+    width: 100%;
+    height: 100%;
+}
+
+#menutoggle {
+    background-color: red;
+    width: 20px;
+    height: 150px;
+    position: absolute;
+    top: 40%;
+    left: 0;
+    z-index:10;
+}
+
+#layers, canvas {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    left: 0;
+    top: 0;
+    overflow: hidden;
+}
+
+#layerselect {
+    position: absolute;
+    bottom: 25px;
+    left:25px;
+    z-index:10;
+    background-color: white;
+}
+
+#layerselect ul{
+    display: flex;
+    list-style: none;
+    padding: 0;
+    margin:0;
+    border: solid 1px black;
+}
+
+#layerselect li {
+    display:flex;
+    border-right: solid 1px black;
+}
+
+#layerselect li:last-child {
+    border-right: none;
+}
+
+#layerselect li:hover {
+    background-color: aqua;
+}
+
+#layerselect li a {
+    -webkit-user-select: none;  /* Chrome all / Safari all */
+    -moz-user-select: none;     /* Firefox all */
+    -ms-user-select: none;      /* IE 10+ */
+    user-select: none; 
+    display:flex;
+    padding:10px;
+    text-decoration:none;
+}
+
+#layerselect .layer-selected {
+    background-color: aqua;
+}
+
+
+.draggable {
+    list-style: none;
+    font-family: helvetica;
+}
+
+#contextMenu {
+    position: absolute;
+    z-index: 11;
+}
+
+#contextMenu ul {
+    /*width: 100%;*/
+    /*height: 100%;*/
+    border:1px solid black;
+    background:white;
+    padding: 0;
+    list-style:none;
+    margin: 0;
+}
+
+#contextMenu ul li {
+    border-bottom: 1px solid black;
+    padding: 5px;
+}
+
+#contextMenu ul li:hover {
+    background-color: aqua;
+}
+
+#contextMenu ul li:last-child {
+    border-bottom: none;
+}
+
+#contextMenu > ul > li {
+    clear: left;
+    position: relative;
+}
+
+#contextMenu > ul > li ul {
+    display:none;
+    position: absolute;
+    left: 99px;
+    top: 0;
+}
+
+#contextMenu > ul > li:hover ul {
+    display:flex;
+    flex-direction: column;
+}
+
+#contextMenu > ul > li ul li {
+    /*float: left;*/
+    /*display: block;*/
+}
+
+.context-clickable {
+    cursor: pointer;
+}

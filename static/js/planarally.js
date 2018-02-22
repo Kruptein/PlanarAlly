@@ -1,7 +1,7 @@
 // **** WebSocket ****
 
 var protocol = document.domain === 'localhost' ? "http://" : "https://";
-var socket = io.connect(protocol + document.domain + ":8000/planarally");
+var socket = io.connect(protocol + document.domain + ":" + location.port + "/planarally");
 var board_initialised = false;
 socket.on("connect", function () {
     console.log("Connected");

@@ -178,6 +178,7 @@ LayerState.prototype.addShape = function (shape) {
 };
 LayerState.prototype.setShapes = function (shapes) {
     var t = [];
+    var self = this;
     shapes.forEach(function (shape) {
         var sh;
         if (shape.type === 'shape') sh = new Shape(shape.x, shape.y, shape.w, shape.h, shape.c);
@@ -189,6 +190,9 @@ LayerState.prototype.setShapes = function (shapes) {
                 img.src = shape.img;
                 sh = new Token(img, shape.x, shape.y, shape.w, shape.h);
                 layerManager.imageMap.set(sh.uuid, img);
+                img.onload = function() {
+                    self.invalidate(false);
+                };
             }
         }
         t.push(sh);

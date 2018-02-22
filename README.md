@@ -56,6 +56,9 @@ Following is a list of current TODO's in no particular order:
 * Client options
 * Rotate tokens
 * Some form of barebones text chat
+* Layer management
+    * custom amount of layers and custom order
+    * icons
 * More tools
     * Ruler
     * Draw shapes

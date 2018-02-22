@@ -44,11 +44,12 @@ To prevent auto snapping, combine your move/resize with the alt key.
 Currently very bare bones; All images in the `img/` directory will be showed in the tokens menu that can be revealed by clicking on the red bar at the left of the screen.
 Dragging a token from here on to the grid will place it in the currently selected layer.
 
+To remove a token from the board, you can select it and press the delete key.
+
 ## Planned
 
 Following is a list of current TODO's in no particular order:
 
-* Delete tokens from the board
 * Select multiple tokens for move operation
 * Light/Shadow
 * Better token management

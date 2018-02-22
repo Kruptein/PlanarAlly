@@ -22,6 +22,16 @@ async def index(request):
         return web.Response(text=f.read(), content_type='text/html')
 
 
+@sio.on("join room", namespace='/planarally')
+async def join_room(sid, room):
+    if room not in PA.rooms:
+        PA.add_room(room)
+    sio.enter_room(sid, room, namespace='/planarally')
+    PA.clients[sid].room = room
+    await sio.emit('token list', os.listdir(os.path.join("static", "img")), room=sid, namespace='/planarally')
+    await sio.emit('board init', PA.get_client_room(sid).layer_manager.as_dict(), room=sid, namespace='/planarally')
+
+
 @sio.on("client initialised", namespace='/planarally')
 async def client_init(sid):
     PA.clients[sid].initialised = True
@@ -30,8 +40,8 @@ async def client_init(sid):
 @sio.on('layer invalidate', namespace='/planarally')
 async def layer_invalid(sid, message):
     if PA.clients[sid].initialised:
-        PA.layer_manager.layers[message['layer']].shapes = message['shapes']
-        d = PA.layer_manager.layers[message['layer']].as_dict()
+        PA.get_client_room(sid).layer_manager.layers[message['layer']].shapes = message['shapes']
+        d = PA.get_client_room(sid).layer_manager.layers[message['layer']].as_dict()
         d['layer'] = message['layer']
         await sio.emit('layer set', d, room="skt", skip_sid=sid, namespace='/planarally')
 
@@ -45,9 +55,6 @@ async def disconnect_request(sid):
 @sio.on('connect', namespace='/planarally')
 async def test_connect(sid, environ):
     PA.add_client(sid)
-    sio.enter_room(sid, "skt", namespace='/planarally')
-    await sio.emit('token list', os.listdir(os.path.join("static", "img")), room=sid, namespace='/planarally')
-    await sio.emit('board init', PA.layer_manager.as_dict(), room=sid, namespace='/planarally')
 
 
 @sio.on('disconnect', namespace='/planarally')
@@ -62,7 +69,7 @@ if __name__ == '__main__':
     if os.path.isdir("cert"):
         import ssl
 
-        ctx = ssl.SSLContext(protocol=ssl.PROTOCOL_TLS)
+        ctx = ssl.SSLContext()
         ctx.load_cert_chain("cert/fullchain.pem", "cert/privkey.pem")
         web.run_app(app, port=8000, ssl_context=ctx)
     else:

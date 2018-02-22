@@ -5,6 +5,7 @@ var socket = io.connect(protocol + document.domain + ":8000/planarally");
 var board_initialised = false;
 socket.on("connect", function () {
     console.log("Connected");
+    socket.emit("join room", findGetParameter("room"));
 });
 socket.on("disconnect", function () {
     console.log("Disconnected");
@@ -594,4 +595,17 @@ function uuidv4() {
     var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
     return v.toString(16);
   });
+}
+
+function findGetParameter(parameterName) {
+    var result = null,
+        tmp = [];
+    location.search
+        .substr(1)
+        .split("&")
+        .forEach(function (item) {
+          tmp = item.split("=");
+          if (tmp[0] === parameterName) result = decodeURIComponent(tmp[1]);
+        });
+    return result;
 }

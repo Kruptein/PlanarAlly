@@ -6,7 +6,7 @@ PlayerAlly data representation classes.
 class Client:
     def __init__(self, sid):
         self.sid = sid
-        self.rooms = [sid]
+        self.room = None
         self.initialised = False
 
 
@@ -85,9 +85,9 @@ class Token:
         }
 
 
-class PlanarAlly:
-    def __init__(self):
-        self.clients = {}
+class Room:
+    def __init__(self, name):
+        self.name = name
         self.layer_manager = LayerManager()
 
         self.layer_manager.add(Layer("map"))
@@ -99,5 +99,17 @@ class PlanarAlly:
         self.layer_manager.layers[1].add_shape(Shape(40, 80, 50, 50, "red"))
         self.layer_manager.layers[2].add_shape(Shape(80, 80, 50, 50, "blue"))
 
+
+class PlanarAlly:
+    def __init__(self):
+        self.clients = {}
+        self.rooms = {}
+
     def add_client(self, sid):
         self.clients[sid] = Client(sid)
+
+    def add_room(self, room):
+        self.rooms[room] = Room(room)
+
+    def get_client_room(self, sid):
+        return self.rooms[self.clients[sid].room]

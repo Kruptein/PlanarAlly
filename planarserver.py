@@ -49,7 +49,7 @@ async def layer_invalid(sid, message):
         PA.get_client_room(sid).layer_manager.layers[message['layer']].shapes = message['shapes']
         d = PA.get_client_room(sid).layer_manager.layers[message['layer']].as_dict()
         d['layer'] = message['layer']
-        await sio.emit('layer set', d, room="skt", skip_sid=sid, namespace='/planarally')
+        await sio.emit('layer set', d, room=PA.get_client_room(sid).name, skip_sid=sid, namespace='/planarally')
 
 
 @sio.on('connect', namespace='/planarally')

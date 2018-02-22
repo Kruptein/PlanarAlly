@@ -203,6 +203,7 @@ LayerState.prototype.setShapes = function (shapes) {
 };
 LayerState.prototype.removeShape = function (shape) {
     this.shapes.splice(this.shapes.indexOf(shape), 1);
+    if (this.selection === shape)   this.selection = null;
     this.invalidate();
 };
 LayerState.prototype.clear = function () {
@@ -564,6 +565,15 @@ window.onresize = function () {
     layerManager.invalidate(false);
     layerManager.drawGrid();
 };
+
+$('body').keyup(function(e){
+    if(e.keyCode === 46) {
+        var l = layerManager.getLayer();
+        if (l.selection) {
+            l.removeShape(l.selection);
+        }
+    }
+});
 
 $("#grid-layer").droppable({
     drop: function (event, ui) {

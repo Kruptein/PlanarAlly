@@ -34,8 +34,8 @@ async def join_room(sid, room):
                 PA.rooms[room] = shelf[room]
     sio.enter_room(sid, room, namespace='/planarally')
     PA.clients[sid].room = room
-    await sio.emit('token list', PA.get_token_list(), room=sid, namespace='/planarally')
     await sio.emit('board init', PA.get_client_room(sid).layer_manager.as_dict(), room=sid, namespace='/planarally')
+    await sio.emit('token list', PA.get_token_list(), room=sid, namespace='/planarally')
 
 
 @sio.on("client initialised", namespace='/planarally')

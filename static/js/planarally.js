@@ -403,8 +403,8 @@ function LayerManager(layers) {
                 var gs = this.layerManager.gridSize;
                 sel.x = Math.round(sel.x / gs) * gs;
                 sel.y = Math.round(sel.y / gs) * gs;
-                sel.w = Math.round(sel.w / gs) * gs;
-                sel.h = Math.round(sel.h / gs) * gs;
+                sel.w = Math.max(Math.round(sel.w / gs) * gs, gs);
+                sel.h = Math.max(Math.round(sel.h / gs) * gs, gs);
             }
             layer.invalidate();
         }

@@ -561,7 +561,7 @@ window.onresize = function () {
         layerManager.layers[i].canvas.width = layerManager.width;
         layerManager.layers[i].canvas.height = layerManager.height;
     }
-    layerManager.invalidate();
+    layerManager.invalidate(false);
     layerManager.drawGrid();
 };
 

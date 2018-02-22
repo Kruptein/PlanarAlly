@@ -374,12 +374,22 @@ function LayerManager(layers) {
         var layer = this.layerManager.getLayer();
         if (!e.altKey && layer.dragging) {
             var gs = this.layerManager.gridSize;
-            var mouse = layer.getMouse(e);
+            // var mouse = layer.getMouse(e);
+            console.log(layer.getMouse(e));
+            var mouse = {x: layer.selection.x + layer.selection.w / 2, y: layer.selection.y + layer.selection.h/2};
+            console.log(mouse);
             var mx = mouse.x;
             var my = mouse.y;
-            var diff = (gs - layer.selection.w) / 2;
-            layer.selection.x = diff + Math.floor(mx / gs) * gs;
-            layer.selection.y = diff + Math.floor(my / gs) * gs;
+            if ((layer.selection.w / gs) % 2 === 0) {
+                layer.selection.x = Math.round(mx / gs) * gs - layer.selection.w/2;
+            } else {
+                layer.selection.x = (Math.round((mx + (gs/2)) / gs) - (1/2)) * gs - layer.selection.w/2;
+            }
+            if ((layer.selection.h / gs) % 2 === 0) {
+                layer.selection.y = Math.round(my / gs) * gs - layer.selection.h/2;
+            } else {
+                layer.selection.y = (Math.round((my + (gs/2)) / gs) - (1/2)) * gs - layer.selection.h/2;
+            }
             layer.invalidate();
         }
         if (layer.resizing) {
@@ -392,6 +402,17 @@ function LayerManager(layers) {
                 sel.y += sel.h;
                 sel.h = Math.abs(sel.h);
             }
+            if (e.altKey) {
+                var mouse = layer.getMouse(e);
+                var mx = mouse.x;
+                var my = mouse.y;
+                var gs = this.layerManager.gridSize;
+                sel.x = Math.floor(mx / gs) * gs;
+                sel.y = Math.floor(my / gs) * gs;
+                sel.w = Math.round(sel.w / gs) * gs;
+                sel.h = Math.round(sel.h / gs) * gs;
+            }
+            layer.invalidate();
         }
         layer.dragging = false;
         layer.resizing = false;

@@ -41,14 +41,20 @@ socket.on("token list", function (tokens) {
 });
 socket.on("board init", function (board) {
     for (var i = 0; i < board.layers.length; i++) {
-        if (board.layers[i].grid) continue;
-        layerManager.getLayer(i).setShapes(board.layers[i].shapes);
+        if (board.layers[i].grid) {
+            layerManager.setGridSize(board.layers[i].size);
+        } else {
+            layerManager.getLayer(i).setShapes(board.layers[i].shapes);
+        }
     }
     socket.emit("client initialised");
     board_initialised = true;
 });
 socket.on("layer set", function (layer) {
     layerManager.getLayer(layer.layer).setShapes(layer.shapes);
+});
+socket.on("set gridsize", function (gridSize) {
+    layerManager.setGridSize(gridSize);
 });
 
 
@@ -303,7 +309,7 @@ function LayerManager(layers) {
 
     var layerManager = this;
 
-    this.gridSize = 100;
+    this.gridSize = 50;
 
     // prevent double clicking text selection
     window.addEventListener('selectstart', function (e) {
@@ -503,8 +509,11 @@ LayerManager.prototype.drawGrid = function (layer) {
     layer.valid = true;
 };
 LayerManager.prototype.setGridSize = function (gridSize, layer) {
-    this.gridSize = gridSize;
-    this.drawGrid(layer);
+    if (gridSize !== this.gridSize){
+        this.gridSize = gridSize;
+        this.drawGrid(layer);
+        $('#gridSizeInput').val(gridSize);
+    }
 };
 LayerManager.prototype.invalidate = function () {
     for (var i = 0; i < this.layers.length - 1; i++) {
@@ -591,6 +600,12 @@ $('body').keyup(function(e){
             l.removeShape(l.selection);
         }
     }
+});
+
+$("#gridSizeInput").on("change", function(e){
+    var gs = parseInt(e.target.value);
+    layerManager.setGridSize(gs);
+    socket.emit("set gridsize", gs);
 });
 
 $("#grid-layer").droppable({

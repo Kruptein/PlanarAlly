@@ -46,10 +46,19 @@ async def client_init(sid):
 @sio.on('layer invalidate', namespace='/planarally')
 async def layer_invalid(sid, message):
     if PA.clients[sid].initialised:
-        PA.get_client_room(sid).layer_manager.layers[message['layer']].shapes = message['shapes']
-        d = PA.get_client_room(sid).layer_manager.layers[message['layer']].as_dict()
+        room = PA.get_client_room(sid)
+        room.layer_manager.layers[message['layer']].shapes = message['shapes']
+        d = room.layer_manager.layers[message['layer']].as_dict()
         d['layer'] = message['layer']
-        await sio.emit('layer set', d, room=PA.get_client_room(sid).name, skip_sid=sid, namespace='/planarally')
+        await sio.emit('layer set', d, room=room.name, skip_sid=sid, namespace='/planarally')
+
+
+@sio.on("set gridsize", namespace="/planarally")
+async def set_gridsize(sid, grid_size):
+    if PA.clients[sid].initialised:
+        room = PA.get_client_room(sid)
+        room.layer_manager.get_grid_layer().size = grid_size
+        await sio.emit("set gridsize", grid_size, room=room.name, skip_sid=sid, namespace="/planarally")
 
 
 @sio.on('connect', namespace='/planarally')

@@ -23,6 +23,11 @@ class LayerManager:
             'layers': [l.as_dict() for l in self.layers]
         }
 
+    def get_grid_layer(self):
+        for layer in self.layers:
+            if isinstance(layer, GridLayer):
+                return layer
+
 
 class Layer:
     def __init__(self, name):
@@ -39,11 +44,12 @@ class Layer:
 
 
 class GridLayer(Layer):
-    def __init__(self, name):
-        super().__init__(name)
+    def __init__(self, size):
+        super().__init__("grid")
+        self.size = size
 
     def as_dict(self):
-        return {'grid': True}
+        return {'grid': True, 'size': self.size}
 
 
 class Shape:
@@ -94,11 +100,11 @@ class Room:
         self.layer_manager.add(Layer("map"))
         self.layer_manager.add(Layer("tokens"))
         self.layer_manager.add(Layer("dm"))
-        self.layer_manager.add(GridLayer("grid"))
-        self.layer_manager.layers[0].add_shape(Shape(40, 40, 50, 50))
-        self.layer_manager.layers[1].add_shape(Shape(80, 40, 50, 50, "red"))
-        self.layer_manager.layers[1].add_shape(Shape(40, 80, 50, 50, "red"))
-        self.layer_manager.layers[2].add_shape(Shape(80, 80, 50, 50, "blue"))
+        self.layer_manager.add(GridLayer(50))
+        self.layer_manager.layers[0].add_shape(Shape(50, 50, 50, 50))
+        self.layer_manager.layers[1].add_shape(Shape(100, 50, 50, 50, "red"))
+        self.layer_manager.layers[1].add_shape(Shape(50, 100, 50, 50, "red"))
+        self.layer_manager.layers[2].add_shape(Shape(100, 100, 50, 50, "blue"))
 
 
 class PlanarAlly:

@@ -402,13 +402,13 @@ function LayerManager(layers) {
                 sel.y += sel.h;
                 sel.h = Math.abs(sel.h);
             }
-            if (e.altKey) {
+            if (!e.altKey) {
                 var mouse = layer.getMouse(e);
                 var mx = mouse.x;
                 var my = mouse.y;
                 var gs = this.layerManager.gridSize;
-                sel.x = Math.floor(mx / gs) * gs;
-                sel.y = Math.floor(my / gs) * gs;
+                sel.x = Math.round(sel.x / gs) * gs;
+                sel.y = Math.round(sel.y / gs) * gs;
                 sel.w = Math.round(sel.w / gs) * gs;
                 sel.h = Math.round(sel.h / gs) * gs;
             }

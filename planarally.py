@@ -1,6 +1,7 @@
 """
 PlayerAlly data representation classes.
 """
+import os
 
 
 class Client:
@@ -113,3 +114,14 @@ class PlanarAlly:
 
     def get_client_room(self, sid):
         return self.rooms[self.clients[sid].room]
+
+    def get_token_list(self, path=None):
+        if not path:
+            path = os.path.join("static", "img")
+        d = {'files': [], 'folders': {}}
+        for entry in os.scandir(path):
+            if entry.is_file():
+                d['files'].append(entry.name)
+            elif entry.is_dir():
+                d['folders'][entry.name] = self.get_token_list(entry.path)
+        return d

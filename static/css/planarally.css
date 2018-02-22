@@ -23,6 +23,7 @@ a, a:visited, a:hover, a:active {
     z-index:11;
     background-color: red;
     display: none;
+    overflow: auto;
 }
 
 #board {
@@ -175,20 +176,23 @@ a, a:visited, a:hover, a:active {
     overflow: hidden;
 }
 
-#menu-tokens {
-    position: absolute;
+.accordion-subpanel {
     display: flex;
     flex-direction: column;
     width: 100%;
 }
 
-#menu-tokens div {
+/*.accordion-subpanel > div {*/
+    /*margin-top: 5px;*/
+    /*display: flex;*/
+    /*align-items:center;*/
+    /*justify-content: flex-start;*/
+/*}*/
+
+.token {
+    padding: 0 10px;
     margin-top: 5px;
     display: flex;
     align-items:center;
     justify-content: flex-start;
-}
-
-#menu-tokens div > * {
-    padding: 0 10px;
 }

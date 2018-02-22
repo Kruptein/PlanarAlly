@@ -13,13 +13,31 @@ socket.on("disconnect", function () {
 socket.on("token list", function (tokens) {
     var m = $("#menu-tokens");
     m.empty();
-    tokens.forEach(function(token) {
-        m.append("<div class='draggable'><img src='/static/img/" + token + "' width='35'>" + token + "</div>");
-    });
+    var h = '';
+    var process = function(entry, path) {
+        path = path || "";
+        var folders = new Map(Object.entries(entry.folders));
+        folders.forEach(function(value, key){
+            h += "<button class='accordion'>" + key + "</button><div class='accordion-panel'><div class='accordion-subpanel'>";
+            process(value, path + key + "/");
+            h += "</div></div>";
+        });
+        entry.files.forEach(function(token){
+            h += "<div class='draggable token'><img src='/static/img/" + path + token + "' width='35'>" + token + "</div>";
+        });
+    };
+    process(tokens);
+    m.html(h);
     $(".draggable").draggable({
         helper: "clone",
         appendTo: "#board"
     });
+    $('.accordion').each(function(idx) {
+    $(this).on("click", function(){
+        $(this).toggleClass("accordion-active");
+        $(this).next().toggle();
+    });
+});
 });
 socket.on("board init", function (board) {
     for (var i = 0; i < board.layers.length; i++) {
@@ -588,13 +606,6 @@ $("#grid-layer").droppable({
         l.addShape(token);
         layerManager.imageMap.set(token.uuid, token.img);
     }
-});
-
-$('.accordion').each(function(idx) {
-    $(this).on("click", function(){
-        $(this).toggleClass("accordion-active");
-        $(this).next().toggle();
-    });
 });
 
 // **** UTILS ****

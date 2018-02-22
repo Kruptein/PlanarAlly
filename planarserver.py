@@ -4,6 +4,7 @@ This is the code responsible for starting the backend and reacting to socket IO 
 """
 
 import os
+import shelve
 import socketio
 
 from aiohttp import web
@@ -24,8 +25,13 @@ async def index(request):
 
 @sio.on("join room", namespace='/planarally')
 async def join_room(sid, room):
+    if room is None:
+        room = ''
     if room not in PA.rooms:
         PA.add_room(room)
+        with shelve.open("planar.save", "c") as shelf:
+            if room in shelf:
+                PA.rooms[room] = shelf[room]
     sio.enter_room(sid, room, namespace='/planarally')
     PA.clients[sid].room = room
     await sio.emit('token list', os.listdir(os.path.join("static", "img")), room=sid, namespace='/planarally')
@@ -46,20 +52,18 @@ async def layer_invalid(sid, message):
         await sio.emit('layer set', d, room="skt", skip_sid=sid, namespace='/planarally')
 
 
-@sio.on('disconnect request', namespace='/planarally')
-async def disconnect_request(sid):
-    sio.leave_room(sid, "skt", namespace='/planarally')
-    await sio.disconnect(sid, namespace='/planarally')
-
-
 @sio.on('connect', namespace='/planarally')
 async def test_connect(sid, environ):
+    print(f"Client {sid} connected")
     PA.add_client(sid)
 
 
 @sio.on('disconnect', namespace='/planarally')
-def test_disconnect(sid):
-    print('Client disconnected')
+async def test_disconnect(sid):
+    print(f'Client {sid} disconnected')
+    room = PA.get_client_room(sid)
+    with shelve.open("planar.save", "c") as shelf:
+        shelf[room.name] = room
 
 
 app.router.add_static('/static', 'static')

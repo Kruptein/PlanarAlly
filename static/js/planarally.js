@@ -374,10 +374,7 @@ function LayerManager(layers) {
         var layer = this.layerManager.getLayer();
         if (!e.altKey && layer.dragging) {
             var gs = this.layerManager.gridSize;
-            // var mouse = layer.getMouse(e);
-            console.log(layer.getMouse(e));
             var mouse = {x: layer.selection.x + layer.selection.w / 2, y: layer.selection.y + layer.selection.h/2};
-            console.log(mouse);
             var mx = mouse.x;
             var my = mouse.y;
             if ((layer.selection.w / gs) % 2 === 0) {
@@ -403,9 +400,6 @@ function LayerManager(layers) {
                 sel.h = Math.abs(sel.h);
             }
             if (!e.altKey) {
-                var mouse = layer.getMouse(e);
-                var mx = mouse.x;
-                var my = mouse.y;
                 var gs = this.layerManager.gridSize;
                 sel.x = Math.round(sel.x / gs) * gs;
                 sel.y = Math.round(sel.y / gs) * gs;

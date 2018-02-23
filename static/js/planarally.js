@@ -147,6 +147,27 @@ Line.prototype.asDict = function() {
     return {x1: this.x1, x2: this.x2, y1: this.y1, y2: this.y2, type: "line"};
 };
 
+function Text(x, y, text, font, angle) {
+    this.x = x;
+    this.y = y;
+    this.text = text;
+    this.font = font;
+    this.angle = angle || 0;
+}
+Text.prototype = Object.create(Shape.prototype);
+Text.prototype.draw = function (ctx) {
+    ctx.font = this.font;
+    ctx.save();
+    ctx.translate(this.x, this.y);
+    ctx.rotate(this.angle);
+    ctx.textAlign = "center";
+    ctx.fillText(this.text, 0, -5);
+    ctx.restore();
+};
+Text.prototype.asDict = function() {
+    return {x: this.x, y: this.y, text: this.text, font: this.font, angle: this.angle, type: "text"};
+};
+
 function Token(img, x, y, w, h, uuid) {
     this.uuid = uuid || uuidv4();
     this.img = img;
@@ -228,6 +249,7 @@ LayerState.prototype.setShapes = function (shapes) {
         let sh;
         if (shape.type === 'shape') sh = new Shape(shape.x, shape.y, shape.w, shape.h, shape.c);
         if (shape.type === 'line') sh = new Line(shape.x1, shape.y1, shape.x2, shape.y2);
+        if (shape.type === 'text') sh = new Text(shape.x, shape.y, shape.text, shape.font, shape.angle);
         if (shape.type === 'token') {
             if (gameManager.layerManager.imageMap.has(shape.uuid))
                 sh = new Token(gameManager.layerManager.imageMap.get(shape.uuid), shape.x, shape.y, shape.w, shape.h, shape.uuid);
@@ -332,6 +354,7 @@ function LayerManager(layers) {
     const layerManager = this;
 
     this.gridSize = 50;
+    this.unitSize = 5;
     this.zoomFactor = 1;
 }
 LayerManager.prototype.setWidth = function (width) {
@@ -548,6 +571,7 @@ RulerTool.prototype.onMouseDown = function (e) {
     const layer = gameManager.layerManager.getLayer(4);
     this.startPoint = layer.getMouse(e);
     this.ruler = null;
+    this.text = null;
 };
 RulerTool.prototype.onMouseMove = function (e) {
     if (this.startPoint === null) return;
@@ -555,11 +579,22 @@ RulerTool.prototype.onMouseMove = function (e) {
     const layer = gameManager.layerManager.getLayer(4);
     const endPoint = layer.getMouse(e);
     const ruler = new Line(this.startPoint.x, this.startPoint.y, endPoint.x, endPoint.y);
-    if (this.ruler === null)
+    const xdiff = endPoint.x - this.startPoint.x;
+    const ydiff = endPoint.y - this.startPoint.y;
+    const label = Math.round(Math.sqrt(xdiff ** 2 + ydiff ** 2) * gameManager.layerManager.unitSize / gameManager.layerManager.gridSize) + " ft";
+    let angle = Math.atan2(ydiff, xdiff);
+    const xmid = this.startPoint.x + xdiff / 2;
+    const ymid = this.startPoint.y + ydiff / 2;
+    const text = new Text(xmid, ymid, label, "20px serif", angle);
+    if (this.ruler === null) {
         layer.addShape(ruler);
-    else
+        layer.addShape(text);
+    } else {
         layer.shapes.splice(layer.shapes.indexOf(this.ruler), 1, ruler);
+        layer.shapes.splice(layer.shapes.indexOf(this.text), 1, text);
+    }
     this.ruler = ruler;
+    this.text = text;
     layer.invalidate()
 };
 RulerTool.prototype.onMouseUp = function (e) {
@@ -567,7 +602,9 @@ RulerTool.prototype.onMouseUp = function (e) {
     this.startPoint = null;
     const layer = gameManager.layerManager.getLayer(4);
     layer.shapes.splice(layer.shapes.indexOf(this.ruler), 1);
+    layer.shapes.splice(layer.shapes.indexOf(this.text), 1);
     this.ruler = null;
+    this.text = null;
     layer.invalidate();
 };
 

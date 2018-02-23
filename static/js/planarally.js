@@ -313,161 +313,6 @@ function LayerManager(layers) {
 
     this.gridSize = 50;
     this.zoomFactor = 1;
-
-    // prevent double clicking text selection
-    window.addEventListener('selectstart', function (e) {
-        e.preventDefault();
-        return false;
-    });
-    window.addEventListener('mousedown', function (e) {
-        if (e.button !== 0 || e.target.tagName !== 'CANVAS') {
-            return;
-        }
-
-        $menu.hide();
-
-        const layer = layerManager.getLayer();
-        const mouse = layer.getMouse(e);
-        const mx = mouse.x;
-        const my = mouse.y;
-
-        if (mx < 200 && $('#menu').is(":visible")) {
-            return;
-        }
-
-        const shapes = layer.shapes;
-        const l = shapes.length;
-        for (let i = l - 1; i >= 0; i--) {
-            const corn = shapes[i].getCorner(mx, my);
-            if (corn !== undefined) {
-                layer.selection = shapes[i];
-                layer.resizing = true;
-                layer.resizedir = corn;
-                layer.invalidate();
-                return;
-            } else if (shapes[i].contains(mx, my)) {
-                const sel = shapes[i];
-                layer.selection = sel;
-                layer.dragging = true;
-                layer.dragoffx = mx - sel.x;
-                layer.dragoffy = my - sel.y;
-                layer.invalidate();
-                return;
-            }
-        }
-        if (layer.selection) {
-            layer.selection = null;
-            layer.invalidate();
-        }
-    });
-    window.addEventListener('mousemove', function (e) {
-        const layer = layerManager.getLayer();
-        const sel = layer.selection;
-        const mouse = layer.getMouse(e);
-        if (layer.dragging) {
-            sel.x = mouse.x - layer.dragoffx;
-            sel.y = mouse.y - layer.dragoffy;
-            layer.invalidate();
-        } else if (layer.resizing) {
-            if (layer.resizedir === 'nw') {
-                sel.w = sel.x + sel.w - mouse.x;
-                sel.h = sel.y + sel.h - mouse.y;
-                sel.x = mouse.x;
-                sel.y = mouse.y;
-            } else if (layer.resizedir === 'ne') {
-                sel.w = mouse.x - sel.x;
-                sel.h = sel.y + sel.h - mouse.y;
-                sel.y = mouse.y;
-            } else if (layer.resizedir === 'se') {
-                sel.w = mouse.x - sel.x;
-                sel.h = mouse.y - sel.y;
-            } else if (layer.resizedir === 'sw') {
-                sel.w = sel.x + sel.w - mouse.x;
-                sel.h = mouse.y - sel.y;
-                sel.x = mouse.x;
-            }
-            layer.invalidate();
-        } else if (sel) {
-            if (sel.inCorner(mouse.x, mouse.y, "nw")) {
-                document.body.style.cursor = "nw-resize";
-            } else if (sel.inCorner(mouse.x, mouse.y, "ne")) {
-                document.body.style.cursor = "ne-resize";
-            } else if (sel.inCorner(mouse.x, mouse.y, "se")) {
-                document.body.style.cursor = "se-resize";
-            } else if (sel.inCorner(mouse.x, mouse.y, "sw")) {
-                document.body.style.cursor = "sw-resize";
-            } else {
-                document.body.style.cursor = "default";
-            }
-        } else {
-            document.body.style.cursor = "default";
-        }
-    });
-    window.addEventListener('mouseup', function (e) {
-        const layer = layerManager.getLayer();
-        if (!e.altKey && layer.dragging) {
-            const gs = layerManager.gridSize;
-            const mouse = {x: layer.selection.x + layer.selection.w / 2, y: layer.selection.y + layer.selection.h/2};
-            const mx = mouse.x;
-            const my = mouse.y;
-            if ((layer.selection.w / gs) % 2 === 0) {
-                layer.selection.x = Math.round(mx / gs) * gs - layer.selection.w/2;
-            } else {
-                layer.selection.x = (Math.round((mx + (gs/2)) / gs) - (1/2)) * gs - layer.selection.w/2;
-            }
-            if ((layer.selection.h / gs) % 2 === 0) {
-                layer.selection.y = Math.round(my / gs) * gs - layer.selection.h/2;
-            } else {
-                layer.selection.y = (Math.round((my + (gs/2)) / gs) - (1/2)) * gs - layer.selection.h/2;
-            }
-            layer.invalidate();
-        }
-        if (layer.resizing) {
-            const sel = layer.selection;
-            if (sel.w < 0) {
-                sel.x += sel.w;
-                sel.w = Math.abs(sel.w);
-            }
-            if (sel.h < 0) {
-                sel.y += sel.h;
-                sel.h = Math.abs(sel.h);
-            }
-            if (!e.altKey) {
-                const gs = layerManager.gridSize;
-                sel.x = Math.round(sel.x / gs) * gs;
-                sel.y = Math.round(sel.y / gs) * gs;
-                sel.w = Math.max(Math.round(sel.w / gs) * gs, gs);
-                sel.h = Math.max(Math.round(sel.h / gs) * gs, gs);
-            }
-            layer.invalidate();
-        }
-        layer.dragging = false;
-        layer.resizing = false;
-    });
-    window.addEventListener('dblclick', function (e) {
-        const layer = layerManager.getLayer();
-        const mouse = layer.getMouse(e);
-        if (mouse.x < 200 && $('#menu').is(":visible")) {
-            return;
-        }
-        layer.addShape(new Shape(mouse.x - 10, mouse.y - 10, 20, 20, 'rgba(0,255,0,.6)'));
-    });
-    window.addEventListener('contextmenu', function (e) {
-        e.preventDefault();
-        e.stopPropagation();
-        const layer = layerManager.getLayer();
-        const mouse = layer.getMouse(e);
-        const mx = mouse.x;
-        const my = mouse.y;
-        const shapes = layer.shapes;
-        const l = shapes.length;
-        for (let i = l - 1; i >= 0; i--) {
-            if (shapes[i].contains(mx, my)) {
-                shapes[i].showContextMenu(mouse);
-                break;
-            }
-        }
-    });
 }
 LayerManager.prototype.setWidth = function (width) {
     gameManager.layerManager.width = width;
@@ -539,10 +384,175 @@ LayerManager.prototype.invalidate = function (sync) {
         this.layers[i].invalidate(sync);
     }
 };
+LayerManager.prototype.onMouseDown = function (e) {
+    const layer = gameManager.layerManager.getLayer();
+    const mouse = layer.getMouse(e);
+    const mx = mouse.x;
+    const my = mouse.y;
+
+    if (mx < 200 && $('#menu').is(":visible")) {
+        return;
+    }
+
+    const shapes = layer.shapes;
+    const l = shapes.length;
+    for (let i = l - 1; i >= 0; i--) {
+        const corn = shapes[i].getCorner(mx, my);
+        if (corn !== undefined) {
+            layer.selection = shapes[i];
+            layer.resizing = true;
+            layer.resizedir = corn;
+            layer.invalidate();
+            return;
+        } else if (shapes[i].contains(mx, my)) {
+            const sel = shapes[i];
+            layer.selection = sel;
+            layer.dragging = true;
+            layer.dragoffx = mx - sel.x;
+            layer.dragoffy = my - sel.y;
+            layer.invalidate();
+            return;
+        }
+    }
+    if (layer.selection) {
+        layer.selection = null;
+        layer.invalidate();
+    }
+};
+LayerManager.prototype.onMouseMove = function(e) {
+    const layer = gameManager.layerManager.getLayer();
+    const sel = layer.selection;
+    const mouse = layer.getMouse(e);
+    if (layer.dragging) {
+        sel.x = mouse.x - layer.dragoffx;
+        sel.y = mouse.y - layer.dragoffy;
+        layer.invalidate();
+    } else if (layer.resizing) {
+        if (layer.resizedir === 'nw') {
+            sel.w = sel.x + sel.w - mouse.x;
+            sel.h = sel.y + sel.h - mouse.y;
+            sel.x = mouse.x;
+            sel.y = mouse.y;
+        } else if (layer.resizedir === 'ne') {
+            sel.w = mouse.x - sel.x;
+            sel.h = sel.y + sel.h - mouse.y;
+            sel.y = mouse.y;
+        } else if (layer.resizedir === 'se') {
+            sel.w = mouse.x - sel.x;
+            sel.h = mouse.y - sel.y;
+        } else if (layer.resizedir === 'sw') {
+            sel.w = sel.x + sel.w - mouse.x;
+            sel.h = mouse.y - sel.y;
+            sel.x = mouse.x;
+        }
+        layer.invalidate();
+    } else if (sel) {
+        if (sel.inCorner(mouse.x, mouse.y, "nw")) {
+            document.body.style.cursor = "nw-resize";
+        } else if (sel.inCorner(mouse.x, mouse.y, "ne")) {
+            document.body.style.cursor = "ne-resize";
+        } else if (sel.inCorner(mouse.x, mouse.y, "se")) {
+            document.body.style.cursor = "se-resize";
+        } else if (sel.inCorner(mouse.x, mouse.y, "sw")) {
+            document.body.style.cursor = "sw-resize";
+        } else {
+            document.body.style.cursor = "default";
+        }
+    } else {
+        document.body.style.cursor = "default";
+    }
+};
+LayerManager.prototype.onMouseUp = function (e) {
+    const layer = gameManager.layerManager.getLayer();
+    if (!e.altKey && layer.dragging) {
+        const gs = gameManager.layerManager.gridSize;
+        const mouse = {x: layer.selection.x + layer.selection.w / 2, y: layer.selection.y + layer.selection.h/2};
+        const mx = mouse.x;
+        const my = mouse.y;
+        if ((layer.selection.w / gs) % 2 === 0) {
+            layer.selection.x = Math.round(mx / gs) * gs - layer.selection.w/2;
+        } else {
+            layer.selection.x = (Math.round((mx + (gs/2)) / gs) - (1/2)) * gs - layer.selection.w/2;
+        }
+        if ((layer.selection.h / gs) % 2 === 0) {
+            layer.selection.y = Math.round(my / gs) * gs - layer.selection.h/2;
+        } else {
+            layer.selection.y = (Math.round((my + (gs/2)) / gs) - (1/2)) * gs - layer.selection.h/2;
+        }
+        layer.invalidate();
+    }
+    if (layer.resizing) {
+        const sel = layer.selection;
+        if (sel.w < 0) {
+            sel.x += sel.w;
+            sel.w = Math.abs(sel.w);
+        }
+        if (sel.h < 0) {
+            sel.y += sel.h;
+            sel.h = Math.abs(sel.h);
+        }
+        if (!e.altKey) {
+            const gs = gameManager.layerManager.gridSize;
+            sel.x = Math.round(sel.x / gs) * gs;
+            sel.y = Math.round(sel.y / gs) * gs;
+            sel.w = Math.max(Math.round(sel.w / gs) * gs, gs);
+            sel.h = Math.max(Math.round(sel.h / gs) * gs, gs);
+        }
+        layer.invalidate();
+    }
+    layer.dragging = false;
+    layer.resizing = false;
+};
+LayerManager.prototype.onContextMenu = function (e) {
+    e.preventDefault();
+    e.stopPropagation();
+    const layer = gameManager.layerManager.getLayer();
+    const mouse = layer.getMouse(e);
+    const mx = mouse.x;
+    const my = mouse.y;
+    const shapes = layer.shapes;
+    const l = shapes.length;
+    for (let i = l - 1; i >= 0; i--) {
+        if (shapes[i].contains(mx, my)) {
+            shapes[i].showContextMenu(mouse);
+            break;
+        }
+    }
+};
 
 function GameManager(layers) {
     this.layerManager = new LayerManager(layers);
     this.selectedTool = 0;
+
+    const gm = this;
+
+    // prevent double clicking text selection
+    window.addEventListener('selectstart', function (e) {
+        e.preventDefault();
+        return false;
+    });
+    window.addEventListener('mousedown', function (e) {
+        if (e.button !== 0 || e.target.tagName !== 'CANVAS') return;
+        $menu.hide();
+        if (gm.selectedTool === 0) {
+            gm.layerManager.onMouseDown(e);
+        }
+    });
+    window.addEventListener('mousemove', function (e) {
+        if (gm.selectedTool === 0) {
+            gm.layerManager.onMouseMove(e);
+        }
+    });
+    window.addEventListener('mouseup', function (e) {
+        if (gm.selectedTool === 0) {
+            gm.layerManager.onMouseUp(e);
+        }
+    });
+    window.addEventListener('contextmenu', function (e) {
+        if (gm.selectedTool === 0) {
+            gm.layerManager.onContextMenu(e);
+        }
+    });
 }
 
 

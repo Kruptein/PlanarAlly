@@ -72,7 +72,8 @@ Shape.prototype.asDict = function() {
 };
 Shape.prototype.draw = function (ctx) {
     ctx.fillStyle = this.fill;
-    ctx.fillRect(this.x, this.y, this.w, this.h);
+    const z = gameManager.layerManager.zoomFactor;
+    ctx.fillRect(this.x * z, this.y * z, this.w * z, this.h * z);
 };
 Shape.prototype.contains = function (mx, my) {
     return (this.x <= mx) && (this.x + this.w >= mx) &&
@@ -140,7 +141,8 @@ Token.prototype.asDict = function() {
     return {x: this.x, y: this.y, w: this.w, h: this.h, img: this.img.src, uuid: this.uuid, type: 'token'};
 };
 Token.prototype.draw = function (ctx) {
-    ctx.drawImage(this.img, this.x, this.y, this.w, this.h);
+    const z = gameManager.layerManager.zoomFactor;
+    ctx.drawImage(this.img, this.x * z, this.y * z, this.w * z, this.h * z);
 };
 
 // **** specific Layer State Management
@@ -247,19 +249,20 @@ LayerState.prototype.draw = function () {
         }
 
         if (this.selection != null) {
+            const z = gameManager.layerManager.zoomFactor;
             ctx.strokeStyle = this.selectionColor;
             ctx.lineWidth = this.selectionWidth;
             const mySel = this.selection;
-            ctx.strokeRect(mySel.x, mySel.y, mySel.w, mySel.h);
+            ctx.strokeRect(mySel.x * z, mySel.y * z, mySel.w* z, mySel.h* z);
 
             // topright
-            ctx.fillRect(mySel.x + mySel.w - 3, mySel.y - 3, 6, 6);
+            ctx.fillRect((mySel.x + mySel.w - 3) * z, (mySel.y - 3) * z, 6 * z, 6 * z);
             // topleft
-            ctx.fillRect(mySel.x - 3, mySel.y - 3, 6, 6);
+            ctx.fillRect((mySel.x - 3) * z, (mySel.y - 3) * z, 6 * z, 6 * z);
             // botright
-            ctx.fillRect(mySel.x + mySel.w - 3, mySel.y + mySel.h - 3, 6, 6);
+            ctx.fillRect((mySel.x + mySel.w - 3) * z, (mySel.y + mySel.h - 3) * z, 6 * z, 6 * z);
             // botleft
-            ctx.fillRect(mySel.x - 3, mySel.y + mySel.h - 3, 6, 6)
+            ctx.fillRect((mySel.x - 3) * z, (mySel.y + mySel.h - 3) * z, 6 * z, 6 * z)
         }
 
         this.valid = true;
@@ -309,6 +312,7 @@ function LayerManager(layers) {
     const layerManager = this;
 
     this.gridSize = 50;
+    this.zoomFactor = 1;
 
     // prevent double clicking text selection
     window.addEventListener('selectstart', function (e) {
@@ -465,7 +469,20 @@ function LayerManager(layers) {
         }
     });
 }
-
+LayerManager.prototype.setWidth = function (width) {
+    gameManager.layerManager.width = width;
+    for (let i = 0; i < gameManager.layerManager.layers.length; i++) {
+        gameManager.layerManager.layers[i].canvas.width = width;
+        gameManager.layerManager.layers[i].width = width;
+    }
+};
+LayerManager.prototype.setHeight = function (height) {
+    gameManager.layerManager.height = height;
+    for (let i = 0; i < gameManager.layerManager.layers.length; i++) {
+        gameManager.layerManager.layers[i].canvas.height = height;
+        gameManager.layerManager.layers[i].height = height;
+    }
+};
 LayerManager.prototype.getLayer = function (index) {
     index = (typeof index === 'undefined') ? this.selectedLayer : index;
     return this.layers[index];
@@ -494,10 +511,11 @@ LayerManager.prototype.getGridLayer = function () {
 LayerManager.prototype.drawGrid = function (layer) {
     layer = (typeof layer === 'undefined') ? this.getGridLayer() : layer;
     const ctx = layer.ctx;
-    ctx.clearRect(0, 0, layer.width, layer.height);
+    const z = gameManager.layerManager.zoomFactor;
+    layer.clear();
     ctx.beginPath();
 
-    for (let i = 0; i < layer.width; i += this.gridSize) {
+    for (let i = 0; i < layer.width; i += this.gridSize * z) {
         ctx.moveTo(i, 0);
         ctx.lineTo(i, layer.height);
         ctx.moveTo(0, i);
@@ -515,9 +533,10 @@ LayerManager.prototype.setGridSize = function (gridSize, layer) {
         $('#gridSizeInput').val(gridSize);
     }
 };
-LayerManager.prototype.invalidate = function () {
+LayerManager.prototype.invalidate = function (sync) {
+    if (sync === undefined) sync = true;
     for (let i = 0; i < this.layers.length - 1; i++) {
-        this.layers[i].invalidate();
+        this.layers[i].invalidate(sync);
     }
 };
 
@@ -563,6 +582,19 @@ $("#toolselect li").on("click", function () {
     }
 });
 
+$("#zoomer").slider({
+    orientation: "vertical",
+    min: 0.5,
+    max: 2.0,
+    step: 0.1,
+    value: 1.0,
+    slide: function( event, ui ) {
+        gameManager.layerManager.zoomFactor = 1 / ui.value;
+        gameManager.layerManager.invalidate(false);
+        gameManager.layerManager.drawGrid();
+    }
+});
+
 const $menu = $('#contextMenu');
 $menu.hide();
 
@@ -598,12 +630,8 @@ $('#menutoggle').on("click", function () {
 });
 
 window.onresize = function () {
-    gameManager.layerManager.width = window.innerWidth;
-    gameManager.layerManager.height = window.innerHeight;
-    for (let i = 0; i < gameManager.layerManager.layers.length; i++) {
-        gameManager.layerManager.layers[i].canvas.width = gameManager.layerManager.width;
-        gameManager.layerManager.layers[i].canvas.height = gameManager.layerManager.height;
-    }
+    gameManager.layerManager.setWidth(window.innerWidth);
+    gameManager.layerManager.setHeight(window.innerHeight);
     gameManager.layerManager.invalidate(false);
     gameManager.layerManager.drawGrid();
 };

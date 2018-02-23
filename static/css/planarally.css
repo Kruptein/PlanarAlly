@@ -239,3 +239,10 @@ a, a:visited, a:hover, a:active {
     align-items:center;
     justify-content: flex-start;
 }
+
+#zoomer {
+    position: absolute;
+    top: 25px;
+    right:25px;
+    z-index:11;
+}

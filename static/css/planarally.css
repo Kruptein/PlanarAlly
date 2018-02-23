@@ -94,6 +94,49 @@ a, a:visited, a:hover, a:active {
     background-color: aqua;
 }
 
+#toolselect {
+    position: absolute;
+    bottom: 25px;
+    right:25px;
+    z-index:10;
+    background-color: white;
+}
+
+#toolselect ul{
+    display: flex;
+    list-style: none;
+    padding: 0;
+    margin:0;
+    border: solid 1px black;
+}
+
+#toolselect li {
+    display:flex;
+    border-right: solid 1px black;
+}
+
+#toolselect li:last-child {
+    border-right: none;
+}
+
+#toolselect li:hover {
+    background-color: aqua;
+}
+
+#toolselect li a {
+    -webkit-user-select: none;  /* Chrome all / Safari all */
+    -moz-user-select: none;     /* Firefox all */
+    -ms-user-select: none;      /* IE 10+ */
+    user-select: none;
+    display:flex;
+    padding:10px;
+    text-decoration:none;
+}
+
+#toolselect .tool-selected {
+    background-color: aqua;
+}
+
 
 .draggable {
     list-style: none;

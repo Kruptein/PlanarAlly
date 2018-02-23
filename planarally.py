@@ -101,6 +101,7 @@ class Room:
         self.layer_manager.add(Layer("tokens"))
         self.layer_manager.add(Layer("dm"))
         self.layer_manager.add(GridLayer(50))
+        self.layer_manager.add(Layer("draw"))
         self.layer_manager.layers[0].add_shape(Shape(50, 50, 50, 50))
         self.layer_manager.layers[1].add_shape(Shape(100, 50, 50, 50, "red"))
         self.layer_manager.layers[1].add_shape(Shape(50, 100, 50, 50, "red"))

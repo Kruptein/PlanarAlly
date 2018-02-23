@@ -246,3 +246,7 @@ a, a:visited, a:hover, a:active {
     right:25px;
     z-index:11;
 }
+
+#tool-draw a:hover {
+    cursor: not-allowed;
+}

@@ -114,7 +114,7 @@ Shape.prototype.showContextMenu = function (mouse) {
     let data = "" +
         "<ul>" +
         "<li>Layer<ul>";
-    for (let i = 0; i < gameManager.layerManager.layers.length - 1; i++) {
+    for (let i = 0; i < gameManager.layerManager.layers.length - 2; i++) {
         const sel = gameManager.layerManager.layers[i] === l ? " style='background-color:aqua' " : " ";
         data += "<li data-action='setLayer' data-layer='" + i + "'" + sel + "class='context-clickable'>" + i + "</li>";
     }
@@ -126,6 +126,25 @@ Shape.prototype.showContextMenu = function (mouse) {
     $(".context-clickable").on('click', function () {
         handleContextMenu($(this), token);
     });
+};
+
+function Line(x1, y1, x2, y2) {
+    this.x1 = x1;
+    this.y1 = y1;
+    this.x2 = x2;
+    this.y2 = y2;
+}
+Line.prototype = Object.create(Shape.prototype);
+Line.prototype.draw = function (ctx) {
+    ctx.beginPath();
+    ctx.moveTo(this.x1, this.y1);
+    ctx.lineTo(this.x2, this.y2);
+    ctx.strokeStyle = 'rgba(255,0,0, 0.5)';
+    ctx.lineWidth = 3;
+    ctx.stroke();
+};
+Line.prototype.asDict = function() {
+    return {x1: this.x1, x2: this.x2, y1: this.y1, y2: this.y2, type: "line"};
 };
 
 function Token(img, x, y, w, h, uuid) {
@@ -208,6 +227,7 @@ LayerState.prototype.setShapes = function (shapes) {
     shapes.forEach(function (shape) {
         let sh;
         if (shape.type === 'shape') sh = new Shape(shape.x, shape.y, shape.w, shape.h, shape.c);
+        if (shape.type === 'line') sh = new Line(shape.x1, shape.y1, shape.x2, shape.y2);
         if (shape.type === 'token') {
             if (gameManager.layerManager.imageMap.has(shape.uuid))
                 sh = new Token(gameManager.layerManager.imageMap.get(shape.uuid), shape.x, shape.y, shape.w, shape.h, shape.uuid);
@@ -336,7 +356,7 @@ LayerManager.prototype.setLayer = function (index) {
     if (0 <= index && index < this.layers.length) {
         this.selectedLayer = index;
         // -1 to exclude the grid layer
-        for (let i = 0; i < this.layers.length - 1; i++) {
+        for (let i = 0; i < this.layers.length - 2; i++) {
             const l = this.getLayer(i);
             if (i > index) {
                 l.ctx.globalAlpha = 0.3;
@@ -351,7 +371,7 @@ LayerManager.prototype.setLayer = function (index) {
     }
 };
 LayerManager.prototype.getGridLayer = function () {
-    return this.layers[this.layers.length - 1];
+    return this.layers[this.layers.length - 2];
 };
 LayerManager.prototype.drawGrid = function (layer) {
     layer = (typeof layer === 'undefined') ? this.getGridLayer() : layer;
@@ -380,7 +400,7 @@ LayerManager.prototype.setGridSize = function (gridSize, layer) {
 };
 LayerManager.prototype.invalidate = function (sync) {
     if (sync === undefined) sync = true;
-    for (let i = 0; i < this.layers.length - 1; i++) {
+    for (let i = 0; i < this.layers.length - 2; i++) {
         this.layers[i].invalidate(sync);
     }
 };
@@ -520,9 +540,41 @@ LayerManager.prototype.onContextMenu = function (e) {
     }
 };
 
+function RulerTool() {
+    this.startPoint = null;
+}
+RulerTool.prototype.onMouseDown = function (e) {
+    // Currently draw on active layer
+    const layer = gameManager.layerManager.getLayer(4);
+    this.startPoint = layer.getMouse(e);
+    this.ruler = null;
+};
+RulerTool.prototype.onMouseMove = function (e) {
+    if (this.startPoint === null) return;
+    // Currently draw on active layer
+    const layer = gameManager.layerManager.getLayer(4);
+    const endPoint = layer.getMouse(e);
+    const ruler = new Line(this.startPoint.x, this.startPoint.y, endPoint.x, endPoint.y);
+    if (this.ruler === null)
+        layer.addShape(ruler);
+    else
+        layer.shapes.splice(layer.shapes.indexOf(this.ruler), 1, ruler);
+    this.ruler = ruler;
+    layer.invalidate()
+};
+RulerTool.prototype.onMouseUp = function (e) {
+    if (this.startPoint === null) return;
+    this.startPoint = null;
+    const layer = gameManager.layerManager.getLayer(4);
+    layer.shapes.splice(layer.shapes.indexOf(this.ruler), 1);
+    this.ruler = null;
+    layer.invalidate();
+};
+
 function GameManager(layers) {
     this.layerManager = new LayerManager(layers);
     this.selectedTool = 0;
+    this.rulerTool = new RulerTool();
 
     const gm = this;
 
@@ -536,16 +588,22 @@ function GameManager(layers) {
         $menu.hide();
         if (gm.selectedTool === 0) {
             gm.layerManager.onMouseDown(e);
+        } else if (gm.selectedTool === 2) {
+            gm.rulerTool.onMouseDown(e);
         }
     });
     window.addEventListener('mousemove', function (e) {
         if (gm.selectedTool === 0) {
             gm.layerManager.onMouseMove(e);
+        } else if (gm.selectedTool === 2) {
+            gm.rulerTool.onMouseMove(e);
         }
     });
     window.addEventListener('mouseup', function (e) {
         if (gm.selectedTool === 0) {
             gm.layerManager.onMouseUp(e);
+        } else if (gm.selectedTool === 2) {
+            gm.rulerTool.onMouseUp(e);
         }
     });
     window.addEventListener('contextmenu', function (e) {
@@ -614,7 +672,7 @@ function handleContextMenu(menu, token) {
     const ls = layer.shapes;
     switch (action) {
         case 'moveToFront':
-            layer.moveShapeOrder(token, ls.length - 1);
+            layer.moveShapeOrder(token, ls.length - 2);
             break;
         case 'moveToBack':
             layer.moveShapeOrder(token, 0);

@@ -40,6 +40,7 @@ socket.on("token list", function (tokens) {
     });
 });
 socket.on("board init", function (board) {
+    gameManager = new GameManager();
     const layersdiv = $('#layers');
     layersdiv.empty();
     const layerselectdiv = $('#layerselect');
@@ -64,7 +65,6 @@ socket.on("board init", function (board) {
         l.player_editable = new_layer.player_editable;
         gameManager.layerManager.addLayer(l);
         if (new_layer.grid) {
-            gameManager.layerManager.gridLayer = i;
             gameManager.layerManager.setGridSize(new_layer.size);
             gameManager.layerManager.drawGrid();
         } else {
@@ -445,7 +445,7 @@ LayerManager.prototype.setLayer = function (name) {
     });
 };
 LayerManager.prototype.getGridLayer = function () {
-    return this.layers[this.gridLayer];
+    return this.getLayer("grid");
 };
 LayerManager.prototype.drawGrid = function () {
     const layer = this.getGridLayer();
@@ -718,7 +718,7 @@ function GameManager() {
 //     layers[i] = new LayerState(layers[i]);
 // }
 
-const gameManager = new GameManager();
+let gameManager = new GameManager();
 // gameManager.layerManager.drawGrid();
 // gameManager.layerManager.setLayer(1);
 

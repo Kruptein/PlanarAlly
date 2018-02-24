@@ -115,11 +115,15 @@ class Room:
         self.dm = None
         self.layer_manager = LayerManager()
 
+        # default layers
         self.layer_manager.add(Layer("map", player_visible=True))
         self.layer_manager.add(Layer("tokens", player_visible=True, player_editable=True))
         self.layer_manager.add(Layer("dm"))
         self.layer_manager.add(GridLayer(50))
+        self.layer_manager.add(Layer("fow", selectable=False, player_visible=True))
         self.layer_manager.add(Layer("draw", selectable=False, player_visible=True, player_editable=True))
+
+        # some test shapes
         self.layer_manager.layers[0].add_shape(Shape(50, 50, 50, 50))
         self.layer_manager.layers[1].add_shape(Shape(100, 50, 50, 50, "red"))
         self.layer_manager.layers[1].add_shape(Shape(50, 100, 50, 50, "red"))

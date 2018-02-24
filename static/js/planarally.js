@@ -115,19 +115,21 @@ Shape.prototype.draw = function (ctx) {
     ctx.fillRect(this.x * z, this.y * z, this.w * z, this.h * z);
 };
 Shape.prototype.contains = function (mx, my) {
-    return (this.x <= mx) && (this.x + this.w >= mx) &&
-        (this.y <= my) && (this.y + this.h >= my);
+    const z = gameManager.layerManager.zoomFactor;
+    return (this.x * z <= mx) && ((this.x + this.w) * z >= mx) &&
+        (this.y * z <= my) && ((this.y + this.h) * z >= my);
 };
 Shape.prototype.inCorner = function (mx, my, corner) {
+    const z = gameManager.layerManager.zoomFactor;
     switch (corner) {
         case 'ne':
-            return this.x + this.w - 3 <= mx && mx <= this.x + this.w + 3 && this.y - 3 <= my && my <= this.y + 3;
+            return (this.x + this.w - 3) * z <= mx && mx <= (this.x + this.w + 3) * z && (this.y - 3) * z <= my && my <= (this.y + 3) * z;
         case 'nw':
-            return this.x - 3 <= mx && mx <= this.x + 3 && this.y - 3 <= my && my <= this.y + 3;
+            return (this.x - 3) * z <= mx && mx <= (this.x + 3) * z && (this.y - 3) * z <= my && my <= (this.y + 3) * z;
         case 'sw':
-            return this.x - 3 <= mx && mx <= this.x + 3 && this.y + this.h - 3 <= my && my <= this.y + this.h + 3;
+            return (this.x - 3) * z <= mx && mx <= (this.x + 3) * z && (this.y + this.h - 3) * z <= my && my <= (this.y + this.h + 3) * z;
         case 'se':
-            return this.x + this.w - 3 <= mx && mx <= this.x + this.w + 3 && this.y + this.h - 3 <= my && my <= this.y + this.h + 3;
+            return (this.x + this.w - 3) * z <= mx && mx <= (this.x + this.w + 3) * z && (this.y + this.h - 3) * z <= my && my <= (this.y + this.h + 3) * z;
         default:
             return false;
     }
@@ -370,7 +372,9 @@ LayerState.prototype.getMouse = function (e) {
     offsetX += this.stylePaddingLeft + this.styleBorderLeft + this.htmlLeft;
     offsetY += this.stylePaddingTop + this.styleBorderTop + this.htmlTop;
 
-    mx = e.pageX - offsetX;
+    const z = gameManager.layerManager.zoomFactor;
+
+    mx = e.pageX  - offsetX;
     my = e.pageY - offsetY;
 
     return {x: mx, y: my};
@@ -518,23 +522,26 @@ LayerManager.prototype.onMouseMove = function(e) {
         sel.y = mouse.y - layer.dragoffy;
         layer.invalidate(true);
     } else if (layer.resizing) {
+        const z = gameManager.layerManager.zoomFactor;
         if (layer.resizedir === 'nw') {
-            sel.w = sel.x + sel.w - mouse.x;
-            sel.h = sel.y + sel.h - mouse.y;
-            sel.x = mouse.x;
-            sel.y = mouse.y;
+            sel.w = sel.x * z + sel.w * z - mouse.x;
+            sel.h = sel.y * z + sel.h * z - mouse.y;
+            sel.x = mouse.x / z;
+            sel.y = mouse.y / z;
         } else if (layer.resizedir === 'ne') {
-            sel.w = mouse.x - sel.x;
-            sel.h = sel.y + sel.h - mouse.y;
-            sel.y = mouse.y;
+            sel.w = mouse.x - sel.x * z;
+            sel.h = sel.y * z + sel.h * z - mouse.y;
+            sel.y = mouse.y / z;
         } else if (layer.resizedir === 'se') {
-            sel.w = mouse.x - sel.x;
-            sel.h = mouse.y - sel.y;
+            sel.w = mouse.x - sel.x * z;
+            sel.h = mouse.y - sel.y * z;
         } else if (layer.resizedir === 'sw') {
-            sel.w = sel.x + sel.w - mouse.x;
-            sel.h = mouse.y - sel.y;
-            sel.x = mouse.x;
+            sel.w = sel.x * z + sel.w * z - mouse.x;
+            sel.h = mouse.y - sel.y * z;
+            sel.x = mouse.x / z;
         }
+        sel.w /= z;
+        sel.h /= z;
         layer.invalidate(true);
     } else if (sel) {
         if (sel.inCorner(mouse.x, mouse.y, "nw")) {

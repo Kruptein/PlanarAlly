@@ -3,9 +3,10 @@
 const protocol = document.domain === 'localhost' ? "http://" : "https://";
 const socket = io.connect(protocol + document.domain + ":" + location.port + "/planarally");
 let board_initialised = false;
+const IS_DM = findGetParameter("dm") !== null;
 socket.on("connect", function () {
     console.log("Connected");
-    socket.emit("join room", findGetParameter("room"), findGetParameter("dm"));
+    socket.emit("join room", findGetParameter("room"), IS_DM);
 });
 socket.on("disconnect", function () {
     console.log("Disconnected");
@@ -678,61 +679,73 @@ function GameManager() {
         if (!board_initialised) return;
         if (e.button !== 0 || e.target.tagName !== 'CANVAS') return;
         $menu.hide();
-        if (gm.selectedTool === 0) {
-            gm.layerManager.onMouseDown(e);
-        } else if (gm.selectedTool === 2) {
-            gm.rulerTool.onMouseDown(e);
+        switch (tools[gm.selectedTool].name) {
+            case 'select':
+                gm.layerManager.onMouseDown(e);
+                break;
+            case 'ruler':
+                gm.rulerTool.onMouseDown(e);
+                break;
         }
     });
     window.addEventListener('mousemove', function (e) {
         if (!board_initialised) return;
-        if (gm.selectedTool === 0) {
-            gm.layerManager.onMouseMove(e);
-        } else if (gm.selectedTool === 2) {
-            gm.rulerTool.onMouseMove(e);
+        switch (tools[gm.selectedTool].name) {
+            case 'select':
+                gm.layerManager.onMouseMove(e);
+                break;
+            case 'ruler':
+                gm.rulerTool.onMouseMove(e);
+                break;
         }
     });
     window.addEventListener('mouseup', function (e) {
         if (!board_initialised) return;
-        if (gm.selectedTool === 0) {
-            gm.layerManager.onMouseUp(e);
-        } else if (gm.selectedTool === 2) {
-            gm.rulerTool.onMouseUp(e);
+        switch (tools[gm.selectedTool].name) {
+            case 'select':
+                gm.layerManager.onMouseUp(e);
+                break;
+            case 'ruler':
+                gm.rulerTool.onMouseUp(e);
+                break;
         }
     });
     window.addEventListener('contextmenu', function (e) {
         if (!board_initialised) return;
-        if (gm.selectedTool === 0) {
-            gm.layerManager.onContextMenu(e);
+        switch (tools[gm.selectedTool].name) {
+            case 'select':
+                gm.layerManager.onContextMenu(e);
+                break;
         }
     });
 }
 
 
-// **** SETUP LAYERMANAGER ****
-
-// const layers = Array.from(document.getElementsByTagName('canvas'));
-// for (let i = 0; i < layers.length; i++) {
-//     layers[i].width = window.innerWidth;
-//     layers[i].height = window.innerHeight;
-//     layers[i] = new LayerState(layers[i]);
-// }
-
 let gameManager = new GameManager();
-// gameManager.layerManager.drawGrid();
-// gameManager.layerManager.setLayer(1);
 
 
 // **** SETUP UI ****
+const tools = [
+    {name: "select", playerTool: true, defaultSelect: true},
+    // {name: "draw", playerTool: true},
+    {name: "ruler", playerTool: true, defaultSelect: false},
+    {name: "fow", playerTool: false, defaultSelect: false},
+];
 
-$("#toolselect li").on("click", function () {
-    const tools = $("#toolselect li");
-    const index = tools.index($(this));
-    if (index !== gameManager.selectedTool) {
-        $(this).addClass("tool-selected");
-        $(tools[gameManager.selectedTool]).removeClass("tool-selected");
-        gameManager.selectedTool = index;
-    }
+const toolselectDiv = $("#toolselect").find("ul");
+tools.forEach(function(tool) {
+    if (!tool.playerTool && !IS_DM) return;
+    const extra = tool.defaultSelect ? " class='tool-selected'" : "";
+    const toolLi = $("<li id='tool-" + tool.name + "'" + extra + "><a href='#'>" + tool.name + "</a></li>");
+    toolselectDiv.append(toolLi);
+    toolLi.on("click", function () {
+        const index = tools.indexOf(tool);
+        if (index !== gameManager.selectedTool) {
+            $('.tool-selected').removeClass("tool-selected");
+            $(this).addClass("tool-selected");
+            gameManager.selectedTool = index;
+        }
+    });
 });
 
 $("#zoomer").slider({

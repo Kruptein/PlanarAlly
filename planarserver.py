@@ -27,10 +27,6 @@ async def index(request):
 async def join_room(sid, room, dm):
     if room is None:
         room = ''
-    if dm is None:
-        dm = False
-    else:
-        dm = True
     if room not in PA.rooms:
         with shelve.open("planar.save", "c") as shelf:
             if room in shelf:

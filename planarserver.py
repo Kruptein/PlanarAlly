@@ -37,6 +37,8 @@ async def join_room(sid, room, dm):
                 PA.rooms[room] = shelf[room]
             else:
                 PA.add_room(room)
+    if dm:
+        PA.rooms[room].dm = sid
     sio.enter_room(sid, room, namespace='/planarally')
     PA.clients[sid].room = room
     await sio.emit('board init', PA.rooms[room].get_board(dm), room=sid, namespace='/planarally')
@@ -53,6 +55,9 @@ async def layer_invalid(sid, message):
     if PA.clients[sid].initialised:
         room = PA.get_client_room(sid)
         layer = room.layer_manager.get_layer(message['layer'])
+        if room.dm != sid and not layer.player_editable:
+            print(f"{sid} attempted to invalidate a dm layer")
+            return
         layer.shapes = message['shapes']
         d = layer.as_dict()
         if layer.player_visible:
@@ -63,6 +68,9 @@ async def layer_invalid(sid, message):
 async def set_gridsize(sid, grid_size):
     if PA.clients[sid].initialised:
         room = PA.get_client_room(sid)
+        if room.dm != sid:
+            print(f"{sid} attempted to set gridsize without DM rights")
+            return
         room.layer_manager.get_grid_layer().size = grid_size
         await sio.emit("set gridsize", grid_size, room=room.name, skip_sid=sid, namespace="/planarally")
 

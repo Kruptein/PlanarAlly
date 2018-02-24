@@ -24,17 +24,22 @@ async def index(request):
 
 
 @sio.on("join room", namespace='/planarally')
-async def join_room(sid, room):
+async def join_room(sid, room, dm):
     if room is None:
         room = ''
+    if dm is None:
+        dm = False
+    else:
+        dm = True
     if room not in PA.rooms:
-        PA.add_room(room)
         with shelve.open("planar.save", "c") as shelf:
             if room in shelf:
                 PA.rooms[room] = shelf[room]
+            else:
+                PA.add_room(room)
     sio.enter_room(sid, room, namespace='/planarally')
     PA.clients[sid].room = room
-    await sio.emit('board init', PA.get_client_room(sid).layer_manager.as_dict(), room=sid, namespace='/planarally')
+    await sio.emit('board init', PA.rooms[room].get_board(dm), room=sid, namespace='/planarally')
     await sio.emit('token list', PA.get_token_list(), room=sid, namespace='/planarally')
 
 
@@ -47,10 +52,11 @@ async def client_init(sid):
 async def layer_invalid(sid, message):
     if PA.clients[sid].initialised:
         room = PA.get_client_room(sid)
-        room.layer_manager.layers[message['layer']].shapes = message['shapes']
-        d = room.layer_manager.layers[message['layer']].as_dict()
-        d['layer'] = message['layer']
-        await sio.emit('layer set', d, room=room.name, skip_sid=sid, namespace='/planarally')
+        layer = room.layer_manager.get_layer(message['layer'])
+        layer.shapes = message['shapes']
+        d = layer.as_dict()
+        if layer.player_visible:
+            await sio.emit('layer set', d, room=room.name, skip_sid=sid, namespace='/planarally')
 
 
 @sio.on("set gridsize", namespace="/planarally")
@@ -77,6 +83,7 @@ async def test_disconnect(sid):
 
 app.router.add_static('/static', 'static')
 app.router.add_get('/', index)
+
 
 if __name__ == '__main__':
     if os.path.isdir("cert"):

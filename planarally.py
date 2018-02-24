@@ -2,6 +2,7 @@
 PlayerAlly data representation classes.
 """
 import os
+from typing import Dict, List
 
 
 class Client:
@@ -13,7 +14,7 @@ class Client:
 
 class LayerManager:
     def __init__(self):
-        self.layers = []
+        self.layers = []  # type: List[Layer]
 
     def add(self, layer):
         self.layers.append(layer)
@@ -28,28 +29,44 @@ class LayerManager:
             if isinstance(layer, GridLayer):
                 return layer
 
+    def get_layer(self, name):
+        for layer in self.layers:
+            if layer.name == name:
+                return layer
+
 
 class Layer:
-    def __init__(self, name):
+    def __init__(self, name, *, selectable=True, player_visible=False, player_editable=False):
+        self.name = name
         self.shapes = []
+        self.selectable = selectable
+        self.player_visible = player_visible
+        self.player_editable = player_editable
 
     def add_shape(self, shape):
         self.shapes.append(shape.as_dict())
 
     def as_dict(self):
         return {
+            'name': self.name,
             'shapes': self.shapes,
-            'grid': False
+            'grid': False,
+            'player_visible': self.player_visible,
+            'player_editable': self.player_editable,
+            'selectable': self.selectable
         }
 
 
 class GridLayer(Layer):
     def __init__(self, size):
-        super().__init__("grid")
+        super().__init__("grid", selectable=False, player_visible=True)
         self.size = size
 
     def as_dict(self):
-        return {'grid': True, 'size': self.size}
+        d = super().as_dict()
+        d['grid'] = True
+        d['size'] = self.size
+        return d
 
 
 class Shape:
@@ -95,23 +112,35 @@ class Token:
 class Room:
     def __init__(self, name):
         self.name = name
+        self.dm = None
         self.layer_manager = LayerManager()
 
-        self.layer_manager.add(Layer("map"))
-        self.layer_manager.add(Layer("tokens"))
+        self.layer_manager.add(Layer("map", player_visible=True))
+        self.layer_manager.add(Layer("tokens", player_visible=True, player_editable=True))
         self.layer_manager.add(Layer("dm"))
         self.layer_manager.add(GridLayer(50))
-        self.layer_manager.add(Layer("draw"))
+        self.layer_manager.add(Layer("draw", selectable=False, player_visible=True, player_editable=True))
         self.layer_manager.layers[0].add_shape(Shape(50, 50, 50, 50))
         self.layer_manager.layers[1].add_shape(Shape(100, 50, 50, 50, "red"))
         self.layer_manager.layers[1].add_shape(Shape(50, 100, 50, 50, "red"))
         self.layer_manager.layers[2].add_shape(Shape(100, 100, 50, 50, "blue"))
 
+    def get_board(self, dm):
+        board = self.layer_manager.as_dict()
+        if dm:
+            return board
+        for l in board['layers']:
+            if not l['player_visible']:
+                board['layers'].remove(l)
+            if not l['player_editable']:
+                l['selectable'] = False
+        return board
+
 
 class PlanarAlly:
     def __init__(self):
-        self.clients = {}
-        self.rooms = {}
+        self.clients = {}  # type: Dict[str, Client]
+        self.rooms = {}  # type: Dict[str, Room]
 
     def add_client(self, sid):
         self.clients[sid] = Client(sid)

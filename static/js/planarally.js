@@ -286,6 +286,7 @@ LayerState.prototype.addShape = function (shape) {
 LayerState.prototype.setShapes = function (shapes) {
     const t = [];
     const self = this;
+    let keepSelection = false;
     shapes.forEach(function (shape) {
         let sh;
         if (shape.type === 'shape') sh = new Shape(shape.x, shape.y, shape.w, shape.h, shape.c);
@@ -305,8 +306,10 @@ LayerState.prototype.setShapes = function (shapes) {
             }
         }
         t.push(sh);
+        if (self.selection && sh.x === self.selection.x && sh.y === self.selection.y && sh.w === self.selection.w && sh.h === self.selection.h) keepSelection = true;
     });
     this.shapes = t;
+    if (!keepSelection) this.selection = null;
     this.invalidate(false);
 };
 LayerState.prototype.removeShape = function (shape) {

@@ -55,7 +55,8 @@ async def add_shape(sid, data):
     if room.dm != sid and not layer.player_editable:
         print(f"{sid} attempted to add a shape to a dm layer")
         return
-    layer.shapes[data['shape']['uuid']] = data['shape']
+    if data['serverStore']:
+        layer.shapes[data['shape']['uuid']] = data['shape']
     if layer.player_visible:
         await sio.emit("add shape", data, room=room.name, skip_sid=sid, namespace='/planarally')
 
@@ -69,7 +70,8 @@ async def remove_shape(sid, data):
     if room.dm != sid and not layer.player_editable:
         print(f"{sid} attempted to remove a shape from a dm layer")
         return
-    del layer.shapes[data['shape']]
+    if data['serverStore']:
+        del layer.shapes[data['shape']]
     if layer.player_visible:
         await sio.emit("remove shape", data, room=room.name, skip_sid=sid, namespace='/planarally')
 

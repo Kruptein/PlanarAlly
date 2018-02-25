@@ -307,10 +307,11 @@ function LayerState(canvas, name) {
 LayerState.prototype.invalidate = function () {
     this.valid = false;
 };
-LayerState.prototype.addShape = function (shape, sync) {
+LayerState.prototype.addShape = function (shape, sync, serverStore) {
     if (sync === undefined) sync = false;
+    if (serverStore === undefined) serverStore = true;
     this.shapes.push(shape);
-    if (sync) socket.emit("add shape", {shape: shape.asDict(), layer: this.name});
+    if (sync) socket.emit("add shape", {shape: shape.asDict(), layer: this.name, serverStore: serverStore});
     gameManager.layerManager.UUIDMap.set(shape.uuid, shape);
     this.invalidate(false);
 };
@@ -328,10 +329,11 @@ LayerState.prototype.setShapes = function (shapes) {
     if (!keepSelection) this.selection = null;
     this.invalidate(false);
 };
-LayerState.prototype.removeShape = function (shape, sync) {
+LayerState.prototype.removeShape = function (shape, sync, serverStore) {
     if (sync === undefined) sync = false;
+    if (serverStore === undefined) serverStore = true;
     this.shapes.remove(shape);
-    if (sync) socket.emit("remove shape", {shape: shape.uuid, layer: this.name});
+    if (sync) socket.emit("remove shape", {shape: shape.uuid, layer: this.name, serverStore: serverStore});
     gameManager.layerManager.UUIDMap.delete(shape.uuid);
     if (this.selection === shape)   this.selection = null;
     this.invalidate(false);
@@ -690,8 +692,8 @@ RulerTool.prototype.onMouseDown = function (e) {
     this.startPoint = layer.getMouse(e);
     this.ruler = new Line(this.startPoint.x, this.startPoint.y, this.startPoint.x, this.startPoint.y);
     this.text = new Text(this.startPoint.x, this.startPoint.y, "", "20px serif");
-    layer.addShape(this.ruler, true);
-    layer.addShape(this.text, true);
+    layer.addShape(this.ruler, true, false);
+    layer.addShape(this.text, true, false);
 };
 RulerTool.prototype.onMouseMove = function (e) {
     if (this.startPoint === null) return;
@@ -720,8 +722,8 @@ RulerTool.prototype.onMouseUp = function (e) {
     if (this.startPoint === null) return;
     this.startPoint = null;
     const layer = gameManager.layerManager.getLayer("draw");
-    layer.removeShape(this.ruler, true);
-    layer.removeShape(this.text, true);
+    layer.removeShape(this.ruler, true, false);
+    layer.removeShape(this.text, true, false);
     this.ruler = null;
     this.text = null;
     layer.invalidate();

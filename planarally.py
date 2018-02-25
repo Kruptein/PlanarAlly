@@ -45,6 +45,7 @@ class Layer:
         self.player_editable = player_editable
 
     def add_shape(self, shape):
+        shape.layer = self.name
         self.shapes[shape.uuid] = shape.as_dict()
 
     def as_dict(self):
@@ -78,6 +79,7 @@ class Shape:
         self.height = height
         self.uuid = uuid
         self.colour = colour
+        self.layer = None
 
     def as_dict(self):
         return {
@@ -85,8 +87,9 @@ class Shape:
             'y': self.y,
             'w': self.width,
             'h': self.height,
-            'c': self.colour,
+            'fill': self.colour,
             'uuid': self.uuid,
+            'layer': self.layer,
             'type': "shape"
         }
 
@@ -118,11 +121,15 @@ class Room:
         self.dm = None
         self.layer_manager = LayerManager()
 
+        # Keep track of temporary (i.e. not serverStored) shapes
+        # so that we can remove them from other clients when someone disconnects
+        self.client_temporaries = {}  # type: Dict[Client, List[str]]
+
         # default layers
         self.layer_manager.add(Layer("map", player_visible=True))
+        self.layer_manager.add(GridLayer(50))
         self.layer_manager.add(Layer("tokens", player_visible=True, player_editable=True))
         self.layer_manager.add(Layer("dm"))
-        self.layer_manager.add(GridLayer(50))
         self.layer_manager.add(Layer("fow", selectable=False, player_visible=True))
         self.layer_manager.add(Layer("draw", selectable=False, player_visible=True, player_editable=True))
 
@@ -142,6 +149,11 @@ class Room:
             if not l['player_editable']:
                 l['selectable'] = False
         return board
+
+    def add_temp(self, sid, uuid):
+        if sid not in self.client_temporaries:
+            self.client_temporaries[sid] = []
+        self.client_temporaries[sid].append(uuid)
 
 
 class PlanarAlly:

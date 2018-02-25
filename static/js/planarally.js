@@ -107,42 +107,42 @@ socket.on("board init", function (board) {
     }
 
 });
-socket.on("layer set", function (layer) {
-    gameManager.layerManager.getLayer(layer.name).setShapes(layer.shapes);
-});
 socket.on("set gridsize", function (gridSize) {
     gameManager.layerManager.setGridSize(gridSize);
 });
-socket.on("add shape", function (data) {
-    const l = gameManager.layerManager.getLayer(data.layer);
-    l.addShape(createShapeFromDict(data.shape, l), false);
+socket.on("add shape", function (shape) {
+    gameManager.layerManager.getLayer(shape.layer).addShape(createShapeFromDict(shape), false);
 });
-socket.on("remove shape", function (data) {
-    const l = gameManager.layerManager.getLayer(data.layer);
-    l.removeShape(gameManager.layerManager.UUIDMap.get(data.shape), false);
+socket.on("remove shape", function (shape) {
+    gameManager.layerManager.getLayer(shape.layer).removeShape(gameManager.layerManager.UUIDMap.get(shape.uuid), false);
 });
 socket.on("moveShapeOrder", function (data) {
-    const l = gameManager.layerManager.getLayer(data.layer);
-    l.moveShapeOrder(gameManager.layerManager.UUIDMap.get(data.shape), data.index);
+    gameManager.layerManager.getLayer(data.shape.layer).moveShapeOrder(gameManager.layerManager.UUIDMap.get(data.shape), data.index);
 });
-socket.on("shapeMove", function (data) {
-    const l = gameManager.layerManager.getLayer(data.layer);
-    Object.assign(gameManager.layerManager.UUIDMap.get(data.shape.uuid), createShapeFromDict(data.shape, l, true));
-    l.invalidate(false);
+socket.on("shapeMove", function (shape) {
+    Object.assign(gameManager.layerManager.UUIDMap.get(shape.uuid), createShapeFromDict(shape, true));
+    gameManager.layerManager.getLayer(shape.layer).invalidate();
+});
+socket.on("clear temporaries", function (shapes) {
+    shapes.forEach(function (shape) {
+        gameManager.layerManager.getLayer(shape.layer).removeShape(shape, false);
+    })
 });
 
 // **** BOARD ELEMENTS ****
 
 function Shape(x, y, w, h, fill, uuid) {
+    this.type = "shape";
     this.x = x || 0;
     this.y = y || 0;
     this.w = w || 1;
     this.h = h || 1;
     this.fill = fill || '#000';
     this.uuid = uuid || uuidv4();
+    this.layer = null;
 }
 Shape.prototype.asDict = function() {
-    return {x: this.x, y: this.y, w: this.w, h: this.h, c: this.fill, uuid: this.uuid, type: "shape"};
+    return Object.assign({}, this);
 };
 Shape.prototype.draw = function (ctx) {
     ctx.fillStyle = this.fill;
@@ -182,7 +182,7 @@ Shape.prototype.getCorner = function (mx, my) {
 Shape.prototype.showContextMenu = function (mouse) {
     const l = gameManager.layerManager.getLayer();
     l.selection = this;
-    l.invalidate(false);
+    l.invalidate();
     const token = this;
     $menu.show();
     $menu.empty();
@@ -206,6 +206,7 @@ Shape.prototype.showContextMenu = function (mouse) {
 };
 
 function Line(x1, y1, x2, y2, uuid) {
+    this.type = "line";
     this.x1 = x1;
     this.y1 = y1;
     this.x2 = x2;
@@ -221,11 +222,9 @@ Line.prototype.draw = function (ctx) {
     ctx.lineWidth = 3;
     ctx.stroke();
 };
-Line.prototype.asDict = function() {
-    return {x1: this.x1, x2: this.x2, y1: this.y1, y2: this.y2, uuid: this.uuid, type: "line"};
-};
 
 function Text(x, y, text, font, angle, uuid) {
+    this.type = "text";
     this.x = x;
     this.y = y;
     this.text = text;
@@ -243,22 +242,18 @@ Text.prototype.draw = function (ctx) {
     ctx.fillText(this.text, 0, -5);
     ctx.restore();
 };
-Text.prototype.asDict = function() {
-    return {x: this.x, y: this.y, text: this.text, font: this.font, angle: this.angle, uuid: this.uuid, type: "text"};
-};
 
 function Token(img, x, y, w, h, uuid) {
+    this.type = "token";
     this.uuid = uuid || uuidv4();
     this.img = img;
+    this.src = img.src;
     this.x = x;
     this.y = y;
     this.w = w;
     this.h = h;
 }
 Token.prototype = Object.create(Shape.prototype);
-Token.prototype.asDict = function() {
-    return {x: this.x, y: this.y, w: this.w, h: this.h, img: this.img.src, uuid: this.uuid, type: 'token'};
-};
 Token.prototype.draw = function (ctx) {
     const z = gameManager.layerManager.zoomFactor;
     ctx.drawImage(this.img, this.x * z, this.y * z, this.w * z, this.h * z);
@@ -307,13 +302,14 @@ function LayerState(canvas, name) {
 LayerState.prototype.invalidate = function () {
     this.valid = false;
 };
-LayerState.prototype.addShape = function (shape, sync, serverStore) {
+LayerState.prototype.addShape = function (shape, sync, temporary) {
     if (sync === undefined) sync = false;
-    if (serverStore === undefined) serverStore = true;
+    if (temporary === undefined) temporary = false;
+    shape.layer = this.name;
     this.shapes.push(shape);
-    if (sync) socket.emit("add shape", {shape: shape.asDict(), layer: this.name, serverStore: serverStore});
+    if (sync) socket.emit("add shape", {shape: shape.asDict(), temporary: temporary});
     gameManager.layerManager.UUIDMap.set(shape.uuid, shape);
-    this.invalidate(false);
+    this.invalidate();
 };
 LayerState.prototype.setShapes = function (shapes) {
     const t = [];
@@ -321,22 +317,23 @@ LayerState.prototype.setShapes = function (shapes) {
     let keepSelection = false;
     shapes.forEach(function (shape) {
         const sh = createShapeFromDict(shape, self);
+        sh.layer = self.name;
         gameManager.layerManager.UUIDMap.set(shape.uuid, sh);
         t.push(sh);
         if (self.selection && sh.x === self.selection.x && sh.y === self.selection.y && sh.w === self.selection.w && sh.h === self.selection.h) keepSelection = true;
     });
     this.shapes.data = t;
     if (!keepSelection) this.selection = null;
-    this.invalidate(false);
+    this.invalidate();
 };
-LayerState.prototype.removeShape = function (shape, sync, serverStore) {
+LayerState.prototype.removeShape = function (shape, sync, temporary) {
     if (sync === undefined) sync = false;
-    if (serverStore === undefined) serverStore = true;
+    if (temporary === undefined) temporary = false;
     this.shapes.remove(shape);
-    if (sync) socket.emit("remove shape", {shape: shape.uuid, layer: this.name, serverStore: serverStore});
+    if (sync) socket.emit("remove shape", {shape: shape, temporary: temporary});
     gameManager.layerManager.UUIDMap.delete(shape.uuid);
     if (this.selection === shape)   this.selection = null;
-    this.invalidate(false);
+    this.invalidate();
 };
 LayerState.prototype.clear = function () {
     this.ctx.clearRect(0, 0, this.width, this.height);
@@ -397,7 +394,7 @@ LayerState.prototype.getMouse = function (e) {
 LayerState.prototype.moveShapeOrder = function (shape, destinationIndex) {
     if (this.shapes.moveTo(shape, destinationIndex)) {
         socket.emit("moveShapeOrder", {layer: this.name, shape: shape.uuid, index: destinationIndex});
-        this.invalidate(false);
+        this.invalidate();
     }
 };
 
@@ -539,7 +536,7 @@ LayerManager.prototype.onMouseMove = function(e) {
     if (layer.dragging) {
         sel.x = mouse.x - layer.dragoffx;
         sel.y = mouse.y - layer.dragoffy;
-        socket.emit("shapeMove", {shape: sel.asDict(), layer: layer.name});
+        socket.emit("shapeMove", {shape: sel.asDict(), temporary: true});
         layer.invalidate();
     } else if (layer.resizing) {
         const z = gameManager.layerManager.zoomFactor;
@@ -562,7 +559,7 @@ LayerManager.prototype.onMouseMove = function(e) {
         }
         sel.w /= z;
         sel.h /= z;
-        socket.emit("shapeMove", {shape: sel.asDict(), layer: layer.name});
+        socket.emit("shapeMove", {shape: sel.asDict(), temporary: true});
         layer.invalidate();
     } else if (sel) {
         if (sel.inCorner(mouse.x, mouse.y, "nw")) {
@@ -599,7 +596,7 @@ LayerManager.prototype.onMouseUp = function (e) {
             layer.selection.y = (Math.round((my + (gs/2)) / gs) - (1/2)) * gs - layer.selection.h/2;
         }
         if (orig.x !== layer.selection.x || orig.y !== layer.selection.y) {
-            socket.emit("shapeMove", {shape: layer.selection.asDict(), layer: layer.name});
+            socket.emit("shapeMove", {shape: layer.selection.asDict(), temporary: false});
             layer.invalidate();
         }
     }
@@ -620,7 +617,7 @@ LayerManager.prototype.onMouseUp = function (e) {
             sel.w = Math.max(Math.round(sel.w / gs) * gs, gs);
             sel.h = Math.max(Math.round(sel.h / gs) * gs, gs);
         }
-        socket.emit("shapeMove", {shape: layer.selection.asDict(), layer: layer.name});
+        socket.emit("shapeMove", {shape: layer.selection.asDict(), temporary: false});
         layer.invalidate();
     }
     layer.dragging = false;
@@ -692,8 +689,8 @@ RulerTool.prototype.onMouseDown = function (e) {
     this.startPoint = layer.getMouse(e);
     this.ruler = new Line(this.startPoint.x, this.startPoint.y, this.startPoint.x, this.startPoint.y);
     this.text = new Text(this.startPoint.x, this.startPoint.y, "", "20px serif");
-    layer.addShape(this.ruler, true, false);
-    layer.addShape(this.text, true, false);
+    layer.addShape(this.ruler, true, true);
+    layer.addShape(this.text, true, true);
 };
 RulerTool.prototype.onMouseMove = function (e) {
     if (this.startPoint === null) return;
@@ -703,7 +700,7 @@ RulerTool.prototype.onMouseMove = function (e) {
 
     this.ruler.x2 = endPoint.x;
     this.ruler.y2 = endPoint.y;
-    socket.emit("shapeMove", {shape: this.ruler.asDict(), layer: layer.name});
+    socket.emit("shapeMove", {shape: this.ruler.asDict(), temporary: true});
 
     const xdiff = endPoint.x - this.startPoint.x;
     const ydiff = endPoint.y - this.startPoint.y;
@@ -715,15 +712,15 @@ RulerTool.prototype.onMouseMove = function (e) {
     this.text.y = ymid;
     this.text.text = label;
     this.text.angle = angle;
-    socket.emit("shapeMove", {shape: this.text.asDict(), layer: layer.name});
+    socket.emit("shapeMove", {shape: this.text.asDict(), temporary: true});
     layer.invalidate();
 };
 RulerTool.prototype.onMouseUp = function (e) {
     if (this.startPoint === null) return;
     this.startPoint = null;
     const layer = gameManager.layerManager.getLayer("draw");
-    layer.removeShape(this.ruler, true, false);
-    layer.removeShape(this.text, true, false);
+    layer.removeShape(this.ruler, true, true);
+    layer.removeShape(this.text, true, true);
     this.ruler = null;
     this.text = null;
     layer.invalidate();
@@ -873,7 +870,7 @@ $('body').keyup(function(e){
     if(e.keyCode === 46) {
         const l = gameManager.layerManager.getLayer();
         if (l.selection) {
-            l.removeShape(l.selection);
+            l.removeShape(l.selection, true, false);
         }
     }
 });
@@ -928,22 +925,22 @@ OrderedMap.prototype.moveTo = function (element, idx) {
     return true;
 };
 
-function createShapeFromDict(shape, layer, dummy) {
+function createShapeFromDict(shape, dummy) {
     if (dummy === undefined) dummy = false;
     if (!dummy && gameManager.layerManager.UUIDMap.has(shape.uuid))
         return gameManager.layerManager.UUIDMap.get(shape.uuid);
 
     let sh;
 
-    if (shape.type === 'shape') sh = new Shape(shape.x, shape.y, shape.w, shape.h, shape.c, shape.uuid);
+    if (shape.type === 'shape') sh = new Shape(shape.x, shape.y, shape.w, shape.h, shape.fill, shape.uuid);
     if (shape.type === 'line') sh = new Line(shape.x1, shape.y1, shape.x2, shape.y2, shape.uuid);
     if (shape.type === 'text') sh = new Text(shape.x, shape.y, shape.text, shape.font, shape.angle, shape.uuid);
     if (shape.type === 'token') {
             const img = new Image(shape.w, shape.h);
-            img.src = shape.img;
+            img.src = shape.src;
             sh = new Token(img, shape.x, shape.y, shape.w, shape.h, shape.uuid);
             img.onload = function() {
-                layer.invalidate();
+                gameManager.layerManager.getLayer(shape.layer).invalidate();
             };
     }
     return sh;

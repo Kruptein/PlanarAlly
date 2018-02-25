@@ -3,6 +3,7 @@ PlanarAlly backend server code.
 This is the code responsible for starting the backend and reacting to socket IO events.
 """
 
+import atexit
 import os
 import shelve
 import socketio
@@ -16,6 +17,13 @@ PA = PlanarAlly()
 sio = socketio.AsyncServer(async_mode='aiohttp')
 app = web.Application()
 sio.attach(app)
+
+
+@atexit.register
+def save_all():
+    for room in PA.rooms.values():
+        with shelve.open("planar.save", "c") as shelf:
+            shelf[room.name] = room
 
 
 async def index(request):
@@ -51,14 +59,16 @@ async def add_shape(sid, data):
     if not PA.clients[sid].initialised:
         return
     room = PA.get_client_room(sid)
-    layer = room.layer_manager.get_layer(data['layer'])
+    layer = room.layer_manager.get_layer(data['shape']['layer'])
     if room.dm != sid and not layer.player_editable:
         print(f"{sid} attempted to add a shape to a dm layer")
         return
-    if data['serverStore']:
+    if data['temporary']:
+        room.add_temp(sid, data['shape']['uuid'])
+    else:
         layer.shapes[data['shape']['uuid']] = data['shape']
     if layer.player_visible:
-        await sio.emit("add shape", data, room=room.name, skip_sid=sid, namespace='/planarally')
+        await sio.emit("add shape", data['shape'], room=room.name, skip_sid=sid, namespace='/planarally')
 
 
 @sio.on("remove shape", namespace="/planarally")
@@ -66,14 +76,16 @@ async def remove_shape(sid, data):
     if not PA.clients[sid].initialised:
         return
     room = PA.get_client_room(sid)
-    layer = room.layer_manager.get_layer(data['layer'])
+    layer = room.layer_manager.get_layer(data['shape']['layer'])
     if room.dm != sid and not layer.player_editable:
         print(f"{sid} attempted to remove a shape from a dm layer")
         return
-    if data['serverStore']:
-        del layer.shapes[data['shape']]
+    if data['temporary']:
+        room.client_temporaries[sid].remove(data['shape']['uuid'])
+    else:
+        del layer.shapes[data['shape']['uuid']]
     if layer.player_visible:
-        await sio.emit("remove shape", data, room=room.name, skip_sid=sid, namespace='/planarally')
+        await sio.emit("remove shape", data['shape'], room=room.name, skip_sid=sid, namespace='/planarally')
 
 
 @sio.on("moveShapeOrder", namespace="/planarally")
@@ -81,7 +93,7 @@ async def move_shape_order(sid, data):
     if not PA.clients[sid].initialised:
         return
     room = PA.get_client_room(sid)
-    layer = room.layer_manager.get_layer(data['layer'])
+    layer = room.layer_manager.get_layer(data['shape']['layer'])
     if room.dm != sid and not layer.player_editable:
         print(f"{sid} attempted to move a shape order on a dm layer")
         return
@@ -95,27 +107,14 @@ async def move_shape(sid, data):
     if not PA.clients[sid].initialised:
         return
     room = PA.get_client_room(sid)
-    layer = room.layer_manager.get_layer(data['layer'])
+    layer = room.layer_manager.get_layer(data['shape']['layer'])
     if room.dm != sid and not layer.player_editable:
         print(f"{sid} attempted to move a shape on a dm layer")
         return
-    layer.shapes[data['shape']['uuid']] = data['shape']
+    if not data['temporary']:
+        layer.shapes[data['shape']['uuid']] = data['shape']
     if layer.player_visible:
-        await sio.emit("shapeMove", data, room=room.name, skip_sid=sid, namespace='/planarally')
-
-
-@sio.on('layer invalidate', namespace='/planarally')
-async def layer_invalid(sid, message):
-    if PA.clients[sid].initialised:
-        room = PA.get_client_room(sid)
-        layer = room.layer_manager.get_layer(message['layer'])
-        if room.dm != sid and not layer.player_editable:
-            print(f"{sid} attempted to invalidate a dm layer")
-            return
-        layer.shapes = message['shapes']
-        d = layer.as_dict()
-        if layer.player_visible:
-            await sio.emit('layer set', d, room=room.name, skip_sid=sid, namespace='/planarally')
+        await sio.emit("shapeMove", data['shape'], room=room.name, skip_sid=sid, namespace='/planarally')
 
 
 @sio.on("set gridsize", namespace="/planarally")
@@ -139,8 +138,13 @@ async def test_connect(sid, environ):
 async def test_disconnect(sid):
     print(f'Client {sid} disconnected')
     room = PA.get_client_room(sid)
-    with shelve.open("planar.save", "c") as shelf:
-        shelf[room.name] = room
+    if sid in room.client_temporaries:
+        sio.emit("clear temporaries", room.client_temporaries[sid])
+        del room.client_temporaries[sid]
+    if len(PA.clients) == 1:
+        with shelve.open("planar.save", "c") as shelf:
+            shelf[room.name] = room
+    del PA.clients[sid]
 
 
 app.router.add_static('/static', 'static')

@@ -1,3 +1,16 @@
+// Removes violation errors on touchstart? https://stackoverflow.com/questions/46094912/added-non-passive-event-listener-to-a-scroll-blocking-touchstart-event
+// This is only necessary due to the spectrum color picker
+jQuery.event.special.touchstart = {
+  setup: function( _, ns, handle ){
+    if ( ns.includes("noPreventDefault") ) {
+      this.addEventListener("touchstart", handle, { passive: false });
+    } else {
+      this.addEventListener("touchstart", handle, { passive: true });
+    }
+  }
+};
+
+
 // **** WebSocket ****
 
 const protocol = document.domain === 'localhost' ? "http://" : "https://";
@@ -131,13 +144,14 @@ socket.on("clear temporaries", function (shapes) {
 
 // **** BOARD ELEMENTS ****
 
-function Shape(x, y, w, h, fill, uuid) {
+function Shape(x, y, w, h, fill, border, uuid) {
     this.type = "shape";
     this.x = x || 0;
     this.y = y || 0;
     this.w = w || 1;
     this.h = h || 1;
     this.fill = fill || '#000';
+    this.border = border || "rgba(0, 0, 0, 0)";
     this.uuid = uuid || uuidv4();
     this.layer = null;
 }
@@ -148,6 +162,10 @@ Shape.prototype.draw = function (ctx) {
     ctx.fillStyle = this.fill;
     const z = gameManager.layerManager.zoomFactor;
     ctx.fillRect(this.x * z, this.y * z, this.w * z, this.h * z);
+    if (this.border !== "rgba(0, 0, 0, 0)") {
+        ctx.strokeStyle = this.border;
+        ctx.strokeRect(this.x * z, this.y * z, this.w * z, this.h * z);
+    }
 };
 Shape.prototype.contains = function (mx, my) {
     const z = gameManager.layerManager.zoomFactor;
@@ -640,12 +658,17 @@ LayerManager.prototype.onContextMenu = function (e) {
 
 function DrawTool() {
     this.startPoint = null;
+    this.detailDiv = null;
 }
 DrawTool.prototype.onMouseDown = function (e) {
     // Currently draw on active layer
     const layer = gameManager.layerManager.getLayer();
     this.startPoint = layer.getMouse(e);
-    this.rect = new Shape(this.startPoint.x, this.startPoint.y, 0, 0);
+    const fillColor = this.fillColor.spectrum("get");
+    const fill = fillColor === null ? tinycolor("transparent") : fillColor;
+    const borderColor = this.borderColor.spectrum("get");
+    const border = borderColor === null ? tinycolor("transparent") : borderColor;
+    this.rect = new Shape(this.startPoint.x, this.startPoint.y, 0, 0, fill.toRgbString(), border.toRgbString());
     layer.addShape(this.rect, true, false);
 };
 DrawTool.prototype.onMouseMove = function (e) {
@@ -658,13 +681,35 @@ DrawTool.prototype.onMouseMove = function (e) {
     this.rect.h = Math.abs(endPoint.y - this.startPoint.y);
     this.rect.x = Math.min(this.startPoint.x, endPoint.x);
     this.rect.y = Math.min(this.startPoint.y, endPoint.y);
-    socket.emit("shapeMove", {shape: this.rect.asDict(), temporary: true});
+    socket.emit("shapeMove", {shape: this.rect.asDict(), temporary: false});
     layer.invalidate();
 };
 DrawTool.prototype.onMouseUp = function (e) {
     if (this.startPoint === null) return;
     this.startPoint = null;
     this.rect = null;
+};
+DrawTool.prototype.loadDetailDiv = function () {
+    if (this.detailDiv === null) {
+        this.fillColor = $("<input type='text' />");
+        this.borderColor = $("<input type='text' />");
+        this.detailDiv = $("<div>")
+            .append($("<div>").append($("<div>Fill</div>")).append(this.fillColor).append($("</div>")))
+            .append($("<div>").append($("<div>Border</div>")).append(this.borderColor).append("</div>"))
+            .append($("</div>"));
+        this.fillColor.spectrum({
+            showInput: true,
+            allowEmpty: true,
+            showAlpha: true,
+            color: "red"
+        });
+        this.borderColor.spectrum({
+            showInput: true,
+            allowEmpty: true,
+            showAlpha: true
+        });
+    }
+    return this.detailDiv;
 };
 
 function RulerTool() {
@@ -718,66 +763,6 @@ function GameManager() {
     this.selectedTool = 0;
     this.rulerTool = new RulerTool();
     this.drawTool = new DrawTool();
-
-    const gm = this;
-
-    // prevent double clicking text selection
-    window.addEventListener('selectstart', function (e) {
-        e.preventDefault();
-        return false;
-    });
-    window.addEventListener('mousedown', function (e) {
-        if (!board_initialised) return;
-        if (e.button !== 0 || e.target.tagName !== 'CANVAS') return;
-        $menu.hide();
-        switch (tools[gm.selectedTool].name) {
-            case 'select':
-                gm.layerManager.onMouseDown(e);
-                break;
-            case 'draw':
-                gm.drawTool.onMouseDown(e);
-                break;
-            case 'ruler':
-                gm.rulerTool.onMouseDown(e);
-                break;
-        }
-    });
-    window.addEventListener('mousemove', function (e) {
-        if (!board_initialised) return;
-        switch (tools[gm.selectedTool].name) {
-            case 'select':
-                gm.layerManager.onMouseMove(e);
-                break;
-            case 'draw':
-                gm.drawTool.onMouseMove(e);
-                break;
-            case 'ruler':
-                gm.rulerTool.onMouseMove(e);
-                break;
-        }
-    });
-    window.addEventListener('mouseup', function (e) {
-        if (!board_initialised) return;
-        switch (tools[gm.selectedTool].name) {
-            case 'select':
-                gm.layerManager.onMouseUp(e);
-                break;
-            case 'draw':
-                gm.drawTool.onMouseUp(e);
-                break;
-            case 'ruler':
-                gm.rulerTool.onMouseUp(e);
-                break;
-        }
-    });
-    window.addEventListener('contextmenu', function (e) {
-        if (!board_initialised) return;
-        switch (tools[gm.selectedTool].name) {
-            case 'select':
-                gm.layerManager.onContextMenu(e);
-                break;
-        }
-    });
 }
 
 
@@ -786,9 +771,9 @@ let gameManager = new GameManager();
 
 // **** SETUP UI ****
 const tools = [
-    {name: "select", playerTool: true, defaultSelect: true},
-    {name: "draw", playerTool: true, defaultSelect: false},
-    {name: "ruler", playerTool: true, defaultSelect: false},
+    {name: "select", playerTool: true, defaultSelect: true, hasDetail: false, func: gameManager.layerManager},
+    {name: "draw", playerTool: true, defaultSelect: false, hasDetail: true, func: gameManager.drawTool},
+    {name: "ruler", playerTool: true, defaultSelect: false, hasDetail: false, func: gameManager.rulerTool},
     // {name: "fow", playerTool: false, defaultSelect: false},
 ];
 
@@ -798,14 +783,51 @@ tools.forEach(function(tool) {
     const extra = tool.defaultSelect ? " class='tool-selected'" : "";
     const toolLi = $("<li id='tool-" + tool.name + "'" + extra + "><a href='#'>" + tool.name + "</a></li>");
     toolselectDiv.append(toolLi);
+    if(tool.hasDetail){
+        const div = tool.func.loadDetailDiv();
+        $('#tooldetail').append(div);
+        div.hide();
+    }
     toolLi.on("click", function () {
         const index = tools.indexOf(tool);
         if (index !== gameManager.selectedTool) {
             $('.tool-selected').removeClass("tool-selected");
             $(this).addClass("tool-selected");
             gameManager.selectedTool = index;
+            const detail = $('#tooldetail');
+            if (tool.hasDetail) {
+                $('#tooldetail').children().hide();
+                tool.func.loadDetailDiv().show();
+                detail.show();
+            } else {
+                detail.hide();
+            }
         }
     });
+});
+
+// prevent double clicking text selection
+window.addEventListener('selectstart', function (e) {
+    e.preventDefault();
+    return false;
+});
+window.addEventListener('mousedown', function (e) {
+    if (!board_initialised) return;
+    if (e.button !== 0 || e.target.tagName !== 'CANVAS') return;
+    $menu.hide();
+    tools[gameManager.selectedTool].func.onMouseDown(e);
+});
+window.addEventListener('mousemove', function (e) {
+    if (!board_initialised) return;
+    tools[gameManager.selectedTool].func.onMouseMove(e);
+});
+window.addEventListener('mouseup', function (e) {
+    if (!board_initialised) return;
+    tools[gameManager.selectedTool].func.onMouseUp(e);
+});
+window.addEventListener('contextmenu', function (e) {
+    if (!board_initialised) return;
+    tools[gameManager.selectedTool].func.onContextMenu(e);
 });
 
 $("#zoomer").slider({
@@ -925,7 +947,7 @@ function createShapeFromDict(shape, dummy) {
 
     let sh;
 
-    if (shape.type === 'shape') sh = new Shape(shape.x, shape.y, shape.w, shape.h, shape.fill, shape.uuid);
+    if (shape.type === 'shape') sh = new Shape(shape.x, shape.y, shape.w, shape.h, shape.fill, shape.border, shape.uuid);
     if (shape.type === 'line') sh = new Line(shape.x1, shape.y1, shape.x2, shape.y2, shape.uuid);
     if (shape.type === 'text') sh = new Text(shape.x, shape.y, shape.text, shape.font, shape.angle, shape.uuid);
     if (shape.type === 'token') {

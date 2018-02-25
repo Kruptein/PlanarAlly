@@ -4,19 +4,21 @@
         <meta charset="utf-8">
         <title>PlanarAlly</title>
         <link rel="stylesheet" type="text/css" href="/static/css/planarally.css">
-        <!--<link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">-->
+        <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
         <script defer src="/static/js/planarally.js"></script>
-        <!--<script src="https://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>-->
+        <script src="https://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
+        <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js" integrity="sha256-VazP97ZCwtekAsvgPBSUwPFKdrwD3unUfSGVYrahUqU=" crossorigin="anonymous"></script>
+        <script src='/static/extern/js/spectrum.js'></script>
+        <link rel='stylesheet' href='/static/extern/css/spectrum.css' />
         <script>
             if (typeof jQuery === 'undefined') {
-                document.write("<script src='/static/libs/jquery-3.3.1.min.js'>\x3C/script>");
-                document.write("<script src='/static/libs/jquery-ui-1.12.1.min.js'>\x3C/script>");
-                document.write("<link rel=\"stylesheet\" href=\"/static/libs/jquery-ui-1.12.1.css\">");
+                document.write("<script src='/static/extern/js/jquery-3.3.1.min.js'>\x3C/script>");
+                document.write("<script src='/static/extern/js/jquery-ui-1.12.1.min.js'>\x3C/script>");
+                document.write("<link rel=\"stylesheet\" href=\"/static/extern/css/jquery-ui-1.12.1.css\">");
             }
         </script>
-        <!--<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js" integrity="sha256-VazP97ZCwtekAsvgPBSUwPFKdrwD3unUfSGVYrahUqU=" crossorigin="anonymous"></script>-->
-        <!--<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.4/socket.io.js"></script>-->
-        <script>if (typeof io === 'undefined') document.write("<script src='/static/libs/socket.io-2.0.4.js'>\x3C/script>");</script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.4/socket.io.js"></script>
+        <script>if (typeof io === 'undefined') document.write("<script src='/static/extern/js/socket.io-2.0.4.js'>\x3C/script>");</script>
     </head>
     <body>
         <div id="main">
@@ -32,29 +34,13 @@
                     </div>
                 </div>
                 <div id="menutoggle"></div>
-                <div id="layers">
-                    <!--<canvas id="map-layer" style="z-index: 0;"></canvas>-->
-                    <!--<canvas id="token-layer" style="z-index: 2;"></canvas>-->
-                    <!--<canvas id="dm-layer" style="z-index: 3;"></canvas>-->
-                    <!--<canvas id="grid-layer" style="z-index: 1"></canvas>-->
-                    <!--<canvas id="draw-layer" style="z-index: 4"></canvas>-->
-                </div>
-                <div id="layerselect">
-                    <ul>
-                        <!--<li id='select-map'><a href='#'>M</a></li>-->
-                        <!--<li id='select-tokens' class='layer-selected'><a href='#'>T</a></li>-->
-                        <!--<li id='select-dm'><a href='#'>D</a></li>-->
-                        <!-- <li id='select-vision'><a href='#'>V</a></li> -->
-                    </ul>
-                </div>
+                <div id="layers"></div>
+                <div id="layerselect"><ul></ul></div>
             </div>
-            <div id="toolselect">
-                <ul>
-                </ul>
-            </div>
+            <div id="toolselect"><ul></ul></div>
+            <div id="tooldetail"></div>
             <div id="zoomer"></div>
-            <div id='contextMenu'>
-            </div>
+            <div id='contextMenu'></div>
         </div>
     </body>
 </html>

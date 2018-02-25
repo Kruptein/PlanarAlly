@@ -135,9 +135,9 @@ class Room:
 
         # some test shapes
         self.layer_manager.layers[0].add_shape(Shape(50, 50, 50, 50, 1))
-        self.layer_manager.layers[1].add_shape(Shape(100, 50, 50, 50, 2, "red"))
-        self.layer_manager.layers[1].add_shape(Shape(50, 100, 50, 50, 3, "red"))
-        self.layer_manager.layers[2].add_shape(Shape(100, 100, 50, 50, 4, "blue"))
+        self.layer_manager.layers[2].add_shape(Shape(100, 50, 50, 50, 2, "red"))
+        self.layer_manager.layers[2].add_shape(Shape(50, 100, 50, 50, 3, "red"))
+        self.layer_manager.layers[3].add_shape(Shape(100, 100, 50, 50, 4, "blue"))
 
     def get_board(self, dm):
         board = self.layer_manager.as_dict()

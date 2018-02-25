@@ -642,42 +642,29 @@ function DrawTool() {
     this.startPoint = null;
 }
 DrawTool.prototype.onMouseDown = function (e) {
+    // Currently draw on active layer
     const layer = gameManager.layerManager.getLayer();
     this.startPoint = layer.getMouse(e);
+    this.rect = new Shape(this.startPoint.x, this.startPoint.y, 0, 0);
+    layer.addShape(this.rect, true, false);
 };
 DrawTool.prototype.onMouseMove = function (e) {
     if (this.startPoint === null) return;
     // Currently draw on active layer
-    const layer = gameManager.layerManager.getLayer("draw");
+    const layer = gameManager.layerManager.getLayer();
     const endPoint = layer.getMouse(e);
-    const ruler = new Line(this.startPoint.x, this.startPoint.y, endPoint.x, endPoint.y);
-    const xdiff = endPoint.x - this.startPoint.x;
-    const ydiff = endPoint.y - this.startPoint.y;
-    const label = Math.round(Math.sqrt(xdiff ** 2 + ydiff ** 2) * gameManager.layerManager.unitSize / gameManager.layerManager.gridSize) + " ft";
-    let angle = Math.atan2(ydiff, xdiff);
-    const xmid = this.startPoint.x + xdiff / 2;
-    const ymid = this.startPoint.y + ydiff / 2;
-    const text = new Text(xmid, ymid, label, "20px serif", angle);
-    if (this.ruler === null) {
-        layer.addShape(ruler);
-        layer.addShape(text);
-    } else {
-        layer.shapes.splice(layer.shapes.indexOf(this.ruler), 1, ruler);
-        layer.shapes.splice(layer.shapes.indexOf(this.text), 1, text);
-    }
-    this.ruler = ruler;
-    this.text = text;
-    layer.invalidate(true);
+
+    this.rect.w = Math.abs(endPoint.x - this.startPoint.x);
+    this.rect.h = Math.abs(endPoint.y - this.startPoint.y);
+    this.rect.x = Math.min(this.startPoint.x, endPoint.x);
+    this.rect.y = Math.min(this.startPoint.y, endPoint.y);
+    socket.emit("shapeMove", {shape: this.rect.asDict(), temporary: true});
+    layer.invalidate();
 };
 DrawTool.prototype.onMouseUp = function (e) {
     if (this.startPoint === null) return;
     this.startPoint = null;
-    const layer = gameManager.layerManager.getLayer("draw");
-    layer.shapes.splice(layer.shapes.indexOf(this.ruler), 1);
-    layer.shapes.splice(layer.shapes.indexOf(this.text), 1);
-    this.ruler = null;
-    this.text = null;
-    layer.invalidate(true);
+    this.rect = null;
 };
 
 function RulerTool() {
@@ -761,6 +748,9 @@ function GameManager() {
             case 'select':
                 gm.layerManager.onMouseMove(e);
                 break;
+            case 'draw':
+                gm.drawTool.onMouseMove(e);
+                break;
             case 'ruler':
                 gm.rulerTool.onMouseMove(e);
                 break;
@@ -771,6 +761,9 @@ function GameManager() {
         switch (tools[gm.selectedTool].name) {
             case 'select':
                 gm.layerManager.onMouseUp(e);
+                break;
+            case 'draw':
+                gm.drawTool.onMouseUp(e);
                 break;
             case 'ruler':
                 gm.rulerTool.onMouseUp(e);

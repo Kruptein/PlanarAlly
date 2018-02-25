@@ -46,6 +46,62 @@ async def client_init(sid):
     PA.clients[sid].initialised = True
 
 
+@sio.on("add shape", namespace="/planarally")
+async def add_shape(sid, data):
+    if not PA.clients[sid].initialised:
+        return
+    room = PA.get_client_room(sid)
+    layer = room.layer_manager.get_layer(data['layer'])
+    if room.dm != sid and not layer.player_editable:
+        print(f"{sid} attempted to add a shape to a dm layer")
+        return
+    layer.shapes[data['shape']['uuid']] = data['shape']
+    if layer.player_visible:
+        await sio.emit("add shape", data, room=room.name, skip_sid=sid, namespace='/planarally')
+
+
+@sio.on("remove shape", namespace="/planarally")
+async def remove_shape(sid, data):
+    if not PA.clients[sid].initialised:
+        return
+    room = PA.get_client_room(sid)
+    layer = room.layer_manager.get_layer(data['layer'])
+    if room.dm != sid and not layer.player_editable:
+        print(f"{sid} attempted to remove a shape from a dm layer")
+        return
+    del layer.shapes[data['shape']]
+    if layer.player_visible:
+        await sio.emit("remove shape", data, room=room.name, skip_sid=sid, namespace='/planarally')
+
+
+@sio.on("moveShapeOrder", namespace="/planarally")
+async def move_shape_order(sid, data):
+    if not PA.clients[sid].initialised:
+        return
+    room = PA.get_client_room(sid)
+    layer = room.layer_manager.get_layer(data['layer'])
+    if room.dm != sid and not layer.player_editable:
+        print(f"{sid} attempted to move a shape order on a dm layer")
+        return
+    layer.shapes.move_to_end(data['shape'], data['index'] != 0)
+    if layer.player_visible:
+        await sio.emit("moveShapeOrder", data, room=room.name, skip_sid=sid, namespace='/planarally')
+
+
+@sio.on("shapeMove", namespace="/planarally")
+async def move_shape(sid, data):
+    if not PA.clients[sid].initialised:
+        return
+    room = PA.get_client_room(sid)
+    layer = room.layer_manager.get_layer(data['layer'])
+    if room.dm != sid and not layer.player_editable:
+        print(f"{sid} attempted to move a shape on a dm layer")
+        return
+    layer.shapes[data['shape']['uuid']] = data['shape']
+    if layer.player_visible:
+        await sio.emit("shapeMove", data, room=room.name, skip_sid=sid, namespace='/planarally')
+
+
 @sio.on('layer invalidate', namespace='/planarally')
 async def layer_invalid(sid, message):
     if PA.clients[sid].initialised:

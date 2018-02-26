@@ -145,21 +145,13 @@ socket.on("clear temporaries", function (shapes) {
 
 // **** BOARD ELEMENTS ****
 
-function Shape(x, y, w, h, fill, border, uuid) {
-    this.type = "shape";
-    this.x = x || 0;
-    this.y = y || 0;
-    this.w = w || 1;
-    this.h = h || 1;
-    this.fill = fill || '#000';
-    this.border = border || "rgba(0, 0, 0, 0)";
-    this.uuid = uuid || uuidv4();
+function Shape() {
     this.layer = null;
 }
 Shape.prototype.asDict = function() {
     return Object.assign({}, this);
 };
-Shape.prototype.draw = function (ctx) {
+Shape.prototype.draw = function(ctx) {
     if (this.layer === 'fow' && IS_DM && this.globalCompositeOperation === "destination-out")
         ctx.globalAlpha = 1.0;
     else if (this.layer === 'fow' && IS_DM)
@@ -168,43 +160,9 @@ Shape.prototype.draw = function (ctx) {
         ctx.globalCompositeOperation = this.globalCompositeOperation;
     else
         ctx.globalCompositeOperation = "source-over";
-    ctx.fillStyle = this.fill;
-    const z = gameManager.layerManager.zoomFactor;
-    ctx.fillRect(this.x * z, this.y * z, this.w * z, this.h * z);
-    if (this.border !== "rgba(0, 0, 0, 0)") {
-        ctx.strokeStyle = this.border;
-        ctx.strokeRect(this.x * z, this.y * z, this.w * z, this.h * z);
-    }
 };
 Shape.prototype.contains = function (mx, my) {
-    const z = gameManager.layerManager.zoomFactor;
-    return (this.x * z <= mx) && ((this.x + this.w) * z >= mx) &&
-        (this.y * z <= my) && ((this.y + this.h) * z >= my);
-};
-Shape.prototype.inCorner = function (mx, my, corner) {
-    const z = gameManager.layerManager.zoomFactor;
-    switch (corner) {
-        case 'ne':
-            return (this.x + this.w - 3) * z <= mx && mx <= (this.x + this.w + 3) * z && (this.y - 3) * z <= my && my <= (this.y + 3) * z;
-        case 'nw':
-            return (this.x - 3) * z <= mx && mx <= (this.x + 3) * z && (this.y - 3) * z <= my && my <= (this.y + 3) * z;
-        case 'sw':
-            return (this.x - 3) * z <= mx && mx <= (this.x + 3) * z && (this.y + this.h - 3) * z <= my && my <= (this.y + this.h + 3) * z;
-        case 'se':
-            return (this.x + this.w - 3) * z <= mx && mx <= (this.x + this.w + 3) * z && (this.y + this.h - 3) * z <= my && my <= (this.y + this.h + 3) * z;
-        default:
-            return false;
-    }
-};
-Shape.prototype.getCorner = function (mx, my) {
-    if (this.inCorner(mx, my, "ne"))
-        return "ne";
-    else if (this.inCorner(mx, my, "nw"))
-        return "nw";
-    else if (this.inCorner(mx, my, "se"))
-        return "se";
-    else if (this.inCorner(mx, my, "sw"))
-        return "sw";
+    return false;
 };
 Shape.prototype.showContextMenu = function (mouse) {
     const l = gameManager.layerManager.getLayer();
@@ -232,6 +190,59 @@ Shape.prototype.showContextMenu = function (mouse) {
     });
 };
 
+function Rect(x, y, w, h, fill, border, uuid) {
+    this.type = "rect";
+    this.x = x || 0;
+    this.y = y || 0;
+    this.w = w || 1;
+    this.h = h || 1;
+    this.fill = fill || '#000';
+    this.border = border || "rgba(0, 0, 0, 0)";
+    this.uuid = uuid || uuidv4();
+    this.layer = null;
+}
+Rect.prototype = Object.create(Shape.prototype);
+Rect.prototype.draw = function (ctx) {
+    Shape.prototype.draw.call(this, ctx);
+    ctx.fillStyle = this.fill;
+    const z = gameManager.layerManager.zoomFactor;
+    ctx.fillRect(this.x * z, this.y * z, this.w * z, this.h * z);
+    if (this.border !== "rgba(0, 0, 0, 0)") {
+        ctx.strokeStyle = this.border;
+        ctx.strokeRect(this.x * z, this.y * z, this.w * z, this.h * z);
+    }
+};
+Rect.prototype.contains = function (mx, my) {
+    const z = gameManager.layerManager.zoomFactor;
+    return (this.x * z <= mx) && ((this.x + this.w) * z >= mx) &&
+        (this.y * z <= my) && ((this.y + this.h) * z >= my);
+};
+Rect.prototype.inCorner = function (mx, my, corner) {
+    const z = gameManager.layerManager.zoomFactor;
+    switch (corner) {
+        case 'ne':
+            return (this.x + this.w - 3) * z <= mx && mx <= (this.x + this.w + 3) * z && (this.y - 3) * z <= my && my <= (this.y + 3) * z;
+        case 'nw':
+            return (this.x - 3) * z <= mx && mx <= (this.x + 3) * z && (this.y - 3) * z <= my && my <= (this.y + 3) * z;
+        case 'sw':
+            return (this.x - 3) * z <= mx && mx <= (this.x + 3) * z && (this.y + this.h - 3) * z <= my && my <= (this.y + this.h + 3) * z;
+        case 'se':
+            return (this.x + this.w - 3) * z <= mx && mx <= (this.x + this.w + 3) * z && (this.y + this.h - 3) * z <= my && my <= (this.y + this.h + 3) * z;
+        default:
+            return false;
+    }
+};
+Rect.prototype.getCorner = function (mx, my) {
+    if (this.inCorner(mx, my, "ne"))
+        return "ne";
+    else if (this.inCorner(mx, my, "nw"))
+        return "nw";
+    else if (this.inCorner(mx, my, "se"))
+        return "se";
+    else if (this.inCorner(mx, my, "sw"))
+        return "sw";
+};
+
 function Line(x1, y1, x2, y2, uuid) {
     this.type = "line";
     this.x1 = x1;
@@ -242,6 +253,7 @@ function Line(x1, y1, x2, y2, uuid) {
 }
 Line.prototype = Object.create(Shape.prototype);
 Line.prototype.draw = function (ctx) {
+    Shape.prototype.draw.call(this, ctx);
     ctx.beginPath();
     ctx.moveTo(this.x1, this.y1);
     ctx.lineTo(this.x2, this.y2);
@@ -261,6 +273,7 @@ function Text(x, y, text, font, angle, uuid) {
 }
 Text.prototype = Object.create(Shape.prototype);
 Text.prototype.draw = function (ctx) {
+    Shape.prototype.draw.call(this, ctx);
     ctx.font = this.font;
     ctx.save();
     ctx.translate(this.x, this.y);
@@ -279,8 +292,9 @@ function Token(img, x, y, w, h, uuid) {
     this.w = w;
     this.h = h;
 }
-Token.prototype = Object.create(Shape.prototype);
+Token.prototype = Object.create(Rect.prototype);
 Token.prototype.draw = function (ctx) {
+    Shape.prototype.draw.call(this, ctx);
     const z = gameManager.layerManager.zoomFactor;
     ctx.drawImage(this.img, this.x * z, this.y * z, this.w * z, this.h * z);
 };
@@ -695,7 +709,7 @@ DrawTool.prototype.onMouseDown = function (e) {
     const fill = fillColor === null ? tinycolor("transparent") : fillColor;
     const borderColor = this.borderColor.spectrum("get");
     const border = borderColor === null ? tinycolor("transparent") : borderColor;
-    this.rect = new Shape(this.startPoint.x, this.startPoint.y, 0, 0, fill.toRgbString(), border.toRgbString());
+    this.rect = new Rect(this.startPoint.x, this.startPoint.y, 0, 0, fill.toRgbString(), border.toRgbString());
     layer.addShape(this.rect, true, false);
 };
 DrawTool.prototype.onMouseMove = function (e) {
@@ -767,19 +781,42 @@ RulerTool.prototype.onMouseUp = function (e) {
 };
 
 function FOWTool() {
-    DrawTool.call(this);
-    this.origLayer = null;
+    this.startPoint = null;
+    this.detailDiv = $("<div>")
+        .append($("<div>").append($("<div>Reveal</div>")).append($("<label class='switch'><input type='checkbox' id='fow-reveal'><span class='slider round'></span></label>")).append($("</div>")))
+        .append($("</div>"));
 }
-FOWTool.prototype = Object.create(DrawTool.prototype);
 FOWTool.prototype.onMouseDown = function (e) {
-    this.origLayer = gameManager.layerManager.selectedLayer;
-    gameManager.layerManager.selectedLayer = "fow";
-    DrawTool.prototype.onMouseDown.call(this, e);
-    this.rect.globalCompositeOperation = "destination-out";
+    const layer = gameManager.layerManager.getLayer("fow");
+    this.startPoint = layer.getMouse(e);
+    this.rect = new Rect(this.startPoint.x, this.startPoint.y, 0, 0, "black");
+    layer.addShape(this.rect, true, false);
+
+    if ($("#fow-reveal").prop("checked"))
+        this.rect.globalCompositeOperation = "destination-out";
+    else
+        this.rect.globalCompositeOperation = "source-over";
 };
 FOWTool.prototype.onMouseUp = function (e) {
-    DrawTool.prototype.onMouseUp.call(this, e);
-    gameManager.layerManager.selectedLayer = this.origLayer;
+    if (this.startPoint === null) return;
+    this.startPoint = null;
+    this.rect = null;
+};
+FOWTool.prototype.onMouseMove = function (e) {
+    if (this.startPoint === null) return;
+    // Currently draw on active layer
+    const layer = gameManager.layerManager.getLayer("fow");
+    const endPoint = layer.getMouse(e);
+
+    this.rect.w = Math.abs(endPoint.x - this.startPoint.x);
+    this.rect.h = Math.abs(endPoint.y - this.startPoint.y);
+    this.rect.x = Math.min(this.startPoint.x, endPoint.x);
+    this.rect.y = Math.min(this.startPoint.y, endPoint.y);
+    socket.emit("shapeMove", {shape: this.rect.asDict(), temporary: false});
+    layer.invalidate();
+};
+FOWTool.prototype.loadDetailDiv = function () {
+    return this.detailDiv;
 };
 
 function GameManager() {
@@ -799,7 +836,7 @@ const tools = [
     {name: "select", playerTool: true, defaultSelect: true, hasDetail: false, func: gameManager.layerManager},
     {name: "draw", playerTool: true, defaultSelect: false, hasDetail: true, func: gameManager.drawTool},
     {name: "ruler", playerTool: true, defaultSelect: false, hasDetail: false, func: gameManager.rulerTool},
-    {name: "fow", playerTool: false, defaultSelect: false, hasDetail: false, func: gameManager.fowTool},
+    {name: "fow", playerTool: false, defaultSelect: false, hasDetail: true, func: gameManager.fowTool},
 ];
 
 const toolselectDiv = $("#toolselect").find("ul");
@@ -844,14 +881,17 @@ window.addEventListener('mousedown', function (e) {
 });
 window.addEventListener('mousemove', function (e) {
     if (!board_initialised) return;
+    if (e.button !== 0 || e.target.tagName !== 'CANVAS') return;
     tools[gameManager.selectedTool].func.onMouseMove(e);
 });
 window.addEventListener('mouseup', function (e) {
     if (!board_initialised) return;
+    if (e.button !== 0 || e.target.tagName !== 'CANVAS') return;
     tools[gameManager.selectedTool].func.onMouseUp(e);
 });
 window.addEventListener('contextmenu', function (e) {
     if (!board_initialised) return;
+    if (e.button !== 0 || e.target.tagName !== 'CANVAS') return;
     tools[gameManager.selectedTool].func.onContextMenu(e);
 });
 
@@ -972,7 +1012,8 @@ function createShapeFromDict(shape, dummy) {
 
     let sh;
 
-    if (shape.type === 'shape') sh = Object.assign(new Shape(), shape);
+    if (shape.type === 'rect') sh = Object.assign(new Rect(), shape);
+    if (shape.type === 'fullscreenrect') sh = Object.assign(new FullscreenRect(), shape);
     if (shape.type === 'line') sh = Object.assign(new Line(), shape);
     if (shape.type === 'text') sh = Object.assign(new Text(), shape);
     if (shape.type === 'token') {

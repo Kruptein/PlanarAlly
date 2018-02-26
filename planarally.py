@@ -5,6 +5,8 @@ import os
 from collections import OrderedDict
 from typing import Dict, List
 
+from shapes import Rect
+
 
 class Client:
     def __init__(self, sid):
@@ -71,52 +73,6 @@ class GridLayer(Layer):
         return d
 
 
-class Shape:
-    def __init__(self, x, y, width, height, uuid, fill="green", border="rgba(0, 0, 0, 0)"):
-        self.x = x
-        self.y = y
-        self.width = width
-        self.height = height
-        self.uuid = uuid
-        self.fill = fill
-        self.border = border
-        self.layer = None
-
-    def as_dict(self):
-        return {
-            'x': self.x,
-            'y': self.y,
-            'w': self.width,
-            'h': self.height,
-            'fill': self.fill,
-            'border': self.border,
-            'uuid': self.uuid,
-            'layer': self.layer,
-            'type': "shape"
-        }
-
-
-class Token:
-    def __init__(self, img, x, y, width, height, uuid):
-        self.img = img
-        self.x = x
-        self.y = y
-        self.width = width
-        self.height = height
-        self.uuid = uuid
-
-    def as_dict(self):
-        return {
-            'x': self.x,
-            'y': self.y,
-            'w': self.width,
-            'h': self.height,
-            'img': self.img,
-            'uuid': self.uuid,
-            'type': "token"
-        }
-
-
 class Room:
     def __init__(self, name):
         self.name = name
@@ -136,11 +92,10 @@ class Room:
         self.layer_manager.add(Layer("draw", selectable=False, player_visible=True, player_editable=True))
 
         # some test shapes
-        self.layer_manager.layers[0].add_shape(Shape(50, 50, 50, 50, 1))
-        self.layer_manager.layers[2].add_shape(Shape(100, 50, 50, 50, 2, "red"))
-        self.layer_manager.layers[2].add_shape(Shape(50, 100, 50, 50, 3, "red"))
-        self.layer_manager.layers[3].add_shape(Shape(100, 100, 50, 50, 4, "blue"))
-        self.layer_manager.layers[4].add_shape(Shape(0, 0, 1920, 800, 5, "black"))
+        self.layer_manager.layers[0].add_shape(Rect(50, 50, 50, 50, 1))
+        self.layer_manager.layers[2].add_shape(Rect(100, 50, 50, 50, 2, "red"))
+        self.layer_manager.layers[2].add_shape(Rect(50, 100, 50, 50, 3, "red"))
+        self.layer_manager.layers[3].add_shape(Rect(100, 100, 50, 50, 4, "blue"))
 
     def get_board(self, dm):
         board = self.layer_manager.as_dict()

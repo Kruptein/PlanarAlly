@@ -95,6 +95,7 @@ socket.on("board init", function (board) {
                     // height = ui.helper[0].height;
                     const img = ui.draggable[0].children[0];
                     const token = new Token(img, x, y, img.width, img.height);
+                    token.src = img.src;
                     l.addShape(token, true);
                 }
             });
@@ -159,6 +160,14 @@ Shape.prototype.asDict = function() {
     return Object.assign({}, this);
 };
 Shape.prototype.draw = function (ctx) {
+    if (this.layer === 'fow' && IS_DM && this.globalCompositeOperation === "destination-out")
+        ctx.globalAlpha = 1.0;
+    else if (this.layer === 'fow' && IS_DM)
+        ctx.globalAlpha = 0.3;
+    if (this.globalCompositeOperation !== undefined)
+        ctx.globalCompositeOperation = this.globalCompositeOperation;
+    else
+        ctx.globalCompositeOperation = "source-over";
     ctx.fillStyle = this.fill;
     const z = gameManager.layerManager.zoomFactor;
     ctx.fillRect(this.x * z, this.y * z, this.w * z, this.h * z);
@@ -265,7 +274,6 @@ function Token(img, x, y, w, h, uuid) {
     this.type = "token";
     this.uuid = uuid || uuidv4();
     this.img = img;
-    this.src = img.src;
     this.x = x;
     this.y = y;
     this.w = w;
@@ -416,7 +424,8 @@ LayerState.prototype.moveShapeOrder = function (shape, destinationIndex) {
     }
 };
 
-function GridLayerState(canvas, name){
+
+function GridLayerState(canvas, name) {
     LayerState.call(this, canvas, name);
 }
 GridLayerState.prototype = Object.create(LayerState.prototype);
@@ -659,6 +668,24 @@ LayerManager.prototype.onContextMenu = function (e) {
 function DrawTool() {
     this.startPoint = null;
     this.detailDiv = null;
+
+    this.fillColor = $("<input type='text' />");
+    this.borderColor = $("<input type='text' />");
+    this.detailDiv = $("<div>")
+        .append($("<div>").append($("<div>Fill</div>")).append(this.fillColor).append($("</div>")))
+        .append($("<div>").append($("<div>Border</div>")).append(this.borderColor).append("</div>"))
+        .append($("</div>"));
+    this.fillColor.spectrum({
+        showInput: true,
+        allowEmpty: true,
+        showAlpha: true,
+        color: "red"
+    });
+    this.borderColor.spectrum({
+        showInput: true,
+        allowEmpty: true,
+        showAlpha: true
+    });
 }
 DrawTool.prototype.onMouseDown = function (e) {
     // Currently draw on active layer
@@ -690,25 +717,6 @@ DrawTool.prototype.onMouseUp = function (e) {
     this.rect = null;
 };
 DrawTool.prototype.loadDetailDiv = function () {
-    if (this.detailDiv === null) {
-        this.fillColor = $("<input type='text' />");
-        this.borderColor = $("<input type='text' />");
-        this.detailDiv = $("<div>")
-            .append($("<div>").append($("<div>Fill</div>")).append(this.fillColor).append($("</div>")))
-            .append($("<div>").append($("<div>Border</div>")).append(this.borderColor).append("</div>"))
-            .append($("</div>"));
-        this.fillColor.spectrum({
-            showInput: true,
-            allowEmpty: true,
-            showAlpha: true,
-            color: "red"
-        });
-        this.borderColor.spectrum({
-            showInput: true,
-            allowEmpty: true,
-            showAlpha: true
-        });
-    }
     return this.detailDiv;
 };
 
@@ -758,11 +766,28 @@ RulerTool.prototype.onMouseUp = function (e) {
     layer.invalidate();
 };
 
+function FOWTool() {
+    DrawTool.call(this);
+    this.origLayer = null;
+}
+FOWTool.prototype = Object.create(DrawTool.prototype);
+FOWTool.prototype.onMouseDown = function (e) {
+    this.origLayer = gameManager.layerManager.selectedLayer;
+    gameManager.layerManager.selectedLayer = "fow";
+    DrawTool.prototype.onMouseDown.call(this, e);
+    this.rect.globalCompositeOperation = "destination-out";
+};
+FOWTool.prototype.onMouseUp = function (e) {
+    DrawTool.prototype.onMouseUp.call(this, e);
+    gameManager.layerManager.selectedLayer = this.origLayer;
+};
+
 function GameManager() {
     this.layerManager = new LayerManager();
     this.selectedTool = 0;
     this.rulerTool = new RulerTool();
     this.drawTool = new DrawTool();
+    this.fowTool = new FOWTool();
 }
 
 
@@ -774,7 +799,7 @@ const tools = [
     {name: "select", playerTool: true, defaultSelect: true, hasDetail: false, func: gameManager.layerManager},
     {name: "draw", playerTool: true, defaultSelect: false, hasDetail: true, func: gameManager.drawTool},
     {name: "ruler", playerTool: true, defaultSelect: false, hasDetail: false, func: gameManager.rulerTool},
-    // {name: "fow", playerTool: false, defaultSelect: false},
+    {name: "fow", playerTool: false, defaultSelect: false, hasDetail: false, func: gameManager.fowTool},
 ];
 
 const toolselectDiv = $("#toolselect").find("ul");
@@ -947,13 +972,14 @@ function createShapeFromDict(shape, dummy) {
 
     let sh;
 
-    if (shape.type === 'shape') sh = new Shape(shape.x, shape.y, shape.w, shape.h, shape.fill, shape.border, shape.uuid);
-    if (shape.type === 'line') sh = new Line(shape.x1, shape.y1, shape.x2, shape.y2, shape.uuid);
-    if (shape.type === 'text') sh = new Text(shape.x, shape.y, shape.text, shape.font, shape.angle, shape.uuid);
+    if (shape.type === 'shape') sh = Object.assign(new Shape(), shape);
+    if (shape.type === 'line') sh = Object.assign(new Line(), shape);
+    if (shape.type === 'text') sh = Object.assign(new Text(), shape);
     if (shape.type === 'token') {
             const img = new Image(shape.w, shape.h);
             img.src = shape.src;
-            sh = new Token(img, shape.x, shape.y, shape.w, shape.h, shape.uuid);
+            sh = Object.assign(new Token(), shape);
+            sh.img = img;
             img.onload = function() {
                 gameManager.layerManager.getLayer(shape.layer).invalidate();
             };

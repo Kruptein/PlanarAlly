@@ -140,6 +140,7 @@ class Room:
         self.layer_manager.layers[2].add_shape(Shape(100, 50, 50, 50, 2, "red"))
         self.layer_manager.layers[2].add_shape(Shape(50, 100, 50, 50, 3, "red"))
         self.layer_manager.layers[3].add_shape(Shape(100, 100, 50, 50, 4, "blue"))
+        self.layer_manager.layers[4].add_shape(Shape(0, 0, 1920, 800, 5, "black"))
 
     def get_board(self, dm):
         board = self.layer_manager.as_dict()

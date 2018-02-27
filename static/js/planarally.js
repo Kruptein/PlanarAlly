@@ -24,7 +24,7 @@ socket.on("connect", function () {
 socket.on("disconnect", function () {
     console.log("Disconnected");
 });
-socket.on("token list", function (tokens) {
+socket.on("asset list", function (assets) {
     const m = $("#menu-tokens");
     m.empty();
     let h = '';
@@ -36,11 +36,11 @@ socket.on("token list", function (tokens) {
             process(value, path + key + "/");
             h += "</div></div>";
         });
-        entry.files.forEach(function(token){
-            h += "<div class='draggable token'><img src='/static/img/" + path + token + "' width='35'>" + token + "</div>";
+        entry.files.forEach(function(asset){
+            h += "<div class='draggable token'><img src='/static/img/" + path + asset + "' width='35'>" + asset + "</div>";
         });
     };
-    process(tokens);
+    process(assets);
     m.html(h);
     $(".draggable").draggable({
         helper: "clone",
@@ -94,9 +94,9 @@ socket.on("board init", function (board) {
                     // width = ui.helper[0].width;
                     // height = ui.helper[0].height;
                     const img = ui.draggable[0].children[0];
-                    const token = new Token(img, x, y, img.width, img.height);
-                    token.src = img.src;
-                    l.addShape(token, true);
+                    const asset = new Asset(img, x, y, img.width, img.height);
+                    asset.src = img.src;
+                    l.addShape(asset, true);
                 }
             });
         } else {
@@ -168,7 +168,7 @@ Shape.prototype.showContextMenu = function (mouse) {
     const l = gameManager.layerManager.getLayer();
     l.selection = this;
     l.invalidate();
-    const token = this;
+    const asset = this;
     $menu.show();
     $menu.empty();
     $menu.css({left: mouse.x, top: mouse.y});
@@ -186,7 +186,7 @@ Shape.prototype.showContextMenu = function (mouse) {
         "</ul>";
     $menu.html(data);
     $(".context-clickable").on('click', function () {
-        handleContextMenu($(this), token);
+        handleContextMenu($(this), aset);
     });
 };
 
@@ -282,8 +282,8 @@ Text.prototype.draw = function (ctx) {
     ctx.restore();
 };
 
-function Token(img, x, y, w, h, uuid) {
-    this.type = "token";
+function Asset(img, x, y, w, h, uuid) {
+    this.type = "asset";
     this.uuid = uuid || uuidv4();
     this.img = img;
     this.x = x;
@@ -291,8 +291,8 @@ function Token(img, x, y, w, h, uuid) {
     this.w = w;
     this.h = h;
 }
-Token.prototype = Object.create(Rect.prototype);
-Token.prototype.draw = function (ctx) {
+Asset.prototype = Object.create(Rect.prototype);
+Asset.prototype.draw = function (ctx) {
     Shape.prototype.draw.call(this, ctx);
     const z = gameManager.layerManager.zoomFactor;
     ctx.drawImage(this.img, this.x * z, this.y * z, this.w * z, this.h * z);
@@ -910,19 +910,19 @@ $("#zoomer").slider({
 const $menu = $('#contextMenu');
 $menu.hide();
 
-function handleContextMenu(menu, token) {
+function handleContextMenu(menu, shape) {
     const action = menu.data("action");
     const layer = gameManager.layerManager.getLayer();
     switch (action) {
         case 'moveToFront':
-            layer.moveShapeOrder(token, layer.shapes.data.length - 1, true);
+            layer.moveShapeOrder(shape, layer.shapes.data.length - 1, true);
             break;
         case 'moveToBack':
-            layer.moveShapeOrder(token, 0, true);
+            layer.moveShapeOrder(shape, 0, true);
             break;
         case 'setLayer':
-            layer.removeShape(token, true);
-            gameManager.layerManager.getLayer(menu.data("layer")).addShape(token, true);
+            layer.removeShape(shape, true);
+            gameManager.layerManager.getLayer(menu.data("layer")).addShape(shape, true);
             break;
     }
     $menu.hide();
@@ -1013,13 +1013,12 @@ function createShapeFromDict(shape, dummy) {
     let sh;
 
     if (shape.type === 'rect') sh = Object.assign(new Rect(), shape);
-    if (shape.type === 'fullscreenrect') sh = Object.assign(new FullscreenRect(), shape);
     if (shape.type === 'line') sh = Object.assign(new Line(), shape);
     if (shape.type === 'text') sh = Object.assign(new Text(), shape);
-    if (shape.type === 'token') {
+    if (shape.type === 'asset') {
             const img = new Image(shape.w, shape.h);
             img.src = shape.src;
-            sh = Object.assign(new Token(), shape);
+            sh = Object.assign(new Asset(), shape);
             sh.img = img;
             img.onload = function() {
                 gameManager.layerManager.getLayer(shape.layer).invalidate();

@@ -97,7 +97,7 @@ async def move_shape_order(sid, data):
     if room.dm != sid and not layer.player_editable:
         print(f"{sid} attempted to move a shape order on a dm layer")
         return
-    layer.shapes.move_to_end(data['shape'], data['index'] != 0)
+    layer.shapes.move_to_end(data['shape']['uuid'], data['index'] != 0)
     if layer.player_visible:
         await sio.emit("moveShapeOrder", data, room=room.name, skip_sid=sid, namespace='/planarally')
 

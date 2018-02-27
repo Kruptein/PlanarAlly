@@ -131,7 +131,7 @@ socket.on("remove shape", function (shape) {
     gameManager.layerManager.getLayer(shape.layer).removeShape(gameManager.layerManager.UUIDMap.get(shape.uuid), false);
 });
 socket.on("moveShapeOrder", function (data) {
-    gameManager.layerManager.getLayer(data.shape.layer).moveShapeOrder(gameManager.layerManager.UUIDMap.get(data.shape), data.index);
+    gameManager.layerManager.getLayer(data.shape.layer).moveShapeOrder(gameManager.layerManager.UUIDMap.get(data.shape.uuid), data.index, false);
 });
 socket.on("shapeMove", function (shape) {
     Object.assign(gameManager.layerManager.UUIDMap.get(shape.uuid), createShapeFromDict(shape, true));
@@ -430,9 +430,10 @@ LayerState.prototype.getMouse = function (e) {
 
     return {x: mx, y: my};
 };
-LayerState.prototype.moveShapeOrder = function (shape, destinationIndex) {
+LayerState.prototype.moveShapeOrder = function (shape, destinationIndex, sync) {
     if (this.shapes.moveTo(shape, destinationIndex)) {
-        socket.emit("moveShapeOrder", {layer: this.name, shape: shape.uuid, index: destinationIndex});
+        console.log(shape);
+        if (sync) socket.emit("moveShapeOrder", {shape: shape.asDict(), index: destinationIndex});
         this.invalidate();
     }
 };
@@ -914,10 +915,10 @@ function handleContextMenu(menu, token) {
     const layer = gameManager.layerManager.getLayer();
     switch (action) {
         case 'moveToFront':
-            layer.moveShapeOrder(token, layer.shapes.data.length - 1);
+            layer.moveShapeOrder(token, layer.shapes.data.length - 1, true);
             break;
         case 'moveToBack':
-            layer.moveShapeOrder(token, 0);
+            layer.moveShapeOrder(token, 0, true);
             break;
         case 'setLayer':
             layer.removeShape(token, true);

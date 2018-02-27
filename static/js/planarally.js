@@ -212,8 +212,7 @@ Rect.prototype.draw = function (ctx) {
         ctx.strokeRect(this.x * z, this.y * z, this.w * z, this.h * z);
     }
 };
-Rect.prototype.contains = function (mx, my) {
-    const z = gameManager.layerManager.zoomFactor;
+Rect.prototype.contains = function (mx, my) {    const z = gameManager.layerManager.zoomFactor;
     return (this.x * z <= mx) && ((this.x + this.w) * z >= mx) &&
         (this.y * z <= my) && ((this.y + this.h) * z >= my);
 };
@@ -891,7 +890,7 @@ window.addEventListener('mouseup', function (e) {
 });
 window.addEventListener('contextmenu', function (e) {
     if (!board_initialised) return;
-    if (e.button !== 0 || e.target.tagName !== 'CANVAS') return;
+    if (e.button !== 2 || e.target.tagName !== 'CANVAS') return;
     tools[gameManager.selectedTool].func.onContextMenu(e);
 });
 

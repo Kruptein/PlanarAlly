@@ -1,2 +1,4 @@
 aiohttp
+aiohttp_session
+cryptography
 python-socketio

@@ -5,10 +5,13 @@ This is the code responsible for starting the backend and reacting to socket IO 
 
 import atexit
 import os
+import secrets
 import shelve
 import socketio
 
 from aiohttp import web
+from aiohttp_session import get_session, setup
+from aiohttp_session.cookie_storage import EncryptedCookieStorage
 
 from planarally import PlanarAlly
 
@@ -16,6 +19,7 @@ PA = PlanarAlly()
 
 sio = socketio.AsyncServer(async_mode='aiohttp')
 app = web.Application()
+setup(app, EncryptedCookieStorage(secrets.token_bytes(32)))
 sio.attach(app)
 
 

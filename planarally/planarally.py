@@ -5,7 +5,7 @@ import os
 from collections import OrderedDict
 from typing import Dict, List
 
-from planarally.shapes import Rect
+from shapes import Rect
 
 
 class Client:

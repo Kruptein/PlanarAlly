@@ -1,4 +1,6 @@
 aiohttp
+aiohttp_jinja2
+aiohttp_security
 aiohttp_session
 cryptography
 python-socketio

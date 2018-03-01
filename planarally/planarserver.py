@@ -9,8 +9,12 @@ import secrets
 import shelve
 import socketio
 
+import aiohttp_jinja2
+import aiohttp_session
+import jinja2
+
 from aiohttp import web
-from aiohttp_session import get_session, setup
+from aiohttp_security import remember, forget, authorized_userid, login_required
 from aiohttp_session.cookie_storage import EncryptedCookieStorage
 
 from planarally import PlanarAlly
@@ -19,7 +23,8 @@ PA = PlanarAlly()
 
 sio = socketio.AsyncServer(async_mode='aiohttp')
 app = web.Application()
-setup(app, EncryptedCookieStorage(secrets.token_bytes(32)))
+aiohttp_session.setup(app, EncryptedCookieStorage(secrets.token_bytes(32)))
+aiohttp_jinja2.setup(app, loader=jinja2.FileSystemLoader('templates'))
 sio.attach(app)
 
 
@@ -30,9 +35,22 @@ def save_all():
             shelf[room.name] = room
 
 
-async def index(request):
-    with open('planarally.html') as f:
-        return web.Response(text=f.read(), content_type='text/html')
+@aiohttp_jinja2.template("login.jinja2")
+async def login(request):
+    username = await authorized_userid(request)
+    if username:
+        return {'message': username}
+    else:
+        if request.method == 'POST':
+
+        else:
+            return {}
+
+
+@login_required
+@aiohttp_jinja2.template('planarally.html')
+async def pa(request):
+    return {}
 
 
 @sio.on("join room", namespace='/planarally')
@@ -152,7 +170,8 @@ async def test_disconnect(sid):
 
 
 app.router.add_static('/static', 'static')
-app.router.add_get('/', index)
+app.router.add_route('*', '/', login)
+app.router.add_get('/pa', pa)
 
 
 if __name__ == '__main__':

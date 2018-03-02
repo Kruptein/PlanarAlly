@@ -19,10 +19,13 @@ let board_initialised = false;
 const IS_DM = findGetParameter("dm") !== null;
 socket.on("connect", function () {
     console.log("Connected");
-    socket.emit("join room", findGetParameter("room"), IS_DM);
 });
 socket.on("disconnect", function () {
     console.log("Disconnected");
+});
+socket.on("redirect", function (destination) {
+    console.log("redirecting");
+    window.location.href = destination;
 });
 socket.on("asset list", function (assets) {
     const m = $("#menu-tokens");
@@ -103,7 +106,7 @@ socket.on("board init", function (board) {
             l.setShapes(new_layer.shapes);
         }
     }
-    socket.emit("client initialised");
+    // socket.emit("client initialised");
     board_initialised = true;
 
     if (selectable_layers > 1){

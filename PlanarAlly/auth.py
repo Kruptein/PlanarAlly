@@ -1,3 +1,6 @@
+import secrets
+from functools import wraps
+
 import bcrypt
 import shelve
 
@@ -26,16 +29,23 @@ class ShelveDictAuthorizationPolicy(AbstractAuthorizationPolicy):
         self.save_file = save
         self.user_map = {}
         self.sio_map = {}
+        self.secret_token = None
 
         self.load_save()
 
     def load_save(self):
         with shelve.open(self.save_file, 'c') as shelf:
             self.user_map = shelf.get('user_map', {})
+            if "secret_token" not in shelf:
+                self.secret_token = secrets.token_bytes(32)
+                shelf['secret_token'] = self.secret_token
+            else:
+                self.secret_token = shelf['secret_token']
 
     def save(self):
         with shelve.open(self.save_file, 'c') as shelf:
             shelf['user_map'] = self.user_map
+            shelf['secret_token'] = self.secret_token
 
     async def authorized_userid(self, identity):
         """Retrieve authorized user id.
@@ -57,9 +67,18 @@ class ShelveDictAuthorizationPolicy(AbstractAuthorizationPolicy):
         return permission in user.permissions
 
 
-async def check_credentials(user_map, username, password):
-    user = user_map.get(username)
-    if not user:
-        return False
-
-    return user.password == password
+def login_required(app, sio):
+    """
+    Decorator that restrict access only for authorized users in a websocket context.
+    """
+    def real_decorator(fn):
+        @wraps(fn)
+        async def wrapped(*args, **kwargs):
+            sid = args[0]
+            policy = app['AuthzPolicy']
+            if sid not in policy.sio_map:
+                await sio.emit("redirect", "/")
+                return
+            return await fn(*args, **kwargs)
+        return wrapped
+    return real_decorator

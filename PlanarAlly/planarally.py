@@ -3,7 +3,7 @@ PlayerAlly data representation classes.
 """
 import os
 from collections import OrderedDict
-from typing import Dict, List
+from typing import Dict, List, Tuple
 
 from shapes import Rect
 
@@ -74,9 +74,10 @@ class GridLayer(Layer):
 
 
 class Room:
-    def __init__(self, name):
+    def __init__(self, name, creator):
         self.name = name
-        self.dm = None
+        self.creator = creator
+        self.players = []
         self.layer_manager = LayerManager()
 
         # Keep track of temporary (i.e. not serverStored) shapes
@@ -97,9 +98,13 @@ class Room:
         self.layer_manager.layers[2].add_shape(Rect(50, 100, 50, 50, 3, "red"))
         self.layer_manager.layers[3].add_shape(Rect(100, 100, 50, 50, 4, "blue"))
 
-    def get_board(self, dm):
+    @property
+    def sioroom(self):
+        return f"{self.name}_{self.creator}"
+
+    def get_board(self, username):
         board = self.layer_manager.as_dict()
-        if dm:
+        if self.creator == username:
             return board
         for l in board['layers']:
             if not l['player_visible']:
@@ -116,17 +121,10 @@ class Room:
 
 class PlanarAlly:
     def __init__(self):
-        self.clients = {}  # type: Dict[str, Client]
-        self.rooms = {}  # type: Dict[str, Room]
+        self.rooms = {}  # type: Dict[Tuple[str, str], Room]
 
-    def add_client(self, sid):
-        self.clients[sid] = Client(sid)
-
-    def add_room(self, room):
-        self.rooms[room] = Room(room)
-
-    def get_client_room(self, sid):
-        return self.rooms[self.clients[sid].room]
+    def add_room(self, room, creator):
+        self.rooms[(room, creator)] = Room(room, creator)
 
     def get_token_list(self, path=None):
         if not path:
@@ -138,3 +136,13 @@ class PlanarAlly:
             elif entry.is_dir():
                 d['folders'][entry.name] = self.get_token_list(entry.path)
         return d
+
+    def get_rooms(self, username):
+        owned = []
+        joined = []
+        for (name, creator), room in self.rooms.items():
+            if creator == username:
+                owned.append(name)
+            elif username in room.players:
+                joined.append(name)
+        return owned, joined

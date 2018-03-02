@@ -1,0 +1,16 @@
+<!doctype html>
+<html>
+<head>
+    <title>PlanarAlly</title>
+    <link href="/static/css/login.css" rel="stylesheet">
+</head>
+<body>
+<div id="container">
+    Rooms you own: {% for room in owned %}{{ room }}{% endfor %} <br>
+    Rooms you joined: {% for room in joined %}{{ room }}{% endfor %} <br>
+    <form method="post" action="/create_room">
+        <input type="text" name="room_name" placeholder="Room Name">
+        <input type="submit" name="create_room">
+    </form>
+</div>
+</body>

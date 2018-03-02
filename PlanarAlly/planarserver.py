@@ -5,7 +5,6 @@ This is the code responsible for starting the backend and reacting to socket IO 
 
 import atexit
 import os
-import secrets
 import shelve
 import socketio
 
@@ -26,7 +25,7 @@ sio = socketio.AsyncServer(async_mode='aiohttp')
 app = web.Application()
 app["AuthzPolicy"] = auth.ShelveDictAuthorizationPolicy("planar.save")
 aiohttp_security.setup(app, SessionIdentityPolicy(), app['AuthzPolicy'])
-aiohttp_session.setup(app, EncryptedCookieStorage(secrets.token_bytes(32)))
+aiohttp_session.setup(app, EncryptedCookieStorage(app['AuthzPolicy'].secret_token))
 aiohttp_jinja2.setup(app, loader=jinja2.FileSystemLoader('templates'))
 sio.attach(app)
 
@@ -37,14 +36,14 @@ def save_all():
         with shelve.open("planar.save", "c") as shelf:
             if 'rooms' not in shelf:
                 shelf['rooms'] = {}
-            shelf['rooms'][room.name] = room
+            shelf['rooms'][room.sioroom] = room
 
 
 @aiohttp_jinja2.template("login.jinja2")
 async def login(request):
     username = await authorized_userid(request)
     if username:
-        return web.HTTPFound("/pa")
+        return web.HTTPFound("/rooms")
     else:
         valid = False
         if request.method == 'POST':
@@ -72,7 +71,7 @@ async def login(request):
                 else:
                     valid = True
             if valid:
-                response = web.HTTPFound("/pa")
+                response = web.HTTPFound("/rooms")
                 await remember(request, response, username)
                 return response
             return form
@@ -88,138 +87,168 @@ async def logout(request):
 
 
 @login_required
+@aiohttp_jinja2.template('rooms.jinja2')
+async def show_rooms(request):
+    username = await authorized_userid(request)
+    owned, joined = PA.get_rooms(username)
+    return {'owned': owned, 'joined': joined}
+
+
+@login_required
+async def create_room(request):
+    username = await authorized_userid(request)
+    data = await request.post()
+    roomname = data['room_name']
+    if not roomname:
+        response = web.HTTPFound('/rooms')
+    else:
+        PA.add_room(roomname, username)
+        response = web.HTTPFound(f'/rooms/{username}/{roomname}')
+    return response
+
+
+@login_required
 @aiohttp_jinja2.template('planarally.html')
-async def pa(request):
-    return {}
+async def show_room(request):
+    username = await authorized_userid(request)
+    try:
+        room = PA.rooms[(request.match_info['roomname'], request.match_info['username'])]
+    except KeyError:
+        pass
+    else:
+        if username in room.players or room.creator == username:
+            return {}
+    return web.HTTPFound("/rooms")
 
 
-@sio.on("join room", namespace='/planarally')
-async def join_room(sid, room, dm):
-    if room is None:
-        room = ''
-    if room not in PA.rooms:
-        with shelve.open("planar.save", "c") as shelf:
-            if room in shelf:
-                PA.rooms[room] = shelf[room]
-            else:
-                PA.add_room(room)
-    if dm:
-        PA.rooms[room].dm = sid
-    sio.enter_room(sid, room, namespace='/planarally')
-    PA.clients[sid].room = room
-    await sio.emit('board init', PA.rooms[room].get_board(dm), room=sid, namespace='/planarally')
-    await sio.emit('token list', PA.get_token_list(), room=sid, namespace='/planarally')
-
-
-@sio.on("client initialised", namespace='/planarally')
-async def client_init(sid):
-    PA.clients[sid].initialised = True
-
-
+# SOCKETS
 @sio.on("add shape", namespace="/planarally")
+@auth.login_required(app, sio)
 async def add_shape(sid, data):
-    if not PA.clients[sid].initialised:
-        return
-    room = PA.get_client_room(sid)
+    username = app['AuthzPolicy'].sio_map[sid]['user'].username
+    room = app['AuthzPolicy'].sio_map[sid]['room']
+
     layer = room.layer_manager.get_layer(data['shape']['layer'])
-    if room.dm != sid and not layer.player_editable:
-        print(f"{sid} attempted to add a shape to a dm layer")
+    if room.creator != username and not layer.player_editable:
+        print(f"{username} attempted to add a shape to a dm layer")
         return
     if data['temporary']:
         room.add_temp(sid, data['shape']['uuid'])
     else:
         layer.shapes[data['shape']['uuid']] = data['shape']
     if layer.player_visible:
-        await sio.emit("add shape", data['shape'], room=room.name, skip_sid=sid, namespace='/planarally')
+        await sio.emit("add shape", data['shape'], room=room.sioroom, skip_sid=sid, namespace='/planarally')
 
 
 @sio.on("remove shape", namespace="/planarally")
+@auth.login_required(app, sio)
 async def remove_shape(sid, data):
-    if not PA.clients[sid].initialised:
-        return
-    room = PA.get_client_room(sid)
+    username = app['AuthzPolicy'].sio_map[sid]['user'].username
+    room = app['AuthzPolicy'].sio_map[sid]['room']
+
     layer = room.layer_manager.get_layer(data['shape']['layer'])
-    if room.dm != sid and not layer.player_editable:
-        print(f"{sid} attempted to remove a shape from a dm layer")
+    if room.creator != username and not layer.player_editable:
+        print(f"{username} attempted to remove a shape from a dm layer")
         return
     if data['temporary']:
         room.client_temporaries[sid].remove(data['shape']['uuid'])
     else:
         del layer.shapes[data['shape']['uuid']]
     if layer.player_visible:
-        await sio.emit("remove shape", data['shape'], room=room.name, skip_sid=sid, namespace='/planarally')
+        await sio.emit("remove shape", data['shape'], room=room.sioroom, skip_sid=sid, namespace='/planarally')
 
 
 @sio.on("moveShapeOrder", namespace="/planarally")
+@auth.login_required(app, sio)
 async def move_shape_order(sid, data):
-    if not PA.clients[sid].initialised:
-        return
-    room = PA.get_client_room(sid)
+    username = app['AuthzPolicy'].sio_map[sid]['user'].username
+    room = app['AuthzPolicy'].sio_map[sid]['room']
+
     layer = room.layer_manager.get_layer(data['shape']['layer'])
-    if room.dm != sid and not layer.player_editable:
-        print(f"{sid} attempted to move a shape order on a dm layer")
+    if room.creator != username and not layer.player_editable:
+        print(f"{username} attempted to move a shape order on a dm layer")
         return
     layer.shapes.move_to_end(data['shape']['uuid'], data['index'] != 0)
     if layer.player_visible:
-        await sio.emit("moveShapeOrder", data, room=room.name, skip_sid=sid, namespace='/planarally')
+        await sio.emit("moveShapeOrder", data, room=room.sioroom, skip_sid=sid, namespace='/planarally')
 
 
 @sio.on("shapeMove", namespace="/planarally")
+@auth.login_required(app, sio)
 async def move_shape(sid, data):
-    if not PA.clients[sid].initialised:
-        return
-    room = PA.get_client_room(sid)
+    username = app['AuthzPolicy'].sio_map[sid]['user'].username
+    room = app['AuthzPolicy'].sio_map[sid]['room']
+
     layer = room.layer_manager.get_layer(data['shape']['layer'])
-    if room.dm != sid and not layer.player_editable:
-        print(f"{sid} attempted to move a shape on a dm layer")
+    if room.creator != username and not layer.player_editable:
+        print(f"{username} attempted to move a shape on a dm layer")
         return
     if not data['temporary']:
         layer.shapes[data['shape']['uuid']] = data['shape']
     if layer.player_visible:
-        await sio.emit("shapeMove", data['shape'], room=room.name, skip_sid=sid, namespace='/planarally')
+        await sio.emit("shapeMove", data['shape'], room=room.sioroom, skip_sid=sid, namespace='/planarally')
 
 
 @sio.on("set gridsize", namespace="/planarally")
+@auth.login_required(app, sio)
 async def set_gridsize(sid, grid_size):
-    if PA.clients[sid].initialised:
-        room = PA.get_client_room(sid)
-        if room.dm != sid:
-            print(f"{sid} attempted to set gridsize without DM rights")
-            return
-        room.layer_manager.get_grid_layer().size = grid_size
-        await sio.emit("set gridsize", grid_size, room=room.name, skip_sid=sid, namespace="/planarally")
+    username = app['AuthzPolicy'].sio_map[sid]['user'].username
+    room = app['AuthzPolicy'].sio_map[sid]['room']
+
+    if room.creator != username:
+        print(f"{username} attempted to set gridsize without DM rights")
+        return
+    room.layer_manager.get_grid_layer().size = grid_size
+    await sio.emit("set gridsize", grid_size, room=room.sioroom, skip_sid=sid, namespace="/planarally")
 
 
 @sio.on('connect', namespace='/planarally')
 async def test_connect(sid, environ):
     username = await authorized_userid(environ['aiohttp.request'])
     if username is None:
-        print("Unauthed user")  # todo LEL
+        await sio.emit("redirect", "/", room=sid, namespace='/planarally')
     else:
-        app['AuthzPolicy'].sio_map[sid] = app['AuthzPolicy'].user_map[username]
-    print(f"Client {sid} connected")
-    PA.add_client(sid)
+        ref = environ['HTTP_REFERER'].strip("/").split("/")
+        room = PA.rooms[(ref[-1], ref[-2])]
+
+        app['AuthzPolicy'].sio_map[sid] = {
+            'user': app['AuthzPolicy'].user_map[username],
+            'room': room
+        }
+        print(f"User {username} connected with identifier {sid}")
+
+        sio.enter_room(sid, f"{room.name}_{room.creator}", namespace='/planarally')
+        await sio.emit('board init', room.get_board(username), room=sid, namespace='/planarally')
+        await sio.emit('token list', PA.get_token_list(), room=sid, namespace='/planarally')
 
 
 @sio.on('disconnect', namespace='/planarally')
 async def test_disconnect(sid):
-    print(f'Client {sid} disconnected')
+    if sid not in app['AuthzPolicy'].sio_map:
+        return
+    username = app['AuthzPolicy'].sio_map[sid]['user'].username
+    room = app['AuthzPolicy'].sio_map[sid]['room']
+
+    print(f'User {username} disconnected with identifier {sid}')
     del app['AuthzPolicy'].sio_map[sid]
-    room = PA.get_client_room(sid)
+
     if sid in room.client_temporaries:
         sio.emit("clear temporaries", room.client_temporaries[sid])
         del room.client_temporaries[sid]
-    if len(PA.clients) == 1:
-        with shelve.open("planar.save", "c") as shelf:
-            if 'rooms' not in shelf:
-                shelf['rooms'] = {}
-            shelf['rooms'][room.name] = room
-    del PA.clients[sid]
+
+    # if len(PA.clients) == 1:
+    #     with shelve.open("planar.save", "c") as shelf:
+    #         if 'rooms' not in shelf:
+    #             shelf['rooms'] = {}
+    #         shelf['rooms'][room.name] = room
+    # del PA.clients[sid]
 
 
 app.router.add_static('/static', 'static')
 app.router.add_route('*', '/', login)
-app.router.add_get('/pa', pa)
+app.router.add_get('/rooms', show_rooms)
+app.router.add_get('/rooms/{username}/{roomname}', show_room)
+app.router.add_post('/create_room', create_room)
 app.router.add_get('/logout', logout)
 
 

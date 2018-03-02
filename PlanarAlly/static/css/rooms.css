@@ -15,16 +15,54 @@ body {
     background: url("/static/img/login_background.png") repeat fixed;
     font-family: 'Open Sans', sans-serif;
     font-weight: 200;
+    display:flex;
+}
+
+a {
+    text-decoration: inherit;
+    color: inherit;
+    width: 100%;
+    display:block;
+    text-align: center;
+    border-radius: 10px;
+    border: solid gray;
+}
+
+a:hover {
+    background-color: gray;
+    color: white;
+}
+
+a:first-child {
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+}
+
+a:last-child {
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+}
+
+a:only-child {
+    border-radius: 10px;
+}
+
+#formcontainer {
+    /*position: relative;*/
+    /*top: 50%;*/
+    /*width: 250px;*/
+    /*display: table;*/
+    /*margin: -150px auto 0 auto;*/
+    margin: auto;
 }
 
 form {
-    position: relative;
-    top: 50%;
-    width: 250px;
-    display: table;
-    margin: -150px auto 0 auto;
     background: #fff;
     border-radius: 4px;
+}
+
+form:last-child {
+    border-top: solid 1px gray;
 }
 
 .legend {

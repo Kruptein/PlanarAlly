@@ -3,14 +3,53 @@
 <head>
     <title>PlanarAlly</title>
     <link href="/static/css/rooms.css" rel="stylesheet">
+    <script defer src="https://use.fontawesome.com/releases/v5.0.8/js/all.js"></script>
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js"
+            integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
+    <script defer src="/static/js/login.js"></script>
+    <script>
+        if (typeof jQuery === 'undefined') {
+            document.write("<script src='/static/extern/js/jquery-3.3.1.min.js'>\x3C/script>");
+            document.write("<script src='/static/extern/js/fontawesome_all.js'>\x3C/script>");
+        }
+    </script>
 </head>
 <body>
-<div id="container">
-    Rooms you own: {% for room in owned %}{{ room }}{% endfor %} <br>
-    Rooms you joined: {% for room in joined %}{{ room }}{% endfor %} <br>
-    <form method="post" action="/create_room">
-        <input type="text" name="room_name" placeholder="Room Name">
-        <input type="submit" name="create_room">
+<div id="formcontainer">
+    {% if owned or joined %}
+        <form action="" method="post">
+            <fieldset>
+                <legend class="legend">Your sessions</legend>
+                <div class="input">
+                    {% for room in owned %}
+                        <a href="/rooms/{{ room }}">{{ room }}</a>
+                    {% endfor %}
+                    {#                        {% for room in joined %}#}
+                    {#                            <option value="{{ room }}">{{ room }}</option>#}
+                    {#                        {% endfor %}#}
+                </div>
+
+                <div style="display:flex;">
+                    <button type="submit" name="login" style="visibility: hidden;display:none;"></button>
+                    <button type="submit" name="register" class="submit" title="Register"><i class="fas fa-plus"></i>
+                    </button>
+                    <button type="submit" name="login" class="submit" title="Login"><i class="fas fa-arrow-right"></i>
+                    </button>
+                </div>
+            </fieldset>
+        </form>
+    {% endif %}
+    <form action="/create_room" method="post">
+        <fieldset>
+            {% if not owned and not joined %}
+                <legend class="legend">Create a session</legend>
+            {% endif %}
+            <div class="input">
+                <input type="text" name="room_name" placeholder="Session Name">
+                <span><i class="fab fa-d-and-d"></i></span>
+            </div>
+            <button type="submit" class="submit" title="Create"><i class="fas fa-arrow-right"></i></button>
+        </fieldset>
     </form>
 </div>
 </body>

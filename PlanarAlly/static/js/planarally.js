@@ -37,7 +37,7 @@ socket.on("asset list", function (assets) {
             h += "</div></div>";
         });
         entry.files.forEach(function(asset){
-            h += "<div class='draggable token'><img src=" + path + asset + "'/planarally/static/img/' width='35'>" + asset + "</div>";
+            h += "<div class='draggable token'><img src=" + path + asset + "'//static/img/' width='35'>" + asset + "</div>";
         });
     };
     process(assets);

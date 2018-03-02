@@ -25,6 +25,7 @@ class ShelveDictAuthorizationPolicy(AbstractAuthorizationPolicy):
         super().__init__()
         self.save_file = save
         self.user_map = {}
+        self.sio_map = {}
 
         self.load_save()
 

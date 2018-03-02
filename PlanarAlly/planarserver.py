@@ -33,7 +33,6 @@ sio.attach(app)
 
 @atexit.register
 def save_all():
-    app['AuthzPolicy'].save()
     for room in PA.rooms.values():
         with shelve.open("planar.save", "c") as shelf:
             if 'rooms' not in shelf:
@@ -47,6 +46,7 @@ async def login(request):
     if username:
         return web.HTTPFound("/pa")
     else:
+        valid = False
         if request.method == 'POST':
             policy = app['AuthzPolicy']
             data = await request.post()
@@ -56,31 +56,40 @@ async def login(request):
             if 'register' in data:
                 if username in policy.user_map:
                     form['error'] = "Username already taken"
-                    return form
-                if not username:
+                elif not username:
                     form['error'] = "Please provide a username"
-                    return form
-                if not password:
+                elif not password:
                     form['error'] = "Please provide a password"
-                    return form
-                u = auth.User(username)
-                u.set_password(password)
-                policy.user_map[username] = u
+                else:
+                    u = auth.User(username)
+                    u.set_password(password)
+                    policy.user_map[username] = u
+                    app['AuthzPolicy'].save()
+                    valid = True
             elif 'login' in data:
                 if username not in policy.user_map or not policy.user_map[username].check_password(password):
                     form['error'] = "Username and/or Password do not match"
-                    return form
-            response = web.HTTPFound("/pa")
-            await remember(request, response, username)
-            return response
+                else:
+                    valid = True
+            if valid:
+                response = web.HTTPFound("/pa")
+                await remember(request, response, username)
+                return response
+            return form
         else:
             return {'username': '', 'password': ''}
 
 
 @login_required
+async def logout(request):
+    response = web.HTTPFound("/")
+    await forget(request, response)
+    return response
+
+
+@login_required
 @aiohttp_jinja2.template('planarally.html')
 async def pa(request):
-    print(request.cookies)
     return {}
 
 
@@ -183,6 +192,11 @@ async def set_gridsize(sid, grid_size):
 
 @sio.on('connect', namespace='/planarally')
 async def test_connect(sid, environ):
+    username = await authorized_userid(environ['aiohttp.request'])
+    if username is None:
+        print("Unauthed user")  # todo LEL
+    else:
+        app['AuthzPolicy'].sio_map[sid] = app['AuthzPolicy'].user_map[username]
     print(f"Client {sid} connected")
     PA.add_client(sid)
 
@@ -190,6 +204,7 @@ async def test_connect(sid, environ):
 @sio.on('disconnect', namespace='/planarally')
 async def test_disconnect(sid):
     print(f'Client {sid} disconnected')
+    del app['AuthzPolicy'].sio_map[sid]
     room = PA.get_client_room(sid)
     if sid in room.client_temporaries:
         sio.emit("clear temporaries", room.client_temporaries[sid])
@@ -205,6 +220,7 @@ async def test_disconnect(sid):
 app.router.add_static('/static', 'static')
 app.router.add_route('*', '/', login)
 app.router.add_get('/pa', pa)
+app.router.add_get('/logout', logout)
 
 
 if __name__ == '__main__':

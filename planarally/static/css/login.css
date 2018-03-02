@@ -1,0 +1,36 @@
+html, body {
+    height: 100%;
+    width: 100%;
+    margin: 0;
+}
+
+body {
+    display:flex;
+    background-color: #2b2b2b;
+}
+
+#container {
+    margin: auto;
+    padding: 10px;
+    background-color: #91765d;
+    border-radius: 10px;
+}
+
+form {
+    margin: auto;
+    width: 60%;
+    display:flex;
+    flex-direction: column;
+}
+
+input {
+    padding: 2px;
+    margin: 2px;
+    text-align: center;
+}
+
+#buttons {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-evenly;
+}

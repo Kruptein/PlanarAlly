@@ -1,13 +1,23 @@
 <!doctype html>
-<head></head>
+<html>
+<head>
+    <title>PlanarAlly</title>
+    <link href="/static/css/login.css" rel="stylesheet">
+</head>
 <body>
-    <p>{{ message }}</p>
-    <form action="/login" method="post">
-        Login:
-        <input type="text" name="username">
-        Password:
-        <input type="password" name="password">
-        <input type="submit" value="Login">
+<div id="container">
+    <h1>Welcome to PlanarAlly</h1>
+    <br>
+    <form action="" method="post">
+        <input type="text" placeholder="Username" name="username" value="{{ username }}">
+        <input type="password" placeholder="Password" name="password" value="{{ password }}">
+        <div id="buttons">
+            <input type="submit" name="register" value="Register">
+            <input type="submit" name="login" value="Login">
+        </div>
     </form>
-    <a href="/logout">Logout</a>
+    {% if error %}
+        <p class="error"><strong>Error:</strong> {{ error }}
+    {% endif %}
+</div>
 </body>

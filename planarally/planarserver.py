@@ -10,19 +10,22 @@ import shelve
 import socketio
 
 import aiohttp_jinja2
+import aiohttp_security
 import aiohttp_session
 import jinja2
-
 from aiohttp import web
-from aiohttp_security import remember, forget, authorized_userid, login_required
+from aiohttp_security import remember, forget, authorized_userid, login_required, SessionIdentityPolicy
 from aiohttp_session.cookie_storage import EncryptedCookieStorage
 
+import auth
 from planarally import PlanarAlly
 
 PA = PlanarAlly()
 
 sio = socketio.AsyncServer(async_mode='aiohttp')
 app = web.Application()
+app["AuthzPolicy"] = auth.ShelveDictAuthorizationPolicy("planar.save")
+aiohttp_security.setup(app, SessionIdentityPolicy(), app['AuthzPolicy'])
 aiohttp_session.setup(app, EncryptedCookieStorage(secrets.token_bytes(32)))
 aiohttp_jinja2.setup(app, loader=jinja2.FileSystemLoader('templates'))
 sio.attach(app)
@@ -30,26 +33,54 @@ sio.attach(app)
 
 @atexit.register
 def save_all():
+    app['AuthzPolicy'].save()
     for room in PA.rooms.values():
         with shelve.open("planar.save", "c") as shelf:
-            shelf[room.name] = room
+            if 'rooms' not in shelf:
+                shelf['rooms'] = {}
+            shelf['rooms'][room.name] = room
 
 
 @aiohttp_jinja2.template("login.jinja2")
 async def login(request):
     username = await authorized_userid(request)
     if username:
-        return {'message': username}
+        return web.HTTPFound("/pa")
     else:
         if request.method == 'POST':
-
+            policy = app['AuthzPolicy']
+            data = await request.post()
+            username = data['username']
+            password = data['password']
+            form = {'username': username, 'password': password}
+            if 'register' in data:
+                if username in policy.user_map:
+                    form['error'] = "Username already taken"
+                    return form
+                if not username:
+                    form['error'] = "Please provide a username"
+                    return form
+                if not password:
+                    form['error'] = "Please provide a password"
+                    return form
+                u = auth.User(username)
+                u.set_password(password)
+                policy.user_map[username] = u
+            elif 'login' in data:
+                if username not in policy.user_map or not policy.user_map[username].check_password(password):
+                    form['error'] = "Username and/or Password do not match"
+                    return form
+            response = web.HTTPFound("/pa")
+            await remember(request, response, username)
+            return response
         else:
-            return {}
+            return {'username': '', 'password': ''}
 
 
 @login_required
 @aiohttp_jinja2.template('planarally.html')
 async def pa(request):
+    print(request.cookies)
     return {}
 
 
@@ -165,7 +196,9 @@ async def test_disconnect(sid):
         del room.client_temporaries[sid]
     if len(PA.clients) == 1:
         with shelve.open("planar.save", "c") as shelf:
-            shelf[room.name] = room
+            if 'rooms' not in shelf:
+                shelf['rooms'] = {}
+            shelf['rooms'][room.name] = room
     del PA.clients[sid]
 
 

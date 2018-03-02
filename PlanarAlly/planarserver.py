@@ -32,11 +32,14 @@ sio.attach(app)
 
 @atexit.register
 def save_all():
-    for room in PA.rooms.values():
-        with shelve.open("planar.save", "c") as shelf:
-            if 'rooms' not in shelf:
-                shelf['rooms'] = {}
-            shelf['rooms'][room.sioroom] = room
+    with shelve.open("planar.save", "c") as shelf:
+        if 'rooms' not in shelf:
+            rooms = {}
+        else:
+            rooms = shelf['rooms']
+        for room in PA.rooms.values():
+            rooms[room.sioroom] = room
+            shelf['rooms'] = rooms
 
 
 @aiohttp_jinja2.template("login.jinja2")
@@ -236,12 +239,20 @@ async def test_disconnect(sid):
         sio.emit("clear temporaries", room.client_temporaries[sid])
         del room.client_temporaries[sid]
 
-    # if len(PA.clients) == 1:
-    #     with shelve.open("planar.save", "c") as shelf:
-    #         if 'rooms' not in shelf:
-    #             shelf['rooms'] = {}
-    #         shelf['rooms'][room.name] = room
-    # del PA.clients[sid]
+    for value in app['AuthzPolicy'].sio_map.values():
+        if value['room'] == room:
+            break
+    else:
+        print(f"Saving {room.sioroom}")
+        with shelve.open("planar.save", "c") as shelf:
+            # DO NOT change this to shelf['rooms'][room.sioroom] = room
+            # it will not write through to disk!
+            if 'rooms' not in shelf:
+                rooms = {}
+            else:
+                rooms = shelf['rooms']
+            rooms[room.sioroom] = room
+            shelf['rooms'] = rooms
 
 
 app.router.add_static('/static', 'static')

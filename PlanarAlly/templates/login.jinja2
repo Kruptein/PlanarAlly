@@ -3,21 +3,43 @@
 <head>
     <title>PlanarAlly</title>
     <link href="/static/css/login.css" rel="stylesheet">
+    <script defer src="https://use.fontawesome.com/releases/v5.0.8/js/all.js"></script>
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
+    <script defer src="/static/js/login.js"></script>
+    <script>
+        if (typeof jQuery === 'undefined') {
+            document.write("<script src='/static/extern/js/jquery-3.3.1.min.js'>\x3C/script>");
+            document.write("<script src='/static/extern/js/fontawesome_all.js'>\x3C/script>");
+        }
+    </script>
 </head>
 <body>
-<div id="container">
-    <h1>Welcome to PlanarAlly</h1>
-    <br>
-    <form action="" method="post">
-        <input type="text" placeholder="Username" name="username" value="{{ username }}">
-        <input type="password" placeholder="Password" name="password" value="{{ password }}">
-        <div id="buttons">
-            <input type="submit" name="register" value="Register">
-            <input type="submit" name="login" value="Login">
+<form action="" method="post">
+    <fieldset>
+        <legend class="legend">PlanarAlly</legend>
+        <div class="input">
+            <input type="text" name="username" value="{{ username }}" placeholder="Username" required/>
+            <span><i class="fas fa-user-circle"></i></span>
         </div>
-    </form>
+
+        <div class="input">
+            <input type="password" name="password" value="{{ password }}" placeholder="Password" required/>
+            <span><i class="fas fa-lock"></i></span>
+        </div>
+
+        <div style="display:flex;">
+            <button type="submit" name="login" style="visibility: hidden;display:none;"></button>
+            <button type="submit" name="register" class="submit" title="Register"><i class="fas fa-plus"></i></button>
+            <button type="submit" name="login" class="submit" title="Login"><i class="fas fa-arrow-right"></i></button>
+        </div>
+
+    </fieldset>
+
     {% if error %}
+    <div class="feedback">
         <p class="error"><strong>Error:</strong> {{ error }}
+    </div>
     {% endif %}
-</div>
+
+</form>
 </body>

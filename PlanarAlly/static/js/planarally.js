@@ -35,14 +35,17 @@ socket.on("asset list", function (assets) {
     const m = $("#menu-tokens");
     m.empty();
     let h = '';
+
     const process = function(entry, path) {
         path = path || "";
+        entry.folders.sort(alphSort);
         const folders = new Map(Object.entries(entry.folders));
         folders.forEach(function(value, key){
             h += "<button class='accordion'>" + key + "</button><div class='accordion-panel'><div class='accordion-subpanel'>";
             process(value, path + key + "/");
             h += "</div></div>";
         });
+        entry.files.sort(alphSort);
         entry.files.forEach(function(asset){
             h += "<div class='draggable token'><img src='/static/img/assets/" + path + asset + "' width='35'>" + asset + "</div>";
         });
@@ -1043,6 +1046,13 @@ function findGetParameter(parameterName) {
           if (tmp[0] === parameterName) result = decodeURIComponent(tmp[1]);
         });
     return result;
+}
+
+function alphSort(a, b) {
+    if (a.toLowerCase() < b.toLowerCase())
+        return -1;
+    else
+        return 1;
 }
 
 function OrderedMap() {

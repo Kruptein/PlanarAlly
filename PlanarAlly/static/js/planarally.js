@@ -99,12 +99,14 @@ socket.on("board init", function (board) {
                     const l = gameManager.layerManager.getLayer();
                     const offset = $(l.canvas).offset();
                     const z = gameManager.layerManager.zoomFactor;
+                    const panX = gameManager.layerManager.panX;
+                    const panY = gameManager.layerManager.panY;
                     x = parseInt(ui.offset.left - offset.left);
                     y = parseInt(ui.offset.top - offset.top);
                     // width = ui.helper[0].width;
                     // height = ui.helper[0].height;
                     const img = ui.draggable[0].children[0];
-                    const asset = new Asset(img, (x/z), (y/z), img.width, img.height);
+                    const asset = new Asset(img, (x/z)-panX, (y/z)-panY, img.width, img.height);
                     asset.src = img.src;
                     l.addShape(asset, true);
                 }

@@ -103,7 +103,7 @@ socket.on("board init", function (board) {
                     // width = ui.helper[0].width;
                     // height = ui.helper[0].height;
                     const img = ui.draggable[0].children[0];
-                    const asset = new Asset(img, x, y, img.width, img.height);
+                    const asset = new Asset(img, (x-panX)/z, (y-panY)/z, img.width, img.height);
                     asset.src = img.src;
                     l.addShape(asset, true);
                 }

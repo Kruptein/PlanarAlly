@@ -198,7 +198,7 @@ Shape.prototype.showContextMenu = function (mouse) {
         "</ul>";
     $menu.html(data);
     $(".context-clickable").on('click', function () {
-        handleContextMenu($(this), aset);
+        handleContextMenu($(this), asset);
     });
 };
 

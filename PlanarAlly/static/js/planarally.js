@@ -1,13 +1,13 @@
 // Removes violation errors on touchstart? https://stackoverflow.com/questions/46094912/added-non-passive-event-listener-to-a-scroll-blocking-touchstart-event
 // This is only necessary due to the spectrum color picker
 jQuery.event.special.touchstart = {
-  setup: function( _, ns, handle ){
-    if ( ns.includes("noPreventDefault") ) {
-      this.addEventListener("touchstart", handle, { passive: false });
-    } else {
-      this.addEventListener("touchstart", handle, { passive: true });
+    setup: function (_, ns, handle) {
+        if (ns.includes("noPreventDefault")) {
+            this.addEventListener("touchstart", handle, {passive: false});
+        } else {
+            this.addEventListener("touchstart", handle, {passive: true});
+        }
     }
-  }
 };
 
 
@@ -36,16 +36,16 @@ socket.on("asset list", function (assets) {
     m.empty();
     let h = '';
 
-    const process = function(entry, path) {
+    const process = function (entry, path) {
         path = path || "";
         const folders = new Map(Object.entries(entry.folders));
-        folders.forEach(function(value, key){
+        folders.forEach(function (value, key) {
             h += "<button class='accordion'>" + key + "</button><div class='accordion-panel'><div class='accordion-subpanel'>";
             process(value, path + key + "/");
             h += "</div></div>";
         });
         entry.files.sort(alphSort);
-        entry.files.forEach(function(asset){
+        entry.files.forEach(function (asset) {
             h += "<div class='draggable token'><img src='/static/img/assets/" + path + asset + "' width='35'>" + asset + "</div>";
         });
     };
@@ -55,8 +55,8 @@ socket.on("asset list", function (assets) {
         helper: "clone",
         appendTo: "#board"
     });
-    $('.accordion').each(function(idx) {
-        $(this).on("click", function(){
+    $('.accordion').each(function (idx) {
+        $(this).on("click", function () {
             $(this).toggleClass("accordion-active");
             $(this).next().toggle();
         });
@@ -106,7 +106,7 @@ socket.on("board init", function (board) {
                     // width = ui.helper[0].width;
                     // height = ui.helper[0].height;
                     const img = ui.draggable[0].children[0];
-                    const asset = new Asset(img, (x/z)-panX, (y/z)-panY, img.width, img.height);
+                    const asset = new Asset(img, (x / z) - panX, (y / z) - panY, img.width, img.height);
                     asset.src = img.src;
                     l.addShape(asset, true);
                 }
@@ -118,7 +118,7 @@ socket.on("board init", function (board) {
     // socket.emit("client initialised");
     board_initialised = true;
 
-    if (selectable_layers > 1){
+    if (selectable_layers > 1) {
         layerselectdiv.find("li").on("click", function () {
             const name = this.id.split("-")[1];
             const old = layerselectdiv.find("#select-" + gameManager.layerManager.selectedLayer);
@@ -160,10 +160,11 @@ socket.on("clear temporaries", function (shapes) {
 function Shape() {
     this.layer = null;
 }
-Shape.prototype.asDict = function() {
+
+Shape.prototype.asDict = function () {
     return Object.assign({}, this);
 };
-Shape.prototype.draw = function(ctx) {
+Shape.prototype.draw = function (ctx) {
     if (this.layer === 'fow' && gameManager.IS_DM && this.globalCompositeOperation === "destination-out")
         ctx.globalAlpha = 1.0;
     else if (this.layer === 'fow' && gameManager.IS_DM)
@@ -187,10 +188,10 @@ Shape.prototype.showContextMenu = function (mouse) {
     let data = "" +
         "<ul>" +
         "<li>Layer<ul>";
-    gameManager.layerManager.layers.forEach(function(layer) {
+    gameManager.layerManager.layers.forEach(function (layer) {
         if (!layer.selectable) return;
-       const sel = layer.name === l.name ? " style='background-color:aqua' " : " ";
-       data  += "<li data-action='setLayer' data-layer='" + layer.name + "'" + sel + "class='context-clickable'>" + layer.name + "</li>";
+        const sel = layer.name === l.name ? " style='background-color:aqua' " : " ";
+        data += "<li data-action='setLayer' data-layer='" + layer.name + "'" + sel + "class='context-clickable'>" + layer.name + "</li>";
     });
     data += "</ul></li>" +
         "<li data-action='moveToBack' class='context-clickable'>Move to back</li>" +
@@ -213,6 +214,7 @@ function Rect(x, y, w, h, fill, border, uuid) {
     this.uuid = uuid || uuidv4();
     this.layer = null;
 }
+
 Rect.prototype = Object.create(Shape.prototype);
 Rect.prototype.draw = function (ctx) {
     Shape.prototype.draw.call(this, ctx);
@@ -269,6 +271,7 @@ function Line(x1, y1, x2, y2, uuid) {
     this.y2 = y2;
     this.uuid = uuid || uuidv4();
 }
+
 Line.prototype = Object.create(Shape.prototype);
 Line.prototype.draw = function (ctx) {
     Shape.prototype.draw.call(this, ctx);
@@ -289,6 +292,7 @@ function Text(x, y, text, font, angle, uuid) {
     this.angle = angle || 0;
     this.uuid = uuid || uuidv4();
 }
+
 Text.prototype = Object.create(Shape.prototype);
 Text.prototype.draw = function (ctx) {
     Shape.prototype.draw.call(this, ctx);
@@ -310,6 +314,7 @@ function Asset(img, x, y, w, h, uuid) {
     this.w = w;
     this.h = h;
 }
+
 Asset.prototype = Object.create(Rect.prototype);
 Asset.prototype.draw = function (ctx) {
     Shape.prototype.draw.call(this, ctx);
@@ -393,7 +398,7 @@ LayerState.prototype.removeShape = function (shape, sync, temporary) {
     this.shapes.remove(shape);
     if (sync) socket.emit("remove shape", {shape: shape, temporary: temporary});
     gameManager.layerManager.UUIDMap.delete(shape.uuid);
-    if (this.selection === shape)   this.selection = null;
+    if (this.selection === shape) this.selection = null;
     this.invalidate();
 };
 LayerState.prototype.clear = function () {
@@ -407,7 +412,7 @@ LayerState.prototype.draw = function () {
         const state = this;
         const panX = gameManager.layerManager.panX;
         const panY = gameManager.layerManager.panY;
-        this.shapes.data.forEach(function(shape){
+        this.shapes.data.forEach(function (shape) {
             // if (shape.x + panX > state.width || shape.y + panY > state.height ||
             //     shape.x + shape.w + panX < 0 || shape.y + shape.h + panY < 0) return;
             shape.draw(ctx);
@@ -451,7 +456,7 @@ LayerState.prototype.getMouse = function (e) {
     offsetX += this.stylePaddingLeft + this.styleBorderLeft + this.htmlLeft;
     offsetY += this.stylePaddingTop + this.styleBorderTop + this.htmlTop;
 
-    mx = e.pageX  - offsetX;
+    mx = e.pageX - offsetX;
     my = e.pageY - offsetY;
 
     return {x: mx, y: my};
@@ -467,8 +472,9 @@ LayerState.prototype.moveShapeOrder = function (shape, destinationIndex, sync) {
 function GridLayerState(canvas, name) {
     LayerState.call(this, canvas, name);
 }
+
 GridLayerState.prototype = Object.create(LayerState.prototype);
-GridLayerState.prototype.invalidate = function() {
+GridLayerState.prototype.invalidate = function () {
     gameManager.layerManager.drawGrid();
 };
 
@@ -488,6 +494,7 @@ function LayerManager() {
     this.panX = 0;
     this.panY = 0;
 }
+
 LayerManager.prototype.setWidth = function (width) {
     this.width = width;
     for (let i = 0; i < gameManager.layerManager.layers.length; i++) {
@@ -508,14 +515,14 @@ LayerManager.prototype.addLayer = function (layer) {
 };
 LayerManager.prototype.getLayer = function (name) {
     name = (typeof name === 'undefined') ? this.selectedLayer : name;
-    for (let i=0; i<this.layers.length; i++) {
+    for (let i = 0; i < this.layers.length; i++) {
         if (this.layers[i].name === name) return this.layers[i];
     }
 };
 LayerManager.prototype.setLayer = function (name) {
     let found = false;
     const lm = this;
-    this.layers.forEach(function(layer) {
+    this.layers.forEach(function (layer) {
         if (!layer.selectable) return;
         if (found) layer.ctx.globalAlpha = 0.3;
         else layer.ctx.globalAlpha = 1.0;
@@ -542,10 +549,10 @@ LayerManager.prototype.drawGrid = function () {
     ctx.beginPath();
 
     for (let i = 0; i < layer.width; i += this.gridSize * z) {
-        ctx.moveTo(i+(panX % this.gridSize)*z, 0);
-        ctx.lineTo(i+(panX % this.gridSize)*z, layer.height);
-        ctx.moveTo(0, i+(panY % this.gridSize)*z);
-        ctx.lineTo(layer.width, i+(panY % this.gridSize)*z);
+        ctx.moveTo(i + (panX % this.gridSize) * z, 0);
+        ctx.lineTo(i + (panX % this.gridSize) * z, layer.height);
+        ctx.moveTo(0, i + (panY % this.gridSize) * z);
+        ctx.lineTo(layer.width, i + (panY % this.gridSize) * z);
     }
 
     ctx.strokeStyle = 'rgba(255,0,0, 0.5)';
@@ -554,7 +561,7 @@ LayerManager.prototype.drawGrid = function () {
     layer.valid = true;
 };
 LayerManager.prototype.setGridSize = function (gridSize) {
-    if (gridSize !== this.gridSize){
+    if (gridSize !== this.gridSize) {
         this.gridSize = gridSize;
         this.drawGrid();
         $('#gridSizeInput').val(gridSize);
@@ -577,14 +584,16 @@ LayerManager.prototype.onMouseDown = function (e) {
 
     if (tools[gameManager.selectedTool].name === 'select') {
         let hit = false;
-        layer.shapes.data.forEach(function(shape) {
-           const corn = shape.getCorner(mx, my);
-           if (corn !== undefined) {
+        for (let i = layer.shapes.data.length - 1; i >= 0; i--) {
+            const shape = layer.shapes.data[i];
+            const corn = shape.getCorner(mx, my);
+            if (corn !== undefined) {
                 layer.selection = shape;
                 layer.resizing = true;
                 layer.resizedir = corn;
                 layer.invalidate();
                 hit = true;
+                break;
             } else if (shape.contains(mx, my)) {
                 const sel = shape;
                 layer.selection = sel;
@@ -593,8 +602,9 @@ LayerManager.prototype.onMouseDown = function (e) {
                 layer.dragoffy = my - sel.y;
                 layer.invalidate();
                 hit = true;
+                break;
             }
-        });
+        }
 
         if (!hit && layer.selection) {
             layer.selection = null;
@@ -607,7 +617,7 @@ LayerManager.prototype.onMouseDown = function (e) {
     }
 
 };
-LayerManager.prototype.onMouseMove = function(e) {
+LayerManager.prototype.onMouseMove = function (e) {
     const layer = gameManager.layerManager.getLayer();
     const sel = layer.selection;
     const mouse = layer.getMouse(e);
@@ -643,8 +653,8 @@ LayerManager.prototype.onMouseMove = function(e) {
         layer.invalidate();
     } else if (layer.panning) {
         const z = gameManager.layerManager.zoomFactor;
-        gameManager.layerManager.panX += Math.round((mouse.x - layer.dragoffx)/z);
-        gameManager.layerManager.panY += Math.round((mouse.y - layer.dragoffy)/z);
+        gameManager.layerManager.panX += Math.round((mouse.x - layer.dragoffx) / z);
+        gameManager.layerManager.panY += Math.round((mouse.y - layer.dragoffy) / z);
         layer.dragoffx = mouse.x;
         layer.dragoffy = mouse.y;
         gameManager.layerManager.invalidate();
@@ -669,18 +679,18 @@ LayerManager.prototype.onMouseUp = function (e) {
     if (!e.altKey && layer.dragging) {
         const orig = Object.assign({}, layer.selection);
         const gs = gameManager.layerManager.gridSize;
-        const mouse = {x: layer.selection.x + layer.selection.w / 2, y: layer.selection.y + layer.selection.h/2};
+        const mouse = {x: layer.selection.x + layer.selection.w / 2, y: layer.selection.y + layer.selection.h / 2};
         const mx = mouse.x;
         const my = mouse.y;
         if ((layer.selection.w / gs) % 2 === 0) {
-            layer.selection.x = Math.round(mx / gs) * gs - layer.selection.w/2;
+            layer.selection.x = Math.round(mx / gs) * gs - layer.selection.w / 2;
         } else {
-            layer.selection.x = (Math.round((mx + (gs/2)) / gs) - (1/2)) * gs - layer.selection.w/2;
+            layer.selection.x = (Math.round((mx + (gs / 2)) / gs) - (1 / 2)) * gs - layer.selection.w / 2;
         }
         if ((layer.selection.h / gs) % 2 === 0) {
-            layer.selection.y = Math.round(my / gs) * gs - layer.selection.h/2;
+            layer.selection.y = Math.round(my / gs) * gs - layer.selection.h / 2;
         } else {
-            layer.selection.y = (Math.round((my + (gs/2)) / gs) - (1/2)) * gs - layer.selection.h/2;
+            layer.selection.y = (Math.round((my + (gs / 2)) / gs) - (1 / 2)) * gs - layer.selection.h / 2;
         }
         if (orig.x !== layer.selection.x || orig.y !== layer.selection.y) {
             socket.emit("shapeMove", {shape: layer.selection.asDict(), temporary: false});
@@ -719,7 +729,7 @@ LayerManager.prototype.onContextMenu = function (e) {
     const mx = mouse.x;
     const my = mouse.y;
     let hit = false;
-    layer.shapes.data.forEach(function(shape) {
+    layer.shapes.data.forEach(function (shape) {
         if (!hit && shape.contains(mx, my)) {
             shape.showContextMenu(mouse);
         }
@@ -748,6 +758,7 @@ function DrawTool() {
         showAlpha: true
     });
 }
+
 DrawTool.prototype.onMouseDown = function (e) {
     // Currently draw on active layer
     const layer = gameManager.layerManager.getLayer();
@@ -759,7 +770,7 @@ DrawTool.prototype.onMouseDown = function (e) {
     const z = gameManager.layerManager.zoomFactor;
     const panX = gameManager.layerManager.panX;
     const panY = gameManager.layerManager.panY;
-    this.rect = new Rect(this.startPoint.x/z - panX, this.startPoint.y/z - panY, 0, 0, fill.toRgbString(), border.toRgbString());
+    this.rect = new Rect(this.startPoint.x / z - panX, this.startPoint.y / z - panY, 0, 0, fill.toRgbString(), border.toRgbString());
     layer.addShape(this.rect, true, false);
 };
 DrawTool.prototype.onMouseMove = function (e) {
@@ -771,10 +782,10 @@ DrawTool.prototype.onMouseMove = function (e) {
     const panY = gameManager.layerManager.panY;
     const z = gameManager.layerManager.zoomFactor;
 
-    this.rect.w = Math.abs(endPoint.x - this.startPoint.x)/z;
-    this.rect.h = Math.abs(endPoint.y - this.startPoint.y)/z;
-    this.rect.x = Math.min(this.startPoint.x, endPoint.x)/z - panX;
-    this.rect.y = Math.min(this.startPoint.y, endPoint.y)/z - panY;
+    this.rect.w = Math.abs(endPoint.x - this.startPoint.x) / z;
+    this.rect.h = Math.abs(endPoint.y - this.startPoint.y) / z;
+    this.rect.x = Math.min(this.startPoint.x, endPoint.x) / z - panX;
+    this.rect.y = Math.min(this.startPoint.y, endPoint.y) / z - panY;
     socket.emit("shapeMove", {shape: this.rect.asDict(), temporary: false});
     layer.invalidate();
 };
@@ -790,6 +801,7 @@ DrawTool.prototype.loadDetailDiv = function () {
 function RulerTool() {
     this.startPoint = null;
 }
+
 RulerTool.prototype.onMouseDown = function (e) {
     // Currently draw on active layer
     const layer = gameManager.layerManager.getLayer("draw");
@@ -812,7 +824,7 @@ RulerTool.prototype.onMouseMove = function (e) {
 
     const xdiff = endPoint.x - this.startPoint.x;
     const ydiff = endPoint.y - this.startPoint.y;
-    const label = Math.round(Math.sqrt((xdiff/z) ** 2 + (ydiff/z) ** 2) * gameManager.layerManager.unitSize / gameManager.layerManager.gridSize) + " ft";
+    const label = Math.round(Math.sqrt((xdiff / z) ** 2 + (ydiff / z) ** 2) * gameManager.layerManager.unitSize / gameManager.layerManager.gridSize) + " ft";
     let angle = Math.atan2(ydiff, xdiff);
     const xmid = this.startPoint.x + xdiff / 2;
     const ymid = this.startPoint.y + ydiff / 2;
@@ -840,13 +852,14 @@ function FOWTool() {
         .append($("<div>").append($("<div>Reveal</div>")).append($("<label class='switch'><input type='checkbox' id='fow-reveal'><span class='slider round'></span></label>")).append($("</div>")))
         .append($("</div>"));
 }
+
 FOWTool.prototype.onMouseDown = function (e) {
     const layer = gameManager.layerManager.getLayer("fow");
     this.startPoint = layer.getMouse(e);
     const z = gameManager.layerManager.zoomFactor;
     const panX = gameManager.layerManager.panX;
     const panY = gameManager.layerManager.panY;
-    this.rect = new Rect(this.startPoint.x/z - panX, this.startPoint.y/z - panY, 0, 0, "black");
+    this.rect = new Rect(this.startPoint.x / z - panX, this.startPoint.y / z - panY, 0, 0, "black");
     layer.addShape(this.rect, true, false);
 
     if ($("#fow-reveal").prop("checked"))
@@ -868,10 +881,10 @@ FOWTool.prototype.onMouseMove = function (e) {
     const panY = gameManager.layerManager.panY;
     const z = gameManager.layerManager.zoomFactor;
 
-    this.rect.w = Math.abs(endPoint.x - this.startPoint.x)/z;
-    this.rect.h = Math.abs(endPoint.y - this.startPoint.y)/z;
-    this.rect.x = Math.min(this.startPoint.x, endPoint.x)/z - panX;
-    this.rect.y = Math.min(this.startPoint.y, endPoint.y)/z - panY;
+    this.rect.w = Math.abs(endPoint.x - this.startPoint.x) / z;
+    this.rect.h = Math.abs(endPoint.y - this.startPoint.y) / z;
+    this.rect.x = Math.min(this.startPoint.x, endPoint.x) / z - panX;
+    this.rect.y = Math.min(this.startPoint.y, endPoint.y) / z - panY;
 
     socket.emit("shapeMove", {shape: this.rect.asDict(), temporary: false});
     layer.invalidate();
@@ -903,12 +916,12 @@ const tools = [
 
 function setupTools() {
     const toolselectDiv = $("#toolselect").find("ul");
-    tools.forEach(function(tool) {
+    tools.forEach(function (tool) {
         if (!tool.playerTool && !gameManager.IS_DM) return;
         const extra = tool.defaultSelect ? " class='tool-selected'" : "";
         const toolLi = $("<li id='tool-" + tool.name + "'" + extra + "><a href='#'>" + tool.name + "</a></li>");
         toolselectDiv.append(toolLi);
-        if(tool.hasDetail){
+        if (tool.hasDetail) {
             const div = tool.func.loadDetailDiv();
             $('#tooldetail').append(div);
             div.hide();
@@ -944,16 +957,19 @@ function onPointerDown(e) {
     $menu.hide();
     tools[gameManager.selectedTool].func.onMouseDown(e);
 }
+
 function onPointerMove(e) {
     if (!board_initialised) return;
     if ((e.button !== 0 && e.button !== 1) || e.target.tagName !== 'CANVAS') return;
     tools[gameManager.selectedTool].func.onMouseMove(e);
 }
+
 function onPointerUp(e) {
     if (!board_initialised) return;
     if ((e.button !== 0 && e.button !== 1) || e.target.tagName !== 'CANVAS') return;
     tools[gameManager.selectedTool].func.onMouseUp(e);
 }
+
 window.addEventListener("mousedown", onPointerDown);
 window.addEventListener("pointerdown", onPointerDown);
 window.addEventListener("touchstart", onPointerDown);
@@ -978,7 +994,7 @@ $("#zoomer").slider({
     max: 5.0,
     step: 0.1,
     value: 1.0,
-    slide: function( event, ui ) {
+    slide: function (event, ui) {
         gameManager.layerManager.zoomFactor = 1 / ui.value;
         gameManager.layerManager.invalidate();
     }
@@ -1023,8 +1039,8 @@ window.onresize = function () {
     gameManager.layerManager.invalidate();
 };
 
-$('body').keyup(function(e){
-    if(e.keyCode === 46) {
+$('body').keyup(function (e) {
+    if (e.keyCode === 46) {
         const l = gameManager.layerManager.getLayer();
         if (l.selection) {
             l.removeShape(l.selection, true, false);
@@ -1032,7 +1048,7 @@ $('body').keyup(function(e){
     }
 });
 
-$("#gridSizeInput").on("change", function(e){
+$("#gridSizeInput").on("change", function (e) {
     const gs = parseInt(e.target.value);
     gameManager.layerManager.setGridSize(gs);
     socket.emit("set gridsize", gs);
@@ -1042,10 +1058,10 @@ $("#gridSizeInput").on("change", function(e){
 
 // https://stackoverflow.com/questions/105034/create-guid-uuid-in-javascript
 function uuidv4() {
-  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-    const r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
-    return v.toString(16);
-  });
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+        const r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+        return v.toString(16);
+    });
 }
 
 function findGetParameter(parameterName) {
@@ -1055,8 +1071,8 @@ function findGetParameter(parameterName) {
         .substr(1)
         .split("&")
         .forEach(function (item) {
-          tmp = item.split("=");
-          if (tmp[0] === parameterName) result = decodeURIComponent(tmp[1]);
+            tmp = item.split("=");
+            if (tmp[0] === parameterName) result = decodeURIComponent(tmp[1]);
         });
     return result;
 }
@@ -1071,6 +1087,7 @@ function alphSort(a, b) {
 function OrderedMap() {
     this.data = [];
 }
+
 OrderedMap.prototype = [];
 OrderedMap.prototype.push = function (element) {
     this.data.push(element);
@@ -1100,13 +1117,13 @@ function createShapeFromDict(shape, dummy) {
     if (shape.type === 'line') sh = Object.assign(new Line(), shape);
     if (shape.type === 'text') sh = Object.assign(new Text(), shape);
     if (shape.type === 'asset') {
-            const img = new Image(shape.w, shape.h);
-            img.src = shape.src;
-            sh = Object.assign(new Asset(), shape);
-            sh.img = img;
-            img.onload = function() {
-                gameManager.layerManager.getLayer(shape.layer).invalidate();
-            };
+        const img = new Image(shape.w, shape.h);
+        img.src = shape.src;
+        sh = Object.assign(new Asset(), shape);
+        sh.img = img;
+        img.onload = function () {
+            gameManager.layerManager.getLayer(shape.layer).invalidate();
+        };
     }
     return sh;
 }

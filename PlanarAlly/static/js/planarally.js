@@ -750,9 +750,13 @@ function DrawTool() {
     this.fillColor = $("<input type='text' />");
     this.borderColor = $("<input type='text' />");
     this.detailDiv = $("<div>")
-        .append($("<div>").append($("<div>Fill</div>")).append(this.fillColor).append($("</div>")))
-        .append($("<div>").append($("<div>Border</div>")).append(this.borderColor).append("</div>"))
+        .append($("<div>Fill</div>")).append(this.fillColor)
+        .append($("<div>Border</div>")).append(this.borderColor)
         .append($("</div>"));
+    // this.detailDiv = $("<div>")
+    //     .append($("<div>").append($("<div>Fill</div>")).append(this.fillColor).append($("</div>")))
+    //     .append($("<div>").append($("<div>Border</div>")).append(this.borderColor).append("</div>"))
+    //     .append($("</div>"));
     this.fillColor.spectrum({
         showInput: true,
         allowEmpty: true,
@@ -800,9 +804,6 @@ DrawTool.prototype.onMouseUp = function (e) {
     if (this.startPoint === null) return;
     this.startPoint = null;
     this.rect = null;
-};
-DrawTool.prototype.loadDetailDiv = function () {
-    return this.detailDiv;
 };
 
 function RulerTool() {
@@ -856,7 +857,7 @@ RulerTool.prototype.onMouseUp = function (e) {
 function FOWTool() {
     this.startPoint = null;
     this.detailDiv = $("<div>")
-        .append($("<div>").append($("<div>Reveal</div>")).append($("<label class='switch'><input type='checkbox' id='fow-reveal'><span class='slider round'></span></label>")).append($("</div>")))
+        .append($("<div>Reveal</div><label class='switch'><input type='checkbox' id='fow-reveal'><span class='slider round'></span></label>"))
         .append($("</div>"));
 }
 
@@ -896,9 +897,57 @@ FOWTool.prototype.onMouseMove = function (e) {
     socket.emit("shapeMove", {shape: this.rect.asDict(), temporary: false});
     layer.invalidate();
 };
-FOWTool.prototype.loadDetailDiv = function () {
-    return this.detailDiv;
+
+function MapTool() {
+    this.startPoint = null;
+    this.xCount = $("<input type='text' value='3'>");
+    this.yCount = $("<input type='text' value='3'>");
+    this.detailDiv = $("<div>")
+        .append($("<div>#X</div>")).append(this.xCount)
+        .append($("<div>#Y</div>")).append(this.yCount)
+        .append($("</div>"));
+}
+MapTool.prototype.onMouseDown = function (e) {
+    const layer = gameManager.layerManager.getLayer();
+    const mouse = layer.getMouse(e);
+    this.startPoint = mouse;
+    const z = gameManager.layerManager.zoomFactor;
+    const panX = gameManager.layerManager.panX;
+    const panY = gameManager.layerManager.panY;
+    this.rect = new Rect(this.startPoint.x / z - panX, this.startPoint.y / z - panY, 0, 0, "rgba(0,0,0,0)", "black");
+    layer.addShape(this.rect, false, false);
 };
+MapTool.prototype.onMouseMove = function (e) {
+    if (this.startPoint === null) return;
+    // Currently draw on active layer
+    const layer = gameManager.layerManager.getLayer();
+    const endPoint = layer.getMouse(e);
+    const panX = gameManager.layerManager.panX;
+    const panY = gameManager.layerManager.panY;
+    const z = gameManager.layerManager.zoomFactor;
+
+    this.rect.w = Math.abs(endPoint.x - this.startPoint.x) / z;
+    this.rect.h = Math.abs(endPoint.y - this.startPoint.y) / z;
+    this.rect.x = Math.min(this.startPoint.x, endPoint.x) / z - panX;
+    this.rect.y = Math.min(this.startPoint.y, endPoint.y) / z - panY;
+    // socket.emit("shapeMove", {shape: this.rect.asDict(), temporary: false});
+    layer.invalidate();
+};
+MapTool.prototype.onMouseUp = function (e) {
+    if (this.startPoint === null) return;
+    const layer = gameManager.layerManager.getLayer();
+    if (layer.selection === null) {layer.removeShape(this.rect, false, false);return;}
+
+    const z = gameManager.layerManager.zoomFactor;
+    const w = this.rect.w;
+    const h = this.rect.h;
+    layer.selection.w *= this.xCount.val() * gameManager.layerManager.gridSize / w;
+    layer.selection.h *= this.yCount.val() * gameManager.layerManager.gridSize / h;
+    layer.removeShape(this.rect, false, false);
+    this.startPoint = null;
+    this.rect = null;
+};
+
 
 function GameManager() {
     this.layerManager = new LayerManager();
@@ -906,6 +955,7 @@ function GameManager() {
     this.rulerTool = new RulerTool();
     this.drawTool = new DrawTool();
     this.fowTool = new FOWTool();
+    this.mapTool = new MapTool();
 }
 
 
@@ -919,6 +969,7 @@ const tools = [
     {name: "draw", playerTool: true, defaultSelect: false, hasDetail: true, func: gameManager.drawTool},
     {name: "ruler", playerTool: true, defaultSelect: false, hasDetail: false, func: gameManager.rulerTool},
     {name: "fow", playerTool: false, defaultSelect: false, hasDetail: true, func: gameManager.fowTool},
+    {name: "map", playerTool: false, defaultSelect: false, hasDetail: true, func: gameManager.mapTool},
 ];
 
 function setupTools() {
@@ -929,7 +980,7 @@ function setupTools() {
         const toolLi = $("<li id='tool-" + tool.name + "'" + extra + "><a href='#'>" + tool.name + "</a></li>");
         toolselectDiv.append(toolLi);
         if (tool.hasDetail) {
-            const div = tool.func.loadDetailDiv();
+            const div = tool.func.detailDiv;
             $('#tooldetail').append(div);
             div.hide();
         }
@@ -942,7 +993,7 @@ function setupTools() {
                 const detail = $('#tooldetail');
                 if (tool.hasDetail) {
                     $('#tooldetail').children().hide();
-                    tool.func.loadDetailDiv().show();
+                    tool.func.detailDiv.show();
                     detail.show();
                 } else {
                     detail.hide();
@@ -978,16 +1029,8 @@ function onPointerUp(e) {
 }
 
 window.addEventListener("mousedown", onPointerDown);
-window.addEventListener("pointerdown", onPointerDown);
-window.addEventListener("touchstart", onPointerDown);
-
 window.addEventListener("mousemove", onPointerMove);
-window.addEventListener("pointermove", onPointerMove);
-window.addEventListener("touchmove", onPointerMove);
-
 window.addEventListener("mouseup", onPointerUp);
-window.addEventListener("pointerup", onPointerUp);
-window.addEventListener("touchend", onPointerUp);
 
 window.addEventListener('contextmenu', function (e) {
     if (!board_initialised) return;

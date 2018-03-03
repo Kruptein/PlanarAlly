@@ -839,7 +839,10 @@ function FOWTool() {
 FOWTool.prototype.onMouseDown = function (e) {
     const layer = gameManager.layerManager.getLayer("fow");
     this.startPoint = layer.getMouse(e);
-    this.rect = new Rect(this.startPoint.x, this.startPoint.y, 0, 0, "black");
+    const z = gameManager.layerManager.zoomFactor;
+    const panX = gameManager.layerManager.panX;
+    const panY = gameManager.layerManager.panY;
+    this.rect = new Rect(this.startPoint.x/z - panX, this.startPoint.y/z - panY, 0, 0, "black");
     layer.addShape(this.rect, true, false);
 
     if ($("#fow-reveal").prop("checked"))
@@ -857,11 +860,15 @@ FOWTool.prototype.onMouseMove = function (e) {
     // Currently draw on active layer
     const layer = gameManager.layerManager.getLayer("fow");
     const endPoint = layer.getMouse(e);
+    const panX = gameManager.layerManager.panX;
+    const panY = gameManager.layerManager.panY;
+    const z = gameManager.layerManager.zoomFactor;
 
     this.rect.w = Math.abs(endPoint.x - this.startPoint.x);
     this.rect.h = Math.abs(endPoint.y - this.startPoint.y);
-    this.rect.x = Math.min(this.startPoint.x, endPoint.x);
-    this.rect.y = Math.min(this.startPoint.y, endPoint.y);
+    this.rect.x = Math.min(this.startPoint.x, endPoint.x)/z - panX;
+    this.rect.y = Math.min(this.startPoint.y, endPoint.y)/z - panY;
+
     socket.emit("shapeMove", {shape: this.rect.asDict(), temporary: false});
     layer.invalidate();
 };

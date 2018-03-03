@@ -642,8 +642,9 @@ LayerManager.prototype.onMouseMove = function(e) {
         socket.emit("shapeMove", {shape: sel.asDict(), temporary: true});
         layer.invalidate();
     } else if (layer.panning) {
-        gameManager.layerManager.panX += Math.round((mouse.x - layer.dragoffx));
-        gameManager.layerManager.panY += Math.round((mouse.y - layer.dragoffy));
+        const z = gameManager.layerManager.zoomFactor;
+        gameManager.layerManager.panX += Math.round((mouse.x - layer.dragoffx)/z);
+        gameManager.layerManager.panY += Math.round((mouse.y - layer.dragoffy)/z);
         layer.dragoffx = mouse.x;
         layer.dragoffy = mouse.y;
         gameManager.layerManager.invalidate();

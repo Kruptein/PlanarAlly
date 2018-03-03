@@ -964,7 +964,7 @@ window.addEventListener('contextmenu', function (e) {
 $("#zoomer").slider({
     orientation: "vertical",
     min: 0.5,
-    max: 2.0,
+    max: 5.0,
     step: 0.1,
     value: 1.0,
     slide: function( event, ui ) {

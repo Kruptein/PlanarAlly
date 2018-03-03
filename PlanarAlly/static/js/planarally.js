@@ -538,12 +538,13 @@ LayerManager.prototype.drawGrid = function () {
     layer.clear();
     ctx.beginPath();
 
-    for (let i = -1; i < layer.width; i += this.gridSize * z) {
-        ctx.moveTo(i + panX*z, 0);
-        ctx.lineTo(i + panX*z, layer.height);
-        ctx.moveTo(0, i + panY*z);
-        ctx.lineTo(layer.width, i + panY*z);
+    for (let i = 0; i < layer.width; i += this.gridSize * z) {
+        ctx.moveTo(i+(panX % this.gridSize)*z, 0);
+        ctx.lineTo(i+(panX % this.gridSize)*z, layer.height);
+        ctx.moveTo(0, i+(panY % this.gridSize)*z);
+        ctx.lineTo(layer.width, i+(panY % this.gridSize)*z);
     }
+
     ctx.strokeStyle = 'rgba(255,0,0, 0.5)';
     ctx.lineWidth = 1;
     ctx.stroke();

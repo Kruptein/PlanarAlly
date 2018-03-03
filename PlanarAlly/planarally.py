@@ -163,7 +163,7 @@ class PlanarAlly:
 
     def get_token_list(self, path=None):
         if not path:
-            path = os.path.join("static", "img")
+            path = os.path.join("static", "img", "assets")
         d = {'files': [], 'folders': {}}
         for entry in os.scandir(path):
             if entry.is_file():

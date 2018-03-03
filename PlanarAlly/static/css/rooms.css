@@ -15,21 +15,21 @@ body {
     background: url("/static/img/login_background.png") repeat fixed;
     font-family: 'Open Sans', sans-serif;
     font-weight: 200;
-    display:flex;
+    display: flex;
 }
 
 a {
     text-decoration: inherit;
     color: inherit;
     width: 100%;
-    display:block;
+    display: block;
     text-align: center;
     border-radius: 10px;
-    border: solid gray;
+    border: 1px solid #FF7052;
 }
 
 a:hover {
-    background-color: gray;
+    background-color: #FF7052;
     color: white;
 }
 
@@ -59,10 +59,6 @@ a:only-child {
 form {
     background: #fff;
     border-radius: 4px;
-}
-
-form:last-child {
-    border-top: solid 1px gray;
 }
 
 .legend {
@@ -165,4 +161,17 @@ form:last-child {
     border-bottom-color: mediumvioletred;
     border-width: 10px;
     margin-left: -10px;
+}
+
+h4 {
+    background-color: white;
+    width: 100%;
+    text-align: center;
+    border-bottom: 1px solid #000;
+    line-height: 0.1em;
+}
+
+h4 span {
+    background: #fff;
+    padding: 0 10px;
 }

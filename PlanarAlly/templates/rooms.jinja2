@@ -22,27 +22,22 @@
                 <legend class="legend">Your sessions</legend>
                 <div class="input">
                     {% for room in owned %}
-                        <a href="/rooms/{{ room }}">{{ room }}</a>
+                        <a href="/rooms/{{ room.1 }}/{{ room.0 }}">{{ room.0 }}</a>
                     {% endfor %}
-                    {#                        {% for room in joined %}#}
-                    {#                            <option value="{{ room }}">{{ room }}</option>#}
-                    {#                        {% endfor %}#}
-                </div>
-
-                <div style="display:flex;">
-                    <button type="submit" name="login" style="visibility: hidden;display:none;"></button>
-                    <button type="submit" name="register" class="submit" title="Register"><i class="fas fa-plus"></i>
-                    </button>
-                    <button type="submit" name="login" class="submit" title="Login"><i class="fas fa-arrow-right"></i>
-                    </button>
+                    {% for room in joined %}
+                        <a href="/rooms/{{ room.1 }}/{{ room.0 }}">{{ room.1 }}/{{ room.0 }}</a>
+                    {% endfor %}
                 </div>
             </fieldset>
         </form>
+        <h4><span>OR</span></h4>
     {% endif %}
     <form action="/create_room" method="post">
         <fieldset>
             {% if not owned and not joined %}
                 <legend class="legend">Create a session</legend>
+            {% else %}
+                <div class="input">Create a new session</div>
             {% endif %}
             <div class="input">
                 <input type="text" name="room_name" placeholder="Session Name">

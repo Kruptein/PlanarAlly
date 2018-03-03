@@ -38,7 +38,6 @@ socket.on("asset list", function (assets) {
 
     const process = function(entry, path) {
         path = path || "";
-        entry.folders.sort(alphSort);
         const folders = new Map(Object.entries(entry.folders));
         folders.forEach(function(value, key){
             h += "<button class='accordion'>" + key + "</button><div class='accordion-panel'><div class='accordion-subpanel'>";

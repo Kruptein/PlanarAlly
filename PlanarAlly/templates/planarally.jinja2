@@ -1,49 +1,68 @@
 <!DOCTYPE html>
 <html>
-    <head>
-        <meta charset="utf-8">
-        <title>PlanarAlly</title>
-        <link rel="stylesheet" type="text/css" href="/static/css/planarally.css">
-        <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
-        <script defer src="/static/js/planarally.js"></script>
-        <script src="https://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
-        <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js" integrity="sha256-VazP97ZCwtekAsvgPBSUwPFKdrwD3unUfSGVYrahUqU=" crossorigin="anonymous"></script>
-        <script src='/static/extern/js/spectrum.js'></script>
-        <link rel='stylesheet' href='/static/extern/css/spectrum.css' />
-        <script>
-            if (typeof jQuery === 'undefined') {
-                document.write("<script src='/static/extern/js/jquery-3.3.1.min.js'>\x3C/script>");
-                document.write("<script src='/static/extern/js/jquery-ui-1.12.1.min.js'>\x3C/script>");
-                document.write("<link rel=\"stylesheet\" href=\"/static/extern/css/jquery-ui-1.12.1.css\">");
-            }
-        </script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.4/socket.io.js"></script>
-        <script>if (typeof io === 'undefined') document.write("<script src='/static/extern/js/socket.io-2.0.4.js'>\x3C/script>");</script>
-    </head>
-    <body>
-        <div id="main">
-            <div id="board">
-                {% if dm %}
-                <div id="menu">
-                    <button class="accordion">Tokens</button>
-                    <div class="accordion-panel"><div class="accordion-subpanel" id="menu-tokens"></div></div>
-                    <button class="accordion">Options</button>
-                    <div class="accordion-panel">
-                        <div class="accordion-subpanel">
-                            <label for="gridSizeInput">Grid Size: </label><input type="text" value="50" id="gridSizeInput">
-                            <label for="invitation">Invitation Code: </label><input type="text" value="{{ invitation_code }}" disabled="disabled" id="invitation">
-                        </div>
+<head>
+    <meta charset="utf-8">
+    <title>PlanarAlly</title>
+    <link rel="stylesheet" type="text/css" href="/static/css/planarally.css">
+    <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <script defer src="/static/js/planarally.js"></script>
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js"
+            integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"
+            integrity="sha256-VazP97ZCwtekAsvgPBSUwPFKdrwD3unUfSGVYrahUqU=" crossorigin="anonymous"></script>
+    <script src='/static/extern/js/spectrum.js'></script>
+    <link rel='stylesheet' href='/static/extern/css/spectrum.css'/>
+    <script>
+        if (typeof jQuery === 'undefined') {
+            document.write("<script src='/static/extern/js/jquery-3.3.1.min.js'>\x3C/script>");
+            document.write("<script src='/static/extern/js/jquery-ui-1.12.1.min.js'>\x3C/script>");
+            document.write("<link rel=\"stylesheet\" href=\"/static/extern/css/jquery-ui-1.12.1.css\">");
+        }
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.4/socket.io.js"></script>
+    <script>if (typeof io === 'undefined') document.write("<script src='/static/extern/js/socket.io-2.0.4.js'>\x3C/script>");</script>
+</head>
+<body>
+<div id="main">
+    <div id="board">
+        {% if dm %}
+            <div id="menu">
+                <button class="accordion">Tokens</button>
+                <div class="accordion-panel">
+                    <div class="accordion-subpanel" id="menu-tokens"></div>
+                </div>
+                <button class="accordion">Options</button>
+                <div class="accordion-panel">
+                    <div class="accordion-subpanel">
+                        <label for="gridSizeInput">Grid Size: </label><input type="text" value="50" id="gridSizeInput">
+                        <label for="invitation">Invitation Code: </label><input type="text"
+                                                                                value="{{ invitation_code }}"
+                                                                                disabled="disabled" id="invitation">
                     </div>
                 </div>
-                <div id="menutoggle"></div>
-                {% endif %}
-                <div id="layers"></div>
-                <div id="layerselect"><ul></ul></div>
+                <button class="accordion">SelectionInfo</button>
+                <div class="accordion-panel">
+                    <div class="accordion-subpanel">
+                        <label for="selectionInfoX">X: </label><input type="text" id="selectionInfoX">
+                        <label for="selectionInfoY">Y: </label><input type="text" id="selectionInfoY">
+                        <label for="selectionInfoW">W: </label><input type="text" id="selectionInfoW">
+                        <label for="selectionInfoH">H: </label><input type="text" id="selectionInfoH">
+                    </div>
+                </div>
             </div>
-            <div id="toolselect"><ul></ul></div>
-            <div id="tooldetail"></div>
-            <div id="zoomer"></div>
-            <div id='contextMenu'></div>
+            <div id="menutoggle"></div>
+        {% endif %}
+        <div id="layers"></div>
+        <div id="layerselect">
+            <ul></ul>
         </div>
-    </body>
+    </div>
+    <div id="toolselect">
+        <ul></ul>
+    </div>
+    <div id="tooldetail"></div>
+    <div id="zoomer"></div>
+    <div id='contextMenu'></div>
+</div>
+</body>
 </html>

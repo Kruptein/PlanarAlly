@@ -594,6 +594,7 @@ LayerManager.prototype.onMouseDown = function (e) {
                 layer.resizedir = corn;
                 layer.invalidate();
                 hit = true;
+                setSelectionInfo(shape);
                 break;
             } else if (shape.contains(mx, my)) {
                 const sel = shape;
@@ -601,6 +602,7 @@ LayerManager.prototype.onMouseDown = function (e) {
                 layer.dragging = true;
                 layer.dragoffx = mx - sel.x;
                 layer.dragoffy = my - sel.y;
+                setSelectionInfo(shape);
                 layer.invalidate();
                 hit = true;
                 break;
@@ -626,6 +628,7 @@ LayerManager.prototype.onMouseMove = function (e) {
         sel.x = mouse.x - layer.dragoffx;
         sel.y = mouse.y - layer.dragoffy;
         socket.emit("shapeMove", {shape: sel.asDict(), temporary: true});
+        setSelectionInfo(sel);
         layer.invalidate();
     } else if (layer.resizing) {
         const z = gameManager.layerManager.zoomFactor;
@@ -651,6 +654,7 @@ LayerManager.prototype.onMouseMove = function (e) {
         sel.w /= z;
         sel.h /= z;
         socket.emit("shapeMove", {shape: sel.asDict(), temporary: true});
+        setSelectionInfo(sel);
         layer.invalidate();
     } else if (layer.panning) {
         const z = gameManager.layerManager.zoomFactor;
@@ -695,6 +699,7 @@ LayerManager.prototype.onMouseUp = function (e) {
         }
         if (orig.x !== layer.selection.x || orig.y !== layer.selection.y) {
             socket.emit("shapeMove", {shape: layer.selection.asDict(), temporary: false});
+            setSelectionInfo(layer.selection);
             layer.invalidate();
         }
     }
@@ -716,6 +721,7 @@ LayerManager.prototype.onMouseUp = function (e) {
             sel.h = Math.max(Math.round(sel.h / gs) * gs, gs);
         }
         socket.emit("shapeMove", {shape: layer.selection.asDict(), temporary: false});
+        setSelectionInfo(sel);
         layer.invalidate();
     }
     layer.dragging = false;
@@ -1003,6 +1009,20 @@ $("#zoomer").slider({
 
 const $menu = $('#contextMenu');
 $menu.hide();
+
+const selectionInfo = {
+    x: $('#selectionInfoX'),
+    y: $('#selectionInfoY'),
+    w: $('#selectionInfoW'),
+    h: $('#selectionInfoH')
+};
+
+function setSelectionInfo(shape) {
+    selectionInfo.x.val(shape.x);
+    selectionInfo.y.val(shape.y);
+    selectionInfo.w.val(shape.w);
+    selectionInfo.h.val(shape.h);
+}
 
 function handleContextMenu(menu, shape) {
     const action = menu.data("action");

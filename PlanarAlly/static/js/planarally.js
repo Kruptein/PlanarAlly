@@ -405,8 +405,8 @@ LayerState.prototype.draw = function () {
         const panX = gameManager.layerManager.panX;
         const panY = gameManager.layerManager.panY;
         this.shapes.data.forEach(function(shape){
-            if (shape.x + panX > state.width || shape.y + panY > state.height ||
-                shape.x + shape.w + panX < 0 || shape.y + shape.h + panY < 0) return;
+            // if (shape.x + panX > state.width || shape.y + panY > state.height ||
+            //     shape.x + shape.w + panX < 0 || shape.y + shape.h + panY < 0) return;
             shape.draw(ctx);
         });
 
@@ -746,7 +746,6 @@ function DrawTool() {
 }
 DrawTool.prototype.onMouseDown = function (e) {
     // Currently draw on active layer
-    console.log("?");
     const layer = gameManager.layerManager.getLayer();
     this.startPoint = layer.getMouse(e);
     const fillColor = this.fillColor.spectrum("get");
@@ -768,8 +767,8 @@ DrawTool.prototype.onMouseMove = function (e) {
     const panY = gameManager.layerManager.panY;
     const z = gameManager.layerManager.zoomFactor;
 
-    this.rect.w = Math.abs(endPoint.x - this.startPoint.x);
-    this.rect.h = Math.abs(endPoint.y - this.startPoint.y);
+    this.rect.w = Math.abs(endPoint.x - this.startPoint.x)/z;
+    this.rect.h = Math.abs(endPoint.y - this.startPoint.y)/z;
     this.rect.x = Math.min(this.startPoint.x, endPoint.x)/z - panX;
     this.rect.y = Math.min(this.startPoint.y, endPoint.y)/z - panY;
     socket.emit("shapeMove", {shape: this.rect.asDict(), temporary: false});
@@ -801,6 +800,7 @@ RulerTool.prototype.onMouseMove = function (e) {
     // Currently draw on active layer
     const layer = gameManager.layerManager.getLayer("draw");
     const endPoint = layer.getMouse(e);
+    const z = gameManager.layerManager.zoomFactor;
 
     this.ruler.x2 = endPoint.x;
     this.ruler.y2 = endPoint.y;
@@ -808,7 +808,7 @@ RulerTool.prototype.onMouseMove = function (e) {
 
     const xdiff = endPoint.x - this.startPoint.x;
     const ydiff = endPoint.y - this.startPoint.y;
-    const label = Math.round(Math.sqrt(xdiff ** 2 + ydiff ** 2) * gameManager.layerManager.unitSize / gameManager.layerManager.gridSize) + " ft";
+    const label = Math.round(Math.sqrt((xdiff/z) ** 2 + (ydiff/z) ** 2) * gameManager.layerManager.unitSize / gameManager.layerManager.gridSize) + " ft";
     let angle = Math.atan2(ydiff, xdiff);
     const xmid = this.startPoint.x + xdiff / 2;
     const ymid = this.startPoint.y + ydiff / 2;
@@ -864,8 +864,8 @@ FOWTool.prototype.onMouseMove = function (e) {
     const panY = gameManager.layerManager.panY;
     const z = gameManager.layerManager.zoomFactor;
 
-    this.rect.w = Math.abs(endPoint.x - this.startPoint.x);
-    this.rect.h = Math.abs(endPoint.y - this.startPoint.y);
+    this.rect.w = Math.abs(endPoint.x - this.startPoint.x)/z;
+    this.rect.h = Math.abs(endPoint.y - this.startPoint.y)/z;
     this.rect.x = Math.min(this.startPoint.x, endPoint.x)/z - panX;
     this.rect.y = Math.min(this.startPoint.y, endPoint.y)/z - panY;
 

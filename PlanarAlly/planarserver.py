@@ -248,11 +248,12 @@ async def test_disconnect(sid):
         sio.emit("clear temporaries", room.client_temporaries[sid])
         del room.client_temporaries[sid]
 
-    for value in app['AuthzPolicy'].sio_map.values():
-        if value['room'] == room:
-            break
-    else:
-        PA.save_room(room)
+    # for value in app['AuthzPolicy'].sio_map.values():
+    #     if value['room'] == room:
+    #         break
+    # else:
+    #     PA.save_room(room)
+    PA.save_room(room)
 
 
 app.router.add_static('/static', 'static')

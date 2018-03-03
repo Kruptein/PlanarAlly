@@ -128,6 +128,7 @@ async def claim_invite(request):
     else:
         if username != room.creator and username not in room.players:
             room.players.append(username)
+            PA.save_room(room)
         return web.HTTPFound(f"/rooms/{room.creator}/{room.name}")
 
 

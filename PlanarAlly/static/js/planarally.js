@@ -614,22 +614,24 @@ LayerManager.prototype.onMouseMove = function(e) {
         layer.invalidate();
     } else if (layer.resizing) {
         const z = gameManager.layerManager.zoomFactor;
+        const panX = gameManager.layerManager.panX;
+        const panY = gameManager.layerManager.panY;
         if (layer.resizedir === 'nw') {
-            sel.w = sel.x * z + sel.w * z - mouse.x;
-            sel.h = sel.y * z + sel.h * z - mouse.y;
-            sel.x = mouse.x / z;
-            sel.y = mouse.y / z;
+            sel.w = (sel.x + panX) * z + sel.w * z - mouse.x;
+            sel.h = (sel.y + panY) * z + sel.h * z - mouse.y;
+            sel.x = (mouse.x / z) - panX;
+            sel.y = (mouse.y / z) - panY;
         } else if (layer.resizedir === 'ne') {
-            sel.w = mouse.x - sel.x * z;
-            sel.h = sel.y * z + sel.h * z - mouse.y;
-            sel.y = mouse.y / z;
+            sel.w = mouse.x - (sel.x + panX) * z;
+            sel.h = (sel.y + panY) * z + sel.h * z - mouse.y;
+            sel.y = (mouse.y / z) - panY;
         } else if (layer.resizedir === 'se') {
-            sel.w = mouse.x - sel.x * z;
-            sel.h = mouse.y - sel.y * z;
+            sel.w = mouse.x - (sel.x + panX) * z;
+            sel.h = mouse.y - (sel.y + panY) * z;
         } else if (layer.resizedir === 'sw') {
-            sel.w = sel.x * z + sel.w * z - mouse.x;
-            sel.h = mouse.y - sel.y * z;
-            sel.x = mouse.x / z;
+            sel.w = (sel.x + panX) * z + sel.w * z - mouse.x;
+            sel.h = mouse.y - (sel.y + panY) * z;
+            sel.x = (mouse.x / z) - panX;
         }
         sel.w /= z;
         sel.h /= z;

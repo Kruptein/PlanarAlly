@@ -5,7 +5,6 @@ This is the code responsible for starting the backend and reacting to socket IO 
 
 import atexit
 import os
-import shelve
 import socketio
 
 import aiohttp_jinja2
@@ -19,7 +18,7 @@ from aiohttp_session.cookie_storage import EncryptedCookieStorage
 import auth
 from planarally import PlanarAlly
 
-PA = PlanarAlly()
+PA = PlanarAlly("planar.save")
 
 sio = socketio.AsyncServer(async_mode='aiohttp')
 app = web.Application()
@@ -32,14 +31,7 @@ sio.attach(app)
 
 @atexit.register
 def save_all():
-    with shelve.open("planar.save", "c") as shelf:
-        if 'rooms' not in shelf:
-            rooms = {}
-        else:
-            rooms = shelf['rooms']
-        for room in PA.rooms.values():
-            rooms[room.sioroom] = room
-            shelf['rooms'] = rooms
+    PA.save()
 
 
 @aiohttp_jinja2.template("login.jinja2")
@@ -111,7 +103,7 @@ async def create_room(request):
 
 
 @login_required
-@aiohttp_jinja2.template('planarally.html')
+@aiohttp_jinja2.template('planarally.jinja2')
 async def show_room(request):
     username = await authorized_userid(request)
     try:
@@ -119,9 +111,24 @@ async def show_room(request):
     except KeyError:
         pass
     else:
-        if username in room.players or room.creator == username:
-            return {}
+        if room.creator == username:
+            return {'dm': True, 'invitation_code': room.invitation_code}
+        if username in room.players:
+            return {'dm': False}
     return web.HTTPFound("/rooms")
+
+
+@login_required
+async def claim_invite(request):
+    username = await authorized_userid(request)
+    try:
+        room = PA.get_room_from_invite(request.match_info['code'])
+    except KeyError:
+        return web.HTTPNotFound()
+    else:
+        if username != room.creator and username not in room.players:
+            room.players.append(username)
+        return web.HTTPFound(f"/rooms/{room.creator}/{room.name}")
 
 
 # SOCKETS
@@ -221,8 +228,9 @@ async def test_connect(sid, environ):
         print(f"User {username} connected with identifier {sid}")
 
         sio.enter_room(sid, f"{room.name}_{room.creator}", namespace='/planarally')
+        await sio.emit("set username", username, room=sid, namespace='/planarally')
         await sio.emit('board init', room.get_board(username), room=sid, namespace='/planarally')
-        await sio.emit('token list', PA.get_token_list(), room=sid, namespace='/planarally')
+        await sio.emit('asset list', PA.get_token_list(), room=sid, namespace='/planarally')
 
 
 @sio.on('disconnect', namespace='/planarally')
@@ -243,22 +251,14 @@ async def test_disconnect(sid):
         if value['room'] == room:
             break
     else:
-        print(f"Saving {room.sioroom}")
-        with shelve.open("planar.save", "c") as shelf:
-            # DO NOT change this to shelf['rooms'][room.sioroom] = room
-            # it will not write through to disk!
-            if 'rooms' not in shelf:
-                rooms = {}
-            else:
-                rooms = shelf['rooms']
-            rooms[room.sioroom] = room
-            shelf['rooms'] = rooms
+        PA.save_room(room)
 
 
 app.router.add_static('/static', 'static')
 app.router.add_route('*', '/', login)
 app.router.add_get('/rooms', show_rooms)
 app.router.add_get('/rooms/{username}/{roomname}', show_room)
+app.router.add_get('/invite/{code}', claim_invite)
 app.router.add_post('/create_room', create_room)
 app.router.add_get('/logout', logout)
 

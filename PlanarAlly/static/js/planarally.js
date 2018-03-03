@@ -16,7 +16,6 @@ jQuery.event.special.touchstart = {
 const protocol = document.domain === 'localhost' ? "http://" : "https://";
 const socket = io.connect(protocol + document.domain + ":" + location.port + "/planarally");
 let board_initialised = false;
-const IS_DM = findGetParameter("dm") !== null;
 socket.on("connect", function () {
     console.log("Connected");
 });
@@ -26,6 +25,11 @@ socket.on("disconnect", function () {
 socket.on("redirect", function (destination) {
     console.log("redirecting");
     window.location.href = destination;
+});
+socket.on("set username", function (username) {
+    gameManager.username = username;
+    gameManager.IS_DM = username === window.location.pathname.split("/")[2]
+    setupTools();
 });
 socket.on("asset list", function (assets) {
     const m = $("#menu-tokens");
@@ -40,7 +44,7 @@ socket.on("asset list", function (assets) {
             h += "</div></div>";
         });
         entry.files.forEach(function(asset){
-            h += "<div class='draggable token'><img src=" + path + asset + "'//static/img/' width='35'>" + asset + "</div>";
+            h += "<div class='draggable token'><img src='/static/img/" + path + asset + "' width='35'>" + asset + "</div>";
         });
     };
     process(assets);
@@ -155,9 +159,9 @@ Shape.prototype.asDict = function() {
     return Object.assign({}, this);
 };
 Shape.prototype.draw = function(ctx) {
-    if (this.layer === 'fow' && IS_DM && this.globalCompositeOperation === "destination-out")
+    if (this.layer === 'fow' && gameManager.IS_DM && this.globalCompositeOperation === "destination-out")
         ctx.globalAlpha = 1.0;
-    else if (this.layer === 'fow' && IS_DM)
+    else if (this.layer === 'fow' && gameManager.IS_DM)
         ctx.globalAlpha = 0.3;
     if (this.globalCompositeOperation !== undefined)
         ctx.globalCompositeOperation = this.globalCompositeOperation;
@@ -209,27 +213,34 @@ Rect.prototype.draw = function (ctx) {
     Shape.prototype.draw.call(this, ctx);
     ctx.fillStyle = this.fill;
     const z = gameManager.layerManager.zoomFactor;
-    ctx.fillRect(this.x * z, this.y * z, this.w * z, this.h * z);
+    const panX = gameManager.layerManager.panX;
+    const panY = gameManager.layerManager.panY;
+    ctx.fillRect((this.x + panX) * z, (this.y + panY) * z, this.w * z, this.h * z);
     if (this.border !== "rgba(0, 0, 0, 0)") {
         ctx.strokeStyle = this.border;
-        ctx.strokeRect(this.x * z, this.y * z, this.w * z, this.h * z);
+        ctx.strokeRect((this.x + panX) * z, (this.y + panY) * z, this.w * z, this.h * z);
     }
 };
-Rect.prototype.contains = function (mx, my) {    const z = gameManager.layerManager.zoomFactor;
-    return (this.x * z <= mx) && ((this.x + this.w) * z >= mx) &&
-        (this.y * z <= my) && ((this.y + this.h) * z >= my);
+Rect.prototype.contains = function (mx, my) {
+    const z = gameManager.layerManager.zoomFactor;
+    const panX = gameManager.layerManager.panX;
+    const panY = gameManager.layerManager.panY;
+    return ((this.x + panX) * z <= mx) && ((this.x + this.w + panX) * z >= mx) &&
+        ((this.y + panY) * z <= my) && ((this.y + this.h + panY) * z >= my);
 };
 Rect.prototype.inCorner = function (mx, my, corner) {
     const z = gameManager.layerManager.zoomFactor;
+    const panX = gameManager.layerManager.panX;
+    const panY = gameManager.layerManager.panY;
     switch (corner) {
         case 'ne':
-            return (this.x + this.w - 3) * z <= mx && mx <= (this.x + this.w + 3) * z && (this.y - 3) * z <= my && my <= (this.y + 3) * z;
+            return (this.x + this.w + panX - 3) * z <= mx && mx <= (this.x + this.w + panX + 3) * z && (this.y + panY - 3) * z <= my && my <= (this.y + panY + 3) * z;
         case 'nw':
-            return (this.x - 3) * z <= mx && mx <= (this.x + 3) * z && (this.y - 3) * z <= my && my <= (this.y + 3) * z;
+            return (this.x + panX - 3) * z <= mx && mx <= (this.x + panX + 3) * z && (this.y + panY - 3) * z <= my && my <= (this.y + panY + 3) * z;
         case 'sw':
-            return (this.x - 3) * z <= mx && mx <= (this.x + 3) * z && (this.y + this.h - 3) * z <= my && my <= (this.y + this.h + 3) * z;
+            return (this.x + panX - 3) * z <= mx && mx <= (this.x + panX + 3) * z && (this.y + this.h + panY - 3) * z <= my && my <= (this.y + this.h + panY + 3) * z;
         case 'se':
-            return (this.x + this.w - 3) * z <= mx && mx <= (this.x + this.w + 3) * z && (this.y + this.h - 3) * z <= my && my <= (this.y + this.h + 3) * z;
+            return (this.x + this.w + panX - 3) * z <= mx && mx <= (this.x + this.w + panX + 3) * z && (this.y + this.h + panY - 3) * z <= my && my <= (this.y + this.h + panY + 3) * z;
         default:
             return false;
     }
@@ -298,7 +309,9 @@ Asset.prototype = Object.create(Rect.prototype);
 Asset.prototype.draw = function (ctx) {
     Shape.prototype.draw.call(this, ctx);
     const z = gameManager.layerManager.zoomFactor;
-    ctx.drawImage(this.img, this.x * z, this.y * z, this.w * z, this.h * z);
+    const panX = gameManager.layerManager.panX;
+    const panY = gameManager.layerManager.panY;
+    ctx.drawImage(this.img, (this.x + panX) * z, (this.y + panY) * z, this.w * z, this.h * z);
 };
 
 // **** specific Layer State Management
@@ -327,6 +340,7 @@ function LayerState(canvas, name) {
     this.shapes = new OrderedMap();
     this.dragging = false;
     this.resizing = false;
+    this.panning = false;
     this.resizedir = '';
 
     this.selection = null;
@@ -386,27 +400,31 @@ LayerState.prototype.draw = function () {
         this.clear();
 
         const state = this;
+        const panX = gameManager.layerManager.panX;
+        const panY = gameManager.layerManager.panY;
         this.shapes.data.forEach(function(shape){
-            if (shape.x > state.width || shape.y > state.height ||
-                shape.x + shape.w < 0 || shape.y + shape.h < 0) return;
+            if (shape.x + panX > state.width || shape.y + panY > state.height ||
+                shape.x + shape.w + panX < 0 || shape.y + shape.h + panY < 0) return;
             shape.draw(ctx);
         });
 
         if (this.selection != null) {
             const z = gameManager.layerManager.zoomFactor;
+            const panX = gameManager.layerManager.panX;
+            const panY = gameManager.layerManager.panY;
             ctx.strokeStyle = this.selectionColor;
             ctx.lineWidth = this.selectionWidth;
             const mySel = this.selection;
-            ctx.strokeRect(mySel.x * z, mySel.y * z, mySel.w* z, mySel.h* z);
+            ctx.strokeRect((mySel.x + panX) * z, (mySel.y + panY) * z, mySel.w * z, mySel.h * z);
 
             // topright
-            ctx.fillRect((mySel.x + mySel.w - 3) * z, (mySel.y - 3) * z, 6 * z, 6 * z);
+            ctx.fillRect((mySel.x + mySel.w + panX - 3) * z, (mySel.y + panY - 3) * z, 6 * z, 6 * z);
             // topleft
-            ctx.fillRect((mySel.x - 3) * z, (mySel.y - 3) * z, 6 * z, 6 * z);
+            ctx.fillRect((mySel.x + panX - 3) * z, (mySel.y + panY - 3) * z, 6 * z, 6 * z);
             // botright
-            ctx.fillRect((mySel.x + mySel.w - 3) * z, (mySel.y + mySel.h - 3) * z, 6 * z, 6 * z);
+            ctx.fillRect((mySel.x + mySel.w + panX - 3) * z, (mySel.y + mySel.h + panY - 3) * z, 6 * z, 6 * z);
             // botleft
-            ctx.fillRect((mySel.x - 3) * z, (mySel.y + mySel.h - 3) * z, 6 * z, 6 * z)
+            ctx.fillRect((mySel.x + panX - 3) * z, (mySel.y + mySel.h + panY - 3) * z, 6 * z, 6 * z)
         }
 
         this.valid = true;
@@ -435,7 +453,6 @@ LayerState.prototype.getMouse = function (e) {
 };
 LayerState.prototype.moveShapeOrder = function (shape, destinationIndex, sync) {
     if (this.shapes.moveTo(shape, destinationIndex)) {
-        console.log(shape);
         if (sync) socket.emit("moveShapeOrder", {shape: shape.asDict(), index: destinationIndex});
         this.invalidate();
     }
@@ -463,6 +480,8 @@ function LayerManager() {
     this.gridSize = 50;
     this.unitSize = 5;
     this.zoomFactor = 1;
+    this.panX = 0;
+    this.panY = 0;
 }
 LayerManager.prototype.setWidth = function (width) {
     this.width = width;
@@ -512,14 +531,16 @@ LayerManager.prototype.drawGrid = function () {
     const layer = this.getGridLayer();
     const ctx = layer.ctx;
     const z = gameManager.layerManager.zoomFactor;
+    const panX = gameManager.layerManager.panX;
+    const panY = gameManager.layerManager.panY;
     layer.clear();
     ctx.beginPath();
 
-    for (let i = 0; i < layer.width; i += this.gridSize * z) {
-        ctx.moveTo(i, 0);
-        ctx.lineTo(i, layer.height);
-        ctx.moveTo(0, i);
-        ctx.lineTo(layer.width, i);
+    for (let i = -1; i < layer.width; i += this.gridSize * z) {
+        ctx.moveTo(i + panX*z, 0);
+        ctx.lineTo(i + panX*z, layer.height);
+        ctx.moveTo(0, i + panY*z);
+        ctx.lineTo(layer.width, i + panY*z);
     }
     ctx.strokeStyle = 'rgba(255,0,0, 0.5)';
     ctx.lineWidth = 1;
@@ -548,30 +569,37 @@ LayerManager.prototype.onMouseDown = function (e) {
         return;
     }
 
-    let hit = false;
-    layer.shapes.data.forEach(function(shape) {
-       const corn = shape.getCorner(mx, my);
-       if (corn !== undefined) {
-            layer.selection = shape;
-            layer.resizing = true;
-            layer.resizedir = corn;
-            layer.invalidate();
-            hit = true;
-        } else if (shape.contains(mx, my)) {
-            const sel = shape;
-            layer.selection = sel;
-            layer.dragging = true;
-            layer.dragoffx = mx - sel.x;
-            layer.dragoffy = my - sel.y;
-            layer.invalidate();
-            hit = true;
-        }
-    });
+    if (tools[gameManager.selectedTool].name === 'select') {
+        let hit = false;
+        layer.shapes.data.forEach(function(shape) {
+           const corn = shape.getCorner(mx, my);
+           if (corn !== undefined) {
+                layer.selection = shape;
+                layer.resizing = true;
+                layer.resizedir = corn;
+                layer.invalidate();
+                hit = true;
+            } else if (shape.contains(mx, my)) {
+                const sel = shape;
+                layer.selection = sel;
+                layer.dragging = true;
+                layer.dragoffx = mx - sel.x;
+                layer.dragoffy = my - sel.y;
+                layer.invalidate();
+                hit = true;
+            }
+        });
 
-    if (!hit && layer.selection) {
-        layer.selection = null;
-        layer.invalidate();
+        if (!hit && layer.selection) {
+            layer.selection = null;
+            layer.invalidate();
+        }
+    } else if (tools[gameManager.selectedTool].name === 'pan') {
+        layer.panning = true;
+        layer.dragoffx = mx;
+        layer.dragoffy = my;
     }
+
 };
 LayerManager.prototype.onMouseMove = function(e) {
     const layer = gameManager.layerManager.getLayer();
@@ -605,6 +633,12 @@ LayerManager.prototype.onMouseMove = function(e) {
         sel.h /= z;
         socket.emit("shapeMove", {shape: sel.asDict(), temporary: true});
         layer.invalidate();
+    } else if (layer.panning) {
+        gameManager.layerManager.panX += Math.round((mouse.x - layer.dragoffx));
+        gameManager.layerManager.panY += Math.round((mouse.y - layer.dragoffy));
+        layer.dragoffx = mouse.x;
+        layer.dragoffy = mouse.y;
+        gameManager.layerManager.invalidate();
     } else if (sel) {
         if (sel.inCorner(mouse.x, mouse.y, "nw")) {
             document.body.style.cursor = "nw-resize";
@@ -666,6 +700,7 @@ LayerManager.prototype.onMouseUp = function (e) {
     }
     layer.dragging = false;
     layer.resizing = false;
+    layer.panning = false;
 };
 LayerManager.prototype.onContextMenu = function (e) {
     e.preventDefault();
@@ -706,13 +741,17 @@ function DrawTool() {
 }
 DrawTool.prototype.onMouseDown = function (e) {
     // Currently draw on active layer
+    console.log("?");
     const layer = gameManager.layerManager.getLayer();
     this.startPoint = layer.getMouse(e);
     const fillColor = this.fillColor.spectrum("get");
     const fill = fillColor === null ? tinycolor("transparent") : fillColor;
     const borderColor = this.borderColor.spectrum("get");
     const border = borderColor === null ? tinycolor("transparent") : borderColor;
-    this.rect = new Rect(this.startPoint.x, this.startPoint.y, 0, 0, fill.toRgbString(), border.toRgbString());
+    const z = gameManager.layerManager.zoomFactor;
+    const panX = gameManager.layerManager.panX;
+    const panY = gameManager.layerManager.panY;
+    this.rect = new Rect(this.startPoint.x/z - panX, this.startPoint.y/z - panY, 0, 0, fill.toRgbString(), border.toRgbString());
     layer.addShape(this.rect, true, false);
 };
 DrawTool.prototype.onMouseMove = function (e) {
@@ -720,11 +759,14 @@ DrawTool.prototype.onMouseMove = function (e) {
     // Currently draw on active layer
     const layer = gameManager.layerManager.getLayer();
     const endPoint = layer.getMouse(e);
+    const panX = gameManager.layerManager.panX;
+    const panY = gameManager.layerManager.panY;
+    const z = gameManager.layerManager.zoomFactor;
 
     this.rect.w = Math.abs(endPoint.x - this.startPoint.x);
     this.rect.h = Math.abs(endPoint.y - this.startPoint.y);
-    this.rect.x = Math.min(this.startPoint.x, endPoint.x);
-    this.rect.y = Math.min(this.startPoint.y, endPoint.y);
+    this.rect.x = Math.min(this.startPoint.x, endPoint.x)/z - panX;
+    this.rect.y = Math.min(this.startPoint.y, endPoint.y)/z - panY;
     socket.emit("shapeMove", {shape: this.rect.asDict(), temporary: false});
     layer.invalidate();
 };
@@ -837,61 +879,77 @@ let gameManager = new GameManager();
 // **** SETUP UI ****
 const tools = [
     {name: "select", playerTool: true, defaultSelect: true, hasDetail: false, func: gameManager.layerManager},
+    {name: "pan", playerTool: true, defaultSelect: false, hasDetail: false, func: gameManager.layerManager},
     {name: "draw", playerTool: true, defaultSelect: false, hasDetail: true, func: gameManager.drawTool},
     {name: "ruler", playerTool: true, defaultSelect: false, hasDetail: false, func: gameManager.rulerTool},
     {name: "fow", playerTool: false, defaultSelect: false, hasDetail: true, func: gameManager.fowTool},
 ];
 
-const toolselectDiv = $("#toolselect").find("ul");
-tools.forEach(function(tool) {
-    if (!tool.playerTool && !IS_DM) return;
-    const extra = tool.defaultSelect ? " class='tool-selected'" : "";
-    const toolLi = $("<li id='tool-" + tool.name + "'" + extra + "><a href='#'>" + tool.name + "</a></li>");
-    toolselectDiv.append(toolLi);
-    if(tool.hasDetail){
-        const div = tool.func.loadDetailDiv();
-        $('#tooldetail').append(div);
-        div.hide();
-    }
-    toolLi.on("click", function () {
-        const index = tools.indexOf(tool);
-        if (index !== gameManager.selectedTool) {
-            $('.tool-selected').removeClass("tool-selected");
-            $(this).addClass("tool-selected");
-            gameManager.selectedTool = index;
-            const detail = $('#tooldetail');
-            if (tool.hasDetail) {
-                $('#tooldetail').children().hide();
-                tool.func.loadDetailDiv().show();
-                detail.show();
-            } else {
-                detail.hide();
-            }
+function setupTools() {
+    const toolselectDiv = $("#toolselect").find("ul");
+    tools.forEach(function(tool) {
+        if (!tool.playerTool && !gameManager.IS_DM) return;
+        const extra = tool.defaultSelect ? " class='tool-selected'" : "";
+        const toolLi = $("<li id='tool-" + tool.name + "'" + extra + "><a href='#'>" + tool.name + "</a></li>");
+        toolselectDiv.append(toolLi);
+        if(tool.hasDetail){
+            const div = tool.func.loadDetailDiv();
+            $('#tooldetail').append(div);
+            div.hide();
         }
+        toolLi.on("click", function () {
+            const index = tools.indexOf(tool);
+            if (index !== gameManager.selectedTool) {
+                $('.tool-selected').removeClass("tool-selected");
+                $(this).addClass("tool-selected");
+                gameManager.selectedTool = index;
+                const detail = $('#tooldetail');
+                if (tool.hasDetail) {
+                    $('#tooldetail').children().hide();
+                    tool.func.loadDetailDiv().show();
+                    detail.show();
+                } else {
+                    detail.hide();
+                }
+            }
+        });
     });
-});
+}
 
 // prevent double clicking text selection
 window.addEventListener('selectstart', function (e) {
     e.preventDefault();
     return false;
 });
-window.addEventListener('mousedown', function (e) {
+
+function onPointerDown(e) {
     if (!board_initialised) return;
-    if (e.button !== 0 || e.target.tagName !== 'CANVAS') return;
+    if ((e.button !== 0 && e.button !== 1) || e.target.tagName !== 'CANVAS') return;
     $menu.hide();
     tools[gameManager.selectedTool].func.onMouseDown(e);
-});
-window.addEventListener('mousemove', function (e) {
+}
+function onPointerMove(e) {
     if (!board_initialised) return;
-    if (e.button !== 0 || e.target.tagName !== 'CANVAS') return;
+    if ((e.button !== 0 && e.button !== 1) || e.target.tagName !== 'CANVAS') return;
     tools[gameManager.selectedTool].func.onMouseMove(e);
-});
-window.addEventListener('mouseup', function (e) {
+}
+function onPointerUp(e) {
     if (!board_initialised) return;
-    if (e.button !== 0 || e.target.tagName !== 'CANVAS') return;
+    if ((e.button !== 0 && e.button !== 1) || e.target.tagName !== 'CANVAS') return;
     tools[gameManager.selectedTool].func.onMouseUp(e);
-});
+}
+window.addEventListener("mousedown", onPointerDown);
+window.addEventListener("pointerdown", onPointerDown);
+window.addEventListener("touchstart", onPointerDown);
+
+window.addEventListener("mousemove", onPointerMove);
+window.addEventListener("pointermove", onPointerMove);
+window.addEventListener("touchmove", onPointerMove);
+
+window.addEventListener("mouseup", onPointerUp);
+window.addEventListener("pointerup", onPointerUp);
+window.addEventListener("touchend", onPointerUp);
+
 window.addEventListener('contextmenu', function (e) {
     if (!board_initialised) return;
     if (e.button !== 2 || e.target.tagName !== 'CANVAS') return;

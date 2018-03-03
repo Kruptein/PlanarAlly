@@ -23,6 +23,7 @@
     <body>
         <div id="main">
             <div id="board">
+                {% if dm %}
                 <div id="menu">
                     <button class="accordion">Tokens</button>
                     <div class="accordion-panel"><div class="accordion-subpanel" id="menu-tokens"></div></div>
@@ -30,10 +31,12 @@
                     <div class="accordion-panel">
                         <div class="accordion-subpanel">
                             <label for="gridSizeInput">Grid Size: </label><input type="text" value="50" id="gridSizeInput">
+                            <label for="invitation">Invitation Code: </label><input type="text" value="{{ invitation_code }}" disabled="disabled" id="invitation">
                         </div>
                     </div>
                 </div>
                 <div id="menutoggle"></div>
+                {% endif %}
                 <div id="layers"></div>
                 <div id="layerselect"><ul></ul></div>
             </div>

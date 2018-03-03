@@ -2,6 +2,8 @@
 PlayerAlly data representation classes.
 """
 import os
+import shelve
+import uuid
 from collections import OrderedDict
 from typing import Dict, List, Tuple
 
@@ -78,6 +80,7 @@ class Room:
         self.name = name
         self.creator = creator
         self.players = []
+        self.invitation_code = uuid.uuid4()
         self.layer_manager = LayerManager()
 
         # Keep track of temporary (i.e. not serverStored) shapes
@@ -120,11 +123,43 @@ class Room:
 
 
 class PlanarAlly:
-    def __init__(self):
+    def __init__(self, save_file):
         self.rooms = {}  # type: Dict[Tuple[str, str], Room]
+        self.save_file = save_file
+
+        self.load()
+
+    def load(self):
+        with shelve.open(self.save_file, 'c') as shelf:
+            if 'rooms' not in shelf:
+                shelf['rooms'] = {}
+            self.rooms = shelf['rooms']
+
+    def save(self):
+        with shelve.open(self.save_file, "c") as shelf:
+            if 'rooms' not in shelf:
+                rooms = {}
+            else:
+                rooms = shelf['rooms']
+            for room in self.rooms.values():
+                rooms[(room.name, room.creator)] = room
+                shelf['rooms'] = rooms
 
     def add_room(self, room, creator):
-        self.rooms[(room, creator)] = Room(room, creator)
+        new_room = Room(room, creator)
+        self.rooms[(room, creator)] = new_room
+        self.save_room(new_room)
+
+    def save_room(self, room):
+        with shelve.open(self.save_file, "c") as shelf:
+            # DO NOT change this to shelf['rooms'][room.sioroom] = room
+            # it will not write through to disk!
+            if 'rooms' not in shelf:
+                rooms = {}
+            else:
+                rooms = shelf['rooms']
+            rooms[(room.name, room.creator)] = room
+            shelf['rooms'] = rooms
 
     def get_token_list(self, path=None):
         if not path:
@@ -142,7 +177,13 @@ class PlanarAlly:
         joined = []
         for (name, creator), room in self.rooms.items():
             if creator == username:
-                owned.append(name)
+                owned.append((name, creator))
             elif username in room.players:
-                joined.append(name)
+                joined.append((name, creator))
         return owned, joined
+
+    def get_room_from_invite(self, invite_code):
+        for room in self.rooms.values():
+            if str(room.invitation_code) == invite_code:
+                return room
+        raise KeyError(f"{invite_code} was not found to be associated with any existing session")

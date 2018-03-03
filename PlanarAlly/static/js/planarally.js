@@ -28,8 +28,9 @@ socket.on("redirect", function (destination) {
 });
 socket.on("set username", function (username) {
     gameManager.username = username;
-    gameManager.IS_DM = username === window.location.pathname.split("/")[2]
-    setupTools();
+    gameManager.IS_DM = username === window.location.pathname.split("/")[2];
+    if ($("#toolselect").find("ul").html().length === 0)
+        setupTools();
 });
 socket.on("asset list", function (assets) {
     const m = $("#menu-tokens");

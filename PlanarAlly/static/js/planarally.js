@@ -938,7 +938,6 @@ MapTool.prototype.onMouseUp = function (e) {
     const layer = gameManager.layerManager.getLayer();
     if (layer.selection === null) {layer.removeShape(this.rect, false, false);return;}
 
-    const z = gameManager.layerManager.zoomFactor;
     const w = this.rect.w;
     const h = this.rect.h;
     layer.selection.w *= this.xCount.val() * gameManager.layerManager.gridSize / w;

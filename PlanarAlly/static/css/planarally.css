@@ -260,32 +260,37 @@ a, a:visited, a:hover, a:active {
 }
 
 #tooldetail:after {
-	content: '';
-	position: absolute;
-	bottom: 0;
-	left: 50%;
-	width: 0;
-	height: 0;
-	border: 14px solid transparent;
-	border-top-color: black;
-	border-bottom: 0;
-	margin-left: -14px;
-	margin-bottom: -14px;
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border: 14px solid transparent;
+    border-top-color: black;
+    border-bottom: 0;
+    margin-left: -14px;
+    margin-bottom: -14px;
 }
 
 #tooldetail > div {
-
-    display: flex;
-    flex-direction: column;
-}
-
-#tooldetail > div > div {
     display: grid;
-    grid-template-columns: 65% auto;
-    flex-direction: row;
-    align-items: center;
-    justify-content: space-evenly;
+    grid-template-columns: 50% 50%;
 }
+
+/*#tooldetail > div {*/
+
+    /*display: flex;*/
+    /*flex-direction: column;*/
+/*}*/
+
+/*#tooldetail > div > div {*/
+    /*display: grid;*/
+    /*grid-template-columns: 65% auto;*/
+    /*flex-direction: row;*/
+    /*align-items: center;*/
+    /*justify-content: space-evenly;*/
+/*}*/
 
 
 

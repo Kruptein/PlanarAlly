@@ -413,9 +413,10 @@ LayerState.prototype.draw = function () {
         const state = this;
         const panX = gameManager.layerManager.panX;
         const panY = gameManager.layerManager.panY;
+        const z = gameManager.layerManager.zoomFactor;
         this.shapes.data.forEach(function (shape) {
-            // if (shape.x + panX > state.width || shape.y + panY > state.height ||
-            //     shape.x + shape.w + panX < 0 || shape.y + shape.h + panY < 0) return;
+            if ((shape.x + panX) * z > state.width || (shape.y + panY) * z > state.height ||
+                (shape.x + shape.w + panX) * z < 0 || (shape.y + shape.h + panY) * z < 0) return;
             shape.draw(ctx);
         });
 
@@ -598,10 +599,11 @@ LayerManager.prototype.onMouseDown = function (e) {
                 break;
             } else if (shape.contains(mx, my)) {
                 const sel = shape;
+                const z = gameManager.layerManager.zoomFactor;
                 layer.selection = sel;
                 layer.dragging = true;
-                layer.dragoffx = mx - sel.x;
-                layer.dragoffy = my - sel.y;
+                layer.dragoffx = mx - sel.x*z;
+                layer.dragoffy = my - sel.y*z;
                 setSelectionInfo(shape);
                 layer.invalidate();
                 hit = true;
@@ -624,14 +626,14 @@ LayerManager.prototype.onMouseMove = function (e) {
     const layer = gameManager.layerManager.getLayer();
     const sel = layer.selection;
     const mouse = layer.getMouse(e);
+    const z = gameManager.layerManager.zoomFactor;
     if (layer.dragging) {
-        sel.x = mouse.x - layer.dragoffx;
-        sel.y = mouse.y - layer.dragoffy;
+        sel.x = (mouse.x - layer.dragoffx)/z;
+        sel.y = (mouse.y - layer.dragoffy)/z;
         socket.emit("shapeMove", {shape: sel.asDict(), temporary: true});
         setSelectionInfo(sel);
         layer.invalidate();
     } else if (layer.resizing) {
-        const z = gameManager.layerManager.zoomFactor;
         const panX = gameManager.layerManager.panX;
         const panY = gameManager.layerManager.panY;
         if (layer.resizedir === 'nw') {

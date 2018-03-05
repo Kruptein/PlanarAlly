@@ -1086,15 +1086,15 @@ function handleContextMenu(menu, shape) {
     $menu.hide();
 }
 
-$('#menutoggle').on("click", function () {
+$('#rm-settings').on("click", function () {
     const menu = $('#menu');
     // order of animation is important, it otherwise will sometimes show a small gap between the two objects
     if (menu.is(":visible")) {
-        $('#menutoggle').animate({left: "-=200px"});
+        $('#radialmenu').animate({left: "-=200px"});
         menu.animate({width: 'toggle'});
     } else {
         menu.animate({width: 'toggle'});
-        $('#menutoggle').animate({left: "+=200px"});
+        $('#radialmenu').animate({left: "+=200px"});
     }
 });
 

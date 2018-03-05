@@ -24,7 +24,6 @@ a {
     width: 100%;
     display: block;
     text-align: center;
-    border-radius: 10px;
     border: 1px solid #FF7052;
 }
 
@@ -34,13 +33,11 @@ a:hover {
 }
 
 a:first-child {
-    border-bottom-left-radius: 0;
-    border-bottom-right-radius: 0;
+    border-radius: 10px 10px 0 0;
 }
 
 a:last-child {
-    border-top-left-radius: 0;
-    border-top-right-radius: 0;
+    border-radius: 0 0 10px 10px;
 }
 
 a:only-child {

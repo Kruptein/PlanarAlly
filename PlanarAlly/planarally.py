@@ -116,10 +116,10 @@ class Room:
                 l['selectable'] = False
         return board
 
-    def add_temp(self, sid, uuid):
+    def add_temp(self, sid, uid):
         if sid not in self.client_temporaries:
             self.client_temporaries[sid] = []
-        self.client_temporaries[sid].append(uuid)
+        self.client_temporaries[sid].append(uid)
 
 
 class PlanarAlly:

@@ -138,17 +138,18 @@ async def claim_invite(request):
 async def add_shape(sid, data):
     username = app['AuthzPolicy'].sio_map[sid]['user'].username
     room = app['AuthzPolicy'].sio_map[sid]['room']
+    location = room.get_active_location(username)
 
-    layer = room.layer_manager.get_layer(data['shape']['layer'])
+    layer = location.layer_manager.get_layer(data['shape']['layer'])
     if room.creator != username and not layer.player_editable:
         print(f"{username} attempted to add a shape to a dm layer")
         return
     if data['temporary']:
-        room.add_temp(sid, data['shape']['uuid'])
+        location.add_temp(sid, data['shape']['uuid'])
     else:
         layer.shapes[data['shape']['uuid']] = data['shape']
     if layer.player_visible:
-        await sio.emit("add shape", data['shape'], room=room.sioroom, skip_sid=sid, namespace='/planarally')
+        await sio.emit("add shape", data['shape'], room=location.sioroom, skip_sid=sid, namespace='/planarally')
 
 
 @sio.on("remove shape", namespace="/planarally")
@@ -156,17 +157,18 @@ async def add_shape(sid, data):
 async def remove_shape(sid, data):
     username = app['AuthzPolicy'].sio_map[sid]['user'].username
     room = app['AuthzPolicy'].sio_map[sid]['room']
+    location = room.get_active_location(username)
 
-    layer = room.layer_manager.get_layer(data['shape']['layer'])
+    layer = location.layer_manager.get_layer(data['shape']['layer'])
     if room.creator != username and not layer.player_editable:
         print(f"{username} attempted to remove a shape from a dm layer")
         return
     if data['temporary']:
-        room.client_temporaries[sid].remove(data['shape']['uuid'])
+        location.client_temporaries[sid].remove(data['shape']['uuid'])
     else:
         del layer.shapes[data['shape']['uuid']]
     if layer.player_visible:
-        await sio.emit("remove shape", data['shape'], room=room.sioroom, skip_sid=sid, namespace='/planarally')
+        await sio.emit("remove shape", data['shape'], room=location.sioroom, skip_sid=sid, namespace='/planarally')
 
 
 @sio.on("moveShapeOrder", namespace="/planarally")
@@ -174,14 +176,15 @@ async def remove_shape(sid, data):
 async def move_shape_order(sid, data):
     username = app['AuthzPolicy'].sio_map[sid]['user'].username
     room = app['AuthzPolicy'].sio_map[sid]['room']
+    location = room.get_active_location(username)
 
-    layer = room.layer_manager.get_layer(data['shape']['layer'])
+    layer = location.layer_manager.get_layer(data['shape']['layer'])
     if room.creator != username and not layer.player_editable:
         print(f"{username} attempted to move a shape order on a dm layer")
         return
     layer.shapes.move_to_end(data['shape']['uuid'], data['index'] != 0)
     if layer.player_visible:
-        await sio.emit("moveShapeOrder", data, room=room.sioroom, skip_sid=sid, namespace='/planarally')
+        await sio.emit("moveShapeOrder", data, room=location.sioroom, skip_sid=sid, namespace='/planarally')
 
 
 @sio.on("shapeMove", namespace="/planarally")
@@ -189,15 +192,16 @@ async def move_shape_order(sid, data):
 async def move_shape(sid, data):
     username = app['AuthzPolicy'].sio_map[sid]['user'].username
     room = app['AuthzPolicy'].sio_map[sid]['room']
+    location = room.get_active_location(username)
 
-    layer = room.layer_manager.get_layer(data['shape']['layer'])
+    layer = location.layer_manager.get_layer(data['shape']['layer'])
     if room.creator != username and not layer.player_editable:
         print(f"{username} attempted to move a shape on a dm layer")
         return
     if not data['temporary']:
         layer.shapes[data['shape']['uuid']] = data['shape']
     if layer.player_visible:
-        await sio.emit("shapeMove", data['shape'], room=room.sioroom, skip_sid=sid, namespace='/planarally')
+        await sio.emit("shapeMove", data['shape'], room=location.sioroom, skip_sid=sid, namespace='/planarally')
 
 
 @sio.on("set gridsize", namespace="/planarally")
@@ -205,12 +209,45 @@ async def move_shape(sid, data):
 async def set_gridsize(sid, grid_size):
     username = app['AuthzPolicy'].sio_map[sid]['user'].username
     room = app['AuthzPolicy'].sio_map[sid]['room']
+    location = room.get_active_location(username)
 
     if room.creator != username:
         print(f"{username} attempted to set gridsize without DM rights")
         return
-    room.layer_manager.get_grid_layer().size = grid_size
-    await sio.emit("set gridsize", grid_size, room=room.sioroom, skip_sid=sid, namespace="/planarally")
+    location.layer_manager.get_grid_layer().size = grid_size
+    await sio.emit("set gridsize", grid_size, room=location.sioroom, skip_sid=sid, namespace="/planarally")
+
+
+@sio.on("new location", namespace='/planarally')
+async def add_new_location(sid, location):
+    username = app['AuthzPolicy'].sio_map[sid]['user'].username
+    room = app['AuthzPolicy'].sio_map[sid]['room']
+
+    if room.creator != username:
+        print(f"{username} attempted to add a new location")
+        return
+
+    room.add_new_location(location)
+    sio.leave_room(sid, room.get_active_location(username).sioroom, namespace='/planarally')
+    room.dm_location = location
+    sio.enter_room(sid, room.get_active_location(username).sioroom, namespace='/planarally')
+    await sio.emit('board init', room.get_board(username), room=sid, namespace='/planarally')
+
+
+@sio.on("change location", namespace='/planarally')
+async def add_new_location(sid, location):
+    username = app['AuthzPolicy'].sio_map[sid]['user'].username
+    room = app['AuthzPolicy'].sio_map[sid]['room']
+
+    if room.creator != username:
+        print(f"{username} attempted to change location")
+        return
+
+    sio.leave_room(sid, room.get_active_location(username).sioroom, namespace='/planarally')
+    room.dm_location = location
+    sio.enter_room(sid, room.get_active_location(username).sioroom, namespace='/planarally')
+    PA.save_room(room)
+    await sio.emit('board init', room.get_board(username), room=sid, namespace='/planarally')
 
 
 @sio.on('connect', namespace='/planarally')
@@ -221,6 +258,7 @@ async def test_connect(sid, environ):
     else:
         ref = environ['HTTP_REFERER'].strip("/").split("/")
         room = PA.rooms[(ref[-1], ref[-2])]
+        location = room.get_active_location(username)
 
         app['AuthzPolicy'].sio_map[sid] = {
             'user': app['AuthzPolicy'].user_map[username],
@@ -228,7 +266,7 @@ async def test_connect(sid, environ):
         }
         print(f"User {username} connected with identifier {sid}")
 
-        sio.enter_room(sid, f"{room.name}_{room.creator}", namespace='/planarally')
+        sio.enter_room(sid, location.sioroom, namespace='/planarally')
         await sio.emit("set username", username, room=sid, namespace='/planarally')
         await sio.emit('board init', room.get_board(username), room=sid, namespace='/planarally')
         await sio.emit('asset list', PA.get_token_list(), room=sid, namespace='/planarally')
@@ -240,13 +278,14 @@ async def test_disconnect(sid):
         return
     username = app['AuthzPolicy'].sio_map[sid]['user'].username
     room = app['AuthzPolicy'].sio_map[sid]['room']
+    location = room.get_active_location(username)
 
     print(f'User {username} disconnected with identifier {sid}')
     del app['AuthzPolicy'].sio_map[sid]
 
-    if sid in room.client_temporaries:
-        sio.emit("clear temporaries", room.client_temporaries[sid])
-        del room.client_temporaries[sid]
+    if sid in location.client_temporaries:
+        sio.emit("clear temporaries", location.client_temporaries[sid])
+        del location.client_temporaries[sid]
 
     # for value in app['AuthzPolicy'].sio_map.values():
     #     if value['room'] == room:

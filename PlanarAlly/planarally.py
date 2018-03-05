@@ -75,12 +75,10 @@ class GridLayer(Layer):
         return d
 
 
-class Room:
-    def __init__(self, name, creator):
+class Location:
+    def __init__(self, name, room):
         self.name = name
-        self.creator = creator
-        self.players = []
-        self.invitation_code = uuid.uuid4()
+        self.room = room
         self.layer_manager = LayerManager()
 
         # Keep track of temporary (i.e. not serverStored) shapes
@@ -103,23 +101,45 @@ class Room:
 
     @property
     def sioroom(self):
-        return f"{self.name}_{self.creator}"
-
-    def get_board(self, username):
-        board = self.layer_manager.as_dict()
-        if self.creator == username:
-            return board
-        for l in board['layers']:
-            if not l['player_visible']:
-                board['layers'].remove(l)
-            if not l['player_editable']:
-                l['selectable'] = False
-        return board
+        return f"{self.name}_{self.room.creator}_{self.name}"
 
     def add_temp(self, sid, uid):
         if sid not in self.client_temporaries:
             self.client_temporaries[sid] = []
         self.client_temporaries[sid].append(uid)
+
+
+class Room:
+    def __init__(self, name, creator):
+        self.name = name
+        self.creator = creator
+        self.players = []
+        self.invitation_code = uuid.uuid4()
+        self.locations = {'start': Location("start", self)}
+        self.player_location = 'start'
+        self.dm_location = 'start'
+
+    def get_board(self, username):
+        d = {"locations": list(self.locations.keys())}
+        if self.creator == username:
+            d['board'] = self.locations[self.dm_location].layer_manager.as_dict()
+            return d
+        board = self.locations[self.player_location].layer_manager.as_dict()
+        for l in board['layers']:
+            if not l['player_visible']:
+                board['layers'].remove(l)
+            if not l['player_editable']:
+                l['selectable'] = False
+        d['board'] = board
+        return d
+
+    def get_active_location(self, username):
+        if self.creator == username:
+            return self.locations[self.dm_location]
+        return self.locations[self.player_location]
+
+    def add_new_location(self, name):
+        self.locations[name] = Location(name, self)
 
 
 class PlanarAlly:

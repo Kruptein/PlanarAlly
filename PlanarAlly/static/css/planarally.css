@@ -21,9 +21,35 @@ a, a:visited, a:hover, a:active {
     height: 100%;
     width: 200px;
     z-index: 21;
-    background-color: red;
+    background-color: #fa5a5a;
     display: none;
     overflow: auto;
+}
+
+#locations-menu {
+    position: absolute;
+    top:0;
+    left:0;
+    height: 100px;
+    width: 100%;
+    z-index: 21;
+    background-color: #fa5a5a;
+    display: none;
+    overflow: auto;
+}
+
+#locations-menu > div {
+    display:flex;
+    width: 100%;
+    height: 100%;
+}
+
+#locations-menu > div > div {
+    background-color: white;
+    text-align: center;
+    line-height: 100px;
+    width: 100px;
+    border-right: solid 1px #82c8a0;
 }
 
 #board {
@@ -67,7 +93,7 @@ a, a:visited, a:hover, a:active {
 }
 
 #layerselect li:hover {
-    background-color: aqua;
+    background-color: #82c8a0;
 }
 
 #layerselect li a {
@@ -81,7 +107,7 @@ a, a:visited, a:hover, a:active {
 }
 
 #layerselect .layer-selected {
-    background-color: aqua;
+    background-color: #82c8a0;
 }
 
 #toolselect {
@@ -110,7 +136,7 @@ a, a:visited, a:hover, a:active {
 }
 
 #toolselect li:hover {
-    background-color: aqua;
+    background-color: #82c8a0;
 }
 
 #toolselect li a {
@@ -124,7 +150,7 @@ a, a:visited, a:hover, a:active {
 }
 
 #toolselect .tool-selected {
-    background-color: aqua;
+    background-color: #82c8a0;
 }
 
 .draggable {
@@ -153,7 +179,7 @@ a, a:visited, a:hover, a:active {
 }
 
 #contextMenu ul li:hover {
-    background-color: aqua;
+    background-color: #82c8a0;
 }
 
 #contextMenu ul li:last-child {
@@ -196,10 +222,11 @@ a, a:visited, a:hover, a:active {
     border: none;
     outline: none;
     transition: 0.4s;
+    border-top: solid 1px #82c8a0;
 }
 
 .accordion-active, .accordion:hover {
-    background-color: #ccc;
+    background-color: #82c8a0;
 }
 
 .accordion-panel {
@@ -214,12 +241,14 @@ a, a:visited, a:hover, a:active {
     width: 100%;
 }
 
-/*.accordion-subpanel > div {*/
-/*margin-top: 5px;*/
-/*display: flex;*/
-/*align-items:center;*/
-/*justify-content: flex-start;*/
-/*}*/
+.accordion-subpanel div {
+    padding-top: 5px;
+    padding-bottom: 5px;
+}
+
+.accordion-subpanel div:hover{
+    background-color: #82c8a0;
+}
 
 .token {
     padding: 0 10px;
@@ -266,20 +295,6 @@ a, a:visited, a:hover, a:active {
     display: grid;
     grid-template-columns: 50% 50%;
 }
-
-/*#tooldetail > div {*/
-
-/*display: flex;*/
-/*flex-direction: column;*/
-/*}*/
-
-/*#tooldetail > div > div {*/
-/*display: grid;*/
-/*grid-template-columns: 65% auto;*/
-/*flex-direction: row;*/
-/*align-items: center;*/
-/*justify-content: space-evenly;*/
-/*}*/
 
 .switch {
     position: relative;
@@ -341,6 +356,8 @@ input:checked + .slider:before {
 #radialmenu {
     position: absolute;
     z-index: 20;
+    width: 0;
+    height: 0;
 }
 
 /* The svg is added by Font Awesome */
@@ -425,7 +442,6 @@ input:checked + .slider:before {
     display: table-cell;
     vertical-align: middle;
     transform: rotate(-45deg);
-    color: white;
     text-decoration: none;
     font-size: 25px;
     color: #82c8a0;

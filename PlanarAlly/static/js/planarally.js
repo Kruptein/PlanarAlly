@@ -63,15 +63,35 @@ socket.on("asset list", function (assets) {
         });
     });
 });
-socket.on("board init", function (board) {
+socket.on("board init", function (room) {
     gameManager.layerManager = new LayerManager();
     const layersdiv = $('#layers');
     layersdiv.empty();
     const layerselectdiv = $('#layerselect');
     layerselectdiv.find("ul").empty();
     let selectable_layers = 0;
-    for (let i = 0; i < board.layers.length; i++) {
-        const new_layer = board.layers[i];
+
+    const lm = $("#locations-menu").find("div");
+    lm.children().off();
+    lm.empty();
+    for (let i = 0; i < room.locations.length; i++) {
+        const loc = $("<div>" + room.locations[i] + "</div>");
+        lm.append(loc);
+    }
+    const lmplus = $('<div><i class="fas fa-plus"></i></div>');
+    lm.append(lmplus);
+    lm.children().on("click", function (e){
+        if (e.target.textContent === '') {
+            const locname = prompt("New location name");
+            if (locname !== null)
+                socket.emit("new location", locname);
+        } else {
+            socket.emit("change location", e.target.textContent);
+        }
+    });
+
+    for (let i = 0; i < room.board.layers.length; i++) {
+        const new_layer = room.board.layers[i];
         // UI changes
         layersdiv.append("<canvas id='" + new_layer.name + "-layer' style='z-index: " + i + "'></canvas>");
         if (new_layer.selectable) {
@@ -580,10 +600,6 @@ LayerManager.prototype.onMouseDown = function (e) {
     const mx = mouse.x;
     const my = mouse.y;
 
-    if (mx < 200 && $('#menu').is(":visible")) {
-        return;
-    }
-
     if (tools[gameManager.selectedTool].name === 'select') {
         let hit = false;
         for (let i = layer.shapes.data.length - 1; i >= 0; i--) {
@@ -1086,15 +1102,30 @@ function handleContextMenu(menu, shape) {
     $menu.hide();
 }
 
+const settings_menu = $("#menu");
+const locations_menu = $("#locations-menu");
+
 $('#rm-settings').on("click", function () {
-    const menu = $('#menu');
     // order of animation is important, it otherwise will sometimes show a small gap between the two objects
-    if (menu.is(":visible")) {
+    if (settings_menu.is(":visible")) {
         $('#radialmenu').animate({left: "-=200px"});
-        menu.animate({width: 'toggle'});
+        settings_menu.animate({width: 'toggle'});
+        locations_menu.animate({left: "-=200px", width: "+=200px"});
     } else {
-        menu.animate({width: 'toggle'});
+        settings_menu.animate({width: 'toggle'});
         $('#radialmenu').animate({left: "+=200px"});
+        locations_menu.animate({left: "+=200px", width: "-=200px"});
+    }
+});
+
+$('#rm-locations').on("click", function () {
+    // order of animation is important, it otherwise will sometimes show a small gap between the two objects
+    if (locations_menu.is(":visible")) {
+        $('#radialmenu').animate({top: "-=100px"});
+        locations_menu.animate({height: 'toggle'});
+    } else {
+        locations_menu.animate({height: 'toggle'});
+        $('#radialmenu').animate({top: "+=100px"});
     }
 });
 

@@ -55,10 +55,9 @@
                 <button class="accordion">Options</button>
                 <div class="accordion-panel">
                     <div class="accordion-subpanel">
-                        <label for="gridSizeInput">Grid Size: </label><input type="text" value="50" id="gridSizeInput">
-                        <label for="invitation">Invitation Code: </label><input type="text"
-                                                                                value="{{ invitation_code }}"
-                                                                                disabled="disabled" id="invitation">
+                        <div><label for="gridSizeInput">Grid Size: </label><input type="text" value="50" id="gridSizeInput"></div>
+                        <div><label for="invitation">Invitation Code: </label><input type="text" value="{{ invitation_code }}"
+                                                                                disabled="disabled" id="invitation"></div>
                     </div>
                 </div>
                 <button class="accordion">SelectionInfo</button>
@@ -71,6 +70,7 @@
                     </div>
                 </div>
             </div>
+            <div id="locations-menu"><div></div></div>
         {% endif %}
         <div id="layers"></div>
         <div id="layerselect">

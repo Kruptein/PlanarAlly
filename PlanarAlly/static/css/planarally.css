@@ -52,6 +52,11 @@ a, a:visited, a:hover, a:active {
     border-right: solid 1px #82c8a0;
 }
 
+#locations-menu > div > div:hover {
+    cursor: pointer;
+    background-color: #82c8a0;
+}
+
 #board {
     position: relative;
     width: 100%;

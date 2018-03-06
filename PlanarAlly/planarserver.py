@@ -292,7 +292,7 @@ async def test_connect(sid, environ):
         if room.creator == username:
             await sio.emit("set roomOptions", room.options, room=sid, namespace='/planarally')
         await sio.emit('board init', room.get_board(username), room=sid, namespace='/planarally')
-        await sio.emit('asset list', PA.get_token_list(), room=sid, namespace='/planarally')
+        await sio.emit('asset list', PA.get_asset_list(), room=sid, namespace='/planarally')
 
 
 @sio.on('disconnect', namespace='/planarally')

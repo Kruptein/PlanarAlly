@@ -174,7 +174,7 @@ class PlanarAlly:
             rooms[(room.name, room.creator)] = room
             shelf['rooms'] = rooms
 
-    def get_token_list(self, path=None):
+    def get_asset_list(self, path=None):
         if not path:
             path = os.path.join("static", "img", "assets")
         d = {'files': [], 'folders': {}}
@@ -182,7 +182,7 @@ class PlanarAlly:
             if entry.is_file():
                 d['files'].append(entry.name)
             elif entry.is_dir():
-                d['folders'][entry.name] = self.get_token_list(entry.path)
+                d['folders'][entry.name] = self.get_asset_list(entry.path)
         return d
 
     def get_rooms(self, username):

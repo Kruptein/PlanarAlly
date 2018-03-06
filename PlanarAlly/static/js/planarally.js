@@ -132,6 +132,10 @@ socket.on("board init", function (room) {
                     const panY = gameManager.layerManager.panY;
                     x = parseInt(ui.offset.left - offset.left);
                     y = parseInt(ui.offset.top - offset.top);
+                    if (settings_menu.is(":visible") && x < settings_menu.width())
+                        return;
+                    if (locations_menu.is(":visible") && y < locations_menu.width())
+                        return;
                     // width = ui.helper[0].width;
                     // height = ui.helper[0].height;
                     const img = ui.draggable[0].children[0];

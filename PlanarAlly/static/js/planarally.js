@@ -53,7 +53,7 @@ socket.on("asset list", function (assets) {
         });
         entry.files.sort(alphSort);
         entry.files.forEach(function (asset) {
-            h += "<div class='draggable token'><img src='/static/img/assets/" + path + asset + "' width='35'>" + asset + "</div>";
+            h += "<div class='draggable token'><img src='/static/img/assets/" + path + asset + "' width='35'>" + asset + "<i class='fas fa-cog'></i></div>";
         });
     };
     process(assets);

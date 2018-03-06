@@ -268,6 +268,10 @@ a, a:visited, a:hover, a:active {
     margin-right: 5px;
 }
 
+.token svg {
+    margin-left: auto;
+}
+
 #zoomer {
     position: absolute;
     top: 25px;

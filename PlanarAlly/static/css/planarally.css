@@ -246,21 +246,26 @@ a, a:visited, a:hover, a:active {
     width: 100%;
 }
 
-.accordion-subpanel div {
-    padding-top: 5px;
-    padding-bottom: 5px;
+.accordion-subpanel > * {
+    padding: 5px;
+    display: flex;
+    justify-content: space-evenly;
+    align-items: center;
 }
 
-.accordion-subpanel div:hover{
+.accordion-subpanel > *:hover{
     background-color: #82c8a0;
 }
 
 .token {
-    padding: 0 10px;
-    margin-top: 5px;
+    padding: 5px 10px;
     display: flex;
     align-items: center;
     justify-content: flex-start;
+}
+
+.token img {
+    margin-right: 5px;
 }
 
 #zoomer {

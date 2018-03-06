@@ -26,17 +26,13 @@
 </head>
 <body>
 <div id="main">
-    {#    <div id="rm">#}
-    {#        <div id="radialmenu">#}
-    {#            <a href="#" class="radialmenu-top">T</a>#}
-    {#            <a href="#" class="radialmenu-bot">S</a>#}
-    {#        </div>#}
-    {#    </div>#}
     <div id="radialmenu">
         <div class="rm-wrapper">
             <div class="rm-toggler">
                 <ul class="rm-list {% if dm %}rm-list-dm{% endif %}">
-                    {% if dm %}<li class="rm-item" id="rm-locations"><a href="#"><i class="far fa-compass"></i></a></li>{% endif %}
+                    {% if dm %}
+                        <li class="rm-item" id="rm-locations"><a href="#"><i class="far fa-compass"></i></a>
+                        </li>{% endif %}
                     <li class="rm-item" id="rm-settings"><a href="#"><i class="fas fa-cog"></i></a></li>
                 </ul>
             </div>
@@ -55,12 +51,12 @@
                 <button class="accordion">Server Options</button>
                 <div class="accordion-panel">
                     <div class="accordion-subpanel">
-                        <div><label for="gridSizeInput">Grid Size: </label><input type="text" value="50"
-                                                                                  id="gridSizeInput"></div>
-                        <div><label for="invitation">Invitation Code: </label><input type="text"
-                                                                                     value="{{ invitation_code }}"
-                                                                                     disabled="disabled"
-                                                                                     id="invitation"></div>
+                        <label for="gridSizeInput">Grid Size: </label><input type="text" value="50"
+                                                                             id="gridSizeInput">
+                        <label for="invitation">Invitation Code: </label><input type="text"
+                                                                                value="{{ invitation_code }}"
+                                                                                disabled="disabled"
+                                                                                id="invitation">
                     </div>
                 </div>
             {% endif %}

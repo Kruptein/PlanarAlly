@@ -196,18 +196,18 @@ function Shape() {
 }
 
 Shape.prototype.onMouseUp = function () {
-    $(`#shapeselectioncog-${this.uuid}`).remove();
-    const cog = $(`<div id="shapeselectioncog-${this.uuid}"><i class='fa fa-cog' style='left:${this.x};top:${this.y + this.h + 10};z-index:50;position:absolute;'></i></div>`);
-    cog.on("click", function () {
-        shapeSelectionDialog.dialog( "open" );
-    });
-    $("body").append(cog);
+    // $(`#shapeselectioncog-${this.uuid}`).remove();
+    // const cog = $(`<div id="shapeselectioncog-${this.uuid}"><i class='fa fa-cog' style='left:${this.x};top:${this.y + this.h + 10};z-index:50;position:absolute;'></i></div>`);
+    // cog.on("click", function () {
+    //     shapeSelectionDialog.dialog( "open" );
+    // });
+    // $("body").append(cog);
 };
 Shape.prototype.onSelectionLoss = function () {
-    $(`#shapeselectioncog-${this.uuid}`).remove();
+    // $(`#shapeselectioncog-${this.uuid}`).remove();
 };
 Shape.prototype.onRemove = function () {
-    $(`#shapeselectioncog-${this.uuid}`).remove();
+    // $(`#shapeselectioncog-${this.uuid}`).remove();
 };
 Shape.prototype.asDict = function () {
     return Object.assign({}, this);
@@ -438,7 +438,8 @@ function Asset(img, x, y, w, h, uuid) {
     this.w = w;
     this.h = h;
     //this.vision = [new Rect(this.center().x - 30, this.center().y - 30, 60, 60, "rgba(20, 20, 20, 20)")];
-    this.vision = [new Circle(this.center().x, this.center().y, 30, "rgba(20, 20, 20, 0.2)")];
+    // this.vision = [new Circle(this.center().x, this.center().y, 30, "rgba(20, 20, 20, 0.2)")];
+    this.vision = [];
 }
 
 Asset.prototype = Object.create(Rect.prototype);

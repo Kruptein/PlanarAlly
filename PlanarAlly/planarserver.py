@@ -318,7 +318,7 @@ async def test_disconnect(sid):
     del app['AuthzPolicy'].sio_map[sid]
 
     if sid in location.client_temporaries:
-        sio.emit("clear temporaries", location.client_temporaries[sid])
+        await sio.emit("clear temporaries", location.client_temporaries[sid])
         del location.client_temporaries[sid]
 
     # for value in app['AuthzPolicy'].sio_map.values():

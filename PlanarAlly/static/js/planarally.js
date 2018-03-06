@@ -32,6 +32,12 @@ socket.on("set username", function (username) {
     if ($("#toolselect").find("ul").html().length === 0)
         setupTools();
 });
+socket.on("set clientOptions", function (options) {
+    if ("gridColour" in options)
+        gridColour.spectrum("set", options.gridColour);
+    if ("fowColour" in options)
+        fowColour.spectrum("set", options.fowColour);
+});
 socket.on("asset list", function (assets) {
     const m = $("#menu-tokens");
     m.empty();
@@ -80,7 +86,7 @@ socket.on("board init", function (room) {
     }
     const lmplus = $('<div><i class="fas fa-plus"></i></div>');
     lm.append(lmplus);
-    lm.children().on("click", function (e){
+    lm.children().on("click", function (e) {
         if (e.target.textContent === '') {
             const locname = prompt("New location name");
             if (locname !== null)
@@ -107,6 +113,8 @@ socket.on("board init", function (room) {
         let l;
         if (new_layer.grid)
             l = new GridLayerState(canvas, new_layer.name);
+        else if (new_layer.name === 'fow')
+            l = new FOWLayerState(canvas, new_layer.name);
         else
             l = new LayerState(canvas, new_layer.name);
         l.selectable = new_layer.selectable;
@@ -500,6 +508,22 @@ GridLayerState.prototype.invalidate = function () {
     gameManager.layerManager.drawGrid();
 };
 
+function FOWLayerState(canvas, name) {
+    LayerState.call(this, canvas, name);
+}
+FOWLayerState.prototype = Object.create(LayerState.prototype);
+FOWLayerState.prototype.addShape = function (shape, sync, temporary) {
+    shape.fill = fowColour.spectrum("get").toRgbString();
+    LayerState.prototype.addShape.call(this, shape, sync, temporary);
+};
+FOWLayerState.prototype.setShapes = function (shapes) {
+    const c = fowColour.spectrum("get").toRgbString();
+    shapes.forEach(function (shape) {
+        shape.fill = c;
+    });
+    LayerState.prototype.setShapes.call(this, shapes);
+};
+
 // **** Manager for working with multiple layers
 
 function LayerManager() {
@@ -577,7 +601,7 @@ LayerManager.prototype.drawGrid = function () {
         ctx.lineTo(layer.width, i + (panY % this.gridSize) * z);
     }
 
-    ctx.strokeStyle = 'rgba(255,0,0, 0.5)';
+    ctx.strokeStyle = gridColour.spectrum("get").toRgbString();
     ctx.lineWidth = 1;
     ctx.stroke();
     layer.valid = true;
@@ -618,8 +642,8 @@ LayerManager.prototype.onMouseDown = function (e) {
                 const z = gameManager.layerManager.zoomFactor;
                 layer.selection = sel;
                 layer.dragging = true;
-                layer.dragoffx = mx - sel.x*z;
-                layer.dragoffy = my - sel.y*z;
+                layer.dragoffx = mx - sel.x * z;
+                layer.dragoffy = my - sel.y * z;
                 setSelectionInfo(shape);
                 layer.invalidate();
                 hit = true;
@@ -644,8 +668,8 @@ LayerManager.prototype.onMouseMove = function (e) {
     const mouse = layer.getMouse(e);
     const z = gameManager.layerManager.zoomFactor;
     if (layer.dragging) {
-        sel.x = (mouse.x - layer.dragoffx)/z;
-        sel.y = (mouse.y - layer.dragoffy)/z;
+        sel.x = (mouse.x - layer.dragoffx) / z;
+        sel.y = (mouse.y - layer.dragoffy) / z;
         socket.emit("shapeMove", {shape: sel.asDict(), temporary: true});
         setSelectionInfo(sel);
         layer.invalidate();
@@ -885,7 +909,7 @@ FOWTool.prototype.onMouseDown = function (e) {
     const z = gameManager.layerManager.zoomFactor;
     const panX = gameManager.layerManager.panX;
     const panY = gameManager.layerManager.panY;
-    this.rect = new Rect(this.startPoint.x / z - panX, this.startPoint.y / z - panY, 0, 0, "black");
+    this.rect = new Rect(this.startPoint.x / z - panX, this.startPoint.y / z - panY, 0, 0, fowColour.spectrum("get").toRgbString());
     layer.addShape(this.rect, true, false);
 
     if ($("#fow-reveal").prop("checked"))
@@ -925,6 +949,7 @@ function MapTool() {
         .append($("<div>#Y</div>")).append(this.yCount)
         .append($("</div>"));
 }
+
 MapTool.prototype.onMouseDown = function (e) {
     const layer = gameManager.layerManager.getLayer();
     const mouse = layer.getMouse(e);
@@ -954,7 +979,10 @@ MapTool.prototype.onMouseMove = function (e) {
 MapTool.prototype.onMouseUp = function (e) {
     if (this.startPoint === null) return;
     const layer = gameManager.layerManager.getLayer();
-    if (layer.selection === null) {layer.removeShape(this.rect, false, false);return;}
+    if (layer.selection === null) {
+        layer.removeShape(this.rect, false, false);
+        return;
+    }
 
     const w = this.rect.w;
     const h = this.rect.h;
@@ -1019,6 +1047,37 @@ function setupTools() {
         });
     });
 }
+
+const gridColour = $("#gridColour");
+gridColour.spectrum({
+    showInput: true,
+    allowEmpty: true,
+    showAlpha: true,
+    color: "rgba(255,0,0, 0.5)",
+    move: function (colour) {
+        gameManager.layerManager.drawGrid()
+    },
+    change: function (colour) {
+        socket.emit("client set", {'gridColour': colour.toRgbString()});
+    }
+});
+const fowColour = $("#fowColour");
+fowColour.spectrum({
+    showInput: true,
+    color: "red",
+    move: function (colour) {
+        const l = gameManager.layerManager.getLayer("fow");
+        if (l !== undefined) {
+            l.shapes.data.forEach(function (shape) {
+                shape.fill = colour.toRgbString();
+            });
+            l.invalidate();
+        }
+    },
+    change: function (colour) {
+        socket.emit("client set", {'fowColour': colour.toRgbString()});
+    }
+});
 
 // prevent double clicking text selection
 window.addEventListener('selectstart', function (e) {

@@ -46,20 +46,32 @@
         </div>
     </div>
     <div id="board">
-        {% if dm %}
-            <div id="menu">
+        <div id="menu">
+            {% if dm %}
                 <button class="accordion">Tokens</button>
                 <div class="accordion-panel">
                     <div class="accordion-subpanel" id="menu-tokens"></div>
                 </div>
-                <button class="accordion">Options</button>
+                <button class="accordion">Server Options</button>
                 <div class="accordion-panel">
                     <div class="accordion-subpanel">
-                        <div><label for="gridSizeInput">Grid Size: </label><input type="text" value="50" id="gridSizeInput"></div>
-                        <div><label for="invitation">Invitation Code: </label><input type="text" value="{{ invitation_code }}"
-                                                                                disabled="disabled" id="invitation"></div>
+                        <div><label for="gridSizeInput">Grid Size: </label><input type="text" value="50"
+                                                                                  id="gridSizeInput"></div>
+                        <div><label for="invitation">Invitation Code: </label><input type="text"
+                                                                                     value="{{ invitation_code }}"
+                                                                                     disabled="disabled"
+                                                                                     id="invitation"></div>
                     </div>
                 </div>
+            {% endif %}
+            <button class="accordion">Client Options</button>
+            <div class="accordion-panel">
+                <div class="accordion-subpanel">
+                    <div><label for="gridColour">Grid Colour: </label><input type="text" id="gridColour"></div>
+                    <div><label for="fowColour">FOW Colour: </label><input type="text" id="fowColour"></div>
+                </div>
+            </div>
+            {% if dm %}
                 <button class="accordion">SelectionInfo</button>
                 <div class="accordion-panel">
                     <div class="accordion-subpanel">
@@ -69,8 +81,12 @@
                         <label for="selectionInfoH">H: </label><input type="text" id="selectionInfoH">
                     </div>
                 </div>
+            {% endif %}
+        </div>
+        {% if dm %}
+            <div id="locations-menu">
+                <div></div>
             </div>
-            <div id="locations-menu"><div></div></div>
         {% endif %}
         <div id="layers"></div>
         <div id="layerselect">

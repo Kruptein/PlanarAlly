@@ -11,6 +11,7 @@ class User:
     def __init__(self, username):
         self.username = username
         self.password_hash = None
+        self.options = {}
 
     def set_password(self, pw):
         pwhash = bcrypt.hashpw(pw.encode('utf8'), bcrypt.gensalt())

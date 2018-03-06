@@ -118,6 +118,7 @@ class Room:
         self.locations = {'start': Location("start", self)}
         self.player_location = 'start'
         self.dm_location = 'start'
+        self.options = {}
 
     def get_board(self, username):
         d = {"locations": list(self.locations.keys())}

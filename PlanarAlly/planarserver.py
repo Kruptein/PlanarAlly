@@ -204,6 +204,26 @@ async def move_shape(sid, data):
         await sio.emit("shapeMove", data['shape'], room=location.sioroom, skip_sid=sid, namespace='/planarally')
 
 
+@sio.on("client set", namespace='/planarally')
+@auth.login_required(app, sio)
+async def set_client(sid, data):
+    user = app['AuthzPolicy'].sio_map[sid]['user']
+    user.options.update(**data)
+
+
+@sio.on("room set", namespace='/planarally')
+@auth.login_required(app, sio)
+async def set_room(sid, data):
+    username = app['AuthzPolicy'].sio_map[sid]['user'].username
+    room = app['AuthzPolicy'].sio_map[sid]['room']
+
+    if room.creator != username:
+        print(f"{username} attempted to set a room option")
+        return
+
+    room.options.update(**data)
+
+
 @sio.on("set gridsize", namespace="/planarally")
 @auth.login_required(app, sio)
 async def set_gridsize(sid, grid_size):
@@ -268,6 +288,9 @@ async def test_connect(sid, environ):
 
         sio.enter_room(sid, location.sioroom, namespace='/planarally')
         await sio.emit("set username", username, room=sid, namespace='/planarally')
+        await sio.emit("set clientOptions", app['AuthzPolicy'].user_map[username].options, room=sid, namespace='/planarally')
+        if room.creator == username:
+            await sio.emit("set roomOptions", room.options, room=sid, namespace='/planarally')
         await sio.emit('board init', room.get_board(username), room=sid, namespace='/planarally')
         await sio.emit('asset list', PA.get_token_list(), room=sid, namespace='/planarally')
 

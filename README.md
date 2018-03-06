@@ -56,6 +56,9 @@ To get other users to join your session, open the options menu and there is an i
 the full path to give to your users is `/invite/{INVITATION_CODE}` without the braces.
 e.g. on your localhost on the default port 8000 it would be `http://localhost:8000/invite/23902-3234-4234-234`
 
+Users can customise some small things when they're not the DM.  The options menu will be available with the option to
+change the colours of the grid lines and the fog of war.
+
 ### Tools
 
 A plethora of basic tools are available to both players and DM and can be selected in the lower right of the screen.
@@ -83,6 +86,11 @@ DM only tool
 
 Hide or Reveal areas of the screen for your players!
 
+! IMPORTANT NOTICE REGARDING FOW: At the moment all shapes are sent to players this means that also all shapes that
+are under fow are sent to the players.  The FOW will be displayed correctly above these shapes so that they are 'invisible'
+to the player BUT a player with some javascript knowledge will be able to circumvent this.  There are no immediate plans to
+'fix' this as I trust my players to not metagame, but I might look at this in the future.
+
 #### Map
 
 DM only tool
@@ -103,9 +111,6 @@ Following is a list of current TODO's in no particular order:
 * Better token management
 * DM options
     * Grid/FOW enable/disable options
-* Client options
-    * Grid colour
-    * FOW colour
 * Rotate tokens
 * Some form of barebones text chat
 * Layer management
@@ -137,8 +142,7 @@ Additionally the following libraries are also necessary:
 * cryptography
 
 It should be relatively easy to swap out aiohttp for another webframework.  Aiohttp was chosen purely to try out one of the 'fancy' async frameworks.
-The function of the web framwork is fairly limited in complexity as it's core feature is some authentication means given that python-socketio does most of the 
-server side work.
+The function of the web framwork is fairly limited in complexity.  It's main purpose is to provide an authentication layer and persistence.
 
 ## Running
 

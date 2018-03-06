@@ -203,7 +203,7 @@ Shape.prototype.draw = function (ctx) {
     else
         ctx.globalCompositeOperation = "source-over";
 };
-Shape.prototype.contains = function (mx, my) {
+Shape.prototype.contains = function () {
     return false;
 };
 Shape.prototype.showContextMenu = function (mouse) {
@@ -842,7 +842,7 @@ DrawTool.prototype.onMouseMove = function (e) {
     socket.emit("shapeMove", {shape: this.rect.asDict(), temporary: false});
     layer.invalidate();
 };
-DrawTool.prototype.onMouseUp = function (e) {
+DrawTool.prototype.onMouseUp = function () {
     if (this.startPoint === null) return;
     this.startPoint = null;
     this.rect = null;
@@ -885,7 +885,7 @@ RulerTool.prototype.onMouseMove = function (e) {
     socket.emit("shapeMove", {shape: this.text.asDict(), temporary: true});
     layer.invalidate();
 };
-RulerTool.prototype.onMouseUp = function (e) {
+RulerTool.prototype.onMouseUp = function () {
     if (this.startPoint === null) return;
     this.startPoint = null;
     const layer = gameManager.layerManager.getLayer("draw");
@@ -917,7 +917,7 @@ FOWTool.prototype.onMouseDown = function (e) {
     else
         this.rect.globalCompositeOperation = "source-over";
 };
-FOWTool.prototype.onMouseUp = function (e) {
+FOWTool.prototype.onMouseUp = function () {
     if (this.startPoint === null) return;
     this.startPoint = null;
     this.rect = null;
@@ -952,8 +952,7 @@ function MapTool() {
 
 MapTool.prototype.onMouseDown = function (e) {
     const layer = gameManager.layerManager.getLayer();
-    const mouse = layer.getMouse(e);
-    this.startPoint = mouse;
+    this.startPoint = layer.getMouse(e);
     const z = gameManager.layerManager.zoomFactor;
     const panX = gameManager.layerManager.panX;
     const panY = gameManager.layerManager.panY;
@@ -976,7 +975,7 @@ MapTool.prototype.onMouseMove = function (e) {
     // socket.emit("shapeMove", {shape: this.rect.asDict(), temporary: false});
     layer.invalidate();
 };
-MapTool.prototype.onMouseUp = function (e) {
+MapTool.prototype.onMouseUp = function () {
     if (this.startPoint === null) return;
     const layer = gameManager.layerManager.getLayer();
     if (layer.selection === null) {
@@ -1054,7 +1053,7 @@ gridColour.spectrum({
     allowEmpty: true,
     showAlpha: true,
     color: "rgba(255,0,0, 0.5)",
-    move: function (colour) {
+    move: function () {
         gameManager.layerManager.drawGrid()
     },
     change: function (colour) {
@@ -1217,19 +1216,6 @@ function uuidv4() {
         const r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
         return v.toString(16);
     });
-}
-
-function findGetParameter(parameterName) {
-    let result = null,
-        tmp = [];
-    location.search
-        .substr(1)
-        .split("&")
-        .forEach(function (item) {
-            tmp = item.split("=");
-            if (tmp[0] === parameterName) result = decodeURIComponent(tmp[1]);
-        });
-    return result;
 }
 
 function alphSort(a, b) {

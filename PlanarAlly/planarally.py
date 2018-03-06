@@ -7,8 +7,6 @@ import uuid
 from collections import OrderedDict
 from typing import Dict, List, Tuple
 
-from shapes import Rect
-
 
 class Client:
     def __init__(self, sid):
@@ -92,12 +90,6 @@ class Location:
         self.layer_manager.add(Layer("dm"))
         self.layer_manager.add(Layer("fow", selectable=False, player_visible=True))
         self.layer_manager.add(Layer("draw", selectable=False, player_visible=True, player_editable=True))
-
-        # some test shapes
-        self.layer_manager.layers[0].add_shape(Rect(50, 50, 50, 50, 1))
-        self.layer_manager.layers[2].add_shape(Rect(100, 50, 50, 50, 2, "red"))
-        self.layer_manager.layers[2].add_shape(Rect(50, 100, 50, 50, 3, "red"))
-        self.layer_manager.layers[3].add_shape(Rect(100, 100, 50, 50, 4, "blue"))
 
     @property
     def sioroom(self):

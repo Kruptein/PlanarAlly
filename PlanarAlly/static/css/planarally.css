@@ -362,11 +362,11 @@ input:checked + .slider:before {
 
 /* The svg is added by Font Awesome */
 
-#rm-locations svg {
+.rm-list-dm #rm-locations svg {
     margin-left: 50px;
 }
 
-#rm-settings svg {
+.rm-list-dm #rm-settings svg {
     margin-bottom: 50px;
 }
 
@@ -410,9 +410,13 @@ input:checked + .slider:before {
     overflow: hidden;
     display: block;
     border-radius: 50%;
-    transform: rotate(135deg);
+    transform: rotate(180deg);
     box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.2);
     margin: -75px 0 0 -75px;
+}
+
+.rm-list-dm {
+    transform: rotate(135deg) !important;  /* total deg: 135 */
 }
 
 .rm-wrapper .rm-toggler:hover .rm-list, .rm-wrapper .rm-topper:hover .rm-list {

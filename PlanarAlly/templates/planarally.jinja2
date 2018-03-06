@@ -35,8 +35,8 @@
     <div id="radialmenu">
         <div class="rm-wrapper">
             <div class="rm-toggler">
-                <ul class="rm-list">
-                    <li class="rm-item" id="rm-locations"><a href="#"><i class="far fa-compass"></i></a></li>
+                <ul class="rm-list {% if dm %}rm-list-dm{% endif %}">
+                    {% if dm %}<li class="rm-item" id="rm-locations"><a href="#"><i class="far fa-compass"></i></a></li>{% endif %}
                     <li class="rm-item" id="rm-settings"><a href="#"><i class="fas fa-cog"></i></a></li>
                 </ul>
             </div>

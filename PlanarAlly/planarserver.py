@@ -251,23 +251,34 @@ async def add_new_location(sid, location):
     sio.leave_room(sid, room.get_active_location(username).sioroom, namespace='/planarally')
     room.dm_location = location
     sio.enter_room(sid, room.get_active_location(username).sioroom, namespace='/planarally')
+    PA.save_room(room)
     await sio.emit('board init', room.get_board(username), room=sid, namespace='/planarally')
 
 
 @sio.on("change location", namespace='/planarally')
-async def add_new_location(sid, location):
-    username = app['AuthzPolicy'].sio_map[sid]['user'].username
-    room = app['AuthzPolicy'].sio_map[sid]['room']
+async def change_location(sid, location):
+    policy = app['AuthzPolicy']
+    username = policy.sio_map[sid]['user'].username
+    room = policy.sio_map[sid]['room']
 
     if room.creator != username:
         print(f"{username} attempted to change location")
         return
 
-    sio.leave_room(sid, room.get_active_location(username).sioroom, namespace='/planarally')
+    old_location = room.get_active_location(username)
+    sio.leave_room(sid, old_location.sioroom, namespace='/planarally')
     room.dm_location = location
-    sio.enter_room(sid, room.get_active_location(username).sioroom, namespace='/planarally')
-    PA.save_room(room)
+    new_location = room.get_active_location(username)
+    sio.enter_room(sid, new_location.sioroom, namespace='/planarally')
     await sio.emit('board init', room.get_board(username), room=sid, namespace='/planarally')
+
+    room.player_location = location
+    PA.save_room(room)
+    for player in room.players:
+        psid = policy.get_sid(policy.user_map[player], room)
+        sio.leave_room(psid, old_location.sioroom, namespace='/planarally')
+        sio.enter_room(psid, new_location.sioroom, namespace='/planarally')
+    await sio.emit('board init', room.get_board(''), room=new_location.sioroom, skip_sid=sid, namespace='/planarally')
 
 
 @sio.on('connect', namespace='/planarally')

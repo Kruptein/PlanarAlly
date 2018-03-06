@@ -193,7 +193,7 @@ socket.on("clear temporaries", function (shapes) {
 function Shape() {
     this.layer = null;
 }
-
+Shape.prototype.onMouseUp = function () {};
 Shape.prototype.asDict = function () {
     return Object.assign({}, this);
 };
@@ -295,6 +295,82 @@ Rect.prototype.getCorner = function (mx, my) {
     else if (this.inCorner(mx, my, "sw"))
         return "sw";
 };
+Rect.prototype.center = function (centerPoint) {
+    if (centerPoint === undefined)
+        return {x: this.x + this.w/2, y: this.y + this.h/2};
+    this.x = centerPoint.x - this.w/2;
+    this.y = centerPoint.y - this.h/2;
+};
+
+function Circle(x, y, r, fill, border, uuid) {
+    this.type = "circle";
+    this.x = x || 0;
+    this.y = y || 0;
+    this.r = r || 1;
+    this.fill = fill || '#000';
+    this.border = border || "rgba(0, 0, 0, 0)";
+    this.uuid = uuid || uuidv4();
+    this.layer = null;
+}
+
+Circle.prototype = Object.create(Shape.prototype);
+Circle.prototype.draw = function (ctx) {
+    Shape.prototype.draw.call(this, ctx);
+    const z = gameManager.layerManager.zoomFactor;
+    const panX = gameManager.layerManager.panX;
+    const panY = gameManager.layerManager.panY;
+    ctx.beginPath();
+    ctx.fillStyle = this.fill;
+    ctx.arc((this.x + panX) * z, (this.y + panY) * z, this.r, 0, 2 * Math.PI);
+    ctx.fill();
+    if (this.border !== "rgba(0, 0, 0, 0)") {
+        ctx.beginPath();
+        ctx.strokeStyle = this.border;
+        ctx.arc((this.x + panX) * z, (this.y + panY) * z, this.r, 0, 2 * Math.PI);
+        ctx.stroke();
+    }
+};
+Circle.prototype.contains = function (mx, my) {
+    const z = gameManager.layerManager.zoomFactor;
+    const panX = gameManager.layerManager.panX;
+    const panY = gameManager.layerManager.panY;
+    const x = (this.x + panX) * z;
+    const y = (this.y + panY) * z;
+    return (mx - x)**2 + (my - y)**2 < this.r**2;
+};
+Circle.prototype.inCorner = function (mx, my, corner) {
+    const z = gameManager.layerManager.zoomFactor;
+    const panX = gameManager.layerManager.panX;
+    const panY = gameManager.layerManager.panY;
+    switch (corner) {
+        case 'ne':
+            return (this.x + this.w + panX - 3) * z <= mx && mx <= (this.x + this.w + panX + 3) * z && (this.y + panY - 3) * z <= my && my <= (this.y + panY + 3) * z;
+        case 'nw':
+            return (this.x + panX - 3) * z <= mx && mx <= (this.x + panX + 3) * z && (this.y + panY - 3) * z <= my && my <= (this.y + panY + 3) * z;
+        case 'sw':
+            return (this.x + panX - 3) * z <= mx && mx <= (this.x + panX + 3) * z && (this.y + this.h + panY - 3) * z <= my && my <= (this.y + this.h + panY + 3) * z;
+        case 'se':
+            return (this.x + this.w + panX - 3) * z <= mx && mx <= (this.x + this.w + panX + 3) * z && (this.y + this.h + panY - 3) * z <= my && my <= (this.y + this.h + panY + 3) * z;
+        default:
+            return false;
+    }
+};
+Circle.prototype.getCorner = function (mx, my) {
+    if (this.inCorner(mx, my, "ne"))
+        return "ne";
+    else if (this.inCorner(mx, my, "nw"))
+        return "nw";
+    else if (this.inCorner(mx, my, "se"))
+        return "se";
+    else if (this.inCorner(mx, my, "sw"))
+        return "sw";
+};
+Circle.prototype.center = function (centerPoint) {
+    if (centerPoint === undefined)
+        return {x: this.x, y: this.y};
+    this.x = centerPoint.x;
+    this.y = centerPoint.y;
+};
 
 function Line(x1, y1, x2, y2, uuid) {
     this.type = "line";
@@ -346,15 +422,26 @@ function Asset(img, x, y, w, h, uuid) {
     this.y = y;
     this.w = w;
     this.h = h;
+    //this.vision = [new Rect(this.center().x - 30, this.center().y - 30, 60, 60, "rgba(20, 20, 20, 20)")];
+    this.vision = [new Circle(this.center().x, this.center().y, 30, "rgba(20, 20, 20, 0.2)")];
 }
 
 Asset.prototype = Object.create(Rect.prototype);
 Asset.prototype.draw = function (ctx) {
+    this.vision.forEach(function (vis){
+        vis.draw(ctx);
+    });
     Shape.prototype.draw.call(this, ctx);
     const z = gameManager.layerManager.zoomFactor;
     const panX = gameManager.layerManager.panX;
     const panY = gameManager.layerManager.panY;
     ctx.drawImage(this.img, (this.x + panX) * z, (this.y + panY) * z, this.w * z, this.h * z);
+};
+Asset.prototype.onMouseUp = function () {
+    const self = this;
+    this.vision.forEach(function (vis){
+        vis.center(self.center());
+    })
 };
 
 // **** specific Layer State Management
@@ -744,6 +831,7 @@ LayerManager.prototype.onMouseUp = function (e) {
             layer.selection.y = (Math.round((my + (gs / 2)) / gs) - (1 / 2)) * gs - layer.selection.h / 2;
         }
         if (orig.x !== layer.selection.x || orig.y !== layer.selection.y) {
+            layer.selection.onMouseUp();
             socket.emit("shapeMove", {shape: layer.selection.asDict(), temporary: false});
             setSelectionInfo(layer.selection);
             layer.invalidate();
@@ -1259,6 +1347,7 @@ function createShapeFromDict(shape, dummy) {
     let sh;
 
     if (shape.type === 'rect') sh = Object.assign(new Rect(), shape);
+    if (shape.type === 'circle') sh = Object.assign(new Circle(), shape);
     if (shape.type === 'line') sh = Object.assign(new Line(), shape);
     if (shape.type === 'text') sh = Object.assign(new Text(), shape);
     if (shape.type === 'asset') {
@@ -1269,6 +1358,9 @@ function createShapeFromDict(shape, dummy) {
         img.onload = function () {
             gameManager.layerManager.getLayer(shape.layer).invalidate();
         };
+        for (let i=0; i<sh.vision.length; i++) {
+            sh.vision[i] = createShapeFromDict(sh.vision[i], true);
+        }
     }
     return sh;
 }

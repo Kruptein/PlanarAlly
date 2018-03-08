@@ -181,7 +181,7 @@ socket.on("moveShapeOrder", function (data) {
 });
 socket.on("shapeMove", function (shape) {
     Object.assign(gameManager.layerManager.UUIDMap.get(shape.uuid), createShapeFromDict(shape, true));
-    gameManager.layerManager.getLayer(shape.layer).invalidate();
+    gameManager.layerManager.getLayer(shape.layer).onShapeMove(shape);
 });
 socket.on("clear temporaries", function (shapes) {
     shapes.forEach(function (shape) {
@@ -606,7 +606,9 @@ LayerState.prototype.moveShapeOrder = function (shape, destinationIndex, sync) {
         this.invalidate();
     }
 };
-
+LayerState.prototype.onShapeMove = function () {
+    this.invalidate();
+};
 
 function GridLayerState(canvas, name) {
     LayerState.call(this, canvas, name);
@@ -632,6 +634,10 @@ FOWLayerState.prototype.setShapes = function (shapes) {
         shape.fill = c;
     });
     LayerState.prototype.setShapes.call(this, shapes);
+};
+FOWLayerState.prototype.onShapeMove = function (shape) {
+    shape.fill = fowColour.spectrum("get").toRgbString();
+    LayerState.prototype.onShapeMove.call(this, shape);
 };
 
 // **** Manager for working with multiple layers

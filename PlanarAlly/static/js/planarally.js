@@ -180,7 +180,7 @@ socket.on("moveShapeOrder", function (data) {
     gameManager.layerManager.getLayer(data.shape.layer).moveShapeOrder(gameManager.layerManager.UUIDMap.get(data.shape.uuid), data.index, false);
 });
 socket.on("shapeMove", function (shape) {
-    Object.assign(gameManager.layerManager.UUIDMap.get(shape.uuid), createShapeFromDict(shape, true));
+    shape = Object.assign(gameManager.layerManager.UUIDMap.get(shape.uuid), createShapeFromDict(shape, true));
     gameManager.layerManager.getLayer(shape.layer).onShapeMove(shape);
 });
 socket.on("clear temporaries", function (shapes) {

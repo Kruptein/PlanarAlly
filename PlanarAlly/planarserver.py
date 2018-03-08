@@ -209,6 +209,7 @@ async def move_shape(sid, data):
 async def set_client(sid, data):
     user = app['AuthzPolicy'].sio_map[sid]['user']
     user.options.update(**data)
+    app['AuthzPolicy'].save()
 
 
 @sio.on("room set", namespace='/planarally')

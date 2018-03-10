@@ -1262,6 +1262,7 @@ function handleContextMenu(menu, shape) {
 
 const settings_menu = $("#menu");
 const locations_menu = $("#locations-menu");
+const layer_menu = $("#layerselect");
 
 $('#rm-settings').on("click", function () {
     // order of animation is important, it otherwise will sometimes show a small gap between the two objects
@@ -1269,10 +1270,12 @@ $('#rm-settings').on("click", function () {
         $('#radialmenu').animate({left: "-=200px"});
         settings_menu.animate({width: 'toggle'});
         locations_menu.animate({left: "-=200px", width: "+=200px"});
+        layer_menu.animate({left: "-=200px"});
     } else {
         settings_menu.animate({width: 'toggle'});
         $('#radialmenu').animate({left: "+=200px"});
         locations_menu.animate({left: "+=200px", width: "-=200px"});
+        layer_menu.animate({left: "+=200px"});
     }
 });
 

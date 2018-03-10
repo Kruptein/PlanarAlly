@@ -723,8 +723,14 @@ LayerManager.prototype.onMouseDown = function (e) {
 
     if (tools[gameManager.selectedTool].name === 'select') {
         let hit = false;
-        for (let i = layer.shapes.data.length - 1; i >= 0; i--) {
-            const shape = layer.shapes.data[i];
+        // the selectionStack allows for lowwer positioned objects that are selected to have precedence during overlap.
+        let selectionStack;
+        if (layer.selection === null)
+            selectionStack = layer.shapes.data;
+        else
+            selectionStack = layer.shapes.data.concat([layer.selection]);
+        for (let i = selectionStack.length - 1; i >= 0; i--) {
+            const shape = selectionStack[i];
             const corn = shape.getCorner(mx, my);
             if (corn !== undefined) {
                 layer.selection = shape;

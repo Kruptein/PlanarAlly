@@ -128,19 +128,21 @@ socket.on("board init", function (room) {
                 drop: function (event, ui) {
                     const l = gameManager.layerManager.getLayer();
                     const offset = $(l.canvas).offset();
-                    const z = gameManager.layerManager.zoomFactor;
-                    const panX = gameManager.layerManager.panX;
-                    const panY = gameManager.layerManager.panY;
-                    x = parseInt(ui.offset.left - offset.left);
-                    y = parseInt(ui.offset.top - offset.top);
-                    if (settings_menu.is(":visible") && x < settings_menu.width())
+
+                    const loc  = {
+                        x: parseInt(ui.offset.left - offset.left),
+                        y: parseInt(ui.offset.top - offset.top)
+                    };
+
+                    if (settings_menu.is(":visible") && loc.x < settings_menu.width())
                         return;
-                    if (locations_menu.is(":visible") && y < locations_menu.width())
+                    if (locations_menu.is(":visible") && loc.y < locations_menu.width())
                         return;
                     // width = ui.helper[0].width;
                     // height = ui.helper[0].height;
+                    const wloc = l2w(loc);
                     const img = ui.draggable[0].children[0];
-                    const asset = new Asset(img, (x / z) - panX, (y / z) - panY, img.width, img.height);
+                    const asset = new Asset(img, wloc.x, wloc.y, img.width, img.height);
                     asset.src = img.src;
                     l.addShape(asset, true);
                 }
@@ -268,34 +270,27 @@ Rect.prototype.draw = function (ctx) {
     Shape.prototype.draw.call(this, ctx);
     ctx.fillStyle = this.fill;
     const z = gameManager.layerManager.zoomFactor;
-    const panX = gameManager.layerManager.panX;
-    const panY = gameManager.layerManager.panY;
-    ctx.fillRect((this.x + panX) * z, (this.y + panY) * z, this.w * z, this.h * z);
+    const loc = w2l({x: this.x, y: this.y});
+    ctx.fillRect(loc.x, loc.y, this.w * z, this.h * z);
     if (this.border !== "rgba(0, 0, 0, 0)") {
         ctx.strokeStyle = this.border;
-        ctx.strokeRect((this.x + panX) * z, (this.y + panY) * z, this.w * z, this.h * z);
+        ctx.strokeRect(loc.x, loc.y, this.w * z, this.h * z);
     }
 };
 Rect.prototype.contains = function (mx, my) {
-    const z = gameManager.layerManager.zoomFactor;
-    const panX = gameManager.layerManager.panX;
-    const panY = gameManager.layerManager.panY;
-    return ((this.x + panX) * z <= mx) && ((this.x + this.w + panX) * z >= mx) &&
-        ((this.y + panY) * z <= my) && ((this.y + this.h + panY) * z >= my);
+    return (w2lx(this.x) <= mx) && (w2lx(this.x + this.w) >= mx) &&
+        (w2ly(this.y) <= my) && (w2ly(this.y + this.h) >= my);
 };
 Rect.prototype.inCorner = function (mx, my, corner) {
-    const z = gameManager.layerManager.zoomFactor;
-    const panX = gameManager.layerManager.panX;
-    const panY = gameManager.layerManager.panY;
     switch (corner) {
         case 'ne':
-            return (this.x + this.w + panX - 3) * z <= mx && mx <= (this.x + this.w + panX + 3) * z && (this.y + panY - 3) * z <= my && my <= (this.y + panY + 3) * z;
+            return w2lx(this.x + this.w - 3) <= mx && mx <= w2lx(this.x + this.w + 3) && w2ly(this.y - 3) <= my && my <= w2ly(this.y + 3);
         case 'nw':
-            return (this.x + panX - 3) * z <= mx && mx <= (this.x + panX + 3) * z && (this.y + panY - 3) * z <= my && my <= (this.y + panY + 3) * z;
+            return w2lx(this.x - 3) <= mx && mx <= w2lx(this.x + 3) && w2ly(this.y - 3) <= my && my <= w2ly(this.y + 3);
         case 'sw':
-            return (this.x + panX - 3) * z <= mx && mx <= (this.x + panX + 3) * z && (this.y + this.h + panY - 3) * z <= my && my <= (this.y + this.h + panY + 3) * z;
+            return w2lx(this.x - 3) <= mx && mx <= w2lx(this.x + 3) && w2ly(this.y + this.h - 3) <= my && my <= w2ly(this.y + this.h + 3);
         case 'se':
-            return (this.x + this.w + panX - 3) * z <= mx && mx <= (this.x + this.w + panX + 3) * z && (this.y + this.h + panY - 3) * z <= my && my <= (this.y + this.h + panY + 3) * z;
+            return w2lx(this.x + this.w - 3) <= mx && mx <= w2lx(this.x + this.w + 3) && w2ly(this.y + this.h - 3) <= my && my <= w2ly(this.y + this.h + 3);
         default:
             return false;
     }
@@ -331,41 +326,31 @@ function Circle(x, y, r, fill, border, uuid) {
 Circle.prototype = Object.create(Shape.prototype);
 Circle.prototype.draw = function (ctx) {
     Shape.prototype.draw.call(this, ctx);
-    const z = gameManager.layerManager.zoomFactor;
-    const panX = gameManager.layerManager.panX;
-    const panY = gameManager.layerManager.panY;
     ctx.beginPath();
     ctx.fillStyle = this.fill;
-    ctx.arc((this.x + panX) * z, (this.y + panY) * z, this.r, 0, 2 * Math.PI);
+    const loc = w2l({x: this.x, y: this.y});
+    ctx.arc(loc.x, loc.y, this.r, 0, 2 * Math.PI);
     ctx.fill();
     if (this.border !== "rgba(0, 0, 0, 0)") {
         ctx.beginPath();
         ctx.strokeStyle = this.border;
-        ctx.arc((this.x + panX) * z, (this.y + panY) * z, this.r, 0, 2 * Math.PI);
+        ctx.arc(loc.x, loc.y, this.r, 0, 2 * Math.PI);
         ctx.stroke();
     }
 };
 Circle.prototype.contains = function (mx, my) {
-    const z = gameManager.layerManager.zoomFactor;
-    const panX = gameManager.layerManager.panX;
-    const panY = gameManager.layerManager.panY;
-    const x = (this.x + panX) * z;
-    const y = (this.y + panY) * z;
-    return (mx - x) ** 2 + (my - y) ** 2 < this.r ** 2;
+    return (mx - w2lx(this.x)) ** 2 + (my - w2ly(this.y)) ** 2 < this.r ** 2;
 };
 Circle.prototype.inCorner = function (mx, my, corner) {
-    const z = gameManager.layerManager.zoomFactor;
-    const panX = gameManager.layerManager.panX;
-    const panY = gameManager.layerManager.panY;
     switch (corner) {
         case 'ne':
-            return (this.x + this.w + panX - 3) * z <= mx && mx <= (this.x + this.w + panX + 3) * z && (this.y + panY - 3) * z <= my && my <= (this.y + panY + 3) * z;
+            return w2lx(this.x + this.w - 3) <= mx && mx <= w2lx(this.x + this.w + 3) && w2ly(this.y - 3) <= my && my <= w2ly(this.y + 3);
         case 'nw':
-            return (this.x + panX - 3) * z <= mx && mx <= (this.x + panX + 3) * z && (this.y + panY - 3) * z <= my && my <= (this.y + panY + 3) * z;
+            return w2lx(this.x - 3) <= mx && mx <= w2lx(this.x + 3) && w2ly(this.y - 3) <= my && my <= w2ly(this.y + 3);
         case 'sw':
-            return (this.x + panX - 3) * z <= mx && mx <= (this.x + panX + 3) * z && (this.y + this.h + panY - 3) * z <= my && my <= (this.y + this.h + panY + 3) * z;
+            return w2lx(this.x - 3) <= mx && mx <= w2lx(this.x + 3) && w2ly(this.y + this.h - 3) <= my && my <= w2ly(this.y + this.h + 3);
         case 'se':
-            return (this.x + this.w + panX - 3) * z <= mx && mx <= (this.x + this.w + panX + 3) * z && (this.y + this.h + panY - 3) * z <= my && my <= (this.y + this.h + panY + 3) * z;
+            return w2lx(this.x + this.w - 3) <= mx && mx <= w2lx(this.x + this.w + 3) && w2ly(this.y + this.h - 3) <= my && my <= w2ly(this.y + this.h + 3);
         default:
             return false;
     }
@@ -400,10 +385,8 @@ Line.prototype = Object.create(Shape.prototype);
 Line.prototype.draw = function (ctx) {
     Shape.prototype.draw.call(this, ctx);
     ctx.beginPath();
-    const loc1 = w2l({x: this.x1, y: this.y1});
-    const loc2 = w2l({x: this.x2, y: this.y2});
-    ctx.moveTo(loc1.x, loc1.y);
-    ctx.lineTo(loc2.x, loc2.y);
+    ctx.moveTo(w2lx(this.x1), w2ly(this.y1));
+    ctx.lineTo(w2lx(this.x2), w2ly(this.y2));
     ctx.strokeStyle = 'rgba(255,0,0, 0.5)';
     ctx.lineWidth = 3;
     ctx.stroke();
@@ -424,8 +407,7 @@ Text.prototype.draw = function (ctx) {
     Shape.prototype.draw.call(this, ctx);
     ctx.font = this.font;
     ctx.save();
-    const loc = w2l({x: this.x, y: this.y});
-    ctx.translate(loc.x, loc.y);
+    ctx.translate(w2lx(this.x), w2ly(this.y));
     ctx.rotate(this.angle);
     ctx.textAlign = "center";
     ctx.fillText(this.text, 0, -5);
@@ -452,9 +434,7 @@ Asset.prototype.draw = function (ctx) {
     });
     Shape.prototype.draw.call(this, ctx);
     const z = gameManager.layerManager.zoomFactor;
-    const panX = gameManager.layerManager.panX;
-    const panY = gameManager.layerManager.panY;
-    ctx.drawImage(this.img, (this.x + panX) * z, (this.y + panY) * z, this.w * z, this.h * z);
+    ctx.drawImage(this.img, w2lx(this.x), w2ly(this.y), this.w * z, this.h * z);
 };
 Asset.prototype.onMouseUp = function () {
     const self = this;
@@ -551,32 +531,28 @@ LayerState.prototype.draw = function () {
         this.clear();
 
         const state = this;
-        const panX = gameManager.layerManager.panX;
-        const panY = gameManager.layerManager.panY;
-        const z = gameManager.layerManager.zoomFactor;
+
         this.shapes.data.forEach(function (shape) {
-            if ((shape.x + panX) * z > state.width || (shape.y + panY) * z > state.height ||
-                (shape.x + shape.w + panX) * z < 0 || (shape.y + shape.h + panY) * z < 0) return;
+            if (w2lx(shape.x) > state.width || w2ly(shape.y) > state.height ||
+                w2lx(shape.x + shape.w) < 0 || w2ly(shape.y + shape.h) < 0) return;
             shape.draw(ctx);
         });
 
         if (this.selection != null) {
-            const z = gameManager.layerManager.zoomFactor;
-            const panX = gameManager.layerManager.panX;
-            const panY = gameManager.layerManager.panY;
             ctx.strokeStyle = this.selectionColor;
             ctx.lineWidth = this.selectionWidth;
             const mySel = this.selection;
-            ctx.strokeRect((mySel.x + panX) * z, (mySel.y + panY) * z, mySel.w * z, mySel.h * z);
+            const z = gameManager.layerManager.zoomFactor;
+            ctx.strokeRect(w2lx(mySel.x), w2ly(mySel.y), mySel.w * z, mySel.h * z);
 
             // topright
-            ctx.fillRect((mySel.x + mySel.w + panX - 3) * z, (mySel.y + panY - 3) * z, 6 * z, 6 * z);
+            ctx.fillRect(w2lx(mySel.x + mySel.w - 3), w2ly(mySel.y - 3), 6 * z, 6 * z);
             // topleft
-            ctx.fillRect((mySel.x + panX - 3) * z, (mySel.y + panY - 3) * z, 6 * z, 6 * z);
+            ctx.fillRect(w2lx(mySel.x - 3), w2ly(mySel.y - 3), 6 * z, 6 * z);
             // botright
-            ctx.fillRect((mySel.x + mySel.w + panX - 3) * z, (mySel.y + mySel.h + panY - 3) * z, 6 * z, 6 * z);
+            ctx.fillRect(w2lx(mySel.x + mySel.w - 3), w2ly(mySel.y + mySel.h - 3), 6 * z, 6 * z);
             // botleft
-            ctx.fillRect((mySel.x + panX - 3) * z, (mySel.y + mySel.h + panY - 3) * z, 6 * z, 6 * z)
+            ctx.fillRect(w2lx(mySel.x - 3), w2ly(mySel.y + mySel.h - 3), 6 * z, 6 * z)
         }
 
         this.valid = true;
@@ -794,24 +770,22 @@ LayerManager.prototype.onMouseMove = function (e) {
         setSelectionInfo(sel);
         layer.invalidate();
     } else if (layer.resizing) {
-        const panX = gameManager.layerManager.panX;
-        const panY = gameManager.layerManager.panY;
         if (layer.resizedir === 'nw') {
-            sel.w = (sel.x + panX) * z + sel.w * z - mouse.x;
-            sel.h = (sel.y + panY) * z + sel.h * z - mouse.y;
-            sel.x = (mouse.x / z) - panX;
-            sel.y = (mouse.y / z) - panY;
+            sel.w = w2lx(sel.x) + sel.w * z - mouse.x;
+            sel.h = w2ly(sel.y) + sel.h * z - mouse.y;
+            sel.x = l2wx(mouse.x);
+            sel.y = l2wy(mouse.y);
         } else if (layer.resizedir === 'ne') {
-            sel.w = mouse.x - (sel.x + panX) * z;
-            sel.h = (sel.y + panY) * z + sel.h * z - mouse.y;
-            sel.y = (mouse.y / z) - panY;
+            sel.w = mouse.x - w2lx(sel.x);
+            sel.h = w2ly(sel.y) + sel.h * z - mouse.y;
+            sel.y = l2wy(mouse.y);
         } else if (layer.resizedir === 'se') {
-            sel.w = mouse.x - (sel.x + panX) * z;
-            sel.h = mouse.y - (sel.y + panY) * z;
+            sel.w = mouse.x - w2lx(sel.x);
+            sel.h = mouse.y - w2ly(sel.y);
         } else if (layer.resizedir === 'sw') {
-            sel.w = (sel.x + panX) * z + sel.w * z - mouse.x;
-            sel.h = mouse.y - (sel.y + panY) * z;
-            sel.x = (mouse.x / z) - panX;
+            sel.w = w2lx(sel.x) + sel.w * z - mouse.x;
+            sel.h = mouse.y - w2ly(sel.y);
+            sel.x = l2wx(mouse.x);
         }
         sel.w /= z;
         sel.h /= z;
@@ -936,30 +910,24 @@ function DrawTool() {
 DrawTool.prototype.onMouseDown = function (e) {
     // Currently draw on active layer
     const layer = gameManager.layerManager.getLayer();
-    this.startPoint = layer.getMouse(e);
+    this.startPoint = l2w(layer.getMouse(e));
     const fillColor = this.fillColor.spectrum("get");
     const fill = fillColor === null ? tinycolor("transparent") : fillColor;
     const borderColor = this.borderColor.spectrum("get");
     const border = borderColor === null ? tinycolor("transparent") : borderColor;
-    const z = gameManager.layerManager.zoomFactor;
-    const panX = gameManager.layerManager.panX;
-    const panY = gameManager.layerManager.panY;
-    this.rect = new Rect(this.startPoint.x / z - panX, this.startPoint.y / z - panY, 0, 0, fill.toRgbString(), border.toRgbString());
+    this.rect = new Rect(this.startPoint.x, this.startPoint.y, 0, 0, fill.toRgbString(), border.toRgbString());
     layer.addShape(this.rect, true, false);
 };
 DrawTool.prototype.onMouseMove = function (e) {
     if (this.startPoint === null) return;
     // Currently draw on active layer
     const layer = gameManager.layerManager.getLayer();
-    const endPoint = layer.getMouse(e);
-    const panX = gameManager.layerManager.panX;
-    const panY = gameManager.layerManager.panY;
-    const z = gameManager.layerManager.zoomFactor;
+    const endPoint = l2w(layer.getMouse(e));
 
-    this.rect.w = Math.abs(endPoint.x - this.startPoint.x) / z;
-    this.rect.h = Math.abs(endPoint.y - this.startPoint.y) / z;
-    this.rect.x = Math.min(this.startPoint.x, endPoint.x) / z - panX;
-    this.rect.y = Math.min(this.startPoint.y, endPoint.y) / z - panY;
+    this.rect.w = Math.abs(endPoint.x - this.startPoint.x);
+    this.rect.h = Math.abs(endPoint.y - this.startPoint.y);
+    this.rect.x = Math.min(this.startPoint.x, endPoint.x);
+    this.rect.y = Math.min(this.startPoint.y, endPoint.y);
     socket.emit("shapeMove", {shape: this.rect.asDict(), temporary: false});
     layer.invalidate();
 };
@@ -987,7 +955,6 @@ RulerTool.prototype.onMouseMove = function (e) {
     // Currently draw on active layer
     const layer = gameManager.layerManager.getLayer("draw");
     const endPoint = l2w(layer.getMouse(e));
-    const z = gameManager.layerManager.zoomFactor;
 
     this.ruler.x2 = endPoint.x;
     this.ruler.y2 = endPoint.y;
@@ -1026,11 +993,8 @@ function FOWTool() {
 
 FOWTool.prototype.onMouseDown = function (e) {
     const layer = gameManager.layerManager.getLayer("fow");
-    this.startPoint = layer.getMouse(e);
-    const z = gameManager.layerManager.zoomFactor;
-    const panX = gameManager.layerManager.panX;
-    const panY = gameManager.layerManager.panY;
-    this.rect = new Rect(this.startPoint.x / z - panX, this.startPoint.y / z - panY, 0, 0, fowColour.spectrum("get").toRgbString());
+    this.startPoint = l2w(layer.getMouse(e));
+    this.rect = new Rect(this.startPoint.x, this.startPoint.y, 0, 0, fowColour.spectrum("get").toRgbString());
     layer.addShape(this.rect, true, false);
 
     if ($("#fow-reveal").prop("checked"))
@@ -1047,15 +1011,12 @@ FOWTool.prototype.onMouseMove = function (e) {
     if (this.startPoint === null) return;
     // Currently draw on active layer
     const layer = gameManager.layerManager.getLayer("fow");
-    const endPoint = layer.getMouse(e);
-    const panX = gameManager.layerManager.panX;
-    const panY = gameManager.layerManager.panY;
-    const z = gameManager.layerManager.zoomFactor;
+    const endPoint = l2w(layer.getMouse(e));
 
-    this.rect.w = Math.abs(endPoint.x - this.startPoint.x) / z;
-    this.rect.h = Math.abs(endPoint.y - this.startPoint.y) / z;
-    this.rect.x = Math.min(this.startPoint.x, endPoint.x) / z - panX;
-    this.rect.y = Math.min(this.startPoint.y, endPoint.y) / z - panY;
+    this.rect.w = Math.abs(endPoint.x - this.startPoint.x);
+    this.rect.h = Math.abs(endPoint.y - this.startPoint.y);
+    this.rect.x = Math.min(this.startPoint.x, endPoint.x);
+    this.rect.y = Math.min(this.startPoint.y, endPoint.y);
 
     socket.emit("shapeMove", {shape: this.rect.asDict(), temporary: false});
     layer.invalidate();
@@ -1073,26 +1034,20 @@ function MapTool() {
 
 MapTool.prototype.onMouseDown = function (e) {
     const layer = gameManager.layerManager.getLayer();
-    this.startPoint = layer.getMouse(e);
-    const z = gameManager.layerManager.zoomFactor;
-    const panX = gameManager.layerManager.panX;
-    const panY = gameManager.layerManager.panY;
-    this.rect = new Rect(this.startPoint.x / z - panX, this.startPoint.y / z - panY, 0, 0, "rgba(0,0,0,0)", "black");
+    this.startPoint = l2w(layer.getMouse(e));
+    this.rect = new Rect(this.startPoint.x, this.startPoint.y, 0, 0, "rgba(0,0,0,0)", "black");
     layer.addShape(this.rect, false, false);
 };
 MapTool.prototype.onMouseMove = function (e) {
     if (this.startPoint === null) return;
     // Currently draw on active layer
     const layer = gameManager.layerManager.getLayer();
-    const endPoint = layer.getMouse(e);
-    const panX = gameManager.layerManager.panX;
-    const panY = gameManager.layerManager.panY;
-    const z = gameManager.layerManager.zoomFactor;
+    const endPoint = l2w(layer.getMouse(e));
 
-    this.rect.w = Math.abs(endPoint.x - this.startPoint.x) / z;
-    this.rect.h = Math.abs(endPoint.y - this.startPoint.y) / z;
-    this.rect.x = Math.min(this.startPoint.x, endPoint.x) / z - panX;
-    this.rect.y = Math.min(this.startPoint.y, endPoint.y) / z - panY;
+    this.rect.w = Math.abs(endPoint.x - this.startPoint.x);
+    this.rect.h = Math.abs(endPoint.y - this.startPoint.y);
+    this.rect.x = Math.min(this.startPoint.x, endPoint.x);
+    this.rect.y = Math.min(this.startPoint.y, endPoint.y);
     // socket.emit("shapeMove", {shape: this.rect.asDict(), temporary: false});
     layer.invalidate();
 };
@@ -1371,6 +1326,14 @@ function w2l(obj) {
     }
 }
 
+function w2lx(x) {
+    return w2l({x:x, y:0}).x;
+}
+
+function w2ly(y) {
+    return w2l({x:0, y:y}).y;
+}
+
 function l2w(obj) {
     const z = gameManager.layerManager.zoomFactor;
     const panX = gameManager.layerManager.panX;
@@ -1379,6 +1342,14 @@ function l2w(obj) {
         x: (obj.x/z) - panX,
         y: (obj.y/z) - panY
     }
+}
+
+function l2wx(x) {
+    return l2w({x:x, y:0}).x;
+}
+
+function l2wy(y) {
+    return l2w({x:0, y:y}).y;
 }
 
 function OrderedMap() {

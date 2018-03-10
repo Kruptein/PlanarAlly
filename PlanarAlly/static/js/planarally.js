@@ -960,12 +960,13 @@ RulerTool.prototype.onMouseMove = function (e) {
     this.ruler.y2 = endPoint.y;
     socket.emit("shapeMove", {shape: this.ruler.asDict(), temporary: true});
 
-    const xdiff = endPoint.x - this.startPoint.x;
-    const ydiff = endPoint.y - this.startPoint.y;
+    const diffsign = Math.sign(endPoint.x - this.startPoint.x) * Math.sign(endPoint.y - this.startPoint.y);
+    const xdiff = Math.abs(endPoint.x - this.startPoint.x);
+    const ydiff = Math.abs(endPoint.y - this.startPoint.y);
     const label = Math.round(Math.sqrt((xdiff) ** 2 + (ydiff) ** 2) * gameManager.layerManager.unitSize / gameManager.layerManager.gridSize) + " ft";
-    let angle = Math.atan2(ydiff, xdiff);
-    const xmid = this.startPoint.x + xdiff / 2;
-    const ymid = this.startPoint.y + ydiff / 2;
+    let angle = Math.atan2(diffsign * ydiff, xdiff);
+    const xmid = Math.min(this.startPoint.x, endPoint.x) + xdiff / 2;
+    const ymid = Math.min(this.startPoint.y, endPoint.y) + ydiff / 2;
     this.text.x = xmid;
     this.text.y = ymid;
     this.text.text = label;

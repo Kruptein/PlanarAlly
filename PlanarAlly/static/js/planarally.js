@@ -400,8 +400,10 @@ Line.prototype = Object.create(Shape.prototype);
 Line.prototype.draw = function (ctx) {
     Shape.prototype.draw.call(this, ctx);
     ctx.beginPath();
-    ctx.moveTo(this.x1, this.y1);
-    ctx.lineTo(this.x2, this.y2);
+    const loc1 = w2l({x: this.x1, y: this.y1});
+    const loc2 = w2l({x: this.x2, y: this.y2});
+    ctx.moveTo(loc1.x, loc1.y);
+    ctx.lineTo(loc2.x, loc2.y);
     ctx.strokeStyle = 'rgba(255,0,0, 0.5)';
     ctx.lineWidth = 3;
     ctx.stroke();
@@ -422,7 +424,8 @@ Text.prototype.draw = function (ctx) {
     Shape.prototype.draw.call(this, ctx);
     ctx.font = this.font;
     ctx.save();
-    ctx.translate(this.x, this.y);
+    const loc = w2l({x: this.x, y: this.y});
+    ctx.translate(loc.x, loc.y);
     ctx.rotate(this.angle);
     ctx.textAlign = "center";
     ctx.fillText(this.text, 0, -5);
@@ -973,7 +976,7 @@ function RulerTool() {
 RulerTool.prototype.onMouseDown = function (e) {
     // Currently draw on active layer
     const layer = gameManager.layerManager.getLayer("draw");
-    this.startPoint = layer.getMouse(e);
+    this.startPoint = l2w(layer.getMouse(e));
     this.ruler = new Line(this.startPoint.x, this.startPoint.y, this.startPoint.x, this.startPoint.y);
     this.text = new Text(this.startPoint.x, this.startPoint.y, "", "20px serif");
     layer.addShape(this.ruler, true, true);
@@ -983,7 +986,7 @@ RulerTool.prototype.onMouseMove = function (e) {
     if (this.startPoint === null) return;
     // Currently draw on active layer
     const layer = gameManager.layerManager.getLayer("draw");
-    const endPoint = layer.getMouse(e);
+    const endPoint = l2w(layer.getMouse(e));
     const z = gameManager.layerManager.zoomFactor;
 
     this.ruler.x2 = endPoint.x;
@@ -992,7 +995,7 @@ RulerTool.prototype.onMouseMove = function (e) {
 
     const xdiff = endPoint.x - this.startPoint.x;
     const ydiff = endPoint.y - this.startPoint.y;
-    const label = Math.round(Math.sqrt((xdiff / z) ** 2 + (ydiff / z) ** 2) * gameManager.layerManager.unitSize / gameManager.layerManager.gridSize) + " ft";
+    const label = Math.round(Math.sqrt((xdiff) ** 2 + (ydiff) ** 2) * gameManager.layerManager.unitSize / gameManager.layerManager.gridSize) + " ft";
     let angle = Math.atan2(ydiff, xdiff);
     const xmid = this.startPoint.x + xdiff / 2;
     const ymid = this.startPoint.y + ydiff / 2;
@@ -1356,6 +1359,26 @@ function alphSort(a, b) {
         return -1;
     else
         return 1;
+}
+
+function w2l(obj) {
+    const z = gameManager.layerManager.zoomFactor;
+    const panX = gameManager.layerManager.panX;
+    const panY = gameManager.layerManager.panY;
+    return {
+        x: (obj.x + panX) * z,
+        y: (obj.y + panY) * z
+    }
+}
+
+function l2w(obj) {
+    const z = gameManager.layerManager.zoomFactor;
+    const panX = gameManager.layerManager.panX;
+    const panY = gameManager.layerManager.panY;
+    return {
+        x: (obj.x/z) - panX,
+        y: (obj.y/z) - panY
+    }
 }
 
 function OrderedMap() {

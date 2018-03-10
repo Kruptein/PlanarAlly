@@ -151,6 +151,8 @@ socket.on("board init", function (room) {
             l.setShapes(new_layer.shapes);
         }
     }
+    // Force the correct opacity render on other layers.
+    gameManager.layerManager.setLayer(gameManager.layerManager.getLayer().name);
     // socket.emit("client initialised");
     board_initialised = true;
 

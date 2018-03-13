@@ -468,20 +468,37 @@ function LayerState(canvas, name) {
 
     const state = this;
 
+    // When set to false, the layer will be redrawn on the next tick
     this.valid = false;
+    // The collection of shapes that this layer contains.
+    // These are ordered on a depth basis.
     this.shapes = new OrderedMap();
+
+    // State variables
     this.dragging = false;
     this.resizing = false;
     this.panning = false;
     this.selecting = false;
+    
+    // This is a helper to identify which corner or more specifically which resize direction is being used.
     this.resizedir = '';
 
+    // This is a reference to an optional rectangular object that is used to select multiple tokens
+    this.selectionHelper = null;
+
+    // Collection of shapes that are currently selected
     this.selection = [];
+
+    // Because we never drag from the asset's (0, 0) coord and want a smoother drag experience
+    // we keep track of the actual offset within the asset.
     this.dragoffx = 0;
     this.dragoffy = 0;
 
+    // Extra selection highlighting settings
     this.selectionColor = '#CC0000';
     this.selectionWidth = 2;
+
+    // Refresh interval and redraw setter.
     this.interval = 30;
     setInterval(function () {
         state.draw();

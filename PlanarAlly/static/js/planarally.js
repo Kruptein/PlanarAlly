@@ -231,7 +231,7 @@ Shape.prototype.contains = function () {
 };
 Shape.prototype.showContextMenu = function (mouse) {
     const l = gameManager.layerManager.getLayer();
-    l.selection = this;
+    l.selection = [this];
     l.invalidate();
     const asset = this;
     $menu.show();
@@ -473,9 +473,10 @@ function LayerState(canvas, name) {
     this.dragging = false;
     this.resizing = false;
     this.panning = false;
+    this.selecting = false;
     this.resizedir = '';
 
-    this.selection = null;
+    this.selection = [];
     this.dragoffx = 0;
     this.dragoffy = 0;
 
@@ -502,16 +503,14 @@ LayerState.prototype.addShape = function (shape, sync, temporary) {
 LayerState.prototype.setShapes = function (shapes) {
     const t = [];
     const self = this;
-    let keepSelection = false;
     shapes.forEach(function (shape) {
         const sh = createShapeFromDict(shape, self);
         sh.layer = self.name;
         gameManager.layerManager.UUIDMap.set(shape.uuid, sh);
         t.push(sh);
-        if (self.selection && sh.x === self.selection.x && sh.y === self.selection.y && sh.w === self.selection.w && sh.h === self.selection.h) keepSelection = true;
     });
+    this.selection = []; // TODO: Fix keeping selection on those items that are not moved.
     this.shapes.data = t;
-    if (!keepSelection) this.selection = null;
     this.invalidate();
 };
 LayerState.prototype.removeShape = function (shape, sync, temporary) {
@@ -543,18 +542,19 @@ LayerState.prototype.draw = function () {
         if (this.selection != null) {
             ctx.strokeStyle = this.selectionColor;
             ctx.lineWidth = this.selectionWidth;
-            const mySel = this.selection;
             const z = gameManager.layerManager.zoomFactor;
-            ctx.strokeRect(w2lx(mySel.x), w2ly(mySel.y), mySel.w * z, mySel.h * z);
+            this.selection.forEach(function (sel) {
+                ctx.strokeRect(w2lx(sel.x), w2ly(sel.y), sel.w * z, sel.h * z);
 
-            // topright
-            ctx.fillRect(w2lx(mySel.x + mySel.w - 3), w2ly(mySel.y - 3), 6 * z, 6 * z);
-            // topleft
-            ctx.fillRect(w2lx(mySel.x - 3), w2ly(mySel.y - 3), 6 * z, 6 * z);
-            // botright
-            ctx.fillRect(w2lx(mySel.x + mySel.w - 3), w2ly(mySel.y + mySel.h - 3), 6 * z, 6 * z);
-            // botleft
-            ctx.fillRect(w2lx(mySel.x - 3), w2ly(mySel.y + mySel.h - 3), 6 * z, 6 * z)
+                // topright
+                ctx.fillRect(w2lx(sel.x + sel.w - 3), w2ly(sel.y - 3), 6 * z, 6 * z);
+                // topleft
+                ctx.fillRect(w2lx(sel.x - 3), w2ly(sel.y - 3), 6 * z, 6 * z);
+                // botright
+                ctx.fillRect(w2lx(sel.x + sel.w - 3), w2ly(sel.y + sel.h - 3), 6 * z, 6 * z);
+                // botleft
+                ctx.fillRect(w2lx(sel.x - 3), w2ly(sel.y + sel.h - 3), 6 * z, 6 * z)
+            });
         }
 
         this.valid = true;
@@ -675,7 +675,7 @@ LayerManager.prototype.setLayer = function (name) {
             found = true;
         }
 
-        layer.selection = null;
+        layer.selection = [];
         layer.invalidate();
     });
 };
@@ -725,15 +725,15 @@ LayerManager.prototype.onMouseDown = function (e) {
         let hit = false;
         // the selectionStack allows for lowwer positioned objects that are selected to have precedence during overlap.
         let selectionStack;
-        if (layer.selection === null)
+        if (!layer.selection.length)
             selectionStack = layer.shapes.data;
         else
-            selectionStack = layer.shapes.data.concat([layer.selection]);
+            selectionStack = layer.shapes.data.concat(layer.selection);
         for (let i = selectionStack.length - 1; i >= 0; i--) {
             const shape = selectionStack[i];
             const corn = shape.getCorner(mx, my);
             if (corn !== undefined) {
-                layer.selection = shape;
+                layer.selection = [shape];
                 layer.resizing = true;
                 layer.resizedir = corn;
                 layer.invalidate();
@@ -743,7 +743,7 @@ LayerManager.prototype.onMouseDown = function (e) {
             } else if (shape.contains(mx, my)) {
                 const sel = shape;
                 const z = gameManager.layerManager.zoomFactor;
-                layer.selection = sel;
+                layer.selection = [sel];
                 layer.dragging = true;
                 layer.dragoffx = mx - sel.x * z;
                 layer.dragoffy = my - sel.y * z;
@@ -754,9 +754,12 @@ LayerManager.prototype.onMouseDown = function (e) {
             }
         }
 
-        if (!hit && layer.selection) {
-            layer.selection.onSelectionLoss();
-            layer.selection = null;
+        if (!hit && layer.selection.length) {
+            layer.selection.forEach(function (sel) {
+                sel.onSelectionLoss();
+            });
+            layer.selection = [];
+            layer.selecting = true;
             layer.invalidate();
         }
     } else if (tools[gameManager.selectedTool].name === 'pan') {
@@ -768,110 +771,121 @@ LayerManager.prototype.onMouseDown = function (e) {
 };
 LayerManager.prototype.onMouseMove = function (e) {
     const layer = gameManager.layerManager.getLayer();
-    const sel = layer.selection;
     const mouse = layer.getMouse(e);
     const z = gameManager.layerManager.zoomFactor;
-    if (layer.dragging) {
-        sel.x = (mouse.x - layer.dragoffx) / z;
-        sel.y = (mouse.y - layer.dragoffy) / z;
-        socket.emit("shapeMove", {shape: sel.asDict(), temporary: true});
-        setSelectionInfo(sel);
-        layer.invalidate();
-    } else if (layer.resizing) {
-        if (layer.resizedir === 'nw') {
-            sel.w = w2lx(sel.x) + sel.w * z - mouse.x;
-            sel.h = w2ly(sel.y) + sel.h * z - mouse.y;
-            sel.x = l2wx(mouse.x);
-            sel.y = l2wy(mouse.y);
-        } else if (layer.resizedir === 'ne') {
-            sel.w = mouse.x - w2lx(sel.x);
-            sel.h = w2ly(sel.y) + sel.h * z - mouse.y;
-            sel.y = l2wy(mouse.y);
-        } else if (layer.resizedir === 'se') {
-            sel.w = mouse.x - w2lx(sel.x);
-            sel.h = mouse.y - w2ly(sel.y);
-        } else if (layer.resizedir === 'sw') {
-            sel.w = w2lx(sel.x) + sel.w * z - mouse.x;
-            sel.h = mouse.y - w2ly(sel.y);
-            sel.x = l2wx(mouse.x);
-        }
-        sel.w /= z;
-        sel.h /= z;
-        socket.emit("shapeMove", {shape: sel.asDict(), temporary: true});
-        setSelectionInfo(sel);
-        layer.invalidate();
-    } else if (layer.panning) {
-        const z = gameManager.layerManager.zoomFactor;
-        gameManager.layerManager.panX += Math.round((mouse.x - layer.dragoffx) / z);
-        gameManager.layerManager.panY += Math.round((mouse.y - layer.dragoffy) / z);
-        layer.dragoffx = mouse.x;
-        layer.dragoffy = mouse.y;
-        gameManager.layerManager.invalidate();
-    } else if (sel) {
-        if (sel.inCorner(mouse.x, mouse.y, "nw")) {
-            document.body.style.cursor = "nw-resize";
-        } else if (sel.inCorner(mouse.x, mouse.y, "ne")) {
-            document.body.style.cursor = "ne-resize";
-        } else if (sel.inCorner(mouse.x, mouse.y, "se")) {
-            document.body.style.cursor = "se-resize";
-        } else if (sel.inCorner(mouse.x, mouse.y, "sw")) {
-            document.body.style.cursor = "sw-resize";
-        } else {
-            document.body.style.cursor = "default";
-        }
+    if (layer.selecting) {
+
+    } else if (layer.selection.length) {
+        layer.selection.forEach(function (sel) {
+            if (layer.dragging) {
+                sel.x = (mouse.x - layer.dragoffx) / z;
+                sel.y = (mouse.y - layer.dragoffy) / z;
+                socket.emit("shapeMove", {shape: sel.asDict(), temporary: true});
+                setSelectionInfo(sel);
+                layer.invalidate();
+            } else if (layer.resizing) {
+                if (layer.resizedir === 'nw') {
+                    sel.w = w2lx(sel.x) + sel.w * z - mouse.x;
+                    sel.h = w2ly(sel.y) + sel.h * z - mouse.y;
+                    sel.x = l2wx(mouse.x);
+                    sel.y = l2wy(mouse.y);
+                } else if (layer.resizedir === 'ne') {
+                    sel.w = mouse.x - w2lx(sel.x);
+                    sel.h = w2ly(sel.y) + sel.h * z - mouse.y;
+                    sel.y = l2wy(mouse.y);
+                } else if (layer.resizedir === 'se') {
+                    sel.w = mouse.x - w2lx(sel.x);
+                    sel.h = mouse.y - w2ly(sel.y);
+                } else if (layer.resizedir === 'sw') {
+                    sel.w = w2lx(sel.x) + sel.w * z - mouse.x;
+                    sel.h = mouse.y - w2ly(sel.y);
+                    sel.x = l2wx(mouse.x);
+                }
+                sel.w /= z;
+                sel.h /= z;
+                socket.emit("shapeMove", {shape: sel.asDict(), temporary: true});
+                setSelectionInfo(sel);
+                layer.invalidate();
+            } else if (layer.panning) {
+                const z = gameManager.layerManager.zoomFactor;
+                gameManager.layerManager.panX += Math.round((mouse.x - layer.dragoffx) / z);
+                gameManager.layerManager.panY += Math.round((mouse.y - layer.dragoffy) / z);
+                layer.dragoffx = mouse.x;
+                layer.dragoffy = mouse.y;
+                gameManager.layerManager.invalidate();
+            } else if (sel) {
+                if (sel.inCorner(mouse.x, mouse.y, "nw")) {
+                    document.body.style.cursor = "nw-resize";
+                } else if (sel.inCorner(mouse.x, mouse.y, "ne")) {
+                    document.body.style.cursor = "ne-resize";
+                } else if (sel.inCorner(mouse.x, mouse.y, "se")) {
+                    document.body.style.cursor = "se-resize";
+                } else if (sel.inCorner(mouse.x, mouse.y, "sw")) {
+                    document.body.style.cursor = "sw-resize";
+                } else {
+                    document.body.style.cursor = "default";
+                }
+            }
+        });
     } else {
         document.body.style.cursor = "default";
     }
 };
 LayerManager.prototype.onMouseUp = function (e) {
     const layer = gameManager.layerManager.getLayer();
-    if (!e.altKey && layer.dragging) {
-        const orig = Object.assign({}, layer.selection);
-        const gs = gameManager.layerManager.gridSize;
-        const mouse = {x: layer.selection.x + layer.selection.w / 2, y: layer.selection.y + layer.selection.h / 2};
-        const mx = mouse.x;
-        const my = mouse.y;
-        if ((layer.selection.w / gs) % 2 === 0) {
-            layer.selection.x = Math.round(mx / gs) * gs - layer.selection.w / 2;
-        } else {
-            layer.selection.x = (Math.round((mx + (gs / 2)) / gs) - (1 / 2)) * gs - layer.selection.w / 2;
-        }
-        if ((layer.selection.h / gs) % 2 === 0) {
-            layer.selection.y = Math.round(my / gs) * gs - layer.selection.h / 2;
-        } else {
-            layer.selection.y = (Math.round((my + (gs / 2)) / gs) - (1 / 2)) * gs - layer.selection.h / 2;
-        }
-        layer.selection.onMouseUp();
-        if (orig.x !== layer.selection.x || orig.y !== layer.selection.y) {
-            socket.emit("shapeMove", {shape: layer.selection.asDict(), temporary: false});
-            setSelectionInfo(layer.selection);
-            layer.invalidate();
-        }
-    }
-    if (layer.resizing) {
-        const sel = layer.selection;
-        if (sel.w < 0) {
-            sel.x += sel.w;
-            sel.w = Math.abs(sel.w);
-        }
-        if (sel.h < 0) {
-            sel.y += sel.h;
-            sel.h = Math.abs(sel.h);
-        }
-        if (!e.altKey) {
-            const gs = gameManager.layerManager.gridSize;
-            sel.x = Math.round(sel.x / gs) * gs;
-            sel.y = Math.round(sel.y / gs) * gs;
-            sel.w = Math.max(Math.round(sel.w / gs) * gs, gs);
-            sel.h = Math.max(Math.round(sel.h / gs) * gs, gs);
-        }
-        socket.emit("shapeMove", {shape: layer.selection.asDict(), temporary: false});
-        setSelectionInfo(sel);
-        layer.invalidate();
+    if (layer.selecting) {
+
+    } else if (layer.selection.length) {
+        layer.selection.forEach(function (sel) {
+            if (!e.altKey && layer.dragging) {
+                const orig = Object.assign({}, sel);
+                const gs = gameManager.layerManager.gridSize;
+                const mouse = {x: sel.x + sel.w / 2, y: sel.y + sel.h / 2};
+                const mx = mouse.x;
+                const my = mouse.y;
+                if ((sel.w / gs) % 2 === 0) {
+                    sel.x = Math.round(mx / gs) * gs - sel.w / 2;
+                } else {
+                    sel.x = (Math.round((mx + (gs / 2)) / gs) - (1 / 2)) * gs - sel.w / 2;
+                }
+                if ((sel.h / gs) % 2 === 0) {
+                    sel.y = Math.round(my / gs) * gs - sel.h / 2;
+                } else {
+                    sel.y = (Math.round((my + (gs / 2)) / gs) - (1 / 2)) * gs - sel.h / 2;
+                }
+                sel.onMouseUp();
+                if (orig.x !== sel.x || orig.y !== sel.y) {
+                    socket.emit("shapeMove", {shape: sel.asDict(), temporary: false});
+                    setSelectionInfo(sel);
+                    layer.invalidate();
+                }
+            }
+            if (layer.resizing) {
+                if (sel.w < 0) {
+                    sel.x += sel.w;
+                    sel.w = Math.abs(sel.w);
+                }
+                if (sel.h < 0) {
+                    sel.y += sel.h;
+                    sel.h = Math.abs(sel.h);
+                }
+                if (!e.altKey) {
+                    const gs = gameManager.layerManager.gridSize;
+                    sel.x = Math.round(sel.x / gs) * gs;
+                    sel.y = Math.round(sel.y / gs) * gs;
+                    sel.w = Math.max(Math.round(sel.w / gs) * gs, gs);
+                    sel.h = Math.max(Math.round(sel.h / gs) * gs, gs);
+                }
+                socket.emit("shapeMove", {shape: sel.asDict(), temporary: false});
+                setSelectionInfo(sel);
+                layer.invalidate();
+            }
+        });
     }
     layer.dragging = false;
     layer.resizing = false;
     layer.panning = false;
+    layer.selecting = false;
 };
 LayerManager.prototype.onContextMenu = function (e) {
     e.preventDefault();
@@ -1063,15 +1077,15 @@ MapTool.prototype.onMouseMove = function (e) {
 MapTool.prototype.onMouseUp = function () {
     if (this.startPoint === null) return;
     const layer = gameManager.layerManager.getLayer();
-    if (layer.selection === null) {
+    if (layer.selection.length !== 1) {
         layer.removeShape(this.rect, false, false);
         return;
     }
 
     const w = this.rect.w;
     const h = this.rect.h;
-    layer.selection.w *= this.xCount.val() * gameManager.layerManager.gridSize / w;
-    layer.selection.h *= this.yCount.val() * gameManager.layerManager.gridSize / h;
+    layer.selection[0].w *= this.xCount.val() * gameManager.layerManager.gridSize / w;
+    layer.selection[0].h *= this.yCount.val() * gameManager.layerManager.gridSize / h;
     layer.removeShape(this.rect, false, false);
     this.startPoint = null;
     this.rect = null;
@@ -1299,9 +1313,9 @@ window.onresize = function () {
 $('body').keyup(function (e) {
     if (e.keyCode === 46) {
         const l = gameManager.layerManager.getLayer();
-        if (l.selection) {
-            l.removeShape(l.selection, true, false);
-        }
+        l.selection.forEach(function (sel) {
+            l.removeShape(sel, true, false);
+        });
     }
 });
 

@@ -20,7 +20,7 @@ from planarally import PlanarAlly
 
 PA = PlanarAlly("planar.save")
 
-sio = socketio.AsyncServer(async_mode='aiohttp')
+sio = socketio.AsyncServer(async_mode='aiohttp', engineio_logger=False)
 app = web.Application()
 app["AuthzPolicy"] = auth.ShelveDictAuthorizationPolicy("planar.save")
 aiohttp_security.setup(app, SessionIdentityPolicy(), app['AuthzPolicy'])

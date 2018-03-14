@@ -129,7 +129,7 @@ socket.on("board init", function (room) {
                     const l = gameManager.layerManager.getLayer();
                     const offset = $(l.canvas).offset();
 
-                    const loc  = {
+                    const loc = {
                         x: parseInt(ui.offset.left - offset.left),
                         y: parseInt(ui.offset.top - offset.top)
                     };
@@ -198,7 +198,7 @@ socket.on("clear temporaries", function (shapes) {
 function Shape() {
     this.layer = null;
 }
-
+Shape.prototype.getBoundingBox = function () {}
 Shape.prototype.onMouseUp = function () {
     // $(`#shapeselectioncog-${this.uuid}`).remove();
     // const cog = $(`<div id="shapeselectioncog-${this.uuid}"><i class='fa fa-cog' style='left:${this.x};top:${this.y + this.h + 10};z-index:50;position:absolute;'></i></div>`);
@@ -255,6 +255,14 @@ Shape.prototype.showContextMenu = function (mouse) {
     });
 };
 
+function BoundingRect(x, y, w, h) {
+    this.type = "boundrect";
+    this.x = x;
+    this.y = y;
+    this.w = w;
+    this.h = h;
+}
+
 function Rect(x, y, w, h, fill, border, uuid) {
     this.type = "rect";
     this.x = x || 0;
@@ -268,6 +276,9 @@ function Rect(x, y, w, h, fill, border, uuid) {
 }
 
 Rect.prototype = Object.create(Shape.prototype);
+Rect.prototype.getBoundingBox = function () {
+    return new BoundingRect(this.x, this.y, this.w, this.h);
+};
 Rect.prototype.draw = function (ctx) {
     Shape.prototype.draw.call(this, ctx);
     ctx.fillStyle = this.fill;
@@ -326,6 +337,9 @@ function Circle(x, y, r, fill, border, uuid) {
 }
 
 Circle.prototype = Object.create(Shape.prototype);
+Circle.prototype.getBoundingBox = function () {
+    return new BoundingRect(this.x - this.r, this.x - this.r, this.r * 2, this.r * 2);
+};
 Circle.prototype.draw = function (ctx) {
     Shape.prototype.draw.call(this, ctx);
     ctx.beginPath();
@@ -384,6 +398,14 @@ function Line(x1, y1, x2, y2, uuid) {
 }
 
 Line.prototype = Object.create(Shape.prototype);
+Line.prototype.getBoundingBox = function () {
+    return new BoundingRect(
+        Math.min(this.x1, this.x2),
+        Math.min(this.y1, this.y2),
+        Math.abs(this.x1 - this.x2),
+        Math.abs(this.y1 - this.y2)
+    );
+};
 Line.prototype.draw = function (ctx) {
     Shape.prototype.draw.call(this, ctx);
     ctx.beginPath();
@@ -405,6 +427,9 @@ function Text(x, y, text, font, angle, uuid) {
 }
 
 Text.prototype = Object.create(Shape.prototype);
+Text.prototype.getBoundingBox = function () {
+    return new BoundingRect(this.x, this.y, 5, 5); // Todo: fix this bounding box
+};
 Text.prototype.draw = function (ctx) {
     Shape.prototype.draw.call(this, ctx);
     ctx.font = this.font;
@@ -479,12 +504,13 @@ function LayerState(canvas, name) {
     this.resizing = false;
     this.panning = false;
     this.selecting = false;
-    
+
     // This is a helper to identify which corner or more specifically which resize direction is being used.
     this.resizedir = '';
 
     // This is a reference to an optional rectangular object that is used to select multiple tokens
     this.selectionHelper = null;
+    this.selectionStartPoint = null;
 
     // Collection of shapes that are currently selected
     this.selection = [];
@@ -760,7 +786,8 @@ LayerManager.prototype.onMouseDown = function (e) {
             } else if (shape.contains(mx, my)) {
                 const sel = shape;
                 const z = gameManager.layerManager.zoomFactor;
-                layer.selection = [sel];
+                if (layer.selection.indexOf(sel) === -1)
+                    layer.selection = [sel];
                 layer.dragging = true;
                 layer.dragoffx = mx - sel.x * z;
                 layer.dragoffy = my - sel.y * z;
@@ -771,12 +798,15 @@ LayerManager.prototype.onMouseDown = function (e) {
             }
         }
 
-        if (!hit && layer.selection.length) {
+        if (!hit) {
             layer.selection.forEach(function (sel) {
                 sel.onSelectionLoss();
             });
             layer.selection = [];
             layer.selecting = true;
+            layer.selectionStartPoint = l2w(layer.getMouse(e));
+            layer.selectionHelper = new Rect(layer.selectionStartPoint.x, layer.selectionStartPoint.y, 0, 0, "rgba(0,0,0,0)", "black");
+            layer.addShape(layer.selectionHelper, false, false);
             layer.invalidate();
         }
     } else if (tools[gameManager.selectedTool].name === 'pan') {
@@ -791,12 +821,20 @@ LayerManager.prototype.onMouseMove = function (e) {
     const mouse = layer.getMouse(e);
     const z = gameManager.layerManager.zoomFactor;
     if (layer.selecting) {
+        if (this.selectionStartPoint === null) return;
+        // Currently draw on active layer
+        const endPoint = l2w(layer.getMouse(e));
 
+        layer.selectionHelper.w = Math.abs(endPoint.x - layer.selectionStartPoint.x);
+        layer.selectionHelper.h = Math.abs(endPoint.y - layer.selectionStartPoint.y);
+        layer.selectionHelper.x = Math.min(layer.selectionStartPoint.x, endPoint.x);
+        layer.selectionHelper.y = Math.min(layer.selectionStartPoint.y, endPoint.y);
+        layer.invalidate();
     } else if (layer.selection.length) {
         layer.selection.forEach(function (sel) {
             if (layer.dragging) {
-                sel.x = (mouse.x - layer.dragoffx) / z;
-                sel.y = (mouse.y - layer.dragoffy) / z;
+                sel.x = mouse.x /z; //(mouse.x - layer.dragoffx) / z;
+                sel.y = mouse.y /z; //(mouse.y - layer.dragoffy) / z;
                 socket.emit("shapeMove", {shape: sel.asDict(), temporary: true});
                 setSelectionInfo(sel);
                 layer.invalidate();
@@ -851,7 +889,25 @@ LayerManager.prototype.onMouseMove = function (e) {
 LayerManager.prototype.onMouseUp = function (e) {
     const layer = gameManager.layerManager.getLayer();
     if (layer.selecting) {
+        if (layer.selectionStartPoint === null) return;
 
+        layer.shapes.data.forEach(function (shape) {
+            const bbox = shape.getBoundingBox();
+            if (layer.selectionHelper.x <= bbox.x + bbox.w &&
+                layer.selectionHelper.x + layer.selectionHelper.w >= bbox.x &&
+                layer.selectionHelper.y <= bbox.y + bbox.h &&
+                layer.selectionHelper.y + layer.selectionHelper.h >= bbox.y) {
+                layer.selection.push(shape);
+            }
+        });
+
+        // The Selection box itself
+        if (layer.selection.length === 1)
+            layer.selection = [];
+
+        layer.removeShape(layer.selectionHelper, false, false);
+        layer.selectionStartPoint = null;
+        layer.invalidate();
     } else if (layer.selection.length) {
         layer.selection.forEach(function (sel) {
             if (!e.altKey && layer.dragging) {
@@ -872,8 +928,10 @@ LayerManager.prototype.onMouseUp = function (e) {
                 }
                 sel.onMouseUp();
                 if (orig.x !== sel.x || orig.y !== sel.y) {
-                    socket.emit("shapeMove", {shape: sel.asDict(), temporary: false});
-                    setSelectionInfo(sel);
+                    if (sel !== layer.selectionHelper) {
+                        socket.emit("shapeMove", {shape: sel.asDict(), temporary: false});
+                        setSelectionInfo(sel);
+                    }
                     layer.invalidate();
                 }
             }
@@ -893,8 +951,10 @@ LayerManager.prototype.onMouseUp = function (e) {
                     sel.w = Math.max(Math.round(sel.w / gs) * gs, gs);
                     sel.h = Math.max(Math.round(sel.h / gs) * gs, gs);
                 }
-                socket.emit("shapeMove", {shape: sel.asDict(), temporary: false});
-                setSelectionInfo(sel);
+                if (sel !== layer.selectionHelper) {
+                    socket.emit("shapeMove", {shape: sel.asDict(), temporary: false});
+                    setSelectionInfo(sel);
+                }
                 layer.invalidate();
             }
         });
@@ -1370,11 +1430,11 @@ function w2l(obj) {
 }
 
 function w2lx(x) {
-    return w2l({x:x, y:0}).x;
+    return w2l({x: x, y: 0}).x;
 }
 
 function w2ly(y) {
-    return w2l({x:0, y:y}).y;
+    return w2l({x: 0, y: y}).y;
 }
 
 function l2w(obj) {
@@ -1382,17 +1442,17 @@ function l2w(obj) {
     const panX = gameManager.layerManager.panX;
     const panY = gameManager.layerManager.panY;
     return {
-        x: (obj.x/z) - panX,
-        y: (obj.y/z) - panY
+        x: (obj.x / z) - panX,
+        y: (obj.y / z) - panY
     }
 }
 
 function l2wx(x) {
-    return l2w({x:x, y:0}).x;
+    return l2w({x: x, y: 0}).x;
 }
 
 function l2wy(y) {
-    return l2w({x:0, y:y}).y;
+    return l2w({x: 0, y: y}).y;
 }
 
 function OrderedMap() {

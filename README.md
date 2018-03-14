@@ -68,6 +68,8 @@ A plethora of basic tools are available to both players and DM and can be select
 You can select different objects on the active layer.  When selected you can additionally move an object simply by dragging it.
 You can also resize an object by hovering over one of the corners of the object and then dragging in the desired direction.
 
+Selecting multiple objects allows you to move/drag the entire selection from anywhere in the selection region.
+
 #### Pan
 
 When selected, dragging allows for panning the screen
@@ -106,7 +108,6 @@ After using this tool you'll often want to slightly reposition the object with t
 
 Following is a list of current TODO's in no particular order:
 
-* Select multiple tokens for move operation
 * Dynamic Light/Shadow
 * Better token management
 * DM options
@@ -126,6 +127,7 @@ NOT planned
 
 * video/voice chat
 * dice rolling
+* Any kind of marketplace
 
 ## Backend Requirements
 

@@ -830,11 +830,21 @@ LayerManager.prototype.onMouseMove = function (e) {
         layer.selectionHelper.x = Math.min(layer.selectionStartPoint.x, endPoint.x);
         layer.selectionHelper.y = Math.min(layer.selectionStartPoint.y, endPoint.y);
         layer.invalidate();
+    } else if (layer.panning) {
+        gameManager.layerManager.panX += Math.round((mouse.x - layer.dragoffx) / z);
+        gameManager.layerManager.panY += Math.round((mouse.y - layer.dragoffy) / z);
+        layer.dragoffx = mouse.x;
+        layer.dragoffy = mouse.y;
+        gameManager.layerManager.invalidate();
     } else if (layer.selection.length) {
+        const ogX = layer.selection[layer.selection.length - 1].x * z;
+        const ogY = layer.selection[layer.selection.length - 1].y * z;
         layer.selection.forEach(function (sel) {
+            const dx = mouse.x - (ogX + layer.dragoffx);
+            const dy = mouse.y - (ogY + layer.dragoffy);
             if (layer.dragging) {
-                sel.x = mouse.x /z; //(mouse.x - layer.dragoffx) / z;
-                sel.y = mouse.y /z; //(mouse.y - layer.dragoffy) / z;
+                sel.x += dx /z;
+                sel.y += dy /z;
                 socket.emit("shapeMove", {shape: sel.asDict(), temporary: true});
                 setSelectionInfo(sel);
                 layer.invalidate();
@@ -861,13 +871,6 @@ LayerManager.prototype.onMouseMove = function (e) {
                 socket.emit("shapeMove", {shape: sel.asDict(), temporary: true});
                 setSelectionInfo(sel);
                 layer.invalidate();
-            } else if (layer.panning) {
-                const z = gameManager.layerManager.zoomFactor;
-                gameManager.layerManager.panX += Math.round((mouse.x - layer.dragoffx) / z);
-                gameManager.layerManager.panY += Math.round((mouse.y - layer.dragoffy) / z);
-                layer.dragoffx = mouse.x;
-                layer.dragoffy = mouse.y;
-                gameManager.layerManager.invalidate();
             } else if (sel) {
                 if (sel.inCorner(mouse.x, mouse.y, "nw")) {
                     document.body.style.cursor = "nw-resize";
@@ -892,6 +895,7 @@ LayerManager.prototype.onMouseUp = function (e) {
         if (layer.selectionStartPoint === null) return;
 
         layer.shapes.data.forEach(function (shape) {
+            if (shape === layer.selectionHelper) return;
             const bbox = shape.getBoundingBox();
             if (layer.selectionHelper.x <= bbox.x + bbox.w &&
                 layer.selectionHelper.x + layer.selectionHelper.w >= bbox.x &&
@@ -901,9 +905,10 @@ LayerManager.prototype.onMouseUp = function (e) {
             }
         });
 
-        // The Selection box itself
-        if (layer.selection.length === 1)
-            layer.selection = [];
+        // Push the selection helper as the last element of the selection
+        // This makes sure that it will be the first one to be hit in the hit detection onMouseDown
+        if (layer.selection.length > 0)
+            layer.selection.push(layer.selectionHelper);
 
         layer.removeShape(layer.selectionHelper, false, false);
         layer.selectionStartPoint = null;

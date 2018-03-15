@@ -57,6 +57,34 @@ a, a:visited, a:hover, a:active {
     background-color: #82c8a0;
 }
 
+#selection-menu {
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    top: 150px;
+    right: 0;
+    z-index: 10;
+    opacity: 0.3;
+    border-top-left-radius: 20px;
+    border-bottom-left-radius: 20px;
+    border: solid 1px;
+    padding: 10px;
+    background-color: white;
+}
+
+#selection-menu:hover {
+    opacity: 1;
+}
+
+#selection-trackers, #selection-auras {
+    display: grid;
+    grid-template-columns: [name] 1fr [value] 1fr;
+}
+
+.selection-tracker-value, .selection-aura-value {
+    justify-self: center;
+}
+
 #board {
     position: relative;
     width: 100%;

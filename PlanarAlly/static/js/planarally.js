@@ -197,8 +197,11 @@ socket.on("clear temporaries", function (shapes) {
 
 function Shape() {
     this.layer = null;
+    this.name = 'Shape';
+    this.trackers = [{'name': 'health', 'value': 50}];
+    this.auras = [{'name': 'darkvision', 'value': 60}];
 }
-Shape.prototype.getBoundingBox = function () {}
+Shape.prototype.getBoundingBox = function () {};
 Shape.prototype.onMouseUp = function () {
     // $(`#shapeselectioncog-${this.uuid}`).remove();
     // const cog = $(`<div id="shapeselectioncog-${this.uuid}"><i class='fa fa-cog' style='left:${this.x};top:${this.y + this.h + 10};z-index:50;position:absolute;'></i></div>`);
@@ -207,8 +210,25 @@ Shape.prototype.onMouseUp = function () {
     // });
     // $("body").append(cog);
 };
+Shape.prototype.onSelection = function () {
+    $("#selection-name").text(this.name);
+    const trackers = $("#selection-trackers");
+    trackers.empty();
+    this.trackers.forEach(function (tracker) {
+        trackers.append($(`<div id="selection-tracker-${tracker.name}-name">${tracker.name}</div>`));
+        trackers.append($(`<div id="selection-tracker-${tracker.name}-value" class="selection-tracker-value">${tracker.value}</div>`));
+    });
+    const auras = $("#selection-auras");
+    auras.empty();
+    this.auras.forEach(function (aura) {
+        auras.append($(`<div id="selection-aura-${aura.name}-name">${aura.name}</div>`));
+        auras.append($(`<div id="selection-aura-${aura.name}-value" class="selection-aura-value"><input type="text" value="${aura.value}"></div>`));
+    });
+    $("#selection-menu").show();
+};
 Shape.prototype.onSelectionLoss = function () {
     // $(`#shapeselectioncog-${this.uuid}`).remove();
+    $("#selection-menu").hide();
 };
 Shape.prototype.onRemove = function () {
     // $(`#shapeselectioncog-${this.uuid}`).remove();
@@ -232,6 +252,7 @@ Shape.prototype.contains = function () {
 Shape.prototype.showContextMenu = function (mouse) {
     const l = gameManager.layerManager.getLayer();
     l.selection = [this];
+    this.onSelection();
     l.invalidate();
     const asset = this;
     $menu.show();
@@ -264,6 +285,7 @@ function BoundingRect(x, y, w, h) {
 }
 
 function Rect(x, y, w, h, fill, border, uuid) {
+    Shape.call(this);
     this.type = "rect";
     this.x = x || 0;
     this.y = y || 0;
@@ -272,7 +294,6 @@ function Rect(x, y, w, h, fill, border, uuid) {
     this.fill = fill || '#000';
     this.border = border || "rgba(0, 0, 0, 0)";
     this.uuid = uuid || uuidv4();
-    this.layer = null;
 }
 
 Rect.prototype = Object.create(Shape.prototype);
@@ -326,6 +347,7 @@ Rect.prototype.center = function (centerPoint) {
 };
 
 function Circle(x, y, r, fill, border, uuid) {
+    Shape.call(this);
     this.type = "circle";
     this.x = x || 0;
     this.y = y || 0;
@@ -333,7 +355,6 @@ function Circle(x, y, r, fill, border, uuid) {
     this.fill = fill || '#000';
     this.border = border || "rgba(0, 0, 0, 0)";
     this.uuid = uuid || uuidv4();
-    this.layer = null;
 }
 
 Circle.prototype = Object.create(Shape.prototype);
@@ -389,6 +410,7 @@ Circle.prototype.center = function (centerPoint) {
 };
 
 function Line(x1, y1, x2, y2, uuid) {
+    Shape.call(this);
     this.type = "line";
     this.x1 = x1;
     this.y1 = y1;
@@ -417,6 +439,7 @@ Line.prototype.draw = function (ctx) {
 };
 
 function Text(x, y, text, font, angle, uuid) {
+    Shape.call(this);
     this.type = "text";
     this.x = x;
     this.y = y;
@@ -442,6 +465,7 @@ Text.prototype.draw = function (ctx) {
 };
 
 function Asset(img, x, y, w, h, uuid) {
+    Shape.call(this);
     this.type = "asset";
     this.uuid = uuid || uuidv4();
     this.img = img;
@@ -777,6 +801,7 @@ LayerManager.prototype.onMouseDown = function (e) {
             const corn = shape.getCorner(mx, my);
             if (corn !== undefined) {
                 layer.selection = [shape];
+                shape.onSelection();
                 layer.resizing = true;
                 layer.resizedir = corn;
                 layer.invalidate();
@@ -786,8 +811,10 @@ LayerManager.prototype.onMouseDown = function (e) {
             } else if (shape.contains(mx, my)) {
                 const sel = shape;
                 const z = gameManager.layerManager.zoomFactor;
-                if (layer.selection.indexOf(sel) === -1)
+                if (layer.selection.indexOf(sel) === -1) {
                     layer.selection = [sel];
+                    sel.onSelection();
+                }
                 layer.dragging = true;
                 layer.dragoffx = mx - sel.x * z;
                 layer.dragoffy = my - sel.y * z;
@@ -1359,6 +1386,7 @@ function handleContextMenu(menu, shape) {
 const settings_menu = $("#menu");
 const locations_menu = $("#locations-menu");
 const layer_menu = $("#layerselect");
+$("#selection-menu").hide();
 
 $('#rm-settings').on("click", function () {
     // order of animation is important, it otherwise will sometimes show a small gap between the two objects

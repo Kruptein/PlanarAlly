@@ -11,16 +11,16 @@
             integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
     <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"
             integrity="sha256-VazP97ZCwtekAsvgPBSUwPFKdrwD3unUfSGVYrahUqU=" crossorigin="anonymous"></script>
-    <script src='/static/extern/js/spectrum.js'></script>
     <link rel='stylesheet' href='/static/extern/css/spectrum.css'/>
     <script>
         if (typeof jQuery === 'undefined') {
             document.write("<script src='/static/extern/js/jquery-3.3.1.min.js'>\x3C/script>");
             document.write("<script src='/static/extern/js/jquery-ui-1.12.1.min.js'>\x3C/script>");
             document.write("<link rel=\"stylesheet\" href=\"/static/extern/css/jquery-ui-1.12.1.css\">");
-            document.write("<script src='/static/extern/js/fontawesome_all.js'>\x3C/script>");
+            document.write("<script defer src='/static/extern/js/fontawesome_all.js'>\x3C/script>");
         }
     </script>
+    <script src='/static/extern/js/spectrum.js'></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.4/socket.io.js"></script>
     <script>if (typeof io === 'undefined') document.write("<script src='/static/extern/js/socket.io-2.0.4.js'>\x3C/script>");</script>
 </head>
@@ -111,21 +111,10 @@
 <div id="shapeselectiondialog" title="Edit asset">
     <form>
         <label for="name">Name</label>
-        <input type="text" name="name" id="name" style="grid-column: numerator / end">
-        <div class="spanrow">Trackers</div>
-        <input type="text" placeholder="name" value="Health">
-        <input type="text" title="Current value" value="50" width="20">
-        <span>/</span>
-        <input type="text" title="Max value" value="70">
-        <span></span>
-        <i class="fas fa-eye"></i>
-        <div class="spanrow">Auras</div>
-        <input type="text" placeholder="name" value="Darkvision">
-        <input type="text" title="Bright" name="email" id="emails" value="60">
-        <span></span>
-        <input type="text" title="Dim" name="email" id="emails" value="60">
-        <i class="fas fa-eye-slash"></i>
-        <i class="fas fa-eye"></i>
+        <input type="hidden" id="shapeselectiondialog-uuid">
+        <input type="text" id="shapeselectiondialog-name" style="grid-column: numerator / end">
+        <div class="spanrow" id="shapeselectiondialog-trackers">Trackers</div>
+        <div class="spanrow" id="shapeselectiondialog-auras">Auras</div>
         <input type="submit" tabindex="-1" style="position:absolute; top:-1000px">
     </form>
 </div>

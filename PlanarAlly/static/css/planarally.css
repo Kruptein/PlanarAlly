@@ -75,7 +75,7 @@ fieldset {
     border-bottom-left-radius: 20px;
     border: solid 1px;
     border-right: none;
-    padding: 10px;
+    padding: 10px 35px 10px 10px;
     background-color: white;
 }
 
@@ -520,7 +520,7 @@ input:checked + .slider:before {
 
 #shapeselectiondialog > form {
     display: grid;
-    grid-template-columns: [name] 1fr [numerator] 30px [slash] 5px [denominator] 30px [colour] 30px [visible] 30px [end];
+    grid-template-columns: [name] 1fr [numerator] 30px [slash] 5px [denominator] 30px [colour] 30px [visible] 30px [light] 30px [remove] 30px [end];
     grid-column-gap: 5px;
 }
 

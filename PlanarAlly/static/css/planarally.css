@@ -68,6 +68,7 @@ a, a:visited, a:hover, a:active {
     border-top-left-radius: 20px;
     border-bottom-left-radius: 20px;
     border: solid 1px;
+    border-right: none;
     padding: 10px;
     background-color: white;
 }
@@ -83,6 +84,12 @@ a, a:visited, a:hover, a:active {
 
 .selection-tracker-value, .selection-aura-value {
     justify-self: center;
+}
+
+#selection-name {
+    font-size: 20px;
+    font-weight: bold;
+    margin-bottom: 10px;
 }
 
 #board {

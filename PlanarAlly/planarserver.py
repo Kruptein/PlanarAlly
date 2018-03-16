@@ -204,6 +204,18 @@ async def move_shape(sid, data):
         await sio.emit("shapeMove", data['shape'], room=location.sioroom, skip_sid=sid, namespace='/planarally')
 
 
+@sio.on("updateShape", namespace='/planarally')
+@auth.login_required(app, sio)
+async def update_shape(sid, data):
+    username = app['AuthzPolicy'].sio_map[sid]['user'].username
+    room = app['AuthzPolicy'].sio_map[sid]['room']
+    location = room.get_active_location(username)
+    layer = location.layer_manager.get_layer(data['shape']['layer'])
+
+    layer.shapes[data['shape']['uuid']] = data['shape']
+    await sio.emit("updateShape", data, room=location.sioroom, skip_sid=sid, namespace='/planarally')
+
+
 @sio.on("client set", namespace='/planarally')
 @auth.login_required(app, sio)
 async def set_client(sid, data):

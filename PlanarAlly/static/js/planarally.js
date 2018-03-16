@@ -187,6 +187,11 @@ socket.on("shapeMove", function (shape) {
     shape = Object.assign(gameManager.layerManager.UUIDMap.get(shape.uuid), createShapeFromDict(shape, true));
     gameManager.layerManager.getLayer(shape.layer).onShapeMove(shape);
 });
+socket.on("updateShape", function (data) {
+    Object.assign(gameManager.layerManager.UUIDMap.get(data.shape.uuid), createShapeFromDict(data.shape, true));
+    if (data.redraw)
+        gameManager.layerManager.getLayer(data.shape.layer).invalidate();
+});
 socket.on("clear temporaries", function (shapes) {
     shapes.forEach(function (shape) {
         gameManager.layerManager.getLayer(shape.layer).removeShape(shape, false);
@@ -197,9 +202,9 @@ socket.on("clear temporaries", function (shapes) {
 
 function Shape() {
     this.layer = null;
-    this.name = 'Shape';
+    this.name = 'Unknown shape';
     this.trackers = [{'name': 'health', 'value': 50}];
-    this.auras = [{'name': 'darkvision', 'value': 60}];
+    this.auras = [];
 }
 Shape.prototype.getBoundingBox = function () {};
 Shape.prototype.onMouseUp = function () {
@@ -216,15 +221,49 @@ Shape.prototype.onSelection = function () {
     trackers.empty();
     this.trackers.forEach(function (tracker) {
         trackers.append($(`<div id="selection-tracker-${tracker.name}-name">${tracker.name}</div>`));
-        trackers.append($(`<div id="selection-tracker-${tracker.name}-value" class="selection-tracker-value">${tracker.value}</div>`));
+        trackers.append(
+            $(`<div id="selection-tracker-${tracker.name}-value" data-name="${tracker.name}" class="selection-tracker-value">${tracker.value}</div>`)
+        );
     });
     const auras = $("#selection-auras");
     auras.empty();
     this.auras.forEach(function (aura) {
         auras.append($(`<div id="selection-aura-${aura.name}-name">${aura.name}</div>`));
-        auras.append($(`<div id="selection-aura-${aura.name}-value" class="selection-aura-value"><input type="text" value="${aura.value}"></div>`));
+        auras.append(
+            $(`<div id="selection-aura-${aura.name}-value" data-name="${aura.name}" class="selection-aura-value">${aura.value}</div>`)
+        );
     });
     $("#selection-menu").show();
+    const self = this;
+    $('.selection-tracker-value').on("click", function () {
+        const name = $(this).data('name');
+        const tracker = self.trackers.find(t => t.name === name);
+        const new_tracker = prompt(`New  ${name} value: (absolute or relative)`);
+        if (new_tracker[0] === '+') {
+            tracker.value += parseInt(new_tracker.slice(1));
+        } else if (new_tracker[0] === '-') {
+            tracker.value -= parseInt(new_tracker.slice(1));
+        } else {
+            tracker.value = parseInt(new_tracker);
+        }
+        $(this).text(tracker.value);
+        socket.emit("updateShape", {shape: self.asDict(), redraw:false});
+    });
+    $('.selection-aura-value').on("click", function () {
+        const name = $(this).data('name');
+        const aura = self.auras.find(t => t.name === name);
+        const new_aura = prompt(`New  ${name} value: (absolute or relative)`);
+        if (new_aura[0] === '+') {
+            aura.value += parseInt(new_aura.slice(1));
+        } else if (new_aura[0] === '-') {
+            aura.value -= parseInt(new_aura.slice(1));
+        } else {
+            aura.value = parseInt(new_aura);
+        }
+        $(this).text(aura.value);
+        socket.emit("updateShape", {shape: self.asDict(), redraw:true});
+        gameManager.layerManager.getLayer(self.layer).invalidate();
+    });
 };
 Shape.prototype.onSelectionLoss = function () {
     // $(`#shapeselectioncog-${this.uuid}`).remove();
@@ -245,6 +284,14 @@ Shape.prototype.draw = function (ctx) {
         ctx.globalCompositeOperation = this.globalCompositeOperation;
     else
         ctx.globalCompositeOperation = "source-over";
+    const self = this;
+    this.auras.forEach(function (aura) {
+        ctx.beginPath();
+        ctx.fillStyle = "rgba(20, 20, 20, 0.2)";
+        const loc = w2l(self.center());
+        ctx.arc(loc.x, loc.y, aura.value * gameManager.layerManager.unitSize, 0, 2 * Math.PI);
+        ctx.fill();
+    });
 };
 Shape.prototype.contains = function () {
     return false;

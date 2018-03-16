@@ -235,6 +235,9 @@ Shape.prototype.onSelection = function () {
     });
     $("#selection-menu").show();
     const self = this;
+    $("#selection-edit-button").on("click", function (){
+        shapeSelectionDialog.dialog( "open" );
+    });
     $('.selection-tracker-value').on("click", function () {
         const name = $(this).data('name');
         const tracker = self.trackers.find(t => t.name === name);
@@ -1400,7 +1403,7 @@ function setSelectionInfo(shape) {
 const shapeSelectionDialog = $("#shapeselectiondialog").dialog({
     autoOpen: false,
     // height: 400,
-    width: 350,
+    width: 'auto',
     buttons: {
         "Create an account": alert,
         Cancel: function () {
@@ -1410,6 +1413,9 @@ const shapeSelectionDialog = $("#shapeselectiondialog").dialog({
     close: function () {
         // form[0].reset();
     }
+});
+shapeSelectionDialog.find("form").on("submit", function(event) {
+    event.preventDefault();
 });
 
 function handleContextMenu(menu, shape) {

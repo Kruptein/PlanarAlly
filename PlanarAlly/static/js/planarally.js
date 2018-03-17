@@ -244,6 +244,10 @@ Shape.prototype.onSelection = function () {
     });
     $("#selection-menu").show();
     const self = this;
+    if (this.owners.indexOf(gameManager.username) === -1 && !gameManager.IS_DM)
+        $("#selection-edit-button").hide();
+    else
+        $("#selection-edit-button").show();
     $("#selection-edit-button").on("click", function () {
         $("#shapeselectiondialog-uuid").val(self.uuid);
         const dialog_name = $("#shapeselectiondialog-name");

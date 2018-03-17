@@ -244,11 +244,12 @@ Shape.prototype.onSelection = function () {
     });
     $("#selection-menu").show();
     const self = this;
+    const editbutton = $("#selection-edit-button");
     if (this.owners.indexOf(gameManager.username) === -1 && !gameManager.IS_DM)
-        $("#selection-edit-button").hide();
+        editbutton.hide();
     else
-        $("#selection-edit-button").show();
-    $("#selection-edit-button").on("click", function () {
+        editbutton.show();
+    editbutton.on("click", function () {
         $("#shapeselectiondialog-uuid").val(self.uuid);
         const dialog_name = $("#shapeselectiondialog-name");
         dialog_name.val(self.name);

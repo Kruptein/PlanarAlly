@@ -216,7 +216,7 @@ async def update_shape(sid, data):
     orig_shape = layer.shapes[data['shape']['uuid']]
 
     if room.creator != username:
-        if username not in orig_shape.owners:
+        if username not in orig_shape['owners']:
             print(f"{username} attempted to change asset it does not own")
             return
 

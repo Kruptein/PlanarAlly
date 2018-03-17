@@ -136,11 +136,13 @@ async def claim_invite(request):
 @sio.on("add shape", namespace="/planarally")
 @auth.login_required(app, sio)
 async def add_shape(sid, data):
-    username = app['AuthzPolicy'].sio_map[sid]['user'].username
-    room = app['AuthzPolicy'].sio_map[sid]['room']
+    policy = app['AuthzPolicy']
+    username = policy.sio_map[sid]['user'].username
+    room = policy.sio_map[sid]['room']
     location = room.get_active_location(username)
 
     layer = location.layer_manager.get_layer(data['shape']['layer'])
+
     if room.creator != username and not layer.player_editable:
         print(f"{username} attempted to add a shape to a dm layer")
         return
@@ -149,7 +151,15 @@ async def add_shape(sid, data):
     else:
         layer.shapes[data['shape']['uuid']] = data['shape']
     if layer.player_visible:
-        await sio.emit("add shape", data['shape'], room=location.sioroom, skip_sid=sid, namespace='/planarally')
+        for player in room.players:
+            if player == username:
+                continue
+            psid = policy.get_sid(policy.user_map[player], room)
+            await sio.emit("add shape", shape_wrap(player, data['shape']), room=psid, namespace='/planarally')
+
+        if room.creator != username:
+            croom = policy.get_sid(policy.user_map[room.creator], room)
+            await sio.emit("add shape", data['shape'], room=croom, namespace='/planarally')
 
 
 @sio.on("remove shape", namespace="/planarally")
@@ -160,9 +170,20 @@ async def remove_shape(sid, data):
     location = room.get_active_location(username)
 
     layer = location.layer_manager.get_layer(data['shape']['layer'])
-    if room.creator != username and not layer.player_editable:
-        print(f"{username} attempted to remove a shape from a dm layer")
-        return
+
+    if data['temporary']:
+        orig_shape = data['shape']  # This stuff is not stored so we cannot do any server side validation /shrug
+    else:
+        orig_shape = layer.shapes[data['shape']['uuid']]
+
+    if room.creator != username:
+        if not layer.player_editable:
+            print(f"{username} attempted to remove a shape from a dm layer")
+            return
+        if username not in orig_shape['owners']:
+            print(f"{username} attempted to remove a shape it does not own")
+            return
+
     if data['temporary']:
         location.client_temporaries[sid].remove(data['shape']['uuid'])
     else:
@@ -246,13 +267,18 @@ async def update_shape(sid, data):
             return
 
     layer.shapes[data['shape']['uuid']] = data['shape']
+
     for player in room.players:
+        if player == username:
+            continue
         pl_data = dict(data)
         pl_data['shape'] = shape_wrap(player, data['shape'])
         psid = policy.get_sid(policy.user_map[player], room)
         await sio.emit("updateShape", pl_data, room=psid, namespace='/planarally')
-    croom = policy.get_sid(policy.user_map[room.creator], room)
-    await sio.emit("updateShape", data, room=croom, namespace='/planarally')
+
+    if room.creator != username:
+        croom = policy.get_sid(policy.user_map[room.creator], room)
+        await sio.emit("updateShape", data, room=croom, namespace='/planarally')
 
 
 @sio.on("client set", namespace='/planarally')

@@ -189,15 +189,7 @@ socket.on("shapeMove", function (shape) {
 });
 socket.on("updateShape", function (data) {
     const shape = Object.assign(gameManager.layerManager.UUIDMap.get(data.shape.uuid), createShapeFromDict(data.shape, true));
-    shape.auras.forEach(function (au) {
-        const ls = gameManager.layerManager.getLayer("fow").lightsources;
-        const i = ls.indexOf(au.uuid);
-        if (au.lightSource && i === -1) {
-            ls.push(au.uuid);
-        } else if (!au.lightSource && i >= 0) {
-            ls.splice(i, 1);
-        }
-    });
+    shape.checkLightSources();
     if (data.redraw)
         gameManager.layerManager.getLayer(data.shape.layer).invalidate();
 });
@@ -217,7 +209,17 @@ function Shape() {
     this.owners = []
 }
 
-Shape.prototype.getBoundingBox = function () {
+Shape.prototype.getBoundingBox = function () {};
+Shape.prototype.checkLightSources = function () {
+    this.auras.forEach(function (au) {
+        const ls = gameManager.layerManager.getLayer("fow").lightsources;
+        const i = ls.indexOf(au.uuid);
+        if (au.lightSource && i === -1) {
+            ls.push(au.uuid);
+        } else if (!au.lightSource && i >= 0) {
+            ls.splice(i, 1);
+        }
+    });
 };
 Shape.prototype.onMouseUp = function () {
     // $(`#shapeselectioncog-${this.uuid}`).remove();
@@ -744,26 +746,13 @@ function Asset(img, x, y, w, h, uuid) {
     this.y = y;
     this.w = w;
     this.h = h;
-    //this.vision = [new Rect(this.center().x - 30, this.center().y - 30, 60, 60, "rgba(20, 20, 20, 20)")];
-    // this.vision = [new Circle(this.center().x, this.center().y, 30, "rgba(20, 20, 20, 0.2)")];
-    this.vision = [];
 }
 
 Asset.prototype = Object.create(Rect.prototype);
 Asset.prototype.draw = function (ctx) {
-    this.vision.forEach(function (vis) {
-        vis.draw(ctx);
-    });
     Shape.prototype.draw.call(this, ctx);
     const z = gameManager.layerManager.zoomFactor;
     ctx.drawImage(this.img, w2lx(this.x), w2ly(this.y), this.w * z, this.h * z);
-};
-Asset.prototype.onMouseUp = function () {
-    const self = this;
-    this.vision.forEach(function (vis) {
-        vis.center(self.center());
-    });
-    Shape.prototype.onMouseUp.call(this);
 };
 
 // **** specific Layer State Management
@@ -834,6 +823,7 @@ LayerState.prototype.addShape = function (shape, sync, temporary) {
     if (temporary === undefined) temporary = false;
     shape.layer = this.name;
     this.shapes.push(shape);
+    shape.checkLightSources();
     if (sync) socket.emit("add shape", {shape: shape.asDict(), temporary: temporary});
     gameManager.layerManager.UUIDMap.set(shape.uuid, shape);
     this.invalidate();
@@ -844,6 +834,7 @@ LayerState.prototype.setShapes = function (shapes) {
     shapes.forEach(function (shape) {
         const sh = createShapeFromDict(shape, self);
         sh.layer = self.name;
+        sh.checkLightSources();
         gameManager.layerManager.UUIDMap.set(shape.uuid, sh);
         t.push(sh);
     });
@@ -961,14 +952,16 @@ FOWLayerState.prototype.onShapeMove = function (shape) {
     LayerState.prototype.onShapeMove.call(this, shape);
 };
 FOWLayerState.prototype.draw = function () {
-    LayerState.prototype.draw.call(this);
-    const ctx = this.ctx;
-    this.lightsources.forEach(function (uuid) {
-        // "Downcast" it to shape, we only care about the auras
-        const sh = Object.assign(new Shape(), gameManager.layerManager.UUIDMap.get(uuid));
-        sh.globalCompositeOperation = 'source-over';
-        sh.draw(ctx);
-    })
+    if (!this.valid) {
+        LayerState.prototype.draw.call(this);
+        const ctx = this.ctx;
+        this.lightsources.forEach(function (uuid) {
+            // "Downcast" it to shape, we only care about the auras
+            const sh = Object.assign(new Shape(), gameManager.layerManager.UUIDMap.get(uuid));
+            sh.globalCompositeOperation = 'destination-out';
+            sh.draw(ctx);
+        })
+    }
 };
 
 // **** Manager for working with multiple layers
@@ -1816,9 +1809,6 @@ function createShapeFromDict(shape, dummy) {
         img.onload = function () {
             gameManager.layerManager.getLayer(shape.layer).invalidate();
         };
-        for (let i = 0; i < sh.vision.length; i++) {
-            sh.vision[i] = createShapeFromDict(sh.vision[i], true);
-        }
     }
     return sh;
 }

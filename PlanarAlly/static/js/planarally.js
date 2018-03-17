@@ -228,7 +228,7 @@ Shape.prototype.onSelection = function () {
     trackers.empty();
     this.trackers.forEach(function (tracker) {
         const val = tracker.maxvalue ? `${tracker.value}/${tracker.maxvalue}` : tracker.value;
-        trackers.append($(`<div data-uuid="${tracker.uuid}">${tracker.name}</div>`));
+        trackers.append($(`<div id="selection-tracker-${tracker.uuid}-name" data-uuid="${tracker.uuid}">${tracker.name}</div>`));
         trackers.append(
             $(`<div id="selection-tracker-${tracker.uuid}-value" data-uuid="${tracker.uuid}" class="selection-tracker-value">${val}</div>`)
         );
@@ -237,9 +237,9 @@ Shape.prototype.onSelection = function () {
     auras.empty();
     this.auras.forEach(function (aura) {
         const val = aura.dim ? `${aura.value}/${aura.dim}` : aura.value;
-        auras.append($(`<div data-uuid="${aura.uuid}">${aura.name}</div>`));
+        auras.append($(`<div id="selection-aura-${aura.uuid}-name" data-uuid="${aura.uuid}">${aura.name}</div>`));
         auras.append(
-            $(`<div data-uuid="${aura.uuid}" class="selection-aura-value">${val}</div>`)
+            $(`<div id="selection-aura-${aura.uuid}-value" data-uuid="${aura.uuid}" class="selection-aura-value">${val}</div>`)
         );
     });
     $("#selection-menu").show();
@@ -331,7 +331,8 @@ Shape.prototype.onSelection = function () {
         function addAura(aura) {
             const aura_name = $(`<input type="text" placeholder="name" data-uuid="${aura.uuid}" class="shapeselectiondialog-name" value="${aura.name}" style="grid-column-start: name">`);
             const aura_val = $(`<input type="text" title="Current value" data-uuid="${aura.uuid}" value="${aura.value}">`);
-            const aura_dimval = $(`<input type="text" title="Max value" data-uuid="${aura.uuid}" value="${aura.maxvalue || ""}">`);
+            const aura_dimval = $(`<input type="text" title="Dim value" data-uuid="${aura.uuid}" value="${aura.dim || ""}">`);
+            const aura_colour = $(`<input type="text" title="Aura colour">`);
             const aura_visible = $(`<div data-uuid="${aura.uuid}"><i class="fas fa-eye"></i></div>`);
             const aura_remove = $(`<div data-uuid="${aura.uuid}"><i class="fas fa-trash-alt"></i></div>`);
 
@@ -340,13 +341,26 @@ Shape.prototype.onSelection = function () {
                     .add(aura_val)
                     .add(`<span data-uuid="${aura.uuid}">/</span>`)
                     .add(aura_dimval)
-                    .add(`<span data-uuid="${aura.uuid}"></span>`)
+                    .add(aura_colour)
                     .add(aura_visible)
                     .add(aura_remove)
             );
 
             if(!aura.visible)
                 aura_visible.css("opacity", 0.3);
+
+            aura_colour.spectrum({
+                showInput: true,
+                showAlpha: true,
+                color: aura.colour,
+                move: function (colour) {
+                    aura.colour = colour.toRgbString();
+                    gameManager.layerManager.getLayer(self.layer).invalidate();
+                },
+                change: function () {
+                    socket.emit("updateShape", {shape: self.asDict(), redraw: true});
+                }
+            });
 
             aura_name.on("change", function () {
                 const au = self.auras.find(a => a.uuid === $(this).data('uuid'));
@@ -376,7 +390,7 @@ Shape.prototype.onSelection = function () {
             });
             aura_dimval.on("change", function () {
                 const au = self.auras.find(t => t.uuid === $(this).data('uuid'));
-                au.maxvalue = $(this).val();
+                au.dim = $(this).val();
                 const val = au.dim ? `${au.value}/${au.dim}` : au.value;
                 $(`#selection-aura-${au.uuid}-value`).text(val);
                 socket.emit("updateShape", {shape: self.asDict(), redraw: true});
@@ -476,10 +490,18 @@ Shape.prototype.draw = function (ctx) {
     const self = this;
     this.auras.forEach(function (aura) {
         ctx.beginPath();
-        ctx.fillStyle = "rgba(20, 20, 20, 0.2)";
+        ctx.fillStyle = aura.colour;
         const loc = w2l(self.center());
         ctx.arc(loc.x, loc.y, aura.value * gameManager.layerManager.unitSize, 0, 2 * Math.PI);
         ctx.fill();
+        if (aura.dim) {
+            const tc = tinycolor(aura.colour);
+            ctx.beginPath();
+            ctx.fillStyle = tc.setAlpha(tc.getAlpha() / 2).toRgbString();
+            const loc = w2l(self.center());
+            ctx.arc(loc.x, loc.y, aura.dim * gameManager.layerManager.unitSize, 0, 2 * Math.PI);
+            ctx.fill();
+        }
     });
 };
 Shape.prototype.contains = function () {

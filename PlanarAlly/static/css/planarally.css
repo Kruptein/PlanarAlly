@@ -520,8 +520,9 @@ input:checked + .slider:before {
 
 #shapeselectiondialog > form {
     display: grid;
-    grid-template-columns: [name] 1fr [numerator] 30px [slash] 5px [denominator] 30px [colour] 30px [visible] 30px [light] 30px [remove] 30px [end];
+    grid-template-columns: [name] 1fr [numerator] 30px [slash] 5px [denominator] 30px [colour] 40px [visible] 30px [light] 30px [remove] 30px [end];
     grid-column-gap: 5px;
+    align-items: center;
 }
 
 #shapeselectiondialog .spanrow {
@@ -540,4 +541,8 @@ input:checked + .slider:before {
 
 #shapeselectiondialog span {
     text-align: center;
+}
+
+#shapeselectiondialog .sp-dd {
+    display: none;
 }

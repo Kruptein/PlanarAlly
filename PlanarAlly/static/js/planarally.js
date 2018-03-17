@@ -205,6 +205,7 @@ function Shape() {
     this.name = 'Unknown shape';
     this.trackers = [];
     this.auras = [];
+    this.owners = []
 }
 
 Shape.prototype.getBoundingBox = function () {
@@ -262,6 +263,7 @@ Shape.prototype.onSelection = function () {
             const tr_name = $(`<input type="text" placeholder="name" data-uuid="${tracker.uuid}" class="shapeselectiondialog-name" value="${tracker.name}" style="grid-column-start: name">`);
             const tr_val = $(`<input type="text" title="Current value" data-uuid="${tracker.uuid}" value="${tracker.value}">`);
             const tr_maxval = $(`<input type="text" title="Max value" data-uuid="${tracker.uuid}" value="${tracker.maxvalue || ""}">`);
+            const tr_visible = $(`<div data-uuid="${tracker.uuid}"><i class="fas fa-eye"></i></div>`);
             const tr_remove = $(`<div data-uuid="${tracker.uuid}"><i class="fas fa-trash-alt"></i></div>`);
 
             auras.before(
@@ -269,9 +271,13 @@ Shape.prototype.onSelection = function () {
                     .add(tr_val)
                     .add(`<span data-uuid="${tracker.uuid}">/</span>`)
                     .add(tr_maxval)
-                    .add(`<span data-uuid="${tracker.uuid}"></span></span><i class="fas fa-eye" data-uuid="${tracker.uuid}"></i>`)
+                    .add(`<span data-uuid="${tracker.uuid}"></span>`)
+                    .add(tr_visible)
                     .add(tr_remove)
             );
+
+            if(!tracker.visible)
+                tr_visible.css("opacity", 0.3);
 
             tr_name.on("change", function () {
                 const tr = self.trackers.find(t => t.uuid === $(this).data('uuid'));
@@ -304,6 +310,15 @@ Shape.prototype.onSelection = function () {
                 self.trackers.splice(self.trackers.indexOf(tr), 1);
                 socket.emit("updateShape", {shape: self.asDict(), redraw: false});
             });
+            tr_visible.on("click", function (){
+                const tr = self.trackers.find(t => t.uuid === $(this).data('uuid'));
+                if (tr.visible)
+                    $(this).css("opacity", 0.3);
+                else
+                    $(this).css("opacity", 1.0);
+                tr.visible = !tr.visible;
+                socket.emit("updateShape", {shape: self.asDict(), redraw: true});
+            });
         }
 
         self.trackers.forEach(addTracker);
@@ -312,6 +327,7 @@ Shape.prototype.onSelection = function () {
             const aura_name = $(`<input type="text" placeholder="name" data-uuid="${aura.uuid}" class="shapeselectiondialog-name" value="${aura.name}" style="grid-column-start: name">`);
             const aura_val = $(`<input type="text" title="Current value" data-uuid="${aura.uuid}" value="${aura.value}">`);
             const aura_dimval = $(`<input type="text" title="Max value" data-uuid="${aura.uuid}" value="${aura.maxvalue || ""}">`);
+            const aura_visible = $(`<div data-uuid="${aura.uuid}"><i class="fas fa-eye"></i></div>`);
             const aura_remove = $(`<div data-uuid="${aura.uuid}"><i class="fas fa-trash-alt"></i></div>`);
 
             $("#shapeselectiondialog").children().last().append(
@@ -319,9 +335,13 @@ Shape.prototype.onSelection = function () {
                     .add(aura_val)
                     .add(`<span data-uuid="${aura.uuid}">/</span>`)
                     .add(aura_dimval)
-                    .add(`<span data-uuid="${aura.uuid}"></span></span><i class="fas fa-eye" data-uuid="${aura.uuid}"></i>`)
+                    .add(`<span data-uuid="${aura.uuid}"></span>`)
+                    .add(aura_visible)
                     .add(aura_remove)
             );
+
+            if(!aura.visible)
+                aura_visible.css("opacity", 0.3);
 
             aura_name.on("change", function () {
                 const au = self.auras.find(a => a.uuid === $(this).data('uuid'));
@@ -364,6 +384,15 @@ Shape.prototype.onSelection = function () {
                 self.auras.splice(self.auras.indexOf(au), 1);
                 socket.emit("updateShape", {shape: self.asDict(), redraw: true});
                 gameManager.layerManager.getLayer(au.layer).invalidate();
+            });
+            aura_visible.on("click", function (){
+                const au = self.auras.find(t => t.uuid === $(this).data('uuid'));
+                if (au.visible)
+                    $(this).css("opacity", 0.3);
+                else
+                    $(this).css("opacity", 1.0);
+                au.visible = !au.visible;
+                socket.emit("updateShape", {shape: self.asDict(), redraw: true});
             });
         }
 
@@ -1249,6 +1278,7 @@ DrawTool.prototype.onMouseDown = function (e) {
     const borderColor = this.borderColor.spectrum("get");
     const border = borderColor === null ? tinycolor("transparent") : borderColor;
     this.rect = new Rect(this.startPoint.x, this.startPoint.y, 0, 0, fill.toRgbString(), border.toRgbString());
+    this.rect.owners.push(gameManager.username);
     layer.addShape(this.rect, true, false);
 };
 DrawTool.prototype.onMouseMove = function (e) {

@@ -207,13 +207,31 @@ async def move_shape(sid, data):
 @sio.on("updateShape", namespace='/planarally')
 @auth.login_required(app, sio)
 async def update_shape(sid, data):
-    username = app['AuthzPolicy'].sio_map[sid]['user'].username
-    room = app['AuthzPolicy'].sio_map[sid]['room']
+    policy = app['AuthzPolicy']
+    username = policy.sio_map[sid]['user'].username
+    room = policy.sio_map[sid]['room']
     location = room.get_active_location(username)
     layer = location.layer_manager.get_layer(data['shape']['layer'])
 
+    orig_shape = layer.shapes[data['shape']['uuid']]
+
+    if room.creator != username:
+        if username not in orig_shape.owners:
+            print(f"{username} attempted to change asset it does not own")
+            return
+
     layer.shapes[data['shape']['uuid']] = data['shape']
-    await sio.emit("updateShape", data, room=location.sioroom, skip_sid=sid, namespace='/planarally')
+    for player in room.players:
+        pl_shape = dict(data['shape'])
+        pl_shape['trackers'] = [t for t in data['shape']['trackers'] if player in pl_shape['owners'] or t['visible']]
+        pl_shape['auras'] = [a for a in data['shape']['auras'] if player in pl_shape['owners'] or a['visible']]
+        pl_data = {
+            'redraw': data['redraw'],
+            'shape': pl_shape
+        }
+        psid = policy.get_sid(policy.user_map[player], room)
+        await sio.emit("updateShape", pl_data, room=psid, namespace='/planarally')
+    await sio.emit("updateShape", data, room=policy.get_sid(policy.user_map[room.creator], room), namespace='/planarally')
 
 
 @sio.on("client set", namespace='/planarally')

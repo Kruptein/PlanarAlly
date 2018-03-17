@@ -449,7 +449,8 @@ Shape.prototype.onSelection = function () {
         } else {
             tracker.value = parseInt(new_tracker);
         }
-        $(this).text(tracker.value);
+        const val = tracker.maxvalue ? `${tracker.value}/${tracker.maxvalue}` : tracker.value;
+        $(this).text(val);
         socket.emit("updateShape", {shape: self.asDict(), redraw: false});
     });
     $('.selection-aura-value').on("click", function () {
@@ -463,7 +464,8 @@ Shape.prototype.onSelection = function () {
         } else {
             aura.value = parseInt(new_aura);
         }
-        $(this).text(aura.value);
+        const val = aura.dim ? `${aura.value}/${aura.dim}` : aura.value;
+        $(this).text(val);
         socket.emit("updateShape", {shape: self.asDict(), redraw: true});
         gameManager.layerManager.getLayer(self.layer).invalidate();
     });

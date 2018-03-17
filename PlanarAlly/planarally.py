@@ -123,6 +123,11 @@ class Room:
                 board['layers'].remove(l)
             if not l['player_editable']:
                 l['selectable'] = False
+            for i, shape in enumerate(l['shapes']):
+                pl_shape = dict(shape)
+                pl_shape['trackers'] = [t for t in shape['trackers'] if username in pl_shape['owners'] or t['visible']]
+                pl_shape['auras'] = [a for a in shape['auras'] if username in pl_shape['owners'] or a['visible']]
+                l['shapes'][i] = pl_shape
         d['board'] = board
         return d
 

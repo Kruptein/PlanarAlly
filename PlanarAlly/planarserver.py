@@ -190,18 +190,43 @@ async def move_shape_order(sid, data):
 @sio.on("shapeMove", namespace="/planarally")
 @auth.login_required(app, sio)
 async def move_shape(sid, data):
-    username = app['AuthzPolicy'].sio_map[sid]['user'].username
-    room = app['AuthzPolicy'].sio_map[sid]['room']
+    policy = app['AuthzPolicy']
+    username = policy.sio_map[sid]['user'].username
+    room = policy.sio_map[sid]['room']
     location = room.get_active_location(username)
 
     layer = location.layer_manager.get_layer(data['shape']['layer'])
-    if room.creator != username and not layer.player_editable:
-        print(f"{username} attempted to move a shape on a dm layer")
-        return
+
+    if data['temporary']:
+        orig_shape = data['shape']  # This stuff is not stored so we cannot do any server side validation /shrug
+    else:
+        orig_shape = layer.shapes[data['shape']['uuid']]
+
+    if room.creator != username:
+        if not layer.player_editable:
+            print(f"{username} attempted to move a shape on a dm layer")
+            return
+        if username not in orig_shape['owners']:
+            print(f"{username} attempted to move asset it does not own")
+            return
     if not data['temporary']:
         layer.shapes[data['shape']['uuid']] = data['shape']
     if layer.player_visible:
-        await sio.emit("shapeMove", data['shape'], room=location.sioroom, skip_sid=sid, namespace='/planarally')
+        for player in room.players:
+            psid = policy.get_sid(policy.user_map[player], room)
+            await sio.emit("shapeMove", shape_wrap(player, data['shape']), room=psid, namespace='/planarally')
+    croom = policy.get_sid(policy.user_map[room.creator], room)
+    await sio.emit("shapeMove", data['shape'], room=croom, namespace='/planarally')
+
+
+def shape_wrap(player, shape):
+    """
+    Helper function to make sure only data that the given player is allowed to see is sent.
+    """
+    pl_shape = dict(shape)
+    pl_shape['trackers'] = [t for t in shape['trackers'] if player in pl_shape['owners'] or t['visible']]
+    pl_shape['auras'] = [a for a in shape['auras'] if player in pl_shape['owners'] or a['visible']]
+    return pl_shape
 
 
 @sio.on("updateShape", namespace='/planarally')
@@ -222,16 +247,12 @@ async def update_shape(sid, data):
 
     layer.shapes[data['shape']['uuid']] = data['shape']
     for player in room.players:
-        pl_shape = dict(data['shape'])
-        pl_shape['trackers'] = [t for t in data['shape']['trackers'] if player in pl_shape['owners'] or t['visible']]
-        pl_shape['auras'] = [a for a in data['shape']['auras'] if player in pl_shape['owners'] or a['visible']]
-        pl_data = {
-            'redraw': data['redraw'],
-            'shape': pl_shape
-        }
+        pl_data = dict(data)
+        pl_data['shape'] = shape_wrap(player, data['shape'])
         psid = policy.get_sid(policy.user_map[player], room)
         await sio.emit("updateShape", pl_data, room=psid, namespace='/planarally')
-    await sio.emit("updateShape", data, room=policy.get_sid(policy.user_map[room.creator], room), namespace='/planarally')
+    croom = policy.get_sid(policy.user_map[room.creator], room)
+    await sio.emit("updateShape", data, room=croom, namespace='/planarally')
 
 
 @sio.on("client set", namespace='/planarally')
@@ -330,7 +351,8 @@ async def test_connect(sid, environ):
 
         sio.enter_room(sid, location.sioroom, namespace='/planarally')
         await sio.emit("set username", username, room=sid, namespace='/planarally')
-        await sio.emit("set clientOptions", app['AuthzPolicy'].user_map[username].options, room=sid, namespace='/planarally')
+        await sio.emit("set clientOptions", app['AuthzPolicy'].user_map[username].options, room=sid,
+                       namespace='/planarally')
         if room.creator == username:
             await sio.emit("set roomOptions", room.options, room=sid, namespace='/planarally')
         await sio.emit('board init', room.get_board(username), room=sid, namespace='/planarally')
@@ -367,7 +389,6 @@ app.router.add_get('/rooms/{username}/{roomname}', show_room)
 app.router.add_get('/invite/{code}', claim_invite)
 app.router.add_post('/create_room', create_room)
 app.router.add_get('/logout', logout)
-
 
 if __name__ == '__main__':
     if os.path.isdir("cert"):

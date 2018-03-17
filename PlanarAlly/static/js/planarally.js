@@ -188,7 +188,16 @@ socket.on("shapeMove", function (shape) {
     gameManager.layerManager.getLayer(shape.layer).onShapeMove(shape);
 });
 socket.on("updateShape", function (data) {
-    Object.assign(gameManager.layerManager.UUIDMap.get(data.shape.uuid), createShapeFromDict(data.shape, true));
+    const shape = Object.assign(gameManager.layerManager.UUIDMap.get(data.shape.uuid), createShapeFromDict(data.shape, true));
+    shape.auras.forEach(function (au) {
+        const ls = gameManager.layerManager.getLayer("fow").lightsources;
+        const i = ls.indexOf(au.uuid);
+        if (au.lightSource && i === -1) {
+            ls.push(au.uuid);
+        } else if (!au.lightSource && i >= 0) {
+            ls.splice(i, 1);
+        }
+    });
     if (data.redraw)
         gameManager.layerManager.getLayer(data.shape.layer).invalidate();
 });
@@ -278,6 +287,7 @@ Shape.prototype.onSelection = function () {
                     .add(tr_maxval)
                     .add(`<span data-uuid="${tracker.uuid}"></span>`)
                     .add(tr_visible)
+                    .add(`<span data-uuid="${tracker.uuid}"></span>`)
                     .add(tr_remove)
             );
 
@@ -332,8 +342,9 @@ Shape.prototype.onSelection = function () {
             const aura_name = $(`<input type="text" placeholder="name" data-uuid="${aura.uuid}" class="shapeselectiondialog-name" value="${aura.name}" style="grid-column-start: name">`);
             const aura_val = $(`<input type="text" title="Current value" data-uuid="${aura.uuid}" value="${aura.value}">`);
             const aura_dimval = $(`<input type="text" title="Dim value" data-uuid="${aura.uuid}" value="${aura.dim || ""}">`);
-            const aura_colour = $(`<input type="text" title="Aura colour">`);
+            const aura_colour = $(`<input type="text" title="Aura colour" data-uuid="${aura.uuid}">`);
             const aura_visible = $(`<div data-uuid="${aura.uuid}"><i class="fas fa-eye"></i></div>`);
+            const aura_light = $(`<div data-uuid="${aura.uuid}"><i class="fas fa-lightbulb"></i></div>`);
             const aura_remove = $(`<div data-uuid="${aura.uuid}"><i class="fas fa-trash-alt"></i></div>`);
 
             $("#shapeselectiondialog").children().last().append(
@@ -343,18 +354,23 @@ Shape.prototype.onSelection = function () {
                     .add(aura_dimval)
                     .add(aura_colour)
                     .add(aura_visible)
+                    .add(aura_light)
                     .add(aura_remove)
             );
 
             if(!aura.visible)
                 aura_visible.css("opacity", 0.3);
+            if(!aura.lightSource)
+                aura_light.css("opacity", 0.3);
 
             aura_colour.spectrum({
                 showInput: true,
                 showAlpha: true,
                 color: aura.colour,
                 move: function (colour) {
-                    aura.colour = colour.toRgbString();
+                    const au = self.auras.find(a => a.uuid === $(this).data('uuid'));
+                    // Do not use aura directly as it does not work properly for new auras
+                    au.colour = colour.toRgbString();
                     gameManager.layerManager.getLayer(self.layer).invalidate();
                 },
                 change: function () {
@@ -406,35 +422,30 @@ Shape.prototype.onSelection = function () {
             });
             aura_visible.on("click", function (){
                 const au = self.auras.find(t => t.uuid === $(this).data('uuid'));
-                if (au.visible)
-                    $(this).css("opacity", 0.3);
-                else
-                    $(this).css("opacity", 1.0);
                 au.visible = !au.visible;
+                if (au.visible)
+                    $(this).css("opacity", 1.0);
+                else
+                    $(this).css("opacity", 0.3);
+                socket.emit("updateShape", {shape: self.asDict(), redraw: true});
+            });
+            aura_light.on("click", function (){
+                const au = self.auras.find(t => t.uuid === $(this).data('uuid'));
+                au.lightSource = !au.lightSource;
+                const ls = gameManager.layerManager.getLayer("fow").lightsources;
+                if (au.lightSource) {
+                    $(this).css("opacity", 1.0);
+                    ls.push(au.uuid);
+                } else {
+                    $(this).css("opacity", 0.3);
+                    if (ls.indexOf(au.uuid) >= 0)
+                        ls.splice(ls.indexOf(au.uuid), 1);
+                }
                 socket.emit("updateShape", {shape: self.asDict(), redraw: true});
             });
         }
 
         self.auras.forEach(addAura);
-
-        // const newtr_name = $(`<input type="text" placeholder="name" value="" style="grid-column-start: name">`);
-        // const newtr_val =
-        // auras.before(
-        // <input type="text" title="Current value" value="">
-        // <span>/</span>
-        // <input type="text" title="Max value" value="">
-        // <span></span>
-        // <i class="fas fa-eye"></i>`));
-
-        // self.auras.forEach(function (aura) {
-        //     auras.after($(`<input type="text" placeholder="name" value="{aura.name}">
-        // <input type="text" title="Bright" name="email" id="emails" value="${aura.value}">
-        // <span></span>
-        // <input type="text" title="Dim" name="email" id="emails" value="${aura.dimvalue || ""}">
-        // <i class="fas fa-eye-slash"></i>
-        // <i class="fas fa-eye"></i>
-        // <i class="fas fa-lightbulb"></i>`));
-        // });
 
         shapeSelectionDialog.dialog("open");
     });
@@ -867,6 +878,7 @@ LayerState.prototype.draw = function () {
         });
 
         if (this.selection != null) {
+            ctx.fillStyle = this.selectionColor;
             ctx.strokeStyle = this.selectionColor;
             ctx.lineWidth = this.selectionWidth;
             const z = gameManager.layerManager.zoomFactor;
@@ -929,6 +941,7 @@ GridLayerState.prototype.invalidate = function () {
 
 function FOWLayerState(canvas, name) {
     LayerState.call(this, canvas, name);
+    this.lightsources = [];
 }
 
 FOWLayerState.prototype = Object.create(LayerState.prototype);
@@ -946,6 +959,16 @@ FOWLayerState.prototype.setShapes = function (shapes) {
 FOWLayerState.prototype.onShapeMove = function (shape) {
     shape.fill = fowColour.spectrum("get").toRgbString();
     LayerState.prototype.onShapeMove.call(this, shape);
+};
+FOWLayerState.prototype.draw = function () {
+    LayerState.prototype.draw.call(this);
+    const ctx = this.ctx;
+    this.lightsources.forEach(function (uuid) {
+        // "Downcast" it to shape, we only care about the auras
+        const sh = Object.assign(new Shape(), gameManager.layerManager.UUIDMap.get(uuid));
+        sh.globalCompositeOperation = 'source-over';
+        sh.draw(ctx);
+    })
 };
 
 // **** Manager for working with multiple layers
@@ -1060,6 +1083,7 @@ LayerManager.prototype.onMouseDown = function (e) {
             const shape = selectionStack[i];
             const corn = shape.getCorner(mx, my);
             if (corn !== undefined) {
+                if (shape.owners.indexOf(gameManager.username) === -1 && !gameManager.IS_DM) break;
                 layer.selection = [shape];
                 shape.onSelection();
                 layer.resizing = true;
@@ -1069,6 +1093,7 @@ LayerManager.prototype.onMouseDown = function (e) {
                 setSelectionInfo(shape);
                 break;
             } else if (shape.contains(mx, my)) {
+                if (shape.owners.indexOf(gameManager.username) === -1 && !gameManager.IS_DM) break;
                 const sel = shape;
                 const z = gameManager.layerManager.zoomFactor;
                 if (layer.selection.indexOf(sel) === -1) {
@@ -1184,6 +1209,7 @@ LayerManager.prototype.onMouseUp = function (e) {
         layer.shapes.data.forEach(function (shape) {
             if (shape === layer.selectionHelper) return;
             const bbox = shape.getBoundingBox();
+            if (shape.owners.indexOf(gameManager.username) === -1 && !gameManager.IS_DM) return;
             if (layer.selectionHelper.x <= bbox.x + bbox.w &&
                 layer.selectionHelper.x + layer.selectionHelper.w >= bbox.x &&
                 layer.selectionHelper.y <= bbox.y + bbox.h &&

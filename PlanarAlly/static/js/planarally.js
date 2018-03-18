@@ -864,7 +864,6 @@ LayerState.prototype.invalidate = function (skipLightUpdate) {
     this.valid = false;
     skipLightUpdate = skipLightUpdate || false;
     if(!skipLightUpdate && this.name !== "fow") {
-        console.log("Recalcing FOW");
         const fow = gameManager.layerManager.getLayer("fow");
         if (fow !== undefined)
             fow.invalidate(true);

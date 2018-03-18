@@ -1026,6 +1026,7 @@ FOWLayerState.prototype.draw = function () {
             // This to prevent as many ray calculations as possible
             const local_lightblockers = [];
             gameManager.lightblockers.forEach(function (lb) {
+                if (lb === sh.uuid) return;
                 const lb_sh = gameManager.layerManager.UUIDMap.get(lb);
                 const lb_bb = lb_sh.getBoundingBox();
                 if (lb_bb.intersectsWith(bbox))

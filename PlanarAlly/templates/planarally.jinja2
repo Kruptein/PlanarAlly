@@ -110,9 +110,11 @@
 </div>
 <div id="shapeselectiondialog" title="Edit asset">
     <form>
-        <label for="name">Name</label>
+        <label for="shapeselectiondialog-name">Name</label>
         <input type="hidden" id="shapeselectiondialog-uuid">
         <input type="text" id="shapeselectiondialog-name" style="grid-column: numerator / end">
+        <label for="shapeselectiondialog-lightblocker">Blocks vision/light</label>
+        <input type="checkbox" id="shapeselectiondialog-lightblocker" style="grid-column-start: remove;width:15px;height:15px;">
         <div class="spanrow" id="shapeselectiondialog-trackers">Trackers</div>
         <div class="spanrow" id="shapeselectiondialog-auras">Auras</div>
         <input type="submit" tabindex="-1" style="position:absolute; top:-1000px">

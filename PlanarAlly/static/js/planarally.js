@@ -277,6 +277,13 @@ Shape.prototype.onSelection = function () {
             $("#selection-name").text($(this).val());
             socket.emit("updateShape", {shape: self.asDict(), redraw: false})
         });
+        const dialog_lightblock = $("#shapeselectiondialog-lightblocker");
+        dialog_lightblock.prop("checked", self.visionObstruction);
+        dialog_lightblock.on("click", function () {
+            const s = gameManager.layerManager.UUIDMap.get($("#shapeselectiondialog-uuid").val());
+            s.visionObstruction = dialog_lightblock.prop("checked");
+            s.checkLightSources();
+        });
 
         const trackers = $("#shapeselectiondialog-trackers");
         const auras = $("#shapeselectiondialog-auras");

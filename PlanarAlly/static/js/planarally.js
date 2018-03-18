@@ -388,7 +388,7 @@ Shape.prototype.onSelection = function () {
                     const au = self.auras.find(a => a.uuid === $(this).data('uuid'));
                     // Do not use aura directly as it does not work properly for new auras
                     au.colour = colour.toRgbString();
-                    gameManager.layerManager.getLayer(self.layer).invalidate();
+                    gameManager.layerManager.getLayer(self.layer).invalidate(true);
                 },
                 change: function () {
                     socket.emit("updateShape", {shape: self.asDict(), redraw: true});
@@ -546,7 +546,7 @@ Shape.prototype.showContextMenu = function (mouse) {
     const l = gameManager.layerManager.getLayer();
     l.selection = [this];
     this.onSelection();
-    l.invalidate();
+    l.invalidate(true);
     const asset = this;
     $menu.show();
     $menu.empty();
@@ -860,12 +860,14 @@ function LayerState(canvas, name) {
     }, state.interval);
 }
 
-LayerState.prototype.invalidate = function () {
+LayerState.prototype.invalidate = function (skipLightUpdate) {
     this.valid = false;
-    if(this.name !== "fow") {
+    skipLightUpdate = skipLightUpdate || false;
+    if(!skipLightUpdate && this.name !== "fow") {
+        console.log("Recalcing FOW");
         const fow = gameManager.layerManager.getLayer("fow");
         if (fow !== undefined)
-            fow.invalidate();
+            fow.invalidate(true);
     }
 };
 LayerState.prototype.addShape = function (shape, sync, temporary) {
@@ -876,7 +878,7 @@ LayerState.prototype.addShape = function (shape, sync, temporary) {
     shape.checkLightSources();
     if (sync) socket.emit("add shape", {shape: shape.asDict(), temporary: temporary});
     gameManager.layerManager.UUIDMap.set(shape.uuid, shape);
-    this.invalidate();
+    this.invalidate(!sync);
 };
 LayerState.prototype.setShapes = function (shapes) {
     const t = [];
@@ -906,7 +908,7 @@ LayerState.prototype.removeShape = function (shape, sync, temporary) {
         gameManager.lightblockers.splice(lb_i, 1);
     gameManager.layerManager.UUIDMap.delete(shape.uuid);
     if (this.selection === shape) this.selection = null;
-    this.invalidate();
+    this.invalidate(!sync);
 };
 LayerState.prototype.clear = function () {
     this.ctx.clearRect(0, 0, this.width, this.height);
@@ -970,7 +972,7 @@ LayerState.prototype.getMouse = function (e) {
 LayerState.prototype.moveShapeOrder = function (shape, destinationIndex, sync) {
     if (this.shapes.moveTo(shape, destinationIndex)) {
         if (sync) socket.emit("moveShapeOrder", {shape: shape.asDict(), index: destinationIndex});
-        this.invalidate();
+        this.invalidate(true);
     }
 };
 LayerState.prototype.onShapeMove = function () {
@@ -1009,7 +1011,7 @@ FOWLayerState.prototype.onShapeMove = function (shape) {
     LayerState.prototype.onShapeMove.call(this, shape);
 };
 FOWLayerState.prototype.draw = function () {
-    if (!this.valid) {
+    if (board_initialised && !this.valid) {
         LayerState.prototype.draw.call(this);
         const ctx = this.ctx;
         const orig_op = ctx.globalCompositeOperation;
@@ -1032,8 +1034,6 @@ FOWLayerState.prototype.draw = function () {
                 if (lb_bb.intersectsWith(bbox))
                     local_lightblockers.push(lb_bb);
             });
-
-            // TODO: Track distances to objects, as multiple objects could block light in the same ray
 
             ctx.beginPath();
             ctx.fillStyle = "black";
@@ -1137,7 +1137,7 @@ LayerManager.prototype.setLayer = function (name) {
         }
 
         layer.selection = [];
-        layer.invalidate();
+        layer.invalidate(true);
     });
 };
 LayerManager.prototype.getGridLayer = function () {
@@ -1199,7 +1199,7 @@ LayerManager.prototype.onMouseDown = function (e) {
                 shape.onSelection();
                 layer.resizing = true;
                 layer.resizedir = corn;
-                layer.invalidate();
+                layer.invalidate(true);
                 hit = true;
                 setSelectionInfo(shape);
                 break;
@@ -1215,7 +1215,7 @@ LayerManager.prototype.onMouseDown = function (e) {
                 layer.dragoffx = mx - sel.x * z;
                 layer.dragoffy = my - sel.y * z;
                 setSelectionInfo(shape);
-                layer.invalidate();
+                layer.invalidate(true);
                 hit = true;
                 break;
             }
@@ -1230,7 +1230,7 @@ LayerManager.prototype.onMouseDown = function (e) {
             layer.selectionStartPoint = l2w(layer.getMouse(e));
             layer.selectionHelper = new Rect(layer.selectionStartPoint.x, layer.selectionStartPoint.y, 0, 0, "rgba(0,0,0,0)", "black");
             layer.addShape(layer.selectionHelper, false, false);
-            layer.invalidate();
+            layer.invalidate(true);
         }
     } else if (tools[gameManager.selectedTool].name === 'pan') {
         layer.panning = true;
@@ -1252,7 +1252,7 @@ LayerManager.prototype.onMouseMove = function (e) {
         layer.selectionHelper.h = Math.abs(endPoint.y - layer.selectionStartPoint.y);
         layer.selectionHelper.x = Math.min(layer.selectionStartPoint.x, endPoint.x);
         layer.selectionHelper.y = Math.min(layer.selectionStartPoint.y, endPoint.y);
-        layer.invalidate();
+        layer.invalidate(true);
     } else if (layer.panning) {
         gameManager.layerManager.panX += Math.round((mouse.x - layer.dragoffx) / z);
         gameManager.layerManager.panY += Math.round((mouse.y - layer.dragoffy) / z);
@@ -1336,7 +1336,7 @@ LayerManager.prototype.onMouseUp = function (e) {
 
         layer.removeShape(layer.selectionHelper, false, false);
         layer.selectionStartPoint = null;
-        layer.invalidate();
+        layer.invalidate(true);
     } else if (layer.selection.length) {
         layer.selection.forEach(function (sel) {
             if (!e.altKey && layer.dragging) {
@@ -1504,7 +1504,7 @@ RulerTool.prototype.onMouseMove = function (e) {
     this.text.text = label;
     this.text.angle = angle;
     socket.emit("shapeMove", {shape: this.text.asDict(), temporary: true});
-    layer.invalidate();
+    layer.invalidate(true);
 };
 RulerTool.prototype.onMouseUp = function () {
     if (this.startPoint === null) return;
@@ -1514,7 +1514,7 @@ RulerTool.prototype.onMouseUp = function () {
     layer.removeShape(this.text, true, true);
     this.ruler = null;
     this.text = null;
-    layer.invalidate();
+    layer.invalidate(true);
 };
 
 function FOWTool() {

@@ -520,14 +520,14 @@ Shape.prototype.drawAuras = function (ctx) {
         ctx.beginPath();
         ctx.fillStyle = gameManager.layerManager.getLayer("fow").ctx === ctx ? "black" : aura.colour;
         const loc = w2l(self.center());
-        ctx.arc(loc.x, loc.y, (aura.value / gameManager.layerManager.unitSize) * gameManager.layerManager.gridSize, 0, 2 * Math.PI);
+        ctx.arc(loc.x, loc.y, w2lr(aura.value), 0, 2 * Math.PI);
         ctx.fill();
         if (aura.dim) {
             const tc = tinycolor(aura.colour);
             ctx.beginPath();
             ctx.fillStyle = tc.setAlpha(tc.getAlpha() / 2).toRgbString();
             const loc = w2l(self.center());
-            ctx.arc(loc.x, loc.y, (aura.dim / gameManager.layerManager.unitSize) * gameManager.layerManager.gridSize, 0, 2 * Math.PI);
+            ctx.arc(loc.x, loc.y, w2lr(aura.dim), 0, 2 * Math.PI);
             ctx.fill();
         }
     });
@@ -1010,8 +1010,9 @@ FOWLayerState.prototype.draw = function () {
         gameManager.lightsources.forEach(function (ls) {
             const sh = gameManager.layerManager.UUIDMap.get(ls.shape);
             const aura = sh.auras.find(a => a.uuid === ls.aura);
-            const aura_length = (aura.value / gameManager.layerManager.unitSize) * gameManager.layerManager.gridSize;
+            const aura_length = getUnitDistance(aura.value);
             const center = sh.center();
+            const lcenter = w2l(center);
             const bbox = new Circle(center.x, center.y, aura_length).getBoundingBox();
 
             // We first collect all lightblockers that are inside/cross our aura
@@ -1028,7 +1029,6 @@ FOWLayerState.prototype.draw = function () {
 
             ctx.beginPath();
             ctx.fillStyle = "black";
-            const loc = w2l(center);
 
             let arc_start = 0;
 
@@ -1051,19 +1051,22 @@ FOWLayerState.prototype.draw = function () {
                 if (hit.intersect === null){
                     if (arc_start === -1){
                         arc_start = angle;
-                        ctx.lineTo(center.x + aura_length * Math.cos(angle), center.y + aura_length * Math.sin(angle));
+                        ctx.lineTo(
+                            w2lx(center.x + aura_length * Math.cos(angle)),
+                            w2ly(center.y + aura_length * Math.sin(angle))
+                        );
                     }
                     continue;
                 }
                 // If hit , first finish any ongoing arc, then move to the intersection point
                 if (arc_start !== -1) {
-                    ctx.arc(loc.x, loc.y, aura_length, arc_start, angle);
+                    ctx.arc(lcenter.x, lcenter.y, w2lr(aura.value), arc_start, angle);
                     arc_start = -1;
                 }
-                ctx.lineTo(hit.intersect.x, hit.intersect.y);
+                ctx.lineTo(w2lx(hit.intersect.x), w2ly(hit.intersect.y));
             }
             if (arc_start !== -1)
-                ctx.arc(loc.x, loc.y, aura_length, arc_start, 2*Math.PI);
+                ctx.arc(lcenter.x, lcenter.y, w2lr(aura.value), arc_start, 2*Math.PI);
 
             ctx.fill();
         });
@@ -1861,6 +1864,14 @@ function w2lx(x) {
 
 function w2ly(y) {
     return w2l({x: 0, y: y}).y;
+}
+
+function getUnitDistance(r) {
+    return (r / gameManager.layerManager.unitSize) * gameManager.layerManager.gridSize;
+}
+
+function w2lr(r) {
+    return getUnitDistance(r) * gameManager.layerManager.zoomFactor;
 }
 
 function l2w(obj) {

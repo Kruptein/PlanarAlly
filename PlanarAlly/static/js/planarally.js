@@ -215,9 +215,9 @@ Shape.prototype.checkLightSources = function () {
     const self = this;
     this.auras.forEach(function (au) {
         const ls = gameManager.lightsources;
-        const i = ls.indexOf(self.uuid);
+        const i = ls.findIndex(o => o.aura === au.uuid);
         if (au.lightSource && i === -1) {
-            ls.push(self.uuid);
+            ls.push({shape: self.uuid, aura: au.uuid});
         } else if (!au.lightSource && i >= 0) {
             ls.splice(i, 1);
         }
@@ -440,13 +440,15 @@ Shape.prototype.onSelection = function () {
                 const au = self.auras.find(t => t.uuid === $(this).data('uuid'));
                 au.lightSource = !au.lightSource;
                 const ls = gameManager.lightsources;
+                const i = ls.findIndex(o => o.aura === au.uuid);
                 if (au.lightSource) {
                     $(this).css("opacity", 1.0);
-                    ls.push(self.uuid);
+                    if (i === -1)
+                        ls.push({shape: self.uuid, aura: au.uuid});
                 } else {
                     $(this).css("opacity", 0.3);
-                    if (ls.indexOf(self.uuid) >= 0)
-                        ls.splice(ls.indexOf(self.uuid), 1);
+                    if (i >= 0)
+                        ls.splice(i, 1);
                 }
                 socket.emit("updateShape", {shape: self.asDict(), redraw: true});
             });
@@ -512,7 +514,6 @@ Shape.prototype.draw = function (ctx) {
 Shape.prototype.drawAuras = function (ctx) {
     const self = this;
     this.auras.forEach(function (aura) {
-        if (gameManager.layerManager.getLayer("fow").ctx === ctx && !aura.lightSource) return;
         ctx.beginPath();
         ctx.fillStyle = gameManager.layerManager.getLayer("fow").ctx === ctx ? "black" : aura.colour;
         const loc = w2l(self.center());
@@ -965,9 +966,22 @@ FOWLayerState.prototype.draw = function () {
         const ctx = this.ctx;
         const orig_op = ctx.globalCompositeOperation;
         ctx.globalCompositeOperation = 'destination-out';
-        gameManager.lightsources.forEach(function (uuid) {
-            const sh = gameManager.layerManager.UUIDMap.get(uuid);
-            sh.drawAuras(ctx);
+        gameManager.lightsources.forEach(function (ls) {
+            const sh = gameManager.layerManager.UUIDMap.get(ls.shape);
+            const aura = sh.auras.find(a => a.uuid === ls.aura);
+            ctx.beginPath();
+            ctx.fillStyle = "black";
+            const loc = w2l(sh.center());
+            ctx.arc(loc.x, loc.y, aura.value * gameManager.layerManager.unitSize, 0, 2 * Math.PI);
+            ctx.fill();
+            if (aura.dim) {
+                const tc = tinycolor(aura.colour);
+                ctx.beginPath();
+                ctx.fillStyle = tc.setAlpha(tc.getAlpha() / 2).toRgbString();
+                const loc = w2l(sh.center());
+                ctx.arc(loc.x, loc.y, aura.dim * gameManager.layerManager.unitSize, 0, 2 * Math.PI);
+                ctx.fill();
+            }
         });
         ctx.globalCompositeOperation = orig_op;
     }

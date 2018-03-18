@@ -157,9 +157,9 @@ async def add_shape(sid, data):
             psid = policy.get_sid(policy.user_map[player], room)
             await sio.emit("add shape", shape_wrap(player, data['shape']), room=psid, namespace='/planarally')
 
-        if room.creator != username:
-            croom = policy.get_sid(policy.user_map[room.creator], room)
-            await sio.emit("add shape", data['shape'], room=croom, namespace='/planarally')
+    if room.creator != username:
+        croom = policy.get_sid(policy.user_map[room.creator], room)
+        await sio.emit("add shape", data['shape'], room=croom, namespace='/planarally')
 
 
 @sio.on("remove shape", namespace="/planarally")
@@ -234,10 +234,13 @@ async def move_shape(sid, data):
         layer.shapes[data['shape']['uuid']] = data['shape']
     if layer.player_visible:
         for player in room.players:
+            if player == username:
+                continue
             psid = policy.get_sid(policy.user_map[player], room)
             await sio.emit("shapeMove", shape_wrap(player, data['shape']), room=psid, namespace='/planarally')
-    croom = policy.get_sid(policy.user_map[room.creator], room)
-    await sio.emit("shapeMove", data['shape'], room=croom, namespace='/planarally')
+    if room.creator != username:
+        croom = policy.get_sid(policy.user_map[room.creator], room)
+        await sio.emit("shapeMove", data['shape'], room=croom, namespace='/planarally')
 
 
 def shape_wrap(player, shape):

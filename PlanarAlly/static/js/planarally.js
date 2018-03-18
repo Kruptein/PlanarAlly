@@ -1173,7 +1173,7 @@ LayerManager.prototype.setGridSize = function (gridSize) {
 };
 LayerManager.prototype.invalidate = function () {
     for (let i = 0; i < this.layers.length; i++) {
-        this.layers[i].invalidate();
+        this.layers[i].invalidate(true);
     }
 };
 LayerManager.prototype.onMouseDown = function (e) {
@@ -1268,8 +1268,10 @@ LayerManager.prototype.onMouseMove = function (e) {
             if (layer.dragging) {
                 sel.x += dx / z;
                 sel.y += dy / z;
-                socket.emit("shapeMove", {shape: sel.asDict(), temporary: true});
-                setSelectionInfo(sel);
+                if (sel !== layer.selectionHelper) {
+                    socket.emit("shapeMove", {shape: sel.asDict(), temporary: true});
+                    setSelectionInfo(sel);
+                }
                 layer.invalidate();
             } else if (layer.resizing) {
                 if (layer.resizedir === 'nw') {
@@ -1291,8 +1293,10 @@ LayerManager.prototype.onMouseMove = function (e) {
                 }
                 sel.w /= z;
                 sel.h /= z;
-                socket.emit("shapeMove", {shape: sel.asDict(), temporary: true});
-                setSelectionInfo(sel);
+                if (sel !== layer.selectionHelper) {
+                    socket.emit("shapeMove", {shape: sel.asDict(), temporary: true});
+                    setSelectionInfo(sel);
+                }
                 layer.invalidate();
             } else if (sel) {
                 if (sel.inCorner(mouse.x, mouse.y, "nw")) {

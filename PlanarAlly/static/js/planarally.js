@@ -228,9 +228,6 @@ Shape.prototype.checkLightSources = function () {
             ls.splice(i, 1);
         }
     });
-    const fow = gameManager.layerManager.getLayer("fow");
-    if (fow !== undefined)
-        fow.invalidate();
 };
 Shape.prototype.onMouseUp = function () {
     // $(`#shapeselectioncog-${this.uuid}`).remove();
@@ -244,7 +241,7 @@ Shape.prototype.onSelection = function () {
     if (!this.trackers.length || this.trackers[this.trackers.length - 1].name !== '' || this.trackers[this.trackers.length - 1].value !== '')
         this.trackers.push({uuid: uuidv4(), name: '', value: '', maxvalue: '', visible: false});
     if (!this.auras.length || this.auras[this.auras.length - 1].name !== '' || this.auras[this.auras.length - 1].value !== '')
-        this.auras.push({uuid: uuidv4(), name: '', value: '', dim: '', lightSource: false, colour: '', visible: false});
+        this.auras.push({uuid: uuidv4(), name: '', value: '', dim: '', lightSource: false, colour: 'rgba(0,0,0,0)', visible: false});
     $("#selection-name").text(this.name);
     const trackers = $("#selection-trackers");
     trackers.empty();
@@ -403,7 +400,7 @@ Shape.prototype.onSelection = function () {
                         value: '',
                         dim: '',
                         lightSource: false,
-                        colour: '',
+                        colour: 'rgba(0,0,0,0)',
                         visible: false
                     });
                     addAura(self.auras[self.auras.length - 1]);
@@ -858,6 +855,11 @@ function LayerState(canvas, name) {
 
 LayerState.prototype.invalidate = function () {
     this.valid = false;
+    if(this.name !== "fow") {
+        const fow = gameManager.layerManager.getLayer("fow");
+        if (fow !== undefined)
+            fow.invalidate();
+    }
 };
 LayerState.prototype.addShape = function (shape, sync, temporary) {
     if (sync === undefined) sync = false;
@@ -889,6 +891,12 @@ LayerState.prototype.removeShape = function (shape, sync, temporary) {
     shape.onRemove();
     this.shapes.remove(shape);
     if (sync) socket.emit("remove shape", {shape: shape, temporary: temporary});
+    const ls_i = gameManager.lightsources.findIndex(ls => ls.shape === shape.uuid);
+    const lb_i = gameManager.lightblockers.findIndex(ls => ls === shape.uuid);
+    if (ls_i >= 0)
+        gameManager.lightsources.splice(ls_i, 1);
+    if (lb_i >= 0)
+        gameManager.lightblockers.splice(lb_i, 1);
     gameManager.layerManager.UUIDMap.delete(shape.uuid);
     if (this.selection === shape) this.selection = null;
     this.invalidate();
@@ -897,7 +905,7 @@ LayerState.prototype.clear = function () {
     this.ctx.clearRect(0, 0, this.width, this.height);
 };
 LayerState.prototype.draw = function () {
-    if (!this.valid) {
+    if (board_initialised && !this.valid) {
         const ctx = this.ctx;
         this.clear();
 
@@ -1058,18 +1066,6 @@ FOWLayerState.prototype.draw = function () {
                 ctx.arc(loc.x, loc.y, aura_length, arc_start, 2*Math.PI);
 
             ctx.fill();
-
-
-            // ctx.arc(loc.x, loc.y, aura.value * gameManager.layerManager.unitSize, 0, 2 * Math.PI);
-            // ctx.fill();
-            // if (aura.dim) {
-            //     const tc = tinycolor(aura.colour);
-            //     ctx.beginPath();
-            //     ctx.fillStyle = tc.setAlpha(tc.getAlpha() / 2).toRgbString();
-            //     const loc = w2l(sh.center());
-            //     ctx.arc(loc.x, loc.y, aura.dim * gameManager.layerManager.unitSize, 0, 2 * Math.PI);
-            //     ctx.fill();
-            // }
         });
         ctx.globalCompositeOperation = orig_op;
     }

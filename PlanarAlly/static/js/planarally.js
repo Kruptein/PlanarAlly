@@ -207,12 +207,18 @@ function Shape() {
     this.name = 'Unknown shape';
     this.trackers = [];
     this.auras = [];
-    this.owners = []
+    this.owners = [];
+    this.visionObstruction = false;
 }
 
 Shape.prototype.getBoundingBox = function () {};
 Shape.prototype.checkLightSources = function () {
     const self = this;
+    const vo_i = gameManager.lightblockers.indexOf(this.uuid);
+    if (this.visionObstruction && vo_i === -1)
+        gameManager.lightblockers.push(this.uuid);
+    else if (!this.visionObstruction && vo_i >= 0)
+        gameManager.lightblockers.splice(vo_i, 1);
     this.auras.forEach(function (au) {
         const ls = gameManager.lightsources;
         const i = ls.findIndex(o => o.aura === au.uuid);
@@ -517,14 +523,14 @@ Shape.prototype.drawAuras = function (ctx) {
         ctx.beginPath();
         ctx.fillStyle = gameManager.layerManager.getLayer("fow").ctx === ctx ? "black" : aura.colour;
         const loc = w2l(self.center());
-        ctx.arc(loc.x, loc.y, aura.value * gameManager.layerManager.unitSize, 0, 2 * Math.PI);
+        ctx.arc(loc.x, loc.y, (aura.value / gameManager.layerManager.unitSize) * gameManager.layerManager.gridSize, 0, 2 * Math.PI);
         ctx.fill();
         if (aura.dim) {
             const tc = tinycolor(aura.colour);
             ctx.beginPath();
             ctx.fillStyle = tc.setAlpha(tc.getAlpha() / 2).toRgbString();
             const loc = w2l(self.center());
-            ctx.arc(loc.x, loc.y, aura.dim * gameManager.layerManager.unitSize, 0, 2 * Math.PI);
+            ctx.arc(loc.x, loc.y, (aura.dim / gameManager.layerManager.unitSize) * gameManager.layerManager.gridSize, 0, 2 * Math.PI);
             ctx.fill();
         }
     });
@@ -566,6 +572,31 @@ function BoundingRect(x, y, w, h) {
     this.w = w;
     this.h = h;
 }
+BoundingRect.prototype.intersectsWith = function (other) {
+    return !(other.x > this.x + this.w ||
+           other.x + other.w < this.x ||
+           other.y > this.y + this.h ||
+           other.y + other.h < this.y);
+};
+BoundingRect.prototype.getIntersectWithLine = function (line) {
+    const lines = [
+        getLinesIntersectPoint({x: this.x, y: this.y}, {x: this.x + this.w, y: this.y}, line.start, line.end),
+        getLinesIntersectPoint({x: this.x + this.w, y: this.y}, {x: this.x + this.w, y: this.y + this.h}, line.start, line.end),
+        getLinesIntersectPoint({x: this.x, y: this.y}, {x: this.x, y: this.y + this.h}, line.start, line.end),
+        getLinesIntersectPoint({x: this.x, y: this.y + this.h}, {x: this.x + this.w, y: this.y + this.h}, line.start, line.end)
+    ];
+    let min_d = Infinity;
+    let min_i = null;
+    for (let i=0; i < lines.length; i++){
+        if (lines[i] === null) continue;
+        const d = getPointDistance(line.start, lines[i]);
+        if (min_d > d) {
+            min_d = d;
+            min_i = lines[i];
+        }
+    }
+    return {intersect: min_i, distance: min_d}
+};
 
 function Rect(x, y, w, h, fill, border, uuid) {
     Shape.call(this);
@@ -642,7 +673,7 @@ function Circle(x, y, r, fill, border, uuid) {
 
 Circle.prototype = Object.create(Shape.prototype);
 Circle.prototype.getBoundingBox = function () {
-    return new BoundingRect(this.x - this.r, this.x - this.r, this.r * 2, this.r * 2);
+    return new BoundingRect(this.x - this.r, this.y - this.r, this.r * 2, this.r * 2);
 };
 Circle.prototype.draw = function (ctx) {
     Shape.prototype.draw.call(this, ctx);
@@ -946,13 +977,15 @@ function FOWLayerState(canvas, name) {
 
 FOWLayerState.prototype = Object.create(LayerState.prototype);
 FOWLayerState.prototype.addShape = function (shape, sync, temporary) {
-    shape.fill = fowColour.spectrum("get").toRgbString();
+    if (!shape.visionObstruction)
+        shape.fill = fowColour.spectrum("get").toRgbString();
     LayerState.prototype.addShape.call(this, shape, sync, temporary);
 };
 FOWLayerState.prototype.setShapes = function (shapes) {
     const c = fowColour.spectrum("get").toRgbString();
     shapes.forEach(function (shape) {
-        shape.fill = c;
+        if (!shape.visionObstruction)
+            shape.fill = c;
     });
     LayerState.prototype.setShapes.call(this, shapes);
 };
@@ -969,19 +1002,74 @@ FOWLayerState.prototype.draw = function () {
         gameManager.lightsources.forEach(function (ls) {
             const sh = gameManager.layerManager.UUIDMap.get(ls.shape);
             const aura = sh.auras.find(a => a.uuid === ls.aura);
+            const aura_length = (aura.value / gameManager.layerManager.unitSize) * gameManager.layerManager.gridSize;
+            const center = sh.center();
+            const bbox = new Circle(center.x, center.y, aura_length).getBoundingBox();
+
+            // We first collect all lightblockers that are inside/cross our aura
+            // This to prevent as many ray calculations as possible
+            const local_lightblockers = [];
+            gameManager.lightblockers.forEach(function (lb) {
+                const lb_sh = gameManager.layerManager.UUIDMap.get(lb);
+                const lb_bb = lb_sh.getBoundingBox();
+                if (lb_bb.intersectsWith(bbox))
+                    local_lightblockers.push(lb_bb);
+            });
+
+            // TODO: Track distances to objects, as multiple objects could block light in the same ray
+
             ctx.beginPath();
             ctx.fillStyle = "black";
-            const loc = w2l(sh.center());
-            ctx.arc(loc.x, loc.y, aura.value * gameManager.layerManager.unitSize, 0, 2 * Math.PI);
-            ctx.fill();
-            if (aura.dim) {
-                const tc = tinycolor(aura.colour);
-                ctx.beginPath();
-                ctx.fillStyle = tc.setAlpha(tc.getAlpha() / 2).toRgbString();
-                const loc = w2l(sh.center());
-                ctx.arc(loc.x, loc.y, aura.dim * gameManager.layerManager.unitSize, 0, 2 * Math.PI);
-                ctx.fill();
+            const loc = w2l(center);
+
+            let arc_start = 0;
+
+            // Cast rays in every degree
+            for (let angle = 0; angle < 2 * Math.PI; angle += (1/180) * Math.PI) {
+                // Check hit with obstruction
+                let hit = {intersect: null, distance: Infinity};
+                local_lightblockers.forEach(function (lb_bb) {
+                    const result = lb_bb.getIntersectWithLine({
+                        start: center,
+                        end: {
+                            x: center.x + aura_length * Math.cos(angle),
+                            y: center.y + aura_length * Math.sin(angle)
+                        }
+                    });
+                    if (result.intersect !== null && result.distance < hit.distance)
+                        hit = result;
+                });
+                // If we have no hit, check if we come from a previous hit so that we can go back to the arc
+                if (hit.intersect === null){
+                    if (arc_start === -1){
+                        arc_start = angle;
+                        ctx.lineTo(center.x + aura_length * Math.cos(angle), center.y + aura_length * Math.sin(angle));
+                    }
+                    continue;
+                }
+                // If hit , first finish any ongoing arc, then move to the intersection point
+                if (arc_start !== -1) {
+                    ctx.arc(loc.x, loc.y, aura_length, arc_start, angle);
+                    arc_start = -1;
+                }
+                ctx.lineTo(hit.intersect.x, hit.intersect.y);
             }
+            if (arc_start !== -1)
+                ctx.arc(loc.x, loc.y, aura_length, arc_start, 2*Math.PI);
+
+            ctx.fill();
+
+
+            // ctx.arc(loc.x, loc.y, aura.value * gameManager.layerManager.unitSize, 0, 2 * Math.PI);
+            // ctx.fill();
+            // if (aura.dim) {
+            //     const tc = tinycolor(aura.colour);
+            //     ctx.beginPath();
+            //     ctx.fillStyle = tc.setAlpha(tc.getAlpha() / 2).toRgbString();
+            //     const loc = w2l(sh.center());
+            //     ctx.arc(loc.x, loc.y, aura.dim * gameManager.layerManager.unitSize, 0, 2 * Math.PI);
+            //     ctx.fill();
+            // }
         });
         ctx.globalCompositeOperation = orig_op;
     }
@@ -1350,6 +1438,8 @@ DrawTool.prototype.onMouseDown = function (e) {
     const border = borderColor === null ? tinycolor("transparent") : borderColor;
     this.rect = new Rect(this.startPoint.x, this.startPoint.y, 0, 0, fill.toRgbString(), border.toRgbString());
     this.rect.owners.push(gameManager.username);
+    this.rect.visionObstruction = true;
+    gameManager.lightblockers.push(this.rect.uuid);
     layer.addShape(this.rect, true, false);
 };
 DrawTool.prototype.onMouseMove = function (e) {
@@ -1513,6 +1603,7 @@ function GameManager() {
     this.mapTool = new MapTool();
 
     this.lightsources = [];
+    this.lightblockers = [];
 }
 
 
@@ -1836,4 +1927,43 @@ function createShapeFromDict(shape, dummy) {
         };
     }
     return sh;
+}
+
+function pointInLine(p, l1, l2) {
+    return p.x >= Math.min(l1.x, l2.x) - 0.000001 &&
+        p.x <= Math.max(l1.x, l2.x) + 0.000001 &&
+        p.y >= Math.min(l1.y, l2.y) - 0.000001 &&
+        p.y <= Math.max(l1.y, l2.y) + 0.000001;
+}
+
+function pointInLines(p, s1, e1, s2, e2) {
+    return pointInLine(p, s1, e1) && pointInLine(p, s2, e2);
+}
+
+function getLinesIntersectPoint(s1, e1, s2, e2){
+    // const s1 = Math.min(S1, )
+    const A1 = e1.y-s1.y;
+    const B1 = s1.x-e1.x;
+    const A2 = e2.y-s2.y;
+    const B2 = s2.x-e2.x;
+
+    // Get delta and check if the lines are parallel
+    const delta = A1*B2 - A2*B1;
+    if(delta === 0) return false;
+
+    const C2 = A2*s2.x+B2*s2.y;
+    const C1 = A1*s1.x+B1*s1.y;
+    //invert delta to make division cheaper
+    const invdelta = 1/delta;
+
+    const intersect = {x: (B2*C1 - B1*C2)*invdelta, y: (A1*C2 - A2*C1)*invdelta};
+    if (!pointInLines(intersect, s1, e1, s2, e2))
+        return null;
+    return intersect;
+}
+
+function getPointDistance(p1, p2) {
+    const a = p1.x - p2.x;
+    const b = p1.y - p2.y;
+    return Math.sqrt( a*a + b*b );
 }

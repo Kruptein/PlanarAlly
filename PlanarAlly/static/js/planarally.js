@@ -185,6 +185,7 @@ socket.on("moveShapeOrder", function (data) {
 });
 socket.on("shapeMove", function (shape) {
     shape = Object.assign(gameManager.layerManager.UUIDMap.get(shape.uuid), createShapeFromDict(shape, true));
+    shape.checkLightSources();
     gameManager.layerManager.getLayer(shape.layer).onShapeMove(shape);
 });
 socket.on("updateShape", function (data) {
@@ -211,15 +212,19 @@ function Shape() {
 
 Shape.prototype.getBoundingBox = function () {};
 Shape.prototype.checkLightSources = function () {
+    const self = this;
     this.auras.forEach(function (au) {
-        const ls = gameManager.layerManager.getLayer("fow").lightsources;
-        const i = ls.indexOf(au.uuid);
+        const ls = gameManager.lightsources;
+        const i = ls.indexOf(self.uuid);
         if (au.lightSource && i === -1) {
-            ls.push(au.uuid);
+            ls.push(self.uuid);
         } else if (!au.lightSource && i >= 0) {
             ls.splice(i, 1);
         }
     });
+    const fow = gameManager.layerManager.getLayer("fow");
+    if (fow !== undefined)
+        fow.invalidate();
 };
 Shape.prototype.onMouseUp = function () {
     // $(`#shapeselectioncog-${this.uuid}`).remove();
@@ -434,14 +439,14 @@ Shape.prototype.onSelection = function () {
             aura_light.on("click", function (){
                 const au = self.auras.find(t => t.uuid === $(this).data('uuid'));
                 au.lightSource = !au.lightSource;
-                const ls = gameManager.layerManager.getLayer("fow").lightsources;
+                const ls = gameManager.lightsources;
                 if (au.lightSource) {
                     $(this).css("opacity", 1.0);
-                    ls.push(au.uuid);
+                    ls.push(self.uuid);
                 } else {
                     $(this).css("opacity", 0.3);
-                    if (ls.indexOf(au.uuid) >= 0)
-                        ls.splice(ls.indexOf(au.uuid), 1);
+                    if (ls.indexOf(self.uuid) >= 0)
+                        ls.splice(ls.indexOf(self.uuid), 1);
                 }
                 socket.emit("updateShape", {shape: self.asDict(), redraw: true});
             });
@@ -502,10 +507,14 @@ Shape.prototype.draw = function (ctx) {
         ctx.globalCompositeOperation = this.globalCompositeOperation;
     else
         ctx.globalCompositeOperation = "source-over";
+    this.drawAuras(ctx);
+};
+Shape.prototype.drawAuras = function (ctx) {
     const self = this;
     this.auras.forEach(function (aura) {
+        if (gameManager.layerManager.getLayer("fow").ctx === ctx && !aura.lightSource) return;
         ctx.beginPath();
-        ctx.fillStyle = aura.colour;
+        ctx.fillStyle = gameManager.layerManager.getLayer("fow").ctx === ctx ? "black" : aura.colour;
         const loc = w2l(self.center());
         ctx.arc(loc.x, loc.y, aura.value * gameManager.layerManager.unitSize, 0, 2 * Math.PI);
         ctx.fill();
@@ -932,7 +941,6 @@ GridLayerState.prototype.invalidate = function () {
 
 function FOWLayerState(canvas, name) {
     LayerState.call(this, canvas, name);
-    this.lightsources = [];
 }
 
 FOWLayerState.prototype = Object.create(LayerState.prototype);
@@ -955,12 +963,13 @@ FOWLayerState.prototype.draw = function () {
     if (!this.valid) {
         LayerState.prototype.draw.call(this);
         const ctx = this.ctx;
-        this.lightsources.forEach(function (uuid) {
-            // "Downcast" it to shape, we only care about the auras
-            const sh = Object.assign(new Shape(), gameManager.layerManager.UUIDMap.get(uuid));
-            sh.globalCompositeOperation = 'destination-out';
-            sh.draw(ctx);
-        })
+        const orig_op = ctx.globalCompositeOperation;
+        ctx.globalCompositeOperation = 'destination-out';
+        gameManager.lightsources.forEach(function (uuid) {
+            const sh = gameManager.layerManager.UUIDMap.get(uuid);
+            sh.drawAuras(ctx);
+        });
+        ctx.globalCompositeOperation = orig_op;
     }
 };
 
@@ -1488,6 +1497,8 @@ function GameManager() {
     this.drawTool = new DrawTool();
     this.fowTool = new FOWTool();
     this.mapTool = new MapTool();
+
+    this.lightsources = [];
 }
 
 

@@ -88,7 +88,7 @@ class Location:
         self.layer_manager.add(GridLayer(50))
         self.layer_manager.add(Layer("tokens", player_visible=True, player_editable=True))
         self.layer_manager.add(Layer("dm"))
-        self.layer_manager.add(Layer("fow", selectable=False, player_visible=True))
+        self.layer_manager.add(Layer("fow", player_visible=True))
         self.layer_manager.add(Layer("draw", selectable=False, player_visible=True, player_editable=True))
 
     @property
@@ -118,7 +118,7 @@ class Room:
             d['board'] = self.locations[self.dm_location].layer_manager.as_dict()
             return d
         board = self.locations[self.player_location].layer_manager.as_dict()
-        for l in board['layers']:
+        for l in list(board['layers']):
             if not l['player_visible']:
                 board['layers'].remove(l)
             if not l['player_editable']:

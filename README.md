@@ -19,17 +19,16 @@ The hardcoded layers atm are:
 * Fog of War layer
 * Draw layer
 
-The map/token/dm layer are selectable to do things in as a DM, players can only do things on the tokens layer.
-The names of these 3 layers are just to name them they do not enforce anything part of order.
+The map/token/dm/fow layer are selectable to do things in as a DM, players can only do things on the tokens layer.
 
 The grid layer is currently always on _(to be changed TM)_.  More info about the grid is below.
 
-The FOW layer is a vision control layer, the DM can use the FOW tool to hide or reveal areas to players.
-This area is for the DM with a certain opacity but for the players it is opaque.  The colour is currently hardcoded black, but this is also to be changed in the future.
+The FOW layer is a vision control layer, the DM can use the FOW tool to quickly hide or reveal areas to players or use the dedicated FOW layer to do more extensive vision stuff (see the FOW chapter).
 
-Switching between layers is possible through the lower left UI _(only visible if you can select multiple layers)_, by changing layer all elements on higher layers (higher being more to the right in the UI), become transparent.
+Switching between layers is possible through the lower left UI _(only visible if you can select multiple layers)_.
+All higher (i.e. more to the right in the UI) layers have a low opacity to give better visual feedback on what you're doing.
 
-You can switch objects from layer using the contextmenu (right click on object) and also change precedence of objects within a layer.
+A simple contextmenu (right click) is present for all shapes that allows changing of layer but also precedence changes (move to front/back).
 
 ### Grid
 
@@ -47,6 +46,23 @@ Dragging a token from here on to the grid will place it in the currently selecte
 
 To remove a token from the board, you can select it and press the delete key.
 
+Users are automatically the owner of any shape they draw.  The DM always is co-owner.
+Although possible through the js console there is no UI in place to give other players ownership of your assets. (WIP)
+
+If you own an asset a panel will appear on selection of the asset at the right side of your screen.
+Here you can keep track of various trackers (e.g. health) and auras (e.g. vision/light/paladin auras).
+If any tracker or aura is listed here you can click on the number and directly update it.  (simple + and - operations also work e.g. '-23')
+
+By clicking on the edit button in this panel, a larger dialog will show where you can change the asset settings.
+You can change the name to track it by and whether it will stop vision/light of passing through.
+You can also add one or multiple trackers.  To do this give the tracker a name and at least fill in the first box with a number.
+This usually represents the current value of the tracker.  The secondbox is optional and can be used for example for a maximum value.
+The eye is used to toggle whether ALL other players can see this tracker.  The trashcan is used to remove the tracker.
+
+The auras work in a similar fashion.  The boxes represent a radius of bright and dim light. (again the second box is optional)
+The dim light radius will always be at half opacity in regards to the chosen colour using the colour picker.
+The lightbulb toggles whether this aura represents a light/vision source that will pass through fog of war.
+
 ### User management
 
 A basic user system is present which allows anyone to register or login to the website.
@@ -58,6 +74,21 @@ e.g. on your localhost on the default port 8000 it would be `http://localhost:80
 
 Users can customise some small things when they're not the DM.  The options menu will be available with the option to
 change the colours of the grid lines and the fog of war.
+
+### Fog of War
+
+Fog of war is available in a simple and more advanced way.
+At its core you can reveal or hide regions on your map using the FOW tool from any layer.
+This has the advantage that you do not need to change layers, but is fairly limited in scope.
+
+You can also change to the dedicated FOW layer where you can use all other normal tools including the draw tool.
+You can also interact with the drawn assets as usual.
+When drawing on the FOW layer the drawn shapes are by default assumed to be light blocking (This is not the same for the FOW tool!),
+you can toggle this behaviour as with all assets using the edit asset panel to finetune this vision layer.
+
+The combination of light blocking shapes and light sources brings for very fun settings with a bit more tactical depth!
+
+It is strongly advised to add lightblocking shapes to your maps if you use lightsources as you don't want your light sources to show stuff on the other side of walls ;)
 
 ### Tools
 
@@ -108,7 +139,6 @@ After using this tool you'll often want to slightly reposition the object with t
 
 Following is a list of current TODO's in no particular order:
 
-* Dynamic Light/Shadow
 * Better token management
 * DM options
     * Grid/FOW enable/disable options

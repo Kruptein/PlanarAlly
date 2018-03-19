@@ -1024,8 +1024,12 @@ FOWLayerState.prototype.draw = function () {
     if (board_initialised && !this.valid) {
         LayerState.prototype.draw.call(this);
         if (gameManager.layerManager.fullFOW){
+            const ogalpha = this.ctx.globalAlpha;
+            if (gameManager.IS_DM)
+                this.ctx.globalAlpha = 0.3;
             this.ctx.fillStyle = fowColour.spectrum("get").toRgbString();
             this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+            this.ctx.globalAlpha = ogalpha;
         }
         const ctx = this.ctx;
         const orig_op = ctx.globalCompositeOperation;

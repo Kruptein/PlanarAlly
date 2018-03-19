@@ -290,7 +290,7 @@ async def update_shape(sid, data):
             await sio.emit("updateShape", data, room=croom, namespace='/planarally')
 
 
-@sio.on("client set", namespace='/planarally')
+@sio.on("set clientOptions", namespace='/planarally')
 @auth.login_required(app, sio)
 async def set_client(sid, data):
     user = app['AuthzPolicy'].sio_map[sid]['user']
@@ -389,9 +389,9 @@ async def test_connect(sid, environ):
 
         sio.enter_room(sid, location.sioroom, namespace='/planarally')
         await sio.emit("set username", username, room=sid, namespace='/planarally')
+        await sio.emit('board init', room.get_board(username), room=sid, namespace='/planarally')
         await sio.emit("set clientOptions", app['AuthzPolicy'].user_map[username].options, room=sid,
                        namespace='/planarally')
-        await sio.emit('board init', room.get_board(username), room=sid, namespace='/planarally')
         await sio.emit("set locationOptions", location.options, room=sid, namespace='/planarally')
         await sio.emit('asset list', PA.get_asset_list(), room=sid, namespace='/planarally')
 

@@ -37,6 +37,15 @@ socket.on("set clientOptions", function (options) {
         gridColour.spectrum("set", options.gridColour);
     if ("fowColour" in options)
         fowColour.spectrum("set", options.fowColour);
+    if ("panX" in options)
+        gameManager.layerManager.panX = options.panX;
+    if ("panY" in options)
+        gameManager.layerManager.panY = options.panY;
+    if ("zoomFactor" in options) {
+        gameManager.layerManager.zoomFactor = options.zoomFactor;
+        $("#zoomer").slider({value: 1/options.zoomFactor});
+        gameManager.layerManager.getGridLayer().invalidate();
+    }
 });
 socket.on("set locationOptions", function (options) {
     if ("unitSize" in options)
@@ -1396,6 +1405,11 @@ LayerManager.prototype.onMouseUp = function (e) {
         layer.removeShape(layer.selectionHelper, false, false);
         layer.selectionStartPoint = null;
         layer.invalidate(true);
+    } else if (layer.panning) {
+        socket.emit("set clientOptions", {
+            panX: gameManager.layerManager.panX,
+            panY: gameManager.layerManager.panY
+        });
     } else if (layer.selection.length) {
         layer.selection.forEach(function (sel) {
             if (gameManager.layerManager.useGrid && !e.altKey && layer.dragging) {
@@ -1728,7 +1742,7 @@ gridColour.spectrum({
         gameManager.layerManager.drawGrid()
     },
     change: function (colour) {
-        socket.emit("client set", {'gridColour': colour.toRgbString()});
+        socket.emit("set clientOptions", {'gridColour': colour.toRgbString()});
     }
 });
 const fowColour = $("#fowColour");
@@ -1745,7 +1759,7 @@ fowColour.spectrum({
         }
     },
     change: function (colour) {
-        socket.emit("client set", {'fowColour': colour.toRgbString()});
+        socket.emit("set clientOptions", {'fowColour': colour.toRgbString()});
     }
 });
 
@@ -1789,10 +1803,11 @@ $("#zoomer").slider({
     min: 0.5,
     max: 5.0,
     step: 0.1,
-    value: 1.0,
+    value: gameManager.layerManager.zoomFactor,
     slide: function (event, ui) {
         gameManager.layerManager.zoomFactor = 1 / ui.value;
         gameManager.layerManager.invalidate();
+        socket.emit("set clientOptions", {zoomFactor: gameManager.layerManager.zoomFactor});
     }
 });
 

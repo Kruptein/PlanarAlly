@@ -1293,6 +1293,7 @@ LayerManager.prototype.onMouseDown = function (e) {
             layer.selecting = true;
             layer.selectionStartPoint = l2w(layer.getMouse(e));
             layer.selectionHelper = new Rect(layer.selectionStartPoint.x, layer.selectionStartPoint.y, 0, 0, "rgba(0,0,0,0)", "black");
+            layer.selectionHelper.owners.push(gameManager.username);
             layer.addShape(layer.selectionHelper, false, false);
             layer.invalidate(true);
         }

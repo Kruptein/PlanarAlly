@@ -1357,13 +1357,29 @@ LayerManager.prototype.onMouseMove = function (e) {
             const dx = mouse.x - (ogX + layer.dragoffx);
             const dy = mouse.y - (ogY + layer.dragoffy);
             if (layer.dragging) {
-                const nextx = sel.x + dx/z;
-                const nexty = sel.y + dy/z;
-                const moveblock = gameManager.movementblockers.some(mb => gameManager.layerManager.UUIDMap.get(mb).contains(nextx, nexty));
-                if(moveblock) console.log("?");
-                if (moveblock) return;
-                sel.x = nextx;
-                sel.y = nexty;
+                sel.x += dx/z;
+                sel.y += dy/z;
+                // We need to use the above updated values for the bounding box check
+                // First check if the bounding boxes overlap to stop close / precise movement
+                let blocked = false;
+                const bbox = sel.getBoundingBox();
+                const blockers = gameManager.movementblockers.filter(
+                    mb => mb!==sel.uuid && gameManager.layerManager.UUIDMap.get(mb).getBoundingBox().intersectsWith(bbox));
+                if (blockers.length > 0){
+                    blocked = true;
+                } else {
+                    // Draw a line from start to end position and see for any intersect
+                    // This stops sudden leaps over walls! cheeky buggers
+                    const line = {start: {x: ogX/z, y:ogY/z}, end: {x: sel.x, y: sel.y}};
+                    blocked = gameManager.movementblockers.some(
+                        mb => mb!==sel.uuid && gameManager.layerManager.UUIDMap.get(mb).getBoundingBox().getIntersectWithLine(line).intersect !== null
+                    );
+                }
+                if (blocked) {
+                    sel.x -= dx/z;
+                    sel.y -= dy/z;
+                    return;
+                }
                 if (sel !== layer.selectionHelper) {
                     socket.emit("shapeMove", {shape: sel.asDict(), temporary: true});
                     setSelectionInfo(sel);

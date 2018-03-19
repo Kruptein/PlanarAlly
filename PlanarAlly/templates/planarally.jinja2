@@ -47,7 +47,13 @@
                 <button class="accordion">Server Options</button>
                 <div class="accordion-panel">
                     <div class="accordion-subpanel">
-                        <label for="gridSizeInput">Grid Size: </label><input type="text" value="50"
+                        <label for="useGridInput">Use grid: </label><input type="checkbox" checked="checked"
+                                                                             id="useGridInput">
+                        <label for="useFOWInput">Fill entire canvas with FOW: </label><input type="checkbox"
+                                                                             id="useFOWInput">
+                        <label for="unitSizeInput">Unit Size (in ft.): </label><input type="text" value="5"
+                                                                             id="unitSizeInput">
+                        <label for="gridSizeInput">Grid Size (in pixels): </label><input type="text" value="50"
                                                                              id="gridSizeInput">
                         <label for="invitation">Invitation Code: </label><input type="text"
                                                                                 value="{{ invitation_code }}"

@@ -292,17 +292,19 @@ async def set_client(sid, data):
     app['AuthzPolicy'].save()
 
 
-@sio.on("room set", namespace='/planarally')
+@sio.on("set locationOptions", namespace='/planarally')
 @auth.login_required(app, sio)
 async def set_room(sid, data):
     username = app['AuthzPolicy'].sio_map[sid]['user'].username
     room = app['AuthzPolicy'].sio_map[sid]['room']
+    location = room.get_active_location(username)
 
     if room.creator != username:
         print(f"{username} attempted to set a room option")
         return
 
-    room.options.update(**data)
+    location.options.update(**data)
+    await sio.emit("set locationOptions", data, room=location.sioroom, skip_sid=sid, namespace='/planarally')
 
 
 @sio.on("set gridsize", namespace="/planarally")
@@ -382,9 +384,8 @@ async def test_connect(sid, environ):
         await sio.emit("set username", username, room=sid, namespace='/planarally')
         await sio.emit("set clientOptions", app['AuthzPolicy'].user_map[username].options, room=sid,
                        namespace='/planarally')
-        if room.creator == username:
-            await sio.emit("set roomOptions", room.options, room=sid, namespace='/planarally')
         await sio.emit('board init', room.get_board(username), room=sid, namespace='/planarally')
+        await sio.emit("set locationOptions", location.options, room=sid, namespace='/planarally')
         await sio.emit('asset list', PA.get_asset_list(), room=sid, namespace='/planarally')
 
 

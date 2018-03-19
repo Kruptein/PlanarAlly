@@ -38,6 +38,16 @@ socket.on("set clientOptions", function (options) {
     if ("fowColour" in options)
         fowColour.spectrum("set", options.fowColour);
 });
+socket.on("set locationOptions", function (options) {
+    if ("unitSize" in options)
+        gameManager.layerManager.setUnitSize(options.unitSize);
+    if ("useGrid" in options)
+        gameManager.layerManager.setUseGrid(options.useGrid);
+    if ("fullFOW" in options)
+        gameManager.layerManager.setFullFOW(options.fullFOW);
+    if ("fowColour" in options)
+        fowColour.spectrum("set", options.fowColour);
+});
 socket.on("asset list", function (assets) {
     const m = $("#menu-tokens");
     m.empty();
@@ -1013,6 +1023,10 @@ FOWLayerState.prototype.onShapeMove = function (shape) {
 FOWLayerState.prototype.draw = function () {
     if (board_initialised && !this.valid) {
         LayerState.prototype.draw.call(this);
+        if (gameManager.layerManager.fullFOW){
+            this.ctx.fillStyle = fowColour.spectrum("get").toRgbString();
+            this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+        }
         const ctx = this.ctx;
         const orig_op = ctx.globalCompositeOperation;
         ctx.globalCompositeOperation = 'destination-out';
@@ -1094,6 +1108,9 @@ function LayerManager() {
 
     this.gridSize = 50;
     this.unitSize = 5;
+    this.useGrid = true;
+    this.fullFOW = false;
+
     this.zoomFactor = 1;
     this.panX = 0;
     this.panY = 0;
@@ -1163,12 +1180,41 @@ LayerManager.prototype.drawGrid = function () {
     ctx.lineWidth = 1;
     ctx.stroke();
     layer.valid = true;
+    const fowl = gameManager.layerManager.getLayer("fow");
+    if (fowl !== undefined)
+        fowl.invalidate();
 };
 LayerManager.prototype.setGridSize = function (gridSize) {
     if (gridSize !== this.gridSize) {
         this.gridSize = gridSize;
         this.drawGrid();
         $('#gridSizeInput').val(gridSize);
+    }
+};
+LayerManager.prototype.setUnitSize = function (unitSize) {
+    if (unitSize !== this.unitSize) {
+        this.unitSize = unitSize;
+        this.drawGrid();
+        $('#unitSizeInput').val(unitSize);
+    }
+};
+LayerManager.prototype.setUseGrid = function (useGrid) {
+    if (useGrid !== this.useGrid) {
+        this.useGrid = useGrid;
+        if (useGrid)
+             $('#grid-layer').show();
+        else
+            $('#grid-layer').hide();
+        $('#useGridInput').prop("checked", useGrid);
+    }
+};
+LayerManager.prototype.setFullFOW = function (fullFOW) {
+    if (fullFOW !== this.fullFOW) {
+        this.fullFOW = fullFOW;
+        const fowl = gameManager.layerManager.getLayer("fow");
+        if (fowl !== undefined)
+            fowl.invalidate();
+        $('#useFOWInput').prop("checked", fullFOW);
     }
 };
 LayerManager.prototype.invalidate = function () {
@@ -1343,7 +1389,7 @@ LayerManager.prototype.onMouseUp = function (e) {
         layer.invalidate(true);
     } else if (layer.selection.length) {
         layer.selection.forEach(function (sel) {
-            if (!e.altKey && layer.dragging) {
+            if (gameManager.layerManager.useGrid && !e.altKey && layer.dragging) {
                 const orig = Object.assign({}, sel);
                 const gs = gameManager.layerManager.gridSize;
                 const mouse = {x: sel.x + sel.w / 2, y: sel.y + sel.h / 2};
@@ -1377,7 +1423,7 @@ LayerManager.prototype.onMouseUp = function (e) {
                     sel.y += sel.h;
                     sel.h = Math.abs(sel.h);
                 }
-                if (!e.altKey) {
+                if (gameManager.layerManager.useGrid && !e.altKey) {
                     const gs = gameManager.layerManager.gridSize;
                     sel.x = Math.round(sel.x / gs) * gs;
                     sel.y = Math.round(sel.y / gs) * gs;
@@ -1841,6 +1887,22 @@ $("#gridSizeInput").on("change", function (e) {
     const gs = parseInt(e.target.value);
     gameManager.layerManager.setGridSize(gs);
     socket.emit("set gridsize", gs);
+});
+
+$("#unitSizeInput").on("change", function (e) {
+    const us = parseInt(e.target.value);
+    gameManager.layerManager.setUnitSize(us);
+    socket.emit("set locationOptions", {'unitSize': us});
+});
+$("#useGridInput").on("change", function (e) {
+    const ug = e.target.checked;
+    gameManager.layerManager.setUseGrid(ug);
+    socket.emit("set locationOptions", {'useGrid': ug});
+});
+$("#useFOWInput").on("change", function (e) {
+    const uf = e.target.checked;
+    gameManager.layerManager.setFullFOW(uf);
+    socket.emit("set locationOptions", {'fullFOW': uf});
 });
 
 // **** UTILS ****

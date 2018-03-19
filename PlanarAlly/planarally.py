@@ -78,6 +78,7 @@ class Location:
         self.name = name
         self.room = room
         self.layer_manager = LayerManager()
+        self.options = {}
 
         # Keep track of temporary (i.e. not serverStored) shapes
         # so that we can remove them from other clients when someone disconnects

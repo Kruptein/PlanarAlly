@@ -17,13 +17,15 @@ The hardcoded layers atm are:
 * Player/Tokens layer
 * DM layer
 * Fog of War layer
-* Draw layer
+* Temporary layer
 
 The map/token/dm/fow layer are selectable to do things in as a DM, players can only do things on the tokens layer.
 
 The grid layer is currently always on _(to be changed TM)_.  More info about the grid is below.
 
 The FOW layer is a vision control layer, the DM can use the FOW tool to quickly hide or reveal areas to players or use the dedicated FOW layer to do more extensive vision stuff (see the FOW chapter).
+
+The temporary layer is atm only used to draw rulers.
 
 Switching between layers is possible through the lower left UI _(only visible if you can select multiple layers)_.
 All higher (i.e. more to the right in the UI) layers have a low opacity to give better visual feedback on what you're doing.

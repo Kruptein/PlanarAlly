@@ -1068,12 +1068,6 @@ FOWLayerState.prototype.draw = function () {
             });
 
             ctx.beginPath();
-            // const gradient = ctx.createRadialGradient(lcenter.x, lcenter.y, 0, lcenter.x, lcenter.y, w2lr(aura_length));
-            // gradient.addColorStop(0, 'rgba(0, 0, 0, 1)');
-            // gradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
-            // ctx.fillStyle = gradient;
-            // ctx.fillStyle = "rgba(0, 0, 0, 0.3)";
-
 
             let arc_start = 0;
 
@@ -1113,8 +1107,8 @@ FOWLayerState.prototype.draw = function () {
             if (arc_start !== -1)
                 ctx.arc(lcenter.x, lcenter.y, w2lr(aura.value), arc_start, 2*Math.PI);
 
-            const alm = w2lr(aura_length) / 10;
-            const gradient = ctx.createRadialGradient(lcenter.x, lcenter.y, alm/2, lcenter.x, lcenter.y, alm*4/3);
+            const alm = w2lr(aura.value);
+            const gradient = ctx.createRadialGradient(lcenter.x, lcenter.y, alm/2, lcenter.x, lcenter.y, alm);
             gradient.addColorStop(0, 'rgba(0, 0, 0, 1)');
             gradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
             ctx.fillStyle = gradient;

@@ -273,9 +273,10 @@ Shape.prototype.onSelection = function () {
         const dialog_name = $("#shapeselectiondialog-name");
         dialog_name.val(self.name);
         dialog_name.on("change", function () {
-            self.name = $(this).val();
+            const s = gameManager.layerManager.UUIDMap.get($("#shapeselectiondialog-uuid").val());
+            s.name = $(this).val();
             $("#selection-name").text($(this).val());
-            socket.emit("updateShape", {shape: self.asDict(), redraw: false})
+            socket.emit("updateShape", {shape: s.asDict(), redraw: false})
         });
         const dialog_lightblock = $("#shapeselectiondialog-lightblocker");
         dialog_lightblock.prop("checked", self.visionObstruction);

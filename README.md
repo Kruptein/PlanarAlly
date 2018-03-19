@@ -21,7 +21,7 @@ The hardcoded layers atm are:
 
 The map/token/dm/fow layer are selectable to do things in as a DM, players can only do things on the tokens layer.
 
-The grid layer is currently always on _(to be changed TM)_.  More info about the grid is below.
+The grid layer is by default always on, this can be disabled in the server options.  More info about the grid is below.
 
 The FOW layer is a vision control layer, the DM can use the FOW tool to quickly hide or reveal areas to players or use the dedicated FOW layer to do more extensive vision stuff (see the FOW chapter).
 
@@ -37,7 +37,7 @@ A simple contextmenu (right click) is present for all shapes that allows changin
 By default the grid is shown between the map layer and the token layer, so that tokens appear on top of the grid.  (assuming you use the token layer for tokens)
 All tokens will automatically snap to a grid location and will also snap to grids when resizing.
 
-To prevent auto snapping, combine your move/resize with the alt key or disable the grid _(soon TM)_
+To prevent auto snapping, combine your move/resize with the alt key or disable the grid in the server settings.
 
 You can set the size of a single grid cell in the options menu.
 
@@ -142,8 +142,6 @@ After using this tool you'll often want to slightly reposition the object with t
 Following is a list of current TODO's in no particular order:
 
 * Better token management
-* DM options
-    * Grid/FOW enable/disable options
 * Rotate tokens
 * Some form of barebones text chat
 * Layer management

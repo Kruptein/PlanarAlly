@@ -210,6 +210,7 @@ socket.on("shapeMove", function (shape) {
 socket.on("updateShape", function (data) {
     const shape = Object.assign(gameManager.layerManager.UUIDMap.get(data.shape.uuid), createShapeFromDict(data.shape, true));
     shape.checkLightSources();
+    shape.setMovementBlock(shape.movementObstruction);
     if (data.redraw)
         gameManager.layerManager.getLayer(data.shape.layer).invalidate();
 });
@@ -228,6 +229,7 @@ function Shape() {
     this.auras = [];
     this.owners = [];
     this.visionObstruction = false;
+    this.movementObstruction = false;
 }
 
 Shape.prototype.getBoundingBox = function () {};
@@ -247,6 +249,14 @@ Shape.prototype.checkLightSources = function () {
             ls.splice(i, 1);
         }
     });
+};
+Shape.prototype.setMovementBlock = function (blocksMovement){
+    this.movementObstruction = blocksMovement;
+    const vo_i = gameManager.movementblockers.indexOf(this.uuid);
+    if (this.movementObstruction && vo_i === -1)
+        gameManager.movementblockers.push(this.uuid);
+    else if (!this.movementObstruction && vo_i >= 0)
+        gameManager.movementblockers.splice(vo_i, 1);
 };
 Shape.prototype.onMouseUp = function () {
     // $(`#shapeselectioncog-${this.uuid}`).remove();
@@ -303,6 +313,12 @@ Shape.prototype.onSelection = function () {
             const s = gameManager.layerManager.UUIDMap.get($("#shapeselectiondialog-uuid").val());
             s.visionObstruction = dialog_lightblock.prop("checked");
             s.checkLightSources();
+        });
+        const dialog_moveblock = $("#shapeselectiondialog-moveblocker");
+        dialog_moveblock.prop("checked", self.movementObstruction);
+        dialog_moveblock.on("click", function () {
+            const s = gameManager.layerManager.UUIDMap.get($("#shapeselectiondialog-uuid").val());
+            s.setMovementBlock(dialog_moveblock.prop("checked"));
         });
 
         const trackers = $("#shapeselectiondialog-trackers");
@@ -900,6 +916,7 @@ LayerState.prototype.addShape = function (shape, sync, temporary) {
     shape.layer = this.name;
     this.shapes.push(shape);
     shape.checkLightSources();
+    shape.setMovementBlock(shape.movementObstruction);
     if (sync) socket.emit("add shape", {shape: shape.asDict(), temporary: temporary});
     gameManager.layerManager.UUIDMap.set(shape.uuid, shape);
     this.invalidate(!sync);
@@ -911,6 +928,7 @@ LayerState.prototype.setShapes = function (shapes) {
         const sh = createShapeFromDict(shape, self);
         sh.layer = self.name;
         sh.checkLightSources();
+        sh.setMovementBlock(shape.movementObstruction);
         gameManager.layerManager.UUIDMap.set(shape.uuid, sh);
         t.push(sh);
     });
@@ -926,10 +944,13 @@ LayerState.prototype.removeShape = function (shape, sync, temporary) {
     if (sync) socket.emit("remove shape", {shape: shape, temporary: temporary});
     const ls_i = gameManager.lightsources.findIndex(ls => ls.shape === shape.uuid);
     const lb_i = gameManager.lightblockers.findIndex(ls => ls === shape.uuid);
+    const mb_i = gameManager.movementblockers.findIndex(ls => ls === shape.uuid);
     if (ls_i >= 0)
         gameManager.lightsources.splice(ls_i, 1);
     if (lb_i >= 0)
         gameManager.lightblockers.splice(lb_i, 1);
+    if (mb_i >= 0)
+        gameManager.movementblockers.splice(mb_i, 1);
     gameManager.layerManager.UUIDMap.delete(shape.uuid);
     if (this.selection === shape) this.selection = null;
     this.invalidate(!sync);
@@ -1336,8 +1357,13 @@ LayerManager.prototype.onMouseMove = function (e) {
             const dx = mouse.x - (ogX + layer.dragoffx);
             const dy = mouse.y - (ogY + layer.dragoffy);
             if (layer.dragging) {
-                sel.x += dx / z;
-                sel.y += dy / z;
+                const nextx = sel.x + dx/z;
+                const nexty = sel.y + dy/z;
+                const moveblock = gameManager.movementblockers.some(mb => gameManager.layerManager.UUIDMap.get(mb).contains(nextx, nexty));
+                if(moveblock) console.log("?");
+                if (moveblock) return;
+                sel.x = nextx;
+                sel.y = nexty;
                 if (sel !== layer.selectionHelper) {
                     socket.emit("shapeMove", {shape: sel.asDict(), temporary: true});
                     setSelectionInfo(sel);
@@ -1691,6 +1717,7 @@ function GameManager() {
 
     this.lightsources = [];
     this.lightblockers = [];
+    this.movementblockers = [];
 }
 
 

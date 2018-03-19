@@ -1304,6 +1304,7 @@ LayerManager.prototype.onMouseDown = function (e) {
                 layer.dragging = true;
                 layer.dragoffx = mx - sel.x * z;
                 layer.dragoffy = my - sel.y * z;
+                layer.dragorig = Object.assign({}, sel);
                 setSelectionInfo(shape);
                 layer.invalidate(true);
                 hit = true;
@@ -1460,24 +1461,25 @@ LayerManager.prototype.onMouseUp = function (e) {
         });
     } else if (layer.selection.length) {
         layer.selection.forEach(function (sel) {
-            if (gameManager.layerManager.useGrid && !e.altKey && layer.dragging) {
-                const orig = Object.assign({}, sel);
-                const gs = gameManager.layerManager.gridSize;
-                const mouse = {x: sel.x + sel.w / 2, y: sel.y + sel.h / 2};
-                const mx = mouse.x;
-                const my = mouse.y;
-                if ((sel.w / gs) % 2 === 0) {
-                    sel.x = Math.round(mx / gs) * gs - sel.w / 2;
-                } else {
-                    sel.x = (Math.round((mx + (gs / 2)) / gs) - (1 / 2)) * gs - sel.w / 2;
-                }
-                if ((sel.h / gs) % 2 === 0) {
-                    sel.y = Math.round(my / gs) * gs - sel.h / 2;
-                } else {
-                    sel.y = (Math.round((my + (gs / 2)) / gs) - (1 / 2)) * gs - sel.h / 2;
+            if (layer.dragging) {
+                if (gameManager.layerManager.useGrid && !e.altKey) {
+                    const gs = gameManager.layerManager.gridSize;
+                    const mouse = {x: sel.x + sel.w / 2, y: sel.y + sel.h / 2};
+                    const mx = mouse.x;
+                    const my = mouse.y;
+                    if ((sel.w / gs) % 2 === 0) {
+                        sel.x = Math.round(mx / gs) * gs - sel.w / 2;
+                    } else {
+                        sel.x = (Math.round((mx + (gs / 2)) / gs) - (1 / 2)) * gs - sel.w / 2;
+                    }
+                    if ((sel.h / gs) % 2 === 0) {
+                        sel.y = Math.round(my / gs) * gs - sel.h / 2;
+                    } else {
+                        sel.y = (Math.round((my + (gs / 2)) / gs) - (1 / 2)) * gs - sel.h / 2;
+                    }
                 }
                 sel.onMouseUp();
-                if (orig.x !== sel.x || orig.y !== sel.y) {
+                if (layer.dragorig.x !== sel.x || layer.dragorig.y !== sel.y) {
                     if (sel !== layer.selectionHelper) {
                         socket.emit("shapeMove", {shape: sel.asDict(), temporary: false});
                         setSelectionInfo(sel);

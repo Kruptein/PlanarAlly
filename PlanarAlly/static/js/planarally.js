@@ -475,7 +475,9 @@ Shape.prototype.onSelection = function () {
             });
         }
 
-        self.auras.forEach(addAura);
+        for (let i = 0; i < self.auras.length; i++) {
+            addAura(self.auras[i]);
+        }
 
         shapeSelectionDialog.dialog("open");
     });

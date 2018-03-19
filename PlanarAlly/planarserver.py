@@ -155,11 +155,13 @@ async def add_shape(sid, data):
             if player == username:
                 continue
             psid = policy.get_sid(policy.user_map[player], room)
-            await sio.emit("add shape", shape_wrap(player, data['shape']), room=psid, namespace='/planarally')
+            if psid is not None:
+                await sio.emit("add shape", shape_wrap(player, data['shape']), room=psid, namespace='/planarally')
 
     if room.creator != username:
         croom = policy.get_sid(policy.user_map[room.creator], room)
-        await sio.emit("add shape", data['shape'], room=croom, namespace='/planarally')
+        if croom is not None:
+            await sio.emit("add shape", data['shape'], room=croom, namespace='/planarally')
 
 
 @sio.on("remove shape", namespace="/planarally")
@@ -237,10 +239,12 @@ async def move_shape(sid, data):
             if player == username:
                 continue
             psid = policy.get_sid(policy.user_map[player], room)
-            await sio.emit("shapeMove", shape_wrap(player, data['shape']), room=psid, namespace='/planarally')
+            if psid is not None:
+                await sio.emit("shapeMove", shape_wrap(player, data['shape']), room=psid, namespace='/planarally')
     if room.creator != username:
         croom = policy.get_sid(policy.user_map[room.creator], room)
-        await sio.emit("shapeMove", data['shape'], room=croom, namespace='/planarally')
+        if croom is not None:
+            await sio.emit("shapeMove", data['shape'], room=croom, namespace='/planarally')
 
 
 def shape_wrap(player, shape):
@@ -277,11 +281,13 @@ async def update_shape(sid, data):
         pl_data = dict(data)
         pl_data['shape'] = shape_wrap(player, data['shape'])
         psid = policy.get_sid(policy.user_map[player], room)
-        await sio.emit("updateShape", pl_data, room=psid, namespace='/planarally')
+        if psid is not None:
+            await sio.emit("updateShape", pl_data, room=psid, namespace='/planarally')
 
     if room.creator != username:
         croom = policy.get_sid(policy.user_map[room.creator], room)
-        await sio.emit("updateShape", data, room=croom, namespace='/planarally')
+        if croom is not None:
+            await sio.emit("updateShape", data, room=croom, namespace='/planarally')
 
 
 @sio.on("client set", namespace='/planarally')
@@ -359,8 +365,9 @@ async def change_location(sid, location):
     PA.save_room(room)
     for player in room.players:
         psid = policy.get_sid(policy.user_map[player], room)
-        sio.leave_room(psid, old_location.sioroom, namespace='/planarally')
-        sio.enter_room(psid, new_location.sioroom, namespace='/planarally')
+        if psid is not None:
+            sio.leave_room(psid, old_location.sioroom, namespace='/planarally')
+            sio.enter_room(psid, new_location.sioroom, namespace='/planarally')
     await sio.emit('board init', room.get_board(''), room=new_location.sioroom, skip_sid=sid, namespace='/planarally')
 
 

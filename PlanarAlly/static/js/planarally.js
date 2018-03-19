@@ -1258,7 +1258,7 @@ LayerManager.prototype.onMouseDown = function (e) {
             const shape = selectionStack[i];
             const corn = shape.getCorner(mx, my);
             if (corn !== undefined) {
-                if (shape.owners.indexOf(gameManager.username) === -1 && !gameManager.IS_DM) break;
+                if (shape.owners.indexOf(gameManager.username) === -1 && !gameManager.IS_DM) continue;
                 layer.selection = [shape];
                 shape.onSelection();
                 layer.resizing = true;
@@ -1268,7 +1268,7 @@ LayerManager.prototype.onMouseDown = function (e) {
                 setSelectionInfo(shape);
                 break;
             } else if (shape.contains(mx, my)) {
-                if (shape.owners.indexOf(gameManager.username) === -1 && !gameManager.IS_DM) break;
+                if (shape.owners.indexOf(gameManager.username) === -1 && !gameManager.IS_DM) continue;
                 const sel = shape;
                 const z = gameManager.layerManager.zoomFactor;
                 if (layer.selection.indexOf(sel) === -1) {

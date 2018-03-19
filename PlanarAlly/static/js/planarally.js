@@ -251,7 +251,7 @@ Shape.prototype.checkLightSources = function () {
     });
 };
 Shape.prototype.setMovementBlock = function (blocksMovement){
-    this.movementObstruction = blocksMovement;
+    this.movementObstruction = blocksMovement || false;
     const vo_i = gameManager.movementblockers.indexOf(this.uuid);
     if (this.movementObstruction && vo_i === -1)
         gameManager.movementblockers.push(this.uuid);

@@ -1094,7 +1094,7 @@ FOWLayerState.prototype.draw = function () {
                     ctx.arc(lcenter.x, lcenter.y, w2lr(aura.value), arc_start, angle);
                     arc_start = -1;
                 }
-                ctx.lineTo(w2lx(hit.intersect.x), w2ly(hit.intersect.y));
+                ctx.lineTo(w2lx(hit.intersect.x + 10 * Math.cos(angle)), w2ly(hit.intersect.y + 10 * Math.sin(angle)));
             }
             if (arc_start !== -1)
                 ctx.arc(lcenter.x, lcenter.y, w2lr(aura.value), arc_start, 2*Math.PI);

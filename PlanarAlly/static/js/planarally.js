@@ -451,7 +451,7 @@ Shape.prototype.onSelection = function () {
             });
             aura_remove.on("click", function () {
                 const au = self.auras.find(t => t.uuid === $(this).data('uuid'));
-                if (au.name === '' || au.value === '') return;
+                if (au.name === '' && au.value === '') return;
                 $(`[data-uuid=${au.uuid}]`).remove();
                 self.auras.splice(self.auras.indexOf(au), 1);
                 socket.emit("updateShape", {shape: self.asDict(), redraw: true});

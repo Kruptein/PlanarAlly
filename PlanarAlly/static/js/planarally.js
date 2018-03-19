@@ -471,6 +471,9 @@ Shape.prototype.onSelection = function () {
                     if (i >= 0)
                         ls.splice(i, 1);
                 }
+                const fowl = gameManager.layerManager.getLayer("fow");
+                if (fowl !== undefined)
+                    fowl.invalidate();
                 socket.emit("updateShape", {shape: self.asDict(), redraw: true});
             });
         }

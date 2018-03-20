@@ -240,15 +240,23 @@ Shape.prototype.checkLightSources = function () {
         gameManager.lightblockers.push(this.uuid);
     else if (!this.visionObstruction && vo_i >= 0)
         gameManager.lightblockers.splice(vo_i, 1);
-    this.auras.forEach(function (au) {
-        const ls = gameManager.lightsources;
-        const i = ls.findIndex(o => o.aura === au.uuid);
-        if (au.lightSource && i === -1) {
-            ls.push({shape: self.uuid, aura: au.uuid});
-        } else if (!au.lightSource && i >= 0) {
-            ls.splice(i, 1);
-        }
-    });
+    if (this.auras.length <= 1){
+        const ls = gameManager.lightsources.filter(ls => ls.shape === this.uuid);
+        ls.forEach(function(o) {
+            const i = gameManager.lightsources.indexOf(o);
+            gameManager.lightsources.splice(i, 1);
+        });
+    } else {
+        this.auras.forEach(function (au) {
+            const ls = gameManager.lightsources;
+            const i = ls.findIndex(o => o.aura === au.uuid);
+            if (au.lightSource && i === -1) {
+                ls.push({shape: self.uuid, aura: au.uuid});
+            } else if (!au.lightSource && i >= 0) {
+                ls.splice(i, 1);
+            }
+        });
+    }
 };
 Shape.prototype.setMovementBlock = function (blocksMovement){
     this.movementObstruction = blocksMovement || false;
@@ -405,7 +413,7 @@ Shape.prototype.onSelection = function () {
                     .add(aura_val)
                     .add(`<span data-uuid="${aura.uuid}">/</span>`)
                     .add(aura_dimval)
-                    .add(aura_colour)
+                    .add($(`<div data-uuid="${aura.uuid}">`).append(aura_colour).append($("</div>")))
                     .add(aura_visible)
                     .add(aura_light)
                     .add(aura_remove)
@@ -470,6 +478,7 @@ Shape.prototype.onSelection = function () {
                 if (au.name === '' && au.value === '') return;
                 $(`[data-uuid=${au.uuid}]`).remove();
                 self.auras.splice(self.auras.indexOf(au), 1);
+                self.checkLightSources();
                 socket.emit("updateShape", {shape: self.asDict(), redraw: true});
                 gameManager.layerManager.getLayer(au.layer).invalidate();
             });
@@ -1072,6 +1081,10 @@ FOWLayerState.prototype.draw = function () {
         gameManager.lightsources.forEach(function (ls) {
             const sh = gameManager.layerManager.UUIDMap.get(ls.shape);
             const aura = sh.auras.find(a => a.uuid === ls.aura);
+            if (aura === undefined) {
+                console.log("Old lightsource still lingering in the gameManager list");
+                return;
+            }
             const aura_length = getUnitDistance(aura.value);
             const center = sh.center();
             const lcenter = w2l(center);

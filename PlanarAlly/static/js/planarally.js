@@ -1080,6 +1080,10 @@ FOWLayerState.prototype.draw = function () {
         const ctx = this.ctx;
         const orig_op = ctx.globalCompositeOperation;
         ctx.globalCompositeOperation = 'destination-out';
+        gameManager.layerManager.getLayer("tokens").shapes.data.forEach(function (sh) {
+            const bb = sh.getBoundingBox();
+            ctx.fillRect(w2lx(bb.x), w2ly(bb.y), w2lz(bb.w), w2lz(bb.h));
+        });
         gameManager.lightsources.forEach(function (ls) {
             const sh = gameManager.layerManager.UUIDMap.get(ls.shape);
             const aura = sh.auras.find(a => a.uuid === ls.aura);
@@ -2035,12 +2039,16 @@ function w2ly(y) {
     return w2l({x: 0, y: y}).y;
 }
 
+function w2lz(z) {
+    return z * gameManager.layerManager.zoomFactor;
+}
+
 function getUnitDistance(r) {
     return (r / gameManager.layerManager.unitSize) * gameManager.layerManager.gridSize;
 }
 
 function w2lr(r) {
-    return getUnitDistance(r) * gameManager.layerManager.zoomFactor;
+    return w2lz(getUnitDistance(r))
 }
 
 function l2w(obj) {

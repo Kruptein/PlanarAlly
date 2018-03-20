@@ -35,8 +35,10 @@ socket.on("set username", function (username) {
 socket.on("set clientOptions", function (options) {
     if ("gridColour" in options)
         gridColour.spectrum("set", options.gridColour);
-    if ("fowColour" in options)
+    if ("fowColour" in options){
         fowColour.spectrum("set", options.fowColour);
+        gameManager.layerManager.invalidate();
+    }
     if ("panX" in options)
         gameManager.layerManager.panX = options.panX;
     if ("panY" in options)
@@ -563,10 +565,15 @@ Shape.prototype.asDict = function () {
     return Object.assign({}, this);
 };
 Shape.prototype.draw = function (ctx) {
-    if (this.layer === 'fow' && gameManager.IS_DM && this.globalCompositeOperation === "destination-out")
-        ctx.globalAlpha = 1.0;
-    else if (this.layer === 'fow' && gameManager.IS_DM)
-        ctx.globalAlpha = 0.3;
+    if (this.layer === 'fow') {
+        this.fill = fowColour.spectrum("get").toRgbString();
+        if (gameManager.IS_DM){
+            if (this.globalCompositeOperation === "destination-out")
+                ctx.globalAlpha = 1.0;
+            else
+                ctx.globalAlpha = 0.3;
+        }
+    }
     if (this.globalCompositeOperation !== undefined)
         ctx.globalCompositeOperation = this.globalCompositeOperation;
     else

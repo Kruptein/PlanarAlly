@@ -240,22 +240,24 @@ Shape.prototype.checkLightSources = function () {
         gameManager.lightblockers.push(this.uuid);
     else if (!this.visionObstruction && vo_i >= 0)
         gameManager.lightblockers.splice(vo_i, 1);
-    if (this.auras.length <= 1){
-        const ls = gameManager.lightsources.filter(ls => ls.shape === this.uuid);
-        ls.forEach(function(o) {
-            const i = gameManager.lightsources.indexOf(o);
-            gameManager.lightsources.splice(i, 1);
-        });
-    } else {
-        this.auras.forEach(function (au) {
-            const ls = gameManager.lightsources;
-            const i = ls.findIndex(o => o.aura === au.uuid);
-            if (au.lightSource && i === -1) {
-                ls.push({shape: self.uuid, aura: au.uuid});
-            } else if (!au.lightSource && i >= 0) {
-                ls.splice(i, 1);
-            }
-        });
+
+    // Check if the lightsource auras are in the gameManager
+    this.auras.forEach(function (au) {
+        const ls = gameManager.lightsources;
+        const i = ls.findIndex(o => o.aura === au.uuid);
+        if (au.lightSource && i === -1) {
+            ls.push({shape: self.uuid, aura: au.uuid});
+        } else if (!au.lightSource && i >= 0) {
+            ls.splice(i, 1);
+        }
+    });
+    // Check if anything in the gameManager referencing this shape is in fact still a lightsource
+    for (let i=gameManager.lightsources.length - 1; i >= 0; i--){
+        const ls = gameManager.lightsources[i];
+        if (ls.shape === self.uuid) {
+            if (!self.auras.some(a => a.uuid === ls.aura && a.lightSource))
+                gameManager.lightsources.splice(i, 1);
+        }
     }
 };
 Shape.prototype.setMovementBlock = function (blocksMovement){

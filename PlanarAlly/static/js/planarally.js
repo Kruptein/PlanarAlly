@@ -115,7 +115,7 @@ socket.on("board init", function (room) {
         }
     });
 
-    for (let i = 0; i < room.board.layers.length; i++) {
+    for (let i = 0; i < room.board.layers.length ; i++) {
         const new_layer = room.board.layers[i];
         // UI changes
         layersdiv.append("<canvas id='" + new_layer.name + "-layer' style='z-index: " + i + "'></canvas>");
@@ -904,12 +904,6 @@ function LayerState(canvas, name) {
     // Extra selection highlighting settings
     this.selectionColor = '#CC0000';
     this.selectionWidth = 2;
-
-    // Refresh interval and redraw setter.
-    this.interval = 30;
-    setInterval(function () {
-        state.draw();
-    }, state.interval);
 }
 
 LayerState.prototype.invalidate = function (skipLightUpdate) {
@@ -969,10 +963,13 @@ LayerState.prototype.removeShape = function (shape, sync, temporary) {
 LayerState.prototype.clear = function () {
     this.ctx.clearRect(0, 0, this.width, this.height);
 };
-LayerState.prototype.draw = function () {
+LayerState.prototype.draw = function (doClear) {
     if (board_initialised && !this.valid) {
         const ctx = this.ctx;
-        this.clear();
+        doClear = doClear === undefined;
+
+        if (doClear)
+            this.clear();
 
         const state = this;
 
@@ -1068,17 +1065,19 @@ FOWLayerState.prototype.onShapeMove = function (shape) {
 };
 FOWLayerState.prototype.draw = function () {
     if (board_initialised && !this.valid) {
-        LayerState.prototype.draw.call(this);
+        const ctx = this.ctx;
+        const orig_op = ctx.globalCompositeOperation;
         if (gameManager.layerManager.fullFOW){
             const ogalpha = this.ctx.globalAlpha;
+            this.ctx.globalCompositeOperation = "copy";
             if (gameManager.IS_DM)
                 this.ctx.globalAlpha = 0.3;
             this.ctx.fillStyle = fowColour.spectrum("get").toRgbString();
             this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
             this.ctx.globalAlpha = ogalpha;
+            this.ctx.globalCompositeOperation = orig_op;
         }
-        const ctx = this.ctx;
-        const orig_op = ctx.globalCompositeOperation;
+        LayerState.prototype.draw.call(this, gameManager.layerManager.fullFOW);
         ctx.globalCompositeOperation = 'destination-out';
         gameManager.layerManager.getLayer("tokens").shapes.data.forEach(function (sh) {
             const bb = sh.getBoundingBox();
@@ -1177,6 +1176,15 @@ function LayerManager() {
     this.zoomFactor = 1;
     this.panX = 0;
     this.panY = 0;
+
+    // Refresh interval and redraw setter.
+    this.interval = 30;
+    const lm = this;
+    setInterval(function () {
+        for (let i=lm.layers.length - 1; i >= 0; i--) {
+            lm.layers[i].draw();
+        }
+    }, this.interval);
 }
 
 LayerManager.prototype.setWidth = function (width) {
@@ -1281,7 +1289,7 @@ LayerManager.prototype.setFullFOW = function (fullFOW) {
     }
 };
 LayerManager.prototype.invalidate = function () {
-    for (let i = 0; i < this.layers.length; i++) {
+    for (let i = this.layers.length - 1; i >= 0; i--) {
         this.layers[i].invalidate(true);
     }
 };

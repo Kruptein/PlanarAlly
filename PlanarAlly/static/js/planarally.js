@@ -1389,7 +1389,10 @@ LayerManager.prototype.onMouseMove = function (e) {
                         // This stops sudden leaps over walls! cheeky buggers
                         const line = {start: {x: ogX / z, y: ogY / z}, end: {x: sel.x, y: sel.y}};
                         blocked = gameManager.movementblockers.some(
-                            mb => mb !== sel.uuid && gameManager.layerManager.UUIDMap.get(mb).getBoundingBox().getIntersectWithLine(line).intersect !== null
+                            mb => {
+                                const inter = gameManager.layerManager.UUIDMap.get(mb).getBoundingBox().getIntersectWithLine(line);
+                                return mb !== sel.uuid && inter.intersect !== null && inter.distance > 0;
+                            }
                         );
                     }
                     if (blocked) {

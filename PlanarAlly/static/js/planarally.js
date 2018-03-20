@@ -1053,8 +1053,7 @@ FOWLayerState.prototype.addShape = function (shape, sync, temporary) {
 FOWLayerState.prototype.setShapes = function (shapes) {
     const c = fowColour.spectrum("get").toRgbString();
     shapes.forEach(function (shape) {
-        if (!shape.visionObstruction)
-            shape.fill = c;
+        shape.fill = c;
     });
     LayerState.prototype.setShapes.call(this, shapes);
 };

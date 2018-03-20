@@ -1047,8 +1047,7 @@ function FOWLayerState(canvas, name) {
 
 FOWLayerState.prototype = Object.create(LayerState.prototype);
 FOWLayerState.prototype.addShape = function (shape, sync, temporary) {
-    if (!shape.visionObstruction)
-        shape.fill = fowColour.spectrum("get").toRgbString();
+    shape.fill = fowColour.spectrum("get").toRgbString();
     LayerState.prototype.addShape.call(this, shape, sync, temporary);
 };
 FOWLayerState.prototype.setShapes = function (shapes) {

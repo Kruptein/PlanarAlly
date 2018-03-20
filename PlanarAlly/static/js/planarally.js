@@ -629,10 +629,10 @@ function BoundingRect(x, y, w, h) {
     this.h = h;
 }
 BoundingRect.prototype.intersectsWith = function (other) {
-    return !(other.x > this.x + this.w ||
-           other.x + other.w < this.x ||
-           other.y > this.y + this.h ||
-           other.y + other.h < this.y);
+    return !(other.x >= this.x + this.w ||
+           other.x + other.w <= this.x ||
+           other.y >= this.y + this.h ||
+           other.y + other.h <= this.y);
 };
 BoundingRect.prototype.getIntersectWithLine = function (line) {
     const lines = [

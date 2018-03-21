@@ -4,6 +4,7 @@ This is the code responsible for starting the backend and reacting to socket IO 
 """
 
 import atexit
+import configparser
 import os
 import socketio
 
@@ -428,12 +429,14 @@ app.router.add_post('/create_room', create_room)
 app.router.add_get('/logout', logout)
 
 if __name__ == '__main__':
-    if os.path.isdir("cert"):
+    cfg = configparser.ConfigParser()
+    cfg.read("server_config.cfg")
+    if cfg.getboolean('Webserver', 'ssl'):
         import ssl
 
         ctx = ssl.SSLContext()
-        ctx.load_cert_chain("cert/fullchain.pem", "cert/privkey.pem")
-        web.run_app(app, port=8000, ssl_context=ctx)
+        ctx.load_cert_chain(cfg['Webserver']['ssl_fullchain'], cfg['Webserver']['ssl_privkey'])
+        web.run_app(app, port=cfg.getint('Webserver', 'port'), ssl_context=ctx)
     else:
         print(" RUNNING IN NON SSL CONTEXT ")
-        web.run_app(app, port=8000)
+        web.run_app(app, port=cfg.getint('Webserver', 'port'))

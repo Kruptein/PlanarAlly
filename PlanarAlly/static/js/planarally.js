@@ -1085,9 +1085,19 @@ FOWLayerState.prototype.draw = function () {
         LayerState.prototype.draw.call(this, gameManager.layerManager.fullFOW);
         ctx.globalCompositeOperation = 'destination-out';
         gameManager.layerManager.getLayer("tokens").shapes.data.forEach(function (sh) {
+            if (!sh.owners.includes(gameManager.username)) return;
             const bb = sh.getBoundingBox();
-            ctx.fillRect(w2lx(bb.x), w2ly(bb.y), w2lz(bb.w), w2lz(bb.h));
+            const lcenter = w2l(sh.center());
+            const alm = 0.8 * bb.w;
+            ctx.beginPath();
+            ctx.arc(lcenter.x, lcenter.y, alm, 0, 2*Math.PI);
+            const gradient = ctx.createRadialGradient(lcenter.x, lcenter.y, alm/2, lcenter.x, lcenter.y, alm);
+            gradient.addColorStop(0, 'rgba(0, 0, 0, 1)');
+            gradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
+            ctx.fillStyle = gradient;
+            ctx.fill();
         });
+        ctx.globalCompositeOperation = 'destination-out';
         gameManager.lightsources.forEach(function (ls) {
             const sh = gameManager.layerManager.UUIDMap.get(ls.shape);
             const aura = sh.auras.find(a => a.uuid === ls.aura);

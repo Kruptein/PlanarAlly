@@ -56,6 +56,8 @@ socket.on("set locationOptions", function (options) {
         gameManager.layerManager.setUseGrid(options.useGrid);
     if ("fullFOW" in options)
         gameManager.layerManager.setFullFOW(options.fullFOW);
+    if ('fowOpacity' in options)
+        gameManager.layerManager.setFOWOpacity(options.fowOpacity);
     if ("fowColour" in options)
         fowColour.spectrum("set", options.fowColour);
 });
@@ -1080,7 +1082,7 @@ FOWLayerState.prototype.draw = function () {
             const ogalpha = this.ctx.globalAlpha;
             this.ctx.globalCompositeOperation = "copy";
             if (gameManager.IS_DM)
-                this.ctx.globalAlpha = 0.3;
+                this.ctx.globalAlpha = gameManager.layerManager.fowOpacity;
             this.ctx.fillStyle = fowColour.spectrum("get").toRgbString();
             this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
             this.ctx.globalAlpha = ogalpha;
@@ -1191,6 +1193,7 @@ function LayerManager() {
     this.unitSize = 5;
     this.useGrid = true;
     this.fullFOW = false;
+    this.fowOpacity = 0.3;
 
     this.zoomFactor = 1;
     this.panX = 0;
@@ -1306,6 +1309,13 @@ LayerManager.prototype.setFullFOW = function (fullFOW) {
             fowl.invalidate();
         $('#useFOWInput').prop("checked", fullFOW);
     }
+};
+LayerManager.prototype.setFOWOpacity = function (fowOpacity) {
+    this.fowOpacity = fowOpacity;
+    const fowl = gameManager.layerManager.getLayer("fow");
+    if (fowl !== undefined)
+        fowl.invalidate();
+    $('#fowOpacity').val(fowOpacity);
 };
 LayerManager.prototype.invalidate = function () {
     for (let i = this.layers.length - 1; i >= 0; i--) {
@@ -2033,6 +2043,17 @@ $("#useFOWInput").on("change", function (e) {
     const uf = e.target.checked;
     gameManager.layerManager.setFullFOW(uf);
     socket.emit("set locationOptions", {'fullFOW': uf});
+});
+$("#fowOpacity").on("change", function (e) {
+    let fo = parseFloat(e.target.value);
+    if (isNaN(fo)) {
+        $("#fowOpacity").val(gameManager.layerManager.fowOpacity);
+        return;
+    }
+    if (fo < 0) fo = 0;
+    if (fo > 1) fo = 1;
+    gameManager.layerManager.setFOWOpacity(fo);
+    socket.emit("set locationOptions", {'fowOpacity': fo});
 });
 
 // **** UTILS ****

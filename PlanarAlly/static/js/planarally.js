@@ -1857,7 +1857,7 @@ gridColour.spectrum({
 const fowColour = $("#fowColour");
 fowColour.spectrum({
     showInput: true,
-    color: "red",
+    color: "rgb(82, 81, 81)",
     move: function (colour) {
         const l = gameManager.layerManager.getLayer("fow");
         if (l !== undefined) {

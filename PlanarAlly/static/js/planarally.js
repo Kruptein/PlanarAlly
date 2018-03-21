@@ -1693,6 +1693,8 @@ RulerTool.prototype.onMouseDown = function (e) {
     this.startPoint = l2w(layer.getMouse(e));
     this.ruler = new Line(this.startPoint.x, this.startPoint.y, this.startPoint.x, this.startPoint.y);
     this.text = new Text(this.startPoint.x, this.startPoint.y, "", "20px serif");
+    this.ruler.owners.push(gameManager.username);
+    this.text.owners.push(gameManager.username);
     layer.addShape(this.ruler, true, true);
     layer.addShape(this.text, true, true);
 };

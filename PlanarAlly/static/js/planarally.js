@@ -1088,7 +1088,7 @@ FOWLayerState.prototype.draw = function () {
             if (!sh.owners.includes(gameManager.username)) return;
             const bb = sh.getBoundingBox();
             const lcenter = w2l(sh.center());
-            const alm = 0.8 * bb.w;
+            const alm = 0.8 * w2lz(bb.w);
             ctx.beginPath();
             ctx.arc(lcenter.x, lcenter.y, alm, 0, 2*Math.PI);
             const gradient = ctx.createRadialGradient(lcenter.x, lcenter.y, alm/2, lcenter.x, lcenter.y, alm);

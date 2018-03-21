@@ -165,6 +165,15 @@ socket.on("board init", function (room) {
                     const img = ui.draggable[0].children[0];
                     const asset = new Asset(img, wloc.x, wloc.y, img.width, img.height);
                     asset.src = img.src;
+
+                    if (gameManager.layerManager.useGrid && !e.altKey) {
+                        const gs = gameManager.layerManager.gridSize;
+                        asset.x = Math.round(asset.x / gs) * gs;
+                        asset.y = Math.round(asset.y / gs) * gs;
+                        asset.w = Math.max(Math.round(asset.w / gs) * gs, gs);
+                        asset.h = Math.max(Math.round(asset.h / gs) * gs, gs);
+                    }
+
                     l.addShape(asset, true);
                 }
             });

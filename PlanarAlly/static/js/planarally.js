@@ -168,7 +168,7 @@ socket.on("board init", function (room) {
                     const asset = new Asset(img, wloc.x, wloc.y, img.width, img.height);
                     asset.src = img.src;
 
-                    if (gameManager.layerManager.useGrid && !e.altKey) {
+                    if (gameManager.layerManager.useGrid && !event.altKey) {
                         const gs = gameManager.layerManager.gridSize;
                         asset.x = Math.round(asset.x / gs) * gs;
                         asset.y = Math.round(asset.y / gs) * gs;

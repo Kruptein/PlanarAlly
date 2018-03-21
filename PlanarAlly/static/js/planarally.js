@@ -644,6 +644,14 @@ function BoundingRect(x, y, w, h) {
     this.w = w;
     this.h = h;
 }
+BoundingRect.prototype.contains = function (mx, my, world) {
+    if (world === undefined || world === true){
+        mx = l2wx(mx);
+        my = l2wy(my);
+    }
+    return this.x <= mx && (this.x + this.w) >= mx &&
+        this.y <= my && (this.y + this.h) >= my;
+};
 BoundingRect.prototype.intersectsWith = function (other) {
     return !(other.x >= this.x + this.w ||
            other.x + other.w <= this.x ||
@@ -697,9 +705,13 @@ Rect.prototype.draw = function (ctx) {
         ctx.strokeRect(loc.x, loc.y, this.w * z, this.h * z);
     }
 };
-Rect.prototype.contains = function (mx, my) {
-    return (w2lx(this.x) <= mx) && (w2lx(this.x + this.w) >= mx) &&
-        (w2ly(this.y) <= my) && (w2ly(this.y + this.h) >= my);
+Rect.prototype.contains = function (mx, my, world) {
+    if (world === undefined || world === true){
+        mx = l2wx(mx);
+        my = l2wy(my);
+    }
+    return this.x <= mx && (this.x + this.w) >= mx &&
+        this.y <= my && (this.y + this.h) >= my;
 };
 Rect.prototype.inCorner = function (mx, my, corner) {
     switch (corner) {
@@ -1092,7 +1104,8 @@ FOWLayerState.prototype.draw = function () {
             this.ctx.globalAlpha = ogalpha;
             this.ctx.globalCompositeOperation = orig_op;
         }
-        LayerState.prototype.draw.call(this, !gameManager.layerManager.fullFOW);
+        if (!gameManager.IS_DM)
+            LayerState.prototype.draw.call(this, !gameManager.layerManager.fullFOW);
         ctx.globalCompositeOperation = 'destination-out';
         gameManager.layerManager.getLayer("tokens").shapes.data.forEach(function (sh) {
             if (!sh.owners.includes(gameManager.username) && !gameManager.IS_DM) return;
@@ -1139,6 +1152,7 @@ FOWLayerState.prototype.draw = function () {
             for (let angle = 0; angle < 2 * Math.PI; angle += (1/180) * Math.PI) {
                 // Check hit with obstruction
                 let hit = {intersect: null, distance: Infinity};
+                let shape_hit = null;
                 local_lightblockers.forEach(function (lb_bb) {
                     const result = lb_bb.getIntersectWithLine({
                         start: center,
@@ -1147,8 +1161,10 @@ FOWLayerState.prototype.draw = function () {
                             y: center.y + aura_length * Math.sin(angle)
                         }
                     });
-                    if (result.intersect !== null && result.distance < hit.distance)
+                    if (result.intersect !== null && result.distance < hit.distance) {
                         hit = result;
+                        shape_hit = lb_bb;
+                    }
                 });
                 // If we have no hit, check if we come from a previous hit so that we can go back to the arc
                 if (hit.intersect === null){
@@ -1166,7 +1182,13 @@ FOWLayerState.prototype.draw = function () {
                     ctx.arc(lcenter.x, lcenter.y, w2lr(aura.value), arc_start, angle);
                     arc_start = -1;
                 }
-                ctx.lineTo(w2lx(hit.intersect.x + 10 * Math.cos(angle)), w2ly(hit.intersect.y + 10 * Math.sin(angle)));
+                let extraX = (shape_hit.w/4) * Math.cos(angle);
+                let extraY = (shape_hit.h/4) * Math.sin(angle);
+                // if (!shape_hit.contains(hit.intersect.x + extraX, hit.intersect.y + extraY, false)) {
+                //     extraX = 0;
+                //     extraY = 0;
+                // }
+                ctx.lineTo(w2lx(hit.intersect.x + extraX), w2ly(hit.intersect.y + extraY));
             }
             if (arc_start !== -1)
                 ctx.arc(lcenter.x, lcenter.y, w2lr(aura.value), arc_start, 2*Math.PI);
@@ -1179,6 +1201,8 @@ FOWLayerState.prototype.draw = function () {
             // ctx.fillStyle = "rgba(0, 0, 0, 1)";
             ctx.fill();
         });
+        if (gameManager.IS_DM)
+            LayerState.prototype.draw.call(this, !gameManager.layerManager.fullFOW);
         ctx.globalCompositeOperation = orig_op;
     }
 };

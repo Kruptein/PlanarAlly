@@ -19,6 +19,9 @@ from aiohttp_session.cookie_storage import EncryptedCookieStorage
 import auth
 from planarally import PlanarAlly
 
+FILE_DIR = os.path.dirname(os.path.realpath(__file__))
+os.chdir(FILE_DIR)
+
 PA = PlanarAlly("planar.save")
 
 sio = socketio.AsyncServer(async_mode='aiohttp', engineio_logger=False)
@@ -435,7 +438,10 @@ if __name__ == '__main__':
         import ssl
 
         ctx = ssl.SSLContext()
-        ctx.load_cert_chain(cfg['Webserver']['ssl_fullchain'], cfg['Webserver']['ssl_privkey'])
+        ctx.load_cert_chain(
+            cfg['Webserver']['ssl_fullchain'],
+            cfg['Webserver']['ssl_privkey']
+        )
         web.run_app(app, port=cfg.getint('Webserver', 'port'), ssl_context=ctx)
     else:
         print(" RUNNING IN NON SSL CONTEXT ")

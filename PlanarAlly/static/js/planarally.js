@@ -1748,10 +1748,8 @@ FOWTool.prototype.onMouseDown = function (e) {
 
     if ($("#fow-reveal").prop("checked"))
         this.rect.globalCompositeOperation = "destination-out";
-    else {
+    else
         this.rect.globalCompositeOperation = "source-over";
-        this.rect.visionObstruction = true;
-    }
 };
 FOWTool.prototype.onMouseUp = function () {
     if (this.startPoint === null) return;

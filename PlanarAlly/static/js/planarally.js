@@ -576,12 +576,6 @@ Shape.prototype.asDict = function () {
 Shape.prototype.draw = function (ctx) {
     if (this.layer === 'fow') {
         this.fill = fowColour.spectrum("get").toRgbString();
-        if (gameManager.IS_DM){
-            if (this.globalCompositeOperation === "destination-out")
-                ctx.globalAlpha = 1.0;
-            else
-                ctx.globalAlpha = 0.3;
-        }
     }
     if (this.globalCompositeOperation !== undefined)
         ctx.globalCompositeOperation = this.globalCompositeOperation;
@@ -992,6 +986,7 @@ LayerState.prototype.draw = function (doClear) {
         this.shapes.data.forEach(function (shape) {
             if (w2lx(shape.x) > state.width || w2ly(shape.y) > state.height ||
                 w2lx(shape.x + shape.w) < 0 || w2ly(shape.y + shape.h) < 0) return;
+            if (state.name === 'fow' && shape.visionObstruction && gameManager.layerManager.getLayer().name !== state.name) return;
             shape.draw(ctx);
         });
 
@@ -1713,8 +1708,10 @@ FOWTool.prototype.onMouseDown = function (e) {
 
     if ($("#fow-reveal").prop("checked"))
         this.rect.globalCompositeOperation = "destination-out";
-    else
+    else {
         this.rect.globalCompositeOperation = "source-over";
+        this.rect.visionObstruction = true;
+    }
 };
 FOWTool.prototype.onMouseUp = function () {
     if (this.startPoint === null) return;

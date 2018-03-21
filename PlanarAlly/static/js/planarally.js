@@ -1959,7 +1959,7 @@ $("#zoomer").slider({
         gameManager.layerManager.panX -= (origX - newX) / 2;
         gameManager.layerManager.panY -= (origY - newY) / 2;
         gameManager.layerManager.invalidate();
-        socket.emit("set clientOptions", {zoomFactor: newZ, panX: newX, panY: newY});
+        socket.emit("set clientOptions", {zoomFactor: newZ, panX: gameManager.layerManager.panX, panY: gameManager.layerManager.panY});
     }
 });
 

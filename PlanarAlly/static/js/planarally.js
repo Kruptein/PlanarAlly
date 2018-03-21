@@ -1095,7 +1095,7 @@ FOWLayerState.prototype.draw = function () {
         LayerState.prototype.draw.call(this, !gameManager.layerManager.fullFOW);
         ctx.globalCompositeOperation = 'destination-out';
         gameManager.layerManager.getLayer("tokens").shapes.data.forEach(function (sh) {
-            if (!sh.owners.includes(gameManager.username)) return;
+            if (!sh.owners.includes(gameManager.username) && !gameManager.IS_DM) return;
             const bb = sh.getBoundingBox();
             const lcenter = w2l(sh.center());
             const alm = 0.8 * w2lz(bb.w);

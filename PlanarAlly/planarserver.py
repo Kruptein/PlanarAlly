@@ -3,7 +3,6 @@ PlanarAlly backend server code.
 This is the code responsible for starting the backend and reacting to socket IO events.
 """
 
-import atexit
 import configparser
 import os
 import socketio
@@ -33,8 +32,9 @@ aiohttp_jinja2.setup(app, loader=jinja2.FileSystemLoader('templates'))
 sio.attach(app)
 
 
-@atexit.register
-def save_all():
+async def on_shutdown(app):
+    for sid in list(app['AuthzPolicy'].sio_map.keys()):
+        await sio.disconnect(sid, namespace='/planarally')
     PA.save()
 
 
@@ -415,11 +415,6 @@ async def test_disconnect(sid):
         await sio.emit("clear temporaries", location.client_temporaries[sid])
         del location.client_temporaries[sid]
 
-    # for value in app['AuthzPolicy'].sio_map.values():
-    #     if value['room'] == room:
-    #         break
-    # else:
-    #     PA.save_room(room)
     PA.save_room(room)
 
 
@@ -430,6 +425,8 @@ app.router.add_get('/rooms/{username}/{roomname}', show_room)
 app.router.add_get('/invite/{code}', claim_invite)
 app.router.add_post('/create_room', create_room)
 app.router.add_get('/logout', logout)
+
+app.on_shutdown.append(on_shutdown)
 
 if __name__ == '__main__':
     cfg = configparser.ConfigParser()

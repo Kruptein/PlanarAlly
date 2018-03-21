@@ -6,6 +6,9 @@ PlanarAlly is a web tool that adds virtual battlemaps with various extras to you
 
 _This project is still in early development; multiple bugs or structure changes can and will happen_
 
+![Contribution guidelines for this project](extra/player_light_example.png)
+_Credits to Gogots for the background map used [source](https://gogots.deviantart.com/art/City-of-Moarkaliff-702295905)_
+
 ## What you get
 
 ### Layers
@@ -49,7 +52,7 @@ Dragging a token from here on to the grid will place it in the currently selecte
 To remove a token from the board, you can select it and press the delete key.
 
 Users are automatically the owner of any shape they draw.  The DM always is co-owner.
-Although possible through the js console there is no UI in place to give other players ownership of your assets. (WIP)
+You can add/remove owners using the edit asset dialog.
 
 If you own an asset a panel will appear on selection of the asset at the right side of your screen.
 Here you can keep track of various trackers (e.g. health) and auras (e.g. vision/light/paladin auras).
@@ -159,7 +162,7 @@ NOT planned
 * dice rolling
 * Any kind of marketplace
 
-## Backend Requirements
+## Installing / Backend Requirements
 
 The core of the project is built around the following three tools.
 * python 3.6
@@ -173,17 +176,35 @@ Additionally the following libraries are also necessary:
 * bcrypt
 * cryptography
 
+All of the dependencies are listed in requirements.txt so after cloning/downloading this repo, 
+a simple `pip install -r requirements.txt` should do the trick.
+
 It should be relatively easy to swap out aiohttp for another webframework.  Aiohttp was chosen purely to try out one of the 'fancy' async frameworks.
 The function of the web framwork is fairly limited in complexity.  It's main purpose is to provide an authentication layer and persistence.
 
+It is strongly advised to use a virtual environment.
+
+#### Help I have no idea how to do this???
+1. Download this project to the location from where you want to run the project. [Download link](https://github.com/Kruptein/PlanarAlly/archive/master.zip)
+2. Go [install python 3.6](https://www.python.org/downloads/).  Make sure to remember where you installed python.
+3. open a command prompt in the PlanarAlly-master directory that you downloaded.  (shift + rightclick in the directory > Open Powershell window here or Open command prompt window here)
+4. execute `<PATH_TO_PYTHON_INSTALL>\python.exe -m venv env`  (e.g. `C:\Python36\python.exe -m venv env`)
+5. execute `env\Scripts\activate`
+6. execute `python -m pip install --upgrade pip`
+7. execute `pip install -r requirements.txt`
+
+Everything is now installed, you can now run the command `python PlanarAlly\planarserver.py` to start the server and then point your browser to `http://localhost:8000`
+
+In the future you'll only need to open the directory again and then execute step 5 again before running the start command.  The other steps are no longer necessary.
+
+You can create a special file to automate this (after everything is installed). Place [this file](https://gist.githubusercontent.com/Kruptein/c02ea3fe383c8e6d189cedc03a91684c/raw/b97d55d8e652bb479b67c4fa4caecf55a4f946f7/autostart.bat) in your main directory (make sure to save it as a .bat file NOT a .bat.txt file). Just doubleclicking this file will auto start the server.
+
+
 ## Running
 
-`PlanarALly/planarserver.py` is the entrypoint of the web server application.  At the moment some manual configuration is probably necessary.
-The server parameters are at the bottom of that file.
+Running `python PlanarAlly/planarserver.py` will start the webserver.  You can change the port and whether it should use https in the `server_config.cfg` file.
 
 Without modification it runs on port 8000 and over HTTP.
-
-If a `certs` folder is present in the same directory it will attempt to run over HTTPS _(names of the certs are hardcoded atm in the script)_
 
 **SAVE DATA**
 Currently all data (user auth and session data) is stored using python's builtin shelve module.  The save format is however **not** finalized.

@@ -348,10 +348,42 @@ Shape.prototype.onSelection = function () {
             s.setMovementBlock(dialog_moveblock.prop("checked"));
         });
 
+        const owners = $("#shapeselectiondialog-owners");
         const trackers = $("#shapeselectiondialog-trackers");
         const auras = $("#shapeselectiondialog-auras");
+        owners.nextUntil(trackers).remove();
         trackers.nextUntil(auras).remove();
         auras.nextUntil($("#shapeselectiondialog").find("form")).remove();
+
+        function addOwner(owner) {
+            const ow_name = $(`<input type="text" placeholder="name" data-name="${owner}" class="shapeselectiondialog-name" value="${owner}" style="grid-column-start: name">`);
+            const ow_remove = $(`<div style="grid-column-start: remove"><i class="fas fa-trash-alt"></i></div>`);
+
+            trackers.before(ow_name.add(ow_remove));
+
+            ow_name.on("change", function () {
+                const ow_i = self.owners.findIndex(o => o === $(this).data('name'));
+                if (ow_i >= 0)
+                    self.owners.splice(ow_i, 1, $(this).val());
+                else
+                    self.owners.push($(this).val());
+                socket.emit("updateShape", {shape: self.asDict(), redraw: false});
+                if (!self.owners.length || self.owners[self.owners.length - 1].name !== '' || self.owners[self.owners.length - 1].value !== '') {
+                    addOwner("");
+                }
+            });
+            ow_remove.on("click", function () {
+                const ow = self.owners.find(o => o.uuid === $(this).data('uuid'));
+                $(this).prev().remove();
+                $(this).remove();
+                self.owners.splice(self.owners.indexOf(ow), 1);
+                socket.emit("updateShape", {shape: self.asDict(), redraw: false});
+            });
+        }
+
+        self.owners.forEach(addOwner);
+        if (!self.owners.length || self.owners[self.owners.length - 1].name !== '' || self.owners[self.owners.length - 1].value !== '')
+            addOwner("");
 
         function addTracker(tracker) {
             const tr_name = $(`<input type="text" placeholder="name" data-uuid="${tracker.uuid}" class="shapeselectiondialog-name" value="${tracker.name}" style="grid-column-start: name">`);

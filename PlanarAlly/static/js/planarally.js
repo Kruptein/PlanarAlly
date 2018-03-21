@@ -212,7 +212,9 @@ socket.on("add shape", function (shape) {
     layer.invalidate();
 });
 socket.on("remove shape", function (shape) {
-    gameManager.layerManager.getLayer(shape.layer).removeShape(gameManager.layerManager.UUIDMap.get(shape.uuid), false);
+    const layer = gameManager.layerManager.getLayer(shape.layer);
+    layer.removeShape(gameManager.layerManager.UUIDMap.get(shape.uuid), false);
+    layer.invalidate();
 });
 socket.on("moveShapeOrder", function (data) {
     gameManager.layerManager.getLayer(data.shape.layer).moveShapeOrder(gameManager.layerManager.UUIDMap.get(data.shape.uuid), data.index, false);

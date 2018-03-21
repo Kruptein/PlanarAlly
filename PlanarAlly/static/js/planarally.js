@@ -207,7 +207,9 @@ socket.on("set gridsize", function (gridSize) {
     gameManager.layerManager.setGridSize(gridSize);
 });
 socket.on("add shape", function (shape) {
-    gameManager.layerManager.getLayer(shape.layer).addShape(createShapeFromDict(shape), false);
+    const layer = gameManager.layerManager.getLayer(shape.layer);
+    layer.addShape(createShapeFromDict(shape), false);
+    layer.invalidate();
 });
 socket.on("remove shape", function (shape) {
     gameManager.layerManager.getLayer(shape.layer).removeShape(gameManager.layerManager.UUIDMap.get(shape.uuid), false);

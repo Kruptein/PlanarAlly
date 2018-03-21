@@ -6,7 +6,7 @@ PlanarAlly is a web tool that adds virtual battlemaps with various extras to you
 
 _This project is still in early development; multiple bugs or structure changes can and will happen_
 
-![Contribution guidelines for this project](extra/player_light_example.png)
+![Example view of a player with a light source](extra/player_light_example.png)
 _Credits to Gogots for the background map used [source](https://gogots.deviantart.com/art/City-of-Moarkaliff-702295905)_
 
 ## What you get

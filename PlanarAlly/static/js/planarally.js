@@ -1624,8 +1624,10 @@ DrawTool.prototype.onMouseDown = function (e) {
     const border = borderColor === null ? tinycolor("transparent") : borderColor;
     this.rect = new Rect(this.startPoint.x, this.startPoint.y, 0, 0, fill.toRgbString(), border.toRgbString());
     this.rect.owners.push(gameManager.username);
-    if (layer.name === 'fow')
+    if (layer.name === 'fow') {
         this.rect.visionObstruction = true;
+        this.rect.movementObstruction = true;
+    }
     gameManager.lightblockers.push(this.rect.uuid);
     layer.addShape(this.rect, true, false);
 };

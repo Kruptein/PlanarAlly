@@ -1,2 +1,4 @@
 .idea/**
 env/**
+planar.save*
+server_config.cfg

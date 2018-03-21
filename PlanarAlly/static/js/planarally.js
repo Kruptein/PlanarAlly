@@ -1925,9 +1925,17 @@ $("#zoomer").slider({
     step: 0.1,
     value: gameManager.layerManager.zoomFactor,
     slide: function (event, ui) {
-        gameManager.layerManager.zoomFactor = 1 / ui.value;
+        const origZ = gameManager.layerManager.zoomFactor;
+        const newZ = 1 / ui.value;
+        const origX = window.innerWidth / origZ;
+        const newX = window.innerWidth / newZ;
+        const origY = window.innerHeight / origZ;
+        const newY = window.innerHeight / newZ;
+        gameManager.layerManager.zoomFactor = newZ;
+        gameManager.layerManager.panX -= (origX - newX) / 2;
+        gameManager.layerManager.panY -= (origY - newY) / 2;
         gameManager.layerManager.invalidate();
-        socket.emit("set clientOptions", {zoomFactor: gameManager.layerManager.zoomFactor});
+        socket.emit("set clientOptions", {zoomFactor: newZ, panX: newX, panY: newY});
     }
 });
 

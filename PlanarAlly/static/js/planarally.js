@@ -982,7 +982,7 @@ LayerState.prototype.clear = function () {
 LayerState.prototype.draw = function (doClear) {
     if (board_initialised && !this.valid) {
         const ctx = this.ctx;
-        doClear = doClear === undefined;
+        doClear = doClear === undefined ? true : doClear;
 
         if (doClear)
             this.clear();
@@ -1091,7 +1091,7 @@ FOWLayerState.prototype.draw = function () {
             this.ctx.globalAlpha = ogalpha;
             this.ctx.globalCompositeOperation = orig_op;
         }
-        LayerState.prototype.draw.call(this, gameManager.layerManager.fullFOW);
+        LayerState.prototype.draw.call(this, !gameManager.layerManager.fullFOW);
         ctx.globalCompositeOperation = 'destination-out';
         gameManager.layerManager.getLayer("tokens").shapes.data.forEach(function (sh) {
             if (!sh.owners.includes(gameManager.username)) return;

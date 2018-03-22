@@ -194,6 +194,7 @@ After using this tool you'll often want to slightly reposition the object with t
 
 Following is a list of current TODO's in no particular order:
 
+* Initiative tracker
 * Better token management
 * Rotate tokens
 * Some form of barebones text chat
@@ -213,7 +214,7 @@ Technical
 * Change to Typescript
 * Provide more persistence options (database/memory store)
 
-NOT planned
+NOT planned for now
 
 * video/voice chat
 * dice rolling

@@ -37,6 +37,11 @@ class LayerManager:
             if layer.name == name:
                 return layer
 
+    def get_shape(self, uid):
+        for layer in self.layers:
+            if uid in layer.shapes:
+                return layer.shapes[uid]
+
 
 class Layer:
     def __init__(self, name, *, selectable=True, player_visible=False, player_editable=False):

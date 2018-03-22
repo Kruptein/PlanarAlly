@@ -145,6 +145,14 @@ are under fow are sent to the players.  The FOW will be displayed correctly abov
 to the player BUT a player with some javascript knowledge will be able to circumvent this.  There are no immediate plans to
 'fix' this as I trust my players to not metagame, but I might look at this in the future.
 
+### Initiative tracker
+
+A very basic initiative tracker is available.  Right clicking on any shape and selecting 'add initiative' will show the initiative tracker.
+This is also the only way atm to open the tracker.  The initiative tracker is cuurently automatically sorted from highest to lowest.
+2 additional options are available: The vision aspect that is also present for trackers/auras but also a special group flag.  If this is not set,
+removing a tracked asset will also remove the corresponding initiative tracker.  With the flag set this is not the case!  This is especially useful
+if you have multiple similar monsters that should have the same initiative.
+
 ### Tools
 
 A plethora of basic tools are available to both players and DM and can be selected in the lower right of the screen.
@@ -194,7 +202,6 @@ After using this tool you'll often want to slightly reposition the object with t
 
 Following is a list of current TODO's in no particular order:
 
-* Initiative tracker
 * Better token management
 * Rotate tokens
 * Some form of barebones text chat
@@ -213,6 +220,7 @@ Technical
 
 * Change to Typescript
 * Provide more persistence options (database/memory store)
+* Clean up server side API
 
 NOT planned for now
 

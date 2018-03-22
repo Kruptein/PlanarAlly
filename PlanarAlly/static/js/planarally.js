@@ -232,13 +232,14 @@ socket.on("updateShape", function (data) {
         gameManager.layerManager.getLayer(data.shape.layer).invalidate();
 });
 socket.on("updateInitiative", function (data) {
-    if (data.initiative === undefined)
-        gameManager.initiativeTracker.removeInitiative(data.shape, false);
+    if (data.initiative === undefined || (!data.owners.includes(gameManager.username) && !gameManager.IS_DM && !data.visible))
+        gameManager.initiativeTracker.removeInitiative(data.uuid, false, true);
     else
-        gameManager.initiativeTracker.addInitiative(data.shape, false, data.initiative);
+        gameManager.initiativeTracker.addInitiative(data, false);
 });
 socket.on("setInitiative", function (data) {
     gameManager.initiativeTracker.data = data;
+    gameManager.initiativeTracker.redraw();
     if (data.length > 0)
         initiativeDialog.dialog("open");
 });
@@ -296,6 +297,11 @@ Shape.prototype.setMovementBlock = function (blocksMovement){
     else if (!this.movementObstruction && vo_i >= 0)
         gameManager.movementblockers.splice(vo_i, 1);
 };
+Shape.prototype.ownedBy = function (username) {
+    if (username === undefined)
+        username = gameManager.username;
+    return gameManager.IS_DM || this.owners.includes(username);
+};
 Shape.prototype.onMouseUp = function () {
     // $(`#shapeselectioncog-${this.uuid}`).remove();
     // const cog = $(`<div id="shapeselectioncog-${this.uuid}"><i class='fa fa-cog' style='left:${this.x};top:${this.y + this.h + 10};z-index:50;position:absolute;'></i></div>`);
@@ -331,7 +337,7 @@ Shape.prototype.onSelection = function () {
     $("#selection-menu").show();
     const self = this;
     const editbutton = $("#selection-edit-button");
-    if (this.owners.indexOf(gameManager.username) === -1 && !gameManager.IS_DM)
+    if (!this.ownedBy())
         editbutton.hide();
     else
         editbutton.show();
@@ -1030,7 +1036,6 @@ LayerState.prototype.removeShape = function (shape, sync, temporary) {
         gameManager.movementblockers.splice(mb_i, 1);
     gameManager.layerManager.UUIDMap.delete(shape.uuid);
     if (this.selection === shape) this.selection = null;
-    gameManager.initiativeTracker.removeInitiative(shape.uuid);
     this.invalidate(!sync);
 };
 LayerState.prototype.clear = function () {
@@ -1153,7 +1158,7 @@ FOWLayerState.prototype.draw = function () {
             LayerState.prototype.draw.call(this, !gameManager.layerManager.fullFOW);
         ctx.globalCompositeOperation = 'destination-out';
         gameManager.layerManager.getLayer("tokens").shapes.data.forEach(function (sh) {
-            if (!sh.owners.includes(gameManager.username) && !gameManager.IS_DM) return;
+            if (!sh.ownedBy()) return;
             const bb = sh.getBoundingBox();
             const lcenter = w2l(sh.center());
             const alm = 0.8 * w2lz(bb.w);
@@ -1413,7 +1418,7 @@ LayerManager.prototype.onMouseDown = function (e) {
             const shape = selectionStack[i];
             const corn = shape.getCorner(mx, my);
             if (corn !== undefined) {
-                if (shape.owners.indexOf(gameManager.username) === -1 && !gameManager.IS_DM) continue;
+                if (!shape.ownedBy()) continue;
                 layer.selection = [shape];
                 shape.onSelection();
                 layer.resizing = true;
@@ -1423,7 +1428,7 @@ LayerManager.prototype.onMouseDown = function (e) {
                 setSelectionInfo(shape);
                 break;
             } else if (shape.contains(mx, my)) {
-                if (shape.owners.indexOf(gameManager.username) === -1 && !gameManager.IS_DM) continue;
+                if (!shape.ownedBy()) continue;
                 const sel = shape;
                 const z = gameManager.layerManager.zoomFactor;
                 if (layer.selection.indexOf(sel) === -1) {
@@ -1571,7 +1576,7 @@ LayerManager.prototype.onMouseUp = function (e) {
         layer.shapes.data.forEach(function (shape) {
             if (shape === layer.selectionHelper) return;
             const bbox = shape.getBoundingBox();
-            if (shape.owners.indexOf(gameManager.username) === -1 && !gameManager.IS_DM) return;
+            if (!shape.ownedBy()) return;
             if (layer.selectionHelper.x <= bbox.x + bbox.w &&
                 layer.selectionHelper.x + layer.selectionHelper.w >= bbox.x &&
                 layer.selectionHelper.y <= bbox.y + bbox.h &&
@@ -2052,7 +2057,8 @@ function handleContextMenu(menu, shape) {
             gameManager.layerManager.getLayer(menu.data("layer")).addShape(shape, true);
             break;
         case 'addInitiative':
-            gameManager.initiativeTracker.addInitiative(shape, true, 0);
+            gameManager.initiativeTracker.addInitiative(
+                {uuid: shape.uuid, visible: !gameManager.IS_DM, group: false, src: shape.src, owners: shape.owners}, true);
             break;
     }
     $menu.hide();
@@ -2096,10 +2102,11 @@ window.onresize = function () {
 };
 
 $('body').keyup(function (e) {
-    if (e.keyCode === 46) {
+    if (e.keyCode === 46 && e.target.tagName !== "INPUT") {
         const l = gameManager.layerManager.getLayer();
         l.selection.forEach(function (sel) {
             l.removeShape(sel, true, false);
+            gameManager.initiativeTracker.removeInitiative(sel.uuid, true);
         });
     }
 });
@@ -2227,49 +2234,36 @@ OrderedMap.prototype.moveTo = function (element, idx) {
 function InitiativeTracker() {
     this.data = [];
 }
-InitiativeTracker.prototype.addInitiative = function (shape, sync, initiative) {
+InitiativeTracker.prototype.addInitiative = function (data, sync) {
     // Open the initiative tracker if it is not currently open.
-    let dialog_was_open = true;
-    if (this.data.length === 0 || !initiativeDialog.dialog("isOpen")) {
+    if (this.data.length === 0 || !initiativeDialog.dialog("isOpen"))
         initiativeDialog.dialog("open");
-        dialog_was_open = false;
-        console.log(dialog_was_open);
-    }
-    console.log(dialog_was_open);
     // If no initiative given, assume it 0
-    if (initiative === undefined)
-        initiative = 0;
+    if (data.initiative === undefined)
+        data.initiative = 0;
     // Check if the shape is already being tracked
-    const existing = this.data.find(d => d.uuid === shape.uuid);
+    const existing = this.data.find(d => d.uuid === data.uuid);
     if (existing !== undefined){
-        // If the value did not change, double addition was done which is an error, Shake it Shake it off!
-        // (Only do the shake if the window was already open)
-        if (existing.initiative === initiative) {
-            console.log(dialog_was_open);
-            if (dialog_was_open) {
-                initiativeDialog.parent().effect("shake", {times: 3}, 20);
-            }
-            // If the stored value differs from the provided value assume that it updated!
-        } else {
-            existing.initiative = initiative;
-            this.redraw();
-        }
+        Object.assign(existing, data);
+        this.redraw();
     } else {
-        this.data.push({uuid: shape.uuid, initiative: initiative});
+        this.data.push(data);
         this.redraw();
     }
     if (sync)
-        socket.emit("updateInitiative", {shape: gameManager.layerManager.UUIDMap.get(shape.uuid), initiative: initiative});
+        socket.emit("updateInitiative", data);
 };
-InitiativeTracker.prototype.removeInitiative = function (uuid, sync) {
+InitiativeTracker.prototype.removeInitiative = function (uuid, sync, skipGroupCheck) {
+    skipGroupCheck = skipGroupCheck || false;
     const d = this.data.findIndex(d => d.uuid === uuid);
     if (d >= 0) {
+        if (!skipGroupCheck && this.data[d].group) return;
         this.data.splice(d, 1);
         this.redraw();
         if (sync)
-            socket.emit("updateInitiative", {shape: gameManager.layerManager.UUIDMap.get(uuid)});
+            socket.emit("updateInitiative", {uuid: uuid});
     }
-    if (this.data.length === 0)
+    if (this.data.length === 0 && initiativeDialog.dialog("isOpen"))
         initiativeDialog.dialog("close");
 };
 InitiativeTracker.prototype.redraw = function () {
@@ -2282,27 +2276,60 @@ InitiativeTracker.prototype.redraw = function () {
     const self = this;
 
     this.data.forEach(function (data) {
-        const sh = gameManager.layerManager.UUIDMap.get(data.uuid);
-        const img = sh.src === undefined ? '' : $(`<img src="${sh.src}" width="30px" data-uuid="${sh.uuid}">`);
+        if (data.owners === undefined) data.owners = [];
+        const img = data.src === undefined ? '' : $(`<img src="${data.src}" width="30px" data-uuid="${data.uuid}">`);
         // const name = $(`<input type="text" placeholder="name" data-uuid="${sh.uuid}" value="${sh.name}" disabled='disabled' style="grid-column-start: name">`);
-        const val = $(`<input type="text" placeholder="value" data-uuid="${sh.uuid}" value="${data.initiative}" style="grid-column-start: value">`);
-        const visible = $(`<div data-uuid="${sh.uuid}"><i class="fas fa-eye"></i></div>`);
-        const group = $(`<div data-uuid="${sh.uuid}"><i class="fas fa-users"></i></div>`);
-        const remove = $(`<div style="grid-column-start: remove" data-uuid="${sh.uuid}"><i class="fas fa-trash-alt"></i></div>`);
+        const val = $(`<input type="text" placeholder="value" data-uuid="${data.uuid}" value="${data.initiative}" style="grid-column-start: value">`);
+        const visible = $(`<div data-uuid="${data.uuid}"><i class="fas fa-eye"></i></div>`);
+        const group = $(`<div data-uuid="${data.uuid}"><i class="fas fa-users"></i></div>`);
+        const remove = $(`<div style="grid-column-start: remove" data-uuid="${data.uuid}"><i class="fas fa-trash-alt"></i></div>`);
 
-        group.css("opacity", "0.3");
+        visible.css("opacity", data.visible ? "1.0" : "0.3");
+        group.css("opacity", data.group ? "1.0" : "0.3");
+        if (!data.owners.includes(gameManager.username) && !gameManager.IS_DM) {
+            val.prop("disabled", "disabled");
+            remove.css("opacity", "0.3");
+        }
 
         initiativeDialog.append(img).append(val).append(visible).append(group).append(remove);
 
         val.on("change", function() {
             const d = self.data.find(d => d.uuid === $(this).data('uuid'));
-            self.addInitiative(d, true, $(this).val());
+            d.initiative = parseInt($(this).val()) || 0;
+            self.addInitiative(d, true);
         });
+
+        visible.on("click", function (){
+                const d = self.data.find(d => d.uuid === $(this).data('uuid'));
+                if(!d.owners.includes(gameManager.username) && !gameManager.IS_DM)
+                    return;
+                d.visible = !d.visible;
+                if (d.visible)
+                    $(this).css("opacity", 1.0);
+                else
+                    $(this).css("opacity", 0.3);
+                socket.emit("updateInitiative", d);
+            });
+
+        group.on("click", function (){
+                const d = self.data.find(d => d.uuid === $(this).data('uuid'));
+                if(!d.owners.includes(gameManager.username) && !gameManager.IS_DM)
+                    return;
+                d.group = !d.group;
+                if (d.group)
+                    $(this).css("opacity", 1.0);
+                else
+                    $(this).css("opacity", 0.3);
+                socket.emit("updateInitiative", d);
+            });
 
         remove.on("click", function () {
             const uuid = $(this).data('uuid');
+            const d = self.data.find(d => d.uuid === uuid);
+            if(!d.owners.includes(gameManager.username) && !gameManager.IS_DM)
+                return;
             $(`[data-uuid=${uuid}]`).remove();
-            self.removeInitiative(uuid, true);
+            self.removeInitiative(uuid, true, true);
         });
     });
 };

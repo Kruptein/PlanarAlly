@@ -305,7 +305,6 @@ async def update_shape(sid, data):
 @sio.on("updateInitiative", namespace='/planarally')
 @auth.login_required(app, sio)
 async def update_initiative(sid, data):
-    print(data)
     policy = app['AuthzPolicy']
     username = policy.sio_map[sid]['user'].username
     room = policy.sio_map[sid]['room']

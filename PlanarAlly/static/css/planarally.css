@@ -518,20 +518,28 @@ input:checked + .slider:before {
     color: #82c8a0;
 }
 
-#shapeselectiondialog > form {
+#shapeselectiondialog > div {
     display: grid;
     grid-template-columns: [name] 1fr [numerator] 30px [slash] 5px [denominator] 30px [colour] 40px [visible] 30px [light] 30px [remove] 30px [end];
     grid-column-gap: 5px;
     align-items: center;
 }
 
-#shapeselectiondialog .spanrow {
+#initiativedialog {
+    padding: 0;
+    display: grid;
+    grid-template-columns: [img] 30px [value] 30px [visible] 30px [group] 30px [remove] 30px [end];
+    grid-column-gap: 2px;
+    align-items: center;
+}
+
+.dialog .spanrow {
     grid-column: 1 / end;
     line-height: 0.1em;
     margin: 20px 0 15px;
 }
 
-#shapeselectiondialog .spanrow:after {
+.dialog .spanrow:after {
     position: absolute;
     right: 5px;
     width: 75%;
@@ -539,7 +547,7 @@ input:checked + .slider:before {
     content: '';
 }
 
-#shapeselectiondialog span {
+.dialog span {
     text-align: center;
 }
 

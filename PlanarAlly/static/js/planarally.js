@@ -231,6 +231,17 @@ socket.on("updateShape", function (data) {
     if (data.redraw)
         gameManager.layerManager.getLayer(data.shape.layer).invalidate();
 });
+socket.on("updateInitiative", function (data) {
+    if (data.initiative === undefined)
+        gameManager.initiativeTracker.removeInitiative(data.shape, false);
+    else
+        gameManager.initiativeTracker.addInitiative(data.shape, false, data.initiative);
+});
+socket.on("setInitiative", function (data) {
+    gameManager.initiativeTracker.data = data;
+    if (data.length > 0)
+        initiativeDialog.dialog("open");
+});
 socket.on("clear temporaries", function (shapes) {
     shapes.forEach(function (shape) {
         gameManager.layerManager.getLayer(shape.layer).removeShape(shape, false);
@@ -356,7 +367,7 @@ Shape.prototype.onSelection = function () {
         auras.nextUntil($("#shapeselectiondialog").find("form")).remove();
 
         function addOwner(owner) {
-            const ow_name = $(`<input type="text" placeholder="name" data-name="${owner}" class="shapeselectiondialog-name" value="${owner}" style="grid-column-start: name">`);
+            const ow_name = $(`<input type="text" placeholder="name" data-name="${owner}" value="${owner}" style="grid-column-start: name">`);
             const ow_remove = $(`<div style="grid-column-start: remove"><i class="fas fa-trash-alt"></i></div>`);
 
             trackers.before(ow_name.add(ow_remove));
@@ -386,7 +397,7 @@ Shape.prototype.onSelection = function () {
             addOwner("");
 
         function addTracker(tracker) {
-            const tr_name = $(`<input type="text" placeholder="name" data-uuid="${tracker.uuid}" class="shapeselectiondialog-name" value="${tracker.name}" style="grid-column-start: name">`);
+            const tr_name = $(`<input type="text" placeholder="name" data-uuid="${tracker.uuid}" value="${tracker.name}" style="grid-column-start: name">`);
             const tr_val = $(`<input type="text" title="Current value" data-uuid="${tracker.uuid}" value="${tracker.value}">`);
             const tr_maxval = $(`<input type="text" title="Max value" data-uuid="${tracker.uuid}" value="${tracker.maxvalue || ""}">`);
             const tr_visible = $(`<div data-uuid="${tracker.uuid}"><i class="fas fa-eye"></i></div>`);
@@ -451,7 +462,7 @@ Shape.prototype.onSelection = function () {
         self.trackers.forEach(addTracker);
 
         function addAura(aura) {
-            const aura_name = $(`<input type="text" placeholder="name" data-uuid="${aura.uuid}" class="shapeselectiondialog-name" value="${aura.name}" style="grid-column-start: name">`);
+            const aura_name = $(`<input type="text" placeholder="name" data-uuid="${aura.uuid}" value="${aura.name}" style="grid-column-start: name">`);
             const aura_val = $(`<input type="text" title="Current value" data-uuid="${aura.uuid}" value="${aura.value}">`);
             const aura_dimval = $(`<input type="text" title="Dim value" data-uuid="${aura.uuid}" value="${aura.dim || ""}">`);
             const aura_colour = $(`<input type="text" title="Aura colour" data-uuid="${aura.uuid}">`);
@@ -657,11 +668,12 @@ Shape.prototype.showContextMenu = function (mouse) {
     gameManager.layerManager.layers.forEach(function (layer) {
         if (!layer.selectable) return;
         const sel = layer.name === l.name ? " style='background-color:aqua' " : " ";
-        data += "<li data-action='setLayer' data-layer='" + layer.name + "'" + sel + "class='context-clickable'>" + layer.name + "</li>";
+        data += `<li data-action='setLayer' data-layer='${layer.name}' ${sel} class='context-clickable'>${layer.name}</li>`;
     });
     data += "</ul></li>" +
         "<li data-action='moveToBack' class='context-clickable'>Move to back</li>" +
         "<li data-action='moveToFront' class='context-clickable'>Move to front</li>" +
+        "<li data-action='addInitiative' class='context-clickable'>Add initiative</li>" +
         "</ul>";
     $menu.html(data);
     $(".context-clickable").on('click', function () {
@@ -1018,6 +1030,7 @@ LayerState.prototype.removeShape = function (shape, sync, temporary) {
         gameManager.movementblockers.splice(mb_i, 1);
     gameManager.layerManager.UUIDMap.delete(shape.uuid);
     if (this.selection === shape) this.selection = null;
+    gameManager.initiativeTracker.removeInitiative(shape.uuid);
     this.invalidate(!sync);
 };
 LayerState.prototype.clear = function () {
@@ -1861,6 +1874,8 @@ function GameManager() {
     this.lightsources = [];
     this.lightblockers = [];
     this.movementblockers = [];
+
+    this.initiativeTracker = new InitiativeTracker();
 }
 
 
@@ -2014,17 +2029,12 @@ function setSelectionInfo(shape) {
 
 const shapeSelectionDialog = $("#shapeselectiondialog").dialog({
     autoOpen: false,
-    // height: 400,
-    width: 'auto',
-    // buttons: {
-    //     "Update values": updateShapeSelection,
-    //     Cancel: function () {
-    //         shapeSelectionDialog.dialog("close");
-    //     }
-    // },
-    close: function () {
-        // form[0].reset();
-    }
+    width: 'auto'
+});
+
+const initiativeDialog = $("#initiativedialog").dialog({
+    autoOpen: false,
+    width: '160px'
 });
 
 function handleContextMenu(menu, shape) {
@@ -2040,6 +2050,9 @@ function handleContextMenu(menu, shape) {
         case 'setLayer':
             layer.removeShape(shape, true);
             gameManager.layerManager.getLayer(menu.data("layer")).addShape(shape, true);
+            break;
+        case 'addInitiative':
+            gameManager.initiativeTracker.addInitiative(shape, true, 0);
             break;
     }
     $menu.hide();
@@ -2209,6 +2222,89 @@ OrderedMap.prototype.moveTo = function (element, idx) {
     this.data.splice(oldIdx, 1);
     this.data.splice(idx, 0, element);
     return true;
+};
+
+function InitiativeTracker() {
+    this.data = [];
+}
+InitiativeTracker.prototype.addInitiative = function (shape, sync, initiative) {
+    // Open the initiative tracker if it is not currently open.
+    let dialog_was_open = true;
+    if (this.data.length === 0 || !initiativeDialog.dialog("isOpen")) {
+        initiativeDialog.dialog("open");
+        dialog_was_open = false;
+        console.log(dialog_was_open);
+    }
+    console.log(dialog_was_open);
+    // If no initiative given, assume it 0
+    if (initiative === undefined)
+        initiative = 0;
+    // Check if the shape is already being tracked
+    const existing = this.data.find(d => d.uuid === shape.uuid);
+    if (existing !== undefined){
+        // If the value did not change, double addition was done which is an error, Shake it Shake it off!
+        // (Only do the shake if the window was already open)
+        if (existing.initiative === initiative) {
+            console.log(dialog_was_open);
+            if (dialog_was_open) {
+                initiativeDialog.parent().effect("shake", {times: 3}, 20);
+            }
+            // If the stored value differs from the provided value assume that it updated!
+        } else {
+            existing.initiative = initiative;
+            this.redraw();
+        }
+    } else {
+        this.data.push({uuid: shape.uuid, initiative: initiative});
+        this.redraw();
+    }
+    if (sync)
+        socket.emit("updateInitiative", {shape: gameManager.layerManager.UUIDMap.get(shape.uuid), initiative: initiative});
+};
+InitiativeTracker.prototype.removeInitiative = function (uuid, sync) {
+    const d = this.data.findIndex(d => d.uuid === uuid);
+    if (d >= 0) {
+        this.data.splice(d, 1);
+        this.redraw();
+        if (sync)
+            socket.emit("updateInitiative", {shape: gameManager.layerManager.UUIDMap.get(uuid)});
+    }
+    if (this.data.length === 0)
+        initiativeDialog.dialog("close");
+};
+InitiativeTracker.prototype.redraw = function () {
+    initiativeDialog.empty();
+
+    this.data.sort(function (a, b) {
+        return b.initiative - a.initiative;
+    });
+
+    const self = this;
+
+    this.data.forEach(function (data) {
+        const sh = gameManager.layerManager.UUIDMap.get(data.uuid);
+        const img = sh.src === undefined ? '' : $(`<img src="${sh.src}" width="30px" data-uuid="${sh.uuid}">`);
+        // const name = $(`<input type="text" placeholder="name" data-uuid="${sh.uuid}" value="${sh.name}" disabled='disabled' style="grid-column-start: name">`);
+        const val = $(`<input type="text" placeholder="value" data-uuid="${sh.uuid}" value="${data.initiative}" style="grid-column-start: value">`);
+        const visible = $(`<div data-uuid="${sh.uuid}"><i class="fas fa-eye"></i></div>`);
+        const group = $(`<div data-uuid="${sh.uuid}"><i class="fas fa-users"></i></div>`);
+        const remove = $(`<div style="grid-column-start: remove" data-uuid="${sh.uuid}"><i class="fas fa-trash-alt"></i></div>`);
+
+        group.css("opacity", "0.3");
+
+        initiativeDialog.append(img).append(val).append(visible).append(group).append(remove);
+
+        val.on("change", function() {
+            const d = self.data.find(d => d.uuid === $(this).data('uuid'));
+            self.addInitiative(d, true, $(this).val());
+        });
+
+        remove.on("click", function () {
+            const uuid = $(this).data('uuid');
+            $(`[data-uuid=${uuid}]`).remove();
+            self.removeInitiative(uuid, true);
+        });
+    });
 };
 
 function createShapeFromDict(shape, dummy) {

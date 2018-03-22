@@ -112,8 +112,8 @@
     <div id="zoomer"></div>
     <div id='contextMenu'></div>
 </div>
-<div id="shapeselectiondialog" title="Edit asset">
-    <form>
+<div id="shapeselectiondialog" class="dialog" title="Edit asset">
+    <div>
         <label for="shapeselectiondialog-name">Name</label>
         <input type="hidden" id="shapeselectiondialog-uuid">
         <input type="text" id="shapeselectiondialog-name" style="grid-column: numerator / end">
@@ -124,8 +124,9 @@
         <div class="spanrow" id="shapeselectiondialog-owners">Access</div>
         <div class="spanrow" id="shapeselectiondialog-trackers">Trackers</div>
         <div class="spanrow" id="shapeselectiondialog-auras">Auras</div>
-        <input type="submit" tabindex="-1" style="position:absolute; top:-1000px">
-    </form>
+    </div>
+</div>
+<div id="initiativedialog" class="dialog" title="Initiative">
 </div>
 </body>
 </html>

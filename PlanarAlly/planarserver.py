@@ -5,6 +5,8 @@ This is the code responsible for starting the backend and reacting to socket IO 
 
 import configparser
 import os
+from operator import attrgetter
+
 import socketio
 
 import aiohttp_jinja2
@@ -36,6 +38,12 @@ async def on_shutdown(app):
     for sid in list(app['AuthzPolicy'].sio_map.keys()):
         await sio.disconnect(sid, namespace='/planarally')
     PA.save()
+
+
+async def save_all():
+    while True:
+        await sio.sleep(60)
+        PA.save()
 
 
 @aiohttp_jinja2.template("login.jinja2")
@@ -294,6 +302,36 @@ async def update_shape(sid, data):
             await sio.emit("updateShape", data, room=croom, namespace='/planarally')
 
 
+@sio.on("updateInitiative", namespace='/planarally')
+@auth.login_required(app, sio)
+async def update_initiative(sid, data):
+    policy = app['AuthzPolicy']
+    username = policy.sio_map[sid]['user'].username
+    room = policy.sio_map[sid]['room']
+    location = room.get_active_location(username)
+    layer = location.layer_manager.get_layer(data['shape']['layer'])
+
+    shape = layer.shapes[data['shape']['uuid']]
+
+    if not hasattr(location, "initiative"):
+        location.initiative = []
+
+    if room.creator != username:
+        if username not in shape['owners']:
+            print(f"{username} attempted to change initiative of an asset it does not own")
+            return
+
+    for init in list(location.initiative):
+        if init['uuid'] == data['shape']['uuid']:
+            if "initiative" not in data:
+                location.initiative.remove(init)
+            else:
+                init['initiative'] = data['initiative']
+    location.initiative.sort(key=attrgetter('initiative'), reverse=True)
+
+    await sio.emit("updateInitiative", data, room=location.sioroom, skip_sid=sid, namespace='/planarally')
+
+
 @sio.on("set clientOptions", namespace='/planarally')
 @auth.login_required(app, sio)
 async def set_client(sid, data):
@@ -398,6 +436,8 @@ async def test_connect(sid, environ):
                        namespace='/planarally')
         await sio.emit("set locationOptions", location.options, room=sid, namespace='/planarally')
         await sio.emit('asset list', PA.get_asset_list(), room=sid, namespace='/planarally')
+        if hasattr(location, "initiative"):
+            await sio.emit("setInitiative", location.initiative)
 
 
 @sio.on('disconnect', namespace='/planarally')
@@ -429,6 +469,7 @@ app.router.add_get('/logout', logout)
 app.on_shutdown.append(on_shutdown)
 
 if __name__ == '__main__':
+    sio.start_background_task(save_all)
     cfg = configparser.ConfigParser()
     cfg.read("server_config.cfg")
     if cfg.getboolean('Webserver', 'ssl'):

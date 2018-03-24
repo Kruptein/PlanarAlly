@@ -1117,7 +1117,7 @@ GameManager.prototype.setInitiative = function (data) {
     gameManager.initiativeTracker.data = data;
     gameManager.initiativeTracker.redraw();
     if (data.length > 0)
-        gameManager.dialog("open");
+        gameManager.initiativeDialog.dialog("open");
 };
 GameManager.prototype.setClientOptions = function (options) {
     if ("gridColour" in options)

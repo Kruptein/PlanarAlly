@@ -29,8 +29,5 @@
     "typescript": "^2.7.2",
     "webpack": "^4.2.0",
     "webpack-cli": "^2.0.13"
-  },
-  "dependencies": {
-    "npx": "^10.0.1"
   }
 }

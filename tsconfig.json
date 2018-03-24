@@ -1,5 +1,7 @@
 {
   "compilerOptions": {
-    "target": "es2017"
+    "target": "es2017",
+    "sourceMap": true,
+    "listEmittedFiles": true
   }
 }

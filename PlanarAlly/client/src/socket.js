@@ -1,6 +1,5 @@
 import gameManager from "./planarally";
-import {alphSort} from "./utils";
-
+import { alphSort } from "./utils";
 const protocol = document.domain === 'localhost' ? "http://" : "https://";
 const socket = io.connect(protocol + document.domain + ":" + location.port + "/planarally");
 socket.on("connect", function () {
@@ -29,7 +28,6 @@ socket.on("asset list", function (assets) {
     const m = $("#menu-tokens");
     m.empty();
     let h = '';
-
     const process = function (entry, path) {
         const folders = new Map(Object.entries(entry.folders));
         folders.forEach(function (value, key) {
@@ -56,7 +54,7 @@ socket.on("asset list", function (assets) {
     });
 });
 socket.on("board init", function (location_info) {
-    gameManager.setupBoard(location_info)
+    gameManager.setupBoard(location_info);
 });
 socket.on("set gridsize", function (gridSize) {
     gameManager.layerManager.setGridSize(gridSize);
@@ -90,7 +88,7 @@ socket.on("setInitiative", function (data) {
 socket.on("clear temporaries", function (shapes) {
     shapes.forEach(function (shape) {
         gameManager.layerManager.getLayer(shape.layer).removeShape(shape, false);
-    })
+    });
 });
-
 export default socket;
+//# sourceMappingURL=socket.js.map

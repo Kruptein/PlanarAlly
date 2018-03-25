@@ -1,5 +1,6 @@
 import gameManager from "./planarally";
 import {alphSort} from "./utils";
+import {setupTools} from "./tools";
 
 const protocol = document.domain === 'localhost' ? "http://" : "https://";
 const socket = io.connect(protocol + document.domain + ":" + location.port + "/planarally");
@@ -17,7 +18,7 @@ socket.on("set username", function (username) {
     gameManager.username = username;
     gameManager.IS_DM = username === window.location.pathname.split("/")[2];
     if ($("#toolselect").find("ul").html().length === 0)
-        gameManager.setupTools();
+        setupTools();
 });
 socket.on("set clientOptions", function (options) {
     gameManager.setClientOptions(options);
@@ -67,7 +68,7 @@ socket.on("add shape", function (shape) {
 socket.on("remove shape", function (shape) {
     const layer = gameManager.layerManager.getLayer(shape.layer);
     layer.removeShape(gameManager.layerManager.UUIDMap.get(shape.uuid), false);
-    layer.invalidate();
+    layer.invalidate(false);
 });
 socket.on("moveShapeOrder", function (data) {
     gameManager.layerManager.getLayer(data.shape.layer).moveShapeOrder(gameManager.layerManager.UUIDMap.get(data.shape.uuid), data.index, false);

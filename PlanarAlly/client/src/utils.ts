@@ -1,3 +1,9 @@
+export interface Point {
+    x: number;
+    y: number;
+}
+
+
 export function alphSort(a, b) {
     if (a.toLowerCase() < b.toLowerCase())
         return -1;
@@ -12,3 +18,25 @@ export function uuidv4() {
         return v.toString(16);
     });
 }
+
+export function OrderedMap() {
+    this.data = [];
+}
+
+OrderedMap.prototype = [];
+OrderedMap.prototype.push = function (element) {
+    this.data.push(element);
+};
+OrderedMap.prototype.remove = function (element) {
+    this.data.splice(this.data.indexOf(element), 1);
+};
+OrderedMap.prototype.indexOf = function (element) {
+    return this.data.indexOf(element);
+};
+OrderedMap.prototype.moveTo = function (element, idx) {
+    const oldIdx = this.indexOf(element);
+    if (oldIdx === idx) return false;
+    this.data.splice(oldIdx, 1);
+    this.data.splice(idx, 0, element);
+    return true;
+};

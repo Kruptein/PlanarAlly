@@ -6,15 +6,19 @@ module.exports = {
         filename: 'planarally.js',
         path: path.resolve(__dirname, 'PlanarAlly', 'static', 'js')
     },
-    devtool: 'source-map',
+    mode: 'development',
+    devtool: 'inline-source-map',
     resolve: {
-        extensions: [".webpack.js", ".web.js", ".tx", ".tsx", ".js"]
+        extensions: [".webpack.js", ".web.js", ".ts", ".js"]
     },
     module: {
         rules: [
             {
                 test: /\.tsx?$/,
-                loader: "awesome-typescript-loader"
+                loader: "awesome-typescript-loader",
+                options: {
+                    errorsAsWarnings: true
+                }
             },
             {
                 test: /\.js$/,

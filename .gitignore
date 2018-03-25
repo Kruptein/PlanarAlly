@@ -1,4 +1,5 @@
 .idea/**
 env/**
+node_modules/**
 planar.save*
 server_config.cfg

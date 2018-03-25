@@ -1,7 +1,7 @@
 const path = require('path');
 
 module.exports = {
-    entry: './PlanarAlly/client/src/planarally.ts',
+    entry: './ts_src/planarally.ts',
     output: {
         filename: 'planarally.js',
         path: path.resolve(__dirname, 'PlanarAlly', 'static', 'js')

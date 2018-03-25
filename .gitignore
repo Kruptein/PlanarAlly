@@ -1,5 +1,16 @@
+# editors
 .idea/**
+.vscode/settings.json
+
+# Python
 env/**
+**/__pycache__/**
+
+# JS
 node_modules/**
+PlanarAlly/client/src/*.js
+PlanarAlly/client/src/*.js.map
+
+# PlanarAlly
 planar.save*
 server_config.cfg

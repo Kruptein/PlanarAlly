@@ -1,10 +1,12 @@
+import { Shape } from "./shapes";
+
 export interface Point {
     x: number;
     y: number;
 }
 
 
-export function alphSort(a, b) {
+export function alphSort(a: string, b: string) {
     if (a.toLowerCase() < b.toLowerCase())
         return -1;
     else
@@ -19,24 +21,22 @@ export function uuidv4() {
     });
 }
 
-export function OrderedMap() {
-    this.data = [];
+export class OrderedMap {
+    data: Shape[] = [];
+    push(element: Shape) {
+        this.data.push(element);
+    }
+    indexOf(element: Shape) {
+        return this.data.indexOf(element);
+    }
+    remove(element: Shape) {
+        this.data.splice(this.indexOf(element), 1);
+    }
+    moveTo(element: Shape, idx: number) {
+        const oldIdx = this.indexOf(element);
+        if (oldIdx === idx) return false;
+        this.data.splice(oldIdx, 1);
+        this.data.splice(idx, 0, element);
+        return true;
+    }
 }
-
-OrderedMap.prototype = [];
-OrderedMap.prototype.push = function (element) {
-    this.data.push(element);
-};
-OrderedMap.prototype.remove = function (element) {
-    this.data.splice(this.data.indexOf(element), 1);
-};
-OrderedMap.prototype.indexOf = function (element) {
-    return this.data.indexOf(element);
-};
-OrderedMap.prototype.moveTo = function (element, idx) {
-    const oldIdx = this.indexOf(element);
-    if (oldIdx === idx) return false;
-    this.data.splice(oldIdx, 1);
-    this.data.splice(idx, 0, element);
-    return true;
-};

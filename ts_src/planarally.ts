@@ -1,23 +1,20 @@
 import socket from './socket'
-import {l2w} from "./units";
-import {Asset, createShapeFromDict} from "./shapes";
-import {DrawTool, RulerTool, MapTool, FOWTool, InitiativeTracker} from "./tools";
-import {LayerManager, Layer, GridLayer, FOWLayer} from "./layers";
+import { l2w } from "./units";
+import { Shape, Asset, createShapeFromDict } from "./shapes";
+import { DrawTool, RulerTool, MapTool, FOWTool, InitiativeTracker, Tool } from "./tools";
+import { LayerManager, Layer, GridLayer, FOWLayer } from "./layers";
+import { ClientOptions, BoardInfo } from './api_types';
 
 class GameManager {
     IS_DM = false;
-    username: string;
+    username: string = "";
     board_initialised = false;
     layerManager = new LayerManager();
     selectedTool = 0;
-    tools;
-    rulerTool = new RulerTool();
-    drawTool = new DrawTool();
-    fowTool = new FOWTool();
-    mapTool = new MapTool();
-    lightsources = [];
-    lightblockers = [];
-    movementblockers = [];
+    tools: Map<string, Tool> = new Map();
+    lightsources: { shape: string, aura: string }[] = [];
+    lightblockers: string[] = [];
+    movementblockers: string[] = [];
     gridColour = $("#gridColour");
     fowColour = $("#fowColour");
     initiativeTracker = new InitiativeTracker();
@@ -40,7 +37,7 @@ class GameManager {
                 gameManager.layerManager.drawGrid()
             },
             change: function (colour) {
-                socket.emit("set clientOptions", {'gridColour': colour.toRgbString()});
+                socket.emit("set clientOptions", { 'gridColour': colour.toRgbString() });
             }
         });
         this.fowColour.spectrum({
@@ -56,12 +53,12 @@ class GameManager {
                 }
             },
             change: function (colour) {
-                socket.emit("set clientOptions", {'fowColour': colour.toRgbString()});
+                socket.emit("set clientOptions", { 'fowColour': colour.toRgbString() });
             }
         });
     }
 
-    setupBoard(room): void {
+    setupBoard(room: BoardInfo): void {
         this.layerManager = new LayerManager();
         const layersdiv = $('#layers');
         layersdiv.empty();
@@ -153,7 +150,7 @@ class GameManager {
             }
         }
         // Force the correct opacity render on other layers.
-        gameManager.layerManager.setLayer(gameManager.layerManager.getLayer().name);
+        gameManager.layerManager.setLayer(gameManager.layerManager.getLayer()!.name);
         // socket.emit("client initialised");
         this.board_initialised = true;
 
@@ -199,7 +196,7 @@ class GameManager {
             this.initiativeDialog.dialog("open");
     }
 
-    setClientOptions(options): void {
+    setClientOptions(options: ClientOptions): void {
         if ("gridColour" in options)
             this.gridColour.spectrum("set", options.gridColour);
         if ("fowColour" in options) {
@@ -212,7 +209,7 @@ class GameManager {
             this.layerManager.panY = options.panY;
         if ("zoomFactor" in options) {
             this.layerManager.zoomFactor = options.zoomFactor;
-            $("#zoomer").slider({value: 1 / options.zoomFactor});
+            $("#zoomer").slider({ value: 1 / options.zoomFactor });
             this.layerManager.getGridLayer().invalidate(false);
         }
     }
@@ -220,6 +217,7 @@ class GameManager {
 
 
 let gameManager = new GameManager();
+(<any>window).gameManager = gameManager;
 
 // **** SETUP UI ****
 
@@ -294,26 +292,26 @@ $("#selection-menu").hide();
 $('#rm-settings').on("click", function () {
     // order of animation is important, it otherwise will sometimes show a small gap between the two objects
     if (settings_menu.is(":visible")) {
-        $('#radialmenu').animate({left: "-=200px"});
-        settings_menu.animate({width: 'toggle'});
-        locations_menu.animate({left: "-=200px", width: "+=200px"});
-        layer_menu.animate({left: "-=200px"});
+        $('#radialmenu').animate({ left: "-=200px" });
+        settings_menu.animate({ width: 'toggle' });
+        locations_menu.animate({ left: "-=200px", width: "+=200px" });
+        layer_menu.animate({ left: "-=200px" });
     } else {
-        settings_menu.animate({width: 'toggle'});
-        $('#radialmenu').animate({left: "+=200px"});
-        locations_menu.animate({left: "+=200px", width: "-=200px"});
-        layer_menu.animate({left: "+=200px"});
+        settings_menu.animate({ width: 'toggle' });
+        $('#radialmenu').animate({ left: "+=200px" });
+        locations_menu.animate({ left: "+=200px", width: "-=200px" });
+        layer_menu.animate({ left: "+=200px" });
     }
 });
 
 $('#rm-locations').on("click", function () {
     // order of animation is important, it otherwise will sometimes show a small gap between the two objects
     if (locations_menu.is(":visible")) {
-        $('#radialmenu').animate({top: "-=100px"});
-        locations_menu.animate({height: 'toggle'});
+        $('#radialmenu').animate({ top: "-=100px" });
+        locations_menu.animate({ height: 'toggle' });
     } else {
-        locations_menu.animate({height: 'toggle'});
-        $('#radialmenu').animate({top: "+=100px"});
+        locations_menu.animate({ height: 'toggle' });
+        $('#radialmenu').animate({ top: "+=100px" });
     }
 });
 
@@ -342,17 +340,17 @@ $("#gridSizeInput").on("change", function (e) {
 $("#unitSizeInput").on("change", function (e) {
     const us = parseInt((<HTMLInputElement>e.target).value);
     gameManager.layerManager.setUnitSize(us);
-    socket.emit("set locationOptions", {'unitSize': us});
+    socket.emit("set locationOptions", { 'unitSize': us });
 });
 $("#useGridInput").on("change", function (e) {
     const ug = (<HTMLInputElement>e.target).checked;
     gameManager.layerManager.setUseGrid(ug);
-    socket.emit("set locationOptions", {'useGrid': ug});
+    socket.emit("set locationOptions", { 'useGrid': ug });
 });
 $("#useFOWInput").on("change", function (e) {
     const uf = (<HTMLInputElement>e.target).checked;
     gameManager.layerManager.setFullFOW(uf);
-    socket.emit("set locationOptions", {'fullFOW': uf});
+    socket.emit("set locationOptions", { 'fullFOW': uf });
 });
 $("#fowOpacity").on("change", function (e) {
     let fo = parseFloat((<HTMLInputElement>e.target).value);
@@ -363,7 +361,7 @@ $("#fowOpacity").on("change", function (e) {
     if (fo < 0) fo = 0;
     if (fo > 1) fo = 1;
     gameManager.layerManager.setFOWOpacity(fo);
-    socket.emit("set locationOptions", {'fowOpacity': fo});
+    socket.emit("set locationOptions", { 'fowOpacity': fo });
 });
 
 export default gameManager;

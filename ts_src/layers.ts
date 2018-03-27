@@ -3,26 +3,13 @@ import {Shape, Circle, createShapeFromDict, Rect} from "./shapes";
 import {OrderedMap, Point} from "./utils";
 import gameManager from "./planarally";
 import socket from "./socket";
-
-const selectionInfo = {
-    x: $('#selectionInfoX'),
-    y: $('#selectionInfoY'),
-    w: $('#selectionInfoW'),
-    h: $('#selectionInfoH')
-};
-
-function setSelectionInfo(shape) {
-    selectionInfo.x.val(shape.x);
-    selectionInfo.y.val(shape.y);
-    selectionInfo.w.val(shape.w);
-    selectionInfo.h.val(shape.h);
-}
+import { LocationOptions } from "./api_types";
 
 export class LayerManager {
     layers: Layer[] = [];
     width = window.innerWidth;
     height = window.innerHeight;
-    selectedLayer: string = null;
+    selectedLayer: string = "";
 
     UUIDMap: Map<string, Shape> = new Map();
 
@@ -48,7 +35,7 @@ export class LayerManager {
         }, this.interval);
     }
 
-    setOptions(options): void {
+    setOptions(options: LocationOptions): void {
         if ("unitSize" in options)
             this.setUnitSize(options.unitSize);
         if ("useGrid" in options)
@@ -77,20 +64,24 @@ export class LayerManager {
         }
     }
 
-    addLayer(layer): void {
+    addLayer(layer: Layer): void {
         this.layers.push(layer);
-        if (this.selectedLayer === null && layer.selectable) this.selectedLayer = layer.name;
+        if (this.selectedLayer === "" && layer.selectable) this.selectedLayer = layer.name;
+    }
+
+    hasLayer(name: string): boolean {
+        return this.layers.some(l => l.name === name);
     }
 
     getLayer(name?: string) {
-        name = (typeof name === 'undefined') ? this.selectedLayer : name;
+        name = (name === undefined) ? this.selectedLayer : name;
         for (let i = 0; i < this.layers.length; i++) {
             if (this.layers[i].name === name) return this.layers[i];
         }
     }
 
     //todo rename to selectLayer
-    setLayer(name): void {
+    setLayer(name: string): void {
         let found = false;
         const lm = this;
         this.layers.forEach(function (layer) {
@@ -108,7 +99,7 @@ export class LayerManager {
         });
     }
 
-    getGridLayer(): Layer {
+    getGridLayer(): Layer|undefined {
         return this.getLayer("grid");
     }
 
@@ -129,9 +120,8 @@ export class LayerManager {
         ctx.lineWidth = 1;
         ctx.stroke();
         layer.valid = true;
-        const fowl = this.getLayer("fow");
-        if (fowl !== undefined)
-            fowl.invalidate(true);
+        if (this.hasLayer("fow"))
+            this.getLayer("fow").invalidate(true);
     }
 
     setGridSize(gridSize: number): void {
@@ -197,7 +187,7 @@ export class LayerManager {
         this.getLayer().onMouseUp(e);
     }
 
-    onContextMenu(e) {
+    onContextMenu(e: MouseEvent) {
         e.preventDefault();
         e.stopPropagation();
         this.getLayer().onContextMenu(e);
@@ -240,45 +230,24 @@ export class Layer {
     // we keep track of the actual offset within the asset.
     dragoffx = 0;
     dragoffy = 0;
-    dragorig: Point;
+    dragorig: Point = {x:0, y:0};
 
     // Extra selection highlighting settings
     selectionColor = '#CC0000';
     selectionWidth = 2;
 
-    stylePaddingLeft: number;
-    stylePaddingTop: number;
-    styleBorderLeft: number;
-    styleBorderTop: number;
-    htmlTop: number;
-    htmlLeft: number;
-
-    constructor(canvas, name) {
+    constructor(canvas: HTMLCanvasElement, name: string) {
         this.canvas = canvas;
         this.name = name;
         this.width = canvas.width;
         this.height = canvas.height;
-        this.ctx = canvas.getContext('2d');
-
-        // todo: do we actually need the stylepadding and html stuff ?
-        if (document.defaultView && document.defaultView.getComputedStyle) {
-            this.stylePaddingLeft = parseInt(document.defaultView.getComputedStyle(canvas, null)['paddingLeft'], 10) || 0;
-            this.stylePaddingTop = parseInt(document.defaultView.getComputedStyle(canvas, null)['paddingTop'], 10) || 0;
-            this.styleBorderLeft = parseInt(document.defaultView.getComputedStyle(canvas, null)['borderLeftWidth'], 10) || 0;
-            this.styleBorderTop = parseInt(document.defaultView.getComputedStyle(canvas, null)['borderTopWidth'], 10) || 0;
-        }
-
-        const html = document.body;
-        this.htmlTop = html.offsetTop;
-        this.htmlLeft = html.offsetLeft;
+        this.ctx = canvas.getContext('2d')!;
     }
 
     invalidate(skipLightUpdate: boolean): void {
         this.valid = false;
-        if (!skipLightUpdate && this.name !== "fow") {
-            const fow = gameManager.layerManager.getLayer("fow");
-            if (fow !== undefined)
-                fow.invalidate(true);
+        if (!skipLightUpdate && this.name !== "fow" && gameManager.layerManager.hasLayer("fow")) {
+            gameManager.layerManager.getLayer("fow").invalidate(true);
         }
     }
 
@@ -294,7 +263,7 @@ export class Layer {
     }
 
     setShapes(shapes: Shape[]): void {
-        const t = [];
+        const t: Shape[] = [];
         const self = this;
         shapes.forEach(function (shape) {
             const sh = createShapeFromDict(shape, self);
@@ -387,11 +356,6 @@ export class Layer {
             } while ((element = element.offsetParent));
         }
 
-        // Add padding and border style widths to offset
-        // Also add the <html> offsets in case there's a position:fixed bar
-        offsetX += this.stylePaddingLeft + this.styleBorderLeft + this.htmlLeft;
-        offsetY += this.stylePaddingTop + this.styleBorderTop + this.htmlTop;
-
         mx = e.pageX - offsetX;
         my = e.pageY - offsetY;
 
@@ -432,9 +396,8 @@ export class Layer {
                     this.resizedir = corn;
                     this.invalidate(true);
                     hit = true;
-                    setSelectionInfo(shape);
                     break;
-                } else if (shape.contains(mx, my)) {
+                } else if (shape.contains(mx, my, true)) {
                     if (!shape.ownedBy()) continue;
                     const sel = shape;
                     const z = gameManager.layerManager.zoomFactor;
@@ -446,7 +409,6 @@ export class Layer {
                     this.dragoffx = mx - sel.x * z;
                     this.dragoffy = my - sel.y * z;
                     this.dragorig = Object.assign({}, sel);
-                    setSelectionInfo(shape);
                     this.invalidate(true);
                     hit = true;
                     break;
@@ -528,7 +490,6 @@ export class Layer {
                     }
                     if (sel !== this.selectionHelper) {
                         socket.emit("shapeMove", {shape: sel.asDict(), temporary: true});
-                        setSelectionInfo(sel);
                     }
                     this.invalidate(false);
                 } else if (this.resizing) {

@@ -1,6 +1,7 @@
 import gameManager from "./planarally";
-import {alphSort} from "./utils";
-import {setupTools} from "./tools";
+import { alphSort } from "./utils";
+import { setupTools } from "./tools";
+import { ClientOptions, LocationOptions, AssetList, ServerShape, InitiativeData, BoardInfo } from "./api_types";
 
 const protocol = document.domain === 'localhost' ? "http://" : "https://";
 const socket = io.connect(protocol + document.domain + ":" + location.port + "/planarally");
@@ -10,28 +11,28 @@ socket.on("connect", function () {
 socket.on("disconnect", function () {
     console.log("Disconnected");
 });
-socket.on("redirect", function (destination) {
+socket.on("redirect", function (destination: string) {
     console.log("redirecting");
     window.location.href = destination;
 });
-socket.on("set username", function (username) {
+socket.on("set username", function (username: string) {
     gameManager.username = username;
     gameManager.IS_DM = username === window.location.pathname.split("/")[2];
     if ($("#toolselect").find("ul").html().length === 0)
         setupTools();
 });
-socket.on("set clientOptions", function (options) {
+socket.on("set clientOptions", function (options: ClientOptions) {
     gameManager.setClientOptions(options);
 });
-socket.on("set locationOptions", function (options) {
+socket.on("set locationOptions", function (options: LocationOptions) {
     gameManager.layerManager.setOptions(options);
 });
-socket.on("asset list", function (assets) {
+socket.on("asset list", function (assets: AssetList) {
     const m = $("#menu-tokens");
     m.empty();
     let h = '';
 
-    const process = function (entry, path) {
+    const process = function (entry: AssetList, path: string) {
         const folders = new Map(Object.entries(entry.folders));
         folders.forEach(function (value, key) {
             h += "<button class='accordion'>" + key + "</button><div class='accordion-panel'><div class='accordion-subpanel'>";
@@ -56,41 +57,68 @@ socket.on("asset list", function (assets) {
         });
     });
 });
-socket.on("board init", function (location_info) {
+socket.on("board init", function (location_info: BoardInfo) {
     gameManager.setupBoard(location_info)
 });
-socket.on("set gridsize", function (gridSize) {
+socket.on("set gridsize", function (gridSize: number) {
     gameManager.layerManager.setGridSize(gridSize);
 });
-socket.on("add shape", function (shape) {
+socket.on("add shape", function (shape: ServerShape) {
     gameManager.addShape(shape);
 });
-socket.on("remove shape", function (shape) {
-    const layer = gameManager.layerManager.getLayer(shape.layer);
-    layer.removeShape(gameManager.layerManager.UUIDMap.get(shape.uuid), false);
+socket.on("remove shape", function (shape: ServerShape) {
+    if (!gameManager.layerManager.UUIDMap.has(shape.uuid)){
+        console.log(`Attempted to remove an unknown shape`);
+        return ;
+    }
+    if (!gameManager.layerManager.hasLayer(shape.layer)) {
+        console.log(`Attempted to remove shape from an unknown layer ${shape.layer}`);
+        return ;
+    }
+    const layer = gameManager.layerManager.getLayer(shape.layer)!;
+    layer.removeShape(gameManager.layerManager.UUIDMap.get(shape.uuid)!, false);
     layer.invalidate(false);
 });
-socket.on("moveShapeOrder", function (data) {
-    gameManager.layerManager.getLayer(data.shape.layer).moveShapeOrder(gameManager.layerManager.UUIDMap.get(data.shape.uuid), data.index, false);
+socket.on("moveShapeOrder", function (data: { shape: ServerShape; index: number }) {
+    if (!gameManager.layerManager.UUIDMap.has(data.shape.uuid)) {
+        console.log(`Attempted to move the shape order of an unknown shape`);
+        return ;
+    }
+    if (!gameManager.layerManager.hasLayer(data.shape.layer)) {
+        console.log(`Attempted to remove shape from an unknown layer ${data.shape.layer}`);
+        return ;
+    }
+    const shape = gameManager.layerManager.UUIDMap.get(data.shape.uuid)!;
+    const layer = gameManager.layerManager.getLayer(shape.layer)!;
+    layer.moveShapeOrder(shape, data.index, false);
 });
-socket.on("shapeMove", function (shape) {
+socket.on("shapeMove", function (shape: ServerShape) {
     gameManager.moveShape(shape);
 });
-socket.on("updateShape", function (data) {
+socket.on("updateShape", function (data: { shape: ServerShape; redraw: boolean }) {
     gameManager.updateShape(data);
 });
-socket.on("updateInitiative", function (data) {
+socket.on("updateInitiative", function (data: InitiativeData) {
     if (data.initiative === undefined || (!data.owners.includes(gameManager.username) && !gameManager.IS_DM && !data.visible))
         gameManager.initiativeTracker.removeInitiative(data.uuid, false, true);
     else
         gameManager.initiativeTracker.addInitiative(data, false);
 });
-socket.on("setInitiative", function (data) {
+socket.on("setInitiative", function (data: InitiativeData[]) {
     gameManager.setInitiative(data);
 });
-socket.on("clear temporaries", function (shapes) {
+socket.on("clear temporaries", function (shapes: ServerShape[]) {
     shapes.forEach(function (shape) {
-        gameManager.layerManager.getLayer(shape.layer).removeShape(shape, false);
+        if (!gameManager.layerManager.UUIDMap.has(shape.uuid)) {
+            console.log("Attempted to remove an unknown temporary shape");
+            return ;
+        }
+        if (!gameManager.layerManager.hasLayer(shape.layer)){
+            console.log(`Attempted to remove shape from an unknown layer ${shape.layer}`);
+            return ;
+        }
+        const real_shape = gameManager.layerManager.UUIDMap.get(shape.uuid)!;
+        gameManager.layerManager.getLayer(shape.layer)!.removeShape(real_shape, false);
     })
 });
 

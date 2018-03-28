@@ -506,11 +506,6 @@ export class FOWTool extends Tool {
             this.rect.globalCompositeOperation = "source-over";
     }
     onMouseMove(e: MouseEvent) {
-        if (this.startPoint === null) return;
-        this.startPoint = null;
-        this.rect = null;
-    }
-    onMouseUp(e: MouseEvent) {
         if (gameManager.layerManager.getLayer() === undefined) {
             console.log("No active layer!");
             return ;
@@ -527,6 +522,11 @@ export class FOWTool extends Tool {
     
         socket.emit("shapeMove", {shape: this.rect!.asDict(), temporary: false});
         layer.invalidate(false);        
+    }
+    onMouseUp(e: MouseEvent) {
+        if (this.startPoint === null) return;
+        this.startPoint = null;
+        this.rect = null;
     }
 }
 

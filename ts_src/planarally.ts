@@ -276,6 +276,8 @@ window.addEventListener("mouseup", onPointerUp);
 window.addEventListener('contextmenu', function (e: MouseEvent) {
     if (!gameManager.board_initialised) return;
     if (e.button !== 2 || (<HTMLElement>e.target).tagName !== 'CANVAS') return;
+    e.preventDefault();
+    e.stopPropagation();
     gameManager.tools.getIndexValue(gameManager.selectedTool)!.onContextMenu(e);
 });
 

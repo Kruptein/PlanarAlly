@@ -28,6 +28,8 @@ export interface ServerShape {
     src: string;
     w: number;
     h: number;
+    fill: string;
+    movementObstruction: boolean;
 }
 
 export interface InitiativeData {
@@ -39,6 +41,19 @@ export interface InitiativeData {
     src: string;
 }
 
+interface ServerLayer {
+    name: string;
+    layer: string;
+    shapes: ServerShape[];
+    grid: boolean;
+    selectable: boolean;
+    player_editable: boolean;
+    size: number;
+}
+
 export interface BoardInfo {
-    layers: Layer[];
+    locations: string[];
+    board: {
+        layers: ServerLayer[];
+    };
 }

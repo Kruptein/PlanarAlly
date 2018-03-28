@@ -3,15 +3,16 @@ import { l2w } from "./units";
 import { Shape, Asset, createShapeFromDict } from "./shapes";
 import { DrawTool, RulerTool, MapTool, FOWTool, InitiativeTracker, Tool } from "./tools";
 import { LayerManager, Layer, GridLayer, FOWLayer } from "./layers";
-import { ClientOptions, BoardInfo } from './api_types';
+import { ClientOptions, BoardInfo, ServerShape, InitiativeData } from './api_types';
+import { OrderedMap } from './utils';
 
 class GameManager {
     IS_DM = false;
     username: string = "";
     board_initialised = false;
     layerManager = new LayerManager();
-    selectedTool = 0;
-    tools: Map<string, Tool> = new Map();
+    selectedTool: number = 0;
+    tools: OrderedMap<string, Tool> = new OrderedMap();
     lightsources: { shape: string, aura: string }[] = [];
     lightblockers: string[] = [];
     movementblockers: string[] = [];
@@ -46,7 +47,7 @@ class GameManager {
             move: function (colour) {
                 const l = gameManager.layerManager.getLayer("fow");
                 if (l !== undefined) {
-                    l.shapes.data.forEach(function (shape) {
+                    l.shapes.forEach(function (shape) {
                         shape.fill = colour.toRgbString();
                     });
                     l.invalidate(false);
@@ -99,7 +100,7 @@ class GameManager {
             canvas.width = window.innerWidth;
             canvas.height = window.innerHeight;
             // State changes
-            let l;
+            let l: Layer;
             if (new_layer.grid)
                 l = new GridLayer(canvas, new_layer.name);
             else if (new_layer.name === 'fow')
@@ -114,18 +115,27 @@ class GameManager {
                 gameManager.layerManager.drawGrid();
                 $("#grid-layer").droppable({
                     accept: ".draggable",
-                    drop: function (event: MouseEvent, ui) {
-                        const l = gameManager.layerManager.getLayer();
-                        const offset = $(l.canvas).offset();
+                    drop: function (event, ui) {
+                        if (gameManager.layerManager.getLayer() === undefined) {
+                            console.log("No active layer to drop the token on");
+                            return;
+                        }
+                        const l = gameManager.layerManager.getLayer()!;
+                        const jCanvas = $(l.canvas);
+                        if (jCanvas.length === 0){
+                            console.log("Canvas missing");
+                            return;
+                        }
+                        const offset = jCanvas.offset()!;
 
                         const loc = {
                             x: ui.offset.left - offset.left,
                             y: ui.offset.top - offset.top
                         };
 
-                        if (settings_menu.is(":visible") && loc.x < settings_menu.width())
+                        if (settings_menu.is(":visible") && loc.x < settings_menu.width()!)
                             return;
-                        if (locations_menu.is(":visible") && loc.y < locations_menu.width())
+                        if (locations_menu.is(":visible") && loc.y < locations_menu.width()!)
                             return;
                         // width = ui.helper[0].width;
                         // height = ui.helper[0].height;
@@ -134,7 +144,7 @@ class GameManager {
                         const asset = new Asset(img, wloc.x, wloc.y, img.width, img.height);
                         asset.src = img.src;
 
-                        if (gameManager.layerManager.useGrid && !event.altKey) {
+                        if (gameManager.layerManager.useGrid) {
                             const gs = gameManager.layerManager.gridSize;
                             asset.x = Math.round(asset.x / gs) * gs;
                             asset.y = Math.round(asset.y / gs) * gs;
@@ -169,27 +179,39 @@ class GameManager {
         }
     }
 
-    addShape(shape): void {
-        const layer = this.layerManager.getLayer(shape.layer);
+    addShape(shape: ServerShape): void {
+        if (!gameManager.layerManager.hasLayer(shape.layer)) {
+            console.log(`Shape with unknown layer ${shape.layer} could not be added`);
+            return;
+        }
+        const layer = this.layerManager.getLayer(shape.layer)!;
         layer.addShape(createShapeFromDict(shape), false);
         layer.invalidate(false);
     }
 
-    moveShape(shape): void {
-        shape = Object.assign(this.layerManager.UUIDMap.get(shape.uuid), createShapeFromDict(shape, true));
-        shape.checkLightSources();
-        this.layerManager.getLayer(shape.layer).onShapeMove(shape);
+    moveShape(shape: ServerShape): void {
+        if (!gameManager.layerManager.hasLayer(shape.layer)) {
+            console.log(`Shape with unknown layer ${shape.layer} could not be added`);
+            return;
+        }
+        const real_shape = Object.assign(this.layerManager.UUIDMap.get(shape.uuid), createShapeFromDict(shape, true));
+        real_shape.checkLightSources();
+        this.layerManager.getLayer(real_shape.layer)!.onShapeMove(real_shape);
     }
 
-    updateShape(data): void {
+    updateShape(data: {shape: ServerShape; redraw: boolean;}): void {
+        if (!gameManager.layerManager.hasLayer(data.shape.layer)){
+            console.log(`Shape with unknown layer ${data.shape.layer} could not be added`);
+            return;
+        }
         const shape = Object.assign(this.layerManager.UUIDMap.get(data.shape.uuid), createShapeFromDict(data.shape, true));
         shape.checkLightSources();
         shape.setMovementBlock(shape.movementObstruction);
         if (data.redraw)
-            this.layerManager.getLayer(data.shape.layer).invalidate(false);
+            this.layerManager.getLayer(data.shape.layer)!.invalidate(false);
     }
 
-    setInitiative(data): void {
+    setInitiative(data: InitiativeData[]): void {
         this.initiativeTracker.data = data;
         this.initiativeTracker.redraw();
         if (data.length > 0)
@@ -210,7 +232,8 @@ class GameManager {
         if ("zoomFactor" in options) {
             this.layerManager.zoomFactor = options.zoomFactor;
             $("#zoomer").slider({ value: 1 / options.zoomFactor });
-            this.layerManager.getGridLayer().invalidate(false);
+            if (this.layerManager.getGridLayer() !== undefined)
+                this.layerManager.getGridLayer()!.invalidate(false);
         }
     }
 }
@@ -227,33 +250,33 @@ window.addEventListener('selectstart', function (e) {
     return false;
 });
 
-function onPointerDown(e) {
+function onPointerDown(e: MouseEvent) {
     if (!gameManager.board_initialised) return;
-    if ((e.button !== 0 && e.button !== 1) || e.target.tagName !== 'CANVAS') return;
+    if ((e.button !== 0 && e.button !== 1) || (<HTMLElement>e.target).tagName !== 'CANVAS') return;
     $menu.hide();
-    gameManager.tools[gameManager.selectedTool].func.onMouseDown(e);
+    gameManager.tools.getIndexValue(gameManager.selectedTool)!.onMouseDown(e);
 }
 
-function onPointerMove(e) {
+function onPointerMove(e: MouseEvent) {
     if (!gameManager.board_initialised) return;
-    if ((e.button !== 0 && e.button !== 1) || e.target.tagName !== 'CANVAS') return;
-    gameManager.tools[gameManager.selectedTool].func.onMouseMove(e);
+    if ((e.button !== 0 && e.button !== 1) || (<HTMLElement>e.target).tagName !== 'CANVAS') return;
+    gameManager.tools.getIndexValue(gameManager.selectedTool)!.onMouseMove(e);
 }
 
-function onPointerUp(e) {
+function onPointerUp(e: MouseEvent) {
     if (!gameManager.board_initialised) return;
-    if ((e.button !== 0 && e.button !== 1) || e.target.tagName !== 'CANVAS') return;
-    gameManager.tools[gameManager.selectedTool].func.onMouseUp(e);
+    if ((e.button !== 0 && e.button !== 1) || (<HTMLElement>e.target).tagName !== 'CANVAS') return;
+    gameManager.tools.getIndexValue(gameManager.selectedTool)!.onMouseUp(e);
 }
 
 window.addEventListener("mousedown", onPointerDown);
 window.addEventListener("mousemove", onPointerMove);
 window.addEventListener("mouseup", onPointerUp);
 
-window.addEventListener('contextmenu', function (e) {
+window.addEventListener('contextmenu', function (e: MouseEvent) {
     if (!gameManager.board_initialised) return;
     if (e.button !== 2 || (<HTMLElement>e.target).tagName !== 'CANVAS') return;
-    gameManager.tools[gameManager.selectedTool].func.onContextMenu(e);
+    gameManager.tools.getIndexValue(gameManager.selectedTool)!.onContextMenu(e);
 });
 
 $("#zoomer").slider({
@@ -264,7 +287,7 @@ $("#zoomer").slider({
     value: gameManager.layerManager.zoomFactor,
     slide: function (event, ui) {
         const origZ = gameManager.layerManager.zoomFactor;
-        const newZ = 1 / ui.value;
+        const newZ = 1 / ui.value!;
         const origX = window.innerWidth / origZ;
         const newX = window.innerWidth / newZ;
         const origY = window.innerHeight / origZ;
@@ -284,9 +307,9 @@ $("#zoomer").slider({
 const $menu = $('#contextMenu');
 $menu.hide();
 
-const settings_menu = $("#menu");
-const locations_menu = $("#locations-menu");
-const layer_menu = $("#layerselect");
+const settings_menu = $("#menu")!;
+const locations_menu = $("#locations-menu")!;
+const layer_menu = $("#layerselect")!;
 $("#selection-menu").hide();
 
 $('#rm-settings').on("click", function () {
@@ -323,10 +346,14 @@ window.onresize = function () {
 
 $('body').keyup(function (e) {
     if (e.keyCode === 46 && e.target.tagName !== "INPUT") {
-        const l = gameManager.layerManager.getLayer();
+        if (gameManager.layerManager.getLayer === undefined) {
+            console.log("No active layer selected for delete operation");
+            return;
+        }
+        const l = gameManager.layerManager.getLayer()!;
         l.selection.forEach(function (sel) {
             l.removeShape(sel, true, false);
-            gameManager.initiativeTracker.removeInitiative(sel.uuid, true);
+            gameManager.initiativeTracker.removeInitiative(sel.uuid, true, false);
         });
     }
 });

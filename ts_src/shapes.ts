@@ -12,8 +12,8 @@ interface Tracker {
     uuid: string;
     visible: boolean;
     name: string;
-    value: number | '';
-    maxvalue: number | '';
+    value: number;
+    maxvalue: number;
 }
 
 interface Aura {
@@ -21,8 +21,8 @@ interface Aura {
     lightSource: boolean;
     visible: boolean;
     name: string;
-    value: number | '';
-    dim: number | '';
+    value: number;
+    dim: number;
     colour: string;
 }
 
@@ -49,7 +49,7 @@ export abstract class Shape {
 
     abstract center(): Point;
     abstract center(centerPoint: Point): void;
-    // abstract center(centerPoint?: Point): Point|void;
+    abstract getCorner(x: number, y:number): string|undefined;
 
     checkLightSources() {
         const self = this;
@@ -95,14 +95,14 @@ export abstract class Shape {
     }
 
     onSelection() {
-        if (!this.trackers.length || this.trackers[this.trackers.length - 1].name !== '' || this.trackers[this.trackers.length - 1].value !== '')
-            this.trackers.push({ uuid: uuidv4(), name: '', value: '', maxvalue: '', visible: false });
-        if (!this.auras.length || this.auras[this.auras.length - 1].name !== '' || this.auras[this.auras.length - 1].value !== '')
+        if (!this.trackers.length || this.trackers[this.trackers.length - 1].name !== '' || this.trackers[this.trackers.length - 1].value !== 0)
+            this.trackers.push({ uuid: uuidv4(), name: '', value: 0, maxvalue: 0, visible: false });
+        if (!this.auras.length || this.auras[this.auras.length - 1].name !== '' || this.auras[this.auras.length - 1].value !== 0)
             this.auras.push({
                 uuid: uuidv4(),
                 name: '',
-                value: '',
-                dim: '',
+                value: 0,
+                dim: 0,
                 lightSource: false,
                 colour: 'rgba(0,0,0,0)',
                 visible: false
@@ -233,8 +233,8 @@ export abstract class Shape {
                     tr.name = <string>$(this).val();
                     $(`#selection-tracker-${tr.uuid}-name`).text(<string>$(this).val());
                     socket.emit("updateShape", { shape: self.asDict(), redraw: false });
-                    if (!self.trackers.length || self.trackers[self.trackers.length - 1].name !== '' || self.trackers[self.trackers.length - 1].value !== '') {
-                        self.trackers.push({ uuid: uuidv4(), name: '', value: '', maxvalue: '', visible: false });
+                    if (!self.trackers.length || self.trackers[self.trackers.length - 1].name !== '' || self.trackers[self.trackers.length - 1].value !== 0) {
+                        self.trackers.push({ uuid: uuidv4(), name: '', value: 0, maxvalue: 0, visible: false });
                         addTracker(self.trackers[self.trackers.length - 1]);
                     }
                 });
@@ -266,7 +266,7 @@ export abstract class Shape {
                         console.log("Remove on unknown tracker");
                         return;
                     }
-                    if (tr.name === '' || tr.value === '') return;
+                    if (tr.name === '' || tr.value === 0) return;
                     $(`[data-uuid=${tr.uuid}]`).remove();
                     self.trackers.splice(self.trackers.indexOf(tr), 1);
                     socket.emit("updateShape", { shape: self.asDict(), redraw: false });
@@ -345,12 +345,12 @@ export abstract class Shape {
                     au.name = <string>$(this).val();
                     $(`#selection-aura-${au.uuid}-name`).text(<string>$(this).val());
                     socket.emit("updateShape", { shape: self.asDict(), redraw: true });
-                    if (!self.auras.length || self.auras[self.auras.length - 1].name !== '' || self.auras[self.auras.length - 1].value !== '') {
+                    if (!self.auras.length || self.auras[self.auras.length - 1].name !== '' || self.auras[self.auras.length - 1].value !== 0) {
                         self.auras.push({
                             uuid: uuidv4(),
                             name: '',
-                            value: '',
-                            dim: '',
+                            value: 0,
+                            dim: 0,
                             lightSource: false,
                             colour: 'rgba(0,0,0,0)',
                             visible: false
@@ -396,7 +396,7 @@ export abstract class Shape {
                         console.log("Attempted to remove unknown aura");
                         return;
                     }
-                    if (au.name === '' && au.value === '') return;
+                    if (au.name === '' && au.value === 0) return;
                     $(`[data-uuid=${au.uuid}]`).remove();
                     self.auras.splice(self.auras.indexOf(au), 1);
                     self.checkLightSources();
@@ -461,7 +461,7 @@ export abstract class Shape {
             const new_tracker = prompt(`New  ${tracker.name} value: (absolute or relative)`);
             if (new_tracker === null)
                 return;
-            if (tracker.value === '')
+            if (tracker.value === 0)
                 tracker.value = 0;
             if (new_tracker[0] === '+') {
                 tracker.value += parseInt(new_tracker.slice(1));
@@ -484,7 +484,7 @@ export abstract class Shape {
             const new_aura = prompt(`New  ${aura.name} value: (absolute or relative)`);
             if (new_aura === null)
                 return;
-            if (aura.value === '')
+            if (aura.value === 0)
                 aura.value = 0;
             if (new_aura[0] === '+') {
                 aura.value += parseInt(new_aura.slice(1));
@@ -524,7 +524,7 @@ export abstract class Shape {
     drawAuras(ctx: CanvasRenderingContext2D) {
         const self = this;
         this.auras.forEach(function (aura) {
-            if (aura.value === '') return;
+            if (aura.value === 0) return;
             ctx.beginPath();
             ctx.fillStyle = aura.colour;
             if (gameManager.layerManager.hasLayer("fow") && gameManager.layerManager.getLayer("fow")!.ctx === ctx)
@@ -647,6 +647,7 @@ export class Rect extends Shape {
         this.border = border || "rgba(0, 0, 0, 0)";
         this.uuid = uuid || uuidv4();
     }
+
     getBoundingBox() {
         return new BoundingRect(this.x, this.y, this.w, this.h);
     }
@@ -683,7 +684,7 @@ export class Rect extends Shape {
                 return false;
         }
     }
-    getCorner(x: number, y: number) {
+    getCorner(x: number, y: number): string|undefined {
         if (this.inCorner(x, y, "ne"))
             return "ne";
         else if (this.inCorner(x, y, "nw"))

@@ -6,13 +6,14 @@ import { Point } from "./utils";
 import { InitiativeData } from "./api_types";
 
 export abstract class Tool {
+    detailDiv?: JQuery<HTMLElement>;
     abstract onMouseDown(e: MouseEvent): void;
     abstract onMouseMove(e: MouseEvent): void;
     abstract onMouseUp(e: MouseEvent): void;
+    onContextMenu(e: MouseEvent) {};
 }
 
 export function setupTools(): void {
-    // TODO: FIX THIS TEMPORARY SHIT, this is a quickfix after the js>ts transition
     const toolselectDiv = $("#toolselect").find("ul");
     tools.forEach(function (tool) {
         if (!tool.playerTool && !gameManager.IS_DM) return;
@@ -23,7 +24,7 @@ export function setupTools(): void {
         const toolLi = $("<li id='tool-" + tool.name + "'" + extra + "><a href='#'>" + tool.name + "</a></li>");
         toolselectDiv.append(toolLi);
         if (tool.hasDetail) {
-            const div = toolInstance.detailDiv;
+            const div = toolInstance.detailDiv!;
             $('#tooldetail').append(div);
             div.hide();
         }
@@ -36,7 +37,7 @@ export function setupTools(): void {
                 const detail = $('#tooldetail');
                 if (tool.hasDetail) {
                     $('#tooldetail').children().hide();
-                    toolInstance.detailDiv.show();
+                    toolInstance.detailDiv!.show();
                     detail.show();
                 } else {
                     detail.hide();
@@ -71,7 +72,11 @@ export class DrawTool extends Tool {
         });
     }
     onMouseDown(e: MouseEvent) {
-        const layer = gameManager.layerManager.getLayer();
+        if (gameManager.layerManager.getLayer() === undefined) {
+            console.log("No active layer!");
+            return ;
+        }
+        const layer = gameManager.layerManager.getLayer()!;
         this.startPoint = l2w(layer.getMouse(e));
         const fillColor = this.fillColor.spectrum("get");
         const fill = fillColor === null ? tinycolor("transparent") : fillColor;
@@ -87,9 +92,13 @@ export class DrawTool extends Tool {
         layer.addShape(this.rect, true, false);
     }
     onMouseMove(e: MouseEvent) {
+        if (gameManager.layerManager.getLayer() === undefined) {
+            console.log("No active layer!");
+            return ;
+        }
         if (this.startPoint === null) return;
         // Currently draw on active layer
-        const layer = gameManager.layerManager.getLayer();
+        const layer = gameManager.layerManager.getLayer()!;
         const endPoint = l2w(layer.getMouse(e));
     
         this.rect!.w = Math.abs(endPoint.x - this.startPoint.x);
@@ -106,13 +115,17 @@ export class DrawTool extends Tool {
 }
 
 
-export class RulerTool {
+export class RulerTool extends Tool {
     startPoint: Point|null = null;
     ruler: Line|null = null;
     text: Text|null = null;
 
     onMouseDown(e: MouseEvent) {
-        const layer = gameManager.layerManager.getLayer("draw");
+        if (gameManager.layerManager.getLayer() === undefined) {
+            console.log("No active layer!");
+            return ;
+        }
+        const layer = gameManager.layerManager.getLayer("draw")!;
         this.startPoint = l2w(layer.getMouse(e));
         this.ruler = new Line(this.startPoint.x, this.startPoint.y, this.startPoint.x, this.startPoint.y);
         this.text = new Text(this.startPoint.x, this.startPoint.y, "", "20px serif");
@@ -122,9 +135,13 @@ export class RulerTool {
         layer.addShape(this.text, true, true);
     }
     onMouseMove(e: MouseEvent) {
+        if (gameManager.layerManager.getLayer() === undefined) {
+            console.log("No active layer!");
+            return ;
+        }
         if (this.startPoint === null) return;
         // Currently draw on active layer
-        const layer = gameManager.layerManager.getLayer("draw");
+        const layer = gameManager.layerManager.getLayer("draw")!;
         const endPoint = l2w(layer.getMouse(e));
     
         this.ruler!.x2 = endPoint.x;
@@ -146,9 +163,13 @@ export class RulerTool {
         layer.invalidate(true);
     }
     onMouseUp(e: MouseEvent) {
+        if (gameManager.layerManager.getLayer() === undefined) {
+            console.log("No active layer!");
+            return ;
+        }
         if (this.startPoint === null) return;
         this.startPoint = null;
-        const layer = gameManager.layerManager.getLayer("draw");
+        const layer = gameManager.layerManager.getLayer("draw")!;
         layer.removeShape(this.ruler!, true, true);
         layer.removeShape(this.text!, true, true);
         this.ruler = null;
@@ -157,14 +178,18 @@ export class RulerTool {
     }
 }
 
-export class FOWTool {
+export class FOWTool extends Tool {
     startPoint: Point|null = null;
     rect: Rect|null = null;
     detailDiv = $("<div>")
         .append($("<div>Reveal</div><label class='switch'><input type='checkbox' id='fow-reveal'><span class='slider round'></span></label>"))
         .append($("</div>"));
     onMouseDown(e: MouseEvent) {
-        const layer = gameManager.layerManager.getLayer("fow");
+        if (gameManager.layerManager.getLayer() === undefined) {
+            console.log("No active layer!");
+            return ;
+        }
+        const layer = gameManager.layerManager.getLayer("fow")!;
         this.startPoint = l2w(layer.getMouse(e));
         this.rect = new Rect(this.startPoint.x, this.startPoint.y, 0, 0, gameManager.fowColour.spectrum("get").toRgbString());
         layer.addShape(this.rect, true, false);
@@ -180,9 +205,13 @@ export class FOWTool {
         this.rect = null;
     }
     onMouseUp(e: MouseEvent) {
+        if (gameManager.layerManager.getLayer() === undefined) {
+            console.log("No active layer!");
+            return ;
+        }
         if (this.startPoint === null) return;
         // Currently draw on active layer
-        const layer = gameManager.layerManager.getLayer("fow");
+        const layer = gameManager.layerManager.getLayer("fow")!;
         const endPoint = l2w(layer.getMouse(e));
     
         this.rect!.w = Math.abs(endPoint.x - this.startPoint.x);
@@ -195,7 +224,7 @@ export class FOWTool {
     }
 }
 
-export class MapTool {
+export class MapTool extends Tool {
     startPoint: Point|null = null;
     rect: Rect|null = null;
     xCount = $("<input type='text' value='3'>");
@@ -205,15 +234,23 @@ export class MapTool {
         .append($("<div>#Y</div>")).append(this.yCount)
         .append($("</div>"));
     onMouseDown(e: MouseEvent) {
-        const layer = gameManager.layerManager.getLayer();
+        if (gameManager.layerManager.getLayer() === undefined) {
+            console.log("No active layer!");
+            return ;
+        }
+        const layer = gameManager.layerManager.getLayer()!;
         this.startPoint = l2w(layer.getMouse(e));
         this.rect = new Rect(this.startPoint.x, this.startPoint.y, 0, 0, "rgba(0,0,0,0)", "black");
         layer.addShape(this.rect, false, false);
     }
     onMouseMove(e: MouseEvent) {
+        if (gameManager.layerManager.getLayer() === undefined) {
+            console.log("No active layer!");
+            return ;
+        }
         if (this.startPoint === null) return;
         // Currently draw on active layer
-        const layer = gameManager.layerManager.getLayer();
+        const layer = gameManager.layerManager.getLayer()!;
         const endPoint = l2w(layer.getMouse(e));
     
         this.rect!.w = Math.abs(endPoint.x - this.startPoint.x);
@@ -224,8 +261,12 @@ export class MapTool {
         layer.invalidate(false);
     }
     onMouseUp(e: MouseEvent) {
+        if (gameManager.layerManager.getLayer() === undefined) {
+            console.log("No active layer!");
+            return ;
+        }
         if (this.startPoint === null) return;
-        const layer = gameManager.layerManager.getLayer();
+        const layer = gameManager.layerManager.getLayer()!;
         if (layer.selection.length !== 1) {
             layer.removeShape(this.rect!, false, false);
             return;
@@ -263,7 +304,6 @@ export class InitiativeTracker {
             socket.emit("updateInitiative", data);
     };
     removeInitiative(uuid: string, sync: boolean, skipGroupCheck: boolean) {
-        skipGroupCheck = skipGroupCheck || false;
         const d = this.data.findIndex(d => d.uuid === uuid);
         if (d >= 0) {
             if (!skipGroupCheck && this.data[d].group) return;
@@ -279,6 +319,8 @@ export class InitiativeTracker {
         gameManager.initiativeDialog.empty();
 
         this.data.sort(function (a, b) {
+            if (a.initiative === undefined) return 1;
+            if (b.initiative === undefined) return -1;
             return b.initiative - a.initiative;
         });
 

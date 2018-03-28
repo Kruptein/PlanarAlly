@@ -1,9 +1,9 @@
 import {getUnitDistance, l2w, l2wx, l2wy, w2l, w2lr, w2lx, w2ly, w2lz} from "./units";
-import {Shape, Circle, createShapeFromDict, Rect} from "./shapes";
-import {OrderedMap, Point} from "./utils";
+import {Shape, Circle, createShapeFromDict, Rect, BoundingRect} from "./shapes";
+import {Point} from "./utils";
 import gameManager from "./planarally";
 import socket from "./socket";
-import { LocationOptions } from "./api_types";
+import { LocationOptions, ServerShape } from "./api_types";
 
 export class LayerManager {
     layers: Layer[] = [];
@@ -105,6 +105,7 @@ export class LayerManager {
 
     drawGrid(): void {
         const layer = this.getGridLayer();
+        if (layer === undefined) return;
         const ctx = layer.ctx;
         layer.clear();
         ctx.beginPath();
@@ -121,7 +122,7 @@ export class LayerManager {
         ctx.stroke();
         layer.valid = true;
         if (this.hasLayer("fow"))
-            this.getLayer("fow").invalidate(true);
+            this.getLayer("fow")!.invalidate(true);
     }
 
     setGridSize(gridSize: number): void {
@@ -176,21 +177,38 @@ export class LayerManager {
     }
 
     onMouseDown(e: MouseEvent): void {
-        this.getLayer().onMouseDown(e);
+        if (gameManager.layerManager.getLayer() === undefined) {
+            console.log("No active layer!");
+            return ;
+        }
+        this.getLayer()!.onMouseDown(e);
     }
 
     onMouseMove(e: MouseEvent): void {
-        this.getLayer().onMouseMove(e);
+        if (gameManager.layerManager.getLayer() === undefined) {
+            console.log("No active layer!");
+            return ;
+        }
+        this.getLayer()!.onMouseMove(e);
     }
 
     onMouseUp(e: MouseEvent): void {
-        this.getLayer().onMouseUp(e);
+        if (gameManager.layerManager.getLayer() === undefined) {
+            console.log("No active layer!");
+            return ;
+        }
+        this.getLayer()!.onMouseUp(e);
     }
 
     onContextMenu(e: MouseEvent) {
+        if (gameManager.layerManager.getLayer() === undefined) {
+            console.log("No active layer!");
+            return ;
+        }
+        this.getLayer()!.onMouseMove(e);
         e.preventDefault();
         e.stopPropagation();
-        this.getLayer().onContextMenu(e);
+        this.getLayer()!.onContextMenu(e);
     }
 }
 
@@ -202,12 +220,13 @@ export class Layer {
     ctx: CanvasRenderingContext2D;
 
     selectable: boolean = false;
+    player_editable: boolean = false;
 
     // When set to false, the layer will be redrawn on the next tick
     valid: boolean = false;
     // The collection of shapes that this layer contains.
     // These are ordered on a depth basis.
-    shapes = new OrderedMap();
+    shapes: Shape[] = [];
 
     // State variables
     // todo change to enum ?
@@ -247,7 +266,7 @@ export class Layer {
     invalidate(skipLightUpdate: boolean): void {
         this.valid = false;
         if (!skipLightUpdate && this.name !== "fow" && gameManager.layerManager.hasLayer("fow")) {
-            gameManager.layerManager.getLayer("fow").invalidate(true);
+            gameManager.layerManager.getLayer("fow")!.invalidate(true);
         }
     }
 
@@ -262,11 +281,11 @@ export class Layer {
         this.invalidate(!sync);
     }
 
-    setShapes(shapes: Shape[]): void {
+    setShapes(shapes: ServerShape[]): void {
         const t: Shape[] = [];
         const self = this;
         shapes.forEach(function (shape) {
-            const sh = createShapeFromDict(shape, self);
+            const sh = createShapeFromDict(shape);
             sh.layer = self.name;
             sh.checkLightSources();
             sh.setMovementBlock(shape.movementObstruction);
@@ -274,13 +293,13 @@ export class Layer {
             t.push(sh);
         });
         this.selection = []; // TODO: Fix keeping selection on those items that are not moved.
-        this.shapes.data = t;
+        this.shapes = t;
         this.invalidate(false);
     }
 
     removeShape(shape: Shape, sync: boolean, temporary?: boolean) {
         if (temporary === undefined) temporary = false;
-        this.shapes.remove(shape);
+        this.shapes.splice(this.shapes.indexOf(shape), 1);
         if (sync) socket.emit("remove shape", {shape: shape, temporary: temporary});
         const ls_i = gameManager.lightsources.findIndex(ls => ls.shape === shape.uuid);
         const lb_i = gameManager.lightblockers.findIndex(ls => ls === shape.uuid);
@@ -313,10 +332,11 @@ export class Layer {
 
             const state = this;
 
-            this.shapes.data.forEach(function (shape) {
+            this.shapes.forEach(function (shape) {
+                if (gameManager.layerManager.getLayer() === undefined) return;
                 if (w2lx(shape.x) > state.width || w2ly(shape.y) > state.height ||
                     w2lx(shape.x + shape.w) < 0 || w2ly(shape.y + shape.h) < 0) return;
-                if (state.name === 'fow' && shape.visionObstruction && gameManager.layerManager.getLayer().name !== state.name) return;
+                if (state.name === 'fow' && shape.visionObstruction && gameManager.layerManager.getLayer()!.name !== state.name) return;
                 shape.draw(ctx);
             });
 
@@ -363,10 +383,12 @@ export class Layer {
     };
 
     moveShapeOrder(shape: Shape, destinationIndex: number, sync: boolean): void {
-        if (this.shapes.moveTo(shape, destinationIndex)) {
-            if (sync) socket.emit("moveShapeOrder", {shape: shape.asDict(), index: destinationIndex});
-            this.invalidate(true);
-        }
+        const oldIdx = this.shapes.indexOf(shape);
+        if (oldIdx === destinationIndex) return;
+        this.shapes.splice(oldIdx, 1);
+        this.shapes.splice(destinationIndex, 0, shape);
+        if (sync) socket.emit("moveShapeOrder", {shape: shape.asDict(), index: destinationIndex});
+        this.invalidate(true);
     };
 
     onShapeMove(shape?: Shape): void {
@@ -377,14 +399,14 @@ export class Layer {
         const mx = mouse.x;
         const my = mouse.y;
 
-        if (gameManager.tools[gameManager.selectedTool].name === 'select') {
+        if (gameManager.tools.getIndexKey(gameManager.selectedTool) === 'select') {
             let hit = false;
             // the selectionStack allows for lowwer positioned objects that are selected to have precedence during overlap.
             let selectionStack;
             if (!this.selection.length)
-                selectionStack = this.shapes.data;
+                selectionStack = this.shapes;
             else
-                selectionStack = this.shapes.data.concat(this.selection);
+                selectionStack = this.shapes.concat(this.selection);
             for (let i = selectionStack.length - 1; i >= 0; i--) {
                 const shape = selectionStack[i];
                 const corn = shape.getCorner(mx, my);
@@ -408,7 +430,7 @@ export class Layer {
                     this.dragging = true;
                     this.dragoffx = mx - sel.x * z;
                     this.dragoffy = my - sel.y * z;
-                    this.dragorig = Object.assign({}, sel);
+                    this.dragorig = {x: sel.x; y: sel.y};
                     this.invalidate(true);
                     hit = true;
                     break;
@@ -427,7 +449,7 @@ export class Layer {
                 this.addShape(this.selectionHelper, false, false);
                 this.invalidate(true);
             }
-        } else if (gameManager.tools[gameManager.selectedTool].name === 'pan') {
+        } else if (gameManager.tools.getIndexKey(gameManager.selectedTool) === 'pan') {
             this.panning = true;
             this.dragoffx = mx;
             this.dragoffy = my;
@@ -437,7 +459,7 @@ export class Layer {
         const mouse = this.getMouse(e);
         const z = gameManager.layerManager.zoomFactor;
         if (this.selecting) {
-            if (this.selectionStartPoint === null) return;
+            if (this.selectionStartPoint === null || this.selectionHelper === null) return;
             // Currently draw on active this
             const endPoint = l2w(this.getMouse(e));
 
@@ -455,7 +477,7 @@ export class Layer {
         } else if (this.selection.length) {
             const ogX = this.selection[this.selection.length - 1].x * z;
             const ogY = this.selection[this.selection.length - 1].y * z;
-            this.selection.forEach(function (sel) {
+            this.selection.forEach((sel) => {
                 if (!(sel instanceof Rect)) return; // TODO
                 const dx = mouse.x - (ogX + this.dragoffx);
                 const dy = mouse.y - (ogY + this.dragoffy);
@@ -468,7 +490,7 @@ export class Layer {
                         let blocked = false;
                         const bbox = sel.getBoundingBox();
                         const blockers = gameManager.movementblockers.filter(
-                            mb => mb !== sel.uuid && gameManager.layerManager.UUIDMap.get(mb).getBoundingBox().intersectsWith(bbox));
+                            mb => mb !== sel.uuid && gameManager.layerManager.UUIDMap.has(mb) && gameManager.layerManager.UUIDMap.get(mb)!.getBoundingBox().intersectsWith(bbox));
                         if (blockers.length > 0) {
                             blocked = true;
                         } else {
@@ -477,7 +499,8 @@ export class Layer {
                             const line = {start: {x: ogX / z, y: ogY / z}, end: {x: sel.x, y: sel.y}};
                             blocked = gameManager.movementblockers.some(
                                 mb => {
-                                    const inter = gameManager.layerManager.UUIDMap.get(mb).getBoundingBox().getIntersectWithLine(line);
+                                    if (!gameManager.layerManager.UUIDMap.has(mb)) return false;
+                                    const inter = gameManager.layerManager.UUIDMap.get(mb)!.getBoundingBox().getIntersectWithLine(line);
                                     return mb !== sel.uuid && inter.intersect !== null && inter.distance > 0;
                                 }
                             );
@@ -514,7 +537,6 @@ export class Layer {
                     sel.h /= z;
                     if (sel !== this.selectionHelper) {
                         socket.emit("shapeMove", {shape: sel.asDict(), temporary: true});
-                        setSelectionInfo(sel);
                     }
                     this.invalidate(false);
                 } else if (sel) {
@@ -537,16 +559,16 @@ export class Layer {
     }
     onMouseUp(e: MouseEvent): void {
         if (this.selecting) {
-            if (this.selectionStartPoint === null) return;
+            if (this.selectionStartPoint === null || this.selectionHelper === null) return;
 
-            this.shapes.data.forEach(function (shape) {
+            this.shapes.forEach((shape) => {
                 if (shape === this.selectionHelper) return;
                 const bbox = shape.getBoundingBox();
                 if (!shape.ownedBy()) return;
-                if (this.selectionHelper.x <= bbox.x + bbox.w &&
-                    this.selectionHelper.x + this.selectionHelper.w >= bbox.x &&
-                    this.selectionHelper.y <= bbox.y + bbox.h &&
-                    this.selectionHelper.y + this.selectionHelper.h >= bbox.y) {
+                if (this.selectionHelper!.x <= bbox.x + bbox.w &&
+                    this.selectionHelper!.x + this.selectionHelper!.w >= bbox.x &&
+                    this.selectionHelper!.y <= bbox.y + bbox.h &&
+                    this.selectionHelper!.y + this.selectionHelper!.h >= bbox.y) {
                     this.selection.push(shape);
                 }
             });
@@ -565,7 +587,7 @@ export class Layer {
                 panY: gameManager.layerManager.panY
             });
         } else if (this.selection.length) {
-            this.selection.forEach(function (sel) {
+            this.selection.forEach((sel) => {
                 if (!(sel instanceof Rect)) return; // TODO
                 if (this.dragging) {
                     if (gameManager.layerManager.useGrid && !e.altKey) {
@@ -587,7 +609,6 @@ export class Layer {
                     if (this.dragorig.x !== sel.x || this.dragorig.y !== sel.y) {
                         if (sel !== this.selectionHelper) {
                             socket.emit("shapeMove", {shape: sel.asDict(), temporary: false});
-                            setSelectionInfo(sel);
                         }
                         this.invalidate(false);
                     }
@@ -610,7 +631,6 @@ export class Layer {
                     }
                     if (sel !== this.selectionHelper) {
                         socket.emit("shapeMove", {shape: sel.asDict(), temporary: false});
-                        setSelectionInfo(sel);
                     }
                     this.invalidate(false);
                 }
@@ -626,8 +646,8 @@ export class Layer {
         const mx = mouse.x;
         const my = mouse.y;
         let hit = false;
-        this.shapes.data.forEach(function (shape) {
-            if (!hit && shape.contains(mx, my)) {
+        this.shapes.forEach(function (shape) {
+            if (!hit && shape.contains(mx, my, true)) {
                 shape.showContextMenu(mouse);
             }
         });
@@ -635,26 +655,19 @@ export class Layer {
 }
 
 export class GridLayer extends Layer {
-    constructor(canvas, name) {
-        super(canvas, name);
-    }
-
     invalidate(): void {
         gameManager.layerManager.drawGrid();
     }
 }
 
 export class FOWLayer extends Layer {
-    constructor(canvas, name) {
-        super(canvas, name);
-    }
 
     addShape(shape: Shape, sync: boolean, temporary?: boolean): void {
         shape.fill = gameManager.fowColour.spectrum("get").toRgbString();
         super.addShape(shape, sync, temporary);
     }
 
-    setShapes(shapes: Shape[]): void {
+    setShapes(shapes: ServerShape[]): void {
         const c = gameManager.fowColour.spectrum("get").toRgbString();
         shapes.forEach(function (shape) {
             shape.fill = c;
@@ -662,7 +675,7 @@ export class FOWLayer extends Layer {
         super.setShapes(shapes);
     }
 
-    onShapeMove(shape?: Shape): void {
+    onShapeMove(shape: Shape): void {
         shape.fill = gameManager.fowColour.spectrum("get").toRgbString();
         super.onShapeMove(shape);
     };
@@ -684,22 +697,25 @@ export class FOWLayer extends Layer {
             if (!gameManager.IS_DM)
                 super.draw(!gameManager.layerManager.fullFOW);
             ctx.globalCompositeOperation = 'destination-out';
-            gameManager.layerManager.getLayer("tokens").shapes.data.forEach(function (sh) {
-                if (!sh.ownedBy()) return;
-                const bb = sh.getBoundingBox();
-                const lcenter = w2l(sh.center());
-                const alm = 0.8 * w2lz(bb.w);
-                ctx.beginPath();
-                ctx.arc(lcenter.x, lcenter.y, alm, 0, 2 * Math.PI);
-                const gradient = ctx.createRadialGradient(lcenter.x, lcenter.y, alm / 2, lcenter.x, lcenter.y, alm);
-                gradient.addColorStop(0, 'rgba(0, 0, 0, 1)');
-                gradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
-                ctx.fillStyle = gradient;
-                ctx.fill();
-            });
+            if (gameManager.layerManager.hasLayer("tokens")) {
+                gameManager.layerManager.getLayer("tokens")!.shapes.forEach(function (sh) {
+                    if (!sh.ownedBy()) return;
+                    const bb = sh.getBoundingBox();
+                    const lcenter = w2l(sh.center());
+                    const alm = 0.8 * w2lz(bb.w);
+                    ctx.beginPath();
+                    ctx.arc(lcenter.x, lcenter.y, alm, 0, 2 * Math.PI);
+                    const gradient = ctx.createRadialGradient(lcenter.x, lcenter.y, alm / 2, lcenter.x, lcenter.y, alm);
+                    gradient.addColorStop(0, 'rgba(0, 0, 0, 1)');
+                    gradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
+                    ctx.fillStyle = gradient;
+                    ctx.fill();
+                });
+            }
             ctx.globalCompositeOperation = 'destination-out';
             gameManager.lightsources.forEach(function (ls) {
                 const sh = gameManager.layerManager.UUIDMap.get(ls.shape);
+                if (sh === undefined) return;
                 const aura = sh.auras.find(a => a.uuid === ls.aura);
                 if (aura === undefined) {
                     console.log("Old lightsource still lingering in the gameManager list");
@@ -712,10 +728,11 @@ export class FOWLayer extends Layer {
 
                 // We first collect all lightblockers that are inside/cross our aura
                 // This to prevent as many ray calculations as possible
-                const local_lightblockers = [];
+                const local_lightblockers: BoundingRect[] = [];
                 gameManager.lightblockers.forEach(function (lb) {
                     if (lb === sh.uuid) return;
                     const lb_sh = gameManager.layerManager.UUIDMap.get(lb);
+                    if (lb_sh === undefined) return;
                     const lb_bb = lb_sh.getBoundingBox();
                     if (lb_bb.intersectsWith(bbox))
                         local_lightblockers.push(lb_bb);

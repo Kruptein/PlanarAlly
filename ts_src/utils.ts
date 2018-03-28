@@ -21,22 +21,28 @@ export function uuidv4() {
     });
 }
 
-export class OrderedMap {
-    data: Shape[] = [];
-    push(element: Shape) {
-        this.data.push(element);
+export class OrderedMap<K, V> {
+    keys: K[] = [];
+    values: V[] = [];
+    get(key: K) {
+        return this.values[this.keys.indexOf(key)];
     }
-    indexOf(element: Shape) {
-        return this.data.indexOf(element);
+    getIndexValue(idx: number) {
+        return this.values[idx];
     }
-    remove(element: Shape) {
-        this.data.splice(this.indexOf(element), 1);
+    getIndexKey(idx: number) {
+        return this.keys[idx];
     }
-    moveTo(element: Shape, idx: number) {
-        const oldIdx = this.indexOf(element);
-        if (oldIdx === idx) return false;
-        this.data.splice(oldIdx, 1);
-        this.data.splice(idx, 0, element);
-        return true;
+    set(key: K, value: V) {
+        this.keys.push(key);
+        this.values.push(value);
+    }
+    indexOf(element: K) {
+        return this.keys.indexOf(element);
+    }
+    remove(element: K) {
+        const idx = this.indexOf(element);
+        this.keys.splice(idx, 1);
+        this.values.splice(idx, 1);
     }
 }

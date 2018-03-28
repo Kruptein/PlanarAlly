@@ -631,38 +631,21 @@ export class BoundingRect {
     }
 }
 
-export class Rect extends Shape {
+export abstract class BaseRect extends Shape {
     x: number;
     y: number;
     w: number;
     h: number;
-    border: string;
-
-    constructor(x: number, y: number, w: number, h: number, fill?: string, border?: string, uuid?: string) {
+    constructor(x: number, y: number, w: number, h: number, uuid?: string) {
         super(uuid);
-        this.type = "rect";
-        this.x = x || 0;
-        this.y = y || 0;
-        this.w = w || 1;
-        this.h = h || 1;
-        this.fill = fill || '#000';
-        this.border = border || "rgba(0, 0, 0, 0)";
-        this.uuid = uuid || uuidv4();
+        this.type = "baserect";
+        this.x = x;
+        this.y = y;
+        this.w = w;
+        this.h = h;
     }
-
     getBoundingBox() {
         return new BoundingRect(this.x, this.y, this.w, this.h);
-    }
-    draw(ctx: CanvasRenderingContext2D) {
-        super.draw(ctx);
-        ctx.fillStyle = this.fill;
-        const z = gameManager.layerManager.zoomFactor;
-        const loc = w2l({ x: this.x, y: this.y });
-        ctx.fillRect(loc.x, loc.y, this.w * z, this.h * z);
-        if (this.border !== "rgba(0, 0, 0, 0)") {
-            ctx.strokeStyle = this.border;
-            ctx.strokeRect(loc.x, loc.y, this.w * z, this.h * z);
-        }
     }
     contains(x: number, y: number, inWorldCoord: boolean): boolean {
         if (inWorldCoord) {
@@ -711,6 +694,27 @@ export class Rect extends Shape {
     }
 }
 
+export class Rect extends BaseRect {
+    border: string;
+    constructor(x: number, y: number, w: number, h: number, fill?: string, border?: string, uuid?: string) {
+        super(x, y, w, h, uuid);
+        this.type = "rect";
+        this.fill = fill || '#000';
+        this.border = border || "rgba(0, 0, 0, 0)";
+    }
+    draw(ctx: CanvasRenderingContext2D) {
+        super.draw(ctx);
+        ctx.fillStyle = this.fill;
+        const z = gameManager.layerManager.zoomFactor;
+        const loc = w2l({ x: this.x, y: this.y });
+        ctx.fillRect(loc.x, loc.y, this.w * z, this.h * z);
+        if (this.border !== "rgba(0, 0, 0, 0)") {
+            ctx.strokeStyle = this.border;
+            ctx.strokeRect(loc.x, loc.y, this.w * z, this.h * z);
+        }
+    }
+}
+
 export class Circle extends Shape {
     x: number;
     y: number;
@@ -724,7 +728,6 @@ export class Circle extends Shape {
         this.r = r || 1;
         this.fill = fill || '#000';
         this.border = border || "rgba(0, 0, 0, 0)";
-        this.uuid = uuid || uuidv4();
     };
     getBoundingBox(): BoundingRect {
         return new BoundingRect(this.x - this.r, this.y - this.r, this.r * 2, this.r * 2);
@@ -782,7 +785,6 @@ export class Line extends Shape {
         this.y1 = y1;
         this.x2 = x2;
         this.y2 = y2;
-        this.uuid = uuid || uuidv4();
     }
     getBoundingBox(): BoundingRect {
         return new BoundingRect(
@@ -826,7 +828,6 @@ export class Text extends Shape {
         this.text = text;
         this.font = font;
         this.angle = angle || 0;
-        this.uuid = uuid || uuidv4();
     }
     getBoundingBox(): BoundingRect {
         return new BoundingRect(this.x, this.y, 5, 5); // Todo: fix this bounding box
@@ -852,7 +853,7 @@ export class Text extends Shape {
     visibleInCanvas(canvas: HTMLCanvasElement): boolean { return true; } // TODO
 }
 
-export class Asset extends Rect {
+export class Asset extends BaseRect {
     img: HTMLImageElement;
     src: string = '';
     constructor(img: HTMLImageElement, x: number, y: number, w: number, h: number, uuid?: string) {

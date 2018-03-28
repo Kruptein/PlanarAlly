@@ -1,5 +1,5 @@
 import {getUnitDistance, l2w, l2wx, l2wy, w2l, w2lr, w2lx, w2ly, w2lz} from "./units";
-import {Shape, Circle, createShapeFromDict, Rect, BoundingRect} from "./shapes";
+import {Shape, Circle, createShapeFromDict, Rect, BoundingRect, BaseRect} from "./shapes";
 import {Point} from "./utils";
 import gameManager from "./planarally";
 import socket from "./socket";
@@ -290,7 +290,7 @@ export class Layer {
                 ctx.lineWidth = this.selectionWidth;
                 const z = gameManager.layerManager.zoomFactor;
                 this.selection.forEach(function (sel) {
-                    if (!(sel instanceof Rect)) return;
+                    if (!(sel instanceof BaseRect)) return;
                     ctx.strokeRect(w2lx(sel.x), w2ly(sel.y), sel.w * z, sel.h * z);
 
                     // topright

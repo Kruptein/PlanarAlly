@@ -1,5 +1,5 @@
 import {getUnitDistance, l2w, l2wx, l2wy, w2l, w2lr, w2lx, w2ly, w2lz} from "./units";
-import {Shape, Line, Rect, Text} from "./shapes";
+import {Shape, Line, Rect, Text, BaseRect} from "./shapes";
 import gameManager from "./planarally";
 import socket from "./socket";
 import { Point } from "./utils";
@@ -69,7 +69,7 @@ export class SelectTool extends Tool {
                 this.mode = SelectOperations.Drag;
                 this.dragoffx = mx - sel.x * z;
                 this.dragoffy = my - sel.y * z;
-                this.dragorig = {x: sel.x; y: sel.y};
+                this.dragorig = {x: sel.x, y: sel.y};
                 layer.invalidate(true);
                 hit = true;
                 break;
@@ -111,7 +111,7 @@ export class SelectTool extends Tool {
             const ogX = layer.selection[layer.selection.length - 1].x * z;
             const ogY = layer.selection[layer.selection.length - 1].y * z;
             layer.selection.forEach((sel) => {
-                if (!(sel instanceof Rect)) return; // TODO
+                if (!(sel instanceof BaseRect)) return; // TODO
                 const dx = mouse.x - (ogX + this.dragoffx);
                 const dy = mouse.y - (ogY + this.dragoffy);
                 if (this.mode === SelectOperations.Drag) {
@@ -219,7 +219,7 @@ export class SelectTool extends Tool {
             layer.invalidate(true);
         } else if (layer.selection.length) {
             layer.selection.forEach((sel) => {
-                if (!(sel instanceof Rect)) return; // TODO
+                if (!(sel instanceof BaseRect)) return; // TODO
                 if (this.mode === SelectOperations.Drag) {
                     if (gameManager.layerManager.useGrid && !e.altKey) {
                         const gs = gameManager.layerManager.gridSize;
@@ -293,11 +293,14 @@ export class PanTool extends Tool {
     dragoffx = 0;
     dragoffy = 0;
     dragorig: Point = {x:0, y:0};
+    active: boolean = false;
     onMouseDown(e: MouseEvent): void {
         this.dragoffx = e.pageX;
         this.dragoffy = e.pageY;
+        this.active = true;
     };
     onMouseMove(e: MouseEvent): void {
+        if (!this.active) return;
         const mouse = {x: e.pageX, y: e.pageY};
         const z = gameManager.layerManager.zoomFactor;
         gameManager.layerManager.panX += Math.round((mouse.x - this.dragoffx) / z);
@@ -307,6 +310,7 @@ export class PanTool extends Tool {
         gameManager.layerManager.invalidate();
     };
     onMouseUp(e: MouseEvent): void {
+        this.active = false;
         socket.emit("set clientOptions", {
             panX: gameManager.layerManager.panX,
             panY: gameManager.layerManager.panY

@@ -221,6 +221,7 @@ export class SelectTool extends Tool {
             layer.selection.forEach((sel) => {
                 if (!(sel instanceof BaseRect)) return; // TODO
                 if (this.mode === SelectOperations.Drag) {
+                    if (this.dragorig.x === sel.x && this.dragorig.y === sel.y) { return }
                     if (gameManager.layerManager.useGrid && !e.altKey) {
                         const gs = gameManager.layerManager.gridSize;
                         const mouse = {x: sel.x + sel.w / 2, y: sel.y + sel.h / 2};
@@ -237,12 +238,11 @@ export class SelectTool extends Tool {
                             sel.y = (Math.round((my + (gs / 2)) / gs) - (1 / 2)) * gs - sel.h / 2;
                         }
                     }
-                    if (this.dragorig.x !== sel.x || this.dragorig.y !== sel.y) {
-                        if (sel !== this.selectionHelper) {
-                            socket.emit("shapeMove", {shape: sel.asDict(), temporary: false});
-                        }
-                        layer.invalidate(false);
+                
+                    if (sel !== this.selectionHelper) {
+                        socket.emit("shapeMove", {shape: sel.asDict(), temporary: false});
                     }
+                    layer.invalidate(false);
                 }
                 if (this.mode === SelectOperations.Resize) {
                     if (sel.w < 0) {

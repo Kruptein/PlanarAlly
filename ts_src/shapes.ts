@@ -50,6 +50,7 @@ export abstract class Shape {
     abstract center(): Point;
     abstract center(centerPoint: Point): void;
     abstract getCorner(x: number, y:number): string|undefined;
+    abstract visibleInCanvas(canvas: HTMLCanvasElement): boolean;
 
     checkLightSources() {
         const self = this;
@@ -618,11 +619,12 @@ export class BoundingRect {
         let min_d = Infinity;
         let min_i = null;
         for (let i = 0; i < lines.length; i++) {
-            if (lines[i] === null || lines[i] === false) continue;
-            const d = getPointDistance(line.start, <Point>lines[i]);
+            const l = lines[i];
+            if (l.intersect === null) continue;
+            const d = getPointDistance(line.start, l.intersect);
             if (min_d > d) {
                 min_d = d;
-                min_i = lines[i];
+                min_i = l.intersect;
             }
         }
         return { intersect: min_i, distance: min_d }
@@ -702,6 +704,11 @@ export class Rect extends Shape {
         this.x = centerPoint.x - this.w / 2;
         this.y = centerPoint.y - this.h / 2;
     }
+
+    visibleInCanvas(canvas: HTMLCanvasElement): boolean {
+        return !(w2lx(this.x) > canvas.width || w2ly(this.y) > canvas.height ||
+                    w2lx(this.x + this.w) < 0 || w2ly(this.y + this.h) < 0);
+    }
 }
 
 export class Circle extends Shape {
@@ -760,6 +767,7 @@ export class Circle extends Shape {
         this.x = centerPoint.x;
         this.y = centerPoint.y;
     }
+    visibleInCanvas(canvas: HTMLCanvasElement): boolean { return true; } // TODO
 }
 
 export class Line extends Shape {
@@ -800,6 +808,8 @@ export class Line extends Shape {
     center(): Point;
     center(centerPoint: Point): void;
     center(centerPoint?: Point): Point | void { } // TODO
+    getCorner(x: number, y:number): string|undefined { return "" }; // TODO
+    visibleInCanvas(canvas: HTMLCanvasElement): boolean { return true; } // TODO
 }
 
 export class Text extends Shape {
@@ -838,6 +848,8 @@ export class Text extends Shape {
     center(): Point;
     center(centerPoint: Point): void;
     center(centerPoint?: Point): Point | void { } // TODO
+    getCorner(x: number, y:number): string|undefined { return "" }; // TODO
+    visibleInCanvas(canvas: HTMLCanvasElement): boolean { return true; } // TODO
 }
 
 export class Asset extends Rect {
@@ -886,7 +898,7 @@ function handleContextMenu(menu: JQuery<HTMLElement>, shape: Shape) {
     if (layer === undefined) return;
     switch (action) {
         case 'moveToFront':
-            layer.moveShapeOrder(shape, layer.shapes.data.length - 1, true);
+            layer.moveShapeOrder(shape, layer.shapes.length - 1, true);
             break;
         case 'moveToBack':
             layer.moveShapeOrder(shape, 0, true);

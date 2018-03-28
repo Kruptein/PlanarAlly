@@ -1,4 +1,4 @@
-import {l2w} from "./units";
+import {getUnitDistance, l2w, l2wx, l2wy, w2l, w2lr, w2lx, w2ly, w2lz} from "./units";
 import {Shape, Line, Rect, Text} from "./shapes";
 import gameManager from "./planarally";
 import socket from "./socket";
@@ -10,6 +10,308 @@ export abstract class Tool {
     abstract onMouseDown(e: MouseEvent): void;
     abstract onMouseMove(e: MouseEvent): void;
     abstract onMouseUp(e: MouseEvent): void;
+    onContextMenu(e: MouseEvent) {};
+}
+
+enum SelectOperations {
+    Noop,
+    Resize,
+    Drag,
+    GroupSelect,
+}
+
+export class SelectTool extends Tool {
+    mode: SelectOperations = SelectOperations.Noop;
+    resizedir: string = "";
+    // Because we never drag from the asset's (0, 0) coord and want a smoother drag experience
+    // we keep track of the actual offset within the asset.
+    dragoffx = 0;
+    dragoffy = 0;
+    dragorig: Point = {x:0, y:0};
+    selectionHelper: Rect = new Rect(-1000, -1000, 0, 0);
+    selectionStartPoint: Point = {x: -1000, y: -1000};
+    onMouseDown(e: MouseEvent): void {
+        const mx = e.pageX;
+        const my = e.pageY;
+        if (gameManager.layerManager.getLayer() === undefined) {
+            console.log("No active layer!");
+            return ;
+        }
+        const layer = gameManager.layerManager.getLayer()!;
+
+        let hit = false;
+        // the selectionStack allows for lower positioned objects that are selected to have precedence during overlap.
+        let selectionStack;
+        if (!layer.selection.length)
+            selectionStack = layer.shapes;
+        else
+            selectionStack = layer.shapes.concat(layer.selection);
+        for (let i = selectionStack.length - 1; i >= 0; i--) {
+            const shape = selectionStack[i];
+            const corn = shape.getCorner(mx, my);
+            if (corn !== undefined) {
+                if (!shape.ownedBy()) continue;
+                layer.selection = [shape];
+                shape.onSelection();
+                this.mode = SelectOperations.Resize;
+                this.resizedir = corn;
+                layer.invalidate(true);
+                hit = true;
+                break;
+            } else if (shape.contains(mx, my, true)) {
+                if (!shape.ownedBy()) continue;
+                const sel = shape;
+                const z = gameManager.layerManager.zoomFactor;
+                if (layer.selection.indexOf(sel) === -1) {
+                    layer.selection = [sel];
+                    sel.onSelection();
+                }
+                this.mode = SelectOperations.Drag;
+                this.dragoffx = mx - sel.x * z;
+                this.dragoffy = my - sel.y * z;
+                this.dragorig = {x: sel.x; y: sel.y};
+                layer.invalidate(true);
+                hit = true;
+                break;
+            }
+        }
+
+        if (!hit) {
+            layer.selection.forEach(function (sel) {
+                sel.onSelectionLoss();
+            });
+            this.mode = SelectOperations.GroupSelect;
+            this.selectionStartPoint = l2w(layer.getMouse(e));
+            this.selectionHelper.x = this.selectionStartPoint.x;
+            this.selectionHelper.y = this.selectionStartPoint.y;
+            this.selectionHelper.w = 0;
+            this.selectionHelper.h = 0;
+            layer.selection = [this.selectionHelper];
+            layer.invalidate(true);
+        }
+    };
+    onMouseMove(e: MouseEvent): void {
+        if (gameManager.layerManager.getLayer() === undefined) {
+            console.log("No active layer!");
+            return ;
+        }
+        const layer = gameManager.layerManager.getLayer()!;
+        const mouse = layer.getMouse(e);
+        const z = gameManager.layerManager.zoomFactor;
+        if (this.mode === SelectOperations.GroupSelect) {
+            // Currently draw on active this
+            const endPoint = l2w(mouse);
+
+            this.selectionHelper.w = Math.abs(endPoint.x - this.selectionStartPoint.x);
+            this.selectionHelper.h = Math.abs(endPoint.y - this.selectionStartPoint.y);
+            this.selectionHelper.x = Math.min(this.selectionStartPoint.x, endPoint.x);
+            this.selectionHelper.y = Math.min(this.selectionStartPoint.y, endPoint.y);
+            layer.invalidate(true);
+        } else if (layer.selection.length) {
+            const ogX = layer.selection[layer.selection.length - 1].x * z;
+            const ogY = layer.selection[layer.selection.length - 1].y * z;
+            layer.selection.forEach((sel) => {
+                if (!(sel instanceof Rect)) return; // TODO
+                const dx = mouse.x - (ogX + this.dragoffx);
+                const dy = mouse.y - (ogY + this.dragoffy);
+                if (this.mode === SelectOperations.Drag) {
+                    sel.x += dx / z;
+                    sel.y += dy / z;
+                    if (layer.name !== 'fow') {
+                        // We need to use the above updated values for the bounding box check
+                        // First check if the bounding boxes overlap to stop close / precise movement
+                        let blocked = false;
+                        const bbox = sel.getBoundingBox();
+                        const blockers = gameManager.movementblockers.filter(
+                            mb => mb !== sel.uuid && gameManager.layerManager.UUIDMap.has(mb) && gameManager.layerManager.UUIDMap.get(mb)!.getBoundingBox().intersectsWith(bbox));
+                        if (blockers.length > 0) {
+                            blocked = true;
+                        } else {
+                            // Draw a line from start to end position and see for any intersect
+                            // This stops sudden leaps over walls! cheeky buggers
+                            const line = {start: {x: ogX / z, y: ogY / z}, end: {x: sel.x, y: sel.y}};
+                            blocked = gameManager.movementblockers.some(
+                                mb => {
+                                    if (!gameManager.layerManager.UUIDMap.has(mb)) return false;
+                                    const inter = gameManager.layerManager.UUIDMap.get(mb)!.getBoundingBox().getIntersectWithLine(line);
+                                    return mb !== sel.uuid && inter.intersect !== null && inter.distance > 0;
+                                }
+                            );
+                        }
+                        if (blocked) {
+                            sel.x -= dx / z;
+                            sel.y -= dy / z;
+                            return;
+                        }
+                    }
+                    if (sel !== this.selectionHelper) {
+                        socket.emit("shapeMove", {shape: sel.asDict(), temporary: true});
+                    }
+                    layer.invalidate(false);
+                } else if (this.mode === SelectOperations.Resize) {
+                    if (this.resizedir === 'nw') {
+                        sel.w = w2lx(sel.x) + sel.w * z - mouse.x;
+                        sel.h = w2ly(sel.y) + sel.h * z - mouse.y;
+                        sel.x = l2wx(mouse.x);
+                        sel.y = l2wy(mouse.y);
+                    } else if (this.resizedir === 'ne') {
+                        sel.w = mouse.x - w2lx(sel.x);
+                        sel.h = w2ly(sel.y) + sel.h * z - mouse.y;
+                        sel.y = l2wy(mouse.y);
+                    } else if (this.resizedir === 'se') {
+                        sel.w = mouse.x - w2lx(sel.x);
+                        sel.h = mouse.y - w2ly(sel.y);
+                    } else if (this.resizedir === 'sw') {
+                        sel.w = w2lx(sel.x) + sel.w * z - mouse.x;
+                        sel.h = mouse.y - w2ly(sel.y);
+                        sel.x = l2wx(mouse.x);
+                    }
+                    sel.w /= z;
+                    sel.h /= z;
+                    if (sel !== this.selectionHelper) {
+                        socket.emit("shapeMove", {shape: sel.asDict(), temporary: true});
+                    }
+                    layer.invalidate(false);
+                } else if (sel) {
+                    if (sel.inCorner(mouse.x, mouse.y, "nw")) {
+                        document.body.style.cursor = "nw-resize";
+                    } else if (sel.inCorner(mouse.x, mouse.y, "ne")) {
+                        document.body.style.cursor = "ne-resize";
+                    } else if (sel.inCorner(mouse.x, mouse.y, "se")) {
+                        document.body.style.cursor = "se-resize";
+                    } else if (sel.inCorner(mouse.x, mouse.y, "sw")) {
+                        document.body.style.cursor = "sw-resize";
+                    } else {
+                        document.body.style.cursor = "default";
+                    }
+                }
+            });
+        } else {
+            document.body.style.cursor = "default";
+        }
+    };
+    onMouseUp(e: MouseEvent): void {
+        if (gameManager.layerManager.getLayer() === undefined) {
+            console.log("No active layer!");
+            return ;
+        }
+        const layer = gameManager.layerManager.getLayer()!;
+        const mouse = layer.getMouse(e);
+        if (this.mode === SelectOperations.GroupSelect) {
+            layer.selection = [];
+            layer.shapes.forEach((shape) => {
+                if (shape === this.selectionHelper) return;
+                const bbox = shape.getBoundingBox();
+                if (!shape.ownedBy()) return;
+                if (this.selectionHelper!.x <= bbox.x + bbox.w &&
+                    this.selectionHelper!.x + this.selectionHelper!.w >= bbox.x &&
+                    this.selectionHelper!.y <= bbox.y + bbox.h &&
+                    this.selectionHelper!.y + this.selectionHelper!.h >= bbox.y) {
+                        layer.selection.push(shape);
+                }
+            });
+
+            // Push the selection helper as the last element of the selection
+            // This makes sure that it will be the first one to be hit in the hit detection onMouseDown
+            if (layer.selection.length > 0)
+            layer.selection.push(this.selectionHelper);
+
+            layer.invalidate(true);
+        } else if (layer.selection.length) {
+            layer.selection.forEach((sel) => {
+                if (!(sel instanceof Rect)) return; // TODO
+                if (this.mode === SelectOperations.Drag) {
+                    if (gameManager.layerManager.useGrid && !e.altKey) {
+                        const gs = gameManager.layerManager.gridSize;
+                        const mouse = {x: sel.x + sel.w / 2, y: sel.y + sel.h / 2};
+                        const mx = mouse.x;
+                        const my = mouse.y;
+                        if ((sel.w / gs) % 2 === 0) {
+                            sel.x = Math.round(mx / gs) * gs - sel.w / 2;
+                        } else {
+                            sel.x = (Math.round((mx + (gs / 2)) / gs) - (1 / 2)) * gs - sel.w / 2;
+                        }
+                        if ((sel.h / gs) % 2 === 0) {
+                            sel.y = Math.round(my / gs) * gs - sel.h / 2;
+                        } else {
+                            sel.y = (Math.round((my + (gs / 2)) / gs) - (1 / 2)) * gs - sel.h / 2;
+                        }
+                    }
+                    if (this.dragorig.x !== sel.x || this.dragorig.y !== sel.y) {
+                        if (sel !== this.selectionHelper) {
+                            socket.emit("shapeMove", {shape: sel.asDict(), temporary: false});
+                        }
+                        layer.invalidate(false);
+                    }
+                }
+                if (this.mode === SelectOperations.Resize) {
+                    if (sel.w < 0) {
+                        sel.x += sel.w;
+                        sel.w = Math.abs(sel.w);
+                    }
+                    if (sel.h < 0) {
+                        sel.y += sel.h;
+                        sel.h = Math.abs(sel.h);
+                    }
+                    if (gameManager.layerManager.useGrid && !e.altKey) {
+                        const gs = gameManager.layerManager.gridSize;
+                        sel.x = Math.round(sel.x / gs) * gs;
+                        sel.y = Math.round(sel.y / gs) * gs;
+                        sel.w = Math.max(Math.round(sel.w / gs) * gs, gs);
+                        sel.h = Math.max(Math.round(sel.h / gs) * gs, gs);
+                    }
+                    if (sel !== this.selectionHelper) {
+                        socket.emit("shapeMove", {shape: sel.asDict(), temporary: false});
+                    }
+                    layer.invalidate(false);
+                }
+            });
+        }
+        this.mode = SelectOperations.Noop
+    };
+    onContextMenu(e: MouseEvent) {
+        if (gameManager.layerManager.getLayer() === undefined) {
+            console.log("No active layer!");
+            return ;
+        }
+        const layer = gameManager.layerManager.getLayer()!;
+        const mouse = layer.getMouse(e);
+        const mx = mouse.x;
+        const my = mouse.y;
+        let hit = false;
+        layer.shapes.forEach(function (shape) {
+            if (!hit && shape.contains(mx, my, true)) {
+                shape.showContextMenu(mouse);
+            }
+        });
+    };
+}
+
+export class PanTool extends Tool {
+    // Because we never drag from the asset's (0, 0) coord and want a smoother drag experience
+    // we keep track of the actual offset within the asset.
+    dragoffx = 0;
+    dragoffy = 0;
+    dragorig: Point = {x:0, y:0};
+    onMouseDown(e: MouseEvent): void {
+        this.dragoffx = e.pageX;
+        this.dragoffy = e.pageY;
+    };
+    onMouseMove(e: MouseEvent): void {
+        const mouse = {x: e.pageX, y: e.pageY};
+        const z = gameManager.layerManager.zoomFactor;
+        gameManager.layerManager.panX += Math.round((mouse.x - this.dragoffx) / z);
+        gameManager.layerManager.panY += Math.round((mouse.y - this.dragoffy) / z);
+        this.dragoffx = mouse.x;
+        this.dragoffy = mouse.y;
+        gameManager.layerManager.invalidate();
+    };
+    onMouseUp(e: MouseEvent): void {
+        socket.emit("set clientOptions", {
+            panX: gameManager.layerManager.panX,
+            panY: gameManager.layerManager.panY
+        });
+    };
     onContextMenu(e: MouseEvent) {};
 }
 
@@ -274,8 +576,13 @@ export class MapTool extends Tool {
     
         const w = this.rect!.w;
         const h = this.rect!.h;
-        layer.selection[0].w *= parseInt(<string>this.xCount.val()) * gameManager.layerManager.gridSize / w;
-        layer.selection[0].h *= parseInt(<string>this.yCount.val()) * gameManager.layerManager.gridSize / h;
+        const sel = layer.selection[0];
+
+        if (sel instanceof Rect){
+            sel.w *= parseInt(<string>this.xCount.val()) * gameManager.layerManager.gridSize / w;
+            sel.h *= parseInt(<string>this.yCount.val()) * gameManager.layerManager.gridSize / h;
+        }
+
         layer.removeShape(this.rect!, false, false);
         this.startPoint = null;
         this.rect = null;
@@ -403,8 +710,8 @@ export class InitiativeTracker {
 }
 
 const tools = [
-    //{name: "select", playerTool: true, defaultSelect: true, hasDetail: false, clz: SelectTool},
-    //{name: "pan", playerTool: true, defaultSelect: false, hasDetail: false, clz: PanTool},
+    {name: "select", playerTool: true, defaultSelect: true, hasDetail: false, clz: SelectTool},
+    {name: "pan", playerTool: true, defaultSelect: false, hasDetail: false, clz: PanTool},
     {name: "draw", playerTool: true, defaultSelect: false, hasDetail: true, clz: DrawTool},
     {name: "ruler", playerTool: true, defaultSelect: false, hasDetail: false, clz: RulerTool},
     {name: "fow", playerTool: false, defaultSelect: false, hasDetail: true, clz: FOWTool},

@@ -175,41 +175,6 @@ export class LayerManager {
             this.layers[i].invalidate(true);
         }
     }
-
-    onMouseDown(e: MouseEvent): void {
-        if (gameManager.layerManager.getLayer() === undefined) {
-            console.log("No active layer!");
-            return ;
-        }
-        this.getLayer()!.onMouseDown(e);
-    }
-
-    onMouseMove(e: MouseEvent): void {
-        if (gameManager.layerManager.getLayer() === undefined) {
-            console.log("No active layer!");
-            return ;
-        }
-        this.getLayer()!.onMouseMove(e);
-    }
-
-    onMouseUp(e: MouseEvent): void {
-        if (gameManager.layerManager.getLayer() === undefined) {
-            console.log("No active layer!");
-            return ;
-        }
-        this.getLayer()!.onMouseUp(e);
-    }
-
-    onContextMenu(e: MouseEvent) {
-        if (gameManager.layerManager.getLayer() === undefined) {
-            console.log("No active layer!");
-            return ;
-        }
-        this.getLayer()!.onMouseMove(e);
-        e.preventDefault();
-        e.stopPropagation();
-        this.getLayer()!.onContextMenu(e);
-    }
 }
 
 export class Layer {
@@ -228,28 +193,8 @@ export class Layer {
     // These are ordered on a depth basis.
     shapes: Shape[] = [];
 
-    // State variables
-    // todo change to enum ?
-    dragging = false;
-    resizing = false;
-    panning = false;
-    selecting = false;
-
-    // This is a helper to identify which corner or more specifically which resize direction is being used.
-    resizedir = '';
-
-    // This is a reference to an optional rectangular object that is used to select multiple tokens
-    selectionHelper: Rect | null = null;
-    selectionStartPoint: Point | null = null;
-
     // Collection of shapes that are currently selected
     selection: Shape[] = [];
-
-    // Because we never drag from the asset's (0, 0) coord and want a smoother drag experience
-    // we keep track of the actual offset within the asset.
-    dragoffx = 0;
-    dragoffy = 0;
-    dragorig: Point = {x:0, y:0};
 
     // Extra selection highlighting settings
     selectionColor = '#CC0000';
@@ -334,8 +279,7 @@ export class Layer {
 
             this.shapes.forEach(function (shape) {
                 if (gameManager.layerManager.getLayer() === undefined) return;
-                if (w2lx(shape.x) > state.width || w2ly(shape.y) > state.height ||
-                    w2lx(shape.x + shape.w) < 0 || w2ly(shape.y + shape.h) < 0) return;
+                if (!shape.visibleInCanvas(state.canvas)) return;
                 if (state.name === 'fow' && shape.visionObstruction && gameManager.layerManager.getLayer()!.name !== state.name) return;
                 shape.draw(ctx);
             });
@@ -365,21 +309,7 @@ export class Layer {
     }
 
     getMouse(e: MouseEvent): Point {
-        let element = this.canvas, offsetX = 0, offsetY = 0, mx, my;
-
-        // todo check if we need these offsets.
-        // Compute the total offset
-        if (element.offsetParent !== undefined) {
-            do {
-                offsetX += element.offsetLeft;
-                offsetY += element.offsetTop;
-            } while ((element = element.offsetParent));
-        }
-
-        mx = e.pageX - offsetX;
-        my = e.pageY - offsetY;
-
-        return {x: mx, y: my};
+        return {x: e.pageX, y: e.pageY};
     };
 
     moveShapeOrder(shape: Shape, destinationIndex: number, sync: boolean): void {
@@ -393,264 +323,6 @@ export class Layer {
 
     onShapeMove(shape?: Shape): void {
         this.invalidate(false);
-    }
-    onMouseDown(e: MouseEvent): void {
-        const mouse = this.getMouse(e);
-        const mx = mouse.x;
-        const my = mouse.y;
-
-        if (gameManager.tools.getIndexKey(gameManager.selectedTool) === 'select') {
-            let hit = false;
-            // the selectionStack allows for lowwer positioned objects that are selected to have precedence during overlap.
-            let selectionStack;
-            if (!this.selection.length)
-                selectionStack = this.shapes;
-            else
-                selectionStack = this.shapes.concat(this.selection);
-            for (let i = selectionStack.length - 1; i >= 0; i--) {
-                const shape = selectionStack[i];
-                const corn = shape.getCorner(mx, my);
-                if (corn !== undefined) {
-                    if (!shape.ownedBy()) continue;
-                    this.selection = [shape];
-                    shape.onSelection();
-                    this.resizing = true;
-                    this.resizedir = corn;
-                    this.invalidate(true);
-                    hit = true;
-                    break;
-                } else if (shape.contains(mx, my, true)) {
-                    if (!shape.ownedBy()) continue;
-                    const sel = shape;
-                    const z = gameManager.layerManager.zoomFactor;
-                    if (this.selection.indexOf(sel) === -1) {
-                        this.selection = [sel];
-                        sel.onSelection();
-                    }
-                    this.dragging = true;
-                    this.dragoffx = mx - sel.x * z;
-                    this.dragoffy = my - sel.y * z;
-                    this.dragorig = {x: sel.x; y: sel.y};
-                    this.invalidate(true);
-                    hit = true;
-                    break;
-                }
-            }
-
-            if (!hit) {
-                this.selection.forEach(function (sel) {
-                    sel.onSelectionLoss();
-                });
-                this.selection = [];
-                this.selecting = true;
-                this.selectionStartPoint = l2w(this.getMouse(e));
-                this.selectionHelper = new Rect(this.selectionStartPoint.x, this.selectionStartPoint.y, 0, 0, "rgba(0,0,0,0)", "black");
-                this.selectionHelper.owners.push(gameManager.username);
-                this.addShape(this.selectionHelper, false, false);
-                this.invalidate(true);
-            }
-        } else if (gameManager.tools.getIndexKey(gameManager.selectedTool) === 'pan') {
-            this.panning = true;
-            this.dragoffx = mx;
-            this.dragoffy = my;
-        }
-    }
-    onMouseMove(e: MouseEvent): void {
-        const mouse = this.getMouse(e);
-        const z = gameManager.layerManager.zoomFactor;
-        if (this.selecting) {
-            if (this.selectionStartPoint === null || this.selectionHelper === null) return;
-            // Currently draw on active this
-            const endPoint = l2w(this.getMouse(e));
-
-            this.selectionHelper.w = Math.abs(endPoint.x - this.selectionStartPoint.x);
-            this.selectionHelper.h = Math.abs(endPoint.y - this.selectionStartPoint.y);
-            this.selectionHelper.x = Math.min(this.selectionStartPoint.x, endPoint.x);
-            this.selectionHelper.y = Math.min(this.selectionStartPoint.y, endPoint.y);
-            this.invalidate(true);
-        } else if (this.panning) {
-            gameManager.layerManager.panX += Math.round((mouse.x - this.dragoffx) / z);
-            gameManager.layerManager.panY += Math.round((mouse.y - this.dragoffy) / z);
-            this.dragoffx = mouse.x;
-            this.dragoffy = mouse.y;
-            gameManager.layerManager.invalidate();
-        } else if (this.selection.length) {
-            const ogX = this.selection[this.selection.length - 1].x * z;
-            const ogY = this.selection[this.selection.length - 1].y * z;
-            this.selection.forEach((sel) => {
-                if (!(sel instanceof Rect)) return; // TODO
-                const dx = mouse.x - (ogX + this.dragoffx);
-                const dy = mouse.y - (ogY + this.dragoffy);
-                if (this.dragging) {
-                    sel.x += dx / z;
-                    sel.y += dy / z;
-                    if (this.name !== 'fow') {
-                        // We need to use the above updated values for the bounding box check
-                        // First check if the bounding boxes overlap to stop close / precise movement
-                        let blocked = false;
-                        const bbox = sel.getBoundingBox();
-                        const blockers = gameManager.movementblockers.filter(
-                            mb => mb !== sel.uuid && gameManager.layerManager.UUIDMap.has(mb) && gameManager.layerManager.UUIDMap.get(mb)!.getBoundingBox().intersectsWith(bbox));
-                        if (blockers.length > 0) {
-                            blocked = true;
-                        } else {
-                            // Draw a line from start to end position and see for any intersect
-                            // This stops sudden leaps over walls! cheeky buggers
-                            const line = {start: {x: ogX / z, y: ogY / z}, end: {x: sel.x, y: sel.y}};
-                            blocked = gameManager.movementblockers.some(
-                                mb => {
-                                    if (!gameManager.layerManager.UUIDMap.has(mb)) return false;
-                                    const inter = gameManager.layerManager.UUIDMap.get(mb)!.getBoundingBox().getIntersectWithLine(line);
-                                    return mb !== sel.uuid && inter.intersect !== null && inter.distance > 0;
-                                }
-                            );
-                        }
-                        if (blocked) {
-                            sel.x -= dx / z;
-                            sel.y -= dy / z;
-                            return;
-                        }
-                    }
-                    if (sel !== this.selectionHelper) {
-                        socket.emit("shapeMove", {shape: sel.asDict(), temporary: true});
-                    }
-                    this.invalidate(false);
-                } else if (this.resizing) {
-                    if (this.resizedir === 'nw') {
-                        sel.w = w2lx(sel.x) + sel.w * z - mouse.x;
-                        sel.h = w2ly(sel.y) + sel.h * z - mouse.y;
-                        sel.x = l2wx(mouse.x);
-                        sel.y = l2wy(mouse.y);
-                    } else if (this.resizedir === 'ne') {
-                        sel.w = mouse.x - w2lx(sel.x);
-                        sel.h = w2ly(sel.y) + sel.h * z - mouse.y;
-                        sel.y = l2wy(mouse.y);
-                    } else if (this.resizedir === 'se') {
-                        sel.w = mouse.x - w2lx(sel.x);
-                        sel.h = mouse.y - w2ly(sel.y);
-                    } else if (this.resizedir === 'sw') {
-                        sel.w = w2lx(sel.x) + sel.w * z - mouse.x;
-                        sel.h = mouse.y - w2ly(sel.y);
-                        sel.x = l2wx(mouse.x);
-                    }
-                    sel.w /= z;
-                    sel.h /= z;
-                    if (sel !== this.selectionHelper) {
-                        socket.emit("shapeMove", {shape: sel.asDict(), temporary: true});
-                    }
-                    this.invalidate(false);
-                } else if (sel) {
-                    if (sel.inCorner(mouse.x, mouse.y, "nw")) {
-                        document.body.style.cursor = "nw-resize";
-                    } else if (sel.inCorner(mouse.x, mouse.y, "ne")) {
-                        document.body.style.cursor = "ne-resize";
-                    } else if (sel.inCorner(mouse.x, mouse.y, "se")) {
-                        document.body.style.cursor = "se-resize";
-                    } else if (sel.inCorner(mouse.x, mouse.y, "sw")) {
-                        document.body.style.cursor = "sw-resize";
-                    } else {
-                        document.body.style.cursor = "default";
-                    }
-                }
-            });
-        } else {
-            document.body.style.cursor = "default";
-        }
-    }
-    onMouseUp(e: MouseEvent): void {
-        if (this.selecting) {
-            if (this.selectionStartPoint === null || this.selectionHelper === null) return;
-
-            this.shapes.forEach((shape) => {
-                if (shape === this.selectionHelper) return;
-                const bbox = shape.getBoundingBox();
-                if (!shape.ownedBy()) return;
-                if (this.selectionHelper!.x <= bbox.x + bbox.w &&
-                    this.selectionHelper!.x + this.selectionHelper!.w >= bbox.x &&
-                    this.selectionHelper!.y <= bbox.y + bbox.h &&
-                    this.selectionHelper!.y + this.selectionHelper!.h >= bbox.y) {
-                    this.selection.push(shape);
-                }
-            });
-
-            // Push the selection helper as the last element of the selection
-            // This makes sure that it will be the first one to be hit in the hit detection onMouseDown
-            if (this.selection.length > 0)
-                this.selection.push(this.selectionHelper);
-
-            this.removeShape(this.selectionHelper, false, false);
-            this.selectionStartPoint = null;
-            this.invalidate(true);
-        } else if (this.panning) {
-            socket.emit("set clientOptions", {
-                panX: gameManager.layerManager.panX,
-                panY: gameManager.layerManager.panY
-            });
-        } else if (this.selection.length) {
-            this.selection.forEach((sel) => {
-                if (!(sel instanceof Rect)) return; // TODO
-                if (this.dragging) {
-                    if (gameManager.layerManager.useGrid && !e.altKey) {
-                        const gs = gameManager.layerManager.gridSize;
-                        const mouse = {x: sel.x + sel.w / 2, y: sel.y + sel.h / 2};
-                        const mx = mouse.x;
-                        const my = mouse.y;
-                        if ((sel.w / gs) % 2 === 0) {
-                            sel.x = Math.round(mx / gs) * gs - sel.w / 2;
-                        } else {
-                            sel.x = (Math.round((mx + (gs / 2)) / gs) - (1 / 2)) * gs - sel.w / 2;
-                        }
-                        if ((sel.h / gs) % 2 === 0) {
-                            sel.y = Math.round(my / gs) * gs - sel.h / 2;
-                        } else {
-                            sel.y = (Math.round((my + (gs / 2)) / gs) - (1 / 2)) * gs - sel.h / 2;
-                        }
-                    }
-                    if (this.dragorig.x !== sel.x || this.dragorig.y !== sel.y) {
-                        if (sel !== this.selectionHelper) {
-                            socket.emit("shapeMove", {shape: sel.asDict(), temporary: false});
-                        }
-                        this.invalidate(false);
-                    }
-                }
-                if (this.resizing) {
-                    if (sel.w < 0) {
-                        sel.x += sel.w;
-                        sel.w = Math.abs(sel.w);
-                    }
-                    if (sel.h < 0) {
-                        sel.y += sel.h;
-                        sel.h = Math.abs(sel.h);
-                    }
-                    if (gameManager.layerManager.useGrid && !e.altKey) {
-                        const gs = gameManager.layerManager.gridSize;
-                        sel.x = Math.round(sel.x / gs) * gs;
-                        sel.y = Math.round(sel.y / gs) * gs;
-                        sel.w = Math.max(Math.round(sel.w / gs) * gs, gs);
-                        sel.h = Math.max(Math.round(sel.h / gs) * gs, gs);
-                    }
-                    if (sel !== this.selectionHelper) {
-                        socket.emit("shapeMove", {shape: sel.asDict(), temporary: false});
-                    }
-                    this.invalidate(false);
-                }
-            });
-        }
-        this.dragging = false;
-        this.resizing = false;
-        this.panning = false;
-        this.selecting = false;
-    }
-    onContextMenu(e: MouseEvent): void {
-        const mouse = this.getMouse(e);
-        const mx = mouse.x;
-        const my = mouse.y;
-        let hit = false;
-        this.shapes.forEach(function (shape) {
-            if (!hit && shape.contains(mx, my, true)) {
-                shape.showContextMenu(mouse);
-            }
-        });
     }
 }
 
@@ -745,9 +417,10 @@ export class FOWLayer extends Layer {
                 // Cast rays in every degree
                 for (let angle = 0; angle < 2 * Math.PI; angle += (1 / 180) * Math.PI) {
                     // Check hit with obstruction
-                    let hit = {intersect: null, distance: Infinity};
-                    let shape_hit = null;
-                    local_lightblockers.forEach(function (lb_bb) {
+                    let hit: {intersect: Point|null, distance:number} = {intersect: null, distance: Infinity};
+                    let shape_hit: null|BoundingRect = null;
+                    for (let i=0; i<local_lightblockers.length; i++) {
+                        const lb_bb = local_lightblockers[i];
                         const result = lb_bb.getIntersectWithLine({
                             start: center,
                             end: {
@@ -759,7 +432,7 @@ export class FOWLayer extends Layer {
                             hit = result;
                             shape_hit = lb_bb;
                         }
-                    });
+                    }
                     // If we have no hit, check if we come from a previous hit so that we can go back to the arc
                     if (hit.intersect === null) {
                         if (arc_start === -1) {
@@ -776,8 +449,12 @@ export class FOWLayer extends Layer {
                         ctx.arc(lcenter.x, lcenter.y, w2lr(aura.value), arc_start, angle);
                         arc_start = -1;
                     }
-                    let extraX = (shape_hit.w / 4) * Math.cos(angle);
-                    let extraY = (shape_hit.h / 4) * Math.sin(angle);
+                    let extraX = 0;
+                    let extraY = 0;
+                    if (shape_hit !== null) {
+                        extraX = (shape_hit.w / 4) * Math.cos(angle);
+                        extraY = (shape_hit.h / 4) * Math.sin(angle);
+                    }
                     // if (!shape_hit.contains(hit.intersect.x + extraX, hit.intersect.y + extraY, false)) {
                     //     extraX = 0;
                     //     extraY = 0;

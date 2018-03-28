@@ -86,7 +86,7 @@ export class LayerManager {
         const lm = this;
         this.layers.forEach(function (layer) {
             if (!layer.selectable) return;
-            if (found) layer.ctx.globalAlpha = 0.3;
+            if (found && layer.name !== 'fow') layer.ctx.globalAlpha = 0.3;
             else layer.ctx.globalAlpha = 1.0;
 
             if (name === layer.name) {

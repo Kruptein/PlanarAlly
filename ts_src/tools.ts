@@ -30,6 +30,10 @@ export class SelectTool extends Tool {
     dragorig: Point = {x:0, y:0};
     selectionHelper: Rect = new Rect(-1000, -1000, 0, 0);
     selectionStartPoint: Point = {x: -1000, y: -1000};
+    constructor(){
+        super();
+        this.selectionHelper.owners.push(gameManager.username);
+    }
     onMouseDown(e: MouseEvent): void {
         const mx = e.pageX;
         const my = e.pageY;

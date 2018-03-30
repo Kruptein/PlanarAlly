@@ -1,8 +1,8 @@
-import { BaseRect } from "./baserect";
+import BaseRect from "./baserect";
 import gameManager from "../planarally";
 import { w2lx, w2ly } from "../units";
 
-export class Asset extends BaseRect {
+export default class Asset extends BaseRect {
     img: HTMLImageElement;
     src: string = '';
     constructor(img: HTMLImageElement, x: number, y: number, w: number, h: number, uuid?: string) {
@@ -15,5 +15,14 @@ export class Asset extends BaseRect {
         super.draw(ctx);
         const z = gameManager.layerManager.zoomFactor;
         ctx.drawImage(this.img, w2lx(this.x), w2ly(this.y), this.w * z, this.h * z);
+    }
+    getInitiativeRepr() {
+        return {
+            uuid: this.uuid,
+            visible: !gameManager.IS_DM,
+            group: false,
+            src: "",
+            owners: this.owners
+        }
     }
 }

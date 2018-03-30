@@ -1,8 +1,8 @@
-import { BaseRect } from "./baserect";
+import BaseRect from "./baserect";
 import gameManager from "../planarally";
 import { w2l } from "../units";
 
-export class Rect extends BaseRect {
+export default class Rect extends BaseRect {
     border: string;
     constructor(x: number, y: number, w: number, h: number, fill?: string, border?: string, uuid?: string) {
         super(x, y, w, h, uuid);

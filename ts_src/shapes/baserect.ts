@@ -1,9 +1,9 @@
-import { BoundingRect } from "./boundingrect";
+import BoundingRect from "./boundingrect";
 import { l2wx, l2wy, w2lx, w2ly } from "../units";
-import { Shape } from "./shape";
+import Shape from "./shape";
 import { Point } from "../utils";
 
-export abstract class BaseRect extends Shape {
+export default abstract class BaseRect extends Shape {
     x: number;
     y: number;
     w: number;

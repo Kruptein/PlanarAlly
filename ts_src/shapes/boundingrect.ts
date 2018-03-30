@@ -2,7 +2,7 @@ import { getLinesIntersectPoint, getPointDistance } from "../geom";
 import { l2wx, l2wy } from "../units";
 import { Point } from "../utils";
 
-export class BoundingRect {
+export default class BoundingRect {
     type = "boundrect";
     x: number;
     y: number;

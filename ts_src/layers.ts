@@ -3,10 +3,11 @@ import {Point} from "./utils";
 import gameManager from "./planarally";
 import socket from "./socket";
 import { LocationOptions, ServerShape } from "./api_types";
-import { Shape, createShapeFromDict } from "./shapes/shape";
-import { BaseRect } from "./shapes/baserect";
-import { Circle } from "./shapes/circle";
-import { BoundingRect } from "./shapes/boundingrect";
+import Shape from "./shapes/shape";
+import BaseRect from "./shapes/baserect";
+import Circle from "./shapes/circle";
+import BoundingRect from "./shapes/boundingrect";
+import { createShapeFromDict } from "./shapes/utils";
 
 export class LayerManager {
     layers: Layer[] = [];

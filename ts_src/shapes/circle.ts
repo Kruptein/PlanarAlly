@@ -1,9 +1,9 @@
-import { Shape } from "./shape";
-import { BoundingRect } from "./boundingrect";
+import Shape from "./shape";
+import BoundingRect from "./boundingrect";
 import { w2l, w2lx, w2ly } from "../units";
 import { Point } from "../utils";
 
-export class Circle extends Shape {
+export default class Circle extends Shape {
     x: number;
     y: number;
     r: number;

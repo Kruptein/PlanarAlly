@@ -1,9 +1,9 @@
-import { Shape } from "./shape";
-import { BoundingRect } from "./boundingrect";
+import Shape from "./shape";
+import BoundingRect from "./boundingrect";
 import { w2lx, w2ly } from "../units";
 import { Point } from "../utils";
 
-export class Line extends Shape {
+export default class Line extends Shape {
     x1: number;
     y1: number;
     x2: number;

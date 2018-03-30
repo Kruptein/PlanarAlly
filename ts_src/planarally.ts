@@ -1,11 +1,11 @@
 import socket from './socket'
 import { l2w } from "./units";
-import { DrawTool, RulerTool, MapTool, FOWTool, InitiativeTracker, Tool } from "./tools";
 import { LayerManager, Layer, GridLayer, FOWLayer } from "./layers";
 import { ClientOptions, BoardInfo, ServerShape, InitiativeData } from './api_types';
 import { OrderedMap } from './utils';
-import { Asset } from './shapes/asset';
-import { createShapeFromDict } from './shapes/shape';
+import Asset from './shapes/asset';
+import {createShapeFromDict} from './shapes/utils';
+import { DrawTool, RulerTool, MapTool, FOWTool, InitiativeTracker, Tool } from "./tools";
 
 class GameManager {
     IS_DM = false;

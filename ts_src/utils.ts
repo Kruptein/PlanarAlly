@@ -1,4 +1,4 @@
-import { Shape } from "./shapes";
+import { Shape } from "./shapes/shape";
 
 export interface Point {
     x: number;

@@ -1,9 +1,12 @@
 import {getUnitDistance, l2w, l2wx, l2wy, w2l, w2lr, w2lx, w2ly, w2lz} from "./units";
-import {Shape, Circle, createShapeFromDict, Rect, BoundingRect, BaseRect} from "./shapes";
 import {Point} from "./utils";
 import gameManager from "./planarally";
 import socket from "./socket";
 import { LocationOptions, ServerShape } from "./api_types";
+import { Shape, createShapeFromDict } from "./shapes/shape";
+import { BaseRect } from "./shapes/baserect";
+import { Circle } from "./shapes/circle";
+import { BoundingRect } from "./shapes/boundingrect";
 
 export class LayerManager {
     layers: Layer[] = [];

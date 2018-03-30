@@ -1,9 +1,12 @@
 import {getUnitDistance, l2w, l2wx, l2wy, w2l, w2lr, w2lx, w2ly, w2lz} from "./units";
-import {Shape, Line, Rect, Text, BaseRect} from "./shapes";
 import gameManager from "./planarally";
 import socket from "./socket";
 import { Point } from "./utils";
 import { InitiativeData } from "./api_types";
+import { Rect } from "./shapes/rect";
+import { BaseRect } from "./shapes/baserect";
+import { Line } from "./shapes/line";
+import { Text } from "./shapes/text";
 
 export abstract class Tool {
     detailDiv?: JQuery<HTMLElement>;

@@ -13,8 +13,7 @@ jQuery.event.special.touchstart = {
 
 // **** WebSocket ****
 
-const protocol = document.domain === 'localhost' ? "http://" : "https://";
-const socket = io.connect(protocol + document.domain + ":" + location.port + "/planarally");
+const socket = io.connect(location.protocol + "//" + location.hos + "/planarally");
 let board_initialised = false;
 socket.on("connect", function () {
     console.log("Connected");

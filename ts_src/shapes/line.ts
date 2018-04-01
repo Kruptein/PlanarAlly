@@ -1,7 +1,7 @@
 import Shape from "./shape";
 import BoundingRect from "./boundingrect";
-import { w2lx, w2ly } from "../units";
-import { Point } from "../utils";
+import { g2lx, g2ly } from "../units";
+import { GlobalPoint } from "../geom";
 
 export default class Line extends Shape {
     x1: number;
@@ -27,19 +27,19 @@ export default class Line extends Shape {
     draw(ctx: CanvasRenderingContext2D) {
         super.draw(ctx);
         ctx.beginPath();
-        ctx.moveTo(w2lx(this.x1), w2ly(this.y1));
-        ctx.lineTo(w2lx(this.x2), w2ly(this.y2));
+        ctx.moveTo(g2lx(this.x1), g2ly(this.y1));
+        ctx.lineTo(g2lx(this.x2), g2ly(this.y2));
         ctx.strokeStyle = 'rgba(255,0,0, 0.5)';
         ctx.lineWidth = 3;
         ctx.stroke();
     }
-    contains(x: number, y: number, inWorldCoord: boolean): boolean {
+    contains(point: GlobalPoint): boolean {
         return false; // TODO
     }
 
-    center(): Point;
-    center(centerPoint: Point): void;
-    center(centerPoint?: Point): Point | void { } // TODO
-    getCorner(x: number, y:number): string|undefined { return "" }; // TODO
+    center(): GlobalPoint;
+    center(centerPoint: GlobalPoint): void;
+    center(centerPoint?: GlobalPoint): GlobalPoint | void { } // TODO
+    getCorner(point: GlobalPoint): string|undefined { return "" }; // TODO
     visibleInCanvas(canvas: HTMLCanvasElement): boolean { return true; } // TODO
 }

@@ -1,67 +1,60 @@
 import BoundingRect from "./boundingrect";
-import { l2wx, l2wy, w2lx, w2ly } from "../units";
 import Shape from "./shape";
-import { Point } from "../utils";
+import { GlobalPoint, Vector } from "../geom";
+import { g2lx, g2ly } from "../units";
 
 export default abstract class BaseRect extends Shape {
-    x: number;
-    y: number;
     w: number;
     h: number;
-    constructor(x: number, y: number, w: number, h: number, uuid?: string) {
+    constructor(topleft: GlobalPoint, w: number, h: number, uuid?: string) {
         super(uuid);
         this.type = "baserect";
-        this.x = x;
-        this.y = y;
+        this.refPoint = topleft;
         this.w = w;
         this.h = h;
     }
     getBoundingBox() {
-        return new BoundingRect(this.x, this.y, this.w, this.h);
+        return new BoundingRect(this.refPoint, this.w, this.h);
     }
-    contains(x: number, y: number, inWorldCoord: boolean): boolean {
-        if (inWorldCoord) {
-            x = l2wx(x);
-            y = l2wy(y);
-        }
-        return this.x <= x && (this.x + this.w) >= x &&
-            this.y <= y && (this.y + this.h) >= y;
+    contains(point: GlobalPoint): boolean {
+        return this.refPoint.x <= point.x && (this.refPoint.x + this.w) >= point.x &&
+            this.refPoint.y <= point.y && (this.refPoint.y + this.h) >= point.y;
     }
-    inCorner(x: number, y: number, corner: string) {
+    inCorner(point: GlobalPoint, corner: string) {
         switch (corner) {
             case 'ne':
-                return w2lx(this.x + this.w - 3) <= x && x <= w2lx(this.x + this.w + 3) && w2ly(this.y - 3) <= y && y <= w2ly(this.y + 3);
+                return g2lx(this.refPoint.x + this.w - 3) <= point.x && point.x <= g2lx(this.refPoint.x + this.w + 3) && g2ly(this.refPoint.y - 3) <= point.y && point.y <= g2ly(this.refPoint.y + 3);
             case 'nw':
-                return w2lx(this.x - 3) <= x && x <= w2lx(this.x + 3) && w2ly(this.y - 3) <= y && y <= w2ly(this.y + 3);
+                return g2lx(this.refPoint.x - 3) <= point.x && point.x <= g2lx(this.refPoint.x + 3) && g2ly(this.refPoint.y - 3) <= point.y && point.y <= g2ly(this.refPoint.y + 3);
             case 'sw':
-                return w2lx(this.x - 3) <= x && x <= w2lx(this.x + 3) && w2ly(this.y + this.h - 3) <= y && y <= w2ly(this.y + this.h + 3);
+                return g2lx(this.refPoint.x - 3) <= point.x && point.x <= g2lx(this.refPoint.x + 3) && g2ly(this.refPoint.y + this.h - 3) <= point.y && point.y <= g2ly(this.refPoint.y + this.h + 3);
             case 'se':
-                return w2lx(this.x + this.w - 3) <= x && x <= w2lx(this.x + this.w + 3) && w2ly(this.y + this.h - 3) <= y && y <= w2ly(this.y + this.h + 3);
+                return g2lx(this.refPoint.x + this.w - 3) <= point.x && point.x <= g2lx(this.refPoint.x + this.w + 3) && g2ly(this.refPoint.y + this.h - 3) <= point.y && point.y <= g2ly(this.refPoint.y + this.h + 3);
             default:
                 return false;
         }
     }
-    getCorner(x: number, y: number): string|undefined {
-        if (this.inCorner(x, y, "ne"))
+    getCorner(point: GlobalPoint): string|undefined {
+        if (this.inCorner(point, "ne"))
             return "ne";
-        else if (this.inCorner(x, y, "nw"))
+        else if (this.inCorner(point, "nw"))
             return "nw";
-        else if (this.inCorner(x, y, "se"))
+        else if (this.inCorner(point, "se"))
             return "se";
-        else if (this.inCorner(x, y, "sw"))
+        else if (this.inCorner(point, "sw"))
             return "sw";
     }
-    center(): Point;
-    center(centerPoint: Point): void;
-    center(centerPoint?: Point): Point | void {
+    center(): GlobalPoint;
+    center(centerPoint: GlobalPoint): void;
+    center(centerPoint?: GlobalPoint): GlobalPoint | void {
         if (centerPoint === undefined)
-            return { x: this.x + this.w / 2, y: this.y + this.h / 2 };
-        this.x = centerPoint.x - this.w / 2;
-        this.y = centerPoint.y - this.h / 2;
+            return this.refPoint.add(new Vector<GlobalPoint>({x: this.w/2, y: this.w/2}));
+        this.refPoint.x = centerPoint.x - this.w / 2;
+        this.refPoint.y = centerPoint.y - this.h / 2;
     }
 
     visibleInCanvas(canvas: HTMLCanvasElement): boolean {
-        return !(w2lx(this.x) > canvas.width || w2ly(this.y) > canvas.height ||
-                    w2lx(this.x + this.w) < 0 || w2ly(this.y + this.h) < 0);
+        return !(g2lx(this.refPoint.x) > canvas.width || g2ly(this.refPoint.y) > canvas.height ||
+                    g2lx(this.refPoint.x + this.w) < 0 || g2ly(this.refPoint.y + this.h) < 0);
     }
 }

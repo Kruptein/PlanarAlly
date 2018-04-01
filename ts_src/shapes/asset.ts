@@ -1,20 +1,20 @@
 import BaseRect from "./baserect";
 import gameManager from "../planarally";
-import { w2lx, w2ly } from "../units";
+import { g2lx, g2ly, g2lz } from "../units";
+import { GlobalPoint } from "../geom";
 
 export default class Asset extends BaseRect {
     img: HTMLImageElement;
     src: string = '';
-    constructor(img: HTMLImageElement, x: number, y: number, w: number, h: number, uuid?: string) {
-        super(x, y, w, h);
+    constructor(img: HTMLImageElement, topleft: GlobalPoint, w: number, h: number, uuid?: string) {
+        super(topleft, w, h);
         if (uuid !== undefined) this.uuid = uuid;
         this.type = "asset";
         this.img = img;
     }
     draw(ctx: CanvasRenderingContext2D) {
         super.draw(ctx);
-        const z = gameManager.layerManager.zoomFactor;
-        ctx.drawImage(this.img, w2lx(this.x), w2ly(this.y), this.w * z, this.h * z);
+        ctx.drawImage(this.img, g2lx(this.refPoint.x), g2ly(this.refPoint.y), g2lz(this.w), g2lz(this.h));
     }
     getInitiativeRepr() {
         return {

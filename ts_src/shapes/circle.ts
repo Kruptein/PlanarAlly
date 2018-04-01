@@ -1,7 +1,7 @@
 import Shape from "./shape";
 import BoundingRect from "./boundingrect";
-import { w2l, w2lx, w2ly } from "../units";
-import { Point } from "../utils";
+import { g2l, g2lx, g2ly } from "../units";
+import { GlobalPoint } from "../utils";
 
 export default class Circle extends Shape {
     x: number;
@@ -24,7 +24,7 @@ export default class Circle extends Shape {
         super.draw(ctx);
         ctx.beginPath();
         ctx.fillStyle = this.fill;
-        const loc = w2l({ x: this.x, y: this.y });
+        const loc = g2l({ x: this.x, y: this.y });
         ctx.arc(loc.x, loc.y, this.r, 0, 2 * Math.PI);
         ctx.fill();
         if (this.border !== "rgba(0, 0, 0, 0)") {
@@ -34,8 +34,8 @@ export default class Circle extends Shape {
             ctx.stroke();
         }
     }
-    contains(x: number, y: number): boolean {
-        return (x - w2lx(this.x)) ** 2 + (y - w2ly(this.y)) ** 2 < this.r ** 2;
+    contains(point: GlobalPoint): boolean {
+        return (x - g2lx(this.x)) ** 2 + (y - g2ly(this.y)) ** 2 < this.r ** 2;
     }
     inCorner(x: number, y: number, corner: string) {
         return false; //TODO
@@ -50,9 +50,9 @@ export default class Circle extends Shape {
         else if (this.inCorner(x, y, "sw"))
             return "sw";
     }
-    center(): Point;
-    center(centerPoint: Point): void;
-    center(centerPoint?: Point): Point | void {
+    center(): GlobalPoint;
+    center(centerPoint: GlobalPoint): void;
+    center(centerPoint?: GlobalPoint): GlobalPoint | void {
         if (centerPoint === undefined)
             return { x: this.x, y: this.y };
         this.x = centerPoint.x;

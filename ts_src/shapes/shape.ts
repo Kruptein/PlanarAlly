@@ -1,24 +1,41 @@
-import { uuidv4, Point } from "../utils";
+import { uuidv4 } from "../utils";
 import BoundingRect from "./boundingrect";
 import gameManager from "../planarally";
 import socket from "../socket";
-import { w2l, w2lr } from "../units";
+import { g2l, g2lr } from "../units";
 import { populateEditAssetDialog } from "./editdialog";
+import { GlobalPoint, LocalPoint } from "../geom";
 
 const $menu = $('#contextMenu');
 
 export default abstract class Shape {
+    // Used to create class instance from server shape data
     type: string = "shape";
+    // The unique ID of this shape
     uuid: string;
-    globalCompositeOperation: string = "source-over";
+    // The layer the shape is currently on
+    layer!: string;
+
+    // A reference point regarding that specific shape's structure
+    refPoint: GlobalPoint;
+    
+    // Fill colour of the shape
     fill: string = '#000';
-    layer: string = "";
+    //The optional name associated with the shape
     name = 'Unknown shape';
+
+    // Associated trackers/auras/owners
     trackers: Tracker[] = [];
     auras: Aura[] = [];
     owners: string[] = [];
+
+    // Block light sources
     visionObstruction = false;
+    // Prevent shapes from overlapping with this shape
     movementObstruction = false;
+
+    // Draw modus to use
+    globalCompositeOperation: string = "source-over";
 
     constructor(uuid?: string) {
         this.uuid = uuid || uuidv4();
@@ -26,11 +43,12 @@ export default abstract class Shape {
 
     abstract getBoundingBox(): BoundingRect;
 
-    abstract contains(x: number, y: number, inWorldCoord: boolean): boolean;
+    // If inWorldCoord is 
+    abstract contains(point: GlobalPoint): boolean;
 
-    abstract center(): Point;
-    abstract center(centerPoint: Point): void;
-    abstract getCorner(x: number, y: number): string | undefined;
+    abstract center(): GlobalPoint;
+    abstract center(centerPoint: GlobalPoint): void;
+    abstract getCorner(point: GlobalPoint): string | undefined;
     abstract visibleInCanvas(canvas: HTMLCanvasElement): boolean;
 
     checkLightSources() {
@@ -146,21 +164,21 @@ export default abstract class Shape {
             ctx.fillStyle = aura.colour;
             if (gameManager.layerManager.hasLayer("fow") && gameManager.layerManager.getLayer("fow")!.ctx === ctx)
                 ctx.fillStyle = "black";
-            const loc = w2l(self.center());
-            ctx.arc(loc.x, loc.y, w2lr(aura.value), 0, 2 * Math.PI);
+            const loc = g2l(self.center());
+            ctx.arc(loc.x, loc.y, g2lr(aura.value), 0, 2 * Math.PI);
             ctx.fill();
             if (aura.dim) {
                 const tc = tinycolor(aura.colour);
                 ctx.beginPath();
                 ctx.fillStyle = tc.setAlpha(tc.getAlpha() / 2).toRgbString();
-                const loc = w2l(self.center());
-                ctx.arc(loc.x, loc.y, w2lr(aura.dim), 0, 2 * Math.PI);
+                const loc = g2l(self.center());
+                ctx.arc(loc.x, loc.y, g2lr(aura.dim), 0, 2 * Math.PI);
                 ctx.fill();
             }
         });
     }
 
-    showContextMenu(mouse: Point) {
+    showContextMenu(mouse: LocalPoint) {
         if (gameManager.layerManager.getLayer() === undefined) return;
         const l = gameManager.layerManager.getLayer()!;
         l.selection = [this];

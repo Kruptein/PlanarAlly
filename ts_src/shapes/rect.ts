@@ -1,6 +1,6 @@
 import BaseRect from "./baserect";
 import gameManager from "../planarally";
-import { w2l } from "../units";
+import { g2l } from "../units";
 
 export default class Rect extends BaseRect {
     border: string;
@@ -14,7 +14,7 @@ export default class Rect extends BaseRect {
         super.draw(ctx);
         ctx.fillStyle = this.fill;
         const z = gameManager.layerManager.zoomFactor;
-        const loc = w2l({ x: this.x, y: this.y });
+        const loc = g2l({ x: this.x, y: this.y });
         ctx.fillRect(loc.x, loc.y, this.w * z, this.h * z);
         if (this.border !== "rgba(0, 0, 0, 0)") {
             ctx.strokeStyle = this.border;

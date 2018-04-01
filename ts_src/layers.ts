@@ -1,5 +1,5 @@
-import {getUnitDistance, l2w, l2wx, l2wy, w2l, w2lr, w2lx, w2ly, w2lz} from "./units";
-import {Point} from "./utils";
+import {getUnitDistance, l2g, g2l, g2lz, g2lr, g2lx, g2ly} from "./units";
+import {GlobalPoint} from "./geom";
 import gameManager from "./planarally";
 import socket from "./socket";
 import { LocationOptions, ServerShape } from "./api_types";
@@ -295,26 +295,23 @@ export class Layer {
                 const z = gameManager.layerManager.zoomFactor;
                 this.selection.forEach(function (sel) {
                     if (!(sel instanceof BaseRect)) return;
-                    ctx.strokeRect(w2lx(sel.x), w2ly(sel.y), sel.w * z, sel.h * z);
+                    // TODO: REFACTOR THIS TO Shape.drawSelection(ctx);
+                    ctx.strokeRect(g2lx(sel.refPoint.x), g2ly(sel.refPoint.y), sel.w * z, sel.h * z);
 
                     // topright
-                    ctx.fillRect(w2lx(sel.x + sel.w - 3), w2ly(sel.y - 3), 6 * z, 6 * z);
+                    ctx.fillRect(g2lx(sel.refPoint.x + sel.w - 3), g2ly(sel.refPoint.y - 3), 6 * z, 6 * z);
                     // topleft
-                    ctx.fillRect(w2lx(sel.x - 3), w2ly(sel.y - 3), 6 * z, 6 * z);
+                    ctx.fillRect(g2lx(sel.refPoint.x - 3), g2ly(sel.refPoint.y - 3), 6 * z, 6 * z);
                     // botright
-                    ctx.fillRect(w2lx(sel.x + sel.w - 3), w2ly(sel.y + sel.h - 3), 6 * z, 6 * z);
+                    ctx.fillRect(g2lx(sel.refPoint.x + sel.w - 3), g2ly(sel.refPoint.y + sel.h - 3), 6 * z, 6 * z);
                     // botleft
-                    ctx.fillRect(w2lx(sel.x - 3), w2ly(sel.y + sel.h - 3), 6 * z, 6 * z)
+                    ctx.fillRect(g2lx(sel.refPoint.x - 3), g2ly(sel.refPoint.y + sel.h - 3), 6 * z, 6 * z)
                 });
             }
 
             this.valid = true;
         }
     }
-
-    getMouse(e: MouseEvent): Point {
-        return {x: e.pageX, y: e.pageY};
-    };
 
     moveShapeOrder(shape: Shape, destinationIndex: number, sync: boolean): void {
         const oldIdx = this.shapes.indexOf(shape);
@@ -377,8 +374,8 @@ export class FOWLayer extends Layer {
                 gameManager.layerManager.getLayer("tokens")!.shapes.forEach(function (sh) {
                     if (!sh.ownedBy()) return;
                     const bb = sh.getBoundingBox();
-                    const lcenter = w2l(sh.center());
-                    const alm = 0.8 * w2lz(bb.w);
+                    const lcenter = g2l(sh.center());
+                    const alm = 0.8 * g2lz(bb.w);
                     ctx.beginPath();
                     ctx.arc(lcenter.x, lcenter.y, alm, 0, 2 * Math.PI);
                     const gradient = ctx.createRadialGradient(lcenter.x, lcenter.y, alm / 2, lcenter.x, lcenter.y, alm);
@@ -399,7 +396,7 @@ export class FOWLayer extends Layer {
                 }
                 const aura_length = getUnitDistance(aura.value);
                 const center = sh.center();
-                const lcenter = w2l(center);
+                const lcenter = g2l(center);
                 const bbox = new Circle(center.x, center.y, aura_length).getBoundingBox();
 
                 // We first collect all lightblockers that are inside/cross our aura
@@ -421,7 +418,7 @@ export class FOWLayer extends Layer {
                 // Cast rays in every degree
                 for (let angle = 0; angle < 2 * Math.PI; angle += (1 / 180) * Math.PI) {
                     // Check hit with obstruction
-                    let hit: {intersect: Point|null, distance:number} = {intersect: null, distance: Infinity};
+                    let hit: {intersect: GlobalPoint|null, distance:number} = {intersect: null, distance: Infinity};
                     let shape_hit: null|BoundingRect = null;
                     for (let i=0; i<local_lightblockers.length; i++) {
                         const lb_bb = local_lightblockers[i];
@@ -441,16 +438,14 @@ export class FOWLayer extends Layer {
                     if (hit.intersect === null) {
                         if (arc_start === -1) {
                             arc_start = angle;
-                            ctx.lineTo(
-                                w2lx(center.x + aura_length * Math.cos(angle)),
-                                w2ly(center.y + aura_length * Math.sin(angle))
-                            );
+                            const dest = g2l(new GlobalPoint(center.x + aura_length * Math.cos(angle), center.y + aura_length * Math.sin(angle)));
+                            ctx.lineTo(dest.x, dest.y);
                         }
                         continue;
                     }
                     // If hit , first finish any ongoing arc, then move to the intersection point
                     if (arc_start !== -1) {
-                        ctx.arc(lcenter.x, lcenter.y, w2lr(aura.value), arc_start, angle);
+                        ctx.arc(lcenter.x, lcenter.y, g2lr(aura.value), arc_start, angle);
                         arc_start = -1;
                     }
                     let extraX = 0;
@@ -463,12 +458,13 @@ export class FOWLayer extends Layer {
                     //     extraX = 0;
                     //     extraY = 0;
                     // }
-                    ctx.lineTo(w2lx(hit.intersect.x + extraX), w2ly(hit.intersect.y + extraY));
+                    const dest = g2l(new GlobalPoint(hit.intersect.x + extraX, hit.intersect.y + extraY));
+                    ctx.lineTo(dest.x, dest.y);
                 }
                 if (arc_start !== -1)
-                    ctx.arc(lcenter.x, lcenter.y, w2lr(aura.value), arc_start, 2 * Math.PI);
+                    ctx.arc(lcenter.x, lcenter.y, g2lr(aura.value), arc_start, 2 * Math.PI);
 
-                const alm = w2lr(aura.value);
+                const alm = g2lr(aura.value);
                 const gradient = ctx.createRadialGradient(lcenter.x, lcenter.y, alm / 2, lcenter.x, lcenter.y, alm);
                 gradient.addColorStop(0, 'rgba(0, 0, 0, 1)');
                 gradient.addColorStop(1, 'rgba(0, 0, 0, 0)');

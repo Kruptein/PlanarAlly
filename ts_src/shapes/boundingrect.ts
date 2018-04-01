@@ -1,48 +1,35 @@
-import { getLinesIntersectPoint, getPointDistance } from "../geom";
-import { l2wx, l2wy } from "../units";
-import { Point } from "../utils";
+import { getLinesIntersectPoint, getPointDistance, GlobalPoint } from "../geom";
+import { l2gx, l2gy } from "../units";
 
 export default class BoundingRect {
     type = "boundrect";
-    x: number;
-    y: number;
+    refPoint: GlobalPoint;
     w: number;
     h: number;
 
-    constructor(x: number, y: number, w: number, h: number) {
-        this.x = x;
-        this.y = y;
+    constructor(topleft: GlobalPoint, w: number, h: number) {
+        this.refPoint = topleft;
         this.w = w;
         this.h = h;
     }
 
-    contains(x: number, y: number, inWorldCoord: boolean): boolean {
-        if (inWorldCoord) {
-            x = l2wx(x);
-            y = l2wy(y);
-        }
-        return this.x <= x && (this.x + this.w) >= x &&
-            this.y <= y && (this.y + this.h) >= y;
+    contains(point: GlobalPoint): boolean {
+        return this.refPoint.x <= point.x && (this.refPoint.x + this.w) >= point.x &&
+            this.refPoint.y <= point.y && (this.refPoint.y + this.h) >= point.y;
     }
 
     intersectsWith(other: BoundingRect): boolean {
-        return !(other.x >= this.x + this.w ||
-            other.x + other.w <= this.x ||
-            other.y >= this.y + this.h ||
-            other.y + other.h <= this.y);
+        return !(other.refPoint.x >= this.refPoint.x + this.w ||
+            other.refPoint.x + other.w <= this.refPoint.x ||
+            other.refPoint.y >= this.refPoint.y + this.h ||
+            other.refPoint.y + other.h <= this.refPoint.y);
     }
-    getIntersectWithLine(line: { start: Point; end: Point }) {
+    getIntersectWithLine(line: { start: GlobalPoint; end: GlobalPoint }) {
         const lines = [
-            getLinesIntersectPoint({ x: this.x, y: this.y }, { x: this.x + this.w, y: this.y }, line.start, line.end),
-            getLinesIntersectPoint({ x: this.x + this.w, y: this.y }, {
-                x: this.x + this.w,
-                y: this.y + this.h
-            }, line.start, line.end),
-            getLinesIntersectPoint({ x: this.x, y: this.y }, { x: this.x, y: this.y + this.h }, line.start, line.end),
-            getLinesIntersectPoint({ x: this.x, y: this.y + this.h }, {
-                x: this.x + this.w,
-                y: this.y + this.h
-            }, line.start, line.end)
+            getLinesIntersectPoint(new GlobalPoint(this.refPoint.x, this.refPoint.y), new GlobalPoint(this.refPoint.x + this.w, this.refPoint.y), line.start, line.end),
+            getLinesIntersectPoint(new GlobalPoint(this.refPoint.x + this.w, this.refPoint.y), new GlobalPoint(this.refPoint.x + this.w, this.refPoint.y + this.h), line.start, line.end),
+            getLinesIntersectPoint(new GlobalPoint(this.refPoint.x, this.refPoint.y), new GlobalPoint(this.refPoint.x, this.refPoint.y + this.h), line.start, line.end),
+            getLinesIntersectPoint(new GlobalPoint(this.refPoint.x, this.refPoint.y + this.h), new GlobalPoint(this.refPoint.x + this.w, this.refPoint.y + this.h), line.start, line.end)
         ];
         let min_d = Infinity;
         let min_i = null;

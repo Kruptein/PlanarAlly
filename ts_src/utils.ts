@@ -1,9 +1,9 @@
 import Shape from "./shapes/shape";
+import { LocalPoint } from "./geom";
 
-export interface Point {
-    x: number;
-    y: number;
-}
+export function getMouse(e: MouseEvent): LocalPoint {
+    return new LocalPoint(e.pageX, e.pageY);
+};
 
 
 export function alphSort(a: string, b: string) {

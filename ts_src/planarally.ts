@@ -1,11 +1,12 @@
 import socket from './socket'
-import { l2w } from "./units";
+import { l2g } from "./units";
 import { LayerManager, Layer, GridLayer, FOWLayer } from "./layers";
 import { ClientOptions, BoardInfo, ServerShape, InitiativeData } from './api_types';
 import { OrderedMap } from './utils';
 import Asset from './shapes/asset';
 import {createShapeFromDict} from './shapes/utils';
 import { DrawTool, RulerTool, MapTool, FOWTool, InitiativeTracker, Tool } from "./tools";
+import { LocalPoint } from './geom';
 
 class GameManager {
     IS_DM = false;
@@ -129,10 +130,7 @@ class GameManager {
                         }
                         const offset = jCanvas.offset()!;
 
-                        const loc = {
-                            x: ui.offset.left - offset.left,
-                            y: ui.offset.top - offset.top
-                        };
+                        const loc = new LocalPoint(ui.offset.left - offset.left, ui.offset.top - offset.top);
 
                         if (settings_menu.is(":visible") && loc.x < settings_menu.width()!)
                             return;
@@ -140,15 +138,15 @@ class GameManager {
                             return;
                         // width = ui.helper[0].width;
                         // height = ui.helper[0].height;
-                        const wloc = l2w(loc);
+                        const wloc = l2g(loc);
                         const img = <HTMLImageElement>ui.draggable[0].children[0];
                         const asset = new Asset(img, wloc.x, wloc.y, img.width, img.height);
                         asset.src = img.src;
 
                         if (gameManager.layerManager.useGrid) {
                             const gs = gameManager.layerManager.gridSize;
-                            asset.x = Math.round(asset.x / gs) * gs;
-                            asset.y = Math.round(asset.y / gs) * gs;
+                            asset.refPoint.x = Math.round(asset.refPoint.x / gs) * gs;
+                            asset.refPoint.y = Math.round(asset.refPoint.y / gs) * gs;
                             asset.w = Math.max(Math.round(asset.w / gs) * gs, gs);
                             asset.h = Math.max(Math.round(asset.h / gs) * gs, gs);
                         }

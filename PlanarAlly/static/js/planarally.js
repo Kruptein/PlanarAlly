@@ -165,7 +165,7 @@ socket.on("board init", function (room) {
                     const wloc = l2w(loc);
                     const img = ui.draggable[0].children[0];
                     const asset = new Asset(img, wloc.x, wloc.y, img.width, img.height);
-                    asset.src = img.src;
+                    asset.src = new URL(img.src).pathname; // The actual domain url could be different for the dm and the players!
 
                     if (gameManager.layerManager.useGrid && !event.altKey) {
                         const gs = gameManager.layerManager.gridSize;
@@ -2346,7 +2346,10 @@ function createShapeFromDict(shape, dummy) {
     if (shape.type === 'text') sh = Object.assign(new Text(), shape);
     if (shape.type === 'asset') {
         const img = new Image(shape.w, shape.h);
-        img.src = shape.src;
+        if (shape.src.startsWith("http"))
+            img.src = new URL(shape.src).pathname;
+        else
+            img.src = shape.src
         sh = Object.assign(new Asset(), shape);
         sh.img = img;
         img.onload = function () {

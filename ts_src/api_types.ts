@@ -1,4 +1,5 @@
 import { Layer } from "./layers";
+import { GlobalPoint } from "./geom";
 
 export interface LocationOptions {
     useGrid: boolean;
@@ -18,18 +19,7 @@ export interface ClientOptions {
 
 export interface AssetList {
     files: string[];
-    folders: {[name: string]: AssetList};
-}
-
-export interface ServerShape {
-    layer: string;
-    uuid: string;
-    type: string;
-    src: string;
-    w: number;
-    h: number;
-    fill: string;
-    movementObstruction: boolean;
+    folders: { [name: string]: AssetList };
 }
 
 export interface InitiativeData {
@@ -56,4 +46,36 @@ export interface BoardInfo {
     board: {
         layers: ServerLayer[];
     };
+}
+
+export interface ServerShape {
+    uuid: string;
+    type: string;
+    refPoint: GlobalPoint;
+    layer: string;
+    movementObstruction: boolean;
+    fill?: string;
+}
+
+export interface ServerRect extends ServerShape {
+    w: number;
+    h: number;
+    border?: string;
+}
+
+export interface ServerCircle extends ServerShape {
+    r: number;
+    border?: string;
+}
+
+export interface ServerLine extends ServerShape {
+    endPoint: GlobalPoint;
+}
+export interface ServerText extends ServerShape {
+    text: string;
+    font: string;
+    angle?: number;
+}
+export interface ServerAsset extends ServerRect {
+    src: string;
 }

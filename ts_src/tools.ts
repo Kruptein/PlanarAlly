@@ -30,8 +30,8 @@ export class SelectTool extends Tool {
     // Because we never drag from the asset's (0, 0) coord and want a smoother drag experience
     // we keep track of the actual offset within the asset.
     drag: Vector<LocalPoint> = new Vector<LocalPoint>({ x: 0, y: 0 }, new LocalPoint(0, 0));
-    selectionHelper: Rect = new Rect(-1000, -1000, 0, 0);
     selectionStartPoint: GlobalPoint = new GlobalPoint(-1000, -1000);
+    selectionHelper: Rect = new Rect(this.selectionStartPoint, 0, 0);
     constructor() {
         super();
         this.selectionHelper.owners.push(gameManager.username);
@@ -206,10 +206,10 @@ export class SelectTool extends Tool {
                 if (shape === this.selectionHelper) return;
                 const bbox = shape.getBoundingBox();
                 if (!shape.ownedBy()) return;
-                if (this.selectionHelper!.refPoint.x <= bbox.x + bbox.w &&
-                    this.selectionHelper!.refPoint.x + this.selectionHelper!.w >= bbox.x &&
-                    this.selectionHelper!.refPoint.y <= bbox.y + bbox.h &&
-                    this.selectionHelper!.refPoint.y + this.selectionHelper!.h >= bbox.y) {
+                if (this.selectionHelper!.refPoint.x <= bbox.refPoint.x + bbox.w &&
+                    this.selectionHelper!.refPoint.x + this.selectionHelper!.w >= bbox.refPoint.x &&
+                    this.selectionHelper!.refPoint.y <= bbox.refPoint.y + bbox.h &&
+                    this.selectionHelper!.refPoint.y + this.selectionHelper!.h >= bbox.refPoint.y) {
                     layer.selection.push(shape);
                 }
             });
@@ -388,7 +388,7 @@ export class DrawTool extends Tool {
         const fill = fillColor === null ? tinycolor("transparent") : fillColor;
         const borderColor = this.borderColor.spectrum("get");
         const border = borderColor === null ? tinycolor("transparent") : borderColor;
-        this.rect = new Rect(this.startPoint.x, this.startPoint.y, 0, 0, fill.toRgbString(), border.toRgbString());
+        this.rect = new Rect(this.startPoint, 0, 0, fill.toRgbString(), border.toRgbString());
         this.rect.owners.push(gameManager.username);
         if (layer.name === 'fow') {
             this.rect.visionObstruction = true;
@@ -433,7 +433,7 @@ export class RulerTool extends Tool {
         this.active = true;
         const layer = gameManager.layerManager.getLayer("draw")!;
         this.startPoint = l2g(getMouse(e));
-        this.ruler = new Line(this.startPoint.x, this.startPoint.y, this.startPoint.x, this.startPoint.y);
+        this.ruler = new Line(this.startPoint, this.startPoint);
         this.text = new Text(this.startPoint, "", "20px serif");
         this.ruler.owners.push(gameManager.username);
         this.text.owners.push(gameManager.username);
@@ -450,8 +450,7 @@ export class RulerTool extends Tool {
         const layer = gameManager.layerManager.getLayer("draw")!;
         const endPoint = l2g(getMouse(e));
 
-        this.ruler.x2 = endPoint.x;
-        this.ruler.y2 = endPoint.y;
+        this.ruler.endPoint = endPoint;
         socket.emit("shapeMove", { shape: this.ruler!.asDict(), temporary: true });
 
         const diffsign = Math.sign(endPoint.x - this.startPoint.x) * Math.sign(endPoint.y - this.startPoint.y);
@@ -497,7 +496,7 @@ export class FOWTool extends Tool {
         this.active = true;
         const layer = gameManager.layerManager.getLayer("fow")!;
         this.startPoint = l2g(getMouse(e));
-        this.rect = new Rect(this.startPoint.x, this.startPoint.y, 0, 0, gameManager.fowColour.spectrum("get").toRgbString());
+        this.rect = new Rect(this.startPoint, 0, 0, gameManager.fowColour.spectrum("get").toRgbString());
         layer.addShape(this.rect, true, false);
 
         if ($("#fow-reveal").prop("checked"))
@@ -546,7 +545,7 @@ export class MapTool extends Tool {
         this.active = true;
         const layer = gameManager.layerManager.getLayer()!;
         this.startPoint = l2g(getMouse(e));
-        this.rect = new Rect(this.startPoint.x, this.startPoint.y, 0, 0, "rgba(0,0,0,0)", "black");
+        this.rect = new Rect(this.startPoint, 0, 0, "rgba(0,0,0,0)", "black");
         layer.addShape(this.rect, false, false);
     }
     onMouseMove(e: MouseEvent) {

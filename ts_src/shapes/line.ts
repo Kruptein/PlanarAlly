@@ -4,31 +4,27 @@ import { g2lx, g2ly } from "../units";
 import { GlobalPoint } from "../geom";
 
 export default class Line extends Shape {
-    x1: number;
-    y1: number;
-    x2: number;
-    y2: number;
-    constructor(x1: number, y1: number, x2: number, y2: number, uuid?: string) {
-        super(uuid);
+    endPoint: GlobalPoint;
+    constructor(startPoint: GlobalPoint, endPoint: GlobalPoint, uuid?: string) {
+        super(startPoint, uuid);
         this.type = "line";
-        this.x1 = x1;
-        this.y1 = y1;
-        this.x2 = x2;
-        this.y2 = y2;
+        this.endPoint = endPoint;
     }
     getBoundingBox(): BoundingRect {
         return new BoundingRect(
-            Math.min(this.x1, this.x2),
-            Math.min(this.y1, this.y2),
-            Math.abs(this.x1 - this.x2),
-            Math.abs(this.y1 - this.y2)
+            new GlobalPoint(
+                Math.min(this.refPoint.x, this.endPoint.x),
+                Math.min(this.refPoint.x, this.endPoint.y),
+            ),
+            Math.abs(this.refPoint.x - this.endPoint.x),
+            Math.abs(this.refPoint.y - this.endPoint.y)
         );
     }
     draw(ctx: CanvasRenderingContext2D) {
         super.draw(ctx);
         ctx.beginPath();
-        ctx.moveTo(g2lx(this.x1), g2ly(this.y1));
-        ctx.lineTo(g2lx(this.x2), g2ly(this.y2));
+        ctx.moveTo(g2lx(this.refPoint.x), g2ly(this.refPoint.y));
+        ctx.lineTo(g2lx(this.endPoint.x), g2ly(this.endPoint.y));
         ctx.strokeStyle = 'rgba(255,0,0, 0.5)';
         ctx.lineWidth = 3;
         ctx.stroke();

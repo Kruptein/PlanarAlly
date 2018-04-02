@@ -7,9 +7,8 @@ export default abstract class BaseRect extends Shape {
     w: number;
     h: number;
     constructor(topleft: GlobalPoint, w: number, h: number, uuid?: string) {
-        super(uuid);
+        super(topleft, uuid);
         this.type = "baserect";
-        this.refPoint = topleft;
         this.w = w;
         this.h = h;
     }

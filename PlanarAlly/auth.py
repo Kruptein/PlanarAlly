@@ -40,6 +40,9 @@ class ShelveDictAuthorizationPolicy(AbstractAuthorizationPolicy):
                 return sid
 
     def load_save(self):
+        save_exists = False
+        if os.path.isfile(self.save_file):
+            save_exists = True
         with shelve.open(self.save_file, 'c') as shelf:
             self.user_map = shelf.get('user_map', {})
             if "secret_token" not in shelf:
@@ -47,6 +50,11 @@ class ShelveDictAuthorizationPolicy(AbstractAuthorizationPolicy):
                 shelf['secret_token'] = self.secret_token
             else:
                 self.secret_token = shelf['secret_token']
+            if "save_version" not in shelf:
+                if save_exists:
+                    pass  # Do some conversion stuff
+                else:
+                    shelf["save_version"] = "0.1"
 
     def save(self):
         with shelve.open(self.save_file, 'c') as shelf:

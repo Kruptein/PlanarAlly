@@ -8,15 +8,14 @@ export default class Text extends Shape {
     font: string;
     angle: number;
     constructor(position: GlobalPoint, text: string, font: string, angle?: number, uuid?: string) {
-        super(uuid);
+        super(position, uuid);
         this.type = "text";
-        this.refPoint = position;
         this.text = text;
         this.font = font;
         this.angle = angle || 0;
     }
     getBoundingBox(): BoundingRect {
-        return new BoundingRect(this.x, this.y, 5, 5); // Todo: fix this bounding box
+        return new BoundingRect(this.refPoint, 5, 5); // Todo: fix this bounding box
     }
     draw(ctx: CanvasRenderingContext2D) {
         super.draw(ctx);

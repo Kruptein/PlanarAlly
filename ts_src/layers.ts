@@ -235,6 +235,10 @@ export class Layer {
         const self = this;
         shapes.forEach(function (shape) {
             const sh = createShapeFromDict(shape);
+            if (sh === undefined) {
+                console.log(`Shape with unknown type ${shape.type} could not be added`);
+                return ;
+            }
             sh.layer = self.name;
             sh.checkLightSources();
             sh.setMovementBlock(shape.movementObstruction);
@@ -397,7 +401,7 @@ export class FOWLayer extends Layer {
                 const aura_length = getUnitDistance(aura.value);
                 const center = sh.center();
                 const lcenter = g2l(center);
-                const bbox = new Circle(center.x, center.y, aura_length).getBoundingBox();
+                const bbox = new Circle(center, aura_length).getBoundingBox();
 
                 // We first collect all lightblockers that are inside/cross our aura
                 // This to prevent as many ray calculations as possible
@@ -424,10 +428,10 @@ export class FOWLayer extends Layer {
                         const lb_bb = local_lightblockers[i];
                         const result = lb_bb.getIntersectWithLine({
                             start: center,
-                            end: {
-                                x: center.x + aura_length * Math.cos(angle),
-                                y: center.y + aura_length * Math.sin(angle)
-                            }
+                            end: new GlobalPoint(
+                                center.x + aura_length * Math.cos(angle),
+                                center.y + aura_length * Math.sin(angle)
+                            )
                         });
                         if (result.intersect !== null && result.distance < hit.distance) {
                             hit = result;

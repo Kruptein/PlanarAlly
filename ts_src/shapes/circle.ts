@@ -1,30 +1,26 @@
 import Shape from "./shape";
 import BoundingRect from "./boundingrect";
 import { g2l, g2lx, g2ly } from "../units";
-import { GlobalPoint } from "../utils";
+import { GlobalPoint } from "../geom";
 
 export default class Circle extends Shape {
-    x: number;
-    y: number;
     r: number;
     border: string;
-    constructor(x: number, y: number, r: number, fill?: string, border?: string, uuid?: string) {
-        super(uuid);
+    constructor(center: GlobalPoint, r: number, fill?: string, border?: string, uuid?: string) {
+        super(center, uuid);
         this.type = "circle";
-        this.x = x || 0;
-        this.y = y || 0;
         this.r = r || 1;
         this.fill = fill || '#000';
         this.border = border || "rgba(0, 0, 0, 0)";
     };
     getBoundingBox(): BoundingRect {
-        return new BoundingRect(this.x - this.r, this.y - this.r, this.r * 2, this.r * 2);
+        return new BoundingRect(new GlobalPoint(this.refPoint.x - this.r, this.refPoint.y - this.r), this.r * 2, this.r * 2);
     }
     draw(ctx: CanvasRenderingContext2D) {
         super.draw(ctx);
         ctx.beginPath();
         ctx.fillStyle = this.fill;
-        const loc = g2l({ x: this.x, y: this.y });
+        const loc = g2l(this.refPoint);
         ctx.arc(loc.x, loc.y, this.r, 0, 2 * Math.PI);
         ctx.fill();
         if (this.border !== "rgba(0, 0, 0, 0)") {
@@ -35,28 +31,27 @@ export default class Circle extends Shape {
         }
     }
     contains(point: GlobalPoint): boolean {
-        return (x - g2lx(this.x)) ** 2 + (y - g2ly(this.y)) ** 2 < this.r ** 2;
+        return (point.x - this.refPoint.x) ** 2 + (point.y - this.refPoint.y) ** 2 < this.r ** 2;
     }
-    inCorner(x: number, y: number, corner: string) {
+    inCorner(point: GlobalPoint, corner: string) {
         return false; //TODO
     }
-    getCorner(x: number, y: number) {
-        if (this.inCorner(x, y, "ne"))
+    getCorner(point: GlobalPoint) {
+        if (this.inCorner(point, "ne"))
             return "ne";
-        else if (this.inCorner(x, y, "nw"))
+        else if (this.inCorner(point, "nw"))
             return "nw";
-        else if (this.inCorner(x, y, "se"))
+        else if (this.inCorner(point, "se"))
             return "se";
-        else if (this.inCorner(x, y, "sw"))
+        else if (this.inCorner(point, "sw"))
             return "sw";
     }
     center(): GlobalPoint;
     center(centerPoint: GlobalPoint): void;
     center(centerPoint?: GlobalPoint): GlobalPoint | void {
         if (centerPoint === undefined)
-            return { x: this.x, y: this.y };
-        this.x = centerPoint.x;
-        this.y = centerPoint.y;
+            return this.refPoint;
+        this.refPoint = centerPoint;
     }
     visibleInCanvas(canvas: HTMLCanvasElement): boolean { return true; } // TODO
 }

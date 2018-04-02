@@ -5,6 +5,7 @@ import socket from "../socket";
 import { g2l, g2lr } from "../units";
 import { populateEditAssetDialog } from "./editdialog";
 import { GlobalPoint, LocalPoint } from "../geom";
+import { ServerShape } from "../api_types";
 
 const $menu = $('#contextMenu');
 
@@ -37,7 +38,8 @@ export default abstract class Shape {
     // Draw modus to use
     globalCompositeOperation: string = "source-over";
 
-    constructor(uuid?: string) {
+    constructor(refPoint: GlobalPoint, uuid?: string) {
+        this.refPoint = refPoint;
         this.uuid = uuid || uuidv4();
     }
 

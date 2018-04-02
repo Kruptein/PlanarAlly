@@ -6,7 +6,8 @@ import { OrderedMap } from './utils';
 import Asset from './shapes/asset';
 import {createShapeFromDict} from './shapes/utils';
 import { DrawTool, RulerTool, MapTool, FOWTool, InitiativeTracker, Tool } from "./tools";
-import { LocalPoint } from './geom';
+import { LocalPoint, GlobalPoint } from './geom';
+import Rect from './shapes/rect';
 
 class GameManager {
     IS_DM = false;
@@ -140,8 +141,8 @@ class GameManager {
                         // height = ui.helper[0].height;
                         const wloc = l2g(loc);
                         const img = <HTMLImageElement>ui.draggable[0].children[0];
-                        const asset = new Asset(img, wloc.x, wloc.y, img.width, img.height);
-                        asset.src = img.src;
+                        const asset = new Asset(img, wloc, img.width, img.height);
+                        asset.src = new URL(img.src).pathname;
 
                         if (gameManager.layerManager.useGrid) {
                             const gs = gameManager.layerManager.gridSize;
@@ -184,7 +185,12 @@ class GameManager {
             return;
         }
         const layer = this.layerManager.getLayer(shape.layer)!;
-        layer.addShape(createShapeFromDict(shape), false);
+        const sh = createShapeFromDict(shape);
+        if (sh === undefined) {
+            console.log(`Shape with unknown type ${shape.type} could not be added`);
+            return ;
+        }
+        layer.addShape(sh, false);
         layer.invalidate(false);
     }
 
@@ -193,7 +199,12 @@ class GameManager {
             console.log(`Shape with unknown layer ${shape.layer} could not be added`);
             return;
         }
-        const real_shape = Object.assign(this.layerManager.UUIDMap.get(shape.uuid), createShapeFromDict(shape, true));
+        const sh = createShapeFromDict(shape, true);
+        if (sh === undefined) {
+            console.log(`Shape with unknown type ${shape.type} could not be added`);
+            return ;
+        }
+        const real_shape = Object.assign(this.layerManager.UUIDMap.get(shape.uuid), sh);
         real_shape.checkLightSources();
         this.layerManager.getLayer(real_shape.layer)!.onShapeMove(real_shape);
     }
@@ -203,7 +214,12 @@ class GameManager {
             console.log(`Shape with unknown layer ${data.shape.layer} could not be added`);
             return;
         }
-        const shape = Object.assign(this.layerManager.UUIDMap.get(data.shape.uuid), createShapeFromDict(data.shape, true));
+        const sh = createShapeFromDict(data.shape, true);
+        if (sh === undefined) {
+            console.log(`Shape with unknown type ${data.shape.type} could not be added`);
+            return ;
+        }
+        const shape = Object.assign(this.layerManager.UUIDMap.get(data.shape.uuid), sh);
         shape.checkLightSources();
         shape.setMovementBlock(shape.movementObstruction);
         if (data.redraw)
@@ -240,6 +256,8 @@ class GameManager {
 
 let gameManager = new GameManager();
 (<any>window).gameManager = gameManager;
+(<any>window).GP = GlobalPoint;
+(<any>window).Asset = Asset;
 
 // **** SETUP UI ****
 

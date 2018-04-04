@@ -11,7 +11,7 @@ const $menu = $('#contextMenu');
 
 export default abstract class Shape {
     // Used to create class instance from server shape data
-    type: string = "shape";
+    protected abstract type: string;
     // The unique ID of this shape
     uuid: string;
     // The layer the shape is currently on
@@ -143,8 +143,35 @@ export default abstract class Shape {
         $("#selection-menu").hide();
     }
 
-    asDict() {
-        return Object.assign({}, this);
+    // Do not provide getBaseDict as the default implementation to force the implementation
+    abstract asDict(): ServerShape;
+    getBaseDict() {
+        return {
+            type: this.type,
+            uuid: this.uuid,
+            x: this.refPoint.x,
+            y: this.refPoint.y,
+            layer: this.layer,
+            globalCompositeOperation: this.globalCompositeOperation,
+            movementObstruction: this.movementObstruction,
+            visionObstruction: this.visionObstruction,
+            auras: this.auras,
+            trackers: this.trackers,
+            owners: this.owners,
+            fill: this.fill,
+            name: this.name,
+        }
+    }
+    fromDict(data: ServerShape) {
+        this.layer = data.layer;
+        this.globalCompositeOperation = data.globalCompositeOperation;
+        this.movementObstruction = data.movementObstruction;
+        this.visionObstruction = data.visionObstruction;
+        this.auras = data.auras;
+        this.trackers = data.trackers;
+        this.owners = data.owners;
+        if (data.name)
+            this.name = data.name;
     }
 
     draw(ctx: CanvasRenderingContext2D) {

@@ -5,12 +5,22 @@ import { GlobalPoint } from "../geom";
 import { ServerRect } from "../api_types";
 
 export default class Rect extends BaseRect {
+    type = "rect"
     border: string;
     constructor(topleft: GlobalPoint, w: number, h: number, fill?: string, border?: string, uuid?: string) {
         super(topleft, w, h, uuid);
-        this.type = "rect";
         this.fill = fill || '#000';
         this.border = border || "rgba(0, 0, 0, 0)";
+    }
+    asDict() {
+        return Object.assign(this.getBaseDict(), {
+            border: this.border
+        })
+    }
+    fromDict(data: ServerRect) {
+        super.fromDict(data);
+        if (data.border)
+            this.border = data.border;
     }
     draw(ctx: CanvasRenderingContext2D) {
         super.draw(ctx);

@@ -6,6 +6,7 @@ import Text from "./text";
 import Asset from "./asset";
 import { ServerShape, ServerRect, ServerCircle, ServerLine, ServerText, ServerAsset } from "../api_types";
 import Shape from "./shape";
+import { GlobalPoint } from "../geom";
 
 export function createShapeFromDict(shape: ServerShape, dummy?: boolean) {
     // todo is this dummy stuff actually needed, do we ever want to return the local shape?
@@ -17,22 +18,19 @@ export function createShapeFromDict(shape: ServerShape, dummy?: boolean) {
 
     // A fromJSON and toJSON on Shape would be cleaner but ts does not allow for static abstracts so yeah.
 
+    const refPoint = new GlobalPoint(shape.x, shape.y);
     if (shape.type === 'rect') {
         const rect = <ServerRect>shape;
-        sh = new Rect(rect.refPoint, rect.w, rect.h, rect.fill, rect.border, rect.uuid);
-        Object.assign(sh, shape);
+        sh = new Rect(refPoint, rect.w, rect.h, rect.fill, rect.border, rect.uuid);
     } else if (shape.type === 'circle') {
         const circ = <ServerCircle>shape;
-        sh = new Circle(circ.refPoint, circ.r, circ.fill, circ.border, circ.uuid);
-        Object.assign(sh, shape);
+        sh = new Circle(refPoint, circ.r, circ.fill, circ.border, circ.uuid);
     } else if (shape.type === 'line') {
         const line = <ServerLine>shape;
-        sh = new Line(line.refPoint, line.endPoint);
-        Object.assign(sh, shape);
+        sh = new Line(refPoint, new GlobalPoint(line.x2, line.y2));
     } else if (shape.type === 'text') {
         const text = <ServerText>shape;
-        sh = new Text(text.refPoint, text.text, text.font, text.angle, text.uuid);
-        Object.assign(sh, shape);
+        sh = new Text(refPoint, text.text, text.font, text.angle, text.uuid);
     } else if (shape.type === 'asset') {
         const asset = <ServerAsset>shape;
         const img = new Image(asset.w, asset.h);
@@ -40,13 +38,13 @@ export function createShapeFromDict(shape: ServerShape, dummy?: boolean) {
             img.src = new URL(asset.src).pathname;
         else
             img.src = asset.src
-        sh = new Asset(img, asset.refPoint, asset.w, asset.h, asset.uuid);
-        Object.assign(sh, shape);
+        sh = new Asset(img, refPoint, asset.w, asset.h, asset.uuid);
         img.onload = function () {
             gameManager.layerManager.getLayer(shape.layer)!.invalidate(false);
         };
     } else {
         return undefined;
     }
+    sh.fromDict(shape);
     return sh;
 }

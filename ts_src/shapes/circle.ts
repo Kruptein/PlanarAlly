@@ -2,17 +2,34 @@ import Shape from "./shape";
 import BoundingRect from "./boundingrect";
 import { g2l, g2lx, g2ly } from "../units";
 import { GlobalPoint } from "../geom";
+import { ServerCircle } from "../api_types";
 
 export default class Circle extends Shape {
+    type = "circle";
     r: number;
     border: string;
     constructor(center: GlobalPoint, r: number, fill?: string, border?: string, uuid?: string) {
         super(center, uuid);
-        this.type = "circle";
         this.r = r || 1;
         this.fill = fill || '#000';
         this.border = border || "rgba(0, 0, 0, 0)";
     };
+    asDict(): ServerCircle {
+        // const base = <ServerCircle>this.getBaseDict();
+        // base.r = this.r;
+        // base.border = this.border;
+        // return base;
+        return Object.assign(this.getBaseDict(), {
+            r: this.r,
+            border: this.border
+        });
+    }
+    fromDict(data: ServerCircle) {
+        super.fromDict(data);
+        this.r = data.r;
+        if(data.border)
+            this.border = data.border;
+    }
     getBoundingBox(): BoundingRect {
         return new BoundingRect(new GlobalPoint(this.refPoint.x - this.r, this.refPoint.y - this.r), this.r * 2, this.r * 2);
     }

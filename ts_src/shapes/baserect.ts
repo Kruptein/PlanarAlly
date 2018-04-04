@@ -8,9 +8,14 @@ export default abstract class BaseRect extends Shape {
     h: number;
     constructor(topleft: GlobalPoint, w: number, h: number, uuid?: string) {
         super(topleft, uuid);
-        this.type = "baserect";
         this.w = w;
         this.h = h;
+    }
+    getBaseDict() {
+        return Object.assign(super.getBaseDict(), {
+            w: this.w,
+            h: this.h
+        })
     }
     getBoundingBox() {
         return new BoundingRect(this.refPoint, this.w, this.h);

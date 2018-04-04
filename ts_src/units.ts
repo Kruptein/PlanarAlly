@@ -13,7 +13,7 @@ export function g2lx(x: number) {
 }
 
 export function g2ly(y: number) {
-    return g2l(new GlobalPoint(y, 0)).y;
+    return g2l(new GlobalPoint(0, y)).y;
 }
 
 export function g2lz(z: number) {

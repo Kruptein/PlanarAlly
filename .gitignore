@@ -1,6 +1,6 @@
 # editors
 .idea/**
-.vscode/settings.json
+.vscode/**
 
 # Python
 env/**
@@ -14,3 +14,4 @@ PlanarAlly/client/src/*.js.map
 # PlanarAlly
 planar.save*
 server_config.cfg
+PlanarAlly/static/img/**

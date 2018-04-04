@@ -51,10 +51,17 @@ export interface BoardInfo {
 export interface ServerShape {
     uuid: string;
     type: string;
-    refPoint: GlobalPoint;
+    x: number;
+    y: number;
     layer: string;
     movementObstruction: boolean;
+    visionObstruction: boolean;
+    globalCompositeOperation: string;
+    trackers: Tracker[];
+    auras: Aura[];
+    owners: string[];
     fill?: string;
+    name?: string;
 }
 
 export interface ServerRect extends ServerShape {
@@ -69,7 +76,8 @@ export interface ServerCircle extends ServerShape {
 }
 
 export interface ServerLine extends ServerShape {
-    endPoint: GlobalPoint;
+    x2: number;
+    y2: number;
 }
 export interface ServerText extends ServerShape {
     text: string;

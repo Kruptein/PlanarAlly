@@ -2,17 +2,25 @@ import Shape from "./shape";
 import BoundingRect from "./boundingrect";
 import { GlobalPoint } from "../geom";
 import { g2l } from "../units";
+import { ServerText } from "../api_types";
 
 export default class Text extends Shape {
+    type = "text";
     text: string;
     font: string;
     angle: number;
     constructor(position: GlobalPoint, text: string, font: string, angle?: number, uuid?: string) {
         super(position, uuid);
-        this.type = "text";
         this.text = text;
         this.font = font;
         this.angle = angle || 0;
+    }
+    asDict() {
+        return Object.assign(this.getBaseDict(), {
+            text: this.text,
+            font: this.font,
+            angle: this.angle
+        })
     }
     getBoundingBox(): BoundingRect {
         return new BoundingRect(this.refPoint, 5, 5); // Todo: fix this bounding box

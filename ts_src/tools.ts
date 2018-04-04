@@ -73,8 +73,6 @@ export class SelectTool extends Tool {
                 }
                 this.mode = SelectOperations.Drag;
                 this.drag = mouse.subtract(g2l(sel.refPoint));
-                console.log(`SELECTED SHAPE @${sel.refPoint.x}/${sel.refPoint.y}(${g2l(sel.refPoint).x}/${g2l(sel.refPoint).y})`);
-                console.log(`MOUSE @${mouse.x}/${mouse.y}`);
                 // this.drag.origin = g2l(sel.refPoint);
                 // this.drag.direction = mouse.subtract(this.drag.origin);
                 layer.invalidate(true);
@@ -432,11 +430,12 @@ export class RulerTool extends Tool {
             console.log("No active layer!");
             return;
         }
+        console.log("Mouse down");
         this.active = true;
         const layer = gameManager.layerManager.getLayer("draw")!;
         this.startPoint = l2g(getMouse(e));
         this.ruler = new Line(this.startPoint, this.startPoint);
-        this.text = new Text(this.startPoint, "", "20px serif");
+        this.text = new Text(this.startPoint.clone(), "", "20px serif");
         this.ruler.owners.push(gameManager.username);
         this.text.owners.push(gameManager.username);
         layer.addShape(this.ruler, true, true);

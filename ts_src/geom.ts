@@ -17,6 +17,9 @@ class Point {
     subtract(other: Point) {
         return new Vector({x: this.x - other.x, y: this.y - other.y}, this);
     }
+    clone(): Point {
+        return new Point(this.x, this.y);
+    }
 }
 export class GlobalPoint extends Point {
     // this is to differentiate with LocalPoint, is actually never used
@@ -27,6 +30,9 @@ export class GlobalPoint extends Point {
     }
     subtract(other: GlobalPoint): Vector<this> {
          return super.subtract(other);
+    }
+    clone(): GlobalPoint {
+        return <GlobalPoint>super.clone();
     }
 }
 
@@ -39,6 +45,9 @@ export class LocalPoint extends Point {
     }
     subtract(other: LocalPoint): Vector<this> {
         return super.subtract(other);
+    }
+    clone(): LocalPoint {
+        return <LocalPoint>super.clone();
     }
 }
 

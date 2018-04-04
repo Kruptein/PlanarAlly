@@ -73,6 +73,8 @@ export class SelectTool extends Tool {
                 }
                 this.mode = SelectOperations.Drag;
                 this.drag = mouse.subtract(g2l(sel.refPoint));
+                console.log(`SELECTED SHAPE @${sel.refPoint.x}/${sel.refPoint.y}(${g2l(sel.refPoint).x}/${g2l(sel.refPoint).y})`);
+                console.log(`MOUSE @${mouse.x}/${mouse.y}`);
                 // this.drag.origin = g2l(sel.refPoint);
                 // this.drag.direction = mouse.subtract(this.drag.origin);
                 layer.invalidate(true);
@@ -120,7 +122,7 @@ export class SelectTool extends Tool {
                 const delta = mouse.subtract(og.add(this.drag));
                 if (this.mode === SelectOperations.Drag) {
                     sel.refPoint = sel.refPoint.add(l2g(delta));
-                    if (layer.name !== 'fow') {
+                    if (layer.name === 'tokens') {
                         // We need to use the above updated values for the bounding box check
                         // First check if the bounding boxes overlap to stop close / precise movement
                         let blocked = false;
@@ -224,7 +226,7 @@ export class SelectTool extends Tool {
             layer.selection.forEach((sel) => {
                 if (!(sel instanceof BaseRect)) return; // TODO
                 if (this.mode === SelectOperations.Drag) {
-                    if (this.drag.origin!.x === sel.refPoint.x && this.drag.origin!.y === sel.refPoint.y) { return }
+                    if (this.drag.origin!.x === g2lx(sel.refPoint.x) && this.drag.origin!.y === g2ly(sel.refPoint.y)) { return }
                     if (gameManager.layerManager.useGrid && !e.altKey) {
                         const gs = gameManager.layerManager.gridSize;
                         const mouse = sel.center();

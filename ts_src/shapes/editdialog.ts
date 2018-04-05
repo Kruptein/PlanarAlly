@@ -24,6 +24,7 @@ export function populateEditAssetDialog(self: Shape) {
             const s = gameManager.layerManager.UUIDMap.get(uuid)!;
             s.visionObstruction = dialog_lightblock.prop("checked");
             s.checkLightSources();
+            socket.emit("updateShape", { shape: s.asDict(), redraw: true })
         }
     });
     const dialog_moveblock = $("#shapeselectiondialog-moveblocker");
@@ -33,6 +34,7 @@ export function populateEditAssetDialog(self: Shape) {
         if (gameManager.layerManager.UUIDMap.has(uuid)) {
             const s = gameManager.layerManager.UUIDMap.get(uuid)!;
             s.setMovementBlock(dialog_moveblock.prop("checked"));
+            socket.emit("updateShape", { shape: s.asDict(), redraw: false })
         }
     });
 

@@ -455,8 +455,8 @@ export class FOWLayer extends Layer {
                     let extraX = 0;
                     let extraY = 0;
                     if (shape_hit !== null) {
-                        extraX = (shape_hit.w / 4) * Math.cos(angle);
-                        extraY = (shape_hit.h / 4) * Math.sin(angle);
+                        extraX = (shape_hit.w / 10) * Math.cos(angle);
+                        extraY = (shape_hit.h / 10) * Math.sin(angle);
                     }
                     // if (!shape_hit.contains(hit.intersect.x + extraX, hit.intersect.y + extraY, false)) {
                     //     extraX = 0;

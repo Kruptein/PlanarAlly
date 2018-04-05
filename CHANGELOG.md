@@ -12,6 +12,7 @@ A couple of important bugfixes are included though.
 - Websocket protocol now correctly chosen at the client side, this caused players to just see a blank scene in some situations
 - Players on a different IP as the dm now actually see images.
 - Pan and zoom options are now remembered per user AND location instead of only per user.
+- MovementObstruction and visionObstruction were not immediately synced on toggle.
 
 ### Changed
 - Move from 1 large javascript file to a proper multi file typescript system

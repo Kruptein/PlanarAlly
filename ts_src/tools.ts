@@ -434,7 +434,6 @@ export class RulerTool extends Tool {
             console.log("No active layer!");
             return;
         }
-        console.log("Mouse down");
         this.active = true;
         const layer = gameManager.layerManager.getLayer("draw")!;
         this.startPoint = l2g(getMouse(e));

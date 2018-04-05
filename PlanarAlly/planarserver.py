@@ -456,10 +456,11 @@ async def test_connect(sid, environ):
 
         sio.enter_room(sid, location.sioroom, namespace='/planarally')
         await sio.emit("set username", username, room=sid, namespace='/planarally')
+        await sio.emit("set room info", {'name': room.name, 'creator': room.creator}, room=sid, namespace='/planarally')
         await sio.emit('board init', room.get_board(username), room=sid, namespace='/planarally')
+        await sio.emit("set location", {'options': location.options, 'name': location.name}, room=sid, namespace='/planarally')
         await sio.emit("set clientOptions", app['AuthzPolicy'].user_map[username].options, room=sid,
                        namespace='/planarally')
-        await sio.emit("set locationOptions", location.options, room=sid, namespace='/planarally')
         await sio.emit('asset list', PA.get_asset_list(), room=sid, namespace='/planarally')
         if hasattr(location, "initiative"):
             initiatives = location.initiative

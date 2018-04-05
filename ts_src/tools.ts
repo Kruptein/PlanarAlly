@@ -310,8 +310,12 @@ export class PanTool extends Tool {
     onMouseUp(e: MouseEvent): void {
         this.active = false;
         socket.emit("set clientOptions", {
-            panX: gameManager.layerManager.panX,
-            panY: gameManager.layerManager.panY
+            locationOptions: {
+                [`${gameManager.roomName}/${gameManager.roomCreator}/${gameManager.locationName}`]: {
+                    panX: gameManager.layerManager.panX,
+                    panY: gameManager.layerManager.panY
+                }
+            }
         });
     };
     onContextMenu(e: MouseEvent) { };

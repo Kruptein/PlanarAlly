@@ -2,6 +2,7 @@ import { Layer } from "./layers";
 import { GlobalPoint } from "./geom";
 
 export interface LocationOptions {
+    name: string;
     useGrid: boolean;
     unitSize: number;
     fullFOW: boolean;
@@ -12,9 +13,13 @@ export interface LocationOptions {
 export interface ClientOptions {
     gridColour: string;
     fowColour: string;
-    panX: number;
-    panY: number;
-    zoomFactor: number;
+    locationOptions: {
+        [name: string]: {
+            panX: number;
+            panY: number;
+            zoomFactor: number;
+        }
+    }
 }
 
 export interface AssetList {

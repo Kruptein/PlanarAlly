@@ -1,6 +1,21 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [0.2] - 2018-03-04
+This update is firstmost an update in regards to the development process so little to no new feautures are added in this release.
+A couple of important bugfixes are included though.
+
+### Added
+- A save file version is added to the save to possibly convert older saves in the future.
+
+### Fixed
+- Websocket protocol now correctly chosen at the client side, this caused players to just see a blank scene in some situations
+- Players on a different IP as the dm now actually see images.
+- Pan and zoom options are now remembered per user AND location instead of only per user.
+
+### Changed
+- Move from 1 large javascript file to a proper multi file typescript system
+
 ## [0.1] - 2018-03-22
 ### Added
 - Initiative tracker

@@ -11,7 +11,10 @@ import Rect from './shapes/rect';
 
 class GameManager {
     IS_DM = false;
-    username: string = "";
+    roomName!: string;
+    roomCreator!: string;
+    locationName!: string;
+    username!: string;
     board_initialised = false;
     layerManager = new LayerManager();
     selectedTool: number = 0;
@@ -234,21 +237,26 @@ class GameManager {
     }
 
     setClientOptions(options: ClientOptions): void {
-        if ("gridColour" in options)
+        if (options.gridColour)
             this.gridColour.spectrum("set", options.gridColour);
-        if ("fowColour" in options) {
+        if (options.fowColour) {
             this.fowColour.spectrum("set", options.fowColour);
             this.layerManager.invalidate();
         }
-        if ("panX" in options)
-            this.layerManager.panX = options.panX;
-        if ("panY" in options)
-            this.layerManager.panY = options.panY;
-        if ("zoomFactor" in options) {
-            this.layerManager.zoomFactor = options.zoomFactor;
-            $("#zoomer").slider({ value: 1 / options.zoomFactor });
-            if (this.layerManager.getGridLayer() !== undefined)
-                this.layerManager.getGridLayer()!.invalidate(false);
+        if (options.locationOptions) {
+            if (options.locationOptions[`${gameManager.roomName}/${gameManager.roomCreator}/${gameManager.locationName}`]) {
+                const loc = options.locationOptions[`${gameManager.roomName}/${gameManager.roomCreator}/${gameManager.locationName}`];
+                if (loc.panX)
+                    this.layerManager.panX = loc.panX;
+                if (loc.panY)
+                    this.layerManager.panY = loc.panY;
+                if (loc.zoomFactor) {
+                    this.layerManager.zoomFactor = loc.zoomFactor;
+                    $("#zoomer").slider({ value: 1 / loc.zoomFactor });
+                    if (this.layerManager.getGridLayer() !== undefined)
+                        this.layerManager.getGridLayer()!.invalidate(false);
+                }
+            }
         }
     }
 }
@@ -316,9 +324,13 @@ $("#zoomer").slider({
         gameManager.layerManager.panY -= (origY - newY) / 2;
         gameManager.layerManager.invalidate();
         socket.emit("set clientOptions", {
-            zoomFactor: newZ,
-            panX: gameManager.layerManager.panX,
-            panY: gameManager.layerManager.panY
+            locationOptions: {
+                [`${gameManager.roomName}/${gameManager.roomCreator}/${gameManager.locationName}`]: {
+                    panX: gameManager.layerManager.panX,
+                    panY: gameManager.layerManager.panY,
+                    zoomFactor: newZ,
+                }
+            }
         });
     }
 });

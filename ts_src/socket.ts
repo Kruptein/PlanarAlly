@@ -15,6 +15,10 @@ socket.on("redirect", function (destination: string) {
     console.log("redirecting");
     window.location.href = destination;
 });
+socket.on("set room info", function (data: {name: string, creator: string}) {
+    gameManager.roomName = data.name;
+    gameManager.roomCreator = data.creator;
+});
 socket.on("set username", function (username: string) {
     gameManager.username = username;
     gameManager.IS_DM = username === window.location.pathname.split("/")[2];
@@ -24,8 +28,9 @@ socket.on("set username", function (username: string) {
 socket.on("set clientOptions", function (options: ClientOptions) {
     gameManager.setClientOptions(options);
 });
-socket.on("set locationOptions", function (options: LocationOptions) {
-    gameManager.layerManager.setOptions(options);
+socket.on("set location", function (data: {name:string, options: LocationOptions}) {
+    gameManager.locationName = data.name;
+    gameManager.layerManager.setOptions(data.options);
 });
 socket.on("asset list", function (assets: AssetList) {
     const m = $("#menu-tokens");

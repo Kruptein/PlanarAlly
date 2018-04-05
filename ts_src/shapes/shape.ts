@@ -35,6 +35,9 @@ export default abstract class Shape {
     // Prevent shapes from overlapping with this shape
     movementObstruction = false;
 
+    // Mouseover annotation
+    annotation: string = '';
+
     // Draw modus to use
     globalCompositeOperation: string = "source-over";
 
@@ -160,6 +163,7 @@ export default abstract class Shape {
             owners: this.owners,
             fill: this.fill,
             name: this.name,
+            annotation: this.annotation,
         }
     }
     fromDict(data: ServerShape) {
@@ -170,6 +174,8 @@ export default abstract class Shape {
         this.auras = data.auras;
         this.trackers = data.trackers;
         this.owners = data.owners;
+        if (data.annotation)
+            this.annotation = data.annotation;
         if (data.name)
             this.name = data.name;
     }

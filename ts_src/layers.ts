@@ -225,6 +225,8 @@ export class Layer {
         this.shapes.push(shape);
         shape.checkLightSources();
         shape.setMovementBlock(shape.movementObstruction);
+        if (shape.annotation.length)
+            gameManager.annotations.push(shape.uuid);
         if (sync) socket.emit("add shape", {shape: shape.asDict(), temporary: temporary});
         gameManager.layerManager.UUIDMap.set(shape.uuid, shape);
         this.invalidate(!sync);
@@ -242,6 +244,8 @@ export class Layer {
             sh.layer = self.name;
             sh.checkLightSources();
             sh.setMovementBlock(shape.movementObstruction);
+            if (sh.annotation.length)
+                gameManager.annotations.push(sh.uuid);
             gameManager.layerManager.UUIDMap.set(shape.uuid, sh);
             t.push(sh);
         });
@@ -257,12 +261,16 @@ export class Layer {
         const ls_i = gameManager.lightsources.findIndex(ls => ls.shape === shape.uuid);
         const lb_i = gameManager.lightblockers.findIndex(ls => ls === shape.uuid);
         const mb_i = gameManager.movementblockers.findIndex(ls => ls === shape.uuid);
+        const an_i = gameManager.annotations.findIndex(ls => ls === shape.uuid);
         if (ls_i >= 0)
             gameManager.lightsources.splice(ls_i, 1);
         if (lb_i >= 0)
             gameManager.lightblockers.splice(lb_i, 1);
         if (mb_i >= 0)
             gameManager.movementblockers.splice(mb_i, 1);
+        if (an_i >= 0)
+            gameManager.annotations.splice(an_i, 1);
+
         gameManager.layerManager.UUIDMap.delete(shape.uuid);
 
         const index = this.selection.indexOf(shape);

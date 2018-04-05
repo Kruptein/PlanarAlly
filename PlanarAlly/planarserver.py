@@ -264,6 +264,8 @@ def shape_wrap(player, shape):
     Helper function to make sure only data that the given player is allowed to see is sent.
     """
     pl_shape = dict(shape)
+    if 'annotation' in pl_shape and player not in pl_shape['owners']:
+        del pl_shape['annotation']
     pl_shape['trackers'] = [t for t in shape['trackers'] if player in pl_shape['owners'] or t['visible']]
     pl_shape['auras'] = [a for a in shape['auras'] if player in pl_shape['owners'] or a['visible']]
     return pl_shape

@@ -38,12 +38,34 @@ export function populateEditAssetDialog(self: Shape) {
         }
     });
 
+    const annotation_text = $("#shapeselectiondialog-annotation-textarea");
+    annotation_text.val(self.annotation);
+    annotation_text.on("change", function() {
+        const uuid = <string>$("#shapeselectiondialog-uuid").val();
+        if (gameManager.layerManager.UUIDMap.has(uuid)) {
+            const s = gameManager.layerManager.UUIDMap.get(uuid)!;
+            const had_annotation = s.annotation !== '';
+            s.annotation = <string>$(this).val();
+            if (s.annotation !== '' && !had_annotation) {
+                gameManager.annotations.push(s.uuid);
+                if (gameManager.layerManager.hasLayer("draw"))
+                    gameManager.layerManager.getLayer("draw")!.invalidate(true)
+            } else if (s.annotation == '' && had_annotation) {
+                gameManager.annotations.splice(gameManager.annotations.findIndex(an => an === s.uuid));
+                if (gameManager.layerManager.hasLayer("draw"))
+                    gameManager.layerManager.getLayer("draw")!.invalidate(true)
+            }
+            socket.emit("updateShape", { shape: s.asDict(), redraw: false })
+        }
+    });
+
     const owners = $("#shapeselectiondialog-owners");
     const trackers = $("#shapeselectiondialog-trackers");
     const auras = $("#shapeselectiondialog-auras");
+    const annotation = $("#shapeselectiondialog-annotation");
     owners.nextUntil(trackers).remove();
     trackers.nextUntil(auras).remove();
-    auras.nextUntil($("#shapeselectiondialog").find("form")).remove();
+    auras.nextUntil(annotation).remove();  //($("#shapeselectiondialog").find("form")).remove();
 
     function addOwner(owner: string) {
         const ow_name = $(`<input type="text" placeholder="name" data-name="${owner}" value="${owner}" style="grid-column-start: name">`);
@@ -169,7 +191,8 @@ export function populateEditAssetDialog(self: Shape) {
         const aura_light = $(`<div data-uuid="${aura.uuid}"><i class="fas fa-lightbulb"></i></div>`);
         const aura_remove = $(`<div data-uuid="${aura.uuid}"><i class="fas fa-trash-alt"></i></div>`);
 
-        $("#shapeselectiondialog").children().last().append(
+        // $("#shapeselectiondialog").children().last().append(
+        annotation.before(
             aura_name
                 .add(aura_val)
                 .add(`<span data-uuid="${aura.uuid}">/</span>`)

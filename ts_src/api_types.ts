@@ -67,6 +67,7 @@ export interface ServerShape {
     owners: string[];
     fill?: string;
     name?: string;
+    annotation?: string;
 }
 
 export interface ServerRect extends ServerShape {

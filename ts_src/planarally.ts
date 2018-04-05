@@ -2,12 +2,13 @@ import socket from './socket'
 import { l2g } from "./units";
 import { LayerManager, Layer, GridLayer, FOWLayer } from "./layers";
 import { ClientOptions, BoardInfo, ServerShape, InitiativeData } from './api_types';
-import { OrderedMap } from './utils';
+import { OrderedMap, getMouse } from './utils';
 import Asset from './shapes/asset';
 import {createShapeFromDict} from './shapes/utils';
 import { DrawTool, RulerTool, MapTool, FOWTool, InitiativeTracker, Tool } from "./tools";
 import { LocalPoint, GlobalPoint } from './geom';
 import Rect from './shapes/rect';
+import Text from './shapes/text';
 
 class GameManager {
     IS_DM = false;
@@ -21,6 +22,8 @@ class GameManager {
     tools: OrderedMap<string, Tool> = new OrderedMap();
     lightsources: { shape: string, aura: string }[] = [];
     lightblockers: string[] = [];
+    annotations: string[] = [];
+    annotationText: Text = new Text(new GlobalPoint(0, 0), "", "20px serif");
     movementblockers: string[] = [];
     gridColour = $("#gridColour");
     fowColour = $("#fowColour");
@@ -286,6 +289,27 @@ function onPointerMove(e: MouseEvent) {
     if (!gameManager.board_initialised) return;
     if ((e.button !== 0 && e.button !== 1) || (<HTMLElement>e.target).tagName !== 'CANVAS') return;
     gameManager.tools.getIndexValue(gameManager.selectedTool)!.onMouseMove(e);
+    // Annotation hover
+    let found = false;
+    for (let i=0; i < gameManager.annotations.length; i++) {
+        const uuid = gameManager.annotations[i];
+        if (gameManager.layerManager.UUIDMap.has(uuid) && gameManager.layerManager.hasLayer("draw")){
+            const draw_layer = gameManager.layerManager.getLayer("draw")!;
+            if (gameManager.annotationText.layer !== "draw")
+                draw_layer.addShape(gameManager.annotationText, false);
+            const shape = gameManager.layerManager.UUIDMap.get(uuid)!;
+            if (shape.contains(l2g(getMouse(e)))) {
+                found = true;
+                gameManager.annotationText.text = shape.annotation;
+                gameManager.annotationText.refPoint = l2g(new LocalPoint((draw_layer.canvas.width / 2) - shape.annotation.length/2, 50));
+                draw_layer.invalidate(true);
+            }
+        }
+    }
+    if (!found && gameManager.annotationText.text !== ''){
+        gameManager.annotationText.text = '';
+        gameManager.layerManager.getLayer("draw")!.invalidate(true);
+    }
 }
 
 function onPointerUp(e: MouseEvent) {

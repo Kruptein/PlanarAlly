@@ -533,13 +533,16 @@ input:checked + .slider:before {
     align-items: center;
 }
 
-.dialog .spanrow {
+.spanrow {
     grid-column: 1 / end;
+}
+
+.dialog .shapeselectiondialog-header {
     line-height: 0.1em;
     margin: 20px 0 15px;
 }
 
-.dialog .spanrow:after {
+.dialog .shapeselectiondialog-header:after {
     position: absolute;
     right: 5px;
     width: 75%;

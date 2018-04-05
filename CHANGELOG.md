@@ -7,6 +7,10 @@ A couple of important bugfixes are included though.
 
 ### Added
 - A save file version is added to the save to possibly convert older saves in the future.
+- A barebones annotation system for shapes
+    - You can add text to any asset using the edit asset dialog
+    - Whenever you mouse-over a shape you own the text will appear at top of the screen
+    - This is mostly a DM tool but players can use it as well.
 
 ### Fixed
 - Websocket protocol now correctly chosen at the client side, this caused players to just see a blank scene in some situations

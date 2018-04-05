@@ -31,7 +31,7 @@ export default class Asset extends BaseRect {
             uuid: this.uuid,
             visible: !gameManager.IS_DM,
             group: false,
-            src: "",
+            src: this.src,
             owners: this.owners
         }
     }

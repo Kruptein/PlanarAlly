@@ -339,7 +339,7 @@ async def update_initiative(sid, data):
                 init.update(**data)
             break
     else:
-        location.initiative.append({'uuid': data['uuid'], 'initiative': data['initiative']})
+        location.initiative.append(data)
     location.initiative.sort(key=itemgetter('initiative'), reverse=True)
 
     for player in room.players:

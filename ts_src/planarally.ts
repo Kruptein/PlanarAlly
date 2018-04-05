@@ -253,9 +253,9 @@ class GameManager {
                 if (loc.zoomFactor) {
                     this.layerManager.zoomFactor = loc.zoomFactor;
                     $("#zoomer").slider({ value: 1 / loc.zoomFactor });
-                    if (this.layerManager.getGridLayer() !== undefined)
-                        this.layerManager.getGridLayer()!.invalidate(false);
                 }
+                if (this.layerManager.getGridLayer() !== undefined)
+                    this.layerManager.getGridLayer()!.invalidate(false);
             }
         }
     }

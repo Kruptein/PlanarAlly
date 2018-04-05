@@ -27,7 +27,7 @@ export function createShapeFromDict(shape: ServerShape, dummy?: boolean) {
         sh = new Circle(refPoint, circ.r, circ.fill, circ.border, circ.uuid);
     } else if (shape.type === 'line') {
         const line = <ServerLine>shape;
-        sh = new Line(refPoint, new GlobalPoint(line.x2, line.y2));
+        sh = new Line(refPoint, new GlobalPoint(line.x2, line.y2), line.uuid);
     } else if (shape.type === 'text') {
         const text = <ServerText>shape;
         sh = new Text(refPoint, text.text, text.font, text.angle, text.uuid);

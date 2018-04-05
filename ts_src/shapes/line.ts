@@ -13,8 +13,8 @@ export default class Line extends Shape {
     }
     asDict() {
         return Object.assign(this.getBaseDict(), {
-            endPointX: this.endPoint.x,
-            endPointY: this.endPoint.y,
+            x2: this.endPoint.x,
+            y2: this.endPoint.y,
         })
     }
     getBoundingBox(): BoundingRect {

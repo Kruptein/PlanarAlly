@@ -439,7 +439,7 @@ export class RulerTool extends Tool {
         const layer = gameManager.layerManager.getLayer("draw")!;
         this.startPoint = l2g(getMouse(e));
         this.ruler = new Line(this.startPoint, this.startPoint);
-        this.text = new Text(this.startPoint.clone(), "", "20px serif");
+        this.text = new Text(this.startPoint.clone(), "", "bold 20px serif");
         this.ruler.owners.push(gameManager.username);
         this.text.owners.push(gameManager.username);
         layer.addShape(this.ruler, true, true);

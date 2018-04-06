@@ -33,7 +33,8 @@ export default class Text extends Shape {
         ctx.translate(dest.x, dest.y);
         ctx.rotate(this.angle);
         ctx.textAlign = "center";
-        ctx.fillText(this.text, 0, -5);
+        // ctx.fillText(this.text, 0, -5);
+        this.drawWrappedText(ctx);
         ctx.restore();
     }
     contains(point: GlobalPoint): boolean {
@@ -43,6 +44,33 @@ export default class Text extends Shape {
     center(): GlobalPoint;
     center(centerPoint: GlobalPoint): void;
     center(centerPoint?: GlobalPoint): GlobalPoint | void { } // TODO
-    getCorner(point: GlobalPoint): string|undefined { return "" }; // TODO
+    getCorner(point: GlobalPoint): string | undefined { return "" }; // TODO
     visibleInCanvas(canvas: HTMLCanvasElement): boolean { return true; } // TODO
+
+    private drawWrappedText(ctx: CanvasRenderingContext2D) {
+        const lines = this.text.split("\n");
+        const maxWidth = ctx.canvas.width;
+        const lineHeight = 30;
+        const x = 0; //this.refPoint.x;
+        let y = -5; //this.refPoint.y;
+
+        for (let n = 0; n < lines.length; n++) {
+            let line = '';
+            const words = lines[n].split(" ");
+            for (let w = 0; w < words.length; w++) {
+                const testLine = line + words[w] + " ";
+                var metrics = ctx.measureText(testLine);
+                var testWidth = metrics.width;
+                if (testWidth > maxWidth && n > 0) {
+                    ctx.fillText(line, x, y);
+                    line = words[w] + " ";
+                    y += lineHeight;
+                } else {
+                    line = testLine;
+                }
+            }
+            ctx.fillText(line, x, y);
+            y += lineHeight;
+        }
+    }
 }

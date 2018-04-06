@@ -23,7 +23,7 @@ class GameManager {
     lightsources: { shape: string, aura: string }[] = [];
     lightblockers: string[] = [];
     annotations: string[] = [];
-    annotationText: Text = new Text(new GlobalPoint(0, 0), "", "20px serif");
+    annotationText: Text = new Text(new GlobalPoint(0, 0), "", "bold 20px serif");
     movementblockers: string[] = [];
     gridColour = $("#gridColour");
     fowColour = $("#fowColour");

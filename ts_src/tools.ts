@@ -116,7 +116,6 @@ export class SelectTool extends Tool {
         } else if (layer.selection.length) {
             const og = g2l(layer.selection[layer.selection.length - 1].refPoint);
             layer.selection.forEach((sel) => {
-                if (!(sel instanceof BaseRect)) return; // TODO
                 const delta = mouse.subtract(og.add(this.drag));
                 if (this.mode === SelectOperations.Drag) {
                     sel.refPoint = sel.refPoint.add(l2g(delta));
@@ -151,6 +150,7 @@ export class SelectTool extends Tool {
                     }
                     layer.invalidate(false);
                 } else if (this.mode === SelectOperations.Resize) {
+                    if (!(sel instanceof BaseRect)) return; // TODO
                     // TODO: This has to be shape specific
                     if (this.resizedir === 'nw') {
                         sel.w = g2lx(sel.refPoint.x) + sel.w * z - mouse.x;
@@ -175,6 +175,7 @@ export class SelectTool extends Tool {
                     }
                     layer.invalidate(false);
                 } else if (sel) {
+                    if (!(sel instanceof BaseRect)) return; // TODO
                     const gm = l2g(mouse);
                     if (sel.inCorner(gm, "nw")) {
                         document.body.style.cursor = "nw-resize";

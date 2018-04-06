@@ -116,6 +116,7 @@ export default abstract class Shape {
         const trackers = $("#selection-trackers");
         trackers.empty();
         this.trackers.forEach(function (tracker) {
+            if (tracker.value === 0) return;
             const val = tracker.maxvalue ? `${tracker.value}/${tracker.maxvalue}` : tracker.value;
             trackers.append($(`<div id="selection-tracker-${tracker.uuid}-name" data-uuid="${tracker.uuid}">${tracker.name}</div>`));
             trackers.append(
@@ -125,6 +126,7 @@ export default abstract class Shape {
         const auras = $("#selection-auras");
         auras.empty();
         this.auras.forEach(function (aura) {
+            if (aura.value === 0) return;
             const val = aura.dim ? `${aura.value}/${aura.dim}` : aura.value;
             auras.append($(`<div id="selection-aura-${aura.uuid}-name" data-uuid="${aura.uuid}">${aura.name}</div>`));
             auras.append(

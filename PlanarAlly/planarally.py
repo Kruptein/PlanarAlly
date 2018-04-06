@@ -131,7 +131,7 @@ class Room:
                 l['selectable'] = False
             for i, shape in enumerate(l['shapes']):
                 pl_shape = dict(shape)
-                if 'annotation' in pl_shape and player not in pl_shape['owners']:
+                if 'annotation' in pl_shape and username not in pl_shape['owners']:
                     del pl_shape['annotation']
                 pl_shape['trackers'] = [t for t in shape['trackers'] if username in pl_shape['owners'] or t['visible']]
                 pl_shape['auras'] = [a for a in shape['auras'] if username in pl_shape['owners'] or a['visible']]

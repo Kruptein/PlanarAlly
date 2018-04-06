@@ -500,7 +500,7 @@ export class FOWTool extends Tool {
         this.active = true;
         const layer = gameManager.layerManager.getLayer("fow")!;
         this.startPoint = l2g(getMouse(e));
-        this.rect = new Rect(this.startPoint, 0, 0, gameManager.fowColour.spectrum("get").toRgbString());
+        this.rect = new Rect(this.startPoint.clone(), 0, 0, gameManager.fowColour.spectrum("get").toRgbString());
         layer.addShape(this.rect, true, false);
 
         if ($("#fow-reveal").prop("checked"))

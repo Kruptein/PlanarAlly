@@ -233,7 +233,6 @@ class GameManager {
     }
 
     setInitiative(data: InitiativeData[]): void {
-        console.log(data);
         this.initiativeTracker.data = data;
         this.initiativeTracker.redraw();
         if (data.length > 0)

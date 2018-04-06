@@ -392,7 +392,7 @@ export class DrawTool extends Tool {
         const fill = fillColor === null ? tinycolor("transparent") : fillColor;
         const borderColor = this.borderColor.spectrum("get");
         const border = borderColor === null ? tinycolor("transparent") : borderColor;
-        this.rect = new Rect(this.startPoint, 0, 0, fill.toRgbString(), border.toRgbString());
+        this.rect = new Rect(this.startPoint.clone(), 0, 0, fill.toRgbString(), border.toRgbString());
         this.rect.owners.push(gameManager.username);
         if (layer.name === 'fow') {
             this.rect.visionObstruction = true;
@@ -585,9 +585,10 @@ export class MapTool extends Tool {
         const h = this.rect.h;
         const sel = layer.selection[0];
 
-        if (sel instanceof Rect) {
+        if (sel instanceof BaseRect) {
             sel.w *= parseInt(<string>this.xCount.val()) * gameManager.layerManager.gridSize / w;
             sel.h *= parseInt(<string>this.yCount.val()) * gameManager.layerManager.gridSize / h;
+            console.log("Updated selection");
         }
 
         layer.removeShape(this.rect, false, false);

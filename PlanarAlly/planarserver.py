@@ -3,6 +3,7 @@ PlanarAlly backend server code.
 This is the code responsible for starting the backend and reacting to socket IO events.
 """
 
+import collections
 import configparser
 import os
 from operator import itemgetter
@@ -32,6 +33,15 @@ aiohttp_security.setup(app, SessionIdentityPolicy(), app['AuthzPolicy'])
 aiohttp_session.setup(app, EncryptedCookieStorage(app['AuthzPolicy'].secret_token))
 aiohttp_jinja2.setup(app, loader=jinja2.FileSystemLoader('templates'))
 sio.attach(app)
+
+
+def nested_dict_update(d, u):
+    for k, v in u.items():
+        if isinstance(v, collections.Mapping):
+            d[k] = nested_dict_update(d.get(k, {}), v)
+        else:
+            d[k] = v
+    return d
 
 
 async def on_shutdown(app):
@@ -363,7 +373,7 @@ async def update_initiative(sid, data):
 @auth.login_required(app, sio)
 async def set_client(sid, data):
     user = app['AuthzPolicy'].sio_map[sid]['user']
-    user.options.update(**data)
+    nested_dict_update(user.options, data)
     app['AuthzPolicy'].save()
 
 
@@ -411,6 +421,10 @@ async def add_new_location(sid, location):
     sio.enter_room(sid, room.get_active_location(username).sioroom, namespace='/planarally')
     PA.save_room(room)
     await sio.emit('board init', room.get_board(username), room=sid, namespace='/planarally')
+    await sio.emit("set location", {'options': room.dm_location.options, 'name': room.dm_location.name}, room=sid,
+                   namespace='/planarally')
+    await sio.emit("set clientOptions", app['AuthzPolicy'].user_map[username].options, room=sid,
+                   namespace='/planarally')
 
 
 @sio.on("change location", namespace='/planarally')
@@ -429,6 +443,10 @@ async def change_location(sid, location):
     new_location = room.get_active_location(username)
     sio.enter_room(sid, new_location.sioroom, namespace='/planarally')
     await sio.emit('board init', room.get_board(username), room=sid, namespace='/planarally')
+    await sio.emit("set location", {'options': new_location.options, 'name': new_location.name}, room=sid,
+                   namespace='/planarally')
+    await sio.emit("set clientOptions", app['AuthzPolicy'].user_map[username].options, room=sid,
+                   namespace='/planarally')
 
     room.player_location = location
     PA.save_room(room)
@@ -438,6 +456,10 @@ async def change_location(sid, location):
             sio.leave_room(psid, old_location.sioroom, namespace='/planarally')
             sio.enter_room(psid, new_location.sioroom, namespace='/planarally')
     await sio.emit('board init', room.get_board(''), room=new_location.sioroom, skip_sid=sid, namespace='/planarally')
+    await sio.emit("set location", {'options': new_location.options, 'name': new_location.name}, room=new_location.sioroom, skip_sid=sid,
+                   namespace='/planarally')
+    await sio.emit("set clientOptions", app['AuthzPolicy'].user_map[username].options, room=new_location.sioroom, skip_sid=sid,
+                   namespace='/planarally')
 
 
 @sio.on('connect', namespace='/planarally')

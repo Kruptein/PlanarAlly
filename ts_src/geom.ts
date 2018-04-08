@@ -58,8 +58,21 @@ export class Vector<T extends Point> {
         this.direction = direction;
         this.origin = origin;
     }
+    length() {
+        return Math.sqrt(Math.pow(this.direction.x, 2) + Math.pow(this.direction.y, 2));
+    }
+    normalize() {
+        const l = this.length()
+        return new Vector<T>({x: this.direction.x / l, y: this.direction.y / l}, this.origin);
+    }
     reverse() {
         return new Vector<T>({x: -this.direction.x, y: -this.direction.y}, this.origin);
+    }
+    multiply(scale: number) {
+        return new Vector<T>({x: this.direction.x * scale, y: this.direction.y * scale}, this.origin);
+    }
+    dot(other: Vector<T>) {
+        return this.direction.x * other.direction.x + this.direction.y * other.direction.y;
     }
 }
 

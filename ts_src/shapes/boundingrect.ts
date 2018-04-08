@@ -1,4 +1,4 @@
-import { getLinesIntersectPoint, getPointDistance, GlobalPoint } from "../geom";
+import { getLinesIntersectPoint, getPointDistance, GlobalPoint, Vector } from "../geom";
 import { l2gx, l2gy } from "../units";
 
 export default class BoundingRect {
@@ -18,11 +18,21 @@ export default class BoundingRect {
             this.refPoint.y <= point.y && (this.refPoint.y + this.h) >= point.y;
     }
 
+    offset(vector: Vector<GlobalPoint>): BoundingRect {
+        return new BoundingRect(this.refPoint.add(vector), this.w, this.h);
+    }
+
     intersectsWith(other: BoundingRect): boolean {
-        return !(other.refPoint.x >= this.refPoint.x + this.w ||
-            other.refPoint.x + other.w <= this.refPoint.x ||
-            other.refPoint.y >= this.refPoint.y + this.h ||
-            other.refPoint.y + other.h <= this.refPoint.y);
+        return !(other.refPoint.x > this.refPoint.x + this.w ||
+            other.refPoint.x + other.w < this.refPoint.x ||
+            other.refPoint.y > this.refPoint.y + this.h ||
+            other.refPoint.y + other.h < this.refPoint.y);
+    }
+    getIntersectAreaWithRect(other: BoundingRect): BoundingRect {
+        const topleft = new GlobalPoint(Math.max(this.refPoint.x, other.refPoint.x), Math.max(this.refPoint.y, other.refPoint.y));
+        const w = Math.min(this.refPoint.x + this.w, other.refPoint.x + other.w) - topleft.x;
+        const h = Math.min(this.refPoint.y + this.h, other.refPoint.y + other.h) - topleft.y;
+        return new BoundingRect(topleft, w, h);
     }
     getIntersectWithLine(line: { start: GlobalPoint; end: GlobalPoint }) {
         const lines = [
@@ -43,5 +53,14 @@ export default class BoundingRect {
             }
         }
         return { intersect: min_i, distance: min_d }
+    }
+
+    center(): GlobalPoint;
+    center(centerPoint: GlobalPoint): void;
+    center(centerPoint?: GlobalPoint): GlobalPoint | void {
+        if (centerPoint === undefined)
+            return this.refPoint.add(new Vector<GlobalPoint>({x: this.w/2, y: this.h/2}));
+        this.refPoint.x = centerPoint.x - this.w / 2;
+        this.refPoint.y = centerPoint.y - this.h / 2;
     }
 }

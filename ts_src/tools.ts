@@ -8,6 +8,8 @@ import Rect from "./shapes/rect";
 import BaseRect from "./shapes/baserect";
 import Line from "./shapes/line";
 import Text from "./shapes/text";
+import { Layer } from "./layers";
+import Shape from "./shapes/shape";
 
 export abstract class Tool {
     detailDiv?: JQuery<HTMLElement>;
@@ -115,41 +117,28 @@ export class SelectTool extends Tool {
             layer.invalidate(true);
         } else if (layer.selection.length) {
             const og = g2l(layer.selection[layer.selection.length - 1].refPoint);
-            layer.selection.forEach((sel) => {
-                const delta = mouse.subtract(og.add(this.drag));
-                if (this.mode === SelectOperations.Drag) {
-                    sel.refPoint = sel.refPoint.add(l2g(delta));
-                    if (layer.name === 'tokens') {
-                        // We need to use the above updated values for the bounding box check
-                        // First check if the bounding boxes overlap to stop close / precise movement
-                        let blocked = false;
-                        const bbox = sel.getBoundingBox();
-                        const blockers = gameManager.movementblockers.filter(
-                            mb => mb !== sel.uuid && gameManager.layerManager.UUIDMap.has(mb) && gameManager.layerManager.UUIDMap.get(mb)!.getBoundingBox().intersectsWith(bbox));
-                        if (blockers.length > 0) {
-                            blocked = true;
-                        } else {
-                            // Draw a line from start to end position and see for any intersect
-                            // This stops sudden leaps over walls! cheeky buggers
-                            const line = { start: l2g(og), end: sel.refPoint };
-                            blocked = gameManager.movementblockers.some(
-                                mb => {
-                                    if (!gameManager.layerManager.UUIDMap.has(mb)) return false;
-                                    const inter = gameManager.layerManager.UUIDMap.get(mb)!.getBoundingBox().getIntersectWithLine(line);
-                                    return mb !== sel.uuid && inter.intersect !== null && inter.distance > 0;
-                                }
-                            );
-                        }
-                        if (blocked) {
-                            sel.refPoint = sel.refPoint.add(l2g(delta).reverse());
-                            return;
-                        }
+            let delta = l2g(mouse.subtract(og.add(this.drag)));
+            if (this.mode === SelectOperations.Drag) {
+                // If we are on the tokens layer do a movement block check.
+                if (layer.name === 'tokens') {
+                    for (let i = 0; i < layer.selection.length; i++) {
+                        const sel = layer.selection[i];
+                        if (sel.uuid === this.selectionHelper.uuid) continue; // the selection helper should not be treated as a real shape.
+                        delta = calculateDelta(delta, sel);
                     }
+                }
+                // Actually apply the delta on all shapes
+                for (let i = 0; i < layer.selection.length; i++) {
+                    const sel = layer.selection[i];
+                    sel.refPoint = sel.refPoint.add(delta);
                     if (sel !== this.selectionHelper) {
                         socket.emit("shapeMove", { shape: sel.asDict(), temporary: true });
                     }
-                    layer.invalidate(false);
-                } else if (this.mode === SelectOperations.Resize) {
+                }
+                layer.invalidate(false);
+            } else if (this.mode === SelectOperations.Resize) {
+                for (let i = 0; i < layer.selection.length; i++) {
+                    const sel = layer.selection[i];
                     if (!(sel instanceof BaseRect)) return; // TODO
                     // TODO: This has to be shape specific
                     if (this.resizedir === 'nw') {
@@ -174,7 +163,10 @@ export class SelectTool extends Tool {
                         socket.emit("shapeMove", { shape: sel.asDict(), temporary: true });
                     }
                     layer.invalidate(false);
-                } else if (sel) {
+                }
+            } else {
+                for (let i = 0; i < layer.selection.length; i++) {
+                    const sel = layer.selection[i];
                     if (!(sel instanceof BaseRect)) return; // TODO
                     const gm = l2g(mouse);
                     if (sel.inCorner(gm, "nw")) {
@@ -189,7 +181,7 @@ export class SelectTool extends Tool {
                         document.body.style.cursor = "default";
                     }
                 }
-            });
+            };
         } else {
             document.body.style.cursor = "default";
         }
@@ -724,3 +716,60 @@ const tools = [
     { name: "fow", playerTool: false, defaultSelect: false, hasDetail: true, clz: FOWTool },
     { name: "map", playerTool: false, defaultSelect: false, hasDetail: true, clz: MapTool },
 ];
+
+
+// First go through each shape in the selection and see if the delta has to be truncated due to movement blockers
+
+// This is definitely super convoluted and inefficient but I was tired and really wanted the smooth wall sliding collision stuff to work
+// And it does now, so hey ¯\_(ツ)_/¯
+function calculateDelta(delta: Vector<GlobalPoint>, sel: Shape, done?: string[]) {
+    if (done === undefined) done = [];
+    const ogSelBBox = sel.getBoundingBox();
+    const newSelBBox = ogSelBBox.offset(delta);
+    let refine = false;
+    for (let mb = 0; mb < gameManager.movementblockers.length; mb++) {
+        if (done.includes(gameManager.movementblockers[mb]))
+            continue;
+        const blocker = gameManager.layerManager.UUIDMap.get(gameManager.movementblockers[mb])!;
+        const blockerBBox = blocker.getBoundingBox();
+        // Check if the bounding box of our destination would intersect with the bounding box of the movementblocker
+        if (blockerBBox.intersectsWith(newSelBBox) || blockerBBox.getIntersectWithLine({ start: ogSelBBox.refPoint.add(delta.normalize()), end: newSelBBox.refPoint }).intersect) {
+            const bCenter = blockerBBox.center();
+            const sCenter = ogSelBBox.center();
+
+            const d = sCenter.subtract(bCenter);
+            const ux = new Vector<GlobalPoint>({ x: 1, y: 0 });
+            const uy = new Vector<GlobalPoint>({ x: 0, y: 1 });
+            let dx = d.dot(ux);
+            let dy = d.dot(uy);
+            if (dx > blockerBBox.w / 2) dx = blockerBBox.w / 2;
+            if (dx < -blockerBBox.w / 2) dx = -blockerBBox.w / 2;
+            if (dy > blockerBBox.h / 2) dy = blockerBBox.h / 2;
+            if (dy < -blockerBBox.h / 2) dy = -blockerBBox.h / 2;
+
+            // Closest point / intersection point between the two bboxes.  Not the delta intersect!
+            const p = bCenter.add(ux.multiply(dx)).add(uy.multiply(dy));
+
+            if (p.x === ogSelBBox.refPoint.x || p.x === ogSelBBox.refPoint.x + ogSelBBox.w)
+                delta.direction.x = 0;
+            else if (p.y === ogSelBBox.refPoint.y || p.y === ogSelBBox.refPoint.y + ogSelBBox.h)
+                delta.direction.y = 0;
+            else {
+                if (p.x < ogSelBBox.refPoint.x)
+                    delta.direction.x = p.x - ogSelBBox.refPoint.x;
+                else if (p.x > ogSelBBox.refPoint.x + ogSelBBox.w)
+                    delta.direction.x = p.x - (ogSelBBox.refPoint.x + ogSelBBox.w);
+                else if (p.y < ogSelBBox.refPoint.y)
+                    delta.direction.y = p.y - ogSelBBox.refPoint.y;
+                else if (p.y > ogSelBBox.refPoint.y + ogSelBBox.h)
+                    delta.direction.y = p.y - (ogSelBBox.refPoint.y + ogSelBBox.h);
+            }
+            refine = true;
+            done.push(gameManager.movementblockers[mb]);
+            break;
+        }
+    }
+    if (refine)
+        delta = calculateDelta(delta, sel, done);
+    return delta;
+}

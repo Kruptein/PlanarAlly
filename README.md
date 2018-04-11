@@ -1,7 +1,5 @@
 # PlanarAlly
 
-**THIS BRANCH IS EXPERIMENTAL AND IS NOT USABLE IN ANY WAY ATM. USE THE MASTER BRANCH INSTEAD**
-
 A companion tool for when you travel into the planes.
 
 PlanarAlly is a web tool that adds virtual battlemaps with various extras to your D&D toolbox.

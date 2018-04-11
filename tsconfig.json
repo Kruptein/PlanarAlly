@@ -1,0 +1,8 @@
+{
+  "compilerOptions": {
+    "target": "es2017",
+    "sourceMap": true,
+    "listEmittedFiles": true,
+    "strict": true
+  }
+}

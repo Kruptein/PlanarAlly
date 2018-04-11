@@ -1,8 +1,9 @@
-import secrets
-from functools import wraps
-
 import bcrypt
+import dbm
+import secrets
 import shelve
+from distutils.version import StrictVersion
+from functools import wraps
 
 from aiohttp_security.abc import AbstractAuthorizationPolicy
 
@@ -41,12 +42,17 @@ class ShelveDictAuthorizationPolicy(AbstractAuthorizationPolicy):
 
     def load_save(self):
         with shelve.open(self.save_file, 'c') as shelf:
+            # Load the user map
             self.user_map = shelf.get('user_map', {})
+            
+            # Get the secret_token from the save or generate it if missing
             if "secret_token" not in shelf:
                 self.secret_token = secrets.token_bytes(32)
                 shelf['secret_token'] = self.secret_token
             else:
                 self.secret_token = shelf['secret_token']
+            if "save_version" not in shelf:
+                shelf['save_version'] = 0
 
     def save(self):
         with shelve.open(self.save_file, 'c') as shelf:

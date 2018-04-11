@@ -1,3 +1,4 @@
+@import url("https://maxcdn.bootstrapcdn.com/font-awesome/4.6.1/css/font-awesome.min.css");
 html, body, #main {
     height: 100%;
 }
@@ -10,11 +11,11 @@ a, a:visited, a:hover, a:active {
     color: inherit;
 }
 
-fieldset {
+/* fieldset { */
     /*padding: 0;*/
     /*border: 0;*/
     /*margin-top: 25px;*/
-}
+/* } */
 
 #main {
     display: flex;
@@ -262,10 +263,10 @@ fieldset {
     flex-direction: column;
 }
 
-#contextMenu > ul > li ul li {
-    /*float: left;*/
-    /*display: block;*/
-}
+/* #contextMenu > ul > li ul li {
+    /*float: left;*
+    /*display: block;*
+} */
 
 .context-clickable {
     cursor: pointer;
@@ -556,4 +557,8 @@ input:checked + .slider:before {
 
 #shapeselectiondialog .sp-dd {
     display: none;
+}
+
+select {
+    font-family: FontAwesome, sans-serif;
 }

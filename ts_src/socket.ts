@@ -1,6 +1,6 @@
 import gameManager from "./planarally";
 import { alphSort } from "./utils";
-import { setupTools } from "./tools";
+import { setupTools } from "./tools/tools";
 import { ClientOptions, LocationOptions, AssetList, ServerShape, InitiativeData, BoardInfo } from "./api_types";
 
 const protocol = document.domain === 'localhost' ? "http://" : "https://";

@@ -5,10 +5,11 @@ import { ClientOptions, BoardInfo, ServerShape, InitiativeData } from './api_typ
 import { OrderedMap, getMouse } from './utils';
 import Asset from './shapes/asset';
 import {createShapeFromDict} from './shapes/utils';
-import { DrawTool, RulerTool, MapTool, FOWTool, InitiativeTracker, Tool } from "./tools";
 import { LocalPoint, GlobalPoint } from './geom';
 import Rect from './shapes/rect';
 import Text from './shapes/text';
+import { Tool } from './tools/tool';
+import { InitiativeTracker } from './tools/initiative';
 
 class GameManager {
     IS_DM = false;

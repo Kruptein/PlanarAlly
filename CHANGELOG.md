@@ -1,6 +1,11 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [0.3] - <Not yet released>
+
+### Added
+- Shape selection option is added to the draw tool, currently giving the option between a rectangle and a circle.
+
 ## [0.2] - 2018-03-04
 This update is firstmost an update in regards to the development process so little to no new feautures are added in this release.
 A couple of important bugfixes are included though.

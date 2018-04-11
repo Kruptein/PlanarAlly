@@ -306,18 +306,18 @@ export class Layer {
                 ctx.lineWidth = this.selectionWidth;
                 const z = gameManager.layerManager.zoomFactor;
                 this.selection.forEach(function (sel) {
-                    if (!(sel instanceof BaseRect)) return;
+                    const bb = sel.getBoundingBox();
                     // TODO: REFACTOR THIS TO Shape.drawSelection(ctx);
-                    ctx.strokeRect(g2lx(sel.refPoint.x), g2ly(sel.refPoint.y), sel.w * z, sel.h * z);
+                    ctx.strokeRect(g2lx(bb.refPoint.x), g2ly(bb.refPoint.y), bb.w * z, bb.h * z);
 
                     // topright
-                    ctx.fillRect(g2lx(sel.refPoint.x + sel.w - 3), g2ly(sel.refPoint.y - 3), 6 * z, 6 * z);
+                    ctx.fillRect(g2lx(bb.refPoint.x + bb.w - 3), g2ly(bb.refPoint.y - 3), 6 * z, 6 * z);
                     // topleft
-                    ctx.fillRect(g2lx(sel.refPoint.x - 3), g2ly(sel.refPoint.y - 3), 6 * z, 6 * z);
+                    ctx.fillRect(g2lx(bb.refPoint.x - 3), g2ly(bb.refPoint.y - 3), 6 * z, 6 * z);
                     // botright
-                    ctx.fillRect(g2lx(sel.refPoint.x + sel.w - 3), g2ly(sel.refPoint.y + sel.h - 3), 6 * z, 6 * z);
+                    ctx.fillRect(g2lx(bb.refPoint.x + bb.w - 3), g2ly(bb.refPoint.y + bb.h - 3), 6 * z, 6 * z);
                     // botleft
-                    ctx.fillRect(g2lx(sel.refPoint.x - 3), g2ly(sel.refPoint.y + sel.h - 3), 6 * z, 6 * z)
+                    ctx.fillRect(g2lx(bb.refPoint.x - 3), g2ly(bb.refPoint.y + bb.h - 3), 6 * z, 6 * z)
                 });
             }
 

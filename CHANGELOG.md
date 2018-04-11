@@ -1,7 +1,7 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
-## [0.2] - 2018-03-04
+## [0.2] - 2018-04-11
 This update is firstmost an update in regards to the development process so little to no new feautures are added in this release.
 A couple of important bugfixes are included though.
 

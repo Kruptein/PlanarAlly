@@ -17,9 +17,11 @@ A couple of important bugfixes are included though.
 - Players on a different IP as the dm now actually see images.
 - Pan and zoom options are now remembered per user AND location instead of only per user.
 - MovementObstruction and visionObstruction were not immediately synced on toggle.
+- Groupselect now behaves more predictable when one member collides with a movement blocker
 
 ### Changed
 - Move from 1 large javascript file to a proper multi file typescript system
+- When dragging an asset against a movement blocker, it will smoothly slide across the blocker instead of completely locking up.
 
 ## [0.1] - 2018-03-22
 ### Added

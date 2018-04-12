@@ -5,6 +5,7 @@ import gameManager from "../planarally";
 import { getMouse } from "../utils";
 import { l2g } from "../units";
 import BaseRect from "../shapes/baserect";
+import { Settings } from "../settings";
 
 export class MapTool extends Tool {
     active: boolean = false;
@@ -61,8 +62,8 @@ export class MapTool extends Tool {
         const sel = layer.selection[0];
 
         if (sel instanceof BaseRect) {
-            sel.w *= parseInt(<string>this.xCount.val()) * gameManager.layerManager.gridSize / w;
-            sel.h *= parseInt(<string>this.yCount.val()) * gameManager.layerManager.gridSize / h;
+            sel.w *= parseInt(<string>this.xCount.val()) * Settings.gridSize / w;
+            sel.h *= parseInt(<string>this.yCount.val()) * Settings.gridSize / h;
             console.log("Updated selection");
         }
 

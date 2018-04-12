@@ -2,7 +2,6 @@ import Shape from "./shape";
 import BoundingRect from "./boundingrect";
 import { g2lx, g2ly } from "../units";
 import { GlobalPoint } from "../geom";
-import { ServerLine } from "../api_types";
 
 export default class Line extends Shape {
     type = "line";

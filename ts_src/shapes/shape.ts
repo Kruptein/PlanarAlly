@@ -273,4 +273,9 @@ export default abstract class Shape {
             owners: this.owners
         }
     }
+    // Code to snap a grid to the grid
+    // This is shape dependent as the shape refPoints are shape specific in
+    snapToGrid() {};
+    resizeToGrid() {};
+    resize(resizeDir: string, point: LocalPoint) {};
 }

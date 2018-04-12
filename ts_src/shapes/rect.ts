@@ -1,8 +1,8 @@
 import BaseRect from "./baserect";
-import gameManager from "../planarally";
 import { g2l } from "../units";
 import { GlobalPoint } from "../geom";
 import { ServerRect } from "../api_types";
+import { Settings } from "../settings";
 
 export default class Rect extends BaseRect {
     type = "rect"
@@ -25,7 +25,7 @@ export default class Rect extends BaseRect {
     draw(ctx: CanvasRenderingContext2D) {
         super.draw(ctx);
         ctx.fillStyle = this.fill;
-        const z = gameManager.layerManager.zoomFactor;
+        const z = Settings.zoomFactor;
         const loc = g2l(this.refPoint);
         ctx.fillRect(loc.x, loc.y, this.w * z, this.h * z);
         if (this.border !== "rgba(0, 0, 0, 0)") {

@@ -1,5 +1,4 @@
 import { getLinesIntersectPoint, getPointDistance, GlobalPoint, Vector } from "../geom";
-import { l2gx, l2gy } from "../units";
 
 export default class BoundingRect {
     type = "boundrect";
@@ -62,5 +61,29 @@ export default class BoundingRect {
             return this.refPoint.add(new Vector<GlobalPoint>({x: this.w/2, y: this.h/2}));
         this.refPoint.x = centerPoint.x - this.w / 2;
         this.refPoint.y = centerPoint.y - this.h / 2;
+    }
+    inCorner(point: GlobalPoint, corner: string) {
+        switch (corner) {
+            case 'ne':
+                return this.refPoint.x + this.w - 3 <= point.x && point.x <= this.refPoint.x + this.w + 3 && this.refPoint.y - 3 <= point.y && point.y <= this.refPoint.y + 3;
+            case 'nw':
+                return this.refPoint.x - 3 <= point.x && point.x <= this.refPoint.x + 3 && this.refPoint.y - 3 <= point.y && point.y <= this.refPoint.y + 3;
+            case 'sw':
+                return this.refPoint.x - 3 <= point.x && point.x <= this.refPoint.x + 3 && this.refPoint.y + this.h - 3 <= point.y && point.y <= this.refPoint.y + this.h + 3;
+            case 'se':
+                return this.refPoint.x + this.w - 3 <= point.x && point.x <= this.refPoint.x + this.w + 3 && this.refPoint.y + this.h - 3 <= point.y && point.y <= this.refPoint.y + this.h + 3;
+            default:
+                return false;
+        }
+    }
+    getCorner(point: GlobalPoint): string|undefined {
+        if (this.inCorner(point, "ne"))
+            return "ne";
+        else if (this.inCorner(point, "nw"))
+            return "nw";
+        else if (this.inCorner(point, "se"))
+            return "se";
+        else if (this.inCorner(point, "sw"))
+            return "sw";
     }
 }

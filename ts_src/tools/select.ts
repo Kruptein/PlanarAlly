@@ -3,10 +3,10 @@ import { Vector, LocalPoint, GlobalPoint } from "../geom";
 import Rect from "../shapes/rect";
 import gameManager from "../planarally";
 import { getMouse } from "../utils";
-import { l2g, g2l, g2lx, g2ly, l2gy, l2gx } from "../units";
+import { l2g, g2l, g2lx, g2ly } from "../units";
 import socket from "../socket";
-import BaseRect from "../shapes/baserect";
 import { Tool } from "./tool";
+import { Settings } from "../settings";
 
 
 export class SelectTool extends Tool {
@@ -38,7 +38,7 @@ export class SelectTool extends Tool {
             selectionStack = layer.shapes.concat(layer.selection);
         for (let i = selectionStack.length - 1; i >= 0; i--) {
             const shape = selectionStack[i];
-            const corn = shape.getCorner(l2g(mouse));
+            const corn = shape.getBoundingBox().getCorner(l2g(mouse));
             if (corn !== undefined) {
                 if (!shape.ownedBy()) continue;
                 layer.selection = [shape];
@@ -51,7 +51,7 @@ export class SelectTool extends Tool {
             } else if (shape.contains(l2g(mouse))) {
                 if (!shape.ownedBy()) continue;
                 const sel = shape;
-                const z = gameManager.layerManager.zoomFactor;
+                const z = Settings.zoomFactor;
                 if (layer.selection.indexOf(sel) === -1) {
                     layer.selection = [sel];
                     sel.onSelection();
@@ -86,7 +86,7 @@ export class SelectTool extends Tool {
         }
         const layer = gameManager.layerManager.getLayer()!;
         const mouse = getMouse(e);
-        const z = gameManager.layerManager.zoomFactor;
+        const z = Settings.zoomFactor;
         if (this.mode === SelectOperations.GroupSelect) {
             // Currently draw on active this
             const endPoint = l2g(mouse);
@@ -122,26 +122,7 @@ export class SelectTool extends Tool {
             } else if (this.mode === SelectOperations.Resize) {
                 for (let i = 0; i < layer.selection.length; i++) {
                     const sel = layer.selection[i];
-                    if (!(sel instanceof BaseRect)) return; // TODO
-                    // TODO: This has to be shape specific
-                    if (this.resizedir === 'nw') {
-                        sel.w = g2lx(sel.refPoint.x) + sel.w * z - mouse.x;
-                        sel.h = g2ly(sel.refPoint.y) + sel.h * z - mouse.y;
-                        sel.refPoint = l2g(mouse);
-                    } else if (this.resizedir === 'ne') {
-                        sel.w = mouse.x - g2lx(sel.refPoint.x);
-                        sel.h = g2ly(sel.refPoint.y) + sel.h * z - mouse.y;
-                        sel.refPoint.y = l2gy(mouse.y);
-                    } else if (this.resizedir === 'se') {
-                        sel.w = mouse.x - g2lx(sel.refPoint.x);
-                        sel.h = mouse.y - g2ly(sel.refPoint.y);
-                    } else if (this.resizedir === 'sw') {
-                        sel.w = g2lx(sel.refPoint.x) + sel.w * z - mouse.x;
-                        sel.h = mouse.y - g2ly(sel.refPoint.y);
-                        sel.refPoint.x = l2gx(mouse.x);
-                    }
-                    sel.w /= z;
-                    sel.h /= z;
+                    sel.resize(this.resizedir, mouse);
                     if (sel !== this.selectionHelper) {
                         socket.emit("shapeMove", { shape: sel.asDict(), temporary: true });
                     }
@@ -150,15 +131,15 @@ export class SelectTool extends Tool {
             } else {
                 for (let i = 0; i < layer.selection.length; i++) {
                     const sel = layer.selection[i];
-                    if (!(sel instanceof BaseRect)) return; // TODO
+                    const bb = sel.getBoundingBox();
                     const gm = l2g(mouse);
-                    if (sel.inCorner(gm, "nw")) {
+                    if (bb.inCorner(gm, "nw")) {
                         document.body.style.cursor = "nw-resize";
-                    } else if (sel.inCorner(gm, "ne")) {
+                    } else if (bb.inCorner(gm, "ne")) {
                         document.body.style.cursor = "ne-resize";
-                    } else if (sel.inCorner(gm, "se")) {
+                    } else if (bb.inCorner(gm, "se")) {
                         document.body.style.cursor = "se-resize";
-                    } else if (sel.inCorner(gm, "sw")) {
+                    } else if (bb.inCorner(gm, "sw")) {
                         document.body.style.cursor = "sw-resize";
                     } else {
                         document.body.style.cursor = "default";
@@ -200,21 +181,8 @@ export class SelectTool extends Tool {
             layer.selection.forEach((sel) => {
                 if (this.mode === SelectOperations.Drag) {
                     if (this.drag.origin!.x === g2lx(sel.refPoint.x) && this.drag.origin!.y === g2ly(sel.refPoint.y)) { return }
-                    if ((sel instanceof BaseRect) && gameManager.layerManager.useGrid && !e.altKey) {
-                        const gs = gameManager.layerManager.gridSize;
-                        const mouse = sel.center();
-                        const mx = mouse.x;
-                        const my = mouse.y;
-                        if ((sel.w / gs) % 2 === 0) {
-                            sel.refPoint.x = Math.round(mx / gs) * gs - sel.w / 2;
-                        } else {
-                            sel.refPoint.x = (Math.round((mx + (gs / 2)) / gs) - (1 / 2)) * gs - sel.w / 2;
-                        }
-                        if ((sel.h / gs) % 2 === 0) {
-                            sel.refPoint.y = Math.round(my / gs) * gs - sel.h / 2;
-                        } else {
-                            sel.refPoint.y = (Math.round((my + (gs / 2)) / gs) - (1 / 2)) * gs - sel.h / 2;
-                        }
+                    if (Settings.useGrid && !e.altKey) {
+                        sel.snapToGrid();
                     }
 
                     if (sel !== this.selectionHelper) {
@@ -223,21 +191,8 @@ export class SelectTool extends Tool {
                     layer.invalidate(false);
                 }
                 if (this.mode === SelectOperations.Resize) {
-                    if (!(sel instanceof BaseRect)) return; // TODO
-                    if (sel.w < 0) {
-                        sel.refPoint.x += sel.w;
-                        sel.w = Math.abs(sel.w);
-                    }
-                    if (sel.h < 0) {
-                        sel.refPoint.y += sel.h;
-                        sel.h = Math.abs(sel.h);
-                    }
-                    if (gameManager.layerManager.useGrid && !e.altKey) {
-                        const gs = gameManager.layerManager.gridSize;
-                        sel.refPoint.x = Math.round(sel.refPoint.x / gs) * gs;
-                        sel.refPoint.y = Math.round(sel.refPoint.y / gs) * gs;
-                        sel.w = Math.max(Math.round(sel.w / gs) * gs, gs);
-                        sel.h = Math.max(Math.round(sel.h / gs) * gs, gs);
+                    if (Settings.useGrid && !e.altKey) {
+                        sel.resizeToGrid();
                     }
                     if (sel !== this.selectionHelper) {
                         socket.emit("shapeMove", { shape: sel.asDict(), temporary: false });

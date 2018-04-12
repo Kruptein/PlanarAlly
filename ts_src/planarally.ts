@@ -6,10 +6,10 @@ import { OrderedMap, getMouse } from './utils';
 import Asset from './shapes/asset';
 import {createShapeFromDict} from './shapes/utils';
 import { LocalPoint, GlobalPoint } from './geom';
-import Rect from './shapes/rect';
 import Text from './shapes/text';
 import { Tool } from './tools/tool';
 import { InitiativeTracker } from './tools/initiative';
+import { Settings } from './settings';
 
 class GameManager {
     IS_DM = false;
@@ -151,8 +151,8 @@ class GameManager {
                         const asset = new Asset(img, wloc, img.width, img.height);
                         asset.src = new URL(img.src).pathname;
 
-                        if (gameManager.layerManager.useGrid) {
-                            const gs = gameManager.layerManager.gridSize;
+                        if (Settings.useGrid) {
+                            const gs = Settings.gridSize;
                             asset.refPoint.x = Math.round(asset.refPoint.x / gs) * gs;
                             asset.refPoint.y = Math.round(asset.refPoint.y / gs) * gs;
                             asset.w = Math.max(Math.round(asset.w / gs) * gs, gs);
@@ -251,11 +251,11 @@ class GameManager {
             if (options.locationOptions[`${gameManager.roomName}/${gameManager.roomCreator}/${gameManager.locationName}`]) {
                 const loc = options.locationOptions[`${gameManager.roomName}/${gameManager.roomCreator}/${gameManager.locationName}`];
                 if (loc.panX)
-                    this.layerManager.panX = loc.panX;
+                    Settings.panX = loc.panX;
                 if (loc.panY)
-                    this.layerManager.panY = loc.panY;
+                    Settings.panY = loc.panY;
                 if (loc.zoomFactor) {
-                    this.layerManager.zoomFactor = loc.zoomFactor;
+                    Settings.zoomFactor = loc.zoomFactor;
                     $("#zoomer").slider({ value: 1 / loc.zoomFactor });
                 }
                 if (this.layerManager.getGridLayer() !== undefined)
@@ -336,23 +336,23 @@ $("#zoomer").slider({
     min: 0.5,
     max: 5.0,
     step: 0.1,
-    value: gameManager.layerManager.zoomFactor,
+    value: Settings.zoomFactor,
     slide: function (event, ui) {
-        const origZ = gameManager.layerManager.zoomFactor;
+        const origZ = Settings.zoomFactor;
         const newZ = 1 / ui.value!;
         const origX = window.innerWidth / origZ;
         const newX = window.innerWidth / newZ;
         const origY = window.innerHeight / origZ;
         const newY = window.innerHeight / newZ;
-        gameManager.layerManager.zoomFactor = newZ;
-        gameManager.layerManager.panX -= (origX - newX) / 2;
-        gameManager.layerManager.panY -= (origY - newY) / 2;
+        Settings.zoomFactor = newZ;
+        Settings.panX -= (origX - newX) / 2;
+        Settings.panY -= (origY - newY) / 2;
         gameManager.layerManager.invalidate();
         socket.emit("set clientOptions", {
             locationOptions: {
                 [`${gameManager.roomName}/${gameManager.roomCreator}/${gameManager.locationName}`]: {
-                    panX: gameManager.layerManager.panX,
-                    panY: gameManager.layerManager.panY,
+                    panX: Settings.panX,
+                    panY: Settings.panY,
                     zoomFactor: newZ,
                 }
             }
@@ -438,7 +438,7 @@ $("#useFOWInput").on("change", function (e) {
 $("#fowOpacity").on("change", function (e) {
     let fo = parseFloat((<HTMLInputElement>e.target).value);
     if (isNaN(fo)) {
-        $("#fowOpacity").val(gameManager.layerManager.fowOpacity);
+        $("#fowOpacity").val(Settings.fowOpacity);
         return;
     }
     if (fo < 0) fo = 0;

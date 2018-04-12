@@ -2,7 +2,6 @@ import Shape from "./shape";
 import BoundingRect from "./boundingrect";
 import { GlobalPoint } from "../geom";
 import { g2l } from "../units";
-import { ServerText } from "../api_types";
 
 export default class Text extends Shape {
     type = "text";

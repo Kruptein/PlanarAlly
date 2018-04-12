@@ -1,10 +1,10 @@
-import gameManager from "./planarally";
 import { GlobalPoint, LocalPoint, Vector } from "./geom";
+import { Settings } from "./settings";
 
 export function g2l(obj: GlobalPoint): LocalPoint {
-    const z = gameManager.layerManager.zoomFactor;
-    const panX = gameManager.layerManager.panX;
-    const panY = gameManager.layerManager.panY;
+    const z = Settings.zoomFactor;
+    const panX = Settings.panX;
+    const panY = Settings.panY;
     return new LocalPoint((obj.x + panX) * z, (obj.y + panY) * z);
 }
 
@@ -17,11 +17,11 @@ export function g2ly(y: number) {
 }
 
 export function g2lz(z: number) {
-    return z * gameManager.layerManager.zoomFactor;
+    return z * Settings.zoomFactor;
 }
 
 export function getUnitDistance(r: number) {
-    return (r / gameManager.layerManager.unitSize) * gameManager.layerManager.gridSize;
+    return (r / Settings.unitSize) * Settings.gridSize;
 }
 
 export function g2lr(r: number) {
@@ -31,9 +31,9 @@ export function g2lr(r: number) {
 export function l2g(obj: LocalPoint): GlobalPoint;
 export function l2g(obj: Vector<LocalPoint>): Vector<GlobalPoint>;
 export function l2g(obj: LocalPoint|Vector<LocalPoint>): GlobalPoint|Vector<GlobalPoint> {
-    const z = gameManager.layerManager.zoomFactor;
-        const panX = gameManager.layerManager.panX;
-        const panY = gameManager.layerManager.panY;
+    const z = Settings.zoomFactor;
+        const panX = Settings.panX;
+        const panY = Settings.panY;
     if (obj instanceof LocalPoint) {
         return new GlobalPoint((obj.x / z) - panX, (obj.y / z) - panY);
     } else {

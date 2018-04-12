@@ -1,7 +1,8 @@
 import BoundingRect from "./boundingrect";
 import Shape from "./shape";
-import { GlobalPoint, Vector } from "../geom";
-import { g2lx, g2ly } from "../units";
+import { GlobalPoint, Vector, LocalPoint } from "../geom";
+import { g2lx, g2ly, l2g, l2gy, l2gx } from "../units";
+import { Settings } from "../settings";
 
 export default abstract class BaseRect extends Shape {
     w: number;
@@ -60,5 +61,58 @@ export default abstract class BaseRect extends Shape {
     visibleInCanvas(canvas: HTMLCanvasElement): boolean {
         return !(g2lx(this.refPoint.x) > canvas.width || g2ly(this.refPoint.y) > canvas.height ||
                     g2lx(this.refPoint.x + this.w) < 0 || g2ly(this.refPoint.y + this.h) < 0);
+    }
+    snapToGrid() {
+        const gs = Settings.gridSize;
+        const center = this.center();
+        const mx = center.x;
+        const my = center.y;
+        if ((this.w / gs) % 2 === 0) {
+            this.refPoint.x = Math.round(mx / gs) * gs - this.w / 2;
+        } else {
+            this.refPoint.x = (Math.round((mx + (gs / 2)) / gs) - (1 / 2)) * gs - this.w / 2;
+        }
+        if ((this.h / gs) % 2 === 0) {
+            this.refPoint.y = Math.round(my / gs) * gs - this.h / 2;
+        } else {
+            this.refPoint.y = (Math.round((my + (gs / 2)) / gs) - (1 / 2)) * gs - this.h / 2;
+        }
+    }
+    resizeToGrid() {
+        const gs = Settings.gridSize;
+        this.refPoint.x = Math.round(this.refPoint.x / gs) * gs;
+        this.refPoint.y = Math.round(this.refPoint.y / gs) * gs;
+        this.w = Math.max(Math.round(this.w / gs) * gs, gs);
+        this.h = Math.max(Math.round(this.h / gs) * gs, gs);
+    }
+    resize(resizedir: string, point: LocalPoint) {
+        const z = Settings.zoomFactor;
+        if (resizedir === 'nw') {
+            this.w = g2lx(this.refPoint.x) + this.w * z - point.x;
+            this.h = g2ly(this.refPoint.y) + this.h * z - point.y;
+            this.refPoint = l2g(point);
+        } else if (resizedir === 'ne') {
+            this.w = point.x - g2lx(this.refPoint.x);
+            this.h = g2ly(this.refPoint.y) + this.h * z - point.y;
+            this.refPoint.y = l2gy(point.y);
+        } else if (resizedir === 'se') {
+            this.w = point.x - g2lx(this.refPoint.x);
+            this.h = point.y - g2ly(this.refPoint.y);
+        } else if (resizedir === 'sw') {
+            this.w = g2lx(this.refPoint.x) + this.w * z - point.x;
+            this.h = point.y - g2ly(this.refPoint.y);
+            this.refPoint.x = l2gx(point.x);
+        }
+        this.w /= z;
+        this.h /= z;
+
+        if (this.w < 0) {
+            this.refPoint.x += this.w;
+            this.w = Math.abs(this.w);
+        }
+        if (this.h < 0) {
+            this.refPoint.y += this.h;
+            this.h = Math.abs(this.h);
+        }
     }
 }

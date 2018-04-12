@@ -1,13 +1,13 @@
-import {getUnitDistance, l2g, g2l, g2lz, g2lr, g2lx, g2ly} from "./units";
+import {getUnitDistance, g2l, g2lz, g2lr, g2lx, g2ly} from "./units";
 import {GlobalPoint} from "./geom";
 import gameManager from "./planarally";
 import socket from "./socket";
 import { LocationOptions, ServerShape } from "./api_types";
 import Shape from "./shapes/shape";
-import BaseRect from "./shapes/baserect";
 import Circle from "./shapes/circle";
 import BoundingRect from "./shapes/boundingrect";
 import { createShapeFromDict } from "./shapes/utils";
+import { Settings } from "./settings";
 
 export class LayerManager {
     layers: Layer[] = [];
@@ -16,16 +16,6 @@ export class LayerManager {
     selectedLayer: string = "";
 
     UUIDMap: Map<string, Shape> = new Map();
-
-    gridSize = 50;
-    unitSize = 5;
-    useGrid = true;
-    fullFOW = false;
-    fowOpacity = 0.3;
-
-    zoomFactor = 1;
-    panX = 0;
-    panY = 0;
 
     // Refresh interval and redraw setter.
     interval = 30;
@@ -114,11 +104,11 @@ export class LayerManager {
         layer.clear();
         ctx.beginPath();
 
-        for (let i = 0; i < layer.width; i += this.gridSize * this.zoomFactor) {
-            ctx.moveTo(i + (this.panX % this.gridSize) * this.zoomFactor, 0);
-            ctx.lineTo(i + (this.panX % this.gridSize) * this.zoomFactor, layer.height);
-            ctx.moveTo(0, i + (this.panY % this.gridSize) * this.zoomFactor);
-            ctx.lineTo(layer.width, i + (this.panY % this.gridSize) * this.zoomFactor);
+        for (let i = 0; i < layer.width; i += Settings.gridSize * Settings.zoomFactor) {
+            ctx.moveTo(i + (Settings.panX % Settings.gridSize) * Settings.zoomFactor, 0);
+            ctx.lineTo(i + (Settings.panX % Settings.gridSize) * Settings.zoomFactor, layer.height);
+            ctx.moveTo(0, i + (Settings.panY % Settings.gridSize) * Settings.zoomFactor);
+            ctx.lineTo(layer.width, i + (Settings.panY % Settings.gridSize) * Settings.zoomFactor);
         }
 
         ctx.strokeStyle = gameManager.gridColour.spectrum("get").toRgbString();
@@ -130,24 +120,24 @@ export class LayerManager {
     }
 
     setGridSize(gridSize: number): void {
-        if (gridSize !== this.gridSize) {
-            this.gridSize = gridSize;
+        if (gridSize !== gridSize) {
+            gridSize = gridSize;
             this.drawGrid();
             $('#gridSizeInput').val(gridSize);
         }
     }
 
     setUnitSize(unitSize: number): void {
-        if (unitSize !== this.unitSize) {
-            this.unitSize = unitSize;
+        if (unitSize !== Settings.unitSize) {
+            Settings.unitSize = unitSize;
             this.drawGrid();
             $('#unitSizeInput').val(unitSize);
         }
     }
 
     setUseGrid(useGrid: boolean): void {
-        if (useGrid !== this.useGrid) {
-            this.useGrid = useGrid;
+        if (useGrid !== Settings.useGrid) {
+            Settings.useGrid = useGrid;
             if (useGrid)
                 $('#grid-layer').show();
             else
@@ -157,8 +147,8 @@ export class LayerManager {
     }
 
     setFullFOW(fullFOW: boolean): void {
-        if (fullFOW !== this.fullFOW) {
-            this.fullFOW = fullFOW;
+        if (fullFOW !== Settings.fullFOW) {
+            Settings.fullFOW = fullFOW;
             const fowl = this.getLayer("fow");
             if (fowl !== undefined)
                 fowl.invalidate(false);
@@ -167,7 +157,7 @@ export class LayerManager {
     }
 
     setFOWOpacity(fowOpacity: number): void {
-        this.fowOpacity = fowOpacity;
+        Settings.fowOpacity = fowOpacity;
         const fowl = this.getLayer("fow");
         if (fowl !== undefined)
             fowl.invalidate(false);
@@ -304,7 +294,7 @@ export class Layer {
                 ctx.fillStyle = this.selectionColor;
                 ctx.strokeStyle = this.selectionColor;
                 ctx.lineWidth = this.selectionWidth;
-                const z = gameManager.layerManager.zoomFactor;
+                const z = Settings.zoomFactor;
                 this.selection.forEach(function (sel) {
                     const bb = sel.getBoundingBox();
                     // TODO: REFACTOR THIS TO Shape.drawSelection(ctx);
@@ -369,18 +359,18 @@ export class FOWLayer extends Layer {
         if (gameManager.board_initialised && !this.valid) {
             const ctx = this.ctx;
             const orig_op = ctx.globalCompositeOperation;
-            if (gameManager.layerManager.fullFOW) {
+            if (Settings.fullFOW) {
                 const ogalpha = this.ctx.globalAlpha;
                 this.ctx.globalCompositeOperation = "copy";
                 if (gameManager.IS_DM)
-                    this.ctx.globalAlpha = gameManager.layerManager.fowOpacity;
+                    this.ctx.globalAlpha = Settings.fowOpacity;
                 this.ctx.fillStyle = gameManager.fowColour.spectrum("get").toRgbString();
                 this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
                 this.ctx.globalAlpha = ogalpha;
                 this.ctx.globalCompositeOperation = orig_op;
             }
             if (!gameManager.IS_DM)
-                super.draw(!gameManager.layerManager.fullFOW);
+                super.draw(!Settings.fullFOW);
             ctx.globalCompositeOperation = 'destination-out';
             if (gameManager.layerManager.hasLayer("tokens")) {
                 gameManager.layerManager.getLayer("tokens")!.shapes.forEach(function (sh) {
@@ -485,7 +475,7 @@ export class FOWLayer extends Layer {
                 ctx.fill();
             });
             if (gameManager.IS_DM)
-                super.draw(!gameManager.layerManager.fullFOW);
+                super.draw(!Settings.fullFOW);
             ctx.globalCompositeOperation = orig_op;
         }
     }

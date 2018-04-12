@@ -1,6 +1,3 @@
-import { Layer } from "./layers";
-import { GlobalPoint } from "./geom";
-
 export interface LocationOptions {
     name: string;
     useGrid: boolean;

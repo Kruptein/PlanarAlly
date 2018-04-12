@@ -1,8 +1,9 @@
 import Shape from "./shape";
 import BoundingRect from "./boundingrect";
-import { g2l, g2lx, g2ly } from "../units";
-import { GlobalPoint } from "../geom";
+import { g2l, l2g } from "../units";
+import { GlobalPoint, LocalPoint } from "../geom";
 import { ServerCircle } from "../api_types";
+import { Settings } from "../settings";
 
 export default class Circle extends Shape {
     type = "circle";
@@ -71,4 +72,26 @@ export default class Circle extends Shape {
         this.refPoint = centerPoint;
     }
     visibleInCanvas(canvas: HTMLCanvasElement): boolean { return true; } // TODO
+    snapToGrid() {
+        const gs = Settings.gridSize;
+        if ((2 * this.r / gs) % 2 === 0) {
+            this.refPoint.x = Math.round(this.refPoint.x / gs) * gs;
+        } else {
+            this.refPoint.x = Math.round((this.refPoint.x - (gs/2)) / gs) * gs + this.r;
+        }
+        if ((2 * this.r / gs) % 2 === 0) {
+            this.refPoint.y = Math.round(this.refPoint.y / gs) * gs;
+        } else {
+            this.refPoint.y = Math.round((this.refPoint.y - (gs/2)) / gs) * gs + this.r;
+        }
+    }
+    resizeToGrid() {
+        const gs = Settings.gridSize;
+        this.r = Math.max(Math.round(this.r / gs) * gs, gs/2);
+    }
+    resize(resizedir: string, point: LocalPoint) {
+        const z = Settings.zoomFactor;
+        const diff = l2g(point).subtract(this.refPoint);
+        this.r = Math.sqrt(Math.pow(diff.length(), 2) / 2);
+    }
 }

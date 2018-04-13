@@ -461,15 +461,14 @@ $('body').keydown(function (e) {
     }
 });
 
-let ticking = false;
 function scrollZoom(e: WheelEvent) {
     let delta: number;
     if (e.wheelDelta) {
-        delta = e.wheelDelta;
+        delta = Math.sign(e.wheelDelta) * 1;
     } else {
-        delta = -1 * e.deltaY;
+        delta = Math.sign(e.deltaY) * -1;
     }
-    updateZoom(Settings.zoomFactor + 0.03 * delta);
+    updateZoom(Settings.zoomFactor + 0.1 * delta);
 }
 window.addEventListener('wheel', throttle(scrollZoom));
 

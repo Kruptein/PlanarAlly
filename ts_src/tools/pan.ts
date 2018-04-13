@@ -25,6 +25,7 @@ export class PanTool extends Tool {
     };
     onMouseUp(e: MouseEvent): void {
         this.active = false;
+        if (this.panStart.x === getMouse(e).x && this.panStart.y === getMouse(e).y) { return }
         socket.emit("set clientOptions", {
             locationOptions: {
                 [`${gameManager.roomName}/${gameManager.roomCreator}/${gameManager.locationName}`]: {

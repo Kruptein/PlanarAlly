@@ -281,14 +281,26 @@ window.addEventListener('selectstart', function (e) {
 
 function onPointerDown(e: MouseEvent) {
     if (!gameManager.board_initialised) return;
-    if ((e.button !== 0 && e.button !== 1) || (<HTMLElement>e.target).tagName !== 'CANVAS') return;
+    if (e.button == 1) {
+        const panTool = gameManager.tools.get("pan");
+        if (panTool !== undefined) {
+            panTool.onMouseDown(e);
+        }
+    }
+    if ((e.button !== 0) || (<HTMLElement>e.target).tagName !== 'CANVAS') return;
     $menu.hide();
     gameManager.tools.getIndexValue(gameManager.selectedTool)!.onMouseDown(e);
 }
 
 function onPointerMove(e: MouseEvent) {
     if (!gameManager.board_initialised) return;
-    if ((e.button !== 0 && e.button !== 1) || (<HTMLElement>e.target).tagName !== 'CANVAS') return;
+    if ((e.buttons & 4) !== 0) {
+        const panTool = gameManager.tools.get("pan");
+        if (panTool !== undefined) {
+            panTool.onMouseMove(e);
+        }
+    }
+    if (((e.buttons & 1) !== 1) || (<HTMLElement>e.target).tagName !== 'CANVAS') return;
     gameManager.tools.getIndexValue(gameManager.selectedTool)!.onMouseMove(e);
     // Annotation hover
     let found = false;
@@ -315,6 +327,12 @@ function onPointerMove(e: MouseEvent) {
 
 function onPointerUp(e: MouseEvent) {
     if (!gameManager.board_initialised) return;
+    if (e.button == 1) {
+        const panTool = gameManager.tools.get("pan");
+        if (panTool !== undefined) {
+            panTool.onMouseUp(e);
+        }
+    }
     if ((e.button !== 0 && e.button !== 1) || (<HTMLElement>e.target).tagName !== 'CANVAS') return;
     gameManager.tools.getIndexValue(gameManager.selectedTool)!.onMouseUp(e);
 }

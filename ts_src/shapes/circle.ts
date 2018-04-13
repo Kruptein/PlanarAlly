@@ -39,12 +39,12 @@ export default class Circle extends Shape {
         ctx.beginPath();
         ctx.fillStyle = this.fill;
         const loc = g2l(this.refPoint);
-        ctx.arc(loc.x, loc.y, this.r, 0, 2 * Math.PI);
+        ctx.arc(loc.x, loc.y, this.r * Settings.zoomFactor, 0, 2 * Math.PI);
         ctx.fill();
         if (this.border !== "rgba(0, 0, 0, 0)") {
             ctx.beginPath();
             ctx.strokeStyle = this.border;
-            ctx.arc(loc.x, loc.y, this.r, 0, 2 * Math.PI);
+            ctx.arc(loc.x, loc.y, this.r * Settings.zoomFactor, 0, 2 * Math.PI);
             ctx.stroke();
         }
     }

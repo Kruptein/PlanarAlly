@@ -4,12 +4,13 @@ import { LayerManager, Layer, GridLayer, FOWLayer } from "./layers";
 import { ClientOptions, BoardInfo, ServerShape, InitiativeData } from './api_types';
 import { OrderedMap, getMouse } from './utils';
 import Asset from './shapes/asset';
-import {createShapeFromDict} from './shapes/utils';
+import { createShapeFromDict } from './shapes/utils';
 import { LocalPoint, GlobalPoint } from './geom';
 import Text from './shapes/text';
 import { Tool } from './tools/tool';
 import { InitiativeTracker } from './tools/initiative';
 import { Settings } from './settings';
+import { throttle } from 'lodash';
 
 class GameManager {
     IS_DM = false;
@@ -132,7 +133,7 @@ class GameManager {
                         }
                         const l = gameManager.layerManager.getLayer()!;
                         const jCanvas = $(l.canvas);
-                        if (jCanvas.length === 0){
+                        if (jCanvas.length === 0) {
                             console.log("Canvas missing");
                             return;
                         }
@@ -195,7 +196,7 @@ class GameManager {
         const sh = createShapeFromDict(shape);
         if (sh === undefined) {
             console.log(`Shape with unknown type ${shape.type} could not be added`);
-            return ;
+            return;
         }
         layer.addShape(sh, false);
         layer.invalidate(false);
@@ -209,22 +210,22 @@ class GameManager {
         const sh = createShapeFromDict(shape, true);
         if (sh === undefined) {
             console.log(`Shape with unknown type ${shape.type} could not be added`);
-            return ;
+            return;
         }
         const real_shape = Object.assign(this.layerManager.UUIDMap.get(shape.uuid), sh);
         real_shape.checkLightSources();
         this.layerManager.getLayer(real_shape.layer)!.onShapeMove(real_shape);
     }
 
-    updateShape(data: {shape: ServerShape; redraw: boolean;}): void {
-        if (!gameManager.layerManager.hasLayer(data.shape.layer)){
+    updateShape(data: { shape: ServerShape; redraw: boolean; }): void {
+        if (!gameManager.layerManager.hasLayer(data.shape.layer)) {
             console.log(`Shape with unknown layer ${data.shape.layer} could not be added`);
             return;
         }
         const sh = createShapeFromDict(data.shape, true);
         if (sh === undefined) {
             console.log(`Shape with unknown type ${data.shape.type} could not be added`);
-            return ;
+            return;
         }
         const shape = Object.assign(this.layerManager.UUIDMap.get(data.shape.uuid), sh);
         shape.checkLightSources();
@@ -256,7 +257,7 @@ class GameManager {
                     Settings.panY = loc.panY;
                 if (loc.zoomFactor) {
                     Settings.zoomFactor = loc.zoomFactor;
-                    $("#zoomer").slider({ value: 1 / loc.zoomFactor });
+                    $("#zoomer").slider({ value: loc.zoomFactor });
                 }
                 if (this.layerManager.getGridLayer() !== undefined)
                     this.layerManager.getGridLayer()!.invalidate(false);
@@ -304,9 +305,9 @@ function onPointerMove(e: MouseEvent) {
     gameManager.tools.getIndexValue(gameManager.selectedTool)!.onMouseMove(e);
     // Annotation hover
     let found = false;
-    for (let i=0; i < gameManager.annotations.length; i++) {
+    for (let i = 0; i < gameManager.annotations.length; i++) {
         const uuid = gameManager.annotations[i];
-        if (gameManager.layerManager.UUIDMap.has(uuid) && gameManager.layerManager.hasLayer("draw")){
+        if (gameManager.layerManager.UUIDMap.has(uuid) && gameManager.layerManager.hasLayer("draw")) {
             const draw_layer = gameManager.layerManager.getLayer("draw")!;
             if (gameManager.annotationText.layer !== "draw")
                 draw_layer.addShape(gameManager.annotationText, false);
@@ -314,12 +315,12 @@ function onPointerMove(e: MouseEvent) {
             if (shape.contains(l2g(getMouse(e)))) {
                 found = true;
                 gameManager.annotationText.text = shape.annotation;
-                gameManager.annotationText.refPoint = l2g(new LocalPoint((draw_layer.canvas.width / 2) - shape.annotation.length/2, 50));
+                gameManager.annotationText.refPoint = l2g(new LocalPoint((draw_layer.canvas.width / 2) - shape.annotation.length / 2, 50));
                 draw_layer.invalidate(true);
             }
         }
     }
-    if (!found && gameManager.annotationText.text !== ''){
+    if (!found && gameManager.annotationText.text !== '') {
         gameManager.annotationText.text = '';
         gameManager.layerManager.getLayer("draw")!.invalidate(true);
     }
@@ -351,30 +352,12 @@ window.addEventListener('contextmenu', function (e: MouseEvent) {
 
 $("#zoomer").slider({
     orientation: "vertical",
-    min: 0.5,
+    min: 0.1,
     max: 5.0,
     step: 0.1,
     value: Settings.zoomFactor,
     slide: function (event, ui) {
-        const origZ = Settings.zoomFactor;
-        const newZ = 1 / ui.value!;
-        const origX = window.innerWidth / origZ;
-        const newX = window.innerWidth / newZ;
-        const origY = window.innerHeight / origZ;
-        const newY = window.innerHeight / newZ;
-        Settings.zoomFactor = newZ;
-        Settings.panX -= (origX - newX) / 2;
-        Settings.panY -= (origY - newY) / 2;
-        gameManager.layerManager.invalidate();
-        socket.emit("set clientOptions", {
-            locationOptions: {
-                [`${gameManager.roomName}/${gameManager.roomCreator}/${gameManager.locationName}`]: {
-                    panX: Settings.panX,
-                    panY: Settings.panY,
-                    zoomFactor: newZ,
-                }
-            }
-        });
+        updateZoom(ui.value!);
     }
 });
 
@@ -431,6 +414,64 @@ $('body').keyup(function (e) {
         });
     }
 });
+$('body').keydown(function (e) {
+    if (e.keyCode === 37 && e.target.tagName !== "INPUT") {
+        Settings.panX += Math.round(Settings.gridSize);
+        gameManager.layerManager.invalidate();
+        socket.emit("set clientOptions", {
+            locationOptions: {
+                [`${gameManager.roomName}/${gameManager.roomCreator}/${gameManager.locationName}`]: {
+                    panX: Settings.panX
+                }
+            }
+        });
+    }
+    if (e.keyCode === 38 && e.target.tagName !== "INPUT") {
+        Settings.panY += Math.round(Settings.gridSize);
+        gameManager.layerManager.invalidate();
+        socket.emit("set clientOptions", {
+            locationOptions: {
+                [`${gameManager.roomName}/${gameManager.roomCreator}/${gameManager.locationName}`]: {
+                    panY: Settings.panY
+                }
+            }
+        });
+    }
+    if (e.keyCode === 39 && e.target.tagName !== "INPUT") {
+        Settings.panX -= Math.round(Settings.gridSize);
+        gameManager.layerManager.invalidate();
+        socket.emit("set clientOptions", {
+            locationOptions: {
+                [`${gameManager.roomName}/${gameManager.roomCreator}/${gameManager.locationName}`]: {
+                    panX: Settings.panX
+                }
+            }
+        });
+    }
+    if (e.keyCode === 40 && e.target.tagName !== "INPUT") {
+        Settings.panY -= Math.round(Settings.gridSize);
+        gameManager.layerManager.invalidate();
+        socket.emit("set clientOptions", {
+            locationOptions: {
+                [`${gameManager.roomName}/${gameManager.roomCreator}/${gameManager.locationName}`]: {
+                    panY: Settings.panY
+                }
+            }
+        });
+    }
+});
+
+let ticking = false;
+function scrollZoom(e: WheelEvent) {
+    let delta: number;
+    if (e.wheelDelta) {
+        delta = e.wheelDelta;
+    } else {
+        delta = -1 * e.deltaY;
+    }
+    updateZoom(Settings.zoomFactor + 0.03 * delta);
+}
+window.addEventListener('wheel', throttle(scrollZoom));
 
 $("#gridSizeInput").on("change", function (e) {
     const gs = parseInt((<HTMLInputElement>e.target).value);
@@ -464,5 +505,30 @@ $("#fowOpacity").on("change", function (e) {
     gameManager.layerManager.setFOWOpacity(fo);
     socket.emit("set locationOptions", { 'fowOpacity': fo });
 });
+
+function updateZoom(newZoomValue: number) {
+    if (newZoomValue <= 0)
+        newZoomValue = 0.01;
+    const origZ = Settings.zoomFactor;
+    const newZ = newZoomValue;
+    const origX = window.innerWidth / origZ;
+    const newX = window.innerWidth / newZ;
+    const origY = window.innerHeight / origZ;
+    const newY = window.innerHeight / newZ;
+    Settings.zoomFactor = newZ;
+    Settings.panX -= (origX - newX) / 2;
+    Settings.panY -= (origY - newY) / 2;
+    gameManager.layerManager.invalidate();
+    socket.emit("set clientOptions", {
+        locationOptions: {
+            [`${gameManager.roomName}/${gameManager.roomCreator}/${gameManager.locationName}`]: {
+                panX: Settings.panX,
+                panY: Settings.panY,
+                zoomFactor: newZ,
+            }
+        }
+    });
+    $("#zoomer").slider({ value: newZ });
+}
 
 export default gameManager;

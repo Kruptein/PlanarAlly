@@ -21,6 +21,7 @@
   "devDependencies": {
     "@types/jquery": "^3.3.1",
     "@types/jqueryui": "^1.12.2",
+    "@types/lodash": "^4.14.106",
     "@types/socket.io": "^1.4.32",
     "@types/socket.io-client": "^1.4.32",
     "@types/spectrum": "^1.5.29",
@@ -29,5 +30,8 @@
     "typescript": "^2.7.2",
     "webpack": "^4.2.0",
     "webpack-cli": "^2.0.13"
+  },
+  "dependencies": {
+    "lodash.throttle": "^4.1.1"
   }
 }

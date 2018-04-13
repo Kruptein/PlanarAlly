@@ -5,6 +5,10 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 - Shape selection option is added to the draw tool, currently giving the option between a rectangle and a circle.
+- More camera options
+    - Use the arrow keys to move 1 grid unit in the pressed direction
+    - Use the scroll wheel to zoom in and out
+    - Press the middle mouse button to pan without using the dedicated pan tool
 
 ## [0.2] - 2018-03-04
 This update is firstmost an update in regards to the development process so little to no new feautures are added in this release.

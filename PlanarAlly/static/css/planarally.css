@@ -534,6 +534,14 @@ input:checked + .slider:before {
     align-items: center;
 }
 
+#createtokendialog {
+    padding: 0;
+    display: grid;
+    grid-template-columns: [label] 30px [value] 1fr [end];
+    grid-column-gap: 2px;
+    align-items: center;
+}
+
 .spanrow {
     grid-column: 1 / end;
 }

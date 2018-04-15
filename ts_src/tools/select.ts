@@ -17,6 +17,11 @@ export class SelectTool extends Tool {
     drag: Vector<LocalPoint> = new Vector<LocalPoint>({ x: 0, y: 0 }, new LocalPoint(0, 0));
     selectionStartPoint: GlobalPoint = new GlobalPoint(-1000, -1000);
     selectionHelper: Rect = new Rect(this.selectionStartPoint, 0, 0);
+    dialog = $("#createtokendialog").dialog({
+        autoOpen: false,
+        width: '160px'
+    });        
+
     constructor() {
         super();
         this.selectionHelper.owners.push(gameManager.username);
@@ -215,8 +220,38 @@ export class SelectTool extends Tool {
         let hit = false;
         layer.shapes.forEach(function (shape) {
             if (!hit && shape.contains(l2g(mouse))) {
+                hit = true;
                 shape.showContextMenu(mouse);
             }
         });
-    };
+        if (!hit) {
+            if (gameManager.layerManager.getLayer() === undefined) return;
+            const l = gameManager.layerManager.getLayer()!;
+            const asset = this;
+            const $menu = $('#contextMenu');
+            $menu.show();
+            $menu.empty();
+            $menu.css({ left: mouse.x, top: mouse.y });
+            let data = "<ul>" +
+                "<li data-action='centerPlayers'>Center players</li>" +
+                "<li data-action='createToken'>Create basic token</li>" +
+                "</ul>";
+            $menu.html(data);
+            const self = this;
+            $(".context-clickable").on('click', function () {
+                const action = $(this).data("action");
+                switch (action) {
+                    case 'centerPlayers':
+                        break;
+                    case 'createToken':
+                        self.showCreateTokenDialog();
+                        break;
+                }
+                $menu.hide();
+            });
+        }
+    }
+    private showCreateTokenDialog() {
+        this.dialog.dialog("open");
+    }
 }

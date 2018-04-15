@@ -7,8 +7,6 @@ import { populateEditAssetDialog } from "./editdialog";
 import { GlobalPoint, LocalPoint } from "../geom";
 import { ServerShape } from "../api_types";
 
-const $menu = $('#contextMenu');
-
 export default abstract class Shape {
     // Used to create class instance from server shape data
     protected abstract type: string;
@@ -222,6 +220,7 @@ export default abstract class Shape {
         this.onSelection();
         l.invalidate(true);
         const asset = this;
+        const $menu = $('#contextMenu');
         $menu.show();
         $menu.empty();
         $menu.css({ left: mouse.x, top: mouse.y });
@@ -262,7 +261,7 @@ export default abstract class Shape {
                 gameManager.initiativeTracker.addInitiative(this.getInitiativeRepr(), true);
                 break;
         }
-        $menu.hide();
+        $('#contextMenu').hide();
     }
     getInitiativeRepr() {
         return {

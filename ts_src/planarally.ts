@@ -301,7 +301,7 @@ function onPointerMove(e: MouseEvent) {
             panTool.onMouseMove(e);
         }
     }
-    if (((e.buttons & 1) !== 1) || (<HTMLElement>e.target).tagName !== 'CANVAS') return;
+    if (((e.buttons & 1) > 1) || (<HTMLElement>e.target).tagName !== 'CANVAS') return;
     gameManager.tools.getIndexValue(gameManager.selectedTool)!.onMouseMove(e);
     // Annotation hover
     let found = false;

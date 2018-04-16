@@ -3,8 +3,7 @@ import { alphSort } from "./utils";
 import { setupTools } from "./tools/tools";
 import { ClientOptions, LocationOptions, AssetList, ServerShape, InitiativeData, BoardInfo } from "./api_types";
 
-const protocol = document.domain === 'localhost' ? "http://" : "https://";
-const socket = io.connect(protocol + document.domain + ":" + location.port + "/planarally");
+const socket = io.connect(location.protocol + "//" + location.host + "/planarally");
 socket.on("connect", function () {
     console.log("Connected");
 });

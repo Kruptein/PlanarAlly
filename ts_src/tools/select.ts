@@ -7,6 +7,7 @@ import { l2g, g2l, g2lx, g2ly } from "../units";
 import socket from "../socket";
 import { Tool } from "./tool";
 import { Settings } from "../settings";
+import CircularToken from "../shapes/circulartoken";
 
 
 export class SelectTool extends Tool {
@@ -19,8 +20,34 @@ export class SelectTool extends Tool {
     selectionHelper: Rect = new Rect(this.selectionStartPoint, 0, 0);
     dialog = $("#createtokendialog").dialog({
         autoOpen: false,
-        width: '160px'
-    });        
+        buttons: {
+            "Create token": function () {
+                // *pukes*
+                const token = new CircularToken(
+                    (<SelectTool>gameManager.tools.get("select")).selectionStartPoint,
+                    Settings.gridSize / 2,
+                    <string>$("#createtokendialog-name").val(),
+                    "10px serif",
+                    (<SelectTool>gameManager.tools.get("select")).dialog_fill.spectrum("get").toRgbString(),
+                    (<SelectTool>gameManager.tools.get("select")).dialog_border.spectrum("get").toRgbString()
+                );
+                const layer = gameManager.layerManager.getLayer()!;
+                layer.addShape(token, true);
+                layer.invalidate(false);
+                $(this).dialog('close');
+            }
+        }
+    });
+    dialog_fill = $("#createtokendialog-fill").spectrum({
+        showInput: true,
+        showAlpha: true,
+        color: "#fff",
+    });
+    dialog_border = $("#createtokendialog-border").spectrum({
+        showInput: true,
+        showAlpha: true,
+        color: "#000",
+    });
 
     constructor() {
         super();
@@ -233,8 +260,8 @@ export class SelectTool extends Tool {
             $menu.empty();
             $menu.css({ left: mouse.x, top: mouse.y });
             let data = "<ul>" +
-                "<li data-action='centerPlayers'>Center players</li>" +
-                "<li data-action='createToken'>Create basic token</li>" +
+                // "<li data-action='centerPlayers' class='context-clickable'>Center players</li>" +
+                "<li data-action='createToken' class='context-clickable'>Create basic token</li>" +
                 "</ul>";
             $menu.html(data);
             const self = this;
@@ -244,14 +271,13 @@ export class SelectTool extends Tool {
                     case 'centerPlayers':
                         break;
                     case 'createToken':
-                        self.showCreateTokenDialog();
+                        self.selectionStartPoint = l2g(mouse);
+                        self.dialog.dialog("open");
+                        console.log("??");
                         break;
                 }
                 $menu.hide();
             });
         }
-    }
-    private showCreateTokenDialog() {
-        this.dialog.dialog("open");
     }
 }

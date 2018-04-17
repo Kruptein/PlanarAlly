@@ -78,6 +78,11 @@ export interface ServerCircle extends ServerShape {
     border?: string;
 }
 
+export interface ServerCircularToken extends ServerCircle {
+    text: string;
+    font: string;
+}
+
 export interface ServerLine extends ServerShape {
     x2: number;
     y2: number;

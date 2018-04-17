@@ -9,6 +9,10 @@ All notable changes to this project will be documented in this file.
     - Use the arrow keys to move 1 grid unit in the pressed direction
     - Use the scroll wheel to zoom in and out
     - Press the middle mouse button to pan without using the dedicated pan tool
+- Quickly create simple circular text tokens
+    - right click anywhere that is not an active selection and select the 'create basic token' option
+    - You can insert any text and choose the fill and border colours
+    - Although singular letters or numbers work great, any text will be scaled to fit inside the circle, so longer texts can also work.
 
 ## [0.2] - 2018-03-04
 This update is firstmost an update in regards to the development process so little to no new feautures are added in this release.

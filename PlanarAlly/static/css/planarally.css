@@ -535,10 +535,11 @@ input:checked + .slider:before {
 }
 
 #createtokendialog {
-    padding: 0;
+    padding: 10px;
     display: grid;
-    grid-template-columns: [label] 30px [value] 1fr [end];
-    grid-column-gap: 2px;
+    grid-template-columns: [label] 60px [value] 60px [end];
+    grid-column-gap: 30px;
+    grid-row-gap: 10px;
     align-items: center;
 }
 

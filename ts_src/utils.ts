@@ -20,6 +20,12 @@ export function uuidv4() {
     });
 }
 
+export function calcFontScale(ctx: CanvasRenderingContext2D, text: string, width: number, height: number) {
+    const points = Number(ctx.font.split("px")[0]) * 0.2;
+    const fontWidth = ctx.measureText(text).width;
+    return Math.min(width / fontWidth, height / points);
+}
+
 export class OrderedMap<K, V> {
     keys: K[] = [];
     values: V[] = [];

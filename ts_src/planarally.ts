@@ -1,5 +1,5 @@
 import socket from './socket'
-import { l2g } from "./units";
+import { l2g, g2l } from "./units";
 import { LayerManager, Layer, GridLayer, FOWLayer } from "./layers";
 import { ClientOptions, BoardInfo, ServerShape, InitiativeData } from './api_types';
 import { OrderedMap, getMouse } from './utils';
@@ -269,8 +269,7 @@ class GameManager {
 
 let gameManager = new GameManager();
 (<any>window).gameManager = gameManager;
-(<any>window).GP = GlobalPoint;
-(<any>window).Asset = Asset;
+(<any>window).Settings = Settings;
 
 // **** SETUP UI ****
 
@@ -357,7 +356,7 @@ $("#zoomer").slider({
     step: 0.1,
     value: Settings.zoomFactor,
     slide: function (event, ui) {
-        updateZoom(ui.value!);
+        updateZoom(ui.value!, l2g(new LocalPoint(window.innerWidth / 2, window.innerHeight / 2)));
     }
 });
 
@@ -468,7 +467,7 @@ function scrollZoom(e: WheelEvent) {
     } else {
         delta = Math.sign(e.deltaY) * -1;
     }
-    updateZoom(Settings.zoomFactor + 0.1 * delta);
+    updateZoom(Settings.zoomFactor + 0.1 * delta, l2g(getMouse(e)));
 }
 window.addEventListener('wheel', throttle(scrollZoom));
 
@@ -505,29 +504,32 @@ $("#fowOpacity").on("change", function (e) {
     socket.emit("set locationOptions", { 'fowOpacity': fo });
 });
 
-function updateZoom(newZoomValue: number) {
+function updateZoom(newZoomValue: number, zoomLocation: GlobalPoint) {
     if (newZoomValue <= 0)
         newZoomValue = 0.01;
-    const origZ = Settings.zoomFactor;
-    const newZ = newZoomValue;
-    const origX = window.innerWidth / origZ;
-    const newX = window.innerWidth / newZ;
-    const origY = window.innerHeight / origZ;
-    const newY = window.innerHeight / newZ;
-    Settings.zoomFactor = newZ;
-    Settings.panX -= (origX - newX) / 2;
-    Settings.panY -= (origY - newY) / 2;
+
+    const oldLoc = g2l(zoomLocation);
+    
+    Settings.zoomFactor = newZoomValue;
+
+    const newLoc = l2g(oldLoc);
+
+    // Change the pan settings to keep the zoomLocation in the same exact location before and after the zoom.
+    const diff = newLoc.subtract(zoomLocation);
+    Settings.panX += diff.direction.x;
+    Settings.panY += diff.direction.y;
+
     gameManager.layerManager.invalidate();
     socket.emit("set clientOptions", {
         locationOptions: {
             [`${gameManager.roomName}/${gameManager.roomCreator}/${gameManager.locationName}`]: {
                 panX: Settings.panX,
                 panY: Settings.panY,
-                zoomFactor: newZ,
+                zoomFactor: newZoomValue,
             }
         }
     });
-    $("#zoomer").slider({ value: newZ });
+    $("#zoomer").slider({ value: newZoomValue });
 }
 
 export default gameManager;

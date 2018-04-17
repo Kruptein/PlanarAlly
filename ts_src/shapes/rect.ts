@@ -30,6 +30,7 @@ export default class Rect extends BaseRect {
         ctx.fillRect(loc.x, loc.y, this.w * z, this.h * z);
         if (this.border !== "rgba(0, 0, 0, 0)") {
             ctx.strokeStyle = this.border;
+            ctx.lineWidth = 5;
             ctx.strokeRect(loc.x, loc.y, this.w * z, this.h * z);
         }
     }

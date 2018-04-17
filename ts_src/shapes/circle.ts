@@ -43,6 +43,7 @@ export default class Circle extends Shape {
         ctx.fill();
         if (this.border !== "rgba(0, 0, 0, 0)") {
             ctx.beginPath();
+            ctx.lineWidth = 5;
             ctx.strokeStyle = this.border;
             ctx.arc(loc.x, loc.y, this.r * Settings.zoomFactor, 0, 2 * Math.PI);
             ctx.stroke();

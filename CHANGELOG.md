@@ -14,6 +14,9 @@ All notable changes to this project will be documented in this file.
     - You can insert any text and choose the fill and border colours
     - Although singular letters or numbers work great, any text will be scaled to fit inside the circle, so longer texts can also work.
 
+### Changed
+- Line width of shape borders increased to 5
+
 ## [0.2] - 2018-03-04
 This update is firstmost an update in regards to the development process so little to no new feautures are added in this release.
 A couple of important bugfixes are included though.

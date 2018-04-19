@@ -460,6 +460,15 @@ async def change_location(sid, location):
                    namespace='/planarally')
     await sio.emit("set clientOptions", app['AuthzPolicy'].user_map[username].options, room=new_location.sioroom, skip_sid=sid,
                    namespace='/planarally')
+    if hasattr(new_location, "initiative"):
+        initiatives = new_location.initiative
+        if room.creator != username:
+            initiatives = []
+            for i in new_location.initiative:
+                shape = new_location.layer_manager.get_shape(i['uuid'])
+                if shape and username in shape.get('owners', []) or i.get("visible", False):
+                    initiatives.append(i)
+        await sio.emit("setInitiative", initiatives, room=sid, namespace='/planarally')
 
 
 @sio.on('connect', namespace='/planarally')

@@ -4,6 +4,10 @@ import socket from "../socket";
 
 export class InitiativeTracker {
     data: InitiativeData[] = [];
+    clear() {
+        this.data = [];
+        this.redraw();
+    }
     addInitiative(data: InitiativeData, sync: boolean) {
         // Open the initiative tracker if it is not currently open.
         if (this.data.length === 0 || !gameManager.initiativeDialog.dialog("isOpen"))

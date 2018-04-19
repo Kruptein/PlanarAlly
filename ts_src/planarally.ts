@@ -169,9 +169,7 @@ class GameManager {
         }
         // Force the correct opacity render on other layers.
         gameManager.layerManager.setLayer(gameManager.layerManager.getLayer()!.name);
-        // socket.emit("client initialised");
-        this.board_initialised = true;
-
+        
         if (selectable_layers > 1) {
             layerselectdiv.find("li").on("click", function () {
                 const name = this.id.split("-")[1];
@@ -185,6 +183,10 @@ class GameManager {
         } else {
             layerselectdiv.hide();
         }
+
+        this.initiativeTracker.clear();
+
+        this.board_initialised = true;
     }
 
     addShape(shape: ServerShape): void {

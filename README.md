@@ -102,6 +102,10 @@ The lightbulb toggles whether this aura represents a light/vision source that wi
 The aura colour is by default fully transparent as this is usually what you want for lightsources, but you can change this
 to whatever your heart desires.
 
+Additionally a private annotation can be added to any shape you own.  This annotation will appear at the top of your screen whenever you hover over
+ the shape with your mouse (even if it is not selected).  This is visible for all owners (and the DM).  I see this mostly as a very 
+ handy quick DM annotation tool but it's also available for players.
+
 ### User management
 
 A basic user system is present which allows anyone to register or login to the website.
@@ -173,7 +177,8 @@ When selected, dragging allows for panning the screen.k
 
 #### Draw
 
-Allows you to draw a rectangle on the currently active layer.  When selecting this tool an extra panel shows up allowing you to select border and fill colours.
+Allows you to draw a shape on the currently active layer.  When selecting this tool an extra panel shows up allowing you to select border and fill colours.
+Currently two shapes are available: a rectangle and a circle.
 
 #### Ruler
 
@@ -211,14 +216,13 @@ Following is a list of current TODO's in no particular order:
 * More tools
     * Different shapes
     * Text
-    * Annotate parts of the map
 * More out of game configuration stuff
 * Lighting optimisations
     * Take into account what is on the screen
+* Sublocations
 
 Technical
 
-* Change to Typescript
 * Provide more persistence options (database/memory store)
 * Clean up server side API
 

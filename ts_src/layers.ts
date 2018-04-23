@@ -120,8 +120,8 @@ export class LayerManager {
     }
 
     setGridSize(gridSize: number): void {
-        if (gridSize !== gridSize) {
-            gridSize = gridSize;
+        if (Settings.gridSize !== gridSize) {
+            Settings.gridSize = gridSize;
             this.drawGrid();
             $('#gridSizeInput').val(gridSize);
         }

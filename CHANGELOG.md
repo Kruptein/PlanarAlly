@@ -1,6 +1,11 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [0.4] - Not yet released
+
+### Fixed
+- Grid size DM UI works again.  It broke in 0.3
+
 ## [0.3] - 2018-04-19
 
 ### Added

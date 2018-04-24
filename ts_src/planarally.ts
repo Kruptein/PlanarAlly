@@ -507,7 +507,7 @@ $("#fowOpacity").on("change", function (e) {
 });
 
 function updateZoom(newZoomValue: number, zoomLocation: GlobalPoint) {
-    if (newZoomValue <= 0)
+    if (newZoomValue <= 0.01)
         newZoomValue = 0.01;
 
     const oldLoc = g2l(zoomLocation);

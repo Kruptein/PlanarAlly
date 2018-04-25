@@ -416,12 +416,14 @@ async def add_new_location(sid, location):
         return
 
     room.add_new_location(location)
-    sio.leave_room(sid, room.get_active_location(username).sioroom, namespace='/planarally')
+    new_location = room.get_active_location(username)
+
+    sio.leave_room(sid, new_location.sioroom, namespace='/planarally')
     room.dm_location = location
-    sio.enter_room(sid, room.get_active_location(username).sioroom, namespace='/planarally')
+    sio.enter_room(sid, new_location.sioroom, namespace='/planarally')
     PA.save_room(room)
     await sio.emit('board init', room.get_board(username), room=sid, namespace='/planarally')
-    await sio.emit("set location", {'options': room.dm_location.options, 'name': room.dm_location.name}, room=sid,
+    await sio.emit("set location", {'options': new_location.options, 'name': new_location.name}, room=sid,
                    namespace='/planarally')
     await sio.emit("set clientOptions", app['AuthzPolicy'].user_map[username].options, room=sid,
                    namespace='/planarally')

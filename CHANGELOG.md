@@ -7,6 +7,7 @@ All notable changes to this project will be documented in this file.
 - Grid size DM UI works again.  It broke in 0.3
 - Cutoff zoom at 0.01 instead of 0, as zoom factors of 1e-16 caused issues with pages crashing
 - Adding a new location did not correctly send some options to the client
+- The annotation field in the edit asset dialog now prevents key presses to propagate to the board (e.g. no longer deleting shapes because you pressed delete in the textfield)
 
 ## [0.3] - 2018-04-19
 

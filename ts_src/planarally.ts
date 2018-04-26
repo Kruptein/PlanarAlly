@@ -402,8 +402,12 @@ window.onresize = function () {
     gameManager.layerManager.invalidate();
 };
 
+function targetIsInput(e: JQuery.Event<HTMLElement, null>) {
+    return ["INPUT", "TEXTAREA"].includes(e.target.tagName);
+}
+
 $('body').keyup(function (e) {
-    if (e.keyCode === 46 && e.target.tagName !== "INPUT") {
+    if (e.keyCode === 46 && !targetIsInput(e)) {
         if (gameManager.layerManager.getLayer === undefined) {
             console.log("No active layer selected for delete operation");
             return;
@@ -416,7 +420,7 @@ $('body').keyup(function (e) {
     }
 });
 $('body').keydown(function (e) {
-    if (e.keyCode === 37 && e.target.tagName !== "INPUT") {
+    if (e.keyCode === 37 && !targetIsInput(e)) {
         Settings.panX += Math.round(Settings.gridSize);
         gameManager.layerManager.invalidate();
         socket.emit("set clientOptions", {
@@ -427,7 +431,7 @@ $('body').keydown(function (e) {
             }
         });
     }
-    if (e.keyCode === 38 && e.target.tagName !== "INPUT") {
+    if (e.keyCode === 38 && !targetIsInput(e)) {
         Settings.panY += Math.round(Settings.gridSize);
         gameManager.layerManager.invalidate();
         socket.emit("set clientOptions", {
@@ -438,7 +442,7 @@ $('body').keydown(function (e) {
             }
         });
     }
-    if (e.keyCode === 39 && e.target.tagName !== "INPUT") {
+    if (e.keyCode === 39 && !targetIsInput(e)) {
         Settings.panX -= Math.round(Settings.gridSize);
         gameManager.layerManager.invalidate();
         socket.emit("set clientOptions", {
@@ -449,7 +453,7 @@ $('body').keydown(function (e) {
             }
         });
     }
-    if (e.keyCode === 40 && e.target.tagName !== "INPUT") {
+    if (e.keyCode === 40 && !targetIsInput(e)) {
         Settings.panY -= Math.round(Settings.gridSize);
         gameManager.layerManager.invalidate();
         socket.emit("set clientOptions", {

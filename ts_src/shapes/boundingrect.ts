@@ -63,15 +63,16 @@ export default class BoundingRect {
         this.refPoint.y = centerPoint.y - this.h / 2;
     }
     inCorner(point: GlobalPoint, corner: string) {
+        const sw = Math.min(6, this.w / 2) / 2;
         switch (corner) {
             case 'ne':
-                return this.refPoint.x + this.w - 3 <= point.x && point.x <= this.refPoint.x + this.w + 3 && this.refPoint.y - 3 <= point.y && point.y <= this.refPoint.y + 3;
+                return this.refPoint.x + this.w - sw <= point.x && point.x <= this.refPoint.x + this.w + sw && this.refPoint.y - sw <= point.y && point.y <= this.refPoint.y + sw;
             case 'nw':
-                return this.refPoint.x - 3 <= point.x && point.x <= this.refPoint.x + 3 && this.refPoint.y - 3 <= point.y && point.y <= this.refPoint.y + 3;
+                return this.refPoint.x - sw <= point.x && point.x <= this.refPoint.x + sw && this.refPoint.y - sw <= point.y && point.y <= this.refPoint.y + sw;
             case 'sw':
-                return this.refPoint.x - 3 <= point.x && point.x <= this.refPoint.x + 3 && this.refPoint.y + this.h - 3 <= point.y && point.y <= this.refPoint.y + this.h + 3;
+                return this.refPoint.x - sw <= point.x && point.x <= this.refPoint.x + sw && this.refPoint.y + this.h - sw <= point.y && point.y <= this.refPoint.y + this.h + sw;
             case 'se':
-                return this.refPoint.x + this.w - 3 <= point.x && point.x <= this.refPoint.x + this.w + 3 && this.refPoint.y + this.h - 3 <= point.y && point.y <= this.refPoint.y + this.h + 3;
+                return this.refPoint.x + this.w - sw <= point.x && point.x <= this.refPoint.x + this.w + sw && this.refPoint.y + this.h - sw <= point.y && point.y <= this.refPoint.y + this.h + sw;
             default:
                 return false;
         }

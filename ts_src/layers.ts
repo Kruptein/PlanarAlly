@@ -300,14 +300,16 @@ export class Layer {
                     // TODO: REFACTOR THIS TO Shape.drawSelection(ctx);
                     ctx.strokeRect(g2lx(bb.refPoint.x), g2ly(bb.refPoint.y), bb.w * z, bb.h * z);
 
+                    const sw = Math.min(6, bb.w / 2)
+
                     // topright
-                    ctx.fillRect(g2lx(bb.refPoint.x + bb.w - 3), g2ly(bb.refPoint.y - 3), 6 * z, 6 * z);
+                    ctx.fillRect(g2lx(bb.refPoint.x + bb.w - sw/2), g2ly(bb.refPoint.y - sw/2), sw * z, sw * z);
                     // topleft
-                    ctx.fillRect(g2lx(bb.refPoint.x - 3), g2ly(bb.refPoint.y - 3), 6 * z, 6 * z);
+                    ctx.fillRect(g2lx(bb.refPoint.x - sw/2), g2ly(bb.refPoint.y - sw/2), sw * z, sw * z);
                     // botright
-                    ctx.fillRect(g2lx(bb.refPoint.x + bb.w - 3), g2ly(bb.refPoint.y + bb.h - 3), 6 * z, 6 * z);
+                    ctx.fillRect(g2lx(bb.refPoint.x + bb.w - sw/2), g2ly(bb.refPoint.y + bb.h - sw/2), sw * z, sw * z);
                     // botleft
-                    ctx.fillRect(g2lx(bb.refPoint.x - 3), g2ly(bb.refPoint.y + bb.h - 3), 6 * z, 6 * z)
+                    ctx.fillRect(g2lx(bb.refPoint.x - sw/2), g2ly(bb.refPoint.y + bb.h - sw/2), sw * z, sw * z)
                 });
             }
 

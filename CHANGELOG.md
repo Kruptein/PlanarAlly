@@ -13,6 +13,7 @@ All notable changes to this project will be documented in this file.
 - Adding a new location did not correctly send some options to the client
 - The annotation field in the edit asset dialog now prevents key presses to propagate to the board (e.g. no longer deleting shapes because you pressed delete in the textfield)
 - The selection box now is smaller for very small assets
+- Slowdown on the opening of the edit asset dialog throughout gameplay has been fixed.
 
 ## [0.3] - 2018-04-19
 

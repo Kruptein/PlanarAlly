@@ -138,6 +138,8 @@ export default abstract class Shape {
             editbutton.hide();
         else
             editbutton.show();
+        // We want to remove all earlier bindings!
+        editbutton.off("click");
         editbutton.on("click", function() {populateEditAssetDialog(self)});
     }
 

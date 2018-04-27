@@ -473,6 +473,17 @@ async def change_location(sid, location):
         await sio.emit("setInitiative", initiatives, room=sid, namespace='/planarally')
 
 
+@sio.on("bringPlayers", namespace='/planarally')
+async def bring_players(sid, data):
+    policy = app['AuthzPolicy']
+    room = policy.sio_map[sid]['room']
+    for player in room.players:
+        user = policy.user_map[player]
+        nested_dict_update(user.options, data)
+        await sio.emit("set clientOptions", user.options, room=policy.get_sid(user, room), namespace='/planarally')
+    app['AuthzPolicy'].save()
+
+
 @sio.on('connect', namespace='/planarally')
 async def test_connect(sid, environ):
     username = await authorized_userid(environ['aiohttp.request'])

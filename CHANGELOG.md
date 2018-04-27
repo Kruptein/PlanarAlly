@@ -3,6 +3,10 @@ All notable changes to this project will be documented in this file.
 
 ## [0.4] - Not yet released
 
+### Added
+- Bring players here function in the rightclick menu when nothin is selected
+    - This will bring over all players to the exact same pan and zoom settings as the DM
+
 ### Fixed
 - Grid size DM UI works again.  It broke in 0.3
 - Cutoff zoom at 0.01 instead of 0, as zoom factors of 1e-16 caused issues with pages crashing

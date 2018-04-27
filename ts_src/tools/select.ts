@@ -260,7 +260,7 @@ export class SelectTool extends Tool {
             $menu.empty();
             $menu.css({ left: mouse.x, top: mouse.y });
             let data = "<ul>" +
-                // "<li data-action='centerPlayers' class='context-clickable'>Center players</li>" +
+                "<li data-action='bringPlayers' class='context-clickable'>Bring players</li>" +
                 "<li data-action='createToken' class='context-clickable'>Create basic token</li>" +
                 "</ul>";
             $menu.html(data);
@@ -268,7 +268,14 @@ export class SelectTool extends Tool {
             $(".context-clickable").on('click', function () {
                 const action = $(this).data("action");
                 switch (action) {
-                    case 'centerPlayers':
+                    case 'bringPlayers':
+                        if (!gameManager.IS_DM) break;
+                        socket.emit("bringPlayers", {locationOptions: {
+                            [`${gameManager.roomName}/${gameManager.roomCreator}/${gameManager.locationName}`]: {
+                                panX: Settings.panX,
+                                panY: Settings.panY,
+                                zoomFactor: Settings.zoomFactor
+                            }}});
                         break;
                     case 'createToken':
                         self.selectionStartPoint = l2g(mouse);

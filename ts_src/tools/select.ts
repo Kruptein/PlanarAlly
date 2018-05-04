@@ -259,10 +259,11 @@ export class SelectTool extends Tool {
             $menu.show();
             $menu.empty();
             $menu.css({ left: mouse.x, top: mouse.y });
-            let data = "<ul>" +
-                "<li data-action='bringPlayers' class='context-clickable'>Bring players</li>" +
-                "<li data-action='createToken' class='context-clickable'>Create basic token</li>" +
-                "</ul>";
+            let data = "<ul>";
+            if (gameManager.IS_DM)
+                data += "<li data-action='bringPlayers' class='context-clickable'>Bring players</li>";
+            data += "<li data-action='createToken' class='context-clickable'>Create basic token</li>";
+            data += "</ul>";
             $menu.html(data);
             const self = this;
             $(".context-clickable").on('click', function () {

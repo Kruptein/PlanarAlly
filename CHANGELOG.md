@@ -1,13 +1,14 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
-## [0.4] - Not yet released
+## [0.4] - 2018-05-04
 
 The great bugfix release
 
 ### Added
-- Bring players here function in the rightclick menu when nothin is selected
+- Bring players here function in the rightclick menu when nothing is selected
     - This will bring over all players to the exact same pan and zoom settings as the DM
+    - Only the DM can access this
 
 ### Fixed
 - Grid size DM UI works again.  It broke in 0.3

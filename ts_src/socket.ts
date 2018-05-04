@@ -27,6 +27,9 @@ socket.on("set username", function (username: string) {
 socket.on("set clientOptions", function (options: ClientOptions) {
     gameManager.setClientOptions(options);
 });
+socket.on("set locationOptions", function (options: LocationOptions) {
+    gameManager.layerManager.setOptions(options);
+});
 socket.on("set location", function (data: {name:string, options: LocationOptions}) {
     gameManager.locationName = data.name;
     gameManager.layerManager.setOptions(data.options);

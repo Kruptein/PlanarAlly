@@ -3,6 +3,8 @@ All notable changes to this project will be documented in this file.
 
 ## [0.4] - Not yet released
 
+The great bugfix release
+
 ### Added
 - Bring players here function in the rightclick menu when nothin is selected
     - This will bring over all players to the exact same pan and zoom settings as the DM
@@ -15,6 +17,7 @@ All notable changes to this project will be documented in this file.
 - The selection box now is smaller for very small assets
 - Slowdown on the opening of the edit asset dialog throughout gameplay has been fixed.
 - Location options not synced immediately
+- Quick tracker/aura edits now work again
 
 ## [0.3] - 2018-04-19
 

@@ -10,7 +10,7 @@ import { GlobalPoint } from "../geom";
 import CircularToken from "./circulartoken";
 
 export function createShapeFromDict(shape: ServerShape, dummy?: boolean) {
-    // todo is this dummy stuff actually needed, do we ever want to return the local shape?
+    // TODO: is this dummy stuff actually needed, do we ever want to return the local shape?
     if (dummy === undefined) dummy = false;
     if (!dummy && gameManager.layerManager.UUIDMap.has(shape.uuid))
         return gameManager.layerManager.UUIDMap.get(shape.uuid);

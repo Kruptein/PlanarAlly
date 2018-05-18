@@ -175,7 +175,6 @@ a, a:visited, a:hover, a:active {
     bottom: 25px;
     right: 25px;
     z-index: 10;
-    background-color: white;
 }
 
 #toolselect ul {
@@ -183,16 +182,23 @@ a, a:visited, a:hover, a:active {
     list-style: none;
     padding: 0;
     margin: 0;
-    border: solid 1px black;
+    border: solid 1px #82c8a0;
+    border-radius: 5px;
 }
 
 #toolselect li {
     display: flex;
-    border-right: solid 1px black;
+    background-color: #eee;
+    border-right: solid 1px #82c8a0;
 }
 
 #toolselect li:last-child {
     border-right: none;
+    border-radius: 0px 5px 5px 0px;
+}
+
+#toolselect li:first-child {
+    border-radius: 5px 0px 0px 5px;
 }
 
 #toolselect li:hover {

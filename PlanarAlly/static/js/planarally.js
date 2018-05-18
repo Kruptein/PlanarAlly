@@ -17842,7 +17842,9 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
-
+String.prototype.capitalize = function() {
+    return this.charAt(0).toUpperCase() + this.slice(1);
+}
 
 class GameManager {
     constructor() {
@@ -20844,7 +20846,7 @@ function setupTools() {
         const toolInstance = new tool.clz();
         _planarally__WEBPACK_IMPORTED_MODULE_0__["default"].tools.set(tool.name, toolInstance);
         const extra = tool.defaultSelect ? " class='tool-selected'" : "";
-        const toolLi = $("<li id='tool-" + tool.name + "'" + extra + "><a href='#'>" + tool.name + "</a></li>");
+        const toolLi = $("<li id='tool-" + tool.name + "'" + extra + "><a href='#'>" + tool.name.capitalize() + "</a></li>");
         toolselectDiv.append(toolLi);
         if (tool.hasDetail) {
             const div = toolInstance.detailDiv;

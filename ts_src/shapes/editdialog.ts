@@ -275,7 +275,7 @@ export function populateEditAssetDialog(self: Shape) {
                 console.log("Attempted to change dimvalue of unknown aura");
                 return;
             }
-            au.value = parseInt(<string>$(this).val());
+            au.dim = parseInt(<string>$(this).val());
             const val = au.dim ? `${au.value}/${au.dim}` : au.value;
             $(`#selection-aura-${au.uuid}-value`).text(val);
             socket.emit("updateShape", { shape: self.asDict(), redraw: true });

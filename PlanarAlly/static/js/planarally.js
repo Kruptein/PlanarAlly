@@ -17932,7 +17932,7 @@ class GameManager {
                 let extra = '';
                 if (selectable_layers === 0)
                     extra = " class='layer-selected'";
-                layerselectdiv.find('ul').append("<li id='select-" + new_layer.name + "'" + extra + "><a href='#'>" + new_layer.name + "</a></li>");
+                layerselectdiv.find('ul').append("<li id='select-" + new_layer.name + "'" + extra + "><a href='#'>" + new_layer.name.capitalize() + "</a></li>");
                 selectable_layers += 1;
             }
             const canvas = $('#' + new_layer.name + '-layer')[0];

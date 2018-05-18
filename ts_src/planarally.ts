@@ -46,7 +46,8 @@ class GameManager {
             showAlpha: true,
             color: "rgba(255,0,0, 0.5)",
             move: function () {
-                gameManager.layerManager.drawGrid()
+                if(gameManager.layerManager.getGridLayer() !== undefined)
+                    gameManager.layerManager.getGridLayer()!.drawGrid();
             },
             change: function (colour) {
                 socket.emit("set clientOptions", { 'gridColour': colour.toRgbString() });
@@ -123,7 +124,6 @@ class GameManager {
             gameManager.layerManager.addLayer(l);
             if (new_layer.grid) {
                 gameManager.layerManager.setGridSize(new_layer.size);
-                gameManager.layerManager.drawGrid();
                 $("#grid-layer").droppable({
                     accept: ".draggable",
                     drop: function (event, ui) {
@@ -262,7 +262,7 @@ class GameManager {
                     $("#zoomer").slider({ value: loc.zoomFactor });
                 }
                 if (this.layerManager.getGridLayer() !== undefined)
-                    this.layerManager.getGridLayer()!.invalidate(false);
+                    this.layerManager.getGridLayer()!.invalidate();
             }
         }
     }

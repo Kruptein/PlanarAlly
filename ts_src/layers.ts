@@ -93,36 +93,15 @@ export class LayerManager {
         });
     }
 
-    getGridLayer(): Layer|undefined {
-        return this.getLayer("grid");
-    }
-
-    drawGrid(): void {
-        const layer = this.getGridLayer();
-        if (layer === undefined) return;
-        const ctx = layer.ctx;
-        layer.clear();
-        ctx.beginPath();
-
-        for (let i = 0; i < layer.width; i += Settings.gridSize * Settings.zoomFactor) {
-            ctx.moveTo(i + (Settings.panX % Settings.gridSize) * Settings.zoomFactor, 0);
-            ctx.lineTo(i + (Settings.panX % Settings.gridSize) * Settings.zoomFactor, layer.height);
-            ctx.moveTo(0, i + (Settings.panY % Settings.gridSize) * Settings.zoomFactor);
-            ctx.lineTo(layer.width, i + (Settings.panY % Settings.gridSize) * Settings.zoomFactor);
-        }
-
-        ctx.strokeStyle = gameManager.gridColour.spectrum("get").toRgbString();
-        ctx.lineWidth = 1;
-        ctx.stroke();
-        layer.valid = true;
-        if (this.hasLayer("fow"))
-            this.getLayer("fow")!.invalidate(true);
+    getGridLayer(): GridLayer|undefined {
+        return <GridLayer>this.getLayer("grid");
     }
 
     setGridSize(gridSize: number): void {
         if (Settings.gridSize !== gridSize) {
             Settings.gridSize = gridSize;
-            this.drawGrid();
+            if(this.getGridLayer() !== undefined)
+                this.getGridLayer()!.drawGrid();
             $('#gridSizeInput').val(gridSize);
         }
     }
@@ -130,7 +109,8 @@ export class LayerManager {
     setUnitSize(unitSize: number): void {
         if (unitSize !== Settings.unitSize) {
             Settings.unitSize = unitSize;
-            this.drawGrid();
+            if(this.getGridLayer() !== undefined)
+                this.getGridLayer()!.drawGrid();
             $('#unitSizeInput').val(unitSize);
         }
     }
@@ -333,7 +313,29 @@ export class Layer {
 
 export class GridLayer extends Layer {
     invalidate(): void {
-        gameManager.layerManager.drawGrid();
+        this.valid = false;
+    }
+    draw(doClear?: boolean): void {
+        if (gameManager.board_initialised && !this.valid) {
+            this.drawGrid();
+        }
+    }
+    drawGrid(): void {
+        const ctx = this.ctx;
+        this.clear();
+        ctx.beginPath();
+
+        for (let i = 0; i < this.width; i += Settings.gridSize * Settings.zoomFactor) {
+            ctx.moveTo(i + (Settings.panX % Settings.gridSize) * Settings.zoomFactor, 0);
+            ctx.lineTo(i + (Settings.panX % Settings.gridSize) * Settings.zoomFactor, this.height);
+            ctx.moveTo(0, i + (Settings.panY % Settings.gridSize) * Settings.zoomFactor);
+            ctx.lineTo(this.width, i + (Settings.panY % Settings.gridSize) * Settings.zoomFactor);
+        }
+
+        ctx.strokeStyle = gameManager.gridColour.spectrum("get").toRgbString();
+        ctx.lineWidth = 1;
+        ctx.stroke();
+        this.valid = true;
     }
 }
 

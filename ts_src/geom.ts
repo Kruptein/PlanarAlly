@@ -1,7 +1,7 @@
 /*
 This module defines some Point classes.
-A strong focus is made to ensure that at no time a global and a local point are in some way used instead of the other.
-This adds some at first glance weird looking hacks as ts does not support nominal typing.
+A strong focus is made to ensure that at no time a global and a local point are mixed up with each other.
+At first glance this adds weird looking hacks as ts does not support nominal typing.
 */
 
 class Point {
@@ -22,8 +22,8 @@ class Point {
     }
 }
 export class GlobalPoint extends Point {
-    // this is to differentiate with LocalPoint, is actually never used
-    // We do ! to prevent errors that it gets never initialized because yeah.
+    // This is to differentiate with LocalPoint, is actually never used
+    // We do ! to prevent errors that it never gets initialized
     _GlobalPoint!: string;
     add(vec: Vector<this>): GlobalPoint {
         return <GlobalPoint>super.add(vec);
@@ -37,8 +37,8 @@ export class GlobalPoint extends Point {
 }
 
 export class LocalPoint extends Point {
-    // this is to differentiate with GlobalPoint, is actually never used
-    // We do ! to prevent errors that it gets never initialized because yeah.
+    // This is to differentiate with GlobalPoint, is actually never used
+    // We do ! to prevent errors that it never gets initialized
     _LocalPoint!: string;
     add(vec: Vector<this>): LocalPoint {
         return <LocalPoint>super.add(vec);
@@ -100,7 +100,7 @@ export function getLinesIntersectPoint<T extends Point>(s1: T, e1: T, s2: T, e2:
 
     const C2 = A2*s2.x+B2*s2.y;
     const C1 = A1*s1.x+B1*s1.y;
-    //invert delta to make division cheaper
+    // Invert delta to make division cheaper
     const invdelta = 1/delta;
 
     const intersect = <T>{x: (B2*C1 - B1*C2)*invdelta, y: (A1*C2 - A2*C1)*invdelta};

@@ -275,7 +275,7 @@ let gameManager = new GameManager();
 
 // **** SETUP UI ****
 
-// prevent double clicking text selection
+// Prevent double clicking text selection
 window.addEventListener('selectstart', function (e) {
     e.preventDefault();
     return false;
@@ -371,7 +371,7 @@ const layer_menu = $("#layerselect")!;
 $("#selection-menu").hide();
 
 $('#rm-settings').on("click", function () {
-    // order of animation is important, it otherwise will sometimes show a small gap between the two objects
+    // Order of animation is important, it otherwise will sometimes show a small gap between the two objects
     if (settings_menu.is(":visible")) {
         $('#radialmenu').animate({ left: "-=200px" });
         settings_menu.animate({ width: 'toggle' });
@@ -386,7 +386,7 @@ $('#rm-settings').on("click", function () {
 });
 
 $('#rm-locations').on("click", function () {
-    // order of animation is important, it otherwise will sometimes show a small gap between the two objects
+    // Order of animation is important, it otherwise will sometimes show a small gap between the two objects
     if (locations_menu.is(":visible")) {
         $('#radialmenu').animate({ top: "-=100px" });
         locations_menu.animate({ height: 'toggle' });

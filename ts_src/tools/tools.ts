@@ -7,6 +7,7 @@ import { FOWTool } from "./fow";
 import { MapTool } from "./map";
 import { Vector, GlobalPoint } from "../geom";
 import Shape from "../shapes/shape";
+import { capitalize } from "../utils";
 
 export enum SelectOperations {
     Noop,
@@ -23,7 +24,7 @@ export function setupTools(): void {
         const toolInstance = new tool.clz();
         gameManager.tools.set(tool.name, toolInstance);
         const extra = tool.defaultSelect ? " class='tool-selected'" : "";
-        const toolLi = $("<li id='tool-" + tool.name + "'" + extra + "><a href='#'>" + tool.name + "</a></li>");
+        const toolLi = $("<li id='tool-" + tool.name + "'" + extra + "><a href='#'>" + capitalize(tool.name) + "</a></li>");
         toolselectDiv.append(toolLi);
         if (tool.hasDetail) {
             const div = toolInstance.detailDiv!;

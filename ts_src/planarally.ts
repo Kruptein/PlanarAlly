@@ -11,6 +11,7 @@ import { Tool } from './tools/tool';
 import { InitiativeTracker } from './tools/initiative';
 import { Settings } from './settings';
 import { throttle } from 'lodash';
+import { capitalize } from './utils';
 
 class GameManager {
     IS_DM = false;
@@ -105,7 +106,7 @@ class GameManager {
             if (new_layer.selectable) {
                 let extra = '';
                 if (selectable_layers === 0) extra = " class='layer-selected'";
-                layerselectdiv.find('ul').append("<li id='select-" + new_layer.name + "'" + extra + "><a href='#'>" + new_layer.name + "</a></li>");
+                layerselectdiv.find('ul').append("<li id='select-" + new_layer.name + "'" + extra + "><a href='#'>" + capitalize(new_layer.name) + "</a></li>");
                 selectable_layers += 1;
             }
             const canvas = <HTMLCanvasElement>$('#' + new_layer.name + '-layer')[0];

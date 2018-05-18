@@ -4,12 +4,15 @@ export function getMouse(e: MouseEvent): LocalPoint {
     return new LocalPoint(e.pageX, e.pageY);
 }
 
-
 export function alphSort(a: string, b: string) {
     if (a.toLowerCase() < b.toLowerCase())
         return -1;
     else
         return 1;
+}
+
+export function capitalize(text: string) {
+    return text.charAt(0).toUpperCase() + text.slice(1);
 }
 
 // https://stackoverflow.com/questions/105034/create-guid-uuid-in-javascript

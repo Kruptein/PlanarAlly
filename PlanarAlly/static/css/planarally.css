@@ -132,7 +132,6 @@ a, a:visited, a:hover, a:active {
     bottom: 25px;
     left: 25px;
     z-index: 10;
-    background-color: white;
 }
 
 #layerselect ul {
@@ -140,16 +139,23 @@ a, a:visited, a:hover, a:active {
     list-style: none;
     padding: 0;
     margin: 0;
-    border: solid 1px black;
+    border: solid 1px #82c8a0;
+    border-radius: 6px;
 }
 
 #layerselect li {
     display: flex;
-    border-right: solid 1px black;
+    background-color: #eee;
+    border-right: solid 1px #82c8a0;
+}
+
+#layerselect li:first-child {
+    border-radius: 4px 0px 0px 4px; /* Border radius needs to be two less than the actual border, otherwise there will be a gap */
 }
 
 #layerselect li:last-child {
     border-right: none;
+    border-radius: 0px 4px 4px 0px;
 }
 
 #layerselect li:hover {
@@ -175,7 +181,6 @@ a, a:visited, a:hover, a:active {
     bottom: 25px;
     right: 25px;
     z-index: 10;
-    background-color: white;
 }
 
 #toolselect ul {
@@ -183,16 +188,23 @@ a, a:visited, a:hover, a:active {
     list-style: none;
     padding: 0;
     margin: 0;
-    border: solid 1px black;
+    border: solid 1px #82c8a0;
+    border-radius: 7px;
 }
 
 #toolselect li {
     display: flex;
-    border-right: solid 1px black;
+    background-color: #eee;
+    border-right: solid 1px #82c8a0;
 }
 
 #toolselect li:last-child {
     border-right: none;
+    border-radius: 0px 4px 4px 0px; /* Border radius needs to be two less than the actual border, otherwise there will be a gap */
+}
+
+#toolselect li:first-child {
+    border-radius: 4px 0px 0px 4px;
 }
 
 #toolselect li:hover {

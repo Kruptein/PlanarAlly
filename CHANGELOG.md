@@ -3,6 +3,11 @@ All notable changes to this project will be documented in this file.
 
 ## [0.5] - Not yet released
 
+### Added
+- Added an exit button in-game
+    - This will now bring you back to your sessions
+    - Also added a new logout button to the sessions menu
+
 ### Changed
 - Improved the visuals of the toolbar and layer manager
 

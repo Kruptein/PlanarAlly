@@ -79,6 +79,20 @@ form {
     position: absolute;
 }
 
+#account-options {
+    display: flex;
+    background: #fff;
+    border-radius: 4px;
+    margin-top: 50px;
+    height: 45px;
+}
+
+#account-options form {
+    background: none;
+    border-radius: 0px;
+    width: 50%;
+}
+
 .input {
     position: relative;
     width: 90%;

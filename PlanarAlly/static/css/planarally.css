@@ -339,6 +339,12 @@ a, a:visited, a:hover, a:active {
     margin-left: auto;
 }
 
+#exitButton {
+    position: absolute;
+    bottom: 0px;
+    width: 100%;
+}
+
 #zoomer {
     position: absolute;
     top: 25px;

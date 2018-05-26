@@ -433,6 +433,10 @@ export class FOWLayer extends Layer {
 
                 // Cast rays in every degree
                 for (let angle = 0; angle < 2 * Math.PI; angle += (1 / 180) * Math.PI) {
+                    const angle_point = new GlobalPoint(
+                        center.x + aura_length * Math.cos(angle),
+                        center.y + aura_length * Math.sin(angle)
+                    )
                     // Check if there is a hit with one of the nearby light blockers.
                     let hit: {intersect: GlobalPoint|null, distance:number} = {intersect: null, distance: Infinity};
                     let shape_hit: null|BoundingRect = null;
@@ -440,10 +444,7 @@ export class FOWLayer extends Layer {
                         const lb_bb = local_lightblockers[i];
                         const result = lb_bb.getIntersectWithLine({
                             start: center,
-                            end: new GlobalPoint(
-                                center.x + aura_length * Math.cos(angle),
-                                center.y + aura_length * Math.sin(angle)
-                            )
+                            end: angle_point
                         });
                         if (result.intersect !== null && result.distance < hit.distance) {
                             hit = result;
@@ -457,7 +458,7 @@ export class FOWLayer extends Layer {
                             // Set the start of a new arc beginning at the current angle
                             arc_start = angle;
                             // Draw a line from the last non arc location back to the arc
-                            const dest = g2l(new GlobalPoint(center.x + aura_length * Math.cos(angle), center.y + aura_length * Math.sin(angle)));
+                            const dest = g2l(angle_point);
                             ctx.lineTo(dest.x, dest.y);
                         }
                         continue;
@@ -471,8 +472,8 @@ export class FOWLayer extends Layer {
                     let extraX = 0;
                     let extraY = 0;
                     if (shape_hit !== null) {
-                        extraX = (shape_hit.w / 10) * Math.cos(angle);
-                        extraY = (shape_hit.h / 10) * Math.sin(angle);
+                        extraX = (shape_hit!.w / 10) * Math.cos(angle);
+                        extraY = (shape_hit!.h / 10) * Math.sin(angle);
                     }
                     // if (!shape_hit.contains(hit.intersect.x + extraX, hit.intersect.y + extraY, false)) {
                     //     extraX = 0;

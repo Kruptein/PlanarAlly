@@ -278,18 +278,18 @@ export class Layer {
                 this.selection.forEach(function (sel) {
                     const bb = sel.getBoundingBox();
                     // TODO: REFACTOR THIS TO Shape.drawSelection(ctx);
-                    ctx.strokeRect(g2lx(bb.refPoint.x), g2ly(bb.refPoint.y), bb.w * z, bb.h * z);
+                    ctx.strokeRect(g2lx(bb.topLeft.x), g2ly(bb.topLeft.y), bb.w * z, bb.h * z);
 
                     const sw = Math.min(6, bb.w / 2)
 
                     // topright
-                    ctx.fillRect(g2lx(bb.refPoint.x + bb.w - sw/2), g2ly(bb.refPoint.y - sw/2), sw * z, sw * z);
+                    ctx.fillRect(g2lx(bb.topRight.x - sw/2), g2ly(bb.topLeft.y - sw/2), sw * z, sw * z);
                     // topleft
-                    ctx.fillRect(g2lx(bb.refPoint.x - sw/2), g2ly(bb.refPoint.y - sw/2), sw * z, sw * z);
+                    ctx.fillRect(g2lx(bb.topLeft.x - sw/2), g2ly(bb.topLeft.y - sw/2), sw * z, sw * z);
                     // botright
-                    ctx.fillRect(g2lx(bb.refPoint.x + bb.w - sw/2), g2ly(bb.refPoint.y + bb.h - sw/2), sw * z, sw * z);
+                    ctx.fillRect(g2lx(bb.topRight.x - sw/2), g2ly(bb.botLeft.y - sw/2), sw * z, sw * z);
                     // botleft
-                    ctx.fillRect(g2lx(bb.refPoint.x - sw/2), g2ly(bb.refPoint.y + bb.h - sw/2), sw * z, sw * z)
+                    ctx.fillRect(g2lx(bb.topLeft.x - sw/2), g2ly(bb.botLeft.y - sw/2), sw * z, sw * z)
                 });
             }
 
@@ -361,6 +361,7 @@ export class FOWLayer extends Layer {
 
     draw(): void {
         if (gameManager.board_initialised && !this.valid) {
+            console.time("FOW");
             const ctx = this.ctx;
             const orig_op = ctx.globalCompositeOperation;
 
@@ -500,6 +501,7 @@ export class FOWLayer extends Layer {
                 super.draw(!Settings.fullFOW);
 
             ctx.globalCompositeOperation = orig_op;
+            console.timeEnd("FOW");
         }
     }
 }

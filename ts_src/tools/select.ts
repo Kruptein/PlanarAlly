@@ -195,10 +195,10 @@ export class SelectTool extends Tool {
                 if (shape === this.selectionHelper) return;
                 const bbox = shape.getBoundingBox();
                 if (!shape.ownedBy()) return;
-                if (this.selectionHelper!.refPoint.x <= bbox.refPoint.x + bbox.w &&
-                    this.selectionHelper!.refPoint.x + this.selectionHelper!.w >= bbox.refPoint.x &&
-                    this.selectionHelper!.refPoint.y <= bbox.refPoint.y + bbox.h &&
-                    this.selectionHelper!.refPoint.y + this.selectionHelper!.h >= bbox.refPoint.y) {
+                if (this.selectionHelper!.refPoint.x <= bbox.topRight.x &&
+                    this.selectionHelper!.refPoint.x + this.selectionHelper!.w >= bbox.topLeft.x &&
+                    this.selectionHelper!.refPoint.y <= bbox.botLeft.y &&
+                    this.selectionHelper!.refPoint.y + this.selectionHelper!.h >= bbox.topLeft.y) {
                     layer.selection.push(shape);
                 }
             });

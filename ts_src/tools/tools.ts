@@ -75,7 +75,7 @@ export function calculateDelta(delta: Vector<GlobalPoint>, sel: Shape, done?: st
         const blocker = gameManager.layerManager.UUIDMap.get(gameManager.movementblockers[mb])!;
         const blockerBBox = blocker.getBoundingBox();
         // Check if the bounding box of our destination would intersect with the bounding box of the movementblocker
-        if (blockerBBox.intersectsWith(newSelBBox) || blockerBBox.getIntersectWithLine({ start: ogSelBBox.refPoint.add(delta.normalize()), end: newSelBBox.refPoint }).intersect) {
+        if (blockerBBox.intersectsWith(newSelBBox) || blockerBBox.getIntersectWithLine({ start: ogSelBBox.topLeft.add(delta.normalize()), end: newSelBBox.topLeft }).intersect) {
             const bCenter = blockerBBox.center();
             const sCenter = ogSelBBox.center();
 
@@ -92,19 +92,19 @@ export function calculateDelta(delta: Vector<GlobalPoint>, sel: Shape, done?: st
             // Closest point / intersection point between the two bboxes.  Not the delta intersect!
             const p = bCenter.add(ux.multiply(dx)).add(uy.multiply(dy));
 
-            if (p.x === ogSelBBox.refPoint.x || p.x === ogSelBBox.refPoint.x + ogSelBBox.w)
+            if (p.x === ogSelBBox.topLeft.x || p.x === ogSelBBox.topRight.x)
                 delta.direction.x = 0;
-            else if (p.y === ogSelBBox.refPoint.y || p.y === ogSelBBox.refPoint.y + ogSelBBox.h)
+            else if (p.y === ogSelBBox.topLeft.y || p.y === ogSelBBox.botLeft.y)
                 delta.direction.y = 0;
             else {
-                if (p.x < ogSelBBox.refPoint.x)
-                    delta.direction.x = p.x - ogSelBBox.refPoint.x;
-                else if (p.x > ogSelBBox.refPoint.x + ogSelBBox.w)
-                    delta.direction.x = p.x - (ogSelBBox.refPoint.x + ogSelBBox.w);
-                else if (p.y < ogSelBBox.refPoint.y)
-                    delta.direction.y = p.y - ogSelBBox.refPoint.y;
-                else if (p.y > ogSelBBox.refPoint.y + ogSelBBox.h)
-                    delta.direction.y = p.y - (ogSelBBox.refPoint.y + ogSelBBox.h);
+                if (p.x < ogSelBBox.topLeft.x)
+                    delta.direction.x = p.x - ogSelBBox.topLeft.x;
+                else if (p.x > ogSelBBox.topRight.x)
+                    delta.direction.x = p.x - ogSelBBox.topRight.x;
+                else if (p.y < ogSelBBox.topLeft.y)
+                    delta.direction.y = p.y - ogSelBBox.topLeft.y;
+                else if (p.y > ogSelBBox.botLeft.y)
+                    delta.direction.y = p.y - ogSelBBox.botLeft.y;
             }
             refine = true;
             done.push(gameManager.movementblockers[mb]);

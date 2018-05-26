@@ -363,19 +363,29 @@ export class FOWLayer extends Layer {
         if (gameManager.board_initialised && !this.valid) {
             const ctx = this.ctx;
             const orig_op = ctx.globalCompositeOperation;
+
+            // Fill the entire screen with the desired FOW colour.
             if (Settings.fullFOW) {
                 const ogalpha = this.ctx.globalAlpha;
+                
                 this.ctx.globalCompositeOperation = "copy";
                 if (gameManager.IS_DM)
                     this.ctx.globalAlpha = Settings.fowOpacity;
                 this.ctx.fillStyle = gameManager.fowColour.spectrum("get").toRgbString();
                 this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+
                 this.ctx.globalAlpha = ogalpha;
                 this.ctx.globalCompositeOperation = orig_op;
             }
+
+            // For the DM this is done at the end of this function.  TODO: why the split up ???
+            // This was done in commit be1e65cff1e7369375fe11cfa1643fab1d11beab.
             if (!gameManager.IS_DM)
                 super.draw(!Settings.fullFOW);
+                
             ctx.globalCompositeOperation = 'destination-out';
+
+            // At all times provide a minimal vision range to prevent losing your tokens in fog.
             if (gameManager.layerManager.hasLayer("tokens")) {
                 gameManager.layerManager.getLayer("tokens")!.shapes.forEach(function (sh) {
                     if (!sh.ownedBy()) return;
@@ -391,7 +401,7 @@ export class FOWLayer extends Layer {
                     ctx.fill();
                 });
             }
-            ctx.globalCompositeOperation = 'destination-out';
+
             gameManager.lightsources.forEach(function (ls) {
                 const sh = gameManager.layerManager.UUIDMap.get(ls.shape);
                 if (sh === undefined) return;
@@ -405,8 +415,7 @@ export class FOWLayer extends Layer {
                 const lcenter = g2l(center);
                 const bbox = new Circle(center, aura_length).getBoundingBox();
 
-                // We first collect all lightblockers that are inside/cross our aura
-                // This to prevent as many ray calculations as possible
+                // Prefilter all lightblockers that are in the general vicinity of the light source.
                 const local_lightblockers: BoundingRect[] = [];
                 gameManager.lightblockers.forEach(function (lb) {
                     if (lb === sh.uuid) return;
@@ -423,7 +432,7 @@ export class FOWLayer extends Layer {
 
                 // Cast rays in every degree
                 for (let angle = 0; angle < 2 * Math.PI; angle += (1 / 180) * Math.PI) {
-                    // Check hit with obstruction
+                    // Check if there is a hit with one of the nearby light blockers.
                     let hit: {intersect: GlobalPoint|null, distance:number} = {intersect: null, distance: Infinity};
                     let shape_hit: null|BoundingRect = null;
                     for (let i=0; i<local_lightblockers.length; i++) {
@@ -440,10 +449,13 @@ export class FOWLayer extends Layer {
                             shape_hit = lb_bb;
                         }
                     }
-                    // If we have no hit, check if we come from a previous hit so that we can go back to the arc
+                    // If we have no hit, check if we have left the arc due to a previous hit
+                    // We can move on to the next angle if nothing was hit.
                     if (hit.intersect === null) {
                         if (arc_start === -1) {
+                            // Set the start of a new arc beginning at the current angle
                             arc_start = angle;
+                            // Draw a line from the last non arc location back to the arc
                             const dest = g2l(new GlobalPoint(center.x + aura_length * Math.cos(angle), center.y + aura_length * Math.sin(angle)));
                             ctx.lineTo(dest.x, dest.y);
                         }
@@ -454,6 +466,7 @@ export class FOWLayer extends Layer {
                         ctx.arc(lcenter.x, lcenter.y, g2lr(aura.value), arc_start, angle);
                         arc_start = -1;
                     }
+                    // The extraX and extraY values are used to show a small bit of the element that is blocking vision.
                     let extraX = 0;
                     let extraY = 0;
                     if (shape_hit !== null) {
@@ -467,9 +480,11 @@ export class FOWLayer extends Layer {
                     const dest = g2l(new GlobalPoint(hit.intersect.x + extraX, hit.intersect.y + extraY));
                     ctx.lineTo(dest.x, dest.y);
                 }
+                // Finish the final arc.
                 if (arc_start !== -1)
                     ctx.arc(lcenter.x, lcenter.y, g2lr(aura.value), arc_start, 2 * Math.PI);
 
+                // Fill the light aura with a radial dropoff towards the outside.
                 const alm = g2lr(aura.value);
                 const gradient = ctx.createRadialGradient(lcenter.x, lcenter.y, alm / 2, lcenter.x, lcenter.y, alm);
                 gradient.addColorStop(0, 'rgba(0, 0, 0, 1)');
@@ -478,8 +493,12 @@ export class FOWLayer extends Layer {
                 // ctx.fillStyle = "rgba(0, 0, 0, 1)";
                 ctx.fill();
             });
+
+            // For the players this is done at the beginning of this function.  TODO: why the split up ???
+            // This was done in commit be1e65cff1e7369375fe11cfa1643fab1d11beab.
             if (gameManager.IS_DM)
                 super.draw(!Settings.fullFOW);
+
             ctx.globalCompositeOperation = orig_op;
         }
     }

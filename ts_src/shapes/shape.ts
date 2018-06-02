@@ -333,8 +333,9 @@ export default abstract class Shape {
             uuid: this.uuid,
             visible: !gameManager.IS_DM,
             group: false,
-            src: "",
-            owners: this.owners
+            src: this.name,
+            owners: this.owners,
+            has_img: false
         }
     }
     // Code to snap a grid to the grid

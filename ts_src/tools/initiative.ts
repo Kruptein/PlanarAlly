@@ -52,7 +52,8 @@ export class InitiativeTracker {
 
         this.data.forEach(function (data) {
             if (data.owners === undefined) data.owners = [];
-            const img = data.src === undefined ? '' : $(`<img src="${data.src}" width="30px" data-uuid="${data.uuid}">`);
+            const repr = data.has_img ? $(`<img src="${data.src}" width="30px" data-uuid="${data.uuid}">`) : data.src;
+            // const img = data.src === undefined ? '' : $(`<img src="${data.src}" width="30px" data-uuid="${data.uuid}">`);
             // const name = $(`<input type="text" placeholder="name" data-uuid="${sh.uuid}" value="${sh.name}" disabled='disabled' style="grid-column-start: name">`);
             const val = $(`<input type="text" placeholder="value" data-uuid="${data.uuid}" value="${data.initiative}" style="grid-column-start: value">`);
             const visible = $(`<div data-uuid="${data.uuid}"><i class="fas fa-eye"></i></div>`);
@@ -66,7 +67,7 @@ export class InitiativeTracker {
                 remove.css("opacity", "0.3");
             }
 
-            gameManager.initiativeDialog.append(img).append(val).append(visible).append(group).append(remove);
+            gameManager.initiativeDialog.append(repr).append(val).append(visible).append(group).append(remove);
 
             val.on("change", function () {
                 const d = self.data.find(d => d.uuid === $(this).data('uuid'));

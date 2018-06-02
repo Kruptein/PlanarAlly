@@ -31,6 +31,7 @@ export interface InitiativeData {
     visible: boolean;
     group: boolean;
     src: string;
+    has_img: boolean;
 }
 
 interface ServerLayer {

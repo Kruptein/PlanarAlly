@@ -15,6 +15,7 @@ All notable changes to this project will be documented in this file.
 - Improved the visuals of the toolbar and layer manager
 - Multiple large light/shadow related performance improvements for firefox
     - Chromium based browsers had slight improvements but already were (ans still are) much more performant in regards to FOW calculation
+- Shapes that do not have an associated image, now show their name or token tag in the initiative dialog
 
 ### Fixed
 - The dim value attribute of auras was wrongly used as the normal aura value

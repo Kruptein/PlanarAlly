@@ -7,13 +7,19 @@ All notable changes to this project will be documented in this file.
 - Added an exit button in-game
     - This will now bring you back to your sessions
     - Also added a new logout button to the sessions menu
+- Add token toggle to shape settings
+- Line of sight based light for tokens
+    - Only see lights that fall in your line of sight
 
 ### Changed
 - Improved the visuals of the toolbar and layer manager
+- Multiple large light/shadow related performance improvements for firefox
+    - Chromium based browsers had slight improvements but already were (ans still are) much more performant in regards to FOW calculation
 
 ### Fixed
 - The dim value attribute of auras was wrongly used as the normal aura value
 - The grid is now redrawn at the same time as the other layers instead of immediately
+- The light source toggle on shapes now immediately redraws the screen
 
 ## [0.4] - 2018-05-04
 

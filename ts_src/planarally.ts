@@ -23,11 +23,14 @@ class GameManager {
     layerManager = new LayerManager();
     selectedTool: number = 0;
     tools: OrderedMap<string, Tool> = new OrderedMap();
+    
     lightsources: { shape: string, aura: string }[] = [];
     lightblockers: string[] = [];
     annotations: string[] = [];
-    annotationText: Text = new Text(new GlobalPoint(0, 0), "", "bold 20px serif");
     movementblockers: string[] = [];
+    ownedtokens: string[] = [];
+
+    annotationText: Text = new Text(new GlobalPoint(0, 0), "", "bold 20px serif");
     gridColour = $("#gridColour");
     fowColour = $("#fowColour");
     initiativeTracker = new InitiativeTracker();
@@ -233,6 +236,7 @@ class GameManager {
         const shape = Object.assign(this.layerManager.UUIDMap.get(data.shape.uuid), sh);
         shape.checkLightSources();
         shape.setMovementBlock(shape.movementObstruction);
+        shape.setIsToken(shape.isToken);
         if (data.redraw)
             this.layerManager.getLayer(data.shape.layer)!.invalidate(false);
     }

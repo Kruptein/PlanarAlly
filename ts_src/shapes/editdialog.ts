@@ -16,6 +16,17 @@ export function populateEditAssetDialog(self: Shape) {
             socket.emit("updateShape", { shape: s.asDict(), redraw: false })
         }
     });
+    const dialog_istoken = $("#shapeselectiondialog-istoken");
+    dialog_istoken.prop("checked", self.isToken);
+    dialog_istoken.on("click", function () {
+        const uuid = <string>$("#shapeselectiondialog-uuid").val();
+        if (gameManager.layerManager.UUIDMap.has(uuid)) {
+            const s = gameManager.layerManager.UUIDMap.get(uuid)!;
+            s.setIsToken(dialog_istoken.prop("checked"));
+            gameManager.layerManager.invalidate();
+            socket.emit("updateShape", { shape: s.asDict(), redraw: true })
+        }
+    });
     const dialog_lightblock = $("#shapeselectiondialog-lightblocker");
     dialog_lightblock.prop("checked", self.visionObstruction);
     dialog_lightblock.on("click", function () {
@@ -24,6 +35,7 @@ export function populateEditAssetDialog(self: Shape) {
             const s = gameManager.layerManager.UUIDMap.get(uuid)!;
             s.visionObstruction = dialog_lightblock.prop("checked");
             s.checkLightSources();
+            gameManager.layerManager.invalidate();
             socket.emit("updateShape", { shape: s.asDict(), redraw: true })
         }
     });

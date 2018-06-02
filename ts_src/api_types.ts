@@ -65,6 +65,7 @@ export interface ServerShape {
     fill?: string;
     name?: string;
     annotation?: string;
+    isToken: boolean;
 }
 
 export interface ServerRect extends ServerShape {

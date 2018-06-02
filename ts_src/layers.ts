@@ -1,5 +1,5 @@
 import {getUnitDistance, g2l, g2lz, g2lr, g2lx, g2ly} from "./units";
-import {GlobalPoint} from "./geom";
+import {GlobalPoint, Vector} from "./geom";
 import gameManager from "./planarally";
 import socket from "./socket";
 import { LocationOptions, ServerShape } from "./api_types";
@@ -195,6 +195,8 @@ export class Layer {
         this.shapes.push(shape);
         shape.checkLightSources();
         shape.setMovementBlock(shape.movementObstruction);
+        if (shape.ownedBy(gameManager.username) && shape.isToken)
+            gameManager.ownedtokens.push(shape.uuid);
         if (shape.annotation.length)
             gameManager.annotations.push(shape.uuid);
         if (sync) socket.emit("add shape", {shape: shape.asDict(), temporary: temporary});
@@ -214,6 +216,8 @@ export class Layer {
             sh.layer = self.name;
             sh.checkLightSources();
             sh.setMovementBlock(shape.movementObstruction);
+            if (sh.ownedBy() && sh.isToken)
+                gameManager.ownedtokens.push(sh.uuid);
             if (sh.annotation.length)
                 gameManager.annotations.push(sh.uuid);
             gameManager.layerManager.UUIDMap.set(shape.uuid, sh);
@@ -240,6 +244,14 @@ export class Layer {
             gameManager.movementblockers.splice(mb_i, 1);
         if (an_i >= 0)
             gameManager.annotations.splice(an_i, 1);
+        
+        const annotation_i = gameManager.annotations.indexOf(shape.uuid);
+        if (annotation_i >= 0)
+            gameManager.annotations.splice(annotation_i, 1);
+        
+        const owned_i = gameManager.ownedtokens.indexOf(shape.uuid);
+        if (owned_i >= 0)
+            gameManager.ownedtokens.splice(owned_i, 1);
 
         gameManager.layerManager.UUIDMap.delete(shape.uuid);
 
@@ -411,17 +423,23 @@ export class FOWLayer extends Layer {
                     console.log("Old lightsource still lingering in the gameManager list");
                     return;
                 }
+
                 const aura_length = getUnitDistance(aura.value);
                 const center = sh.center();
                 const lcenter = g2l(center);
-                const bbox = new Circle(center, aura_length).getBoundingBox();
+                const aura_circle = new Circle(center, aura_length)
+
+                // If the aura is nowhere in vision, skip the light
+                if (!aura_circle.visibleInCanvas(ctx.canvas)) return;
+
+                const bbox = aura_circle.getBoundingBox();
 
                 // Prefilter all lightblockers that are in the general vicinity of the light source.
                 const local_lightblockers: BoundingRect[] = [];
                 gameManager.lightblockers.forEach(function (lb) {
                     if (lb === sh.uuid) return;
                     const lb_sh = gameManager.layerManager.UUIDMap.get(lb);
-                    if (lb_sh === undefined) return;
+                    if (lb_sh === undefined || !lb_sh.visibleInCanvas(ctx.canvas)) return;
                     const lb_bb = lb_sh.getBoundingBox();
                     if (lb_bb.intersectsWith(bbox))
                         local_lightblockers.push(lb_bb);
@@ -431,12 +449,19 @@ export class FOWLayer extends Layer {
 
                 let arc_start = 0;
 
+                let player_visible = false;
+
+                if (gameManager.ownedtokens.includes(ls.shape))
+                    player_visible = true;
+
+                // TODO: idea: scale amount of rays based on zoom ?
                 // Cast rays in every degree
-                for (let angle = 0; angle < 2 * Math.PI; angle += (1 / 180) * Math.PI) {
+                for (let angle = 0; angle < 2 * Math.PI; angle += (5 / 180) * Math.PI) {
                     const angle_point = new GlobalPoint(
                         center.x + aura_length * Math.cos(angle),
                         center.y + aura_length * Math.sin(angle)
                     )
+
                     // Check if there is a hit with one of the nearby light blockers.
                     let hit: {intersect: GlobalPoint|null, distance:number} = {intersect: null, distance: Infinity};
                     let shape_hit: null|BoundingRect = null;
@@ -451,6 +476,29 @@ export class FOWLayer extends Layer {
                             shape_hit = lb_bb;
                         }
                     }
+
+                    if (!player_visible && gameManager.ownedtokens) {
+                        // Check if the ray is visible from a player token
+                        for (let i=0; i < gameManager.ownedtokens.length; i++) {
+                            const token = gameManager.layerManager.UUIDMap.get(gameManager.ownedtokens[i])!;
+                            let intersect = false;
+                            for (let j=0; j<gameManager.lightblockers.length; j++) {
+                                const result = gameManager.layerManager.UUIDMap.get(gameManager.lightblockers[j])!.getBoundingBox().getIntersectWithLine({
+                                    start: hit.intersect === null ? angle_point : hit.intersect,
+                                    end: token.center()
+                                });
+                                if (result.intersect !== null) {
+                                    intersect = true;
+                                    break;
+                                }
+                            }
+                            if (!intersect) {
+                                player_visible = true;
+                                break;
+                            }
+                        }
+                    }
+
                     // If we have no hit, check if we have left the arc due to a previous hit
                     // We can move on to the next angle if nothing was hit.
                     if (hit.intersect === null) {
@@ -482,6 +530,10 @@ export class FOWLayer extends Layer {
                     const dest = g2l(new GlobalPoint(hit.intersect.x + extraX, hit.intersect.y + extraY));
                     ctx.lineTo(dest.x, dest.y);
                 }
+
+                if (!player_visible)
+                    return;
+
                 // Finish the final arc.
                 if (arc_start !== -1)
                     ctx.arc(lcenter.x, lcenter.y, g2lr(aura.value), arc_start, 2 * Math.PI);

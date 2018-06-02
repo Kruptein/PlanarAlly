@@ -3,7 +3,7 @@ import { LocalPoint } from "../geom";
 import { getMouse } from "../utils";
 import gameManager from "../planarally";
 import { l2g } from "../units";
-import socket from "../socket";
+import socket, { sendClientOptions } from "../socket";
 import { Settings } from "../settings";
 
 export class PanTool extends Tool {
@@ -25,14 +25,7 @@ export class PanTool extends Tool {
     };
     onMouseUp(e: MouseEvent): void {
         this.active = false;
-        socket.emit("set clientOptions", {
-            locationOptions: {
-                [`${gameManager.roomName}/${gameManager.roomCreator}/${gameManager.locationName}`]: {
-                    panX: Settings.panX,
-                    panY: Settings.panY
-                }
-            }
-        });
+        sendClientOptions();
     };
     onContextMenu(e: MouseEvent) { };
 }

@@ -2,8 +2,10 @@ import gameManager from "./planarally";
 import { alphSort } from "./utils";
 import { setupTools } from "./tools/tools";
 import { ClientOptions, LocationOptions, AssetList, ServerShape, InitiativeData, BoardInfo } from "./api_types";
+import { GlobalPoint } from "./geom";
+import { Settings } from "./settings";
 
-const socket = io.connect(location.protocol + "//" + location.host + "/planarally");
+export const socket = io.connect(location.protocol + "//" + location.host + "/planarally");
 socket.on("connect", function () {
     console.log("Connected");
 });
@@ -33,6 +35,9 @@ socket.on("set locationOptions", function (options: LocationOptions) {
 socket.on("set location", function (data: {name:string, options: LocationOptions}) {
     gameManager.locationName = data.name;
     gameManager.layerManager.setOptions(data.options);
+});
+socket.on("set position", function (data: {x: number, y: number}) {
+    gameManager.setCenterPosition(new GlobalPoint(data.x, data.y));
 });
 socket.on("asset list", function (assets: AssetList) {
     const m = $("#menu-tokens");
@@ -128,5 +133,17 @@ socket.on("clear temporaries", function (shapes: ServerShape[]) {
         gameManager.layerManager.getLayer(shape.layer)!.removeShape(real_shape, false);
     })
 });
+
+export function sendClientOptions() {
+    socket.emit("set clientOptions", {
+        locationOptions: {
+            [`${gameManager.roomName}/${gameManager.roomCreator}/${gameManager.locationName}`]: {
+                panX: Settings.panX,
+                panY: Settings.panY,
+                zoomFactor: Settings.zoomFactor,
+            }
+        }
+    });
+}
 
 export default socket;

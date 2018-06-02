@@ -479,9 +479,7 @@ async def bring_players(sid, data):
     room = policy.sio_map[sid]['room']
     for player in room.players:
         user = policy.user_map[player]
-        nested_dict_update(user.options, data)
-        await sio.emit("set clientOptions", user.options, room=policy.get_sid(user, room), namespace='/planarally')
-    app['AuthzPolicy'].save()
+        await sio.emit("set position", data, room=policy.get_sid(user, room), namespace='/planarally')
 
 
 @sio.on('connect', namespace='/planarally')

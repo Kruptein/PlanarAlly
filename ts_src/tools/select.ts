@@ -271,17 +271,12 @@ export class SelectTool extends Tool {
                 switch (action) {
                     case 'bringPlayers':
                         if (!gameManager.IS_DM) break;
-                        socket.emit("bringPlayers", {locationOptions: {
-                            [`${gameManager.roomName}/${gameManager.roomCreator}/${gameManager.locationName}`]: {
-                                panX: Settings.panX,
-                                panY: Settings.panY,
-                                zoomFactor: Settings.zoomFactor
-                            }}});
+                        const g_mouse = l2g(mouse);
+                        socket.emit("bringPlayers", {x: g_mouse.x, y: g_mouse.y});
                         break;
                     case 'createToken':
                         self.selectionStartPoint = l2g(mouse);
                         self.dialog.dialog("open");
-                        console.log("??");
                         break;
                 }
                 $menu.hide();

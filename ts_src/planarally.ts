@@ -1,5 +1,5 @@
-import socket from './socket'
-import { l2g, g2l } from "./units";
+import {socket, sendClientOptions} from './socket'
+import { l2g, g2l, getUnitDistance } from "./units";
 import { LayerManager, Layer, GridLayer, FOWLayer } from "./layers";
 import { ClientOptions, BoardInfo, ServerShape, InitiativeData } from './api_types';
 import { OrderedMap, getMouse } from './utils';
@@ -271,6 +271,14 @@ class GameManager {
             }
         }
     }
+
+    setCenterPosition(position: GlobalPoint) {
+        const l_pos = g2l(position);
+        Settings.panX += ((window.innerWidth / 2) - l_pos.x) / Settings.zoomFactor;
+        Settings.panY += ((window.innerHeight / 2) - l_pos.y) / Settings.zoomFactor;
+        gameManager.layerManager.invalidate();
+        sendClientOptions();
+    }
 }
 
 
@@ -428,46 +436,22 @@ $('body').keydown(function (e) {
     if (e.keyCode === 37 && !targetIsInput(e)) {
         Settings.panX += Math.round(Settings.gridSize);
         gameManager.layerManager.invalidate();
-        socket.emit("set clientOptions", {
-            locationOptions: {
-                [`${gameManager.roomName}/${gameManager.roomCreator}/${gameManager.locationName}`]: {
-                    panX: Settings.panX
-                }
-            }
-        });
+        sendClientOptions();
     }
     if (e.keyCode === 38 && !targetIsInput(e)) {
         Settings.panY += Math.round(Settings.gridSize);
         gameManager.layerManager.invalidate();
-        socket.emit("set clientOptions", {
-            locationOptions: {
-                [`${gameManager.roomName}/${gameManager.roomCreator}/${gameManager.locationName}`]: {
-                    panY: Settings.panY
-                }
-            }
-        });
+        sendClientOptions();
     }
     if (e.keyCode === 39 && !targetIsInput(e)) {
         Settings.panX -= Math.round(Settings.gridSize);
         gameManager.layerManager.invalidate();
-        socket.emit("set clientOptions", {
-            locationOptions: {
-                [`${gameManager.roomName}/${gameManager.roomCreator}/${gameManager.locationName}`]: {
-                    panX: Settings.panX
-                }
-            }
-        });
+        sendClientOptions();
     }
     if (e.keyCode === 40 && !targetIsInput(e)) {
         Settings.panY -= Math.round(Settings.gridSize);
         gameManager.layerManager.invalidate();
-        socket.emit("set clientOptions", {
-            locationOptions: {
-                [`${gameManager.roomName}/${gameManager.roomCreator}/${gameManager.locationName}`]: {
-                    panY: Settings.panY
-                }
-            }
-        });
+        sendClientOptions();
     }
 });
 
@@ -531,15 +515,7 @@ function updateZoom(newZoomValue: number, zoomLocation: GlobalPoint) {
     Settings.panY += diff.direction.y;
 
     gameManager.layerManager.invalidate();
-    socket.emit("set clientOptions", {
-        locationOptions: {
-            [`${gameManager.roomName}/${gameManager.roomCreator}/${gameManager.locationName}`]: {
-                panX: Settings.panX,
-                panY: Settings.panY,
-                zoomFactor: newZoomValue,
-            }
-        }
-    });
+    sendClientOptions();
     $("#zoomer").slider({ value: newZoomValue });
 }
 

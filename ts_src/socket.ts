@@ -1,5 +1,5 @@
 import gameManager from "./planarally";
-import { alphSort } from "./utils";
+import { alphSort, fixedEncodeURIComponent } from "./utils";
 import { setupTools } from "./tools/tools";
 import { ClientOptions, LocationOptions, AssetList, ServerShape, InitiativeData, BoardInfo } from "./api_types";
 import { GlobalPoint } from "./geom";
@@ -53,7 +53,7 @@ socket.on("asset list", function (assets: AssetList) {
         });
         entry.files.sort(alphSort);
         entry.files.forEach(function (asset) {
-            h += "<div class='draggable token'><img src='/static/img/assets/" + path + asset + "' width='35'>" + asset + "<i class='fas fa-cog'></i></div>";
+            h += "<div class='draggable token'><img src='/static/img/assets/" + fixedEncodeURIComponent(path) + fixedEncodeURIComponent(asset) + "' width='35'>" + asset + "<i class='fas fa-cog'></i></div>";
         });
     };
     process(assets, "");

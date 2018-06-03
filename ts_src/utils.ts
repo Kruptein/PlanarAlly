@@ -29,6 +29,12 @@ export function calcFontScale(ctx: CanvasRenderingContext2D, text: string, width
     return Math.min(width / fontWidth, height / points);
 }
 
+export function fixedEncodeURIComponent(str: string) {
+    return encodeURIComponent(str).replace(/[!'()*]/g, function(c) {
+      return '%' + c.charCodeAt(0).toString(16);
+    });
+  }
+
 export class OrderedMap<K, V> {
     keys: K[] = [];
     values: V[] = [];

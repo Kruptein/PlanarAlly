@@ -25,7 +25,7 @@ export class MapTool extends Tool {
         this.active = true;
         const layer = gameManager.layerManager.getLayer()!;
         this.startPoint = l2g(getMouse(e));
-        this.rect = new Rect(this.startPoint, 0, 0, "rgba(0,0,0,0)", "black");
+        this.rect = new Rect(this.startPoint.clone(), 0, 0, "rgba(0,0,0,0)", "black");
         layer.addShape(this.rect, false, false);
     }
     onMouseMove(e: MouseEvent) {
@@ -34,7 +34,6 @@ export class MapTool extends Tool {
             console.log("No active layer!");
             return;
         }
-        this.active = true;
         const layer = gameManager.layerManager.getLayer()!;
         const endPoint = l2g(getMouse(e));
 

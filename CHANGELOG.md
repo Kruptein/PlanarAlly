@@ -21,6 +21,7 @@ All notable changes to this project will be documented in this file.
 - The dim value attribute of auras was wrongly used as the normal aura value
 - The grid is now redrawn at the same time as the other layers instead of immediately
 - The light source toggle on shapes now immediately redraws the screen
+- Map tool properly works in all directions again
 
 ## [0.4] - 2018-05-04
 

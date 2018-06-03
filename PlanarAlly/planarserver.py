@@ -7,6 +7,7 @@ import collections
 import configparser
 import os
 from operator import itemgetter
+from urllib.parse import unquote
 
 import socketio
 
@@ -488,7 +489,7 @@ async def test_connect(sid, environ):
     if username is None:
         await sio.emit("redirect", "/", room=sid, namespace='/planarally')
     else:
-        ref = environ['HTTP_REFERER'].strip("/").split("/")
+        ref = unquote(environ['HTTP_REFERER']).strip("/").split("/")
         room = PA.rooms[(ref[-1], ref[-2])]
         location = room.get_active_location(username)
 

@@ -1,7 +1,7 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
-## [0.5] - Not yet released
+## [0.5] - 2018-06-03
 
 ### Added
 - Added an exit button in-game
@@ -22,6 +22,8 @@ All notable changes to this project will be documented in this file.
 - The grid is now redrawn at the same time as the other layers instead of immediately
 - The light source toggle on shapes now immediately redraws the screen
 - Map tool properly works in all directions again
+- Sessions with spaces not working
+- Assets with ' not appearing correctly in the token list
 
 ## [0.4] - 2018-05-04
 

@@ -373,7 +373,6 @@ export class FOWLayer extends Layer {
 
     draw(): void {
         if (gameManager.board_initialised && !this.valid) {
-            console.time("FOW");
             const ctx = this.ctx;
             const orig_op = ctx.globalCompositeOperation;
 
@@ -554,7 +553,6 @@ export class FOWLayer extends Layer {
                 super.draw(!Settings.fullFOW);
 
             ctx.globalCompositeOperation = orig_op;
-            console.timeEnd("FOW");
         }
     }
 }

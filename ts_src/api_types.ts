@@ -31,6 +31,7 @@ export interface InitiativeData {
     visible: boolean;
     group: boolean;
     src: string;
+    has_img: boolean;
 }
 
 interface ServerLayer {
@@ -65,6 +66,7 @@ export interface ServerShape {
     fill?: string;
     name?: string;
     annotation?: string;
+    isToken: boolean;
 }
 
 export interface ServerRect extends ServerShape {

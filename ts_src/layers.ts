@@ -1,5 +1,5 @@
 import {getUnitDistance, g2l, g2lz, g2lr, g2lx, g2ly} from "./units";
-import {GlobalPoint} from "./geom";
+import {GlobalPoint, Vector} from "./geom";
 import gameManager from "./planarally";
 import socket from "./socket";
 import { LocationOptions, ServerShape } from "./api_types";
@@ -93,36 +93,15 @@ export class LayerManager {
         });
     }
 
-    getGridLayer(): Layer|undefined {
-        return this.getLayer("grid");
-    }
-
-    drawGrid(): void {
-        const layer = this.getGridLayer();
-        if (layer === undefined) return;
-        const ctx = layer.ctx;
-        layer.clear();
-        ctx.beginPath();
-
-        for (let i = 0; i < layer.width; i += Settings.gridSize * Settings.zoomFactor) {
-            ctx.moveTo(i + (Settings.panX % Settings.gridSize) * Settings.zoomFactor, 0);
-            ctx.lineTo(i + (Settings.panX % Settings.gridSize) * Settings.zoomFactor, layer.height);
-            ctx.moveTo(0, i + (Settings.panY % Settings.gridSize) * Settings.zoomFactor);
-            ctx.lineTo(layer.width, i + (Settings.panY % Settings.gridSize) * Settings.zoomFactor);
-        }
-
-        ctx.strokeStyle = gameManager.gridColour.spectrum("get").toRgbString();
-        ctx.lineWidth = 1;
-        ctx.stroke();
-        layer.valid = true;
-        if (this.hasLayer("fow"))
-            this.getLayer("fow")!.invalidate(true);
+    getGridLayer(): GridLayer|undefined {
+        return <GridLayer>this.getLayer("grid");
     }
 
     setGridSize(gridSize: number): void {
         if (Settings.gridSize !== gridSize) {
             Settings.gridSize = gridSize;
-            this.drawGrid();
+            if(this.getGridLayer() !== undefined)
+                this.getGridLayer()!.drawGrid();
             $('#gridSizeInput').val(gridSize);
         }
     }
@@ -130,7 +109,8 @@ export class LayerManager {
     setUnitSize(unitSize: number): void {
         if (unitSize !== Settings.unitSize) {
             Settings.unitSize = unitSize;
-            this.drawGrid();
+            if(this.getGridLayer() !== undefined)
+                this.getGridLayer()!.drawGrid();
             $('#unitSizeInput').val(unitSize);
         }
     }
@@ -215,6 +195,8 @@ export class Layer {
         this.shapes.push(shape);
         shape.checkLightSources();
         shape.setMovementBlock(shape.movementObstruction);
+        if (shape.ownedBy(gameManager.username) && shape.isToken)
+            gameManager.ownedtokens.push(shape.uuid);
         if (shape.annotation.length)
             gameManager.annotations.push(shape.uuid);
         if (sync) socket.emit("add shape", {shape: shape.asDict(), temporary: temporary});
@@ -234,6 +216,8 @@ export class Layer {
             sh.layer = self.name;
             sh.checkLightSources();
             sh.setMovementBlock(shape.movementObstruction);
+            if (sh.ownedBy() && sh.isToken)
+                gameManager.ownedtokens.push(sh.uuid);
             if (sh.annotation.length)
                 gameManager.annotations.push(sh.uuid);
             gameManager.layerManager.UUIDMap.set(shape.uuid, sh);
@@ -260,6 +244,14 @@ export class Layer {
             gameManager.movementblockers.splice(mb_i, 1);
         if (an_i >= 0)
             gameManager.annotations.splice(an_i, 1);
+        
+        const annotation_i = gameManager.annotations.indexOf(shape.uuid);
+        if (annotation_i >= 0)
+            gameManager.annotations.splice(annotation_i, 1);
+        
+        const owned_i = gameManager.ownedtokens.indexOf(shape.uuid);
+        if (owned_i >= 0)
+            gameManager.ownedtokens.splice(owned_i, 1);
 
         gameManager.layerManager.UUIDMap.delete(shape.uuid);
 
@@ -298,18 +290,18 @@ export class Layer {
                 this.selection.forEach(function (sel) {
                     const bb = sel.getBoundingBox();
                     // TODO: REFACTOR THIS TO Shape.drawSelection(ctx);
-                    ctx.strokeRect(g2lx(bb.refPoint.x), g2ly(bb.refPoint.y), bb.w * z, bb.h * z);
+                    ctx.strokeRect(g2lx(bb.topLeft.x), g2ly(bb.topLeft.y), bb.w * z, bb.h * z);
 
                     const sw = Math.min(6, bb.w / 2)
 
                     // topright
-                    ctx.fillRect(g2lx(bb.refPoint.x + bb.w - sw/2), g2ly(bb.refPoint.y - sw/2), sw * z, sw * z);
+                    ctx.fillRect(g2lx(bb.topRight.x - sw/2), g2ly(bb.topLeft.y - sw/2), sw * z, sw * z);
                     // topleft
-                    ctx.fillRect(g2lx(bb.refPoint.x - sw/2), g2ly(bb.refPoint.y - sw/2), sw * z, sw * z);
+                    ctx.fillRect(g2lx(bb.topLeft.x - sw/2), g2ly(bb.topLeft.y - sw/2), sw * z, sw * z);
                     // botright
-                    ctx.fillRect(g2lx(bb.refPoint.x + bb.w - sw/2), g2ly(bb.refPoint.y + bb.h - sw/2), sw * z, sw * z);
+                    ctx.fillRect(g2lx(bb.topRight.x - sw/2), g2ly(bb.botLeft.y - sw/2), sw * z, sw * z);
                     // botleft
-                    ctx.fillRect(g2lx(bb.refPoint.x - sw/2), g2ly(bb.refPoint.y + bb.h - sw/2), sw * z, sw * z)
+                    ctx.fillRect(g2lx(bb.topLeft.x - sw/2), g2ly(bb.botLeft.y - sw/2), sw * z, sw * z)
                 });
             }
 
@@ -333,7 +325,29 @@ export class Layer {
 
 export class GridLayer extends Layer {
     invalidate(): void {
-        gameManager.layerManager.drawGrid();
+        this.valid = false;
+    }
+    draw(doClear?: boolean): void {
+        if (gameManager.board_initialised && !this.valid) {
+            this.drawGrid();
+        }
+    }
+    drawGrid(): void {
+        const ctx = this.ctx;
+        this.clear();
+        ctx.beginPath();
+
+        for (let i = 0; i < this.width; i += Settings.gridSize * Settings.zoomFactor) {
+            ctx.moveTo(i + (Settings.panX % Settings.gridSize) * Settings.zoomFactor, 0);
+            ctx.lineTo(i + (Settings.panX % Settings.gridSize) * Settings.zoomFactor, this.height);
+            ctx.moveTo(0, i + (Settings.panY % Settings.gridSize) * Settings.zoomFactor);
+            ctx.lineTo(this.width, i + (Settings.panY % Settings.gridSize) * Settings.zoomFactor);
+        }
+
+        ctx.strokeStyle = gameManager.gridColour.spectrum("get").toRgbString();
+        ctx.lineWidth = 1;
+        ctx.stroke();
+        this.valid = true;
     }
 }
 
@@ -361,19 +375,29 @@ export class FOWLayer extends Layer {
         if (gameManager.board_initialised && !this.valid) {
             const ctx = this.ctx;
             const orig_op = ctx.globalCompositeOperation;
+
+            // Fill the entire screen with the desired FOW colour.
             if (Settings.fullFOW) {
                 const ogalpha = this.ctx.globalAlpha;
+                
                 this.ctx.globalCompositeOperation = "copy";
                 if (gameManager.IS_DM)
                     this.ctx.globalAlpha = Settings.fowOpacity;
                 this.ctx.fillStyle = gameManager.fowColour.spectrum("get").toRgbString();
                 this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+
                 this.ctx.globalAlpha = ogalpha;
                 this.ctx.globalCompositeOperation = orig_op;
             }
+
+            // For the DM this is done at the end of this function.  TODO: why the split up ???
+            // This was done in commit be1e65cff1e7369375fe11cfa1643fab1d11beab.
             if (!gameManager.IS_DM)
                 super.draw(!Settings.fullFOW);
+                
             ctx.globalCompositeOperation = 'destination-out';
+
+            // At all times provide a minimal vision range to prevent losing your tokens in fog.
             if (gameManager.layerManager.hasLayer("tokens")) {
                 gameManager.layerManager.getLayer("tokens")!.shapes.forEach(function (sh) {
                     if (!sh.ownedBy()) return;
@@ -389,7 +413,7 @@ export class FOWLayer extends Layer {
                     ctx.fill();
                 });
             }
-            ctx.globalCompositeOperation = 'destination-out';
+
             gameManager.lightsources.forEach(function (ls) {
                 const sh = gameManager.layerManager.UUIDMap.get(ls.shape);
                 if (sh === undefined) return;
@@ -398,18 +422,23 @@ export class FOWLayer extends Layer {
                     console.log("Old lightsource still lingering in the gameManager list");
                     return;
                 }
+
                 const aura_length = getUnitDistance(aura.value);
                 const center = sh.center();
                 const lcenter = g2l(center);
-                const bbox = new Circle(center, aura_length).getBoundingBox();
+                const aura_circle = new Circle(center, aura_length)
 
-                // We first collect all lightblockers that are inside/cross our aura
-                // This to prevent as many ray calculations as possible
+                // If the aura is nowhere in vision, skip the light
+                if (!aura_circle.visibleInCanvas(ctx.canvas)) return;
+
+                const bbox = aura_circle.getBoundingBox();
+
+                // Prefilter all lightblockers that are in the general vicinity of the light source.
                 const local_lightblockers: BoundingRect[] = [];
                 gameManager.lightblockers.forEach(function (lb) {
                     if (lb === sh.uuid) return;
                     const lb_sh = gameManager.layerManager.UUIDMap.get(lb);
-                    if (lb_sh === undefined) return;
+                    if (lb_sh === undefined || !lb_sh.visibleInCanvas(ctx.canvas)) return;
                     const lb_bb = lb_sh.getBoundingBox();
                     if (lb_bb.intersectsWith(bbox))
                         local_lightblockers.push(lb_bb);
@@ -419,30 +448,64 @@ export class FOWLayer extends Layer {
 
                 let arc_start = 0;
 
+                let player_visible = false;
+
+                if (gameManager.ownedtokens.includes(ls.shape))
+                    player_visible = true;
+
+                // TODO: idea: scale amount of rays based on zoom ?
                 // Cast rays in every degree
-                for (let angle = 0; angle < 2 * Math.PI; angle += (1 / 180) * Math.PI) {
-                    // Check hit with obstruction
+                for (let angle = 0; angle < 2 * Math.PI; angle += (5 / 180) * Math.PI) {
+                    const angle_point = new GlobalPoint(
+                        center.x + aura_length * Math.cos(angle),
+                        center.y + aura_length * Math.sin(angle)
+                    )
+
+                    // Check if there is a hit with one of the nearby light blockers.
                     let hit: {intersect: GlobalPoint|null, distance:number} = {intersect: null, distance: Infinity};
                     let shape_hit: null|BoundingRect = null;
                     for (let i=0; i<local_lightblockers.length; i++) {
                         const lb_bb = local_lightblockers[i];
                         const result = lb_bb.getIntersectWithLine({
                             start: center,
-                            end: new GlobalPoint(
-                                center.x + aura_length * Math.cos(angle),
-                                center.y + aura_length * Math.sin(angle)
-                            )
+                            end: angle_point
                         });
                         if (result.intersect !== null && result.distance < hit.distance) {
                             hit = result;
                             shape_hit = lb_bb;
                         }
                     }
-                    // If we have no hit, check if we come from a previous hit so that we can go back to the arc
+
+                    if (!player_visible && gameManager.ownedtokens) {
+                        // Check if the ray is visible from a player token
+                        for (let i=0; i < gameManager.ownedtokens.length; i++) {
+                            const token = gameManager.layerManager.UUIDMap.get(gameManager.ownedtokens[i])!;
+                            let intersect = false;
+                            for (let j=0; j<gameManager.lightblockers.length; j++) {
+                                const result = gameManager.layerManager.UUIDMap.get(gameManager.lightblockers[j])!.getBoundingBox().getIntersectWithLine({
+                                    start: hit.intersect === null ? angle_point : hit.intersect,
+                                    end: token.center()
+                                });
+                                if (result.intersect !== null) {
+                                    intersect = true;
+                                    break;
+                                }
+                            }
+                            if (!intersect) {
+                                player_visible = true;
+                                break;
+                            }
+                        }
+                    }
+
+                    // If we have no hit, check if we have left the arc due to a previous hit
+                    // We can move on to the next angle if nothing was hit.
                     if (hit.intersect === null) {
                         if (arc_start === -1) {
+                            // Set the start of a new arc beginning at the current angle
                             arc_start = angle;
-                            const dest = g2l(new GlobalPoint(center.x + aura_length * Math.cos(angle), center.y + aura_length * Math.sin(angle)));
+                            // Draw a line from the last non arc location back to the arc
+                            const dest = g2l(angle_point);
                             ctx.lineTo(dest.x, dest.y);
                         }
                         continue;
@@ -452,11 +515,12 @@ export class FOWLayer extends Layer {
                         ctx.arc(lcenter.x, lcenter.y, g2lr(aura.value), arc_start, angle);
                         arc_start = -1;
                     }
+                    // The extraX and extraY values are used to show a small bit of the element that is blocking vision.
                     let extraX = 0;
                     let extraY = 0;
                     if (shape_hit !== null) {
-                        extraX = (shape_hit.w / 10) * Math.cos(angle);
-                        extraY = (shape_hit.h / 10) * Math.sin(angle);
+                        extraX = (shape_hit!.w / 10) * Math.cos(angle);
+                        extraY = (shape_hit!.h / 10) * Math.sin(angle);
                     }
                     // if (!shape_hit.contains(hit.intersect.x + extraX, hit.intersect.y + extraY, false)) {
                     //     extraX = 0;
@@ -465,9 +529,15 @@ export class FOWLayer extends Layer {
                     const dest = g2l(new GlobalPoint(hit.intersect.x + extraX, hit.intersect.y + extraY));
                     ctx.lineTo(dest.x, dest.y);
                 }
+
+                if (!player_visible)
+                    return;
+
+                // Finish the final arc.
                 if (arc_start !== -1)
                     ctx.arc(lcenter.x, lcenter.y, g2lr(aura.value), arc_start, 2 * Math.PI);
 
+                // Fill the light aura with a radial dropoff towards the outside.
                 const alm = g2lr(aura.value);
                 const gradient = ctx.createRadialGradient(lcenter.x, lcenter.y, alm / 2, lcenter.x, lcenter.y, alm);
                 gradient.addColorStop(0, 'rgba(0, 0, 0, 1)');
@@ -476,8 +546,12 @@ export class FOWLayer extends Layer {
                 // ctx.fillStyle = "rgba(0, 0, 0, 1)";
                 ctx.fill();
             });
+
+            // For the players this is done at the beginning of this function.  TODO: why the split up ???
+            // This was done in commit be1e65cff1e7369375fe11cfa1643fab1d11beab.
             if (gameManager.IS_DM)
                 super.draw(!Settings.fullFOW);
+
             ctx.globalCompositeOperation = orig_op;
         }
     }

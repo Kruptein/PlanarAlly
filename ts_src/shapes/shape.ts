@@ -32,6 +32,8 @@ export default abstract class Shape {
     visionObstruction = false;
     // Prevent shapes from overlapping with this shape
     movementObstruction = false;
+    // Does this shape represent a playable token
+    isToken = false;
 
     // Mouseover annotation
     annotation: string = '';
@@ -89,6 +91,15 @@ export default abstract class Shape {
             gameManager.movementblockers.push(this.uuid);
         else if (!this.movementObstruction && vo_i >= 0)
             gameManager.movementblockers.splice(vo_i, 1);
+    }
+
+    setIsToken(isToken: boolean) {
+        this.isToken = isToken;
+        const i = gameManager.ownedtokens.indexOf(this.uuid);
+        if (this.isToken && i === -1)
+            gameManager.ownedtokens.push(this.uuid);
+        else if (!this.isToken && i >= 0)
+            gameManager.ownedtokens.splice(i, 1);
     }
 
     ownedBy(username?: string) {
@@ -216,6 +227,7 @@ export default abstract class Shape {
             fill: this.fill,
             name: this.name,
             annotation: this.annotation,
+            isToken: this.isToken,
         }
     }
     fromDict(data: ServerShape) {
@@ -226,6 +238,7 @@ export default abstract class Shape {
         this.auras = data.auras;
         this.trackers = data.trackers;
         this.owners = data.owners;
+        this.isToken = data.isToken;
         if (data.annotation)
             this.annotation = data.annotation;
         if (data.name)
@@ -320,8 +333,9 @@ export default abstract class Shape {
             uuid: this.uuid,
             visible: !gameManager.IS_DM,
             group: false,
-            src: "",
-            owners: this.owners
+            src: this.name,
+            owners: this.owners,
+            has_img: false
         }
     }
     // Code to snap a shape to the grid

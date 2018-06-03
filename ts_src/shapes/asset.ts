@@ -32,7 +32,8 @@ export default class Asset extends BaseRect {
             visible: !gameManager.IS_DM,
             group: false,
             src: this.src,
-            owners: this.owners
+            owners: this.owners,
+            has_img: true
         }
     }
 }

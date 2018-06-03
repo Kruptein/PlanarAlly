@@ -4,6 +4,7 @@ import { ServerCircularToken } from "../api_types";
 import { g2l } from "../units";
 import { Settings } from "../settings";
 import { calcFontScale } from "../utils";
+import gameManager from "../planarally";
 
 export default class CircularToken extends Circle {
     type = "circulartoken";
@@ -47,5 +48,15 @@ export default class CircularToken extends Circle {
         ctx.fillStyle = tinycolor.mostReadable(this.fill, ['#000', '#fff']).toHexString();
         ctx.fillText(this.text, 0, 0);
         ctx.restore();
+    }
+    getInitiativeRepr() {
+        return {
+            uuid: this.uuid,
+            visible: !gameManager.IS_DM,
+            group: false,
+            src: (this.name === '' || this.name === 'Unknown shape') ? this.text : this.name,
+            owners: this.owners,
+            has_img: false
+        }
     }
 }

@@ -75,6 +75,7 @@
                     </div>
                 </div>
             {% endif %}
+            <a href="/rooms" id="exitButton"><button class="accordion">Exit</button></a>
         </div>
         {% if dm %}
             <div id="locations-menu">
@@ -110,6 +111,8 @@
         <label for="shapeselectiondialog-name">Name</label>
         <input type="hidden" id="shapeselectiondialog-uuid">
         <input type="text" id="shapeselectiondialog-name" style="grid-column: numerator / end">
+        <label for="shapeselectiondialog-istoken">Is a token</label>
+        <input type="checkbox" id="shapeselectiondialog-istoken" style="grid-column-start: remove;width:15px;height:15px;">
         <label for="shapeselectiondialog-lightblocker">Blocks vision/light</label>
         <input type="checkbox" id="shapeselectiondialog-lightblocker" style="grid-column-start: remove;width:15px;height:15px;">
         <label for="shapeselectiondialog-moveblocker">Blocks movement</label>

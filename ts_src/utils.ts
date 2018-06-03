@@ -4,12 +4,15 @@ export function getMouse(e: MouseEvent): LocalPoint {
     return new LocalPoint(e.pageX, e.pageY);
 }
 
-
 export function alphSort(a: string, b: string) {
     if (a.toLowerCase() < b.toLowerCase())
         return -1;
     else
         return 1;
+}
+
+export function capitalize(text: string) {
+    return text.charAt(0).toUpperCase() + text.slice(1);
 }
 
 // Reference: https://stackoverflow.com/questions/105034/create-guid-uuid-in-javascript
@@ -25,6 +28,12 @@ export function calcFontScale(ctx: CanvasRenderingContext2D, text: string, width
     const fontWidth = ctx.measureText(text).width;
     return Math.min(width / fontWidth, height / points);
 }
+
+export function fixedEncodeURIComponent(str: string) {
+    return encodeURIComponent(str).replace(/[!'()*]/g, function(c) {
+      return '%' + c.charCodeAt(0).toString(16);
+    });
+  }
 
 export class OrderedMap<K, V> {
     keys: K[] = [];

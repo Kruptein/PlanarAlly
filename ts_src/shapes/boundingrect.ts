@@ -1,44 +1,49 @@
 import { getLinesIntersectPoint, getPointDistance, GlobalPoint, Vector } from "../geom";
 
 export default class BoundingRect {
-    type = "boundrect";
-    refPoint: GlobalPoint;
-    w: number;
-    h: number;
+    readonly w: number;
+    readonly h: number;
+    readonly topLeft: GlobalPoint;
+    readonly topRight: GlobalPoint;
+    readonly botRight: GlobalPoint;
+    readonly botLeft: GlobalPoint;
 
     constructor(topleft: GlobalPoint, w: number, h: number) {
-        this.refPoint = topleft;
         this.w = w;
         this.h = h;
+        this.topLeft = topleft;
+        this.topRight = new GlobalPoint(topleft.x + w, topleft.y);
+        this.botRight = new GlobalPoint(topleft.x + w, topleft.y + h);
+        this.botLeft = new GlobalPoint(topleft.x, topleft.y + h);
     }
 
     contains(point: GlobalPoint): boolean {
-        return this.refPoint.x <= point.x && (this.refPoint.x + this.w) >= point.x &&
-            this.refPoint.y <= point.y && (this.refPoint.y + this.h) >= point.y;
+        return this.topLeft.x <= point.x && this.topRight.x >= point.x &&
+            this.topLeft.y <= point.y && this.botLeft.y  >= point.y;
     }
 
     offset(vector: Vector<GlobalPoint>): BoundingRect {
-        return new BoundingRect(this.refPoint.add(vector), this.w, this.h);
+        return new BoundingRect(this.topLeft.add(vector), this.w, this.h);
     }
 
     intersectsWith(other: BoundingRect): boolean {
-        return !(other.refPoint.x > this.refPoint.x + this.w ||
-            other.refPoint.x + other.w < this.refPoint.x ||
-            other.refPoint.y > this.refPoint.y + this.h ||
-            other.refPoint.y + other.h < this.refPoint.y);
+        return !(other.topLeft.x > this.topRight.x ||
+            other.topRight.x < this.topLeft.x ||
+            other.topLeft.y > this.botLeft.y ||
+            other.botLeft.y < this.topLeft.y);
     }
     getIntersectAreaWithRect(other: BoundingRect): BoundingRect {
-        const topleft = new GlobalPoint(Math.max(this.refPoint.x, other.refPoint.x), Math.max(this.refPoint.y, other.refPoint.y));
-        const w = Math.min(this.refPoint.x + this.w, other.refPoint.x + other.w) - topleft.x;
-        const h = Math.min(this.refPoint.y + this.h, other.refPoint.y + other.h) - topleft.y;
+        const topleft = new GlobalPoint(Math.max(this.topLeft.x, other.topLeft.x), Math.max(this.topLeft.y, other.topLeft.y));
+        const w = Math.min(this.topRight.x, other.topRight.x) - topleft.x;
+        const h = Math.min(this.botLeft.y, other.botLeft.y) - topleft.y;
         return new BoundingRect(topleft, w, h);
     }
     getIntersectWithLine(line: { start: GlobalPoint; end: GlobalPoint }) {
         const lines = [
-            getLinesIntersectPoint(new GlobalPoint(this.refPoint.x, this.refPoint.y), new GlobalPoint(this.refPoint.x + this.w, this.refPoint.y), line.start, line.end),
-            getLinesIntersectPoint(new GlobalPoint(this.refPoint.x + this.w, this.refPoint.y), new GlobalPoint(this.refPoint.x + this.w, this.refPoint.y + this.h), line.start, line.end),
-            getLinesIntersectPoint(new GlobalPoint(this.refPoint.x, this.refPoint.y), new GlobalPoint(this.refPoint.x, this.refPoint.y + this.h), line.start, line.end),
-            getLinesIntersectPoint(new GlobalPoint(this.refPoint.x, this.refPoint.y + this.h), new GlobalPoint(this.refPoint.x + this.w, this.refPoint.y + this.h), line.start, line.end)
+            getLinesIntersectPoint(this.topLeft, this.topRight, line.start, line.end),
+            getLinesIntersectPoint(this.topLeft, this.botLeft, line.start, line.end),
+            getLinesIntersectPoint(this.topRight, this.botRight, line.start, line.end),
+            getLinesIntersectPoint(this.botLeft, this.botRight, line.start, line.end)
         ];
         let min_d = Infinity;
         let min_i = null;
@@ -58,21 +63,21 @@ export default class BoundingRect {
     center(centerPoint: GlobalPoint): void;
     center(centerPoint?: GlobalPoint): GlobalPoint | void {
         if (centerPoint === undefined)
-            return this.refPoint.add(new Vector<GlobalPoint>({x: this.w/2, y: this.h/2}));
-        this.refPoint.x = centerPoint.x - this.w / 2;
-        this.refPoint.y = centerPoint.y - this.h / 2;
+            return this.topLeft.add(new Vector<GlobalPoint>({x: this.w/2, y: this.h/2}));
+        this.topLeft.x = centerPoint.x - this.w / 2;
+        this.topLeft.y = centerPoint.y - this.h / 2;
     }
     inCorner(point: GlobalPoint, corner: string) {
         const sw = Math.min(6, this.w / 2) / 2;
         switch (corner) {
             case 'ne':
-                return this.refPoint.x + this.w - sw <= point.x && point.x <= this.refPoint.x + this.w + sw && this.refPoint.y - sw <= point.y && point.y <= this.refPoint.y + sw;
+                return this.topRight.x - sw <= point.x && point.x <= this.topRight.x + sw && this.topLeft.y - sw <= point.y && point.y <= this.topLeft.y + sw;
             case 'nw':
-                return this.refPoint.x - sw <= point.x && point.x <= this.refPoint.x + sw && this.refPoint.y - sw <= point.y && point.y <= this.refPoint.y + sw;
+                return this.topLeft.x - sw <= point.x && point.x <= this.topLeft.x + sw && this.topLeft.y - sw <= point.y && point.y <= this.topLeft.y + sw;
             case 'sw':
-                return this.refPoint.x - sw <= point.x && point.x <= this.refPoint.x + sw && this.refPoint.y + this.h - sw <= point.y && point.y <= this.refPoint.y + this.h + sw;
+                return this.topLeft.x - sw <= point.x && point.x <= this.topLeft.x + sw && this.botLeft.y - sw <= point.y && point.y <= this.botLeft.y + sw;
             case 'se':
-                return this.refPoint.x + this.w - sw <= point.x && point.x <= this.refPoint.x + this.w + sw && this.refPoint.y + this.h - sw <= point.y && point.y <= this.refPoint.y + this.h + sw;
+                return this.topRight.x - sw <= point.x && point.x <= this.topRight.x + sw && this.botLeft.y - sw <= point.y && point.y <= this.botLeft.y + sw;
             default:
                 return false;
         }

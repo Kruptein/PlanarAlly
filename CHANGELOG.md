@@ -6,6 +6,7 @@ All notable changes to this project will be documented in this file.
 ### Added
 - Arrow moves will move assets when they are selected instead of the canvas.
     - The canvas will still be moved if no shape is selected
+- Pressing 'd' now deselects everything
 
 ## [0.5] - 2018-06-03
 

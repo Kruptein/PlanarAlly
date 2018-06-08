@@ -478,6 +478,12 @@ $('body').keydown(function (e) {
             gameManager.layerManager.invalidate();
             sendClientOptions();
         }
+    } else if (e.keyCode == 68 && !targetIsInput(e)) {
+        const layer = gameManager.layerManager.getLayer();
+        if (layer) {
+            layer.selection = [];
+            layer.invalidate(true);
+        }
     }
 });
 

@@ -144,6 +144,18 @@ export class LayerManager {
         $('#fowOpacity').val(fowOpacity);
     }
 
+    hasSelection() {
+        const selection = this.getSelection();
+        return selection !== undefined && selection.length > 0;
+    }
+
+    // THIS INCLUDES POTENTIALLY THE SelectTool.SelectionHelper !!!
+    getSelection() {
+        const layer = this.getLayer();
+        if (layer === undefined) return undefined;
+        return layer.selection;
+    }
+
     invalidate(): void {
         for (let i = this.layers.length - 1; i >= 0; i--) {
             this.layers[i].invalidate(true);

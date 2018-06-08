@@ -5,13 +5,14 @@ import { ClientOptions, BoardInfo, ServerShape, InitiativeData } from './api_typ
 import { OrderedMap, getMouse } from './utils';
 import Asset from './shapes/asset';
 import { createShapeFromDict } from './shapes/utils';
-import { LocalPoint, GlobalPoint } from './geom';
+import { LocalPoint, GlobalPoint, Vector } from './geom';
 import Text from './shapes/text';
 import { Tool } from './tools/tool';
 import { InitiativeTracker } from './tools/initiative';
 import { Settings } from './settings';
 import { throttle } from 'lodash';
 import { capitalize } from './utils';
+import { SelectTool } from './tools/select';
 
 class GameManager {
     IS_DM = false;
@@ -433,25 +434,50 @@ $('body').keyup(function (e) {
     }
 });
 $('body').keydown(function (e) {
-    if (e.keyCode === 37 && !targetIsInput(e)) {
-        Settings.panX += Math.round(Settings.gridSize);
-        gameManager.layerManager.invalidate();
-        sendClientOptions();
-    }
-    if (e.keyCode === 38 && !targetIsInput(e)) {
-        Settings.panY += Math.round(Settings.gridSize);
-        gameManager.layerManager.invalidate();
-        sendClientOptions();
-    }
-    if (e.keyCode === 39 && !targetIsInput(e)) {
-        Settings.panX -= Math.round(Settings.gridSize);
-        gameManager.layerManager.invalidate();
-        sendClientOptions();
-    }
-    if (e.keyCode === 40 && !targetIsInput(e)) {
-        Settings.panY -= Math.round(Settings.gridSize);
-        gameManager.layerManager.invalidate();
-        sendClientOptions();
+    // Arrow keys   37: left   38: up  39: right  40:down
+    if (e.keyCode && !targetIsInput(e) && e.keyCode >= 37 && e.keyCode <= 40) {
+        // todo: this should already be rounded
+        const gridSize = Math.round(Settings.gridSize);
+        let x_offset = gridSize * (e.keyCode % 2);
+        let y_offset = gridSize * (e.keyCode % 2 ? 0 : 1);
+        if (gameManager.layerManager.hasSelection()) {
+            const selection = gameManager.layerManager.getSelection()!;
+            x_offset *= (e.keyCode <= 38 ? -1 : 1);
+            y_offset *= (e.keyCode <= 38 ? -1 : 1);
+            let collision = false;
+            if (!e.shiftKey || !gameManager.IS_DM) {
+                // First check for collisions.  Using the smooth wall slide collision check used on mouse move is overkill here.
+                for (let i=0; i<selection.length && !collision; i++) {
+                    const sel = selection[i];
+                    if (sel.uuid === (<SelectTool>gameManager.tools.get("select")!).selectionHelper.uuid)
+                        continue;
+                    const newSelBBox = sel.getBoundingBox().offset(new Vector({x: x_offset, y: y_offset}));
+                    for (let mb = 0; mb < gameManager.movementblockers.length; mb++) {
+                        const blocker = gameManager.layerManager.UUIDMap.get(gameManager.movementblockers[mb])!;
+                        const blockerBBox = blocker.getBoundingBox();
+                        // Check if the bounding box of our destination would intersect with the bounding box of the movementblocker
+                        if (blockerBBox.intersectsWith(newSelBBox)) {
+                            collision = true;
+                            break;
+                        }
+                    }
+                }
+            }
+            if (!collision) {
+                for (let i=0; i<selection.length; i++) {
+                    const sel = selection[i];
+                    sel.refPoint.x += x_offset;
+                    sel.refPoint.y += y_offset;
+                }
+                gameManager.layerManager.getLayer()!.invalidate(false);
+            }
+        } else {
+            // The pan offsets should be in the opposite direction to give the correct feel.
+            Settings.panX += x_offset * (e.keyCode <= 38 ? 1 : -1);
+            Settings.panY += y_offset * (e.keyCode <= 38 ? 1 : -1);
+            gameManager.layerManager.invalidate();
+            sendClientOptions();
+        }
     }
 });
 

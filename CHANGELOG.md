@@ -1,6 +1,12 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [0.6] - Not yet released
+
+### Added
+- Arrow moves will move assets when they are selected instead of the canvas.
+    - The canvas will still be moved if no shape is selected
+
 ## [0.5] - 2018-06-03
 
 ### Added

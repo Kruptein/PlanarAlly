@@ -135,7 +135,7 @@ export class SelectTool extends Tool {
             let delta = l2g(mouse.subtract(og.add(this.drag)));
             if (this.mode === SelectOperations.Drag) {
                 // If we are on the tokens layer do a movement block check.
-                if (layer.name === 'tokens') {
+                if (layer.name === 'tokens' && !(e.shiftKey && gameManager.IS_DM)) {
                     for (let i = 0; i < layer.selection.length; i++) {
                         const sel = layer.selection[i];
                         if (sel.uuid === this.selectionHelper.uuid) continue; // the selection helper should not be treated as a real shape.

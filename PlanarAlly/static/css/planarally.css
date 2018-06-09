@@ -547,7 +547,7 @@ input:checked + .slider:before {
 #initiativedialog {
     padding: 0;
     display: grid;
-    grid-template-columns: [img] 30px [value] 30px [visible] 30px [group] 30px [remove] 30px [end];
+    grid-template-columns: [img] auto [value] 30px [visible] 30px [group] 30px [remove] 30px [end];
     grid-column-gap: 2px;
     align-items: center;
 }

@@ -1,7 +1,7 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
-## [0.6] - Not yet released
+## [0.6] - 2018-06-11
 
 ### Added
 - [DM] Using the shift key, shapes can move freely through movement blocking terrain.
@@ -17,6 +17,9 @@ All notable changes to this project will be documented in this file.
 - Only tokens will have a minimal vision aura
 - Add DM settings option to enable Line of Sight based lighting
 - Disable LoS based lighting by default
+
+### Fixed
+- Deleting a selection of assets should now behave correctly.  (Sometimes not all assets would be deleted)
 
 ## [0.5] - 2018-06-03
 

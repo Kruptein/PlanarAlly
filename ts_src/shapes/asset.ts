@@ -1,8 +1,8 @@
 import BaseRect from "./baserect";
-import gameManager from "../planarally";
 import { g2lx, g2ly, g2lz } from "../units";
 import { GlobalPoint } from "../geom";
 import { ServerAsset } from "../api_types";
+import Settings from "../settings";
 
 export default class Asset extends BaseRect {
     type = "asset";
@@ -29,7 +29,7 @@ export default class Asset extends BaseRect {
     getInitiativeRepr() {
         return {
             uuid: this.uuid,
-            visible: !gameManager.IS_DM,
+            visible: !Settings.IS_DM,
             group: false,
             src: this.src,
             owners: this.owners,

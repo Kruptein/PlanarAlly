@@ -1,7 +1,7 @@
 import gameManager from "../planarally";
 import { SelectTool } from "../tools/select";
 import { Vector } from "../geom";
-import { Settings } from "../settings";
+import Settings from "../settings";
 import { sendClientOptions } from "../socket";
 
 function targetIsInput(e: Event) {
@@ -37,7 +37,7 @@ export function onKeyDown (event: KeyboardEvent) {
             x_offset *= (event.keyCode <= 38 ? -1 : 1);
             y_offset *= (event.keyCode <= 38 ? -1 : 1);
             let collision = false;
-            if (!event.shiftKey || !gameManager.IS_DM) {
+            if (!event.shiftKey || !Settings.IS_DM) {
                 // First check for collisions.  Using the smooth wall slide collision check used on mouse move is overkill here.
                 for (let i=0; i<selection.length && !collision; i++) {
                     const sel = selection[i];

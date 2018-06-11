@@ -8,6 +8,7 @@ import { MapTool } from "./map";
 import { Vector, GlobalPoint } from "../geom";
 import Shape from "../shapes/shape";
 import { capitalize } from "../utils";
+import Settings from "../settings";
 
 export enum SelectOperations {
     Noop,
@@ -19,7 +20,7 @@ export enum SelectOperations {
 export function setupTools(): void {
     const toolselectDiv = $("#toolselect").find("ul");
     tools.forEach(function (tool) {
-        if (!tool.playerTool && !gameManager.IS_DM) return;
+        if (!tool.playerTool && !Settings.IS_DM) return;
 
         const toolInstance = new tool.clz();
         gameManager.tools.set(tool.name, toolInstance);

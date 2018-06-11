@@ -6,6 +6,7 @@ import { g2l, g2lr } from "../units";
 import { populateEditAssetDialog } from "./editdialog";
 import { GlobalPoint, LocalPoint } from "../geom";
 import { ServerShape } from "../api_types";
+import Settings from "../settings";
 
 export default abstract class Shape {
     // Used to create class instance from server shape data
@@ -109,8 +110,8 @@ export default abstract class Shape {
 
     ownedBy(username?: string) {
         if (username === undefined)
-            username = gameManager.username;
-        return gameManager.IS_DM || this.owners.includes(username);
+            username = Settings.username;
+        return Settings.IS_DM || this.owners.includes(username);
     }
 
     onSelection() {
@@ -336,7 +337,7 @@ export default abstract class Shape {
     getInitiativeRepr() {
         return {
             uuid: this.uuid,
-            visible: !gameManager.IS_DM,
+            visible: !Settings.IS_DM,
             group: false,
             src: this.name,
             owners: this.owners,

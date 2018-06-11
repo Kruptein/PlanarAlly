@@ -1,12 +1,10 @@
-import {socket, sendClientOptions} from './socket'
-import { l2g, g2l } from "./units";
-import { getMouse } from './utils';
-import { LocalPoint, GlobalPoint } from './geom';
-import { Settings, updateZoom } from './settings';
+import { l2g } from "./units";
+import { LocalPoint } from './geom';
 import { throttle } from 'lodash';
 import { GameManager } from './manager';
 import { onKeyDown, onKeyUp } from './events/keyboard';
 import { onContextMenu, onPointerUp, onPointerMove, onPointerDown, scrollZoom } from './events/mouse';
+import Settings from './settings';
 
 let gameManager = new GameManager();
 (<any>window).gameManager = gameManager;
@@ -42,7 +40,7 @@ $("#zoomer").slider({
     step: 0.1,
     value: Settings.zoomFactor,
     slide: function (event, ui) {
-        updateZoom(ui.value!, l2g(new LocalPoint(window.innerWidth / 2, window.innerHeight / 2)));
+        Settings.updateZoom(ui.value!, l2g(new LocalPoint(window.innerWidth / 2, window.innerHeight / 2)));
     }
 });
 
@@ -82,29 +80,25 @@ $('#rm-locations').on("click", function () {
 
 $("#gridSizeInput").on("change", function (e) {
     const gs = parseInt((<HTMLInputElement>e.target).value);
-    gameManager.layerManager.setGridSize(gs);
-    socket.emit("set gridsize", gs);
+    Settings
+    Settings.setGridSize(gs, true);
 });
 
 $("#unitSizeInput").on("change", function (e) {
     const us = parseInt((<HTMLInputElement>e.target).value);
-    gameManager.layerManager.setUnitSize(us);
-    socket.emit("set locationOptions", { 'unitSize': us });
+    Settings.setUnitSize(us, true);
 });
 $("#useGridInput").on("change", function (e) {
     const ug = (<HTMLInputElement>e.target).checked;
-    gameManager.layerManager.setUseGrid(ug);
-    socket.emit("set locationOptions", { 'useGrid': ug });
+    Settings.setUseGrid(ug, true);
 });
 $("#useFOWInput").on("change", function (e) {
     const uf = (<HTMLInputElement>e.target).checked;
-    gameManager.layerManager.setFullFOW(uf);
-    socket.emit("set locationOptions", { 'fullFOW': uf });
+    Settings.setFullFOW(uf, true);
 });
 $("#fowLOS").on("change", function (e) {
     const los = (<HTMLInputElement>e.target).checked;
-    gameManager.layerManager.setLineOfSight(los);
-    socket.emit("set locationOptions", { 'fowLOS': los });
+    Settings.setLineOfSight(los, true);
 });
 $("#fowOpacity").on("change", function (e) {
     let fo = parseFloat((<HTMLInputElement>e.target).value);
@@ -114,8 +108,7 @@ $("#fowOpacity").on("change", function (e) {
     }
     if (fo < 0) fo = 0;
     if (fo > 1) fo = 1;
-    gameManager.layerManager.setFOWOpacity(fo);
-    socket.emit("set locationOptions", { 'fowOpacity': fo });
+    Settings.setFOWOpacity(fo, true);
 });
 
 export default gameManager;

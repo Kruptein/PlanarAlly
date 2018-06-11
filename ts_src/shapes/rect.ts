@@ -2,7 +2,7 @@ import BaseRect from "./baserect";
 import { g2l } from "../units";
 import { GlobalPoint } from "../geom";
 import { ServerRect } from "../api_types";
-import { Settings } from "../settings";
+import Settings from "../settings";
 
 export default class Rect extends BaseRect {
     type = "rect"

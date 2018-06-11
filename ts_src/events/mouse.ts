@@ -2,10 +2,10 @@ import gameManager from "../planarally";
 import { getMouse } from "../utils";
 import { l2g } from "../units";
 import { LocalPoint } from "../geom";
-import { updateZoom, Settings } from "../settings";
+import Settings from "../settings";
 
 export function onPointerDown(e: MouseEvent) {
-    if (!gameManager.board_initialised) return;
+    if (!Settings.board_initialised) return;
     if (e.button == 1) {
         const panTool = gameManager.tools.get("pan");
         if (panTool !== undefined) {
@@ -18,7 +18,7 @@ export function onPointerDown(e: MouseEvent) {
 }
 
 export function onPointerMove(e: MouseEvent) {
-    if (!gameManager.board_initialised) return;
+    if (!Settings.board_initialised) return;
     if ((e.buttons & 4) !== 0) {
         const panTool = gameManager.tools.get("pan");
         if (panTool !== undefined) {
@@ -51,7 +51,7 @@ export function onPointerMove(e: MouseEvent) {
 }
 
 export function onPointerUp(e: MouseEvent) {
-    if (!gameManager.board_initialised) return;
+    if (!Settings.board_initialised) return;
     if (e.button == 1) {
         const panTool = gameManager.tools.get("pan");
         if (panTool !== undefined) {
@@ -63,7 +63,7 @@ export function onPointerUp(e: MouseEvent) {
 }
 
 export function onContextMenu(e: MouseEvent) {
-    if (!gameManager.board_initialised) return;
+    if (!Settings.board_initialised) return;
     if (e.button !== 2 || (<HTMLElement>e.target).tagName !== 'CANVAS') return;
     e.preventDefault();
     e.stopPropagation();
@@ -77,5 +77,5 @@ export function scrollZoom(e: WheelEvent) {
     } else {
         delta = Math.sign(e.deltaY) * -1;
     }
-    updateZoom(Settings.zoomFactor + 0.1 * delta, l2g(getMouse(e)));
+    Settings.updateZoom(Settings.zoomFactor + 0.1 * delta, l2g(getMouse(e)));
 }

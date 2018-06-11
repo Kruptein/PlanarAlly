@@ -1,6 +1,7 @@
 import { InitiativeData } from "../api_types";
 import gameManager from "../planarally";
 import socket from "../socket";
+import Settings from "../settings";
 
 export class InitiativeTracker {
     data: InitiativeData[] = [];
@@ -62,7 +63,7 @@ export class InitiativeTracker {
 
             visible.css("opacity", data.visible ? "1.0" : "0.3");
             group.css("opacity", data.group ? "1.0" : "0.3");
-            if (!data.owners.includes(gameManager.username) && !gameManager.IS_DM) {
+            if (!data.owners.includes(Settings.username) && !Settings.IS_DM) {
                 val.prop("disabled", "disabled");
                 remove.css("opacity", "0.3");
             }
@@ -85,7 +86,7 @@ export class InitiativeTracker {
                     console.log("Initiativedialog visible unknown uuid?");
                     return;
                 }
-                if (!d.owners.includes(gameManager.username) && !gameManager.IS_DM)
+                if (!d.owners.includes(Settings.username) && !Settings.IS_DM)
                     return;
                 d.visible = !d.visible;
                 if (d.visible)
@@ -101,7 +102,7 @@ export class InitiativeTracker {
                     console.log("Initiativedialog group unknown uuid?");
                     return;
                 }
-                if (!d.owners.includes(gameManager.username) && !gameManager.IS_DM)
+                if (!d.owners.includes(Settings.username) && !Settings.IS_DM)
                     return;
                 d.group = !d.group;
                 if (d.group)
@@ -118,7 +119,7 @@ export class InitiativeTracker {
                     console.log("Initiativedialog remove unknown uuid?");
                     return;
                 }
-                if (!d.owners.includes(gameManager.username) && !gameManager.IS_DM)
+                if (!d.owners.includes(Settings.username) && !Settings.IS_DM)
                     return;
                 $(`[data-uuid=${uuid}]`).remove();
                 self.removeInitiative(uuid, true, true);

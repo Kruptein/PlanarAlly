@@ -1,9 +1,10 @@
 import { GlobalPoint } from "./geom";
 import { g2l, l2g } from "./units";
 import gameManager from "./planarally";
-import { sendClientOptions } from "./socket";
+import { sendClientOptions, socket } from "./socket";
+import { LocationOptions } from "./api_types";
 
-export class Settings {
+class Settings {
     static gridSize = 50;
     static unitSize = 5;
     static useGrid = true;
@@ -14,24 +15,115 @@ export class Settings {
     static zoomFactor = 1;
     static panX = 0;
     static panY = 0;
-}
 
-export function updateZoom(newZoomValue: number, zoomLocation: GlobalPoint) {
-    if (newZoomValue <= 0.01)
-        newZoomValue = 0.01;
+    static IS_DM = false;
+    static board_initialised = false;
+    static roomName: string;
+    static roomCreator: string;
+    static locationName: string;
+    static username: string;
 
-    const oldLoc = g2l(zoomLocation);
+    static setOptions(options: LocationOptions): void {
+        if ("unitSize" in options)
+            this.setUnitSize(options.unitSize, false);
+        if ("useGrid" in options)
+            this.setUseGrid(options.useGrid, false);
+        if ("fullFOW" in options)
+            this.setFullFOW(options.fullFOW, false);
+        if ('fowOpacity' in options)
+            this.setFOWOpacity(options.fowOpacity, false);
+        if ("fowColour" in options)
+            gameManager.fowColour.spectrum("set", options.fowColour);
+        if ("fowLOS" in options)
+            this.setLineOfSight(options.fowLOS, false);
+    }
+
+    static setGridSize(gridSize: number, sync: boolean): void {
+        if (this.gridSize !== gridSize) {
+            this.gridSize = gridSize;
+            if(gameManager.layerManager.getGridLayer() !== undefined)
+                gameManager.layerManager.getGridLayer()!.drawGrid();
+            $('#gridSizeInput').val(gridSize);
+            if(sync)
+                socket.emit("set gridsize", gridSize);
+        }
+    }
+
+    static setUnitSize(unitSize: number, sync: boolean): void {
+        if (unitSize !== this.unitSize) {
+            this.unitSize = unitSize;
+            if(gameManager.layerManager.getGridLayer() !== undefined)
+                gameManager.layerManager.getGridLayer()!.drawGrid();
+            $('#unitSizeInput').val(unitSize);
+            if(sync)
+                socket.emit("set locationOptions", { 'unitSize': unitSize });
+        }
+    }
     
-    Settings.zoomFactor = newZoomValue;
-
-    const newLoc = l2g(oldLoc);
-
-    // Change the pan settings to keep the zoomLocation in the same exact location before and after the zoom.
-    const diff = newLoc.subtract(zoomLocation);
-    Settings.panX += diff.direction.x;
-    Settings.panY += diff.direction.y;
-
-    gameManager.layerManager.invalidate();
-    sendClientOptions();
-    $("#zoomer").slider({ value: newZoomValue });
+    static setUseGrid(useGrid: boolean, sync: boolean): void {
+        if (useGrid !== this.useGrid) {
+            this.useGrid = useGrid;
+            if (useGrid)
+                $('#grid-layer').show();
+            else
+                $('#grid-layer').hide();
+            $('#useGridInput').prop("checked", useGrid);
+            if (sync)
+                socket.emit("set locationOptions", { 'useGrid': useGrid });
+        }
+    }
+    
+    static setFullFOW(fullFOW: boolean, sync: boolean): void {
+        if (fullFOW !== this.fullFOW) {
+            this.fullFOW = fullFOW;
+            const fowl = gameManager.layerManager.getLayer("fow");
+            if (fowl !== undefined)
+                fowl.invalidate(false);
+            $('#useFOWInput').prop("checked", fullFOW);
+            if (sync)
+                socket.emit("set locationOptions", { 'fullFOW': fullFOW });
+        }
+    }
+    
+    static setFOWOpacity(fowOpacity: number, sync: boolean): void {
+        this.fowOpacity = fowOpacity;
+        const fowl = gameManager.layerManager.getLayer("fow");
+        if (fowl !== undefined)
+            fowl.invalidate(false);
+        $('#fowOpacity').val(fowOpacity);
+        if (sync)
+            socket.emit("set locationOptions", { 'fowOpacity': fowOpacity });
+    }
+    
+    static setLineOfSight(fowLOS: boolean, sync: boolean) {
+        if (fowLOS !== this.fowLOS) {
+            this.fowLOS = fowLOS;
+            $('#fowLOS').prop("checked", fowLOS);
+            gameManager.layerManager.invalidate();
+            if (sync)
+                socket.emit("set locationOptions", { 'fowLOS': fowLOS });
+        }
+    }
+    
+    static updateZoom(newZoomValue: number, zoomLocation: GlobalPoint) {
+        if (newZoomValue <= 0.01)
+            newZoomValue = 0.01;
+    
+        const oldLoc = g2l(zoomLocation);
+        
+        this.zoomFactor = newZoomValue;
+    
+        const newLoc = l2g(oldLoc);
+    
+        // Change the pan settings to keep the zoomLocation in the same exact location before and after the zoom.
+        const diff = newLoc.subtract(zoomLocation);
+        this.panX += diff.direction.x;
+        this.panY += diff.direction.y;
+    
+        gameManager.layerManager.invalidate();
+        sendClientOptions();
+        $("#zoomer").slider({ value: newZoomValue });
+    }
 }
+
+export default Settings

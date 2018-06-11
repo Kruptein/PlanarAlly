@@ -5,7 +5,7 @@ import gameManager from "../planarally";
 import { getMouse } from "../utils";
 import { l2g } from "../units";
 import BaseRect from "../shapes/baserect";
-import { Settings } from "../settings";
+import Settings from "../settings";
 
 export class MapTool extends Tool {
     active: boolean = false;

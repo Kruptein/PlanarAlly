@@ -6,7 +6,7 @@ import { Tool } from "./tool";
 import { GlobalPoint } from "../geom";
 import Line from "../shapes/line";
 import Text from "../shapes/text";
-import { Settings } from "../settings";
+import Settings from "../settings";
 
 export class RulerTool extends Tool {
     active: boolean = false;
@@ -24,8 +24,8 @@ export class RulerTool extends Tool {
         this.startPoint = l2g(getMouse(e));
         this.ruler = new Line(this.startPoint, this.startPoint);
         this.text = new Text(this.startPoint.clone(), "", "bold 20px serif");
-        this.ruler.owners.push(gameManager.username);
-        this.text.owners.push(gameManager.username);
+        this.ruler.owners.push(Settings.username);
+        this.text.owners.push(Settings.username);
         layer.addShape(this.ruler, true, true);
         layer.addShape(this.text, true, true);
     }

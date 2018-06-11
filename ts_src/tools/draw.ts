@@ -7,7 +7,7 @@ import { GlobalPoint } from "../geom";
 import { Tool } from "./tool";
 import Shape from "../shapes/shape";
 import Circle from "../shapes/circle";
-import { Settings } from "../settings";
+import Settings from "../settings";
 
 export class DrawTool extends Tool {
     active: boolean = false;
@@ -52,7 +52,7 @@ export class DrawTool extends Tool {
             this.shape = new Rect(this.startPoint.clone(), 0, 0, fill.toRgbString(), border.toRgbString());
         else if (this.shapeSelect.val() === 'circle')
             this.shape = new Circle(this.startPoint.clone(), 0, fill.toRgbString(), border.toRgbString());
-        this.shape.owners.push(gameManager.username);
+        this.shape.owners.push(Settings.username);
         if (layer.name === 'fow') {
             this.shape.visionObstruction = true;
             this.shape.movementObstruction = true;

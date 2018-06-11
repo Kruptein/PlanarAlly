@@ -2,7 +2,7 @@ import BoundingRect from "./boundingrect";
 import Shape from "./shape";
 import { GlobalPoint, Vector, LocalPoint } from "../geom";
 import { g2lx, g2ly, l2g, l2gy, l2gx } from "../units";
-import { Settings } from "../settings";
+import Settings from "../settings";
 
 export default abstract class BaseRect extends Shape {
     w: number;

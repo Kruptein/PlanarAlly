@@ -1,5 +1,5 @@
 import { GlobalPoint, LocalPoint, Vector } from "./geom";
-import { Settings } from "./settings";
+import Settings from "./settings";
 
 export function g2l(obj: GlobalPoint): LocalPoint {
     const z = Settings.zoomFactor;

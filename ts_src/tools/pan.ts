@@ -3,8 +3,8 @@ import { LocalPoint } from "../geom";
 import { getMouse } from "../utils";
 import gameManager from "../planarally";
 import { l2g } from "../units";
-import socket, { sendClientOptions } from "../socket";
-import { Settings } from "../settings";
+import { sendClientOptions } from "../socket";
+import Settings from "../settings";
 
 export class PanTool extends Tool {
     panStart = new LocalPoint(0, 0);
@@ -16,7 +16,6 @@ export class PanTool extends Tool {
     onMouseMove(e: MouseEvent): void {
         if (!this.active) return;
         const mouse = getMouse(e);
-        const z = Settings.zoomFactor;
         const distance = l2g(mouse.subtract(this.panStart)).direction;
         Settings.panX += Math.round(distance.x);
         Settings.panY += Math.round(distance.y);

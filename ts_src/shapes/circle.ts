@@ -3,7 +3,7 @@ import BoundingRect from "./boundingrect";
 import { g2l, l2g } from "../units";
 import { GlobalPoint, LocalPoint } from "../geom";
 import { ServerCircle } from "../api_types";
-import { Settings } from "../settings";
+import Settings from "../settings";
 
 export default class Circle extends Shape {
     type = "circle";

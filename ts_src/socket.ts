@@ -3,7 +3,7 @@ import { alphSort, fixedEncodeURIComponent } from "./utils";
 import { setupTools } from "./tools/tools";
 import { ClientOptions, LocationOptions, AssetList, ServerShape, InitiativeData, BoardInfo } from "./api_types";
 import { GlobalPoint } from "./geom";
-import { Settings } from "./settings";
+import Settings from "./settings";
 
 export const socket = io.connect(location.protocol + "//" + location.host + "/planarally");
 socket.on("connect", function () {
@@ -17,12 +17,12 @@ socket.on("redirect", function (destination: string) {
     window.location.href = destination;
 });
 socket.on("set room info", function (data: {name: string, creator: string}) {
-    gameManager.roomName = data.name;
-    gameManager.roomCreator = data.creator;
+    Settings.roomName = data.name;
+    Settings.roomCreator = data.creator;
 });
 socket.on("set username", function (username: string) {
-    gameManager.username = username;
-    gameManager.IS_DM = username === window.location.pathname.split("/")[2];
+    Settings.username = username;
+    Settings.IS_DM = username === window.location.pathname.split("/")[2];
     if ($("#toolselect").find("ul").html().length === 0)
         setupTools();
 });
@@ -30,11 +30,11 @@ socket.on("set clientOptions", function (options: ClientOptions) {
     gameManager.setClientOptions(options);
 });
 socket.on("set locationOptions", function (options: LocationOptions) {
-    gameManager.layerManager.setOptions(options);
+    Settings.setOptions(options);
 });
 socket.on("set location", function (data: {name:string, options: LocationOptions}) {
-    gameManager.locationName = data.name;
-    gameManager.layerManager.setOptions(data.options);
+    Settings.locationName = data.name;
+    Settings.setOptions(data.options);
 });
 socket.on("set position", function (data: {x: number, y: number}) {
     gameManager.setCenterPosition(new GlobalPoint(data.x, data.y));
@@ -73,7 +73,7 @@ socket.on("board init", function (location_info: BoardInfo) {
     gameManager.setupBoard(location_info)
 });
 socket.on("set gridsize", function (gridSize: number) {
-    gameManager.layerManager.setGridSize(gridSize);
+    Settings.setGridSize(gridSize, false);
 });
 socket.on("add shape", function (shape: ServerShape) {
     gameManager.addShape(shape);
@@ -111,7 +111,7 @@ socket.on("updateShape", function (data: { shape: ServerShape; redraw: boolean }
     gameManager.updateShape(data);
 });
 socket.on("updateInitiative", function (data: InitiativeData) {
-    if (data.initiative === undefined || (!data.owners.includes(gameManager.username) && !gameManager.IS_DM && !data.visible))
+    if (data.initiative === undefined || (!data.owners.includes(Settings.username) && !Settings.IS_DM && !data.visible))
         gameManager.initiativeTracker.removeInitiative(data.uuid, false, true);
     else
         gameManager.initiativeTracker.addInitiative(data, false);
@@ -137,7 +137,7 @@ socket.on("clear temporaries", function (shapes: ServerShape[]) {
 export function sendClientOptions() {
     socket.emit("set clientOptions", {
         locationOptions: {
-            [`${gameManager.roomName}/${gameManager.roomCreator}/${gameManager.locationName}`]: {
+            [`${Settings.roomName}/${Settings.roomCreator}/${Settings.locationName}`]: {
                 panX: Settings.panX,
                 panY: Settings.panY,
                 zoomFactor: Settings.zoomFactor,

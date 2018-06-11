@@ -6,7 +6,7 @@ import { getMouse } from "../utils";
 import { l2g, g2l, g2lx, g2ly } from "../units";
 import socket from "../socket";
 import { Tool } from "./tool";
-import { Settings } from "../settings";
+import Settings from "../settings";
 import CircularToken from "../shapes/circulartoken";
 
 
@@ -51,7 +51,7 @@ export class SelectTool extends Tool {
 
     constructor() {
         super();
-        this.selectionHelper.owners.push(gameManager.username);
+        this.selectionHelper.owners.push(Settings.username);
     }
     onMouseDown(e: MouseEvent): void {
         if (gameManager.layerManager.getLayer() === undefined) {
@@ -135,7 +135,7 @@ export class SelectTool extends Tool {
             let delta = l2g(mouse.subtract(og.add(this.drag)));
             if (this.mode === SelectOperations.Drag) {
                 // If we are on the tokens layer do a movement block check.
-                if (layer.name === 'tokens' && !(e.shiftKey && gameManager.IS_DM)) {
+                if (layer.name === 'tokens' && !(e.shiftKey && Settings.IS_DM)) {
                     for (let i = 0; i < layer.selection.length; i++) {
                         const sel = layer.selection[i];
                         if (sel.uuid === this.selectionHelper.uuid) continue; // the selection helper should not be treated as a real shape.
@@ -260,7 +260,7 @@ export class SelectTool extends Tool {
             $menu.empty();
             $menu.css({ left: mouse.x, top: mouse.y });
             let data = "<ul>";
-            if (gameManager.IS_DM)
+            if (Settings.IS_DM)
                 data += "<li data-action='bringPlayers' class='context-clickable'>Bring players</li>";
             data += "<li data-action='createToken' class='context-clickable'>Create basic token</li>";
             data += "</ul>";
@@ -270,7 +270,7 @@ export class SelectTool extends Tool {
                 const action = $(this).data("action");
                 switch (action) {
                     case 'bringPlayers':
-                        if (!gameManager.IS_DM) break;
+                        if (!Settings.IS_DM) break;
                         const g_mouse = l2g(mouse);
                         socket.emit("bringPlayers", {x: g_mouse.x, y: g_mouse.y});
                         break;

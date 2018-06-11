@@ -2,9 +2,8 @@ import Circle from "./circle";
 import { GlobalPoint } from "../geom";
 import { ServerCircularToken } from "../api_types";
 import { g2l } from "../units";
-import { Settings } from "../settings";
+import Settings from "../settings";
 import { calcFontScale } from "../utils";
-import gameManager from "../planarally";
 
 export default class CircularToken extends Circle {
     type = "circulartoken";
@@ -52,7 +51,7 @@ export default class CircularToken extends Circle {
     getInitiativeRepr() {
         return {
             uuid: this.uuid,
-            visible: !gameManager.IS_DM,
+            visible: !Settings.IS_DM,
             group: false,
             src: (this.name === '' || this.name === 'Unknown shape') ? this.text : this.name,
             owners: this.owners,

@@ -11,15 +11,9 @@ import { capitalize } from './utils';
 import { GlobalPoint, LocalPoint } from "./geom";
 import gameManager from "./planarally";
 import { socket, sendClientOptions } from "./socket";
-import { Settings } from "./settings";
+import Settings from "./settings";
 
 export class GameManager {
-    IS_DM = false;
-    roomName!: string;
-    roomCreator!: string;
-    locationName!: string;
-    username!: string;
-    board_initialised = false;
     layerManager = new LayerManager();
     selectedTool: number = 0;
     tools: OrderedMap<string, Tool> = new OrderedMap();
@@ -127,7 +121,7 @@ export class GameManager {
             l.player_editable = new_layer.player_editable;
             gameManager.layerManager.addLayer(l);
             if (new_layer.grid) {
-                gameManager.layerManager.setGridSize(new_layer.size);
+                Settings.setGridSize(new_layer.size, false);
                 $("#grid-layer").droppable({
                     accept: ".draggable",
                     drop: function (event, ui) {
@@ -193,7 +187,7 @@ export class GameManager {
 
         this.initiativeTracker.clear();
 
-        this.board_initialised = true;
+        Settings.board_initialised = true;
     }
 
     addShape(shape: ServerShape): void {
@@ -259,8 +253,8 @@ export class GameManager {
             this.layerManager.invalidate();
         }
         if (options.locationOptions) {
-            if (options.locationOptions[`${gameManager.roomName}/${gameManager.roomCreator}/${gameManager.locationName}`]) {
-                const loc = options.locationOptions[`${gameManager.roomName}/${gameManager.roomCreator}/${gameManager.locationName}`];
+            if (options.locationOptions[`${Settings.roomName}/${Settings.roomCreator}/${Settings.locationName}`]) {
+                const loc = options.locationOptions[`${Settings.roomName}/${Settings.roomCreator}/${Settings.locationName}`];
                 if (loc.panX)
                     Settings.panX = loc.panX;
                 if (loc.panY)

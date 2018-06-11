@@ -1,13 +1,13 @@
 import {getUnitDistance, g2l, g2lz, g2lr, g2lx, g2ly} from "./units";
-import {GlobalPoint, Vector} from "./geom";
+import {GlobalPoint} from "./geom";
 import gameManager from "./planarally";
 import socket from "./socket";
-import { LocationOptions, ServerShape } from "./api_types";
+import { ServerShape } from "./api_types";
 import Shape from "./shapes/shape";
 import Circle from "./shapes/circle";
 import BoundingRect from "./shapes/boundingrect";
 import { createShapeFromDict } from "./shapes/utils";
-import { Settings } from "./settings";
+import Settings from "./settings";
 
 export class LayerManager {
     layers: Layer[] = [];
@@ -27,21 +27,6 @@ export class LayerManager {
                 lm.layers[i].draw();
             }
         }, this.interval);
-    }
-
-    setOptions(options: LocationOptions): void {
-        if ("unitSize" in options)
-            this.setUnitSize(options.unitSize);
-        if ("useGrid" in options)
-            this.setUseGrid(options.useGrid);
-        if ("fullFOW" in options)
-            this.setFullFOW(options.fullFOW);
-        if ('fowOpacity' in options)
-            this.setFOWOpacity(options.fowOpacity);
-        if ("fowColour" in options)
-            gameManager.fowColour.spectrum("set", options.fowColour);
-        if ("fowLOS" in options)
-            this.setLineOfSight(options.fowLOS);
     }
 
     setWidth(width: number): void {
@@ -97,61 +82,6 @@ export class LayerManager {
 
     getGridLayer(): GridLayer|undefined {
         return <GridLayer>this.getLayer("grid");
-    }
-
-    setGridSize(gridSize: number): void {
-        if (Settings.gridSize !== gridSize) {
-            Settings.gridSize = gridSize;
-            if(this.getGridLayer() !== undefined)
-                this.getGridLayer()!.drawGrid();
-            $('#gridSizeInput').val(gridSize);
-        }
-    }
-
-    setUnitSize(unitSize: number): void {
-        if (unitSize !== Settings.unitSize) {
-            Settings.unitSize = unitSize;
-            if(this.getGridLayer() !== undefined)
-                this.getGridLayer()!.drawGrid();
-            $('#unitSizeInput').val(unitSize);
-        }
-    }
-
-    setUseGrid(useGrid: boolean): void {
-        if (useGrid !== Settings.useGrid) {
-            Settings.useGrid = useGrid;
-            if (useGrid)
-                $('#grid-layer').show();
-            else
-                $('#grid-layer').hide();
-            $('#useGridInput').prop("checked", useGrid);
-        }
-    }
-
-    setFullFOW(fullFOW: boolean): void {
-        if (fullFOW !== Settings.fullFOW) {
-            Settings.fullFOW = fullFOW;
-            const fowl = this.getLayer("fow");
-            if (fowl !== undefined)
-                fowl.invalidate(false);
-            $('#useFOWInput').prop("checked", fullFOW);
-        }
-    }
-
-    setFOWOpacity(fowOpacity: number): void {
-        Settings.fowOpacity = fowOpacity;
-        const fowl = this.getLayer("fow");
-        if (fowl !== undefined)
-            fowl.invalidate(false);
-        $('#fowOpacity').val(fowOpacity);
-    }
-
-    setLineOfSight(fowLOS: boolean) {
-        if (fowLOS !== Settings.fowLOS) {
-            Settings.fowLOS = fowLOS;
-            $('#fowLOS').prop("checked", fowLOS);
-            gameManager.layerManager.invalidate();
-        }
     }
 
     hasSelection() {
@@ -217,7 +147,7 @@ export class Layer {
         this.shapes.push(shape);
         shape.checkLightSources();
         shape.setMovementBlock(shape.movementObstruction);
-        if (shape.ownedBy(gameManager.username) && shape.isToken)
+        if (shape.ownedBy(Settings.username) && shape.isToken)
             gameManager.ownedtokens.push(shape.uuid);
         if (shape.annotation.length)
             gameManager.annotations.push(shape.uuid);
@@ -288,7 +218,7 @@ export class Layer {
     }
 
     draw(doClear?: boolean): void {
-        if (gameManager.board_initialised && !this.valid) {
+        if (Settings.board_initialised && !this.valid) {
             const ctx = this.ctx;
             doClear = doClear === undefined ? true : doClear;
 
@@ -350,7 +280,7 @@ export class GridLayer extends Layer {
         this.valid = false;
     }
     draw(doClear?: boolean): void {
-        if (gameManager.board_initialised && !this.valid) {
+        if (Settings.board_initialised && !this.valid) {
             this.drawGrid();
         }
     }
@@ -394,7 +324,7 @@ export class FOWLayer extends Layer {
     };
 
     draw(): void {
-        if (gameManager.board_initialised && !this.valid) {
+        if (Settings.board_initialised && !this.valid) {
             const ctx = this.ctx;
             const orig_op = ctx.globalCompositeOperation;
 
@@ -403,7 +333,7 @@ export class FOWLayer extends Layer {
                 const ogalpha = this.ctx.globalAlpha;
                 
                 this.ctx.globalCompositeOperation = "copy";
-                if (gameManager.IS_DM)
+                if (Settings.IS_DM)
                     this.ctx.globalAlpha = Settings.fowOpacity;
                 this.ctx.fillStyle = gameManager.fowColour.spectrum("get").toRgbString();
                 this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
@@ -414,7 +344,7 @@ export class FOWLayer extends Layer {
 
             // For the DM this is done at the end of this function.  TODO: why the split up ???
             // This was done in commit be1e65cff1e7369375fe11cfa1643fab1d11beab.
-            if (!gameManager.IS_DM)
+            if (!Settings.IS_DM)
                 super.draw(!Settings.fullFOW);
                 
             ctx.globalCompositeOperation = 'destination-out';
@@ -571,7 +501,7 @@ export class FOWLayer extends Layer {
 
             // For the players this is done at the beginning of this function.  TODO: why the split up ???
             // This was done in commit be1e65cff1e7369375fe11cfa1643fab1d11beab.
-            if (gameManager.IS_DM)
+            if (Settings.IS_DM)
                 super.draw(!Settings.fullFOW);
 
             ctx.globalCompositeOperation = orig_op;

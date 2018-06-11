@@ -62,7 +62,7 @@ export class SelectTool extends Tool {
         const mouse = getMouse(e);
 
         let hit = false;
-        // the selectionStack allows for lower positioned objects that are selected to have precedence during overlap.
+        // The selectionStack allows for lower positioned objects that are selected to have precedence during overlap.
         let selectionStack;
         if (!layer.selection.length)
             selectionStack = layer.shapes;

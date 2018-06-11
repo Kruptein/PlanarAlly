@@ -343,7 +343,7 @@ export default abstract class Shape {
             has_img: false
         }
     }
-    // Code to snap a grid to the grid
+    // Code to snap a shape to the grid
     // This is shape dependent as the shape refPoints are shape specific in
     snapToGrid() {};
     resizeToGrid() {};

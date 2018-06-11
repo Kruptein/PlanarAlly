@@ -22,7 +22,7 @@ export default class Text extends Shape {
         })
     }
     getBoundingBox(): BoundingRect {
-        return new BoundingRect(this.refPoint, 5, 5); // Todo: fix this bounding box
+        return new BoundingRect(this.refPoint, 5, 5); // TODO: fix this bounding box
     }
     draw(ctx: CanvasRenderingContext2D) {
         super.draw(ctx);

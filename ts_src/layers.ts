@@ -74,7 +74,7 @@ export class LayerManager {
         }
     }
 
-    //todo rename to selectLayer
+    // TODO: Rename to selectLayer
     setLayer(name: string): void {
         let found = false;
         const lm = this;

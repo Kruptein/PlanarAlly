@@ -53,7 +53,7 @@ export default class Circle extends Shape {
         return (point.x - this.refPoint.x) ** 2 + (point.y - this.refPoint.y) ** 2 < this.r ** 2;
     }
     inCorner(point: GlobalPoint, corner: string) {
-        return false; //TODO
+        return false; // TODO
     }
     getCorner(point: GlobalPoint) {
         if (this.inCorner(point, "ne"))

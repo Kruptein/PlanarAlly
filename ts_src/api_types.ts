@@ -5,6 +5,7 @@ export interface LocationOptions {
     fullFOW: boolean;
     fowColour: string;
     fowOpacity: number;
+    fowLOS: boolean;
 }
 
 export interface ClientOptions {

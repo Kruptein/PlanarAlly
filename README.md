@@ -170,7 +170,7 @@ You can also define the light blocking / movement blocking properties on non-FOW
 
 Currently the lightsource will always draw a tiny bit of the lightblocking shape in order to give some visual feedback as to what is blocking your light.  This behaviour still requires some finetuning.
 
-**Note:** Currently I'm experimenting with only showing those lights to a player if the player either owns the light emitting asset or if the light is in line of sight of one of the player's shapes.
+**Note:** Currently I'm experimenting with only showing those lights to a player if the player either owns the light emitting asset or if the light is in line of sight of one of the player's shapes.  This can be enabled by the DM settings option: Only show lights in LoS.  This requires all player tokens to correctly be tagges as token in their asset details!!!
 
 **! IMPORTANT NOTICE REGARDING FOW and cheating:** At the moment all shapes on player visible layers are sent to players this means that also all shapes that
 are under fow are sent to the players.  The FOW will be displayed correctly above these shapes so that they are 'invisible' to the player BUT a player with some javascript knowledge will be able to circumvent this.  There are no immediate plans to

@@ -9,6 +9,7 @@ export class Settings {
     static useGrid = true;
     static fullFOW = false;
     static fowOpacity = 0.3;
+    static fowLOS = false;
     
     static zoomFactor = 1;
     static panX = 0;

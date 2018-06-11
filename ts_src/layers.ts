@@ -40,6 +40,8 @@ export class LayerManager {
             this.setFOWOpacity(options.fowOpacity);
         if ("fowColour" in options)
             gameManager.fowColour.spectrum("set", options.fowColour);
+        if ("fowLOS" in options)
+            this.setLineOfSight(options.fowLOS);
     }
 
     setWidth(width: number): void {
@@ -142,6 +144,14 @@ export class LayerManager {
         if (fowl !== undefined)
             fowl.invalidate(false);
         $('#fowOpacity').val(fowOpacity);
+    }
+
+    setLineOfSight(fowLOS: boolean) {
+        if (fowLOS !== Settings.fowLOS) {
+            Settings.fowLOS = fowLOS;
+            $('#fowLOS').prop("checked", fowLOS);
+            gameManager.layerManager.invalidate();
+        }
     }
 
     hasSelection() {
@@ -462,7 +472,7 @@ export class FOWLayer extends Layer {
 
                 let player_visible = false;
 
-                if (gameManager.ownedtokens.includes(ls.shape))
+                if (!Settings.fowLOS || gameManager.ownedtokens.includes(ls.shape))
                     player_visible = true;
 
                 // TODO: idea: scale amount of rays based on zoom ?

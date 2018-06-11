@@ -101,6 +101,11 @@ $("#useFOWInput").on("change", function (e) {
     gameManager.layerManager.setFullFOW(uf);
     socket.emit("set locationOptions", { 'fullFOW': uf });
 });
+$("#fowLOS").on("change", function (e) {
+    const los = (<HTMLInputElement>e.target).checked;
+    gameManager.layerManager.setLineOfSight(los);
+    socket.emit("set locationOptions", { 'fowLOS': los });
+});
 $("#fowOpacity").on("change", function (e) {
     let fo = parseFloat((<HTMLInputElement>e.target).value);
     if (isNaN(fo)) {

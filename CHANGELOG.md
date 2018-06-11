@@ -5,13 +5,18 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 - [DM] Using the shift key, shapes can move freely through movement blocking terrain.
+- Pressing 'd' now deselects everything
+
+### Changed
 - Arrow moves will move assets when they are selected instead of the canvas.
     - The canvas will still be moved if no shape is selected
     - [DM] Shift key can also be used to pass through terrain.
-- Pressing 'd' now deselects everything
 - Shape drawing now uses same behaviour in regards to grid snapping
     - by default shapes will resize to fit the grid
     - when alt is pressed on mouseUp during drawing or if the grid is disabled, the shape will not resize to grid.
+- Only tokens will have a minimal vision aura
+- Add DM settings option to enable Line of Sight based lighting
+- Disable LoS based lighting by default
 
 ## [0.5] - 2018-06-03
 

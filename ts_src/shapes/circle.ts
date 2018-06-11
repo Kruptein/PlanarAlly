@@ -85,10 +85,12 @@ export default class Circle extends Shape {
         } else {
             this.refPoint.y = Math.round((this.refPoint.y - (gs/2)) / gs) * gs + this.r;
         }
+        this.invalidate(false);
     }
     resizeToGrid() {
         const gs = Settings.gridSize;
         this.r = Math.max(Math.round(this.r / gs) * gs, gs/2);
+        this.invalidate(false);
     }
     resize(resizedir: string, point: LocalPoint) {
         const z = Settings.zoomFactor;

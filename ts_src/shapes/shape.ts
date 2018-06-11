@@ -56,6 +56,11 @@ export default abstract class Shape {
     abstract getCorner(point: GlobalPoint): string | undefined;
     abstract visibleInCanvas(canvas: HTMLCanvasElement): boolean;
 
+    invalidate(skipLightUpdate: boolean) {
+        const l = gameManager.layerManager.getLayer(this.layer);
+        if (l) l.invalidate(skipLightUpdate);
+    }
+
     checkLightSources() {
         const self = this;
         const vo_i = gameManager.lightblockers.indexOf(this.uuid);

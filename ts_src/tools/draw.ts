@@ -7,6 +7,7 @@ import { GlobalPoint } from "../geom";
 import { Tool } from "./tool";
 import Shape from "../shapes/shape";
 import Circle from "../shapes/circle";
+import { Settings } from "../settings";
 
 export class DrawTool extends Tool {
     active: boolean = false;
@@ -80,6 +81,9 @@ export class DrawTool extends Tool {
         layer.invalidate(false);
     }
     onMouseUp(e: MouseEvent) {
+        if (this.active && !e.altKey && Settings.useGrid) {
+            this.shape.resizeToGrid();
+        }
         this.active = false;
     }
 }

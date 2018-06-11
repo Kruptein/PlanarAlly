@@ -4,9 +4,14 @@ All notable changes to this project will be documented in this file.
 ## [0.6] - Not yet released
 
 ### Added
+- [DM] Using the shift key, shapes can move freely through movement blocking terrain.
 - Arrow moves will move assets when they are selected instead of the canvas.
     - The canvas will still be moved if no shape is selected
+    - [DM] Shift key can also be used to pass through terrain.
 - Pressing 'd' now deselects everything
+- Shape drawing now uses same behaviour in regards to grid snapping
+    - by default shapes will resize to fit the grid
+    - when alt is pressed on mouseUp during drawing or if the grid is disabled, the shape will not resize to grid.
 
 ## [0.5] - 2018-06-03
 

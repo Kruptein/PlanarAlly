@@ -77,13 +77,17 @@ export default abstract class BaseRect extends Shape {
         } else {
             this.refPoint.y = (Math.round((my + (gs / 2)) / gs) - (1 / 2)) * gs - this.h / 2;
         }
+        this.invalidate(false);
     }
     resizeToGrid() {
         const gs = Settings.gridSize;
         this.refPoint.x = Math.round(this.refPoint.x / gs) * gs;
         this.refPoint.y = Math.round(this.refPoint.y / gs) * gs;
-        this.w = Math.max(Math.round(this.w / gs) * gs, gs);
-        this.h = Math.max(Math.round(this.h / gs) * gs, gs);
+        // UX improvement, the rounding is too aggressive otherwise
+        const dgs = 0.9 * gs;
+        this.w = Math.max(Math.round(this.w / dgs) * gs, gs);
+        this.h = Math.max(Math.round(this.h / dgs) * gs, gs);
+        this.invalidate(false);
     }
     resize(resizedir: string, point: LocalPoint) {
         const z = Settings.zoomFactor;

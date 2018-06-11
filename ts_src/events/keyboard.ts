@@ -48,7 +48,7 @@ export function onKeyDown (event: KeyboardEvent) {
                         const blocker = gameManager.layerManager.UUIDMap.get(gameManager.movementblockers[mb])!;
                         const blockerBBox = blocker.getBoundingBox();
                         // Check if the bounding box of our destination would intersect with the bounding box of the movementblocker
-                        if (blockerBBox.intersectsWith(newSelBBox)) {
+                        if (blockerBBox.intersectsWithInner(newSelBBox)) {
                             collision = true;
                             break;
                         }

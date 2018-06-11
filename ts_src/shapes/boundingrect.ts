@@ -32,6 +32,15 @@ export default class BoundingRect {
             other.topLeft.y > this.botLeft.y ||
             other.botLeft.y < this.topLeft.y);
     }
+
+    intersectsWithInner(other: BoundingRect): boolean {
+        return !(other.topLeft.x >= this.topRight.x ||
+            other.topRight.x <= this.topLeft.x ||
+            other.topLeft.y >= this.botLeft.y ||
+            other.botLeft.y <= this.topLeft.y);
+    }
+
+
     getIntersectAreaWithRect(other: BoundingRect): BoundingRect {
         const topleft = new GlobalPoint(Math.max(this.topLeft.x, other.topLeft.x), Math.max(this.topLeft.y, other.topLeft.y));
         const w = Math.min(this.topRight.x, other.topRight.x) - topleft.x;

@@ -3,6 +3,10 @@ All notable changes to this project will be documented in this file.
 
 ## [0.6] - 2018-06-11
 
+### HOTFIXED
+- shapes moved with arrow keys were not being synced to the server
+- assets dropped on canvas are immediately tagged as token
+
 ### Added
 - [DM] Using the shift key, shapes can move freely through movement blocking terrain.
 - Pressing 'd' now deselects everything

@@ -2,7 +2,7 @@ import gameManager from "../planarally";
 import { SelectTool } from "../tools/select";
 import { Vector } from "../geom";
 import Settings from "../settings";
-import { sendClientOptions } from "../socket";
+import { sendClientOptions, socket } from "../socket";
 
 function targetIsInput(e: Event) {
     if (e.target)
@@ -60,6 +60,7 @@ export function onKeyDown (event: KeyboardEvent) {
                     const sel = selection[i];
                     sel.refPoint.x += x_offset;
                     sel.refPoint.y += y_offset;
+                    socket.emit("shapeMove", { shape: sel.asDict(), temporary: false });
                 }
                 gameManager.layerManager.getLayer()!.invalidate(false);
             }

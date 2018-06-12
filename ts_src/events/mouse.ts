@@ -71,6 +71,7 @@ export function onContextMenu(e: MouseEvent) {
 }
 
 export function scrollZoom(e: WheelEvent) {
+    if (!e.target || !(<HTMLElement>e.target).tagName || (<HTMLElement>e.target).tagName !== 'CANVAS') return;
     let delta: number;
     if (e.wheelDelta) {
         delta = Math.sign(e.wheelDelta) * 1;

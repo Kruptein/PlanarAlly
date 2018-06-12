@@ -7,6 +7,7 @@ All notable changes to this project will be documented in this file.
 - Annotations correctly position centered on the screen
 - Annotations correctly wrap words to the next line
 - Delete key no longer removes shapes while in input fields.
+- Scrolling only zooms when a canvas is targetted.
 
 ## [0.6] - 2018-06-11
 

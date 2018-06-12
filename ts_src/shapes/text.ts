@@ -8,17 +8,18 @@ export default class Text extends Shape {
     text: string;
     font: string;
     angle: number;
-    constructor(position: GlobalPoint, text: string, font: string, angle?: number, uuid?: string) {
+    constructor(position: GlobalPoint, text: string, font: string, angle?: number, fill?: string, uuid?: string) {
         super(position, uuid);
         this.text = text;
         this.font = font;
+        this.fill = fill || "#000";
         this.angle = angle || 0;
     }
     asDict() {
         return Object.assign(this.getBaseDict(), {
             text: this.text,
             font: this.font,
-            angle: this.angle
+            angle: this.angle,
         })
     }
     getBoundingBox(): BoundingRect {
@@ -27,6 +28,7 @@ export default class Text extends Shape {
     draw(ctx: CanvasRenderingContext2D) {
         super.draw(ctx);
         ctx.font = this.font;
+        ctx.fillStyle = this.fill;
         ctx.save();
         const dest = g2l(this.refPoint);
         ctx.translate(dest.x, dest.y);

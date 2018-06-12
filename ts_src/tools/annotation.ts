@@ -14,16 +14,16 @@ class AnnotationManager {
 
     constructor() {
         const origin = new GlobalPoint(0, 0);
-        this.annotationText = new Text(origin, "", "bold 20px serif");
-        this.annotationRect = new Rect(origin, 0, 0, 'rgba(0, 0, 0, 0.4)');
+        this.annotationText = new Text(origin, "", "bold 20px serif", 0, "rgba(230, 230, 230, 1)");
+        this.annotationRect = new Rect(origin, 0, 0, 'rgba(0, 0, 0, 0.6)');
     }
 
     setActiveText(text: string) {
         if (this.layer === undefined) {
             if (gameManager.layerManager.hasLayer("draw")) {
                 this.layer = gameManager.layerManager.getLayer("draw")!;
-                this.layer.addShape(this.annotationText, false);
                 this.layer.addShape(this.annotationRect, false);
+                this.layer.addShape(this.annotationText, false);
             } else {
                 console.warn("There is no draw layer to draw annotations on!");
                 return;

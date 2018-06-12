@@ -33,20 +33,15 @@ export function onPointerMove(e: MouseEvent) {
         const uuid = gameManager.annotations[i];
         if (gameManager.layerManager.UUIDMap.has(uuid) && gameManager.layerManager.hasLayer("draw")) {
             const draw_layer = gameManager.layerManager.getLayer("draw")!;
-            if (gameManager.annotationText.layer !== "draw")
-                draw_layer.addShape(gameManager.annotationText, false);
             const shape = gameManager.layerManager.UUIDMap.get(uuid)!;
             if (shape.contains(l2g(getMouse(e)))) {
                 found = true;
-                gameManager.annotationText.text = shape.annotation;
-                gameManager.annotationText.refPoint = l2g(new LocalPoint((draw_layer.canvas.width / 2), 50));
-                draw_layer.invalidate(true);
+                gameManager.annotationManager.setActiveText(shape.annotation);
             }
         }
     }
-    if (!found && gameManager.annotationText.text !== '') {
-        gameManager.annotationText.text = '';
-        gameManager.layerManager.getLayer("draw")!.invalidate(true);
+    if (!found && gameManager.annotationManager.shown) {
+        gameManager.annotationManager.setActiveText('');
     }
 }
 

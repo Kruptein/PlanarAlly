@@ -3,6 +3,9 @@ All notable changes to this project will be documented in this file.
 
 ## [0.7] - Not yet released
 
+### Added
+- Rough background to the annotation field to make it more readable
+
 ### Fixed
 - Annotations correctly position centered on the screen
 - Annotations correctly wrap words to the next line

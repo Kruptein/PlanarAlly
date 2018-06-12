@@ -4,7 +4,6 @@ import { LayerManager, Layer, GridLayer, FOWLayer } from "./layers";
 import { ClientOptions, BoardInfo, ServerShape, InitiativeData } from './api_types';
 import Asset from './shapes/asset';
 import { createShapeFromDict } from './shapes/utils';
-import Text from './shapes/text';
 import { Tool } from './tools/tool';
 import { InitiativeTracker } from './tools/initiative';
 import { capitalize } from './utils';
@@ -12,6 +11,7 @@ import { GlobalPoint, LocalPoint } from "./geom";
 import gameManager from "./planarally";
 import { socket, sendClientOptions } from "./socket";
 import Settings from "./settings";
+import AnnotationManager from "./tools/annotation";
 
 export class GameManager {
     layerManager = new LayerManager();
@@ -24,10 +24,10 @@ export class GameManager {
     movementblockers: string[] = [];
     ownedtokens: string[] = [];
 
-    annotationText: Text = new Text(new GlobalPoint(0, 0), "", "bold 20px serif");
     gridColour = $("#gridColour");
     fowColour = $("#fowColour");
     initiativeTracker = new InitiativeTracker();
+    annotationManager = new AnnotationManager();
     shapeSelectionDialog = $("#shapeselectiondialog").dialog({
         autoOpen: false,
         width: 'auto'

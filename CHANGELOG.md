@@ -1,6 +1,13 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [0.7] - Not yet released
+
+### Fixed
+- Annotations correctly position centered on the screen
+- Annotations correctly wrap words to the next line
+- Delete key no longer removes shapes while in input fields.
+
 ## [0.6] - 2018-06-11
 
 ### HOTFIXED

@@ -39,7 +39,7 @@ export function onPointerMove(e: MouseEvent) {
             if (shape.contains(l2g(getMouse(e)))) {
                 found = true;
                 gameManager.annotationText.text = shape.annotation;
-                gameManager.annotationText.refPoint = l2g(new LocalPoint((draw_layer.canvas.width / 2) - shape.annotation.length / 2, 50));
+                gameManager.annotationText.refPoint = l2g(new LocalPoint((draw_layer.canvas.width / 2), 50));
                 draw_layer.invalidate(true);
             }
         }

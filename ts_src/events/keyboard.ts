@@ -5,13 +5,13 @@ import Settings from "../settings";
 import { sendClientOptions, socket } from "../socket";
 
 function targetIsInput(e: Event) {
-    if (e.target)
+    if (e.target && (<HTMLElement>e.target).tagName)
         return ["INPUT", "TEXTAREA"].includes((<HTMLElement>e.target).tagName);
     return false;
 }
 
 export function onKeyUp (event: KeyboardEvent) {
-    if (event.key == "Delete" || event.key == 'Del') {
+    if ((event.key == "Delete" || event.key == 'Del') && !targetIsInput(event)) {
         if (gameManager.layerManager.getLayer === undefined) {
             console.log("No active layer selected for delete operation");
             return;

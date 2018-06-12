@@ -1,7 +1,8 @@
 import Shape from "./shape";
 import BoundingRect from "./boundingrect";
-import { GlobalPoint } from "../geom";
-import { g2l } from "../units";
+import { GlobalPoint, LocalPoint } from "../geom";
+import { g2l, l2gx, l2gy } from "../units";
+import gameManager from "../planarally";
 
 export default class Text extends Shape {
     type = "text";
@@ -60,7 +61,7 @@ export default class Text extends Shape {
                 const testLine = line + words[w] + " ";
                 var metrics = ctx.measureText(testLine);
                 var testWidth = metrics.width;
-                if (testWidth > maxWidth && n > 0) {
+                if (testWidth > maxWidth) {
                     ctx.fillText(line, x, y);
                     line = words[w] + " ";
                     y += lineHeight;

@@ -3,7 +3,7 @@ import { GlobalPoint, LocalPoint } from "../geom";
 import Rect from "../shapes/rect";
 import gameManager from "../planarally";
 import { Layer } from "../layers";
-import { l2g, l2gx, l2gy } from "../units";
+import { l2g } from "../units";
 import Settings from "../settings";
 
 class AnnotationManager {
@@ -15,7 +15,7 @@ class AnnotationManager {
     constructor() {
         const origin = new GlobalPoint(0, 0);
         this.annotationText = new Text(origin, "", "bold 20px serif");
-        this.annotationRect = new Rect(origin, 0, 0, 'rgba(0, 0, 0, 0.2)');
+        this.annotationRect = new Rect(origin, 0, 0, 'rgba(0, 0, 0, 0.4)');
     }
 
     setActiveText(text: string) {

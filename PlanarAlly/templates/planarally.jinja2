@@ -32,52 +32,54 @@
     </div>
     <div id="board">
         <div id="menu">
-            {% if dm %}
-                <button class="accordion">Tokens</button>
-                <div class="accordion-panel">
-                    <div class="accordion-subpanel" id="menu-tokens"></div>
-                </div>
-                <button class="accordion">DM Options</button>
+            <div style='width:100%;height:90%;overflow-y:auto;overflow-x:hidden;'>
+                {% if dm %}
+                    <button class="accordion">Tokens</button>
+                    <div class="accordion-panel">
+                        <div class="accordion-subpanel" id="menu-tokens"></div>
+                    </div>
+                    <button class="accordion">DM Options</button>
+                    <div class="accordion-panel">
+                        <div class="accordion-subpanel">
+                            <label for="useGridInput">Use grid: </label><input type="checkbox" checked="checked"
+                                                                                id="useGridInput">
+                            <label for="useFOWInput">Fill entire canvas with FOW: </label><input type="checkbox"
+                                                                                id="useFOWInput">
+                            <label for="fowOpacity">FOW opacity: </label><input type="text" value="0.3"
+                                                                                id="fowOpacity">
+                            <label for="fowLOS">Only show lights in LoS: </label><input type="checkbox"
+                                                                                id="fowLOS">
+                            <label for="unitSizeInput">Unit Size (in ft.): </label><input type="text" value="5"
+                                                                                id="unitSizeInput">
+                            <label for="gridSizeInput">Grid Size (in pixels): </label><input type="text" value="50"
+                                                                                id="gridSizeInput">
+                            <label for="invitation">Invitation Code: </label><input type="text"
+                                                                                    value="{{ invitation_code }}"
+                                                                                    readonly="readonly"
+                                                                                    id="invitation">
+                        </div>
+                    </div>
+                {% endif %}
+                <button class="accordion">Client Options</button>
                 <div class="accordion-panel">
                     <div class="accordion-subpanel">
-                        <label for="useGridInput">Use grid: </label><input type="checkbox" checked="checked"
-                                                                             id="useGridInput">
-                        <label for="useFOWInput">Fill entire canvas with FOW: </label><input type="checkbox"
-                                                                             id="useFOWInput">
-                        <label for="fowOpacity">FOW opacity: </label><input type="text" value="0.3"
-                                                                             id="fowOpacity">
-                        <label for="fowLOS">Only show lights in LoS: </label><input type="checkbox"
-                                                                             id="fowLOS">
-                        <label for="unitSizeInput">Unit Size (in ft.): </label><input type="text" value="5"
-                                                                             id="unitSizeInput">
-                        <label for="gridSizeInput">Grid Size (in pixels): </label><input type="text" value="50"
-                                                                             id="gridSizeInput">
-                        <label for="invitation">Invitation Code: </label><input type="text"
-                                                                                value="{{ invitation_code }}"
-                                                                                readonly="readonly"
-                                                                                id="invitation">
+                        <div><label for="gridColour">Grid Colour: </label><input type="text" id="gridColour"></div>
+                        <div><label for="fowColour">FOW Colour: </label><input type="text" id="fowColour"></div>
                     </div>
                 </div>
-            {% endif %}
-            <button class="accordion">Client Options</button>
-            <div class="accordion-panel">
-                <div class="accordion-subpanel">
-                    <div><label for="gridColour">Grid Colour: </label><input type="text" id="gridColour"></div>
-                    <div><label for="fowColour">FOW Colour: </label><input type="text" id="fowColour"></div>
-                </div>
+                {% if dm %}
+                    <button class="accordion">SelectionInfo</button>
+                    <div class="accordion-panel">
+                        <div class="accordion-subpanel">
+                            <label for="selectionInfoX">X: </label><input type="text" id="selectionInfoX">
+                            <label for="selectionInfoY">Y: </label><input type="text" id="selectionInfoY">
+                            <label for="selectionInfoW">W: </label><input type="text" id="selectionInfoW">
+                            <label for="selectionInfoH">H: </label><input type="text" id="selectionInfoH">
+                        </div>
+                    </div>
+                {% endif %}
             </div>
-            {% if dm %}
-                <button class="accordion">SelectionInfo</button>
-                <div class="accordion-panel">
-                    <div class="accordion-subpanel">
-                        <label for="selectionInfoX">X: </label><input type="text" id="selectionInfoX">
-                        <label for="selectionInfoY">Y: </label><input type="text" id="selectionInfoY">
-                        <label for="selectionInfoW">W: </label><input type="text" id="selectionInfoW">
-                        <label for="selectionInfoH">H: </label><input type="text" id="selectionInfoH">
-                    </div>
-                </div>
-            {% endif %}
-            <a href="/rooms" id="exitButton"><button class="accordion">Exit</button></a>
+            <a href="/rooms" class="accordion" style='text-decoration:none;display:inline-block;position:absolute;bottom:0;'>Exit</a>
         </div>
         {% if dm %}
             <div id="locations-menu">

@@ -289,12 +289,15 @@ a, a:visited, a:hover, a:active {
     color: #444;
     cursor: pointer;
     padding: 18px;
-    width: 100%;
     text-align: left;
     border: none;
     outline: none;
     transition: 0.4s;
     border-top: solid 1px #82c8a0;
+    width: 100%;
+    width: -moz-available;
+    width: -webkit-fill-available;
+    width: fill-available;
 }
 
 .accordion-active, .accordion:hover {
@@ -340,7 +343,7 @@ a, a:visited, a:hover, a:active {
 }
 
 #exitButton {
-    position: absolute;
+    position: fixed;
     bottom: 0px;
     width: 100%;
 }

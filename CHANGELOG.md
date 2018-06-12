@@ -8,6 +8,7 @@ All notable changes to this project will be documented in this file.
 - Annotations correctly wrap words to the next line
 - Delete key no longer removes shapes while in input fields.
 - Scrolling only zooms when a canvas is targetted.
+- Exit button now correctly positioned when token list is large
 
 ## [0.6] - 2018-06-11
 

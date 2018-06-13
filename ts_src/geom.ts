@@ -20,6 +20,11 @@ class Point {
     clone(): Point {
         return new Point(this.x, this.y);
     }
+    get(dimension: 0|1) {
+        if (dimension == 0)
+            return this.x;
+        return this.y;
+    }
 }
 export class GlobalPoint extends Point {
     // This is to differentiate with LocalPoint, is actually never used

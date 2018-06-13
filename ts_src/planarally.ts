@@ -5,10 +5,12 @@ import { GameManager } from './manager';
 import { onKeyDown, onKeyUp } from './events/keyboard';
 import { onContextMenu, onPointerUp, onPointerMove, onPointerDown, scrollZoom } from './events/mouse';
 import Settings from './settings';
+import BoundingVolume from "./bvh/bvh";
 
 let gameManager = new GameManager();
 (<any>window).gameManager = gameManager;
 (<any>window).Settings = Settings;
+(<any>window).BV = BoundingVolume;
 
 window.onresize = function () {
     gameManager.layerManager.setWidth(window.innerWidth);

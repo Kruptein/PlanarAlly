@@ -26,6 +26,14 @@ export default class BoundingRect {
         return new BoundingRect(this.topLeft.add(vector), this.w, this.h);
     }
 
+    union(other: BoundingRect): BoundingRect {
+        const xmin = Math.min(this.topLeft.x, other.topLeft.x);
+        const xmax = Math.max(this.topRight.x, other.topRight.x);
+        const ymin = Math.min(this.topLeft.y, other.topLeft.y);
+        const ymax = Math.max(this.botLeft.y, other.botLeft.y);
+        return new BoundingRect(new GlobalPoint(xmin, ymin), xmax-xmin, ymax-ymin);
+    }
+
     intersectsWith(other: BoundingRect): boolean {
         return !(other.topLeft.x > this.topRight.x ||
             other.topRight.x < this.topLeft.x ||
@@ -101,5 +109,9 @@ export default class BoundingRect {
             return "se";
         else if (this.inCorner(point, "sw"))
             return "sw";
+    }
+
+    getMaxExtent() {
+        return this.w > this.h ? 0 : 1;
     }
 }

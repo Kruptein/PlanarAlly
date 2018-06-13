@@ -325,6 +325,7 @@ export class FOWLayer extends Layer {
 
     draw(): void {
         if (Settings.board_initialised && !this.valid) {
+            console.time("FOW");
             const ctx = this.ctx;
             const orig_op = ctx.globalCompositeOperation;
 
@@ -421,7 +422,7 @@ export class FOWLayer extends Layer {
                         const result = lb_bb.getIntersectWithLine({
                             start: center,
                             end: angle_point
-                        });
+                        }, false);
                         if (result.intersect !== null && result.distance < hit.distance) {
                             hit = result;
                             shape_hit = lb_bb;
@@ -434,10 +435,11 @@ export class FOWLayer extends Layer {
                             const token = gameManager.layerManager.UUIDMap.get(gameManager.ownedtokens[i])!;
                             let intersect = false;
                             for (let j=0; j<gameManager.lightblockers.length; j++) {
-                                const result = gameManager.layerManager.UUIDMap.get(gameManager.lightblockers[j])!.getBoundingBox().getIntersectWithLine({
+                                const linePoints = {
                                     start: hit.intersect === null ? angle_point : hit.intersect,
                                     end: token.center()
-                                });
+                                };
+                                const result = gameManager.layerManager.UUIDMap.get(gameManager.lightblockers[j])!.getBoundingBox().getIntersectWithLine(linePoints, true);
                                 if (result.intersect !== null) {
                                     intersect = true;
                                     break;
@@ -505,6 +507,7 @@ export class FOWLayer extends Layer {
                 super.draw(!Settings.fullFOW);
 
             ctx.globalCompositeOperation = orig_op;
+            console.timeEnd("FOW");
         }
     }
 }

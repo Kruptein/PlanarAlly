@@ -76,7 +76,7 @@ export function calculateDelta(delta: Vector<GlobalPoint>, sel: Shape, done?: st
         const blocker = gameManager.layerManager.UUIDMap.get(gameManager.movementblockers[mb])!;
         const blockerBBox = blocker.getBoundingBox();
         // Check if the bounding box of our destination would intersect with the bounding box of the movementblocker
-        if (blockerBBox.intersectsWith(newSelBBox) || blockerBBox.getIntersectWithLine({ start: ogSelBBox.topLeft.add(delta.normalize()), end: newSelBBox.topLeft }).intersect) {
+        if (blockerBBox.intersectsWith(newSelBBox) || blockerBBox.getIntersectWithLine({ start: ogSelBBox.topLeft.add(delta.normalize()), end: newSelBBox.topLeft }, false).intersect) {
             const bCenter = blockerBBox.center();
             const sCenter = ogSelBBox.center();
 

@@ -47,7 +47,7 @@ export default class BoundingRect {
         const h = Math.min(this.botLeft.y, other.botLeft.y) - topleft.y;
         return new BoundingRect(topleft, w, h);
     }
-    getIntersectWithLine(line: { start: GlobalPoint; end: GlobalPoint }) {
+    getIntersectWithLine(line: { start: GlobalPoint; end: GlobalPoint }, skipZero: boolean) {
         const lines = [
             getLinesIntersectPoint(this.topLeft, this.topRight, line.start, line.end),
             getLinesIntersectPoint(this.topLeft, this.botLeft, line.start, line.end),
@@ -61,6 +61,7 @@ export default class BoundingRect {
             if (l.intersect === null) continue;
             const d = getPointDistance(line.start, l.intersect);
             if (min_d > d) {
+                if (skipZero && d === 0) continue;
                 min_d = d;
                 min_i = l.intersect;
             }

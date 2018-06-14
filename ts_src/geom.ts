@@ -60,10 +60,17 @@ export class Vector<T extends Point> {
     direction: {x: number, y:number};
     origin?: T;
     endPoint?: T;
+    maxT?: number;
     constructor(direction: {x: number, y:number}, origin?: T, endPoint?: T) {
         this.direction = direction;
         this.origin = origin;
         this.endPoint = endPoint;
+        if (origin !== undefined && endPoint !== undefined) {
+            if (Math.abs(this.direction.x) > 0.01)
+                this.maxT = (this.endPoint!.x - this.origin!.x) / this.direction.x;
+            else
+                this.maxT = (this.endPoint!.y - this.origin!.y) / this.direction.y;
+        }
     }
     static fromPoints(p1: Point, p2: Point): Vector<Point> {
         return new Vector({x: p2.x - p1.x, y: p2.y - p1.y}, p1, p2);
@@ -86,9 +93,6 @@ export class Vector<T extends Point> {
     }
     inverse() {
         return new Vector<T>({x: 1/this.direction.x, y: 1/this.direction.y}, this.origin);
-    }
-    getMaxT() {
-        return (this.endPoint!.x - this.origin!.x) / this.direction.x;
     }
 }
 

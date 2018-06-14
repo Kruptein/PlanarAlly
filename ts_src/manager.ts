@@ -12,6 +12,7 @@ import gameManager from "./planarally";
 import { socket, sendClientOptions } from "./socket";
 import Settings from "./settings";
 import AnnotationManager from "./tools/annotation";
+import BoundingVolume from "./bvh/bvh";
 
 export class GameManager {
     layerManager = new LayerManager();
@@ -37,7 +38,10 @@ export class GameManager {
         width: '160px'
     });
 
+    BV!: BoundingVolume;
+
     constructor() {
+        this.recalculateBoundingVolume();
         this.gridColour.spectrum({
             showInput: true,
             allowEmpty: true,
@@ -67,6 +71,9 @@ export class GameManager {
                 socket.emit("set clientOptions", { 'fowColour': colour.toRgbString() });
             }
         });
+    }
+    recalculateBoundingVolume() {
+        this.BV = new BoundingVolume(this.lightblockers);
     }
 
     setupBoard(room: BoardInfo): void {

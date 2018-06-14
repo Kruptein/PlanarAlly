@@ -16,6 +16,9 @@ class Settings {
     static panX = 0;
     static panY = 0;
 
+    static angleSteps = 5;
+    static drawAngleLines = false;
+
     static IS_DM = false;
     static board_initialised = false;
     static roomName: string;

@@ -16,13 +16,18 @@ class BoundingVolume {
     buildData: buildInfo[] = [];
     shapes: string[];
     orderedPrims: string[] = [];
-    root: BoundingNode;
+    root: BoundingNode | null;
     nodes: LinearBHVNode[] = [];
 
     offset = 0;
 
     constructor(shapes: string[]) {
         this.shapes = shapes;
+        if (this.shapes.length == 0) {
+            this.root = null;
+            this.nodes = [];
+            return;
+        }
         for (let i=0; i < shapes.length; i++) {
             const shape = gameManager.layerManager.UUIDMap.get(shapes[i])!;
             this.buildData.push({index: i, bbox: shape.getBoundingBox(), center: new BoundingRect(shape.center(), 0, 0)});
@@ -82,9 +87,7 @@ class BoundingVolume {
         const todo: number[] = [];
         let intersect = null;
         let n;
-        let i = -1;
         while (true) {
-            if (count) i++;
             const node = this.nodes[nodeNum];
             const b = node.bbox;
             if (count)
@@ -92,15 +95,18 @@ class BoundingVolume {
             // const inBbox = node.bbox.contains(start) && node.bbox.contains(end);
             // const intersectResult = node.bbox.getIntersectWithLine({start, end}, skipZero);
             // if (inBbox || intersectResult.intersect !== null) {
-            if (this.intersectP(b, ray, invDir, dirIsNegative)) {
+            const i = this.intersectP(b, ray, invDir, dirIsNegative);
+            if (i.hit) {
                 if (node.nPrimitives > 0) {
                     // TODO: nPrimitives is currently always 1 , this could be generalised 
                     // for (let i=0; i < node.nPrimitives; i++) {
                     //     if (this.shapes[(<LinearLeafNode>node).primitivesOffset + i])
                     // }
                     hit = true;
-                    const intersectResult = node.bbox.getIntersectWithLine({start, end}, skipZero)
-                    intersect = intersectResult.intersect;
+                    // const intersectResult = node.bbox.getIntersectWithLine({start, end}, skipZero)
+                    // intersect = intersectResult.intersect!;
+                    intersect = new GlobalPoint(ray.origin!.x + i.min * ray.direction.x, ray.origin!.y + i.min * ray.direction.y);
+                    ray.maxT = i.min;
                     n = node;
                     if (todoOffset == 0 || firstshit) break;
                     nodeNum = todo[--todoOffset];
@@ -126,15 +132,16 @@ class BoundingVolume {
         let txmax = invDir.direction.x * (bounds.getDiagCorner(!dirIsNeg[0]).x - ray.origin!.x);
         const tymin = invDir.direction.y * (bounds.getDiagCorner(dirIsNeg[1]).y - ray.origin!.y);
         const tymax = invDir.direction.y * (bounds.getDiagCorner(!dirIsNeg[1]).y - ray.origin!.y);
-        if ((txmin > tymax) || (tymin > txmax)) return false;
+        if ((txmin > tymax) || (tymin > txmax)) return {hit: false, min: txmin, max: txmax};
         if (tymin > txmin) txmin = tymin;
         if (tymax < txmax) txmax = tymax;
-        return (txmin < ray.getMaxT()) && (txmax > 0);
+        return {hit: (txmin < ray.maxT!) && (txmax > 0), min: txmin, max: txmax};
     }
 
     private compact() {
         this.offset = 0;
-        this.flatten(this.root);
+        if (this.root !== null)
+            this.flatten(this.root);
     }
 
     private flatten(node: BoundingNode) {

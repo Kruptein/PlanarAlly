@@ -5,7 +5,6 @@ import socket from "./socket";
 import { ServerShape } from "./api_types";
 import Shape from "./shapes/shape";
 import Circle from "./shapes/circle";
-import BoundingRect from "./shapes/boundingrect";
 import { createShapeFromDict } from "./shapes/utils";
 import Settings from "./settings";
 import BoundingVolume from "./bvh/bvh";
@@ -146,6 +145,7 @@ export class Layer {
         if (temporary === undefined) temporary = false;
         shape.layer = this.name;
         this.shapes.push(shape);
+        gameManager.layerManager.UUIDMap.set(shape.uuid, shape);
         shape.checkLightSources();
         shape.setMovementBlock(shape.movementObstruction);
         if (shape.ownedBy(Settings.username) && shape.isToken)
@@ -153,7 +153,6 @@ export class Layer {
         if (shape.annotation.length)
             gameManager.annotations.push(shape.uuid);
         if (sync) socket.emit("add shape", {shape: shape.asDict(), temporary: temporary});
-        gameManager.layerManager.UUIDMap.set(shape.uuid, shape);
         this.invalidate(!sync);
     }
 
@@ -167,14 +166,14 @@ export class Layer {
                 return ;
             }
             sh.layer = self.name;
+            t.push(sh);
+            gameManager.layerManager.UUIDMap.set(shape.uuid, sh);
             sh.checkLightSources();
             sh.setMovementBlock(shape.movementObstruction);
             if (sh.ownedBy() && sh.isToken)
                 gameManager.ownedtokens.push(sh.uuid);
             if (sh.annotation.length)
                 gameManager.annotations.push(sh.uuid);
-            gameManager.layerManager.UUIDMap.set(shape.uuid, sh);
-            t.push(sh);
         });
         this.selection = []; // TODO: Fix keeping selection on those items that are not moved.
         this.shapes = t;
@@ -305,7 +304,6 @@ export class GridLayer extends Layer {
 }
 
 export class FOWLayer extends Layer {
-
     addShape(shape: Shape, sync: boolean, temporary?: boolean): void {
         shape.fill = gameManager.fowColour.spectrum("get").toRgbString();
         super.addShape(shape, sync, temporary);
@@ -327,7 +325,7 @@ export class FOWLayer extends Layer {
     draw(): void {
         if (Settings.board_initialised && !this.valid) {
             console.time("FOW");
-            const BV = new BoundingVolume(gameManager.lightblockers);
+            
             const ctx = this.ctx;
             const orig_op = ctx.globalCompositeOperation;
 
@@ -369,13 +367,14 @@ export class FOWLayer extends Layer {
                 });
             }
 
-            gameManager.lightsources.forEach(function (ls) {
+            for (let ls_i=0; ls_i < gameManager.lightsources.length; ls_i++) {
+                const ls = gameManager.lightsources[ls_i];
                 const sh = gameManager.layerManager.UUIDMap.get(ls.shape);
-                if (sh === undefined) return;
+                if (sh === undefined) continue;
                 const aura = sh.auras.find(a => a.uuid === ls.aura);
                 if (aura === undefined) {
                     console.log("Old lightsource still lingering in the gameManager list");
-                    return;
+                    continue;
                 }
 
                 const aura_length = getUnitDistance(aura.value);
@@ -384,7 +383,7 @@ export class FOWLayer extends Layer {
                 const aura_circle = new Circle(center, aura_length)
 
                 // If the aura is nowhere in vision, skip the light
-                if (!aura_circle.visibleInCanvas(ctx.canvas)) return;
+                if (!aura_circle.visibleInCanvas(ctx.canvas)) continue;
 
                 const bbox = aura_circle.getBoundingBox();
 
@@ -401,6 +400,8 @@ export class FOWLayer extends Layer {
 
                 ctx.beginPath();
 
+                const dctx = gameManager.layerManager.getLayer("draw")!.ctx;
+
                 let arc_start = 0;
 
                 let player_visible = false;
@@ -410,11 +411,17 @@ export class FOWLayer extends Layer {
 
                 // TODO: idea: scale amount of rays based on zoom ?
                 // Cast rays in every degree
-                for (let angle = 0; angle < 2 * Math.PI; angle += (5 / 180) * Math.PI) {
+                for (let angle = 0; angle < 2 * Math.PI; angle += (Settings.angleSteps / 180) * Math.PI) {
                     const angle_point = new GlobalPoint(
                         center.x + aura_length * Math.cos(angle),
                         center.y + aura_length * Math.sin(angle)
                     )
+                    if (Settings.drawAngleLines) {
+                        dctx.beginPath();
+                        dctx.moveTo(g2lx(center.x), g2ly(center.y));
+                        dctx.lineTo(g2lx(angle_point.x), g2ly(angle_point.y));
+                        dctx.stroke();
+                    }
 
                     // Check if there is a hit with one of the nearby light blockers.
                     // let hit: {intersect: GlobalPoint|null, distance:number} = {intersect: null, distance: Infinity};
@@ -430,7 +437,7 @@ export class FOWLayer extends Layer {
                     //         shape_hit = lb_bb;
                     //     }
                     // }
-                    const hitResult = BV.intersect(center, angle_point, false, false);
+                    const hitResult = gameManager.BV.intersect(center, angle_point, false, false);
                     const shape_hit = hitResult.hit ? hitResult.node!.bbox : null;
                     
 
@@ -440,7 +447,7 @@ export class FOWLayer extends Layer {
                         for (let i=0; i < gameManager.ownedtokens.length; i++) {
                             const token = gameManager.layerManager.UUIDMap.get(gameManager.ownedtokens[i])!;
                             // let intersect = false;
-                            const intersect = BV.intersect(
+                            const intersect = gameManager.BV.intersect(
                                 hitResult.intersect === null ? angle_point : hitResult.intersect,
                                 token.center(),
                                 true, true
@@ -497,7 +504,7 @@ export class FOWLayer extends Layer {
                 }
 
                 if (!player_visible)
-                    return;
+                    continue;
 
                 // Finish the final arc.
                 if (arc_start !== -1)
@@ -511,7 +518,7 @@ export class FOWLayer extends Layer {
                 ctx.fillStyle = gradient;
                 // ctx.fillStyle = "rgba(0, 0, 0, 1)";
                 ctx.fill();
-            });
+            }
 
             // For the players this is done at the beginning of this function.  TODO: why the split up ???
             // This was done in commit be1e65cff1e7369375fe11cfa1643fab1d11beab.

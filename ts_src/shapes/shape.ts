@@ -7,6 +7,7 @@ import { populateEditAssetDialog } from "./editdialog";
 import { GlobalPoint, LocalPoint } from "../geom";
 import { ServerShape } from "../api_types";
 import Settings from "../settings";
+import { FOWLayer } from "../layers";
 
 export default abstract class Shape {
     // Used to create class instance from server shape data
@@ -65,10 +66,17 @@ export default abstract class Shape {
     checkLightSources() {
         const self = this;
         const vo_i = gameManager.lightblockers.indexOf(this.uuid);
-        if (this.visionObstruction && vo_i === -1)
+        let changeBV = false;
+        if (this.visionObstruction && vo_i === -1) {
             gameManager.lightblockers.push(this.uuid);
-        else if (!this.visionObstruction && vo_i >= 0)
+            changeBV = true;
+
+        } else if (!this.visionObstruction && vo_i >= 0){
             gameManager.lightblockers.splice(vo_i, 1);
+            changeBV = true;
+        }
+        if (changeBV)
+            gameManager.recalculateBoundingVolume();
 
         // Check if the lightsource auras are in the gameManager
         this.auras.forEach(function (au) {

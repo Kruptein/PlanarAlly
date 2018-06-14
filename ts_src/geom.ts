@@ -63,6 +63,9 @@ export class Vector<T extends Point> {
         this.direction = direction;
         this.origin = origin;
     }
+    static fromPoints(p1: Point, p2: Point): Vector<Point> {
+        return new Vector({x: p2.x - p1.x, y: p2.y - p1.y}, p1);
+    }
     length() {
         return Math.sqrt(Math.pow(this.direction.x, 2) + Math.pow(this.direction.y, 2));
     }
@@ -78,6 +81,9 @@ export class Vector<T extends Point> {
     }
     dot(other: Vector<T>) {
         return this.direction.x * other.direction.x + this.direction.y * other.direction.y;
+    }
+    inverse() {
+        return new Vector<T>({x: 1/this.direction.x, y: 1/this.direction.y}, this.origin);
     }
 }
 

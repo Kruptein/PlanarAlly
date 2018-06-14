@@ -8,6 +8,7 @@ import Circle from "./shapes/circle";
 import BoundingRect from "./shapes/boundingrect";
 import { createShapeFromDict } from "./shapes/utils";
 import Settings from "./settings";
+import BoundingVolume from "./bvh/bvh";
 
 export class LayerManager {
     layers: Layer[] = [];
@@ -326,6 +327,7 @@ export class FOWLayer extends Layer {
     draw(): void {
         if (Settings.board_initialised && !this.valid) {
             console.time("FOW");
+            const BV = new BoundingVolume(gameManager.lightblockers);
             const ctx = this.ctx;
             const orig_op = ctx.globalCompositeOperation;
 
@@ -387,15 +389,15 @@ export class FOWLayer extends Layer {
                 const bbox = aura_circle.getBoundingBox();
 
                 // Prefilter all lightblockers that are in the general vicinity of the light source.
-                const local_lightblockers: BoundingRect[] = [];
-                gameManager.lightblockers.forEach(function (lb) {
-                    if (lb === sh.uuid) return;
-                    const lb_sh = gameManager.layerManager.UUIDMap.get(lb);
-                    if (lb_sh === undefined || !lb_sh.visibleInCanvas(ctx.canvas)) return;
-                    const lb_bb = lb_sh.getBoundingBox();
-                    if (lb_bb.intersectsWith(bbox))
-                        local_lightblockers.push(lb_bb);
-                });
+                // const local_lightblockers: BoundingRect[] = [];
+                // gameManager.lightblockers.forEach(function (lb) {
+                //     if (lb === sh.uuid) return;
+                //     const lb_sh = gameManager.layerManager.UUIDMap.get(lb);
+                //     if (lb_sh === undefined || !lb_sh.visibleInCanvas(ctx.canvas)) return;
+                //     const lb_bb = lb_sh.getBoundingBox();
+                //     if (lb_bb.intersectsWith(bbox))
+                //         local_lightblockers.push(lb_bb);
+                // });
 
                 ctx.beginPath();
 
@@ -415,37 +417,47 @@ export class FOWLayer extends Layer {
                     )
 
                     // Check if there is a hit with one of the nearby light blockers.
-                    let hit: {intersect: GlobalPoint|null, distance:number} = {intersect: null, distance: Infinity};
-                    let shape_hit: null|BoundingRect = null;
-                    for (let i=0; i<local_lightblockers.length; i++) {
-                        const lb_bb = local_lightblockers[i];
-                        const result = lb_bb.getIntersectWithLine({
-                            start: center,
-                            end: angle_point
-                        }, false);
-                        if (result.intersect !== null && result.distance < hit.distance) {
-                            hit = result;
-                            shape_hit = lb_bb;
-                        }
-                    }
+                    // let hit: {intersect: GlobalPoint|null, distance:number} = {intersect: null, distance: Infinity};
+                    // let shape_hit: null|BoundingRect = null;
+                    // for (let i=0; i<local_lightblockers.length; i++) {
+                    //     const lb_bb = local_lightblockers[i];
+                    //     const result = lb_bb.getIntersectWithLine({
+                    //         start: center,
+                    //         end: angle_point
+                    //     }, false);
+                    //     if (result.intersect !== null && result.distance < hit.distance) {
+                    //         hit = result;
+                    //         shape_hit = lb_bb;
+                    //     }
+                    // }
+                    const hitResult = BV.intersect(center, angle_point, false);
+                    const shape_hit = hitResult.hit ? hitResult.node!.bbox : null;
+                    
+
 
                     if (!player_visible && gameManager.ownedtokens) {
                         // Check if the ray is visible from a player token
                         for (let i=0; i < gameManager.ownedtokens.length; i++) {
                             const token = gameManager.layerManager.UUIDMap.get(gameManager.ownedtokens[i])!;
-                            let intersect = false;
-                            for (let j=0; j<gameManager.lightblockers.length; j++) {
-                                const linePoints = {
-                                    start: hit.intersect === null ? angle_point : hit.intersect,
-                                    end: token.center()
-                                };
-                                const result = gameManager.layerManager.UUIDMap.get(gameManager.lightblockers[j])!.getBoundingBox().getIntersectWithLine(linePoints, true);
-                                if (result.intersect !== null) {
-                                    intersect = true;
-                                    break;
-                                }
-                            }
-                            if (!intersect) {
+                            // let intersect = false;
+                            const intersect = BV.intersect(
+                                hitResult.intersect === null ? angle_point : hitResult.intersect,
+                                token.center(),
+                                true
+                            )
+                            // for (let j=0; j<gameManager.lightblockers.length; j++) {
+                            //     const linePoints = {
+                            //         start: hit.intersect === null ? angle_point : hit.intersect,
+                            //         end: token.center()
+                            //     };
+                            //     const result = gameManager.layerManager.UUIDMap.get(gameManager.lightblockers[j])!.getBoundingBox().getIntersectWithLine(linePoints, true);
+                            //     if (result.intersect !== null) {
+                            //         intersect = true;
+                            //         break;
+                            //     }
+                            // }
+                            // if (!intersect) {
+                            if (!intersect.hit) {
                                 player_visible = true;
                                 break;
                             }
@@ -454,7 +466,7 @@ export class FOWLayer extends Layer {
 
                     // If we have no hit, check if we have left the arc due to a previous hit
                     // We can move on to the next angle if nothing was hit.
-                    if (hit.intersect === null) {
+                    if (hitResult.intersect === null) {
                         if (arc_start === -1) {
                             // Set the start of a new arc beginning at the current angle
                             arc_start = angle;
@@ -480,7 +492,7 @@ export class FOWLayer extends Layer {
                     //     extraX = 0;
                     //     extraY = 0;
                     // }
-                    const dest = g2l(new GlobalPoint(hit.intersect.x + extraX, hit.intersect.y + extraY));
+                    const dest = g2l(new GlobalPoint(hitResult.intersect.x + extraX, hitResult.intersect.y + extraY));
                     ctx.lineTo(dest.x, dest.y);
                 }
 

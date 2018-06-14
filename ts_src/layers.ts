@@ -430,7 +430,7 @@ export class FOWLayer extends Layer {
                     //         shape_hit = lb_bb;
                     //     }
                     // }
-                    const hitResult = BV.intersect(center, angle_point, false);
+                    const hitResult = BV.intersect(center, angle_point, false, false);
                     const shape_hit = hitResult.hit ? hitResult.node!.bbox : null;
                     
 
@@ -443,7 +443,7 @@ export class FOWLayer extends Layer {
                             const intersect = BV.intersect(
                                 hitResult.intersect === null ? angle_point : hitResult.intersect,
                                 token.center(),
-                                true
+                                true, true
                             )
                             // for (let j=0; j<gameManager.lightblockers.length; j++) {
                             //     const linePoints = {
@@ -465,7 +465,7 @@ export class FOWLayer extends Layer {
                     }
 
                     // If we have no hit, check if we have left the arc due to a previous hit
-                    // We can move on to the next angle if nothing was hit.
+                    // We can move on to the ne angle if nothing was hit.
                     if (hitResult.intersect === null) {
                         if (arc_start === -1) {
                             // Set the start of a new arc beginning at the current angle
@@ -484,10 +484,10 @@ export class FOWLayer extends Layer {
                     // The extraX and extraY values are used to show a small bit of the element that is blocking vision.
                     let extraX = 0;
                     let extraY = 0;
-                    if (shape_hit !== null) {
-                        extraX = (shape_hit!.w / 10) * Math.cos(angle);
-                        extraY = (shape_hit!.h / 10) * Math.sin(angle);
-                    }
+                    // if (shape_hit !== null) {
+                    //     extraX = (shape_hit!.w / 10) * Math.cos(angle);
+                    //     extraY = (shape_hit!.h / 10) * Math.sin(angle);
+                    // }
                     // if (!shape_hit.contains(hit.intersect.x + extraX, hit.intersect.y + extraY, false)) {
                     //     extraX = 0;
                     //     extraY = 0;

@@ -4,7 +4,7 @@ A strong focus is made to ensure that at no time a global and a local point are 
 At first glance this adds weird looking hacks as ts does not support nominal typing.
 */
 
-class Point {
+export class Point {
     x: number;
     y: number;
     constructor(x: number, y:number) {
@@ -59,12 +59,14 @@ export class LocalPoint extends Point {
 export class Vector<T extends Point> {
     direction: {x: number, y:number};
     origin?: T;
-    constructor(direction: {x: number, y:number}, origin?: T) {
+    endPoint?: T;
+    constructor(direction: {x: number, y:number}, origin?: T, endPoint?: T) {
         this.direction = direction;
         this.origin = origin;
+        this.endPoint = endPoint;
     }
     static fromPoints(p1: Point, p2: Point): Vector<Point> {
-        return new Vector({x: p2.x - p1.x, y: p2.y - p1.y}, p1);
+        return new Vector({x: p2.x - p1.x, y: p2.y - p1.y}, p1, p2);
     }
     length() {
         return Math.sqrt(Math.pow(this.direction.x, 2) + Math.pow(this.direction.y, 2));
@@ -84,6 +86,9 @@ export class Vector<T extends Point> {
     }
     inverse() {
         return new Vector<T>({x: 1/this.direction.x, y: 1/this.direction.y}, this.origin);
+    }
+    getMaxT() {
+        return (this.endPoint!.x - this.origin!.x) / this.direction.x;
     }
 }
 

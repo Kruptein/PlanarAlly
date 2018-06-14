@@ -2,7 +2,8 @@ import BoundingRect from "../shapes/boundingrect";
 import gameManager from "../planarally";
 import { LeafNode, InteriorNode, BoundingNode } from "./node";
 import { partition } from "../utils";
-import { Vector, GlobalPoint } from "../geom";
+import { Vector, GlobalPoint, Point } from "../geom";
+import { g2lx, g2ly, g2lz } from "../units";
 
 type buildInfo = {index: number, bbox: BoundingRect, center: BoundingRect};
 interface LinearBHVNode {bbox: BoundingRect, nPrimitives: number};
@@ -24,11 +25,18 @@ class BoundingVolume {
         this.shapes = shapes;
         for (let i=0; i < shapes.length; i++) {
             const shape = gameManager.layerManager.UUIDMap.get(shapes[i])!;
-            const bbox = shape.getBoundingBox();
-            this.buildData.push({index: i, bbox: bbox, center: new BoundingRect(shape.center(), 0, 0)});
+            this.buildData.push({index: i, bbox: shape.getBoundingBox(), center: new BoundingRect(shape.center(), 0, 0)});
         }
         this.root = this.recursiveBuild(0, shapes.length);
         this.compact();
+    }
+
+    draw() {
+        const ctx = gameManager.layerManager.getLayer("draw")!.ctx;
+        for (let i=0; i < this.nodes.length; i++){
+            const b = this.nodes[i].bbox;
+            ctx.strokeRect(g2lx(b.topLeft.x), g2ly(b.topLeft.y), g2lz(b.w), g2lz(b.h));
+        }
     }
 
     recursiveBuild(start: number, end: number): BoundingNode {
@@ -63,7 +71,8 @@ class BoundingVolume {
         }
     }
 
-    intersect(start: GlobalPoint, end: GlobalPoint, skipZero: boolean) {
+    intersect(start: GlobalPoint, end: GlobalPoint, skipZero: boolean, firstshit: boolean, count?: boolean) {
+        const ctx = gameManager.layerManager.getLayer("draw")!.ctx;
         let hit = false;
         let todoOffset = 0;
         let nodeNum = 0;
@@ -73,20 +82,27 @@ class BoundingVolume {
         const todo: number[] = [];
         let intersect = null;
         let n;
+        let i = -1;
         while (true) {
+            if (count) i++;
             const node = this.nodes[nodeNum];
-            const inBbox = node.bbox.contains(start) && node.bbox.contains(end);
-            const intersectResult = node.bbox.getIntersectWithLine({start, end}, skipZero);
-            if (inBbox || intersectResult.intersect !== null) {
+            const b = node.bbox;
+            if (count)
+                ctx.strokeRect(g2lx(b.topLeft.x), g2ly(b.topLeft.y), g2lz(b.w), g2lz(b.h));
+            // const inBbox = node.bbox.contains(start) && node.bbox.contains(end);
+            // const intersectResult = node.bbox.getIntersectWithLine({start, end}, skipZero);
+            // if (inBbox || intersectResult.intersect !== null) {
+            if (this.intersectP(b, ray, invDir, dirIsNegative)) {
                 if (node.nPrimitives > 0) {
                     // TODO: nPrimitives is currently always 1 , this could be generalised 
                     // for (let i=0; i < node.nPrimitives; i++) {
                     //     if (this.shapes[(<LinearLeafNode>node).primitivesOffset + i])
                     // }
                     hit = true;
+                    const intersectResult = node.bbox.getIntersectWithLine({start, end}, skipZero)
                     intersect = intersectResult.intersect;
                     n = node;
-                    if (todoOffset == 0) break;
+                    if (todoOffset == 0 || firstshit) break;
                     nodeNum = todo[--todoOffset];
                 } else {
                     if(dirIsNegative[(<LinearInternalNode>node).dimension]){
@@ -103,6 +119,17 @@ class BoundingVolume {
             }
         }
         return {hit: hit, intersect: intersect, node: n};
+    }
+
+    private intersectP(bounds: BoundingRect, ray: Vector<Point>, invDir: Vector<Point>, dirIsNeg: boolean[]) {
+        let txmin = invDir.direction.x * (bounds.getDiagCorner(dirIsNeg[0]).x - ray.origin!.x);
+        let txmax = invDir.direction.x * (bounds.getDiagCorner(!dirIsNeg[0]).x - ray.origin!.x);
+        const tymin = invDir.direction.y * (bounds.getDiagCorner(dirIsNeg[1]).y - ray.origin!.y);
+        const tymax = invDir.direction.y * (bounds.getDiagCorner(!dirIsNeg[1]).y - ray.origin!.y);
+        if ((txmin > tymax) || (tymin > txmax)) return false;
+        if (tymin > txmin) txmin = tymin;
+        if (tymax < txmax) txmax = tymax;
+        return (txmin < ray.getMaxT()) && (txmax > 0);
     }
 
     private compact() {

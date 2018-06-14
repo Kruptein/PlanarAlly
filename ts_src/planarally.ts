@@ -1,16 +1,22 @@
-import { l2g } from "./units";
-import { LocalPoint } from './geom';
+import { l2g, g2lx, g2ly, g2lz } from "./units";
+import { LocalPoint, Vector } from './geom';
 import { throttle } from 'lodash';
 import { GameManager } from './manager';
 import { onKeyDown, onKeyUp } from './events/keyboard';
 import { onContextMenu, onPointerUp, onPointerMove, onPointerDown, scrollZoom } from './events/mouse';
 import Settings from './settings';
 import BoundingVolume from "./bvh/bvh";
+import BoundingRect from "./shapes/boundingrect";
 
 let gameManager = new GameManager();
 (<any>window).gameManager = gameManager;
 (<any>window).Settings = Settings;
 (<any>window).BV = BoundingVolume;
+(<any>window).g2lx = g2lx;
+(<any>window).g2ly = g2ly;
+(<any>window).g2lz = g2lz;
+(<any>window).Vector = Vector;
+(<any>window).BoundingRect = BoundingRect;
 
 window.onresize = function () {
     gameManager.layerManager.setWidth(window.innerWidth);

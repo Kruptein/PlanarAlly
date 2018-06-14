@@ -34,6 +34,10 @@ export default class BoundingRect {
         return new BoundingRect(new GlobalPoint(xmin, ymin), xmax-xmin, ymax-ymin);
     }
 
+    getDiagCorner(botright: boolean) {
+        return botright ? this.botRight : this.topLeft;
+    }
+
     intersectsWith(other: BoundingRect): boolean {
         return !(other.topLeft.x > this.topRight.x ||
             other.topRight.x < this.topLeft.x ||

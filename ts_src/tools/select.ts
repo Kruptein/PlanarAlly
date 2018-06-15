@@ -244,10 +244,8 @@ export class SelectTool extends Tool {
         }
         const layer = gameManager.layerManager.getLayer()!;
         const mouse = getMouse(e);
-        const mx = mouse.x;
-        const my = mouse.y;
         let hit = false;
-        layer.shapes.forEach(function (shape) {
+        layer.selection.forEach(function (shape) {
             if (!hit && shape.contains(l2g(mouse))) {
                 hit = true;
                 shape.showContextMenu(mouse);

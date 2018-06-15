@@ -11,6 +11,8 @@ All notable changes to this project will be documented in this file.
     - This greatly! improves the performance of all lighting including the experimental LoS based lighting.
 
 ### Changed
+- Right clicking will now only show a shape specific menu if it was done on a selection
+    - All other right clicks will show the general purpose context menu
 - [tech] Cleaned up the Vector class, splitting it up in a Vector and a Ray class
     - Vector: purely direction indication
     - Ray: combination of an origin point and a vector

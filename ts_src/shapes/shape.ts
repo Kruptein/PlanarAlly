@@ -313,7 +313,7 @@ export default abstract class Shape {
         data += "</ul></li>" +
             "<li data-action='moveToBack' class='context-clickable'>Move to back</li>" +
             "<li data-action='moveToFront' class='context-clickable'>Move to front</li>" +
-            "<li data-action='addInitiative' class='context-clickable'>Add initiative</li>" +
+            "<li data-action='addInitiative' class='context-clickable'>" + (gameManager.initiativeTracker.contains(this.uuid) ? "Show" : "Add") + " initiative</li>" +
             "</ul>";
         $menu.html(data);
         $(".context-clickable").on('click', function () {
@@ -336,6 +336,7 @@ export default abstract class Shape {
                 gameManager.layerManager.getLayer(menu.data("layer"))!.addShape(this, true);
                 break;
             case 'addInitiative':
+                if (gameManager.initiativeTracker.contains(this.uuid)) gameManager.initiativeTracker.show();
                 gameManager.initiativeTracker.addInitiative(this.getInitiativeRepr(), true);
                 break;
         }

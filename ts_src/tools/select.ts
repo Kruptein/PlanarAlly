@@ -263,6 +263,7 @@ export class SelectTool extends Tool {
             if (Settings.IS_DM)
                 data += "<li data-action='bringPlayers' class='context-clickable'>Bring players</li>";
             data += "<li data-action='createToken' class='context-clickable'>Create basic token</li>";
+            data += "<li data-action='showInitiative' class='context-clickable'>Show initiative</li>";
             data += "</ul>";
             $menu.html(data);
             const self = this;
@@ -277,6 +278,9 @@ export class SelectTool extends Tool {
                     case 'createToken':
                         self.selectionStartPoint = l2g(mouse);
                         self.dialog.dialog("open");
+                        break;
+                    case 'showInitiative':
+                        gameManager.initiativeTracker.show();
                         break;
                 }
                 $menu.hide();

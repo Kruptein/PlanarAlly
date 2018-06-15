@@ -1,12 +1,13 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
-[DM] denotes changes only useful fort the dungeon master
+[DM] denotes changes only useful for the dungeon master
 [tech] denotes technical changes
 
 ## [0.8] - Not yet released
 
 ### Added
+- Show initiative action is added to the general context menu
 - [tech] A Bounding Volume Hierarchy ray tracing accelerator is used.
     - This greatly! improves the performance of all lighting including the experimental LoS based lighting.
 

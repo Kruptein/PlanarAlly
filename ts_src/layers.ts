@@ -1,5 +1,5 @@
 import {getUnitDistance, g2l, g2lz, g2lr, g2lx, g2ly} from "./units";
-import {GlobalPoint} from "./geom";
+import {GlobalPoint, Ray} from "./geom";
 import gameManager from "./planarally";
 import socket from "./socket";
 import { ServerShape } from "./api_types";
@@ -402,20 +402,22 @@ export class FOWLayer extends Layer {
                 // TODO: idea: scale amount of rays based on zoom ?
                 // Cast rays in every degree
                 for (let angle = 0; angle < 2 * Math.PI; angle += (Settings.angleSteps / 180) * Math.PI) {
-                    const angle_point = new GlobalPoint(
+                    const anglePoint = new GlobalPoint(
                         center.x + aura_length * Math.cos(angle),
                         center.y + aura_length * Math.sin(angle)
                     )
                     if (Settings.drawAngleLines) {
                         dctx!.beginPath();
                         dctx!.moveTo(g2lx(center.x), g2ly(center.y));
-                        dctx!.lineTo(g2lx(angle_point.x), g2ly(angle_point.y));
+                        dctx!.lineTo(g2lx(anglePoint.x), g2ly(anglePoint.y));
                         dctx!.stroke();
                     }
 
                     // Check if there is a hit with one of the nearby light blockers.
-                    const hitResult = gameManager.BV.intersect(center, angle_point);
-                    const shape_hit = hitResult.hit ? hitResult.node!.bbox : null;
+                    const lightRay = Ray.fromPoints(center, anglePoint);
+                    const hitResult = gameManager.BV.intersect(lightRay);
+                    const hitIntersect = hitResult.hit ? hitResult.intersect : anglePoint;
+                    // const shape_hit = hitResult.hit ? hitResult.node!.bbox : null;
                     
 
 
@@ -423,18 +425,14 @@ export class FOWLayer extends Layer {
                         // Check if the ray is visible from a player token
                         for (let i=0; i < gameManager.ownedtokens.length; i++) {
                             const token = gameManager.layerManager.UUIDMap.get(gameManager.ownedtokens[i])!;
-                            const intersect = gameManager.BV.intersect(
-                                hitResult.intersect === null ? angle_point : hitResult.intersect,
-                                token.center(),
-                                true
-                            )
+                            const playerRay = Ray.fromPoints(hitIntersect, token.center());
+                            const intersect = gameManager.BV.intersect(playerRay, true)
                             if (!intersect.hit) {
                                 player_visible = true;
                                 if (Settings.drawFirstLightHit){
-                                    const HI = hitResult.intersect === null ? angle_point : hitResult.intersect;
                                     dctx!.beginPath();
                                     dctx!.moveTo(g2lx(token.center().x), g2ly(token.center().y));
-                                    dctx!.lineTo(g2lx(HI.x), g2ly(HI.y));
+                                    dctx!.lineTo(g2lx(hitIntersect.x), g2ly(hitIntersect.y));
                                     dctx!.lineTo(g2lx(sh.refPoint.x), g2ly(sh.refPoint.y));
                                     dctx!.stroke();
                                 }
@@ -445,12 +443,12 @@ export class FOWLayer extends Layer {
 
                     // If we have no hit, check if we have left the arc due to a previous hit
                     // We can move on to the ne angle if nothing was hit.
-                    if (hitResult.intersect === null) {
+                    if (!hitResult.hit) {
                         if (arc_start === -1) {
                             // Set the start of a new arc beginning at the current angle
                             arc_start = angle;
                             // Draw a line from the last non arc location back to the arc
-                            const dest = g2l(angle_point);
+                            const dest = g2l(anglePoint);
                             ctx.lineTo(dest.x, dest.y);
                         }
                         continue;
@@ -460,6 +458,8 @@ export class FOWLayer extends Layer {
                         ctx.arc(lcenter.x, lcenter.y, g2lr(aura.value), arc_start, angle);
                         arc_start = -1;
                     }
+
+                    
                     // The extraX and extraY values are used to show a small bit of the element that is blocking vision.
                     let extraX = 0;
                     let extraY = 0;

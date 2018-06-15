@@ -4,6 +4,12 @@ A strong focus is made to ensure that at no time a global and a local point are 
 At first glance this adds weird looking hacks as ts does not support nominal typing.
 */
 
+export function getPointDistance(p1: Point, p2: Point) {
+    const a = p1.x - p2.x;
+    const b = p1.y - p2.y;
+    return Math.sqrt( a*a + b*b );
+}
+
 export class Point {
     x: number;
     y: number;
@@ -105,5 +111,11 @@ export class Ray<T extends Point> {
     }
     get(t: number): T {
         return <T>(new Point(this.origin.x + t * this.direction.x, this.origin.y + t * this.direction.y));
+    }
+    getDistance(t1: number, t2: number) {
+        return Math.sqrt(Math.pow(t2 - t1, 2) * (Math.pow(this.direction.x, 2) + Math.pow(this.direction.y, 2)));
+    }
+    getT(t1: number, distance: number) {
+        return t1 + Math.sqrt(Math.pow(distance, 2) / (Math.pow(this.direction.x, 2) + Math.pow(this.direction.y, 2)));
     }
 }

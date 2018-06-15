@@ -77,6 +77,7 @@ export function calculateDelta(delta: Vector, sel: Shape, done?: string[]) {
         const blockerBBox = blocker.getBoundingBox();
         let found = blockerBBox.intersectsWith(newSelBBox);
         if (!found) {
+            // This is an edge case, precalculating the rays is not worth in this case.
             const ray = Ray.fromPoints(ogSelBBox.topLeft.add(delta.normalize()), newSelBBox.topLeft);
             const invDir = ray.direction.inverse();
             const dirIsNegative = [invDir.x < 0, invDir.y < 0];

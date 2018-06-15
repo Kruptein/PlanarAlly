@@ -71,22 +71,26 @@ class BoundingVolume {
         }
     }
 
-    intersect(start: GlobalPoint, end: GlobalPoint, stopOnFirstHit?: boolean) {
+    intersect(ray: Ray<GlobalPoint>, stopOnFirstHit?: boolean) {
         if (stopOnFirstHit === undefined) stopOnFirstHit = false;
+        // Initialize return values
         let hit = false;
+        let tMin = 0;
+        let tMax = ray.tMax;
+
+        // Initialize work variables
         let todoOffset = 0;
         let nodeNum = 0;
-        const ray = Ray.fromPoints(start, end);
+        const todo: number[] = [];
+
+        // Precalculate intersection vectors
         const invDir = ray.direction.inverse();
         const dirIsNegative = [invDir.x < 0, invDir.y < 0];
-        const todo: number[] = [];
-        let intersect = null;
-        let n;
+
         while (true) {
             const node = this.nodes[nodeNum];
-            const b = node.bbox;
 
-            const i = b.intersectP(ray, invDir, dirIsNegative);
+            const i = node.bbox.intersectP(ray, invDir, dirIsNegative);
             if (i.hit) {
                 if (node.nPrimitives > 0) {
                     // TODO: nPrimitives is currently always 1 , this could be generalised 
@@ -94,9 +98,8 @@ class BoundingVolume {
                     //     if (this.shapes[(<LinearLeafNode>node).primitivesOffset + i])
                     // }
                     hit = true;
-                    intersect = new GlobalPoint(ray.origin!.x + i.min * ray.direction.x, ray.origin!.y + i.min * ray.direction.y);
-                    ray.tMax = i.min;
-                    n = node;
+                    tMin = ray.tMax = i.min;
+                    tMax = i.max;
                     if (todoOffset == 0 || stopOnFirstHit) break;
                     nodeNum = todo[--todoOffset];
                 } else {
@@ -113,7 +116,7 @@ class BoundingVolume {
                 nodeNum = todo[--todoOffset];
             }
         }
-        return {hit: hit, intersect: intersect, node: n};
+        return {hit: hit, intersect: ray.get(tMin), tMin: tMin, tMax: tMax};
     }
 
     private compact() {

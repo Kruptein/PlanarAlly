@@ -78,6 +78,7 @@ export class DrawTool extends Tool {
             (<Circle>this.shape).r = endPoint.subtract(this.startPoint).length();
         }
         socket.emit("shapeMove", { shape: this.shape!.asDict(), temporary: false });
+        if (this.shape.visionObstruction) gameManager.recalculateBoundingVolume();
         layer.invalidate(false);
     }
     onMouseUp(e: MouseEvent) {

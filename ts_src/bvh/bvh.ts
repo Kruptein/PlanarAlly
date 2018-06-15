@@ -2,7 +2,7 @@ import BoundingRect from "../shapes/boundingrect";
 import gameManager from "../planarally";
 import { LeafNode, InteriorNode, BoundingNode } from "./node";
 import { partition } from "../utils";
-import { Vector, GlobalPoint, Point } from "../geom";
+import { GlobalPoint, Ray } from "../geom";
 import { g2lx, g2ly, g2lz } from "../units";
 
 type buildInfo = {index: number, bbox: BoundingRect, center: BoundingRect};
@@ -68,34 +68,25 @@ class BoundingVolume {
             this.buildData.splice(start, flattened.length, ...(flattened));
             const mid = partitionedData[0].length + start;
             return new InteriorNode(dimension, this.recursiveBuild(start, mid), this.recursiveBuild(mid, end));
-            // // Use surface area heuristic
-            // if (nPrimitives <= 2) {
-            //     const mid = (start + end) / 2;
-
-            // }
         }
     }
 
-    intersect(start: GlobalPoint, end: GlobalPoint, skipZero: boolean, firstshit: boolean, count?: boolean) {
-        const ctx = gameManager.layerManager.getLayer("draw")!.ctx;
+    intersect(start: GlobalPoint, end: GlobalPoint, stopOnFirstHit?: boolean) {
+        if (stopOnFirstHit === undefined) stopOnFirstHit = false;
         let hit = false;
         let todoOffset = 0;
         let nodeNum = 0;
-        const ray = Vector.fromPoints(start, end);
-        const invDir = ray.inverse();
-        const dirIsNegative = [invDir.direction.x < 0, invDir.direction.y < 0];
+        const ray = Ray.fromPoints(start, end);
+        const invDir = ray.direction.inverse();
+        const dirIsNegative = [invDir.x < 0, invDir.y < 0];
         const todo: number[] = [];
         let intersect = null;
         let n;
         while (true) {
             const node = this.nodes[nodeNum];
             const b = node.bbox;
-            if (count)
-                ctx.strokeRect(g2lx(b.topLeft.x), g2ly(b.topLeft.y), g2lz(b.w), g2lz(b.h));
-            // const inBbox = node.bbox.contains(start) && node.bbox.contains(end);
-            // const intersectResult = node.bbox.getIntersectWithLine({start, end}, skipZero);
-            // if (inBbox || intersectResult.intersect !== null) {
-            const i = this.intersectP(b, ray, invDir, dirIsNegative);
+
+            const i = b.intersectP(ray, invDir, dirIsNegative);
             if (i.hit) {
                 if (node.nPrimitives > 0) {
                     // TODO: nPrimitives is currently always 1 , this could be generalised 
@@ -103,12 +94,10 @@ class BoundingVolume {
                     //     if (this.shapes[(<LinearLeafNode>node).primitivesOffset + i])
                     // }
                     hit = true;
-                    // const intersectResult = node.bbox.getIntersectWithLine({start, end}, skipZero)
-                    // intersect = intersectResult.intersect!;
                     intersect = new GlobalPoint(ray.origin!.x + i.min * ray.direction.x, ray.origin!.y + i.min * ray.direction.y);
-                    ray.maxT = i.min;
+                    ray.tMax = i.min;
                     n = node;
-                    if (todoOffset == 0 || firstshit) break;
+                    if (todoOffset == 0 || stopOnFirstHit) break;
                     nodeNum = todo[--todoOffset];
                 } else {
                     if(dirIsNegative[(<LinearInternalNode>node).dimension]){
@@ -125,17 +114,6 @@ class BoundingVolume {
             }
         }
         return {hit: hit, intersect: intersect, node: n};
-    }
-
-    private intersectP(bounds: BoundingRect, ray: Vector<Point>, invDir: Vector<Point>, dirIsNeg: boolean[]) {
-        let txmin = invDir.direction.x * (bounds.getDiagCorner(dirIsNeg[0]).x - ray.origin!.x);
-        let txmax = invDir.direction.x * (bounds.getDiagCorner(!dirIsNeg[0]).x - ray.origin!.x);
-        const tymin = invDir.direction.y * (bounds.getDiagCorner(dirIsNeg[1]).y - ray.origin!.y);
-        const tymax = invDir.direction.y * (bounds.getDiagCorner(!dirIsNeg[1]).y - ray.origin!.y);
-        if ((txmin > tymax) || (tymin > txmax)) return {hit: false, min: txmin, max: txmax};
-        if (tymin > txmin) txmin = tymin;
-        if (tymax < txmax) txmax = tymax;
-        return {hit: (txmin < ray.maxT!) && (txmax > 0), min: txmin, max: txmax};
     }
 
     private compact() {
@@ -164,54 +142,5 @@ class BoundingVolume {
         return new LeafNode(size, nPrimitives, bbox);
     }
 }
-
-// class BVH {
-//     nodes: LinearBHVNode[] = [];
-//     shapes: string[];
-//     constructor(shapes: string[]) {
-//         this.shapes = shapes;
-//         this.nodes = new BoundingVolume(shapes).nodes;
-//     }
-//     intersect(start: GlobalPoint, end: GlobalPoint) {
-//         let hit = false;
-//         let todoOffset = 0;
-//         let nodeNum = 0;
-//         const todo: number[] = [];
-//         while (true) {
-//             const node = this.nodes[nodeNum];
-//             const result = node.bbox.getIntersectWithLine({start, end}, false);
-//             if (result.intersect !== null) {
-//                 if (node.nPrimitives > 0) {
-//                     for (let i=0; i < node.nPrimitives; i++) {
-//                         if (this.shapes[(<LinearLeafNode>node).primitivesOffset + i])
-//                     }
-//                 } else {
-
-//                 }
-//             } else {
-//                 if (todoOffset == 0) break;
-//                 nodeNum = todo[--todoOffset];
-//             }
-//         }
-//     }
-//     // intersect(ray: Vector<GlobalPoint>) {
-//     //     let hit = false;
-//     //     const origin = ray.origin;
-//     //     const invDir = ray.inverse();
-//     //     const dirIsNegative = {x: invDir.direction.x < 0, y: invDir.direction.y < 0};
-//     //     let todoOffset = 0;
-//     //     let nodeNum = 0;
-//     //     while (true) {
-//     //         const node = this.nodes[nodeNum];
-//     //         //if (this.intersectP(node.bbox, ray, invDir, dirIsNegative)) continue;
-//     //         if(node.bbox.getIntersectWithLine({})))
-//     //     }
-//     //     return hit;
-//     // }
-
-//     private intersectP(bbox: BoundingRect, ray: Vector<GlobalPoint>, invDir: Vector<GlobalPoint>, dirIsNegative: {x: boolean, y:boolean}) {
-        
-//     }
-// }
 
 export default BoundingVolume;

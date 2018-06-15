@@ -5,7 +5,7 @@ import { DrawTool } from "./draw";
 import { RulerTool } from "./ruler";
 import { FOWTool } from "./fow";
 import { MapTool } from "./map";
-import { Vector, GlobalPoint } from "../geom";
+import { Vector, Ray } from "../geom";
 import Shape from "../shapes/shape";
 import { capitalize } from "../utils";
 import Settings from "../settings";
@@ -65,7 +65,7 @@ const tools = [
 
 // This is definitely super convoluted and inefficient but I was tired and really wanted the smooth wall sliding collision stuff to work
 // And it does now, so hey ¯\_(ツ)_/¯
-export function calculateDelta(delta: Vector<GlobalPoint>, sel: Shape, done?: string[]) {
+export function calculateDelta(delta: Vector, sel: Shape, done?: string[]) {
     if (done === undefined) done = [];
     const ogSelBBox = sel.getBoundingBox();
     const newSelBBox = ogSelBBox.offset(delta);
@@ -75,14 +75,21 @@ export function calculateDelta(delta: Vector<GlobalPoint>, sel: Shape, done?: st
             continue;
         const blocker = gameManager.layerManager.UUIDMap.get(gameManager.movementblockers[mb])!;
         const blockerBBox = blocker.getBoundingBox();
+        let found = blockerBBox.intersectsWith(newSelBBox);
+        if (!found) {
+            const ray = Ray.fromPoints(ogSelBBox.topLeft.add(delta.normalize()), newSelBBox.topLeft);
+            const invDir = ray.direction.inverse();
+            const dirIsNegative = [invDir.x < 0, invDir.y < 0];
+            found = blockerBBox.intersectP(ray, invDir, dirIsNegative).hit;
+        }
         // Check if the bounding box of our destination would intersect with the bounding box of the movementblocker
-        if (blockerBBox.intersectsWith(newSelBBox) || blockerBBox.getIntersectWithLine({ start: ogSelBBox.topLeft.add(delta.normalize()), end: newSelBBox.topLeft }, false).intersect) {
+        if (found) {
             const bCenter = blockerBBox.center();
             const sCenter = ogSelBBox.center();
 
             const d = sCenter.subtract(bCenter);
-            const ux = new Vector<GlobalPoint>({ x: 1, y: 0 });
-            const uy = new Vector<GlobalPoint>({ x: 0, y: 1 });
+            const ux = new Vector(1, 0);
+            const uy = new Vector(0, 1);
             let dx = d.dot(ux);
             let dy = d.dot(uy);
             if (dx > blockerBBox.w / 2) dx = blockerBBox.w / 2;
@@ -94,18 +101,18 @@ export function calculateDelta(delta: Vector<GlobalPoint>, sel: Shape, done?: st
             const p = bCenter.add(ux.multiply(dx)).add(uy.multiply(dy));
 
             if (p.x === ogSelBBox.topLeft.x || p.x === ogSelBBox.topRight.x)
-                delta.direction.x = 0;
+                delta = new Vector(0, delta.y);
             else if (p.y === ogSelBBox.topLeft.y || p.y === ogSelBBox.botLeft.y)
-                delta.direction.y = 0;
+            delta = new Vector(delta.x, 0);
             else {
                 if (p.x < ogSelBBox.topLeft.x)
-                    delta.direction.x = p.x - ogSelBBox.topLeft.x;
+                    delta = new Vector(p.x - ogSelBBox.topLeft.x, delta.y);
                 else if (p.x > ogSelBBox.topRight.x)
-                    delta.direction.x = p.x - ogSelBBox.topRight.x;
+                    delta = new Vector(p.x - ogSelBBox.topRight.x, delta.y);
                 else if (p.y < ogSelBBox.topLeft.y)
-                    delta.direction.y = p.y - ogSelBBox.topLeft.y;
+                    delta = new Vector(delta.x, p.y - ogSelBBox.topLeft.y);
                 else if (p.y > ogSelBBox.botLeft.y)
-                    delta.direction.y = p.y - ogSelBBox.botLeft.y;
+                    delta = new Vector(delta.x, p.y - ogSelBBox.botLeft.y);
             }
             refine = true;
             done.push(gameManager.movementblockers[mb]);

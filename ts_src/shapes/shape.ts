@@ -7,7 +7,6 @@ import { populateEditAssetDialog } from "./editdialog";
 import { GlobalPoint, LocalPoint } from "../geom";
 import { ServerShape } from "../api_types";
 import Settings from "../settings";
-import { FOWLayer } from "../layers";
 
 export default abstract class Shape {
     // Used to create class instance from server shape data

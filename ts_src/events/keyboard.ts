@@ -43,7 +43,7 @@ export function onKeyDown (event: KeyboardEvent) {
                     const sel = selection[i];
                     if (sel.uuid === (<SelectTool>gameManager.tools.get("select")!).selectionHelper.uuid)
                         continue;
-                    const newSelBBox = sel.getBoundingBox().offset(new Vector({x: x_offset, y: y_offset}));
+                    const newSelBBox = sel.getBoundingBox().offset(new Vector(x_offset, y_offset));
                     for (let mb = 0; mb < gameManager.movementblockers.length; mb++) {
                         const blocker = gameManager.layerManager.UUIDMap.get(gameManager.movementblockers[mb])!;
                         const blockerBBox = blocker.getBoundingBox();

@@ -1,6 +1,21 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+[DM] denotes changes only useful fort the dungeon master
+[tech] denotes technical changes
+
+## [0.8] - Not yet released
+
+### Added
+- [tech] A Bounding Volume Hierarchy ray tracing accelerator is used.
+    - This greatly! improves the performance of all lighting including the experimental LoS based lighting.
+
+### Changed
+- [tech] Cleaned up the Vector class, splitting it up in a Vector and a Ray class
+    - Vector: purely direction indication
+    - Ray: combination of an origin point and a vector
+- [tech] A much more performant ray box intersection algorithm is used
+
 ## [0.7] - 2018-06-12
 
 ### Added

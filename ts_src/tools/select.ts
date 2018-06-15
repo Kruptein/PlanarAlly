@@ -1,5 +1,5 @@
 import { SelectOperations, calculateDelta } from "./tools";
-import { Vector, LocalPoint, GlobalPoint } from "../geom";
+import { Vector, LocalPoint, GlobalPoint, Ray } from "../geom";
 import Rect from "../shapes/rect";
 import gameManager from "../planarally";
 import { getMouse } from "../utils";
@@ -15,7 +15,7 @@ export class SelectTool extends Tool {
     resizedir: string = "";
     // Because we never drag from the asset's (0, 0) coord and want a smoother drag experience
     // we keep track of the actual offset within the asset.
-    drag: Vector<LocalPoint> = new Vector<LocalPoint>({ x: 0, y: 0 }, new LocalPoint(0, 0));
+    drag: Ray<LocalPoint> = new Ray<LocalPoint>(new LocalPoint(0, 0), new Vector(0, 0));
     selectionStartPoint: GlobalPoint = new GlobalPoint(-1000, -1000);
     selectionHelper: Rect = new Rect(this.selectionStartPoint, 0, 0);
     dialog = $("#createtokendialog").dialog({
@@ -89,7 +89,8 @@ export class SelectTool extends Tool {
                     sel.onSelection();
                 }
                 this.mode = SelectOperations.Drag;
-                this.drag = mouse.subtract(g2l(sel.refPoint));
+                const lref = g2l(sel.refPoint);
+                this.drag = new Ray<LocalPoint>(lref, mouse.subtract(lref));
                 // this.drag.origin = g2l(sel.refPoint);
                 // this.drag.direction = mouse.subtract(this.drag.origin);
                 layer.invalidate(true);
@@ -132,7 +133,8 @@ export class SelectTool extends Tool {
             layer.invalidate(true);
         } else if (layer.selection.length) {
             const og = g2l(layer.selection[layer.selection.length - 1].refPoint);
-            let delta = l2g(mouse.subtract(og.add(this.drag)));
+            const origin = og.add(this.drag.direction);
+            let delta = mouse.subtract(origin).multiply(1/Settings.zoomFactor);
             if (this.mode === SelectOperations.Drag) {
                 // If we are on the tokens layer do a movement block check.
                 if (layer.name === 'tokens' && !(e.shiftKey && Settings.IS_DM)) {

@@ -7,7 +7,6 @@ import Shape from "./shapes/shape";
 import Circle from "./shapes/circle";
 import { createShapeFromDict } from "./shapes/utils";
 import Settings from "./settings";
-import BoundingVolume from "./bvh/bvh";
 
 export class LayerManager {
     layers: Layer[] = [];
@@ -385,19 +384,6 @@ export class FOWLayer extends Layer {
                 // If the aura is nowhere in vision, skip the light
                 if (!aura_circle.visibleInCanvas(ctx.canvas)) continue;
 
-                const bbox = aura_circle.getBoundingBox();
-
-                // Prefilter all lightblockers that are in the general vicinity of the light source.
-                // const local_lightblockers: BoundingRect[] = [];
-                // gameManager.lightblockers.forEach(function (lb) {
-                //     if (lb === sh.uuid) return;
-                //     const lb_sh = gameManager.layerManager.UUIDMap.get(lb);
-                //     if (lb_sh === undefined || !lb_sh.visibleInCanvas(ctx.canvas)) return;
-                //     const lb_bb = lb_sh.getBoundingBox();
-                //     if (lb_bb.intersectsWith(bbox))
-                //         local_lightblockers.push(lb_bb);
-                // });
-
                 ctx.beginPath();
 
                 const dctx = gameManager.layerManager.getLayer("draw")!.ctx;
@@ -424,20 +410,7 @@ export class FOWLayer extends Layer {
                     }
 
                     // Check if there is a hit with one of the nearby light blockers.
-                    // let hit: {intersect: GlobalPoint|null, distance:number} = {intersect: null, distance: Infinity};
-                    // let shape_hit: null|BoundingRect = null;
-                    // for (let i=0; i<local_lightblockers.length; i++) {
-                    //     const lb_bb = local_lightblockers[i];
-                    //     const result = lb_bb.getIntersectWithLine({
-                    //         start: center,
-                    //         end: angle_point
-                    //     }, false);
-                    //     if (result.intersect !== null && result.distance < hit.distance) {
-                    //         hit = result;
-                    //         shape_hit = lb_bb;
-                    //     }
-                    // }
-                    const hitResult = gameManager.BV.intersect(center, angle_point, false, false);
+                    const hitResult = gameManager.BV.intersect(center, angle_point);
                     const shape_hit = hitResult.hit ? hitResult.node!.bbox : null;
                     
 
@@ -446,24 +419,11 @@ export class FOWLayer extends Layer {
                         // Check if the ray is visible from a player token
                         for (let i=0; i < gameManager.ownedtokens.length; i++) {
                             const token = gameManager.layerManager.UUIDMap.get(gameManager.ownedtokens[i])!;
-                            // let intersect = false;
                             const intersect = gameManager.BV.intersect(
                                 hitResult.intersect === null ? angle_point : hitResult.intersect,
                                 token.center(),
-                                true, true
+                                true
                             )
-                            // for (let j=0; j<gameManager.lightblockers.length; j++) {
-                            //     const linePoints = {
-                            //         start: hit.intersect === null ? angle_point : hit.intersect,
-                            //         end: token.center()
-                            //     };
-                            //     const result = gameManager.layerManager.UUIDMap.get(gameManager.lightblockers[j])!.getBoundingBox().getIntersectWithLine(linePoints, true);
-                            //     if (result.intersect !== null) {
-                            //         intersect = true;
-                            //         break;
-                            //     }
-                            // }
-                            // if (!intersect) {
                             if (!intersect.hit) {
                                 player_visible = true;
                                 break;

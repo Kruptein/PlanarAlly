@@ -120,8 +120,8 @@ class Settings {
     
         // Change the pan settings to keep the zoomLocation in the same exact location before and after the zoom.
         const diff = newLoc.subtract(zoomLocation);
-        this.panX += diff.direction.x;
-        this.panY += diff.direction.y;
+        this.panX += diff.x;
+        this.panY += diff.y;
     
         gameManager.layerManager.invalidate();
         sendClientOptions();

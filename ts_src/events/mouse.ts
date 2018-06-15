@@ -1,7 +1,6 @@
 import gameManager from "../planarally";
 import { getMouse } from "../utils";
 import { l2g } from "../units";
-import { LocalPoint } from "../geom";
 import Settings from "../settings";
 
 export function onPointerDown(e: MouseEvent) {

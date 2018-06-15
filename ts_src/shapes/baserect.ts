@@ -53,7 +53,7 @@ export default abstract class BaseRect extends Shape {
     center(centerPoint: GlobalPoint): void;
     center(centerPoint?: GlobalPoint): GlobalPoint | void {
         if (centerPoint === undefined)
-            return this.refPoint.add(new Vector<GlobalPoint>({x: this.w/2, y: this.h/2}));
+            return this.refPoint.add(new Vector(this.w/2, this.h/2));
         this.refPoint.x = centerPoint.x - this.w / 2;
         this.refPoint.y = centerPoint.y - this.h / 2;
     }

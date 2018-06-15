@@ -1,4 +1,4 @@
-import { getLinesIntersectPoint, getPointDistance, GlobalPoint, Vector } from "../geom";
+import { GlobalPoint, Vector, Ray, Point } from "../geom";
 
 export default class BoundingRect {
     readonly w: number;
@@ -22,7 +22,7 @@ export default class BoundingRect {
             this.topLeft.y <= point.y && this.botLeft.y  >= point.y;
     }
 
-    offset(vector: Vector<GlobalPoint>): BoundingRect {
+    offset(vector: Vector): BoundingRect {
         return new BoundingRect(this.topLeft.add(vector), this.w, this.h);
     }
 
@@ -52,40 +52,22 @@ export default class BoundingRect {
             other.botLeft.y <= this.topLeft.y);
     }
 
-
-    getIntersectAreaWithRect(other: BoundingRect): BoundingRect {
-        const topleft = new GlobalPoint(Math.max(this.topLeft.x, other.topLeft.x), Math.max(this.topLeft.y, other.topLeft.y));
-        const w = Math.min(this.topRight.x, other.topRight.x) - topleft.x;
-        const h = Math.min(this.botLeft.y, other.botLeft.y) - topleft.y;
-        return new BoundingRect(topleft, w, h);
-    }
-    getIntersectWithLine(line: { start: GlobalPoint; end: GlobalPoint }, skipZero: boolean) {
-        const lines = [
-            getLinesIntersectPoint(this.topLeft, this.topRight, line.start, line.end),
-            getLinesIntersectPoint(this.topLeft, this.botLeft, line.start, line.end),
-            getLinesIntersectPoint(this.topRight, this.botRight, line.start, line.end),
-            getLinesIntersectPoint(this.botLeft, this.botRight, line.start, line.end)
-        ];
-        let min_d = Infinity;
-        let min_i = null;
-        for (let i = 0; i < lines.length; i++) {
-            const l = lines[i];
-            if (l.intersect === null) continue;
-            const d = getPointDistance(line.start, l.intersect);
-            if (min_d > d) {
-                if (skipZero && d === 0) continue;
-                min_d = d;
-                min_i = l.intersect;
-            }
-        }
-        return { intersect: min_i, distance: min_d }
+    intersectP(ray: Ray<Point>, invDir: Vector, dirIsNeg: boolean[]) {
+        let txmin = invDir.x * (this.getDiagCorner(dirIsNeg[0]).x - ray.origin!.x);
+        let txmax = invDir.x * (this.getDiagCorner(!dirIsNeg[0]).x - ray.origin!.x);
+        const tymin = invDir.y * (this.getDiagCorner(dirIsNeg[1]).y - ray.origin!.y);
+        const tymax = invDir.y * (this.getDiagCorner(!dirIsNeg[1]).y - ray.origin!.y);
+        if ((txmin > tymax) || (tymin > txmax)) return {hit: false, min: txmin, max: txmax};
+        if (tymin > txmin) txmin = tymin;
+        if (tymax < txmax) txmax = tymax;
+        return {hit: (txmin < ray.tMax!) && (txmax > 0), min: txmin, max: txmax};
     }
 
     center(): GlobalPoint;
     center(centerPoint: GlobalPoint): void;
     center(centerPoint?: GlobalPoint): GlobalPoint | void {
         if (centerPoint === undefined)
-            return this.topLeft.add(new Vector<GlobalPoint>({x: this.w/2, y: this.h/2}));
+            return this.topLeft.add(new Vector(this.w/2, this.h/2));
         this.topLeft.x = centerPoint.x - this.w / 2;
         this.topLeft.y = centerPoint.y - this.h / 2;
     }

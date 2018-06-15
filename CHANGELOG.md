@@ -10,6 +10,7 @@ All notable changes to this project will be documented in this file.
 - Show initiative action is added to the general context menu
 - [tech] A Bounding Volume Hierarchy ray tracing accelerator is used.
     - This greatly! improves the performance of all lighting including the experimental LoS based lighting.
+- [tech] multiple debugging flags under Settings.
 
 ### Changed
 - Right clicking will now only show a shape specific menu if it was done on a selection

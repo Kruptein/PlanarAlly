@@ -18,6 +18,7 @@ class Settings {
 
     static angleSteps = 5;
     static drawAngleLines = false;
+    static drawFirstLightHit = false;
 
     static IS_DM = false;
     static board_initialised = false;

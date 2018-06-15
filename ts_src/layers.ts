@@ -366,6 +366,12 @@ export class FOWLayer extends Layer {
                 });
             }
 
+            let dctx: CanvasRenderingContext2D;
+            if (Settings.drawAngleLines || Settings.drawFirstLightHit) {
+                dctx = gameManager.layerManager.getLayer("draw")!.ctx;
+                dctx.clearRect(0, 0, dctx.canvas.width, dctx.canvas.height);
+            }
+
             for (let ls_i=0; ls_i < gameManager.lightsources.length; ls_i++) {
                 const ls = gameManager.lightsources[ls_i];
                 const sh = gameManager.layerManager.UUIDMap.get(ls.shape);
@@ -386,8 +392,6 @@ export class FOWLayer extends Layer {
 
                 ctx.beginPath();
 
-                const dctx = gameManager.layerManager.getLayer("draw")!.ctx;
-
                 let arc_start = 0;
 
                 let player_visible = false;
@@ -403,10 +407,10 @@ export class FOWLayer extends Layer {
                         center.y + aura_length * Math.sin(angle)
                     )
                     if (Settings.drawAngleLines) {
-                        dctx.beginPath();
-                        dctx.moveTo(g2lx(center.x), g2ly(center.y));
-                        dctx.lineTo(g2lx(angle_point.x), g2ly(angle_point.y));
-                        dctx.stroke();
+                        dctx!.beginPath();
+                        dctx!.moveTo(g2lx(center.x), g2ly(center.y));
+                        dctx!.lineTo(g2lx(angle_point.x), g2ly(angle_point.y));
+                        dctx!.stroke();
                     }
 
                     // Check if there is a hit with one of the nearby light blockers.
@@ -426,6 +430,14 @@ export class FOWLayer extends Layer {
                             )
                             if (!intersect.hit) {
                                 player_visible = true;
+                                if (Settings.drawFirstLightHit){
+                                    const HI = hitResult.intersect === null ? angle_point : hitResult.intersect;
+                                    dctx!.beginPath();
+                                    dctx!.moveTo(g2lx(token.center().x), g2ly(token.center().y));
+                                    dctx!.lineTo(g2lx(HI.x), g2ly(HI.y));
+                                    dctx!.lineTo(g2lx(sh.refPoint.x), g2ly(sh.refPoint.y));
+                                    dctx!.stroke();
+                                }
                                 break;
                             }
                         }

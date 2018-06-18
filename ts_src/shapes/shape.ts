@@ -259,9 +259,9 @@ export default abstract class Shape {
     }
 
     draw(ctx: CanvasRenderingContext2D) {
-        if (this.layer === 'fow') {
-            this.fill = gameManager.fowColour.spectrum("get").toRgbString();
-        }
+        // if (this.layer === 'fow') {
+        //     this.fill = gameManager.fowColour.spectrum("get").toRgbString();
+        // }
         if (this.globalCompositeOperation !== undefined)
             ctx.globalCompositeOperation = this.globalCompositeOperation;
         else
@@ -275,8 +275,8 @@ export default abstract class Shape {
             if (aura.value === 0) return;
             ctx.beginPath();
             ctx.fillStyle = aura.colour;
-            if (gameManager.layerManager.hasLayer("fow") && gameManager.layerManager.getLayer("fow")!.ctx === ctx)
-                ctx.fillStyle = "black";
+            // if (gameManager.layerManager.hasLayer("fow") && gameManager.layerManager.getLayer("fow")!.ctx === ctx)
+            //     ctx.fillStyle = "black";
             const loc = g2l(self.center());
             ctx.arc(loc.x, loc.y, g2lr(aura.value), 0, 2 * Math.PI);
             ctx.fill();

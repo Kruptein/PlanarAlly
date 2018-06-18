@@ -13,7 +13,7 @@ export class FOWPlayersLayer extends Layer {
             
             const ctx = this.ctx;
 
-            if (!Settings.fowLOS) {
+            if (!Settings.fowLOS || Settings.skipPlayerFOW) {
                 ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
                 return;
             }
@@ -69,7 +69,7 @@ export class FOWPlayersLayer extends Layer {
                 const center = token.center();
                 const lcenter = g2l(center);
                 
-                for (let angle = 0; angle < 2 * Math.PI; angle += (2 / 180) * Math.PI) {
+                for (let angle = 0; angle < 2 * Math.PI; angle += ((Settings.angleSteps / 2) / 180) * Math.PI) {
                     const cos = Math.cos(angle);
                     const sin = Math.sin(angle);
                     // Check if there is a hit with one of the nearby light blockers.

@@ -11,28 +11,34 @@ export class FOWLayer extends Layer {
     isVisionLayer: boolean = true;
 
     addShape(shape: Shape, sync: boolean, temporary?: boolean): void {
-        shape.fill = gameManager.fowColour.spectrum("get").toRgbString();
+        // shape.fill = gameManager.fowColour.spectrum("get").toRgbString();
         super.addShape(shape, sync, temporary);
     }
 
     setShapes(shapes: ServerShape[]): void {
         const c = gameManager.fowColour.spectrum("get").toRgbString();
         shapes.forEach(function (shape) {
-            shape.fill = c;
+            // shape.fill = c;
         });
         super.setShapes(shapes);
     }
 
     onShapeMove(shape: Shape): void {
-        shape.fill = gameManager.fowColour.spectrum("get").toRgbString();
+        // shape.fill = gameManager.fowColour.spectrum("get").toRgbString();
         super.onShapeMove(shape);
     };
 
     draw(): void {
         if (Settings.board_initialised && !this.valid) {
             // console.time("FOW");
-            
+
             const ctx = this.ctx;
+
+            if (Settings.skipLightFOW) {
+                ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+                return;
+            }
+
             const orig_op = ctx.globalCompositeOperation;
 
             const dctx = gameManager.layerManager.getLayer("draw")!.ctx;
@@ -94,8 +100,11 @@ export class FOWLayer extends Layer {
                 const auraCircle = new Circle(center, auraLength);
                 if (!auraCircle.visibleInCanvas(ctx.canvas)) continue
 
+                let lastArcAngle = -1;
+
                 ctx.beginPath();
-                let lastArcAngle = 0;
+                ctx.moveTo(lcenter.x, lcenter.y);
+                let firstPoint: GlobalPoint;
                 
                 for (let angle = 0; angle < 2 * Math.PI; angle += (Settings.angleSteps / 180) * Math.PI) {
                     const anglePoint = new GlobalPoint(
@@ -112,6 +121,9 @@ export class FOWLayer extends Layer {
                     // Check if there is a hit with one of the nearby light blockers.
                     const lightRay = Ray.fromPoints(center, anglePoint);
                     const hitResult = gameManager.BV.intersect(lightRay);
+
+                    if (angle === 0)
+                        firstPoint = (hitResult.hit ? hitResult.intersect : anglePoint);
 
                     // We can move on to the next angle if nothing was hit.
                     if (!hitResult.hit) {
@@ -134,7 +146,9 @@ export class FOWLayer extends Layer {
                 }
                 
                 // Finish the final arc.
-                if (lastArcAngle !== -1)
+                if (lastArcAngle === -1)
+                    ctx.lineTo(g2lx(firstPoint!.x), g2ly(firstPoint!.y));
+                else
                     ctx.arc(lcenter.x, lcenter.y, g2lr(aura.value), lastArcAngle, 2 * Math.PI);
 
                 // Fill the light aura with a radial dropoff towards the outside.
@@ -144,7 +158,6 @@ export class FOWLayer extends Layer {
                 gradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
                 ctx.fillStyle = gradient;
                 ctx.fill();
-                ctx.closePath();
             }
 
             // For the players this is done at the beginning of this function.  TODO: why the split up ???

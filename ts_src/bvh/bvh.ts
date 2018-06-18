@@ -72,6 +72,7 @@ class BoundingVolume {
     }
 
     intersect(ray: Ray<GlobalPoint>, stopOnFirstHit?: boolean) {
+        if (this.nodes.length === 0) return {hit: false, intersect: ray.get(0), tMin: 0, tMax: ray.tMax};
         if (stopOnFirstHit === undefined) stopOnFirstHit = false;
         // Initialize return values
         let hit = false;

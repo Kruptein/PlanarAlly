@@ -48,3 +48,11 @@ export function l2gx(x: number) {
 export function l2gy(y: number) {
     return l2g(new LocalPoint(0, y)).y;
 }
+
+export function l2gz(z: number) {
+    return z / Settings.zoomFactor;
+}
+
+export function l2gr(r: number) {
+    return l2gz(getUnitDistance(r))
+}

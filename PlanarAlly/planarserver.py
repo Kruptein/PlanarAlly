@@ -20,16 +20,20 @@ from aiohttp_security import remember, forget, authorized_userid, login_required
 from aiohttp_session.cookie_storage import EncryptedCookieStorage
 
 import auth
+import save
 from planarally import PlanarAlly
 
 FILE_DIR = os.path.dirname(os.path.realpath(__file__))
 os.chdir(FILE_DIR)
+SAVE_FILE = "planar.save"
 
-PA = PlanarAlly("planar.save")
+save.check_save(SAVE_FILE)
+
+PA = PlanarAlly(SAVE_FILE)
 
 sio = socketio.AsyncServer(async_mode='aiohttp', engineio_logger=False)
 app = web.Application()
-app["AuthzPolicy"] = auth.ShelveDictAuthorizationPolicy("planar.save")
+app["AuthzPolicy"] = auth.ShelveDictAuthorizationPolicy(SAVE_FILE)
 aiohttp_security.setup(app, SessionIdentityPolicy(), app['AuthzPolicy'])
 aiohttp_session.setup(app, EncryptedCookieStorage(app['AuthzPolicy'].secret_token))
 aiohttp_jinja2.setup(app, loader=jinja2.FileSystemLoader('templates'))

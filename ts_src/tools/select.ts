@@ -149,6 +149,7 @@ export class SelectTool extends Tool {
                     const sel = layer.selection[i];
                     sel.refPoint = sel.refPoint.add(delta);
                     if (sel !== this.selectionHelper) {
+                        if (sel.visionObstruction) gameManager.recalculateBoundingVolume();
                         socket.emit("shapeMove", { shape: sel.asDict(), temporary: true });
                     }
                 }
@@ -158,6 +159,7 @@ export class SelectTool extends Tool {
                     const sel = layer.selection[i];
                     sel.resize(this.resizedir, mouse);
                     if (sel !== this.selectionHelper) {
+                        if (sel.visionObstruction) gameManager.recalculateBoundingVolume();
                         socket.emit("shapeMove", { shape: sel.asDict(), temporary: true });
                     }
                     layer.invalidate(false);
@@ -220,6 +222,7 @@ export class SelectTool extends Tool {
                     }
 
                     if (sel !== this.selectionHelper) {
+                        if (sel.visionObstruction) gameManager.recalculateBoundingVolume();
                         socket.emit("shapeMove", { shape: sel.asDict(), temporary: false });
                     }
                     layer.invalidate(false);
@@ -229,6 +232,7 @@ export class SelectTool extends Tool {
                         sel.resizeToGrid();
                     }
                     if (sel !== this.selectionHelper) {
+                        if (sel.visionObstruction) gameManager.recalculateBoundingVolume();
                         socket.emit("shapeMove", { shape: sel.asDict(), temporary: false });
                     }
                     layer.invalidate(false);

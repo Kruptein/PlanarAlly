@@ -6,11 +6,16 @@ All notable changes to this project will be documented in this file.
 
 ## [0.8] - Not yet released
 
+SAVE_FORMAT CHANGED FROM 0 to 1
+BACKUP YOUR OLD SAVE BEFORE CONVERTING!
+UPDATE YOUR SAVE BY EXECUTING `python ../scripts/convert/0_to_1.py` FROM WITHIN THE `PlanarAlly` FOLDER THAT CONTAINS YOUR SAVE FILE, THE SERVER CONFIG AND THE OTHER PYTHON FILES!!!
+
 ### Added
 - Show initiative action is added to the general context menu
 - [tech] A Bounding Volume Hierarchy ray tracing accelerator is used.
     - This greatly! improves the performance of all lighting including the experimental LoS based lighting.
 - [tech] multiple debugging flags under Settings.
+- [tech] extra layer added that is used for fow.  Now two layers are responsible for this.
 
 ### Changed
 - Right clicking will now only show a shape specific menu if it was done on a selection

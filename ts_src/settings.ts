@@ -19,6 +19,8 @@ class Settings {
     static angleSteps = 5;
     static drawAngleLines = false;
     static drawFirstLightHit = false;
+    static OP = 'source-over';
+    static col = 'b';
 
     static IS_DM = false;
     static board_initialised = false;
@@ -80,9 +82,7 @@ class Settings {
     static setFullFOW(fullFOW: boolean, sync: boolean): void {
         if (fullFOW !== this.fullFOW) {
             this.fullFOW = fullFOW;
-            const fowl = gameManager.layerManager.getLayer("fow");
-            if (fowl !== undefined)
-                fowl.invalidate(false);
+            gameManager.layerManager.invalidateLight();
             $('#useFOWInput').prop("checked", fullFOW);
             if (sync)
                 socket.emit("set locationOptions", { 'fullFOW': fullFOW });
@@ -91,9 +91,7 @@ class Settings {
     
     static setFOWOpacity(fowOpacity: number, sync: boolean): void {
         this.fowOpacity = fowOpacity;
-        const fowl = gameManager.layerManager.getLayer("fow");
-        if (fowl !== undefined)
-            fowl.invalidate(false);
+        gameManager.layerManager.invalidateLight();
         $('#fowOpacity').val(fowOpacity);
         if (sync)
             socket.emit("set locationOptions", { 'fowOpacity': fowOpacity });

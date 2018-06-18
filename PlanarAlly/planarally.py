@@ -95,6 +95,7 @@ class Location:
         self.layer_manager.add(Layer("tokens", player_visible=True, player_editable=True))
         self.layer_manager.add(Layer("dm"))
         self.layer_manager.add(Layer("fow", player_visible=True))
+        self.layer_manager.add(Layer("fow-players", selectable=False, player_visible=True))
         self.layer_manager.add(Layer("draw", selectable=False, player_visible=True, player_editable=True))
 
     @property

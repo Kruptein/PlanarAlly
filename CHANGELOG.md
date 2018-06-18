@@ -20,6 +20,7 @@ UPDATE YOUR SAVE BY EXECUTING `python ../scripts/convert/0_to_1.py` FROM WITHIN 
 ### Changed
 - Right clicking will now only show a shape specific menu if it was done on a selection
     - All other right clicks will show the general purpose context menu
+- Light auras now properly follow the actual path formed by vision obstruction objects
 - [tech] Cleaned up the Vector class, splitting it up in a Vector and a Ray class
     - Vector: purely direction indication
     - Ray: combination of an origin point and a vector

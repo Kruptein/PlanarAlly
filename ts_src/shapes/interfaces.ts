@@ -14,4 +14,5 @@ interface Aura {
     value: number;
     dim: number;
     colour: string;
+    lastPath?: Path2D;
 }

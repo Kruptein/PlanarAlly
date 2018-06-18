@@ -102,8 +102,8 @@ export class FOWLayer extends Layer {
 
                 let lastArcAngle = -1;
 
-                ctx.beginPath();
-                ctx.moveTo(lcenter.x, lcenter.y);
+                const path = new Path2D();
+                path.moveTo(lcenter.x, lcenter.y);
                 let firstPoint: GlobalPoint;
                 
                 for (let angle = 0; angle < 2 * Math.PI; angle += (Settings.angleSteps / 180) * Math.PI) {
@@ -139,17 +139,17 @@ export class FOWLayer extends Layer {
                     }
                     // If hit , first finish any ongoing arc, then move to the intersection point
                     if (lastArcAngle !== -1) {
-                        ctx.arc(lcenter.x, lcenter.y, g2lr(aura.value), lastArcAngle, angle);
+                        path.arc(lcenter.x, lcenter.y, g2lr(aura.value), lastArcAngle, angle);
                         lastArcAngle = -1;
                     }
-                    ctx.lineTo(g2lx(hitResult.intersect.x), g2ly(hitResult.intersect.y));
+                    path.lineTo(g2lx(hitResult.intersect.x), g2ly(hitResult.intersect.y));
                 }
                 
                 // Finish the final arc.
                 if (lastArcAngle === -1)
-                    ctx.lineTo(g2lx(firstPoint!.x), g2ly(firstPoint!.y));
+                    path.lineTo(g2lx(firstPoint!.x), g2ly(firstPoint!.y));
                 else
-                    ctx.arc(lcenter.x, lcenter.y, g2lr(aura.value), lastArcAngle, 2 * Math.PI);
+                    path.arc(lcenter.x, lcenter.y, g2lr(aura.value), lastArcAngle, 2 * Math.PI);
 
                 // Fill the light aura with a radial dropoff towards the outside.
                 const alm = g2lr(aura.value);
@@ -157,7 +157,9 @@ export class FOWLayer extends Layer {
                 gradient.addColorStop(0, 'rgba(0, 0, 0, 1)');
                 gradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
                 ctx.fillStyle = gradient;
-                ctx.fill();
+                ctx.fill(path);
+
+                aura.lastPath = path;
             }
 
             // For the players this is done at the beginning of this function.  TODO: why the split up ???

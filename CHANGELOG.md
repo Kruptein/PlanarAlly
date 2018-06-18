@@ -26,6 +26,10 @@ UPDATE YOUR SAVE BY EXECUTING `python ../scripts/convert/0_to_1.py` FROM WITHIN 
     - Ray: combination of an origin point and a vector
 - [tech] A much more performant ray box intersection algorithm is used
 
+### Reverted
+- assets dropped on canvas are no longer tagged as token
+    - Tokens should only be used for actual player representatives
+
 ## [0.7] - 2018-06-12
 
 ### Added

@@ -168,7 +168,6 @@ export class LayerManager {
                     const img = <HTMLImageElement>ui.draggable[0].children[0];
                     const asset = new Asset(img, wloc, img.width, img.height);
                     asset.src = new URL(img.src).pathname;
-                    asset.isToken = true;
 
                     if (Settings.useGrid) {
                         const gs = Settings.gridSize;

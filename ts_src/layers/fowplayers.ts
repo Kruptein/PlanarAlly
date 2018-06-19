@@ -17,17 +17,11 @@ export class FOWPlayersLayer extends Layer {
                 return;
             }
 
+            ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+
             const orig_op = ctx.globalCompositeOperation;
 
-            ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
-
-            // Fill the entire screen with the desired FOW colour.
-            if (Settings.fullFOW && !Settings.IS_DM) {
-                this.ctx.globalCompositeOperation = "copy";
-                this.ctx.fillStyle = gameManager.fowColour.spectrum("get").setAlpha(1).toRgbString();
-                this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
-                this.ctx.globalCompositeOperation = 'destination-out';
-            }
+            ctx.fillStyle = 'rgba(0, 0, 0, 1)';
 
             // For the DM this is done at the end of this function.  TODO: why the split up ???
             // This was done in commit be1e65cff1e7369375fe11cfa1643fab1d11beab.
@@ -75,7 +69,6 @@ export class FOWPlayersLayer extends Layer {
                     ctx.arc(lcenter.x, lcenter.y, maxLength, lastArcAngle, 2 * Math.PI);
                 else
                     ctx.closePath();
-                ctx.fillStyle = "rgba(0, 0, 0, 1)";
                 ctx.fill();
             }
 

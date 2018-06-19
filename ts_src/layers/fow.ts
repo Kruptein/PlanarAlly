@@ -19,22 +19,13 @@ export class FOWLayer extends Layer {
             }
 
             const orig_op = ctx.globalCompositeOperation;
+            ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+
+            ctx.fillStyle = 'rgba(0, 0, 0, 1)';
 
             const dctx = gameManager.layerManager.getLayer("draw")!.ctx;
             if (Settings.drawAngleLines || Settings.drawFirstLightHit) {
                 dctx.clearRect(0, 0, dctx.canvas.width, dctx.canvas.height);
-            }
-
-            ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
-
-            // Fill the entire screen with the desired FOW colour.
-            if (!Settings.IS_DM) {
-                if (Settings.fullFOW) {
-                    this.ctx.globalCompositeOperation = "copy";
-                    this.ctx.fillStyle = gameManager.fowColour.spectrum("get").setAlpha(1).toRgbString();
-                    this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
-                }
-                this.ctx.globalCompositeOperation = 'destination-out';
             }
 
             // For the DM this is done at the end of this function.  TODO: why the split up ???
@@ -136,21 +127,19 @@ export class FOWLayer extends Layer {
                 aura.lastPath = path;
             }
 
-            if (Settings.IS_DM) {
-                // At the DM Side due to opacity of the two fow layers, it looks strange if we just render them on top of eachother like players.
-                if (Settings.fowLOS) {
-                    ctx.globalCompositeOperation = 'destination-in';
-                    ctx.drawImage(gameManager.layerManager.getLayer("fow-players")!.canvas, 0, 0);
-                }
-                ctx.globalCompositeOperation = 'xor';
-                ctx.fillStyle = 'rgba(0, 0, 0, 1)';
-                ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+            // At the DM Side due to opacity of the two fow layers, it looks strange if we just render them on top of eachother like players.
+            if (Settings.fowLOS) {
                 ctx.globalCompositeOperation = 'source-in';
-                const tc = gameManager.fowColour.spectrum("get");
-                tc.setAlpha(Settings.fowOpacity);
-                ctx.fillStyle = tc.toRgbString();
-                ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+                ctx.drawImage(gameManager.layerManager.getLayer("fow-players")!.canvas, 0, 0);
             }
+            ctx.globalCompositeOperation = 'source-out';
+            const tc = gameManager.fowColour.spectrum("get");
+            if (Settings.IS_DM)
+                tc.setAlpha(Settings.fowOpacity);
+            else
+                tc.setAlpha(1);
+            ctx.fillStyle = tc.toRgbString();
+            ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
 
             // For the players this is done at the beginning of this function.  TODO: why the split up ???
             // This was done in commit be1e65cff1e7369375fe11cfa1643fab1d11beab.

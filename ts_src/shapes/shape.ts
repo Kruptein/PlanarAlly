@@ -259,9 +259,6 @@ export default abstract class Shape {
     }
 
     draw(ctx: CanvasRenderingContext2D) {
-        // if (this.layer === 'fow') {
-        //     this.fill = gameManager.fowColour.spectrum("get").toRgbString();
-        // }
         if (this.globalCompositeOperation !== undefined)
             ctx.globalCompositeOperation = this.globalCompositeOperation;
         else

@@ -113,16 +113,23 @@ export class LayerManager {
     createLayer(layer: ServerLayer) {
         const layersdiv = $("#layers");
         // UI changes
-        layersdiv.append("<canvas id='" + layer.name + "-layer' style='z-index: " + this.layers.length + "'></canvas>");
+        if (!(layer.name === 'fow-players' && Settings.IS_DM))
+            layersdiv.append("<canvas id='" + layer.name + "-layer' style='z-index: " + this.layers.length + "'></canvas>");
         if (layer.selectable) {
             const layerselectdiv = $("#layerselect");
             let extra = '';
             if (!this.layers.some(l => l.selectable)) extra = " class='layer-selected'";
             layerselectdiv.find('ul')!.append("<li id='select-" + layer.name + "'" + extra + "><a href='#'>" + capitalize(layer.name) + "</a></li>");
         }
-        const canvas = <HTMLCanvasElement>$('#' + layer.name + '-layer')[0];
+        let canvas;
+        if (layer.name === 'fow-players' && Settings.IS_DM) {
+            canvas = document.createElement("canvas");
+        } else {
+            canvas = <HTMLCanvasElement>$('#' + layer.name + '-layer')[0];
+        }
         canvas.width = window.innerWidth;
         canvas.height = window.innerHeight;
+        
         // State changes
         let l: Layer;
         if (layer.grid)

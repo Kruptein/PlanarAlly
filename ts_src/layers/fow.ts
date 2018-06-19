@@ -1,7 +1,5 @@
 import { Layer } from "./layer";
-import Shape from "../shapes/shape";
 import gameManager from "../planarally";
-import { ServerShape } from "../api_types";
 import Settings from "../settings";
 import { g2l, g2lz, getUnitDistance, g2lr, g2lx, g2ly } from "../units";
 import Circle from "../shapes/circle";
@@ -10,32 +8,13 @@ import { GlobalPoint, Ray } from "../geom";
 export class FOWLayer extends Layer {
     isVisionLayer: boolean = true;
 
-    addShape(shape: Shape, sync: boolean, temporary?: boolean): void {
-        // shape.fill = gameManager.fowColour.spectrum("get").toRgbString();
-        super.addShape(shape, sync, temporary);
-    }
-
-    setShapes(shapes: ServerShape[]): void {
-        const c = gameManager.fowColour.spectrum("get").toRgbString();
-        shapes.forEach(function (shape) {
-            // shape.fill = c;
-        });
-        super.setShapes(shapes);
-    }
-
-    onShapeMove(shape: Shape): void {
-        // shape.fill = gameManager.fowColour.spectrum("get").toRgbString();
-        super.onShapeMove(shape);
-    };
-
     draw(): void {
         if (Settings.board_initialised && !this.valid) {
-            // console.time("FOW");
-
             const ctx = this.ctx;
 
             if (Settings.skipLightFOW) {
                 ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+                this.valid = true;
                 return;
             }
 
@@ -46,27 +25,22 @@ export class FOWLayer extends Layer {
                 dctx.clearRect(0, 0, dctx.canvas.width, dctx.canvas.height);
             }
 
-            // Fill the entire screen with the desired FOW colour.
-            if (Settings.fullFOW) {
-                const ogalpha = this.ctx.globalAlpha;
-                
-                this.ctx.globalCompositeOperation = "copy";
-                
-                if (Settings.IS_DM) {
-                    this.ctx.globalAlpha = Settings.fowOpacity;
-                }
-                this.ctx.fillStyle = gameManager.fowColour.spectrum("get").toRgbString();
-                this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+            ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
 
-                this.ctx.globalAlpha = ogalpha;
+            // Fill the entire screen with the desired FOW colour.
+            if (!Settings.IS_DM) {
+                if (Settings.fullFOW) {
+                    this.ctx.globalCompositeOperation = "copy";
+                    this.ctx.fillStyle = gameManager.fowColour.spectrum("get").setAlpha(1).toRgbString();
+                    this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+                }
+                this.ctx.globalCompositeOperation = 'destination-out';
             }
 
             // For the DM this is done at the end of this function.  TODO: why the split up ???
             // This was done in commit be1e65cff1e7369375fe11cfa1643fab1d11beab.
             if (!Settings.IS_DM)
                 super.draw(!Settings.fullFOW);
-                
-            ctx.globalCompositeOperation = 'destination-out';
 
             // At all times provide a minimal vision range to prevent losing your tokens in fog.
             if (gameManager.layerManager.hasLayer("tokens")) {
@@ -162,14 +136,28 @@ export class FOWLayer extends Layer {
                 aura.lastPath = path;
             }
 
+            if (Settings.IS_DM) {
+                // At the DM Side due to opacity of the two fow layers, it looks strange if we just render them on top of eachother like players.
+                if (Settings.fowLOS) {
+                    ctx.globalCompositeOperation = 'destination-in';
+                    ctx.drawImage(gameManager.layerManager.getLayer("fow-players")!.canvas, 0, 0);
+                }
+                ctx.globalCompositeOperation = 'xor';
+                ctx.fillStyle = 'rgba(0, 0, 0, 1)';
+                ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+                ctx.globalCompositeOperation = 'source-in';
+                const tc = gameManager.fowColour.spectrum("get");
+                tc.setAlpha(Settings.fowOpacity);
+                ctx.fillStyle = tc.toRgbString();
+                ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+            }
+
             // For the players this is done at the beginning of this function.  TODO: why the split up ???
             // This was done in commit be1e65cff1e7369375fe11cfa1643fab1d11beab.
             if (Settings.IS_DM)
                 super.draw(!Settings.fullFOW);
 
             ctx.globalCompositeOperation = orig_op;
-            // dctx.globalCompositeOperation = orig_op;
-            // console.timeEnd("FOW");
         }
     }
 }

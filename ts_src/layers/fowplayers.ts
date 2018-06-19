@@ -8,56 +8,31 @@ export class FOWPlayersLayer extends Layer {
     isVisionLayer: boolean = true;
 
     draw(): void {
-        if (Settings.board_initialised && !this.valid) {
-            // console.time("FOW2");
-            
+        if (Settings.board_initialised && !this.valid) {            
             const ctx = this.ctx;
 
             if (!Settings.fowLOS || Settings.skipPlayerFOW) {
                 ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+                this.valid = true;
                 return;
             }
 
             const orig_op = ctx.globalCompositeOperation;
 
-            // Fill the entire screen with the desired FOW colour.
-            if (Settings.fullFOW) {
-                const ogalpha = this.ctx.globalAlpha;
-                
-                this.ctx.globalCompositeOperation = "copy";
-                
-                if (Settings.IS_DM) {
-                    this.ctx.globalAlpha = Settings.fowOpacity;
-                }
-                this.ctx.fillStyle = gameManager.fowColour.spectrum("get").toRgbString();
-                this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+            ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
 
-                this.ctx.globalAlpha = ogalpha;
+            // Fill the entire screen with the desired FOW colour.
+            if (Settings.fullFOW && !Settings.IS_DM) {
+                this.ctx.globalCompositeOperation = "copy";
+                this.ctx.fillStyle = gameManager.fowColour.spectrum("get").setAlpha(1).toRgbString();
+                this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+                this.ctx.globalCompositeOperation = 'destination-out';
             }
 
             // For the DM this is done at the end of this function.  TODO: why the split up ???
             // This was done in commit be1e65cff1e7369375fe11cfa1643fab1d11beab.
             if (!Settings.IS_DM)
                 super.draw(!Settings.fullFOW);
-                
-            ctx.globalCompositeOperation = 'destination-out';
-
-            // // At all times provide a minimal vision range to prevent losing your tokens in fog.
-            // if (gameManager.layerManager.hasLayer("tokens")) {
-            //     gameManager.layerManager.getLayer("tokens")!.shapes.forEach(function (sh) {
-            //         if (!sh.ownedBy() || !sh.isToken) return;
-            //         const bb = sh.getBoundingBox();
-            //         const lcenter = g2l(sh.center());
-            //         const alm = 0.8 * g2lz(bb.w);
-            //         ctx.beginPath();
-            //         ctx.arc(lcenter.x, lcenter.y, alm, 0, 2 * Math.PI);
-            //         const gradient = ctx.createRadialGradient(lcenter.x, lcenter.y, alm / 2, lcenter.x, lcenter.y, alm);
-            //         gradient.addColorStop(0, 'rgba(0, 0, 0, 1)');
-            //         gradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
-            //         ctx.fillStyle = gradient;
-            //         ctx.fill();
-            //     });
-            // }
 
             // Then cut out all the player vision auras
             const maxLength = ctx.canvas.width + ctx.canvas.height;
@@ -98,6 +73,8 @@ export class FOWPlayersLayer extends Layer {
                 // Finish the final arc.
                 if (lastArcAngle !== -1)
                     ctx.arc(lcenter.x, lcenter.y, maxLength, lastArcAngle, 2 * Math.PI);
+                else
+                    ctx.closePath();
                 ctx.fillStyle = "rgba(0, 0, 0, 1)";
                 ctx.fill();
             }
@@ -108,7 +85,6 @@ export class FOWPlayersLayer extends Layer {
                 super.draw(!Settings.fullFOW);
 
             ctx.globalCompositeOperation = orig_op;
-            // console.timeEnd("FOW2");
         }
     }
 }

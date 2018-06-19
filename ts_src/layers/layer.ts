@@ -126,6 +126,7 @@ export class Layer {
     draw(doClear?: boolean): void {
         if (Settings.board_initialised && !this.valid) {
             const ctx = this.ctx;
+            const ogOP = ctx.globalCompositeOperation;
             doClear = doClear === undefined ? true : doClear;
 
             if (doClear)
@@ -162,7 +163,7 @@ export class Layer {
                     ctx.fillRect(g2lx(bb.topLeft.x - sw/2), g2ly(bb.botLeft.y - sw/2), sw * z, sw * z)
                 });
             }
-
+            ctx.globalCompositeOperation = ogOP;
             this.valid = true;
         }
     }

@@ -19,10 +19,8 @@ class Settings {
     static angleSteps = 4;
     static drawAngleLines = false;
     static drawFirstLightHit = false;
-    static OP = 'source-over';
-    static col = 'b';
     static skipPlayerFOW = false;
-    static skipLightFOW = false
+    static skipLightFOW = false;
 
     static IS_DM = false;
     static board_initialised = false;

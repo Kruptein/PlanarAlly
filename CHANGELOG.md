@@ -6,6 +6,9 @@ All notable changes to this project will be documented in this file.
 
 ## [0.8] - Not yet released
 
+This release greatly increases performance of all lighting modes and also properly 
+introduyces Line of Sight based lighting system.
+
 SAVE_FORMAT CHANGED FROM 0 to 1
 BACKUP YOUR OLD SAVE BEFORE CONVERTING!
 UPDATE YOUR SAVE BY EXECUTING `python ../scripts/convert/0_to_1.py` FROM WITHIN THE `PlanarAlly` FOLDER THAT CONTAINS YOUR SAVE FILE, THE SERVER CONFIG AND THE OTHER PYTHON FILES!!!
@@ -21,6 +24,7 @@ UPDATE YOUR SAVE BY EXECUTING `python ../scripts/convert/0_to_1.py` FROM WITHIN 
 - Right clicking will now only show a shape specific menu if it was done on a selection
     - All other right clicks will show the general purpose context menu
 - Light auras now properly follow the actual path formed by vision obstruction objects
+- FOW layer drawn shapes now retain their proper colour used during drawing.
 - [tech] Cleaned up the Vector class, splitting it up in a Vector and a Ray class
     - Vector: purely direction indication
     - Ray: combination of an origin point and a vector

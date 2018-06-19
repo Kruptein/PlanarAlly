@@ -28,11 +28,6 @@ export class FOWLayer extends Layer {
                 dctx.clearRect(0, 0, dctx.canvas.width, dctx.canvas.height);
             }
 
-            // For the DM this is done at the end of this function.  TODO: why the split up ???
-            // This was done in commit be1e65cff1e7369375fe11cfa1643fab1d11beab.
-            if (!Settings.IS_DM)
-                super.draw(!Settings.fullFOW);
-
             // At all times provide a minimal vision range to prevent losing your tokens in fog.
             if (gameManager.layerManager.hasLayer("tokens")) {
                 gameManager.layerManager.getLayer("tokens")!.shapes.forEach(function (sh) {
@@ -141,10 +136,7 @@ export class FOWLayer extends Layer {
             ctx.fillStyle = tc.toRgbString();
             ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
 
-            // For the players this is done at the beginning of this function.  TODO: why the split up ???
-            // This was done in commit be1e65cff1e7369375fe11cfa1643fab1d11beab.
-            if (Settings.IS_DM)
-                super.draw(!Settings.fullFOW);
+            super.draw(!Settings.fullFOW);
 
             ctx.globalCompositeOperation = orig_op;
         }

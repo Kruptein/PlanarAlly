@@ -122,7 +122,7 @@ export class LayerManager {
             layerselectdiv.find('ul')!.append("<li id='select-" + layer.name + "'" + extra + "><a href='#'>" + capitalize(layer.name) + "</a></li>");
         }
         let canvas;
-        if (layer.name === 'fow-players' && Settings.IS_DM) {
+        if (layer.name === 'fow-players') {
             canvas = document.createElement("canvas");
         } else {
             canvas = <HTMLCanvasElement>$('#' + layer.name + '-layer')[0];

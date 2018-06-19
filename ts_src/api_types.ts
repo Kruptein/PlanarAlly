@@ -35,7 +35,7 @@ export interface InitiativeData {
     has_img: boolean;
 }
 
-interface ServerLayer {
+export interface ServerLayer {
     name: string;
     layer: string;
     shapes: ServerShape[];

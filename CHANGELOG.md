@@ -1,6 +1,44 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+[DM] denotes changes only useful for the dungeon master
+[tech] denotes technical changes
+
+## [0.8] - 2018-06-19
+
+This release greatly increases performance of all lighting modes and also properly 
+introduyces Line of Sight based lighting system.
+
+SAVE_FORMAT CHANGED FROM 0 to 1
+BACKUP YOUR OLD SAVE BEFORE CONVERTING!
+UPDATE YOUR SAVE BY EXECUTING `python ../scripts/convert/0_to_1.py` FROM WITHIN THE `PlanarAlly` FOLDER THAT CONTAINS YOUR SAVE FILE, THE SERVER CONFIG AND THE OTHER PYTHON FILES!!!
+
+### Added
+- Show initiative action is added to the general context menu
+- [tech] A Bounding Volume Hierarchy ray tracing accelerator is used.
+    - This greatly! improves the performance of all lighting including the experimental LoS based lighting.
+- [tech] multiple debugging flags under Settings.
+- [tech] extra layer added that is used for fow.  Now two layers are responsible for this.
+
+### Changed
+- Right clicking will now only show a shape specific menu if it was done on a selection
+    - All other right clicks will show the general purpose context menu
+- Light auras now properly follow the actual path formed by vision obstruction objects
+- FOW layer drawn shapes now retain their proper colour used during drawing.
+- Movement that is normally grid-snapping will go out off grid if it stops against a movement blocker
+- [tech] Cleaned up the Vector class, splitting it up in a Vector and a Ray class
+    - Vector: purely direction indication
+    - Ray: combination of an origin point and a vector
+- [tech] A much more performant ray box intersection algorithm is used
+
+### Fixed
+- Shapes no longer get stuck in movementblockers on occassions
+- Auras were ignored in the visibility check during layer shape draw
+
+### Reverted
+- assets dropped on canvas are no longer tagged as token
+    - Tokens should only be used for actual player representatives
+
 ## [0.7] - 2018-06-12
 
 ### Added

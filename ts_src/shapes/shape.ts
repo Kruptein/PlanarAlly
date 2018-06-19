@@ -65,10 +65,17 @@ export default abstract class Shape {
     checkLightSources() {
         const self = this;
         const vo_i = gameManager.lightblockers.indexOf(this.uuid);
-        if (this.visionObstruction && vo_i === -1)
+        let changeBV = false;
+        if (this.visionObstruction && vo_i === -1) {
             gameManager.lightblockers.push(this.uuid);
-        else if (!this.visionObstruction && vo_i >= 0)
+            changeBV = true;
+
+        } else if (!this.visionObstruction && vo_i >= 0){
             gameManager.lightblockers.splice(vo_i, 1);
+            changeBV = true;
+        }
+        if (changeBV)
+            gameManager.recalculateBoundingVolume();
 
         // Check if the lightsource auras are in the gameManager
         this.auras.forEach(function (au) {
@@ -252,9 +259,6 @@ export default abstract class Shape {
     }
 
     draw(ctx: CanvasRenderingContext2D) {
-        if (this.layer === 'fow') {
-            this.fill = gameManager.fowColour.spectrum("get").toRgbString();
-        }
         if (this.globalCompositeOperation !== undefined)
             ctx.globalCompositeOperation = this.globalCompositeOperation;
         else
@@ -268,18 +272,26 @@ export default abstract class Shape {
             if (aura.value === 0) return;
             ctx.beginPath();
             ctx.fillStyle = aura.colour;
-            if (gameManager.layerManager.hasLayer("fow") && gameManager.layerManager.getLayer("fow")!.ctx === ctx)
-                ctx.fillStyle = "black";
+            // if (gameManager.layerManager.hasLayer("fow") && gameManager.layerManager.getLayer("fow")!.ctx === ctx)
+            //     ctx.fillStyle = "black";
             const loc = g2l(self.center());
-            ctx.arc(loc.x, loc.y, g2lr(aura.value), 0, 2 * Math.PI);
-            ctx.fill();
+            if (aura.lastPath === undefined) {
+                ctx.arc(loc.x, loc.y, g2lr(aura.value), 0, 2 * Math.PI);
+                ctx.fill();
+            } else {
+                ctx.fill(aura.lastPath);
+            }
             if (aura.dim) {
                 const tc = tinycolor(aura.colour);
                 ctx.beginPath();
                 ctx.fillStyle = tc.setAlpha(tc.getAlpha() / 2).toRgbString();
                 const loc = g2l(self.center());
-                ctx.arc(loc.x, loc.y, g2lr(aura.dim), 0, 2 * Math.PI);
-                ctx.fill();
+                if (aura.lastPath === undefined) {
+                    ctx.arc(loc.x, loc.y, g2lr(aura.value), 0, 2 * Math.PI);
+                    ctx.fill();
+                } else {
+                    ctx.fill(aura.lastPath);
+                }
             }
         });
     }
@@ -306,7 +318,7 @@ export default abstract class Shape {
         data += "</ul></li>" +
             "<li data-action='moveToBack' class='context-clickable'>Move to back</li>" +
             "<li data-action='moveToFront' class='context-clickable'>Move to front</li>" +
-            "<li data-action='addInitiative' class='context-clickable'>Add initiative</li>" +
+            "<li data-action='addInitiative' class='context-clickable'>" + (gameManager.initiativeTracker.contains(this.uuid) ? "Show" : "Add") + " initiative</li>" +
             "</ul>";
         $menu.html(data);
         $(".context-clickable").on('click', function () {
@@ -329,6 +341,7 @@ export default abstract class Shape {
                 gameManager.layerManager.getLayer(menu.data("layer"))!.addShape(this, true);
                 break;
             case 'addInitiative':
+                if (gameManager.initiativeTracker.contains(this.uuid)) gameManager.initiativeTracker.show();
                 gameManager.initiativeTracker.addInitiative(this.getInitiativeRepr(), true);
                 break;
         }

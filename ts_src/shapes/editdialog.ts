@@ -345,8 +345,7 @@ export function populateEditAssetDialog(self: Shape) {
                 if (i >= 0)
                     ls.splice(i, 1);
             }
-            if (gameManager.layerManager.hasLayer("fow"))
-                gameManager.layerManager.getLayer("fow")!.invalidate(false);
+            gameManager.layerManager.invalidateLight();
             socket.emit("updateShape", { shape: self.asDict(), redraw: true });
         });
     }

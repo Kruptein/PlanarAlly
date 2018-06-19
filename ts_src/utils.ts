@@ -11,6 +11,12 @@ export function alphSort(a: string, b: string) {
         return 1;
 }
 
+export function partition<T>(arr: T[], predicate: (n: T) => boolean) {
+    const ret: T[][] = [[], []];
+    arr.forEach((n) => predicate(n) ? ret[1].push(n) : ret[0].push(n));
+    return ret;
+}
+
 export function capitalize(text: string) {
     return text.charAt(0).toUpperCase() + text.slice(1);
 }

@@ -3,6 +3,7 @@ import { SelectTool } from "../tools/select";
 import { Vector } from "../geom";
 import Settings from "../settings";
 import { sendClientOptions, socket } from "../socket";
+import { calculateDelta } from "../tools/tools";
 
 function targetIsInput(e: Event) {
     if (e.target && (<HTMLElement>e.target).tagName)
@@ -36,34 +37,23 @@ export function onKeyDown (event: KeyboardEvent) {
             const selection = gameManager.layerManager.getSelection()!;
             x_offset *= (event.keyCode <= 38 ? -1 : 1);
             y_offset *= (event.keyCode <= 38 ? -1 : 1);
-            let collision = false;
+            let delta = new Vector(x_offset, y_offset);
             if (!event.shiftKey || !Settings.IS_DM) {
                 // First check for collisions.  Using the smooth wall slide collision check used on mouse move is overkill here.
-                for (let i=0; i<selection.length && !collision; i++) {
-                    const sel = selection[i];
-                    if (sel.uuid === (<SelectTool>gameManager.tools.get("select")!).selectionHelper.uuid)
-                        continue;
-                    const newSelBBox = sel.getBoundingBox().offset(new Vector({x: x_offset, y: y_offset}));
-                    for (let mb = 0; mb < gameManager.movementblockers.length; mb++) {
-                        const blocker = gameManager.layerManager.UUIDMap.get(gameManager.movementblockers[mb])!;
-                        const blockerBBox = blocker.getBoundingBox();
-                        // Check if the bounding box of our destination would intersect with the bounding box of the movementblocker
-                        if (blockerBBox.intersectsWithInner(newSelBBox)) {
-                            collision = true;
-                            break;
-                        }
-                    }
-                }
-            }
-            if (!collision) {
                 for (let i=0; i<selection.length; i++) {
                     const sel = selection[i];
-                    sel.refPoint.x += x_offset;
-                    sel.refPoint.y += y_offset;
-                    socket.emit("shapeMove", { shape: sel.asDict(), temporary: false });
+                    delta = calculateDelta(delta, sel);
                 }
-                gameManager.layerManager.getLayer()!.invalidate(false);
             }
+            for (let i=0; i<selection.length; i++) {
+                const sel = selection[i];
+                sel.refPoint.x += delta.x;
+                sel.refPoint.y += delta.y;
+                if (sel.refPoint.x % gridSize !== 0 || sel.refPoint.y % gridSize !== 0)
+                    sel.snapToGrid();
+                socket.emit("shapeMove", { shape: sel.asDict(), temporary: false });
+            }
+            gameManager.layerManager.getLayer()!.invalidate(false);
         } else {
             // The pan offsets should be in the opposite direction to give the correct feel.
             Settings.panX += x_offset * (event.keyCode <= 38 ? 1 : -1);

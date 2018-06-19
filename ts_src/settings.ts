@@ -16,6 +16,12 @@ class Settings {
     static panX = 0;
     static panY = 0;
 
+    static angleSteps = 4;
+    static drawAngleLines = false;
+    static drawFirstLightHit = false;
+    static skipPlayerFOW = false;
+    static skipLightFOW = false;
+
     static IS_DM = false;
     static board_initialised = false;
     static roomName: string;
@@ -76,9 +82,7 @@ class Settings {
     static setFullFOW(fullFOW: boolean, sync: boolean): void {
         if (fullFOW !== this.fullFOW) {
             this.fullFOW = fullFOW;
-            const fowl = gameManager.layerManager.getLayer("fow");
-            if (fowl !== undefined)
-                fowl.invalidate(false);
+            gameManager.layerManager.invalidateLight();
             $('#useFOWInput').prop("checked", fullFOW);
             if (sync)
                 socket.emit("set locationOptions", { 'fullFOW': fullFOW });
@@ -87,9 +91,7 @@ class Settings {
     
     static setFOWOpacity(fowOpacity: number, sync: boolean): void {
         this.fowOpacity = fowOpacity;
-        const fowl = gameManager.layerManager.getLayer("fow");
-        if (fowl !== undefined)
-            fowl.invalidate(false);
+        gameManager.layerManager.invalidateLight();
         $('#fowOpacity').val(fowOpacity);
         if (sync)
             socket.emit("set locationOptions", { 'fowOpacity': fowOpacity });
@@ -117,8 +119,8 @@ class Settings {
     
         // Change the pan settings to keep the zoomLocation in the same exact location before and after the zoom.
         const diff = newLoc.subtract(zoomLocation);
-        this.panX += diff.direction.x;
-        this.panY += diff.direction.y;
+        this.panX += diff.x;
+        this.panY += diff.y;
     
         gameManager.layerManager.invalidate();
         sendClientOptions();

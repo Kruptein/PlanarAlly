@@ -3,6 +3,8 @@ import Shape from "./shape";
 import { GlobalPoint, Vector, LocalPoint } from "../geom";
 import { g2lx, g2ly, l2g, l2gy, l2gx } from "../units";
 import Settings from "../settings";
+import { calculateDelta } from "../tools/tools";
+import Circle from "./circle";
 
 export default abstract class BaseRect extends Shape {
     w: number;
@@ -53,40 +55,55 @@ export default abstract class BaseRect extends Shape {
     center(centerPoint: GlobalPoint): void;
     center(centerPoint?: GlobalPoint): GlobalPoint | void {
         if (centerPoint === undefined)
-            return this.refPoint.add(new Vector<GlobalPoint>({x: this.w/2, y: this.h/2}));
+            return this.refPoint.add(new Vector(this.w/2, this.h/2));
         this.refPoint.x = centerPoint.x - this.w / 2;
         this.refPoint.y = centerPoint.y - this.h / 2;
     }
 
     visibleInCanvas(canvas: HTMLCanvasElement): boolean {
-        return !(g2lx(this.refPoint.x) > canvas.width || g2ly(this.refPoint.y) > canvas.height ||
+        const coreVisible = !(g2lx(this.refPoint.x) > canvas.width || g2ly(this.refPoint.y) > canvas.height ||
                     g2lx(this.refPoint.x + this.w) < 0 || g2ly(this.refPoint.y + this.h) < 0);
+        if (coreVisible) return true;
+        for (let i=0; i < this.auras.length; i++) {
+            const aura = this.auras[i];
+            if (aura.value > 0) {
+                const auraCircle = new Circle(this.center(), aura.value);
+                if (auraCircle.visibleInCanvas(canvas)) return true;
+            }
+        }
+        return false;
     }
     snapToGrid() {
         const gs = Settings.gridSize;
         const center = this.center();
         const mx = center.x;
         const my = center.y;
+
+        let targetX;
+        let targetY;
+
         if ((this.w / gs) % 2 === 0) {
-            this.refPoint.x = Math.round(mx / gs) * gs - this.w / 2;
+            targetX = Math.round(mx / gs) * gs - this.w / 2;
         } else {
-            this.refPoint.x = (Math.round((mx + (gs / 2)) / gs) - (1 / 2)) * gs - this.w / 2;
+            targetX = (Math.round((mx + (gs / 2)) / gs) - (1 / 2)) * gs - this.w / 2;
         }
         if ((this.h / gs) % 2 === 0) {
-            this.refPoint.y = Math.round(my / gs) * gs - this.h / 2;
+            targetY = Math.round(my / gs) * gs - this.h / 2;
         } else {
-            this.refPoint.y = (Math.round((my + (gs / 2)) / gs) - (1 / 2)) * gs - this.h / 2;
+            targetY = (Math.round((my + (gs / 2)) / gs) - (1 / 2)) * gs - this.h / 2;
         }
+
+        const delta = calculateDelta(new Vector(targetX - this.refPoint.x, targetY - this.refPoint.y), this);
+        this.refPoint = this.refPoint.add(delta);
+
         this.invalidate(false);
     }
     resizeToGrid() {
         const gs = Settings.gridSize;
         this.refPoint.x = Math.round(this.refPoint.x / gs) * gs;
         this.refPoint.y = Math.round(this.refPoint.y / gs) * gs;
-        // UX improvement, the rounding is too aggressive otherwise
-        const dgs = 0.9 * gs;
-        this.w = Math.max(Math.round(this.w / dgs) * gs, gs);
-        this.h = Math.max(Math.round(this.h / dgs) * gs, gs);
+        this.w = Math.max(Math.round(this.w / gs) * gs, gs);
+        this.h = Math.max(Math.round(this.h / gs) * gs, gs);
         this.invalidate(false);
     }
     resize(resizedir: string, point: LocalPoint) {

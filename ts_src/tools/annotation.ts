@@ -2,9 +2,9 @@ import Text from "../shapes/text";
 import { GlobalPoint, LocalPoint } from "../geom";
 import Rect from "../shapes/rect";
 import gameManager from "../planarally";
-import { Layer } from "../layers";
 import { l2g } from "../units";
 import Settings from "../settings";
+import { Layer } from "../layers/layer";
 
 class AnnotationManager {
     annotationText: Text;

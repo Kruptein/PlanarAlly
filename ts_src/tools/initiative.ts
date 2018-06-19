@@ -9,10 +9,20 @@ export class InitiativeTracker {
         this.data = [];
         this.redraw();
     }
-    addInitiative(data: InitiativeData, sync: boolean) {
-        // Open the initiative tracker if it is not currently open.
+    contains(uuid: string) {
+        return this.data.some((d) => d.uuid === uuid);
+    }
+    show() {
         if (this.data.length === 0 || !gameManager.initiativeDialog.dialog("isOpen"))
             gameManager.initiativeDialog.dialog("open");
+    }
+    hide() {
+        if (this.data.length === 0 && gameManager.initiativeDialog.dialog("isOpen"))
+            gameManager.initiativeDialog.dialog("close");
+    }
+    addInitiative(data: InitiativeData, sync: boolean) {
+        // Open the initiative tracker if it is not currently open.
+        this.show();
         // If no initiative given, assume it 0
         if (data.initiative === undefined)
             data.initiative = 0;
@@ -37,8 +47,7 @@ export class InitiativeTracker {
             if (sync)
                 socket.emit("updateInitiative", { uuid: uuid });
         }
-        if (this.data.length === 0 && gameManager.initiativeDialog.dialog("isOpen"))
-            gameManager.initiativeDialog.dialog("close");
+        this.hide();
     };
     redraw() {
         gameManager.initiativeDialog.empty();

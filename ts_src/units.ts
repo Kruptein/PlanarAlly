@@ -1,4 +1,4 @@
-import { GlobalPoint, LocalPoint, Vector } from "./geom";
+import { GlobalPoint, LocalPoint, Ray } from "./geom";
 import Settings from "./settings";
 
 export function g2l(obj: GlobalPoint): LocalPoint {
@@ -29,15 +29,15 @@ export function g2lr(r: number) {
 }
 
 export function l2g(obj: LocalPoint): GlobalPoint;
-export function l2g(obj: Vector<LocalPoint>): Vector<GlobalPoint>;
-export function l2g(obj: LocalPoint|Vector<LocalPoint>): GlobalPoint|Vector<GlobalPoint> {
+export function l2g(obj: Ray<LocalPoint>): Ray<GlobalPoint>;
+export function l2g(obj: LocalPoint|Ray<LocalPoint>): GlobalPoint|Ray<GlobalPoint> {
     const z = Settings.zoomFactor;
         const panX = Settings.panX;
         const panY = Settings.panY;
     if (obj instanceof LocalPoint) {
         return new GlobalPoint((obj.x / z) - panX, (obj.y / z) - panY);
     } else {
-        return new Vector<GlobalPoint>({x: obj.direction.x / z, y: obj.direction.y / z}, obj.origin === undefined ? undefined : l2g(obj.origin));
+        return new Ray<GlobalPoint>(l2g(obj.origin), obj.direction.multiply(1 / z), obj.tMax);
     }
 }
 
@@ -47,4 +47,12 @@ export function l2gx(x: number) {
 
 export function l2gy(y: number) {
     return l2g(new LocalPoint(0, y)).y;
+}
+
+export function l2gz(z: number) {
+    return z / Settings.zoomFactor;
+}
+
+export function l2gr(r: number) {
+    return l2gz(getUnitDistance(r))
 }

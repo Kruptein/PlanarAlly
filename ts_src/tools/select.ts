@@ -1,5 +1,5 @@
 import { SelectOperations, calculateDelta } from "./tools";
-import { Vector, LocalPoint, GlobalPoint } from "../geom";
+import { Vector, LocalPoint, GlobalPoint, Ray } from "../geom";
 import Rect from "../shapes/rect";
 import gameManager from "../planarally";
 import { getMouse } from "../utils";
@@ -13,9 +13,10 @@ import CircularToken from "../shapes/circulartoken";
 export class SelectTool extends Tool {
     mode: SelectOperations = SelectOperations.Noop;
     resizedir: string = "";
+    deltaChanged: boolean = false;
     // Because we never drag from the asset's (0, 0) coord and want a smoother drag experience
     // we keep track of the actual offset within the asset.
-    drag: Vector<LocalPoint> = new Vector<LocalPoint>({ x: 0, y: 0 }, new LocalPoint(0, 0));
+    drag: Ray<LocalPoint> = new Ray<LocalPoint>(new LocalPoint(0, 0), new Vector(0, 0));
     selectionStartPoint: GlobalPoint = new GlobalPoint(-1000, -1000);
     selectionHelper: Rect = new Rect(this.selectionStartPoint, 0, 0);
     dialog = $("#createtokendialog").dialog({
@@ -89,7 +90,8 @@ export class SelectTool extends Tool {
                     sel.onSelection();
                 }
                 this.mode = SelectOperations.Drag;
-                this.drag = mouse.subtract(g2l(sel.refPoint));
+                const lref = g2l(sel.refPoint);
+                this.drag = new Ray<LocalPoint>(lref, mouse.subtract(lref));
                 // this.drag.origin = g2l(sel.refPoint);
                 // this.drag.direction = mouse.subtract(this.drag.origin);
                 layer.invalidate(true);
@@ -118,7 +120,8 @@ export class SelectTool extends Tool {
         }
         const layer = gameManager.layerManager.getLayer()!;
         const mouse = getMouse(e);
-        const z = Settings.zoomFactor;
+        this.deltaChanged = false;
+        
         if (this.mode === SelectOperations.GroupSelect) {
             // Currently draw on active this
             const endPoint = l2g(mouse);
@@ -132,7 +135,9 @@ export class SelectTool extends Tool {
             layer.invalidate(true);
         } else if (layer.selection.length) {
             const og = g2l(layer.selection[layer.selection.length - 1].refPoint);
-            let delta = l2g(mouse.subtract(og.add(this.drag)));
+            const origin = og.add(this.drag.direction);
+            let delta = mouse.subtract(origin).multiply(1/Settings.zoomFactor);
+            const ogDelta = delta;
             if (this.mode === SelectOperations.Drag) {
                 // If we are on the tokens layer do a movement block check.
                 if (layer.name === 'tokens' && !(e.shiftKey && Settings.IS_DM)) {
@@ -140,6 +145,7 @@ export class SelectTool extends Tool {
                         const sel = layer.selection[i];
                         if (sel.uuid === this.selectionHelper.uuid) continue; // the selection helper should not be treated as a real shape.
                         delta = calculateDelta(delta, sel);
+                        if (delta !== ogDelta) this.deltaChanged = true;
                     }
                 }
                 // Actually apply the delta on all shapes
@@ -147,6 +153,7 @@ export class SelectTool extends Tool {
                     const sel = layer.selection[i];
                     sel.refPoint = sel.refPoint.add(delta);
                     if (sel !== this.selectionHelper) {
+                        if (sel.visionObstruction) gameManager.recalculateBoundingVolume();
                         socket.emit("shapeMove", { shape: sel.asDict(), temporary: true });
                     }
                 }
@@ -156,6 +163,7 @@ export class SelectTool extends Tool {
                     const sel = layer.selection[i];
                     sel.resize(this.resizedir, mouse);
                     if (sel !== this.selectionHelper) {
+                        if (sel.visionObstruction) gameManager.recalculateBoundingVolume();
                         socket.emit("shapeMove", { shape: sel.asDict(), temporary: true });
                     }
                     layer.invalidate(false);
@@ -188,7 +196,7 @@ export class SelectTool extends Tool {
             return;
         }
         const layer = gameManager.layerManager.getLayer()!;
-        const mouse = getMouse(e);
+        
         if (this.mode === SelectOperations.GroupSelect) {
             layer.selection = [];
             layer.shapes.forEach((shape) => {
@@ -213,11 +221,12 @@ export class SelectTool extends Tool {
             layer.selection.forEach((sel) => {
                 if (this.mode === SelectOperations.Drag) {
                     if (this.drag.origin!.x === g2lx(sel.refPoint.x) && this.drag.origin!.y === g2ly(sel.refPoint.y)) { return }
-                    if (Settings.useGrid && !e.altKey) {
+                    if (Settings.useGrid && !e.altKey && !this.deltaChanged) {
                         sel.snapToGrid();
                     }
 
                     if (sel !== this.selectionHelper) {
+                        if (sel.visionObstruction) gameManager.recalculateBoundingVolume();
                         socket.emit("shapeMove", { shape: sel.asDict(), temporary: false });
                     }
                     layer.invalidate(false);
@@ -227,6 +236,7 @@ export class SelectTool extends Tool {
                         sel.resizeToGrid();
                     }
                     if (sel !== this.selectionHelper) {
+                        if (sel.visionObstruction) gameManager.recalculateBoundingVolume();
                         socket.emit("shapeMove", { shape: sel.asDict(), temporary: false });
                     }
                     layer.invalidate(false);
@@ -242,10 +252,8 @@ export class SelectTool extends Tool {
         }
         const layer = gameManager.layerManager.getLayer()!;
         const mouse = getMouse(e);
-        const mx = mouse.x;
-        const my = mouse.y;
         let hit = false;
-        layer.shapes.forEach(function (shape) {
+        layer.selection.forEach(function (shape) {
             if (!hit && shape.contains(l2g(mouse))) {
                 hit = true;
                 shape.showContextMenu(mouse);
@@ -263,6 +271,7 @@ export class SelectTool extends Tool {
             if (Settings.IS_DM)
                 data += "<li data-action='bringPlayers' class='context-clickable'>Bring players</li>";
             data += "<li data-action='createToken' class='context-clickable'>Create basic token</li>";
+            data += "<li data-action='showInitiative' class='context-clickable'>Show initiative</li>";
             data += "</ul>";
             $menu.html(data);
             const self = this;
@@ -277,6 +286,9 @@ export class SelectTool extends Tool {
                     case 'createToken':
                         self.selectionStartPoint = l2g(mouse);
                         self.dialog.dialog("open");
+                        break;
+                    case 'showInitiative':
+                        gameManager.initiativeTracker.show();
                         break;
                 }
                 $menu.hide();

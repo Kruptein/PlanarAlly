@@ -1,17 +1,16 @@
-import { l2g, g2l } from "./units";
+import { g2l } from "./units";
 import { OrderedMap } from './utils';
-import { LayerManager, Layer, GridLayer, FOWLayer } from "./layers";
 import { ClientOptions, BoardInfo, ServerShape, InitiativeData } from './api_types';
-import Asset from './shapes/asset';
 import { createShapeFromDict } from './shapes/utils';
 import { Tool } from './tools/tool';
 import { InitiativeTracker } from './tools/initiative';
-import { capitalize } from './utils';
-import { GlobalPoint, LocalPoint } from "./geom";
-import gameManager from "./planarally";
+import { GlobalPoint } from "./geom";
 import { socket, sendClientOptions } from "./socket";
 import Settings from "./settings";
 import AnnotationManager from "./tools/annotation";
+import BoundingVolume from "./bvh/bvh";
+import { LayerManager } from "./layers/manager";
+import gameManager from "./planarally";
 
 export class GameManager {
     layerManager = new LayerManager();
@@ -37,7 +36,10 @@ export class GameManager {
         width: '160px'
     });
 
+    BV!: BoundingVolume;
+
     constructor() {
+        this.recalculateBoundingVolume();
         this.gridColour.spectrum({
             showInput: true,
             allowEmpty: true,
@@ -68,6 +70,9 @@ export class GameManager {
             }
         });
     }
+    recalculateBoundingVolume() {
+        this.BV = new BoundingVolume(this.lightblockers);
+    }
 
     setupBoard(room: BoardInfo): void {
         this.layerManager = new LayerManager();
@@ -75,7 +80,6 @@ export class GameManager {
         layersdiv.empty();
         const layerselectdiv = $('#layerselect');
         layerselectdiv.find("ul").empty();
-        let selectable_layers = 0;
 
         const lm = $("#locations-menu").find("div");
         lm.children().off();
@@ -97,82 +101,12 @@ export class GameManager {
         });
 
         for (let i = 0; i < room.board.layers.length; i++) {
-            const new_layer = room.board.layers[i];
-            // UI changes
-            layersdiv.append("<canvas id='" + new_layer.name + "-layer' style='z-index: " + i + "'></canvas>");
-            if (new_layer.selectable) {
-                let extra = '';
-                if (selectable_layers === 0) extra = " class='layer-selected'";
-                layerselectdiv.find('ul').append("<li id='select-" + new_layer.name + "'" + extra + "><a href='#'>" + capitalize(new_layer.name) + "</a></li>");
-                selectable_layers += 1;
-            }
-            const canvas = <HTMLCanvasElement>$('#' + new_layer.name + '-layer')[0];
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-            // State changes
-            let l: Layer;
-            if (new_layer.grid)
-                l = new GridLayer(canvas, new_layer.name);
-            else if (new_layer.name === 'fow')
-                l = new FOWLayer(canvas, new_layer.name);
-            else
-                l = new Layer(canvas, new_layer.name);
-            l.selectable = new_layer.selectable;
-            l.player_editable = new_layer.player_editable;
-            gameManager.layerManager.addLayer(l);
-            if (new_layer.grid) {
-                Settings.setGridSize(new_layer.size, false);
-                $("#grid-layer").droppable({
-                    accept: ".draggable",
-                    drop: function (event, ui) {
-                        if (gameManager.layerManager.getLayer() === undefined) {
-                            console.log("No active layer to drop the token on");
-                            return;
-                        }
-                        const l = gameManager.layerManager.getLayer()!;
-                        const jCanvas = $(l.canvas);
-                        if (jCanvas.length === 0) {
-                            console.log("Canvas missing");
-                            return;
-                        }
-                        const offset = jCanvas.offset()!;
-
-                        const loc = new LocalPoint(ui.offset.left - offset.left, ui.offset.top - offset.top);
-
-                        const settings_menu = $("#menu")!;
-                        const locations_menu = $("#locations-menu")!;
-
-                        if (settings_menu.is(":visible") && loc.x < settings_menu.width()!)
-                            return;
-                        if (locations_menu.is(":visible") && loc.y < locations_menu.width()!)
-                            return;
-                        // width = ui.helper[0].width;
-                        // height = ui.helper[0].height;
-                        const wloc = l2g(loc);
-                        const img = <HTMLImageElement>ui.draggable[0].children[0];
-                        const asset = new Asset(img, wloc, img.width, img.height);
-                        asset.src = new URL(img.src).pathname;
-                        asset.isToken = true;
-
-                        if (Settings.useGrid) {
-                            const gs = Settings.gridSize;
-                            asset.refPoint.x = Math.round(asset.refPoint.x / gs) * gs;
-                            asset.refPoint.y = Math.round(asset.refPoint.y / gs) * gs;
-                            asset.w = Math.max(Math.round(asset.w / gs) * gs, gs);
-                            asset.h = Math.max(Math.round(asset.h / gs) * gs, gs);
-                        }
-
-                        l.addShape(asset, true);
-                    }
-                });
-            } else {
-                l.setShapes(new_layer.shapes);
-            }
+            this.layerManager.createLayer(room.board.layers[i]);
         }
         // Force the correct opacity render on other layers.
-        gameManager.layerManager.setLayer(gameManager.layerManager.getLayer()!.name);
+        this.layerManager.setLayer(this.layerManager.getLayer()!.name);
         
-        if (selectable_layers > 1) {
+        if (this.layerManager.layers.reduce((acc, val) => acc + (val.selectable ? 1 : 0), 0) > 1) {
             layerselectdiv.find("li").on("click", function () {
                 const name = this.id.split("-")[1];
                 const old = layerselectdiv.find("#select-" + gameManager.layerManager.selectedLayer);
@@ -192,7 +126,7 @@ export class GameManager {
     }
 
     addShape(shape: ServerShape): void {
-        if (!gameManager.layerManager.hasLayer(shape.layer)) {
+        if (!this.layerManager.hasLayer(shape.layer)) {
             console.log(`Shape with unknown layer ${shape.layer} could not be added`);
             return;
         }
@@ -207,7 +141,7 @@ export class GameManager {
     }
 
     moveShape(shape: ServerShape): void {
-        if (!gameManager.layerManager.hasLayer(shape.layer)) {
+        if (!this.layerManager.hasLayer(shape.layer)) {
             console.log(`Shape with unknown layer ${shape.layer} could not be added`);
             return;
         }
@@ -217,12 +151,11 @@ export class GameManager {
             return;
         }
         const real_shape = Object.assign(this.layerManager.UUIDMap.get(shape.uuid), sh);
-        real_shape.checkLightSources();
         this.layerManager.getLayer(real_shape.layer)!.onShapeMove(real_shape);
     }
 
     updateShape(data: { shape: ServerShape; redraw: boolean; }): void {
-        if (!gameManager.layerManager.hasLayer(data.shape.layer)) {
+        if (!this.layerManager.hasLayer(data.shape.layer)) {
             console.log(`Shape with unknown layer ${data.shape.layer} could not be added`);
             return;
         }
@@ -274,7 +207,7 @@ export class GameManager {
         const l_pos = g2l(position);
         Settings.panX += ((window.innerWidth / 2) - l_pos.x) / Settings.zoomFactor;
         Settings.panY += ((window.innerHeight / 2) - l_pos.y) / Settings.zoomFactor;
-        gameManager.layerManager.invalidate();
+        this.layerManager.invalidate();
         sendClientOptions();
     }
 }

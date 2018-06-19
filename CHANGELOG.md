@@ -33,6 +33,7 @@ UPDATE YOUR SAVE BY EXECUTING `python ../scripts/convert/0_to_1.py` FROM WITHIN 
 
 ### Fixed
 - Shapes no longer get stuck in movementblockers on occassions
+- Auras were ignored in the visibility check during layer shape draw
 
 ### Reverted
 - assets dropped on canvas are no longer tagged as token

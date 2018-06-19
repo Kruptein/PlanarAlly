@@ -4,6 +4,7 @@ import { GlobalPoint, Vector, LocalPoint } from "../geom";
 import { g2lx, g2ly, l2g, l2gy, l2gx } from "../units";
 import Settings from "../settings";
 import { calculateDelta } from "../tools/tools";
+import Circle from "./circle";
 
 export default abstract class BaseRect extends Shape {
     w: number;
@@ -60,8 +61,17 @@ export default abstract class BaseRect extends Shape {
     }
 
     visibleInCanvas(canvas: HTMLCanvasElement): boolean {
-        return !(g2lx(this.refPoint.x) > canvas.width || g2ly(this.refPoint.y) > canvas.height ||
+        const coreVisible = !(g2lx(this.refPoint.x) > canvas.width || g2ly(this.refPoint.y) > canvas.height ||
                     g2lx(this.refPoint.x + this.w) < 0 || g2ly(this.refPoint.y + this.h) < 0);
+        if (coreVisible) return true;
+        for (let i=0; i < this.auras.length; i++) {
+            const aura = this.auras[i];
+            if (aura.value > 0) {
+                const auraCircle = new Circle(this.center(), aura.value);
+                if (auraCircle.visibleInCanvas(canvas)) return true;
+            }
+        }
+        return false;
     }
     snapToGrid() {
         const gs = Settings.gridSize;

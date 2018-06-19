@@ -13,6 +13,7 @@ import CircularToken from "../shapes/circulartoken";
 export class SelectTool extends Tool {
     mode: SelectOperations = SelectOperations.Noop;
     resizedir: string = "";
+    deltaChanged: boolean = false;
     // Because we never drag from the asset's (0, 0) coord and want a smoother drag experience
     // we keep track of the actual offset within the asset.
     drag: Ray<LocalPoint> = new Ray<LocalPoint>(new LocalPoint(0, 0), new Vector(0, 0));
@@ -119,7 +120,8 @@ export class SelectTool extends Tool {
         }
         const layer = gameManager.layerManager.getLayer()!;
         const mouse = getMouse(e);
-        const z = Settings.zoomFactor;
+        this.deltaChanged = false;
+        
         if (this.mode === SelectOperations.GroupSelect) {
             // Currently draw on active this
             const endPoint = l2g(mouse);
@@ -135,6 +137,7 @@ export class SelectTool extends Tool {
             const og = g2l(layer.selection[layer.selection.length - 1].refPoint);
             const origin = og.add(this.drag.direction);
             let delta = mouse.subtract(origin).multiply(1/Settings.zoomFactor);
+            const ogDelta = delta;
             if (this.mode === SelectOperations.Drag) {
                 // If we are on the tokens layer do a movement block check.
                 if (layer.name === 'tokens' && !(e.shiftKey && Settings.IS_DM)) {
@@ -142,6 +145,7 @@ export class SelectTool extends Tool {
                         const sel = layer.selection[i];
                         if (sel.uuid === this.selectionHelper.uuid) continue; // the selection helper should not be treated as a real shape.
                         delta = calculateDelta(delta, sel);
+                        if (delta !== ogDelta) this.deltaChanged = true;
                     }
                 }
                 // Actually apply the delta on all shapes
@@ -192,7 +196,7 @@ export class SelectTool extends Tool {
             return;
         }
         const layer = gameManager.layerManager.getLayer()!;
-        const mouse = getMouse(e);
+        
         if (this.mode === SelectOperations.GroupSelect) {
             layer.selection = [];
             layer.shapes.forEach((shape) => {
@@ -217,7 +221,7 @@ export class SelectTool extends Tool {
             layer.selection.forEach((sel) => {
                 if (this.mode === SelectOperations.Drag) {
                     if (this.drag.origin!.x === g2lx(sel.refPoint.x) && this.drag.origin!.y === g2ly(sel.refPoint.y)) { return }
-                    if (Settings.useGrid && !e.altKey) {
+                    if (Settings.useGrid && !e.altKey && !this.deltaChanged) {
                         sel.snapToGrid();
                     }
 

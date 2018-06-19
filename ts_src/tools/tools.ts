@@ -75,7 +75,7 @@ export function calculateDelta(delta: Vector, sel: Shape, done?: string[]) {
             continue;
         const blocker = gameManager.layerManager.UUIDMap.get(gameManager.movementblockers[mb])!;
         const blockerBBox = blocker.getBoundingBox();
-        let found = blockerBBox.intersectsWith(newSelBBox);
+        let found = blockerBBox.intersectsWithInner(newSelBBox);
         if (!found) {
             // This is an edge case, precalculating the rays is not worth in this case.
             const ray = Ray.fromPoints(ogSelBBox.topLeft.add(delta.normalize()), newSelBBox.topLeft);

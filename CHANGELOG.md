@@ -25,10 +25,14 @@ UPDATE YOUR SAVE BY EXECUTING `python ../scripts/convert/0_to_1.py` FROM WITHIN 
     - All other right clicks will show the general purpose context menu
 - Light auras now properly follow the actual path formed by vision obstruction objects
 - FOW layer drawn shapes now retain their proper colour used during drawing.
+- Movement that is normally grid-snapping will go out off grid if it stops against a movement blocker
 - [tech] Cleaned up the Vector class, splitting it up in a Vector and a Ray class
     - Vector: purely direction indication
     - Ray: combination of an origin point and a vector
 - [tech] A much more performant ray box intersection algorithm is used
+
+### Fixed
+- Shapes no longer get stuck in movementblockers on occassions
 
 ### Reverted
 - assets dropped on canvas are no longer tagged as token

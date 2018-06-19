@@ -1,9 +1,10 @@
 import Shape from "./shape";
 import BoundingRect from "./boundingrect";
 import { g2l, l2g } from "../units";
-import { GlobalPoint, LocalPoint } from "../geom";
+import { GlobalPoint, LocalPoint, Vector } from "../geom";
 import { ServerCircle } from "../api_types";
 import Settings from "../settings";
+import { calculateDelta } from "../tools/tools";
 
 export default class Circle extends Shape {
     type = "circle";
@@ -75,16 +76,19 @@ export default class Circle extends Shape {
     visibleInCanvas(canvas: HTMLCanvasElement): boolean { return true; } // TODO
     snapToGrid() {
         const gs = Settings.gridSize;
+        let targetX, targetY;
         if ((2 * this.r / gs) % 2 === 0) {
-            this.refPoint.x = Math.round(this.refPoint.x / gs) * gs;
+            targetX = Math.round(this.refPoint.x / gs) * gs;
         } else {
-            this.refPoint.x = Math.round((this.refPoint.x - (gs/2)) / gs) * gs + this.r;
+            targetX = Math.round((this.refPoint.x - (gs/2)) / gs) * gs + this.r;
         }
         if ((2 * this.r / gs) % 2 === 0) {
-            this.refPoint.y = Math.round(this.refPoint.y / gs) * gs;
+            targetY = Math.round(this.refPoint.y / gs) * gs;
         } else {
-            this.refPoint.y = Math.round((this.refPoint.y - (gs/2)) / gs) * gs + this.r;
+            targetY = Math.round((this.refPoint.y - (gs/2)) / gs) * gs + this.r;
         }
+        const delta = calculateDelta(new Vector(targetX - this.refPoint.x, targetY - this.refPoint.y), this);
+        this.refPoint = this.refPoint.add(delta);
         this.invalidate(false);
     }
     resizeToGrid() {

@@ -1,8 +1,8 @@
 import Shape from "./shape";
 import BoundingRect from "./boundingrect";
-import { g2lx, g2ly } from "../units";
+import { g2lx, g2ly, g2lr } from "../units";
 import { GlobalPoint } from "../geom";
-import gameManager from "../planarally";
+import { getFogColour } from "../utils";
 
 export default class MultiLine extends Shape {
     type = "multiline";
@@ -46,10 +46,10 @@ export default class MultiLine extends Shape {
             ctx.lineTo(g2lx(p.x), g2ly(p.y));
         }
         if (this.fill === 'fog')
-            ctx.strokeStyle = gameManager.fowColour.spectrum("get").toRgbString();
+            ctx.strokeStyle = getFogColour();
         else
             ctx.strokeStyle = this.fill;
-        ctx.lineWidth = this.size;
+        ctx.lineWidth = g2lr(this.size);
         ctx.stroke();
     }
     contains(point: GlobalPoint): boolean {

@@ -20,6 +20,10 @@ export function onKeyUp (event: KeyboardEvent) {
         const l = gameManager.layerManager.getLayer()!;
         for(let i=l.selection.length - 1; i >= 0; i--) {
             const sel = l.selection[i];
+            if ((<SelectTool>gameManager.tools.get("select")!).selectionHelper.uuid === sel.uuid) {
+                l.selection.splice(i, 1);
+                continue;
+            }
             l.removeShape(sel, true, false);
             gameManager.initiativeTracker.removeInitiative(sel.uuid, true, false);
         }

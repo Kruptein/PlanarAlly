@@ -13,6 +13,9 @@ All notable changes to this project will be documented in this file.
 ### Changed
 - FOW tool now fills its hide always with the fog colour, so that it is correct across different clients
 
+### Fixed
+- Deleting multiple shapes no longer sends the selectionhelper to the server
+
 ## [0.8] - 2018-06-19
 
 This release greatly increases performance of all lighting modes and also properly 

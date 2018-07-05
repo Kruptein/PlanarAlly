@@ -1,6 +1,6 @@
 import Shape from "./shape";
 import BoundingRect from "./boundingrect";
-import { g2lx, g2ly } from "../units";
+import { g2lx, g2ly, g2lr } from "../units";
 import { GlobalPoint } from "../geom";
 
 export default class Line extends Shape {
@@ -32,7 +32,7 @@ export default class Line extends Shape {
         ctx.moveTo(g2lx(this.refPoint.x), g2ly(this.refPoint.y));
         ctx.lineTo(g2lx(this.endPoint.x), g2ly(this.endPoint.y));
         ctx.strokeStyle = 'rgba(255,0,0, 0.5)';
-        ctx.lineWidth = 3;
+        ctx.lineWidth = g2lr(3);
         ctx.stroke();
     }
     contains(point: GlobalPoint): boolean {

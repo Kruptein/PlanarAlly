@@ -4,6 +4,7 @@ import Settings from "../settings";
 import { g2l, g2lz, getUnitDistance, g2lr, g2lx, g2ly } from "../units";
 import Circle from "../shapes/circle";
 import { GlobalPoint, Ray } from "../geom";
+import { getFogColour } from "../utils";
 
 export class FOWLayer extends Layer {
     isVisionLayer: boolean = true;
@@ -128,12 +129,7 @@ export class FOWLayer extends Layer {
                 ctx.drawImage(gameManager.layerManager.getLayer("fow-players")!.canvas, 0, 0);
             }
             ctx.globalCompositeOperation = 'source-out';
-            const tc = gameManager.fowColour.spectrum("get");
-            if (Settings.IS_DM)
-                tc.setAlpha(Settings.fowOpacity);
-            else
-                tc.setAlpha(1);
-            ctx.fillStyle = tc.toRgbString();
+            ctx.fillStyle = getFogColour();
             ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
 
             super.draw(!Settings.fullFOW);

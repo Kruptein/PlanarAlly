@@ -22,12 +22,14 @@ export class FOWTool extends Tool {
         const layer = gameManager.layerManager.getLayer("fow")!;
         this.startPoint = l2g(getMouse(e));
         this.rect = new Rect(this.startPoint.clone(), 0, 0, "fog");
-        layer.addShape(this.rect, true, false);
 
-        if ($("#fow-reveal").prop("checked"))
+        if ($("#fow-reveal").prop("checked")) {
             this.rect.globalCompositeOperation = "destination-out";
-        else
-            this.rect.globalCompositeOperation = "source-over";
+            this.rect.fill = "rgba(0,0,0,1)";
+        } else
+            this.rect.globalCompositeOperation = "xor";
+        
+        layer.addShape(this.rect, true, false);
     }
     onMouseMove(e: MouseEvent) {
         if (!this.active) return;

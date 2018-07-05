@@ -147,6 +147,7 @@ export class Layer {
                 ctx.lineWidth = this.selectionWidth;
                 const z = Settings.zoomFactor;
                 this.selection.forEach(function (sel) {
+                    ctx.globalCompositeOperation = sel.globalCompositeOperation;
                     const bb = sel.getBoundingBox();
                     // TODO: REFACTOR THIS TO Shape.drawSelection(ctx);
                     ctx.strokeRect(g2lx(bb.topLeft.x), g2ly(bb.topLeft.y), bb.w * z, bb.h * z);

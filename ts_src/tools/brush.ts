@@ -23,12 +23,14 @@ export class BrushTool extends Tool {
         const layer = gameManager.layerManager.getLayer("fow")!;
         this.startPoint = l2g(getMouse(e));
         this.brush = new MultiLine(this.startPoint.clone(), [], parseInt($("#brush-size").prop("value")), "fog");
-        layer.addShape(this.brush, true, false);
 
-        if ($("#brush-reveal").prop("checked"))
+        if ($("#brush-reveal").prop("checked")) {
             this.brush.globalCompositeOperation = "destination-out";
-        else
-            this.brush.globalCompositeOperation = "source-over";
+            this.brush.fill = "rgba(0, 0, 0, 1)";
+        } else
+            this.brush.globalCompositeOperation = "xor";
+        
+        layer.addShape(this.brush, true, false);
     }
     onMouseMove(e: MouseEvent) {
         if (!this.active) return;

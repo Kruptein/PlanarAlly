@@ -53,6 +53,7 @@ export class SelectTool extends Tool {
     constructor() {
         super();
         this.selectionHelper.owners.push(Settings.username);
+        this.selectionHelper.globalCompositeOperation = "source-over";
     }
     onMouseDown(e: MouseEvent): void {
         if (gameManager.layerManager.getLayer() === undefined) {

@@ -9,6 +9,8 @@ All notable changes to this project will be documented in this file.
 ### Added
 - Brush tool
     - Similar behaviour currently to the fow tool, but actually provides much more freedom as it is a freehand brush
+    - Also shows a brush tip while moving the mouse
+- [tech] tools onSelect and onDeselect for more finegrained tweaking and UI helpers
 
 ### Changed
 - FOW tool now fills its hide always with the fog colour, so that it is correct across different clients

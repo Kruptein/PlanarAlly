@@ -36,6 +36,7 @@ export function setupTools(): void {
         toolLi.on("click", function () {
             const index = tools.indexOf(tool);
             if (index !== gameManager.selectedTool) {
+                gameManager.tools.getIndexValue(gameManager.selectedTool).onDeselect();
                 $('.tool-selected').removeClass("tool-selected");
                 $(this).addClass("tool-selected");
                 gameManager.selectedTool = index;
@@ -47,6 +48,7 @@ export function setupTools(): void {
                 } else {
                     detail.hide();
                 }
+                gameManager.tools.getIndexValue(gameManager.selectedTool).onSelect();
             }
         });
     });

@@ -5,6 +5,7 @@ import { GlobalPoint, LocalPoint, Vector } from "../geom";
 import { ServerCircle } from "../api_types";
 import Settings from "../settings";
 import { calculateDelta } from "../tools/tools";
+import { getFogColour } from "../utils";
 
 export default class Circle extends Shape {
     type = "circle";
@@ -38,7 +39,10 @@ export default class Circle extends Shape {
     draw(ctx: CanvasRenderingContext2D) {
         super.draw(ctx);
         ctx.beginPath();
-        ctx.fillStyle = this.fill;
+        if (this.fill === 'fog')
+            ctx.fillStyle = getFogColour();
+        else
+            ctx.fillStyle = this.fill;
         const loc = g2l(this.refPoint);
         ctx.arc(loc.x, loc.y, this.r * Settings.zoomFactor, 0, 2 * Math.PI);
         ctx.fill();

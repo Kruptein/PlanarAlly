@@ -90,6 +90,11 @@ export interface ServerLine extends ServerShape {
     x2: number;
     y2: number;
 }
+export interface ServerMultiLine extends ServerShape {
+    points: {x: number, y: number}[];
+    size: number;
+    fill: string;
+}
 export interface ServerText extends ServerShape {
     text: string;
     font: string;

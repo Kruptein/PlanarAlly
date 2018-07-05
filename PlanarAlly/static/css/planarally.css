@@ -384,6 +384,12 @@ a, a:visited, a:hover, a:active {
 #tooldetail > div {
     display: grid;
     grid-template-columns: 50% 50%;
+    grid-row-gap: 2px;
+}
+
+#tooldetail > div input {
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .switch {

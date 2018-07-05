@@ -4,10 +4,11 @@ import Circle from "./circle";
 import Line from "./line";
 import Text from "./text";
 import Asset from "./asset";
-import { ServerShape, ServerRect, ServerCircle, ServerLine, ServerText, ServerAsset, ServerCircularToken } from "../api_types";
+import { ServerShape, ServerRect, ServerCircle, ServerLine, ServerText, ServerAsset, ServerCircularToken, ServerMultiLine } from "../api_types";
 import Shape from "./shape";
 import { GlobalPoint } from "../geom";
 import CircularToken from "./circulartoken";
+import MultiLine from "./multiline";
 
 export function createShapeFromDict(shape: ServerShape, dummy?: boolean) {
     // TODO: is this dummy stuff actually needed, do we ever want to return the local shape?
@@ -32,6 +33,9 @@ export function createShapeFromDict(shape: ServerShape, dummy?: boolean) {
     } else if (shape.type === 'line') {
         const line = <ServerLine>shape;
         sh = new Line(refPoint, new GlobalPoint(line.x2, line.y2), line.uuid);
+    } else if (shape.type === 'multiline') {
+        const multiline = <ServerMultiLine>shape;
+        sh = new MultiLine(refPoint, multiline.points.map((p) => new GlobalPoint(p.x, p.y)), multiline.size, multiline.fill, multiline.uuid);
     } else if (shape.type === 'text') {
         const text = <ServerText>shape;
         sh = new Text(refPoint, text.text, text.font, text.angle, text.fill, text.uuid);

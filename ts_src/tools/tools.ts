@@ -9,6 +9,7 @@ import { Vector, Ray } from "../geom";
 import Shape from "../shapes/shape";
 import { capitalize } from "../utils";
 import Settings from "../settings";
+import { BrushTool } from "./brush";
 
 export enum SelectOperations {
     Noop,
@@ -27,8 +28,8 @@ export function setupTools(): void {
         const extra = tool.defaultSelect ? " class='tool-selected'" : "";
         const toolLi = $("<li id='tool-" + tool.name + "'" + extra + "><a href='#'>" + capitalize(tool.name) + "</a></li>");
         toolselectDiv.append(toolLi);
-        if (tool.hasDetail) {
-            const div = toolInstance.detailDiv!;
+        if (tool.hasDetail && toolInstance.detailDiv !== undefined) {
+            const div = toolInstance.detailDiv;
             $('#tooldetail').append(div);
             div.hide();
         }
@@ -57,6 +58,7 @@ const tools = [
     { name: "draw", playerTool: true, defaultSelect: false, hasDetail: true, clz: DrawTool },
     { name: "ruler", playerTool: true, defaultSelect: false, hasDetail: false, clz: RulerTool },
     { name: "fow", playerTool: false, defaultSelect: false, hasDetail: true, clz: FOWTool },
+    { name: "brush", playerTool: false, defaultSelect: false, hasDetail: true, clz: BrushTool },
     { name: "map", playerTool: false, defaultSelect: false, hasDetail: true, clz: MapTool },
 ];
 

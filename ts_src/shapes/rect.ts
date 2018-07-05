@@ -3,6 +3,7 @@ import { g2l } from "../units";
 import { GlobalPoint } from "../geom";
 import { ServerRect } from "../api_types";
 import Settings from "../settings";
+import gameManager from "../planarally";
 
 export default class Rect extends BaseRect {
     type = "rect"
@@ -24,7 +25,10 @@ export default class Rect extends BaseRect {
     }
     draw(ctx: CanvasRenderingContext2D) {
         super.draw(ctx);
-        ctx.fillStyle = this.fill;
+        if (this.fill === 'fog')
+            ctx.strokeStyle = gameManager.fowColour.spectrum("get").toRgbString();
+        else
+            ctx.strokeStyle = this.fill;
         const z = Settings.zoomFactor;
         const loc = g2l(this.refPoint);
         ctx.fillRect(loc.x, loc.y, this.w * z, this.h * z);

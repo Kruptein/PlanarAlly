@@ -4,6 +4,15 @@ All notable changes to this project will be documented in this file.
 [DM] denotes changes only useful for the dungeon master
 [tech] denotes technical changes
 
+## Unreleased
+
+### Added
+- Brush tool
+    - Similar behaviour currently to the fow tool, but actually provides much more freedom as it is a freehand brush
+
+### Changed
+- FOW tool now fills its hide always with the fog colour, so that it is correct across different clients
+
 ## [0.8] - 2018-06-19
 
 This release greatly increases performance of all lighting modes and also properly 

@@ -1,6 +1,9 @@
 @import url("https://maxcdn.bootstrapcdn.com/font-awesome/4.6.1/css/font-awesome.min.css");
+@import url('https://fonts.googleapis.com/css?family=Open+Sans');
 html, body, #main {
     height: 100%;
+    font-family: 'Open Sans', sans-serif;
+    font-weight: 200;
 }
 
 body {
@@ -71,16 +74,17 @@ a, a:visited, a:hover, a:active {
     top: 150px;
     right: 0;
     z-index: 10;
-    opacity: 0.3;
-    border-top-left-radius: 20px;
-    border-bottom-left-radius: 20px;
-    border: solid 1px;
+    opacity: 0.5;
+    border-top-left-radius: 5px;
+    border-bottom-left-radius: 5px;
+    border: #82c8a0 solid 1px;
     border-right: none;
     padding: 10px 35px 10px 10px;
-    background-color: white;
+    background-color: #eee;
 }
 
 #selection-menu:hover {
+    background-color: #82c8a0;
     opacity: 1;
 }
 

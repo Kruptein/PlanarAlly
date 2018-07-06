@@ -551,12 +551,16 @@ input:checked + .slider:before {
     align-items: center;
 }
 
-#initiativedialog {
+#initiative-list {
     padding: 0;
     display: grid;
-    grid-template-columns: [img] auto [value] 30px [visible] 30px [group] 30px [remove] 30px [end];
+    grid-template-columns: [active] 20px [img] auto [value] 30px [visible] 30px [group] 30px [remove] 30px [end];
     grid-column-gap: 2px;
     align-items: center;
+}
+#initiative-bar {
+    display: flex;
+    justify-content: flex-end;
 }
 
 #createtokendialog {

@@ -5,8 +5,12 @@ import Settings from "../settings";
 
 export class InitiativeTracker {
     data: InitiativeData[] = [];
+    active: number = 0;
+    roundCounter: number = 0;
     clear() {
         this.data = [];
+        this.active = 0;
+        this.roundCounter = 0;
         this.redraw();
     }
     contains(uuid: string) {
@@ -60,24 +64,28 @@ export class InitiativeTracker {
 
         const self = this;
 
-        this.data.forEach(function (data) {
-            if (data.owners === undefined) data.owners = [];
-            const repr = data.has_img ? $(`<img src="${data.src}" width="30px" data-uuid="${data.uuid}">`) : data.src;
-            // const img = data.src === undefined ? '' : $(`<img src="${data.src}" width="30px" data-uuid="${data.uuid}">`);
-            // const name = $(`<input type="text" placeholder="name" data-uuid="${sh.uuid}" value="${sh.name}" disabled='disabled' style="grid-column-start: name">`);
-            const val = $(`<input type="text" placeholder="value" data-uuid="${data.uuid}" value="${data.initiative}" style="grid-column-start: value">`);
-            const visible = $(`<div data-uuid="${data.uuid}"><i class="fas fa-eye"></i></div>`);
-            const group = $(`<div data-uuid="${data.uuid}"><i class="fas fa-users"></i></div>`);
-            const remove = $(`<div style="grid-column-start: remove" data-uuid="${data.uuid}"><i class="fas fa-trash-alt"></i></div>`);
+        const initiativeList = $("<div id='initiative-list'></div>");
 
-            visible.css("opacity", data.visible ? "1.0" : "0.3");
-            group.css("opacity", data.group ? "1.0" : "0.3");
-            if (!data.owners.includes(Settings.username) && !Settings.IS_DM) {
+        for(let i=0; i<this.data.length; i++) {
+            const actor = this.data[i];
+            if (actor.owners === undefined) actor.owners = [];
+            const active = this.active === i ? $(`<div data-uuid="${actor.uuid}"><i class='fas fa-chevron-right'></i></div>`) : $("");
+            const repr = actor.has_img
+                ? $(`<img src="${actor.src}" width="30px" data-uuid="${actor.uuid}" style="grid-column-start: img">`)
+                : $(`<span data-uuid="${actor.uuid}" style='grid-column-start: img'>${actor.src}</span>`);
+            const val = $(`<input type="text" placeholder="value" data-uuid="${actor.uuid}" value="${actor.initiative}" style="grid-column-start: value">`);
+            const visible = $(`<div data-uuid="${actor.uuid}"><i class="fas fa-eye"></i></div>`);
+            const group = $(`<div data-uuid="${actor.uuid}"><i class="fas fa-users"></i></div>`);
+            const remove = $(`<div style="grid-column-start: remove" data-uuid="${actor.uuid}"><i class="fas fa-trash-alt"></i></div>`);
+
+            visible.css("opacity", actor.visible ? "1.0" : "0.3");
+            group.css("opacity", actor.group ? "1.0" : "0.3");
+            if (!actor.owners.includes(Settings.username) && !Settings.IS_DM) {
                 val.prop("disabled", "disabled");
                 remove.css("opacity", "0.3");
             }
 
-            gameManager.initiativeDialog.append(repr).append(val).append(visible).append(group).append(remove);
+            initiativeList.append(active).append(repr).append(val).append(visible).append(group).append(remove);
 
             val.on("change", function () {
                 const d = self.data.find(d => d.uuid === $(this).data('uuid'));
@@ -133,6 +141,21 @@ export class InitiativeTracker {
                 $(`[data-uuid=${uuid}]`).remove();
                 self.removeInitiative(uuid, true, true);
             });
-        });
-    };
+        }
+
+        const initiativeBar = $(`<div id='initiative-bar'></div>`);
+
+        const nextTurn = $(`<div><input type='button' value='Next'</div>`);
+
+        nextTurn.on("click", function() { self.nextRound() });
+
+        initiativeBar.append(nextTurn);
+
+        gameManager.initiativeDialog.append(initiativeList).append(initiativeBar);
+    }
+
+    nextRound() {
+        this.active = ++this.active % this.data.length;
+        this.redraw();
+    }
 }

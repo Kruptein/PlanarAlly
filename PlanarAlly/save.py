@@ -3,13 +3,13 @@ import os
 import shelve
 import sys
 
-SAVE_VERSION = 1
+SAVE_VERSION = 2
 
 def check_save(save_file):
     try:
         shelf = shelve.open(save_file, 'r')
     except dbm.error:
-        print("Provided save file does not exist.Creating a new one.")
+        print("Provided save file does not exist. Creating a new one.")
         shelf = shelve.open(save_file, 'c')
         shelf['save_version'] = SAVE_VERSION
     else:

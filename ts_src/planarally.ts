@@ -4,9 +4,11 @@ import { throttle } from 'lodash';
 import { GameManager } from './manager';
 import { onKeyDown, onKeyUp } from './events/keyboard';
 import { onContextMenu, onPointerUp, onPointerMove, onPointerDown, scrollZoom } from './events/mouse';
+import Note from './note';
 import Settings from './settings';
 import BoundingVolume from "./bvh/bvh";
 import BoundingRect from "./shapes/boundingrect";
+import { uuidv4 } from "./utils";
 
 let gameManager = new GameManager();
 (<any>window).gameManager = gameManager;
@@ -86,9 +88,12 @@ $('#rm-locations').on("click", function () {
     }
 });
 
+$("#createNote").on("click", function () {
+    gameManager.newNote("New note", "...", true, true);
+});
+
 $("#gridSizeInput").on("change", function (e) {
     const gs = parseInt((<HTMLInputElement>e.target).value);
-    Settings
     Settings.setGridSize(gs, true);
 });
 

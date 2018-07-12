@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 [DM] denotes changes only useful for the dungeon master
 [tech] denotes technical changes
 
+## Unreleased
+
+### Fixed
+- Select box not working properly on the fow layer
+
 ## [0.8] - 2018-06-19
 
 This release greatly increases performance of all lighting modes and also properly 

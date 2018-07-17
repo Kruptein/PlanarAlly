@@ -555,10 +555,33 @@ input:checked + .slider:before {
 
 #initiative-list {
     padding: 0;
-    display: grid;
-    grid-template-columns: [active] 20px [img] auto [value] 30px [visible] 30px [group] 30px [remove] 30px [end];
+    display: flex;
+    flex-direction: column;
+    /* grid-template-columns: [active] 20px [img] auto [value] 30px [visible] 30px [group] 30px [remove] 30px [end];
     grid-column-gap: 2px;
+    align-items: center; */
+}
+
+.initiative-actor {
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-end;
     align-items: center;
+    padding: 2px 5px;
+    margin-bottom: 2px;
+    border-radius: 5px;
+    border: solid 2px rgba(0, 0, 0, 0);
+}
+
+.initiative-selected {
+    border-radius: 5px;
+    border: solid 2px #82c8a0;
+    background-color: #82c8a0;
+}
+
+.initiative-actor > * {
+    width: 30px;
+    margin-left: 2px;
 }
 
 #initiative-bar {

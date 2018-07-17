@@ -68,15 +68,17 @@ export class InitiativeTracker {
 
         for(let i=0; i<this.data.length; i++) {
             const actor = this.data[i];
+            const initiativeItem = $(`<div class='initiative-actor' data-uuid="${actor.uuid}"></div>`);
             if (actor.owners === undefined) actor.owners = [];
-            const active = this.active === i ? $(`<div data-uuid="${actor.uuid}"><i class='fas fa-chevron-right'></i></div>`) : $("");
+            // const active = this.active === i ? $(`<div style='width:20px;'><i class='fas fa-chevron-right'></i></div>`) : $("<div style='width:20px;'></div>");
+            if (this.active === i) initiativeItem.addClass("initiative-selected");
             const repr = actor.has_img
-                ? $(`<img src="${actor.src}" width="30px" data-uuid="${actor.uuid}" style="grid-column-start: img">`)
-                : $(`<span data-uuid="${actor.uuid}" style='grid-column-start: img'>${actor.src}</span>`);
-            const val = $(`<input type="text" placeholder="value" data-uuid="${actor.uuid}" value="${actor.initiative}" style="grid-column-start: value">`);
-            const visible = $(`<div data-uuid="${actor.uuid}"><i class="fas fa-eye"></i></div>`);
-            const group = $(`<div data-uuid="${actor.uuid}"><i class="fas fa-users"></i></div>`);
-            const remove = $(`<div style="grid-column-start: remove" data-uuid="${actor.uuid}"><i class="fas fa-trash-alt"></i></div>`);
+                ? $(`<img src="${actor.src}" width="30px" height="30px" style="grid-column-start: img">`)
+                : $(`<span style='grid-column-start: img'>${actor.src}</span>`);
+            const val = $(`<input type="text" placeholder="value" value="${actor.initiative}" style="grid-column-start: value">`);
+            const visible = $(`<div><i class="fas fa-eye"></i></div>`);
+            const group = $(`<div><i class="fas fa-users"></i></div>`);
+            const remove = $(`<div style="grid-column-start: remove"><i class="fas fa-trash-alt"></i></div>`);
 
             visible.css("opacity", actor.visible ? "1.0" : "0.3");
             group.css("opacity", actor.group ? "1.0" : "0.3");
@@ -85,10 +87,11 @@ export class InitiativeTracker {
                 remove.css("opacity", "0.3");
             }
 
-            initiativeList.append(active).append(repr).append(val).append(visible).append(group).append(remove);
+            initiativeItem.append(repr).append(val).append(visible).append(group).append(remove);
+            initiativeList.append(initiativeItem);
 
             val.on("change", function () {
-                const d = self.data.find(d => d.uuid === $(this).data('uuid'));
+                const d = self.data.find(d => d.uuid === $(this).parent().data('uuid'));
                 if (d === undefined) {
                     console.log("Initiativedialog change unknown uuid?");
                     return;
@@ -98,7 +101,7 @@ export class InitiativeTracker {
             });
 
             visible.on("click", function () {
-                const d = self.data.find(d => d.uuid === $(this).data('uuid'))!;
+                const d = self.data.find(d => d.uuid === $(this).parent().data('uuid'))!;
                 if (d === undefined) {
                     console.log("Initiativedialog visible unknown uuid?");
                     return;
@@ -114,7 +117,7 @@ export class InitiativeTracker {
             });
 
             group.on("click", function () {
-                const d = self.data.find(d => d.uuid === $(this).data('uuid'));
+                const d = self.data.find(d => d.uuid === $(this).parent().data('uuid'));
                 if (d === undefined) {
                     console.log("Initiativedialog group unknown uuid?");
                     return;
@@ -130,7 +133,7 @@ export class InitiativeTracker {
             });
 
             remove.on("click", function () {
-                const uuid = $(this).data('uuid');
+                const uuid = $(this).parent().data('uuid');
                 const d = self.data.find(d => d.uuid === uuid);
                 if (d === undefined) {
                     console.log("Initiativedialog remove unknown uuid?");

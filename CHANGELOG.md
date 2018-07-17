@@ -6,6 +6,13 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+SAVE_FORMAT CHANGED FROM 1 to 2
+BACKUP YOUR OLD SAVE BEFORE CONVERTING!
+UPDATE YOUR SAVE BY EXECUTING `python ../scripts/convert/1_to_2.py` FROM WITHIN THE `PlanarAlly` FOLDER THAT CONTAINS YOUR SAVE FILE, THE SERVER CONFIG AND THE OTHER PYTHON FILES!!!
+
+### Added
+- Added a note system
+
 ### Fixed
 - Select box not working properly on the fow layer
 

@@ -374,6 +374,40 @@ async def update_initiative(sid, data):
             await sio.emit("updateInitiative", data, room=croom, namespace='/planarally')
 
 
+@sio.on("updateInitiativeOrder", namespace='/planarally')
+@auth.login_required(app, sio)
+async def update_initiative_order(sid, data):
+    policy = app['AuthzPolicy']
+    username = policy.sio_map[sid]['user'].username
+    room = policy.sio_map[sid]['room']
+    location = room.get_active_location(username)
+
+    if room.creator != username:
+        print(f"{username} attempted to change the initiative order")
+        return
+    
+    location.initiative.sort(key=lambda init: data.index(init['uuid']))
+
+    await sio.emit("updateInitiativeOrder", data, room=location.sioroom, skip_sid=sid, namespace='/planarally')
+
+
+@sio.on("updateInitiativeRound", namespace='/planarally')
+@auth.login_required(app, sio)
+async def update_initiative_round(sid, data):
+    policy = app['AuthzPolicy']
+    username = policy.sio_map[sid]['user'].username
+    room = policy.sio_map[sid]['room']
+    location = room.get_active_location(username)
+
+    if room.creator != username:
+        print(f"{username} attempted to advance the initiative tracker")
+        return
+    
+    location.initiativeTurn = data
+
+    await sio.emit("updateInitiativeRound", data, room=location.sioroom, skip_sid=sid, namespace='/planarally')
+
+
 @sio.on("set clientOptions", namespace='/planarally')
 @auth.login_required(app, sio)
 async def set_client(sid, data):
@@ -520,6 +554,7 @@ async def test_connect(sid, environ):
                     if shape and username in shape.get('owners', []) or i.get("visible", False):
                         initiatives.append(i)
             await sio.emit("setInitiative", initiatives, room=sid, namespace='/planarally')
+            await sio.emit("updateInitiativeRound", location.initiativeTurn, room=sid, namespace='/planarally')
 
 
 @sio.on('disconnect', namespace='/planarally')

@@ -18,6 +18,10 @@ svg {
     cursor: pointer;
 }
 
+.notAllowed, .notAllowed > * {
+    cursor: not-allowed !important;
+}
+
 #main {
     display: flex;
 }
@@ -574,9 +578,13 @@ input:checked + .slider:before {
 }
 
 .initiative-selected {
-    border-radius: 5px;
     border: solid 2px #82c8a0;
     background-color: #82c8a0;
+}
+
+.initiative-actor:hover {
+    border: solid 2px #82c8a0;
+    cursor: move;
 }
 
 .initiative-actor > * {

@@ -119,6 +119,12 @@ socket.on("updateInitiative", function (data: InitiativeData) {
 socket.on("setInitiative", function (data: InitiativeData[]) {
     gameManager.setInitiative(data);
 });
+socket.on("updateInitiativeOrder", function (data: string[]) {
+    gameManager.initiativeTracker.updateInitiativeOrder(data, false);
+});
+socket.on("updateInitiativeRound", function (data: string) {
+    gameManager.initiativeTracker.setRound(data, false);
+});
 socket.on("clear temporaries", function (shapes: ServerShape[]) {
     shapes.forEach(function (shape) {
         if (!gameManager.layerManager.UUIDMap.has(shape.uuid)) {

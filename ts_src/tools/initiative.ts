@@ -5,11 +5,11 @@ import Settings from "../settings";
 
 export class InitiativeTracker {
     data: InitiativeData[] = [];
-    active: number = 0;
+    active: string | null = null;
     roundCounter: number = 0;
     clear() {
         this.data = [];
-        this.active = 0;
+        this.active = null;
         this.roundCounter = 0;
         this.redraw();
     }
@@ -53,6 +53,28 @@ export class InitiativeTracker {
         }
         this.hide();
     };
+    updateInitiativeOrder(newOrder: string[], sync: boolean) {
+        this.data.sort(function (a, b) {
+            return newOrder.indexOf(a.uuid) - newOrder.indexOf(b.uuid);
+        });
+        if (sync)
+            socket.emit("updateInitiativeOrder", newOrder);
+        this.redraw();
+    };
+    setRound(active: string|null, sync: boolean) {
+        this.active = active;
+        if (sync)
+            socket.emit("updateInitiativeRound", active);
+        this.redraw();
+    };
+    nextRound() {
+        const order = <string[]><any>$(".initiative-actor").map(function() {return $(this).data("uuid");}).get();
+        if (this.active === null) {
+            if (order.length === 0) return;
+            this.active = order[order.length - 1];
+        }
+        this.setRound(order[(order.indexOf(this.active) + 1) % order.length], true)
+    };
     redraw() {
         gameManager.initiativeDialog.empty();
 
@@ -65,26 +87,42 @@ export class InitiativeTracker {
         const self = this;
 
         const initiativeList = $("<div id='initiative-list'></div>");
+        if (Settings.IS_DM) {
+            initiativeList.sortable({
+                axis: 'y',
+                containment: 'parent',
+                cancel: 'input,svg',
+                tolerance: 'pointer',
+                update: function (event, ui) {
+                    const newOrder = <string[]><any>$(".initiative-actor").map(function() {return $(this).data("uuid");}).get();
+                    self.updateInitiativeOrder(newOrder, true);
+                }
+            });
+        }
 
         for(let i=0; i<this.data.length; i++) {
             const actor = this.data[i];
             const initiativeItem = $(`<div class='initiative-actor' data-uuid="${actor.uuid}"></div>`);
             if (actor.owners === undefined) actor.owners = [];
             // const active = this.active === i ? $(`<div style='width:20px;'><i class='fas fa-chevron-right'></i></div>`) : $("<div style='width:20px;'></div>");
-            if (this.active === i) initiativeItem.addClass("initiative-selected");
+            if (this.active === actor.uuid) initiativeItem.addClass("initiative-selected");
             const repr = actor.has_img
-                ? $(`<img src="${actor.src}" width="30px" height="30px" style="grid-column-start: img">`)
-                : $(`<span style='grid-column-start: img'>${actor.src}</span>`);
-            const val = $(`<input type="text" placeholder="value" value="${actor.initiative}" style="grid-column-start: value">`);
+                ? $(`<img src="${actor.src}" width="30px" height="30px">`)
+                : $(`<span style='width: auto;'>${actor.src}</span>`);
+            const val = $(`<input type="text" placeholder="value" value="${actor.initiative}">`);
             const visible = $(`<div><i class="fas fa-eye"></i></div>`);
             const group = $(`<div><i class="fas fa-users"></i></div>`);
-            const remove = $(`<div style="grid-column-start: remove"><i class="fas fa-trash-alt"></i></div>`);
+            const remove = $(`<div><i class="fas fa-trash-alt"></i></div>`);
 
             visible.css("opacity", actor.visible ? "1.0" : "0.3");
             group.css("opacity", actor.group ? "1.0" : "0.3");
             if (!actor.owners.includes(Settings.username) && !Settings.IS_DM) {
                 val.prop("disabled", "disabled");
                 remove.css("opacity", "0.3");
+                val.addClass("notAllowed");
+                visible.addClass("notAllowed");
+                group.addClass("notAllowed");
+                remove.addClass("notAllowed");
             }
 
             initiativeItem.append(repr).append(val).append(visible).append(group).append(remove);
@@ -96,6 +134,8 @@ export class InitiativeTracker {
                     console.log("Initiativedialog change unknown uuid?");
                     return;
                 }
+                if (!d.owners.includes(Settings.username) && !Settings.IS_DM)
+                    return;
                 d.initiative = parseInt(<string>$(this).val()) || 0;
                 self.addInitiative(d, true);
             });
@@ -134,6 +174,12 @@ export class InitiativeTracker {
 
             remove.on("click", function () {
                 const uuid = $(this).parent().data('uuid');
+                if (self.active === uuid) {
+                    if (self.data.length > 1)
+                        self.nextRound();
+                    else
+                        self.active = null;
+                }
                 const d = self.data.find(d => d.uuid === uuid);
                 if (d === undefined) {
                     console.log("Initiativedialog remove unknown uuid?");
@@ -150,15 +196,11 @@ export class InitiativeTracker {
 
         const nextTurn = $(`<div id='initiative-next'>Next</div>`);
 
-        nextTurn.on("click", function() { self.nextRound() });
+        if (!Settings.IS_DM) nextTurn.addClass("notAllowed");
+        else nextTurn.on("click", function() { self.nextRound() });
 
         initiativeBar.append(nextTurn);
 
         gameManager.initiativeDialog.append(initiativeList).append(initiativeBar);
-    }
-
-    nextRound() {
-        this.active = ++this.active % this.data.length;
-        this.redraw();
     }
 }

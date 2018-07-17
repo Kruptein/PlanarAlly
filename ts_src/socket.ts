@@ -1,7 +1,7 @@
 import gameManager from "./planarally";
 import { alphSort, fixedEncodeURIComponent } from "./utils";
 import { setupTools } from "./tools/tools";
-import { ClientOptions, LocationOptions, AssetList, ServerShape, InitiativeData, BoardInfo } from "./api_types";
+import { ClientOptions, LocationOptions, Notes, AssetList, ServerShape, InitiativeData, BoardInfo } from "./api_types";
 import { GlobalPoint } from "./geom";
 import Settings from "./settings";
 
@@ -38,6 +38,11 @@ socket.on("set location", function (data: {name:string, options: LocationOptions
 });
 socket.on("set position", function (data: {x: number, y: number}) {
     gameManager.setCenterPosition(new GlobalPoint(data.x, data.y));
+});
+socket.on("set notes", function (notes: Notes[]) {
+    for (let n of notes) {
+        gameManager.newNote(n.name, n.text, false, false, n.uuid);
+    };
 });
 socket.on("asset list", function (assets: AssetList) {
     const m = $("#menu-tokens");

@@ -545,6 +545,11 @@ input:checked + .slider:before {
     color: #82c8a0;
 }
 
+.notedialog {
+    align-items: center;
+    display: grid;
+}
+
 #shapeselectiondialog > div {
     display: grid;
     grid-template-columns: [name] 1fr [numerator] 30px [slash] 5px [denominator] 30px [colour] 40px [visible] 30px [light] 30px [remove] 30px [end];
@@ -567,6 +572,10 @@ input:checked + .slider:before {
     grid-column-gap: 30px;
     grid-row-gap: 10px;
     align-items: center;
+}
+
+#renameNote {
+    width: 90%;
 }
 
 .spanrow {

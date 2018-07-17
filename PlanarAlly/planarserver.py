@@ -411,6 +411,48 @@ async def set_gridsize(sid, grid_size):
     await sio.emit("set gridsize", grid_size, room=location.sioroom, skip_sid=sid, namespace="/planarally")
 
 
+@sio.on("newNote", namespace="/planarally")
+@auth.login_required(app, sio)
+async def new_note(sid, data):
+    username = app['AuthzPolicy'].sio_map[sid]['user'].username
+    room = app['AuthzPolicy'].sio_map[sid]['room']
+
+    if data["uuid"] in room.notes:
+        print(f"{username} tried to overwrite existing note with id: '{data['uuid']}'")
+        return
+
+    room.add_new_note(data, username)
+    PA.save_room(room)
+
+
+@sio.on("updateNote", namespace="/planarally")
+@auth.login_required(app, sio)
+async def update_note(sid, data):
+    username = app['AuthzPolicy'].sio_map[sid]['user'].username
+    room = app['AuthzPolicy'].sio_map[sid]['room']
+
+    if data["uuid"] not in room.notes:
+        print(f"{username} tried to update non-existant note with id: '{data['uuid']}'")
+        return
+
+    room.update_note(data, username)
+    PA.save_room(room)
+
+
+@sio.on("deleteNote", namespace="/planarally")
+@auth.login_required(app, sio)
+async def delete_note(sid, uuid):
+    username = app['AuthzPolicy'].sio_map[sid]['user'].username
+    room = app['AuthzPolicy'].sio_map[sid]['room']
+
+    if uuid not in room.notes:
+        print(f"{username} tried to remove non-existant note with id: '{uuid}'")
+        return
+
+    room.delete_note(uuid, username)
+    PA.save_room(room)
+
+
 @sio.on("new location", namespace='/planarally')
 async def add_new_location(sid, location):
     username = app['AuthzPolicy'].sio_map[sid]['user'].username
@@ -486,7 +528,6 @@ async def bring_players(sid, data):
         user = policy.user_map[player]
         await sio.emit("set position", data, room=policy.get_sid(user, room), namespace='/planarally')
 
-
 @sio.on('connect', namespace='/planarally')
 async def test_connect(sid, environ):
     username = await authorized_userid(environ['aiohttp.request'])
@@ -508,8 +549,8 @@ async def test_connect(sid, environ):
         await sio.emit("set room info", {'name': room.name, 'creator': room.creator}, room=sid, namespace='/planarally')
         await sio.emit('board init', room.get_board(username), room=sid, namespace='/planarally')
         await sio.emit("set location", {'options': location.options, 'name': location.name}, room=sid, namespace='/planarally')
-        await sio.emit("set clientOptions", app['AuthzPolicy'].user_map[username].options, room=sid,
-                       namespace='/planarally')
+        await sio.emit("set clientOptions", app['AuthzPolicy'].user_map[username].options, room=sid, namespace='/planarally')
+        await sio.emit("set notes", room.get_notes(username), room=sid, namespace='/planarally')
         await sio.emit('asset list', PA.get_asset_list(), room=sid, namespace='/planarally')
         if hasattr(location, "initiative"):
             initiatives = location.initiative

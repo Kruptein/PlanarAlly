@@ -145,7 +145,7 @@ export class InitiativeTracker {
 
         const initiativeBar = $(`<div id='initiative-bar'></div>`);
 
-        const nextTurn = $(`<div><input type='button' value='Next'</div>`);
+        const nextTurn = $(`<div id='initiative-next'>Next</div>`);
 
         nextTurn.on("click", function() { self.nextRound() });
 

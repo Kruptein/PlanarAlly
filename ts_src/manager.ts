@@ -33,7 +33,8 @@ export class GameManager {
     });
     initiativeDialog = $("#initiativedialog").dialog({
         autoOpen: false,
-        width: 'auto'
+        width: 'auto',
+        
     });
 
     BV!: BoundingVolume;

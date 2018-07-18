@@ -594,18 +594,22 @@ input:checked + .slider:before {
 
 #initiative-bar {
     display: flex;
-    justify-content: flex-end;
+    justify-content: space-between;
+    align-items: center;
     margin-right: 10px;
+    margin-left: 10px;
+    margin-top: 10px;
+    margin-bottom: -10px;
+    padding: 2px;
 }
 
-#initiative-next {
+.initiative-bar-button {
     border: solid 2px #82c8a0;
     border-radius: 5px;
     padding:5px;
-    margin-top: 10px;
 }
 
-#initiative-next:hover {
+.initiative-bar-button:hover {
     color: white;
     background-color: #82c8a0;
     cursor: pointer;

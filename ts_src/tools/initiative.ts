@@ -63,6 +63,8 @@ export class InitiativeTracker {
     };
     setRound(active: string|null, sync: boolean) {
         this.active = active;
+        if (this.data[0].uuid === active)
+            this.roundCounter++;
         if (sync)
             socket.emit("updateInitiativeRound", active);
         this.redraw();
@@ -194,12 +196,19 @@ export class InitiativeTracker {
 
         const initiativeBar = $(`<div id='initiative-bar'></div>`);
 
-        const nextTurn = $(`<div id='initiative-next'>Next</div>`);
+        const roundCounter = $(`<div id='initiative-round'>Round ${this.roundCounter}</div>`);
+        const resetRound = $(`<div class='initiative-bar-button'><i class="fas fa-sync-alt"></i></div>`);
+        const nextTurn = $(`<div class='initiative-bar-button'><i class="fas fa-chevron-right"></i></div>`);
 
-        if (!Settings.IS_DM) nextTurn.addClass("notAllowed");
-        else nextTurn.on("click", function() { self.nextRound() });
+        if (!Settings.IS_DM) {
+            nextTurn.addClass("notAllowed");
+            resetRound.addClass("notAllowed");
+        } else {
+            nextTurn.on("click", function() { self.nextRound() });
+            resetRound.on("click", function() {self.roundCounter = 0; self.setRound(self.data[0].uuid, true)})
+        }
 
-        initiativeBar.append(nextTurn);
+        initiativeBar.append(roundCounter).append($("<div style='display:flex;'></div>").append(resetRound).append(nextTurn));
 
         gameManager.initiativeDialog.append(initiativeList).append(initiativeBar);
     }

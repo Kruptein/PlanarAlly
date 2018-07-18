@@ -122,7 +122,10 @@ socket.on("setInitiative", function (data: InitiativeData[]) {
 socket.on("updateInitiativeOrder", function (data: string[]) {
     gameManager.initiativeTracker.updateInitiativeOrder(data, false);
 });
-socket.on("updateInitiativeRound", function (data: string) {
+socket.on("updateInitiativeTurn", function (data: string) {
+    gameManager.initiativeTracker.setTurn(data, false);
+});
+socket.on("updateInitiativeRound", function (data: number) {
     gameManager.initiativeTracker.setRound(data, false);
 });
 socket.on("clear temporaries", function (shapes: ServerShape[]) {

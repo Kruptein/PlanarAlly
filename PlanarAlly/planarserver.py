@@ -391,6 +391,23 @@ async def update_initiative_order(sid, data):
     await sio.emit("updateInitiativeOrder", data, room=location.sioroom, skip_sid=sid, namespace='/planarally')
 
 
+@sio.on("updateInitiativeTurn", namespace='/planarally')
+@auth.login_required(app, sio)
+async def update_initiative_turn(sid, data):
+    policy = app['AuthzPolicy']
+    username = policy.sio_map[sid]['user'].username
+    room = policy.sio_map[sid]['room']
+    location = room.get_active_location(username)
+
+    if room.creator != username:
+        print(f"{username} attempted to advance the initiative tracker")
+        return
+    
+    location.initiativeTurn = data
+
+    await sio.emit("updateInitiativeTurn", data, room=location.sioroom, skip_sid=sid, namespace='/planarally')
+
+
 @sio.on("updateInitiativeRound", namespace='/planarally')
 @auth.login_required(app, sio)
 async def update_initiative_round(sid, data):
@@ -403,7 +420,7 @@ async def update_initiative_round(sid, data):
         print(f"{username} attempted to advance the initiative tracker")
         return
     
-    location.initiativeTurn = data
+    location.initiativeRound = data
 
     await sio.emit("updateInitiativeRound", data, room=location.sioroom, skip_sid=sid, namespace='/planarally')
 
@@ -554,7 +571,10 @@ async def test_connect(sid, environ):
                     if shape and username in shape.get('owners', []) or i.get("visible", False):
                         initiatives.append(i)
             await sio.emit("setInitiative", initiatives, room=sid, namespace='/planarally')
-            await sio.emit("updateInitiativeRound", location.initiativeTurn, room=sid, namespace='/planarally')
+            if hasattr(location, "initiativeRound"):
+                await sio.emit("updateInitiativeRound", location.initiativeRound, room=sid, namespace='/planarally')
+            if hasattr(location, "initiativeTurn"):
+                await sio.emit("updateInitiativeTurn", location.initiativeTurn, room=sid, namespace='/planarally')
 
 
 @sio.on('disconnect', namespace='/planarally')

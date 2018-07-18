@@ -61,21 +61,27 @@ export class InitiativeTracker {
             socket.emit("updateInitiativeOrder", newOrder);
         this.redraw();
     };
-    setRound(active: string|null, sync: boolean) {
+    setTurn(active: string|null, sync: boolean) {
         this.active = active;
-        if (this.data[0].uuid === active)
-            this.roundCounter++;
         if (sync)
-            socket.emit("updateInitiativeRound", active);
+            socket.emit("updateInitiativeTurn", active);
         this.redraw();
     };
-    nextRound() {
+    setRound(round: number, sync: boolean) {
+        this.roundCounter = round;
+        if (sync)
+            socket.emit("updateInitiativeRound", round);
+    };
+    nextTurn() {
         const order = <string[]><any>$(".initiative-actor").map(function() {return $(this).data("uuid");}).get();
         if (this.active === null) {
             if (order.length === 0) return;
             this.active = order[order.length - 1];
         }
-        this.setRound(order[(order.indexOf(this.active) + 1) % order.length], true)
+        const next = order[(order.indexOf(this.active) + 1) % order.length];
+        if (this.data[0].uuid === next)
+            this.setRound(this.roundCounter+1, true);
+        this.setTurn(next, true)
     };
     redraw() {
         gameManager.initiativeDialog.empty();
@@ -178,7 +184,7 @@ export class InitiativeTracker {
                 const uuid = $(this).parent().data('uuid');
                 if (self.active === uuid) {
                     if (self.data.length > 1)
-                        self.nextRound();
+                        self.nextTurn();
                     else
                         self.active = null;
                 }
@@ -204,8 +210,8 @@ export class InitiativeTracker {
             nextTurn.addClass("notAllowed");
             resetRound.addClass("notAllowed");
         } else {
-            nextTurn.on("click", function() { self.nextRound() });
-            resetRound.on("click", function() {self.roundCounter = 0; self.setRound(self.data[0].uuid, true)})
+            nextTurn.on("click", function() { self.nextTurn() });
+            resetRound.on("click", function() {self.setRound(0, false); self.setTurn(self.data[0].uuid, true)})
         }
 
         initiativeBar.append(roundCounter).append($("<div style='display:flex;'></div>").append(resetRound).append(nextTurn));

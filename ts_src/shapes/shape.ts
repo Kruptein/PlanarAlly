@@ -5,7 +5,7 @@ import socket from "../socket";
 import { g2l, g2lr } from "../units";
 import { populateEditAssetDialog } from "./editdialog";
 import { GlobalPoint, LocalPoint } from "../geom";
-import { ServerShape } from "../api_types";
+import { ServerShape, InitiativeData } from "../api_types";
 import Settings from "../settings";
 
 export default abstract class Shape {
@@ -347,14 +347,15 @@ export default abstract class Shape {
         }
         $('#contextMenu').hide();
     }
-    getInitiativeRepr() {
+    getInitiativeRepr(): InitiativeData {
         return {
             uuid: this.uuid,
             visible: !Settings.IS_DM,
             group: false,
             src: this.name,
             owners: this.owners,
-            has_img: false
+            has_img: false,
+            effects: [],
         }
     }
     // Code to snap a shape to the grid

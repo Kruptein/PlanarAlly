@@ -2,6 +2,7 @@ import { InitiativeData } from "../api_types";
 import gameManager from "../planarally";
 import socket from "../socket";
 import Settings from "../settings";
+import { uuidv4 } from "../utils";
 
 export class InitiativeTracker {
     data: InitiativeData[] = [];
@@ -23,6 +24,12 @@ export class InitiativeTracker {
     hide() {
         if (this.data.length === 0 && gameManager.initiativeDialog.dialog("isOpen"))
             gameManager.initiativeDialog.dialog("close");
+    }
+    setData(data: InitiativeData[]) {
+        this.data = data;
+        this.redraw();
+        if (data.length > 0)
+            gameManager.initiativeDialog.dialog("open");
     }
     addInitiative(data: InitiativeData, sync: boolean) {
         // Open the initiative tracker if it is not currently open.
@@ -110,20 +117,23 @@ export class InitiativeTracker {
 
         for(let i=0; i<this.data.length; i++) {
             const actor = this.data[i];
-            const initiativeItem = $(`<div class='initiative-actor' data-uuid="${actor.uuid}"></div>`);
+            if (actor.effects === undefined) actor.effects = [];
             if (actor.owners === undefined) actor.owners = [];
-            // const active = this.active === i ? $(`<div style='width:20px;'><i class='fas fa-chevron-right'></i></div>`) : $("<div style='width:20px;'></div>");
+
+            const initiativeItem = $(`<div class='initiative-actor' data-uuid="${actor.uuid}"></div>`);
             if (this.active === actor.uuid) initiativeItem.addClass("initiative-selected");
             const repr = actor.has_img
                 ? $(`<img src="${actor.src}" width="30px" height="30px">`)
                 : $(`<span style='width: auto;'>${actor.src}</span>`);
             const val = $(`<input type="text" placeholder="value" value="${actor.initiative}">`);
+            const effects = $(`<div class='initiative-effects-icon'><i class="fas fa-stopwatch"></i>${actor.effects.length}</div>`);
             const visible = $(`<div><i class="fas fa-eye"></i></div>`);
             const group = $(`<div><i class="fas fa-users"></i></div>`);
             const remove = $(`<div><i class="fas fa-trash-alt"></i></div>`);
 
             visible.css("opacity", actor.visible ? "1.0" : "0.3");
             group.css("opacity", actor.group ? "1.0" : "0.3");
+            effects.css("opacity", "0.6");
             if (!actor.owners.includes(Settings.username) && !Settings.IS_DM) {
                 val.prop("disabled", "disabled");
                 remove.css("opacity", "0.3");
@@ -133,8 +143,36 @@ export class InitiativeTracker {
                 remove.addClass("notAllowed");
             }
 
-            initiativeItem.append(repr).append(val).append(visible).append(group).append(remove);
+            initiativeItem.append(repr).append(val).append(effects).append(visible).append(group).append(remove);
             initiativeList.append(initiativeItem);
+
+            if (actor.effects.length) {
+                const effectList = $("<div class='initiative-effect'></div>");
+                for(let eff=0; eff < actor.effects.length; eff++) {
+                    const effect = actor.effects[eff];
+                    const effectDiv = $(`<div data-uuid="${effect.uuid}"></div>`);
+
+                    const name = $(`<input type='text' value='${effect.name}'>`);
+                    const turns = $(`<input type='text' value='${effect.turns}'>`);
+
+                    effectList.append(effectDiv.append(name).append(turns));
+
+                    name.attr('size', effect.name.length);
+                    turns.attr('size', effect.turns.toString().length);
+
+                    name.on("change", function() {
+                        const e = actor.effects.find(e => e.uuid === $(this).parent().data('uuid'));
+                        if (e === undefined) return;
+                        e.name = <string>$(this).val();
+                    });
+                    turns.on("change", function() {
+                        const e = actor.effects.find(e => e.uuid === $(this).parent().data('uuid'));
+                        if (e === undefined) return;
+                        e.turns = parseInt(<string>$(this).val()) || 0;
+                    });
+                }
+                initiativeList.append(effectList);
+            }
 
             val.on("change", function () {
                 const d = self.data.find(d => d.uuid === $(this).parent().data('uuid'));
@@ -146,6 +184,11 @@ export class InitiativeTracker {
                     return;
                 d.initiative = parseInt(<string>$(this).val()) || 0;
                 self.addInitiative(d, true);
+            });
+
+            effects.on("click", function () {
+                actor.effects.push({uuid: uuidv4(), name: "New effect", turns: 10});
+                self.redraw();
             });
 
             visible.on("click", function () {

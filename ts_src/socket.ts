@@ -117,7 +117,7 @@ socket.on("updateInitiative", function (data: InitiativeData) {
         gameManager.initiativeTracker.addInitiative(data, false);
 });
 socket.on("setInitiative", function (data: InitiativeData[]) {
-    gameManager.setInitiative(data);
+    gameManager.initiativeTracker.setData(data);
 });
 socket.on("updateInitiativeOrder", function (data: string[]) {
     gameManager.initiativeTracker.updateInitiativeOrder(data, false);

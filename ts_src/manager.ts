@@ -173,13 +173,6 @@ export class GameManager {
             this.layerManager.getLayer(data.shape.layer)!.invalidate(false);
     }
 
-    setInitiative(data: InitiativeData[]): void {
-        this.initiativeTracker.data = data;
-        this.initiativeTracker.redraw();
-        if (data.length > 0)
-            this.initiativeDialog.dialog("open");
-    }
-
     setClientOptions(options: ClientOptions): void {
         if (options.gridColour)
             this.gridColour.spectrum("set", options.gridColour);

@@ -2,7 +2,7 @@ import { uuidv4 } from "../utils";
 import BoundingRect from "./boundingrect";
 import gameManager from "../planarally";
 import socket from "../socket";
-import { g2l, g2lr } from "../units";
+import { g2l, g2lr, g2ly, g2lx, g2lz } from "../units";
 import { populateEditAssetDialog } from "./editdialog";
 import { GlobalPoint, LocalPoint } from "../geom";
 import { ServerShape, InitiativeData } from "../api_types";
@@ -35,6 +35,8 @@ export default abstract class Shape {
     movementObstruction = false;
     // Does this shape represent a playable token
     isToken = false;
+    // Show a highlight box
+    showHighlight = false;
 
     // Mouseover annotation
     annotation: string = '';
@@ -263,6 +265,11 @@ export default abstract class Shape {
             ctx.globalCompositeOperation = this.globalCompositeOperation;
         else
             ctx.globalCompositeOperation = "source-over";
+        if (this.showHighlight) {
+            const bbox = this.getBoundingBox();
+            ctx.strokeStyle = 'red';
+            ctx.strokeRect(g2lx(bbox.topLeft.x) - 5, g2ly(bbox.topLeft.y) - 5, g2lz(bbox.w) + 10, g2lz(bbox.h) + 10);
+        }
         this.drawAuras(ctx);
     }
 

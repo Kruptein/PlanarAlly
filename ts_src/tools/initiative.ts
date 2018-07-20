@@ -179,6 +179,20 @@ export class InitiativeTracker {
             initiativeItem.append(repr).append(val).append(effects).append(visible).append(group).append(remove);
             initiativeList.append(initiativeItem);
 
+            initiativeItem.on('mouseenter', function () {
+                const shape = gameManager.layerManager.UUIDMap.get(actor.uuid);
+                if (shape === undefined) return;
+                shape.showHighlight = true;
+                gameManager.layerManager.getLayer(shape.layer)!.invalidate(true);
+            });
+
+            initiativeItem.on('mouseleave', function () {
+                const shape = gameManager.layerManager.UUIDMap.get(actor.uuid);
+                if (shape === undefined) return;
+                shape.showHighlight = false;
+                gameManager.layerManager.getLayer(shape.layer)!.invalidate(true);
+            });
+
             if (actor.effects.length) {
                 const effectList = $("<div class='initiative-effect'></div>");
                 for(let eff=0; eff < actor.effects.length; eff++) {

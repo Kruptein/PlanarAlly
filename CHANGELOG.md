@@ -11,6 +11,7 @@ All notable changes to this project will be documented in this file.
     - now shows the active actor and has a next turn button
     - shows the current round number
     - Turn/Effect timers per actor that automatically count down
+    - Show a border around shapes on hover in the initiative list
 
 ### Fixed
 - Ownership changes are now reflected in the initiative list

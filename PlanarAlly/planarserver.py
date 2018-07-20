@@ -595,34 +595,41 @@ async def change_location(sid, location):
     sio.leave_room(sid, old_location.sioroom, namespace='/planarally')
     room.dm_location = location
     new_location = room.get_active_location(username)
+    
     sio.enter_room(sid, new_location.sioroom, namespace='/planarally')
-    await sio.emit('board init', room.get_board(username), room=sid, namespace='/planarally')
-    await sio.emit("set location", {'options': new_location.options, 'name': new_location.name}, room=sid,
-                   namespace='/planarally')
-    await sio.emit("set clientOptions", app['AuthzPolicy'].user_map[username].options, room=sid,
-                   namespace='/planarally')
+    await load_location(sid, new_location)
 
     room.player_location = location
     PA.save_room(room)
+
     for player in room.players:
         psid = policy.get_sid(policy.user_map[player], room)
         if psid is not None:
             sio.leave_room(psid, old_location.sioroom, namespace='/planarally')
             sio.enter_room(psid, new_location.sioroom, namespace='/planarally')
-    await sio.emit('board init', room.get_board(''), room=new_location.sioroom, skip_sid=sid, namespace='/planarally')
-    await sio.emit("set location", {'options': new_location.options, 'name': new_location.name}, room=new_location.sioroom, skip_sid=sid,
-                   namespace='/planarally')
-    await sio.emit("set clientOptions", app['AuthzPolicy'].user_map[username].options, room=new_location.sioroom, skip_sid=sid,
-                   namespace='/planarally')
-    if hasattr(new_location, "initiative"):
-        initiatives = new_location.initiative
+
+
+async def load_location(sid, location):
+    policy = app['AuthzPolicy']
+    username = policy.sio_map[sid]['user'].username
+    room = policy.sio_map[sid]['room']
+
+    await sio.emit('board init', room.get_board(username), room=sid, namespace='/planarally')
+    await sio.emit("set location", {'options': location.options, 'name': location.name}, room=sid, namespace='/planarally')
+    await sio.emit("set clientOptions", app['AuthzPolicy'].user_map[username].options, room=sid, namespace='/planarally')
+    if hasattr(location, "initiative"):
+        initiatives = location.initiative
         if room.creator != username:
             initiatives = []
-            for i in new_location.initiative:
-                shape = new_location.layer_manager.get_shape(i['uuid'])
+            for i in location.initiative:
+                shape = location.layer_manager.get_shape(i['uuid'])
                 if shape and username in shape.get('owners', []) or i.get("visible", False):
                     initiatives.append(i)
         await sio.emit("setInitiative", initiatives, room=sid, namespace='/planarally')
+        if hasattr(location, "initiativeRound"):
+            await sio.emit("updateInitiativeRound", location.initiativeRound, room=sid, namespace='/planarally')
+        if hasattr(location, "initiativeTurn"):
+            await sio.emit("updateInitiativeTurn", location.initiativeTurn, room=sid, namespace='/planarally')
 
 
 @sio.on("bringPlayers", namespace='/planarally')
@@ -652,24 +659,9 @@ async def test_connect(sid, environ):
         sio.enter_room(sid, location.sioroom, namespace='/planarally')
         await sio.emit("set username", username, room=sid, namespace='/planarally')
         await sio.emit("set room info", {'name': room.name, 'creator': room.creator}, room=sid, namespace='/planarally')
-        await sio.emit('board init', room.get_board(username), room=sid, namespace='/planarally')
-        await sio.emit("set location", {'options': location.options, 'name': location.name}, room=sid, namespace='/planarally')
-        await sio.emit("set clientOptions", app['AuthzPolicy'].user_map[username].options, room=sid, namespace='/planarally')
         await sio.emit("set notes", room.get_notes(username), room=sid, namespace='/planarally')
         await sio.emit('asset list', PA.get_asset_list(), room=sid, namespace='/planarally')
-        if hasattr(location, "initiative"):
-            initiatives = location.initiative
-            if room.creator != username:
-                initiatives = []
-                for i in location.initiative:
-                    shape = location.layer_manager.get_shape(i['uuid'])
-                    if shape and username in shape.get('owners', []) or i.get("visible", False):
-                        initiatives.append(i)
-            await sio.emit("setInitiative", initiatives, room=sid, namespace='/planarally')
-            if hasattr(location, "initiativeRound"):
-                await sio.emit("updateInitiativeRound", location.initiativeRound, room=sid, namespace='/planarally')
-            if hasattr(location, "initiativeTurn"):
-                await sio.emit("updateInitiativeTurn", location.initiativeTurn, room=sid, namespace='/planarally')
+        await load_location(sid, location)
 
 
 @sio.on('disconnect', namespace='/planarally')

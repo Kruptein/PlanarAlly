@@ -404,6 +404,13 @@ async def update_initiative_turn(sid, data):
         return
     
     location.initiativeTurn = data
+    for init in location.initiative:
+        if init['uuid'] == data:
+            for eff in list(init['effects']):
+                if eff['turns'] <= 0:
+                    init['effects'].remove(eff)
+                else:
+                    eff['turns'] -= 1
 
     await sio.emit("updateInitiativeTurn", data, room=location.sioroom, skip_sid=sid, namespace='/planarally')
 

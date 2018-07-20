@@ -10,7 +10,7 @@ All notable changes to this project will be documented in this file.
 - Initiative tracker update
     - now shows the active actor and has a next turn button
     - shows the current round number
-    - (WIP) synchronizing version of effect timers
+    - Turn/Effect timers per actor that automatically count down
 
 ### Fixed
 - Ownership changes are now reflected in the initiative list

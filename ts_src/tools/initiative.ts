@@ -68,10 +68,18 @@ export class InitiativeTracker {
             socket.emit("updateInitiativeOrder", newOrder);
         this.redraw();
     };
-    setTurn(active: string|null, sync: boolean) {
-        this.active = active;
+    setTurn(actor: string|null, sync: boolean) {
+        this.active = actor;
+        const a = this.data.find(a => a.uuid === actor);
+        if (a === undefined) return;
+        for (let e=a.effects.length-1; e >= 0; e--) {
+            if (a.effects[e].turns <= 0)
+                a.effects.splice(e, 1);
+            else
+                a.effects[e].turns--;
+        }
         if (sync)
-            socket.emit("updateInitiativeTurn", active);
+            socket.emit("updateInitiativeTurn", actor);
         this.redraw();
     };
     setRound(round: number, sync: boolean) {

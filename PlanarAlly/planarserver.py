@@ -425,6 +425,53 @@ async def update_initiative_round(sid, data):
     await sio.emit("updateInitiativeRound", data, room=location.sioroom, skip_sid=sid, namespace='/planarally')
 
 
+@sio.on("Initiative.Effect.New", namespace='/planarally')
+@auth.login_required(app, sio)
+async def new_initiative_effect(sid, data):
+    policy = app['AuthzPolicy']
+    username = policy.sio_map[sid]['user'].username
+    room = policy.sio_map[sid]['room']
+    location = room.get_active_location(username)
+
+    shape = location.layer_manager.get_shape(data['actor'])
+
+    if room.creator != username:
+        if username not in shape['owners']:
+            print(f"{username} attempted to create a new initiative effect")
+            return
+    
+    for init in location.initiative:
+        if init['uuid'] == data['actor']:
+            if 'effects' not in init:
+                init['effects'] = []
+            init['effects'].append(data['effect'])
+    
+    await sio.emit("Initiative.Effect.New", data, room=location.sioroom, skip_sid=sid, namespace='/planarally')
+
+
+@sio.on("Initiative.Effect.Update", namespace='/planarally')
+@auth.login_required(app, sio)
+async def update_initiative_effect(sid, data):
+    policy = app['AuthzPolicy']
+    username = policy.sio_map[sid]['user'].username
+    room = policy.sio_map[sid]['room']
+    location = room.get_active_location(username)
+
+    shape = location.layer_manager.get_shape(data['actor'])
+
+    if room.creator != username:
+        if username not in shape['owners']:
+            print(f"{username} attempted to update an initiative effect")
+            return
+    
+    for init in location.initiative:
+        if init['uuid'] == data['actor']:
+            for i, eff in enumerate(init['effects']):
+                if eff['uuid'] == data['effect']['uuid']:
+                    init['effects'][i] = data['effect']
+    
+    await sio.emit("Initiative.Effect.Update", data, room=location.sioroom, skip_sid=sid, namespace='/planarally')
+
 @sio.on("set clientOptions", namespace='/planarally')
 @auth.login_required(app, sio)
 async def set_client(sid, data):

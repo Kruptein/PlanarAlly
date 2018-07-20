@@ -1,7 +1,7 @@
 import gameManager from "./planarally";
 import { alphSort, fixedEncodeURIComponent } from "./utils";
 import { setupTools } from "./tools/tools";
-import { ClientOptions, LocationOptions, AssetList, ServerShape, InitiativeData, BoardInfo } from "./api_types";
+import { ClientOptions, LocationOptions, AssetList, ServerShape, InitiativeData, BoardInfo, InitiativeEffect } from "./api_types";
 import { GlobalPoint } from "./geom";
 import Settings from "./settings";
 
@@ -127,6 +127,12 @@ socket.on("updateInitiativeTurn", function (data: string) {
 });
 socket.on("updateInitiativeRound", function (data: number) {
     gameManager.initiativeTracker.setRound(data, false);
+});
+socket.on("Initiative.Effect.New", function (data: {actor: string, effect: InitiativeEffect}) {
+    gameManager.initiativeTracker.createNewEffect(data.actor, data.effect, false)
+});
+socket.on("Initiative.Effect.Update", function (data: {actor: string, effect: InitiativeEffect}) {
+    gameManager.initiativeTracker.updateEffect(data.actor, data.effect, false)
 });
 socket.on("clear temporaries", function (shapes: ServerShape[]) {
     shapes.forEach(function (shape) {

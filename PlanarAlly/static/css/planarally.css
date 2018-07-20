@@ -583,7 +583,7 @@ input:checked + .slider:before {
     background-color: #82c8a0;
 }
 
-.initiative-selected + .initiative-effect, .initiative-actor:hover + .initiative-effect, .initiative-effect {
+.initiative-selected + .initiative-effect, .initiative-actor:hover + .initiative-effect, .initiative-effect:hover {
     display: flex;
     border-color: rgba(130, 200, 160, 0.6);
     background-color: rgba(130, 200, 160, 0.6);
@@ -624,6 +624,11 @@ input:checked + .slider:before {
     border: none;
     background-color: inherit;
     text-align: right;
+    margin-left: 20px;
+    min-width: 10px;
+}
+.initiative-effect > * > *:first-child {
+    margin-left: 0;
 }
 
 #initiative-bar {

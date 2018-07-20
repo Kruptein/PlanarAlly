@@ -1,8 +1,8 @@
-import { InitiativeData } from "../api_types";
+import { InitiativeData, InitiativeEffect } from "../api_types";
 import gameManager from "../planarally";
 import socket from "../socket";
 import Settings from "../settings";
-import { uuidv4 } from "../utils";
+import { uuidv4, getHTMLTextWidth } from "../utils";
 
 export class InitiativeTracker {
     data: InitiativeData[] = [];
@@ -90,6 +90,24 @@ export class InitiativeTracker {
             this.setRound(this.roundCounter+1, true);
         this.setTurn(next, true)
     };
+    createNewEffect(actor: string, effect: InitiativeEffect, sync: boolean) {
+        const a = this.data.find(a => a.uuid === actor);
+        if (a === undefined) return;
+        a.effects.push(effect);
+        if (sync)
+            socket.emit("Initiative.Effect.New", {actor: actor, effect: effect});
+        this.redraw();
+    }
+    updateEffect(actor: string, effect: InitiativeEffect, sync: boolean) {
+        const a = this.data.find(a => a.uuid === actor);
+        if (a === undefined) return;
+        const e = a.effects.findIndex(e => e.uuid === effect.uuid);
+        if (e === undefined) return;
+        a.effects[e] = effect;
+        if (sync)
+            socket.emit("Initiative.Effect.Update", {actor: actor, effect: effect});
+        this.redraw();
+    }
     redraw() {
         gameManager.initiativeDialog.empty();
 
@@ -157,18 +175,28 @@ export class InitiativeTracker {
 
                     effectList.append(effectDiv.append(name).append(turns));
 
-                    name.attr('size', effect.name.length);
-                    turns.attr('size', effect.turns.toString().length);
+                    // name.attr('size', effect.name.length);
+                    // turns.attr('size', effect.turns.toString().length);
+                    name.width(getHTMLTextWidth(name));
+                    turns.width(getHTMLTextWidth(turns));
 
-                    name.on("change", function() {
+                    name.on("input", function() {
+                        if (!actor.owners.includes(Settings.username) && !Settings.IS_DM) return;
                         const e = actor.effects.find(e => e.uuid === $(this).parent().data('uuid'));
                         if (e === undefined) return;
                         e.name = <string>$(this).val();
+                        name.width(getHTMLTextWidth(name));
+                        turns.width(getHTMLTextWidth(turns));
+                        socket.emit("Initiative.Effect.Update", {actor: actor.uuid, effect: e});
                     });
-                    turns.on("change", function() {
+                    turns.on("input", function() {
+                        if (!actor.owners.includes(Settings.username) && !Settings.IS_DM) return;
                         const e = actor.effects.find(e => e.uuid === $(this).parent().data('uuid'));
                         if (e === undefined) return;
                         e.turns = parseInt(<string>$(this).val()) || 0;
+                        name.width(getHTMLTextWidth(name));
+                        turns.width(getHTMLTextWidth(turns));
+                        socket.emit("Initiative.Effect.Update", {actor: actor.uuid, effect: e});
                     });
                 }
                 initiativeList.append(effectList);
@@ -186,9 +214,9 @@ export class InitiativeTracker {
                 self.addInitiative(d, true);
             });
 
-            effects.on("click", function () {
-                actor.effects.push({uuid: uuidv4(), name: "New effect", turns: 10});
-                self.redraw();
+            effects.on("click", function () { 
+                if (!actor.owners.includes(Settings.username) && !Settings.IS_DM) return;
+                self.createNewEffect(actor.uuid, {uuid: uuidv4(), name: "New effect", turns: 10}, true) 
             });
 
             visible.on("click", function () {

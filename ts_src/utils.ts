@@ -11,6 +11,21 @@ export function alphSort(a: string, b: string) {
         return 1;
 }
 
+export function getHTMLTextWidth(element: JQuery<HTMLElement>): number {
+    let fakeElement = $('#emptyspan');
+    if (fakeElement.length == 0) {
+        fakeElement = $('<span id="emptyspan"></span>');
+        fakeElement.hide().appendTo(document.body)
+    }
+    let text = element.text();
+    if (text === '' && typeof element.val() === 'string')
+        text = <string>element.val();
+    else
+        return 0;
+    fakeElement.text(text).css('font', element.css('font'));
+    return Math.ceil(<number>fakeElement.width());
+}
+
 export function partition<T>(arr: T[], predicate: (n: T) => boolean) {
     const ret: T[][] = [[], []];
     arr.forEach((n) => predicate(n) ? ret[1].push(n) : ret[0].push(n));

@@ -10,7 +10,7 @@ All notable changes to this project will be documented in this file.
 - Initiative tracker update
     - now shows the active actor and has a next turn button
     - shows the current round number
-    - (WIP) not synchronizing version of effect timers
+    - (WIP) synchronizing version of effect timers
 
 ## [0.8] - 2018-06-19
 

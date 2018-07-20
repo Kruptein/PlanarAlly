@@ -12,6 +12,9 @@ All notable changes to this project will be documented in this file.
     - shows the current round number
     - (WIP) synchronizing version of effect timers
 
+### Fixed
+- Ownership changes are now reflected in the initiative list
+
 ## [0.8] - 2018-06-19
 
 This release greatly increases performance of all lighting modes and also properly 

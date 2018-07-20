@@ -108,6 +108,13 @@ export class InitiativeTracker {
             socket.emit("Initiative.Effect.Update", {actor: actor, effect: effect});
         this.redraw();
     }
+    owns(actor: InitiativeData): boolean {
+        if (Settings.IS_DM) return true;
+        const shape = gameManager.layerManager.UUIDMap.get(actor.uuid);
+        // Shapes that are unknown to this client are hidden from this client but owned by other clients
+        if (shape === undefined) return false;
+        return shape.owners.includes(Settings.username);
+    }
     redraw() {
         gameManager.initiativeDialog.empty();
 
@@ -136,7 +143,6 @@ export class InitiativeTracker {
         for(let i=0; i<this.data.length; i++) {
             const actor = this.data[i];
             if (actor.effects === undefined) actor.effects = [];
-            if (actor.owners === undefined) actor.owners = [];
 
             const initiativeItem = $(`<div class='initiative-actor' data-uuid="${actor.uuid}"></div>`);
             if (this.active === actor.uuid) initiativeItem.addClass("initiative-selected");
@@ -152,10 +158,11 @@ export class InitiativeTracker {
             visible.css("opacity", actor.visible ? "1.0" : "0.3");
             group.css("opacity", actor.group ? "1.0" : "0.3");
             effects.css("opacity", "0.6");
-            if (!actor.owners.includes(Settings.username) && !Settings.IS_DM) {
+            if (!self.owns(actor)) {
                 val.prop("disabled", "disabled");
                 remove.css("opacity", "0.3");
                 val.addClass("notAllowed");
+                effects.addClass('notAllowed');
                 visible.addClass("notAllowed");
                 group.addClass("notAllowed");
                 remove.addClass("notAllowed");
@@ -181,7 +188,7 @@ export class InitiativeTracker {
                     turns.width(getHTMLTextWidth(turns));
 
                     name.on("input", function() {
-                        if (!actor.owners.includes(Settings.username) && !Settings.IS_DM) return;
+                        if (!self.owns(actor)) return;
                         const e = actor.effects.find(e => e.uuid === $(this).parent().data('uuid'));
                         if (e === undefined) return;
                         e.name = <string>$(this).val();
@@ -190,7 +197,7 @@ export class InitiativeTracker {
                         socket.emit("Initiative.Effect.Update", {actor: actor.uuid, effect: e});
                     });
                     turns.on("input", function() {
-                        if (!actor.owners.includes(Settings.username) && !Settings.IS_DM) return;
+                        if (!self.owns(actor)) return;
                         const e = actor.effects.find(e => e.uuid === $(this).parent().data('uuid'));
                         if (e === undefined) return;
                         e.turns = parseInt(<string>$(this).val()) || 0;
@@ -208,14 +215,14 @@ export class InitiativeTracker {
                     console.log("Initiativedialog change unknown uuid?");
                     return;
                 }
-                if (!d.owners.includes(Settings.username) && !Settings.IS_DM)
+                if (!self.owns(d))
                     return;
                 d.initiative = parseInt(<string>$(this).val()) || 0;
                 self.addInitiative(d, true);
             });
 
             effects.on("click", function () { 
-                if (!actor.owners.includes(Settings.username) && !Settings.IS_DM) return;
+                if (!self.owns(actor)) return;
                 self.createNewEffect(actor.uuid, {uuid: uuidv4(), name: "New effect", turns: 10}, true) 
             });
 
@@ -225,7 +232,7 @@ export class InitiativeTracker {
                     console.log("Initiativedialog visible unknown uuid?");
                     return;
                 }
-                if (!d.owners.includes(Settings.username) && !Settings.IS_DM)
+                if (!self.owns(d))
                     return;
                 d.visible = !d.visible;
                 if (d.visible)
@@ -241,7 +248,7 @@ export class InitiativeTracker {
                     console.log("Initiativedialog group unknown uuid?");
                     return;
                 }
-                if (!d.owners.includes(Settings.username) && !Settings.IS_DM)
+                if (!self.owns(d))
                     return;
                 d.group = !d.group;
                 if (d.group)
@@ -264,7 +271,7 @@ export class InitiativeTracker {
                     console.log("Initiativedialog remove unknown uuid?");
                     return;
                 }
-                if (!d.owners.includes(Settings.username) && !Settings.IS_DM)
+                if (!self.owns(d))
                     return;
                 $(`[data-uuid=${uuid}]`).remove();
                 self.removeInitiative(uuid, true, true);

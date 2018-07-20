@@ -165,12 +165,20 @@ export class GameManager {
             console.log(`Shape with unknown type ${data.shape.type} could not be added`);
             return;
         }
-        const shape = Object.assign(this.layerManager.UUIDMap.get(data.shape.uuid), sh);
+        const oldShape = this.layerManager.UUIDMap.get(data.shape.uuid);
+        if (oldShape === undefined) {
+            console.log(`Shape with unknown id could not be updated`);
+            return;
+        }
+        const redrawInitiative = sh.owners !== oldShape.owners;
+        const shape = Object.assign(oldShape, sh);
         shape.checkLightSources();
         shape.setMovementBlock(shape.movementObstruction);
         shape.setIsToken(shape.isToken);
         if (data.redraw)
             this.layerManager.getLayer(data.shape.layer)!.invalidate(false);
+        if (redrawInitiative)
+            gameManager.initiativeTracker.redraw();
     }
 
     setClientOptions(options: ClientOptions): void {

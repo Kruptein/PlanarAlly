@@ -12,9 +12,15 @@ UPDATE YOUR SAVE BY EXECUTING `python ../scripts/convert/1_to_2.py` FROM WITHIN 
 
 ### Added
 - Added a note system
+- Initiative tracker update
+    - now shows the active actor and has a next turn button
+    - shows the current round number
+    - Turn/Effect timers per actor that automatically count down
+    - Show a border around shapes on hover in the initiative list
 
 ### Fixed
 - Select box not working properly on the fow layer
+- Ownership changes are now reflected in the initiative list
 
 ## [0.8] - 2018-06-19
 

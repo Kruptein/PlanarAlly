@@ -14,11 +14,13 @@ a, a:visited, a:hover, a:active {
     color: inherit;
 }
 
-/* fieldset { */
-    /*padding: 0;*/
-    /*border: 0;*/
-    /*margin-top: 25px;*/
-/* } */
+svg {
+    cursor: pointer;
+}
+
+.notAllowed, .notAllowed > * {
+    cursor: not-allowed !important;
+}
 
 #main {
     display: flex;
@@ -558,12 +560,106 @@ input:checked + .slider:before {
 }
 
 #initiativedialog {
-    padding: 0;
-    display: grid;
-    grid-template-columns: [img] auto [value] 30px [visible] 30px [group] 30px [remove] 30px [end];
-    grid-column-gap: 2px;
-    align-items: center;
+    padding: 10px;
 }
+
+#initiative-list {
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    /* grid-template-columns: [active] 20px [img] auto [value] 30px [visible] 30px [group] 30px [remove] 30px [end];
+    grid-column-gap: 2px;
+    align-items: center; */
+}
+
+.initiative-actor {
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-end;
+    align-items: center;
+    padding: 2px 5px;
+    margin-bottom: 2px;
+    border-radius: 5px;
+    border: solid 2px rgba(0, 0, 0, 0);
+}
+
+.initiative-selected {
+    border: solid 2px #82c8a0;
+    background-color: #82c8a0;
+}
+
+.initiative-selected + .initiative-effect, .initiative-actor:hover + .initiative-effect, .initiative-effect:hover {
+    display: flex;
+    border-color: rgba(130, 200, 160, 0.6);
+    background-color: rgba(130, 200, 160, 0.6);
+}
+
+.initiative-actor:hover {
+    border: solid 2px #82c8a0;
+    cursor: move;
+}
+
+.initiative-actor > * {
+    width: 30px;
+    margin-left: 2px;
+}
+
+.initiative-effect {
+    display: none;
+    flex-direction: column;
+    width: -moz-fit-content;
+    width: fit-content;
+    margin-right: 5px;
+    margin-top: -2px;
+    margin-bottom: 5px;
+    padding: 2px;
+    border: solid 2px rgba(0, 0, 0, 0);
+    border-bottom-left-radius: 5px;
+    border-bottom-right-radius: 5px;
+    border-top: none;
+}
+
+.initiative-effect > * {
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-end;
+}
+
+.initiative-effect > * > * {
+    border: none;
+    background-color: inherit;
+    text-align: right;
+    margin-left: 20px;
+    min-width: 10px;
+}
+.initiative-effect > * > *:first-child {
+    margin-left: 0;
+}
+
+#initiative-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-right: 10px;
+    margin-left: 10px;
+    margin-top: 10px;
+    margin-bottom: -10px;
+    padding: 2px;
+}
+
+.initiative-bar-button {
+    border: solid 2px #82c8a0;
+    border-radius: 5px;
+    padding:5px;
+}
+
+.initiative-bar-button:hover {
+    color: white;
+    background-color: #82c8a0;
+    cursor: pointer;
+}
+
 
 #createtokendialog {
     padding: 10px;

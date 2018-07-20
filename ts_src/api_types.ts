@@ -39,6 +39,13 @@ export interface InitiativeData {
     group: boolean;
     src: string;
     has_img: boolean;
+    effects: InitiativeEffect[];
+}
+
+export interface InitiativeEffect {
+    uuid: string;
+    name: string;
+    turns: number;
 }
 
 export interface ServerLayer {

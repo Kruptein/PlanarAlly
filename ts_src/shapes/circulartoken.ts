@@ -1,6 +1,6 @@
 import Circle from "./circle";
 import { GlobalPoint } from "../geom";
-import { ServerCircularToken } from "../api_types";
+import { ServerCircularToken, InitiativeData } from "../api_types";
 import { g2l } from "../units";
 import Settings from "../settings";
 import { calcFontScale } from "../utils";
@@ -48,14 +48,15 @@ export default class CircularToken extends Circle {
         ctx.fillText(this.text, 0, 0);
         ctx.restore();
     }
-    getInitiativeRepr() {
+    getInitiativeRepr(): InitiativeData {
         return {
             uuid: this.uuid,
             visible: !Settings.IS_DM,
             group: false,
             src: (this.name === '' || this.name === 'Unknown shape') ? this.text : this.name,
             owners: this.owners,
-            has_img: false
+            has_img: false,
+            effects: [],
         }
     }
 }

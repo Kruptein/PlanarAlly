@@ -53,10 +53,17 @@ export class InitiativeTracker {
         const d = this.data.findIndex(d => d.uuid === uuid);
         if (d >= 0) {
             if (!skipGroupCheck && this.data[d].group) return;
-            this.data.splice(d, 1);
-            this.redraw();
+
             if (sync)
                 socket.emit("updateInitiative", { uuid: uuid });
+                
+            this.data.splice(d, 1);
+            this.redraw();
+            
+            const shape = gameManager.layerManager.UUIDMap.get(uuid);
+            if (shape === undefined) return;
+            shape.showHighlight = false;
+            gameManager.layerManager.getLayer(shape.layer)!.invalidate(true);
         }
         this.hide();
     };

@@ -5,9 +5,11 @@ import { g2l, g2lz, getUnitDistance, g2lr, g2lx, g2ly } from "../units";
 import Circle from "../shapes/circle";
 import { GlobalPoint, Ray } from "../geom";
 import { getFogColour } from "../utils";
+import Shape from "../shapes/shape";
 
 export class FOWLayer extends Layer {
     isVisionLayer: boolean = true;
+    preFogTestShapesBSLayerIDFK: Shape[] = [];
 
     draw(): void {
         if (Settings.board_initialised && !this.valid) {
@@ -123,11 +125,18 @@ export class FOWLayer extends Layer {
                 aura.lastPath = path;
             }
 
+            for (let p=0; p < this.preFogTestShapesBSLayerIDFK.length; p++) {
+                const pS = this.preFogTestShapesBSLayerIDFK[p];
+                if (!pS.visibleInCanvas(this.canvas)) return;
+                pS.draw(ctx);
+            }
+
             // At the DM Side due to opacity of the two fow layers, it looks strange if we just render them on top of eachother like players.
             if (Settings.fowLOS) {
                 ctx.globalCompositeOperation = 'source-in';
                 ctx.drawImage(gameManager.layerManager.getLayer("fow-players")!.canvas, 0, 0);
             }
+
             ctx.globalCompositeOperation = 'source-out';
             ctx.fillStyle = getFogColour();
             ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);

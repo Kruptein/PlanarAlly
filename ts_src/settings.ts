@@ -29,6 +29,8 @@ class Settings {
     static locationName: string;
     static username: string;
 
+    static tempFill: string = 'fog';
+
     static setOptions(options: LocationOptions): void {
         if ("unitSize" in options)
             this.setUnitSize(options.unitSize, false);

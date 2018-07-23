@@ -6,6 +6,8 @@ import { l2g, getUnitDistance } from "../units";
 import MultiLine from "../shapes/multiline";
 import { socket } from "../socket";
 import Circle from "../shapes/circle";
+import Settings from "../settings";
+import { FOWLayer } from "../layers/fow";
 
 export class BrushTool extends Tool {
     active: boolean = false;
@@ -28,26 +30,30 @@ export class BrushTool extends Tool {
         const layer = gameManager.layerManager.getLayer("fow")!;
 
         if ($("#brush-reveal").prop("checked")) {
-            this.brush.globalCompositeOperation = "destination-out";
-            this.brush.fill = "rgba(0, 0, 0, 1)";
+            this.brush.globalCompositeOperation = "source-over";
         } else {
-            this.brush.globalCompositeOperation = "xor";
-            this.brush.fill = "fog";
+            this.brush.globalCompositeOperation = "destination-out";
         }
-        
-        layer.addShape(this.brush, true, false);
+        this.brush.fill = "rgba(0, 0, 0, 1)";
+
+        (<FOWLayer>layer).preFogTestShapesBSLayerIDFK.push(this.brush);
+        const idx = (<FOWLayer>layer).preFogTestShapesBSLayerIDFK.indexOf(this.brushHelper);
+        if (idx >= 0)
+            (<FOWLayer>layer).preFogTestShapesBSLayerIDFK.splice(idx, 1);
+        (<FOWLayer>layer).preFogTestShapesBSLayerIDFK.push(this.brushHelper);
+        // layer.addShape(this.brush, true, false);
+
     }
     onMouseMove(e: MouseEvent) {
         const mousePos = l2g(getMouse(e));
         this.brushHelper.refPoint = mousePos;
         this.brushHelper.r = getUnitDistance(parseInt($("#brush-size").prop("value")) / 2);
         if ($("#brush-reveal").prop("checked")) {
-            this.brushHelper.globalCompositeOperation = "destination-out";
-            this.brushHelper.fill = "rgba(0, 0, 0, 1)";
+            this.brushHelper.globalCompositeOperation = "source-over";
         } else {
-            this.brushHelper.globalCompositeOperation = "xor";
-            this.brushHelper.fill = "fog";
+            this.brushHelper.globalCompositeOperation = "destination-out";
         }
+        this.brushHelper.fill = "rgba(0, 0, 0, 1)";
         if (!gameManager.layerManager.hasLayer("fow")) {
             console.log("No fow layer!");
             return;
@@ -70,7 +76,11 @@ export class BrushTool extends Tool {
             return;
         }
         const layer = gameManager.layerManager.getLayer("fow")!;
-        layer.addShape(this.brushHelper, false, false);
+        // layer.addShape(this.brushHelper, false, false);
+        const idx = (<FOWLayer>layer).preFogTestShapesBSLayerIDFK.indexOf(this.brushHelper);
+        if (idx >= 0)
+            (<FOWLayer>layer).preFogTestShapesBSLayerIDFK.splice(idx, 1);
+        (<FOWLayer>layer).preFogTestShapesBSLayerIDFK.push(this.brushHelper);
     }
     onDeselect() {
         if (!gameManager.layerManager.hasLayer("fow")) {
@@ -79,5 +89,8 @@ export class BrushTool extends Tool {
         }
         const layer = gameManager.layerManager.getLayer("fow")!;
         layer.removeShape(this.brushHelper, false, false);
+        // const idx = (<FOWLayer>layer).preFogTestShapesBSLayerIDFK.indexOf(this.brushHelper);
+        // if (idx >= 0)
+        //     (<FOWLayer>layer).preFogTestShapesBSLayerIDFK.splice(idx, 1);
     }
 }

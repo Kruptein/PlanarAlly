@@ -11,12 +11,10 @@ import BoundingRect from "./shapes/boundingrect";
 let gameManager = new GameManager();
 (<any>window).gameManager = gameManager;
 (<any>window).Settings = Settings;
-(<any>window).BV = BoundingVolume;
 (<any>window).g2lx = g2lx;
 (<any>window).g2ly = g2ly;
 (<any>window).g2lz = g2lz;
 (<any>window).Vector = Vector;
-(<any>window).BoundingRect = BoundingRect;
 
 window.onresize = function () {
     gameManager.layerManager.setWidth(window.innerWidth);

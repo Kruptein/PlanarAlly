@@ -1,4 +1,4 @@
-import { uuidv4 } from "../utils";
+import { uuidv4, capitalize } from "../utils";
 import BoundingRect from "./boundingrect";
 import gameManager from "../planarally";
 import socket from "../socket";
@@ -319,8 +319,8 @@ export default abstract class Shape {
             "<li>Layer<ul>";
         gameManager.layerManager.layers.forEach(function (layer) {
             if (!layer.selectable) return;
-            const sel = layer.name === l.name ? " style='background-color:aqua' " : " ";
-            data += `<li data-action='setLayer' data-layer='${layer.name}' ${sel} class='context-clickable'>${layer.name}</li>`;
+            const sel = layer.name === l.name ? " style='background-color:#82c8a0' " : " ";
+            data += `<li data-action='setLayer' data-layer='${layer.name}' ${sel} class='context-clickable'>${capitalize(layer.name)}</li>`;
         });
         data += "</ul></li>" +
             "<li data-action='moveToBack' class='context-clickable'>Move to back</li>" +

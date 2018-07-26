@@ -13,8 +13,8 @@ UPDATE YOUR SAVE BY EXECUTING `python ../scripts/convert/1_to_2.py` FROM WITHIN 
 ### Added
 - Added a note system
 - Initiative tracker update
-    - now shows the active actor and has a next turn button
-    - shows the current round number
+    - Now shows the active actor and has a next turn button
+    - Shows the current round number
     - Turn/Effect timers per actor that automatically count down
     - Show a border around shapes on hover in the initiative list
 
@@ -25,7 +25,7 @@ UPDATE YOUR SAVE BY EXECUTING `python ../scripts/convert/1_to_2.py` FROM WITHIN 
 ## [0.8] - 2018-06-19
 
 This release greatly increases performance of all lighting modes and also properly 
-introduyces Line of Sight based lighting system.
+introduces Line of Sight based lighting system.
 
 SAVE_FORMAT CHANGED FROM 0 to 1
 BACKUP YOUR OLD SAVE BEFORE CONVERTING!

@@ -273,8 +273,8 @@ svg {
 #contextMenu > ul > li ul {
     display: none;
     position: absolute;
-    left: 99px;
-    top: 0;
+    left: 119px;
+    top: -1px;
 }
 
 #contextMenu > ul > li:hover ul {

@@ -286,7 +286,14 @@ export default abstract class Shape {
                 ctx.arc(loc.x, loc.y, g2lr(aura.value), 0, 2 * Math.PI);
                 ctx.fill();
             } else {
-                ctx.fill(aura.lastPath);
+                try {
+                    ctx.fill(aura.lastPath);
+                } catch (e) {
+                    console.warn("Path2D ERROR");
+                    console.log(e);
+                    ctx.arc(loc.x, loc.y, g2lr(aura.value), 0, 2 * Math.PI);
+                    ctx.fill();
+                }
             }
             if (aura.dim) {
                 const tc = tinycolor(aura.colour);
@@ -294,10 +301,17 @@ export default abstract class Shape {
                 ctx.fillStyle = tc.setAlpha(tc.getAlpha() / 2).toRgbString();
                 const loc = g2l(self.center());
                 if (aura.lastPath === undefined) {
-                    ctx.arc(loc.x, loc.y, g2lr(aura.value), 0, 2 * Math.PI);
+                    ctx.arc(loc.x, loc.y, g2lr(aura.dim), 0, 2 * Math.PI);
                     ctx.fill();
                 } else {
-                    ctx.fill(aura.lastPath);
+                    try {
+                        ctx.fill(aura.lastPath);
+                    } catch (e) {
+                        console.warn("PATH2D ERROR");
+                        console.log(e);
+                        ctx.arc(loc.x, loc.y, g2lr(aura.dim), 0, 2 * Math.PI);
+                        ctx.fill();
+                    }
                 }
             }
         });

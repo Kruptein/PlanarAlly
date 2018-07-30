@@ -21,6 +21,8 @@ UPDATE YOUR SAVE BY EXECUTING `python ../scripts/convert/1_to_2.py` FROM WITHIN 
 ### Fixed
 - Select box not working properly on the fow layer
 - Ownership changes are now reflected in the initiative list
+- Dim value aura's had the wrong radius
+- Aura's path2D errors are now handled and default circular behaviour is used if catched until the root error is found.
 
 ## [0.8] - 2018-06-19
 

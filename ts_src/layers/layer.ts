@@ -61,26 +61,15 @@ export class Layer {
     }
 
     setShapes(shapes: ServerShape[]): void {
-        const t: Shape[] = [];
-        const self = this;
-        shapes.forEach(function (shape) {
-            const sh = createShapeFromDict(shape);
-            if (sh === undefined) {
-                console.log(`Shape with unknown type ${shape.type} could not be added`);
+        for(let i=0; i < shapes.length; i++) {
+            const shape = createShapeFromDict(shapes[i]);
+            if (shape === undefined) {
+                console.log(`Shape with unknown type ${shapes[i].type} could not be added`);
                 return ;
             }
-            sh.layer = self.name;
-            t.push(sh);
-            gameManager.layerManager.UUIDMap.set(shape.uuid, sh);
-            sh.checkLightSources();
-            sh.setMovementBlock(shape.movementObstruction);
-            if (sh.ownedBy() && sh.isToken)
-                gameManager.ownedtokens.push(sh.uuid);
-            if (sh.annotation.length)
-                gameManager.annotations.push(sh.uuid);
-        });
+            this.addShape(shape, false, false);
+        }
         this.selection = []; // TODO: Fix keeping selection on those items that are not moved.
-        this.shapes = t;
         this.invalidate(false);
     }
 
@@ -135,6 +124,7 @@ export class Layer {
             const state = this;
 
             this.shapes.forEach(function (shape) {
+                if (shape.options.has("skipDraw") && shape.options.get("skipDraw")) return;
                 if (gameManager.layerManager.getLayer() === undefined) return;
                 if (!shape.visibleInCanvas(state.canvas)) return;
                 if (state.name === 'fow' && shape.visionObstruction && gameManager.layerManager.getLayer()!.name !== state.name) return;

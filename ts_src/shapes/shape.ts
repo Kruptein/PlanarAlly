@@ -42,6 +42,9 @@ export default abstract class Shape {
     // Draw modus to use
     globalCompositeOperation: string = "source-over";
 
+    // Additional options for specialized uses
+    options: Map<string, any> = new Map();
+
     constructor(refPoint: GlobalPoint, uuid?: string) {
         this.refPoint = refPoint;
         this.uuid = uuid || uuidv4();
@@ -241,6 +244,7 @@ export default abstract class Shape {
             name: this.name,
             annotation: this.annotation,
             isToken: this.isToken,
+            options: JSON.stringify([...this.options])
         }
     }
     fromDict(data: ServerShape) {
@@ -256,6 +260,8 @@ export default abstract class Shape {
             this.annotation = data.annotation;
         if (data.name)
             this.name = data.name;
+        if (data.options)
+            this.options = new Map(JSON.parse(data.options));
     }
 
     draw(ctx: CanvasRenderingContext2D) {

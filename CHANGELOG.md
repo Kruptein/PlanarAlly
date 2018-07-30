@@ -7,9 +7,10 @@ All notable changes to this project will be documented in this file.
 ## Unreleased
 
 ### Added
-- Brush tool
+- FOW Brush tool
     - Similar behaviour currently to the fow tool, but actually provides much more freedom as it is a freehand brush
     - Also shows a brush tip while moving the mouse
+    - Currently only works when global fog is applied.
 - [tech] tools onSelect and onDeselect for more finegrained tweaking and UI helpers
 
 ### Changed

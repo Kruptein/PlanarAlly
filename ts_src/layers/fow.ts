@@ -9,7 +9,22 @@ import Shape from "../shapes/shape";
 
 export class FOWLayer extends Layer {
     isVisionLayer: boolean = true;
-    preFogTestShapesBSLayerIDFK: Shape[] = [];
+    preFogShapes: Shape[] = [];
+
+    addShape(shape: Shape, sync: boolean, temporary?: boolean): void {
+        super.addShape(shape, sync, temporary);
+        if (shape.options.has("preFogShape") && shape.options.get("preFogShape")) {
+            this.preFogShapes.push(shape);
+        }
+    }
+
+    removeShape(shape: Shape, sync: boolean, temporary?: boolean) {
+        if (shape.options.has("preFogShape") && shape.options.get("preFogShape")) {
+            const idx = this.preFogShapes.findIndex(s => s.uuid === shape.uuid);
+            this.preFogShapes.splice(idx, 1);
+        }
+        super.removeShape(shape, sync, temporary);
+    }
 
     draw(): void {
         if (Settings.board_initialised && !this.valid) {
@@ -125,8 +140,8 @@ export class FOWLayer extends Layer {
                 aura.lastPath = path;
             }
 
-            for (let p=0; p < this.preFogTestShapesBSLayerIDFK.length; p++) {
-                const pS = this.preFogTestShapesBSLayerIDFK[p];
+            for (let p=0; p < this.preFogShapes.length; p++) {
+                const pS = this.preFogShapes[p];
                 if (!pS.visibleInCanvas(this.canvas)) return;
                 pS.draw(ctx);
             }

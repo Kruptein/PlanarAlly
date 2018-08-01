@@ -702,3 +702,42 @@ input:checked + .slider:before {
 select {
     font-family: FontAwesome, sans-serif;
 }
+
+
+
+/*
+DIRECTORY.CSS changes
+
+* Collapse all folders by default, use js to toggle visibility on click.
+* On hover over folder show some visual feedback
+* On hover over file show the image
+
+*/
+.folder > * {
+    display: none;
+}
+
+.directory > .folder, .directory > .file {
+    display: block;
+}
+
+.folder:hover {
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.folder:hover > * {
+    font-weight: normal;
+}
+
+
+#preview {
+    position: absolute;
+	display:none;
+    z-index:50;
+}
+
+.asset-preview-image {
+    width: 100%;
+    max-width: 250px;
+}

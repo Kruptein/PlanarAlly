@@ -4,6 +4,7 @@
     <meta charset="utf-8">
     <title>PlanarAlly</title>
     <link rel="stylesheet" type="text/css" href="/static/css/planarally.css">
+    <link rel="stylesheet" type="text/css" href="/static/extern/css/directory.css">
     <link rel='stylesheet' href='/static/extern/css/jquery-ui-1.12.1.css'/>
     <script defer src='/static/extern/js/fontawesome_all.js'></script>
     <script defer src="/static/js/planarally.js"></script>
@@ -34,9 +35,9 @@
         <div id="menu">
             <div style='width:100%;height:90%;overflow-y:auto;overflow-x:hidden;'>
                 {% if dm %}
-                    <button class="accordion">Tokens</button>
+                    <button class="accordion">Assets</button>
                     <div class="accordion-panel">
-                        <div class="accordion-subpanel" id="menu-tokens"></div>
+                        <div class="directory" id="menu-tokens"></div>
                     </div>
                     <button class="accordion">Notes</button>
                     <div class="accordion-panel">

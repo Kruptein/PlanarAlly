@@ -52,26 +52,49 @@ socket.on("asset list", function (assets: AssetList) {
     const process = function (entry: AssetList, path: string) {
         const folders = new Map(Object.entries(entry.folders));
         folders.forEach(function (value, key) {
-            h += "<button class='accordion'>" + key + "</button><div class='accordion-panel'><div class='accordion-subpanel'>";
+            h += "<li class='folder'>" + key + "<ul>";
             process(value, path + key + "/");
-            h += "</div></div>";
+            h += "</ul></li>";
         });
         entry.files.sort(alphSort);
         entry.files.forEach(function (asset) {
-            h += "<div class='draggable token'><img src='/static/img/assets/" + fixedEncodeURIComponent(path) + fixedEncodeURIComponent(asset) + "' width='35'>" + asset + "<i class='fas fa-cog'></i></div>";
+            // <img src='/static/img/assets/" + fixedEncodeURIComponent(path) + fixedEncodeURIComponent(asset) + "' width='35'>
+            h += `<li class='file draggable token' data-img='/static/img/assets/${fixedEncodeURIComponent(path) + fixedEncodeURIComponent(asset)}'>${asset.replace(/\.[^/.]+$/, "")}</li>`;
         });
     };
     process(assets, "");
     m.html(h);
     $(".draggable").draggable({
-        helper: "clone",
+        helper: function() {
+            return $( `<img src='${$(this).data("img")}' class='asset-preview-image'>` );
+        },
         appendTo: "#board"
     });
-    $('.accordion').each(function (idx) {
-        $(this).on("click", function () {
-            $(this).toggleClass("accordion-active");
-            $(this).next().toggle();
-        });
+    
+    $('.folder').on("click", function (e) {
+        $(this).children().toggle();
+        e.stopPropagation();
+    });
+    $('.file').hover(
+        function(e) {
+            $("body").append(`<p id='preview'><img src='${$(this).data("img")}' class='asset-preview-image'></p>`); 
+            $("#preview")
+                .css("top",(e.pageY) + "px")
+                .css("left",(e.pageX) + "px")
+                .fadeIn("fast");	
+        },
+        function(e) {
+            $("#preview").remove();
+        }
+    );
+    $('.file').on("mousemove", function(e) {
+        $("#preview")
+			.css("top",(e.pageY) + "px")
+			.css("left",(e.pageX) + "px");
+    });
+    $('.accordion').on("click", function () {
+        $(this).toggleClass("accordion-active");
+        $(this).next().toggle();
     });
 });
 socket.on("board init", function (location_info: BoardInfo) {

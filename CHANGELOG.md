@@ -18,6 +18,13 @@ UPDATE YOUR SAVE BY EXECUTING `python ../scripts/convert/1_to_2.py` FROM WITHIN 
     - Turn/Effect timers per actor that automatically count down
     - Show a border around shapes on hover in the initiative list
 
+### Changed
+- Renamed 'Tokens' to 'Assets' in the settings panel
+- Redesigned the way assets are shown in the settings panel
+    - A tree view approach is used, showing preview images on hover
+    - Removed the cog wheel
+    - Hide extensions
+
 ### Fixed
 - Select box not working properly on the fow layer
 - Ownership changes are now reflected in the initiative list

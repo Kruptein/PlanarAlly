@@ -159,6 +159,13 @@ async def claim_invite(request):
         return web.HTTPFound(f"/rooms/{room.creator}/{room.name}")
 
 
+@login_required
+@aiohttp_jinja2.template('assets.jinja2')
+async def show_assets(request):
+    username = await authorized_userid(request)
+    return {'asset_info': app['AuthzPolicy'].user_map[username].asset_info}
+
+
 # SOCKETS
 @sio.on("add shape", namespace="/planarally")
 @auth.login_required(app, sio)
@@ -682,12 +689,30 @@ async def test_disconnect(sid):
     PA.save_room(room)
 
 
+@sio.on('connect', namespace='/pa_assetmgmt')
+async def assetmgmt_connect(sid, environ):
+    username = await authorized_userid(environ['aiohttp.request'])
+    if username is None:
+        await sio.emit("redirect", "/", room=sid, namespace='/pa_assetmgmt')
+    else:
+        app['AuthzPolicy'].sio_map[sid] = {
+            'user': app['AuthzPolicy'].user_map[username],
+        }
+
+
+@sio.on('uploadAsset', namespace='/pa_assetmgmt')
+@auth.login_required(app, sio)
+async def assetmgmt_upload(sid, file):
+    with open(f"{file['name']}", "wb") as f:
+        f.write(file['data'])
+
 app.router.add_static('/static', 'static')
 app.router.add_route('*', '/', login)
 app.router.add_get('/rooms', show_rooms)
 app.router.add_get('/rooms/{username}/{roomname}', show_room)
 app.router.add_get('/invite/{code}', claim_invite)
 app.router.add_post('/create_room', create_room)
+app.router.add_get('/assets/{username}', show_assets)
 app.router.add_get('/logout', logout)
 
 app.on_shutdown.append(on_shutdown)

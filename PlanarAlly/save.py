@@ -3,7 +3,7 @@ import os
 import shelve
 import sys
 
-SAVE_VERSION = 2
+SAVE_VERSION = 3
 
 def check_save(save_file):
     try:

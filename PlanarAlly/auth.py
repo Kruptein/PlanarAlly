@@ -8,13 +8,12 @@ from functools import wraps
 
 from aiohttp_security.abc import AbstractAuthorizationPolicy
 
-SAVE_VERSION = 1
-
 
 class User:
     def __init__(self, username):
         self.username = username
         self.password_hash = None
+        self.asset_info = {'files': [], 'folders': {}}
         self.options = {}
 
     def set_password(self, pw):

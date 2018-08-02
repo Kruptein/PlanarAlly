@@ -5,16 +5,19 @@ This is the code responsible for starting the backend and reacting to socket IO 
 
 import collections
 import configparser
+import functools
+import hashlib
+import json
 import os
+import pathlib
 from operator import itemgetter
 from urllib.parse import unquote
-
-import socketio
 
 import aiohttp_jinja2
 import aiohttp_security
 import aiohttp_session
 import jinja2
+import socketio
 from aiohttp import web
 from aiohttp_security import remember, forget, authorized_userid, login_required, SessionIdentityPolicy
 from aiohttp_session.cookie_storage import EncryptedCookieStorage
@@ -26,6 +29,10 @@ from planarally import PlanarAlly
 FILE_DIR = os.path.dirname(os.path.realpath(__file__))
 os.chdir(FILE_DIR)
 SAVE_FILE = "planar.save"
+
+ASSETS_DIR = pathlib.Path(FILE_DIR) / "static" / "assets"
+if not ASSETS_DIR.exists():
+    ASSETS_DIR.mkdir()
 
 save.check_save(SAVE_FILE)
 
@@ -163,7 +170,7 @@ async def claim_invite(request):
 @aiohttp_jinja2.template('assets.jinja2')
 async def show_assets(request):
     username = await authorized_userid(request)
-    return {'asset_info': app['AuthzPolicy'].user_map[username].asset_info}
+    return {'asset_info': json.dumps(app['AuthzPolicy'].user_map[username].asset_info)}
 
 
 # SOCKETS
@@ -702,9 +709,36 @@ async def assetmgmt_connect(sid, environ):
 
 @sio.on('uploadAsset', namespace='/pa_assetmgmt')
 @auth.login_required(app, sio)
-async def assetmgmt_upload(sid, file):
-    with open(f"{file['name']}", "wb") as f:
-        f.write(file['data'])
+async def assetmgmt_upload(sid, file_data):
+    sha1 = hashlib.sha1()
+    sh = hashlib.sha1(file_data['data'])
+    hashname = sh.hexdigest()
+    filename = file_data['name']
+
+    if not (ASSETS_DIR / hashname).exists():
+        with open(ASSETS_DIR / hashname, "wb") as f:
+            f.write(file_data['data'])
+    
+    policy = app['AuthzPolicy']
+    user = policy.sio_map[sid]['user']
+    folder = functools.reduce(dict.get, file_data['directory'], user.asset_info)
+    if folder is None:
+        print(f"Directory structure {file_data['directory']} is not valid for {user.username}")
+        return
+    
+    folder['__files'].append({'name': file_data['name'], 'hash': hashname})
+    policy.save()
+
+
+@sio.on('createDirectory', namespace='/pa_assetmgmt')
+@auth.login_required(app, sio)
+async def assetmgmt_mkdir(sid, data):
+    policy = app['AuthzPolicy']
+    user = policy.sio_map[sid]['user']
+    folder = functools.reduce(dict.get, data['directory'], user.asset_info)
+    folder[data['name']] = {'__files': []}
+    policy.save()
+
 
 app.router.add_static('/static', 'static')
 app.router.add_route('*', '/', login)

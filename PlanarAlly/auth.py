@@ -13,7 +13,7 @@ class User:
     def __init__(self, username):
         self.username = username
         self.password_hash = None
-        self.asset_info = {'files': [], 'folders': {}}
+        self.asset_info = { '__files': [] }
         self.options = {}
 
     def set_password(self, pw):

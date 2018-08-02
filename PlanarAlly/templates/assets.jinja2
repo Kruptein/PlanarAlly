@@ -3,6 +3,8 @@
 <head>
     <title>PlanarAlly - Asset Manager</title>
     <script src='/static/extern/js/socket.io-2.0.4.js'></script>
+    <script defer src='/static/extern/js/fontawesome_all.js'></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
     <script>
         const socket = io.connect(location.protocol + "//" + location.host + "/pa_assetmgmt");
         socket.on("connect", function () {
@@ -16,25 +18,140 @@
             window.location.href = destination;
         });
 
-        function upload() {
-            const fls = $("input").files;
-            for(let i=0; i < fls.length; i++) {
-                const fr = new FileReader();
-                fr.readAsArrayBuffer(fls[i]);
-                fr.onload = (e) => {
-                    socket.emit("uploadAsset", {
-                        name: fls[i].name,
-                        type: fls[i].type,
-                        size: fls[i].size,
-                        data: fr.result
-                    });
-                }
+        function getDirectoryContents(dir) {
+            folder = assetInfo;
+            for (let key of dir) {
+                folder = folder[key];
             }
+            if (dir.length)
+                folder['..'] = {};
+            return folder;
+        }
+
+        function hex(buffer) {
+            var hexCodes = [];
+            var view = new DataView(buffer);
+            for (var i = 0; i < view.byteLength; i += 4) {
+                // Using getUint32 reduces the number of iterations needed (we process 4 bytes each time)
+                var value = view.getUint32(i)
+                // toString(16) will give the hex representation of the number without padding
+                var stringValue = value.toString(16)
+                // We use concatenation and slice for padding
+                var padding = '00000000'
+                var paddedValue = (padding + stringValue).slice(-padding.length)
+                hexCodes.push(paddedValue);
+            }
+
+            // Join all the hex strings into one
+            return hexCodes.join("");
+        }
+
+        let app;
+        let assetInfo = {{ asset_info|safe }};
+
+        window.onload = () => {
+            app = new Vue({
+                el: '#AssetManager',
+                data: {
+                    currentDirectory: [],
+                },
+                computed: {
+                    directory: function () { return getDirectoryContents(this.currentDirectory) }
+                },
+                methods: {
+                    changeDirectory: function (nextFolder) {
+                        if (nextFolder === '..')
+                            this.currentDirectory.pop();
+                        else
+                            this.currentDirectory.push(nextFolder);
+                    },
+                    createDirectory: function () {
+                        const name = prompt("New folder name");
+                        if (name !== null) {
+                            socket.emit("createDirectory", {name: name, directory: this.currentDirectory});
+                            folder = assetInfo;
+                            for (let key of this.currentDirectory) {
+                                folder = folder[key];
+                            }
+                            folder[name] = {};
+                            this.$forceUpdate();
+                        }
+                    },
+                    prepareUpload: function () {
+                        document.getElementById("files").click();
+                    },
+                    upload: function () {
+                        const fls = document.getElementById("files").files;
+                        for(let i=0; i < fls.length; i++) {
+                            const fr = new FileReader();
+                            fr.readAsArrayBuffer(fls[i]);
+                            fr.onload = (e) => {
+                                socket.emit("uploadAsset", {
+                                    name: fls[i].name,
+                                    directory: this.currentDirectory,
+                                    data: fr.result
+                                });
+                                self = this;
+                                crypto.subtle.digest("SHA-1", fr.result).then(function (hash) {
+                                    folder = assetInfo;
+                                    for (let key of self.currentDirectory) {
+                                        folder = folder[key];
+                                    }
+                                    if (!folder['__files']) folder['__files'] = [];
+                                    folder['__files'].push({'name': fls[i]['name'], 'hash': hex(hash)});
+                                    self.$forceUpdate();
+                                });
+                            }
+                        }
+                    }
+                },
+                delimiters: ['[[', ']]'],
+            })
         }
     </script>
+    <style>
+    #assets {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(105px, 1fr));
+        width: 100%;
+    }
+    .inode {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        padding: 15px;
+    }
+    .inode:hover {
+        cursor: pointer;
+        background-color: #82c8a0;
+    }
+    .title {
+        word-break: break-all;
+    }
+    </style>
 </head>
 <body>
-{{ asset_info }}
-<input type='file' multiple>
+<div id='AssetManager'>
+    <div id='assets'>
+        <template v-for="(value, key) in directory">
+            <template v-if="key === '__files'">
+                <div class='inode file' v-for="file in value">
+                    <img :src="'/static/assets/' + file.hash" width=50>
+                    <div class='title'>[[ file.name ]]</div>
+                </div>
+            </template>
+            <template v-else>
+                <div class='inode folder' @click="changeDirectory(key)">
+                    <i class='fas fa-folder' style='font-size: 50px;'></i>
+                    <div class='title'>[[ key ]]</div>
+                </div>
+            </template>
+        </template>
+    </div>
+    <input id='files' type='file' multiple hidden @change="upload()">
+    <button @click="createDirectory()">Create new folder</button>
+    <button @click="prepareUpload()">Upload files</button>
+</div>
 </body>
 </html>

@@ -6,9 +6,10 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
-SAVE_FORMAT CHANGED FROM 1 to 2
+SAVE_FORMAT CHANGED FROM 1 to 3
 BACKUP YOUR OLD SAVE BEFORE CONVERTING!
 UPDATE YOUR SAVE BY EXECUTING `python ../scripts/convert/1_to_2.py` FROM WITHIN THE `PlanarAlly` FOLDER THAT CONTAINS YOUR SAVE FILE, THE SERVER CONFIG AND THE OTHER PYTHON FILES!!!
+ALSO EXECUTE `python ../scripts/convert/2_to_3.py`
 
 ### Added
 - Added a note system
@@ -17,6 +18,10 @@ UPDATE YOUR SAVE BY EXECUTING `python ../scripts/convert/1_to_2.py` FROM WITHIN 
     - Shows the current round number
     - Turn/Effect timers per actor that automatically count down
     - Show a border around shapes on hover in the initiative list
+- New Asset management panel
+    - Out of game way to organize assets
+    - Gives a way to upload new assets
+    - Rename/remove files/directories
 
 ### Changed
 - Renamed 'Tokens' to 'Assets' in the settings panel

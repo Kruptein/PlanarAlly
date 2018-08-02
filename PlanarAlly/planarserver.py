@@ -726,8 +726,12 @@ async def assetmgmt_upload(sid, file_data):
         print(f"Directory structure {file_data['directory']} is not valid for {user.username}")
         return
     
-    folder['__files'].append({'name': file_data['name'], 'hash': hashname})
+    file_info = {'name': file_data['name'], 'hash': hashname}
+    if '__files' not in folder:
+        folder['__files'] = []
+    folder['__files'].append(file_info)
     policy.save()
+    await sio.emit("uploadAssetResult", file_info, room=sid, namespace='/pa_assetmgmt')
 
 
 @sio.on('createDirectory', namespace='/pa_assetmgmt')
@@ -737,6 +741,37 @@ async def assetmgmt_mkdir(sid, data):
     user = policy.sio_map[sid]['user']
     folder = functools.reduce(dict.get, data['directory'], user.asset_info)
     folder[data['name']] = {'__files': []}
+    policy.save()
+
+
+@sio.on('rename', namespace='/pa_assetmgmt')
+@auth.login_required(app, sio)
+async def assetmgmt_mv(sid, data):
+    policy = app['AuthzPolicy']
+    user = policy.sio_map[sid]['user']
+    folder = functools.reduce(dict.get, data['directory'], user.asset_info)
+    if data['isFolder']:
+        folder[data['newName']] = folder[data['oldName']]
+        del folder[data['oldName']]
+    else:
+        for fl in folder['__files']:
+            if fl['name'] == data['oldName']:
+                fl['name'] = data['newName']
+    policy.save()
+
+
+@sio.on('remove', namespace='/pa_assetmgmt')
+@auth.login_required(app, sio)
+async def assetmgmt_rm(sid, data):
+    policy = app['AuthzPolicy']
+    user = policy.sio_map[sid]['user']
+    folder = functools.reduce(dict.get, data['directory'], user.asset_info)
+    if data['isFolder']:
+        del folder[data['name']]
+    else:
+        index = next((i for i, fl in enumerate(folder['__files']) if fl['name'] == data['name']), None)
+        if index:
+            folder['__files'].pop(index);
     policy.save()
 
 

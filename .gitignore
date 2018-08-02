@@ -15,3 +15,4 @@ PlanarAlly/client/src/*.js.map
 planar.save*
 server_config.cfg
 PlanarAlly/static/img/**
+PlanarAlly/static/assets/**

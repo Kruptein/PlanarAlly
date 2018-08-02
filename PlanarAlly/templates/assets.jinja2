@@ -2,6 +2,7 @@
 <html>
 <head>
     <title>PlanarAlly - Asset Manager</title>
+    <link rel="stylesheet" type="text/css" href="/static/css/assets.css">
     <script src='/static/extern/js/socket.io-2.0.4.js'></script>
     <script defer src='/static/extern/js/fontawesome_all.js'></script>
     <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
@@ -17,17 +18,14 @@
             console.log("redirecting");
             window.location.href = destination;
         });
+        socket.on("uploadAssetResult", function (fileInfo) {
+            folder = app.directory;
+            if (!folder['__files']) folder['__files'] = [];
+            folder['__files'].push(fileInfo);
+            app.$forceUpdate();
+        });
 
-        function getDirectoryContents(dir) {
-            folder = assetInfo;
-            for (let key of dir) {
-                folder = folder[key];
-            }
-            if (dir.length)
-                folder['..'] = {};
-            return folder;
-        }
-
+        // source: mdn
         function hex(buffer) {
             var hexCodes = [];
             var view = new DataView(buffer);
@@ -56,7 +54,15 @@
                     currentDirectory: [],
                 },
                 computed: {
-                    directory: function () { return getDirectoryContents(this.currentDirectory) }
+                    directory: function () {
+                        folder = assetInfo;
+                        for (let key of this.currentDirectory) {
+                            folder = folder[key];
+                        }
+                        if (this.currentDirectory.length)
+                            folder['..'] = {};
+                        return folder;
+                    }
                 },
                 methods: {
                     changeDirectory: function (nextFolder) {
@@ -69,10 +75,7 @@
                         const name = prompt("New folder name");
                         if (name !== null) {
                             socket.emit("createDirectory", {name: name, directory: this.currentDirectory});
-                            folder = assetInfo;
-                            for (let key of this.currentDirectory) {
-                                folder = folder[key];
-                            }
+                            folder = app.directory;
                             folder[name] = {};
                             this.$forceUpdate();
                         }
@@ -91,16 +94,6 @@
                                     directory: this.currentDirectory,
                                     data: fr.result
                                 });
-                                self = this;
-                                crypto.subtle.digest("SHA-1", fr.result).then(function (hash) {
-                                    folder = assetInfo;
-                                    for (let key of self.currentDirectory) {
-                                        folder = folder[key];
-                                    }
-                                    if (!folder['__files']) folder['__files'] = [];
-                                    folder['__files'].push({'name': fls[i]['name'], 'hash': hex(hash)});
-                                    self.$forceUpdate();
-                                });
                             }
                         }
                     }
@@ -108,50 +101,98 @@
                 delimiters: ['[[', ']]'],
             })
         }
+        Vue.component('contextmenu', {
+            data: function () {
+                return {
+                    inode: null,
+                    isFolder: false,
+                    visible: false,
+                    left: 0,
+                    top: 0
+                }
+            },
+            template: `
+                <div id='contextMenu' tabindex="-1" v-if="visible" ref='menu' v-bind:style="{left:left, top:top}" @blur="hide">
+                    <ul>
+                        <li @click='rename'>Rename</li>
+                        <li @click='remove'>Remove</li>
+                    </ul>
+                </div>`,
+            methods: {
+                show: function (inode, isFolder, event) {
+                    if (inode === "..") return;
+                    this.visible = true;
+                    this.left = `${event.pageX}px`;
+                    this.top = `${event.pageY}px`;
+                    this.isFolder = isFolder;
+                    this.inode = inode;
+                    this.$nextTick(function() {
+                        this.$refs.menu.focus();
+                    }.bind(this));
+                },
+                hide: function () {
+                    this.visible = false;
+                },
+                rename: function () {
+                    if (this.inode === null) return;
+                    const name = prompt("New name");
+                    if (name === null) return;
+
+                    socket.emit("rename", {isFolder: this.isFolder, oldName: this.inode, newName: name, directory: app.currentDirectory});
+
+                    const folder = app.directory;
+                    if (this.isFolder) {
+                        folder[name] = folder[this.inode];
+                        delete folder[this.inode];
+                    } else {
+                        folder['__files'].find(f => f.name === this.inode).name = name;
+                    }
+                    app.$forceUpdate();
+                    this.hide();
+                    this.inode = null;
+                },
+                remove: function () {
+                    if (this.inode === null) return;
+                    if (!confirm("Are you sure you wish to remove this?")) return;
+                    
+                    socket.emit("remove", {isFolder: this.isFolder, name: this.inode, directory: app.currentDirectory});
+
+                    const folder = app.directory;
+                    if (this.isFolder) {
+                        delete folder[this.inode];
+                    } else {
+                        folder['__files'].splice(folder['__files'].findIndex(f => f.name === this.inode), 1);
+                    }
+                    app.$forceUpdate();
+                    this.hide();
+                    this.inode = null;
+                }
+            }
+        })
     </script>
-    <style>
-    #assets {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(105px, 1fr));
-        width: 100%;
-    }
-    .inode {
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-        padding: 15px;
-    }
-    .inode:hover {
-        cursor: pointer;
-        background-color: #82c8a0;
-    }
-    .title {
-        word-break: break-all;
-    }
-    </style>
 </head>
 <body>
 <div id='AssetManager'>
     <div id='assets'>
         <template v-for="(value, key) in directory">
             <template v-if="key === '__files'">
-                <div class='inode file' v-for="file in value">
+                <div class='inode file' v-for="file in value" @contextmenu.prevent="$refs.cm.show(file.name, false, $event)">
                     <img :src="'/static/assets/' + file.hash" width=50>
                     <div class='title'>[[ file.name ]]</div>
                 </div>
             </template>
             <template v-else>
-                <div class='inode folder' @click="changeDirectory(key)">
+                <div class='inode folder' @click="changeDirectory(key)" @contextmenu.prevent="$refs.cm.show(key, true, $event)">
                     <i class='fas fa-folder' style='font-size: 50px;'></i>
                     <div class='title'>[[ key ]]</div>
                 </div>
             </template>
         </template>
     </div>
-    <input id='files' type='file' multiple hidden @change="upload()">
-    <button @click="createDirectory()">Create new folder</button>
-    <button @click="prepareUpload()">Upload files</button>
+    <input id='files' type='file' multiple hidden @change="upload">
+    <button @click="createDirectory">Create new folder</button>
+    <button @click="prepareUpload">Upload files</button>
+    <contextmenu ref='cm'></contextmenu>
 </div>
 </body>
 </html>

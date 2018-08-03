@@ -22,6 +22,8 @@ html, body {
     background-color: #FF7052;
     color: #fff;
     text-align: center;
+    border: solid 1px black;
+    box-shadow: 2px 2px gray;
 }
 
 #assets {
@@ -31,6 +33,7 @@ html, body {
     position: relative;
     padding-top: 45px;
     padding-bottom: 45px;
+    box-shadow: 2px 2px gray;
 }
 
 #breadcrumbs {
@@ -50,7 +53,7 @@ html, body {
 #breadcrumbs > div {
     position: relative;
     padding: 10px;
-    padding-left: 25px;
+    padding-left: 20px;
     text-align: center;
 }
 
@@ -69,8 +72,8 @@ html, body {
     width: 30px;
     height: 30px;
     top: 3px;
-    right: -20px;
-    background-color: #FF7052;
+    right: -10px;
+    background-color: transparent;
     border-top-right-radius: 5px;
     -webkit-transform: scale(0.707) rotate(45deg);
             transform: scale(0.707) rotate(45deg);

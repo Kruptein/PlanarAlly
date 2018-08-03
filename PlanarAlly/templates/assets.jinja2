@@ -122,8 +122,8 @@
                 show: function (inode, isFolder, event) {
                     if (inode === "..") return;
                     this.visible = true;
-                    this.left = `${event.pageX}px`;
-                    this.top = `${event.pageY}px`;
+                    this.left = `${event.pageX - 5}px`;
+                    this.top = `${event.pageY - 45 - 45}px`;
                     this.isFolder = isFolder;
                     this.inode = inode;
                     this.$nextTick(function() {
@@ -173,25 +173,38 @@
 </head>
 <body>
 <div id='AssetManager'>
+    <div id='titlebar'>Asset Manager</div>
     <div id='assets'>
-        <template v-for="(value, key) in directory">
-            <template v-if="key === '__files'">
-                <div class='inode file' v-for="file in value" @contextmenu.prevent="$refs.cm.show(file.name, false, $event)">
-                    <img :src="'/static/assets/' + file.hash" width=50>
-                    <div class='title'>[[ file.name ]]</div>
-                </div>
-            </template>
-            <template v-else>
-                <div class='inode folder' @click="changeDirectory(key)" @contextmenu.prevent="$refs.cm.show(key, true, $event)">
-                    <i class='fas fa-folder' style='font-size: 50px;'></i>
-                    <div class='title'>[[ key ]]</div>
-                </div>
+        <div id='breadcrumbs' v-if="currentDirectory.length">
+            <div v-for="dir in currentDirectory">[[ dir ]]</div>
+        </div>
+        <div id='actionbar'>
+            <input id='files' type='file' multiple hidden @change="upload">
+            <div @click="createDirectory" title="Create folder"><i class="fas fa-plus-square"></i></div>
+            <div @click="prepareUpload" title="Upload files"><i class="fas fa-upload"></i></div>
+        </div>
+        <div id='explorer'>
+            <template v-for="(value, key) in directory">
+                <template v-if="key === '__files'">
+                    <div
+                        class='inode file'
+                        v-for="file in value"
+                        {# @click="showDetails" #}
+                        @contextmenu.prevent="$refs.cm.show(file.name, false, $event)"
+                    >
+                        <img :src="'/static/assets/' + file.hash" width=50>
+                        <div class='title'>[[ file.name ]]</div>
+                    </div>
+                </template>
+                <template v-else>
+                    <div class='inode folder' @click="changeDirectory(key)" @contextmenu.prevent="$refs.cm.show(key, true, $event)">
+                        <i class='fas fa-folder' style='font-size: 50px;'></i>
+                        <div class='title'>[[ key ]]</div>
+                    </div>
+                </template>
             </template>
         </template>
     </div>
-    <input id='files' type='file' multiple hidden @change="upload">
-    <button @click="createDirectory">Create new folder</button>
-    <button @click="prepareUpload">Upload files</button>
     <contextmenu ref='cm'></contextmenu>
 </div>
 </body>

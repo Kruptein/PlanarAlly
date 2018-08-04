@@ -20,8 +20,9 @@ ALSO EXECUTE `python ../scripts/convert/2_to_3.py`
     - Show a border around shapes on hover in the initiative list
 - New Asset management panel
     - Out of game way to organize assets
-    - Gives a way to upload new assets
+    - Upload files via a dialog or by dropping them on the manager
     - Rename/remove files/directories
+    - move files/folders to other folders
 
 ### Changed
 - Renamed 'Tokens' to 'Assets' in the settings panel

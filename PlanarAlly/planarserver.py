@@ -731,7 +731,7 @@ async def assetmgmt_upload(sid, file_data):
         folder['__files'] = []
     folder['__files'].append(file_info)
     policy.save()
-    await sio.emit("uploadAssetResult", file_info, room=sid, namespace='/pa_assetmgmt')
+    await sio.emit("uploadAssetResult", {"fileInfo": file_info, "directory": file_data['directory']}, room=sid, namespace='/pa_assetmgmt')
 
 
 @sio.on('createDirectory', namespace='/pa_assetmgmt')
@@ -766,11 +766,11 @@ async def assetmgmt_rm(sid, data):
     policy = app['AuthzPolicy']
     user = policy.sio_map[sid]['user']
     folder = functools.reduce(dict.get, data['directory'], user.asset_info)
-    if data['isFolder']:
+    if data['isFolder'] and data['name'] in folder:
         del folder[data['name']]
     else:
         index = next((i for i, fl in enumerate(folder['__files']) if fl['name'] == data['name']), None)
-        if index:
+        if index is not None:
             folder['__files'].pop(index);
     policy.save()
 

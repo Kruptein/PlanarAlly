@@ -18,11 +18,13 @@
             console.log("redirecting");
             window.location.href = destination;
         });
-        socket.on("uploadAssetResult", function (fileInfo) {
-            folder = app.directory;
-            if (!folder['__files']) folder['__files'] = [];
-            folder['__files'].push(fileInfo);
-            app.$forceUpdate();
+        socket.on("uploadAssetResult", function (fileData) {
+            let folder = app.assetInfo;
+            for (let key of fileData.directory) {
+                folder = folder[key];
+            }
+            if (!folder['__files']) Vue.set(folder, '__files', []);
+            folder['__files'].push(fileData.fileInfo);
         });
 
         // source: mdn
@@ -45,23 +47,38 @@
         }
 
         let app;
-        let assetInfo = {{ asset_info|safe }};
 
         window.onload = () => {
             app = new Vue({
                 el: '#AssetManager',
                 data: {
+                    assetInfo: {{ asset_info|safe }},
                     currentDirectory: [],
+                    selected: [],
+                    draggingSelection: false
                 },
                 computed: {
                     directory: function () {
-                        folder = assetInfo;
+                        let folder = this.assetInfo;
                         for (let key of this.currentDirectory) {
                             folder = folder[key];
                         }
                         if (this.currentDirectory.length)
                             folder['..'] = {};
                         return folder;
+                    },
+                    folders: function() {
+                        const fold = Object.keys(this.directory).filter(el => !['__files', '..'].includes(el)).sort((a,b) => (a.toLowerCase() > b.toLowerCase()) ? 1 : -1);
+                        if (this.currentDirectory.length)
+                            fold.unshift('..');
+                        return fold;
+                    },
+                    files: function() {
+                        if (!('__files' in this.directory)) return [];
+                        return this.directory['__files'].concat().sort((a,b) => (a.name.toLowerCase() > b.name.toLowerCase()) ? 1 : -1);
+                    },
+                    inodes: function() {
+                        return this.folders.concat(this.files);
                     }
                 },
                 methods: {
@@ -76,22 +93,79 @@
                         if (name !== null) {
                             socket.emit("createDirectory", {name: name, directory: this.currentDirectory});
                             folder = app.directory;
-                            folder[name] = {};
-                            this.$forceUpdate();
+                            Vue.set(folder, name, {});
                         }
+                    },
+                    moveInode: function (inode, target) {
+                        const isFolder = this.inodes.findIndex(e => e === inode) < this.folders.length;
+                        const name = isFolder ? inode : inode.name;
+                        const folder = this.directory;
+                        if (isFolder) {
+                            folder[target][name] = folder[name];
+                            Vue.delete(folder, name);
+                        } else {
+                            if (!folder[target]['__files']) Vue.set(folder[target], '__files', []);
+                            folder[target]['__files'].push(inode);
+                            folder['__files'] = folder['__files'].filter(el => el.hash !== inode.hash);
+                        }
+                    },
+                    select: function (event, index, inode) {
+                        const el = event.target.closest(".inode");
+                        if (index >= 0 && event.shiftKey && this.selected.length > 0) {
+                            const otherIndex = this.inodes.findIndex(el => el === this.selected[this.selected.length - 1]);
+                            for (let i=index; i !== otherIndex; (index < otherIndex) ? i++ : i--)
+                                this.selected.push(this.inodes[i]);
+                        } else {
+                            if (!event.ctrlKey) {
+                                this.selected = [];
+                            }
+                            this.selected.push(inode)
+                        }
+                    },
+                    startDrag: function (event, file) {
+                        event.dataTransfer.dropEffect = "move";
+                        if (!this.selected.includes(file))
+                            this.select(event, -1, file);
+                        this.draggingSelection = true;
+                    },
+                    moveDrag: function (event) {
+                        if (event.target.classList.contains("folder"))
+                            event.target.classList.add("inode-selected");
+                    },
+                    leaveDrag: function (event) {
+                        if (event.target.classList.contains("folder"))
+                            event.target.classList.remove("inode-selected");
+                    },
+                    stopDrag: function (event, target) {
+                        if (this.draggingSelection) {
+                            if (this.folders.includes(target) && !this.selected.includes(target)) {
+                                for (let inode of this.selected) {
+                                    this.moveInode(inode, target);
+                                }
+                            }
+                        } else if (event.dataTransfer.files.length > 0) {
+                            const targetDirectory = this.currentDirectory.slice();
+                            if (target !== ".")
+                                targetDirectory.push(target);
+                            this.upload(event.dataTransfer.files, targetDirectory);
+                        }
+                        this.draggingSelection = false;
                     },
                     prepareUpload: function () {
                         document.getElementById("files").click();
                     },
-                    upload: function () {
-                        const fls = document.getElementById("files").files;
+                    upload: function (fls, target) {
+                        if (fls === undefined)
+                            fls = document.getElementById("files").files;
+                        if (target === undefined)
+                            target = this.currentDirectory;
                         for(let i=0; i < fls.length; i++) {
                             const fr = new FileReader();
                             fr.readAsArrayBuffer(fls[i]);
                             fr.onload = (e) => {
                                 socket.emit("uploadAsset", {
                                     name: fls[i].name,
-                                    directory: this.currentDirectory,
+                                    directory: target,
                                     data: fr.result
                                 });
                             }
@@ -104,8 +178,6 @@
         Vue.component('contextmenu', {
             data: function () {
                 return {
-                    inode: null,
-                    isFolder: false,
                     visible: false,
                     left: 0,
                     top: 0
@@ -119,13 +191,15 @@
                     </ul>
                 </div>`,
             methods: {
-                show: function (inode, isFolder, event) {
-                    if (inode === "..") return;
+                show: function (event, index, inode) {
+                    if (inode === '..') return;
+
+                    if (!app.selected.includes(inode))
+                        app.select(event, index, inode);
+
                     this.visible = true;
-                    this.left = `${event.pageX - 5}px`;
-                    this.top = `${event.pageY - 45 - 45}px`;
-                    this.isFolder = isFolder;
-                    this.inode = inode;
+                    this.left = `${event.pageX}px`;
+                    this.top = `${event.pageY}px`;
                     this.$nextTick(function() {
                         this.$refs.menu.focus();
                     }.bind(this));
@@ -134,45 +208,53 @@
                     this.visible = false;
                 },
                 rename: function () {
-                    if (this.inode === null) return;
+                    if (app.selected.length !== 1) return;
                     const name = prompt("New name");
                     if (name === null) return;
 
-                    socket.emit("rename", {isFolder: this.isFolder, oldName: this.inode, newName: name, directory: app.currentDirectory});
+                    const isFolder = app.inodes.findIndex(e => e === app.selected[0]) < app.folders.length;
+                    const oldName = isFolder ? app.selected[0] : app.selected[0].name;
+
+                    socket.emit("rename", {
+                        isFolder: isFolder,
+                        oldName: oldName,
+                        newName: name,
+                        directory: app.currentDirectory
+                    });
 
                     const folder = app.directory;
-                    if (this.isFolder) {
-                        folder[name] = folder[this.inode];
-                        delete folder[this.inode];
+                    if (isFolder) {
+                        Vue.set(folder, name, folder[oldName]);
+                        Vue.delete(folder, oldName);
                     } else {
-                        folder['__files'].find(f => f.name === this.inode).name = name;
+                        folder['__files'].find(f => f.name === oldName).name = name;
                     }
-                    app.$forceUpdate();
                     this.hide();
-                    this.inode = null;
                 },
                 remove: function () {
-                    if (this.inode === null) return;
+                    if (app.selected.length === 0) return;
                     if (!confirm("Are you sure you wish to remove this?")) return;
                     
-                    socket.emit("remove", {isFolder: this.isFolder, name: this.inode, directory: app.currentDirectory});
+                    for (sel of app.selected) {
+                        const isFolder = app.inodes.findIndex(e => e === sel) < app.folders.length;
+                        const name = isFolder ? sel : sel.name;
+                        socket.emit("remove", {isFolder: isFolder, name: name, directory: app.currentDirectory});
 
-                    const folder = app.directory;
-                    if (this.isFolder) {
-                        delete folder[this.inode];
-                    } else {
-                        folder['__files'].splice(folder['__files'].findIndex(f => f.name === this.inode), 1);
+                        const folder = app.directory;
+                        if (isFolder) {
+                            Vue.delete(folder, name);
+                        } else {
+                            folder['__files'].splice(folder['__files'].findIndex(f => f.name === name), 1);
+                        }
                     }
-                    app.$forceUpdate();
                     this.hide();
-                    this.inode = null;
                 }
             }
         })
     </script>
 </head>
 <body>
-<div id='AssetManager'>
+<div id='AssetManager' v-cloak>
     <div id='titlebar'>Asset Manager</div>
     <div id='assets'>
         <div id='breadcrumbs' v-if="currentDirectory.length">
@@ -183,27 +265,36 @@
             <div @click="createDirectory" title="Create folder"><i class="fas fa-plus-square"></i></div>
             <div @click="prepareUpload" title="Upload files"><i class="fas fa-upload"></i></div>
         </div>
-        <div id='explorer'>
-            <template v-for="(value, key) in directory">
-                <template v-if="key === '__files'">
-                    <div
-                        class='inode file'
-                        v-for="file in value"
-                        {# @click="showDetails" #}
-                        @contextmenu.prevent="$refs.cm.show(file.name, false, $event)"
-                    >
-                        <img :src="'/static/assets/' + file.hash" width=50>
-                        <div class='title'>[[ file.name ]]</div>
-                    </div>
-                </template>
-                <template v-else>
-                    <div class='inode folder' @click="changeDirectory(key)" @contextmenu.prevent="$refs.cm.show(key, true, $event)">
-                        <i class='fas fa-folder' style='font-size: 50px;'></i>
-                        <div class='title'>[[ key ]]</div>
-                    </div>
-                </template>
-            </template>
-        </template>
+        <div id='explorer' @dragover="moveDrag" @drop.prevent.stop="stopDrag($event, '.')">
+            <div
+                class='inode folder'
+                draggable="true"
+                v-for="(key, index) in folders"
+                :class="{'inode-selected': selected.includes(key)}"
+                @click="select($event, index, key)"
+                @dblclick="changeDirectory(key)"
+                @contextmenu.prevent="$refs.cm.show($event, index, key)"
+                @dragstart="startDrag($event, key)"
+                @dragover.prevent="moveDrag"
+                @dragleave.prevent="leaveDrag"
+                @drop.prevent.stop="stopDrag($event, key)"
+            >
+                <i class='fas fa-folder' style='font-size: 50px;'></i>
+                <div class='title'>[[ key ]]</div>
+            </div>
+            <div
+                class='inode file'
+                draggable="true"
+                v-for="(file, index) in files"
+                :class="{'inode-selected': selected.includes(file)}"
+                @click="select($event, index + folders.length, file)"
+                @contextmenu.prevent="$refs.cm.show($event, index + folders.length, file)"
+                @dragstart="startDrag($event, file)"
+            >
+                <img :src="'/static/assets/' + file.hash" width=50>
+                <div class='title'>[[ file.name ]]</div>
+            </div>
+        </div>
     </div>
     <contextmenu ref='cm'></contextmenu>
 </div>

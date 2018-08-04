@@ -1,3 +1,7 @@
+[v-cloak], [v-cloak] * {
+    display: none;
+}
+
 html, body {
     padding: 0;
     margin: 0;
@@ -110,15 +114,19 @@ html, body {
 }
 
 .inode {
+    user-select: none;
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
     padding: 15px;
 }
-.inode:hover {
+.inode:hover, .inode-selected {
     cursor: pointer;
     background-color: #82c8a0;
+}
+.inode * {
+    pointer-events: none;
 }
 .title {
     word-break: break-all;

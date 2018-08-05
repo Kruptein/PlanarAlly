@@ -664,17 +664,21 @@ async def test_connect(sid, environ):
         room = PA.rooms[(ref[-1], ref[-2])]
         location = room.get_active_location(username)
 
-        app['AuthzPolicy'].sio_map[sid] = {
-            'user': app['AuthzPolicy'].user_map[username],
+        policy = app['AuthzPolicy']
+
+        policy.sio_map[sid] = {
+            'user': policy.user_map[username],
             'room': room
         }
         print(f"User {username} connected with identifier {sid}")
+
+        assets = policy.user_map[username].asset_info
 
         sio.enter_room(sid, location.sioroom, namespace='/planarally')
         await sio.emit("set username", username, room=sid, namespace='/planarally')
         await sio.emit("set room info", {'name': room.name, 'creator': room.creator}, room=sid, namespace='/planarally')
         await sio.emit("set notes", room.get_notes(username), room=sid, namespace='/planarally')
-        await sio.emit('asset list', PA.get_asset_list(), room=sid, namespace='/planarally')
+        await sio.emit('asset list', assets, room=sid, namespace='/planarally')
         await load_location(sid, location)
 
 

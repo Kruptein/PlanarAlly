@@ -1,7 +1,7 @@
 import gameManager from "./planarally";
 import { alphSort, fixedEncodeURIComponent } from "./utils";
 import { setupTools } from "./tools/tools";
-import { ClientOptions, LocationOptions, Notes, AssetList, ServerShape, InitiativeData, BoardInfo, InitiativeEffect } from "./api_types";
+import { ClientOptions, LocationOptions, Notes, AssetList, ServerShape, InitiativeData, BoardInfo, InitiativeEffect, AssetFileList } from "./api_types";
 import { GlobalPoint } from "./geom";
 import Settings from "./settings";
 
@@ -49,20 +49,20 @@ socket.on("asset list", function (assets: AssetList) {
     m.empty();
     let h = '';
 
-    const process = function (entry: AssetList, path: string) {
-        const folders = new Map(Object.entries(entry.folders));
-        folders.forEach(function (value, key) {
-            h += "<li class='folder'>" + key + "<ul>";
-            process(value, path + key + "/");
+    const process = function (entry: AssetList) {
+        const folders = Object.keys(entry).filter(el => !['__files'].includes(el)).sort(alphSort);
+        for (let name of folders) {
+            h += "<li class='folder'>" + name + "<ul>";
+            process((<AssetList>entry[name]));
             h += "</ul></li>";
-        });
-        entry.files.sort(alphSort);
-        entry.files.forEach(function (asset) {
-            // <img src='/static/img/assets/" + fixedEncodeURIComponent(path) + fixedEncodeURIComponent(asset) + "' width='35'>
-            h += `<li class='file draggable token' data-img='/static/img/assets/${fixedEncodeURIComponent(path) + fixedEncodeURIComponent(asset)}'>${asset.replace(/\.[^/.]+$/, "")}</li>`;
-        });
+        }
+        let files: AssetFileList[] = [];
+        if (entry['__files'])
+            files = (<AssetFileList[]>entry['__files']).concat().sort((a,b) => (a.name.toLowerCase() > b.name.toLowerCase()) ? 1 : -1);
+        for (let asset of files)
+            h += `<li class='file draggable token' data-img='/static/assets/${asset.hash}'>${asset.name}</li>`;
     };
-    process(assets, "");
+    process(assets);
     m.html(h);
     $(".draggable").draggable({
         helper: function() {

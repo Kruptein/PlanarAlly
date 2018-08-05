@@ -30,14 +30,36 @@ html, body {
     box-shadow: 2px 2px gray;
 }
 
-#assets {
+#main {
+    display: flex;
+    flex-direction: row;
+    height: 100%;
+}
+
+#assets, #asset-details {
     background-color: white;
     border: solid 1px black;
     margin: 10px;
     position: relative;
     padding-top: 45px;
     padding-bottom: 45px;
-    box-shadow: 2px 2px gray;
+    box-shadow: 3px 3px gray;
+}
+
+#assets {
+    flex-grow: 1;
+}
+
+#asset-details {
+    display: flex;
+    flex-direction: column;
+    padding: 15px;
+    max-width: 50%;
+    overflow: scroll;
+}
+
+#asset-details img {
+    width: 100%;
 }
 
 #breadcrumbs {
@@ -111,6 +133,9 @@ html, body {
     left: 0;
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(105px, 1fr));
+    max-width: 100%;
+    max-height: 100%;
+    overflow: auto;
 }
 
 .inode {
@@ -131,6 +156,15 @@ html, body {
 .title {
     word-break: break-all;
 }
+
+#asset-detail-title {
+    font-weight: bold;
+    font-size: 30px;
+    border-bottom: solid 2px black;
+    margin-bottom: 15px;
+    text-align: center;
+}
+
 #contextMenu {
     position: absolute;
     z-index: 11;

@@ -46,6 +46,13 @@
             return hexCodes.join("");
         }
 
+        function uuidv4() {
+            return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+                const r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+                return v.toString(16);
+            });
+        }
+
         let app;
 
         window.onload = () => {
@@ -79,6 +86,15 @@
                     },
                     inodes: function() {
                         return this.folders.concat(this.files);
+                    },
+                    firstSelectedFile: function () {
+                        for (let sel of this.selected) {
+                            const isFolder = this.inodes.findIndex(e => e === sel) < this.folders.length;
+                            if (!isFolder) {
+                                return sel;
+                            }
+                        }
+                        return null;
                     }
                 },
                 methods: {
@@ -159,15 +175,23 @@
                             fls = document.getElementById("files").files;
                         if (target === undefined)
                             target = this.currentDirectory;
+                        const CHUNK_SIZE = 100000;
                         for(let i=0; i < fls.length; i++) {
-                            const fr = new FileReader();
-                            fr.readAsArrayBuffer(fls[i]);
-                            fr.onload = (e) => {
-                                socket.emit("uploadAsset", {
-                                    name: fls[i].name,
-                                    directory: target,
-                                    data: fr.result
-                                });
+                            const uid = uuidv4();
+                            const slices = Math.ceil(fls[i].size / CHUNK_SIZE)
+                            for (let slice = 0; slice < slices; slice++) {
+                                const fr = new FileReader();
+                                fr.readAsArrayBuffer(fls[i].slice(slice * CHUNK_SIZE, slice * CHUNK_SIZE + Math.min(CHUNK_SIZE, fls[i].size - slice * CHUNK_SIZE)));
+                                fr.onload = (e) => {
+                                    socket.emit("uploadAsset", {
+                                        name: fls[i].name,
+                                        directory: target,
+                                        data: fr.result,
+                                        slice: slice,
+                                        totalSlices: slices,
+                                        uuid: uid
+                                    });
+                                }
                             }
                         }
                     }
@@ -256,44 +280,50 @@
 <body>
 <div id='AssetManager' v-cloak>
     <div id='titlebar'>Asset Manager</div>
-    <div id='assets' @dragover.prevent="moveDrag" @drop.prevent.stop="stopDrag($event, '.')">
-        <div id='breadcrumbs' v-if="currentDirectory.length">
-            <div v-for="dir in currentDirectory">[[ dir ]]</div>
-        </div>
-        <div id='actionbar'>
-            <input id='files' type='file' multiple hidden @change="upload()">
-            <div @click="createDirectory" title="Create folder"><i class="fas fa-plus-square"></i></div>
-            <div @click="prepareUpload" title="Upload files"><i class="fas fa-upload"></i></div>
-        </div>
-        <div id='explorer'>
-            <div
-                class='inode folder'
-                draggable="true"
-                v-for="(key, index) in folders"
-                :class="{'inode-selected': selected.includes(key)}"
-                @click="select($event, index, key)"
-                @dblclick="changeDirectory(key)"
-                @contextmenu.prevent="$refs.cm.show($event, index, key)"
-                @dragstart="startDrag($event, key)"
-                @dragover.prevent="moveDrag"
-                @dragleave.prevent="leaveDrag"
-                @drop.prevent.stop="stopDrag($event, key)"
-            >
-                <i class='fas fa-folder' style='font-size: 50px;'></i>
-                <div class='title'>[[ key ]]</div>
+    <div id='main'>
+        <div id='assets' @dragover.prevent="moveDrag" @drop.prevent.stop="stopDrag($event, '.')">
+            <div id='breadcrumbs' v-if="currentDirectory.length">
+                <div v-for="dir in currentDirectory">[[ dir ]]</div>
             </div>
-            <div
-                class='inode file'
-                draggable="true"
-                v-for="(file, index) in files"
-                :class="{'inode-selected': selected.includes(file)}"
-                @click="select($event, index + folders.length, file)"
-                @contextmenu.prevent="$refs.cm.show($event, index + folders.length, file)"
-                @dragstart="startDrag($event, file)"
-            >
-                <img :src="'/static/assets/' + file.hash" width=50>
-                <div class='title'>[[ file.name ]]</div>
+            <div id='actionbar'>
+                <input id='files' type='file' multiple hidden @change="upload()">
+                <div @click="createDirectory" title="Create folder"><i class="fas fa-plus-square"></i></div>
+                <div @click="prepareUpload" title="Upload files"><i class="fas fa-upload"></i></div>
             </div>
+            <div id='explorer'>
+                <div
+                    class='inode folder'
+                    draggable="true"
+                    v-for="(key, index) in folders"
+                    :class="{'inode-selected': selected.includes(key)}"
+                    @click="select($event, index, key)"
+                    @dblclick="changeDirectory(key)"
+                    @contextmenu.prevent="$refs.cm.show($event, index, key)"
+                    @dragstart="startDrag($event, key)"
+                    @dragover.prevent="moveDrag"
+                    @dragleave.prevent="leaveDrag"
+                    @drop.prevent.stop="stopDrag($event, key)"
+                >
+                    <i class='fas fa-folder' style='font-size: 50px;'></i>
+                    <div class='title'>[[ key ]]</div>
+                </div>
+                <div
+                    class='inode file'
+                    draggable="true"
+                    v-for="(file, index) in files"
+                    :class="{'inode-selected': selected.includes(file)}"
+                    @click="select($event, index + folders.length, file)"
+                    @contextmenu.prevent="$refs.cm.show($event, index + folders.length, file)"
+                    @dragstart="startDrag($event, file)"
+                >
+                    <img :src="'/static/assets/' + file.hash" width=50>
+                    <div class='title'>[[ file.name ]]</div>
+                </div>
+            </div>
+        </div>
+        <div id='asset-details' v-if="firstSelectedFile">
+            <div id='asset-detail-title'>[[ firstSelectedFile.name ]]</div>
+            <img :src="'/static/assets/' + firstSelectedFile.hash">
         </div>
     </div>
     <contextmenu ref='cm'></contextmenu>

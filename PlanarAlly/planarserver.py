@@ -30,6 +30,8 @@ FILE_DIR = os.path.dirname(os.path.realpath(__file__))
 os.chdir(FILE_DIR)
 SAVE_FILE = "planar.save"
 
+PENDING_FILE_UPLOAD_CACHE = {}
+
 ASSETS_DIR = pathlib.Path(FILE_DIR) / "static" / "assets"
 if not ASSETS_DIR.exists():
     ASSETS_DIR.mkdir()
@@ -714,14 +716,34 @@ async def assetmgmt_connect(sid, environ):
 @sio.on('uploadAsset', namespace='/pa_assetmgmt')
 @auth.login_required(app, sio)
 async def assetmgmt_upload(sid, file_data):
-    sha1 = hashlib.sha1()
-    sh = hashlib.sha1(file_data['data'])
-    hashname = sh.hexdigest()
     filename = file_data['name']
+    uuid = file_data['uuid']
+
+    print(f"{file_data['name']} - {file_data['uuid']} - {file_data['slice']}/{file_data['totalSlices']}")
+
+    global PENDING_FILE_UPLOAD_CACHE
+    if uuid not in PENDING_FILE_UPLOAD_CACHE:
+        PENDING_FILE_UPLOAD_CACHE[uuid] = {}
+    PENDING_FILE_UPLOAD_CACHE[uuid][file_data['slice']] = file_data
+    if len(PENDING_FILE_UPLOAD_CACHE[uuid]) != file_data['totalSlices']:
+        print(f"Received {len(PENDING_FILE_UPLOAD_CACHE[uuid])} slices")
+        # wait for the rest of the slices
+        return
+
+    # All slices are present
+    data = b''
+    for slice in range(file_data['totalSlices']):
+        data += PENDING_FILE_UPLOAD_CACHE[uuid][slice]['data']
+    
+    sha1 = hashlib.sha1()
+    sh = hashlib.sha1(data)
+    hashname = sh.hexdigest()
 
     if not (ASSETS_DIR / hashname).exists():
         with open(ASSETS_DIR / hashname, "wb") as f:
-            f.write(file_data['data'])
+            f.write(data)
+    
+    del PENDING_FILE_UPLOAD_CACHE[uuid]
     
     policy = app['AuthzPolicy']
     user = policy.sio_map[sid]['user']
@@ -729,12 +751,14 @@ async def assetmgmt_upload(sid, file_data):
     if folder is None:
         print(f"Directory structure {file_data['directory']} is not valid for {user.username}")
         return
-    
+
     file_info = {'name': file_data['name'], 'hash': hashname}
     if '__files' not in folder:
         folder['__files'] = []
     folder['__files'].append(file_info)
+
     policy.save()
+
     await sio.emit("uploadAssetResult", {"fileInfo": file_info, "directory": file_data['directory']}, room=sid, namespace='/pa_assetmgmt')
 
 

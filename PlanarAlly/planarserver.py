@@ -785,7 +785,7 @@ app.router.add_get('/rooms', show_rooms)
 app.router.add_get('/rooms/{username}/{roomname}', show_room)
 app.router.add_get('/invite/{code}', claim_invite)
 app.router.add_post('/create_room', create_room)
-app.router.add_get('/assets/{username}', show_assets)
+app.router.add_get('/assets/', show_assets)
 app.router.add_get('/logout', logout)
 
 app.on_shutdown.append(on_shutdown)

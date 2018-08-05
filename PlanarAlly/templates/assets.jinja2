@@ -256,16 +256,16 @@
 <body>
 <div id='AssetManager' v-cloak>
     <div id='titlebar'>Asset Manager</div>
-    <div id='assets'>
+    <div id='assets' @dragover.prevent="moveDrag" @drop.prevent.stop="stopDrag($event, '.')">
         <div id='breadcrumbs' v-if="currentDirectory.length">
             <div v-for="dir in currentDirectory">[[ dir ]]</div>
         </div>
         <div id='actionbar'>
-            <input id='files' type='file' multiple hidden @change="upload">
+            <input id='files' type='file' multiple hidden @change="upload()">
             <div @click="createDirectory" title="Create folder"><i class="fas fa-plus-square"></i></div>
             <div @click="prepareUpload" title="Upload files"><i class="fas fa-upload"></i></div>
         </div>
-        <div id='explorer' @dragover="moveDrag" @drop.prevent.stop="stopDrag($event, '.')">
+        <div id='explorer'>
             <div
                 class='inode folder'
                 draggable="true"

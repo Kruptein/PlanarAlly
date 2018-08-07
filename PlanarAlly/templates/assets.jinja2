@@ -233,12 +233,11 @@
                 },
                 rename: function () {
                     if (app.selected.length !== 1) return;
-                    let name = null;
-                    app.$refs.promptmodal.prompt("New name").then(
+                    const isFolder = app.inodes.findIndex(e => e === app.selected[0]) < app.folders.length;
+                    const oldName = isFolder ? app.selected[0] : app.selected[0].name;
+                    
+                    app.$refs.promptmodal.prompt("New name:", `Renaming ${oldName}`).then(
                         name => {
-                            const isFolder = app.inodes.findIndex(e => e === app.selected[0]) < app.folders.length;
-                            const oldName = isFolder ? app.selected[0] : app.selected[0].name;
-
                             socket.emit("rename", {
                                 isFolder: isFolder,
                                 oldName: oldName,
@@ -281,13 +280,11 @@
             template: `
                 <transition name="modal">
                     <div class="modal-mask" @click="close" v-show="visible">
-
                         <div class="modal-container" @click.stop>
                         <slot></slot>
                         </div>
                     </div>
-                </transition>
-            `,
+                </transition>`,
             props: ['visible'],
             methods: {
                 open: function () {
@@ -295,13 +292,21 @@
                 },
                 close: function () {
                     this.$emit('close');
-                }
+                },
             }
         })
         Vue.component('promptmodal', {
             template: `
                 <modal :visible="visible" @open="visible = true" @close="close">
-                    [[ question ]] <input type='text' ref='answer' v-model="answer" @keyup.enter="submit"> <button @click="submit">Submit</button>
+                    <div class='modal-header'>
+                        [[ title ]]
+                    </div>
+                    <div class='modal-body'>
+                        [[ question ]] <input type='text' ref='answer' v-model="answer" @keyup.enter="submit">
+                    </div>
+                    <div class='modal-footer'>
+                        <button @click="submit">Submit</button>
+                    </div>
                 </modal>
             `,
             data: function () {
@@ -309,6 +314,7 @@
                     visible: false,
                     question: '',
                     answer: '',
+                    title: '',
                 }
             },
             methods: {
@@ -321,9 +327,11 @@
                     this.visible = false;
                     this.question = '';
                     this.answer = '';
+                    this.title = '';
                 },
-                prompt: function (q) {
-                    this.question = q;
+                prompt: function (question, title) {
+                    this.question = question;
+                    this.title = title;
                     this.visible = true;
                     this.$nextTick(function() {
                         this.$refs.answer.focus();

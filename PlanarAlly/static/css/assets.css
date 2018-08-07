@@ -148,7 +148,7 @@ html, body {
 }
 .inode:hover, .inode-selected {
     cursor: pointer;
-    background-color: #82c8a0;
+    background-color: #FF7052;
 }
 .inode * {
     pointer-events: none;
@@ -173,7 +173,7 @@ html, body {
 #contextMenu ul {
     /*width: 100%;*/
     /*height: 100%;*/
-    border: 1px solid #82c8a0;
+    border: 1px solid #FF7052;
     border-radius: 5px;
     background: white;
     padding: 0;
@@ -182,12 +182,12 @@ html, body {
 }
 
 #contextMenu ul li {
-    border-bottom: 1px solid #82c8a0;
+    border-bottom: 1px solid #FF7052;
     padding: 5px;
 }
 
 #contextMenu ul li:hover {
-    background-color: #82c8a0;
+    background-color: #FF7052;
 }
 
 #contextMenu ul li:last-child {
@@ -225,7 +225,6 @@ html, body {
 .modal-container {
     width: 300px;
     margin: 40px auto 0;
-    padding: 20px 30px;
     background-color: #fff;
     border-radius: 2px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, .33);
@@ -245,4 +244,41 @@ html, body {
 .modal-leave-active .modal-container {
     -webkit-transform: scale(1.1);
     transform: scale(1.1);
+}
+
+.modal-header {
+    background-color: #FF7052;
+    padding: 10px;
+    font-size: 20px;
+    font-weight: bold;
+}
+
+.modal-body {
+    padding: 10px;
+    padding-bottom: 0;
+    display: flex;
+    justify-content: space-between;
+}
+
+.modal-footer {
+    padding-top: 0;
+    padding: 10px;
+    text-align: right;
+}
+
+.form-label {
+    display: block;
+    margin-bottom: 1em;
+}
+
+.form-label > .form-control {
+    margin-top: 0.5em;
+}
+
+.form-control {
+    display: block;
+    width: 100%;
+    padding: 0.5em 1em;
+    line-height: 1.5;
+    border: 1px solid #ddd;
 }

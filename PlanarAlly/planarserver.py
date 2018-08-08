@@ -7,7 +7,6 @@ import collections
 import configparser
 import functools
 import hashlib
-import json
 import os
 import pathlib
 from operator import itemgetter
@@ -171,8 +170,7 @@ async def claim_invite(request):
 @login_required
 @aiohttp_jinja2.template('assets.jinja2')
 async def show_assets(request):
-    username = await authorized_userid(request)
-    return {'asset_info': json.dumps(app['AuthzPolicy'].user_map[username].asset_info)}
+    pass
 
 
 # SOCKETS
@@ -711,6 +709,7 @@ async def assetmgmt_connect(sid, environ):
         app['AuthzPolicy'].sio_map[sid] = {
             'user': app['AuthzPolicy'].user_map[username],
         }
+        await sio.emit("assetInfo", app['AuthzPolicy'].user_map[username].asset_info, room=sid, namespace='/pa_assetmgmt')
 
 
 @sio.on('uploadAsset', namespace='/pa_assetmgmt')

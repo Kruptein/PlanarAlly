@@ -4,8 +4,8 @@
   "description": "A companion tool for when you travel into the planes.",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "webpack"
+    "build": "webpack --mode development",
+    "prod": "webpack --mode production"
   },
   "repository": {
     "type": "git",
@@ -26,12 +26,17 @@
     "@types/socket.io-client": "^1.4.32",
     "@types/spectrum": "^1.5.29",
     "awesome-typescript-loader": "^4.0.1",
+    "css-loader": "^1.0.0",
     "source-map-loader": "^0.2.3",
     "typescript": "^2.7.2",
+    "vue-loader": "^15.3.0",
+    "vue-style-loader": "^4.1.1",
+    "vue-template-compiler": "^2.5.17",
     "webpack": "^4.10.2",
     "webpack-cli": "^2.0.13"
   },
   "dependencies": {
-    "lodash.throttle": "^4.1.1"
+    "lodash.throttle": "^4.1.1",
+    "vue": "^2.5.17"
   }
 }

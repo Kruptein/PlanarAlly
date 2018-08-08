@@ -23,17 +23,23 @@ const app = new Vue({
         'pan-tool': PanTool
     },
     data: {
-        currentTab: "select",
-        tabs: ["select", "pan"]
+        currentTool: "select",
+        tools: ["select", "pan"]
     },
     methods: {
-        mousedown: function(event) {
-            this.currentTabComponent.onMouseDown();
+        mousedown: function(event: MouseEvent) {
+            this.$emit('mousedown', event, this.currentTool);
+        },
+        mouseup: function(event: MouseEvent) {
+            this.$emit('mouseup', event, this.currentTool);
+        },
+        mousemove: function(event: MouseEvent) {
+            this.$emit('mousemove', event, this.currentTool);
         }
     },
     computed: {
-        currentTabComponent(): Vue {
-            return `${this.currentTab.toLowerCase()}-tool`;
+        currentTabComponent(): string {
+            return `${this.currentTool.toLowerCase()}-tool`;
         }
     }
 });

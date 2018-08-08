@@ -1,5 +1,6 @@
 const path = require('path');
 const VueLoaderPlugin = require('vue-loader/lib/plugin');
+const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
 
 module.exports = {
     entry: {
@@ -10,7 +11,7 @@ module.exports = {
         filename: '[name].js',
         path: path.resolve(__dirname, 'PlanarAlly', 'static', 'js')
     },
-    devtool: 'inline-source-map',
+    devtool: 'eval-source-map',
     resolve: {
         extensions: [".ts", ".js", ".vue"],
         alias: {
@@ -25,11 +26,22 @@ module.exports = {
             },
             {
                 test: /\.tsx?$/,
-                loader: "ts-loader",
-                exclude: /node_modules/,
-                options: {
-                    appendTsSuffixTo: [/\.vue$/]
-                }
+                use: [
+                    { loader: 'cache-loader' },
+                    {
+                        loader: 'thread-loader',
+                        options: {
+                            workers: require('os').cpus().length - 1,
+                        },
+                    },
+                    {
+                        loader: 'ts-loader',
+                        options: {
+                            happyPackMode: true,
+                            appendTsSuffixTo: [/\.vue$/]
+                        }
+                    }
+                ]
             },
             {
                 test: /\.js$/,
@@ -46,6 +58,7 @@ module.exports = {
         ]
     },
     plugins: [
+        new ForkTsCheckerWebpackPlugin({ checkSyntacticErrors: true }),
         new VueLoaderPlugin()
     ]
 };

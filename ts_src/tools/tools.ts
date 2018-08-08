@@ -1,9 +1,10 @@
 import Vue from 'vue';
-import tool from './tool.vue';
+import SelectTool from "./select.vue";
+import PanTool from "./pan.vue";
 
 import gameManager from "../planarally";
-import { SelectTool } from "./select";
-import { PanTool } from "./pan";
+// import { SelectTool } from "./select";
+// import { PanTool } from "./pan";
 import { DrawTool } from "./draw";
 import { RulerTool } from "./ruler";
 import { FOWTool } from "./fow";
@@ -15,16 +16,24 @@ import Settings from "../settings";
 import { BrushTool } from "./brush";
 
 const app = new Vue({
-    el: '#toolselect',
+    el: '#main',
+    delimiters: ['[[', ']]'],
     components: {
-        tool
+        'select-tool': SelectTool,
+        'pan-tool': PanTool
     },
     data: {
-        selected: <string|null> null,
+        currentTab: "select",
+        tabs: ["select", "pan"]
     },
     methods: {
-        select: function(name: string) {
-            this.selected = name;
+        mousedown: function(event) {
+            this.currentTabComponent.onMouseDown();
+        }
+    },
+    computed: {
+        currentTabComponent(): Vue {
+            return `${this.currentTab.toLowerCase()}-tool`;
         }
     }
 });

@@ -95,16 +95,21 @@
                 <div></div>
             </div>
         {% endif %}
-        <div id="layers"></div>
+        <div id="layers" @mousedown="mousedown"></div>
         <div id="layerselect">
             <ul></ul>
         </div>
     </div>
     <div id="toolselect">
         <ul>
-            <tool name="select" :selected="'select' === selected" @select="select"></tool>
-            <tool name="pan" :selected="'pan' === selected" @select="select"></tool>
+            <li
+                v-for="tab in tabs"
+                :key="tab"
+                :class="{'tool-selected': currentTab === tab}"
+                @click="currentTab = tab"
+            ><a href='#'>[[ tab ]]</a></li>
         </ul>
+        <component :is="currentTabComponent"></component>
     </div>
     <div id="selection-menu">
         <i id='selection-edit-button' class="fas fa-edit"></i>

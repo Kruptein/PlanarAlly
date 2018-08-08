@@ -25,10 +25,10 @@ module.exports = {
             },
             {
                 test: /\.tsx?$/,
-                loader: "awesome-typescript-loader",
+                loader: "ts-loader",
                 exclude: /node_modules/,
                 options: {
-                    errorsAsWarnings: true
+                    appendTsSuffixTo: [/\.vue$/]
                 }
             },
             {

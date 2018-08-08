@@ -4,11 +4,7 @@ import { throttle } from 'lodash';
 import { GameManager } from './manager';
 import { onKeyDown, onKeyUp } from './events/keyboard';
 import { onContextMenu, onPointerUp, onPointerMove, onPointerDown, scrollZoom } from './events/mouse';
-import Note from './note';
 import Settings from './settings';
-import BoundingVolume from "./bvh/bvh";
-import BoundingRect from "./shapes/boundingrect";
-import { uuidv4 } from "./utils";
 
 let gameManager = new GameManager();
 (<any>window).gameManager = gameManager;
@@ -24,11 +20,11 @@ window.onresize = function () {
     gameManager.layerManager.invalidate();
 };
 
-window.addEventListener("mousedown", onPointerDown);
-window.addEventListener("mousemove", onPointerMove);
-window.addEventListener("mouseup", onPointerUp);
-window.addEventListener('contextmenu', onContextMenu);
-window.addEventListener('wheel', throttle(scrollZoom));
+// window.addEventListener("mousedown", onPointerDown);
+// window.addEventListener("mousemove", onPointerMove);
+// window.addEventListener("mouseup", onPointerUp);
+// window.addEventListener('contextmenu', onContextMenu);
+// window.addEventListener('wheel', throttle(scrollZoom));
 
 window.addEventListener("keyup", onKeyUp);
 window.addEventListener("keydown", onKeyDown);

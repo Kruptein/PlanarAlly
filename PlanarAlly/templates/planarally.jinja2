@@ -101,7 +101,10 @@
         </div>
     </div>
     <div id="toolselect">
-        <ul></ul>
+        <ul>
+            <tool name="select" :selected="'select' === selected" @select="select"></tool>
+            <tool name="pan" :selected="'pan' === selected" @select="select"></tool>
+        </ul>
     </div>
     <div id="selection-menu">
         <i id='selection-edit-button' class="fas fa-edit"></i>

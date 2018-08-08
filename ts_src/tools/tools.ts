@@ -1,3 +1,6 @@
+import Vue from 'vue';
+import tool from './tool.vue';
+
 import gameManager from "../planarally";
 import { SelectTool } from "./select";
 import { PanTool } from "./pan";
@@ -11,6 +14,21 @@ import { capitalize } from "../utils";
 import Settings from "../settings";
 import { BrushTool } from "./brush";
 
+const app = new Vue({
+    el: '#toolselect',
+    components: {
+        tool
+    },
+    data: {
+        selected: <string|null> null,
+    },
+    methods: {
+        select: function(name: string) {
+            this.selected = name;
+        }
+    }
+});
+
 export enum SelectOperations {
     Noop,
     Resize,
@@ -19,39 +37,39 @@ export enum SelectOperations {
 }
 
 export function setupTools(): void {
-    const toolselectDiv = $("#toolselect").find("ul");
-    tools.forEach(function (tool) {
-        if (!tool.playerTool && !Settings.IS_DM) return;
+    // const toolselectDiv = $("#toolselect").find("ul");
+    // tools.forEach(function (tool) {
+    //     if (!tool.playerTool && !Settings.IS_DM) return;
 
-        const toolInstance = new tool.clz();
-        gameManager.tools.set(tool.name, toolInstance);
-        const extra = tool.defaultSelect ? " class='tool-selected'" : "";
-        const toolLi = $("<li id='tool-" + tool.name + "'" + extra + "><a href='#'>" + capitalize(tool.name) + "</a></li>");
-        toolselectDiv.append(toolLi);
-        if (tool.hasDetail && toolInstance.detailDiv !== undefined) {
-            const div = toolInstance.detailDiv;
-            $('#tooldetail').append(div);
-            div.hide();
-        }
-        toolLi.on("click", function () {
-            const index = tools.indexOf(tool);
-            if (index !== gameManager.selectedTool) {
-                gameManager.tools.getIndexValue(gameManager.selectedTool).onDeselect();
-                $('.tool-selected').removeClass("tool-selected");
-                $(this).addClass("tool-selected");
-                gameManager.selectedTool = index;
-                const detail = $('#tooldetail');
-                if (tool.hasDetail) {
-                    $('#tooldetail').children().hide();
-                    toolInstance.detailDiv!.show();
-                    detail.show();
-                } else {
-                    detail.hide();
-                }
-                gameManager.tools.getIndexValue(gameManager.selectedTool).onSelect();
-            }
-        });
-    });
+    //     const toolInstance = new tool.clz();
+    //     gameManager.tools.set(tool.name, toolInstance);
+    //     const extra = tool.defaultSelect ? " class='tool-selected'" : "";
+    //     const toolLi = $("<li id='tool-" + tool.name + "'" + extra + "><a href='#'>" + capitalize(tool.name) + "</a></li>");
+    //     toolselectDiv.append(toolLi);
+    //     if (tool.hasDetail && toolInstance.detailDiv !== undefined) {
+    //         const div = toolInstance.detailDiv;
+    //         $('#tooldetail').append(div);
+    //         div.hide();
+    //     }
+    //     toolLi.on("click", function () {
+    //         const index = tools.indexOf(tool);
+    //         if (index !== gameManager.selectedTool) {
+    //             gameManager.tools.getIndexValue(gameManager.selectedTool).onDeselect();
+    //             $('.tool-selected').removeClass("tool-selected");
+    //             $(this).addClass("tool-selected");
+    //             gameManager.selectedTool = index;
+    //             const detail = $('#tooldetail');
+    //             if (tool.hasDetail) {
+    //                 $('#tooldetail').children().hide();
+    //                 toolInstance.detailDiv!.show();
+    //                 detail.show();
+    //             } else {
+    //                 detail.hide();
+    //             }
+    //             gameManager.tools.getIndexValue(gameManager.selectedTool).onSelect();
+    //         }
+    //     });
+    // });
 }
 
 const tools = [

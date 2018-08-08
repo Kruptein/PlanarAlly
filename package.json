@@ -28,6 +28,7 @@
     "awesome-typescript-loader": "^4.0.1",
     "css-loader": "^1.0.0",
     "source-map-loader": "^0.2.3",
+    "ts-loader": "^4.4.2",
     "typescript": "^2.7.2",
     "vue-loader": "^15.3.0",
     "vue-style-loader": "^4.1.1",

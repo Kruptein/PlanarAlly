@@ -172,7 +172,10 @@ export class LayerManager {
                     // width = ui.helper[0].width;
                     // height = ui.helper[0].height;
                     const wloc = l2g(loc);
-                    const img = <HTMLImageElement>ui.draggable[0].children[0];
+                    const img = <HTMLImageElement><any>(ui.helper[0]); //new Image();
+                    // const src = (<HTMLElement>(ui.draggable[0].children[0])).dataset.img;
+                    // if (src === undefined) return;
+                    // img.src = src;
                     const asset = new Asset(img, wloc, img.width, img.height);
                     asset.src = new URL(img.src).pathname;
 
@@ -180,8 +183,8 @@ export class LayerManager {
                         const gs = Settings.gridSize;
                         asset.refPoint.x = Math.round(asset.refPoint.x / gs) * gs;
                         asset.refPoint.y = Math.round(asset.refPoint.y / gs) * gs;
-                        asset.w = Math.max(Math.round(asset.w / gs) * gs, gs);
-                        asset.h = Math.max(Math.round(asset.h / gs) * gs, gs);
+                        asset.w = Math.max(Math.round(asset.w / gs), gs);
+                        asset.h = Math.max(Math.round(asset.h / gs), gs);
                     }
 
                     l.addShape(asset, true);

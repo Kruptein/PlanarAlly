@@ -1,0 +1,57 @@
+/*
+	DIRECTORY v0.1
+	====
+	a flexible directory layout in CSS
+	http://www.github.com/pascalculator/directory/
+
+	Note: .directory-sa-* classes are for standalone purposes;
+
+	Last updated: 11/09/2014;
+*/
+.directory
+{
+	list-style-type:none;
+	margin:16px 0px 16px 16px;
+	padding:0;
+}
+
+.directory ul
+{
+	list-style-type:none;
+	padding:0;
+	margin-top:0;
+}
+
+.directory li,
+[class*=directory-sa-]
+{
+	padding-left:22px;
+}
+
+.directory li
+{
+	margin:0;
+}
+
+
+
+.directory .folder,
+.directory-sa-folder
+{
+	background: url('data:image/svg+xml;charset=utf-8,<svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" width="16px" height="16px" viewBox="0 0 16 16" enable-background="new 0 0 16 16" xml:space="preserve"><g id="Shape_1_copy"><g><path fill="%23B3B4B4" d="M6,1H2C1.4,1,0,1.4,0,2c0,0.6,1.4,1,2,1h4c0.6,0,2-0.4,2-1C8,1.4,6.6,1,6,1z"/></g></g><g id="Shape_2_copy"><g><path fill="%23B3B4B4" d="M14,2H0v11c0,1.1,0.9,2,2,2h12c1.1,0,2-0.9,2-2V4C16,2.9,15.1,2,14,2z"/></g></g></svg>') 0px 4px no-repeat;
+}
+
+.directory .file,
+.directory-sa-file
+{
+	background: url('data:image/svg+xml;charset=utf-8,<svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" width="16px" height="16px" viewBox="0 0 16 16" enable-background="new 0 0 16 16" xml:space="preserve"><g id="Shape_25"><g><path fill="%23B3B4B4" d="M10,4V0H2v16h12V4H10z M3,3h6v1H3V3z M13,14H3v-1h10V14z M13,12H3v-1h10V12z M13,10H3V9h10V10z M13,8H3V7h10V8z M13,6H3V5h10V6z"/></g></g><g id="Shape_26"><g><polygon fill="%23B3B4B4" points="11,3 14,3 11,0"/></g></g></svg>') 0px 4px no-repeat;
+}
+
+[class*="directory-sa"]
+{
+	font-family: monospace;
+	background-color:#EEEEEE;
+    border-radius:3px;
+    padding:4px 6px 4px 28px;
+    background-position: 6px;
+}

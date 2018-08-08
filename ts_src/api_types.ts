@@ -27,8 +27,12 @@ export interface Notes {
 }
 
 export interface AssetList {
-    files: string[];
-    folders: { [name: string]: AssetList };
+    [inode: string]: AssetList | AssetFileList[];
+}
+
+export interface AssetFileList {
+    name: string,
+    hash: string
 }
 
 export interface InitiativeData {

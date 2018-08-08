@@ -6,10 +6,18 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
-SAVE_FORMAT CHANGED FROM 1 to 3
-BACKUP YOUR OLD SAVE BEFORE CONVERTING!
-UPDATE YOUR SAVE BY EXECUTING `python ../scripts/convert/1_to_2.py` FROM WITHIN THE `PlanarAlly` FOLDER THAT CONTAINS YOUR SAVE FILE, THE SERVER CONFIG AND THE OTHER PYTHON FILES!!!
-ALSO EXECUTE `python ../scripts/convert/2_to_3.py`
+### Upgrade information
+#### Save format changes
+The save format has been changed from version 1 to 3, that's 2 increments in one release yes.
+This is due to the size of the release involving multiple new features that involved separate changes that were developed in parallel to eachother.
+
+As always make sure to back up your old saves before converting!
+To update run both `python ../scripts/convert/1_to_2.py` and `python ../scripts/convert/2_to_3.py` from within the same folder as your save files.
+
+#### Asset changes
+
+The way assets are stored on disk and managed in game has completely changed.  You'll no longer be able to manage your assets from your file manager or command line, and will have to use the in-browser tools to work with them.  This is a change that was required in order to provide extra features to the assets while preserving disk space. (e.g. personal assets / share assets / default templates / ... )
+Assets are now stored in `/static/assets/` instead of `/static/img/assets/`.  In order to keep your current saves working (if they have assets that rely on the old image locations), the old folder is kept intact and will not be removed.  You are free to do with this folder as you please as it is no longer used by PA itself.
 
 ### Added
 - Added a note system
@@ -29,7 +37,7 @@ ALSO EXECUTE `python ../scripts/convert/2_to_3.py`
 - Redesigned the way assets are shown in the settings panel
     - A tree view approach is used, showing preview images on hover
     - Removed the cog wheel
-    - Hide extensions
+    - A button to open the asset manager is added to the in-game interface.
 
 ### Fixed
 - Select box not working properly on the fow layer

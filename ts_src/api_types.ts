@@ -20,9 +20,19 @@ export interface ClientOptions {
     }
 }
 
+export interface Notes {
+    uuid: string;
+    name: string;
+    text: string;
+}
+
 export interface AssetList {
-    files: string[];
-    folders: { [name: string]: AssetList };
+    [inode: string]: AssetList | AssetFileList[];
+}
+
+export interface AssetFileList {
+    name: string,
+    hash: string
 }
 
 export interface InitiativeData {
@@ -33,6 +43,13 @@ export interface InitiativeData {
     group: boolean;
     src: string;
     has_img: boolean;
+    effects: InitiativeEffect[];
+}
+
+export interface InitiativeEffect {
+    uuid: string;
+    name: string;
+    turns: number;
 }
 
 export interface ServerLayer {

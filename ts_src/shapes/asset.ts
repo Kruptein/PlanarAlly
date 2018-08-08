@@ -1,7 +1,7 @@
 import BaseRect from "./baserect";
 import { g2lx, g2ly, g2lz } from "../units";
 import { GlobalPoint } from "../geom";
-import { ServerAsset } from "../api_types";
+import { ServerAsset, InitiativeData } from "../api_types";
 import Settings from "../settings";
 
 export default class Asset extends BaseRect {
@@ -26,14 +26,15 @@ export default class Asset extends BaseRect {
         super.draw(ctx);
         ctx.drawImage(this.img, g2lx(this.refPoint.x), g2ly(this.refPoint.y), g2lz(this.w), g2lz(this.h));
     }
-    getInitiativeRepr() {
+    getInitiativeRepr(): InitiativeData {
         return {
             uuid: this.uuid,
             visible: !Settings.IS_DM,
             group: false,
             src: this.src,
             owners: this.owners,
-            has_img: true
+            has_img: true,
+            effects: [],
         }
     }
 }

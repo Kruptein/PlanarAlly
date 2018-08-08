@@ -6,6 +6,8 @@ import { Tool } from './tools/tool';
 import { InitiativeTracker } from './tools/initiative';
 import { GlobalPoint } from "./geom";
 import { socket, sendClientOptions } from "./socket";
+import { uuidv4 } from "./utils";
+import Note from "./note";
 import Settings from "./settings";
 import AnnotationManager from "./tools/annotation";
 import BoundingVolume from "./bvh/bvh";
@@ -16,6 +18,7 @@ export class GameManager {
     layerManager = new LayerManager();
     selectedTool: number = 0;
     tools: OrderedMap<string, Tool> = new OrderedMap();
+    notes: OrderedMap<string, Note> = new OrderedMap();
     
     lightsources: { shape: string, aura: string }[] = [];
     lightblockers: string[] = [];
@@ -33,7 +36,8 @@ export class GameManager {
     });
     initiativeDialog = $("#initiativedialog").dialog({
         autoOpen: false,
-        width: '160px'
+        width: 'auto',
+        
     });
 
     BV!: BoundingVolume;
@@ -70,6 +74,7 @@ export class GameManager {
             }
         });
     }
+
     recalculateBoundingVolume() {
         this.BV = new BoundingVolume(this.lightblockers);
     }
@@ -125,6 +130,30 @@ export class GameManager {
         Settings.board_initialised = true;
     }
 
+    newNote(name: string, text: string, show: boolean, sync: boolean, uuid?:string): void {
+        const id: string = uuid || uuidv4();
+
+        const note = new Note(name, text, id);
+
+        if (sync) {
+            socket.emit("newNote", note.asDict());
+        }
+
+        this.notes.set(id, note);
+
+        const button = $('<button>' + note.name + '</button>');
+
+        button.attr('note-id', id);
+        button.click(function() {
+            gameManager.notes.get(id).show();
+        });
+        $('#menu-notes').append(button);
+
+        if (show) {
+            note.show();
+        }
+    }
+
     addShape(shape: ServerShape): void {
         if (!this.layerManager.hasLayer(shape.layer)) {
             console.log(`Shape with unknown layer ${shape.layer} could not be added`);
@@ -164,19 +193,20 @@ export class GameManager {
             console.log(`Shape with unknown type ${data.shape.type} could not be added`);
             return;
         }
-        const shape = Object.assign(this.layerManager.UUIDMap.get(data.shape.uuid), sh);
+        const oldShape = this.layerManager.UUIDMap.get(data.shape.uuid);
+        if (oldShape === undefined) {
+            console.log(`Shape with unknown id could not be updated`);
+            return;
+        }
+        const redrawInitiative = sh.owners !== oldShape.owners;
+        const shape = Object.assign(oldShape, sh);
         shape.checkLightSources();
         shape.setMovementBlock(shape.movementObstruction);
         shape.setIsToken(shape.isToken);
         if (data.redraw)
             this.layerManager.getLayer(data.shape.layer)!.invalidate(false);
-    }
-
-    setInitiative(data: InitiativeData[]): void {
-        this.initiativeTracker.data = data;
-        this.initiativeTracker.redraw();
-        if (data.length > 0)
-            this.initiativeDialog.dialog("open");
+        if (redrawInitiative)
+            gameManager.initiativeTracker.redraw();
     }
 
     setClientOptions(options: ClientOptions): void {

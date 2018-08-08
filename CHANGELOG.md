@@ -6,7 +6,31 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+### Upgrade information
+#### Save format changes
+The save format has been changed from version 1 to 3, that's 2 increments in one release yes.
+This is due to the size of the release involving multiple new features that involved separate changes that were developed in parallel to eachother.
+
+As always make sure to back up your old saves before converting!
+To update run both `python ../scripts/convert/1_to_2.py` and `python ../scripts/convert/2_to_3.py` from within the same folder as your save files.
+
+#### Asset changes
+
+The way assets are stored on disk and managed in game has completely changed.  You'll no longer be able to manage your assets from your file manager or command line, and will have to use the in-browser tools to work with them.  This is a change that was required in order to provide extra features to the assets while preserving disk space. (e.g. personal assets / share assets / default templates / ... )
+Assets are now stored in `/static/assets/` instead of `/static/img/assets/`.  In order to keep your current saves working (if they have assets that rely on the old image locations), the old folder is kept intact and will not be removed.  You are free to do with this folder as you please as it is no longer used by PA itself.
+
 ### Added
+- Added a note system
+- Initiative tracker update
+    - Now shows the active actor and has a next turn button
+    - Shows the current round number
+    - Turn/Effect timers per actor that automatically count down
+    - Show a border around shapes on hover in the initiative list
+- New Asset management panel
+    - Out of game way to organize assets
+    - Upload files via a dialog or by dropping them on the manager
+    - Rename/remove files/directories
+    - move files/folders to other folders
 - FOW Brush tool
     - Similar behaviour currently to the fow tool, but actually provides much more freedom as it is a freehand brush
     - Also shows a brush tip while moving the mouse
@@ -14,15 +38,24 @@ All notable changes to this project will be documented in this file.
 - [tech] tools onSelect and onDeselect for more finegrained tweaking and UI helpers
 
 ### Changed
+- Renamed 'Tokens' to 'Assets' in the settings panel
+- Redesigned the way assets are shown in the settings panel
+    - A tree view approach is used, showing preview images on hover
+    - Removed the cog wheel
+    - A button to open the asset manager is added to the in-game interface.
 - FOW tool now fills its hide always with the fog colour, so that it is correct across different clients
 
 ### Fixed
+- Select box not working properly on the fow layer
+- Ownership changes are now reflected in the initiative list
+- Dim value aura's had the wrong radius
+- Aura's path2D errors are now handled and default circular behaviour is used if catched until the root error is found.
 - Deleting multiple shapes no longer sends the selectionhelper to the server
 
 ## [0.8] - 2018-06-19
 
 This release greatly increases performance of all lighting modes and also properly 
-introduyces Line of Sight based lighting system.
+introduces Line of Sight based lighting system.
 
 SAVE_FORMAT CHANGED FROM 0 to 1
 BACKUP YOUR OLD SAVE BEFORE CONVERTING!

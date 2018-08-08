@@ -1,11 +1,11 @@
-import { uuidv4 } from "../utils";
+import { uuidv4, capitalize } from "../utils";
 import BoundingRect from "./boundingrect";
 import gameManager from "../planarally";
 import socket from "../socket";
-import { g2l, g2lr } from "../units";
+import { g2l, g2lr, g2ly, g2lx, g2lz } from "../units";
 import { populateEditAssetDialog } from "./editdialog";
 import { GlobalPoint, LocalPoint } from "../geom";
-import { ServerShape } from "../api_types";
+import { ServerShape, InitiativeData } from "../api_types";
 import Settings from "../settings";
 
 export default abstract class Shape {
@@ -35,6 +35,8 @@ export default abstract class Shape {
     movementObstruction = false;
     // Does this shape represent a playable token
     isToken = false;
+    // Show a highlight box
+    showHighlight = false;
 
     // Mouseover annotation
     annotation: string = '';
@@ -269,6 +271,11 @@ export default abstract class Shape {
             ctx.globalCompositeOperation = this.globalCompositeOperation;
         else
             ctx.globalCompositeOperation = "source-over";
+        if (this.showHighlight) {
+            const bbox = this.getBoundingBox();
+            ctx.strokeStyle = 'red';
+            ctx.strokeRect(g2lx(bbox.topLeft.x) - 5, g2ly(bbox.topLeft.y) - 5, g2lz(bbox.w) + 10, g2lz(bbox.h) + 10);
+        }
         this.drawAuras(ctx);
     }
 
@@ -285,7 +292,14 @@ export default abstract class Shape {
                 ctx.arc(loc.x, loc.y, g2lr(aura.value), 0, 2 * Math.PI);
                 ctx.fill();
             } else {
-                ctx.fill(aura.lastPath);
+                try {
+                    ctx.fill(aura.lastPath);
+                } catch (e) {
+                    console.warn("Path2D ERROR");
+                    console.log(e);
+                    ctx.arc(loc.x, loc.y, g2lr(aura.value), 0, 2 * Math.PI);
+                    ctx.fill();
+                }
             }
             if (aura.dim) {
                 const tc = tinycolor(aura.colour);
@@ -293,10 +307,17 @@ export default abstract class Shape {
                 ctx.fillStyle = tc.setAlpha(tc.getAlpha() / 2).toRgbString();
                 const loc = g2l(self.center());
                 if (aura.lastPath === undefined) {
-                    ctx.arc(loc.x, loc.y, g2lr(aura.value), 0, 2 * Math.PI);
+                    ctx.arc(loc.x, loc.y, g2lr(aura.dim), 0, 2 * Math.PI);
                     ctx.fill();
                 } else {
-                    ctx.fill(aura.lastPath);
+                    try {
+                        ctx.fill(aura.lastPath);
+                    } catch (e) {
+                        console.warn("PATH2D ERROR");
+                        console.log(e);
+                        ctx.arc(loc.x, loc.y, g2lr(aura.dim), 0, 2 * Math.PI);
+                        ctx.fill();
+                    }
                 }
             }
         });
@@ -318,8 +339,8 @@ export default abstract class Shape {
             "<li>Layer<ul>";
         gameManager.layerManager.layers.forEach(function (layer) {
             if (!layer.selectable) return;
-            const sel = layer.name === l.name ? " style='background-color:aqua' " : " ";
-            data += `<li data-action='setLayer' data-layer='${layer.name}' ${sel} class='context-clickable'>${layer.name}</li>`;
+            const sel = layer.name === l.name ? " style='background-color:#82c8a0' " : " ";
+            data += `<li data-action='setLayer' data-layer='${layer.name}' ${sel} class='context-clickable'>${capitalize(layer.name)}</li>`;
         });
         data += "</ul></li>" +
             "<li data-action='moveToBack' class='context-clickable'>Move to back</li>" +
@@ -353,14 +374,15 @@ export default abstract class Shape {
         }
         $('#contextMenu').hide();
     }
-    getInitiativeRepr() {
+    getInitiativeRepr(): InitiativeData {
         return {
             uuid: this.uuid,
             visible: !Settings.IS_DM,
             group: false,
             src: this.name,
             owners: this.owners,
-            has_img: false
+            has_img: false,
+            effects: [],
         }
     }
     // Code to snap a shape to the grid

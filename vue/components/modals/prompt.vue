@@ -1,0 +1,77 @@
+<template>
+    <modal :visible="visible" @close="close">
+        <div class='modal-header'>
+            {{ title }}
+        </div>
+        <div class='modal-body'>
+            {{ question }} <input type='text' ref='answer' v-model="answer" @keyup.enter="submit">
+        </div>
+        <div class='modal-footer'>
+            <button @click="submit">Submit</button>
+        </div>
+    </modal>
+</template>
+
+<script>
+import modal from './modal.vue';
+export default {
+    components: {
+        modal
+    },
+    data: function () {
+        return {
+            visible: false,
+            question: '',
+            answer: '',
+            title: '',
+        }
+    },
+    methods: {
+        submit: function () {
+            this.resolve(this.answer);
+            this.close();
+        },
+        close: function () {
+            this.reject();
+            this.visible = false;
+            this.question = '';
+            this.answer = '';
+            this.title = '';
+        },
+        prompt: function (question, title) {
+            this.question = question;
+            this.title = title;
+            this.visible = true;
+            this.$nextTick(function() {
+                this.$refs.answer.focus();
+            }.bind(this));
+            return new Promise((resolve, reject) => {
+                this.resolve = resolve;
+                this.reject = reject;
+            });
+        }
+    }
+}
+</script>
+
+<style scoped>
+.modal-header {
+    background-color: #FF7052;
+    padding: 10px;
+    font-size: 20px;
+    font-weight: bold;
+}
+
+.modal-body {
+    padding: 10px;
+    padding-bottom: 0;
+    display: flex;
+    justify-content: space-between;
+}
+
+.modal-footer {
+    padding-top: 0;
+    padding: 10px;
+    text-align: right;
+}
+</style>

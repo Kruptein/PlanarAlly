@@ -84,6 +84,9 @@ class Location:
         self.room = room
         self.layer_manager = LayerManager()
         self.options = {}
+        self.initiative = []
+        self.initiativeTurn = 0
+        self.initiativeRound = 0
 
         # Keep track of temporary (i.e. not serverStored) shapes
         # so that we can remove them from other clients when someone disconnects
@@ -117,6 +120,7 @@ class Room:
         self.locations = {'start': Location("start", self)}
         self.player_location = 'start'
         self.dm_location = 'start'
+        self.notes = {}
         self.options = {}
 
     def get_board(self, username):
@@ -147,6 +151,29 @@ class Room:
 
     def add_new_location(self, name):
         self.locations[name] = Location(name, self)
+
+    def add_new_note(self, data, username):
+        self.notes[data['uuid']] = [username, data['name'], data['text']]
+
+    def update_note(self, data, username):
+        if self.notes[data['uuid']][0] == username:
+            self.notes[data['uuid']][1] = data['name']
+            self.notes[data['uuid']][2] = data['text']
+        else:
+            print(f"{username} tried to update note not belonging to him")
+
+    def get_notes(self, username):
+        user_notes = []
+        for uuid, note in self.notes.items():
+            if note[0] == username:
+                user_notes.append({"uuid": uuid, "name": note[1], "text":note[2]})
+        return user_notes
+
+    def delete_note(self, uuid, username):
+        if self.notes[uuid][0] == username:
+            del self.notes[uuid]
+        else:
+            print(f"{username} tried to remove note which did not belong to him")
 
 
 class PlanarAlly:
@@ -190,7 +217,7 @@ class PlanarAlly:
 
     def get_asset_list(self, path=None):
         if not path:
-            path = os.path.join("static", "img", "assets")
+            path = os.path.join("static", "assets")
         d = {'files': [], 'folders': {}}
         for entry in os.scandir(path):
             if entry.is_file():

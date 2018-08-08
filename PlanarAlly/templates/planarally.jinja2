@@ -4,6 +4,7 @@
     <meta charset="utf-8">
     <title>PlanarAlly</title>
     <link rel="stylesheet" type="text/css" href="/static/css/planarally.css">
+    <link rel="stylesheet" type="text/css" href="/static/extern/css/directory.css">
     <link rel='stylesheet' href='/static/extern/css/jquery-ui-1.12.1.css'/>
     <script defer src='/static/extern/js/fontawesome_all.js'></script>
     <script defer src="/static/js/planarally.js"></script>
@@ -34,9 +35,17 @@
         <div id="menu">
             <div style='width:100%;height:90%;overflow-y:auto;overflow-x:hidden;'>
                 {% if dm %}
-                    <button class="accordion">Tokens</button>
+                    <button class="accordion">Assets</button>
                     <div class="accordion-panel">
-                        <div class="accordion-subpanel" id="menu-tokens"></div>
+                        <a style="position:absolute;right:0;margin:20px;" href="/assets/" target='blank'><i class="fas fa-external-link-alt"></i></a>
+                        <div class="directory" id="menu-tokens"></div>
+                    </div>
+                    <button class="accordion">Notes</button>
+                    <div class="accordion-panel">
+                        <div class="accordion-subpanel" id="menu-notes">
+                            <button id="createNote">Create new note</button>
+                            <label>Notes</label>
+                        </div>
                     </div>
                     <button class="accordion">DM Options</button>
                     <div class="accordion-panel">
@@ -125,7 +134,7 @@
         <div class="spanrow shapeselectiondialog-header" id="shapeselectiondialog-trackers">Trackers</div>
         <div class="spanrow shapeselectiondialog-header" id="shapeselectiondialog-auras">Auras</div>
         <div class="spanrow shapeselectiondialog-header" id="shapeselectiondialog-annotation">Annotation</div>
-        <textarea id="shapeselectiondialog-annotation-textarea" class="spanrow">WAT</textarea>
+        <textarea id="shapeselectiondialog-annotation-textarea" class="spanrow"></textarea>
     </div>
 </div>
 <div id="initiativedialog" class="dialog" title="Initiative"></div>

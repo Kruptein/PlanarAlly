@@ -1,6 +1,9 @@
 @import url("https://maxcdn.bootstrapcdn.com/font-awesome/4.6.1/css/font-awesome.min.css");
+@import url('https://fonts.googleapis.com/css?family=Open+Sans');
 html, body, #main {
     height: 100%;
+    font-family: 'Open Sans', sans-serif;
+    font-weight: 200;
 }
 
 body {
@@ -11,11 +14,13 @@ a, a:visited, a:hover, a:active {
     color: inherit;
 }
 
-/* fieldset { */
-    /*padding: 0;*/
-    /*border: 0;*/
-    /*margin-top: 25px;*/
-/* } */
+svg {
+    cursor: pointer;
+}
+
+.notAllowed, .notAllowed > * {
+    cursor: not-allowed !important;
+}
 
 #main {
     display: flex;
@@ -71,16 +76,17 @@ a, a:visited, a:hover, a:active {
     top: 150px;
     right: 0;
     z-index: 10;
-    opacity: 0.3;
-    border-top-left-radius: 20px;
-    border-bottom-left-radius: 20px;
-    border: solid 1px;
+    opacity: 0.5;
+    border-top-left-radius: 5px;
+    border-bottom-left-radius: 5px;
+    border: #82c8a0 solid 1px;
     border-right: none;
     padding: 10px 35px 10px 10px;
-    background-color: white;
+    background-color: #eee;
 }
 
 #selection-menu:hover {
+    background-color: #82c8a0;
     opacity: 1;
 }
 
@@ -238,7 +244,8 @@ a, a:visited, a:hover, a:active {
 #contextMenu ul {
     /*width: 100%;*/
     /*height: 100%;*/
-    border: 1px solid black;
+    border: 1px solid #82c8a0;
+    border-radius: 5px;
     background: white;
     padding: 0;
     list-style: none;
@@ -246,7 +253,7 @@ a, a:visited, a:hover, a:active {
 }
 
 #contextMenu ul li {
-    border-bottom: 1px solid black;
+    border-bottom: 1px solid #82c8a0;
     padding: 5px;
 }
 
@@ -266,8 +273,8 @@ a, a:visited, a:hover, a:active {
 #contextMenu > ul > li ul {
     display: none;
     position: absolute;
-    left: 99px;
-    top: 0;
+    left: 119px;
+    top: -1px;
 }
 
 #contextMenu > ul > li:hover ul {
@@ -546,6 +553,11 @@ input:checked + .slider:before {
     color: #82c8a0;
 }
 
+.notedialog {
+    align-items: center;
+    display: grid;
+}
+
 #shapeselectiondialog > div {
     display: grid;
     grid-template-columns: [name] 1fr [numerator] 30px [slash] 5px [denominator] 30px [colour] 40px [visible] 30px [light] 30px [remove] 30px [end];
@@ -554,12 +566,106 @@ input:checked + .slider:before {
 }
 
 #initiativedialog {
-    padding: 0;
-    display: grid;
-    grid-template-columns: [img] auto [value] 30px [visible] 30px [group] 30px [remove] 30px [end];
-    grid-column-gap: 2px;
-    align-items: center;
+    padding: 10px;
 }
+
+#initiative-list {
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    /* grid-template-columns: [active] 20px [img] auto [value] 30px [visible] 30px [group] 30px [remove] 30px [end];
+    grid-column-gap: 2px;
+    align-items: center; */
+}
+
+.initiative-actor {
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-end;
+    align-items: center;
+    padding: 2px 5px;
+    margin-bottom: 2px;
+    border-radius: 5px;
+    border: solid 2px rgba(0, 0, 0, 0);
+}
+
+.initiative-selected {
+    border: solid 2px #82c8a0;
+    background-color: #82c8a0;
+}
+
+.initiative-selected + .initiative-effect, .initiative-actor:hover + .initiative-effect, .initiative-effect:hover {
+    display: flex;
+    border-color: rgba(130, 200, 160, 0.6);
+    background-color: rgba(130, 200, 160, 0.6);
+}
+
+.initiative-actor:hover {
+    border: solid 2px #82c8a0;
+    cursor: move;
+}
+
+.initiative-actor > * {
+    width: 30px;
+    margin-left: 2px;
+}
+
+.initiative-effect {
+    display: none;
+    flex-direction: column;
+    width: -moz-fit-content;
+    width: fit-content;
+    margin-right: 5px;
+    margin-top: -2px;
+    margin-bottom: 5px;
+    padding: 2px;
+    border: solid 2px rgba(0, 0, 0, 0);
+    border-bottom-left-radius: 5px;
+    border-bottom-right-radius: 5px;
+    border-top: none;
+}
+
+.initiative-effect > * {
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-end;
+}
+
+.initiative-effect > * > * {
+    border: none;
+    background-color: inherit;
+    text-align: right;
+    margin-left: 20px;
+    min-width: 10px;
+}
+.initiative-effect > * > *:first-child {
+    margin-left: 0;
+}
+
+#initiative-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-right: 10px;
+    margin-left: 10px;
+    margin-top: 10px;
+    margin-bottom: -10px;
+    padding: 2px;
+}
+
+.initiative-bar-button {
+    border: solid 2px #82c8a0;
+    border-radius: 5px;
+    padding:5px;
+}
+
+.initiative-bar-button:hover {
+    color: white;
+    background-color: #82c8a0;
+    cursor: pointer;
+}
+
 
 #createtokendialog {
     padding: 10px;
@@ -568,6 +674,10 @@ input:checked + .slider:before {
     grid-column-gap: 30px;
     grid-row-gap: 10px;
     align-items: center;
+}
+
+#renameNote {
+    width: 90%;
 }
 
 .spanrow {
@@ -597,4 +707,43 @@ input:checked + .slider:before {
 
 select {
     font-family: FontAwesome, sans-serif;
+}
+
+
+
+/*
+DIRECTORY.CSS changes
+
+* Collapse all folders by default, use js to toggle visibility on click.
+* On hover over folder show some visual feedback
+* On hover over file show the image
+
+*/
+.folder > * {
+    display: none;
+}
+
+.directory > .folder, .directory > .file {
+    display: block;
+}
+
+.folder:hover {
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.folder:hover > * {
+    font-weight: normal;
+}
+
+
+#preview {
+    position: absolute;
+	display:none;
+    z-index:50;
+}
+
+.asset-preview-image {
+    width: 100%;
+    max-width: 250px;
 }

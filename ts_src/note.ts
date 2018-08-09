@@ -1,7 +1,6 @@
-import { sendClientOptions, socket } from "./socket";
+import { socket } from "./socket";
 import gameManager from "./planarally";
 import { Dictionary } from "../node_modules/@types/lodash/index";
-import { rename } from "fs";
 
 export default class Note {
     name: string

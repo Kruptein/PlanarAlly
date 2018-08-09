@@ -1,12 +1,11 @@
 import { g2l } from "./units";
-import { OrderedMap } from './utils';
 import { ClientOptions, BoardInfo, ServerShape, InitiativeData } from './api_types';
 import { createShapeFromDict } from './shapes/utils';
 import { Tool } from './tools/tool';
 import { InitiativeTracker } from './tools/initiative';
 import { GlobalPoint } from "./geom";
 import { socket, sendClientOptions } from "./socket";
-import { uuidv4 } from "./utils";
+import { uuidv4, OrderedMap } from "../core/utils";
 import Note from "./note";
 import Settings from "./settings";
 import AnnotationManager from "./tools/annotation";

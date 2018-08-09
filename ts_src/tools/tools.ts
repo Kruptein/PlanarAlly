@@ -7,7 +7,7 @@ import { FOWTool } from "./fow";
 import { MapTool } from "./map";
 import { Vector, Ray } from "../geom";
 import Shape from "../shapes/shape";
-import { capitalize } from "../utils";
+import { capitalize } from "../../core/utils";
 import Settings from "../settings";
 import { BrushTool } from "./brush";
 

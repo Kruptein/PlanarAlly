@@ -3,7 +3,7 @@ import { GlobalPoint } from "../geom";
 import { ServerCircularToken, InitiativeData } from "../api_types";
 import { g2l } from "../units";
 import Settings from "../settings";
-import { calcFontScale } from "../utils";
+import { calcFontScale } from "../../core/utils";
 
 export default class CircularToken extends Circle {
     type = "circulartoken";

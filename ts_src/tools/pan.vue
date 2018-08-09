@@ -2,7 +2,6 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
 import Tool from "./tool.vue";
 
 import { LocalPoint } from "../geom";
@@ -18,17 +17,6 @@ export default Tool.extend({
             panStart: new LocalPoint(0, 0),
             active: false
         }
-    },
-    created() {
-        this.$root.$on('mousedown', (event: MouseEvent, tool: string) => {
-            if (tool === this.name) this.onMouseDown(event)
-        });
-        this.$root.$on('mouseup', (event: MouseEvent, tool: string) => {
-            if (tool === this.name) this.onMouseUp(event)
-        });
-        this.$root.$on('mousemove', (event: MouseEvent, tool: string) => {
-            if (tool === this.name) this.onMouseMove(event)
-        });
     },
     methods: {
         onMouseDown(event: MouseEvent) {

@@ -1,4 +1,4 @@
-import { SelectOperations, calculateDelta } from "./tools";
+import { calculateDelta } from "./utils";
 import { Vector, LocalPoint, GlobalPoint, Ray } from "../geom";
 import Rect from "../shapes/rect";
 import gameManager from "../planarally";
@@ -9,6 +9,12 @@ import { Tool } from "./tool";
 import Settings from "../settings";
 import CircularToken from "../shapes/circulartoken";
 
+export enum SelectOperations {
+    Noop,
+    Resize,
+    Drag,
+    GroupSelect,
+}
 
 export class SelectTool extends Tool {
     mode: SelectOperations = SelectOperations.Noop;

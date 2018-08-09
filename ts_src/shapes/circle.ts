@@ -4,7 +4,7 @@ import { g2l, l2g } from "../units";
 import { GlobalPoint, LocalPoint, Vector } from "../geom";
 import { ServerCircle } from "../api_types";
 import Settings from "../settings";
-import { calculateDelta } from "../tools/tools";
+import { calculateDelta } from "../tools/utils";
 import { getFogColour } from "../utils";
 
 export default class Circle extends Shape {

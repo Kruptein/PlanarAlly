@@ -3,7 +3,7 @@ import { SelectTool } from "../tools/select";
 import { Vector } from "../geom";
 import Settings from "../settings";
 import { sendClientOptions, socket } from "../socket";
-import { calculateDelta } from "../tools/tools";
+import { calculateDelta } from "../tools/utils";
 
 function targetIsInput(e: Event) {
     if (e.target && (<HTMLElement>e.target).tagName)

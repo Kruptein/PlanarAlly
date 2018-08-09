@@ -23,8 +23,7 @@ socket.on("set room info", function (data: {name: string, creator: string}) {
 socket.on("set username", function (username: string) {
     Settings.username = username;
     Settings.IS_DM = username === window.location.pathname.split("/")[2];
-    if ($("#toolselect").find("ul").html().length === 0)
-        setupTools();
+    setupTools();
 });
 socket.on("set clientOptions", function (options: ClientOptions) {
     gameManager.setClientOptions(options);

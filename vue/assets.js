@@ -1,5 +1,5 @@
 import Vue from 'vue';
-import { uuidv4 } from '../ts_src/utils'
+import { uuidv4 } from '../core/utils'
 import contextmenu from './components/contextmenu.vue';
 import prompt from './components/modals/prompt.vue';
 import confirm from './components/modals/confirm.vue';

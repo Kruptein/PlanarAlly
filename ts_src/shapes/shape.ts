@@ -1,4 +1,4 @@
-import { uuidv4, capitalize } from "../utils";
+import { uuidv4, capitalize } from "../../core/utils";
 import BoundingRect from "./boundingrect";
 import gameManager from "../planarally";
 import socket from "../socket";

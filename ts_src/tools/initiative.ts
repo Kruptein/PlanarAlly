@@ -2,7 +2,7 @@ import { InitiativeData, InitiativeEffect } from "../api_types";
 import gameManager from "../planarally";
 import socket from "../socket";
 import Settings from "../settings";
-import { uuidv4, getHTMLTextWidth } from "../utils";
+import { uuidv4, getHTMLTextWidth } from "../../core/utils";
 
 export class InitiativeTracker {
     data: InitiativeData[] = [];

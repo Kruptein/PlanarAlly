@@ -167,7 +167,7 @@ const app = new Vue({
                 this.currentDirectory.push(nextFolder);
         },
         createDirectory: function () {
-            const name = prompt("New folder name");
+            const name = window.prompt("New folder name");
             if (name !== null) {
                 socket.emit("createDirectory", {name: name, directory: this.currentDirectory});
                 folder = app.directory;

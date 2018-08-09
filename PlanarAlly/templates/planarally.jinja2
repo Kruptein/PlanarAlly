@@ -114,8 +114,6 @@
                 @click="currentTool = tool"
             ><a href='#'>[[ tool ]]</a></li>
         </ul>
-        <select-tool v-show="currentTool === 'select'"></select-tool>
-        <pan-tool v-show="currentTool === 'pan'"></pan-tool>
     </div>
     <div id="selection-menu">
         <i id='selection-edit-button' class="fas fa-edit"></i>
@@ -131,7 +129,12 @@
     </div>
     <div id="tooldetail"></div>
     <div id="zoomer"></div>
-    <div id='contextMenu'></div>
+    {# <div id='contextMenu'></div> #}
+    <template v-if="ready()">
+        <select-tool v-show="currentTool === 'select'"></select-tool>
+        <pan-tool v-show="currentTool === 'pan'"></pan-tool>
+        <shapecontext ref="shapecontext"></shapecontext>
+    </template>
 </div>
 <div id="shapeselectiondialog" class="dialog" title="Edit asset">
     <div>

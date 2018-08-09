@@ -189,7 +189,7 @@ svg {
     z-index: 10;
 }
 
-#toolselect ul {
+#toolselect > ul {
     display: flex;
     list-style: none;
     padding: 0;
@@ -198,26 +198,26 @@ svg {
     border-radius: 7px;
 }
 
-#toolselect li {
+#toolselect > ul > li {
     display: flex;
     background-color: #eee;
     border-right: solid 1px #82c8a0;
 }
 
-#toolselect li:last-child {
+#toolselect > ul > li:last-child {
     border-right: none;
     border-radius: 0px 4px 4px 0px; /* Border radius needs to be two less than the actual border, otherwise there will be a gap */
 }
 
-#toolselect li:first-child {
+#toolselect > ul > li:first-child {
     border-radius: 4px 0px 0px 4px;
 }
 
-#toolselect li:hover {
+#toolselect > ul > li:hover {
     background-color: #82c8a0;
 }
 
-#toolselect li a {
+#toolselect > ul > li a {
     -webkit-user-select: none; /* Chrome all / Safari all */
     -moz-user-select: none; /* Firefox all */
     -ms-user-select: none; /* IE 10+ */
@@ -234,61 +234,6 @@ svg {
 .draggable {
     list-style: none;
     font-family: helvetica;
-}
-
-#contextMenu {
-    position: absolute;
-    z-index: 11;
-}
-
-#contextMenu ul {
-    /*width: 100%;*/
-    /*height: 100%;*/
-    border: 1px solid #82c8a0;
-    border-radius: 5px;
-    background: white;
-    padding: 0;
-    list-style: none;
-    margin: 0;
-}
-
-#contextMenu ul li {
-    border-bottom: 1px solid #82c8a0;
-    padding: 5px;
-}
-
-#contextMenu ul li:hover {
-    background-color: #82c8a0;
-}
-
-#contextMenu ul li:last-child {
-    border-bottom: none;
-}
-
-#contextMenu > ul > li {
-    clear: left;
-    position: relative;
-}
-
-#contextMenu > ul > li ul {
-    display: none;
-    position: absolute;
-    left: 119px;
-    top: -1px;
-}
-
-#contextMenu > ul > li:hover ul {
-    display: flex;
-    flex-direction: column;
-}
-
-/* #contextMenu > ul > li ul li {
-    /*float: left;*
-    /*display: block;*
-} */
-
-.context-clickable {
-    cursor: pointer;
 }
 
 .accordion {

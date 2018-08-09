@@ -1,5 +1,5 @@
 import { g2l } from "./units";
-import { ClientOptions, BoardInfo, ServerShape, InitiativeData } from './api_types';
+import { ClientOptions, BoardInfo, ServerShape } from './api_types';
 import { createShapeFromDict } from './shapes/utils';
 import { Tool } from './tools/tool';
 import { InitiativeTracker } from './tools/initiative';

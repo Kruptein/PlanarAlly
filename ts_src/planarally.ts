@@ -48,9 +48,6 @@ $("#zoomer").slider({
     }
 });
 
-
-document.getElementById("contextMenu")!.style.display = 'none';
-
 const settings_menu = $("#menu")!;
 const locations_menu = $("#locations-menu")!;
 const layer_menu = $("#layerselect")!;

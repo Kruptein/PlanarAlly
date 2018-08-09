@@ -324,55 +324,29 @@ export default abstract class Shape {
     }
 
     showContextMenu(mouse: LocalPoint) {
-        if (gameManager.layerManager.getLayer() === undefined) return;
-        const l = gameManager.layerManager.getLayer()!;
-        l.selection = [this];
-        this.onSelection();
-        l.invalidate(true);
-        const asset = this;
-        const $menu = $('#contextMenu');
-        $menu.show();
-        $menu.empty();
-        $menu.css({ left: mouse.x, top: mouse.y });
-        let data = "" +
-            "<ul>" +
-            "<li>Layer<ul>";
-        gameManager.layerManager.layers.forEach(function (layer) {
-            if (!layer.selectable) return;
-            const sel = layer.name === l.name ? " style='background-color:#82c8a0' " : " ";
-            data += `<li data-action='setLayer' data-layer='${layer.name}' ${sel} class='context-clickable'>${capitalize(layer.name)}</li>`;
-        });
-        data += "</ul></li>" +
-            "<li data-action='moveToBack' class='context-clickable'>Move to back</li>" +
-            "<li data-action='moveToFront' class='context-clickable'>Move to front</li>" +
-            "<li data-action='addInitiative' class='context-clickable'>" + (gameManager.initiativeTracker.contains(this.uuid) ? "Show" : "Add") + " initiative</li>" +
-            "</ul>";
-        $menu.html(data);
-        $(".context-clickable").on('click', function () {
-            asset.onContextMenu($(this));
-        });
-    }
-    onContextMenu(menu: JQuery<HTMLElement>) {
-        const action = menu.data("action");
-        const layer = gameManager.layerManager.getLayer();
-        if (layer === undefined) return;
-        switch (action) {
-            case 'moveToFront':
-                layer.moveShapeOrder(this, layer.shapes.length - 1, true);
-                break;
-            case 'moveToBack':
-                layer.moveShapeOrder(this, 0, true);
-                break;
-            case 'setLayer':
-                layer.removeShape(this, true);
-                gameManager.layerManager.getLayer(menu.data("layer"))!.addShape(this, true);
-                break;
-            case 'addInitiative':
-                if (gameManager.initiativeTracker.contains(this.uuid)) gameManager.initiativeTracker.show();
-                gameManager.initiativeTracker.addInitiative(this.getInitiativeRepr(), true);
-                break;
-        }
-        $('#contextMenu').hide();
+        
+        // const asset = this;
+        // const $menu = $('#contextMenu');
+        // $menu.show();
+        // $menu.empty();
+        // $menu.css({ left: mouse.x, top: mouse.y });
+        // let data = "" +
+        //     "<ul>" +
+        //     "<li>Layer<ul>";
+        // gameManager.layerManager.layers.forEach(function (layer) {
+        //     if (!layer.selectable) return;
+        //     const sel = layer.name === l.name ? " style='background-color:#82c8a0' " : " ";
+        //     data += `<li data-action='setLayer' data-layer='${layer.name}' ${sel} class='context-clickable'>${capitalize(layer.name)}</li>`;
+        // });
+        // data += "</ul></li>" +
+        //     "<li data-action='moveToBack' class='context-clickable'>Move to back</li>" +
+        //     "<li data-action='moveToFront' class='context-clickable'>Move to front</li>" +
+        //     "<li data-action='addInitiative' class='context-clickable'>" + (gameManager.initiativeTracker.contains(this.uuid) ? "Show" : "Add") + " initiative</li>" +
+        //     "</ul>";
+        // $menu.html(data);
+        // $(".context-clickable").on('click', function () {
+        //     asset.onContextMenu($(this));
+        // });
     }
     getInitiativeRepr(): InitiativeData {
         return {

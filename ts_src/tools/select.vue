@@ -28,7 +28,7 @@ export default Tool.extend({
         ContextMenu
     },
     // data() {
-    data: function() {
+    data() {
         const start = new GlobalPoint(-1000, -1000);
         return {
             name: "select",
@@ -255,6 +255,23 @@ export default Tool.extend({
             this.mode = SelectOperations.Noop
         },
         onContextMenu(event: MouseEvent) {
+            if (gameManager.layerManager.getLayer() === undefined) {
+                console.log("No active layer!");
+                return;
+            }
+            const layer = gameManager.layerManager.getLayer()!;
+            const mouse = getMouse(event);
+            const globalMouse = l2g(mouse);
+
+            for (let shape of layer.selection) {
+                if (shape.contains(globalMouse)) {
+                    layer.selection = [shape];
+                    shape.onSelection();
+                    layer.invalidate(true);
+                    (<any>this.$root.$refs.shapecontext).open(event, shape);
+                    return;
+                }
+            }
             (<any>this.$refs.selectcontext).open(event);
         }
     }

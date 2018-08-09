@@ -1,6 +1,8 @@
 import Vue from 'vue';
 import SelectTool from "./select.vue";
 import PanTool from "./pan.vue";
+import shapecontext from "../shapes/shapecontext.vue";
+
 import Settings from '../settings';
 import gameManager from '../planarally';
 import { getMouse } from '../utils';
@@ -13,6 +15,7 @@ const app = new Vue({
     components: {
         'select-tool': SelectTool,
         'pan-tool': PanTool,
+        shapecontext
     },
     data: {
         toolsLoaded: false,
@@ -20,6 +23,9 @@ const app = new Vue({
         tools: ["select", "pan"]
     },
     methods: {
+        ready() {
+            return Settings !== undefined;
+        },
         mousedown(event: MouseEvent) {
             if (!Settings.board_initialised) return;
             if ((<HTMLElement>event.target).tagName !== 'CANVAS') return;

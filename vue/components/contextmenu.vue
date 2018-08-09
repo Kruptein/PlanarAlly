@@ -12,7 +12,7 @@ export default {
 }
 </script>
 
-<style scoped>
+<style>
 .ContextMenu {
     position: fixed;
     z-index: 11;
@@ -30,6 +30,7 @@ export default {
 .ContextMenu ul li {
     border-bottom: 1px solid #FF7052;
     padding: 5px;
+    cursor: pointer;
 }
 
 .ContextMenu ul li:hover {
@@ -48,7 +49,7 @@ export default {
 .ContextMenu > ul > li ul {
     display: none;
     position: absolute;
-    left: 119px;
+    left: 100%;
     top: -1px;
 }
 

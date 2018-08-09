@@ -170,7 +170,7 @@ const app = new Vue({
             const name = window.prompt("New folder name");
             if (name !== null) {
                 socket.emit("createDirectory", {name: name, directory: this.currentDirectory});
-                folder = app.directory;
+                const folder = this.directory;
                 Vue.set(folder, name, {});
             }
         },

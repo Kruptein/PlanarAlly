@@ -1,13 +1,17 @@
 import Vue from 'vue';
 import SelectTool from "./select.vue";
 import PanTool from "./pan.vue";
+import Settings from '../settings';
+import gameManager from '../planarally';
+import { getMouse } from '../utils';
+import { l2g } from '../units';
 
 const app = new Vue({
     el: '#main',
     delimiters: ['[[', ']]'],
     components: {
         'select-tool': SelectTool,
-        'pan-tool': PanTool
+        'pan-tool': PanTool,
     },
     data: {
         toolsLoaded: false,
@@ -15,14 +19,66 @@ const app = new Vue({
         tools: ["select", "pan"]
     },
     methods: {
-        mousedown: function(event: MouseEvent) {
-            this.$emit('mousedown', event, this.currentTool);
+        mousedown(event: MouseEvent) {
+            if (!Settings.board_initialised) return;
+            if ((<HTMLElement>event.target).tagName !== 'CANVAS') return;
+            
+            let targetTool = this.currentTool;
+            if (event.button == 1) {
+                targetTool = "pan";
+            } else if (event.button !== 0) {
+                return;
+            }
+
+            this.$emit('mousedown', event, targetTool);
         },
-        mouseup: function(event: MouseEvent) {
-            this.$emit('mouseup', event, this.currentTool);
+        mouseup(event: MouseEvent) {
+            if (!Settings.board_initialised) return;
+            if ((<HTMLElement>event.target).tagName !== 'CANVAS') return;
+
+            let targetTool = this.currentTool;
+            if (event.button == 1) {
+                targetTool = "pan";
+            } else if (event.button !== 0) {
+                return;
+            }
+
+            this.$emit('mouseup', event, targetTool);
         },
-        mousemove: function(event: MouseEvent) {
-            this.$emit('mousemove', event, this.currentTool);
+        mousemove(event: MouseEvent) {
+            if (!Settings.board_initialised) return;
+            if ((<HTMLElement>event.target).tagName !== 'CANVAS') return;
+            
+            let targetTool = this.currentTool;
+            if ((event.buttons & 4) !== 0) {
+                targetTool = "pan";
+            } else if ((event.button & 1) > 1) {
+                return;
+            }
+            
+            this.$emit('mousemove', event, targetTool);
+
+            // Annotation hover
+            let found = false;
+            for (let i = 0; i < gameManager.annotations.length; i++) {
+                const uuid = gameManager.annotations[i];
+                if (gameManager.layerManager.UUIDMap.has(uuid) && gameManager.layerManager.hasLayer("draw")) {
+                    const shape = gameManager.layerManager.UUIDMap.get(uuid)!;
+                    if (shape.contains(l2g(getMouse(event)))) {
+                        found = true;
+                        gameManager.annotationManager.setActiveText(shape.annotation);
+                    }
+                }
+            }
+            if (!found && gameManager.annotationManager.shown) {
+                gameManager.annotationManager.setActiveText('');
+            }
+        },
+        contextmenu(event: MouseEvent) {
+            if (!Settings.board_initialised) return;
+            if ((<HTMLElement>event.target).tagName !== 'CANVAS') return;
+            if (event.button !== 2 || (<HTMLElement>event.target).tagName !== 'CANVAS') return;
+            this.$emit("contextmenu", event, this.currentTool);
         }
     },
     computed: {

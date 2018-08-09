@@ -3,6 +3,7 @@
 
 <script lang="ts">
 import Vue from 'vue'
+import { onContextMenu } from '../events/mouse';
 export default Vue.component('tool', {
     data() {return {
         name: '',
@@ -18,11 +19,15 @@ export default Vue.component('tool', {
         this.$root.$on('mousemove', (event: MouseEvent, tool: string) => {
             if (tool === this.name) this.onMouseMove(event)
         });
+        this.$root.$on('contextmenu', (event: MouseEvent, tool: string) => {
+            if (tool === this.name) this.onContextMenu(event)
+        });
     },
     methods: {
         onMouseDown(event: MouseEvent) {},
         onMouseUp(event: MouseEvent) {},
-        onMouseMove(event: MouseEvent) {}
+        onMouseMove(event: MouseEvent) {},
+        onContextMenu(event: MouseEvent) {},
     }
 })
 </script>

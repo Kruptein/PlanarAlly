@@ -95,7 +95,12 @@
                 <div></div>
             </div>
         {% endif %}
-        <div id="layers" @mousedown="mousedown" @mouseup="mouseup" @mousemove="mousemove"></div>
+        <div id="layers"
+            @mousedown="mousedown"
+            @mouseup="mouseup"
+            @mousemove="mousemove"
+            @contextmenu.prevent.stop="contextmenu"
+        ></div>
         <div id="layerselect">
             <ul></ul>
         </div>
@@ -109,9 +114,8 @@
                 @click="currentTool = tool"
             ><a href='#'>[[ tool ]]</a></li>
         </ul>
-        <keep-alive>
-            <component :is="currentTabComponent"></component>
-        </keep-alive>
+        <select-tool v-show="currentTool === 'select'"></select-tool>
+        <pan-tool v-show="currentTool === 'pan'"></pan-tool>
     </div>
     <div id="selection-menu">
         <i id='selection-edit-button' class="fas fa-edit"></i>
@@ -148,13 +152,13 @@
     </div>
 </div>
 <div id="initiativedialog" class="dialog" title="Initiative"></div>
-<div id="createtokendialog" class="dialog" title="Create basic token">
+{# <div id="createtokendialog" class="dialog" title="Create basic token">
     <label for="createtokendialog-text">Text</label>
     <input type="text" id="createtokendialog-name">
     <label for="createtokendialog-fill">Fill</label>
     <input type="text" id="createtokendialog-fill" title="Fill colour">
     <label for="createtokendialog-border">Border</label>
     <input type="text" id="createtokendialog-border" title="Border colour">
-</div>
+</div> #}
 </body>
 </html>

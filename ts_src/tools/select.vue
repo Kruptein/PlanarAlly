@@ -1,8 +1,12 @@
 <template>
+    <ContextMenu ref="selectcontext"></ContextMenu>
 </template>
 
 <script lang="ts">
+import Vue from "vue";
 import Tool from "./tool.vue";
+import ContextMenu from "./selectcontext.vue";
+
 import Rect from "../shapes/rect";
 import { GlobalPoint, Vector, LocalPoint, Ray } from "../geom";
 import Settings from "../settings";
@@ -20,10 +24,15 @@ export enum SelectOperations {
 }
 
 export default Tool.extend({
-    data() {
+    components: {
+        ContextMenu
+    },
+    // data() {
+    data: function() {
         const start = new GlobalPoint(-1000, -1000);
         return {
             name: "select",
+            showContextMenu: false,
             
             mode: SelectOperations.Noop,
             resizeDirection: "",
@@ -245,6 +254,9 @@ export default Tool.extend({
             }
             this.mode = SelectOperations.Noop
         },
+        onContextMenu(event: MouseEvent) {
+            (<any>this.$refs.selectcontext).open(event);
+        }
     }
 })
 </script>

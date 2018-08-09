@@ -1,8 +1,8 @@
 import gameManager from "../planarally";
-import { SelectTool } from "../tools/select";
 import { Vector } from "../geom";
 import Settings from "../settings";
 import { sendClientOptions, socket } from "../socket";
+import { SelectTool } from "../tools/select";
 import { calculateDelta } from "../tools/utils";
 
 function targetIsInput(e: Event) {

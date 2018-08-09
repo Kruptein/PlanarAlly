@@ -6,6 +6,7 @@ import gameManager from '../planarally';
 import { getMouse } from '../utils';
 import { l2g } from '../units';
 
+
 const app = new Vue({
     el: '#main',
     delimiters: ['[[', ']]'],

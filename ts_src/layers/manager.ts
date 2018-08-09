@@ -3,7 +3,7 @@ import Shape from "../shapes/shape";
 import { GridLayer } from "./grid";
 import { ServerLayer } from "../api_types";
 import gameManager from "../planarally";
-import { capitalize } from "../utils";
+import { capitalize } from "../../core/utils";
 import Settings from "../settings";
 import { FOWLayer } from "./fow";
 import { LocalPoint } from "../geom";

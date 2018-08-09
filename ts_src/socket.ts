@@ -1,5 +1,5 @@
 import gameManager from "./planarally";
-import { alphSort, fixedEncodeURIComponent } from "./utils";
+import { alphSort } from "../core/utils";
 import { setupTools } from "./tools/tools";
 import { ClientOptions, LocationOptions, Notes, AssetList, ServerShape, InitiativeData, BoardInfo, InitiativeEffect, AssetFileList } from "./api_types";
 import { GlobalPoint } from "./geom";

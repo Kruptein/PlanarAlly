@@ -1,7 +1,7 @@
 import BoundingRect from "../shapes/boundingrect";
 import gameManager from "../planarally";
 import { LeafNode, InteriorNode, BoundingNode } from "./node";
-import { partition } from "../utils";
+import { partition } from "../../core/utils";
 import { GlobalPoint, Ray } from "../geom";
 import { g2lx, g2ly, g2lz } from "../units";
 

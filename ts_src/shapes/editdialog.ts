@@ -1,6 +1,6 @@
 import gameManager from "../planarally";
 import socket from "../socket";
-import { uuidv4 } from "../utils";
+import { uuidv4 } from "../../core/utils";
 import Shape from "./shape";
 
 export function populateEditAssetDialog(self: Shape) {

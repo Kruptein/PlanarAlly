@@ -1,5 +1,5 @@
 import Vue from 'vue';
-import { uuidv4 } from '../ts_src/utils'
+import { uuidv4 } from '../core/utils'
 import contextmenu from './components/contextmenu.vue';
 import prompt from './components/modals/prompt.vue';
 import confirm from './components/modals/confirm.vue';
@@ -167,10 +167,10 @@ const app = new Vue({
                 this.currentDirectory.push(nextFolder);
         },
         createDirectory: function () {
-            const name = prompt("New folder name");
+            const name = window.prompt("New folder name");
             if (name !== null) {
                 socket.emit("createDirectory", {name: name, directory: this.currentDirectory});
-                folder = app.directory;
+                const folder = this.directory;
                 Vue.set(folder, name, {});
             }
         },

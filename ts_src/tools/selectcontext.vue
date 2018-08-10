@@ -15,7 +15,7 @@ import gameManager from "../planarally";
 import { l2gx, l2gy } from "../units";
 import { socket } from "../socket";
 
-export default Vue.component('selectcontext', {
+export default Vue.component('select-context', {
     components: {
         contextmenu
     },
@@ -43,7 +43,8 @@ export default Vue.component('selectcontext', {
             this.close();
         },
         createToken() {
-            // Open Create Token Component
+            (<any>this.$root.$refs.createtokendialog).open(this.x, this.y);
+            this.close();
         },
         showInitiative() {
             gameManager.initiativeTracker.show();

@@ -29,7 +29,7 @@ import { l2gx, l2gy } from "../units";
 import { socket } from "../socket";
 import Shape from "./shape";
 
-export default Vue.component('shapecontext', {
+export default Vue.component('shape-menu', {
     components: {
         contextmenu
     },

@@ -124,7 +124,7 @@ svg {
     height: 100%;
 }
 
-#layers, canvas {
+#layers, #layers canvas {
     width: 100%;
     height: 100%;
     position: absolute;
@@ -609,16 +609,6 @@ input:checked + .slider:before {
     color: white;
     background-color: #82c8a0;
     cursor: pointer;
-}
-
-
-#createtokendialog {
-    padding: 10px;
-    display: grid;
-    grid-template-columns: [label] 60px [value] 60px [end];
-    grid-column-gap: 30px;
-    grid-row-gap: 10px;
-    align-items: center;
 }
 
 #renameNote {

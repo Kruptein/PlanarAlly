@@ -1,15 +1,19 @@
 <template>
-    <modal :visible="visible" @close="close">
+    <modal :visible="visible" @close="visible = false">
         <div class='modal-header'>
             Create basic token
         </div>
         <div class='modal-body'>
             <label for="createtokendialog-text">Text</label>
-            <input type="text" id="createtokendialog-name">
-            <label for="createtokendialog-fill">Fill</label>
-            <input type="text" id="createtokendialog-fill" title="Fill colour">
-            <label for="createtokendialog-border">Border</label>
-            <input type="text" id="createtokendialog-border" title="Border colour">
+            <input type="text" id="createtokendialog-name" v-model="text">
+            <label>Colours</label>
+            <div class='colours'>
+                <span>Fill:</span>
+                <color-picker :color.sync="fillColour" />
+                <span>Border:</span>
+                <color-picker :color.sync="borderColour" />
+            </div>
+            <canvas ref="canvas" width="100px" height="100px"></canvas>
         </div>
         <div class='modal-footer'>
             <button @click="submit">Submit</button>
@@ -19,33 +23,111 @@
 
 <script lang="ts">
 import Vue from "vue";
+import colorpicker from "../../vue/components/colorpicker.vue";
 import modal from "../../vue/components/modals/modal.vue";
+import { calcFontScale } from "../../core/utils";
+import CircularToken from "../shapes/circulartoken";
+import { l2g } from "../units";
+import { LocalPoint } from "../geom";
+import Settings from "../settings";
+import gameManager from "../planarally";
 
 export default Vue.component('createtoken-modal', {
     components: {
-        modal
+        modal,
+        'color-picker': colorpicker
     },
     data: function () {
         return {
+            x: 0,
+            y: 0,
             visible: false,
-            resolve: () => {},
-            reject: () => {}
+            text: 'X',
+            fillColour: {rgba: {r: 255, g: 255, b: 255, a: 1}},
+            borderColour: {rgba: {r: 0, g: 0, b: 0, a: 1}},
+        }
+    },
+    watch: {
+        text(newValue, oldValue) {
+            this.updatePreview();
+        },
+        fillColour(newValue, oldValue) {
+            this.updatePreview();
+        },
+        borderColour(newValue, oldValue) {
+            this.updatePreview();
+        }
+    },
+    mounted() {
+        this.updatePreview();
+    },
+    computed: {
+        fillRgb(): string {
+            return tinycolor(this.fillColour.rgba).toRgbString();
+        },
+        borderRgb(): string {
+            return tinycolor(this.borderColour.rgba).toRgbString();
         }
     },
     methods: {
-        submit: function () {
-            this.resolve();
-            this.close();
+        open(x: number, y: number) {
+            this.visible = true;
+            this.x = x;
+            this.y = y;
         },
-        close: function () {
-            this.reject();
+        submit() {
+            const layer = gameManager.layerManager.getLayer();
+            if (layer === undefined) return;
+            const token = new CircularToken(
+                l2g(new LocalPoint(this.x, this.y)),
+                Settings.gridSize / 2,
+                this.text,
+                "10px serif",
+                this.fillRgb,
+                this.borderRgb
+            )
+            layer.addShape(token, true);
+            layer.invalidate(false);
             this.visible = false;
         },
+        updatePreview() {
+            const ctx = (<HTMLCanvasElement>this.$refs.canvas).getContext("2d")!;
+            ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+            ctx.beginPath();
+            const dest = {x: ctx.canvas.width / 2, y: ctx.canvas.height / 2};
+            const r = Math.min(dest.x, dest.y) * 0.9;
+
+            ctx.fillStyle = this.fillRgb;
+
+            ctx.arc(dest.x, dest.y, r, 0, 2 * Math.PI);
+            ctx.fill();
+            if (this.borderRgb !== "rgba(0, 0, 0, 0)") {
+                ctx.beginPath();
+                ctx.lineWidth = 5;
+                ctx.strokeStyle = this.borderRgb;
+                ctx.arc(dest.x, dest.y, r, 0, 2 * Math.PI);
+                ctx.stroke();
+            }
+            ctx.save();
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            const xs = calcFontScale(ctx, this.text, r, r);
+            const ys = 0
+            ctx.transform(xs, ys, -ys, xs, dest.x, dest.y);
+            ctx.fillStyle = tinycolor.mostReadable(this.fillColour.rgba, ['#000', '#fff']).toHexString();
+            ctx.fillText(this.text, 0, 0);
+            ctx.restore();
+        }
     }
 })
 </script>
 
 <style scoped>
+canvas {
+    grid-column: label / end;
+    justify-self: center;
+}
+
 .modal-header {
     background-color: #FF7052;
     padding: 10px;
@@ -55,14 +137,22 @@ export default Vue.component('createtoken-modal', {
 
 .modal-body {
     padding: 10px;
-    padding-bottom: 0;
-    display: flex;
-    justify-content: space-between;
+    display: grid;
+    grid-template-columns: [label] 1fr [value] 1fr [end];
+    grid-column-gap: 30px;
+    grid-row-gap: 10px;
+    align-items: center;
 }
 
 .modal-footer {
     padding-top: 0;
     padding: 10px;
     text-align: right;
+}
+
+.colours {
+    display:flex;
+    align-items: center;
+    justify-content: space-between;
 }
 </style>

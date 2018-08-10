@@ -1,7 +1,8 @@
 import Vue from 'vue';
 import SelectTool from "./select.vue";
 import PanTool from "./pan.vue";
-import shapecontext from "../shapes/shapecontext.vue";
+import shape_menu from "../shapes/shapecontext.vue";
+import createtoken_modal from "./createtoken_modal.vue";
 
 import Settings from '../settings';
 import gameManager from '../planarally';
@@ -9,13 +10,14 @@ import { getMouse } from '../utils';
 import { l2g } from '../units';
 
 
-const app = new Vue({
+export const app = new Vue({
     el: '#main',
     delimiters: ['[[', ']]'],
     components: {
         'select-tool': SelectTool,
         'pan-tool': PanTool,
-        shapecontext
+        'shape-menu': shape_menu,
+        'createtoken-dialog': createtoken_modal
     },
     data: {
         toolsLoaded: false,

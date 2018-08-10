@@ -131,9 +131,10 @@
     <div id="zoomer"></div>
     {# <div id='contextMenu'></div> #}
     <template v-if="ready()">
-        <select-tool v-show="currentTool === 'select'"></select-tool>
+        <select-tool v-show="currentTool === 'select'" ref='selectTool'></select-tool>
         <pan-tool v-show="currentTool === 'pan'"></pan-tool>
-        <shapecontext ref="shapecontext"></shapecontext>
+        <shape-menu ref="shapecontext"></shape-menu>
+        <createtoken-dialog ref="createtokendialog"></createtokendialog>
     </template>
 </div>
 <div id="shapeselectiondialog" class="dialog" title="Edit asset">

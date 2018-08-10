@@ -133,6 +133,7 @@
     <template v-if="ready()">
         <select-tool v-show="currentTool === 'select'" ref='selectTool'></select-tool>
         <pan-tool v-show="currentTool === 'pan'"></pan-tool>
+        <ruler-tool v-show="currentTool === 'ruler'"></ruler-tool>
         <shape-menu ref="shapecontext"></shape-menu>
         <createtoken-dialog ref="createtokendialog"></createtokendialog>
     </template>

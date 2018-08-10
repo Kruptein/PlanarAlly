@@ -1,6 +1,7 @@
 import Vue from 'vue';
 import SelectTool from "./select.vue";
 import PanTool from "./pan.vue";
+import RulerTool from "./ruler.vue";
 import shape_menu from "../shapes/shapecontext.vue";
 import createtoken_modal from "./createtoken_modal.vue";
 
@@ -16,13 +17,14 @@ export const app = new Vue({
     components: {
         'select-tool': SelectTool,
         'pan-tool': PanTool,
+        'ruler-tool': RulerTool,
         'shape-menu': shape_menu,
         'createtoken-dialog': createtoken_modal
     },
     data: {
         toolsLoaded: false,
         currentTool: "select",
-        tools: ["select", "pan"]
+        tools: ["select", "pan", "ruler"]
     },
     methods: {
         ready() {

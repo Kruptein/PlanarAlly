@@ -6,14 +6,17 @@ import { GlobalPoint } from "../geom";
 export default class Line extends Shape {
     type = "line";
     endPoint: GlobalPoint;
-    constructor(startPoint: GlobalPoint, endPoint: GlobalPoint, uuid?: string) {
+    lineWidth: number;
+    constructor(startPoint: GlobalPoint, endPoint: GlobalPoint, lineWidth?: number, uuid?: string) {
         super(startPoint, uuid);
         this.endPoint = endPoint;
+        this.lineWidth = (lineWidth === undefined) ? 1 : lineWidth;
     }
     asDict() {
         return Object.assign(this.getBaseDict(), {
             x2: this.endPoint.x,
             y2: this.endPoint.y,
+            lineWidth: this.lineWidth,
         })
     }
     getBoundingBox(): BoundingRect {
@@ -32,7 +35,7 @@ export default class Line extends Shape {
         ctx.moveTo(g2lx(this.refPoint.x), g2ly(this.refPoint.y));
         ctx.lineTo(g2lx(this.endPoint.x), g2ly(this.endPoint.y));
         ctx.strokeStyle = 'rgba(255,0,0, 0.5)';
-        ctx.lineWidth = g2lr(3);
+        ctx.lineWidth = this.lineWidth;
         ctx.stroke();
     }
     contains(point: GlobalPoint): boolean {

@@ -107,6 +107,7 @@ export interface ServerCircularToken extends ServerCircle {
 export interface ServerLine extends ServerShape {
     x2: number;
     y2: number;
+    lineWidth: number;
 }
 export interface ServerMultiLine extends ServerShape {
     points: {x: number, y: number}[];

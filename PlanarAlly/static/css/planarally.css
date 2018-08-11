@@ -307,43 +307,6 @@ svg {
     z-index: 11;
 }
 
-#tooldetail {
-    position: absolute;
-    bottom: 80px;
-    right: 25px;
-    z-index: 11;
-    width: 150px;
-    border: solid 1px #2b2b2b;
-    background-color: white;
-    display: none;
-    padding: 10px;
-}
-
-#tooldetail:after {
-    content: '';
-    position: absolute;
-    bottom: 0;
-    left: 50%;
-    width: 0;
-    height: 0;
-    border: 14px solid transparent;
-    border-top-color: black;
-    border-bottom: 0;
-    margin-left: -14px;
-    margin-bottom: -14px;
-}
-
-#tooldetail > div {
-    display: grid;
-    grid-template-columns: 50% 50%;
-    grid-row-gap: 2px;
-}
-
-#tooldetail > div input {
-    width: 100%;
-    box-sizing: border-box;
-}
-
 .switch {
     position: relative;
     display: inline-block;

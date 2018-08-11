@@ -111,6 +111,7 @@
                 v-for="tool in tools"
                 :key="tool"
                 :class="{'tool-selected': currentTool === tool}"
+                :ref="tool + '-selector'"
                 @click="currentTool = tool"
             ><a href='#'>[[ tool ]]</a></li>
         </ul>
@@ -133,6 +134,7 @@
             <select-tool v-show="currentTool === 'select'" ref='selectTool'></select-tool>
             <pan-tool v-show="currentTool === 'pan'"></pan-tool>
             <ruler-tool v-show="currentTool === 'ruler'"></ruler-tool>
+            <map-tool v-show="currentTool === 'map'"></map-tool>
             <shape-menu ref="shapecontext"></shape-menu>
             <createtoken-dialog ref="createtokendialog"></createtokendialog>
         </template>

@@ -127,16 +127,16 @@
             <div id="selection-aura-darkvision-value" class="selection-aura-value">60</div>
         </div>
     </div>
-    <div id="tooldetail"></div>
     <div id="zoomer"></div>
-    {# <div id='contextMenu'></div> #}
-    <template v-if="ready()">
-        <select-tool v-show="currentTool === 'select'" ref='selectTool'></select-tool>
-        <pan-tool v-show="currentTool === 'pan'"></pan-tool>
-        <ruler-tool v-show="currentTool === 'ruler'"></ruler-tool>
-        <shape-menu ref="shapecontext"></shape-menu>
-        <createtoken-dialog ref="createtokendialog"></createtokendialog>
-    </template>
+    <div>
+        <template v-if="ready()">
+            <select-tool v-show="currentTool === 'select'" ref='selectTool'></select-tool>
+            <pan-tool v-show="currentTool === 'pan'"></pan-tool>
+            <ruler-tool v-show="currentTool === 'ruler'"></ruler-tool>
+            <shape-menu ref="shapecontext"></shape-menu>
+            <createtoken-dialog ref="createtokendialog"></createtokendialog>
+        </template>
+    </div>
 </div>
 <div id="shapeselectiondialog" class="dialog" title="Edit asset">
     <div>
@@ -157,8 +157,5 @@
     </div>
 </div>
 <div id="initiativedialog" class="dialog" title="Initiative"></div>
-{# <div id="createtokendialog" class="dialog" title="Create basic token">
-    
-</div> #}
 </body>
 </html>

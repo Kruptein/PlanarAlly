@@ -11,7 +11,7 @@ module.exports = {
         filename: '[name].js',
         path: path.resolve(__dirname, 'PlanarAlly', 'static', 'js')
     },
-    devtool: 'eval-source-map',
+    devtool: 'inline-source-map',
     resolve: {
         extensions: [".ts", ".js", ".vue"],
         alias: {

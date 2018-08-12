@@ -64,12 +64,14 @@ export default Vue.component('tool', {
     right: var(--detailRight);
     bottom: 80px;
     z-index: 11;
-    width: 150px;
+    /* width: 150px; */
     border: solid 1px #2b2b2b;
     background-color: white;
     display: grid;
     padding: 10px;
-    grid-template-columns: 50% 50%;
+    /* grid-template-columns: 50% 50%; */
+    grid-template-columns: auto auto;
+    grid-column-gap: 5px;
     grid-row-gap: 2px;
 }
 .tool-detail:after {

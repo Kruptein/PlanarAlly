@@ -1,6 +1,6 @@
 import Shape from "./shape";
 import BoundingRect from "./boundingrect";
-import { g2l, l2g } from "../units";
+import { g2l, l2g, g2lr } from "../units";
 import { GlobalPoint, LocalPoint, Vector } from "../geom";
 import { ServerCircle } from "../api_types";
 import Settings from "../settings";
@@ -50,7 +50,7 @@ export default class Circle extends Shape {
             ctx.beginPath();
             ctx.lineWidth = 5;
             ctx.strokeStyle = this.border;
-            ctx.arc(loc.x, loc.y, this.r * Settings.zoomFactor, 0, 2 * Math.PI);
+            ctx.arc(loc.x, loc.y, g2lr(this.r), 0, 2 * Math.PI);
             ctx.stroke();
         }
     }

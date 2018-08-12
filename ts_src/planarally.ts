@@ -24,7 +24,7 @@ window.onresize = function () {
 // window.addEventListener("mousemove", onPointerMove);
 // window.addEventListener("mouseup", onPointerUp);
 // window.addEventListener('contextmenu', onContextMenu);
-// window.addEventListener('wheel', throttle(scrollZoom));
+window.addEventListener('wheel', throttle(scrollZoom));
 
 window.addEventListener("keyup", onKeyUp);
 window.addEventListener("keydown", onKeyDown);

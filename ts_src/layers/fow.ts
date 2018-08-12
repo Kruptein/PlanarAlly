@@ -140,16 +140,22 @@ export class FOWLayer extends Layer {
                 aura.lastPath = path;
             }
 
-            for (let p=0; p < this.preFogShapes.length; p++) {
-                const pS = this.preFogShapes[p];
-                if (!pS.visibleInCanvas(this.canvas)) return;
-                pS.draw(ctx);
-            }
+            // for (let p=0; p < this.preFogShapes.length; p++) {
+            //     const pS = this.preFogShapes[p];
+            //     if (!pS.visibleInCanvas(this.canvas)) return;
+            //     pS.draw(ctx);
+            // }
 
             // At the DM Side due to opacity of the two fow layers, it looks strange if we just render them on top of eachother like players.
             if (Settings.fowLOS) {
                 ctx.globalCompositeOperation = 'source-in';
                 ctx.drawImage(gameManager.layerManager.getLayer("fow-players")!.canvas, 0, 0);
+            }
+
+            for (let p=0; p < this.preFogShapes.length; p++) {
+                const pS = this.preFogShapes[p];
+                if (!pS.visibleInCanvas(this.canvas)) return;
+                pS.draw(ctx);
             }
 
             ctx.globalCompositeOperation = 'source-out';

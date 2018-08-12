@@ -133,6 +133,7 @@
         <template v-if="ready()">
             <select-tool v-show="currentTool === 'select'" ref='selectTool'></select-tool>
             <pan-tool v-show="currentTool === 'pan'"></pan-tool>
+            <draw-tool v-show="currentTool === 'draw'"></draw-tool>
             <ruler-tool v-show="currentTool === 'ruler'"></ruler-tool>
             <map-tool v-show="currentTool === 'map'"></map-tool>
             <shape-menu ref="shapecontext"></shape-menu>

@@ -1,5 +1,5 @@
 <template>
-    <div class='ContextMenu' tabindex="-1" v-if="visible" v-bind:style="{left:left, top:top}" @blur="$emit('close')">
+    <div class='ContextMenu' tabindex="-1" v-if="visible" :style="{left:left, top:top}" @blur="$emit('close')">
         <ul>
             <slot></slot>
         </ul>

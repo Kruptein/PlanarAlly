@@ -15,12 +15,12 @@ export default Vue.component('tool', {
             const rect = (<any>this.$root.$refs[this.name + '-selector'])[0].getBoundingClientRect();
             const mid = rect.left + (rect.width / 2);
 
-            return `${screen.width - Math.min(screen.width - 25, mid + 75)}px`;
+            return `${window.innerWidth - Math.min(window.innerWidth - 25, mid + 75)}px`;
         },
         detailArrow(): string {
             const rect = (<any>this.$root.$refs[this.name + '-selector'])[0].getBoundingClientRect();
             const mid = rect.left + (rect.width / 2);
-            const right = Math.min(screen.width - 25, mid + 75);
+            const right = Math.min(window.innerWidth - 25, mid + 75);
             return `${right - mid - 14}px`; // border width
         }
     },

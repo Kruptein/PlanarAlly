@@ -4,7 +4,7 @@
         <chrome-picker
             :value="color"
             @input="value => $emit('update:color', value)"
-            :style="'position: absolute'"
+            :style="{position: 'absolute', left:left + 'px', top:top + 'px'}"
             tabindex="-1"
             v-show="display"
             @blur.native="display = false"
@@ -12,6 +12,8 @@
     </div>
 </template>
 
+// -224px
+// //; top: -242px}"
 
 <script lang="ts">
 import Vue from 'vue'
@@ -24,13 +26,28 @@ export default Vue.component('colorpicker', {
     props: ['color'],
 	data() {
 		return {
-			display: false,
+            display: false,
+            left: 0,
+            top: 0,
 		}
+    },
+    mounted() {
+        const rect = this.$el.getBoundingClientRect();
+        // 15 is the width of the input color field
+        // 224 is the width of the picker, 242 the height
+        if (rect.right + 224 > window.innerWidth)
+            this.left = -224;
+        else
+            this.left = 15;
+        if (rect.bottom + 242 - 15 > window.innerHeight)
+            this.top = -242 + 15;
+        else
+            this.top = 15;
     },
     computed: {
         colorValue(): string {
             return tinycolor(this.color.rgba).toRgbString();
-        }
+        },
     },
     methods: {
         open() {
@@ -54,5 +71,6 @@ export default Vue.component('colorpicker', {
 	width: 13px;
 	height: 13px;
 	background-color: #000;
+    border: solid 1px black;
 }
 </style>

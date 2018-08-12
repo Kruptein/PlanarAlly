@@ -50,11 +50,11 @@ export default Tool.extend({
     },
     methods: {
         onMouseDown(event: MouseEvent) {
-            if (gameManager.layerManager.getLayer() === undefined) {
+            const layer = gameManager.layerManager.getLayer();
+            if (layer === undefined) {
                 console.log("No active layer!");
                 return;
             }
-            const layer = gameManager.layerManager.getLayer()!;
             const mouse = getMouse(event);
             const globalMouse = l2g(mouse);
 
@@ -118,11 +118,11 @@ export default Tool.extend({
             }
         },
         onMouseMove(event: MouseEvent) {
-            if (gameManager.layerManager.getLayer() === undefined) {
+            const layer = gameManager.layerManager.getLayer();
+            if (layer === undefined) {
                 console.log("No active layer!");
                 return;
             }
-            const layer = gameManager.layerManager.getLayer()!;
             const mouse = getMouse(event);
             const globalMouse = l2g(mouse);
             this.deltaChanged = false;

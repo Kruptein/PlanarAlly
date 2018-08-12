@@ -1,6 +1,7 @@
 import Vue from 'vue';
 import SelectTool from "./select.vue";
 import PanTool from "./pan.vue";
+import DrawTool from "./draw.vue";
 import RulerTool from "./ruler.vue";
 import MapTool from "./map.vue";
 import shape_menu from "../shapes/shapecontext.vue";
@@ -18,6 +19,7 @@ export const app = new Vue({
     components: {
         'select-tool': SelectTool,
         'pan-tool': PanTool,
+        'draw-tool': DrawTool,
         'ruler-tool': RulerTool,
         'map-tool': MapTool,
         'shape-menu': shape_menu,
@@ -26,7 +28,7 @@ export const app = new Vue({
     data: {
         toolsLoaded: false,
         currentTool: "select",
-        tools: ["select", "pan", "ruler", "map"]
+        tools: ["select", "pan", "draw", "ruler", "map"]
     },
     watch: {
         currentTool(newValue, oldValue) {

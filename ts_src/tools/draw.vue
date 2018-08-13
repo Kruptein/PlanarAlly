@@ -72,7 +72,7 @@ export default Tool.extend({
             modeSelect: "normal",
             modes: ['normal', 'reveal', 'hide'],
 
-            brushSize: 50,
+            brushSize: 10,
         }
     },
     computed: {
@@ -85,7 +85,7 @@ export default Tool.extend({
         helperSize(): number {
             if (this.shapeSelect === 'paint-brush')
                 return this.brushSize / 2;
-            return 25;
+            return 2;
         },
         IS_DM: () => Settings.IS_DM,
     },
@@ -95,6 +95,11 @@ export default Tool.extend({
                 this.brushHelper.fill = this.fillRgb;
         },
         modeSelect(newValue, oldValue) {
+            this.onModeChange(newValue, oldValue);
+        }
+    },
+    methods: {
+        onModeChange(newValue: string, oldValue: string) {
             if (this.brushHelper === null) return;
 
             const fowLayer = gameManager.layerManager.getLayer("fow");
@@ -120,9 +125,7 @@ export default Tool.extend({
                 normalLayer.addShape(this.brushHelper, false);
                 fowLayer.removeShape(this.brushHelper, false);
             }
-        }
-    },
-    methods: {
+        },
         getLayer() {
             if (this.modeSelect === 'normal')
                 return gameManager.layerManager.getLayer();
@@ -139,7 +142,7 @@ export default Tool.extend({
             if (this.shapeSelect === 'square')
                 this.shape = new Rect(this.startPoint.clone(), 0, 0, this.fillRgb, this.borderRgb);
             else if (this.shapeSelect === 'circle')
-                this.shape = new Circle(this.startPoint.clone(), 0, this.fillRgb, this.borderRgb);
+                this.shape = new Circle(this.startPoint.clone(), this.helperSize, this.fillRgb, this.borderRgb);
             else if (this.shapeSelect === 'paint-brush') {
                 this.shape = new MultiLine(this.startPoint.clone(), [], this.brushSize);
                 this.shape.fill = this.fillRgb;
@@ -154,9 +157,7 @@ export default Tool.extend({
                 this.shape.globalCompositeOperation = 'source-over';
             else if (this.modeSelect === 'hide')
                 this.shape.globalCompositeOperation = 'destination-out';
-
-            // this.shape.options.set("preFogShape", true)
-
+            
             this.shape.owners.push(Settings.username);
             if (layer.name === 'fow' && this.modeSelect === 'normal') {
                 this.shape.visionObstruction = true;
@@ -164,6 +165,10 @@ export default Tool.extend({
             }
             gameManager.lightblockers.push(this.shape.uuid);
             layer.addShape(this.shape, true, false);
+            
+            // Push brushhelper to back
+            this.onDeselect();
+            this.onSelect();
         },
         onMouseMove(event: MouseEvent) {
             const endPoint = l2g(getMouse(event));
@@ -206,7 +211,10 @@ export default Tool.extend({
             const layer = this.getLayer();
             if (layer === undefined) return;
             this.brushHelper = new Circle(new GlobalPoint(-1000, -1000), this.brushSize / 2, this.fillRgb);
-            layer.addShape(this.brushHelper, false);
+            if (this.modeSelect !== "normal")
+                this.onModeChange(this.modeSelect, "normal")
+            else
+                layer.addShape(this.brushHelper, false);  // during mode change the shape is already added
         },
         onDeselect() {
             const layer = this.getLayer();

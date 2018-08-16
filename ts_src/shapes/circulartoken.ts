@@ -1,7 +1,7 @@
 import Circle from "./circle";
 import { GlobalPoint } from "../geom";
 import { ServerCircularToken, InitiativeData } from "../api_types";
-import { g2l } from "../units";
+import { g2l, g2lz } from "../units";
 import Settings from "../settings";
 import { calcFontScale } from "../../core/utils";
 
@@ -15,10 +15,6 @@ export default class CircularToken extends Circle {
         this.font = font;
     }
     asDict(): ServerCircularToken {
-        // const base = <ServerCircle>this.getBaseDict();
-        // base.r = this.r;
-        // base.border = this.border;
-        // return base;
         return Object.assign(this.getBaseDict(), {
             r: this.r,
             text: this.text,
@@ -41,7 +37,7 @@ export default class CircularToken extends Circle {
         const dest = g2l(this.center());
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
-        const xs = calcFontScale(ctx, this.text, this.r * Settings.zoomFactor, this.r * Settings.zoomFactor);
+        const xs = calcFontScale(ctx, this.text, g2lz(this.r), g2lz(this.r));
         const ys = 0
         ctx.transform(xs, ys, -ys, xs, dest.x, dest.y);
         ctx.fillStyle = tinycolor.mostReadable(this.fill, ['#000', '#fff']).toHexString();

@@ -1,10 +1,9 @@
 import gameManager from "../planarally";
+import { vm } from "../planarally";
 import { Vector } from "../geom";
 import Settings from "../settings";
 import { sendClientOptions, socket } from "../socket";
 import { calculateDelta } from "../tools/utils";
-
-import { app } from "../tools/tools";
 
 function targetIsInput(e: Event) {
     if (e.target && (<HTMLElement>e.target).tagName)
@@ -21,7 +20,7 @@ export function onKeyUp (event: KeyboardEvent) {
         const l = gameManager.layerManager.getLayer()!;
         for(let i=l.selection.length - 1; i >= 0; i--) {
             const sel = l.selection[i];
-            if ((<any>app.$refs.selectTool).selectionHelper.uuid === sel.uuid) {
+            if ((<any>(<any>vm.$refs.tools).$refs.selectTool).selectionHelper.uuid === sel.uuid) {
                 l.selection.splice(i, 1);
                 continue;
             }

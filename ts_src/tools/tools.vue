@@ -1,4 +1,34 @@
+<template>
+    <div>
+        <div id='toolselect' v-if="loaded">
+            <ul>
+                <li
+                    v-for="tool in tools"
+                    :key="tool"
+                    :class="{'tool-selected': currentTool === tool}"
+                    :ref="tool + '-selector'"
+                    @click="currentTool = tool"
+                ><a href='#'>{{ tool }}</a></li>
+            </ul>
+        </div>
+        <div>
+            <template v-if="ready()">
+                <select-tool v-show="currentTool === 'select'" ref='selectTool'></select-tool>
+                <pan-tool v-show="currentTool === 'pan'"></pan-tool>
+                <draw-tool v-show="currentTool === 'draw'"></draw-tool>
+                <ruler-tool v-show="currentTool === 'ruler'"></ruler-tool>
+                <map-tool v-show="currentTool === 'map'"></map-tool>
+                <shape-menu ref="shapecontext"></shape-menu>
+                <createtoken-dialog ref="createtokendialog"></createtoken-dialog>
+            </template>
+        </div>
+    </div>
+</template>
+
+
+<script lang="ts">
 import Vue from 'vue';
+
 import SelectTool from "./select.vue";
 import PanTool from "./pan.vue";
 import DrawTool from "./draw.vue";
@@ -12,10 +42,7 @@ import gameManager from '../planarally';
 import { getMouse } from '../utils';
 import { l2g } from '../units';
 
-
-export const app = new Vue({
-    el: '#main',
-    delimiters: ['[[', ']]'],
+export default Vue.component("tools", {
     components: {
         'select-tool': SelectTool,
         'pan-tool': PanTool,
@@ -25,19 +52,24 @@ export const app = new Vue({
         'shape-menu': shape_menu,
         'createtoken-dialog': createtoken_modal
     },
-    data: {
-        toolsLoaded: false,
+    data: () => ({
+        loaded: false,
         currentTool: "select",
         tools: ["select", "pan", "draw", "ruler", "map"]
-    },
+    }),
     watch: {
         currentTool(newValue, oldValue) {
             this.$emit("tools-select-change", newValue, oldValue);
         }
     },
+    computed: {
+        currentToolComponent(): string {
+            return `${this.currentTool.toLowerCase()}-tool`;
+        }
+    },
     methods: {
         ready() {
-            return Settings !== undefined;
+            return Settings !== undefined && Settings.board_initialised;
         },
         mousedown(event: MouseEvent) {
             if (!Settings.board_initialised) return;
@@ -100,14 +132,58 @@ export const app = new Vue({
             if (event.button !== 2 || (<HTMLElement>event.target).tagName !== 'CANVAS') return;
             this.$emit("contextmenu", event, this.currentTool);
         }
-    },
-    computed: {
-        currentTabComponent(): string {
-            return `${this.currentTool.toLowerCase()}-tool`;
-        }
     }
-});
+})
+</script>
 
-export function setupTools(): void {
-    app.toolsLoaded = true;
+
+<style scoped>
+#toolselect {
+    position: absolute;
+    bottom: 25px;
+    right: 25px;
+    z-index: 10;
 }
+
+#toolselect > ul {
+    display: flex;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    border: solid 1px #82c8a0;
+    border-radius: 7px;
+}
+
+#toolselect > ul > li {
+    display: flex;
+    background-color: #eee;
+    border-right: solid 1px #82c8a0;
+}
+
+#toolselect > ul > li:last-child {
+    border-right: none;
+    border-radius: 0px 4px 4px 0px; /* Border radius needs to be two less than the actual border, otherwise there will be a gap */
+}
+
+#toolselect > ul > li:first-child {
+    border-radius: 4px 0px 0px 4px;
+}
+
+#toolselect > ul > li:hover {
+    background-color: #82c8a0;
+}
+
+#toolselect > ul > li a {
+    -webkit-user-select: none; /* Chrome all / Safari all */
+    -moz-user-select: none; /* Firefox all */
+    -ms-user-select: none; /* IE 10+ */
+    user-select: none;
+    display: flex;
+    padding: 10px;
+    text-decoration: none;
+}
+
+#toolselect .tool-selected {
+    background-color: #82c8a0;
+}
+</style>

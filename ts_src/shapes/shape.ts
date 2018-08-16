@@ -1,6 +1,7 @@
 import { uuidv4, capitalize } from "../../core/utils";
 import BoundingRect from "./boundingrect";
 import gameManager from "../planarally";
+import { vm } from "../planarally";
 import socket from "../socket";
 import { g2l, g2lr, g2ly, g2lx, g2lz } from "../units";
 import { populateEditAssetDialog } from "./editdialog";
@@ -127,104 +128,106 @@ export default abstract class Shape {
     }
 
     onSelection() {
-        if (!this.trackers.length || this.trackers[this.trackers.length - 1].name !== '' || this.trackers[this.trackers.length - 1].value !== 0)
-            this.trackers.push({ uuid: uuidv4(), name: '', value: 0, maxvalue: 0, visible: false });
-        if (!this.auras.length || this.auras[this.auras.length - 1].name !== '' || this.auras[this.auras.length - 1].value !== 0)
-            this.auras.push({
-                uuid: uuidv4(),
-                name: '',
-                value: 0,
-                dim: 0,
-                lightSource: false,
-                colour: 'rgba(0,0,0,0)',
-                visible: false
-            });
-        $("#selection-name").text(this.name);
-        const trackers = $("#selection-trackers");
-        trackers.empty();
-        this.trackers.forEach(function (tracker) {
-            if (tracker.value === 0) return;
-            const val = tracker.maxvalue ? `${tracker.value}/${tracker.maxvalue}` : tracker.value;
-            trackers.append($(`<div id="selection-tracker-${tracker.uuid}-name" data-uuid="${tracker.uuid}">${tracker.name}</div>`));
-            trackers.append(
-                $(`<div id="selection-tracker-${tracker.uuid}-value" data-uuid="${tracker.uuid}" class="selection-tracker-value">${val}</div>`)
-            );
-        });
-        const auras = $("#selection-auras");
-        auras.empty();
-        this.auras.forEach(function (aura) {
-            if (aura.value === 0) return;
-            const val = aura.dim ? `${aura.value}/${aura.dim}` : aura.value;
-            auras.append($(`<div id="selection-aura-${aura.uuid}-name" data-uuid="${aura.uuid}">${aura.name}</div>`));
-            auras.append(
-                $(`<div id="selection-aura-${aura.uuid}-value" data-uuid="${aura.uuid}" class="selection-aura-value">${val}</div>`)
-            );
-        });
-        $("#selection-menu").show();
+        (<any>vm.$refs.selectionInfo).shape = this;
+        // if (!this.trackers.length || this.trackers[this.trackers.length - 1].name !== '' || this.trackers[this.trackers.length - 1].value !== 0)
+        //     this.trackers.push({ uuid: uuidv4(), name: '', value: 0, maxvalue: 0, visible: false });
+        // if (!this.auras.length || this.auras[this.auras.length - 1].name !== '' || this.auras[this.auras.length - 1].value !== 0)
+        //     this.auras.push({
+        //         uuid: uuidv4(),
+        //         name: '',
+        //         value: 0,
+        //         dim: 0,
+        //         lightSource: false,
+        //         colour: 'rgba(0,0,0,0)',
+        //         visible: false
+        //     });
+        // $("#selection-name").text(this.name);
+        // const trackers = $("#selection-trackers");
+        // trackers.empty();
+        // this.trackers.forEach(function (tracker) {
+        //     if (tracker.value === 0) return;
+        //     const val = tracker.maxvalue ? `${tracker.value}/${tracker.maxvalue}` : tracker.value;
+        //     trackers.append($(`<div id="selection-tracker-${tracker.uuid}-name" data-uuid="${tracker.uuid}">${tracker.name}</div>`));
+        //     trackers.append(
+        //         $(`<div id="selection-tracker-${tracker.uuid}-value" data-uuid="${tracker.uuid}" class="selection-tracker-value">${val}</div>`)
+        //     );
+        // });
+        // const auras = $("#selection-auras");
+        // auras.empty();
+        // this.auras.forEach(function (aura) {
+        //     if (aura.value === 0) return;
+        //     const val = aura.dim ? `${aura.value}/${aura.dim}` : aura.value;
+        //     auras.append($(`<div id="selection-aura-${aura.uuid}-name" data-uuid="${aura.uuid}">${aura.name}</div>`));
+        //     auras.append(
+        //         $(`<div id="selection-aura-${aura.uuid}-value" data-uuid="${aura.uuid}" class="selection-aura-value">${val}</div>`)
+        //     );
+        // });
+        // $("#selection-menu").show();
 
-        $('.selection-tracker-value').on("click", function () {
-            const uuid = $(this).data('uuid');
-            const tracker = self.trackers.find(t => t.uuid === uuid);
-            if (tracker === undefined) {
-                console.log("Attempted to update unknown tracker");
-                return;
-            }
-            const new_tracker = prompt(`New  ${tracker.name} value: (absolute or relative)`);
-            if (new_tracker === null)
-                return;
-            if (tracker.value === 0)
-                tracker.value = 0;
-            if (new_tracker[0] === '+') {
-                tracker.value += parseInt(new_tracker.slice(1));
-            } else if (new_tracker[0] === '-') {
-                tracker.value -= parseInt(new_tracker.slice(1));
-            } else {
-                tracker.value = parseInt(new_tracker);
-            }
-            const val = tracker.maxvalue ? `${tracker.value}/${tracker.maxvalue}` : tracker.value;
-            $(this).text(val);
-            socket.emit("updateShape", { shape: self.asDict(), redraw: false });
-        });
-        $('.selection-aura-value').on("click", function () {
-            const uuid = $(this).data('uuid');
-            const aura = self.auras.find(t => t.uuid === uuid);
-            if (aura === undefined) {
-                console.log("Attempted to update unknown aura");
-                return;
-            }
-            const new_aura = prompt(`New  ${aura.name} value: (absolute or relative)`);
-            if (new_aura === null)
-                return;
-            if (aura.value === 0)
-                aura.value = 0;
-            if (new_aura[0] === '+') {
-                aura.value += parseInt(new_aura.slice(1));
-            } else if (new_aura[0] === '-') {
-                aura.value -= parseInt(new_aura.slice(1));
-            } else {
-                aura.value = parseInt(new_aura);
-            }
-            const val = aura.dim ? `${aura.value}/${aura.dim}` : aura.value;
-            $(this).text(val);
-            socket.emit("updateShape", { shape: self.asDict(), redraw: true });
-            if (gameManager.layerManager.hasLayer(self.layer))
-                gameManager.layerManager.getLayer(self.layer)!.invalidate(false);
-        });
+        // $('.selection-tracker-value').on("click", function () {
+        //     const uuid = $(this).data('uuid');
+        //     const tracker = self.trackers.find(t => t.uuid === uuid);
+        //     if (tracker === undefined) {
+        //         console.log("Attempted to update unknown tracker");
+        //         return;
+        //     }
+        //     const new_tracker = prompt(`New  ${tracker.name} value: (absolute or relative)`);
+        //     if (new_tracker === null)
+        //         return;
+        //     if (tracker.value === 0)
+        //         tracker.value = 0;
+        //     if (new_tracker[0] === '+') {
+        //         tracker.value += parseInt(new_tracker.slice(1));
+        //     } else if (new_tracker[0] === '-') {
+        //         tracker.value -= parseInt(new_tracker.slice(1));
+        //     } else {
+        //         tracker.value = parseInt(new_tracker);
+        //     }
+        //     const val = tracker.maxvalue ? `${tracker.value}/${tracker.maxvalue}` : tracker.value;
+        //     $(this).text(val);
+        //     socket.emit("updateShape", { shape: self.asDict(), redraw: false });
+        // });
+        // $('.selection-aura-value').on("click", function () {
+        //     const uuid = $(this).data('uuid');
+        //     const aura = self.auras.find(t => t.uuid === uuid);
+        //     if (aura === undefined) {
+        //         console.log("Attempted to update unknown aura");
+        //         return;
+        //     }
+        //     const new_aura = prompt(`New  ${aura.name} value: (absolute or relative)`);
+        //     if (new_aura === null)
+        //         return;
+        //     if (aura.value === 0)
+        //         aura.value = 0;
+        //     if (new_aura[0] === '+') {
+        //         aura.value += parseInt(new_aura.slice(1));
+        //     } else if (new_aura[0] === '-') {
+        //         aura.value -= parseInt(new_aura.slice(1));
+        //     } else {
+        //         aura.value = parseInt(new_aura);
+        //     }
+        //     const val = aura.dim ? `${aura.value}/${aura.dim}` : aura.value;
+        //     $(this).text(val);
+        //     socket.emit("updateShape", { shape: self.asDict(), redraw: true });
+        //     if (gameManager.layerManager.hasLayer(self.layer))
+        //         gameManager.layerManager.getLayer(self.layer)!.invalidate(false);
+        // });
 
-        const self = this;
-        const editbutton = $("#selection-edit-button");
-        if (!this.ownedBy())
-            editbutton.hide();
-        else
-            editbutton.show();
-        // We want to remove all earlier bindings!
-        editbutton.off("click");
-        editbutton.on("click", function() {populateEditAssetDialog(self)});
+        // const self = this;
+        // const editbutton = $("#selection-edit-button");
+        // if (!this.ownedBy())
+        //     editbutton.hide();
+        // else
+        //     editbutton.show();
+        // // We want to remove all earlier bindings!
+        // editbutton.off("click");
+        // editbutton.on("click", function() {populateEditAssetDialog(self)});
     }
 
     onSelectionLoss() {
         // $(`#shapeselectioncog-${this.uuid}`).remove();
-        $("#selection-menu").hide();
+        // $("#selection-menu").hide();
+        (<any>vm.$refs.selectionInfo).shape = null;
     }
 
     // Do not provide getBaseDict as the default implementation to force the implementation

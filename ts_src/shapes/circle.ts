@@ -1,6 +1,6 @@
 import Shape from "./shape";
 import BoundingRect from "./boundingrect";
-import { g2l, l2g, g2lr } from "../units";
+import { g2l, l2g, g2lr, g2lz } from "../units";
 import { GlobalPoint, LocalPoint, Vector } from "../geom";
 import { ServerCircle } from "../api_types";
 import Settings from "../settings";
@@ -44,13 +44,13 @@ export default class Circle extends Shape {
         else
             ctx.fillStyle = this.fill;
         const loc = g2l(this.refPoint);
-        ctx.arc(loc.x, loc.y, g2lr(this.r), 0, 2 * Math.PI);
+        ctx.arc(loc.x, loc.y, g2lz(this.r), 0, 2 * Math.PI);
         ctx.fill();
         if (this.border !== "rgba(0, 0, 0, 0)") {
             ctx.beginPath();
-            ctx.lineWidth = 5;
+            ctx.lineWidth = g2lz(5);
             ctx.strokeStyle = this.border;
-            ctx.arc(loc.x, loc.y, g2lr(this.r), 0, 2 * Math.PI);
+            ctx.arc(loc.x, loc.y, g2lz(this.r), 0, 2 * Math.PI);
             ctx.stroke();
         }
     }

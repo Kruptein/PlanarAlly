@@ -55,26 +55,24 @@ export default Tool.extend({
     components: {
         'color-picker': colorpicker
     },
-    data() {
-        return {
-            name: "draw",
-            active: false,
-            
-            startPoint: <GlobalPoint|null> null,
-            shape: <Shape|null> null,
-            brushHelper: <Circle|null> null,
+    data: () => ({
+        name: "draw",
+        active: false,
+        
+        startPoint: <GlobalPoint|null> null,
+        shape: <Shape|null> null,
+        brushHelper: <Circle|null> null,
 
-            fillColour: {rgba: {r: 0, g: 0, b: 0, a: 1}},
-            borderColour: {rgba: {r: 255, g: 255, b: 255, a: 1}},
-            
-            shapeSelect: "square",
-            shapes: ['square', 'circle', 'paint-brush'],
-            modeSelect: "normal",
-            modes: ['normal', 'reveal', 'hide'],
+        fillColour: {rgba: {r: 0, g: 0, b: 0, a: 1}},
+        borderColour: {rgba: {r: 255, g: 255, b: 255, a: 1}},
+        
+        shapeSelect: "square",
+        shapes: ['square', 'circle', 'paint-brush'],
+        modeSelect: "normal",
+        modes: ['normal', 'reveal', 'hide'],
 
-            brushSize: 10,
-        }
-    },
+        brushSize: getUnitDistance(Settings.unitSize),
+    }),
     computed: {
         fillRgb(): string {
             return tinycolor(this.fillColour.rgba).toRgbString();
@@ -85,7 +83,7 @@ export default Tool.extend({
         helperSize(): number {
             if (this.shapeSelect === 'paint-brush')
                 return this.brushSize / 2;
-            return 2;
+            return getUnitDistance(Settings.unitSize) / 4;
         },
         IS_DM: () => Settings.IS_DM,
     },

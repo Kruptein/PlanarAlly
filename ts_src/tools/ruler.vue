@@ -14,15 +14,13 @@ import Settings from "../settings";
 import { socket } from "../socket";
 
 export default Tool.extend({
-    data() {
-        return {
-            name: "ruler",
-            active: false,
-            startPoint: <GlobalPoint|null> null,
-            ruler: <Line|null> null,
-            text: <Text|null> null,
-        }
-    },
+    data: () => ({
+        name: "ruler",
+        active: false,
+        startPoint: <GlobalPoint|null> null,
+        ruler: <Line|null> null,
+        text: <Text|null> null,
+    }),
     methods: {
         onMouseDown(event: MouseEvent) {
             const layer = gameManager.layerManager.getLayer("draw");

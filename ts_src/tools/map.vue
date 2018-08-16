@@ -20,16 +20,14 @@ import BaseRect from "../shapes/baserect";
 
 
 export default Tool.extend({
-    data() {
-        return {
-            name: "map",
-            active: false,
-            xCount: 3,
-            yCount: 3,
-            startPoint: <GlobalPoint|null> null,
-            rect: <Rect|null> null,
-        }
-    },
+    data: () => ({
+        name: "map",
+        active: false,
+        xCount: 3,
+        yCount: 3,
+        startPoint: <GlobalPoint|null> null,
+        rect: <Rect|null> null,
+    }),
     methods: {
         onMouseDown(event: MouseEvent) {
             const layer = gameManager.layerManager.getLayer();

@@ -268,7 +268,7 @@ export default Tool.extend({
                     layer.selection = [shape];
                     shape.onSelection();
                     layer.invalidate(true);
-                    (<any>this.$root.$refs.shapecontext).open(event, shape);
+                    (<any>this.$parent.$refs.shapecontext).open(event, shape);
                     return;
                 }
             }

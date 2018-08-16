@@ -18,14 +18,12 @@ export default {
     components: {
         modal
     },
-    data: function () {
-        return {
-            visible: false,
-            question: '',
-            answer: '',
-            title: '',
-        }
-    },
+    data: () => ({
+        visible: false,
+        question: '',
+        answer: '',
+        title: '',
+    }),
     methods: {
         submit: function () {
             this.resolve(this.answer);

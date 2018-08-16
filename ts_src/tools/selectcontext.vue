@@ -43,7 +43,7 @@ export default Vue.component('select-context', {
             this.close();
         },
         createToken() {
-            (<any>this.$root.$refs.createtokendialog).open(this.x, this.y);
+            (<any>this.$parent.$parent.$refs.createtokendialog).open(this.x, this.y);
             this.close();
         },
         showInitiative() {

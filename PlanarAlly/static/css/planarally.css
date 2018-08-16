@@ -69,55 +69,6 @@ svg {
     background-color: #82c8a0;
 }
 
-#selection-menu {
-    position: absolute;
-    display: flex;
-    flex-direction: column;
-    top: 150px;
-    right: 0;
-    z-index: 10;
-    opacity: 0.5;
-    border-top-left-radius: 5px;
-    border-bottom-left-radius: 5px;
-    border: #82c8a0 solid 1px;
-    border-right: none;
-    padding: 10px 35px 10px 10px;
-    background-color: #eee;
-}
-
-#selection-menu:hover {
-    background-color: #82c8a0;
-    opacity: 1;
-}
-
-#selection-edit-button {
-    position: absolute;
-    right: 10px;
-    top: 10px;
-    cursor: pointer;
-}
-
-#selection-trackers, #selection-auras {
-    display: grid;
-    grid-template-columns: [name] 1fr [value] 1fr;
-}
-
-.selection-tracker-value, .selection-aura-value {
-    justify-self: center;
-    padding: 2px;
-}
-
-.selection-tracker-value:hover, .selection-aura-value:hover {
-    cursor: pointer;
-    background-color: rgba(20, 20, 20, 0.2);
-}
-
-#selection-name {
-    font-size: 20px;
-    font-weight: bold;
-    margin-bottom: 10px;
-}
-
 #board {
     position: relative;
     width: 100%;
@@ -179,55 +130,6 @@ svg {
 }
 
 #layerselect .layer-selected {
-    background-color: #82c8a0;
-}
-
-#toolselect {
-    position: absolute;
-    bottom: 25px;
-    right: 25px;
-    z-index: 10;
-}
-
-#toolselect > ul {
-    display: flex;
-    list-style: none;
-    padding: 0;
-    margin: 0;
-    border: solid 1px #82c8a0;
-    border-radius: 7px;
-}
-
-#toolselect > ul > li {
-    display: flex;
-    background-color: #eee;
-    border-right: solid 1px #82c8a0;
-}
-
-#toolselect > ul > li:last-child {
-    border-right: none;
-    border-radius: 0px 4px 4px 0px; /* Border radius needs to be two less than the actual border, otherwise there will be a gap */
-}
-
-#toolselect > ul > li:first-child {
-    border-radius: 4px 0px 0px 4px;
-}
-
-#toolselect > ul > li:hover {
-    background-color: #82c8a0;
-}
-
-#toolselect > ul > li a {
-    -webkit-user-select: none; /* Chrome all / Safari all */
-    -moz-user-select: none; /* Firefox all */
-    -ms-user-select: none; /* IE 10+ */
-    user-select: none;
-    display: flex;
-    padding: 10px;
-    text-decoration: none;
-}
-
-#toolselect .tool-selected {
     background-color: #82c8a0;
 }
 

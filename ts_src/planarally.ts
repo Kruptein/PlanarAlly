@@ -1,12 +1,17 @@
+import Vue from "vue";
+import { throttle } from 'lodash';
+
+import Tools from "./tools/tools.vue";
+import SelectionInfo from "./shapes/selection_info.vue";
+
 import { l2g, g2lx, g2ly, g2lz } from "./units";
 import { LocalPoint, Vector } from './geom';
-import { throttle } from 'lodash';
 import { GameManager } from './manager';
 import { onKeyDown, onKeyUp } from './events/keyboard';
-import { onContextMenu, onPointerUp, onPointerMove, onPointerDown, scrollZoom } from './events/mouse';
+import { scrollZoom } from './events/mouse';
 import Settings from './settings';
 
-let gameManager = new GameManager();
+const gameManager = new GameManager();
 (<any>window).gameManager = gameManager;
 (<any>window).Settings = Settings;
 (<any>window).g2lx = g2lx;
@@ -20,10 +25,6 @@ window.onresize = function () {
     gameManager.layerManager.invalidate();
 };
 
-// window.addEventListener("mousedown", onPointerDown);
-// window.addEventListener("mousemove", onPointerMove);
-// window.addEventListener("mouseup", onPointerUp);
-// window.addEventListener('contextmenu', onContextMenu);
 window.addEventListener('wheel', throttle(scrollZoom));
 
 window.addEventListener("keyup", onKeyUp);
@@ -33,6 +34,21 @@ window.addEventListener("keydown", onKeyDown);
 window.addEventListener('selectstart', function (e) {
     e.preventDefault();
     return false;
+});
+
+export const vm = new Vue({
+    el: '#main',
+    delimiters: ['[[', ']]'],
+    components: {
+        'tool-bar': Tools,
+        'selection-info': SelectionInfo,
+    },
+    methods: {
+        mousedown(event: MouseEvent) { (<any>this.$refs.tools).mousedown(event); },
+        mouseup(event: MouseEvent) { (<any>this.$refs.tools).mouseup(event); },
+        mousemove(event: MouseEvent) { (<any>this.$refs.tools).mousemove(event); },
+        contextmenu(event: MouseEvent) { (<any>this.$refs.tools).contextmenu(event); },
+    }
 });
 
 // **** SETUP UI ****
@@ -51,7 +67,6 @@ $("#zoomer").slider({
 const settings_menu = $("#menu")!;
 const locations_menu = $("#locations-menu")!;
 const layer_menu = $("#layerselect")!;
-$("#selection-menu").hide();
 
 $('#rm-settings').on("click", function () {
     // order of animation is important, it otherwise will sometimes show a small gap between the two objects

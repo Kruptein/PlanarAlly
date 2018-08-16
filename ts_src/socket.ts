@@ -1,6 +1,6 @@
 import gameManager from "./planarally";
+import { vm } from "./planarally";
 import { alphSort } from "../core/utils";
-import { setupTools } from "./tools/tools";
 import { ClientOptions, LocationOptions, Notes, AssetList, ServerShape, InitiativeData, BoardInfo, InitiativeEffect, AssetFileList } from "./api_types";
 import { GlobalPoint } from "./geom";
 import Settings from "./settings";
@@ -23,7 +23,7 @@ socket.on("set room info", function (data: {name: string, creator: string}) {
 socket.on("set username", function (username: string) {
     Settings.username = username;
     Settings.IS_DM = username === window.location.pathname.split("/")[2];
-    setupTools();
+    (<any>vm.$refs.tools).loaded = true;
 });
 socket.on("set clientOptions", function (options: ClientOptions) {
     gameManager.setClientOptions(options);

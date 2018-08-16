@@ -25,9 +25,10 @@
 import Vue from "vue";
 import colorpicker from "../../vue/components/colorpicker.vue";
 import modal from "../../vue/components/modals/modal.vue";
+
 import { calcFontScale } from "../../core/utils";
 import CircularToken from "../shapes/circulartoken";
-import { l2g } from "../units";
+import { l2g, getUnitDistance } from "../units";
 import { LocalPoint } from "../geom";
 import Settings from "../settings";
 import gameManager from "../planarally";
@@ -37,16 +38,14 @@ export default Vue.component('createtoken-modal', {
         modal,
         'color-picker': colorpicker
     },
-    data: function () {
-        return {
-            x: 0,
-            y: 0,
-            visible: false,
-            text: 'X',
-            fillColour: {rgba: {r: 255, g: 255, b: 255, a: 1}},
-            borderColour: {rgba: {r: 0, g: 0, b: 0, a: 1}},
-        }
-    },
+    data: () => ({
+        x: 0,
+        y: 0,
+        visible: false,
+        text: 'X',
+        fillColour: {rgba: {r: 255, g: 255, b: 255, a: 1}},
+        borderColour: {rgba: {r: 0, g: 0, b: 0, a: 1}},
+    }),
     watch: {
         text(newValue, oldValue) {
             this.updatePreview();
@@ -80,7 +79,7 @@ export default Vue.component('createtoken-modal', {
             if (layer === undefined) return;
             const token = new CircularToken(
                 l2g(new LocalPoint(this.x, this.y)),
-                Settings.gridSize / 2,
+                getUnitDistance(Settings.unitSize / 2),
                 this.text,
                 "10px serif",
                 this.fillRgb,

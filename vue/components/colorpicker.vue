@@ -24,13 +24,11 @@ export default Vue.component('colorpicker', {
 		'chrome-picker': Chrome,
     },
     props: ['color'],
-	data() {
-		return {
-            display: false,
-            left: 0,
-            top: 0,
-		}
-    },
+	data: () => ({
+        display: false,
+        left: 0,
+        top: 0,
+    }),
     mounted() {
         const rect = this.$el.getBoundingClientRect();
         // 15 is the width of the input color field

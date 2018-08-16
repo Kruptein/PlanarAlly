@@ -1,6 +1,6 @@
 import Shape from "./shape";
 import BoundingRect from "./boundingrect";
-import { g2lx, g2ly, g2lr } from "../units";
+import { g2lx, g2ly, g2lz } from "../units";
 import { GlobalPoint } from "../geom";
 import { getFogColour } from "../utils";
 
@@ -49,7 +49,7 @@ export default class MultiLine extends Shape {
             ctx.strokeStyle = getFogColour();
         else
             ctx.strokeStyle = this.fill;
-        ctx.lineWidth = g2lr(this.size);
+        ctx.lineWidth = g2lz(this.size);
         ctx.stroke();
     }
     contains(point: GlobalPoint): boolean {

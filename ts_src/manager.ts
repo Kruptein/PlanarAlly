@@ -1,7 +1,6 @@
 import { g2l } from "./units";
 import { ClientOptions, BoardInfo, ServerShape } from './api_types';
 import { createShapeFromDict } from './shapes/utils';
-import { Tool } from './tools/tool';
 import { InitiativeTracker } from './tools/initiative';
 import { GlobalPoint } from "./geom";
 import { socket, sendClientOptions } from "./socket";
@@ -16,7 +15,6 @@ import gameManager from "./planarally";
 export class GameManager {
     layerManager = new LayerManager();
     selectedTool: number = 0;
-    tools: OrderedMap<string, Tool> = new OrderedMap();
     notes: OrderedMap<string, Note> = new OrderedMap();
     
     lightsources: { shape: string, aura: string }[] = [];

@@ -105,41 +105,9 @@
             <ul></ul>
         </div>
     </div>
-    <div id="toolselect" v-if="toolsLoaded">
-        <ul>
-            <li
-                v-for="tool in tools"
-                :key="tool"
-                :class="{'tool-selected': currentTool === tool}"
-                :ref="tool + '-selector'"
-                @click="currentTool = tool"
-            ><a href='#'>[[ tool ]]</a></li>
-        </ul>
-    </div>
-    <div id="selection-menu">
-        <i id='selection-edit-button' class="fas fa-edit"></i>
-        <div id="selection-name">Aboleth</div>
-        <div id="selection-trackers">
-            <div id="selection-tracker-health-name">Health</div>
-            <div id="selection-tracker-health-value" class="selection-tracker-value">50</div>
-        </div>
-        <div id="selection-auras">
-            <div id="selection-aura-darkvision-name">Darkvision</div>
-            <div id="selection-aura-darkvision-value" class="selection-aura-value">60</div>
-        </div>
-    </div>
+    <tool-bar ref="tools"></tool-bar>
+    <selection-info ref='selectionInfo'></selection-info>
     <div id="zoomer"></div>
-    <div>
-        <template v-if="ready()">
-            <select-tool v-show="currentTool === 'select'" ref='selectTool'></select-tool>
-            <pan-tool v-show="currentTool === 'pan'"></pan-tool>
-            <draw-tool v-show="currentTool === 'draw'"></draw-tool>
-            <ruler-tool v-show="currentTool === 'ruler'"></ruler-tool>
-            <map-tool v-show="currentTool === 'map'"></map-tool>
-            <shape-menu ref="shapecontext"></shape-menu>
-            <createtoken-dialog ref="createtokendialog"></createtokendialog>
-        </template>
-    </div>
 </div>
 <div id="shapeselectiondialog" class="dialog" title="Edit asset">
     <div>

@@ -154,7 +154,7 @@ export class FOWLayer extends Layer {
 
             for (let p=0; p < this.preFogShapes.length; p++) {
                 const pS = this.preFogShapes[p];
-                if (!pS.visibleInCanvas(this.canvas)) return;
+                if (!pS.visibleInCanvas(this.canvas)) continue;
                 pS.draw(ctx);
             }
 

@@ -16,14 +16,12 @@ export default {
     components: {
         modal
     },
-    data: function () {
-        return {
-            visible: false,
-            yes: 'Yes',
-            no: 'No',
-            title: '',
-        }
-    },
+    data: () => ({
+        visible: false,
+        yes: 'Yes',
+        no: 'No',
+        title: '',
+    }),
     methods: {
         confirm: function () {
             this.resolve(true);

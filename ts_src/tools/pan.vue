@@ -11,13 +11,11 @@ import gameManager from "../planarally";
 import { sendClientOptions } from "../socket";
 
 export default Tool.extend({
-    data() {
-        return {
-            name: "pan",
-            panStart: new LocalPoint(0, 0),
-            active: false
-        }
-    },
+    data: () => ({
+        name: "pan",
+        panStart: new LocalPoint(0, 0),
+        active: false
+    }),
     methods: {
         onMouseDown(event: MouseEvent) {
             this.panStart = getMouse(event);

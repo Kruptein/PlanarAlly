@@ -12,9 +12,6 @@
     </div>
 </template>
 
-// -224px
-// //; top: -242px}"
-
 <script lang="ts">
 import Vue from 'vue'
 import { Chrome } from "vue-color";

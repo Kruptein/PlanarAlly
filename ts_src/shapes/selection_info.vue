@@ -1,43 +1,50 @@
 <template>
-    <div id="selection-menu" v-if='shape !== null'>
-        <div id='selection-edit-button' @click="test"><i class="fas fa-edit"></i></div>
-        <div id="selection-name">{{ shape.name }}</div>
-        <div id="selection-trackers">
-            <template v-for="tracker in shape.trackers">
-                <div 
-                    id="selection-tracker-health-name"
-                    :key="'name-' + tracker.uuid"
-                >
-                    {{ tracker.name }}
-                </div>
-                <div
-                    id="selection-tracker-health-value"
-                    class="selection-tracker-value"
-                    :key="'value-' + tracker.uuid"
-                >
-                    {{ tracker.value }}
-                </div>
-            </template>
+    <div v-if='shape !== null'>
+        <div id="selection-menu">
+            <div id='selection-edit-button' @click="openEditDialog"><i class="fas fa-edit"></i></div>
+            <div id="selection-name">{{ shape.name }}</div>
+            <div id="selection-trackers">
+                <template v-for="tracker in shape.trackers">
+                    <div 
+                        id="selection-tracker-health-name"
+                        :key="'name-' + tracker.uuid"
+                    >
+                        {{ tracker.name }}
+                    </div>
+                    <div
+                        id="selection-tracker-health-value"
+                        class="selection-tracker-value"
+                        :key="'value-' + tracker.uuid"
+                    >
+                        {{ tracker.value }}
+                    </div>
+                </template>
+            </div>
+            <div id="selection-auras">
+                <div id="selection-aura-darkvision-name">Darkvision</div>
+                <div id="selection-aura-darkvision-value" class="selection-aura-value">60</div>
+            </div>
         </div>
-        <div id="selection-auras">
-            <div id="selection-aura-darkvision-name">Darkvision</div>
-            <div id="selection-aura-darkvision-value" class="selection-aura-value">60</div>
-        </div>
+        <edit-dialog ref='editDialog' :shape="shape"></edit-dialog>
     </div>
 </template>
 
 <script lang="ts">
 import Vue from 'vue'
+import EditDialog from "./edit_dialog.vue"
 
 import Shape from './shape';
 
 export default Vue.extend({
+    components: {
+        'edit-dialog': EditDialog,
+    },
     data: () => ({
         shape: <Shape|null> null,
     }),
     methods: {
-        test() {
-            console.log("!");
+        openEditDialog() {
+            (<any>this.$refs.editDialog).visible = true;
         }
     }
 })

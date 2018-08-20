@@ -137,8 +137,7 @@ canvas {
 .modal-body {
     padding: 10px;
     display: grid;
-    grid-template-columns: [label] 1fr [value] 1fr [end];
-    grid-column-gap: 30px;
+    grid-template-columns: [label] 1fr [value] 2fr [end];
     grid-row-gap: 10px;
     align-items: center;
 }

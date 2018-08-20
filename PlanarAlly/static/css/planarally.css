@@ -484,23 +484,6 @@ input:checked + .slider:before {
     grid-column: 1 / end;
 }
 
-.dialog .shapeselectiondialog-header {
-    line-height: 0.1em;
-    margin: 20px 0 15px;
-}
-
-.dialog .shapeselectiondialog-header:after {
-    position: absolute;
-    right: 5px;
-    width: 75%;
-    border-bottom: 1px solid #000;
-    content: '';
-}
-
-.dialog span {
-    text-align: center;
-}
-
 #shapeselectiondialog .sp-dd {
     display: none;
 }

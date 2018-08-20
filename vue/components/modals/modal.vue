@@ -1,7 +1,12 @@
 <template>
     <transition name="modal">
         <div class="modal-mask" @click="close" v-show="visible">
-            <div class="modal-container" @click.stop>
+            <div
+                class="modal-container"
+                @click.stop
+                ref="container"
+                :style="{left:left + 'px', top:top + 'px'}"
+            >
             <slot></slot>
             </div>
         </div>
@@ -9,15 +14,29 @@
 </template>
 
 
-<script>
-export default {
+<script lang="ts">
+import Vue from "vue";
+
+export default Vue.extend({
     props: ['visible'],
+    data: () => ({
+        left: 0,
+        top: 0,
+    }),
+    updated() {
+        if (this.left === 0 && this.top === 0) {
+            const container = (<any>this.$refs.container);
+            if (container.offsetWidth === 0 && container.offsetHeight === 0) return;
+            this.left = (window.innerWidth - container.offsetWidth)/2;
+            this.top = (window.innerHeight - container.offsetHeight)/2;
+        }
+    },
     methods: {
         close: function () {
             this.$emit('close');
         },
     }
-}
+})
 </script>
 
 <style scoped>
@@ -33,8 +52,11 @@ export default {
 }
 
 .modal-container {
-    width: 300px;
-    margin: 40px auto 0;
+    /* width: fit-content; */
+    /* margin: 40px auto 0; */
+    position: absolute;
+    width: auto;
+    height: auto;
     background-color: #fff;
     border-radius: 2px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, .33);

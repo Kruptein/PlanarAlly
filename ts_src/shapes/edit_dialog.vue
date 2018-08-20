@@ -48,7 +48,7 @@
                 >
                 <div
                     v-if="owner !== ''"
-                    :key="'icon-' + owner"
+                    :key="'remove-' + owner"
                     @click="removeOwner(owner)"
                     style="grid-column-start: remove"
                 >
@@ -56,6 +56,46 @@
                 </div>
             </template>
             <div class="spanrow header">Trackers</div>
+            <template v-for="tracker in shape.trackers">
+                <input
+                    :key="'name-'+tracker.uuid"
+                    v-model="tracker.name"
+                    @change="updateShape(false)"
+                    type="text"
+                    placeholder="name"
+                    style="grid-column-start: name"
+                >
+                <input
+                    :key="'value-'+tracker.uuid"
+                    v-model.number="tracker.value"
+                    @change="updateShape(false)"
+                    type="text"
+                    title="Current value"
+                >
+                <span :key="'fspan-'+tracker.uuid">/</span>
+                <input
+                    :key="'maxvalue-'+tracker.uuid"
+                    v-model.number="tracker.maxvalue"
+                    @change="updateShape(false)"
+                    type="text"
+                    title="Current value"
+                >
+                <span :key="'sspan-'+tracker.uuid"></span>
+                <div
+                    :key="'visibility-'+tracker.uuid"
+                    :style="{opacity: tracker.visibility ? 1.0 : 0.3}"
+                    @click="tracker.visibility = !tracker.visibility;updateShape(false)"
+                >
+                    <i class="fas fa-eye"></i>
+                </div>
+                <span :key="'tspan-'+tracker.uuid"></span>
+                <div
+                    :key="'remove-'+tracker.uuid"
+                    @click="removeTracker(tracker.uuid)"
+                >
+                    <i class="fas fa-trash-alt"></i>
+                </div>
+            </template>
             <div class="spanrow header">Auras</div>
             <textarea
                 class="spanrow"
@@ -69,9 +109,6 @@
                 <color-picker :color.sync="borderColour" />
             </div> -->
         </div>
-        <div class='modal-footer'>
-            <button @click="submit">Submit</button>
-        </div>
     </modal>
 </template>
 
@@ -79,9 +116,11 @@
 import Vue from "vue";
 import colorpicker from "../../vue/components/colorpicker.vue";
 import modal from "../../vue/components/modals/modal.vue";
+
 import { socket } from "../socket";
 import Shape from "./shape";
 import gameManager from "../planarally";
+import { uuidv4 } from "../../core/utils";
 
 export default Vue.component('edit-dialog', {
     components: {
@@ -97,10 +136,20 @@ export default Vue.component('edit-dialog', {
     mounted() {
         if (this.shape.owners[this.shape.owners.length - 1] !== '')
             this.shape.owners.push("");
+        if (!this.shape.trackers.length || this.shape.trackers[this.shape.trackers.length - 1].name !== '' && this.shape.trackers[this.shape.trackers.length - 1].value !== 0)
+            this.shape.trackers.push({ uuid: uuidv4(), name: '', value: 0, maxvalue: 0, visible: false });
+        // if (!this.auras.length || this.auras[this.auras.length - 1].name !== '' || this.auras[this.auras.length - 1].value !== 0)
+        //     this.auras.push({
+        //         uuid: uuidv4(),
+        //         name: '',
+        //         value: 0,
+        //         dim: 0,
+        //         lightSource: false,
+        //         colour: 'rgba(0,0,0,0)',
+        //         visible: false
+        //     });
     },
     methods: {
-        submit() {
-        },
         updateShape(redraw: boolean) {
             socket.emit("updateShape", {shape: this.shape.asDict(), redraw: redraw});
             if (redraw) gameManager.layerManager.invalidate();
@@ -146,6 +195,10 @@ export default Vue.component('edit-dialog', {
             const ow_i = this.shape.owners.findIndex(o => o === value);
             this.shape.owners.splice(ow_i, 1);
             this.updateShape(false);
+        },
+        removeTracker(uuid: string) {
+            this.shape.trackers = this.shape.trackers.filter(tr => tr.uuid !== uuid);
+            this.updateShape(false);
         }
     }
 })
@@ -165,12 +218,6 @@ export default Vue.component('edit-dialog', {
     grid-template-columns: [name] 1fr [numerator] 30px [slash] 5px [denominator] 30px [colour] 40px [visible] 30px [light] 30px [remove] 30px [end];
     grid-column-gap: 5px;
     align-items: center;
-}
-
-.modal-footer {
-    padding-top: 0;
-    padding: 10px;
-    text-align: right;
 }
 
 .colours {

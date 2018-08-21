@@ -43,8 +43,8 @@ export default Vue.component('createtoken-modal', {
         y: 0,
         visible: false,
         text: 'X',
-        fillColour: {rgba: {r: 255, g: 255, b: 255, a: 1}},
-        borderColour: {rgba: {r: 0, g: 0, b: 0, a: 1}},
+        fillColour: "rgba(255, 255, 255, 1)",
+        borderColour: "rgba(0, 0, 0, 1)"
     }),
     watch: {
         text(newValue, oldValue) {
@@ -60,14 +60,6 @@ export default Vue.component('createtoken-modal', {
     mounted() {
         this.updatePreview();
     },
-    computed: {
-        fillRgb(): string {
-            return tinycolor(this.fillColour.rgba).toRgbString();
-        },
-        borderRgb(): string {
-            return tinycolor(this.borderColour.rgba).toRgbString();
-        }
-    },
     methods: {
         open(x: number, y: number) {
             this.visible = true;
@@ -82,8 +74,8 @@ export default Vue.component('createtoken-modal', {
                 getUnitDistance(Settings.unitSize / 2),
                 this.text,
                 "10px serif",
-                this.fillRgb,
-                this.borderRgb
+                this.fillColour,
+                this.borderColour
             )
             layer.addShape(token, true);
             layer.invalidate(false);
@@ -96,14 +88,14 @@ export default Vue.component('createtoken-modal', {
             const dest = {x: ctx.canvas.width / 2, y: ctx.canvas.height / 2};
             const r = Math.min(dest.x, dest.y) * 0.9;
 
-            ctx.fillStyle = this.fillRgb;
+            ctx.fillStyle = this.fillColour;
 
             ctx.arc(dest.x, dest.y, r, 0, 2 * Math.PI);
             ctx.fill();
-            if (this.borderRgb !== "rgba(0, 0, 0, 0)") {
+            if (this.borderColour !== "rgba(0, 0, 0, 0)") {
                 ctx.beginPath();
                 ctx.lineWidth = 5;
-                ctx.strokeStyle = this.borderRgb;
+                ctx.strokeStyle = this.borderColour;
                 ctx.arc(dest.x, dest.y, r, 0, 2 * Math.PI);
                 ctx.stroke();
             }
@@ -113,7 +105,7 @@ export default Vue.component('createtoken-modal', {
             const xs = calcFontScale(ctx, this.text, r, r);
             const ys = 0
             ctx.transform(xs, ys, -ys, xs, dest.x, dest.y);
-            ctx.fillStyle = tinycolor.mostReadable(this.fillColour.rgba, ['#000', '#fff']).toHexString();
+            ctx.fillStyle = tinycolor.mostReadable(this.fillColour, ['#000', '#fff']).toHexString();
             ctx.fillText(this.text, 0, 0);
             ctx.restore();
         }

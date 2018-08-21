@@ -63,8 +63,8 @@ export default Tool.extend({
         shape: <Shape|null> null,
         brushHelper: <Circle|null> null,
 
-        fillColour: {rgba: {r: 0, g: 0, b: 0, a: 1}},
-        borderColour: {rgba: {r: 255, g: 255, b: 255, a: 1}},
+        fillColour: "rgba(0, 0, 0, 1)",
+        borderColour: "rgba(255, 255, 255, 0)",
         
         shapeSelect: "square",
         shapes: ['square', 'circle', 'paint-brush'],
@@ -74,12 +74,6 @@ export default Tool.extend({
         brushSize: getUnitDistance(Settings.unitSize),
     }),
     computed: {
-        fillRgb(): string {
-            return tinycolor(this.fillColour.rgba).toRgbString();
-        },
-        borderRgb(): string {
-            return tinycolor(this.borderColour.rgba).toRgbString();
-        },
         helperSize(): number {
             if (this.shapeSelect === 'paint-brush')
                 return this.brushSize / 2;
@@ -90,7 +84,7 @@ export default Tool.extend({
     watch: {
         fillColour() {
             if (this.brushHelper)
-                this.brushHelper.fill = this.fillRgb;
+                this.brushHelper.fill = this.fillColour;
         },
         modeSelect(newValue, oldValue) {
             this.onModeChange(newValue, oldValue);
@@ -119,7 +113,7 @@ export default Tool.extend({
                 this.brushHelper.options.delete("preFogShape");
                 this.brushHelper.options.delete("skipDraw");
                 this.brushHelper.globalCompositeOperation = "source-over";
-                this.brushHelper.fill = this.fillRgb;
+                this.brushHelper.fill = this.fillColour;
                 normalLayer.addShape(this.brushHelper, false);
                 fowLayer.removeShape(this.brushHelper, false);
             }
@@ -138,12 +132,12 @@ export default Tool.extend({
             this.active = true;
             this.startPoint = l2g(getMouse(event));
             if (this.shapeSelect === 'square')
-                this.shape = new Rect(this.startPoint.clone(), 0, 0, this.fillRgb, this.borderRgb);
+                this.shape = new Rect(this.startPoint.clone(), 0, 0, this.fillColour, this.borderColour);
             else if (this.shapeSelect === 'circle')
-                this.shape = new Circle(this.startPoint.clone(), this.helperSize, this.fillRgb, this.borderRgb);
+                this.shape = new Circle(this.startPoint.clone(), this.helperSize, this.fillColour, this.borderColour);
             else if (this.shapeSelect === 'paint-brush') {
                 this.shape = new MultiLine(this.startPoint.clone(), [], this.brushSize);
-                this.shape.fill = this.fillRgb;
+                this.shape.fill = this.fillColour;
             } else return;
 
             if (this.modeSelect !== 'normal') {
@@ -208,7 +202,7 @@ export default Tool.extend({
         onSelect() {
             const layer = this.getLayer();
             if (layer === undefined) return;
-            this.brushHelper = new Circle(new GlobalPoint(-1000, -1000), this.brushSize / 2, this.fillRgb);
+            this.brushHelper = new Circle(new GlobalPoint(-1000, -1000), this.brushSize / 2, this.fillColour);
             if (this.modeSelect !== "normal")
                 this.onModeChange(this.modeSelect, "normal")
             else

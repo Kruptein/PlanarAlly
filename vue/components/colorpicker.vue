@@ -1,13 +1,20 @@
+// Extends vue-color functionality by providing an input picker
+// This component works on basis of rgba strings only,
+// and not the more general color object that vue-color itself uses
+// This due to the canvas elements requiring rgba strings for their colours and thus avoiding extra conversion steps
+
 <template>
     <div class='outer' @click="open">
-        <div class='current-color' :style="'background-color: ' + colorValue"></div>
+        <!-- <div class='current-color' :style="'background-color: ' + color"></div> -->
+        <div class='current-color' :style="transparent ? 'background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAIAAADZF8uwAAAAGUlEQVQYV2M4gwH+YwCGIasIUwhT25BVBADtzYNYrHvv4gAAAABJRU5ErkJggg==)' : 'background-color:' + color"></div>
         <chrome-picker
             :value="color"
-            @input="value => $emit('update:color', value)"
+            @input="updateColor"
             :style="{position: 'absolute', left:left + 'px', top:top + 'px'}"
             tabindex="-1"
             v-show="display"
             @blur.native="display = false"
+            ref="chromePicker"
         />
     </div>
 </template>
@@ -25,8 +32,10 @@ export default Vue.component('colorpicker', {
         display: false,
         left: 0,
         top: 0,
+        transparent: false,
     }),
     mounted() {
+        this.transparent = (<any>this.$refs.chromePicker).val.rgba.a === 0;
         const rect = this.$el.getBoundingClientRect();
         // 15 is the width of the input color field
         // 224 is the width of the picker, 242 the height
@@ -39,17 +48,16 @@ export default Vue.component('colorpicker', {
         else
             this.top = 15;
     },
-    computed: {
-        colorValue(): string {
-            return tinycolor(this.color.rgba).toRgbString();
-        },
-    },
     methods: {
         open() {
             if (this.display) return; // click on the picker itself
             this.display = true
             this.$nextTick(() => this.$children[0].$el.focus());
         },
+        updateColor(value: { rgba: {r: number, g: number, b: number, a: number}}) {
+            this.transparent = value.rgba.a === 0
+            this.$emit('update:color', tinycolor(value.rgba).toRgbString())
+        }
     }
 });
 </script>

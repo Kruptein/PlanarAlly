@@ -83,8 +83,8 @@
                 <span :key="'sspan-'+tracker.uuid"></span>
                 <div
                     :key="'visibility-'+tracker.uuid"
-                    :style="{opacity: tracker.visibility ? 1.0 : 0.3}"
-                    @click="tracker.visibility = !tracker.visibility;updateShape(false)"
+                    :style="{opacity: tracker.visible ? 1.0 : 0.3}"
+                    @click="tracker.visible = !tracker.visible;updateShape(false)"
                 >
                     <i class="fas fa-eye"></i>
                 </div>
@@ -97,6 +97,50 @@
                 </div>
             </template>
             <div class="spanrow header">Auras</div>
+            <template v-for="aura in shape.auras">
+                <input
+                    :key="'name-'+aura.uuid"
+                    v-model="aura.name"
+                    type="text"
+                    placeholder="name"
+                    style="grid-column-start: name"
+                >
+                <input
+                    :key="'value-'+aura.uuid"
+                    v-model="aura.value"
+                    type="text"
+                    title="Current value"
+                >
+                <span :key="'fspan-'+aura.uuid">/</span>
+                <input
+                    :key="'dimvalue-'+aura.uuid"
+                    v-model="aura.dim"
+                    type="text"
+                    title="Dim value"
+                >
+                <color-picker :key="'colour-'+aura.uuid" :color.sync="aura.colour" :updateAsTinyColour="false" />
+                <div
+                    :key="'visibility-'+aura.uuid"
+                    :style="{opacity: aura.visibile ? 1.0 : 0.3}"
+                    @click="aura.visibile = !aura.visibile;updateShape(false)"
+                >
+                    <i class="fas fa-eye"></i>
+                </div>
+                <div
+                    :key="'lightsource-'+aura.uuid"
+                    :style="{opacity: aura.lightSource ? 1.0 : 0.3}"
+                    @click="aura.lightSource = !aura.lightSource;updateShape(false)"
+                >
+                    <i class="fas fa-eye"></i>
+                </div>
+                <div
+                    :key="'remove-'+aura.uuid"
+                    @click="removeAura(aura.uuid)"
+                >
+                    <i class="fas fa-trash-alt"></i>
+                </div>
+            </template>
+            <div class="spanrow header">Annotation</div>
             <textarea
                 class="spanrow"
                 @change="updateAnnotation"
@@ -138,16 +182,16 @@ export default Vue.component('edit-dialog', {
             this.shape.owners.push("");
         if (!this.shape.trackers.length || this.shape.trackers[this.shape.trackers.length - 1].name !== '' && this.shape.trackers[this.shape.trackers.length - 1].value !== 0)
             this.shape.trackers.push({ uuid: uuidv4(), name: '', value: 0, maxvalue: 0, visible: false });
-        // if (!this.auras.length || this.auras[this.auras.length - 1].name !== '' || this.auras[this.auras.length - 1].value !== 0)
-        //     this.auras.push({
-        //         uuid: uuidv4(),
-        //         name: '',
-        //         value: 0,
-        //         dim: 0,
-        //         lightSource: false,
-        //         colour: 'rgba(0,0,0,0)',
-        //         visible: false
-        //     });
+        if (!this.shape.auras.length || this.shape.auras[this.shape.auras.length - 1].name !== '' && this.shape.auras[this.shape.auras.length - 1].value !== 0)
+            this.shape.auras.push({
+                uuid: uuidv4(),
+                name: '',
+                value: 0,
+                dim: 0,
+                lightSource: false,
+                colour: 'rgba(0,0,0,0)',
+                visible: false
+            });
     },
     methods: {
         updateShape(redraw: boolean) {

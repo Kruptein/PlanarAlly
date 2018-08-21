@@ -283,47 +283,26 @@ export default abstract class Shape {
     }
 
     drawAuras(ctx: CanvasRenderingContext2D) {
-        const self = this;
-        this.auras.forEach(function (aura) {
-            if (aura.value === 0) return;
+        for(let aura of this.auras) {
+            if (aura.value === 0 && aura.dim === 0) return;
             ctx.beginPath();
             ctx.fillStyle = aura.colour;
-            // if (gameManager.layerManager.hasLayer("fow") && gameManager.layerManager.getLayer("fow")!.ctx === ctx)
-            //     ctx.fillStyle = "black";
-            const loc = g2l(self.center());
-            if (aura.lastPath === undefined) {
-                ctx.arc(loc.x, loc.y, g2lr(aura.value), 0, 2 * Math.PI);
-                ctx.fill();
-            } else {
-                try {
-                    ctx.fill(aura.lastPath);
-                } catch (e) {
-                    console.warn("Path2D ERROR");
-                    console.log(e);
-                    ctx.arc(loc.x, loc.y, g2lr(aura.value), 0, 2 * Math.PI);
-                    ctx.fill();
-                }
-            }
+            const loc = g2l(this.center());
+            const innerRange = g2lr(aura.value);
+            ctx.arc(loc.x, loc.y, innerRange, 0, 2 * Math.PI);
+            ctx.fill();
             if (aura.dim) {
-                const tc = tinycolor(aura.colour);
                 ctx.beginPath();
-                ctx.fillStyle = tc.setAlpha(tc.getAlpha() / 2).toRgbString();
-                const loc = g2l(self.center());
-                if (aura.lastPath === undefined) {
-                    ctx.arc(loc.x, loc.y, g2lr(aura.dim), 0, 2 * Math.PI);
-                    ctx.fill();
-                } else {
-                    try {
-                        ctx.fill(aura.lastPath);
-                    } catch (e) {
-                        console.warn("PATH2D ERROR");
-                        console.log(e);
-                        ctx.arc(loc.x, loc.y, g2lr(aura.dim), 0, 2 * Math.PI);
-                        ctx.fill();
-                    }
+                if (!aura.lightSource) {
+                    const tc = tinycolor(aura.colour);
+                    ctx.fillStyle = tc.setAlpha(tc.getAlpha() / 2).toRgbString();
                 }
+                ctx.fillStyle = aura.colour;
+                ctx.arc(loc.x, loc.y, g2lr(aura.value + aura.dim), 0, 2 * Math.PI);
+                ctx.arc(loc.x, loc.y, innerRange, 0, 2 * Math.PI, true); // This prevents double colours
+                ctx.fill();
             }
-        });
+        }
     }
 
     showContextMenu(mouse: LocalPoint) {

@@ -4,15 +4,16 @@
             <div id='selection-edit-button' @click="openEditDialog"><i class="fas fa-edit"></i></div>
             <div id="selection-name">{{ shape.name }}</div>
             <div id="selection-trackers">
-                <template v-for="tracker in shape.trackers">
-                    <div 
-                        id="selection-tracker-health-name"
+                <template 
+                    v-for="tracker in shape.trackers"
+                    v-if="tracker.name !== '' || tracker.value !== 0"
+                >
+                    <div
                         :key="'name-' + tracker.uuid"
                     >
                         {{ tracker.name }}
                     </div>
                     <div
-                        id="selection-tracker-health-value"
                         class="selection-tracker-value"
                         :key="'value-' + tracker.uuid"
                     >
@@ -21,8 +22,27 @@
                 </template>
             </div>
             <div id="selection-auras">
-                <div id="selection-aura-darkvision-name">Darkvision</div>
-                <div id="selection-aura-darkvision-value" class="selection-aura-value">60</div>
+                <template 
+                    v-for="aura in shape.auras"
+                    v-if="aura.name !== '' || aura.value !== 0"
+                >
+                    <div
+                        :key="'name-' + aura.uuid"
+                    >
+                        {{ aura.name }}
+                    </div>
+                    <div
+                        class="selection-tracker-value"
+                        :key="'value-' + aura.uuid"
+                    >
+                        <template v-if='aura.dim === 0'>
+                            {{ aura.value }}
+                        </template>
+                        <template v-else>
+                            {{ aura.value }} / {{ aura.dim }}
+                        </template>
+                    </div>
+                </template>
             </div>
         </div>
         <edit-dialog ref='editDialog' :shape="shape"></edit-dialog>

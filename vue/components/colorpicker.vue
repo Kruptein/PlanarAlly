@@ -13,7 +13,7 @@
             :style="{position: 'absolute', left:left + 'px', top:top + 'px'}"
             tabindex="-1"
             v-show="display"
-            @blur.native="display = false"
+            @blur.native="closePicker"
             ref="chromePicker"
         />
     </div>
@@ -56,7 +56,13 @@ export default Vue.component('colorpicker', {
         },
         updateColor(value: { rgba: {r: number, g: number, b: number, a: number}}) {
             this.transparent = value.rgba.a === 0
-            this.$emit('update:color', tinycolor(value.rgba).toRgbString())
+            const newColor = tinycolor(value.rgba).toRgbString();
+            this.$emit('update:color', newColor)
+            this.$emit("input", newColor);
+        },
+        closePicker() {
+            this.display = false
+            this.$emit("change", this.color);
         }
     }
 });

@@ -71,7 +71,7 @@ export class FOWLayer extends Layer {
                 const aura = shape.auras.find(a => a.uuid === light.aura);
                 if (aura === undefined) continue;
                 
-                const auraLength = getUnitDistance(aura.value);
+                const auraLength = getUnitDistance(aura.value + aura.dim);
                 const center = shape.center();
                 const lcenter = g2l(center);
 
@@ -117,7 +117,7 @@ export class FOWLayer extends Layer {
                     }
                     // If hit , first finish any ongoing arc, then move to the intersection point
                     if (lastArcAngle !== -1) {
-                        path.arc(lcenter.x, lcenter.y, g2lr(aura.value), lastArcAngle, angle);
+                        path.arc(lcenter.x, lcenter.y, g2lr(aura.value + aura.dim), lastArcAngle, angle);
                         lastArcAngle = -1;
                     }
                     path.lineTo(g2lx(hitResult.intersect.x), g2ly(hitResult.intersect.y));
@@ -127,11 +127,10 @@ export class FOWLayer extends Layer {
                 if (lastArcAngle === -1)
                     path.lineTo(g2lx(firstPoint!.x), g2ly(firstPoint!.y));
                 else
-                    path.arc(lcenter.x, lcenter.y, g2lr(aura.value), lastArcAngle, 2 * Math.PI);
+                    path.arc(lcenter.x, lcenter.y, g2lr(aura.value + aura.dim), lastArcAngle, 2 * Math.PI);
 
                 // Fill the light aura with a radial dropoff towards the outside.
-                const alm = g2lr(aura.value);
-                const gradient = ctx.createRadialGradient(lcenter.x, lcenter.y, alm / 2, lcenter.x, lcenter.y, alm);
+                const gradient = ctx.createRadialGradient(lcenter.x, lcenter.y, g2lr(aura.value), lcenter.x, lcenter.y, g2lr(aura.value + aura.dim));
                 gradient.addColorStop(0, 'rgba(0, 0, 0, 1)');
                 gradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
                 ctx.fillStyle = gradient;

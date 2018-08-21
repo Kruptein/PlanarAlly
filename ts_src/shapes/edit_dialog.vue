@@ -25,7 +25,7 @@
                 type="checkbox"
                 id="shapeselectiondialog-lightblocker"
                 v-model="shape.visionObstruction"
-                @click="setLightBlocker"
+                @change="setLightBlocker"
                 style="grid-column-start: remove;width:15px;height:15px;"
             >
             <label for="shapeselectiondialog-moveblocker">Blocks movement</label>
@@ -60,7 +60,7 @@
                 <input
                     :key="'name-'+tracker.uuid"
                     v-model="tracker.name"
-                    @change="updateShape(false)"
+                    @change="updateShape(false);"
                     type="text"
                     placeholder="name"
                     style="grid-column-start: name"
@@ -90,6 +90,7 @@
                 </div>
                 <span :key="'tspan-'+tracker.uuid"></span>
                 <div
+                    v-if="tracker.name !== '' || tracker.value !== 0"
                     :key="'remove-'+tracker.uuid"
                     @click="removeTracker(tracker.uuid)"
                 >
@@ -101,39 +102,48 @@
                 <input
                     :key="'name-'+aura.uuid"
                     v-model="aura.name"
+                    @change="updateShape(false)"
                     type="text"
                     placeholder="name"
                     style="grid-column-start: name"
                 >
                 <input
                     :key="'value-'+aura.uuid"
-                    v-model="aura.value"
+                    v-model.number="aura.value"
+                    @change="updateShape(true)"
                     type="text"
                     title="Current value"
                 >
                 <span :key="'fspan-'+aura.uuid">/</span>
                 <input
                     :key="'dimvalue-'+aura.uuid"
-                    v-model="aura.dim"
+                    v-model.number="aura.dim"
+                    @change="updateShape(true)"
                     type="text"
                     title="Dim value"
                 >
-                <color-picker :key="'colour-'+aura.uuid" :color.sync="aura.colour" :updateAsTinyColour="false" />
+                <color-picker
+                    :key="'colour-'+aura.uuid"
+                    :color.sync="aura.colour"
+                    @input='updateAuraColour(aura, $event)'
+                    @change='updateShape(true)'
+                />
                 <div
                     :key="'visibility-'+aura.uuid"
                     :style="{opacity: aura.visibile ? 1.0 : 0.3}"
-                    @click="aura.visibile = !aura.visibile;updateShape(false)"
+                    @click="aura.visibile = !aura.visibile;updateShape(true)"
                 >
                     <i class="fas fa-eye"></i>
                 </div>
                 <div
                     :key="'lightsource-'+aura.uuid"
                     :style="{opacity: aura.lightSource ? 1.0 : 0.3}"
-                    @click="aura.lightSource = !aura.lightSource;updateShape(false)"
+                    @click="updateAuraLightSource(aura)"
                 >
-                    <i class="fas fa-eye"></i>
+                    <i class="fas fa-lightbulb"></i>
                 </div>
                 <div
+                    v-if="aura.name !== '' || aura.value !== 0"
                     :key="'remove-'+aura.uuid"
                     @click="removeAura(aura.uuid)"
                 >
@@ -178,25 +188,29 @@ export default Vue.component('edit-dialog', {
         visible: false,
     }),
     mounted() {
-        if (this.shape.owners[this.shape.owners.length - 1] !== '')
-            this.shape.owners.push("");
-        if (!this.shape.trackers.length || this.shape.trackers[this.shape.trackers.length - 1].name !== '' && this.shape.trackers[this.shape.trackers.length - 1].value !== 0)
-            this.shape.trackers.push({ uuid: uuidv4(), name: '', value: 0, maxvalue: 0, visible: false });
-        if (!this.shape.auras.length || this.shape.auras[this.shape.auras.length - 1].name !== '' && this.shape.auras[this.shape.auras.length - 1].value !== 0)
-            this.shape.auras.push({
-                uuid: uuidv4(),
-                name: '',
-                value: 0,
-                dim: 0,
-                lightSource: false,
-                colour: 'rgba(0,0,0,0)',
-                visible: false
-            });
+        this.addEmpty();
     },
     methods: {
+        addEmpty() {
+            if (this.shape.owners[this.shape.owners.length - 1] !== '')
+                this.shape.owners.push("");
+            if (!this.shape.trackers.length || this.shape.trackers[this.shape.trackers.length - 1].name !== '' || this.shape.trackers[this.shape.trackers.length - 1].value !== 0)
+                this.shape.trackers.push({ uuid: uuidv4(), name: '', value: 0, maxvalue: 0, visible: false });
+            if (!this.shape.auras.length || this.shape.auras[this.shape.auras.length - 1].name !== '' || this.shape.auras[this.shape.auras.length - 1].value !== 0)
+                this.shape.auras.push({
+                    uuid: uuidv4(),
+                    name: '',
+                    value: 0,
+                    dim: 0,
+                    lightSource: false,
+                    colour: 'rgba(0,0,0,0)',
+                    visible: false
+                });
+        },
         updateShape(redraw: boolean) {
             socket.emit("updateShape", {shape: this.shape.asDict(), redraw: redraw});
             if (redraw) gameManager.layerManager.invalidate();
+            this.addEmpty();
         },
         setToken(event: { target: HTMLInputElement }) {
             this.shape.setIsToken(event.target.checked);
@@ -231,9 +245,6 @@ export default Vue.component('edit-dialog', {
             else
                 this.shape.owners.push(event.target.value);
             this.updateShape(false);
-            if (!this.shape.owners.length || this.shape.owners[this.shape.owners.length - 1] !== '') {
-                this.shape.owners.push("");
-            }
         },
         removeOwner(value: string) {
             const ow_i = this.shape.owners.findIndex(o => o === value);
@@ -243,6 +254,27 @@ export default Vue.component('edit-dialog', {
         removeTracker(uuid: string) {
             this.shape.trackers = this.shape.trackers.filter(tr => tr.uuid !== uuid);
             this.updateShape(false);
+        },
+        removeAura(uuid: string) {
+            this.shape.auras = this.shape.auras.filter(au => au.uuid !== uuid);
+            this.shape.checkLightSources();
+            this.updateShape(true);
+        },
+        updateAuraLightSource(aura: Aura) {
+            aura.lightSource = !aura.lightSource;
+            const i = gameManager.lightsources.findIndex(ls => ls.aura === aura.uuid);
+            if (aura.lightSource && i === -1)
+                gameManager.lightsources.push({shape: this.shape.uuid, aura: aura.uuid});
+            else if (!aura.lightSource && i >= 0)
+                gameManager.lightsources.splice(i, 1);
+            // aura.lastPath = undefined;
+            gameManager.layerManager.invalidateLight();
+            this.updateShape(true)
+        },
+        updateAuraColour(aura: Aura, colour: string) {
+            const layer = gameManager.layerManager.getLayer(this.shape.layer);
+            if (layer === undefined) return;
+            layer.invalidate(!aura.lightSource);
         }
     }
 })

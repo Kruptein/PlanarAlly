@@ -31,10 +31,12 @@ Assets are now stored in `/static/assets/` instead of `/static/img/assets/`.  In
     - Upload files via a dialog or by dropping them on the manager
     - Rename/remove files/directories
     - move files/folders to other folders
-- FOW Brush tool
-    - Similar behaviour currently to the fow tool, but actually provides much more freedom as it is a freehand brush
-    - Also shows a brush tip while moving the mouse
-    - Currently only works when global fog is applied.
+- Freestyle brush has been added as a draw shape
+    - FOW usage is limited
+        - Currently only works when global fog is applied.
+        - Works when used from the draw tool in reveal/hide mode
+        - Does not properly work in normal mode on the fow layer!
+        - In general: Use it to draw on non-fog layers or use it in reveal/hide mode
 - [tech] tools onSelect and onDeselect for more finegrained tweaking and UI helpers
 
 ### Changed
@@ -43,13 +45,20 @@ Assets are now stored in `/static/assets/` instead of `/static/img/assets/`.  In
     - A tree view approach is used, showing preview images on hover
     - Removed the cog wheel
     - A button to open the asset manager is added to the in-game interface.
-- FOW tool now fills its hide always with the fog colour, so that it is correct across different clients
+- Draw and fow tools have been combined in one singular draw tool
+    - Options between 'normal' mode and either 'hide' or 'reveal' mode if you want to draw fog
+    - Fog is now always drawn in the client's active fog colour
+    - Also shows a brush tip while moving the mouse
+- Dim aura range should no longer include the normal range value
+    - e.g. an aura that used to be 20/60 should now be 20/40
+- [tech] Most UI is now rendered using the reactive Vue.js framework instead of JQuery
 
 ### Fixed
 - Select box not working properly on the fow layer
 - Ownership changes are now reflected in the initiative list
 - Dim value aura's had the wrong radius
-- Aura's path2D errors are now handled and default circular behaviour is used if catched until the root error is found.
+- Dim value aura's nog properly work with light sources.
+    - Instead of halving the opacity, the radial gradient is applied across the entire aura + dim aura radius.
 - Deleting multiple shapes no longer sends the selectionhelper to the server
 
 ## [0.8] - 2018-06-19

@@ -91,6 +91,24 @@ export default Tool.extend({
         }
     },
     methods: {
+        setupBrush() {
+            if (this.brushHelper === null) return;
+            if (this.modeSelect === 'reveal' || this.modeSelect === 'hide') {
+                this.brushHelper.options.set("preFogShape", true);
+                this.brushHelper.options.set("skipDraw", true);
+                this.brushHelper.fill = "rgba(0, 0, 0, 1)";
+                
+                if (this.modeSelect === 'reveal')
+                    this.brushHelper.globalCompositeOperation = 'source-over';
+                else if (this.modeSelect === 'hide')
+                    this.brushHelper.globalCompositeOperation = 'destination-out';
+            } else {
+                this.brushHelper.options.delete("preFogShape");
+                this.brushHelper.options.delete("skipDraw");
+                this.brushHelper.globalCompositeOperation = "source-over";
+                this.brushHelper.fill = this.fillColour;
+            }
+        },
         onModeChange(newValue: string, oldValue: string) {
             if (this.brushHelper === null) return;
 
@@ -98,25 +116,16 @@ export default Tool.extend({
             const normalLayer = gameManager.layerManager.getLayer();
             if (fowLayer === undefined || normalLayer === undefined) return;
 
+            this.setupBrush();
+
             if (newValue !== 'normal' && oldValue === 'normal') {
-                this.brushHelper.options.set("preFogShape", true);
-                this.brushHelper.options.set("skipDraw", true);
-                this.brushHelper.fill = "rgba(0, 0, 0, 1)";
                 normalLayer.removeShape(this.brushHelper, false);
                 fowLayer.addShape(this.brushHelper, false);
-            }
-            if (newValue === 'reveal')
-                this.brushHelper.globalCompositeOperation = 'source-over';
-            else if (newValue === 'hide')
-                this.brushHelper.globalCompositeOperation = 'destination-out';
-            else if (newValue === 'normal') {
-                this.brushHelper.options.delete("preFogShape");
-                this.brushHelper.options.delete("skipDraw");
-                this.brushHelper.globalCompositeOperation = "source-over";
-                this.brushHelper.fill = this.fillColour;
+            } else if (newValue === 'normal' && oldValue !=='normal') {
                 normalLayer.addShape(this.brushHelper, false);
                 fowLayer.removeShape(this.brushHelper, false);
             }
+            
         },
         getLayer() {
             if (this.modeSelect === 'normal')
@@ -203,10 +212,8 @@ export default Tool.extend({
             const layer = this.getLayer();
             if (layer === undefined) return;
             this.brushHelper = new Circle(new GlobalPoint(-1000, -1000), this.brushSize / 2, this.fillColour);
-            if (this.modeSelect !== "normal")
-                this.onModeChange(this.modeSelect, "normal")
-            else
-                layer.addShape(this.brushHelper, false);  // during mode change the shape is already added
+            this.setupBrush();
+            layer.addShape(this.brushHelper, false);  // during mode change the shape is already added
         },
         onDeselect() {
             const layer = this.getLayer();

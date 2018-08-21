@@ -25,6 +25,7 @@ export function onKeyUp (event: KeyboardEvent) {
                 continue;
             }
             l.removeShape(sel, true, false);
+            (<any>vm.$refs.selectionInfo).shape = null;
             gameManager.initiativeTracker.removeInitiative(sel.uuid, true, false);
         }
     }

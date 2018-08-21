@@ -10,7 +10,7 @@ import ContextMenu from "./selectcontext.vue";
 import Rect from "../shapes/rect";
 import { GlobalPoint, Vector, LocalPoint, Ray } from "../geom";
 import Settings from "../settings";
-import gameManager from "../planarally";
+import gameManager,{ vm } from "../planarally";
 import { getMouse } from "../utils";
 import { l2g, g2l, g2lx, g2ly } from "../units";
 import { calculateDelta } from "./utils";
@@ -75,7 +75,7 @@ export default Tool.extend({
                 // Resize case, a corner is selected
                 if (corner !== undefined) {
                     layer.selection = [shape];
-                    shape.onSelection();
+                    (<any>vm.$refs.selectionInfo).shape = shape;
                     this.mode = SelectOperations.Resize;
                     this.resizeDirection = corner;
                     layer.invalidate(true);
@@ -87,7 +87,7 @@ export default Tool.extend({
                     const selection = shape;
                     if (layer.selection.indexOf(selection) === -1) {
                         layer.selection = [selection];
-                        selection.onSelection();
+                        (<any>vm.$refs.selectionInfo).shape = selection;
                     }
                     this.mode = SelectOperations.Drag;
                     const localRefPoint = g2l(selection.refPoint);
@@ -105,7 +105,7 @@ export default Tool.extend({
             if (!hit) {
                 this.mode = SelectOperations.GroupSelect;
                 for (let selection of layer.selection) {
-                    selection.onSelectionLoss();
+                    (<any>vm.$refs.selectionInfo).shape = selection;
                 }
                 this.selectionStartPoint = globalMouse;
                 
@@ -266,7 +266,7 @@ export default Tool.extend({
             for (let shape of layer.selection) {
                 if (shape.contains(globalMouse)) {
                     layer.selection = [shape];
-                    shape.onSelection();
+                    (<any>vm.$refs.selectionInfo).shape = shape;
                     layer.invalidate(true);
                     (<any>this.$parent.$refs.shapecontext).open(event, shape);
                     return;

@@ -3,6 +3,7 @@ import { throttle } from 'lodash';
 
 import Tools from "./tools/tools.vue";
 import SelectionInfo from "./shapes/selection_info.vue";
+import PromptDialog from "../vue/components/modals/prompt.vue";
 
 import { l2g, g2lx, g2ly, g2lz } from "./units";
 import { LocalPoint, Vector } from './geom';
@@ -42,6 +43,7 @@ export const vm = new Vue({
     components: {
         'tool-bar': Tools,
         'selection-info': SelectionInfo,
+        'prompt-dialog': PromptDialog,
     },
     methods: {
         mousedown(event: MouseEvent) { (<any>this.$refs.tools).mousedown(event); },

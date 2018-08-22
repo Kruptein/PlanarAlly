@@ -4,8 +4,8 @@ const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
 
 module.exports = {
     entry: {
-        planarally: './ts_src/planarally.ts',
-        assets: './vue/assets.js',
+        planarally: './ts_src/game/planarally.ts',
+        assets: './ts_src/assetManager/assets.js',
     },
     output: {
         filename: '[name].js',

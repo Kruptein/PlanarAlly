@@ -43,6 +43,7 @@
     "@types/vue-color": "^2.4.0",
     "lodash.throttle": "^4.1.1",
     "vue": "^2.5.17",
-    "vue-color": "^2.4.6"
+    "vue-color": "^2.4.6",
+    "vuex": "^3.0.1"
   }
 }

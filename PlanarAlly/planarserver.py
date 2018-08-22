@@ -147,7 +147,7 @@ async def show_room(request):
         pass
     else:
         if room.creator == username:
-            return {'dm': True, 'invitation_code': room.invitation_code}
+            return {'dm': True}
         if username in room.players:
             return {'dm': False}
     return web.HTTPFound("/rooms")
@@ -676,7 +676,7 @@ async def test_connect(sid, environ):
 
         sio.enter_room(sid, location.sioroom, namespace='/planarally')
         await sio.emit("set username", username, room=sid, namespace='/planarally')
-        await sio.emit("set room info", {'name': room.name, 'creator': room.creator}, room=sid, namespace='/planarally')
+        await sio.emit("set room info", {'name': room.name, 'creator': room.creator, 'invitationCode': str(room.invitation_code)}, room=sid, namespace='/planarally')
         await sio.emit("set notes", room.get_notes(username), room=sid, namespace='/planarally')
         await sio.emit('asset list', assets, room=sid, namespace='/planarally')
         await load_location(sid, location)

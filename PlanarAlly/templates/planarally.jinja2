@@ -16,7 +16,7 @@
 </head>
 <body>
 <div id="main">
-    <div id="radialmenu">
+    {# <div id="radialmenu">
         <div class="rm-wrapper">
             <div class="rm-toggler">
                 <ul class="rm-list {% if dm %}rm-list-dm{% endif %}">
@@ -30,86 +30,41 @@
                 <i class="icon-share-alt"></i>
             </span>
         </div>
-    </div>
+    </div> #}
     <div id="board">
-        <div id="menu">
-            <div style='width:100%;height:90%;overflow-y:auto;overflow-x:hidden;'>
-                {% if dm %}
-                    <button class="accordion">Assets</button>
-                    <div class="accordion-panel">
-                        <a style="position:absolute;right:0;margin:20px;" href="/assets/" target='blank'><i class="fas fa-external-link-alt"></i></a>
-                        <div class="directory" id="menu-tokens"></div>
-                    </div>
-                    <button class="accordion">Notes</button>
-                    <div class="accordion-panel">
-                        <div class="accordion-subpanel" id="menu-notes">
-                            <button id="createNote">Create new note</button>
-                            <label>Notes</label>
-                        </div>
-                    </div>
-                    <button class="accordion">DM Options</button>
-                    <div class="accordion-panel">
-                        <div class="accordion-subpanel">
-                            <label for="useGridInput">Use grid: </label><input type="checkbox" checked="checked"
-                                                                                id="useGridInput">
-                            <label for="useFOWInput">Fill entire canvas with FOW: </label><input type="checkbox"
-                                                                                id="useFOWInput">
-                            <label for="fowOpacity">FOW opacity: </label><input type="text" value="0.3"
-                                                                                id="fowOpacity">
-                            <label for="fowLOS">Only show lights in LoS: </label><input type="checkbox"
-                                                                                id="fowLOS">
-                            <label for="unitSizeInput">Unit Size (in ft.): </label><input type="text" value="5"
-                                                                                id="unitSizeInput">
-                            <label for="gridSizeInput">Grid Size (in pixels): </label><input type="text" value="50"
-                                                                                id="gridSizeInput">
-                            <label for="invitation">Invitation Code: </label><input type="text"
-                                                                                    value="{{ invitation_code }}"
-                                                                                    readonly="readonly"
-                                                                                    id="invitation">
-                        </div>
-                    </div>
-                {% endif %}
-                <button class="accordion">Client Options</button>
-                <div class="accordion-panel">
-                    <div class="accordion-subpanel">
-                        <div><label for="gridColour">Grid Colour: </label><input type="text" id="gridColour"></div>
-                        <div><label for="fowColour">FOW Colour: </label><input type="text" id="fowColour"></div>
-                    </div>
-                </div>
-                {% if dm %}
-                    <button class="accordion">SelectionInfo</button>
-                    <div class="accordion-panel">
-                        <div class="accordion-subpanel">
-                            <label for="selectionInfoX">X: </label><input type="text" id="selectionInfoX">
-                            <label for="selectionInfoY">Y: </label><input type="text" id="selectionInfoY">
-                            <label for="selectionInfoW">W: </label><input type="text" id="selectionInfoW">
-                            <label for="selectionInfoH">H: </label><input type="text" id="selectionInfoH">
-                        </div>
-                    </div>
-                {% endif %}
-            </div>
-            <a href="/rooms" class="accordion" style='text-decoration:none;display:inline-block;position:absolute;bottom:0;'>Exit</a>
-        </div>
-        {% if dm %}
-            <div id="locations-menu">
-                <div></div>
-            </div>
-        {% endif %}
+        <template v-if="ready.manager">
+            <tool-bar ref='tools'></tool-bar>
+        </template>
         <div id="layers"
             @mousedown="mousedown"
             @mouseup="mouseup"
             @mousemove="mousemove"
             @contextmenu.prevent.stop="contextmenu"
         ></div>
-        <div id="layerselect">
-            <ul></ul>
+        <div id="layerselect" v-if="layers.length > 1">
+            <ul>
+                <li
+                    v-for="layer in layers"
+                    :class="{ 'layer-selected': layer === selectedLayer }"
+                    @click="selectLayer(layer)"
+                ><a href='#'>[[ layer ]]</a></li>
+            </ul>
         </div>
+        {# <menu-bar></menu-bar> #}
+        {# <template v-if="ready()">
+            <selection-info ref='selectionInfo'></selection-info>
+            <prompt-dialog ref="prompt"></prompt-dialog>
+        </template>
+        {% if dm %}
+            <div id="locations-menu">
+                <div></div>
+            </div>
+        {% endif %} #}
     </div>
-    <tool-bar ref="tools"></tool-bar>
     <selection-info ref='selectionInfo'></selection-info>
     <prompt-dialog ref="prompt"></prompt-dialog>
-    <div id="zoomer"></div>
+    {# <div id="zoomer"></div> #}
 </div>
-<div id="initiativedialog" class="dialog" title="Initiative"></div>
+{# <div id="initiativedialog" class="dialog" title="Initiative"></div> #}
 </body>
 </html>

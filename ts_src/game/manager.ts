@@ -45,55 +45,6 @@ export class GameManager {
         this.BV = new BoundingVolume(this.lightblockers);
     }
 
-    setupBoard(room: BoardInfo): void {
-        // this.layerManager = new LayerManager();
-        // const layersdiv = $('#layers');
-        // layersdiv.empty();
-        // const layerselectdiv = $('#layerselect');
-        // layerselectdiv.find("ul").empty();
-
-        // const lm = $("#locations-menu").find("div");
-        // lm.children().off();
-        // lm.empty();
-        // for (let i = 0; i < room.locations.length; i++) {
-        //     const loc = $("<div>" + room.locations[i] + "</div>");
-        //     lm.append(loc);
-        // }
-        // const lmplus = $('<div><i class="fas fa-plus"></i></div>');
-        // lm.append(lmplus);
-        // lm.children().on("click", function (e) {
-        //     if (e.target.textContent === '') {
-        //         const locname = prompt("New location name");
-        //         if (locname !== null)
-        //             socket.emit("new location", locname);
-        //     } else {
-        //         socket.emit("change location", e.target.textContent);
-        //     }
-        // });
-
-        // for (let i = 0; i < room.board.layers.length; i++) {
-        //     this.layerManager.createLayer(room.board.layers[i]);
-        // }
-        // // Force the correct opacity render on other layers.
-        // this.layerManager.setLayer(this.layerManager.getLayer()!.name);
-        
-        // if (this.layerManager.layers.reduce((acc, val) => acc + (val.selectable ? 1 : 0), 0) > 1) {
-        //     layerselectdiv.find("li").on("click", function () {
-        //         const name = this.id.split("-")[1];
-        //         const old = layerselectdiv.find("#select-" + gameManager.layerManager.selectedLayer);
-        //         if (name !== gameManager.layerManager.selectedLayer) {
-        //             $(this).addClass("layer-selected");
-        //             old.removeClass("layer-selected");
-        //             gameManager.layerManager.setLayer(name);
-        //         }
-        //     });
-        // } else {
-        //     layerselectdiv.hide();
-        // }
-
-        // this.initiativeTracker.clear();
-    }
-
     newNote(name: string, text: string, show: boolean, sync: boolean, uuid?:string): void {
         const id: string = uuid || uuidv4();
 

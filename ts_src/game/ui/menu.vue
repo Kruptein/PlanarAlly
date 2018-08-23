@@ -15,6 +15,7 @@
                         :class="{ 'rm-list-dm': IS_DM }"
                     >
                         <li
+                            @click="visible.locations = !visible.locations"
                             v-if="IS_DM"
                             class="rm-item"
                             id="rm-locations"
@@ -84,6 +85,22 @@
                 <a href="/rooms" class="accordion" style='text-decoration:none;display:inline-block;position:absolute;bottom:0;'>Exit</a>
             </div>
         </transition>
+        <transition name="locations" @enter="$refs.rm.style.transition = 'top 500ms'">
+            <div id='locations-menu' v-if="IS_DM && visible.locations">
+                <div>
+                    <div
+                        v-for="location in locations"
+                        :key="location"
+                        @click="changeLocation(location)"
+                    >
+                        {{ location }}
+                    </div>
+                    <div @click="createLocation">
+                        <i class='fas fa-plus'></i>
+                    </div>
+                </div>
+            </div>
+        </transition>
     </div>
 </template>
 
@@ -93,6 +110,8 @@ import Vue from 'vue'
 import Settings from '../settings';
 import { mapState } from 'vuex';
 import colorpicker from '../../core/components/colorpicker.vue';
+import { socket } from '../socket';
+import { vm } from '../planarally';
 
 export default Vue.component("menu-bar", {
     components: {
@@ -108,7 +127,7 @@ export default Vue.component("menu-bar", {
         ...mapState([
             'invitationCode',
             'IS_DM',
-            'invitationCode',
+            'locations',
         ]),
         useGrid: {
             get(): boolean {
@@ -185,6 +204,20 @@ export default Vue.component("menu-bar", {
                 const next = <HTMLElement> event.target.nextElementSibling!;
                 next.style.display = next.style.display === '' ? 'block': '';
             }
+        },
+        changeLocation(name: string) {
+            socket.emit("change location", name);
+        },
+        createLocation() {
+            (<any>vm.$refs.prompt).prompt(
+                `New  location name:`,
+                `Create new location`
+            ).then(
+                (value: string) => {
+                    socket.emit("new location", value);
+                },
+                () => {}
+            );
         }
     }
 });
@@ -217,12 +250,12 @@ export default Vue.component("menu-bar", {
     position: absolute;
     top: 0;
     left: 0;
-    height: 100px;
+    max-height: 100px;
     width: 100%;
     z-index: 21;
     background-color: #fa5a5a;
-    display: none;
     overflow: auto;
+    pointer-events: auto;
 }
 
 #locations-menu > div {
@@ -252,5 +285,15 @@ export default Vue.component("menu-bar", {
 }
 .settings-enter-to, .settings-leave {
     width: 200px;
+}
+
+.locations-enter-active, .locations-leave-active {
+    transition: height 500ms;
+}
+.locations-leave-to, .locations-enter {
+    height: 0;
+}
+.locations-enter-to, .locations-leave {
+    height: 100px;
 }
 </style>

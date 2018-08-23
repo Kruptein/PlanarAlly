@@ -15,6 +15,8 @@ export default new Vuex.Store({
         layers: <string[]> [],
         selectedLayerIndex: -1,
 
+        locations: <string[]> [],
+
         IS_DM: false,
         gridSize: 50,
         username: '',
@@ -165,6 +167,13 @@ export default new Vuex.Store({
         },
         setLocationName (state, name) {
             state.locationName = name;
+        },
+        setLocations(state, locations: string[]) {
+            state.locations = locations;
+        },
+        resetLayerInfo(state) {
+            state.layers = [];
+            state.selectedLayerIndex = -1;
         }
     }
     

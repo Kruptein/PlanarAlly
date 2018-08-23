@@ -40,7 +40,6 @@ socket.on("set location", function (data: {name:string, options: LocationOptions
 });
 socket.on("set position", function (data: {x: number, y: number}) {
     gameManager.setCenterPosition(new GlobalPoint(data.x, data.y));
-    console.log("Set position");
 });
 socket.on("set notes", function (notes: Notes[]) {
     for (let n of notes) {
@@ -101,14 +100,16 @@ socket.on("asset list", function (assets: AssetList) {
     });
 });
 socket.on("board init", function (locationInfo: BoardInfo) {
-    console.log("board init");
-    // gameManager.setupBoard(locationInfo)
+    store.commit("setLocations", locationInfo.locations)
     gameManager.layerManager = new LayerManager();
     document.getElementById("layers")!.innerHTML = "";
-    // todo: clear layers info in store ?
+    store.commit("resetLayerInfo");
     for (let layer of locationInfo.board.layers) {
         createLayer(layer);
     }
+    // Force the correct opacity render on other layers.
+    gameManager.layerManager.setLayer(gameManager.layerManager.getLayer()!.name);
+    gameManager.initiativeTracker.clear();
 });
 socket.on("set gridsize", function (gridSize: number) {
     store.commit("setGridSize", {gridSize: gridSize, sync: false});

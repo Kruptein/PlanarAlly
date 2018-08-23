@@ -1,13 +1,12 @@
 import gameManager from "./planarally";
-import { vm } from "./planarally";
 import { alphSort } from "../core/utils";
 import { ClientOptions, LocationOptions, Notes, AssetList, ServerShape, InitiativeData, BoardInfo, InitiativeEffect, AssetFileList } from "./api_types";
 import { GlobalPoint } from "./geom";
-import Settings from "./settings";
 
 import store from "./store";
 import { createLayer } from "./layers/utils";
 import { LayerManager } from "./layers/manager";
+import * as io from "socket.io-client";
 
 export const socket = io.connect(location.protocol + "//" + location.host + "/planarally");
 socket.on("connect", function () {

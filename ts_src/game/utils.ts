@@ -1,5 +1,5 @@
+import * as tinycolor from "tinycolor2";
 import { LocalPoint } from "./geom";
-import Settings from "./settings";
 import store from "./store";
 
 export function getMouse(e: MouseEvent): LocalPoint {

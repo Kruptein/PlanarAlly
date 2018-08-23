@@ -1,8 +1,8 @@
+import * as tinycolor from "tinycolor2";
 import Circle from "./circle";
 import { GlobalPoint } from "../geom";
 import { ServerCircularToken, InitiativeData } from "../api_types";
 import { g2l, g2lz } from "../units";
-import Settings from "../settings";
 import { calcFontScale } from "../../core/utils";
 import store from "../store";
 

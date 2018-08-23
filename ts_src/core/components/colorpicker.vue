@@ -19,6 +19,7 @@
 </template>
 
 <script lang="ts">
+import * as tinycolor from "tinycolor2";
 import Vue from 'vue'
 import { Chrome } from "vue-color";
 

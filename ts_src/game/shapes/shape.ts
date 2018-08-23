@@ -1,10 +1,10 @@
+import * as tinycolor from "tinycolor2";
 import { uuidv4 } from "../../core/utils";
 import BoundingRect from "./boundingrect";
 import gameManager from "../planarally";
 import { g2l, g2lr, g2ly, g2lx, g2lz } from "../units";
 import { GlobalPoint, LocalPoint } from "../geom";
 import { ServerShape, InitiativeData } from "../api_types";
-import Settings from "../settings";
 import store from "../store";
 
 export default abstract class Shape {

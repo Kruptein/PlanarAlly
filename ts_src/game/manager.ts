@@ -39,35 +39,6 @@ export class GameManager {
 
     constructor() {
         this.recalculateBoundingVolume();
-        // this.gridColour.spectrum({
-        //     showInput: true,
-        //     allowEmpty: true,
-        //     showAlpha: true,
-        //     color: "rgba(255,0,0, 0.5)",
-        //     move: function () {
-        //         if(gameManager.layerManager.getGridLayer() !== undefined)
-        //             gameManager.layerManager.getGridLayer()!.drawGrid();
-        //     },
-        //     change: function (colour) {
-        //         socket.emit("set clientOptions", { 'gridColour': colour.toRgbString() });
-        //     }
-        // });
-        // this.fowColour.spectrum({
-        //     showInput: true,
-        //     color: "rgb(82, 81, 81)",
-        //     move: function (colour) {
-        //         const l = gameManager.layerManager.getLayer("fow");
-        //         if (l !== undefined) {
-        //             l.shapes.forEach(function (shape) {
-        //                 shape.fill = colour.toRgbString();
-        //             });
-        //             l.invalidate(false);
-        //         }
-        //     },
-        //     change: function (colour) {
-        //         socket.emit("set clientOptions", { 'fowColour': colour.toRgbString() });
-        //     }
-        // });
     }
 
     recalculateBoundingVolume() {
@@ -204,9 +175,9 @@ export class GameManager {
 
     setClientOptions(options: ClientOptions): void {
         if (options.gridColour)
-            store.commit("setGridColour", options.gridColour);
+            store.commit("setGridColour", {colour: options.gridColour, sync: false});
         if (options.fowColour) {
-            store.commit("setFOWColour", options.fowColour);
+            store.commit("setFOWColour", {colour: options.fowColour, sync: false});
         }
         if (options.locationOptions) {
             if (options.locationOptions[`${store.state.roomName}/${store.state.roomCreator}/${store.state.locationName}`]) {

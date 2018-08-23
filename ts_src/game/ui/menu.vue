@@ -166,7 +166,7 @@ export default Vue.component("menu-bar", {
                 return this.$store.state.gridColour;
             },
             set(value: string) {
-                this.$store.commit("setGridCOlour", value);
+                this.$store.commit("setGridColour", {colour: value, sync: true});
             }
         },
         fowColour: {
@@ -174,7 +174,7 @@ export default Vue.component("menu-bar", {
                 return this.$store.state.fowColour;
             },
             set(value: string) {
-                this.$store.commit("setFOWColour", value);
+                this.$store.commit("setFOWColour", {colour: value, sync: true});
             }
         }
     },

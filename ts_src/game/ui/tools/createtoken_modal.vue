@@ -22,6 +22,7 @@
 </template>
 
 <script lang="ts">
+import * as tinycolor from "tinycolor2";
 import Vue from "vue";
 import colorpicker from "../../../core/components/colorpicker.vue";
 import modal from "../../../core/components/modals/modal.vue";

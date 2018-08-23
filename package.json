@@ -22,9 +22,9 @@
     "@types/jquery": "^3.3.1",
     "@types/jqueryui": "^1.12.2",
     "@types/lodash": "^4.14.106",
-    "@types/socket.io": "^1.4.32",
     "@types/socket.io-client": "^1.4.32",
-    "@types/spectrum": "^1.5.29",
+    "@types/tinycolor2": "^1.4.1",
+    "@types/vue-color": "^2.4.0",
     "awesome-typescript-loader": "^4.0.1",
     "cache-loader": "^1.2.2",
     "css-loader": "^1.0.0",
@@ -40,8 +40,9 @@
     "webpack-cli": "^2.0.13"
   },
   "dependencies": {
-    "@types/vue-color": "^2.4.0",
     "lodash.throttle": "^4.1.1",
+    "socket.io-client": "^2.1.1",
+    "tinycolor2": "^1.4.1",
     "vue": "^2.5.17",
     "vue-color": "^2.4.6",
     "vuex": "^3.0.1"

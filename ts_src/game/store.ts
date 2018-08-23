@@ -74,12 +74,17 @@ export default new Vuex.Store({
         setInvitationCode (state, code) {
             state.invitationCode = code;
         },
-        setGridColour (state, colour) {
-            state.gridColour = colour;
+        setGridColour (state, payload: {colour: string, sync: boolean}) {
+            state.gridColour = payload.colour;
+            gameManager.layerManager.getGridLayer()!.drawGrid();
+            if (payload.sync)
+                socket.emit("set clientOptions", {'gridColour': payload.colour})
         },
-        setFOWColour (state, colour) {
-            state.fowColour = colour;
+        setFOWColour (state, payload: {colour: string, sync: boolean}) {
+            state.fowColour = payload.colour;
             gameManager.layerManager.invalidate();
+            if (payload.sync)
+                socket.emit("set clientOptions", {'fowColour': payload.colour})
         },
         setPanX (state, x) {
             state.panX = x;

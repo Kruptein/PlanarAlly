@@ -74,8 +74,10 @@
                     <button class="accordion">Client Options</button>
                     <div class="accordion-panel">
                         <div class="accordion-subpanel">
-                            <div><label for="gridColour">Grid Colour: </label><input type="text" id="gridColour"></div>
-                            <div><label for="fowColour">FOW Colour: </label><input type="text" id="fowColour"></div>
+                            <label for="gridColour">Grid Colour: </label>
+                            <color-picker id="gridColour" :color.sync="gridColour" />
+                            <label for="fowColour">FOW Colour: </label>
+                            <color-picker id="fowColour" :color.sync="fowColour" />
                         </div>
                     </div>
                 </div>
@@ -90,8 +92,12 @@
 import Vue from 'vue'
 import Settings from '../settings';
 import { mapState } from 'vuex';
+import colorpicker from '../../core/components/colorpicker.vue';
 
 export default Vue.component("menu-bar", {
+    components: {
+        'color-picker': colorpicker
+    },
     data: () => ({
         visible: {
             settings: false,
@@ -102,7 +108,7 @@ export default Vue.component("menu-bar", {
         ...mapState([
             'invitationCode',
             'IS_DM',
-            'invitationCode'
+            'invitationCode',
         ]),
         useGrid: {
             get(): boolean {
@@ -155,6 +161,22 @@ export default Vue.component("menu-bar", {
                 this.$store.commit("setGridSize", {gridSize: value, sync: true});
             }
         },
+        gridColour: {
+            get(): string {
+                return this.$store.state.gridColour;
+            },
+            set(value: string) {
+                this.$store.commit("setGridCOlour", value);
+            }
+        },
+        fowColour: {
+            get(): string {
+                return this.$store.state.fowColour;
+            },
+            set(value: string) {
+                this.$store.commit("setFOWColour", value);
+            }
+        }
     },
     methods: {
         settingsClick(event: { target: HTMLElement }) {

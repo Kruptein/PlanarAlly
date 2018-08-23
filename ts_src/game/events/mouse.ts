@@ -1,6 +1,5 @@
 import { getMouse } from "../utils";
 import { l2g } from "../units";
-import Settings from "../settings";
 import store from "../store";
 
 export function scrollZoom(e: WheelEvent) {
@@ -12,7 +11,7 @@ export function scrollZoom(e: WheelEvent) {
         delta = Math.sign(e.deltaY) * -1;
     }
     store.commit('updateZoom', {
-        newZooMValue: store.state.zoomFactor + 0.1 * delta,
+        newZoomValue: store.state.zoomFactor + 0.1 * delta,
         zoomLocation: l2g(getMouse(e))
     });
 }

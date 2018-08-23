@@ -1,50 +1,87 @@
 <template>
-    <div id="menu">
-        <div style='width:100%;height:90%;overflow-y:auto;overflow-x:hidden;'>
-            <template v-if="IS_DM">
-                <button class="accordion">Assets</button>
-                <div class="accordion-panel">
-                    <a style="position:absolute;right:0;margin:20px;" href="/assets/" target='blank'><i class="fas fa-external-link-alt"></i></a>
-                    <div class="directory" id="menu-tokens"></div>
+    <div id='menuContainer'>
+        <div
+            id="radialmenu"
+            ref="rm"
+            :style="{
+                left: visible.settings ? '200px' : '0',
+                top: visible.locations ? '100px' : '0'
+            }"
+        >
+            <div class="rm-wrapper">
+                <div class="rm-toggler">
+                    <ul 
+                        class="rm-list"
+                        :class="{ 'rm-list-dm': IS_DM }"
+                    >
+                        <li
+                            v-if="IS_DM"
+                            class="rm-item"
+                            id="rm-locations"
+                        >
+                            <a href="#"><i class="far fa-compass"></i></a>
+                        </li>
+                        <li
+                            @click="visible.settings = !visible.settings"
+                            class="rm-item"
+                            id="rm-settings"
+                        >
+                            <a href="#"><i class="fas fa-cog"></i></a>
+                        </li>
+                    </ul>
                 </div>
-                <button class="accordion">Notes</button>
-                <div class="accordion-panel">
-                    <div class="accordion-subpanel" id="menu-notes">
-                        <button id="createNote">Create new note</button>
-                        <label>Notes</label>
-                    </div>
-                </div>
-                <button class="accordion">DM Options</button>
-                <div class="accordion-panel">
-                    <div class="accordion-subpanel">
-                        <label for="useGridInput">Use grid: </label><input type="checkbox" checked="checked"
-                                                                            id="useGridInput">
-                        <label for="useFOWInput">Fill entire canvas with FOW: </label><input type="checkbox"
-                                                                            id="useFOWInput">
-                        <label for="fowOpacity">FOW opacity: </label><input type="text" value="0.3"
-                                                                            id="fowOpacity">
-                        <label for="fowLOS">Only show lights in LoS: </label><input type="checkbox"
-                                                                            id="fowLOS">
-                        <label for="unitSizeInput">Unit Size (in ft.): </label><input type="text" value="5"
-                                                                            id="unitSizeInput">
-                        <label for="gridSizeInput">Grid Size (in pixels): </label><input type="text" value="50"
-                                                                            id="gridSizeInput">
-                        <label for="invitation">Invitation Code: </label><input type="text"
-                                                                                :value="getInvitationCode()"
-                                                                                readonly="readonly"
-                                                                                id="invitation">
-                    </div>
-                </div>
-            </template>
-            <button class="accordion">Client Options</button>
-            <div class="accordion-panel">
-                <div class="accordion-subpanel">
-                    <div><label for="gridColour">Grid Colour: </label><input type="text" id="gridColour"></div>
-                    <div><label for="fowColour">FOW Colour: </label><input type="text" id="fowColour"></div>
-                </div>
+                <span class="rm-topper">
+                    <i class="icon-share-alt"></i>
+                </span>
             </div>
         </div>
-        <a href="/rooms" class="accordion" style='text-decoration:none;display:inline-block;position:absolute;bottom:0;'>Exit</a>
+        <transition name="settings" @enter="$refs.rm.style.transition = 'left 500ms'">
+            <div id="menu" v-if="visible.settings" @click="settingsClick">
+                <div style='width:100%;height:90%;overflow-y:auto;overflow-x:hidden;'>
+                    <template v-if="IS_DM">
+                        <button class="accordion">Assets</button>
+                        <div class="accordion-panel">
+                            <a style="position:absolute;right:0;margin:20px;" href="/assets/" target='blank'><i class="fas fa-external-link-alt"></i></a>
+                            <div class="directory" id="menu-tokens"></div>
+                        </div>
+                        <button class="accordion">Notes</button>
+                        <div class="accordion-panel">
+                            <div class="accordion-subpanel" id="menu-notes">
+                                <button id="createNote">Create new note</button>
+                                <label>Notes</label>
+                            </div>
+                        </div>
+                        <button class="accordion">DM Options</button>
+                        <div class="accordion-panel">
+                            <div class="accordion-subpanel">
+                                <label for="useGridInput">Use grid: </label>
+                                <input id="useGridInput" type="checkbox" checked="checked" v-model="useGrid">
+                                <label for="useFOWInput">Fill entire canvas with FOW: </label>
+                                <input id="useFOWInput" type="checkbox" v-model="fullFOW">
+                                <label for="fowOpacity">FOW opacity: </label>
+                                <input id="fowOpacity" type="number" min="0" max="1" step="0.1" v-model.number="fowOpacity">
+                                <label for="fowLOS">Only show lights in LoS: </label>
+                                <input id="fowLOS" type="checkbox" v-model='fowLOS'>
+                                <label for="unitSizeInput">Unit Size (in ft.): </label>
+                                <input id="unitSizeInput" type="number" v-model.number="unitSize">
+                                <label for="gridSizeInput">Grid Size (in pixels): </label>
+                                <input id="gridSizeInput" type="number" min="0" v-model.number="gridSize">
+                                <label for="invitation">Invitation Code: </label>
+                                <input id="invitation" type="text" :value="invitationCode" readonly="readonly">
+                            </div>
+                        </div>
+                    </template>
+                    <button class="accordion">Client Options</button>
+                    <div class="accordion-panel">
+                        <div class="accordion-subpanel">
+                            <div><label for="gridColour">Grid Colour: </label><input type="text" id="gridColour"></div>
+                            <div><label for="fowColour">FOW Colour: </label><input type="text" id="fowColour"></div>
+                        </div>
+                    </div>
+                </div>
+                <a href="/rooms" class="accordion" style='text-decoration:none;display:inline-block;position:absolute;bottom:0;'>Exit</a>
+            </div>
+        </transition>
     </div>
 </template>
 
@@ -52,12 +89,146 @@
 <script lang="ts">
 import Vue from 'vue'
 import Settings from '../settings';
+import { mapState } from 'vuex';
 
 export default Vue.component("menu-bar", {
+    data: () => ({
+        visible: {
+            settings: false,
+            locations: false,
+        }
+    }),
+    computed: {
+        ...mapState([
+            'invitationCode',
+            'IS_DM',
+            'invitationCode'
+        ]),
+        useGrid: {
+            get(): boolean {
+                return this.$store.state.useGrid;
+            },
+            set(value: boolean) {
+                this.$store.commit("setUseGrid", {useGrid: value, sync: true});
+            }
+        },
+        fullFOW: {
+            get(): boolean {
+                return this.$store.state.fullFOW;
+            },
+            set(value: boolean) {
+                this.$store.commit("setFullFOW", {fullFOW: value, sync: true});
+            }
+        },
+        fowOpacity: {
+            get(): number {
+                return this.$store.state.fowOpacity;
+            },
+            set(value: number) {
+                if (typeof(value) !== 'number') return;
+                this.$store.commit("setFOWOpacity", {fowOpacity: value, sync: true});
+            }
+        },
+        fowLOS: {
+            get(): boolean {
+                return this.$store.state.fowLOS;
+            },
+            set(value: boolean) {
+                this.$store.commit("setLineOfSight", {fowLOS: value, sync: true});
+            }
+        },
+        unitSize: {
+            get(): number {
+                return this.$store.state.unitSize;
+            },
+            set(value: number) {
+                if (typeof(value) !== 'number') return;
+                this.$store.commit("setUnitSize", {unitSize: value, sync: true});
+            }
+        },
+        gridSize: {
+            get(): number {
+                return this.$store.state.gridSize;
+            },
+            set(value: number) {
+                if (typeof(value) !== 'number') return;
+                this.$store.commit("setGridSize", {gridSize: value, sync: true});
+            }
+        },
+    },
     methods: {
-        getInvitationCode() {
-            return this.$store.state.invitationCode;
+        settingsClick(event: { target: HTMLElement }) {
+            if (event.target.classList.contains("accordion")) {
+                event.target.classList.toggle("accordion-active");
+                const next = <HTMLElement> event.target.nextElementSibling!;
+                next.style.display = next.style.display === '' ? 'block': '';
+            }
         }
     }
 });
 </script>
+
+<style scoped>
+#menuContainer {
+    position: absolute;
+    z-index: 20;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 100%;
+    pointer-events: none;
+}
+
+#menu {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    z-index: 21;
+    background-color: #fa5a5a;
+    overflow: auto;
+    pointer-events: auto;
+    max-width: 200px;
+}
+
+#locations-menu {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100px;
+    width: 100%;
+    z-index: 21;
+    background-color: #fa5a5a;
+    display: none;
+    overflow: auto;
+}
+
+#locations-menu > div {
+    display: flex;
+    width: 100%;
+    height: 100%;
+}
+
+#locations-menu > div > div {
+    background-color: white;
+    text-align: center;
+    line-height: 100px;
+    width: 100px;
+    border-right: solid 1px #82c8a0;
+}
+
+#locations-menu > div > div:hover {
+    cursor: pointer;
+    background-color: #82c8a0;
+}
+
+.settings-enter-active, .settings-leave-active {
+    transition: width 500ms;
+}
+.settings-leave-to, .settings-enter {
+    width: 0;
+}
+.settings-enter-to, .settings-leave {
+    width: 200px;
+}
+</style>

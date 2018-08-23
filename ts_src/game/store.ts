@@ -55,14 +55,14 @@ export default new Vuex.Store({
             if (index >= 0)
                 state.selectedLayerIndex = index;
         },
-        setGridSize(state, payload: {size: number, sync: boolean}): void {
-            if (state.gridSize !== payload.size) {
-                state.gridSize = payload.size;
+        setGridSize(state, payload: {gridSize: number, sync: boolean}): void {
+            if (state.gridSize !== payload.gridSize && payload.gridSize > 0) {
+                state.gridSize = payload.gridSize;
                 const gridLayer = gameManager.layerManager.getGridLayer();
                 if (gridLayer !== undefined)
                     gridLayer.drawGrid();
                 if (payload.sync)
-                    socket.emit("set gridsize", payload.size);
+                    socket.emit("set gridsize", payload.gridSize);
             }
         },
         setRoomName (state, name) {
@@ -115,13 +115,13 @@ export default new Vuex.Store({
             sendClientOptions();
             $("#zoomer").slider({ value: payload.newZoomValue });
         },
-        setUnitSize (state, payload: {size: number, sync: boolean}) {
-            if (state.unitSize !== payload.size) {
-                state.unitSize = payload.size;
+        setUnitSize (state, payload: {unitSize: number, sync: boolean}) {
+            if (state.unitSize !== payload.unitSize) {
+                state.unitSize = payload.unitSize;
                 if(gameManager.layerManager.getGridLayer() !== undefined)
                     gameManager.layerManager.getGridLayer()!.drawGrid();
                 if(payload.sync)
-                    socket.emit("set locationOptions", { 'unitSize': payload.size });
+                    socket.emit("set locationOptions", { 'unitSize': payload.unitSize });
             }
         },
         setUseGrid(state, payload: {useGrid: boolean, sync: boolean}) {

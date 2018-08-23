@@ -144,7 +144,7 @@ export class LayerManager {
         l.player_editable = layer.player_editable;
         gameManager.layerManager.addLayer(l);
         if (layer.grid) {
-            store.commit("setGridSize", {size: layer.size, sync: false});
+            store.commit("setGridSize", {gridSize: layer.size, sync: false});
             $("#grid-layer").droppable({
                 accept: ".draggable",
                 drop: function (event, ui) {

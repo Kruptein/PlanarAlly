@@ -54,9 +54,8 @@ export function createLayer (layerInfo: ServerLayer) {
     }
     layers.appendChild(canvas);
 
-    if (layerInfo.grid)
-        store.commit("setGridSize", {size: layerInfo.size, sync: false});
-
+    if (layerInfo.grid && layerInfo.size)
+        store.commit("setGridSize", {gridSize: layerInfo.size, sync: false});
     // Load layer shapes
     layer.setShapes(layerInfo.shapes);
 }

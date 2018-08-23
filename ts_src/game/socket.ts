@@ -112,8 +112,7 @@ socket.on("board init", function (locationInfo: BoardInfo) {
     }
 });
 socket.on("set gridsize", function (gridSize: number) {
-    // Settings.setGridSize(gridSize, false);
-    console.log("Set grid size");
+    store.commit("setGridSize", {gridSize: gridSize, sync: false});
 });
 socket.on("add shape", function (shape: ServerShape) {
     gameManager.addShape(shape);
@@ -203,7 +202,7 @@ export function sendClientOptions() {
 
 function setLocationOptions(options: LocationOptions) {
     if ("unitSize" in options)
-        store.commit("setUnitSize", {size: options.unitSize, sync: false});
+        store.commit("setUnitSize", {unitSize: options.unitSize, sync: false});
     if ("useGrid" in options)
         store.commit("setUseGrid", {useGrid: options.useGrid, sync: false});
     if ("fullFOW" in options)

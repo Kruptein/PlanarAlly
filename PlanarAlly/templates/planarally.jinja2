@@ -16,21 +16,12 @@
 </head>
 <body>
 <div id="main">
-    {# <div id="radialmenu">
-        <div class="rm-wrapper">
-            <div class="rm-toggler">
-                <ul class="rm-list {% if dm %}rm-list-dm{% endif %}">
-                    {% if dm %}
-                        <li class="rm-item" id="rm-locations"><a href="#"><i class="far fa-compass"></i></a>
-                        </li>{% endif %}
-                    <li class="rm-item" id="rm-settings"><a href="#"><i class="fas fa-cog"></i></a></li>
-                </ul>
-            </div>
-            <span class="rm-topper">
-                <i class="icon-share-alt"></i>
-            </span>
+    <menu-bar></menu-bar>
+    {% if dm %}
+        <div id="locations-menu">
+            <div></div>
         </div>
-    </div> #}
+    {% endif %}
     <div id="board">
         <template v-if="ready.manager">
             <tool-bar ref='tools'></tool-bar>
@@ -50,16 +41,6 @@
                 ><a href='#'>[[ layer ]]</a></li>
             </ul>
         </div>
-        {# <menu-bar></menu-bar> #}
-        {# <template v-if="ready()">
-            <selection-info ref='selectionInfo'></selection-info>
-            <prompt-dialog ref="prompt"></prompt-dialog>
-        </template>
-        {% if dm %}
-            <div id="locations-menu">
-                <div></div>
-            </div>
-        {% endif %} #}
     </div>
     <selection-info ref='selectionInfo'></selection-info>
     <prompt-dialog ref="prompt"></prompt-dialog>

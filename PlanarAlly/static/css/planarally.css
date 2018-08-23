@@ -26,49 +26,6 @@ svg {
     display: flex;
 }
 
-#menu {
-    position: absolute;
-    top: 0;
-    left: 0;
-    height: 100%;
-    width: 200px;
-    z-index: 21;
-    background-color: #fa5a5a;
-    display: none;
-    overflow: auto;
-}
-
-#locations-menu {
-    position: absolute;
-    top: 0;
-    left: 0;
-    height: 100px;
-    width: 100%;
-    z-index: 21;
-    background-color: #fa5a5a;
-    display: none;
-    overflow: auto;
-}
-
-#locations-menu > div {
-    display: flex;
-    width: 100%;
-    height: 100%;
-}
-
-#locations-menu > div > div {
-    background-color: white;
-    text-align: center;
-    line-height: 100px;
-    width: 100px;
-    border-right: solid 1px #82c8a0;
-}
-
-#locations-menu > div > div:hover {
-    cursor: pointer;
-    background-color: #82c8a0;
-}
-
 #board {
     position: relative;
     width: 100%;
@@ -271,6 +228,7 @@ input:checked + .slider:before {
     z-index: 20;
     width: 0;
     height: 0;
+    pointer-events: auto;
 }
 
 /* The svg is added by Font Awesome */

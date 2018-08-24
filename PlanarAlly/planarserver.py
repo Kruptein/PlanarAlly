@@ -773,7 +773,7 @@ async def assetmgmt_mkdir(sid, data):
 
 @sio.on('rename', namespace='/pa_assetmgmt')
 @auth.login_required(app, sio)
-async def assetmgmt_mv(sid, data):
+async def assetmgmt_rename(sid, data):
     policy = app['AuthzPolicy']
     user = policy.sio_map[sid]['user']
     folder = functools.reduce(dict.get, data['directory'], user.asset_info)
@@ -784,6 +784,29 @@ async def assetmgmt_mv(sid, data):
         for fl in folder['__files']:
             if fl['name'] == data['oldName']:
                 fl['name'] = data['newName']
+    policy.save()
+
+
+@sio.on("moveInode", namespace='/pa_assetmgmt')
+@auth.login_required(app, sio)
+async def assetmgmt_mv(sid, data):
+    policy = app['AuthzPolicy']
+    user = policy.sio_map[sid]['user']
+    folder = functools.reduce(dict.get, data['directory'], user.asset_info)
+    if data['target'] == '..':
+        target_directory = data['directory'][:-1]
+    else:
+        target_directory = data['directory'] + [data['target']]
+    target_folder = functools.reduce(dict.get, target_directory, user.asset_info)
+    name = data['inode'] if data['isFolder'] else data['inode']['name']
+    if data['isFolder']:
+        target_folder[name] = folder[name]
+        del folder[name]
+    else:
+        if not target_folder['__files']:
+            target_folder['__files'] = []
+        target_folder['__files'].append(data['inode'])
+        folder['__files'] = [ fl for fl in folder['__files'] if fl['hash'] != data['inode']['hash'] ]
     policy.save()
 
 

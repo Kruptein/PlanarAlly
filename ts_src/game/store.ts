@@ -123,7 +123,6 @@ export default new Vuex.Store({
         
             gameManager.layerManager.invalidate();
             sendClientOptions();
-            $("#zoomer").slider({ value: payload.newZoomValue });
         },
         setUnitSize (state, payload: {unitSize: number, sync: boolean}) {
             if (state.unitSize !== payload.unitSize) {

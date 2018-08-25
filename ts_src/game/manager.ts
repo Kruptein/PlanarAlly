@@ -139,7 +139,6 @@ export class GameManager {
                 store.commit("setPanY", loc.panY);
                 if (loc.zoomFactor) {
                     store.commit("setZoomFactor", loc.zoomFactor);
-                    $("#zoomer").slider({ value: loc.zoomFactor });
                 }
                 if (this.layerManager.getGridLayer() !== undefined)
                     this.layerManager.getGridLayer()!.invalidate();

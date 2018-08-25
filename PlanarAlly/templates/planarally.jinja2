@@ -41,7 +41,23 @@
     </div>
     <selection-info ref='selectionInfo'></selection-info>
     <prompt-dialog ref="prompt"></prompt-dialog>
-    {# <div id="zoomer"></div> #}
+    <zoom-slider
+        id='zoomer'
+        v-model="zoomFactor"
+        :direction="'vertical'"
+        :height='200'
+        :width='6'
+        :min='0.1'
+        :max='5.0'
+        :interval='0.1'
+        :dot-width='20'
+        :dot-height='8'
+        :tooltip="'hover'"
+        :formatter='zoomFactor.toFixed(1)'
+        :slider-style="{'border-radius': '15%'}"
+        :bg-style="{'background-color': '#fff', 'box-shadow': '0.5px 0.5px 3px 1px rgba(0, 0, 0, .36)'}"
+        :process-style="{'background-color': '#fff'}"
+    ></zoom-slider>
 </div>
 {# <div id="initiativedialog" class="dialog" title="Initiative"></div> #}
 </body>

@@ -5,6 +5,7 @@ import gameManager from './planarally';
 import { socket, sendClientOptions } from './socket';
 import { GlobalPoint } from './geom';
 import { g2l, l2g } from './units';
+import { AssetList } from './api_types';
 
 Vue.use(Vuex)
 
@@ -16,6 +17,8 @@ export default new Vuex.Store({
         selectedLayerIndex: -1,
 
         locations: <string[]> [],
+
+        assets: <AssetList> {},
 
         IS_DM: false,
         gridSize: 50,
@@ -174,6 +177,9 @@ export default new Vuex.Store({
         resetLayerInfo(state) {
             state.layers = [];
             state.selectedLayerIndex = -1;
+        },
+        setAssets(state, assets) {
+            state.assets = assets;
         }
     }
     

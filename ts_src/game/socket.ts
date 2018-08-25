@@ -1,5 +1,4 @@
 import gameManager from "./planarally";
-import { alphSort } from "../core/utils";
 import { ClientOptions, LocationOptions, Notes, AssetList, ServerShape, InitiativeData, BoardInfo, InitiativeEffect, AssetFileList } from "./api_types";
 import { GlobalPoint } from "./geom";
 
@@ -47,57 +46,7 @@ socket.on("set notes", function (notes: Notes[]) {
     };
 });
 socket.on("asset list", function (assets: AssetList) {
-    const m = $("#menu-tokens");
-    m.empty();
-    let h = '';
-
-    const process = function (entry: AssetList) {
-        const folders = Object.keys(entry).filter(el => !['__files'].includes(el)).sort(alphSort);
-        for (let name of folders) {
-            h += "<li class='folder'>" + name + "<ul>";
-            process((<AssetList>entry[name]));
-            h += "</ul></li>";
-        }
-        let files: AssetFileList[] = [];
-        if (entry['__files'])
-            files = (<AssetFileList[]>entry['__files']).concat().sort((a,b) => (a.name.toLowerCase() > b.name.toLowerCase()) ? 1 : -1);
-        for (let asset of files)
-            h += `<li class='file draggable token' data-img='/static/assets/${asset.hash}'>${asset.name}</li>`;
-    };
-    process(assets);
-    m.html(h);
-    $(".draggable").draggable({
-        helper: function() {
-            return $( `<img src='${$(this).data("img")}' class='asset-preview-image'>` );
-        },
-        appendTo: "#board"
-    });
-    
-    $('.folder').on("click", function (e) {
-        $(this).children().toggle();
-        e.stopPropagation();
-    });
-    $('.file').hover(
-        function(e) {
-            $("body").append(`<p id='preview'><img src='${$(this).data("img")}' class='asset-preview-image'></p>`); 
-            $("#preview")
-                .css("top",(e.pageY) + "px")
-                .css("left",(e.pageX) + "px")
-                .fadeIn("fast");	
-        },
-        function(e) {
-            $("#preview").remove();
-        }
-    );
-    $('.file').on("mousemove", function(e) {
-        $("#preview")
-			.css("top",(e.pageY) + "px")
-			.css("left",(e.pageX) + "px");
-    });
-    $('.accordion').on("click", function () {
-        $(this).toggleClass("accordion-active");
-        $(this).next().toggle();
-    });
+    store.commit("setAssets", assets);
 });
 socket.on("board init", function (locationInfo: BoardInfo) {
     store.commit("setLocations", locationInfo.locations)

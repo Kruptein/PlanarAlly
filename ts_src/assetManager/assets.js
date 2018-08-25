@@ -3,6 +3,7 @@ import { uuidv4 } from '../core/utils'
 import contextmenu from '../core/components/contextmenu.vue';
 import prompt from '../core/components/modals/prompt.vue';
 import confirm from '../core/components/modals/confirm.vue';
+import * as io from "socket.io-client";
 
 // ** SOCKET COMMUNICATION ** //
 const socket = io.connect(location.protocol + "//" + location.host + "/pa_assetmgmt");
@@ -160,6 +161,13 @@ const app = new Vue({
         }
     },
     methods: {
+        getDirectory(path) {
+            let folder = this.assetInfo;
+            for (let key of path) {
+                folder = folder[key];
+            }
+            return folder;
+        },
         changeDirectory: function (nextFolder) {
             if (nextFolder === '..')
                 this.currentDirectory.pop();
@@ -178,17 +186,19 @@ const app = new Vue({
             const isFolder = this.inodes.findIndex(e => e === inode) < this.folders.length;
             const name = isFolder ? inode : inode.name;
             const folder = this.directory;
+            const targetDirectory = target === '..' ? this.currentDirectory.slice(0, -1) : this.currentDirectory.concat(target);
+            const targetFolder = this.getDirectory(targetDirectory);
             if (isFolder) {
-                folder[target][name] = folder[name];
+                targetFolder[name] = folder[name];
                 Vue.delete(folder, name);
             } else {
-                if (!folder[target]['__files']) Vue.set(folder[target], '__files', []);
-                folder[target]['__files'].push(inode);
+                if (!targetFolder['__files']) Vue.set(targetFolder, '__files', []);
+                targetFolder['__files'].push(inode);
                 folder['__files'] = folder['__files'].filter(el => el.hash !== inode.hash);
             }
+            socket.emit("moveInode", {isFolder: isFolder, directory: this.currentDirectory, inode: inode, target: target});
         },
         select: function (event, index, inode) {
-            const el = event.target.closest(".inode");
             if (index >= 0 && event.shiftKey && this.selected.length > 0) {
                 const otherIndex = this.inodes.findIndex(el => el === this.selected[this.selected.length - 1]);
                 for (let i=index; i !== otherIndex; (index < otherIndex) ? i++ : i--)

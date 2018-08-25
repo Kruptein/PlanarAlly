@@ -477,14 +477,3 @@ DIRECTORY.CSS changes
     font-weight: normal;
 }
 
-
-#preview {
-    position: absolute;
-	display:none;
-    z-index:50;
-}
-
-.asset-preview-image {
-    width: 100%;
-    max-width: 250px;
-}

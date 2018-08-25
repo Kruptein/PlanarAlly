@@ -43,7 +43,9 @@
                         <button class="accordion">Assets</button>
                         <div class="accordion-panel">
                             <a style="position:absolute;right:0;margin:20px;" href="/assets/" target='blank'><i class="fas fa-external-link-alt"></i></a>
-                            <div class="directory" id="menu-tokens"></div>
+                            <div class="directory" id="menu-tokens">
+                                <asset-node :asset="assets"></asset-node>
+                            </div>
                         </div>
                         <button class="accordion">Notes</button>
                         <div class="accordion-panel">
@@ -110,12 +112,14 @@ import Vue from 'vue'
 import Settings from '../settings';
 import { mapState } from 'vuex';
 import colorpicker from '../../core/components/colorpicker.vue';
+import assetNode from "./asset_node.vue";
 import { socket } from '../socket';
 import { vm } from '../planarally';
 
 export default Vue.component("menu-bar", {
     components: {
-        'color-picker': colorpicker
+        'color-picker': colorpicker,
+        'asset-node': assetNode,
     },
     data: () => ({
         visible: {
@@ -128,6 +132,7 @@ export default Vue.component("menu-bar", {
             'invitationCode',
             'IS_DM',
             'locations',
+            'assets'
         ]),
         useGrid: {
             get(): boolean {

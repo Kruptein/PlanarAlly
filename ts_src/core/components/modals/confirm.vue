@@ -1,6 +1,6 @@
 <template>
     <modal :visible="visible" @close="close">
-        <div class='modal-header'>
+        <div class='modal-header' slot='header' slot-scope='m' @mousedown='m.startDrag' @mouseup='m.stopDrag'>
             {{ title }}
         </div>
         <div class='modal-body'>
@@ -61,6 +61,7 @@ export default {
     padding: 10px;
     font-size: 20px;
     font-weight: bold;
+    cursor: move;
 }
 
 .modal-body {

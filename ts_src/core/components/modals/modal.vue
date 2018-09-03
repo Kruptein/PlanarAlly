@@ -1,12 +1,13 @@
 <template>
     <transition name="modal">
-        <div class="modal-mask" @click="close" v-show="visible">
+        <div class="modal-mask" @click="close" v-show="visible" @mousemove='drag'>
             <div
                 class="modal-container"
                 @click.stop
                 ref="container"
                 :style="{left:left + 'px', top:top + 'px'}"
             >
+            <slot name='header' :startDrag="startDrag" :drag='drag' :stopDrag='stopDrag'></slot>
             <slot></slot>
             </div>
         </div>
@@ -22,6 +23,7 @@ export default Vue.extend({
     data: () => ({
         left: 0,
         top: 0,
+        dragging: false,
     }),
     updated() {
         if (this.left === 0 && this.top === 0) {
@@ -35,6 +37,17 @@ export default Vue.extend({
         close: function () {
             this.$emit('close');
         },
+        startDrag(event: MouseEvent) {
+            this.dragging = true;
+        },
+        stopDrag(event: MouseEvent) {
+            this.dragging = false;
+        },
+        drag(event: MouseEvent) {
+            if (!this.dragging) return;
+            this.left = event.clientX;
+            this.top = event.clientY;
+        }
     }
 })
 </script>

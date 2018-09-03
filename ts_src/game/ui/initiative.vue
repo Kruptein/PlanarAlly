@@ -1,6 +1,6 @@
 <template>
     <modal :visible="visible" @close="visible = false">
-        <div class='modal-header'>
+        <div class='modal-header' slot='header' slot-scope='m' @mousedown='m.startDrag' @mouseup='m.stopDrag'>
             Initiative
         </div>
         <div class='modal-body'>
@@ -127,6 +127,9 @@ export default Vue.component('initiative-dialog', {
         data: <InitiativeData[]> [],
         currentActor: <string | null> null,
         roundCounter: 0,
+        d: false,
+        mx: 0,
+        my: 0
     }),
     components: {
         modal,
@@ -142,6 +145,14 @@ export default Vue.component('initiative-dialog', {
         }
     },
     methods: {
+        md(event: MouseEvent){
+            this.mx = event.clientX;
+            this.my = event.clientY;
+        },
+        drag(event: MouseEvent) {
+            if (!this.d) return;
+            this.$emit("")
+        },
         getActor(actorId: string) {
             return this.data.find(a => a.uuid === actorId);
         },
@@ -265,6 +276,7 @@ export default Vue.component('initiative-dialog', {
     padding: 10px;
     font-size: 20px;
     font-weight: bold;
+    cursor: move;
 }
 
 .modal-body {

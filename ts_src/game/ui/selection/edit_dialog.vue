@@ -1,6 +1,6 @@
 <template>
     <modal :visible="visible" @close="visible = false">
-        <div class='modal-header'>
+        <div class='modal-header' slot='header' slot-scope='m' @mousedown='m.startDrag' @mouseup='m.stopDrag'>
             Edit asset
         </div>
         <div class='modal-body'>
@@ -279,6 +279,7 @@ export default Vue.component('edit-dialog', {
     padding: 10px;
     font-size: 20px;
     font-weight: bold;
+    cursor: move;
 }
 
 .modal-body {

@@ -1,6 +1,6 @@
 <template>
     <transition name="modal">
-        <div class="modal-mask" @click="close" v-show="visible" @mousemove='drag'>
+        <div class="modal-mask" @click="close" v-show="visible" @mousemove.self='drag'>
             <div
                 class="modal-container"
                 @click.stop
@@ -24,40 +24,43 @@ export default Vue.extend({
         left: 0,
         top: 0,
         dragging: false,
-        positioned: false
+        positioned: false,
+        offsetX: 0,
+        offsetY: 0,
     }),
+    // Example of mounted required: opening note
     mounted() {
-        if (!this.positioned) {
-            const container = (<any>this.$refs.container);
-            if (container.offsetWidth === 0 && container.offsetHeight === 0) return;
-            this.left = (window.innerWidth - container.offsetWidth)/2;
-            this.top = (window.innerHeight - container.offsetHeight)/2;
-            this.positioned = true;
-        }
+        this.updatePosition();
     },
+    // Example of updated required: opening initiative
     updated() {
-        if (!this.positioned) {
-            const container = (<any>this.$refs.container);
-            if (container.offsetWidth === 0 && container.offsetHeight === 0) return;
-            this.left = (window.innerWidth - container.offsetWidth)/2;
-            this.top = (window.innerHeight - container.offsetHeight)/2;
-            this.positioned = true;
-        }
+        this.updatePosition();
     },
     methods: {
         close: function () {
             this.$emit('close');
         },
+        updatePosition(){
+            if (!this.positioned) {
+                const container = (<any>this.$refs.container);
+                if (container.offsetWidth === 0 && container.offsetHeight === 0) return;
+                this.left = (window.innerWidth - container.offsetWidth)/2;
+                this.top = (window.innerHeight - container.offsetHeight)/2;
+                this.positioned = true;
+            }
+        },
         startDrag(event: MouseEvent) {
             this.dragging = true;
+            this.offsetX = event.offsetX;
+            this.offsetY = event.offsetY;
         },
         stopDrag(event: MouseEvent) {
             this.dragging = false;
         },
         drag(event: MouseEvent) {
             if (!this.dragging) return;
-            this.left = event.clientX;
-            this.top = event.clientY;
+            this.left = event.clientX - this.offsetX;
+            this.top = event.clientY - this.offsetY;
         }
     }
 })
@@ -76,8 +79,6 @@ export default Vue.extend({
 }
 
 .modal-container {
-    /* width: fit-content; */
-    /* margin: 40px auto 0; */
     position: absolute;
     width: auto;
     height: auto;

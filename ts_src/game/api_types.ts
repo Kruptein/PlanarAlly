@@ -122,3 +122,9 @@ export interface ServerText extends ServerShape {
 export interface ServerAsset extends ServerRect {
     src: string;
 }
+
+export interface Note {
+    name: string,
+    text: string,
+    uuid: string,
+}

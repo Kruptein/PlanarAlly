@@ -42,7 +42,7 @@
                     <template v-if="IS_DM">
                         <button class="accordion">Assets</button>
                         <div class="accordion-panel">
-                            <a style="position:absolute;right:0;margin:20px;" href="/assets/" target='blank'><i class="fas fa-external-link-alt"></i></a>
+                            <a class='actionButton' href="/assets/" target='blank'><i class="fas fa-external-link-alt"></i></a>
                             <div class="directory" id="menu-tokens">
                                 <asset-node :asset="assets"></asset-node>
                             </div>
@@ -50,8 +50,18 @@
                         <button class="accordion">Notes</button>
                         <div class="accordion-panel">
                             <div class="accordion-subpanel" id="menu-notes">
-                                <button id="createNote">Create new note</button>
-                                <label>Notes</label>
+                                <a class='actionButton' @click='createNote'><i class="far fa-plus-square"></i></a>
+                                <div
+                                    v-for="note in notes"
+                                    :key="note.uuid"
+                                    @click='openNote(note)'
+                                    style='cursor:pointer'
+                                >
+                                    {{ note.name || "[?]" }}
+                                </div>
+                                <div v-if='!notes.length'>
+                                    No notes
+                                </div>
                             </div>
                         </div>
                         <button class="accordion">DM Options</button>
@@ -115,6 +125,8 @@ import assetNode from "./asset_node.vue";
 import { socket } from '../../socket';
 import Settings from '../../settings';
 import { vm } from '../../planarally';
+import { uuidv4 } from '../../../core/utils';
+import { Note } from '../../api_types';
 
 export default Vue.component("menu-bar", {
     components: {
@@ -132,7 +144,8 @@ export default Vue.component("menu-bar", {
             'invitationCode',
             'IS_DM',
             'locations',
-            'assets'
+            'assets',
+            'notes'
         ]),
         useGrid: {
             get(): boolean {
@@ -223,6 +236,14 @@ export default Vue.component("menu-bar", {
                 },
                 () => {}
             );
+        },
+        createNote() {
+            const note = {name: 'New note', text: '', uuid: uuidv4()};
+            this.$store.commit("addNote", note);
+            this.openNote(note);
+        },
+        openNote(note: Note) {
+            (<any>vm.$refs.note).open(note);
         }
     }
 });
@@ -280,6 +301,13 @@ export default Vue.component("menu-bar", {
 #locations-menu > div > div:hover {
     cursor: pointer;
     background-color: #82c8a0;
+}
+
+.actionButton {
+    position:absolute;
+    right:0;
+    margin:5px;
+    padding: 0;
 }
 
 .settings-enter-active, .settings-leave-active {

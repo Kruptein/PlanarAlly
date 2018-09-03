@@ -1,21 +1,21 @@
 import Vue from "vue";
+import vueSlider from 'vue-slider-component'
 import { throttle } from 'lodash';
+import { mapState, mapGetters } from "vuex";
+
+import InitiativeDialog from "./ui/initiative.vue";
+import MenuBar from "./ui/menu/menu.vue";
+import NoteDialog from "./ui/note.vue";
+import PromptDialog from "../core/components/modals/prompt.vue";
+import SelectionInfo from "./ui/selection/selection_info.vue";
+import Tools from "./ui/tools/tools.vue";
 
 import store from "./store";
-
-import Tools from "./ui/tools/tools.vue";
-import SelectionInfo from "./ui/selection/selection_info.vue";
-import PromptDialog from "../core/components/modals/prompt.vue";
-import MenuBar from "./ui/menu/menu.vue";
-import InitiativeDialog from "./ui/initiative.vue";
-
-import { GameManager } from './manager';
 import { onKeyDown, onKeyUp } from './events/keyboard';
 import { scrollZoom } from './events/mouse';
-import { mapState, mapGetters } from "vuex";
-import vueSlider from 'vue-slider-component'
-import { l2g } from "./units";
 import { LocalPoint } from "./geom";
+import { GameManager } from './manager';
+import { l2g } from "./units";
 
 const gameManager = new GameManager();
 
@@ -30,6 +30,7 @@ export const vm = new Vue({
         'menu-bar': MenuBar,
         'initiative-dialog': InitiativeDialog,
         'zoom-slider': vueSlider,
+        'note-dialog': NoteDialog,
     },
     data: {
         ready: {
@@ -87,9 +88,3 @@ export const vm = new Vue({
 (<any>window).gameManager = gameManager;
 
 export default gameManager;
-
-// **** SETUP UI ****
-
-// $("#createNote").on("click", function () {
-//     gameManager.newNote("New note", "...", true, true);
-// });

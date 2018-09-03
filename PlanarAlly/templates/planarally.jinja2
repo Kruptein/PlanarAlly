@@ -8,8 +8,6 @@
     <link rel='stylesheet' href='/static/extern/css/jquery-ui-1.12.1.css'/>
     <script defer src='/static/extern/js/fontawesome_all.js'></script>
     <script defer src="/static/js/planarally.js"></script>
-    <script src='/static/extern/js/jquery-3.3.1.min.js'></script>
-    <script src='/static/extern/js/jquery-ui-1.12.1.min.js'></script>
 </head>
 <body>
 <div id="main">
@@ -42,6 +40,7 @@
     <selection-info ref='selectionInfo'></selection-info>
     <prompt-dialog ref="prompt"></prompt-dialog>
     <initiative-dialog ref='initiative' id='initiativedialog'></initiative-dialog>
+    <note-dialog ref='note'></note-dialog>
     <zoom-slider
         id='zoomer'
         v-model="zoomFactor"

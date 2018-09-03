@@ -24,13 +24,24 @@ export default Vue.extend({
         left: 0,
         top: 0,
         dragging: false,
+        positioned: false
     }),
-    updated() {
-        if (this.left === 0 && this.top === 0) {
+    mounted() {
+        if (!this.positioned) {
             const container = (<any>this.$refs.container);
             if (container.offsetWidth === 0 && container.offsetHeight === 0) return;
             this.left = (window.innerWidth - container.offsetWidth)/2;
             this.top = (window.innerHeight - container.offsetHeight)/2;
+            this.positioned = true;
+        }
+    },
+    updated() {
+        if (!this.positioned) {
+            const container = (<any>this.$refs.container);
+            if (container.offsetWidth === 0 && container.offsetHeight === 0) return;
+            this.left = (window.innerWidth - container.offsetWidth)/2;
+            this.top = (window.innerHeight - container.offsetHeight)/2;
+            this.positioned = true;
         }
     },
     methods: {

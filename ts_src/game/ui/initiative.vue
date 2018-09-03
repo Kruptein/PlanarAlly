@@ -119,7 +119,7 @@ import { InitiativeData, InitiativeEffect } from '../api_types';
 import { mapState } from 'vuex';
 import gameManager from '../planarally';
 import { socket } from '../socket';
-import { uuidv4, getHTMLTextWidth, getHTMLFont } from '../../core/utils';
+import { uuidv4 } from '../../core/utils';
 
 export default Vue.component('initiative-dialog', {
     data: () => ({
@@ -127,9 +127,6 @@ export default Vue.component('initiative-dialog', {
         data: <InitiativeData[]> [],
         currentActor: <string | null> null,
         roundCounter: 0,
-        d: false,
-        mx: 0,
-        my: 0
     }),
     components: {
         modal,
@@ -145,14 +142,6 @@ export default Vue.component('initiative-dialog', {
         }
     },
     methods: {
-        md(event: MouseEvent){
-            this.mx = event.clientX;
-            this.my = event.clientY;
-        },
-        drag(event: MouseEvent) {
-            if (!this.d) return;
-            this.$emit("")
-        },
         getActor(actorId: string) {
             return this.data.find(a => a.uuid === actorId);
         },

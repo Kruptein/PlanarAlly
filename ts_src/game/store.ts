@@ -5,7 +5,7 @@ import gameManager from './planarally';
 import { socket, sendClientOptions } from './socket';
 import { GlobalPoint } from './geom';
 import { g2l, l2g } from './units';
-import { AssetList } from './api_types';
+import { AssetList, Note } from './api_types';
 
 Vue.use(Vuex)
 
@@ -19,6 +19,8 @@ export default new Vuex.Store({
         locations: <string[]> [],
 
         assets: <AssetList> {},
+
+        notes: <Note[]> [],
 
         IS_DM: false,
         gridSize: 50,
@@ -179,6 +181,9 @@ export default new Vuex.Store({
         },
         setAssets(state, assets) {
             state.assets = assets;
+        },
+        addNote(state, note) {
+            state.notes.push(note);
         }
     }
     

@@ -17,19 +17,27 @@ export function alphSort(a: string, b: string) {
         return 1;
 }
 
-export function getHTMLTextWidth(element: JQuery<HTMLElement>): number {
-    let fakeElement = $('#emptyspan');
-    if (fakeElement.length == 0) {
-        fakeElement = $('<span id="emptyspan"></span>');
-        fakeElement.hide().appendTo(document.body)
+export function getHTMLFont(element: HTMLElement) {
+    let font = element.style.font;
+    while (font === null && element.parentElement !== null) {
+        element = element.parentElement;
+        font = element.style.font;
     }
-    let text = element.text();
-    if (text === '' && typeof element.val() === 'string')
-        text = <string>element.val();
-    else
-        return 0;
-    fakeElement.text(text).css('font', element.css('font'));
-    return Math.ceil(<number>fakeElement.width());
+    if (font === null) font = window.getComputedStyle(document.body).getPropertyValue("font");
+    return font;
+}
+
+export function getHTMLTextWidth(text: string, font: string): number {
+    let fakeElement = <HTMLCanvasElement>document.getElementById('emptycanvas');
+    if (fakeElement === null) {
+        fakeElement = document.createElement('canvas');
+        fakeElement.id = 'emptycanvas';
+        fakeElement.style.display = '';
+        document.body.appendChild(fakeElement);
+    }
+    const ctx = fakeElement.getContext('2d')!;
+    ctx.font = font;
+    return Math.ceil(ctx.measureText(text).width);
 }
 
 export function partition<T>(arr: T[], predicate: (n: T) => boolean) {

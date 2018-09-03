@@ -4,9 +4,10 @@ import { throttle } from 'lodash';
 import store from "./store";
 
 import Tools from "./ui/tools/tools.vue";
-import SelectionInfo from "./ui/selection_info.vue";
+import SelectionInfo from "./ui/selection/selection_info.vue";
 import PromptDialog from "../core/components/modals/prompt.vue";
-import MenuBar from "./ui/menu.vue";
+import MenuBar from "./ui/menu/menu.vue";
+import InitiativeDialog from "./ui/initiative.vue";
 
 import { GameManager } from './manager';
 import { onKeyDown, onKeyUp } from './events/keyboard';
@@ -27,6 +28,7 @@ export const vm = new Vue({
         'selection-info': SelectionInfo,
         'prompt-dialog': PromptDialog,
         'menu-bar': MenuBar,
+        'initiative-dialog': InitiativeDialog,
         'zoom-slider': vueSlider,
     },
     data: {

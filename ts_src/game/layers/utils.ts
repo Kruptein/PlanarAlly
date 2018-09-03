@@ -10,22 +10,6 @@ import gameManager from "../planarally";
 import store from "../store";
 
 export function createLayer (layerInfo: ServerLayer) {
-    // // UI changes
-    // if (!(layer.name === 'fow-players' && Settings.IS_DM))
-    //     layersdiv.append("<canvas id='" + layer.name + "-layer' style='z-index: " + this.layers.length + "'></canvas>");
-    // if (layer.selectable) {
-    //     const layerselectdiv = $("#layerselect");
-    //     let extra = '';
-    //     if (!this.layers.some(l => l.selectable)) extra = " class='layer-selected'";
-    //     layerselectdiv.find('ul')!.append("<li id='select-" + layer.name + "'" + extra + "><a href='#'>" + capitalize(layer.name) + "</a></li>");
-    // }
-    // let canvas;
-    // if (layer.name === 'fow-players') {
-    //     canvas = document.createElement("canvas");
-    // } else {
-    //     canvas = <HTMLCanvasElement>$('#' + layer.name + '-layer')[0];
-    // }
-
     // Create canvas element
     const canvas = document.createElement("canvas");
     canvas.style.zIndex = gameManager.layerManager.layers.length.toString();

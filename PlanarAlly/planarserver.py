@@ -388,7 +388,7 @@ async def update_initiative(sid, data):
             await sio.emit("updateInitiative", data, room=croom, namespace='/planarally')
 
 
-@sio.on("updateInitiativeOrder", namespace='/planarally')
+@sio.on("Initiative.Set", namespace='/planarally')
 @auth.login_required(app, sio)
 async def update_initiative_order(sid, data):
     policy = app['AuthzPolicy']
@@ -400,9 +400,8 @@ async def update_initiative_order(sid, data):
         print(f"{username} attempted to change the initiative order")
         return
     
-    location.initiative.sort(key=lambda init: data.index(init['uuid']))
-
-    await sio.emit("updateInitiativeOrder", data, room=location.sioroom, skip_sid=sid, namespace='/planarally')
+    location.initiative = data
+    await sio.emit("setInitiative", data, room=location.sioroom, skip_sid=sid, namespace='/planarally')
 
 
 @sio.on("updateInitiativeTurn", namespace='/planarally')
@@ -513,6 +512,7 @@ async def set_room(sid, data):
         return
 
     location.options.update(**data)
+    print("Updating location options")
     await sio.emit("set locationOptions", data, room=location.sioroom, skip_sid=sid, namespace='/planarally')
 
 

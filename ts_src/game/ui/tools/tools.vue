@@ -34,7 +34,7 @@ import PanTool from "./pan.vue";
 import DrawTool from "./draw.vue";
 import RulerTool from "./ruler.vue";
 import MapTool from "./map.vue";
-import shape_menu from "../shapecontext.vue";
+import shape_menu from "../selection/shapecontext.vue";
 import createtoken_modal from "./createtoken_modal.vue";
 
 import gameManager from '../../planarally';

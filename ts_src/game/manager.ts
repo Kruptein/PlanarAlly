@@ -1,15 +1,14 @@
 import { g2l } from "./units";
 import { ClientOptions, BoardInfo, ServerShape } from './api_types';
 import { createShapeFromDict } from './shapes/utils';
-import { InitiativeTracker } from './ui/tools/initiative';
 import { GlobalPoint } from "./geom";
 import { socket, sendClientOptions } from "./socket";
 import { uuidv4, OrderedMap } from "../core/utils";
 import Note from "./note";
-import AnnotationManager from "./ui/tools/annotation";
+import AnnotationManager from "./ui/annotation";
 import BoundingVolume from "./bvh/bvh";
 import { LayerManager } from "./layers/manager";
-import gameManager from "./planarally";
+import gameManager, { vm } from "./planarally";
 import store from "./store";
 
 export class GameManager {
@@ -23,17 +22,7 @@ export class GameManager {
     movementblockers: string[] = [];
     ownedtokens: string[] = [];
 
-    initiativeTracker = new InitiativeTracker();
     annotationManager = new AnnotationManager();
-    shapeSelectionDialog = $("#shapeselectiondialog").dialog({
-        autoOpen: false,
-        width: 'auto'
-    });
-    initiativeDialog = $("#initiativedialog").dialog({
-        autoOpen: false,
-        width: 'auto',
-        
-    });
 
     BV!: BoundingVolume;
 
@@ -121,7 +110,7 @@ export class GameManager {
         if (data.redraw)
             this.layerManager.getLayer(data.shape.layer)!.invalidate(false);
         if (redrawInitiative)
-            gameManager.initiativeTracker.redraw();
+            (<any>vm.$refs.initiative).$forceUpdate();
     }
 
     setClientOptions(options: ClientOptions): void {

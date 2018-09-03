@@ -49,7 +49,7 @@ export default Vue.component('select-context', {
             this.close();
         },
         showInitiative() {
-            gameManager.initiativeTracker.show();
+            (<any>this.$root.$refs.initiative).visible = true;
             this.close();
         }
     }

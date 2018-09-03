@@ -1,4 +1,4 @@
-import gameManager from "./planarally";
+import gameManager, { vm } from "./planarally";
 import { ClientOptions, LocationOptions, Notes, AssetList, ServerShape, InitiativeData, BoardInfo, InitiativeEffect, AssetFileList } from "./api_types";
 import { GlobalPoint } from "./geom";
 
@@ -58,7 +58,7 @@ socket.on("board init", function (locationInfo: BoardInfo) {
     }
     // Force the correct opacity render on other layers.
     gameManager.layerManager.setLayer(gameManager.layerManager.getLayer()!.name);
-    gameManager.initiativeTracker.clear();
+    (<any>vm.$refs.initiative).clear();
 });
 socket.on("set gridsize", function (gridSize: number) {
     store.commit("setGridSize", {gridSize: gridSize, sync: false});
@@ -99,28 +99,29 @@ socket.on("updateShape", function (data: { shape: ServerShape; redraw: boolean }
     gameManager.updateShape(data);
 });
 socket.on("updateInitiative", function (data: InitiativeData) {
+    const initiative = (<any>vm.$refs.initiative);
     if (data.initiative === undefined || (!data.owners.includes(store.state.username) && !store.state.IS_DM && !data.visible))
-        gameManager.initiativeTracker.removeInitiative(data.uuid, false, true);
+        initiative.removeInitiative(data.uuid, false, true);
     else
-        gameManager.initiativeTracker.addInitiative(data, false);
+        initiative.updateInitiative(data, false);
 });
 socket.on("setInitiative", function (data: InitiativeData[]) {
-    gameManager.initiativeTracker.setData(data);
-});
-socket.on("updateInitiativeOrder", function (data: string[]) {
-    gameManager.initiativeTracker.updateInitiativeOrder(data, false);
+    (<any>vm.$refs.initiative).data = data;
 });
 socket.on("updateInitiativeTurn", function (data: string) {
-    gameManager.initiativeTracker.setTurn(data, false);
+    (<any>vm.$refs.initiative).setTurn(data, false);
 });
 socket.on("updateInitiativeRound", function (data: number) {
-    gameManager.initiativeTracker.setRound(data, false);
+    (<any>vm.$refs.initiative).setRound(data, false);
 });
 socket.on("Initiative.Effect.New", function (data: {actor: string, effect: InitiativeEffect}) {
-    gameManager.initiativeTracker.createNewEffect(data.actor, data.effect, false)
+    const initiative = (<any>vm.$refs.initiative);
+    const actor = initiative.getActor(data.actor);
+    if (actor === undefined) return;
+    initiative.createEffect(actor, data.effect, false);
 });
 socket.on("Initiative.Effect.Update", function (data: {actor: string, effect: InitiativeEffect}) {
-    gameManager.initiativeTracker.updateEffect(data.actor, data.effect, false)
+    (<any>vm.$refs.initiative).updateEffect(data.actor, data.effect);
 });
 socket.on("clear temporaries", function (shapes: ServerShape[]) {
     shapes.forEach(function (shape) {

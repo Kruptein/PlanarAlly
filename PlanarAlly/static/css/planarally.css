@@ -161,7 +161,7 @@ svg {
 
 #zoomer {
     position: absolute;
-    top: 25px;
+    top: 15px;
     right: 25px;
     z-index: 11;
 }

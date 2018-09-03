@@ -105,7 +105,7 @@ export default Vue.extend({
     position: absolute;
     display: flex;
     flex-direction: column;
-    top: 150px;
+    top: 75px;
     right: 0;
     z-index: 10;
     opacity: 0.5;

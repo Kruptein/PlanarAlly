@@ -45,14 +45,14 @@
     <zoom-slider
         id='zoomer'
         v-model="zoomFactor"
-        :direction="'vertical'"
-        :height='200'
-        :width='6'
+        :height='6'
+        :width='200'
         :min='0.1'
         :max='5.0'
         :interval='0.1'
-        :dot-width='20'
-        :dot-height='8'
+        :dot-width='8'
+        :dot-height='20'
+        :tooltip-dir="'bottom'"
         :tooltip="'hover'"
         :formatter='zoomFactor.toFixed(1)'
         :slider-style="{'border-radius': '15%'}"

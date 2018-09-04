@@ -1,5 +1,6 @@
 <template>
     <div id='menuContainer'>
+        <!-- RADIAL MENU -->
         <div
             id="radialmenu"
             ref="rm"
@@ -36,9 +37,11 @@
                 </span>
             </div>
         </div>
+        <!-- SETTINGS -->
         <transition name="settings" @enter="$refs.rm.style.transition = 'left 500ms'">
             <div id="menu" v-if="visible.settings" @click="settingsClick">
                 <div style='width:100%;height:90%;overflow-y:auto;overflow-x:hidden;'>
+                    <!-- ASSETS -->
                     <template v-if="IS_DM">
                         <button class="accordion">Assets</button>
                         <div class="accordion-panel">
@@ -47,6 +50,7 @@
                                 <asset-node :asset="assets"></asset-node>
                             </div>
                         </div>
+                        <!-- NOTES -->
                         <button class="accordion">Notes</button>
                         <div class="accordion-panel">
                             <div class="accordion-subpanel" id="menu-notes">
@@ -64,6 +68,7 @@
                                 </div>
                             </div>
                         </div>
+                        <!-- DM OPTIONS -->
                         <button class="accordion">DM Options</button>
                         <div class="accordion-panel">
                             <div class="accordion-subpanel">
@@ -84,6 +89,7 @@
                             </div>
                         </div>
                     </template>
+                    <!-- CLIENT OPTIONS -->
                     <button class="accordion">Client Options</button>
                     <div class="accordion-panel">
                         <div class="accordion-subpanel">
@@ -97,6 +103,7 @@
                 <a href="/rooms" class="accordion" style='text-decoration:none;display:inline-block;position:absolute;bottom:0;'>Exit</a>
             </div>
         </transition>
+        <!-- LOCATIONS -->
         <transition name="locations" @enter="$refs.rm.style.transition = 'top 500ms'">
             <div id='locations-menu' v-if="IS_DM && visible.locations">
                 <div>
@@ -113,6 +120,7 @@
                 </div>
             </div>
         </transition>
+        <img id='dragImage'>
     </div>
 </template>
 

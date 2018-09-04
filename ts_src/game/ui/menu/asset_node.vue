@@ -13,12 +13,14 @@
             v-for="file in files"
             :key="file.name"
             class='file draggable token'
+            draggable="true"
             @mouseover="showImage = file.hash"
             @mouseout="showImage = null"
+            @dragstart="dragStart($event, '/static/assets/' + file.hash)"
         >
             {{ file.name }}
             <div v-if="showImage == file.hash" class='preview'>
-                    <img :src="'/static/assets/' + file.hash" class='asset-preview-image'>
+                    <img class='asset-preview-image' :src='"/static/assets/" + file.hash'>
             </div>
         </li>
     </ul>
@@ -50,6 +52,13 @@ export default Vue.component('asset-node', {
                 const el = <HTMLElement> event.target.children[i];
                 el.style.display = el.style.display === '' ? 'block' : '';
             }
+        },
+        dragStart(event: DragEvent, imageSource: string) {
+            let img = (<HTMLElement>event.target).querySelector('.preview')!;
+            // const img = <HTMLImageElement>document.getElementById('dragImage');
+            // img.src = imageSource;
+            event.dataTransfer.setDragImage(img, 0, 0);
+            event.dataTransfer.setData("text/plain", imageSource);
         }
     }
 })

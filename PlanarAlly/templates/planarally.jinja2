@@ -26,6 +26,8 @@
             @mouseup="mouseup"
             @mousemove="mousemove"
             @contextmenu.prevent.stop="contextmenu"
+            @dragover.prevent
+            @drop='drop'
         ></div>
         <div id="layerselect" v-if="layers.length > 1">
             <ul>

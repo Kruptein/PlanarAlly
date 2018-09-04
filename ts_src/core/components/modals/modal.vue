@@ -1,13 +1,12 @@
 <template>
     <transition name="modal">
-        <div class="modal-mask" @click="close" v-show="visible" @mousemove.self='drag'>
+        <div class="modal-mask" @click="close" v-show="visible" @dragover='dragOver'>
             <div
                 class="modal-container"
                 @click.stop
                 ref="container"
-                :style="{left:left + 'px', top:top + 'px'}"
             >
-            <slot name='header' :startDrag="startDrag" :drag='drag' :stopDrag='stopDrag'></slot>
+            <slot name='header' :dragStart='dragStart' :dragEnd='dragEnd'></slot>
             <slot></slot>
             </div>
         </div>
@@ -21,9 +20,6 @@ import Vue from "vue";
 export default Vue.extend({
     props: ['visible'],
     data: () => ({
-        left: 0,
-        top: 0,
-        dragging: false,
         positioned: false,
         offsetX: 0,
         offsetY: 0,
@@ -37,36 +33,42 @@ export default Vue.extend({
         this.updatePosition();
     },
     methods: {
-        close: function () {
+        close(event: MouseEvent) {
             this.$emit('close');
         },
         updatePosition(){
             if (!this.positioned) {
                 const container = (<any>this.$refs.container);
                 if (container.offsetWidth === 0 && container.offsetHeight === 0) return;
-                this.left = (window.innerWidth - container.offsetWidth)/2;
-                this.top = (window.innerHeight - container.offsetHeight)/2;
+                (<any>this.$refs.container).style.left = (window.innerWidth - container.offsetWidth)/2 + 'px';
+                (<any>this.$refs.container).style.top = (window.innerHeight - container.offsetHeight)/2 + 'px';
                 this.positioned = true;
             }
         },
-        startDrag(event: MouseEvent) {
-            this.dragging = true;
+        dragStart(event: DragEvent) {
+            // Because the drag event is happening on the header, we have to change the drag image
+            // in order to give the impression that the entire modal is dragged.
+            event.dataTransfer.setDragImage((<Element>this.$refs.container), event.offsetX, event.offsetY);
             this.offsetX = event.offsetX;
             this.offsetY = event.offsetY;
         },
-        stopDrag(event: MouseEvent) {
-            this.dragging = false;
+        dragEnd(event: DragEvent) {
+            (<any>this.$refs.container).style.left = (event.clientX - this.offsetX) + 'px';
+            (<any>this.$refs.container).style.top = (event.clientY - this.offsetY) + 'px';
+            (<any>this.$refs.container).style.display = 'block';
         },
-        drag(event: MouseEvent) {
-            if (!this.dragging) return;
-            this.left = event.clientX - this.offsetX;
-            this.top = event.clientY - this.offsetY;
+        dragOver(event: DragEvent) {
+            (<any>this.$refs.container).style.display = 'none';
         }
     }
 })
 </script>
 
 <style scoped>
+.hide {
+    display: none;
+}
+
 .modal-mask {
     position: fixed;
     z-index: 9998;
@@ -85,7 +87,6 @@ export default Vue.extend({
     background-color: #fff;
     border-radius: 2px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, .33);
-    transition: all .3s ease;
     font-family: Helvetica, Arial, sans-serif;
 }
 

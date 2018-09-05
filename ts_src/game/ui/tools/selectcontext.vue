@@ -8,26 +8,26 @@
 
 <script lang="ts">
 import Vue from "vue";
-import contextmenu from "../../../core/components/contextmenu.vue";
 
-import gameManager from "../../planarally";
-import { l2gx, l2gy } from "../../units";
-import { socket } from "../../socket";
 import { mapState } from "vuex";
 
-export default Vue.component('select-context', {
+import contextmenu from "../../../core/components/contextmenu.vue";
+import gameManager from "../../manager";
+
+import { socket } from "../../socket";
+import { l2gx, l2gy } from "../../units";
+
+export default Vue.component("select-context", {
     components: {
-        contextmenu
+        contextmenu,
     },
     data: () => ({
         visible: false,
         x: 0,
-        y: 0
+        y: 0,
     }),
     computed: {
-        ...mapState([
-            'IS_DM',
-        ]),
+        ...mapState(["IS_DM"]),
     },
     methods: {
         open(event: MouseEvent) {
@@ -41,7 +41,7 @@ export default Vue.component('select-context', {
         },
         bringPlayers() {
             if (!this.IS_DM) return;
-            socket.emit("bringPlayers", {x: l2gx(this.x), y: l2gy(this.y)});
+            socket.emit("bringPlayers", { x: l2gx(this.x), y: l2gy(this.y) });
             this.close();
         },
         createToken() {
@@ -51,9 +51,9 @@ export default Vue.component('select-context', {
         showInitiative() {
             (<any>this.$root.$refs.initiative).visible = true;
             this.close();
-        }
-    }
-})
+        },
+    },
+});
 </script>
 
 <style scoped>

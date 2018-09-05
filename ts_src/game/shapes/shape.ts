@@ -1,11 +1,12 @@
+import gameManager from "../manager";
+import store from "../store";
+import BoundingRect from "./boundingrect";
+
 import * as tinycolor from "tinycolor2";
 import { uuidv4 } from "../../core/utils";
-import BoundingRect from "./boundingrect";
-import gameManager from "../planarally";
-import { g2l, g2lr, g2ly, g2lx, g2lz } from "../units";
+import { InitiativeData, ServerShape } from "../api_types";
 import { GlobalPoint, LocalPoint } from "../geom";
-import { ServerShape, InitiativeData } from "../api_types";
-import store from "../store";
+import { g2l, g2lr, g2lx, g2ly, g2lz } from "../units";
 
 export default abstract class Shape {
     // Used to create class instance from server shape data
@@ -17,11 +18,11 @@ export default abstract class Shape {
 
     // A reference point regarding that specific shape's structure
     refPoint: GlobalPoint;
-    
+
     // Fill colour of the shape
-    fill: string = '#000';
-    //The optional name associated with the shape
-    name = 'Unknown shape';
+    fill: string = "#000";
+    // The optional name associated with the shape
+    name = "Unknown shape";
 
     // Associated trackers/auras/owners
     trackers: Tracker[] = [];
@@ -38,7 +39,7 @@ export default abstract class Shape {
     showHighlight = false;
 
     // Mouseover annotation
-    annotation: string = '';
+    annotation: string = "";
 
     // Draw modus to use
     globalCompositeOperation: string = "source-over";
@@ -53,13 +54,19 @@ export default abstract class Shape {
 
     abstract getBoundingBox(): BoundingRect;
 
-    // If inWorldCoord is 
+    // If inWorldCoord is
     abstract contains(point: GlobalPoint): boolean;
 
     abstract center(): GlobalPoint;
     abstract center(centerPoint: GlobalPoint): void;
     abstract getCorner(point: GlobalPoint): string | undefined;
     abstract visibleInCanvas(canvas: HTMLCanvasElement): boolean;
+
+    // Code to snap a shape to the grid
+    // This is shape dependent as the shape refPoints are shape specific in
+    abstract snapToGrid(): void;
+    abstract resizeToGrid(): void;
+    abstract resize(resizeDir: string, point: LocalPoint): void;
 
     invalidate(skipLightUpdate: boolean) {
         const l = gameManager.layerManager.getLayer(this.layer);
@@ -68,21 +75,19 @@ export default abstract class Shape {
 
     checkLightSources() {
         const self = this;
-        const vo_i = gameManager.lightblockers.indexOf(this.uuid);
+        const obstructionIndex = gameManager.lightblockers.indexOf(this.uuid);
         let changeBV = false;
-        if (this.visionObstruction && vo_i === -1) {
+        if (this.visionObstruction && obstructionIndex === -1) {
             gameManager.lightblockers.push(this.uuid);
             changeBV = true;
-
-        } else if (!this.visionObstruction && vo_i >= 0){
-            gameManager.lightblockers.splice(vo_i, 1);
+        } else if (!this.visionObstruction && obstructionIndex >= 0) {
+            gameManager.lightblockers.splice(obstructionIndex, 1);
             changeBV = true;
         }
-        if (changeBV)
-            gameManager.recalculateBoundingVolume();
+        if (changeBV) gameManager.recalculateBoundingVolume();
 
         // Check if the lightsource auras are in the gameManager
-        this.auras.forEach(function (au) {
+        this.auras.forEach(au => {
             const ls = gameManager.lightsources;
             const i = ls.findIndex(o => o.aura === au.uuid);
             if (au.lightSource && i === -1) {
@@ -95,33 +100,28 @@ export default abstract class Shape {
         for (let i = gameManager.lightsources.length - 1; i >= 0; i--) {
             const ls = gameManager.lightsources[i];
             if (ls.shape === self.uuid) {
-                if (!self.auras.some(a => a.uuid === ls.aura && a.lightSource))
-                    gameManager.lightsources.splice(i, 1);
+                if (!self.auras.some(a => a.uuid === ls.aura && a.lightSource)) gameManager.lightsources.splice(i, 1);
             }
         }
     }
 
     setMovementBlock(blocksMovement: boolean) {
         this.movementObstruction = blocksMovement || false;
-        const vo_i = gameManager.movementblockers.indexOf(this.uuid);
-        if (this.movementObstruction && vo_i === -1)
-            gameManager.movementblockers.push(this.uuid);
-        else if (!this.movementObstruction && vo_i >= 0)
-            gameManager.movementblockers.splice(vo_i, 1);
+        const obstructionIndex = gameManager.movementblockers.indexOf(this.uuid);
+        if (this.movementObstruction && obstructionIndex === -1) gameManager.movementblockers.push(this.uuid);
+        else if (!this.movementObstruction && obstructionIndex >= 0)
+            gameManager.movementblockers.splice(obstructionIndex, 1);
     }
 
     setIsToken(isToken: boolean) {
         this.isToken = isToken;
         const i = gameManager.ownedtokens.indexOf(this.uuid);
-        if (this.isToken && i === -1)
-            gameManager.ownedtokens.push(this.uuid);
-        else if (!this.isToken && i >= 0)
-            gameManager.ownedtokens.splice(i, 1);
+        if (this.isToken && i === -1) gameManager.ownedtokens.push(this.uuid);
+        else if (!this.isToken && i >= 0) gameManager.ownedtokens.splice(i, 1);
     }
 
     ownedBy(username?: string) {
-        if (username === undefined)
-            username = store.state.username;
+        if (username === undefined) username = store.state.username;
         return store.state.IS_DM || this.owners.includes(username);
     }
 
@@ -143,8 +143,8 @@ export default abstract class Shape {
             name: this.name,
             annotation: this.annotation,
             isToken: this.isToken,
-            options: JSON.stringify([...this.options])
-        }
+            options: JSON.stringify([...this.options]),
+        };
     }
     fromDict(data: ServerShape) {
         this.layer = data.layer;
@@ -155,29 +155,24 @@ export default abstract class Shape {
         this.trackers = data.trackers;
         this.owners = data.owners;
         this.isToken = data.isToken;
-        if (data.annotation)
-            this.annotation = data.annotation;
-        if (data.name)
-            this.name = data.name;
-        if (data.options)
-            this.options = new Map(JSON.parse(data.options));
+        if (data.annotation) this.annotation = data.annotation;
+        if (data.name) this.name = data.name;
+        if (data.options) this.options = new Map(JSON.parse(data.options));
     }
 
     draw(ctx: CanvasRenderingContext2D) {
-        if (this.globalCompositeOperation !== undefined)
-            ctx.globalCompositeOperation = this.globalCompositeOperation;
-        else
-            ctx.globalCompositeOperation = "source-over";
+        if (this.globalCompositeOperation !== undefined) ctx.globalCompositeOperation = this.globalCompositeOperation;
+        else ctx.globalCompositeOperation = "source-over";
         if (this.showHighlight) {
             const bbox = this.getBoundingBox();
-            ctx.strokeStyle = 'red';
+            ctx.strokeStyle = "red";
             ctx.strokeRect(g2lx(bbox.topLeft.x) - 5, g2ly(bbox.topLeft.y) - 5, g2lz(bbox.w) + 10, g2lz(bbox.h) + 10);
         }
         this.drawAuras(ctx);
     }
 
     drawAuras(ctx: CanvasRenderingContext2D) {
-        for(let aura of this.auras) {
+        for (const aura of this.auras) {
             if (aura.value === 0 && aura.dim === 0) return;
             ctx.beginPath();
             ctx.fillStyle = aura.colour;
@@ -207,11 +202,6 @@ export default abstract class Shape {
             owners: this.owners,
             has_img: false,
             effects: [],
-        }
+        };
     }
-    // Code to snap a shape to the grid
-    // This is shape dependent as the shape refPoints are shape specific in
-    snapToGrid() {};
-    resizeToGrid() {};
-    resize(resizeDir: string, point: LocalPoint) {};
 }

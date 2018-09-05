@@ -118,35 +118,37 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue'
-import draggable from 'vuedraggable'
+import Vue from "vue";
+import draggable from "vuedraggable";
+
+import { mapState } from "vuex";
+
 import modal from "../../core/components/modals/modal.vue";
+import gameManager from "../manager";
 
-import { InitiativeData, InitiativeEffect } from '../api_types';
-import { mapState } from 'vuex';
-import gameManager from '../planarally';
-import { socket } from '../socket';
-import { uuidv4 } from '../../core/utils';
+import { uuidv4 } from "../../core/utils";
+import { InitiativeData, InitiativeEffect } from "../api_types";
+import { socket } from "../socket";
 
-export default Vue.component('initiative-dialog', {
+export default Vue.component("initiative-dialog", {
     data: () => ({
         visible: false,
-        data: <InitiativeData[]> [],
-        currentActor: <string | null> null,
+        data: <InitiativeData[]>[],
+        currentActor: <string | null>null,
         roundCounter: 0,
     }),
     components: {
         modal,
-        'draggable': draggable
+        draggable,
     },
     computed: {
         sortedData(): InitiativeData[] {
-            return this.data.sort(function (a, b) {
+            return this.data.sort((a, b) => {
                 if (a.initiative === undefined) return 1;
                 if (b.initiative === undefined) return -1;
                 return b.initiative - a.initiative;
-            })
-        }
+            });
+        },
     },
     methods: {
         getActor(actorId: string) {
@@ -160,7 +162,7 @@ export default Vue.component('initiative-dialog', {
             this.currentActor = null;
         },
         contains(uuid: string) {
-            return this.data.some((d) => d.uuid === uuid);
+            return this.data.some(d => d.uuid === uuid);
         },
         owns(actor: InitiativeData): boolean {
             if (this.$store.state.IS_DM) return true;
@@ -169,35 +171,29 @@ export default Vue.component('initiative-dialog', {
             if (shape === undefined) return false;
             return shape.owners.includes(this.$store.state.username);
         },
-        setTurn(actor: string|null, sync: boolean) {
-            this.currentActor = actor;
-            const a = this.data.find(a => a.uuid === actor);
-            if (a === undefined) return;
-            for (let e=a.effects.length-1; e >= 0; e--) {
-                if (a.effects[e].turns <= 0)
-                    a.effects.splice(e, 1);
-                else
-                    a.effects[e].turns--;
+        setTurn(actorId: string | null, sync: boolean) {
+            this.currentActor = actorId;
+            const actor = this.data.find(a => a.uuid === actorId);
+            if (actor === undefined) return;
+            for (let e = actor.effects.length - 1; e >= 0; e--) {
+                if (actor.effects[e].turns <= 0) actor.effects.splice(e, 1);
+                else actor.effects[e].turns--;
             }
-            if (sync)
-                socket.emit("updateInitiativeTurn", actor);
+            if (sync) socket.emit("updateInitiativeTurn", actorId);
         },
         setRound(round: number, sync: boolean) {
             this.roundCounter = round;
-            if (sync)
-                socket.emit("updateInitiativeRound", round);
+            if (sync) socket.emit("updateInitiativeRound", round);
         },
         nextTurn() {
             const order = this.sortedData;
             const next = order[(order.findIndex(a => a.uuid === this.currentActor) + 1) % order.length];
-            if (this.data[0].uuid === next.uuid)
-                this.setRound(this.roundCounter+1, true);
-            this.setTurn(next.uuid, true)
+            if (this.data[0].uuid === next.uuid) this.setRound(this.roundCounter + 1, true);
+            this.setTurn(next.uuid, true);
         },
         updateInitiative(data: InitiativeData, sync: boolean) {
             // If no initiative given, assume it 0
-            if (data.initiative === undefined)
-                data.initiative = 0;
+            if (data.initiative === undefined) data.initiative = 0;
             // Check if the shape is already being tracked
             const existing = this.data.find(d => d.uuid === data.uuid);
             if (existing !== undefined) {
@@ -205,23 +201,21 @@ export default Vue.component('initiative-dialog', {
             } else {
                 this.data.push(data);
             }
-            if (sync) this.syncInitiative(data);    
+            if (sync) this.syncInitiative(data);
         },
-        syncInitiative(data: InitiativeData | {uuid: string}) {
+        syncInitiative(data: InitiativeData | { uuid: string }) {
             socket.emit("updateInitiative", data);
         },
         removeInitiative(uuid: string, sync: boolean, skipGroupCheck: boolean) {
-            const d = this.data.findIndex(d => d.uuid === uuid);
+            const d = this.data.findIndex(a => a.uuid === uuid);
             if (d < 0) return;
             if (!skipGroupCheck && this.data[d].group) return;
-            if (sync) this.syncInitiative({uuid: uuid});
+            if (sync) this.syncInitiative({ uuid });
             this.data.splice(d, 1);
 
             if (this.currentActor === uuid) {
-                if (this.data.length > 1)
-                    this.nextTurn();
-                else
-                    this.currentActor = null;
+                if (this.data.length > 1) this.nextTurn();
+                else this.currentActor = null;
             }
 
             const shape = gameManager.layerManager.UUIDMap.get(uuid);
@@ -245,14 +239,14 @@ export default Vue.component('initiative-dialog', {
         createEffect(actor: InitiativeData, effect: InitiativeEffect, sync: boolean) {
             if (!this.owns(actor)) return;
             actor.effects.push(effect);
-            if (sync) socket.emit("Initiative.Effect.New", {actor: actor.uuid, effect: effect});
+            if (sync) socket.emit("Initiative.Effect.New", { actor: actor.uuid, effect });
         },
         getDefaultEffect() {
-            return {uuid: uuidv4(), name: 'New Effect', turns: 10}
+            return { uuid: uuidv4(), name: "New Effect", turns: 10 };
         },
         syncEffect(actor: InitiativeData, effect: InitiativeEffect) {
             if (!this.owns(actor)) return;
-            socket.emit("Initiative.Effect.Update", {actor: actor.uuid, effect: effect});
+            socket.emit("Initiative.Effect.Update", { actor: actor.uuid, effect });
         },
         updateEffect(actorId: string, effect: InitiativeEffect) {
             const actor = this.data.find(a => a.uuid === actorId);
@@ -260,15 +254,15 @@ export default Vue.component('initiative-dialog', {
             const effectIndex = actor.effects.findIndex(e => e.uuid === effect.uuid);
             if (effectIndex === undefined) return;
             actor.effects[effectIndex] = effect;
-        }
-    }
-})
+        },
+    },
+});
 </script>
 
 
 <style scoped>
 .modal-header {
-    background-color: #FF7052;
+    background-color: #ff7052;
     padding: 10px;
     font-size: 20px;
     font-weight: bold;
@@ -302,7 +296,9 @@ export default Vue.component('initiative-dialog', {
     background-color: #82c8a0;
 }
 
-.initiative-selected + .initiative-effect, .initiative-actor:hover + .initiative-effect, .initiative-effect:hover {
+.initiative-selected + .initiative-effect,
+.initiative-actor:hover + .initiative-effect,
+.initiative-effect:hover {
     display: flex;
     border-color: rgba(130, 200, 160, 0.6);
     background-color: rgba(130, 200, 160, 0.6);
@@ -364,7 +360,7 @@ export default Vue.component('initiative-dialog', {
 .initiative-bar-button {
     border: solid 2px #82c8a0;
     border-radius: 5px;
-    padding:5px;
+    padding: 5px;
 }
 
 .initiative-bar-button:hover {

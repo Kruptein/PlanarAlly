@@ -28,46 +28,49 @@
 
 
 <script lang="ts">
-import Vue from 'vue'
-import { alphSort } from '../../../core/utils';
-import { AssetFileList } from '../../api_types';
-export default Vue.component('asset-node', {
-    props: ['asset', 'open'],
+import Vue from "vue";
+import { alphSort } from "../../../core/utils";
+import { AssetFileList } from "../../api_types";
+export default Vue.component("asset-node", {
+    props: ["asset", "open"],
     data: () => ({
         showImage: null,
     }),
     computed: {
         folders(): string[] {
-            return Object.keys(this.asset).filter(el => !['__files'].includes(el)).sort(alphSort);
+            return Object.keys(this.asset)
+                .filter(el => !["__files"].includes(el))
+                .sort(alphSort);
         },
         files(): AssetFileList[] {
-            if (this.asset['__files'])
-                return (<AssetFileList[]>this.asset['__files']).concat().sort((a,b) => (a.name.toLowerCase() > b.name.toLowerCase()) ? 1 : -1);
+            if (this.asset.__files)
+                return (<AssetFileList[]>this.asset.__files)
+                    .concat()
+                    .sort((a, b) => (a.name.toLowerCase() > b.name.toLowerCase() ? 1 : -1));
             return [];
-        }
+        },
     },
     methods: {
         toggle(event: { target: HTMLElement }) {
-            for (let i=0; i < event.target.children.length; i++) {
-                const el = <HTMLElement> event.target.children[i];
-                el.style.display = el.style.display === '' ? 'block' : '';
+            // tslint:disable-next-line:prefer-for-of
+            for (let i = 0; i < event.target.children.length; i++) {
+                const el = <HTMLElement>event.target.children[i];
+                el.style.display = el.style.display === "" ? "block" : "";
             }
         },
         dragStart(event: DragEvent, imageSource: string) {
-            let img = (<HTMLElement>event.target).querySelector('.preview')!;
-            // const img = <HTMLImageElement>document.getElementById('dragImage');
-            // img.src = imageSource;
+            const img = (<HTMLElement>event.target).querySelector(".preview")!;
             event.dataTransfer.setDragImage(img, 0, 0);
             event.dataTransfer.setData("text/plain", imageSource);
-        }
-    }
-})
+        },
+    },
+});
 </script>
 
 <style>
 .preview {
     position: fixed;
-    z-index:50;
+    z-index: 50;
     left: 200px;
 }
 

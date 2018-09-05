@@ -1,7 +1,8 @@
 // Reference: https://stackoverflow.com/questions/105034/create-guid-uuid-in-javascript
 export function uuidv4() {
-    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
-        const r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+    return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, c => {
+        const r = (Math.random() * 16) | 0;
+        const v = c === "x" ? r : (r & 0x3) | 0x8;
         return v.toString(16);
     });
 }
@@ -11,10 +12,8 @@ export function capitalize(text: string) {
 }
 
 export function alphSort(a: string, b: string) {
-    if (a.toLowerCase() < b.toLowerCase())
-        return -1;
-    else
-        return 1;
+    if (a.toLowerCase() < b.toLowerCase()) return -1;
+    else return 1;
 }
 
 export function getHTMLFont(element: HTMLElement) {
@@ -28,21 +27,21 @@ export function getHTMLFont(element: HTMLElement) {
 }
 
 export function getHTMLTextWidth(text: string, font: string): number {
-    let fakeElement = <HTMLCanvasElement>document.getElementById('emptycanvas');
+    let fakeElement = <HTMLCanvasElement>document.getElementById("emptycanvas");
     if (fakeElement === null) {
-        fakeElement = document.createElement('canvas');
-        fakeElement.id = 'emptycanvas';
-        fakeElement.style.display = '';
+        fakeElement = document.createElement("canvas");
+        fakeElement.id = "emptycanvas";
+        fakeElement.style.display = "";
         document.body.appendChild(fakeElement);
     }
-    const ctx = fakeElement.getContext('2d')!;
+    const ctx = fakeElement.getContext("2d")!;
     ctx.font = font;
     return Math.ceil(ctx.measureText(text).width);
 }
 
 export function partition<T>(arr: T[], predicate: (n: T) => boolean) {
     const ret: T[][] = [[], []];
-    arr.forEach((n) => predicate(n) ? ret[1].push(n) : ret[0].push(n));
+    arr.forEach(n => (predicate(n) ? ret[1].push(n) : ret[0].push(n)));
     return ret;
 }
 
@@ -53,8 +52,8 @@ export function calcFontScale(ctx: CanvasRenderingContext2D, text: string, width
 }
 
 export function fixedEncodeURIComponent(str: string) {
-    return encodeURIComponent(str).replace(/[!'()*]/g, function(c) {
-      return '%' + c.charCodeAt(0).toString(16);
+    return encodeURIComponent(str).replace(/[!'()*]/g, c => {
+        return "%" + c.charCodeAt(0).toString(16);
     });
 }
 

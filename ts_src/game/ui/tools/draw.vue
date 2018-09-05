@@ -35,78 +35,80 @@
 </template>
 
 <script lang="ts">
+import { mapState } from "vuex";
+
+import colorpicker from "../../../core/components/colorpicker.vue";
+import gameManager from "../../manager";
+import Circle from "../../shapes/circle";
+import MultiLine from "../../shapes/multiline";
+import Rect from "../../shapes/rect";
+import Shape from "../../shapes/shape";
+import store from "../../store";
 import Tool from "./tool.vue";
 
-import gameManager from "../../planarally";
-import { getMouse } from "../../utils";
-import { l2g, getUnitDistance } from "../../units";
 import { GlobalPoint } from "../../geom";
-import colorpicker from "../../../core/components/colorpicker.vue";
-import Rect from "../../shapes/rect";
-import Circle from "../../shapes/circle";
-import Shape from "../../shapes/shape";
-import { socket } from "../../socket";
-import MultiLine from "../../shapes/multiline";
 import { FOWLayer } from "../../layers/fow";
-import { mapState } from "vuex";
-import store from "../../store";
+import { socket } from "../../socket";
+import { getUnitDistance, l2g } from "../../units";
+import { getMouse } from "../../utils";
 
-const tempUnitSize = store.state.unitSize
-
+const tempUnitSize = store.state.unitSize;
 
 export default Tool.extend({
     components: {
-        'color-picker': colorpicker
+        "color-picker": colorpicker,
     },
     data: () => ({
         name: "draw",
         active: false,
-        
-        startPoint: <GlobalPoint|null> null,
-        shape: <Shape|null> null,
-        brushHelper: <Circle|null> null,
+
+        startPoint: <GlobalPoint | null>null,
+        shape: <Shape | null>null,
+        brushHelper: <Circle | null>null,
 
         fillColour: "rgba(0, 0, 0, 1)",
         borderColour: "rgba(255, 255, 255, 0)",
-        
+
         shapeSelect: "square",
-        shapes: ['square', 'circle', 'paint-brush'],
+        shapes: ["square", "circle", "paint-brush"],
         modeSelect: "normal",
-        modes: ['normal', 'reveal', 'hide'],
+        modes: ["normal", "reveal", "hide"],
 
         brushSize: getUnitDistance(tempUnitSize),
     }),
     computed: {
         helperSize(): number {
-            if (this.shapeSelect === 'paint-brush')
-                return this.brushSize / 2;
+            if (this.shapeSelect === "paint-brush") return this.brushSize / 2;
             return getUnitDistance(this.unitSize) / 4;
         },
-        IS_DM(): boolean { return this.$store.state.IS_DM },
-        unitSize(): number { return this.$store.state.unitSize },
-        useGrid(): boolean { return this.$store.state.useGrid },
+        IS_DM(): boolean {
+            return this.$store.state.IS_DM;
+        },
+        unitSize(): number {
+            return this.$store.state.unitSize;
+        },
+        useGrid(): boolean {
+            return this.$store.state.useGrid;
+        },
     },
     watch: {
         fillColour() {
-            if (this.brushHelper)
-                this.brushHelper.fill = this.fillColour;
+            if (this.brushHelper) this.brushHelper.fill = this.fillColour;
         },
         modeSelect(newValue, oldValue) {
             this.onModeChange(newValue, oldValue);
-        }
+        },
     },
     methods: {
         setupBrush() {
             if (this.brushHelper === null) return;
-            if (this.modeSelect === 'reveal' || this.modeSelect === 'hide') {
+            if (this.modeSelect === "reveal" || this.modeSelect === "hide") {
                 this.brushHelper.options.set("preFogShape", true);
                 this.brushHelper.options.set("skipDraw", true);
                 this.brushHelper.fill = "rgba(0, 0, 0, 1)";
-                
-                if (this.modeSelect === 'reveal')
-                    this.brushHelper.globalCompositeOperation = 'source-over';
-                else if (this.modeSelect === 'hide')
-                    this.brushHelper.globalCompositeOperation = 'destination-out';
+
+                if (this.modeSelect === "reveal") this.brushHelper.globalCompositeOperation = "source-over";
+                else if (this.modeSelect === "hide") this.brushHelper.globalCompositeOperation = "destination-out";
             } else {
                 this.brushHelper.options.delete("preFogShape");
                 this.brushHelper.options.delete("skipDraw");
@@ -123,18 +125,16 @@ export default Tool.extend({
 
             this.setupBrush();
 
-            if (newValue !== 'normal' && oldValue === 'normal') {
+            if (newValue !== "normal" && oldValue === "normal") {
                 normalLayer.removeShape(this.brushHelper, false);
                 fowLayer.addShape(this.brushHelper, false);
-            } else if (newValue === 'normal' && oldValue !=='normal') {
+            } else if (newValue === "normal" && oldValue !== "normal") {
                 normalLayer.addShape(this.brushHelper, false);
                 fowLayer.removeShape(this.brushHelper, false);
             }
-            
         },
         getLayer() {
-            if (this.modeSelect === 'normal')
-                return gameManager.layerManager.getLayer();
+            if (this.modeSelect === "normal") return gameManager.layerManager.getLayer();
             return gameManager.layerManager.getLayer("fow");
         },
         onMouseDown(event: MouseEvent) {
@@ -145,33 +145,31 @@ export default Tool.extend({
             }
             this.active = true;
             this.startPoint = l2g(getMouse(event));
-            if (this.shapeSelect === 'square')
+            if (this.shapeSelect === "square")
                 this.shape = new Rect(this.startPoint.clone(), 0, 0, this.fillColour, this.borderColour);
-            else if (this.shapeSelect === 'circle')
+            else if (this.shapeSelect === "circle")
                 this.shape = new Circle(this.startPoint.clone(), this.helperSize, this.fillColour, this.borderColour);
-            else if (this.shapeSelect === 'paint-brush') {
+            else if (this.shapeSelect === "paint-brush") {
                 this.shape = new MultiLine(this.startPoint.clone(), [], this.brushSize);
                 this.shape.fill = this.fillColour;
             } else return;
 
-            if (this.modeSelect !== 'normal') {
+            if (this.modeSelect !== "normal") {
                 this.shape.options.set("preFogShape", true);
                 this.shape.options.set("skipDraw", true);
                 this.shape.fill = "rgba(0, 0, 0, 1)";
             }
-            if (this.modeSelect === 'reveal')
-                this.shape.globalCompositeOperation = 'source-over';
-            else if (this.modeSelect === 'hide')
-                this.shape.globalCompositeOperation = 'destination-out';
-            
+            if (this.modeSelect === "reveal") this.shape.globalCompositeOperation = "source-over";
+            else if (this.modeSelect === "hide") this.shape.globalCompositeOperation = "destination-out";
+
             this.shape.owners.push(this.$store.state.username);
-            if (layer.name === 'fow' && this.modeSelect === 'normal') {
+            if (layer.name === "fow" && this.modeSelect === "normal") {
                 this.shape.visionObstruction = true;
                 this.shape.movementObstruction = true;
             }
             gameManager.lightblockers.push(this.shape.uuid);
             layer.addShape(this.shape, true, false);
-            
+
             // Push brushhelper to back
             this.onDeselect();
             this.onSelect();
@@ -187,20 +185,19 @@ export default Tool.extend({
             if (this.brushHelper !== null) {
                 this.brushHelper.r = this.helperSize;
                 this.brushHelper.refPoint = endPoint;
-                if (!this.active)
-                    layer.invalidate(false);
+                if (!this.active) layer.invalidate(false);
             }
 
             if (!this.active || this.startPoint === null || this.shape === null) return;
 
-            if (this.shapeSelect === 'square') {
+            if (this.shapeSelect === "square") {
                 (<Rect>this.shape).w = Math.abs(endPoint.x - this.startPoint.x);
                 (<Rect>this.shape).h = Math.abs(endPoint.y - this.startPoint.y);
                 this.shape.refPoint.x = Math.min(this.startPoint.x, endPoint.x);
                 this.shape.refPoint.y = Math.min(this.startPoint.y, endPoint.y);
-            } else if (this.shapeSelect === 'circle') {
+            } else if (this.shapeSelect === "circle") {
                 (<Circle>this.shape).r = endPoint.subtract(this.startPoint).length();
-            } else if (this.shapeSelect === 'paint-brush') {
+            } else if (this.shapeSelect === "paint-brush") {
                 (<MultiLine>this.shape).points.push(endPoint);
             }
             socket.emit("shapeMove", { shape: this.shape!.asDict(), temporary: false });
@@ -218,15 +215,14 @@ export default Tool.extend({
             if (layer === undefined) return;
             this.brushHelper = new Circle(new GlobalPoint(-1000, -1000), this.brushSize / 2, this.fillColour);
             this.setupBrush();
-            layer.addShape(this.brushHelper, false);  // during mode change the shape is already added
+            layer.addShape(this.brushHelper, false); // during mode change the shape is already added
         },
         onDeselect() {
             const layer = this.getLayer();
-            if (this.brushHelper !== null && layer !== undefined)
-                layer.removeShape(this.brushHelper, false);
-        }
-    }
-})
+            if (this.brushHelper !== null && layer !== undefined) layer.removeShape(this.brushHelper, false);
+        },
+    },
+});
 </script>
 
 <style scoped>
@@ -240,7 +236,8 @@ export default Tool.extend({
     align-items: center;
     font-size: 13px;
 }
-.option-selected, .option:hover {
+.option-selected,
+.option:hover {
     background-color: #82c8a0;
 }
 .selectgroup {

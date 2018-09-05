@@ -21,17 +21,17 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue'
+import Vue from "vue";
 import modal from "../../core/components/modals/modal.vue";
 
-import { mapState } from 'vuex';
-import { uuidv4 } from '../../core/utils';
-import { Note } from '../api_types';
+import { mapState } from "vuex";
+import { uuidv4 } from "../../core/utils";
+import { Note } from "../api_types";
 
-export default Vue.component('initiative-dialog', {
+export default Vue.component("initiative-dialog", {
     data: () => ({
         visible: false,
-        note: <Note | null> null,
+        note: <Note | null>null,
     }),
     components: {
         modal,
@@ -43,21 +43,21 @@ export default Vue.component('initiative-dialog', {
         },
         calcHeight() {
             if (this.$refs.textarea) {
-                const el = (<HTMLElement>this.$refs.textarea);
-                el.style.height = 'auto';
-                el.style.height = el.scrollHeight + 'px';
+                const el = <HTMLElement>this.$refs.textarea;
+                el.style.height = "auto";
+                el.style.height = el.scrollHeight + "px";
                 // Using the return value without the above did not achieve what I want, so hey /shrug
-                return el.scrollHeight + 'px';
+                return el.scrollHeight + "px";
             }
-            return '100px';
-        }
-    }
+            return "100px";
+        },
+    },
 });
 </script>
 
 <style scoped>
 .modal-header {
-    background-color: #FF7052;
+    background-color: #ff7052;
     padding: 10px;
     font-size: 20px;
     font-weight: bold;

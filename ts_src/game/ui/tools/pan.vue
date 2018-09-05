@@ -2,26 +2,23 @@
 </template>
 
 <script lang="ts">
+import { mapState } from "vuex";
+
+import gameManager from "../../manager";
 import Tool from "./tool.vue";
 
 import { LocalPoint } from "../../geom";
-import { getMouse } from "../../utils";
-import gameManager from "../../planarally";
 import { sendClientOptions } from "../../socket";
-import { mapState } from "vuex";
+import { getMouse } from "../../utils";
 
 export default Tool.extend({
     data: () => ({
         name: "pan",
         panStart: new LocalPoint(0, 0),
-        active: false
+        active: false,
     }),
     computed: {
-        ...mapState([
-            'zoomFactor',
-            'panX',
-            'panY'
-        ]),
+        ...mapState(["zoomFactor", "panX", "panY"]),
     },
     methods: {
         onMouseDown(event: MouseEvent) {
@@ -31,7 +28,7 @@ export default Tool.extend({
         onMouseMove(event: MouseEvent) {
             if (!this.active) return;
             const mouse = getMouse(event);
-            const distance = mouse.subtract(this.panStart).multiply(1/this.zoomFactor);
+            const distance = mouse.subtract(this.panStart).multiply(1 / this.zoomFactor);
             this.$store.commit("increasePanX", Math.round(distance.x));
             this.$store.commit("increasePanY", Math.round(distance.y));
             this.panStart = mouse;
@@ -40,7 +37,7 @@ export default Tool.extend({
         onMouseUp(event: MouseEvent) {
             this.active = false;
             sendClientOptions();
-        }
-    }
-})
+        },
+    },
+});
 </script>

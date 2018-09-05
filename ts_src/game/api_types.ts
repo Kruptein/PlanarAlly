@@ -16,8 +16,8 @@ export interface ClientOptions {
             panX: number;
             panY: number;
             zoomFactor: number;
-        }
-    }
+        };
+    };
 }
 
 export interface Notes {
@@ -31,8 +31,8 @@ export interface AssetList {
 }
 
 export interface AssetFileList {
-    name: string,
-    hash: string
+    name: string;
+    hash: string;
 }
 
 export interface InitiativeData {
@@ -110,7 +110,7 @@ export interface ServerLine extends ServerShape {
     lineWidth: number;
 }
 export interface ServerMultiLine extends ServerShape {
-    points: {x: number, y: number}[];
+    points: { x: number; y: number }[];
     size: number;
     fill: string;
 }
@@ -124,7 +124,7 @@ export interface ServerAsset extends ServerRect {
 }
 
 export interface Note {
-    name: string,
-    text: string,
-    uuid: string,
+    name: string;
+    text: string;
+    uuid: string;
 }

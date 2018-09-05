@@ -21,29 +21,31 @@
 
 <script lang="ts">
 import Vue from "vue";
+
 import contextmenu from "../../../core/components/contextmenu.vue";
-
+import gameManager from "../../manager";
 import Settings from "../../settings";
-import { l2gx, l2gy } from "../../units";
-import { socket } from "../../socket";
 import Shape from "../../shapes/shape";
-import gameManager,{ vm } from "../../planarally";
 
-export default Vue.component('shape-menu', {
+import { vm } from "../../planarally";
+import { socket } from "../../socket";
+import { l2gx, l2gy } from "../../units";
+
+export default Vue.component("shape-menu", {
     components: {
-        contextmenu
+        contextmenu,
     },
     data: () => ({
         visible: false,
         x: 0,
         y: 0,
-        shape: <Shape|null>null
+        shape: <Shape | null>null,
     }),
     computed: {
-        activeLayer: () => {
+        activeLayer: (): string => {
             const layer = gameManager.layerManager.getLayer();
-            return (layer === undefined) ? '' : layer.name;
-        }
+            return layer === undefined ? "" : layer.name;
+        },
     },
     methods: {
         open(event: MouseEvent, shape: Shape) {
@@ -57,13 +59,15 @@ export default Vue.component('shape-menu', {
             this.visible = false;
             this.shape = null;
         },
-        getLayers() { return gameManager.layerManager.layers },
+        getLayers() {
+            return gameManager.layerManager.layers;
+        },
         getActiveLayer() {
             return gameManager.layerManager.getLayer();
         },
         getInitiativeWord() {
-            if (this.shape === null) return '';
-            const initiative = (<any>vm.$refs.initiative);
+            if (this.shape === null) return "";
+            const initiative = <any>vm.$refs.initiative;
             return initiative.contains(this.shape.uuid) ? "Show" : "Add";
         },
         setLayer(newLayer: string) {
@@ -87,14 +91,14 @@ export default Vue.component('shape-menu', {
         },
         addInitiative() {
             if (this.shape === null) return;
-            const initiative = (<any>vm.$refs.initiative);
+            const initiative = <any>vm.$refs.initiative;
             if (!initiative.contains(this.shape.uuid))
                 initiative.updateInitiative(this.shape.getInitiativeRepr(), true);
             initiative.visible = true;
             this.close();
-        }
-    }
-})
+        },
+    },
+});
 </script>
 
 <style scoped>

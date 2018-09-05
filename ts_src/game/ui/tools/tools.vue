@@ -27,85 +27,84 @@
 
 
 <script lang="ts">
-import Vue from 'vue';
+import Vue from "vue";
 
-import SelectTool from "./select.vue";
-import PanTool from "./pan.vue";
-import DrawTool from "./draw.vue";
-import RulerTool from "./ruler.vue";
-import MapTool from "./map.vue";
+import gameManager from "../../manager";
 import shape_menu from "../selection/shapecontext.vue";
 import createtoken_modal from "./createtoken_modal.vue";
+import DrawTool from "./draw.vue";
+import MapTool from "./map.vue";
+import PanTool from "./pan.vue";
+import RulerTool from "./ruler.vue";
+import SelectTool from "./select.vue";
 
-import gameManager from '../../planarally';
-import { getMouse } from '../../utils';
-import { l2g } from '../../units';
+import { l2g } from "../../units";
+import { getMouse } from "../../utils";
 
 export default Vue.component("tools", {
     components: {
-        'select-tool': SelectTool,
-        'pan-tool': PanTool,
-        'draw-tool': DrawTool,
-        'ruler-tool': RulerTool,
-        'map-tool': MapTool,
-        'shape-menu': shape_menu,
-        'createtoken-dialog': createtoken_modal
+        "select-tool": SelectTool,
+        "pan-tool": PanTool,
+        "draw-tool": DrawTool,
+        "ruler-tool": RulerTool,
+        "map-tool": MapTool,
+        "shape-menu": shape_menu,
+        "createtoken-dialog": createtoken_modal,
     },
     data: () => ({
         currentTool: "select",
-        tools: ["select", "pan", "draw", "ruler", "map"]
+        tools: ["select", "pan", "draw", "ruler", "map"],
     }),
     watch: {
         currentTool(newValue, oldValue) {
             this.$emit("tools-select-change", newValue, oldValue);
-        }
+        },
     },
     computed: {
         currentToolComponent(): string {
             return `${this.currentTool.toLowerCase()}-tool`;
-        }
+        },
     },
     methods: {
         mousedown(event: MouseEvent) {
-            if ((<HTMLElement>event.target).tagName !== 'CANVAS') return;
-            
+            if ((<HTMLElement>event.target).tagName !== "CANVAS") return;
+
             let targetTool = this.currentTool;
-            if (event.button == 1) {
+            if (event.button === 1) {
                 targetTool = "pan";
             } else if (event.button !== 0) {
                 return;
             }
 
-            this.$emit('mousedown', event, targetTool);
+            this.$emit("mousedown", event, targetTool);
         },
         mouseup(event: MouseEvent) {
-            if ((<HTMLElement>event.target).tagName !== 'CANVAS') return;
+            if ((<HTMLElement>event.target).tagName !== "CANVAS") return;
 
             let targetTool = this.currentTool;
-            if (event.button == 1) {
+            if (event.button === 1) {
                 targetTool = "pan";
             } else if (event.button !== 0) {
                 return;
             }
 
-            this.$emit('mouseup', event, targetTool);
+            this.$emit("mouseup", event, targetTool);
         },
         mousemove(event: MouseEvent) {
-            if ((<HTMLElement>event.target).tagName !== 'CANVAS') return;
-            
+            if ((<HTMLElement>event.target).tagName !== "CANVAS") return;
+
             let targetTool = this.currentTool;
             if ((event.buttons & 4) !== 0) {
                 targetTool = "pan";
             } else if ((event.button & 1) > 1) {
                 return;
             }
-            
-            this.$emit('mousemove', event, targetTool);
+
+            this.$emit("mousemove", event, targetTool);
 
             // Annotation hover
             let found = false;
-            for (let i = 0; i < gameManager.annotations.length; i++) {
-                const uuid = gameManager.annotations[i];
+            for (const uuid of gameManager.annotations) {
                 if (gameManager.layerManager.UUIDMap.has(uuid) && gameManager.layerManager.hasLayer("draw")) {
                     const shape = gameManager.layerManager.UUIDMap.get(uuid)!;
                     if (shape.contains(l2g(getMouse(event)))) {
@@ -115,16 +114,16 @@ export default Vue.component("tools", {
                 }
             }
             if (!found && gameManager.annotationManager.shown) {
-                gameManager.annotationManager.setActiveText('');
+                gameManager.annotationManager.setActiveText("");
             }
         },
         contextmenu(event: MouseEvent) {
-            if ((<HTMLElement>event.target).tagName !== 'CANVAS') return;
-            if (event.button !== 2 || (<HTMLElement>event.target).tagName !== 'CANVAS') return;
+            if ((<HTMLElement>event.target).tagName !== "CANVAS") return;
+            if (event.button !== 2 || (<HTMLElement>event.target).tagName !== "CANVAS") return;
             this.$emit("contextmenu", event, this.currentTool);
-        }
-    }
-})
+        },
+    },
+});
 </script>
 
 

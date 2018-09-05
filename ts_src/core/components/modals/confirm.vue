@@ -18,53 +18,55 @@
 </template>
 
 <script>
-import modal from './modal.vue';
+import modal from "./modal.vue";
 export default {
     components: {
-        modal
+        modal,
     },
     data: () => ({
         visible: false,
-        yes: 'Yes',
-        no: 'No',
-        title: '',
+        yes: "Yes",
+        no: "No",
+        title: "",
     }),
     methods: {
-        confirm: function () {
+        confirm() {
             this.resolve(true);
             this.close();
         },
-        deny: function () {
+        deny() {
             this.resolve(false);
             this.close();
         },
-        close: function () {
+        close() {
             this.reject();
             this.visible = false;
-            this.title = '';
+            this.title = "";
         },
-        open: function (title, yes, no) {
-            this.yes = (yes === undefined) ? 'Yes' : yes;
-            this.no = (no === undefined) ? 'No' : no;
+        open(title, yes, no) {
+            this.yes = yes === undefined ? "Yes" : yes;
+            this.no = no === undefined ? "No" : no;
             this.title = title;
 
             this.visible = true;
-            this.$nextTick(function() {
-                this.$refs.confirm.focus();
-            }.bind(this));
-            
+            this.$nextTick(
+                function() {
+                    this.$refs.confirm.focus();
+                }.bind(this),
+            );
+
             return new Promise((resolve, reject) => {
                 this.resolve = resolve;
                 this.reject = reject;
             });
-        }
-    }
-}
+        },
+    },
+};
 </script>
 
 <style scoped>
 .modal-header {
-    background-color: #FF7052;
+    background-color: #ff7052;
     padding: 10px;
     font-size: 20px;
     font-weight: bold;

@@ -8,16 +8,16 @@
 </template>
 
 <script lang="ts">
-import Tool from "./tool.vue";
-
-import gameManager from "../../planarally";
-import { getMouse } from "../../utils";
-import { l2g } from "../../units";
-import { GlobalPoint } from "../../geom";
-import Rect from "../../shapes/rect";
-import BaseRect from "../../shapes/baserect";
 import { mapState } from "vuex";
 
+import gameManager from "../../manager";
+import BaseRect from "../../shapes/baserect";
+import Rect from "../../shapes/rect";
+import Tool from "./tool.vue";
+
+import { GlobalPoint } from "../../geom";
+import { l2g } from "../../units";
+import { getMouse } from "../../utils";
 
 export default Tool.extend({
     data: () => ({
@@ -25,13 +25,11 @@ export default Tool.extend({
         active: false,
         xCount: 3,
         yCount: 3,
-        startPoint: <GlobalPoint|null> null,
-        rect: <Rect|null> null,
+        startPoint: <GlobalPoint | null>null,
+        rect: <Rect | null>null,
     }),
     computed: {
-        ...mapState([
-            'gridSize',
-        ]),
+        ...mapState(["gridSize"]),
     },
     methods: {
         onMouseDown(event: MouseEvent) {
@@ -41,7 +39,7 @@ export default Tool.extend({
                 return;
             }
             this.active = true;
-            
+
             this.startPoint = l2g(getMouse(event));
             this.rect = new Rect(this.startPoint.clone(), 0, 0, "rgba(0,0,0,0)", "black");
             layer.addShape(this.rect, false, false);
@@ -53,7 +51,7 @@ export default Tool.extend({
                 console.log("No active layer!");
                 return;
             }
-            
+
             const endPoint = l2g(getMouse(event));
 
             this.rect.w = Math.abs(endPoint.x - this.startPoint.x);
@@ -70,7 +68,7 @@ export default Tool.extend({
                 return;
             }
             this.active = false;
-            
+
             if (layer.selection.length !== 1) {
                 layer.removeShape(this.rect!, false, false);
                 return;
@@ -87,7 +85,7 @@ export default Tool.extend({
             }
 
             layer.removeShape(this.rect, false, false);
-        }
-    }
-})
+        },
+    },
+});
 </script>

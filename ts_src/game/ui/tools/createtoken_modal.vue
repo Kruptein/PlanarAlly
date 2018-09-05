@@ -31,34 +31,34 @@
 <script lang="ts">
 import * as tinycolor from "tinycolor2";
 import Vue from "vue";
-import colorpicker from "../../../core/components/colorpicker.vue";
-import modal from "../../../core/components/modals/modal.vue";
 
-import { calcFontScale } from "../../../core/utils";
-import CircularToken from "../../shapes/circulartoken";
-import { l2g, getUnitDistance } from "../../units";
-import { LocalPoint } from "../../geom";
-import Settings from "../../settings";
-import gameManager from "../../planarally";
 import { mapState } from "vuex";
 
-export default Vue.component('createtoken-modal', {
+import colorpicker from "../../../core/components/colorpicker.vue";
+import modal from "../../../core/components/modals/modal.vue";
+import gameManager from "../../manager";
+import Settings from "../../settings";
+import CircularToken from "../../shapes/circulartoken";
+
+import { calcFontScale } from "../../../core/utils";
+import { LocalPoint } from "../../geom";
+import { getUnitDistance, l2g } from "../../units";
+
+export default Vue.component("createtoken-modal", {
     components: {
         modal,
-        'color-picker': colorpicker
+        "color-picker": colorpicker,
     },
     data: () => ({
         x: 0,
         y: 0,
         visible: false,
-        text: 'X',
+        text: "X",
         fillColour: "rgba(255, 255, 255, 1)",
-        borderColour: "rgba(0, 0, 0, 1)"
+        borderColour: "rgba(0, 0, 0, 1)",
     }),
     computed: {
-        ...mapState([
-            'unitSize',
-        ]),
+        ...mapState(["unitSize"]),
     },
     watch: {
         text(newValue, oldValue) {
@@ -69,7 +69,7 @@ export default Vue.component('createtoken-modal', {
         },
         borderColour(newValue, oldValue) {
             this.updatePreview();
-        }
+        },
     },
     mounted() {
         this.updatePreview();
@@ -89,8 +89,8 @@ export default Vue.component('createtoken-modal', {
                 this.text,
                 "10px serif",
                 this.fillColour,
-                this.borderColour
-            )
+                this.borderColour,
+            );
             layer.addShape(token, true);
             layer.invalidate(false);
             this.visible = false;
@@ -99,7 +99,7 @@ export default Vue.component('createtoken-modal', {
             const ctx = (<HTMLCanvasElement>this.$refs.canvas).getContext("2d")!;
             ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
             ctx.beginPath();
-            const dest = {x: ctx.canvas.width / 2, y: ctx.canvas.height / 2};
+            const dest = { x: ctx.canvas.width / 2, y: ctx.canvas.height / 2 };
             const r = Math.min(dest.x, dest.y) * 0.9;
 
             ctx.fillStyle = this.fillColour;
@@ -117,14 +117,14 @@ export default Vue.component('createtoken-modal', {
             ctx.textAlign = "center";
             ctx.textBaseline = "middle";
             const xs = calcFontScale(ctx, this.text, r, r);
-            const ys = 0
+            const ys = 0;
             ctx.transform(xs, ys, -ys, xs, dest.x, dest.y);
-            ctx.fillStyle = tinycolor.mostReadable(this.fillColour, ['#000', '#fff']).toHexString();
+            ctx.fillStyle = tinycolor.mostReadable(this.fillColour, ["#000", "#fff"]).toHexString();
             ctx.fillText(this.text, 0, 0);
             ctx.restore();
-        }
-    }
-})
+        },
+    },
+});
 </script>
 
 <style scoped>
@@ -134,7 +134,7 @@ canvas {
 }
 
 .modal-header {
-    background-color: #FF7052;
+    background-color: #ff7052;
     padding: 10px;
     font-size: 20px;
     font-weight: bold;
@@ -156,7 +156,7 @@ canvas {
 }
 
 .colours {
-    display:flex;
+    display: flex;
     align-items: center;
     justify-content: space-between;
 }

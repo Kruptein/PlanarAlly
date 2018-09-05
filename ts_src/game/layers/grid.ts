@@ -1,6 +1,6 @@
-import { Layer } from "./layer";
-import Settings from "../settings";
 import store from "../store";
+
+import { Layer } from "./layer";
 
 export class GridLayer extends Layer {
     invalidate(): void {

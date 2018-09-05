@@ -20,15 +20,15 @@
 
 <script lang="ts">
 import * as tinycolor from "tinycolor2";
-import Vue from 'vue'
+import Vue from "vue";
 import { Chrome } from "vue-color";
 
-export default Vue.component('colorpicker', {
-	components: {
-		'chrome-picker': Chrome,
+export default Vue.component("colorpicker", {
+    components: {
+        "chrome-picker": Chrome,
     },
-    props: ['color'],
-	data: () => ({
+    props: ["color"],
+    data: () => ({
         display: false,
         left: 0,
         top: 0,
@@ -42,32 +42,28 @@ export default Vue.component('colorpicker', {
         open() {
             if (this.display) return; // click on the picker itself
             if (this.left === 0 && this.top === 0) this.setPosition();
-            this.display = true
+            this.display = true;
             this.$nextTick(() => this.$children[0].$el.focus());
         },
-        updateColor(value: { rgba: {r: number, g: number, b: number, a: number}}) {
-            this.transparent = value.rgba.a === 0
+        updateColor(value: { rgba: { r: number; g: number; b: number; a: number } }) {
+            this.transparent = value.rgba.a === 0;
             const newColor = tinycolor(value.rgba).toRgbString();
-            this.$emit('update:color', newColor)
+            this.$emit("update:color", newColor);
             this.$emit("input", newColor);
         },
         closePicker() {
-            this.display = false
+            this.display = false;
             this.$emit("change", this.color);
         },
         setPosition() {
             const rect = this.$el.getBoundingClientRect();
             // 224 is the width of the picker, 242 the height
-            if (rect.right + 224 > window.innerWidth)
-                this.left = rect.left - 224;
-            else
-                this.left = rect.right;
-            if (rect.bottom + 242 > window.innerHeight)
-                this.top = rect.top - 242;
-            else
-                this.top = rect.bottom;
-        }
-    }
+            if (rect.right + 224 > window.innerWidth) this.left = rect.left - 224;
+            else this.left = rect.right;
+            if (rect.bottom + 242 > window.innerHeight) this.top = rect.top - 242;
+            else this.top = rect.bottom;
+        },
+    },
 });
 </script>
 
@@ -80,9 +76,9 @@ export default Vue.component('colorpicker', {
     cursor: pointer;
 }
 .current-color {
-	width: 13px;
-	height: 13px;
-	background-color: #000;
+    width: 13px;
+    height: 13px;
+    background-color: #000;
     border: solid 1px black;
 }
 </style>

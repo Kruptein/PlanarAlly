@@ -57,19 +57,21 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue'
-import EditDialog from "./edit_dialog.vue"
+import Vue from "vue";
 
-import Shape from '../../shapes/shape';
-import gameManager,{ vm } from '../../planarally';
-import { socket } from '../../socket';
+import gameManager from "../../manager";
+import Shape from "../../shapes/shape";
+import EditDialog from "./edit_dialog.vue";
+
+import { vm } from "../../planarally";
+import { socket } from "../../socket";
 
 export default Vue.extend({
     components: {
-        'edit-dialog': EditDialog,
+        "edit-dialog": EditDialog,
     },
     data: () => ({
-        shape: <Shape|null> null,
+        shape: <Shape | null>null,
     }),
     methods: {
         openEditDialog() {
@@ -77,27 +79,21 @@ export default Vue.extend({
         },
         changeValue(object: Tracker | Aura, redraw: boolean) {
             if (this.shape === null) return;
-            (<any>vm.$refs.prompt).prompt(
-                `New  ${object.name} value:`,
-                `Updating ${object.name}`
-            ).then(
+            (<any>vm.$refs.prompt).prompt(`New  ${object.name} value:`, `Updating ${object.name}`).then(
                 (value: string) => {
                     if (this.shape === null) return;
                     const ogValue = object.value;
-                    if (value[0] === '+' || value[0] === '-')
-                        object.value += parseInt(value);
-                    else
-                        object.value = parseInt(value);
-                    if (isNaN(object.value))
-                        object.value = ogValue;
-                    socket.emit("updateShape", {shape: this.shape.asDict(), redraw: redraw})
+                    if (value[0] === "+" || value[0] === "-") object.value += parseInt(value, 10);
+                    else object.value = parseInt(value, 10);
+                    if (isNaN(object.value)) object.value = ogValue;
+                    socket.emit("updateShape", { shape: this.shape.asDict(), redraw });
                     if (redraw) gameManager.layerManager.invalidate();
                 },
-                () => {}
+                () => {},
             );
-        }
-    }
-})
+        },
+    },
+});
 </script>
 
 <style scoped>
@@ -129,17 +125,20 @@ export default Vue.extend({
     cursor: pointer;
 }
 
-#selection-trackers, #selection-auras {
+#selection-trackers,
+#selection-auras {
     display: grid;
     grid-template-columns: [name] 1fr [value] 1fr;
 }
 
-.selection-tracker-value, .selection-aura-value {
+.selection-tracker-value,
+.selection-aura-value {
     justify-self: center;
     padding: 2px;
 }
 
-.selection-tracker-value:hover, .selection-aura-value:hover {
+.selection-tracker-value:hover,
+.selection-aura-value:hover {
     cursor: pointer;
     background-color: rgba(20, 20, 20, 0.2);
 }

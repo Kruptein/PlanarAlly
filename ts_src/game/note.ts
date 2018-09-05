@@ -1,62 +1,65 @@
+import gameManager from "./manager";
+
 import { socket } from "./socket";
-import gameManager from "./planarally";
 
 export default class Note {
-    name: string
-    text: string
-    uuid: string
-    dialog: JQuery
+    name: string;
+    text: string;
+    uuid: string;
+    dialog: JQuery;
 
-    constructor(public Name:string, public Text: string, uid: string) {
+    constructor(public Name: string, public Text: string, uid: string) {
         this.name = Name;
         this.text = Text;
         this.uuid = uid;
-        this.dialog = $('<div class="dialog notedialog" title="Note"><textarea class="spanrow">' + this.text + '</textarea></div>');
+        this.dialog = $(
+            '<div class="dialog notedialog" title="Note"><textarea class="spanrow">' + this.text + "</textarea></div>",
+        );
 
         this.dialog.dialog({
             title: this.name,
             autoOpen: false,
-            width: 'auto',
+            width: "auto",
             resizable: false,
             buttons: [
                 {
                     text: "Rename",
                     icon: "ui-icon-pencil",
                     click: () => {
-                        let renameDialog = $('<div class="dialog"><input type="text" id="renameNote"></div>');
+                        const renameDialog = $('<div class="dialog"><input type="text" id="renameNote"></div>');
                         renameDialog.dialog({
                             title: "Renaming: '" + this.name + "'",
                             autoOpen: true,
-                            width: 'auto',
+                            width: "auto",
                             resizable: false,
                             buttons: [
                                 {
                                     text: "Confirm",
                                     icon: "ui-icon-check",
                                     click: () => {
-                                        let editName = renameDialog.children().eq(0);
+                                        const editName = renameDialog.children().eq(0);
 
-                                        this.name = <string> editName.val();
+                                        this.name = <string>editName.val();
                                         this.dialog.dialog({
-                                            title: this.name
+                                            title: this.name,
                                         });
 
-                                        $('#menu-notes button[note-id=' + this.uuid + ']').html(this.name);
+                                        $("#menu-notes button[note-id=" + this.uuid + "]").html(this.name);
                                         this.updateNote();
 
                                         renameDialog.dialog("close");
-                                    }
+                                    },
                                 },
                                 {
                                     text: "Cancel",
                                     icon: "ui-icon-cancel",
-                                    click: function() {
+                                    click: () => {
                                         $(this).dialog("close");
-                                    }
+                                    },
                                 },
-                            ]
+                            ],
                         });
-                    }
+                    },
                 },
                 {
                     text: "Delete",
@@ -68,14 +71,20 @@ export default class Note {
                         this.dialog.remove();
                         socket.emit("deleteNote", this.uuid);
                     },
-                    showText: false
-                }
-            ]
+                    showText: false,
+                },
+            ],
         });
-        this.dialog.children().eq(0).bind('input propertychange', () => {
-            this.text = <string> this.dialog.children().eq(0).val();
-            this.updateNote();
-        });
+        this.dialog
+            .children()
+            .eq(0)
+            .bind("input propertychange", () => {
+                this.text = <string>this.dialog
+                    .children()
+                    .eq(0)
+                    .val();
+                this.updateNote();
+            });
     }
 
     updateNote() {
@@ -83,12 +92,15 @@ export default class Note {
     }
 
     show(): void {
-        this.dialog.dialog({title: this.name});
-        this.dialog.children().eq(0).val(this.text);
+        this.dialog.dialog({ title: this.name });
+        this.dialog
+            .children()
+            .eq(0)
+            .val(this.text);
         this.dialog.dialog("open");
     }
 
-    asDict(): {uuid: string, name: string, text: string} {
-        return {"uuid": this.uuid, "name": this.name, "text": this.text};
+    asDict(): { uuid: string; name: string; text: string } {
+        return { uuid: this.uuid, name: this.name, text: this.text };
     }
 }

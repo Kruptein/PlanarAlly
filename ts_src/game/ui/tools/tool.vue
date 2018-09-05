@@ -2,41 +2,41 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue'
-export default Vue.component('tool', {
+import Vue from "vue";
+export default Vue.component("tool", {
     data: () => ({
-        name: '',
+        name: "",
         selected: false,
         active: false,
     }),
     computed: {
         detailRight(): string {
-            const rect = (<any>this.$parent.$refs[this.name + '-selector'])[0].getBoundingClientRect();
-            const mid = rect.left + (rect.width / 2);
+            const rect = (<any>this.$parent.$refs[this.name + "-selector"])[0].getBoundingClientRect();
+            const mid = rect.left + rect.width / 2;
 
             return `${window.innerWidth - Math.min(window.innerWidth - 25, mid + 75)}px`;
         },
         detailArrow(): string {
-            const rect = (<any>this.$parent.$refs[this.name + '-selector'])[0].getBoundingClientRect();
-            const mid = rect.left + (rect.width / 2);
+            const rect = (<any>this.$parent.$refs[this.name + "-selector"])[0].getBoundingClientRect();
+            const mid = rect.left + rect.width / 2;
             const right = Math.min(window.innerWidth - 25, mid + 75);
             return `${right - mid - 14}px`; // border width
-        }
+        },
     },
     created() {
-        this.$parent.$on('mousedown', (event: MouseEvent, tool: string) => {
-            if (tool === this.name) this.onMouseDown(event)
+        this.$parent.$on("mousedown", (event: MouseEvent, tool: string) => {
+            if (tool === this.name) this.onMouseDown(event);
         });
-        this.$parent.$on('mouseup', (event: MouseEvent, tool: string) => {
-            if (tool === this.name) this.onMouseUp(event)
+        this.$parent.$on("mouseup", (event: MouseEvent, tool: string) => {
+            if (tool === this.name) this.onMouseUp(event);
         });
-        this.$parent.$on('mousemove', (event: MouseEvent, tool: string) => {
-            if (tool === this.name) this.onMouseMove(event)
+        this.$parent.$on("mousemove", (event: MouseEvent, tool: string) => {
+            if (tool === this.name) this.onMouseMove(event);
         });
-        this.$parent.$on('contextmenu', (event: MouseEvent, tool: string) => {
-            if (tool === this.name) this.onContextMenu(event)
+        this.$parent.$on("contextmenu", (event: MouseEvent, tool: string) => {
+            if (tool === this.name) this.onContextMenu(event);
         });
-        this.$parent.$on('tools-select-change', (newValue: string, oldValue: string) => {
+        this.$parent.$on("tools-select-change", (newValue: string, oldValue: string) => {
             if (oldValue === this.name) {
                 this.selected = false;
                 this.onDeselect();
@@ -53,8 +53,8 @@ export default Vue.component('tool', {
         onMouseUp(event: MouseEvent) {},
         onMouseMove(event: MouseEvent) {},
         onContextMenu(event: MouseEvent) {},
-    }
-})
+    },
+});
 </script>
 
 <style>
@@ -74,7 +74,7 @@ export default Vue.component('tool', {
     grid-row-gap: 2px;
 }
 .tool-detail:after {
-    content: '';
+    content: "";
     position: absolute;
     right: var(--detailArrow);
     bottom: 0;

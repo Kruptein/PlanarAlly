@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "build": "webpack --mode development",
-    "prod": "webpack --mode production"
+    "prod": "webpack --mode production",
+    "lint": "tslint -c tslint.json -p tsconfig.json ./ts_src/**/*"
   },
   "repository": {
     "type": "git",
@@ -29,9 +30,12 @@
     "cache-loader": "^1.2.2",
     "css-loader": "^1.0.0",
     "fork-ts-checker-webpack-plugin": "^0.4.6",
+    "prettier": "^1.14.2",
     "source-map-loader": "^0.2.3",
     "thread-loader": "^1.2.0",
     "ts-loader": "^4.4.2",
+    "tslint": "^5.11.0",
+    "tslint-config-prettier": "^1.15.0",
     "typescript": "^2.7.2",
     "vue-loader": "^15.3.0",
     "vue-style-loader": "^4.1.1",

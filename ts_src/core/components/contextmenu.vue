@@ -8,8 +8,8 @@
 
 <script>
 export default {
-    props: ['visible', 'left', 'top'],
-}
+    props: ["visible", "left", "top"],
+};
 </script>
 
 <style>
@@ -19,7 +19,7 @@ export default {
 }
 
 .ContextMenu ul {
-    border: 1px solid #FF7052;
+    border: 1px solid #ff7052;
     border-radius: 5px;
     background: white;
     padding: 0;
@@ -28,13 +28,13 @@ export default {
 }
 
 .ContextMenu ul li {
-    border-bottom: 1px solid #FF7052;
+    border-bottom: 1px solid #ff7052;
     padding: 5px;
     cursor: pointer;
 }
 
 .ContextMenu ul li:hover {
-    background-color: #FF7052;
+    background-color: #ff7052;
 }
 
 .ContextMenu ul li:last-child {

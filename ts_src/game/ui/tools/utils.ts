@@ -1,6 +1,7 @@
-import { Vector, Ray } from "../../geom";
+import gameManager from "../../manager";
 import Shape from "../../shapes/shape";
-import gameManager from "../../planarally";
+
+import { Ray, Vector } from "../../geom";
 
 // First go through each shape in the selection and see if the delta has to be truncated due to movement blockers
 
@@ -11,10 +12,9 @@ export function calculateDelta(delta: Vector, sel: Shape, done?: string[]) {
     const ogSelBBox = sel.getBoundingBox();
     const newSelBBox = ogSelBBox.offset(delta);
     let refine = false;
-    for (let mb = 0; mb < gameManager.movementblockers.length; mb++) {
-        if (done.includes(gameManager.movementblockers[mb]))
-            continue;
-        const blocker = gameManager.layerManager.UUIDMap.get(gameManager.movementblockers[mb])!;
+    for (const movementBlocker of gameManager.movementblockers) {
+        if (done.includes(movementBlocker)) continue;
+        const blocker = gameManager.layerManager.UUIDMap.get(movementBlocker)!;
         const blockerBBox = blocker.getBoundingBox();
         let found = blockerBBox.intersectsWithInner(newSelBBox);
         if (!found) {
@@ -42,26 +42,19 @@ export function calculateDelta(delta: Vector, sel: Shape, done?: string[]) {
             // Closest point / intersection point between the two bboxes.  Not the delta intersect!
             const p = bCenter.add(ux.multiply(dx)).add(uy.multiply(dy));
 
-            if (p.x === ogSelBBox.topLeft.x || p.x === ogSelBBox.topRight.x)
-                delta = new Vector(0, delta.y);
-            else if (p.y === ogSelBBox.topLeft.y || p.y === ogSelBBox.botLeft.y)
-            delta = new Vector(delta.x, 0);
+            if (p.x === ogSelBBox.topLeft.x || p.x === ogSelBBox.topRight.x) delta = new Vector(0, delta.y);
+            else if (p.y === ogSelBBox.topLeft.y || p.y === ogSelBBox.botLeft.y) delta = new Vector(delta.x, 0);
             else {
-                if (p.x < ogSelBBox.topLeft.x)
-                    delta = new Vector(p.x - ogSelBBox.topLeft.x, delta.y);
-                else if (p.x > ogSelBBox.topRight.x)
-                    delta = new Vector(p.x - ogSelBBox.topRight.x, delta.y);
-                else if (p.y < ogSelBBox.topLeft.y)
-                    delta = new Vector(delta.x, p.y - ogSelBBox.topLeft.y);
-                else if (p.y > ogSelBBox.botLeft.y)
-                    delta = new Vector(delta.x, p.y - ogSelBBox.botLeft.y);
+                if (p.x < ogSelBBox.topLeft.x) delta = new Vector(p.x - ogSelBBox.topLeft.x, delta.y);
+                else if (p.x > ogSelBBox.topRight.x) delta = new Vector(p.x - ogSelBBox.topRight.x, delta.y);
+                else if (p.y < ogSelBBox.topLeft.y) delta = new Vector(delta.x, p.y - ogSelBBox.topLeft.y);
+                else if (p.y > ogSelBBox.botLeft.y) delta = new Vector(delta.x, p.y - ogSelBBox.botLeft.y);
             }
             refine = true;
-            done.push(gameManager.movementblockers[mb]);
+            done.push(movementBlocker);
             break;
         }
     }
-    if (refine)
-        delta = calculateDelta(delta, sel, done);
+    if (refine) delta = calculateDelta(delta, sel, done);
     return delta;
 }

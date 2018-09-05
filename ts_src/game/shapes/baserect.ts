@@ -1,11 +1,11 @@
-import BoundingRect from "./boundingrect";
-import Shape from "./shape";
-import { GlobalPoint, Vector, LocalPoint } from "../geom";
-import { g2lx, g2ly, l2g, l2gy, l2gx } from "../units";
-import Settings from "../settings";
-import { calculateDelta } from "../ui/tools/utils";
-import Circle from "./circle";
 import store from "../store";
+import BoundingRect from "./boundingrect";
+import Circle from "./circle";
+import Shape from "./shape";
+
+import { GlobalPoint, LocalPoint, Vector } from "../geom";
+import { calculateDelta } from "../ui/tools/utils";
+import { g2lx, g2ly, l2g, l2gx, l2gy } from "../units";
 
 export default abstract class BaseRect extends Shape {
     w: number;
@@ -18,55 +18,77 @@ export default abstract class BaseRect extends Shape {
     getBaseDict() {
         return Object.assign(super.getBaseDict(), {
             w: this.w,
-            h: this.h
-        })
+            h: this.h,
+        });
     }
     getBoundingBox() {
         return new BoundingRect(this.refPoint, this.w, this.h);
     }
     contains(point: GlobalPoint): boolean {
-        return this.refPoint.x <= point.x && (this.refPoint.x + this.w) >= point.x &&
-            this.refPoint.y <= point.y && (this.refPoint.y + this.h) >= point.y;
+        return (
+            this.refPoint.x <= point.x &&
+            this.refPoint.x + this.w >= point.x &&
+            this.refPoint.y <= point.y &&
+            this.refPoint.y + this.h >= point.y
+        );
     }
     inCorner(point: GlobalPoint, corner: string) {
         switch (corner) {
-            case 'ne':
-                return this.refPoint.x + this.w - 3 <= point.x && point.x <= this.refPoint.x + this.w + 3 && this.refPoint.y - 3 <= point.y && point.y <= this.refPoint.y + 3;
-            case 'nw':
-                return this.refPoint.x - 3 <= point.x && point.x <= this.refPoint.x + 3 && this.refPoint.y - 3 <= point.y && point.y <= this.refPoint.y + 3;
-            case 'sw':
-                return this.refPoint.x - 3 <= point.x && point.x <= this.refPoint.x + 3 && this.refPoint.y + this.h - 3 <= point.y && point.y <= this.refPoint.y + this.h + 3;
-            case 'se':
-                return this.refPoint.x + this.w - 3 <= point.x && point.x <= this.refPoint.x + this.w + 3 && this.refPoint.y + this.h - 3 <= point.y && point.y <= this.refPoint.y + this.h + 3;
+            case "ne":
+                return (
+                    this.refPoint.x + this.w - 3 <= point.x &&
+                    point.x <= this.refPoint.x + this.w + 3 &&
+                    this.refPoint.y - 3 <= point.y &&
+                    point.y <= this.refPoint.y + 3
+                );
+            case "nw":
+                return (
+                    this.refPoint.x - 3 <= point.x &&
+                    point.x <= this.refPoint.x + 3 &&
+                    this.refPoint.y - 3 <= point.y &&
+                    point.y <= this.refPoint.y + 3
+                );
+            case "sw":
+                return (
+                    this.refPoint.x - 3 <= point.x &&
+                    point.x <= this.refPoint.x + 3 &&
+                    this.refPoint.y + this.h - 3 <= point.y &&
+                    point.y <= this.refPoint.y + this.h + 3
+                );
+            case "se":
+                return (
+                    this.refPoint.x + this.w - 3 <= point.x &&
+                    point.x <= this.refPoint.x + this.w + 3 &&
+                    this.refPoint.y + this.h - 3 <= point.y &&
+                    point.y <= this.refPoint.y + this.h + 3
+                );
             default:
                 return false;
         }
     }
-    getCorner(point: GlobalPoint): string|undefined {
-        if (this.inCorner(point, "ne"))
-            return "ne";
-        else if (this.inCorner(point, "nw"))
-            return "nw";
-        else if (this.inCorner(point, "se"))
-            return "se";
-        else if (this.inCorner(point, "sw"))
-            return "sw";
+    getCorner(point: GlobalPoint): string | undefined {
+        if (this.inCorner(point, "ne")) return "ne";
+        else if (this.inCorner(point, "nw")) return "nw";
+        else if (this.inCorner(point, "se")) return "se";
+        else if (this.inCorner(point, "sw")) return "sw";
     }
     center(): GlobalPoint;
     center(centerPoint: GlobalPoint): void;
     center(centerPoint?: GlobalPoint): GlobalPoint | void {
-        if (centerPoint === undefined)
-            return this.refPoint.add(new Vector(this.w/2, this.h/2));
+        if (centerPoint === undefined) return this.refPoint.add(new Vector(this.w / 2, this.h / 2));
         this.refPoint.x = centerPoint.x - this.w / 2;
         this.refPoint.y = centerPoint.y - this.h / 2;
     }
 
     visibleInCanvas(canvas: HTMLCanvasElement): boolean {
-        const coreVisible = !(g2lx(this.refPoint.x) > canvas.width || g2ly(this.refPoint.y) > canvas.height ||
-                    g2lx(this.refPoint.x + this.w) < 0 || g2ly(this.refPoint.y + this.h) < 0);
+        const coreVisible = !(
+            g2lx(this.refPoint.x) > canvas.width ||
+            g2ly(this.refPoint.y) > canvas.height ||
+            g2lx(this.refPoint.x + this.w) < 0 ||
+            g2ly(this.refPoint.y + this.h) < 0
+        );
         if (coreVisible) return true;
-        for (let i=0; i < this.auras.length; i++) {
-            const aura = this.auras[i];
+        for (const aura of this.auras) {
             if (aura.value > 0) {
                 const auraCircle = new Circle(this.center(), aura.value);
                 if (auraCircle.visibleInCanvas(canvas)) return true;
@@ -86,12 +108,12 @@ export default abstract class BaseRect extends Shape {
         if ((this.w / gs) % 2 === 0) {
             targetX = Math.round(mx / gs) * gs - this.w / 2;
         } else {
-            targetX = (Math.round((mx + (gs / 2)) / gs) - (1 / 2)) * gs - this.w / 2;
+            targetX = (Math.round((mx + gs / 2) / gs) - 1 / 2) * gs - this.w / 2;
         }
         if ((this.h / gs) % 2 === 0) {
             targetY = Math.round(my / gs) * gs - this.h / 2;
         } else {
-            targetY = (Math.round((my + (gs / 2)) / gs) - (1 / 2)) * gs - this.h / 2;
+            targetY = (Math.round((my + gs / 2) / gs) - 1 / 2) * gs - this.h / 2;
         }
 
         const delta = calculateDelta(new Vector(targetX - this.refPoint.x, targetY - this.refPoint.y), this);
@@ -109,18 +131,18 @@ export default abstract class BaseRect extends Shape {
     }
     resize(resizedir: string, point: LocalPoint) {
         const z = store.state.zoomFactor;
-        if (resizedir === 'nw') {
+        if (resizedir === "nw") {
             this.w = g2lx(this.refPoint.x) + this.w * z - point.x;
             this.h = g2ly(this.refPoint.y) + this.h * z - point.y;
             this.refPoint = l2g(point);
-        } else if (resizedir === 'ne') {
+        } else if (resizedir === "ne") {
             this.w = point.x - g2lx(this.refPoint.x);
             this.h = g2ly(this.refPoint.y) + this.h * z - point.y;
             this.refPoint.y = l2gy(point.y);
-        } else if (resizedir === 'se') {
+        } else if (resizedir === "se") {
             this.w = point.x - g2lx(this.refPoint.x);
             this.h = point.y - g2ly(this.refPoint.y);
-        } else if (resizedir === 'sw') {
+        } else if (resizedir === "sw") {
             this.w = g2lx(this.refPoint.x) + this.w * z - point.x;
             this.h = point.y - g2ly(this.refPoint.y);
             this.refPoint.x = l2gx(point.x);

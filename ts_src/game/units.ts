@@ -1,5 +1,4 @@
 import { GlobalPoint, LocalPoint, Ray } from "./geom";
-import Settings from "./settings";
 import store from "./store";
 
 export function g2l(obj: GlobalPoint): LocalPoint {
@@ -26,17 +25,17 @@ export function getUnitDistance(r: number) {
 }
 
 export function g2lr(r: number) {
-    return g2lz(getUnitDistance(r))
+    return g2lz(getUnitDistance(r));
 }
 
 export function l2g(obj: LocalPoint): GlobalPoint;
 export function l2g(obj: Ray<LocalPoint>): Ray<GlobalPoint>;
-export function l2g(obj: LocalPoint|Ray<LocalPoint>): GlobalPoint|Ray<GlobalPoint> {
+export function l2g(obj: LocalPoint | Ray<LocalPoint>): GlobalPoint | Ray<GlobalPoint> {
     const z = store.state.zoomFactor;
-        const panX = store.state.panX;
-        const panY = store.state.panY;
+    const panX = store.state.panX;
+    const panY = store.state.panY;
     if (obj instanceof LocalPoint) {
-        return new GlobalPoint((obj.x / z) - panX, (obj.y / z) - panY);
+        return new GlobalPoint(obj.x / z - panX, obj.y / z - panY);
     } else {
         return new Ray<GlobalPoint>(l2g(obj.origin), obj.direction.multiply(1 / z), obj.tMax);
     }
@@ -55,5 +54,5 @@ export function l2gz(z: number) {
 }
 
 export function l2gr(r: number) {
-    return l2gz(getUnitDistance(r))
+    return l2gz(getUnitDistance(r));
 }

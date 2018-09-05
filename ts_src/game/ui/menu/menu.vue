@@ -126,134 +126,128 @@
 
 
 <script lang="ts">
-import Vue from 'vue'
-import { mapState } from 'vuex';
-import colorpicker from '../../../core/components/colorpicker.vue';
+import Vue from "vue";
+import colorpicker from "../../../core/components/colorpicker.vue";
+
+import { mapState } from "vuex";
+
+import Settings from "../../settings";
 import assetNode from "./asset_node.vue";
-import { socket } from '../../socket';
-import Settings from '../../settings';
-import { vm } from '../../planarally';
-import { uuidv4 } from '../../../core/utils';
-import { Note } from '../../api_types';
+
+import { uuidv4 } from "../../../core/utils";
+import { Note } from "../../api_types";
+import { vm } from "../../planarally";
+import { socket } from "../../socket";
 
 export default Vue.component("menu-bar", {
     components: {
-        'color-picker': colorpicker,
-        'asset-node': assetNode,
+        "color-picker": colorpicker,
+        "asset-node": assetNode,
     },
     data: () => ({
         visible: {
             settings: false,
             locations: false,
-        }
+        },
     }),
     computed: {
-        ...mapState([
-            'invitationCode',
-            'IS_DM',
-            'locations',
-            'assets',
-            'notes'
-        ]),
+        ...mapState(["invitationCode", "IS_DM", "locations", "assets", "notes"]),
         useGrid: {
             get(): boolean {
                 return this.$store.state.useGrid;
             },
             set(value: boolean) {
-                this.$store.commit("setUseGrid", {useGrid: value, sync: true});
-            }
+                this.$store.commit("setUseGrid", { useGrid: value, sync: true });
+            },
         },
         fullFOW: {
             get(): boolean {
                 return this.$store.state.fullFOW;
             },
             set(value: boolean) {
-                this.$store.commit("setFullFOW", {fullFOW: value, sync: true});
-            }
+                this.$store.commit("setFullFOW", { fullFOW: value, sync: true });
+            },
         },
         fowOpacity: {
             get(): number {
                 return this.$store.state.fowOpacity;
             },
             set(value: number) {
-                if (typeof(value) !== 'number') return;
-                this.$store.commit("setFOWOpacity", {fowOpacity: value, sync: true});
-            }
+                if (typeof value !== "number") return;
+                this.$store.commit("setFOWOpacity", { fowOpacity: value, sync: true });
+            },
         },
         fowLOS: {
             get(): boolean {
                 return this.$store.state.fowLOS;
             },
             set(value: boolean) {
-                this.$store.commit("setLineOfSight", {fowLOS: value, sync: true});
-            }
+                this.$store.commit("setLineOfSight", { fowLOS: value, sync: true });
+            },
         },
         unitSize: {
             get(): number {
                 return this.$store.state.unitSize;
             },
             set(value: number) {
-                if (typeof(value) !== 'number') return;
-                this.$store.commit("setUnitSize", {unitSize: value, sync: true});
-            }
+                if (typeof value !== "number") return;
+                this.$store.commit("setUnitSize", { unitSize: value, sync: true });
+            },
         },
         gridSize: {
             get(): number {
                 return this.$store.state.gridSize;
             },
             set(value: number) {
-                if (typeof(value) !== 'number') return;
-                this.$store.commit("setGridSize", {gridSize: value, sync: true});
-            }
+                if (typeof value !== "number") return;
+                this.$store.commit("setGridSize", { gridSize: value, sync: true });
+            },
         },
         gridColour: {
             get(): string {
                 return this.$store.state.gridColour;
             },
             set(value: string) {
-                this.$store.commit("setGridColour", {colour: value, sync: true});
-            }
+                this.$store.commit("setGridColour", { colour: value, sync: true });
+            },
         },
         fowColour: {
             get(): string {
                 return this.$store.state.fowColour;
             },
             set(value: string) {
-                this.$store.commit("setFOWColour", {colour: value, sync: true});
-            }
-        }
+                this.$store.commit("setFOWColour", { colour: value, sync: true });
+            },
+        },
     },
     methods: {
         settingsClick(event: { target: HTMLElement }) {
             if (event.target.classList.contains("accordion")) {
                 event.target.classList.toggle("accordion-active");
-                const next = <HTMLElement> event.target.nextElementSibling!;
-                next.style.display = next.style.display === '' ? 'block': '';
+                const next = <HTMLElement>event.target.nextElementSibling!;
+                next.style.display = next.style.display === "" ? "block" : "";
             }
         },
         changeLocation(name: string) {
             socket.emit("change location", name);
         },
         createLocation() {
-            (<any>vm.$refs.prompt).prompt(
-                `New  location name:`,
-                `Create new location`
-            ).then(
+            (<any>vm.$refs.prompt).prompt(`New  location name:`, `Create new location`).then(
                 (value: string) => {
                     socket.emit("new location", value);
                 },
-                () => {}
+                () => {},
             );
         },
         createNote() {
-            const note = {name: 'New note', text: '', uuid: uuidv4()};
+            const note = { name: "New note", text: "", uuid: uuidv4() };
             this.$store.commit("addNote", note);
             this.openNote(note);
         },
         openNote(note: Note) {
             (<any>vm.$refs.note).open(note);
-        }
-    }
+        },
+    },
 });
 </script>
 
@@ -312,29 +306,35 @@ export default Vue.component("menu-bar", {
 }
 
 .actionButton {
-    position:absolute;
-    right:0;
-    margin:5px;
+    position: absolute;
+    right: 0;
+    margin: 5px;
     padding: 0;
 }
 
-.settings-enter-active, .settings-leave-active {
+.settings-enter-active,
+.settings-leave-active {
     transition: width 500ms;
 }
-.settings-leave-to, .settings-enter {
+.settings-leave-to,
+.settings-enter {
     width: 0;
 }
-.settings-enter-to, .settings-leave {
+.settings-enter-to,
+.settings-leave {
     width: 200px;
 }
 
-.locations-enter-active, .locations-leave-active {
+.locations-enter-active,
+.locations-leave-active {
     transition: height 500ms;
 }
-.locations-leave-to, .locations-enter {
+.locations-leave-to,
+.locations-enter {
     height: 0;
 }
-.locations-enter-to, .locations-leave {
+.locations-enter-to,
+.locations-leave {
     height: 100px;
 }
 </style>

@@ -4,7 +4,7 @@ export class BoundingNode {
     bbox: BoundingRect;
     nPrimitives: number;
     children: BoundingNode[] = [];
-    constructor(nPrimitives:number, bbox: BoundingRect) {
+    constructor(nPrimitives: number, bbox: BoundingRect) {
         this.nPrimitives = nPrimitives;
         this.bbox = bbox;
     }

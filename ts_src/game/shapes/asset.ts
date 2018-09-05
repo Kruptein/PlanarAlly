@@ -1,14 +1,14 @@
-import BaseRect from "./baserect";
-import { g2lx, g2ly, g2lz } from "../units";
-import { GlobalPoint } from "../geom";
-import { ServerAsset, InitiativeData } from "../api_types";
-import Settings from "../settings";
 import store from "../store";
+import BaseRect from "./baserect";
+
+import { InitiativeData, ServerAsset } from "../api_types";
+import { GlobalPoint } from "../geom";
+import { g2lx, g2ly, g2lz } from "../units";
 
 export default class Asset extends BaseRect {
     type = "asset";
     img: HTMLImageElement;
-    src: string = '';
+    src: string = "";
     constructor(img: HTMLImageElement, topleft: GlobalPoint, w: number, h: number, uuid?: string) {
         super(topleft, w, h);
         if (uuid !== undefined) this.uuid = uuid;
@@ -16,8 +16,8 @@ export default class Asset extends BaseRect {
     }
     asDict() {
         return Object.assign(this.getBaseDict(), {
-            src: this.src
-        })
+            src: this.src,
+        });
     }
     fromDict(data: ServerAsset) {
         super.fromDict(data);
@@ -36,6 +36,6 @@ export default class Asset extends BaseRect {
             owners: this.owners,
             has_img: true,
             effects: [],
-        }
+        };
     }
 }

@@ -20,48 +20,50 @@
 </template>
 
 <script>
-import modal from './modal.vue';
+import modal from "./modal.vue";
 export default {
     components: {
-        modal
+        modal,
     },
     data: () => ({
         visible: false,
-        question: '',
-        answer: '',
-        title: '',
+        question: "",
+        answer: "",
+        title: "",
     }),
     methods: {
-        submit: function () {
+        submit() {
             this.resolve(this.answer);
             this.close();
         },
-        close: function () {
+        close() {
             this.reject();
             this.visible = false;
-            this.question = '';
-            this.answer = '';
-            this.title = '';
+            this.question = "";
+            this.answer = "";
+            this.title = "";
         },
-        prompt: function (question, title) {
+        prompt(question, title) {
             this.question = question;
             this.title = title;
             this.visible = true;
-            this.$nextTick(function() {
-                this.$refs.answer.focus();
-            }.bind(this));
+            this.$nextTick(
+                function() {
+                    this.$refs.answer.focus();
+                }.bind(this),
+            );
             return new Promise((resolve, reject) => {
                 this.resolve = resolve;
                 this.reject = reject;
             });
-        }
-    }
-}
+        },
+    },
+};
 </script>
 
 <style scoped>
 .modal-header {
-    background-color: #FF7052;
+    background-color: #ff7052;
     padding: 10px;
     font-size: 20px;
     font-weight: bold;

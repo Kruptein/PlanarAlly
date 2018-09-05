@@ -171,18 +171,19 @@ import Vue from "vue";
 import colorpicker from "../../../core/components/colorpicker.vue";
 import modal from "../../../core/components/modals/modal.vue";
 
-import { socket } from "../../socket";
+import gameManager from "../../manager";
 import Shape from "../../shapes/shape";
-import gameManager from "../../planarally";
-import { uuidv4 } from "../../../core/utils";
 
-export default Vue.component('edit-dialog', {
+import { uuidv4 } from "../../../core/utils";
+import { socket } from "../../socket";
+
+export default Vue.component("edit-dialog", {
     components: {
         modal,
-        'color-picker': colorpicker
+        "color-picker": colorpicker,
     },
     props: {
-        'shape': Object as () => Shape,  // to make it work with typescript
+        shape: Object as () => Shape, // to make it work with typescript
     },
     data: () => ({
         visible: false,
@@ -192,23 +193,30 @@ export default Vue.component('edit-dialog', {
     },
     methods: {
         addEmpty() {
-            if (this.shape.owners[this.shape.owners.length - 1] !== '')
-                this.shape.owners.push("");
-            if (!this.shape.trackers.length || this.shape.trackers[this.shape.trackers.length - 1].name !== '' || this.shape.trackers[this.shape.trackers.length - 1].value !== 0)
-                this.shape.trackers.push({ uuid: uuidv4(), name: '', value: 0, maxvalue: 0, visible: false });
-            if (!this.shape.auras.length || this.shape.auras[this.shape.auras.length - 1].name !== '' || this.shape.auras[this.shape.auras.length - 1].value !== 0)
+            if (this.shape.owners[this.shape.owners.length - 1] !== "") this.shape.owners.push("");
+            if (
+                !this.shape.trackers.length ||
+                this.shape.trackers[this.shape.trackers.length - 1].name !== "" ||
+                this.shape.trackers[this.shape.trackers.length - 1].value !== 0
+            )
+                this.shape.trackers.push({ uuid: uuidv4(), name: "", value: 0, maxvalue: 0, visible: false });
+            if (
+                !this.shape.auras.length ||
+                this.shape.auras[this.shape.auras.length - 1].name !== "" ||
+                this.shape.auras[this.shape.auras.length - 1].value !== 0
+            )
                 this.shape.auras.push({
                     uuid: uuidv4(),
-                    name: '',
+                    name: "",
                     value: 0,
                     dim: 0,
                     lightSource: false,
-                    colour: 'rgba(0,0,0,0)',
-                    visible: false
+                    colour: "rgba(0,0,0,0)",
+                    visible: false,
                 });
         },
         updateShape(redraw: boolean) {
-            socket.emit("updateShape", {shape: this.shape.asDict(), redraw: redraw});
+            socket.emit("updateShape", { shape: this.shape.asDict(), redraw });
             if (redraw) gameManager.layerManager.invalidate();
             this.addEmpty();
         },
@@ -225,30 +233,28 @@ export default Vue.component('edit-dialog', {
             this.updateShape(false);
         },
         updateAnnotation(event: { target: HTMLInputElement }) {
-            const had_annotation = this.shape.annotation !== '';
+            const hadAnnotation = this.shape.annotation !== "";
             this.shape.annotation = event.target.value;
-            if (this.shape.annotation !== '' && !had_annotation) {
+            if (this.shape.annotation !== "" && !hadAnnotation) {
                 gameManager.annotations.push(this.shape.uuid);
                 if (gameManager.layerManager.hasLayer("draw"))
-                    gameManager.layerManager.getLayer("draw")!.invalidate(true)
-            } else if (this.shape.annotation == '' && had_annotation) {
+                    gameManager.layerManager.getLayer("draw")!.invalidate(true);
+            } else if (this.shape.annotation === "" && hadAnnotation) {
                 gameManager.annotations.splice(gameManager.annotations.findIndex(an => an === this.shape.uuid));
                 if (gameManager.layerManager.hasLayer("draw"))
-                    gameManager.layerManager.getLayer("draw")!.invalidate(true)
+                    gameManager.layerManager.getLayer("draw")!.invalidate(true);
             }
             this.updateShape(false);
         },
         updateOwner(event: { target: HTMLInputElement }, oldValue: string) {
-            const ow_i = this.shape.owners.findIndex(o => o === oldValue);
-            if (ow_i >= 0)
-                this.shape.owners.splice(ow_i, 1, event.target.value);
-            else
-                this.shape.owners.push(event.target.value);
+            const ownerIndex = this.shape.owners.findIndex(o => o === oldValue);
+            if (ownerIndex >= 0) this.shape.owners.splice(ownerIndex, 1, event.target.value);
+            else this.shape.owners.push(event.target.value);
             this.updateShape(false);
         },
         removeOwner(value: string) {
-            const ow_i = this.shape.owners.findIndex(o => o === value);
-            this.shape.owners.splice(ow_i, 1);
+            const ownerIndex = this.shape.owners.findIndex(o => o === value);
+            this.shape.owners.splice(ownerIndex, 1);
             this.updateShape(false);
         },
         removeTracker(uuid: string) {
@@ -264,25 +270,24 @@ export default Vue.component('edit-dialog', {
             aura.lightSource = !aura.lightSource;
             const i = gameManager.lightsources.findIndex(ls => ls.aura === aura.uuid);
             if (aura.lightSource && i === -1)
-                gameManager.lightsources.push({shape: this.shape.uuid, aura: aura.uuid});
-            else if (!aura.lightSource && i >= 0)
-                gameManager.lightsources.splice(i, 1);
+                gameManager.lightsources.push({ shape: this.shape.uuid, aura: aura.uuid });
+            else if (!aura.lightSource && i >= 0) gameManager.lightsources.splice(i, 1);
             // aura.lastPath = undefined;
             gameManager.layerManager.invalidateLight();
-            this.updateShape(true)
+            this.updateShape(true);
         },
         updateAuraColour(aura: Aura, colour: string) {
             const layer = gameManager.layerManager.getLayer(this.shape.layer);
             if (layer === undefined) return;
             layer.invalidate(!aura.lightSource);
-        }
-    }
-})
+        },
+    },
+});
 </script>
 
 <style scoped>
 .modal-header {
-    background-color: #FF7052;
+    background-color: #ff7052;
     padding: 10px;
     font-size: 20px;
     font-weight: bold;
@@ -298,7 +303,7 @@ export default Vue.component('edit-dialog', {
 }
 
 .colours {
-    display:flex;
+    display: flex;
     align-items: center;
     justify-content: space-between;
 }
@@ -313,6 +318,6 @@ export default Vue.component('edit-dialog', {
     right: 5px;
     width: 75%;
     border-bottom: 1px solid #000;
-    content: '';
+    content: "";
 }
 </style>

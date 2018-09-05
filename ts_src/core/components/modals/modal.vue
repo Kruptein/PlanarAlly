@@ -18,7 +18,7 @@
 import Vue from "vue";
 
 export default Vue.extend({
-    props: ['visible'],
+    props: ["visible"],
     data: () => ({
         positioned: false,
         offsetX: 0,
@@ -34,34 +34,34 @@ export default Vue.extend({
     },
     methods: {
         close(event: MouseEvent) {
-            this.$emit('close');
+            this.$emit("close");
         },
-        updatePosition(){
+        updatePosition() {
             if (!this.positioned) {
-                const container = (<any>this.$refs.container);
+                const container = <any>this.$refs.container;
                 if (container.offsetWidth === 0 && container.offsetHeight === 0) return;
-                (<any>this.$refs.container).style.left = (window.innerWidth - container.offsetWidth)/2 + 'px';
-                (<any>this.$refs.container).style.top = (window.innerHeight - container.offsetHeight)/2 + 'px';
+                (<any>this.$refs.container).style.left = (window.innerWidth - container.offsetWidth) / 2 + "px";
+                (<any>this.$refs.container).style.top = (window.innerHeight - container.offsetHeight) / 2 + "px";
                 this.positioned = true;
             }
         },
         dragStart(event: DragEvent) {
             // Because the drag event is happening on the header, we have to change the drag image
             // in order to give the impression that the entire modal is dragged.
-            event.dataTransfer.setDragImage((<Element>this.$refs.container), event.offsetX, event.offsetY);
+            event.dataTransfer.setDragImage(<Element>this.$refs.container, event.offsetX, event.offsetY);
             this.offsetX = event.offsetX;
             this.offsetY = event.offsetY;
         },
         dragEnd(event: DragEvent) {
-            (<any>this.$refs.container).style.left = (event.clientX - this.offsetX) + 'px';
-            (<any>this.$refs.container).style.top = (event.clientY - this.offsetY) + 'px';
-            (<any>this.$refs.container).style.display = 'block';
+            (<any>this.$refs.container).style.left = event.clientX - this.offsetX + "px";
+            (<any>this.$refs.container).style.top = event.clientY - this.offsetY + "px";
+            (<any>this.$refs.container).style.display = "block";
         },
         dragOver(event: DragEvent) {
-            (<any>this.$refs.container).style.display = 'none';
-        }
-    }
-})
+            (<any>this.$refs.container).style.display = "none";
+        },
+    },
+});
 </script>
 
 <style scoped>
@@ -76,8 +76,8 @@ export default Vue.extend({
     left: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(0, 0, 0, .5);
-    transition: opacity .3s ease;
+    background-color: rgba(0, 0, 0, 0.5);
+    transition: opacity 0.3s ease;
 }
 
 .modal-container {
@@ -86,7 +86,7 @@ export default Vue.extend({
     height: auto;
     background-color: #fff;
     border-radius: 2px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, .33);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.33);
     font-family: Helvetica, Arial, sans-serif;
 }
 

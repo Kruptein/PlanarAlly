@@ -1,11 +1,11 @@
+import gameManager from "../manager";
 import Shape from "../shapes/shape";
-import gameManager from "../planarally";
-import Settings from "../settings";
-import { socket } from "../socket";
+import store from "../store";
+
 import { ServerShape } from "../api_types";
 import { createShapeFromDict } from "../shapes/utils";
+import { socket } from "../socket";
 import { g2lx, g2ly } from "../units";
-import store from "../store";
 
 export class Layer {
     name: string;
@@ -15,7 +15,7 @@ export class Layer {
     ctx: CanvasRenderingContext2D;
 
     selectable: boolean = false;
-    player_editable: boolean = false;
+    playerEditable: boolean = false;
     isVisionLayer: boolean = false;
 
     // When set to false, the layer will be redrawn on the next tick
@@ -28,7 +28,7 @@ export class Layer {
     selection: Shape[] = [];
 
     // Extra selection highlighting settings
-    selectionColor = '#CC0000';
+    selectionColor = "#CC0000";
     selectionWidth = 2;
 
     constructor(canvas: HTMLCanvasElement, name: string) {
@@ -36,7 +36,7 @@ export class Layer {
         this.name = name;
         this.width = canvas.width;
         this.height = canvas.height;
-        this.ctx = canvas.getContext('2d')!;
+        this.ctx = canvas.getContext("2d")!;
     }
 
     invalidate(skipLightUpdate: boolean): void {
@@ -53,20 +53,18 @@ export class Layer {
         gameManager.layerManager.UUIDMap.set(shape.uuid, shape);
         shape.checkLightSources();
         shape.setMovementBlock(shape.movementObstruction);
-        if (shape.ownedBy(store.state.username) && shape.isToken)
-            gameManager.ownedtokens.push(shape.uuid);
-        if (shape.annotation.length)
-            gameManager.annotations.push(shape.uuid);
-        if (sync) socket.emit("add shape", {shape: shape.asDict(), temporary: temporary});
+        if (shape.ownedBy(store.state.username) && shape.isToken) gameManager.ownedtokens.push(shape.uuid);
+        if (shape.annotation.length) gameManager.annotations.push(shape.uuid);
+        if (sync) socket.emit("add shape", { shape: shape.asDict(), temporary });
         this.invalidate(!sync);
     }
 
     setShapes(shapes: ServerShape[]): void {
-        for(let i=0; i < shapes.length; i++) {
-            const shape = createShapeFromDict(shapes[i]);
+        for (const serverShape of shapes) {
+            const shape = createShapeFromDict(serverShape);
             if (shape === undefined) {
-                console.log(`Shape with unknown type ${shapes[i].type} could not be added`);
-                return ;
+                console.log(`Shape with unknown type ${serverShape.type} could not be added`);
+                return;
             }
             this.addShape(shape, false, false);
         }
@@ -77,35 +75,27 @@ export class Layer {
     removeShape(shape: Shape, sync: boolean, temporary?: boolean) {
         if (temporary === undefined) temporary = false;
         this.shapes.splice(this.shapes.indexOf(shape), 1);
-        if (sync) socket.emit("remove shape", {shape: shape, temporary: temporary});
-        const ls_i = gameManager.lightsources.findIndex(ls => ls.shape === shape.uuid);
-        const lb_i = gameManager.lightblockers.findIndex(ls => ls === shape.uuid);
-        const mb_i = gameManager.movementblockers.findIndex(ls => ls === shape.uuid);
-        const an_i = gameManager.annotations.findIndex(ls => ls === shape.uuid);
-        if (ls_i >= 0)
-            gameManager.lightsources.splice(ls_i, 1);
-        if (lb_i >= 0)
-            gameManager.lightblockers.splice(lb_i, 1);
-        if (mb_i >= 0)
-            gameManager.movementblockers.splice(mb_i, 1);
-        if (an_i >= 0)
-            gameManager.annotations.splice(an_i, 1);
-        
-        const annotation_i = gameManager.annotations.indexOf(shape.uuid);
-        if (annotation_i >= 0)
-            gameManager.annotations.splice(annotation_i, 1);
-        
-        const owned_i = gameManager.ownedtokens.indexOf(shape.uuid);
-        if (owned_i >= 0)
-            gameManager.ownedtokens.splice(owned_i, 1);
+        if (sync) socket.emit("remove shape", { shape, temporary });
+        const lsI = gameManager.lightsources.findIndex(ls => ls.shape === shape.uuid);
+        const lbI = gameManager.lightblockers.findIndex(ls => ls === shape.uuid);
+        const mbI = gameManager.movementblockers.findIndex(ls => ls === shape.uuid);
+        const anI = gameManager.annotations.findIndex(ls => ls === shape.uuid);
+        if (lsI >= 0) gameManager.lightsources.splice(lsI, 1);
+        if (lbI >= 0) gameManager.lightblockers.splice(lbI, 1);
+        if (mbI >= 0) gameManager.movementblockers.splice(mbI, 1);
+        if (anI >= 0) gameManager.annotations.splice(anI, 1);
+
+        const annotationIndex = gameManager.annotations.indexOf(shape.uuid);
+        if (annotationIndex >= 0) gameManager.annotations.splice(annotationIndex, 1);
+
+        const ownedIndex = gameManager.ownedtokens.indexOf(shape.uuid);
+        if (ownedIndex >= 0) gameManager.ownedtokens.splice(ownedIndex, 1);
 
         gameManager.layerManager.UUIDMap.delete(shape.uuid);
 
         const index = this.selection.indexOf(shape);
-        if (index >= 0)
-            this.selection.splice(index, 1);
-        if (lb_i >= 0)
-            gameManager.recalculateBoundingVolume();
+        if (index >= 0) this.selection.splice(index, 1);
+        if (lbI >= 0) gameManager.recalculateBoundingVolume();
         this.invalidate(!sync);
     }
 
@@ -119,16 +109,20 @@ export class Layer {
             const ogOP = ctx.globalCompositeOperation;
             doClear = doClear === undefined ? true : doClear;
 
-            if (doClear)
-                this.clear();
+            if (doClear) this.clear();
 
             const state = this;
 
-            this.shapes.forEach(function (shape) {
+            this.shapes.forEach(shape => {
                 if (shape.options.has("skipDraw") && shape.options.get("skipDraw")) return;
                 if (gameManager.layerManager.getLayer() === undefined) return;
                 if (!shape.visibleInCanvas(state.canvas)) return;
-                if (state.name === 'fow' && shape.visionObstruction && gameManager.layerManager.getLayer()!.name !== state.name) return;
+                if (
+                    state.name === "fow" &&
+                    shape.visionObstruction &&
+                    gameManager.layerManager.getLayer()!.name !== state.name
+                )
+                    return;
                 shape.draw(ctx);
             });
 
@@ -137,22 +131,22 @@ export class Layer {
                 ctx.strokeStyle = this.selectionColor;
                 ctx.lineWidth = this.selectionWidth;
                 const z = store.state.zoomFactor;
-                this.selection.forEach(function (sel) {
+                this.selection.forEach(sel => {
                     ctx.globalCompositeOperation = sel.globalCompositeOperation;
                     const bb = sel.getBoundingBox();
                     // TODO: REFACTOR THIS TO Shape.drawSelection(ctx);
                     ctx.strokeRect(g2lx(bb.topLeft.x), g2ly(bb.topLeft.y), bb.w * z, bb.h * z);
 
-                    const sw = Math.min(6, bb.w / 2)
+                    const sw = Math.min(6, bb.w / 2);
 
                     // topright
-                    ctx.fillRect(g2lx(bb.topRight.x - sw/2), g2ly(bb.topLeft.y - sw/2), sw * z, sw * z);
+                    ctx.fillRect(g2lx(bb.topRight.x - sw / 2), g2ly(bb.topLeft.y - sw / 2), sw * z, sw * z);
                     // topleft
-                    ctx.fillRect(g2lx(bb.topLeft.x - sw/2), g2ly(bb.topLeft.y - sw/2), sw * z, sw * z);
+                    ctx.fillRect(g2lx(bb.topLeft.x - sw / 2), g2ly(bb.topLeft.y - sw / 2), sw * z, sw * z);
                     // botright
-                    ctx.fillRect(g2lx(bb.topRight.x - sw/2), g2ly(bb.botLeft.y - sw/2), sw * z, sw * z);
+                    ctx.fillRect(g2lx(bb.topRight.x - sw / 2), g2ly(bb.botLeft.y - sw / 2), sw * z, sw * z);
                     // botleft
-                    ctx.fillRect(g2lx(bb.topLeft.x - sw/2), g2ly(bb.botLeft.y - sw/2), sw * z, sw * z)
+                    ctx.fillRect(g2lx(bb.topLeft.x - sw / 2), g2ly(bb.botLeft.y - sw / 2), sw * z, sw * z);
                 });
             }
             ctx.globalCompositeOperation = ogOP;
@@ -165,14 +159,13 @@ export class Layer {
         if (oldIdx === destinationIndex) return;
         this.shapes.splice(oldIdx, 1);
         this.shapes.splice(destinationIndex, 0, shape);
-        if (sync) socket.emit("moveShapeOrder", {shape: shape.asDict(), index: destinationIndex});
+        if (sync) socket.emit("moveShapeOrder", { shape: shape.asDict(), index: destinationIndex });
         this.invalidate(true);
-    };
+    }
 
     onShapeMove(shape: Shape): void {
         shape.checkLightSources();
-        if (shape.visionObstruction)
-            gameManager.recalculateBoundingVolume();
+        if (shape.visionObstruction) gameManager.recalculateBoundingVolume();
         this.invalidate(false);
     }
 }

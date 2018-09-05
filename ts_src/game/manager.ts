@@ -1,22 +1,23 @@
-import { g2l } from "./units";
-import { ClientOptions, ServerShape } from './api_types';
-import { createShapeFromDict } from './shapes/utils';
-import { GlobalPoint } from "./geom";
-import { socket, sendClientOptions } from "./socket";
-import { uuidv4, OrderedMap } from "../core/utils";
-import Note from "./note";
-import AnnotationManager from "./ui/annotation";
 import BoundingVolume from "./bvh/bvh";
-import { LayerManager } from "./layers/manager";
-import gameManager, { vm } from "./planarally";
+import Note from "./note";
 import store from "./store";
+import AnnotationManager from "./ui/annotation";
+
+import { OrderedMap, uuidv4 } from "../core/utils";
+import { ClientOptions, ServerShape } from "./api_types";
+import { GlobalPoint } from "./geom";
+import { LayerManager } from "./layers/manager";
+import { vm } from "./planarally";
+import { createShapeFromDict } from "./shapes/utils";
+import { sendClientOptions, socket } from "./socket";
+import { g2l } from "./units";
 
 export class GameManager {
     layerManager = new LayerManager();
     selectedTool: number = 0;
     notes: OrderedMap<string, Note> = new OrderedMap();
-    
-    lightsources: { shape: string, aura: string }[] = [];
+
+    lightsources: { shape: string; aura: string }[] = [];
     lightblockers: string[] = [];
     annotations: string[] = [];
     movementblockers: string[] = [];
@@ -34,7 +35,7 @@ export class GameManager {
         this.BV = new BoundingVolume(this.lightblockers);
     }
 
-    newNote(name: string, text: string, show: boolean, sync: boolean, uuid?:string): void {
+    newNote(name: string, text: string, show: boolean, sync: boolean, uuid?: string): void {
         const id: string = uuid || uuidv4();
 
         const note = new Note(name, text, id);
@@ -45,13 +46,13 @@ export class GameManager {
 
         this.notes.set(id, note);
 
-        const button = $('<button>' + note.name + '</button>');
+        const button = $("<button>" + note.name + "</button>");
 
-        button.attr('note-id', id);
-        button.click(function() {
+        button.attr("note-id", id);
+        button.click(() => {
             gameManager.notes.get(id).show();
         });
-        $('#menu-notes').append(button);
+        $("#menu-notes").append(button);
 
         if (show) {
             note.show();
@@ -83,11 +84,11 @@ export class GameManager {
             console.log(`Shape with unknown type ${shape.type} could not be added`);
             return;
         }
-        const real_shape = Object.assign(this.layerManager.UUIDMap.get(shape.uuid), sh);
-        this.layerManager.getLayer(real_shape.layer)!.onShapeMove(real_shape);
+        const realShape = Object.assign(this.layerManager.UUIDMap.get(shape.uuid), sh);
+        this.layerManager.getLayer(realShape.layer)!.onShapeMove(realShape);
     }
 
-    updateShape(data: { shape: ServerShape; redraw: boolean; }): void {
+    updateShape(data: { shape: ServerShape; redraw: boolean }): void {
         if (!this.layerManager.hasLayer(data.shape.layer)) {
             console.log(`Shape with unknown layer ${data.shape.layer} could not be added`);
             return;
@@ -107,39 +108,44 @@ export class GameManager {
         shape.checkLightSources();
         shape.setMovementBlock(shape.movementObstruction);
         shape.setIsToken(shape.isToken);
-        if (data.redraw)
-            this.layerManager.getLayer(data.shape.layer)!.invalidate(false);
-        if (redrawInitiative)
-            (<any>vm.$refs.initiative).$forceUpdate();
+        if (data.redraw) this.layerManager.getLayer(data.shape.layer)!.invalidate(false);
+        if (redrawInitiative) (<any>vm.$refs.initiative).$forceUpdate();
     }
 
     setClientOptions(options: ClientOptions): void {
-        if (options.gridColour)
-            store.commit("setGridColour", {colour: options.gridColour, sync: false});
+        if (options.gridColour) store.commit("setGridColour", { colour: options.gridColour, sync: false });
         if (options.fowColour) {
-            store.commit("setFOWColour", {colour: options.fowColour, sync: false});
+            store.commit("setFOWColour", { colour: options.fowColour, sync: false });
         }
         if (options.locationOptions) {
-            if (options.locationOptions[`${store.state.roomName}/${store.state.roomCreator}/${store.state.locationName}`]) {
-                const loc = options.locationOptions[`${store.state.roomName}/${store.state.roomCreator}/${store.state.locationName}`];
-                if (loc.panX)
-                    store.commit("setPanX", loc.panX);
-                if (loc.panY)
-                store.commit("setPanY", loc.panY);
+            if (
+                options.locationOptions[
+                    `${store.state.roomName}/${store.state.roomCreator}/${store.state.locationName}`
+                ]
+            ) {
+                const loc =
+                    options.locationOptions[
+                        `${store.state.roomName}/${store.state.roomCreator}/${store.state.locationName}`
+                    ];
+                if (loc.panX) store.commit("setPanX", loc.panX);
+                if (loc.panY) store.commit("setPanY", loc.panY);
                 if (loc.zoomFactor) {
                     store.commit("setZoomFactor", loc.zoomFactor);
                 }
-                if (this.layerManager.getGridLayer() !== undefined)
-                    this.layerManager.getGridLayer()!.invalidate();
+                if (this.layerManager.getGridLayer() !== undefined) this.layerManager.getGridLayer()!.invalidate();
             }
         }
     }
 
     setCenterPosition(position: GlobalPoint) {
-        const l_pos = g2l(position);
-        store.commit("increasePanX", ((window.innerWidth / 2) - l_pos.x) / store.state.zoomFactor);
-        store.commit("increasePanY", ((window.innerHeight / 2) - l_pos.y) / store.state.zoomFactor);
+        const localPos = g2l(position);
+        store.commit("increasePanX", (window.innerWidth / 2 - localPos.x) / store.state.zoomFactor);
+        store.commit("increasePanY", (window.innerHeight / 2 - localPos.y) / store.state.zoomFactor);
         this.layerManager.invalidate();
         sendClientOptions();
     }
 }
+
+const gameManager = new GameManager();
+(<any>window).gameManager = gameManager;
+export default gameManager;

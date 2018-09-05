@@ -512,7 +512,6 @@ async def set_room(sid, data):
         return
 
     location.options.update(**data)
-    print("Updating location options")
     await sio.emit("set locationOptions", data, room=location.sioroom, skip_sid=sid, namespace='/planarally')
 
 

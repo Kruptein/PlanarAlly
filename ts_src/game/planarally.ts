@@ -13,10 +13,9 @@ import Tools from "./ui/tools/tools.vue";
 import store from "./store";
 import { onKeyDown, onKeyUp } from './events/keyboard';
 import { scrollZoom } from './events/mouse';
-import { LocalPoint, GlobalPoint } from "./geom";
+import { LocalPoint } from "./geom";
 import { GameManager } from './manager';
-import { l2g, l2gx, l2gy, l2gz } from "./units";
-import Asset from "./shapes/asset";
+import { l2g } from "./units";
 
 const gameManager = new GameManager();
 
@@ -86,13 +85,7 @@ export const vm = new Vue({
             gameManager.layerManager.setLayer(layer);
         },
         drop(event: DragEvent) {
-            const layer = gameManager.layerManager.getLayer();
-            if (layer === undefined) return;
-            const image = document.createElement("img");
-            image.src = event.dataTransfer.getData("text/plain");
-            const asset = new Asset(image,  new GlobalPoint(l2gx(event.clientX), l2gy(event.clientY)), l2gz(image.width), l2gz(image.height));
-            asset.src = new URL(image.src).pathname
-            layer.addShape(asset, false);
+            gameManager.layerManager.dropAsset(event);
         }
     }
 });

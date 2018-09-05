@@ -1,5 +1,5 @@
 import { g2l } from "./units";
-import { ClientOptions, BoardInfo, ServerShape } from './api_types';
+import { ClientOptions, ServerShape } from './api_types';
 import { createShapeFromDict } from './shapes/utils';
 import { GlobalPoint } from "./geom";
 import { socket, sendClientOptions } from "./socket";

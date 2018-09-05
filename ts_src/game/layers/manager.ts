@@ -6,8 +6,8 @@ import gameManager from "../planarally";
 import { capitalize } from "../../core/utils";
 import Settings from "../settings";
 import { FOWLayer } from "./fow";
-import { LocalPoint } from "../geom";
-import { l2g } from "../units";
+import { LocalPoint, GlobalPoint } from "../geom";
+import { l2g, l2gx, l2gy, l2gz } from "../units";
 import Asset from "../shapes/asset";
 import { FOWPlayersLayer } from "./fowplayers";
 import store from "../store";
@@ -108,5 +108,24 @@ export class LayerManager {
         for (let i = this.layers.length - 1; i >= 0; i--)
             if (this.layers[i].isVisionLayer)
                 this.layers[i].invalidate(true);
+    }
+
+    dropAsset(event: DragEvent) {
+        const layer = gameManager.layerManager.getLayer();
+        if (layer === undefined) return;
+        const image = document.createElement("img");
+        image.src = event.dataTransfer.getData("text/plain");
+        const asset = new Asset(image,  new GlobalPoint(l2gx(event.clientX), l2gy(event.clientY)), l2gz(image.width), l2gz(image.height));
+        asset.src = new URL(image.src).pathname
+
+        if (store.state.useGrid) {
+            const gs = store.state.gridSize;
+            asset.refPoint.x = Math.round(asset.refPoint.x / gs) * gs;
+            asset.refPoint.y = Math.round(asset.refPoint.y / gs) * gs;
+            asset.w = Math.max(Math.round(asset.w / gs) * gs, gs);
+            asset.h = Math.max(Math.round(asset.h / gs) * gs, gs);
+        }
+        
+        layer.addShape(asset, false);
     }
 }

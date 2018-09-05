@@ -4,8 +4,16 @@
     <title>PlanarAlly</title>
     <link href="/static/css/rooms.css" rel="stylesheet">
     <script defer src='/static/extern/js/fontawesome_all.js'></script>
-    <script src='/static/extern/js/jquery-3.3.1.min.js' integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="></script>
-    <script defer src="/static/js/login.js"></script>
+    <script>
+        window.addEventListener("focusin", (event) => {
+            const span = event.target.nextElementSibling;
+            span.style.opacity = 0;
+        });
+        window.addEventListener("focusout", (event) => {
+            const span = event.target.nextElementSibling;
+            span.style.opacity = 1;
+        });
+    </script>
 </head>
 <body>
 <div id="formcontainer">

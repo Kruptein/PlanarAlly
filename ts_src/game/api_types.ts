@@ -20,12 +20,6 @@ export interface ClientOptions {
     };
 }
 
-export interface Notes {
-    uuid: string;
-    name: string;
-    text: string;
-}
-
 export interface AssetList {
     [inode: string]: AssetList | AssetFileList[];
 }

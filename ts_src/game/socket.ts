@@ -10,7 +10,7 @@ import {
     InitiativeData,
     InitiativeEffect,
     LocationOptions,
-    Notes,
+    Note,
     ServerShape,
 } from "./api_types";
 import { GlobalPoint } from "./geom";
@@ -51,8 +51,8 @@ socket.on("set location", (data: { name: string; options: LocationOptions }) => 
 socket.on("set position", (data: { x: number; y: number }) => {
     gameManager.setCenterPosition(new GlobalPoint(data.x, data.y));
 });
-socket.on("set notes", (notes: Notes[]) => {
-    for (const n of notes) gameManager.newNote(n.name, n.text, false, false, n.uuid);
+socket.on("set notes", (notes: Note[]) => {
+    for (const note of notes) store.commit("newNote", { note, sync: false });
 });
 socket.on("asset list", (assets: AssetList) => {
     store.commit("setAssets", assets);

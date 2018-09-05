@@ -8,25 +8,32 @@
             @dragstart="m.dragStart"
             @dragend="m.dragEnd"
         >
-            <input v-model="note.name">
+            <span @click='$refs.title.select()'><i class="fas fa-pencil-alt" style='font-size: 15px'></i></span>
+            <input v-model="note.name" ref='title' @change='updateNote'>
         </div>
         <div class='modal-body'>
             <textarea
                 ref='textarea'
                 v-model='note.text'
                 :style="{'height': calcHeight()}"
+                @change='updateNote'
             ></textarea>
+        </div>
+        <div class='modal-footer'>
+            <button @click="removeNote"><i class='far fa-trash-alt'></i>Remove</button>
         </div>
     </modal>
 </template>
 
 <script lang="ts">
 import Vue from "vue";
-import modal from "../../core/components/modals/modal.vue";
 
 import { mapState } from "vuex";
-import { uuidv4 } from "../../core/utils";
+
+import modal from "../../core/components/modals/modal.vue";
+
 import { Note } from "../api_types";
+import { vm } from "../planarally";
 
 export default Vue.component("initiative-dialog", {
     data: () => ({
@@ -50,6 +57,20 @@ export default Vue.component("initiative-dialog", {
                 return el.scrollHeight + "px";
             }
             return "100px";
+        },
+        updateNote() {
+            this.$store.commit("updateNote", { note: this.note, sync: true });
+        },
+        removeNote() {
+            (<any>vm.$refs.confirm).open("Are you sure you wish to remove this?").then(
+                (result: boolean) => {
+                    if (result) {
+                        this.$store.commit("removeNote", { note: this.note, sync: true });
+                        this.visible = false;
+                    }
+                },
+                () => {},
+            );
         },
     },
 });
@@ -79,5 +100,11 @@ export default Vue.component("initiative-dialog", {
     width: 100%;
     min-height: 100px;
     max-height: 500px;
+}
+
+.modal-footer {
+    padding-top: 0;
+    padding: 10px;
+    text-align: right;
 }
 </style>

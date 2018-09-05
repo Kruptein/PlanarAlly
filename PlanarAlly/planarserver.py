@@ -529,7 +529,7 @@ async def set_gridsize(sid, grid_size):
     await sio.emit("set gridsize", grid_size, room=location.sioroom, skip_sid=sid, namespace="/planarally")
 
 
-@sio.on("newNote", namespace="/planarally")
+@sio.on("Note.New", namespace="/planarally")
 @auth.login_required(app, sio)
 async def new_note(sid, data):
     username = app['AuthzPolicy'].sio_map[sid]['user'].username
@@ -543,7 +543,7 @@ async def new_note(sid, data):
     PA.save_room(room)
 
 
-@sio.on("updateNote", namespace="/planarally")
+@sio.on("Note.Update", namespace="/planarally")
 @auth.login_required(app, sio)
 async def update_note(sid, data):
     username = app['AuthzPolicy'].sio_map[sid]['user'].username
@@ -557,7 +557,7 @@ async def update_note(sid, data):
     PA.save_room(room)
 
 
-@sio.on("deleteNote", namespace="/planarally")
+@sio.on("Note.Remove", namespace="/planarally")
 @auth.login_required(app, sio)
 async def delete_note(sid, uuid):
     username = app['AuthzPolicy'].sio_map[sid]['user'].username

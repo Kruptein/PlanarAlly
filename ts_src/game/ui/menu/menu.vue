@@ -241,7 +241,7 @@ export default Vue.component("menu-bar", {
         },
         createNote() {
             const note = { name: "New note", text: "", uuid: uuidv4() };
-            this.$store.commit("addNote", note);
+            this.$store.commit("newNote", { note, sync: true });
             this.openNote(note);
         },
         openNote(note: Note) {

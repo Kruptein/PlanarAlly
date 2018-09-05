@@ -4,6 +4,7 @@ import vueSlider from "vue-slider-component";
 import { throttle } from "lodash";
 import { mapGetters, mapState } from "vuex";
 
+import ConfirmDialog from "../core/components/modals/confirm.vue";
 import PromptDialog from "../core/components/modals/prompt.vue";
 import gameManager from "./manager";
 import store from "./store";
@@ -26,6 +27,7 @@ export const vm = new Vue({
         "tool-bar": Tools,
         "selection-info": SelectionInfo,
         "prompt-dialog": PromptDialog,
+        "confirm-dialog": ConfirmDialog,
         "menu-bar": MenuBar,
         "initiative-dialog": InitiativeDialog,
         "zoom-slider": vueSlider,

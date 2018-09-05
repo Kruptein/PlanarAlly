@@ -169,8 +169,20 @@ export default new Vuex.Store({
         setAssets(state, assets) {
             state.assets = assets;
         },
-        addNote(state, note) {
-            state.notes.push(note);
+        newNote(state, payload: { note: Note; sync: boolean }) {
+            state.notes.push(payload.note);
+            if (payload.sync) socket.emit("Note.New", payload.note);
+        },
+        updateNote(state, payload: { note: Note; sync: boolean }) {
+            const note = state.notes.find(n => n.uuid === payload.note.uuid);
+            if (note === undefined) return;
+            note.name = payload.note.name;
+            note.text = payload.note.text;
+            if (payload.sync) socket.emit("Note.Update", payload.note);
+        },
+        removeNote(state, payload: { note: Note; sync: boolean }) {
+            state.notes = state.notes.filter(n => n.uuid !== payload.note.uuid);
+            if (payload.sync) socket.emit("Note.Remove", payload.note.uuid);
         },
     },
 });

@@ -1,9 +1,7 @@
 import BoundingVolume from "./bvh/bvh";
-import Note from "./note";
 import store from "./store";
 import AnnotationManager from "./ui/annotation";
 
-import { OrderedMap, uuidv4 } from "../core/utils";
 import { ClientOptions, ServerShape } from "./api_types";
 import { GlobalPoint } from "./geom";
 import { LayerManager } from "./layers/manager";
@@ -15,7 +13,6 @@ import { g2l } from "./units";
 export class GameManager {
     layerManager = new LayerManager();
     selectedTool: number = 0;
-    notes: OrderedMap<string, Note> = new OrderedMap();
 
     lightsources: { shape: string; aura: string }[] = [];
     lightblockers: string[] = [];
@@ -33,30 +30,6 @@ export class GameManager {
 
     recalculateBoundingVolume() {
         this.BV = new BoundingVolume(this.lightblockers);
-    }
-
-    newNote(name: string, text: string, show: boolean, sync: boolean, uuid?: string): void {
-        const id: string = uuid || uuidv4();
-
-        const note = new Note(name, text, id);
-
-        if (sync) {
-            socket.emit("newNote", note.asDict());
-        }
-
-        this.notes.set(id, note);
-
-        const button = $("<button>" + note.name + "</button>");
-
-        button.attr("note-id", id);
-        button.click(() => {
-            gameManager.notes.get(id).show();
-        });
-        $("#menu-notes").append(button);
-
-        if (show) {
-            note.show();
-        }
     }
 
     addShape(shape: ServerShape): void {

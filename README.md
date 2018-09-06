@@ -1,19 +1,33 @@
 # PlanarAlly
+_This project is still in early development; multiple bugs or structure changes can and will happen_
 
 A companion tool for when you travel into the planes.
 
-PlanarAlly is a web tool that adds virtual battlemaps with various extras to your D&D toolbox.   This can be ran in a completely offline set-up.
+PlanarAlly is a web tool that adds virtual battlemaps with various extras to your D&D toolbox.
 
-This tool is provided free to use, but requires some small computer knowledge to run.  If you have any questions, feel free to contact me.
+Some key features are:
+
+**Self hosting**: You can run this software wherever you like without having to rely on an external service\
+**Offline support**: This tool can be used in a completely offline set-up for when you play D&D in a dark dungeon.
+
+**Simple layers**: Organize your scenes in layers for easier management.\
+**Infinite canvas**: When a limited workspace is still nog enough!\
+**Dynamic lighting**: Increase your immersion by working with light and shadows.\
+**Player vision**: Limit vision to what your token(s) can see.  Is your companion in a different room, no light for you!\
+**Initiative tracker**: Simple initiative tracker
+
+This tool is provided free to use and is open source.
+
+User documentation can be found [here](), but is in active development so some parts may still lack information.
+
+Installation instructions can also be found in the link above, but do require some technical know-how, there are some sites that publicly host PA for you which you could use if you lack the knowledge or resources to host it yourself.
 
 **INDEX**
 
-[Features](##-What-you-get)\
-[Planned features](##-Planned)\
-[Install](#Installing-/-Backend-Requirements)\
-[Running PA](#Running)
-
-_This project is still in early development; multiple bugs or structure changes can and will happen_
+[Features](#what-you-get)\
+[Planned features](#planned)\
+[Install](#installing--backend-requirements)\
+[Running PA](#running)
 
 ![Example view of a player with a light source](extra/player_light_example.png)
 _Credits to Gogots for the background map used [source](https://gogots.deviantart.com/art/City-of-Moarkaliff-702295905)_
@@ -22,29 +36,50 @@ _Credits to Gogots for the background map used [source](https://gogots.deviantar
 
 ### Layers
 
-Layers are a core aspect of any virtual table top.  PA currently provides a hardcoded set of layers.  _(This is intended to change in the future)_
+Layers are a core aspect of any virtual table top and provide the DM a flexible way to manage various parts of the screen.  PA currently provides a hardcoded set of layers.  _(This is intended to change in the future)_
 
 While most of these layers can only be directly influenced by the DM, they often are still visible for the players.
 
-If multiple layers are selectable (currently only the DM has this option), you can change between the current active layer in the lowerleft of the screen.  Elements on higher layers are typically shown with a lower opacity to avoid confusion.
+If multiple layers are selectable (currently only applicable to the DM), you can change layers in the lowerleft of the screen.  Elements on higher layers are typically shown with a lower opacity to avoid confusion.
 
-To change tokens to a different layer, you can use the contextmenu provided on right click.  This also provides a way to move overlapping assets behind eachother.
+To move tokens to a different layer, you can use the contextmenu provided on right click.  This also provides a way to move overlapping assets behind eachother.
+
+What follows is a list of the current layers from bottom to top:
 
 #### Map layer
 
 **Selectable**: DM only\
 **Viewable**: DM and players
 
-The map layer is the lowest rendered layer.  This means that all other layers will appear on top of this layer.  It is typically used for terrain and maps.
+The map layer is the lowest rendered layer.  It is typically used for terrain and maps as the layer is rendered under the grid.
 
 #### Grid layer
 
 **Selectable**: Nobody\
 **Viewable**: DM and players
 
-The grid layer shows a grid _duh_.  The DM can enable or disable this feature.  When enabled, most actions will by default snap to the grid (e.g. moving tokens).  To prevent this behaviour, you can hold the ALT key while doing the action.
+The grid layer shows a grid _duh_.
 
-The dimension of the grid and the size one cell represents can be configured by the DM.  All players can customize which colour and opacity the grid has.
+When enabled, most actions will by default snap to the grid (e.g. moving tokens).  To prevent this behaviour, you can hold the ALT key while doing the action.
+
+
+**Related settings:**
+
+    Client options
+        Grid Colour
+            A colour picker that allows each player to choose the colour and opacity of the grid.
+    DM options
+        Use grid
+            Enable or disable the grid overlay
+        Unit Size (in ft.)
+            The number of feet one cell represents.
+            
+            This is used by for example the ruler.
+        Grid Size (in pixels)
+            How many pixels one cell should fill.
+            
+            This is used to change the density of the cells.
+            The zoom level also affects this density.
 
 **note:** currently only a square grid is available.  There are no immediate plans to support hexagonal grids, but this might be done in the future.
 

@@ -17,3 +17,8 @@ planar.save*
 server_config.cfg
 PlanarAlly/static/img/**
 PlanarAlly/static/assets/**
+
+# docs
+docs/_build
+docs/_static
+docs/_templates

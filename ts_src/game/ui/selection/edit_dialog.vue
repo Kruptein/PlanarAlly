@@ -137,8 +137,8 @@
                 />
                 <div
                     :key="'visibility-'+aura.uuid"
-                    :style="{opacity: aura.visibile ? 1.0 : 0.3}"
-                    @click="aura.visibile = !aura.visibile;updateShape(true)"
+                    :style="{opacity: aura.visible ? 1.0 : 0.3}"
+                    @click="aura.visible = !aura.visible;updateShape(true)"
                 >
                     <i class="fas fa-eye"></i>
                 </div>

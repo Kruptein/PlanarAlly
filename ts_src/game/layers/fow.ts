@@ -127,18 +127,22 @@ export class FOWLayer extends Layer {
                 if (lastArcAngle === -1) path.lineTo(g2lx(firstPoint!.x), g2ly(firstPoint!.y));
                 else path.arc(lcenter.x, lcenter.y, g2lr(aura.value + aura.dim), lastArcAngle, 2 * Math.PI);
 
-                // Fill the light aura with a radial dropoff towards the outside.
-                const gradient = ctx.createRadialGradient(
-                    lcenter.x,
-                    lcenter.y,
-                    g2lr(aura.value),
-                    lcenter.x,
-                    lcenter.y,
-                    g2lr(aura.value + aura.dim),
-                );
-                gradient.addColorStop(0, "rgba(0, 0, 0, 1)");
-                gradient.addColorStop(1, "rgba(0, 0, 0, 0)");
-                ctx.fillStyle = gradient;
+                if (aura.dim > 0) {
+                    // Fill the light aura with a radial dropoff towards the outside.
+                    const gradient = ctx.createRadialGradient(
+                        lcenter.x,
+                        lcenter.y,
+                        g2lr(aura.value),
+                        lcenter.x,
+                        lcenter.y,
+                        g2lr(aura.value + aura.dim),
+                    );
+                    gradient.addColorStop(0, "rgba(0, 0, 0, 1)");
+                    gradient.addColorStop(1, "rgba(0, 0, 0, 0)");
+                    ctx.fillStyle = gradient;
+                } else {
+                    ctx.fillStyle = "rgba(0, 0, 0, 1)";
+                }
                 ctx.fill(path);
 
                 aura.lastPath = path;

@@ -45,7 +45,12 @@
                             @click="createEffect(actor, getDefaultEffect(), true)"
                         >
                             <i class="fas fa-stopwatch"></i>
-                            {{actor.effects.length}}
+                            <template v-if='actor.effects'>
+                                {{actor.effects.length}}
+                            </template>
+                            <template v-else>
+                                0
+                            </template>
                         </div>
                         <div
                             :style="{'opacity': actor.visible ? '1.0' : '0.3'}"
@@ -72,7 +77,7 @@
                     <div
                         :key="'effects-' + actor.uuid"
                         class='initiative-effect'
-                        v-if="actor.effects.length"
+                        v-if="actor.effects"
                     >
                         <div
                             v-for="effect in actor.effects"
@@ -175,9 +180,11 @@ export default Vue.component("initiative-dialog", {
             this.currentActor = actorId;
             const actor = this.data.find(a => a.uuid === actorId);
             if (actor === undefined) return;
-            for (let e = actor.effects.length - 1; e >= 0; e--) {
-                if (actor.effects[e].turns <= 0) actor.effects.splice(e, 1);
-                else actor.effects[e].turns--;
+            if (actor.effects) {
+                for (let e = actor.effects.length - 1; e >= 0; e--) {
+                    if (actor.effects[e].turns <= 0) actor.effects.splice(e, 1);
+                    else actor.effects[e].turns--;
+                }
             }
             if (sync) socket.emit("updateInitiativeTurn", actorId);
         },

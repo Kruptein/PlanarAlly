@@ -42,6 +42,8 @@
     <selection-info ref='selectionInfo'></selection-info>
     <initiative-dialog ref='initiative' id='initiativedialog'></initiative-dialog>
     <note-dialog ref='note'></note-dialog>
+    <!-- When updating zoom boundaries, also update store updateZoom function;
+    should probably do this using a store variable -->
     <zoom-slider
         id='zoomer'
         v-model="zoomFactor"

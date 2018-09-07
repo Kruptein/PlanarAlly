@@ -1,5 +1,5 @@
 <template>
-    <modal :visible="visible">
+    <modal :visible="visible" @close="visible = false">
         <div
             class='modal-header'
             slot='header'

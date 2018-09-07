@@ -30,7 +30,8 @@ export function createLayer(layerInfo: ServerLayer) {
         console.warn("Layers div is missing, this will prevent the main game board from loading!");
         return;
     }
-    layers.appendChild(canvas);
+    if (layerInfo.name !== 'fow-players')
+        layers.appendChild(canvas);
 
     if (layerInfo.grid && layerInfo.size) store.commit("setGridSize", { gridSize: layerInfo.size, sync: false });
     // Load layer shapes

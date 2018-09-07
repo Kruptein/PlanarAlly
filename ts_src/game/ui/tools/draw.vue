@@ -235,6 +235,7 @@ export default Tool.extend({
     justify-content: center;
     align-items: center;
     font-size: 13px;
+    min-width: 25px;
 }
 .option-selected,
 .option:hover {

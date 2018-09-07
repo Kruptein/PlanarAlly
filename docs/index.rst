@@ -7,19 +7,20 @@ Welcome to Planar Ally's documentation!
 =======================================
 
 .. toctree::
-   :maxdepth: 2
-   :caption: Contents:
-    getting_started
+    :maxdepth: 2
+    :caption: Contents:
 
-Welcome to the user documentation of Planar Ally!
+    Getting Started (Player) <getting_started>
+    Getting Started (DM) <getting_started_dm>
 
 These documents are in active development,
-so if anything is left unanswered feel free to contact me on github or reddit *(username Kruptein)*.
+
+If anything is left unanswered feel free to contact me on github or reddit *(username Kruptein)*.
 
 Getting Started
 -----------------
 
-To quickly get started follow this information :ref:`test <getting_started>` and :ref:`getting_started_dm:for DMs`
+To quickly get started follow :ref:`this <getting_started>` for players and :ref:`this <getting_started_dm>` for DM's.
 
 Indices and tables
 ==================

@@ -137,7 +137,85 @@ Tools
 ~~~~~~~
 
 Now then a quick overview of the various tools you can use.
-As a player you'll have access to 5
+As a player you'll have access to 4 tools.
+
+.. note:: Grid snapping
+
+    When the grid is enabled, most tool actions will by default attempt to "snap" to the grid.
+    This means that when moving or drawing tokens they will automatically be put in such a way that
+    they fit the grid.
+    
+    This behaviour can be ignored by pressing the ALT key while doing the action.
+    
+    *If the grid is disabled the alt key does not have to be pressed.*
+
+Select
+^^^^^^^^
+
+This tool will be your most used tool as it allows to select tokens allowing you to see more info about them
+or moving them.
+
+A selection box can be drawn at any point which will try to select all shapes inside the drawn region,
+moving these will behave in a similar way as moving singular tokens.
+
+.. note::
+
+    The selection info box will only show the info of one of the selected items!
+
+Movement can be done by dragging with the left mouse button or by using the arrow keys.
+
+.. note::
+
+    It's possible that your DM has made some objects impossible to pass through,
+    so don't panic if you think you're stuck.  If you are actually stuck,
+    ask your DM, he/she can free you.
+
+.. warning::
+
+    Unless restricted by terrain, you'll typically be able to move your token freely.
+    This does not mean that you should immediately discover everything you can reach,
+    let your DM guide you around.  You don't want to spoil yourself! :)
+
+When in select modus, your right mouse button will show a context menu.
+
+When you right click a selection, you'll have the option to move it to the front or back and add or show its initiative.
+When nothing is selected, you'll have the option to show the initiative tracker or create a new basic token.
+
+Pan
+^^^^
+
+The pan tool simply allows you to pan around when you drag your left mouse button around.
+
+This behaviour is also implemented in the middle mouse button when other tools are selected,
+to minimize constant tool changing.
+
+It's heavily encourage to use the middle mouse pan, but the tool still exists for those cases wher you don't have a middle mouse.
+
+Draw
+^^^^^
+
+The draw tool allows you to draw some simple shapes!
+
+You can choose between a rectangle, a circle, or a freehand brush.
+
+You also have the option to select two colours.
+The left colour is used as the fill colour, the right one as the border colour.
+If you wish to only have a fill or only have a border colour, simply set the opacity of the other to 0
+*(this is the second slider in the color picker)*.
+
+Ruler
+^^^^^^
+
+The last tool currently available is the ruler, it allows for easy measurements.
+simply press the left mouse button and drag it.
+
+While holding the button it will show you the distance in ft between your initial click and your current position.
+
+.. note::
+
+    Your ruler is visible by all players!
+
+The distance is calculated based on the size 1 grid cell is supposed to represent by your DM.
 
 Asset configuration
 ~~~~~~~~~~~~~~~~~~~~~

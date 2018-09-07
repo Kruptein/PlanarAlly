@@ -70,7 +70,7 @@ export default Tool.extend({
             this.active = false;
 
             if (layer.selection.length !== 1) {
-                layer.removeShape(this.rect!, false, false);
+                layer.removeShape(this.rect, false, false);
                 return;
             }
 
@@ -81,7 +81,6 @@ export default Tool.extend({
             if (sel instanceof BaseRect) {
                 sel.w *= this.xCount * this.gridSize / w;
                 sel.h *= this.yCount * this.gridSize / h;
-                console.log("Updated selection");
             }
 
             layer.removeShape(this.rect, false, false);

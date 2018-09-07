@@ -4,6 +4,7 @@
             <ul>
                 <li
                     v-for="tool in tools"
+                    v-if="!dmTools.includes(tool) || IS_DM"
                     :key="tool"
                     :class="{'tool-selected': currentTool === tool}"
                     :ref="tool + '-selector'"
@@ -54,6 +55,7 @@ export default Vue.component("tools", {
     data: () => ({
         currentTool: "select",
         tools: ["select", "pan", "draw", "ruler", "map"],
+        dmTools: ["map"],
     }),
     watch: {
         currentTool(newValue, oldValue) {
@@ -61,6 +63,9 @@ export default Vue.component("tools", {
         },
     },
     computed: {
+        IS_DM(): boolean {
+            return this.$store.state.IS_DM;
+        },
         currentToolComponent(): string {
             return `${this.currentTool.toLowerCase()}-tool`;
         },

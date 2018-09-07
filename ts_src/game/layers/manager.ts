@@ -125,6 +125,6 @@ export class LayerManager {
             asset.h = Math.max(Math.round(asset.h / gs) * gs, gs);
         }
 
-        layer.addShape(asset, false);
+        layer.addShape(asset, true);
     }
 }

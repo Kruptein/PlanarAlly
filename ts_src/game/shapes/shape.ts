@@ -115,9 +115,11 @@ export default abstract class Shape {
 
     setIsToken(isToken: boolean) {
         this.isToken = isToken;
-        const i = gameManager.ownedtokens.indexOf(this.uuid);
-        if (this.isToken && i === -1) gameManager.ownedtokens.push(this.uuid);
-        else if (!this.isToken && i >= 0) gameManager.ownedtokens.splice(i, 1);
+        if (this.ownedBy()) {
+            const i = gameManager.ownedtokens.indexOf(this.uuid);
+            if (this.isToken && i === -1) gameManager.ownedtokens.push(this.uuid);
+            else if (!this.isToken && i >= 0) gameManager.ownedtokens.splice(i, 1);
+        }
     }
 
     ownedBy(username?: string) {

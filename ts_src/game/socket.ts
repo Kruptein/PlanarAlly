@@ -115,7 +115,7 @@ socket.on("updateInitiative", (data: InitiativeData) => {
     else initiative.updateInitiative(data, false);
 });
 socket.on("setInitiative", (data: InitiativeData[]) => {
-    (<any>vm.$refs.initiative).data = data;
+    (<any>vm.$refs.initiative).data = data.filter(d => !!d);
 });
 socket.on("updateInitiativeTurn", (data: string) => {
     (<any>vm.$refs.initiative).setTurn(data, false);

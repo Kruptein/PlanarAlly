@@ -25,7 +25,11 @@ export default class Asset extends BaseRect {
     }
     draw(ctx: CanvasRenderingContext2D) {
         super.draw(ctx);
-        ctx.drawImage(this.img, g2lx(this.refPoint.x), g2ly(this.refPoint.y), g2lz(this.w), g2lz(this.h));
+        try {
+            ctx.drawImage(this.img, g2lx(this.refPoint.x), g2ly(this.refPoint.y), g2lz(this.w), g2lz(this.h));
+        } catch (error) {
+            console.warn(`Shape ${this.uuid} could not load the image ${this.src}`);
+        }
     }
     getInitiativeRepr(): InitiativeData {
         return {

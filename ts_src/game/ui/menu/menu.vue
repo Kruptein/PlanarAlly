@@ -39,8 +39,8 @@
         </div>
         <!-- SETTINGS -->
         <transition name="settings" @enter="$refs.rm.style.transition = 'left 500ms'">
-            <div id="menu" v-if="visible.settings" @click="settingsClick">
-                <div style='width:100%;height:90%;overflow-y:auto;overflow-x:hidden;'>
+            <div id="menu" v-if="visible.settings" @click="settingsClick" ref='settings'>
+                <div style='width:200px;height:90%;overflow-y:auto;overflow-x:hidden;'>
                     <!-- ASSETS -->
                     <template v-if="IS_DM">
                         <button class="accordion">Assets</button>

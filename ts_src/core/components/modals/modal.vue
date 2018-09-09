@@ -1,6 +1,12 @@
 <template>
     <transition name="modal">
-        <div class="modal-mask" @click="close" v-show="visible" @dragover='dragOver'>
+        <div
+            class="mask"
+            :class="{'modal-mask': mask, 'dialog-mask': !mask}"
+            @click="close"
+            v-show="visible"
+            @dragover.prevent='dragOver'
+        >
             <div
                 class="modal-container"
                 @click.stop
@@ -18,7 +24,13 @@
 import Vue from "vue";
 
 export default Vue.extend({
-    props: ["visible"],
+    props: {
+        visible: Boolean,
+        mask: {
+            type: Boolean,
+            default: true,
+        },
+    },
     data: () => ({
         positioned: false,
         offsetX: 0,
@@ -53,8 +65,14 @@ export default Vue.extend({
             this.offsetY = event.offsetY;
         },
         dragEnd(event: DragEvent) {
-            (<any>this.$refs.container).style.left = event.clientX - this.offsetX + "px";
-            (<any>this.$refs.container).style.top = event.clientY - this.offsetY + "px";
+            let left = event.clientX - this.offsetX;
+            let top = event.clientY - this.offsetY;
+            if (left < 0) left = 0;
+            if (left > window.innerWidth - 100) left = window.innerWidth - 100;
+            if (top < 0) top = 0;
+            if (top > window.innerHeight - 100) top = window.innerHeight - 100;
+            (<any>this.$refs.container).style.left = left + "px";
+            (<any>this.$refs.container).style.top = top + "px";
             (<any>this.$refs.container).style.display = "block";
         },
         dragOver(event: DragEvent) {
@@ -69,18 +87,26 @@ export default Vue.extend({
     display: none;
 }
 
-.modal-mask {
+.mask {
     position: fixed;
     z-index: 9998;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
+}
+
+.dialog-mask {
+    pointer-events: none;
+}
+
+.modal-mask {
     background-color: rgba(0, 0, 0, 0.5);
     transition: opacity 0.3s ease;
 }
 
 .modal-container {
+    pointer-events: auto;
     position: absolute;
     width: auto;
     height: auto;

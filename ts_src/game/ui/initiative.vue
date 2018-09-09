@@ -1,5 +1,5 @@
 <template>
-    <modal :visible="visible" @close="visible = false">
+    <modal :visible="visible" @close="visible = false" :mask="false">
         <div
             class='modal-header'
             slot='header'
@@ -8,7 +8,8 @@
             @dragstart="m.dragStart"
             @dragend="m.dragEnd"
         >
-            Initiative
+            <div>Initiative</div>
+            <div class='header-close' @click="visible = false"><i class="far fa-window-close"></i></div>
         </div>
         <div class='modal-body'>
             <draggable
@@ -277,6 +278,12 @@ export default Vue.component("initiative-dialog", {
     font-size: 20px;
     font-weight: bold;
     cursor: move;
+}
+
+.header-close {
+    position: absolute;
+    top: 5px;
+    right: 5px;
 }
 
 .modal-body {

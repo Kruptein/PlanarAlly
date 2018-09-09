@@ -623,6 +623,7 @@ async def change_location(sid, location):
         if psid is not None:
             sio.leave_room(psid, old_location.sioroom, namespace='/planarally')
             sio.enter_room(psid, new_location.sioroom, namespace='/planarally')
+            await load_location(psid, new_location)
 
 
 async def load_location(sid, location):

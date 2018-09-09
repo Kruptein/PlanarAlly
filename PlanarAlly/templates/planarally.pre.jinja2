@@ -9,7 +9,7 @@
     <script defer src='/static/extern/js/fontawesome_all.js'></script>
 </head>
 <body>
-<div id="main">
+<div id="main" @mouseleave="mouseleave">
     <menu-bar></menu-bar>
     {% if dm %}
         <div id="locations-menu">

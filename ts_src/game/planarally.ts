@@ -85,6 +85,9 @@ export const vm = new Vue({
         mousemove(event: MouseEvent) {
             (<any>this.$refs.tools).mousemove(event);
         },
+        mouseleave(event: MouseEvent) {
+            (<any>this.$refs.tools).mouseleave(event);
+        },
         contextmenu(event: MouseEvent) {
             (<any>this.$refs.tools).contextmenu(event);
         },

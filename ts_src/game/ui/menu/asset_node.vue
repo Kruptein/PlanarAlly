@@ -72,6 +72,7 @@ export default Vue.component("asset-node", {
     position: fixed;
     z-index: 50;
     left: 200px;
+    top: 0;
 }
 
 .asset-preview-image {

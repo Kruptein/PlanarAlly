@@ -12,7 +12,7 @@
         </div>
         <div class='modal-body'>
             <button @click="confirm" ref="confirm">{{ yes }}</button>
-            <button @click="deny">{{ no }}</button>
+            <button @click="deny" v-if="!!no">{{ no }}</button>
         </div>
     </modal>
 </template>

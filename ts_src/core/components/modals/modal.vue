@@ -35,6 +35,7 @@ export default Vue.extend({
         positioned: false,
         offsetX: 0,
         offsetY: 0,
+        dragging: false,
     }),
     // Example of mounted required: opening note
     mounted() {
@@ -63,8 +64,10 @@ export default Vue.extend({
             event.dataTransfer.setDragImage(<Element>this.$refs.container, event.offsetX, event.offsetY);
             this.offsetX = event.offsetX;
             this.offsetY = event.offsetY;
+            this.dragging = true;
         },
         dragEnd(event: DragEvent) {
+            this.dragging = false;
             let left = event.clientX - this.offsetX;
             let top = event.clientY - this.offsetY;
             if (left < 0) left = 0;
@@ -76,7 +79,7 @@ export default Vue.extend({
             (<any>this.$refs.container).style.display = "block";
         },
         dragOver(event: DragEvent) {
-            (<any>this.$refs.container).style.display = "none";
+            if (this.dragging) (<any>this.$refs.container).style.display = "none";
         },
     },
 });

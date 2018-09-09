@@ -16,6 +16,7 @@
                 id='initiative-list'
                 v-model="data"
                 @change="updateOrder"
+                :options="{setData: () => {}}"
             >
                 <template v-for="actor in sortedData">
                     <div :key="actor.uuid" style='display:flex;flex-direction:column;align-items:flex-end;'>

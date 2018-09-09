@@ -189,7 +189,7 @@ export default Vue.component("edit-dialog", {
     data: () => ({
         visible: false,
     }),
-    mounted() {
+    updated() {
         this.addEmpty();
     },
     methods: {

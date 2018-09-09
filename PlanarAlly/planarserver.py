@@ -344,10 +344,6 @@ async def update_initiative(sid, data):
     if not hasattr(location, "initiative"):
         location.initiative = []
 
-    if 'ghostUuid' in data:
-        location.initiative = [i for i in location.initiative if i['uuid'] != data['ghostUuid']]
-        return
-
     shape = location.layer_manager.get_shape(data['uuid'])
 
     if room.creator != username:
@@ -400,8 +396,15 @@ async def update_initiative_order(sid, data):
         print(f"{username} attempted to change the initiative order")
         return
     
-    location.initiative = data
-    await sio.emit("setInitiative", data, room=location.sioroom, skip_sid=sid, namespace='/planarally')
+    location.initiative = [d for d in data if d]
+    initiatives = location.initiative
+    if room.creator != username:
+        initiatives = []
+        for i in location.initiative:
+            shape = location.layer_manager.get_shape(i['uuid'])
+            if shape and username in shape.get('owners', []) or i.get("visible", False):
+                initiatives.append(i)
+    await sio.emit("setInitiative", initiatives, room=location.sioroom, skip_sid=sid, namespace='/planarally')
 
 
 @sio.on("updateInitiativeTurn", namespace='/planarally')

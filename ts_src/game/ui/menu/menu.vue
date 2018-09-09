@@ -309,6 +309,7 @@ export default Vue.component("menu-bar", {
     position: absolute;
     right: 0;
     margin: 5px;
+    margin-right: 10px;
     padding: 0;
 }
 

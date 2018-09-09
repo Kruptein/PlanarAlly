@@ -7,7 +7,7 @@ import { GlobalPoint } from "./geom";
 import { LayerManager } from "./layers/manager";
 import { vm } from "./planarally";
 import { createShapeFromDict } from "./shapes/utils";
-import { sendClientOptions, socket } from "./socket";
+import { sendClientOptions } from "./socket";
 import { g2l } from "./units";
 
 export class GameManager {
@@ -25,6 +25,16 @@ export class GameManager {
     BV!: BoundingVolume;
 
     constructor() {
+        this.recalculateBoundingVolume();
+    }
+
+    clear() {
+        this.layerManager = new LayerManager();
+        this.lightsources = [];
+        this.lightblockers = [];
+        this.annotations = [];
+        this.movementblockers = [];
+        this.ownedtokens = [];
         this.recalculateBoundingVolume();
     }
 

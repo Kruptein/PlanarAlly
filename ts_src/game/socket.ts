@@ -14,7 +14,6 @@ import {
     ServerShape,
 } from "./api_types";
 import { GlobalPoint } from "./geom";
-import { LayerManager } from "./layers/manager";
 import { createLayer } from "./layers/utils";
 import { vm } from "./planarally";
 
@@ -58,8 +57,8 @@ socket.on("asset list", (assets: AssetList) => {
     store.commit("setAssets", assets);
 });
 socket.on("board init", (locationInfo: BoardInfo) => {
+    gameManager.clear();
     store.commit("setLocations", locationInfo.locations);
-    gameManager.layerManager = new LayerManager();
     document.getElementById("layers")!.innerHTML = "";
     store.commit("resetLayerInfo");
     for (const layer of locationInfo.board.layers) createLayer(layer);

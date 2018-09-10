@@ -227,6 +227,103 @@ and how you should use them.
 
 .. image:: images/asset-detail.png
 
+Name + State toggles
+^^^^^^^^^^^^^^^^^^^^^^
+
+The first things we can configure is the name of the asset as well as
+some fundamental settings that decide how the asset acts.
+
+.. image:: images/asset-detail-state.png
+
+The name of an asset has no specific functionality, but is a nice way to differentiate
+between multiple assets.
+
+The next three toggles however have an important effect on the behaviour of the asset.
+
+**Is a token**: This is a setting that is very important for the lighting system,
+but only if the optional token based vision modus is selected by your DM.
+
+In general it is advised to select this option if the asset represents a player character or
+player controlled npc that can move and has vision.
+
+**Blocks vision/light**: When this option is selected, vision and light cannot pass through
+the asset.  This is generally used for walls or other static objects, but there is nothing
+preventing some wacky scenario where your character has turned to stone or something.
+
+**Blocks movement**: When this options is selected, other assets cannot move through this
+asset's space.  This is intended for walls but hey, you never know.
+
+.. note::
+
+    If you cannot see your asset,
+    it most likely is due to the 'is a token' setting being disabled.
+
+Ownership
+^^^^^^^^^^
+
+.. image:: images/asset-detail-owners.png
+
+Next up is the list of owners.
+By default your own name should be included here, if you created the asset.
+Every other name listed will also have access to the asset.
+
+When someone has access to an asset, it means he/she will be able to move and/or edit its properties.
+
+.. note::
+
+    The DM automatically has access to all assets.
+
+Trackers
+^^^^^^^^^
+
+.. image:: images/asset-detail-trackers.png
+
+Trackers are a simple system that allow you to keep track of some numeric information.
+
+A good example is shown in the above image, where the HP of our mysterious X is tracked.
+
+The eye symbol is used to allow people without ownership to see the tracker.
+
+These values are also provided in the smaller selection info box on the right side of the screen
+as mentioned earlier, quickly see them without having to open this configuration dialog.
+
+When you left click on the tracker value in this quick info box, a popup allows you to immediately
+change the value of these trackers.  You can fill in a new absolute value or a relative value
+(e.g. -5 to decrease the tracker by 5).
+
+Auras
+^^^^^^
+
+.. image:: images/asset-detail-auras.png
+
+Auras work in a similar way to trackers but also affect the game board.
+They are used to visually show ranges of certain effects on the board.
+
+The first input box is the bright radius that the aura has.
+The second input box is the dim radius.
+The difference is that the dim radius has a gradient dropoff towards half the opacity of the bright circle.
+
+The third box is a simple colour selector and the eye has the same functionality as that for trackers,
+whether or not other users that do not own this asset, can see the aura.
+
+The next icon is an important one and decides whether the aura is a normal aura or a light aura.
+A normal aura will always fill a circle with the asset at the center.
+An example of a normal aura is the aura of protection that the Paladin class provides.
+
+A light emitting aura, is an aura to indicate light sources like lanterns or to show darkvision ranges.
+These auras stop at walls and other objects that block vision.
+
+Annotation
+^^^^^^^^^^^
+
+.. image:: images/asset-detail-annotation.png
+
+The last bit you can configure is the annotation field.
+It can be used as a place to write some stuff either permanently or temporary.
+
+When you mouse over this asset, at the top of the screen the content of this field will be displayed.
+
+It can thus be used for reminders or other items affecting the asset that do not fit in the tracker or aura fields.
 
 Settings
 ~~~~~~~~~

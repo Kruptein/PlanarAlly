@@ -233,12 +233,14 @@ const vm = new Vue({
                 (<HTMLElement>event.target).classList.remove("inode-selected");
         },
         stopDrag(event: DragEvent, target: string) {
+            (<HTMLElement>event.target).classList.remove("inode-selected");
             if (this.draggingSelection) {
                 if (this.folders.includes(target) && !this.selected.includes(target)) {
                     for (const inode of this.selected) {
                         this.moveInode(inode, target);
                     }
                 }
+                this.selected = [];
             } else if (event.dataTransfer.files.length > 0) {
                 const targetDirectory = this.currentDirectory.slice();
                 if (target !== ".") targetDirectory.push(target);

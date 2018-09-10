@@ -6,7 +6,7 @@ Getting Started (Players)
 This document will show you how to get started using Planar Ally as a player.
 To get to know the DM side of PA another document is available over :ref:`here <getting_started_dm>`.
 
-Installation?
+Installation
 -------------
 
 When you are a player you won't need to install anything in order to use Planar Ally.
@@ -213,12 +213,20 @@ While holding the button it will show you the distance in ft between your initia
 
 .. note::
 
-    Your ruler is visible by all players!
+    Your ruler is visible to all players!
 
 The distance is calculated based on the size 1 grid cell is supposed to represent by your DM.
 
 Asset configuration
 ~~~~~~~~~~~~~~~~~~~~~
+
+Let us now look further into the specific configuration of individual assets.
+Below you see the asset configuration dialog again from our mysterious X.
+In the following paragraphs we'll go over each of these elements to see what they mean
+and how you should use them.
+
+.. image:: images/asset-detail.png
+
 
 Settings
 ~~~~~~~~~

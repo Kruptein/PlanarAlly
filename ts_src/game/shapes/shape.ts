@@ -177,24 +177,40 @@ export default abstract class Shape {
         for (const aura of this.auras) {
             if (aura.value === 0 && aura.dim === 0) return;
             ctx.beginPath();
-            ctx.fillStyle = aura.colour;
+
             const loc = g2l(this.center());
-            const innerRange = g2lr(aura.value);
-            ctx.arc(loc.x, loc.y, innerRange, 0, 2 * Math.PI);
-            ctx.fill();
-            if (aura.dim) {
-                ctx.beginPath();
-                if (!aura.lightSource) {
-                    const tc = tinycolor(aura.colour);
-                    ctx.fillStyle = tc.setAlpha(tc.getAlpha() / 2).toRgbString();
-                }
-                ctx.fillStyle = aura.colour;
-                ctx.arc(loc.x, loc.y, g2lr(aura.value + aura.dim), 0, 2 * Math.PI);
-                ctx.arc(loc.x, loc.y, innerRange, 0, 2 * Math.PI, true); // This prevents double colours
+            const innerRange = g2lr(aura.value + aura.dim);
+
+            if (aura.lightSource) ctx.fillStyle = aura.colour;
+            else {
+                const gradient = ctx.createRadialGradient(
+                    loc.x,
+                    loc.y,
+                    g2lr(aura.value),
+                    loc.x,
+                    loc.y,
+                    g2lr(aura.value + aura.dim),
+                );
+                const tc = tinycolor(aura.colour);
+                ctx.fillStyle = gradient;
+                gradient.addColorStop(0, aura.colour);
+                gradient.addColorStop(1, tc.setAlpha(tc.getAlpha() / 2).toRgbString());
+            }
+            if (aura.lastPath === undefined) {
+                ctx.arc(loc.x, loc.y, innerRange, 0, 2 * Math.PI);
                 ctx.fill();
+            } else {
+                try {
+                    ctx.fill(aura.lastPath);
+                } catch (e) {
+                    ctx.arc(loc.x, loc.y, innerRange, 0, 2 * Math.PI);
+                    ctx.fill();
+                    console.warn(e);
+                }
             }
         }
     }
+
     getInitiativeRepr(): InitiativeData {
         return {
             uuid: this.uuid,

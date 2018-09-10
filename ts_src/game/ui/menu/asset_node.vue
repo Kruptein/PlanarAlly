@@ -30,7 +30,7 @@
 <script lang="ts">
 import Vue from "vue";
 import { alphSort } from "../../../core/utils";
-import { AssetFileList } from "../../api_types";
+import { AssetFile } from "../../api_types";
 export default Vue.component("asset-node", {
     props: ["asset", "open"],
     data: () => ({
@@ -42,9 +42,9 @@ export default Vue.component("asset-node", {
                 .filter(el => !["__files"].includes(el))
                 .sort(alphSort);
         },
-        files(): AssetFileList[] {
+        files(): AssetFile[] {
             if (this.asset.__files)
-                return (<AssetFileList[]>this.asset.__files)
+                return (<AssetFile[]>this.asset.__files)
                     .concat()
                     .sort((a, b) => (a.name.toLowerCase() > b.name.toLowerCase() ? 1 : -1));
             return [];

@@ -6,7 +6,7 @@ const HtmlWebpackPlugin = require("html-webpack-plugin");
 module.exports = {
     entry: {
         planarally: "./ts_src/game/planarally.ts",
-        assets: "./ts_src/assetManager/assets.js",
+        assets: "./ts_src/assetManager/assets.ts",
     },
     output: {
         filename: "[name].[hash].js",

@@ -4,15 +4,15 @@
 // This due to the canvas elements requiring rgba strings for their colours and thus avoiding extra conversion steps
 
 <template>
-    <div class='outer' @click="open">
-        <div class='current-color' :style="transparent ? 'background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAIAAADZF8uwAAAAGUlEQVQYV2M4gwH+YwCGIasIUwhT25BVBADtzYNYrHvv4gAAAABJRU5ErkJggg==)' : 'background-color:' + color"></div>
+    <div class='outer' @click.self="open">
+        <div class='current-color' @click.self="open" :style="transparent ? 'background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAIAAADZF8uwAAAAGUlEQVQYV2M4gwH+YwCGIasIUwhT25BVBADtzYNYrHvv4gAAAABJRU5ErkJggg==)' : 'background-color:' + color"></div>
+        <div class="mask" v-show='display' @click.self="closePicker"></div>
         <chrome-picker
             :value="color"
             @input="updateColor"
-            :style="{position: 'fixed', left:left + 'px', top:top + 'px'}"
+            :style="{position: 'fixed', left:left + 'px', top:top + 'px', 'z-index': 9999}"
             tabindex="-1"
             v-show="display"
-            @blur.native="closePicker"
             ref="chromePicker"
         />
     </div>
@@ -80,5 +80,14 @@ export default Vue.component("colorpicker", {
     height: 13px;
     background-color: #000;
     border: solid 1px black;
+}
+
+.mask {
+    position: fixed;
+    z-index: 9998;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
 }
 </style>

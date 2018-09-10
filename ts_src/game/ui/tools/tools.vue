@@ -122,6 +122,12 @@ export default Vue.component("tools", {
                 gameManager.annotationManager.setActiveText("");
             }
         },
+        mouseleave(event: MouseEvent) {
+            // When leaving the window while a mouse is pressed down, act as if it was released
+            if ((event.buttons & 1) !== 0) {
+                this.$emit("mouseup", event, this.currentTool);
+            }
+        },
         contextmenu(event: MouseEvent) {
             if ((<HTMLElement>event.target).tagName !== "CANVAS") return;
             if (event.button !== 2 || (<HTMLElement>event.target).tagName !== "CANVAS") return;

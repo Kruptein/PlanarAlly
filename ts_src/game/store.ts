@@ -30,8 +30,8 @@ export default new Vuex.Store({
         roomCreator: "",
         invitationCode: "",
 
-        gridColour: 'rgba("255, 255, 255, 1)',
-        fowColour: "rgba(255, 255, 255, 1)",
+        gridColour: "rgba(0, 0, 0, 1)",
+        fowColour: "rgba(0, 0, 0, 1)",
         panX: 0,
         panY: 0,
         zoomFactor: 1,

@@ -1,5 +1,5 @@
 <template>
-    <modal :visible="visible" @close="visible = false">
+    <modal :visible="visible" @close="visible = false" :mask="false">
         <div
             class='modal-header'
             slot='header'
@@ -8,92 +8,94 @@
             @dragstart="m.dragStart"
             @dragend="m.dragEnd"
         >
-            Initiative
+            <div>Initiative</div>
+            <div class='header-close' @click="visible = false"><i class="far fa-window-close"></i></div>
         </div>
         <div class='modal-body'>
             <draggable
                 id='initiative-list'
                 v-model="data"
                 @change="updateOrder"
+                :options="{setData: () => {}}"
             >
                 <template v-for="actor in sortedData">
-                    <div
-                        :key="'main-' + actor.uuid"
-                        class='initiative-actor'
-                        :class="{'initiative-selected': currentActor === actor.uuid}"
-                        @mouseenter="toggleHighlight(actor, true)"
-                        @mouseleave="toggleHighlight(actor, false)"
-                    >
-                        <template v-if="actor.has_img">
-                            <img :src="actor.src" width="30px" height="30px">
-                        </template>
-                        <template v-else>
-                            <span style='width: auto;'>{{ actor.src }}</span>
-                        </template>
-                        <input
-                            type="text"
-                            placeholder="value"
-                            v-model.lazy.number="actor.initiative"
-                            :disabled="!owns(actor)"
-                            :class="{'notAllowed': !owns(actor)}"
-                            @change="syncInitiative(actor)"
-                        >
+                    <div :key="actor.uuid" style='display:flex;flex-direction:column;align-items:flex-end;'>
                         <div
-                            class='initiative-effects-icon'
-                            style='opacity: 0.6'
-                            :class="{'notAllowed': !owns(actor)}"
-                            @click="createEffect(actor, getDefaultEffect(), true)"
+                            class='initiative-actor'
+                            :class="{'initiative-selected': currentActor === actor.uuid}"
+                            @mouseenter="toggleHighlight(actor, true)"
+                            @mouseleave="toggleHighlight(actor, false)"
                         >
-                            <i class="fas fa-stopwatch"></i>
-                            <template v-if='actor.effects'>
-                                {{actor.effects.length}}
+                            <template v-if="actor.has_img">
+                                <img :src="actor.src" width="30px" height="30px">
                             </template>
                             <template v-else>
-                                0
+                                <span style='width: auto;'>{{ actor.src }}</span>
                             </template>
-                        </div>
-                        <div
-                            :style="{'opacity': actor.visible ? '1.0' : '0.3'}"
-                            :class="{'notAllowed': !owns(actor)}"
-                            @click="toggleOption(actor, 'visible')"
-                        >
-                            <i class="fas fa-eye"></i>
-                        </div>
-                        <div
-                            :style="{'opacity': actor.group ? '1.0' : '0.3'}"
-                            :class="{'notAllowed': !owns(actor)}"
-                            @click="toggleOption(actor, 'group')"
-                        >
-                            <i class="fas fa-users"></i>
-                        </div>
-                        <div
-                            :style="{'opacity': owns(actor) ? '1.0' : '0.3'}"
-                            :class="{'notAllowed': !owns(actor)}"
-                            @click="removeInitiative(actor.uuid, true, true)"
-                        >
-                            <i class="fas fa-trash-alt"></i>
-                        </div>
-                    </div>
-                    <div
-                        :key="'effects-' + actor.uuid"
-                        class='initiative-effect'
-                        v-if="actor.effects"
-                    >
-                        <div
-                            v-for="effect in actor.effects"
-                            :key='effect.uuid'
-                        >
                             <input
-                                type='text'
-                                v-model="effect.name"
-                                :size="effect.name.length || 1"
-                                @change="updateEffect(effect)"
+                                type="text"
+                                placeholder="value"
+                                v-model.lazy.number="actor.initiative"
+                                :disabled="!owns(actor)"
+                                :class="{'notAllowed': !owns(actor)}"
+                                @change="syncInitiative(actor)"
                             >
-                            <input
-                                type='text'
-                                v-model="effect.turns"
-                                :size="effect.turns.toString().length || 1"
+                            <div
+                                class='initiative-effects-icon'
+                                style='opacity: 0.6'
+                                :class="{'notAllowed': !owns(actor)}"
+                                @click="createEffect(actor, getDefaultEffect(), true)"
                             >
+                                <i class="fas fa-stopwatch"></i>
+                                <template v-if='actor.effects'>
+                                    {{actor.effects.length}}
+                                </template>
+                                <template v-else>
+                                    0
+                                </template>
+                            </div>
+                            <div
+                                :style="{'opacity': actor.visible ? '1.0' : '0.3'}"
+                                :class="{'notAllowed': !owns(actor)}"
+                                @click="toggleOption(actor, 'visible')"
+                            >
+                                <i class="fas fa-eye"></i>
+                            </div>
+                            <div
+                                :style="{'opacity': actor.group ? '1.0' : '0.3'}"
+                                :class="{'notAllowed': !owns(actor)}"
+                                @click="toggleOption(actor, 'group')"
+                            >
+                                <i class="fas fa-users"></i>
+                            </div>
+                            <div
+                                :style="{'opacity': owns(actor) ? '1.0' : '0.3'}"
+                                :class="{'notAllowed': !owns(actor)}"
+                                @click="removeInitiative(actor.uuid, true, true)"
+                            >
+                                <i class="fas fa-trash-alt"></i>
+                            </div>
+                        </div>
+                        <div
+                            class='initiative-effect'
+                            v-if="actor.effects"
+                        >
+                            <div
+                                v-for="effect in actor.effects"
+                                :key='effect.uuid'
+                            >
+                                <input
+                                    type='text'
+                                    v-model="effect.name"
+                                    :size="effect.name.length || 1"
+                                    @change="updateEffect(effect)"
+                                >
+                                <input
+                                    type='text'
+                                    v-model="effect.turns"
+                                    :size="effect.turns.toString().length || 1"
+                                >
+                            </div>
                         </div>
                     </div>
                 </template>
@@ -177,6 +179,7 @@ export default Vue.component("initiative-dialog", {
             return shape.owners.includes(this.$store.state.username);
         },
         setTurn(actorId: string | null, sync: boolean) {
+            if (!this.$store.state.IS_DM && sync) return;
             this.currentActor = actorId;
             const actor = this.data.find(a => a.uuid === actorId);
             if (actor === undefined) return;
@@ -189,10 +192,12 @@ export default Vue.component("initiative-dialog", {
             if (sync) socket.emit("updateInitiativeTurn", actorId);
         },
         setRound(round: number, sync: boolean) {
+            if (!this.$store.state.IS_DM && sync) return;
             this.roundCounter = round;
             if (sync) socket.emit("updateInitiativeRound", round);
         },
         nextTurn() {
+            if (!this.$store.state.IS_DM) return;
             const order = this.sortedData;
             const next = order[(order.findIndex(a => a.uuid === this.currentActor) + 1) % order.length];
             if (this.data[0].uuid === next.uuid) this.setRound(this.roundCounter + 1, true);
@@ -274,6 +279,12 @@ export default Vue.component("initiative-dialog", {
     font-size: 20px;
     font-weight: bold;
     cursor: move;
+}
+
+.header-close {
+    position: absolute;
+    top: 5px;
+    right: 5px;
 }
 
 .modal-body {

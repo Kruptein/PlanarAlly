@@ -21,10 +21,10 @@ export interface ClientOptions {
 }
 
 export interface AssetList {
-    [inode: string]: AssetList | AssetFileList[];
+    [inode: string]: AssetList | AssetFile[];
 }
 
-export interface AssetFileList {
+export interface AssetFile {
     name: string;
     hash: string;
 }

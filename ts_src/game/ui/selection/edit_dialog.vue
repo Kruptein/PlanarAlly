@@ -1,5 +1,5 @@
 <template>
-    <modal :visible="visible" @close="visible = false">
+    <modal :visible="visible" @close="visible = false" :mask="false">
         <div
             class='modal-header'
             slot='header'
@@ -8,7 +8,8 @@
             @dragstart="m.dragStart"
             @dragend="m.dragEnd"
         >
-            Edit asset
+            <div>Edit asset</div>
+            <div class='header-close' @click="visible = false"><i class="far fa-window-close"></i></div>
         </div>
         <div class='modal-body'>
             <label for="shapeselectiondialog-name">Name</label>
@@ -188,7 +189,7 @@ export default Vue.component("edit-dialog", {
     data: () => ({
         visible: false,
     }),
-    mounted() {
+    updated() {
         this.addEmpty();
     },
     methods: {
@@ -292,6 +293,12 @@ export default Vue.component("edit-dialog", {
     font-size: 20px;
     font-weight: bold;
     cursor: move;
+}
+
+.header-close {
+    position: absolute;
+    top: 5px;
+    right: 5px;
 }
 
 .modal-body {

@@ -79,7 +79,7 @@ export default Tool.extend({
     computed: {
         helperSize(): number {
             if (this.shapeSelect === "paint-brush") return this.brushSize / 2;
-            return getUnitDistance(this.unitSize) / 4;
+            return getUnitDistance(this.unitSize) / 8;
         },
         IS_DM(): boolean {
             return this.$store.state.IS_DM;

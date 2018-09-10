@@ -85,6 +85,9 @@ export const vm = new Vue({
         mousemove(event: MouseEvent) {
             (<any>this.$refs.tools).mousemove(event);
         },
+        mouseleave(event: MouseEvent) {
+            (<any>this.$refs.tools).mouseleave(event);
+        },
         contextmenu(event: MouseEvent) {
             (<any>this.$refs.tools).contextmenu(event);
         },
@@ -92,7 +95,15 @@ export const vm = new Vue({
             gameManager.layerManager.setLayer(layer);
         },
         drop(event: DragEvent) {
-            gameManager.layerManager.dropAsset(event);
+            if (event.dataTransfer.files.length > 0) {
+                (<any>this.$refs.confirm)
+                    .open("Uploading files should be done through the asset manager.", "Ok", "")
+                    .then(() => {}, () => {});
+            } else if (event.dataTransfer.getData("text/plain") === "") {
+                return;
+            } else {
+                gameManager.layerManager.dropAsset(event);
+            }
         },
     },
 });

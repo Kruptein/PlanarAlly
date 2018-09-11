@@ -6,8 +6,8 @@ Getting Started (Players)
 This document will show you how to get started using Planar Ally as a player.
 To get to know the DM side of PA another document is available over :ref:`here <getting_started_dm>`.
 
-Installation
--------------
+Login
+-------
 
 When you are a player you won't need to install anything in order to use Planar Ally.
 Your DM will either need to install the software himself or use a public/private provider.
@@ -119,7 +119,7 @@ Scrolling will zoom in (or out) to the location where your mouse is currently po
 
 .. warning::
 
-    Be careful with zooming out to far and then moving around.
+    Be careful with zooming out too far and then moving around.
     It's easy to lose the battlefield and get lost in the infinity of the void!
     
     Tools to find your path back to reality are in development,
@@ -133,21 +133,27 @@ This is a tool that you'll often use and it would be a hassle to change tools ev
     Using the middle mouse button to pan means that you'll be spending less time using the UI and thus
     have more time to play the game!
 
+Additional modifier
+^^^^^^^^^^^^^^^^^^^^^
+
+There is an additional modifier that can be used for both mouse and keyboard actions.
+
+ALT
+~~~~
+
+When the grid is enabled, most tool actions will by default attempt to "snap" to the grid.
+This means that when moving or drawing tokens they will automatically be put in such a way that
+they fit the grid.
+
+This behaviour can be ignored by pressing the ALT key while doing the action.
+
+*If the grid is disabled the alt key does not have to be pressed.*
+
 Tools
 ~~~~~~~
 
 Now then a quick overview of the various tools you can use.
 As a player you'll have access to 4 tools.
-
-.. note:: Grid snapping
-
-    When the grid is enabled, most tool actions will by default attempt to "snap" to the grid.
-    This means that when moving or drawing tokens they will automatically be put in such a way that
-    they fit the grid.
-    
-    This behaviour can be ignored by pressing the ALT key while doing the action.
-    
-    *If the grid is disabled the alt key does not have to be pressed.*
 
 Select
 ^^^^^^^^
@@ -189,7 +195,7 @@ The pan tool simply allows you to pan around when you drag your left mouse butto
 This behaviour is also implemented in the middle mouse button when other tools are selected,
 to minimize constant tool changing.
 
-It's heavily encourage to use the middle mouse pan, but the tool still exists for those cases wher you don't have a middle mouse.
+It's heavily encouraged to use the middle mouse pan, but the tool still exists for those cases when you don't have a middle mouse.
 
 Draw
 ^^^^^
@@ -215,7 +221,7 @@ While holding the button it will show you the distance in ft between your initia
 
     Your ruler is visible to all players!
 
-The distance is calculated based on the size 1 grid cell is supposed to represent by your DM.
+Your DM can configure the size of one grid cell, which is used to calculate the distance the ruler shows.
 
 Asset configuration
 ~~~~~~~~~~~~~~~~~~~~~

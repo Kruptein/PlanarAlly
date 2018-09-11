@@ -181,7 +181,7 @@ export default abstract class Shape {
             const loc = g2l(this.center());
             const innerRange = g2lr(aura.value + aura.dim);
 
-            if (aura.lightSource) ctx.fillStyle = aura.colour;
+            if (aura.lightSource || aura.dim === 0) ctx.fillStyle = aura.colour;
             else {
                 const gradient = ctx.createRadialGradient(
                     loc.x,
@@ -196,7 +196,7 @@ export default abstract class Shape {
                 gradient.addColorStop(0, aura.colour);
                 gradient.addColorStop(1, tc.setAlpha(tc.getAlpha() / 2).toRgbString());
             }
-            if (aura.lastPath === undefined) {
+            if (!aura.lightSource || aura.lastPath === undefined) {
                 ctx.arc(loc.x, loc.y, innerRange, 0, 2 * Math.PI);
                 ctx.fill();
             } else {

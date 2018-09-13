@@ -3,13 +3,16 @@ PlanarAlly backend server code.
 This is the code responsible for starting the backend and reacting to socket IO events.
 """
 
+import asyncio
 import collections
 import configparser
 import functools
 import hashlib
 import os
-import pathlib
+import sys
+from concurrent.futures import ThreadPoolExecutor
 from operator import itemgetter
+from pathlib import Path
 from urllib.parse import unquote
 
 import aiohttp_jinja2
@@ -25,13 +28,17 @@ import auth
 import save
 from planarally import PlanarAlly
 
-FILE_DIR = os.path.dirname(os.path.realpath(__file__))
+if getattr(sys, "frozen", False):
+    FILE_DIR = Path(sys.executable).resolve().parent
+else:
+    FILE_DIR = Path(__file__).resolve().parent
+
 os.chdir(FILE_DIR)
 SAVE_FILE = "planar.save"
 
 PENDING_FILE_UPLOAD_CACHE = {}
 
-ASSETS_DIR = pathlib.Path(FILE_DIR) / "static" / "assets"
+ASSETS_DIR = FILE_DIR / "static" / "assets"
 if not ASSETS_DIR.exists():
     ASSETS_DIR.mkdir()
 
@@ -47,6 +54,15 @@ aiohttp_session.setup(app, EncryptedCookieStorage(app['AuthzPolicy'].secret_toke
 aiohttp_jinja2.setup(app, loader=jinja2.FileSystemLoader('templates'))
 sio.attach(app)
 
+executor = ThreadPoolExecutor(2)
+
+# This is a fix for asyncio problems on windows that make it impossible to do ctrl+c
+if sys.platform.startswith("win"):
+    def _wakeup():
+        asyncio.get_event_loop().call_later(0.1, _wakeup)
+
+    asyncio.get_event_loop().call_later(0.1, _wakeup)
+
 
 def nested_dict_update(d, u):
     for k, v in u.items():
@@ -58,6 +74,7 @@ def nested_dict_update(d, u):
 
 
 async def on_shutdown(app):
+    app['background_save'].cancel()
     for sid in list(app['AuthzPolicy'].sio_map.keys()):
         await sio.disconnect(sid, namespace='/planarally')
     PA.save()
@@ -840,7 +857,7 @@ app.router.add_get('/logout', logout)
 app.on_shutdown.append(on_shutdown)
 
 if __name__ == '__main__':
-    sio.start_background_task(save_all)
+    app['background_save'] = sio.start_background_task(save_all)
     cfg = configparser.ConfigParser()
     cfg.read("server_config.cfg")
     if cfg.getboolean('Webserver', 'ssl'):

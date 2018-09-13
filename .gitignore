@@ -6,6 +6,10 @@
 env/**
 **/__pycache__/**
 
+# PyInstaller
+dist/**
+build/**
+
 # JS
 .cache-loader/**
 node_modules/**

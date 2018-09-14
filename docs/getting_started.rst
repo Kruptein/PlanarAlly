@@ -219,7 +219,7 @@ This behaviour can be ignored by pressing the ALT key while doing the action.
 *If the grid is disabled the alt key does not have to be pressed.*
 
 SHIFT
-^^^^^^
+""""""
 
 *DM Only*
 

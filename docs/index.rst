@@ -10,8 +10,7 @@ Welcome to Planar Ally's documentation!
     :maxdepth: 2
     :caption: Contents:
 
-    Getting Started (Player) <getting_started>
-    Getting Started (DM) <getting_started_dm>
+    Getting Started <getting_started>
 
 These documents are in active development,
 
@@ -20,7 +19,8 @@ If anything is left unanswered feel free to contact me on github or reddit *(use
 Getting Started
 -----------------
 
-To quickly get started follow :ref:`this <getting_started>` for players and :ref:`this <getting_started_dm>` for DM's.
+To quickly get started follow :ref:`this <getting_started>`,
+this will give an introduction to all things you need during PA play.
 
 Indices and tables
 ==================

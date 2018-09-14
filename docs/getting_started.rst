@@ -1,18 +1,71 @@
 .. _getting_started:
 
-Getting Started (Players)
-==========================
+Getting Started
+=================
 
-This document will show you how to get started using Planar Ally as a player.
-To get to know the DM side of PA another document is available over :ref:`here <getting_started_dm>`.
+This document will show you how to get started using Planar Ally.
+
+If you are a player you can jump straight to :ref:`login`,
+if you're a DM you'll first need to choose hosting and potentially install some things.
+
+Installation
+---------------
+
+*DM Only*
+
+As the DM you'll have to decide where you want to host your game.
+You can either use some service that hosts Planar Ally for you,
+or you can host PA yourself, which requires a bit more setup.
+
+Self-hosting
+~~~~~~~~~~~~~
+
+When hosting PA yourself, you'll need to download the server files and 
+install some dependencies.
+
+For Windows a precompiled binary is also available.
+
+Manual Installation
+^^^^^^^^^^^^^^^^^^^^^
+
+The core of the project is built around the following three tools.
+
+* python 3.6+
+* aiohttp
+* python-socketio
+
+Additionally the following libraries are also necessary:
+
+* aiohttp_jinja2
+* aiohttp_security
+* aiohttp_session
+* bcrypt
+* cryptography
+
+All of the dependencies are listed in requirements.txt so after cloning/downloading this repo, 
+a simple `pip install -r requirements.txt` should do the trick.
+
+To run the server you simply have to run `python planarserver.py`.
+
+Server configuration can be done in the `server_config.cfg` file.
+
+Precompiled binary
+^^^^^^^^^^^^^^^^^^^^
+
+These are typically only provided for major releases and can be found [here](https://github.com/Kruptein/PlanarAlly/releases).
+
+These files are zipped and should be extracted to some directory from which you wish to run PA.
+
+To run the server either double click the `PlanarAllyServer.exe` file or run it from a command prompt.
+
+Server configuration can be done in the `server_config.cfg` file.
+
+.. _login:
 
 Login
 -------
 
-When you are a player you won't need to install anything in order to use Planar Ally.
-Your DM will either need to install the software himself or use a public/private provider.
-
-Either way, your DM will have to give you the URL of the hosting he/she chose.
+When the DM has chosen the hosting, he/she has to give the players the hosting URL.
 When you visit this URL you should be greeted with a login/registration form like shown below.
 
 .. image:: images/login.png
@@ -37,17 +90,26 @@ Here an overview of your active sessions is shown.
 The first three sessions in the example above are DM'd by the active user.
 Whereas the last one is DM'd by a user named frederik.
 
-Creating a new session is straightforward but meant for DM's,
-for more information check out the DM guide.
-
 .. note::
     At the time of writing, the account settings page is not yet functional.
 
-Joining a session
+Creating a session
+~~~~~~~~~~~~~~~~~~~
+
+*DM Only*
+
+Creating a session is simply done by choosing a name for your session and pressing the arrow button.
+
+This will automatically open the new session, showing you a blank screen.
+
+To get your players to join this session, you'll have to give them the invitation code.
+We'll talk about this later,
+but if you're impatient you can find the code in your DM settings menu ;).
+
+Joining a new session
 ~~~~~~~~~~~~~~~~~~
 
-To join a specific session, you need the invite link.
-Your DM should provide this to you.
+To join a specific session, you need the invite link. Your DM should provide this to you.
 
 When visiting this link, you'll automatically join the session and in a future visit
 to the session hub it should be listed as well.
@@ -71,6 +133,8 @@ Let's take a look at an example where the DM has added a base map, added a token
 Most important UI elements are immediately visible.  We have a button in the topleft that opens a settings menu when pressed,
 in the topright there is a slider that controls your zoom level and in the lower right there is a selection of tools that you can use.
 
+The DM has an additional UI element in the lower left corner, which can be used to change layers.
+
 We'll give a brief overview of these UI elements soon, there is however another UI element that is currently not visible!
 
 When you select a token that you own, a red border will be drawn around the token to visually give a reminder of what you have selected and on top of that
@@ -82,6 +146,11 @@ This is a quick info panel for your token.  A more advanced view is possible by 
 This panel provides all the options to configure how your token(s) interact with the map.
 
 .. image:: images/player-selection-detail.png
+
+.. note::
+
+    The DM has access to every asset on the board,
+    whereas players can only move/edit those assets that they own.
 
 Controls
 ~~~~~~~~~
@@ -136,10 +205,10 @@ This is a tool that you'll often use and it would be a hassle to change tools ev
 Additional modifier
 ^^^^^^^^^^^^^^^^^^^^^
 
-There is an additional modifier that can be used for both mouse and keyboard actions.
+There are two additional modifiers that can be used for both mouse and keyboard actions.
 
 ALT
-~~~~
+""""
 
 When the grid is enabled, most tool actions will by default attempt to "snap" to the grid.
 This means that when moving or drawing tokens they will automatically be put in such a way that
@@ -149,11 +218,19 @@ This behaviour can be ignored by pressing the ALT key while doing the action.
 
 *If the grid is disabled the alt key does not have to be pressed.*
 
+SHIFT
+^^^^^^
+
+*DM Only*
+
+The shift key allows you to pass through movement blocking terrain.
+This allows you to move assets past barriers or free stuck players.
+
 Tools
 ~~~~~~~
 
 Now then a quick overview of the various tools you can use.
-As a player you'll have access to 4 tools.
+As a player you'll have access to 4 tools and the DM has one additional tool available.
 
 Select
 ^^^^^^^^
@@ -209,6 +286,22 @@ The left colour is used as the fill colour, the right one as the border colour.
 If you wish to only have a fill or only have a border colour, simply set the opacity of the other to 0
 *(this is the second slider in the color picker)*.
 
+Additionally as a DM you'll have the option to change the draw modus.
+
+**Normal mode**
+    The shape you're drawing will be added to the active layer with the selected colour.
+**Reveal mode**
+    The shape will be drawn on the 'fow' layer and pierce through any fog in the area.
+**Hide mode**
+    This is the reverse operation of reveal, and will cover an area in fog.
+
+.. important::
+
+    When drawing in **normal** mode on the **fow layer**, the drawn shapes will automatically
+    have the 'blocks vision' and 'blocks movement' properties applied.
+
+    This does **not** happen when you draw in reveal or hide mode.
+
 Ruler
 ^^^^^^
 
@@ -222,6 +315,19 @@ While holding the button it will show you the distance in ft between your initia
     Your ruler is visible to all players!
 
 Your DM can configure the size of one grid cell, which is used to calculate the distance the ruler shows.
+
+Map
+^^^^
+
+*DM Only*
+
+With the map tool you can automatically resize assets to fit to the grid.
+
+With the desired asset selected, you insert in the map tool how many grid cells horizontally and vertically
+the selection you're about to make with this tool, is supposed to represent.
+
+This can be a bit hit and miss, but in general it is advised to zoom in as much as possible and
+selecting larger areas wil also typically give better performance.
 
 Asset configuration
 ~~~~~~~~~~~~~~~~~~~~~
@@ -333,3 +439,79 @@ It can thus be used for reminders or other items affecting the asset that do not
 
 Settings
 ~~~~~~~~~
+
+In the topleft of the screen the cogwheel can be clicked to open the settings panel.
+
+As a player only one submenu will be available: Client Options.
+For the DM multiple submenus are available.
+
+Client Options
+^^^^^^^^^^^^^^^
+
+.. image:: images/settings-client.png
+
+The client options offers two options related to styling the board.
+Both the colour of the grid (including the opacity) as well as the colour of the shadows
+can be chosen by each player individually.
+
+Notes
+^^^^^^
+
+.. image:: images/settings-notes.png
+
+The notes menu allows you to quickly add some notes.
+Simply press the + button to create a new note or click on one of the listed
+notes to edit/delete it.
+
+When a note is opened it is shown as a dialog.  You can freely edit the title and/or the contents.
+
+Assets
+^^^^^^^
+
+*DM Only*
+
+.. image:: images/settings-assets.png
+
+The assets menu lists all assets that you own.
+When hovering over a file in this menu, a preview is shown as can be seen above.
+
+When dragging files from here on to the game board, a new asset is created on the currently
+selected layer with that image.
+
+To add/remove/move files/folders you can use the dedicated asset manager,
+which can be accessed by clicking on the popout button.
+This will open the manager in a new tab.
+
+.. note::
+    At the time of writing, any changes in the asset manager are only reflected
+    in the assets menu after a reload of the page.
+
+DM Options
+^^^^^^^^^^^
+
+*DM Only*
+
+.. image:: images/settings-dm.png
+
+The DM options define some core elements of how the board behaves.
+
+The `Use Grid` option simply toggles the grid on/off.
+
+The `Fill entire canvas with FOW` and `Only show lights in LoS` options are
+all related to lighting, which will be covered more in-depth in a separate document.
+The first option will, when enabled, fill the entire screen with shadow.
+The second option enhances the immersion by only showing a player vision of something if one
+of the assets he/she owns can see it.
+
+With the `FOW opacity` option, the opacity of the fog for th DM only is changed.
+Players always have 100% fog opacity.  This option can thus be used to see through the fog
+as a DM.
+
+The `Unit Size` option decides the space 1 grid cell represents in the game world.
+It is used by the ruler.
+
+The `Grid size` option decides the space 1 grid cell fills on the screen.
+Increasing this number will thus lower the amount of cells visible and vice versa.
+
+Lastly the `invitation code` is the code that you need to provide someone who wishes to join the game.
+The full URL to give the player is `<host>/invite/<code>` (e.g. `https://localhost:8000/invite/4287fa8e-041e-499c-8eca-81e8567a6948`).

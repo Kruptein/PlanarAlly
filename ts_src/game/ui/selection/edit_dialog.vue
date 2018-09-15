@@ -161,6 +161,7 @@
             <div class="spanrow header">Annotation</div>
             <textarea
                 class="spanrow"
+                :value="shape.annotation"
                 @change="updateAnnotation"
             ></textarea>
         </div>

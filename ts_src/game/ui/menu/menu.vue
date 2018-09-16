@@ -97,6 +97,8 @@
                             <color-picker id="gridColour" :color.sync="gridColour" />
                             <label for="fowColour">FOW Colour: </label>
                             <color-picker id="fowColour" :color.sync="fowColour" />
+                            <label for="rulerColour">Ruler Colour: </label>
+                            <color-picker id="rulerColour" :color.sync="rulerColour" />
                         </div>
                     </div>
                 </div>
@@ -217,6 +219,14 @@ export default Vue.component("menu-bar", {
             },
             set(value: string) {
                 this.$store.commit("setFOWColour", { colour: value, sync: true });
+            },
+        },
+        rulerColour: {
+            get(): string {
+                return this.$store.state.rulerColour;
+            },
+            set(value: string) {
+                this.$store.commit("setRulerColour", { colour: value, sync: true });
             },
         },
     },

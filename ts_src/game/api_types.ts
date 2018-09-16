@@ -11,6 +11,7 @@ export interface LocationOptions {
 export interface ClientOptions {
     gridColour: string;
     fowColour: string;
+    rulerColour: string;
     locationOptions: {
         [name: string]: {
             panX: number;
@@ -102,6 +103,7 @@ export interface ServerLine extends ServerShape {
     x2: number;
     y2: number;
     lineWidth: number;
+    stroke: string;
 }
 export interface ServerMultiLine extends ServerShape {
     points: { x: number; y: number }[];

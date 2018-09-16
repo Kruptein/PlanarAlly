@@ -34,7 +34,7 @@ export default Tool.extend({
             }
             this.active = true;
             this.startPoint = l2g(getMouse(event));
-            this.ruler = new Line(this.startPoint, this.startPoint, 3);
+            this.ruler = new Line(this.startPoint, this.startPoint, 3, this.$store.state.rulerColour);
             this.text = new Text(this.startPoint.clone(), "", "bold 20px serif");
             this.ruler.owners.push(this.username);
             this.text.owners.push(this.username);

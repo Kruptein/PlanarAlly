@@ -32,6 +32,7 @@ export default new Vuex.Store({
 
         gridColour: "rgba(0, 0, 0, 1)",
         fowColour: "rgba(0, 0, 0, 1)",
+        rulerColour: "rgba(255, 0, 0, 1)",
         panX: 0,
         panY: 0,
         zoomFactor: 1,
@@ -87,6 +88,10 @@ export default new Vuex.Store({
             state.fowColour = payload.colour;
             gameManager.layerManager.invalidate();
             if (payload.sync) socket.emit("set clientOptions", { fowColour: payload.colour });
+        },
+        setRulerColour(state, payload: { colour: string; sync: boolean }) {
+            state.rulerColour = payload.colour;
+            if (payload.sync) socket.emit("set clientOptions", { rulerColour: payload.colour });
         },
         setPanX(state, x) {
             state.panX = x;

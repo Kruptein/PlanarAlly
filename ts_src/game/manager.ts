@@ -97,18 +97,17 @@ export class GameManager {
 
     setClientOptions(options: ClientOptions): void {
         if (options.gridColour) store.commit("setGridColour", { colour: options.gridColour, sync: false });
-        if (options.fowColour) {
-            store.commit("setFOWColour", { colour: options.fowColour, sync: false });
-        }
+        if (options.fowColour) store.commit("setFOWColour", { colour: options.fowColour, sync: false });
+        if (options.rulerColour) store.commit("setRulerColour", { colour: options.rulerColour, sync: false });
         if (options.locationOptions) {
             if (
                 options.locationOptions[
-                    `${store.state.roomName}/${store.state.roomCreator}/${store.state.locationName}`
+                `${store.state.roomName}/${store.state.roomCreator}/${store.state.locationName}`
                 ]
             ) {
                 const loc =
                     options.locationOptions[
-                        `${store.state.roomName}/${store.state.roomCreator}/${store.state.locationName}`
+                    `${store.state.roomName}/${store.state.roomCreator}/${store.state.locationName}`
                     ];
                 if (loc.panX) store.commit("setPanX", loc.panX);
                 if (loc.panY) store.commit("setPanY", loc.panY);

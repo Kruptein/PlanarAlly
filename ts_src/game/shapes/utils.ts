@@ -42,7 +42,7 @@ export function createShapeFromDict(shape: ServerShape, dummy?: boolean) {
         sh = new CircularToken(refPoint, token.r, token.text, token.font, token.fill, token.border, token.uuid);
     } else if (shape.type === "line") {
         const line = <ServerLine>shape;
-        sh = new Line(refPoint, new GlobalPoint(line.x2, line.y2), line.lineWidth, line.uuid);
+        sh = new Line(refPoint, new GlobalPoint(line.x2, line.y2), line.lineWidth, line.stroke, line.uuid);
     } else if (shape.type === "multiline") {
         const multiline = <ServerMultiLine>shape;
         sh = new MultiLine(

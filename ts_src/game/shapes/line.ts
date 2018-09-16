@@ -8,10 +8,12 @@ export default class Line extends Shape {
     type = "line";
     endPoint: GlobalPoint;
     lineWidth: number;
-    constructor(startPoint: GlobalPoint, endPoint: GlobalPoint, lineWidth?: number, uuid?: string) {
+    stroke: string;
+    constructor(startPoint: GlobalPoint, endPoint: GlobalPoint, lineWidth?: number, stroke?: string, uuid?: string) {
         super(startPoint, uuid);
         this.endPoint = endPoint;
         this.lineWidth = lineWidth === undefined ? 1 : lineWidth;
+        this.stroke = stroke || "#000";
     }
     asDict() {
         return Object.assign(this.getBaseDict(), {
@@ -29,10 +31,10 @@ export default class Line extends Shape {
     }
     draw(ctx: CanvasRenderingContext2D) {
         super.draw(ctx);
+        ctx.strokeStyle = this.stroke;
         ctx.beginPath();
         ctx.moveTo(g2lx(this.refPoint.x), g2ly(this.refPoint.y));
         ctx.lineTo(g2lx(this.endPoint.x), g2ly(this.endPoint.y));
-        ctx.strokeStyle = "rgba(255,0,0, 0.5)";
         ctx.lineWidth = this.lineWidth;
         ctx.stroke();
     }
@@ -42,14 +44,14 @@ export default class Line extends Shape {
 
     center(): GlobalPoint;
     center(centerPoint: GlobalPoint): void;
-    center(centerPoint?: GlobalPoint): GlobalPoint | void {} // TODO
+    center(centerPoint?: GlobalPoint): GlobalPoint | void { } // TODO
     getCorner(point: GlobalPoint): string | undefined {
         return "";
     } // TODO
     visibleInCanvas(canvas: HTMLCanvasElement): boolean {
         return true;
     } // TODO
-    snapToGrid(): void {}
-    resizeToGrid(): void {}
-    resize(resizeDir: string, point: LocalPoint): void {}
+    snapToGrid(): void { }
+    resizeToGrid(): void { }
+    resize(resizeDir: string, point: LocalPoint): void { }
 }

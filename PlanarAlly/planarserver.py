@@ -282,6 +282,10 @@ async def move_shape(sid, data):
     room = policy.sio_map[sid]['room']
     location = room.get_active_location(username)
 
+    if 'layer' not in data['shape']:
+        logger.critical(f"Shape {data['shape']} does not have a layer associated")
+        return
+
     layer = location.layer_manager.get_layer(data['shape']['layer'])
 
     # We're first gonna retrieve the existing server side shape for some validation checks

@@ -43,6 +43,7 @@ fh.setLevel(logging.INFO)
 formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s (%(filename)s:%(lineno)d)')
 fh.setFormatter(formatter)
 logger.addHandler(fh)
+logger.addHandler(logging.StreamHandler(sys.stdout))
 
 PENDING_FILE_UPLOAD_CACHE = {}
 
@@ -81,9 +82,9 @@ def nested_dict_update(d, u):
 
 async def on_shutdown(app):
     app['background_save'].cancel()
+    PA.save()
     for sid in list(app['AuthzPolicy'].sio_map.keys()):
         await sio.disconnect(sid, namespace='/planarally')
-    PA.save()
 
 
 async def save_all():

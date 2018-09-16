@@ -1,5 +1,6 @@
 import bcrypt
 import dbm
+import logging
 import secrets
 import shelve
 import sys
@@ -7,6 +8,8 @@ from distutils.version import StrictVersion
 from functools import wraps
 
 from aiohttp_security.abc import AbstractAuthorizationPolicy
+
+logger = logging.getLogger('PlanarAllyServer')
 
 
 class User:
@@ -40,9 +43,10 @@ class ShelveDictAuthorizationPolicy(AbstractAuthorizationPolicy):
     def get_sid(self, user, room):
         for sid in self.sio_map:
             if 'room' not in self.sio_map[sid]:
-                print("ROOM NOT IN SIO_MAP")
-                print(sid)
-                print(self.sio_map[sid])
+                logger.error("ROOM NOT IN SIO_MAP")
+                logger.error(sid)
+                logger.error(self.sio_map[sid])
+                continue
             if self.sio_map[sid]['user'] == user and self.sio_map[sid]['room'] == room:
                 return sid
 

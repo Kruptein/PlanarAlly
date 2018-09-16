@@ -1,11 +1,14 @@
 """
 PlayerAlly data representation classes.
 """
+import logging
 import os
 import shelve
 import uuid
 from collections import OrderedDict
 from typing import Dict, List, Tuple
+
+logger = logging.getLogger('PlanarAllyServer')
 
 
 class Client:
@@ -165,7 +168,8 @@ class Room:
             self.notes[data['uuid']][1] = data['name']
             self.notes[data['uuid']][2] = data['text']
         else:
-            print(f"{username} tried to update note not belonging to him")
+            logger.warn(
+                f"{username} tried to update note not belonging to him")
 
     def get_notes(self, username):
         user_notes = []
@@ -179,7 +183,8 @@ class Room:
         if self.notes[uuid][0] == username:
             del self.notes[uuid]
         else:
-            print(f"{username} tried to remove note which did not belong to him")
+            logger.warn(
+                f"{username} tried to remove note which did not belong to him")
 
 
 class PlanarAlly:

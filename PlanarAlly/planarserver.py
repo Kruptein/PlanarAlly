@@ -8,9 +8,9 @@ import collections
 import configparser
 import functools
 import hashlib
+import logging
 import os
 import sys
-from concurrent.futures import ThreadPoolExecutor
 from operator import itemgetter
 from pathlib import Path
 from urllib.parse import unquote
@@ -36,6 +36,14 @@ else:
 os.chdir(FILE_DIR)
 SAVE_FILE = "planar.save"
 
+logger = logging.getLogger('PlanarAllyServer')
+logger.setLevel(logging.INFO)
+fh = logging.FileHandler(FILE_DIR / 'planarallyserver.log')
+fh.setLevel(logging.INFO)
+formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s (%(filename)s:%(lineno)d)')
+fh.setFormatter(formatter)
+logger.addHandler(fh)
+
 PENDING_FILE_UPLOAD_CACHE = {}
 
 ASSETS_DIR = FILE_DIR / "static" / "assets"
@@ -53,8 +61,6 @@ aiohttp_security.setup(app, SessionIdentityPolicy(), app['AuthzPolicy'])
 aiohttp_session.setup(app, EncryptedCookieStorage(app['AuthzPolicy'].secret_token))
 aiohttp_jinja2.setup(app, loader=jinja2.FileSystemLoader('templates'))
 sio.attach(app)
-
-executor = ThreadPoolExecutor(2)
 
 # This is a fix for asyncio problems on windows that make it impossible to do ctrl+c
 if sys.platform.startswith("win"):
@@ -202,7 +208,7 @@ async def add_shape(sid, data):
     layer = location.layer_manager.get_layer(data['shape']['layer'])
 
     if room.creator != username and not layer.player_editable:
-        print(f"{username} attempted to add a shape to a dm layer")
+        logger.warn(f"{username} attempted to add a shape to a dm layer")
         return
     if data['temporary']:
         location.add_temp(sid, data['shape']['uuid'])
@@ -238,10 +244,10 @@ async def remove_shape(sid, data):
 
     if room.creator != username:
         if not layer.player_editable:
-            print(f"{username} attempted to remove a shape from a dm layer")
+            logger.warn(f"{username} attempted to remove a shape from a dm layer")
             return
         if username not in orig_shape['owners']:
-            print(f"{username} attempted to remove a shape it does not own")
+            logger.warn(f"{username} attempted to remove a shape it does not own")
             return
 
     if data['temporary']:
@@ -261,7 +267,7 @@ async def move_shape_order(sid, data):
 
     layer = location.layer_manager.get_layer(data['shape']['layer'])
     if room.creator != username and not layer.player_editable:
-        print(f"{username} attempted to move a shape order on a dm layer")
+        logger.warn(f"{username} attempted to move a shape order on a dm layer")
         return
     layer.shapes.move_to_end(data['shape']['uuid'], data['index'] != 0)
     if layer.player_visible:
@@ -278,6 +284,7 @@ async def move_shape(sid, data):
 
     layer = location.layer_manager.get_layer(data['shape']['layer'])
 
+    # We're first gonna retrieve the existing server side shape for some validation checks
     if data['temporary']:
         orig_shape = data['shape']  # This stuff is not stored so we cannot do any server side validation /shrug
     else:
@@ -285,13 +292,17 @@ async def move_shape(sid, data):
 
     if room.creator != username:
         if not layer.player_editable:
-            print(f"{username} attempted to move a shape on a dm layer")
+            logger.warn(f"{username} attempted to move a shape on a dm layer")
             return
+        # Use the server version of the shape.
         if username not in orig_shape['owners']:
-            print(f"{username} attempted to move asset it does not own")
+            logger.warn(f"{username} attempted to move asset it does not own")
             return
+    
+    # Overwrite the old data with the new data
     if not data['temporary']:
         layer.shapes[data['shape']['uuid']] = data['shape']
+    
     if layer.player_visible:
         for player in room.players:
             if player == username:
@@ -299,6 +310,7 @@ async def move_shape(sid, data):
             psid = policy.get_sid(policy.user_map[player], room)
             if psid is not None:
                 await sio.emit("shapeMove", shape_wrap(player, data['shape']), room=psid, namespace='/planarally')
+    
     if room.creator != username:
         croom = policy.get_sid(policy.user_map[room.creator], room)
         if croom is not None:
@@ -330,7 +342,7 @@ async def update_shape(sid, data):
 
     if room.creator != username:
         if username not in orig_shape['owners']:
-            print(f"{username} attempted to change asset it does not own")
+            logger.warn(f"{username} attempted to change asset it does not own")
             return
 
     layer.shapes[data['shape']['uuid']] = data['shape']
@@ -365,7 +377,7 @@ async def update_initiative(sid, data):
 
     if room.creator != username:
         if username not in shape['owners']:
-            print(f"{username} attempted to change initiative of an asset it does not own")
+            logger.warn(f"{username} attempted to change initiative of an asset it does not own")
             return
 
     removed = False
@@ -410,7 +422,7 @@ async def update_initiative_order(sid, data):
     location = room.get_active_location(username)
 
     if room.creator != username:
-        print(f"{username} attempted to change the initiative order")
+        logger.warn(f"{username} attempted to change the initiative order")
         return
     
     location.initiative = [d for d in data if d]
@@ -433,7 +445,7 @@ async def update_initiative_turn(sid, data):
     location = room.get_active_location(username)
 
     if room.creator != username:
-        print(f"{username} attempted to advance the initiative tracker")
+        logger.warn(f"{username} attempted to advance the initiative tracker")
         return
     
     location.initiativeTurn = data
@@ -457,7 +469,7 @@ async def update_initiative_round(sid, data):
     location = room.get_active_location(username)
 
     if room.creator != username:
-        print(f"{username} attempted to advance the initiative tracker")
+        logger.warn(f"{username} attempted to advance the initiative tracker")
         return
     
     location.initiativeRound = data
@@ -477,7 +489,7 @@ async def new_initiative_effect(sid, data):
 
     if room.creator != username:
         if username not in shape['owners']:
-            print(f"{username} attempted to create a new initiative effect")
+            logger.warn(f"{username} attempted to create a new initiative effect")
             return
     
     for init in location.initiative:
@@ -501,7 +513,7 @@ async def update_initiative_effect(sid, data):
 
     if room.creator != username:
         if username not in shape['owners']:
-            print(f"{username} attempted to update an initiative effect")
+            logger.warn(f"{username} attempted to update an initiative effect")
             return
     
     for init in location.initiative:
@@ -528,7 +540,7 @@ async def set_room(sid, data):
     location = room.get_active_location(username)
 
     if room.creator != username:
-        print(f"{username} attempted to set a room option")
+        logger.warn(f"{username} attempted to set a room option")
         return
 
     location.options.update(**data)
@@ -543,7 +555,7 @@ async def set_gridsize(sid, grid_size):
     location = room.get_active_location(username)
 
     if room.creator != username:
-        print(f"{username} attempted to set gridsize without DM rights")
+        logger.warn(f"{username} attempted to set gridsize without DM rights")
         return
     location.layer_manager.get_grid_layer().size = grid_size
     await sio.emit("set gridsize", grid_size, room=location.sioroom, skip_sid=sid, namespace="/planarally")
@@ -556,7 +568,7 @@ async def new_note(sid, data):
     room = app['AuthzPolicy'].sio_map[sid]['room']
 
     if data["uuid"] in room.notes:
-        print(f"{username} tried to overwrite existing note with id: '{data['uuid']}'")
+        logger.warn(f"{username} tried to overwrite existing note with id: '{data['uuid']}'")
         return
 
     room.add_new_note(data, username)
@@ -570,7 +582,7 @@ async def update_note(sid, data):
     room = app['AuthzPolicy'].sio_map[sid]['room']
 
     if data["uuid"] not in room.notes:
-        print(f"{username} tried to update non-existant note with id: '{data['uuid']}'")
+        logger.warn(f"{username} tried to update non-existant note with id: '{data['uuid']}'")
         return
 
     room.update_note(data, username)
@@ -584,7 +596,7 @@ async def delete_note(sid, uuid):
     room = app['AuthzPolicy'].sio_map[sid]['room']
 
     if uuid not in room.notes:
-        print(f"{username} tried to remove non-existant note with id: '{uuid}'")
+        logger.warn(f"{username} tried to remove non-existant note with id: '{uuid}'")
         return
 
     room.delete_note(uuid, username)
@@ -597,7 +609,7 @@ async def add_new_location(sid, location):
     room = app['AuthzPolicy'].sio_map[sid]['room']
 
     if room.creator != username:
-        print(f"{username} attempted to add a new location")
+        logger.warn(f"{username} attempted to add a new location")
         return
 
     room.add_new_location(location)
@@ -621,7 +633,7 @@ async def change_location(sid, location):
     room = policy.sio_map[sid]['room']
 
     if room.creator != username:
-        print(f"{username} attempted to change location")
+        logger.warn(f"{username} attempted to change location")
         return
 
     old_location = room.get_active_location(username)
@@ -690,7 +702,7 @@ async def test_connect(sid, environ):
             'user': policy.user_map[username],
             'room': room
         }
-        print(f"User {username} connected with identifier {sid}")
+        logger.info(f"User {username} connected with identifier {sid}")
 
         assets = policy.user_map[username].asset_info
 
@@ -710,7 +722,7 @@ async def test_disconnect(sid):
     room = app['AuthzPolicy'].sio_map[sid]['room']
     location = room.get_active_location(username)
 
-    print(f'User {username} disconnected with identifier {sid}')
+    logger.info(f'User {username} disconnected with identifier {sid}')
     del app['AuthzPolicy'].sio_map[sid]
 
     if sid in location.client_temporaries:
@@ -738,14 +750,11 @@ async def assetmgmt_upload(sid, file_data):
     filename = file_data['name']
     uuid = file_data['uuid']
 
-    print(f"{file_data['name']} - {file_data['uuid']} - {file_data['slice']}/{file_data['totalSlices']}")
-
     global PENDING_FILE_UPLOAD_CACHE
     if uuid not in PENDING_FILE_UPLOAD_CACHE:
         PENDING_FILE_UPLOAD_CACHE[uuid] = {}
     PENDING_FILE_UPLOAD_CACHE[uuid][file_data['slice']] = file_data
     if len(PENDING_FILE_UPLOAD_CACHE[uuid]) != file_data['totalSlices']:
-        print(f"Received {len(PENDING_FILE_UPLOAD_CACHE[uuid])} slices")
         # wait for the rest of the slices
         return
 
@@ -768,7 +777,7 @@ async def assetmgmt_upload(sid, file_data):
     user = policy.sio_map[sid]['user']
     folder = functools.reduce(dict.get, file_data['directory'], user.asset_info)
     if folder is None:
-        print(f"Directory structure {file_data['directory']} is not valid for {user.username}")
+        logger.warn(f"Directory structure {file_data['directory']} is not valid for {user.username}")
         return
 
     file_info = {'name': file_data['name'], 'hash': hashname}
@@ -870,5 +879,5 @@ if __name__ == '__main__':
         )
         web.run_app(app, port=cfg.getint('Webserver', 'port'), ssl_context=ctx)
     else:
-        print(" RUNNING IN NON SSL CONTEXT ")
+        logger.warn(" RUNNING IN NON SSL CONTEXT ")
         web.run_app(app, port=cfg.getint('Webserver', 'port'))

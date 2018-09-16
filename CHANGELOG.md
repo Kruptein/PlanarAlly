@@ -38,6 +38,7 @@ Assets are now stored in `/static/assets/` instead of `/static/img/assets/`.  In
         - Does not properly work in normal mode on the fow layer!
         - In general: Use it to draw on non-fog layers or use it in reveal/hide mode
 - [tech] tools onSelect and onDeselect for more finegrained tweaking and UI helpers
+- Option for players to select the colour of their rulers.
 
 ### Changed
 - Renamed 'Tokens' to 'Assets' in the settings panel
@@ -52,6 +53,10 @@ Assets are now stored in `/static/assets/` instead of `/static/img/assets/`.  In
 - Dim aura range should no longer include the normal range value
     - e.g. an aura that used to be 20/60 should now be 20/40
 - [tech] Most UI is now rendered using the reactive Vue.js framework instead of JQuery
+- Draw order changed
+    - First all auras are drawn and then all shapes are drawn
+    - This prevents auras overlapping shapes
+    - Shape order is still respected
 
 ### Fixed
 - Select box not working properly on the fow layer

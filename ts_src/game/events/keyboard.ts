@@ -64,7 +64,7 @@ export function onKeyDown(event: KeyboardEvent) {
         } else if (event.keyCode === 68) {
             const layer = gameManager.layerManager.getLayer();
             if (layer) {
-                layer.selection = [];
+                layer.clearSelection();
                 layer.invalidate(true);
             }
         }

@@ -199,7 +199,7 @@ export default Tool.extend({
             const layer = gameManager.layerManager.getLayer()!;
 
             if (this.mode === SelectOperations.GroupSelect) {
-                layer.selection = [];
+                layer.clearSelection();
                 layer.shapes.forEach(shape => {
                     if (shape === this.selectionHelper) return;
                     const bbox = shape.getBoundingBox();

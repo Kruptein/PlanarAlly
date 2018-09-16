@@ -72,7 +72,7 @@ export class LayerManager {
                 found = true;
             }
 
-            layer.selection = [];
+            layer.clearSelection();
             layer.invalidate(true);
         }
     }

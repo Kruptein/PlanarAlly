@@ -6,6 +6,7 @@ import { ServerShape } from "../api_types";
 import { createShapeFromDict } from "../shapes/utils";
 import { socket } from "../socket";
 import { g2lx, g2ly } from "../units";
+import { vm } from "../planarally";
 
 export class Layer {
     name: string;
@@ -68,7 +69,7 @@ export class Layer {
             }
             this.addShape(shape, false, false);
         }
-        this.selection = []; // TODO: Fix keeping selection on those items that are not moved.
+        this.clearSelection(); // TODO: Fix keeping selection on those items that are not moved.
         this.invalidate(false);
     }
 
@@ -101,6 +102,11 @@ export class Layer {
 
     clear(): void {
         this.ctx.clearRect(0, 0, this.width, this.height);
+    }
+
+    clearSelection(): void {
+        this.selection = [];
+        (<any>vm.$refs.selectionInfo).shape = null;
     }
 
     draw(doClear?: boolean): void {

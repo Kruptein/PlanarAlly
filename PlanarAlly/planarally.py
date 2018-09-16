@@ -95,11 +95,14 @@ class Location:
         # default layers
         self.layer_manager.add(Layer("map", player_visible=True))
         self.layer_manager.add(GridLayer(50))
-        self.layer_manager.add(Layer("tokens", player_visible=True, player_editable=True))
+        self.layer_manager.add(
+            Layer("tokens", player_visible=True, player_editable=True))
         self.layer_manager.add(Layer("dm"))
         self.layer_manager.add(Layer("fow", player_visible=True))
-        self.layer_manager.add(Layer("fow-players", selectable=False, player_visible=True))
-        self.layer_manager.add(Layer("draw", selectable=False, player_visible=True, player_editable=True))
+        self.layer_manager.add(
+            Layer("fow-players", selectable=False, player_visible=True))
+        self.layer_manager.add(
+            Layer("draw", selectable=False, player_visible=True, player_editable=True))
 
     @property
     def sioroom(self):
@@ -138,8 +141,10 @@ class Room:
                 pl_shape = dict(shape)
                 if 'annotation' in pl_shape and username not in pl_shape['owners']:
                     del pl_shape['annotation']
-                pl_shape['trackers'] = [t for t in shape['trackers'] if username in pl_shape['owners'] or t['visible']]
-                pl_shape['auras'] = [a for a in shape['auras'] if username in pl_shape['owners'] or a['visible']]
+                pl_shape['trackers'] = [t for t in shape['trackers']
+                                        if username in pl_shape['owners'] or t['visible']]
+                pl_shape['auras'] = [a for a in shape['auras']
+                                     if username in pl_shape['owners'] or a['visible']]
                 l['shapes'][i] = pl_shape
         d['board'] = board
         return d
@@ -166,7 +171,8 @@ class Room:
         user_notes = []
         for uuid, note in self.notes.items():
             if note[0] == username:
-                user_notes.append({"uuid": uuid, "name": note[1], "text":note[2]})
+                user_notes.append(
+                    {"uuid": uuid, "name": note[1], "text": note[2]})
         return user_notes
 
     def delete_note(self, uuid, username):
@@ -240,4 +246,5 @@ class PlanarAlly:
         for room in self.rooms.values():
             if str(room.invitation_code) == invite_code:
                 return room
-        raise KeyError(f"{invite_code} was not found to be associated with any existing session")
+        raise KeyError(
+            f"{invite_code} was not found to be associated with any existing session")

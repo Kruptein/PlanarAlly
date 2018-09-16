@@ -13,7 +13,7 @@ class User:
     def __init__(self, username):
         self.username = username
         self.password_hash = None
-        self.asset_info = { '__files': [] }
+        self.asset_info = {'__files': []}
         self.options = {}
 
     def set_password(self, pw):
@@ -39,13 +39,18 @@ class ShelveDictAuthorizationPolicy(AbstractAuthorizationPolicy):
 
     def get_sid(self, user, room):
         for sid in self.sio_map:
+            if 'room' not in self.sio_map[sid]:
+                print("ROOM NOT IN SIO_MAP")
+                print(sid)
+                print(self.sio_map[sid])
             if self.sio_map[sid]['user'] == user and self.sio_map[sid]['room'] == room:
                 return sid
 
     def load_save(self):
         with shelve.open(self.save_file, 'c') as shelf:
             self.user_map = shelf.get('user_map', {})
-            self.secret_token = shelf.get('secret_token', secrets.token_bytes(32))
+            self.secret_token = shelf.get(
+                'secret_token', secrets.token_bytes(32))
 
     def save(self):
         with shelve.open(self.save_file, 'c') as shelf:

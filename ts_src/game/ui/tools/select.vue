@@ -48,10 +48,20 @@ export default Tool.extend({
         };
     },
     computed: {
-        ...mapState(["IS_DM", "username", "zoomFactor", "useGrid"]),
+        username(): string {
+            return this.$store.state.username;
+        },
+        zoomFactor(): number {
+            return this.$store.state.zoomFactor;
+        },
+        IS_DM(): boolean {
+            return this.$store.state.IS_DM;
+        },
+        useGrid(): boolean {
+            return this.$store.state.useGrid;
+        },
     },
     created() {
-        this.selectionHelper.owners.push(this.username);
         this.selectionHelper.globalCompositeOperation = "source-over";
     },
     methods: {
@@ -61,6 +71,11 @@ export default Tool.extend({
                 console.log("No active layer!");
                 return;
             }
+
+            if (!this.selectionHelper.owners.includes(this.username)) {
+                this.selectionHelper.owners.push(this.username);
+            }
+
             const mouse = getMouse(event);
             const globalMouse = l2g(mouse);
 

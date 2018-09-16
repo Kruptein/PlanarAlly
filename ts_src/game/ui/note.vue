@@ -1,5 +1,5 @@
 <template>
-    <modal v-if='note !== null' :visible="visible" @close="visible = false">
+    <modal v-if='note !== null' :visible="visible" @close="visible = false" :mask="false">
         <div
             class='modal-header'
             slot='header'
@@ -10,6 +10,7 @@
         >
             <span @click='$refs.title.select()'><i class="fas fa-pencil-alt" style='font-size: 15px'></i></span>
             <input v-model="note.name" ref='title' @change='updateNote'>
+            <div class='header-close' @click="visible = false"><i class="far fa-window-close"></i></div>
         </div>
         <div class='modal-body'>
             <textarea
@@ -90,6 +91,12 @@ export default Vue.component("initiative-dialog", {
     border: none;
     font-weight: bold;
     font-size: large;
+}
+
+.header-close {
+    position: absolute;
+    top: 5px;
+    right: 5px;
 }
 
 .modal-body {

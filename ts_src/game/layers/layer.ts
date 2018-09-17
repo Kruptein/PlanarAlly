@@ -3,10 +3,10 @@ import Shape from "../shapes/shape";
 import store from "../store";
 
 import { ServerShape } from "../api_types";
+import { vm } from "../planarally";
 import { createShapeFromDict } from "../shapes/utils";
 import { socket } from "../socket";
 import { g2lx, g2ly } from "../units";
-import { vm } from "../planarally";
 
 export class Layer {
     name: string;

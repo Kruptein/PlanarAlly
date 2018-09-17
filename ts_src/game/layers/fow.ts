@@ -127,32 +127,28 @@ export class FOWLayer extends Layer {
                 if (lastArcAngle === -1) path.lineTo(g2lx(firstPoint!.x), g2ly(firstPoint!.y));
                 else path.arc(lcenter.x, lcenter.y, g2lr(aura.value + aura.dim), lastArcAngle, 2 * Math.PI);
 
-                if (aura.dim > 0) {
-                    // Fill the light aura with a radial dropoff towards the outside.
-                    const gradient = ctx.createRadialGradient(
-                        lcenter.x,
-                        lcenter.y,
-                        g2lr(aura.value),
-                        lcenter.x,
-                        lcenter.y,
-                        g2lr(aura.value + aura.dim),
-                    );
-                    gradient.addColorStop(0, "rgba(0, 0, 0, 1)");
-                    gradient.addColorStop(1, "rgba(0, 0, 0, 0)");
-                    ctx.fillStyle = gradient;
-                } else {
-                    ctx.fillStyle = "rgba(0, 0, 0, 1)";
+                if (store.state.fullFOW) {
+                    if (aura.dim > 0) {
+                        // Fill the light aura with a radial dropoff towards the outside.
+                        const gradient = ctx.createRadialGradient(
+                            lcenter.x,
+                            lcenter.y,
+                            g2lr(aura.value),
+                            lcenter.x,
+                            lcenter.y,
+                            g2lr(aura.value + aura.dim),
+                        );
+                        gradient.addColorStop(0, "rgba(0, 0, 0, 1)");
+                        gradient.addColorStop(1, "rgba(0, 0, 0, 0)");
+                        ctx.fillStyle = gradient;
+                    } else {
+                        ctx.fillStyle = "rgba(0, 0, 0, 1)";
+                    }
+                    ctx.fill(path);
                 }
-                ctx.fill(path);
 
                 aura.lastPath = path;
             }
-
-            // for (let p=0; p < this.preFogShapes.length; p++) {
-            //     const pS = this.preFogShapes[p];
-            //     if (!pS.visibleInCanvas(this.canvas)) return;
-            //     pS.draw(ctx);
-            // }
 
             // At the DM Side due to opacity of the two fow layers, it looks strange if we just render them on top of eachother like players.
             if (store.state.fowLOS) {
@@ -162,14 +158,24 @@ export class FOWLayer extends Layer {
 
             for (const preShape of this.preFogShapes) {
                 if (!preShape.visibleInCanvas(this.canvas)) continue;
+                const ogComposite = preShape.globalCompositeOperation;
+                if (!store.state.fullFOW) {
+                    if (preShape.globalCompositeOperation === "source-over")
+                        preShape.globalCompositeOperation = "destination-out";
+                    else if (preShape.globalCompositeOperation === "destination-out")
+                        preShape.globalCompositeOperation = "source-over";
+                }
                 preShape.draw(ctx);
+                preShape.globalCompositeOperation = ogComposite;
             }
 
-            ctx.globalCompositeOperation = "source-out";
-            ctx.fillStyle = getFogColour();
-            ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+            if (store.state.fullFOW) {
+                ctx.globalCompositeOperation = "source-out";
+                ctx.fillStyle = getFogColour();
+                ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+            }
 
-            super.draw(!store.state.fullFOW);
+            super.draw(false);
 
             ctx.globalCompositeOperation = originalOperation;
         }

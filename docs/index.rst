@@ -10,7 +10,10 @@ Welcome to Planar Ally's documentation!
     :maxdepth: 2
     :caption: Contents:
 
-    Getting Started <getting_started>
+    getting_started
+    lighting
+    Layers
+    Initiative
 
 These documents are in active development,
 

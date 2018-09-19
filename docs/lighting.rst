@@ -74,6 +74,24 @@ Another approach, which is advised, is to use the LoS based vision system as exp
 Obstacles
 ----------
 
+With the fog system in place and some lights to bring atmosphere,
+we would also like to have the ability to add obstacles (e.g. walls / pillars).
+
+Each asset can be configured to block vision.
+This setting is what effectively makes vision obstacles.
+
+When drawing on the fow layer, this setting will automatically be applied as it's often intended in this case.
+*(You'll obviously be able to disable the option for each asset)*
+
+.. hint::
+    Although not lighting related, you'll often also want to apply the 'block movement' option
+    on your obstacles.
+
+Adding the obstacles on the fow layer is advised when you're drawing over elements on a map image.
+As the shapes on the fow layer are hidden from your view when you're on other layers, making it less cluttered.
+
+.. image::images/lighting-block-example.png
+    Example where the right wall has the 'blocks movement' option enabled.
 
 
 Line of Sight based vision

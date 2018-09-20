@@ -90,9 +90,9 @@ When drawing on the fow layer, this setting will automatically be applied as it'
 Adding the obstacles on the fow layer is advised when you're drawing over elements on a map image.
 As the shapes on the fow layer are hidden from your view when you're on other layers, making it less cluttered.
 
-.. image::images/lighting-block-example.png
-    Example where the right wall has the 'blocks movement' option enabled.
+.. figure:: images/lighting-block-example.png
 
+    Example where the right wall has the 'blocks movement' option enabled.
 
 Line of Sight based vision
 ---------------------------

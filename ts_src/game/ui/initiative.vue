@@ -88,12 +88,13 @@
                                     type='text'
                                     v-model="effect.name"
                                     :size="effect.name.length || 1"
-                                    @change="updateEffect(effect)"
+                                    @change="updateEffect(actor.uuid, effect, true)"
                                 >
                                 <input
                                     type='text'
                                     v-model="effect.turns"
                                     :size="effect.turns.toString().length || 1"
+                                    @change="updateEffect(actor.uuid, effect, true)"
                                 >
                             </div>
                         </div>
@@ -260,12 +261,14 @@ export default Vue.component("initiative-dialog", {
             if (!this.owns(actor)) return;
             socket.emit("Initiative.Effect.Update", { actor: actor.uuid, effect });
         },
-        updateEffect(actorId: string, effect: InitiativeEffect) {
+        updateEffect(actorId: string, effect: InitiativeEffect, sync: boolean) {
             const actor = this.data.find(a => a.uuid === actorId);
             if (actor === undefined) return;
             const effectIndex = actor.effects.findIndex(e => e.uuid === effect.uuid);
             if (effectIndex === undefined) return;
             actor.effects[effectIndex] = effect;
+            if (sync) this.syncEffect(actor, effect);
+            else this.$forceUpdate();
         },
     },
 });

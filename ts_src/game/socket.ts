@@ -129,7 +129,7 @@ socket.on("Initiative.Effect.New", (data: { actor: string; effect: InitiativeEff
     initiative.createEffect(actor, data.effect, false);
 });
 socket.on("Initiative.Effect.Update", (data: { actor: string; effect: InitiativeEffect }) => {
-    (<any>vm.$refs.initiative).updateEffect(data.actor, data.effect);
+    (<any>vm.$refs.initiative).updateEffect(data.actor, data.effect, false);
 });
 socket.on("clear temporaries", (shapes: ServerShape[]) => {
     shapes.forEach(shape => {

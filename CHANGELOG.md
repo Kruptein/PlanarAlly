@@ -4,10 +4,72 @@ All notable changes to this project will be documented in this file.
 [DM] denotes changes only useful for the dungeon master
 [tech] denotes technical changes
 
+## [0.9] - 2018-09-26
+
+### Upgrade information
+#### Save format changes
+The save format has been changed from version 1 to 3, that's 2 increments in one release yes.
+This is due to the size of the release involving multiple new features that involved separate changes that were developed in parallel to eachother.
+
+As always make sure to back up your old saves before converting!
+To update run both `python ../scripts/convert/1_to_2.py` and `python ../scripts/convert/2_to_3.py` from within the same folder as your save files.
+
+#### Asset changes
+
+The way assets are stored on disk and managed in game has completely changed.  You'll no longer be able to manage your assets from your file manager or command line, and will have to use the in-browser tools to work with them.  This is a change that was required in order to provide extra features to the assets while preserving disk space. (e.g. personal assets / share assets / default templates / ... )
+Assets are now stored in `/static/assets/` instead of `/static/img/assets/`.  In order to keep your current saves working (if they have assets that rely on the old image locations), the old folder is kept intact and will not be removed.  You are free to do with this folder as you please as it is no longer used by PA itself.
+
+### Added
+- Added a note system
+- Initiative tracker update
+    - Now shows the active actor and has a next turn button
+    - Shows the current round number
+    - Turn/Effect timers per actor that automatically count down
+    - Show a border around shapes on hover in the initiative list
+- New Asset management panel
+    - Out of game way to organize assets
+    - Upload files via a dialog or by dropping them on the manager
+    - Rename/remove files/directories
+    - move files/folders to other folders
+- Freestyle brush has been added as a draw shape
+    - FOW usage is limited
+        - Currently only works when global fog is applied.
+        - Works when used from the draw tool in reveal/hide mode
+        - Does not properly work in normal mode on the fow layer!
+        - In general: Use it to draw on non-fog layers or use it in reveal/hide mode
+- [tech] tools onSelect and onDeselect for more finegrained tweaking and UI helpers
+- Option for players to select the colour of their rulers.
+
+### Changed
+- Renamed 'Tokens' to 'Assets' in the settings panel
+- Redesigned the way assets are shown in the settings panel
+    - A tree view approach is used, showing preview images on hover
+    - Removed the cog wheel
+    - A button to open the asset manager is added to the in-game interface.
+- Draw and fow tools have been combined in one singular draw tool
+    - Options between 'normal' mode and either 'hide' or 'reveal' mode if you want to draw fog
+    - Fog is now always drawn in the client's active fog colour
+    - Also shows a brush tip while moving the mouse
+- Dim aura range should no longer include the normal range value
+    - e.g. an aura that used to be 20/60 should now be 20/40
+- [tech] Most UI is now rendered using the reactive Vue.js framework instead of JQuery
+- Draw order changed
+    - First all auras are drawn and then all shapes are drawn
+    - This prevents auras overlapping shapes
+    - Shape order is still respected
+
+### Fixed
+- Select box not working properly on the fow layer
+- Ownership changes are now reflected in the initiative list
+- Dim value aura's had the wrong radius
+- Dim value aura's nog properly work with light sources.
+    - Instead of halving the opacity, the radial gradient is applied across the entire aura + dim aura radius.
+- Deleting multiple shapes no longer sends the selectionhelper to the server
+
 ## [0.8] - 2018-06-19
 
 This release greatly increases performance of all lighting modes and also properly 
-introduyces Line of Sight based lighting system.
+introduces Line of Sight based lighting system.
 
 SAVE_FORMAT CHANGED FROM 0 to 1
 BACKUP YOUR OLD SAVE BEFORE CONVERTING!

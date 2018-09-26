@@ -6,12 +6,24 @@
 env/**
 **/__pycache__/**
 
+# PyInstaller
+dist/**
+build/**
+
 # JS
+.cache-loader/**
 node_modules/**
 PlanarAlly/client/src/*.js
 PlanarAlly/client/src/*.js.map
 
 # PlanarAlly
+planarallyserver.log
 planar.save*
 server_config.cfg
 PlanarAlly/static/img/**
+PlanarAlly/static/assets/**
+
+# docs
+docs/_build
+docs/_static
+docs/_templates

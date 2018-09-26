@@ -1,0 +1,63 @@
+<!doctype html>
+<html>
+<head>
+    <title>PlanarAlly - Asset Manager</title>
+    <link rel="stylesheet" type="text/css" href="/static/css/assets.css">
+    <script src='/static/extern/js/socket.io-2.0.4.js'></script>
+    <script defer src='/static/extern/js/fontawesome_all.js'></script>
+</head>
+<body>
+<div id='AssetManager' v-cloak>
+    <div id='titlebar'>Asset Manager</div>
+    <div id='main'>
+        <div id='assets' @dragover.prevent="moveDrag" @drop.prevent.stop="stopDrag($event, '.')">
+            <div id='breadcrumbs' v-if="currentDirectory.length">
+                <div v-for="dir in currentDirectory">[[ dir ]]</div>
+            </div>
+            <div id='actionbar'>
+                <input id='files' type='file' multiple hidden @change="upload()">
+                <div @click="createDirectory" title="Create folder"><i class="fas fa-plus-square"></i></div>
+                <div @click="prepareUpload" title="Upload files"><i class="fas fa-upload"></i></div>
+            </div>
+            <div id='explorer'>
+                <div
+                    class='inode folder'
+                    draggable="true"
+                    v-for="(key, index) in folders"
+                    :class="{'inode-selected': selected.includes(key)}"
+                    @click="select($event, index, key)"
+                    @dblclick="changeDirectory(key)"
+                    @contextmenu.prevent="$refs.cm.open($event, index, key)"
+                    @dragstart="startDrag($event, key)"
+                    @dragover.prevent="moveDrag"
+                    @dragleave.prevent="leaveDrag"
+                    @drop.prevent.stop="stopDrag($event, key)"
+                >
+                    <i class='fas fa-folder' style='font-size: 50px;'></i>
+                    <div class='title'>[[ key ]]</div>
+                </div>
+                <div
+                    class='inode file'
+                    draggable="true"
+                    v-for="(file, index) in files"
+                    :class="{'inode-selected': selected.includes(file)}"
+                    @click="select($event, index + folders.length, file)"
+                    @contextmenu.prevent="$refs.cm.open($event, index + folders.length, file)"
+                    @dragstart="startDrag($event, file)"
+                >
+                    <img :src="'/static/assets/' + file.hash" width=50>
+                    <div class='title'>[[ file.name ]]</div>
+                </div>
+            </div>
+        </div>
+        <div id='asset-details' v-if="firstSelectedFile">
+            <div id='asset-detail-title'>[[ firstSelectedFile.name ]]</div>
+            <img :src="'/static/assets/' + firstSelectedFile.hash">
+        </div>
+    </div>
+    <cm ref='cm'></cm>
+    <prompt ref="prompt"></prompt>
+    <confirm ref="confirm"></confirm>
+</div>
+<script type="text/javascript" src="/static/js/assets.8308c10c773423bfe035.js"></script></body>
+</html>

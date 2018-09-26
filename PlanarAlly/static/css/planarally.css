@@ -1,6 +1,9 @@
 @import url("https://maxcdn.bootstrapcdn.com/font-awesome/4.6.1/css/font-awesome.min.css");
+@import url('https://fonts.googleapis.com/css?family=Open+Sans');
 html, body, #main {
     height: 100%;
+    font-family: 'Open Sans', sans-serif;
+    font-weight: 200;
 }
 
 body {
@@ -11,105 +14,16 @@ a, a:visited, a:hover, a:active {
     color: inherit;
 }
 
-/* fieldset { */
-    /*padding: 0;*/
-    /*border: 0;*/
-    /*margin-top: 25px;*/
-/* } */
+svg {
+    cursor: pointer;
+}
+
+.notAllowed, .notAllowed > * {
+    cursor: not-allowed !important;
+}
 
 #main {
     display: flex;
-}
-
-#menu {
-    position: absolute;
-    top: 0;
-    left: 0;
-    height: 100%;
-    width: 200px;
-    z-index: 21;
-    background-color: #fa5a5a;
-    display: none;
-    overflow: auto;
-}
-
-#locations-menu {
-    position: absolute;
-    top: 0;
-    left: 0;
-    height: 100px;
-    width: 100%;
-    z-index: 21;
-    background-color: #fa5a5a;
-    display: none;
-    overflow: auto;
-}
-
-#locations-menu > div {
-    display: flex;
-    width: 100%;
-    height: 100%;
-}
-
-#locations-menu > div > div {
-    background-color: white;
-    text-align: center;
-    line-height: 100px;
-    width: 100px;
-    border-right: solid 1px #82c8a0;
-}
-
-#locations-menu > div > div:hover {
-    cursor: pointer;
-    background-color: #82c8a0;
-}
-
-#selection-menu {
-    position: absolute;
-    display: flex;
-    flex-direction: column;
-    top: 150px;
-    right: 0;
-    z-index: 10;
-    opacity: 0.3;
-    border-top-left-radius: 20px;
-    border-bottom-left-radius: 20px;
-    border: solid 1px;
-    border-right: none;
-    padding: 10px 35px 10px 10px;
-    background-color: white;
-}
-
-#selection-menu:hover {
-    opacity: 1;
-}
-
-#selection-edit-button {
-    position: absolute;
-    right: 10px;
-    top: 10px;
-    cursor: pointer;
-}
-
-#selection-trackers, #selection-auras {
-    display: grid;
-    grid-template-columns: [name] 1fr [value] 1fr;
-}
-
-.selection-tracker-value, .selection-aura-value {
-    justify-self: center;
-    padding: 2px;
-}
-
-.selection-tracker-value:hover, .selection-aura-value:hover {
-    cursor: pointer;
-    background-color: rgba(20, 20, 20, 0.2);
-}
-
-#selection-name {
-    font-size: 20px;
-    font-weight: bold;
-    margin-bottom: 10px;
 }
 
 #board {
@@ -118,7 +32,7 @@ a, a:visited, a:hover, a:active {
     height: 100%;
 }
 
-#layers, canvas {
+#layers, #layers canvas {
     width: 100%;
     height: 100%;
     position: absolute;
@@ -176,112 +90,9 @@ a, a:visited, a:hover, a:active {
     background-color: #82c8a0;
 }
 
-#toolselect {
-    position: absolute;
-    bottom: 25px;
-    right: 25px;
-    z-index: 10;
-}
-
-#toolselect ul {
-    display: flex;
-    list-style: none;
-    padding: 0;
-    margin: 0;
-    border: solid 1px #82c8a0;
-    border-radius: 7px;
-}
-
-#toolselect li {
-    display: flex;
-    background-color: #eee;
-    border-right: solid 1px #82c8a0;
-}
-
-#toolselect li:last-child {
-    border-right: none;
-    border-radius: 0px 4px 4px 0px; /* Border radius needs to be two less than the actual border, otherwise there will be a gap */
-}
-
-#toolselect li:first-child {
-    border-radius: 4px 0px 0px 4px;
-}
-
-#toolselect li:hover {
-    background-color: #82c8a0;
-}
-
-#toolselect li a {
-    -webkit-user-select: none; /* Chrome all / Safari all */
-    -moz-user-select: none; /* Firefox all */
-    -ms-user-select: none; /* IE 10+ */
-    user-select: none;
-    display: flex;
-    padding: 10px;
-    text-decoration: none;
-}
-
-#toolselect .tool-selected {
-    background-color: #82c8a0;
-}
-
 .draggable {
     list-style: none;
     font-family: helvetica;
-}
-
-#contextMenu {
-    position: absolute;
-    z-index: 11;
-}
-
-#contextMenu ul {
-    /*width: 100%;*/
-    /*height: 100%;*/
-    border: 1px solid black;
-    background: white;
-    padding: 0;
-    list-style: none;
-    margin: 0;
-}
-
-#contextMenu ul li {
-    border-bottom: 1px solid black;
-    padding: 5px;
-}
-
-#contextMenu ul li:hover {
-    background-color: #82c8a0;
-}
-
-#contextMenu ul li:last-child {
-    border-bottom: none;
-}
-
-#contextMenu > ul > li {
-    clear: left;
-    position: relative;
-}
-
-#contextMenu > ul > li ul {
-    display: none;
-    position: absolute;
-    left: 99px;
-    top: 0;
-}
-
-#contextMenu > ul > li:hover ul {
-    display: flex;
-    flex-direction: column;
-}
-
-/* #contextMenu > ul > li ul li {
-    /*float: left;*
-    /*display: block;*
-} */
-
-.context-clickable {
-    cursor: pointer;
 }
 
 .accordion {
@@ -350,40 +161,9 @@ a, a:visited, a:hover, a:active {
 
 #zoomer {
     position: absolute;
-    top: 25px;
+    top: 15px;
     right: 25px;
     z-index: 11;
-}
-
-#tooldetail {
-    position: absolute;
-    bottom: 80px;
-    right: 25px;
-    z-index: 11;
-    width: 150px;
-    border: solid 1px #2b2b2b;
-    background-color: white;
-    display: none;
-    padding: 10px;
-}
-
-#tooldetail:after {
-    content: '';
-    position: absolute;
-    bottom: 0;
-    left: 50%;
-    width: 0;
-    height: 0;
-    border: 14px solid transparent;
-    border-top-color: black;
-    border-bottom: 0;
-    margin-left: -14px;
-    margin-bottom: -14px;
-}
-
-#tooldetail > div {
-    display: grid;
-    grid-template-columns: 50% 50%;
 }
 
 .switch {
@@ -448,6 +228,7 @@ input:checked + .slider:before {
     z-index: 20;
     width: 0;
     height: 0;
+    pointer-events: auto;
 }
 
 /* The svg is added by Font Awesome */
@@ -540,6 +321,11 @@ input:checked + .slider:before {
     color: #82c8a0;
 }
 
+.notedialog {
+    align-items: center;
+    display: grid;
+}
+
 #shapeselectiondialog > div {
     display: grid;
     grid-template-columns: [name] 1fr [numerator] 30px [slash] 5px [denominator] 30px [colour] 40px [visible] 30px [light] 30px [remove] 30px [end];
@@ -547,42 +333,12 @@ input:checked + .slider:before {
     align-items: center;
 }
 
-#initiativedialog {
-    padding: 0;
-    display: grid;
-    grid-template-columns: [img] auto [value] 30px [visible] 30px [group] 30px [remove] 30px [end];
-    grid-column-gap: 2px;
-    align-items: center;
-}
-
-#createtokendialog {
-    padding: 10px;
-    display: grid;
-    grid-template-columns: [label] 60px [value] 60px [end];
-    grid-column-gap: 30px;
-    grid-row-gap: 10px;
-    align-items: center;
+#renameNote {
+    width: 90%;
 }
 
 .spanrow {
     grid-column: 1 / end;
-}
-
-.dialog .shapeselectiondialog-header {
-    line-height: 0.1em;
-    margin: 20px 0 15px;
-}
-
-.dialog .shapeselectiondialog-header:after {
-    position: absolute;
-    right: 5px;
-    width: 75%;
-    border-bottom: 1px solid #000;
-    content: '';
-}
-
-.dialog span {
-    text-align: center;
 }
 
 #shapeselectiondialog .sp-dd {
@@ -592,3 +348,31 @@ input:checked + .slider:before {
 select {
     font-family: FontAwesome, sans-serif;
 }
+
+
+
+/*
+DIRECTORY.CSS changes
+
+* Collapse all folders by default, use js to toggle visibility on click.
+* On hover over folder show some visual feedback
+* On hover over file show the image
+
+*/
+.folder > * {
+    display: none;
+}
+
+.directory > .folder, .directory > .file {
+    display: block;
+}
+
+.folder:hover {
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.folder:hover > * {
+    font-weight: normal;
+}
+

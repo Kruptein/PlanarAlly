@@ -1,0 +1,166 @@
+[v-cloak], [v-cloak] * {
+    display: none;
+}
+
+html, body {
+    padding: 0;
+    margin: 0;
+    width: 100%;
+    height: 100%;
+    background: url("/static/img/login_background.png") repeat fixed;
+    font-family: 'Open Sans', sans-serif;
+}
+
+#AssetManager {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+#titlebar {
+    padding: 15px;
+    margin: 10px;
+    font-size: 30px;
+    font-weight: bold;
+    background-color: #FF7052;
+    color: #fff;
+    text-align: center;
+    border: solid 1px black;
+    box-shadow: 2px 2px gray;
+}
+
+#main {
+    display: flex;
+    flex-direction: row;
+    height: 100%;
+}
+
+#assets, #asset-details {
+    background-color: white;
+    border: solid 1px black;
+    margin: 10px;
+    position: relative;
+    padding-top: 45px;
+    padding-bottom: 45px;
+    box-shadow: 3px 3px gray;
+}
+
+#assets {
+    flex-grow: 1;
+}
+
+#asset-details {
+    display: flex;
+    flex-direction: column;
+    padding: 15px;
+    max-width: 50%;
+    overflow: scroll;
+}
+
+#asset-details img {
+    width: 100%;
+}
+
+#breadcrumbs {
+    position: absolute;
+    left: 0;
+    top: 0;
+    display:flex;
+    overflow: hidden;
+    z-index: 1;
+    background-color: #FF7052;
+    color: white;
+    align-items: center;
+    padding: 5px;
+    border-bottom-right-radius: 10px;
+}
+
+#breadcrumbs > div {
+    position: relative;
+    padding: 10px;
+    padding-left: 20px;
+    text-align: center;
+}
+
+#breadcrumbs > div:first-child {
+    padding-left: 10px;
+}
+
+#breadcrumbs div:last-child::after {
+    content:none;
+}
+
+#breadcrumbs div::after {
+    content: "";
+    position: absolute;
+    display: inline-block;
+    width: 30px;
+    height: 30px;
+    top: 3px;
+    right: -10px;
+    background-color: transparent;
+    border-top-right-radius: 5px;
+    -webkit-transform: scale(0.707) rotate(45deg);
+            transform: scale(0.707) rotate(45deg);
+    box-shadow: 1px -1px rgba(0, 0, 0, 0.25);
+    z-index: 1;
+}
+
+#actionbar {
+    position: absolute;
+    right: 0;
+    top: 0;
+    padding: 8px;
+    border-bottom-left-radius: 10px;
+    background-color: #FF7052;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: white;
+}
+
+#actionbar > div {
+    margin: 5px;
+}
+
+#actionbar > div:hover {
+    cursor: pointer;
+}
+
+#explorer {
+    position: relative;
+    left: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(105px, 1fr));
+    max-width: 100%;
+    max-height: 100%;
+    overflow: auto;
+}
+
+.inode {
+    user-select: none;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 15px;
+}
+.inode:hover, .inode-selected {
+    cursor: pointer;
+    background-color: #FF7052;
+}
+.inode * {
+    pointer-events: none;
+}
+.title {
+    word-break: break-all;
+}
+
+#asset-detail-title {
+    font-weight: bold;
+    font-size: 30px;
+    border-bottom: solid 2px black;
+    margin-bottom: 15px;
+    text-align: center;
+}

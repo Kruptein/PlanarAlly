@@ -875,7 +875,7 @@ app.router.add_get('/logout', logout)
 app.on_shutdown.append(on_shutdown)
 
 if __name__ == '__main__':
-    sio.start_background_task(save_all)
+    app['background_save'] = sio.start_background_task(save_all)
     if cfg.getboolean('Webserver', 'ssl'):
         import ssl
 

@@ -13,7 +13,8 @@ All notable changes to this project will be documented in this file.
     - A dockerfile is now present to support deployment in docker containers
 
 ### Fixed
-- Unable to move modal dialogs in Firefox
+- Unable to drag modal dialogs in Firefox
+- Unable to drag assets in Asset Manager in Firefox
 
 ## [0.9] - 2018-09-26
 

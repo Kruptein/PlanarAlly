@@ -220,6 +220,7 @@ const vm = new Vue({
             }
         },
         startDrag(event: DragEvent, file: string | AssetFile) {
+            event.dataTransfer.setData('Hack', 'ittyHack');
             event.dataTransfer.dropEffect = "move";
             if (!this.selected.includes(file)) this.select(event, -1, file);
             this.draggingSelection = true;

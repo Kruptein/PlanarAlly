@@ -34,7 +34,11 @@ else:
     FILE_DIR = Path(__file__).resolve().parent
 
 os.chdir(FILE_DIR)
-SAVE_FILE = "planar.save"
+
+cfg = configparser.ConfigParser()
+cfg.read("server_config.cfg")
+
+SAVE_FILE = cfg['General']['save_file']
 
 logger = logging.getLogger('PlanarAllyServer')
 logger.setLevel(logging.INFO)
@@ -872,8 +876,6 @@ app.on_shutdown.append(on_shutdown)
 
 if __name__ == '__main__':
     app['background_save'] = sio.start_background_task(save_all)
-    cfg = configparser.ConfigParser()
-    cfg.read("server_config.cfg")
     if cfg.getboolean('Webserver', 'ssl'):
         import ssl
 

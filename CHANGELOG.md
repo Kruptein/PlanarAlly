@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 [DM] denotes changes only useful for the dungeon master
 [tech] denotes technical changes
 
+## Unreleased
+
+### Added
+- Option to choose save file location [contributed by Schemen]
+    - The server config now has an option to specify a different save file name and/or location.
+- Dockerfile [contributed by Schemen]
+    - A dockerfile is now present to support deployment in docker containers
+
 ## [0.9] - 2018-09-26
 
 ### Upgrade information

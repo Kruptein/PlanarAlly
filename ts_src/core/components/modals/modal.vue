@@ -77,7 +77,7 @@ export default Vue.extend({
             let top = event.clientY - this.offsetY;
             if (event.clientX == 0 && event.clientY == 0 && event.pageX == 0 && event.pageY == 0) {
                 left = parseInt((<any>this.$refs.container).style.left, 10) - (this.screenX - event.screenX);
-                left = parseInt((<any>this.$refs.container).style.top, 10) - (this.screenY - event.screenY);
+                top = parseInt((<any>this.$refs.container).style.top, 10) - (this.screenY - event.screenY);
             }
             if (left < 0) left = 0;
             if (left > window.innerWidth - 100) left = window.innerWidth - 100;

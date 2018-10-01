@@ -18,11 +18,11 @@ Some key features are:
 
 This tool is provided free to use and is open source.
 
-![Example view of a player with a light source](https://planarally.readthedocs.io/en/dev/_images/player-base.png)
+![Example view of a player with a light source](extra/player_light_example.png)
 _Credits to Gogots for the background map used [source](https://gogots.deviantart.com/art/City-of-Moarkaliff-702295905)_
 
 # Documentation
-User documentation can be found [here](https://planarally.readthedocs.io/en/latest/).
+User documentation can be found [here](https://planarally.readthedocs.io/en/dev/).
 This is still a work in progress, so some elements may still be undocumented.
 
 Installation instructions for DM's can also be found in the link above.  As a player you won't have to install anything.

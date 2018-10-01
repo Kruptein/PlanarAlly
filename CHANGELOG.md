@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file.
 [DM] denotes changes only useful for the dungeon master
 [tech] denotes technical changes
 
-## [0.9] - 2018-09-26
+## Unreleased
 
 ### Upgrade information
 #### Save format changes

@@ -12,6 +12,9 @@ All notable changes to this project will be documented in this file.
 - Dockerfile [contributed by Schemen]
     - A dockerfile is now present to support deployment in docker containers
 
+### Fixed
+- Unable to move modal dialogs in Firefox
+
 ## [0.9] - 2018-09-26
 
 ### Upgrade information

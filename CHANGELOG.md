@@ -6,6 +6,14 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+### Added
+- Option to choose save file location [contributed by Schemen]
+    - The server config now has an option to specify a different save file name and/or location.
+- Dockerfile [contributed by Schemen]
+    - A dockerfile is now present to support deployment in docker containers
+
+## [0.9] - 2018-09-26
+
 ### Upgrade information
 #### Save format changes
 The save format has been changed from version 1 to 3, that's 2 increments in one release yes.

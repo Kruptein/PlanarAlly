@@ -5,6 +5,7 @@
 # Python
 env/**
 **/__pycache__/**
+venv
 
 # PyInstaller
 dist/**
@@ -27,3 +28,4 @@ PlanarAlly/static/assets/**
 docs/_build
 docs/_static
 docs/_templates
+

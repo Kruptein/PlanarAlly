@@ -15,8 +15,8 @@
         </li>
         <li @click='moveToBack'>Move to back</li>
         <li @click='moveToFront'>Move to front</li>
-        <li @click='rotateCW'>Rotate clockwise</li>
-        <li @click='rotateCCW'>Rotate counterclockwise</li>
+        <li v-if="this.shape !== null && this.shape.type === 'asset'" @click='rotateCW'>Rotate clockwise</li>
+        <li v-if="this.shape !== null && this.shape.type === 'asset'" @click='rotateCCW'>Rotate counterclockwise</li>
         <li @click='addInitiative'>{{ getInitiativeWord() }} initiative</li>
     </contextmenu>
 </template>

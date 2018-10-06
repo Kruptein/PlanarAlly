@@ -15,6 +15,8 @@
         </li>
         <li @click='moveToBack'>Move to back</li>
         <li @click='moveToFront'>Move to front</li>
+        <li @click='rotateCW'>Rotate clockwise</li>
+        <li @click='rotateCCW'>Rotate counterclockwise</li>
         <li @click='addInitiative'>{{ getInitiativeWord() }} initiative</li>
     </contextmenu>
 </template>
@@ -87,6 +89,30 @@ export default Vue.component("shape-menu", {
             if (this.shape === null) return;
             const layer = this.getActiveLayer()!;
             layer.moveShapeOrder(this.shape, layer.shapes.length - 1, true);
+            this.close();
+        },
+        rotateCCW() {
+            if (this.shape === null) return;
+            if (this.shape.type === "asset") {
+                const layer = this.getActiveLayer()!;
+                //layer.removeShape(this.shape, true);
+                this.shape.angle -= Math.PI / 2;
+                if (this.shape.angle < 0)
+                    this.shape.angle += Math.PI * 2;
+                //layer.addShape(this.shape, true);
+            }
+            this.close();
+        },
+        rotateCW() {
+            if (this.shape === null) return;
+            if (this.shape.type === "asset") {
+                const layer = this.getActiveLayer()!;
+                layer.removeShape(this.shape, true);
+                this.shape.angle += Math.PI / 2;
+                if (this.shape.angle >= Math.PI * 2)
+                    this.shape.angle -= Math.PI * 2;
+                layer.addShape(this.shape, true);
+            }
             this.close();
         },
         addInitiative() {

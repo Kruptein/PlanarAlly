@@ -117,6 +117,7 @@ export interface ServerText extends ServerShape {
 }
 export interface ServerAsset extends ServerRect {
     src: string;
+    angle: number;
 }
 
 export interface Note {

@@ -95,11 +95,11 @@ export default Vue.component("shape-menu", {
             if (this.shape === null) return;
             if (this.shape.type === "asset") {
                 const layer = this.getActiveLayer()!;
-                //layer.removeShape(this.shape, true);
+                layer.removeShape(this.shape, true);
                 this.shape.angle -= Math.PI / 2;
                 if (this.shape.angle < 0)
                     this.shape.angle += Math.PI * 2;
-                //layer.addShape(this.shape, true);
+                layer.addShape(this.shape, true);
             }
             this.close();
         },

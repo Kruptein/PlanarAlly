@@ -11,6 +11,7 @@ All notable changes to this project will be documented in this file.
     - The server config now has an option to specify a different save file name and/or location.
 - Dockerfile [contributed by Schemen]
     - A dockerfile is now present to support deployment in docker containers
+- Allow rotating assets 90 degrees at a time
 
 ### Fixed
 - Unable to drag modal dialogs in Firefox

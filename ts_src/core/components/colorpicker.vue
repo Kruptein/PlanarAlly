@@ -41,7 +41,7 @@ export default Vue.component("colorpicker", {
     methods: {
         open() {
             if (this.display) return; // click on the picker itself
-            if (this.left === 0 && this.top === 0) this.setPosition();
+            this.setPosition();
             this.display = true;
             this.$nextTick(() => this.$children[0].$el.focus());
         },

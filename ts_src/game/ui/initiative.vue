@@ -190,12 +190,12 @@ export default Vue.component("initiative-dialog", {
                     else actor.effects[e].turns--;
                 }
             }
-            if (sync) socket.emit("updateInitiativeTurn", actorId);
+            if (sync) socket.emit("Initiative.Turn.Update", actorId);
         },
         setRound(round: number, sync: boolean) {
             if (!this.$store.state.IS_DM && sync) return;
             this.roundCounter = round;
-            if (sync) socket.emit("updateInitiativeRound", round);
+            if (sync) socket.emit("Initiative.Round.Update", round);
         },
         nextTurn() {
             if (!this.$store.state.IS_DM) return;
@@ -217,7 +217,7 @@ export default Vue.component("initiative-dialog", {
             if (sync) this.syncInitiative(data);
         },
         syncInitiative(data: InitiativeData | { uuid: string }) {
-            socket.emit("updateInitiative", data);
+            socket.emit("Initiative.Update", data);
         },
         removeInitiative(uuid: string, sync: boolean, skipGroupCheck: boolean) {
             const d = this.data.findIndex(a => a.uuid === uuid);

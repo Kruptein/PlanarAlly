@@ -15,6 +15,7 @@ All notable changes to this project will be documented in this file.
 ### Fixed
 - Unable to drag modal dialogs in Firefox
 - Unable to drag assets in Asset Manager in Firefox
+- Empty asset and note list was to small for icons
 
 ## [0.9] - 2018-09-26
 

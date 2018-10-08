@@ -9,13 +9,13 @@ import { AssetFile, AssetList } from "../game/api_types";
 
 // ** SOCKET COMMUNICATION ** //
 const socket = io.connect(location.protocol + "//" + location.host + "/pa_assetmgmt");
-socket.on("connect", () => {
+socket.on("Connect", () => {
     console.log("Connected");
 });
-socket.on("disconnect", () => {
+socket.on("Disconnect", () => {
     console.log("Disconnected");
 });
-socket.on("redirect", (destination: string) => {
+socket.on("Redirect", (destination: string) => {
     console.log("redirecting");
     window.location.href = destination;
 });

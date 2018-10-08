@@ -56,7 +56,7 @@ export class Layer {
         shape.setMovementBlock(shape.movementObstruction);
         if (shape.ownedBy(store.state.username) && shape.isToken) gameManager.ownedtokens.push(shape.uuid);
         if (shape.annotation.length) gameManager.annotations.push(shape.uuid);
-        if (sync) socket.emit("add shape", { shape: shape.asDict(), temporary });
+        if (sync) socket.emit("Shape.Add", { shape: shape.asDict(), temporary });
         this.invalidate(!sync);
     }
 
@@ -76,7 +76,7 @@ export class Layer {
     removeShape(shape: Shape, sync: boolean, temporary?: boolean) {
         if (temporary === undefined) temporary = false;
         this.shapes.splice(this.shapes.indexOf(shape), 1);
-        if (sync) socket.emit("remove shape", { shape, temporary });
+        if (sync) socket.emit("Shape.Remove", { shape, temporary });
         const lsI = gameManager.lightsources.findIndex(ls => ls.shape === shape.uuid);
         const lbI = gameManager.lightblockers.findIndex(ls => ls === shape.uuid);
         const mbI = gameManager.movementblockers.findIndex(ls => ls === shape.uuid);
@@ -181,7 +181,7 @@ export class Layer {
         if (oldIdx === destinationIndex) return;
         this.shapes.splice(oldIdx, 1);
         this.shapes.splice(destinationIndex, 0, shape);
-        if (sync) socket.emit("moveShapeOrder", { shape: shape.asDict(), index: destinationIndex });
+        if (sync) socket.emit("Shape.Order.Set", { shape: shape.asDict(), index: destinationIndex });
         this.invalidate(true);
     }
 

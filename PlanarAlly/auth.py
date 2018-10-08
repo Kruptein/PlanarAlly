@@ -91,7 +91,7 @@ def login_required(app, sio):
             sid = args[0]
             policy = app['AuthzPolicy']
             if sid not in policy.sio_map:
-                await sio.emit("Redirect", "/")
+                await sio.emit("redirect", "/")
                 return
             return await fn(*args, **kwargs)
         return wrapped

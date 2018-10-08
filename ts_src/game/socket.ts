@@ -18,13 +18,13 @@ import { createLayer } from "./layers/utils";
 import { vm } from "./planarally";
 
 export const socket = io.connect(location.protocol + "//" + location.host + "/planarally");
-socket.on("Connect", () => {
+socket.on("connect", () => {
     console.log("Connected");
 });
-socket.on("Disconnect", () => {
+socket.on("disconnect", () => {
     console.log("Disconnected");
 });
-socket.on("Redirect", (destination: string) => {
+socket.on("redirect", (destination: string) => {
     console.log("redirecting");
     window.location.href = destination;
 });

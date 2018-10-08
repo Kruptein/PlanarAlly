@@ -695,11 +695,11 @@ async def bring_players(sid, data):
         user = policy.user_map[player]
         await sio.emit("Position.Get", data, room=policy.get_sid(user, room), namespace='/planarally')
 
-@sio.on('Connect', namespace='/planarally')
+@sio.on('connect', namespace='/planarally')
 async def test_connect(sid, environ):
     username = await authorized_userid(environ['aiohttp.request'])
     if username is None:
-        await sio.emit("Redirect", "/", room=sid, namespace='/planarally')
+        await sio.emit("redirect", "/", room=sid, namespace='/planarally')
     else:
         ref = unquote(environ['HTTP_REFERER']).strip("/").split("/")
         room = PA.rooms[(ref[-1], ref[-2])]
@@ -723,7 +723,7 @@ async def test_connect(sid, environ):
         await load_location(sid, location)
 
 
-@sio.on('Disconnect', namespace='/planarally')
+@sio.on('disconnect', namespace='/planarally')
 async def test_disconnect(sid):
     if sid not in app['AuthzPolicy'].sio_map:
         return
@@ -741,11 +741,11 @@ async def test_disconnect(sid):
     PA.save_room(room)
 
 
-@sio.on('Connect', namespace='/pa_assetmgmt')
+@sio.on('connect', namespace='/pa_assetmgmt')
 async def assetmgmt_connect(sid, environ):
     username = await authorized_userid(environ['aiohttp.request'])
     if username is None:
-        await sio.emit("Redirect", "/", room=sid, namespace='/pa_assetmgmt')
+        await sio.emit("redirect", "/", room=sid, namespace='/pa_assetmgmt')
     else:
         app['AuthzPolicy'].sio_map[sid] = {
             'user': app['AuthzPolicy'].user_map[username],

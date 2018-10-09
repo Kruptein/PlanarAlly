@@ -93,22 +93,26 @@ export default Vue.component("shape-menu", {
         },
         rotateCCW() {
             if (this.shape === null) return;
-            if (this.shape.type === "asset") {
+            if (this.shape instanceof Asset) {
                 const layer = this.getActiveLayer()!;
+                const redraw = true;
                 this.shape.angle -= Math.PI / 2;
                 if (this.shape.angle < 0)
                     this.shape.angle += Math.PI * 2;
+                socket.emit("updateShape", { shape: this.shape.asDict(), redraw });
                 layer.invalidate(true);
             }
             this.close();
         },
         rotateCW() {
             if (this.shape === null) return;
-            if (this.shape.type === "asset") {
+            if (this.shape instanceof Asset) {
                 const layer = this.getActiveLayer()!;
+                const redraw = true;
                 this.shape.angle += Math.PI / 2;
                 if (this.shape.angle >= Math.PI * 2)
                     this.shape.angle -= Math.PI * 2;
+                socket.emit("updateShape", { shape: this.shape.asDict(), redraw });
                 layer.invalidate(true);
             }
             this.close();

@@ -27,6 +27,10 @@ from aiohttp_session.cookie_storage import EncryptedCookieStorage
 import auth
 import save
 from planarally import PlanarAlly
+from models import db
+from models.campaign import Room
+
+print(db)
 
 if getattr(sys, "frozen", False):
     FILE_DIR = Path(sys.executable).resolve().parent

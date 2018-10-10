@@ -612,7 +612,7 @@ async def delete_note(sid, uuid):
     PA.save_room(room)
 
 
-@sio.on("new location", namespace='/planarally')
+@sio.on("Location.New", namespace='/planarally')
 async def add_new_location(sid, location):
     username = app['AuthzPolicy'].sio_map[sid]['user'].username
     room = app['AuthzPolicy'].sio_map[sid]['room']
@@ -635,7 +635,7 @@ async def add_new_location(sid, location):
                    namespace='/planarally')
 
 
-@sio.on("change location", namespace='/planarally')
+@sio.on("Location.Change", namespace='/planarally')
 async def change_location(sid, location):
     policy = app['AuthzPolicy']
     username = policy.sio_map[sid]['user'].username
@@ -753,7 +753,7 @@ async def assetmgmt_connect(sid, environ):
         await sio.emit("assetInfo", app['AuthzPolicy'].user_map[username].asset_info, room=sid, namespace='/pa_assetmgmt')
 
 
-@sio.on('uploadAsset', namespace='/pa_assetmgmt')
+@sio.on('Asset.Upload', namespace='/pa_assetmgmt')
 @auth.login_required(app, sio)
 async def assetmgmt_upload(sid, file_data):
     filename = file_data['name']
@@ -796,10 +796,10 @@ async def assetmgmt_upload(sid, file_data):
 
     policy.save()
 
-    await sio.emit("uploadAssetResult", {"fileInfo": file_info, "directory": file_data['directory']}, room=sid, namespace='/pa_assetmgmt')
+    await sio.emit("Asset.Upload.Result", {"fileInfo": file_info, "directory": file_data['directory']}, room=sid, namespace='/pa_assetmgmt')
 
 
-@sio.on('createDirectory', namespace='/pa_assetmgmt')
+@sio.on('Asset.Directory.New', namespace='/pa_assetmgmt')
 @auth.login_required(app, sio)
 async def assetmgmt_mkdir(sid, data):
     policy = app['AuthzPolicy']
@@ -809,7 +809,7 @@ async def assetmgmt_mkdir(sid, data):
     policy.save()
 
 
-@sio.on('rename', namespace='/pa_assetmgmt')
+@sio.on('Asset.Rename', namespace='/pa_assetmgmt')
 @auth.login_required(app, sio)
 async def assetmgmt_rename(sid, data):
     policy = app['AuthzPolicy']
@@ -825,7 +825,7 @@ async def assetmgmt_rename(sid, data):
     policy.save()
 
 
-@sio.on("moveInode", namespace='/pa_assetmgmt')
+@sio.on("Inode.Move", namespace='/pa_assetmgmt')
 @auth.login_required(app, sio)
 async def assetmgmt_mv(sid, data):
     policy = app['AuthzPolicy']
@@ -848,7 +848,7 @@ async def assetmgmt_mv(sid, data):
     policy.save()
 
 
-@sio.on('remove', namespace='/pa_assetmgmt')
+@sio.on('Asset.Remove', namespace='/pa_assetmgmt')
 @auth.login_required(app, sio)
 async def assetmgmt_rm(sid, data):
     policy = app['AuthzPolicy']

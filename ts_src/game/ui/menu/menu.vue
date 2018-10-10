@@ -239,12 +239,12 @@ export default Vue.component("menu-bar", {
             }
         },
         changeLocation(name: string) {
-            socket.emit("change location", name);
+            socket.emit("Location.Change", name);
         },
         createLocation() {
-            (<any>vm.$refs.prompt).prompt(`New  location name:`, `Create new location`).then(
+            (<any>vm.$refs.prompt).prompt(`New location name:`, `Create new location`).then(
                 (value: string) => {
-                    socket.emit("new location", value);
+                    socket.emit("Location.New", value);
                 },
                 () => {},
             );

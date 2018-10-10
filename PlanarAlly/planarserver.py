@@ -29,8 +29,7 @@ import save
 from planarally import PlanarAlly
 from models import db
 from models.campaign import Room
-
-print(db)
+from config import config, SAVE_FILE
 
 if getattr(sys, "frozen", False):
     FILE_DIR = Path(sys.executable).resolve().parent
@@ -38,11 +37,7 @@ else:
     FILE_DIR = Path(__file__).resolve().parent
 
 os.chdir(FILE_DIR)
-
-cfg = configparser.ConfigParser()
-cfg.read("server_config.cfg")
-
-SAVE_FILE = cfg['General']['save_file']
+save.check_save()
 
 logger = logging.getLogger('PlanarAllyServer')
 logger.setLevel(logging.INFO)
@@ -58,8 +53,6 @@ PENDING_FILE_UPLOAD_CACHE = {}
 ASSETS_DIR = FILE_DIR / "static" / "assets"
 if not ASSETS_DIR.exists():
     ASSETS_DIR.mkdir()
-
-save.check_save(SAVE_FILE)
 
 PA = PlanarAlly(SAVE_FILE)
 
@@ -880,15 +873,15 @@ app.on_shutdown.append(on_shutdown)
 
 if __name__ == '__main__':
     app['background_save'] = sio.start_background_task(save_all)
-    if cfg.getboolean('Webserver', 'ssl'):
+    if config.getboolean('Webserver', 'ssl'):
         import ssl
 
         ctx = ssl.SSLContext()
         ctx.load_cert_chain(
-            cfg['Webserver']['ssl_fullchain'],
-            cfg['Webserver']['ssl_privkey']
+            config['Webserver']['ssl_fullchain'],
+            config['Webserver']['ssl_privkey']
         )
-        web.run_app(app, port=cfg.getint('Webserver', 'port'), ssl_context=ctx)
+        web.run_app(app, port=config.getint('Webserver', 'port'), ssl_context=ctx)
     else:
         logger.warn(" RUNNING IN NON SSL CONTEXT ")
-        web.run_app(app, port=cfg.getint('Webserver', 'port'))
+        web.run_app(app, port=config.getint('Webserver', 'port'))

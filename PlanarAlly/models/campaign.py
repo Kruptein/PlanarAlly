@@ -11,6 +11,9 @@ class Room(BaseModel):
     player_location = TextField()
     dm_location = TextField()
 
+    class Meta:
+        indexes = ((('name', 'creator'), True),)
+
 
 class PlayerRoom(BaseModel):
     player = ForeignKeyField(User, backref='rooms')
@@ -22,6 +25,9 @@ class Location(BaseModel):
     name = TextField()
     # initiative ?
 
+    class Meta:
+        indexes = ((('room', 'name'), True),)
+
 
 class Layer(BaseModel):
     location = ForeignKeyField(Location, backref='layers')
@@ -30,13 +36,17 @@ class Layer(BaseModel):
     player_visible = BooleanField(default=False)
     player_editable = BooleanField(default=False)
     selectable = BooleanField(default=True)
+    index = IntegerField()
+
+    class Meta:
+        indexes = ((('location', 'name'), True), (('location', 'index'), True))
 
 
 class Shape(BaseModel):
     uuid = TextField(primary_key=True)
     layer = ForeignKeyField(Layer, backref='shapes')
-    refPoint_X = IntegerField()
-    refPoint_Y = IntegerField()
+    x = IntegerField()
+    y = IntegerField()
     name = TextField(null=True)
     fill_colour = TextField(default="#000")
     border_colour = TextField(default="#fff")
@@ -45,6 +55,10 @@ class Shape(BaseModel):
     is_token = BooleanField(default=False)
     annotation = TextField(default='')
     draw_operator = TextField(default='source-over')
+    index = IntegerField()
+
+    class Meta:
+        indexes = ((('layer', 'index'), True),)
 
     # options ???
 

@@ -1,8 +1,8 @@
-from peewee import IntegerField, TextField
+from peewee import BlobField, IntegerField
 
 from .base import BaseModel
 
 
-class General(BaseModel):
+class Constants(BaseModel):
     save_version = IntegerField()
-    secret_token = TextField()
+    secret_token = BlobField()

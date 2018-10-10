@@ -13,18 +13,11 @@ def check_save():
         db.create_tables(ALL_MODELS)
         General.create(save_version=SAVE_VERSION, secret_token=secrets.token_bytes(32))
     else:
-        General.get(1).save_version
-    # try:
-    #     shelf = shelve.open(save_file, 'r')
-    # except dbm.error:
-    #     print("Provided save file does not exist. Creating a new one.")
-    #     shelf = shelve.open(save_file, 'c')
-    #     shelf['save_version'] = SAVE_VERSION
-    # else:
-    #     if "save_version" not in shelf:
-    #         print("Save file has no save version. Cannot open.")
-    #         sys.exit(2)
-    #     if shelf['save_version'] != SAVE_VERSION:
-    #         print("Save version {} does not match the expected {}".format(shelf['save_version'], SAVE_VERSION))
-    #         print("If available you can try to convert the save_formats using the conversion scripts.")
-    #         sys.exit(2)
+        general = General.get_or_none(1)
+        if general is None:
+            print("Database does not conform to expected format. Failed to start.")
+            sys.exit(2)
+        if general.save_version != SAVE_VERSION:
+            print(f"Save version {general.save_version} does not match expected {SAVE_VERSION}!")
+            print("Conversion scripts can potentially be applied to upgrade.  For more information see the docs.")
+            sys.exit(2)

@@ -16,12 +16,25 @@ sys.path.insert(0, os.getcwd())
 try:
     import planarally_old as planarally
     import auth
-    from models import db, Aura, Layer, Location, Room, PlayerRoom, Shape, ShapeOwner, Tracker, User
+    from models import db, Asset, Aura, Layer, Location, Room, PlayerRoom, Shape, ShapeOwner, Tracker, User
 except ImportError:
     logger.warning(
         "You have to run this script from within the same folder as the save file.")
     logger.info("E.g.: python ../scripts/convert/database.py")
     sys.exit(2)
+
+
+def add_assets(user, data, parent=None):
+    if not isinstance(data, dict):
+        return
+    for folder in data.keys():
+        # print(folder)
+        if folder == '__files':
+            for file_ in data['__files']:
+                Asset.create(owner=user, parent=parent, name=file_['name'], file_hash=file_['hash'])
+        else:
+            db_asset = Asset.create(owner=user, parent=parent, name=folder)
+            add_assets(user, data[folder], parent=db_asset)
 
 
 def convert(save_file):
@@ -33,8 +46,11 @@ def convert(save_file):
         logger.info("Creating users")
         with db.atomic():
             for user in shelf['user_map'].values():
-                User.create(username=user.username,
+                db_user = User.create(username=user.username,
                             password_hash=user.password_hash)
+                
+                add_assets(db_user, user.asset_info)
+
         logger.info("Creating rooms")
         with db.atomic():
             for room in shelf['rooms'].values():

@@ -16,7 +16,7 @@ sys.path.insert(0, os.getcwd())
 try:
     import planarally_old as planarally
     import auth
-    from models import db, Asset, Aura, Layer, Location, Room, PlayerRoom, Shape, ShapeOwner, Tracker, User
+    from models import db, Asset, Aura, Layer, Location, LocationUserOption, Room, PlayerRoom, Shape, ShapeOwner, Tracker, User, UserOption
 except ImportError:
     logger.warning(
         "You have to run this script from within the same folder as the save file.")
@@ -46,9 +46,16 @@ def convert(save_file):
         logger.info("Creating users")
         with db.atomic():
             for user in shelf['user_map'].values():
+                logger.info(f"\tUser {user.username}")
                 db_user = User.create(username=user.username,
                             password_hash=user.password_hash)
                 
+                db_user_option = UserOption.create(user=db_user)
+                for option in [('fowColour', 'fow_colour'), ('gridColour', 'grid_colour'), ('rulerColour', 'ruler_colour')]:
+                    if option[0] in user.options:
+                        setattr(db_user_option, option[1], user.options[option[0]])
+                db_user_option.save()
+
                 add_assets(db_user, user.asset_info)
 
         logger.info("Creating rooms")
@@ -78,7 +85,6 @@ def convert(save_file):
                         room=db_room, name=location.name)
 
                     for i_l, layer in enumerate(location.layer_manager.layers):
-                        logger.info(f"\t\t\tLayer {layer.name}")
                         db_layer = Layer.create(location=db_location, name=layer.name, player_visible=layer.player_visible,
                                                 player_editable=layer.player_editable, selectable=layer.selectable, index=i_l)
 
@@ -125,9 +131,22 @@ def convert(save_file):
                                 if db_owner is None:
                                     continue
                                 ShapeOwner.create(shape=db_shape, user=db_owner)
-        logger.info("Database initialization complete.")
+        
+        logger.info("User-Location options")
+        for user in shelf['user_map'].values():
+            db_user = User.get(username=user.username)
+            for location_option in user.options.get('locationOptions', []):
+                room, creator, location = location_option.split("/")
+                db_location = Location.select().join(Room).join(User).where((User.username == creator) & (Room.name == room) & (Location.name == location)).first()
+                if db_location is None:
+                    continue
+                db_user_location_option = LocationUserOption.create(location=db_location, user=db_user)
+                for option in [('panX', 'pan_x'), ('panY', 'pan_y'), ('zoomFactor', 'zoom_factor')]:
+                    if option[0] in user.options['locationOptions'][location_option]:
+                        setattr(db_user_location_option, option[1], user.options['locationOptions'][location_option][option[0]])
+                db_user_location_option.save()
 
-                            
+        logger.info("Database initialization complete.")
 
 
 if __name__ == "__main__":

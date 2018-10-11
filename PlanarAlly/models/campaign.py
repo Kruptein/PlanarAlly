@@ -1,4 +1,4 @@
-from peewee import BooleanField, ForeignKeyField, IntegerField, TextField
+from peewee import BooleanField, FloatField, ForeignKeyField, IntegerField, TextField
 
 from .base import BaseModel
 from .user import User
@@ -27,6 +27,14 @@ class Location(BaseModel):
 
     class Meta:
         indexes = ((('room', 'name'), True),)
+
+
+class LocationUserOption(BaseModel):
+    location = ForeignKeyField(Location)
+    user = ForeignKeyField(User, backref='location_options')
+    pan_x = IntegerField(default=0)
+    pan_y = IntegerField(default=0)
+    zoom_factor = FloatField(default=1.0)
 
 
 class Layer(BaseModel):

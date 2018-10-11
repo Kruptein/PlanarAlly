@@ -16,7 +16,7 @@ sys.path.insert(0, os.getcwd())
 try:
     import planarally_old as planarally
     import auth
-    from models import db, Layer, Location, Room, PlayerRoom, Shape, User
+    from models import db, Aura, Layer, Location, Room, PlayerRoom, Shape, ShapeOwner, Tracker, User
 except ImportError:
     logger.warning(
         "You have to run this script from within the same folder as the save file.")
@@ -67,19 +67,51 @@ def convert(save_file):
                                                 player_editable=layer.player_editable, selectable=layer.selectable, index=i_l)
 
                         for i_s, shape in enumerate(layer.shapes.values()):
-                            try:
-                                sh = Shape(
-                                    uuid=shape['uuid'], layer=db_layer, x=shape['x'], y=shape['y'], name=shape.get('name'), index=i_s)
-                                for optional in [('border', 'border_colour'), ('fill', 'fill_colour'), ('isToken', 'is_token'), ('globalCompositeOperation', 'draw_operator'), ('annotation', 'annotation'), ('movementObstruction', 'movement_obstruction'), ('visionObstruction', 'vision_obstruction')]:
-                                    if shape.get(optional[0]):
-                                        setattr(
-                                            sh, optional[1], shape[optional[0]])
-                                sh.save(force_insert=True)
-                            except Exception as e:
-                                logger.error(
-                                    f"An error occured during processing of shape {shape}")
-                                logger.exception(e)
-                                sys.exit(2)
+                            db_shape = Shape(
+                                uuid=shape['uuid'], layer=db_layer, x=shape['x'], y=shape['y'], name=shape.get('name'), index=i_s)
+                            for optional in [('border', 'border_colour'), ('fill', 'fill_colour'), ('isToken', 'is_token'), ('globalCompositeOperation', 'draw_operator'), ('annotation', 'annotation'), ('movementObstruction', 'movement_obstruction'), ('visionObstruction', 'vision_obstruction')]:
+                                if shape.get(optional[0]):
+                                    setattr(
+                                        db_shape, optional[1], shape[optional[0]])
+                            db_shape.save(force_insert=True)
+                            
+                            for tracker in shape.get('trackers', []):
+                                if tracker['value'] == '':
+                                    tracker['value'] = 0
+                                if tracker['maxvalue'] == '':
+                                    tracker['maxvalue'] = 0
+                                Tracker.create(
+                                    uuid=tracker['uuid'],
+                                    shape=db_shape,
+                                    visible=tracker['visible'],
+                                    name=tracker['name'],
+                                    value=tracker['value'],
+                                    maxvalue=tracker['maxvalue'])
+                            
+                            for aura in shape.get('auras', []):
+                                if aura['value'] == '':
+                                    aura['value'] = 0
+                                if aura['dim'] == '' or aura['dim'] is None:
+                                    aura['dim'] = 0
+                                Aura.create(
+                                    uuid=aura['uuid'],
+                                    shape=db_shape,
+                                    light_source=aura['lightSource'],
+                                    visible=aura['visible'],
+                                    name=aura['name'],
+                                    value=aura['value'],
+                                    dim=aura['dim'],
+                                    colour=aura['colour'])
+                            
+                            for owner in shape.get('owners', []):
+                                if owner == '': continue
+                                db_owner = User.get_or_none(User.username == owner)
+                                if db_owner is None:
+                                    continue
+                                ShapeOwner.create(shape=db_shape, user=db_owner)
+        logger.info("Database initialization complete.")
+
+                            
 
 
 if __name__ == "__main__":

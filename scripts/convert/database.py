@@ -28,7 +28,6 @@ def add_assets(user, data, parent=None):
     if not isinstance(data, dict):
         return
     for folder in data.keys():
-        # print(folder)
         if folder == '__files':
             for file_ in data['__files']:
                 Asset.create(owner=user, parent=parent, name=file_['name'], file_hash=file_['hash'])

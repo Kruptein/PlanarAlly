@@ -1,64 +1,37 @@
-import bcrypt
-import dbm
 import logging
-import secrets
-import shelve
 import sys
+from aiohttp_security.abc import AbstractAuthorizationPolicy
 from distutils.version import StrictVersion
 from functools import wraps
 
-from aiohttp_security.abc import AbstractAuthorizationPolicy
+from models import Constants, User
 
 logger = logging.getLogger('PlanarAllyServer')
 
 
-class User:
-    def __init__(self, username):
-        self.username = username
-        self.password_hash = None
-        self.asset_info = {'__files': []}
-        self.options = {}
-
-    def set_password(self, pw):
-        pwhash = bcrypt.hashpw(pw.encode('utf8'), bcrypt.gensalt())
-        self.password_hash = pwhash.decode('utf8')
-
-    def check_password(self, pw):
-        if self.password_hash is None:
-            return False
-        expected_hash = self.password_hash.encode('utf8')
-        return bcrypt.checkpw(pw.encode('utf8'), expected_hash)
-
-
-class ShelveDictAuthorizationPolicy(AbstractAuthorizationPolicy):
+class PA_AuthPolicy(AbstractAuthorizationPolicy):
     def __init__(self):
         super().__init__()
-        self.user_map = {}
-        self.sio_map = {}
-        self.secret_token = secrets.token_bytes(32)
+        self.sid_map = {}
 
     def get_sid(self, user, room):
-        for sid in self.sio_map:
-            if 'room' not in self.sio_map[sid]:
-                logger.error("ROOM NOT IN SIO_MAP")
+        for sid in self.sid_map:
+            if 'room' not in self.sid_map[sid]:
+                logger.error("ROOM NOT IN SID_MAP")
                 logger.error(sid)
-                logger.error(self.sio_map[sid])
+                logger.error(self.sid_map[sid])
                 continue
-            if self.sio_map[sid]['user'] == user and self.sio_map[sid]['room'] == room:
+            if self.sid_map[sid]['user'] == user and self.sid_map[sid]['room'] == room:
                 return sid
-
-    def save(self):
-        with shelve.open(self.save_file, 'c') as shelf:
-            shelf['user_map'] = self.user_map
-            shelf['secret_token'] = self.secret_token
 
     async def authorized_userid(self, identity):
         """Retrieve authorized user id.
         Return the user_id of the user identified by the identity
         or 'None' if no user exists related to the identity.
         """
-        if identity in self.user_map:
-            return identity
+        user = User.get_or_none(User.username == identity)
+        if user:
+            return user
 
     async def permits(self, identity, permission, context=None):
         """Check user permissions.
@@ -87,3 +60,7 @@ def login_required(app, sio):
             return await fn(*args, **kwargs)
         return wrapped
     return real_decorator
+
+
+def get_secret_token():
+    return Constants.get().secret_token

@@ -201,14 +201,15 @@ class PlanarAlly:
         #     self.rooms = shelf['rooms']
 
     def save(self):
-        with shelve.open(self.save_file, "c") as shelf:
-            if 'rooms' not in shelf:
-                rooms = {}
-            else:
-                rooms = shelf['rooms']
-            for room in self.rooms.values():
-                rooms[(room.name, room.creator)] = room
-                shelf['rooms'] = rooms
+        pass
+        # with shelve.open(self.save_file, "c") as shelf:
+        #     if 'rooms' not in shelf:
+        #         rooms = {}
+        #     else:
+        #         rooms = shelf['rooms']
+        #     for room in self.rooms.values():
+        #         rooms[(room.name, room.creator)] = room
+        #         shelf['rooms'] = rooms
 
     def add_room(self, room, creator):
         new_room = Room(room, creator)

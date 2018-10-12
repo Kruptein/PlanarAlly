@@ -31,7 +31,8 @@ def add_assets(user, data, parent=None):
     for folder in data.keys():
         if folder == '__files':
             for file_ in data['__files']:
-                Asset.create(owner=user, parent=parent, name=file_['name'], file_hash=file_['hash'])
+                Asset.create(owner=user, parent=parent, name=file_[
+                             'name'], file_hash=file_['hash'])
         else:
             db_asset = Asset.create(owner=user, parent=parent, name=folder)
             add_assets(user, data[folder], parent=db_asset)
@@ -43,19 +44,22 @@ def convert(save_file):
         sys.exit(2)
     logger.info("Creating tables")
     db.create_tables(ALL_MODELS)
-    
+    Constants.create(save_version=SAVE_VERSION,
+                     secret_token=secrets.token_bytes(32))
+
     with shelve.open(save_file, "c") as shelf:
         logger.info("Creating users")
         with db.atomic():
             for user in shelf['user_map'].values():
                 logger.info(f"\tUser {user.username}")
                 db_user = User.create(username=user.username,
-                            password_hash=user.password_hash)
-                
+                                      password_hash=user.password_hash)
+
                 db_user_option = UserOption.create(user=db_user)
                 for option in [('fowColour', 'fow_colour'), ('gridColour', 'grid_colour'), ('rulerColour', 'ruler_colour')]:
                     if option[0] in user.options:
-                        setattr(db_user_option, option[1], user.options[option[0]])
+                        setattr(db_user_option,
+                                option[1], user.options[option[0]])
                 db_user_option.save()
 
                 add_assets(db_user, user.asset_info)
@@ -98,7 +102,7 @@ def convert(save_file):
                                     setattr(
                                         db_shape, optional[1], shape[optional[0]])
                             db_shape.save(force_insert=True)
-                            
+
                             for tracker in shape.get('trackers', []):
                                 if tracker['value'] == '':
                                     tracker['value'] = 0
@@ -111,7 +115,7 @@ def convert(save_file):
                                     name=tracker['name'],
                                     value=tracker['value'],
                                     maxvalue=tracker['maxvalue'])
-                            
+
                             for aura in shape.get('auras', []):
                                 if aura['value'] == '':
                                     aura['value'] = 0
@@ -126,26 +130,32 @@ def convert(save_file):
                                     value=aura['value'],
                                     dim=aura['dim'],
                                     colour=aura['colour'])
-                            
+
                             for owner in shape.get('owners', []):
-                                if owner == '': continue
-                                db_owner = User.get_or_none(User.username == owner)
+                                if owner == '':
+                                    continue
+                                db_owner = User.get_or_none(
+                                    User.username == owner)
                                 if db_owner is None:
                                     continue
-                                ShapeOwner.create(shape=db_shape, user=db_owner)
-        
+                                ShapeOwner.create(
+                                    shape=db_shape, user=db_owner)
+
         logger.info("User-Location options")
         for user in shelf['user_map'].values():
             db_user = User.get(username=user.username)
             for location_option in user.options.get('locationOptions', []):
                 room, creator, location = location_option.split("/")
-                db_location = Location.select().join(Room).join(User).where((User.username == creator) & (Room.name == room) & (Location.name == location)).first()
+                db_location = Location.select().join(Room).join(User).where((User.username == creator)
+                                                                            & (Room.name == room) & (Location.name == location)).first()
                 if db_location is None:
                     continue
-                db_user_location_option = LocationUserOption.create(location=db_location, user=db_user)
+                db_user_location_option = LocationUserOption.create(
+                    location=db_location, user=db_user)
                 for option in [('panX', 'pan_x'), ('panY', 'pan_y'), ('zoomFactor', 'zoom_factor')]:
                     if option[0] in user.options['locationOptions'][location_option]:
-                        setattr(db_user_location_option, option[1], user.options['locationOptions'][location_option][option[0]])
+                        setattr(
+                            db_user_location_option, option[1], user.options['locationOptions'][location_option][option[0]])
                 db_user_location_option.save()
 
         logger.info("Database initialization complete.")

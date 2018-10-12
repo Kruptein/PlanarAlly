@@ -6,7 +6,7 @@ from .user import User
 
 class Room(BaseModel):
     name = TextField()
-    creator = ForeignKeyField(User, backref='rooms')
+    creator = ForeignKeyField(User, backref='rooms_created')
     invitation_code = TextField()
     player_location = TextField()
     dm_location = TextField()
@@ -16,7 +16,7 @@ class Room(BaseModel):
 
 
 class PlayerRoom(BaseModel):
-    player = ForeignKeyField(User, backref='rooms')
+    player = ForeignKeyField(User, backref='rooms_joined')
     room = ForeignKeyField(Room, backref='players')
 
 

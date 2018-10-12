@@ -16,7 +16,8 @@ sys.path.insert(0, os.getcwd())
 try:
     import planarally_old as planarally
     import auth
-    from models import db, Asset, Aura, Layer, Location, LocationUserOption, Room, PlayerRoom, Shape, ShapeOwner, Tracker, User, UserOption
+    from models import db, ALL_MODELS, Asset, Aura, Layer, Location, LocationUserOption, Room, PlayerRoom, Shape, ShapeOwner, Tracker, User, UserOption
+    from config import SAVE_FILE
 except ImportError:
     logger.warning(
         "You have to run this script from within the same folder as the save file.")
@@ -28,7 +29,6 @@ def add_assets(user, data, parent=None):
     if not isinstance(data, dict):
         return
     for folder in data.keys():
-        # print(folder)
         if folder == '__files':
             for file_ in data['__files']:
                 Asset.create(owner=user, parent=parent, name=file_['name'], file_hash=file_['hash'])
@@ -38,11 +38,13 @@ def add_assets(user, data, parent=None):
 
 
 def convert(save_file):
+    if os.path.exists(SAVE_FILE):
+        logger.warning("Database already exists.  Abort conversion.")
+        sys.exit(2)
+    logger.info("Creating tables")
+    db.create_tables(ALL_MODELS)
+    
     with shelve.open(save_file, "c") as shelf:
-        if User.select().count() > 0:
-            logger.warning("Database is already populated.  Abort conversion.")
-            sys.exit(2)
-
         logger.info("Creating users")
         with db.atomic():
             for user in shelf['user_map'].values():

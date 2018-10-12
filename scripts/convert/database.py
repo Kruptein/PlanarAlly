@@ -1,6 +1,7 @@
 import logging
 import os
 import peewee
+import secrets
 import shelve
 import sys
 
@@ -16,7 +17,7 @@ sys.path.insert(0, os.getcwd())
 try:
     import planarally_old as planarally
     import auth
-    from models import db, ALL_MODELS, Asset, Aura, Layer, Location, LocationUserOption, Room, PlayerRoom, Shape, ShapeOwner, Tracker, User, UserOption
+    from models import db, ALL_MODELS, Asset, Aura, Constants, Layer, Location, LocationUserOption, Room, PlayerRoom, Shape, ShapeOwner, Tracker, User, UserOption
     from config import SAVE_FILE
 except ImportError:
     logger.warning(
@@ -44,7 +45,7 @@ def convert(save_file):
         sys.exit(2)
     logger.info("Creating tables")
     db.create_tables(ALL_MODELS)
-    Constants.create(save_version=SAVE_VERSION,
+    Constants.create(save_version=3,
                      secret_token=secrets.token_bytes(32))
 
     with shelve.open(save_file, "c") as shelf:

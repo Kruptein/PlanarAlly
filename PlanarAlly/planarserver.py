@@ -146,8 +146,11 @@ async def logout(request):
 @aiohttp_jinja2.template('rooms.jinja2')
 async def show_rooms(request):
     user = await authorized_userid(request)
-    owned = []
-    return {'owned': owned, 'joined': joined}
+
+    return {
+        'owned': [(r.name, r.creator.username) for r in user.rooms_created.select(Room.name, User.username).join(User)],
+        'joined': [(r.room.name, r.room.creator.username) for r in user.rooms_joined.select(Room.name, User.username).join(Room).join(User)]
+     }
 
 
 @login_required

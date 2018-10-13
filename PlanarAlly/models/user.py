@@ -1,12 +1,15 @@
 import bcrypt
-from peewee import ForeignKeyField, TextField
+from peewee import fn, ForeignKeyField, TextField
 
 from .base import BaseModel
 
 
 class User(BaseModel):
-    username = TextField()
+    name = TextField()
     password_hash = TextField()
+
+    def __repr__(self):
+        return f"<User {self.name}>"
 
     def set_password(self, pw):
         pwhash = bcrypt.hashpw(pw.encode('utf8'), bcrypt.gensalt())
@@ -17,6 +20,10 @@ class User(BaseModel):
             return False
         expected_hash = self.password_hash.encode('utf8')
         return bcrypt.checkpw(pw.encode('utf8'), expected_hash)
+    
+    @classmethod
+    def by_name(clz, name):
+        return clz.get_or_none(fn.Lower(clz.user) == name.lower())
 
 
 class UserOption(BaseModel):

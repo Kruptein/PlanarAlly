@@ -21,7 +21,7 @@ import aiohttp_session
 import jinja2
 import socketio
 from aiohttp import web
-from aiohttp_security import remember, forget, authorized_userid, login_required, SessionIdentityPolicy
+from aiohttp_security import remember, forget, authorized_userid, SessionIdentityPolicy
 from aiohttp_session.cookie_storage import EncryptedCookieStorage
 
 # SETUP PATHS
@@ -45,6 +45,10 @@ stream_handler = logging.StreamHandler(sys.stdout)
 stream_handler.setFormatter(formatter)
 logger.addHandler(file_handler)
 logger.addHandler(stream_handler)
+
+plogger = logging.getLogger('peewee')
+plogger.addHandler(logging.StreamHandler())
+plogger.setLevel(logging.DEBUG)
 
 import auth
 import save
@@ -108,7 +112,7 @@ async def login(request):
             password = data['password']
             form = {'username': username, 'password': password}
             if 'register' in data:
-                if User.get_or_none(User.username == username):
+                if User.by_name(username):
                     form['error'] = "Username already taken"
                 elif not username:
                     form['error'] = "Please provide a username"
@@ -121,7 +125,7 @@ async def login(request):
                         u.save()
                     valid = True
             elif 'login' in data:
-                u = User.get_or_none(User.username == username)
+                u = User.by_name(username)
                 if u is None or not u.check_password(password):
                     form['error'] = "Username and/or Password do not match"
                 else:
@@ -135,54 +139,51 @@ async def login(request):
             return {'username': '', 'password': ''}
 
 
-@login_required
 async def logout(request):
     response = web.HTTPFound("/")
     await forget(request, response)
     return response
 
 
-@login_required
 @aiohttp_jinja2.template('rooms.jinja2')
 async def show_rooms(request):
+    
     user = await authorized_userid(request)
-
     return {
-        'owned': [(r.name, r.creator.username) for r in user.rooms_created.select(Room.name, User.username).join(User)],
-        'joined': [(r.room.name, r.room.creator.username) for r in user.rooms_joined.select(Room.name, User.username).join(Room).join(User)]
+        'owned': [(r.name, r.creator.user) for r in user.rooms_created.select(Room.name, User.user).join(User)],
+        'joined': [(r.room.name, r.room.creator.user) for r in user.rooms_joined.select(Room.name, User.user).join(Room).join(User)]
      }
 
 
-@login_required
 async def create_room(request):
-    username = await authorized_userid(request)
+    user = await authorized_userid(request)
     data = await request.post()
     roomname = data['room_name']
     if not roomname:
         response = web.HTTPFound('/rooms')
     else:
-        PA.add_room(roomname, username)
-        response = web.HTTPFound(f'/rooms/{username}/{roomname}')
+        room = Room.create(name=roomname, creator=user)
+        Location.create(room=room, name='start')
+        response = web.HTTPFound(f'/rooms/{user.user}/{roomname}')
     return response
 
 
-@login_required
 @aiohttp_jinja2.template('planarally.jinja2')
 async def show_room(request):
-    username = await authorized_userid(request)
+    user = await authorized_userid(request)
+    creator = User.by_name(request.match_info['username'])
     try:
-        room = PA.rooms[(request.match_info['roomname'], request.match_info['username'])]
-    except KeyError:
-        pass
+        room = Room.select(Room.name, User.user).join(User).where((Room.creator == user) & (Room.name == request.match_info['roomname']))[0]
+    except IndexError:
+        logger.info(f"{user.user} attempted to load non existing room ${request.match_info['username']}/${request.match_info['roomname']}")
     else:
-        if room.creator == username:
+        if room.creator.user == user.user:
             return {'dm': True}
-        if username in room.players:
+        if user.user.lower() in (pr.player.user.lower() for pr in room.players.select(User.user).join(User)):
             return {'dm': False}
     return web.HTTPFound("/rooms")
 
 
-@login_required
 async def claim_invite(request):
     username = await authorized_userid(request)
     try:
@@ -196,7 +197,6 @@ async def claim_invite(request):
         return web.HTTPFound(f"/rooms/{room.creator}/{room.name}")
 
 
-@login_required
 @aiohttp_jinja2.template('assets.jinja2')
 async def show_assets(request):
     pass
@@ -207,7 +207,7 @@ async def show_assets(request):
 @auth.login_required(app, sio)
 async def add_shape(sid, data):
     policy = app['AuthzPolicy']
-    username = policy.sid_map[sid]['user'].username
+    username = policy.sid_map[sid]['user'].user
     room = policy.sid_map[sid]['room']
     location = room.get_active_location(username)
 
@@ -237,7 +237,7 @@ async def add_shape(sid, data):
 @sio.on("remove shape", namespace="/planarally")
 @auth.login_required(app, sio)
 async def remove_shape(sid, data):
-    username = app['AuthzPolicy'].sid_map[sid]['user'].username
+    username = app['AuthzPolicy'].sid_map[sid]['user'].user
     room = app['AuthzPolicy'].sid_map[sid]['room']
     location = room.get_active_location(username)
 
@@ -267,7 +267,7 @@ async def remove_shape(sid, data):
 @sio.on("moveShapeOrder", namespace="/planarally")
 @auth.login_required(app, sio)
 async def move_shape_order(sid, data):
-    username = app['AuthzPolicy'].sid_map[sid]['user'].username
+    username = app['AuthzPolicy'].sid_map[sid]['user'].user
     room = app['AuthzPolicy'].sid_map[sid]['room']
     location = room.get_active_location(username)
 
@@ -284,7 +284,7 @@ async def move_shape_order(sid, data):
 @auth.login_required(app, sio)
 async def move_shape(sid, data):
     policy = app['AuthzPolicy']
-    username = policy.sid_map[sid]['user'].username
+    username = policy.sid_map[sid]['user'].user
     room = policy.sid_map[sid]['room']
     location = room.get_active_location(username)
 
@@ -343,7 +343,7 @@ def shape_wrap(player, shape):
 @auth.login_required(app, sio)
 async def update_shape(sid, data):
     policy = app['AuthzPolicy']
-    username = policy.sid_map[sid]['user'].username
+    username = policy.sid_map[sid]['user'].user
     room = policy.sid_map[sid]['room']
     location = room.get_active_location(username)
     layer = location.layer_manager.get_layer(data['shape']['layer'])
@@ -376,7 +376,7 @@ async def update_shape(sid, data):
 @auth.login_required(app, sio)
 async def update_initiative(sid, data):
     policy = app['AuthzPolicy']
-    username = policy.sid_map[sid]['user'].username
+    username = policy.sid_map[sid]['user'].user
     room = policy.sid_map[sid]['room']
     location = room.get_active_location(username)
 
@@ -427,7 +427,7 @@ async def update_initiative(sid, data):
 @auth.login_required(app, sio)
 async def update_initiative_order(sid, data):
     policy = app['AuthzPolicy']
-    username = policy.sid_map[sid]['user'].username
+    username = policy.sid_map[sid]['user'].user
     room = policy.sid_map[sid]['room']
     location = room.get_active_location(username)
 
@@ -450,7 +450,7 @@ async def update_initiative_order(sid, data):
 @auth.login_required(app, sio)
 async def update_initiative_turn(sid, data):
     policy = app['AuthzPolicy']
-    username = policy.sid_map[sid]['user'].username
+    username = policy.sid_map[sid]['user'].user
     room = policy.sid_map[sid]['room']
     location = room.get_active_location(username)
 
@@ -474,7 +474,7 @@ async def update_initiative_turn(sid, data):
 @auth.login_required(app, sio)
 async def update_initiative_round(sid, data):
     policy = app['AuthzPolicy']
-    username = policy.sid_map[sid]['user'].username
+    username = policy.sid_map[sid]['user'].user
     room = policy.sid_map[sid]['room']
     location = room.get_active_location(username)
 
@@ -491,7 +491,7 @@ async def update_initiative_round(sid, data):
 @auth.login_required(app, sio)
 async def new_initiative_effect(sid, data):
     policy = app['AuthzPolicy']
-    username = policy.sid_map[sid]['user'].username
+    username = policy.sid_map[sid]['user'].user
     room = policy.sid_map[sid]['room']
     location = room.get_active_location(username)
 
@@ -515,7 +515,7 @@ async def new_initiative_effect(sid, data):
 @auth.login_required(app, sio)
 async def update_initiative_effect(sid, data):
     policy = app['AuthzPolicy']
-    username = policy.sid_map[sid]['user'].username
+    username = policy.sid_map[sid]['user'].user
     room = policy.sid_map[sid]['room']
     location = room.get_active_location(username)
 
@@ -545,7 +545,7 @@ async def set_client(sid, data):
 @sio.on("set locationOptions", namespace='/planarally')
 @auth.login_required(app, sio)
 async def set_room(sid, data):
-    username = app['AuthzPolicy'].sid_map[sid]['user'].username
+    username = app['AuthzPolicy'].sid_map[sid]['user'].user
     room = app['AuthzPolicy'].sid_map[sid]['room']
     location = room.get_active_location(username)
 
@@ -560,7 +560,7 @@ async def set_room(sid, data):
 @sio.on("set gridsize", namespace="/planarally")
 @auth.login_required(app, sio)
 async def set_gridsize(sid, grid_size):
-    username = app['AuthzPolicy'].sid_map[sid]['user'].username
+    username = app['AuthzPolicy'].sid_map[sid]['user'].user
     room = app['AuthzPolicy'].sid_map[sid]['room']
     location = room.get_active_location(username)
 
@@ -574,7 +574,7 @@ async def set_gridsize(sid, grid_size):
 @sio.on("Note.New", namespace="/planarally")
 @auth.login_required(app, sio)
 async def new_note(sid, data):
-    username = app['AuthzPolicy'].sid_map[sid]['user'].username
+    username = app['AuthzPolicy'].sid_map[sid]['user'].user
     room = app['AuthzPolicy'].sid_map[sid]['room']
 
     if data["uuid"] in room.notes:
@@ -588,7 +588,7 @@ async def new_note(sid, data):
 @sio.on("Note.Update", namespace="/planarally")
 @auth.login_required(app, sio)
 async def update_note(sid, data):
-    username = app['AuthzPolicy'].sid_map[sid]['user'].username
+    username = app['AuthzPolicy'].sid_map[sid]['user'].user
     room = app['AuthzPolicy'].sid_map[sid]['room']
 
     if data["uuid"] not in room.notes:
@@ -602,7 +602,7 @@ async def update_note(sid, data):
 @sio.on("Note.Remove", namespace="/planarally")
 @auth.login_required(app, sio)
 async def delete_note(sid, uuid):
-    username = app['AuthzPolicy'].sid_map[sid]['user'].username
+    username = app['AuthzPolicy'].sid_map[sid]['user'].user
     room = app['AuthzPolicy'].sid_map[sid]['room']
 
     if uuid not in room.notes:
@@ -615,7 +615,7 @@ async def delete_note(sid, uuid):
 
 @sio.on("new location", namespace='/planarally')
 async def add_new_location(sid, location):
-    username = app['AuthzPolicy'].sid_map[sid]['user'].username
+    username = app['AuthzPolicy'].sid_map[sid]['user'].user
     room = app['AuthzPolicy'].sid_map[sid]['room']
 
     if room.creator != username:
@@ -639,7 +639,7 @@ async def add_new_location(sid, location):
 @sio.on("change location", namespace='/planarally')
 async def change_location(sid, location):
     policy = app['AuthzPolicy']
-    username = policy.sid_map[sid]['user'].username
+    username = policy.sid_map[sid]['user'].user
     room = policy.sid_map[sid]['room']
 
     if room.creator != username:
@@ -667,7 +667,7 @@ async def change_location(sid, location):
 
 async def load_location(sid, location):
     policy = app['AuthzPolicy']
-    username = policy.sid_map[sid]['user'].username
+    username = policy.sid_map[sid]['user'].user
     room = policy.sid_map[sid]['room']
 
     await sio.emit('board init', room.get_board(username), room=sid, namespace='/planarally')
@@ -728,7 +728,7 @@ async def test_connect(sid, environ):
 async def test_disconnect(sid):
     if sid not in app['AuthzPolicy'].sid_map:
         return
-    username = app['AuthzPolicy'].sid_map[sid]['user'].username
+    username = app['AuthzPolicy'].sid_map[sid]['user'].user
     room = app['AuthzPolicy'].sid_map[sid]['room']
     location = room.get_active_location(username)
 
@@ -787,7 +787,7 @@ async def assetmgmt_upload(sid, file_data):
     user = policy.sid_map[sid]['user']
     folder = functools.reduce(dict.get, file_data['directory'], user.asset_info)
     if folder is None:
-        logger.warning(f"Directory structure {file_data['directory']} is not valid for {user.username}")
+        logger.warning(f"Directory structure {file_data['directory']} is not valid for {user.user}")
         return
 
     file_info = {'name': file_data['name'], 'hash': hashname}

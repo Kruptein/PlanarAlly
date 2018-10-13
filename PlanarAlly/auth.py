@@ -29,7 +29,7 @@ class PA_AuthPolicy(AbstractAuthorizationPolicy):
         Return the user_id of the user identified by the identity
         or 'None' if no user exists related to the identity.
         """
-        user = User.get_or_none(User.username == identity)
+        user = User.by_name(identity)
         if user:
             return user
 
@@ -39,7 +39,7 @@ class PA_AuthPolicy(AbstractAuthorizationPolicy):
         current context, else return False.
         """
         # pylint: disable=unused-argument
-        user = self.user_map.get(identity)
+        user = User.by_name(identity)
         if not user:
             return False
         return permission in user.permissions
@@ -54,7 +54,7 @@ def login_required(app, sio):
         async def wrapped(*args, **kwargs):
             sid = args[0]
             policy = app['AuthzPolicy']
-            if sid not in policy.sio_map:
+            if sid not in policy.sid_map:
                 await sio.emit("redirect", "/")
                 return
             return await fn(*args, **kwargs)

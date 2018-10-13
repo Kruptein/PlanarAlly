@@ -53,7 +53,7 @@ def convert(save_file):
         with db.atomic():
             for user in shelf['user_map'].values():
                 logger.info(f"\tUser {user.username}")
-                db_user = User.create(username=user.username,
+                db_user = User.create(name=user.username,
                                       password_hash=user.password_hash)
 
                 db_user_option = UserOption.create(user=db_user)
@@ -69,7 +69,7 @@ def convert(save_file):
         with db.atomic():
             for room in shelf['rooms'].values():
                 logger.info(f"\tRoom {room.name}")
-                user = User.get_or_none(User.username == room.creator)
+                user = User.get_or_none(name=room.creator)
                 if user is None:
                     logger.error(
                         f"/Room {room.name} creator {room.creator} does not appear in the user map.")
@@ -79,7 +79,7 @@ def convert(save_file):
 
                 logger.info("\t\tPlayerRoom")
                 for player_name in room.players:
-                    player = User.get_or_none(User.username == player_name)
+                    player = User.get_or_none(name=player_name)
                     if player is None:
                         logger.error(
                             f"/Room {room.name} player {player_name} does not appear in the user map.")
@@ -135,19 +135,17 @@ def convert(save_file):
                             for owner in shape.get('owners', []):
                                 if owner == '':
                                     continue
-                                db_owner = User.get_or_none(
-                                    User.username == owner)
+                                db_owner = User.get_or_none(name=owner)
                                 if db_owner is None:
                                     continue
-                                ShapeOwner.create(
-                                    shape=db_shape, user=db_owner)
+                                ShapeOwner.create(shape=db_shape, user=db_owner)
 
         logger.info("User-Location options")
         for user in shelf['user_map'].values():
-            db_user = User.get(username=user.username)
+            db_user = User.get(name=user.username)
             for location_option in user.options.get('locationOptions', []):
                 room, creator, location = location_option.split("/")
-                db_location = Location.select().join(Room).join(User).where((User.username == creator)
+                db_location = Location.select().join(Room).join(User).where((User.name == creator)
                                                                             & (Room.name == room) & (Location.name == location)).first()
                 if db_location is None:
                     continue

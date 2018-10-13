@@ -1,3 +1,4 @@
+import uuid
 from peewee import BooleanField, FloatField, ForeignKeyField, IntegerField, TextField
 
 from .base import BaseModel
@@ -7,9 +8,12 @@ from .user import User
 class Room(BaseModel):
     name = TextField()
     creator = ForeignKeyField(User, backref='rooms_created')
-    invitation_code = TextField()
-    player_location = TextField()
-    dm_location = TextField()
+    invitation_code = TextField(default=uuid.uuid4)
+    player_location = TextField(null=True)
+    dm_location = TextField(null=True)
+
+    def __repr__(self):
+        return f"<Room {self.creator.user}/{self.name}>"
 
     class Meta:
         indexes = ((('name', 'creator'), True),)
@@ -18,6 +22,9 @@ class Room(BaseModel):
 class PlayerRoom(BaseModel):
     player = ForeignKeyField(User, backref='rooms_joined')
     room = ForeignKeyField(Room, backref='players')
+
+    def __repr__(self):
+        return f"<PlayerRoom {self.room.name} - {self.player.user}>"
 
 
 class Location(BaseModel):

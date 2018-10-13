@@ -21,7 +21,7 @@ import { getMouse } from "../../utils";
 
 export default Tool.extend({
     data: () => ({
-        name: "map",
+        name: "Map",
         active: false,
         xCount: 3,
         yCount: 3,

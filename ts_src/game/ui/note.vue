@@ -21,7 +21,7 @@
             ></textarea>
         </div>
         <div class='modal-footer'>
-            <button @click="removeNote"><i class='far fa-trash-alt'></i>Remove</button>
+            <button @click="removeNote"><i class='far fa-trash-alt'></i> Remove</button>
         </div>
     </modal>
 </template>

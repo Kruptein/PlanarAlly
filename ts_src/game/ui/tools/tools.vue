@@ -14,11 +14,11 @@
         </div>
         <div>
             <template>
-                <select-tool v-show="currentTool === 'select'" ref='selectTool'></select-tool>
-                <pan-tool v-show="currentTool === 'pan'"></pan-tool>
-                <keep-alive><draw-tool v-show="currentTool === 'draw'"></draw-tool></keep-alive>
-                <ruler-tool v-show="currentTool === 'ruler'"></ruler-tool>
-                <map-tool v-show="currentTool === 'map'"></map-tool>
+                <select-tool v-show="currentTool === 'Select'" ref='selectTool'></select-tool>
+                <pan-tool v-show="currentTool === 'Pan'"></pan-tool>
+                <keep-alive><draw-tool v-show="currentTool === 'Draw'"></draw-tool></keep-alive>
+                <ruler-tool v-show="currentTool === 'Ruler'"></ruler-tool>
+                <map-tool v-show="currentTool === 'Map'"></map-tool>
                 <shape-menu ref="shapecontext"></shape-menu>
                 <createtoken-dialog ref="createtokendialog"></createtoken-dialog>
             </template>
@@ -54,8 +54,8 @@ export default Vue.component("tools", {
     },
     data: () => ({
         currentTool: "select",
-        tools: ["select", "pan", "draw", "ruler", "map"],
-        dmTools: ["map"],
+        tools: ["Select", "Pan", "Draw", "Ruler", "Map"],
+        dmTools: ["Map"],
     }),
     watch: {
         currentTool(newValue, oldValue) {
@@ -76,7 +76,7 @@ export default Vue.component("tools", {
 
             let targetTool = this.currentTool;
             if (event.button === 1) {
-                targetTool = "pan";
+                targetTool = "Pan";
             } else if (event.button !== 0) {
                 return;
             }
@@ -88,7 +88,7 @@ export default Vue.component("tools", {
 
             let targetTool = this.currentTool;
             if (event.button === 1) {
-                targetTool = "pan";
+                targetTool = "Pan";
             } else if (event.button !== 0) {
                 return;
             }
@@ -100,7 +100,7 @@ export default Vue.component("tools", {
 
             let targetTool = this.currentTool;
             if ((event.buttons & 4) !== 0) {
-                targetTool = "pan";
+                targetTool = "Pan";
             } else if ((event.button & 1) > 1) {
                 return;
             }

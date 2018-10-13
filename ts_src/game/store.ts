@@ -109,6 +109,7 @@ export default new Vuex.Store({
             state.panY += increase;
         },
         updateZoom(state, payload: { newZoomValue: number; zoomLocation: GlobalPoint }) {
+            if (payload.newZoomValue === state.zoomFactor) return;
             if (payload.newZoomValue < 0.1) payload.newZoomValue = 0.1;
             if (payload.newZoomValue > 5) payload.newZoomValue = 5;
 

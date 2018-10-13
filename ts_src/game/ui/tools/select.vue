@@ -172,7 +172,7 @@ export default Tool.extend({
                         sel.refPoint = sel.refPoint.add(delta);
                         if (sel !== this.selectionHelper) {
                             if (sel.visionObstruction) gameManager.recalculateBoundingVolume();
-                            socket.emit("shapeMove", { shape: sel.asDict(), temporary: true });
+                            socket.emit("Shape.Move", { shape: sel.asDict(), temporary: true });
                         }
                     }
                     layer.invalidate(false);
@@ -181,7 +181,7 @@ export default Tool.extend({
                         sel.resize(this.resizeDirection, mouse);
                         if (sel !== this.selectionHelper) {
                             if (sel.visionObstruction) gameManager.recalculateBoundingVolume();
-                            socket.emit("shapeMove", { shape: sel.asDict(), temporary: true });
+                            socket.emit("Shape.Move", { shape: sel.asDict(), temporary: true });
                         }
                         layer.invalidate(false);
                     }
@@ -249,7 +249,7 @@ export default Tool.extend({
 
                         if (sel !== this.selectionHelper) {
                             if (sel.visionObstruction) gameManager.recalculateBoundingVolume();
-                            socket.emit("shapeMove", { shape: sel.asDict(), temporary: false });
+                            socket.emit("Shape.Move", { shape: sel.asDict(), temporary: false });
                         }
                         layer.invalidate(false);
                     }
@@ -259,7 +259,7 @@ export default Tool.extend({
                         }
                         if (sel !== this.selectionHelper) {
                             if (sel.visionObstruction) gameManager.recalculateBoundingVolume();
-                            socket.emit("shapeMove", { shape: sel.asDict(), temporary: false });
+                            socket.emit("Shape.Move", { shape: sel.asDict(), temporary: false });
                         }
                         layer.invalidate(false);
                     }

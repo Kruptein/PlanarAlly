@@ -15,15 +15,16 @@ logger.addHandler(streamHandler)
 
 sys.path.insert(0, os.getcwd())
 try:
-    import planarally_old as planarally
-    import auth
-    from models import db, ALL_MODELS, Asset, Aura, Constants, Layer, Location, LocationUserOption, Room, PlayerRoom, Shape, ShapeOwner, Tracker, User, UserOption
-    from config import SAVE_FILE
+    import planarally
 except ImportError:
     logger.warning(
         "You have to run this script from within the same folder as the save file.")
     logger.info("E.g.: python ../scripts/convert/database.py")
     sys.exit(2)
+
+import auth
+from models import db, ALL_MODELS, Asset, Aura, Constants, Layer, Location, LocationUserOption, Room, PlayerRoom, Shape, ShapeOwner, Tracker, User
+from config import SAVE_FILE
 
 
 def add_assets(user, data, parent=None):
@@ -55,13 +56,11 @@ def convert(save_file):
                 logger.info(f"\tUser {user.username}")
                 db_user = User.create(name=user.username,
                                       password_hash=user.password_hash)
-
-                db_user_option = UserOption.create(user=db_user)
                 for option in [('fowColour', 'fow_colour'), ('gridColour', 'grid_colour'), ('rulerColour', 'ruler_colour')]:
                     if option[0] in user.options:
-                        setattr(db_user_option,
+                        setattr(db_user,
                                 option[1], user.options[option[0]])
-                db_user_option.save()
+                db_user.save()
 
                 add_assets(db_user, user.asset_info)
 

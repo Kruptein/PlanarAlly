@@ -7,6 +7,9 @@ from .base import BaseModel
 class User(BaseModel):
     name = TextField()
     password_hash = TextField()
+    fow_colour = TextField(default='#000')
+    grid_colour = TextField(default='#000')
+    ruler_colour = TextField(default='#F00')
 
     def __repr__(self):
         return f"<User {self.name}>"
@@ -24,10 +27,3 @@ class User(BaseModel):
     @classmethod
     def by_name(clz, name):
         return clz.get_or_none(fn.Lower(clz.user) == name.lower())
-
-
-class UserOption(BaseModel):
-    user = ForeignKeyField(User, backref='options')
-    fow_colour = TextField(default='#000')
-    grid_colour = TextField(default='#000')
-    ruler_colour = TextField(default='#F00')

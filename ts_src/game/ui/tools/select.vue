@@ -34,7 +34,7 @@ export default Tool.extend({
     data() {
         const start = new GlobalPoint(-1000, -1000);
         return {
-            name: "select",
+            name: "Select",
             showContextMenu: false,
 
             mode: SelectOperations.Noop,

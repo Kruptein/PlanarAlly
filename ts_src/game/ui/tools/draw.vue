@@ -59,7 +59,7 @@ export default Tool.extend({
         "color-picker": colorpicker,
     },
     data: () => ({
-        name: "draw",
+        name: "Draw",
         active: false,
 
         startPoint: <GlobalPoint | null>null,

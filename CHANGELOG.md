@@ -16,6 +16,8 @@ All notable changes to this project will be documented in this file.
 - Unable to drag modal dialogs in Firefox
 - Unable to drag assets in Asset Manager in Firefox
 - Empty asset and note list was to small for icons
+- Tools started with lowercase
+- Radial menu buttons had border when clicking them
 
 ## [0.9] - 2018-09-26
 

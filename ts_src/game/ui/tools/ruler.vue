@@ -16,7 +16,7 @@ import { getMouse } from "../../utils";
 
 export default Tool.extend({
     data: () => ({
-        name: "ruler",
+        name: "Ruler",
         active: false,
         startPoint: <GlobalPoint | null>null,
         ruler: <Line | null>null,

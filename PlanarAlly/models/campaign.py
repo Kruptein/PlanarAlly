@@ -72,9 +72,10 @@ class Layer(BaseModel):
     def get_path(self):
         return f"{self.location.get_path()}/{self.name}"
     
-    def as_dict(self):
-        data = super().as_dict(exclude=[Layer.id, Layer.player_visible])
-        data['shapes'] = [shape.as_dict(user, user == room.creator) for shape in layer.shapes.order_by(Shape.index)]
+    def as_dict(self, user: User, dm: bool):
+        from .shape import Shape
+        data = model_to_dict(self, recurse=False, exclude=[Layer.id, Layer.player_visible])
+        data['shapes'] = [shape.as_dict(user, dm) for shape in self.shapes.order_by(Shape.index)]
         return data
 
     class Meta:

@@ -668,7 +668,7 @@ async def load_location(sid, location):
 
     data = {}
     data['locations'] = [l.name for l in room.locations]
-    data['layers'] = [l.as_dict() for l in location.layers.order_by(Layer.index).where(Layer.player_visible)]
+    data['layers'] = [l.as_dict(user, user == room.creator) for l in location.layers.order_by(Layer.index).where(Layer.player_visible)]
 
     await sio.emit('board init', data, room=sid, namespace='/planarally')
     # await sio.emit("set location", {'options': location.options, 'name': location.name}, room=sid, namespace='/planarally')

@@ -43,6 +43,7 @@ class Shape(BaseModel):
         data['auras'] = [a.as_dict() for a in aura_query]
         type_table = get_table(self.type_)
         data.update(**model_to_dict(type_table.get(uuid=self.uuid), exclude=[type_table.uuid]))
+
         return data
 
     class Meta:

@@ -4,7 +4,9 @@ import BoundingRect from "./boundingrect";
 
 import * as tinycolor from "tinycolor2";
 import { uuidv4 } from "../../core/utils";
-import { InitiativeData, ServerShape } from "../api_types";
+import { aurasFromServer, aurasToServer } from "../comm/conversion/aura";
+import { InitiativeData } from "../comm/types/general";
+import { ServerShape } from "../comm/types/shapes";
 import { GlobalPoint, LocalPoint } from "../geom";
 import { g2l, g2lr, g2lx, g2ly, g2lz } from "../units";
 
@@ -20,7 +22,8 @@ export default abstract class Shape {
     refPoint: GlobalPoint;
 
     // Fill colour of the shape
-    fill: string = "#000";
+    fillColour: string = "#000";
+    strokeColour: string = "rgba(0,0,0,0)";
     // The optional name associated with the shape
     name = "Unknown shape";
 
@@ -47,9 +50,11 @@ export default abstract class Shape {
     // Additional options for specialized uses
     options: Map<string, any> = new Map();
 
-    constructor(refPoint: GlobalPoint, uuid?: string) {
+    constructor(refPoint: GlobalPoint, fillColour?: string, strokeColour?: string, uuid?: string) {
         this.refPoint = refPoint;
         this.uuid = uuid || uuidv4();
+        if (fillColour !== undefined) this.fillColour = fillColour;
+        if (strokeColour !== undefined) this.strokeColour = strokeColour;
     }
 
     abstract getBoundingBox(): BoundingRect;
@@ -73,34 +78,34 @@ export default abstract class Shape {
         if (l) l.invalidate(skipLightUpdate);
     }
 
-    checkLightSources() {
+    checkVisionSources() {
         const self = this;
-        const obstructionIndex = gameManager.lightblockers.indexOf(this.uuid);
+        const obstructionIndex = gameManager.visionBlockers.indexOf(this.uuid);
         let changeBV = false;
         if (this.visionObstruction && obstructionIndex === -1) {
-            gameManager.lightblockers.push(this.uuid);
+            gameManager.visionBlockers.push(this.uuid);
             changeBV = true;
         } else if (!this.visionObstruction && obstructionIndex >= 0) {
-            gameManager.lightblockers.splice(obstructionIndex, 1);
+            gameManager.visionBlockers.splice(obstructionIndex, 1);
             changeBV = true;
         }
         if (changeBV) gameManager.recalculateBoundingVolume();
 
-        // Check if the lightsource auras are in the gameManager
+        // Check if the visionsource auras are in the gameManager
         this.auras.forEach(au => {
-            const ls = gameManager.lightsources;
+            const ls = gameManager.visionSources;
             const i = ls.findIndex(o => o.aura === au.uuid);
-            if (au.lightSource && i === -1) {
+            if (au.visionSource && i === -1) {
                 ls.push({ shape: self.uuid, aura: au.uuid });
-            } else if (!au.lightSource && i >= 0) {
+            } else if (!au.visionSource && i >= 0) {
                 ls.splice(i, 1);
             }
         });
-        // Check if anything in the gameManager referencing this shape is in fact still a lightsource
-        for (let i = gameManager.lightsources.length - 1; i >= 0; i--) {
-            const ls = gameManager.lightsources[i];
+        // Check if anything in the gameManager referencing this shape is in fact still a visionsource
+        for (let i = gameManager.visionSources.length - 1; i >= 0; i--) {
+            const ls = gameManager.visionSources[i];
             if (ls.shape === self.uuid) {
-                if (!self.auras.some(a => a.uuid === ls.aura && a.lightSource)) gameManager.lightsources.splice(i, 1);
+                if (!self.auras.some(a => a.uuid === ls.aura && a.visionSource)) gameManager.visionSources.splice(i, 1);
             }
         }
     }
@@ -128,35 +133,36 @@ export default abstract class Shape {
     }
 
     abstract asDict(): ServerShape;
-    getBaseDict() {
+    getBaseDict(): ServerShape {
         return {
-            type: this.type,
+            type_: this.type,
             uuid: this.uuid,
             x: this.refPoint.x,
             y: this.refPoint.y,
             layer: this.layer,
-            globalCompositeOperation: this.globalCompositeOperation,
-            movementObstruction: this.movementObstruction,
-            visionObstruction: this.visionObstruction,
-            auras: this.auras,
+            draw_operator: this.globalCompositeOperation,
+            movement_obstruction: this.movementObstruction,
+            vision_obstruction: this.visionObstruction,
+            auras: aurasToServer(this.auras),
             trackers: this.trackers,
             owners: this.owners,
-            fill: this.fill,
+            fill_colour: this.fillColour,
+            stroke_colour: this.strokeColour,
             name: this.name,
             annotation: this.annotation,
-            isToken: this.isToken,
+            is_token: this.isToken,
             options: JSON.stringify([...this.options]),
         };
     }
     fromDict(data: ServerShape) {
         this.layer = data.layer;
-        this.globalCompositeOperation = data.globalCompositeOperation;
-        this.movementObstruction = data.movementObstruction;
-        this.visionObstruction = data.visionObstruction;
-        this.auras = data.auras;
+        this.globalCompositeOperation = data.draw_operator;
+        this.movementObstruction = data.movement_obstruction;
+        this.visionObstruction = data.vision_obstruction;
+        this.auras = aurasFromServer(data.auras);
         this.trackers = data.trackers;
         this.owners = data.owners;
-        this.isToken = data.isToken;
+        this.isToken = data.is_token;
         if (data.annotation) this.annotation = data.annotation;
         if (data.name) this.name = data.name;
         if (data.options) this.options = new Map(JSON.parse(data.options));
@@ -195,7 +201,7 @@ export default abstract class Shape {
                 gradient.addColorStop(0, aura.colour);
                 gradient.addColorStop(1, tc.setAlpha(0).toRgbString());
             }
-            if (!aura.lightSource || aura.lastPath === undefined) {
+            if (!aura.visionSource || aura.lastPath === undefined) {
                 ctx.arc(loc.x, loc.y, innerRange, 0, 2 * Math.PI);
                 ctx.fill();
             } else {

@@ -1,7 +1,7 @@
 import gameManager from "../manager";
 import store from "../store";
 
-import { ServerLayer } from "../api_types";
+import { ServerLayer } from "../comm/types/general";
 import { FOWLayer } from "./fow";
 import { FOWPlayersLayer } from "./fowplayers";
 import { GridLayer } from "./grid";

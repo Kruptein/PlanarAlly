@@ -1,7 +1,8 @@
 import store from "../store";
 import BaseRect from "./baserect";
 
-import { InitiativeData, ServerAsset } from "../api_types";
+import { InitiativeData } from "../comm/types/general";
+import { ServerAsset } from "../comm/types/shapes";
 import { GlobalPoint } from "../geom";
 import { g2lx, g2ly, g2lz } from "../units";
 

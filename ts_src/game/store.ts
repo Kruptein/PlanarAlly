@@ -3,7 +3,8 @@ import Vuex from "vuex";
 
 import gameManager from "./manager";
 
-import { AssetList, Note } from "./api_types";
+import { AssetList } from "../core/comm/types";
+import { Note } from "./comm/types/general";
 import { GlobalPoint } from "./geom";
 import { sendClientOptions, socket } from "./socket";
 import { g2l, l2g } from "./units";
@@ -16,6 +17,7 @@ export default new Vuex.Store({
         // See the GameManager.LayerManager for proper layer management tools
         layers: <string[]>[],
         selectedLayerIndex: -1,
+        boardInitialized: false,
 
         locations: <string[]>[],
 
@@ -48,6 +50,9 @@ export default new Vuex.Store({
         selectedLayer: state => state.layers[state.selectedLayerIndex],
     },
     mutations: {
+        setBoardInitialized(state, boardInitialized) {
+            state.boardInitialized = boardInitialized;
+        },
         setDM(state, isDM) {
             state.IS_DM = isDM;
         },

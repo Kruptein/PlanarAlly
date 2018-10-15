@@ -3,16 +3,16 @@ import * as io from "socket.io-client";
 import gameManager from "./manager";
 import store from "./store";
 
+import { AssetList } from "../core/comm/types";
 import {
-    AssetList,
     BoardInfo,
     ClientOptions,
     InitiativeData,
     InitiativeEffect,
     LocationOptions,
-    Note,
-    ServerShape,
-} from "./api_types";
+    Note
+} from "./comm/types/general";
+import { ServerShape } from "./comm/types/shapes";
 import { GlobalPoint } from "./geom";
 import { createLayer } from "./layers/utils";
 import { vm } from "./planarally";
@@ -65,6 +65,8 @@ socket.on("board init", (locationInfo: BoardInfo) => {
     // Force the correct opacity render on other layers.
     gameManager.layerManager.setLayer(gameManager.layerManager.getLayer()!.name);
     (<any>vm.$refs.initiative).clear();
+    store.commit("setBoardInitialized", true);
+    gameManager.recalculateBoundingVolume();
 });
 socket.on("set gridsize", (gridSize: number) => {
     store.commit("setGridSize", { gridSize, sync: false });

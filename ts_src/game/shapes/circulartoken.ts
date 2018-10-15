@@ -3,7 +3,8 @@ import Circle from "./circle";
 
 import * as tinycolor from "tinycolor2";
 import { calcFontScale } from "../../core/utils";
-import { InitiativeData, ServerCircularToken } from "../api_types";
+import { InitiativeData } from "../comm/types/general";
+import { ServerCircularToken } from "../comm/types/shapes";
 import { GlobalPoint } from "../geom";
 import { g2l, g2lz } from "../units";
 
@@ -16,28 +17,26 @@ export default class CircularToken extends Circle {
         r: number,
         text: string,
         font: string,
-        fill?: string,
-        border?: string,
+        fillColour?: string,
+        strokeColour?: string,
         uuid?: string,
     ) {
-        super(center, r, fill, border, uuid);
+        super(center, r, fillColour, strokeColour, uuid);
         this.text = text;
         this.font = font;
     }
     asDict(): ServerCircularToken {
         return Object.assign(this.getBaseDict(), {
-            r: this.r,
+            radius: this.r,
             text: this.text,
             font: this.font,
-            border: this.border,
         });
     }
     fromDict(data: ServerCircularToken) {
         super.fromDict(data);
-        this.r = data.r;
+        this.r = data.radius;
         this.text = data.text;
         this.font = data.font;
-        if (data.border) this.border = data.border;
     }
     draw(ctx: CanvasRenderingContext2D) {
         super.draw(ctx);
@@ -49,7 +48,7 @@ export default class CircularToken extends Circle {
         const xs = calcFontScale(ctx, this.text, g2lz(this.r), g2lz(this.r));
         const ys = 0;
         ctx.transform(xs, ys, -ys, xs, dest.x, dest.y);
-        ctx.fillStyle = tinycolor.mostReadable(this.fill, ["#000", "#fff"]).toHexString();
+        ctx.fillStyle = tinycolor.mostReadable(this.fillColour, ["#000", "#fff"]).toHexString();
         ctx.fillText(this.text, 0, 0);
         ctx.restore();
     }

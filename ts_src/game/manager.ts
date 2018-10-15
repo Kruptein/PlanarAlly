@@ -2,7 +2,8 @@ import BoundingVolume from "./bvh/bvh";
 import store from "./store";
 import AnnotationManager from "./ui/annotation";
 
-import { ClientOptions, ServerShape } from "./api_types";
+import { ClientOptions } from "./comm/types/general";
+import { ServerShape } from "./comm/types/shapes";
 import { GlobalPoint } from "./geom";
 import { LayerManager } from "./layers/manager";
 import { vm } from "./planarally";
@@ -14,8 +15,8 @@ export class GameManager {
     layerManager = new LayerManager();
     selectedTool: number = 0;
 
-    lightsources: { shape: string; aura: string }[] = [];
-    lightblockers: string[] = [];
+    visionSources: { shape: string; aura: string }[] = [];
+    visionBlockers: string[] = [];
     annotations: string[] = [];
     movementblockers: string[] = [];
     ownedtokens: string[] = [];
@@ -30,8 +31,8 @@ export class GameManager {
 
     clear() {
         this.layerManager = new LayerManager();
-        this.lightsources = [];
-        this.lightblockers = [];
+        this.visionSources = [];
+        this.visionBlockers = [];
         this.annotations = [];
         this.movementblockers = [];
         this.ownedtokens = [];
@@ -39,7 +40,8 @@ export class GameManager {
     }
 
     recalculateBoundingVolume() {
-        this.BV = new BoundingVolume(this.lightblockers);
+        if (store.state.boardInitialized)
+            this.BV = new BoundingVolume(this.visionBlockers);
     }
 
     addShape(shape: ServerShape): void {
@@ -50,7 +52,7 @@ export class GameManager {
         const layer = this.layerManager.getLayer(shape.layer)!;
         const sh = createShapeFromDict(shape);
         if (sh === undefined) {
-            console.log(`Shape with unknown type ${shape.type} could not be added`);
+            console.log(`Shape with unknown type ${shape.type_} could not be added`);
             return;
         }
         layer.addShape(sh, false);
@@ -64,7 +66,7 @@ export class GameManager {
         }
         const sh = createShapeFromDict(shape, true);
         if (sh === undefined) {
-            console.log(`Shape with unknown type ${shape.type} could not be added`);
+            console.log(`Shape with unknown type ${shape.type_} could not be added`);
             return;
         }
         const realShape = Object.assign(this.layerManager.UUIDMap.get(shape.uuid), sh);
@@ -78,7 +80,7 @@ export class GameManager {
         }
         const sh = createShapeFromDict(data.shape, true);
         if (sh === undefined) {
-            console.log(`Shape with unknown type ${data.shape.type} could not be added`);
+            console.log(`Shape with unknown type ${data.shape.type_} could not be added`);
             return;
         }
         const oldShape = this.layerManager.UUIDMap.get(data.shape.uuid);
@@ -88,7 +90,7 @@ export class GameManager {
         }
         const redrawInitiative = sh.owners !== oldShape.owners;
         const shape = Object.assign(oldShape, sh);
-        shape.checkLightSources();
+        shape.checkVisionSources();
         shape.setMovementBlock(shape.movementObstruction);
         shape.setIsToken(shape.isToken);
         if (data.redraw) this.layerManager.getLayer(data.shape.layer)!.invalidate(false);

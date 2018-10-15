@@ -1,11 +1,11 @@
 import * as io from "socket.io-client";
 import Vue from "vue";
 
+import { AssetFile, AssetList } from "../core/comm/types";
 import contextmenu from "../core/components/contextmenu.vue";
 import confirm from "../core/components/modals/confirm.vue";
 import prompt from "../core/components/modals/prompt.vue";
 import { uuidv4 } from "../core/utils";
-import { AssetFile, AssetList } from "../game/api_types";
 
 // ** SOCKET COMMUNICATION ** //
 const socket = io.connect(location.protocol + "//" + location.host + "/pa_assetmgmt");

@@ -2,7 +2,7 @@ import gameManager from "../manager";
 import Shape from "../shapes/shape";
 import store from "../store";
 
-import { ServerShape } from "../api_types";
+import { ServerShape } from "../comm/types/shapes";
 import { vm } from "../planarally";
 import { createShapeFromDict } from "../shapes/utils";
 import { socket } from "../socket";
@@ -52,7 +52,7 @@ export class Layer {
         shape.layer = this.name;
         this.shapes.push(shape);
         gameManager.layerManager.UUIDMap.set(shape.uuid, shape);
-        shape.checkLightSources();
+        shape.checkVisionSources();
         shape.setMovementBlock(shape.movementObstruction);
         if (shape.ownedBy(store.state.username) && shape.isToken) gameManager.ownedtokens.push(shape.uuid);
         if (shape.annotation.length) gameManager.annotations.push(shape.uuid);
@@ -64,7 +64,7 @@ export class Layer {
         for (const serverShape of shapes) {
             const shape = createShapeFromDict(serverShape);
             if (shape === undefined) {
-                console.log(`Shape with unknown type ${serverShape.type} could not be added`);
+                console.log(`Shape with unknown type ${serverShape.type_} could not be added`);
                 return;
             }
             this.addShape(shape, false, false);
@@ -77,12 +77,12 @@ export class Layer {
         if (temporary === undefined) temporary = false;
         this.shapes.splice(this.shapes.indexOf(shape), 1);
         if (sync) socket.emit("remove shape", { shape, temporary });
-        const lsI = gameManager.lightsources.findIndex(ls => ls.shape === shape.uuid);
-        const lbI = gameManager.lightblockers.findIndex(ls => ls === shape.uuid);
+        const lsI = gameManager.visionSources.findIndex(ls => ls.shape === shape.uuid);
+        const lbI = gameManager.visionBlockers.findIndex(ls => ls === shape.uuid);
         const mbI = gameManager.movementblockers.findIndex(ls => ls === shape.uuid);
         const anI = gameManager.annotations.findIndex(ls => ls === shape.uuid);
-        if (lsI >= 0) gameManager.lightsources.splice(lsI, 1);
-        if (lbI >= 0) gameManager.lightblockers.splice(lbI, 1);
+        if (lsI >= 0) gameManager.visionSources.splice(lsI, 1);
+        if (lbI >= 0) gameManager.visionBlockers.splice(lbI, 1);
         if (mbI >= 0) gameManager.movementblockers.splice(mbI, 1);
         if (anI >= 0) gameManager.annotations.splice(anI, 1);
 
@@ -186,7 +186,7 @@ export class Layer {
     }
 
     onShapeMove(shape: Shape): void {
-        shape.checkLightSources();
+        shape.checkVisionSources();
         if (shape.visionObstruction) gameManager.recalculateBoundingVolume();
         this.invalidate(false);
     }

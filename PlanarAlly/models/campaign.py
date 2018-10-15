@@ -1,5 +1,6 @@
 import uuid
 from peewee import BooleanField, FloatField, ForeignKeyField, IntegerField, TextField
+from playhouse.shortcuts import model_to_dict
 
 from .base import BaseModel
 from .user import User
@@ -13,7 +14,10 @@ class Room(BaseModel):
     dm_location = TextField(null=True)
 
     def __repr__(self):
-        return f"<Room {self.creator.user}/{self.name}>"
+        return f"<Room {self.get_path()}>"
+    
+    def get_path(self):
+        return f"{self.creator.name}/{self.name}"
 
     class Meta:
         indexes = ((('name', 'creator'), True),)
@@ -24,13 +28,19 @@ class PlayerRoom(BaseModel):
     room = ForeignKeyField(Room, backref='players')
 
     def __repr__(self):
-        return f"<PlayerRoom {self.room.name} - {self.player.user}>"
+        return f"<PlayerRoom {self.room.get_path()} - {self.player.name}>"
 
 
 class Location(BaseModel):
     room = ForeignKeyField(Room, backref='locations')
     name = TextField()
     # initiative ?
+
+    def __repr__(self):
+        return f"<Location {self.get_path()}>"
+    
+    def get_path(self):
+        return f"{self.room.get_path()}/{self.name}"
 
     class Meta:
         indexes = ((('room', 'name'), True),)
@@ -43,6 +53,9 @@ class LocationUserOption(BaseModel):
     pan_y = IntegerField(default=0)
     zoom_factor = FloatField(default=1.0)
 
+    def __repr__(self):
+        return f"<LocationUserOption {self.location.get_path()} - {self.user.name}>"
+
 
 class Layer(BaseModel):
     location = ForeignKeyField(Location, backref='layers')
@@ -53,51 +66,16 @@ class Layer(BaseModel):
     selectable = BooleanField(default=True)
     index = IntegerField()
 
+    def __repr__(self):
+        return f"<Layer {self.get_path()}>"
+    
+    def get_path(self):
+        return f"{self.location.get_path()}/{self.name}"
+    
+    def as_dict(self):
+        data = super().as_dict(exclude=[Layer.id, Layer.player_visible])
+        data['shapes'] = [shape.as_dict(user, user == room.creator) for shape in layer.shapes.order_by(Shape.index)]
+        return data
+
     class Meta:
         indexes = ((('location', 'name'), True), (('location', 'index'), True))
-
-
-class Shape(BaseModel):
-    uuid = TextField(primary_key=True)
-    layer = ForeignKeyField(Layer, backref='shapes')
-    x = IntegerField()
-    y = IntegerField()
-    name = TextField(null=True)
-    fill_colour = TextField(default="#000")
-    border_colour = TextField(default="#fff")
-    vision_obstruction = BooleanField(default=False)
-    movement_obstruction = BooleanField(default=False)
-    is_token = BooleanField(default=False)
-    annotation = TextField(default='')
-    draw_operator = TextField(default='source-over')
-    index = IntegerField()
-
-    class Meta:
-        indexes = ((('layer', 'index'), True),)
-
-    # options ???
-
-
-class Tracker(BaseModel):
-    uuid = TextField(primary_key=True)
-    shape = ForeignKeyField(Shape, backref='trackers')
-    visible = BooleanField()
-    name = TextField()
-    value = IntegerField()
-    maxvalue = IntegerField()
-
-
-class Aura(BaseModel):
-    uuid = TextField(primary_key=True)
-    shape = ForeignKeyField(Shape, backref='auras')
-    light_source = BooleanField()
-    visible = BooleanField()
-    name = TextField()
-    value = IntegerField()
-    dim = IntegerField()
-    colour = TextField()
-
-
-class ShapeOwner(BaseModel):
-    shape = ForeignKeyField(Shape, backref='owners')
-    user = ForeignKeyField(User, backref='shapes')

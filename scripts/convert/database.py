@@ -23,7 +23,7 @@ except ImportError:
     sys.exit(2)
 
 import auth
-from models import db, ALL_MODELS, Asset, Aura, Constants, Layer, Location, LocationUserOption, Room, PlayerRoom, Shape, ShapeOwner, Tracker, User
+from models import *
 from config import SAVE_FILE
 
 
@@ -96,11 +96,27 @@ def convert(save_file):
 
                         for i_s, shape in enumerate(layer.shapes.values()):
                             db_shape = Shape(
-                                uuid=shape['uuid'], layer=db_layer, x=shape['x'], y=shape['y'], name=shape.get('name'), index=i_s)
-                            for optional in [('border', 'border_colour'), ('fill', 'fill_colour'), ('isToken', 'is_token'), ('globalCompositeOperation', 'draw_operator'), ('annotation', 'annotation'), ('movementObstruction', 'movement_obstruction'), ('visionObstruction', 'vision_obstruction')]:
+                                uuid=shape['uuid'], layer=db_layer, type_=shape['type'], x=shape['x'], y=shape['y'], name=shape.get('name'), index=i_s)
+                            for optional in [('border', 'stroke_colour'), ('fill', 'fill_colour'), ('isToken', 'is_token'), ('globalCompositeOperation', 'draw_operator'), ('annotation', 'annotation'), ('movementObstruction', 'movement_obstruction'), ('visionObstruction', 'vision_obstruction')]:
                                 if shape.get(optional[0]):
                                     setattr(
                                         db_shape, optional[1], shape[optional[0]])
+                            if shape['type'].lower() == 'asset':
+                                AssetShape.create(uuid=shape['uuid'], src=shape['src'], width=shape['w'], height=shape['h'])
+                            elif shape['type'].lower() == 'circle':
+                                Circle.create(uuid=shape['uuid'], radius=shape['r'])
+                            elif shape['type'].lower() == 'circulartoken':
+                                CircularToken.create(uuid=shape['uuid'], text=shape['text'], font=shape['font'], radius=shape['r'])
+                            elif shape['type'].lower() == 'line':
+                                Line.create(uuid=shape['uuid'], x2=shape['x2'], y2=shape['y2'], line_width=shape['lineWidth'])
+                            elif shape['type'].lower() == 'rect':
+                                Rect.create(uuid=shape['uuid'], width=shape['w'], height=shape['h'])
+                            elif shape['type'].lower() == 'text':
+                                Text.create(uuid=shape['uuid'], text=shape['text'], font=shape['font'], angle=shape['angle'])
+                            elif shape['type'].lower() == 'multiline':
+                                MultiLine.create(uuid=shape['uuid'], line_width=shape['size'], points=shape['points'])
+                            else:
+                                logger.warning(f"Shape type {shape['type']} is not known")
                             db_shape.save(force_insert=True)
 
                             for tracker in shape.get('trackers', []):
@@ -124,7 +140,7 @@ def convert(save_file):
                                 Aura.create(
                                     uuid=aura['uuid'],
                                     shape=db_shape,
-                                    light_source=aura['lightSource'],
+                                    vision_source=aura['lightSource'],
                                     visible=aura['visible'],
                                     name=aura['name'],
                                     value=aura['value'],

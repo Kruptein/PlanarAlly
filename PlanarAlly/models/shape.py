@@ -1,4 +1,5 @@
 from peewee import BooleanField, FloatField, ForeignKeyField, IntegerField, TextField
+from playhouse.sqlite_ext import JSONField
 from playhouse.shortcuts import model_to_dict
 
 from .base import BaseModel
@@ -94,7 +95,7 @@ class BaseRect(ShapeType):
     height = FloatField()
 
 
-class Asset(BaseRect):
+class AssetShape(BaseRect):
     src = TextField()
 
 
@@ -115,7 +116,7 @@ class Line(ShapeType):
 
 class MultiLine(ShapeType):
     line_width = IntegerField()
-    # points = JSONField ??
+    points = JSONField()
 
 
 class Rect(BaseRect):

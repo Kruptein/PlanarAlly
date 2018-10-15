@@ -2,6 +2,7 @@ from peewee import BooleanField, FloatField, ForeignKeyField, IntegerField, Text
 from playhouse.sqlite_ext import JSONField
 from playhouse.shortcuts import model_to_dict
 
+from . import get_table
 from .base import BaseModel
 from .campaign import Layer
 from .user import User
@@ -21,6 +22,7 @@ class Shape(BaseModel):
     annotation = TextField(default='')
     draw_operator = TextField(default='source-over')
     index = IntegerField()
+    options = TextField(null=True)
 
     def __repr__(self):
         return f"<Shape {self.get_path()}>"
@@ -40,6 +42,9 @@ class Shape(BaseModel):
             aura_query = aura_query.where(Aura.visible)
         data['trackers'] = [t.as_dict() for t in tracker_query]
         data['auras'] = [a.as_dict() for a in aura_query]
+        type_table = get_table(self.type_)
+        data.update(**model_to_dict(type_table.get(uuid=self.uuid), exclude=[type_table.uuid]))
+
         return data
 
     class Meta:
@@ -95,7 +100,7 @@ class BaseRect(ShapeType):
     height = FloatField()
 
 
-class AssetShape(BaseRect):
+class AssetRect(BaseRect):
     src = TextField()
 
 

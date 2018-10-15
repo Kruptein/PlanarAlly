@@ -97,12 +97,13 @@ def convert(save_file):
                         for i_s, shape in enumerate(layer.shapes.values()):
                             db_shape = Shape(
                                 uuid=shape['uuid'], layer=db_layer, type_=shape['type'], x=shape['x'], y=shape['y'], name=shape.get('name'), index=i_s)
-                            for optional in [('border', 'stroke_colour'), ('fill', 'fill_colour'), ('isToken', 'is_token'), ('globalCompositeOperation', 'draw_operator'), ('annotation', 'annotation'), ('movementObstruction', 'movement_obstruction'), ('visionObstruction', 'vision_obstruction')]:
+                            for optional in [('border', 'stroke_colour'), ('fill', 'fill_colour'), ('isToken', 'is_token'), ('globalCompositeOperation', 'draw_operator'), ('annotation', 'annotation'), ('movementObstruction', 'movement_obstruction'), ('visionObstruction', 'vision_obstruction'), ('options', 'options')]:
                                 if shape.get(optional[0]):
                                     setattr(
                                         db_shape, optional[1], shape[optional[0]])
                             if shape['type'].lower() == 'asset':
-                                AssetShape.create(uuid=shape['uuid'], src=shape['src'], width=shape['w'], height=shape['h'])
+                                AssetRect.create(uuid=shape['uuid'], src=shape['src'], width=shape['w'], height=shape['h'])
+                                db_shape.type_ = 'assetrect'
                             elif shape['type'].lower() == 'circle':
                                 Circle.create(uuid=shape['uuid'], radius=shape['r'])
                             elif shape['type'].lower() == 'circulartoken':

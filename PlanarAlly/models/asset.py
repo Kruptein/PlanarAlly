@@ -9,3 +9,6 @@ class Asset(BaseModel):
     parent = ForeignKeyField('self', backref='children', null=True)
     name = TextField()
     file_hash = TextField(null=True)
+
+    def __repr__(self):
+        return f"<Asset {self.owner.name} - {self.name}>"

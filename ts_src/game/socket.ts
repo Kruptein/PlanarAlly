@@ -61,7 +61,7 @@ socket.on("board init", (locationInfo: BoardInfo) => {
     store.commit("setLocations", locationInfo.locations);
     document.getElementById("layers")!.innerHTML = "";
     store.commit("resetLayerInfo");
-    for (const layer of locationInfo.board.layers) createLayer(layer);
+    for (const layer of locationInfo.layers) createLayer(layer);
     // Force the correct opacity render on other layers.
     gameManager.layerManager.setLayer(gameManager.layerManager.getLayer()!.name);
     (<any>vm.$refs.initiative).clear();

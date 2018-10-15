@@ -59,9 +59,7 @@ export interface ServerLayer {
 
 export interface BoardInfo {
     locations: string[];
-    board: {
-        layers: ServerLayer[];
-    };
+    layers: ServerLayer[];
 }
 
 export interface ServerShape {

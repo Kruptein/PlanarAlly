@@ -26,4 +26,4 @@ class User(BaseModel):
     
     @classmethod
     def by_name(clz, name):
-        return clz.get_or_none(fn.Lower(clz.user) == name.lower())
+        return clz.get_or_none(fn.Lower(clz.name) == name.lower())

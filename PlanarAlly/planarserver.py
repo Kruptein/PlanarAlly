@@ -23,6 +23,7 @@ import socketio
 from aiohttp import web
 from aiohttp_security import remember, forget, authorized_userid, SessionIdentityPolicy
 from aiohttp_session.cookie_storage import EncryptedCookieStorage
+from playhouse.shortcuts import model_to_dict
 
 # SETUP PATHS
 
@@ -46,14 +47,10 @@ stream_handler.setFormatter(formatter)
 logger.addHandler(file_handler)
 logger.addHandler(stream_handler)
 
-plogger = logging.getLogger('peewee')
-plogger.addHandler(logging.StreamHandler())
-plogger.setLevel(logging.DEBUG)
-
 import auth
 import save
 from planarally import PlanarAlly
-from models import db, User, Room
+from models import db, Layer, Location, Room, Shape, User
 from config import config, SAVE_FILE
 
 save.check_save()
@@ -92,8 +89,6 @@ def nested_dict_update(d, u):
 
 
 async def on_shutdown(app):
-    app['background_save'].cancel()
-    PA.save()
     for sid in list(app['AuthzPolicy'].sid_map.keys()):
         await sio.disconnect(sid, namespace='/planarally')
 
@@ -147,11 +142,10 @@ async def logout(request):
 
 @aiohttp_jinja2.template('rooms.jinja2')
 async def show_rooms(request):
-    
     user = await authorized_userid(request)
     return {
-        'owned': [(r.name, r.creator.user) for r in user.rooms_created.select(Room.name, User.user).join(User)],
-        'joined': [(r.room.name, r.room.creator.user) for r in user.rooms_joined.select(Room.name, User.user).join(Room).join(User)]
+        'owned': [(r.name, r.creator.name) for r in user.rooms_created.select(Room.name, User.name).join(User)],
+        'joined': [(r.room.name, r.room.creator.name) for r in user.rooms_joined.select(Room.name, User.name).join(Room).join(User)]
      }
 
 
@@ -164,7 +158,7 @@ async def create_room(request):
     else:
         room = Room.create(name=roomname, creator=user)
         Location.create(room=room, name='start')
-        response = web.HTTPFound(f'/rooms/{user.user}/{roomname}')
+        response = web.HTTPFound(f'/rooms/{user.name}/{roomname}')
     return response
 
 
@@ -173,13 +167,13 @@ async def show_room(request):
     user = await authorized_userid(request)
     creator = User.by_name(request.match_info['username'])
     try:
-        room = Room.select(Room.name, User.user).join(User).where((Room.creator == user) & (Room.name == request.match_info['roomname']))[0]
+        room = Room.select().join(User).where((Room.creator == creator) & (Room.name == request.match_info['roomname']))[0]
     except IndexError:
-        logger.info(f"{user.user} attempted to load non existing room ${request.match_info['username']}/${request.match_info['roomname']}")
+        logger.info(f"{user.name} attempted to load non existing room {request.match_info['username']}/{request.match_info['roomname']}")
     else:
-        if room.creator.user == user.user:
+        if room.creator == user:
             return {'dm': True}
-        if user.user.lower() in (pr.player.user.lower() for pr in room.players.select(User.user).join(User)):
+        if user.name.lower() in (pr.player.name.lower() for pr in room.players.select(User.name).join(User)):
             return {'dm': False}
     return web.HTTPFound("/rooms")
 
@@ -207,7 +201,7 @@ async def show_assets(request):
 @auth.login_required(app, sio)
 async def add_shape(sid, data):
     policy = app['AuthzPolicy']
-    username = policy.sid_map[sid]['user'].user
+    username = policy.sid_map[sid]['user'].name
     room = policy.sid_map[sid]['room']
     location = room.get_active_location(username)
 
@@ -237,7 +231,7 @@ async def add_shape(sid, data):
 @sio.on("remove shape", namespace="/planarally")
 @auth.login_required(app, sio)
 async def remove_shape(sid, data):
-    username = app['AuthzPolicy'].sid_map[sid]['user'].user
+    username = app['AuthzPolicy'].sid_map[sid]['user'].name
     room = app['AuthzPolicy'].sid_map[sid]['room']
     location = room.get_active_location(username)
 
@@ -267,7 +261,7 @@ async def remove_shape(sid, data):
 @sio.on("moveShapeOrder", namespace="/planarally")
 @auth.login_required(app, sio)
 async def move_shape_order(sid, data):
-    username = app['AuthzPolicy'].sid_map[sid]['user'].user
+    username = app['AuthzPolicy'].sid_map[sid]['user'].name
     room = app['AuthzPolicy'].sid_map[sid]['room']
     location = room.get_active_location(username)
 
@@ -284,7 +278,7 @@ async def move_shape_order(sid, data):
 @auth.login_required(app, sio)
 async def move_shape(sid, data):
     policy = app['AuthzPolicy']
-    username = policy.sid_map[sid]['user'].user
+    username = policy.sid_map[sid]['user'].name
     room = policy.sid_map[sid]['room']
     location = room.get_active_location(username)
 
@@ -343,7 +337,7 @@ def shape_wrap(player, shape):
 @auth.login_required(app, sio)
 async def update_shape(sid, data):
     policy = app['AuthzPolicy']
-    username = policy.sid_map[sid]['user'].user
+    username = policy.sid_map[sid]['user'].name
     room = policy.sid_map[sid]['room']
     location = room.get_active_location(username)
     layer = location.layer_manager.get_layer(data['shape']['layer'])
@@ -376,7 +370,7 @@ async def update_shape(sid, data):
 @auth.login_required(app, sio)
 async def update_initiative(sid, data):
     policy = app['AuthzPolicy']
-    username = policy.sid_map[sid]['user'].user
+    username = policy.sid_map[sid]['user'].name
     room = policy.sid_map[sid]['room']
     location = room.get_active_location(username)
 
@@ -427,7 +421,7 @@ async def update_initiative(sid, data):
 @auth.login_required(app, sio)
 async def update_initiative_order(sid, data):
     policy = app['AuthzPolicy']
-    username = policy.sid_map[sid]['user'].user
+    username = policy.sid_map[sid]['user'].name
     room = policy.sid_map[sid]['room']
     location = room.get_active_location(username)
 
@@ -450,7 +444,7 @@ async def update_initiative_order(sid, data):
 @auth.login_required(app, sio)
 async def update_initiative_turn(sid, data):
     policy = app['AuthzPolicy']
-    username = policy.sid_map[sid]['user'].user
+    username = policy.sid_map[sid]['user'].name
     room = policy.sid_map[sid]['room']
     location = room.get_active_location(username)
 
@@ -474,7 +468,7 @@ async def update_initiative_turn(sid, data):
 @auth.login_required(app, sio)
 async def update_initiative_round(sid, data):
     policy = app['AuthzPolicy']
-    username = policy.sid_map[sid]['user'].user
+    username = policy.sid_map[sid]['user'].name
     room = policy.sid_map[sid]['room']
     location = room.get_active_location(username)
 
@@ -491,7 +485,7 @@ async def update_initiative_round(sid, data):
 @auth.login_required(app, sio)
 async def new_initiative_effect(sid, data):
     policy = app['AuthzPolicy']
-    username = policy.sid_map[sid]['user'].user
+    username = policy.sid_map[sid]['user'].name
     room = policy.sid_map[sid]['room']
     location = room.get_active_location(username)
 
@@ -515,7 +509,7 @@ async def new_initiative_effect(sid, data):
 @auth.login_required(app, sio)
 async def update_initiative_effect(sid, data):
     policy = app['AuthzPolicy']
-    username = policy.sid_map[sid]['user'].user
+    username = policy.sid_map[sid]['user'].name
     room = policy.sid_map[sid]['room']
     location = room.get_active_location(username)
 
@@ -545,7 +539,7 @@ async def set_client(sid, data):
 @sio.on("set locationOptions", namespace='/planarally')
 @auth.login_required(app, sio)
 async def set_room(sid, data):
-    username = app['AuthzPolicy'].sid_map[sid]['user'].user
+    username = app['AuthzPolicy'].sid_map[sid]['user'].name
     room = app['AuthzPolicy'].sid_map[sid]['room']
     location = room.get_active_location(username)
 
@@ -560,7 +554,7 @@ async def set_room(sid, data):
 @sio.on("set gridsize", namespace="/planarally")
 @auth.login_required(app, sio)
 async def set_gridsize(sid, grid_size):
-    username = app['AuthzPolicy'].sid_map[sid]['user'].user
+    username = app['AuthzPolicy'].sid_map[sid]['user'].name
     room = app['AuthzPolicy'].sid_map[sid]['room']
     location = room.get_active_location(username)
 
@@ -574,7 +568,7 @@ async def set_gridsize(sid, grid_size):
 @sio.on("Note.New", namespace="/planarally")
 @auth.login_required(app, sio)
 async def new_note(sid, data):
-    username = app['AuthzPolicy'].sid_map[sid]['user'].user
+    username = app['AuthzPolicy'].sid_map[sid]['user'].name
     room = app['AuthzPolicy'].sid_map[sid]['room']
 
     if data["uuid"] in room.notes:
@@ -588,7 +582,7 @@ async def new_note(sid, data):
 @sio.on("Note.Update", namespace="/planarally")
 @auth.login_required(app, sio)
 async def update_note(sid, data):
-    username = app['AuthzPolicy'].sid_map[sid]['user'].user
+    username = app['AuthzPolicy'].sid_map[sid]['user'].name
     room = app['AuthzPolicy'].sid_map[sid]['room']
 
     if data["uuid"] not in room.notes:
@@ -602,7 +596,7 @@ async def update_note(sid, data):
 @sio.on("Note.Remove", namespace="/planarally")
 @auth.login_required(app, sio)
 async def delete_note(sid, uuid):
-    username = app['AuthzPolicy'].sid_map[sid]['user'].user
+    username = app['AuthzPolicy'].sid_map[sid]['user'].name
     room = app['AuthzPolicy'].sid_map[sid]['room']
 
     if uuid not in room.notes:
@@ -615,7 +609,7 @@ async def delete_note(sid, uuid):
 
 @sio.on("new location", namespace='/planarally')
 async def add_new_location(sid, location):
-    username = app['AuthzPolicy'].sid_map[sid]['user'].user
+    username = app['AuthzPolicy'].sid_map[sid]['user'].name
     room = app['AuthzPolicy'].sid_map[sid]['room']
 
     if room.creator != username:
@@ -639,7 +633,7 @@ async def add_new_location(sid, location):
 @sio.on("change location", namespace='/planarally')
 async def change_location(sid, location):
     policy = app['AuthzPolicy']
-    username = policy.sid_map[sid]['user'].user
+    username = policy.sid_map[sid]['user'].name
     room = policy.sid_map[sid]['room']
 
     if room.creator != username:
@@ -665,27 +659,33 @@ async def change_location(sid, location):
             await load_location(psid, new_location)
 
 
+@auth.login_required(app, sio)
 async def load_location(sid, location):
     policy = app['AuthzPolicy']
-    username = policy.sid_map[sid]['user'].user
+    user = policy.sid_map[sid]['user']
     room = policy.sid_map[sid]['room']
+    location = policy.sid_map[sid]['location']
 
-    await sio.emit('board init', room.get_board(username), room=sid, namespace='/planarally')
-    await sio.emit("set location", {'options': location.options, 'name': location.name}, room=sid, namespace='/planarally')
-    await sio.emit("set clientOptions", app['AuthzPolicy'].user_map[username].options, room=sid, namespace='/planarally')
-    if hasattr(location, "initiative"):
-        initiatives = location.initiative
-        if room.creator != username:
-            initiatives = []
-            for i in location.initiative:
-                shape = location.layer_manager.get_shape(i['uuid'])
-                if shape and username in shape.get('owners', []) or i.get("visible", False):
-                    initiatives.append(i)
-        await sio.emit("setInitiative", initiatives, room=sid, namespace='/planarally')
-        if hasattr(location, "initiativeRound"):
-            await sio.emit("updateInitiativeRound", location.initiativeRound, room=sid, namespace='/planarally')
-        if hasattr(location, "initiativeTurn"):
-            await sio.emit("updateInitiativeTurn", location.initiativeTurn, room=sid, namespace='/planarally')
+    data = {}
+    data['locations'] = [l.name for l in room.locations]
+    data['layers'] = [l.as_dict() for l in location.layers.order_by(Layer.index).where(Layer.player_visible)]
+
+    await sio.emit('board init', data, room=sid, namespace='/planarally')
+    # await sio.emit("set location", {'options': location.options, 'name': location.name}, room=sid, namespace='/planarally')
+    # await sio.emit("set clientOptions", app['AuthzPolicy'].user_map[username].options, room=sid, namespace='/planarally')
+    # if hasattr(location, "initiative"):
+    #     initiatives = location.initiative
+    #     if room.creator != username:
+    #         initiatives = []
+    #         for i in location.initiative:
+    #             shape = location.layer_manager.get_shape(i['uuid'])
+    #             if shape and username in shape.get('owners', []) or i.get("visible", False):
+    #                 initiatives.append(i)
+    #     await sio.emit("setInitiative", initiatives, room=sid, namespace='/planarally')
+    #     if hasattr(location, "initiativeRound"):
+    #         await sio.emit("updateInitiativeRound", location.initiativeRound, room=sid, namespace='/planarally')
+    #     if hasattr(location, "initiativeTurn"):
+    #         await sio.emit("updateInitiativeTurn", location.initiativeTurn, room=sid, namespace='/planarally')
 
 
 @sio.on("bringPlayers", namespace='/planarally')
@@ -698,29 +698,34 @@ async def bring_players(sid, data):
 
 @sio.on('connect', namespace='/planarally')
 async def test_connect(sid, environ):
-    username = await authorized_userid(environ['aiohttp.request'])
-    if username is None:
+    user = await authorized_userid(environ['aiohttp.request'])
+    if user is None:
         await sio.emit("redirect", "/", room=sid, namespace='/planarally')
     else:
         ref = unquote(environ['HTTP_REFERER']).strip("/").split("/")
-        room = PA.rooms[(ref[-1], ref[-2])]
-        location = room.get_active_location(username)
+        room = Room.select().join(User).where((Room.name == ref[-1]) & (User.name == ref[-2]))[0]
+        if room.creator == user:
+            location = Location.get(room=room, name=room.dm_location)
+        else:
+            location = Location.get(room=room, name=room.player_location)
 
         policy = app['AuthzPolicy']
 
         policy.sid_map[sid] = {
-            'user': policy.user_map[username],
-            'room': room
+            'user': user,
+            'room': room,
+            'location': location,
         }
-        logger.info(f"User {username} connected with identifier {sid}")
+        logger.info(f"User {user.name} connected with identifier {sid}")
 
-        assets = policy.user_map[username].asset_info
+        # TODO
+        # assets = policy.user_map[username].asset_info
 
-        sio.enter_room(sid, location.sioroom, namespace='/planarally')
-        await sio.emit("set username", username, room=sid, namespace='/planarally')
-        await sio.emit("set room info", {'name': room.name, 'creator': room.creator, 'invitationCode': str(room.invitation_code)}, room=sid, namespace='/planarally')
-        await sio.emit("set notes", room.get_notes(username), room=sid, namespace='/planarally')
-        await sio.emit('asset list', assets, room=sid, namespace='/planarally')
+        sio.enter_room(sid, location.get_path(), namespace='/planarally')
+        await sio.emit("set username", user.name, room=sid, namespace='/planarally')
+        await sio.emit("set room info", {'name': room.name, 'creator': room.creator.name, 'invitationCode': str(room.invitation_code)}, room=sid, namespace='/planarally')
+        # TODO await sio.emit("set notes", room.get_notes(username), room=sid, namespace='/planarally')
+        # TODO await sio.emit('asset list', assets, room=sid, namespace='/planarally')
         await load_location(sid, location)
 
 
@@ -728,7 +733,7 @@ async def test_connect(sid, environ):
 async def test_disconnect(sid):
     if sid not in app['AuthzPolicy'].sid_map:
         return
-    username = app['AuthzPolicy'].sid_map[sid]['user'].user
+    username = app['AuthzPolicy'].sid_map[sid]['user'].name
     room = app['AuthzPolicy'].sid_map[sid]['room']
     location = room.get_active_location(username)
 
@@ -787,7 +792,7 @@ async def assetmgmt_upload(sid, file_data):
     user = policy.sid_map[sid]['user']
     folder = functools.reduce(dict.get, file_data['directory'], user.asset_info)
     if folder is None:
-        logger.warning(f"Directory structure {file_data['directory']} is not valid for {user.user}")
+        logger.warning(f"Directory structure {file_data['directory']} is not valid for {user.name}")
         return
 
     file_info = {'name': file_data['name'], 'hash': hashname}

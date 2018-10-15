@@ -9,8 +9,8 @@ import Line from "../../shapes/line";
 import Text from "../../shapes/text";
 import Tool from "./tool.vue";
 
+import { socket } from "../../comm/socket";
 import { GlobalPoint } from "../../geom";
-import { socket } from "../../socket";
 import { l2g } from "../../units";
 import { getMouse } from "../../utils";
 

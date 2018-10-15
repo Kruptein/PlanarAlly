@@ -2,10 +2,10 @@ import gameManager from "../manager";
 import Shape from "../shapes/shape";
 import store from "../store";
 
+import { socket } from "../comm/socket";
 import { ServerShape } from "../comm/types/shapes";
 import { vm } from "../planarally";
 import { createShapeFromDict } from "../shapes/utils";
-import { socket } from "../socket";
 import { g2lx, g2ly } from "../units";
 
 export class Layer {

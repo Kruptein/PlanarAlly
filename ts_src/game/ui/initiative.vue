@@ -134,9 +134,9 @@ import { mapState } from "vuex";
 import modal from "../../core/components/modals/modal.vue";
 import gameManager from "../manager";
 
+import { socket } from "../comm/socket";
+import { InitiativeData, InitiativeEffect } from "../comm/types/general";
 import { uuidv4 } from "../../core/utils";
-import { InitiativeData, InitiativeEffect } from "../api_types";
-import { socket } from "../socket";
 
 export default Vue.component("initiative-dialog", {
     data: () => ({

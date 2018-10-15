@@ -136,10 +136,10 @@ import { mapState } from "vuex";
 import Settings from "../../settings";
 import assetNode from "./asset_node.vue";
 
+import { socket } from "../../comm/socket";
+import { Note } from "../../comm/types/general";
 import { uuidv4 } from "../../../core/utils";
-import { Note } from "../../api_types";
 import { vm } from "../../planarally";
-import { socket } from "../../socket";
 
 export default Vue.component("menu-bar", {
     components: {

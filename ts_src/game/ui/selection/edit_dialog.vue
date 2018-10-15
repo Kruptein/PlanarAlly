@@ -176,8 +176,8 @@ import modal from "../../../core/components/modals/modal.vue";
 import gameManager from "../../manager";
 import Shape from "../../shapes/shape";
 
+import { socket } from "../../comm/socket";
 import { uuidv4 } from "../../../core/utils";
-import { socket } from "../../socket";
 
 export default Vue.component("edit-dialog", {
     components: {

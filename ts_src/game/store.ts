@@ -4,9 +4,9 @@ import Vuex from "vuex";
 import gameManager from "./manager";
 
 import { AssetList } from "../core/comm/types";
+import { sendClientOptions, socket } from "./comm/socket";
 import { Note } from "./comm/types/general";
 import { GlobalPoint } from "./geom";
-import { sendClientOptions, socket } from "./socket";
 import { g2l, l2g } from "./units";
 
 Vue.use(Vuex);

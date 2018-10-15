@@ -1,9 +1,9 @@
 import gameManager from "../manager";
 import store from "../store";
 
+import { sendClientOptions, socket } from "../comm/socket";
 import { Vector } from "../geom";
 import { vm } from "../planarally";
-import { sendClientOptions, socket } from "../socket";
 import { calculateDelta } from "../ui/tools/utils";
 
 export function onKeyUp(event: KeyboardEvent) {

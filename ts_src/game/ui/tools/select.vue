@@ -12,9 +12,9 @@ import Rect from "../../shapes/rect";
 import ContextMenu from "./selectcontext.vue";
 import Tool from "./tool.vue";
 
+import { socket } from "../../comm/socket";
 import { GlobalPoint, LocalPoint, Ray, Vector } from "../../geom";
 import { vm } from "../../planarally";
-import { socket } from "../../socket";
 import { g2l, g2lx, g2ly, l2g } from "../../units";
 import { getMouse } from "../../utils";
 import { calculateDelta } from "./utils";

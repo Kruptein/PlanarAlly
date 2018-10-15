@@ -63,8 +63,8 @@ import gameManager from "../../manager";
 import Shape from "../../shapes/shape";
 import EditDialog from "./edit_dialog.vue";
 
+import { socket } from "../../comm/socket";
 import { vm } from "../../planarally";
-import { socket } from "../../socket";
 
 export default Vue.extend({
     components: {

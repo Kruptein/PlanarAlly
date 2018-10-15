@@ -2,13 +2,13 @@ import BoundingVolume from "./bvh/bvh";
 import store from "./store";
 import AnnotationManager from "./ui/annotation";
 
+import { sendClientOptions } from "./comm/socket";
 import { ClientOptions } from "./comm/types/general";
 import { ServerShape } from "./comm/types/shapes";
 import { GlobalPoint } from "./geom";
 import { LayerManager } from "./layers/manager";
 import { vm } from "./planarally";
 import { createShapeFromDict } from "./shapes/utils";
-import { sendClientOptions } from "./socket";
 import { g2l } from "./units";
 
 export class GameManager {

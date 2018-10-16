@@ -22,6 +22,7 @@ class Shape(BaseModel):
     annotation = TextField(default='')
     draw_operator = TextField(default='source-over')
     index = IntegerField()
+    options = TextField(null=True)
 
     def __repr__(self):
         return f"<Shape {self.get_path()}>"

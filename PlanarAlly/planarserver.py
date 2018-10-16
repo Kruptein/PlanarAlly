@@ -23,7 +23,7 @@ import socketio
 from aiohttp import web
 from aiohttp_security import remember, forget, authorized_userid, SessionIdentityPolicy
 from aiohttp_session.cookie_storage import EncryptedCookieStorage
-from playhouse.shortcuts import model_to_dict
+from playhouse.shortcuts import dict_to_model, model_to_dict
 
 # SETUP PATHS
 
@@ -50,7 +50,7 @@ logger.addHandler(stream_handler)
 import auth
 import save
 from planarally import PlanarAlly
-from models import db, Layer, Location, Room, Shape, User
+from models import db, Layer, Location, LocationUserOption, Room, Shape, User
 from config import config, SAVE_FILE
 
 save.check_save()
@@ -532,8 +532,19 @@ async def update_initiative_effect(sid, data):
 @auth.login_required(app, sio)
 async def set_client(sid, data):
     user = app['AuthzPolicy'].sid_map[sid]['user']
-    nested_dict_update(user.options, data)
-    app['AuthzPolicy'].save()
+    location = app['AuthzPolicy'].sid_map[sid]['location']
+    
+    with db.atomic():
+        for option in [('gridColour', 'grid_colour'), ('fowColour', 'fow_colour'), ('rulerColour', 'ruler_colour')]:
+            if option[0] in data:
+                setattr(user, option[1], data[option[0]])
+        user.save()
+    if 'locationOptions' in data:
+        LocationUserOption.update(
+            pan_x=data['locationOptions']['panX'],
+            pan_y=data['locationOptions']['panY'],
+            zoom_factor=data['locationOptions']['zoomFactor']
+        ).where((LocationUserOption.location == location) & (LocationUserOption.user == user)).execute()
 
 
 @sio.on("set locationOptions", namespace='/planarally')

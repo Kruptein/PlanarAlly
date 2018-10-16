@@ -151,11 +151,9 @@ socket.on("clear temporaries", (shapes: ServerShape[]) => {
 export function sendClientOptions() {
     socket.emit("set clientOptions", {
         locationOptions: {
-            [`${store.state.roomName}/${store.state.roomCreator}/${store.state.locationName}`]: {
-                panX: store.state.panX,
-                panY: store.state.panY,
-                zoomFactor: store.state.zoomFactor,
-            },
+            panX: store.state.panX,
+            panY: store.state.panY,
+            zoomFactor: store.state.zoomFactor,
         },
     });
 }

@@ -28,35 +28,35 @@ socket.on("redirect", (destination: string) => {
     console.log("redirecting");
     window.location.href = destination;
 });
-socket.on("set room info", (data: { name: string; creator: string; invitationCode: string }) => {
+socket.on("Room.Info.Set", (data: { name: string; creator: string; invitationCode: string }) => {
     store.commit("setRoomName", data.name);
     store.commit("setRoomCreator", data.creator);
     store.commit("setInvitationCode", data.invitationCode);
 });
-socket.on("set username", (username: string) => {
+socket.on("Username.Set", (username: string) => {
     store.commit("setUsername", username);
     store.commit("setDM", username === window.location.pathname.split("/")[2]);
 });
-socket.on("set clientOptions", (options: ClientOptions) => {
+socket.on("Client.Options.Set", (options: ClientOptions) => {
     gameManager.setClientOptions(options);
 });
-socket.on("set locationOptions", (options: LocationOptions) => {
+socket.on("Location.Options.Set", (options: LocationOptions) => {
     setLocationOptions(options);
 });
-socket.on("set location", (data: { name: string; options: LocationOptions }) => {
+socket.on("Location.Set", (data: { name: string; options: LocationOptions }) => {
     setLocationOptions(data.options);
     store.commit("setLocationName", data.name);
 });
-socket.on("set position", (data: { x: number; y: number }) => {
+socket.on("Position.Set", (data: { x: number; y: number }) => {
     gameManager.setCenterPosition(new GlobalPoint(data.x, data.y));
 });
-socket.on("set notes", (notes: Note[]) => {
+socket.on("Notes.Set", (notes: Note[]) => {
     for (const note of notes) store.commit("newNote", { note, sync: false });
 });
-socket.on("asset list", (assets: AssetList) => {
+socket.on("Asset.List.Set", (assets: AssetList) => {
     store.commit("setAssets", assets);
 });
-socket.on("board init", (locationInfo: BoardInfo) => {
+socket.on("Board.Set", (locationInfo: BoardInfo) => {
     gameManager.clear();
     store.commit("setLocations", locationInfo.locations);
     document.getElementById("layers")!.innerHTML = "";
@@ -68,13 +68,13 @@ socket.on("board init", (locationInfo: BoardInfo) => {
     store.commit("setBoardInitialized", true);
     gameManager.recalculateBoundingVolume();
 });
-socket.on("set gridsize", (gridSize: number) => {
+socket.on("Gridsize.Set", (gridSize: number) => {
     store.commit("setGridSize", { gridSize, sync: false });
 });
-socket.on("add shape", (shape: ServerShape) => {
+socket.on("Shape.Add", (shape: ServerShape) => {
     gameManager.addShape(shape);
 });
-socket.on("remove shape", (shape: ServerShape) => {
+socket.on("Shape.Remove", (shape: ServerShape) => {
     if (!gameManager.layerManager.UUIDMap.has(shape.uuid)) {
         console.log(`Attempted to remove an unknown shape`);
         return;
@@ -87,7 +87,7 @@ socket.on("remove shape", (shape: ServerShape) => {
     layer.removeShape(gameManager.layerManager.UUIDMap.get(shape.uuid)!, false);
     layer.invalidate(false);
 });
-socket.on("moveShapeOrder", (data: { shape: ServerShape; index: number }) => {
+socket.on("Shape.Order.Set", (data: { shape: ServerShape; index: number }) => {
     if (!gameManager.layerManager.UUIDMap.has(data.shape.uuid)) {
         console.log(`Attempted to move the shape order of an unknown shape`);
         return;
@@ -100,13 +100,13 @@ socket.on("moveShapeOrder", (data: { shape: ServerShape; index: number }) => {
     const layer = gameManager.layerManager.getLayer(shape.layer)!;
     layer.moveShapeOrder(shape, data.index, false);
 });
-socket.on("shapeMove", (shape: ServerShape) => {
+socket.on("Shape.Move", (shape: ServerShape) => {
     gameManager.moveShape(shape);
 });
-socket.on("updateShape", (data: { shape: ServerShape; redraw: boolean }) => {
+socket.on("Shape.Update", (data: { shape: ServerShape; redraw: boolean }) => {
     gameManager.updateShape(data);
 });
-socket.on("updateInitiative", (data: InitiativeData) => {
+socket.on("Initiative.Update", (data: InitiativeData) => {
     const initiative = <any>vm.$refs.initiative;
     if (
         data.initiative === undefined ||
@@ -115,13 +115,13 @@ socket.on("updateInitiative", (data: InitiativeData) => {
         initiative.removeInitiative(data.uuid, false, true);
     else initiative.updateInitiative(data, false);
 });
-socket.on("setInitiative", (data: InitiativeData[]) => {
+socket.on("Initiative.Set", (data: InitiativeData[]) => {
     (<any>vm.$refs.initiative).data = data.filter(d => !!d);
 });
-socket.on("updateInitiativeTurn", (data: string) => {
+socket.on("Initiative.Turn.Update", (data: string) => {
     (<any>vm.$refs.initiative).setTurn(data, false);
 });
-socket.on("updateInitiativeRound", (data: number) => {
+socket.on("Initiative.Round.Update", (data: number) => {
     (<any>vm.$refs.initiative).setRound(data, false);
 });
 socket.on("Initiative.Effect.New", (data: { actor: string; effect: InitiativeEffect }) => {
@@ -133,7 +133,7 @@ socket.on("Initiative.Effect.New", (data: { actor: string; effect: InitiativeEff
 socket.on("Initiative.Effect.Update", (data: { actor: string; effect: InitiativeEffect }) => {
     (<any>vm.$refs.initiative).updateEffect(data.actor, data.effect, false);
 });
-socket.on("clear temporaries", (shapes: ServerShape[]) => {
+socket.on("Temp.Clear", (shapes: ServerShape[]) => {
     shapes.forEach(shape => {
         if (!gameManager.layerManager.UUIDMap.has(shape.uuid)) {
             console.log("Attempted to remove an unknown temporary shape");
@@ -149,7 +149,7 @@ socket.on("clear temporaries", (shapes: ServerShape[]) => {
 });
 
 export function sendClientOptions() {
-    socket.emit("set clientOptions", {
+    socket.emit("Client.Options.Set", {
         locationOptions: {
             panX: store.state.panX,
             panY: store.state.panY,

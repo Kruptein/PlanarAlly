@@ -13,7 +13,7 @@ import { getMouse } from "../../utils";
 
 export default Tool.extend({
     data: () => ({
-        name: "pan",
+        name: "Pan",
         panStart: new LocalPoint(0, 0),
         active: false,
     }),

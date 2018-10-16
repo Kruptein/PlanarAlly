@@ -41,7 +41,7 @@ export default Vue.component("select-context", {
         },
         bringPlayers() {
             if (!this.IS_DM) return;
-            socket.emit("bringPlayers", { x: l2gx(this.x), y: l2gy(this.y) });
+            socket.emit("Players.Bring", { x: l2gx(this.x), y: l2gy(this.y) });
             this.close();
         },
         createToken() {

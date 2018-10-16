@@ -34,6 +34,11 @@ class PlayerRoom(BaseModel):
 class Location(BaseModel):
     room = ForeignKeyField(Room, backref='locations')
     name = TextField()
+    unit_size = IntegerField(default=5)
+    use_grid = BooleanField(default=True)
+    full_FOW = BooleanField(default=False)
+    fow_opacity = FloatField(default=0.3)
+    fow_LOS = BooleanField(default=False)
     # initiative ?
 
     def __repr__(self):

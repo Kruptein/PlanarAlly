@@ -87,8 +87,12 @@ def convert(save_file):
 
                 for location in room.locations.values():
                     logger.info(f"\t\tLocation {location.name}")
-                    db_location = Location.create(
-                        room=db_room, name=location.name)
+                    db_location = Location(room=db_room, name=location.name)
+                    for optional in [('unitSize', 'unit_size'), ('useGrid', 'use_grid'), ('fullFOW', 'full_FOW'), ('fowOpacity', 'fow_opacity'), ('fowLOS', 'fow_LOS')]:
+                        if location.options.get(optional[0]):
+                            setattr(
+                                db_location, optional[1], location.options[optional[0]])
+                    db_location.save()
 
                     for i_l, layer in enumerate(location.layer_manager.layers):
                         db_layer = Layer.create(location=db_location, name=layer.name, player_visible=layer.player_visible,

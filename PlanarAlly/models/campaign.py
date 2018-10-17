@@ -34,6 +34,11 @@ class PlayerRoom(BaseModel):
 class Location(BaseModel):
     room = ForeignKeyField(Room, backref='locations')
     name = TextField()
+    unit_size = IntegerField(default=5)
+    use_grid = BooleanField(default=True)
+    full_FOW = BooleanField(default=False)
+    fow_opacity = FloatField(default=0.3)
+    fow_LOS = BooleanField(default=False)
     # initiative ?
 
     def __repr__(self):
@@ -41,6 +46,9 @@ class Location(BaseModel):
     
     def get_path(self):
         return f"{self.room.get_path()}/{self.name}"
+    
+    def as_dict(self):
+        return model_to_dict(self, recurse=False, exclude=[Location.id, Location.room])
 
     class Meta:
         indexes = ((('room', 'name'), True),)
@@ -55,6 +63,9 @@ class LocationUserOption(BaseModel):
 
     def __repr__(self):
         return f"<LocationUserOption {self.location.get_path()} - {self.user.name}>"
+    
+    def as_dict(self):
+        return model_to_dict(self, recurse=False, exclude=[LocationUserOption.id, LocationUserOption.location, LocationUserOption.user])
 
 
 class Layer(BaseModel):

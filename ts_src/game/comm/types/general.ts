@@ -1,13 +1,12 @@
 import { ServerShape } from "./shapes";
 
-export interface LocationOptions {
+export interface ServerLocation {
     name: string;
-    useGrid: boolean;
-    unitSize: number;
-    fullFOW: boolean;
-    fowColour: string;
-    fowOpacity: number;
-    fowLOS: boolean;
+    use_grid: boolean;
+    unit_size: number;
+    full_FOW: boolean;
+    fow_opacity: number;
+    fow_LOS: boolean;
 }
 
 export interface ClientOptions {

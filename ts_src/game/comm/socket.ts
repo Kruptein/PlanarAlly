@@ -12,8 +12,8 @@ import {
     ClientOptions,
     InitiativeData,
     InitiativeEffect,
-    LocationOptions,
-    Note
+    Note,
+    ServerLocation
 } from "./types/general";
 import { ServerShape } from "./types/shapes";
 
@@ -40,12 +40,13 @@ socket.on("Username.Set", (username: string) => {
 socket.on("Client.Options.Set", (options: ClientOptions) => {
     gameManager.setClientOptions(options);
 });
-socket.on("Location.Options.Set", (options: LocationOptions) => {
-    setLocationOptions(options);
-});
-socket.on("Location.Set", (data: { name: string; options: LocationOptions }) => {
-    setLocationOptions(data.options);
+socket.on("Location.Set", (data: ServerLocation ) => {
     store.commit("setLocationName", data.name);
+    store.commit("setUnitSize", { unitSize: data.unit_size, sync: false });
+    store.commit("setUseGrid", { useGrid: data.use_grid, sync: false });
+    store.commit("setFullFOW", { fullFOW: data.full_FOW, sync: false });
+    store.commit("setFOWOpacity", { fowOpacity: data.fow_opacity, sync: false });
+    store.commit("setLineOfSight", { fowLOS: data.fow_LOS, sync: false });
 });
 socket.on("Position.Set", (data: { x: number; y: number }) => {
     gameManager.setCenterPosition(new GlobalPoint(data.x, data.y));
@@ -156,14 +157,6 @@ export function sendClientOptions() {
             zoomFactor: store.state.zoomFactor,
         },
     });
-}
-
-function setLocationOptions(options: LocationOptions) {
-    if ("unitSize" in options) store.commit("setUnitSize", { unitSize: options.unitSize, sync: false });
-    if ("useGrid" in options) store.commit("setUseGrid", { useGrid: options.useGrid, sync: false });
-    if ("fullFOW" in options) store.commit("setFullFOW", { fullFOW: options.fullFOW, sync: false });
-    if ("fowOpacity" in options) store.commit("setFOWOpacity", { fowOpacity: options.fowOpacity, sync: false });
-    if ("fowLOS" in options) store.commit("setLineOfSight", { fowLOS: options.fowLOS, sync: false });
 }
 
 export default socket;

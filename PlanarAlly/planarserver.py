@@ -171,6 +171,7 @@ async def show_room(request):
     except IndexError:
         logger.info(f"{user.name} attempted to load non existing room {request.match_info['username']}/{request.match_info['roomname']}")
     else:
+        print("?")
         if room.creator == user:
             return {'dm': True}
         if user.name.lower() in (pr.player.name.lower() for pr in room.players.select(User.name).join(User)):
@@ -682,8 +683,8 @@ async def load_location(sid, location):
     data['layers'] = [l.as_dict(user, user == room.creator) for l in location.layers.order_by(Layer.index).where(Layer.player_visible)]
 
     await sio.emit('Board.Set', data, room=sid, namespace='/planarally')
-    # await sio.emit("Location.Set", {'options': location.options, 'name': location.name}, room=sid, namespace='/planarally')
-    # await sio.emit("Client.Options.Set", app['AuthzPolicy'].user_map[username].options, room=sid, namespace='/planarally')
+    await sio.emit("Location.Set", location.as_dict(), room=sid, namespace='/planarally')
+    await sio.emit("Client.Options.Set", LocationUserOption.get(user=user, location=location).as_dict(), room=sid, namespace='/planarally')
     # if hasattr(location, "initiative"):
     #     initiatives = location.initiative
     #     if room.creator != username:
@@ -733,8 +734,8 @@ async def test_connect(sid, environ):
         # assets = policy.user_map[username].asset_info
 
         sio.enter_room(sid, location.get_path(), namespace='/planarally')
-        await sio.emit("Username.Set", username, room=sid, namespace='/planarally')
-        await sio.emit("Room.Info.Set", {'name': room.name, 'creator': room.creator, 'invitationCode': str(room.invitation_code)}, room=sid, namespace='/planarally')
+        await sio.emit("Username.Set", user.name, room=sid, namespace='/planarally')
+        await sio.emit("Room.Info.Set", {'name': room.name, 'creator': room.creator.name, 'invitationCode': str(room.invitation_code)}, room=sid, namespace='/planarally')
         # await sio.emit("Notes.Set", room.get_notes(username), room=sid, namespace='/planarally')
         # await sio.emit('Asset.List.Set', assets, room=sid, namespace='/planarally')
         await load_location(sid, location)

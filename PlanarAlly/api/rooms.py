@@ -1,19 +1,20 @@
 import auth
-from app import app, logger, sio
+from app import app, logger, sio, state
 from models import LocationUserOption, Layer
 
 
 @auth.login_required(app, sio)
 async def load_location(sid, location):
-    policy = app['AuthzPolicy']
-    user = policy.sid_map[sid]['user']
-    room = policy.sid_map[sid]['room']
+    sid_data = state.sid_map[sid]
+    user = sid_data['user']
+    room = sid_data['room']
 
-    policy.sid_map[sid]['location'] = location
+    sid_data['location'] = location
 
     data = {}
     data['locations'] = [l.name for l in room.locations]
-    data['layers'] = [l.as_dict(user, user == room.creator) for l in location.layers.order_by(Layer.index).where(Layer.player_visible)]
+    data['layers'] = [l.as_dict(user, user == room.creator) for l in location.layers.order_by(
+        Layer.index).where(Layer.player_visible)]
 
     await sio.emit('Board.Set', data, room=sid, namespace='/planarally')
     await sio.emit("Location.Set", location.as_dict(), room=sid, namespace='/planarally')
@@ -36,17 +37,17 @@ async def load_location(sid, location):
 @sio.on("Location.Change", namespace='/planarally')
 async def change_location(sid, location):
     policy = app['AuthzPolicy']
-    username = policy.sid_map[sid]['user'].name
+    user = policy.sid_map[sid]['user']
     room = policy.sid_map[sid]['room']
 
-    if room.creator != username:
-        logger.warning(f"{username} attempted to change location")
+    if room.creator != user.name:
+        logger.warning(f"{user.name} attempted to change location")
         return
 
-    old_location = room.get_active_location(username)
+    old_location = room.get_active_location(user.name)
     sio.leave_room(sid, old_location.sioroom, namespace='/planarally')
     room.dm_location = location
-    new_location = room.get_active_location(username)
+    new_location = room.get_active_location(user.name)
 
     sio.enter_room(sid, new_location.sioroom, namespace='/planarally')
     await load_location(sid, new_location)

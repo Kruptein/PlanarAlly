@@ -1,7 +1,5 @@
 import logging
-import sys
 from aiohttp_security.abc import AbstractAuthorizationPolicy
-from distutils.version import StrictVersion
 from functools import wraps
 
 from models import Constants, User
@@ -10,20 +8,6 @@ logger = logging.getLogger('PlanarAllyServer')
 
 
 class PA_AuthPolicy(AbstractAuthorizationPolicy):
-    def __init__(self):
-        super().__init__()
-        self.sid_map = {}
-
-    def get_sid(self, user, room):
-        for sid in self.sid_map:
-            if 'room' not in self.sid_map[sid]:
-                logger.error("ROOM NOT IN SID_MAP")
-                logger.error(sid)
-                logger.error(self.sid_map[sid])
-                continue
-            if self.sid_map[sid]['user'] == user and self.sid_map[sid]['room'] == room:
-                return sid
-
     async def authorized_userid(self, identity):
         """Retrieve authorized user id.
         Return the user_id of the user identified by the identity
@@ -53,8 +37,7 @@ def login_required(app, sio):
         @wraps(fn)
         async def wrapped(*args, **kwargs):
             sid = args[0]
-            policy = app['AuthzPolicy']
-            if sid not in policy.sid_map:
+            if sid not in app['state'].sid_map:
                 await sio.emit("redirect", "/")
                 return
             return await fn(*args, **kwargs)

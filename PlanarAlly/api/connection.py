@@ -3,7 +3,7 @@ from urllib.parse import unquote
 from aiohttp_security import authorized_userid
 
 from api.rooms import load_location
-from app import sio, logger, app
+from app import sio, logger, app, state
 from models import Location, Room, User
 
 
@@ -21,13 +21,8 @@ async def connect(sid, environ):
         else:
             location = Location.get(room=room, name=room.player_location)
 
-        policy = app['AuthzPolicy']
+        state.add_sid(sid, user, room, location)
 
-        policy.sid_map[sid] = {
-            'user': user,
-            'room': room,
-            'location': location,
-        }
         logger.info(f"User {user.name} connected with identifier {sid}")
 
         # TODO
@@ -43,27 +38,9 @@ async def connect(sid, environ):
 
 @sio.on('disconnect', namespace='/planarally')
 async def test_disconnect(sid):
-    if sid not in app['AuthzPolicy'].sid_map:
+    if sid not in state.sid_map:
         return
-    username = app['AuthzPolicy'].sid_map[sid]['user'].name
-    room = app['AuthzPolicy'].sid_map[sid]['room']
-    location = room.get_active_location(username)
+    user = state.sid_map[sid]['user']
 
-    logger.info(f'User {username} disconnected with identifier {sid}')
-    del app['AuthzPolicy'].sid_map[sid]
-
-    if sid in location.client_temporaries:
-        await sio.emit("Temp.Clear", location.client_temporaries[sid])
-        del location.client_temporaries[sid]
-
-
-@sio.on('connect', namespace='/pa_assetmgmt')
-async def assetmgmt_connect(sid, environ):
-    username = await authorized_userid(environ['aiohttp.request'])
-    if username is None:
-        await sio.emit("redirect", "/", room=sid, namespace='/pa_assetmgmt')
-    else:
-        app['AuthzPolicy'].sid_map[sid] = {
-            'user': app['AuthzPolicy'].user_map[username],
-        }
-        await sio.emit("assetInfo", app['AuthzPolicy'].user_map[username].asset_info, room=sid, namespace='/pa_assetmgmt')
+    logger.info(f'User {user.name} disconnected with identifier {sid}')
+    await state.remove_sid(sid)

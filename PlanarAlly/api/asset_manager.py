@@ -1,12 +1,26 @@
 import functools
 import hashlib
 
+from aiohttp_security import authorized_userid
+
 import auth
 from app import sio, app, FILE_DIR, logger
 
 ASSETS_DIR = FILE_DIR / "static" / "assets"
 if not ASSETS_DIR.exists():
     ASSETS_DIR.mkdir()
+
+
+@sio.on('connect', namespace='/pa_assetmgmt')
+async def assetmgmt_connect(sid, environ):
+    username = await authorized_userid(environ['aiohttp.request'])
+    if username is None:
+        await sio.emit("redirect", "/", room=sid, namespace='/pa_assetmgmt')
+    else:
+        app['AuthzPolicy'].sid_map[sid] = {
+            'user': app['AuthzPolicy'].user_map[username],
+        }
+        await sio.emit("assetInfo", app['AuthzPolicy'].user_map[username].asset_info, room=sid, namespace='/pa_assetmgmt')
 
 
 @sio.on('Asset.Upload', namespace='/pa_assetmgmt')

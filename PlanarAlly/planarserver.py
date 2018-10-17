@@ -13,11 +13,9 @@ import save
 from api import *
 from app import app, logger, sio
 from config import config
-from planarally import PlanarAlly
+from planarallyA import PlanarAlly
 
 save.check_save()
-
-PENDING_FILE_UPLOAD_CACHE = {}
 
 PA = PlanarAlly()
 

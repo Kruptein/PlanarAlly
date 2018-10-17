@@ -13,6 +13,7 @@ from aiohttp_security import SessionIdentityPolicy
 from aiohttp_session.cookie_storage import EncryptedCookieStorage
 
 import auth
+from models import Location, Room, User
 
 # SETUP SERVER
 
@@ -39,9 +40,49 @@ logger = logging.getLogger('PlanarAllyServer')
 logger.setLevel(logging.INFO)
 file_handler = logging.FileHandler(str(FILE_DIR / 'planarallyserver.log'))
 file_handler.setLevel(logging.INFO)
-formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s (%(filename)s:%(lineno)d)')
+formatter = logging.Formatter(
+    '%(asctime)s - %(levelname)s - %(message)s (%(filename)s:%(lineno)d)')
 file_handler.setFormatter(formatter)
 stream_handler = logging.StreamHandler(sys.stdout)
 stream_handler.setFormatter(formatter)
 logger.addHandler(file_handler)
 logger.addHandler(stream_handler)
+
+
+# SETUP STATE
+class State:
+    def __init__(self):
+        self.client_temporaries = {}
+        self.pending_file_upload_cache = {}
+        self.sid_map = {}
+
+    async def clear_temporaries(self, sid):
+        location_id = self.sid_map[sid]['location'].id
+        if sid in self.client_temporaries.get(location_id, []):
+            await sio.emit("Temp.Clear", self.client_temporaries[location_id][sid])
+            del self.client_temporaries[location_id][sid]
+
+    def add_sid(self, sid, user, room, location):
+        self.sid_map[sid] = {
+            'user': user,
+            'room': room,
+            'location': room
+        }
+
+    async def remove_sid(self, sid):
+        await state.clear_temporaries(sid)
+        del self.sid_map[sid]
+
+    def get_sid(self, user, room):
+        for sid in self.sid_map:
+            if 'room' not in self.sid_map[sid]:
+                logger.error("ROOM NOT IN SID_MAP")
+                logger.error(sid)
+                logger.error(self.sid_map[sid])
+                continue
+            if self.sid_map[sid]['user'] == user and self.sid_map[sid]['room'] == room:
+                return sid
+
+
+state = State()
+app['state'] = state

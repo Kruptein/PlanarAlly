@@ -107,15 +107,16 @@ class Layer(BaseModel):
         data["shapes"] = [
             shape.as_dict(user, dm) for shape in self.shapes.order_by(Shape.index)
         ]
+        if self.type_ == "grid":
+            type_table = get_table(f"{self.type_}layer")
+            data.update(
+                **model_to_dict(type_table.get(id=self.id), exclude=[type_table.id])
+            )
         return data
 
     class Meta:
         indexes = ((("location", "name"), True), (("location", "index"), True))
 
 
-class LayerType(BaseModel):
-    layer = ForeignKeyField(Layer, backref="sub")
-
-
-class GridLayer(LayerType):
+class GridLayer(BaseModel):
     size = IntegerField()

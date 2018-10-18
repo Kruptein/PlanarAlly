@@ -5,60 +5,59 @@ Getting Started
 
 This document will show you how to get started using Planar Ally.
 
-If you are a player you can jump straight to :ref:`login`,
-if you're a DM you'll first need to choose hosting and potentially install some things.
+If you already have Planar Ally already running you can jump straight to :ref:`login`.
 
 Installation
 ---------------
 
-*DM Only*
-
-As the DM you'll have to decide where you want to host your game.
-You can either use some service that hosts Planar Ally for you,
-or you can host PA yourself, which requires a bit more setup.
+You will need a server to host the Planar Ally application. It can be local or remote.
 
 Self-hosting
 ~~~~~~~~~~~~~
 
-When hosting PA yourself, you'll need to download the server files and 
-install some dependencies.
+When hosting Planar Ally, you will need to download the server files and install some dependencies.
 
-For Windows a precompiled binary is also available.
-
-Manual Installation
-^^^^^^^^^^^^^^^^^^^^^
-
-The core of the project is built around the following three tools.
-
-* python 3.6+
-* aiohttp
-* python-socketio
-
-Additionally the following libraries are also necessary:
-
-* aiohttp_jinja2
-* aiohttp_security
-* aiohttp_session
-* bcrypt
-* cryptography
-
-All of the dependencies are listed in requirements.txt so after cloning/downloading this repo, 
-a simple `pip install -r requirements.txt` should do the trick.
-
-To run the server you simply have to run `python planarserver.py`.
-
-Server configuration can be done in the `server_config.cfg` file.
+Two options are available:
+* Precompiled binary (Windows Only)
+* Manual Installation
 
 Precompiled binary
 ^^^^^^^^^^^^^^^^^^^^
 
 These are typically only provided for major releases and can be found [here](https://github.com/Kruptein/PlanarAlly/releases).
 
-These files are zipped and should be extracted to some directory from which you wish to run PA.
+1. Download the latest planarserver.zip
+2. Extract it to a folder on your server.
+3. Run the server by executing `PlanarAllyServer.exe`
+4. To configure the server, edit `server_config.cfg`
+5. Restart the server to apply the changes
 
-To run the server either double click the `PlanarAllyServer.exe` file or run it from a command prompt.
+Manual Installation
+^^^^^^^^^^^^^^^^^^^^^
 
-Server configuration can be done in the `server_config.cfg` file.
+The core of the project is built around the following three tools.
+
+Core dependencies:
+* python 3.6+
+* aiohttp
+* python-socketio
+
+Additionally the following libraries are also necessary.
+
+Additional dependencies:
+* aiohttp_jinja2
+* aiohttp_security
+* aiohttp_session
+* bcrypt
+* cryptography
+
+To install:
+1. Download the latest source code from [here](https://github.com/Kruptein/PlanarAlly/releases)
+2. Make sure you have installed the core dependencies
+3. Execute `pip install -r requirements.txt` to install the additional dependencies
+4. Run the server by executing `planarserver.py`
+5. To configure the server, edit `server_config.cfg`
+6. Restart the server to apply the changes
 
 .. _login:
 
@@ -173,7 +172,7 @@ Pressing `Delete` will delete the current selected token.
 
 Pressing `d` will deselect your current selection.
 
-mouse
+Mouse
 ^^^^^^
 
 The left and right mouse button behaviour depends completely on the active tool,
@@ -503,7 +502,7 @@ The first option will, when enabled, fill the entire screen with shadow.
 The second option enhances the immersion by only showing a player vision of something if one
 of the assets he/she owns can see it.
 
-With the `FOW opacity` option, the opacity of the fog for th DM only is changed.
+With the `FOW opacity` option, the opacity of the fog for the DM only is changed.
 Players always have 100% fog opacity.  This option can thus be used to see through the fog
 as a DM.
 

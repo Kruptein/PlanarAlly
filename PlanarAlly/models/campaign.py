@@ -2,6 +2,7 @@ import uuid
 from peewee import BooleanField, FloatField, ForeignKeyField, IntegerField, TextField
 from playhouse.shortcuts import model_to_dict
 
+from . import get_table
 from .base import BaseModel
 from .user import User
 

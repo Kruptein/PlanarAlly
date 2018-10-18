@@ -37,13 +37,14 @@ export interface InitiativeEffect {
 }
 
 export interface ServerLayer {
+    type_: string;
     name: string;
     layer: string;
     shapes: ServerShape[];
-    grid: boolean;
     selectable: boolean;
     player_editable: boolean;
-    size: number;
+    player_visible: boolean;
+    size?: number;
 }
 
 export interface BoardInfo {

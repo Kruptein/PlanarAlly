@@ -9,10 +9,10 @@ import { createLayer } from "../layers/utils";
 import { vm } from "../planarally";
 import {
     BoardInfo,
-    ServerClient,
     InitiativeData,
     InitiativeEffect,
     Note,
+    ServerClient,
     ServerLocation
 } from "./types/general";
 import { ServerShape } from "./types/shapes";

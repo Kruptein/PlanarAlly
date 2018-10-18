@@ -135,7 +135,7 @@ def convert(save_file):
                             player_editable=layer.player_editable,
                             selectable=layer.selectable,
                             type_=type_,
-                            index=i_l,
+                            index=i_l + 1,
                         )
 
                         if type_ == "grid":
@@ -149,7 +149,7 @@ def convert(save_file):
                                 x=shape["x"],
                                 y=shape["y"],
                                 name=shape.get("name"),
-                                index=i_s,
+                                index=i_s + 1,
                             )
                             for optional in [
                                 ("border", "stroke_colour"),

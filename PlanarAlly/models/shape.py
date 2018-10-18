@@ -45,8 +45,10 @@ class Shape(BaseModel):
             aura_query = aura_query.where(Aura.visible)
         data["trackers"] = [t.as_dict() for t in tracker_query]
         data["auras"] = [a.as_dict() for a in aura_query]
-        # type_table = get_table(self.type_)
-        data.update(**model_to_dict(self.sub[0], exclude=[type_table.uuid]))
+        type_table = get_table(self.type_)
+        data.update(
+            **model_to_dict(type_table.get(uuid=self.uuid), exclude=[type_table.uuid])
+        )
 
         return data
 
@@ -95,7 +97,7 @@ class ShapeOwner(BaseModel):
 
 
 class ShapeType(BaseModel):
-    shape = ForeignKeyField(Shape, backref="sub")
+    uuid = TextField(primary_key=True)
 
 
 class BaseRect(ShapeType):

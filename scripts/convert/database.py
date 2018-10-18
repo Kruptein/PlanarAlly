@@ -139,7 +139,7 @@ def convert(save_file):
                         )
 
                         if type_ == "grid":
-                            GridLayer.create(layer=db_layer, size=layer.size)
+                            GridLayer.create(id=db_layer.id, size=layer.size)
 
                         for i_s, shape in enumerate(layer.shapes.values()):
                             db_shape = Shape(
@@ -165,42 +165,44 @@ def convert(save_file):
                                     setattr(db_shape, optional[1], shape[optional[0]])
                             if shape["type"].lower() == "asset":
                                 AssetRect.create(
-                                    shape=db_shape,
+                                    uuid=shape["uuid"],
                                     src=shape["src"],
                                     width=shape["w"],
                                     height=shape["h"],
                                 )
                                 db_shape.type_ = "assetrect"
                             elif shape["type"].lower() == "circle":
-                                Circle.create(shape=db_shape, radius=shape["r"])
+                                Circle.create(uuid=shape["uuid"], radius=shape["r"])
                             elif shape["type"].lower() == "circulartoken":
                                 CircularToken.create(
-                                    shape=db_shape,
+                                    uuid=shape["uuid"],
                                     text=shape["text"],
                                     font=shape["font"],
                                     radius=shape["r"],
                                 )
                             elif shape["type"].lower() == "line":
                                 Line.create(
-                                    shape=db_shape,
+                                    uuid=shape["uuid"],
                                     x2=shape["x2"],
                                     y2=shape["y2"],
                                     line_width=shape["lineWidth"],
                                 )
                             elif shape["type"].lower() == "rect":
                                 Rect.create(
-                                    shape=db_shape, width=shape["w"], height=shape["h"]
+                                    uuid=shape["uuid"],
+                                    width=shape["w"],
+                                    height=shape["h"],
                                 )
                             elif shape["type"].lower() == "text":
                                 Text.create(
-                                    shape=db_shape,
+                                    uuid=shape["uuid"],
                                     text=shape["text"],
                                     font=shape["font"],
                                     angle=shape["angle"],
                                 )
                             elif shape["type"].lower() == "multiline":
                                 MultiLine.create(
-                                    shape=db_shape,
+                                    uuid=shape["uuid"],
                                     line_width=shape["size"],
                                     points=shape["points"],
                                 )

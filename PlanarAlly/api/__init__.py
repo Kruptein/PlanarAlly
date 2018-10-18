@@ -1,5 +1,5 @@
 import auth
-from app import sio, app, logger
+from app import sio, app, logger, state
 from models import LocationUserOption, db
 from . import asset_manager, connection, initiative, note, location, shape
 
@@ -7,8 +7,12 @@ from . import asset_manager, connection, initiative, note, location, shape
 @sio.on("Client.Options.Set", namespace="/planarally")
 @auth.login_required(app, sio)
 async def set_client(sid, data):
-    user = app["AuthzPolicy"].sid_map[sid]["user"]
-    location = app["AuthzPolicy"].sid_map[sid]["location"]
+    sid_data = state.sid_map[sid]
+    user = sid_data["user"]
+    room = sid_data["room"]
+    location = sid_data["location"]
+
+    print(data)
 
     with db.atomic():
         for option in [
@@ -51,6 +55,7 @@ async def set_gridsize(sid, grid_size):
 
 
 @sio.on("Players.Bring", namespace="/planarally")
+@auth.login_required(app, sio)
 async def bring_players(sid, data):
     policy = app["AuthzPolicy"]
     room = policy.sid_map[sid]["room"]

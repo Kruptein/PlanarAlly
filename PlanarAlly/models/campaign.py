@@ -85,6 +85,7 @@ class LocationUserOption(BaseModel):
 class Layer(BaseModel):
     location = ForeignKeyField(Location, backref="layers")
     name = TextField()
+    type_ = TextField()
     # TYPE = IntegerField()  # normal/grid/dm/lighting ???????????
     player_visible = BooleanField(default=False)
     player_editable = BooleanField(default=False)
@@ -110,3 +111,11 @@ class Layer(BaseModel):
 
     class Meta:
         indexes = ((("location", "name"), True), (("location", "index"), True))
+
+
+class LayerType(BaseModel):
+    layer = ForeignKeyField(Layer, backref="sub")
+
+
+class GridLayer(LayerType):
+    size = IntegerField()

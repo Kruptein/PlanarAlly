@@ -12,18 +12,50 @@ def get_table(name):
 
 
 from .user import User
-from .campaign import Room, Location, LocationUserOption, Layer, PlayerRoom
-from .shape import Shape, Tracker, Aura, ShapeOwner, AssetRect, Circle, CircularToken, Line, MultiLine, Rect, Text
+from .campaign import Room, Location, LocationUserOption, Layer, PlayerRoom, GridLayer
+from .shape import (
+    Shape,
+    Tracker,
+    Aura,
+    ShapeOwner,
+    AssetRect,
+    Circle,
+    CircularToken,
+    Line,
+    MultiLine,
+    Rect,
+    Text,
+)
 from .general import Constants
 from .asset import Asset
 
-ALL_MODELS = [User, Room, Location, LocationUserOption, Layer, Shape,
-              PlayerRoom, Tracker, Aura, ShapeOwner, Constants, Asset,
-              AssetRect, Circle, CircularToken, Line, MultiLine, Rect, Text]
+ALL_MODELS = [
+    User,
+    Room,
+    Location,
+    LocationUserOption,
+    Layer,
+    Shape,
+    PlayerRoom,
+    Tracker,
+    Aura,
+    ShapeOwner,
+    Constants,
+    Asset,
+    AssetRect,
+    Circle,
+    CircularToken,
+    Line,
+    MultiLine,
+    Rect,
+    Text,
+    GridLayer,
+]
 
 
 def _start_peewee_log():
     import logging
-    l = logging.getLogger('peewee')
+
+    l = logging.getLogger("peewee")
     l.addHandler(logging.StreamHandler())
     l.setLevel(logging.DEBUG)

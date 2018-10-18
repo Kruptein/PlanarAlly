@@ -9,7 +9,7 @@ import { createLayer } from "../layers/utils";
 import { vm } from "../planarally";
 import {
     BoardInfo,
-    ClientOptions,
+    ServerClient,
     InitiativeData,
     InitiativeEffect,
     Note,
@@ -37,10 +37,16 @@ socket.on("Username.Set", (username: string) => {
     store.commit("setUsername", username);
     store.commit("setDM", username === window.location.pathname.split("/")[2]);
 });
-socket.on("Client.Options.Set", (options: ClientOptions) => {
-    gameManager.setClientOptions(options);
+socket.on("Client.Options.Set", (options: ServerClient) => {
+    store.commit("setGridColour", { colour: options.grid_colour, sync: false });
+    store.commit("setFOWColour", { colour: options.fow_colour, sync: false });
+    store.commit("setRulerColour", { colour: options.ruler_colour, sync: false });
+    store.commit("setPanX", options.pan_x);
+    store.commit("setPanY", options.pan_y);
+    store.commit("setZoomFactor", options.zoom_factor);
+    // if (this.layerManager.getGridLayer() !== undefined) this.layerManager.getGridLayer()!.invalidate();
 });
-socket.on("Location.Set", (data: ServerLocation ) => {
+socket.on("Location.Set", (data: ServerLocation) => {
     store.commit("setLocationName", data.name);
     store.commit("setUnitSize", { unitSize: data.unit_size, sync: false });
     store.commit("setUseGrid", { useGrid: data.use_grid, sync: false });

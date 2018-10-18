@@ -9,17 +9,14 @@ export interface ServerLocation {
     fow_LOS: boolean;
 }
 
-export interface ClientOptions {
-    gridColour: string;
-    fowColour: string;
-    rulerColour: string;
-    locationOptions: {
-        [name: string]: {
-            panX: number;
-            panY: number;
-            zoomFactor: number;
-        };
-    };
+export interface ServerClient {
+    name: string;
+    grid_colour: string;
+    fow_colour: string;
+    ruler_colour: string;
+    pan_x: number;
+    pan_y: number;
+    zoom_factor: number;
 }
 
 export interface InitiativeData {

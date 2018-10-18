@@ -7,9 +7,10 @@ from .base import BaseModel
 from .campaign import Layer
 from .user import User
 
+
 class Shape(BaseModel):
     uuid = TextField(primary_key=True)
-    layer = ForeignKeyField(Layer, backref='shapes')
+    layer = ForeignKeyField(Layer, backref="shapes")
     type_ = TextField()
     x = FloatField()
     y = FloatField()
@@ -19,41 +20,43 @@ class Shape(BaseModel):
     vision_obstruction = BooleanField(default=False)
     movement_obstruction = BooleanField(default=False)
     is_token = BooleanField(default=False)
-    annotation = TextField(default='')
-    draw_operator = TextField(default='source-over')
+    annotation = TextField(default="")
+    draw_operator = TextField(default="source-over")
     index = IntegerField()
     options = TextField(null=True)
 
     def __repr__(self):
         return f"<Shape {self.get_path()}>"
-    
+
     def get_path(self):
         return f"{self.name}@{self.layer.get_path()}"
-    
+
     def as_dict(self, user: User, dm: bool, exclude=None):
         data = model_to_dict(self, recurse=False, exclude=[Shape.layer, Shape.index])
-        data['owners'] = [so.user.name for so in self.owners.select(User.name).join(User)]
-        owned = dm or (user.name in data['owners'])
+        data["owners"] = [
+            so.user.name for so in self.owners.select(User.name).join(User)
+        ]
+        owned = dm or (user.name in data["owners"])
         tracker_query = self.trackers
         aura_query = self.auras
         if not owned:
-            data['annotation'] = ''
+            data["annotation"] = ""
             tracker_query = tracker_query.where(Tracker.visible)
             aura_query = aura_query.where(Aura.visible)
-        data['trackers'] = [t.as_dict() for t in tracker_query]
-        data['auras'] = [a.as_dict() for a in aura_query]
-        type_table = get_table(self.type_)
-        data.update(**model_to_dict(type_table.get(uuid=self.uuid), exclude=[type_table.uuid]))
+        data["trackers"] = [t.as_dict() for t in tracker_query]
+        data["auras"] = [a.as_dict() for a in aura_query]
+        # type_table = get_table(self.type_)
+        data.update(**model_to_dict(self.sub[0], exclude=[type_table.uuid]))
 
         return data
 
     class Meta:
-        indexes = ((('layer', 'index'), True),)
+        indexes = ((("layer", "index"), True),)
 
 
 class Tracker(BaseModel):
     uuid = TextField(primary_key=True)
-    shape = ForeignKeyField(Shape, backref='trackers')
+    shape = ForeignKeyField(Shape, backref="trackers")
     visible = BooleanField()
     name = TextField()
     value = IntegerField()
@@ -61,14 +64,14 @@ class Tracker(BaseModel):
 
     def __repr__(self):
         return f"<Tracker {self.name} {self.shape.get_path()}>"
-    
+
     def as_dict(self):
         return model_to_dict(self, recurse=False, exclude=[Tracker.shape])
 
 
 class Aura(BaseModel):
     uuid = TextField(primary_key=True)
-    shape = ForeignKeyField(Shape, backref='auras')
+    shape = ForeignKeyField(Shape, backref="auras")
     vision_source = BooleanField()
     visible = BooleanField()
     name = TextField()
@@ -78,21 +81,21 @@ class Aura(BaseModel):
 
     def __repr__(self):
         return f"<Aura {self.name} {self.shape.get_path()}>"
-    
+
     def as_dict(self):
         return model_to_dict(self, recurse=False, exclude=[Aura.shape])
 
 
 class ShapeOwner(BaseModel):
-    shape = ForeignKeyField(Shape, backref='owners')
-    user = ForeignKeyField(User, backref='shapes')
+    shape = ForeignKeyField(Shape, backref="owners")
+    user = ForeignKeyField(User, backref="shapes")
 
     def __repr__(self):
         return f"<ShapeOwner {self.user.name} {self.shape.get_path()}>"
 
 
 class ShapeType(BaseModel):
-    uuid = TextField(primary_key=True)
+    shape = ForeignKeyField(Shape, backref="sub")
 
 
 class BaseRect(ShapeType):

@@ -17,16 +17,17 @@ async def load_location(sid, location):
         l.as_dict(user, user == room.creator)
         for l in location.layers.order_by(Layer.index).where(Layer.player_visible)
     ]
+    client_options = user.as_dict()
+    client_options.update(
+        **LocationUserOption.get(user=user, location=location).as_dict()
+    )
 
     await sio.emit("Board.Set", data, room=sid, namespace="/planarally")
     await sio.emit(
         "Location.Set", location.as_dict(), room=sid, namespace="/planarally"
     )
     await sio.emit(
-        "Client.Options.Set",
-        LocationUserOption.get(user=user, location=location).as_dict(),
-        room=sid,
-        namespace="/planarally",
+        "Client.Options.Set", client_options, room=sid, namespace="/planarally"
     )
     # if hasattr(location, "initiative"):
     #     initiatives = location.initiative
@@ -44,6 +45,7 @@ async def load_location(sid, location):
 
 
 @sio.on("Location.Change", namespace="/planarally")
+@auth.login_required(app, sio)
 async def change_location(sid, location):
     sid_data = state.sid_map[sid]
     user = sid_data["user"]
@@ -93,6 +95,7 @@ async def set_location_options(sid, data):
 
 
 @sio.on("Location.New", namespace="/planarally")
+@auth.login_required(app, sio)
 async def add_new_location(sid, location):
     sid_data = state.sid_map[sid]
     user = sid_data["user"]

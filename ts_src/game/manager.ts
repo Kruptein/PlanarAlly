@@ -3,7 +3,7 @@ import store from "./store";
 import AnnotationManager from "./ui/annotation";
 
 import { sendClientOptions } from "./comm/socket";
-import { ClientOptions } from "./comm/types/general";
+import { ServerClient } from "./comm/types/general";
 import { ServerShape } from "./comm/types/shapes";
 import { GlobalPoint } from "./geom";
 import { LayerManager } from "./layers/manager";
@@ -95,30 +95,6 @@ export class GameManager {
         shape.setIsToken(shape.isToken);
         if (data.redraw) this.layerManager.getLayer(data.shape.layer)!.invalidate(false);
         if (redrawInitiative) (<any>vm.$refs.initiative).$forceUpdate();
-    }
-
-    setClientOptions(options: ClientOptions): void {
-        if (options.gridColour) store.commit("setGridColour", { colour: options.gridColour, sync: false });
-        if (options.fowColour) store.commit("setFOWColour", { colour: options.fowColour, sync: false });
-        if (options.rulerColour) store.commit("setRulerColour", { colour: options.rulerColour, sync: false });
-        if (options.locationOptions) {
-            if (
-                options.locationOptions[
-                `${store.state.roomName}/${store.state.roomCreator}/${store.state.locationName}`
-                ]
-            ) {
-                const loc =
-                    options.locationOptions[
-                    `${store.state.roomName}/${store.state.roomCreator}/${store.state.locationName}`
-                    ];
-                if (loc.panX) store.commit("setPanX", loc.panX);
-                if (loc.panY) store.commit("setPanY", loc.panY);
-                if (loc.zoomFactor) {
-                    store.commit("setZoomFactor", loc.zoomFactor);
-                }
-                if (this.layerManager.getGridLayer() !== undefined) this.layerManager.getGridLayer()!.invalidate();
-            }
-        }
     }
 
     setCenterPosition(position: GlobalPoint) {

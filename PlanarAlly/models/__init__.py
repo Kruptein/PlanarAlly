@@ -28,6 +28,7 @@ from .shape import (
 )
 from .general import Constants
 from .asset import Asset
+from .signals import *
 
 ALL_MODELS = [
     User,

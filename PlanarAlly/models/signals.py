@@ -1,11 +1,10 @@
 from playhouse.signals import post_save, pre_delete
 
-from .campaign import Layer
+from .campaign import Layer, GridLayer
 
 
 @post_save(sender=Layer)
 def on_save(model_class, instance, created):
-    print("A")
     if not created:
         return
     if instance.type_ == "grid":

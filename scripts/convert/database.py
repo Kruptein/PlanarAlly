@@ -139,7 +139,9 @@ def convert(save_file):
                         )
 
                         if type_ == "grid":
-                            GridLayer.create(id=db_layer.id, size=layer.size)
+                            gl = GridLayer.get(db_layer.id)
+                            gl.size = layer.size
+                            gl.save()
 
                         for i_s, shape in enumerate(layer.shapes.values()):
                             db_shape = Shape(

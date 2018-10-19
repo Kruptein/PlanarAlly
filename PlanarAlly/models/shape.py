@@ -31,7 +31,7 @@ class Shape(BaseModel):
     def get_path(self):
         return f"{self.name}@{self.layer.get_path()}"
 
-    def as_dict(self, user: User, dm: bool, exclude=None):
+    def as_dict(self, user: User, dm: bool):
         data = model_to_dict(self, recurse=False, exclude=[Shape.layer, Shape.index])
         data["owners"] = [
             so.user.name for so in self.owners.select(User.name).join(User)

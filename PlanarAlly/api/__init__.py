@@ -35,14 +35,17 @@ async def set_client(sid, data):
 @sio.on("Gridsize.Set", namespace="/planarally")
 @auth.login_required(app, sio)
 async def set_gridsize(sid, grid_size):
-    username = app["AuthzPolicy"].sid_map[sid]["user"].name
-    room = app["AuthzPolicy"].sid_map[sid]["room"]
-    location = room.get_active_location(username)
+    sid_data = state.sid_map[sid]
+    user = sid_data["user"]
+    room = sid_data["room"]
+    location = sid_data["location"]
 
-    if room.creator != username:
-        logger.warning(f"{username} attempted to set gridsize without DM rights")
+    if room.creator != user:
+        logger.warning(f"{user.name} attempted to set gridsize without DM rights")
         return
-    location.layer_manager.get_grid_layer().size = grid_size
+    gl = GridLayer[Layer.get(location=location, name="grid")]
+    gl.size = grid_size
+    gl.save()
     await sio.emit(
         "Gridsize.Set",
         grid_size,

@@ -1,3 +1,5 @@
+from playhouse.shortcuts import update_model_from_dict
+
 import auth
 from app import app, logger, sio, state
 from models import LocationUserOption, Layer
@@ -51,7 +53,7 @@ async def change_location(sid, location):
     user = sid_data["user"]
     room = sid_data["room"]
 
-    if room.creator != user.name:
+    if room.creator != user:
         logger.warning(f"{user.name} attempted to change location")
         return
 
@@ -80,11 +82,13 @@ async def set_location_options(sid, data):
     room = sid_data["room"]
     location = sid_data["location"]
 
-    if room.creator != user.name:
+    if room.creator != user:
         logger.warning(f"{user.name} attempted to set a room option")
         return
 
-    Location.update(**data).where(id=location.id).execute()
+    update_model_from_dict(location, data)
+    location.save()
+
     await sio.emit(
         "Location.Options.Set",
         data,
@@ -101,7 +105,7 @@ async def add_new_location(sid, location):
     user = sid_data["user"]
     room = sid_data["room"]
 
-    if room.creator != user.name:
+    if room.creator != user:
         logger.warning(f"{user.name} attempted to add a new location")
         return
 

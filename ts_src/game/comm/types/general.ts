@@ -4,9 +4,9 @@ export interface ServerLocation {
     name: string;
     use_grid: boolean;
     unit_size: number;
-    full_FOW: boolean;
+    full_fow: boolean;
     fow_opacity: number;
-    fow_LOS: boolean;
+    fow_los: boolean;
 }
 
 export interface ServerClient {

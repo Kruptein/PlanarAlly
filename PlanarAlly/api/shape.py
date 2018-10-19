@@ -15,32 +15,15 @@ async def add_shape(sid, data):
 
     layer = location.layers.where(Layer.name == data["shape"]["layer"])[0]
 
-    if room.creator != user.name and not layer.player_editable:
+    if room.creator != user and not layer.player_editable:
         logger.warning(f"{user.name} attempted to add a shape to a dm layer")
         return
     if data["temporary"]:
         state.add_temp(sid, data["shape"]["uuid"])
     else:
         shape = Shape.create(**data["shape"]["uuid"])
-    if layer.player_visible:
-        for player in room.players:
-            if player == username:
-                continue
-            psid = policy.get_sid(policy.user_map[player], room)
-            if psid is not None:
-                await sio.emit(
-                    "Shape.Add",
-                    shape_wrap(player, data["shape"]),
-                    room=psid,
-                    namespace="/planarally",
-                )
 
-    if room.creator != username:
-        croom = policy.get_sid(policy.user_map[room.creator], room)
-        if croom is not None:
-            await sio.emit(
-                "Shape.Add", data["shape"], room=croom, namespace="/planarally"
-            )
+    send_shape(sid, layer, room, orig_shape)
 
 
 @sio.on("Shape.Remove", namespace="/planarally")
@@ -61,7 +44,7 @@ async def remove_shape(sid, data):
     else:
         orig_shape = Shape.get(uuid=data["shape"]["uuid"])
 
-    if room.creator != user.name:
+    if room.creator != user:
         if not layer.player_editable:
             logger.warning(f"{user.name} attempted to remove a shape from a dm layer")
             return
@@ -94,7 +77,7 @@ async def move_shape_order(sid, data):
     shape = Shape.get(uuid=data["shape"]["uuid"])
     layer = shape.layer
 
-    if room.creator != user.name and not layer.player_editable:
+    if room.creator != user and not layer.player_editable:
         logger.warning(f"{user.name} attempted to move a shape order on a dm layer")
         return
 
@@ -142,7 +125,7 @@ async def update_shape(sid, data):
         orig_shape = Shape.get(uuid=data["shape"]["uuid"])
         layer = orig_shape.layer
 
-    if room.creator != user.name:
+    if room.creator != user:
         if not layer.player_editable:
             logger.warning(f"{user.name} attempted to move a shape on a dm layer")
             return
@@ -156,6 +139,10 @@ async def update_shape(sid, data):
         update_model_from_dict(orig_shape, data["shape"])
         orig_shape.save()
 
+    send_shape(sid, layer, room, orig_shape)
+
+
+async def send_shape(sid, layer, room, shape):
     if layer.player_visible:
         for player in room.players:
             for psid in state.get_sids(player.user, room):
@@ -163,7 +150,7 @@ async def update_shape(sid, data):
                     continue
                 await sio.emit(
                     "Shape.Move",
-                    orig_shape.as_dict(player.user, False),
+                    shape.as_dict(player.user, False),
                     room=psid,
                     namespace="/planarally",
                 )
@@ -173,7 +160,7 @@ async def update_shape(sid, data):
             continue
         await sio.emit(
             "Shape.Move",
-            orig_shape.as_dict(room.creator, True),
+            shape.as_dict(room.creator, True),
             room=csid,
             namespace="/planarally",
         )

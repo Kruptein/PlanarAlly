@@ -43,9 +43,9 @@ class Location(BaseModel):
     name = TextField()
     unit_size = IntegerField(default=5)
     use_grid = BooleanField(default=True)
-    full_FOW = BooleanField(default=False)
+    full_fow = BooleanField(default=False)
     fow_opacity = FloatField(default=0.3)
-    fow_LOS = BooleanField(default=False)
+    fow_los = BooleanField(default=False)
     # initiative ?
 
     def __repr__(self):

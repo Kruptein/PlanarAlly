@@ -50,9 +50,9 @@ socket.on("Location.Set", (data: ServerLocation) => {
     store.commit("setLocationName", data.name);
     store.commit("setUnitSize", { unitSize: data.unit_size, sync: false });
     store.commit("setUseGrid", { useGrid: data.use_grid, sync: false });
-    store.commit("setFullFOW", { fullFOW: data.full_FOW, sync: false });
+    store.commit("setFullFOW", { fullFOW: data.full_fow, sync: false });
     store.commit("setFOWOpacity", { fowOpacity: data.fow_opacity, sync: false });
-    store.commit("setLineOfSight", { fowLOS: data.fow_LOS, sync: false });
+    store.commit("setLineOfSight", { fowLOS: data.fow_los, sync: false });
 });
 socket.on("Position.Set", (data: { x: number; y: number }) => {
     gameManager.setCenterPosition(new GlobalPoint(data.x, data.y));

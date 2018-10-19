@@ -67,14 +67,6 @@ export default new Vuex.Store({
             const index = state.layers.indexOf(name);
             if (index >= 0) state.selectedLayerIndex = index;
         },
-        setGridSize(state, payload: { gridSize: number; sync: boolean }): void {
-            if (state.gridSize !== payload.gridSize && payload.gridSize > 0) {
-                state.gridSize = payload.gridSize;
-                const gridLayer = gameManager.layerManager.getGridLayer();
-                if (gridLayer !== undefined) gridLayer.drawGrid();
-                if (payload.sync) socket.emit("Gridsize.Set", payload.gridSize);
-            }
-        },
         setRoomName(state, name) {
             state.roomName = name;
         },
@@ -137,7 +129,7 @@ export default new Vuex.Store({
                 state.unitSize = payload.unitSize;
                 if (gameManager.layerManager.getGridLayer() !== undefined)
                     gameManager.layerManager.getGridLayer()!.drawGrid();
-                if (payload.sync) socket.emit("Location.Options.Set", { unitSize: payload.unitSize });
+                if (payload.sync) socket.emit("Location.Options.Set", { unit_size: payload.unitSize });
             }
         },
         setUseGrid(state, payload: { useGrid: boolean; sync: boolean }) {
@@ -146,26 +138,34 @@ export default new Vuex.Store({
                 const gridLayer = gameManager.layerManager.getGridLayer()!;
                 if (payload.useGrid) gridLayer.canvas.style.display = "block";
                 else gridLayer.canvas.style.display = "none";
-                if (payload.sync) socket.emit("Location.Options.Set", { useGrid: payload.useGrid });
+                if (payload.sync) socket.emit("Location.Options.Set", { use_grid: payload.useGrid });
+            }
+        },
+        setGridSize(state, payload: { gridSize: number; sync: boolean }): void {
+            if (state.gridSize !== payload.gridSize && payload.gridSize > 0) {
+                state.gridSize = payload.gridSize;
+                const gridLayer = gameManager.layerManager.getGridLayer();
+                if (gridLayer !== undefined) gridLayer.drawGrid();
+                if (payload.sync) socket.emit("Gridsize.Set", payload.gridSize);
             }
         },
         setFullFOW(state, payload: { fullFOW: boolean; sync: boolean }) {
             if (state.fullFOW !== payload.fullFOW) {
                 state.fullFOW = payload.fullFOW;
                 gameManager.layerManager.invalidateLight();
-                if (payload.sync) socket.emit("Location.Options.Set", { fullFOW: payload.fullFOW });
+                if (payload.sync) socket.emit("Location.Options.Set", { full_fow: payload.fullFOW });
             }
         },
         setFOWOpacity(state, payload: { fowOpacity: number; sync: boolean }) {
             state.fowOpacity = payload.fowOpacity;
             gameManager.layerManager.invalidateLight();
-            if (payload.sync) socket.emit("Location.Options.Set", { fowOpacity: payload.fowOpacity });
+            if (payload.sync) socket.emit("Location.Options.Set", { fow_opacity: payload.fowOpacity });
         },
         setLineOfSight(state, payload: { fowLOS: boolean; sync: boolean }) {
             if (state.fowLOS !== payload.fowLOS) {
                 state.fowLOS = payload.fowLOS;
                 gameManager.layerManager.invalidate();
-                if (payload.sync) socket.emit("Location.Options.Set", { fowLOS: payload.fowLOS });
+                if (payload.sync) socket.emit("Location.Options.Set", { fow_los: payload.fowLOS });
             }
         },
         setLocationName(state, name) {

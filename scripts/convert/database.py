@@ -270,7 +270,7 @@ def convert(save_file):
                 )
                 if db_location is None:
                     continue
-                db_user_location_option = LocationUserOption.create(
+                db_user_location_option = LocationUserOption.get(
                     location=db_location, user=db_user
                 )
                 for option in [

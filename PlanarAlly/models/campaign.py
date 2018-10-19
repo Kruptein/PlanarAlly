@@ -9,7 +9,7 @@ from .user import User
 
 class Room(BaseModel):
     name = TextField()
-    creator = ForeignKeyField(User, backref="rooms_created")
+    creator = ForeignKeyField(User, backref="rooms_created", on_delete="CASCADE")
     invitation_code = TextField(default=uuid.uuid4)
     player_location = TextField(null=True)
     dm_location = TextField(null=True)
@@ -31,21 +31,21 @@ class Room(BaseModel):
 
 
 class PlayerRoom(BaseModel):
-    player = ForeignKeyField(User, backref="rooms_joined")
-    room = ForeignKeyField(Room, backref="players")
+    player = ForeignKeyField(User, backref="rooms_joined", on_delete="CASCADE")
+    room = ForeignKeyField(Room, backref="players", on_delete="CASCADE")
 
     def __repr__(self):
         return f"<PlayerRoom {self.room.get_path()} - {self.player.name}>"
 
 
 class Location(BaseModel):
-    room = ForeignKeyField(Room, backref="locations")
+    room = ForeignKeyField(Room, backref="locations", on_delete="CASCADE")
     name = TextField()
     unit_size = IntegerField(default=5)
     use_grid = BooleanField(default=True)
-    full_FOW = BooleanField(default=False)
+    full_fow = BooleanField(default=False)
     fow_opacity = FloatField(default=0.3)
-    fow_LOS = BooleanField(default=False)
+    fow_los = BooleanField(default=False)
     # initiative ?
 
     def __repr__(self):
@@ -104,8 +104,8 @@ class Location(BaseModel):
 
 
 class LocationUserOption(BaseModel):
-    location = ForeignKeyField(Location)
-    user = ForeignKeyField(User, backref="location_options")
+    location = ForeignKeyField(Location, on_delete="CASCADE")
+    user = ForeignKeyField(User, backref="location_options", on_delete="CASCADE")
     pan_x = IntegerField(default=0)
     pan_y = IntegerField(default=0)
     zoom_factor = FloatField(default=1.0)
@@ -124,9 +124,12 @@ class LocationUserOption(BaseModel):
             ],
         )
 
+    class Meta:
+        indexes = ((("location", "user"), True),)
+
 
 class Layer(BaseModel):
-    location = ForeignKeyField(Location, backref="layers")
+    location = ForeignKeyField(Location, backref="layers", on_delete="CASCADE")
     name = TextField()
     type_ = TextField()
     # TYPE = IntegerField()  # normal/grid/dm/lighting ???????????

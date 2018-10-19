@@ -10,7 +10,7 @@ from .user import User
 
 class Shape(BaseModel):
     uuid = TextField(primary_key=True)
-    layer = ForeignKeyField(Layer, backref="shapes")
+    layer = ForeignKeyField(Layer, backref="shapes", on_delete="CASCADE")
     type_ = TextField()
     x = FloatField()
     y = FloatField()
@@ -58,7 +58,7 @@ class Shape(BaseModel):
 
 class Tracker(BaseModel):
     uuid = TextField(primary_key=True)
-    shape = ForeignKeyField(Shape, backref="trackers")
+    shape = ForeignKeyField(Shape, backref="trackers", on_delete="CASCADE")
     visible = BooleanField()
     name = TextField()
     value = IntegerField()
@@ -73,7 +73,7 @@ class Tracker(BaseModel):
 
 class Aura(BaseModel):
     uuid = TextField(primary_key=True)
-    shape = ForeignKeyField(Shape, backref="auras")
+    shape = ForeignKeyField(Shape, backref="auras", on_delete="CASCADE")
     vision_source = BooleanField()
     visible = BooleanField()
     name = TextField()
@@ -89,8 +89,8 @@ class Aura(BaseModel):
 
 
 class ShapeOwner(BaseModel):
-    shape = ForeignKeyField(Shape, backref="owners")
-    user = ForeignKeyField(User, backref="shapes")
+    shape = ForeignKeyField(Shape, backref="owners", on_delete="CASCADE")
+    user = ForeignKeyField(User, backref="shapes", on_delete="CASCADE")
 
     def __repr__(self):
         return f"<ShapeOwner {self.user.name} {self.shape.get_path()}>"

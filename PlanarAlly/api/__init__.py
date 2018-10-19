@@ -12,8 +12,6 @@ async def set_client(sid, data):
     room = sid_data["room"]
     location = sid_data["location"]
 
-    print(data)
-
     with db.atomic():
         for option in [
             ("gridColour", "grid_colour"),

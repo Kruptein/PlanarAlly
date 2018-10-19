@@ -80,6 +80,14 @@ class State:
             if self.sid_map[sid]["user"] == user and self.sid_map[sid]["room"] == room:
                 yield sid
 
+    def add_temp(self, sid, uid):
+        if sid not in self.client_temporaries:
+            self.client_temporaries[sid] = []
+        self.client_temporaries[sid].append(uid)
+
+    def remove_temp(self, sid, uid):
+        self.client_temporaries[sid].remove(data["shape"]["uuid"])
+
 
 state = State()
 app["state"] = state

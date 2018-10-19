@@ -79,8 +79,13 @@ async def create_room(request):
     if not roomname:
         response = web.HTTPFound("/rooms")
     else:
-        room = Room.create(name=roomname, creator=user)
-        Location.create(room=room, name="start")
+        with db.atomic():
+            room = Room.create(name=roomname, creator=user)
+            loc = Location.create(room=room, name="start")
+            loc.add_default_layers()
+            room.dm_location = loc.name
+            room.player_location = loc.name
+            room.save()
         response = web.HTTPFound(f"/rooms/{user.name}/{roomname}")
     return response
 

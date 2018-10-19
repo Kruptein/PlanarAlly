@@ -106,37 +106,6 @@ async def add_new_location(sid, location):
         return
 
     new_location = Location.create(room=room, name=location.name)
-    Layer.create(location=new_location, name="map", player_visible=True, index=0)
-    Layer.create(
-        location=new_location,
-        name="grid",
-        selectable=False,
-        player_visible=True,
-        index=1,
-    )
-    Layer.create(
-        location=new_location,
-        name="tokens",
-        player_visible=True,
-        player_editable=True,
-        index=2,
-    )
-    Layer.create(location=new_location, name="dm", index=3)
-    Layer.create(location=new_location, name="fow", player_visible=True, index=4)
-    Layer.create(
-        location=new_location,
-        name="fow-players",
-        selectable=False,
-        player_visible=True,
-        index=5,
-    )
-    Layer.create(
-        location=new_location,
-        name="draw",
-        selectable=False,
-        player_visible=True,
-        player_editable=True,
-        index=6,
-    )
+    new_location.add_default_layers()
 
     await load_location(sid, location)

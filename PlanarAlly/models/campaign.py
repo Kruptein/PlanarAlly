@@ -57,6 +57,48 @@ class Location(BaseModel):
     def as_dict(self):
         return model_to_dict(self, recurse=False, exclude=[Location.id, Location.room])
 
+    def add_default_layers(self):
+        Layer.create(
+            location=self, name="map", type_="normal", player_visible=True, index=0
+        )
+        Layer.create(
+            location=self,
+            name="grid",
+            type_="grid",
+            selectable=False,
+            player_visible=True,
+            index=1,
+        )
+        Layer.create(
+            location=self,
+            name="tokens",
+            type_="normal",
+            player_visible=True,
+            player_editable=True,
+            index=2,
+        )
+        Layer.create(location=self, type_="normal", name="dm", index=3)
+        Layer.create(
+            location=self, type_="fow", name="fow", player_visible=True, index=4
+        )
+        Layer.create(
+            location=self,
+            name="fow-players",
+            type_="fow-players",
+            selectable=False,
+            player_visible=True,
+            index=5,
+        )
+        Layer.create(
+            location=self,
+            name="draw",
+            type_="normal",
+            selectable=False,
+            player_visible=True,
+            player_editable=True,
+            index=6,
+        )
+
     class Meta:
         indexes = ((("room", "name"), True),)
 
@@ -120,4 +162,4 @@ class Layer(BaseModel):
 
 
 class GridLayer(BaseModel):
-    size = IntegerField()
+    size = IntegerField(default=50)

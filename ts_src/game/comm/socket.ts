@@ -107,10 +107,7 @@ socket.on("Shape.Order.Set", (data: { shape: ServerShape; index: number }) => {
     const layer = gameManager.layerManager.getLayer(shape.layer)!;
     layer.moveShapeOrder(shape, data.index, false);
 });
-socket.on("Shape.Move", (shape: ServerShape) => {
-    gameManager.moveShape(shape);
-});
-socket.on("Shape.Update", (data: { shape: ServerShape; redraw: boolean }) => {
+socket.on("Shape.Update", (data: { shape: ServerShape; redraw: boolean, move: boolean }) => {
     gameManager.updateShape(data);
 });
 socket.on("Initiative.Update", (data: InitiativeData) => {

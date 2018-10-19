@@ -59,21 +59,7 @@ export class GameManager {
         layer.invalidate(false);
     }
 
-    moveShape(shape: ServerShape): void {
-        if (!this.layerManager.hasLayer(shape.layer)) {
-            console.log(`Shape with unknown layer ${shape.layer} could not be added`);
-            return;
-        }
-        const sh = createShapeFromDict(shape, true);
-        if (sh === undefined) {
-            console.log(`Shape with unknown type ${shape.type_} could not be added`);
-            return;
-        }
-        const realShape = Object.assign(this.layerManager.UUIDMap.get(shape.uuid), sh);
-        this.layerManager.getLayer(realShape.layer)!.onShapeMove(realShape);
-    }
-
-    updateShape(data: { shape: ServerShape; redraw: boolean }): void {
+    updateShape(data: { shape: ServerShape; redraw: boolean, move: boolean }): void {
         if (!this.layerManager.hasLayer(data.shape.layer)) {
             console.log(`Shape with unknown layer ${data.shape.layer} could not be added`);
             return;
@@ -93,6 +79,7 @@ export class GameManager {
         shape.checkVisionSources();
         shape.setMovementBlock(shape.movementObstruction);
         shape.setIsToken(shape.isToken);
+        if (data.move && shape.visionObstruction) this.recalculateBoundingVolume();
         if (data.redraw) this.layerManager.getLayer(data.shape.layer)!.invalidate(false);
         if (redrawInitiative) (<any>vm.$refs.initiative).$forceUpdate();
     }

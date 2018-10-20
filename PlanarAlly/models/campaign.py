@@ -2,15 +2,17 @@ import uuid
 from peewee import BooleanField, FloatField, ForeignKeyField, IntegerField, TextField
 from playhouse.shortcuts import model_to_dict
 
-from . import get_table
 from .base import BaseModel
 from .user import User
+from .utils import get_table
+
+__all__ = ["GridLayer", "Layer", "Location", "LocationUserOption", "PlayerRoom", "Room"]
 
 
 class Room(BaseModel):
     name = TextField()
     creator = ForeignKeyField(User, backref="rooms_created", on_delete="CASCADE")
-    invitation_code = TextField(default=uuid.uuid4)
+    invitation_code = TextField(default=uuid.uuid4, unique=True)
     player_location = TextField(null=True)
     dm_location = TextField(null=True)
 
@@ -22,9 +24,9 @@ class Room(BaseModel):
 
     def get_active_location(self, dm):
         if dm:
-            return Location.get(room=room, name=self.dm_location)
+            return Location.get(room=self, name=self.dm_location)
         else:
-            return Location.get(room=room, name=self.player_location)
+            return Location.get(room=self, name=self.player_location)
 
     class Meta:
         indexes = ((("name", "creator"), True),)

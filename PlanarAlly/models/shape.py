@@ -2,10 +2,25 @@ from peewee import BooleanField, FloatField, ForeignKeyField, IntegerField, Text
 from playhouse.sqlite_ext import JSONField
 from playhouse.shortcuts import model_to_dict
 
-from . import get_table
 from .base import BaseModel
 from .campaign import Layer
 from .user import User
+from .utils import get_table
+
+
+__all__ = [
+    "AssetRect",
+    "Aura",
+    "Circle",
+    "CircularToken",
+    "Line",
+    "MultiLine",
+    "Rect",
+    "Shape",
+    "ShapeOwner",
+    "Text",
+    "Tracker",
+]
 
 
 class Shape(BaseModel):
@@ -97,43 +112,51 @@ class ShapeOwner(BaseModel):
 
 
 class ShapeType(BaseModel):
+    abstract = True
     uuid = TextField(primary_key=True)
 
 
 class BaseRect(ShapeType):
+    abstract = True
     width = FloatField()
     height = FloatField()
 
 
 class AssetRect(BaseRect):
+    abstract = False
     src = TextField()
 
 
 class Circle(ShapeType):
+    abstract = False
     radius = FloatField()
 
 
 class CircularToken(Circle):
+    abstract = False
     text = TextField()
     font = TextField()
 
 
 class Line(ShapeType):
+    abstract = False
     x2 = FloatField()
     y2 = FloatField()
     line_width = IntegerField()
 
 
 class MultiLine(ShapeType):
+    abstract = False
     line_width = IntegerField()
     points = JSONField()
 
 
 class Rect(BaseRect):
-    pass
+    abstract = False
 
 
 class Text(ShapeType):
+    abstract = False
     text = TextField()
     font = TextField()
     angle = FloatField()

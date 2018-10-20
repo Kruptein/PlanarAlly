@@ -3,7 +3,7 @@ from urllib.parse import unquote
 from aiohttp_security import authorized_userid
 
 from api.location import load_location
-from app import sio, logger, app, state
+from app import logger, sio, state
 from models import Location, Room, User
 
 

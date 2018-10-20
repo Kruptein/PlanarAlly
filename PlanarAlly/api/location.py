@@ -2,7 +2,7 @@ from playhouse.shortcuts import update_model_from_dict
 
 import auth
 from app import app, logger, sio, state
-from models import LocationUserOption, Layer
+from models import Layer, Location, LocationUserOption
 
 
 @auth.login_required(app, sio)
@@ -67,8 +67,8 @@ async def change_location(sid, location):
 
     room.player_location = location
 
-    for player in room.players:
-        for psid in state.get_sids(policy.user_map[player], room):
+    for room_player in room.players:
+        for psid in state.get_sids(room_player.player, room):
             sio.leave_room(psid, old_location.get_path(), namespace="/planarally")
             sio.enter_room(psid, new_location.get_path(), namespace="/planarally")
             await load_location(psid, new_location)

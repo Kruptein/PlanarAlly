@@ -4,7 +4,8 @@ import secrets
 import sys
 
 from config import SAVE_FILE
-from models import db, ALL_MODELS, Constants
+from db import db
+from models import ALL_MODELS, Constants
 
 SAVE_VERSION = 3
 logger: logging.Logger = logging.getLogger('PlanarAllyServer')

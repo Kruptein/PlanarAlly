@@ -1,9 +1,10 @@
 import aiohttp_jinja2
 from aiohttp import web
-from aiohttp_security import authorized_userid, login_required, remember, forget
+from aiohttp_security import authorized_userid, check_authorized, remember, forget
 
 from app import app, logger
-from models import db, User, Location, Room
+from db import db
+from models import User, Location, Room, PlayerRoom
 
 
 @aiohttp_jinja2.template("login.jinja2")
@@ -14,7 +15,6 @@ async def login(request):
     else:
         valid = False
         if request.method == "POST":
-            policy = app["AuthzPolicy"]
             data = await request.post()
             username = data["username"]
             password = data["password"]
@@ -53,10 +53,9 @@ async def logout(request):
     return response
 
 
-@login_required
 @aiohttp_jinja2.template("rooms.jinja2")
 async def show_rooms(request):
-    user = await authorized_userid(request)
+    user = await check_authorized(request)
     return {
         "owned": [
             (r.name, r.creator.name)
@@ -71,9 +70,8 @@ async def show_rooms(request):
     }
 
 
-@login_required
 async def create_room(request):
-    user = await authorized_userid(request)
+    user = await check_authorized(request)
     data = await request.post()
     roomname = data["room_name"]
     if not roomname:
@@ -90,10 +88,9 @@ async def create_room(request):
     return response
 
 
-@login_required
 @aiohttp_jinja2.template("planarally.jinja2")
 async def show_room(request):
-    user = await authorized_userid(request)
+    user = await check_authorized(request)
     creator = User.by_name(request.match_info["username"])
     try:
         room = (
@@ -118,22 +115,19 @@ async def show_room(request):
     return web.HTTPFound("/rooms")
 
 
-@login_required
 async def claim_invite(request):
-    username = await authorized_userid(request)
-    try:
-        # room = PA.get_room_from_invite(request.match_info['code'])
-        room = 2
-    except KeyError:
+    user = await check_authorized(request)
+    room = Room.get_or_none(invitation_code=request.match_info["code"])
+    if room is None:
         return web.HTTPNotFound()
     else:
-        if username != room.creator and username not in room.players:
-            room.players.append(username)
-            # PA.save_room(room)
-        return web.HTTPFound(f"/rooms/{room.creator}/{room.name}")
+        if user.name != room.creator and not PlayerRoom.get_or_none(
+            player=user, room=room
+        ):
+            PlayerRoom.create(player=user, room=room)
+        return web.HTTPFound(f"/rooms/{room.creator.name}/{room.name}")
 
 
-@login_required
 @aiohttp_jinja2.template("assets.jinja2")
 async def show_assets(request):
-    pass
+    await check_authorized(request)

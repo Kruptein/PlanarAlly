@@ -7,7 +7,7 @@ from models import Constants, User
 logger = logging.getLogger('PlanarAllyServer')
 
 
-class PA_AuthPolicy(AbstractAuthorizationPolicy):
+class AuthPolicy(AbstractAuthorizationPolicy):
     async def authorized_userid(self, identity):
         """Retrieve authorized user id.
         Return the user_id of the user identified by the identity

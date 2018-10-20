@@ -45,6 +45,7 @@ export class LayerManager {
 
     addLayer(layer: Layer): void {
         this.layers.push(layer);
+        if (!store.state.IS_DM && !layer.playerEditable) return;
         if (layer.selectable) store.commit("addLayer", layer.name);
     }
 

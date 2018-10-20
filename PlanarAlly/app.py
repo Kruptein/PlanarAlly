@@ -13,13 +13,12 @@ from aiohttp_security import SessionIdentityPolicy
 from aiohttp_session.cookie_storage import EncryptedCookieStorage
 
 import auth
-from models import Location, Room, User
 
 # SETUP SERVER
 
 sio = socketio.AsyncServer(async_mode="aiohttp", engineio_logger=False)
 app = web.Application()
-app["AuthzPolicy"] = auth.PA_AuthPolicy()
+app["AuthzPolicy"] = auth.AuthPolicy()
 aiohttp_security.setup(app, SessionIdentityPolicy(), app["AuthzPolicy"])
 aiohttp_session.setup(app, EncryptedCookieStorage(auth.get_secret_token()))
 aiohttp_jinja2.setup(app, loader=jinja2.FileSystemLoader("templates"))
@@ -64,7 +63,7 @@ class State:
             del self.client_temporaries[location_id][sid]
 
     def add_sid(self, sid, user, room, location):
-        self.sid_map[sid] = {"user": user, "room": room, "location": room}
+        self.sid_map[sid] = {"user": user, "room": room, "location": location}
 
     async def remove_sid(self, sid):
         await state.clear_temporaries(sid)
@@ -86,7 +85,7 @@ class State:
         self.client_temporaries[sid].append(uid)
 
     def remove_temp(self, sid, uid):
-        self.client_temporaries[sid].remove(data["shape"]["uuid"])
+        self.client_temporaries[sid].remove(uid)
 
 
 state = State()

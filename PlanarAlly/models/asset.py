@@ -3,6 +3,8 @@ from peewee import ForeignKeyField, TextField
 from .base import BaseModel
 from .user import User
 
+__all__ = ["Asset"]
+
 
 class Asset(BaseModel):
     owner = ForeignKeyField(User, backref="assets", on_delete="CASCADE")

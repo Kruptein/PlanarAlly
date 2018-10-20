@@ -200,13 +200,14 @@ export default Tool.extend({
             } else if (this.shapeSelect === "paint-brush") {
                 (<MultiLine>this.shape).points.push(endPoint);
             }
-            socket.emit("Shape.Move", { shape: this.shape!.asDict(), temporary: false });
+            socket.emit("Shape.Update", { shape: this.shape!.asDict(), temporary: false });
             if (this.shape.visionObstruction) gameManager.recalculateBoundingVolume();
             layer.invalidate(false);
         },
         onMouseUp(event: MouseEvent) {
             if (this.active && this.shape !== null && !event.altKey && this.useGrid) {
                 this.shape.resizeToGrid();
+                socket.emit("Shape.Update", { shape: this.shape!.asDict(), temporary: false });
             }
             this.active = false;
         },

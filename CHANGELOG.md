@@ -18,6 +18,9 @@ All notable changes to this project will be documented in this file.
 - Empty asset and note list was to small for icons
 - Tools started with lowercase
 - Radial menu buttons had border when clicking them
+- Shape grid snapping not getting synced on draw
+- Select tool no longer selected by default on load
+- Add new location action messed up websocket rooms
 
 ## [0.9] - 2018-09-26
 

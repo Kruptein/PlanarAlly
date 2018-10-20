@@ -13,11 +13,8 @@ import save
 from api import *
 from app import app, logger, sio, state
 from config import config
-from planarallyA import PlanarAlly
 
 save.check_save()
-
-PA = PlanarAlly()
 
 # This is a fix for asyncio problems on windows that make it impossible to do ctrl+c
 if sys.platform.startswith("win"):
@@ -28,7 +25,7 @@ if sys.platform.startswith("win"):
     asyncio.get_event_loop().call_later(0.1, _wakeup)
 
 
-async def on_shutdown(app):
+async def on_shutdown(_):
     for sid in list(state.sid_map.keys()):
         await sio.disconnect(sid, namespace="/planarally")
 

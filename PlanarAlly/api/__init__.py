@@ -1,7 +1,7 @@
 import auth
-from app import sio, app, logger, state
-from models import LocationUserOption, db
-from . import asset_manager, connection, initiative, note, location, shape
+from app import app, logger, sio, state
+from models import GridLayer, Layer, LocationUserOption
+from models.db import db
 
 
 @sio.on("Client.Options.Set", namespace="/planarally")
@@ -9,7 +9,6 @@ from . import asset_manager, connection, initiative, note, location, shape
 async def set_client(sid, data):
     sid_data = state.sid_map[sid]
     user = sid_data["user"]
-    room = sid_data["room"]
     location = sid_data["location"]
 
     with db.atomic():
@@ -49,7 +48,7 @@ async def set_gridsize(sid, grid_size):
     await sio.emit(
         "Gridsize.Set",
         grid_size,
-        room=location.sioroom,
+        room=location.get_path(),
         skip_sid=sid,
         namespace="/planarally",
     )

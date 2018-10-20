@@ -1,8 +1,11 @@
 from peewee import Case
-from playhouse.shortcuts import dict_to_model, update_model_from_dict
+from playhouse.shortcuts import update_model_from_dict
 
 import auth
-from app import sio, app, logger, state
+from app import app, logger, sio, state
+from db import db
+from models import Aura, Layer, Shape, ShapeOwner, Tracker
+from models.utils import get_table, reduce_data_to_model
 
 
 @sio.on("Shape.Add", namespace="/planarally")
@@ -12,6 +15,8 @@ async def add_shape(sid, data):
     user = sid_data["user"]
     room = sid_data["room"]
     location = sid_data["location"]
+    if "temporary" not in data:
+        data["temporary"] = False
 
     layer = location.layers.where(Layer.name == data["shape"]["layer"])[0]
 
@@ -21,9 +26,115 @@ async def add_shape(sid, data):
     if data["temporary"]:
         state.add_temp(sid, data["shape"]["uuid"])
     else:
-        shape = Shape.create(**data["shape"]["uuid"])
+        with db.atomic():
+            data["shape"]["layer"] = Layer.get(
+                location=location, name=data["shape"]["layer"]
+            )
+            data["shape"]["index"] = layer.shapes.count() + 1
+            # Shape itself
+            shape = Shape.create(**data["shape"])
+            # Subshape
+            type_table = get_table(shape.type_)
+            type_table.create(**data["shape"])
+            # Owners
+            ShapeOwner.create(shape=shape, user=user)
+            # Trackers
+            for tracker in data["shape"]["trackers"]:
+                Tracker.create(**tracker)
+            # Auras
+            for aura in data["shape"]["auras"]:
+                Aura.create(**aura)
 
-    send_shape(sid, layer, room, orig_shape)
+    if layer.player_visible:
+        for room_player in room.players:
+            for psid in state.get_sids(room_player.player, room):
+                if psid == sid:
+                    continue
+                if not data["temporary"]:
+                    data["shape"] = shape.as_dict(room_player.player, False)
+                await sio.emit(
+                    "Shape.Add", data["shape"], room=psid, namespace="/planarally"
+                )
+
+    for csid in state.get_sids(room.creator, room):
+        if csid == sid:
+            continue
+        if not data["temporary"]:
+            print(repr(shape))
+            print(shape.owners)
+            data["shape"] = shape.as_dict(room.creator, True)
+        await sio.emit("Shape.Add", data["shape"], room=csid, namespace="/planarally")
+
+
+@sio.on("Shape.Update", namespace="/planarally")
+@auth.login_required(app, sio)
+async def update_shape(sid, data):
+    sid_data = state.sid_map[sid]
+    user = sid_data["user"]
+    room = sid_data["room"]
+    location = sid_data["location"]
+
+    # We're first gonna retrieve the existing server side shape for some validation checks
+    if data["temporary"]:
+        # This stuff is not stored so we cannot do any server side validation /shrug
+        shape = data["shape"]
+        layer = location.layers.where(Layer.name == data["shape"]["layer"])[0]
+    else:
+        # Use the server version of the shape.
+        try:
+            shape = Shape.get(uuid=data["shape"]["uuid"])
+        except Shape.DoesNotExist:
+            logger.warning(f"Attempt to update unknown shape by {user.name}")
+            return
+        layer = shape.layer
+
+    # Ownership validatation
+    if room.creator != user:
+        if not layer.player_editable:
+            logger.warning(f"{user.name} attempted to move a shape on a dm layer")
+            return
+
+        if data["temporary"]:
+            if user.name not in shape["owners"]:
+                logger.warning(f"{user.name} attempted to move asset it does not own")
+                return
+        else:
+            if not ShapeOwner.get_or_none(shape=shape, user=user):
+                logger.warning(f"{user.name} attempted to move asset it does not own")
+                return
+
+    # Overwrite the old data with the new data
+    if not data["temporary"]:
+        with db.atomic():
+            data["shape"]["layer"] = Layer.get(
+                location=location, name=data["shape"]["layer"]
+            )
+            # Otherwise backrefs can cause errors as they need to be handled separately
+            update_model_from_dict(shape, reduce_data_to_model(Shape, data["shape"]))
+            shape.save()
+            type_table = get_table(shape.type_)
+            type_instance = type_table.get(uuid=shape.uuid)
+            # no backrefs on these tables
+            update_model_from_dict(type_instance, data["shape"], ignore_unknown=True)
+            type_instance.save()
+
+    # Send to players
+    if layer.player_visible:
+        for room_player in room.players:
+            for psid in state.get_sids(room_player.player, room):
+                if psid == sid:
+                    continue
+                if not data["temporary"]:
+                    data["shape"] = shape.as_dict(room_player.player, False)
+                await sio.emit("Shape.Update", data, room=psid, namespace="/planarally")
+
+    # Send to DM
+    for csid in state.get_sids(room.creator, room):
+        if csid == sid:
+            continue
+        if not data["temporary"]:
+            data["shape"] = shape.as_dict(room.creator, True)
+        await sio.emit("Shape.Update", data, room=csid, namespace="/planarally")
 
 
 @sio.on("Shape.Remove", namespace="/planarally")
@@ -34,28 +145,39 @@ async def remove_shape(sid, data):
     room = sid_data["room"]
     location = sid_data["location"]
 
-    layer = location.layers.where(Layer.name == data["shape"]["layer"])[0]
-
+    # We're first gonna retrieve the existing server side shape for some validation checks
     if data["temporary"]:
-        # orig_shape = dict_to_model(data[
-        #     "shape"
-        # ]  # This stuff is not stored so we cannot do any server side validation /shrug
-        pass
+        # This stuff is not stored so we cannot do any server side validation /shrug
+        shape = data["shape"]
+        layer = location.layers.where(Layer.name == data["shape"]["layer"])[0]
     else:
-        orig_shape = Shape.get(uuid=data["shape"]["uuid"])
+        # Use the server version of the shape.
+        try:
+            shape = Shape.get(uuid=data["shape"]["uuid"])
+        except Shape.DoesNotExist:
+            logger.warning(f"Attempt to update unknown shape by {user.name}")
+            return
+        layer = shape.layer
 
+    # Ownership validatation
     if room.creator != user:
         if not layer.player_editable:
-            logger.warning(f"{user.name} attempted to remove a shape from a dm layer")
+            logger.warning(f"{user.name} attempted to remove a shape on a dm layer")
             return
-        if not ShapeOwner.get_or_none(shape=orig_shape, user=user):
-            logger.warning(f"{user.name} attempted to remove a shape it does not own")
-            return
+
+        if data["temporary"]:
+            if user.name not in shape["owners"]:
+                logger.warning(f"{user.name} attempted to remove asset it does not own")
+                return
+        else:
+            if not ShapeOwner.get_or_none(shape=shape, user=user):
+                logger.warning(f"{user.name} attempted to remove asset it does not own")
+                return
 
     if data["temporary"]:
         state.remove_temp(sid, data["shape"]["uuid"])
     else:
-        orig_shape.delete_instance()
+        shape.delete_instance()
     if layer.player_visible:
         await sio.emit(
             "Shape.Remove",
@@ -103,64 +225,5 @@ async def move_shape_order(sid, data):
             data,
             room=location.sioroom,
             skip_sid=sid,
-            namespace="/planarally",
-        )
-
-
-@sio.on("Shape.Update", namespace="/planarally")
-@auth.login_required(app, sio)
-async def update_shape(sid, data):
-    sid_data = state.sid_map[sid]
-    user = sid_data["user"]
-    room = sid_data["room"]
-    location = sid_data["location"]
-
-    # We're first gonna retrieve the existing server side shape for some validation checks
-    if data["temporary"]:
-        # orig_shape = data[
-        #     "shape"
-        # ]  # This stuff is not stored so we cannot do any server side validation /shrug
-        pass
-    else:
-        orig_shape = Shape.get(uuid=data["shape"]["uuid"])
-        layer = orig_shape.layer
-
-    if room.creator != user:
-        if not layer.player_editable:
-            logger.warning(f"{user.name} attempted to move a shape on a dm layer")
-            return
-        # Use the server version of the shape.
-        if not ShapeOwner.get_or_none(shape=orig_shape, user=user):
-            logger.warning(f"{user.name} attempted to move asset it does not own")
-            return
-
-    # Overwrite the old data with the new data
-    if not data["temporary"]:
-        update_model_from_dict(orig_shape, data["shape"])
-        orig_shape.save()
-
-    send_shape(sid, layer, room, orig_shape)
-
-
-async def send_shape(sid, layer, room, shape):
-    if layer.player_visible:
-        for player in room.players:
-            for psid in state.get_sids(player.user, room):
-                if psid == sid:
-                    continue
-                await sio.emit(
-                    "Shape.Move",
-                    shape.as_dict(player.user, False),
-                    room=psid,
-                    namespace="/planarally",
-                )
-
-    for csid in state.get_sids(room.creator, room):
-        if csid == sid:
-            continue
-        await sio.emit(
-            "Shape.Move",
-            shape.as_dict(room.creator, True),
-            room=csid,
             namespace="/planarally",
         )

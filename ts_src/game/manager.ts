@@ -3,7 +3,6 @@ import store from "./store";
 import AnnotationManager from "./ui/annotation";
 
 import { sendClientOptions } from "./comm/socket";
-import { ServerClient } from "./comm/types/general";
 import { ServerShape } from "./comm/types/shapes";
 import { GlobalPoint } from "./geom";
 import { LayerManager } from "./layers/manager";

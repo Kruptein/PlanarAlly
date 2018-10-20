@@ -5,6 +5,7 @@ import BoundingRect from "./boundingrect";
 import * as tinycolor from "tinycolor2";
 import { uuidv4 } from "../../core/utils";
 import { aurasFromServer, aurasToServer } from "../comm/conversion/aura";
+import { socket } from "../comm/socket";
 import { InitiativeData } from "../comm/types/general";
 import { ServerShape } from "../comm/types/shapes";
 import { GlobalPoint, LocalPoint } from "../geom";
@@ -226,5 +227,20 @@ export default abstract class Shape {
             has_img: false,
             effects: [],
         };
+    }
+
+    moveLayer(layer: string, sync: boolean) {
+        const oldLayer = gameManager.layerManager.getLayer(this.layer);
+        const newLayer = gameManager.layerManager.getLayer(layer);
+        if (oldLayer === undefined || newLayer === undefined) return;
+        this.layer = layer;
+        // Update layer shapes
+        oldLayer.shapes.splice(oldLayer.shapes.indexOf(this), 1);
+        newLayer.shapes.push(this);
+        // Revalidate layers  (light should at most be redone once)
+        oldLayer.invalidate(true);
+        newLayer.invalidate(false);
+        // Sync!
+        if (sync) socket.emit("Shape.Layer.Change", { uuid: this.uuid, layer });
     }
 }

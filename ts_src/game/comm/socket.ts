@@ -70,7 +70,7 @@ socket.on("Board.Set", (locationInfo: BoardInfo) => {
     store.commit("resetLayerInfo");
     for (const layer of locationInfo.layers) createLayer(layer);
     // Force the correct opacity render on other layers.
-    gameManager.layerManager.setLayer(gameManager.layerManager.getLayer()!.name);
+    gameManager.layerManager.selectLayer(gameManager.layerManager.getLayer()!.name);
     (<any>vm.$refs.initiative).clear();
     store.commit("setBoardInitialized", true);
     gameManager.recalculateBoundingVolume();
@@ -106,6 +106,11 @@ socket.on("Shape.Order.Set", (data: { shape: ServerShape; index: number }) => {
     const shape = gameManager.layerManager.UUIDMap.get(data.shape.uuid)!;
     const layer = gameManager.layerManager.getLayer(shape.layer)!;
     layer.moveShapeOrder(shape, data.index, false);
+});
+socket.on("Shape.Layer.Change", (data: { uuid: string, layer: string }) => {
+    const shape = gameManager.layerManager.UUIDMap.get(data.uuid);
+    if (shape === undefined) return;
+    shape.moveLayer(data.layer, false);
 });
 socket.on("Shape.Update", (data: { shape: ServerShape; redraw: boolean, move: boolean }) => {
     gameManager.updateShape(data);

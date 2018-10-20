@@ -60,8 +60,6 @@ async def add_shape(sid, data):
         if csid == sid:
             continue
         if not data["temporary"]:
-            print(repr(shape))
-            print(shape.owners)
             data["shape"] = shape.as_dict(room.creator, True)
         await sio.emit("Shape.Add", data["shape"], room=csid, namespace="/planarally")
 
@@ -178,14 +176,48 @@ async def remove_shape(sid, data):
         state.remove_temp(sid, data["shape"]["uuid"])
     else:
         shape.delete_instance()
+
     if layer.player_visible:
         await sio.emit(
             "Shape.Remove",
             data["shape"],
-            room=location.sioroom,
+            room=location.get_path(),
             skip_sid=sid,
             namespace="/planarally",
         )
+    else:
+        for csid in state.get_sids(room.creator, room):
+            if csid == sid:
+                continue
+            await sio.emit(
+                "Shape.Remove", data["shape"], room=csid, namespace="/planarally"
+            )
+
+
+@sio.on("Shape.Layer.Change", namespace="/planarally")
+@auth.login_required(app, sio)
+async def change_shape_layer(sid, data):
+    sid_data = state.sid_map[sid]
+    user = sid_data["user"]
+    room = sid_data["room"]
+    location = sid_data["location"]
+
+    if room.creator != user:
+        logger.warning(f"{user.name} attempted to move the layer of a shape")
+        return
+
+    layer = Layer.get(location=location, name=data["layer"])
+    shape = Shape.get(uuid=data["uuid"])
+    shape.layer = layer
+    shape.save()
+
+    await sio.emit(
+        "Shape.Layer.Change",
+        data,
+        room=location.get_path(),
+        skip_sid=sid,
+        namespace="/planarally",
+    )
 
 
 @sio.on("Shape.Order.Set", namespace="/planarally")
@@ -203,7 +235,7 @@ async def move_shape_order(sid, data):
         logger.warning(f"{user.name} attempted to move a shape order on a dm layer")
         return
 
-    target = data["index"]
+    target = data["index"] + 1
     sign = 1 if target <= 1 else -1
     polarity = 1 if shape.index > 0 else -1
     case = Case(
@@ -218,12 +250,18 @@ async def move_shape_order(sid, data):
         Shape.index * -1,
     )
     Shape.update(index=case).where(Shape.layer == layer).execute()
-    layer.shapes.move_to_end(data["shape"]["uuid"], data["index"] != 0)
     if layer.player_visible:
         await sio.emit(
             "Shape.Order.Set",
             data,
-            room=location.sioroom,
+            room=location.get_path(),
             skip_sid=sid,
             namespace="/planarally",
         )
+    else:
+        for csid in state.get_sids(room.creator, room):
+            if csid == sid:
+                continue
+            await sio.emit(
+                "Shape.Order.Set", data["shape"], room=csid, namespace="/planarally"
+            )

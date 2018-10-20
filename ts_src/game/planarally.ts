@@ -92,13 +92,13 @@ export const vm = new Vue({
             (<any>this.$refs.tools).contextmenu(event);
         },
         selectLayer(layer: string) {
-            gameManager.layerManager.setLayer(layer);
+            gameManager.layerManager.selectLayer(layer);
         },
         drop(event: DragEvent) {
             if (event.dataTransfer.files.length > 0) {
                 (<any>this.$refs.confirm)
                     .open("Uploading files should be done through the asset manager.", "Ok", "")
-                    .then(() => {}, () => {});
+                    .then(() => { }, () => { });
             } else if (event.dataTransfer.getData("text/plain") === "") {
                 return;
             } else {

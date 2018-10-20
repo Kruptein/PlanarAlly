@@ -1,5 +1,12 @@
 import uuid
-from peewee import BooleanField, FloatField, ForeignKeyField, IntegerField, TextField
+from peewee import (
+    fn,
+    BooleanField,
+    FloatField,
+    ForeignKeyField,
+    IntegerField,
+    TextField,
+)
 from playhouse.shortcuts import model_to_dict
 
 from .base import BaseModel
@@ -153,7 +160,8 @@ class Layer(BaseModel):
             self, recurse=False, exclude=[Layer.id, Layer.player_visible]
         )
         data["shapes"] = [
-            shape.as_dict(user, dm) for shape in self.shapes.order_by(Shape.index)
+            shape.as_dict(user, dm)
+            for shape in self.shapes.order_by(fn.ABS(Shape.index))
         ]
         if self.type_ == "grid":
             type_table = get_table(f"{self.type_}layer")

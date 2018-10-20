@@ -1,10 +1,9 @@
 <template>
     <contextmenu v-if="getActiveLayer() !== undefined" :visible="visible" :left="x + 'px'" :top="y + 'px'" @close="close">
-        <li>Layer
+        <li v-if="getLayers().length > 1">Layer
             <ul>
                 <li
                     v-for="layer in getLayers()"
-                    v-if="layer.selectable"
                     :key="layer.name"
                     :style="[getActiveLayer().name === layer.name ? {'background-color':'#82c8a0'}: {}]"
                     @click='setLayer(layer.name)'
@@ -28,7 +27,6 @@ import Settings from "../../settings";
 import Shape from "../../shapes/shape";
 
 import { vm } from "../../planarally";
-import { socket } from "../../socket";
 import { l2gx, l2gy } from "../../units";
 
 export default Vue.component("shape-menu", {
@@ -60,7 +58,9 @@ export default Vue.component("shape-menu", {
             this.shape = null;
         },
         getLayers() {
-            return gameManager.layerManager.layers;
+            return gameManager.layerManager.layers.filter(
+                l => l.selectable && (this.$store.state.IS_DM || l.playerEditable),
+            );
         },
         getActiveLayer() {
             return gameManager.layerManager.getLayer();
@@ -72,9 +72,7 @@ export default Vue.component("shape-menu", {
         },
         setLayer(newLayer: string) {
             if (this.shape === null) return;
-            const layer = this.getActiveLayer()!;
-            layer.removeShape(this.shape, true);
-            gameManager.layerManager.getLayer(newLayer)!.addShape(this.shape, true);
+            this.shape.moveLayer(newLayer, true);
             this.close();
         },
         moveToBack() {

@@ -51,7 +51,7 @@ export function onKeyDown(event: KeyboardEvent) {
                     sel.refPoint.x += delta.x;
                     sel.refPoint.y += delta.y;
                     if (sel.refPoint.x % gridSize !== 0 || sel.refPoint.y % gridSize !== 0) sel.snapToGrid();
-                    socket.emit("Shape.Update", { shape: sel.asDict(), temporary: false });
+                    socket.emit("Shape.Update", { shape: sel.asDict(), redraw: true, temporary: false });
                 }
                 gameManager.layerManager.getLayer()!.invalidate(false);
             } else {

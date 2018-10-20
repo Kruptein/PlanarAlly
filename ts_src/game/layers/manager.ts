@@ -60,8 +60,7 @@ export class LayerManager {
         }
     }
 
-    // TODO: Rename to selectLayer
-    setLayer(name: string): void {
+    selectLayer(name: string): void {
         let found = false;
         for (const layer of this.layers) {
             if (!layer.selectable) continue;

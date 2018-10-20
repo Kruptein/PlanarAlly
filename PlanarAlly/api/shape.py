@@ -3,8 +3,8 @@ from playhouse.shortcuts import update_model_from_dict
 
 import auth
 from app import app, logger, sio, state
-from db import db
 from models import Aura, Layer, Shape, ShapeOwner, Tracker
+from models.db import db
 from models.utils import get_table, reduce_data_to_model
 
 
@@ -32,18 +32,18 @@ async def add_shape(sid, data):
             )
             data["shape"]["index"] = layer.shapes.count() + 1
             # Shape itself
-            shape = Shape.create(**data["shape"])
+            shape = Shape.create(**reduce_data_to_model(Shape, data["shape"]))
             # Subshape
             type_table = get_table(shape.type_)
-            type_table.create(**data["shape"])
+            type_table.create(**reduce_data_to_model(type_table, data["shape"]))
             # Owners
             ShapeOwner.create(shape=shape, user=user)
             # Trackers
             for tracker in data["shape"]["trackers"]:
-                Tracker.create(**tracker)
+                Tracker.create(**reduce_data_to_model(Tracker, tracker))
             # Auras
             for aura in data["shape"]["auras"]:
-                Aura.create(**aura)
+                Aura.create(**reduce_data_to_model(Aura, aura))
 
     if layer.player_visible:
         for room_player in room.players:

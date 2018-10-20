@@ -1,7 +1,6 @@
-# from . import ALL_MODELS
-
-
 def get_table(name):
+    from . import ALL_MODELS
+
     for model in ALL_MODELS:
         if model._meta.name == name:
             return model

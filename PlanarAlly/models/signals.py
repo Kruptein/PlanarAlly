@@ -1,10 +1,9 @@
 from playhouse.signals import post_save, pre_delete
 
-from .db import db
 from .campaign import GridLayer, Layer, Location, LocationUserOption, PlayerRoom, User
+from .db import db
 
-
-__all__ = []
+__all__ = []  # type: ignore
 
 
 @post_save(sender=Layer)

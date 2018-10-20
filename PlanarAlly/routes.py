@@ -1,10 +1,10 @@
 import aiohttp_jinja2
 from aiohttp import web
-from aiohttp_security import authorized_userid, check_authorized, remember, forget
+from aiohttp_security import authorized_userid, check_authorized, forget, remember
 
 from app import app, logger
-from db import db
-from models import User, Location, Room, PlayerRoom
+from models import Location, PlayerRoom, Room, User
+from models.db import db
 
 
 @aiohttp_jinja2.template("login.jinja2")

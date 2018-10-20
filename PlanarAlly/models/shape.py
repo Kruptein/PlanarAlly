@@ -1,6 +1,6 @@
 from peewee import BooleanField, FloatField, ForeignKeyField, IntegerField, TextField
-from playhouse.sqlite_ext import JSONField
 from playhouse.shortcuts import model_to_dict
+from playhouse.sqlite_ext import JSONField
 
 from .base import BaseModel
 from .campaign import Layer

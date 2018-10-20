@@ -10,7 +10,7 @@ from .user import User
 class Room(BaseModel):
     name = TextField()
     creator = ForeignKeyField(User, backref="rooms_created", on_delete="CASCADE")
-    invitation_code = TextField(default=uuid.uuid4)
+    invitation_code = TextField(default=uuid.uuid4, unique=True)
     player_location = TextField(null=True)
     dm_location = TextField(null=True)
 
@@ -36,6 +36,9 @@ class PlayerRoom(BaseModel):
 
     def __repr__(self):
         return f"<PlayerRoom {self.room.get_path()} - {self.player.name}>"
+
+    class Meta:
+        indexes = ((("player", "room"), True),)
 
 
 class Location(BaseModel):

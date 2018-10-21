@@ -21,6 +21,7 @@ All notable changes to this project will be documented in this file.
 - Shape grid snapping not getting synced on draw
 - Select tool no longer selected by default on load
 - Add new location action messed up websocket rooms
+- CircularTokens created by non-DM users now properly set owner
 
 ## [0.9] - 2018-09-26
 

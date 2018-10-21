@@ -7,14 +7,7 @@ import { AssetList } from "../../core/comm/types";
 import { GlobalPoint } from "../geom";
 import { createLayer } from "../layers/utils";
 import { vm } from "../planarally";
-import {
-    BoardInfo,
-    InitiativeData,
-    InitiativeEffect,
-    Note,
-    ServerClient,
-    ServerLocation
-} from "./types/general";
+import { BoardInfo, InitiativeData, InitiativeEffect, Note, ServerClient, ServerLocation } from "./types/general";
 import { ServerShape } from "./types/shapes";
 
 export const socket = io.connect(location.protocol + "//" + location.host + "/planarally");
@@ -46,13 +39,13 @@ socket.on("Client.Options.Set", (options: ServerClient) => {
     store.commit("setZoomFactor", options.zoom_factor);
     // if (this.layerManager.getGridLayer() !== undefined) this.layerManager.getGridLayer()!.invalidate();
 });
-socket.on("Location.Set", (data: ServerLocation) => {
-    store.commit("setLocationName", data.name);
-    store.commit("setUnitSize", { unitSize: data.unit_size, sync: false });
-    store.commit("setUseGrid", { useGrid: data.use_grid, sync: false });
-    store.commit("setFullFOW", { fullFOW: data.full_fow, sync: false });
-    store.commit("setFOWOpacity", { fowOpacity: data.fow_opacity, sync: false });
-    store.commit("setLineOfSight", { fowLOS: data.fow_los, sync: false });
+socket.on("Location.Set", (data: Partial<ServerLocation>) => {
+    if (data.name !== undefined) store.commit("setLocationName", data.name);
+    if (data.unit_size !== undefined) store.commit("setUnitSize", { unitSize: data.unit_size, sync: false });
+    if (data.use_grid !== undefined) store.commit("setUseGrid", { useGrid: data.use_grid, sync: false });
+    if (data.full_fow !== undefined) store.commit("setFullFOW", { fullFOW: data.full_fow, sync: false });
+    if (data.fow_opacity !== undefined) store.commit("setFOWOpacity", { fowOpacity: data.fow_opacity, sync: false });
+    if (data.fow_los !== undefined) store.commit("setLineOfSight", { fowLOS: data.fow_los, sync: false });
 });
 socket.on("Position.Set", (data: { x: number; y: number }) => {
     gameManager.setCenterPosition(new GlobalPoint(data.x, data.y));
@@ -107,12 +100,12 @@ socket.on("Shape.Order.Set", (data: { shape: ServerShape; index: number }) => {
     const layer = gameManager.layerManager.getLayer(shape.layer)!;
     layer.moveShapeOrder(shape, data.index, false);
 });
-socket.on("Shape.Layer.Change", (data: { uuid: string, layer: string }) => {
+socket.on("Shape.Layer.Change", (data: { uuid: string; layer: string }) => {
     const shape = gameManager.layerManager.UUIDMap.get(data.uuid);
     if (shape === undefined) return;
     shape.moveLayer(data.layer, false);
 });
-socket.on("Shape.Update", (data: { shape: ServerShape; redraw: boolean, move: boolean }) => {
+socket.on("Shape.Update", (data: { shape: ServerShape; redraw: boolean; move: boolean }) => {
     gameManager.updateShape(data);
 });
 socket.on("Initiative.Update", (data: InitiativeData) => {

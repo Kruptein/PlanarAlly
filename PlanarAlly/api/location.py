@@ -69,8 +69,10 @@ async def change_location(sid, location):
 
     for room_player in room.players:
         for psid in state.get_sids(room_player.player, room):
-            sio.leave_room(psid, old_location.get_path(), namespace="/planarally")
-            sio.enter_room(psid, new_location.get_path(), namespace="/planarally")
+            sio.leave_room(psid, old_location.get_path(),
+                           namespace="/planarally")
+            sio.enter_room(psid, new_location.get_path(),
+                           namespace="/planarally")
             await load_location(psid, new_location)
 
 
@@ -90,7 +92,7 @@ async def set_location_options(sid, data):
     location.save()
 
     await sio.emit(
-        "Location.Options.Set",
+        "Location.Set",
         data,
         room=location.get_path(),
         skip_sid=sid,

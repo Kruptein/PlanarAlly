@@ -58,13 +58,15 @@ async def set_gridsize(sid, grid_size):
 @sio.on("Players.Bring", namespace="/planarally")
 @auth.login_required(app, sio)
 async def bring_players(sid, data):
-    policy = app["AuthzPolicy"]
-    room = policy.sid_map[sid]["room"]
-    for player in room.players:
-        user = policy.user_map[player]
-        await sio.emit(
-            "Position.Set",
-            data,
-            room=policy.get_sid(user, room),
-            namespace="/planarally",
-        )
+    sid_data = state.sid_map[sid]
+    user = sid_data["user"]
+    room = sid_data["room"]
+    location = sid_data["location"]
+
+    await sio.emit(
+        "Position.Set",
+        data,
+        room=location.get_path(),
+        skip_sid=sid,
+        namespace="/planarally",
+    )

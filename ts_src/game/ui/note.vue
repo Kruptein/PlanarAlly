@@ -33,7 +33,7 @@ import { mapState } from "vuex";
 
 import modal from "../../core/components/modals/modal.vue";
 
-import { Note } from "../api_types";
+import { Note } from "../comm/types/general";
 import { vm } from "../planarally";
 
 export default Vue.component("initiative-dialog", {

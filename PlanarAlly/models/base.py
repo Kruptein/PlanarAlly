@@ -1,10 +1,11 @@
-from playhouse.shortcuts import model_to_dict
 from playhouse.signals import Model
 
-from . import db
+from .db import db
 
 
 class BaseModel(Model):
+    abstract = False
+
     class Meta:
         database = db
         legacy_table_names = False

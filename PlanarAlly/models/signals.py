@@ -1,7 +1,9 @@
 from playhouse.signals import post_save, pre_delete
 
-from . import db
 from .campaign import GridLayer, Layer, Location, LocationUserOption, PlayerRoom, User
+from .db import db
+
+__all__ = []  # type: ignore
 
 
 @post_save(sender=Layer)
@@ -44,7 +46,6 @@ def on_player_join(model_class, instance, created):
 def on_player_leave(model_class, instance):
     with db.atomic():
         for location in instance.room.locations:
-            print(f"Removing {repr(instance.player)} from {repr(instance.room)}")
             LocationUserOption.get(
                 location=location, user=instance.player
             ).delete_instance()

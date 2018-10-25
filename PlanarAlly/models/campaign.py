@@ -1,10 +1,27 @@
 import uuid
-from peewee import BooleanField, FloatField, ForeignKeyField, IntegerField, TextField
+from peewee import (
+    fn,
+    BooleanField,
+    FloatField,
+    ForeignKeyField,
+    IntegerField,
+    TextField,
+)
 from playhouse.shortcuts import model_to_dict
 
-from . import get_table
 from .base import BaseModel
 from .user import User
+from .utils import get_table
+
+__all__ = [
+    "GridLayer",
+    "Layer",
+    "Location",
+    "LocationUserOption",
+    "Note",
+    "PlayerRoom",
+    "Room",
+]
 
 
 class Room(BaseModel):
@@ -22,9 +39,9 @@ class Room(BaseModel):
 
     def get_active_location(self, dm):
         if dm:
-            return Location.get(room=room, name=self.dm_location)
+            return Location.get(room=self, name=self.dm_location)
         else:
-            return Location.get(room=room, name=self.player_location)
+            return Location.get(room=self, name=self.player_location)
 
     class Meta:
         indexes = ((("name", "creator"), True),)
@@ -36,9 +53,6 @@ class PlayerRoom(BaseModel):
 
     def __repr__(self):
         return f"<PlayerRoom {self.room.get_path()} - {self.player.name}>"
-
-    class Meta:
-        indexes = ((("player", "room"), True),)
 
 
 class Location(BaseModel):
@@ -107,7 +121,7 @@ class Location(BaseModel):
 
 
 class LocationUserOption(BaseModel):
-    location = ForeignKeyField(Location, on_delete="CASCADE")
+    location = ForeignKeyField(Location, backref="user_options", on_delete="CASCADE")
     user = ForeignKeyField(User, backref="location_options", on_delete="CASCADE")
     pan_x = IntegerField(default=0)
     pan_y = IntegerField(default=0)
@@ -129,6 +143,20 @@ class LocationUserOption(BaseModel):
 
     class Meta:
         indexes = ((("location", "user"), True),)
+
+
+class Note(BaseModel):
+    uuid = TextField(primary_key=True)
+    room = ForeignKeyField(Room, backref="notes", on_delete="CASCADE")
+    location = ForeignKeyField(
+        Location, null=True, backref="notes", on_delete="CASCADE"
+    )
+    user = ForeignKeyField(User, backref="notes", on_delete="CASCADE")
+    title = TextField(null=True)
+    text = TextField(null=True)
+
+    def __repr__(self):
+        return f"<Note {self.title} {self.room.get_path()} - {self.user.name}"
 
 
 class Layer(BaseModel):
@@ -154,7 +182,8 @@ class Layer(BaseModel):
             self, recurse=False, exclude=[Layer.id, Layer.player_visible]
         )
         data["shapes"] = [
-            shape.as_dict(user, dm) for shape in self.shapes.order_by(Shape.index)
+            shape.as_dict(user, dm)
+            for shape in self.shapes.order_by(fn.ABS(Shape.index))
         ]
         if self.type_ == "grid":
             type_table = get_table(f"{self.type_}layer")

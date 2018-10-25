@@ -26,6 +26,7 @@ except ImportError:
 
 import auth
 from models import *
+from models.db import db
 from config import SAVE_FILE
 
 
@@ -101,6 +102,15 @@ def convert(save_file):
                         sys.exit(2)
                     PlayerRoom.create(player=player, room=db_room)
 
+                for n_id, note in room.notes.items():
+                    Note.create(
+                        uuid=n_id,
+                        room=db_room,
+                        user=User.by_name(note[0]),
+                        title=note[1],
+                        text=note[2],
+                    )
+
                 for location in room.locations.values():
                     logger.info(f"\t\tLocation {location.name}")
                     db_location = Location(room=db_room, name=location.name)
@@ -164,8 +174,7 @@ def convert(save_file):
                                 ("options", "options"),
                             ]:
                                 if shape.get(optional[0]):
-                                    setattr(
-                                        db_shape, optional[1], shape[optional[0]])
+                                    setattr(db_shape, optional[1], shape[optional[0]])
                             if shape["type"].lower() == "asset":
                                 AssetRect.create(
                                     uuid=shape["uuid"],
@@ -175,8 +184,7 @@ def convert(save_file):
                                 )
                                 db_shape.type_ = "assetrect"
                             elif shape["type"].lower() == "circle":
-                                Circle.create(
-                                    uuid=shape["uuid"], radius=shape["r"])
+                                Circle.create(uuid=shape["uuid"], radius=shape["r"])
                             elif shape["type"].lower() == "circulartoken":
                                 CircularToken.create(
                                     uuid=shape["uuid"],
@@ -252,8 +260,7 @@ def convert(save_file):
                                 db_owner = User.get_or_none(name=owner)
                                 if db_owner is None:
                                     continue
-                                ShapeOwner.create(
-                                    shape=db_shape, user=db_owner)
+                                ShapeOwner.create(shape=db_shape, user=db_owner)
 
         logger.info("User-Location options")
         for user in shelf["user_map"].values():

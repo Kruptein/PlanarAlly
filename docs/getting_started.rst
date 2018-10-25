@@ -18,13 +18,14 @@ Self-hosting
 When hosting Planar Ally, you will need to download the server files and install some dependencies.
 
 Two options are available:
+
 * Precompiled binary (Windows Only)
 * Manual Installation
 
 Precompiled binary
 ^^^^^^^^^^^^^^^^^^^^
 
-These are typically only provided for major releases and can be found [here](https://github.com/Kruptein/PlanarAlly/releases).
+These are typically only provided for major releases and can be found `here <https://github.com/Kruptein/PlanarAlly/releases/>`_.
 
 1. Download the latest planarserver.zip
 2. Extract it to a folder on your server.
@@ -38,6 +39,7 @@ Manual Installation
 The core of the project is built around the following three tools.
 
 Core dependencies:
+
 * python 3.6+
 * aiohttp
 * python-socketio
@@ -45,6 +47,7 @@ Core dependencies:
 Additionally the following libraries are also necessary.
 
 Additional dependencies:
+
 * aiohttp_jinja2
 * aiohttp_security
 * aiohttp_session
@@ -52,7 +55,8 @@ Additional dependencies:
 * cryptography
 
 To install:
-1. Download the latest source code from [here](https://github.com/Kruptein/PlanarAlly/releases)
+
+1. Download the latest source code from `here <https://github.com/kruptein/planarally/releases/>`_.
 2. Make sure you have installed the core dependencies
 3. Execute `pip install -r requirements.txt` to install the additional dependencies
 4. Run the server by executing `planarserver.py`

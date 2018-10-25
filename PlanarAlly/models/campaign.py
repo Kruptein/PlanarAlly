@@ -13,7 +13,15 @@ from .base import BaseModel
 from .user import User
 from .utils import get_table
 
-__all__ = ["GridLayer", "Layer", "Location", "LocationUserOption", "PlayerRoom", "Room"]
+__all__ = [
+    "GridLayer",
+    "Layer",
+    "Location",
+    "LocationUserOption",
+    "Note",
+    "PlayerRoom",
+    "Room",
+]
 
 
 class Room(BaseModel):
@@ -113,7 +121,7 @@ class Location(BaseModel):
 
 
 class LocationUserOption(BaseModel):
-    location = ForeignKeyField(Location, on_delete="CASCADE")
+    location = ForeignKeyField(Location, backref="user_options", on_delete="CASCADE")
     user = ForeignKeyField(User, backref="location_options", on_delete="CASCADE")
     pan_x = IntegerField(default=0)
     pan_y = IntegerField(default=0)
@@ -135,6 +143,20 @@ class LocationUserOption(BaseModel):
 
     class Meta:
         indexes = ((("location", "user"), True),)
+
+
+class Note(BaseModel):
+    uuid = TextField(primary_key=True)
+    room = ForeignKeyField(Room, backref="notes", on_delete="CASCADE")
+    location = ForeignKeyField(
+        Location, null=True, backref="notes", on_delete="CASCADE"
+    )
+    user = ForeignKeyField(User, backref="notes", on_delete="CASCADE")
+    title = TextField(null=True)
+    text = TextField(null=True)
+
+    def __repr__(self):
+        return f"<Note {self.title} {self.room.get_path()} - {self.user.name}"
 
 
 class Layer(BaseModel):

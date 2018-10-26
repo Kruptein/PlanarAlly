@@ -53,7 +53,7 @@ export interface BoardInfo {
 }
 
 export interface Note {
-    name: string;
+    title: string;
     text: string;
     uuid: string;
 }

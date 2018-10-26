@@ -9,7 +9,7 @@
             @dragend="m.dragEnd"
         >
             <span @click='$refs.title.select()'><i class="fas fa-pencil-alt" style='font-size: 15px'></i></span>
-            <input v-model="note.name" ref='title' @change='updateNote'>
+            <input v-model="note.title" ref='title' @change='updateNote'>
             <div class='header-close' @click="visible = false"><i class="far fa-window-close"></i></div>
         </div>
         <div class='modal-body'>

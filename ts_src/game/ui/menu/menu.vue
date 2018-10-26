@@ -61,7 +61,7 @@
                                     @click='openNote(note)'
                                     style='cursor:pointer'
                                 >
-                                    {{ note.name || "[?]" }}
+                                    {{ note.title || "[?]" }}
                                 </div>
                                 <div v-if='!notes.length'>
                                     No notes
@@ -250,7 +250,7 @@ export default Vue.component("menu-bar", {
             );
         },
         createNote() {
-            const note = { name: "New note", text: "", uuid: uuidv4() };
+            const note = { title: "New note", text: "", uuid: uuidv4() };
             this.$store.commit("newNote", { note, sync: true });
             this.openNote(note);
         },

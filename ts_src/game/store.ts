@@ -188,7 +188,7 @@ export default new Vuex.Store({
         updateNote(state, payload: { note: Note; sync: boolean }) {
             const note = state.notes.find(n => n.uuid === payload.note.uuid);
             if (note === undefined) return;
-            note.name = payload.note.name;
+            note.title = payload.note.title;
             note.text = payload.note.text;
             if (payload.sync) socket.emit("Note.Update", payload.note);
         },

@@ -1,47 +1,67 @@
 import auth
 from app import app, logger, sio
+from models import Note
+from models.db import db
 
 
 @sio.on("Note.New", namespace="/planarally")
 @auth.login_required(app, sio)
 async def new_note(sid, data):
-    username = app["AuthzPolicy"].sid_map[sid]["user"].name
-    room = app["AuthzPolicy"].sid_map[sid]["room"]
+    sid_data = state.sid_map[sid]
+    user = sid_data["user"]
+    room = sid_data["room"]
+    location = sid_data["location"]
 
-    if data["uuid"] in room.notes:
+    if Note.get_or_none(uuid=data["uuid"]):
         logger.warning(
-            f"{username} tried to overwrite existing note with id: '{data['uuid']}'"
+            f"{user.name} tried to overwrite existing note with id: '{data['uuid']}'"
         )
         return
 
-    room.add_new_note(data, username)
+    Note.create(
+        uuid=data["uuid"], title=data["title"], text=data["text"], user=user, room=room
+    )
 
 
 @sio.on("Note.Update", namespace="/planarally")
 @auth.login_required(app, sio)
 async def update_note(sid, data):
-    username = app["AuthzPolicy"].sid_map[sid]["user"].name
-    room = app["AuthzPolicy"].sid_map[sid]["room"]
+    sid_data = state.sid_map[sid]
+    user = sid_data["user"]
+    room = sid_data["room"]
+    location = sid_data["location"]
 
-    if data["uuid"] not in room.notes:
+    note = Note.get_or_none(uuid=data["uuid"])
+
+    if not note:
         logger.warning(
-            f"{username} tried to update non-existant note with id: '{data['uuid']}'"
+            f"{user.name} tried to update non-existant note with id: '{data['uuid']}'"
         )
         return
 
-    room.update_note(data, username)
+    if note.user != user:
+        logger.warn(f"{user.name} tried to update note not belonging to him/her.")
+    else:
+        with db.atomic():
+            note.title = data["title"]
+            note.text = data["text"]
+            note.save()
 
 
 @sio.on("Note.Remove", namespace="/planarally")
 @auth.login_required(app, sio)
 async def delete_note(sid, uuid):
-    username = app["AuthzPolicy"].sid_map[sid]["user"].name
-    room = app["AuthzPolicy"].sid_map[sid]["room"]
+    sid_data = state.sid_map[sid]
+    user = sid_data["user"]
+    room = sid_data["room"]
+    location = sid_data["location"]
 
-    if uuid not in room.notes:
+    note = Note.get_or_none(uuid=data["uuid"])
+
+    if not note:
         logger.warning(
-            f"{username} tried to remove non-existant note with id: '{uuid}'"
+            f"{user.name} tried to remove non-existant note with id: '{uuid}'"
         )
         return
 
-    room.delete_note(uuid, username)
+    note.delete_instance()

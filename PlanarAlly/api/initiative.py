@@ -7,10 +7,10 @@ from app import app, logger, sio
 @sio.on("Initiative.Update", namespace="/planarally")
 @auth.login_required(app, sio)
 async def update_initiative(sid, data):
-    policy = app["AuthzPolicy"]
-    username = policy.sid_map[sid]["user"].name
-    room = policy.sid_map[sid]["room"]
-    location = room.get_active_location(username)
+    sid_data = state.sid_map[sid]
+    user = sid_data["user"]
+    room = sid_data["room"]
+    location = sid_data["location"]
 
     if not hasattr(location, "initiative"):
         location.initiative = []
@@ -64,13 +64,13 @@ async def update_initiative(sid, data):
 @sio.on("Initiative.Set", namespace="/planarally")
 @auth.login_required(app, sio)
 async def update_initiative_order(sid, data):
-    policy = app["AuthzPolicy"]
-    username = policy.sid_map[sid]["user"].name
-    room = policy.sid_map[sid]["room"]
-    location = room.get_active_location(username)
+    sid_data = state.sid_map[sid]
+    user = sid_data["user"]
+    room = sid_data["room"]
+    location = sid_data["location"]
 
-    if room.creator != username:
-        logger.warning(f"{username} attempted to change the initiative order")
+    if room.creator != user:
+        logger.warning(f"{user.name} attempted to change the initiative order")
         return
 
     location.initiative = [d for d in data if d]

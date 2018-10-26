@@ -22,7 +22,6 @@ export interface ServerClient {
 export interface InitiativeData {
     uuid: string;
     initiative?: number;
-    owners: string[];
     visible: boolean;
     group: boolean;
     src: string;

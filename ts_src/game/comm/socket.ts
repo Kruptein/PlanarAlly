@@ -110,9 +110,11 @@ socket.on("Shape.Update", (data: { shape: ServerShape; redraw: boolean; move: bo
 });
 socket.on("Initiative.Update", (data: InitiativeData) => {
     const initiative = <any>vm.$refs.initiative;
+    const shape = gameManager.layerManager.UUIDMap.get(data.uuid);
+    const showed = (shape !== undefined && shape.ownedBy());
     if (
         data.initiative === undefined ||
-        (!data.owners.includes(store.state.username) && !store.state.IS_DM && !data.visible)
+        (showed && !store.state.IS_DM && !data.visible)
     )
         initiative.removeInitiative(data.uuid, false, true);
     else initiative.updateInitiative(data, false);

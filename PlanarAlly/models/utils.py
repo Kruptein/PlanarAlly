@@ -8,9 +8,3 @@ def get_table(name):
 
 def reduce_data_to_model(model, data):
     return {k: data[k] for k in model._meta.fields.keys() if k in data}
-
-
-def all_subclasses(cls):
-    return set(cls.__subclasses__()).union(
-        [s for c in cls.__subclasses__() for s in all_subclasses(c)]
-    )

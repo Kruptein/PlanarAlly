@@ -4,7 +4,8 @@ import hashlib
 from aiohttp_security import authorized_userid
 
 import auth
-from app import app, logger, sio, state, FILE_DIR
+from app import app, logger, sio, state
+from utils import FILE_DIR
 
 ASSETS_DIR = FILE_DIR / "static" / "assets"
 if not ASSETS_DIR.exists():
@@ -56,7 +57,8 @@ async def assetmgmt_upload(sid, file_data):
 
     policy = app["AuthzPolicy"]
     user = policy.sid_map[sid]["user"]
-    folder = functools.reduce(dict.get, file_data["directory"], user.asset_info)
+    folder = functools.reduce(
+        dict.get, file_data["directory"], user.asset_info)
     if folder is None:
         logger.warning(
             f"Directory structure {file_data['directory']} is not valid for {user.name}"
@@ -114,7 +116,8 @@ async def assetmgmt_mv(sid, data):
         target_directory = data["directory"][:-1]
     else:
         target_directory = data["directory"] + [data["target"]]
-    target_folder = functools.reduce(dict.get, target_directory, user.asset_info)
+    target_folder = functools.reduce(
+        dict.get, target_directory, user.asset_info)
     name = data["inode"] if data["isFolder"] else data["inode"]["name"]
     if data["isFolder"]:
         target_folder[name] = folder[name]
@@ -139,7 +142,8 @@ async def assetmgmt_rm(sid, data):
         del folder[data["name"]]
     else:
         index = next(
-            (i for i, fl in enumerate(folder["__files"]) if fl["name"] == data["name"]),
+            (i for i, fl in enumerate(
+                folder["__files"]) if fl["name"] == data["name"]),
             None,
         )
         if index is not None:

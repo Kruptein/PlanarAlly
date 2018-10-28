@@ -1,7 +1,6 @@
 import logging
 import os
 import sys
-from pathlib import Path
 
 import aiohttp_jinja2
 import aiohttp_security
@@ -13,6 +12,7 @@ from aiohttp_security import SessionIdentityPolicy
 from aiohttp_session.cookie_storage import EncryptedCookieStorage
 
 import auth
+from utils import FILE_DIR
 
 # SETUP SERVER
 
@@ -25,12 +25,6 @@ aiohttp_jinja2.setup(app, loader=jinja2.FileSystemLoader("templates"))
 sio.attach(app)
 
 # SETUP PATHS
-
-if getattr(sys, "frozen", False):
-    FILE_DIR = Path(sys.executable).resolve().parent
-else:
-    FILE_DIR = Path(__file__).resolve().parent
-
 os.chdir(FILE_DIR)
 
 # SETUP LOGGING

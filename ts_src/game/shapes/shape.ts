@@ -223,7 +223,6 @@ export default abstract class Shape {
             visible: !store.state.IS_DM,
             group: false,
             src: this.name,
-            owners: this.owners,
             has_img: false,
             effects: [],
         };

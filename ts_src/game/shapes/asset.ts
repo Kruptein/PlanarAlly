@@ -7,7 +7,7 @@ import { GlobalPoint } from "../geom";
 import { g2lx, g2ly, g2lz } from "../units";
 
 export default class Asset extends BaseRect {
-    type = "asset";
+    type = "assetrect";
     img: HTMLImageElement;
     src: string = "";
     constructor(img: HTMLImageElement, topleft: GlobalPoint, w: number, h: number, uuid?: string) {
@@ -38,7 +38,6 @@ export default class Asset extends BaseRect {
             visible: !store.state.IS_DM,
             group: false,
             src: this.src,
-            owners: this.owners,
             has_img: true,
             effects: [],
         };

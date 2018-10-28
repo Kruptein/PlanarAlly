@@ -58,7 +58,6 @@ export default class CircularToken extends Circle {
             visible: !store.state.IS_DM,
             group: false,
             src: this.name === "" || this.name === "Unknown shape" ? this.text : this.name,
-            owners: this.owners,
             has_img: false,
             effects: [],
         };

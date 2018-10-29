@@ -117,9 +117,9 @@ def convert(save_file):
                     for optional in [
                         ("unitSize", "unit_size"),
                         ("useGrid", "use_grid"),
-                        ("fullFOW", "full_FOW"),
+                        ("fullFOW", "full_fow"),
                         ("fowOpacity", "fow_opacity"),
-                        ("fowLOS", "fow_LOS"),
+                        ("fowLOS", "fow_los"),
                     ]:
                         if location.options.get(optional[0]):
                             setattr(

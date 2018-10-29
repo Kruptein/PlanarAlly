@@ -3,7 +3,7 @@ from playhouse.shortcuts import update_model_from_dict
 
 import auth
 from app import app, logger, sio, state
-from models import Aura, Layer, Shape, ShapeOwner, Tracker
+from models import Aura, Layer, Shape, ShapeOwner, Tracker, User
 from models.db import db
 from models.utils import get_table, reduce_data_to_model
 
@@ -115,6 +115,18 @@ async def update_shape(sid, data):
             # no backrefs on these tables
             update_model_from_dict(type_instance, data["shape"], ignore_unknown=True)
             type_instance.save()
+
+            old_owners = {owner.user.name for owner in shape.owners}
+            new_owners = set(data["shape"]["owners"])
+            for owner in old_owners ^ new_owners:
+                if owner == "":
+                    continue
+                if owner in new_owners:
+                    ShapeOwner.create(shape=shape, user=User.by_name(owner))
+                else:
+                    ShapeOwner.get(
+                        shape=shape, user=User.by_name(owner)
+                    ).delete_instance(True)
 
     # Send to players
     if layer.player_visible:

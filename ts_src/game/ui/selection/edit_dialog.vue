@@ -218,7 +218,7 @@ export default Vue.component("edit-dialog", {
                 });
         },
         updateShape(redraw: boolean) {
-            socket.emit("Shape.Update", { shape: this.shape.asDict(), redraw });
+            socket.emit("Shape.Update", { shape: this.shape.asDict(), redraw, temporary: false });
             if (redraw) gameManager.layerManager.invalidate();
             this.addEmpty();
         },

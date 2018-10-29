@@ -35,8 +35,7 @@ async def add_shape(sid, data):
             shape = Shape.create(**reduce_data_to_model(Shape, data["shape"]))
             # Subshape
             type_table = get_table(shape.type_)
-            type_table.create(
-                **reduce_data_to_model(type_table, data["shape"]))
+            type_table.create(**reduce_data_to_model(type_table, data["shape"]))
             # Owners
             ShapeOwner.create(shape=shape, user=user)
             # Trackers
@@ -90,19 +89,16 @@ async def update_shape(sid, data):
     # Ownership validatation
     if room.creator != user:
         if not layer.player_editable:
-            logger.warning(
-                f"{user.name} attempted to move a shape on a dm layer")
+            logger.warning(f"{user.name} attempted to move a shape on a dm layer")
             return
 
         if data["temporary"]:
             if user.name not in shape["owners"]:
-                logger.warning(
-                    f"{user.name} attempted to move asset it does not own")
+                logger.warning(f"{user.name} attempted to move asset it does not own")
                 return
         else:
             if not ShapeOwner.get_or_none(shape=shape, user=user):
-                logger.warning(
-                    f"{user.name} attempted to move asset it does not own")
+                logger.warning(f"{user.name} attempted to move asset it does not own")
                 return
 
     # Overwrite the old data with the new data
@@ -112,14 +108,12 @@ async def update_shape(sid, data):
                 location=location, name=data["shape"]["layer"]
             )
             # Otherwise backrefs can cause errors as they need to be handled separately
-            update_model_from_dict(
-                shape, reduce_data_to_model(Shape, data["shape"]))
+            update_model_from_dict(shape, reduce_data_to_model(Shape, data["shape"]))
             shape.save()
             type_table = get_table(shape.type_)
             type_instance = type_table.get(uuid=shape.uuid)
             # no backrefs on these tables
-            update_model_from_dict(
-                type_instance, data["shape"], ignore_unknown=True)
+            update_model_from_dict(type_instance, data["shape"], ignore_unknown=True)
             type_instance.save()
 
     # Send to players
@@ -166,19 +160,16 @@ async def remove_shape(sid, data):
     # Ownership validatation
     if room.creator != user:
         if not layer.player_editable:
-            logger.warning(
-                f"{user.name} attempted to remove a shape on a dm layer")
+            logger.warning(f"{user.name} attempted to remove a shape on a dm layer")
             return
 
         if data["temporary"]:
             if user.name not in shape["owners"]:
-                logger.warning(
-                    f"{user.name} attempted to remove asset it does not own")
+                logger.warning(f"{user.name} attempted to remove asset it does not own")
                 return
         else:
             if not ShapeOwner.get_or_none(shape=shape, user=user):
-                logger.warning(
-                    f"{user.name} attempted to remove asset it does not own")
+                logger.warning(f"{user.name} attempted to remove asset it does not own")
                 return
 
     if data["temporary"]:
@@ -241,8 +232,7 @@ async def move_shape_order(sid, data):
     layer = shape.layer
 
     if room.creator != user and not layer.player_editable:
-        logger.warning(
-            f"{user.name} attempted to move a shape order on a dm layer")
+        logger.warning(f"{user.name} attempted to move a shape order on a dm layer")
         return
 
     target = data["index"] + 1

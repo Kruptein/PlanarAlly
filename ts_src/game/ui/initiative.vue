@@ -163,7 +163,7 @@ export default Vue.component("initiative-dialog", {
             return this.data.find(a => a.uuid === actorId);
         },
         updateOrder() {
-            socket.emit("Initiative.Set", this.data);
+            socket.emit("Initiative.Order.Set", this.data);
         },
         clear() {
             this.data = [];

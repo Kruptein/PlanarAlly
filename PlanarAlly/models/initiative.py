@@ -1,9 +1,10 @@
 from peewee import BlobField, BooleanField, ForeignKeyField, IntegerField, TextField
+from playhouse.shortcuts import model_to_dict
 
 from .base import BaseModel
 
 
-__all__ = ["Initiative"]
+__all__ = ["Initiative", "InitiativeEffect"]
 
 
 class Initiative(BaseModel):
@@ -13,6 +14,10 @@ class Initiative(BaseModel):
     group = BooleanField(default=False)
     source = TextField()
     has_img = BooleanField(default=False)
+    index = IntegerField()
+
+    def as_dict(self):
+        return model_to_dict(self, recurse=False)
 
 
 class InitiativeEffect(BaseModel):

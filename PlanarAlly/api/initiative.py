@@ -1,7 +1,10 @@
 from operator import itemgetter
+from playhouse.shortcuts import dict_to_model, update_model_from_dict
 
 import auth
-from app import app, logger, sio
+from app import app, logger, sio, state
+from models import Initiative, InitiativeEffect
+from models.utils import reduce_data_to_model
 
 
 @sio.on("Initiative.Update", namespace="/planarally")
@@ -12,56 +15,56 @@ async def update_initiative(sid, data):
     room = sid_data["room"]
     location = sid_data["location"]
 
-    if not hasattr(location, "initiative"):
-        location.initiative = []
+    shape = Shape.get_or_none(uuid=data["uuid"])
 
-    shape = location.layer_manager.get_shape(data["uuid"])
-
-    if room.creator != username:
-        if username not in shape["owners"]:
-            logger.warning(
-                f"{username} attempted to change initiative of an asset it does not own"
-            )
-            return
+    if room.creator != user and not ShapeOwner.get_or_none(shape=shape, user=user):
+        logger.warning(
+            f"{user.name} attempted to change initiative of an asset it does not own"
+        )
+        return
 
     removed = False
     used_to_be_visible = False
 
-    for init in list(location.initiative):
-        if init["uuid"] == data["uuid"]:
-            if "initiative" not in data:
-                removed = True
-                location.initiative.remove(init)
-            else:
-                used_to_be_visible = init.get("visible", False)
-                init.update(**data)
-            break
+    initiative = Initiative.get_or_none(data["uuid"])
+
+    if initiative is None:
+        initiative = dict_to_model(Initiative, reduce_data_to_model(Initiative, data))
+        initiative.save()
     else:
-        location.initiative.append(data)
-    location.initiative.sort(key=itemgetter("initiative"), reverse=True)
+        if "initiative" not in data:
+            removed = True
+            initiative.delete_instance(True)
+        else:
+            used_to_be_visible = initiative.visible
+            update_model_from_dict(initiative, reduce_data_to_model(Initiative, data))
+            initiative.save()
 
-    for player in room.players:
-        if player == username:
+    sorted_initiatives = [
+        init.as_dict()
+        for init in Initiative.select()
+        .join(Shape)
+        .join(Layer)
+        .where((Layer.location == location))
+        .order_by(-Shape.index)
+    ]
+
+    if removed or used_to_be_visible or data["visible"]:
+        for room_player in room.players:
+            for psid in state.get_sids(room_player.player, room):
+                if psid == sid:
+                    continue
+                await sio.emit(
+                    "Initiative.Update", data, room=psid, namespace="/planarally"
+                )
+
+    for csid in state.get_sids(room.creator, room):
+        if csid == sid:
             continue
-
-        if not removed and not used_to_be_visible and not data["visible"]:
-            continue
-
-        psid = policy.get_sid(policy.user_map[player], room)
-        if psid is not None:
-            await sio.emit(
-                "Initiative.Update", data, room=psid, namespace="/planarally"
-            )
-
-    if room.creator != username:
-        croom = policy.get_sid(policy.user_map[room.creator], room)
-        if croom is not None:
-            await sio.emit(
-                "Initiative.Update", data, room=croom, namespace="/planarally"
-            )
+        await sio.emit("Initiative.Update", data, room=croom, namespace="/planarally")
 
 
-@sio.on("Initiative.Set", namespace="/planarally")
+@sio.on("Initiative.Order.Set", namespace="/planarally")
 @auth.login_required(app, sio)
 async def update_initiative_order(sid, data):
     sid_data = state.sid_map[sid]

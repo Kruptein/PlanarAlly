@@ -1,10 +1,17 @@
 from peewee import BlobField, BooleanField, ForeignKeyField, IntegerField, TextField
 from playhouse.shortcuts import model_to_dict
 
+from . import Location
 from .base import BaseModel
 
 
 __all__ = ["Initiative", "InitiativeEffect"]
+
+
+class InitiativeLocationData(BaseModel):
+    location = ForeignKeyField(Location, backref="initiative", on_delete="CASCADE")
+    turn = IntegerField()
+    round = IntegerField()
 
 
 class Initiative(BaseModel):

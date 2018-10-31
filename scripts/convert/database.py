@@ -52,6 +52,7 @@ def convert(save_file):
         logger.warning("Database already exists.  Abort conversion.")
         sys.exit(2)
     logger.info("Creating tables")
+
     db.create_tables(ALL_MODELS)
     Constants.create(save_version=3, secret_token=secrets.token_bytes(32))
 
@@ -126,6 +127,32 @@ def convert(save_file):
                                 db_location, optional[1], location.options[optional[0]]
                             )
                     db_location.save()
+
+                    if hasattr(location, "initiative"):
+                        InitiativeLocationData.create(
+                            location=db_location,
+                            turn=getattr(location, "initiativeTurn", 0),
+                            round=getattr(location, "initiativeRound", 0),
+                        )
+                        for init_i, init in enumerate(location.initiative):
+                            init_db = Initiative.create(
+                                uuid=init["uuid"],
+                                visible=init["visible"],
+                                group=init["group"],
+                                source=init["src"],
+                                has_img=init.get("has_img", False),
+                                index=init_i,
+                                initiative=init["initiative"],
+                            )
+
+                            if "effects" in init:
+                                for effect in init["effects"]:
+                                    InitiativeEffect.create(
+                                        uuid=effect["uuid"],
+                                        initiative=init_db,
+                                        name=effect["name"],
+                                        turns=effect["turns"],
+                                    )
 
                     for i_l, layer in enumerate(location.layer_manager.layers):
                         type_map = {

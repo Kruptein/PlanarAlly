@@ -128,10 +128,13 @@ def convert(save_file):
                             )
                     db_location.save()
 
-                    if hasattr(location, "initiative"):
+                    if hasattr(location, "initiative") and location.initiative:
+                        turn = getattr(location, "initiativeTurn", 0)
+                        if isinstance(turn, int):
+                            turn = location.initiative[turn]['uuid']
                         InitiativeLocationData.create(
                             location=db_location,
-                            turn=getattr(location, "initiativeTurn", 0),
+                            turn=turn,
                             round=getattr(location, "initiativeRound", 0),
                         )
                         for init_i, init in enumerate(location.initiative):
@@ -201,7 +204,8 @@ def convert(save_file):
                                 ("options", "options"),
                             ]:
                                 if shape.get(optional[0]):
-                                    setattr(db_shape, optional[1], shape[optional[0]])
+                                    setattr(
+                                        db_shape, optional[1], shape[optional[0]])
                             if shape["type"].lower() == "asset":
                                 AssetRect.create(
                                     uuid=shape["uuid"],
@@ -211,7 +215,8 @@ def convert(save_file):
                                 )
                                 db_shape.type_ = "assetrect"
                             elif shape["type"].lower() == "circle":
-                                Circle.create(uuid=shape["uuid"], radius=shape["r"])
+                                Circle.create(
+                                    uuid=shape["uuid"], radius=shape["r"])
                             elif shape["type"].lower() == "circulartoken":
                                 CircularToken.create(
                                     uuid=shape["uuid"],
@@ -287,7 +292,8 @@ def convert(save_file):
                                 db_owner = User.get_or_none(name=owner)
                                 if db_owner is None:
                                     continue
-                                ShapeOwner.create(shape=db_shape, user=db_owner)
+                                ShapeOwner.create(
+                                    shape=db_shape, user=db_owner)
 
         logger.info("User-Location options")
         for user in shelf["user_map"].values():

@@ -5,7 +5,16 @@ from . import Location
 from .base import BaseModel
 
 
-__all__ = ["Initiative", "InitiativeEffect"]
+__all__ = ["Initiative", "InitiativeEffect", "InitiativeLocationData"]
+
+
+class InitiativeLocationData(BaseModel):
+    location = ForeignKeyField(
+        Location, backref="initiative", on_delete="CASCADE")
+    # instead of pointing to a numeric index, we point to the uuid
+    # this guarantees that the correct actor is always highlighted
+    turn = TextField()
+    round = IntegerField()
 
 
 class InitiativeLocationData(BaseModel):
@@ -29,6 +38,7 @@ class Initiative(BaseModel):
 
 class InitiativeEffect(BaseModel):
     uuid = TextField(primary_key=True)
-    initiative = ForeignKeyField(Initiative, backref="effects", on_delete="CASCADE")
+    initiative = ForeignKeyField(
+        Initiative, backref="effects", on_delete="CASCADE")
     name = TextField()
     turns = IntegerField()

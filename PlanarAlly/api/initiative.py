@@ -1,9 +1,10 @@
 from operator import itemgetter
+from peewee import JOIN
 from playhouse.shortcuts import dict_to_model, update_model_from_dict
 
 import auth
 from app import app, logger, sio, state
-from models import Initiative, InitiativeEffect
+from models import Initiative, InitiativeEffect, Layer, Shape, ShapeOwner
 from models.utils import reduce_data_to_model
 
 
@@ -29,7 +30,8 @@ async def update_initiative(sid, data):
     initiative = Initiative.get_or_none(data["uuid"])
 
     if initiative is None:
-        initiative = dict_to_model(Initiative, reduce_data_to_model(Initiative, data))
+        initiative = dict_to_model(
+            Initiative, reduce_data_to_model(Initiative, data))
         initiative.save()
     else:
         if "initiative" not in data:
@@ -37,16 +39,17 @@ async def update_initiative(sid, data):
             initiative.delete_instance(True)
         else:
             used_to_be_visible = initiative.visible
-            update_model_from_dict(initiative, reduce_data_to_model(Initiative, data))
+            update_model_from_dict(
+                initiative, reduce_data_to_model(Initiative, data))
             initiative.save()
 
     sorted_initiatives = [
         init.as_dict()
         for init in Initiative.select()
-        .join(Shape)
+        .join(Shape, JOIN.LEFT_OUTER, on=(Initiative.uuid == Shape.uuid))
         .join(Layer)
         .where((Layer.location == location))
-        .order_by(-Shape.index)
+        .order_by(Initiative.index)
     ]
 
     if removed or used_to_be_visible or data["visible"]:
@@ -61,7 +64,7 @@ async def update_initiative(sid, data):
     for csid in state.get_sids(room.creator, room):
         if csid == sid:
             continue
-        await sio.emit("Initiative.Update", data, room=croom, namespace="/planarally")
+        await sio.emit("Initiative.Update", data, room=csid, namespace="/planarally")
 
 
 @sio.on("Initiative.Order.Set", namespace="/planarally")
@@ -102,7 +105,8 @@ async def update_initiative_turn(sid, data):
     location = room.get_active_location(username)
 
     if room.creator != username:
-        logger.warning(f"{username} attempted to advance the initiative tracker")
+        logger.warning(
+            f"{username} attempted to advance the initiative tracker")
         return
 
     location.initiativeTurn = data
@@ -132,7 +136,8 @@ async def update_initiative_round(sid, data):
     location = room.get_active_location(username)
 
     if room.creator != username:
-        logger.warning(f"{username} attempted to advance the initiative tracker")
+        logger.warning(
+            f"{username} attempted to advance the initiative tracker")
         return
 
     location.initiativeRound = data
@@ -158,7 +163,8 @@ async def new_initiative_effect(sid, data):
 
     if room.creator != username:
         if username not in shape["owners"]:
-            logger.warning(f"{username} attempted to create a new initiative effect")
+            logger.warning(
+                f"{username} attempted to create a new initiative effect")
             return
 
     for init in location.initiative:
@@ -188,7 +194,8 @@ async def update_initiative_effect(sid, data):
 
     if room.creator != username:
         if username not in shape["owners"]:
-            logger.warning(f"{username} attempted to update an initiative effect")
+            logger.warning(
+                f"{username} attempted to update an initiative effect")
             return
 
     for init in location.initiative:
@@ -204,4 +211,3 @@ async def update_initiative_effect(sid, data):
         skip_sid=sid,
         namespace="/planarally",
     )
-

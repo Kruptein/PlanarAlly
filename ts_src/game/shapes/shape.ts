@@ -222,7 +222,7 @@ export default abstract class Shape {
             uuid: this.uuid,
             visible: !store.state.IS_DM,
             group: false,
-            src: this.name,
+            source: this.name,
             has_img: false,
             effects: [],
         };

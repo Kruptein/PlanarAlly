@@ -37,7 +37,7 @@ export default class Asset extends BaseRect {
             uuid: this.uuid,
             visible: !store.state.IS_DM,
             group: false,
-            src: this.src,
+            source: this.src,
             has_img: true,
             effects: [],
         };

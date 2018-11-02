@@ -27,10 +27,10 @@
                             @mouseleave="toggleHighlight(actor, false)"
                         >
                             <template v-if="actor.has_img">
-                                <img :src="actor.src" width="30px" height="30px">
+                                <img :src="actor.source" width="30px" height="30px">
                             </template>
                             <template v-else>
-                                <span style='width: auto;'>{{ actor.src }}</span>
+                                <span style='width: auto;'>{{ actor.source }}</span>
                             </template>
                             <input
                                 type="text"

@@ -24,7 +24,7 @@ export interface InitiativeData {
     initiative?: number;
     visible: boolean;
     group: boolean;
-    src: string;
+    source: string;
     has_img: boolean;
     effects: InitiativeEffect[];
 }

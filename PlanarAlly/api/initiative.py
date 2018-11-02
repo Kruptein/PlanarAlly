@@ -30,8 +30,7 @@ async def update_initiative(sid, data):
     initiative = Initiative.get_or_none(data["uuid"])
 
     if initiative is None:
-        initiative = dict_to_model(
-            Initiative, reduce_data_to_model(Initiative, data))
+        initiative = dict_to_model(Initiative, reduce_data_to_model(Initiative, data))
         initiative.save()
     else:
         if "initiative" not in data:
@@ -39,18 +38,17 @@ async def update_initiative(sid, data):
             initiative.delete_instance(True)
         else:
             used_to_be_visible = initiative.visible
-            update_model_from_dict(
-                initiative, reduce_data_to_model(Initiative, data))
+            update_model_from_dict(initiative, reduce_data_to_model(Initiative, data))
             initiative.save()
 
-    sorted_initiatives = [
-        init.as_dict()
-        for init in Initiative.select()
-        .join(Shape, JOIN.LEFT_OUTER, on=(Initiative.uuid == Shape.uuid))
-        .join(Layer)
-        .where((Layer.location == location))
-        .order_by(Initiative.index)
-    ]
+    # sorted_initiatives = [
+    #     init.as_dict()
+    #     for init in Initiative.select()
+    #     .join(Shape, JOIN.LEFT_OUTER, on=(Initiative.uuid == Shape.uuid))
+    #     .join(Layer)
+    #     .where((Layer.location == location))
+    #     .order_by(Initiative.index)
+    # ]
 
     if removed or used_to_be_visible or data["visible"]:
         for room_player in room.players:
@@ -105,8 +103,7 @@ async def update_initiative_turn(sid, data):
     location = room.get_active_location(username)
 
     if room.creator != username:
-        logger.warning(
-            f"{username} attempted to advance the initiative tracker")
+        logger.warning(f"{username} attempted to advance the initiative tracker")
         return
 
     location.initiativeTurn = data
@@ -136,8 +133,7 @@ async def update_initiative_round(sid, data):
     location = room.get_active_location(username)
 
     if room.creator != username:
-        logger.warning(
-            f"{username} attempted to advance the initiative tracker")
+        logger.warning(f"{username} attempted to advance the initiative tracker")
         return
 
     location.initiativeRound = data
@@ -163,8 +159,7 @@ async def new_initiative_effect(sid, data):
 
     if room.creator != username:
         if username not in shape["owners"]:
-            logger.warning(
-                f"{username} attempted to create a new initiative effect")
+            logger.warning(f"{username} attempted to create a new initiative effect")
             return
 
     for init in location.initiative:
@@ -194,8 +189,7 @@ async def update_initiative_effect(sid, data):
 
     if room.creator != username:
         if username not in shape["owners"]:
-            logger.warning(
-                f"{username} attempted to update an initiative effect")
+            logger.warning(f"{username} attempted to update an initiative effect")
             return
 
     for init in location.initiative:

@@ -31,6 +31,7 @@ async def load_location(sid, location):
     await sio.emit(
         "Client.Options.Set", client_options, room=sid, namespace="/planarally"
     )
+
     # if hasattr(location, "initiative"):
     #     initiatives = location.initiative
     #     if room.creator != username:

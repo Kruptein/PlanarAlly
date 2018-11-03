@@ -25,6 +25,8 @@ class Initiative(BaseModel):
     source = TextField()
     has_img = BooleanField(default=False)
     index = IntegerField()
+    location_data = ForeignKeyField(
+        InitiativeLocationData, backref="initiatives")
 
     def as_dict(self):
         return model_to_dict(self, recurse=False)

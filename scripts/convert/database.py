@@ -132,7 +132,7 @@ def convert(save_file):
                         turn = getattr(location, "initiativeTurn", 0)
                         if isinstance(turn, int):
                             turn = location.initiative[turn]['uuid']
-                        InitiativeLocationData.create(
+                        location_data = InitiativeLocationData.create(
                             location=db_location,
                             turn=turn,
                             round=getattr(location, "initiativeRound", 0),
@@ -146,6 +146,7 @@ def convert(save_file):
                                 has_img=init.get("has_img", False),
                                 index=init_i,
                                 initiative=init["initiative"],
+                                location_data=location_data
                             )
 
                             if "effects" in init:

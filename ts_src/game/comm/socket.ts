@@ -108,17 +108,6 @@ socket.on("Shape.Layer.Change", (data: { uuid: string; layer: string }) => {
 socket.on("Shape.Update", (data: { shape: ServerShape; redraw: boolean; move: boolean }) => {
     gameManager.updateShape(data);
 });
-socket.on("Initiative.Update", (data: InitiativeData) => {
-    const initiative = <any>vm.$refs.initiative;
-    const shape = gameManager.layerManager.UUIDMap.get(data.uuid);
-    const showed = (shape !== undefined && shape.ownedBy());
-    if (
-        data.initiative === undefined ||
-        (showed && !store.state.IS_DM && !data.visible)
-    )
-        initiative.removeInitiative(data.uuid, false, true);
-    else initiative.updateInitiative(data, false);
-});
 socket.on("Initiative.Set", (data: InitiativeData[]) => {
     (<any>vm.$refs.initiative).data = data.filter(d => !!d);
 });

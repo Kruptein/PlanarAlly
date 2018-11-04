@@ -27,6 +27,7 @@ export interface InitiativeData {
     source: string;
     has_img: boolean;
     effects: InitiativeEffect[];
+    index: number;
 }
 
 export interface InitiativeEffect {

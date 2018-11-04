@@ -225,6 +225,7 @@ export default abstract class Shape {
             source: this.name,
             has_img: false,
             effects: [],
+            index: Infinity,
         };
     }
 

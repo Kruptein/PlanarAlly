@@ -1,10 +1,10 @@
 from operator import itemgetter
-from peewee import JOIN
+from peewee import Case, JOIN
 from playhouse.shortcuts import dict_to_model, update_model_from_dict
 
 import auth
 from app import app, logger, sio, state
-from models import Initiative, InitiativeEffect, Layer, Shape, ShapeOwner
+from models import Initiative, InitiativeEffect, InitiativeLocationData, Layer, Shape, ShapeOwner
 from models.utils import reduce_data_to_model
 
 
@@ -17,52 +17,78 @@ async def update_initiative(sid, data):
     location = sid_data["location"]
 
     shape = Shape.get_or_none(uuid=data["uuid"])
+    owner = ShapeOwner.get_or_none(shape=shape, user=user) is not None
 
-    if room.creator != user and not ShapeOwner.get_or_none(shape=shape, user=user):
+    if room.creator != user and not owner:
         logger.warning(
             f"{user.name} attempted to change initiative of an asset it does not own"
         )
         return
 
-    removed = False
     used_to_be_visible = False
 
-    initiative = Initiative.get_or_none(data["uuid"])
+    location_data = InitiativeLocationData.get_or_none(location=location)
+    if location_data is None:
+        location_data = InitiativeLocationData.create(
+            location=location, turn=data["uuid"], round=1)
+    initiatives = Initiative.select().where(
+        Initiative.location_data == location_data)
 
+    initiative = Initiative.get_or_none(uuid=data["uuid"])
+
+    # Create new initiative
     if initiative is None:
-        initiative = dict_to_model(Initiative, reduce_data_to_model(Initiative, data))
-        initiative.save()
-    else:
-        if "initiative" not in data:
-            removed = True
-            initiative.delete_instance(True)
+        # Update indices
+        try:
+            index = initiatives.where(
+                Initiative.initiative >= data["initiative"]).order_by(-Initiative.index)[0].index + 1
+        except IndexError:
+            index = 0
         else:
-            used_to_be_visible = initiative.visible
-            update_model_from_dict(initiative, reduce_data_to_model(Initiative, data))
-            initiative.save()
+            Initiative.update(index=Initiative.index + 1).where(
+                (Initiative.location_data == location_data) & (Initiative.index >= index))
+        # Create model instance
+        initiative = dict_to_model(
+            Initiative, reduce_data_to_model(Initiative, data))
+        initiative.location_data = location_data
+        initiative.index = index
+        initiative.save(force_insert=True)
+    # Remove initiative
+    elif "initiative" not in data:
+        Initiative.update(index=Initiative.index - 1).where((Initiative.location_data ==
+                                                             location_data) & (Initiative.index >= initiative.index))
+        initiative.delete_instance(True)
+    # Update initiative
+    else:
+        used_to_be_visible = initiative.visible
 
-    # sorted_initiatives = [
-    #     init.as_dict()
-    #     for init in Initiative.select()
-    #     .join(Shape, JOIN.LEFT_OUTER, on=(Initiative.uuid == Shape.uuid))
-    #     .join(Layer)
-    #     .where((Layer.location == location))
-    #     .order_by(Initiative.index)
-    # ]
+        # Update indices
+        old_index = initiative.index
+        try:
+            new_index = initiatives.where(
+                Initiative.initiative >= data["initiative"]).order_by(-Initiative.index)[0].index
+        except IndexError:
+            new_index = 0
+        else:
+            if new_index <= old_index:
+                new_index += 1
+        if old_index != new_index:
+            # SIGN=1 IF old_index > new_index WHICH MEANS the initiative is increased
+            # SIGN=-1 IF old_index < new_index WHICH MEANS the initiative is decreased
+            sign = (old_index - new_index) // abs(old_index - new_index)
+            indices = [0, old_index, new_index]
+            update = Initiative.update(index=Initiative.index + sign).where((Initiative.location_data == location_data)
+                                                                            & (Initiative.index <= indices[sign]) & (Initiative.index >= indices[-sign]))
+            update.execute()
+        data['index'] = new_index
+        # Update model instance
+        update_model_from_dict(
+            initiative, reduce_data_to_model(Initiative, data))
+        initiative.save()
 
-    if removed or used_to_be_visible or data["visible"]:
-        for room_player in room.players:
-            for psid in state.get_sids(room_player.player, room):
-                if psid == sid:
-                    continue
-                await sio.emit(
-                    "Initiative.Update", data, room=psid, namespace="/planarally"
-                )
+    data["index"] = initiative.index
 
-    for csid in state.get_sids(room.creator, room):
-        if csid == sid:
-            continue
-        await sio.emit("Initiative.Update", data, room=csid, namespace="/planarally")
+    await send_client_initiatives(room, location, skip_sid=sid)
 
 
 @sio.on("Initiative.Order.Set", namespace="/planarally")
@@ -103,7 +129,8 @@ async def update_initiative_turn(sid, data):
     location = room.get_active_location(username)
 
     if room.creator != username:
-        logger.warning(f"{username} attempted to advance the initiative tracker")
+        logger.warning(
+            f"{username} attempted to advance the initiative tracker")
         return
 
     location.initiativeTurn = data
@@ -133,7 +160,8 @@ async def update_initiative_round(sid, data):
     location = room.get_active_location(username)
 
     if room.creator != username:
-        logger.warning(f"{username} attempted to advance the initiative tracker")
+        logger.warning(
+            f"{username} attempted to advance the initiative tracker")
         return
 
     location.initiativeRound = data
@@ -159,7 +187,8 @@ async def new_initiative_effect(sid, data):
 
     if room.creator != username:
         if username not in shape["owners"]:
-            logger.warning(f"{username} attempted to create a new initiative effect")
+            logger.warning(
+                f"{username} attempted to create a new initiative effect")
             return
 
     for init in location.initiative:
@@ -189,7 +218,8 @@ async def update_initiative_effect(sid, data):
 
     if room.creator != username:
         if username not in shape["owners"]:
-            logger.warning(f"{username} attempted to update an initiative effect")
+            logger.warning(
+                f"{username} attempted to update an initiative effect")
             return
 
     for init in location.initiative:
@@ -205,3 +235,34 @@ async def update_initiative_effect(sid, data):
         skip_sid=sid,
         namespace="/planarally",
     )
+
+
+def get_client_initiatives(user, location):
+    location_data = InitiativeLocationData.get_or_none(location=location)
+    if location_data is None:
+        return []
+    initiatives = Initiative.select().where(
+        Initiative.location_data == location_data)
+    if location.room.creator != user:
+        initiatives = initiatives.join(ShapeOwner, JOIN.LEFT_OUTER, on=Initiative.uuid == ShapeOwner.shape).where(
+            (Initiative.visible == True) | (ShapeOwner.user == user))
+    return [i.as_dict() for i in initiatives.order_by(Initiative.index)]
+
+
+async def send_client_initiatives(room, location, user=None, skip_sid=None):
+    for room_player in room.players:
+        if user is None or user == room_player.player:
+            for psid in state.get_sids(room_player.player, room):
+                if psid == skip_sid:
+                    continue
+                await sio.emit(
+                    "Initiative.Set", get_client_initiatives(room_player.player, location), room=psid, namespace="/planarally"
+                )
+
+    if user is None or user == room.creator:
+        for csid in state.get_sids(room.creator, room):
+            if csid == skip_sid:
+                continue
+            await sio.emit(
+                "Initiative.Set", get_client_initiatives(room_player.player, location), room=csid, namespace="/planarally"
+            )

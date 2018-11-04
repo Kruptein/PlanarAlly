@@ -28,8 +28,11 @@ class Initiative(BaseModel):
     location_data = ForeignKeyField(
         InitiativeLocationData, backref="initiatives")
 
+    def __repr__(self):
+        return f"<Initiative {self.initiative} [i:{self.index},v:{self.visible},g:{self.group}] - {self.uuid}>"
+
     def as_dict(self):
-        return model_to_dict(self, recurse=False)
+        return model_to_dict(self, recurse=False, exclude=[Initiative.location_data])
 
 
 class InitiativeEffect(BaseModel):

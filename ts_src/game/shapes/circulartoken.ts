@@ -60,6 +60,7 @@ export default class CircularToken extends Circle {
             source: this.name === "" || this.name === "Unknown shape" ? this.text : this.name,
             has_img: false,
             effects: [],
+            index: Infinity,
         };
     }
 }

@@ -40,6 +40,7 @@ export default class Asset extends BaseRect {
             source: this.src,
             has_img: true,
             effects: [],
+            index: Infinity,
         };
     }
 }

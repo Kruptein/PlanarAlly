@@ -134,9 +134,9 @@ import { mapState } from "vuex";
 import modal from "../../core/components/modals/modal.vue";
 import gameManager from "../manager";
 
+import { uuidv4 } from "../../core/utils";
 import { socket } from "../comm/socket";
 import { InitiativeData, InitiativeEffect } from "../comm/types/general";
-import { uuidv4 } from "../../core/utils";
 
 export default Vue.component("initiative-dialog", {
     data: () => ({
@@ -208,9 +208,9 @@ export default Vue.component("initiative-dialog", {
             // If no initiative given, assume it 0
             if (data.initiative === undefined) data.initiative = 0;
             // Check if the shape is already being tracked
-            const existing = this.data.find(d => d.uuid === data.uuid);
-            if (existing !== undefined) {
-                Object.assign(existing, data);
+            const index = this.data.findIndex(d => d.uuid === data.uuid);
+            if (index > -1) {
+                this.data.splice(data.index, 0, Object.assign(this.data.splice(index, 1), data));
             } else {
                 this.data.push(data);
             }

@@ -2,6 +2,7 @@ from peewee import JOIN
 from playhouse.shortcuts import update_model_from_dict
 
 import auth
+from .initiative import send_client_initiatives
 from app import app, logger, sio, state
 from models import Initiative, Layer, Location, LocationUserOption, Shape
 
@@ -41,9 +42,7 @@ async def load_location(sid, location):
         .where((Layer.location == location))
         .order_by(Initiative.index)
     ]
-    await sio.emit(
-        "Initiative.Set", sorted_initiatives, room=sid, namespace="/planarally"
-    )
+    await send_client_initiatives(room, location, user)
 
     # if hasattr(location, "initiative"):
     #     initiatives = location.initiative
@@ -83,8 +82,10 @@ async def change_location(sid, location):
 
     for room_player in room.players:
         for psid in state.get_sids(room_player.player, room):
-            sio.leave_room(psid, old_location.get_path(), namespace="/planarally")
-            sio.enter_room(psid, new_location.get_path(), namespace="/planarally")
+            sio.leave_room(psid, old_location.get_path(),
+                           namespace="/planarally")
+            sio.enter_room(psid, new_location.get_path(),
+                           namespace="/planarally")
             await load_location(psid, new_location)
 
 

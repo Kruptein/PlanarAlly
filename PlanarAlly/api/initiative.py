@@ -66,25 +66,26 @@ async def update_initiative(sid, data):
         used_to_be_visible = initiative.visible
 
         with db.atomic():
-            # Update indices
-            old_index = initiative.index
-            try:
-                new_index = initiatives.where(
-                    Initiative.initiative >= data["initiative"]).order_by(-Initiative.index)[0].index
-            except IndexError:
-                new_index = 0
-            else:
-                if new_index <= old_index:
-                    new_index += 1
-            if old_index != new_index:
-                # SIGN=1 IF old_index > new_index WHICH MEANS the initiative is increased
-                # SIGN=-1 IF old_index < new_index WHICH MEANS the initiative is decreased
-                sign = (old_index - new_index) // abs(old_index - new_index)
-                indices = [0, old_index, new_index]
-                update = Initiative.update(index=Initiative.index + sign).where((Initiative.location_data == location_data)
-                                                                                & (Initiative.index <= indices[sign]) & (Initiative.index >= indices[-sign]))
-                update.execute()
-            data['index'] = new_index
+            if data["initiative"] != initiative.initiative:
+                # Update indices
+                old_index = initiative.index
+                try:
+                    new_index = initiatives.where(
+                        Initiative.initiative >= data["initiative"]).order_by(-Initiative.index)[0].index
+                except IndexError:
+                    new_index = 0
+                else:
+                    if new_index < old_index:
+                        new_index += 1
+                if old_index != new_index:
+                    # SIGN=1 IF old_index > new_index WHICH MEANS the initiative is increased
+                    # SIGN=-1 IF old_index < new_index WHICH MEANS the initiative is decreased
+                    sign = (old_index - new_index) // abs(old_index - new_index)
+                    indices = [0, old_index, new_index]
+                    update = Initiative.update(index=Initiative.index + sign).where((Initiative.location_data == location_data)
+                                                                                    & (Initiative.index <= indices[sign]) & (Initiative.index >= indices[-sign]))
+                    update.execute()
+                data['index'] = new_index
             # Update model instance
             update_model_from_dict(
                 initiative, reduce_data_to_model(Initiative, data))
@@ -121,29 +122,34 @@ async def update_initiative_order(sid, data):
 @sio.on("Initiative.Turn.Update", namespace="/planarally")
 @auth.login_required(app, sio)
 async def update_initiative_turn(sid, data):
-    policy = app["AuthzPolicy"]
-    username = policy.sid_map[sid]["user"].name
-    room = policy.sid_map[sid]["room"]
-    location = room.get_active_location(username)
+    sid_data = state.sid_map[sid]
+    user = sid_data["user"]
+    room = sid_data["room"]
+    location = sid_data["location"]
 
-    if room.creator != username:
+    if room.creator != user:
         logger.warning(
-            f"{username} attempted to advance the initiative tracker")
+            f"{user.name} attempted to advance the initiative tracker")
         return
 
-    location.initiativeTurn = data
-    for init in location.initiative:
-        if init["uuid"] == data:
-            for eff in list(init["effects"]):
-                if eff["turns"] <= 0:
-                    init["effects"].remove(eff)
-                else:
-                    eff["turns"] -= 1
+    location_data = InitiativeLocationData.get(location=location)
+    with db.atomic():
+        location_data.turn = data
+        location_data.save()
+
+        effects = InitiativeEffect.select().join(
+            Initiative).where(Initiative.uuid == data)
+        for effect in effects:
+            if effect.turns <= 0:
+                effect.delete_instance()
+            else:
+                effect.turns -= 1
+            effect.save()
 
     await sio.emit(
         "Initiative.Turn.Update",
         data,
-        room=location.sioroom,
+        room=location.get_path(),
         skip_sid=sid,
         namespace="/planarally",
     )
@@ -152,22 +158,25 @@ async def update_initiative_turn(sid, data):
 @sio.on("Initiative.Round.Update", namespace="/planarally")
 @auth.login_required(app, sio)
 async def update_initiative_round(sid, data):
-    policy = app["AuthzPolicy"]
-    username = policy.sid_map[sid]["user"].name
-    room = policy.sid_map[sid]["room"]
-    location = room.get_active_location(username)
+    sid_data = state.sid_map[sid]
+    user = sid_data["user"]
+    room = sid_data["room"]
+    location = sid_data["location"]
 
-    if room.creator != username:
+    if room.creator != user:
         logger.warning(
-            f"{username} attempted to advance the initiative tracker")
+            f"{user.name} attempted to advance the initiative tracker")
         return
 
-    location.initiativeRound = data
+    location_data = InitiativeLocationData.get(location=location)
+    with db.atomic():
+        location_data.round = data
+        location_data.save()
 
     await sio.emit(
         "Initiative.Round.Update",
         data,
-        room=location.sioroom,
+        room=location.get_path(),
         skip_sid=sid,
         namespace="/planarally",
     )
@@ -176,29 +185,23 @@ async def update_initiative_round(sid, data):
 @sio.on("Initiative.Effect.New", namespace="/planarally")
 @auth.login_required(app, sio)
 async def new_initiative_effect(sid, data):
-    policy = app["AuthzPolicy"]
-    username = policy.sid_map[sid]["user"].name
-    room = policy.sid_map[sid]["room"]
-    location = room.get_active_location(username)
+    sid_data = state.sid_map[sid]
+    user = sid_data["user"]
+    room = sid_data["room"]
+    location = sid_data["location"]
 
-    shape = location.layer_manager.get_shape(data["actor"])
+    if room.creator != user and not ShapeOwner.get_or_none(shape=shape, user=user):
+        logger.warning(
+            f"{user.name} attempted to create a new initiative effect")
+        return
 
-    if room.creator != username:
-        if username not in shape["owners"]:
-            logger.warning(
-                f"{username} attempted to create a new initiative effect")
-            return
-
-    for init in location.initiative:
-        if init["uuid"] == data["actor"]:
-            if "effects" not in init:
-                init["effects"] = []
-            init["effects"].append(data["effect"])
+    InitiativeEffect.create(initiative=data["actor"], uuid=data["effect"]
+                            ["uuid"], name=data["effect"]["name"], turns=data["effect"]["turns"])
 
     await sio.emit(
         "Initiative.Effect.New",
         data,
-        room=location.sioroom,
+        room=location.get_path(),
         skip_sid=sid,
         namespace="/planarally",
     )
@@ -207,29 +210,26 @@ async def new_initiative_effect(sid, data):
 @sio.on("Initiative.Effect.Update", namespace="/planarally")
 @auth.login_required(app, sio)
 async def update_initiative_effect(sid, data):
-    policy = app["AuthzPolicy"]
-    username = policy.sid_map[sid]["user"].name
-    room = policy.sid_map[sid]["room"]
-    location = room.get_active_location(username)
+    sid_data = state.sid_map[sid]
+    user = sid_data["user"]
+    room = sid_data["room"]
+    location = sid_data["location"]
 
-    shape = location.layer_manager.get_shape(data["actor"])
+    if room.creator != user and not ShapeOwner.get_or_none(shape=shape, user=user):
+        logger.warning(
+            f"{user.name} attempted to update an initiative effect")
+        return
 
-    if room.creator != username:
-        if username not in shape["owners"]:
-            logger.warning(
-                f"{username} attempted to update an initiative effect")
-            return
-
-    for init in location.initiative:
-        if init["uuid"] == data["actor"]:
-            for i, eff in enumerate(init["effects"]):
-                if eff["uuid"] == data["effect"]["uuid"]:
-                    init["effects"][i] = data["effect"]
+    with db.atomic():
+        effect = InitiativeEffect.get(uuid=data["effect"]["uuid"])
+        update_model_from_dict(effect, reduce_data_to_model(
+            InitiativeEffect, data["effect"]))
+        effect.save()
 
     await sio.emit(
         "Initiative.Effect.Update",
         data,
-        room=location.sioroom,
+        room=location.get_path(),
         skip_sid=sid,
         namespace="/planarally",
     )
@@ -243,7 +243,7 @@ def get_client_initiatives(user, location):
         Initiative.location_data == location_data)
     if location.room.creator != user:
         initiatives = initiatives.join(ShapeOwner, JOIN.LEFT_OUTER, on=Initiative.uuid == ShapeOwner.shape).where(
-            (Initiative.visible == True) | (ShapeOwner.user == user))
+            (Initiative.visible == True) | (ShapeOwner.user == user)).distinct()
     return [i.as_dict() for i in initiatives.order_by(Initiative.index)]
 
 
@@ -262,5 +262,5 @@ async def send_client_initiatives(room, location, user=None, skip_sid=None):
             if csid == skip_sid:
                 continue
             await sio.emit(
-                "Initiative.Set", get_client_initiatives(room_player.player, location), room=csid, namespace="/planarally"
+                "Initiative.Set", get_client_initiatives(room.creator, location), room=csid, namespace="/planarally"
             )

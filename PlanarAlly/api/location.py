@@ -4,7 +4,7 @@ from playhouse.shortcuts import update_model_from_dict
 import auth
 from .initiative import send_client_initiatives
 from app import app, logger, sio, state
-from models import Initiative, Layer, Location, LocationUserOption, Shape
+from models import Initiative, InitiativeLocationData, Layer, Location, LocationUserOption, Shape
 
 
 @auth.login_required(app, sio)
@@ -42,21 +42,10 @@ async def load_location(sid, location):
         .where((Layer.location == location))
         .order_by(Initiative.index)
     ]
+    location_data = InitiativeLocationData.get(location=location)
     await send_client_initiatives(room, location, user)
-
-    # if hasattr(location, "initiative"):
-    #     initiatives = location.initiative
-    #     if room.creator != username:
-    #         initiatives = []
-    #         for i in location.initiative:
-    #             shape = location.layer_manager.get_shape(i['uuid'])
-    #             if shape and username in shape.get('owners', []) or i.get("visible", False):
-    #                 initiatives.append(i)
-    #     await sio.emit("Initiative.Set", initiatives, room=sid, namespace='/planarally')
-    #     if hasattr(location, "initiativeRound"):
-    #         await sio.emit("Initiative.Round.Update", location.initiativeRound, room=sid, namespace='/planarally')
-    #     if hasattr(location, "initiativeTurn"):
-    #         await sio.emit("Initiative.Turn.Update", location.initiativeTurn, room=sid, namespace='/planarally')
+    await sio.emit("Initiative.Round.Update", location_data.round, room=sid, namespace='/planarally')
+    await sio.emit("Initiative.Turn.Update", location_data.turn, room=sid, namespace='/planarally')
 
 
 @sio.on("Location.Change", namespace="/planarally")

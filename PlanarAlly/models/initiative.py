@@ -32,7 +32,10 @@ class Initiative(BaseModel):
         return f"<Initiative {self.initiative} [i:{self.index},v:{self.visible},g:{self.group}] - {self.uuid}>"
 
     def as_dict(self):
-        return model_to_dict(self, recurse=False, exclude=[Initiative.location_data])
+        init = model_to_dict(self, recurse=False, exclude=[
+                             Initiative.location_data])
+        init["effects"] = [e.as_dict() for e in self.effects]
+        return init
 
 
 class InitiativeEffect(BaseModel):
@@ -41,3 +44,9 @@ class InitiativeEffect(BaseModel):
         Initiative, backref="effects", on_delete="CASCADE")
     name = TextField()
     turns = IntegerField()
+
+    def __repr__(self):
+        return f"<InitiativeEffect {self.name}: {self.turns} - {self.uuid}>"
+
+    def as_dict(self):
+        return model_to_dict(self, recurse=False, exclude=[InitiativeEffect.initiative])

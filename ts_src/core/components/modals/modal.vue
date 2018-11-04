@@ -61,7 +61,7 @@ export default Vue.extend({
             }
         },
         dragStart(event: DragEvent) {
-            event.dataTransfer.setData('Hack', null);
+            event.dataTransfer.setData("Hack", "");
             // Because the drag event is happening on the header, we have to change the drag image
             // in order to give the impression that the entire modal is dragged.
             event.dataTransfer.setDragImage(<Element>this.$refs.container, event.offsetX, event.offsetY);
@@ -75,7 +75,7 @@ export default Vue.extend({
             this.dragging = false;
             let left = event.clientX - this.offsetX;
             let top = event.clientY - this.offsetY;
-            if (event.clientX == 0 && event.clientY == 0 && event.pageX == 0 && event.pageY == 0) {
+            if (event.clientX === 0 && event.clientY === 0 && event.pageX === 0 && event.pageY === 0) {
                 left = parseInt((<any>this.$refs.container).style.left, 10) - (this.screenX - event.screenX);
                 top = parseInt((<any>this.$refs.container).style.top, 10) - (this.screenY - event.screenY);
             }

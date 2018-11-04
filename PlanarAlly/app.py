@@ -64,7 +64,7 @@ class State:
         del self.sid_map[sid]
 
     def get_sids(self, user, room):
-        for sid in self.sid_map:
+        for sid in dict(self.sid_map):
             if "room" not in self.sid_map[sid]:
                 logger.error("ROOM NOT IN SID_MAP")
                 logger.error(sid)

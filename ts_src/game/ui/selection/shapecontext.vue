@@ -90,8 +90,7 @@ export default Vue.component("shape-menu", {
         addInitiative() {
             if (this.shape === null) return;
             const initiative = <any>vm.$refs.initiative;
-            if (!initiative.contains(this.shape.uuid))
-                initiative.updateInitiative(this.shape.getInitiativeRepr(), true);
+            if (!initiative.contains(this.shape.uuid)) initiative.addInitiative(this.shape.getInitiativeRepr());
             initiative.visible = true;
             this.close();
         },

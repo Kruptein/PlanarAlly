@@ -16,13 +16,14 @@
                 id='initiative-list'
                 v-model="data"
                 @change="updateOrder"
-                :options="{setData: () => {}}"
+                :options="{setData: fakeSetData, disabled: !$store.state.IS_DM}"
             >
-                <template v-for="actor in sortedData">
+                <template v-for="actor in data">
                     <div :key="actor.uuid" style='display:flex;flex-direction:column;align-items:flex-end;'>
                         <div
                             class='initiative-actor'
                             :class="{'initiative-selected': currentActor === actor.uuid}"
+                            :style="{'cursor': $store.state.IS_DM && 'move'}"
                             @mouseenter="toggleHighlight(actor, true)"
                             @mouseleave="toggleHighlight(actor, false)"
                         >
@@ -149,25 +150,14 @@ export default Vue.component("initiative-dialog", {
         modal,
         draggable,
     },
-    computed: {
-        sortedData(): InitiativeData[] {
-            return this.data.sort((a, b) => {
-                if (a.initiative === undefined) return 1;
-                if (b.initiative === undefined) return -1;
-                return b.initiative - a.initiative;
-            });
-        },
-    },
     methods: {
-        getActor(actorId: string) {
-            return this.data.find(a => a.uuid === actorId);
-        },
-        updateOrder() {
-            socket.emit("Initiative.Order.Set", this.data);
-        },
+        // Utilities
         clear() {
             this.data = [];
             this.currentActor = null;
+        },
+        getActor(actorId: string) {
+            return this.data.find(a => a.uuid === actorId);
         },
         contains(uuid: string) {
             return this.data.some(d => d.uuid === uuid);
@@ -178,6 +168,39 @@ export default Vue.component("initiative-dialog", {
             // Shapes that are unknown to this client are hidden from this client but owned by other clients
             if (shape === undefined) return false;
             return shape.owners.includes(this.$store.state.username);
+        },
+        getDefaultEffect() {
+            return { uuid: uuidv4(), name: "New Effect", turns: 10 };
+        },
+        fakeSetData(dataTransfer: DataTransfer) {
+            dataTransfer.setData("Hack", "");
+            // dataTransfer.setDragImage()
+        },
+        syncInitiative(data: InitiativeData | { uuid: string }) {
+            socket.emit("Initiative.Update", data);
+        },
+        // Events
+        addInitiative(data: InitiativeData) {
+            const d = this.data.findIndex(a => a.uuid === data.uuid);
+            if (d >= 0) return;
+            if (data.initiative === undefined) data.initiative = 0;
+            this.syncInitiative(data);
+        },
+        removeInitiative(uuid: string) {
+            const d = this.data.findIndex(a => a.uuid === uuid);
+            if (d < 0 || this.data[d].group) return;
+            this.syncInitiative({ uuid });
+            // Remove highlight
+            const shape = gameManager.layerManager.UUIDMap.get(uuid);
+            if (shape === undefined) return;
+            if (shape.showHighlight) {
+                shape.showHighlight = false;
+                gameManager.layerManager.getLayer(shape.layer)!.invalidate(true);
+            }
+        },
+        updateOrder() {
+            if (!this.$store.state.IS_DM) return;
+            socket.emit("Initiative.Set", this.data);
         },
         setTurn(actorId: string | null, sync: boolean) {
             if (!this.$store.state.IS_DM && sync) return;
@@ -199,44 +222,10 @@ export default Vue.component("initiative-dialog", {
         },
         nextTurn() {
             if (!this.$store.state.IS_DM) return;
-            const order = this.sortedData;
+            const order = this.data;
             const next = order[(order.findIndex(a => a.uuid === this.currentActor) + 1) % order.length];
             if (this.data[0].uuid === next.uuid) this.setRound(this.roundCounter + 1, true);
             this.setTurn(next.uuid, true);
-        },
-        updateInitiative(data: InitiativeData, sync: boolean) {
-            // If no initiative given, assume it 0
-            if (data.initiative === undefined) data.initiative = 0;
-            // Check if the shape is already being tracked
-            const index = this.data.findIndex(d => d.uuid === data.uuid);
-            if (index > -1) {
-                this.data.splice(data.index, 0, Object.assign(this.data.splice(index, 1), data));
-            } else {
-                this.data.push(data);
-            }
-            if (sync) this.syncInitiative(data);
-        },
-        syncInitiative(data: InitiativeData | { uuid: string }) {
-            socket.emit("Initiative.Update", data);
-        },
-        removeInitiative(uuid: string, sync: boolean, skipGroupCheck: boolean) {
-            const d = this.data.findIndex(a => a.uuid === uuid);
-            if (d < 0) return;
-            if (!skipGroupCheck && this.data[d].group) return;
-            if (sync) this.syncInitiative({ uuid });
-            this.data.splice(d, 1);
-
-            if (this.currentActor === uuid) {
-                if (this.data.length > 1) this.nextTurn();
-                else this.currentActor = null;
-            }
-
-            const shape = gameManager.layerManager.UUIDMap.get(uuid);
-            if (shape === undefined) return;
-            if (shape.showHighlight) {
-                shape.showHighlight = false;
-                gameManager.layerManager.getLayer(shape.layer)!.invalidate(true);
-            }
         },
         toggleHighlight(actor: InitiativeData, show: boolean) {
             const shape = gameManager.layerManager.UUIDMap.get(actor.uuid);
@@ -253,9 +242,6 @@ export default Vue.component("initiative-dialog", {
             if (!this.owns(actor)) return;
             actor.effects.push(effect);
             if (sync) socket.emit("Initiative.Effect.New", { actor: actor.uuid, effect });
-        },
-        getDefaultEffect() {
-            return { uuid: uuidv4(), name: "New Effect", turns: 10 };
         },
         syncEffect(actor: InitiativeData, effect: InitiativeEffect) {
             if (!this.owns(actor)) return;
@@ -327,7 +313,6 @@ export default Vue.component("initiative-dialog", {
 
 .initiative-actor:hover {
     border: solid 2px #82c8a0;
-    cursor: move;
 }
 
 .initiative-actor > * {

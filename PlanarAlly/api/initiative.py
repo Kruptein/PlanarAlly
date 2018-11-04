@@ -88,7 +88,7 @@ async def update_initiative(sid, data):
 
     data["index"] = initiative.index
 
-    await send_client_initiatives(room, location, skip_sid=sid)
+    await send_client_initiatives(room, location)
 
 
 @sio.on("Initiative.Order.Set", namespace="/planarally")

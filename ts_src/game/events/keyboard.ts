@@ -23,7 +23,7 @@ export function onKeyUp(event: KeyboardEvent) {
                 }
                 l.removeShape(sel, true, false);
                 (<any>vm.$refs.selectionInfo).shape = null;
-                (<any>vm.$refs.initiative).removeInitiative(sel.uuid, true, false);
+                (<any>vm.$refs.initiative).removeInitiative(sel.uuid);
             }
         }
     }

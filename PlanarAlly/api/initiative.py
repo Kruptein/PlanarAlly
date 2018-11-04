@@ -1,10 +1,11 @@
 from operator import itemgetter
-from peewee import Case, JOIN
+from peewee import JOIN
 from playhouse.shortcuts import dict_to_model, update_model_from_dict
 
 import auth
 from app import app, logger, sio, state
 from models import Initiative, InitiativeEffect, InitiativeLocationData, Layer, Shape, ShapeOwner
+from models.db import db
 from models.utils import reduce_data_to_model
 
 
@@ -38,60 +39,63 @@ async def update_initiative(sid, data):
 
     # Create new initiative
     if initiative is None:
-        # Update indices
-        try:
-            index = initiatives.where(
-                Initiative.initiative >= data["initiative"]).order_by(-Initiative.index)[0].index + 1
-        except IndexError:
-            index = 0
-        else:
-            Initiative.update(index=Initiative.index + 1).where(
-                (Initiative.location_data == location_data) & (Initiative.index >= index))
-        # Create model instance
-        initiative = dict_to_model(
-            Initiative, reduce_data_to_model(Initiative, data))
-        initiative.location_data = location_data
-        initiative.index = index
-        initiative.save(force_insert=True)
+        with db.atomic():
+            # Update indices
+            try:
+                index = initiatives.where(
+                    Initiative.initiative >= data["initiative"]).order_by(-Initiative.index)[0].index + 1
+            except IndexError:
+                index = 0
+            else:
+                Initiative.update(index=Initiative.index + 1).where(
+                    (Initiative.location_data == location_data) & (Initiative.index >= index))
+            # Create model instance
+            initiative = dict_to_model(
+                Initiative, reduce_data_to_model(Initiative, data))
+            initiative.location_data = location_data
+            initiative.index = index
+            initiative.save(force_insert=True)
     # Remove initiative
     elif "initiative" not in data:
-        Initiative.update(index=Initiative.index - 1).where((Initiative.location_data ==
-                                                             location_data) & (Initiative.index >= initiative.index))
-        initiative.delete_instance(True)
+        with db.atomic():
+            Initiative.update(index=Initiative.index - 1).where((Initiative.location_data ==
+                                                                 location_data) & (Initiative.index >= initiative.index))
+            initiative.delete_instance(True)
     # Update initiative
     else:
         used_to_be_visible = initiative.visible
 
-        # Update indices
-        old_index = initiative.index
-        try:
-            new_index = initiatives.where(
-                Initiative.initiative >= data["initiative"]).order_by(-Initiative.index)[0].index
-        except IndexError:
-            new_index = 0
-        else:
-            if new_index <= old_index:
-                new_index += 1
-        if old_index != new_index:
-            # SIGN=1 IF old_index > new_index WHICH MEANS the initiative is increased
-            # SIGN=-1 IF old_index < new_index WHICH MEANS the initiative is decreased
-            sign = (old_index - new_index) // abs(old_index - new_index)
-            indices = [0, old_index, new_index]
-            update = Initiative.update(index=Initiative.index + sign).where((Initiative.location_data == location_data)
-                                                                            & (Initiative.index <= indices[sign]) & (Initiative.index >= indices[-sign]))
-            update.execute()
-        data['index'] = new_index
-        # Update model instance
-        update_model_from_dict(
-            initiative, reduce_data_to_model(Initiative, data))
-        initiative.save()
+        with db.atomic():
+            # Update indices
+            old_index = initiative.index
+            try:
+                new_index = initiatives.where(
+                    Initiative.initiative >= data["initiative"]).order_by(-Initiative.index)[0].index
+            except IndexError:
+                new_index = 0
+            else:
+                if new_index <= old_index:
+                    new_index += 1
+            if old_index != new_index:
+                # SIGN=1 IF old_index > new_index WHICH MEANS the initiative is increased
+                # SIGN=-1 IF old_index < new_index WHICH MEANS the initiative is decreased
+                sign = (old_index - new_index) // abs(old_index - new_index)
+                indices = [0, old_index, new_index]
+                update = Initiative.update(index=Initiative.index + sign).where((Initiative.location_data == location_data)
+                                                                                & (Initiative.index <= indices[sign]) & (Initiative.index >= indices[-sign]))
+                update.execute()
+            data['index'] = new_index
+            # Update model instance
+            update_model_from_dict(
+                initiative, reduce_data_to_model(Initiative, data))
+            initiative.save()
 
     data["index"] = initiative.index
 
     await send_client_initiatives(room, location)
 
 
-@sio.on("Initiative.Order.Set", namespace="/planarally")
+@sio.on("Initiative.Set", namespace="/planarally")
 @auth.login_required(app, sio)
 async def update_initiative_order(sid, data):
     sid_data = state.sid_map[sid]
@@ -103,21 +107,15 @@ async def update_initiative_order(sid, data):
         logger.warning(f"{user.name} attempted to change the initiative order")
         return
 
-    location.initiative = [d for d in data if d]
-    initiatives = location.initiative
-    if room.creator != username:
-        initiatives = []
-        for i in location.initiative:
-            shape = location.layer_manager.get_shape(i["uuid"])
-            if shape and username in shape.get("owners", []) or i.get("visible", False):
-                initiatives.append(i)
-    await sio.emit(
-        "Initiative.Set",
-        initiatives,
-        room=location.sioroom,
-        skip_sid=sid,
-        namespace="/planarally",
-    )
+    location_data = InitiativeLocationData.get(location=location)
+
+    with db.atomic():
+        for i, uuid in enumerate(data):
+            init = Initiative.get(uuid=uuid)
+            init.index = i
+            init.save()
+
+    await send_client_initiatives(room, location)
 
 
 @sio.on("Initiative.Turn.Update", namespace="/planarally")

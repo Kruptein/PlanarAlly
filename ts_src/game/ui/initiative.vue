@@ -199,7 +199,7 @@ export default Vue.component("initiative-dialog", {
         },
         updateOrder() {
             if (!this.$store.state.IS_DM) return;
-            socket.emit("Initiative.Set", this.data);
+            socket.emit("Initiative.Set", this.data.map(d => d.uuid));
         },
         setTurn(actorId: string | null, sync: boolean) {
             if (!this.$store.state.IS_DM && sync) return;

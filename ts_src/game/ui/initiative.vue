@@ -174,7 +174,6 @@ export default Vue.component("initiative-dialog", {
         },
         fakeSetData(dataTransfer: DataTransfer) {
             dataTransfer.setData("Hack", "");
-            // dataTransfer.setDragImage()
         },
         syncInitiative(data: InitiativeData | { uuid: string }) {
             socket.emit("Initiative.Update", data);

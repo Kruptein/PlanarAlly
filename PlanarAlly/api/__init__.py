@@ -2,7 +2,7 @@ import auth
 from app import app, logger, sio, state
 from models import GridLayer, Layer, LocationUserOption
 from models.db import db
-from . import connection, initiative, location, note, shape
+from . import asset_manager, connection, initiative, location, note, shape
 
 
 @sio.on("Client.Options.Set", namespace="/planarally")

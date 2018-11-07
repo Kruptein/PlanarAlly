@@ -56,21 +56,19 @@ class State:
             await sio.emit("Temp.Clear", self.client_temporaries[location_id][sid])
             del self.client_temporaries[location_id][sid]
 
-    def add_sid(self, sid, user, room, location):
-        self.sid_map[sid] = {"user": user, "room": room, "location": location}
+    def add_sid(self, sid, **options):
+        self.sid_map[sid] = options
 
     async def remove_sid(self, sid):
         await state.clear_temporaries(sid)
         del self.sid_map[sid]
 
-    def get_sids(self, user, room):
+    def get_sids(self, **options):
         for sid in dict(self.sid_map):
-            if "room" not in self.sid_map[sid]:
-                logger.error("ROOM NOT IN SID_MAP")
-                logger.error(sid)
-                logger.error(self.sid_map[sid])
-                continue
-            if self.sid_map[sid]["user"] == user and self.sid_map[sid]["room"] == room:
+            if all(
+                self.sid_map[sid].get(option, None) == value
+                for option, value in options.items()
+            ):
                 yield sid
 
     def add_temp(self, sid, uid):

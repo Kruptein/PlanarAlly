@@ -4,7 +4,14 @@ from playhouse.shortcuts import dict_to_model, update_model_from_dict
 
 import auth
 from app import app, logger, sio, state
-from models import Initiative, InitiativeEffect, InitiativeLocationData, Layer, Shape, ShapeOwner
+from models import (
+    Initiative,
+    InitiativeEffect,
+    InitiativeLocationData,
+    Layer,
+    Shape,
+    ShapeOwner,
+)
 from models.db import db
 from models.utils import reduce_data_to_model
 
@@ -31,9 +38,9 @@ async def update_initiative(sid, data):
     location_data = InitiativeLocationData.get_or_none(location=location)
     if location_data is None:
         location_data = InitiativeLocationData.create(
-            location=location, turn=data["uuid"], round=1)
-    initiatives = Initiative.select().where(
-        Initiative.location_data == location_data)
+            location=location, turn=data["uuid"], round=1
+        )
+    initiatives = Initiative.select().where(Initiative.location_data == location_data)
 
     initiative = Initiative.get_or_none(uuid=data["uuid"])
 
@@ -42,24 +49,33 @@ async def update_initiative(sid, data):
         with db.atomic():
             # Update indices
             try:
-                index = initiatives.where(
-                    Initiative.initiative >= data["initiative"]).order_by(-Initiative.index)[0].index + 1
+                index = (
+                    initiatives.where(Initiative.initiative >= data["initiative"])
+                    .order_by(-Initiative.index)[0]
+                    .index
+                    + 1
+                )
             except IndexError:
                 index = 0
             else:
                 Initiative.update(index=Initiative.index + 1).where(
-                    (Initiative.location_data == location_data) & (Initiative.index >= index))
+                    (Initiative.location_data == location_data)
+                    & (Initiative.index >= index)
+                )
             # Create model instance
             initiative = dict_to_model(
-                Initiative, reduce_data_to_model(Initiative, data))
+                Initiative, reduce_data_to_model(Initiative, data)
+            )
             initiative.location_data = location_data
             initiative.index = index
             initiative.save(force_insert=True)
     # Remove initiative
     elif "initiative" not in data:
         with db.atomic():
-            Initiative.update(index=Initiative.index - 1).where((Initiative.location_data ==
-                                                                 location_data) & (Initiative.index >= initiative.index))
+            Initiative.update(index=Initiative.index - 1).where(
+                (Initiative.location_data == location_data)
+                & (Initiative.index >= initiative.index)
+            )
             initiative.delete_instance(True)
     # Update initiative
     else:
@@ -70,8 +86,11 @@ async def update_initiative(sid, data):
                 # Update indices
                 old_index = initiative.index
                 try:
-                    new_index = initiatives.where(
-                        Initiative.initiative >= data["initiative"]).order_by(-Initiative.index)[0].index
+                    new_index = (
+                        initiatives.where(Initiative.initiative >= data["initiative"])
+                        .order_by(-Initiative.index)[0]
+                        .index
+                    )
                 except IndexError:
                     new_index = 0
                 else:
@@ -82,13 +101,15 @@ async def update_initiative(sid, data):
                     # SIGN=-1 IF old_index < new_index WHICH MEANS the initiative is decreased
                     sign = (old_index - new_index) // abs(old_index - new_index)
                     indices = [0, old_index, new_index]
-                    update = Initiative.update(index=Initiative.index + sign).where((Initiative.location_data == location_data)
-                                                                                    & (Initiative.index <= indices[sign]) & (Initiative.index >= indices[-sign]))
+                    update = Initiative.update(index=Initiative.index + sign).where(
+                        (Initiative.location_data == location_data)
+                        & (Initiative.index <= indices[sign])
+                        & (Initiative.index >= indices[-sign])
+                    )
                     update.execute()
-                data['index'] = new_index
+                data["index"] = new_index
             # Update model instance
-            update_model_from_dict(
-                initiative, reduce_data_to_model(Initiative, data))
+            update_model_from_dict(initiative, reduce_data_to_model(Initiative, data))
             initiative.save()
 
     data["index"] = initiative.index
@@ -128,8 +149,7 @@ async def update_initiative_turn(sid, data):
     location = sid_data["location"]
 
     if room.creator != user:
-        logger.warning(
-            f"{user.name} attempted to advance the initiative tracker")
+        logger.warning(f"{user.name} attempted to advance the initiative tracker")
         return
 
     location_data = InitiativeLocationData.get(location=location)
@@ -137,8 +157,9 @@ async def update_initiative_turn(sid, data):
         location_data.turn = data
         location_data.save()
 
-        effects = InitiativeEffect.select().join(
-            Initiative).where(Initiative.uuid == data)
+        effects = (
+            InitiativeEffect.select().join(Initiative).where(Initiative.uuid == data)
+        )
         for effect in effects:
             if effect.turns <= 0:
                 effect.delete_instance()
@@ -164,8 +185,7 @@ async def update_initiative_round(sid, data):
     location = sid_data["location"]
 
     if room.creator != user:
-        logger.warning(
-            f"{user.name} attempted to advance the initiative tracker")
+        logger.warning(f"{user.name} attempted to advance the initiative tracker")
         return
 
     location_data = InitiativeLocationData.get(location=location)
@@ -191,12 +211,15 @@ async def new_initiative_effect(sid, data):
     location = sid_data["location"]
 
     if room.creator != user and not ShapeOwner.get_or_none(shape=shape, user=user):
-        logger.warning(
-            f"{user.name} attempted to create a new initiative effect")
+        logger.warning(f"{user.name} attempted to create a new initiative effect")
         return
 
-    InitiativeEffect.create(initiative=data["actor"], uuid=data["effect"]
-                            ["uuid"], name=data["effect"]["name"], turns=data["effect"]["turns"])
+    InitiativeEffect.create(
+        initiative=data["actor"],
+        uuid=data["effect"]["uuid"],
+        name=data["effect"]["name"],
+        turns=data["effect"]["turns"],
+    )
 
     await sio.emit(
         "Initiative.Effect.New",
@@ -216,14 +239,14 @@ async def update_initiative_effect(sid, data):
     location = sid_data["location"]
 
     if room.creator != user and not ShapeOwner.get_or_none(shape=shape, user=user):
-        logger.warning(
-            f"{user.name} attempted to update an initiative effect")
+        logger.warning(f"{user.name} attempted to update an initiative effect")
         return
 
     with db.atomic():
         effect = InitiativeEffect.get(uuid=data["effect"]["uuid"])
-        update_model_from_dict(effect, reduce_data_to_model(
-            InitiativeEffect, data["effect"]))
+        update_model_from_dict(
+            effect, reduce_data_to_model(InitiativeEffect, data["effect"])
+        )
         effect.save()
 
     await sio.emit(
@@ -239,28 +262,38 @@ def get_client_initiatives(user, location):
     location_data = InitiativeLocationData.get_or_none(location=location)
     if location_data is None:
         return []
-    initiatives = Initiative.select().where(
-        Initiative.location_data == location_data)
+    initiatives = Initiative.select().where(Initiative.location_data == location_data)
     if location.room.creator != user:
-        initiatives = initiatives.join(ShapeOwner, JOIN.LEFT_OUTER, on=Initiative.uuid == ShapeOwner.shape).where(
-            (Initiative.visible == True) | (ShapeOwner.user == user)).distinct()
+        initiatives = (
+            initiatives.join(
+                ShapeOwner, JOIN.LEFT_OUTER, on=Initiative.uuid == ShapeOwner.shape
+            )
+            .where((Initiative.visible == True) | (ShapeOwner.user == user))
+            .distinct()
+        )
     return [i.as_dict() for i in initiatives.order_by(Initiative.index)]
 
 
 async def send_client_initiatives(room, location, user=None, skip_sid=None):
     for room_player in room.players:
         if user is None or user == room_player.player:
-            for psid in state.get_sids(room_player.player, room):
+            for psid in state.get_sids(user=room_player.player, room=room):
                 if psid == skip_sid:
                     continue
                 await sio.emit(
-                    "Initiative.Set", get_client_initiatives(room_player.player, location), room=psid, namespace="/planarally"
+                    "Initiative.Set",
+                    get_client_initiatives(room_player.player, location),
+                    room=psid,
+                    namespace="/planarally",
                 )
 
     if user is None or user == room.creator:
-        for csid in state.get_sids(room.creator, room):
+        for csid in state.get_sids(user=room.creator, room=room):
             if csid == skip_sid:
                 continue
             await sio.emit(
-                "Initiative.Set", get_client_initiatives(room.creator, location), room=csid, namespace="/planarally"
+                "Initiative.Set",
+                get_client_initiatives(room.creator, location),
+                room=csid,
+                namespace="/planarally",
             )

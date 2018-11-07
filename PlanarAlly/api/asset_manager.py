@@ -1,10 +1,12 @@
 import functools
 import hashlib
 
+from aiohttp import web
 from aiohttp_security import authorized_userid
 
 import auth
 from app import app, logger, sio, state
+from models import Asset
 from utils import FILE_DIR
 
 ASSETS_DIR = FILE_DIR / "static" / "assets"
@@ -14,19 +16,82 @@ if not ASSETS_DIR.exists():
 
 @sio.on("connect", namespace="/pa_assetmgmt")
 async def assetmgmt_connect(sid, environ):
-    username = await authorized_userid(environ["aiohttp.request"])
-    if username is None:
+    user = await authorized_userid(environ["aiohttp.request"])
+    if user is None:
         await sio.emit("redirect", "/", room=sid, namespace="/pa_assetmgmt")
     else:
-        app["AuthzPolicy"].sid_map[sid] = {
-            "user": app["AuthzPolicy"].user_map[username]
-        }
-        await sio.emit(
-            "assetInfo",
-            app["AuthzPolicy"].user_map[username].asset_info,
-            room=sid,
-            namespace="/pa_assetmgmt",
-        )
+        state.add_sid(sid, user=user)
+        root = Asset.get_root_folder(user)
+        await sio.emit("Folder.Root.Set", root.id, room=sid, namespace="/pa_assetmgmt")
+        await get_folder(sid, root.id)
+
+
+@sio.on("Folder.Get", namespace="/pa_assetmgmt")
+async def get_folder(sid, folder=None):
+    user = state.sid_map[sid]["user"]
+
+    if folder is None:
+        folder = Asset.get_root_folder(user)
+    else:
+        folder = Asset[folder]
+
+    if folder.owner != user:
+        raise web.HTTPForbidden
+    await sio.emit(
+        "Folder.Set", folder.as_dict(children=True), room=sid, namespace="/pa_assetmgmt"
+    )
+
+
+@sio.on("Folder.Create", namespace="/pa_assetmgmt")
+@auth.login_required(app, sio)
+async def create_folder(sid, data):
+    user = state.sid_map[sid]["user"]
+    parent = data.get("parent", None)
+    if parent is None:
+        parent = Asset.get_root_folder(user)
+    asset = Asset.create(name=data["name"], owner=user, parent=parent)
+    await sio.emit(
+        "Folder.Create", asset.as_dict(), room=sid, namespace="/pa_assetmgmt"
+    )
+
+
+@sio.on("Inode.Move", namespace="/pa_assetmgmt")
+@auth.login_required(app, sio)
+async def move_inode(sid, data):
+    user = state.sid_map[sid]["user"]
+    target = data.get("target", None)
+    if target is None:
+        target = Asset.get_root_folder(user)
+
+    asset = Asset[data["inode"]]
+    if asset.owner != user:
+        logger.warning(f"{user.name} attempted to move files it doesn't own.")
+        return
+    asset.parent = target
+    asset.save()
+
+
+@sio.on("Asset.Rename", namespace="/pa_assetmgmt")
+@auth.login_required(app, sio)
+async def assetmgmt_rename(sid, data):
+    user = state.sid_map[sid]["user"]
+    asset = Asset[data["asset"]]
+    if asset.owner != user:
+        logger.warning(f"{user.name} attempted to rename a file it doesn't own.")
+        return
+    asset.name = data["name"]
+    asset.save()
+
+
+@sio.on("Asset.Remove", namespace="/pa_assetmgmt")
+@auth.login_required(app, sio)
+async def assetmgmt_rm(sid, data):
+    user = state.sid_map[sid]["user"]
+    asset = Asset[data]
+    if asset.owner != user:
+        logger.warning(f"{user.name} attempted to remove a file it doesn't own.")
+        return
+    asset.delete_instance(recursive=True, delete_nullable=True)
 
 
 @sio.on("Asset.Upload", namespace="/pa_assetmgmt")
@@ -55,10 +120,10 @@ async def assetmgmt_upload(sid, file_data):
 
     del state.pending_file_upload_cache[uuid]
 
-    policy = app["AuthzPolicy"]
-    user = policy.sid_map[sid]["user"]
-    folder = functools.reduce(
-        dict.get, file_data["directory"], user.asset_info)
+    sid_data = state.sid_map[sid]
+    user = sid_data["user"]
+
+    folder = functools.reduce(dict.get, file_data["directory"], user.asset_info)
     if folder is None:
         logger.warning(
             f"Directory structure {file_data['directory']} is not valid for {user.name}"
@@ -78,74 +143,3 @@ async def assetmgmt_upload(sid, file_data):
         room=sid,
         namespace="/pa_assetmgmt",
     )
-
-
-@sio.on("Asset.Directory.New", namespace="/pa_assetmgmt")
-@auth.login_required(app, sio)
-async def assetmgmt_mkdir(sid, data):
-    policy = app["AuthzPolicy"]
-    user = policy.sid_map[sid]["user"]
-    folder = functools.reduce(dict.get, data["directory"], user.asset_info)
-    folder[data["name"]] = {"__files": []}
-    policy.save()
-
-
-@sio.on("Asset.Rename", namespace="/pa_assetmgmt")
-@auth.login_required(app, sio)
-async def assetmgmt_rename(sid, data):
-    policy = app["AuthzPolicy"]
-    user = policy.sid_map[sid]["user"]
-    folder = functools.reduce(dict.get, data["directory"], user.asset_info)
-    if data["isFolder"]:
-        folder[data["newName"]] = folder[data["oldName"]]
-        del folder[data["oldName"]]
-    else:
-        for fl in folder["__files"]:
-            if fl["name"] == data["oldName"]:
-                fl["name"] = data["newName"]
-    policy.save()
-
-
-@sio.on("Inode.Move", namespace="/pa_assetmgmt")
-@auth.login_required(app, sio)
-async def assetmgmt_mv(sid, data):
-    policy = app["AuthzPolicy"]
-    user = policy.sid_map[sid]["user"]
-    folder = functools.reduce(dict.get, data["directory"], user.asset_info)
-    if data["target"] == "..":
-        target_directory = data["directory"][:-1]
-    else:
-        target_directory = data["directory"] + [data["target"]]
-    target_folder = functools.reduce(
-        dict.get, target_directory, user.asset_info)
-    name = data["inode"] if data["isFolder"] else data["inode"]["name"]
-    if data["isFolder"]:
-        target_folder[name] = folder[name]
-        del folder[name]
-    else:
-        if not target_folder["__files"]:
-            target_folder["__files"] = []
-        target_folder["__files"].append(data["inode"])
-        folder["__files"] = [
-            fl for fl in folder["__files"] if fl["hash"] != data["inode"]["hash"]
-        ]
-    policy.save()
-
-
-@sio.on("Asset.Remove", namespace="/pa_assetmgmt")
-@auth.login_required(app, sio)
-async def assetmgmt_rm(sid, data):
-    policy = app["AuthzPolicy"]
-    user = policy.sid_map[sid]["user"]
-    folder = functools.reduce(dict.get, data["directory"], user.asset_info)
-    if data["isFolder"] and data["name"] in folder:
-        del folder[data["name"]]
-    else:
-        index = next(
-            (i for i, fl in enumerate(
-                folder["__files"]) if fl["name"] == data["name"]),
-            None,
-        )
-        if index is not None:
-            folder["__files"].pop(index)
-    policy.save()

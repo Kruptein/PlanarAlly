@@ -4,7 +4,14 @@ from playhouse.shortcuts import update_model_from_dict
 import auth
 from .initiative import send_client_initiatives
 from app import app, logger, sio, state
-from models import Initiative, InitiativeLocationData, Layer, Location, LocationUserOption, Shape
+from models import (
+    Initiative,
+    InitiativeLocationData,
+    Layer,
+    Location,
+    LocationUserOption,
+    Shape,
+)
 
 
 @auth.login_required(app, sio)
@@ -44,8 +51,15 @@ async def load_location(sid, location):
     ]
     location_data = InitiativeLocationData.get(location=location)
     await send_client_initiatives(room, location, user)
-    await sio.emit("Initiative.Round.Update", location_data.round, room=sid, namespace='/planarally')
-    await sio.emit("Initiative.Turn.Update", location_data.turn, room=sid, namespace='/planarally')
+    await sio.emit(
+        "Initiative.Round.Update",
+        location_data.round,
+        room=sid,
+        namespace="/planarally",
+    )
+    await sio.emit(
+        "Initiative.Turn.Update", location_data.turn, room=sid, namespace="/planarally"
+    )
 
 
 @sio.on("Location.Change", namespace="/planarally")
@@ -70,11 +84,9 @@ async def change_location(sid, location):
     room.player_location = location
 
     for room_player in room.players:
-        for psid in state.get_sids(room_player.player, room):
-            sio.leave_room(psid, old_location.get_path(),
-                           namespace="/planarally")
-            sio.enter_room(psid, new_location.get_path(),
-                           namespace="/planarally")
+        for psid in state.get_sids(user=room_player.player, room=room):
+            sio.leave_room(psid, old_location.get_path(), namespace="/planarally")
+            sio.enter_room(psid, new_location.get_path(), namespace="/planarally")
             await load_location(psid, new_location)
 
 

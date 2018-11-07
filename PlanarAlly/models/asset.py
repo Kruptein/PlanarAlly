@@ -1,4 +1,5 @@
 from peewee import ForeignKeyField, TextField
+from playhouse.shortcuts import model_to_dict
 
 from .base import BaseModel
 from .user import User
@@ -15,8 +16,29 @@ class Asset(BaseModel):
     def __repr__(self):
         return f"<Asset {self.owner.name} - {self.name}>"
 
+    def as_dict(self, children=False):
+        asset = model_to_dict(self, exclude=[Asset.owner, Asset.parent])
+        if children:
+            asset["children"] = [
+                child.as_dict()
+                for child in Asset.select().where(
+                    (Asset.owner == self.owner) & (Asset.parent == self)
+                )
+            ]
+        return asset
+
+    @classmethod
+    def get_root_folder(cls, user):
+        try:
+            root = cls.get(name="/", owner=user, parent=None)
+        except Asset.DoesNotExist:
+            root = cls.create(name="/", owner=user, parent=None)
+        return root
+
     @classmethod
     def get_user_structure(cls, user, parent=None):
+        if parent is None:
+            parent = cls.get_root_folder(user)
         # ideally we change this to a single query to get all assets and process them as such
         data = {"__files": []}
         for asset in Asset.select().where(

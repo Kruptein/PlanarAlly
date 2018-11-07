@@ -24,7 +24,7 @@ async def connect(sid, environ):
         else:
             location = Location.get(room=room, name=room.player_location)
 
-        state.add_sid(sid, user, room, location)
+        state.add_sid(sid, user=user, room=room, location=location)
 
         logger.info(f"User {user.name} connected with identifier {sid}")
 

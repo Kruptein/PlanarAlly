@@ -73,7 +73,10 @@ def convert(save_file):
                         setattr(db_user, option[1], user.options[option[0]])
                 db_user.save()
 
-                add_assets(db_user, user.asset_info)
+                # Create root directory
+                root = Asset.create(owner=db_user, parent=None, name="/")
+
+                add_assets(db_user, user.asset_info, parent=root)
 
         logger.info("Creating rooms")
         with db.atomic():
@@ -131,7 +134,7 @@ def convert(save_file):
                     if hasattr(location, "initiative") and location.initiative:
                         turn = getattr(location, "initiativeTurn", 0)
                         if isinstance(turn, int):
-                            turn = location.initiative[turn]['uuid']
+                            turn = location.initiative[turn]["uuid"]
                         location_data = InitiativeLocationData.create(
                             location=db_location,
                             turn=turn,
@@ -146,7 +149,7 @@ def convert(save_file):
                                 has_img=init.get("has_img", False),
                                 index=init_i,
                                 initiative=init["initiative"],
-                                location_data=location_data
+                                location_data=location_data,
                             )
 
                             if "effects" in init:
@@ -205,8 +208,7 @@ def convert(save_file):
                                 ("options", "options"),
                             ]:
                                 if shape.get(optional[0]):
-                                    setattr(
-                                        db_shape, optional[1], shape[optional[0]])
+                                    setattr(db_shape, optional[1], shape[optional[0]])
                             if shape["type"].lower() == "asset":
                                 AssetRect.create(
                                     uuid=shape["uuid"],
@@ -216,8 +218,7 @@ def convert(save_file):
                                 )
                                 db_shape.type_ = "assetrect"
                             elif shape["type"].lower() == "circle":
-                                Circle.create(
-                                    uuid=shape["uuid"], radius=shape["r"])
+                                Circle.create(uuid=shape["uuid"], radius=shape["r"])
                             elif shape["type"].lower() == "circulartoken":
                                 CircularToken.create(
                                     uuid=shape["uuid"],
@@ -293,8 +294,7 @@ def convert(save_file):
                                 db_owner = User.get_or_none(name=owner)
                                 if db_owner is None:
                                     continue
-                                ShapeOwner.create(
-                                    shape=db_shape, user=db_owner)
+                                ShapeOwner.create(shape=db_shape, user=db_owner)
 
         logger.info("User-Location options")
         for user in shelf["user_map"].values():

@@ -91,6 +91,7 @@ export default Vue.component("createtoken-modal", {
                 this.fillColour,
                 this.borderColour,
             );
+            token.owners.push(this.$store.state.username);
             layer.addShape(token, true);
             layer.invalidate(false);
             this.visible = false;

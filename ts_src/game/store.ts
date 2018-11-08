@@ -3,9 +3,10 @@ import Vuex from "vuex";
 
 import gameManager from "./manager";
 
-import { AssetList, Note } from "./api_types";
+import { AssetList } from "../core/comm/types";
+import { sendClientOptions, socket } from "./comm/socket";
+import { Note } from "./comm/types/general";
 import { GlobalPoint } from "./geom";
-import { sendClientOptions, socket } from "./socket";
 import { g2l, l2g } from "./units";
 
 Vue.use(Vuex);
@@ -16,6 +17,7 @@ export default new Vuex.Store({
         // See the GameManager.LayerManager for proper layer management tools
         layers: <string[]>[],
         selectedLayerIndex: -1,
+        boardInitialized: false,
 
         locations: <string[]>[],
 
@@ -48,6 +50,9 @@ export default new Vuex.Store({
         selectedLayer: state => state.layers[state.selectedLayerIndex],
     },
     mutations: {
+        setBoardInitialized(state, boardInitialized) {
+            state.boardInitialized = boardInitialized;
+        },
         setDM(state, isDM) {
             state.IS_DM = isDM;
         },
@@ -61,14 +66,6 @@ export default new Vuex.Store({
         selectLayer(state, name) {
             const index = state.layers.indexOf(name);
             if (index >= 0) state.selectedLayerIndex = index;
-        },
-        setGridSize(state, payload: { gridSize: number; sync: boolean }): void {
-            if (state.gridSize !== payload.gridSize && payload.gridSize > 0) {
-                state.gridSize = payload.gridSize;
-                const gridLayer = gameManager.layerManager.getGridLayer();
-                if (gridLayer !== undefined) gridLayer.drawGrid();
-                if (payload.sync) socket.emit("Gridsize.Set", payload.gridSize);
-            }
         },
         setRoomName(state, name) {
             state.roomName = name;
@@ -109,6 +106,7 @@ export default new Vuex.Store({
             state.panY += increase;
         },
         updateZoom(state, payload: { newZoomValue: number; zoomLocation: GlobalPoint }) {
+            if (payload.newZoomValue === state.zoomFactor) return;
             if (payload.newZoomValue < 0.1) payload.newZoomValue = 0.1;
             if (payload.newZoomValue > 5) payload.newZoomValue = 5;
 
@@ -131,7 +129,7 @@ export default new Vuex.Store({
                 state.unitSize = payload.unitSize;
                 if (gameManager.layerManager.getGridLayer() !== undefined)
                     gameManager.layerManager.getGridLayer()!.drawGrid();
-                if (payload.sync) socket.emit("Location.Options.Set", { unitSize: payload.unitSize });
+                if (payload.sync) socket.emit("Location.Options.Set", { unit_size: payload.unitSize });
             }
         },
         setUseGrid(state, payload: { useGrid: boolean; sync: boolean }) {
@@ -140,26 +138,34 @@ export default new Vuex.Store({
                 const gridLayer = gameManager.layerManager.getGridLayer()!;
                 if (payload.useGrid) gridLayer.canvas.style.display = "block";
                 else gridLayer.canvas.style.display = "none";
-                if (payload.sync) socket.emit("Location.Options.Set", { useGrid: payload.useGrid });
+                if (payload.sync) socket.emit("Location.Options.Set", { use_grid: payload.useGrid });
+            }
+        },
+        setGridSize(state, payload: { gridSize: number; sync: boolean }): void {
+            if (state.gridSize !== payload.gridSize && payload.gridSize > 0) {
+                state.gridSize = payload.gridSize;
+                const gridLayer = gameManager.layerManager.getGridLayer();
+                if (gridLayer !== undefined) gridLayer.drawGrid();
+                if (payload.sync) socket.emit("Gridsize.Set", payload.gridSize);
             }
         },
         setFullFOW(state, payload: { fullFOW: boolean; sync: boolean }) {
             if (state.fullFOW !== payload.fullFOW) {
                 state.fullFOW = payload.fullFOW;
                 gameManager.layerManager.invalidateLight();
-                if (payload.sync) socket.emit("Location.Options.Set", { fullFOW: payload.fullFOW });
+                if (payload.sync) socket.emit("Location.Options.Set", { full_fow: payload.fullFOW });
             }
         },
         setFOWOpacity(state, payload: { fowOpacity: number; sync: boolean }) {
             state.fowOpacity = payload.fowOpacity;
             gameManager.layerManager.invalidateLight();
-            if (payload.sync) socket.emit("Location.Options.Set", { fowOpacity: payload.fowOpacity });
+            if (payload.sync) socket.emit("Location.Options.Set", { fow_opacity: payload.fowOpacity });
         },
         setLineOfSight(state, payload: { fowLOS: boolean; sync: boolean }) {
             if (state.fowLOS !== payload.fowLOS) {
                 state.fowLOS = payload.fowLOS;
                 gameManager.layerManager.invalidate();
-                if (payload.sync) socket.emit("Location.Options.Set", { fowLOS: payload.fowLOS });
+                if (payload.sync) socket.emit("Location.Options.Set", { fow_los: payload.fowLOS });
             }
         },
         setLocationName(state, name) {
@@ -182,7 +188,7 @@ export default new Vuex.Store({
         updateNote(state, payload: { note: Note; sync: boolean }) {
             const note = state.notes.find(n => n.uuid === payload.note.uuid);
             if (note === undefined) return;
-            note.name = payload.note.name;
+            note.title = payload.note.title;
             note.text = payload.note.text;
             if (payload.sync) socket.emit("Note.Update", payload.note);
         },

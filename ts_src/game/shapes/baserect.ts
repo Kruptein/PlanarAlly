@@ -10,15 +10,15 @@ import { g2lx, g2ly, l2g, l2gx, l2gy } from "../units";
 export default abstract class BaseRect extends Shape {
     w: number;
     h: number;
-    constructor(topleft: GlobalPoint, w: number, h: number, uuid?: string) {
-        super(topleft, uuid);
+    constructor(topleft: GlobalPoint, w: number, h: number, fillColour?: string, strokeColour?: string, uuid?: string) {
+        super(topleft, fillColour, strokeColour, uuid);
         this.w = w;
         this.h = h;
     }
     getBaseDict() {
         return Object.assign(super.getBaseDict(), {
-            w: this.w,
-            h: this.h,
+            width: this.w,
+            height: this.h,
         });
     }
     getBoundingBox() {

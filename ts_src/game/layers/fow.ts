@@ -66,7 +66,7 @@ export class FOWLayer extends Layer {
             }
 
             // First cut out all the light sources
-            for (const light of gameManager.lightsources) {
+            for (const light of gameManager.visionSources) {
                 const shape = gameManager.layerManager.UUIDMap.get(light.shape);
                 if (shape === undefined) continue;
                 const aura = shape.auras.find(a => a.uuid === light.aura);

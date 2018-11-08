@@ -12,9 +12,9 @@ import Rect from "../../shapes/rect";
 import ContextMenu from "./selectcontext.vue";
 import Tool from "./tool.vue";
 
+import { socket } from "../../comm/socket";
 import { GlobalPoint, LocalPoint, Ray, Vector } from "../../geom";
 import { vm } from "../../planarally";
-import { socket } from "../../socket";
 import { g2l, g2lx, g2ly, l2g } from "../../units";
 import { getMouse } from "../../utils";
 import { calculateDelta } from "./utils";
@@ -172,7 +172,7 @@ export default Tool.extend({
                         sel.refPoint = sel.refPoint.add(delta);
                         if (sel !== this.selectionHelper) {
                             if (sel.visionObstruction) gameManager.recalculateBoundingVolume();
-                            socket.emit("Shape.Move", { shape: sel.asDict(), temporary: true });
+                            socket.emit("Shape.Update", { shape: sel.asDict(), redraw: true, temporary: true });
                         }
                     }
                     layer.invalidate(false);
@@ -181,7 +181,7 @@ export default Tool.extend({
                         sel.resize(this.resizeDirection, mouse);
                         if (sel !== this.selectionHelper) {
                             if (sel.visionObstruction) gameManager.recalculateBoundingVolume();
-                            socket.emit("Shape.Move", { shape: sel.asDict(), temporary: true });
+                            socket.emit("Shape.Update", { shape: sel.asDict(), redraw: true, temporary: true });
                         }
                         layer.invalidate(false);
                     }
@@ -249,7 +249,7 @@ export default Tool.extend({
 
                         if (sel !== this.selectionHelper) {
                             if (sel.visionObstruction) gameManager.recalculateBoundingVolume();
-                            socket.emit("Shape.Move", { shape: sel.asDict(), temporary: false });
+                            socket.emit("Shape.Update", { shape: sel.asDict(), redraw: true, temporary: false });
                         }
                         layer.invalidate(false);
                     }
@@ -259,7 +259,7 @@ export default Tool.extend({
                         }
                         if (sel !== this.selectionHelper) {
                             if (sel.visionObstruction) gameManager.recalculateBoundingVolume();
-                            socket.emit("Shape.Move", { shape: sel.asDict(), temporary: false });
+                            socket.emit("Shape.Update", { shape: sel.asDict(), redraw: true, temporary: false });
                         }
                         layer.invalidate(false);
                     }

@@ -9,12 +9,10 @@ export default class MultiLine extends Shape {
     type = "multiline";
     points: GlobalPoint[] = [];
     size: number;
-    fill: string;
-    constructor(startPoint: GlobalPoint, points?: GlobalPoint[], size?: number, fill?: string, uuid?: string) {
-        super(startPoint, uuid);
+    constructor(startPoint: GlobalPoint, points?: GlobalPoint[], size?: number, strokeColour?: string, uuid?: string) {
+        super(startPoint, 'rgba(0, 0, 0, 0)', strokeColour || '#000', uuid);
         this.points = points || [];
         this.size = size || 3;
-        this.fill = fill || "#000";
     }
     asDict() {
         return Object.assign(this.getBaseDict(), {
@@ -42,8 +40,8 @@ export default class MultiLine extends Shape {
         ctx.lineJoin = "round";
         ctx.moveTo(g2lx(this.refPoint.x), g2ly(this.refPoint.y));
         for (const p of this.points) ctx.lineTo(g2lx(p.x), g2ly(p.y));
-        if (this.fill === "fog") ctx.strokeStyle = getFogColour();
-        else ctx.strokeStyle = this.fill;
+        if (this.strokeColour === "fog") ctx.strokeStyle = getFogColour();
+        else ctx.strokeStyle = this.strokeColour;
         ctx.lineWidth = g2lz(this.size);
         ctx.stroke();
     }

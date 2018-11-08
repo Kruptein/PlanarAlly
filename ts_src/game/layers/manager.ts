@@ -45,6 +45,7 @@ export class LayerManager {
 
     addLayer(layer: Layer): void {
         this.layers.push(layer);
+        if (!store.state.IS_DM && !layer.playerEditable) return;
         if (layer.selectable) store.commit("addLayer", layer.name);
     }
 
@@ -59,8 +60,7 @@ export class LayerManager {
         }
     }
 
-    // TODO: Rename to selectLayer
-    setLayer(name: string): void {
+    selectLayer(name: string): void {
         let found = false;
         for (const layer of this.layers) {
             if (!layer.selectable) continue;

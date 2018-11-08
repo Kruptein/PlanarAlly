@@ -53,7 +53,7 @@ export default Vue.component("tools", {
         "createtoken-dialog": createtoken_modal,
     },
     data: () => ({
-        currentTool: "select",
+        currentTool: "Select",
         tools: ["Select", "Pan", "Draw", "Ruler", "Map"],
         dmTools: ["Map"],
     }),

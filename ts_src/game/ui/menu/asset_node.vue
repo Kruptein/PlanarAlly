@@ -29,8 +29,8 @@
 
 <script lang="ts">
 import Vue from "vue";
+import { AssetFile } from "../../../core/comm/types";
 import { alphSort } from "../../../core/utils";
-import { AssetFile } from "../../api_types";
 export default Vue.component("asset-node", {
     props: ["asset", "open"],
     data: () => ({

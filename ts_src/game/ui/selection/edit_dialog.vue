@@ -28,12 +28,12 @@
                 @click="setToken"
                 style="grid-column-start: remove;width:15px;height:15px;"
             >
-            <label for="shapeselectiondialog-lightblocker">Blocks vision/light</label>
+            <label for="shapeselectiondialog-visionblocker">Blocks vision/light</label>
             <input
                 type="checkbox"
-                id="shapeselectiondialog-lightblocker"
+                id="shapeselectiondialog-visionblocker"
                 v-model="shape.visionObstruction"
-                @change="setLightBlocker"
+                @change="setVisionBlocker"
                 style="grid-column-start: remove;width:15px;height:15px;"
             >
             <label for="shapeselectiondialog-moveblocker">Blocks movement</label>
@@ -144,9 +144,9 @@
                     <i class="fas fa-eye"></i>
                 </div>
                 <div
-                    :key="'lightsource-'+aura.uuid"
-                    :style="{opacity: aura.lightSource ? 1.0 : 0.3}"
-                    @click="updateAuraLightSource(aura)"
+                    :key="'visionsource-'+aura.uuid"
+                    :style="{opacity: aura.visionSource ? 1.0 : 0.3}"
+                    @click="updateAuraVisionSource(aura)"
                 >
                     <i class="fas fa-lightbulb"></i>
                 </div>
@@ -176,8 +176,8 @@ import modal from "../../../core/components/modals/modal.vue";
 import gameManager from "../../manager";
 import Shape from "../../shapes/shape";
 
+import { socket } from "../../comm/socket";
 import { uuidv4 } from "../../../core/utils";
-import { socket } from "../../socket";
 
 export default Vue.component("edit-dialog", {
     components: {
@@ -212,13 +212,13 @@ export default Vue.component("edit-dialog", {
                     name: "",
                     value: 0,
                     dim: 0,
-                    lightSource: false,
+                    visionSource: false,
                     colour: "rgba(0,0,0,0)",
                     visible: false,
                 });
         },
         updateShape(redraw: boolean) {
-            socket.emit("Shape.Update", { shape: this.shape.asDict(), redraw });
+            socket.emit("Shape.Update", { shape: this.shape.asDict(), redraw, temporary: false });
             if (redraw) gameManager.layerManager.invalidate();
             this.addEmpty();
         },
@@ -226,8 +226,8 @@ export default Vue.component("edit-dialog", {
             this.shape.setIsToken(event.target.checked);
             this.updateShape(true);
         },
-        setLightBlocker(event: { target: HTMLInputElement }) {
-            this.shape.checkLightSources();
+        setVisionBlocker(event: { target: HTMLInputElement }) {
+            this.shape.checkVisionSources();
             this.updateShape(true);
         },
         setMovementBlocker(event: { target: HTMLInputElement }) {
@@ -265,15 +265,15 @@ export default Vue.component("edit-dialog", {
         },
         removeAura(uuid: string) {
             this.shape.auras = this.shape.auras.filter(au => au.uuid !== uuid);
-            this.shape.checkLightSources();
+            this.shape.checkVisionSources();
             this.updateShape(true);
         },
-        updateAuraLightSource(aura: Aura) {
-            aura.lightSource = !aura.lightSource;
-            const i = gameManager.lightsources.findIndex(ls => ls.aura === aura.uuid);
-            if (aura.lightSource && i === -1)
-                gameManager.lightsources.push({ shape: this.shape.uuid, aura: aura.uuid });
-            else if (!aura.lightSource && i >= 0) gameManager.lightsources.splice(i, 1);
+        updateAuraVisionSource(aura: Aura) {
+            aura.visionSource = !aura.visionSource;
+            const i = gameManager.visionSources.findIndex(ls => ls.aura === aura.uuid);
+            if (aura.visionSource && i === -1)
+                gameManager.visionSources.push({ shape: this.shape.uuid, aura: aura.uuid });
+            else if (!aura.visionSource && i >= 0) gameManager.visionSources.splice(i, 1);
             // aura.lastPath = undefined;
             gameManager.layerManager.invalidateLight();
             this.updateShape(true);
@@ -281,7 +281,7 @@ export default Vue.component("edit-dialog", {
         updateAuraColour(aura: Aura, colour: string) {
             const layer = gameManager.layerManager.getLayer(this.shape.layer);
             if (layer === undefined) return;
-            layer.invalidate(!aura.lightSource);
+            layer.invalidate(!aura.visionSource);
         },
     },
 });

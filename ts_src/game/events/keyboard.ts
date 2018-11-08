@@ -1,9 +1,9 @@
 import gameManager from "../manager";
 import store from "../store";
 
+import { sendClientOptions, socket } from "../comm/socket";
 import { Vector } from "../geom";
 import { vm } from "../planarally";
-import { sendClientOptions, socket } from "../socket";
 import { calculateDelta } from "../ui/tools/utils";
 
 export function onKeyUp(event: KeyboardEvent) {
@@ -23,7 +23,7 @@ export function onKeyUp(event: KeyboardEvent) {
                 }
                 l.removeShape(sel, true, false);
                 (<any>vm.$refs.selectionInfo).shape = null;
-                (<any>vm.$refs.initiative).removeInitiative(sel.uuid, true, false);
+                (<any>vm.$refs.initiative).removeInitiative(sel.uuid);
             }
         }
     }
@@ -51,7 +51,7 @@ export function onKeyDown(event: KeyboardEvent) {
                     sel.refPoint.x += delta.x;
                     sel.refPoint.y += delta.y;
                     if (sel.refPoint.x % gridSize !== 0 || sel.refPoint.y % gridSize !== 0) sel.snapToGrid();
-                    socket.emit("Shape.Move", { shape: sel.asDict(), temporary: false });
+                    socket.emit("Shape.Update", { shape: sel.asDict(), redraw: true, temporary: false });
                 }
                 gameManager.layerManager.getLayer()!.invalidate(false);
             } else {

@@ -1,37 +1,27 @@
 import store from "../store";
 import BaseRect from "./baserect";
 
-import { ServerRect } from "../api_types";
 import { GlobalPoint } from "../geom";
 import { g2l } from "../units";
 import { getFogColour } from "../utils";
 
 export default class Rect extends BaseRect {
     type = "rect";
-    border: string;
-    constructor(topleft: GlobalPoint, w: number, h: number, fill?: string, border?: string, uuid?: string) {
-        super(topleft, w, h, uuid);
-        this.fill = fill || "#000";
-        this.border = border || "rgba(0, 0, 0, 0)";
+    constructor(topleft: GlobalPoint, w: number, h: number, fillColour?: string, strokeColour?: string, uuid?: string) {
+        super(topleft, w, h, fillColour, strokeColour, uuid);
     }
     asDict() {
-        return Object.assign(this.getBaseDict(), {
-            border: this.border,
-        });
-    }
-    fromDict(data: ServerRect) {
-        super.fromDict(data);
-        if (data.border) this.border = data.border;
+        return super.getBaseDict();
     }
     draw(ctx: CanvasRenderingContext2D) {
         super.draw(ctx);
-        if (this.fill === "fog") ctx.fillStyle = getFogColour();
-        else ctx.fillStyle = this.fill;
+        if (this.fillColour === "fog") ctx.fillStyle = getFogColour();
+        else ctx.fillStyle = this.fillColour;
         const z = store.state.zoomFactor;
         const loc = g2l(this.refPoint);
         ctx.fillRect(loc.x, loc.y, this.w * z, this.h * z);
-        if (this.border !== "rgba(0, 0, 0, 0)") {
-            ctx.strokeStyle = this.border;
+        if (this.strokeColour !== "rgba(0, 0, 0, 0)") {
+            ctx.strokeStyle = this.strokeColour;
             ctx.lineWidth = 5;
             ctx.strokeRect(loc.x, loc.y, this.w * z, this.h * z);
         }

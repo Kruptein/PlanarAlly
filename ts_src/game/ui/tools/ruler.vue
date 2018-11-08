@@ -9,8 +9,8 @@ import Line from "../../shapes/line";
 import Text from "../../shapes/text";
 import Tool from "./tool.vue";
 
+import { socket } from "../../comm/socket";
 import { GlobalPoint } from "../../geom";
-import { socket } from "../../socket";
 import { l2g } from "../../units";
 import { getMouse } from "../../utils";
 
@@ -52,12 +52,12 @@ export default Tool.extend({
             const endPoint = l2g(getMouse(event));
 
             this.ruler.endPoint = endPoint;
-            socket.emit("Shape.Move", { shape: this.ruler!.asDict(), temporary: true });
+            socket.emit("Shape.Update", { shape: this.ruler!.asDict(), redraw: true, temporary: true });
 
             const diffsign = Math.sign(endPoint.x - this.startPoint.x) * Math.sign(endPoint.y - this.startPoint.y);
             const xdiff = Math.abs(endPoint.x - this.startPoint.x);
             const ydiff = Math.abs(endPoint.y - this.startPoint.y);
-            const label = Math.round(Math.sqrt(xdiff ** 2 + ydiff ** 2) * this.unitSize / this.gridSize) + " ft";
+            const label = Math.round((Math.sqrt(xdiff ** 2 + ydiff ** 2) * this.unitSize) / this.gridSize) + " ft";
             const angle = Math.atan2(diffsign * ydiff, xdiff);
             const xmid = Math.min(this.startPoint.x, endPoint.x) + xdiff / 2;
             const ymid = Math.min(this.startPoint.y, endPoint.y) + ydiff / 2;
@@ -65,7 +65,7 @@ export default Tool.extend({
             this.text.refPoint.y = ymid;
             this.text.text = label;
             this.text.angle = angle;
-            socket.emit("Shape.Move", { shape: this.text.asDict(), temporary: true });
+            socket.emit("Shape.Update", { shape: this.text.asDict(), redraw: true, temporary: true });
             layer.invalidate(true);
         },
         onMouseUp(event: MouseEvent) {

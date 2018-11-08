@@ -8,12 +8,10 @@ export default class Line extends Shape {
     type = "line";
     endPoint: GlobalPoint;
     lineWidth: number;
-    stroke: string;
-    constructor(startPoint: GlobalPoint, endPoint: GlobalPoint, lineWidth?: number, stroke?: string, uuid?: string) {
-        super(startPoint, uuid);
+    constructor(startPoint: GlobalPoint, endPoint: GlobalPoint, lineWidth?: number, strokeColour?: string, uuid?: string) {
+        super(startPoint, 'rgba(0, 0, 0, 0)', strokeColour || '#000', uuid);
         this.endPoint = endPoint;
         this.lineWidth = lineWidth === undefined ? 1 : lineWidth;
-        this.stroke = stroke || "#000";
     }
     asDict() {
         return Object.assign(this.getBaseDict(), {
@@ -31,7 +29,7 @@ export default class Line extends Shape {
     }
     draw(ctx: CanvasRenderingContext2D) {
         super.draw(ctx);
-        ctx.strokeStyle = this.stroke;
+        ctx.strokeStyle = this.strokeColour;
         ctx.beginPath();
         ctx.moveTo(g2lx(this.refPoint.x), g2ly(this.refPoint.y));
         ctx.lineTo(g2lx(this.endPoint.x), g2ly(this.endPoint.y));

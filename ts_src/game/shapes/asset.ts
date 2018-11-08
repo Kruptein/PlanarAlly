@@ -1,12 +1,13 @@
 import store from "../store";
 import BaseRect from "./baserect";
 
-import { InitiativeData, ServerAsset } from "../api_types";
+import { InitiativeData } from "../comm/types/general";
+import { ServerAsset } from "../comm/types/shapes";
 import { GlobalPoint } from "../geom";
 import { g2lx, g2ly, g2lz } from "../units";
 
 export default class Asset extends BaseRect {
-    type = "asset";
+    type = "assetrect";
     img: HTMLImageElement;
     src: string = "";
     constructor(img: HTMLImageElement, topleft: GlobalPoint, w: number, h: number, uuid?: string) {
@@ -36,10 +37,10 @@ export default class Asset extends BaseRect {
             uuid: this.uuid,
             visible: !store.state.IS_DM,
             group: false,
-            src: this.src,
-            owners: this.owners,
+            source: this.src,
             has_img: true,
             effects: [],
+            index: Infinity,
         };
     }
 }

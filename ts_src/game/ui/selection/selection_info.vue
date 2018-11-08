@@ -63,8 +63,8 @@ import gameManager from "../../manager";
 import Shape from "../../shapes/shape";
 import EditDialog from "./edit_dialog.vue";
 
+import { socket } from "../../comm/socket";
 import { vm } from "../../planarally";
-import { socket } from "../../socket";
 
 export default Vue.extend({
     components: {
@@ -86,7 +86,7 @@ export default Vue.extend({
                     if (value[0] === "+" || value[0] === "-") object.value += parseInt(value, 10);
                     else object.value = parseInt(value, 10);
                     if (isNaN(object.value)) object.value = ogValue;
-                    socket.emit("Shape.Update", { shape: this.shape.asDict(), redraw });
+                    socket.emit("Shape.Update", { shape: this.shape.asDict(), redraw, temporary: false });
                     if (redraw) gameManager.layerManager.invalidate();
                 },
                 () => {},

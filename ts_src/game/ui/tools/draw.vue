@@ -46,9 +46,9 @@ import Shape from "../../shapes/shape";
 import store from "../../store";
 import Tool from "./tool.vue";
 
+import { socket } from "../../comm/socket";
 import { GlobalPoint } from "../../geom";
 import { FOWLayer } from "../../layers/fow";
-import { socket } from "../../socket";
 import { getUnitDistance, l2g } from "../../units";
 import { getMouse } from "../../utils";
 
@@ -93,7 +93,7 @@ export default Tool.extend({
     },
     watch: {
         fillColour() {
-            if (this.brushHelper) this.brushHelper.fill = this.fillColour;
+            if (this.brushHelper) this.brushHelper.fillColour = this.fillColour;
         },
         modeSelect(newValue, oldValue) {
             this.onModeChange(newValue, oldValue);
@@ -105,7 +105,7 @@ export default Tool.extend({
             if (this.modeSelect === "reveal" || this.modeSelect === "hide") {
                 this.brushHelper.options.set("preFogShape", true);
                 this.brushHelper.options.set("skipDraw", true);
-                this.brushHelper.fill = "rgba(0, 0, 0, 1)";
+                this.brushHelper.fillColour = "rgba(0, 0, 0, 1)";
 
                 if (this.modeSelect === "reveal") this.brushHelper.globalCompositeOperation = "source-over";
                 else if (this.modeSelect === "hide") this.brushHelper.globalCompositeOperation = "destination-out";
@@ -113,7 +113,7 @@ export default Tool.extend({
                 this.brushHelper.options.delete("preFogShape");
                 this.brushHelper.options.delete("skipDraw");
                 this.brushHelper.globalCompositeOperation = "source-over";
-                this.brushHelper.fill = this.fillColour;
+                this.brushHelper.fillColour = this.fillColour;
             }
         },
         onModeChange(newValue: string, oldValue: string) {
@@ -151,13 +151,13 @@ export default Tool.extend({
                 this.shape = new Circle(this.startPoint.clone(), this.helperSize, this.fillColour, this.borderColour);
             else if (this.shapeSelect === "paint-brush") {
                 this.shape = new MultiLine(this.startPoint.clone(), [], this.brushSize);
-                this.shape.fill = this.fillColour;
+                this.shape.fillColour = this.fillColour;
             } else return;
 
             if (this.modeSelect !== "normal") {
                 this.shape.options.set("preFogShape", true);
                 this.shape.options.set("skipDraw", true);
-                this.shape.fill = "rgba(0, 0, 0, 1)";
+                this.shape.fillColour = "rgba(0, 0, 0, 1)";
             }
             if (this.modeSelect === "reveal") this.shape.globalCompositeOperation = "source-over";
             else if (this.modeSelect === "hide") this.shape.globalCompositeOperation = "destination-out";
@@ -167,7 +167,7 @@ export default Tool.extend({
                 this.shape.visionObstruction = true;
                 this.shape.movementObstruction = true;
             }
-            gameManager.lightblockers.push(this.shape.uuid);
+            gameManager.visionBlockers.push(this.shape.uuid);
             layer.addShape(this.shape, true, false);
 
             // Push brushhelper to back
@@ -200,13 +200,14 @@ export default Tool.extend({
             } else if (this.shapeSelect === "paint-brush") {
                 (<MultiLine>this.shape).points.push(endPoint);
             }
-            socket.emit("Shape.Move", { shape: this.shape!.asDict(), temporary: false });
+            socket.emit("Shape.Update", { shape: this.shape!.asDict(), redraw: true, temporary: false });
             if (this.shape.visionObstruction) gameManager.recalculateBoundingVolume();
             layer.invalidate(false);
         },
         onMouseUp(event: MouseEvent) {
             if (this.active && this.shape !== null && !event.altKey && this.useGrid) {
                 this.shape.resizeToGrid();
+                socket.emit("Shape.Update", { shape: this.shape!.asDict(), redraw: true, temporary: false });
             }
             this.active = false;
         },

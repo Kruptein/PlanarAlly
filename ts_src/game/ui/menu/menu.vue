@@ -61,7 +61,7 @@
                                     @click='openNote(note)'
                                     style='cursor:pointer'
                                 >
-                                    {{ note.name || "[?]" }}
+                                    {{ note.title || "[?]" }}
                                 </div>
                                 <div v-if='!notes.length'>
                                     No notes
@@ -136,10 +136,10 @@ import { mapState } from "vuex";
 import Settings from "../../settings";
 import assetNode from "./asset_node.vue";
 
+import { socket } from "../../comm/socket";
+import { Note } from "../../comm/types/general";
 import { uuidv4 } from "../../../core/utils";
-import { Note } from "../../api_types";
 import { vm } from "../../planarally";
-import { socket } from "../../socket";
 
 export default Vue.component("menu-bar", {
     components: {
@@ -250,7 +250,7 @@ export default Vue.component("menu-bar", {
             );
         },
         createNote() {
-            const note = { name: "New note", text: "", uuid: uuidv4() };
+            const note = { title: "New note", text: "", uuid: uuidv4() };
             this.$store.commit("newNote", { note, sync: true });
             this.openNote(note);
         },

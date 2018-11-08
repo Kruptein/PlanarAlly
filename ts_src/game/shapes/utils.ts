@@ -17,7 +17,7 @@ import {
     ServerRect,
     ServerShape,
     ServerText,
-} from "../api_types";
+} from "../comm/types/shapes";
 import { GlobalPoint } from "../geom";
 
 export function createShapeFromDict(shape: ServerShape, dummy?: boolean) {
@@ -30,37 +30,39 @@ export function createShapeFromDict(shape: ServerShape, dummy?: boolean) {
 
     // A fromJSON and toJSON on Shape would be cleaner but ts does not allow for static abstracts so yeah.
 
+    // Shape Type specifics
+
     const refPoint = new GlobalPoint(shape.x, shape.y);
-    if (shape.type === "rect") {
+    if (shape.type_ === "rect") {
         const rect = <ServerRect>shape;
-        sh = new Rect(refPoint, rect.w, rect.h, rect.fill, rect.border, rect.uuid);
-    } else if (shape.type === "circle") {
+        sh = new Rect(refPoint, rect.width, rect.height, rect.fill_colour, rect.stroke_colour, rect.uuid);
+    } else if (shape.type_ === "circle") {
         const circ = <ServerCircle>shape;
-        sh = new Circle(refPoint, circ.r, circ.fill, circ.border, circ.uuid);
-    } else if (shape.type === "circulartoken") {
+        sh = new Circle(refPoint, circ.radius, circ.fill_colour, circ.stroke_colour, circ.uuid);
+    } else if (shape.type_ === "circulartoken") {
         const token = <ServerCircularToken>shape;
-        sh = new CircularToken(refPoint, token.r, token.text, token.font, token.fill, token.border, token.uuid);
-    } else if (shape.type === "line") {
+        sh = new CircularToken(refPoint, token.radius, token.text, token.font, token.fill_colour, token.stroke_colour, token.uuid);
+    } else if (shape.type_ === "line") {
         const line = <ServerLine>shape;
-        sh = new Line(refPoint, new GlobalPoint(line.x2, line.y2), line.lineWidth, line.stroke, line.uuid);
-    } else if (shape.type === "multiline") {
+        sh = new Line(refPoint, new GlobalPoint(line.x2, line.y2), line.lineWidth, line.stroke_colour, line.uuid);
+    } else if (shape.type_ === "multiline") {
         const multiline = <ServerMultiLine>shape;
         sh = new MultiLine(
             refPoint,
             multiline.points.map(p => new GlobalPoint(p.x, p.y)),
             multiline.size,
-            multiline.fill,
+            multiline.stroke_colour,
             multiline.uuid,
         );
-    } else if (shape.type === "text") {
+    } else if (shape.type_ === "text") {
         const text = <ServerText>shape;
-        sh = new Text(refPoint, text.text, text.font, text.angle, text.fill, text.uuid);
-    } else if (shape.type === "asset") {
+        sh = new Text(refPoint, text.text, text.font, text.angle, text.fill_colour, text.stroke_colour, text.uuid);
+    } else if (shape.type_ === "assetrect") {
         const asset = <ServerAsset>shape;
-        const img = new Image(asset.w, asset.h);
+        const img = new Image(asset.width, asset.height);
         if (asset.src.startsWith("http")) img.src = new URL(asset.src).pathname;
         else img.src = asset.src;
-        sh = new Asset(img, refPoint, asset.w, asset.h, asset.uuid);
+        sh = new Asset(img, refPoint, asset.width, asset.height, asset.uuid);
         img.onload = () => {
             gameManager.layerManager.getLayer(shape.layer)!.invalidate(false);
         };

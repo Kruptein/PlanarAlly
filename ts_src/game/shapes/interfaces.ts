@@ -8,7 +8,7 @@ interface Tracker {
 
 interface Aura {
     uuid: string;
-    lightSource: boolean;
+    visionSource: boolean;
     visible: boolean;
     name: string;
     value: number;

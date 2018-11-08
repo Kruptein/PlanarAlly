@@ -3,7 +3,6 @@
 <head>
     <title>PlanarAlly - Asset Manager</title>
     <link rel="stylesheet" type="text/css" href="/static/css/assets.css">
-    <script src='/static/extern/js/socket.io-2.0.4.js'></script>
     <script defer src='/static/extern/js/fontawesome_all.js'></script>
 </head>
 <body>
@@ -11,8 +10,8 @@
     <div id='titlebar'>Asset Manager</div>
     <div id='main'>
         <div id='assets' @dragover.prevent="moveDrag" @drop.prevent.stop="stopDrag($event, '.')">
-            <div id='breadcrumbs' v-if="currentDirectory.length">
-                <div v-for="dir in currentDirectory">[[ dir ]]</div>
+            <div id='breadcrumbs'>
+                <div>/</div><div v-for="dir in path">[[ idMap.get(dir).name ]]</div>
             </div>
             <div id='actionbar'>
                 <input id='files' type='file' multiple hidden @change="upload()">
@@ -22,42 +21,53 @@
             <div id='explorer'>
                 <div
                     class='inode folder'
+                    v-if="path.length"
+                    @dblclick="changeDirectory(-1)"
+                    @dragover.prevent="moveDrag"
+                    @dragleave.prevent="leaveDrag"
+                    @drop.prevent.stop="stopDrag($event, parentFolder)"
+                >
+                    <i class='fas fa-folder' style='font-size: 50px;'></i>
+                    <div class='title'>..</div>
+                </div>
+                <div
+                    class='inode folder'
                     draggable="true"
-                    v-for="(key, index) in folders"
+                    v-for="key in folders"
                     :class="{'inode-selected': selected.includes(key)}"
-                    @click="select($event, index, key)"
+                    @click="select($event, key)"
                     @dblclick="changeDirectory(key)"
-                    @contextmenu.prevent="$refs.cm.open($event, index, key)"
+                    @contextmenu.prevent="$refs.cm.open($event, key)"
                     @dragstart="startDrag($event, key)"
                     @dragover.prevent="moveDrag"
                     @dragleave.prevent="leaveDrag"
                     @drop.prevent.stop="stopDrag($event, key)"
                 >
                     <i class='fas fa-folder' style='font-size: 50px;'></i>
-                    <div class='title'>[[ key ]]</div>
+                    <div class='title'>[[ idMap.get(key).name ]]</div>
                 </div>
                 <div
                     class='inode file'
                     draggable="true"
-                    v-for="(file, index) in files"
+                    v-for="file in files"
                     :class="{'inode-selected': selected.includes(file)}"
-                    @click="select($event, index + folders.length, file)"
-                    @contextmenu.prevent="$refs.cm.open($event, index + folders.length, file)"
+                    @click="select($event, file)"
+                    @contextmenu.prevent="$refs.cm.open($event, file)"
                     @dragstart="startDrag($event, file)"
                 >
-                    <img :src="'/static/assets/' + file.hash" width=50>
-                    <div class='title'>[[ file.name ]]</div>
+                    <img :src="'/static/assets/' + idMap.get(file).file_hash" width=50>
+                    <div class='title'>[[ idMap.get(file).name ]]</div>
                 </div>
             </div>
         </div>
         <div id='asset-details' v-if="firstSelectedFile">
             <div id='asset-detail-title'>[[ firstSelectedFile.name ]]</div>
-            <img :src="'/static/assets/' + firstSelectedFile.hash">
+            <img :src="'/static/assets/' + firstSelectedFile.file_hash">
         </div>
     </div>
     <cm ref='cm'></cm>
     <prompt ref="prompt"></prompt>
     <confirm ref="confirm"></confirm>
 </div>
-<script type="text/javascript" src="/static/js/assets.214ae44f3422bb412a15.js"></script></body>
+<script type="text/javascript" src="/static/js/assets.73a2431d5140b77bc244.js"></script></body>
 </html>

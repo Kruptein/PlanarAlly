@@ -2,7 +2,7 @@ import store from "../store";
 import BoundingRect from "./boundingrect";
 import Shape from "./shape";
 
-import { ServerCircle } from "../api_types";
+import { ServerCircle } from "../comm/types/shapes";
 import { GlobalPoint, LocalPoint, Vector } from "../geom";
 import { calculateDelta } from "../ui/tools/utils";
 import { g2l, g2lz, l2g } from "../units";
@@ -11,12 +11,9 @@ import { getFogColour } from "../utils";
 export default class Circle extends Shape {
     type = "circle";
     r: number;
-    border: string;
-    constructor(center: GlobalPoint, r: number, fill?: string, border?: string, uuid?: string) {
-        super(center, uuid);
+    constructor(center: GlobalPoint, r: number, fillColour?: string, strokeColour?: string, uuid?: string) {
+        super(center, fillColour, strokeColour, uuid);
         this.r = r || 1;
-        this.fill = fill || "#000";
-        this.border = border || "rgba(0, 0, 0, 0)";
     }
     asDict(): ServerCircle {
         // const base = <ServerCircle>this.getBaseDict();
@@ -24,14 +21,12 @@ export default class Circle extends Shape {
         // base.border = this.border;
         // return base;
         return Object.assign(this.getBaseDict(), {
-            r: this.r,
-            border: this.border,
+            radius: this.r,
         });
     }
     fromDict(data: ServerCircle) {
         super.fromDict(data);
-        this.r = data.r;
-        if (data.border) this.border = data.border;
+        this.r = data.radius;
     }
     getBoundingBox(): BoundingRect {
         return new BoundingRect(
@@ -43,15 +38,15 @@ export default class Circle extends Shape {
     draw(ctx: CanvasRenderingContext2D) {
         super.draw(ctx);
         ctx.beginPath();
-        if (this.fill === "fog") ctx.fillStyle = getFogColour();
-        else ctx.fillStyle = this.fill;
+        if (this.fillColour === "fog") ctx.fillStyle = getFogColour();
+        else ctx.fillStyle = this.fillColour;
         const loc = g2l(this.refPoint);
         ctx.arc(loc.x, loc.y, g2lz(this.r), 0, 2 * Math.PI);
         ctx.fill();
-        if (this.border !== "rgba(0, 0, 0, 0)") {
+        if (this.strokeColour !== "rgba(0, 0, 0, 0)") {
             ctx.beginPath();
             ctx.lineWidth = g2lz(5);
-            ctx.strokeStyle = this.border;
+            ctx.strokeStyle = this.strokeColour;
             ctx.arc(loc.x, loc.y, g2lz(this.r), 0, 2 * Math.PI);
             ctx.stroke();
         }

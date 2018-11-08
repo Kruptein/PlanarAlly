@@ -7,8 +7,8 @@ import { mapState } from "vuex";
 import gameManager from "../../manager";
 import Tool from "./tool.vue";
 
+import { sendClientOptions } from "../../comm/socket";
 import { LocalPoint } from "../../geom";
-import { sendClientOptions } from "../../socket";
 import { getMouse } from "../../utils";
 
 export default Tool.extend({

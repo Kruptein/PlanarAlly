@@ -6,11 +6,40 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+**IMPORTANT: READ THIS FIRST**
+
+This version is part 1 of a 2 part upgrade process of the save file.
+A completely new and different save format is going to be used in the future
+and this requires a drastic change once, *(which is now)*
+
+In this first part a script is added to convert an existing save file to the new format.  Once this conversion is done, you should continue with part 2 which is the next release.
+
+THIS RELEASE WILL ON PURPOSE NOT RUN CORRECTLY TO MAKE SURE THE UPGRADE PROCESS IS FOLLOWED AS EXPECTED.
+
+**You have a save that you wish to convert**
+
+Make sure you are in the "PlanarAlly" folder containing the "planarserver.py" file. (If you are in a PlanarAlly folder with another PlanarAlly subfolder, you need to open the subfolder).
+
+Run the script `python ../scripts/convert/database.py <save_file>`.
+(if save_file is ommited, the default save file location "planar.save" is used)
+
+If all is well this should generate a `planar.sqlite` file.
+
+**You have no existing save or don't care about your save**
+
+You can completely skip this release and go straight ahead to the next release.
+
+**END IMPORTANT**
+
+Aside of the major save file changes, some other things are present in this release cycle.
+
 ### Added
 - Option to choose save file location [contributed by Schemen]
     - The server config now has an option to specify a different save file name and/or location.
 - Dockerfile [contributed by Schemen]
     - A dockerfile is now present to support deployment in docker containers
+- VERSION file in the python folder
+    - This will be used in the future to detect software updates
 
 ### Fixed
 - Unable to drag modal dialogs in Firefox

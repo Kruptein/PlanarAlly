@@ -31,14 +31,11 @@ class User:
 
 
 class ShelveDictAuthorizationPolicy(AbstractAuthorizationPolicy):
-    def __init__(self, save):
+    def __init__(self):
         super().__init__()
-        self.save_file = save
         self.user_map = {}
         self.sio_map = {}
-        self.secret_token = None
-
-        self.load_save()
+        self.secret_token = secrets.token_bytes(32)
 
     def get_sid(self, user, room):
         for sid in self.sio_map:
@@ -49,12 +46,6 @@ class ShelveDictAuthorizationPolicy(AbstractAuthorizationPolicy):
                 continue
             if self.sio_map[sid]['user'] == user and self.sio_map[sid]['room'] == room:
                 return sid
-
-    def load_save(self):
-        with shelve.open(self.save_file, 'c') as shelf:
-            self.user_map = shelf.get('user_map', {})
-            self.secret_token = shelf.get(
-                'secret_token', secrets.token_bytes(32))
 
     def save(self):
         with shelve.open(self.save_file, 'c') as shelf:

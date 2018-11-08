@@ -1,22 +1,31 @@
-import dbm
+import logging
 import os
-import shelve
+import secrets
 import sys
 
-SAVE_VERSION = 3
+from config import SAVE_FILE
+from models import db, ALL_MODELS, Constants
 
-def check_save(save_file):
-    try:
-        shelf = shelve.open(save_file, 'r')
-    except dbm.error:
-        print("Provided save file does not exist. Creating a new one.")
-        shelf = shelve.open(save_file, 'c')
-        shelf['save_version'] = SAVE_VERSION
+SAVE_VERSION = 3
+logger: logging.Logger = logging.getLogger('PlanarAllyServer')
+
+
+def check_save():
+    if not os.path.isfile(SAVE_FILE):
+        logger.warning(
+            "Provided save file does not exist.  Creating a new one.")
+        db.create_tables(ALL_MODELS)
+        Constants.create(save_version=SAVE_VERSION,
+                         secret_token=secrets.token_bytes(32))
     else:
-        if "save_version" not in shelf:
-            print("Save file has no save version. Cannot open.")
+        constants = Constants.get_or_none()
+        if constants is None:
+            logger.error(
+                "Database does not conform to expected format. Failed to start.")
             sys.exit(2)
-        if shelf['save_version'] != SAVE_VERSION:
-            print("Save version {} does not match the expected {}".format(shelf['save_version'], SAVE_VERSION))
-            print("If available you can try to convert the save_formats using the conversion scripts.")
+        if constants.save_version != SAVE_VERSION:
+            logger.warning(
+                f"Save version {constants.save_version} does not match expected {SAVE_VERSION}!")
+            logger.info(
+                "Conversion scripts can potentially be applied to upgrade.  For more information see the docs.")
             sys.exit(2)

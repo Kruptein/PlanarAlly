@@ -6,6 +6,24 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+**IMPORTANT: READ THIS FIRST**
+
+This version is part 2 of a 2 part upgrade process of the save file.
+A completely new and different save format is going to be used in the future
+and this requires a drastic change once, *(which is now)*
+
+If you are about to install/use this release you either have completed part 1 (release 0.10.0) or you are starting from a new save file.
+**END IMPORTANT**
+
+### Changed
+- [tech] Save file format is changed to sqlite!
+
+### Fixed
+- Shape grid snapping not getting synced on draw
+- Select tool no longer selected by default on load
+- Add new location action messed up websocket rooms
+- CircularTokens created by non-DM users now properly set owner
+
 ## 0.10.0
 
 **IMPORTANT: READ THIS FIRST**
@@ -49,10 +67,6 @@ Aside of the major save file changes, some other things are present in this rele
 - Empty asset and note list was to small for icons
 - Tools started with lowercase
 - Radial menu buttons had border when clicking them
-- Shape grid snapping not getting synced on draw
-- Select tool no longer selected by default on load
-- Add new location action messed up websocket rooms
-- CircularTokens created by non-DM users now properly set owner
 
 ## [0.9] - 2018-09-26
 

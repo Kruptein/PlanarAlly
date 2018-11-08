@@ -877,6 +877,11 @@ app.router.add_get('/logout', logout)
 app.on_shutdown.append(on_shutdown)
 
 if __name__ == '__main__':
+    # START TEMP SERVER EXECUTION PREVENTION
+    print("THIS IS A SPECIAL RELEASE THAT SHOULD AT NO POINT BE EXECUTED.")
+    print("SEE THE CHANGELOG AND/OR RELEASE INFO ON GITHUB (https://github.com/Kruptein/PlanarAlly/releases)")
+    sys.exit(2)
+    # STOP TEMP SERVER EXECUTION PREVENTION
     app['background_save'] = sio.start_background_task(save_all)
     if config.getboolean('Webserver', 'ssl'):
         import ssl

@@ -6,6 +6,8 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+## 0.11.0
+
 **IMPORTANT: READ THIS FIRST**
 
 This version is part 2 of a 2 part upgrade process of the save file.

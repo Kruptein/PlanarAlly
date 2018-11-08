@@ -67,7 +67,7 @@ export default new Vuex.Store({
                 state.gridSize = payload.gridSize;
                 const gridLayer = gameManager.layerManager.getGridLayer();
                 if (gridLayer !== undefined) gridLayer.drawGrid();
-                if (payload.sync) socket.emit("set gridsize", payload.gridSize);
+                if (payload.sync) socket.emit("Gridsize.Set", payload.gridSize);
             }
         },
         setRoomName(state, name) {
@@ -82,16 +82,16 @@ export default new Vuex.Store({
         setGridColour(state, payload: { colour: string; sync: boolean }) {
             state.gridColour = payload.colour;
             gameManager.layerManager.getGridLayer()!.drawGrid();
-            if (payload.sync) socket.emit("set clientOptions", { gridColour: payload.colour });
+            if (payload.sync) socket.emit("Client.Options.Set", { gridColour: payload.colour });
         },
         setFOWColour(state, payload: { colour: string; sync: boolean }) {
             state.fowColour = payload.colour;
             gameManager.layerManager.invalidate();
-            if (payload.sync) socket.emit("set clientOptions", { fowColour: payload.colour });
+            if (payload.sync) socket.emit("Client.Options.Set", { fowColour: payload.colour });
         },
         setRulerColour(state, payload: { colour: string; sync: boolean }) {
             state.rulerColour = payload.colour;
-            if (payload.sync) socket.emit("set clientOptions", { rulerColour: payload.colour });
+            if (payload.sync) socket.emit("Client.Options.Set", { rulerColour: payload.colour });
         },
         setPanX(state, x) {
             state.panX = x;
@@ -131,7 +131,7 @@ export default new Vuex.Store({
                 state.unitSize = payload.unitSize;
                 if (gameManager.layerManager.getGridLayer() !== undefined)
                     gameManager.layerManager.getGridLayer()!.drawGrid();
-                if (payload.sync) socket.emit("set locationOptions", { unitSize: payload.unitSize });
+                if (payload.sync) socket.emit("Location.Options.Set", { unitSize: payload.unitSize });
             }
         },
         setUseGrid(state, payload: { useGrid: boolean; sync: boolean }) {
@@ -140,26 +140,26 @@ export default new Vuex.Store({
                 const gridLayer = gameManager.layerManager.getGridLayer()!;
                 if (payload.useGrid) gridLayer.canvas.style.display = "block";
                 else gridLayer.canvas.style.display = "none";
-                if (payload.sync) socket.emit("set locationOptions", { useGrid: payload.useGrid });
+                if (payload.sync) socket.emit("Location.Options.Set", { useGrid: payload.useGrid });
             }
         },
         setFullFOW(state, payload: { fullFOW: boolean; sync: boolean }) {
             if (state.fullFOW !== payload.fullFOW) {
                 state.fullFOW = payload.fullFOW;
                 gameManager.layerManager.invalidateLight();
-                if (payload.sync) socket.emit("set locationOptions", { fullFOW: payload.fullFOW });
+                if (payload.sync) socket.emit("Location.Options.Set", { fullFOW: payload.fullFOW });
             }
         },
         setFOWOpacity(state, payload: { fowOpacity: number; sync: boolean }) {
             state.fowOpacity = payload.fowOpacity;
             gameManager.layerManager.invalidateLight();
-            if (payload.sync) socket.emit("set locationOptions", { fowOpacity: payload.fowOpacity });
+            if (payload.sync) socket.emit("Location.Options.Set", { fowOpacity: payload.fowOpacity });
         },
         setLineOfSight(state, payload: { fowLOS: boolean; sync: boolean }) {
             if (state.fowLOS !== payload.fowLOS) {
                 state.fowLOS = payload.fowLOS;
                 gameManager.layerManager.invalidate();
-                if (payload.sync) socket.emit("set locationOptions", { fowLOS: payload.fowLOS });
+                if (payload.sync) socket.emit("Location.Options.Set", { fowLOS: payload.fowLOS });
             }
         },
         setLocationName(state, name) {

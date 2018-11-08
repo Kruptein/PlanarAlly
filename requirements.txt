@@ -6,3 +6,4 @@ aiohttp_session
 bcrypt
 cryptography
 python-socketio
+peewee

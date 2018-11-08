@@ -35,6 +35,8 @@ export default Vue.extend({
         positioned: false,
         offsetX: 0,
         offsetY: 0,
+        screenX: 0,
+        screenY: 0,
         dragging: false,
     }),
     // Example of mounted required: opening note
@@ -59,17 +61,24 @@ export default Vue.extend({
             }
         },
         dragStart(event: DragEvent) {
+            event.dataTransfer.setData('Hack', null);
             // Because the drag event is happening on the header, we have to change the drag image
             // in order to give the impression that the entire modal is dragged.
             event.dataTransfer.setDragImage(<Element>this.$refs.container, event.offsetX, event.offsetY);
             this.offsetX = event.offsetX;
             this.offsetY = event.offsetY;
+            this.screenX = event.screenX;
+            this.screenY = event.screenY;
             this.dragging = true;
         },
         dragEnd(event: DragEvent) {
             this.dragging = false;
             let left = event.clientX - this.offsetX;
             let top = event.clientY - this.offsetY;
+            if (event.clientX == 0 && event.clientY == 0 && event.pageX == 0 && event.pageY == 0) {
+                left = parseInt((<any>this.$refs.container).style.left, 10) - (this.screenX - event.screenX);
+                top = parseInt((<any>this.$refs.container).style.top, 10) - (this.screenY - event.screenY);
+            }
             if (left < 0) left = 0;
             if (left > window.innerWidth - 100) left = window.innerWidth - 100;
             if (top < 0) top = 0;

@@ -1,6 +1,9 @@
 # PlanarAlly
 _This project is still in early development; multiple bugs or structure changes can and will happen_
 
+**A MAJOR SAVE FILE CHANGE IS BEING RELEASED**
+If you happen to visit this project in the short time that this change is being executed, it is advised to use an older version or wait until this message is gone.
+
 A companion tool for when you travel into the planes.
 
 PlanarAlly is a web tool that adds virtual battlemaps with various extras to your D&D toolbox.

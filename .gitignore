@@ -5,6 +5,8 @@
 # Python
 env/**
 **/__pycache__/**
+venv
+.mypy**
 
 # PyInstaller
 dist/**
@@ -19,6 +21,7 @@ PlanarAlly/client/src/*.js.map
 # PlanarAlly
 planarallyserver.log
 planar.save*
+planar.sqlite
 server_config.cfg
 PlanarAlly/static/img/**
 PlanarAlly/static/assets/**
@@ -27,3 +30,4 @@ PlanarAlly/static/assets/**
 docs/_build
 docs/_static
 docs/_templates
+docs/.doctrees

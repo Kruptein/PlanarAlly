@@ -188,17 +188,17 @@ class Room:
 
 
 class PlanarAlly:
-    def __init__(self, save_file):
+    def __init__(self):
         self.rooms = {}  # type: Dict[Tuple[str, str], Room]
-        self.save_file = save_file
 
         self.load()
 
     def load(self):
-        with shelve.open(self.save_file, 'c') as shelf:
-            if 'rooms' not in shelf:
-                shelf['rooms'] = {}
-            self.rooms = shelf['rooms']
+        pass
+        # with shelve.open(self.save_file, 'c') as shelf:
+        #     if 'rooms' not in shelf:
+        #         shelf['rooms'] = {}
+        #     self.rooms = shelf['rooms']
 
     def save(self):
         with shelve.open(self.save_file, "c") as shelf:

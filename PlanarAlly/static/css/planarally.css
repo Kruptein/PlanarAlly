@@ -119,6 +119,7 @@ svg {
     background-color: white;
     display: none;
     overflow: hidden;
+    min-height: 2em;
 }
 
 .accordion-subpanel {
@@ -319,6 +320,8 @@ input:checked + .slider:before {
     text-decoration: none;
     font-size: 25px;
     color: #82c8a0;
+    border: none;
+    outline: none;
 }
 
 .notedialog {

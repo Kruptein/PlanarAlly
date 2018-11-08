@@ -16,7 +16,7 @@ import { getMouse } from "../../utils";
 
 export default Tool.extend({
     data: () => ({
-        name: "ruler",
+        name: "Ruler",
         active: false,
         startPoint: <GlobalPoint | null>null,
         ruler: <Line | null>null,
@@ -52,7 +52,7 @@ export default Tool.extend({
             const endPoint = l2g(getMouse(event));
 
             this.ruler.endPoint = endPoint;
-            socket.emit("shapeMove", { shape: this.ruler!.asDict(), temporary: true });
+            socket.emit("Shape.Move", { shape: this.ruler!.asDict(), temporary: true });
 
             const diffsign = Math.sign(endPoint.x - this.startPoint.x) * Math.sign(endPoint.y - this.startPoint.y);
             const xdiff = Math.abs(endPoint.x - this.startPoint.x);
@@ -65,7 +65,7 @@ export default Tool.extend({
             this.text.refPoint.y = ymid;
             this.text.text = label;
             this.text.angle = angle;
-            socket.emit("shapeMove", { shape: this.text.asDict(), temporary: true });
+            socket.emit("Shape.Move", { shape: this.text.asDict(), temporary: true });
             layer.invalidate(true);
         },
         onMouseUp(event: MouseEvent) {

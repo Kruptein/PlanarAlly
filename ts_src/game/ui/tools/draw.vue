@@ -59,7 +59,7 @@ export default Tool.extend({
         "color-picker": colorpicker,
     },
     data: () => ({
-        name: "draw",
+        name: "Draw",
         active: false,
 
         startPoint: <GlobalPoint | null>null,
@@ -200,7 +200,7 @@ export default Tool.extend({
             } else if (this.shapeSelect === "paint-brush") {
                 (<MultiLine>this.shape).points.push(endPoint);
             }
-            socket.emit("shapeMove", { shape: this.shape!.asDict(), temporary: false });
+            socket.emit("Shape.Move", { shape: this.shape!.asDict(), temporary: false });
             if (this.shape.visionObstruction) gameManager.recalculateBoundingVolume();
             layer.invalidate(false);
         },

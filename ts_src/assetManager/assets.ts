@@ -22,7 +22,7 @@ socket.on("redirect", (destination: string) => {
 socket.on("assetInfo", (assetInfo: AssetList) => {
     vm.assetInfo = assetInfo;
 });
-socket.on("uploadAssetResult", (fileData: { directory: string[]; fileInfo: { hash: string; name: string } }) => {
+socket.on("Asset.Upload.Finish", (fileData: { directory: string[]; fileInfo: { hash: string; name: string } }) => {
     let folder = vm.assetInfo;
     for (const key of fileData.directory) {
         folder = <AssetList>folder[key];
@@ -69,7 +69,7 @@ Vue.component("cm", {
 
             (<any>vm.$refs.prompt).prompt("New name:", `Renaming ${oldName}`).then(
                 (name: string) => {
-                    socket.emit("rename", {
+                    socket.emit("Asset.Rename", {
                         isFolder,
                         oldName,
                         newName: name,
@@ -97,7 +97,7 @@ Vue.component("cm", {
                         for (const sel of vm.selected) {
                             const isFolder = vm.inodes.findIndex(e => e === sel) < vm.folders.length;
                             const name = isFolder ? <string>sel : (<AssetFile>sel).name;
-                            socket.emit("remove", { isFolder, name, directory: vm.currentDirectory });
+                            socket.emit("Asset.Remove", { isFolder, name, directory: vm.currentDirectory });
 
                             const folder = vm.directory;
                             if (isFolder) {
@@ -180,7 +180,7 @@ const vm = new Vue({
         createDirectory() {
             const name = window.prompt("New folder name");
             if (name !== null) {
-                socket.emit("createDirectory", { name, directory: this.currentDirectory });
+                socket.emit("Asset.Directory.New", { name, directory: this.currentDirectory });
                 const folder = this.directory;
                 Vue.set(folder, name, {});
             }
@@ -200,7 +200,7 @@ const vm = new Vue({
                 (<AssetFile[]>targetFolder.__files).push(<AssetFile>inode);
                 folder.__files = (<AssetFile[]>folder.__files).filter(el => el.hash !== (<AssetFile>inode).hash);
             }
-            socket.emit("moveInode", {
+            socket.emit("Inode.Move", {
                 isFolder,
                 directory: this.currentDirectory,
                 inode,
@@ -220,6 +220,7 @@ const vm = new Vue({
             }
         },
         startDrag(event: DragEvent, file: string | AssetFile) {
+            event.dataTransfer.setData('Hack', 'ittyHack');
             event.dataTransfer.dropEffect = "move";
             if (!this.selected.includes(file)) this.select(event, -1, file);
             this.draggingSelection = true;
@@ -271,7 +272,7 @@ const vm = new Vue({
                         ),
                     );
                     fr.onload = e => {
-                        socket.emit("uploadAsset", {
+                        socket.emit("Asset.Upload", {
                             name: file.name,
                             directory: target,
                             data: fr.result,

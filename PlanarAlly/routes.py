@@ -20,7 +20,7 @@ async def login(request):
             password = data["password"]
             form = {"username": username, "password": password}
             if "register" in data:
-                if User.by_name(username):
+                if User.by_name(name=username):
                     form["error"] = "Username already taken"
                 elif not username:
                     form["error"] = "Please provide a username"

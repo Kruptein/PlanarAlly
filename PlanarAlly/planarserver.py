@@ -3,18 +3,18 @@ PlanarAlly backend server code.
 This is the code responsible for starting the backend and reacting to socket IO events.
 """
 
+import save
+save.check_save()
+
 import asyncio
 import sys
 
 from aiohttp import web
 
 import routes
-import save
 from api import *
 from app import app, logger, sio, state
 from config import config
-
-save.check_save()
 
 # This is a fix for asyncio problems on windows that make it impossible to do ctrl+c
 if sys.platform.startswith("win"):

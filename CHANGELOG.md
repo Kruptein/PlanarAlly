@@ -6,6 +6,13 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+## 0.11.2
+
+Another hotfix for 0.10.0.
+
+### Fixed
+- Made a woopsie while fixing the earlier user creation error.
+
 ## 0.11.1
 
 This version contains hotfixes for the 0.10.0 release

@@ -6,6 +6,14 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+## 0.11.1
+
+This version contains hotfixes for the 0.10.0 release
+
+### Fixed
+- Save file was not generated at the right time causing errors when no save file exists during startup
+- User creation was broken
+
 ## 0.11.0
 
 **IMPORTANT: READ THIS FIRST**

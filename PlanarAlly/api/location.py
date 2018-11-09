@@ -49,17 +49,18 @@ async def load_location(sid, location):
         .where((Layer.location == location))
         .order_by(Initiative.index)
     ]
-    location_data = InitiativeLocationData.get(location=location)
-    await send_client_initiatives(room, location, user)
-    await sio.emit(
-        "Initiative.Round.Update",
-        location_data.round,
-        room=sid,
-        namespace="/planarally",
-    )
-    await sio.emit(
-        "Initiative.Turn.Update", location_data.turn, room=sid, namespace="/planarally"
-    )
+    location_data = InitiativeLocationData.get_or_none(location=location)
+    if location_data:
+        await send_client_initiatives(room, location, user)
+        await sio.emit(
+            "Initiative.Round.Update",
+            location_data.round,
+            room=sid,
+            namespace="/planarally",
+        )
+        await sio.emit(
+            "Initiative.Turn.Update", location_data.turn, room=sid, namespace="/planarally"
+        )
 
 
 @sio.on("Location.Change", namespace="/planarally")

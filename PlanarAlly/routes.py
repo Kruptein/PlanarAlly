@@ -20,7 +20,7 @@ async def login(request):
             password = data["password"]
             form = {"username": username, "password": password}
             if "register" in data:
-                if User.by_name(name=username):
+                if User.by_name(username):
                     form["error"] = "Username already taken"
                 elif not username:
                     form["error"] = "Please provide a username"
@@ -28,7 +28,7 @@ async def login(request):
                     form["error"] = "Please provide a password"
                 else:
                     with db.atomic():
-                        u = User(username)
+                        u = User(user=username)
                         u.set_password(password)
                         u.save()
                     valid = True

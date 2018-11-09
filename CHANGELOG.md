@@ -6,6 +6,13 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+## 0.11.3
+
+Another hotfix for 0.10.0.
+
+### Fixed
+- Actually fix the user creation bug for once.
+
 ## 0.11.2
 
 Another hotfix for 0.10.0.

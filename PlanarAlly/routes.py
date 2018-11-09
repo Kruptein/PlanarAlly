@@ -28,7 +28,7 @@ async def login(request):
                     form["error"] = "Please provide a password"
                 else:
                     with db.atomic():
-                        u = User(user=username)
+                        u = User(name=username)
                         u.set_password(password)
                         u.save()
                     valid = True

@@ -101,8 +101,6 @@ async def assetmgmt_rm(sid, data):
 async def assetmgmt_upload(sid, file_data):
     uuid = file_data["uuid"]
 
-    print(f'{file_data["slice"]}/{file_data["totalSlices"]}')
-
     if uuid not in state.pending_file_upload_cache:
         state.pending_file_upload_cache[uuid] = {}
     state.pending_file_upload_cache[uuid][file_data["slice"]] = file_data

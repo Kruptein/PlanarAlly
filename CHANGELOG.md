@@ -6,6 +6,13 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+## 0.11.4
+
+More hotfixes for 0.10.0
+
+### Fixed
+- Asset uploading
+
 ## 0.11.3
 
 Another hotfix for 0.10.0.

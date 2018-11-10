@@ -26,7 +26,8 @@ __all__ = [
 
 class Room(BaseModel):
     name = TextField()
-    creator = ForeignKeyField(User, backref="rooms_created", on_delete="CASCADE")
+    creator = ForeignKeyField(
+        User, backref="rooms_created", on_delete="CASCADE")
     invitation_code = TextField(default=uuid.uuid4, unique=True)
     player_location = TextField(null=True)
     dm_location = TextField(null=True)
@@ -121,8 +122,10 @@ class Location(BaseModel):
 
 
 class LocationUserOption(BaseModel):
-    location = ForeignKeyField(Location, backref="user_options", on_delete="CASCADE")
-    user = ForeignKeyField(User, backref="location_options", on_delete="CASCADE")
+    location = ForeignKeyField(
+        Location, backref="user_options", on_delete="CASCADE")
+    user = ForeignKeyField(
+        User, backref="location_options", on_delete="CASCADE")
     pan_x = IntegerField(default=0)
     pan_y = IntegerField(default=0)
     zoom_factor = FloatField(default=1.0)
@@ -202,4 +205,4 @@ class Layer(BaseModel):
 
 
 class GridLayer(BaseModel):
-    size = IntegerField(default=50)
+    size = FloatField(default=50)

@@ -6,6 +6,9 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+### Added
+- host option in server_config.cfg [Issue 99]
+
 ### Fixed
 - Tokens appear as black/red with all lighting settings disabled [Issues 90/91]
 

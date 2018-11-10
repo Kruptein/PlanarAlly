@@ -47,10 +47,12 @@ if __name__ == "__main__":
 
         ctx = ssl.SSLContext()
         ctx.load_cert_chain(
-            config["Webserver"]["ssl_fullchain"], config["Webserver"]["ssl_privkey"]
+            config.get("Webserver", "ssl_fullchain"), config.get(
+                "Webserver", "ssl_privkey")
         )
-        web.run_app(app, port=config.getint(
+        web.run_app(app, host=config.get("Webserver", "host"), port=config.getint(
             "Webserver", "port"), ssl_context=ctx)
     else:
         logger.warning(" RUNNING IN NON SSL CONTEXT ")
-        web.run_app(app, port=config.getint("Webserver", "port"))
+        web.run_app(app, host=config.get("Webserver", "host"),
+                    port=config.getint("Webserver", "port"))

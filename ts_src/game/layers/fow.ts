@@ -49,7 +49,7 @@ export class FOWLayer extends Layer {
             }
 
             // At all times provide a minimal vision range to prevent losing your tokens in fog.
-            if (gameManager.layerManager.hasLayer("tokens")) {
+            if (store.state.fullFOW && gameManager.layerManager.hasLayer("tokens")) {
                 gameManager.layerManager.getLayer("tokens")!.shapes.forEach(sh => {
                     if (!sh.ownedBy() || !sh.isToken) return;
                     const bb = sh.getBoundingBox();

@@ -6,6 +6,9 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+### Fixed
+- Tokens appear as black/red with all lighting settings disabled [Issues 90/91]
+
 ## 0.11.5
 
 Hotfixes for 0.10.0

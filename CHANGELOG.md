@@ -6,6 +6,14 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+## 0.11.5
+
+Hotfixes for 0.10.0
+
+### Fixed
+- Drag and Drop file uploading fixed
+- New location creation fixed
+
 ## 0.11.4
 
 More hotfixes for 0.10.0

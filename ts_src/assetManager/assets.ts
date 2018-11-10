@@ -25,14 +25,12 @@ const vm = new Vue({
     },
     computed: {
         currentFolder(): number {
-            if (this.path.length)
-                return this.path[this.path.length - 1];
+            if (this.path.length) return this.path[this.path.length - 1];
             return this.root;
         },
         parentFolder(): number {
-            let parent = this.path[this.path.length - 2]
-            if (parent === undefined)
-                parent = this.root;
+            let parent = this.path[this.path.length - 2];
+            if (parent === undefined) parent = this.root;
             return parent;
         },
         firstSelectedFile(): Asset | null {
@@ -42,7 +40,7 @@ const vm = new Vue({
                 }
             }
             return null;
-        }
+        },
     },
     methods: {
         isFile(inode: number): boolean {
@@ -61,10 +59,8 @@ const vm = new Vue({
             }
         },
         moveInode(inode: number, target: number) {
-            if (this.isFile(inode))
-                this.files.splice(this.files.indexOf(inode), 1);
-            else
-                this.folders.splice(this.folders.indexOf(inode), 1);
+            if (this.isFile(inode)) this.files.splice(this.files.indexOf(inode), 1);
+            else this.folders.splice(this.folders.indexOf(inode), 1);
             this.idMap.delete(inode);
             socket.emit("Inode.Move", { inode, target });
         },
@@ -73,8 +69,7 @@ const vm = new Vue({
                 const inodes = [...this.files, ...this.folders];
                 const start = inodes.indexOf(this.selected[this.selected.length - 1]);
                 const end = inodes.indexOf(inode);
-                for (let i = start; i !== end; start < end ? i++ : i--)
-                    this.selected.push(inodes[i]);
+                for (let i = start; i !== end; start < end ? i++ : i--) this.selected.push(inodes[i]);
                 this.selected.push(inodes[end]);
             } else {
                 if (!event.ctrlKey) {
@@ -84,7 +79,8 @@ const vm = new Vue({
             }
         },
         startDrag(event: DragEvent, file: number) {
-            event.dataTransfer.setData('Hack', 'ittyHack');
+            if (event.dataTransfer === null) return;
+            event.dataTransfer.setData("Hack", "ittyHack");
             event.dataTransfer.dropEffect = "move";
             if (!this.selected.includes(file)) this.selected.push(file);
             this.draggingSelection = true;
@@ -106,7 +102,7 @@ const vm = new Vue({
                     }
                 }
                 this.selected = [];
-            } else if (event.dataTransfer.files.length > 0) {
+            } else if (event.dataTransfer && event.dataTransfer.files.length > 0) {
                 this.upload(event.dataTransfer.files, target);
             }
             this.draggingSelection = false;

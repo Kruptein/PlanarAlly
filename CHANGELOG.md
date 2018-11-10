@@ -9,6 +9,9 @@ All notable changes to this project will be documented in this file.
 ### Added
 - host option in server_config.cfg [Issue 99]
 
+### Changed
+- GridLayer.size from IntegerField to FloatField
+
 ### Fixed
 - Tokens appear as black/red with all lighting settings disabled [Issues 90/91]
 

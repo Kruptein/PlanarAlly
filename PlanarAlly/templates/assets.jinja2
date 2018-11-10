@@ -9,7 +9,7 @@
 <div id='AssetManager' v-cloak>
     <div id='titlebar'>Asset Manager</div>
     <div id='main'>
-        <div id='assets' @dragover.prevent="moveDrag" @drop.prevent.stop="stopDrag($event, '.')">
+        <div id='assets' @dragover.prevent="moveDrag" @drop.prevent.stop="stopDrag($event, currentFolder)">
             <div id='breadcrumbs'>
                 <div>/</div><div v-for="dir in path">[[ idMap.get(dir).name ]]</div>
             </div>
@@ -69,5 +69,5 @@
     <prompt ref="prompt"></prompt>
     <confirm ref="confirm"></confirm>
 </div>
-<script type="text/javascript" src="/static/js/assets.79ff60c1178487289de4.js"></script></body>
+<script type="text/javascript" src="/static/js/assets.45a2c924f4f1647c4a68.js"></script></body>
 </html>

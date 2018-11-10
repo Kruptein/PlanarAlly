@@ -11,7 +11,7 @@ from config import SAVE_FILE
 from models import ALL_MODELS, Constants
 from models.db import db
 
-SAVE_VERSION = 4
+SAVE_VERSION = 5
 logger: logging.Logger = logging.getLogger("PlanarAllyServer")
 
 
@@ -23,6 +23,16 @@ def upgrade(version):
         db.drop_tables([GridLayer])
         db.create_tables([GridLayer])
         db.execute_sql("INSERT INTO grid_layer SELECT * FROM _grid_layer")
+        Constants.update(save_version=Constants.save_version + 1).execute()
+    elif version == 4:
+        from models import Location
+        db.foreign_keys = False
+        db.execute_sql(
+            "CREATE TEMPORARY TABLE _location AS SELECT * FROM location")
+        db.execute_sql("DROP TABLE location")
+        db.create_tables([Location])
+        db.execute_sql("INSERT INTO location SELECT * FROM _location")
+        db.foreign_keys = True
         Constants.update(save_version=Constants.save_version + 1).execute()
     else:
         raise Exception(

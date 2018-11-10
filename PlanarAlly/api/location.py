@@ -86,8 +86,10 @@ async def change_location(sid, location):
 
     for room_player in room.players:
         for psid in state.get_sids(user=room_player.player, room=room):
-            sio.leave_room(psid, old_location.get_path(), namespace="/planarally")
-            sio.enter_room(psid, new_location.get_path(), namespace="/planarally")
+            sio.leave_room(psid, old_location.get_path(),
+                           namespace="/planarally")
+            sio.enter_room(psid, new_location.get_path(),
+                           namespace="/planarally")
             await load_location(psid, new_location)
 
 
@@ -126,7 +128,7 @@ async def add_new_location(sid, location):
         logger.warning(f"{user.name} attempted to add a new location")
         return
 
-    new_location = Location.create(room=room, name=location.name)
+    new_location = Location.create(room=room, name=location)
     new_location.add_default_layers()
 
-    await load_location(sid, location)
+    await load_location(sid, new_location)

@@ -77,7 +77,8 @@ async def assetmgmt_rename(sid, data):
     user = state.sid_map[sid]["user"]
     asset = Asset[data["asset"]]
     if asset.owner != user:
-        logger.warning(f"{user.name} attempted to rename a file it doesn't own.")
+        logger.warning(
+            f"{user.name} attempted to rename a file it doesn't own.")
         return
     asset.name = data["name"]
     asset.save()
@@ -89,7 +90,8 @@ async def assetmgmt_rm(sid, data):
     user = state.sid_map[sid]["user"]
     asset = Asset[data]
     if asset.owner != user:
-        logger.warning(f"{user.name} attempted to remove a file it doesn't own.")
+        logger.warning(
+            f"{user.name} attempted to remove a file it doesn't own.")
         return
     asset.delete_instance(recursive=True, delete_nullable=True)
 
@@ -99,9 +101,11 @@ async def assetmgmt_rm(sid, data):
 async def assetmgmt_upload(sid, file_data):
     uuid = file_data["uuid"]
 
+    print(f'{file_data["slice"]}/{file_data["totalSlices"]}')
+
     if uuid not in state.pending_file_upload_cache:
         state.pending_file_upload_cache[uuid] = {}
-        state.pending_file_upload_cache[uuid][file_data["slice"]] = file_data
+    state.pending_file_upload_cache[uuid][file_data["slice"]] = file_data
     if len(state.pending_file_upload_cache[uuid]) != file_data["totalSlices"]:
         # wait for the rest of the slices
         return
@@ -123,23 +127,12 @@ async def assetmgmt_upload(sid, file_data):
     sid_data = state.sid_map[sid]
     user = sid_data["user"]
 
-    folder = functools.reduce(dict.get, file_data["directory"], user.asset_info)
-    if folder is None:
-        logger.warning(
-            f"Directory structure {file_data['directory']} is not valid for {user.name}"
-        )
-        return
-
-    file_info = {"name": file_data["name"], "hash": hashname}
-    if "__files" not in folder:
-        folder["__files"] = []
-    folder["__files"].append(file_info)
-
-    policy.save()
+    asset = Asset.create(name=file_data["name"], file_hash=hashname,
+                         owner=user, parent=file_data["directory"])
 
     await sio.emit(
         "Asset.Upload.Finish",
-        {"fileInfo": file_info, "directory": file_data["directory"]},
+        asset.as_dict(),
         room=sid,
         namespace="/pa_assetmgmt",
     )

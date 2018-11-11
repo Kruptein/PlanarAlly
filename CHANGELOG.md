@@ -6,6 +6,10 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+## 0.11.6
+
+A collection of small improvements and fixes.
+
 ### Added
 - host option in server_config.cfg [Issue 99]
 

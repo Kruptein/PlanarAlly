@@ -6,6 +6,9 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+## Fixed
+- Backspace key added as delete action (Fixes Mac OS X delete behaviour) [Issue 69]
+
 ## 0.11.6
 
 A collection of small improvements and fixes.

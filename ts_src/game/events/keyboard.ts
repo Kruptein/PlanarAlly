@@ -9,7 +9,7 @@ import { calculateDelta } from "../ui/tools/utils";
 export function onKeyUp(event: KeyboardEvent) {
     if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement) {
     } else {
-        if (event.key === "Delete" || event.key === "Del") {
+        if (event.key === "Delete" || event.key === "Del" || event.key === "Backspace") {
             if (gameManager.layerManager.getLayer === undefined) {
                 console.log("No active layer selected for delete operation");
                 return;

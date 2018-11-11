@@ -10,11 +10,12 @@ All notable changes to this project will be documented in this file.
 - host option in server_config.cfg [Issue 99]
 
 ### Changed
-- GridLayer.size from IntegerField to FloatField
-- Location.unit_size from IntegerField to FloatField
+- GridLayer.size from IntegerField to FloatField [Issue 105]
+- Location.unit_size from IntegerField to FloatField [Issue 105]
 
 ### Fixed
 - Tokens appear as black/red with all lighting settings disabled [Issues 90/91]
+- Trackers and Auras were not saved server side. [Issue 106]
 
 ## 0.11.5
 

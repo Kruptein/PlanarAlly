@@ -36,15 +36,17 @@ async def add_shape(sid, data):
             shape = Shape.create(**reduce_data_to_model(Shape, data["shape"]))
             # Subshape
             type_table = get_table(shape.type_)
-            type_table.create(**reduce_data_to_model(type_table, data["shape"]))
+            type_table.create(
+                **reduce_data_to_model(type_table, data["shape"]))
             # Owners
             ShapeOwner.create(shape=shape, user=user)
             # Trackers
             for tracker in data["shape"]["trackers"]:
-                Tracker.create(**reduce_data_to_model(Tracker, tracker))
+                Tracker.create(
+                    **reduce_data_to_model(Tracker, tracker), shape=shape)
             # Auras
             for aura in data["shape"]["auras"]:
-                Aura.create(**reduce_data_to_model(Aura, aura))
+                Aura.create(**reduce_data_to_model(Aura, aura), shape=shape)
 
     if layer.player_visible:
         for room_player in room.players:
@@ -90,16 +92,19 @@ async def update_shape(sid, data):
     # Ownership validatation
     if room.creator != user:
         if not layer.player_editable:
-            logger.warning(f"{user.name} attempted to move a shape on a dm layer")
+            logger.warning(
+                f"{user.name} attempted to move a shape on a dm layer")
             return
 
         if data["temporary"]:
             if user.name not in shape["owners"]:
-                logger.warning(f"{user.name} attempted to move asset it does not own")
+                logger.warning(
+                    f"{user.name} attempted to move asset it does not own")
                 return
         else:
             if not ShapeOwner.get_or_none(shape=shape, user=user):
-                logger.warning(f"{user.name} attempted to move asset it does not own")
+                logger.warning(
+                    f"{user.name} attempted to move asset it does not own")
                 return
 
     # Overwrite the old data with the new data
@@ -108,15 +113,18 @@ async def update_shape(sid, data):
             data["shape"]["layer"] = Layer.get(
                 location=location, name=data["shape"]["layer"]
             )
-            # Otherwise backrefs can cause errors as they need to be handled separately
-            update_model_from_dict(shape, reduce_data_to_model(Shape, data["shape"]))
+            # Shape
+            update_model_from_dict(
+                shape, reduce_data_to_model(Shape, data["shape"]))
             shape.save()
+            # Subshape
             type_table = get_table(shape.type_)
             type_instance = type_table.get(uuid=shape.uuid)
             # no backrefs on these tables
-            update_model_from_dict(type_instance, data["shape"], ignore_unknown=True)
+            update_model_from_dict(
+                type_instance, data["shape"], ignore_unknown=True)
             type_instance.save()
-
+            # Owners
             old_owners = {owner.user.name for owner in shape.owners}
             new_owners = set(data["shape"]["owners"])
             for owner in old_owners ^ new_owners:
@@ -126,8 +134,29 @@ async def update_shape(sid, data):
                 if owner in new_owners:
                     ShapeOwner.create(shape=shape, user=delta_owner)
                 else:
-                    ShapeOwner.get(shape=shape, user=delta_owner).delete_instance(True)
+                    ShapeOwner.get(
+                        shape=shape, user=delta_owner).delete_instance(True)
                 await send_client_initiatives(room, location, delta_owner)
+            # Trackers
+            for tracker in data["shape"]["trackers"]:
+                tracker_db = Tracker.get_or_none(uuid=tracker['uuid'])
+                reduced = reduce_data_to_model(Tracker, tracker)
+                reduced['shape'] = shape
+                if tracker_db:
+                    update_model_from_dict(tracker_db, reduced)
+                    tracker_db.save()
+                else:
+                    Tracker.create(**reduced)
+            # Auras
+            for aura in data["shape"]["auras"]:
+                aura_db = Aura.get_or_none(uuid=aura['uuid'])
+                reduced = reduce_data_to_model(Aura, aura)
+                reduced['shape'] = shape
+                if aura_db:
+                    update_model_from_dict(aura_db, reduced)
+                    aura_db.save()
+                else:
+                    Aura.create(**reduced)
 
     # Send to players
     if layer.player_visible:
@@ -173,22 +202,25 @@ async def remove_shape(sid, data):
     # Ownership validatation
     if room.creator != user:
         if not layer.player_editable:
-            logger.warning(f"{user.name} attempted to remove a shape on a dm layer")
+            logger.warning(
+                f"{user.name} attempted to remove a shape on a dm layer")
             return
 
         if data["temporary"]:
             if user.name not in shape["owners"]:
-                logger.warning(f"{user.name} attempted to remove asset it does not own")
+                logger.warning(
+                    f"{user.name} attempted to remove asset it does not own")
                 return
         else:
             if not ShapeOwner.get_or_none(shape=shape, user=user):
-                logger.warning(f"{user.name} attempted to remove asset it does not own")
+                logger.warning(
+                    f"{user.name} attempted to remove asset it does not own")
                 return
 
     if data["temporary"]:
         state.remove_temp(sid, data["shape"]["uuid"])
     else:
-        shape.delete_instance()
+        shape.delete_instance(True)
 
     if layer.player_visible:
         await sio.emit(
@@ -245,7 +277,8 @@ async def move_shape_order(sid, data):
     layer = shape.layer
 
     if room.creator != user and not layer.player_editable:
-        logger.warning(f"{user.name} attempted to move a shape order on a dm layer")
+        logger.warning(
+            f"{user.name} attempted to move a shape order on a dm layer")
         return
 
     target = data["index"] + 1

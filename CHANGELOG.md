@@ -6,6 +6,12 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+### Fixed
+- Added host config option to docker config file
+
+### Added
+- Added curl to docker container for proper health check
+
 ## Fixed
 - Backspace key added as delete action (Fixes Mac OS X delete behaviour) [Issue 69]
 

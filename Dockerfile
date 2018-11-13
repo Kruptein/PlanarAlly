@@ -12,7 +12,7 @@ VOLUME /usr/src/app/static/assets
 ENTRYPOINT ["/usr/bin/dumb-init", "--"]
 
 COPY requirements.txt ./
-RUN apt-get update && apt-get install dumb-init && \
+RUN apt-get update && apt-get install dumb-init curl -y && \
     rm -rf /var/lib/apt/lists/* && \
     pip install --no-cache-dir -r requirements.txt
 

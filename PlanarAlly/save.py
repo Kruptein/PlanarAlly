@@ -11,7 +11,7 @@ from config import SAVE_FILE
 from models import ALL_MODELS, Constants
 from models.db import db
 
-SAVE_VERSION = 6
+SAVE_VERSION = 7
 logger: logging.Logger = logging.getLogger("PlanarAllyServer")
 
 
@@ -51,6 +51,10 @@ def upgrade(version):
                 migrator.add_not_null("location_user_option", "active_layer_id")
             )
             Constants.update(save_version=Constants.save_version + 1).execute()
+    elif version == 6:
+        migrator = SqliteMigrator(db)
+        migrate(migrator.drop_not_null("location_user_option", "active_layer_id"))
+        Constants.update(save_version=Constants.save_version + 1).execute()
     else:
         raise Exception(
             f"No upgrade code for save format {version} was found.")

@@ -189,7 +189,7 @@ class LocationUserOption(BaseModel):
     pan_x = IntegerField(default=0)
     pan_y = IntegerField(default=0)
     zoom_factor = FloatField(default=1.0)
-    active_layer = ForeignKeyField(Layer, backref="active_users")
+    active_layer = ForeignKeyField(Layer, backref="active_users", null=True)
 
     def __repr__(self):
         return f"<LocationUserOption {self.location.get_path()} - {self.user.name}>"
@@ -204,7 +204,8 @@ class LocationUserOption(BaseModel):
                 LocationUserOption.user,
             ],
         )
-        d['active_layer'] = self.active_layer.name
+        if self.active_layer:
+            d['active_layer'] = self.active_layer.name
         return d
 
     class Meta:

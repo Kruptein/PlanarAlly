@@ -37,7 +37,8 @@ socket.on("Client.Options.Set", (options: ServerClient) => {
     store.commit("setPanX", options.pan_x);
     store.commit("setPanY", options.pan_y);
     store.commit("setZoomFactor", options.zoom_factor);
-    gameManager.layerManager.selectLayer(options.active_layer, false);
+    if (options.active_layer)
+        gameManager.layerManager.selectLayer(options.active_layer, false);
     if (gameManager.layerManager.getGridLayer() !== undefined) gameManager.layerManager.getGridLayer()!.invalidate();
 });
 socket.on("Location.Set", (data: Partial<ServerLocation>) => {

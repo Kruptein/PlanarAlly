@@ -32,6 +32,23 @@ async def set_client(sid, data):
         ).execute()
 
 
+@sio.on("Client.ActiveLayer.Set", namespace="/planarally")
+@auth.login_required(app, sio)
+async def set_layer(sid, data):
+    sid_data = state.sid_map[sid]
+    user = sid_data["user"]
+    location = sid_data["location"]
+
+    try:
+        layer = location.layers.select().where(Layer.name == data)[0]
+    except IndexError:
+        pass
+    else:
+        luo = LocationUserOption.get(user=user, location=location)
+        luo.active_layer = layer
+        luo.save()
+
+
 @sio.on("Gridsize.Set", namespace="/planarally")
 @auth.login_required(app, sio)
 async def set_gridsize(sid, grid_size):

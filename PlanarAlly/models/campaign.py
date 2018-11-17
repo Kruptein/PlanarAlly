@@ -121,33 +121,6 @@ class Location(BaseModel):
         indexes = ((("room", "name"), True),)
 
 
-class LocationUserOption(BaseModel):
-    location = ForeignKeyField(
-        Location, backref="user_options", on_delete="CASCADE")
-    user = ForeignKeyField(
-        User, backref="location_options", on_delete="CASCADE")
-    pan_x = IntegerField(default=0)
-    pan_y = IntegerField(default=0)
-    zoom_factor = FloatField(default=1.0)
-
-    def __repr__(self):
-        return f"<LocationUserOption {self.location.get_path()} - {self.user.name}>"
-
-    def as_dict(self):
-        return model_to_dict(
-            self,
-            recurse=False,
-            exclude=[
-                LocationUserOption.id,
-                LocationUserOption.location,
-                LocationUserOption.user,
-            ],
-        )
-
-    class Meta:
-        indexes = ((("location", "user"), True),)
-
-
 class Note(BaseModel):
     uuid = TextField(primary_key=True)
     room = ForeignKeyField(Room, backref="notes", on_delete="CASCADE")
@@ -206,3 +179,33 @@ class Layer(BaseModel):
 
 class GridLayer(BaseModel):
     size = FloatField(default=50)
+
+
+class LocationUserOption(BaseModel):
+    location = ForeignKeyField(
+        Location, backref="user_options", on_delete="CASCADE")
+    user = ForeignKeyField(
+        User, backref="location_options", on_delete="CASCADE")
+    pan_x = IntegerField(default=0)
+    pan_y = IntegerField(default=0)
+    zoom_factor = FloatField(default=1.0)
+    active_layer = ForeignKeyField(Layer, backref="active_users")
+
+    def __repr__(self):
+        return f"<LocationUserOption {self.location.get_path()} - {self.user.name}>"
+
+    def as_dict(self):
+        d = model_to_dict(
+            self,
+            recurse=False,
+            exclude=[
+                LocationUserOption.id,
+                LocationUserOption.location,
+                LocationUserOption.user,
+            ],
+        )
+        d['active_layer'] = self.active_layer.name
+        return d
+
+    class Meta:
+        indexes = ((("location", "user"), True),)

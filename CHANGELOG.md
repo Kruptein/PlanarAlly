@@ -11,6 +11,7 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 - Added curl to docker container for proper health check
+- Remember which layer was selected last time [Issue 109]
 
 ## Fixed
 - Backspace key added as delete action (Fixes Mac OS X delete behaviour) [Issue 69]

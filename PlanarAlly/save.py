@@ -11,8 +11,9 @@ from config import SAVE_FILE
 from models import ALL_MODELS, Constants
 from models.db import db
 
-SAVE_VERSION = 5
+SAVE_VERSION = 8
 logger: logging.Logger = logging.getLogger("PlanarAllyServer")
+logger.setLevel(logging.INFO)
 
 
 def upgrade(version):
@@ -33,6 +34,47 @@ def upgrade(version):
         db.create_tables([Location])
         db.execute_sql("INSERT INTO location SELECT * FROM _location")
         db.foreign_keys = True
+        Constants.update(save_version=Constants.save_version + 1).execute()
+    elif version == 5:
+        from models import Layer
+        migrator = SqliteMigrator(db)
+        field = ForeignKeyField(Layer, Layer.id, backref="active_users", null=True)
+        with db.atomic():
+            migrate(
+                migrator.add_column("location_user_option", "active_layer_id", field)
+            )
+            from models import LocationUserOption
+            LocationUserOption._meta.add_field("active_layer", field)
+            for luo in LocationUserOption.select():
+                luo.active_layer = luo.location.layers.select().where(Layer.name == "tokens")[0]
+                luo.save()
+            migrate(
+                migrator.add_not_null("location_user_option", "active_layer_id")
+            )
+            Constants.update(save_version=Constants.save_version + 1).execute()
+    elif version == 6:
+        migrator = SqliteMigrator(db)
+        migrate(migrator.drop_not_null("location_user_option", "active_layer_id"))
+        Constants.update(save_version=Constants.save_version + 1).execute()
+    elif version == 7:
+        # Remove shape index unique constraint
+        from models import Shape
+        db.foreign_keys = False
+        db.execute_sql(
+            "CREATE TEMPORARY TABLE _shape AS SELECT * FROM shape")
+        db.execute_sql("DROP TABLE shape")
+        db.create_tables([Shape])
+        db.execute_sql("INSERT INTO shape SELECT * FROM _shape")
+        db.foreign_keys = True
+        # Check all indices and reset to 0 index
+        logger.info("Validating all shape indices")
+        from models import Layer
+        with db.atomic():
+            for layer in Layer.select():
+                shapes = layer.shapes.order_by(fn.ABS(Shape.index))
+                for i, shape in enumerate(shapes):
+                    shape.index = i
+                    shape.save()
         Constants.update(save_version=Constants.save_version + 1).execute()
     else:
         raise Exception(
@@ -66,7 +108,7 @@ def check_save():
             try:
                 upgrade(constants.save_version)
             except Exception as e:
-                logger.warning(e)
+                logger.exception(e)
                 logger.error("ERROR: Could not start server")
                 sys.exit(2)
                 break

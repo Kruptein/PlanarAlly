@@ -63,9 +63,12 @@ export default new Vuex.Store({
             state.layers.push(name);
             if (state.selectedLayerIndex === -1) state.selectedLayerIndex = state.layers.indexOf(name);
         },
-        selectLayer(state, name) {
-            const index = state.layers.indexOf(name);
+        selectLayer(state, payload: { name: string, sync: boolean }) {
+            const index = state.layers.indexOf(payload.name);
             if (index >= 0) state.selectedLayerIndex = index;
+            if (payload.sync) {
+                socket.emit("Client.ActiveLayer.Set", payload.name);
+            }
         },
         setRoomName(state, name) {
             state.roomName = name;

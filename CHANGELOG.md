@@ -6,16 +6,17 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
-### Fixed
-- Added host config option to docker config file
-- Moving shapes to another layer would not always succeed at the server [Issue 108]
-
 ### Added
 - Added curl to docker container for proper health check
 - Remember which layer was selected last time [Issue 109]
 
+### Changed
+- [tech] Shape index unique constraint dropped to simplify some code
+
 ## Fixed
 - Backspace key added as delete action (Fixes Mac OS X delete behaviour) [Issue 69]
+- Added host config option to docker config file
+- Moving shapes to another layer would not always succeed at the server [Issue 108]
 
 ## 0.11.6
 

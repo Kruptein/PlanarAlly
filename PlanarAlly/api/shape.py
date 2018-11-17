@@ -31,7 +31,7 @@ async def add_shape(sid, data):
             data["shape"]["layer"] = Layer.get(
                 location=location, name=data["shape"]["layer"]
             )
-            data["shape"]["index"] = layer.shapes.count() + 1
+            data["shape"]["index"] = layer.shapes.count()
             # Shape itself
             shape = Shape.create(**reduce_data_to_model(Shape, data["shape"]))
             # Subshape
@@ -220,7 +220,9 @@ async def remove_shape(sid, data):
     if data["temporary"]:
         state.remove_temp(sid, data["shape"]["uuid"])
     else:
+        old_index = shape.index
         shape.delete_instance(True)
+        Shape.update(index=Shape.index - 1).where((Shape.layer == layer) & (Shape.index >= old_index)).execute()
 
     if layer.player_visible:
         await sio.emit(
@@ -253,9 +255,12 @@ async def change_shape_layer(sid, data):
 
     layer = Layer.get(location=location, name=data["layer"])
     shape = Shape.get(uuid=data["uuid"])
+    old_layer = shape.layer
+    old_index = shape.index
     shape.layer = layer
-    shape.index = layer.shapes.count() + 1
+    shape.index = layer.shapes.count()
     shape.save()
+    Shape.update(index=Shape.index - 1).where((Shape.layer == old_layer) & (Shape.index >= old_index)).execute()
 
     await sio.emit(
         "Shape.Layer.Change",
@@ -282,19 +287,18 @@ async def move_shape_order(sid, data):
             f"{user.name} attempted to move a shape order on a dm layer")
         return
 
-    target = data["index"] + 1
-    sign = 1 if target <= 1 else -1
-    polarity = 1 if shape.index > 0 else -1
+    target = data["index"]
+    sign = 1 if target < shape.index else -1
     case = Case(
         None,
         (
-            (Shape.index == shape.index, target * (-polarity)),
+            (Shape.index == shape.index, target),
             (
-                (polarity * sign * Shape.index) < (polarity * sign * shape.index),
-                (Shape.index + (polarity * sign * 1)) * -1,
+                (sign * Shape.index) < (sign * shape.index),
+                (Shape.index + (sign * 1)),
             ),
         ),
-        Shape.index * -1,
+        Shape.index,
     )
     Shape.update(index=case).where(Shape.layer == layer).execute()
     if layer.player_visible:

@@ -72,9 +72,6 @@ class Shape(BaseModel):
 
         return data
 
-    class Meta:
-        indexes = ((("layer", "index"), True),)
-
 
 class Tracker(BaseModel):
     uuid = TextField(primary_key=True)

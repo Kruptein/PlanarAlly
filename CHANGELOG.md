@@ -8,6 +8,7 @@ All notable changes to this project will be documented in this file.
 
 ### Fixed
 - Added host config option to docker config file
+- Moving shapes to another layer would not always succeed at the server [Issue 108]
 
 ### Added
 - Added curl to docker container for proper health check

@@ -254,6 +254,7 @@ async def change_shape_layer(sid, data):
     layer = Layer.get(location=location, name=data["layer"])
     shape = Shape.get(uuid=data["uuid"])
     shape.layer = layer
+    shape.index = layer.shapes.count() + 1
     shape.save()
 
     await sio.emit(

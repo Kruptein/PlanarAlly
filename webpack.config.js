@@ -5,8 +5,9 @@ const HtmlWebpackPlugin = require("html-webpack-plugin");
 
 module.exports = {
     entry: {
-        planarally: "./ts_src/game/planarally.ts",
-        assets: "./ts_src/assetManager/assets.ts",
+        // planarally: "./ts_src/game/planarally.ts",
+        // assets: "./ts_src/assetManager/assets.ts",
+        test: "./ts_src/app.ts",
     },
     output: {
         filename: "[name].[hash].js",
@@ -61,15 +62,20 @@ module.exports = {
         new ForkTsCheckerWebpackPlugin({ checkSyntacticErrors: true }),
         new VueLoaderPlugin(),
         new HtmlWebpackPlugin({
-            chunks: ["planarally"],
-            template: path.resolve(__dirname, "PlanarAlly", "templates", "planarally.pre.jinja2"),
-            filename: path.resolve(__dirname, "PlanarAlly", "templates", "planarally.jinja2"),
-        }),
-        new HtmlWebpackPlugin({
-            chunks: ["assets"],
-            template: path.resolve(__dirname, "PlanarAlly", "templates", "assets.pre.jinja2"),
-            filename: path.resolve(__dirname, "PlanarAlly", "templates", "assets.jinja2"),
-        }),
+            chunks: ["test"],
+            template: path.resolve("ts_src", "app.html"),
+            filename: path.resolve(__dirname, "PlanarAlly", "templates", "app.jinja2"),
+        })
+        // new HtmlWebpackPlugin({
+        //     chunks: ["planarally"],
+        //     template: path.resolve(__dirname, "PlanarAlly", "templates", "planarally.pre.jinja2"),
+        //     filename: path.resolve(__dirname, "PlanarAlly", "templates", "planarally.jinja2"),
+        // }),
+        // new HtmlWebpackPlugin({
+        //     chunks: ["assets"],
+        //     template: path.resolve(__dirname, "PlanarAlly", "templates", "assets.pre.jinja2"),
+        //     filename: path.resolve(__dirname, "PlanarAlly", "templates", "assets.jinja2"),
+        // }),
     ],
 };
 

@@ -7,6 +7,11 @@ from models import Location, PlayerRoom, Room, User
 from models.db import db
 
 
+@aiohttp_jinja2.template("app.jinja2")
+async def test(request):
+    return {}
+
+
 @aiohttp_jinja2.template("login.jinja2")
 async def login(request):
     username = await authorized_userid(request)

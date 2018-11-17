@@ -31,13 +31,14 @@ async def on_shutdown(_):
 
 
 app.router.add_static("/static", "static")
-app.router.add_route("*", "/", routes.login)
-app.router.add_get("/rooms", routes.show_rooms)
-app.router.add_get("/rooms/{username}/{roomname}", routes.show_room)
-app.router.add_get("/invite/{code}", routes.claim_invite)
-app.router.add_post("/create_room", routes.create_room)
-app.router.add_get("/assets/", routes.show_assets)
-app.router.add_get("/logout", routes.logout)
+app.router.add_route("*", "/", routes.test)
+# app.router.add_route("*", "/", routes.login)
+# app.router.add_get("/rooms", routes.show_rooms)
+# app.router.add_get("/rooms/{username}/{roomname}", routes.show_room)
+# app.router.add_get("/invite/{code}", routes.claim_invite)
+# app.router.add_post("/create_room", routes.create_room)
+# app.router.add_get("/assets/", routes.show_assets)
+# app.router.add_get("/logout", routes.logout)
 
 app.on_shutdown.append(on_shutdown)
 

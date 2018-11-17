@@ -60,7 +60,7 @@ export class LayerManager {
         }
     }
 
-    selectLayer(name: string): void {
+    selectLayer(name: string, sync: boolean = true): void {
         let found = false;
         for (const layer of this.layers) {
             if (!layer.selectable) continue;
@@ -68,7 +68,7 @@ export class LayerManager {
             else layer.ctx.globalAlpha = 1.0;
 
             if (name === layer.name) {
-                store.commit("selectLayer", name);
+                store.commit("selectLayer", { name, sync });
                 found = true;
             }
 

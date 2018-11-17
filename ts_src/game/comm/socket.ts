@@ -37,7 +37,7 @@ socket.on("Client.Options.Set", (options: ServerClient) => {
     store.commit("setPanX", options.pan_x);
     store.commit("setPanY", options.pan_y);
     store.commit("setZoomFactor", options.zoom_factor);
-    gameManager.layerManager.selectLayer(options.active_layer);
+    gameManager.layerManager.selectLayer(options.active_layer, false);
     if (gameManager.layerManager.getGridLayer() !== undefined) gameManager.layerManager.getGridLayer()!.invalidate();
 });
 socket.on("Location.Set", (data: Partial<ServerLocation>) => {
@@ -64,7 +64,7 @@ socket.on("Board.Set", (locationInfo: BoardInfo) => {
     store.commit("resetLayerInfo");
     for (const layer of locationInfo.layers) createLayer(layer);
     // Force the correct opacity render on other layers.
-    gameManager.layerManager.selectLayer(gameManager.layerManager.getLayer()!.name);
+    gameManager.layerManager.selectLayer(gameManager.layerManager.getLayer()!.name, false);
     (<any>vm.$refs.initiative).clear();
     store.commit("setBoardInitialized", true);
     gameManager.recalculateBoundingVolume();

@@ -36,14 +36,12 @@ async def add_shape(sid, data):
             shape = Shape.create(**reduce_data_to_model(Shape, data["shape"]))
             # Subshape
             type_table = get_table(shape.type_)
-            type_table.create(
-                **reduce_data_to_model(type_table, data["shape"]))
+            type_table.create(**reduce_data_to_model(type_table, data["shape"]))
             # Owners
             ShapeOwner.create(shape=shape, user=user)
             # Trackers
             for tracker in data["shape"]["trackers"]:
-                Tracker.create(
-                    **reduce_data_to_model(Tracker, tracker), shape=shape)
+                Tracker.create(**reduce_data_to_model(Tracker, tracker), shape=shape)
             # Auras
             for aura in data["shape"]["auras"]:
                 Aura.create(**reduce_data_to_model(Aura, aura), shape=shape)
@@ -92,19 +90,16 @@ async def update_shape(sid, data):
     # Ownership validatation
     if room.creator != user:
         if not layer.player_editable:
-            logger.warning(
-                f"{user.name} attempted to move a shape on a dm layer")
+            logger.warning(f"{user.name} attempted to move a shape on a dm layer")
             return
 
         if data["temporary"]:
             if user.name not in shape["owners"]:
-                logger.warning(
-                    f"{user.name} attempted to move asset it does not own")
+                logger.warning(f"{user.name} attempted to move asset it does not own")
                 return
         else:
             if not ShapeOwner.get_or_none(shape=shape, user=user):
-                logger.warning(
-                    f"{user.name} attempted to move asset it does not own")
+                logger.warning(f"{user.name} attempted to move asset it does not own")
                 return
 
     # Overwrite the old data with the new data
@@ -114,15 +109,13 @@ async def update_shape(sid, data):
                 location=location, name=data["shape"]["layer"]
             )
             # Shape
-            update_model_from_dict(
-                shape, reduce_data_to_model(Shape, data["shape"]))
+            update_model_from_dict(shape, reduce_data_to_model(Shape, data["shape"]))
             shape.save()
             # Subshape
             type_table = get_table(shape.type_)
             type_instance = type_table.get(uuid=shape.uuid)
             # no backrefs on these tables
-            update_model_from_dict(
-                type_instance, data["shape"], ignore_unknown=True)
+            update_model_from_dict(type_instance, data["shape"], ignore_unknown=True)
             type_instance.save()
             # Owners
             old_owners = {owner.user.name for owner in shape.owners}
@@ -134,14 +127,13 @@ async def update_shape(sid, data):
                 if owner in new_owners:
                     ShapeOwner.create(shape=shape, user=delta_owner)
                 else:
-                    ShapeOwner.get(
-                        shape=shape, user=delta_owner).delete_instance(True)
+                    ShapeOwner.get(shape=shape, user=delta_owner).delete_instance(True)
                 await send_client_initiatives(room, location, delta_owner)
             # Trackers
             for tracker in data["shape"]["trackers"]:
-                tracker_db = Tracker.get_or_none(uuid=tracker['uuid'])
+                tracker_db = Tracker.get_or_none(uuid=tracker["uuid"])
                 reduced = reduce_data_to_model(Tracker, tracker)
-                reduced['shape'] = shape
+                reduced["shape"] = shape
                 if tracker_db:
                     update_model_from_dict(tracker_db, reduced)
                     tracker_db.save()
@@ -149,9 +141,9 @@ async def update_shape(sid, data):
                     Tracker.create(**reduced)
             # Auras
             for aura in data["shape"]["auras"]:
-                aura_db = Aura.get_or_none(uuid=aura['uuid'])
+                aura_db = Aura.get_or_none(uuid=aura["uuid"])
                 reduced = reduce_data_to_model(Aura, aura)
-                reduced['shape'] = shape
+                reduced["shape"] = shape
                 if aura_db:
                     update_model_from_dict(aura_db, reduced)
                     aura_db.save()
@@ -202,19 +194,16 @@ async def remove_shape(sid, data):
     # Ownership validatation
     if room.creator != user:
         if not layer.player_editable:
-            logger.warning(
-                f"{user.name} attempted to remove a shape on a dm layer")
+            logger.warning(f"{user.name} attempted to remove a shape on a dm layer")
             return
 
         if data["temporary"]:
             if user.name not in shape["owners"]:
-                logger.warning(
-                    f"{user.name} attempted to remove asset it does not own")
+                logger.warning(f"{user.name} attempted to remove asset it does not own")
                 return
         else:
             if not ShapeOwner.get_or_none(shape=shape, user=user):
-                logger.warning(
-                    f"{user.name} attempted to remove asset it does not own")
+                logger.warning(f"{user.name} attempted to remove asset it does not own")
                 return
 
     if data["temporary"]:
@@ -222,7 +211,9 @@ async def remove_shape(sid, data):
     else:
         old_index = shape.index
         shape.delete_instance(True)
-        Shape.update(index=Shape.index - 1).where((Shape.layer == layer) & (Shape.index >= old_index)).execute()
+        Shape.update(index=Shape.index - 1).where(
+            (Shape.layer == layer) & (Shape.index >= old_index)
+        ).execute()
 
     if layer.player_visible:
         await sio.emit(
@@ -260,7 +251,9 @@ async def change_shape_layer(sid, data):
     shape.layer = layer
     shape.index = layer.shapes.count()
     shape.save()
-    Shape.update(index=Shape.index - 1).where((Shape.layer == old_layer) & (Shape.index >= old_index)).execute()
+    Shape.update(index=Shape.index - 1).where(
+        (Shape.layer == old_layer) & (Shape.index >= old_index)
+    ).execute()
 
     await sio.emit(
         "Shape.Layer.Change",
@@ -283,8 +276,7 @@ async def move_shape_order(sid, data):
     layer = shape.layer
 
     if room.creator != user and not layer.player_editable:
-        logger.warning(
-            f"{user.name} attempted to move a shape order on a dm layer")
+        logger.warning(f"{user.name} attempted to move a shape order on a dm layer")
         return
 
     target = data["index"]
@@ -293,10 +285,7 @@ async def move_shape_order(sid, data):
         None,
         (
             (Shape.index == shape.index, target),
-            (
-                (sign * Shape.index) < (sign * shape.index),
-                (Shape.index + (sign * 1)),
-            ),
+            ((sign * Shape.index) < (sign * shape.index), (Shape.index + (sign * 1))),
         ),
         Shape.index,
     )

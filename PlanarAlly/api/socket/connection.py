@@ -2,7 +2,7 @@ from urllib.parse import unquote
 
 from aiohttp_security import authorized_userid
 
-from api.location import load_location
+from .location import load_location
 from app import logger, sio, state
 from models import Asset, Location, Note, Room, User
 

@@ -77,8 +77,7 @@ async def assetmgmt_rename(sid, data):
     user = state.sid_map[sid]["user"]
     asset = Asset[data["asset"]]
     if asset.owner != user:
-        logger.warning(
-            f"{user.name} attempted to rename a file it doesn't own.")
+        logger.warning(f"{user.name} attempted to rename a file it doesn't own.")
         return
     asset.name = data["name"]
     asset.save()
@@ -90,8 +89,7 @@ async def assetmgmt_rm(sid, data):
     user = state.sid_map[sid]["user"]
     asset = Asset[data]
     if asset.owner != user:
-        logger.warning(
-            f"{user.name} attempted to remove a file it doesn't own.")
+        logger.warning(f"{user.name} attempted to remove a file it doesn't own.")
         return
     asset.delete_instance(recursive=True, delete_nullable=True)
 
@@ -125,12 +123,13 @@ async def assetmgmt_upload(sid, file_data):
     sid_data = state.sid_map[sid]
     user = sid_data["user"]
 
-    asset = Asset.create(name=file_data["name"], file_hash=hashname,
-                         owner=user, parent=file_data["directory"])
+    asset = Asset.create(
+        name=file_data["name"],
+        file_hash=hashname,
+        owner=user,
+        parent=file_data["directory"],
+    )
 
     await sio.emit(
-        "Asset.Upload.Finish",
-        asset.as_dict(),
-        room=sid,
-        namespace="/pa_assetmgmt",
+        "Asset.Upload.Finish", asset.as_dict(), room=sid, namespace="/pa_assetmgmt"
     )

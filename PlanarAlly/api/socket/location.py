@@ -59,7 +59,10 @@ async def load_location(sid, location):
             namespace="/planarally",
         )
         await sio.emit(
-            "Initiative.Turn.Update", location_data.turn, room=sid, namespace="/planarally"
+            "Initiative.Turn.Update",
+            location_data.turn,
+            room=sid,
+            namespace="/planarally",
         )
 
 
@@ -86,10 +89,8 @@ async def change_location(sid, location):
 
     for room_player in room.players:
         for psid in state.get_sids(user=room_player.player, room=room):
-            sio.leave_room(psid, old_location.get_path(),
-                           namespace="/planarally")
-            sio.enter_room(psid, new_location.get_path(),
-                           namespace="/planarally")
+            sio.leave_room(psid, old_location.get_path(), namespace="/planarally")
+            sio.enter_room(psid, new_location.get_path(), namespace="/planarally")
             await load_location(psid, new_location)
 
 

@@ -8,71 +8,8 @@ from models.db import db
 
 
 @aiohttp_jinja2.template("app.jinja2")
-async def test(request):
+async def root(request):
     return {}
-
-
-@aiohttp_jinja2.template("login.jinja2")
-async def login(request):
-    username = await authorized_userid(request)
-    if username:
-        return web.HTTPFound("/rooms")
-    else:
-        valid = False
-        if request.method == "POST":
-            data = await request.post()
-            username = data["username"]
-            password = data["password"]
-            form = {"username": username, "password": password}
-            if "register" in data:
-                if User.by_name(username):
-                    form["error"] = "Username already taken"
-                elif not username:
-                    form["error"] = "Please provide a username"
-                elif not password:
-                    form["error"] = "Please provide a password"
-                else:
-                    with db.atomic():
-                        u = User(name=username)
-                        u.set_password(password)
-                        u.save()
-                    valid = True
-            elif "login" in data:
-                u = User.by_name(username)
-                if u is None or not u.check_password(password):
-                    form["error"] = "Username and/or Password do not match"
-                else:
-                    valid = True
-            if valid:
-                response = web.HTTPFound("/rooms")
-                await remember(request, response, username)
-                return response
-            return form
-        else:
-            return {"username": "", "password": ""}
-
-
-async def logout(request):
-    response = web.HTTPFound("/")
-    await forget(request, response)
-    return response
-
-
-@aiohttp_jinja2.template("rooms.jinja2")
-async def show_rooms(request):
-    user = await check_authorized(request)
-    return {
-        "owned": [
-            (r.name, r.creator.name)
-            for r in user.rooms_created.select(Room.name, User.name).join(User)
-        ],
-        "joined": [
-            (r.room.name, r.room.creator.name)
-            for r in user.rooms_joined.select(Room.name, User.name)
-            .join(Room)
-            .join(User)
-        ],
-    }
 
 
 async def create_room(request):

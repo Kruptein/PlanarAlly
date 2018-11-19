@@ -4,6 +4,7 @@ This is the code responsible for starting the backend and reacting to socket IO 
 """
 
 import save
+
 save.check_save()
 
 import asyncio
@@ -11,8 +12,11 @@ import sys
 
 from aiohttp import web
 
+import api.http
 import routes
-from api import *
+
+# Force loading of socketio routes
+from api.socket import *
 from app import app, logger, sio, state
 from config import config
 
@@ -31,7 +35,11 @@ async def on_shutdown(_):
 
 
 app.router.add_static("/static", "static")
-app.router.add_route("*", "/", routes.test)
+app.router.add_route("*", "/", routes.root)
+app.router.add_get("/auth", api.http.auth.is_authed)
+app.router.add_post("/login", api.http.auth.login)
+app.router.add_post("/register", api.http.auth.register)
+app.router.add_post("/logout", api.http.auth.logout)
 # app.router.add_route("*", "/", routes.login)
 # app.router.add_get("/rooms", routes.show_rooms)
 # app.router.add_get("/rooms/{username}/{roomname}", routes.show_room)
@@ -48,12 +56,19 @@ if __name__ == "__main__":
 
         ctx = ssl.SSLContext()
         ctx.load_cert_chain(
-            config.get("Webserver", "ssl_fullchain"), config.get(
-                "Webserver", "ssl_privkey")
+            config.get("Webserver", "ssl_fullchain"),
+            config.get("Webserver", "ssl_privkey"),
         )
-        web.run_app(app, host=config.get("Webserver", "host"), port=config.getint(
-            "Webserver", "port"), ssl_context=ctx)
+        web.run_app(
+            app,
+            host=config.get("Webserver", "host"),
+            port=config.getint("Webserver", "port"),
+            ssl_context=ctx,
+        )
     else:
         logger.warning(" RUNNING IN NON SSL CONTEXT ")
-        web.run_app(app, host=config.get("Webserver", "host"),
-                    port=config.getint("Webserver", "port"))
+        web.run_app(
+            app,
+            host=config.get("Webserver", "host"),
+            port=config.getint("Webserver", "port"),
+        )

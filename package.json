@@ -41,10 +41,12 @@
     "vue-loader": "^15.3.0",
     "vue-style-loader": "^4.1.1",
     "vue-template-compiler": "^2.5.17",
+    "vuex-module-decorators": "^0.9.0",
     "webpack": "^4.10.2",
     "webpack-cli": "^3.1.2"
   },
   "dependencies": {
+    "axios": "^0.18.0",
     "lodash.throttle": "^4.1.1",
     "socket.io-client": "^2.1.1",
     "tinycolor2": "^1.4.1",

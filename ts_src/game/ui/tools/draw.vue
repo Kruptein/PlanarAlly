@@ -52,8 +52,6 @@ import { FOWLayer } from "../../layers/fow";
 import { getUnitDistance, l2g } from "../../units";
 import { getMouse } from "../../utils";
 
-const tempUnitSize = store.state.unitSize;
-
 export default Tool.extend({
     components: {
         "color-picker": colorpicker,
@@ -74,7 +72,7 @@ export default Tool.extend({
         modeSelect: "normal",
         modes: ["normal", "reveal", "hide"],
 
-        brushSize: getUnitDistance(tempUnitSize),
+        brushSize: getUnitDistance(store.state.unitSize),
     }),
     computed: {
         helperSize(): number {

@@ -4,7 +4,7 @@ import store from "../store";
 
 import { socket } from "../comm/socket";
 import { ServerShape } from "../comm/types/shapes";
-import { vm } from "../planarally";
+import game from "../game.vue";
 import { createShapeFromDict } from "../shapes/utils";
 import { g2lx, g2ly } from "../units";
 
@@ -108,7 +108,7 @@ export class Layer {
 
     clearSelection(): void {
         this.selection = [];
-        (<any>vm.$refs.selectionInfo).shape = null;
+        (<any>game).$refs.selectionInfo.shape = null;
     }
 
     draw(doClear?: boolean): void {

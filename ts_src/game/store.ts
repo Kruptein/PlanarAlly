@@ -1,4 +1,3 @@
-import Vue from "vue";
 import Vuex from "vuex";
 
 import gameManager from "./manager";
@@ -8,8 +7,6 @@ import { sendClientOptions, socket } from "./comm/socket";
 import { Note } from "./comm/types/general";
 import { GlobalPoint } from "./geom";
 import { g2l, l2g } from "./units";
-
-Vue.use(Vuex);
 
 export default new Vuex.Store({
     state: {

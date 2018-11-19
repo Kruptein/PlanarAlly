@@ -1,23 +1,10 @@
 import Vue from 'vue';
 import VueRouter from 'vue-router';
 
+import router from './router';
+import store from './store';
+
 Vue.use(VueRouter);
 
-const router = new VueRouter({
-    routes: [
-        {
-            path: '/', component: { template: '<div>WAT</div>' },
-            children: [
-
-            ]
-        }
-    ],
-})
-
-router.beforeEach(
-    (to, from, next) => {
-        if 
-    }
-)
-
-const app = new Vue({ router }).$mount('#app');
+const app = new Vue({ router, store }).$mount('#app');
+(<any>window).vm = app;

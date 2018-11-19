@@ -14,7 +14,7 @@ import Tool from "./tool.vue";
 
 import { socket } from "../../comm/socket";
 import { GlobalPoint, LocalPoint, Ray, Vector } from "../../geom";
-import { vm } from "../../planarally";
+import game from "../../game.vue";
 import { g2l, g2lx, g2ly, l2g } from "../../units";
 import { getMouse } from "../../utils";
 import { calculateDelta } from "./utils";
@@ -94,7 +94,7 @@ export default Tool.extend({
                 // Resize case, a corner is selected
                 if (corner !== undefined) {
                     layer.selection = [shape];
-                    (<any>vm.$refs.selectionInfo).shape = shape;
+                    (<any>game).$refs.selectionInfo.shape = shape;
                     this.mode = SelectOperations.Resize;
                     this.resizeDirection = corner;
                     layer.invalidate(true);
@@ -106,7 +106,7 @@ export default Tool.extend({
                     const selection = shape;
                     if (layer.selection.indexOf(selection) === -1) {
                         layer.selection = [selection];
-                        (<any>vm.$refs.selectionInfo).shape = selection;
+                        (<any>game).$refs.selectionInfo.shape = selection;
                     }
                     this.mode = SelectOperations.Drag;
                     const localRefPoint = g2l(selection.refPoint);
@@ -120,7 +120,7 @@ export default Tool.extend({
             // GroupSelect case, draw a selection box to select multiple shapes
             if (!hit) {
                 this.mode = SelectOperations.GroupSelect;
-                for (const selection of layer.selection) (<any>vm.$refs.selectionInfo).shape = selection;
+                for (const selection of layer.selection) (<any>game).$refs.selectionInfo.shape = selection;
 
                 this.selectionStartPoint = globalMouse;
 
@@ -279,7 +279,7 @@ export default Tool.extend({
             for (const shape of layer.selection) {
                 if (shape.contains(globalMouse)) {
                     layer.selection = [shape];
-                    (<any>vm.$refs.selectionInfo).shape = shape;
+                    (<any>game).$refs.selectionInfo.shape = shape;
                     layer.invalidate(true);
                     (<any>this.$parent.$refs.shapecontext).open(event, shape);
                     return;

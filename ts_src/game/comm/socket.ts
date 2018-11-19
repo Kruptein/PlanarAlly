@@ -6,7 +6,7 @@ import store from "../store";
 import { AssetList } from "../../core/comm/types";
 import { GlobalPoint } from "../geom";
 import { createLayer } from "../layers/utils";
-import { vm } from "../planarally";
+import game from "../game.vue";
 import { BoardInfo, InitiativeData, InitiativeEffect, Note, ServerClient, ServerLocation } from "./types/general";
 import { ServerShape } from "./types/shapes";
 
@@ -66,7 +66,7 @@ socket.on("Board.Set", (locationInfo: BoardInfo) => {
     for (const layer of locationInfo.layers) createLayer(layer);
     // Force the correct opacity render on other layers.
     gameManager.layerManager.selectLayer(gameManager.layerManager.getLayer()!.name, false);
-    (<any>vm.$refs.initiative).clear();
+    (<any>game).$refs.initiative.clear();
     store.commit("setBoardInitialized", true);
     gameManager.recalculateBoundingVolume();
 });
@@ -111,22 +111,22 @@ socket.on("Shape.Update", (data: { shape: ServerShape; redraw: boolean; move: bo
     gameManager.updateShape(data);
 });
 socket.on("Initiative.Set", (data: InitiativeData[]) => {
-    (<any>vm.$refs.initiative).data = data.filter(d => !!d);
+    (<any>game).$refs.initiative.data = data.filter(d => !!d);
 });
 socket.on("Initiative.Turn.Update", (data: string) => {
-    (<any>vm.$refs.initiative).setTurn(data, false);
+    (<any>game).$refs.initiative.setTurn(data, false);
 });
 socket.on("Initiative.Round.Update", (data: number) => {
-    (<any>vm.$refs.initiative).setRound(data, false);
+    (<any>game).$refs.initiative.setRound(data, false);
 });
 socket.on("Initiative.Effect.New", (data: { actor: string; effect: InitiativeEffect }) => {
-    const initiative = <any>vm.$refs.initiative;
+    const initiative = (<any>game).$refs.initiative;
     const actor = initiative.getActor(data.actor);
     if (actor === undefined) return;
     initiative.createEffect(actor, data.effect, false);
 });
 socket.on("Initiative.Effect.Update", (data: { actor: string; effect: InitiativeEffect }) => {
-    (<any>vm.$refs.initiative).updateEffect(data.actor, data.effect, false);
+    (<any>game).$refs.initiative.updateEffect(data.actor, data.effect, false);
 });
 socket.on("Temp.Clear", (shapes: ServerShape[]) => {
     shapes.forEach(shape => {

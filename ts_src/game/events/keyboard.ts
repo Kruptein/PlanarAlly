@@ -3,7 +3,7 @@ import store from "../store";
 
 import { sendClientOptions, socket } from "../comm/socket";
 import { Vector } from "../geom";
-import { vm } from "../planarally";
+import game from "../game.vue";
 import { calculateDelta } from "../ui/tools/utils";
 
 export function onKeyUp(event: KeyboardEvent) {
@@ -17,13 +17,13 @@ export function onKeyUp(event: KeyboardEvent) {
             const l = gameManager.layerManager.getLayer()!;
             for (let i = l.selection.length - 1; i >= 0; i--) {
                 const sel = l.selection[i];
-                if ((<any>(<any>vm.$refs.tools).$refs.selectTool).selectionHelper.uuid === sel.uuid) {
+                if ((<any>(<any>game).$refs.tools.$refs.selectTool).selectionHelper.uuid === sel.uuid) {
                     l.selection.splice(i, 1);
                     continue;
                 }
                 l.removeShape(sel, true, false);
-                (<any>vm.$refs.selectionInfo).shape = null;
-                (<any>vm.$refs.initiative).removeInitiative(sel.uuid);
+                (<any>game).$refs.selectionInfo.shape = null;
+                (<any>game).$refs.initiative.removeInitiative(sel.uuid);
             }
         }
     }

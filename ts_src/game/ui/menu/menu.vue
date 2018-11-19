@@ -139,7 +139,7 @@ import assetNode from "./asset_node.vue";
 import { uuidv4 } from "../../../core/utils";
 import { socket } from "../../comm/socket";
 import { Note } from "../../comm/types/general";
-import { vm } from "../../planarally";
+import game from "../../game.vue";
 
 export default Vue.component("menu-bar", {
     components: {
@@ -242,7 +242,7 @@ export default Vue.component("menu-bar", {
             socket.emit("Location.Change", name);
         },
         createLocation() {
-            (<any>vm.$refs.prompt).prompt(`New location name:`, `Create new location`).then(
+            (<any>game).$refs.prompt.prompt(`New location name:`, `Create new location`).then(
                 (value: string) => {
                     socket.emit("Location.New", value);
                 },
@@ -255,7 +255,7 @@ export default Vue.component("menu-bar", {
             this.openNote(note);
         },
         openNote(note: Note) {
-            (<any>vm.$refs.note).open(note);
+            (<any>game).$refs.note.open(note);
         },
     },
 });

@@ -26,7 +26,7 @@ import gameManager from "../../manager";
 import Settings from "../../settings";
 import Shape from "../../shapes/shape";
 
-import { vm } from "../../planarally";
+import game from "../../game.vue";
 import { l2gx, l2gy } from "../../units";
 
 export default Vue.component("shape-menu", {
@@ -67,7 +67,7 @@ export default Vue.component("shape-menu", {
         },
         getInitiativeWord() {
             if (this.shape === null) return "";
-            const initiative = <any>vm.$refs.initiative;
+            const initiative = (<any>game).$refs.initiative;
             return initiative.contains(this.shape.uuid) ? "Show" : "Add";
         },
         setLayer(newLayer: string) {
@@ -89,7 +89,7 @@ export default Vue.component("shape-menu", {
         },
         addInitiative() {
             if (this.shape === null) return;
-            const initiative = <any>vm.$refs.initiative;
+            const initiative = (<any>game).$refs.initiative;
             if (!initiative.contains(this.shape.uuid)) initiative.addInitiative(this.shape.getInitiativeRepr());
             initiative.visible = true;
             this.close();

@@ -34,7 +34,7 @@ import { mapState } from "vuex";
 import modal from "../../core/components/modals/modal.vue";
 
 import { Note } from "../comm/types/general";
-import { vm } from "../planarally";
+import game from "../game.vue";
 
 export default Vue.component("initiative-dialog", {
     data: () => ({
@@ -63,7 +63,7 @@ export default Vue.component("initiative-dialog", {
             this.$store.commit("updateNote", { note: this.note, sync: true });
         },
         removeNote() {
-            (<any>vm.$refs.confirm).open("Are you sure you wish to remove this?").then(
+            (<any>game).$refs.confirm.open("Are you sure you wish to remove this?").then(
                 (result: boolean) => {
                     if (result) {
                         this.$store.commit("removeNote", { note: this.note, sync: true });

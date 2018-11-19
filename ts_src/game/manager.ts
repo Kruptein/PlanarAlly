@@ -6,7 +6,7 @@ import { sendClientOptions } from "./comm/socket";
 import { ServerShape } from "./comm/types/shapes";
 import { GlobalPoint } from "./geom";
 import { LayerManager } from "./layers/manager";
-import { vm } from "./planarally";
+import game from "./game.vue";
 import { createShapeFromDict } from "./shapes/utils";
 import { g2l } from "./units";
 
@@ -80,7 +80,7 @@ export class GameManager {
         shape.setIsToken(shape.isToken);
         if (data.move && shape.visionObstruction) this.recalculateBoundingVolume();
         if (data.redraw) this.layerManager.getLayer(data.shape.layer)!.invalidate(false);
-        if (redrawInitiative) (<any>vm.$refs.initiative).$forceUpdate();
+        if (redrawInitiative) (<any>game).$refs.initiative.$forceUpdate();
     }
 
     setCenterPosition(position: GlobalPoint) {

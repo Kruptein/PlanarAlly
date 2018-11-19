@@ -64,7 +64,7 @@ import Shape from "../../shapes/shape";
 import EditDialog from "./edit_dialog.vue";
 
 import { socket } from "../../comm/socket";
-import { vm } from "../../planarally";
+import game from "../../game.vue";
 
 export default Vue.extend({
     components: {
@@ -79,7 +79,7 @@ export default Vue.extend({
         },
         changeValue(object: Tracker | Aura, redraw: boolean) {
             if (this.shape === null) return;
-            (<any>vm.$refs.prompt).prompt(`New  ${object.name} value:`, `Updating ${object.name}`).then(
+            (<any>game).$refs.prompt.prompt(`New  ${object.name} value:`, `Updating ${object.name}`).then(
                 (value: string) => {
                     if (this.shape === null) return;
                     const ogValue = object.value;

@@ -4,7 +4,7 @@ from aiohttp_security import check_authorized
 from models import Room, User
 
 
-async def show_rooms(request):
+async def get_list(request):
     user = await check_authorized(request)
     return web.json_response(
         {

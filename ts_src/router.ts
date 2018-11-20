@@ -4,9 +4,8 @@ import VueRouter from "vue-router";
 
 import Login from './auth/login.vue';
 import DashBoard from './dashboard/main.vue'
+import Game from './game/game.vue';
 import store from './store';
-
-const Game = () => import('./game/game.vue');
 
 const Initialize = Vue.component("Initialize", {
     data: () => ({

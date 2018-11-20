@@ -49,16 +49,16 @@ export default Tool.extend({
     },
     computed: {
         username(): string {
-            return this.$store.state.username;
+            return this.$store.state.game.username;
         },
         zoomFactor(): number {
-            return this.$store.state.zoomFactor;
+            return this.$store.state.game.zoomFactor;
         },
         IS_DM(): boolean {
-            return this.$store.state.IS_DM;
+            return this.$store.state.game.IS_DM;
         },
         useGrid(): boolean {
-            return this.$store.state.useGrid;
+            return this.$store.state.game.useGrid;
         },
     },
     created() {

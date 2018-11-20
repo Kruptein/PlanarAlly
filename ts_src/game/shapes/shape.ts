@@ -1,5 +1,5 @@
 import gameManager from "../manager";
-import store from "../store";
+import store from "../../store";
 import BoundingRect from "./boundingrect";
 
 import * as tinycolor from "tinycolor2";
@@ -129,8 +129,8 @@ export default abstract class Shape {
     }
 
     ownedBy(username?: string) {
-        if (username === undefined) username = store.state.username;
-        return store.state.IS_DM || this.owners.includes(username);
+        if (username === undefined) username = <string>store.state.game.username;
+        return store.state.game.IS_DM || this.owners.includes(username);
     }
 
     abstract asDict(): ServerShape;
@@ -220,7 +220,7 @@ export default abstract class Shape {
     getInitiativeRepr(): InitiativeData {
         return {
             uuid: this.uuid,
-            visible: !store.state.IS_DM,
+            visible: !store.state.game.IS_DM,
             group: false,
             source: this.name,
             has_img: false,

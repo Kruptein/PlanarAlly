@@ -156,7 +156,7 @@ export default Vue.component("menu-bar", {
         ...mapState(["invitationCode", "IS_DM", "locations", "assets", "notes"]),
         useGrid: {
             get(): boolean {
-                return this.$store.state.useGrid;
+                return this.$store.state.game.useGrid;
             },
             set(value: boolean) {
                 this.$store.commit("setUseGrid", { useGrid: value, sync: true });
@@ -164,7 +164,7 @@ export default Vue.component("menu-bar", {
         },
         fullFOW: {
             get(): boolean {
-                return this.$store.state.fullFOW;
+                return this.$store.state.game.fullFOW;
             },
             set(value: boolean) {
                 this.$store.commit("setFullFOW", { fullFOW: value, sync: true });
@@ -172,7 +172,7 @@ export default Vue.component("menu-bar", {
         },
         fowOpacity: {
             get(): number {
-                return this.$store.state.fowOpacity;
+                return this.$store.state.game.fowOpacity;
             },
             set(value: number) {
                 if (typeof value !== "number") return;
@@ -181,7 +181,7 @@ export default Vue.component("menu-bar", {
         },
         fowLOS: {
             get(): boolean {
-                return this.$store.state.fowLOS;
+                return this.$store.state.game.fowLOS;
             },
             set(value: boolean) {
                 this.$store.commit("setLineOfSight", { fowLOS: value, sync: true });
@@ -189,7 +189,7 @@ export default Vue.component("menu-bar", {
         },
         unitSize: {
             get(): number {
-                return this.$store.state.unitSize;
+                return this.$store.state.game.unitSize;
             },
             set(value: number) {
                 if (typeof value !== "number") return;
@@ -198,7 +198,7 @@ export default Vue.component("menu-bar", {
         },
         gridSize: {
             get(): number {
-                return this.$store.state.gridSize;
+                return this.$store.state.game.gridSize;
             },
             set(value: number) {
                 if (typeof value !== "number") return;
@@ -207,7 +207,7 @@ export default Vue.component("menu-bar", {
         },
         gridColour: {
             get(): string {
-                return this.$store.state.gridColour;
+                return this.$store.state.game.gridColour;
             },
             set(value: string) {
                 this.$store.commit("setGridColour", { colour: value, sync: true });
@@ -215,7 +215,7 @@ export default Vue.component("menu-bar", {
         },
         fowColour: {
             get(): string {
-                return this.$store.state.fowColour;
+                return this.$store.state.game.fowColour;
             },
             set(value: string) {
                 this.$store.commit("setFOWColour", { colour: value, sync: true });
@@ -223,7 +223,7 @@ export default Vue.component("menu-bar", {
         },
         rulerColour: {
             get(): string {
-                return this.$store.state.rulerColour;
+                return this.$store.state.game.rulerColour;
             },
             set(value: string) {
                 this.$store.commit("setRulerColour", { colour: value, sync: true });

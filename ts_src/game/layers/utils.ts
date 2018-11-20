@@ -1,5 +1,5 @@
 import gameManager from "../manager";
-import store from "../store";
+import store from "../../store";
 
 import { ServerLayer } from "../comm/types/general";
 import { FOWLayer } from "./fow";

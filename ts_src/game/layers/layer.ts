@@ -1,6 +1,6 @@
 import gameManager from "../manager";
 import Shape from "../shapes/shape";
-import store from "../store";
+import store from "../../store";
 
 import { socket } from "../comm/socket";
 import { ServerShape } from "../comm/types/shapes";
@@ -54,7 +54,7 @@ export class Layer {
         gameManager.layerManager.UUIDMap.set(shape.uuid, shape);
         shape.checkVisionSources();
         shape.setMovementBlock(shape.movementObstruction);
-        if (shape.ownedBy(store.state.username) && shape.isToken) gameManager.ownedtokens.push(shape.uuid);
+        if (shape.ownedBy(store.state.game.username) && shape.isToken) gameManager.ownedtokens.push(shape.uuid);
         if (shape.annotation.length) gameManager.annotations.push(shape.uuid);
         if (sync) socket.emit("Shape.Add", { shape: shape.asDict(), temporary });
         this.invalidate(!sync);
@@ -154,7 +154,7 @@ export class Layer {
                 ctx.fillStyle = this.selectionColor;
                 ctx.strokeStyle = this.selectionColor;
                 ctx.lineWidth = this.selectionWidth;
-                const z = store.state.zoomFactor;
+                const z = store.state.game.zoomFactor;
                 this.selection.forEach(sel => {
                     ctx.globalCompositeOperation = sel.globalCompositeOperation;
                     const bb = sel.getBoundingBox();

@@ -1,7 +1,7 @@
 import * as io from "socket.io-client";
 
 import gameManager from "../manager";
-import store from "../store";
+import store from "../../store";
 
 import { AssetList } from "../../core/comm/types";
 import { GlobalPoint } from "../geom";
@@ -146,9 +146,9 @@ socket.on("Temp.Clear", (shapes: ServerShape[]) => {
 export function sendClientOptions() {
     socket.emit("Client.Options.Set", {
         locationOptions: {
-            panX: store.state.panX,
-            panY: store.state.panY,
-            zoomFactor: store.state.zoomFactor,
+            panX: store.state.game.panX,
+            panY: store.state.game.panY,
+            zoomFactor: store.state.game.zoomFactor,
         },
     });
 }

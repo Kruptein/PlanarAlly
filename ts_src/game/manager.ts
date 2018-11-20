@@ -1,5 +1,5 @@
 import BoundingVolume from "./bvh/bvh";
-import store from "./store";
+import store from "../store";
 import AnnotationManager from "./ui/annotation";
 
 import { sendClientOptions } from "./comm/socket";
@@ -39,7 +39,7 @@ export class GameManager {
     }
 
     recalculateBoundingVolume() {
-        if (store.state.boardInitialized)
+        if (store.state.game.boardInitialized)
             this.BV = new BoundingVolume(this.visionBlockers);
     }
 
@@ -85,8 +85,8 @@ export class GameManager {
 
     setCenterPosition(position: GlobalPoint) {
         const localPos = g2l(position);
-        store.commit("increasePanX", (window.innerWidth / 2 - localPos.x) / store.state.zoomFactor);
-        store.commit("increasePanY", (window.innerHeight / 2 - localPos.y) / store.state.zoomFactor);
+        store.commit("increasePanX", (window.innerWidth / 2 - localPos.x) / store.state.game.zoomFactor);
+        store.commit("increasePanY", (window.innerHeight / 2 - localPos.y) / store.state.game.zoomFactor);
         this.layerManager.invalidate();
         sendClientOptions();
     }

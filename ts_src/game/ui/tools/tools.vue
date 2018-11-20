@@ -64,7 +64,7 @@ export default Vue.component("tools", {
     },
     computed: {
         IS_DM(): boolean {
-            return this.$store.state.IS_DM;
+            return this.$store.state.game.IS_DM;
         },
         currentToolComponent(): string {
             return `${this.currentTool.toLowerCase()}-tool`;

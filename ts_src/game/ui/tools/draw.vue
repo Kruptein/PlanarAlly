@@ -72,7 +72,7 @@ export default Tool.extend({
         modeSelect: "normal",
         modes: ["normal", "reveal", "hide"],
 
-        brushSize: getUnitDistance(store.state.unitSize),
+        brushSize: getUnitDistance(store.state.game.unitSize),
     }),
     computed: {
         helperSize(): number {
@@ -80,13 +80,13 @@ export default Tool.extend({
             return getUnitDistance(this.unitSize) / 8;
         },
         IS_DM(): boolean {
-            return this.$store.state.IS_DM;
+            return this.$store.state.game.IS_DM;
         },
         unitSize(): number {
-            return this.$store.state.unitSize;
+            return this.$store.state.game.unitSize;
         },
         useGrid(): boolean {
-            return this.$store.state.useGrid;
+            return this.$store.state.game.useGrid;
         },
     },
     watch: {
@@ -160,7 +160,7 @@ export default Tool.extend({
             if (this.modeSelect === "reveal") this.shape.globalCompositeOperation = "source-over";
             else if (this.modeSelect === "hide") this.shape.globalCompositeOperation = "destination-out";
 
-            this.shape.owners.push(this.$store.state.username);
+            this.shape.owners.push(this.$store.state.game.username);
             if (layer.name === "fow" && this.modeSelect === "normal") {
                 this.shape.visionObstruction = true;
                 this.shape.movementObstruction = true;

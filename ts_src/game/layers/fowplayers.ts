@@ -1,6 +1,6 @@
 import gameManager from "../manager";
 import Settings from "../settings";
-import store from "../store";
+import store from "../../store";
 
 import { Ray, Vector } from "../geom";
 import { g2l, g2lx, g2ly } from "../units";
@@ -13,7 +13,7 @@ export class FOWPlayersLayer extends Layer {
         if (!this.valid) {
             const ctx = this.ctx;
 
-            if (!store.state.fowLOS || Settings.skipPlayerFOW) {
+            if (!store.state.game.fowLOS || Settings.skipPlayerFOW) {
                 ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
                 this.valid = true;
                 return;
@@ -27,7 +27,7 @@ export class FOWPlayersLayer extends Layer {
 
             // For the DM this is done at the end of this function.  TODO: why the split up ???
             // This was done in commit be1e65cff1e7369375fe11cfa1643fab1d11beab.
-            if (!store.state.IS_DM) super.draw(!store.state.fullFOW);
+            if (!store.state.game.IS_DM) super.draw(!store.state.game.fullFOW);
 
             // Then cut out all the player vision auras
             const maxLength = ctx.canvas.width + ctx.canvas.height;
@@ -73,7 +73,7 @@ export class FOWPlayersLayer extends Layer {
 
             // For the players this is done at the beginning of this function.  TODO: why the split up ???
             // This was done in commit be1e65cff1e7369375fe11cfa1643fab1d11beab.
-            if (store.state.IS_DM) super.draw(!store.state.fullFOW);
+            if (store.state.game.IS_DM) super.draw(!store.state.game.fullFOW);
 
             ctx.globalCompositeOperation = originalOperation;
         }

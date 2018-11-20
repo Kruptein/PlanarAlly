@@ -1,7 +1,7 @@
 import gameManager from "../manager";
 import Asset from "../shapes/asset";
 import Shape from "../shapes/shape";
-import store from "../store";
+import store from "../../store";
 
 import { GlobalPoint } from "../geom";
 import { l2gx, l2gy, l2gz } from "../units";
@@ -45,7 +45,7 @@ export class LayerManager {
 
     addLayer(layer: Layer): void {
         this.layers.push(layer);
-        if (!store.state.IS_DM && !layer.playerEditable) return;
+        if (!store.state.game.IS_DM && !layer.playerEditable) return;
         if (layer.selectable) store.commit("addLayer", layer.name);
     }
 
@@ -117,8 +117,8 @@ export class LayerManager {
         );
         asset.src = new URL(image.src).pathname;
 
-        if (store.state.useGrid) {
-            const gs = store.state.gridSize;
+        if (store.state.game.useGrid) {
+            const gs = store.state.game.gridSize;
             asset.refPoint.x = Math.round(asset.refPoint.x / gs) * gs;
             asset.refPoint.y = Math.round(asset.refPoint.y / gs) * gs;
             asset.w = Math.max(Math.round(asset.w / gs) * gs, gs);

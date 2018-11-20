@@ -1,4 +1,4 @@
-import store from "../store";
+import store from "../../store";
 
 import { Layer } from "./layer";
 
@@ -16,16 +16,16 @@ export class GridLayer extends Layer {
         this.clear();
         ctx.beginPath();
 
-        const gs = store.state.gridSize;
+        const gs = store.state.game.gridSize;
 
-        for (let i = 0; i < this.width; i += gs * store.state.zoomFactor) {
-            ctx.moveTo(i + (store.state.panX % gs) * store.state.zoomFactor, 0);
-            ctx.lineTo(i + (store.state.panX % gs) * store.state.zoomFactor, this.height);
-            ctx.moveTo(0, i + (store.state.panY % gs) * store.state.zoomFactor);
-            ctx.lineTo(this.width, i + (store.state.panY % gs) * store.state.zoomFactor);
+        for (let i = 0; i < this.width; i += gs * store.state.game.zoomFactor) {
+            ctx.moveTo(i + (store.state.game.panX % gs) * store.state.game.zoomFactor, 0);
+            ctx.lineTo(i + (store.state.game.panX % gs) * store.state.game.zoomFactor, this.height);
+            ctx.moveTo(0, i + (store.state.game.panY % gs) * store.state.game.zoomFactor);
+            ctx.lineTo(this.width, i + (store.state.game.panY % gs) * store.state.game.zoomFactor);
         }
 
-        ctx.strokeStyle = store.state.gridColour;
+        ctx.strokeStyle = store.state.game.gridColour;
         ctx.lineWidth = 1;
         ctx.stroke();
         this.valid = true;

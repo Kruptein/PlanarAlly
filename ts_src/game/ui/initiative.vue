@@ -16,14 +16,14 @@
                 id='initiative-list'
                 v-model="data"
                 @change="updateOrder"
-                :options="{setData: fakeSetData, disabled: !$store.state.IS_DM}"
+                :options="{setData: fakeSetData, disabled: !$store.state.game.IS_DM}"
             >
                 <template v-for="actor in data">
                     <div :key="actor.uuid" style='display:flex;flex-direction:column;align-items:flex-end;'>
                         <div
                             class='initiative-actor'
                             :class="{'initiative-selected': currentActor === actor.uuid}"
-                            :style="{'cursor': $store.state.IS_DM && 'move'}"
+                            :style="{'cursor': $store.state.game.IS_DM && 'move'}"
                             @mouseenter="toggleHighlight(actor, true)"
                             @mouseleave="toggleHighlight(actor, false)"
                         >
@@ -109,14 +109,14 @@
                 <div style='display:flex;'></div>
                 <div
                     class='initiative-bar-button'
-                    :class="{'notAllowed': !$store.state.IS_DM}"
+                    :class="{'notAllowed': !$store.state.game.IS_DM}"
                     @click="setRound(0, true); setTurn(data[0].uuid, true)"
                 >
                     <i class="fas fa-sync-alt"></i>
                 </div>
                 <div
                     class='initiative-bar-button'
-                    :class="{'notAllowed': !$store.state.IS_DM}"
+                    :class="{'notAllowed': !$store.state.game.IS_DM}"
                     @click="nextTurn"
                 >
                     <i class="fas fa-chevron-right"></i>
@@ -163,11 +163,11 @@ export default Vue.component("initiative-dialog", {
             return this.data.some(d => d.uuid === uuid);
         },
         owns(actor: InitiativeData): boolean {
-            if (this.$store.state.IS_DM) return true;
+            if (this.$store.state.game.IS_DM) return true;
             const shape = gameManager.layerManager.UUIDMap.get(actor.uuid);
             // Shapes that are unknown to this client are hidden from this client but owned by other clients
             if (shape === undefined) return false;
-            return shape.owners.includes(this.$store.state.username);
+            return shape.owners.includes(this.$store.state.game.username);
         },
         getDefaultEffect() {
             return { uuid: uuidv4(), name: "New Effect", turns: 10 };
@@ -198,11 +198,11 @@ export default Vue.component("initiative-dialog", {
             }
         },
         updateOrder() {
-            if (!this.$store.state.IS_DM) return;
+            if (!this.$store.state.game.IS_DM) return;
             socket.emit("Initiative.Set", this.data.map(d => d.uuid));
         },
         setTurn(actorId: string | null, sync: boolean) {
-            if (!this.$store.state.IS_DM && sync) return;
+            if (!this.$store.state.game.IS_DM && sync) return;
             this.currentActor = actorId;
             const actor = this.data.find(a => a.uuid === actorId);
             if (actor === undefined) return;
@@ -215,12 +215,12 @@ export default Vue.component("initiative-dialog", {
             if (sync) socket.emit("Initiative.Turn.Update", actorId);
         },
         setRound(round: number, sync: boolean) {
-            if (!this.$store.state.IS_DM && sync) return;
+            if (!this.$store.state.game.IS_DM && sync) return;
             this.roundCounter = round;
             if (sync) socket.emit("Initiative.Round.Update", round);
         },
         nextTurn() {
-            if (!this.$store.state.IS_DM) return;
+            if (!this.$store.state.game.IS_DM) return;
             const order = this.data;
             const next = order[(order.findIndex(a => a.uuid === this.currentActor) + 1) % order.length];
             if (this.data[0].uuid === next.uuid) this.setRound(this.roundCounter + 1, true);

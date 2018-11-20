@@ -1,4 +1,4 @@
-import store from "../store";
+import store from "../../store";
 import BaseRect from "./baserect";
 
 import { InitiativeData } from "../comm/types/general";
@@ -35,7 +35,7 @@ export default class Asset extends BaseRect {
     getInitiativeRepr(): InitiativeData {
         return {
             uuid: this.uuid,
-            visible: !store.state.IS_DM,
+            visible: !store.state.game.IS_DM,
             group: false,
             source: this.src,
             has_img: true,

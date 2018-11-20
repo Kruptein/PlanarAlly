@@ -96,11 +96,11 @@ const game = Vue.component("Game", {
         ...mapState(["IS_DM", "layers"]),
         ...mapGetters(["selectedLayer"]),
         gridSize() {
-            return this.$store.state.gridSize;
+            return this.$store.state.game.gridSize;
         },
         zoomFactor: {
             get(): number {
-                return this.$store.state.zoomFactor;
+                return this.$store.state.game.zoomFactor;
             },
             set(value: number) {
                 this.$store.commit("updateZoom", {

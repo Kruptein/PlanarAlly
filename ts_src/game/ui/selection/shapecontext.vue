@@ -59,7 +59,7 @@ export default Vue.component("shape-menu", {
         },
         getLayers() {
             return gameManager.layerManager.layers.filter(
-                l => l.selectable && (this.$store.state.IS_DM || l.playerEditable),
+                l => l.selectable && (this.$store.state.game.IS_DM || l.playerEditable),
             );
         },
         getActiveLayer() {

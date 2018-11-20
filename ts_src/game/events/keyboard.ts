@@ -1,5 +1,5 @@
 import gameManager from "../manager";
-import store from "../store";
+import store from "../../store";
 
 import { sendClientOptions, socket } from "../comm/socket";
 import { Vector } from "../geom";
@@ -35,7 +35,7 @@ export function onKeyDown(event: KeyboardEvent) {
     } else {
         if (event.keyCode >= 37 && event.keyCode <= 40) {
             // todo: this should already be rounded
-            const gridSize = Math.round(store.state.gridSize);
+            const gridSize = Math.round(store.state.game.gridSize);
             let offsetX = gridSize * (event.keyCode % 2);
             let offsetY = gridSize * (event.keyCode % 2 ? 0 : 1);
             if (gameManager.layerManager.hasSelection()) {
@@ -43,7 +43,7 @@ export function onKeyDown(event: KeyboardEvent) {
                 offsetX *= event.keyCode <= 38 ? -1 : 1;
                 offsetY *= event.keyCode <= 38 ? -1 : 1;
                 let delta = new Vector(offsetX, offsetY);
-                if (!event.shiftKey || !store.state.IS_DM) {
+                if (!event.shiftKey || !store.state.game.IS_DM) {
                     // First check for collisions.  Using the smooth wall slide collision check used on mouse move is overkill here.
                     for (const sel of selection) delta = calculateDelta(delta, sel);
                 }

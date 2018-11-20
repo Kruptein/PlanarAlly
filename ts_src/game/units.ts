@@ -1,10 +1,10 @@
 import { GlobalPoint, LocalPoint, Ray } from "./geom";
-import store from "./store";
+import store from "../store";
 
 export function g2l(obj: GlobalPoint): LocalPoint {
-    const z = store.state.zoomFactor;
-    const panX = store.state.panX;
-    const panY = store.state.panY;
+    const z = store.state.game.zoomFactor;
+    const panX = store.state.game.panX;
+    const panY = store.state.game.panY;
     return new LocalPoint((obj.x + panX) * z, (obj.y + panY) * z);
 }
 
@@ -17,11 +17,11 @@ export function g2ly(y: number) {
 }
 
 export function g2lz(z: number) {
-    return z * store.state.zoomFactor;
+    return z * store.state.game.zoomFactor;
 }
 
 export function getUnitDistance(r: number) {
-    return (r / store.state.unitSize) * store.state.gridSize;
+    return (r / store.state.game.unitSize) * store.state.game.gridSize;
 }
 
 export function g2lr(r: number) {
@@ -31,9 +31,9 @@ export function g2lr(r: number) {
 export function l2g(obj: LocalPoint): GlobalPoint;
 export function l2g(obj: Ray<LocalPoint>): Ray<GlobalPoint>;
 export function l2g(obj: LocalPoint | Ray<LocalPoint>): GlobalPoint | Ray<GlobalPoint> {
-    const z = store.state.zoomFactor;
-    const panX = store.state.panX;
-    const panY = store.state.panY;
+    const z = store.state.game.zoomFactor;
+    const panX = store.state.game.panX;
+    const panY = store.state.game.panY;
     if (obj instanceof LocalPoint) {
         return new GlobalPoint(obj.x / z - panX, obj.y / z - panY);
     } else {
@@ -50,7 +50,7 @@ export function l2gy(y: number) {
 }
 
 export function l2gz(z: number) {
-    return z / store.state.zoomFactor;
+    return z / store.state.game.zoomFactor;
 }
 
 export function l2gr(r: number) {

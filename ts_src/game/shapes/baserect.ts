@@ -1,4 +1,4 @@
-import store from "../store";
+import store from "../../store";
 import BoundingRect from "./boundingrect";
 import Circle from "./circle";
 import Shape from "./shape";
@@ -97,7 +97,7 @@ export default abstract class BaseRect extends Shape {
         return false;
     }
     snapToGrid() {
-        const gs = store.state.gridSize;
+        const gs = store.state.game.gridSize;
         const center = this.center();
         const mx = center.x;
         const my = center.y;
@@ -122,7 +122,7 @@ export default abstract class BaseRect extends Shape {
         this.invalidate(false);
     }
     resizeToGrid() {
-        const gs = store.state.gridSize;
+        const gs = store.state.game.gridSize;
         this.refPoint.x = Math.round(this.refPoint.x / gs) * gs;
         this.refPoint.y = Math.round(this.refPoint.y / gs) * gs;
         this.w = Math.max(Math.round(this.w / gs) * gs, gs);
@@ -130,7 +130,7 @@ export default abstract class BaseRect extends Shape {
         this.invalidate(false);
     }
     resize(resizedir: string, point: LocalPoint) {
-        const z = store.state.zoomFactor;
+        const z = store.state.game.zoomFactor;
         if (resizedir === "nw") {
             this.w = g2lx(this.refPoint.x) + this.w * z - point.x;
             this.h = g2ly(this.refPoint.y) + this.h * z - point.y;

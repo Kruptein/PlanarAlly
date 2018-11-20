@@ -252,12 +252,12 @@ export default Vue.component("edit-dialog", {
             const ownerIndex = this.shape.owners.findIndex(o => o === oldValue);
             if (ownerIndex >= 0) this.shape.owners.splice(ownerIndex, 1, event.target.value);
             else this.shape.owners.push(event.target.value);
-            this.updateShape(this.$store.state.fowLOS);
+            this.updateShape(this.$store.state.game.fowLOS);
         },
         removeOwner(value: string) {
             const ownerIndex = this.shape.owners.findIndex(o => o === value);
             this.shape.owners.splice(ownerIndex, 1);
-            this.updateShape(this.$store.state.fowLOS);
+            this.updateShape(this.$store.state.game.fowLOS);
         },
         removeTracker(uuid: string) {
             this.shape.trackers = this.shape.trackers.filter(tr => tr.uuid !== uuid);

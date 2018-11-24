@@ -39,8 +39,17 @@ export class GameManager {
     }
 
     recalculateBoundingVolume() {
-        if (store.state.boardInitialized)
-            this.BV = new BoundingVolume(this.visionBlockers);
+        if (store.state.boardInitialized) {
+            let success = false;
+            while (!success) {
+                success = true;
+                try {
+                    this.BV = new BoundingVolume(this.visionBlockers);
+                } catch {
+                    success = false;
+                }
+            }
+        }
     }
 
     addShape(shape: ServerShape): void {

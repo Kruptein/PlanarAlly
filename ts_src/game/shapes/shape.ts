@@ -13,7 +13,7 @@ import { g2l, g2lr, g2lx, g2ly, g2lz } from "../units";
 
 export default abstract class Shape {
     // Used to create class instance from server shape data
-    protected abstract type: string;
+    abstract type: string;
     // The unique ID of this shape
     uuid: string;
     // The layer the shape is currently on

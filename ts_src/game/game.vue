@@ -1,22 +1,22 @@
 <template>
     <div id="main" @mouseleave="mouseleave">
         <menu-bar></menu-bar>
-        <div id="locations-menu" v-if="IS_DM">
+        <!--<div id="locations-menu" v-if="IS_DM">
             <div></div>
-        </div>
+        </div>-->
         <div id="board">
             <template v-if="ready.manager">
                 <tool-bar ref='tools'></tool-bar>
             </template>
-            <div id="layers"
-                @mousedown="mousedown"
+            <div id="layers">
+                <!--@mousedown="mousedown"
                 @mouseup="mouseup"
                 @mousemove="mousemove"
                 @contextmenu.prevent.stop="contextmenu"
                 @dragover.prevent
-                @drop='drop'
-            ></div>
-            <div id="layerselect" v-if="layers.length > 1">
+                @drop='drop'>-->
+            </div>
+            <!-- <div id="layerselect" v-if="layers.length > 1">
                 <ul>
                     <li
                         v-for="layer in layers"
@@ -25,14 +25,14 @@
                         @click="selectLayer(layer)"
                     ><a href='#'>{{ layer }}</a></li>
                 </ul>
-            </div>
+            </div>-->
         </div>
         <selection-info ref='selectionInfo'></selection-info>
         <initiative-dialog ref='initiative' id='initiativedialog'></initiative-dialog>
-        <note-dialog ref='note'></note-dialog>
+        <!-- <note-dialog ref='note'></note-dialog> -->
         <!-- When updating zoom boundaries, also update store updateZoom function;
         should probably do this using a store variable -->
-        <zoom-slider
+        <!-- <zoom-slider
             id='zoomer'
             v-model="zoomFactor"
             :height='6'
@@ -48,43 +48,47 @@
             :slider-style="{'border-radius': '15%'}"
             :bg-style="{'background-color': '#fff', 'box-shadow': '0.5px 0.5px 3px 1px rgba(0, 0, 0, .36)'}"
             :process-style="{'background-color': '#fff'}"
-        ></zoom-slider>
-        <prompt-dialog ref="prompt"></prompt-dialog>
-        <confirm-dialog ref="confirm"></confirm-dialog>
+        ></zoom-slider> -->
+        <!-- <prompt-dialog ref="prompt"></prompt-dialog>
+        <confirm-dialog ref="confirm"></confirm-dialog> -->
     </div>
 </template>
 
 <script lang="ts">
 import Vue from "vue";
-import vueSlider from "vue-slider-component";
+// import vueSlider from "vue-slider-component";
 
 import { throttle } from "lodash";
 import { mapGetters, mapState } from "vuex";
 
-import ConfirmDialog from "../core/components/modals/confirm.vue";
-import PromptDialog from "../core/components/modals/prompt.vue";
-import gameManager from "./manager";
+import store from "./store";
+
+// import ConfirmDialog from "../core/components/modals/confirm.vue";
+// import PromptDialog from "../core/components/modals/prompt.vue";
 import InitiativeDialog from "./ui/initiative.vue";
 import MenuBar from "./ui/menu/menu.vue";
-import NoteDialog from "./ui/note.vue";
+// import NoteDialog from "./ui/note.vue";
 import SelectionInfo from "./ui/selection/selection_info.vue";
 import Tools from "./ui/tools/tools.vue";
 
-import { onKeyDown, onKeyUp } from "./events/keyboard";
-import { scrollZoom } from "./events/mouse";
+import layerManager from "./layers/manager";
+
+// import { onKeyDown, onKeyUp } from "./events/keyboard";
+// import { scrollZoom } from "./events/mouse";
 import { LocalPoint } from "./geom";
 import { l2g } from "./units";
+import { createConnection } from "./socket";
 
-const game = Vue.component("Game", {
+export default Vue.component("game", {
     components: {
         "tool-bar": Tools,
         "selection-info": SelectionInfo,
-        "prompt-dialog": PromptDialog,
-        "confirm-dialog": ConfirmDialog,
+        //     "prompt-dialog": PromptDialog,
+        //     "confirm-dialog": ConfirmDialog,
         "menu-bar": MenuBar,
         "initiative-dialog": InitiativeDialog,
-        "zoom-slider": vueSlider,
-        "note-dialog": NoteDialog,
+        //     "zoom-slider": vueSlider,
+        //     "note-dialog": NoteDialog,
     },
     data: () => ({
         ready: {
@@ -93,8 +97,8 @@ const game = Vue.component("Game", {
         },
     }),
     computed: {
-        ...mapState(["IS_DM", "layers"]),
-        ...mapGetters(["selectedLayer"]),
+        ...mapState("game", ["IS_DM", "layers"]),
+        ...mapGetters("game", ["selectedLayer"]),
         gridSize() {
             return this.$store.state.game.gridSize;
         },
@@ -110,22 +114,32 @@ const game = Vue.component("Game", {
             },
         },
     },
+    beforeRouteEnter(to, from, next) {
+        createConnection(to);
+        next();
+    },
+    created() {
+        // this.$store.registerModule("game", store);
+        console.log("created");
+    },
     mounted() {
-        window.addEventListener("resize", () => {
-            gameManager.layerManager.setWidth(window.innerWidth);
-            gameManager.layerManager.setHeight(window.innerHeight);
-            gameManager.layerManager.invalidate();
-        }),
-            window.addEventListener("wheel", throttle(scrollZoom));
-        window.addEventListener("keyup", onKeyUp);
-        window.addEventListener("keydown", onKeyDown);
-
-        // prevent double clicking text selection
-        window.addEventListener("selectstart", e => {
-            e.preventDefault();
-            return false;
-        });
-
+        console.log("mounted");
+        console.log(this.$store.state.game.IS_DM);
+        console.log(this.$refs);
+        // console.log(this.IS_DM);
+        // window.addEventListener("resize", () => {
+        //     gameManager.layerManager.setWidth(window.innerWidth);
+        //     gameManager.layerManager.setHeight(window.innerHeight);
+        //     gameManager.layerManager.invalidate();
+        // }),
+        //     window.addEventListener("wheel", throttle(scrollZoom));
+        // window.addEventListener("keyup", onKeyUp);
+        // window.addEventListener("keydown", onKeyDown);
+        // // prevent double clicking text selection
+        // window.addEventListener("selectstart", e => {
+        //     e.preventDefault();
+        //     return false;
+        // });
         this.ready.manager = true;
     },
     methods: {
@@ -145,7 +159,7 @@ const game = Vue.component("Game", {
             (<any>this.$refs.tools).contextmenu(event);
         },
         selectLayer(layer: string) {
-            gameManager.layerManager.selectLayer(layer);
+            layerManager.selectLayer(layer);
         },
         drop(event: DragEvent) {
             if (event.dataTransfer.files.length > 0) {
@@ -155,14 +169,11 @@ const game = Vue.component("Game", {
             } else if (event.dataTransfer.getData("text/plain") === "") {
                 return;
             } else {
-                gameManager.layerManager.dropAsset(event);
+                layerManager.dropAsset(event);
             }
         },
     },
 });
-
-(<any>window).PA = game;
-export default game;
 </script>
 
 <style>

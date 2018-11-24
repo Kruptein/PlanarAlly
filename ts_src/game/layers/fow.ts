@@ -1,13 +1,13 @@
-import gameManager from "../manager";
+import layerManager from "../layers/manager";
 import Settings from "../settings";
 import Circle from "../shapes/circle";
 import Shape from "../shapes/shape";
-import store from "../../store";
 
 import { GlobalPoint, Ray } from "../geom";
 import { g2l, g2lr, g2lx, g2ly, g2lz, getUnitDistance } from "../units";
 import { getFogColour } from "../utils";
 import { Layer } from "./layer";
+import { store } from "../store";
 
 export class FOWLayer extends Layer {
     isVisionLayer: boolean = true;
@@ -43,14 +43,14 @@ export class FOWLayer extends Layer {
 
             ctx.fillStyle = "rgba(0, 0, 0, 1)";
 
-            const dctx = gameManager.layerManager.getLayer("draw")!.ctx;
+            const dctx = layerManager.getLayer("draw")!.ctx;
             if (Settings.drawAngleLines || Settings.drawFirstLightHit) {
                 dctx.clearRect(0, 0, dctx.canvas.width, dctx.canvas.height);
             }
 
             // At all times provide a minimal vision range to prevent losing your tokens in fog.
-            if (store.state.game.fullFOW && gameManager.layerManager.hasLayer("tokens")) {
-                gameManager.layerManager.getLayer("tokens")!.shapes.forEach(sh => {
+            if (store.fullFOW && layerManager.hasLayer("tokens")) {
+                layerManager.getLayer("tokens")!.shapes.forEach(sh => {
                     if (!sh.ownedBy() || !sh.isToken) return;
                     const bb = sh.getBoundingBox();
                     const lcenter = g2l(sh.center());
@@ -66,8 +66,8 @@ export class FOWLayer extends Layer {
             }
 
             // First cut out all the light sources
-            for (const light of gameManager.visionSources) {
-                const shape = gameManager.layerManager.UUIDMap.get(light.shape);
+            for (const light of store.visionSources) {
+                const shape = layerManager.UUIDMap.get(light.shape);
                 if (shape === undefined) continue;
                 const aura = shape.auras.find(a => a.uuid === light.aura);
                 if (aura === undefined) continue;
@@ -99,7 +99,7 @@ export class FOWLayer extends Layer {
 
                     // Check if there is a hit with one of the nearby light blockers.
                     const lightRay = Ray.fromPoints(center, anglePoint);
-                    const hitResult = gameManager.BV.intersect(lightRay);
+                    const hitResult = store.BV.intersect(lightRay);
 
                     if (angle === 0) firstPoint = hitResult.hit ? hitResult.intersect : anglePoint;
 
@@ -127,7 +127,7 @@ export class FOWLayer extends Layer {
                 if (lastArcAngle === -1) path.lineTo(g2lx(firstPoint!.x), g2ly(firstPoint!.y));
                 else path.arc(lcenter.x, lcenter.y, g2lr(aura.value + aura.dim), lastArcAngle, 2 * Math.PI);
 
-                if (store.state.game.fullFOW) {
+                if (store.fullFOW) {
                     if (aura.dim > 0) {
                         // Fill the light aura with a radial dropoff towards the outside.
                         const gradient = ctx.createRadialGradient(
@@ -151,15 +151,15 @@ export class FOWLayer extends Layer {
             }
 
             // At the DM Side due to opacity of the two fow layers, it looks strange if we just render them on top of eachother like players.
-            if (store.state.game.fowLOS) {
+            if (store.fowLOS) {
                 ctx.globalCompositeOperation = "source-in";
-                ctx.drawImage(gameManager.layerManager.getLayer("fow-players")!.canvas, 0, 0);
+                ctx.drawImage(layerManager.getLayer("fow-players")!.canvas, 0, 0);
             }
 
             for (const preShape of this.preFogShapes) {
                 if (!preShape.visibleInCanvas(this.canvas)) continue;
                 const ogComposite = preShape.globalCompositeOperation;
-                if (!store.state.game.fullFOW) {
+                if (!store.fullFOW) {
                     if (preShape.globalCompositeOperation === "source-over")
                         preShape.globalCompositeOperation = "destination-out";
                     else if (preShape.globalCompositeOperation === "destination-out")
@@ -169,7 +169,7 @@ export class FOWLayer extends Layer {
                 preShape.globalCompositeOperation = ogComposite;
             }
 
-            if (store.state.game.fullFOW) {
+            if (store.fullFOW) {
                 ctx.globalCompositeOperation = "source-out";
                 ctx.fillStyle = getFogColour();
                 ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);

@@ -133,10 +133,10 @@ import draggable from "vuedraggable";
 import { mapState } from "vuex";
 
 import modal from "../../core/components/modals/modal.vue";
-import gameManager from "../manager";
+import layerManager from "../layers/manager";
 
 import { uuidv4 } from "../../core/utils";
-import { socket } from "../comm/socket";
+import socket from "../socket";
 import { InitiativeData, InitiativeEffect } from "../comm/types/general";
 
 export default Vue.component("initiative-dialog", {
@@ -148,7 +148,7 @@ export default Vue.component("initiative-dialog", {
     }),
     components: {
         modal,
-        draggable,
+        draggable: draggable,
     },
     methods: {
         // Utilities
@@ -164,7 +164,7 @@ export default Vue.component("initiative-dialog", {
         },
         owns(actor: InitiativeData): boolean {
             if (this.$store.state.game.IS_DM) return true;
-            const shape = gameManager.layerManager.UUIDMap.get(actor.uuid);
+            const shape = layerManager.UUIDMap.get(actor.uuid);
             // Shapes that are unknown to this client are hidden from this client but owned by other clients
             if (shape === undefined) return false;
             return shape.owners.includes(this.$store.state.game.username);
@@ -190,11 +190,11 @@ export default Vue.component("initiative-dialog", {
             if (d < 0 || this.data[d].group) return;
             this.syncInitiative({ uuid });
             // Remove highlight
-            const shape = gameManager.layerManager.UUIDMap.get(uuid);
+            const shape = layerManager.UUIDMap.get(uuid);
             if (shape === undefined) return;
             if (shape.showHighlight) {
                 shape.showHighlight = false;
-                gameManager.layerManager.getLayer(shape.layer)!.invalidate(true);
+                layerManager.getLayer(shape.layer)!.invalidate(true);
             }
         },
         updateOrder() {
@@ -227,10 +227,10 @@ export default Vue.component("initiative-dialog", {
             this.setTurn(next.uuid, true);
         },
         toggleHighlight(actor: InitiativeData, show: boolean) {
-            const shape = gameManager.layerManager.UUIDMap.get(actor.uuid);
+            const shape = layerManager.UUIDMap.get(actor.uuid);
             if (shape === undefined) return;
             shape.showHighlight = show;
-            gameManager.layerManager.getLayer(shape.layer)!.invalidate(true);
+            layerManager.getLayer(shape.layer)!.invalidate(true);
         },
         toggleOption(actor: InitiativeData, option: "visible" | "group") {
             if (!this.owns(actor)) return;

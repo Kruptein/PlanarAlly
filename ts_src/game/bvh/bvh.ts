@@ -1,4 +1,4 @@
-import gameManager from "../manager";
+import layerManager from "../layers/manager";
 import BoundingRect from "../shapes/boundingrect";
 
 import { partition } from "../../core/utils";
@@ -41,7 +41,7 @@ class BoundingVolume {
             return;
         }
         for (let i = 0; i < shapes.length; i++) {
-            const shape = gameManager.layerManager.UUIDMap.get(shapes[i])!;
+            const shape = layerManager.UUIDMap.get(shapes[i])!;
             this.buildData.push({
                 index: i,
                 bbox: shape.getBoundingBox(),
@@ -53,7 +53,7 @@ class BoundingVolume {
     }
 
     draw() {
-        const ctx = gameManager.layerManager.getLayer("draw")!.ctx;
+        const ctx = layerManager.getLayer("draw")!.ctx;
         for (const node of this.nodes) {
             const b = node.bbox;
             ctx.strokeRect(g2lx(b.topLeft.x), g2ly(b.topLeft.y), g2lz(b.w), g2lz(b.h));

@@ -1,4 +1,4 @@
-import gameManager from "../manager";
+import layerManager from "../layers/manager";
 import Asset from "./asset";
 import Circle from "./circle";
 import CircularToken from "./circulartoken";
@@ -23,8 +23,8 @@ import { GlobalPoint } from "../geom";
 export function createShapeFromDict(shape: ServerShape, dummy?: boolean) {
     // TODO: is this dummy stuff actually needed, do we ever want to return the local shape?
     if (dummy === undefined) dummy = false;
-    if (!dummy && gameManager.layerManager.UUIDMap.has(shape.uuid))
-        return gameManager.layerManager.UUIDMap.get(shape.uuid);
+    if (!dummy && layerManager.UUIDMap.has(shape.uuid))
+        return layerManager.UUIDMap.get(shape.uuid);
 
     let sh: Shape;
 
@@ -64,7 +64,7 @@ export function createShapeFromDict(shape: ServerShape, dummy?: boolean) {
         else img.src = asset.src;
         sh = new Asset(img, refPoint, asset.width, asset.height, asset.uuid);
         img.onload = () => {
-            gameManager.layerManager.getLayer(shape.layer)!.invalidate(false);
+            layerManager.getLayer(shape.layer)!.invalidate(false);
         };
     } else {
         return undefined;

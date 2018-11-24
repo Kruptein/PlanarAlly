@@ -1,4 +1,4 @@
-import store from "../../store";
+import { store } from "../store";
 import Circle from "./circle";
 
 import * as tinycolor from "tinycolor2";
@@ -55,7 +55,7 @@ export default class CircularToken extends Circle {
     getInitiativeRepr(): InitiativeData {
         return {
             uuid: this.uuid,
-            visible: !store.state.game.IS_DM,
+            visible: !store.IS_DM,
             group: false,
             source: this.name === "" || this.name === "Unknown shape" ? this.text : this.name,
             has_img: false,

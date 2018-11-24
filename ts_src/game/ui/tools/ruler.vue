@@ -4,12 +4,12 @@
 <script lang="ts">
 import { mapState } from "vuex";
 
-import gameManager from "../../manager";
+import layerManager from "../../layers/manager";
 import Line from "../../shapes/line";
 import Text from "../../shapes/text";
 import Tool from "./tool.vue";
 
-import { socket } from "../../comm/socket";
+import socket from "../../socket";
 import { GlobalPoint } from "../../geom";
 import { l2g } from "../../units";
 import { getMouse } from "../../utils";
@@ -27,7 +27,7 @@ export default Tool.extend({
     },
     methods: {
         onMouseDown(event: MouseEvent) {
-            const layer = gameManager.layerManager.getLayer("draw");
+            const layer = layerManager.getLayer("draw");
             if (layer === undefined) {
                 console.log("No draw layer!");
                 return;
@@ -44,7 +44,7 @@ export default Tool.extend({
         onMouseMove(event: MouseEvent) {
             if (!this.active || this.ruler === null || this.startPoint === null || this.text === null) return;
 
-            const layer = gameManager.layerManager.getLayer("draw");
+            const layer = layerManager.getLayer("draw");
             if (layer === undefined) {
                 console.log("No draw layer!");
                 return;
@@ -71,7 +71,7 @@ export default Tool.extend({
         onMouseUp(event: MouseEvent) {
             if (!this.active || this.ruler === null || this.startPoint === null || this.text === null) return;
 
-            const layer = gameManager.layerManager.getLayer("draw");
+            const layer = layerManager.getLayer("draw");
             if (layer === undefined) {
                 console.log("No active layer!");
                 return;

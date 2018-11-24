@@ -4,8 +4,8 @@
             <fieldset>
                 <legend class="legend">Your sessions</legend>
                 <div class="input">
-                    <router-link v-for="(room, i) in owned" :key="'o-'+i" :to="'/rooms/' + room[1] + '/' + room[0]">{{ room[0] }}</router-link>
-                    <router-link v-for="(room, i) in joined" :key="'j-'+i" :to="'/rooms/' + room[1] + '/' + room[0]">{{ room[1] }}/{{ room[0] }}</router-link>
+                    <router-link v-for="(room, i) in owned" :key="'o-'+i" :to="'/game/' + room[1] + '/' + room[0]">{{ room[0] }}</router-link>
+                    <router-link v-for="(room, i) in joined" :key="'j-'+i" :to="'/game/' + room[1] + '/' + room[0]">{{ room[1] }}/{{ room[0] }}</router-link>
                 </div>
             </fieldset>
         </form>
@@ -43,7 +43,7 @@ export default Vue.component("Dashboard", {
     }),
     beforeRouteEnter(to, from, next) {
         axios
-            .get("/rooms")
+            .get("/api/rooms")
             .then((response: AxiosResponse) => {
                 next(vm => {
                     (<any>vm).owned = response.data.owned;

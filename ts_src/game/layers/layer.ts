@@ -1,12 +1,14 @@
-import gameManager from "../manager";
-import Shape from "../shapes/shape";
-import store from "../../store";
+console.log("LM");
 
-import { socket } from "../comm/socket";
+import layerManager from "../layers/manager";
+import Shape from "../shapes/shape";
+
+import socket from "../socket";
 import { ServerShape } from "../comm/types/shapes";
-import game from "../game.vue";
 import { createShapeFromDict } from "../shapes/utils";
 import { g2lx, g2ly } from "../units";
+import { store } from "../store";
+import { getRef } from "../../core/utils";
 
 export class Layer {
     name: string;
@@ -43,7 +45,7 @@ export class Layer {
     invalidate(skipLightUpdate: boolean): void {
         this.valid = false;
         if (!skipLightUpdate) {
-            gameManager.layerManager.invalidateLight();
+            layerManager.invalidateLight();
         }
     }
 
@@ -51,11 +53,11 @@ export class Layer {
         if (temporary === undefined) temporary = false;
         shape.layer = this.name;
         this.shapes.push(shape);
-        gameManager.layerManager.UUIDMap.set(shape.uuid, shape);
+        layerManager.UUIDMap.set(shape.uuid, shape);
         shape.checkVisionSources();
         shape.setMovementBlock(shape.movementObstruction);
-        if (shape.ownedBy(store.state.game.username) && shape.isToken) gameManager.ownedtokens.push(shape.uuid);
-        if (shape.annotation.length) gameManager.annotations.push(shape.uuid);
+        if (shape.ownedBy(store.username) && shape.isToken) store.ownedtokens.push(shape.uuid);
+        if (shape.annotation.length) store.annotations.push(shape.uuid);
         if (sync) socket.emit("Shape.Add", { shape: shape.asDict(), temporary });
         this.invalidate(!sync);
     }
@@ -78,27 +80,27 @@ export class Layer {
         this.shapes.splice(this.shapes.indexOf(shape), 1);
 
         if (sync) socket.emit("Shape.Remove", { shape, temporary });
-        const lsI = gameManager.visionSources.findIndex(ls => ls.shape === shape.uuid);
-        const lbI = gameManager.visionBlockers.findIndex(ls => ls === shape.uuid);
+        const lsI = store.visionSources.findIndex(ls => ls.shape === shape.uuid);
+        const lbI = store.visionBlockers.findIndex(ls => ls === shape.uuid);
 
-        const mbI = gameManager.movementblockers.findIndex(ls => ls === shape.uuid);
-        const anI = gameManager.annotations.findIndex(ls => ls === shape.uuid);
-        if (lsI >= 0) gameManager.visionSources.splice(lsI, 1);
-        if (lbI >= 0) gameManager.visionBlockers.splice(lbI, 1);
-        if (mbI >= 0) gameManager.movementblockers.splice(mbI, 1);
-        if (anI >= 0) gameManager.annotations.splice(anI, 1);
+        const mbI = store.movementblockers.findIndex(ls => ls === shape.uuid);
+        const anI = store.annotations.findIndex(ls => ls === shape.uuid);
+        if (lsI >= 0) store.visionSources.splice(lsI, 1);
+        if (lbI >= 0) store.visionBlockers.splice(lbI, 1);
+        if (mbI >= 0) store.movementblockers.splice(mbI, 1);
+        if (anI >= 0) store.annotations.splice(anI, 1);
 
-        const annotationIndex = gameManager.annotations.indexOf(shape.uuid);
-        if (annotationIndex >= 0) gameManager.annotations.splice(annotationIndex, 1);
+        const annotationIndex = store.annotations.indexOf(shape.uuid);
+        if (annotationIndex >= 0) store.annotations.splice(annotationIndex, 1);
 
-        const ownedIndex = gameManager.ownedtokens.indexOf(shape.uuid);
-        if (ownedIndex >= 0) gameManager.ownedtokens.splice(ownedIndex, 1);
+        const ownedIndex = store.ownedtokens.indexOf(shape.uuid);
+        if (ownedIndex >= 0) store.ownedtokens.splice(ownedIndex, 1);
 
-        gameManager.layerManager.UUIDMap.delete(shape.uuid);
+        layerManager.UUIDMap.delete(shape.uuid);
 
         const index = this.selection.indexOf(shape);
         if (index >= 0) this.selection.splice(index, 1);
-        if (lbI >= 0) gameManager.recalculateBoundingVolume();
+        if (lbI >= 0) store.recalculateBV();
         this.invalidate(!sync);
     }
 
@@ -108,7 +110,7 @@ export class Layer {
 
     clearSelection(): void {
         this.selection = [];
-        (<any>game).$refs.selectionInfo.shape = null;
+        getRef("selectionInfo").shape = null;
     }
 
     draw(doClear?: boolean): void {
@@ -127,24 +129,24 @@ export class Layer {
 
             this.shapes.forEach(shape => {
                 if (shape.options.has("skipDraw") && shape.options.get("skipDraw")) return;
-                if (gameManager.layerManager.getLayer() === undefined) return;
+                if (layerManager.getLayer() === undefined) return;
                 if (!shape.visibleInCanvas(state.canvas)) return;
                 if (
                     state.name === "fow" &&
                     shape.visionObstruction &&
-                    gameManager.layerManager.getLayer()!.name !== state.name
+                    layerManager.getLayer()!.name !== state.name
                 )
                     return;
                 shape.drawAuras(ctx);
             });
             this.shapes.forEach(shape => {
                 if (shape.options.has("skipDraw") && shape.options.get("skipDraw")) return;
-                if (gameManager.layerManager.getLayer() === undefined) return;
+                if (layerManager.getLayer() === undefined) return;
                 if (!shape.visibleInCanvas(state.canvas)) return;
                 if (
                     state.name === "fow" &&
                     shape.visionObstruction &&
-                    gameManager.layerManager.getLayer()!.name !== state.name
+                    layerManager.getLayer()!.name !== state.name
                 )
                     return;
                 shape.draw(ctx);
@@ -154,7 +156,7 @@ export class Layer {
                 ctx.fillStyle = this.selectionColor;
                 ctx.strokeStyle = this.selectionColor;
                 ctx.lineWidth = this.selectionWidth;
-                const z = store.state.game.zoomFactor;
+                const z = store.zoomFactor;
                 this.selection.forEach(sel => {
                     ctx.globalCompositeOperation = sel.globalCompositeOperation;
                     const bb = sel.getBoundingBox();
@@ -189,7 +191,7 @@ export class Layer {
 
     onShapeMove(shape: Shape): void {
         shape.checkVisionSources();
-        if (shape.visionObstruction) gameManager.recalculateBoundingVolume();
+        if (shape.visionObstruction) store.recalculateBV();
         this.invalidate(false);
     }
 }

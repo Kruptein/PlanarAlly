@@ -1,3 +1,5 @@
+import vm from "../app";
+
 // Reference: https://stackoverflow.com/questions/105034/create-guid-uuid-in-javascript
 export function uuidv4() {
     return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, c => {
@@ -81,4 +83,8 @@ export class OrderedMap<K, V> {
         this.keys.splice(idx, 1);
         this.values.splice(idx, 1);
     }
+}
+
+export function getRef(ref: string) {
+    return (<any>vm).$refs.activeComponent.$refs[ref];
 }

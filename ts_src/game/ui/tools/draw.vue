@@ -37,16 +37,17 @@
 <script lang="ts">
 import { mapState } from "vuex";
 
+import { store } from "../../store";
+
 import colorpicker from "../../../core/components/colorpicker.vue";
-import gameManager from "../../manager";
+import layerManager from "../../layers/manager";
 import Circle from "../../shapes/circle";
 import MultiLine from "../../shapes/multiline";
 import Rect from "../../shapes/rect";
 import Shape from "../../shapes/shape";
-import store from "../../store";
 import Tool from "./tool.vue";
 
-import { socket } from "../../comm/socket";
+import socket from "../../socket";
 import { GlobalPoint } from "../../geom";
 import { FOWLayer } from "../../layers/fow";
 import { getUnitDistance, l2g } from "../../units";
@@ -72,7 +73,7 @@ export default Tool.extend({
         modeSelect: "normal",
         modes: ["normal", "reveal", "hide"],
 
-        brushSize: getUnitDistance(store.state.game.unitSize),
+        brushSize: getUnitDistance(store.unitSize),
     }),
     computed: {
         helperSize(): number {
@@ -117,8 +118,8 @@ export default Tool.extend({
         onModeChange(newValue: string, oldValue: string) {
             if (this.brushHelper === null) return;
 
-            const fowLayer = gameManager.layerManager.getLayer("fow");
-            const normalLayer = gameManager.layerManager.getLayer();
+            const fowLayer = layerManager.getLayer("fow");
+            const normalLayer = layerManager.getLayer();
             if (fowLayer === undefined || normalLayer === undefined) return;
 
             this.setupBrush();
@@ -132,8 +133,8 @@ export default Tool.extend({
             }
         },
         getLayer() {
-            if (this.modeSelect === "normal") return gameManager.layerManager.getLayer();
-            return gameManager.layerManager.getLayer("fow");
+            if (this.modeSelect === "normal") return layerManager.getLayer();
+            return layerManager.getLayer("fow");
         },
         onMouseDown(event: MouseEvent) {
             const layer = this.getLayer();
@@ -165,7 +166,7 @@ export default Tool.extend({
                 this.shape.visionObstruction = true;
                 this.shape.movementObstruction = true;
             }
-            gameManager.visionBlockers.push(this.shape.uuid);
+            store.visionBlockers.push(this.shape.uuid);
             layer.addShape(this.shape, true, false);
 
             // Push brushhelper to back
@@ -199,7 +200,7 @@ export default Tool.extend({
                 (<MultiLine>this.shape).points.push(endPoint);
             }
             socket.emit("Shape.Update", { shape: this.shape!.asDict(), redraw: true, temporary: false });
-            if (this.shape.visionObstruction) gameManager.recalculateBoundingVolume();
+            if (this.shape.visionObstruction) store.recalculateBV();
             layer.invalidate(false);
         },
         onMouseUp(event: MouseEvent) {

@@ -5,6 +5,7 @@ import VueRouter from "vue-router";
 import Login from './auth/login.vue';
 import DashBoard from './dashboard/main.vue'
 import Game from './game/game.vue';
+// const Game = () => import('./game/game.vue');
 import store from './store';
 
 const Initialize = Vue.component("Initialize", {
@@ -15,6 +16,7 @@ const Initialize = Vue.component("Initialize", {
 });
 
 const router = new VueRouter({
+    mode: 'history',
     routes: [
         {
             path: '/', redirect: '/dashboard',
@@ -29,7 +31,7 @@ const router = new VueRouter({
                 {
                     path: 'logout',
                     beforeEnter: (to, from, next) => {
-                        axios.post("/logout").then(() => {
+                        axios.post("/api/logout").then(() => {
                             store.commit("setAuthenticated", false);
                             next({ path: '/auth/login' });
                         });
@@ -44,7 +46,7 @@ const router = new VueRouter({
             }
         },
         {
-            path: '/game', component: Game,
+            path: '/game/:creator/:room', component: Game,
             meta: {
                 auth: true
             }
@@ -56,7 +58,7 @@ router.beforeEach(
     (to, from, next) => {
         if (!store.state.core.initialized && to.path !== '/_load') {
             next({ path: "/_load" });
-            axios.get("/auth").then((response: AxiosResponse) => {
+            axios.get("/api/auth").then((response: AxiosResponse) => {
                 if (response.data.auth)
                     store.commit("setAuthenticated", true);
                 store.commit("setInitialized", true);

@@ -31,6 +31,7 @@
 import Vue from "vue";
 
 import gameManager from "../../manager";
+import layerManager from "../../layers/manager";
 import shape_menu from "../selection/shapecontext.vue";
 import createtoken_modal from "./createtoken_modal.vue";
 import DrawTool from "./draw.vue";
@@ -41,6 +42,8 @@ import SelectTool from "./select.vue";
 
 import { l2g } from "../../units";
 import { getMouse } from "../../utils";
+
+import { store } from "../../store";
 
 export default Vue.component("tools", {
     components: {
@@ -109,9 +112,9 @@ export default Vue.component("tools", {
 
             // Annotation hover
             let found = false;
-            for (const uuid of gameManager.annotations) {
-                if (gameManager.layerManager.UUIDMap.has(uuid) && gameManager.layerManager.hasLayer("draw")) {
-                    const shape = gameManager.layerManager.UUIDMap.get(uuid)!;
+            for (const uuid of store.annotations) {
+                if (layerManager.UUIDMap.has(uuid) && layerManager.hasLayer("draw")) {
+                    const shape = layerManager.UUIDMap.get(uuid)!;
                     if (shape.contains(l2g(getMouse(event)))) {
                         found = true;
                         gameManager.annotationManager.setActiveText(shape.annotation);

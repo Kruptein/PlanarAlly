@@ -8,3 +8,4 @@ Vue.use(VueRouter);
 
 const app = new Vue({ router, store }).$mount('#app');
 (<any>window).vm = app;
+export default app;

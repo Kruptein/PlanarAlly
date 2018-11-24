@@ -39,7 +39,7 @@ export default Vue.component("Login", {
     methods: {
         login() {
             axios
-                .post("/login", {
+                .post("/api/login", {
                     username: this.username,
                     password: this.password,
                 })
@@ -54,7 +54,7 @@ export default Vue.component("Login", {
         },
         register() {
             axios
-                .post("/register", {
+                .post("/api/register", {
                     username: this.username,
                     password: this.password,
                 })

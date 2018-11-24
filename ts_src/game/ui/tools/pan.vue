@@ -4,10 +4,10 @@
 <script lang="ts">
 import { mapState } from "vuex";
 
-import gameManager from "../../manager";
+import layerManager from "../../layers/manager";
 import Tool from "./tool.vue";
 
-import { sendClientOptions } from "../../comm/socket";
+import { sendClientOptions } from "../../api";
 import { LocalPoint } from "../../geom";
 import { getMouse } from "../../utils";
 
@@ -32,7 +32,7 @@ export default Tool.extend({
             this.$store.commit("increasePanX", Math.round(distance.x));
             this.$store.commit("increasePanY", Math.round(distance.y));
             this.panStart = mouse;
-            gameManager.layerManager.invalidate();
+            layerManager.invalidate();
         },
         onMouseUp(event: MouseEvent) {
             this.active = false;

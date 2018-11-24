@@ -59,11 +59,11 @@
 <script lang="ts">
 import Vue from "vue";
 
-import gameManager from "../../manager";
+import layerManager from "../../layers/manager";
 import Shape from "../../shapes/shape";
 import EditDialog from "./edit_dialog.vue";
 
-import { socket } from "../../comm/socket";
+import socket from "../../socket";
 import game from "../../game.vue";
 
 export default Vue.extend({
@@ -87,7 +87,7 @@ export default Vue.extend({
                     else object.value = parseInt(value, 10);
                     if (isNaN(object.value)) object.value = ogValue;
                     socket.emit("Shape.Update", { shape: this.shape.asDict(), redraw, temporary: false });
-                    if (redraw) gameManager.layerManager.invalidate();
+                    if (redraw) layerManager.invalidate();
                 },
                 () => {},
             );

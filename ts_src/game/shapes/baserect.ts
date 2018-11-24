@@ -1,6 +1,5 @@
-import store from "../../store";
+import { store } from "../store";
 import BoundingRect from "./boundingrect";
-import Circle from "./circle";
 import Shape from "./shape";
 
 import { GlobalPoint, LocalPoint, Vector } from "../geom";
@@ -81,6 +80,7 @@ export default abstract class BaseRect extends Shape {
     }
 
     visibleInCanvas(canvas: HTMLCanvasElement): boolean {
+        if (super.visibleInCanvas(canvas)) return true;
         const coreVisible = !(
             g2lx(this.refPoint.x) > canvas.width ||
             g2ly(this.refPoint.y) > canvas.height ||
@@ -88,16 +88,10 @@ export default abstract class BaseRect extends Shape {
             g2ly(this.refPoint.y + this.h) < 0
         );
         if (coreVisible) return true;
-        for (const aura of this.auras) {
-            if (aura.value > 0) {
-                const auraCircle = new Circle(this.center(), aura.value);
-                if (auraCircle.visibleInCanvas(canvas)) return true;
-            }
-        }
         return false;
     }
     snapToGrid() {
-        const gs = store.state.game.gridSize;
+        const gs = store.gridSize;
         const center = this.center();
         const mx = center.x;
         const my = center.y;
@@ -122,7 +116,7 @@ export default abstract class BaseRect extends Shape {
         this.invalidate(false);
     }
     resizeToGrid() {
-        const gs = store.state.game.gridSize;
+        const gs = store.gridSize;
         this.refPoint.x = Math.round(this.refPoint.x / gs) * gs;
         this.refPoint.y = Math.round(this.refPoint.y / gs) * gs;
         this.w = Math.max(Math.round(this.w / gs) * gs, gs);
@@ -130,7 +124,7 @@ export default abstract class BaseRect extends Shape {
         this.invalidate(false);
     }
     resize(resizedir: string, point: LocalPoint) {
-        const z = store.state.game.zoomFactor;
+        const z = store.zoomFactor;
         if (resizedir === "nw") {
             this.w = g2lx(this.refPoint.x) + this.w * z - point.x;
             this.h = g2ly(this.refPoint.y) + this.h * z - point.y;

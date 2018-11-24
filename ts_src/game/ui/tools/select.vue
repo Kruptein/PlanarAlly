@@ -7,17 +7,19 @@ import Vue from "vue";
 
 import { mapState } from "vuex";
 
-import gameManager from "../../manager";
+import layerManager from "../../layers/manager";
 import Rect from "../../shapes/rect";
 import ContextMenu from "./selectcontext.vue";
 import Tool from "./tool.vue";
 
-import { socket } from "../../comm/socket";
+import socket from "../../socket";
 import { GlobalPoint, LocalPoint, Ray, Vector } from "../../geom";
 import game from "../../game.vue";
 import { g2l, g2lx, g2ly, l2g } from "../../units";
 import { getMouse } from "../../utils";
 import { calculateDelta } from "./utils";
+
+import { store } from "../../store";
 
 export enum SelectOperations {
     Noop,
@@ -66,7 +68,7 @@ export default Tool.extend({
     },
     methods: {
         onMouseDown(event: MouseEvent) {
-            const layer = gameManager.layerManager.getLayer();
+            const layer = layerManager.getLayer();
             if (layer === undefined) {
                 console.log("No active layer!");
                 return;
@@ -133,7 +135,7 @@ export default Tool.extend({
             }
         },
         onMouseMove(event: MouseEvent) {
-            const layer = gameManager.layerManager.getLayer();
+            const layer = layerManager.getLayer();
             if (layer === undefined) {
                 console.log("No active layer!");
                 return;
@@ -171,7 +173,7 @@ export default Tool.extend({
                     for (const sel of layer.selection) {
                         sel.refPoint = sel.refPoint.add(delta);
                         if (sel !== this.selectionHelper) {
-                            if (sel.visionObstruction) gameManager.recalculateBoundingVolume();
+                            if (sel.visionObstruction) store.recalculateBV();
                             socket.emit("Shape.Update", { shape: sel.asDict(), redraw: true, temporary: true });
                         }
                     }
@@ -180,7 +182,7 @@ export default Tool.extend({
                     for (const sel of layer.selection) {
                         sel.resize(this.resizeDirection, mouse);
                         if (sel !== this.selectionHelper) {
-                            if (sel.visionObstruction) gameManager.recalculateBoundingVolume();
+                            if (sel.visionObstruction) store.recalculateBV();
                             socket.emit("Shape.Update", { shape: sel.asDict(), redraw: true, temporary: true });
                         }
                         layer.invalidate(false);
@@ -207,11 +209,11 @@ export default Tool.extend({
             }
         },
         onMouseUp(e: MouseEvent): void {
-            if (gameManager.layerManager.getLayer() === undefined) {
+            if (layerManager.getLayer() === undefined) {
                 console.log("No active layer!");
                 return;
             }
-            const layer = gameManager.layerManager.getLayer()!;
+            const layer = layerManager.getLayer()!;
 
             if (this.mode === SelectOperations.GroupSelect) {
                 layer.clearSelection();
@@ -248,7 +250,7 @@ export default Tool.extend({
                         }
 
                         if (sel !== this.selectionHelper) {
-                            if (sel.visionObstruction) gameManager.recalculateBoundingVolume();
+                            if (sel.visionObstruction) store.recalculateBV();
                             socket.emit("Shape.Update", { shape: sel.asDict(), redraw: true, temporary: false });
                         }
                         layer.invalidate(false);
@@ -258,7 +260,7 @@ export default Tool.extend({
                             sel.resizeToGrid();
                         }
                         if (sel !== this.selectionHelper) {
-                            if (sel.visionObstruction) gameManager.recalculateBoundingVolume();
+                            if (sel.visionObstruction) store.recalculateBV();
                             socket.emit("Shape.Update", { shape: sel.asDict(), redraw: true, temporary: false });
                         }
                         layer.invalidate(false);
@@ -268,11 +270,11 @@ export default Tool.extend({
             this.mode = SelectOperations.Noop;
         },
         onContextMenu(event: MouseEvent) {
-            if (gameManager.layerManager.getLayer() === undefined) {
+            if (layerManager.getLayer() === undefined) {
                 console.log("No active layer!");
                 return;
             }
-            const layer = gameManager.layerManager.getLayer()!;
+            const layer = layerManager.getLayer()!;
             const mouse = getMouse(event);
             const globalMouse = l2g(mouse);
 

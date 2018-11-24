@@ -35,12 +35,12 @@ async def on_shutdown(_):
 
 
 app.router.add_static("/static", "static")
-app.router.add_route("*", "/", routes.root)
-app.router.add_get("/auth", api.http.auth.is_authed)
-app.router.add_post("/login", api.http.auth.login)
-app.router.add_post("/register", api.http.auth.register)
-app.router.add_post("/logout", api.http.auth.logout)
-app.router.add_get("/rooms", api.http.rooms.get_list)
+app.router.add_get("/api/auth", api.http.auth.is_authed)
+app.router.add_post("/api/login", api.http.auth.login)
+app.router.add_post("/api/register", api.http.auth.register)
+app.router.add_post("/api/logout", api.http.auth.logout)
+app.router.add_get("/api/rooms", api.http.rooms.get_list)
+app.router.add_route("*", "/{tail:.*}", routes.root)
 # app.router.add_route("*", "/", routes.login)
 # app.router.add_get("/rooms", routes.show_rooms)
 # app.router.add_get("/rooms/{username}/{roomname}", routes.show_room)

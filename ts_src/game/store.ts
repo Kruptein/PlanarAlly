@@ -1,15 +1,15 @@
-import Vuex from "vuex";
-import { Module, VuexModule, Mutation } from 'vuex-module-decorators';
-
-import gameManager from "./manager";
+// import Vuex from "vuex";
+import { Module, VuexModule, Mutation, getModule, Action } from 'vuex-module-decorators';
 
 import { AssetList } from "../core/comm/types";
-import { sendClientOptions, socket } from "./comm/socket";
+// import { sendClientOptions, socket } from "./comm/socket";
+import socket from "./socket";
 import { Note } from "./comm/types/general";
-import { GlobalPoint } from "./geom";
-import { g2l, l2g } from "./units";
+import BoundingVolume from './bvh/bvh';
+// import { GlobalPoint } from "./geom";
+// import { g2l, l2g } from "./units";
 
-@Module
+@Module({ name: 'game', namespaced: true })
 export default class GameStore extends VuexModule {
     // This is a limited view of selectable layers that is used to generate the layer selection UI and ability to switch layers
     // See the GameManager.LayerManager for proper layer management tools
@@ -44,6 +44,14 @@ export default class GameStore extends VuexModule {
     fowLOS = false;
     locationName = "";
 
+    visionSources: { shape: string; aura: string }[] = [];
+    visionBlockers: string[] = [];
+    annotations: string[] = [];
+    movementblockers: string[] = [];
+    ownedtokens: string[] = [];
+
+    BV = new BoundingVolume([]);
+
     get selectedLayer() {
         return this.layers[this.selectedLayerIndex];
     }
@@ -64,6 +72,21 @@ export default class GameStore extends VuexModule {
     }
 
     @Mutation
+    setRoomName(name: string) {
+        this.roomName = name;
+    }
+
+    @Mutation
+    setRoomCreator(name: string) {
+        this.roomCreator = name;
+    }
+
+    @Mutation
+    setInvitationCode(code: string) {
+        this.invitationCode = code;
+    }
+
+    @Mutation
     addLayer(name: string) {
         this.layers.push(name);
         if (this.selectedLayerIndex === -1)
@@ -77,37 +100,53 @@ export default class GameStore extends VuexModule {
         if (sync)
             socket.emit("Client.ActiveLayer.Set", name);
     }
+
+    @Mutation
+    newNote(note: Note, sync: boolean) {
+        this.notes.push(note);
+        if (sync) socket.emit("Note.New", note);
+    }
+
+    @Mutation
+    setAssets(assets: AssetList) {
+        this.assets = assets;
+    }
+
+    @Mutation
+    setLocations(locations: string[]) {
+        this.locations = locations;
+    }
+
+    @Mutation
+    resetLayerInfo() {
+        this.layers = [];
+        this.selectedLayerIndex = -1;
+    }
+
+    @Mutation
+    recalculateBV() {
+        if (this.boardInitialized)
+            this.BV = new BoundingVolume(this.visionBlockers);
+    }
+
+    @Action
+    clear() {
+        this.context.getters["visionSources"] = [];
+        this.context.getters["visionBlockers"] = [];
+        this.context.getters["ownedtokens"] = [];
+        this.context.getters["annotations"] = [];
+        this.context.getters["movementblockers"] = [];
+        this.context.commit("recalculateBV");
+    }
 }
 
 //     mutations: {
-//         setBoardInitialized(state, boardInitialized) {
-//             state.boardInitialized = boardInitialized;
-//         },
-//         setDM(state, isDM) {
-//             state.IS_DM = isDM;
-//         },
-//         setUsername(state, username) {
-//             state.username = username;
-//         },
-//         addLayer(state, name) {
-//             state.layers.push(name);
-//             if (state.selectedLayerIndex === -1) state.selectedLayerIndex = state.layers.indexOf(name);
-//         },
 //         selectLayer(state, payload: { name: string, sync: boolean }) {
 //             const index = state.layers.indexOf(payload.name);
 //             if (index >= 0) state.selectedLayerIndex = index;
 //             if (payload.sync) {
 //                 socket.emit("Client.ActiveLayer.Set", payload.name);
 //             }
-//         },
-//         setRoomName(state, name) {
-//             state.roomName = name;
-//         },
-//         setRoomCreator(state, name) {
-//             state.roomCreator = name;
-//         },
-//         setInvitationCode(state, code) {
-//             state.invitationCode = code;
 //         },
 //         setGridColour(state, payload: { colour: string; sync: boolean }) {
 //             state.gridColour = payload.colour;
@@ -204,20 +243,6 @@ export default class GameStore extends VuexModule {
 //         setLocationName(state, name) {
 //             state.locationName = name;
 //         },
-//         setLocations(state, locations: string[]) {
-//             state.locations = locations;
-//         },
-//         resetLayerInfo(state) {
-//             state.layers = [];
-//             state.selectedLayerIndex = -1;
-//         },
-//         setAssets(state, assets) {
-//             state.assets = assets;
-//         },
-//         newNote(state, payload: { note: Note; sync: boolean }) {
-//             state.notes.push(payload.note);
-//             if (payload.sync) socket.emit("Note.New", payload.note);
-//         },
 //         updateNote(state, payload: { note: Note; sync: boolean }) {
 //             const note = state.notes.find(n => n.uuid === payload.note.uuid);
 //             if (note === undefined) return;
@@ -231,3 +256,6 @@ export default class GameStore extends VuexModule {
 //         },
 //     },
 // });
+
+import coreStore from "../store";
+export const store = getModule(GameStore, coreStore);

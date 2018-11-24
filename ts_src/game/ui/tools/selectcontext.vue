@@ -12,9 +12,8 @@ import Vue from "vue";
 import { mapState } from "vuex";
 
 import contextmenu from "../../../core/components/contextmenu.vue";
-import gameManager from "../../manager";
 
-import { socket } from "../../comm/socket";
+import socket from "../../socket";
 import { l2gx, l2gy } from "../../units";
 
 export default Vue.component("select-context", {

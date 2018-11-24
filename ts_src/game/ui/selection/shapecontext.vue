@@ -22,7 +22,7 @@
 import Vue from "vue";
 
 import contextmenu from "../../../core/components/contextmenu.vue";
-import gameManager from "../../manager";
+import layerManager from "../../layers/manager";
 import Settings from "../../settings";
 import Shape from "../../shapes/shape";
 
@@ -41,7 +41,7 @@ export default Vue.component("shape-menu", {
     }),
     computed: {
         activeLayer: (): string => {
-            const layer = gameManager.layerManager.getLayer();
+            const layer = layerManager.getLayer();
             return layer === undefined ? "" : layer.name;
         },
     },
@@ -58,12 +58,10 @@ export default Vue.component("shape-menu", {
             this.shape = null;
         },
         getLayers() {
-            return gameManager.layerManager.layers.filter(
-                l => l.selectable && (this.$store.state.game.IS_DM || l.playerEditable),
-            );
+            return layerManager.layers.filter(l => l.selectable && (this.$store.state.game.IS_DM || l.playerEditable));
         },
         getActiveLayer() {
-            return gameManager.layerManager.getLayer();
+            return layerManager.getLayer();
         },
         getInitiativeWord() {
             if (this.shape === null) return "";

@@ -1,4 +1,4 @@
-import store from "../../store";
+import { store } from "../store";
 import BaseRect from "./baserect";
 
 import { GlobalPoint } from "../geom";
@@ -17,7 +17,7 @@ export default class Rect extends BaseRect {
         super.draw(ctx);
         if (this.fillColour === "fog") ctx.fillStyle = getFogColour();
         else ctx.fillStyle = this.fillColour;
-        const z = store.state.game.zoomFactor;
+        const z = store.zoomFactor;
         const loc = g2l(this.refPoint);
         ctx.fillRect(loc.x, loc.y, this.w * z, this.h * z);
         if (this.strokeColour !== "rgba(0, 0, 0, 0)") {

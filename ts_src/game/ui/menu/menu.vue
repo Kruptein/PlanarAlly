@@ -137,7 +137,7 @@ import Settings from "../../settings";
 import assetNode from "./asset_node.vue";
 
 import { uuidv4 } from "../../../core/utils";
-import { socket } from "../../comm/socket";
+import socket from "../../socket";
 import { Note } from "../../comm/types/general";
 import game from "../../game.vue";
 

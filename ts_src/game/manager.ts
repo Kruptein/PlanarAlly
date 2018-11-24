@@ -1,54 +1,25 @@
-import BoundingVolume from "./bvh/bvh";
-import store from "../store";
 import AnnotationManager from "./ui/annotation";
+import layerManager from "./layers/manager";
 
-import { sendClientOptions } from "./comm/socket";
+import { sendClientOptions } from "./api";
 import { ServerShape } from "./comm/types/shapes";
 import { GlobalPoint } from "./geom";
-import { LayerManager } from "./layers/manager";
 import game from "./game.vue";
 import { createShapeFromDict } from "./shapes/utils";
 import { g2l } from "./units";
+import { store } from "./store";
 
 export class GameManager {
-    layerManager = new LayerManager();
     selectedTool: number = 0;
-
-    visionSources: { shape: string; aura: string }[] = [];
-    visionBlockers: string[] = [];
-    annotations: string[] = [];
-    movementblockers: string[] = [];
-    ownedtokens: string[] = [];
 
     annotationManager = new AnnotationManager();
 
-    BV!: BoundingVolume;
-
-    constructor() {
-        this.recalculateBoundingVolume();
-    }
-
-    clear() {
-        this.layerManager = new LayerManager();
-        this.visionSources = [];
-        this.visionBlockers = [];
-        this.annotations = [];
-        this.movementblockers = [];
-        this.ownedtokens = [];
-        this.recalculateBoundingVolume();
-    }
-
-    recalculateBoundingVolume() {
-        if (store.state.game.boardInitialized)
-            this.BV = new BoundingVolume(this.visionBlockers);
-    }
-
     addShape(shape: ServerShape): void {
-        if (!this.layerManager.hasLayer(shape.layer)) {
+        if (!layerManager.hasLayer(shape.layer)) {
             console.log(`Shape with unknown layer ${shape.layer} could not be added`);
             return;
         }
-        const layer = this.layerManager.getLayer(shape.layer)!;
+        const layer = layerManager.getLayer(shape.layer)!;
         const sh = createShapeFromDict(shape);
         if (sh === undefined) {
             console.log(`Shape with unknown type ${shape.type_} could not be added`);
@@ -59,7 +30,7 @@ export class GameManager {
     }
 
     updateShape(data: { shape: ServerShape; redraw: boolean, move: boolean }): void {
-        if (!this.layerManager.hasLayer(data.shape.layer)) {
+        if (!layerManager.hasLayer(data.shape.layer)) {
             console.log(`Shape with unknown layer ${data.shape.layer} could not be added`);
             return;
         }
@@ -68,7 +39,7 @@ export class GameManager {
             console.log(`Shape with unknown type ${data.shape.type_} could not be added`);
             return;
         }
-        const oldShape = this.layerManager.UUIDMap.get(data.shape.uuid);
+        const oldShape = layerManager.UUIDMap.get(data.shape.uuid);
         if (oldShape === undefined) {
             console.log(`Shape with unknown id could not be updated`);
             return;
@@ -78,16 +49,16 @@ export class GameManager {
         shape.checkVisionSources();
         shape.setMovementBlock(shape.movementObstruction);
         shape.setIsToken(shape.isToken);
-        if (data.move && shape.visionObstruction) this.recalculateBoundingVolume();
-        if (data.redraw) this.layerManager.getLayer(data.shape.layer)!.invalidate(false);
+        if (data.move && shape.visionObstruction) store.recalculateBV();
+        if (data.redraw) layerManager.getLayer(data.shape.layer)!.invalidate(false);
         if (redrawInitiative) (<any>game).$refs.initiative.$forceUpdate();
     }
 
     setCenterPosition(position: GlobalPoint) {
         const localPos = g2l(position);
-        store.commit("increasePanX", (window.innerWidth / 2 - localPos.x) / store.state.game.zoomFactor);
-        store.commit("increasePanY", (window.innerHeight / 2 - localPos.y) / store.state.game.zoomFactor);
-        this.layerManager.invalidate();
+        // store.commit("increasePanX", (window.innerWidth / 2 - localPos.x) / store.state.game.zoomFactor);
+        // store.commit("increasePanY", (window.innerHeight / 2 - localPos.y) / store.state.game.zoomFactor);
+        layerManager.invalidate();
         sendClientOptions();
     }
 }

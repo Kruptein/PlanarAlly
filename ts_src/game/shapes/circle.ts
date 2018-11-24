@@ -1,4 +1,4 @@
-import store from "../../store";
+import { store } from "../store";
 import BoundingRect from "./boundingrect";
 import Shape from "./shape";
 
@@ -73,7 +73,7 @@ export default class Circle extends Shape {
         return true;
     } // TODO
     snapToGrid() {
-        const gs = store.state.game.gridSize;
+        const gs = store.gridSize;
         let targetX;
         let targetY;
         if (((2 * this.r) / gs) % 2 === 0) {
@@ -91,12 +91,12 @@ export default class Circle extends Shape {
         this.invalidate(false);
     }
     resizeToGrid() {
-        const gs = store.state.game.gridSize;
+        const gs = store.gridSize;
         this.r = Math.max(Math.round(this.r / gs) * gs, gs / 2);
         this.invalidate(false);
     }
     resize(resizedir: string, point: LocalPoint) {
-        const z = store.state.game.zoomFactor;
+        const z = store.zoomFactor;
         const diff = l2g(point).subtract(this.refPoint);
         this.r = Math.sqrt(Math.pow(diff.length(), 2) / 2);
     }

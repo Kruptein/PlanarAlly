@@ -1,14 +1,13 @@
-import gameManager from "../manager";
 import Asset from "../shapes/asset";
 import Shape from "../shapes/shape";
-import store from "../../store";
 
 import { GlobalPoint } from "../geom";
 import { l2gx, l2gy, l2gz } from "../units";
 import { GridLayer } from "./grid";
 import { Layer } from "./layer";
+import { store } from "../store";
 
-export class LayerManager {
+class LayerManager {
     layers: Layer[] = [];
     width = window.innerWidth;
     height = window.innerHeight;
@@ -45,8 +44,8 @@ export class LayerManager {
 
     addLayer(layer: Layer): void {
         this.layers.push(layer);
-        if (!store.state.game.IS_DM && !layer.playerEditable) return;
-        if (layer.selectable) store.commit("addLayer", layer.name);
+        if (!store.IS_DM && !layer.playerEditable) return;
+        if (layer.selectable) store.addLayer(layer.name);
     }
 
     hasLayer(name: string): boolean {
@@ -54,7 +53,7 @@ export class LayerManager {
     }
 
     getLayer(name?: string) {
-        name = name === undefined ? store.getters.selectedLayer : name;
+        name = name === undefined ? store.selectedLayer : name;
         for (const layer of this.layers) {
             if (layer.name === name) return layer;
         }
@@ -68,7 +67,7 @@ export class LayerManager {
             else layer.ctx.globalAlpha = 1.0;
 
             if (name === layer.name) {
-                store.commit("selectLayer", { name, sync });
+                store.selectLayer(name, sync);
                 found = true;
             }
 
@@ -105,7 +104,7 @@ export class LayerManager {
     }
 
     dropAsset(event: DragEvent) {
-        const layer = gameManager.layerManager.getLayer();
+        const layer = this.getLayer();
         if (layer === undefined) return;
         const image = document.createElement("img");
         image.src = event.dataTransfer.getData("text/plain");
@@ -117,8 +116,8 @@ export class LayerManager {
         );
         asset.src = new URL(image.src).pathname;
 
-        if (store.state.game.useGrid) {
-            const gs = store.state.game.gridSize;
+        if (store.useGrid) {
+            const gs = store.gridSize;
             asset.refPoint.x = Math.round(asset.refPoint.x / gs) * gs;
             asset.refPoint.y = Math.round(asset.refPoint.y / gs) * gs;
             asset.w = Math.max(Math.round(asset.w / gs) * gs, gs);
@@ -128,3 +127,5 @@ export class LayerManager {
         layer.addShape(asset, true);
     }
 }
+
+export default new LayerManager();

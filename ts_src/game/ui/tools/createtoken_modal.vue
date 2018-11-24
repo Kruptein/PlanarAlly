@@ -36,7 +36,7 @@ import { mapState } from "vuex";
 
 import colorpicker from "../../../core/components/colorpicker.vue";
 import modal from "../../../core/components/modals/modal.vue";
-import gameManager from "../../manager";
+import layerManager from "../../layers/manager";
 import Settings from "../../settings";
 import CircularToken from "../../shapes/circulartoken";
 
@@ -81,7 +81,7 @@ export default Vue.component("createtoken-modal", {
             this.y = y;
         },
         submit() {
-            const layer = gameManager.layerManager.getLayer();
+            const layer = layerManager.getLayer();
             if (layer === undefined) return;
             const token = new CircularToken(
                 l2g(new LocalPoint(this.x, this.y)),

@@ -13,11 +13,15 @@ async def connect(sid, environ):
     if user is None:
         await sio.emit("redirect", "/", room=sid, namespace="/planarally")
     else:
-        ref = unquote(environ["HTTP_REFERER"]).strip("/").split("/")
+        # ref = unquote(environ["HTTP_REFERER"]).strip("/").split("/")
+        ref = {
+            k.split("=")[0]: k.split("=")[1]
+            for k in unquote(environ["QUERY_STRING"]).strip().split("&")
+        }
         room = (
             Room.select()
             .join(User)
-            .where((Room.name == ref[-1]) & (User.name == ref[-2]))[0]
+            .where((Room.name == ref["room"]) & (User.name == ref["user"]))[0]
         )
         if room.creator == user:
             location = Location.get(room=room, name=room.dm_location)

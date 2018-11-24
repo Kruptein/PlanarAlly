@@ -10,7 +10,7 @@
 <script lang="ts">
 import { mapState } from "vuex";
 
-import gameManager from "../../manager";
+import layerManager from "../../layers/manager";
 import BaseRect from "../../shapes/baserect";
 import Rect from "../../shapes/rect";
 import Tool from "./tool.vue";
@@ -33,7 +33,7 @@ export default Tool.extend({
     },
     methods: {
         onMouseDown(event: MouseEvent) {
-            const layer = gameManager.layerManager.getLayer();
+            const layer = layerManager.getLayer();
             if (layer === undefined) {
                 console.log("No active layer!");
                 return;
@@ -46,7 +46,7 @@ export default Tool.extend({
         },
         onMouseMove(event: MouseEvent) {
             if (!this.active || this.rect === null || this.startPoint === null) return;
-            const layer = gameManager.layerManager.getLayer();
+            const layer = layerManager.getLayer();
             if (layer === undefined) {
                 console.log("No active layer!");
                 return;
@@ -62,7 +62,7 @@ export default Tool.extend({
         },
         onMouseUp(event: MouseEvent) {
             if (!this.active || this.rect === null) return;
-            const layer = gameManager.layerManager.getLayer();
+            const layer = layerManager.getLayer();
             if (layer === undefined) {
                 console.log("No active layer!");
                 return;
@@ -79,8 +79,8 @@ export default Tool.extend({
             const sel = layer.selection[0];
 
             if (sel instanceof BaseRect) {
-                sel.w *= this.xCount * this.gridSize / w;
-                sel.h *= this.yCount * this.gridSize / h;
+                sel.w *= (this.xCount * this.gridSize) / w;
+                sel.h *= (this.yCount * this.gridSize) / h;
             }
 
             layer.removeShape(this.rect, false, false);

@@ -173,11 +173,13 @@ import Vue from "vue";
 import colorpicker from "../../../core/components/colorpicker.vue";
 import modal from "../../../core/components/modals/modal.vue";
 
-import gameManager from "../../manager";
+import layerManager from "../../layers/manager";
 import Shape from "../../shapes/shape";
 
-import { socket } from "../../comm/socket";
+import socket from "../../socket";
 import { uuidv4 } from "../../../core/utils";
+
+import { store } from "../../store";
 
 export default Vue.component("edit-dialog", {
     components: {
@@ -219,7 +221,7 @@ export default Vue.component("edit-dialog", {
         },
         updateShape(redraw: boolean) {
             socket.emit("Shape.Update", { shape: this.shape.asDict(), redraw, temporary: false });
-            if (redraw) gameManager.layerManager.invalidate();
+            if (redraw) layerManager.invalidate();
             this.addEmpty();
         },
         setToken(event: { target: HTMLInputElement }) {
@@ -238,13 +240,11 @@ export default Vue.component("edit-dialog", {
             const hadAnnotation = this.shape.annotation !== "";
             this.shape.annotation = event.target.value;
             if (this.shape.annotation !== "" && !hadAnnotation) {
-                gameManager.annotations.push(this.shape.uuid);
-                if (gameManager.layerManager.hasLayer("draw"))
-                    gameManager.layerManager.getLayer("draw")!.invalidate(true);
+                store.annotations.push(this.shape.uuid);
+                if (layerManager.hasLayer("draw")) layerManager.getLayer("draw")!.invalidate(true);
             } else if (this.shape.annotation === "" && hadAnnotation) {
-                gameManager.annotations.splice(gameManager.annotations.findIndex(an => an === this.shape.uuid));
-                if (gameManager.layerManager.hasLayer("draw"))
-                    gameManager.layerManager.getLayer("draw")!.invalidate(true);
+                store.annotations.splice(store.annotations.findIndex(an => an === this.shape.uuid));
+                if (layerManager.hasLayer("draw")) layerManager.getLayer("draw")!.invalidate(true);
             }
             this.updateShape(false);
         },
@@ -270,16 +270,15 @@ export default Vue.component("edit-dialog", {
         },
         updateAuraVisionSource(aura: Aura) {
             aura.visionSource = !aura.visionSource;
-            const i = gameManager.visionSources.findIndex(ls => ls.aura === aura.uuid);
-            if (aura.visionSource && i === -1)
-                gameManager.visionSources.push({ shape: this.shape.uuid, aura: aura.uuid });
-            else if (!aura.visionSource && i >= 0) gameManager.visionSources.splice(i, 1);
+            const i = store.visionSources.findIndex(ls => ls.aura === aura.uuid);
+            if (aura.visionSource && i === -1) store.visionSources.push({ shape: this.shape.uuid, aura: aura.uuid });
+            else if (!aura.visionSource && i >= 0) store.visionSources.splice(i, 1);
             // aura.lastPath = undefined;
-            gameManager.layerManager.invalidateLight();
+            layerManager.invalidateLight();
             this.updateShape(true);
         },
         updateAuraColour(aura: Aura, colour: string) {
-            const layer = gameManager.layerManager.getLayer(this.shape.layer);
+            const layer = layerManager.getLayer(this.shape.layer);
             if (layer === undefined) return;
             layer.invalidate(!aura.visionSource);
         },

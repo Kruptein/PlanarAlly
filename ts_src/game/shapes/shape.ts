@@ -1,15 +1,16 @@
-import gameManager from "../manager";
-import store from "../../store";
+import layerManager from "../layers/manager";
 import BoundingRect from "./boundingrect";
 
 import * as tinycolor from "tinycolor2";
 import { uuidv4 } from "../../core/utils";
 import { aurasFromServer, aurasToServer } from "../comm/conversion/aura";
-import { socket } from "../comm/socket";
+import socket from "../socket";
 import { InitiativeData } from "../comm/types/general";
 import { ServerShape } from "../comm/types/shapes";
 import { GlobalPoint, LocalPoint } from "../geom";
 import { g2l, g2lr, g2lx, g2ly, g2lz } from "../units";
+import Circle from "./circle";
+import { store } from "../store";
 
 export default abstract class Shape {
     // Used to create class instance from server shape data
@@ -66,7 +67,15 @@ export default abstract class Shape {
     abstract center(): GlobalPoint;
     abstract center(centerPoint: GlobalPoint): void;
     abstract getCorner(point: GlobalPoint): string | undefined;
-    abstract visibleInCanvas(canvas: HTMLCanvasElement): boolean;
+    visibleInCanvas(canvas: HTMLCanvasElement): boolean {
+        // for (const aura of this.auras) {
+        //     if (aura.value > 0) {
+        //         const auraCircle = new Circle(this.center(), aura.value);
+        //         if (auraCircle.visibleInCanvas(canvas)) return true;
+        //     }
+        // }
+        return false;
+    }
 
     // Code to snap a shape to the grid
     // This is shape dependent as the shape refPoints are shape specific in
@@ -75,26 +84,26 @@ export default abstract class Shape {
     abstract resize(resizeDir: string, point: LocalPoint): void;
 
     invalidate(skipLightUpdate: boolean) {
-        const l = gameManager.layerManager.getLayer(this.layer);
+        const l = layerManager.getLayer(this.layer);
         if (l) l.invalidate(skipLightUpdate);
     }
 
     checkVisionSources() {
         const self = this;
-        const obstructionIndex = gameManager.visionBlockers.indexOf(this.uuid);
+        const obstructionIndex = store.visionBlockers.indexOf(this.uuid);
         let changeBV = false;
         if (this.visionObstruction && obstructionIndex === -1) {
-            gameManager.visionBlockers.push(this.uuid);
+            store.visionBlockers.push(this.uuid);
             changeBV = true;
         } else if (!this.visionObstruction && obstructionIndex >= 0) {
-            gameManager.visionBlockers.splice(obstructionIndex, 1);
+            store.visionBlockers.splice(obstructionIndex, 1);
             changeBV = true;
         }
-        if (changeBV) gameManager.recalculateBoundingVolume();
+        if (changeBV) store.recalculateBV();
 
         // Check if the visionsource auras are in the gameManager
         this.auras.forEach(au => {
-            const ls = gameManager.visionSources;
+            const ls = store.visionSources;
             const i = ls.findIndex(o => o.aura === au.uuid);
             if (au.visionSource && i === -1) {
                 ls.push({ shape: self.uuid, aura: au.uuid });
@@ -103,34 +112,34 @@ export default abstract class Shape {
             }
         });
         // Check if anything in the gameManager referencing this shape is in fact still a visionsource
-        for (let i = gameManager.visionSources.length - 1; i >= 0; i--) {
-            const ls = gameManager.visionSources[i];
+        for (let i = store.visionSources.length - 1; i >= 0; i--) {
+            const ls = store.visionSources[i];
             if (ls.shape === self.uuid) {
-                if (!self.auras.some(a => a.uuid === ls.aura && a.visionSource)) gameManager.visionSources.splice(i, 1);
+                if (!self.auras.some(a => a.uuid === ls.aura && a.visionSource)) store.visionSources.splice(i, 1);
             }
         }
     }
 
     setMovementBlock(blocksMovement: boolean) {
         this.movementObstruction = blocksMovement || false;
-        const obstructionIndex = gameManager.movementblockers.indexOf(this.uuid);
-        if (this.movementObstruction && obstructionIndex === -1) gameManager.movementblockers.push(this.uuid);
+        const obstructionIndex = store.movementblockers.indexOf(this.uuid);
+        if (this.movementObstruction && obstructionIndex === -1) store.movementblockers.push(this.uuid);
         else if (!this.movementObstruction && obstructionIndex >= 0)
-            gameManager.movementblockers.splice(obstructionIndex, 1);
+            store.movementblockers.splice(obstructionIndex, 1);
     }
 
     setIsToken(isToken: boolean) {
         this.isToken = isToken;
         if (this.ownedBy()) {
-            const i = gameManager.ownedtokens.indexOf(this.uuid);
-            if (this.isToken && i === -1) gameManager.ownedtokens.push(this.uuid);
-            else if (!this.isToken && i >= 0) gameManager.ownedtokens.splice(i, 1);
+            const i = store.ownedtokens.indexOf(this.uuid);
+            if (this.isToken && i === -1) store.ownedtokens.push(this.uuid);
+            else if (!this.isToken && i >= 0) store.ownedtokens.splice(i, 1);
         }
     }
 
     ownedBy(username?: string) {
-        if (username === undefined) username = <string>store.state.game.username;
-        return store.state.game.IS_DM || this.owners.includes(username);
+        if (username === undefined) username = store.username;
+        return store.IS_DM || this.owners.includes(username);
     }
 
     abstract asDict(): ServerShape;
@@ -220,7 +229,7 @@ export default abstract class Shape {
     getInitiativeRepr(): InitiativeData {
         return {
             uuid: this.uuid,
-            visible: !store.state.game.IS_DM,
+            visible: !store.IS_DM,
             group: false,
             source: this.name,
             has_img: false,
@@ -230,8 +239,8 @@ export default abstract class Shape {
     }
 
     moveLayer(layer: string, sync: boolean) {
-        const oldLayer = gameManager.layerManager.getLayer(this.layer);
-        const newLayer = gameManager.layerManager.getLayer(layer);
+        const oldLayer = layerManager.getLayer(this.layer);
+        const newLayer = layerManager.getLayer(layer);
         if (oldLayer === undefined || newLayer === undefined) return;
         this.layer = layer;
         // Update layer shapes

@@ -12,6 +12,7 @@
     "listEmittedFiles": true,
     "strict": true,
     "module": "commonjs",
-    "experimentalDecorators": true
+    "experimentalDecorators": true,
+    "outDir": "dist",
   }
 }

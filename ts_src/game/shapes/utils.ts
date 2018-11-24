@@ -44,13 +44,13 @@ export function createShapeFromDict(shape: ServerShape, dummy?: boolean) {
         sh = new CircularToken(refPoint, token.radius, token.text, token.font, token.fill_colour, token.stroke_colour, token.uuid);
     } else if (shape.type_ === "line") {
         const line = <ServerLine>shape;
-        sh = new Line(refPoint, new GlobalPoint(line.x2, line.y2), line.lineWidth, line.stroke_colour, line.uuid);
+        sh = new Line(refPoint, new GlobalPoint(line.x2, line.y2), line.line_width, line.stroke_colour, line.uuid);
     } else if (shape.type_ === "multiline") {
         const multiline = <ServerMultiLine>shape;
         sh = new MultiLine(
             refPoint,
             multiline.points.map(p => new GlobalPoint(p.x, p.y)),
-            multiline.size,
+            multiline.line_width,
             multiline.stroke_colour,
             multiline.uuid,
         );

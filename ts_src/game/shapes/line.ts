@@ -17,7 +17,7 @@ export default class Line extends Shape {
         return Object.assign(this.getBaseDict(), {
             x2: this.endPoint.x,
             y2: this.endPoint.y,
-            lineWidth: this.lineWidth,
+            line_width: this.lineWidth,
         });
     }
     getBoundingBox(): BoundingRect {

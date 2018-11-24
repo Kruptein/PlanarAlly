@@ -100,7 +100,10 @@ def check_save():
             logger.warning(
                 f"Save format {constants.save_version} does not match the required version {SAVE_VERSION}!")
             logger.warning("Attempting upgrade")
+        
+        updated = False
         while constants.save_version != SAVE_VERSION:
+            updated = True
             logger.warning(
                 f"Backing up old save as {SAVE_FILE}.{constants.save_version}")
             shutil.copyfile(SAVE_FILE, f"{SAVE_FILE}.{constants.save_version}")
@@ -117,4 +120,5 @@ def check_save():
                     f"Upgrade to {constants.save_version + 1} done.")
                 constants = Constants.get()
         else:
-            logger.warning("Upgrade process completed successfully.")
+            if updated:
+                logger.warning("Upgrade process completed successfully.")

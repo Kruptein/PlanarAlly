@@ -11,12 +11,11 @@ VOLUME /usr/src/app/static/assets
 
 ENTRYPOINT ["/usr/bin/dumb-init", "--"]
 
-COPY requirements.txt ./
+COPY server/ .
 RUN apt-get update && apt-get install dumb-init curl -y && \
     rm -rf /var/lib/apt/lists/* && \
     pip install --no-cache-dir -r requirements.txt
 
-COPY PlanarAlly/ .
 COPY Dockerfiles/server_config_docker.cfg server_config.cfg
 
 CMD [ "python", "-u", "planarserver.py"]

@@ -1,18 +1,3 @@
 {
-  "compilerOptions": {
-    "target": "es6",
-    "lib": [
-      "dom",
-      "es6",
-      "dom.iterable",
-      "scripthost",
-      "es2016.array.include"
-    ],
-    "sourceMap": true,
-    "listEmittedFiles": true,
-    "strict": true,
-    "module": "commonjs",
-    "experimentalDecorators": true,
-    "outDir": "dist",
-  }
+    "extends": "./client/tsconfig.json"
 }

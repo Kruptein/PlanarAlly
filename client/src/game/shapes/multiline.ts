@@ -7,15 +7,21 @@ import { getFogColour } from "@/game/utils";
 export class MultiLine extends Shape {
     type = "multiline";
     points: GlobalPoint[] = [];
-    size: number;
-    constructor(startPoint: GlobalPoint, points?: GlobalPoint[], size?: number, strokeColour?: string, uuid?: string) {
+    lineWidth: number;
+    constructor(
+        startPoint: GlobalPoint,
+        points?: GlobalPoint[],
+        lineWidth?: number,
+        strokeColour?: string,
+        uuid?: string,
+    ) {
         super(startPoint, "rgba(0, 0, 0, 0)", strokeColour || "#000", uuid);
         this.points = points || [];
-        this.size = size || 3;
+        this.lineWidth = lineWidth || 3;
     }
     asDict() {
         return Object.assign(this.getBaseDict(), {
-            size: this.size,
+            line_width: this.lineWidth,
             points: this.points.map(p => ({ x: p.x, y: p.y })),
         });
     }
@@ -41,7 +47,7 @@ export class MultiLine extends Shape {
         for (const p of this.points) ctx.lineTo(g2lx(p.x), g2ly(p.y));
         if (this.strokeColour === "fog") ctx.strokeStyle = getFogColour();
         else ctx.strokeStyle = this.strokeColour;
-        ctx.lineWidth = g2lz(this.size);
+        ctx.lineWidth = g2lz(this.lineWidth);
         ctx.stroke();
     }
     contains(point: GlobalPoint): boolean {

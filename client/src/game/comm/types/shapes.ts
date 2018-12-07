@@ -35,11 +35,11 @@ export interface ServerCircularToken extends ServerCircle {
 export interface ServerLine extends ServerShape {
     x2: number;
     y2: number;
-    lineWidth: number;
+    line_width: number;
 }
 export interface ServerMultiLine extends ServerShape {
     points: { x: number; y: number }[];
-    size: number;
+    line_width: number;
 }
 export interface ServerText extends ServerShape {
     text: string;

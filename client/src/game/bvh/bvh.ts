@@ -4,6 +4,8 @@ import { GlobalPoint, Ray } from "@/game/geom";
 import { layerManager } from "@/game/layers/manager";
 import { BoundingRect } from "@/game/shapes/boundingrect";
 import { g2lx, g2ly, g2lz } from "@/game/units";
+import { gameManager } from "../manager";
+import { gameStore } from "../store";
 
 interface BuildInfo {
     index: number;
@@ -41,11 +43,18 @@ export class BoundingVolume {
         }
         for (let i = 0; i < shapes.length; i++) {
             const shape = layerManager.UUIDMap.get(shapes[i])!;
-            this.buildData.push({
-                index: i,
-                bbox: shape.getBoundingBox(),
-                center: new BoundingRect(shape.center(), 0, 0),
-            });
+            try {
+                this.buildData.push({
+                    index: i,
+                    bbox: shape.getBoundingBox(),
+                    center: new BoundingRect(shape.center(), 0, 0),
+                });
+            } catch {
+                console.warn(`Shape ${shape.type} - ${shape.uuid} cannot be used for vision blocking !!!`);
+                shape.visionObstruction = false;
+                gameStore.visionBlockers.splice(i, 1);
+                throw new Error();
+            }
         }
         this.root = this.recursiveBuild(0, shapes.length);
         this.compact();

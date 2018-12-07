@@ -129,7 +129,17 @@ class GameStore extends VuexModule {
 
     @Mutation
     recalculateBV() {
-        if (this.boardInitialized) this.BV = Object.freeze(new BoundingVolume(this.visionBlockers));
+        if (this.boardInitialized) {
+            let success = false;
+            while (!success) {
+                success = true;
+                try {
+                    this.BV = Object.freeze(new BoundingVolume(this.visionBlockers));
+                } catch {
+                    success = false;
+                }
+            }
+        }
     }
 
     @Mutation

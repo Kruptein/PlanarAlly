@@ -1,14 +1,13 @@
-import BoundingRect from "@/game/shapes/boundingrect";
-import Shape from "@/game/shapes/shape";
-import store from "@/game/store";
-
 import { ServerCircle } from "@/game/comm/types/shapes";
 import { GlobalPoint, LocalPoint, Vector } from "@/game/geom";
+import { BoundingRect } from "@/game/shapes/boundingrect";
+import { Shape } from "@/game/shapes/shape";
+import { gameStore } from "@/game/store";
 import { calculateDelta } from "@/game/ui/tools/utils";
 import { g2l, g2lz, l2g } from "@/game/units";
 import { getFogColour } from "@/game/utils";
 
-export default class Circle extends Shape {
+export class Circle extends Shape {
     type = "circle";
     r: number;
     constructor(center: GlobalPoint, r: number, fillColour?: string, strokeColour?: string, uuid?: string) {
@@ -73,7 +72,7 @@ export default class Circle extends Shape {
         return true;
     } // TODO
     snapToGrid() {
-        const gs = store.gridSize;
+        const gs = gameStore.gridSize;
         let targetX;
         let targetY;
         if (((2 * this.r) / gs) % 2 === 0) {
@@ -91,12 +90,12 @@ export default class Circle extends Shape {
         this.invalidate(false);
     }
     resizeToGrid() {
-        const gs = store.gridSize;
+        const gs = gameStore.gridSize;
         this.r = Math.max(Math.round(this.r / gs) * gs, gs / 2);
         this.invalidate(false);
     }
     resize(resizedir: string, point: LocalPoint) {
-        const z = store.zoomFactor;
+        const z = gameStore.zoomFactor;
         const diff = l2g(point).subtract(this.refPoint);
         this.r = Math.sqrt(Math.pow(diff.length(), 2) / 2);
     }

@@ -1,17 +1,17 @@
 import Vue from "vue";
 
 import App from "@/App.vue";
-import router from "@/router";
-import store from "@/store";
+import { router } from "@/router";
+import { rootStore } from "@/store";
 
 Vue.config.productionTip = false;
+Vue.config.devtools = true;
+Vue.config.performance = true;
 
-const app = new Vue({
+export const app = new Vue({
     router,
-    store,
+    store: rootStore,
     render: h => h(App),
 }).$mount("#app");
 
 (<any>window).app = app;
-
-export default app;

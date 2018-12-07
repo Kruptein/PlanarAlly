@@ -8,12 +8,15 @@ Vue.use(Router);
 
 import Login from "@/auth/login.vue";
 import Logout from "@/auth/logout";
-import Load from "@/core/components/load.vue";
-import coreStore from "@/core/store";
-import DashBoard from "@/dashboard/main.vue";
+import LoadComponent from "@/core/components/load.vue";
+import Dashboard from "@/dashboard/main.vue";
 import Game from "@/game/game.vue";
 
-const router = new Router({
+import { coreStore } from "@/core/store";
+// import { AssetManager } from "./assetManager/assets";
+const AssetManager = () => import("./assetManager/assets").then(m => m.AssetManager);
+
+export const router = new Router({
     mode: "history",
     base: process.env.BASE_URL,
     routes: [
@@ -24,7 +27,14 @@ const router = new Router({
         {
             path: "/_load",
             name: "load",
-            component: Load,
+            component: LoadComponent,
+        },
+        {
+            path: "/assets",
+            component: AssetManager,
+            meta: {
+                auth: true,
+            },
         },
         {
             path: "/auth",
@@ -33,7 +43,7 @@ const router = new Router({
         },
         {
             path: "/dashboard",
-            component: DashBoard,
+            component: Dashboard,
             meta: {
                 auth: true,
             },
@@ -67,5 +77,3 @@ router.beforeEach((to, from, next) => {
         next();
     }
 });
-
-export default router;

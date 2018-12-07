@@ -1,9 +1,8 @@
-import layerManager from "@/game/layers/manager";
-import Settings from "@/game/settings";
-import store from "@/game/store";
-
 import { Ray, Vector } from "@/game/geom";
 import { Layer } from "@/game/layers/layer";
+import { layerManager } from "@/game/layers/manager";
+import { Settings } from "@/game/settings";
+import { gameStore } from "@/game/store";
 import { g2l, g2lx, g2ly } from "@/game/units";
 
 export class FOWPlayersLayer extends Layer {
@@ -13,7 +12,7 @@ export class FOWPlayersLayer extends Layer {
         if (!this.valid) {
             const ctx = this.ctx;
 
-            if (!store.fowLOS || Settings.skipPlayerFOW) {
+            if (!gameStore.fowLOS || Settings.skipPlayerFOW) {
                 ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
                 this.valid = true;
                 return;
@@ -27,11 +26,11 @@ export class FOWPlayersLayer extends Layer {
 
             // For the DM this is done at the end of this function.  TODO: why the split up ???
             // This was done in commit be1e65cff1e7369375fe11cfa1643fab1d11beab.
-            if (!store.IS_DM) super.draw(!store.fullFOW);
+            if (!gameStore.IS_DM) super.draw(!gameStore.fullFOW);
 
             // Then cut out all the player vision auras
             const maxLength = ctx.canvas.width + ctx.canvas.height;
-            for (const tokenId of store.ownedtokens) {
+            for (const tokenId of gameStore.ownedtokens) {
                 ctx.beginPath();
                 let lastArcAngle = -1;
                 const token = layerManager.UUIDMap.get(tokenId);
@@ -44,7 +43,7 @@ export class FOWPlayersLayer extends Layer {
                     const sin = Math.sin(angle);
                     // Check if there is a hit with one of the nearby light blockers.
                     const lightRay = new Ray(center, new Vector(cos, sin));
-                    const hitResult = store.BV.intersect(lightRay);
+                    const hitResult = gameStore.BV.intersect(lightRay);
 
                     // We can move on to the next angle if nothing was hit.
                     if (!hitResult.hit) {
@@ -73,7 +72,7 @@ export class FOWPlayersLayer extends Layer {
 
             // For the players this is done at the beginning of this function.  TODO: why the split up ???
             // This was done in commit be1e65cff1e7369375fe11cfa1643fab1d11beab.
-            if (store.IS_DM) super.draw(!store.fullFOW);
+            if (gameStore.IS_DM) super.draw(!gameStore.fullFOW);
 
             ctx.globalCompositeOperation = originalOperation;
         }

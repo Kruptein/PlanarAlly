@@ -1,35 +1,53 @@
 <template>
-    <div id="formcontainer">
-        <form v-if="owned || joined">
-            <fieldset>
-                <legend class="legend">Your sessions</legend>
-                <div class="input">
-                    <router-link v-for="(room, i) in owned" :key="'o-'+i" :to="'/game/' + room[1] + '/' + room[0]">{{ room[0] }}</router-link>
-                    <router-link v-for="(room, i) in joined" :key="'j-'+i" :to="'/game/' + room[1] + '/' + room[0]">{{ room[1] }}/{{ room[0] }}</router-link>
-                </div>
-            </fieldset>
-        </form>
-        <h4><span>OR</span></h4>
-        <form @submit.prevent="createRoom">
-            <fieldset>
-                <legend v-if="!owned && !joined" class="legend">Create a session</legend>
-                <div v-else class="input">Create a new session</div>
-                <div class="input">
-                    <input type="text" name="room_name" placeholder="Session Name">
-                    <span><i class="fab fa-d-and-d"></i></span>
-                </div>
-                <button type="submit" class="submit" title="Create"><i class="fas fa-arrow-right"></i></button>
-            </fieldset>
-        </form>
-        <div id="account-options">
-            <form @submit.prevent>
-                <router-link tag="button" class="submit" title="Account Settings" to="/account"><i class="fas fa-cog"></i></router-link>
-            </form>
-            <form @submit.prevent>
-                <router-link tag="button" class="submit" title="Logout" to="/auth/logout"><i class="fas fa-sign-out-alt"></i></router-link>
-            </form>
+  <div id="formcontainer">
+    <form v-if="owned || joined">
+      <fieldset>
+        <legend class="legend">Your sessions</legend>
+        <div class="input">
+          <router-link
+            v-for="(room, i) in owned"
+            :key="'o-'+i"
+            :to="'/game/' + room[1] + '/' + room[0]"
+          >{{ room[0] }}</router-link>
+          <router-link
+            v-for="(room, i) in joined"
+            :key="'j-'+i"
+            :to="'/game/' + room[1] + '/' + room[0]"
+          >{{ room[1] }}/{{ room[0] }}</router-link>
         </div>
+      </fieldset>
+    </form>
+    <h4>
+      <span>OR</span>
+    </h4>
+    <form @submit.prevent="createRoom">
+      <fieldset>
+        <legend v-if="!owned && !joined" class="legend">Create a session</legend>
+        <div v-else class="input">Create a new session</div>
+        <div class="input">
+          <input type="text" name="room_name" placeholder="Session Name">
+          <span>
+            <i class="fab fa-d-and-d"></i>
+          </span>
+        </div>
+        <button type="submit" class="submit" title="Create">
+          <i class="fas fa-arrow-right"></i>
+        </button>
+      </fieldset>
+    </form>
+    <div id="account-options">
+      <form @submit.prevent>
+        <router-link tag="button" class="submit" title="Account Settings" to="/account">
+          <i class="fas fa-cog"></i>
+        </router-link>
+      </form>
+      <form @submit.prevent>
+        <router-link tag="button" class="submit" title="Logout" to="/auth/logout">
+          <i class="fas fa-sign-out-alt"></i>
+        </router-link>
+      </form>
     </div>
+  </div>
 </template>
 
 <script lang="ts">
@@ -40,7 +58,7 @@ import { Route } from "vue-router";
 
 Component.registerHooks(["beforeRouteEnter"]);
 
-@Component
+@Component({})
 export default class Dashboard extends Vue {
     owned = [];
     joined = [];
@@ -64,8 +82,7 @@ export default class Dashboard extends Vue {
 }
 </script>
 
-<style>
-@import url("https://fonts.googleapis.com/css?family=Open+Sans");
+<style scoped>
 * {
     -ms-box-sizing: border-box;
     -moz-box-sizing: border-box;
@@ -74,17 +91,6 @@ export default class Dashboard extends Vue {
     margin: 0;
     padding: 0;
     border: 0;
-}
-
-html,
-body,
-#app {
-    width: 100%;
-    height: 100%;
-    background: url("/static/img/login_background.png") repeat fixed;
-    font-family: "Open Sans", sans-serif;
-    font-weight: 200;
-    display: flex;
 }
 
 a {
@@ -114,11 +120,6 @@ a:only-child {
 }
 
 #formcontainer {
-    /*position: relative;*/
-    /*top: 50%;*/
-    /*width: 250px;*/
-    /*display: table;*/
-    /*margin: -150px auto 0 auto;*/
     margin: auto;
 }
 

@@ -1,22 +1,21 @@
 // import Vuex from "vuex";
 import { Action, getModule, Module, Mutation, VuexModule } from "vuex-module-decorators";
 
-import socket from "@/game/api/socket";
-import BoundingVolume from "@/game/bvh/bvh";
-import layerManager from "@/game/layers/manager";
-import store from "@/store";
-
 import { AssetList } from "@/core/comm/types";
+import { socket } from "@/game/api/socket";
 import { sendClientOptions } from "@/game/api/utils";
+import { BoundingVolume } from "@/game/bvh/bvh";
 import { Note } from "@/game/comm/types/general";
 import { GlobalPoint } from "@/game/geom";
+import { layerManager } from "@/game/layers/manager";
 import { g2l, l2g } from "@/game/units";
+import { rootStore } from "@/store";
 
 export interface GameState {
     boardInitialized: boolean;
 }
 
-@Module({ dynamic: true, store, name: "game", namespaced: true })
+@Module({ dynamic: true, store: rootStore, name: "game", namespaced: true })
 class GameStore extends VuexModule {
     // This is a limited view of selectable layers that is used to generate the layer selection UI and ability to switch layers
     // See the layerManager for proper layer management tools
@@ -57,7 +56,7 @@ class GameStore extends VuexModule {
     movementblockers: string[] = [];
     ownedtokens: string[] = [];
 
-    BV = new BoundingVolume([]);
+    BV = Object.freeze(new BoundingVolume([]));
 
     get selectedLayer() {
         return this.layers[this.selectedLayerIndex];
@@ -100,16 +99,16 @@ class GameStore extends VuexModule {
     }
 
     @Mutation
-    selectLayer(name: string, sync: boolean) {
-        const index = this.layers.indexOf(name);
+    selectLayer(data: { name: string; sync: boolean }) {
+        const index = this.layers.indexOf(data.name);
         if (index >= 0) this.selectedLayerIndex = index;
-        if (sync) socket.emit("Client.ActiveLayer.Set", name);
+        if (data.sync) socket.emit("Client.ActiveLayer.Set", data.name);
     }
 
     @Mutation
-    newNote(note: Note, sync: boolean) {
-        this.notes.push(note);
-        if (sync) socket.emit("Note.New", note);
+    newNote(data: { note: Note; sync: boolean }) {
+        this.notes.push(data.note);
+        if (data.sync) socket.emit("Note.New", data.note);
     }
 
     @Mutation
@@ -130,23 +129,23 @@ class GameStore extends VuexModule {
 
     @Mutation
     recalculateBV() {
-        if (this.boardInitialized) this.BV = new BoundingVolume(this.visionBlockers);
+        if (this.boardInitialized) this.BV = Object.freeze(new BoundingVolume(this.visionBlockers));
     }
 
     @Mutation
-    updateZoom(newZoomValue: number, zoomLocation: GlobalPoint) {
-        if (newZoomValue === this.zoomFactor) return;
-        if (newZoomValue < 0.1) newZoomValue = 0.1;
-        if (newZoomValue > 5) newZoomValue = 5;
+    updateZoom(data: { newZoomValue: number; zoomLocation: GlobalPoint }) {
+        if (data.newZoomValue === this.zoomFactor) return;
+        if (data.newZoomValue < 0.1) data.newZoomValue = 0.1;
+        if (data.newZoomValue > 5) data.newZoomValue = 5;
 
-        const oldLoc = g2l(zoomLocation);
+        const oldLoc = g2l(data.zoomLocation);
 
-        this.zoomFactor = newZoomValue;
+        this.zoomFactor = data.newZoomValue;
 
         const newLoc = l2g(oldLoc);
 
         // Change the pan settings to keep the zoomLocation in the same exact location before and after the zoom.
-        const diff = newLoc.subtract(zoomLocation);
+        const diff = newLoc.subtract(data.zoomLocation);
         this.panX += diff.x;
         this.panY += diff.y;
 
@@ -155,23 +154,23 @@ class GameStore extends VuexModule {
     }
 
     @Mutation
-    setGridColour(colour: string, sync: boolean) {
-        this.gridColour = colour;
+    setGridColour(data: { colour: string; sync: boolean }) {
+        this.gridColour = data.colour;
         layerManager.getGridLayer()!.drawGrid();
-        if (sync) socket.emit("Client.Options.Set", { gridColour: colour });
+        if (data.sync) socket.emit("Client.Options.Set", { gridColour: data.colour });
     }
 
     @Mutation
-    setFOWColour(colour: string, sync: boolean) {
-        this.fowColour = colour;
+    setFOWColour(data: { colour: string; sync: boolean }) {
+        this.fowColour = data.colour;
         layerManager.invalidate();
-        if (sync) socket.emit("Client.Options.Set", { fowColour: colour });
+        if (data.sync) socket.emit("Client.Options.Set", { fowColour: data.colour });
     }
 
     @Mutation
-    setRulerColour(colour: string, sync: boolean) {
-        this.rulerColour = colour;
-        if (sync) socket.emit("Client.Options.Set", { rulerColour: colour });
+    setRulerColour(data: { colour: string; sync: boolean }) {
+        this.rulerColour = data.colour;
+        if (data.sync) socket.emit("Client.Options.Set", { rulerColour: data.colour });
     }
 
     @Mutation
@@ -200,57 +199,57 @@ class GameStore extends VuexModule {
     }
 
     @Mutation
-    setUnitSize(unitSize: number, sync: boolean) {
-        if (this.unitSize !== unitSize) {
-            this.unitSize = unitSize;
+    setUnitSize(data: { unitSize: number; sync: boolean }) {
+        if (this.unitSize !== data.unitSize) {
+            this.unitSize = data.unitSize;
             if (layerManager.getGridLayer() !== undefined) layerManager.getGridLayer()!.drawGrid();
-            if (sync) socket.emit("Location.Options.Set", { unit_size: unitSize });
+            if (data.sync) socket.emit("Location.Options.Set", { unit_size: data.unitSize });
         }
     }
 
     @Mutation
-    setUseGrid(useGrid: boolean, sync: boolean) {
-        if (this.useGrid !== useGrid) {
-            this.useGrid = useGrid;
+    setUseGrid(data: { useGrid: boolean; sync: boolean }) {
+        if (this.useGrid !== data.useGrid) {
+            this.useGrid = data.useGrid;
             const gridLayer = layerManager.getGridLayer()!;
-            if (useGrid) gridLayer.canvas.style.display = "block";
+            if (data.useGrid) gridLayer.canvas.style.display = "block";
             else gridLayer.canvas.style.display = "none";
-            if (sync) socket.emit("Location.Options.Set", { use_grid: useGrid });
+            if (data.sync) socket.emit("Location.Options.Set", { use_grid: data.useGrid });
         }
     }
 
     @Mutation
-    setGridSize(gridSize: number, sync: boolean): void {
-        if (this.gridSize !== gridSize && gridSize > 0) {
-            this.gridSize = gridSize;
+    setGridSize(data: { gridSize: number; sync: boolean }): void {
+        if (this.gridSize !== data.gridSize && data.gridSize > 0) {
+            this.gridSize = data.gridSize;
             const gridLayer = layerManager.getGridLayer();
             if (gridLayer !== undefined) gridLayer.drawGrid();
-            if (sync) socket.emit("Gridsize.Set", gridSize);
+            if (data.sync) socket.emit("Gridsize.Set", data.gridSize);
         }
     }
 
     @Mutation
-    setFullFOW(fullFOW: boolean, sync: boolean) {
-        if (this.fullFOW !== fullFOW) {
-            this.fullFOW = fullFOW;
+    setFullFOW(data: { fullFOW: boolean; sync: boolean }) {
+        if (this.fullFOW !== data.fullFOW) {
+            this.fullFOW = data.fullFOW;
             layerManager.invalidateLight();
-            if (sync) socket.emit("Location.Options.Set", { full_fow: fullFOW });
+            if (data.sync) socket.emit("Location.Options.Set", { full_fow: data.fullFOW });
         }
     }
 
     @Mutation
-    setFOWOpacity(fowOpacity: number, sync: boolean) {
-        this.fowOpacity = fowOpacity;
+    setFOWOpacity(data: { fowOpacity: number; sync: boolean }) {
+        this.fowOpacity = data.fowOpacity;
         layerManager.invalidateLight();
-        if (sync) socket.emit("Location.Options.Set", { fow_opacity: fowOpacity });
+        if (data.sync) socket.emit("Location.Options.Set", { fow_opacity: data.fowOpacity });
     }
 
     @Mutation
-    setLineOfSight(fowLOS: boolean, sync: boolean) {
-        if (this.fowLOS !== fowLOS) {
-            this.fowLOS = fowLOS;
+    setLineOfSight(data: { fowLOS: boolean; sync: boolean }) {
+        if (this.fowLOS !== data.fowLOS) {
+            this.fowLOS = data.fowLOS;
             layerManager.invalidate();
-            if (sync) socket.emit("Location.Options.Set", { fow_los: fowLOS });
+            if (data.sync) socket.emit("Location.Options.Set", { fow_los: data.fowLOS });
         }
     }
 
@@ -260,18 +259,18 @@ class GameStore extends VuexModule {
     }
 
     @Mutation
-    updateNote(note: Note, sync: boolean) {
-        const actualNote = this.notes.find(n => n.uuid === note.uuid);
+    updateNote(data: { note: Note; sync: boolean }) {
+        const actualNote = this.notes.find(n => n.uuid === data.note.uuid);
         if (actualNote === undefined) return;
-        actualNote.title = note.title;
-        actualNote.text = note.text;
-        if (sync) socket.emit("Note.Update", actualNote);
+        actualNote.title = data.note.title;
+        actualNote.text = data.note.text;
+        if (data.sync) socket.emit("Note.Update", actualNote);
     }
 
     @Mutation
-    removeNote(note: Note, sync: boolean) {
-        this.notes = this.notes.filter(n => n.uuid !== note.uuid);
-        if (sync) socket.emit("Note.Remove", note.uuid);
+    removeNote(data: { note: Note; sync: boolean }) {
+        this.notes = this.notes.filter(n => n.uuid !== data.note.uuid);
+        if (data.sync) socket.emit("Note.Remove", data.note.uuid);
     }
 
     @Action
@@ -285,4 +284,4 @@ class GameStore extends VuexModule {
     }
 }
 
-export default getModule(GameStore);
+export const gameStore = getModule(GameStore);

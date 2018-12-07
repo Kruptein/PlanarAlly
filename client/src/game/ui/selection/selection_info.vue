@@ -41,27 +41,43 @@
 
 <script lang="ts">
 import Vue from "vue";
+import Component from "vue-class-component";
 
-import socket from "@/game/api/socket";
-import game from "@/game/game.vue";
-import layerManager from "@/game/layers/manager";
-import Shape from "@/game/shapes/shape";
+import Prompt from "@/core/components/modals/prompt.vue";
 import EditDialog from "@/game/ui/selection/edit_dialog.vue";
 
-export default Vue.extend({
+import { getRef } from "@/core/utils";
+import { socket } from "@/game/api/socket";
+import { EventBus } from "@/game/event-bus";
+import { layerManager } from "@/game/layers/manager";
+import { Shape } from "@/game/shapes/shape";
+
+@Component({
     components: {
         "edit-dialog": EditDialog,
     },
-    data: () => ({
-        shape: <Shape | null>null,
-    }),
-    methods: {
-        openEditDialog() {
-            (<any>this.$refs.editDialog).visible = true;
-        },
-        changeValue(object: Tracker | Aura, redraw: boolean) {
-            if (this.shape === null) return;
-            (<any>game).$refs.prompt.prompt(`New  ${object.name} value:`, `Updating ${object.name}`).then(
+})
+export default class SelectionInfo extends Vue {
+    shape: Shape | null = null;
+
+    mounted() {
+        EventBus.$on("SelectionInfo.Shape.Set", (shape: Shape | null) => {
+            this.shape = shape;
+        });
+    }
+
+    beforeDestroy() {
+        EventBus.$off();
+    }
+
+    openEditDialog() {
+        (<any>this.$refs.editDialog).visible = true;
+    }
+    changeValue(object: Tracker | Aura, redraw: boolean) {
+        if (this.shape === null) return;
+        getRef<Prompt>("prompt")
+            .prompt(`New  ${object.name} value:`, `Updating ${object.name}`)
+            .then(
                 (value: string) => {
                     if (this.shape === null) return;
                     const ogValue = object.value;
@@ -73,9 +89,8 @@ export default Vue.extend({
                 },
                 () => {},
             );
-        },
-    },
-});
+    }
+}
 </script>
 
 <style scoped>

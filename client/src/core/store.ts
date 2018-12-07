@@ -1,13 +1,13 @@
-import store from "@/store";
-
 import { getModule, Module, Mutation, VuexModule } from "vuex-module-decorators";
+
+import { rootStore } from "@/store";
 
 export interface CoreState {
     authenticated: boolean;
     initialized: boolean;
 }
 
-@Module({ dynamic: true, store, name: "core" })
+@Module({ dynamic: true, store: rootStore, name: "core" })
 class CoreStore extends VuexModule {
     authenticated = false;
     initialized = false;
@@ -23,4 +23,4 @@ class CoreStore extends VuexModule {
     }
 }
 
-export default getModule(CoreStore);
+export const coreStore = getModule(CoreStore);

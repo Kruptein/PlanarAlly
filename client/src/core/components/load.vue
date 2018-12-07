@@ -1,14 +1,14 @@
 <template>
-    <div> {{ message }} </div>
+  <div>{{ message }}</div>
 </template>
 
 
 <script lang="ts">
 import Vue from "vue";
+import Component from "vue-class-component";
 
-export default Vue.component("Load", {
-    data: () => ({
-        message: "Loading...",
-    }),
-});
+@Component
+export default class LoadComponent extends Vue {
+    message = "Loading...";
+}
 </script>

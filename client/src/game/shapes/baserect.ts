@@ -1,11 +1,11 @@
-import BoundingRect from "@/game/shapes/boundingrect";
-import Shape from "@/game/shapes/shape";
-import store from "@/game/store";
-
 import { GlobalPoint, LocalPoint, Vector } from "@/game/geom";
+import { BoundingRect } from "@/game/shapes/boundingrect";
+import { Shape } from "@/game/shapes/shape";
+import { gameStore } from "@/game/store";
 import { calculateDelta } from "@/game/ui/tools/utils";
 import { g2lx, g2ly, l2g, l2gx, l2gy } from "@/game/units";
-export default abstract class BaseRect extends Shape {
+
+export abstract class BaseRect extends Shape {
     w: number;
     h: number;
     constructor(topleft: GlobalPoint, w: number, h: number, fillColour?: string, strokeColour?: string, uuid?: string) {
@@ -90,7 +90,7 @@ export default abstract class BaseRect extends Shape {
         return false;
     }
     snapToGrid() {
-        const gs = store.gridSize;
+        const gs = gameStore.gridSize;
         const center = this.center();
         const mx = center.x;
         const my = center.y;
@@ -115,7 +115,7 @@ export default abstract class BaseRect extends Shape {
         this.invalidate(false);
     }
     resizeToGrid() {
-        const gs = store.gridSize;
+        const gs = gameStore.gridSize;
         this.refPoint.x = Math.round(this.refPoint.x / gs) * gs;
         this.refPoint.y = Math.round(this.refPoint.y / gs) * gs;
         this.w = Math.max(Math.round(this.w / gs) * gs, gs);
@@ -123,7 +123,7 @@ export default abstract class BaseRect extends Shape {
         this.invalidate(false);
     }
     resize(resizedir: string, point: LocalPoint) {
-        const z = store.zoomFactor;
+        const z = gameStore.zoomFactor;
         if (resizedir === "nw") {
             this.w = g2lx(this.refPoint.x) + this.w * z - point.x;
             this.h = g2ly(this.refPoint.y) + this.h * z - point.y;

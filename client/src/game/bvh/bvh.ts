@@ -1,9 +1,8 @@
-import layerManager from "@/game/layers/manager";
-import BoundingRect from "@/game/shapes/boundingrect";
-
 import { partition } from "@/core/utils";
 import { BoundingNode, InteriorNode, LeafNode } from "@/game/bvh/node";
 import { GlobalPoint, Ray } from "@/game/geom";
+import { layerManager } from "@/game/layers/manager";
+import { BoundingRect } from "@/game/shapes/boundingrect";
 import { g2lx, g2ly, g2lz } from "@/game/units";
 
 interface BuildInfo {
@@ -23,7 +22,7 @@ interface LinearInternalNode extends LinearBHVNode {
     dimension: number;
 }
 
-class BoundingVolume {
+export class BoundingVolume {
     totalNodes = 0;
     buildData: BuildInfo[] = [];
     shapes: string[];
@@ -80,7 +79,7 @@ class BoundingVolume {
                 this.buildData.slice(start, end),
                 (n: BuildInfo) => n.center.center().get(dimension) < pMid,
             );
-            const flattened = [].concat.apply([], partitionedData);
+            const flattened = (<BuildInfo[]>[]).concat.apply([], partitionedData);
             if (partitionedData[0].length === 0 || partitionedData[1].length === 0) console.log("EMPTY");
             this.buildData.splice(start, flattened.length, ...flattened);
             const mid = partitionedData[0].length + start;
@@ -170,5 +169,3 @@ class BoundingVolume {
         return new LeafNode(size, nPrimitives, bbox);
     }
 }
-
-export default BoundingVolume;

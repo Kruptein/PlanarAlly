@@ -1,28 +1,26 @@
-<template>
-</template>
+<template></template>
 
 <script lang="ts">
 import Vue from "vue";
-export default Vue.component("tool", {
-    data: () => ({
-        name: "",
-        selected: false,
-        active: false,
-    }),
-    computed: {
-        detailRight(): string {
-            const rect = (<any>this.$parent.$refs[this.name + "-selector"])[0].getBoundingClientRect();
-            const mid = rect.left + rect.width / 2;
+import Component from "vue-class-component";
 
-            return `${window.innerWidth - Math.min(window.innerWidth - 25, mid + 75)}px`;
-        },
-        detailArrow(): string {
-            const rect = (<any>this.$parent.$refs[this.name + "-selector"])[0].getBoundingClientRect();
-            const mid = rect.left + rect.width / 2;
-            const right = Math.min(window.innerWidth - 25, mid + 75);
-            return `${right - mid - 14}px`; // border width
-        },
-    },
+@Component
+export default class Tool extends Vue {
+    name = "";
+    selected = false;
+    active = false;
+    get detailRight(): string {
+        const rect = (<any>this.$parent.$refs[this.name + "-selector"])[0].getBoundingClientRect();
+        const mid = rect.left + rect.width / 2;
+
+        return `${window.innerWidth - Math.min(window.innerWidth - 25, mid + 75)}px`;
+    }
+    get detailArrow(): string {
+        const rect = (<any>this.$parent.$refs[this.name + "-selector"])[0].getBoundingClientRect();
+        const mid = rect.left + rect.width / 2;
+        const right = Math.min(window.innerWidth - 25, mid + 75);
+        return `${right - mid - 14}px`; // border width
+    }
     created() {
         this.$parent.$on("mousedown", (event: MouseEvent, tool: string) => {
             if (tool === this.name) this.onMouseDown(event);
@@ -45,16 +43,14 @@ export default Vue.component("tool", {
                 this.onSelect();
             }
         });
-    },
-    methods: {
-        onSelect() {},
-        onDeselect() {},
-        onMouseDown(event: MouseEvent) {},
-        onMouseUp(event: MouseEvent) {},
-        onMouseMove(event: MouseEvent) {},
-        onContextMenu(event: MouseEvent) {},
-    },
-});
+    }
+    onSelect() {}
+    onDeselect() {}
+    onMouseDown(event: MouseEvent) {}
+    onMouseUp(event: MouseEvent) {}
+    onMouseMove(event: MouseEvent) {}
+    onContextMenu(event: MouseEvent) {}
+}
 </script>
 
 <style>

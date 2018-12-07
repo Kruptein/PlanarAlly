@@ -1,12 +1,11 @@
-import BaseRect from "@/game/shapes/baserect";
-import store from "@/game/store";
-
 import { InitiativeData } from "@/game/comm/types/general";
 import { ServerAsset } from "@/game/comm/types/shapes";
 import { GlobalPoint } from "@/game/geom";
+import { BaseRect } from "@/game/shapes/baserect";
+import { gameStore } from "@/game/store";
 import { g2lx, g2ly, g2lz } from "@/game/units";
 
-export default class Asset extends BaseRect {
+export class Asset extends BaseRect {
     type = "assetrect";
     img: HTMLImageElement;
     src: string = "";
@@ -35,7 +34,7 @@ export default class Asset extends BaseRect {
     getInitiativeRepr(): InitiativeData {
         return {
             uuid: this.uuid,
-            visible: !store.IS_DM,
+            visible: !gameStore.IS_DM,
             group: false,
             source: this.src,
             has_img: true,

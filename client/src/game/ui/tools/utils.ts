@@ -1,8 +1,7 @@
-import layerManager from "@/game/layers/manager";
-import Shape from "@/game/shapes/shape";
-import store from "@/game/store";
-
 import { Ray, Vector } from "@/game/geom";
+import { layerManager } from "@/game/layers/manager";
+import { Shape } from "@/game/shapes/shape";
+import { gameStore } from "@/game/store";
 
 // First go through each shape in the selection and see if the delta has to be truncated due to movement blockers
 
@@ -13,7 +12,7 @@ export function calculateDelta(delta: Vector, sel: Shape, done?: string[]) {
     const ogSelBBox = sel.getBoundingBox();
     const newSelBBox = ogSelBBox.offset(delta);
     let refine = false;
-    for (const movementBlocker of store.movementblockers) {
+    for (const movementBlocker of gameStore.movementblockers) {
         if (done.includes(movementBlocker)) continue;
         const blocker = layerManager.UUIDMap.get(movementBlocker)!;
         const blockerBBox = blocker.getBoundingBox();

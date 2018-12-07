@@ -1,15 +1,25 @@
 <template>
-    <div class='ContextMenu' tabindex="-1" v-if="visible" :style="{left:left, top:top}" @blur="$emit('close')">
-        <ul>
-            <slot></slot>
-        </ul>
-    </div>
+  <div
+    class="ContextMenu"
+    tabindex="-1"
+    v-if="visible"
+    :style="{left:left, top:top}"
+    @blur="$emit('close')"
+  >
+    <ul>
+      <slot></slot>
+    </ul>
+  </div>
 </template>
 
-<script>
-export default {
+<script lang="ts">
+import Vue from "vue";
+import Component from "vue-class-component";
+
+@Component({
     props: ["visible", "left", "top"],
-};
+})
+export default class ContextMenu extends Vue {}
 </script>
 
 <style>

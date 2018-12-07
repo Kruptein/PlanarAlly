@@ -1,12 +1,13 @@
-import game from "@/game/game.vue";
-import layerManager from "@/game/layers/manager";
-import store from "@/game/store";
-import AnnotationManager from "@/game/ui/annotation";
+import Initiative from "./ui/initiative.vue";
 
+import { getRef } from "@/core/utils";
 import { sendClientOptions } from "@/game/api/utils";
 import { ServerShape } from "@/game/comm/types/shapes";
 import { GlobalPoint } from "@/game/geom";
+import { layerManager } from "@/game/layers/manager";
 import { createShapeFromDict } from "@/game/shapes/utils";
+import { gameStore } from "@/game/store";
+import { AnnotationManager } from "@/game/ui/annotation";
 import { g2l } from "@/game/units";
 
 export class GameManager {
@@ -49,20 +50,19 @@ export class GameManager {
         shape.checkVisionSources();
         shape.setMovementBlock(shape.movementObstruction);
         shape.setIsToken(shape.isToken);
-        if (data.move && shape.visionObstruction) store.recalculateBV();
+        if (data.move && shape.visionObstruction) gameStore.recalculateBV();
         if (data.redraw) layerManager.getLayer(data.shape.layer)!.invalidate(false);
-        if (redrawInitiative) (<any>game).$refs.initiative.$forceUpdate();
+        if (redrawInitiative) getRef<Initiative>("initiative").$forceUpdate();
     }
 
     setCenterPosition(position: GlobalPoint) {
         const localPos = g2l(position);
-        // store.commit("increasePanX", (window.innerWidth / 2 - localPos.x) / store.state.game.zoomFactor);
-        // store.commit("increasePanY", (window.innerHeight / 2 - localPos.y) / store.state.game.zoomFactor);
+        gameStore.increasePanX((window.innerWidth / 2 - localPos.x) / gameStore.zoomFactor);
+        gameStore.increasePanY((window.innerHeight / 2 - localPos.y) / gameStore.zoomFactor);
         layerManager.invalidate();
         sendClientOptions();
     }
 }
 
-const gameManager = new GameManager();
+export const gameManager = new GameManager();
 (<any>window).gameManager = gameManager;
-export default gameManager;

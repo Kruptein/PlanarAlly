@@ -135,137 +135,151 @@
 
 <script lang="ts">
 import Vue from "vue";
+import Component from "vue-class-component";
 
 import { mapState } from "vuex";
 
-import colorpicker from "@/core/components/colorpicker.vue";
-import socket from "@/game/api/socket";
-import game from "@/game/game.vue";
-import Settings from "@/game/settings";
-import assetNode from "./asset_node.vue";
+import ColorPicker from "@/core/components/colorpicker.vue";
+import Prompt from "@/core/components/modals/prompt.vue";
+import AssetNode from "@/game/ui/menu/asset_node.vue";
+import NoteDialog from "@/game/ui/note.vue";
 
-import { uuidv4 } from "@/core/utils";
+import { getRef, uuidv4 } from "@/core/utils";
+import { socket } from "@/game/api/socket";
 import { Note } from "@/game/comm/types/general";
+import { gameStore } from "@/game/store";
 
-export default Vue.component("menu-bar", {
+@Component({
     components: {
-        "color-picker": colorpicker,
-        "asset-node": assetNode,
+        "color-picker": ColorPicker,
+        "asset-node": AssetNode,
     },
-    data: () => ({
-        visible: {
-            settings: false,
-            locations: false,
-        },
-    }),
     computed: {
         ...mapState("game", ["invitationCode", "IS_DM", "locations", "assets", "notes"]),
-        useGrid: {
-            get(): boolean {
-                return this.$store.state.game.useGrid;
-            },
-            set(value: boolean) {
-                this.$store.commit("setUseGrid", { useGrid: value, sync: true });
-            },
-        },
-        fullFOW: {
-            get(): boolean {
-                return this.$store.state.game.fullFOW;
-            },
-            set(value: boolean) {
-                this.$store.commit("setFullFOW", { fullFOW: value, sync: true });
-            },
-        },
-        fowOpacity: {
-            get(): number {
-                return this.$store.state.game.fowOpacity;
-            },
-            set(value: number) {
-                if (typeof value !== "number") return;
-                this.$store.commit("setFOWOpacity", { fowOpacity: value, sync: true });
-            },
-        },
-        fowLOS: {
-            get(): boolean {
-                return this.$store.state.game.fowLOS;
-            },
-            set(value: boolean) {
-                this.$store.commit("setLineOfSight", { fowLOS: value, sync: true });
-            },
-        },
-        unitSize: {
-            get(): number {
-                return this.$store.state.game.unitSize;
-            },
-            set(value: number) {
-                if (typeof value !== "number") return;
-                this.$store.commit("setUnitSize", { unitSize: value, sync: true });
-            },
-        },
-        gridSize: {
-            get(): number {
-                return this.$store.state.game.gridSize;
-            },
-            set(value: number) {
-                if (typeof value !== "number") return;
-                this.$store.commit("setGridSize", { gridSize: value, sync: true });
-            },
-        },
-        gridColour: {
-            get(): string {
-                return this.$store.state.game.gridColour;
-            },
-            set(value: string) {
-                this.$store.commit("setGridColour", { colour: value, sync: true });
-            },
-        },
-        fowColour: {
-            get(): string {
-                return this.$store.state.game.fowColour;
-            },
-            set(value: string) {
-                this.$store.commit("setFOWColour", { colour: value, sync: true });
-            },
-        },
-        rulerColour: {
-            get(): string {
-                return this.$store.state.game.rulerColour;
-            },
-            set(value: string) {
-                this.$store.commit("setRulerColour", { colour: value, sync: true });
-            },
-        },
     },
-    methods: {
-        settingsClick(event: { target: HTMLElement }) {
-            if (event.target.classList.contains("accordion")) {
-                event.target.classList.toggle("accordion-active");
-                const next = <HTMLElement>event.target.nextElementSibling!;
-                next.style.display = next.style.display === "" ? "block" : "";
-            }
-        },
-        changeLocation(name: string) {
-            socket.emit("Location.Change", name);
-        },
-        createLocation() {
-            (<any>game).$refs.prompt.prompt(`New location name:`, `Create new location`).then(
+})
+export default class MenuBar extends Vue {
+    visible = {
+        settings: false,
+        locations: false,
+    };
+
+    get useGrid(): boolean {
+        return gameStore.useGrid;
+    }
+    set useGrid(value: boolean) {
+        gameStore.setUseGrid({ useGrid: value, sync: true });
+    }
+    get fullFOW(): boolean {
+        return gameStore.fullFOW;
+    }
+    set fullFOW(value: boolean) {
+        gameStore.setFullFOW({ fullFOW: value, sync: true });
+    }
+    get fowOpacity(): number {
+        return gameStore.fowOpacity;
+    }
+    set fowOpacity(value: number) {
+        if (typeof value !== "number") return;
+        gameStore.setFOWOpacity({ fowOpacity: value, sync: true });
+    }
+    get fowLOS(): boolean {
+        return gameStore.fowLOS;
+    }
+    set fowLOS(value: boolean) {
+        gameStore.setLineOfSight({ fowLOS: value, sync: true });
+    }
+    get unitSize(): number {
+        return gameStore.unitSize;
+    }
+    set unitSize(value: number) {
+        if (typeof value !== "number") return;
+        gameStore.setUnitSize({ unitSize: value, sync: true });
+    }
+    get gridSize(): number {
+        return gameStore.gridSize;
+    }
+    set gridSize(value: number) {
+        if (typeof value !== "number") return;
+        gameStore.setGridSize({ gridSize: value, sync: true });
+    }
+    get gridColour(): string {
+        return gameStore.gridColour;
+    }
+    set gridColour(value: string) {
+        gameStore.setGridColour({ colour: value, sync: true });
+    }
+    get fowColour(): string {
+        return gameStore.fowColour;
+    }
+    set fowColour(value: string) {
+        gameStore.setFOWColour({ colour: value, sync: true });
+    }
+    get rulerColour(): string {
+        return gameStore.rulerColour;
+    }
+    set rulerColour(value: string) {
+        gameStore.setRulerColour({ colour: value, sync: true });
+    }
+    settingsClick(event: { target: HTMLElement }) {
+        if (event.target.classList.contains("accordion")) {
+            event.target.classList.toggle("accordion-active");
+            const next = <HTMLElement>event.target.nextElementSibling!;
+            next.style.display = next.style.display === "" ? "block" : "";
+        }
+    }
+    changeLocation(name: string) {
+        socket.emit("Location.Change", name);
+    }
+    createLocation() {
+        getRef<Prompt>("prompt")
+            .prompt(`New location name:`, `Create new location`)
+            .then(
                 (value: string) => {
                     socket.emit("Location.New", value);
                 },
                 () => {},
             );
-        },
-        createNote() {
-            const note = { title: "New note", text: "", uuid: uuidv4() };
-            this.$store.commit("newNote", { note, sync: true });
-            this.openNote(note);
-        },
-        openNote(note: Note) {
-            (<any>game).$refs.note.open(note);
-        },
-    },
-});
+    }
+    createNote() {
+        const note = { title: "New note", text: "", uuid: uuidv4() };
+        gameStore.newNote({ note, sync: true });
+        this.openNote(note);
+    }
+    openNote(note: Note) {
+        getRef<NoteDialog>("note").open(note);
+    }
+}
 </script>
+
+
+<style>
+/*
+DIRECTORY.CSS changes
+
+* Collapse all folders by default, use js to toggle visibility on click.
+* On hover over folder show some visual feedback
+* On hover over file show the image
+
+*/
+.folder > * {
+    display: none;
+}
+
+.directory > .folder,
+.directory > .file {
+    display: block;
+}
+
+.folder:hover {
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.folder:hover > * {
+    font-weight: normal;
+}
+</style>
 
 <style scoped>
 #menuContainer {
@@ -327,6 +341,164 @@ export default Vue.component("menu-bar", {
     margin: 5px;
     margin-right: 10px;
     padding: 0;
+}
+
+.accordion {
+    background-color: #eee;
+    color: #444;
+    cursor: pointer;
+    padding: 18px;
+    text-align: left;
+    border: none;
+    outline: none;
+    transition: 0.4s;
+    border-top: solid 1px #82c8a0;
+    width: 100%;
+    width: -moz-available;
+    width: -webkit-fill-available;
+    width: stretch;
+}
+
+.accordion-active,
+.accordion:hover {
+    background-color: #82c8a0;
+}
+
+.accordion-panel {
+    background-color: white;
+    display: none;
+    overflow: hidden;
+    min-height: 2em;
+}
+
+.accordion-subpanel {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+}
+
+.accordion-subpanel > * {
+    padding: 5px;
+    display: flex;
+    justify-content: space-evenly;
+    align-items: center;
+}
+
+.accordion-subpanel > *:hover {
+    background-color: #82c8a0;
+}
+
+#exitButton {
+    position: fixed;
+    bottom: 0px;
+    width: 100%;
+}
+
+#radialmenu {
+    position: absolute;
+    z-index: 20;
+    width: 0;
+    height: 0;
+    pointer-events: auto;
+}
+
+/* The svg is added by Font Awesome */
+
+.rm-list-dm #rm-locations svg {
+    margin-left: 50px;
+}
+
+.rm-list-dm #rm-settings svg {
+    margin-bottom: 50px;
+}
+
+/* https://codepen.io/jonigiuro/pen/kclIu/ */
+
+.rm-wrapper {
+    position: relative;
+    width: 200px;
+    height: 200px;
+    top: -100px;
+    left: -100px;
+}
+
+.rm-wrapper .rm-topper {
+    pointer-events: none;
+    text-align: center;
+    line-height: 50px;
+    font-size: 25px;
+}
+
+.rm-wrapper .rm-toggler,
+.rm-wrapper .rm-topper {
+    display: block;
+    position: absolute;
+    width: 50px;
+    height: 50px;
+    left: 50%;
+    top: 50%;
+    margin-left: -25px;
+    margin-top: -25px;
+    background: #fa5a5a;
+    color: white;
+    border-radius: 50%;
+}
+
+.rm-wrapper .rm-toggler .rm-list,
+.rm-wrapper .rm-topper .rm-list {
+    opacity: 0.5;
+    list-style: none;
+    padding: 0;
+    width: 200px;
+    height: 200px;
+    overflow: hidden;
+    display: block;
+    border-radius: 50%;
+    transform: rotate(180deg);
+    box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.2);
+    margin: -75px 0 0 -75px;
+}
+
+.rm-list-dm {
+    transform: rotate(135deg) !important; /* total deg: 135 */
+}
+
+.rm-wrapper .rm-toggler:hover .rm-list,
+.rm-wrapper .rm-topper:hover .rm-list {
+    opacity: 1;
+}
+
+.rm-wrapper .rm-toggler .rm-list .rm-item,
+.rm-wrapper .rm-topper .rm-list .rm-item {
+    display: table;
+    width: 50%;
+    height: 50%;
+    float: left;
+    text-align: center;
+    box-shadow: inset 0 0 2px 0 rgba(0, 0, 0, 0.2);
+    background-color: white;
+}
+
+.rm-wrapper .rm-toggler .rm-list .rm-item:hover,
+.rm-wrapper .rm-topper .rm-list .rm-item:hover {
+    background-color: #82c8a0;
+}
+
+.rm-wrapper .rm-toggler .rm-list .rm-item:hover a,
+.rm-wrapper .rm-topper .rm-list .rm-item:hover a {
+    color: white;
+}
+
+.rm-wrapper .rm-toggler .rm-list .rm-item a,
+.rm-wrapper .rm-topper .rm-list .rm-item a {
+    display: table-cell;
+    vertical-align: middle;
+    transform: rotate(-45deg);
+    text-decoration: none;
+    font-size: 25px;
+    color: #82c8a0;
+    border: none;
+    outline: none;
 }
 
 .settings-enter-active,

@@ -1,21 +1,13 @@
-import socket from "@/game/api/socket";
-import layerManager from "@/game/layers/manager";
-import gameManager from "@/game/manager";
-import store from "@/game/store";
-
 import { AssetList } from "@/core/comm/types";
-import { getRef } from "@/core/utils";
-import {
-    BoardInfo,
-    InitiativeData,
-    InitiativeEffect,
-    Note,
-    ServerClient,
-    ServerLocation,
-} from "@/game/comm/types/general";
+import { socket } from "@/game/api/socket";
+import { BoardInfo, Note, ServerClient, ServerLocation } from "@/game/comm/types/general";
 import { ServerShape } from "@/game/comm/types/shapes";
+import { EventBus } from "@/game/event-bus";
 import { GlobalPoint } from "@/game/geom";
+import { layerManager } from "@/game/layers/manager";
 import { createLayer } from "@/game/layers/utils";
+import { gameManager } from "@/game/manager";
+import { gameStore } from "@/game/store";
 
 socket.on("connect", () => {
     console.log("Connected");
@@ -28,56 +20,56 @@ socket.on("redirect", (destination: string) => {
     window.location.href = destination;
 });
 socket.on("Room.Info.Set", (data: { name: string; creator: string; invitationCode: string }) => {
-    store.setRoomName(data.name);
-    store.setRoomCreator(data.creator);
-    store.setInvitationCode(data.invitationCode);
+    gameStore.setRoomName(data.name);
+    gameStore.setRoomCreator(data.creator);
+    gameStore.setInvitationCode(data.invitationCode);
 });
 socket.on("Username.Set", (username: string) => {
-    store.setUsername(username);
-    store.setDM(true);
-    // store.setDM", username === window.location.pathname.split("/")[2]);
+    gameStore.setUsername(username);
+    gameStore.setDM(true);
+    // gameStore.setDM", username === window.location.pathname.split("/")[2]);
 });
 socket.on("Client.Options.Set", (options: ServerClient) => {
-    store.setGridColour(options.grid_colour, false);
-    store.setFOWColour(options.fow_colour, false);
-    store.setRulerColour(options.ruler_colour, false);
-    store.setPanX(options.pan_x);
-    store.setPanY(options.pan_y);
-    store.setZoomFactor(options.zoom_factor);
+    gameStore.setGridColour({ colour: options.grid_colour, sync: false });
+    gameStore.setFOWColour({ colour: options.fow_colour, sync: false });
+    gameStore.setRulerColour({ colour: options.ruler_colour, sync: false });
+    gameStore.setPanX(options.pan_x);
+    gameStore.setPanY(options.pan_y);
+    gameStore.setZoomFactor(options.zoom_factor);
     if (options.active_layer) layerManager.selectLayer(options.active_layer, false);
     if (layerManager.getGridLayer() !== undefined) layerManager.getGridLayer()!.invalidate();
 });
 socket.on("Location.Set", (data: Partial<ServerLocation>) => {
-    if (data.name !== undefined) store.setLocationName(data.name);
-    if (data.unit_size !== undefined) store.setUnitSize(data.unit_size, false);
-    if (data.use_grid !== undefined) store.setUseGrid(data.use_grid, false);
-    if (data.full_fow !== undefined) store.setFullFOW(data.full_fow, false);
-    if (data.fow_opacity !== undefined) store.setFOWOpacity(data.fow_opacity, false);
-    if (data.fow_los !== undefined) store.setLineOfSight(data.fow_los, false);
+    if (data.name !== undefined) gameStore.setLocationName(data.name);
+    if (data.unit_size !== undefined) gameStore.setUnitSize({ unitSize: data.unit_size, sync: false });
+    if (data.use_grid !== undefined) gameStore.setUseGrid({ useGrid: data.use_grid, sync: false });
+    if (data.full_fow !== undefined) gameStore.setFullFOW({ fullFOW: data.full_fow, sync: false });
+    if (data.fow_opacity !== undefined) gameStore.setFOWOpacity({ fowOpacity: data.fow_opacity, sync: false });
+    if (data.fow_los !== undefined) gameStore.setLineOfSight({ fowLOS: data.fow_los, sync: false });
 });
 socket.on("Position.Set", (data: { x: number; y: number }) => {
     gameManager.setCenterPosition(new GlobalPoint(data.x, data.y));
 });
 socket.on("Notes.Set", (notes: Note[]) => {
-    for (const note of notes) store.newNote(note, false);
+    for (const note of notes) gameStore.newNote({ note, sync: false });
 });
 socket.on("Asset.List.Set", (assets: AssetList) => {
-    store.setAssets(assets);
+    gameStore.setAssets(assets);
 });
 socket.on("Board.Set", (locationInfo: BoardInfo) => {
-    store.clear();
-    store.setLocations(locationInfo.locations);
+    gameStore.clear();
+    gameStore.setLocations(locationInfo.locations);
     document.getElementById("layers")!.innerHTML = "";
-    store.resetLayerInfo();
+    gameStore.resetLayerInfo();
     for (const layer of locationInfo.layers) createLayer(layer);
     // Force the correct opacity render on other layers.
     layerManager.selectLayer(layerManager.getLayer()!.name, false);
-    getRef("initiative").clear();
-    store.setBoardInitialized(true);
-    store.recalculateBV();
+    EventBus.$emit("Initiative.Clear");
+    gameStore.setBoardInitialized(true);
+    gameStore.recalculateBV();
 });
 socket.on("Gridsize.Set", (gridSize: number) => {
-    store.setGridSize(gridSize, false);
+    gameStore.setGridSize({ gridSize, sync: false });
 });
 socket.on("Shape.Add", (shape: ServerShape) => {
     gameManager.addShape(shape);
@@ -115,24 +107,6 @@ socket.on("Shape.Layer.Change", (data: { uuid: string; layer: string }) => {
 });
 socket.on("Shape.Update", (data: { shape: ServerShape; redraw: boolean; move: boolean }) => {
     gameManager.updateShape(data);
-});
-socket.on("Initiative.Set", (data: InitiativeData[]) => {
-    getRef("initiative").data = data.filter(d => !!d);
-});
-socket.on("Initiative.Turn.Update", (data: string) => {
-    getRef("initiative").setTurn(data, false);
-});
-socket.on("Initiative.Round.Update", (data: number) => {
-    getRef("initiative").setRound(data, false);
-});
-socket.on("Initiative.Effect.New", (data: { actor: string; effect: InitiativeEffect }) => {
-    const initiative = getRef("initiative");
-    const actor = initiative.getActor(data.actor);
-    if (actor === undefined) return;
-    initiative.createEffect(actor, data.effect, false);
-});
-socket.on("Initiative.Effect.Update", (data: { actor: string; effect: InitiativeEffect }) => {
-    getRef("initiative").updateEffect(data.actor, data.effect, false);
 });
 socket.on("Temp.Clear", (shapes: ServerShape[]) => {
     shapes.forEach(shape => {

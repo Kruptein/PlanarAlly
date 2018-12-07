@@ -1,9 +1,18 @@
-import * as io from "socket.io-client";
+import io from "socket.io-client";
 
-import { Asset } from "../core/comm/types";
-import vm from "./assets";
+import { AssetManager } from "@/assetManager/assets";
+import { Asset } from "@/core/comm/types";
+import { getComponent } from "@/core/utils";
 
-const socket = io.connect(location.protocol + "//" + location.host + "/pa_assetmgmt");
+export const socket = io(location.protocol + "//" + location.host + "/pa_assetmgmt", { autoConnect: false });
+let vm: AssetManager;
+
+export function createConnection() {
+    socket.connect();
+    vm = getComponent<AssetManager>();
+}
+
+// export const socket = io.connect(location.protocol + "//" + location.host + "/pa_assetmgmt");
 socket.on("connect", () => {
     console.log("Connected");
 });
@@ -39,5 +48,3 @@ socket.on("Asset.Upload.Finish", (asset: Asset) => {
     vm.idMap.set(asset.id, asset);
     vm.files.push(asset.id);
 });
-
-export default socket;

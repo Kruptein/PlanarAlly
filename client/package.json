@@ -23,7 +23,6 @@
     "vue": "^2.5.17",
     "vue-class-component": "^6.0.0",
     "vue-color": "^2.7.0",
-    "vue-property-decorator": "^7.0.0",
     "vue-router": "^3.0.1",
     "vue-slider-component": "^2.8.2",
     "vuedraggable": "^2.16.0",
@@ -42,7 +41,8 @@
     "sass-loader": "^7.0.1",
     "tslint": "^5.11.0",
     "tslint-config-prettier": "^1.16.0",
-    "typescript": "^3.0.0",
+    "typescript": "^3.2.1",
+    "vue-property-decorator": "^7.2.0",
     "vue-template-compiler": "^2.5.17",
     "vuex-module-decorators": "^0.9.1"
   }

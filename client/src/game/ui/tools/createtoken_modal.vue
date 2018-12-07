@@ -29,101 +29,105 @@
 <script lang="ts">
 import * as tinycolor from "tinycolor2";
 import Vue from "vue";
+import Component from "vue-class-component";
 
 import { mapState } from "vuex";
 
-import colorpicker from "@/core/components/colorpicker.vue";
-import modal from "@/core/components/modals/modal.vue";
-import layerManager from "@/game/layers/manager";
-import Settings from "@/game/settings";
-import CircularToken from "@/game/shapes/circulartoken";
+import ColorPicker from "@/core/components/colorpicker.vue";
+import Modal from "@/core/components/modals/modal.vue";
 
 import { calcFontScale } from "@/core/utils";
 import { LocalPoint } from "@/game/geom";
+import { layerManager } from "@/game/layers/manager";
+import { CircularToken } from "@/game/shapes/circulartoken";
+import { gameStore } from "@/game/store";
 import { getUnitDistance, l2g } from "@/game/units";
+import { Watch } from "vue-property-decorator";
 
-export default Vue.component("createtoken-modal", {
+@Component({
     components: {
-        modal,
-        "color-picker": colorpicker,
+        Modal,
+        "color-picker": ColorPicker,
     },
-    data: () => ({
-        x: 0,
-        y: 0,
-        visible: false,
-        text: "X",
-        fillColour: "rgba(255, 255, 255, 1)",
-        borderColour: "rgba(0, 0, 0, 1)",
-    }),
     computed: {
         ...mapState("game", ["unitSize"]),
     },
-    watch: {
-        text(newValue, oldValue) {
-            this.updatePreview();
-        },
-        fillColour(newValue, oldValue) {
-            this.updatePreview();
-        },
-        borderColour(newValue, oldValue) {
-            this.updatePreview();
-        },
-    },
+})
+export default class CreateTokenModal extends Vue {
+    x = 0;
+    y = 0;
+    visible = false;
+    text = "X";
+    fillColour = "rgba(255, 255, 255, 1)";
+    borderColour = "rgba(0, 0, 0, 1)";
+
     mounted() {
         this.updatePreview();
-    },
-    methods: {
-        open(x: number, y: number) {
-            this.visible = true;
-            this.x = x;
-            this.y = y;
-        },
-        submit() {
-            const layer = layerManager.getLayer();
-            if (layer === undefined) return;
-            const token = new CircularToken(
-                l2g(new LocalPoint(this.x, this.y)),
-                getUnitDistance(this.unitSize / 2),
-                this.text,
-                "10px serif",
-                this.fillColour,
-                this.borderColour,
-            );
-            token.owners.push(this.$store.state.username);
-            layer.addShape(token, true);
-            layer.invalidate(false);
-            this.visible = false;
-        },
-        updatePreview() {
-            const ctx = (<HTMLCanvasElement>this.$refs.canvas).getContext("2d")!;
-            ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+    }
+
+    @Watch("text")
+    onTextChange(newValue: string, oldValue: string) {
+        this.updatePreview();
+    }
+    @Watch("fillColour")
+    onFillChange(newValue: string, oldValue: string) {
+        this.updatePreview();
+    }
+    @Watch("borderColour")
+    onBorderChange(newValue: string, oldValue: string) {
+        this.updatePreview();
+    }
+
+    open(x: number, y: number) {
+        this.visible = true;
+        this.x = x;
+        this.y = y;
+    }
+    submit() {
+        const layer = layerManager.getLayer();
+        if (layer === undefined) return;
+        const token = new CircularToken(
+            l2g(new LocalPoint(this.x, this.y)),
+            getUnitDistance(gameStore.unitSize / 2),
+            this.text,
+            "10px serif",
+            this.fillColour,
+            this.borderColour,
+        );
+        token.owners.push(gameStore.username);
+        layer.addShape(token, true);
+        layer.invalidate(false);
+        this.visible = false;
+    }
+    updatePreview() {
+        const ctx = (<HTMLCanvasElement>this.$refs.canvas).getContext("2d")!;
+        ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+        ctx.beginPath();
+        const dest = { x: ctx.canvas.width / 2, y: ctx.canvas.height / 2 };
+        const r = Math.min(dest.x, dest.y) * 0.9;
+
+        ctx.fillStyle = this.fillColour;
+
+        ctx.arc(dest.x, dest.y, r, 0, 2 * Math.PI);
+        ctx.fill();
+        if (this.borderColour !== "rgba(0, 0, 0, 0)") {
             ctx.beginPath();
-            const dest = { x: ctx.canvas.width / 2, y: ctx.canvas.height / 2 };
-            const r = Math.min(dest.x, dest.y) * 0.9;
-
-            ctx.fillStyle = this.fillColour;
-
+            ctx.lineWidth = 5;
+            ctx.strokeStyle = this.borderColour;
             ctx.arc(dest.x, dest.y, r, 0, 2 * Math.PI);
-            ctx.fill();
-            if (this.borderColour !== "rgba(0, 0, 0, 0)") {
-                ctx.beginPath();
-                ctx.lineWidth = 5;
-                ctx.strokeStyle = this.borderColour;
-                ctx.arc(dest.x, dest.y, r, 0, 2 * Math.PI);
-                ctx.stroke();
-            }
-            ctx.save();
-            ctx.textAlign = "center";
-            ctx.textBaseline = "middle";
-            const xs = calcFontScale(ctx, this.text, r, r);
-            const ys = 0;
-            ctx.transform(xs, ys, -ys, xs, dest.x, dest.y);
-            ctx.fillStyle = tinycolor.mostReadable(this.fillColour, ["#000", "#fff"]).toHexString();
-            ctx.fillText(this.text, 0, 0);
-            ctx.restore();
-        },
-    },
-});
+            ctx.stroke();
+        }
+        ctx.save();
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        const xs = calcFontScale(ctx, this.text, r, r);
+        const ys = 0;
+        ctx.transform(xs, ys, -ys, xs, dest.x, dest.y);
+        ctx.fillStyle = tinycolor.mostReadable(this.fillColour, ["#000", "#fff"]).toHexString();
+        ctx.fillText(this.text, 0, 0);
+        ctx.restore();
+    }
+}
 </script>
 
 <style scoped>

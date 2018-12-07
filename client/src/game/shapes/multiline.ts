@@ -1,11 +1,10 @@
-import BoundingRect from "@/game/shapes/boundingrect";
-import Shape from "@/game/shapes/shape";
-
 import { GlobalPoint, LocalPoint } from "@/game/geom";
+import { BoundingRect } from "@/game/shapes/boundingrect";
+import { Shape } from "@/game/shapes/shape";
 import { g2lx, g2ly, g2lz } from "@/game/units";
 import { getFogColour } from "@/game/utils";
 
-export default class MultiLine extends Shape {
+export class MultiLine extends Shape {
     type = "multiline";
     points: GlobalPoint[] = [];
     size: number;

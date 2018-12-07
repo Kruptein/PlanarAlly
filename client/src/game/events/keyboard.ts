@@ -1,10 +1,12 @@
-import socket from "@/game/api/socket";
-import game from "@/game/game.vue";
-import layerManager from "@/game/layers/manager";
-import store from "@/game/store";
+import Tools from "../ui/tools/tools.vue";
 
+import { getRef } from "@/core/utils";
+import { socket } from "@/game/api/socket";
 import { sendClientOptions } from "@/game/api/utils";
+import { EventBus } from "@/game/event-bus";
 import { Vector } from "@/game/geom";
+import { layerManager } from "@/game/layers/manager";
+import { gameStore } from "@/game/store";
 import { calculateDelta } from "@/game/ui/tools/utils";
 
 export function onKeyUp(event: KeyboardEvent) {
@@ -18,13 +20,13 @@ export function onKeyUp(event: KeyboardEvent) {
             const l = layerManager.getLayer()!;
             for (let i = l.selection.length - 1; i >= 0; i--) {
                 const sel = l.selection[i];
-                if ((<any>(<any>game).$refs.tools.$refs.selectTool).selectionHelper.uuid === sel.uuid) {
+                if ((<any>getRef<Tools>("tools").$refs.selectTool).selectionHelper.uuid === sel.uuid) {
                     l.selection.splice(i, 1);
                     continue;
                 }
                 l.removeShape(sel, true, false);
-                (<any>game).$refs.selectionInfo.shape = null;
-                (<any>game).$refs.initiative.removeInitiative(sel.uuid);
+                EventBus.$emit("SelectionInfo.Shape.Set", null);
+                EventBus.$emit("Initiative.Remove", sel.uuid);
             }
         }
     }
@@ -36,7 +38,7 @@ export function onKeyDown(event: KeyboardEvent) {
     } else {
         if (event.keyCode >= 37 && event.keyCode <= 40) {
             // todo: this should already be rounded
-            const gridSize = Math.round(store.gridSize);
+            const gridSize = Math.round(gameStore.gridSize);
             let offsetX = gridSize * (event.keyCode % 2);
             let offsetY = gridSize * (event.keyCode % 2 ? 0 : 1);
             if (layerManager.hasSelection()) {
@@ -44,7 +46,7 @@ export function onKeyDown(event: KeyboardEvent) {
                 offsetX *= event.keyCode <= 38 ? -1 : 1;
                 offsetY *= event.keyCode <= 38 ? -1 : 1;
                 let delta = new Vector(offsetX, offsetY);
-                if (!event.shiftKey || !store.IS_DM) {
+                if (!event.shiftKey || !gameStore.IS_DM) {
                     // First check for collisions.  Using the smooth wall slide collision check used on mouse move is overkill here.
                     for (const sel of selection) delta = calculateDelta(delta, sel);
                 }
@@ -57,8 +59,8 @@ export function onKeyDown(event: KeyboardEvent) {
                 layerManager.getLayer()!.invalidate(false);
             } else {
                 // The pan offsets should be in the opposite direction to give the correct feel.
-                // store.commit("increasePanX", offsetX * (event.keyCode <= 38 ? 1 : -1));
-                // store.commit("increasePanY", offsetY * (event.keyCode <= 38 ? 1 : -1));
+                gameStore.increasePanX(offsetX * (event.keyCode <= 38 ? 1 : -1));
+                gameStore.increasePanY(offsetY * (event.keyCode <= 38 ? 1 : -1));
                 layerManager.invalidate();
                 sendClientOptions();
             }

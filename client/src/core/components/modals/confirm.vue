@@ -1,67 +1,73 @@
 <template>
-    <modal :visible="visible" @close="close">
-        <div
-            class='modal-header'
-            slot='header'
-            slot-scope='m'
-            draggable="true"
-            @dragstart="m.dragStart"
-            @dragend="m.dragEnd"
-        >
-            {{ title }}
-        </div>
-        <div class='modal-body'>
-            <button @click="confirm" ref="confirm">{{ yes }}</button>
-            <button @click="deny" v-if="!!no">{{ no }}</button>
-        </div>
-    </modal>
+  <modal :visible="visible" @close="close">
+    <div
+      class="modal-header"
+      slot="header"
+      slot-scope="m"
+      draggable="true"
+      @dragstart="m.dragStart"
+      @dragend="m.dragEnd"
+    >{{ title }}</div>
+    <div class="modal-body">
+      <button @click="confirm" ref="confirm">{{ yes }}</button>
+      <button @click="deny" v-if="!!no">{{ no }}</button>
+    </div>
+  </modal>
 </template>
 
-<script>
-import modal from "@/core/components/modals/modal.vue";
-export default {
+<script lang="ts">
+import Vue from "vue";
+import Component from "vue-class-component";
+
+import Modal from "@/core/components/modals/modal.vue";
+
+@Component({
     components: {
-        modal,
+        Modal,
     },
-    data: () => ({
-        visible: false,
-        yes: "Yes",
-        no: "No",
-        title: "",
-    }),
-    methods: {
-        confirm() {
-            this.resolve(true);
-            this.close();
-        },
-        deny() {
-            this.resolve(false);
-            this.close();
-        },
-        close() {
-            this.reject();
-            this.visible = false;
-            this.title = "";
-        },
-        open(title, yes, no) {
-            this.yes = yes === undefined ? "Yes" : yes;
-            this.no = no === undefined ? "No" : no;
-            this.title = title;
+})
+export default class ConfirmDialog extends Vue {
+    $refs!: {
+        confirm: HTMLButtonElement;
+    };
 
-            this.visible = true;
-            this.$nextTick(
-                function() {
-                    this.$refs.confirm.focus();
-                }.bind(this),
-            );
+    visible = false;
+    yes = "Yes";
+    no = "No";
+    title = "";
 
-            return new Promise((resolve, reject) => {
-                this.resolve = resolve;
-                this.reject = reject;
-            });
-        },
-    },
-};
+    resolve = (ok: boolean) => {};
+    reject = () => {};
+
+    confirm() {
+        this.resolve(true);
+        this.close();
+    }
+    deny() {
+        this.resolve(false);
+        this.close();
+    }
+    close() {
+        this.reject();
+        this.visible = false;
+        this.title = "";
+    }
+    open(title: string, yes = "yes", no = "no"): Promise<boolean> {
+        this.yes = yes;
+        this.no = no;
+        this.title = title;
+
+        this.visible = true;
+        this.$nextTick(() => {
+            this.$refs.confirm.focus();
+        });
+
+        return new Promise((resolve, reject) => {
+            this.resolve = resolve;
+            this.reject = reject;
+        });
+    }
+}
 </script>
 
 <style scoped>

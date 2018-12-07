@@ -11,4 +11,4 @@ export interface RootState {
     game: GameState;
 }
 
-export default new Vuex.Store<RootState>({});
+export const rootStore = new Vuex.Store<RootState>({});

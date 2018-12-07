@@ -1,5 +1,5 @@
 <template>
-  <modal :visible="visible" @close="visible = false" :mask="false">
+  <Modal :visible="visible" @close="visible = false" :mask="false">
     <div
       class="modal-header"
       slot="header"
@@ -163,124 +163,123 @@
       <div class="spanrow header">Annotation</div>
       <textarea class="spanrow" :value="shape.annotation" @change="updateAnnotation"></textarea>
     </div>
-  </modal>
+  </Modal>
 </template>
 
 <script lang="ts">
 import Vue from "vue";
+import Component from "vue-class-component";
 
-import colorpicker from "@/core/components/colorpicker.vue";
-import modal from "@/core/components/modals/modal.vue";
-import socket from "@/game/api/socket";
-import layerManager from "@/game/layers/manager";
-import Shape from "@/game/shapes/shape";
-import store from "@/game/store";
+import ColorPicker from "@/core/components/colorpicker.vue";
+import Modal from "@/core/components/modals/modal.vue";
 
 import { uuidv4 } from "@/core/utils";
+import { socket } from "@/game/api/socket";
+import { layerManager } from "@/game/layers/manager";
+import { Shape } from "@/game/shapes/shape";
+import { gameStore } from "@/game/store";
+import { Prop } from "vue-property-decorator";
 
-export default Vue.component("edit-dialog", {
+@Component({
     components: {
-        modal,
-        "color-picker": colorpicker,
+        Modal,
+        "color-picker": ColorPicker,
     },
-    props: {
-        shape: Object as () => Shape, // to make it work with typescript
-    },
-    data: () => ({
-        visible: false,
-    }),
+})
+export default class EditDialog extends Vue {
+    @Prop() shape!: Shape;
+
+    visible = false;
     updated() {
         this.addEmpty();
-    },
-    methods: {
-        addEmpty() {
-            if (this.shape.owners[this.shape.owners.length - 1] !== "") this.shape.owners.push("");
-            if (
-                !this.shape.trackers.length ||
-                this.shape.trackers[this.shape.trackers.length - 1].name !== "" ||
-                this.shape.trackers[this.shape.trackers.length - 1].value !== 0
-            )
-                this.shape.trackers.push({ uuid: uuidv4(), name: "", value: 0, maxvalue: 0, visible: false });
-            if (
-                !this.shape.auras.length ||
-                this.shape.auras[this.shape.auras.length - 1].name !== "" ||
-                this.shape.auras[this.shape.auras.length - 1].value !== 0
-            )
-                this.shape.auras.push({
-                    uuid: uuidv4(),
-                    name: "",
-                    value: 0,
-                    dim: 0,
-                    visionSource: false,
-                    colour: "rgba(0,0,0,0)",
-                    visible: false,
-                });
-        },
-        updateShape(redraw: boolean) {
-            socket.emit("Shape.Update", { shape: this.shape.asDict(), redraw, temporary: false });
-            if (redraw) layerManager.invalidate();
-            this.addEmpty();
-        },
-        setToken(event: { target: HTMLInputElement }) {
-            this.shape.setIsToken(event.target.checked);
-            this.updateShape(true);
-        },
-        setVisionBlocker(event: { target: HTMLInputElement }) {
-            this.shape.checkVisionSources();
-            this.updateShape(true);
-        },
-        setMovementBlocker(event: { target: HTMLInputElement }) {
-            this.shape.setMovementBlock(event.target.checked);
-            this.updateShape(false);
-        },
-        updateAnnotation(event: { target: HTMLInputElement }) {
-            const hadAnnotation = this.shape.annotation !== "";
-            this.shape.annotation = event.target.value;
-            if (this.shape.annotation !== "" && !hadAnnotation) {
-                store.annotations.push(this.shape.uuid);
-                if (layerManager.hasLayer("draw")) layerManager.getLayer("draw")!.invalidate(true);
-            } else if (this.shape.annotation === "" && hadAnnotation) {
-                store.annotations.splice(store.annotations.findIndex(an => an === this.shape.uuid));
-                if (layerManager.hasLayer("draw")) layerManager.getLayer("draw")!.invalidate(true);
-            }
-            this.updateShape(false);
-        },
-        updateOwner(event: { target: HTMLInputElement }, oldValue: string) {
-            const ownerIndex = this.shape.owners.findIndex(o => o === oldValue);
-            if (ownerIndex >= 0) this.shape.owners.splice(ownerIndex, 1, event.target.value);
-            else this.shape.owners.push(event.target.value);
-            this.updateShape(this.$store.state.game.fowLOS);
-        },
-        removeOwner(value: string) {
-            const ownerIndex = this.shape.owners.findIndex(o => o === value);
-            this.shape.owners.splice(ownerIndex, 1);
-            this.updateShape(this.$store.state.game.fowLOS);
-        },
-        removeTracker(uuid: string) {
-            this.shape.trackers = this.shape.trackers.filter(tr => tr.uuid !== uuid);
-            this.updateShape(false);
-        },
-        removeAura(uuid: string) {
-            this.shape.auras = this.shape.auras.filter(au => au.uuid !== uuid);
-            this.shape.checkVisionSources();
-            this.updateShape(true);
-        },
-        updateAuraVisionSource(aura: Aura) {
-            aura.visionSource = !aura.visionSource;
-            const i = store.visionSources.findIndex(ls => ls.aura === aura.uuid);
-            if (aura.visionSource && i === -1) store.visionSources.push({ shape: this.shape.uuid, aura: aura.uuid });
-            else if (!aura.visionSource && i >= 0) store.visionSources.splice(i, 1);
-            // aura.lastPath = undefined;
-            layerManager.invalidateLight();
-            this.updateShape(true);
-        },
-        updateAuraColour(aura: Aura, colour: string) {
-            const layer = layerManager.getLayer(this.shape.layer);
-            if (layer === undefined) return;
-            layer.invalidate(!aura.visionSource);
-        },
-    },
-});
+    }
+    addEmpty() {
+        if (this.shape.owners[this.shape.owners.length - 1] !== "") this.shape.owners.push("");
+        if (
+            !this.shape.trackers.length ||
+            this.shape.trackers[this.shape.trackers.length - 1].name !== "" ||
+            this.shape.trackers[this.shape.trackers.length - 1].value !== 0
+        )
+            this.shape.trackers.push({ uuid: uuidv4(), name: "", value: 0, maxvalue: 0, visible: false });
+        if (
+            !this.shape.auras.length ||
+            this.shape.auras[this.shape.auras.length - 1].name !== "" ||
+            this.shape.auras[this.shape.auras.length - 1].value !== 0
+        )
+            this.shape.auras.push({
+                uuid: uuidv4(),
+                name: "",
+                value: 0,
+                dim: 0,
+                visionSource: false,
+                colour: "rgba(0,0,0,0)",
+                visible: false,
+            });
+    }
+    updateShape(redraw: boolean) {
+        socket.emit("Shape.Update", { shape: this.shape.asDict(), redraw, temporary: false });
+        if (redraw) layerManager.invalidate();
+        this.addEmpty();
+    }
+    setToken(event: { target: HTMLInputElement }) {
+        this.shape.setIsToken(event.target.checked);
+        this.updateShape(true);
+    }
+    setVisionBlocker(event: { target: HTMLInputElement }) {
+        this.shape.checkVisionSources();
+        this.updateShape(true);
+    }
+    setMovementBlocker(event: { target: HTMLInputElement }) {
+        this.shape.setMovementBlock(event.target.checked);
+        this.updateShape(false);
+    }
+    updateAnnotation(event: { target: HTMLInputElement }) {
+        const hadAnnotation = this.shape.annotation !== "";
+        this.shape.annotation = event.target.value;
+        if (this.shape.annotation !== "" && !hadAnnotation) {
+            gameStore.annotations.push(this.shape.uuid);
+            if (layerManager.hasLayer("draw")) layerManager.getLayer("draw")!.invalidate(true);
+        } else if (this.shape.annotation === "" && hadAnnotation) {
+            gameStore.annotations.splice(gameStore.annotations.findIndex(an => an === this.shape.uuid));
+            if (layerManager.hasLayer("draw")) layerManager.getLayer("draw")!.invalidate(true);
+        }
+        this.updateShape(false);
+    }
+    updateOwner(event: { target: HTMLInputElement }, oldValue: string) {
+        const ownerIndex = this.shape.owners.findIndex(o => o === oldValue);
+        if (ownerIndex >= 0) this.shape.owners.splice(ownerIndex, 1, event.target.value);
+        else this.shape.owners.push(event.target.value);
+        this.updateShape(gameStore.fowLOS);
+    }
+    removeOwner(value: string) {
+        const ownerIndex = this.shape.owners.findIndex(o => o === value);
+        this.shape.owners.splice(ownerIndex, 1);
+        this.updateShape(gameStore.fowLOS);
+    }
+    removeTracker(uuid: string) {
+        this.shape.trackers = this.shape.trackers.filter(tr => tr.uuid !== uuid);
+        this.updateShape(false);
+    }
+    removeAura(uuid: string) {
+        this.shape.auras = this.shape.auras.filter(au => au.uuid !== uuid);
+        this.shape.checkVisionSources();
+        this.updateShape(true);
+    }
+    updateAuraVisionSource(aura: Aura) {
+        aura.visionSource = !aura.visionSource;
+        const i = gameStore.visionSources.findIndex(ls => ls.aura === aura.uuid);
+        if (aura.visionSource && i === -1) gameStore.visionSources.push({ shape: this.shape.uuid, aura: aura.uuid });
+        else if (!aura.visionSource && i >= 0) gameStore.visionSources.splice(i, 1);
+        // aura.lastPath = undefined;
+        layerManager.invalidateLight();
+        this.updateShape(true);
+    }
+    updateAuraColour(aura: Aura, colour: string) {
+        const layer = layerManager.getLayer(this.shape.layer);
+        if (layer === undefined) return;
+        layer.invalidate(!aura.visionSource);
+    }
+}
 </script>
 
 <style scoped>
@@ -323,5 +322,9 @@ export default Vue.component("edit-dialog", {
     width: 75%;
     border-bottom: 1px solid #000;
     content: "";
+}
+
+.spanrow {
+    grid-column: 1 / end;
 }
 </style>

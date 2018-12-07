@@ -1,58 +1,58 @@
 <template>
-  <contextmenu :visible="visible" :left="x + 'px'" :top="y + 'px'" @close="close">
+  <ContextMenu :visible="visible" :left="x + 'px'" :top="y + 'px'" @close="close">
     <li @click="bringPlayers" v-if="IS_DM">Bring players</li>
     <li @click="createToken">Create basic token</li>
     <li @click="showInitiative">Show initiative</li>
-  </contextmenu>
+  </ContextMenu>
 </template>
 
 <script lang="ts">
 import Vue from "vue";
+import Component from "vue-class-component";
 
-import { mapState } from "vuex";
+import ContextMenu from "@/core/components/contextmenu.vue";
 
-import contextmenu from "@/core/components/contextmenu.vue";
-import socket from "@/game/api/socket";
-
+import { socket } from "@/game/api/socket";
+import { gameStore } from "@/game/store";
 import { l2gx, l2gy } from "@/game/units";
 
-export default Vue.component("select-context", {
+@Component({
     components: {
-        contextmenu,
+        ContextMenu,
     },
-    data: () => ({
-        visible: false,
-        x: 0,
-        y: 0,
-    }),
-    computed: {
-        ...mapState("game", ["IS_DM"]),
-    },
-    methods: {
-        open(event: MouseEvent) {
-            this.visible = true;
-            this.x = event.pageX;
-            this.y = event.pageY;
-            this.$nextTick(() => this.$children[0].$el.focus());
-        },
-        close() {
-            this.visible = false;
-        },
-        bringPlayers() {
-            if (!this.IS_DM) return;
-            socket.emit("Players.Bring", { x: l2gx(this.x), y: l2gy(this.y) });
-            this.close();
-        },
-        createToken() {
-            (<any>this.$parent.$parent.$refs.createtokendialog).open(this.x, this.y);
-            this.close();
-        },
-        showInitiative() {
-            (<any>this.$root.$refs.initiative).visible = true;
-            this.close();
-        },
-    },
-});
+})
+export default class SelectContext extends Vue {
+    visible = false;
+    x = 0;
+    y = 0;
+
+    get IS_DM(): boolean {
+        return gameStore.IS_DM;
+    }
+
+    open(event: MouseEvent) {
+        this.visible = true;
+        this.x = event.pageX;
+        this.y = event.pageY;
+        this.$nextTick(() => this.$children[0].$el.focus());
+    }
+    close() {
+        this.visible = false;
+    }
+    bringPlayers() {
+        if (!gameStore.IS_DM) return;
+        socket.emit("Players.Bring", { x: l2gx(this.x), y: l2gy(this.y) });
+        this.close();
+    }
+    createToken() {
+        (<any>this.$parent.$parent.$refs.createtokendialog).open(this.x, this.y);
+        this.close();
+    }
+    showInitiative() {
+        (<any>this.$root.$refs.initiative).visible = true;
+        this.close();
+    }
+}
 </script>
 
 <style scoped>

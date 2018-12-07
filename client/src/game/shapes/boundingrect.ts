@@ -1,6 +1,6 @@
 import { GlobalPoint, Point, Ray, Vector } from "@/game/geom";
 
-export default class BoundingRect {
+export class BoundingRect {
     readonly w: number;
     readonly h: number;
     readonly topLeft: GlobalPoint;

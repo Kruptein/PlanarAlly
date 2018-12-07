@@ -1,10 +1,9 @@
-import Asset from "@/game/shapes/asset";
-import Shape from "@/game/shapes/shape";
-import store from "@/game/store";
-
 import { GlobalPoint } from "@/game/geom";
 import { GridLayer } from "@/game/layers/grid";
 import { Layer } from "@/game/layers/layer";
+import { Asset } from "@/game/shapes/asset";
+import { Shape } from "@/game/shapes/shape";
+import { gameStore } from "@/game/store";
 import { l2gx, l2gy, l2gz } from "@/game/units";
 
 class LayerManager {
@@ -18,13 +17,15 @@ class LayerManager {
     interval = 30;
 
     constructor() {
-        const lm = this;
-        setInterval(() => {
-            for (let i = lm.layers.length - 1; i >= 0; i--) {
-                lm.layers[i].draw();
-            }
-        }, this.interval);
+        requestAnimationFrame(this.drawLoop);
     }
+
+    drawLoop = () => {
+        for (let i = this.layers.length - 1; i >= 0; i--) {
+            this.layers[i].draw();
+        }
+        requestAnimationFrame(this.drawLoop);
+    };
 
     setWidth(width: number): void {
         this.width = width;
@@ -44,8 +45,8 @@ class LayerManager {
 
     addLayer(layer: Layer): void {
         this.layers.push(layer);
-        if (!store.IS_DM && !layer.playerEditable) return;
-        if (layer.selectable) store.addLayer(layer.name);
+        if (!gameStore.IS_DM && !layer.playerEditable) return;
+        if (layer.selectable) gameStore.addLayer(layer.name);
     }
 
     hasLayer(name: string): boolean {
@@ -53,7 +54,7 @@ class LayerManager {
     }
 
     getLayer(name?: string) {
-        name = name === undefined ? store.selectedLayer : name;
+        name = name === undefined ? gameStore.selectedLayer : name;
         for (const layer of this.layers) {
             if (layer.name === name) return layer;
         }
@@ -67,7 +68,7 @@ class LayerManager {
             else layer.ctx.globalAlpha = 1.0;
 
             if (name === layer.name) {
-                store.selectLayer(name, sync);
+                gameStore.selectLayer({ name, sync });
                 found = true;
             }
 
@@ -116,8 +117,8 @@ class LayerManager {
         );
         asset.src = new URL(image.src).pathname;
 
-        if (store.useGrid) {
-            const gs = store.gridSize;
+        if (gameStore.useGrid) {
+            const gs = gameStore.gridSize;
             asset.refPoint.x = Math.round(asset.refPoint.x / gs) * gs;
             asset.refPoint.y = Math.round(asset.refPoint.y / gs) * gs;
             asset.w = Math.max(Math.round(asset.w / gs) * gs, gs);
@@ -128,4 +129,5 @@ class LayerManager {
     }
 }
 
-export default new LayerManager();
+export const layerManager = new LayerManager();
+(<any>window).lm = layerManager;

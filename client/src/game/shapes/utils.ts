@@ -1,13 +1,3 @@
-import layerManager from "@/game/layers/manager";
-import Asset from "@/game/shapes/asset";
-import Circle from "@/game/shapes/circle";
-import CircularToken from "@/game/shapes/circulartoken";
-import Line from "@/game/shapes/line";
-import MultiLine from "@/game/shapes/multiline";
-import Rect from "@/game/shapes/rect";
-import Shape from "@/game/shapes/shape";
-import Text from "@/game/shapes/text";
-
 import {
     ServerAsset,
     ServerCircle,
@@ -19,6 +9,15 @@ import {
     ServerText,
 } from "@/game/comm/types/shapes";
 import { GlobalPoint } from "@/game/geom";
+import { layerManager } from "@/game/layers/manager";
+import { Asset } from "@/game/shapes/asset";
+import { Circle } from "@/game/shapes/circle";
+import { CircularToken } from "@/game/shapes/circulartoken";
+import { Line } from "@/game/shapes/line";
+import { MultiLine } from "@/game/shapes/multiline";
+import { Rect } from "@/game/shapes/rect";
+import { Shape } from "@/game/shapes/shape";
+import { Text } from "@/game/shapes/text";
 
 export function createShapeFromDict(shape: ServerShape, dummy?: boolean) {
     // TODO: is this dummy stuff actually needed, do we ever want to return the local shape?

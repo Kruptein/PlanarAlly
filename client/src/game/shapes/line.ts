@@ -1,10 +1,9 @@
-import BoundingRect from "@/game/shapes/boundingrect";
-import Shape from "@/game/shapes/shape";
-
 import { GlobalPoint, LocalPoint } from "@/game/geom";
+import { BoundingRect } from "@/game/shapes/boundingrect";
+import { Shape } from "@/game/shapes/shape";
 import { g2lx, g2ly } from "@/game/units";
 
-export default class Line extends Shape {
+export class Line extends Shape {
     type = "line";
     endPoint: GlobalPoint;
     lineWidth: number;

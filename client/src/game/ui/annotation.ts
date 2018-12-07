@@ -1,13 +1,12 @@
-import layerManager from "@/game/layers/manager";
-import Rect from "@/game/shapes/rect";
-import Text from "@/game/shapes/text";
-import store from "@/game/store";
-
 import { GlobalPoint, LocalPoint } from "@/game/geom";
 import { Layer } from "@/game/layers/layer";
+import { layerManager } from "@/game/layers/manager";
+import { Rect } from "@/game/shapes/rect";
+import { Text } from "@/game/shapes/text";
+import { gameStore } from "@/game/store";
 import { l2g } from "@/game/units";
 
-class AnnotationManager {
+export class AnnotationManager {
     annotationText: Text;
     annotationRect: Rect;
     layer: Layer | undefined;
@@ -36,10 +35,8 @@ class AnnotationManager {
         const width = this.shown ? this.annotationText.getMaxWidth(this.layer.ctx) + 10 : 0;
         const height = this.shown ? this.annotationText.getMaxHeight(this.layer.ctx) + 10 : 0;
         this.annotationRect.refPoint = l2g(new LocalPoint(this.layer.canvas.width / 2 - width / 2, 30));
-        this.annotationRect.w = width / store.zoomFactor;
-        this.annotationRect.h = height / store.zoomFactor;
+        this.annotationRect.w = width / gameStore.zoomFactor;
+        this.annotationRect.h = height / gameStore.zoomFactor;
         this.layer.invalidate(true);
     }
 }
-
-export default AnnotationManager;

@@ -1,4 +1,4 @@
-class Settings {
+export class Settings {
     static angleSteps = 4;
     static drawAngleLines = false;
     static drawFirstLightHit = false;
@@ -7,5 +7,3 @@ class Settings {
 
     static tempFill: string = "fog";
 }
-
-export default Settings;

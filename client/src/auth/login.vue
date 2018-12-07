@@ -1,36 +1,47 @@
 <template>
-    <form @focusin="focusin" @focusout="focusout" @submit.prevent="login">
-        <fieldset>
-            <legend class="legend">PlanarAlly</legend>
-            <div class="input">
-                <input type="text" name="username" v-model="username" placeholder="Username" required/>
-                <span><i class="fas fa-user-circle"></i></span>
-            </div>
+  <form @focusin="focusin" @focusout="focusout" @submit.prevent="login">
+    <fieldset>
+      <legend class="legend">PlanarAlly</legend>
+      <div class="input">
+        <input type="text" name="username" v-model="username" placeholder="Username" required>
+        <span>
+          <i class="fas fa-user-circle"></i>
+        </span>
+      </div>
 
-            <div class="input">
-                <input type="password" name="password" v-model="password" placeholder="Password" required/>
-                <span><i class="fas fa-lock"></i></span>
-            </div>
+      <div class="input">
+        <input type="password" name="password" v-model="password" placeholder="Password" required>
+        <span>
+          <i class="fas fa-lock"></i>
+        </span>
+      </div>
 
-            <div style="display:flex;">
-                <button type="submit" name="login" style="visibility: hidden;display:none;"></button>
-                <button type="button" name="register" class="submit" title="Register" @click="register"><i class="fas fa-plus"></i></button>
-                <button type="submit" name="login" class="submit" title="Login"><i class="fas fa-arrow-right"></i></button>
-            </div>
+      <div style="display:flex;">
+        <button type="submit" name="login" style="visibility: hidden;display:none;"></button>
+        <button type="button" name="register" class="submit" title="Register" @click="register">
+          <i class="fas fa-plus"></i>
+        </button>
+        <button type="submit" name="login" class="submit" title="Login">
+          <i class="fas fa-arrow-right"></i>
+        </button>
+      </div>
+    </fieldset>
 
-        </fieldset>
-
-        <div class="feedback" v-if="error">
-            <p class="error"><strong>Error:</strong>{{ error }}</p>
-        </div>
-
-    </form>
+    <div class="feedback" v-if="error">
+      <p class="error">
+        <strong>Error:</strong>
+        {{ error }}
+      </p>
+    </div>
+  </form>
 </template>
 
 <script lang="ts">
 import axios, { AxiosError, AxiosResponse } from "axios";
 import Vue from "vue";
 import Component from "vue-class-component";
+
+import { coreStore } from "@/core/store";
 
 @Component
 export default class Login extends Vue {
@@ -45,7 +56,7 @@ export default class Login extends Vue {
                 password: this.password,
             })
             .then((response: AxiosResponse) => {
-                this.$store.commit("setAuthenticated", true);
+                coreStore.setAuthenticated(true);
                 this.$router.push(<string>this.$route.query.redirect || "/");
             })
             .catch((error: AxiosError) => {
@@ -61,7 +72,7 @@ export default class Login extends Vue {
                 password: this.password,
             })
             .then((response: AxiosResponse) => {
-                this.$store.commit("setAuthenticated", true);
+                coreStore.setAuthenticated(true);
             })
             .catch((error: AxiosError) => {
                 if (error.response) this.error = error.response.statusText;
@@ -85,31 +96,7 @@ export default class Login extends Vue {
 }
 </script>
 
-<style>
-* {
-    -ms-box-sizing: border-box;
-    -moz-box-sizing: border-box;
-    -webkit-box-sizing: border-box;
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
-    border: 0;
-}
-
-html,
-body,
-#app {
-    width: 100%;
-    height: 100%;
-    background: url("/static/img/login_background.png") repeat fixed;
-    font-family: "Open Sans", sans-serif;
-    font-weight: 200;
-}
-</style>
-
-
 <style scoped>
-@import url("https://fonts.googleapis.com/css?family=Open+Sans");
 form {
     position: relative;
     top: 50%;

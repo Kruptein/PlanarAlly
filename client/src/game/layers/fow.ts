@@ -1,11 +1,10 @@
-import layerManager from "@/game/layers/manager";
-import Settings from "@/game/settings";
-import Circle from "@/game/shapes/circle";
-import Shape from "@/game/shapes/shape";
-import store from "@/game/store";
-
 import { GlobalPoint, Ray } from "@/game/geom";
 import { Layer } from "@/game/layers/layer";
+import { layerManager } from "@/game/layers/manager";
+import { Settings } from "@/game/settings";
+import { Circle } from "@/game/shapes/circle";
+import { Shape } from "@/game/shapes/shape";
+import { gameStore } from "@/game/store";
 import { g2l, g2lr, g2lx, g2ly, g2lz, getUnitDistance } from "@/game/units";
 import { getFogColour } from "@/game/utils";
 
@@ -49,7 +48,7 @@ export class FOWLayer extends Layer {
             }
 
             // At all times provide a minimal vision range to prevent losing your tokens in fog.
-            if (store.fullFOW && layerManager.hasLayer("tokens")) {
+            if (gameStore.fullFOW && layerManager.hasLayer("tokens")) {
                 layerManager.getLayer("tokens")!.shapes.forEach(sh => {
                     if (!sh.ownedBy() || !sh.isToken) return;
                     const bb = sh.getBoundingBox();
@@ -66,7 +65,7 @@ export class FOWLayer extends Layer {
             }
 
             // First cut out all the light sources
-            for (const light of store.visionSources) {
+            for (const light of gameStore.visionSources) {
                 const shape = layerManager.UUIDMap.get(light.shape);
                 if (shape === undefined) continue;
                 const aura = shape.auras.find(a => a.uuid === light.aura);
@@ -99,7 +98,7 @@ export class FOWLayer extends Layer {
 
                     // Check if there is a hit with one of the nearby light blockers.
                     const lightRay = Ray.fromPoints(center, anglePoint);
-                    const hitResult = store.BV.intersect(lightRay);
+                    const hitResult = gameStore.BV.intersect(lightRay);
 
                     if (angle === 0) firstPoint = hitResult.hit ? hitResult.intersect : anglePoint;
 
@@ -127,7 +126,7 @@ export class FOWLayer extends Layer {
                 if (lastArcAngle === -1) path.lineTo(g2lx(firstPoint!.x), g2ly(firstPoint!.y));
                 else path.arc(lcenter.x, lcenter.y, g2lr(aura.value + aura.dim), lastArcAngle, 2 * Math.PI);
 
-                if (store.fullFOW) {
+                if (gameStore.fullFOW) {
                     if (aura.dim > 0) {
                         // Fill the light aura with a radial dropoff towards the outside.
                         const gradient = ctx.createRadialGradient(
@@ -151,7 +150,7 @@ export class FOWLayer extends Layer {
             }
 
             // At the DM Side due to opacity of the two fow layers, it looks strange if we just render them on top of eachother like players.
-            if (store.fowLOS) {
+            if (gameStore.fowLOS) {
                 ctx.globalCompositeOperation = "source-in";
                 ctx.drawImage(layerManager.getLayer("fow-players")!.canvas, 0, 0);
             }
@@ -159,7 +158,7 @@ export class FOWLayer extends Layer {
             for (const preShape of this.preFogShapes) {
                 if (!preShape.visibleInCanvas(this.canvas)) continue;
                 const ogComposite = preShape.globalCompositeOperation;
-                if (!store.fullFOW) {
+                if (!gameStore.fullFOW) {
                     if (preShape.globalCompositeOperation === "source-over")
                         preShape.globalCompositeOperation = "destination-out";
                     else if (preShape.globalCompositeOperation === "destination-out")
@@ -169,7 +168,7 @@ export class FOWLayer extends Layer {
                 preShape.globalCompositeOperation = ogComposite;
             }
 
-            if (store.fullFOW) {
+            if (gameStore.fullFOW) {
                 ctx.globalCompositeOperation = "source-out";
                 ctx.fillStyle = getFogColour();
                 ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);

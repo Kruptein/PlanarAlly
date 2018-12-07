@@ -118,134 +118,159 @@
 
 <script lang="ts">
 import Vue from "vue";
+import Component from "vue-class-component";
 import draggable from "vuedraggable";
 Vue.component("draggable", draggable);
 
-import modal from "@/core/components/modals/modal.vue";
-import socket from "@/game/api/socket";
-import layerManager from "@/game/layers/manager";
+import Modal from "@/core/components/modals/modal.vue";
 
 import { uuidv4 } from "@/core/utils";
+import { socket } from "@/game/api/socket";
 import { InitiativeData, InitiativeEffect } from "@/game/comm/types/general";
+import { EventBus } from "@/game/event-bus";
+import { layerManager } from "@/game/layers/manager";
+import { gameStore } from "@/game/store";
 
-export default Vue.component("initiative-dialog", {
-    data: () => ({
-        visible: false,
-        data: <InitiativeData[]>[],
-        currentActor: <string | null>null,
-        roundCounter: 0,
-    }),
+@Component({
     components: {
-        modal,
+        Modal,
         draggable,
     },
-    methods: {
-        // Utilities
-        clear() {
-            this.data = [];
-            this.currentActor = null;
-        },
-        getActor(actorId: string) {
-            return this.data.find(a => a.uuid === actorId);
-        },
-        contains(uuid: string) {
-            return this.data.some(d => d.uuid === uuid);
-        },
-        owns(actor: InitiativeData): boolean {
-            if (this.$store.state.game.IS_DM) return true;
-            const shape = layerManager.UUIDMap.get(actor.uuid);
-            // Shapes that are unknown to this client are hidden from this client but owned by other clients
-            if (shape === undefined) return false;
-            return shape.owners.includes(this.$store.state.game.username);
-        },
-        getDefaultEffect() {
-            return { uuid: uuidv4(), name: "New Effect", turns: 10 };
-        },
-        fakeSetData(dataTransfer: DataTransfer) {
-            dataTransfer.setData("Hack", "");
-        },
-        syncInitiative(data: InitiativeData | { uuid: string }) {
-            socket.emit("Initiative.Update", data);
-        },
-        // Events
-        addInitiative(data: InitiativeData) {
-            const d = this.data.findIndex(a => a.uuid === data.uuid);
-            if (d >= 0) return;
-            if (data.initiative === undefined) data.initiative = 0;
-            this.syncInitiative(data);
-        },
-        removeInitiative(uuid: string) {
-            const d = this.data.findIndex(a => a.uuid === uuid);
-            if (d < 0 || this.data[d].group) return;
-            this.syncInitiative({ uuid });
-            // Remove highlight
-            const shape = layerManager.UUIDMap.get(uuid);
-            if (shape === undefined) return;
-            if (shape.showHighlight) {
-                shape.showHighlight = false;
-                layerManager.getLayer(shape.layer)!.invalidate(true);
-            }
-        },
-        updateOrder() {
-            if (!this.$store.state.game.IS_DM) return;
-            socket.emit("Initiative.Set", this.data.map(d => d.uuid));
-        },
-        setTurn(actorId: string | null, sync: boolean) {
-            if (!this.$store.state.game.IS_DM && sync) return;
-            this.currentActor = actorId;
-            const actor = this.data.find(a => a.uuid === actorId);
+})
+export default class Initiative extends Vue {
+    visible = false;
+    data: InitiativeData[] = [];
+    currentActor: string | null = null;
+    roundCounter = 0;
+
+    mounted() {
+        EventBus.$on("Initiative.Clear", this.clear);
+        EventBus.$on("Initiative.Remove", (data: string) => this.removeInitiative(data));
+
+        socket.on("Initiative.Set", (data: InitiativeData[]) => {
+            this.data = data;
+        });
+        socket.on("Initiative.Turn.Update", (data: string) => this.setTurn(data, false));
+        socket.on("Initiative.Round.Update", (data: number) => this.setRound(data, false));
+        socket.on("Initiative.Effect.New", (data: { actor: string; effect: InitiativeEffect }) => {
+            const actor = this.getActor(data.actor);
             if (actor === undefined) return;
-            if (actor.effects) {
-                for (let e = actor.effects.length - 1; e >= 0; e--) {
-                    if (actor.effects[e].turns <= 0) actor.effects.splice(e, 1);
-                    else actor.effects[e].turns--;
-                }
-            }
-            if (sync) socket.emit("Initiative.Turn.Update", actorId);
-        },
-        setRound(round: number, sync: boolean) {
-            if (!this.$store.state.game.IS_DM && sync) return;
-            this.roundCounter = round;
-            if (sync) socket.emit("Initiative.Round.Update", round);
-        },
-        nextTurn() {
-            if (!this.$store.state.game.IS_DM) return;
-            const order = this.data;
-            const next = order[(order.findIndex(a => a.uuid === this.currentActor) + 1) % order.length];
-            if (this.data[0].uuid === next.uuid) this.setRound(this.roundCounter + 1, true);
-            this.setTurn(next.uuid, true);
-        },
-        toggleHighlight(actor: InitiativeData, show: boolean) {
-            const shape = layerManager.UUIDMap.get(actor.uuid);
-            if (shape === undefined) return;
-            shape.showHighlight = show;
+            this.createEffect(actor, data.effect, false);
+        });
+        socket.on("Initiative.Effect.Update", (data: { actor: string; effect: InitiativeEffect }) =>
+            this.updateEffect(data.actor, data.effect, false),
+        );
+    }
+
+    beforeDestroy() {
+        EventBus.$off();
+    }
+
+    // Utilities
+    clear() {
+        this.data = [];
+        this.currentActor = null;
+    }
+    getActor(actorId: string) {
+        return this.data.find(a => a.uuid === actorId);
+    }
+    contains(uuid: string) {
+        return this.data.some(d => d.uuid === uuid);
+    }
+    owns(actor: InitiativeData): boolean {
+        if (gameStore.IS_DM) return true;
+        const shape = layerManager.UUIDMap.get(actor.uuid);
+        // Shapes that are unknown to this client are hidden from this client but owned by other clients
+        if (shape === undefined) return false;
+        return shape.owners.includes(gameStore.username);
+    }
+    getDefaultEffect() {
+        return { uuid: uuidv4(), name: "New Effect", turns: 10 };
+    }
+    fakeSetData(dataTransfer: DataTransfer) {
+        dataTransfer.setData("Hack", "");
+    }
+    syncInitiative(data: InitiativeData | { uuid: string }) {
+        socket.emit("Initiative.Update", data);
+    }
+    // Events
+    addInitiative(data: InitiativeData) {
+        const d = this.data.findIndex(a => a.uuid === data.uuid);
+        if (d >= 0) return;
+        if (data.initiative === undefined) data.initiative = 0;
+        this.syncInitiative(data);
+    }
+    removeInitiative(uuid: string) {
+        const d = this.data.findIndex(a => a.uuid === uuid);
+        if (d < 0 || this.data[d].group) return;
+        this.syncInitiative({ uuid });
+        // Remove highlight
+        const shape = layerManager.UUIDMap.get(uuid);
+        if (shape === undefined) return;
+        if (shape.showHighlight) {
+            shape.showHighlight = false;
             layerManager.getLayer(shape.layer)!.invalidate(true);
-        },
-        toggleOption(actor: InitiativeData, option: "visible" | "group") {
-            if (!this.owns(actor)) return;
-            actor[option] = !actor[option];
-            this.syncInitiative(actor);
-        },
-        createEffect(actor: InitiativeData, effect: InitiativeEffect, sync: boolean) {
-            if (!this.owns(actor)) return;
-            actor.effects.push(effect);
-            if (sync) socket.emit("Initiative.Effect.New", { actor: actor.uuid, effect });
-        },
-        syncEffect(actor: InitiativeData, effect: InitiativeEffect) {
-            if (!this.owns(actor)) return;
-            socket.emit("Initiative.Effect.Update", { actor: actor.uuid, effect });
-        },
-        updateEffect(actorId: string, effect: InitiativeEffect, sync: boolean) {
-            const actor = this.data.find(a => a.uuid === actorId);
-            if (actor === undefined) return;
-            const effectIndex = actor.effects.findIndex(e => e.uuid === effect.uuid);
-            if (effectIndex === undefined) return;
-            actor.effects[effectIndex] = effect;
-            if (sync) this.syncEffect(actor, effect);
-            else this.$forceUpdate();
-        },
-    },
-});
+        }
+    }
+    updateOrder() {
+        if (!gameStore.IS_DM) return;
+        socket.emit("Initiative.Set", this.data.map(d => d.uuid));
+    }
+    setTurn(actorId: string | null, sync: boolean) {
+        if (!gameStore.IS_DM && sync) return;
+        this.currentActor = actorId;
+        const actor = this.data.find(a => a.uuid === actorId);
+        if (actor === undefined) return;
+        if (actor.effects) {
+            for (let e = actor.effects.length - 1; e >= 0; e--) {
+                if (actor.effects[e].turns <= 0) actor.effects.splice(e, 1);
+                else actor.effects[e].turns--;
+            }
+        }
+        if (sync) socket.emit("Initiative.Turn.Update", actorId);
+    }
+    setRound(round: number, sync: boolean) {
+        if (!gameStore.IS_DM && sync) return;
+        this.roundCounter = round;
+        if (sync) socket.emit("Initiative.Round.Update", round);
+    }
+    nextTurn() {
+        if (!gameStore.IS_DM) return;
+        const order = this.data;
+        const next = order[(order.findIndex(a => a.uuid === this.currentActor) + 1) % order.length];
+        if (this.data[0].uuid === next.uuid) this.setRound(this.roundCounter + 1, true);
+        this.setTurn(next.uuid, true);
+    }
+    toggleHighlight(actor: InitiativeData, show: boolean) {
+        const shape = layerManager.UUIDMap.get(actor.uuid);
+        if (shape === undefined) return;
+        shape.showHighlight = show;
+        layerManager.getLayer(shape.layer)!.invalidate(true);
+    }
+    toggleOption(actor: InitiativeData, option: "visible" | "group") {
+        if (!this.owns(actor)) return;
+        actor[option] = !actor[option];
+        this.syncInitiative(actor);
+    }
+    createEffect(actor: InitiativeData, effect: InitiativeEffect, sync: boolean) {
+        if (!this.owns(actor)) return;
+        actor.effects.push(effect);
+        if (sync) socket.emit("Initiative.Effect.New", { actor: actor.uuid, effect });
+    }
+    syncEffect(actor: InitiativeData, effect: InitiativeEffect) {
+        if (!this.owns(actor)) return;
+        socket.emit("Initiative.Effect.Update", { actor: actor.uuid, effect });
+    }
+    updateEffect(actorId: string, effect: InitiativeEffect, sync: boolean) {
+        const actor = this.data.find(a => a.uuid === actorId);
+        if (actor === undefined) return;
+        const effectIndex = actor.effects.findIndex(e => e.uuid === effect.uuid);
+        if (effectIndex === undefined) return;
+        actor.effects[effectIndex] = effect;
+        if (sync) this.syncEffect(actor, effect);
+        else this.$forceUpdate();
+    }
+}
 </script>
 
 

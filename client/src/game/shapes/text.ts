@@ -1,10 +1,9 @@
-import BoundingRect from "@/game/shapes/boundingrect";
-import Shape from "@/game/shapes/shape";
-
 import { GlobalPoint, LocalPoint } from "@/game/geom";
+import { BoundingRect } from "@/game/shapes/boundingrect";
+import { Shape } from "@/game/shapes/shape";
 import { g2l } from "@/game/units";
 
-export default class Text extends Shape {
+export class Text extends Shape {
     type = "text";
     text: string;
     font: string;

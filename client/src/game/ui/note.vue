@@ -34,51 +34,55 @@
 
 <script lang="ts">
 import Vue from "vue";
+import Component from "vue-class-component";
 
-import modal from "@/core/components/modals/modal.vue";
-import game from "@/game/game.vue";
+import ConfirmDialog from "@/core/components/modals/confirm.vue";
+import Modal from "@/core/components/modals/modal.vue";
 
+import { getRef } from "@/core/utils";
 import { Note } from "@/game/comm/types/general";
+import { gameStore } from "@/game/store";
 
-export default Vue.component("initiative-dialog", {
-    data: () => ({
-        visible: false,
-        note: <Note | null>null,
-    }),
+@Component({
     components: {
-        modal,
+        Modal,
     },
-    methods: {
-        open(note: Note) {
-            this.visible = true;
-            this.note = note;
-        },
-        calcHeight() {
-            if (this.$refs.textarea) {
-                const el = <HTMLElement>this.$refs.textarea;
-                el.style.height = "auto";
-                el.style.height = el.scrollHeight + "px";
-                // Using the return value without the above did not achieve what I want, so hey /shrug
-                return el.scrollHeight + "px";
-            }
-            return "100px";
-        },
-        updateNote() {
-            this.$store.commit("updateNote", { note: this.note, sync: true });
-        },
-        removeNote() {
-            (<any>game).$refs.confirm.open("Are you sure you wish to remove this?").then(
+})
+export default class NoteDialog extends Vue {
+    visible = false;
+    note: Note | null = null;
+
+    open(note: Note) {
+        this.visible = true;
+        this.note = note;
+    }
+    calcHeight() {
+        if (this.$refs.textarea) {
+            const el = <HTMLElement>this.$refs.textarea;
+            el.style.height = "auto";
+            el.style.height = el.scrollHeight + "px";
+            // Using the return value without the above did not achieve what I want, so hey /shrug
+            return el.scrollHeight + "px";
+        }
+        return "100px";
+    }
+    updateNote() {
+        if (this.note) gameStore.updateNote({ note: this.note, sync: true });
+    }
+    removeNote() {
+        getRef<ConfirmDialog>("confirm")
+            .open("Are you sure you wish to remove this?")
+            .then(
                 (result: boolean) => {
-                    if (result) {
-                        this.$store.commit("removeNote", { note: this.note, sync: true });
+                    if (result && this.note) {
+                        gameStore.removeNote({ note: this.note, sync: true });
                         this.visible = false;
                     }
                 },
                 () => {},
             );
-        },
-    },
-});
+    }
+}
 </script>
 
 <style scoped>

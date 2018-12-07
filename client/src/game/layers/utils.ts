@@ -1,10 +1,10 @@
-import layerManager from "@/game/layers/manager";
-
 import { ServerLayer } from "@/game/comm/types/general";
 import { FOWLayer } from "@/game/layers/fow";
 import { FOWPlayersLayer } from "@/game/layers/fowplayers";
 import { GridLayer } from "@/game/layers/grid";
 import { Layer } from "@/game/layers/layer";
+import { layerManager } from "@/game/layers/manager";
+import { gameStore } from "@/game/store";
 
 export function createLayer(layerInfo: ServerLayer) {
     // Create canvas element
@@ -31,7 +31,7 @@ export function createLayer(layerInfo: ServerLayer) {
     }
     if (layerInfo.name !== "fow-players") layers.appendChild(canvas);
 
-    // if (layerInfo.type_ === 'grid' && layerInfo.size) store.commit("setGridSize", { gridSize: layerInfo.size, sync: false });
+    if (layerInfo.type_ === "grid" && layerInfo.size) gameStore.setGridSize({ gridSize: layerInfo.size, sync: false });
     // Load layer shapes
     layer.setShapes(layerInfo.shapes);
 }

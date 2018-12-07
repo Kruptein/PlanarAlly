@@ -1,11 +1,12 @@
-import socket from "@/game/api/socket";
+import { socket } from "@/game/api/socket";
+import { gameStore } from "@/game/store";
 
 export function sendClientOptions() {
-    // socket.emit("Client.Options.Set", {
-    //     locationOptions: {
-    //         panX: store.state.game.panX,
-    //         panY: store.state.game.panY,
-    //         zoomFactor: store.state.game.zoomFactor,
-    //     },
-    // });
+    socket.emit("Client.Options.Set", {
+        locationOptions: {
+            panX: gameStore.panX,
+            panY: gameStore.panY,
+            zoomFactor: gameStore.zoomFactor,
+        },
+    });
 }

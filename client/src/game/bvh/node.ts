@@ -1,4 +1,4 @@
-import BoundingRect from "@/game/shapes/boundingrect";
+import { BoundingRect } from "@/game/shapes/boundingrect";
 
 export class BoundingNode {
     bbox: BoundingRect;

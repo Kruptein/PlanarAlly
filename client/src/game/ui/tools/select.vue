@@ -117,7 +117,7 @@ export default class SelectTool extends Tool {
         this.active = true;
     }
     onMouseMove(event: MouseEvent) {
-        if (!this.active) return;
+        // if (!this.active) return;   we require mousemove for the resize cursor
         const layer = layerManager.getLayer();
         if (layer === undefined) {
             console.log("No active layer!");

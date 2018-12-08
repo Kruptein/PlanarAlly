@@ -1,11 +1,16 @@
 # client
 
-## Project setup
+The Planar Ally client is a typescript codebase setup using vue-cli.  When you want to run the client you'll need to have a Planar Ally server running as well.
+
+## Setup
+
+### Installation of depencencies
 ```
 npm install
 ```
 
 ### Compiles and hot-reloads for development
+This requires the server to be ran in development mode as well.
 ```
 npm run serve
 ```
@@ -15,15 +20,7 @@ npm run serve
 npm run build
 ```
 
-### Run your tests
-```
-npm run test
-```
-
 ### Lints and fixes files
 ```
 npm run lint
 ```
-
-### Customize configuration
-See [Configuration Reference](https://cli.vuejs.org/config/).

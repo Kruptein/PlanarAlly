@@ -97,6 +97,16 @@ export default class Login extends Vue {
 </script>
 
 <style scoped>
+* {
+    -ms-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    -webkit-box-sizing: border-box;
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    border: 0;
+}
+
 form {
     position: relative;
     top: 50%;

@@ -6,7 +6,7 @@
 server/env/**
 server/**/__pycache__/**
 server/venv
-server/.mypy**
+.mypy**
 
 # PyInstaller
 server/dist/**

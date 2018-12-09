@@ -66,7 +66,7 @@ router.beforeEach((to, from, next) => {
             .then((response: AxiosResponse) => {
                 if (response.data.auth) coreStore.setAuthenticated(true);
                 coreStore.setInitialized(true);
-                router.push("/dashboard");
+                router.push(to.path);
             })
             .catch(() => {
                 console.log(0);

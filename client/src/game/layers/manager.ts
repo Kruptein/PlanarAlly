@@ -20,6 +20,11 @@ class LayerManager {
         requestAnimationFrame(this.drawLoop);
     }
 
+    reset() {
+        this.layers = [];
+        this.UUIDMap = new Map();
+    }
+
     drawLoop = () => {
         for (let i = this.layers.length - 1; i >= 0; i--) {
             this.layers[i].draw();

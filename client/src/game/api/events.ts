@@ -69,6 +69,7 @@ socket.on("Board.Set", (locationInfo: BoardInfo) => {
     gameStore.setLocations(locationInfo.locations);
     document.getElementById("layers")!.innerHTML = "";
     gameStore.resetLayerInfo();
+    layerManager.reset();
     for (const layer of locationInfo.layers) createLayer(layer);
     // Force the correct opacity render on other layers.
     layerManager.selectLayer(layerManager.getLayer()!.name, false);

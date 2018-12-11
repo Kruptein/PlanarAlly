@@ -64,7 +64,10 @@ router.beforeEach((to, from, next) => {
         axios
             .get("/api/auth")
             .then((response: AxiosResponse) => {
-                if (response.data.auth) coreStore.setAuthenticated(true);
+                if (response.data.auth) {
+                    coreStore.setAuthenticated(true);
+                    coreStore.setUsername(response.data.username);
+                }
                 coreStore.setInitialized(true);
                 router.push(to.path);
             })

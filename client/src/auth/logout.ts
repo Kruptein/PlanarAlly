@@ -10,6 +10,7 @@ export default class Logout extends Vue {
     beforeRouteEnter(to: Route, from: Route, next: ({}) => {}) {
         Axios.post("/api/logout").then(() => {
             coreStore.setAuthenticated(false);
+            coreStore.setUsername("");
             next({ path: "/auth/login" });
         });
     }

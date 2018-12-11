@@ -11,6 +11,7 @@ export interface CoreState {
 class CoreStore extends VuexModule {
     authenticated = false;
     initialized = false;
+    username = "";
 
     @Mutation
     setAuthenticated(auth: boolean) {
@@ -20,6 +21,11 @@ class CoreStore extends VuexModule {
     @Mutation
     setInitialized(init: boolean) {
         this.initialized = init;
+    }
+
+    @Mutation
+    setUsername(username: string) {
+        this.username = username;
     }
 }
 

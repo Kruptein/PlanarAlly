@@ -18,11 +18,15 @@ async def connect(sid, environ):
             k.split("=")[0]: k.split("=")[1]
             for k in unquote(environ["QUERY_STRING"]).strip().split("&")
         }
-        room = (
-            Room.select()
-            .join(User)
-            .where((Room.name == ref["room"]) & (User.name == ref["user"]))[0]
-        )
+        try:
+            room = (
+                Room.select()
+                .join(User)
+                .where((Room.name == ref["room"]) & (User.name == ref["user"]))[0]
+            )
+        except IndexError:
+            return False
+
         if room.creator == user:
             location = Location.get(room=room, name=room.dm_location)
         else:

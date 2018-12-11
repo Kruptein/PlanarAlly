@@ -56,6 +56,7 @@ export default class Login extends Vue {
                 password: this.password,
             })
             .then((response: AxiosResponse) => {
+                coreStore.setUsername(this.username);
                 coreStore.setAuthenticated(true);
                 this.$router.push(<string>this.$route.query.redirect || "/");
             })
@@ -72,6 +73,7 @@ export default class Login extends Vue {
                 password: this.password,
             })
             .then((response: AxiosResponse) => {
+                coreStore.setUsername(this.username);
                 coreStore.setAuthenticated(true);
             })
             .catch((error: AxiosError) => {

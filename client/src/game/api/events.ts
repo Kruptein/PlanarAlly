@@ -8,6 +8,7 @@ import { layerManager } from "@/game/layers/manager";
 import { createLayer } from "@/game/layers/utils";
 import { gameManager } from "@/game/manager";
 import { gameStore } from "@/game/store";
+import { router } from "@/router";
 
 socket.on("connect", () => {
     console.log("Connected");
@@ -15,9 +16,17 @@ socket.on("connect", () => {
 socket.on("disconnect", () => {
     console.log("Disconnected");
 });
+socket.on("connect_error", (error: any) => {
+    console.error("Could not connect to game session.");
+    router.push("/dashboard");
+});
+socket.on("error", (error: any) => {
+    console.error("Game session does not exist.");
+    router.push("/dashboard");
+});
 socket.on("redirect", (destination: string) => {
     console.log("redirecting");
-    window.location.href = destination;
+    router.push(destination);
 });
 socket.on("Room.Info.Set", (data: { name: string; creator: string; invitationCode: string }) => {
     gameStore.setRoomName(data.name);

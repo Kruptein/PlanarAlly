@@ -224,8 +224,8 @@ export default class MenuBar extends Vue {
     settingsClick(event: { target: HTMLElement }) {
         if (event.target.classList.contains("accordion")) {
             event.target.classList.toggle("accordion-active");
-            const next = <HTMLElement>event.target.nextElementSibling!;
-            next.style.display = next.style.display === "" ? "block" : "";
+            const next = <HTMLElement>event.target.nextElementSibling;
+            if (next !== null) next.style.display = next.style.display === "" ? "block" : "";
         }
     }
     changeLocation(name: string) {

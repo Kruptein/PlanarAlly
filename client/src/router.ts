@@ -72,7 +72,7 @@ router.beforeEach((to, from, next) => {
                 router.push(to.path);
             })
             .catch(() => {
-                console.log(0);
+                console.error("Authentication check could not be fulfilled.");
             });
     } else if (to.matched.some(record => record.meta.auth) && !coreStore.authenticated) {
         next({ path: "/auth/login", query: { redirect: to.path } });

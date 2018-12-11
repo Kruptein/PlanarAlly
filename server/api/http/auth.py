@@ -8,7 +8,11 @@ from models.db import db
 
 async def is_authed(request):
     user = await authorized_userid(request)
-    return web.json_response({"auth": user is not None, "username": user.name})
+    if user is None:
+        data = {"auth": False, "username": ""}
+    else:
+        data = {"auth": True, "username": user.name}
+    return web.json_response(data)
 
 
 async def login(request):

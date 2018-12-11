@@ -41,6 +41,7 @@ app.router.add_post("/api/register", api.http.auth.register)
 app.router.add_post("/api/logout", api.http.auth.logout)
 app.router.add_get("/api/rooms", api.http.rooms.get_list)
 app.router.add_post("/api/rooms", api.http.rooms.create)
+app.router.add_post("/api/invite", api.http.claim_invite)
 
 if "dev" in sys.argv:
     app.router.add_route("*", "/{tail:.*}", routes.root_dev)

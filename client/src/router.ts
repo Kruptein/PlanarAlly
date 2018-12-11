@@ -11,6 +11,7 @@ import Logout from "@/auth/logout";
 import LoadComponent from "@/core/components/load.vue";
 import Dashboard from "@/dashboard/main.vue";
 import Game from "@/game/game.vue";
+import Invitation from "@/invitation/invitation";
 
 import { coreStore } from "@/core/store";
 // import { AssetManager } from "./assetManager/assets";
@@ -40,6 +41,13 @@ export const router = new Router({
             path: "/auth",
             component: { template: "<router-view></router-view>" },
             children: [{ path: "login", component: Login }, { path: "logout", component: Logout }],
+        },
+        {
+            path: "/invite/:code",
+            component: Invitation,
+            meta: {
+                auth: true,
+            },
         },
         {
             path: "/dashboard",

@@ -56,19 +56,6 @@ async def show_room(request):
     return web.HTTPFound("/rooms")
 
 
-async def claim_invite(request):
-    user = await check_authorized(request)
-    room = Room.get_or_none(invitation_code=request.match_info["code"])
-    if room is None:
-        return web.HTTPNotFound()
-    else:
-        if user.name != room.creator and not PlayerRoom.get_or_none(
-            player=user, room=room
-        ):
-            PlayerRoom.create(player=user, room=room)
-        return web.HTTPFound(f"/rooms/{room.creator.name}/{room.name}")
-
-
 @aiohttp_jinja2.template("assets.jinja2")
 async def show_assets(request):
     await check_authorized(request)

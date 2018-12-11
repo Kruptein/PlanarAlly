@@ -20,29 +20,13 @@ async def root_dev(request):
     data = await request.read()
     get_data = request.rel_url.query
     async with aiohttp.ClientSession() as session:
-        async with session.request("get", target_url, headers=request.headers, params=get_data, data=data) as resp:
+        async with session.request(
+            "get", target_url, headers=request.headers, params=get_data, data=data
+        ) as resp:
             response = resp
             raw = await response.read()
 
     return web.Response(body=raw, status=response.status, headers=response.headers)
-
-
-async def create_room(request):
-    user = await check_authorized(request)
-    data = await request.post()
-    roomname = data["room_name"]
-    if not roomname:
-        response = web.HTTPFound("/rooms")
-    else:
-        with db.atomic():
-            room = Room.create(name=roomname, creator=user)
-            loc = Location.create(room=room, name="start")
-            loc.add_default_layers()
-            room.dm_location = loc.name
-            room.player_location = loc.name
-            room.save()
-        response = web.HTTPFound(f"/rooms/{user.name}/{roomname}")
-    return response
 
 
 @aiohttp_jinja2.template("planarally.jinja2")

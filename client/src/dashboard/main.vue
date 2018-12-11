@@ -25,7 +25,7 @@
         <legend v-if="!owned && !joined" class="legend">Create a session</legend>
         <div v-else class="input">Create a new session</div>
         <div class="input">
-          <input type="text" name="room_name" placeholder="Session Name">
+          <input type="text" v-model="newSessionName" name="room_name" placeholder="Session Name">
           <span>
             <i class="fab fa-d-and-d"></i>
           </span>
@@ -56,13 +56,17 @@ import Vue from "vue";
 import Component from "vue-class-component";
 import { Route } from "vue-router";
 
+import { coreStore } from "@/core/store";
+
 Component.registerHooks(["beforeRouteEnter"]);
 
-@Component({})
+@Component
 export default class Dashboard extends Vue {
     owned = [];
     joined = [];
     error = "";
+
+    newSessionName = "";
 
     beforeRouteEnter(to: Route, from: Route, next: ({}) => {}) {
         axios
@@ -77,6 +81,19 @@ export default class Dashboard extends Vue {
                 next((vm: this) => {
                     vm.error = err.message;
                 });
+            });
+    }
+
+    createRoom(event: Event) {
+        axios
+            .post("/api/rooms", {
+                name: this.newSessionName,
+            })
+            .then((response: AxiosResponse) => {
+                this.$router.push(`/game/${coreStore.username}/${this.newSessionName}`);
+            })
+            .catch((err: AxiosError) => {
+                this.error = err.message;
             });
     }
 }
@@ -189,7 +206,7 @@ form {
 }
 
 .input input:focus {
-    padding: 10px 5px 10px 10px;
+    /* padding: 10px 5px 10px 10px; */
     outline: 0;
     border-color: #ff7052;
 }

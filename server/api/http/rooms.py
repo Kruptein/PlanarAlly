@@ -1,7 +1,8 @@
 from aiohttp import web
 from aiohttp_security import check_authorized
 
-from models import Room, User
+from models import Location, Room, User
+from models.db import db
 
 
 async def get_list(request):
@@ -20,3 +21,20 @@ async def get_list(request):
             ],
         }
     )
+
+
+async def create(request):
+    user = await check_authorized(request)
+    data = await request.json()
+    roomname = data["name"]
+    if not roomname:
+        return web.HTTPBadRequest()
+    else:
+        with db.atomic():
+            room = Room.create(name=roomname, creator=user)
+            loc = Location.create(room=room, name="start")
+            loc.add_default_layers()
+            room.dm_location = loc.name
+            room.player_location = loc.name
+            room.save()
+        return web.HTTPOk()

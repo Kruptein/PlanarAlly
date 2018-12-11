@@ -72,7 +72,7 @@ import NoteDialog from "@/game/ui/note.vue";
 import SelectionInfo from "@/game/ui/selection/selection_info.vue";
 import Tools from "@/game/ui/tools/tools.vue";
 
-import { createConnection } from "@/game/api/socket";
+import { createConnection, socket } from "@/game/api/socket";
 import { onKeyDown, onKeyUp } from "@/game/events/keyboard";
 import { scrollZoom } from "@/game/events/mouse";
 import { layerManager } from "@/game/layers/manager";
@@ -93,6 +93,10 @@ import { LocalPoint } from "./geom";
     },
     beforeRouteEnter(to, from, next) {
         createConnection(to);
+        next();
+    },
+    beforeRouteLeave(to, from, next) {
+        socket.disconnect();
         next();
     },
 })

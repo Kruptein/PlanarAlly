@@ -71,6 +71,14 @@ class State:
             ):
                 yield sid
 
+    def get_players(self, **options):
+        for sid in dict(self.sid_map):
+            if all(
+                self.sid_map[sid].get(option, None) == value
+                for option, value in options.items()
+            ):
+                yield sid, self.sid_map[sid]["user"]
+
     def add_temp(self, sid, uid):
         if sid not in self.client_temporaries:
             self.client_temporaries[sid] = []

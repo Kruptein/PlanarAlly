@@ -106,11 +106,11 @@
             </div>
           </div>
         </div>
-        <a
-          href="/rooms"
+        <router-link
+          to="/dashboard"
           class="accordion"
           style="text-decoration:none;display:inline-block;position:absolute;bottom:0;"
-        >Exit</a>
+        >Exit</router-link>
       </div>
     </transition>
     <!-- LOCATIONS -->

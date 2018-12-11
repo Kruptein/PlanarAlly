@@ -6,6 +6,7 @@ import Router from "vue-router";
 
 Vue.use(Router);
 
+import AssetManager from "@/assetManager/manager.vue";
 import Login from "@/auth/login.vue";
 import Logout from "@/auth/logout";
 import LoadComponent from "@/core/components/load.vue";
@@ -15,7 +16,7 @@ import Invitation from "@/invitation/invitation";
 
 import { coreStore } from "@/core/store";
 // import { AssetManager } from "./assetManager/assets";
-const AssetManager = () => import("./assetManager/assets").then(m => m.AssetManager);
+// const AssetManager = () => import("./assetManager/assets").then(m => m.AssetManager);
 
 export const router = new Router({
     mode: "history",

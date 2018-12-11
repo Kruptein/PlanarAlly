@@ -253,7 +253,7 @@ export default class MenuBar extends Vue {
 </script>
 
 
-<style>
+<style scoped>
 /*
 DIRECTORY.CSS changes
 
@@ -279,9 +279,7 @@ DIRECTORY.CSS changes
 .folder:hover > * {
     font-weight: normal;
 }
-</style>
 
-<style scoped>
 #menuContainer {
     position: absolute;
     z-index: 20;

@@ -1,16 +1,9 @@
 import io from "socket.io-client";
 
-import { AssetManager } from "@/assetManager/assets";
 import { Asset } from "@/core/comm/types";
-import { getComponent } from "@/core/utils";
+import { assetStore } from "./store";
 
 export const socket = io(location.protocol + "//" + location.host + "/pa_assetmgmt", { autoConnect: false });
-let vm: AssetManager;
-
-export function createConnection() {
-    socket.connect();
-    vm = getComponent<AssetManager>();
-}
 
 // export const socket = io.connect(location.protocol + "//" + location.host + "/pa_assetmgmt");
 socket.on("connect", () => {
@@ -24,27 +17,26 @@ socket.on("redirect", (destination: string) => {
     window.location.href = destination;
 });
 socket.on("Folder.Root.Set", (root: number) => {
-    vm.root = root;
+    assetStore.setRoot(root);
 });
 socket.on("Folder.Set", (folder: Asset) => {
-    vm.folders = [];
-    vm.files = [];
+    assetStore.clear();
     if (folder.children) {
         for (const child of folder.children) {
-            vm.idMap.set(child.id, child);
+            assetStore.idMap.set(child.id, child);
             if (child.file_hash) {
-                vm.files.push(child.id);
+                assetStore.files.push(child.id);
             } else {
-                vm.folders.push(child.id);
+                assetStore.folders.push(child.id);
             }
         }
     }
 });
 socket.on("Folder.Create", (folder: Asset) => {
-    vm.folders.push(folder.id);
-    vm.idMap.set(folder.id, folder);
+    assetStore.folders.push(folder.id);
+    assetStore.idMap.set(folder.id, folder);
 });
 socket.on("Asset.Upload.Finish", (asset: Asset) => {
-    vm.idMap.set(asset.id, asset);
-    vm.files.push(asset.id);
+    assetStore.idMap.set(asset.id, asset);
+    assetStore.files.push(asset.id);
 });

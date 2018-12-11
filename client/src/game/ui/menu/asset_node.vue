@@ -66,7 +66,7 @@ export default class AssetNode extends Vue {
 }
 </script>
 
-<style>
+<style scoped>
 .preview {
     position: fixed;
     z-index: 50;
@@ -85,7 +85,9 @@ export default class AssetNode extends Vue {
 }
 
 .token {
-    padding: 5px 10px;
+    /* padding: 5px 10px; */
+    padding-top: 5px;
+    padding-bottom: 5px;
     display: flex;
     align-items: center;
     justify-content: flex-start;
@@ -97,5 +99,31 @@ export default class AssetNode extends Vue {
 
 .token svg {
     margin-left: auto;
+}
+
+/*
+DIRECTORY.CSS changes
+
+* Collapse all folders by default, use js to toggle visibility on click.
+* On hover over folder show some visual feedback
+* On hover over file show the image
+
+*/
+.folder > * {
+    display: none;
+}
+
+.directory > .folder,
+.directory > .file {
+    display: block;
+}
+
+.folder:hover {
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.folder:hover > * {
+    font-weight: normal;
 }
 </style>

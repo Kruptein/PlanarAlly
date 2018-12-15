@@ -1,7 +1,8 @@
 // vue.config.js
 module.exports = {
-    outputDir: "../server/static",
-    indexPath: "../templates/index.html",
+    assetsDir: "static",
+    outputDir: "../server",
+    indexPath: "./templates/index.html",
     configureWebpack: {
         resolve: {
             alias: {

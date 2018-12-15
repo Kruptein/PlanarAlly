@@ -4,8 +4,9 @@
   "description": "A companion tool for when you travel into the planes.",
   "scripts": {
     "serve": "vue-cli-service serve",
-    "build": "vue-cli-service build",
-    "lint": "vue-cli-service lint"
+    "build": "npm run clean && vue-cli-service build --no-clean",
+    "lint": "vue-cli-service lint",
+    "clean": "rimraf ../server/static/js/ && rimraf ../server/static/css/"
   },
   "repository": {
     "type": "git",
@@ -38,6 +39,7 @@
     "dependency-cruiser": "^4.6.3",
     "node-sass": "^4.9.0",
     "prettier": "^1.15.2",
+    "rimraf": "^2.6.2",
     "sass-loader": "^7.0.1",
     "tslint": "^5.11.0",
     "tslint-config-prettier": "^1.16.0",

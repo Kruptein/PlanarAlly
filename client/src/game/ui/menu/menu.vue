@@ -42,7 +42,7 @@
           <template v-if="IS_DM">
             <button class="accordion">Assets</button>
             <div class="accordion-panel">
-              <a class="actionButton" href="/assets" target="blank">
+              <a class="actionButton" href="/assets" target="blank" title="Open asset manager">
                 <i class="fas fa-external-link-alt"></i>
               </a>
               <div class="directory" id="menu-tokens">

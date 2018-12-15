@@ -15,6 +15,7 @@
             :to="'/game/' + room[1] + '/' + room[0]"
           >{{ room[1] }}/{{ room[0] }}</router-link>
         </div>
+        <div class="input" v-if="owned.length === 0">No active sessions</div>
       </fieldset>
     </form>
     <h4>

@@ -75,6 +75,7 @@ export default class Login extends Vue {
             .then((response: AxiosResponse) => {
                 coreStore.setUsername(this.username);
                 coreStore.setAuthenticated(true);
+                this.$router.push(<string>this.$route.query.redirect || "/");
             })
             .catch((error: AxiosError) => {
                 if (error.response) this.error = error.response.statusText;

@@ -47,6 +47,7 @@
               </a>
               <div class="directory" id="menu-tokens">
                 <asset-node :asset="assets"></asset-node>
+                <div v-if="!assets.length">No assets</div>
               </div>
             </div>
             <!-- NOTES -->

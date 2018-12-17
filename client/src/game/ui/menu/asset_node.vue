@@ -30,7 +30,9 @@ import { Prop } from "vue-property-decorator";
 import { AssetFile, AssetList } from "@/core/comm/types";
 import { alphSort } from "@/core/utils";
 
-@Component
+@Component({
+    name: "asset-node",
+})
 export default class AssetNode extends Vue {
     @Prop() asset!: AssetList;
 

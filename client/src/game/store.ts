@@ -129,14 +129,21 @@ class GameStore extends VuexModule {
 
     @Mutation
     recalculateBV() {
+        // TODO: This needs to be cleaned up..
         if (this.boardInitialized) {
             let success = false;
+            let tries = 0;
             while (!success) {
                 success = true;
                 try {
                     this.BV = Object.freeze(new BoundingVolume(this.visionBlockers));
-                } catch {
+                } catch (error) {
                     success = false;
+                    tries++;
+                    if (tries > 10) {
+                        console.error(error);
+                        return;
+                    }
                 }
             }
         }
@@ -285,11 +292,11 @@ class GameStore extends VuexModule {
 
     @Action
     clear() {
-        this.context.getters.visionSources = [];
-        this.context.getters.visionBlockers = [];
-        this.context.getters.ownedtokens = [];
-        this.context.getters.annotations = [];
-        this.context.getters.movementblockers = [];
+        (<any>this.context.state).visionSources = [];
+        (<any>this.context.state).visionBlockers = [];
+        (<any>this.context.state).ownedtokens = [];
+        (<any>this.context.state).annotations = [];
+        (<any>this.context.state).movementblockers = [];
         this.context.commit("recalculateBV");
     }
 }

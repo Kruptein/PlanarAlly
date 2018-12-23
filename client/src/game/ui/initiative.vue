@@ -146,6 +146,7 @@ export default class Initiative extends Vue {
     mounted() {
         EventBus.$on("Initiative.Clear", this.clear);
         EventBus.$on("Initiative.Remove", (data: string) => this.removeInitiative(data));
+        EventBus.$on("Initiative.Show", () => (this.visible = true));
 
         socket.on("Initiative.Set", (data: InitiativeData[]) => {
             this.data = data;

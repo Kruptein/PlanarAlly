@@ -13,6 +13,7 @@ import Component from "vue-class-component";
 import ContextMenu from "@/core/components/contextmenu.vue";
 
 import { socket } from "@/game/api/socket";
+import { EventBus } from "@/game/event-bus";
 import { gameStore } from "@/game/store";
 import { l2gx, l2gy } from "@/game/units";
 
@@ -49,7 +50,7 @@ export default class SelectContext extends Vue {
         this.close();
     }
     showInitiative() {
-        (<any>this.$root.$refs.initiative).visible = true;
+        EventBus.$emit("Initiative.Show");
         this.close();
     }
 }

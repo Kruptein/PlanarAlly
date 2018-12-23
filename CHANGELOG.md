@@ -7,6 +7,8 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+## 0.12.0
+
 ### Added
 
 - Added curl to docker container for proper health check

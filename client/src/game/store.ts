@@ -217,9 +217,9 @@ class GameStore extends VuexModule {
 
     @Mutation
     setUnitSize(data: { unitSize: number; sync: boolean }) {
-        if (this.unitSize !== data.unitSize) {
+        if (this.unitSize !== data.unitSize && data.unitSize > 0 && data.unitSize < Infinity) {
             this.unitSize = data.unitSize;
-            if (layerManager.getGridLayer() !== undefined) layerManager.getGridLayer()!.drawGrid();
+            layerManager.invalidate();
             if (data.sync) socket.emit("Location.Options.Set", { unit_size: data.unitSize });
         }
     }

@@ -4,7 +4,6 @@ import { GlobalPoint, Ray } from "@/game/geom";
 import { layerManager } from "@/game/layers/manager";
 import { BoundingRect } from "@/game/shapes/boundingrect";
 import { g2lx, g2ly, g2lz } from "@/game/units";
-import { gameManager } from "../manager";
 import { gameStore } from "../store";
 
 interface BuildInfo {

@@ -1,5 +1,5 @@
 import auth
-from app import app, logger, sio
+from app import app, logger, sio, state
 from models import Note
 from models.db import db
 
@@ -56,7 +56,7 @@ async def delete_note(sid, uuid):
     room = sid_data["room"]
     location = sid_data["location"]
 
-    note = Note.get_or_none(uuid=data["uuid"])
+    note = Note.get_or_none(uuid=uuid)
 
     if not note:
         logger.warning(

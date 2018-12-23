@@ -3,28 +3,27 @@
 .vscode/**
 
 # Python
-env/**
-**/__pycache__/**
-venv
+server/env/**
+server/**/__pycache__/**
+server/venv
 .mypy**
 
 # PyInstaller
-dist/**
-build/**
+server/dist/**
+server/build/**
 
 # JS
-.cache-loader/**
-node_modules/**
-PlanarAlly/client/src/*.js
-PlanarAlly/client/src/*.js.map
+client/node_modules/**
+server/client/src/*.js
+sever/client/src/*.js.map
 
 # PlanarAlly
-planarallyserver.log
-planar.save*
-planar.sqlite
-server_config.cfg
-PlanarAlly/static/img/**
-PlanarAlly/static/assets/**
+server/planarallyserver.log
+server/planar.save*
+server/planar.sqlite
+server/server_config.cfg
+server/static/img/**
+server/static/assets/**
 
 # docs
 docs/_build

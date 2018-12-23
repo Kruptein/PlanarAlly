@@ -1,0 +1,51 @@
+{
+  "name": "planarally-client",
+  "version": "0.11.6",
+  "description": "A companion tool for when you travel into the planes.",
+  "scripts": {
+    "serve": "vue-cli-service serve",
+    "build": "npm run clean && vue-cli-service build --no-clean --modern",
+    "lint": "vue-cli-service lint",
+    "clean": "rimraf ../server/static/js/ && rimraf ../server/static/css/"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Kruptein/PlanarAlly.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Kruptein/PlanarAlly/issues"
+  },
+  "homepage": "https://github.com/Kruptein/PlanarAlly#readme",
+  "dependencies": {
+    "axios": "^0.18.0",
+    "lodash.throttle": "^4.1.1",
+    "socket.io-client": "^2.1.1",
+    "tinycolor2": "^1.4.1",
+    "vue": "^2.5.17",
+    "vue-class-component": "^6.0.0",
+    "vue-color": "^2.7.0",
+    "vue-router": "^3.0.1",
+    "vue-slider-component": "^2.8.2",
+    "vuedraggable": "^2.16.0",
+    "vuex": "^3.0.1"
+  },
+  "devDependencies": {
+    "@types/lodash": "^4.14.118",
+    "@types/socket.io-client": "^1.4.32",
+    "@types/tinycolor2": "^1.4.1",
+    "@types/vue-color": "^2.4.1",
+    "@vue/cli-plugin-typescript": "^3.1.1",
+    "@vue/cli-service": "^3.1.4",
+    "dependency-cruiser": "^4.6.3",
+    "node-sass": "^4.9.0",
+    "prettier": "^1.15.2",
+    "rimraf": "^2.6.2",
+    "sass-loader": "^7.0.1",
+    "tslint": "^5.11.0",
+    "tslint-config-prettier": "^1.16.0",
+    "typescript": "^3.2.1",
+    "vue-property-decorator": "^7.2.0",
+    "vue-template-compiler": "^2.5.17",
+    "vuex-module-decorators": "^0.9.1"
+  }
+}

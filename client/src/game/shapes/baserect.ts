@@ -22,6 +22,20 @@ export abstract class BaseRect extends Shape {
     getBoundingBox() {
         return new BoundingRect(this.refPoint, this.w, this.h);
     }
+
+    get points() {
+        if (this.w === 0 || this.h === 0) return [[this.refPoint.x, this.refPoint.y]];
+        const topright = this.refPoint.add(new Vector(0, this.h));
+        const botright = this.refPoint.add(new Vector(this.w, this.h));
+        const botleft = this.refPoint.add(new Vector(this.w, 0));
+        return [
+            [this.refPoint.x, this.refPoint.y],
+            [topright.x, topright.y],
+            [botright.x, botright.y],
+            [botleft.x, botleft.y],
+        ];
+    }
+
     contains(point: GlobalPoint): boolean {
         return (
             this.refPoint.x <= point.x &&

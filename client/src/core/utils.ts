@@ -64,6 +64,11 @@ export function fixedEncodeURIComponent(str: string) {
 export class OrderedMap<K, V> {
     keys: K[] = [];
     values: V[] = [];
+
+    get length() {
+        return this.keys.length;
+    }
+
     get(key: K) {
         return this.values[this.keys.indexOf(key)];
     }
@@ -76,6 +81,9 @@ export class OrderedMap<K, V> {
     set(key: K, value: V) {
         this.keys.push(key);
         this.values.push(value);
+    }
+    has(key: K) {
+        return this.indexOf(key) >= 0;
     }
     indexOf(element: K) {
         return this.keys.indexOf(element);

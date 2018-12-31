@@ -4,12 +4,15 @@ import { layerManager } from "@/game/layers/manager";
 import { Settings } from "@/game/settings";
 import { gameStore } from "@/game/store";
 import { g2l, g2lx, g2ly } from "@/game/units";
+import { computeVisibility } from "../visibility/triangulate";
 
 export class FOWPlayersLayer extends Layer {
     isVisionLayer: boolean = true;
+    mode = "bvh";
 
     draw(): void {
         if (!this.valid) {
+            console.time("VI");
             const ctx = this.ctx;
 
             if (!gameStore.fowLOS || Settings.skipPlayerFOW) {
@@ -19,6 +22,9 @@ export class FOWPlayersLayer extends Layer {
             }
 
             ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+
+            // const drctx = layerManager.getLayer("draw")!.ctx;
+            // drctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
 
             const originalOperation = ctx.globalCompositeOperation;
 
@@ -30,44 +36,60 @@ export class FOWPlayersLayer extends Layer {
 
             // Then cut out all the player vision auras
             const maxLength = ctx.canvas.width + ctx.canvas.height;
+
             for (const tokenId of gameStore.ownedtokens) {
-                ctx.beginPath();
-                let lastArcAngle = -1;
                 const token = layerManager.UUIDMap.get(tokenId);
                 if (token === undefined) continue;
-                const center = token.center();
-                const lcenter = g2l(center);
+                if (this.mode === "bvh") {
+                    ctx.beginPath();
+                    let lastArcAngle = -1;
+                    const center = token.center();
+                    const lcenter = g2l(center);
 
-                for (let angle = 0; angle < 2 * Math.PI; angle += (Settings.angleSteps / 2 / 180) * Math.PI) {
-                    const cos = Math.cos(angle);
-                    const sin = Math.sin(angle);
-                    // Check if there is a hit with one of the nearby light blockers.
-                    const lightRay = new Ray(center, new Vector(cos, sin));
-                    const hitResult = gameStore.BV.intersect(lightRay);
+                    for (let angle = 0; angle < 2 * Math.PI; angle += (Settings.angleSteps / 2 / 180) * Math.PI) {
+                        const cos = Math.cos(angle);
+                        const sin = Math.sin(angle);
+                        // Check if there is a hit with one of the nearby light blockers.
+                        const lightRay = new Ray(center, new Vector(cos, sin));
+                        const hitResult = gameStore.BV.intersect(lightRay);
 
-                    // We can move on to the next angle if nothing was hit.
-                    if (!hitResult.hit) {
-                        // If an earlier hit caused the aura to leave the arc, we need to go back to the arc
-                        if (lastArcAngle === -1) {
-                            // Draw a line from the last non arc location back to the arc
-                            ctx.lineTo(lcenter.x + maxLength * cos, lcenter.y + maxLength * sin);
-                            // Set the start of a new arc beginning at the current angle
-                            lastArcAngle = angle;
+                        // We can move on to the next angle if nothing was hit.
+                        if (!hitResult.hit) {
+                            // If an earlier hit caused the aura to leave the arc, we need to go back to the arc
+                            if (lastArcAngle === -1) {
+                                // Draw a line from the last non arc location back to the arc
+                                ctx.lineTo(lcenter.x + maxLength * cos, lcenter.y + maxLength * sin);
+                                // Set the start of a new arc beginning at the current angle
+                                lastArcAngle = angle;
+                            }
+                            continue;
                         }
-                        continue;
+                        // If hit , first finish any ongoing arc, then move to the intersection point
+                        if (lastArcAngle !== -1) {
+                            ctx.arc(lcenter.x, lcenter.y, maxLength, lastArcAngle, angle);
+                            lastArcAngle = -1;
+                        }
+                        ctx.lineTo(g2lx(hitResult.intersect.x), g2ly(hitResult.intersect.y));
                     }
-                    // If hit , first finish any ongoing arc, then move to the intersection point
-                    if (lastArcAngle !== -1) {
-                        ctx.arc(lcenter.x, lcenter.y, maxLength, lastArcAngle, angle);
-                        lastArcAngle = -1;
-                    }
-                    ctx.lineTo(g2lx(hitResult.intersect.x), g2ly(hitResult.intersect.y));
-                }
 
-                // Finish the final arc.
-                if (lastArcAngle !== -1) ctx.arc(lcenter.x, lcenter.y, maxLength, lastArcAngle, 2 * Math.PI);
-                else ctx.closePath();
-                ctx.fill();
+                    // Finish the final arc.
+                    if (lastArcAngle !== -1) ctx.arc(lcenter.x, lcenter.y, maxLength, lastArcAngle, 2 * Math.PI);
+                    else ctx.closePath();
+                    ctx.fill();
+                } else {
+                    // const canvas = document.createElement("canvas");
+                    // canvas.width = window.innerWidth;
+                    // canvas.height = window.innerHeight;
+                    // const pctx = canvas.getContext("2d")!;
+                    const polygon = computeVisibility(token.center());
+                    // pctx.globalCompositeOperation = "source-in";
+                    ctx.beginPath();
+                    ctx.moveTo(g2lx(polygon[0][0]), g2ly(polygon[0][1]));
+                    for (const point of polygon) ctx.lineTo(g2lx(point[0]), g2ly(point[1]));
+                    ctx.closePath();
+                    ctx.fill();
+                    // ctx.drawImage(canvas, 0, 0);
+                }
             }
 
             // For the players this is done at the beginning of this function.  TODO: why the split up ???
@@ -75,6 +97,7 @@ export class FOWPlayersLayer extends Layer {
             if (gameStore.IS_DM) super.draw(!gameStore.fullFOW);
 
             ctx.globalCompositeOperation = originalOperation;
+            console.timeEnd("VI");
         }
     }
 }

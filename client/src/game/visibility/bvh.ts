@@ -1,10 +1,12 @@
 import { partition } from "@/core/utils";
-import { BoundingNode, InteriorNode, LeafNode } from "@/game/bvh/node";
 import { GlobalPoint, Ray } from "@/game/geom";
 import { layerManager } from "@/game/layers/manager";
 import { BoundingRect } from "@/game/shapes/boundingrect";
 import { g2lx, g2ly, g2lz } from "@/game/units";
+import { BoundingNode, InteriorNode, LeafNode } from "@/game/visibility/node";
 import { gameStore } from "../store";
+
+import * as tr from "./triangulate";
 
 interface BuildInfo {
     index: number;
@@ -34,6 +36,7 @@ export class BoundingVolume {
     offset = 0;
 
     constructor(shapes: string[]) {
+        tr.triangulate(shapes);
         this.shapes = shapes;
         if (this.shapes.length === 0) {
             this.root = null;

@@ -4,11 +4,11 @@ import { Action, getModule, Module, Mutation, VuexModule } from "vuex-module-dec
 import { AssetList } from "@/core/comm/types";
 import { socket } from "@/game/api/socket";
 import { sendClientOptions } from "@/game/api/utils";
-import { BoundingVolume } from "@/game/bvh/bvh";
 import { Note } from "@/game/comm/types/general";
 import { GlobalPoint } from "@/game/geom";
 import { layerManager } from "@/game/layers/manager";
 import { g2l, l2g } from "@/game/units";
+import { BoundingVolume } from "@/game/visibility/bvh";
 import { rootStore } from "@/store";
 
 export interface GameState {

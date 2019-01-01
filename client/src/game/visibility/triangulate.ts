@@ -213,7 +213,7 @@ function draw() {
 }
 
 export function computeVisibility(q: GlobalPoint, it = 0, drawt = false): number[][] {
-    console.time("CV");
+    // console.time("CV");
     const rawOutput: number[][] = [];
     const triangle = dcel.locate(q);
     if (triangle === undefined) {
@@ -228,7 +228,7 @@ export function computeVisibility(q: GlobalPoint, it = 0, drawt = false): number
         rawOutput.push(edge.fromVertex);
         if (!edge.constrained) expandEdge(q, edge.fromVertex, edge.toVertex, triangle, index, rawOutput);
     }
-    console.timeEnd("CV");
+    // console.timeEnd("CV");
 
     if (drawt) drawPolygon(rawOutput);
 

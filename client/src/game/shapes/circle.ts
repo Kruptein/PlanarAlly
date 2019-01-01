@@ -36,7 +36,7 @@ export class Circle extends Shape {
     }
 
     get points() {
-        return [];
+        return this.getBoundingBox().points;
     }
 
     draw(ctx: CanvasRenderingContext2D) {

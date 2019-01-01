@@ -26,6 +26,16 @@ export class BoundingRect {
         );
     }
 
+    get points() {
+        if (this.w === 0 || this.h === 0) return [[this.topLeft.x, this.topLeft.y]];
+        return [
+            [this.topLeft.x, this.topLeft.y],
+            [this.botLeft.x, this.botLeft.y],
+            [this.botRight.x, this.botRight.y],
+            [this.topRight.x, this.topRight.y],
+        ];
+    }
+
     offset(vector: Vector): BoundingRect {
         return new BoundingRect(this.topLeft.add(vector), this.w, this.h);
     }

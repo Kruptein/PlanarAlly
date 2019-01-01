@@ -5,11 +5,25 @@ import earcut from "./earcut.js";
 import { GlobalPoint, Vector } from "../geom";
 import { layerManager } from "../layers/manager";
 import { g2lx, g2ly } from "../units";
-import { cdel, createCDEL, Edge, Triangle } from "./cdel";
+import { cdel, CDEL, createCDEL, Edge, Triangle } from "./cdel";
+
+/*
+Triangle expansion algorithm
+=============================
+Based upon https://arxiv.org/pdf/1403.3905.pdf and the CGAL implementation.
+
+The polygon-clipping library returns polygons in CCW order and always adds the first point
+as the last point again to form a complete polygon.
+
+The earcut library expects a flat list of vertices followed by a list of indices that points
+to the holes in the vertices list.
+*/
 
 export function triangulate(shapes: string[]) {
-    const g = generate(reduce(shapes));
-    return triag(g.vertices, g.holes);
+    if (shapes.length === 0) return new CDEL([]);
+    const sh = reduce(shapes);
+    const g = generate(sh);
+    return triag(g.vertices, g.holes, sh);
 }
 
 (<any>window).p = polygon;
@@ -28,10 +42,8 @@ function reduce(shapes: string[]) {
     const points: number[][][][] = [];
     for (const shape of shapes) {
         const p = layerManager.UUIDMap.get(shape)!.points;
-        console.log(p);
         if (p.length > 0) points.push([p]);
     }
-    console.log(points);
     return polygon.union(...points);
 }
 
@@ -42,22 +54,19 @@ function generate(shapes: number[][][][]) {
     let maxX = 0;
     let maxY = 0;
     const holes = [];
-    for (const polygon of shapes) {
+    for (const shape of shapes) {
         holes.push(vertices.length / 2);
-        // vertices.push(
-        //     rect.refPoint.x,
-        //     rect.refPoint.y,
-        //     topright.x,
-        //     topright.y,
-        //     botright.x,
-        //     botright.y,
-        //     botleft.x,
-        //     botleft.y,
-        // );
-        // if (minX > rect.refPoint.x) minX = rect.refPoint.x;
-        // if (minY > rect.refPoint.y) minY = rect.refPoint.y;
-        // if (maxX < botright.x) maxX = botright.x;
-        // if (maxY < botright.y) maxY = botright.y;
+        for (const sha of shape) {
+            for (const [idx, point] of sha.reverse().entries()) {
+                if (idx === shape[0].length - 1) continue;
+                vertices.push(point[0], point[1]);
+
+                if (minX > point[0]) minX = point[0];
+                if (minY > point[1]) minY = point[1];
+                if (maxX < point[0]) maxX = point[0];
+                if (maxY < point[1]) maxY = point[1];
+            }
+        }
     }
     minX -= 1e6;
     minY -= 1e6;
@@ -67,7 +76,7 @@ function generate(shapes: number[][][][]) {
     return { vertices, holes };
 }
 
-function triag(vertices: number[], holes: number[]) {
+function triag(vertices: number[], holes: number[], shapes: number[][][][]) {
     createCDEL(vertices, holes);
     const triangles = earcut(vertices, holes);
     for (let t = 0; t < triangles.length; t += 3) {
@@ -77,7 +86,8 @@ function triag(vertices: number[], holes: number[]) {
         const tl = cdel.edges.length;
         cdel.add_triangle(new Triangle([tl - 3, tl - 2, tl - 1]));
     }
-    cdel.checkConstraints();
+    draw();
+    // cdel.checkConstraints();
     return cdel;
 }
 
@@ -248,5 +258,5 @@ function orientation(a: GlobalPoint, b: number[], c: number[]) {
 (<any>window).D = draw;
 (<any>window).G = generate;
 (<any>window).E = earcut;
-(<any>window).T = triag;
+(<any>window).T = triangulate;
 (<any>window).CV = computeVisibility;

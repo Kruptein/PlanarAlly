@@ -205,7 +205,7 @@ export default class DrawTool extends Tool {
         } else if (this.shapeSelect === "circle") {
             (<Circle>this.shape).r = endPoint.subtract(this.startPoint).length();
         } else if (this.shapeSelect === "paint-brush") {
-            (<MultiLine>this.shape).points.push(endPoint);
+            (<MultiLine>this.shape)._points.push(endPoint);
         }
         socket.emit("Shape.Update", { shape: this.shape!.asDict(), redraw: true, temporary: false });
         if (this.shape.visionObstruction) gameStore.recalculateBV();

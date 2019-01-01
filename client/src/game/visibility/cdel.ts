@@ -127,7 +127,7 @@ export class CDEL {
     holes: number[];
     triangles: Triangle[] = [];
     edges = new OrderedMap<string, Edge>();
-    isolatedVertices: number[] = [];
+    isolatedVertices: number[][][][] = [];
     constructor(vertices: number[], holes: number[] = []) {
         this.vertices = vertices;
         this.holes = holes;

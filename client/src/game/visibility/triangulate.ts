@@ -5,7 +5,8 @@ import earcut from "./earcut.js";
 import { GlobalPoint, Vector } from "../geom";
 import { layerManager } from "../layers/manager";
 import { g2lx, g2ly } from "../units";
-import { cdel, CDEL, createCDEL, Edge, Triangle } from "./cdel";
+import { createDCEL, dcel, Edge, Triangle } from "./dcel";
+import { drawPolygon } from "./te/draw";
 
 /*
 Triangle expansion algorithm
@@ -19,76 +20,176 @@ The earcut library expects a flat list of vertices followed by a list of indices
 to the holes in the vertices list.
 */
 
-export function triangulate(shapes: string[]) {
-    if (shapes.length === 0) return new CDEL([]);
-    const sh = reduce(shapes);
-    const g = generate(sh);
-    return triag(g.vertices, g.holes, sh);
+export function triangulate(shapes: string[], drawt = false) {
+    createDCEL();
+    if (shapes.length === 0) return dcel;
+    console.time("reduce");
+    const ringData = reduce(shapes);
+    (<any>window).RD = ringData;
+    if (drawt) {
+        for (const ringshape of ringData.ringshapes) drawPolygon(ringshape);
+    }
+    console.timeEnd("reduce");
+    for (let r = 0; r < ringData.rings.length; r++) {
+        const g = generate(ringData.ringshapes[r], ringData.rings[r]);
+        triag(g.vertices, g.holes);
+    }
 }
 
 (<any>window).p = polygon;
 
-function reduce(shapes: string[]) {
-    // const reduced: number[][] = [];
-    // for (const shapeId of shapes) {
-    //     const shape = layerManager.UUIDMap.get(shapeId)!;
-    //     for (let i = reduced.length - 1; i >= 0; i--) {
-    //         const un = polygon.union([reduced[i]], shape.points);
-    //         if (un.length === 1) {
-    //             reduced[i] =
-    //         }
-    //     }
+function inside(poly: number[][], ring: number[][]): boolean {
+    const intersect = polygon.intersection([poly], [ring]);
+    if (intersect.length !== 1 || intersect[0].length !== 1) return false;
+    // for (const point of intersect[0][0]) {
+    //     const eq = (p: number[]) => p[0] === point[0] && p[1] === point[1];
+    //     if (!poly.some(eq) && !ring.some(eq)) return false;
     // }
-    const points: number[][][][] = [];
-    for (const shape of shapes) {
-        const p = layerManager.UUIDMap.get(shape)!.points;
-        if (p.length > 0) points.push([p]);
-    }
-    return polygon.union(...points);
+    return true;
 }
 
-function generate(shapes: number[][][][]) {
-    const vertices = [0, 0, 0, 0, 0, 0, 0, 0];
-    let minX = 0;
-    let minY = 0;
-    let maxX = 0;
-    let maxY = 0;
-    const holes = [];
-    for (const shape of shapes) {
-        holes.push(vertices.length / 2);
-        for (const sha of shape) {
-            for (const [idx, point] of sha.reverse().entries()) {
-                if (idx === shape[0].length - 1) continue;
-                vertices.push(point[0], point[1]);
-
-                if (minX > point[0]) minX = point[0];
-                if (minY > point[1]) minY = point[1];
-                if (maxX < point[0]) maxX = point[0];
-                if (maxY < point[1]) maxY = point[1];
+function matchingXors(xors: number[][][][], poly: number[][]) {
+    const matches = [];
+    for (const xorE of xors) {
+        // If 2 points are found matching, it is a ring
+        // otherwise its an inner block cross-section
+        let pointFound = false;
+        for (const xorP of xorE[0]) {
+            if (poly.some(p => p[0] === xorP[0] && p[1] === xorP[1])) {
+                if (pointFound) {
+                    matches.push(xorE);
+                    break;
+                } else {
+                    pointFound = true;
+                }
             }
         }
     }
-    minX -= 1e6;
-    minY -= 1e6;
-    maxX += 1e6;
-    maxY += 1e6;
-    vertices.splice(0, 8, minX, minY, maxX, minY, maxX, maxY, minX, maxY);
+    return matches;
+}
+
+function reduce(shapes: string[]) {
+    const world = [[1e10, 1e10], [-1e10, 1e10], [-1e10, -1e10], [1e10, -1e10]];
+    const ringshapes: number[][][] = [world];
+    const rings: number[][][][] = [[]];
+    const queue: [number[][], number[]][] = [];
+    for (const shape of shapes) {
+        const p = layerManager.UUIDMap.get(shape)!.points;
+        if (p.length === 0) continue;
+        queue.push([p.reverse(), []]);
+    }
+    while (queue.length > 0) {
+        try {
+            const drctx = layerManager.getLayer("draw")!.ctx;
+            drctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+        } catch {}
+        const [q, ringHint] = queue.shift()!;
+        drawPolygon(q, "red");
+        for (let r = rings.length - 1; r >= 0; r--) {
+            if (ringHint.length > 0 && !ringHint.includes(r)) continue;
+            if (!inside(q, ringshapes[r])) continue;
+            // Check if it further expands the inner boundary
+            const xor = polygon.xor([q], [ringshapes[r]]);
+
+            if (xor.length === 1) {
+                // touching
+                if (xor[0].length === 1) {
+                    ringshapes[r] = xor[0][0];
+                    continue;
+                    // one shape is inside the other
+                } else {
+                }
+                // overlapping
+            } else if (xor.length === 2) {
+                ringshapes[r] = matchingXors(xor, ringshapes[r])[0][0];
+                continue;
+            } else if (xor.length > 2) {
+                // queue.push(...rings[r]);
+                const hints = [r];
+                const ringshape = ringshapes[r];
+                ringshapes.splice(r, 1);
+                const oldRingData = rings.splice(r, 1);
+                for (const match of matchingXors(xor, ringshape)) {
+                    ringshapes.push(match[0]);
+                    rings.push([]);
+                    hints.push(rings.length - 1);
+                }
+                for (const ro of oldRingData[0]) {
+                    queue.unshift([ro, hints]);
+                }
+                continue;
+            }
+
+            if (rings[r].length === 0) {
+                rings[r].push(q);
+                break;
+            }
+            let result = q;
+            let ringMerge = false;
+            for (let re = rings[r].length - 1; re >= 0; re--) {
+                const ringEl = rings[r][re];
+                const union = polygon.union([result], [ringEl]);
+                // no overlap
+                if (union.length === 2) {
+                    continue;
+                    // merge does not create ring
+                } else if (union.length === 1 && union[0].length === 1) {
+                    rings[r].splice(re, 1);
+                    result = union[0][0];
+                    // merge creates ring
+                } else if (union.length === 1 && union[0].length === 2) {
+                    ringMerge = true;
+                    rings[r].splice(re, 1);
+                    ringshapes.push(union[0][1].reverse());
+                    rings.push([]);
+                    // queue.push(...rings[r]);
+                    for (const ro of rings[r]) {
+                        queue.unshift([ro, [r, rings.length - 1]]);
+                    }
+                    rings[r] = [union[0][0]];
+                    break;
+                } else {
+                    console.log(union);
+                    console.error("Check dit");
+                }
+            }
+            if (!ringMerge) rings[r].push(result);
+            break;
+        }
+    }
+    return { ringshapes, rings };
+}
+
+function generate(boundary: number[][], shapes: number[][][]) {
+    const vertices: number[] = boundary.reduce((acc, val) => acc.concat(val));
+    const end = vertices.length;
+    if (vertices[0] === vertices[end - 2] && vertices[1] === vertices[end - 1]) vertices.splice(0, 2);
+    const holes = [];
+    for (const shape of shapes) {
+        holes.push(vertices.length / 2);
+        for (const [idx, point] of shape.reverse().entries()) {
+            if (idx > 0 && point[0] === shape[0][0] && point[1] === shape[0][1]) continue;
+            vertices.push(point[0], point[1]);
+        }
+    }
     return { vertices, holes };
 }
 
-function triag(vertices: number[], holes: number[], shapes: number[][][][]) {
-    createCDEL(vertices, holes);
+function triag(vertices: number[], holes: number[]) {
+    const start = dcel.vertices.length / 2;
+    dcel.vertices.push(...vertices);
     const triangles = earcut(vertices, holes);
     for (let t = 0; t < triangles.length; t += 3) {
-        cdel.add_edge(new Edge(triangles[t], triangles[t + 1]));
-        cdel.add_edge(new Edge(triangles[t + 1], triangles[t + 2]));
-        cdel.add_edge(new Edge(triangles[t + 2], triangles[t]));
-        const tl = cdel.edges.length;
-        cdel.add_triangle(new Triangle([tl - 3, tl - 2, tl - 1]));
+        dcel.add_edge(new Edge(start + triangles[t], start + triangles[t + 1]));
+        dcel.add_edge(new Edge(start + triangles[t + 1], start + triangles[t + 2]));
+        dcel.add_edge(new Edge(start + triangles[t + 2], start + triangles[t]));
+        const tl = dcel.edges.length;
+        dcel.add_triangle(new Triangle([tl - 3, tl - 2, tl - 1]));
     }
-    draw();
-    // cdel.checkConstraints();
-    return cdel;
+    // draw();
+    dcel.checkConstraints(start, dcel.vertices.length / 2, holes);
+
+    return dcel;
 }
 
 function draw() {
@@ -96,52 +197,41 @@ function draw() {
     ctx.beginPath();
     ctx.strokeStyle = "rgba(0, 0, 0, 0.25)";
     ctx.lineJoin = "round";
-    for (const triangle of cdel.triangles) {
+    for (const triangle of dcel.triangles) {
         ctx.moveTo(g2lx(triangle.vertex(0)[0]), g2ly(triangle.vertex(0)[1]));
         ctx.lineTo(g2lx(triangle.vertex(1)[0]), g2ly(triangle.vertex(1)[1]));
         ctx.lineTo(g2lx(triangle.vertex(2)[0]), g2ly(triangle.vertex(2)[1]));
         ctx.lineTo(g2lx(triangle.vertex(0)[0]), g2ly(triangle.vertex(0)[1]));
     }
 
-    for (let i = 0; i < cdel.vertices.length; i += 2) {
-        ctx.fillText(`${i / 2}`, g2lx(cdel.vertices[i]), g2ly(cdel.vertices[i + 1]));
+    for (let i = 0; i < dcel.vertices.length; i += 2) {
+        ctx.fillText(`${i / 2}`, g2lx(dcel.vertices[i]), g2ly(dcel.vertices[i + 1]));
     }
 
     ctx.closePath();
     ctx.stroke();
 }
 
-export function computeVisibility(q: GlobalPoint, it = 0): number[][] {
+export function computeVisibility(q: GlobalPoint, it = 0, drawt = false): number[][] {
+    console.time("CV");
     const rawOutput: number[][] = [];
-    const triangle = cdel.locate(q);
+    const triangle = dcel.locate(q);
     if (triangle === undefined) {
         if (it > 10) {
             console.error("Triangle not found");
             return [];
         }
-        return computeVisibility(q.add(new Vector(0.001, 0.001)), it++);
+        return computeVisibility(q.add(new Vector(0.001, 0.001)), ++it);
     }
     // triangle.fill();
     for (const [index, edge] of triangle.getEdges().entries()) {
         rawOutput.push(edge.fromVertex);
         if (!edge.constrained) expandEdge(q, edge.fromVertex, edge.toVertex, triangle, index, rawOutput);
     }
+    console.timeEnd("CV");
 
-    // const outArr = output(rawOutput);
+    if (drawt) drawPolygon(rawOutput);
 
-    // const ctx = layerManager.getLayer("draw")!.ctx;
-    // // ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
-    // ctx.beginPath();
-    // ctx.strokeStyle = `rgb(${Math.random() * 255}, ${Math.random() * 255}, ${Math.random() * 255})`;
-    // ctx.lineJoin = "round";
-    // ctx.moveTo(g2lx(rawOutput[0][0]), g2ly(rawOutput[0][1]));
-    // for (const point of rawOutput.slice(1)) {
-    //     ctx.lineTo(g2lx(point[0]), g2ly(point[1]));
-    // }
-    // ctx.closePath();
-    // ctx.stroke();
-
-    // return outArr;
     return rawOutput;
 }
 

@@ -36,7 +36,7 @@ export class BoundingVolume {
     offset = 0;
 
     constructor(shapes: string[]) {
-        tr.triangulate(shapes);
+        tr.triangulate(shapes, true);
         this.shapes = shapes;
         if (this.shapes.length === 0) {
             this.root = null;

@@ -8,11 +8,11 @@ import { computeVisibility } from "../visibility/triangulate";
 
 export class FOWPlayersLayer extends Layer {
     isVisionLayer: boolean = true;
-    mode = "bvh";
+    mode = "";
 
     draw(): void {
         if (!this.valid) {
-            console.time("VI");
+            // console.time("VI");
             const ctx = this.ctx;
 
             if (!gameStore.fowLOS || Settings.skipPlayerFOW) {
@@ -23,8 +23,8 @@ export class FOWPlayersLayer extends Layer {
 
             ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
-            // const drctx = layerManager.getLayer("draw")!.ctx;
-            // drctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+            const drctx = layerManager.getLayer("draw")!.ctx;
+            drctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
 
             const originalOperation = ctx.globalCompositeOperation;
 
@@ -77,18 +77,14 @@ export class FOWPlayersLayer extends Layer {
                     else ctx.closePath();
                     ctx.fill();
                 } else {
-                    // const canvas = document.createElement("canvas");
-                    // canvas.width = window.innerWidth;
-                    // canvas.height = window.innerHeight;
-                    // const pctx = canvas.getContext("2d")!;
-                    const polygon = computeVisibility(token.center());
-                    // pctx.globalCompositeOperation = "source-in";
-                    ctx.beginPath();
-                    ctx.moveTo(g2lx(polygon[0][0]), g2ly(polygon[0][1]));
-                    for (const point of polygon) ctx.lineTo(g2lx(point[0]), g2ly(point[1]));
-                    ctx.closePath();
-                    ctx.fill();
-                    // ctx.drawImage(canvas, 0, 0);
+                    try {
+                        const polygon = computeVisibility(token.center());
+                        ctx.beginPath();
+                        ctx.moveTo(g2lx(polygon[0][0]), g2ly(polygon[0][1]));
+                        for (const point of polygon) ctx.lineTo(g2lx(point[0]), g2ly(point[1]));
+                        ctx.closePath();
+                        ctx.fill();
+                    } catch {}
                 }
             }
 
@@ -97,7 +93,7 @@ export class FOWPlayersLayer extends Layer {
             if (gameStore.IS_DM) super.draw(!gameStore.fullFOW);
 
             ctx.globalCompositeOperation = originalOperation;
-            console.timeEnd("VI");
+            // console.timeEnd("VI");
         }
     }
 }

@@ -152,7 +152,7 @@ class GameStore extends VuexModule {
     @Mutation
     updateZoom(data: { newZoomValue: number; zoomLocation: GlobalPoint }) {
         if (data.newZoomValue === this.zoomFactor) return;
-        if (data.newZoomValue < 0.1) data.newZoomValue = 0.1;
+        if (data.newZoomValue < 0.1) data.newZoomValue = 0.01;
         if (data.newZoomValue > 5) data.newZoomValue = 5;
 
         const oldLoc = g2l(data.zoomLocation);

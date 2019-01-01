@@ -3,7 +3,7 @@ import { GlobalPoint } from "../geom";
 import { layerManager } from "../layers/manager";
 import { g2lx, g2ly } from "../units";
 
-export let cdel: CDEL;
+export let dcel: DCEL;
 
 export class Edge {
     from: number;
@@ -17,27 +17,27 @@ export class Edge {
     }
 
     get opposite() {
-        return cdel.edges.get(`${this.to}-${this.from}`);
+        return dcel.edges.get(`${this.to}-${this.from}`);
     }
 
     get triangle() {
-        return cdel.triangles[this.triangleIndex];
+        return dcel.triangles[this.triangleIndex];
     }
 
     get toVertex() {
-        return [cdel.vertices[2 * this.to], cdel.vertices[2 * this.to + 1]];
+        return [dcel.vertices[2 * this.to], dcel.vertices[2 * this.to + 1]];
     }
 
     get fromVertex() {
-        return [cdel.vertices[2 * this.from], cdel.vertices[2 * this.from + 1]];
+        return [dcel.vertices[2 * this.from], dcel.vertices[2 * this.from + 1]];
     }
 
     draw(colour = "black") {
         const ctx = layerManager.getLayer("draw")!.ctx;
         ctx.beginPath();
         ctx.strokeStyle = colour;
-        ctx.moveTo(g2lx(cdel.vertices[2 * this.from]), g2ly(cdel.vertices[2 * this.from + 1]));
-        ctx.lineTo(g2lx(cdel.vertices[2 * this.to]), g2ly(cdel.vertices[2 * this.to + 1]));
+        ctx.moveTo(g2lx(dcel.vertices[2 * this.from]), g2ly(dcel.vertices[2 * this.from + 1]));
+        ctx.lineTo(g2lx(dcel.vertices[2 * this.to]), g2ly(dcel.vertices[2 * this.to + 1]));
 
         ctx.closePath();
         ctx.stroke();
@@ -51,21 +51,21 @@ export class Triangle {
     }
 
     getEdges(): Edge[] {
-        return this.edges.map(e => cdel.edges.getIndexValue(e));
+        return this.edges.map(e => dcel.edges.getIndexValue(e));
     }
 
     edge(index: number): Edge {
-        return cdel.edges.getIndexValue(this.edges[index]);
+        return dcel.edges.getIndexValue(this.edges[index]);
     }
 
     vertex(index: number): [number, number] {
         const idx = this.edge(this.ccw(index)).from;
-        return [cdel.vertices[2 * idx], cdel.vertices[2 * idx + 1]];
+        return [dcel.vertices[2 * idx], dcel.vertices[2 * idx + 1]];
     }
 
     index(edge: Edge) {
         for (let i = 0; i < this.edges.length; i++) {
-            if (cdel.edges.getIndexValue(this.edges[i]) === edge) return i;
+            if (dcel.edges.getIndexValue(this.edges[i]) === edge) return i;
         }
         return -1;
     }
@@ -122,15 +122,13 @@ export class Triangle {
     }
 }
 
-export class CDEL {
+export class DCEL {
     vertices: number[];
-    holes: number[];
     triangles: Triangle[] = [];
     edges = new OrderedMap<string, Edge>();
     isolatedVertices: number[][][][] = [];
-    constructor(vertices: number[], holes: number[] = []) {
+    constructor(vertices: number[] = [], holes: number[] = []) {
         this.vertices = vertices;
-        this.holes = holes;
     }
     add_edge(edge: Edge) {
         const key = `${edge.from}-${edge.to}`;
@@ -148,23 +146,22 @@ export class CDEL {
         }
     }
 
-    checkConstraints() {
-        if (this.holes.length === 0) return;
-        this.holes.splice(0, 0, 0);
-        for (let h = 0; h < this.holes.length; h++) {
-            const i = this.holes[h];
-            const j = h + 1 === this.holes.length ? this.vertices.length / 2 : this.holes[h + 1];
+    checkConstraints(start: number, end: number, holes: number[]) {
+        // if (holes.length === 0) return;
+        holes.unshift(0);
+        for (let h = 0; h < holes.length; h++) {
+            const i = start + holes[h];
+            const j = h + 1 === holes.length ? end : start + holes[h + 1];
             for (let k = i + 1; k < j; k++) {
                 this.edges.get(`${k - 1}-${k}`).constrained = true;
             }
             this.edges.get(`${j - 1}-${i}`).constrained = true;
         }
-        this.holes.splice(0, 0);
     }
 }
 
-export function createCDEL(vertices: number[], holes: number[] = []) {
-    cdel = new CDEL(vertices, holes);
+export function createDCEL(vertices: number[] = []) {
+    dcel = new DCEL(vertices);
 }
 
-createCDEL([]);
+createDCEL([]);

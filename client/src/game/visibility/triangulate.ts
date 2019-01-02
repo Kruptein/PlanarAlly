@@ -102,6 +102,10 @@ function reduce(shapes: string[]) {
                 // overlapping
             } else if (xor.length === 2) {
                 ringshapes[r] = matchingXors(xor, ringshapes[r])[0][0];
+                // it's possible for shapes in the ring now to be part of the ring
+                // todo: look into not continue'ing in this case but continuing merge detection below.
+                for (const ro of rings[r]) queue.unshift([ro, [r]]);
+                rings[r] = [];
                 continue;
             } else if (xor.length > 2) {
                 // queue.push(...rings[r]);
@@ -114,9 +118,7 @@ function reduce(shapes: string[]) {
                     rings.push([]);
                     hints.push(rings.length - 1);
                 }
-                for (const ro of oldRingData[0]) {
-                    queue.unshift([ro, hints]);
-                }
+                for (const ro of oldRingData[0]) queue.unshift([ro, hints]);
                 continue;
             }
 
@@ -212,7 +214,7 @@ function draw() {
     ctx.stroke();
 }
 
-export function computeVisibility(q: GlobalPoint, it = 0, drawt = false): number[][] {
+export function computeVisibility(q: GlobalPoint, it = 0, drawt = true): number[][] {
     // console.time("CV");
     const rawOutput: number[][] = [];
     const triangle = dcel.locate(q);
@@ -230,7 +232,7 @@ export function computeVisibility(q: GlobalPoint, it = 0, drawt = false): number
     }
     // console.timeEnd("CV");
 
-    if (drawt) drawPolygon(rawOutput);
+    if (drawt) drawPolygon(rawOutput, "red");
 
     return rawOutput;
 }

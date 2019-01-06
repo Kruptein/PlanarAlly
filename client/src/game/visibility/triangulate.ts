@@ -1,4 +1,5 @@
 // import earcut from "earcut";
+import * as martinez from "martinez-polygon-clipping";
 import polygon from "polygon-clipping";
 import earcut from "./earcut.js";
 
@@ -7,6 +8,11 @@ import { layerManager } from "../layers/manager";
 import { g2lx, g2ly } from "../units";
 import { createDCEL, dcel, Edge, Triangle } from "./dcel";
 import { drawPolygon } from "./te/draw";
+
+import { CDT } from "./te/cdt";
+
+const cdt = new CDT();
+cdt.insertConstraint([50, 50], [50, 100]);
 
 /*
 Triangle expansion algorithm
@@ -37,6 +43,7 @@ export function triangulate(shapes: string[], drawt = false) {
 }
 
 (<any>window).p = polygon;
+(<any>window).m = martinez;
 
 function inside(poly: number[][], ring: number[][]): boolean {
     const intersect = polygon.intersection([poly], [ring]);

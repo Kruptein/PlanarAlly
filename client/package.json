@@ -20,6 +20,7 @@
     "axios": "^0.18.0",
     "earcut": "^2.1.4",
     "lodash.throttle": "^4.1.1",
+    "martinez-polygon-clipping": "^0.5.0",
     "polygon-clipping": "^0.9.2",
     "socket.io-client": "^2.1.1",
     "tinycolor2": "^1.4.1",

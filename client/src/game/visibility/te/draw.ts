@@ -19,4 +19,23 @@ export function drawPolygon(polygon: number[][], colour?: string) {
     ctx.stroke();
 }
 
+export function drawPolygonL(polygon: number[][], colour?: string) {
+    const dl = layerManager.getLayer("draw");
+    if (dl === undefined) return;
+    const ctx = dl.ctx;
+    ctx.lineJoin = "round";
+    // ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+    ctx.lineJoin = "round";
+    ctx.beginPath();
+    ctx.strokeStyle =
+        colour === undefined ? `rgb(${Math.random() * 255}, ${Math.random() * 255}, ${Math.random() * 255})` : colour;
+    ctx.moveTo(polygon[0][0], polygon[0][1]);
+    for (const point of polygon) {
+        ctx.lineTo(point[0], point[1]);
+    }
+    ctx.closePath();
+    ctx.stroke();
+}
+
 (<any>window).DP = drawPolygon;
+(<any>window).DPL = drawPolygonL;

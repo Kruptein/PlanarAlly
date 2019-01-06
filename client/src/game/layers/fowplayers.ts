@@ -12,7 +12,7 @@ export class FOWPlayersLayer extends Layer {
 
     draw(): void {
         if (!this.valid) {
-            console.time("VI");
+            // console.time("VI");
             const ctx = this.ctx;
 
             if (!gameStore.fowLOS || Settings.skipPlayerFOW) {
@@ -93,7 +93,7 @@ export class FOWPlayersLayer extends Layer {
             if (gameStore.IS_DM) super.draw(!gameStore.fullFOW);
 
             ctx.globalCompositeOperation = originalOperation;
-            console.timeEnd("VI");
+            // console.timeEnd("VI");
         }
     }
 }

@@ -13,6 +13,9 @@ import { CDT } from "./te/cdt";
 
 const cdt = new CDT();
 cdt.insertConstraint([50, 50], [50, 100]);
+cdt.insertConstraint([50, 100], [250, 100]);
+cdt.insertConstraint([250, 100], [250, 50]);
+cdt.insertConstraint([250, 50], [50, 50]);
 
 /*
 Triangle expansion algorithm

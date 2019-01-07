@@ -1,16 +1,55 @@
+import { uuidv4 } from "@/core/utils";
+import { ccw, cw } from "./triag";
+
 export type Point = number[];
 
+export const INFINITE = -7e310;
+
+let _INFINITE_VERTEX: Vertex;
+
+export enum Sign {
+    NEGATIVE = -1,
+    ZERO = 0,
+    POSITIVE = 1,
+
+    RIGHT_TURN = -1,
+    LEFT_TURN = 1,
+
+    SMALLER = -1,
+    EQUAL = 0,
+    LARGER = 1,
+
+    CLOCKWISE = -1,
+    COUNTERCLOCKWISE = 1,
+
+    COLLINEAR = 0,
+    COPLANAR = 0,
+    DEGENERATE = 0,
+
+    ON_NEGATIVE_SIDE = -1,
+    ON_ORIENTED_BOUNDARY = 0,
+    ON_POSITIVE_SIDE = 1,
+}
+
 function newPoint(): Point {
-    return [-7e-310, -7e-310];
+    return [INFINITE, INFINITE];
 }
 
 export class Triangle {
     vertices: Vertex[] = [];
     neighbours: (Triangle | null)[] = [null, null, null];
     constraints = [false, false, false];
+    uuid = uuidv4();
 
     constructor(...vertices: Vertex[]) {
         this.vertices = vertices;
+    }
+
+    from(t: Triangle): this {
+        this.vertices = t.vertices.slice(0, t.vertices.length);
+        this.neighbours = t.neighbours.slice(0, t.neighbours.length);
+        this.constraints = t.constraints.slice(0, t.constraints.length);
+        return this;
     }
 
     get dimension() {
@@ -29,10 +68,6 @@ export class Triangle {
         return false;
     }
 
-    setNeighbour(index: number, neighbour: Triangle) {
-        this.neighbours[index] = neighbour;
-    }
-
     reorient() {
         // If certain indices do not exist yet thay will append faulty undefined's, thus we slice them
         this.vertices = [this.vertices[1], this.vertices[0], this.vertices[2]].slice(0, this.vertices.length);
@@ -40,15 +75,28 @@ export class Triangle {
         this.constraints = [this.constraints[1], this.constraints[0], this.constraints[2]];
     }
 
-    index(v: Vertex): number {
+    indexV(v: Vertex): number {
         return this.vertices.indexOf(v);
+    }
+
+    indexT(t: Triangle): number {
+        return this.neighbours.indexOf(t);
+    }
+
+    isInfinite(index?: number): boolean {
+        if (index === undefined) {
+            return this.vertices.includes(_INFINITE_VERTEX);
+        } else {
+            return this.vertices[ccw(index)].infinite || this.vertices[cw(index)].infinite;
+        }
     }
 }
 
 export class Vertex {
     infinite = false;
-    _point: Point | undefined;
+    private _point: Point | undefined;
     triangle: Triangle | undefined;
+    uuid = uuidv4();
 
     constructor(point?: Point) {
         this._point = point;
@@ -85,9 +133,8 @@ export class EdgeCirculator {
             this.v = null;
             this.t = null;
         } else {
-            const i = this.t.index(v!);
-            if (this.t.dimension === 2) this.ri = 0;
-            // this.ccw(i);
+            const i = this.t.indexV(v!);
+            if (this.t.dimension === 2) this.ri = ccw(i);
             else this.ri = 2;
         }
         this._ri = this.ri;
@@ -100,16 +147,114 @@ export class EdgeCirculator {
     }
 
     next(): boolean {
-        let i = this.t!.index(this.v!);
+        let i = this.t!.indexV(this.v!);
         if (this.t!.dimension === 1) {
             this.t = this.t!.neighbours[i === 0 ? 1 : 0];
         } else {
-            // this.t = this.t!.neighbours[] ccw
-            i = this.t!.index(this.v!);
-            // ri = ccw(i)
+            this.t = this.t!.neighbours[ccw(i)];
+            i = this.t!.indexV(this.v!);
+            this.ri = ccw(i);
         }
         return this.ri !== this._ri || this.v !== this._v || this.t !== this._t;
     }
+}
+
+class EdgeIterator {
+    private i = 0;
+    pos: Triangle | null;
+    edge: Edge = new Edge();
+    tds: TDS;
+    _es = 0;
+    constructor(tds: TDS) {
+        this.tds = tds;
+        this.edge.second = 0;
+        if (tds.dimension <= 0) {
+            this.pos = null;
+            return;
+        }
+        this.pos = tds.triangles[0];
+        if (tds.dimension === 1) this.edge.second = 2;
+        while (this.pos !== null && !this.associatedEdge()) {
+            throw new Error("[poi");
+        }
+
+        if (tds.dimension === 1) this._es = 2;
+    }
+
+    get valid(): boolean {
+        return (this.pos !== null || this._es !== this.edge.second) && this.pos!.isInfinite(this.edge.second);
+    }
+
+    next() {
+        do {
+            this.increment();
+        } while (this.pos !== null && !this.associatedEdge());
+    }
+
+    collect(): Edge {
+        this.edge.first = this.pos;
+        return this.edge;
+    }
+
+    associatedEdge(): boolean {
+        if (this.tds.dimension === 1) return true;
+        throw new Error("sdf");
+    }
+
+    increment() {
+        if (this.tds.dimension === 1) {
+            this.i++;
+            this.pos = this.tds.triangles[this.i];
+        } else if (this.edge.second === 2) {
+            this.edge.second = 0;
+            this.i++;
+            this.pos = this.tds.triangles[this.i];
+        } else {
+            this.edge.second++;
+        }
+    }
+}
+
+export class FaceCirculator {
+    v: Vertex | null;
+    t: Triangle | null;
+    _v: Vertex | null;
+    _t: Triangle | null;
+
+    constructor(v: Vertex | null, t: Triangle | null) {
+        this.v = v;
+        this.t = t;
+        if (v === null) {
+            this.t = null;
+        } else if (t === null) {
+            this.t = v.triangle!;
+        }
+        if (this.t == null || this.t.dimension < 2) {
+            this.v = null;
+            this.t = null;
+        }
+        this._v = this.v;
+        this._t = this.t;
+    }
+
+    get valid() {
+        return this.t !== null && this.v !== null;
+    }
+
+    prev() {
+        const i = this.t!.indexV(this.v!);
+        this.t = this.t!.neighbours[cw(i)];
+    }
+
+    next() {
+        const i = this.t!.indexV(this.v!);
+        this.t = this.t!.neighbours[ccw(i)];
+    }
+}
+
+class Edge {
+    first: Triangle | null = null;
+    second: number = 0;
 }
 
 export enum LocateType {
@@ -128,6 +273,7 @@ export class TDS {
 
     constructor() {
         this._infinite = this.createVertex();
+        _INFINITE_VERTEX = this._infinite;
         const t = new Triangle();
         t.addVertex(this._infinite);
         this.triangles.push(t);
@@ -142,9 +288,18 @@ export class TDS {
         return v;
     }
 
+    createTriangle(v0: Vertex, v1: Vertex, v2: Vertex, n0: Triangle | null, n1: Triangle | null, n2: Triangle | null) {
+        const t = new Triangle(v0, v1, v2);
+        t.neighbours[0] = n0;
+        t.neighbours[1] = n1;
+        t.neighbours[2] = n2;
+        this.triangles.push(t);
+        return t;
+    }
+
     setAdjacency(t0: Triangle, i0: number, t1: Triangle, i1: number) {
-        t0.setNeighbour(i0, t1);
-        t1.setNeighbour(i1, t0);
+        t0.neighbours[i0] = t1;
+        t1.neighbours[i1] = t0;
     }
 
     get finiteVertex(): Vertex {
@@ -155,6 +310,13 @@ export class TDS {
         const v = new Vertex(newPoint());
         v.infinite = true;
         return v;
+    }
+
+    get finiteEdge(): Edge {
+        if (this.dimension < 1) throw new Error("aspo");
+        const ei = new EdgeIterator(this);
+        while (ei.valid) ei.next();
+        return ei.collect();
     }
 
     insertDimUp(w: Vertex = new Vertex(), orient: boolean = true): Vertex {
@@ -176,7 +338,7 @@ export class TDS {
                 const deleteList: Triangle[] = [];
                 const triangles = this.triangles.slice(0, this.triangles.length);
                 for (const trig of triangles) {
-                    const copy = new Triangle(...trig.vertices);
+                    const copy = new Triangle().from(trig);
                     this.triangles.push(copy);
                     trig.vertices[this.dimension] = v;
                     copy.vertices[this.dimension] = w;
@@ -196,8 +358,18 @@ export class TDS {
                         triangles[lfit].reorient();
                         lfit++;
                         triangles[lfit].neighbours[1]!.reorient();
+                    } else {
+                        triangles[lfit].neighbours[1]!.reorient();
+                        lfit++;
+                        triangles[lfit].reorient();
+                    }
+                } else {
+                    for (const trig of triangles) {
+                        if (orient) trig.neighbours[2]!.reorient();
+                        else trig.reorient();
                     }
                 }
+
                 for (const trig of deleteList) {
                     let j = 1;
                     if (trig.vertices[0] === w) j = 0;
@@ -220,9 +392,35 @@ export class TDS {
 
     mirrorIndex(t: Triangle, i: number): number {
         if (t.dimension === 1) {
-            const j = t.neighbours[i]!.index(t.vertices[i === 0 ? 1 : 0]);
+            const j = t.neighbours[i]!.indexV(t.vertices[i === 0 ? 1 : 0]);
             return j === 0 ? 1 : 0;
         }
-        return 0;
+        return ccw(t.neighbours[i]!.indexV(t.vertices[ccw(i)]));
+    }
+
+    insertInFace(t: Triangle) {
+        const v = this.createVertex();
+        const v0 = t.vertices[0];
+        const v1 = t.vertices[1];
+        const v2 = t.vertices[2];
+        const n1 = t.neighbours[1];
+        const n2 = t.neighbours[2];
+        const t1 = this.createTriangle(v0, v, v2, t, n1, null);
+        const t2 = this.createTriangle(v0, v1, v, t, null, n2);
+        this.setAdjacency(t1, 2, t2, 1);
+        if (n1 !== null) {
+            const i1 = this.mirrorIndex(t, 1);
+            n1.neighbours[i1] = t1;
+        }
+        if (n2 !== null) {
+            const i2 = this.mirrorIndex(t, 2);
+            n2.neighbours[i2] = t2;
+        }
+        t.vertices[0] = v;
+        t.neighbours[1] = t1;
+        t.neighbours[2] = t2;
+        if (v0.triangle === t) v0.triangle = t2;
+        v.triangle = t;
+        return v;
     }
 }

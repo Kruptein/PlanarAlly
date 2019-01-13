@@ -314,7 +314,8 @@ export class CDT {
         const ind2 = e2[1];
         /* return( (&(*e1.first) < &(*e2.first))
          || ( (&(*e1.first) == &(*e2.first)) && (ind1 < ind2)));*/
-        console.error("This has to be done correctly");
+        // TODO: This is not proper.
+        // console.error("This has to be done correctly");
         return ind1 < ind2;
     }
 

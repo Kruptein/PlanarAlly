@@ -4,12 +4,13 @@ import { Action, getModule, Module, Mutation, VuexModule } from "vuex-module-dec
 import { AssetList } from "@/core/comm/types";
 import { socket } from "@/game/api/socket";
 import { sendClientOptions } from "@/game/api/utils";
-import { BoundingVolume } from "@/game/bvh/bvh";
 import { Note } from "@/game/comm/types/general";
 import { GlobalPoint } from "@/game/geom";
 import { layerManager } from "@/game/layers/manager";
 import { g2l, l2g } from "@/game/units";
+import { BoundingVolume } from "@/game/visibility/bvh/bvh";
 import { rootStore } from "@/store";
+import { triangulate } from "./visibility/te/pa";
 
 export interface GameState {
     boardInitialized: boolean;
@@ -58,8 +59,15 @@ class GameStore extends VuexModule {
 
     BV = Object.freeze(new BoundingVolume([]));
 
+    visionMode: "bvh" | "triangle" = "bvh";
+
     get selectedLayer() {
         return this.layers[this.selectedLayerIndex];
+    }
+
+    @Mutation
+    setVisionMode(visionMode: "bvh" | "triangle") {
+        this.visionMode = visionMode;
     }
 
     @Mutation
@@ -128,21 +136,24 @@ class GameStore extends VuexModule {
     }
 
     @Mutation
-    recalculateBV() {
+    recalculateBV(partial = false) {
         // TODO: This needs to be cleaned up..
         if (this.boardInitialized) {
-            let success = false;
-            let tries = 0;
-            while (!success) {
-                success = true;
-                try {
-                    this.BV = Object.freeze(new BoundingVolume(this.visionBlockers));
-                } catch (error) {
-                    success = false;
-                    tries++;
-                    if (tries > 10) {
-                        console.error(error);
-                        return;
+            if (this.visionMode === "triangle") triangulate(partial);
+            else {
+                let success = false;
+                let tries = 0;
+                while (!success) {
+                    success = true;
+                    try {
+                        this.BV = Object.freeze(new BoundingVolume(this.visionBlockers));
+                    } catch (error) {
+                        success = false;
+                        tries++;
+                        if (tries > 10) {
+                            console.error(error);
+                            return;
+                        }
                     }
                 }
             }
@@ -152,7 +163,7 @@ class GameStore extends VuexModule {
     @Mutation
     updateZoom(data: { newZoomValue: number; zoomLocation: GlobalPoint }) {
         if (data.newZoomValue === this.zoomFactor) return;
-        if (data.newZoomValue < 0.1) data.newZoomValue = 0.1;
+        if (data.newZoomValue < 0.1) data.newZoomValue = 0.01;
         if (data.newZoomValue > 5) data.newZoomValue = 5;
 
         const oldLoc = g2l(data.zoomLocation);

@@ -104,6 +104,11 @@
               <color-picker id="fowColour" :color.sync="fowColour"/>
               <label for="rulerColour">Ruler Colour:</label>
               <color-picker id="rulerColour" :color.sync="rulerColour"/>
+              <label for="visionMode">Vision Mode:</label>
+              <select id="visionMode" @change="changeVisionMode">
+                <option>BVH</option>
+                <option>Triangle</option>
+              </select>
             </div>
           </div>
         </div>
@@ -149,6 +154,7 @@ import { getRef, uuidv4 } from "@/core/utils";
 import { socket } from "@/game/api/socket";
 import { Note } from "@/game/comm/types/general";
 import { gameStore } from "@/game/store";
+import { layerManager } from "@/game/layers/manager";
 
 @Component({
     components: {
@@ -249,6 +255,13 @@ export default class MenuBar extends Vue {
     }
     openNote(note: Note) {
         getRef<NoteDialog>("note").open(note);
+    }
+    changeVisionMode(event: { target: HTMLSelectElement }) {
+        const value = event.target.value.toLowerCase();
+        if (value !== "bvh" && value !== "triangle") return;
+        gameStore.setVisionMode(value);
+        gameStore.recalculateBV();
+        layerManager.invalidate();
     }
 }
 </script>

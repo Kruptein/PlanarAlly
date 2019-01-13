@@ -36,7 +36,6 @@
     "@types/vue-color": "^2.4.1",
     "@vue/cli-plugin-typescript": "^3.1.1",
     "@vue/cli-service": "^3.1.4",
-    "dependency-cruiser": "^4.6.3",
     "node-sass": "^4.9.0",
     "prettier": "^1.15.2",
     "rimraf": "^2.6.2",

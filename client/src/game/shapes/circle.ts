@@ -34,6 +34,11 @@ export class Circle extends Shape {
             this.r * 2,
         );
     }
+
+    get points() {
+        return this.getBoundingBox().points;
+    }
+
     draw(ctx: CanvasRenderingContext2D) {
         super.draw(ctx);
         ctx.beginPath();

@@ -6,7 +6,7 @@ import { PA_CDT } from "./pa";
 import { Point, Sign, Triangle } from "./tds";
 import { ccw, cw, orientation } from "./triag";
 
-export function computeVisibility(q: GlobalPoint, it = 0, drawt = true): number[][] {
+export function computeVisibility(q: GlobalPoint, it = 0, drawt = false): number[][] {
     // console.time("CV");
     const Q: Point = [q.x, q.y];
     const rawOutput: number[][] = [];

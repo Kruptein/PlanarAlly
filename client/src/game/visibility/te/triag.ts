@@ -1,4 +1,6 @@
-import { EdgeCirculator, Point, Sign, Vertex } from "./tds";
+import { EdgeCirculator, Point, Sign, Triangle, Vertex } from "./tds";
+
+type Line = number[];
 
 export function cw(index: number) {
     return (index + 2) % 3;
@@ -13,7 +15,7 @@ export function edgeInfo(va: Vertex, vb: Vertex) {
     if (ec.valid) {
         do {
             const indv = 3 - ec.t!.indexV(va) - ec.ri;
-            const v = ec.t!.vertices[indv];
+            const v = ec.t!.vertices[indv]!;
             if (!v.infinite) {
                 if (v === vb) {
                     return { includes: true, vi: vb, fr: ec.t!, i: ec.ri };
@@ -77,7 +79,6 @@ export function orientation(p: Point, q: Point, r: Point) {
         if (det > eps) return Sign.POSITIVE;
         if (det < -eps) return Sign.NEGATIVE;
     }
-    console.error("CHECK DEZE SHIT???");
     return Sign.ZERO;
 }
 
@@ -87,4 +88,339 @@ export function determinant(a00: number, a01: number, a10: number, a11: number) 
 
 export function hasInexactNegativeOrientation(p: Point, q: Point, r: Point) {
     return determinant(q[0] - p[0], q[1] - p[1], r[0] - p[0], r[1] - p[1]) < 0;
+}
+
+export function sideOfOrientedCircle(t: Triangle, p: Point, perturb: boolean): Sign {
+    if (!t.isInfinite())
+        return sideOfOrientedCircleP(t.vertices[0]!.point!, t.vertices[1]!.point!, t.vertices[2]!.point!, p, perturb);
+    throw new Error("SSS");
+}
+
+function sideOfOrientedCircleP(p0: Point, p1: Point, p2: Point, p: Point, perturb: boolean): Sign {
+    const os = getOrientedSide(p0, p1, p2, p);
+    if (os !== Sign.ON_ORIENTED_BOUNDARY || !perturb) return os;
+    const points = [p0, p1, p2, p];
+    points.sort((a, b) => a[0] - b[0] || a[1] - b[1]);
+    for (const point of points.reverse()) {
+        if (point === p) return Sign.ON_NEGATIVE_SIDE;
+        let o = orientation(p0, p1, p);
+        if (point === p2 && o !== Sign.COLLINEAR) return o;
+        o = orientation(p0, p, p2);
+        if (point === p1 && o !== Sign.COLLINEAR) return o;
+        o = orientation(p, p1, p2);
+        if (point === p0 && o !== Sign.COLLINEAR) return o;
+    }
+    return Sign.ON_NEGATIVE_SIDE;
+}
+
+export function xyEqual(p: Point, q: Point) {
+    return p[0] === q[0] && p[1] === q[1];
+}
+
+export function xySmaller(p: Point, q: Point) {
+    return p[0] <= q[0] && p[1] <= q[1];
+}
+
+export function xyCompare(p: Point, q: Point) {
+    if (xySmaller(p, q)) return Sign.SMALLER;
+    if (xyEqual(p, q)) return Sign.EQUAL;
+    return Sign.LARGER;
+}
+
+function getOrientedSide(p: Point, q: Point, r: Point, t: Point): Sign {
+    const qpx = q[0] - p[0];
+    const qpy = q[1] - p[1];
+    const rpx = r[0] - p[0];
+    const rpy = r[1] - p[1];
+    const tpx = t[0] - p[0];
+    const tpy = t[1] - p[1];
+    const tqx = t[0] - q[0];
+    const tqy = t[1] - q[1];
+    const rqx = r[0] - q[0];
+    const rqy = r[1] - q[1];
+
+    const det = determinant(qpx * tpy - qpy * tpx, tpx * tqx + tpy * tqy, qpx * rpy - qpy * rpx, rpx * rqx + rpy * rqy);
+    let maxx = Math.abs(qpx);
+    let maxy = Math.abs(qpy);
+    const arpx = Math.abs(rpx);
+    const arpy = Math.abs(rpy);
+    const atqx = Math.abs(tqx);
+    const atqy = Math.abs(tqy);
+    const atpx = Math.abs(tpx);
+    const atpy = Math.abs(tpy);
+    const arqx = Math.abs(rqx);
+    const arqy = Math.abs(rqy);
+
+    if (maxx < arpx) maxx = arpx;
+    if (maxx < atpx) maxx = atpx;
+    if (maxx < atqx) maxx = atqx;
+    if (maxx < arqx) maxx = arqx;
+
+    if (maxy < arpy) maxy = arpy;
+    if (maxy < atpy) maxy = atpy;
+    if (maxy < atqy) maxy = atqy;
+    if (maxy < arqy) maxy = arqy;
+
+    if (maxx > maxy) [maxx, maxy] = [maxy, maxx];
+
+    if (maxx < 1e-73 && maxx === 0) return Sign.ON_ORIENTED_BOUNDARY;
+    // sqrt(sqrt(max_double/16
+    else if (maxy < 1e76) {
+        const eps = Number.EPSILON * maxx * maxy * (maxy * maxy);
+        if (det > eps) return Sign.ON_POSITIVE_SIDE;
+        if (det < -eps) return Sign.ON_NEGATIVE_SIDE;
+    }
+
+    return Sign.ZERO;
+}
+
+function segSegDoIntersectCrossing(p1: Point, p2: Point, p3: Point, p4: Point): boolean {
+    switch (orientation(p1, p2, p3)) {
+        case Sign.LEFT_TURN:
+            return orientation(p3, p4, p2) !== Sign.RIGHT_TURN;
+        case Sign.RIGHT_TURN:
+            return orientation(p3, p4, p2) !== Sign.LEFT_TURN;
+        case Sign.COLLINEAR:
+            return true;
+    }
+}
+
+function segSegDoIntersectContained(p1: Point, p2: Point, p3: Point, p4: Point): boolean {
+    switch (orientation(p1, p2, p3)) {
+        case Sign.LEFT_TURN:
+            return orientation(p1, p2, p4) !== Sign.LEFT_TURN;
+        case Sign.RIGHT_TURN:
+            return orientation(p1, p2, p4) !== Sign.RIGHT_TURN;
+        case Sign.COLLINEAR:
+            return true;
+    }
+}
+
+export function intersection(pa: Point, pb: Point, pc: Point, pd: Point) {
+    const i = getIntersectionType(pa, pb, pc, pd);
+    switch (i.intersectionType) {
+        case IntersectionType.POINT:
+            return i.point!;
+        case IntersectionType.NO_INTERSECTION:
+            return null;
+    }
+    throw new Error("sdfgighowen");
+}
+
+enum IntersectionType {
+    NO_INTERSECTION,
+    POINT,
+    SEGMENT,
+}
+
+function getLine(p0: Point, p1: Point): Line {
+    if (p0[0] === p1[0]) return [1, 0, -p0[0]];
+    if (p0[1] === p1[1]) return [0, 1, -p0[1]];
+    const x = p1[0] - p0[0];
+    const y = p1[1] - p0[1];
+    return [-y, x, -x + y];
+}
+
+function getIntersectionType(pa: Point, pb: Point, pc: Point, pd: Point) {
+    if (!doIntersect(pa, pb, pc, pd)) return { intersectionType: IntersectionType.NO_INTERSECTION, point: null };
+    const l1 = getLine(pa, pb);
+    const l2 = getLine(pc, pd);
+    const info = getIntersectionTypeLine(l1, l2);
+    switch (info.intersectionType) {
+        case IntersectionType.POINT: {
+            return info;
+        }
+    }
+    throw new Error("gzseuihgpib");
+}
+
+function getIntersectionTypeLine(la: Line, lb: Line) {
+    const denom = la[0] * lb[1] - lb[0] * la[1];
+    const nom1 = la[1] * lb[2] - lb[1] * la[2];
+    const nom2 = lb[0] * la[2] - la[0] * lb[2];
+    return {
+        intersectionType: IntersectionType.POINT,
+        point: [nom1 / denom, nom2 / denom],
+    };
+}
+
+function doIntersect(A1: Point, A2: Point, B1: Point, B2: Point): boolean {
+    if (xySmaller(A1, A2)) {
+        if (xySmaller(B1, B2)) {
+            if (xySmaller(A2, B1) || xySmaller(B2, A1)) return false;
+        } else {
+            if (xySmaller(A2, B2) || xySmaller(B1, A1)) return false;
+        }
+    } else {
+        if (xySmaller(B1, B2)) {
+            if (xySmaller(A1, B1) || xySmaller(B2, A2)) return false;
+        } else {
+            if (xySmaller(A1, B2) || xySmaller(B1, A2)) return false;
+        }
+    }
+    if (xySmaller(A1, A2)) {
+        if (xySmaller(B1, B2)) {
+            switch (xyCompare(A1, B1)) {
+                case Sign.SMALLER: {
+                    switch (xyCompare(A2, B1)) {
+                        case Sign.SMALLER:
+                            return false;
+                        case Sign.EQUAL:
+                            return true;
+                        default: {
+                            switch (xyCompare(A2, B2)) {
+                                case Sign.SMALLER:
+                                    return segSegDoIntersectCrossing(A1, A2, B1, B2);
+                                case Sign.EQUAL:
+                                    return true;
+                                default:
+                                    return segSegDoIntersectContained(A1, A2, B1, B2);
+                            }
+                        }
+                    }
+                }
+                case Sign.EQUAL:
+                    return true;
+                default:
+                    switch (xyCompare(B2, A1)) {
+                        case Sign.SMALLER:
+                            return false;
+                        case Sign.EQUAL:
+                            return true;
+                        default: {
+                            switch (xyCompare(B2, A2)) {
+                                case Sign.SMALLER:
+                                    return segSegDoIntersectCrossing(B1, B2, A1, A2);
+                                case Sign.EQUAL:
+                                    return true;
+                                default:
+                                    return segSegDoIntersectContained(B1, B2, A1, A2);
+                            }
+                        }
+                    }
+            }
+        } else {
+            switch (xyCompare(A1, B2)) {
+                case Sign.SMALLER: {
+                    switch (xyCompare(A2, B2)) {
+                        case Sign.SMALLER:
+                            return false;
+                        case Sign.EQUAL:
+                            return true;
+                        default: {
+                            switch (xyCompare(A2, B1)) {
+                                case Sign.SMALLER:
+                                    return segSegDoIntersectCrossing(A1, A2, B2, B1);
+                                case Sign.EQUAL:
+                                    return true;
+                                default:
+                                    return segSegDoIntersectContained(A1, A2, B2, B1);
+                            }
+                        }
+                    }
+                }
+                case Sign.EQUAL:
+                    return true;
+                default:
+                    switch (xyCompare(B1, A1)) {
+                        case Sign.SMALLER:
+                            return false;
+                        case Sign.EQUAL:
+                            return true;
+                        default: {
+                            switch (xyCompare(B1, A2)) {
+                                case Sign.SMALLER:
+                                    return segSegDoIntersectCrossing(B2, B1, A1, A2);
+                                case Sign.EQUAL:
+                                    return true;
+                                default:
+                                    return segSegDoIntersectContained(B2, B1, A1, A2);
+                            }
+                        }
+                    }
+            }
+        }
+    } else {
+        if (xySmaller(B1, B2)) {
+            switch (xyCompare(A2, B1)) {
+                case Sign.SMALLER: {
+                    switch (xyCompare(A1, B1)) {
+                        case Sign.SMALLER:
+                            return false;
+                        case Sign.EQUAL:
+                            return true;
+                        default: {
+                            switch (xyCompare(A1, B2)) {
+                                case Sign.SMALLER:
+                                    return segSegDoIntersectCrossing(A2, A1, B1, B2);
+                                case Sign.EQUAL:
+                                    return true;
+                                default:
+                                    return segSegDoIntersectContained(A2, A1, B1, B2);
+                            }
+                        }
+                    }
+                }
+                case Sign.EQUAL:
+                    return true;
+                default:
+                    switch (xyCompare(B2, A2)) {
+                        case Sign.SMALLER:
+                            return false;
+                        case Sign.EQUAL:
+                            return true;
+                        default: {
+                            switch (xyCompare(B2, A1)) {
+                                case Sign.SMALLER:
+                                    return segSegDoIntersectCrossing(B1, B2, A2, A1);
+                                case Sign.EQUAL:
+                                    return true;
+                                default:
+                                    return segSegDoIntersectContained(B1, B2, A2, A1);
+                            }
+                        }
+                    }
+            }
+        } else {
+            switch (xyCompare(A2, B2)) {
+                case Sign.SMALLER: {
+                    switch (xyCompare(A1, B2)) {
+                        case Sign.SMALLER:
+                            return false;
+                        case Sign.EQUAL:
+                            return true;
+                        default: {
+                            switch (xyCompare(A1, B1)) {
+                                case Sign.SMALLER:
+                                    return segSegDoIntersectCrossing(A2, A1, B2, B1);
+                                case Sign.EQUAL:
+                                    return true;
+                                default:
+                                    return segSegDoIntersectContained(A2, A1, B2, B1);
+                            }
+                        }
+                    }
+                }
+                case Sign.EQUAL:
+                    return true;
+                default:
+                    switch (xyCompare(B1, A2)) {
+                        case Sign.SMALLER:
+                            return false;
+                        case Sign.EQUAL:
+                            return true;
+                        default: {
+                            switch (xyCompare(B1, A1)) {
+                                case Sign.SMALLER:
+                                    return segSegDoIntersectCrossing(B2, B1, A2, A1);
+                                case Sign.EQUAL:
+                                    return true;
+                                default:
+                                    return segSegDoIntersectContained(B2, B1, A2, A1);
+                            }
+                        }
+                    }
+            }
+        }
+    }
 }

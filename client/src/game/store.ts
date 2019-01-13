@@ -8,8 +8,9 @@ import { Note } from "@/game/comm/types/general";
 import { GlobalPoint } from "@/game/geom";
 import { layerManager } from "@/game/layers/manager";
 import { g2l, l2g } from "@/game/units";
-import { BoundingVolume } from "@/game/visibility/bvh";
+import { BoundingVolume } from "@/game/visibility/bvh/bvh";
 import { rootStore } from "@/store";
+import { triangulate } from "./visibility/te/pa";
 
 export interface GameState {
     boardInitialized: boolean;
@@ -128,24 +129,27 @@ class GameStore extends VuexModule {
     }
 
     @Mutation
-    recalculateBV() {
+    recalculateBV(partial = false) {
         // TODO: This needs to be cleaned up..
         if (this.boardInitialized) {
-            let success = false;
-            let tries = 0;
-            while (!success) {
-                success = true;
-                try {
-                    this.BV = Object.freeze(new BoundingVolume(this.visionBlockers));
-                } catch (error) {
-                    success = false;
-                    tries++;
-                    if (tries > 10) {
-                        console.error(error);
-                        return;
-                    }
-                }
-            }
+            console.time("BV");
+            triangulate(partial);
+            console.timeEnd("BV");
+            // let success = false;
+            // let tries = 0;
+            // while (!success) {
+            //     success = true;
+            //     try {
+            //         this.BV = Object.freeze(new BoundingVolume(this.visionBlockers));
+            //     } catch (error) {
+            //         success = false;
+            //         tries++;
+            //         if (tries > 10) {
+            //             console.error(error);
+            //             return;
+            //         }
+            //     }
+            // }
         }
     }
 

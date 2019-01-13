@@ -4,7 +4,7 @@ import { layerManager } from "@/game/layers/manager";
 import { Settings } from "@/game/settings";
 import { gameStore } from "@/game/store";
 import { g2l, g2lx, g2ly } from "@/game/units";
-import { computeVisibility } from "../visibility/triangulate";
+import { computeVisibility } from "../visibility/te/te";
 
 export class FOWPlayersLayer extends Layer {
     isVisionLayer: boolean = true;

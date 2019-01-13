@@ -1,5 +1,6 @@
 import { uuidv4 } from "@/core/utils";
-import { ccw, cw } from "./triag";
+import { CDT } from "./cdt";
+import { ccw, cw, orientation } from "./triag";
 
 export type Point = number[];
 
@@ -31,17 +32,25 @@ export enum Sign {
     ON_POSITIVE_SIDE = 1,
 }
 
+enum LineFaceState {
+    UNDEFINED = -1,
+    VERTEX_VERTEX = 0,
+    VERTEX_EDGE = 1,
+    EDGE_VERTEX = 2,
+    EDGE_EDGE = 3,
+}
+
 function newPoint(): Point {
     return [INFINITE, INFINITE];
 }
 
 export class Triangle {
-    vertices: Vertex[] = [];
+    vertices: (Vertex | null)[] = [];
     neighbours: (Triangle | null)[] = [null, null, null];
     constraints = [false, false, false];
     uuid = uuidv4();
 
-    constructor(...vertices: Vertex[]) {
+    constructor(...vertices: (Vertex | null)[]) {
         this.vertices = vertices;
     }
 
@@ -65,7 +74,7 @@ export class Triangle {
     }
 
     isConstrained(index: number): boolean {
-        return false;
+        return this.constraints[index];
     }
 
     reorient() {
@@ -87,7 +96,7 @@ export class Triangle {
         if (index === undefined) {
             return this.vertices.includes(_INFINITE_VERTEX);
         } else {
-            return this.vertices[ccw(index)].infinite || this.vertices[cw(index)].infinite;
+            return this.vertices[ccw(index)]!.infinite || this.vertices[cw(index)]!.infinite;
         }
     }
 }
@@ -159,7 +168,7 @@ export class EdgeCirculator {
     }
 }
 
-class EdgeIterator {
+export class EdgeIterator {
     private i = 0;
     pos: Triangle | null;
     edge: Edge = new Edge();
@@ -198,17 +207,21 @@ class EdgeIterator {
 
     associatedEdge(): boolean {
         if (this.tds.dimension === 1) return true;
-        throw new Error("sdf");
+        return (
+            this.tds.triangles.indexOf(this.pos!) < this.tds.triangles.indexOf(this.pos!.neighbours[this.edge.second]!)
+        );
     }
 
     increment() {
         if (this.tds.dimension === 1) {
             this.i++;
-            this.pos = this.tds.triangles[this.i];
+            if (this.tds.triangles.length <= this.i) this.pos = null;
+            else this.pos = this.tds.triangles[this.i];
         } else if (this.edge.second === 2) {
             this.edge.second = 0;
             this.i++;
-            this.pos = this.tds.triangles[this.i];
+            if (this.tds.triangles.length <= this.i) this.pos = null;
+            else this.pos = this.tds.triangles[this.i];
         } else {
             this.edge.second++;
         }
@@ -246,9 +259,130 @@ export class FaceCirculator {
         this.t = this.t!.neighbours[cw(i)];
     }
 
-    next() {
+    next(): boolean {
         const i = this.t!.indexV(this.v!);
         this.t = this.t!.neighbours[ccw(i)];
+        return this.v !== this._v || this.t !== this._t;
+    }
+}
+
+export class LineFaceCirculator {
+    private i = 0;
+    pos: Triangle | null = null;
+    _tr: CDT;
+    s: LineFaceState = LineFaceState.UNDEFINED;
+    p: Point;
+    q: Point;
+
+    constructor(v: Vertex, tr: CDT, dir: Point) {
+        this._tr = tr;
+        this.p = v.point!;
+        this.q = dir;
+
+        const fc = new FaceCirculator(v, null);
+        let ic = fc.t!.indexV(v);
+        let vt = fc.t!.vertices[cw(ic)]!;
+        while (v === _INFINITE_VERTEX || orientation(this.p, this.q, vt.point!) !== Sign.LEFT_TURN) {
+            fc.next();
+            ic = fc.t!.indexV(v);
+            vt = fc.t!.vertices[cw(ic)]!;
+            if (!fc.valid) {
+                return;
+            }
+        }
+
+        let vr = fc.t!.vertices[ccw(ic)]!;
+        let pqr: Sign = Sign.RIGHT_TURN;
+        // tslint:disable:no-conditional-assignment
+        while (vr !== _INFINITE_VERTEX && (pqr = orientation(this.p, this.q, vr.point!)) === Sign.LEFT_TURN) {
+            fc.prev();
+            ic = fc.t!.indexV(v);
+            vr = fc.t!.vertices[ccw(ic)]!;
+        }
+
+        ic = fc.t!.indexV(v);
+        vt = fc.t!.vertices[cw(ic)]!;
+
+        if (vr === _INFINITE_VERTEX) {
+            fc.prev();
+            ic = fc.t!.indexV(v);
+            vr = fc.t!.vertices[ccw(ic)]!;
+            pqr = orientation(this.p, this.q, vr.point!);
+            switch (pqr) {
+                case Sign.RIGHT_TURN:
+                case Sign.COLLINEAR: {
+                    fc.next();
+                    ic = fc.t!.indexV(_INFINITE_VERTEX);
+                    this.pos = fc.t!;
+                    this.s = LineFaceState.VERTEX_VERTEX;
+                    this.i = ic;
+                    break;
+                }
+                case Sign.LEFT_TURN: {
+                    break;
+                }
+            }
+        } else if (pqr === Sign.COLLINEAR) {
+            this.pos = fc.t!;
+            this.s = LineFaceState.VERTEX_VERTEX;
+            this.i = ccw(ic);
+        } else {
+            this.pos = fc.t!;
+            this.s = LineFaceState.VERTEX_EDGE;
+            this.i = ic;
+        }
+    }
+
+    next() {
+        this.increment();
+    }
+
+    increment() {
+        let o: Sign;
+        if (this.s === LineFaceState.VERTEX_VERTEX || this.s === LineFaceState.EDGE_VERTEX) {
+            do {
+                const n = this.pos!.neighbours[cw(this.i)]!;
+                this.i = n.indexT(this.pos!);
+                this.pos = n;
+                if (this.pos!.vertices[this.i] === _INFINITE_VERTEX) {
+                    o = Sign.COLLINEAR;
+                    this.i = cw(this.i);
+                    break;
+                }
+                o = orientation(this.p, this.q, this.pos!.vertices[this.i]!.point!);
+                this.i = cw(this.i);
+            } while (o === Sign.LEFT_TURN);
+            if (o === Sign.COLLINEAR) {
+                this.s = LineFaceState.VERTEX_VERTEX;
+                this.i = ccw(this.i);
+            } else {
+                this.s = LineFaceState.VERTEX_EDGE;
+            }
+        } else {
+            const n = this.pos!.neighbours[this.i]!;
+            const ni = n.indexT(this.pos!);
+            this.pos = n;
+            o =
+                this.pos!.vertices[ni]! === _INFINITE_VERTEX
+                    ? Sign.COLLINEAR
+                    : orientation(this.p, this.q, this.pos!.vertices[ni]!.point!);
+            switch (o) {
+                case Sign.LEFT_TURN: {
+                    this.s = LineFaceState.EDGE_EDGE;
+                    this.i = ccw(ni);
+                    break;
+                }
+                case Sign.RIGHT_TURN: {
+                    this.s = LineFaceState.EDGE_EDGE;
+                    this.i = cw(ni);
+                    break;
+                }
+                default: {
+                    this.s = LineFaceState.EDGE_VERTEX;
+                    this.i = ni;
+                }
+            }
+        }
     }
 }
 
@@ -288,13 +422,24 @@ export class TDS {
         return v;
     }
 
-    createTriangle(v0: Vertex, v1: Vertex, v2: Vertex, n0: Triangle | null, n1: Triangle | null, n2: Triangle | null) {
+    createTriangle(
+        v0: Vertex | null,
+        v1: Vertex | null,
+        v2: Vertex | null,
+        n0: Triangle | null,
+        n1: Triangle | null,
+        n2: Triangle | null,
+    ) {
         const t = new Triangle(v0, v1, v2);
         t.neighbours[0] = n0;
         t.neighbours[1] = n1;
         t.neighbours[2] = n2;
         this.triangles.push(t);
         return t;
+    }
+
+    deleteTriangle(trig: Triangle) {
+        this.triangles = this.triangles.filter(t => t !== trig);
     }
 
     setAdjacency(t0: Triangle, i0: number, t1: Triangle, i1: number) {
@@ -378,7 +523,7 @@ export class TDS {
                     t2 = trig.neighbours[j]!;
                     const i2 = this.mirrorIndex(trig, j);
                     this.setAdjacency(t1, i1, t2, i2);
-                    this.triangles = this.triangles.filter(t => t !== trig);
+                    this.deleteTriangle(trig);
                 }
                 v.triangle = triangles[0];
                 break;
@@ -392,19 +537,19 @@ export class TDS {
 
     mirrorIndex(t: Triangle, i: number): number {
         if (t.dimension === 1) {
-            const j = t.neighbours[i]!.indexV(t.vertices[i === 0 ? 1 : 0]);
+            const j = t.neighbours[i]!.indexV(t.vertices[i === 0 ? 1 : 0]!);
             return j === 0 ? 1 : 0;
         }
-        return ccw(t.neighbours[i]!.indexV(t.vertices[ccw(i)]));
+        return ccw(t.neighbours[i]!.indexV(t.vertices[ccw(i)]!));
     }
 
     insertInFace(t: Triangle) {
         const v = this.createVertex();
-        const v0 = t.vertices[0];
-        const v1 = t.vertices[1];
-        const v2 = t.vertices[2];
-        const n1 = t.neighbours[1];
-        const n2 = t.neighbours[2];
+        const v0 = t.vertices[0]!;
+        const v1 = t.vertices[1]!;
+        const v2 = t.vertices[2]!;
+        const n1 = t.neighbours[1]!;
+        const n2 = t.neighbours[2]!;
         const t1 = this.createTriangle(v0, v, v2, t, n1, null);
         const t2 = this.createTriangle(v0, v1, v, t, null, n2);
         this.setAdjacency(t1, 2, t2, 1);
@@ -421,6 +566,48 @@ export class TDS {
         t.neighbours[2] = t2;
         if (v0.triangle === t) v0.triangle = t2;
         v.triangle = t;
+        return v;
+    }
+
+    flip(t: Triangle, i: number) {
+        const n = t.neighbours[i]!;
+        const ni = this.mirrorIndex(t, i);
+        const vCW = t.vertices[cw(i)]!;
+        const vCCW = t.vertices[ccw(i)]!;
+        const tr = t.neighbours[ccw(i)]!;
+        const tri = this.mirrorIndex(t, ccw(i));
+        const bl = n.neighbours[ccw(ni)]!;
+        const bli = this.mirrorIndex(n, ccw(ni));
+
+        t.vertices[cw(i)] = n.vertices[ni]!;
+        n.vertices[cw(ni)] = t.vertices[i]!;
+
+        this.setAdjacency(t, i, bl, bli);
+        this.setAdjacency(t, ccw(i), n, ccw(ni));
+        this.setAdjacency(n, ni, tr, tri);
+
+        if (vCW.triangle! === t) vCW.triangle = n;
+        if (vCCW.triangle! === n) vCCW.triangle = t;
+    }
+
+    insertInEdge(t: Triangle, i: number) {
+        let v: Vertex;
+        if (this.dimension === 1) {
+            v = this.createVertex();
+            const ff = t.neighbours[0]!;
+            const vv = t.vertices[1]!;
+            const g = this.createTriangle(v, vv, null, ff, t, null);
+            t.vertices[1] = v;
+            t.neighbours[0] = g;
+            ff.neighbours[1] = g;
+            v.triangle = g;
+            vv.triangle = ff;
+        } else {
+            const n = t.neighbours[i]!;
+            const ni = this.mirrorIndex(t, i);
+            v = this.insertInFace(t);
+            this.flip(n, ni);
+        }
         return v;
     }
 }

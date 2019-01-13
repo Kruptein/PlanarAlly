@@ -208,7 +208,7 @@ export default class DrawTool extends Tool {
             (<MultiLine>this.shape)._points.push(endPoint);
         }
         socket.emit("Shape.Update", { shape: this.shape!.asDict(), redraw: true, temporary: true });
-        if (this.shape.visionObstruction) gameStore.recalculateBV();
+        if (this.shape.visionObstruction) gameStore.recalculateBV(true);
         layer.invalidate(false);
     }
     onMouseUp(event: MouseEvent) {
@@ -216,6 +216,7 @@ export default class DrawTool extends Tool {
         if (!event.altKey && this.useGrid) {
             this.shape.resizeToGrid();
         }
+        if (this.shape.visionObstruction) gameStore.recalculateBV();
         socket.emit("Shape.Update", { shape: this.shape!.asDict(), redraw: true, temporary: false });
         this.active = false;
     }

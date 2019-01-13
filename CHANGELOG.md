@@ -7,6 +7,10 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+### Fixed
+
+- Static images were accidently no longer checked into the repository.
+
 ## [0.13.0] - 2019-01-13
 
 ### Added

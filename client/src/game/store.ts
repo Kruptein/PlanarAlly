@@ -59,8 +59,15 @@ class GameStore extends VuexModule {
 
     BV = Object.freeze(new BoundingVolume([]));
 
+    visionMode: "bvh" | "triangle" = "bvh";
+
     get selectedLayer() {
         return this.layers[this.selectedLayerIndex];
+    }
+
+    @Mutation
+    setVisionMode(visionMode: "bvh" | "triangle") {
+        this.visionMode = visionMode;
     }
 
     @Mutation
@@ -132,24 +139,24 @@ class GameStore extends VuexModule {
     recalculateBV(partial = false) {
         // TODO: This needs to be cleaned up..
         if (this.boardInitialized) {
-            console.time("BV");
-            triangulate(partial);
-            console.timeEnd("BV");
-            // let success = false;
-            // let tries = 0;
-            // while (!success) {
-            //     success = true;
-            //     try {
-            //         this.BV = Object.freeze(new BoundingVolume(this.visionBlockers));
-            //     } catch (error) {
-            //         success = false;
-            //         tries++;
-            //         if (tries > 10) {
-            //             console.error(error);
-            //             return;
-            //         }
-            //     }
-            // }
+            if (this.visionMode === "triangle") triangulate(partial);
+            else {
+                let success = false;
+                let tries = 0;
+                while (!success) {
+                    success = true;
+                    try {
+                        this.BV = Object.freeze(new BoundingVolume(this.visionBlockers));
+                    } catch (error) {
+                        success = false;
+                        tries++;
+                        if (tries > 10) {
+                            console.error(error);
+                            return;
+                        }
+                    }
+                }
+            }
         }
     }
 

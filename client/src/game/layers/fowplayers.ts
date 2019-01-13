@@ -8,7 +8,6 @@ import { computeVisibility } from "../visibility/te/te";
 
 export class FOWPlayersLayer extends Layer {
     isVisionLayer: boolean = true;
-    mode = "";
 
     draw(): void {
         if (!this.valid) {
@@ -40,7 +39,7 @@ export class FOWPlayersLayer extends Layer {
             for (const tokenId of gameStore.ownedtokens) {
                 const token = layerManager.UUIDMap.get(tokenId);
                 if (token === undefined) continue;
-                if (this.mode === "bvh") {
+                if (gameStore.visionMode === "bvh") {
                     ctx.beginPath();
                     let lastArcAngle = -1;
                     const center = token.center();

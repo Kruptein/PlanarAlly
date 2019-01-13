@@ -7,6 +7,8 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+## [0.13.0] - 2019-01-13
+
 ### Added
 
 - A new vision system has been added based on triangulation.

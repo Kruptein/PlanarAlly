@@ -29,6 +29,9 @@ export class Text extends Shape {
             angle: this.angle,
         });
     }
+    get points() {
+        return [[this.refPoint.x, this.refPoint.y]];
+    }
     getBoundingBox(): BoundingRect {
         return new BoundingRect(this.refPoint, 5, 5); // TODO: fix this bounding box
     }

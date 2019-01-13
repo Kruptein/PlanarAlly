@@ -25,6 +25,9 @@ export class Line extends Shape {
             line_width: this.lineWidth,
         });
     }
+    get points() {
+        return [[this.refPoint.x, this.refPoint.y], [this.endPoint.x, this.endPoint.y]];
+    }
     getBoundingBox(): BoundingRect {
         return new BoundingRect(
             new GlobalPoint(Math.min(this.refPoint.x, this.endPoint.x), Math.min(this.refPoint.x, this.endPoint.y)),

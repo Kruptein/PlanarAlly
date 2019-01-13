@@ -37,7 +37,7 @@
       v-model="zoomFactor"
       :height="6"
       :width="200"
-      :min="0.1"
+      :min="0.01"
       :max="5.0"
       :interval="0.1"
       :dot-width="8"

@@ -1,10 +1,10 @@
 import { partition } from "@/core/utils";
-import { BoundingNode, InteriorNode, LeafNode } from "@/game/bvh/node";
 import { GlobalPoint, Ray } from "@/game/geom";
 import { layerManager } from "@/game/layers/manager";
 import { BoundingRect } from "@/game/shapes/boundingrect";
+import { gameStore } from "@/game/store";
 import { g2lx, g2ly, g2lz } from "@/game/units";
-import { gameStore } from "../store";
+import { BoundingNode, InteriorNode, LeafNode } from "@/game/visibility/bvh/node";
 
 interface BuildInfo {
     index: number;

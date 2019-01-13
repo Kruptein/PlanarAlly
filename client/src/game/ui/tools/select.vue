@@ -156,7 +156,7 @@ export default class SelectTool extends Tool {
                 for (const sel of layer.selection) {
                     sel.refPoint = sel.refPoint.add(delta);
                     if (sel !== this.selectionHelper) {
-                        if (sel.visionObstruction) gameStore.recalculateBV();
+                        if (sel.visionObstruction) gameStore.recalculateBV(true);
                         socket.emit("Shape.Update", { shape: sel.asDict(), redraw: true, temporary: true });
                     }
                 }
@@ -165,7 +165,7 @@ export default class SelectTool extends Tool {
                 for (const sel of layer.selection) {
                     sel.resize(this.resizeDirection, mouse);
                     if (sel !== this.selectionHelper) {
-                        if (sel.visionObstruction) gameStore.recalculateBV();
+                        if (sel.visionObstruction) gameStore.recalculateBV(true);
                         socket.emit("Shape.Update", { shape: sel.asDict(), redraw: true, temporary: true });
                     }
                     layer.invalidate(false);

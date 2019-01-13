@@ -56,3 +56,6 @@ export function l2gz(z: number) {
 export function l2gr(r: number) {
     return l2gz(getUnitDistance(r));
 }
+
+(<any>window).g2lx = g2lx;
+(<any>window).g2ly = g2ly;

@@ -82,6 +82,8 @@ export abstract class Shape {
     abstract resizeToGrid(): void;
     abstract resize(resizeDir: string, point: LocalPoint): void;
 
+    abstract get points(): number[][];
+
     invalidate(skipLightUpdate: boolean) {
         const l = layerManager.getLayer(this.layer);
         if (l) l.invalidate(skipLightUpdate);

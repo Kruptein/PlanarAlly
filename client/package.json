@@ -1,6 +1,6 @@
 {
   "name": "planarally-client",
-  "version": "0.11.6",
+  "version": "0.13.0",
   "description": "A companion tool for when you travel into the planes.",
   "scripts": {
     "serve": "vue-cli-service serve",
@@ -35,15 +35,14 @@
     "@types/tinycolor2": "^1.4.1",
     "@types/vue-color": "^2.4.1",
     "@vue/cli-plugin-typescript": "^3.1.1",
-    "@vue/cli-service": "^3.1.4",
-    "dependency-cruiser": "^4.6.3",
+    "@vue/cli-service": "^3.3.0",
     "node-sass": "^4.9.0",
     "prettier": "^1.15.2",
     "rimraf": "^2.6.2",
     "sass-loader": "^7.0.1",
     "tslint": "^5.11.0",
     "tslint-config-prettier": "^1.16.0",
-    "typescript": "^3.2.1",
+    "typescript": "^3.2.2",
     "vue-property-decorator": "^7.2.0",
     "vue-template-compiler": "^2.5.17",
     "vuex-module-decorators": "^0.9.1"

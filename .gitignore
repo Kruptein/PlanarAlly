@@ -22,8 +22,9 @@ server/planarallyserver.log
 server/planar.save*
 server/planar.sqlite
 server/server_config.cfg
-server/static/img/**
+# server/static/img/**
 server/static/assets/**
+server/static/img/assets/**
 
 # docs
 docs/_build

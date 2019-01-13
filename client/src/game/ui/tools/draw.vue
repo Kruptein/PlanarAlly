@@ -212,10 +212,11 @@ export default class DrawTool extends Tool {
         layer.invalidate(false);
     }
     onMouseUp(event: MouseEvent) {
-        if (this.active && this.shape !== null && !event.altKey && this.useGrid) {
+        if (!this.active || this.shape === null) return;
+        if (!event.altKey && this.useGrid) {
             this.shape.resizeToGrid();
-            socket.emit("Shape.Update", { shape: this.shape!.asDict(), redraw: true, temporary: false });
         }
+        socket.emit("Shape.Update", { shape: this.shape!.asDict(), redraw: true, temporary: false });
         this.active = false;
     }
     onSelect() {

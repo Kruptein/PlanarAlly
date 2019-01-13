@@ -10,6 +10,7 @@ All notable changes to this project will be documented in this file.
 ### Fixed
 
 - Static images were accidently no longer checked into the repository.
+- DM layer was not being sent by the server.
 
 ## [0.13.0] - 2019-01-13
 

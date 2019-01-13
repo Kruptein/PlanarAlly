@@ -207,7 +207,7 @@ export default class DrawTool extends Tool {
         } else if (this.shapeSelect === "paint-brush") {
             (<MultiLine>this.shape).points.push(endPoint);
         }
-        socket.emit("Shape.Update", { shape: this.shape!.asDict(), redraw: true, temporary: false });
+        socket.emit("Shape.Update", { shape: this.shape!.asDict(), redraw: true, temporary: true });
         if (this.shape.visionObstruction) gameStore.recalculateBV();
         layer.invalidate(false);
     }

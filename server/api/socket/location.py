@@ -24,10 +24,15 @@ async def load_location(sid, location):
 
     data = {}
     data["locations"] = [l.name for l in room.locations]
-    data["layers"] = [
-        l.as_dict(user, user == room.creator)
-        for l in location.layers.order_by(Layer.index).where(Layer.player_visible)
-    ]
+    if user == room.creator:
+        data["layers"] = [
+            l.as_dict(user, True) for l in location.layers.order_by(Layer.index)
+        ]
+    else:
+        data["layers"] = [
+            l.as_dict(user, False)
+            for l in location.layers.order_by(Layer.index).where(Layer.player_visible)
+        ]
     client_options = user.as_dict()
     client_options.update(
         **LocationUserOption.get(user=user, location=location).as_dict()

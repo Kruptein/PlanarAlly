@@ -7,6 +7,14 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+### Added
+
+- A new vision system has been added based on triangulation.
+  - You can select this new system as a client option
+  - It is more precise (i.e. exact) than the previous vision system which was a good approximation.
+  - It can handle any polygon under any angle, so expect some new draw tools in the future!
+  - It is slightly more expensive to preprocess, but this should be relatively unnoticeable.
+
 ### Fixed
 
 - Draw tool mouseUp behaviour had some strange quirks that are now ironed uit.

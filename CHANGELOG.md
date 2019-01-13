@@ -7,6 +7,11 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+### Fixed
+
+- Draw tool mouseUp behaviour had some strange quirks that are now ironed uit.
+  - In particular this prevented some shapes of being synced correctly.
+
 ## 0.12.0
 
 ### Added

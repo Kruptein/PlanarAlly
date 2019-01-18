@@ -1,4 +1,3 @@
-import { uuidv4 } from "@/core/utils";
 import { CDT } from "./cdt";
 import { ccw, cw, orientation, ulp } from "./triag";
 
@@ -48,7 +47,8 @@ export class Triangle {
     vertices: (Vertex | null)[] = [];
     neighbours: (Triangle | null)[] = [null, null, null];
     constraints = [false, false, false];
-    uuid = uuidv4();
+    static _counter = 0;
+    uid = Triangle._counter++;
 
     constructor(...vertices: (Vertex | null)[]) {
         this.vertices = vertices;
@@ -105,7 +105,6 @@ export class Vertex {
     infinite = false;
     private _point: Point | undefined;
     triangle: Triangle | undefined;
-    uuid = uuidv4();
 
     constructor(point?: Point) {
         this._point = point;

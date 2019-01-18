@@ -321,11 +321,7 @@ export class CDT {
     lessEdge(e1: Edge, e2: Edge) {
         const ind1 = e1[1];
         const ind2 = e2[1];
-        /* return( (&(*e1.first) < &(*e2.first))
-         || ( (&(*e1.first) == &(*e2.first)) && (ind1 < ind2)));*/
-        // TODO: This is not proper.
-        // console.error("This has to be done correctly");
-        return ind1 < ind2;
+        return e1[0].uid < e2[0].uid || (e1[0].uid === e2[0].uid && ind1 < ind2);
     }
 
     propagatingFlipE(edges: Edge[]) {

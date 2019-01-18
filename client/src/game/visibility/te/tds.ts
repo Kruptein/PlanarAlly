@@ -611,3 +611,29 @@ export class TDS {
         return v;
     }
 }
+
+export class BoundingBox {
+    x1: number;
+    x2: number;
+    y1: number;
+    y2: number;
+    constructor(p: Point) {
+        this.x1 = p[0];
+        this.y1 = p[1];
+        this.x2 = p[0];
+        this.y2 = p[1];
+    }
+
+    dilate(dist: number) {
+        this.x1 -= dist;
+        this.y1 -= dist;
+        this.x2 += dist;
+        this.y2 += dist;
+    }
+
+    overlaps(other: BoundingBox): boolean {
+        if (this.x2 < other.x1 || other.x2 < this.x1) return false;
+        if (this.y2 < other.y1 || other.y2 < this.y1) return false;
+        return true;
+    }
+}

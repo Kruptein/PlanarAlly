@@ -8,6 +8,7 @@ import {
     TDS,
     Triangle,
     Vertex,
+    BoundingBox,
 } from "./tds";
 import {
     ccw,
@@ -232,7 +233,15 @@ export class CDT {
         const pb = vbb.point!;
         const pc = vcc.point!;
         const pd = vdd.point!;
-        const pi = intersection(pa, pb, pc, pd);
+        let pi = intersection(pa, pb, pc, pd);
+        if (pi !== pa && pi !== pb && pi !== pc && pi !== pd) {
+            const bbox = new BoundingBox(pi!);
+            bbox.dilate(4);
+            if (bbox.overlaps(new BoundingBox(pa))) pi = pa;
+            if (bbox.overlaps(new BoundingBox(pb))) pi = pb;
+            if (bbox.overlaps(new BoundingBox(pc))) pi = pc;
+            if (bbox.overlaps(new BoundingBox(pd))) pi = pd;
+        }
         let vi: Vertex;
         if (pi === null) throw new Error("what");
         else {
@@ -615,7 +624,7 @@ export class CDT {
             if (c.isInfinite()) {
                 return { loc: c, lt: LocateType.OUTSIDE_CONVEX_HULL, li: c.indexV(this.tds._infinite) };
             }
-            const leftFirst = Math.round(Math.random());
+            const leftFirst = 0; // Math.round(Math.random());
             const p0 = c.vertices[0]!.point!;
             const p1 = c.vertices[1]!.point!;
             const p2 = c.vertices[2]!.point!;

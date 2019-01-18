@@ -118,7 +118,7 @@ export function xyEqual(p: Point, q: Point) {
 }
 
 export function xySmaller(p: Point, q: Point) {
-    return p[0] <= q[0] && p[1] <= q[1];
+    return p[0] < q[0] || (p[0] === q[0] && p[1] < q[1]);
 }
 
 export function xyCompare(p: Point, q: Point) {

@@ -1,6 +1,6 @@
 import { uuidv4 } from "@/core/utils";
 import { CDT } from "./cdt";
-import { ccw, cw, orientation } from "./triag";
+import { ccw, cw, orientation, ulp } from "./triag";
 
 export type Point = number[];
 
@@ -625,10 +625,10 @@ export class BoundingBox {
     }
 
     dilate(dist: number) {
-        this.x1 -= dist;
-        this.y1 -= dist;
-        this.x2 += dist;
-        this.y2 += dist;
+        this.x1 -= dist * ulp(this.x1);
+        this.y1 -= dist * ulp(this.y1);
+        this.x2 += dist * ulp(this.x2);
+        this.y2 += dist * ulp(this.y2);
     }
 
     overlaps(other: BoundingBox): boolean {

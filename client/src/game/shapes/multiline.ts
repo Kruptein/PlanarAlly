@@ -20,6 +20,16 @@ export class MultiLine extends Shape {
         this._points = points || [];
         this.lineWidth = lineWidth || 3;
     }
+
+    get refPoint() {
+        return this._refPoint;
+    }
+    set refPoint(point: GlobalPoint) {
+        const delta = point.subtract(this._refPoint);
+        this._refPoint = point;
+        for (let i = 0; i < this._points.length; i++) this._points[i] = this._points[i].add(delta);
+    }
+
     asDict() {
         return Object.assign(this.getBaseDict(), {
             line_width: this.lineWidth,
@@ -59,12 +69,14 @@ export class MultiLine extends Shape {
         ctx.stroke();
     }
     contains(point: GlobalPoint): boolean {
-        return this._points.includes(point);
+        return this.getBoundingBox().contains(point);
     }
 
     center(): GlobalPoint;
     center(centerPoint: GlobalPoint): void;
-    center(centerPoint?: GlobalPoint): GlobalPoint | void {} // TODO
+    center(centerPoint?: GlobalPoint): GlobalPoint | void {
+        return this.getBoundingBox().center();
+    }
     getCorner(point: GlobalPoint): string | undefined {
         return "";
     } // TODO

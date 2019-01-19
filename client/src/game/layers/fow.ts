@@ -7,10 +7,21 @@ import { Shape } from "@/game/shapes/shape";
 import { gameStore } from "@/game/store";
 import { g2l, g2lr, g2lx, g2ly, g2lz, getUnitDistance } from "@/game/units";
 import { getFogColour } from "@/game/utils";
+import { computeVisibility } from "../visibility/te/te";
 
 export class FOWLayer extends Layer {
     isVisionLayer: boolean = true;
     preFogShapes: Shape[] = [];
+    virtualCanvas: HTMLCanvasElement;
+    vCtx: CanvasRenderingContext2D;
+
+    constructor(canvas: HTMLCanvasElement, name: string) {
+        super(canvas, name);
+        this.virtualCanvas = document.createElement("canvas");
+        this.virtualCanvas.width = window.innerWidth;
+        this.virtualCanvas.height = window.innerHeight;
+        this.vCtx = this.virtualCanvas.getContext("2d")!;
+    }
 
     addShape(shape: Shape, sync: boolean, temporary?: boolean, invalidate = true): void {
         super.addShape(shape, sync, temporary, invalidate);
@@ -64,6 +75,8 @@ export class FOWLayer extends Layer {
                 });
             }
 
+            this.vCtx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+
             // First cut out all the light sources
             for (const light of gameStore.visionSources) {
                 const shape = layerManager.UUIDMap.get(light.shape);
@@ -78,13 +91,13 @@ export class FOWLayer extends Layer {
                 const auraCircle = new Circle(center, auraLength);
                 if (!auraCircle.visibleInCanvas(ctx.canvas)) continue;
 
-                let lastArcAngle = -1;
-
-                const path = new Path2D();
-                path.moveTo(lcenter.x, lcenter.y);
-                let firstPoint: GlobalPoint;
-
                 if (gameStore.visionMode === "bvh") {
+                    let lastArcAngle = -1;
+
+                    const path = new Path2D();
+                    path.moveTo(lcenter.x, lcenter.y);
+                    let firstPoint: GlobalPoint;
+
                     for (let angle = 0; angle < 2 * Math.PI; angle += (Settings.angleSteps / 180) * Math.PI) {
                         const anglePoint = new GlobalPoint(
                             center.x + auraLength * Math.cos(angle),
@@ -125,31 +138,43 @@ export class FOWLayer extends Layer {
                     // Finish the final arc.
                     if (lastArcAngle === -1) path.lineTo(g2lx(firstPoint!.x), g2ly(firstPoint!.y));
                     else path.arc(lcenter.x, lcenter.y, g2lr(aura.value + aura.dim), lastArcAngle, 2 * Math.PI);
-                } else {
-                    path.arc(lcenter.x, lcenter.y, g2lr(aura.value + aura.dim), lastArcAngle, 2 * Math.PI);
-                }
 
-                if (gameStore.fullFOW) {
-                    if (aura.dim > 0) {
-                        // Fill the light aura with a radial dropoff towards the outside.
-                        const gradient = ctx.createRadialGradient(
-                            lcenter.x,
-                            lcenter.y,
-                            g2lr(aura.value),
-                            lcenter.x,
-                            lcenter.y,
-                            g2lr(aura.value + aura.dim),
-                        );
-                        gradient.addColorStop(0, "rgba(0, 0, 0, 1)");
-                        gradient.addColorStop(1, "rgba(0, 0, 0, 0)");
-                        ctx.fillStyle = gradient;
-                    } else {
-                        ctx.fillStyle = "rgba(0, 0, 0, 1)";
+                    if (gameStore.fullFOW) {
+                        if (aura.dim > 0) {
+                            // Fill the light aura with a radial dropoff towards the outside.
+                            const gradient = ctx.createRadialGradient(
+                                lcenter.x,
+                                lcenter.y,
+                                g2lr(aura.value),
+                                lcenter.x,
+                                lcenter.y,
+                                g2lr(aura.value + aura.dim),
+                            );
+                            gradient.addColorStop(0, "rgba(0, 0, 0, 1)");
+                            gradient.addColorStop(1, "rgba(0, 0, 0, 0)");
+                            ctx.fillStyle = gradient;
+                        } else {
+                            ctx.fillStyle = "rgba(0, 0, 0, 1)";
+                        }
+                        ctx.fill(path);
                     }
-                    ctx.fill(path);
-                }
 
-                aura.lastPath = path;
+                    aura.lastPath = path;
+                } else {
+                    this.vCtx.fillStyle = "rgba(0, 0, 0, 1)";
+                    this.vCtx.globalCompositeOperation = "source-over";
+                    this.vCtx.beginPath();
+                    this.vCtx.arc(lcenter.x, lcenter.y, g2lr(aura.value + aura.dim), 0, 2 * Math.PI);
+                    this.vCtx.fill();
+                    this.vCtx.globalCompositeOperation = "source-in";
+                    const polygon = computeVisibility(center);
+                    this.vCtx.beginPath();
+                    this.vCtx.moveTo(g2lx(polygon[0][0]), g2ly(polygon[0][1]));
+                    for (const point of polygon) this.vCtx.lineTo(g2lx(point[0]), g2ly(point[1]));
+                    this.vCtx.closePath();
+                    this.vCtx.fill();
+                    ctx.drawImage(this.virtualCanvas, 0, 0);
+                }
             }
 
             // At the DM Side due to opacity of the two fow layers, it looks strange if we just render them on top of eachother like players.

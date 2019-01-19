@@ -21,6 +21,7 @@ All notable changes to this project will be documented in this file.
 - Fix visionmode menu toggle not remembering what is currently selected.
 - SelectionHelper mistakenly geting send to the server.
 - SelectionHelper sometimes getting moved to a different layer instead of the actual shape.
+- Some small QOL changes to multiline.
 
 ## [0.13.3] - 2019-01-19
 

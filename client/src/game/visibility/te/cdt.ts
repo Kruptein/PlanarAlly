@@ -1,4 +1,5 @@
 import {
+    BoundingBox,
     EdgeCirculator,
     FaceCirculator,
     LineFaceCirculator,
@@ -8,7 +9,6 @@ import {
     TDS,
     Triangle,
     Vertex,
-    BoundingBox,
 } from "./tds";
 import {
     ccw,

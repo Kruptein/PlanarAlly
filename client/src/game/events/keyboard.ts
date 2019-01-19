@@ -59,6 +59,7 @@ export function onKeyDown(event: KeyboardEvent) {
                     if (sel.refPoint.x % gridSize !== 0 || sel.refPoint.y % gridSize !== 0) sel.snapToGrid();
                     socket.emit("Shape.Position.Update", { shape: sel.asDict(), redraw: true, temporary: false });
                 }
+                gameStore.recalculateBV(false);
                 layerManager.getLayer()!.invalidate(false);
             } else {
                 // The pan offsets should be in the opposite direction to give the correct feel.

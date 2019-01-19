@@ -7,6 +7,10 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+### Changed
+
+- Wait with recalculating vision until all shapes are added on startup.
+
 ## [0.13.3] - 2019-01-19
 
 ### Fixed

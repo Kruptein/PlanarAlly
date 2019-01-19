@@ -46,17 +46,17 @@ export class Layer {
         }
     }
 
-    addShape(shape: Shape, sync: boolean, temporary?: boolean): void {
+    addShape(shape: Shape, sync: boolean, temporary?: boolean, invalidate = true): void {
         if (temporary === undefined) temporary = false;
         shape.layer = this.name;
         this.shapes.push(shape);
         layerManager.UUIDMap.set(shape.uuid, shape);
-        shape.checkVisionSources();
+        shape.checkVisionSources(invalidate);
         shape.setMovementBlock(shape.movementObstruction);
         if (shape.ownedBy(gameStore.username) && shape.isToken) gameStore.ownedtokens.push(shape.uuid);
         if (shape.annotation.length) gameStore.annotations.push(shape.uuid);
         if (sync) socket.emit("Shape.Add", { shape: shape.asDict(), temporary });
-        this.invalidate(!sync);
+        if (invalidate) this.invalidate(!sync);
     }
 
     setShapes(shapes: ServerShape[]): void {
@@ -66,7 +66,7 @@ export class Layer {
                 console.log(`Shape with unknown type ${serverShape.type_} could not be added`);
                 return;
             }
-            this.addShape(shape, false, false);
+            this.addShape(shape, false, false, false);
         }
         this.clearSelection(); // TODO: Fix keeping selection on those items that are not moved.
         this.invalidate(false);

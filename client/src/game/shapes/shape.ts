@@ -89,7 +89,7 @@ export abstract class Shape {
         if (l) l.invalidate(skipLightUpdate);
     }
 
-    checkVisionSources() {
+    checkVisionSources(recalculate = true) {
         const self = this;
         const obstructionIndex = gameStore.visionBlockers.indexOf(this.uuid);
         let changeBV = false;
@@ -100,7 +100,7 @@ export abstract class Shape {
             gameStore.visionBlockers.splice(obstructionIndex, 1);
             changeBV = true;
         }
-        if (changeBV) gameStore.recalculateBV();
+        if (changeBV && recalculate) gameStore.recalculateBV();
 
         // Check if the visionsource auras are in the gameManager
         this.auras.forEach(au => {

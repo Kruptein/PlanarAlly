@@ -12,8 +12,8 @@ export class FOWLayer extends Layer {
     isVisionLayer: boolean = true;
     preFogShapes: Shape[] = [];
 
-    addShape(shape: Shape, sync: boolean, temporary?: boolean): void {
-        super.addShape(shape, sync, temporary);
+    addShape(shape: Shape, sync: boolean, temporary?: boolean, invalidate = true): void {
+        super.addShape(shape, sync, temporary, invalidate);
         if (shape.options.has("preFogShape") && shape.options.get("preFogShape")) {
             this.preFogShapes.push(shape);
         }

@@ -153,8 +153,8 @@ import NoteDialog from "@/game/ui/note.vue";
 import { getRef, uuidv4 } from "@/core/utils";
 import { socket } from "@/game/api/socket";
 import { Note } from "@/game/comm/types/general";
-import { gameStore } from "@/game/store";
 import { layerManager } from "@/game/layers/manager";
+import { gameStore } from "@/game/store";
 
 @Component({
     components: {

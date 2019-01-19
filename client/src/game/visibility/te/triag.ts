@@ -118,7 +118,7 @@ export function xyEqual(p: Point, q: Point) {
 }
 
 export function xySmaller(p: Point, q: Point) {
-    return p[0] <= q[0] && p[1] <= q[1];
+    return p[0] < q[0] || (p[0] === q[0] && p[1] < q[1]);
 }
 
 export function xyCompare(p: Point, q: Point) {
@@ -218,7 +218,7 @@ function getLine(p0: Point, p1: Point): Line {
     if (p0[1] === p1[1]) return [0, 1, -p0[1]];
     const x = p1[0] - p0[0];
     const y = p1[1] - p0[1];
-    return [-y, x, -x + y];
+    return [-y, x, -x * p0[1] + y * p0[0]];
 }
 
 function getIntersectionType(pa: Point, pb: Point, pc: Point, pd: Point) {
@@ -423,4 +423,39 @@ function doIntersect(A1: Point, A2: Point, B1: Point, B2: Point): boolean {
             }
         }
     }
+}
+
+function nextUp(x: number) {
+    if (x !== x) {
+        return x;
+    }
+    if (x === -1 / 0) {
+        return -Number.MAX_VALUE;
+    }
+    if (x === +1 / 0) {
+        return +1 / 0;
+    }
+    if (x === +Number.MAX_VALUE) {
+        return +1 / 0;
+    }
+    let y = x * (x < 0 ? 1 - Number.EPSILON / 2 : 1 + Number.EPSILON);
+    if (y === x) {
+        y = Number.MIN_VALUE * Number.EPSILON > 0 ? x + Number.MIN_VALUE * Number.EPSILON : x + Number.MIN_VALUE;
+    }
+    if (y === +1 / 0) {
+        y = +Number.MAX_VALUE;
+    }
+    const b = x + (y - x) / 2;
+    if (x < b && b < y) {
+        y = b;
+    }
+    const c = (y + x) / 2;
+    if (x < c && c < y) {
+        y = c;
+    }
+    return y === 0 ? -0 : y;
+}
+
+export function ulp(x: number) {
+    return x < 0 ? nextUp(x) - x : x + nextUp(-x);
 }

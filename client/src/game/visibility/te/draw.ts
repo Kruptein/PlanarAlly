@@ -68,7 +68,7 @@ function drl(ctx: CanvasRenderingContext2D, from: number[], to: number[], constr
     ctx.stroke();
 }
 
-function drawPolygonT(tds: TDS, local = true, clear = true) {
+function drawPolygonT(tds: TDS, local = true, clear = true, logs: 0 | 1 | 2 = 0) {
     I = 0;
     J = 0;
     let T = 0;
@@ -88,15 +88,17 @@ function drawPolygonT(tds: TDS, local = true, clear = true) {
     do {
         const fromP = ei.edge.first!.vertices[ccw(ei.edge.second)]!.point!;
         const toP = ei.edge.first!.vertices[cw(ei.edge.second)]!.point!;
-        // if (fromP[0] === -Infinity || toP[0] === -Infinity) {
-        //     ei.next();
-        //     continue;
-        // }
-        J++;
-        // if (ei.edge.first!.constraints[ei.edge.second]) {
-        //     I++;
-        //     console.log(`Edge: (*) ${fromP} > ${toP}`);
-        // } else console.log(`Edge: ${fromP} > ${toP}`);
+        if (logs > 0) {
+            if (fromP[0] === -Infinity || toP[0] === -Infinity) {
+                ei.next();
+                continue;
+            }
+            J++;
+            if (ei.edge.first!.constraints[ei.edge.second]) {
+                I++;
+                if (logs === 2) console.log(`Edge: (*) ${fromP} > ${toP}`);
+            } else if (logs === 2) console.log(`Edge: ${fromP} > ${toP}`);
+        }
         do {
             ei.next();
             ei.collect();
@@ -126,7 +128,7 @@ function drawPolygonT(tds: TDS, local = true, clear = true) {
             ctx.closePath();
             ctx.fill();
         }
-        // console.log("[T] ", ...po, t.constraints);
+        if (logs === 2) console.log("[T] ", ...po, t.constraints);
 
         ctx.moveTo(x(t.vertices[0]!.point![0], local), y(t.vertices[0]!.point![1], local));
         if (t.vertices[0] !== undefined && t.vertices[1] !== undefined)
@@ -136,8 +138,10 @@ function drawPolygonT(tds: TDS, local = true, clear = true) {
         if (t.vertices[2] !== undefined && t.vertices[0] !== undefined)
             drl(ctx, t.vertices[2]!.point!, t.vertices[0]!.point!, t.constraints[1], local);
     }
-    console.log(`Edges: ${I}/${J}`);
-    console.log(`Faces: ${T}`);
+    if (logs > 0) {
+        console.log(`Edges: ${I}/${J}`);
+        console.log(`Faces: ${T}`);
+    }
 }
 
 (<any>window).DP = drawPolygon;

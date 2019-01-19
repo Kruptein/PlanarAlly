@@ -1,4 +1,5 @@
 import {
+    BoundingBox,
     EdgeCirculator,
     FaceCirculator,
     LineFaceCirculator,
@@ -232,7 +233,15 @@ export class CDT {
         const pb = vbb.point!;
         const pc = vcc.point!;
         const pd = vdd.point!;
-        const pi = intersection(pa, pb, pc, pd);
+        let pi = intersection(pa, pb, pc, pd);
+        if (pi !== pa && pi !== pb && pi !== pc && pi !== pd) {
+            const bbox = new BoundingBox(pi!);
+            bbox.dilate(4);
+            if (bbox.overlaps(new BoundingBox(pa))) pi = pa;
+            if (bbox.overlaps(new BoundingBox(pb))) pi = pb;
+            if (bbox.overlaps(new BoundingBox(pc))) pi = pc;
+            if (bbox.overlaps(new BoundingBox(pd))) pi = pd;
+        }
         let vi: Vertex;
         if (pi === null) throw new Error("what");
         else {
@@ -312,11 +321,7 @@ export class CDT {
     lessEdge(e1: Edge, e2: Edge) {
         const ind1 = e1[1];
         const ind2 = e2[1];
-        /* return( (&(*e1.first) < &(*e2.first))
-         || ( (&(*e1.first) == &(*e2.first)) && (ind1 < ind2)));*/
-        // TODO: This is not proper.
-        // console.error("This has to be done correctly");
-        return ind1 < ind2;
+        return e1[0].uid < e2[0].uid || (e1[0].uid === e2[0].uid && ind1 < ind2);
     }
 
     propagatingFlipE(edges: Edge[]) {
@@ -351,6 +356,17 @@ export class CDT {
             e[1] = [t, ccw(indf)];
             e[2] = [ni, cw(indn)];
             e[3] = [ni, ccw(indn)];
+
+            for (const edge of e) {
+                const tt = edge![0];
+                const ii = edge![1];
+                eni = [tt.neighbours[ii]!, this.tds.mirrorIndex(tt, ii)];
+                if (this.lessEdge(edge!, eni))
+                    edgeSet.splice(edgeSet.findIndex(ed => ed[0] === edge![0] && ed[1] === edge![1]), 1);
+                else edgeSet.splice(edgeSet.findIndex(ed => ed[0] === eni[0] && ed[1] === eni[1]), 1);
+            }
+
+            this.flip(t, indf);
 
             for (const edge of e) {
                 const tt = edge![0];
@@ -615,7 +631,7 @@ export class CDT {
             if (c.isInfinite()) {
                 return { loc: c, lt: LocateType.OUTSIDE_CONVEX_HULL, li: c.indexV(this.tds._infinite) };
             }
-            const leftFirst = Math.round(Math.random());
+            const leftFirst = 0; // Math.round(Math.random());
             const p0 = c.vertices[0]!.point!;
             const p1 = c.vertices[1]!.point!;
             const p2 = c.vertices[2]!.point!;

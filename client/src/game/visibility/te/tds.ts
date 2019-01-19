@@ -1,6 +1,5 @@
-import { uuidv4 } from "@/core/utils";
 import { CDT } from "./cdt";
-import { ccw, cw, orientation } from "./triag";
+import { ccw, cw, orientation, ulp } from "./triag";
 
 export type Point = number[];
 
@@ -48,7 +47,8 @@ export class Triangle {
     vertices: (Vertex | null)[] = [];
     neighbours: (Triangle | null)[] = [null, null, null];
     constraints = [false, false, false];
-    uuid = uuidv4();
+    static _counter = 0;
+    uid = Triangle._counter++;
 
     constructor(...vertices: (Vertex | null)[]) {
         this.vertices = vertices;
@@ -105,7 +105,6 @@ export class Vertex {
     infinite = false;
     private _point: Point | undefined;
     triangle: Triangle | undefined;
-    uuid = uuidv4();
 
     constructor(point?: Point) {
         this._point = point;
@@ -609,5 +608,31 @@ export class TDS {
             this.flip(n, ni);
         }
         return v;
+    }
+}
+
+export class BoundingBox {
+    x1: number;
+    x2: number;
+    y1: number;
+    y2: number;
+    constructor(p: Point) {
+        this.x1 = p[0];
+        this.y1 = p[1];
+        this.x2 = p[0];
+        this.y2 = p[1];
+    }
+
+    dilate(dist: number) {
+        this.x1 -= dist * ulp(this.x1);
+        this.y1 -= dist * ulp(this.y1);
+        this.x2 += dist * ulp(this.x2);
+        this.y2 += dist * ulp(this.y2);
+    }
+
+    overlaps(other: BoundingBox): boolean {
+        if (this.x2 < other.x1 || other.x2 < this.x1) return false;
+        if (this.y2 < other.y1 || other.y2 < this.y1) return false;
+        return true;
     }
 }

@@ -124,8 +124,10 @@ class LayerManager {
 
         if (gameStore.useGrid) {
             const gs = gameStore.gridSize;
-            asset.refPoint.x = Math.round(asset.refPoint.x / gs) * gs;
-            asset.refPoint.y = Math.round(asset.refPoint.y / gs) * gs;
+            asset.refPoint = new GlobalPoint(
+                Math.round(asset.refPoint.x / gs) * gs,
+                Math.round(asset.refPoint.y / gs) * gs,
+            );
             asset.w = Math.max(Math.round(asset.w / gs) * gs, gs);
             asset.h = Math.max(Math.round(asset.h / gs) * gs, gs);
         }

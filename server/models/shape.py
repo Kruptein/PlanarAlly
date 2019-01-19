@@ -15,6 +15,7 @@ __all__ = [
     "CircularToken",
     "Line",
     "MultiLine",
+    "Polygon",
     "Rect",
     "Shape",
     "ShapeOwner",
@@ -151,6 +152,11 @@ class MultiLine(ShapeType):
     abstract = False
     line_width = IntegerField()
     points = JSONField()
+
+
+class Polygon(ShapeType):
+    abstract = False
+    vertices = JSONField()
 
 
 class Rect(BaseRect):

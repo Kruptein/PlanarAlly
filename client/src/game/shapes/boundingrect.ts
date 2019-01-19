@@ -81,12 +81,8 @@ export class BoundingRect {
         return { hit: txmin < ray.tMax! && txmax > 0, min: txmin, max: txmax };
     }
 
-    center(): GlobalPoint;
-    center(centerPoint: GlobalPoint): void;
-    center(centerPoint?: GlobalPoint): GlobalPoint | void {
-        if (centerPoint === undefined) return this.topLeft.add(new Vector(this.w / 2, this.h / 2));
-        this.topLeft.x = centerPoint.x - this.w / 2;
-        this.topLeft.y = centerPoint.y - this.h / 2;
+    center(): GlobalPoint {
+        return this.topLeft.add(new Vector(this.w / 2, this.h / 2));
     }
     inCorner(point: GlobalPoint, corner: string) {
         const sw = Math.min(6, this.w / 2) / 2;

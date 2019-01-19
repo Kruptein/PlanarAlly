@@ -7,6 +7,11 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+### Added
+
+- Polygon shape in the draw tool.
+  - This is especially nice in combination with the new experimental vision mode!
+
 ### Changed
 
 - Wait with recalculating vision until all shapes are added on startup.
@@ -14,6 +19,8 @@ All notable changes to this project will be documented in this file.
 ### Fixed
 
 - Fix visionmode menu toggle not remembering what is currently selected.
+- SelectionHelper mistakenly geting send to the server.
+- SelectionHelper sometimes getting moved to a different layer instead of the actual shape.
 
 ## [0.13.3] - 2019-01-19
 

@@ -14,6 +14,21 @@ export function triangulate(partial: boolean = false) {
             cdt.insertConstraint(shape.points[i], shape.points[(i + 1) % shape.points.length]);
         }
     }
+    // LEFT WALL
+    cdt.insertConstraint([-1e10, -1e10], [-1e10, 1e10]);
+    cdt.insertConstraint([-1e10, 1e10], [-1e11, 1e10]);
+    cdt.insertConstraint([-1e11, 1e10], [-1e11, -1e10]);
+    cdt.insertConstraint([-1e11, -1e10], [-1e10, -1e10]);
+    // // TOP WALL
+    // cdt.insertConstraint([-1e10, -1e10], [1e10, -1e10]);
+    // cdt.insertConstraint([1e10, -1e10], [1e10, -1e11]);
+    // cdt.insertConstraint([1e10, -1e11], [-1e10, -1e11]);
+    // cdt.insertConstraint([-1e10, -1e11], [-1e10, -1e10]);
+    // RIGHT WALL
+    cdt.insertConstraint([1e10, -1e10], [1e10, 1e10]);
+    cdt.insertConstraint([1e10, 1e10], [1e11, 1e10]);
+    cdt.insertConstraint([1e11, 1e10], [1e11, -1e10]);
+    cdt.insertConstraint([1e11, -1e10], [1e10, -1e10]);
     PA_CDT = cdt;
     (<any>window).CDT = PA_CDT;
 }

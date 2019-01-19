@@ -13,14 +13,14 @@ import { g2l, g2lr, g2lx, g2ly, g2lz } from "@/game/units";
 
 export abstract class Shape {
     // Used to create class instance from server shape data
-    abstract type: string;
+    abstract readonly type: string;
     // The unique ID of this shape
-    uuid: string;
+    readonly uuid: string;
     // The layer the shape is currently on
     layer!: string;
 
     // A reference point regarding that specific shape's structure
-    refPoint: GlobalPoint;
+    protected _refPoint: GlobalPoint;
 
     // Fill colour of the shape
     fillColour: string = "#000";
@@ -52,10 +52,17 @@ export abstract class Shape {
     options: Map<string, any> = new Map();
 
     constructor(refPoint: GlobalPoint, fillColour?: string, strokeColour?: string, uuid?: string) {
-        this.refPoint = refPoint;
+        this._refPoint = refPoint;
         this.uuid = uuid || uuidv4();
         if (fillColour !== undefined) this.fillColour = fillColour;
         if (strokeColour !== undefined) this.strokeColour = strokeColour;
+    }
+
+    get refPoint() {
+        return this._refPoint;
+    }
+    set refPoint(point: GlobalPoint) {
+        this._refPoint = point;
     }
 
     abstract getBoundingBox(): BoundingRect;

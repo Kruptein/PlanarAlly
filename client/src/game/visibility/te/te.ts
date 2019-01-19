@@ -1,4 +1,5 @@
 import { GlobalPoint } from "@/game/geom";
+import { gameStore } from "@/game/store";
 
 import { Edge } from "./cdt";
 import { drawPolygon } from "./draw";
@@ -6,7 +7,8 @@ import { PA_CDT } from "./pa";
 import { Point, Sign, Triangle } from "./tds";
 import { ccw, cw, orientation } from "./triag";
 
-export function computeVisibility(q: GlobalPoint, it = 0, drawt = false): number[][] {
+export function computeVisibility(q: GlobalPoint, it = 0, drawt?: boolean): number[][] {
+    if (drawt === undefined) drawt = gameStore.drawTEContour;
     // console.time("CV");
     const Q: Point = [q.x, q.y];
     const rawOutput: number[][] = [];

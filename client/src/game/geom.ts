@@ -11,8 +11,8 @@ export function getPointDistance(p1: Point, p2: Point) {
 }
 
 export class Point {
-    x: number;
-    y: number;
+    readonly x: number;
+    readonly y: number;
     constructor(x: number, y: number) {
         this.x = x;
         this.y = y;

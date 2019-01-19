@@ -84,47 +84,50 @@ export class FOWLayer extends Layer {
                 path.moveTo(lcenter.x, lcenter.y);
                 let firstPoint: GlobalPoint;
 
-                for (let angle = 0; angle < 2 * Math.PI; angle += (Settings.angleSteps / 180) * Math.PI) {
-                    const anglePoint = new GlobalPoint(
-                        center.x + auraLength * Math.cos(angle),
-                        center.y + auraLength * Math.sin(angle),
-                    );
-                    if (Settings.drawAngleLines) {
-                        dctx!.beginPath();
-                        dctx!.moveTo(g2lx(center.x), g2ly(center.y));
-                        dctx!.lineTo(g2lx(anglePoint.x), g2ly(anglePoint.y));
-                        dctx!.stroke();
-                    }
-
-                    // Check if there is a hit with one of the nearby light blockers.
-                    const lightRay = Ray.fromPoints(center, anglePoint);
-                    const hitResult = gameStore.BV.intersect(lightRay);
-
-                    if (angle === 0) firstPoint = hitResult.hit ? hitResult.intersect : anglePoint;
-
-                    // We can move on to the next angle if nothing was hit.
-                    if (!hitResult.hit) {
-                        // If an earlier hit caused the aura to leave the arc, we need to go back to the arc
-                        if (lastArcAngle === -1) {
-                            // Set the start of a new arc beginning at the current angle
-                            lastArcAngle = angle;
-                            // Draw a line from the last non arc location back to the arc
-                            const dest = g2l(anglePoint);
-                            ctx.lineTo(dest.x, dest.y);
+                if (gameStore.visionMode === "bvh") {
+                    for (let angle = 0; angle < 2 * Math.PI; angle += (Settings.angleSteps / 180) * Math.PI) {
+                        const anglePoint = new GlobalPoint(
+                            center.x + auraLength * Math.cos(angle),
+                            center.y + auraLength * Math.sin(angle),
+                        );
+                        if (Settings.drawAngleLines) {
+                            dctx!.beginPath();
+                            dctx!.moveTo(g2lx(center.x), g2ly(center.y));
+                            dctx!.lineTo(g2lx(anglePoint.x), g2ly(anglePoint.y));
+                            dctx!.stroke();
                         }
-                        continue;
-                    }
-                    // If hit , first finish any ongoing arc, then move to the intersection point
-                    if (lastArcAngle !== -1) {
-                        path.arc(lcenter.x, lcenter.y, g2lr(aura.value + aura.dim), lastArcAngle, angle);
-                        lastArcAngle = -1;
-                    }
-                    path.lineTo(g2lx(hitResult.intersect.x), g2ly(hitResult.intersect.y));
-                }
 
-                // Finish the final arc.
-                if (lastArcAngle === -1) path.lineTo(g2lx(firstPoint!.x), g2ly(firstPoint!.y));
-                else path.arc(lcenter.x, lcenter.y, g2lr(aura.value + aura.dim), lastArcAngle, 2 * Math.PI);
+                        // Check if there is a hit with one of the nearby light blockers.
+                        const lightRay = Ray.fromPoints(center, anglePoint);
+                        const hitResult = gameStore.BV.intersect(lightRay);
+
+                        if (angle === 0) firstPoint = hitResult.hit ? hitResult.intersect : anglePoint;
+
+                        // We can move on to the next angle if nothing was hit.
+                        if (!hitResult.hit) {
+                            // If an earlier hit caused the aura to leave the arc, we need to go back to the arc
+                            if (lastArcAngle === -1) {
+                                // Set the start of a new arc beginning at the current angle
+                                lastArcAngle = angle;
+                                // Draw a line from the last non arc location back to the arc
+                                const dest = g2l(anglePoint);
+                                ctx.lineTo(dest.x, dest.y);
+                            }
+                            continue;
+                        }
+                        // If hit , first finish any ongoing arc, then move to the intersection point
+                        if (lastArcAngle !== -1) {
+                            path.arc(lcenter.x, lcenter.y, g2lr(aura.value + aura.dim), lastArcAngle, angle);
+                            lastArcAngle = -1;
+                        }
+                        path.lineTo(g2lx(hitResult.intersect.x), g2ly(hitResult.intersect.y));
+                    }
+                    // Finish the final arc.
+                    if (lastArcAngle === -1) path.lineTo(g2lx(firstPoint!.x), g2ly(firstPoint!.y));
+                    else path.arc(lcenter.x, lcenter.y, g2lr(aura.value + aura.dim), lastArcAngle, 2 * Math.PI);
+                } else {
+                    path.arc(lcenter.x, lcenter.y, g2lr(aura.value + aura.dim), lastArcAngle, 2 * Math.PI);
+                }
 
                 if (gameStore.fullFOW) {
                     if (aura.dim > 0) {

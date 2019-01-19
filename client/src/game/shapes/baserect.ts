@@ -89,8 +89,7 @@ export abstract class BaseRect extends Shape {
     center(centerPoint: GlobalPoint): void;
     center(centerPoint?: GlobalPoint): GlobalPoint | void {
         if (centerPoint === undefined) return this.refPoint.add(new Vector(this.w / 2, this.h / 2));
-        this.refPoint.x = centerPoint.x - this.w / 2;
-        this.refPoint.y = centerPoint.y - this.h / 2;
+        this.refPoint = new GlobalPoint(centerPoint.x - this.w / 2, centerPoint.y - this.h / 2);
     }
 
     visibleInCanvas(canvas: HTMLCanvasElement): boolean {
@@ -131,8 +130,7 @@ export abstract class BaseRect extends Shape {
     }
     resizeToGrid() {
         const gs = gameStore.gridSize;
-        this.refPoint.x = Math.round(this.refPoint.x / gs) * gs;
-        this.refPoint.y = Math.round(this.refPoint.y / gs) * gs;
+        this.refPoint = new GlobalPoint(Math.round(this.refPoint.x / gs) * gs, Math.round(this.refPoint.y / gs) * gs);
         this.w = Math.max(Math.round(this.w / gs) * gs, gs);
         this.h = Math.max(Math.round(this.h / gs) * gs, gs);
         this.invalidate(false);
@@ -146,24 +144,24 @@ export abstract class BaseRect extends Shape {
         } else if (resizedir === "ne") {
             this.w = point.x - g2lx(this.refPoint.x);
             this.h = g2ly(this.refPoint.y) + this.h * z - point.y;
-            this.refPoint.y = l2gy(point.y);
+            this.refPoint = new GlobalPoint(this.refPoint.x, l2gy(point.y));
         } else if (resizedir === "se") {
             this.w = point.x - g2lx(this.refPoint.x);
             this.h = point.y - g2ly(this.refPoint.y);
         } else if (resizedir === "sw") {
             this.w = g2lx(this.refPoint.x) + this.w * z - point.x;
             this.h = point.y - g2ly(this.refPoint.y);
-            this.refPoint.x = l2gx(point.x);
+            this.refPoint = new GlobalPoint(l2gx(point.x), this.refPoint.y);
         }
         this.w /= z;
         this.h /= z;
 
         if (this.w < 0) {
-            this.refPoint.x += this.w;
+            this.refPoint = this.refPoint.add(new Vector(this.w, 0));
             this.w = Math.abs(this.w);
         }
         if (this.h < 0) {
-            this.refPoint.y += this.h;
+            this.refPoint = this.refPoint.add(new Vector(0, this.h));
             this.h = Math.abs(this.h);
         }
     }

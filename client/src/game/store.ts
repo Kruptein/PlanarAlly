@@ -60,6 +60,7 @@ class GameStore extends VuexModule implements GameState {
     BV = Object.freeze(new BoundingVolume([]));
 
     visionMode: "bvh" | "triangle" = "bvh";
+    drawTEContour = false;
 
     get selectedLayer() {
         return this.layers[this.selectedLayerIndex];

@@ -11,6 +11,10 @@ All notable changes to this project will be documented in this file.
 
 - Wait with recalculating vision until all shapes are added on startup.
 
+### Fixed
+
+- Fix visionmode menu toggle not remembering what is currently selected.
+
 ## [0.13.3] - 2019-01-19
 
 ### Fixed

@@ -106,8 +106,8 @@
               <color-picker id="rulerColour" :color.sync="rulerColour"/>
               <label for="visionMode">Vision Mode:</label>
               <select id="visionMode" @change="changeVisionMode">
-                <option>BVH</option>
-                <option>Triangle</option>
+                <option :selected="$store.state.game.visionMode === 'bvh'">BVH</option>
+                <option :selected="$store.state.game.visionMode === 'triangle'">Triangle</option>
               </select>
             </div>
           </div>

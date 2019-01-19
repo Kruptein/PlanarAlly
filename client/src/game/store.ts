@@ -17,7 +17,7 @@ export interface GameState {
 }
 
 @Module({ dynamic: true, store: rootStore, name: "game", namespaced: true })
-class GameStore extends VuexModule {
+class GameStore extends VuexModule implements GameState {
     // This is a limited view of selectable layers that is used to generate the layer selection UI and ability to switch layers
     // See the layerManager for proper layer management tools
     layers: string[] = [];

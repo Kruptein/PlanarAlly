@@ -7,6 +7,10 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+### Fixed
+
+- Multiple bugs with triangle vision
+
 ## [0.13.2] - 2019-01-13
 
 ### Fixed

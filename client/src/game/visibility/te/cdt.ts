@@ -360,6 +360,17 @@ export class CDT {
             for (const edge of e) {
                 const tt = edge![0];
                 const ii = edge![1];
+                eni = [tt.neighbours[ii]!, this.tds.mirrorIndex(tt, ii)];
+                if (this.lessEdge(edge!, eni))
+                    edgeSet.splice(edgeSet.findIndex(ed => ed[0] === edge![0] && ed[1] === edge![1]), 1);
+                else edgeSet.splice(edgeSet.findIndex(ed => ed[0] === eni[0] && ed[1] === eni[1]), 1);
+            }
+
+            this.flip(t, indf);
+
+            for (const edge of e) {
+                const tt = edge![0];
+                const ii = edge![1];
                 if (this.isFlipable(tt, ii)) {
                     eni = [tt.neighbours[ii]!, this.tds.mirrorIndex(tt, ii)];
                     if (this.lessEdge(edge!, eni)) edgeSet.push(edge!);

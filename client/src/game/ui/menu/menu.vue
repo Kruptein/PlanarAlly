@@ -89,6 +89,15 @@
                 <input id="unitSizeInput" type="number" v-model.number="unitSize">
                 <label for="gridSizeInput">Grid Size (in pixels):</label>
                 <input id="gridSizeInput" type="number" min="0" v-model.number="gridSize">
+                <label for="visionMode">Vision Mode:</label>
+                <select id="visionMode" @change="changeVisionMode">
+                  <option :selected="$store.state.game.visionMode === 'bvh'">BVH</option>
+                  <option :selected="$store.state.game.visionMode === 'triangle'">Triangle</option>
+                </select>
+                <label for="vmininp">Minimal full vision (ft):</label>
+                <input id="vmininp" type="number" min="0" v-model.lazy.number="visionRangeMin">
+                <label for="vmaxinp">Maximal vision (ft):</label>
+                <input id="vmaxinp" type="number" min="0" v-model.lazy.number="visionRangeMax">
                 <label for="invitation">Invitation Code:</label>
                 <input id="invitation" type="text" :value="invitationCode" readonly="readonly">
               </div>
@@ -104,11 +113,6 @@
               <color-picker id="fowColour" :color.sync="fowColour"/>
               <label for="rulerColour">Ruler Colour:</label>
               <color-picker id="rulerColour" :color.sync="rulerColour"/>
-              <label for="visionMode">Vision Mode:</label>
-              <select id="visionMode" @change="changeVisionMode">
-                <option :selected="$store.state.game.visionMode === 'bvh'">BVH</option>
-                <option :selected="$store.state.game.visionMode === 'triangle'">Triangle</option>
-              </select>
             </div>
           </div>
         </div>
@@ -228,6 +232,20 @@ export default class MenuBar extends Vue {
     set rulerColour(value: string) {
         gameStore.setRulerColour({ colour: value, sync: true });
     }
+    get visionRangeMin(): number {
+        return gameStore.visionRangeMin;
+    }
+    set visionRangeMin(value: number) {
+        if (typeof value !== "number") return;
+        gameStore.setVisionRangeMin({ value, sync: true });
+    }
+    get visionRangeMax(): number {
+        return gameStore.visionRangeMax;
+    }
+    set visionRangeMax(value: number) {
+        if (typeof value !== "number") return;
+        gameStore.setVisionRangeMax({ value, sync: true });
+    }
     settingsClick(event: { target: HTMLElement }) {
         if (event.target.classList.contains("accordion")) {
             event.target.classList.toggle("accordion-active");
@@ -259,7 +277,7 @@ export default class MenuBar extends Vue {
     changeVisionMode(event: { target: HTMLSelectElement }) {
         const value = event.target.value.toLowerCase();
         if (value !== "bvh" && value !== "triangle") return;
-        gameStore.setVisionMode(value);
+        gameStore.setVisionMode({ mode: value, sync: true });
         gameStore.recalculateBV();
         layerManager.invalidate();
     }

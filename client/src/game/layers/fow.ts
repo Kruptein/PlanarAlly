@@ -161,17 +161,33 @@ export class FOWLayer extends Layer {
 
                     aura.lastPath = path;
                 } else {
-                    this.vCtx.fillStyle = "rgba(0, 0, 0, 1)";
                     this.vCtx.globalCompositeOperation = "source-over";
-                    this.vCtx.beginPath();
-                    this.vCtx.arc(lcenter.x, lcenter.y, g2lr(aura.value + aura.dim), 0, 2 * Math.PI);
-                    this.vCtx.fill();
-                    this.vCtx.globalCompositeOperation = "source-in";
+                    this.vCtx.fillStyle = "rgba(0, 0, 0, 1)";
                     const polygon = computeVisibility(center);
                     this.vCtx.beginPath();
                     this.vCtx.moveTo(g2lx(polygon[0][0]), g2ly(polygon[0][1]));
                     for (const point of polygon) this.vCtx.lineTo(g2lx(point[0]), g2ly(point[1]));
                     this.vCtx.closePath();
+                    this.vCtx.fill();
+                    if (aura.dim > 0) {
+                        // Fill the light aura with a radial dropoff towards the outside.
+                        const gradient = this.vCtx.createRadialGradient(
+                            lcenter.x,
+                            lcenter.y,
+                            g2lr(aura.value),
+                            lcenter.x,
+                            lcenter.y,
+                            g2lr(aura.value + aura.dim),
+                        );
+                        gradient.addColorStop(0, "rgba(0, 0, 0, 1)");
+                        gradient.addColorStop(1, "rgba(0, 0, 0, 0)");
+                        this.vCtx.fillStyle = gradient;
+                    } else {
+                        this.vCtx.fillStyle = "rgba(0, 0, 0, 1)";
+                    }
+                    this.vCtx.globalCompositeOperation = "source-in";
+                    this.vCtx.beginPath();
+                    this.vCtx.arc(lcenter.x, lcenter.y, g2lr(aura.value + aura.dim), 0, 2 * Math.PI);
                     this.vCtx.fill();
                     ctx.drawImage(this.virtualCanvas, 0, 0);
                 }

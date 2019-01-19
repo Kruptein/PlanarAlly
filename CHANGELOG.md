@@ -11,10 +11,14 @@ All notable changes to this project will be documented in this file.
 
 - Polygon shape in the draw tool.
   - This is especially nice in combination with the new experimental vision mode!
+- [DM] Options to set the minimal and maximal vision ranges when using LOS.
+  - A radial gradient is applied starting from the minimal range and stopping at the maximal range.
+  - This effectively allows you to play with how far tokens can see.
 
 ### Changed
 
 - Wait with recalculating vision until all shapes are added on startup.
+- Vision mode toggle has been moved to the DM options and is now synced with the server.
 
 ### Fixed
 

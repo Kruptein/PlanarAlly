@@ -54,6 +54,12 @@ socket.on("Location.Set", (data: Partial<ServerLocation>) => {
     if (data.full_fow !== undefined) gameStore.setFullFOW({ fullFOW: data.full_fow, sync: false });
     if (data.fow_opacity !== undefined) gameStore.setFOWOpacity({ fowOpacity: data.fow_opacity, sync: false });
     if (data.fow_los !== undefined) gameStore.setLineOfSight({ fowLOS: data.fow_los, sync: false });
+    if (data.vision_min_range !== undefined) gameStore.setVisionRangeMin({ value: data.vision_min_range, sync: false });
+    if (data.vision_max_range !== undefined) gameStore.setVisionRangeMax({ value: data.vision_max_range, sync: false });
+    if (data.vision_mode !== undefined) {
+        gameStore.setVisionMode({ mode: data.vision_mode, sync: false });
+        gameStore.recalculateBV();
+    }
 });
 socket.on("Position.Set", (data: { x: number; y: number }) => {
     gameManager.setCenterPosition(new GlobalPoint(data.x, data.y));
@@ -74,8 +80,8 @@ socket.on("Board.Set", (locationInfo: BoardInfo) => {
     // Force the correct opacity render on other layers.
     layerManager.selectLayer(layerManager.getLayer()!.name, false);
     EventBus.$emit("Initiative.Clear");
-    gameStore.setBoardInitialized(true);
     gameStore.recalculateBV();
+    gameStore.setBoardInitialized(true);
 });
 socket.on("Gridsize.Set", (gridSize: number) => {
     gameStore.setGridSize({ gridSize, sync: false });

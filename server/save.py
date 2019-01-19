@@ -11,7 +11,7 @@ from config import SAVE_FILE
 from models import ALL_MODELS, Constants
 from models.db import db
 
-SAVE_VERSION = 9
+SAVE_VERSION = 10
 logger: logging.Logger = logging.getLogger("PlanarAllyServer")
 logger.setLevel(logging.INFO)
 
@@ -83,6 +83,23 @@ def upgrade(version):
         from models import Polygon
 
         db.create_tables([Polygon])
+        Constants.update(save_version=Constants.save_version + 1).execute()
+    elif version == 9:
+        from models import Location
+
+        db.foreign_keys = False
+        migrator = SqliteMigrator(db)
+        with db.atomic():
+            migrate(
+                migrator.add_column("location", "vision_mode", Location.vision_mode),
+                migrator.add_column(
+                    "location", "vision_min_range", Location.vision_min_range
+                ),
+                migrator.add_column(
+                    "location", "vision_max_range", Location.vision_max_range
+                ),
+            )
+        db.foreign_keys = True
         Constants.update(save_version=Constants.save_version + 1).execute()
     else:
         raise Exception(f"No upgrade code for save format {version} was found.")

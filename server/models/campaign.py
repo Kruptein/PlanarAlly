@@ -26,8 +26,7 @@ __all__ = [
 
 class Room(BaseModel):
     name = TextField()
-    creator = ForeignKeyField(
-        User, backref="rooms_created", on_delete="CASCADE")
+    creator = ForeignKeyField(User, backref="rooms_created", on_delete="CASCADE")
     invitation_code = TextField(default=uuid.uuid4, unique=True)
     player_location = TextField(null=True)
     dm_location = TextField(null=True)
@@ -64,7 +63,10 @@ class Location(BaseModel):
     full_fow = BooleanField(default=False)
     fow_opacity = FloatField(default=0.3)
     fow_los = BooleanField(default=False)
-    # initiative ?
+    vision_mode = TextField(default="bvh")
+    # default is 1km max, 0.5km min
+    vision_min_range = FloatField(default=1640)
+    vision_max_range = FloatField(default=3281)
 
     def __repr__(self):
         return f"<Location {self.get_path()}>"
@@ -163,8 +165,7 @@ class Layer(BaseModel):
             self, recurse=False, exclude=[Layer.id, Layer.player_visible]
         )
         data["shapes"] = [
-            shape.as_dict(user, dm)
-            for shape in self.shapes.order_by(Shape.index)
+            shape.as_dict(user, dm) for shape in self.shapes.order_by(Shape.index)
         ]
         if self.type_ == "grid":
             type_table = get_table(f"{self.type_}layer")
@@ -182,10 +183,8 @@ class GridLayer(BaseModel):
 
 
 class LocationUserOption(BaseModel):
-    location = ForeignKeyField(
-        Location, backref="user_options", on_delete="CASCADE")
-    user = ForeignKeyField(
-        User, backref="location_options", on_delete="CASCADE")
+    location = ForeignKeyField(Location, backref="user_options", on_delete="CASCADE")
+    user = ForeignKeyField(User, backref="location_options", on_delete="CASCADE")
     pan_x = IntegerField(default=0)
     pan_y = IntegerField(default=0)
     zoom_factor = FloatField(default=1.0)
@@ -205,7 +204,7 @@ class LocationUserOption(BaseModel):
             ],
         )
         if self.active_layer:
-            d['active_layer'] = self.active_layer.name
+            d["active_layer"] = self.active_layer.name
         return d
 
     class Meta:

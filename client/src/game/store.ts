@@ -61,14 +61,17 @@ class GameStore extends VuexModule implements GameState {
 
     visionMode: "bvh" | "triangle" = "bvh";
     drawTEContour = false;
+    visionRangeMin = 1640;
+    visionRangeMax = 3281;
 
     get selectedLayer() {
         return this.layers[this.selectedLayerIndex];
     }
 
     @Mutation
-    setVisionMode(visionMode: "bvh" | "triangle") {
-        this.visionMode = visionMode;
+    setVisionMode(data: { mode: "bvh" | "triangle"; sync: boolean }) {
+        this.visionMode = data.mode;
+        if (data.sync) socket.emit("Location.Options.Set", { vision_mode: data.mode });
     }
 
     @Mutation
@@ -255,6 +258,20 @@ class GameStore extends VuexModule implements GameState {
             if (gridLayer !== undefined) gridLayer.drawGrid();
             if (data.sync) socket.emit("Gridsize.Set", data.gridSize);
         }
+    }
+
+    @Mutation
+    setVisionRangeMin(data: { value: number; sync: boolean }): void {
+        this.visionRangeMin = data.value;
+        layerManager.invalidateLight();
+        if (data.sync) socket.emit("Location.Options.Set", { vision_min_range: data.value });
+    }
+
+    @Mutation
+    setVisionRangeMax(data: { value: number; sync: boolean }): void {
+        this.visionRangeMax = Math.max(data.value, this.visionRangeMin);
+        layerManager.invalidateLight();
+        if (data.sync) socket.emit("Location.Options.Set", { vision_max_range: this.visionRangeMax });
     }
 
     @Mutation

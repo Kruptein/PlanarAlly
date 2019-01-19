@@ -7,6 +7,9 @@ export interface ServerLocation {
     full_fow: boolean;
     fow_opacity: number;
     fow_los: boolean;
+    vision_mode: "bvh" | "triangle";
+    vision_min_range: number;
+    vision_max_range: number;
 }
 
 export interface ServerClient {

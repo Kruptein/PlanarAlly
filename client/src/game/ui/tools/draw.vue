@@ -207,7 +207,7 @@ export default class DrawTool extends Tool {
         }
         if (this.shape !== null && this.shape instanceof Polygon) {
             const lastPoint = l2g(getMouse(event));
-            this.ruler = new Line(lastPoint, lastPoint, 3, this.borderColour);
+            this.ruler = new Line(lastPoint, lastPoint, 3, "black");
             layer.addShape(this.ruler, false);
             socket.emit("Shape.Update", { shape: this.shape!.asDict(), redraw: true, temporary: true });
         }

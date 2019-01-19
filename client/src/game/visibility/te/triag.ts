@@ -218,7 +218,7 @@ function getLine(p0: Point, p1: Point): Line {
     if (p0[1] === p1[1]) return [0, 1, -p0[1]];
     const x = p1[0] - p0[0];
     const y = p1[1] - p0[1];
-    return [-y, x, -x + y];
+    return [-y, x, -x * p0[1] + y * p0[0]];
 }
 
 function getIntersectionType(pa: Point, pb: Point, pc: Point, pd: Point) {

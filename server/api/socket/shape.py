@@ -89,6 +89,15 @@ async def update_shape_position(sid, data):
             model = reduce_data_to_model(Shape, data["shape"])
             update_model_from_dict(shape, model)
             shape.save()
+            if shape.type_ in ["polygon", "multiline"]:
+                # Subshape
+                type_table = get_table(shape.type_)
+                type_instance = type_table.get(uuid=shape.uuid)
+                # no backrefs on these tables
+                update_model_from_dict(
+                    type_instance, data["shape"], ignore_unknown=True
+                )
+                type_instance.save()
 
     await sync_shape_update(layer, room, data, sid, shape)
 

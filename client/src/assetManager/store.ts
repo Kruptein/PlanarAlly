@@ -28,17 +28,13 @@ class AssetStore extends VuexModule {
 
     @Mutation
     clearSelected() {
+        console.log("Cleared");
         this.selected = [];
     }
 
     @Mutation
     setRoot(root: number) {
         this.root = root;
-    }
-
-    @Mutation
-    isFile(inode: number): boolean {
-        return this.files.includes(inode);
     }
 }
 

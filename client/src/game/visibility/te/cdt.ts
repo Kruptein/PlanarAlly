@@ -28,7 +28,6 @@ export class CDT {
     tds: TDS;
     constructor() {
         this.tds = new TDS();
-        (<any>window).TDS = this.tds;
     }
     insertConstraint(a: Point, b: Point) {
         const va = this.insert(a);

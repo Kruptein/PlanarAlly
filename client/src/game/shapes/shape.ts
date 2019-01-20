@@ -99,15 +99,15 @@ export abstract class Shape {
     checkVisionSources(recalculate = true) {
         const self = this;
         const obstructionIndex = gameStore.visionBlockers.indexOf(this.uuid);
-        let changeBV = false;
+        let update = false;
         if (this.visionObstruction && obstructionIndex === -1) {
             gameStore.visionBlockers.push(this.uuid);
-            changeBV = true;
+            update = true;
         } else if (!this.visionObstruction && obstructionIndex >= 0) {
             gameStore.visionBlockers.splice(obstructionIndex, 1);
-            changeBV = true;
+            update = true;
         }
-        if (changeBV && recalculate) gameStore.recalculateBV();
+        if (update && recalculate) gameStore.recalculateVision();
 
         // Check if the visionsource auras are in the gameManager
         this.auras.forEach(au => {
@@ -128,12 +128,18 @@ export abstract class Shape {
         }
     }
 
-    setMovementBlock(blocksMovement: boolean) {
+    setMovementBlock(blocksMovement: boolean, recalculate = true) {
         this.movementObstruction = blocksMovement || false;
         const obstructionIndex = gameStore.movementblockers.indexOf(this.uuid);
-        if (this.movementObstruction && obstructionIndex === -1) gameStore.movementblockers.push(this.uuid);
-        else if (!this.movementObstruction && obstructionIndex >= 0)
+        let update = false;
+        if (this.movementObstruction && obstructionIndex === -1) {
+            gameStore.movementblockers.push(this.uuid);
+            update = true;
+        } else if (!this.movementObstruction && obstructionIndex >= 0) {
             gameStore.movementblockers.splice(obstructionIndex, 1);
+            update = true;
+        }
+        if (update && recalculate) gameStore.recalculateMovement();
     }
 
     setIsToken(isToken: boolean) {

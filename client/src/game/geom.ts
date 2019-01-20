@@ -30,6 +30,9 @@ export class Point {
         if (dimension === 0) return this.x;
         return this.y;
     }
+    asArray(): number[] {
+        return [this.x, this.y];
+    }
 }
 export class GlobalPoint extends Point {
     // This is to differentiate with LocalPoint, is actually never used
@@ -70,23 +73,23 @@ export class Vector {
         this.x = x;
         this.y = y;
     }
-    dot(other: Vector) {
+    dot(other: Vector): number {
         return this.x * other.x + this.y * other.y;
     }
-    inverse() {
-        return new Vector(1 / this.x, 1 / this.y);
+    inverse(): Vector {
+        return new Vector(this.x === 0 ? 0 : 1 / this.x, this.y === 0 ? 0 : 1 / this.y);
     }
-    length() {
+    length(): number {
         return Math.sqrt(Math.pow(this.x, 2) + Math.pow(this.y, 2));
     }
-    normalize() {
+    normalize(): Vector {
         const l = this.length();
         return new Vector(this.x / l, this.y / l);
     }
-    reverse() {
+    reverse(): Vector {
         return new Vector(-this.x, -this.y);
     }
-    multiply(scale: number) {
+    multiply(scale: number): Vector {
         return new Vector(this.x * scale, this.y * scale);
     }
 }

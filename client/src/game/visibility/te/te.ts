@@ -7,12 +7,12 @@ import { PA_CDT } from "./pa";
 import { Point, Sign, Triangle } from "./tds";
 import { ccw, cw, orientation } from "./triag";
 
-export function computeVisibility(q: GlobalPoint, it = 0, drawt?: boolean): number[][] {
+export function computeVisibility(q: GlobalPoint, target: "vision" | "movement", drawt?: boolean): number[][] {
     if (drawt === undefined) drawt = gameStore.drawTEContour;
     // console.time("CV");
     const Q: Point = [q.x, q.y];
     const rawOutput: number[][] = [];
-    const triangle = PA_CDT.locate(Q, null).loc;
+    const triangle = PA_CDT[target].locate(Q, null).loc;
     if (triangle === null) {
         console.error("Triangle not found");
         return [];

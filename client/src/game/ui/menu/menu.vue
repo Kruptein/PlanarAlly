@@ -278,7 +278,8 @@ export default class MenuBar extends Vue {
         const value = event.target.value.toLowerCase();
         if (value !== "bvh" && value !== "triangle") return;
         gameStore.setVisionMode({ mode: value, sync: true });
-        gameStore.recalculateBV();
+        gameStore.recalculateVision();
+        gameStore.recalculateMovement();
         layerManager.invalidate();
     }
 }

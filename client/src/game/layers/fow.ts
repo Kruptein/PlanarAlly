@@ -163,7 +163,7 @@ export class FOWLayer extends Layer {
                 } else {
                     this.vCtx.globalCompositeOperation = "source-over";
                     this.vCtx.fillStyle = "rgba(0, 0, 0, 1)";
-                    const polygon = computeVisibility(center);
+                    const polygon = computeVisibility(center, "vision");
                     this.vCtx.beginPath();
                     this.vCtx.moveTo(g2lx(polygon[0][0]), g2ly(polygon[0][1]));
                     for (const point of polygon) this.vCtx.lineTo(g2lx(point[0]), g2ly(point[1]));

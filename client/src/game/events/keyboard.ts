@@ -56,10 +56,11 @@ export function onKeyDown(event: KeyboardEvent) {
                 for (const sel of selection) {
                     if ((<any>getRef<Tools>("tools").$refs.selectTool).selectionHelper.uuid === sel.uuid) continue;
                     sel.refPoint = sel.refPoint.add(delta);
-                    if (sel.refPoint.x % gridSize !== 0 || sel.refPoint.y % gridSize !== 0) sel.snapToGrid();
+                    // todo: Fix again
+                    // if (sel.refPoint.x % gridSize !== 0 || sel.refPoint.y % gridSize !== 0) sel.snapToGrid();
                     socket.emit("Shape.Position.Update", { shape: sel.asDict(), redraw: true, temporary: false });
                 }
-                gameStore.recalculateBV(false);
+                gameStore.recalculateVision();
                 layerManager.getLayer()!.invalidate(false);
             } else {
                 // The pan offsets should be in the opposite direction to give the correct feel.

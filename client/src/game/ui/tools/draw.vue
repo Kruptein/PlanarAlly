@@ -196,8 +196,7 @@ export default class DrawTool extends Tool {
                 this.shape.visionObstruction = true;
                 this.shape.movementObstruction = true;
             }
-            gameStore.visionBlockers.push(this.shape.uuid);
-            layer.addShape(this.shape, true, false);
+            layer.addShape(this.shape, true, false, false);
 
             // Push brushhelper to back
             this.pushBrushBack();
@@ -207,8 +206,13 @@ export default class DrawTool extends Tool {
         }
         if (this.shape !== null && this.shape instanceof Polygon) {
             const lastPoint = l2g(getMouse(event));
-            this.ruler = new Line(lastPoint, lastPoint, 3, "black");
-            layer.addShape(this.ruler, false);
+            if (this.ruler === null) {
+                this.ruler = new Line(lastPoint, lastPoint, 3, "black");
+                layer.addShape(this.ruler, false);
+            } else {
+                this.ruler.refPoint = lastPoint;
+                this.ruler.endPoint = lastPoint;
+            }
             socket.emit("Shape.Update", { shape: this.shape!.asDict(), redraw: true, temporary: true });
         }
     }
@@ -254,7 +258,8 @@ export default class DrawTool extends Tool {
 
         if (!(this.shape instanceof Polygon))
             socket.emit("Shape.Update", { shape: this.shape!.asDict(), redraw: true, temporary: true });
-        if (this.shape.visionObstruction) gameStore.recalculateBV(true);
+        if (this.shape.visionObstruction) gameStore.recalculateVision(true);
+        if (this.shape.movementObstruction) gameStore.recalculateMovement(true);
         layer.invalidate(false);
     }
     onMouseUp(event: MouseEvent) {
@@ -278,13 +283,13 @@ export default class DrawTool extends Tool {
 
     private finaliseShape() {
         if (this.shape === null) return;
-        if (this.shape.visionObstruction) gameStore.recalculateBV();
+        if (this.shape.visionObstruction) gameStore.recalculateVision();
+        if (this.shape.movementObstruction) gameStore.recalculateMovement();
         socket.emit("Shape.Update", { shape: this.shape!.asDict(), redraw: true, temporary: false });
         this.active = false;
     }
 
     onSelect() {
-        console.log("sel");
         const layer = this.getLayer();
         if (layer === undefined) return;
         this.brushHelper = new Circle(new GlobalPoint(-1000, -1000), this.brushSize / 2, this.fillColour);
@@ -292,7 +297,6 @@ export default class DrawTool extends Tool {
         layer.addShape(this.brushHelper, false); // during mode change the shape is already added
     }
     onDeselect() {
-        console.log("des");
         const layer = this.getLayer();
         if (this.brushHelper !== null && layer !== undefined) layer.removeShape(this.brushHelper, false);
         if (this.active && layer !== undefined && this.shape !== null) {

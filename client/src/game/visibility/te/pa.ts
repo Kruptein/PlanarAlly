@@ -3,11 +3,19 @@ import { gameStore } from "@/game/store";
 
 import { CDT } from "./cdt";
 
-export let PA_CDT = new CDT();
+export let PA_CDT = {
+    vision: new CDT(),
+    movement: new CDT(),
+};
 
-export function triangulate(partial: boolean = false) {
+export function triangulate(target: "vision" | "movement", partial: boolean = false) {
     const cdt = new CDT();
-    for (const sh of gameStore.visionBlockers) {
+
+    let shapes;
+    if (target === "vision") shapes = gameStore.visionBlockers;
+    else shapes = gameStore.movementblockers;
+
+    for (const sh of shapes) {
         const shape = layerManager.UUIDMap.get(sh)!;
         if (partial && !shape.visibleInCanvas(layerManager.getLayer()!.canvas)) continue;
         for (let i = 0; i < shape.points.length; i++) {
@@ -34,6 +42,6 @@ export function triangulate(partial: boolean = false) {
     cdt.insertConstraint([1e10, 1e10], [1e10, 1e11]);
     cdt.insertConstraint([1e10, 1e11], [-1e10, 1e11]);
     cdt.insertConstraint([-1e10, 1e11], [-1e10, 1e10]);
-    PA_CDT = cdt;
+    PA_CDT[target] = cdt;
     (<any>window).CDT = PA_CDT;
 }

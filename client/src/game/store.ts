@@ -140,28 +140,16 @@ class GameStore extends VuexModule implements GameState {
     }
 
     @Mutation
-    recalculateBV(partial = false) {
-        // TODO: This needs to be cleaned up..
+    recalculateVision(partial = false) {
         if (this.boardInitialized) {
-            if (this.visionMode === "triangle") triangulate(partial);
-            else {
-                let success = false;
-                let tries = 0;
-                while (!success) {
-                    success = true;
-                    try {
-                        this.BV = Object.freeze(new BoundingVolume(this.visionBlockers));
-                    } catch (error) {
-                        success = false;
-                        tries++;
-                        if (tries > 10) {
-                            console.error(error);
-                            return;
-                        }
-                    }
-                }
-            }
+            if (this.visionMode === "triangle") triangulate("vision", partial);
+            else this.BV = Object.freeze(new BoundingVolume(this.visionBlockers));
         }
+    }
+
+    @Mutation
+    recalculateMovement(partial = false) {
+        if (this.boardInitialized && this.visionMode === "triangle") triangulate("movement", partial);
     }
 
     @Mutation
@@ -327,7 +315,8 @@ class GameStore extends VuexModule implements GameState {
         (<any>this.context.state).annotations = [];
         (<any>this.context.state).movementblockers = [];
         (<any>this.context.state).notes = [];
-        this.context.commit("recalculateBV");
+        this.context.commit("recalculateVision");
+        this.context.commit("recalculateMovement");
     }
 }
 

@@ -52,7 +52,7 @@ export class Layer {
         this.shapes.push(shape);
         layerManager.UUIDMap.set(shape.uuid, shape);
         shape.checkVisionSources(invalidate);
-        shape.setMovementBlock(shape.movementObstruction);
+        shape.setMovementBlock(shape.movementObstruction, invalidate);
         if (shape.ownedBy(gameStore.username) && shape.isToken) gameStore.ownedtokens.push(shape.uuid);
         if (shape.annotation.length) gameStore.annotations.push(shape.uuid);
         if (sync) socket.emit("Shape.Add", { shape: shape.asDict(), temporary });
@@ -97,7 +97,8 @@ export class Layer {
 
         const index = this.selection.indexOf(shape);
         if (index >= 0) this.selection.splice(index, 1);
-        if (lbI >= 0) gameStore.recalculateBV();
+        if (lbI >= 0) gameStore.recalculateVision();
+        if (mbI >= 0) gameStore.recalculateMovement();
         this.invalidate(!sync);
     }
 
@@ -176,11 +177,5 @@ export class Layer {
         this.shapes.splice(destinationIndex, 0, shape);
         if (sync) socket.emit("Shape.Order.Set", { shape: shape.asDict(), index: destinationIndex });
         this.invalidate(true);
-    }
-
-    onShapeMove(shape: Shape): void {
-        shape.checkVisionSources();
-        if (shape.visionObstruction) gameStore.recalculateBV();
-        this.invalidate(false);
     }
 }

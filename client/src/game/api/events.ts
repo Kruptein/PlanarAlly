@@ -58,7 +58,8 @@ socket.on("Location.Set", (data: Partial<ServerLocation>) => {
     if (data.vision_max_range !== undefined) gameStore.setVisionRangeMax({ value: data.vision_max_range, sync: false });
     if (data.vision_mode !== undefined) {
         gameStore.setVisionMode({ mode: data.vision_mode, sync: false });
-        gameStore.recalculateBV();
+        gameStore.recalculateVision();
+        gameStore.recalculateMovement();
     }
 });
 socket.on("Position.Set", (data: { x: number; y: number }) => {
@@ -80,7 +81,8 @@ socket.on("Board.Set", (locationInfo: BoardInfo) => {
     // Force the correct opacity render on other layers.
     layerManager.selectLayer(layerManager.getLayer()!.name, false);
     EventBus.$emit("Initiative.Clear");
-    gameStore.recalculateBV();
+    gameStore.recalculateVision();
+    gameStore.recalculateMovement();
     gameStore.setBoardInitialized(true);
 });
 socket.on("Gridsize.Set", (gridSize: number) => {

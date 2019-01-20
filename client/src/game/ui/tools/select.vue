@@ -156,7 +156,8 @@ export default class SelectTool extends Tool {
                 for (const sel of layer.selection) {
                     sel.refPoint = sel.refPoint.add(delta);
                     if (sel !== this.selectionHelper) {
-                        if (sel.visionObstruction) gameStore.recalculateBV(true);
+                        if (sel.visionObstruction) gameStore.recalculateVision(true);
+                        if (sel.movementObstruction) gameStore.recalculateMovement(true);
                         socket.emit("Shape.Update", { shape: sel.asDict(), redraw: true, temporary: true });
                     }
                 }
@@ -165,7 +166,8 @@ export default class SelectTool extends Tool {
                 for (const sel of layer.selection) {
                     sel.resize(this.resizeDirection, mouse);
                     if (sel !== this.selectionHelper) {
-                        if (sel.visionObstruction) gameStore.recalculateBV(true);
+                        if (sel.visionObstruction) gameStore.recalculateVision(true);
+                        if (sel.movementObstruction) gameStore.recalculateMovement(true);
                         socket.emit("Shape.Update", { shape: sel.asDict(), redraw: true, temporary: true });
                     }
                     layer.invalidate(false);
@@ -234,7 +236,8 @@ export default class SelectTool extends Tool {
                     }
 
                     if (sel !== this.selectionHelper) {
-                        if (sel.visionObstruction) gameStore.recalculateBV();
+                        if (sel.visionObstruction) gameStore.recalculateVision();
+                        if (sel.movementObstruction) gameStore.recalculateMovement();
                         socket.emit("Shape.Update", { shape: sel.asDict(), redraw: true, temporary: false });
                     }
                     layer.invalidate(false);
@@ -244,7 +247,8 @@ export default class SelectTool extends Tool {
                         sel.resizeToGrid();
                     }
                     if (sel !== this.selectionHelper) {
-                        if (sel.visionObstruction) gameStore.recalculateBV();
+                        if (sel.visionObstruction) gameStore.recalculateVision();
+                        if (sel.movementObstruction) gameStore.recalculateMovement();
                         socket.emit("Shape.Update", { shape: sel.asDict(), redraw: true, temporary: false });
                     }
                     layer.invalidate(false);

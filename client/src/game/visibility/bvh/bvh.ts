@@ -42,18 +42,11 @@ export class BoundingVolume {
         }
         for (let i = 0; i < shapes.length; i++) {
             const shape = layerManager.UUIDMap.get(shapes[i])!;
-            try {
-                this.buildData.push({
-                    index: i,
-                    bbox: shape.getBoundingBox(),
-                    center: new BoundingRect(shape.center(), 0, 0),
-                });
-            } catch {
-                console.warn(`Shape ${shape.type} - ${shape.uuid} cannot be used for vision blocking !!!`);
-                shape.visionObstruction = false;
-                gameStore.visionBlockers.splice(i, 1);
-                throw new Error();
-            }
+            this.buildData.push({
+                index: i,
+                bbox: shape.getBoundingBox(),
+                center: new BoundingRect(shape.center(), 0, 0),
+            });
         }
         this.root = this.recursiveBuild(0, shapes.length);
         this.compact();

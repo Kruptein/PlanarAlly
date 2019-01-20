@@ -26,6 +26,7 @@ All notable changes to this project will be documented in this file.
 - SelectionHelper mistakenly geting send to the server.
 - SelectionHelper sometimes getting moved to a different layer instead of the actual shape.
 - Some small QOL changes to multiline.
+- Logout routing
 
 ## [0.13.3] - 2019-01-19
 

@@ -58,7 +58,7 @@ export class Text extends Shape {
         return "";
     } // TODO
     visibleInCanvas(canvas: HTMLCanvasElement): boolean {
-        return true;
+        return this.getBoundingBox().visibleInCanvas(canvas);
     } // TODO
     snapToGrid(): void {}
     resizeToGrid(): void {}

@@ -74,7 +74,7 @@ export class Circle extends Shape {
         this.refPoint = centerPoint;
     }
     visibleInCanvas(canvas: HTMLCanvasElement): boolean {
-        return true;
+        return this.getBoundingBox().visibleInCanvas(canvas);
     } // TODO
     snapToGrid() {
         const gs = gameStore.gridSize;

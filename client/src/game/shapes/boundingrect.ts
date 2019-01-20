@@ -1,4 +1,5 @@
 import { GlobalPoint, Point, Ray, Vector } from "@/game/geom";
+import { g2lx, g2ly } from "../units";
 
 export class BoundingRect {
     readonly w: number;
@@ -128,5 +129,15 @@ export class BoundingRect {
 
     getMaxExtent() {
         return this.w > this.h ? 0 : 1;
+    }
+    visibleInCanvas(canvas: HTMLCanvasElement): boolean {
+        const coreVisible = !(
+            g2lx(this.topLeft.x) > canvas.width ||
+            g2ly(this.topLeft.y) > canvas.height ||
+            g2lx(this.topRight.x) < 0 ||
+            g2ly(this.botRight.y) < 0
+        );
+        if (coreVisible) return true;
+        return false;
     }
 }

@@ -85,6 +85,7 @@ async def change_location(sid, location):
     old_location = room.get_active_location(dm=True)
     sio.leave_room(sid, old_location.get_path(), namespace="/planarally")
     room.dm_location = location
+    room.save()
     new_location = room.get_active_location(dm=True)
 
     sio.enter_room(sid, new_location.get_path(), namespace="/planarally")

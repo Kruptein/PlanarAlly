@@ -85,47 +85,6 @@ export class BoundingRect {
     center(): GlobalPoint {
         return this.topLeft.add(new Vector(this.w / 2, this.h / 2));
     }
-    inCorner(point: GlobalPoint, corner: string) {
-        const sw = Math.min(6, this.w / 2) / 2;
-        switch (corner) {
-            case "ne":
-                return (
-                    this.topRight.x - sw <= point.x &&
-                    point.x <= this.topRight.x + sw &&
-                    this.topLeft.y - sw <= point.y &&
-                    point.y <= this.topLeft.y + sw
-                );
-            case "nw":
-                return (
-                    this.topLeft.x - sw <= point.x &&
-                    point.x <= this.topLeft.x + sw &&
-                    this.topLeft.y - sw <= point.y &&
-                    point.y <= this.topLeft.y + sw
-                );
-            case "sw":
-                return (
-                    this.topLeft.x - sw <= point.x &&
-                    point.x <= this.topLeft.x + sw &&
-                    this.botLeft.y - sw <= point.y &&
-                    point.y <= this.botLeft.y + sw
-                );
-            case "se":
-                return (
-                    this.topRight.x - sw <= point.x &&
-                    point.x <= this.topRight.x + sw &&
-                    this.botLeft.y - sw <= point.y &&
-                    point.y <= this.botLeft.y + sw
-                );
-            default:
-                return false;
-        }
-    }
-    getCorner(point: GlobalPoint): string | undefined {
-        if (this.inCorner(point, "ne")) return "ne";
-        else if (this.inCorner(point, "nw")) return "nw";
-        else if (this.inCorner(point, "se")) return "se";
-        else if (this.inCorner(point, "sw")) return "sw";
-    }
 
     getMaxExtent() {
         return this.w > this.h ? 0 : 1;

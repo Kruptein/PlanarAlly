@@ -5,7 +5,7 @@ import { layerManager } from "@/game/layers/manager";
 import { Shape } from "@/game/shapes/shape";
 import { createShapeFromDict } from "@/game/shapes/utils";
 import { gameStore } from "@/game/store";
-import { g2lx, g2ly } from "@/game/units";
+import { g2lx, g2ly, g2lz, g2lr } from "@/game/units";
 
 export class Layer {
     name: string;
@@ -153,16 +153,18 @@ export class Layer {
                     // TODO: REFACTOR THIS TO Shape.drawSelection(ctx);
                     ctx.strokeRect(g2lx(bb.topLeft.x), g2ly(bb.topLeft.y), bb.w * z, bb.h * z);
 
-                    const sw = Math.min(6, bb.w / 2);
-
-                    // topright
-                    ctx.fillRect(g2lx(bb.topRight.x - sw / 2), g2ly(bb.topLeft.y - sw / 2), sw * z, sw * z);
-                    // topleft
-                    ctx.fillRect(g2lx(bb.topLeft.x - sw / 2), g2ly(bb.topLeft.y - sw / 2), sw * z, sw * z);
-                    // botright
-                    ctx.fillRect(g2lx(bb.topRight.x - sw / 2), g2ly(bb.botLeft.y - sw / 2), sw * z, sw * z);
-                    // botleft
-                    ctx.fillRect(g2lx(bb.topLeft.x - sw / 2), g2ly(bb.botLeft.y - sw / 2), sw * z, sw * z);
+                    for (const p of sel.points) {
+                        ctx.beginPath();
+                        ctx.arc(g2lx(p[0]), g2ly(p[1]), 3, 0, 2 * Math.PI);
+                        ctx.fill();
+                    }
+                    ctx.beginPath();
+                    ctx.moveTo(g2lx(sel.points[0][0]), g2ly(sel.points[0][1]));
+                    for (let i = 1; i <= sel.points.length; i++) {
+                        const vertex = sel.points[i % sel.points.length];
+                        ctx.lineTo(g2lx(vertex[0]), g2ly(vertex[1]));
+                    }
+                    ctx.stroke();
                 });
             }
             ctx.globalCompositeOperation = ogOP;

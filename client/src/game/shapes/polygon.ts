@@ -1,6 +1,6 @@
 import { ServerPolygon } from "../comm/types/shapes";
 import { GlobalPoint, LocalPoint } from "../geom";
-import { g2lx, g2ly, g2lz } from "../units";
+import { g2lx, g2ly, g2lz, l2g } from "../units";
 import { getFogColour } from "../utils";
 import { BoundingRect } from "./boundingrect";
 import { Shape } from "./shape";
@@ -60,12 +60,6 @@ export class Polygon extends Shape {
         else ctx.fillStyle = this.fillColour;
         ctx.lineWidth = g2lz(2);
 
-        for (const p of this.vertices) {
-            ctx.beginPath();
-            ctx.arc(g2lx(p.x), g2ly(p.y), g2lz(5), 0, 2 * Math.PI);
-            ctx.fill();
-            if (this.strokeColour !== "rgba(0, 0, 0, 0)") ctx.stroke();
-        }
         ctx.beginPath();
         ctx.moveTo(g2lx(this.vertices[0].x), g2ly(this.vertices[0].y));
         for (let i = 1; i <= this.vertices.length; i++) {
@@ -85,15 +79,15 @@ export class Polygon extends Shape {
     center(centerPoint?: GlobalPoint): GlobalPoint | void {
         return this.getBoundingBox().center();
     }
-    getCorner(point: GlobalPoint): string | undefined {
-        return "";
-    } // TODO
     visibleInCanvas(canvas: HTMLCanvasElement): boolean {
         return this.getBoundingBox().visibleInCanvas(canvas);
     } // TODO
     snapToGrid(): void {}
     resizeToGrid(): void {}
-    resize(resizeDir: string, point: LocalPoint): void {}
+    resize(resizePoint: number, point: LocalPoint): void {
+        if (resizePoint === 0) this._refPoint = l2g(point);
+        else this._vertices[resizePoint - 1] = l2g(point);
+    }
     getBoundingBox(): BoundingRect {
         let minx: number = this.refPoint.x;
         let maxx: number = this.refPoint.x;

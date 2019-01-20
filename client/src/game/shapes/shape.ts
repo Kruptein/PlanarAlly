@@ -5,11 +5,12 @@ import { socket } from "@/game/api/socket";
 import { aurasFromServer, aurasToServer } from "@/game/comm/conversion/aura";
 import { InitiativeData } from "@/game/comm/types/general";
 import { ServerShape } from "@/game/comm/types/shapes";
-import { GlobalPoint, LocalPoint } from "@/game/geom";
+import { GlobalPoint, LocalPoint, Ray, Vector } from "@/game/geom";
 import { layerManager } from "@/game/layers/manager";
 import { BoundingRect } from "@/game/shapes/boundingrect";
 import { gameStore } from "@/game/store";
 import { g2l, g2lr, g2lx, g2ly, g2lz } from "@/game/units";
+import { Vertex } from "../visibility/te/tds";
 
 export abstract class Shape {
     // Used to create class instance from server shape data
@@ -72,7 +73,6 @@ export abstract class Shape {
 
     abstract center(): GlobalPoint;
     abstract center(centerPoint: GlobalPoint): void;
-    abstract getCorner(point: GlobalPoint): string | undefined;
     visibleInCanvas(canvas: HTMLCanvasElement): boolean {
         // for (const aura of this.auras) {
         //     if (aura.value > 0) {
@@ -87,9 +87,25 @@ export abstract class Shape {
     // This is shape dependent as the shape refPoints are shape specific in
     abstract snapToGrid(): void;
     abstract resizeToGrid(): void;
-    abstract resize(resizeDir: string, point: LocalPoint): void;
+    abstract resize(resizePoint: number, point: LocalPoint): void;
 
     abstract get points(): number[][];
+
+    getPointIndex(p: GlobalPoint, delta = 0): number {
+        for (const [idx, point] of this.points.entries()) {
+            if (Math.abs(p.x - point[0]) <= delta && Math.abs(p.y - point[1]) <= delta) return idx;
+        }
+        return -1;
+    }
+
+    getPointOrientation(i: number): Vector {
+        const prev = GlobalPoint.fromArray(this.points[(this.points.length + i - 1) % this.points.length]);
+        const point = GlobalPoint.fromArray(this.points[i]);
+        const next = GlobalPoint.fromArray(this.points[(i + 1) % this.points.length]);
+        const vec = next.subtract(prev);
+        const mid = prev.add(vec.multiply(0.5));
+        return point.subtract(mid).normalize();
+    }
 
     invalidate(skipLightUpdate: boolean) {
         const l = layerManager.getLayer(this.layer);

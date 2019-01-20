@@ -1,7 +1,7 @@
 import { GlobalPoint, LocalPoint } from "@/game/geom";
 import { BoundingRect } from "@/game/shapes/boundingrect";
 import { Shape } from "@/game/shapes/shape";
-import { g2lx, g2ly, g2lz } from "@/game/units";
+import { g2lx, g2ly, g2lz, l2g } from "@/game/units";
 import { getFogColour } from "@/game/utils";
 import { ServerMultiLine } from "../comm/types/shapes";
 
@@ -77,13 +77,13 @@ export class MultiLine extends Shape {
     center(centerPoint?: GlobalPoint): GlobalPoint | void {
         return this.getBoundingBox().center();
     }
-    getCorner(point: GlobalPoint): string | undefined {
-        return "";
-    } // TODO
     visibleInCanvas(canvas: HTMLCanvasElement): boolean {
         return this.getBoundingBox().visibleInCanvas(canvas);
     } // TODO
     snapToGrid(): void {}
     resizeToGrid(): void {}
-    resize(resizeDir: string, point: LocalPoint): void {}
+    resize(resizePoint: number, point: LocalPoint): void {
+        if (resizePoint === 0) this._refPoint = l2g(point);
+        else this._points[resizePoint - 1] = l2g(point);
+    }
 }

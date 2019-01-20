@@ -14,9 +14,10 @@ import { layerManager } from "@/game/layers/manager";
 import { Rect } from "@/game/shapes/rect";
 import { gameStore } from "@/game/store";
 import { calculateDelta } from "@/game/ui/tools/utils";
-import { g2l, g2lx, g2ly, l2g } from "@/game/units";
+import { g2l, g2lx, g2ly, l2g, g2lz, g2lr, l2gz } from "@/game/units";
 import { getMouse } from "@/game/utils";
 import Component from "vue-class-component";
+import { Layer } from "@/game/layers/layer";
 
 export enum SelectOperations {
     Noop,
@@ -38,7 +39,7 @@ export default class SelectTool extends Tool {
     active = false;
 
     mode = SelectOperations.Noop;
-    resizeDirection = "";
+    resizePoint = 0;
     deltaChanged = false;
     // Because we never drag from the asset's (0, 0) coord and want a smoother drag experience
     // we keep track of the actual offset within the asset.
@@ -72,14 +73,13 @@ export default class SelectTool extends Tool {
 
             if (!shape.ownedBy()) continue;
 
-            const corner = shape.getBoundingBox().getCorner(globalMouse);
+            this.resizePoint = shape.getPointIndex(globalMouse, l2gz(3));
 
             // Resize case, a corner is selected
-            if (corner !== undefined) {
+            if (this.resizePoint >= 0) {
                 layer.selection = [shape];
                 getRef<SelectionInfo>("selectionInfo").shape = shape;
                 this.mode = SelectOperations.Resize;
-                this.resizeDirection = corner;
                 layer.invalidate(true);
                 hit = true;
                 break;
@@ -164,30 +164,17 @@ export default class SelectTool extends Tool {
                 layer.invalidate(false);
             } else if (this.mode === SelectOperations.Resize) {
                 for (const sel of layer.selection) {
-                    sel.resize(this.resizeDirection, mouse);
+                    sel.resize(this.resizePoint, mouse);
                     if (sel !== this.selectionHelper) {
                         if (sel.visionObstruction) gameStore.recalculateVision(true);
                         if (sel.movementObstruction) gameStore.recalculateMovement(true);
                         socket.emit("Shape.Update", { shape: sel.asDict(), redraw: true, temporary: true });
                     }
                     layer.invalidate(false);
+                    this.updateCursor(layer, globalMouse);
                 }
             } else {
-                for (const sel of layer.selection) {
-                    const bb = sel.getBoundingBox();
-                    const gm = globalMouse;
-                    if (bb.inCorner(gm, "nw")) {
-                        document.body.style.cursor = "nw-resize";
-                    } else if (bb.inCorner(gm, "ne")) {
-                        document.body.style.cursor = "ne-resize";
-                    } else if (bb.inCorner(gm, "se")) {
-                        document.body.style.cursor = "se-resize";
-                    } else if (bb.inCorner(gm, "sw")) {
-                        document.body.style.cursor = "sw-resize";
-                    } else {
-                        document.body.style.cursor = "default";
-                    }
-                }
+                this.updateCursor(layer, globalMouse);
             }
         } else {
             document.body.style.cursor = "default";
@@ -277,6 +264,25 @@ export default class SelectTool extends Tool {
             }
         }
         (<any>this.$refs.selectcontext).open(event);
+    }
+    updateCursor(layer: Layer, globalMouse: GlobalPoint) {
+        for (const sel of layer.selection) {
+            const resizePoint = sel.getPointIndex(globalMouse, l2gz(3));
+            if (resizePoint < 0) document.body.style.cursor = "default";
+            else {
+                let angle = sel.getPointOrientation(resizePoint).angle();
+                if (angle < 0) angle += 360;
+                const d = 45 / 2;
+                if (angle >= 315 + d || angle < d || (angle >= 135 + d && angle < 225 - d))
+                    document.body.style.cursor = "ew-resize";
+                if ((angle >= 45 + d && angle < 135 - d) || (angle >= 225 + d && angle < 315 - d))
+                    document.body.style.cursor = "ns-resize";
+                if ((angle >= d && angle < 90 - d) || (angle >= 180 + d && angle < 270 - d))
+                    document.body.style.cursor = "nwse-resize";
+                if ((angle >= 90 + d && angle < 180 - d) || (angle >= 270 + d && angle < 360 - d))
+                    document.body.style.cursor = "nesw-resize";
+            }
+        }
     }
 }
 </script>

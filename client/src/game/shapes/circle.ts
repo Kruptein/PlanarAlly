@@ -58,15 +58,6 @@ export class Circle extends Shape {
     contains(point: GlobalPoint): boolean {
         return (point.x - this.refPoint.x) ** 2 + (point.y - this.refPoint.y) ** 2 < this.r ** 2;
     }
-    inCorner(point: GlobalPoint, corner: string) {
-        return false; // TODO
-    }
-    getCorner(point: GlobalPoint) {
-        if (this.inCorner(point, "ne")) return "ne";
-        else if (this.inCorner(point, "nw")) return "nw";
-        else if (this.inCorner(point, "se")) return "se";
-        else if (this.inCorner(point, "sw")) return "sw";
-    }
     center(): GlobalPoint;
     center(centerPoint: GlobalPoint): void;
     center(centerPoint?: GlobalPoint): GlobalPoint | void {
@@ -99,7 +90,7 @@ export class Circle extends Shape {
         this.r = Math.max(Math.round(this.r / gs) * gs, gs / 2);
         this.invalidate(false);
     }
-    resize(resizedir: string, point: LocalPoint) {
+    resize(resizePoint: number, point: LocalPoint) {
         const z = gameStore.zoomFactor;
         const diff = l2g(point).subtract(this.refPoint);
         this.r = Math.sqrt(Math.pow(diff.length(), 2) / 2);

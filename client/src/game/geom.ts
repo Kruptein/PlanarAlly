@@ -17,6 +17,9 @@ export class Point {
         this.x = x;
         this.y = y;
     }
+    static fromArray(point: number[]) {
+        return new Point(point[0], point[1]);
+    }
     add(vec: Vector) {
         return new Point(this.x + vec.x, this.y + vec.y);
     }
@@ -47,6 +50,9 @@ export class GlobalPoint extends Point {
     }
     clone(): GlobalPoint {
         return <GlobalPoint>super.clone();
+    }
+    static fromArray(point: number[]) {
+        return new GlobalPoint(point[0], point[1]);
     }
 }
 
@@ -91,6 +97,9 @@ export class Vector {
     }
     multiply(scale: number): Vector {
         return new Vector(this.x * scale, this.y * scale);
+    }
+    angle(): number {
+        return (Math.atan2(this.y, this.x) * 180) / Math.PI;
     }
 }
 

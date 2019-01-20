@@ -14,6 +14,7 @@ All notable changes to this project will be documented in this file.
 - [DM] Options to set the minimal and maximal vision ranges when using LOS.
   - A radial gradient is applied starting from the minimal range and stopping at the maximal range.
   - This effectively allows you to play with how far tokens can see.
+  - Autocomplete hints to the login form.
 
 ### Changed
 
@@ -26,7 +27,7 @@ All notable changes to this project will be documented in this file.
 - SelectionHelper mistakenly geting send to the server.
 - SelectionHelper sometimes getting moved to a different layer instead of the actual shape.
 - Some small QOL changes to multiline.
-- Logout routing
+- Logout routing.
 
 ## [0.13.3] - 2019-01-19
 

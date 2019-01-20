@@ -68,7 +68,7 @@ export class Polygon extends Shape {
         }
         ctx.beginPath();
         ctx.moveTo(g2lx(this.vertices[0].x), g2ly(this.vertices[0].y));
-        for (let i = 1; i < this.vertices.length; i++) {
+        for (let i = 1; i <= this.vertices.length; i++) {
             const vertex = this.vertices[i % this.vertices.length];
             ctx.lineTo(g2lx(vertex.x), g2ly(vertex.y));
         }

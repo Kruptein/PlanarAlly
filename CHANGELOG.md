@@ -29,6 +29,7 @@ All notable changes to this project will be documented in this file.
 - Some small QOL changes to multiline.
 - Logout routing.
 - Active location not being remembered by server.
+- Notes not getting cleared on location change.
 
 ## [0.13.3] - 2019-01-19
 

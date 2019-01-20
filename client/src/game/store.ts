@@ -326,6 +326,7 @@ class GameStore extends VuexModule implements GameState {
         (<any>this.context.state).ownedtokens = [];
         (<any>this.context.state).annotations = [];
         (<any>this.context.state).movementblockers = [];
+        (<any>this.context.state).notes = [];
         this.context.commit("recalculateBV");
     }
 }

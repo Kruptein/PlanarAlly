@@ -72,7 +72,7 @@ export default class AssetContextMenu extends Vue {
                             if (assetStore.isFile(sel)) assetStore.files.splice(assetStore.files.indexOf(sel), 1);
                             else assetStore.folders.splice(assetStore.folders.indexOf(sel), 1);
                         }
-                        assetStore.selected = [];
+                        assetStore.clearSelected();
                     }
                 },
                 () => {},

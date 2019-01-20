@@ -164,7 +164,10 @@ export default class AssetManager extends Vue {
             const inodes = [...assetStore.files, ...assetStore.folders];
             const start = inodes.indexOf(assetStore.selected[assetStore.selected.length - 1]);
             const end = inodes.indexOf(inode);
-            for (let i = start; i !== end; start < end ? i++ : i--) assetStore.selected.push(inodes[i]);
+            for (let i = start; i !== end; start < end ? i++ : i--) {
+                if (i === start) continue;
+                assetStore.selected.push(inodes[i]);
+            }
             assetStore.selected.push(inodes[end]);
         } else {
             if (!event.ctrlKey) {

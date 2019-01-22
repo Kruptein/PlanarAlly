@@ -213,6 +213,8 @@ export default class DrawTool extends Tool {
                 this.ruler.refPoint = lastPoint;
                 this.ruler.endPoint = lastPoint;
             }
+            if (this.shape.visionObstruction) gameStore.recalculateVision(true);
+            layer.invalidate(false);
             socket.emit("Shape.Update", { shape: this.shape!.asDict(), redraw: true, temporary: true });
         }
     }
@@ -256,10 +258,10 @@ export default class DrawTool extends Tool {
             }
         }
 
-        if (!(this.shape instanceof Polygon))
+        if (!(this.shape instanceof Polygon)) {
             socket.emit("Shape.Update", { shape: this.shape!.asDict(), redraw: true, temporary: true });
-        if (this.shape.visionObstruction) gameStore.recalculateVision(true);
-        if (this.shape.movementObstruction) gameStore.recalculateMovement(true);
+            if (this.shape.visionObstruction) gameStore.recalculateVision(true);
+        }
         layer.invalidate(false);
     }
     onMouseUp(event: MouseEvent) {

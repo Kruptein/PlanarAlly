@@ -98,7 +98,8 @@ function checkTriangle(point: Point, triangle: Triangle, delta: Vector, skip: Tr
             if (o === Sign.LEFT_TURN) continue;
             if (o === Sign.ZERO) continue;
         }
-        const newDelta = new GlobalPoint(ix[0], ix[1]).subtract(p);
+        let newDelta = new GlobalPoint(ix[0], ix[1]).subtract(p).multiply(0.8);
+        if (newDelta.length() < 1) newDelta = new Vector(0, 0);
         if (newDelta.length() < delta.length()) delta = newDelta;
     }
     return delta;

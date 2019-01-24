@@ -46,6 +46,19 @@
         @click="setMovementBlocker"
         style="grid-column-start: remove;width:15px;height:15px;"
       >
+      <label for="shapeselectiondialog-strokecolour">Border colour</label>
+      <color-picker
+        :color.sync="shape.strokeColour"
+        @input="updateShape(true, true)"
+        @change="updateShape(true)"
+        style="grid-column-start: remove;width:15px;height:15px;"
+      />
+      <label for="shapeselectiondialog-fillcolour">Fill colour</label>
+      <color-picker
+        :color.sync="shape.fillColour"
+        @input="updateShape(true, true)"
+        style="grid-column-start: remove;width:15px;height:15px;"
+      />
       <div class="spanrow header">Access</div>
       <template v-for="owner in shape.owners">
         <input
@@ -216,8 +229,8 @@ export default class EditDialog extends Vue {
                 visible: false,
             });
     }
-    updateShape(redraw: boolean) {
-        socket.emit("Shape.Update", { shape: this.shape.asDict(), redraw, temporary: false });
+    updateShape(redraw: boolean, temporary = false) {
+        socket.emit("Shape.Update", { shape: this.shape.asDict(), redraw, temporary: temporary });
         if (redraw) layerManager.invalidate();
         this.addEmpty();
     }

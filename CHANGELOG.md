@@ -15,6 +15,7 @@ All notable changes to this project will be documented in this file.
   - A radial gradient is applied starting from the minimal range and stopping at the maximal range.
   - This effectively allows you to play with how far tokens can see.
   - Autocomplete hints to the login form.
+- Edit shape dialog now has options to change the border and fill colour.
 
 ### Changed
 

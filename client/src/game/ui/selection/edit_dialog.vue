@@ -57,6 +57,7 @@
       <color-picker
         :color.sync="shape.fillColour"
         @input="updateShape(true, true)"
+        @change="updateShape(true)"
         style="grid-column-start: remove;width:15px;height:15px;"
       />
       <div class="spanrow header">Access</div>

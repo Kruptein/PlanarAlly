@@ -16,6 +16,7 @@ All notable changes to this project will be documented in this file.
   - This effectively allows you to play with how far tokens can see.
   - Autocomplete hints to the login form.
 - Edit shape dialog now has options to change the border and fill colour.
+- Shape properties can now also be opened from the contextmenu (i.e. right click on a shape).
 
 ### Changed
 

@@ -1,183 +1,183 @@
 <template>
-  <Modal :visible="visible" @close="visible = false" :mask="false">
-    <div
-      class="modal-header"
-      slot="header"
-      slot-scope="m"
-      draggable="true"
-      @dragstart="m.dragStart"
-      @dragend="m.dragEnd"
-    >
-      <div>Edit asset</div>
-      <div class="header-close" @click="visible = false">
-        <i class="far fa-window-close"></i>
-      </div>
-    </div>
-    <div class="modal-body">
-      <label for="shapeselectiondialog-name">Name</label>
-      <input
-        type="text"
-        id="shapeselectiondialog-name"
-        v-model="shape.name"
-        @change="updateShape(false)"
-        style="grid-column: numerator / end"
-      >
-      <label for="shapeselectiondialog-istoken">Is a token</label>
-      <input
-        type="checkbox"
-        id="shapeselectiondialog-istoken"
-        :checked="shape.isToken"
-        @click="setToken"
-        style="grid-column-start: remove;width:15px;height:15px;"
-      >
-      <label for="shapeselectiondialog-visionblocker">Blocks vision/light</label>
-      <input
-        type="checkbox"
-        id="shapeselectiondialog-visionblocker"
-        v-model="shape.visionObstruction"
-        @change="setVisionBlocker"
-        style="grid-column-start: remove;width:15px;height:15px;"
-      >
-      <label for="shapeselectiondialog-moveblocker">Blocks movement</label>
-      <input
-        type="checkbox"
-        id="shapeselectiondialog-moveblocker"
-        :checked="shape.movementObstruction"
-        @click="setMovementBlocker"
-        style="grid-column-start: remove;width:15px;height:15px;"
-      >
-      <label for="shapeselectiondialog-strokecolour">Border colour</label>
-      <color-picker
-        :color.sync="shape.strokeColour"
-        @input="updateShape(true, true)"
-        @change="updateShape(true)"
-        style="grid-column-start: remove;width:15px;height:15px;"
-      />
-      <label for="shapeselectiondialog-fillcolour">Fill colour</label>
-      <color-picker
-        :color.sync="shape.fillColour"
-        @input="updateShape(true, true)"
-        @change="updateShape(true)"
-        style="grid-column-start: remove;width:15px;height:15px;"
-      />
-      <div class="spanrow header">Access</div>
-      <template v-for="owner in shape.owners">
-        <input
-          :key="owner"
-          :value="owner"
-          @change="updateOwner($event, owner)"
-          type="text"
-          placeholder="name"
-          style="grid-column-start: name"
-        >
+    <Modal :visible="visible" @close="visible = false" :mask="false">
         <div
-          v-if="owner !== ''"
-          :key="'remove-' + owner"
-          @click="removeOwner(owner)"
-          style="grid-column-start: remove"
+            class="modal-header"
+            slot="header"
+            slot-scope="m"
+            draggable="true"
+            @dragstart="m.dragStart"
+            @dragend="m.dragEnd"
         >
-          <i class="fas fa-trash-alt"></i>
+            <div>Edit asset</div>
+            <div class="header-close" @click="visible = false">
+                <i class="far fa-window-close"></i>
+            </div>
         </div>
-      </template>
-      <div class="spanrow header">Trackers</div>
-      <template v-for="tracker in shape.trackers">
-        <input
-          :key="'name-'+tracker.uuid"
-          v-model="tracker.name"
-          @change="updateShape(false);"
-          type="text"
-          placeholder="name"
-          style="grid-column-start: name"
-        >
-        <input
-          :key="'value-'+tracker.uuid"
-          v-model.number="tracker.value"
-          @change="updateShape(false)"
-          type="text"
-          title="Current value"
-        >
-        <span :key="'fspan-'+tracker.uuid">/</span>
-        <input
-          :key="'maxvalue-'+tracker.uuid"
-          v-model.number="tracker.maxvalue"
-          @change="updateShape(false)"
-          type="text"
-          title="Current value"
-        >
-        <span :key="'sspan-'+tracker.uuid"></span>
-        <div
-          :key="'visibility-'+tracker.uuid"
-          :style="{opacity: tracker.visible ? 1.0 : 0.3}"
-          @click="tracker.visible = !tracker.visible;updateShape(false)"
-        >
-          <i class="fas fa-eye"></i>
+        <div class="modal-body">
+            <label for="shapeselectiondialog-name">Name</label>
+            <input
+                type="text"
+                id="shapeselectiondialog-name"
+                v-model="shape.name"
+                @change="updateShape(false)"
+                style="grid-column: numerator / end"
+            >
+            <label for="shapeselectiondialog-istoken">Is a token</label>
+            <input
+                type="checkbox"
+                id="shapeselectiondialog-istoken"
+                :checked="shape.isToken"
+                @click="setToken"
+                style="grid-column-start: remove;width:15px;height:15px;"
+            >
+            <label for="shapeselectiondialog-visionblocker">Blocks vision/light</label>
+            <input
+                type="checkbox"
+                id="shapeselectiondialog-visionblocker"
+                v-model="shape.visionObstruction"
+                @change="setVisionBlocker"
+                style="grid-column-start: remove;width:15px;height:15px;"
+            >
+            <label for="shapeselectiondialog-moveblocker">Blocks movement</label>
+            <input
+                type="checkbox"
+                id="shapeselectiondialog-moveblocker"
+                :checked="shape.movementObstruction"
+                @click="setMovementBlocker"
+                style="grid-column-start: remove;width:15px;height:15px;"
+            >
+            <label for="shapeselectiondialog-strokecolour">Border colour</label>
+            <color-picker
+                :color.sync="shape.strokeColour"
+                @input="updateShape(true, true)"
+                @change="updateShape(true)"
+                style="grid-column-start: remove;width:15px;height:15px;"
+            />
+            <label for="shapeselectiondialog-fillcolour">Fill colour</label>
+            <color-picker
+                :color.sync="shape.fillColour"
+                @input="updateShape(true, true)"
+                @change="updateShape(true)"
+                style="grid-column-start: remove;width:15px;height:15px;"
+            />
+            <div class="spanrow header">Access</div>
+            <template v-for="owner in shape.owners">
+                <input
+                    :key="owner"
+                    :value="owner"
+                    @change="updateOwner($event, owner)"
+                    type="text"
+                    placeholder="name"
+                    style="grid-column-start: name"
+                >
+                <div
+                    v-if="owner !== ''"
+                    :key="'remove-' + owner"
+                    @click="removeOwner(owner)"
+                    style="grid-column-start: remove"
+                >
+                    <i class="fas fa-trash-alt"></i>
+                </div>
+            </template>
+            <div class="spanrow header">Trackers</div>
+            <template v-for="tracker in shape.trackers">
+                <input
+                    :key="'name-'+tracker.uuid"
+                    v-model="tracker.name"
+                    @change="updateShape(false);"
+                    type="text"
+                    placeholder="name"
+                    style="grid-column-start: name"
+                >
+                <input
+                    :key="'value-'+tracker.uuid"
+                    v-model.number="tracker.value"
+                    @change="updateShape(false)"
+                    type="text"
+                    title="Current value"
+                >
+                <span :key="'fspan-'+tracker.uuid">/</span>
+                <input
+                    :key="'maxvalue-'+tracker.uuid"
+                    v-model.number="tracker.maxvalue"
+                    @change="updateShape(false)"
+                    type="text"
+                    title="Current value"
+                >
+                <span :key="'sspan-'+tracker.uuid"></span>
+                <div
+                    :key="'visibility-'+tracker.uuid"
+                    :style="{opacity: tracker.visible ? 1.0 : 0.3}"
+                    @click="tracker.visible = !tracker.visible;updateShape(false)"
+                >
+                    <i class="fas fa-eye"></i>
+                </div>
+                <span :key="'tspan-'+tracker.uuid"></span>
+                <div
+                    v-if="tracker.name !== '' || tracker.value !== 0"
+                    :key="'remove-'+tracker.uuid"
+                    @click="removeTracker(tracker.uuid)"
+                >
+                    <i class="fas fa-trash-alt"></i>
+                </div>
+            </template>
+            <div class="spanrow header">Auras</div>
+            <template v-for="aura in shape.auras">
+                <input
+                    :key="'name-'+aura.uuid"
+                    v-model="aura.name"
+                    @change="updateShape(false)"
+                    type="text"
+                    placeholder="name"
+                    style="grid-column-start: name"
+                >
+                <input
+                    :key="'value-'+aura.uuid"
+                    v-model.number="aura.value"
+                    @change="updateShape(true)"
+                    type="text"
+                    title="Current value"
+                >
+                <span :key="'fspan-'+aura.uuid">/</span>
+                <input
+                    :key="'dimvalue-'+aura.uuid"
+                    v-model.number="aura.dim"
+                    @change="updateShape(true)"
+                    type="text"
+                    title="Dim value"
+                >
+                <color-picker
+                    :key="'colour-'+aura.uuid"
+                    :color.sync="aura.colour"
+                    @input="updateAuraColour(aura, $event)"
+                    @change="updateShape(true)"
+                />
+                <div
+                    :key="'visibility-'+aura.uuid"
+                    :style="{opacity: aura.visible ? 1.0 : 0.3}"
+                    @click="aura.visible = !aura.visible;updateShape(true)"
+                >
+                    <i class="fas fa-eye"></i>
+                </div>
+                <div
+                    :key="'visionsource-'+aura.uuid"
+                    :style="{opacity: aura.visionSource ? 1.0 : 0.3}"
+                    @click="updateAuraVisionSource(aura)"
+                >
+                    <i class="fas fa-lightbulb"></i>
+                </div>
+                <div
+                    v-if="aura.name !== '' || aura.value !== 0"
+                    :key="'remove-'+aura.uuid"
+                    @click="removeAura(aura.uuid)"
+                >
+                    <i class="fas fa-trash-alt"></i>
+                </div>
+            </template>
+            <div class="spanrow header">Annotation</div>
+            <textarea class="spanrow" :value="shape.annotation" @change="updateAnnotation"></textarea>
         </div>
-        <span :key="'tspan-'+tracker.uuid"></span>
-        <div
-          v-if="tracker.name !== '' || tracker.value !== 0"
-          :key="'remove-'+tracker.uuid"
-          @click="removeTracker(tracker.uuid)"
-        >
-          <i class="fas fa-trash-alt"></i>
-        </div>
-      </template>
-      <div class="spanrow header">Auras</div>
-      <template v-for="aura in shape.auras">
-        <input
-          :key="'name-'+aura.uuid"
-          v-model="aura.name"
-          @change="updateShape(false)"
-          type="text"
-          placeholder="name"
-          style="grid-column-start: name"
-        >
-        <input
-          :key="'value-'+aura.uuid"
-          v-model.number="aura.value"
-          @change="updateShape(true)"
-          type="text"
-          title="Current value"
-        >
-        <span :key="'fspan-'+aura.uuid">/</span>
-        <input
-          :key="'dimvalue-'+aura.uuid"
-          v-model.number="aura.dim"
-          @change="updateShape(true)"
-          type="text"
-          title="Dim value"
-        >
-        <color-picker
-          :key="'colour-'+aura.uuid"
-          :color.sync="aura.colour"
-          @input="updateAuraColour(aura, $event)"
-          @change="updateShape(true)"
-        />
-        <div
-          :key="'visibility-'+aura.uuid"
-          :style="{opacity: aura.visible ? 1.0 : 0.3}"
-          @click="aura.visible = !aura.visible;updateShape(true)"
-        >
-          <i class="fas fa-eye"></i>
-        </div>
-        <div
-          :key="'visionsource-'+aura.uuid"
-          :style="{opacity: aura.visionSource ? 1.0 : 0.3}"
-          @click="updateAuraVisionSource(aura)"
-        >
-          <i class="fas fa-lightbulb"></i>
-        </div>
-        <div
-          v-if="aura.name !== '' || aura.value !== 0"
-          :key="'remove-'+aura.uuid"
-          @click="removeAura(aura.uuid)"
-        >
-          <i class="fas fa-trash-alt"></i>
-        </div>
-      </template>
-      <div class="spanrow header">Annotation</div>
-      <textarea class="spanrow" :value="shape.annotation" @change="updateAnnotation"></textarea>
-    </div>
-  </Modal>
+    </Modal>
 </template>
 
 <script lang="ts">
@@ -193,6 +193,7 @@ import { layerManager } from "@/game/layers/manager";
 import { Shape } from "@/game/shapes/shape";
 import { gameStore } from "@/game/store";
 import { Prop } from "vue-property-decorator";
+import { EventBus } from "@/game/event-bus";
 
 @Component({
     components: {
@@ -204,9 +205,22 @@ export default class EditDialog extends Vue {
     @Prop() shape!: Shape;
 
     visible = false;
+
+    mounted() {
+        EventBus.$on("EditDialog.Open", (shape: Shape) => {
+            this.shape = shape;
+            this.visible = true;
+        });
+    }
+
+    beforeDestroy() {
+        EventBus.$off();
+    }
+
     updated() {
         this.addEmpty();
     }
+
     addEmpty() {
         if (this.shape.owners[this.shape.owners.length - 1] !== "") this.shape.owners.push("");
         if (

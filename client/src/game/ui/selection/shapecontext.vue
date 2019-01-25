@@ -31,10 +31,10 @@ import ContextMenu from "@/core/components/contextmenu.vue";
 import Initiative from "@/game/ui/initiative.vue";
 
 import { getRef } from "@/core/utils";
+import { EventBus } from "@/game/event-bus";
 import { layerManager } from "@/game/layers/manager";
 import { Shape } from "@/game/shapes/shape";
 import { gameStore } from "@/game/store";
-import { EventBus } from "@/game/event-bus";
 
 @Component({
     components: {

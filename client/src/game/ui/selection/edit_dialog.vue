@@ -184,16 +184,17 @@
 import Vue from "vue";
 import Component from "vue-class-component";
 
+import { Prop } from "vue-property-decorator";
+
 import ColorPicker from "@/core/components/colorpicker.vue";
 import Modal from "@/core/components/modals/modal.vue";
 
 import { uuidv4 } from "@/core/utils";
 import { socket } from "@/game/api/socket";
+import { EventBus } from "@/game/event-bus";
 import { layerManager } from "@/game/layers/manager";
 import { Shape } from "@/game/shapes/shape";
 import { gameStore } from "@/game/store";
-import { Prop } from "vue-property-decorator";
-import { EventBus } from "@/game/event-bus";
 
 @Component({
     components: {
@@ -245,7 +246,7 @@ export default class EditDialog extends Vue {
             });
     }
     updateShape(redraw: boolean, temporary = false) {
-        socket.emit("Shape.Update", { shape: this.shape.asDict(), redraw, temporary: temporary });
+        socket.emit("Shape.Update", { shape: this.shape.asDict(), redraw, temporary });
         if (redraw) layerManager.invalidate();
         this.addEmpty();
     }

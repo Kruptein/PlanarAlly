@@ -1,8 +1,10 @@
 <template>
-  <SelectContext ref="selectcontext"></SelectContext>
+    <SelectContext ref="selectcontext"></SelectContext>
 </template>
 
 <script lang="ts">
+import Component from "vue-class-component";
+
 import SelectContext from "@/game/ui/tools/selectcontext.vue";
 import Tool from "@/game/ui/tools/tool.vue";
 import SelectionInfo from "../selection/selection_info.vue";
@@ -10,14 +12,13 @@ import SelectionInfo from "../selection/selection_info.vue";
 import { getRef } from "@/core/utils";
 import { socket } from "@/game/api/socket";
 import { GlobalPoint, LocalPoint, Ray, Vector } from "@/game/geom";
+import { Layer } from "@/game/layers/layer";
 import { layerManager } from "@/game/layers/manager";
 import { Rect } from "@/game/shapes/rect";
 import { gameStore } from "@/game/store";
 import { calculateDelta } from "@/game/ui/tools/utils";
-import { g2l, g2lx, g2ly, l2g, g2lz, g2lr, l2gz } from "@/game/units";
+import { g2l, g2lr, g2lx, g2ly, g2lz, l2g, l2gz } from "@/game/units";
 import { getMouse } from "@/game/utils";
-import Component from "vue-class-component";
-import { Layer } from "@/game/layers/layer";
 
 export enum SelectOperations {
     Noop,

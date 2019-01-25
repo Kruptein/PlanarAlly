@@ -5,7 +5,7 @@ import { layerManager } from "@/game/layers/manager";
 import { Shape } from "@/game/shapes/shape";
 import { createShapeFromDict } from "@/game/shapes/utils";
 import { gameStore } from "@/game/store";
-import { g2lx, g2ly, g2lz, g2lr } from "@/game/units";
+import { g2lx, g2ly } from "@/game/units";
 
 export class Layer {
     name: string;

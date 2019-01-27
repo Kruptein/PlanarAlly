@@ -30,7 +30,7 @@ export class Line extends Shape {
     }
     getBoundingBox(): BoundingRect {
         return new BoundingRect(
-            new GlobalPoint(Math.min(this.refPoint.x, this.endPoint.x), Math.min(this.refPoint.x, this.endPoint.y)),
+            new GlobalPoint(Math.min(this.refPoint.x, this.endPoint.x), Math.min(this.refPoint.y, this.endPoint.y)),
             Math.abs(this.refPoint.x - this.endPoint.x),
             Math.abs(this.refPoint.y - this.endPoint.y),
         );

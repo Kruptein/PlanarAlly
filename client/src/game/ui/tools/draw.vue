@@ -1,44 +1,44 @@
 <template>
-  <div
-    class="tool-detail"
-    v-if="selected"
-    :style="{'--detailRight': detailRight, '--detailArrow': detailArrow}"
-  >
-    <div v-show="IS_DM">Mode</div>
-    <div v-show="IS_DM" class="selectgroup">
-      <div
-        v-for="mode in modes"
-        :key="mode"
-        class="option"
-        :class="{'option-selected': modeSelect === mode}"
-        @click="modeSelect = mode"
-      >{{ mode }}</div>
-    </div>
-    <div>Shape</div>
-    <div class="selectgroup">
-      <div
-        v-for="shape in shapes"
-        :key="shape"
-        class="option"
-        :class="{'option-selected': shapeSelect === shape}"
-        @click="shapeSelect = shape"
-      >
-        <i class="fas" :class="'fa-' + shape"></i>
-      </div>
-    </div>
-    <div>Colours</div>
-    <div class="selectgroup">
-      <color-picker class="option" :color.sync="fillColour"/>
-      <color-picker class="option" :color.sync="borderColour"/>
-    </div>
-    <div v-show="shapeSelect === 'paint-brush'">Brush size</div>
-    <input
-      type="text"
-      v-model="brushSize"
-      v-show="shapeSelect === 'paint-brush'"
-      style="max-width:100px;"
+    <div
+        class="tool-detail"
+        v-if="selected"
+        :style="{'--detailRight': detailRight, '--detailArrow': detailArrow}"
     >
-  </div>
+        <div v-show="IS_DM">Mode</div>
+        <div v-show="IS_DM" class="selectgroup">
+            <div
+                v-for="mode in modes"
+                :key="mode"
+                class="option"
+                :class="{'option-selected': modeSelect === mode}"
+                @click="modeSelect = mode"
+            >{{ mode }}</div>
+        </div>
+        <div>Shape</div>
+        <div class="selectgroup">
+            <div
+                v-for="shape in shapes"
+                :key="shape"
+                class="option"
+                :class="{'option-selected': shapeSelect === shape}"
+                @click="shapeSelect = shape"
+            >
+                <i class="fas" :class="'fa-' + shape"></i>
+            </div>
+        </div>
+        <div>Colours</div>
+        <div class="selectgroup">
+            <color-picker class="option" :color.sync="fillColour"/>
+            <color-picker class="option" :color.sync="borderColour"/>
+        </div>
+        <div v-show="shapeSelect === 'paint-brush'">Brush size</div>
+        <input
+            type="text"
+            v-model="brushSize"
+            v-show="shapeSelect === 'paint-brush'"
+            style="max-width:100px;"
+        >
+    </div>
 </template>
 
 <script lang="ts">
@@ -191,7 +191,7 @@ export default class DrawTool extends Tool {
             if (this.modeSelect === "reveal") this.shape.globalCompositeOperation = "source-over";
             else if (this.modeSelect === "hide") this.shape.globalCompositeOperation = "destination-out";
 
-            this.shape.owners.push(gameStore.username);
+            this.shape.addOwner(gameStore.username);
             if (layer.name === "fow" && this.modeSelect === "normal") {
                 this.shape.visionObstruction = true;
                 this.shape.movementObstruction = true;

@@ -58,7 +58,7 @@ export default class SelectTool extends Tool {
         }
 
         if (!this.selectionHelper.owners.includes(gameStore.username)) {
-            this.selectionHelper.owners.push(gameStore.username);
+            this.selectionHelper.addOwner(gameStore.username);
         }
 
         const mouse = getMouse(event);

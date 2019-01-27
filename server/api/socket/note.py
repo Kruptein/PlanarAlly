@@ -19,7 +19,12 @@ async def new_note(sid, data):
         return
 
     Note.create(
-        uuid=data["uuid"], title=data["title"], text=data["text"], user=user, room=room
+        uuid=data["uuid"],
+        title=data["title"],
+        text=data["text"],
+        user=user,
+        room=room,
+        location=location,
     )
 
 

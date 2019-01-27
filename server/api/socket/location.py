@@ -10,6 +10,7 @@ from models import (
     Layer,
     Location,
     LocationUserOption,
+    Note,
     Shape,
 )
 
@@ -44,6 +45,15 @@ async def load_location(sid, location):
     )
     await sio.emit(
         "Client.Options.Set", client_options, room=sid, namespace="/planarally"
+    )
+    await sio.emit(
+        "Notes.Set",
+        [
+            note.as_dict()
+            for note in Note.select().where((Note.user == user) & (Note.room == room))
+        ],
+        room=sid,
+        namespace="/planarally",
     )
 
     sorted_initiatives = [

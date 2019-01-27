@@ -46,17 +46,17 @@ export class Layer {
         }
     }
 
-    addShape(shape: Shape, sync: boolean, temporary?: boolean): void {
+    addShape(shape: Shape, sync: boolean, temporary?: boolean, invalidate = true): void {
         if (temporary === undefined) temporary = false;
         shape.layer = this.name;
         this.shapes.push(shape);
         layerManager.UUIDMap.set(shape.uuid, shape);
-        shape.checkVisionSources();
-        shape.setMovementBlock(shape.movementObstruction);
+        shape.checkVisionSources(invalidate);
+        shape.setMovementBlock(shape.movementObstruction, invalidate);
         if (shape.ownedBy(gameStore.username) && shape.isToken) gameStore.ownedtokens.push(shape.uuid);
         if (shape.annotation.length) gameStore.annotations.push(shape.uuid);
         if (sync) socket.emit("Shape.Add", { shape: shape.asDict(), temporary });
-        this.invalidate(!sync);
+        if (invalidate) this.invalidate(!sync);
     }
 
     setShapes(shapes: ServerShape[]): void {
@@ -66,7 +66,7 @@ export class Layer {
                 console.log(`Shape with unknown type ${serverShape.type_} could not be added`);
                 return;
             }
-            this.addShape(shape, false, false);
+            this.addShape(shape, false, false, false);
         }
         this.clearSelection(); // TODO: Fix keeping selection on those items that are not moved.
         this.invalidate(false);
@@ -97,7 +97,8 @@ export class Layer {
 
         const index = this.selection.indexOf(shape);
         if (index >= 0) this.selection.splice(index, 1);
-        if (lbI >= 0) gameStore.recalculateBV();
+        if (lbI >= 0) gameStore.recalculateVision();
+        if (mbI >= 0) gameStore.recalculateMovement();
         this.invalidate(!sync);
     }
 
@@ -152,16 +153,18 @@ export class Layer {
                     // TODO: REFACTOR THIS TO Shape.drawSelection(ctx);
                     ctx.strokeRect(g2lx(bb.topLeft.x), g2ly(bb.topLeft.y), bb.w * z, bb.h * z);
 
-                    const sw = Math.min(6, bb.w / 2);
-
-                    // topright
-                    ctx.fillRect(g2lx(bb.topRight.x - sw / 2), g2ly(bb.topLeft.y - sw / 2), sw * z, sw * z);
-                    // topleft
-                    ctx.fillRect(g2lx(bb.topLeft.x - sw / 2), g2ly(bb.topLeft.y - sw / 2), sw * z, sw * z);
-                    // botright
-                    ctx.fillRect(g2lx(bb.topRight.x - sw / 2), g2ly(bb.botLeft.y - sw / 2), sw * z, sw * z);
-                    // botleft
-                    ctx.fillRect(g2lx(bb.topLeft.x - sw / 2), g2ly(bb.botLeft.y - sw / 2), sw * z, sw * z);
+                    for (const p of sel.points) {
+                        ctx.beginPath();
+                        ctx.arc(g2lx(p[0]), g2ly(p[1]), 3, 0, 2 * Math.PI);
+                        ctx.fill();
+                    }
+                    ctx.beginPath();
+                    ctx.moveTo(g2lx(sel.points[0][0]), g2ly(sel.points[0][1]));
+                    for (let i = 1; i <= sel.points.length; i++) {
+                        const vertex = sel.points[i % sel.points.length];
+                        ctx.lineTo(g2lx(vertex[0]), g2ly(vertex[1]));
+                    }
+                    ctx.stroke();
                 });
             }
             ctx.globalCompositeOperation = ogOP;
@@ -176,11 +179,5 @@ export class Layer {
         this.shapes.splice(destinationIndex, 0, shape);
         if (sync) socket.emit("Shape.Order.Set", { shape: shape.asDict(), index: destinationIndex });
         this.invalidate(true);
-    }
-
-    onShapeMove(shape: Shape): void {
-        shape.checkVisionSources();
-        if (shape.visionObstruction) gameStore.recalculateBV();
-        this.invalidate(false);
     }
 }

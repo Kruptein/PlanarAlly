@@ -11,11 +11,14 @@ export function getPointDistance(p1: Point, p2: Point) {
 }
 
 export class Point {
-    x: number;
-    y: number;
+    readonly x: number;
+    readonly y: number;
     constructor(x: number, y: number) {
         this.x = x;
         this.y = y;
+    }
+    static fromArray(point: number[]) {
+        return new Point(point[0], point[1]);
     }
     add(vec: Vector) {
         return new Point(this.x + vec.x, this.y + vec.y);
@@ -29,6 +32,9 @@ export class Point {
     get(dimension: 0 | 1) {
         if (dimension === 0) return this.x;
         return this.y;
+    }
+    asArray(): number[] {
+        return [this.x, this.y];
     }
 }
 export class GlobalPoint extends Point {
@@ -44,6 +50,9 @@ export class GlobalPoint extends Point {
     }
     clone(): GlobalPoint {
         return <GlobalPoint>super.clone();
+    }
+    static fromArray(point: number[]) {
+        return new GlobalPoint(point[0], point[1]);
     }
 }
 
@@ -70,24 +79,27 @@ export class Vector {
         this.x = x;
         this.y = y;
     }
-    dot(other: Vector) {
+    dot(other: Vector): number {
         return this.x * other.x + this.y * other.y;
     }
-    inverse() {
-        return new Vector(1 / this.x, 1 / this.y);
+    inverse(): Vector {
+        return new Vector(this.x === 0 ? 0 : 1 / this.x, this.y === 0 ? 0 : 1 / this.y);
     }
-    length() {
+    length(): number {
         return Math.sqrt(Math.pow(this.x, 2) + Math.pow(this.y, 2));
     }
-    normalize() {
+    normalize(): Vector {
         const l = this.length();
         return new Vector(this.x / l, this.y / l);
     }
-    reverse() {
+    reverse(): Vector {
         return new Vector(-this.x, -this.y);
     }
-    multiply(scale: number) {
+    multiply(scale: number): Vector {
         return new Vector(this.x * scale, this.y * scale);
+    }
+    angle(): number {
+        return (Math.atan2(this.y, this.x) * 180) / Math.PI;
     }
 }
 

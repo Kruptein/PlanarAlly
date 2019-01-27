@@ -1,44 +1,44 @@
 <template>
-  <div
-    class="tool-detail"
-    v-if="selected"
-    :style="{'--detailRight': detailRight, '--detailArrow': detailArrow}"
-  >
-    <div v-show="IS_DM">Mode</div>
-    <div v-show="IS_DM" class="selectgroup">
-      <div
-        v-for="mode in modes"
-        :key="mode"
-        class="option"
-        :class="{'option-selected': modeSelect === mode}"
-        @click="modeSelect = mode"
-      >{{ mode }}</div>
-    </div>
-    <div>Shape</div>
-    <div class="selectgroup">
-      <div
-        v-for="shape in shapes"
-        :key="shape"
-        class="option"
-        :class="{'option-selected': shapeSelect === shape}"
-        @click="shapeSelect = shape"
-      >
-        <i class="fas" :class="'fa-' + shape"></i>
-      </div>
-    </div>
-    <div>Colours</div>
-    <div class="selectgroup">
-      <color-picker class="option" :color.sync="fillColour"/>
-      <color-picker class="option" :color.sync="borderColour"/>
-    </div>
-    <div v-show="shapeSelect === 'paint-brush'">Brush size</div>
-    <input
-      type="text"
-      v-model="brushSize"
-      v-show="shapeSelect === 'paint-brush'"
-      style="max-width:100px;"
+    <div
+        class="tool-detail"
+        v-if="selected"
+        :style="{'--detailRight': detailRight, '--detailArrow': detailArrow}"
     >
-  </div>
+        <div v-show="IS_DM">Mode</div>
+        <div v-show="IS_DM" class="selectgroup">
+            <div
+                v-for="mode in modes"
+                :key="mode"
+                class="option"
+                :class="{'option-selected': modeSelect === mode}"
+                @click="modeSelect = mode"
+            >{{ mode }}</div>
+        </div>
+        <div>Shape</div>
+        <div class="selectgroup">
+            <div
+                v-for="shape in shapes"
+                :key="shape"
+                class="option"
+                :class="{'option-selected': shapeSelect === shape}"
+                @click="shapeSelect = shape"
+            >
+                <i class="fas" :class="'fa-' + shape"></i>
+            </div>
+        </div>
+        <div>Colours</div>
+        <div class="selectgroup">
+            <color-picker class="option" :color.sync="fillColour"/>
+            <color-picker class="option" :color.sync="borderColour"/>
+        </div>
+        <div v-show="shapeSelect === 'paint-brush'">Brush size</div>
+        <input
+            type="text"
+            v-model="brushSize"
+            v-show="shapeSelect === 'paint-brush'"
+            style="max-width:100px;"
+        >
+    </div>
 </template>
 
 <script lang="ts">
@@ -53,7 +53,9 @@ import { socket } from "@/game/api/socket";
 import { GlobalPoint } from "@/game/geom";
 import { layerManager } from "@/game/layers/manager";
 import { Circle } from "@/game/shapes/circle";
+import { Line } from "@/game/shapes/line";
 import { MultiLine } from "@/game/shapes/multiline";
+import { Polygon } from "@/game/shapes/polygon";
 import { Rect } from "@/game/shapes/rect";
 import { Shape } from "@/game/shapes/shape";
 import { gameStore } from "@/game/store";
@@ -72,12 +74,13 @@ export default class DrawTool extends Tool {
     startPoint: GlobalPoint | null = null;
     shape: Shape | null = null;
     brushHelper: Circle | null = null;
+    ruler: Line | null = null;
 
     fillColour = "rgba(0, 0, 0, 1)";
     borderColour = "rgba(255, 255, 255, 0)";
 
     shapeSelect = "square";
-    shapes = ["square", "circle", "paint-brush"];
+    shapes = ["square", "circle", "draw-polygon", "paint-brush"];
     modeSelect = "normal";
     modes = ["normal", "reveal", "hide"];
 
@@ -150,36 +153,70 @@ export default class DrawTool extends Tool {
             console.log("No active layer!");
             return;
         }
-        this.active = true;
-        this.startPoint = l2g(getMouse(event));
-        if (this.shapeSelect === "square")
-            this.shape = new Rect(this.startPoint.clone(), 0, 0, this.fillColour, this.borderColour);
-        else if (this.shapeSelect === "circle")
-            this.shape = new Circle(this.startPoint.clone(), this.helperSize, this.fillColour, this.borderColour);
-        else if (this.shapeSelect === "paint-brush") {
-            this.shape = new MultiLine(this.startPoint.clone(), [], this.brushSize);
-            this.shape.fillColour = this.fillColour;
-        } else return;
+        if (!this.active) {
+            this.startPoint = l2g(getMouse(event));
+            this.active = true;
+            switch (this.shapeSelect) {
+                case "square": {
+                    this.shape = new Rect(this.startPoint.clone(), 0, 0, this.fillColour, this.borderColour);
+                    break;
+                }
+                case "circle": {
+                    this.shape = new Circle(
+                        this.startPoint.clone(),
+                        this.helperSize,
+                        this.fillColour,
+                        this.borderColour,
+                    );
+                    break;
+                }
+                case "paint-brush": {
+                    this.shape = new MultiLine(this.startPoint.clone(), [], this.brushSize);
+                    this.shape.fillColour = this.fillColour;
+                    break;
+                }
+                case "draw-polygon": {
+                    this.shape = new Polygon(this.startPoint.clone(), [], this.fillColour, this.borderColour);
+                    break;
+                }
+                default:
+                    return;
+            }
 
-        if (this.modeSelect !== "normal") {
-            this.shape.options.set("preFogShape", true);
-            this.shape.options.set("skipDraw", true);
-            this.shape.fillColour = "rgba(0, 0, 0, 1)";
+            if (this.modeSelect !== "normal") {
+                this.shape.options.set("preFogShape", true);
+                this.shape.options.set("skipDraw", true);
+                this.shape.fillColour = "rgba(0, 0, 0, 1)";
+            }
+            if (this.modeSelect === "reveal") this.shape.globalCompositeOperation = "source-over";
+            else if (this.modeSelect === "hide") this.shape.globalCompositeOperation = "destination-out";
+
+            this.shape.addOwner(gameStore.username);
+            if (layer.name === "fow" && this.modeSelect === "normal") {
+                this.shape.visionObstruction = true;
+                this.shape.movementObstruction = true;
+            }
+            layer.addShape(this.shape, true, false, false);
+
+            // Push brushhelper to back
+            this.pushBrushBack();
+        } else if (this.shape !== null && this.shape instanceof Polygon) {
+            // For polygon draw
+            this.shape._vertices.push(l2g(getMouse(event)));
         }
-        if (this.modeSelect === "reveal") this.shape.globalCompositeOperation = "source-over";
-        else if (this.modeSelect === "hide") this.shape.globalCompositeOperation = "destination-out";
-
-        this.shape.owners.push(gameStore.username);
-        if (layer.name === "fow" && this.modeSelect === "normal") {
-            this.shape.visionObstruction = true;
-            this.shape.movementObstruction = true;
+        if (this.shape !== null && this.shape instanceof Polygon) {
+            const lastPoint = l2g(getMouse(event));
+            if (this.ruler === null) {
+                this.ruler = new Line(lastPoint, lastPoint, 3, "black");
+                layer.addShape(this.ruler, false);
+            } else {
+                this.ruler.refPoint = lastPoint;
+                this.ruler.endPoint = lastPoint;
+            }
+            if (this.shape.visionObstruction) gameStore.recalculateVision(true);
+            layer.invalidate(false);
+            socket.emit("Shape.Update", { shape: this.shape!.asDict(), redraw: true, temporary: true });
         }
-        gameStore.visionBlockers.push(this.shape.uuid);
-        layer.addShape(this.shape, true, false);
-
-        // Push brushhelper to back
-        this.onDeselect();
-        this.onSelect();
     }
     onMouseMove(event: MouseEvent) {
         const endPoint = l2g(getMouse(event));
@@ -197,29 +234,63 @@ export default class DrawTool extends Tool {
 
         if (!this.active || this.startPoint === null || this.shape === null) return;
 
-        if (this.shapeSelect === "square") {
-            (<Rect>this.shape).w = Math.abs(endPoint.x - this.startPoint.x);
-            (<Rect>this.shape).h = Math.abs(endPoint.y - this.startPoint.y);
-            this.shape.refPoint.x = Math.min(this.startPoint.x, endPoint.x);
-            this.shape.refPoint.y = Math.min(this.startPoint.y, endPoint.y);
-        } else if (this.shapeSelect === "circle") {
-            (<Circle>this.shape).r = endPoint.subtract(this.startPoint).length();
-        } else if (this.shapeSelect === "paint-brush") {
-            (<MultiLine>this.shape)._points.push(endPoint);
+        switch (this.shapeSelect) {
+            case "square": {
+                (<Rect>this.shape).w = Math.abs(endPoint.x - this.startPoint.x);
+                (<Rect>this.shape).h = Math.abs(endPoint.y - this.startPoint.y);
+                this.shape.refPoint = new GlobalPoint(
+                    Math.min(this.startPoint.x, endPoint.x),
+                    Math.min(this.startPoint.y, endPoint.y),
+                );
+                break;
+            }
+            case "circle": {
+                (<Circle>this.shape).r = endPoint.subtract(this.startPoint).length();
+                break;
+            }
+            case "paint-brush": {
+                (<MultiLine>this.shape)._points.push(endPoint);
+                break;
+            }
+            case "draw-polygon": {
+                this.ruler!.endPoint = endPoint;
+                break;
+            }
         }
-        socket.emit("Shape.Update", { shape: this.shape!.asDict(), redraw: true, temporary: true });
-        if (this.shape.visionObstruction) gameStore.recalculateBV(true);
+
+        if (!(this.shape instanceof Polygon)) {
+            socket.emit("Shape.Update", { shape: this.shape!.asDict(), redraw: true, temporary: true });
+            if (this.shape.visionObstruction) gameStore.recalculateVision(true);
+        }
         layer.invalidate(false);
     }
     onMouseUp(event: MouseEvent) {
-        if (!this.active || this.shape === null) return;
+        if (!this.active || this.shape === null || this.shape instanceof Polygon) return;
         if (!event.altKey && this.useGrid) {
             this.shape.resizeToGrid();
         }
-        if (this.shape.visionObstruction) gameStore.recalculateBV();
+        this.finaliseShape();
+    }
+    onContextMenu(event: MouseEvent) {
+        if (!this.active || this.shape === null || !(this.shape instanceof Polygon)) return;
+        const layer = this.getLayer();
+        if (layer === undefined) {
+            console.log("No active layer!");
+            return;
+        }
+        layer.removeShape(this.ruler!, false);
+        this.ruler = null;
+        this.finaliseShape();
+    }
+
+    private finaliseShape() {
+        if (this.shape === null) return;
+        if (this.shape.visionObstruction) gameStore.recalculateVision();
+        if (this.shape.movementObstruction) gameStore.recalculateMovement();
         socket.emit("Shape.Update", { shape: this.shape!.asDict(), redraw: true, temporary: false });
         this.active = false;
     }
+
     onSelect() {
         const layer = this.getLayer();
         if (layer === undefined) return;
@@ -230,6 +301,24 @@ export default class DrawTool extends Tool {
     onDeselect() {
         const layer = this.getLayer();
         if (this.brushHelper !== null && layer !== undefined) layer.removeShape(this.brushHelper, false);
+        if (this.active && layer !== undefined && this.shape !== null) {
+            layer.removeShape(this.shape, true, false);
+            this.shape = null;
+            this.active = false;
+            layer.invalidate(false);
+        }
+    }
+
+    private pushBrushBack() {
+        const layer = this.getLayer();
+        if (layer === undefined) {
+            console.log("No active layer!");
+            return;
+        }
+        if (this.brushHelper !== null) layer.removeShape(this.brushHelper, false);
+        this.brushHelper = new Circle(new GlobalPoint(-1000, -1000), this.brushSize / 2, this.fillColour);
+        this.setupBrush();
+        layer.addShape(this.brushHelper, false); // during mode change the shape is already added
     }
 }
 </script>

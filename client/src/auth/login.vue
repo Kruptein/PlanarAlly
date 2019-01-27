@@ -3,14 +3,28 @@
     <fieldset>
       <legend class="legend">PlanarAlly</legend>
       <div class="input">
-        <input type="text" name="username" v-model="username" placeholder="Username" required>
+        <input
+          type="text"
+          name="username"
+          v-model="username"
+          placeholder="Username"
+          autocomplete="username"
+          required
+        >
         <span>
           <i class="fas fa-user-circle"></i>
         </span>
       </div>
 
       <div class="input">
-        <input type="password" name="password" v-model="password" placeholder="Password" required>
+        <input
+          type="password"
+          name="password"
+          v-model="password"
+          placeholder="Password"
+          autocomplete="current-password"
+          required
+        >
         <span>
           <i class="fas fa-lock"></i>
         </span>

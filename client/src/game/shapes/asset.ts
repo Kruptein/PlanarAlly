@@ -10,8 +10,7 @@ export class Asset extends BaseRect {
     img: HTMLImageElement;
     src: string = "";
     constructor(img: HTMLImageElement, topleft: GlobalPoint, w: number, h: number, uuid?: string) {
-        super(topleft, w, h);
-        if (uuid !== undefined) this.uuid = uuid;
+        super(topleft, w, h, undefined, undefined, uuid);
         this.img = img;
     }
     asDict() {

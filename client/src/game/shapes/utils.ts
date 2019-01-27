@@ -4,6 +4,7 @@ import {
     ServerCircularToken,
     ServerLine,
     ServerMultiLine,
+    ServerPolygon,
     ServerRect,
     ServerShape,
     ServerText,
@@ -18,6 +19,7 @@ import { MultiLine } from "@/game/shapes/multiline";
 import { Rect } from "@/game/shapes/rect";
 import { Shape } from "@/game/shapes/shape";
 import { Text } from "@/game/shapes/text";
+import { Polygon } from "./polygon";
 
 export function createShapeFromDict(shape: ServerShape, dummy?: boolean) {
     // TODO: is this dummy stuff actually needed, do we ever want to return the local shape?
@@ -59,6 +61,15 @@ export function createShapeFromDict(shape: ServerShape, dummy?: boolean) {
             multiline.line_width,
             multiline.stroke_colour,
             multiline.uuid,
+        );
+    } else if (shape.type_ === "polygon") {
+        const polygon = <ServerPolygon>shape;
+        sh = new Polygon(
+            refPoint,
+            polygon.vertices.map(v => new GlobalPoint(v.x, v.y)),
+            polygon.fill_colour,
+            polygon.stroke_colour,
+            polygon.uuid,
         );
     } else if (shape.type_ === "text") {
         const text = <ServerText>shape;

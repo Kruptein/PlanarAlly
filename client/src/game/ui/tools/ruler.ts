@@ -28,8 +28,8 @@ export class RulerTool extends Tool {
         this.startPoint = l2g(getMouse(event));
         this.ruler = new Line(this.startPoint, this.startPoint, 3, gameStore.rulerColour);
         this.text = new Text(this.startPoint.clone(), "", "bold 20px serif");
-        this.ruler.owners.push(gameStore.username);
-        this.text.owners.push(gameStore.username);
+        this.ruler.addOwner(gameStore.username);
+        this.text.addOwner(gameStore.username);
         layer.addShape(this.ruler, true, true);
         layer.addShape(this.text, true, true);
     }
@@ -54,8 +54,7 @@ export class RulerTool extends Tool {
         const angle = Math.atan2(diffsign * ydiff, xdiff);
         const xmid = Math.min(this.startPoint.x, endPoint.x) + xdiff / 2;
         const ymid = Math.min(this.startPoint.y, endPoint.y) + ydiff / 2;
-        this.text.refPoint.x = xmid;
-        this.text.refPoint.y = ymid;
+        this.text.refPoint = new GlobalPoint(xmid, ymid);
         this.text.text = label;
         this.text.angle = angle;
         socket.emit("Shape.Update", { shape: this.text.asDict(), redraw: true, temporary: true });

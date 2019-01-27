@@ -50,7 +50,6 @@ export class GameManager {
         shape.checkVisionSources();
         shape.setMovementBlock(shape.movementObstruction);
         shape.setIsToken(shape.isToken);
-        if (data.move && shape.visionObstruction) gameStore.recalculateBV();
         if (data.redraw) layerManager.getLayer(data.shape.layer)!.invalidate(false);
         if (redrawInitiative) getRef<Initiative>("initiative").$forceUpdate();
     }

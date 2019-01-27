@@ -1,25 +1,26 @@
 <template>
-  <ContextMenu
-    v-if="getActiveLayer() !== undefined"
-    :visible="visible"
-    :left="x + 'px'"
-    :top="y + 'px'"
-    @close="close"
-  >
-    <li v-if="getLayers().length > 1">Layer
-      <ul>
-        <li
-          v-for="layer in getLayers()"
-          :key="layer.name"
-          :style="[getActiveLayer().name === layer.name ? {'background-color':'#82c8a0'}: {}]"
-          @click="setLayer(layer.name)"
-        >{{ layer.name }}</li>
-      </ul>
-    </li>
-    <li @click="moveToBack">Move to back</li>
-    <li @click="moveToFront">Move to front</li>
-    <li @click="addInitiative">{{ getInitiativeWord() }} initiative</li>
-  </ContextMenu>
+    <ContextMenu
+        v-if="getActiveLayer() !== undefined"
+        :visible="visible"
+        :left="x + 'px'"
+        :top="y + 'px'"
+        @close="close"
+    >
+        <li v-if="getLayers().length > 1">Layer
+            <ul>
+                <li
+                    v-for="layer in getLayers()"
+                    :key="layer.name"
+                    :style="[getActiveLayer().name === layer.name ? {'background-color':'#82c8a0'}: {}]"
+                    @click="setLayer(layer.name)"
+                >{{ layer.name }}</li>
+            </ul>
+        </li>
+        <li @click="moveToBack">Move to back</li>
+        <li @click="moveToFront">Move to front</li>
+        <li @click="addInitiative">{{ getInitiativeWord() }} initiative</li>
+        <li @click="openEditDialog">Show properties</li>
+    </ContextMenu>
 </template>
 
 <script lang="ts">
@@ -30,6 +31,7 @@ import ContextMenu from "@/core/components/contextmenu.vue";
 import Initiative from "@/game/ui/initiative.vue";
 
 import { getRef } from "@/core/utils";
+import { EventBus } from "@/game/event-bus";
 import { layerManager } from "@/game/layers/manager";
 import { Shape } from "@/game/shapes/shape";
 import { gameStore } from "@/game/store";
@@ -91,6 +93,10 @@ export default class ShapeContext extends Vue {
         const initiative = getRef<Initiative>("initiative");
         if (!initiative.contains(this.shape.uuid)) initiative.addInitiative(this.shape.getInitiativeRepr());
         initiative.visible = true;
+        this.close();
+    }
+    openEditDialog() {
+        EventBus.$emit("EditDialog.Open", this.shape);
         this.close();
     }
 }

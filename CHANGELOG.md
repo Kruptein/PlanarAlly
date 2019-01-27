@@ -7,6 +7,38 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+## [0.14.0] - 2019-01-27
+
+### Added
+
+- Polygon shape in the draw tool.
+  - This is especially nice in combination with the new experimental vision mode!
+- [DM] Options to set the minimal and maximal vision ranges when using LOS.
+  - A radial gradient is applied starting from the minimal range and stopping at the maximal range.
+  - This effectively allows you to play with how far tokens can see.
+- Autocomplete hints to the login form.
+- Edit shape dialog now has options to change the border and fill colour.
+- Shape properties can now also be opened from the contextmenu (i.e. right click on a shape).
+
+### Changed
+
+- Wait with recalculating vision until all shapes are added on startup.
+- Vision mode toggle has been moved to the DM options and is now synced with the server.
+
+### Fixed
+
+- Fix visionmode menu toggle not remembering what is currently selected.
+- SelectionHelper mistakenly geting send to the server.
+- SelectionHelper sometimes getting moved to a different layer instead of the actual shape.
+- Some small QOL changes to multiline.
+- Logout routing.
+- Active location not being remembered by server.
+- Notes not getting cleared on location change.
+- AssetManager shift selection causing double selections.
+- AssetManager issues with (re)moving files.
+- Player location not saving properly.
+- Prevent duplicate owner entries for a shape.
+
 ## [0.13.3] - 2019-01-19
 
 ### Fixed

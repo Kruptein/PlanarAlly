@@ -20,7 +20,7 @@ sever/client/src/*.js.map
 # PlanarAlly
 server/planarallyserver.log
 server/planar.save*
-server/planar.sqlite
+server/planar.sqlite*
 server/server_config.cfg
 # server/static/img/**
 server/static/assets/**

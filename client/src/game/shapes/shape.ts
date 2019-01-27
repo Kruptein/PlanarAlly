@@ -5,7 +5,7 @@ import { socket } from "@/game/api/socket";
 import { aurasFromServer, aurasToServer } from "@/game/comm/conversion/aura";
 import { InitiativeData } from "@/game/comm/types/general";
 import { ServerShape } from "@/game/comm/types/shapes";
-import { GlobalPoint, LocalPoint } from "@/game/geom";
+import { GlobalPoint, LocalPoint, Vector } from "@/game/geom";
 import { layerManager } from "@/game/layers/manager";
 import { BoundingRect } from "@/game/shapes/boundingrect";
 import { gameStore } from "@/game/store";
@@ -13,14 +13,14 @@ import { g2l, g2lr, g2lx, g2ly, g2lz } from "@/game/units";
 
 export abstract class Shape {
     // Used to create class instance from server shape data
-    abstract type: string;
+    abstract readonly type: string;
     // The unique ID of this shape
-    uuid: string;
+    readonly uuid: string;
     // The layer the shape is currently on
     layer!: string;
 
     // A reference point regarding that specific shape's structure
-    refPoint: GlobalPoint;
+    protected _refPoint: GlobalPoint;
 
     // Fill colour of the shape
     fillColour: string = "#000";
@@ -31,7 +31,7 @@ export abstract class Shape {
     // Associated trackers/auras/owners
     trackers: Tracker[] = [];
     auras: Aura[] = [];
-    owners: string[] = [];
+    protected _owners: string[] = [];
 
     // Block light sources
     visionObstruction = false;
@@ -52,10 +52,17 @@ export abstract class Shape {
     options: Map<string, any> = new Map();
 
     constructor(refPoint: GlobalPoint, fillColour?: string, strokeColour?: string, uuid?: string) {
-        this.refPoint = refPoint;
+        this._refPoint = refPoint;
         this.uuid = uuid || uuidv4();
         if (fillColour !== undefined) this.fillColour = fillColour;
         if (strokeColour !== undefined) this.strokeColour = strokeColour;
+    }
+
+    get refPoint() {
+        return this._refPoint;
+    }
+    set refPoint(point: GlobalPoint) {
+        this._refPoint = point;
     }
 
     abstract getBoundingBox(): BoundingRect;
@@ -65,7 +72,6 @@ export abstract class Shape {
 
     abstract center(): GlobalPoint;
     abstract center(centerPoint: GlobalPoint): void;
-    abstract getCorner(point: GlobalPoint): string | undefined;
     visibleInCanvas(canvas: HTMLCanvasElement): boolean {
         // for (const aura of this.auras) {
         //     if (aura.value > 0) {
@@ -80,27 +86,43 @@ export abstract class Shape {
     // This is shape dependent as the shape refPoints are shape specific in
     abstract snapToGrid(): void;
     abstract resizeToGrid(): void;
-    abstract resize(resizeDir: string, point: LocalPoint): void;
+    abstract resize(resizePoint: number, point: LocalPoint): void;
 
     abstract get points(): number[][];
+
+    getPointIndex(p: GlobalPoint, delta = 0): number {
+        for (const [idx, point] of this.points.entries()) {
+            if (Math.abs(p.x - point[0]) <= delta && Math.abs(p.y - point[1]) <= delta) return idx;
+        }
+        return -1;
+    }
+
+    getPointOrientation(i: number): Vector {
+        const prev = GlobalPoint.fromArray(this.points[(this.points.length + i - 1) % this.points.length]);
+        const point = GlobalPoint.fromArray(this.points[i]);
+        const next = GlobalPoint.fromArray(this.points[(i + 1) % this.points.length]);
+        const vec = next.subtract(prev);
+        const mid = prev.add(vec.multiply(0.5));
+        return point.subtract(mid).normalize();
+    }
 
     invalidate(skipLightUpdate: boolean) {
         const l = layerManager.getLayer(this.layer);
         if (l) l.invalidate(skipLightUpdate);
     }
 
-    checkVisionSources() {
+    checkVisionSources(recalculate = true) {
         const self = this;
         const obstructionIndex = gameStore.visionBlockers.indexOf(this.uuid);
-        let changeBV = false;
+        let update = false;
         if (this.visionObstruction && obstructionIndex === -1) {
             gameStore.visionBlockers.push(this.uuid);
-            changeBV = true;
+            update = true;
         } else if (!this.visionObstruction && obstructionIndex >= 0) {
             gameStore.visionBlockers.splice(obstructionIndex, 1);
-            changeBV = true;
+            update = true;
         }
-        if (changeBV) gameStore.recalculateBV();
+        if (update && recalculate) gameStore.recalculateVision();
 
         // Check if the visionsource auras are in the gameManager
         this.auras.forEach(au => {
@@ -121,12 +143,18 @@ export abstract class Shape {
         }
     }
 
-    setMovementBlock(blocksMovement: boolean) {
+    setMovementBlock(blocksMovement: boolean, recalculate = true) {
         this.movementObstruction = blocksMovement || false;
         const obstructionIndex = gameStore.movementblockers.indexOf(this.uuid);
-        if (this.movementObstruction && obstructionIndex === -1) gameStore.movementblockers.push(this.uuid);
-        else if (!this.movementObstruction && obstructionIndex >= 0)
+        let update = false;
+        if (this.movementObstruction && obstructionIndex === -1) {
+            gameStore.movementblockers.push(this.uuid);
+            update = true;
+        } else if (!this.movementObstruction && obstructionIndex >= 0) {
             gameStore.movementblockers.splice(obstructionIndex, 1);
+            update = true;
+        }
+        if (update && recalculate) gameStore.recalculateMovement();
     }
 
     setIsToken(isToken: boolean) {
@@ -136,11 +164,6 @@ export abstract class Shape {
             if (this.isToken && i === -1) gameStore.ownedtokens.push(this.uuid);
             else if (!this.isToken && i >= 0) gameStore.ownedtokens.splice(i, 1);
         }
-    }
-
-    ownedBy(username?: string) {
-        if (username === undefined) username = gameStore.username;
-        return gameStore.IS_DM || this.owners.includes(username);
     }
 
     abstract asDict(): ServerShape;
@@ -156,7 +179,7 @@ export abstract class Shape {
             vision_obstruction: this.visionObstruction,
             auras: aurasToServer(this.auras),
             trackers: this.trackers,
-            owners: this.owners,
+            owners: this._owners,
             fill_colour: this.fillColour,
             stroke_colour: this.strokeColour,
             name: this.name,
@@ -172,7 +195,7 @@ export abstract class Shape {
         this.visionObstruction = data.vision_obstruction;
         this.auras = aurasFromServer(data.auras);
         this.trackers = data.trackers;
-        this.owners = data.owners;
+        this._owners = data.owners;
         this.isToken = data.is_token;
         if (data.annotation) this.annotation = data.annotation;
         if (data.name) this.name = data.name;
@@ -252,5 +275,29 @@ export abstract class Shape {
         newLayer.invalidate(false);
         // Sync!
         if (sync) socket.emit("Shape.Layer.Change", { uuid: this.uuid, layer });
+    }
+
+    get owners() {
+        return Object.freeze(this._owners);
+    }
+
+    ownedBy(username?: string) {
+        if (username === undefined) username = gameStore.username;
+        return gameStore.IS_DM || this._owners.includes(username);
+    }
+
+    addOwner(owner: string) {
+        if (!this._owners.includes(owner)) this._owners.push(owner);
+    }
+
+    updateOwner(oldValue: string, newValue: string) {
+        const ownerIndex = this._owners.findIndex(o => o === oldValue);
+        if (ownerIndex >= 0) this._owners.splice(ownerIndex, 1, newValue);
+        else this.addOwner(newValue);
+    }
+
+    removeOwner(owner: string) {
+        const ownerIndex = this._owners.findIndex(o => o === owner);
+        this._owners.splice(ownerIndex, 1);
     }
 }

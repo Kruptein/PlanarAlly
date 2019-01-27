@@ -17,7 +17,7 @@ export interface GameState {
 }
 
 @Module({ dynamic: true, store: rootStore, name: "game", namespaced: true })
-class GameStore extends VuexModule {
+class GameStore extends VuexModule implements GameState {
     // This is a limited view of selectable layers that is used to generate the layer selection UI and ability to switch layers
     // See the layerManager for proper layer management tools
     layers: string[] = [];
@@ -60,14 +60,18 @@ class GameStore extends VuexModule {
     BV = Object.freeze(new BoundingVolume([]));
 
     visionMode: "bvh" | "triangle" = "bvh";
+    drawTEContour = false;
+    visionRangeMin = 1640;
+    visionRangeMax = 3281;
 
     get selectedLayer() {
         return this.layers[this.selectedLayerIndex];
     }
 
     @Mutation
-    setVisionMode(visionMode: "bvh" | "triangle") {
-        this.visionMode = visionMode;
+    setVisionMode(data: { mode: "bvh" | "triangle"; sync: boolean }) {
+        this.visionMode = data.mode;
+        if (data.sync) socket.emit("Location.Options.Set", { vision_mode: data.mode });
     }
 
     @Mutation
@@ -136,28 +140,16 @@ class GameStore extends VuexModule {
     }
 
     @Mutation
-    recalculateBV(partial = false) {
-        // TODO: This needs to be cleaned up..
+    recalculateVision(partial = false) {
         if (this.boardInitialized) {
-            if (this.visionMode === "triangle") triangulate(partial);
-            else {
-                let success = false;
-                let tries = 0;
-                while (!success) {
-                    success = true;
-                    try {
-                        this.BV = Object.freeze(new BoundingVolume(this.visionBlockers));
-                    } catch (error) {
-                        success = false;
-                        tries++;
-                        if (tries > 10) {
-                            console.error(error);
-                            return;
-                        }
-                    }
-                }
-            }
+            if (this.visionMode === "triangle") triangulate("vision", partial);
+            else this.BV = Object.freeze(new BoundingVolume(this.visionBlockers));
         }
+    }
+
+    @Mutation
+    recalculateMovement(partial = false) {
+        if (this.boardInitialized && this.visionMode === "triangle") triangulate("movement", partial);
     }
 
     @Mutation
@@ -257,6 +249,20 @@ class GameStore extends VuexModule {
     }
 
     @Mutation
+    setVisionRangeMin(data: { value: number; sync: boolean }): void {
+        this.visionRangeMin = data.value;
+        layerManager.invalidateLight();
+        if (data.sync) socket.emit("Location.Options.Set", { vision_min_range: data.value });
+    }
+
+    @Mutation
+    setVisionRangeMax(data: { value: number; sync: boolean }): void {
+        this.visionRangeMax = Math.max(data.value, this.visionRangeMin);
+        layerManager.invalidateLight();
+        if (data.sync) socket.emit("Location.Options.Set", { vision_max_range: this.visionRangeMax });
+    }
+
+    @Mutation
     setFullFOW(data: { fullFOW: boolean; sync: boolean }) {
         if (this.fullFOW !== data.fullFOW) {
             this.fullFOW = data.fullFOW;
@@ -308,7 +314,9 @@ class GameStore extends VuexModule {
         (<any>this.context.state).ownedtokens = [];
         (<any>this.context.state).annotations = [];
         (<any>this.context.state).movementblockers = [];
-        this.context.commit("recalculateBV");
+        (<any>this.context.state).notes = [];
+        this.context.commit("recalculateVision");
+        this.context.commit("recalculateMovement");
     }
 }
 

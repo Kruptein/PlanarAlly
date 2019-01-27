@@ -56,8 +56,10 @@ export default class MapTool extends Tool {
 
         this.rect.w = Math.abs(endPoint.x - this.startPoint.x);
         this.rect.h = Math.abs(endPoint.y - this.startPoint.y);
-        this.rect.refPoint.x = Math.min(this.startPoint.x, endPoint.x);
-        this.rect.refPoint.y = Math.min(this.startPoint.y, endPoint.y);
+        this.rect.refPoint = new GlobalPoint(
+            Math.min(this.startPoint.x, endPoint.x),
+            Math.min(this.startPoint.y, endPoint.y),
+        );
         layer.invalidate(false);
     }
     onMouseUp(event: MouseEvent) {

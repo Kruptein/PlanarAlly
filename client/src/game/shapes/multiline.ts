@@ -1,8 +1,9 @@
 import { GlobalPoint, LocalPoint } from "@/game/geom";
 import { BoundingRect } from "@/game/shapes/boundingrect";
 import { Shape } from "@/game/shapes/shape";
-import { g2lx, g2ly, g2lz } from "@/game/units";
+import { g2lx, g2ly, g2lz, l2g } from "@/game/units";
 import { getFogColour } from "@/game/utils";
+import { ServerMultiLine } from "../comm/types/shapes";
 
 export class MultiLine extends Shape {
     type = "multiline";
@@ -19,19 +20,33 @@ export class MultiLine extends Shape {
         this._points = points || [];
         this.lineWidth = lineWidth || 3;
     }
+
+    get refPoint() {
+        return this._refPoint;
+    }
+    set refPoint(point: GlobalPoint) {
+        const delta = point.subtract(this._refPoint);
+        this._refPoint = point;
+        for (let i = 0; i < this._points.length; i++) this._points[i] = this._points[i].add(delta);
+    }
+
     asDict() {
         return Object.assign(this.getBaseDict(), {
             line_width: this.lineWidth,
             points: this._points.map(p => ({ x: p.x, y: p.y })),
         });
     }
+    fromDict(data: ServerMultiLine) {
+        super.fromDict(data);
+        this._points = data.points.map(p => new GlobalPoint(p.x, p.y));
+    }
     get points() {
         return this._points.map(point => [point.x, point.y]);
     }
     getBoundingBox(): BoundingRect {
         let minx: number = this.refPoint.x;
-        let maxx: number = this.refPoint.y;
-        let miny: number = this.refPoint.x;
+        let maxx: number = this.refPoint.x;
+        let miny: number = this.refPoint.y;
         let maxy: number = this.refPoint.y;
         for (const p of this._points) {
             if (p.x < minx) minx = p.x;
@@ -54,19 +69,21 @@ export class MultiLine extends Shape {
         ctx.stroke();
     }
     contains(point: GlobalPoint): boolean {
-        return this._points.includes(point);
+        return this.getBoundingBox().contains(point);
     }
 
     center(): GlobalPoint;
     center(centerPoint: GlobalPoint): void;
-    center(centerPoint?: GlobalPoint): GlobalPoint | void {} // TODO
-    getCorner(point: GlobalPoint): string | undefined {
-        return "";
-    } // TODO
+    center(centerPoint?: GlobalPoint): GlobalPoint | void {
+        return this.getBoundingBox().center();
+    }
     visibleInCanvas(canvas: HTMLCanvasElement): boolean {
-        return true;
+        return this.getBoundingBox().visibleInCanvas(canvas);
     } // TODO
     snapToGrid(): void {}
     resizeToGrid(): void {}
-    resize(resizeDir: string, point: LocalPoint): void {}
+    resize(resizePoint: number, point: LocalPoint): void {
+        if (resizePoint === 0) this._refPoint = l2g(point);
+        else this._points[resizePoint - 1] = l2g(point);
+    }
 }

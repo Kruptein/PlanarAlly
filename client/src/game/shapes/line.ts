@@ -1,7 +1,7 @@
 import { GlobalPoint, LocalPoint } from "@/game/geom";
 import { BoundingRect } from "@/game/shapes/boundingrect";
 import { Shape } from "@/game/shapes/shape";
-import { g2lx, g2ly } from "@/game/units";
+import { g2lx, g2ly, l2g } from "@/game/units";
 
 export class Line extends Shape {
     type = "line";
@@ -30,7 +30,7 @@ export class Line extends Shape {
     }
     getBoundingBox(): BoundingRect {
         return new BoundingRect(
-            new GlobalPoint(Math.min(this.refPoint.x, this.endPoint.x), Math.min(this.refPoint.x, this.endPoint.y)),
+            new GlobalPoint(Math.min(this.refPoint.x, this.endPoint.x), Math.min(this.refPoint.y, this.endPoint.y)),
             Math.abs(this.refPoint.x - this.endPoint.x),
             Math.abs(this.refPoint.y - this.endPoint.y),
         );
@@ -51,13 +51,13 @@ export class Line extends Shape {
     center(): GlobalPoint;
     center(centerPoint: GlobalPoint): void;
     center(centerPoint?: GlobalPoint): GlobalPoint | void {} // TODO
-    getCorner(point: GlobalPoint): string | undefined {
-        return "";
-    } // TODO
     visibleInCanvas(canvas: HTMLCanvasElement): boolean {
-        return true;
+        return this.getBoundingBox().visibleInCanvas(canvas);
     } // TODO
     snapToGrid(): void {}
     resizeToGrid(): void {}
-    resize(resizeDir: string, point: LocalPoint): void {}
+    resize(resizePoint: number, point: LocalPoint): void {
+        if (resizePoint === 0) this.refPoint = l2g(point);
+        else this.endPoint = l2g(point);
+    }
 }

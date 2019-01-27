@@ -54,15 +54,12 @@ export class Text extends Shape {
     center(): GlobalPoint;
     center(centerPoint: GlobalPoint): void;
     center(centerPoint?: GlobalPoint): GlobalPoint | void {} // TODO
-    getCorner(point: GlobalPoint): string | undefined {
-        return "";
-    } // TODO
     visibleInCanvas(canvas: HTMLCanvasElement): boolean {
-        return true;
+        return this.getBoundingBox().visibleInCanvas(canvas);
     } // TODO
     snapToGrid(): void {}
     resizeToGrid(): void {}
-    resize(resizeDir: string, point: LocalPoint): void {}
+    resize(resizePoint: number, point: LocalPoint): void {}
 
     getMaxHeight(ctx: CanvasRenderingContext2D) {
         const lines = this.getLines(ctx);

@@ -1,4 +1,5 @@
 import { GlobalPoint, Point, Ray, Vector } from "@/game/geom";
+import { g2lx, g2ly } from "../units";
 
 export class BoundingRect {
     readonly w: number;
@@ -81,56 +82,21 @@ export class BoundingRect {
         return { hit: txmin < ray.tMax! && txmax > 0, min: txmin, max: txmax };
     }
 
-    center(): GlobalPoint;
-    center(centerPoint: GlobalPoint): void;
-    center(centerPoint?: GlobalPoint): GlobalPoint | void {
-        if (centerPoint === undefined) return this.topLeft.add(new Vector(this.w / 2, this.h / 2));
-        this.topLeft.x = centerPoint.x - this.w / 2;
-        this.topLeft.y = centerPoint.y - this.h / 2;
-    }
-    inCorner(point: GlobalPoint, corner: string) {
-        const sw = Math.min(6, this.w / 2) / 2;
-        switch (corner) {
-            case "ne":
-                return (
-                    this.topRight.x - sw <= point.x &&
-                    point.x <= this.topRight.x + sw &&
-                    this.topLeft.y - sw <= point.y &&
-                    point.y <= this.topLeft.y + sw
-                );
-            case "nw":
-                return (
-                    this.topLeft.x - sw <= point.x &&
-                    point.x <= this.topLeft.x + sw &&
-                    this.topLeft.y - sw <= point.y &&
-                    point.y <= this.topLeft.y + sw
-                );
-            case "sw":
-                return (
-                    this.topLeft.x - sw <= point.x &&
-                    point.x <= this.topLeft.x + sw &&
-                    this.botLeft.y - sw <= point.y &&
-                    point.y <= this.botLeft.y + sw
-                );
-            case "se":
-                return (
-                    this.topRight.x - sw <= point.x &&
-                    point.x <= this.topRight.x + sw &&
-                    this.botLeft.y - sw <= point.y &&
-                    point.y <= this.botLeft.y + sw
-                );
-            default:
-                return false;
-        }
-    }
-    getCorner(point: GlobalPoint): string | undefined {
-        if (this.inCorner(point, "ne")) return "ne";
-        else if (this.inCorner(point, "nw")) return "nw";
-        else if (this.inCorner(point, "se")) return "se";
-        else if (this.inCorner(point, "sw")) return "sw";
+    center(): GlobalPoint {
+        return this.topLeft.add(new Vector(this.w / 2, this.h / 2));
     }
 
     getMaxExtent() {
         return this.w > this.h ? 0 : 1;
+    }
+    visibleInCanvas(canvas: HTMLCanvasElement): boolean {
+        const coreVisible = !(
+            g2lx(this.topLeft.x) > canvas.width ||
+            g2ly(this.topLeft.y) > canvas.height ||
+            g2lx(this.topRight.x) < 0 ||
+            g2ly(this.botRight.y) < 0
+        );
+        if (coreVisible) return true;
+        return false;
     }
 }

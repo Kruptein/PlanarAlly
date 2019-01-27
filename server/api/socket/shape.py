@@ -74,7 +74,7 @@ async def update_shape_position(sid, data):
     room = sid_data["room"]
     location = sid_data["location"]
 
-    shape, layer = await _get_shape(data, location)
+    shape, layer = await _get_shape(data, location, user)
 
     if not await has_ownership(layer, room, data, user, shape):
         return
@@ -89,6 +89,15 @@ async def update_shape_position(sid, data):
             model = reduce_data_to_model(Shape, data["shape"])
             update_model_from_dict(shape, model)
             shape.save()
+            if shape.type_ in ["polygon", "multiline"]:
+                # Subshape
+                type_table = get_table(shape.type_)
+                type_instance = type_table.get(uuid=shape.uuid)
+                # no backrefs on these tables
+                update_model_from_dict(
+                    type_instance, data["shape"], ignore_unknown=True
+                )
+                type_instance.save()
 
     await sync_shape_update(layer, room, data, sid, shape)
 
@@ -101,7 +110,7 @@ async def update_shape(sid, data):
     room = sid_data["room"]
     location = sid_data["location"]
 
-    shape, layer = await _get_shape(data, location)
+    shape, layer = await _get_shape(data, location, user)
 
     if not await has_ownership(layer, room, data, user, shape):
         return
@@ -322,7 +331,7 @@ async def sync_shape_update(layer, room, data, sid, shape):
     #     await sio.emit("Shape.Update", data, room=csid, namespace="/planarally")
 
 
-async def _get_shape(data, location):
+async def _get_shape(data, location, user):
     # We're first gonna retrieve the existing server side shape for some validation checks
     if data["temporary"]:
         # This stuff is not stored so we cannot do any server side validation /shrug
@@ -332,9 +341,11 @@ async def _get_shape(data, location):
         # Use the server version of the shape.
         try:
             shape = Shape.get(uuid=data["shape"]["uuid"])
-        except Shape.DoesNotExist:
-            logger.warning(f"Attempt to update unknown shape by {user.name}")
-            return
+        except Shape.DoesNotExist as exc:
+            logger.warning(
+                f"Attempt to update unknown shape by {user.name} [{data['shape']['uuid']}]"
+            )
+            raise exc
         layer = shape.layer
 
     return shape, layer

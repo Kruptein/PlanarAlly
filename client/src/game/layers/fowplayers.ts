@@ -3,7 +3,7 @@ import { Layer } from "@/game/layers/layer";
 import { layerManager } from "@/game/layers/manager";
 import { Settings } from "@/game/settings";
 import { gameStore } from "@/game/store";
-import { g2l, g2lx, g2ly } from "@/game/units";
+import { g2l, g2lr, g2lx, g2ly } from "@/game/units";
 import { computeVisibility } from "../visibility/te/te";
 
 export class FOWPlayersLayer extends Layer {
@@ -39,11 +39,11 @@ export class FOWPlayersLayer extends Layer {
             for (const tokenId of gameStore.ownedtokens) {
                 const token = layerManager.UUIDMap.get(tokenId);
                 if (token === undefined) continue;
+                const center = token.center();
+                const lcenter = g2l(center);
                 if (gameStore.visionMode === "bvh") {
                     ctx.beginPath();
                     let lastArcAngle = -1;
-                    const center = token.center();
-                    const lcenter = g2l(center);
 
                     for (let angle = 0; angle < 2 * Math.PI; angle += (Settings.angleSteps / 2 / 180) * Math.PI) {
                         const cos = Math.cos(angle);
@@ -76,8 +76,24 @@ export class FOWPlayersLayer extends Layer {
                     else ctx.closePath();
                     ctx.fill();
                 } else {
+                    if (true) {
+                        // Add a gradient vision dropoff
+                        const gradient = ctx.createRadialGradient(
+                            lcenter.x,
+                            lcenter.y,
+                            g2lr(gameStore.visionRangeMin),
+                            lcenter.x,
+                            lcenter.y,
+                            g2lr(gameStore.visionRangeMax),
+                        );
+                        gradient.addColorStop(0, "rgba(0, 0, 0, 1)");
+                        gradient.addColorStop(1, "rgba(0, 0, 0, 0)");
+                        ctx.fillStyle = gradient;
+                    } else {
+                        ctx.fillStyle = "rgba(0, 0, 0, 1)";
+                    }
                     try {
-                        const polygon = computeVisibility(token.center());
+                        const polygon = computeVisibility(token.center(), "vision");
                         ctx.beginPath();
                         ctx.moveTo(g2lx(polygon[0][0]), g2ly(polygon[0][1]));
                         for (const point of polygon) ctx.lineTo(g2lx(point[0]), g2ly(point[1]));

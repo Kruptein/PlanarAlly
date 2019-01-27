@@ -5,7 +5,9 @@ import { Route } from "vue-router";
 
 import { coreStore } from "@/core/store";
 
-@Component({ template: "" })
+Component.registerHooks(["beforeRouteEnter"]);
+
+@Component({})
 export default class Logout extends Vue {
     beforeRouteEnter(to: Route, from: Route, next: ({}) => {}) {
         Axios.post("/api/logout").then(() => {

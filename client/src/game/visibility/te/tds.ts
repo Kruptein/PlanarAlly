@@ -99,6 +99,30 @@ export class Triangle {
             return this.vertices[ccw(index)]!.infinite || this.vertices[cw(index)]!.infinite;
         }
     }
+
+    contains(point: Point) {
+        const A =
+            -this.vertices[1]!.point![1] * this.vertices[2]!.point![0] +
+            this.vertices[0]!.point![1] * (-this.vertices[1]!.point![0] + this.vertices[2]!.point![0]) +
+            this.vertices[0]!.point![0] * (this.vertices[1]!.point![1] - this.vertices[2]!.point![1]) +
+            this.vertices[1]!.point![0] * this.vertices[2]!.point![1];
+        const sign = A < 0 ? -1 : 1;
+        const s =
+            (this.vertices[0]!.point![1] * this.vertices[2]!.point![0] -
+                this.vertices[0]!.point![0] * this.vertices[2]!.point![1] +
+                (this.vertices[2]!.point![1] - this.vertices[0]!.point![1]) * point[0] +
+                (this.vertices[0]!.point![0] - this.vertices[2]!.point![0]) * point[1]) *
+            sign;
+        if (s < 0) return false;
+        const t =
+            (this.vertices[0]!.point![0] * this.vertices[1]!.point![1] -
+                this.vertices[0]!.point![1] * this.vertices[1]!.point![0] +
+                (this.vertices[0]!.point![1] - this.vertices[1]!.point![1]) * point[0] +
+                (this.vertices[1]!.point![0] - this.vertices[0]!.point![0]) * point[1]) *
+            sign;
+
+        return t > 0 && s + t < A * sign;
+    }
 }
 
 export class Vertex {

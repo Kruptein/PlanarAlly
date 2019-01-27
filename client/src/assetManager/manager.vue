@@ -154,7 +154,7 @@ export default class AssetManager extends Vue {
         }
     }
     moveInode(inode: number, target: number) {
-        if (assetStore.isFile(inode)) assetStore.files.splice(assetStore.files.indexOf(inode), 1);
+        if (assetStore.files.includes(inode)) assetStore.files.splice(assetStore.files.indexOf(inode), 1);
         else assetStore.folders.splice(assetStore.folders.indexOf(inode), 1);
         assetStore.idMap.delete(inode);
         socket.emit("Inode.Move", { inode, target });
@@ -164,7 +164,10 @@ export default class AssetManager extends Vue {
             const inodes = [...assetStore.files, ...assetStore.folders];
             const start = inodes.indexOf(assetStore.selected[assetStore.selected.length - 1]);
             const end = inodes.indexOf(inode);
-            for (let i = start; i !== end; start < end ? i++ : i--) assetStore.selected.push(inodes[i]);
+            for (let i = start; i !== end; start < end ? i++ : i--) {
+                if (i === start) continue;
+                assetStore.selected.push(inodes[i]);
+            }
             assetStore.selected.push(inodes[end]);
         } else {
             if (!event.ctrlKey) {

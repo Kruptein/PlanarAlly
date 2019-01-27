@@ -48,14 +48,19 @@ export function onKeyDown(event: KeyboardEvent) {
                 let delta = new Vector(offsetX, offsetY);
                 if (!event.shiftKey || !gameStore.IS_DM) {
                     // First check for collisions.  Using the smooth wall slide collision check used on mouse move is overkill here.
-                    for (const sel of selection) delta = calculateDelta(delta, sel);
+                    for (const sel of selection) {
+                        if ((<any>getRef<Tools>("tools").$refs.selectTool).selectionHelper.uuid === sel.uuid) continue;
+                        delta = calculateDelta(delta, sel);
+                    }
                 }
                 for (const sel of selection) {
-                    sel.refPoint.x += delta.x;
-                    sel.refPoint.y += delta.y;
-                    if (sel.refPoint.x % gridSize !== 0 || sel.refPoint.y % gridSize !== 0) sel.snapToGrid();
+                    if ((<any>getRef<Tools>("tools").$refs.selectTool).selectionHelper.uuid === sel.uuid) continue;
+                    sel.refPoint = sel.refPoint.add(delta);
+                    // todo: Fix again
+                    // if (sel.refPoint.x % gridSize !== 0 || sel.refPoint.y % gridSize !== 0) sel.snapToGrid();
                     socket.emit("Shape.Position.Update", { shape: sel.asDict(), redraw: true, temporary: false });
                 }
+                gameStore.recalculateVision();
                 layerManager.getLayer()!.invalidate(false);
             } else {
                 // The pan offsets should be in the opposite direction to give the correct feel.

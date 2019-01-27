@@ -4,7 +4,7 @@ from aiohttp_security import authorized_userid
 
 from .location import load_location
 from app import logger, sio, state
-from models import Asset, Location, Note, Room, User
+from models import Asset, Location, Room, User
 
 
 @sio.on("connect", namespace="/planarally")
@@ -45,17 +45,6 @@ async def connect(sid, environ):
                 "creator": room.creator.name,
                 "invitationCode": str(room.invitation_code),
             },
-            room=sid,
-            namespace="/planarally",
-        )
-        await sio.emit(
-            "Notes.Set",
-            [
-                note.as_dict()
-                for note in Note.select().where(
-                    (Note.user == user) & (Note.room == room)
-                )
-            ],
             room=sid,
             namespace="/planarally",
         )

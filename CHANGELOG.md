@@ -7,6 +7,8 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+## [0.14.0] - 2019-01-27
+
 ### Added
 
 - Polygon shape in the draw tool.

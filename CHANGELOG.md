@@ -34,6 +34,7 @@ All notable changes to this project will be documented in this file.
 - Notes not getting cleared on location change.
 - AssetManager shift selection causing double selections.
 - AssetManager issues with (re)moving files.
+- Player location not saving properly.
 
 ## [0.13.3] - 2019-01-19
 

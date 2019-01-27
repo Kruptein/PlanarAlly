@@ -85,13 +85,13 @@ async def change_location(sid, location):
     old_location = room.get_active_location(dm=True)
     sio.leave_room(sid, old_location.get_path(), namespace="/planarally")
     room.dm_location = location
-    room.save()
     new_location = room.get_active_location(dm=True)
 
     sio.enter_room(sid, new_location.get_path(), namespace="/planarally")
     await load_location(sid, new_location)
 
     room.player_location = location
+    room.save()
 
     for room_player in room.players:
         for psid in state.get_sids(user=room_player.player, room=room):

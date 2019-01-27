@@ -5,12 +5,11 @@ import { socket } from "@/game/api/socket";
 import { aurasFromServer, aurasToServer } from "@/game/comm/conversion/aura";
 import { InitiativeData } from "@/game/comm/types/general";
 import { ServerShape } from "@/game/comm/types/shapes";
-import { GlobalPoint, LocalPoint, Ray, Vector } from "@/game/geom";
+import { GlobalPoint, LocalPoint, Vector } from "@/game/geom";
 import { layerManager } from "@/game/layers/manager";
 import { BoundingRect } from "@/game/shapes/boundingrect";
 import { gameStore } from "@/game/store";
 import { g2l, g2lr, g2lx, g2ly, g2lz } from "@/game/units";
-import { Vertex } from "../visibility/te/tds";
 
 export abstract class Shape {
     // Used to create class instance from server shape data
@@ -32,7 +31,7 @@ export abstract class Shape {
     // Associated trackers/auras/owners
     trackers: Tracker[] = [];
     auras: Aura[] = [];
-    owners: string[] = [];
+    protected _owners: string[] = [];
 
     // Block light sources
     visionObstruction = false;
@@ -167,11 +166,6 @@ export abstract class Shape {
         }
     }
 
-    ownedBy(username?: string) {
-        if (username === undefined) username = gameStore.username;
-        return gameStore.IS_DM || this.owners.includes(username);
-    }
-
     abstract asDict(): ServerShape;
     getBaseDict(): ServerShape {
         return {
@@ -185,7 +179,7 @@ export abstract class Shape {
             vision_obstruction: this.visionObstruction,
             auras: aurasToServer(this.auras),
             trackers: this.trackers,
-            owners: this.owners,
+            owners: this._owners,
             fill_colour: this.fillColour,
             stroke_colour: this.strokeColour,
             name: this.name,
@@ -201,7 +195,7 @@ export abstract class Shape {
         this.visionObstruction = data.vision_obstruction;
         this.auras = aurasFromServer(data.auras);
         this.trackers = data.trackers;
-        this.owners = data.owners;
+        this._owners = data.owners;
         this.isToken = data.is_token;
         if (data.annotation) this.annotation = data.annotation;
         if (data.name) this.name = data.name;
@@ -281,5 +275,29 @@ export abstract class Shape {
         newLayer.invalidate(false);
         // Sync!
         if (sync) socket.emit("Shape.Layer.Change", { uuid: this.uuid, layer });
+    }
+
+    get owners() {
+        return Object.freeze(this._owners);
+    }
+
+    ownedBy(username?: string) {
+        if (username === undefined) username = gameStore.username;
+        return gameStore.IS_DM || this._owners.includes(username);
+    }
+
+    addOwner(owner: string) {
+        if (!this._owners.includes(owner)) this._owners.push(owner);
+    }
+
+    updateOwner(oldValue: string, newValue: string) {
+        const ownerIndex = this._owners.findIndex(o => o === oldValue);
+        if (ownerIndex >= 0) this._owners.splice(ownerIndex, 1, newValue);
+        else this.addOwner(newValue);
+    }
+
+    removeOwner(owner: string) {
+        const ownerIndex = this._owners.findIndex(o => o === owner);
+        this._owners.splice(ownerIndex, 1);
     }
 }

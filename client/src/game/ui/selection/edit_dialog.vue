@@ -223,7 +223,7 @@ export default class EditDialog extends Vue {
     }
 
     addEmpty() {
-        if (this.shape.owners[this.shape.owners.length - 1] !== "") this.shape.owners.push("");
+        if (this.shape.owners[this.shape.owners.length - 1] !== "") this.shape.addOwner("");
         if (
             !this.shape.trackers.length ||
             this.shape.trackers[this.shape.trackers.length - 1].name !== "" ||
@@ -275,14 +275,11 @@ export default class EditDialog extends Vue {
         this.updateShape(false);
     }
     updateOwner(event: { target: HTMLInputElement }, oldValue: string) {
-        const ownerIndex = this.shape.owners.findIndex(o => o === oldValue);
-        if (ownerIndex >= 0) this.shape.owners.splice(ownerIndex, 1, event.target.value);
-        else this.shape.owners.push(event.target.value);
+        this.shape.updateOwner(oldValue, event.target.value);
         this.updateShape(gameStore.fowLOS);
     }
     removeOwner(value: string) {
-        const ownerIndex = this.shape.owners.findIndex(o => o === value);
-        this.shape.owners.splice(ownerIndex, 1);
+        this.shape.removeOwner(value);
         this.updateShape(gameStore.fowLOS);
     }
     removeTracker(uuid: string) {

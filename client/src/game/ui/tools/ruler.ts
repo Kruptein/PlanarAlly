@@ -28,8 +28,8 @@ export class RulerTool extends Tool {
         this.startPoint = l2g(getMouse(event));
         this.ruler = new Line(this.startPoint, this.startPoint, 3, gameStore.rulerColour);
         this.text = new Text(this.startPoint.clone(), "", "bold 20px serif");
-        this.ruler.owners.push(gameStore.username);
-        this.text.owners.push(gameStore.username);
+        this.ruler.addOwner(gameStore.username);
+        this.text.addOwner(gameStore.username);
         layer.addShape(this.ruler, true, true);
         layer.addShape(this.text, true, true);
     }

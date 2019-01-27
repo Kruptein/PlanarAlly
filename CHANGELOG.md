@@ -14,7 +14,7 @@ All notable changes to this project will be documented in this file.
 - [DM] Options to set the minimal and maximal vision ranges when using LOS.
   - A radial gradient is applied starting from the minimal range and stopping at the maximal range.
   - This effectively allows you to play with how far tokens can see.
-  - Autocomplete hints to the login form.
+- Autocomplete hints to the login form.
 - Edit shape dialog now has options to change the border and fill colour.
 - Shape properties can now also be opened from the contextmenu (i.e. right click on a shape).
 
@@ -35,6 +35,7 @@ All notable changes to this project will be documented in this file.
 - AssetManager shift selection causing double selections.
 - AssetManager issues with (re)moving files.
 - Player location not saving properly.
+- Prevent duplicate owner entries for a shape.
 
 ## [0.13.3] - 2019-01-19
 

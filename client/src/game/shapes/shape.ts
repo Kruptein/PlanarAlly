@@ -278,7 +278,7 @@ export abstract class Shape {
     }
 
     get owners() {
-        return Object.freeze(this._owners);
+        return Object.freeze(this._owners.slice());
     }
 
     ownedBy(username?: string) {

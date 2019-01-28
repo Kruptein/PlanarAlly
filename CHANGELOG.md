@@ -7,6 +7,8 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+### [0.14.2] - 2019-01-29
+
 ### Fixed
 
 - Registered users had to logout and login again before being able to perform actions.

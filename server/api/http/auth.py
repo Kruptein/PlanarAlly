@@ -50,7 +50,9 @@ async def register(request):
             u = User(name=username)
             u.set_password(password)
             u.save()
-        return web.HTTPOk()
+        response = web.HTTPOk()
+        await remember(request, response, username)
+        return response
 
 
 async def logout(request):

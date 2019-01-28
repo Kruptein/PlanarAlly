@@ -7,6 +7,10 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+### Fixed
+
+- A lot of things breaking due to a bug in shape ownership.
+
 ## [0.14.0] - 2019-01-27
 
 ### Added

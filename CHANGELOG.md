@@ -7,6 +7,8 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+## [0.14.1] - 2019-01-28
+
 ### Fixed
 
 - A lot of things breaking due to a bug in shape ownership.

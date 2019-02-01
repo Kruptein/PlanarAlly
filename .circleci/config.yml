@@ -1,0 +1,31 @@
+version: 2
+jobs:
+  build:
+    docker:
+      - image: cdrx/pyinstaller-windows:python3
+
+    working_directory: ~/PlanarAlly/server
+
+    steps:
+      - checkout:
+          path: ~/PlanarAlly
+
+      - restore_cache:
+          keys:
+            - v1-dependencies-{{ checksum "requirements.txt" }}
+            - v1-dependencies-
+      - run:
+          name: Install dependencies
+          command: |
+            python3 -m venv venv
+            . venv/bin/activate
+            pip install -r requirements.txt
+
+      - save_cache:
+          paths:
+            - ./venv
+          key: v1-dependencies-{{ checksum "requirements.txt" }}
+
+      - build_exe:
+          name: Build Windows executable
+          command: cdrx/pyinstaller-windows

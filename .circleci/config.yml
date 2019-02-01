@@ -12,4 +12,4 @@ jobs:
 
       - run:
           name: Build Windows executable
-          command: pyinstaller --clean -y --dist ./dist/windows --workpath /tmp *.spec"
+          command: docker run -v "$(pwd):/src/" cdrx/pyinstaller-windows:python3

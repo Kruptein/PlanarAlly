@@ -12,6 +12,7 @@ All notable changes to this project will be documented in this file.
 ### Fixed
 
 - Registered users had to logout and login again before being able to perform actions.
+- [tech] Javascript files being wrongly served as plaintext in some obscure cases.
 
 ## [0.14.1] - 2019-01-28
 

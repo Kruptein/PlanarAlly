@@ -26,6 +26,6 @@ jobs:
             - ./venv
           key: v1-dependencies-{{ checksum "requirements.txt" }}
 
-      - build_exe:
+      - run:
           name: Build Windows executable
           command: cdrx/pyinstaller-windows

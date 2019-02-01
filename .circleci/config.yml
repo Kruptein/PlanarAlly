@@ -13,3 +13,6 @@ jobs:
       - run:
           name: Build Windows executable
           command: pyinstaller --clean -y --dist ./dist/windows --workpath /tmp *.spec
+
+      - store_artifacts:
+          path: /tmp/dist/windows

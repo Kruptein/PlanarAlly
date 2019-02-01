@@ -15,4 +15,10 @@ jobs:
           command: pyinstaller --clean -y --dist ./dist/windows --workpath /tmp *.spec
 
       - store_artifacts:
-          path: /tmp/dist/windows
+          path: /wine/drive_c/tmp/dist/windows
+
+      - store_artifacts:
+          path: /wine/drive_c/dist/windows
+
+      - store_artifacts:
+          path: /wine/drive_c/src/tmp/dist/windows

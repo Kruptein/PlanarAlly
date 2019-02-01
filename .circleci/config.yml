@@ -10,26 +10,6 @@ jobs:
       - checkout:
           path: ~/PlanarAlly
 
-      - restore_cache:
-          keys:
-            - v1-dependencies-{{ checksum "requirements.txt" }}
-            - v1-dependencies-
-      - run:
-          name: Install apt dependencies
-          command: sudo apt-get install python3-venv
-
-      - run:
-          name: Install python dependencies
-          command: |
-            python3 -m venv venv
-            . venv/bin/activate
-            pip install -r requirements.txt
-
-      - save_cache:
-          paths:
-            - ./venv
-          key: v1-dependencies-{{ checksum "requirements.txt" }}
-
       - run:
           name: Build Windows executable
           command: cdrx/pyinstaller-windows

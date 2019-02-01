@@ -2,7 +2,7 @@ version: 2
 jobs:
   build:
     docker:
-      - image: cdrx/pyinstaller-windows:python3
+      - image: docker:latest
 
     working_directory: ~/PlanarAlly/server
 

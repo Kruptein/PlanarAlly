@@ -12,14 +12,18 @@ jobs:
       vmImage: "Ubuntu-16.04"
 
     steps:
-      - task: UsePythonVersion@0
-        inputs:
-          versionSpec: "3.7"
-          architecture: "x64"
+      # - task: UsePythonVersion@0
+      #   inputs:
+      #     versionSpec: "3.7"
+      #     architecture: "x64"
 
       - script: |
-          sudo apt-get install -y python3.7-dev
-          python -m pip install --upgrade pip && pip install -r requirements.txt
+          sudo add-apt-repository ppa:deadsnakes/ppa
+          sudo apt-get update
+          sudo apt-get install python3.7 python3.7-dev
+        displayname: "Install python3.7"
+
+      - script: python -m pip install --upgrade pip && pip install -r requirements.txt
         displayName: "Install dependencies"
         workingDirectory: "server"
 

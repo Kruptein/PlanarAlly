@@ -22,7 +22,7 @@ jobs:
         workingDirectory: "server"
 
       - script: pip install pyinstaller
-        displayName: "Install pyinstaller"
+        displayName: "Install PyInstaller"
 
       - script: pyinstaller --clean -y --dist ./dist/windows --workpath /tmp *.spec
         workingDirectory: "server"

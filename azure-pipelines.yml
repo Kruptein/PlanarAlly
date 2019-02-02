@@ -25,4 +25,5 @@ jobs:
         displayName: "Install pyinstaller"
 
       - script: pyinstaller --clean -y --dist ./dist/windows --workpath /tmp *.spec
+        displayName: "Run pyinstaller"
         workingDirectory: "server"

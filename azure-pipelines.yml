@@ -18,7 +18,7 @@ jobs:
           architecture: "x64"
 
       - script: |
-          sudo apt-get install -y python3-dev
+          sudo apt-get install -y python3.7-dev
           python -m pip install --upgrade pip && pip install -r requirements.txt
         displayName: "Install dependencies"
         workingDirectory: "server"

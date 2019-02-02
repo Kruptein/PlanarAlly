@@ -17,7 +17,9 @@ jobs:
           versionSpec: "3.7"
           architecture: "x64"
 
-      - script: python -m pip install --upgrade pip && pip install -r requirements.txt
+      - script: |
+          sudo apt-get install -y python3-dev
+          python -m pip install --upgrade pip && pip install -r requirements.txt
         displayName: "Install dependencies"
         workingDirectory: "server"
 

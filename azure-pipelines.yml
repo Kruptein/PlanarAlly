@@ -21,7 +21,7 @@ jobs:
         displayName: "Install dependencies"
         workingDirectory: "server"
 
-      - script: pip install pyinstaller
+      - script: pip install PyInstaller
         displayName: "Install PyInstaller"
 
       - script: pyinstaller --clean -y --dist ./dist/windows --workpath /tmp *.spec

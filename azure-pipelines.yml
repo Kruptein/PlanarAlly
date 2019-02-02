@@ -21,8 +21,8 @@ jobs:
         displayName: "Install dependencies"
         workingDirectory: "server"
 
-      - script: pip install PyInstaller
-        displayName: "Install PyInstaller"
+      - script: pip install --no-use-pep517 pyinstaller
+        displayName: "Install pyinstaller"
 
       - script: pyinstaller --clean -y --dist ./dist/windows --workpath /tmp *.spec
         workingDirectory: "server"

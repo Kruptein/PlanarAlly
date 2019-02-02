@@ -20,10 +20,10 @@ jobs:
       - script: |
           sudo add-apt-repository ppa:deadsnakes/ppa
           sudo apt-get update
-          sudo apt-get install python3.7 python3.7-dev
+          sudo apt-get install python3.7 python3.7-dev python3.7-pip
         displayName: "Install python3.7"
 
-      - script: python -m pip install --upgrade pip && pip install -r requirements.txt
+      - script: pip install -r requirements.txt
         displayName: "Install dependencies"
         workingDirectory: "server"
 
@@ -51,6 +51,6 @@ jobs:
       - script: pip install --no-use-pep517 pyinstaller
         displayName: "Install pyinstaller"
 
-      - script: pyinstaller --clean -y --dist ./dist/windows --workpath /tmp *.spec
+      - script: pyinstaller --clean -y --dist ./dist/windows *.spec
         displayName: "Run pyinstaller"
         workingDirectory: "server"

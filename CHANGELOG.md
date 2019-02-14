@@ -7,6 +7,11 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+### Fixed
+
+- Bug causing rulers to stick on DM screen.
+- Bug causing rulers to not appear on other screens.
+
 ### [0.14.2] - 2019-01-29
 
 ### Fixed

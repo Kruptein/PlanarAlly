@@ -76,7 +76,7 @@ export class Layer {
         if (temporary === undefined) temporary = false;
         this.shapes.splice(this.shapes.indexOf(shape), 1);
 
-        if (sync) socket.emit("Shape.Remove", { shape, temporary });
+        if (sync) socket.emit("Shape.Remove", { shape: shape.asDict(), temporary });
         const lsI = gameStore.visionSources.findIndex(ls => ls.shape === shape.uuid);
         const lbI = gameStore.visionBlockers.findIndex(ls => ls === shape.uuid);
 

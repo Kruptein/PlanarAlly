@@ -12,7 +12,7 @@
         @mousemove="mousemove"
         @contextmenu.prevent.stop="contextmenu"
         @dragover.prevent
-        @drop="drop"
+        @drop.prevent.stop="drop"
       ></div>
       <div id="layerselect" v-if="layers.length > 1">
         <ul>

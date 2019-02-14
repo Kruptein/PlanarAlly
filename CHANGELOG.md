@@ -7,10 +7,15 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+### Changed
+
+- Asset preview disappears when starting a drag asset action.
+
 ### Fixed
 
 - Bug causing rulers to stick on DM screen.
 - Bug causing rulers to not appear on other screens.
+- Drag and drop asset on firefox redirecting to random urls.
 
 ### [0.14.2] - 2019-01-29
 

@@ -1,57 +1,58 @@
 <template>
-  <div id="main" @mouseleave="mouseleave">
-    <menu-bar></menu-bar>
-    <div id="board">
-      <template v-if="ready.manager">
-        <tool-bar ref="tools"></tool-bar>
-      </template>
-      <div
-        id="layers"
-        @mousedown="mousedown"
-        @mouseup="mouseup"
-        @mousemove="mousemove"
-        @contextmenu.prevent.stop="contextmenu"
-        @dragover.prevent
-        @drop.prevent.stop="drop"
-      ></div>
-      <div id="layerselect" v-if="layers.length > 1">
-        <ul>
-          <li
-            v-for="layer in layers"
-            :key="layer.name"
-            :class="{ 'layer-selected': layer === selectedLayer }"
-            @click="selectLayer(layer)"
-          >
-            <a href="#">{{ layer }}</a>
-          </li>
-        </ul>
-      </div>
+    <div id="main" @mouseleave="mouseleave">
+        <menu-bar v-if="showUI"></menu-bar>
+        <div id="board">
+            <template v-if="ready.manager">
+                <tool-bar ref="tools" v-show="showUI"></tool-bar>
+            </template>
+            <div
+                id="layers"
+                @mousedown="mousedown"
+                @mouseup="mouseup"
+                @mousemove="mousemove"
+                @contextmenu.prevent.stop="contextmenu"
+                @dragover.prevent
+                @drop.prevent.stop="drop"
+            ></div>
+            <div id="layerselect" v-show="showUI && layers.length>1">
+                <ul>
+                    <li
+                        v-for="layer in layers"
+                        :key="layer.name"
+                        :class="{ 'layer-selected': layer === selectedLayer }"
+                        @click="selectLayer(layer)"
+                    >
+                        <a href="#">{{ layer }}</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <selection-info ref="selectionInfo" v-show="showUI"></selection-info>
+        <initiative-dialog ref="initiative" id="initiativedialog"></initiative-dialog>
+        <note-dialog ref="note"></note-dialog>
+        <!-- When updating zoom boundaries, also update store updateZoom function;
+        should probably do this using a store variable-->
+        <zoom-slider
+            id="zoomer"
+            v-model="zoomFactor"
+            v-show="showUI"
+            :height="6"
+            :width="200"
+            :min="0.01"
+            :max="5.0"
+            :interval="0.1"
+            :dot-width="8"
+            :dot-height="20"
+            :tooltip-dir="'bottom'"
+            :tooltip="'hover'"
+            :formatter="zoomFactor.toFixed(1)"
+            :slider-style="{'border-radius': '15%'}"
+            :bg-style="{'background-color': '#fff', 'box-shadow': '0.5px 0.5px 3px 1px rgba(0, 0, 0, .36)'}"
+            :process-style="{'background-color': '#fff'}"
+        ></zoom-slider>
+        <prompt-dialog ref="prompt"></prompt-dialog>
+        <confirm-dialog ref="confirm"></confirm-dialog>
     </div>
-    <selection-info ref="selectionInfo"></selection-info>
-    <initiative-dialog ref="initiative" id="initiativedialog"></initiative-dialog>
-    <note-dialog ref="note"></note-dialog>
-    <!-- When updating zoom boundaries, also update store updateZoom function;
-    should probably do this using a store variable-->
-    <zoom-slider
-      id="zoomer"
-      v-model="zoomFactor"
-      :height="6"
-      :width="200"
-      :min="0.01"
-      :max="5.0"
-      :interval="0.1"
-      :dot-width="8"
-      :dot-height="20"
-      :tooltip-dir="'bottom'"
-      :tooltip="'hover'"
-      :formatter="zoomFactor.toFixed(1)"
-      :slider-style="{'border-radius': '15%'}"
-      :bg-style="{'background-color': '#fff', 'box-shadow': '0.5px 0.5px 3px 1px rgba(0, 0, 0, .36)'}"
-      :process-style="{'background-color': '#fff'}"
-    ></zoom-slider>
-    <prompt-dialog ref="prompt"></prompt-dialog>
-    <confirm-dialog ref="confirm"></confirm-dialog>
-  </div>
 </template>
 
 <script lang="ts">
@@ -110,6 +111,10 @@ export default class Game extends Vue {
         manager: false,
         tools: false,
     };
+
+    get showUI(): boolean {
+        return gameStore.showUI;
+    }
 
     get IS_DM(): boolean {
         return gameStore.IS_DM;

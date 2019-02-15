@@ -64,6 +64,8 @@ class GameStore extends VuexModule implements GameState {
     visionRangeMin = 1640;
     visionRangeMax = 3281;
 
+    showUI = true;
+
     get selectedLayer() {
         return this.layers[this.selectedLayerIndex];
     }
@@ -305,6 +307,11 @@ class GameStore extends VuexModule implements GameState {
     removeNote(data: { note: Note; sync: boolean }) {
         this.notes = this.notes.filter(n => n.uuid !== data.note.uuid);
         if (data.sync) socket.emit("Note.Remove", data.note.uuid);
+    }
+
+    @Mutation
+    toggleUI() {
+        this.showUI = !this.showUI;
     }
 
     @Action

@@ -75,6 +75,10 @@ export function onKeyDown(event: KeyboardEvent) {
                 layer.clearSelection();
                 layer.invalidate(true);
             }
+        } else if (event.key === "u" && event.ctrlKey) {
+            event.preventDefault();
+            event.stopPropagation();
+            gameStore.toggleUI();
         }
     }
 }

@@ -7,6 +7,10 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+### Added
+
+- Keybinding to toggle UI (ctrl+u).
+
 ### Changed
 
 - Asset preview disappears when starting a drag asset action.

@@ -14,12 +14,21 @@ All notable changes to this project will be documented in this file.
 ### Changed
 
 - Asset preview disappears when starting a drag asset action.
+- A mouse down in general will now trigger layer or tool selection.
+  - In the past a 'click' was required, not any 'mousedown' will trigger.
+- Zoom scale has been modified.
 
 ### Fixed
 
 - Bug causing rulers to stick on DM screen.
 - Bug causing rulers to not appear on other screens.
 - Drag and drop asset on firefox redirecting to random urls.
+- Some eventlisteners not being removed properly.
+  - This caused zoom behaviour to mess up when leaving and joining a room multiple times.
+
+### Removed
+
+- Some old css files.
 
 ### [0.14.2] - 2019-01-29
 

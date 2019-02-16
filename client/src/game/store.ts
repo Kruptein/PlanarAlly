@@ -11,6 +11,7 @@ import { g2l, l2g } from "@/game/units";
 import { BoundingVolume } from "@/game/visibility/bvh/bvh";
 import { rootStore } from "@/store";
 import { triangulate } from "./visibility/te/pa";
+import { zoomValue } from "./utils";
 
 export interface GameState {
     boardInitialized: boolean;
@@ -42,7 +43,9 @@ class GameStore extends VuexModule implements GameState {
     rulerColour = "rgba(255, 0, 0, 1)";
     panX = 0;
     panY = 0;
-    zoomFactor = 1;
+
+    zoomDisplay = 0.5;
+    // zoomFactor = 1;
 
     unitSize = 5;
     useGrid = true;
@@ -68,6 +71,19 @@ class GameStore extends VuexModule implements GameState {
 
     get selectedLayer() {
         return this.layers[this.selectedLayerIndex];
+    }
+
+    get zoomFactor() {
+        return zoomValue(this.zoomDisplay);
+    }
+
+    @Mutation
+    setZoomDisplay(zoom: number) {
+        if (zoom === this.zoomDisplay) return;
+        if (zoom < 0) zoom = 0;
+        if (zoom > 1) zoom = 1;
+        this.zoomDisplay = zoom;
+        layerManager.invalidate();
     }
 
     @Mutation
@@ -155,22 +171,17 @@ class GameStore extends VuexModule implements GameState {
     }
 
     @Mutation
-    updateZoom(data: { newZoomValue: number; zoomLocation: GlobalPoint }) {
-        if (data.newZoomValue === this.zoomFactor) return;
-        if (data.newZoomValue < 0.1) data.newZoomValue = 0.01;
-        if (data.newZoomValue > 5) data.newZoomValue = 5;
-
+    updateZoom(data: { newZoomDisplay: number; zoomLocation: GlobalPoint }) {
+        if (data.newZoomDisplay === this.zoomDisplay) return;
+        if (data.newZoomDisplay < 0) data.newZoomDisplay = 0;
+        if (data.newZoomDisplay > 1) data.newZoomDisplay = 1;
         const oldLoc = g2l(data.zoomLocation);
-
-        this.zoomFactor = data.newZoomValue;
-
+        this.zoomDisplay = data.newZoomDisplay;
         const newLoc = l2g(oldLoc);
-
         // Change the pan settings to keep the zoomLocation in the same exact location before and after the zoom.
         const diff = newLoc.subtract(data.zoomLocation);
         this.panX += diff.x;
         this.panY += diff.y;
-
         layerManager.invalidate();
         sendClientOptions();
     }
@@ -203,11 +214,6 @@ class GameStore extends VuexModule implements GameState {
     @Mutation
     setPanY(y: number) {
         this.panY = y;
-    }
-
-    @Mutation
-    setZoomFactor(zoomFactor: number) {
-        this.zoomFactor = zoomFactor;
     }
 
     @Mutation

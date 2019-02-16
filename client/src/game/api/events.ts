@@ -9,6 +9,7 @@ import { createLayer } from "@/game/layers/utils";
 import { gameManager } from "@/game/manager";
 import { gameStore } from "@/game/store";
 import { router } from "@/router";
+import { zoomDisplay } from "../utils";
 
 socket.on("connect", () => {
     console.log("Connected");
@@ -43,7 +44,8 @@ socket.on("Client.Options.Set", (options: ServerClient) => {
     gameStore.setRulerColour({ colour: options.ruler_colour, sync: false });
     gameStore.setPanX(options.pan_x);
     gameStore.setPanY(options.pan_y);
-    gameStore.setZoomFactor(options.zoom_factor);
+    gameStore.setZoomDisplay(zoomDisplay(options.zoom_factor));
+    // gameStore.setZoomDisplay(0.5);
     if (options.active_layer) layerManager.selectLayer(options.active_layer, false);
     if (layerManager.getGridLayer() !== undefined) layerManager.getGridLayer()!.invalidate();
 });

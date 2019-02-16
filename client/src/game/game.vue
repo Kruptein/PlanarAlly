@@ -1,5 +1,5 @@
 <template>
-    <div id="main" @mouseleave="mouseleave">
+    <div id="main" @mouseleave="mouseleave" @wheel="zoom">
         <menu-bar v-if="showUI"></menu-bar>
         <div id="board">
             <template v-if="ready.manager">
@@ -20,7 +20,7 @@
                         v-for="layer in layers"
                         :key="layer.name"
                         :class="{ 'layer-selected': layer === selectedLayer }"
-                        @click="selectLayer(layer)"
+                        @mousedown="selectLayer(layer)"
                     >
                         <a href="#">{{ layer }}</a>
                     </li>
@@ -34,18 +34,18 @@
         should probably do this using a store variable-->
         <zoom-slider
             id="zoomer"
-            v-model="zoomFactor"
+            v-model="zoomDisplay"
             v-show="showUI"
             :height="6"
             :width="200"
-            :min="0.01"
-            :max="5.0"
+            :min="0"
+            :max="1"
             :interval="0.1"
             :dot-width="8"
             :dot-height="20"
             :tooltip-dir="'bottom'"
             :tooltip="'hover'"
-            :formatter="zoomFactor.toFixed(1)"
+            :formatter="zoomDisplay.toFixed(1)"
             :slider-style="{'border-radius': '15%'}"
             :bg-style="{'background-color': '#fff', 'box-shadow': '0.5px 0.5px 3px 1px rgba(0, 0, 0, .36)'}"
             :process-style="{'background-color': '#fff'}"
@@ -128,33 +128,44 @@ export default class Game extends Vue {
         return gameStore.selectedLayer;
     }
 
-    get zoomFactor(): number {
-        return gameStore.zoomFactor;
+    get zoomDisplay(): number {
+        return gameStore.zoomDisplay;
     }
 
-    set zoomFactor(value: number) {
+    set zoomDisplay(value: number) {
         gameStore.updateZoom({
-            newZoomValue: value,
+            newZoomDisplay: value,
             zoomLocation: l2g(new LocalPoint(window.innerWidth / 2, window.innerHeight / 2)),
         });
     }
 
     mounted() {
-        window.addEventListener("resize", () => {
-            layerManager.setWidth(window.innerWidth);
-            layerManager.setHeight(window.innerHeight);
-            layerManager.invalidate();
-        });
-        window.addEventListener("wheel", throttle(scrollZoom));
+        window.addEventListener("resize", this.resizeWindow);
         window.addEventListener("keyup", onKeyUp);
         window.addEventListener("keydown", onKeyDown);
-        // // prevent double clicking text selection
-        window.addEventListener("selectstart", e => {
-            e.preventDefault();
-            return false;
-        });
         this.ready.manager = true;
     }
+
+    destroyed() {
+        window.removeEventListener("resize", this.resizeWindow);
+        window.removeEventListener("keyup", onKeyUp);
+        window.removeEventListener("keydown", onKeyDown);
+        this.ready.manager = false;
+    }
+
+    // Window events
+
+    zoom(event: WheelEvent) {
+        throttle(scrollZoom)(event);
+    }
+
+    resizeWindow() {
+        layerManager.setWidth(window.innerWidth);
+        layerManager.setHeight(window.innerHeight);
+        layerManager.invalidate();
+    }
+
+    // Mouse events
 
     mousedown(event: MouseEvent) {
         this.$refs.tools.mousedown(event);
@@ -238,6 +249,11 @@ svg {
     z-index: 10;
 }
 
+#layerselect * {
+    user-select: none !important;
+    -webkit-user-drag: none !important;
+}
+
 #layerselect ul {
     display: flex;
     list-style: none;
@@ -267,10 +283,6 @@ svg {
 }
 
 #layerselect li a {
-    -webkit-user-select: none; /* Chrome all / Safari all */
-    -moz-user-select: none; /* Firefox all */
-    -ms-user-select: none; /* IE 10+ */
-    user-select: none;
     display: flex;
     padding: 10px;
     text-decoration: none;

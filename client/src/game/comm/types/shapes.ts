@@ -13,6 +13,7 @@ export interface ServerShape {
     fill_colour: string;
     stroke_colour: string;
     name: string;
+    name_visible: boolean;
     annotation: string;
     is_token: boolean;
     options?: string;

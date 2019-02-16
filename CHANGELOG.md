@@ -17,6 +17,12 @@ All notable changes to this project will be documented in this file.
 - A mouse down in general will now trigger layer or tool selection.
   - In the past a 'click' was required, not any 'mousedown' will trigger.
 - Zoom scale has been modified.
+- Select tool can now also select shapes not owned by the player.
+  - The selection info box is shown with all info visible for the user.
+  - The tokens cannot be dragged or resized.
+  - Groupselect will only select your own tokens.
+- Some minor style changes to the edit asset dialog
+- Shape names can now be hidden from other users.
 
 ### Fixed
 

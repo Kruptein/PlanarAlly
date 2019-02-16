@@ -31,6 +31,7 @@ class Shape(BaseModel):
     x = FloatField()
     y = FloatField()
     name = TextField(null=True)
+    name_visible = BooleanField(default=True)
     fill_colour = TextField(default="#000")
     stroke_colour = TextField(default="#fff")
     vision_obstruction = BooleanField(default=False)
@@ -63,6 +64,8 @@ class Shape(BaseModel):
             data["annotation"] = ""
             tracker_query = tracker_query.where(Tracker.visible)
             aura_query = aura_query.where(Aura.visible)
+        if not self.name_visible:
+            data["name"] = "?"
         data["trackers"] = [t.as_dict() for t in tracker_query]
         data["auras"] = [a.as_dict() for a in aura_query]
         # Subtype

@@ -11,7 +11,7 @@ from config import SAVE_FILE
 from models import ALL_MODELS, Constants
 from models.db import db
 
-SAVE_VERSION = 10
+SAVE_VERSION = 11
 logger: logging.Logger = logging.getLogger("PlanarAllyServer")
 logger.setLevel(logging.INFO)
 
@@ -99,6 +99,15 @@ def upgrade(version):
                     "location", "vision_max_range", Location.vision_max_range
                 ),
             )
+        db.foreign_keys = True
+        Constants.update(save_version=Constants.save_version + 1).execute()
+    elif version == 10:
+        from models import Shape
+
+        db.foreign_keys = False
+        migrator = SqliteMigrator(db)
+        with db.atomic():
+            migrate(migrator.add_column("shape", "name_visible", Shape.name_visible))
         db.foreign_keys = True
         Constants.update(save_version=Constants.save_version + 1).execute()
     else:

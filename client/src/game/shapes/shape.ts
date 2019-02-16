@@ -27,6 +27,7 @@ export abstract class Shape {
     strokeColour: string = "rgba(0,0,0,0)";
     // The optional name associated with the shape
     name = "Unknown shape";
+    nameVisible = true;
 
     // Associated trackers/auras/owners
     trackers: Tracker[] = [];
@@ -183,6 +184,7 @@ export abstract class Shape {
             fill_colour: this.fillColour,
             stroke_colour: this.strokeColour,
             name: this.name,
+            name_visible: this.nameVisible,
             annotation: this.annotation,
             is_token: this.isToken,
             options: JSON.stringify([...this.options]),
@@ -197,6 +199,7 @@ export abstract class Shape {
         this.trackers = data.trackers;
         this._owners = data.owners;
         this.isToken = data.is_token;
+        this.nameVisible = data.name_visible;
         if (data.annotation) this.annotation = data.annotation;
         if (data.name) this.name = data.name;
         if (data.options) this.options = new Map(JSON.parse(data.options));

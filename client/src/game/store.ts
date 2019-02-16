@@ -5,13 +5,14 @@ import { AssetList } from "@/core/comm/types";
 import { socket } from "@/game/api/socket";
 import { sendClientOptions } from "@/game/api/utils";
 import { Note } from "@/game/comm/types/general";
+import { ServerShape } from "@/game/comm/types/shapes";
 import { GlobalPoint } from "@/game/geom";
 import { layerManager } from "@/game/layers/manager";
 import { g2l, l2g } from "@/game/units";
+import { zoomValue } from "@/game/utils";
 import { BoundingVolume } from "@/game/visibility/bvh/bvh";
+import { triangulate } from "@/game/visibility/te/pa";
 import { rootStore } from "@/store";
-import { triangulate } from "./visibility/te/pa";
-import { zoomValue } from "./utils";
 
 export interface GameState {
     boardInitialized: boolean;
@@ -66,6 +67,8 @@ class GameStore extends VuexModule implements GameState {
     drawTEContour = false;
     visionRangeMin = 1640;
     visionRangeMax = 3281;
+
+    clipboard: ServerShape[] = [];
 
     showUI = true;
 
@@ -318,6 +321,11 @@ class GameStore extends VuexModule implements GameState {
     @Mutation
     toggleUI() {
         this.showUI = !this.showUI;
+    }
+
+    @Mutation
+    setClipboard(clipboard: ServerShape[]) {
+        this.clipboard = clipboard;
     }
 
     @Action

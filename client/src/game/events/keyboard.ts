@@ -1,6 +1,6 @@
 import Tools from "../ui/tools/tools.vue";
 
-import { getRef } from "@/core/utils";
+import { getRef, uuidv4 } from "@/core/utils";
 import { socket } from "@/game/api/socket";
 import { sendClientOptions } from "@/game/api/utils";
 import { EventBus } from "@/game/event-bus";
@@ -8,6 +8,7 @@ import { Vector } from "@/game/geom";
 import { layerManager } from "@/game/layers/manager";
 import { gameStore } from "@/game/store";
 import { calculateDelta } from "@/game/ui/tools/utils";
+import { createShapeFromDict } from "../shapes/utils";
 
 export function onKeyUp(event: KeyboardEvent) {
     if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement) {
@@ -79,6 +80,33 @@ export function onKeyDown(event: KeyboardEvent) {
             event.preventDefault();
             event.stopPropagation();
             gameStore.toggleUI();
+        } else if (event.key === "c" && event.ctrlKey) {
+            const layer = layerManager.getLayer();
+            if (!layer) return;
+            if (!layer.selection) return;
+            const clipboard = [];
+            for (const shape of layer.selection) {
+                if ((<any>getRef<Tools>("tools").$refs.selectTool).selectionHelper.uuid === shape.uuid) continue;
+                clipboard.push(shape.asDict());
+            }
+            gameStore.setClipboard(clipboard);
+        } else if (event.key === "v" && event.ctrlKey) {
+            const layer = layerManager.getLayer();
+            if (!layer) return;
+            if (!gameStore.clipboard) return;
+            layer.selection = [];
+            for (const clip of gameStore.clipboard) {
+                clip.x += 10;
+                clip.y += 10;
+                clip.uuid = uuidv4();
+                for (const tracker of clip.trackers) tracker.uuid = uuidv4();
+                for (const aura of clip.auras) aura.uuid = uuidv4();
+                const shape = createShapeFromDict(clip);
+                if (shape === undefined) continue;
+                layer.addShape(shape, true);
+                layer.selection.push(shape);
+            }
+            layer.invalidate(false);
         }
     }
 }

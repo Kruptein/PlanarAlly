@@ -35,7 +35,7 @@ export class GameManager {
             console.log(`Shape with unknown layer ${data.shape.layer} could not be added`);
             return;
         }
-        const sh = createShapeFromDict(data.shape, true);
+        const sh = createShapeFromDict(data.shape);
         if (sh === undefined) {
             console.log(`Shape with unknown type ${data.shape.type_} could not be added`);
             return;

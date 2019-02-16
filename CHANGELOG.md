@@ -10,12 +10,14 @@ All notable changes to this project will be documented in this file.
 ### Added
 
 - Keybinding to toggle UI (ctrl+u).
+- Keybinding to copy selection to clipboard (ctrl+c).
+- Keybinding to paste clipboard to board (ctrl+v).
 
 ### Changed
 
-- Asset preview disappears when starting a drag asset action.
+- Asset preview now disappears when starting a drag asset action.
 - A mouse down in general will now trigger layer or tool selection.
-  - In the past a 'click' was required, not any 'mousedown' will trigger.
+  - In the past a 'click' was required, now any 'mousedown' will trigger.
 - Zoom scale has been modified.
 - Select tool can now also select shapes not owned by the player.
   - The selection info box is shown with all info visible for the user.

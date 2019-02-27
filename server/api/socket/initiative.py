@@ -210,7 +210,7 @@ async def new_initiative_effect(sid, data):
     room = sid_data["room"]
     location = sid_data["location"]
 
-    if room.creator != user and not ShapeOwner.get_or_none(shape=shape, user=user):
+    if room.creator != user and not ShapeOwner.get_or_none(shape=data["actor"], user=user):
         logger.warning(f"{user.name} attempted to create a new initiative effect")
         return
 
@@ -237,10 +237,12 @@ async def update_initiative_effect(sid, data):
     user = sid_data["user"]
     room = sid_data["room"]
     location = sid_data["location"]
-
-    if room.creator != user and not ShapeOwner.get_or_none(shape=shape, user=user):
+    
+    if room.creator != user and not ShapeOwner.get_or_none(shape=data["actor"], user=user):
         logger.warning(f"{user.name} attempted to update an initiative effect")
         return
+    
+    print(data)
 
     with db.atomic():
         effect = InitiativeEffect.get(uuid=data["effect"]["uuid"])

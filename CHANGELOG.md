@@ -33,6 +33,8 @@ All notable changes to this project will be documented in this file.
 - Drag and drop asset on firefox redirecting to random urls.
 - Some eventlisteners not being removed properly.
   - This caused zoom behaviour to mess up when leaving and joining a room multiple times.
+- Bug causing players not being able to add or update initiative effects.
+- Bug causing shown initiative effect to be one lower than it actually is on location load.
 
 ### Removed
 

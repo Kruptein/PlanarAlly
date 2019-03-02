@@ -35,6 +35,7 @@ All notable changes to this project will be documented in this file.
   - This caused zoom behaviour to mess up when leaving and joining a room multiple times.
 - Bug causing players not being able to add or update initiative effects.
 - Bug causing shown initiative effect to be one lower than it actually is on location load.
+- Move layer to/from DM layer having broken results for players untill a refresh of the page.
 
 ### Removed
 

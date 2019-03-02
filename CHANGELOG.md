@@ -33,6 +33,7 @@ All notable changes to this project will be documented in this file.
 - Drag and drop asset on firefox redirecting to random urls.
 - Some eventlisteners not being removed properly.
   - This caused zoom behaviour to mess up when leaving and joining a room multiple times.
+- Move layer to/from DM layer having broken results for players untill a refresh of the page.
 
 ### Removed
 

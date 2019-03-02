@@ -245,6 +245,16 @@ async def change_shape_layer(sid, data):
     shape = Shape.get(uuid=data["uuid"])
     old_layer = shape.layer
     old_index = shape.index
+
+    if old_layer.player_visible and not layer.player_visible:
+        for room_player in room.players:
+                for psid in state.get_sids(user=room_player.player, room=room):
+                    if psid == sid:
+                        continue
+                    await sio.emit(
+                        "Shape.Remove", shape.as_dict(room_player.player, False), room=psid, namespace="/planarally"
+                    )
+
     shape.layer = layer
     shape.index = layer.shapes.count()
     shape.save()
@@ -252,13 +262,34 @@ async def change_shape_layer(sid, data):
         (Shape.layer == old_layer) & (Shape.index >= old_index)
     ).execute()
 
-    await sio.emit(
-        "Shape.Layer.Change",
-        data,
-        room=location.get_path(),
-        skip_sid=sid,
-        namespace="/planarally",
-    )
+    if old_layer.player_visible and layer.player_visible:
+        await sio.emit(
+            "Shape.Layer.Change",
+            data,
+            room=location.get_path(),
+            skip_sid=sid,
+            namespace="/planarally",
+        )
+    else:
+        for csid in state.get_sids(user=room.creator, room=room):
+            if csid == sid:
+                continue
+            await sio.emit(
+                "Shape.Layer.Change",
+                data,
+                room=location.get_path(),
+                skip_sid=sid,
+                namespace="/planarally",
+            )
+        if layer.player_visible:
+            for room_player in room.players:
+                for psid in state.get_sids(user=room_player.player, room=room):
+                    if psid == sid:
+                        continue
+                    await sio.emit(
+                        "Shape.Add", shape.as_dict(room_player.player, False), room=psid, namespace="/planarally"
+                    )
+            
 
 
 @sio.on("Shape.Order.Set", namespace="/planarally")

@@ -16,3 +16,9 @@ interface Aura {
     colour: string;
     lastPath?: Path2D;
 }
+
+interface Label {
+    name: string;
+    visible: boolean;
+    user: string;
+}

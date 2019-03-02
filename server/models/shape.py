@@ -4,7 +4,7 @@ from playhouse.sqlite_ext import JSONField
 
 from .base import BaseModel
 from .campaign import Layer
-from .user import User
+from .user import Label, User
 from .utils import get_table
 
 
@@ -18,6 +18,7 @@ __all__ = [
     "Polygon",
     "Rect",
     "Shape",
+    "ShapeLabel",
     "ShapeOwner",
     "Text",
     "Tracker",
@@ -60,14 +61,17 @@ class Shape(BaseModel):
         owned = dm or (user.name in data["owners"])
         tracker_query = self.trackers
         aura_query = self.auras
+        label_query = self.labels
         if not owned:
             data["annotation"] = ""
             tracker_query = tracker_query.where(Tracker.visible)
             aura_query = aura_query.where(Aura.visible)
+            label_query = label_query.where(Label.visible)
         if not self.name_visible:
             data["name"] = "?"
         data["trackers"] = [t.as_dict() for t in tracker_query]
         data["auras"] = [a.as_dict() for a in aura_query]
+        data["labels"] = [l.as_dict() for l in label_query]
         # Subtype
         type_table = get_table(self.type_)
         data.update(
@@ -115,6 +119,14 @@ class ShapeOwner(BaseModel):
 
     def __repr__(self):
         return f"<ShapeOwner {self.user.name} {self.shape.get_path()}>"
+
+
+class ShapeLabel(BaseModel):
+    shape = ForeignKeyField(Shape, backref="labels", on_delete="CASCADE")
+    label = ForeignKeyField(Label, backref="shapes", on_delete="CASCADE")
+
+    def as_dict(self):
+        return model_to_dict(self.label, recurse=False, exclude=[Label.id])
 
 
 class ShapeType(BaseModel):

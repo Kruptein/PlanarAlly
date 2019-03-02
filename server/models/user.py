@@ -1,11 +1,11 @@
 import bcrypt
-from peewee import fn, TextField
+from peewee import fn, BooleanField, ForeignKeyField, TextField
 from playhouse.shortcuts import model_to_dict
 
 from .base import BaseModel
 
 
-__all__ = ["User"]
+__all__ = ["Label", "User"]
 
 
 class User(BaseModel):
@@ -34,3 +34,9 @@ class User(BaseModel):
     @classmethod
     def by_name(cls, name):
         return cls.get_or_none(fn.Lower(cls.name) == name.lower())
+
+
+class Label(BaseModel):
+    user = ForeignKeyField(User, backref="labels", on_delete="CASCADE")
+    name = TextField()
+    visible = BooleanField()

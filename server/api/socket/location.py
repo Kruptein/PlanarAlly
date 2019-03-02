@@ -74,10 +74,7 @@ async def load_location(sid, location):
             namespace="/planarally",
         )
         await sio.emit(
-            "Initiative.Turn.Update",
-            location_data.turn,
-            room=sid,
-            namespace="/planarally",
+            "Initiative.Turn.Set", location_data.turn, room=sid, namespace="/planarally"
         )
 
 

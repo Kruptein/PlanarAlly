@@ -9,6 +9,7 @@ import { layerManager } from "@/game/layers/manager";
 import { gameStore } from "@/game/store";
 import { calculateDelta } from "@/game/ui/tools/utils";
 import { createShapeFromDict } from "../shapes/utils";
+import { ServerAura } from '../comm/types/shapes';
 
 export function onKeyUp(event: KeyboardEvent) {
     if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement) {
@@ -99,13 +100,31 @@ export function onKeyDown(event: KeyboardEvent) {
                 clip.x += 10;
                 clip.y += 10;
                 clip.uuid = uuidv4();
-                for (const tracker of clip.trackers) tracker.uuid = uuidv4();
-                for (const aura of clip.auras) aura.uuid = uuidv4();
+                const oldTrackers = clip.trackers;
+                clip.trackers = [];
+                for (const tracker of oldTrackers) {
+                    const newTracker: Tracker = {
+                        ...tracker,
+                        uuid: uuidv4()
+                    }
+                    clip.trackers.push(newTracker);
+                }
+                const oldAuras = clip.auras;
+                clip.auras = [];
+                for (const aura of oldAuras) {
+                    const newAura: ServerAura = {
+                        ...aura,
+                        uuid: uuidv4()
+                    }
+                    clip.auras.push(newAura);
+                }
                 const shape = createShapeFromDict(clip);
                 if (shape === undefined) continue;
                 layer.addShape(shape, true);
                 layer.selection.push(shape);
             }
+            if (layer.selection.length === 1) EventBus.$emit("SelectionInfo.Shape.Set", layer.selection[0]);
+            else EventBus.$emit("SelectionInfo.Shape.Set", null);
             layer.invalidate(false);
         }
     }

@@ -8,8 +8,8 @@ import { Vector } from "@/game/geom";
 import { layerManager } from "@/game/layers/manager";
 import { gameStore } from "@/game/store";
 import { calculateDelta } from "@/game/ui/tools/utils";
-import { createShapeFromDict } from "../shapes/utils";
 import { ServerAura } from '../comm/types/shapes';
+import { createShapeFromDict } from "../shapes/utils";
 
 export function onKeyUp(event: KeyboardEvent) {
     if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement) {

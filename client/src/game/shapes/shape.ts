@@ -32,6 +32,7 @@ export abstract class Shape {
     // Associated trackers/auras/owners
     trackers: Tracker[] = [];
     auras: Aura[] = [];
+    labels: Label[] = [];
     protected _owners: string[] = [];
 
     // Block light sources
@@ -180,6 +181,7 @@ export abstract class Shape {
             vision_obstruction: this.visionObstruction,
             auras: aurasToServer(this.auras),
             trackers: this.trackers,
+            labels: this.labels,
             owners: this._owners,
             fill_colour: this.fillColour,
             stroke_colour: this.strokeColour,
@@ -197,6 +199,7 @@ export abstract class Shape {
         this.visionObstruction = data.vision_obstruction;
         this.auras = aurasFromServer(data.auras);
         this.trackers = data.trackers;
+        this.labels = data.labels;
         this._owners = data.owners;
         this.isToken = data.is_token;
         this.nameVisible = data.name_visible;

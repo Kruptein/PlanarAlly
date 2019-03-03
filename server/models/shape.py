@@ -61,7 +61,7 @@ class Shape(BaseModel):
         owned = dm or (user.name in data["owners"])
         tracker_query = self.trackers
         aura_query = self.auras
-        label_query = self.labels
+        label_query = self.labels.join(Label)
         if not owned:
             data["annotation"] = ""
             tracker_query = tracker_query.where(Tracker.visible)

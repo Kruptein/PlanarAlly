@@ -126,7 +126,7 @@ class ShapeLabel(BaseModel):
     label = ForeignKeyField(Label, backref="shapes", on_delete="CASCADE")
 
     def as_dict(self):
-        return model_to_dict(self.label, recurse=False, exclude=[Label.id])
+        return self.label.as_dict()
 
 
 class ShapeType(BaseModel):

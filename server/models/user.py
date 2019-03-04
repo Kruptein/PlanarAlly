@@ -37,6 +37,12 @@ class User(BaseModel):
 
 
 class Label(BaseModel):
+    uuid = TextField(primary_key=True)
     user = ForeignKeyField(User, backref="labels", on_delete="CASCADE")
     name = TextField()
     visible = BooleanField()
+
+    def as_dict(self):
+        d = model_to_dict(self, recurse=False, exclude=[Label.id])
+        d["user"] = self.user.name
+        return d

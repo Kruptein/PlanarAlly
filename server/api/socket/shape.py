@@ -191,7 +191,7 @@ async def update_shape(sid, data):
                 if label in new_labels:
                     ShapeLabel.create(shape=shape, label=Label.get(uuid=label))
                 else:
-                    ShapeLabel.get(uuid=label, shape=shape).delete_instance(True)
+                    ShapeLabel.get(label=Label.get(uuid=label), shape=shape).delete_instance(True)
 
     await sync_shape_update(layer, room, data, sid, shape)
 

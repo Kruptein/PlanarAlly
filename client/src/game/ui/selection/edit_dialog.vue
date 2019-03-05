@@ -213,9 +213,11 @@
                         :key="label.uuid"
                         v-if="label.name"
                     >
-                        <span class="label-close"></span>
-                        <div class="label-user">{{ label.user }}</div>
-                        <div class="label-main" @click="removeLabel(label.uuid)">{{ label.name }}</div>
+                        <div class="label-user" v-if="label.name.includes(':')">{{ label.name.split(":")[0] }}</div>
+                        <div class="label-main" @click="removeLabel(label.uuid)">{{ label.name.split(":").splice(1).join(":") }}</div>
+                    </div>
+                    <div class="label" id="label-add">
+                        <div class="label-main" @click="openLabelManager">+</div>
                     </div>
                 </div>
                 <div class="spanrow header">Annotation</div>
@@ -298,13 +300,6 @@ export default class EditDialog extends Vue {
                 colour: "rgba(0,0,0,0)",
                 visible: false,
             });
-        if (!this.shape.labels.length || this.shape.labels[this.shape.labels.length - 1].name !== "")
-            this.shape.labels.push({
-                uuid: uuidv4(),
-                name: "",
-                visible: false,
-                user: gameStore.username,
-            });
     }
     updateShape(redraw: boolean, temporary = false) {
         if (!this.owned) return;
@@ -375,8 +370,19 @@ export default class EditDialog extends Vue {
         if (layer === undefined) return;
         layer.invalidate(!aura.visionSource);
     }
-    removeLabel(label: string) {
-        console.log(label);
+    openLabelManager() {
+        EventBus.$emit("LabelManager.Open");
+        // this.shape.labels.push({
+        //     uuid: uuidv4(),
+        //     name: "org:xanathar",
+        //     visible: false,
+        //     user: gameStore.username,
+        // });
+        // this.updateShape(false);
+    }
+    removeLabel(uuid: string) {
+        this.shape.labels = this.shape.labels.filter(l => l.uuid !== uuid);
+        this.updateShape(false);
     }
 }
 </script>
@@ -455,6 +461,18 @@ export default class EditDialog extends Vue {
     top: -8px;
     right: -4px;
     pointer-events: auto;
+}
+
+#label-add:hover > .label-main {
+    pointer-events: auto;
+    cursor: pointer;
+    color: white;
+    font-weight: bold;
+    background-color: #ff7052;
+}
+
+#label-add:hover > .label-main::before {
+    content: "";
 }
 
 .label-user {

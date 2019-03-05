@@ -30,6 +30,7 @@
         <selection-info ref="selectionInfo" v-show="showUI"></selection-info>
         <initiative-dialog ref="initiative" id="initiativedialog"></initiative-dialog>
         <note-dialog ref="note"></note-dialog>
+        <label-dialog ref="labels"></label-dialog>
         <!-- When updating zoom boundaries, also update store updateZoom function;
         should probably do this using a store variable-->
         <zoom-slider
@@ -68,6 +69,7 @@ import { mapGetters, mapState } from "vuex";
 import ConfirmDialog from "@/core/components/modals/confirm.vue";
 import Prompt from "@/core/components/modals/prompt.vue";
 import Initiative from "@/game/ui/initiative.vue";
+import LabelManager from "@/game/ui/labels.vue";
 import MenuBar from "@/game/ui/menu/menu.vue";
 import NoteDialog from "@/game/ui/note.vue";
 import SelectionInfo from "@/game/ui/selection/selection_info.vue";
@@ -91,6 +93,7 @@ import { LocalPoint } from "./geom";
         "initiative-dialog": Initiative,
         "zoom-slider": vueSlider,
         "note-dialog": NoteDialog,
+        "label-dialog": LabelManager,
     },
     beforeRouteEnter(to, from, next) {
         createConnection(to);

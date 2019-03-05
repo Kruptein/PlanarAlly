@@ -70,6 +70,7 @@ class GameStore extends VuexModule implements GameState {
 
     clipboard: ServerShape[] = [];
 
+    labels: Label[] = [];
     label_filters: string[] = [];
 
     showUI = true;

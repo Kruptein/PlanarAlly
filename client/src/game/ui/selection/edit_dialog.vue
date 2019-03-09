@@ -211,7 +211,6 @@
                         v-for="label in shape.labels"
                         class="label"
                         :key="label.uuid"
-                        v-if="label.name"
                     >
                         <div
                             class="label-user"
@@ -277,6 +276,7 @@ export default class EditDialog extends Vue {
         EventBus.$on("EditDialog.AddLabel", (label: string) => {
             if (this.visible) {
                 this.shape.labels.push(gameStore.labels.get(gameStore.username)!.get(label)!);
+                this.updateShape(true);
             }
         });
     }
@@ -383,17 +383,10 @@ export default class EditDialog extends Vue {
     }
     openLabelManager() {
         EventBus.$emit("LabelManager.Open");
-        // this.shape.labels.push({
-        //     uuid: uuidv4(),
-        //     name: "org:xanathar",
-        //     visible: false,
-        //     user: gameStore.username,
-        // });
-        // this.updateShape(false);
     }
     removeLabel(uuid: string) {
         this.shape.labels = this.shape.labels.filter(l => l.uuid !== uuid);
-        this.updateShape(false);
+        this.updateShape(true);
     }
 }
 </script>

@@ -13,7 +13,6 @@ import { zoomValue } from "@/game/utils";
 import { BoundingVolume } from "@/game/visibility/bvh/bvh";
 import { triangulate } from "@/game/visibility/te/pa";
 import { rootStore } from "@/store";
-import Vue from "vue";
 
 export interface GameState {
     boardInitialized: boolean;
@@ -132,10 +131,16 @@ class GameStore extends VuexModule implements GameState {
         if (!this.labels.has(data.user)) return;
         const label = this.labels.get(data.user)!.get(data.uuid);
         if (!label) return;
+        const updatedLayers: Set<string> = new Set();
         for (const shape of layerManager.UUIDMap.values()) {
             const i = shape.labels.indexOf(label);
-            if (i >= 0) shape.labels.splice(i, 1);
+            if (i >= 0) {
+                shape.labels.splice(i, 1);
+                updatedLayers.add(shape.layer);
+            }
         }
+        for (const layer of updatedLayers)
+            layerManager.getLayer(layer)!.invalidate(false);
         this.labels.get(data.user)!.delete(data.uuid);
     }
 

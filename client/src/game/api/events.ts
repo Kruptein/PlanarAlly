@@ -10,7 +10,6 @@ import { gameManager } from "@/game/manager";
 import { gameStore } from "@/game/store";
 import { router } from "@/router";
 import { zoomDisplay } from "../utils";
-import { Layer } from "../layers/layer";
 
 socket.on("connect", () => {
     console.log("Connected");

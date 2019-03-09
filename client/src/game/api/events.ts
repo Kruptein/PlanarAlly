@@ -10,6 +10,7 @@ import { gameManager } from "@/game/manager";
 import { gameStore } from "@/game/store";
 import { router } from "@/router";
 import { zoomDisplay } from "../utils";
+import { Layer } from "../layers/layer";
 
 socket.on("connect", () => {
     console.log("Connected");
@@ -140,4 +141,16 @@ socket.on("Temp.Clear", (shapes: ServerShape[]) => {
         const realShape = layerManager.UUIDMap.get(shape.uuid)!;
         layerManager.getLayer(shape.layer)!.removeShape(realShape, false);
     });
+});
+socket.on("Labels.Set", (labels: Label[]) => {
+    gameStore.setLabels(labels);
+});
+socket.on("Label.Visibility.Set", (data: { user: string; uuid: string; visible: boolean }) => {
+    gameStore.setLabelVisibility(data);
+});
+socket.on("Label.Add", (data: Label) => {
+    gameStore.addLabel(data);
+});
+socket.on("Label.Delete", (data: { user: string; uuid: string }) => {
+    gameStore.deleteLabel(data);
 });

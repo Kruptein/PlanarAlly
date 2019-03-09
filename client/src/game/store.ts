@@ -13,6 +13,7 @@ import { zoomValue } from "@/game/utils";
 import { BoundingVolume } from "@/game/visibility/bvh/bvh";
 import { triangulate } from "@/game/visibility/te/pa";
 import { rootStore } from "@/store";
+import Vue from "vue";
 
 export interface GameState {
     boardInitialized: boolean;
@@ -70,7 +71,7 @@ class GameStore extends VuexModule implements GameState {
 
     clipboard: ServerShape[] = [];
 
-    labels: Label[] = [];
+    labels: Map<string, Map<string, Label>> = new Map();
     label_filters: string[] = [];
 
     showUI = true;
@@ -101,6 +102,41 @@ class GameStore extends VuexModule implements GameState {
     @Mutation
     setBoardInitialized(boardInitialized: boolean) {
         this.boardInitialized = boardInitialized;
+    }
+
+    @Mutation
+    setLabels(labels: Label[]) {
+        for (const label of labels) {
+            if (!this.labels.has(label.user)) this.labels.set(label.user, new Map());
+            this.labels.get(label.user)!.set(label.uuid, label);
+        }
+    }
+
+    @Mutation
+    addLabel(label: Label) {
+        if (!this.labels.has(label.user)) this.labels.set(label.user, new Map());
+        this.labels.get(label.user)!.set(label.uuid, label);
+    }
+
+    @Mutation
+    setLabelVisibility(data: { user: string; uuid: string; visible: boolean }) {
+        if (!this.labels.has(data.user)) this.labels.set(data.user, new Map());
+        const label = this.labels.get(data.user)!.get(data.uuid);
+        if (label) {
+            label.visible = data.visible;
+        }
+    }
+
+    @Mutation
+    deleteLabel(data: { uuid: string; user: string }) {
+        if (!this.labels.has(data.user)) return;
+        const label = this.labels.get(data.user)!.get(data.uuid);
+        if (!label) return;
+        for (const shape of layerManager.UUIDMap.values()) {
+            const i = shape.labels.indexOf(label);
+            if (i >= 0) shape.labels.splice(i, 1);
+        }
+        this.labels.get(data.user)!.delete(data.uuid);
     }
 
     @Mutation

@@ -4,7 +4,7 @@ from aiohttp_security import authorized_userid
 
 from .location import load_location
 from app import logger, sio, state
-from models import Asset, Location, Room, User
+from models import Asset, Label, Location, Room, User
 
 
 @sio.on("connect", namespace="/planarally")
@@ -36,8 +36,16 @@ async def connect(sid, environ):
 
         logger.info(f"User {user.name} connected with identifier {sid}")
 
+        labels = Label.select().where(Label.user == user)
+
         sio.enter_room(sid, location.get_path(), namespace="/planarally")
         await sio.emit("Username.Set", user.name, room=sid, namespace="/planarally")
+        await sio.emit(
+            "Labels.Set",
+            [l.as_dict() for l in labels],
+            room=sid,
+            namespace="/planarally",
+        )
         await sio.emit(
             "Room.Info.Set",
             {

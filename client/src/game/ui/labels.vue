@@ -14,30 +14,50 @@
             </div>
         </div>
         <div class="modal-body">
-            <div id='grid'>
-                <div class="header"><abbr title="Select">Sel.</abbr></div>
-                <div class="header"><abbr title="Category">Cat.</abbr></div>
-                <div class="header">Name</div>
-                <div class="header"><abbr title="Visible">Vis.</abbr></div>
-                <div class="header"><abbr title="Delete">Del.</abbr></div>
-                <template v-for="label in $store.state.game.labels">
-                    <input type="checkbox" :key="'sel-'+label.uuid">
-                    <div :key="'cat-'+label.uuid">{{ label.name.split(":")[0] }}</div>
-                    <div :key="'name-'+label.uuid">{{ label.name.split(":").splice(1).join(":") }}</div>
-                    <div :key="'visible-'+label.uuid">
-                        <i class="fas fa-eye"></i>
-                    </div>
-                    <div :key="'delete-'+label.uuid">
-                        <i class="fas fa-trash-alt"></i>
+            <div id="grid">
+                <div class="header">
+                    <abbr title="Category">Cat.</abbr>
+                </div>
+                <div class="header name">Name</div>
+                <div class="header">
+                    <abbr title="Visible">Vis.</abbr>
+                </div>
+                <div class="header">
+                    <abbr title="Delete">Del.</abbr>
+                </div>
+                <div class="separator spanrow"></div>
+                <template v-for="[uuid, label] in labels()">
+                    <div :key="'row-'+uuid" class="row" @click="selectLabel(uuid)">
+                        <template v-if="label.name.includes(':')">
+                            <div :key="'cat-'+uuid">{{ label.name.split(":")[0] }}</div>
+                            <div
+                                class="name"
+                                :key="'name-'+uuid"
+                            >{{ label.name.split(":").splice(1).join(":") }}</div>
+                        </template>
+                        <template v-if="!label.name.includes(':')">
+                            <div :key="'cat-'+uuid"></div>
+                            <div class="name" :key="'name-'+uuid">{{ label.name }}</div>
+                        </template>
+                        <div
+                            :key="'visible-'+uuid"
+                            :style="{textAlign: 'center'}"
+                            :class="{'lower-opacity': !label.visible}"
+                            @click.stop="toggleVisibility(label)"
+                        >
+                            <i class="fas fa-eye"></i>
+                        </div>
+                        <div :key="'delete-'+uuid" @click.stop="deleteLabel(uuid)">
+                            <i class="fas fa-trash-alt"></i>
+                        </div>
                     </div>
                 </template>
-                <template v-if='$store.state.game.labels.length === 0'>
-                    <div id='no-labels'>No labels exist yet</div>
+                <template v-if="labels.length === 0">
+                    <div id="no-labels">No labels exist yet</div>
                 </template>
-                <span></span>
-                <input type='text'>
-                <input type='text'>
-                <button id='addLabelButton'>Add</button>
+                <input type="text" v-model.trim="newCategory">
+                <input type="text" v-model.trim="newName">
+                <button id="addLabelButton" @click.stop="addLabel">Add</button>
             </div>
         </div>
     </Modal>
@@ -61,21 +81,64 @@ import { gameStore } from "@/game/store";
 })
 export default class LabelManager extends Vue {
     visible = false;
+    newCategory = "";
+    newName = "";
 
     mounted() {
         EventBus.$on("LabelManager.Open", () => {
             this.visible = true;
+            this.newCategory = "";
+            this.newName = "";
         });
+    }
+
+    // Cannot be a computed value due to Map reactivity limits
+    labels() {
+        if (gameStore.labels.has(gameStore.username)) return Array.from(gameStore.labels.get(gameStore.username)!);
+        return [];
     }
 
     beforeDestroy() {
         EventBus.$off();
     }
+
+    selectLabel(label: string) {
+        EventBus.$emit("EditDialog.AddLabel", label);
+        this.visible = false;
+    }
+
+    toggleVisibility(label: Label) {
+        label.visible = !label.visible;
+        socket.emit("Label.Visibility.Set", { uuid: label.uuid, visible: label.visible });
+        // Maps have no reactivity currently
+        this.$forceUpdate();
+    }
+
+    addLabel() {
+        if (this.newName === "") return;
+        const label = {
+            uuid: uuidv4(),
+            name: `${this.newCategory}:${this.newName}`,
+            visible: false,
+            user: gameStore.username,
+        };
+        gameStore.addLabel(label);
+        socket.emit("Label.Add", label);
+        this.newCategory = "";
+        this.newName = "";
+        this.$forceUpdate();
+    }
+
+    deleteLabel(uuid: string) {
+        gameStore.deleteLabel({ uuid, user: gameStore.username });
+        socket.emit("Label.Delete", uuid);
+        // Maps have no reactivity currently
+        this.$forceUpdate();
+    }
 }
 </script>
 
 <style scoped>
-
 abbr {
     text-decoration: none;
 }
@@ -99,12 +162,69 @@ abbr {
     max-width: 450px;
 }
 
+.separator {
+    line-height: 0.1em;
+    margin: 0 0 15px;
+}
+
+.separator:after {
+    position: absolute;
+    left: 10px;
+    right: 10px;
+    border-bottom: 1px solid #000;
+    content: "";
+}
+
+.spanrow {
+    grid-column: start / end;
+}
+
+.lower-opacity > * {
+    opacity: 0.3;
+}
+
 #grid {
     display: grid;
-    grid-template-columns: [start] 30px [cat] 50px [name] 1fr [visible] 30px [remove] 30px [end];
-    grid-column-gap: 5px;
+    grid-template-columns: [start] 50px [name] 1fr [visible] 30px [remove] 30px [end];
     grid-row-gap: 5px;
     align-items: center;
+}
+
+#grid > * {
+    text-align: center;
+}
+
+.name {
+    text-align: left !important;
+}
+
+.row {
+    display: contents;
+}
+
+.row > * {
+    padding: 5px;
+    height: 20px;
+    border: solid 1px rgba(0, 0, 0, 0);
+}
+
+.row:hover > * {
+    cursor: pointer;
+    border-top: solid 1px #ff7052;
+    border-bottom: solid 1px #ff7052;
+    background-color: rgba(0, 0, 0, 0.2);
+}
+
+.row:hover > *:first-child {
+    border-left: solid 1px #ff7052;
+    border-top-left-radius: 10px;
+    border-bottom-left-radius: 10px;
+}
+
+.row:hover > *:last-child {
+    border-right: solid 1px #ff7052;
+    border-top-right-radius: 10px;
+    border-bottom-right-radius: 10px;
 }
 
 #no-labels {

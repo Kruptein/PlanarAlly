@@ -34,8 +34,8 @@ import Component from "vue-class-component";
 
 import Tool from "@/game/ui/tools/tool.vue";
 
-import { gameStore } from '@/game/store';
 import { layerManager } from '@/game/layers/manager';
+import { gameStore } from '@/game/store';
 
 
 @Component({})

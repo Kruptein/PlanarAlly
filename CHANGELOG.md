@@ -12,6 +12,9 @@ All notable changes to this project will be documented in this file.
 - Keybinding to toggle UI (ctrl+u).
 - Keybinding to copy selection to clipboard (ctrl+c).
 - Keybinding to paste clipboard to board (ctrl+v).
+- Labeling system.
+    - You can add labels to shapes.
+    - You can filter the gameboard on these labels.
 
 ### Changed
 

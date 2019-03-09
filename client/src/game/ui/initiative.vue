@@ -168,7 +168,9 @@ export default class Initiative extends Vue {
     }
 
     beforeDestroy() {
-        EventBus.$off();
+        EventBus.$off("Initiative.Clear");
+        EventBus.$off("Initiative.Remove");
+        EventBus.$off("Initiative.Show");
     }
 
     // Utilities

@@ -99,7 +99,7 @@ export default class LabelManager extends Vue {
     }
 
     beforeDestroy() {
-        EventBus.$off();
+        EventBus.$off("LabelManager.Open");
     }
 
     selectLabel(label: string) {

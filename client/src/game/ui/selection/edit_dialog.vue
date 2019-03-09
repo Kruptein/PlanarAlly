@@ -212,14 +212,22 @@
                         class="label"
                         :key="label.uuid"
                     >
-                        <div
-                            class="label-user"
-                            v-if="label.name.includes(':')"
-                        >{{ label.name.split(":")[0] }}</div>
-                        <div
-                            class="label-main"
-                            @click="removeLabel(label.uuid)"
-                        >{{ label.name.split(":").splice(1).join(":") }}</div>
+                        <template v-if="label.name.includes(':')">
+                            <div
+                                class="label-user"
+                            >{{ label.name.split(":")[0] }}</div>
+                            <div
+                                class="label-main"
+                                @click="removeLabel(label.uuid)"
+                            >{{ label.name.split(":").splice(1).join(":") }}</div>
+                        </template>
+                        <template v-if="!label.name.includes(':')">
+                            <div class="label-user"></div>
+                            <div
+                                class="label-main"
+                                @click="removeLabel(label.uuid)"
+                            >{{ label.name }}</div>
+                        </template>
                     </div>
                     <div class="label" id="label-add">
                         <div class="label-main" @click="openLabelManager">+</div>
@@ -282,7 +290,8 @@ export default class EditDialog extends Vue {
     }
 
     beforeDestroy() {
-        EventBus.$off();
+        EventBus.$off("EditDialog.Open");
+        EventBus.$off("EditDialog.AddLabel");
     }
 
     updated() {

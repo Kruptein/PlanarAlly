@@ -135,9 +135,10 @@ export class Layer {
             });
             this.shapes.forEach(shape => {
                 if (shape.options.has("skipDraw") && shape.options.get("skipDraw")) return;
+                if (shape.labels.length === 0 && gameStore.filterNoLabel) return;
                 if (
                     shape.labels.length &&
-                    shape.labels.every(l => l.name === "" || gameStore.label_filters.includes(l.uuid))
+                    shape.labels.every(l => gameStore.labelFilters.includes(l.uuid))
                 )
                     return;
                 if (layerManager.getLayer() === undefined) return;

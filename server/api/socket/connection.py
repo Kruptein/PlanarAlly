@@ -36,7 +36,7 @@ async def connect(sid, environ):
 
         logger.info(f"User {user.name} connected with identifier {sid}")
 
-        labels = Label.select().where(Label.user == user)
+        labels = Label.select().where((Label.user == user) | (Label.visible == True))
 
         sio.enter_room(sid, location.get_path(), namespace="/planarally")
         await sio.emit("Username.Set", user.name, room=sid, namespace="/planarally")

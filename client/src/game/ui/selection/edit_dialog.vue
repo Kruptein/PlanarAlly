@@ -212,7 +212,7 @@
                         class="label"
                         :key="label.uuid"
                     >
-                        <template v-if="label.name.includes(':')">
+                        <template v-if="label.name[0] !== ':'">
                             <div
                                 class="label-user"
                             >{{ label.name.split(":")[0] }}</div>
@@ -221,15 +221,14 @@
                                 @click="removeLabel(label.uuid)"
                             >{{ label.name.split(":").splice(1).join(":") }}</div>
                         </template>
-                        <template v-if="!label.name.includes(':')">
-                            <div class="label-user"></div>
+                        <template v-if="label.name[0] === ':'">
                             <div
                                 class="label-main"
                                 @click="removeLabel(label.uuid)"
-                            >{{ label.name }}</div>
+                            >{{ label.name.slice(1) }}</div>
                         </template>
                     </div>
-                    <div class="label" id="label-add">
+                    <div class="label" id="label-add" v-if="owned">
                         <div class="label-main" @click="openLabelManager">+</div>
                     </div>
                 </div>
@@ -394,6 +393,7 @@ export default class EditDialog extends Vue {
         EventBus.$emit("LabelManager.Open");
     }
     removeLabel(uuid: string) {
+        if(!this.owned) return;
         this.shape.labels = this.shape.labels.filter(l => l.uuid !== uuid);
         this.updateShape(true);
     }

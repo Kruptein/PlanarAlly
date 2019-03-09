@@ -71,7 +71,8 @@ class GameStore extends VuexModule implements GameState {
     clipboard: ServerShape[] = [];
 
     labels: Map<string, Map<string, Label>> = new Map();
-    label_filters: string[] = [];
+    filterNoLabel = false;
+    labelFilters: string[] = [];
 
     showUI = true;
 
@@ -109,6 +110,11 @@ class GameStore extends VuexModule implements GameState {
             if (!this.labels.has(label.user)) this.labels.set(label.user, new Map());
             this.labels.get(label.user)!.set(label.uuid, label);
         }
+    }
+
+    @Mutation
+    toggleUnlabeledFilter() {
+        this.filterNoLabel = !this.filterNoLabel;
     }
 
     @Mutation

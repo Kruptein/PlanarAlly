@@ -28,16 +28,16 @@
                 <div class="separator spanrow"></div>
                 <template v-for="[uuid, label] in labels()">
                     <div :key="'row-'+uuid" class="row" @click="selectLabel(uuid)">
-                        <template v-if="label.name.includes(':')">
+                        <template v-if="label.name[0] !== ':'">
                             <div :key="'cat-'+uuid">{{ label.name.split(":")[0] }}</div>
                             <div
                                 class="name"
                                 :key="'name-'+uuid"
                             >{{ label.name.split(":").splice(1).join(":") }}</div>
                         </template>
-                        <template v-if="!label.name.includes(':')">
+                        <template v-if="label.name[0] === ':'">
                             <div :key="'cat-'+uuid"></div>
-                            <div class="name" :key="'name-'+uuid">{{ label.name }}</div>
+                            <div class="name" :key="'name-'+uuid">{{ label.name.slice(1) }}</div>
                         </template>
                         <div
                             :key="'visible-'+uuid"

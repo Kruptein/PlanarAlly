@@ -3,8 +3,7 @@
         <div id="toolselect">
             <ul>
                 <li
-                    v-for="tool in tools"
-                    v-if="!dmTools.includes(tool) || IS_DM"
+                    v-for="tool in visibleTools"
                     :key="tool"
                     :class="{'tool-selected': currentTool === tool}"
                     :ref="tool + '-selector'"
@@ -23,6 +22,7 @@
                 </keep-alive>
                 <ruler-tool v-show="currentTool === 'Ruler'"></ruler-tool>
                 <map-tool v-show="currentTool === 'Map'"></map-tool>
+                <filter-tool v-show="currentTool === 'Filter'"></filter-tool>
                 <shape-menu ref="shapecontext"></shape-menu>
                 <createtoken-dialog ref="createtokendialog"></createtoken-dialog>
             </template>
@@ -37,6 +37,7 @@ import Vue from "vue";
 import ShapeContext from "@/game/ui/selection/shapecontext.vue";
 import CreateTokenModal from "@/game/ui/tools/createtoken_modal.vue";
 import DrawTool from "@/game/ui/tools/draw.vue";
+import FilterTool from "@/game/ui/tools/filter.vue";
 import MapTool from "@/game/ui/tools/map.vue";
 import PanTool from "@/game/ui/tools/pan";
 import SelectTool from "@/game/ui/tools/select.vue";
@@ -56,6 +57,7 @@ import Component from "vue-class-component";
         "draw-tool": DrawTool,
         "ruler-tool": RulerTool,
         "map-tool": MapTool,
+        "filter-tool": FilterTool,
         "shape-menu": ShapeContext,
         "createtoken-dialog": CreateTokenModal,
     },
@@ -71,7 +73,7 @@ export default class Tools extends Vue {
     };
 
     currentTool = "Select";
-    tools = ["Select", "Pan", "Draw", "Ruler", "Map"];
+    tools = ["Select", "Pan", "Draw", "Ruler", "Map", "Filter"];
     dmTools = ["Map"];
 
     get IS_DM(): boolean {
@@ -80,6 +82,10 @@ export default class Tools extends Vue {
 
     get currentToolComponent(): string {
         return `${this.currentTool.toLowerCase()}-tool`;
+    }
+
+    get visibleTools(): string[] {
+        return this.tools.filter(t => (!this.dmTools.includes(t) || this.IS_DM));
     }
 
     mousedown(event: MouseEvent) {

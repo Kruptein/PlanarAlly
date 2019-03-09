@@ -86,15 +86,15 @@ async def set_visibility(sid, data):
             await sio.emit(
                 "Label.Visibility.Set",
                 {"user": label.user.name, **data},
-                room=sid,
+                room=psid,
                 namespace="/planarally",
             )
         else:
             if data["visible"]:
                 await sio.emit(
-                    "Label.Add", label.as_dict(), room=sid, namespace="/planarally"
+                    "Label.Add", label.as_dict(), room=psid, namespace="/planarally"
                 )
             else:
                 await sio.emit(
-                    "Label.Remove", label.uuid, room=sid, namespace="/planarally"
+                    "Label.Delete", {'uuid': label.uuid, 'user': label.user.name}, room=psid, namespace="/planarally"
                 )

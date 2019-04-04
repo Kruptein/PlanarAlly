@@ -4,10 +4,10 @@
         v-if="selected"
         :style="{'--detailRight': detailRight, '--detailArrow': detailArrow}"
     >
-        <div class="label" :class="{disabled: $store.state.game.filterNoLabel}">
+        <!-- <div class="label" :class="{disabled: $store.state.game.filterNoLabel}">
             <div class='label-main' @click="toggleUnlabeled">Unlabeled</div>
-        </div>
-        <template v-for="[uuid, label] in labels()">
+        </div> -->
+        <!-- <template v-for="[uuid, label] in labels()">
             <div class="label" :class="{disabled: isFilter(uuid)}" :key="uuid">
                 <template v-if="label.name[0] !== ':'">
                     <div
@@ -25,20 +25,31 @@
                     >{{ label.name.slice(1) }}</div>
                 </template>
             </div>
-        </template>
+        </template> -->
+        <accordion-list>
+            <accordion title="test" :showArrow="false" :items="['woo']"/>
+            <accordion title="test twee" :showArrow="false" :items="['woo', 'test']"/>
+        </accordion-list>
     </div>
 </template>
 
 <script lang="ts">
 import Component from "vue-class-component";
 
+import Accordion from '@/core/components/accordion.vue';
+import AccordionList from '@/core/components/accordion_list.vue';
 import Tool from "@/game/ui/tools/tool.vue";
 
 import { layerManager } from '@/game/layers/manager';
 import { gameStore } from '@/game/store';
 
 
-@Component({})
+@Component({
+    components: {
+        "accordion": Accordion,
+        "accordion-list": AccordionList,
+    },
+})
 export default class FilterTool extends Tool {
     name = "Filter";
     active = false;
@@ -69,8 +80,14 @@ export default class FilterTool extends Tool {
 }
 </script>
 
+<style>
+
+</style>
+
+
 <style scoped>
-.label {
+
+/* .label {
     display: inline-flex;
     position: relative;
     flex-direction: row;
@@ -109,5 +126,5 @@ export default class FilterTool extends Tool {
 
 .label:not(.disabled), .disabled:hover {
     opacity: 1.0;
-}
+} */
 </style>

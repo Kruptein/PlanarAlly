@@ -4,7 +4,8 @@ from playhouse.sqlite_ext import JSONField
 
 from .base import BaseModel
 from .campaign import Layer
-from .user import Label, User
+from .label import Label
+from .user import User
 from .utils import get_table
 
 
@@ -119,14 +120,6 @@ class ShapeOwner(BaseModel):
 
     def __repr__(self):
         return f"<ShapeOwner {self.user.name} {self.shape.get_path()}>"
-
-
-class ShapeLabel(BaseModel):
-    shape = ForeignKeyField(Shape, backref="labels", on_delete="CASCADE")
-    label = ForeignKeyField(Label, backref="shapes", on_delete="CASCADE")
-
-    def as_dict(self):
-        return self.label.as_dict()
 
 
 class ShapeType(BaseModel):

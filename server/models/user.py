@@ -5,7 +5,7 @@ from playhouse.shortcuts import model_to_dict
 from .base import BaseModel
 
 
-__all__ = ["Label", "User"]
+__all__ = ["User"]
 
 
 class User(BaseModel):
@@ -35,14 +35,3 @@ class User(BaseModel):
     def by_name(cls, name):
         return cls.get_or_none(fn.Lower(cls.name) == name.lower())
 
-
-class Label(BaseModel):
-    uuid = TextField(primary_key=True)
-    user = ForeignKeyField(User, backref="labels", on_delete="CASCADE")
-    name = TextField()
-    visible = BooleanField()
-
-    def as_dict(self):
-        d = model_to_dict(self, recurse=False, exclude=[Label.id])
-        d["user"] = self.user.name
-        return d

@@ -27,7 +27,7 @@
             </div>
         </template> -->
         <accordion-list>
-            <accordion title="test" :showArrow="false" :items="['woo']"/>
+            <accordion v-for="category in categories" :title="category.name" :showArrow="false" :items="category.items"/>
             <accordion title="test twee" :showArrow="false" :items="['woo', 'test']"/>
         </accordion-list>
     </div>
@@ -56,6 +56,10 @@ export default class FilterTool extends Tool {
 
     isFilter(uuid: string): boolean {
         return gameStore.labelFilters.includes(uuid);
+    }
+
+    categories() {
+        
     }
 
     // Cannot be a computed value due to Map reactivity limits

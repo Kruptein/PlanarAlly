@@ -82,6 +82,14 @@ class Shape(BaseModel):
         return data
 
 
+class ShapeLabel(BaseModel):
+    shape = ForeignKeyField(Shape, backref="labels", on_delete="CASCADE")
+    label = ForeignKeyField(Label, backref="shapes", on_delete="CASCADE")
+
+    def as_dict(self):
+        return self.label.as_dict()
+
+
 class Tracker(BaseModel):
     uuid = TextField(primary_key=True)
     shape = ForeignKeyField(Shape, backref="trackers", on_delete="CASCADE")

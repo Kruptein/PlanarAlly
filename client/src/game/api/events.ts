@@ -124,7 +124,7 @@ socket.on("Shape.Layer.Change", (data: { uuid: string; layer: string }) => {
     if (shape === undefined) return;
     shape.moveLayer(data.layer, false);
 });
-socket.on("Shape.Update", (data: { shape: ServerShape; redraw: boolean; move: boolean }) => {
+socket.on("Shape.Update", (data: { shape: ServerShape; redraw: boolean; move: boolean, temporary: boolean }) => {
     gameManager.updateShape(data);
 });
 socket.on("Temp.Clear", (shapes: ServerShape[]) => {

@@ -23,25 +23,25 @@ export function triangulate(target: "vision" | "movement", partial: boolean = fa
         }
     }
     // LEFT WALL
-    cdt.insertConstraint([-1e10, -1e10], [-1e10, 1e10]);
-    cdt.insertConstraint([-1e10, 1e10], [-1e11, 1e10]);
-    cdt.insertConstraint([-1e11, 1e10], [-1e11, -1e10]);
-    cdt.insertConstraint([-1e11, -1e10], [-1e10, -1e10]);
+    cdt.insertConstraint([-1e8, -1e8], [-1e8, 1e8]);
+    cdt.insertConstraint([-1e8, 1e8], [-1e11, 1e8]);
+    cdt.insertConstraint([-1e11, 1e8], [-1e11, -1e8]);
+    cdt.insertConstraint([-1e11, -1e8], [-1e8, -1e8]);
     // TOP WALL
-    cdt.insertConstraint([-1e10, -1e10], [1e10, -1e10]);
-    cdt.insertConstraint([1e10, -1e10], [1e10, -1e11]);
-    cdt.insertConstraint([1e10, -1e11], [-1e10, -1e11]);
-    cdt.insertConstraint([-1e10, -1e11], [-1e10, -1e10]);
+    cdt.insertConstraint([-1e8, -1e8], [1e8, -1e8]);
+    cdt.insertConstraint([1e8, -1e8], [1e8, -1e11]);
+    cdt.insertConstraint([1e8, -1e11], [-1e8, -1e11]);
+    cdt.insertConstraint([-1e8, -1e11], [-1e8, -1e8]);
     // RIGHT WALL
-    cdt.insertConstraint([1e10, -1e10], [1e10, 1e10]);
-    cdt.insertConstraint([1e10, 1e10], [1e11, 1e10]);
-    cdt.insertConstraint([1e11, 1e10], [1e11, -1e10]);
-    cdt.insertConstraint([1e11, -1e10], [1e10, -1e10]);
+    cdt.insertConstraint([1e8, -1e8], [1e8, 1e8]);
+    cdt.insertConstraint([1e8, 1e8], [1e11, 1e8]);
+    cdt.insertConstraint([1e11, 1e8], [1e11, -1e8]);
+    cdt.insertConstraint([1e11, -1e8], [1e8, -1e8]);
     // BOT WALL
-    cdt.insertConstraint([-1e10, 1e10], [1e10, 1e10]);
-    cdt.insertConstraint([1e10, 1e10], [1e10, 1e11]);
-    cdt.insertConstraint([1e10, 1e11], [-1e10, 1e11]);
-    cdt.insertConstraint([-1e10, 1e11], [-1e10, 1e10]);
+    cdt.insertConstraint([-1e8, 1e8], [1e8, 1e8]);
+    cdt.insertConstraint([1e8, 1e8], [1e8, 1e11]);
+    cdt.insertConstraint([1e8, 1e11], [-1e8, 1e11]);
+    cdt.insertConstraint([-1e8, 1e11], [-1e8, 1e8]);
     PA_CDT[target] = cdt;
     (<any>window).CDT = PA_CDT;
 }

@@ -30,7 +30,7 @@ export class GameManager {
         layer.invalidate(false);
     }
 
-    updateShape(data: { shape: ServerShape; redraw: boolean; move: boolean }): void {
+    updateShape(data: { shape: ServerShape; redraw: boolean; move: boolean; temporary: boolean }): void {
         if (!layerManager.hasLayer(data.shape.layer)) {
             console.log(`Shape with unknown layer ${data.shape.layer} could not be added`);
             return;
@@ -50,7 +50,11 @@ export class GameManager {
         shape.checkVisionSources();
         shape.setMovementBlock(shape.movementObstruction);
         shape.setIsToken(shape.isToken);
-        if (data.redraw) layerManager.getLayer(data.shape.layer)!.invalidate(false);
+        if (data.redraw) {
+            gameStore.recalculateVision(data.temporary);
+            layerManager.getLayer(data.shape.layer)!.invalidate(false);
+            if (shape.movementObstruction) gameStore.recalculateMovement(data.temporary);
+        }
         if (redrawInitiative) getRef<Initiative>("initiative").$forceUpdate();
     }
 

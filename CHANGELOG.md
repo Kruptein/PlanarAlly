@@ -38,6 +38,7 @@ All notable changes to this project will be documented in this file.
 - Move layer to/from DM layer having broken results for players untill a refresh of the page.
 - Vision bugs at different zoom levels caused by the world boundary being too large.
   - Reduced boundary location from 1e10 to 1e8.
+- Bug causing the vision recalculation not happening in a lot of cases.
 
 ### Removed
 

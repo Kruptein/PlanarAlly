@@ -1,4 +1,5 @@
-// import Vuex from "vuex";
+import Vue from 'vue';
+
 import { Action, getModule, Module, Mutation, VuexModule } from "vuex-module-decorators";
 
 import { AssetList } from "@/core/comm/types";
@@ -70,7 +71,9 @@ class GameStore extends VuexModule implements GameState {
 
     clipboard: ServerShape[] = [];
 
-    labels: Map<string, Map<string, Label>> = new Map();
+    // Maps are not yet supported in Vue untill 3.X, so for now we're using a plain old object
+    labels: {[uuid: string]: Label} = {};
+
     filterNoLabel = false;
     labelFilters: string[] = [];
 
@@ -105,38 +108,30 @@ class GameStore extends VuexModule implements GameState {
     }
 
     @Mutation
-    setLabels(labels: Label[]) {
-        for (const label of labels) {
-            if (!this.labels.has(label.user)) this.labels.set(label.user, new Map());
-            this.labels.get(label.user)!.set(label.uuid, label);
-        }
-    }
-
-    @Mutation
     toggleUnlabeledFilter() {
         this.filterNoLabel = !this.filterNoLabel;
     }
 
     @Mutation
     addLabel(label: Label) {
-        if (!this.labels.has(label.user)) this.labels.set(label.user, new Map());
-        this.labels.get(label.user)!.set(label.uuid, label);
+        Vue.set(this.labels, label.uuid, label);
+    }
+
+    @Mutation
+    setLabelFilters(filters: string[]) {
+        this.labelFilters = filters;
     }
 
     @Mutation
     setLabelVisibility(data: { user: string; uuid: string; visible: boolean }) {
-        if (!this.labels.has(data.user)) this.labels.set(data.user, new Map());
-        const label = this.labels.get(data.user)!.get(data.uuid);
-        if (label) {
-            label.visible = data.visible;
-        }
+        if (!(data.uuid in this.labels)) return;
+        this.labels[data.uuid].visible = data.visible;
     }
 
     @Mutation
     deleteLabel(data: { uuid: string; user: string }) {
-        if (!this.labels.has(data.user)) return;
-        const label = this.labels.get(data.user)!.get(data.uuid);
-        if (!label) return;
+        if (!(data.uuid in this.labels)) return;
+        const label = this.labels[data.uuid];
         const updatedLayers: Set<string> = new Set();
         for (const shape of layerManager.UUIDMap.values()) {
             const i = shape.labels.indexOf(label);
@@ -147,7 +142,7 @@ class GameStore extends VuexModule implements GameState {
         }
         for (const layer of updatedLayers)
             layerManager.getLayer(layer)!.invalidate(false);
-        this.labels.get(data.user)!.delete(data.uuid);
+        delete this.labels[data.uuid];
     }
 
     @Mutation

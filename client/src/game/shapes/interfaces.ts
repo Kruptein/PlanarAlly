@@ -19,6 +19,7 @@ interface Aura {
 
 interface Label {
     uuid: string;
+    category: string;
     name: string;
     visible: boolean;
     user: string;

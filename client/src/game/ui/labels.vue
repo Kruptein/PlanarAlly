@@ -26,31 +26,33 @@
                     <abbr title="Delete">Del.</abbr>
                 </div>
                 <div class="separator spanrow"></div>
-                <template v-for="[uuid, label] in labels()">
-                    <div :key="'row-'+uuid" class="row" @click="selectLabel(uuid)">
-                        <template v-if="label.name[0] !== ':'">
-                            <div :key="'cat-'+uuid">{{ label.name.split(":")[0] }}</div>
+                <template v-for="category in categories">
+                    <template v-for="label in labels[category]">
+                        <div :key="'row-'+label.uuid" class="row" @click="selectLabel(label.uuid)">
+                            <template v-if="label.category">
+                                <div :key="'cat-'+label.uuid">{{ label.category }}</div>
+                                <div
+                                    class="name"
+                                    :key="'name-'+label.uuid"
+                                >{{ label.name }}</div>
+                            </template>
+                            <template v-if="!label.category">
+                                <div :key="'cat-'+label.uuid"></div>
+                                <div class="name" :key="'name-'+label.uuid">{{ label.name }}</div>
+                            </template>
                             <div
-                                class="name"
-                                :key="'name-'+uuid"
-                            >{{ label.name.split(":").splice(1).join(":") }}</div>
-                        </template>
-                        <template v-if="label.name[0] === ':'">
-                            <div :key="'cat-'+uuid"></div>
-                            <div class="name" :key="'name-'+uuid">{{ label.name.slice(1) }}</div>
-                        </template>
-                        <div
-                            :key="'visible-'+uuid"
-                            :style="{textAlign: 'center'}"
-                            :class="{'lower-opacity': !label.visible}"
-                            @click.stop="toggleVisibility(label)"
-                        >
-                            <i class="fas fa-eye"></i>
+                                :key="'visible-'+label.uuid"
+                                :style="{textAlign: 'center'}"
+                                :class="{'lower-opacity': !label.visible}"
+                                @click.stop="toggleVisibility(label)"
+                            >
+                                <i class="fas fa-eye"></i>
+                            </div>
+                            <div :key="'delete-'+label.uuid" @click.stop="deleteLabel(label.uuid)">
+                                <i class="fas fa-trash-alt"></i>
+                            </div>
                         </div>
-                        <div :key="'delete-'+uuid" @click.stop="deleteLabel(uuid)">
-                            <i class="fas fa-trash-alt"></i>
-                        </div>
-                    </div>
+                    </template>
                 </template>
                 <template v-if="labels.length === 0">
                     <div id="no-labels">No labels exist yet</div>
@@ -92,14 +94,27 @@ export default class LabelManager extends Vue {
         });
     }
 
-    // Cannot be a computed value due to Map reactivity limits
-    labels() {
-        if (gameStore.labels.has(gameStore.username)) return Array.from(gameStore.labels.get(gameStore.username)!);
-        return [];
-    }
-
     beforeDestroy() {
         EventBus.$off("LabelManager.Open");
+    }
+
+    get labels() {
+        const cat: {[category: string]: Label[]} = {};
+        for (const uuid of Object.keys(gameStore.labels)) {
+            const label = gameStore.labels[uuid];
+            if (label.user !== gameStore.username) continue;
+            if (!label.category) cat[''].push(label);
+            else {
+                if (!(label.category in cat)) cat[label.category] = [];
+                cat[label.category].push(label);
+                cat[label.category].sort((a, b) => a.name.localeCompare(b.name));
+            }
+        }
+        return cat;
+    }
+
+    get categories() {
+        return Object.keys(this.labels).sort();
     }
 
     selectLabel(label: string) {
@@ -118,7 +133,8 @@ export default class LabelManager extends Vue {
         if (this.newName === "") return;
         const label = {
             uuid: uuidv4(),
-            name: `${this.newCategory}:${this.newName}`,
+            category: this.newCategory,
+            name: this.newName,
             visible: false,
             user: gameStore.username,
         };

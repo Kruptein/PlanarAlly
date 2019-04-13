@@ -212,20 +212,20 @@
                         class="label"
                         :key="label.uuid"
                     >
-                        <template v-if="label.name[0] !== ':'">
+                        <template v-if="label.category">
                             <div
                                 class="label-user"
-                            >{{ label.name.split(":")[0] }}</div>
+                            >{{ label.category }}</div>
                             <div
                                 class="label-main"
                                 @click="removeLabel(label.uuid)"
-                            >{{ label.name.split(":").splice(1).join(":") }}</div>
+                            >{{ label.name }}</div>
                         </template>
-                        <template v-if="label.name[0] === ':'">
+                        <template v-if="!label.category">
                             <div
                                 class="label-main"
                                 @click="removeLabel(label.uuid)"
-                            >{{ label.name.slice(1) }}</div>
+                            >{{ label.name }}</div>
                         </template>
                     </div>
                     <div class="label" id="label-add" v-if="owned">
@@ -282,7 +282,7 @@ export default class EditDialog extends Vue {
         });
         EventBus.$on("EditDialog.AddLabel", (label: string) => {
             if (this.visible) {
-                this.shape.labels.push(gameStore.labels.get(gameStore.username)!.get(label)!);
+                this.shape.labels.push(gameStore.labels[label]);
                 this.updateShape(true);
             }
         });

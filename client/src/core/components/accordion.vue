@@ -9,8 +9,8 @@
         </template>
     </div>
     <div v-show="active" id="body">
-        <div v-for="item in items" :key="item" class="item" @click="toggleSelection(item)">
-            <input type="checkbox" :checked="selected.includes(item)" @click.prevent> {{ item }}
+        <div v-for="item in items" :key="item[0]" class="item" @click="toggleSelection(item[0])">
+            <input type="checkbox" :checked="selected.includes(item[0])" @click.prevent> {{ item[1] }}
         </div>
     </div>
   </div>
@@ -21,33 +21,36 @@ import Vue from "vue";
 import Component from "vue-class-component";
 
 import { Prop } from "vue-property-decorator";
+import { gameStore } from '../../game/store';
 
 @Component
 export default class Accordion extends Vue {
     @Prop(String) title!: string;
     @Prop({ default: true, type: Boolean }) showArrow!: boolean;
-    @Prop({ default: () => []}) items!: string[];
-
-    active = false;
+    @Prop({ default: () => []}) items!: [string, string][];
+    @Prop({ default: () => []}) initialValues!: string[];
 
     selected: string[] = [];
 
+    active = false;
+
+    mounted() {
+        this.selected = this.initialValues;
+        this.updateCategory();
+    }
+
     toggleDisplay(event: MouseEvent) {
         this.active = !this.active;
-        this.$parent.$emit("accordion-close", this);
     }
 
     toggleCategory() {
         const overall = this.$refs.overall as HTMLInputElement;
-        if (overall.checked) this.selected = this.items;
+        if (overall.checked) this.selected = this.items.map((i) => i[0]);
         else this.selected = [];
+        this.$emit("selectionupdate", {title: this.title, selection: this.selected});
     }
 
-    toggleSelection(item: string) {
-        const found = this.selected.indexOf(item);
-        if (found === -1) this.selected.push(item);
-        else this.selected.splice(found, 1);
-
+    updateCategory() {
         const overall = this.$refs.overall as HTMLInputElement;
         if (this.selected.length === 0) {
             overall.checked = false;
@@ -59,6 +62,14 @@ export default class Accordion extends Vue {
             overall.checked = false;
             overall.indeterminate = true;
         }
+    }
+
+    toggleSelection(item: string) {
+        const found = this.selected.indexOf(item);
+        if (found === -1) this.selected.push(item);
+        else this.selected.splice(found, 1);
+        this.updateCategory();
+        this.$emit("selectionupdate", {title: this.title, selection: this.selected});
     }
 }
 </script>

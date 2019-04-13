@@ -4,32 +4,9 @@
         v-if="selected"
         :style="{'--detailRight': detailRight, '--detailArrow': detailArrow}"
     >
-        <!-- <div class="label" :class="{disabled: $store.state.game.filterNoLabel}">
-            <div class='label-main' @click="toggleUnlabeled">Unlabeled</div>
-        </div> -->
-        <!-- <template v-for="[uuid, label] in labels()">
-            <div class="label" :class="{disabled: isFilter(uuid)}" :key="uuid">
-                <template v-if="label.name[0] !== ':'">
-                    <div
-                        class="label-user"
-                    >{{ label.name.split(":")[0] }}</div>
-                    <div
-                        class="label-main"
-                        @click="toggleFilter(uuid)"
-                    >{{ label.name.split(":").splice(1).join(":") }}</div>
-                </template>
-                <template v-if="label.name[0] === ':'">
-                    <div
-                        class="label-main"
-                        @click="toggleFilter(uuid)"
-                    >{{ label.name.slice(1) }}</div>
-                </template>
-            </div>
-        </template> -->
-        <accordion-list>
-            <accordion v-for="category in categories" :title="category.name" :showArrow="false" :items="category.items"/>
-            <accordion title="test twee" :showArrow="false" :items="['woo', 'test']"/>
-        </accordion-list>
+        <div id="#accordion-container">
+            <accordion v-for="category in categories" :key="category" :title="category" :showArrow="false" :items="labels[category]" :initialValues="initalValues[category]" @selectionupdate="updateSelection" />
+        </div>
     </div>
 </template>
 
@@ -37,7 +14,6 @@
 import Component from "vue-class-component";
 
 import Accordion from '@/core/components/accordion.vue';
-import AccordionList from '@/core/components/accordion_list.vue';
 import Tool from "@/game/ui/tools/tool.vue";
 
 import { layerManager } from '@/game/layers/manager';
@@ -46,27 +22,41 @@ import { gameStore } from '@/game/store';
 
 @Component({
     components: {
-        "accordion": Accordion,
-        "accordion-list": AccordionList,
+        "accordion": Accordion
     },
 })
 export default class FilterTool extends Tool {
     name = "Filter";
     active = false;
 
+    get labels() {
+        const cat: {[category: string]: [string, string][]} = {};
+        for (const uuid of Object.keys(gameStore.labels)) {
+            const label = gameStore.labels[uuid];
+            if (!label.category) cat[''].push([label.uuid, label.name]);
+            else {
+                if (!(label.category in cat)) cat[label.category] = [];
+                cat[label.category].push([label.uuid, label.name]);
+                cat[label.category].sort((a, b) => a[1].localeCompare(b[1]));
+            }
+        }
+        return cat;
+    }
+
+    get initalValues() {
+        const values: {[category: string]: string[]} = {};
+        for (const cat of Object.keys(this.labels)) {
+            values[cat] = gameStore.labelFilters.filter((f) => this.labels[cat].map((l) => l[0]).includes(f));
+        }
+        return values;
+    }
+
+    get categories() {
+        return Object.keys(this.labels).sort();
+    }
+
     isFilter(uuid: string): boolean {
         return gameStore.labelFilters.includes(uuid);
-    }
-
-    categories() {
-        
-    }
-
-    // Cannot be a computed value due to Map reactivity limits
-    labels() {
-        const labels = [];
-        for (const label of gameStore.labels.values()) labels.push(...Array.from(label));
-        return labels;
     }
 
     toggleFilter(uuid: string) {
@@ -81,54 +71,34 @@ export default class FilterTool extends Tool {
         layerManager.invalidate();
     }
 
+    updateSelection(data: {title: string; selection: string[]}) {
+        if (!(data.title in this.labels)) return;
+        for (const [uuid, _] of this.labels[data.title]) {
+            const idx = gameStore.labelFilters.indexOf(uuid);
+            const selected = data.selection.includes(uuid);
+            if (idx >= 0 && !selected) gameStore.labelFilters.splice(idx, 1);
+            else if (idx < 0 && selected) gameStore.labelFilters.push(uuid);
+        }
+        layerManager.invalidate();
+    }
+
 }
 </script>
 
 <style>
-
+.accordion {
+    margin-bottom: 0.2em;
+}
+.accordion:last-of-type {
+    margin-bottom: 0;
+}
 </style>
 
 
 <style scoped>
-
-/* .label {
-    display: inline-flex;
-    position: relative;
-    flex-direction: row;
-    align-items: center;
-    background-color: white;
-    font-size: 10px;
-    margin: 5px;
+#accordion-container {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
 }
-
-.label-user {
-    border-top-left-radius: 10px;
-    border-bottom-left-radius: 10px;
-    background-color: #ff7052;
-    border: solid 1px #ff7052;
-    padding: 5px;
-}
-
-.label-main {
-    border: solid 1px #ff7052;
-    border-radius: 10px;
-    padding: 5px;
-}
-
-.label-user + .label-main {
-    border-top-left-radius: 0;
-    border-bottom-left-radius: 0;
-}
-
-.label:hover {
-    cursor: pointer;
-}
-
-.disabled, .label:not(.disabled):hover {
-    opacity: 0.5;
-}
-
-.label:not(.disabled), .disabled:hover {
-    opacity: 1.0;
-} */
 </style>

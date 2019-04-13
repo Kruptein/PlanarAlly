@@ -142,7 +142,7 @@ socket.on("Temp.Clear", (shapes: ServerShape[]) => {
     });
 });
 socket.on("Labels.Set", (labels: Label[]) => {
-    gameStore.setLabels(labels);
+    for (const label of labels) gameStore.addLabel(label);
 });
 socket.on("Label.Visibility.Set", (data: { user: string; uuid: string; visible: boolean }) => {
     gameStore.setLabelVisibility(data);

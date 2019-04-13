@@ -1,15 +1,15 @@
-import Tools from "../ui/tools/tools.vue";
+import Tools from "@/game/ui/tools/tools.vue";
 
 import { getRef, uuidv4 } from "@/core/utils";
 import { socket } from "@/game/api/socket";
 import { sendClientOptions } from "@/game/api/utils";
+import { ServerAura } from '@/game/comm/types/shapes';
 import { EventBus } from "@/game/event-bus";
 import { Vector } from "@/game/geom";
 import { layerManager } from "@/game/layers/manager";
+import { createShapeFromDict } from "@/game/shapes/utils";
 import { gameStore } from "@/game/store";
 import { calculateDelta } from "@/game/ui/tools/utils";
-import { createShapeFromDict } from "../shapes/utils";
-import { ServerAura } from '../comm/types/shapes';
 
 export function onKeyUp(event: KeyboardEvent) {
     if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement) {

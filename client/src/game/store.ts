@@ -142,7 +142,7 @@ class GameStore extends VuexModule implements GameState {
         }
         for (const layer of updatedLayers)
             layerManager.getLayer(layer)!.invalidate(false);
-        delete this.labels[data.uuid];
+        Vue.delete(this.labels, data.uuid);
     }
 
     @Mutation

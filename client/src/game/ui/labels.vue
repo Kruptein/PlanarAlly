@@ -164,7 +164,7 @@ abbr {
 
 .scroll {
     max-height: 20em;
-    overflow-y: scroll;
+    overflow-y: auto;
 }
 
 .modal-header {

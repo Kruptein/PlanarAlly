@@ -4,7 +4,7 @@
     v-if="selected"
     :style="{'--detailRight': detailRight, '--detailArrow': detailArrow}"
   >
-    <div id="#accordion-container">
+    <div id="accordion-container">
       <accordion
         v-for="category in categories"
         :key="category"
@@ -104,6 +104,9 @@ export default class FilterTool extends Tool {
 .accordion:last-of-type {
     margin-bottom: 0;
 }
+.tool-detail {
+    display: block;
+}
 </style>
 
 
@@ -112,5 +115,7 @@ export default class FilterTool extends Tool {
     display: flex;
     flex-direction: column;
     align-items: stretch;
+    overflow-y: auto;
+    max-height: 25em;
 }
 </style>

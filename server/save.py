@@ -121,12 +121,13 @@ def upgrade(version):
         db.foreign_keys = True
         Constants.update(save_version=Constants.save_version + 1).execute()
     elif version == 12:
-        from models import Label
+        from models import Label, LabelSelection
         
         db.foreign_keys = False
         migrator = SqliteMigrator(db)
         with db.atomic():
             migrate(migrator.add_column("label", "category", Label.category))
+            db.create_tables([LabelSelection])
         with db.atomic():
             for label in Label:
                 if ":" not in label.name: continue

@@ -64,7 +64,7 @@ class Location(BaseModel):
     full_fow = BooleanField(default=False)
     fow_opacity = FloatField(default=0.3)
     fow_los = BooleanField(default=False)
-    vision_mode = TextField(default="bvh")
+    vision_mode = TextField(default="triangle")
     # default is 1km max, 0.5km min
     vision_min_range = FloatField(default=1640)
     vision_max_range = FloatField(default=3281)

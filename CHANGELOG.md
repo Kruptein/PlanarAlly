@@ -28,6 +28,7 @@ All notable changes to this project will be documented in this file.
   - Groupselect will only select your own tokens.
 - Some minor style changes to the edit asset dialog
 - Shape names can now be hidden from other users.
+- Default vision mode changed to triangle mode.  Legacy vision mode (bvh) can still be selected in the DM options.
 
 ### Fixed
 

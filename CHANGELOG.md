@@ -7,6 +7,8 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+## [0.15.0] - 2019-04-14
+
 ### Added
 
 - Keybinding to toggle UI (ctrl+u).

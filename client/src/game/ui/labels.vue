@@ -26,7 +26,7 @@
                     <abbr title="Delete">Del.</abbr>
                 </div>
                 <div class="separator spanrow" style="margin: 0 0 7px;"></div>
-                <input class='spanrow' type='text' placeholder="search" v-model="search">
+                <input class='spanrow' type='text' placeholder="search" v-model="search" ref="search">
             </div>
             <div class="grid scroll">
                 <template v-for="category in categories">
@@ -98,6 +98,7 @@ export default class LabelManager extends Vue {
             this.visible = true;
             this.newCategory = "";
             this.newName = "";
+            this.$nextTick(() => (<HTMLInputElement>this.$refs.search).focus());
         });
     }
 

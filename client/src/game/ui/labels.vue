@@ -14,7 +14,7 @@
             </div>
         </div>
         <div class="modal-body">
-            <div id="grid">
+            <div class="grid">
                 <div class="header">
                     <abbr title="Category">Cat.</abbr>
                 </div>
@@ -25,7 +25,10 @@
                 <div class="header">
                     <abbr title="Delete">Del.</abbr>
                 </div>
-                <div class="separator spanrow"></div>
+                <div class="separator spanrow" style="margin: 0 0 7px;"></div>
+                <input class='spanrow' type='text' placeholder="search" v-model="search">
+            </div>
+            <div class="grid scroll">
                 <template v-for="category in categories">
                     <template v-for="label in labels[category]">
                         <div :key="'row-'+label.uuid" class="row" @click="selectLabel(label.uuid)">
@@ -57,6 +60,9 @@
                 <template v-if="labels.length === 0">
                     <div id="no-labels">No labels exist yet</div>
                 </template>
+            </div>
+            <div class="grid">
+                <div class="separator spanrow"></div>
                 <input type="text" v-model.trim="newCategory">
                 <input type="text" v-model.trim="newName">
                 <button id="addLabelButton" @click.stop="addLabel">Add</button>
@@ -85,6 +91,7 @@ export default class LabelManager extends Vue {
     visible = false;
     newCategory = "";
     newName = "";
+    search = "";
 
     mounted() {
         EventBus.$on("LabelManager.Open", () => {
@@ -102,6 +109,7 @@ export default class LabelManager extends Vue {
         const cat: {[category: string]: Label[]} = {};
         for (const uuid of Object.keys(gameStore.labels)) {
             const label = gameStore.labels[uuid];
+            if (this.search.length && `${label.category.toLowerCase()}${label.name.toLowerCase()}`.search(this.search.toLowerCase()) < 0) continue;
             if (label.user !== gameStore.username) continue;
             if (!label.category) cat[''].push(label);
             else {
@@ -125,8 +133,6 @@ export default class LabelManager extends Vue {
     toggleVisibility(label: Label) {
         label.visible = !label.visible;
         socket.emit("Label.Visibility.Set", { uuid: label.uuid, visible: label.visible });
-        // Maps have no reactivity currently
-        this.$forceUpdate();
     }
 
     addLabel() {
@@ -142,14 +148,11 @@ export default class LabelManager extends Vue {
         socket.emit("Label.Add", label);
         this.newCategory = "";
         this.newName = "";
-        this.$forceUpdate();
     }
 
     deleteLabel(uuid: string) {
         gameStore.deleteLabel({ uuid, user: gameStore.username });
         socket.emit("Label.Delete", uuid);
-        // Maps have no reactivity currently
-        this.$forceUpdate();
     }
 }
 </script>
@@ -157,6 +160,11 @@ export default class LabelManager extends Vue {
 <style scoped>
 abbr {
     text-decoration: none;
+}
+
+.scroll {
+    max-height: 20em;
+    overflow-y: scroll;
 }
 
 .modal-header {
@@ -180,7 +188,7 @@ abbr {
 
 .separator {
     line-height: 0.1em;
-    margin: 0 0 15px;
+    margin: 7px 0;
 }
 
 .separator:after {
@@ -199,14 +207,14 @@ abbr {
     opacity: 0.3;
 }
 
-#grid {
+.grid {
     display: grid;
     grid-template-columns: [start] 50px [name] 1fr [visible] 30px [remove] 30px [end];
     grid-row-gap: 5px;
     align-items: center;
 }
 
-#grid > * {
+.grid > * {
     text-align: center;
 }
 

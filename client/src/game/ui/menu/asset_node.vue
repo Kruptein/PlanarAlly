@@ -1,24 +1,24 @@
 <template>
-  <ul>
-    <li v-for="folder in folders" :key="folder" class="folder" @click.stop="toggle">
-      {{ folder }}
-      <asset-node :asset="asset[folder]"></asset-node>
-    </li>
-    <li
-      v-for="file in files"
-      :key="file.name"
-      class="file draggable token"
-      draggable="true"
-      @mouseover="showImage = file.hash"
-      @mouseout="showImage = null"
-      @dragstart="dragStart($event, '/static/assets/' + file.hash)"
-    >
-      {{ file.name }}
-      <div v-if="showImage == file.hash" class="preview">
-        <img class="asset-preview-image" :src="'/static/assets/' + file.hash">
-      </div>
-    </li>
-  </ul>
+    <ul>
+        <li v-for="folder in folders" :key="folder" class="folder" @click.stop="toggle">
+            {{ folder }}
+            <asset-node :asset="asset[folder]"></asset-node>
+        </li>
+        <li
+            v-for="file in files"
+            :key="file.name"
+            class="file draggable token"
+            draggable="true"
+            @mouseover="showImage = file.hash"
+            @mouseout="showImage = null"
+            @dragstart="dragStart($event, '/static/assets/' + file.hash)"
+        >
+            {{ file.name }}
+            <div v-if="showImage == file.hash" class="preview">
+                <img class="asset-preview-image" :src="'/static/assets/' + file.hash">
+            </div>
+        </li>
+    </ul>
 </template>
 
 
@@ -60,6 +60,7 @@ export default class AssetNode extends Vue {
     }
 
     dragStart(event: DragEvent, imageSource: string) {
+        this.showImage = null;
         if (event === null || event.dataTransfer === null) return;
         const img = (<HTMLElement>event.target).querySelector(".preview")!;
         event.dataTransfer.setDragImage(img, 0, 0);

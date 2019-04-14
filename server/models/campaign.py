@@ -8,6 +8,7 @@ from peewee import (
     TextField,
 )
 from playhouse.shortcuts import model_to_dict
+from playhouse.sqlite_ext import JSONField
 
 from .base import BaseModel
 from .user import User
@@ -63,7 +64,7 @@ class Location(BaseModel):
     full_fow = BooleanField(default=False)
     fow_opacity = FloatField(default=0.3)
     fow_los = BooleanField(default=False)
-    vision_mode = TextField(default="bvh")
+    vision_mode = TextField(default="triangle")
     # default is 1km max, 0.5km min
     vision_min_range = FloatField(default=1640)
     vision_max_range = FloatField(default=3281)
@@ -189,6 +190,7 @@ class LocationUserOption(BaseModel):
     pan_y = IntegerField(default=0)
     zoom_factor = FloatField(default=1.0)
     active_layer = ForeignKeyField(Layer, backref="active_users", null=True)
+    active_filters = JSONField(default = {})
 
     def __repr__(self):
         return f"<LocationUserOption {self.location.get_path()} - {self.user.name}>"

@@ -13,3 +13,13 @@ export function getFogColour(opposite: boolean = false): string {
     else tc.setAlpha(1);
     return tc.toRgbString();
 }
+
+export function zoomValue(display: number) {
+    // Powercurve 0.2/3/10
+    // Based on https://stackoverflow.com/a/17102320
+    return 1 / (-5 / 3 + (28 / 15) * Math.exp(1.83 * display));
+}
+
+export function zoomDisplay(value: number) {
+    return Math.log((1 / value + 5 / 3) * (15 / 28)) / 1.83;
+}

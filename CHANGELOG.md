@@ -7,11 +7,56 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+## [0.15.0] - 2019-04-14
+
+### Added
+
+- Keybinding to toggle UI (ctrl+u).
+- Keybinding to copy selection to clipboard (ctrl+c).
+- Keybinding to paste clipboard to board (ctrl+v).
+- Labeling system.
+    - You can add labels to shapes.
+    - You can filter the gameboard on these labels.
+
+### Changed
+
+- Asset preview now disappears when starting a drag asset action.
+- A mouse down in general will now trigger layer or tool selection.
+  - In the past a 'click' was required, now any 'mousedown' will trigger.
+- Zoom scale has been modified.
+- Select tool can now also select shapes not owned by the player.
+  - The selection info box is shown with all info visible for the user.
+  - The tokens cannot be dragged or resized.
+  - Groupselect will only select your own tokens.
+- Some minor style changes to the edit asset dialog
+- Shape names can now be hidden from other users.
+- Default vision mode changed to triangle mode.  Legacy vision mode (bvh) can still be selected in the DM options.
+
+### Fixed
+
+- Bug causing rulers to stick on DM screen.
+- Bug causing rulers to not appear on other screens.
+- Drag and drop asset on firefox redirecting to random urls.
+- Some eventlisteners not being removed properly.
+  - This caused zoom behaviour to mess up when leaving and joining a room multiple times.
+- Bug causing players not being able to add or update initiative effects.
+- Bug causing shown initiative effect to be one lower than it actually is on location load.
+- Move layer to/from DM layer having broken results for players untill a refresh of the page.
+- Bug causing some windows (e.g. initiatives) to no longer appear.
+- Vision bugs at different zoom levels caused by the world boundary being too large.
+  - Reduced boundary location from 1e10 to 1e8.
+- Bug causing the vision recalculation not happening in a lot of cases.
+
+### Removed
+
+- Some old css files.
+
 ### [0.14.2] - 2019-01-29
 
 ### Fixed
 
 - Registered users had to logout and login again before being able to perform actions.
+- [tech] Javascript files being wrongly served as plaintext in some obscure cases.
 
 ## [0.14.1] - 2019-01-28
 

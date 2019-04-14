@@ -1,33 +1,33 @@
 <template>
-  <div>
-    <div id="toolselect">
-      <ul>
-        <li
-          v-for="tool in tools"
-          v-if="!dmTools.includes(tool) || IS_DM"
-          :key="tool"
-          :class="{'tool-selected': currentTool === tool}"
-          :ref="tool + '-selector'"
-          @click="currentTool = tool"
-        >
-          <a href="#">{{ tool }}</a>
-        </li>
-      </ul>
-    </div>
     <div>
-      <template>
-        <select-tool v-show="currentTool === 'Select'" ref="selectTool"></select-tool>
-        <pan-tool v-show="currentTool === 'Pan'"></pan-tool>
-        <keep-alive>
-          <draw-tool v-show="currentTool === 'Draw'"></draw-tool>
-        </keep-alive>
-        <ruler-tool v-show="currentTool === 'Ruler'"></ruler-tool>
-        <map-tool v-show="currentTool === 'Map'"></map-tool>
-        <shape-menu ref="shapecontext"></shape-menu>
-        <createtoken-dialog ref="createtokendialog"></createtoken-dialog>
-      </template>
+        <div id="toolselect">
+            <ul>
+                <li
+                    v-for="tool in visibleTools"
+                    :key="tool"
+                    :class="{'tool-selected': currentTool === tool}"
+                    :ref="tool + '-selector'"
+                    @mousedown="currentTool = tool"
+                >
+                    <a href="#">{{ tool }}</a>
+                </li>
+            </ul>
+        </div>
+        <div>
+            <template>
+                <select-tool v-show="currentTool === 'Select'" ref="selectTool"></select-tool>
+                <pan-tool v-show="currentTool === 'Pan'"></pan-tool>
+                <keep-alive>
+                    <draw-tool v-show="currentTool === 'Draw'"></draw-tool>
+                </keep-alive>
+                <ruler-tool v-show="currentTool === 'Ruler'"></ruler-tool>
+                <map-tool v-show="currentTool === 'Map'"></map-tool>
+                <filter-tool v-show="currentTool === 'Filter'"></filter-tool>
+                <shape-menu ref="shapecontext"></shape-menu>
+                <createtoken-dialog ref="createtokendialog"></createtoken-dialog>
+            </template>
+        </div>
     </div>
-  </div>
 </template>
 
 
@@ -37,6 +37,7 @@ import Vue from "vue";
 import ShapeContext from "@/game/ui/selection/shapecontext.vue";
 import CreateTokenModal from "@/game/ui/tools/createtoken_modal.vue";
 import DrawTool from "@/game/ui/tools/draw.vue";
+import FilterTool from "@/game/ui/tools/filter.vue";
 import MapTool from "@/game/ui/tools/map.vue";
 import PanTool from "@/game/ui/tools/pan";
 import SelectTool from "@/game/ui/tools/select.vue";
@@ -56,6 +57,7 @@ import Component from "vue-class-component";
         "draw-tool": DrawTool,
         "ruler-tool": RulerTool,
         "map-tool": MapTool,
+        "filter-tool": FilterTool,
         "shape-menu": ShapeContext,
         "createtoken-dialog": CreateTokenModal,
     },
@@ -71,7 +73,7 @@ export default class Tools extends Vue {
     };
 
     currentTool = "Select";
-    tools = ["Select", "Pan", "Draw", "Ruler", "Map"];
+    tools = ["Select", "Pan", "Draw", "Ruler", "Map", "Filter"];
     dmTools = ["Map"];
 
     get IS_DM(): boolean {
@@ -80,6 +82,10 @@ export default class Tools extends Vue {
 
     get currentToolComponent(): string {
         return `${this.currentTool.toLowerCase()}-tool`;
+    }
+
+    get visibleTools(): string[] {
+        return this.tools.filter(t => (!this.dmTools.includes(t) || this.IS_DM));
     }
 
     mousedown(event: MouseEvent) {
@@ -156,6 +162,11 @@ export default class Tools extends Vue {
     z-index: 10;
 }
 
+#toolselect * {
+    user-select: none !important;
+    -webkit-user-drag: none !important;
+}
+
 #toolselect > ul {
     display: flex;
     list-style: none;
@@ -185,10 +196,6 @@ export default class Tools extends Vue {
 }
 
 #toolselect > ul > li a {
-    -webkit-user-select: none; /* Chrome all / Safari all */
-    -moz-user-select: none; /* Firefox all */
-    -ms-user-select: none; /* IE 10+ */
-    user-select: none;
     display: flex;
     padding: 10px;
     text-decoration: none;

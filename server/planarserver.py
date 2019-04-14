@@ -3,6 +3,11 @@ PlanarAlly backend server code.
 This is the code responsible for starting the backend and reacting to socket IO events.
 """
 
+# Mimetype recognition for js files apparently is not alwyas properly setup out of the box for some users out there.
+import mimetypes
+if mimetypes.guess_type(".js")[0] == "text/plain":
+    mimetypes.add_type("application/javascript", ".js")
+
 import save
 
 save.check_save()

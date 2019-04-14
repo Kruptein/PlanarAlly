@@ -5,7 +5,17 @@ from playhouse.shortcuts import update_model_from_dict
 import auth
 from .initiative import send_client_initiatives
 from app import app, logger, sio, state
-from models import Aura, Layer, PlayerRoom, Shape, ShapeOwner, Tracker, User
+from models import (
+    Aura,
+    Label,
+    Layer,
+    PlayerRoom,
+    Shape,
+    ShapeLabel,
+    ShapeOwner,
+    Tracker,
+    User,
+)
 from models.db import db
 from models.utils import get_table, reduce_data_to_model
 
@@ -162,6 +172,26 @@ async def update_shape(sid, data):
                     aura_db.save()
                 else:
                     Aura.create(**reduced)
+            # Labels
+            for label in data["shape"]["labels"]:
+                label_db = Label.get_or_none(uuid=label["uuid"])
+                reduced = reduce_data_to_model(Label, label)
+                reduced["user"] = User.by_name(reduced["user"])
+                if label_db:
+                    update_model_from_dict(label_db, reduced)
+                    label_db.save()
+                else:
+                    Label.create(**reduced)
+                shape_label_db = ShapeLabel.get_or_none(shape=shape, label=label_db)
+            old_labels = {shape_label.label.uuid for shape_label in shape.labels}
+            new_labels = set(label["uuid"] for label in data["shape"]["labels"])
+            for label in old_labels ^ new_labels:
+                if label == "":
+                    continue
+                if label in new_labels:
+                    ShapeLabel.create(shape=shape, label=Label.get(uuid=label))
+                else:
+                    ShapeLabel.get(label=Label.get(uuid=label), shape=shape).delete_instance(True)
 
     await sync_shape_update(layer, room, data, sid, shape)
 
@@ -245,6 +275,19 @@ async def change_shape_layer(sid, data):
     shape = Shape.get(uuid=data["uuid"])
     old_layer = shape.layer
     old_index = shape.index
+
+    if old_layer.player_visible and not layer.player_visible:
+        for room_player in room.players:
+            for psid in state.get_sids(user=room_player.player, room=room):
+                if psid == sid:
+                    continue
+                await sio.emit(
+                    "Shape.Remove",
+                    shape.as_dict(room_player.player, False),
+                    room=psid,
+                    namespace="/planarally",
+                )
+
     shape.layer = layer
     shape.index = layer.shapes.count()
     shape.save()
@@ -252,13 +295,36 @@ async def change_shape_layer(sid, data):
         (Shape.layer == old_layer) & (Shape.index >= old_index)
     ).execute()
 
-    await sio.emit(
-        "Shape.Layer.Change",
-        data,
-        room=location.get_path(),
-        skip_sid=sid,
-        namespace="/planarally",
-    )
+    if old_layer.player_visible and layer.player_visible:
+        await sio.emit(
+            "Shape.Layer.Change",
+            data,
+            room=location.get_path(),
+            skip_sid=sid,
+            namespace="/planarally",
+        )
+    else:
+        for csid in state.get_sids(user=room.creator, room=room):
+            if csid == sid:
+                continue
+            await sio.emit(
+                "Shape.Layer.Change",
+                data,
+                room=location.get_path(),
+                skip_sid=sid,
+                namespace="/planarally",
+            )
+        if layer.player_visible:
+            for room_player in room.players:
+                for psid in state.get_sids(user=room_player.player, room=room):
+                    if psid == sid:
+                        continue
+                    await sio.emit(
+                        "Shape.Add",
+                        shape.as_dict(room_player.player, False),
+                        room=psid,
+                        namespace="/planarally",
+                    )
 
 
 @sio.on("Shape.Order.Set", namespace="/planarally")

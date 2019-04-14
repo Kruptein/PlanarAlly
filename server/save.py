@@ -11,7 +11,7 @@ from config import SAVE_FILE
 from models import ALL_MODELS, Constants
 from models.db import db
 
-SAVE_VERSION = 10
+SAVE_VERSION = 13
 logger: logging.Logger = logging.getLogger("PlanarAllyServer")
 logger.setLevel(logging.INFO)
 
@@ -99,6 +99,42 @@ def upgrade(version):
                     "location", "vision_max_range", Location.vision_max_range
                 ),
             )
+        db.foreign_keys = True
+        Constants.update(save_version=Constants.save_version + 1).execute()
+    elif version == 10:
+        from models import Shape
+
+        db.foreign_keys = False
+        migrator = SqliteMigrator(db)
+        with db.atomic():
+            migrate(migrator.add_column("shape", "name_visible", Shape.name_visible))
+        db.foreign_keys = True
+        Constants.update(save_version=Constants.save_version + 1).execute()
+    elif version == 11:
+        from models import Label, LocationUserOption, ShapeLabel
+
+        db.foreign_keys = False
+        migrator = SqliteMigrator(db)
+        with db.atomic():
+            db.create_tables([Label, ShapeLabel])
+            migrate(migrator.add_column("location_user_option", "active_filters", LocationUserOption.active_filters))
+        db.foreign_keys = True
+        Constants.update(save_version=Constants.save_version + 1).execute()
+    elif version == 12:
+        from models import Label, LabelSelection
+        
+        db.foreign_keys = False
+        migrator = SqliteMigrator(db)
+        with db.atomic():
+            migrate(migrator.add_column("label", "category", Label.category))
+            db.create_tables([LabelSelection])
+        with db.atomic():
+            for label in Label:
+                if ":" not in label.name: continue
+                cat, *name = label.name.split(":")
+                label.category = cat
+                label.name = ':'.join(name)
+                label.save()
         db.foreign_keys = True
         Constants.update(save_version=Constants.save_version + 1).execute()
     else:

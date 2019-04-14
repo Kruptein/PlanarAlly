@@ -76,7 +76,7 @@ export class Layer {
         if (temporary === undefined) temporary = false;
         this.shapes.splice(this.shapes.indexOf(shape), 1);
 
-        if (sync) socket.emit("Shape.Remove", { shape, temporary });
+        if (sync) socket.emit("Shape.Remove", { shape: shape.asDict(), temporary });
         const lsI = gameStore.visionSources.findIndex(ls => ls.shape === shape.uuid);
         const lbI = gameStore.visionBlockers.findIndex(ls => ls === shape.uuid);
 
@@ -135,6 +135,13 @@ export class Layer {
             });
             this.shapes.forEach(shape => {
                 if (shape.options.has("skipDraw") && shape.options.get("skipDraw")) return;
+                if (shape.labels.length === 0 && gameStore.filterNoLabel) return;
+                if (
+                    shape.labels.length &&
+                    gameStore.labelFilters.length &&
+                    !shape.labels.some(l => gameStore.labelFilters.includes(l.uuid))
+                )
+                    return;
                 if (layerManager.getLayer() === undefined) return;
                 if (!shape.visibleInCanvas(state.canvas)) return;
                 if (state.name === "fow" && shape.visionObstruction && layerManager.getLayer()!.name !== state.name)

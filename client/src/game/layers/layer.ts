@@ -138,6 +138,7 @@ export class Layer {
                 if (shape.labels.length === 0 && gameStore.filterNoLabel) return;
                 if (
                     shape.labels.length &&
+                    gameStore.labelFilters.length &&
                     !shape.labels.some(l => gameStore.labelFilters.includes(l.uuid))
                 )
                     return;

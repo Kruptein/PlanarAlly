@@ -1,28 +1,36 @@
 <template>
-    <div
-        class="tool-detail"
-        v-if="selected"
-        :style="{'--detailRight': detailRight, '--detailArrow': detailArrow}"
-    >
-        <div id="#accordion-container">
-            <accordion v-for="category in categories" :key="category" :title="category" :showArrow="false" :items="labels[category]" :initialValues="initalValues[category]" @selectionupdate="updateSelection" />
-        </div>
+  <div
+    class="tool-detail"
+    v-if="selected"
+    :style="{'--detailRight': detailRight, '--detailArrow': detailArrow}"
+  >
+    <div id="#accordion-container">
+      <accordion
+        v-for="category in categories"
+        :key="category"
+        :title="category"
+        :showArrow="false"
+        :items="labels[category]"
+        :initialValues="initalValues[category]"
+        @selectionupdate="updateSelection"
+      />
     </div>
+  </div>
 </template>
 
 <script lang="ts">
 import Component from "vue-class-component";
 
-import Accordion from '@/core/components/accordion.vue';
+import Accordion from "@/core/components/accordion.vue";
 import Tool from "@/game/ui/tools/tool.vue";
 
-import { layerManager } from '@/game/layers/manager';
-import { gameStore } from '@/game/store';
-
+import { socket } from "@/game/api/socket";
+import { layerManager } from "@/game/layers/manager";
+import { gameStore } from "@/game/store";
 
 @Component({
     components: {
-        "accordion": Accordion
+        accordion: Accordion,
     },
 })
 export default class FilterTool extends Tool {
@@ -30,10 +38,10 @@ export default class FilterTool extends Tool {
     active = false;
 
     get labels() {
-        const cat: {[category: string]: [string, string][]} = {};
+        const cat: { [category: string]: [string, string][] } = {};
         for (const uuid of Object.keys(gameStore.labels)) {
             const label = gameStore.labels[uuid];
-            if (!label.category) cat[''].push([label.uuid, label.name]);
+            if (!label.category) cat[""].push([label.uuid, label.name]);
             else {
                 if (!(label.category in cat)) cat[label.category] = [];
                 cat[label.category].push([label.uuid, label.name]);
@@ -44,9 +52,9 @@ export default class FilterTool extends Tool {
     }
 
     get initalValues() {
-        const values: {[category: string]: string[]} = {};
+        const values: { [category: string]: string[] } = {};
         for (const cat of Object.keys(this.labels)) {
-            values[cat] = gameStore.labelFilters.filter((f) => this.labels[cat].map((l) => l[0]).includes(f));
+            values[cat] = gameStore.labelFilters.filter(f => this.labels[cat].map(l => l[0]).includes(f));
         }
         return values;
     }
@@ -71,17 +79,21 @@ export default class FilterTool extends Tool {
         layerManager.invalidate();
     }
 
-    updateSelection(data: {title: string; selection: string[]}) {
+    updateSelection(data: { title: string; selection: string[] }) {
         if (!(data.title in this.labels)) return;
         for (const [uuid, _] of this.labels[data.title]) {
             const idx = gameStore.labelFilters.indexOf(uuid);
             const selected = data.selection.includes(uuid);
-            if (idx >= 0 && !selected) gameStore.labelFilters.splice(idx, 1);
-            else if (idx < 0 && selected) gameStore.labelFilters.push(uuid);
+            if (idx >= 0 && !selected) {
+                gameStore.labelFilters.splice(idx, 1);
+                socket.emit("Labels.Filter.Remove", uuid);
+            } else if (idx < 0 && selected) {
+                gameStore.labelFilters.push(uuid);
+                socket.emit("Labels.Filter.Add", uuid);
+            }
         }
         layerManager.invalidate();
     }
-
 }
 </script>
 

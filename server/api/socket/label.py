@@ -1,6 +1,6 @@
 import auth
 from app import app, logger, sio, state
-from models import Label, User
+from models import Label, LabelSelection, User
 from models.db import db
 
 
@@ -98,3 +98,38 @@ async def set_visibility(sid, data):
                 await sio.emit(
                     "Label.Delete", {'uuid': label.uuid, 'user': label.user.name}, room=psid, namespace="/planarally"
                 )
+
+
+@sio.on("Labels.Filter.Add", namespace="/planarally")
+@auth.login_required(app, sio)
+async def add_filter(sid, uuid):
+    sid_data = state.sid_map[sid]
+    user = sid_data["user"]
+    room = sid_data["room"]
+
+    label = Label.get_or_none(uuid=uuid)
+
+    LabelSelection.create(label=label, user=user, room=room)
+
+    for psid in state.get_sids(skip_sid=sid, room=room):
+        if state.get_user(psid) == user:
+            await sio.emit("Labels.Filter.Add", uuid, room=psid, namespace="/planarally")
+
+
+@sio.on("Labels.Filter.Remove", namespace="/planarally")
+@auth.login_required(app, sio)
+async def remove_filter(sid, uuid):
+    sid_data = state.sid_map[sid]
+    user = sid_data["user"]
+    room = sid_data["room"]
+
+    label = Label.get_or_none(uuid=uuid)
+
+    ls = LabelSelection.get_or_none(label=label, room=room, user=user)
+
+    if ls:
+        ls.delete_instance(True)
+
+    for psid in state.get_sids(skip_sid=sid, room=room):
+        if state.get_user(psid) == user:
+            await sio.emit("Labels.Filter.Remove", uuid, room=psid, namespace="/planarally")

@@ -11,6 +11,10 @@ All notable changes to this project will be documented in this file.
 
 - Option to listen on a socket instead of HOST:PORT.
 
+### Fixed
+
+- Fix a bug causing labels without category to throw errors.
+
 ## [0.15.1] - 2019-05-15
 
 ### Fixed

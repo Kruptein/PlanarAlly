@@ -107,7 +107,7 @@ export default class LabelManager extends Vue {
     }
 
     get labels() {
-        const cat: {[category: string]: Label[]} = {};
+        const cat: {[category: string]: Label[]} = {'': []};
         for (const uuid of Object.keys(gameStore.labels)) {
             const label = gameStore.labels[uuid];
             if (this.search.length && `${label.category.toLowerCase()}${label.name.toLowerCase()}`.search(this.search.toLowerCase()) < 0) continue;

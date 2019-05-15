@@ -7,6 +7,10 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+### Added
+
+- Option to listen on a socket instead of HOST:PORT.
+
 ## [0.15.1] - 2019-05-15
 
 ### Fixed

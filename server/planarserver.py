@@ -3,8 +3,9 @@ PlanarAlly backend server code.
 This is the code responsible for starting the backend and reacting to socket IO events.
 """
 
-# Mimetype recognition for js files apparently is not alwyas properly setup out of the box for some users out there.
+# Mimetype recognition for js files apparently is not always properly setup out of the box for some users out there.
 import mimetypes
+
 if mimetypes.guess_type(".js")[0] == "text/plain":
     mimetypes.add_type("application/javascript", ".js")
 
@@ -13,6 +14,7 @@ import save
 save.check_save()
 
 import asyncio
+import configparser
 import sys
 
 from aiohttp import web
@@ -52,35 +54,59 @@ if "dev" in sys.argv:
     app.router.add_route("*", "/{tail:.*}", routes.root_dev)
 else:
     app.router.add_route("*", "/{tail:.*}", routes.root)
-# app.router.add_route("*", "/", routes.login)
-# app.router.add_get("/rooms", routes.show_rooms)
-# app.router.add_get("/rooms/{username}/{roomname}", routes.show_room)
-# app.router.add_get("/invite/{code}", routes.claim_invite)
-# app.router.add_post("/create_room", routes.create_room)
-# app.router.add_get("/assets/", routes.show_assets)
-# app.router.add_get("/logout", routes.logout)
 
 app.on_shutdown.append(on_shutdown)
 
-if __name__ == "__main__":
-    if config.getboolean("Webserver", "ssl"):
-        import ssl
 
-        ctx = ssl.SSLContext()
-        ctx.load_cert_chain(
-            config.get("Webserver", "ssl_fullchain"),
-            config.get("Webserver", "ssl_privkey"),
-        )
-        web.run_app(
-            app,
-            host=config.get("Webserver", "host"),
-            port=config.getint("Webserver", "port"),
-            ssl_context=ctx,
-        )
+def start_http(host, port):
+    logger.warning(" RUNNING IN NON SSL CONTEXT ")
+    web.run_app(
+        app,
+        host=host,
+        port=config.getint("Webserver", "port"),
+    )
+
+
+def start_https(host, port, chain, key):
+    import ssl
+
+    ctx = ssl.SSLContext()
+    try:
+        ctx.load_cert_chain(chain, key)
+    except FileNotFoundError:
+        logger.critical("SSL FILES ARE NOT FOUND. ABORTING LAUNCH.")
+        sys.exit(2)
+
+    web.run_app(
+        app,
+        host=host,
+        port=port,
+        ssl_context=ctx,
+    )
+
+
+def start_socket(sock):
+    web.run_app(app, path=sock)
+
+
+if __name__ == "__main__":
+    socket = config.get("Webserver", "socket", fallback=None)
+    if socket:
+        start_socket(socket)
     else:
-        logger.warning(" RUNNING IN NON SSL CONTEXT ")
-        web.run_app(
-            app,
-            host=config.get("Webserver", "host"),
-            port=config.getint("Webserver", "port"),
-        )
+        host = config.get("Webserver", "host")
+        port=config.getint("Webserver", "port")
+        
+        if config.getboolean("Webserver", "ssl"):
+            try:
+                chain = config.get("Webserver", "ssl_fullchain")
+                key = config.get("Webserver", "ssl_privkey")
+            except configparser.NoOptionError:
+                logger.critical(
+                    "SSL CONFIGURATION IS NOT CORRECTLY CONFIGURED. ABORTING LAUNCH."
+                )
+                sys.exit(2)
+
+            start_https(host, port, chain, key)
+        else:
+            start_http(host, port)

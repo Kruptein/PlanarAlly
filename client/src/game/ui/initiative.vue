@@ -102,6 +102,13 @@
                 <div style="display:flex;"></div>
                 <div
                     class="initiative-bar-button"
+                    :style="visionLock ? 'background-color: #82c8a0' : ''"
+                    @click="toggleVisionLock"
+                >
+                    <i class="fas fa-eye"></i>
+                </div>
+                <div
+                    class="initiative-bar-button"
                     :class="{'notAllowed': !$store.state.game.IS_DM}"
                     @click="setRound(0, true); updateTurn(data[0].uuid, true)"
                 >
@@ -145,6 +152,8 @@ export default class Initiative extends Vue {
     data: InitiativeData[] = [];
     currentActor: string | null = null;
     roundCounter = 0;
+    visionLock = false;
+    _activeTokens: string[] = [];
 
     mounted() {
         EventBus.$on("Initiative.Clear", this.clear);
@@ -234,6 +243,7 @@ export default class Initiative extends Vue {
                 else actor.effects[e].turns--;
             }
         }
+        gameStore.setActiveTokens([actor.uuid]);
         if (sync) socket.emit("Initiative.Turn.Update", actorId);
     }
     setRound(round: number, sync: boolean) {
@@ -279,6 +289,15 @@ export default class Initiative extends Vue {
         actor.effects[effectIndex] = effect;
         if (sync) this.syncEffect(actor, effect);
         else this.$forceUpdate();
+    }
+    toggleVisionLock() {
+        this.visionLock = !this.visionLock;
+        if (this.visionLock) {
+            this._activeTokens = [...gameStore._activeTokens];
+            if (this.currentActor !== null) gameStore.setActiveTokens([this.currentActor]);
+        } else {
+            gameStore.setActiveTokens(this._activeTokens);
+        }
     }
 }
 </script>

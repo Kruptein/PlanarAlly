@@ -379,7 +379,7 @@ class GameStore extends VuexModule implements GameState {
     }
 
     @Mutation
-    setActiveTokens(...tokens: string[]) {
+    setActiveTokens(tokens: string[]) {
         this._activeTokens = tokens;
         layerManager.invalidateLight();
     }

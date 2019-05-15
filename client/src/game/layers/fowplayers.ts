@@ -33,7 +33,7 @@ export class FOWPlayersLayer extends Layer {
             // Then cut out all the player vision auras
             const maxLength = ctx.canvas.width + ctx.canvas.height;
 
-            for (const tokenId of gameStore.ownedtokens) {
+            for (const tokenId of gameStore.activeTokens) {
                 const token = layerManager.UUIDMap.get(tokenId);
                 if (token === undefined) continue;
                 const center = token.center();

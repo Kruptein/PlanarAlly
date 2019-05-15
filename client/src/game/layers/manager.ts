@@ -109,6 +109,12 @@ class LayerManager {
             if (this.layers[i].isVisionLayer) this.layers[i].invalidate(true);
     }
 
+    invalidatePlayerVision() {
+        for (const layer of this.layers) {
+            if (layer.name === "fow-players") layer.invalidate(true);
+        }
+    }
+
     dropAsset(event: DragEvent) {
         const layer = this.getLayer();
         if (layer === undefined || event === null || event.dataTransfer === null) return;

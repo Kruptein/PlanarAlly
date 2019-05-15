@@ -381,7 +381,22 @@ class GameStore extends VuexModule implements GameState {
     @Mutation
     setActiveTokens(...tokens: string[]) {
         this._activeTokens = tokens;
-        layerManager.invalidatePlayerVision();
+        layerManager.invalidateLight();
+    }
+
+    @Mutation
+    addActiveToken(token: string) {
+        this._activeTokens.push(token);
+        layerManager.invalidateLight();
+    }
+
+    @Mutation
+    removeActiveToken(token: string) {
+        if (this._activeTokens.length === 0) {
+            this._activeTokens = [...this.ownedtokens];
+        }
+        this._activeTokens.splice(this._activeTokens.indexOf(token), 1);
+        layerManager.invalidateLight();
     }
 
     @Action

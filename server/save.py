@@ -4,7 +4,7 @@ import secrets
 import shutil
 import sys
 
-from peewee import FloatField
+from peewee import FloatField, OperationalError
 from playhouse.migrate import *
 
 from config import SAVE_FILE
@@ -126,7 +126,11 @@ def upgrade(version):
         db.foreign_keys = False
         migrator = SqliteMigrator(db)
         with db.atomic():
-            migrate(migrator.add_column("label", "category", Label.category))
+            try:
+                migrate(migrator.add_column("label", "category", Label.category))
+            except OperationalError as e:
+                if e.args[0] != "duplicate column name: category":
+                    raise e
             db.create_tables([LabelSelection])
         with db.atomic():
             for label in Label:

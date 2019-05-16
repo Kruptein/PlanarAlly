@@ -58,6 +58,7 @@ workflows:
               only:
                 - master
                 - dev
+                - feature/CircleCI
       - release:
           requires:
             - windows

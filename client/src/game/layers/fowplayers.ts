@@ -22,9 +22,6 @@ export class FOWPlayersLayer extends Layer {
 
             ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
-            const drctx = layerManager.getLayer("draw")!.ctx;
-            drctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
-
             const originalOperation = ctx.globalCompositeOperation;
 
             ctx.fillStyle = "rgba(0, 0, 0, 1)";

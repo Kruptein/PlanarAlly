@@ -9,6 +9,7 @@ import { createLayer } from "@/game/layers/utils";
 import { gameManager } from "@/game/manager";
 import { gameStore } from "@/game/store";
 import { router } from "@/router";
+import { zoomDisplay } from "../utils";
 
 socket.on("connect", () => {
     console.log("Connected");
@@ -43,7 +44,8 @@ socket.on("Client.Options.Set", (options: ServerClient) => {
     gameStore.setRulerColour({ colour: options.ruler_colour, sync: false });
     gameStore.setPanX(options.pan_x);
     gameStore.setPanY(options.pan_y);
-    gameStore.setZoomFactor(options.zoom_factor);
+    gameStore.setZoomDisplay(zoomDisplay(options.zoom_factor));
+    // gameStore.setZoomDisplay(0.5);
     if (options.active_layer) layerManager.selectLayer(options.active_layer, false);
     if (layerManager.getGridLayer() !== undefined) layerManager.getGridLayer()!.invalidate();
 });
@@ -122,7 +124,7 @@ socket.on("Shape.Layer.Change", (data: { uuid: string; layer: string }) => {
     if (shape === undefined) return;
     shape.moveLayer(data.layer, false);
 });
-socket.on("Shape.Update", (data: { shape: ServerShape; redraw: boolean; move: boolean }) => {
+socket.on("Shape.Update", (data: { shape: ServerShape; redraw: boolean; move: boolean, temporary: boolean }) => {
     gameManager.updateShape(data);
 });
 socket.on("Temp.Clear", (shapes: ServerShape[]) => {
@@ -139,3 +141,29 @@ socket.on("Temp.Clear", (shapes: ServerShape[]) => {
         layerManager.getLayer(shape.layer)!.removeShape(realShape, false);
     });
 });
+socket.on("Labels.Set", (labels: Label[]) => {
+    for (const label of labels) gameStore.addLabel(label);
+});
+socket.on("Label.Visibility.Set", (data: { user: string; uuid: string; visible: boolean }) => {
+    gameStore.setLabelVisibility(data);
+});
+socket.on("Label.Add", (data: Label) => {
+    gameStore.addLabel(data);
+});
+socket.on("Label.Delete", (data: { user: string; uuid: string }) => {
+    gameStore.deleteLabel(data);
+});
+socket.on("Labels.Filter.Add", (uuid: string) => {
+    gameStore.labelFilters.push(uuid);
+    layerManager.invalidate();
+})
+socket.on("Labels.Filter.Remove", (uuid: string) => {
+    const idx = gameStore.labelFilters.indexOf(uuid);
+    if (idx >= 0) {
+        gameStore.labelFilters.splice(idx, 1);
+        layerManager.invalidate();
+    }
+})
+socket.on("Labels.Filters.Set", (filters: string[]) => {
+    gameStore.setLabelFilters(filters);
+})

@@ -9,10 +9,12 @@ export interface ServerShape {
     draw_operator: string;
     trackers: Tracker[];
     auras: ServerAura[];
+    labels: Label[];
     owners: string[];
     fill_colour: string;
     stroke_colour: string;
     name: string;
+    name_visible: boolean;
     annotation: string;
     is_token: boolean;
     options?: string;

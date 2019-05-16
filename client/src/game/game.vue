@@ -1,57 +1,59 @@
 <template>
-  <div id="main" @mouseleave="mouseleave">
-    <menu-bar></menu-bar>
-    <div id="board">
-      <template v-if="ready.manager">
-        <tool-bar ref="tools"></tool-bar>
-      </template>
-      <div
-        id="layers"
-        @mousedown="mousedown"
-        @mouseup="mouseup"
-        @mousemove="mousemove"
-        @contextmenu.prevent.stop="contextmenu"
-        @dragover.prevent
-        @drop="drop"
-      ></div>
-      <div id="layerselect" v-if="layers.length > 1">
-        <ul>
-          <li
-            v-for="layer in layers"
-            :key="layer.name"
-            :class="{ 'layer-selected': layer === selectedLayer }"
-            @click="selectLayer(layer)"
-          >
-            <a href="#">{{ layer }}</a>
-          </li>
-        </ul>
-      </div>
+    <div id="main" @mouseleave="mouseleave" @wheel="zoom">
+        <menu-bar v-if="showUI"></menu-bar>
+        <div id="board">
+            <template v-if="ready.manager">
+                <tool-bar ref="tools" v-show="showUI"></tool-bar>
+            </template>
+            <div
+                id="layers"
+                @mousedown="mousedown"
+                @mouseup="mouseup"
+                @mousemove="mousemove"
+                @contextmenu.prevent.stop="contextmenu"
+                @dragover.prevent
+                @drop.prevent.stop="drop"
+            ></div>
+            <div id="layerselect" v-show="showUI && layers.length>1">
+                <ul>
+                    <li
+                        v-for="layer in layers"
+                        :key="layer.name"
+                        :class="{ 'layer-selected': layer === selectedLayer }"
+                        @mousedown="selectLayer(layer)"
+                    >
+                        <a href="#">{{ layer }}</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <selection-info ref="selectionInfo" v-show="showUI"></selection-info>
+        <initiative-dialog ref="initiative" id="initiativedialog"></initiative-dialog>
+        <note-dialog ref="note"></note-dialog>
+        <label-dialog ref="labels"></label-dialog>
+        <!-- When updating zoom boundaries, also update store updateZoom function;
+        should probably do this using a store variable-->
+        <zoom-slider
+            id="zoomer"
+            v-model="zoomDisplay"
+            v-show="showUI"
+            :height="6"
+            :width="200"
+            :min="0"
+            :max="1"
+            :interval="0.1"
+            :dot-width="8"
+            :dot-height="20"
+            :tooltip-dir="'bottom'"
+            :tooltip="'hover'"
+            :formatter="zoomDisplay.toFixed(1)"
+            :slider-style="{'border-radius': '15%'}"
+            :bg-style="{'background-color': '#fff', 'box-shadow': '0.5px 0.5px 3px 1px rgba(0, 0, 0, .36)'}"
+            :process-style="{'background-color': '#fff'}"
+        ></zoom-slider>
+        <prompt-dialog ref="prompt"></prompt-dialog>
+        <confirm-dialog ref="confirm"></confirm-dialog>
     </div>
-    <selection-info ref="selectionInfo"></selection-info>
-    <initiative-dialog ref="initiative" id="initiativedialog"></initiative-dialog>
-    <note-dialog ref="note"></note-dialog>
-    <!-- When updating zoom boundaries, also update store updateZoom function;
-    should probably do this using a store variable-->
-    <zoom-slider
-      id="zoomer"
-      v-model="zoomFactor"
-      :height="6"
-      :width="200"
-      :min="0.01"
-      :max="5.0"
-      :interval="0.1"
-      :dot-width="8"
-      :dot-height="20"
-      :tooltip-dir="'bottom'"
-      :tooltip="'hover'"
-      :formatter="zoomFactor.toFixed(1)"
-      :slider-style="{'border-radius': '15%'}"
-      :bg-style="{'background-color': '#fff', 'box-shadow': '0.5px 0.5px 3px 1px rgba(0, 0, 0, .36)'}"
-      :process-style="{'background-color': '#fff'}"
-    ></zoom-slider>
-    <prompt-dialog ref="prompt"></prompt-dialog>
-    <confirm-dialog ref="confirm"></confirm-dialog>
-  </div>
 </template>
 
 <script lang="ts">
@@ -67,6 +69,7 @@ import { mapGetters, mapState } from "vuex";
 import ConfirmDialog from "@/core/components/modals/confirm.vue";
 import Prompt from "@/core/components/modals/prompt.vue";
 import Initiative from "@/game/ui/initiative.vue";
+import LabelManager from "@/game/ui/labels.vue";
 import MenuBar from "@/game/ui/menu/menu.vue";
 import NoteDialog from "@/game/ui/note.vue";
 import SelectionInfo from "@/game/ui/selection/selection_info.vue";
@@ -90,6 +93,7 @@ import { LocalPoint } from "./geom";
         "initiative-dialog": Initiative,
         "zoom-slider": vueSlider,
         "note-dialog": NoteDialog,
+        "label-dialog": LabelManager,
     },
     beforeRouteEnter(to, from, next) {
         createConnection(to);
@@ -111,6 +115,10 @@ export default class Game extends Vue {
         tools: false,
     };
 
+    get showUI(): boolean {
+        return gameStore.showUI;
+    }
+
     get IS_DM(): boolean {
         return gameStore.IS_DM;
     }
@@ -123,33 +131,44 @@ export default class Game extends Vue {
         return gameStore.selectedLayer;
     }
 
-    get zoomFactor(): number {
-        return gameStore.zoomFactor;
+    get zoomDisplay(): number {
+        return gameStore.zoomDisplay;
     }
 
-    set zoomFactor(value: number) {
+    set zoomDisplay(value: number) {
         gameStore.updateZoom({
-            newZoomValue: value,
+            newZoomDisplay: value,
             zoomLocation: l2g(new LocalPoint(window.innerWidth / 2, window.innerHeight / 2)),
         });
     }
 
     mounted() {
-        window.addEventListener("resize", () => {
-            layerManager.setWidth(window.innerWidth);
-            layerManager.setHeight(window.innerHeight);
-            layerManager.invalidate();
-        });
-        window.addEventListener("wheel", throttle(scrollZoom));
+        window.addEventListener("resize", this.resizeWindow);
         window.addEventListener("keyup", onKeyUp);
         window.addEventListener("keydown", onKeyDown);
-        // // prevent double clicking text selection
-        window.addEventListener("selectstart", e => {
-            e.preventDefault();
-            return false;
-        });
         this.ready.manager = true;
     }
+
+    destroyed() {
+        window.removeEventListener("resize", this.resizeWindow);
+        window.removeEventListener("keyup", onKeyUp);
+        window.removeEventListener("keydown", onKeyDown);
+        this.ready.manager = false;
+    }
+
+    // Window events
+
+    zoom(event: WheelEvent) {
+        throttle(scrollZoom)(event);
+    }
+
+    resizeWindow() {
+        layerManager.setWidth(window.innerWidth);
+        layerManager.setHeight(window.innerHeight);
+        layerManager.invalidate();
+    }
+
+    // Mouse events
 
     mousedown(event: MouseEvent) {
         this.$refs.tools.mousedown(event);
@@ -233,6 +252,11 @@ svg {
     z-index: 10;
 }
 
+#layerselect * {
+    user-select: none !important;
+    -webkit-user-drag: none !important;
+}
+
 #layerselect ul {
     display: flex;
     list-style: none;
@@ -262,10 +286,6 @@ svg {
 }
 
 #layerselect li a {
-    -webkit-user-select: none; /* Chrome all / Safari all */
-    -moz-user-select: none; /* Firefox all */
-    -ms-user-select: none; /* IE 10+ */
-    user-select: none;
     display: flex;
     padding: 10px;
     text-decoration: none;

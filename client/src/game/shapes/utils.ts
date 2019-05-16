@@ -21,11 +21,7 @@ import { Shape } from "@/game/shapes/shape";
 import { Text } from "@/game/shapes/text";
 import { Polygon } from "./polygon";
 
-export function createShapeFromDict(shape: ServerShape, dummy?: boolean) {
-    // TODO: is this dummy stuff actually needed, do we ever want to return the local shape?
-    if (dummy === undefined) dummy = false;
-    if (!dummy && layerManager.UUIDMap.has(shape.uuid)) return layerManager.UUIDMap.get(shape.uuid);
-
+export function createShapeFromDict(shape: ServerShape) {
     let sh: Shape;
 
     // A fromJSON and toJSON on Shape would be cleaner but ts does not allow for static abstracts so yeah.

@@ -63,13 +63,14 @@ class State:
         await state.clear_temporaries(sid)
         del self.sid_map[sid]
 
-    def get_sids(self, **options):
+    def get_sids(self, skip_sid=None, **options):
         for sid in dict(self.sid_map):
             if all(
                 self.sid_map[sid].get(option, None) == value
                 for option, value in options.items()
             ):
-                yield sid
+                if skip_sid != sid:
+                    yield sid
 
     def get_players(self, **options):
         for sid in dict(self.sid_map):
@@ -77,7 +78,10 @@ class State:
                 self.sid_map[sid].get(option, None) == value
                 for option, value in options.items()
             ):
-                yield sid, self.sid_map[sid]["user"]
+                yield sid, self.get_user(sid)
+
+    def get_user(self, sid):
+        return self.sid_map[sid]["user"]
 
     def add_temp(self, sid, uid):
         if sid not in self.client_temporaries:

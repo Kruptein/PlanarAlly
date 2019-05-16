@@ -4,22 +4,22 @@
 // This due to the canvas elements requiring rgba strings for their colours and thus avoiding extra conversion steps
 
 <template>
-  <div class="outer" @click.self="open">
-    <div
-      class="current-color"
-      @click.self="open"
-      :style="transparent ? 'background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAIAAADZF8uwAAAAGUlEQVQYV2M4gwH+YwCGIasIUwhT25BVBADtzYNYrHvv4gAAAABJRU5ErkJggg==)' : 'background-color:' + color"
-    ></div>
-    <div class="mask" v-show="display" @click.self="closePicker"></div>
-    <chrome-picker
-      :value="color"
-      @input="updateColor"
-      :style="{position: 'fixed', left:left + 'px', top:top + 'px', 'z-index': 9999}"
-      tabindex="-1"
-      v-show="display"
-      ref="chromePicker"
-    />
-  </div>
+    <div class="outer" @click.self="open">
+        <div
+            class="current-color"
+            @click.self="open"
+            :style="transparent ? 'background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAIAAADZF8uwAAAAGUlEQVQYV2M4gwH+YwCGIasIUwhT25BVBADtzYNYrHvv4gAAAABJRU5ErkJggg==)' : 'background-color:' + color"
+        ></div>
+        <div class="mask" v-show="display" @click.self="closePicker"></div>
+        <chrome-picker
+            :value="color"
+            @input="updateColor"
+            :style="{position: 'fixed', left:left + 'px', top:top + 'px', 'z-index': 9999}"
+            tabindex="-1"
+            v-show="display"
+            ref="chromePicker"
+        />
+    </div>
 </template>
 
 <script lang="ts">
@@ -37,6 +37,7 @@ import { Prop } from "vue-property-decorator";
 })
 export default class ColorPicker extends Vue {
     @Prop(String) color!: string;
+    @Prop(Boolean) disabled!: boolean;
 
     display = false;
     left = 0;
@@ -49,7 +50,7 @@ export default class ColorPicker extends Vue {
     }
 
     open() {
-        if (this.display) return; // click on the picker itself
+        if (this.display || this.disabled) return; // click on the picker itself
         this.setPosition();
         this.display = true;
         this.$nextTick(() => this.$children[0].$el.focus());
@@ -82,6 +83,9 @@ export default class ColorPicker extends Vue {
     border: solid 1px black;
     border-radius: 3px;
     cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 .current-color {
     width: 13px;

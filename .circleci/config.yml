@@ -27,8 +27,6 @@ jobs:
       - restore_cache:
           key: npm-{{ checksum "package.json" }}
           name: Restoring npm cache
-      
-      - run: ls /tmp
 
       - run:
           name: npm i
@@ -50,16 +48,12 @@ jobs:
     working_directory: ~/PlanarAlly/server
 
     steps:
-      # - restore_cache:
-      #     key: repo-{{ .Environment.CIRCLE_SHA1 }}
-      - checkout:
-          path: ~/PlanarAlly
-      
-      - run: ls /tmp
+      - restore_cache:
+          key: repo-{{ .Environment.CIRCLE_SHA1 }}
 
       - run:
           name: Build Windows executable
-          command: pyinstaller --clean -y --dist ./dist/windows --workpath /tmp *.spec
+          command: pyinstaller --clean -y --dist ./dist/windows --workpath /tmp/pyi *.spec
 
       - store_artifacts:
           path: ./dist/windows

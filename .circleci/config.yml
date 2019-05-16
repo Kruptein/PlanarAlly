@@ -33,7 +33,7 @@ jobs:
           command: npm i
 
       - save_cache:
-          key: npm-{{ checksum "package.json "}}
+          key: npm-{{ checksum "package.json" }}
           paths:
             - ./node_modules
 
@@ -48,8 +48,10 @@ jobs:
     working_directory: ~/PlanarAlly/server
 
     steps:
-      - restore_cache:
-          key: repo-{{ .Environment.CIRCLE_SHA1 }}
+      # - restore_cache:
+      #     key: repo-{{ .Environment.CIRCLE_SHA1 }}
+      - checkout:
+        path: ~/PlanarAlly
 
       - run:
           name: Build Windows executable

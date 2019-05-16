@@ -34,6 +34,7 @@ class GameStore extends VuexModule implements GameState {
     notes: Note[] = [];
 
     IS_DM = false;
+    FAKE_PLAYER = false;
     gridSize = 50;
     username = "";
     roomName = "";
@@ -91,6 +92,13 @@ class GameStore extends VuexModule implements GameState {
     get activeTokens() {
         if (this._activeTokens.length === 0) return this.ownedtokens;
         return this._activeTokens;
+    }
+
+    @Mutation
+    setFakePlayer(value: boolean) {
+        this.FAKE_PLAYER = value;
+        this.IS_DM = !value;
+        layerManager.invalidate();
     }
 
     @Mutation

@@ -19,6 +19,8 @@ All notable changes to this project will be documented in this file.
     - It does not prevent camera movement after the initial center action.
 - Automatic build of windows executables on circle CI for master and dev branches.
     - Tags on the master branch will also create/update a release with these files for ease of use.
+- Fake player button to DM Settings to disable all DM functions except DM settings.
+    - You can control which player(s) you want to emulate with the vision tool.
 
 ### Changed
 
@@ -27,6 +29,7 @@ All notable changes to this project will be documented in this file.
 ### Fixed
 
 - Fix a bug causing labels without category to throw errors.
+- CSS bug with menu.
 
 ## [0.15.1] - 2019-05-15
 

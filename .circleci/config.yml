@@ -1,14 +1,59 @@
 version: 2
 jobs:
-  build:
+  checkout:
+    docker:
+      - image: circleci/python:3.6.2-node
+    
+    steps:
+      - checkout:
+          path: ~/PlanarAlly
+      
+      - save_cache:
+          key: repo-{{ .Environment.CIRCLE_SHA1 }}
+          paths:
+            - ~/PlanarAlly
+  
+  npm-build:
+    docker:
+      - image: circleci/python:3.6.2-node
+    
+    working_directory: ~/PlanarAlly/client
+    
+    steps:
+      - restore_cache:
+          key: repo-{{ .Environment.CIRCLE_SHA1 }}
+          name: Restoring repo cache
+      
+      - restore_cache:
+          key: npm-{{ checksum "package.json" }}
+          name: Restoring npm cache
+      
+      - run:
+          name: npm i
+          command: npm i
+      
+      - save_cache:
+          key: npm-{{ checksum "package.json "}}
+          paths:
+            - ./node_modules
+      
+      - run:
+          name: Build production files
+          command: npm run build
+
+  windows:
+    branches:
+      only:
+        - master
+
     docker:
       - image: cdrx/pyinstaller-windows:python3
 
     working_directory: ~/PlanarAlly/server
 
     steps:
-      - checkout:
-          path: ~/PlanarAlly
+      - restore_cache:
+          key: repo-{{ .Environment.CIRCLE_SHA1 }}
 
       - run:
           name: Build Windows executable
@@ -16,3 +61,42 @@ jobs:
 
       - store_artifacts:
           path: ./dist/windows
+
+  docker:
+    branches:
+      only:
+        - master
+        - dev
+        - feature/CircleCI
+    
+    docker:
+      - image: circleci/python:3.6.2-node
+    
+    working_directory: ~/PlanarAlly
+
+    steps:
+      - restore_cache:
+          key: repo-{{ .Environment.CIRCLE_SHA1 }}
+        
+      - run:
+          name: Build docker image
+          command: docker build .
+      
+      - run:
+          name: Push docker image
+          command: docker push
+
+workflows:
+  version: 2
+  build:
+    jobs:
+      - checkout
+      - npm_build:
+        requires:
+          - checkout
+      - windows:
+        requires:
+          - npm_build
+      - docker:
+        requires:
+          - npm_build

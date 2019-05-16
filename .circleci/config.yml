@@ -1,0 +1,68 @@
+version: 2
+jobs:
+  windows:
+    docker:
+      - image: cdrx/pyinstaller-windows:python3
+
+    working_directory: ~/PlanarAlly/server
+
+    steps:
+      - checkout:
+          path: ~/PlanarAlly
+
+      - run:
+          name: Build Windows executable
+          command: pyinstaller --clean -y --dist ./dist/windows --workpath /tmp *.spec
+
+      - store_artifacts:
+          path: ./dist/windows
+      
+      - persist_to_workspace:
+          root: ./
+          paths:
+            - VERSION
+            - ./dist/windows
+
+  release:
+    docker:
+      - image: cibuilds/github:0.12.1
+    
+    working_directory: /tmp/workspace
+    
+    steps:
+      - attach_workspace:
+          at: /tmp/workspace
+      
+      - run:
+          name: Zip artifacts
+          command: |
+            VERSION=$(cat VERSION)
+            cd dist/windows
+            zip -r windows-${VERSION}.zip *
+            cd -
+      
+      - run:
+          name: "Publish release on github"
+          command: |
+            VERSION=$(cat VERSION)
+            ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -replace ${VERSION} ./dist/windows/windows-${VERSION}.zip
+
+workflows:
+  version: 2
+  build:
+    jobs:
+      - windows:
+          filters:
+            branches:
+              only:
+                - dev
+            tags:
+              only: /^\d+\.\d+\.\d+[-a-zA-Z0-9]*$/
+      - release:
+          requires:
+            - windows
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /^\d+\.\d+\.\d+[-a-zA-Z0-9]*$/

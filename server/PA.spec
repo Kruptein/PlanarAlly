@@ -3,7 +3,7 @@ import os
 import sys
 from pathlib import Path
 
-pa_dir = Path(SPECPATH).resolve() / "PlanarAlly"
+pa_dir = Path(SPECPATH).resolve()
 
 
 def _(arg):

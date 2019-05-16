@@ -13,7 +13,7 @@ jobs:
           paths:
             - ~/PlanarAlly
 
-  npm-build:
+  npm_build:
     docker:
       - image: circleci/python:3.6.8-node
 

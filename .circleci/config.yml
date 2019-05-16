@@ -13,10 +13,6 @@ jobs:
       - run:
           name: Build Windows executable
           command: pyinstaller --clean -y --dist ./dist/windows --workpath /tmp *.spec
-      
-      - run:
-          name: Zip artifacts
-          command: cd dist/windows && zip windows-$(cat VERSION).zip . && cd -
 
       - store_artifacts:
           path: ./dist/windows
@@ -25,10 +21,8 @@ jobs:
           root: ./
           paths:
             - VERSION
-            - ./dist/windows/*.zip
+            - ./dist/windows
 
-
-  
   release:
     docker:
       - image: cibuilds/github:0.12.1
@@ -40,10 +34,18 @@ jobs:
           at: /tmp/workspace
       
       - run:
+          name: Zip artifacts
+          command: |
+            VERSION=$(cat VERSION)
+            cd dist/windows
+            zip windows-$(cat VERSION).zip .
+            cd -
+      
+      - run:
           name: "Publish release on github"
           command: |
             VERSION=$(cat VERSION)
-            ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -draft -delete ${VERSION} ./dist/windows/*.zip
+            ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -draft -delete ${VERSION} ./dist/windows/
 
 workflows:
   version: 2

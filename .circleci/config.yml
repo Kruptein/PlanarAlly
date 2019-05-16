@@ -36,6 +36,9 @@ jobs:
           at: /home/circleci/PlanarAlly/server
       
       - run:
+          command: ls
+      
+      - run:
           name: "Publish release on github"
           command: |
             VERSION=$(cat VERSION)

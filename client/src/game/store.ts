@@ -1,4 +1,4 @@
-import Vue from 'vue';
+import Vue from "vue";
 
 import { Action, getModule, Module, Mutation, VuexModule } from "vuex-module-decorators";
 
@@ -61,6 +61,7 @@ class GameStore extends VuexModule implements GameState {
     annotations: string[] = [];
     movementblockers: string[] = [];
     ownedtokens: string[] = [];
+    _activeTokens: string[] = [];
 
     BV = Object.freeze(new BoundingVolume([]));
 
@@ -72,7 +73,7 @@ class GameStore extends VuexModule implements GameState {
     clipboard: ServerShape[] = [];
 
     // Maps are not yet supported in Vue untill 3.X, so for now we're using a plain old object
-    labels: {[uuid: string]: Label} = {};
+    labels: { [uuid: string]: Label } = {};
 
     filterNoLabel = false;
     labelFilters: string[] = [];
@@ -85,6 +86,11 @@ class GameStore extends VuexModule implements GameState {
 
     get zoomFactor() {
         return zoomValue(this.zoomDisplay);
+    }
+
+    get activeTokens() {
+        if (this._activeTokens.length === 0) return this.ownedtokens;
+        return this._activeTokens;
     }
 
     @Mutation
@@ -140,8 +146,7 @@ class GameStore extends VuexModule implements GameState {
                 updatedLayers.add(shape.layer);
             }
         }
-        for (const layer of updatedLayers)
-            layerManager.getLayer(layer)!.invalidate(false);
+        for (const layer of updatedLayers) layerManager.getLayer(layer)!.invalidate(false);
         Vue.delete(this.labels, data.uuid);
     }
 
@@ -371,6 +376,27 @@ class GameStore extends VuexModule implements GameState {
     @Mutation
     setClipboard(clipboard: ServerShape[]) {
         this.clipboard = clipboard;
+    }
+
+    @Mutation
+    setActiveTokens(tokens: string[]) {
+        this._activeTokens = tokens;
+        layerManager.invalidateLight();
+    }
+
+    @Mutation
+    addActiveToken(token: string) {
+        this._activeTokens.push(token);
+        layerManager.invalidateLight();
+    }
+
+    @Mutation
+    removeActiveToken(token: string) {
+        if (this._activeTokens.length === 0) {
+            this._activeTokens = [...this.ownedtokens];
+        }
+        this._activeTokens.splice(this._activeTokens.indexOf(token), 1);
+        layerManager.invalidateLight();
     }
 
     @Action

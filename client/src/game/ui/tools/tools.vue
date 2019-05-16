@@ -23,6 +23,7 @@
                 <ruler-tool v-show="currentTool === 'Ruler'"></ruler-tool>
                 <map-tool v-show="currentTool === 'Map'"></map-tool>
                 <filter-tool v-show="currentTool === 'Filter'"></filter-tool>
+                <vision-tool v-show="currentTool === 'Vision'"></vision-tool>
                 <shape-menu ref="shapecontext"></shape-menu>
                 <createtoken-dialog ref="createtokendialog"></createtoken-dialog>
             </template>
@@ -41,6 +42,7 @@ import FilterTool from "@/game/ui/tools/filter.vue";
 import MapTool from "@/game/ui/tools/map.vue";
 import PanTool from "@/game/ui/tools/pan";
 import SelectTool from "@/game/ui/tools/select.vue";
+import VisionTool from "@/game/ui/tools/vision.vue";
 
 import { layerManager } from "@/game/layers/manager";
 import { gameManager } from "@/game/manager";
@@ -58,6 +60,7 @@ import Component from "vue-class-component";
         "ruler-tool": RulerTool,
         "map-tool": MapTool,
         "filter-tool": FilterTool,
+        "vision-tool": VisionTool,
         "shape-menu": ShapeContext,
         "createtoken-dialog": CreateTokenModal,
     },
@@ -73,7 +76,7 @@ export default class Tools extends Vue {
     };
 
     currentTool = "Select";
-    tools = ["Select", "Pan", "Draw", "Ruler", "Map", "Filter"];
+    tools = ["Select", "Pan", "Draw", "Ruler", "Map", "Filter", "Vision"];
     dmTools = ["Map"];
 
     get IS_DM(): boolean {

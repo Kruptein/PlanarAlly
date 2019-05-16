@@ -16,6 +16,37 @@ jobs:
 
       - store_artifacts:
           path: ./dist/windows
+      
+      - persist_to_workspace:
+          root: ./dist/windows
+          paths:
+            - *
+      
+      - persist_to_workspace:
+          root: ./
+          paths:
+            - VERSION
+
+
+  
+  release:
+    docker:
+      - image: cibuilds/github:0.12.1
+    
+    working_directory: ~/PlanarAlly/server
+    
+    steps:
+    - attach_workspace:
+          at: /home/circleci/PlanarAlly/server/VERSION
+
+      - attach_workspace:
+          at: /home/circleci/PlanarAlly/server/dist/windows
+      
+      - run:
+          name: "Publish release on github"
+          command: |
+            VERSION=$(cat VERSION)
+            ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -delete ${VERSION} ./dist/windows/
 
 workflows:
   version: 2
@@ -27,3 +58,11 @@ workflows:
               only:
                 - master
                 - dev
+      - release:
+          requires:
+            - windows
+          filters:
+            branches:
+              only: feature/CircleCI
+            tags:
+              only: /^\d+\.\d+\.\d+$/

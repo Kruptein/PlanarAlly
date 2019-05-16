@@ -27,6 +27,8 @@ jobs:
       - restore_cache:
           key: npm-{{ checksum "package.json" }}
           name: Restoring npm cache
+      
+      - run: ls /tmp
 
       - run:
           name: npm i
@@ -52,6 +54,8 @@ jobs:
       #     key: repo-{{ .Environment.CIRCLE_SHA1 }}
       - checkout:
           path: ~/PlanarAlly
+      
+      - run: ls /tmp
 
       - run:
           name: Build Windows executable

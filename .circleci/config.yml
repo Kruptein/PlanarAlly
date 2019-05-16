@@ -20,7 +20,7 @@ jobs:
       - persist_to_workspace:
           root: ./dist/windows
           paths:
-            - *
+            - '*'
       
       - persist_to_workspace:
           root: ./
@@ -36,7 +36,7 @@ jobs:
     working_directory: ~/PlanarAlly/server
     
     steps:
-    - attach_workspace:
+      - attach_workspace:
           at: /home/circleci/PlanarAlly/server/VERSION
 
       - attach_workspace:

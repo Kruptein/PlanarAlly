@@ -12,6 +12,8 @@ All notable changes to this project will be documented in this file.
 - Option to listen on a socket instead of HOST:PORT.
 - Vision tool to change active tokens.
 - Vision lock button to initiative to only show vision of current actor.
+    - This only applies to tokens the player owns for other tokens the normal vision is restored.
+    - This is purely client side and can thus be chosen by player/DM separately.
 
 ## [0.15.1] - 2019-05-15
 

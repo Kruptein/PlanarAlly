@@ -243,7 +243,10 @@ export default class Initiative extends Vue {
                 else actor.effects[e].turns--;
             }
         }
-        gameStore.setActiveTokens([actor.uuid]);
+        if (this.visionLock) {
+            if (actorId !== null && gameStore.ownedtokens.includes(actorId)) gameStore.setActiveTokens([actorId]);
+            else gameStore.setActiveTokens([]);
+        }
         if (sync) socket.emit("Initiative.Turn.Update", actorId);
     }
     setRound(round: number, sync: boolean) {
@@ -294,7 +297,7 @@ export default class Initiative extends Vue {
         this.visionLock = !this.visionLock;
         if (this.visionLock) {
             this._activeTokens = [...gameStore._activeTokens];
-            if (this.currentActor !== null) gameStore.setActiveTokens([this.currentActor]);
+            if (this.currentActor !== null && gameStore.ownedtokens.includes(this.currentActor)) gameStore.setActiveTokens([this.currentActor]);
         } else {
             gameStore.setActiveTokens(this._activeTokens);
         }

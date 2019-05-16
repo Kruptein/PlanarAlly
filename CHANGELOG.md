@@ -17,6 +17,10 @@ All notable changes to this project will be documented in this file.
 - Automatic build of windows executables on circle CI for master and dev branches.
     - Tags on the master branch will also create/update a release with these files for ease of use.
 
+### Changed
+
+- Filter tool is only visible if there are labels defined.
+
 ### Fixed
 
 - Fix a bug causing labels without category to throw errors.

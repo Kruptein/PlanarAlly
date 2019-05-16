@@ -8,7 +8,7 @@
       <accordion
         v-for="category in categories"
         :key="category"
-        :title="category"
+        :title="category === '' ? 'no category' : category"
         :showArrow="false"
         :items="labels[category]"
         :initialValues="initalValues[category]"

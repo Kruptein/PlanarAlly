@@ -2,7 +2,7 @@ version: 2
 jobs:
   checkout:
     docker:
-      - image: circleci/python:3.6.2-node
+      - image: circleci/python:3.6.8-node
 
     steps:
       - checkout:
@@ -15,7 +15,7 @@ jobs:
 
   npm-build:
     docker:
-      - image: circleci/python:3.6.2-node
+      - image: circleci/python:3.6.8-node
 
     working_directory: ~/PlanarAlly/client
 
@@ -61,7 +61,7 @@ jobs:
   docker:
 
     docker:
-      - image: circleci/python:3.6.2-node
+      - image: circleci/python:3.6.8-node
 
     working_directory: ~/PlanarAlly
 

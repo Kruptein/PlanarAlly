@@ -29,11 +29,11 @@ jobs:
     docker:
       - image: cibuilds/github:0.12.1
     
-    working_directory: ~/PlanarAlly/server
+    working_directory: /tmp/workspace
     
     steps:
       - attach_workspace:
-          at: /home/circleci/PlanarAlly/server
+          at: /tmp/workspace
       
       - run:
           command: ls

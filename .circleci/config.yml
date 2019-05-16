@@ -38,14 +38,14 @@ jobs:
           command: |
             VERSION=$(cat VERSION)
             cd dist/windows
-            zip windows-$(cat VERSION).zip .
+            zip windows-${VERSION}.zip .
             cd -
       
       - run:
           name: "Publish release on github"
           command: |
             VERSION=$(cat VERSION)
-            ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -draft -delete ${VERSION} ./dist/windows/
+            ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -draft -delete ${VERSION} ./dist/windows/*
 
 workflows:
   version: 2

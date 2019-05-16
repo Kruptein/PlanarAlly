@@ -94,7 +94,9 @@ workflows:
       - windows:
           filters:
             branches:
-              only: master
+              only:
+                - master
+                - feature/CircleCI
           requires:
             - npm_build
       - docker:

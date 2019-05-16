@@ -30,6 +30,7 @@ All notable changes to this project will be documented in this file.
 
 - Fix a bug causing labels without category to throw errors.
 - CSS bug with menu.
+- Bug making it impossible to remove trackers/auras.
 
 ## [0.15.1] - 2019-05-15
 

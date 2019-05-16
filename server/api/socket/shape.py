@@ -153,25 +153,42 @@ async def update_shape(sid, data):
                     ShapeOwner.get(shape=shape, user=delta_owner).delete_instance(True)
                 await send_client_initiatives(room, location, delta_owner)
             # Trackers
-            for tracker in data["shape"]["trackers"]:
-                tracker_db = Tracker.get_or_none(uuid=tracker["uuid"])
-                reduced = reduce_data_to_model(Tracker, tracker)
-                reduced["shape"] = shape
-                if tracker_db:
+            old_trackers = {tracker.uuid for tracker in shape.trackers}
+            new_trackers = {tracker["uuid"] for tracker in data["shape"]["trackers"]}
+            for tracker_id in old_trackers | new_trackers:
+                remove = tracker_id in old_trackers - new_trackers
+                if not remove:
+                    tracker = next(tr for tr in data["shape"]["trackers"] if tr["uuid"] == tracker_id)
+                    reduced = reduce_data_to_model(Tracker, tracker)
+                    reduced["shape"] = shape
+                if tracker_id in new_trackers - old_trackers:
+                    Tracker.create(**reduced)
+                    continue
+                tracker_db = Tracker.get(uuid=tracker_id)
+                if remove:
+                    tracker_db.delete_instance(True)
+                else:
                     update_model_from_dict(tracker_db, reduced)
                     tracker_db.save()
-                else:
-                    Tracker.create(**reduced)
+                
             # Auras
-            for aura in data["shape"]["auras"]:
-                aura_db = Aura.get_or_none(uuid=aura["uuid"])
-                reduced = reduce_data_to_model(Aura, aura)
-                reduced["shape"] = shape
-                if aura_db:
+            old_auras = {aura.uuid for aura in shape.auras}
+            new_auras = {aura["uuid"] for aura in data["shape"]["auras"]}
+            for aura_id in old_auras | new_auras:
+                remove = aura_id in old_auras - new_auras
+                if not remove:
+                    aura = next(au for au in data["shape"]["auras"] if au["uuid"] == aura_id)
+                    reduced = reduce_data_to_model(Aura, aura)
+                    reduced["shape"] = shape
+                if aura_id in new_auras - old_auras:
+                    Aura.create(**reduced)
+                    continue
+                aura_db = Aura.get_or_none(uuid=aura_id)
+                if remove:
+                    aura_db.delete_instance(True)
+                else:
                     update_model_from_dict(aura_db, reduced)
                     aura_db.save()
-                else:
-                    Aura.create(**reduced)
             # Labels
             for label in data["shape"]["labels"]:
                 label_db = Label.get_or_none(uuid=label["uuid"])

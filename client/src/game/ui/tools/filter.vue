@@ -38,7 +38,7 @@ export default class FilterTool extends Tool {
     active = false;
 
     get labels() {
-        const cat: { [category: string]: [string, string][] } = {};
+        const cat: { [category: string]: [string, string][] } = {'': []};
         for (const uuid of Object.keys(gameStore.labels)) {
             const label = gameStore.labels[uuid];
             if (!label.category) cat[""].push([label.uuid, label.name]);

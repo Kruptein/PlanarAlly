@@ -10,6 +10,8 @@ All notable changes to this project will be documented in this file.
 ### Added
 
 - Option to listen on a socket instead of HOST:PORT.
+- Automatic build of windows executables on circle CI for master and dev branches.
+    - Tags on the master branch will also create/update a release with these files for ease of use.
 
 ### Fixed
 

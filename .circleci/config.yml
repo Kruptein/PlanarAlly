@@ -3,7 +3,6 @@ jobs:
   windows:
     docker:
       - image: cdrx/pyinstaller-windows:python3
-      - image: circleci/python:3.6.8-node
 
     working_directory: ~/PlanarAlly/server
 
@@ -28,4 +27,3 @@ workflows:
               only:
                 - master
                 - dev
-                - feature/CircleCI

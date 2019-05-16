@@ -14,6 +14,9 @@ All notable changes to this project will be documented in this file.
 - Vision lock button to initiative to only show vision of current actor.
     - This only applies to tokens the player owns for other tokens the normal vision is restored.
     - This is purely client side and can thus be chosen by player/DM separately.
+- Camera lock button to initiative to automatically center on current actor.
+    - It will center when an actor begins its turn and the client is owner of that actor.
+    - It does not prevent camera movement after the initial center action.
 - Automatic build of windows executables on circle CI for master and dev branches.
     - Tags on the master branch will also create/update a release with these files for ease of use.
 

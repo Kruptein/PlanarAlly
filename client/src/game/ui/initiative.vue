@@ -109,6 +109,13 @@
                 </div>
                 <div
                     class="initiative-bar-button"
+                    :style="cameraLock ? 'background-color: #82c8a0' : ''"
+                    @click="cameraLock = !cameraLock"
+                >
+                    <i class="fas fa-video"></i>
+                </div>
+                <div
+                    class="initiative-bar-button"
                     :class="{'notAllowed': !$store.state.game.IS_DM}"
                     @click="setRound(0, true); updateTurn(data[0].uuid, true)"
                 >
@@ -140,6 +147,7 @@ import { InitiativeData, InitiativeEffect } from "@/game/comm/types/general";
 import { EventBus } from "@/game/event-bus";
 import { layerManager } from "@/game/layers/manager";
 import { gameStore } from "@/game/store";
+import { gameManager } from '../manager';
 
 @Component({
     components: {
@@ -153,6 +161,7 @@ export default class Initiative extends Vue {
     currentActor: string | null = null;
     roundCounter = 0;
     visionLock = false;
+    cameraLock = false;
     _activeTokens: string[] = [];
 
     mounted() {
@@ -246,6 +255,14 @@ export default class Initiative extends Vue {
         if (this.visionLock) {
             if (actorId !== null && gameStore.ownedtokens.includes(actorId)) gameStore.setActiveTokens([actorId]);
             else gameStore.setActiveTokens([]);
+        }
+        if (this.cameraLock) {
+            if (actorId !== null) {
+                const shape = layerManager.UUIDMap.get(actorId);
+                if (shape !== undefined && shape.ownedBy()) {
+                    gameManager.setCenterPosition(shape.center());
+                }
+            }
         }
         if (sync) socket.emit("Initiative.Turn.Update", actorId);
     }

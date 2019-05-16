@@ -18,14 +18,10 @@ jobs:
           path: ./dist/windows
       
       - persist_to_workspace:
-          root: ./dist/windows
-          paths:
-            - '*'
-      
-      - persist_to_workspace:
           root: ./
           paths:
             - VERSION
+            - ./dist/windows
 
 
   
@@ -37,10 +33,7 @@ jobs:
     
     steps:
       - attach_workspace:
-          at: /home/circleci/PlanarAlly/server/VERSION
-
-      - attach_workspace:
-          at: /home/circleci/PlanarAlly/server/dist/windows
+          at: /home/circleci/PlanarAlly/server
       
       - run:
           name: "Publish release on github"

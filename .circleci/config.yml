@@ -64,5 +64,5 @@ workflows:
           filters:
             branches:
               only: feature/CircleCI
-            tags:
-              only: /^\d+\.\d+\.\d+$/
+            # tags:
+            #   only: /^\d+\.\d+\.\d+$/

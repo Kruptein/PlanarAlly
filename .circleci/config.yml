@@ -42,7 +42,7 @@ jobs:
           name: "Publish release on github"
           command: |
             VERSION=$(cat VERSION)
-            ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -delete ${VERSION} ./dist/windows/
+            ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -draft ${VERSION} ./dist/windows/
 
 workflows:
   version: 2
@@ -52,9 +52,10 @@ workflows:
           filters:
             branches:
               only:
-                - master
                 - dev
                 - feature/CircleCI
+            tags:
+              only: /^\d+\.\d+\.\d+[-a-zA-Z0-9]*$/
       - release:
           requires:
             - windows
@@ -62,4 +63,4 @@ workflows:
             branches:
               only: feature/CircleCI
             # tags:
-            #   only: /^\d+\.\d+\.\d+$/
+            #   only: /^\d+\.\d+\.\d+[-a-zA-Z0-9]*$/

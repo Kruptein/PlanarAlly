@@ -14,7 +14,7 @@ jobs:
           name: Build Windows executable
           command: pyinstaller --clean -y --dist ./dist/windows --workpath /tmp *.spec
       
-      - zip:
+      - run:
           name: Zip artifacts
           command: cd dist/windows && zip windows-$(cat VERSION).zip . && cd -
 

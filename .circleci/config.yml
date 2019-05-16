@@ -13,6 +13,10 @@ jobs:
       - run:
           name: Build Windows executable
           command: pyinstaller --clean -y --dist ./dist/windows --workpath /tmp *.spec
+      
+      - zip:
+          name: Zip artifacts
+          command: cd dist/windows && zip windows-$(cat VERSION).zip . && cd -
 
       - store_artifacts:
           path: ./dist/windows
@@ -21,7 +25,7 @@ jobs:
           root: ./
           paths:
             - VERSION
-            - ./dist/windows
+            - ./dist/windows/*.zip
 
 
   
@@ -36,13 +40,10 @@ jobs:
           at: /tmp/workspace
       
       - run:
-          command: ls
-      
-      - run:
           name: "Publish release on github"
           command: |
             VERSION=$(cat VERSION)
-            ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -draft ${VERSION} ./dist/windows/
+            ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -draft -delete ${VERSION} ./dist/windows/*.zip
 
 workflows:
   version: 2

@@ -16,7 +16,7 @@ jobs:
       
       - run:
           name: pip install
-          command: pip install -r requirements.txt
+          command: pip install -U setuptools && pip install -r requirements.txt
       
       - save_cache:
           key: pip-{{ checksum "requirements.txt" }}

@@ -10,9 +10,13 @@ jobs:
       - checkout:
           path: ~/PlanarAlly
       
-      - restore_cache:
-          key: pip-{{ checksum "requirements.txt" }}
-          name: Restoring pip cache
+      # - restore_cache:
+      #     key: pip-{{ checksum "requirements.txt" }}
+      #     name: Restoring pip cache
+
+      - run:
+          name: install sqlite3
+          command: apt update && apt install --no-install-recommends -y sqlite3
       
       - run:
           name: pip install
@@ -21,7 +25,7 @@ jobs:
       - save_cache:
           key: pip-{{ checksum "requirements.txt" }}
           paths:
-            - ~/.cache/pip
+            - /wine/drive_c/users/root/Local\ Settings/Application\ Data/pip/Cache
 
       - run:
           name: Build Windows executable

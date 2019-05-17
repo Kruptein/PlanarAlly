@@ -9,6 +9,19 @@ jobs:
     steps:
       - checkout:
           path: ~/PlanarAlly
+      
+      - restore_cache:
+          key: pip-{{ checksum "requirements.txt" }}
+          name: Restoring pip cache
+      
+      - run:
+          name: pip install
+          command: pip install -r requirements.txt
+      
+      - save_cache:
+          key: pip-{{ checksum "requirements.txt" }}
+          paths:
+            - ~/.cache/pip
 
       - run:
           name: Build Windows executable
@@ -56,6 +69,7 @@ workflows:
             branches:
               only:
                 - dev
+                - bugfix/windows-build
             tags:
               only: /^\d+\.\d+\.\d+[-a-zA-Z0-9]*$/
       - release:
@@ -63,6 +77,8 @@ workflows:
             - windows
           filters:
             branches:
-              ignore: /.*/
+              # ignore: /.*/
+              only:
+                - bugfix/windows-build
             tags:
               only: /^\d+\.\d+\.\d+[-a-zA-Z0-9]*$/

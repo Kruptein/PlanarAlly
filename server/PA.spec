@@ -16,11 +16,11 @@ block_cipher = None
 a = Analysis([_('planarserver.py')],
              pathex=[pa_dir],
              datas=[
-    (_('server_config.cfg'), '.yX8sVdjciYgi'),
+    (_('server_config.cfg'), '.'),
     (_('static'), 'static'),
     (_('templates'), 'templates'),
 ],
-    hiddenimports=['engineio.async_aiohttp'],
+    hiddenimports=['engineio.async_drivers.aiohttp'],
     hookspath=None,
     runtime_hooks=None,
     excludes=None,

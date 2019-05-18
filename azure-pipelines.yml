@@ -31,7 +31,7 @@ jobs:
       
       - task: ArchiveFiles@2
         inputs:
-          rootFolderOrFile: $(Build.ArtifactStagingDirectory)\windows
+          rootFolderOrFile: $(Build.ArtifactStagingDirectory)\windows\planarserver
           includeRootFolder: false
           archiveType: 'zip'
           archiveFile: '$(Build.ArtifactStagingDirectory)\planarally-windows.zip'

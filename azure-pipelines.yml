@@ -4,8 +4,8 @@
 # https://docs.microsoft.com/azure/devops/pipelines/languages/python
 
 trigger:
-  - master
-  - bugfix/windows-build
+  tags:
+    - '*'
 
 jobs:
   - job: "Pyinstaller_Windows"
@@ -42,5 +42,4 @@ jobs:
           action: 'create'
           assets: '$(Build.ArtifactStagingDirectory)\planarally-windows.zip'
           assetsUploadMode: 'replace'
-          isDraft: true
           addChangeLog: false

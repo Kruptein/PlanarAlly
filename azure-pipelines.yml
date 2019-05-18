@@ -9,32 +9,32 @@ trigger:
   - azure-pipelines
 
 jobs:
-  - job: "Pyinstaller_Linux"
-    pool:
-      vmImage: "Ubuntu-16.04"
+  # - job: "Pyinstaller_Linux"
+  #   pool:
+  #     vmImage: "Ubuntu-16.04"
 
-    steps:
-      # - task: UsePythonVersion@0
-      #   inputs:
-      #     versionSpec: "3.7"
-      #     architecture: "x64"
+  #   steps:
+  #     # - task: UsePythonVersion@0
+  #     #   inputs:
+  #     #     versionSpec: "3.7"
+  #     #     architecture: "x64"
 
-      - script: |
-          sudo add-apt-repository ppa:deadsnakes/ppa
-          sudo apt-get update
-          sudo apt-get install python3.7 python3.7-dev
-        displayName: "Install python3.7"
+  #     - script: |
+  #         sudo add-apt-repository ppa:deadsnakes/ppa
+  #         sudo apt-get update
+  #         sudo apt-get install python3.7 python3.7-dev
+  #       displayName: "Install python3.7"
 
-      - script: pip install -r requirements.txt
-        displayName: "Install dependencies"
-        workingDirectory: "server"
+  #     - script: pip install -r requirements.txt
+  #       displayName: "Install dependencies"
+  #       workingDirectory: "server"
 
-      - script: pip install --no-use-pep517 pyinstaller
-        displayName: "Install pyinstaller"
+  #     - script: pip install --no-use-pep517 pyinstaller
+  #       displayName: "Install pyinstaller"
 
-      - script: pyinstaller --clean -y --dist ./dist/linux --workpath /tmp *.spec
-        displayName: "Run pyinstaller"
-        workingDirectory: "server"
+  #     - script: pyinstaller --clean -y --dist ./dist/linux --workpath /tmp *.spec
+  #       displayName: "Run pyinstaller"
+  #       workingDirectory: "server"
 
   - job: "Pyinstaller_Windows"
     pool:
@@ -53,6 +53,6 @@ jobs:
       - script: pip install pyinstaller
         displayName: "Install pyinstaller"
 
-      - script: pyinstaller --clean -y --workpath 'D:/' PA.spec
+      - script: pyinstaller --clean -y --workpath D:\ PA.spec
         displayName: "Run pyinstaller"
         workingDirectory: "server"

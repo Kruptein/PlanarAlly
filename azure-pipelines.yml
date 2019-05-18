@@ -56,3 +56,17 @@ jobs:
       - script: pyinstaller --clean -y --workpath D:\ PA.spec
         displayName: "Run pyinstaller"
         workingDirectory: "server"
+      
+      - task: ArchiveFiles@2
+        inputs:
+          rootFolderOrFile: 'D:\'
+          includeRootFolder: false
+          archiveType: 'zip'
+      
+      - task: GitHubRelease@0
+        inputs:
+          gitHubConnection: Kruptein
+          action: 'create'
+          assets: 'D:\*.zip'
+          assetsUploadMode: 'replace'
+          isDraft: true

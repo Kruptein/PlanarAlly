@@ -71,18 +71,19 @@ workflows:
       - windows:
           filters:
             branches:
-              only:
-                - dev
-                - bugfix/windows-build
-            tags:
-              only: /^\d+\.\d+\.\d+[-a-zA-Z0-9]*$/
+              ignore: /.*/
+            #   only:
+            #     - dev
+            #     - bugfix/windows-build
+            # tags:
+            #   only: /^\d+\.\d+\.\d+[-a-zA-Z0-9]*$/
       - release:
           requires:
             - windows
           filters:
             branches:
-              # ignore: /.*/
-              only:
-                - bugfix/windows-build
-            tags:
-              only: /^\d+\.\d+\.\d+[-a-zA-Z0-9]*$/
+              ignore: /.*/
+            #   only:
+            #     - bugfix/windows-build
+            # tags:
+            #   only: /^\d+\.\d+\.\d+[-a-zA-Z0-9]*$/

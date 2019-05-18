@@ -5,37 +5,9 @@
 
 trigger:
   - master
-  - dev
-  - azure-pipelines
+  - bugfix/windows-build
 
 jobs:
-  # - job: "Pyinstaller_Linux"
-  #   pool:
-  #     vmImage: "Ubuntu-16.04"
-
-  #   steps:
-  #     # - task: UsePythonVersion@0
-  #     #   inputs:
-  #     #     versionSpec: "3.7"
-  #     #     architecture: "x64"
-
-  #     - script: |
-  #         sudo add-apt-repository ppa:deadsnakes/ppa
-  #         sudo apt-get update
-  #         sudo apt-get install python3.7 python3.7-dev
-  #       displayName: "Install python3.7"
-
-  #     - script: pip install -r requirements.txt
-  #       displayName: "Install dependencies"
-  #       workingDirectory: "server"
-
-  #     - script: pip install --no-use-pep517 pyinstaller
-  #       displayName: "Install pyinstaller"
-
-  #     - script: pyinstaller --clean -y --dist ./dist/linux --workpath /tmp *.spec
-  #       displayName: "Run pyinstaller"
-  #       workingDirectory: "server"
-
   - job: "Pyinstaller_Windows"
     pool:
       vmImage: "vs2017-win2016"
@@ -62,13 +34,13 @@ jobs:
           rootFolderOrFile: $(Build.ArtifactStagingDirectory)\windows
           includeRootFolder: false
           archiveType: 'zip'
-          archiveFile: '$(Build.ArtifactStagingDirectory)\windows.zip'
+          archiveFile: '$(Build.ArtifactStagingDirectory)\planarally-windows.zip'
       
       - task: GitHubRelease@0
         inputs:
           gitHubConnection: Kruptein
           action: 'create'
-          assets: '$(Build.ArtifactStagingDirectory)\windows.zip'
+          assets: '$(Build.ArtifactStagingDirectory)\planarally-windows.zip'
           assetsUploadMode: 'replace'
           isDraft: true
           addChangeLog: false

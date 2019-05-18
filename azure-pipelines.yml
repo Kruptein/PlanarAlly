@@ -5,7 +5,8 @@
 
 trigger:
   tags:
-    - '*'
+    include:
+      - '*'
 
 jobs:
   - job: "Pyinstaller_Windows"

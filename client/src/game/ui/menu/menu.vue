@@ -40,8 +40,8 @@
         <div style="width:200px;height:90%;overflow-y:auto;overflow-x:hidden;">
           <!-- ASSETS -->
           <template v-if="IS_DM">
-            <button class="accordion">Assets</button>
-            <div class="accordion-panel">
+            <button class="menu-accordion">Assets</button>
+            <div class="menu-accordion-panel">
               <a class="actionButton" href="/assets" target="blank" title="Open asset manager">
                 <i class="fas fa-external-link-alt"></i>
               </a>
@@ -51,9 +51,9 @@
               </div>
             </div>
             <!-- NOTES -->
-            <button class="accordion">Notes</button>
-            <div class="accordion-panel">
-              <div class="accordion-subpanel" id="menu-notes">
+            <button class="menu-accordion">Notes</button>
+            <div class="menu-accordion-panel">
+              <div class="menu-accordion-subpanel" id="menu-notes">
                 <a class="actionButton" @click="createNote">
                   <i class="far fa-plus-square"></i>
                 </a>
@@ -67,9 +67,11 @@
               </div>
             </div>
             <!-- DM OPTIONS -->
-            <button class="accordion">DM Options</button>
-            <div class="accordion-panel">
-              <div class="accordion-subpanel">
+            <button class="menu-accordion">DM Options</button>
+            <div class="menu-accordion-panel">
+              <div class="menu-accordion-subpanel">
+                <label for="fakePlayerInput">Fake player:</label>
+                <input id="fakePlayerInput" type="checkbox" checked="checked" v-model="fakePlayer">
                 <label for="useGridInput">Use grid:</label>
                 <input id="useGridInput" type="checkbox" checked="checked" v-model="useGrid">
                 <label for="useFOWInput">Fill entire canvas with FOW:</label>
@@ -104,9 +106,9 @@
             </div>
           </template>
           <!-- CLIENT OPTIONS -->
-          <button class="accordion">Client Options</button>
-          <div class="accordion-panel">
-            <div class="accordion-subpanel">
+          <button class="menu-accordion">Client Options</button>
+          <div class="menu-accordion-panel">
+            <div class="menu-accordion-subpanel">
               <label for="gridColour">Grid Colour:</label>
               <color-picker id="gridColour" :color.sync="gridColour"/>
               <label for="fowColour">FOW Colour:</label>
@@ -118,7 +120,7 @@
         </div>
         <router-link
           to="/dashboard"
-          class="accordion"
+          class="menu-accordion"
           style="text-decoration:none;display:inline-block;position:absolute;bottom:0;"
         >Exit</router-link>
       </div>
@@ -166,7 +168,7 @@ import { gameStore } from "@/game/store";
         "asset-node": AssetNode,
     },
     computed: {
-        ...mapState("game", ["invitationCode", "IS_DM", "locations", "assets", "notes"]),
+        ...mapState("game", ["invitationCode", "locations", "assets", "notes"]),
     },
 })
 export default class MenuBar extends Vue {
@@ -175,6 +177,16 @@ export default class MenuBar extends Vue {
         locations: false,
     };
 
+    get IS_DM(): boolean {
+        return gameStore.IS_DM || gameStore.FAKE_PLAYER;
+    }
+
+    get fakePlayer(): boolean {
+        return gameStore.FAKE_PLAYER;
+    }
+    set fakePlayer(value: boolean) {
+        gameStore.setFakePlayer(value);
+    }
     get useGrid(): boolean {
         return gameStore.useGrid;
     }
@@ -247,8 +259,8 @@ export default class MenuBar extends Vue {
         gameStore.setVisionRangeMax({ value, sync: true });
     }
     settingsClick(event: { target: HTMLElement }) {
-        if (event.target.classList.contains("accordion")) {
-            event.target.classList.toggle("accordion-active");
+        if (event.target.classList.contains("menu-accordion")) {
+            event.target.classList.toggle("menu-accordion-active");
             const next = <HTMLElement>event.target.nextElementSibling;
             if (next !== null) next.style.display = next.style.display === "" ? "block" : "";
         }
@@ -374,7 +386,7 @@ DIRECTORY.CSS changes
     padding: 0;
 }
 
-.accordion {
+.menu-accordion {
     background-color: #eee;
     color: #444;
     cursor: pointer;
@@ -390,32 +402,32 @@ DIRECTORY.CSS changes
     width: stretch;
 }
 
-.accordion-active,
-.accordion:hover {
+.menu-accordion-active,
+.menu-accordion:hover {
     background-color: #82c8a0;
 }
 
-.accordion-panel {
+.menu-accordion-panel {
     background-color: white;
     display: none;
     overflow: hidden;
     min-height: 2em;
 }
 
-.accordion-subpanel {
+.menu-accordion-subpanel {
     display: flex;
     flex-direction: column;
     width: 100%;
 }
 
-.accordion-subpanel > * {
+.menu-accordion-subpanel > * {
     padding: 5px;
     display: flex;
     justify-content: space-evenly;
     align-items: center;
 }
 
-.accordion-subpanel > *:hover {
+.menu-accordion-subpanel > *:hover {
     background-color: #82c8a0;
 }
 

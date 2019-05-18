@@ -1,5 +1,5 @@
 import bcrypt
-from peewee import fn, TextField
+from peewee import fn, BooleanField, ForeignKeyField, TextField
 from playhouse.shortcuts import model_to_dict
 
 from .base import BaseModel
@@ -34,3 +34,4 @@ class User(BaseModel):
     @classmethod
     def by_name(cls, name):
         return cls.get_or_none(fn.Lower(cls.name) == name.lower())
+

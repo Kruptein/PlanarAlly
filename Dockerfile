@@ -1,6 +1,6 @@
 FROM python:3.6-slim
 
-MAINTAINER Schemen <me@schemen.me>
+MAINTAINER Kruptein <info@darragh.dev>
 
 EXPOSE 8000
 

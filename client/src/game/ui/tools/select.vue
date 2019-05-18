@@ -72,8 +72,6 @@ export default class SelectTool extends Tool {
         for (let i = selectionStack.length - 1; i >= 0; i--) {
             const shape = selectionStack[i];
 
-            if (!shape.ownedBy()) continue;
-
             this.resizePoint = shape.getPointIndex(globalMouse, l2gz(3));
 
             // Resize case, a corner is selected
@@ -148,6 +146,7 @@ export default class SelectTool extends Tool {
                 // If we are on the tokens layer do a movement block check.
                 if (layer.name === "tokens" && !(event.shiftKey && gameStore.IS_DM)) {
                     for (const sel of layer.selection) {
+                        if (!sel.ownedBy()) continue;
                         if (sel.uuid === this.selectionHelper.uuid) continue; // the selection helper should not be treated as a real shape.
                         delta = calculateDelta(delta, sel);
                         if (delta !== ogDelta) this.deltaChanged = true;
@@ -155,6 +154,7 @@ export default class SelectTool extends Tool {
                 }
                 // Actually apply the delta on all shapes
                 for (const sel of layer.selection) {
+                    if (!sel.ownedBy()) continue;
                     sel.refPoint = sel.refPoint.add(delta);
                     if (sel !== this.selectionHelper) {
                         if (sel.visionObstruction) gameStore.recalculateVision(true);
@@ -164,6 +164,7 @@ export default class SelectTool extends Tool {
                 layer.invalidate(false);
             } else if (this.mode === SelectOperations.Resize) {
                 for (const sel of layer.selection) {
+                    if (!sel.ownedBy()) continue;
                     sel.resize(this.resizePoint, mouse);
                     if (sel !== this.selectionHelper) {
                         if (sel.visionObstruction) gameStore.recalculateVision(true);
@@ -190,6 +191,7 @@ export default class SelectTool extends Tool {
         if (this.mode === SelectOperations.GroupSelect) {
             layer.clearSelection();
             layer.shapes.forEach(shape => {
+                if (!shape.ownedBy()) return;
                 if (shape === this.selectionHelper) return;
                 const bbox = shape.getBoundingBox();
                 if (!shape.ownedBy()) return;
@@ -210,6 +212,7 @@ export default class SelectTool extends Tool {
             layer.invalidate(true);
         } else if (layer.selection.length) {
             layer.selection.forEach(sel => {
+                if (!sel.ownedBy()) return;
                 if (this.mode === SelectOperations.Drag) {
                     if (
                         this.dragRay.origin!.x === g2lx(sel.refPoint.x) &&

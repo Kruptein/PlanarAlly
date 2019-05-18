@@ -22,9 +22,6 @@ export class FOWPlayersLayer extends Layer {
 
             ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
-            const drctx = layerManager.getLayer("draw")!.ctx;
-            drctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
-
             const originalOperation = ctx.globalCompositeOperation;
 
             ctx.fillStyle = "rgba(0, 0, 0, 1)";
@@ -36,7 +33,7 @@ export class FOWPlayersLayer extends Layer {
             // Then cut out all the player vision auras
             const maxLength = ctx.canvas.width + ctx.canvas.height;
 
-            for (const tokenId of gameStore.ownedtokens) {
+            for (const tokenId of gameStore.activeTokens) {
                 const token = layerManager.UUIDMap.get(tokenId);
                 if (token === undefined) continue;
                 const center = token.center();

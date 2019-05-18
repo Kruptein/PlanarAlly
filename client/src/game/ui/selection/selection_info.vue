@@ -67,7 +67,7 @@ export default class SelectionInfo extends Vue {
     }
 
     beforeDestroy() {
-        EventBus.$off();
+        EventBus.$off("SelectionInfo.Shape.Set");
     }
 
     openEditDialog() {

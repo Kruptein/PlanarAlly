@@ -4,6 +4,7 @@ from playhouse.sqlite_ext import JSONField
 
 from .base import BaseModel
 from .campaign import Layer
+from .label import Label
 from .user import User
 from .utils import get_table
 
@@ -18,6 +19,7 @@ __all__ = [
     "Polygon",
     "Rect",
     "Shape",
+    "ShapeLabel",
     "ShapeOwner",
     "Text",
     "Tracker",
@@ -31,6 +33,7 @@ class Shape(BaseModel):
     x = FloatField()
     y = FloatField()
     name = TextField(null=True)
+    name_visible = BooleanField(default=True)
     fill_colour = TextField(default="#000")
     stroke_colour = TextField(default="#fff")
     vision_obstruction = BooleanField(default=False)
@@ -59,12 +62,17 @@ class Shape(BaseModel):
         owned = dm or (user.name in data["owners"])
         tracker_query = self.trackers
         aura_query = self.auras
+        label_query = self.labels.join(Label)
         if not owned:
             data["annotation"] = ""
             tracker_query = tracker_query.where(Tracker.visible)
             aura_query = aura_query.where(Aura.visible)
+            label_query = label_query.where(Label.visible)
+        if not self.name_visible:
+            data["name"] = "?"
         data["trackers"] = [t.as_dict() for t in tracker_query]
         data["auras"] = [a.as_dict() for a in aura_query]
+        data["labels"] = [l.as_dict() for l in label_query]
         # Subtype
         type_table = get_table(self.type_)
         data.update(
@@ -72,6 +80,14 @@ class Shape(BaseModel):
         )
 
         return data
+
+
+class ShapeLabel(BaseModel):
+    shape = ForeignKeyField(Shape, backref="labels", on_delete="CASCADE")
+    label = ForeignKeyField(Label, backref="shapes", on_delete="CASCADE")
+
+    def as_dict(self):
+        return self.label.as_dict()
 
 
 class Tracker(BaseModel):

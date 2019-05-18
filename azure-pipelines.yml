@@ -59,7 +59,7 @@ jobs:
       
       - task: ArchiveFiles@2
         inputs:
-          rootFolderOrFile: 'D:\'
+          rootFolderOrFile: 'D:\PA\'
           includeRootFolder: false
           archiveType: 'zip'
       
@@ -67,6 +67,5 @@ jobs:
         inputs:
           gitHubConnection: Kruptein
           action: 'create'
-          assets: 'D:\*.zip'
           assetsUploadMode: 'replace'
           isDraft: true

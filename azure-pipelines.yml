@@ -50,7 +50,7 @@ jobs:
         displayName: "Install dependencies"
         workingDirectory: "server"
 
-      - script: pip install --no-use-pep517 pyinstaller
+      - script: pip install --no-use-pep517 pyinstaller --clean -y --workpath D:/
         displayName: "Install pyinstaller"
 
       - script: pyinstaller --clean -y *.spec

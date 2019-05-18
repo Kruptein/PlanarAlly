@@ -53,19 +53,22 @@ jobs:
       - script: pip install pyinstaller
         displayName: "Install pyinstaller"
 
-      - script: pyinstaller --clean -y --workpath D:\ PA.spec
+      - script: pyinstaller --clean -y --dist $(Build.ArtifactStagingDirectory)\windows --workpath D:\ PA.spec
         displayName: "Run pyinstaller"
         workingDirectory: "server"
       
       - task: ArchiveFiles@2
         inputs:
-          rootFolderOrFile: 'D:\PA\'
+          rootFolderOrFile: $(Build.ArtifactStagingDirectory)\windows
           includeRootFolder: false
           archiveType: 'zip'
+          acrhiveFile: '$(Build.ArtifactStagingDirectory)\windows.zip'
       
       - task: GitHubRelease@0
         inputs:
           gitHubConnection: Kruptein
           action: 'create'
+          assets: '$(Build.ArtifactStagingDirectory)\windows.zip'
           assetsUploadMode: 'replace'
           isDraft: true
+          addChangeLog: false

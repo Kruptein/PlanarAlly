@@ -5,6 +5,8 @@
 
 trigger:
   - master
+  - dev
+  - azure-pipelines
 
 jobs:
   - job: "Pyinstaller_Linux"

@@ -53,6 +53,6 @@ jobs:
       - script: pip install pyinstaller
         displayName: "Install pyinstaller"
 
-      - script: pyinstaller --clean -y --workpath D:/ *.spec
+      - script: pyinstaller --clean -y --workpath 'D:/' PA.spec
         displayName: "Run pyinstaller"
         workingDirectory: "server"

@@ -1,0 +1,74 @@
+# Python package
+# Create and test a Python package on multiple Python versions.
+# Add steps that analyze code, save the dist with the build record, publish to a PyPI-compatible index, and more:
+# https://docs.microsoft.com/azure/devops/pipelines/languages/python
+
+trigger:
+  - master
+  - dev
+  - azure-pipelines
+
+jobs:
+  # - job: "Pyinstaller_Linux"
+  #   pool:
+  #     vmImage: "Ubuntu-16.04"
+
+  #   steps:
+  #     # - task: UsePythonVersion@0
+  #     #   inputs:
+  #     #     versionSpec: "3.7"
+  #     #     architecture: "x64"
+
+  #     - script: |
+  #         sudo add-apt-repository ppa:deadsnakes/ppa
+  #         sudo apt-get update
+  #         sudo apt-get install python3.7 python3.7-dev
+  #       displayName: "Install python3.7"
+
+  #     - script: pip install -r requirements.txt
+  #       displayName: "Install dependencies"
+  #       workingDirectory: "server"
+
+  #     - script: pip install --no-use-pep517 pyinstaller
+  #       displayName: "Install pyinstaller"
+
+  #     - script: pyinstaller --clean -y --dist ./dist/linux --workpath /tmp *.spec
+  #       displayName: "Run pyinstaller"
+  #       workingDirectory: "server"
+
+  - job: "Pyinstaller_Windows"
+    pool:
+      vmImage: "vs2017-win2016"
+
+    steps:
+      - task: UsePythonVersion@0
+        inputs:
+          versionSpec: "3.7"
+          architecture: "x64"
+
+      - script: python -m pip install --upgrade pip && pip install -r requirements.txt
+        displayName: "Install dependencies"
+        workingDirectory: "server"
+
+      - script: pip install pyinstaller
+        displayName: "Install pyinstaller"
+
+      - script: pyinstaller --clean -y --dist $(Build.ArtifactStagingDirectory)\windows --workpath D:\ PA.spec
+        displayName: "Run pyinstaller"
+        workingDirectory: "server"
+      
+      - task: ArchiveFiles@2
+        inputs:
+          rootFolderOrFile: $(Build.ArtifactStagingDirectory)\windows
+          includeRootFolder: false
+          archiveType: 'zip'
+          archiveFile: '$(Build.ArtifactStagingDirectory)\windows.zip'
+      
+      - task: GitHubRelease@0
+        inputs:
+          gitHubConnection: Kruptein
+          action: 'create'
+          assets: '$(Build.ArtifactStagingDirectory)\windows.zip'
+          assetsUploadMode: 'replace'
+          isDraft: true
+          addChangeLog: false

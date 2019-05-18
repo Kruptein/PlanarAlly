@@ -1,6 +1,6 @@
+import json
 from peewee import BooleanField, FloatField, ForeignKeyField, IntegerField, TextField
-from playhouse.shortcuts import model_to_dict
-from playhouse.sqlite_ext import JSONField
+from playhouse.shortcuts import model_to_dict, update_model_from_dict
 
 from .base import BaseModel
 from .campaign import Layer
@@ -76,9 +76,8 @@ class Shape(BaseModel):
         # Subtype
         type_table = get_table(self.type_)
         data.update(
-            **model_to_dict(type_table.get(uuid=self.uuid), exclude=[type_table.uuid])
+            **type_table.get(uuid=self.uuid).as_dict(exclude=[type_table.uuid])
         )
-
         return data
 
 
@@ -134,6 +133,12 @@ class ShapeType(BaseModel):
     abstract = True
     uuid = TextField(primary_key=True)
 
+    def as_dict(self, *args, **kwargs):
+        return model_to_dict(self, *args, **kwargs)
+    
+    def update_from_dict(self, data, *args, **kwargs):
+        return update_model_from_dict(self, data, *args, **kwargs)
+
 
 class BaseRect(ShapeType):
     abstract = True
@@ -167,12 +172,31 @@ class Line(ShapeType):
 class MultiLine(ShapeType):
     abstract = False
     line_width = IntegerField()
-    points = JSONField()
+    points = TextField()
+
+    
+    def as_dict(self, *args, **kwargs):
+        model = model_to_dict(self, *args, **kwargs)
+        model['points'] = json.loads(model['points'])
+        return model
+    
+    def update_from_dict(self, data, *args, **kwargs):
+        data["points"] = json.dumps(data["points"])
+        return update_model_from_dict(self, data, *args, **kwargs)
 
 
 class Polygon(ShapeType):
     abstract = False
-    vertices = JSONField()
+    vertices = TextField()
+
+    def as_dict(self, *args, **kwargs):
+        model = model_to_dict(self, *args, **kwargs)
+        model['vertices'] = json.loads(model['vertices'])
+        return model
+    
+    def update_from_dict(self, data, *args, **kwargs):
+        data["vertices"] = json.dumps(data["vertices"])
+        return update_model_from_dict(self, data, *args, **kwargs)
 
 
 class Rect(BaseRect):

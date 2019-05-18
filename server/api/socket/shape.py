@@ -104,9 +104,7 @@ async def update_shape_position(sid, data):
                 type_table = get_table(shape.type_)
                 type_instance = type_table.get(uuid=shape.uuid)
                 # no backrefs on these tables
-                update_model_from_dict(
-                    type_instance, data["shape"], ignore_unknown=True
-                )
+                type_instance.update_from_dict(data["shape"], ignore_unknown=True)
                 type_instance.save()
 
     await sync_shape_update(layer, room, data, sid, shape)
@@ -138,7 +136,7 @@ async def update_shape(sid, data):
             type_table = get_table(shape.type_)
             type_instance = type_table.get(uuid=shape.uuid)
             # no backrefs on these tables
-            update_model_from_dict(type_instance, data["shape"], ignore_unknown=True)
+            type_instance.update_from_dict(data["shape"], ignore_unknown=True)
             type_instance.save()
             # Owners
             old_owners = {owner.user.name for owner in shape.owners}

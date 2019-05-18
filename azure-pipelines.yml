@@ -62,7 +62,7 @@ jobs:
           rootFolderOrFile: $(Build.ArtifactStagingDirectory)\windows
           includeRootFolder: false
           archiveType: 'zip'
-          acrhiveFile: '$(Build.ArtifactStagingDirectory)\windows.zip'
+          archiveFile: '$(Build.ArtifactStagingDirectory)\windows.zip'
       
       - task: GitHubRelease@0
         inputs:

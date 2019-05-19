@@ -7,6 +7,34 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+## [0.16.0] - 2019-05-19
+
+### Added
+
+- Option to listen on a socket instead of HOST:PORT.
+- Vision tool to change active tokens.
+- Vision lock button to initiative to only show vision of current actor.
+    - This only applies to tokens the player owns for other tokens the normal vision is restored.
+    - This is purely client side and can thus be chosen by player/DM separately.
+- Camera lock button to initiative to automatically center on current actor.
+    - It will center when an actor begins its turn and the client is owner of that actor.
+    - It does not prevent camera movement after the initial center action.
+- Automatic build of windows executables on azure pipelines for all tags
+    - These will also create a github release automatically
+- Fake player button to DM Settings to disable all DM functions except DM settings.
+    - You can control which player(s) you want to emulate with the vision tool.
+
+### Changed
+
+- Filter tool is only visible if there are labels defined.
+
+### Fixed
+
+- Fix a bug causing labels without category to throw errors.
+- CSS bug with menu.
+- Bug making it impossible to remove trackers/auras.
+- Windows build being completely broken.
+
 ## [0.15.1] - 2019-05-15
 
 ### Fixed

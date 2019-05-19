@@ -102,6 +102,20 @@
                 <div style="display:flex;"></div>
                 <div
                     class="initiative-bar-button"
+                    :style="visionLock ? 'background-color: #82c8a0' : ''"
+                    @click="toggleVisionLock"
+                >
+                    <i class="fas fa-eye"></i>
+                </div>
+                <div
+                    class="initiative-bar-button"
+                    :style="cameraLock ? 'background-color: #82c8a0' : ''"
+                    @click="cameraLock = !cameraLock"
+                >
+                    <i class="fas fa-video"></i>
+                </div>
+                <div
+                    class="initiative-bar-button"
                     :class="{'notAllowed': !$store.state.game.IS_DM}"
                     @click="setRound(0, true); updateTurn(data[0].uuid, true)"
                 >
@@ -133,6 +147,7 @@ import { InitiativeData, InitiativeEffect } from "@/game/comm/types/general";
 import { EventBus } from "@/game/event-bus";
 import { layerManager } from "@/game/layers/manager";
 import { gameStore } from "@/game/store";
+import { gameManager } from '../manager';
 
 @Component({
     components: {
@@ -145,6 +160,9 @@ export default class Initiative extends Vue {
     data: InitiativeData[] = [];
     currentActor: string | null = null;
     roundCounter = 0;
+    visionLock = false;
+    cameraLock = false;
+    _activeTokens: string[] = [];
 
     mounted() {
         EventBus.$on("Initiative.Clear", this.clear);
@@ -234,6 +252,18 @@ export default class Initiative extends Vue {
                 else actor.effects[e].turns--;
             }
         }
+        if (this.visionLock) {
+            if (actorId !== null && gameStore.ownedtokens.includes(actorId)) gameStore.setActiveTokens([actorId]);
+            else gameStore.setActiveTokens([]);
+        }
+        if (this.cameraLock) {
+            if (actorId !== null) {
+                const shape = layerManager.UUIDMap.get(actorId);
+                if (shape !== undefined && shape.ownedBy()) {
+                    gameManager.setCenterPosition(shape.center());
+                }
+            }
+        }
         if (sync) socket.emit("Initiative.Turn.Update", actorId);
     }
     setRound(round: number, sync: boolean) {
@@ -279,6 +309,15 @@ export default class Initiative extends Vue {
         actor.effects[effectIndex] = effect;
         if (sync) this.syncEffect(actor, effect);
         else this.$forceUpdate();
+    }
+    toggleVisionLock() {
+        this.visionLock = !this.visionLock;
+        if (this.visionLock) {
+            this._activeTokens = [...gameStore._activeTokens];
+            if (this.currentActor !== null && gameStore.ownedtokens.includes(this.currentActor)) gameStore.setActiveTokens([this.currentActor]);
+        } else {
+            gameStore.setActiveTokens(this._activeTokens);
+        }
     }
 }
 </script>

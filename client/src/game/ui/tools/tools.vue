@@ -7,6 +7,7 @@
                     :key="tool"
                     :class="{'tool-selected': currentTool === tool}"
                     :ref="tool + '-selector'"
+                    v-show="toolVisible(tool)"
                     @mousedown="currentTool = tool"
                 >
                     <a href="#">{{ tool }}</a>
@@ -23,6 +24,7 @@
                 <ruler-tool v-show="currentTool === 'Ruler'"></ruler-tool>
                 <map-tool v-show="currentTool === 'Map'"></map-tool>
                 <filter-tool v-show="currentTool === 'Filter'"></filter-tool>
+                <vision-tool v-show="currentTool === 'Vision'"></vision-tool>
                 <shape-menu ref="shapecontext"></shape-menu>
                 <createtoken-dialog ref="createtokendialog"></createtoken-dialog>
             </template>
@@ -41,6 +43,7 @@ import FilterTool from "@/game/ui/tools/filter.vue";
 import MapTool from "@/game/ui/tools/map.vue";
 import PanTool from "@/game/ui/tools/pan";
 import SelectTool from "@/game/ui/tools/select.vue";
+import VisionTool from "@/game/ui/tools/vision.vue";
 
 import { layerManager } from "@/game/layers/manager";
 import { gameManager } from "@/game/manager";
@@ -58,6 +61,7 @@ import Component from "vue-class-component";
         "ruler-tool": RulerTool,
         "map-tool": MapTool,
         "filter-tool": FilterTool,
+        "vision-tool": VisionTool,
         "shape-menu": ShapeContext,
         "createtoken-dialog": CreateTokenModal,
     },
@@ -73,7 +77,7 @@ export default class Tools extends Vue {
     };
 
     currentTool = "Select";
-    tools = ["Select", "Pan", "Draw", "Ruler", "Map", "Filter"];
+    tools = ["Select", "Pan", "Draw", "Ruler", "Map", "Filter", "Vision"];
     dmTools = ["Map"];
 
     get IS_DM(): boolean {
@@ -86,6 +90,15 @@ export default class Tools extends Vue {
 
     get visibleTools(): string[] {
         return this.tools.filter(t => (!this.dmTools.includes(t) || this.IS_DM));
+    }
+
+    toolVisible(tool: string): boolean {
+        if (tool === 'Filter') {
+            return Object.keys(gameStore.labels).length > 0;
+        } else if (tool === 'Vision') {
+            return gameStore.ownedtokens.length > 1;
+        }
+        return true;
     }
 
     mousedown(event: MouseEvent) {

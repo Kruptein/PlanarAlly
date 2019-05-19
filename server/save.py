@@ -1,3 +1,4 @@
+import json
 import logging
 import os
 import secrets
@@ -11,7 +12,7 @@ from config import SAVE_FILE
 from models import ALL_MODELS, Constants
 from models.db import db
 
-SAVE_VERSION = 13
+SAVE_VERSION = 14
 logger: logging.Logger = logging.getLogger("PlanarAllyServer")
 logger.setLevel(logging.INFO)
 
@@ -139,6 +140,16 @@ def upgrade(version):
                 label.category = cat
                 label.name = ':'.join(name)
                 label.save()
+        db.foreign_keys = True
+        Constants.update(save_version=Constants.save_version + 1).execute()
+    elif version == 13:
+        from models import LocationUserOption, MultiLine, Polygon
+        
+        db.foreign_keys = False
+        migrator = SqliteMigrator(db)
+        
+        migrate(migrator.drop_column("location_user_option", "active_filters"))
+        
         db.foreign_keys = True
         Constants.update(save_version=Constants.save_version + 1).execute()
     else:

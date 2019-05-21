@@ -67,13 +67,11 @@
               </div>
             </div>
             <!-- DM OPTIONS -->
-            <button class="menu-accordion">DM Options</button>
+            <button class="menu-accordion" @click="openDmSettings">DM Options</button>
             <div class="menu-accordion-panel">
               <div class="menu-accordion-subpanel">
                 <label for="fakePlayerInput">Fake player:</label>
                 <input id="fakePlayerInput" type="checkbox" checked="checked" v-model="fakePlayer">
-                <label for="useGridInput">Use grid:</label>
-                <input id="useGridInput" type="checkbox" checked="checked" v-model="useGrid">
                 <label for="useFOWInput">Fill entire canvas with FOW:</label>
                 <input id="useFOWInput" type="checkbox" v-model="fullFOW">
                 <label for="fowOpacity">FOW opacity:</label>
@@ -87,10 +85,6 @@
                 >
                 <label for="fowLOS">Only show lights in LoS:</label>
                 <input id="fowLOS" type="checkbox" v-model="fowLOS">
-                <label for="unitSizeInput">Unit Size (in ft.):</label>
-                <input id="unitSizeInput" type="number" v-model.number="unitSize">
-                <label for="gridSizeInput">Grid Size (in pixels):</label>
-                <input id="gridSizeInput" type="number" min="0" v-model.number="gridSize">
                 <label for="visionMode">Vision Mode:</label>
                 <select id="visionMode" @change="changeVisionMode">
                   <option :selected="$store.state.game.visionMode === 'bvh'">BVH</option>
@@ -161,6 +155,7 @@ import { socket } from "@/game/api/socket";
 import { Note } from "@/game/comm/types/general";
 import { layerManager } from "@/game/layers/manager";
 import { gameStore } from "@/game/store";
+import { EventBus } from '../../event-bus';
 
 @Component({
     components: {
@@ -187,12 +182,6 @@ export default class MenuBar extends Vue {
     set fakePlayer(value: boolean) {
         gameStore.setFakePlayer(value);
     }
-    get useGrid(): boolean {
-        return gameStore.useGrid;
-    }
-    set useGrid(value: boolean) {
-        gameStore.setUseGrid({ useGrid: value, sync: true });
-    }
     get fullFOW(): boolean {
         return gameStore.fullFOW;
     }
@@ -211,20 +200,6 @@ export default class MenuBar extends Vue {
     }
     set fowLOS(value: boolean) {
         gameStore.setLineOfSight({ fowLOS: value, sync: true });
-    }
-    get unitSize(): number {
-        return gameStore.unitSize;
-    }
-    set unitSize(value: number) {
-        if (typeof value !== "number") return;
-        gameStore.setUnitSize({ unitSize: value, sync: true });
-    }
-    get gridSize(): number {
-        return gameStore.gridSize;
-    }
-    set gridSize(value: number) {
-        if (typeof value !== "number") return;
-        gameStore.setGridSize({ gridSize: value, sync: true });
     }
     get gridColour(): string {
         return gameStore.gridColour;
@@ -293,6 +268,10 @@ export default class MenuBar extends Vue {
         gameStore.recalculateVision();
         gameStore.recalculateMovement();
         layerManager.invalidate();
+    }
+
+    openDmSettings() {
+        EventBus.$emit("DmSettings.Open");
     }
 }
 </script>

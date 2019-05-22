@@ -1,141 +1,120 @@
 <template>
-  <div id="menuContainer">
-    <!-- RADIAL MENU -->
-    <div
-      id="radialmenu"
-      ref="rm"
-      :style="{
+    <div id="menuContainer">
+        <!-- RADIAL MENU -->
+        <div
+            id="radialmenu"
+            ref="rm"
+            :style="{
                 left: visible.settings ? '200px' : '0',
                 top: visible.locations ? '100px' : '0'
             }"
-    >
-      <div class="rm-wrapper">
-        <div class="rm-toggler">
-          <ul class="rm-list" :class="{ 'rm-list-dm': IS_DM }">
-            <li
-              @click="visible.locations = !visible.locations"
-              v-if="IS_DM"
-              class="rm-item"
-              id="rm-locations"
-            >
-              <a href="#">
-                <i class="far fa-compass"></i>
-              </a>
-            </li>
-            <li @click="visible.settings = !visible.settings" class="rm-item" id="rm-settings">
-              <a href="#">
-                <i class="fas fa-cog"></i>
-              </a>
-            </li>
-          </ul>
+        >
+            <div class="rm-wrapper">
+                <div class="rm-toggler">
+                    <ul class="rm-list" :class="{ 'rm-list-dm': IS_DM }">
+                        <li
+                            @click="visible.locations = !visible.locations"
+                            v-if="IS_DM"
+                            class="rm-item"
+                            id="rm-locations"
+                        >
+                            <a href="#">
+                                <i class="far fa-compass"></i>
+                            </a>
+                        </li>
+                        <li
+                            @click="visible.settings = !visible.settings"
+                            class="rm-item"
+                            id="rm-settings"
+                        >
+                            <a href="#">
+                                <i class="fas fa-cog"></i>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+                <span class="rm-topper">
+                    <i class="icon-share-alt"></i>
+                </span>
+            </div>
         </div>
-        <span class="rm-topper">
-          <i class="icon-share-alt"></i>
-        </span>
-      </div>
+        <!-- SETTINGS -->
+        <transition name="settings" @enter="$refs.rm.style.transition = 'left 500ms'">
+            <div id="menu" v-if="visible.settings" @click="settingsClick" ref="settings">
+                <div style="width:200px;height:90%;overflow-y:auto;overflow-x:hidden;">
+                    <!-- ASSETS -->
+                    <template v-if="IS_DM">
+                        <button class="menu-accordion">Assets</button>
+                        <div class="menu-accordion-panel">
+                            <a
+                                class="actionButton"
+                                href="/assets"
+                                target="blank"
+                                title="Open asset manager"
+                            >
+                                <i class="fas fa-external-link-alt"></i>
+                            </a>
+                            <div class="directory" id="menu-tokens">
+                                <asset-node :asset="assets"></asset-node>
+                                <div v-if="!assets">No assets</div>
+                            </div>
+                        </div>
+                        <!-- NOTES -->
+                        <button class="menu-accordion">Notes</button>
+                        <div class="menu-accordion-panel">
+                            <div class="menu-accordion-subpanel" id="menu-notes">
+                                <a class="actionButton" @click="createNote">
+                                    <i class="far fa-plus-square"></i>
+                                </a>
+                                <div
+                                    v-for="note in notes"
+                                    :key="note.uuid"
+                                    @click="openNote(note)"
+                                    style="cursor:pointer"
+                                >{{ note.title || "[?]" }}</div>
+                                <div v-if="!notes.length">No notes</div>
+                            </div>
+                        </div>
+                        <!-- DM OPTIONS -->
+                        <button class="menu-accordion" @click="openDmSettings">DM Options</button>
+                    </template>
+                    <!-- CLIENT OPTIONS -->
+                    <button class="menu-accordion">Client Options</button>
+                    <div class="menu-accordion-panel">
+                        <div class="menu-accordion-subpanel">
+                            <label for="gridColour">Grid Colour:</label>
+                            <color-picker id="gridColour" :color.sync="gridColour"/>
+                            <label for="fowColour">FOW Colour:</label>
+                            <color-picker id="fowColour" :color.sync="fowColour"/>
+                            <label for="rulerColour">Ruler Colour:</label>
+                            <color-picker id="rulerColour" :color.sync="rulerColour"/>
+                        </div>
+                    </div>
+                </div>
+                <router-link
+                    to="/dashboard"
+                    class="menu-accordion"
+                    style="text-decoration:none;display:inline-block;position:absolute;bottom:0;"
+                >Exit</router-link>
+            </div>
+        </transition>
+        <!-- LOCATIONS -->
+        <transition name="locations" @enter="$refs.rm.style.transition = 'top 500ms'">
+            <div id="locations-menu" v-if="IS_DM && visible.locations">
+                <div>
+                    <div
+                        v-for="location in locations"
+                        :key="location"
+                        @click="changeLocation(location)"
+                    >{{ location }}</div>
+                    <div @click="createLocation">
+                        <i class="fas fa-plus"></i>
+                    </div>
+                </div>
+            </div>
+        </transition>
+        <img id="dragImage">
     </div>
-    <!-- SETTINGS -->
-    <transition name="settings" @enter="$refs.rm.style.transition = 'left 500ms'">
-      <div id="menu" v-if="visible.settings" @click="settingsClick" ref="settings">
-        <div style="width:200px;height:90%;overflow-y:auto;overflow-x:hidden;">
-          <!-- ASSETS -->
-          <template v-if="IS_DM">
-            <button class="menu-accordion">Assets</button>
-            <div class="menu-accordion-panel">
-              <a class="actionButton" href="/assets" target="blank" title="Open asset manager">
-                <i class="fas fa-external-link-alt"></i>
-              </a>
-              <div class="directory" id="menu-tokens">
-                <asset-node :asset="assets"></asset-node>
-                <div v-if="!assets">No assets</div>
-              </div>
-            </div>
-            <!-- NOTES -->
-            <button class="menu-accordion">Notes</button>
-            <div class="menu-accordion-panel">
-              <div class="menu-accordion-subpanel" id="menu-notes">
-                <a class="actionButton" @click="createNote">
-                  <i class="far fa-plus-square"></i>
-                </a>
-                <div
-                  v-for="note in notes"
-                  :key="note.uuid"
-                  @click="openNote(note)"
-                  style="cursor:pointer"
-                >{{ note.title || "[?]" }}</div>
-                <div v-if="!notes.length">No notes</div>
-              </div>
-            </div>
-            <!-- DM OPTIONS -->
-            <button class="menu-accordion" @click="openDmSettings">DM Options</button>
-            <div class="menu-accordion-panel">
-              <div class="menu-accordion-subpanel">
-                <label for="fakePlayerInput">Fake player:</label>
-                <input id="fakePlayerInput" type="checkbox" checked="checked" v-model="fakePlayer">
-                <label for="useFOWInput">Fill entire canvas with FOW:</label>
-                <input id="useFOWInput" type="checkbox" v-model="fullFOW">
-                <label for="fowOpacity">FOW opacity:</label>
-                <input
-                  id="fowOpacity"
-                  type="number"
-                  min="0"
-                  max="1"
-                  step="0.1"
-                  v-model.number="fowOpacity"
-                >
-                <label for="fowLOS">Only show lights in LoS:</label>
-                <input id="fowLOS" type="checkbox" v-model="fowLOS">
-                <label for="visionMode">Vision Mode:</label>
-                <select id="visionMode" @change="changeVisionMode">
-                  <option :selected="$store.state.game.visionMode === 'bvh'">BVH</option>
-                  <option :selected="$store.state.game.visionMode === 'triangle'">Triangle</option>
-                </select>
-                <label for="vmininp">Minimal full vision (ft):</label>
-                <input id="vmininp" type="number" min="0" v-model.lazy.number="visionRangeMin">
-                <label for="vmaxinp">Maximal vision (ft):</label>
-                <input id="vmaxinp" type="number" min="0" v-model.lazy.number="visionRangeMax">
-                <label for="invitation">Invitation Code:</label>
-                <input id="invitation" type="text" :value="invitationCode" readonly="readonly">
-              </div>
-            </div>
-          </template>
-          <!-- CLIENT OPTIONS -->
-          <button class="menu-accordion">Client Options</button>
-          <div class="menu-accordion-panel">
-            <div class="menu-accordion-subpanel">
-              <label for="gridColour">Grid Colour:</label>
-              <color-picker id="gridColour" :color.sync="gridColour"/>
-              <label for="fowColour">FOW Colour:</label>
-              <color-picker id="fowColour" :color.sync="fowColour"/>
-              <label for="rulerColour">Ruler Colour:</label>
-              <color-picker id="rulerColour" :color.sync="rulerColour"/>
-            </div>
-          </div>
-        </div>
-        <router-link
-          to="/dashboard"
-          class="menu-accordion"
-          style="text-decoration:none;display:inline-block;position:absolute;bottom:0;"
-        >Exit</router-link>
-      </div>
-    </transition>
-    <!-- LOCATIONS -->
-    <transition name="locations" @enter="$refs.rm.style.transition = 'top 500ms'">
-      <div id="locations-menu" v-if="IS_DM && visible.locations">
-        <div>
-          <div
-            v-for="location in locations"
-            :key="location"
-            @click="changeLocation(location)"
-          >{{ location }}</div>
-          <div @click="createLocation">
-            <i class="fas fa-plus"></i>
-          </div>
-        </div>
-      </div>
-    </transition>
-    <img id="dragImage">
-  </div>
 </template>
 
 
@@ -153,9 +132,8 @@ import NoteDialog from "@/game/ui/note.vue";
 import { getRef, uuidv4 } from "@/core/utils";
 import { socket } from "@/game/api/socket";
 import { Note } from "@/game/comm/types/general";
-import { layerManager } from "@/game/layers/manager";
 import { gameStore } from "@/game/store";
-import { EventBus } from '../../event-bus';
+import { EventBus } from "../../event-bus";
 
 @Component({
     components: {
@@ -163,7 +141,7 @@ import { EventBus } from '../../event-bus';
         "asset-node": AssetNode,
     },
     computed: {
-        ...mapState("game", ["invitationCode", "locations", "assets", "notes"]),
+        ...mapState("game", ["locations", "assets", "notes"]),
     },
 })
 export default class MenuBar extends Vue {
@@ -174,32 +152,6 @@ export default class MenuBar extends Vue {
 
     get IS_DM(): boolean {
         return gameStore.IS_DM || gameStore.FAKE_PLAYER;
-    }
-
-    get fakePlayer(): boolean {
-        return gameStore.FAKE_PLAYER;
-    }
-    set fakePlayer(value: boolean) {
-        gameStore.setFakePlayer(value);
-    }
-    get fullFOW(): boolean {
-        return gameStore.fullFOW;
-    }
-    set fullFOW(value: boolean) {
-        gameStore.setFullFOW({ fullFOW: value, sync: true });
-    }
-    get fowOpacity(): number {
-        return gameStore.fowOpacity;
-    }
-    set fowOpacity(value: number) {
-        if (typeof value !== "number") return;
-        gameStore.setFOWOpacity({ fowOpacity: value, sync: true });
-    }
-    get fowLOS(): boolean {
-        return gameStore.fowLOS;
-    }
-    set fowLOS(value: boolean) {
-        gameStore.setLineOfSight({ fowLOS: value, sync: true });
     }
     get gridColour(): string {
         return gameStore.gridColour;
@@ -218,20 +170,6 @@ export default class MenuBar extends Vue {
     }
     set rulerColour(value: string) {
         gameStore.setRulerColour({ colour: value, sync: true });
-    }
-    get visionRangeMin(): number {
-        return gameStore.visionRangeMin;
-    }
-    set visionRangeMin(value: number) {
-        if (typeof value !== "number") return;
-        gameStore.setVisionRangeMin({ value, sync: true });
-    }
-    get visionRangeMax(): number {
-        return gameStore.visionRangeMax;
-    }
-    set visionRangeMax(value: number) {
-        if (typeof value !== "number") return;
-        gameStore.setVisionRangeMax({ value, sync: true });
     }
     settingsClick(event: { target: HTMLElement }) {
         if (event.target.classList.contains("menu-accordion")) {
@@ -260,14 +198,6 @@ export default class MenuBar extends Vue {
     }
     openNote(note: Note) {
         getRef<NoteDialog>("note").open(note);
-    }
-    changeVisionMode(event: { target: HTMLSelectElement }) {
-        const value = event.target.value.toLowerCase();
-        if (value !== "bvh" && value !== "triangle") return;
-        gameStore.setVisionMode({ mode: value, sync: true });
-        gameStore.recalculateVision();
-        gameStore.recalculateMovement();
-        layerManager.invalidate();
     }
 
     openDmSettings() {

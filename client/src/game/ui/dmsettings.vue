@@ -15,27 +15,110 @@
         </div>
         <div class="modal-body">
             <div id="categories">
-                <div class="category" :class="{'selected': selection === c}" v-for="(category, c) in categories" :key="category" @click="selection = c">{{ category }}</div>
+                <div
+                    class="category"
+                    :class="{'selected': selection === c}"
+                    v-for="(category, c) in categories"
+                    :key="category"
+                    @click="selection = c"
+                >{{ category }}</div>
             </div>
             <div class="panel" v-show="selection === 0">
-                Admin panel
+                <div class="row">
+                    <label for="invitation">Invitation Code:</label>
+                    <div>
+                        <input
+                            id="invitation"
+                            type="text"
+                            :value="invitationCode"
+                            readonly="readonly"
+                        >
+                    </div>
+                </div>
             </div>
             <div class="panel" v-show="selection === 1">
-                <div class='row'>
+                <div class="row">
                     <label for="useGridInput">Use grid</label>
-                    <div><input id="useGridInput" type="checkbox" v-model="useGrid"></div>
+                    <div>
+                        <input id="useGridInput" type="checkbox" v-model="useGrid">
+                    </div>
                 </div>
-                <div class='row'>
-                    <label for="unitSizeInput">Unit Size (in ft.):</label>
-                    <div><input id="unitSizeInput" type="number" v-model.number="unitSize"></div>
-                </div>
-                <div class='row'>
+                <div class="row">
                     <label for="gridSizeInput">Grid Size (in pixels):</label>
-                    <div><input id="gridSizeInput" type="number" min="0" v-model.number="gridSize"></div>
+                    <div>
+                        <input id="gridSizeInput" type="number" min="0" v-model.number="gridSize">
+                    </div>
+                </div>
+                <div class="row">
+                    <label for="unitSizeInput">Unit Size (in ft.):</label>
+                    <div>
+                        <input id="unitSizeInput" type="number" v-model.number="unitSize">
+                    </div>
                 </div>
             </div>
             <div class="panel" v-show="selection === 2">
-                Vision panel
+                <div class="row">
+                    <label for="fakePlayerInput">Fake player:</label>
+                    <div>
+                        <input id="fakePlayerInput" type="checkbox" v-model="fakePlayer">
+                    </div>
+                </div>
+                <div class="row">
+                    <label for="useFOWInput">Fill entire canvas with FOW:</label>
+                    <div>
+                        <input id="useFOWInput" type="checkbox" v-model="fullFOW">
+                    </div>
+                </div>
+                <div class="row">
+                    <label for="fowOpacity">FOW opacity:</label>
+                    <div>
+                        <input
+                            id="fowOpacity"
+                            type="number"
+                            min="0"
+                            max="1"
+                            step="0.1"
+                            v-model.number="fowOpacity"
+                        >
+                    </div>
+                </div>
+                <div class="row">
+                    <label for="fowLOS">Only show lights in LoS:</label>
+                    <div>
+                        <input id="fowLOS" type="checkbox" v-model="fowLOS">
+                    </div>
+                </div>
+                <div class="row">
+                    <label for="visionMode">Vision Mode:</label>
+                    <div>
+                        <select id="visionMode" @change="changeVisionMode">
+                            <option :selected="$store.state.game.visionMode === 'bvh'">BVH</option>
+                            <option :selected="$store.state.game.visionMode === 'triangle'">Triangle</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="row">
+                    <label for="vmininp">Minimal full vision (ft):</label>
+                    <div>
+                        <input
+                            id="vmininp"
+                            type="number"
+                            min="0"
+                            v-model.lazy.number="visionRangeMin"
+                        >
+                    </div>
+                </div>
+                <div class="row">
+                    <label for="vmaxinp">Maximal vision (ft):</label>
+                    <div>
+                        <input
+                            id="vmaxinp"
+                            type="number"
+                            min="0"
+                            v-model.lazy.number="visionRangeMax"
+                        >
+                    </div>
+                </div>
             </div>
         </div>
     </Modal>
@@ -51,16 +134,21 @@ import { uuidv4 } from "@/core/utils";
 import { socket } from "@/game/api/socket";
 import { EventBus } from "@/game/event-bus";
 import { gameStore } from "@/game/store";
+import { layerManager } from "../layers/manager";
+import { mapState } from "vuex";
 
 @Component({
     components: {
         Modal,
     },
+    computed: {
+        ...mapState("game", ["invitationCode"]),
+    },
 })
 export default class DmSettings extends Vue {
     visible = true;
-    categories = ["Admin", "Grid", "Vision"]
-    selection = 0
+    categories = ["Admin", "Grid", "Vision"];
+    selection = 0;
 
     mounted() {
         EventBus.$on("DmSettings.Open", () => {
@@ -72,6 +160,7 @@ export default class DmSettings extends Vue {
         EventBus.$off("DmSettings.Open");
     }
 
+    // Grid
     get useGrid(): boolean {
         return gameStore.useGrid;
     }
@@ -92,6 +181,54 @@ export default class DmSettings extends Vue {
         if (typeof value !== "number") return;
         gameStore.setGridSize({ gridSize: value, sync: true });
     }
+    // Vision
+    get fakePlayer(): boolean {
+        return gameStore.FAKE_PLAYER;
+    }
+    set fakePlayer(value: boolean) {
+        gameStore.setFakePlayer(value);
+    }
+    get fullFOW(): boolean {
+        return gameStore.fullFOW;
+    }
+    set fullFOW(value: boolean) {
+        gameStore.setFullFOW({ fullFOW: value, sync: true });
+    }
+    get fowOpacity(): number {
+        return gameStore.fowOpacity;
+    }
+    set fowOpacity(value: number) {
+        if (typeof value !== "number") return;
+        gameStore.setFOWOpacity({ fowOpacity: value, sync: true });
+    }
+    get fowLOS(): boolean {
+        return gameStore.fowLOS;
+    }
+    set fowLOS(value: boolean) {
+        gameStore.setLineOfSight({ fowLOS: value, sync: true });
+    }
+    get visionRangeMin(): number {
+        return gameStore.visionRangeMin;
+    }
+    set visionRangeMin(value: number) {
+        if (typeof value !== "number") return;
+        gameStore.setVisionRangeMin({ value, sync: true });
+    }
+    get visionRangeMax(): number {
+        return gameStore.visionRangeMax;
+    }
+    set visionRangeMax(value: number) {
+        if (typeof value !== "number") return;
+        gameStore.setVisionRangeMax({ value, sync: true });
+    }
+    changeVisionMode(event: { target: HTMLSelectElement }) {
+        const value = event.target.value.toLowerCase();
+        if (value !== "bvh" && value !== "triangle") return;
+        gameStore.setVisionMode({ mode: value, sync: true });
+        gameStore.recalculateVision();
+        gameStore.recalculateMovement();
+        layerManager.invalidate();
+    }
 }
 </script>
 
@@ -111,7 +248,6 @@ export default class DmSettings extends Vue {
 }
 
 .modal-body {
-    max-width: 450px;
     display: flex;
     flex-direction: row;
 }
@@ -130,7 +266,8 @@ export default class DmSettings extends Vue {
     padding-right: 10px;
 }
 
-.selected, .category:hover {
+.selected,
+.category:hover {
     background-color: #82c8a0;
     font-weight: bold;
     cursor: pointer;
@@ -144,7 +281,7 @@ export default class DmSettings extends Vue {
     grid-template-columns: [setting] 1fr [value] 1fr [end];
     /* align-items: center; */
     /* align-content: start; */
-    min-height:10em;
+    min-height: 10em;
 }
 
 .row > * {
@@ -165,12 +302,13 @@ export default class DmSettings extends Vue {
 input[type="checkbox"] {
     width: 16px;
     height: 23px;
-    margin: 0 8px;
+    margin: 0;
     white-space: nowrap;
     display: inline-block;
 }
 
-input[type="number"] {
+input[type="number"],
+input[type="text"] {
     width: 100%;
 }
 
@@ -178,7 +316,7 @@ input[type="number"] {
     display: contents;
 }
 
-.row:hover *{
+.row:hover * {
     border-top: solid 1px #82c8a0;
     border-bottom: solid 1px #82c8a0;
     cursor: pointer;
@@ -195,5 +333,4 @@ input[type="number"] {
     border-bottom-right-radius: 15px;
     border-right: solid 1px #82c8a0;
 }
-
 </style>

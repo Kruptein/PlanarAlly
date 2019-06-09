@@ -263,6 +263,10 @@ export default class DmSettings extends Vue {
     flex-direction: row;
 }
 
+* {
+    box-sizing: border-box;
+}
+
 #categories {
     width: 7.5em;
     background-color: lightgoldenrodyellow;
@@ -341,21 +345,8 @@ input[type="text"] {
 }
 
 .row:hover > * {
-    border-top: solid 1px #82c8a0;
-    border-bottom: solid 1px #82c8a0;
     cursor: pointer;
-}
-
-.row:hover > *:first-child {
-    border-top-left-radius: 15px;
-    border-bottom-left-radius: 15px;
-    border-left: solid 1px #82c8a0;
-}
-
-.row:hover > *:last-child {
-    border-top-right-radius: 15px;
-    border-bottom-right-radius: 15px;
-    border-right: solid 1px #82c8a0;
+    text-shadow: 0px 0px 1px black;
 }
 
 .header {

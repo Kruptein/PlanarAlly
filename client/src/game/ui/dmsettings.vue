@@ -13,7 +13,7 @@
                 <i class="far fa-window-close"></i>
             </div>
         </div>
-        <div class="modal-body">
+        <div class="modal-body" @click="handleClick">
             <div id="categories">
                 <div
                     class="category"
@@ -24,6 +24,11 @@
                 >{{ category }}</div>
             </div>
             <div class="panel" v-show="selection === 0">
+                <!-- <div class="header">List of players</div> -->
+                <div class="admin-player" style="grid-column-start: setting">darragh</div>
+                <div class="admin-player">Kick</div>
+                <div class="admin-player" style="grid-column-start: setting">test</div>
+                <div class="admin-player">Kick</div>
                 <div class="row">
                     <label for="invitation">Invitation Code:</label>
                     <div>
@@ -70,19 +75,6 @@
                     </div>
                 </div>
                 <div class="row">
-                    <label for="fowOpacity">FOW opacity:</label>
-                    <div>
-                        <input
-                            id="fowOpacity"
-                            type="number"
-                            min="0"
-                            max="1"
-                            step="0.1"
-                            v-model.number="fowOpacity"
-                        >
-                    </div>
-                </div>
-                <div class="row">
                     <label for="fowLOS">Only show lights in LoS:</label>
                     <div>
                         <input id="fowLOS" type="checkbox" v-model="fowLOS">
@@ -95,6 +87,19 @@
                             <option :selected="$store.state.game.visionMode === 'bvh'">BVH</option>
                             <option :selected="$store.state.game.visionMode === 'triangle'">Triangle</option>
                         </select>
+                    </div>
+                </div>
+                <div class="row">
+                    <label for="fowOpacity">FOW opacity:</label>
+                    <div>
+                        <input
+                            id="fowOpacity"
+                            type="number"
+                            min="0"
+                            max="1"
+                            step="0.1"
+                            v-model.number="fowOpacity"
+                        >
                     </div>
                 </div>
                 <div class="row">
@@ -229,6 +234,12 @@ export default class DmSettings extends Vue {
         gameStore.recalculateMovement();
         layerManager.invalidate();
     }
+    handleClick(event: { target: HTMLElement }) {
+        const child = event.target.firstElementChild;
+        if (child instanceof HTMLInputElement) {
+            child.click();
+        }
+    }
 }
 </script>
 
@@ -280,11 +291,12 @@ export default class DmSettings extends Vue {
     display: grid;
     grid-template-columns: [setting] 1fr [value] 1fr [end];
     /* align-items: center; */
-    /* align-content: start; */
+    align-content: start;
     min-height: 10em;
 }
 
-.row > * {
+.row > *,
+.panel > *:not(.row) {
     display: flex;
     /* justify-content: center; */
     align-items: center;
@@ -312,11 +324,23 @@ input[type="text"] {
     width: 100%;
 }
 
+.admin-player:first-of-type,
+.admin-player:nth-of-type(2) {
+    margin-top: 0.5em;
+    padding-top: 1em;
+}
+
+.admin-player {
+    height: 5px;
+    padding-bottom: 0;
+    padding-left: 1em;
+}
+
 .row {
     display: contents;
 }
 
-.row:hover * {
+.row:hover > * {
     border-top: solid 1px #82c8a0;
     border-bottom: solid 1px #82c8a0;
     cursor: pointer;
@@ -332,5 +356,17 @@ input[type="text"] {
     border-top-right-radius: 15px;
     border-bottom-right-radius: 15px;
     border-right: solid 1px #82c8a0;
+}
+
+.header {
+    line-height: 0.1em;
+    margin: 20px 0 15px;
+}
+.header:after {
+    position: absolute;
+    right: 5px;
+    width: 75%;
+    border-bottom: 1px solid #000;
+    content: "";
 }
 </style>

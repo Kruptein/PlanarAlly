@@ -418,6 +418,11 @@ class GameStore extends VuexModule implements GameState {
         this.players.push(player);
     }
 
+    @Mutation
+    kickPlayer(playerId: number) {
+        this.players = this.players.filter(p => p.id !== playerId);
+    }
+
     @Action
     clear() {
         (<any>this.context.state).visionSources = [];

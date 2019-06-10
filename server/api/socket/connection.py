@@ -13,7 +13,6 @@ async def connect(sid, environ):
     if user is None:
         await sio.emit("redirect", "/", room=sid, namespace="/planarally")
     else:
-        # ref = unquote(environ["HTTP_REFERER"]).strip("/").split("/")
         ref = {
             k.split("=")[0]: k.split("=")[1]
             for k in unquote(environ["QUERY_STRING"]).strip().split("&")
@@ -54,6 +53,7 @@ async def connect(sid, environ):
                 "name": room.name,
                 "creator": room.creator.name,
                 "invitationCode": str(room.invitation_code),
+                "players": {rp.player.id: rp.player.name for rp in room.players }
             },
             room=sid,
             namespace="/planarally",

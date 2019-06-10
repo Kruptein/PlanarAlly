@@ -1,5 +1,5 @@
 <template>
-    <Modal :visible="visible" @close="visible = false" :mask="false">
+    <Modal :visible="visible" :colour="'rgba(255, 255, 255, 0.8)'" @close="visible = false" :mask="false">
         <div
             class="modal-header"
             slot="header"
@@ -24,21 +24,34 @@
                 >{{ category }}</div>
             </div>
             <div class="panel" v-show="selection === 0">
-                <!-- <div class="header">List of players</div> -->
-                <div class="admin-player" style="grid-column-start: setting">darragh</div>
-                <div class="admin-player">Kick</div>
-                <div class="admin-player" style="grid-column-start: setting">test</div>
-                <div class="admin-player">Kick</div>
-                <div class="row">
-                    <label for="invitation">Invitation Code:</label>
+                <div class="spanrow header">Players</div>
+                <div class="row smallrow" v-for="player in $store.state.game.players" :key="player.id">
+                    <div>{{ player.name }}</div>
                     <div>
-                        <input
-                            id="invitation"
-                            type="text"
-                            :value="invitationCode"
-                            readonly="readonly"
-                        >
+                        <div @click="kickPlayer(player.id)">Kick</div>
                     </div>
+                </div>
+                <div class="row smallrow" v-if="Object.values($store.state.game.players).length === 0">
+                    <div class='spanrow'>There are no players yet, invite some using the link below!</div>
+                </div>
+                <div class="spanrow header">Invite code</div>
+                <div class="row">
+                    <div>Invitation URL:</div>
+                    <template v-if="showRefreshState">
+                        <InputCopyElement :value=refreshState />
+                    </template>
+                    <template v-else>
+                        <InputCopyElement :value=invitationUrl />
+                    </template>
+                </div>
+                <div class="row" @click="refreshInviteCode">
+                    <div></div>
+                    <div id="refresh-invite-code">Refresh invitation code</div>
+                </div>
+                <div class="spanrow header">Danger Zone</div>
+                <div class="row">
+                    <div>Remove Session</div>
+                    <div><button class="danger" @click="deleteSession">Delete this Session</button></div>
                 </div>
             </div>
             <div class="panel" v-show="selection === 1">
@@ -81,15 +94,6 @@
                     </div>
                 </div>
                 <div class="row">
-                    <label for="visionMode">Vision Mode:</label>
-                    <div>
-                        <select id="visionMode" @change="changeVisionMode">
-                            <option :selected="$store.state.game.visionMode === 'bvh'">BVH</option>
-                            <option :selected="$store.state.game.visionMode === 'triangle'">Triangle</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="row">
                     <label for="fowOpacity">FOW opacity:</label>
                     <div>
                         <input
@@ -100,6 +104,16 @@
                             step="0.1"
                             v-model.number="fowOpacity"
                         >
+                    </div>
+                </div>
+                <div class="spanrow header">Advanced</div>
+                <div class="row">
+                    <label for="visionMode">Vision Mode:</label>
+                    <div>
+                        <select id="visionMode" @change="changeVisionMode">
+                            <option :selected="$store.state.game.visionMode === 'bvh'">BVH</option>
+                            <option :selected="$store.state.game.visionMode === 'triangle'">Triangle</option>
+                        </select>
                     </div>
                 </div>
                 <div class="row">
@@ -133,17 +147,21 @@
 import Vue from "vue";
 import Component from "vue-class-component";
 
-import Modal from "@/core/components/modals/modal.vue";
+import { mapState } from "vuex";
 
-import { uuidv4 } from "@/core/utils";
+import InputCopyElement from "@/core/components/inputCopy.vue";
+import Modal from "@/core/components/modals/modal.vue";
+import Prompt from '../../core/components/modals/prompt.vue';
+
+import { getRef, uuidv4 } from "@/core/utils";
 import { socket } from "@/game/api/socket";
 import { EventBus } from "@/game/event-bus";
 import { gameStore } from "@/game/store";
 import { layerManager } from "../layers/manager";
-import { mapState } from "vuex";
 
 @Component({
     components: {
+        InputCopyElement,
         Modal,
     },
     computed: {
@@ -155,16 +173,27 @@ export default class DmSettings extends Vue {
     categories = ["Admin", "Grid", "Vision"];
     selection = 0;
 
+    showRefreshState = false;
+    refreshState = "pending";
+
     mounted() {
         EventBus.$on("DmSettings.Open", () => {
             this.visible = true;
+        });
+        EventBus.$on("DmSettings.RefreshedInviteCode", () => {
+            this.showRefreshState = false;
         });
     }
 
     beforeDestroy() {
         EventBus.$off("DmSettings.Open");
+        EventBus.$off("DmSettings.RefreshedInviteCode");
     }
 
+    // Admin
+    get invitationUrl(): string {
+        return window.location.protocol + '//' + window.location.host + '/invite/' + gameStore.invitationCode;
+    }
     // Grid
     get useGrid(): boolean {
         return gameStore.useGrid;
@@ -240,6 +269,27 @@ export default class DmSettings extends Vue {
             child.click();
         }
     }
+    refreshInviteCode() {
+        socket.emit("Room.Info.InviteCode.Refresh");
+        this.refreshState = "pending";
+        this.showRefreshState = true;
+    }
+    kickPlayer(id: number) {
+        socket.emit("Room.Info.Players.Kick", id);
+        gameStore.kickPlayer(id);
+    }
+    deleteSession() {
+        getRef<Prompt>("prompt")
+            .prompt(`ENTER ${gameStore.roomCreator}/${gameStore.roomName} TO CONFIRM SESSION REMOVAL.`, `DELETING SESSION`)
+            .then(
+                (value: string) => {
+                    if (value !== `${gameStore.roomCreator}/${gameStore.roomName}`) return;
+                    socket.emit("Room.Delete");
+                    this.$router.push("/");
+                },
+                () => {},
+            );
+    }
 }
 </script>
 
@@ -269,7 +319,7 @@ export default class DmSettings extends Vue {
 
 #categories {
     width: 7.5em;
-    background-color: lightgoldenrodyellow;
+    background-color: rgba(0, 0, 0, 0);
     border-right: solid 1px #82c8a0;
 }
 
@@ -290,6 +340,7 @@ export default class DmSettings extends Vue {
 }
 
 .panel {
+    background-color: white;
     padding-left: 1em;
     padding-right: 1em;
     display: grid;
@@ -297,6 +348,10 @@ export default class DmSettings extends Vue {
     /* align-items: center; */
     align-content: start;
     min-height: 10em;
+}
+
+.row {
+    display: contents;
 }
 
 .row > *,
@@ -315,6 +370,45 @@ export default class DmSettings extends Vue {
     margin-bottom: 0.5em;
 }
 
+.row:hover > * {
+    cursor: pointer;
+    text-shadow: 0px 0px 1px black;
+}
+
+.smallrow > * {
+    padding: 0.2em;
+}
+
+.header {
+    line-height: 0.1em;
+    margin: 20px 0 15px;
+    font-style: italic;
+}
+.header:after {
+    position: absolute;
+    right: 5px;
+    width: 50%;
+    border-bottom: 1px solid #000;
+    content: "";
+}
+
+.spanrow {
+    grid-column: 1 / end;
+}
+
+#refresh-invite-code {
+    font-style: italic;
+}
+
+.danger {
+    color: #ff7052;
+}
+
+.danger:hover {
+    text-shadow: 0px 0px 1px #ff7052;
+    cursor: pointer;
+}
+
 input[type="checkbox"] {
     width: 16px;
     height: 23px;
@@ -327,37 +421,10 @@ input[type="number"],
 input[type="text"] {
     width: 100%;
 }
-
-.admin-player:first-of-type,
-.admin-player:nth-of-type(2) {
-    margin-top: 0.5em;
-    padding-top: 1em;
-}
-
-.admin-player {
-    height: 5px;
-    padding-bottom: 0;
-    padding-left: 1em;
-}
-
-.row {
-    display: contents;
-}
-
-.row:hover > * {
-    cursor: pointer;
-    text-shadow: 0px 0px 1px black;
-}
-
-.header {
-    line-height: 0.1em;
-    margin: 20px 0 15px;
-}
-.header:after {
-    position: absolute;
-    right: 5px;
-    width: 75%;
-    border-bottom: 1px solid #000;
-    content: "";
+button {
+    padding: 6px 12px;
+    border: 1px solid lightgray;
+    border-radius: 0.25em;
+    background-color: rgb(235, 235, 228);
 }
 </style>

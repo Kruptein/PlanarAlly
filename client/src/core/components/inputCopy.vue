@@ -1,6 +1,6 @@
 <template>
   <div id="input-copy" @mouseleave="showPopup=false">
-    <input type="text" disabled="disabled" :value="value" style="width: 100%;">
+    <input type="text" disabled="disabled" :value="value" id="input-element">
     <div v-show="showPopup" id="show-popup">{{ popupString }}</div>
     <div id="copy-button" @click="copy">
       <i class="far fa-copy"></i>
@@ -42,8 +42,8 @@ export default class InputCopyElement extends Vue {
 <style scoped>
 #input-copy {
     background-color: lightgray;
-    border: solid 2px lightgray;
-    border-radius: 10px;
+    border: solid 1px lightgray;
+    border-radius: 5px;
     padding: 0;
     position: relative;
 }
@@ -56,6 +56,10 @@ export default class InputCopyElement extends Vue {
 }
 #copy-button {
     padding-left: 0.5em;
+}
+#input-element {
+    width: 100%;
+    margin: 0.1em;
 }
 #input-copy:hover {
     border-color: #ff7052;

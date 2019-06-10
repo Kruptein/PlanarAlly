@@ -16,7 +16,7 @@ import { Prop } from "vue-property-decorator";
 
 @Component
 export default class InputCopyElement extends Vue {
-    @Prop() value!: String;
+    @Prop() value!: string;
 
     borderColour = "lightgray";
     popupString = "";

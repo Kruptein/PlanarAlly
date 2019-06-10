@@ -25,6 +25,9 @@ async def connect(sid, environ):
             )
         except IndexError:
             return False
+        else:
+            if user != room.creator and user not in [pr.player for pr in room.players]:
+                return False
 
         if room.creator == user:
             location = Location.get(room=room, name=room.dm_location)

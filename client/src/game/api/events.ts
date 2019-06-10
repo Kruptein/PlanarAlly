@@ -34,6 +34,10 @@ socket.on("Room.Info.Set", (data: { name: string; creator: string; invitationCod
     gameStore.setRoomCreator(data.creator);
     gameStore.setInvitationCode(data.invitationCode);
 });
+socket.on("Room.Info.InvitationCode.Set", (invitationCode: string) => {
+    gameStore.setInvitationCode(invitationCode);
+    EventBus.$emit("DmSettings.RefreshedInviteCode");
+});
 socket.on("Username.Set", (username: string) => {
     gameStore.setUsername(username);
     gameStore.setDM(username === window.location.pathname.split("/")[2]);

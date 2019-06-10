@@ -34,7 +34,7 @@
                 <div class="row smallrow" v-if="Object.values($store.state.game.players).length === 0">
                     <div class='spanrow'>There are no players yet, invite some using the link below!</div>
                 </div>
-                <div class="spanrow header">Invite code</div>
+                <div class="spanrow header">Invite&nbsp;code</div>
                 <div class="row">
                     <div>Invitation URL:</div>
                     <template v-if="showRefreshState">
@@ -48,7 +48,7 @@
                     <div></div>
                     <div id="refresh-invite-code">Refresh invitation code</div>
                 </div>
-                <div class="spanrow header">Danger Zone</div>
+                <div class="spanrow header">Danger&nbsp;Zone</div>
                 <div class="row">
                     <div>Remove Session</div>
                     <div><button class="danger" @click="deleteSession">Delete this Session</button></div>
@@ -75,6 +75,7 @@
                 </div>
             </div>
             <div class="panel" v-show="selection === 2">
+                <div class="spanrow header">Core</div>
                 <div class="row">
                     <label for="fakePlayerInput">Fake player:</label>
                     <div>
@@ -385,9 +386,9 @@ export default class DmSettings extends Vue {
     font-style: italic;
 }
 .header:after {
-    position: absolute;
-    right: 5px;
-    width: 50%;
+    position: relative;
+    left: 5px;
+    width: 100%;
     border-bottom: 1px solid #000;
     content: "";
 }

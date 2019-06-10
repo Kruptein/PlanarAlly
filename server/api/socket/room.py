@@ -44,3 +44,18 @@ async def kick_player(sid, playerId):
         print(room.get_active_location(dm=False))
         print(state.sid_map)
         pr.delete_instance(True)
+
+
+@sio.on("Room.Delete", namespace="/planarally")
+@auth.login_required(app, sio)
+async def delete_session(sid):
+    sid_data = state.sid_map[sid]
+    user = sid_data["user"]
+    room = sid_data["room"]
+
+    if room.creator != user:
+        logger.warning(f"{user.name} attempted to REMOVE A SESSION.")
+        return
+
+    
+    room.delete_instance(True)

@@ -1,6 +1,6 @@
 <template>
   <div id="input-copy" @mouseleave="showPopup=false">
-    <input type="text" disabled="disabled" :value="value">
+    <input type="text" disabled="disabled" :value="value" style="width: 100%;">
     <div v-show="showPopup" id="show-popup">{{ popupString }}</div>
     <div id="copy-button" @click="copy">
       <i class="far fa-copy"></i>

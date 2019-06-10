@@ -53,7 +53,7 @@ async def connect(sid, environ):
                 "name": room.name,
                 "creator": room.creator.name,
                 "invitationCode": str(room.invitation_code),
-                "players": {rp.player.id: rp.player.name for rp in room.players }
+                "players": [{'id': rp.player.id, 'name': rp.player.name} for rp in room.players]
             },
             room=sid,
             namespace="/planarally",

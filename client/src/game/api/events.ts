@@ -29,14 +29,18 @@ socket.on("redirect", (destination: string) => {
     console.log("redirecting");
     router.push(destination);
 });
-socket.on("Room.Info.Set", (data: { name: string; creator: string; invitationCode: string }) => {
+socket.on("Room.Info.Set", (data: { name: string; creator: string; invitationCode: string, players: { id: number; name: string }[] }) => {
     gameStore.setRoomName(data.name);
     gameStore.setRoomCreator(data.creator);
     gameStore.setInvitationCode(data.invitationCode);
+    gameStore.setPlayers(data.players);
 });
 socket.on("Room.Info.InvitationCode.Set", (invitationCode: string) => {
     gameStore.setInvitationCode(invitationCode);
     EventBus.$emit("DmSettings.RefreshedInviteCode");
+});
+socket.on("Room.Info.Players.Add", (data: {id: number, name: string}) => {
+    gameStore.addPlayer(data);
 });
 socket.on("Username.Set", (username: string) => {
     gameStore.setUsername(username);

@@ -180,6 +180,7 @@ class Layer(BaseModel):
 
 class GridLayer(BaseModel):
     size = FloatField(default=50)
+    layer = ForeignKeyField(Layer, on_delete="CASCADE")
 
 
 class LocationUserOption(BaseModel):

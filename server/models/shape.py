@@ -48,7 +48,10 @@ class Shape(BaseModel):
         return f"<Shape {self.get_path()}>"
 
     def get_path(self):
-        return f"{self.name}@{self.layer.get_path()}"
+        try:
+            return f"{self.name}@{self.layer.get_path()}"
+        except:
+            return self.name
 
     def as_dict(self, user: User, dm: bool):
         data = model_to_dict(self, recurse=False, exclude=[Shape.layer, Shape.index])
@@ -130,8 +133,7 @@ class ShapeOwner(BaseModel):
 
 
 class ShapeType(BaseModel):
-    abstract = True
-    uuid = TextField(primary_key=True)
+    uuid = ForeignKeyField(Shape, name= primary_key=True, on_delete="CASCADE")
 
     def as_dict(self, *args, **kwargs):
         return model_to_dict(self, *args, **kwargs)
@@ -141,36 +143,30 @@ class ShapeType(BaseModel):
 
 
 class BaseRect(ShapeType):
-    abstract = True
     width = FloatField()
     height = FloatField()
 
 
 class AssetRect(BaseRect):
-    abstract = False
     src = TextField()
 
 
 class Circle(ShapeType):
-    abstract = False
     radius = FloatField()
 
 
 class CircularToken(Circle):
-    abstract = False
     text = TextField()
     font = TextField()
 
 
 class Line(ShapeType):
-    abstract = False
     x2 = FloatField()
     y2 = FloatField()
     line_width = IntegerField()
 
 
 class MultiLine(ShapeType):
-    abstract = False
     line_width = IntegerField()
     points = TextField()
 
@@ -186,7 +182,6 @@ class MultiLine(ShapeType):
 
 
 class Polygon(ShapeType):
-    abstract = False
     vertices = TextField()
 
     def as_dict(self, *args, **kwargs):

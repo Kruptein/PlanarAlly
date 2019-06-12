@@ -17,7 +17,7 @@ def on_layer_save(model_class, instance, created):
     if not created:
         return
     if instance.type_ == "grid":
-        GridLayer.create(id=instance.id)
+        GridLayer.create(id=instance.id, layer=instance)
 
 
 @pre_delete(sender=Layer)
@@ -76,7 +76,7 @@ def on_player_leave(model_class, instance):
             ).delete_instance()
 
 
-@pre_delete(sender=Shape)
-def on_shape_delete(model_class, instance):
-    logger.warning("DELETING SHAPE ")
-    logger.warning(instance)
+#@pre_delete(sender=Shape)
+#def on_shape_delete(model_class, instance):
+#    logger.warning("DELETING SHAPE ")
+#    logger.warning(instance)

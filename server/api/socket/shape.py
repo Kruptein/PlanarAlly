@@ -47,7 +47,7 @@ async def add_shape(sid, data):
             shape = Shape.create(**reduce_data_to_model(Shape, data["shape"]))
             # Subshape
             type_table = get_table(shape.type_)
-            type_table.create(**reduce_data_to_model(type_table, data["shape"]))
+            type_table.create(shape=shape.uuid, **reduce_data_to_model(type_table, data["shape"]))
             # Owners
             ShapeOwner.create(shape=shape, user=user)
             # Trackers

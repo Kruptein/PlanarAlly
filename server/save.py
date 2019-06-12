@@ -12,7 +12,7 @@ from config import SAVE_FILE
 from models import ALL_MODELS, Constants
 from models.db import db
 
-SAVE_VERSION = 14
+SAVE_VERSION = 15
 logger: logging.Logger = logging.getLogger("PlanarAllyServer")
 logger.setLevel(logging.INFO)
 
@@ -150,6 +150,52 @@ def upgrade(version):
         
         migrate(migrator.drop_column("location_user_option", "active_filters"))
         
+        db.foreign_keys = True
+        Constants.update(save_version=Constants.save_version + 1).execute()
+    elif version == 14:
+        db.foreign_keys = False
+        migrator = SqliteMigrator(db)
+
+        from models import Shape
+
+        # field = ForeignKeyField(Shape, Shape.id, null=True)
+        # migrate(migrator.add_column("asset_rect", "shape_id", field))
+        # migrate(migrator.add_column("circle", "shape_id", field))
+        # migrate(migrator.add_column("circular_token", "shape_id", field))
+        # migrate(migrator.add_column("line", "shape_id", field))
+        # migrate(migrator.add_column("multi_line", "shape_id", field))
+        # migrate(migrator.add_column("polygon", "shape_id", field))
+        # migrate(migrator.add_column("rect", "shape_id", field))
+        # migrate(migrator.add_column("text", "shape_id", field))
+
+        from models import GridLayer, Layer
+        from models.shape import ShapeType, BaseRect, AssetRect, Circle, CircularToken, Line, MultiLine, Polygon, Rect, Text
+        # from models.utils import get_table
+
+        db.create_tables([ShapeType, BaseRect])
+        for table in [AssetRect, Circle, CircularToken, Line, MultiLine, Polygon, Rect, Text]:
+            with db.atomic():
+                migrate(migrator.rename_column(table._meta.table_name, "uuid", "uuid_id"))
+                for subshape in table.select():
+                    try:
+                        x = subshape.uuid
+                    except:
+                        db.execute_sql(f"DELETE FROM {subshape._meta.table_name} WHERE UUID_ID={subshape.uuid}")
+                #     sh = Shape.get_or_none(uuid=subshape.uuid)
+                #     if sh is None:
+                #         subshape.delete_instance()
+        field = ForeignKeyField(Layer, Layer.id, null=True)
+        with db.atomic():
+            migrate(migrator.add_column("grid_layer", "layer_id", field))
+            for gl in GridLayer.select():
+                l = Layer.get_or_none(id=gl.id)
+                if l:
+                    gl.layer = l
+                    gl.save()
+                else:
+                    gl.delete_instance()
+            migrate(migrator.add_not_null("grid_layer", "layer_id"))
+
         db.foreign_keys = True
         Constants.update(save_version=Constants.save_version + 1).execute()
     else:

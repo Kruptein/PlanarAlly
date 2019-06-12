@@ -9,4 +9,4 @@ from .shape import *
 from .signals import *
 from .user import *
 
-ALL_MODELS = [model for model in all_subclasses(_BaseModel) if not model.abstract]
+ALL_MODELS = [model for model in all_subclasses(_BaseModel)]

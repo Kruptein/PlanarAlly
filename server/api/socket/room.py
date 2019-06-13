@@ -41,8 +41,6 @@ async def kick_player(sid, playerId):
     if pr:
         for psid in state.get_sids(user=pr.player, room=room):
             await sio.disconnect(psid, namespace="/planarally")
-        print(room.get_active_location(dm=False))
-        print(state.sid_map)
         pr.delete_instance(True)
 
 

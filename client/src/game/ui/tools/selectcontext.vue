@@ -35,7 +35,7 @@ export default class SelectContext extends Vue {
         this.visible = true;
         this.x = event.pageX;
         this.y = event.pageY;
-        this.$nextTick(() => this.$children[0].$el.focus());
+        this.$nextTick(() => (<HTMLElement>this.$children[0].$el).focus());
     }
     close() {
         this.visible = false;

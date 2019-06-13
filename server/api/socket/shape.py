@@ -47,7 +47,7 @@ async def add_shape(sid, data):
             shape = Shape.create(**reduce_data_to_model(Shape, data["shape"]))
             # Subshape
             type_table = get_table(shape.type_)
-            type_table.create(shape=shape.uuid, **reduce_data_to_model(type_table, data["shape"]))
+            type_table.create(shape=shape, **reduce_data_to_model(type_table, data["shape"]))
             # Owners
             ShapeOwner.create(shape=shape, user=user)
             # Trackers
@@ -101,8 +101,7 @@ async def update_shape_position(sid, data):
             shape.save()
             if shape.type_ in ["polygon", "multiline"]:
                 # Subshape
-                type_table = get_table(shape.type_)
-                type_instance = type_table.get(uuid=shape.uuid)
+                type_instance = shape.subtype
                 # no backrefs on these tables
                 type_instance.update_from_dict(data["shape"], ignore_unknown=True)
                 type_instance.save()
@@ -133,8 +132,7 @@ async def update_shape(sid, data):
             update_model_from_dict(shape, reduce_data_to_model(Shape, data["shape"]))
             shape.save()
             # Subshape
-            type_table = get_table(shape.type_)
-            type_instance = type_table.get(uuid=shape.uuid)
+            type_instance = shape.subtype
             # no backrefs on these tables
             type_instance.update_from_dict(data["shape"], ignore_unknown=True)
             type_instance.save()

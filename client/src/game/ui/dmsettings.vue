@@ -170,7 +170,7 @@ import { layerManager } from "../layers/manager";
     },
 })
 export default class DmSettings extends Vue {
-    visible = true;
+    visible = false;
     categories = ["Admin", "Grid", "Vision"];
     selection = 0;
 

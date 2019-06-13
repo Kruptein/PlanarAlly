@@ -118,12 +118,18 @@ def upgrade(version):
         migrator = SqliteMigrator(db)
         with db.atomic():
             db.create_tables([Label, ShapeLabel])
-            migrate(migrator.add_column("location_user_option", "active_filters", LocationUserOption.active_filters))
+            migrate(
+                migrator.add_column(
+                    "location_user_option",
+                    "active_filters",
+                    LocationUserOption.active_filters,
+                )
+            )
         db.foreign_keys = True
         Constants.update(save_version=Constants.save_version + 1).execute()
     elif version == 12:
         from models import Label, LabelSelection
-        
+
         db.foreign_keys = False
         migrator = SqliteMigrator(db)
         with db.atomic():
@@ -135,55 +141,61 @@ def upgrade(version):
             db.create_tables([LabelSelection])
         with db.atomic():
             for label in Label:
-                if ":" not in label.name: continue
+                if ":" not in label.name:
+                    continue
                 cat, *name = label.name.split(":")
                 label.category = cat
-                label.name = ':'.join(name)
+                label.name = ":".join(name)
                 label.save()
         db.foreign_keys = True
         Constants.update(save_version=Constants.save_version + 1).execute()
     elif version == 13:
         from models import LocationUserOption, MultiLine, Polygon
-        
+
         db.foreign_keys = False
         migrator = SqliteMigrator(db)
-        
+
         migrate(migrator.drop_column("location_user_option", "active_filters"))
-        
+
         db.foreign_keys = True
         Constants.update(save_version=Constants.save_version + 1).execute()
     elif version == 14:
         db.foreign_keys = False
         migrator = SqliteMigrator(db)
 
-        from models import Shape
-
-        # field = ForeignKeyField(Shape, Shape.id, null=True)
-        # migrate(migrator.add_column("asset_rect", "shape_id", field))
-        # migrate(migrator.add_column("circle", "shape_id", field))
-        # migrate(migrator.add_column("circular_token", "shape_id", field))
-        # migrate(migrator.add_column("line", "shape_id", field))
-        # migrate(migrator.add_column("multi_line", "shape_id", field))
-        # migrate(migrator.add_column("polygon", "shape_id", field))
-        # migrate(migrator.add_column("rect", "shape_id", field))
-        # migrate(migrator.add_column("text", "shape_id", field))
-
         from models import GridLayer, Layer
-        from models.shape import ShapeType, BaseRect, AssetRect, Circle, CircularToken, Line, MultiLine, Polygon, Rect, Text
-        # from models.utils import get_table
 
-        db.create_tables([ShapeType, BaseRect])
-        for table in [AssetRect, Circle, CircularToken, Line, MultiLine, Polygon, Rect, Text]:
-            with db.atomic():
-                migrate(migrator.rename_column(table._meta.table_name, "uuid", "uuid_id"))
-                for subshape in table.select():
-                    try:
-                        x = subshape.uuid
-                    except:
-                        db.execute_sql(f"DELETE FROM {subshape._meta.table_name} WHERE UUID_ID={subshape.uuid}")
-                #     sh = Shape.get_or_none(uuid=subshape.uuid)
-                #     if sh is None:
-                #         subshape.delete_instance()
+        shape_types = [
+            "asset_rect",
+            "circle",
+            "circular_token",
+            "line",
+            "multi_line",
+            "polygon",
+            "rect",
+            "text",
+        ]
+        with db.atomic():
+            for table in shape_types:
+                db.execute_sql(
+                    f"CREATE TEMPORARY TABLE _{table} AS SELECT * FROM {table}"
+                )
+                db.execute_sql(f"DROP TABLE {table}")
+            for query in [
+                'CREATE TABLE IF NOT EXISTS "asset_rect" ("shape_id" TEXT NOT NULL PRIMARY KEY, "width" REAL NOT NULL, "height" REAL NOT NULL, "src" TEXT NOT NULL, FOREIGN KEY ("shape_id") REFERENCES "shape" ("uuid") ON DELETE CASCADE)',
+                'CREATE TABLE IF NOT EXISTS "circle" ("shape_id" TEXT NOT NULL PRIMARY KEY, "radius" REAL NOT NULL, FOREIGN KEY ("shape_id") REFERENCES "shape" ("uuid") ON DELETE CASCADE)',
+                'CREATE TABLE IF NOT EXISTS "circular_token" ("shape_id" TEXT NOT NULL PRIMARY KEY, "radius" REAL NOT NULL, "text" TEXT NOT NULL, "font" TEXT NOT NULL, FOREIGN KEY ("shape_id") REFERENCES "shape" ("uuid") ON DELETE CASCADE)',
+                'CREATE TABLE IF NOT EXISTS "line" ("shape_id" TEXT NOT NULL PRIMARY KEY, "x2" REAL NOT NULL, "y2" REAL NOT NULL, "line_width" INTEGER NOT NULL, FOREIGN KEY ("shape_id") REFERENCES "shape" ("uuid") ON DELETE CASCADE)',
+                'CREATE TABLE IF NOT EXISTS "multi_line" ("shape_id" TEXT NOT NULL PRIMARY KEY, "line_width" INTEGER NOT NULL, "points" TEXT NOT NULL, FOREIGN KEY ("shape_id") REFERENCES "shape" ("uuid") ON DELETE CASCADE)',
+                'CREATE TABLE IF NOT EXISTS "polygon" ("shape_id" TEXT NOT NULL PRIMARY KEY, "vertices" TEXT NOT NULL, FOREIGN KEY ("shape_id") REFERENCES "shape" ("uuid") ON DELETE CASCADE)',
+                'CREATE TABLE IF NOT EXISTS "rect" ("shape_id" TEXT NOT NULL PRIMARY KEY, "width" REAL NOT NULL, "height" REAL NOT NULL, FOREIGN KEY ("shape_id") REFERENCES "shape" ("uuid") ON DELETE CASCADE)',
+                'CREATE TABLE IF NOT EXISTS "text" ("shape_id" TEXT NOT NULL PRIMARY KEY, "text" TEXT NOT NULL, "font" TEXT NOT NULL, "angle" REAL NOT NULL, FOREIGN KEY ("shape_id") REFERENCES "shape" ("uuid") ON DELETE CASCADE)',
+            ]:
+                db.execute_sql(query)
+            for table in shape_types:
+                db.execute_sql(
+                    f"INSERT INTO {table} SELECT _{table}.* FROM _{table} INNER JOIN shape ON shape.uuid = _{table}.uuid"
+                )
         field = ForeignKeyField(Layer, Layer.id, null=True)
         with db.atomic():
             migrate(migrator.add_column("grid_layer", "layer_id", field))

@@ -78,10 +78,12 @@ class Shape(BaseModel):
         data["labels"] = [l.as_dict() for l in label_query]
         # Subtype
         type_table = get_table(self.type_)
-        data.update(
-            **type_table.get(uuid=self.uuid).as_dict(exclude=[type_table.uuid])
-        )
+        data.update(**type_table.get(uuid=self.uuid).as_dict(exclude=[type_table.uuid]))
         return data
+
+    @property
+    def subtype(self):
+        return getattr(self, f"{self.type_}_set").get()
 
 
 class ShapeLabel(BaseModel):
@@ -133,62 +135,69 @@ class ShapeOwner(BaseModel):
 
 
 class ShapeType(BaseModel):
-    uuid = ForeignKeyField(Shape, name= primary_key=True, on_delete="CASCADE")
+    abstract = True
+    shape = ForeignKeyField(Shape, primary_key=True, on_delete="CASCADE")
 
     def as_dict(self, *args, **kwargs):
         return model_to_dict(self, *args, **kwargs)
-    
+
     def update_from_dict(self, data, *args, **kwargs):
         return update_model_from_dict(self, data, *args, **kwargs)
 
 
 class BaseRect(ShapeType):
+    abstract = True
     width = FloatField()
     height = FloatField()
 
 
 class AssetRect(BaseRect):
+    abstract = False
     src = TextField()
 
 
 class Circle(ShapeType):
+    abstract = False
     radius = FloatField()
 
 
 class CircularToken(Circle):
+    abstract = False
     text = TextField()
     font = TextField()
 
 
 class Line(ShapeType):
+    abstract = False
     x2 = FloatField()
     y2 = FloatField()
     line_width = IntegerField()
 
 
 class MultiLine(ShapeType):
+    abstract = False
     line_width = IntegerField()
     points = TextField()
 
-    
     def as_dict(self, *args, **kwargs):
         model = model_to_dict(self, *args, **kwargs)
-        model['points'] = json.loads(model['points'])
+        model["points"] = json.loads(model["points"])
         return model
-    
+
     def update_from_dict(self, data, *args, **kwargs):
         data["points"] = json.dumps(data["points"])
         return update_model_from_dict(self, data, *args, **kwargs)
 
 
 class Polygon(ShapeType):
+    abstract = False
     vertices = TextField()
 
     def as_dict(self, *args, **kwargs):
         model = model_to_dict(self, *args, **kwargs)
-        model['vertices'] = json.loads(model['vertices'])
+        model["vertices"] = json.loads(model["vertices"])
         return model
-    
+
     def update_from_dict(self, data, *args, **kwargs):
         data["vertices"] = json.dumps(data["vertices"])
         return update_model_from_dict(self, data, *args, **kwargs)

@@ -165,6 +165,9 @@ def upgrade(version):
 
         from models import GridLayer, Layer
 
+        db.execute_sql('CREATE TABLE IF NOT EXISTS "base_rect" ("shape_id" TEXT NOT NULL PRIMARY KEY, "width" REAL NOT NULL, "height" REAL NOT NULL, FOREIGN KEY ("shape_id") REFERENCES "shape" ("uuid") ON DELETE CASCADE)')
+        db.execute_sql('CREATE TABLE IF NOT EXISTS "shape_type" ("shape_id" TEXT NOT NULL PRIMARY KEY, FOREIGN KEY ("shape_id") REFERENCES "shape" ("uuid") ON DELETE CASCADE)')
+
         shape_types = [
             "asset_rect",
             "circle",

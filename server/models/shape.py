@@ -77,8 +77,7 @@ class Shape(BaseModel):
         data["auras"] = [a.as_dict() for a in aura_query]
         data["labels"] = [l.as_dict() for l in label_query]
         # Subtype
-        type_table = get_table(self.type_)
-        data.update(**type_table.get(uuid=self.uuid).as_dict(exclude=[type_table.uuid]))
+        data.update(**self.subtype.as_dict(exclude=[self.subtype.shape]))
         return data
 
     @property
@@ -135,7 +134,7 @@ class ShapeOwner(BaseModel):
 
 
 class ShapeType(BaseModel):
-    abstract = True
+    abstract = False
     shape = ForeignKeyField(Shape, primary_key=True, on_delete="CASCADE")
 
     def as_dict(self, *args, **kwargs):
@@ -146,7 +145,7 @@ class ShapeType(BaseModel):
 
 
 class BaseRect(ShapeType):
-    abstract = True
+    abstract = False
     width = FloatField()
     height = FloatField()
 

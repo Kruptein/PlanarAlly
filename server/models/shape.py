@@ -77,7 +77,7 @@ class Shape(BaseModel):
         data["auras"] = [a.as_dict() for a in aura_query]
         data["labels"] = [l.as_dict() for l in label_query]
         # Subtype
-        data.update(**self.subtype.as_dict(exclude=[self.subtype.shape]))
+        data.update(**self.subtype.as_dict(exclude=[self.subtype.__class__.shape]))
         return data
 
     @property

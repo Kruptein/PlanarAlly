@@ -16,6 +16,10 @@ All notable changes to this project will be documented in this file.
     - A button to refresh the invite url is now present.
     - A button to remove the session is added.
 
+### Fixed
+
+- Shape updates often causing unnecessary lighting recalculations.
+
 ## [0.16.0] - 2019-05-19
 
 ### Added

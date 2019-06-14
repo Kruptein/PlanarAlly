@@ -51,7 +51,7 @@ export class GameManager {
         shape.setMovementBlock(shape.movementObstruction);
         shape.setIsToken(shape.isToken);
         if (data.redraw) {
-            gameStore.recalculateVision(data.temporary);
+            if (shape.visionObstruction) gameStore.recalculateVision(data.temporary);
             layerManager.getLayer(data.shape.layer)!.invalidate(false);
             if (shape.movementObstruction) gameStore.recalculateMovement(data.temporary);
         }

@@ -15,6 +15,7 @@ All notable changes to this project will be documented in this file.
     - A url is shown for the invite url so you no longer have to figure this out yourself.
     - A button to refresh the invite url is now present.
     - A button to remove the session is added.
+    - A button to (un)lock the session is added.
 
 ### Fixed
 

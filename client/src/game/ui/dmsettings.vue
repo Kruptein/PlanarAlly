@@ -46,9 +46,13 @@
                 </div>
                 <div class="row" @click="refreshInviteCode">
                     <div></div>
-                    <div id="refresh-invite-code">Refresh invitation code</div>
+                    <div><button>Refresh invitation code</button></div>
                 </div>
                 <div class="spanrow header">Danger&nbsp;Zone</div>
+                <div class="row">
+                    <div><template v-if="locked">Unlock</template><template v-else>Lock</template> Session&nbsp;<i>(DM access only)</i></div>
+                    <div><button class="danger" @click="toggleSessionLock"><template v-if="locked">Unlock</template><template v-else>Lock</template> this Session</button></div>
+                </div>
                 <div class="row">
                     <div>Remove Session</div>
                     <div><button class="danger" @click="deleteSession">Delete this Session</button></div>
@@ -195,6 +199,9 @@ export default class DmSettings extends Vue {
     get invitationUrl(): string {
         return window.location.protocol + '//' + window.location.host + '/invite/' + gameStore.invitationCode;
     }
+    get locked(): boolean {
+        return gameStore.isLocked;
+    }
     // Grid
     get useGrid(): boolean {
         return gameStore.useGrid;
@@ -278,6 +285,9 @@ export default class DmSettings extends Vue {
     kickPlayer(id: number) {
         socket.emit("Room.Info.Players.Kick", id);
         gameStore.kickPlayer(id);
+    }
+    toggleSessionLock() {
+        gameStore.setIsLocked({isLocked: !gameStore.isLocked, sync: true});
     }
     deleteSession() {
         getRef<Prompt>("prompt")
@@ -395,10 +405,6 @@ export default class DmSettings extends Vue {
 
 .spanrow {
     grid-column: 1 / end;
-}
-
-#refresh-invite-code {
-    font-style: italic;
 }
 
 .danger {

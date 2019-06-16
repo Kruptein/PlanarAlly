@@ -35,6 +35,7 @@ class GameStore extends VuexModule implements GameState {
 
     IS_DM = false;
     FAKE_PLAYER = false;
+    isLocked = false;
     gridSize = 50;
     username = "";
     roomName = "";
@@ -421,6 +422,14 @@ class GameStore extends VuexModule implements GameState {
     @Mutation
     kickPlayer(playerId: number) {
         this.players = this.players.filter(p => p.id !== playerId);
+    }
+
+    @Mutation
+    setIsLocked(data: {isLocked: boolean, sync: boolean}) {
+        this.isLocked = data.isLocked;
+        if (data.sync) {
+            socket.emit("Room.Info.Set.Locked", this.isLocked);
+        }
     }
 
     @Action

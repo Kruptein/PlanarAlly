@@ -57,3 +57,21 @@ async def delete_session(sid):
 
     
     room.delete_instance(True)
+
+
+@sio.on("Room.Info.Set.Locked", namespace="/planarally")
+@auth.login_required(app, sio)
+async def set_locked_state(sid, is_locked):
+    sid_data = state.sid_map[sid]
+    user = sid_data["user"]
+    room = sid_data["room"]
+
+    if room.creator != user:
+        logger.warning(f"{user.name} attempted to set the locked state.")
+        return
+    
+    room.is_locked = is_locked
+    room.save()
+    for psid, player in state.get_players(room=room):
+        if player != room.creator:
+            await sio.disconnect(psid, namespace="/planarally")

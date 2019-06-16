@@ -29,10 +29,11 @@ socket.on("redirect", (destination: string) => {
     console.log("redirecting");
     router.push(destination);
 });
-socket.on("Room.Info.Set", (data: { name: string; creator: string; invitationCode: string, players: { id: number; name: string }[] }) => {
+socket.on("Room.Info.Set", (data: { name: string; creator: string; invitationCode: string, isLocked: boolean, players: { id: number; name: string }[] }) => {
     gameStore.setRoomName(data.name);
     gameStore.setRoomCreator(data.creator);
     gameStore.setInvitationCode(data.invitationCode);
+    gameStore.setIsLocked({isLocked: data.isLocked, sync: false});
     gameStore.setPlayers(data.players);
 });
 socket.on("Room.Info.InvitationCode.Set", (invitationCode: string) => {

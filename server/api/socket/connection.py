@@ -26,7 +26,7 @@ async def connect(sid, environ):
         except IndexError:
             return False
         else:
-            if user != room.creator and user not in [pr.player for pr in room.players]:
+            if user != room.creator and (user not in [pr.player for pr in room.players] or room.is_locked):
                 return False
 
         if room.creator == user:

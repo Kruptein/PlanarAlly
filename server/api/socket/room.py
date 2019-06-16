@@ -71,6 +71,7 @@ async def set_locked_state(sid, is_locked):
         return
     
     room.is_locked = is_locked
+    room.save()
     for psid, player in state.get_players(room=room):
         if player != room.creator:
             await sio.disconnect(psid, namespace="/planarally")

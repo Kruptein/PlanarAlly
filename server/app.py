@@ -16,7 +16,7 @@ from utils import FILE_DIR
 
 # SETUP SERVER
 
-sio = socketio.AsyncServer(async_mode="aiohttp", engineio_logger=True)
+sio = socketio.AsyncServer(async_mode="aiohttp", engineio_logger=False)
 app = web.Application()
 app["AuthzPolicy"] = auth.AuthPolicy()
 aiohttp_security.setup(app, SessionIdentityPolicy(), app["AuthzPolicy"])

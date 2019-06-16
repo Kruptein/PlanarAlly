@@ -7,6 +7,22 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+## [0.17.0] - 2019-06-16
+
+### Changed
+
+- The DM options menu is now a proper dialog.
+    - Options are sorted by catecory.
+    - A list of players with access to the session is shown with an option to kick them.
+    - A url is shown for the invite url so you no longer have to figure this out yourself.
+    - A button to refresh the invite url is now present.
+    - A button to remove the session is added.
+    - A button to (un)lock the session is added.
+
+### Fixed
+
+- Shape updates often causing unnecessary lighting recalculations.
+
 ## [0.16.0] - 2019-05-19
 
 ### Added

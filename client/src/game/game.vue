@@ -31,6 +31,7 @@
         <initiative-dialog ref="initiative" id="initiativedialog"></initiative-dialog>
         <note-dialog ref="note"></note-dialog>
         <label-dialog ref="labels"></label-dialog>
+        <dm-settings ref="dmsettings" v-if="IS_DM || FAKE_PLAYER"></dm-settings>
         <!-- When updating zoom boundaries, also update store updateZoom function;
         should probably do this using a store variable-->
         <zoom-slider
@@ -82,6 +83,7 @@ import { layerManager } from "@/game/layers/manager";
 import { gameStore } from "@/game/store";
 import { l2g } from "@/game/units";
 import { LocalPoint } from "./geom";
+import DmSettings from "./ui/dmsettings.vue";
 
 @Component({
     components: {
@@ -94,6 +96,7 @@ import { LocalPoint } from "./geom";
         "zoom-slider": vueSlider,
         "note-dialog": NoteDialog,
         "label-dialog": LabelManager,
+        "dm-settings": DmSettings,
     },
     beforeRouteEnter(to, from, next) {
         createConnection(to);
@@ -121,6 +124,10 @@ export default class Game extends Vue {
 
     get IS_DM(): boolean {
         return gameStore.IS_DM;
+    }
+
+    get FAKE_PLAYER(): boolean {
+        return gameStore.FAKE_PLAYER;
     }
 
     get layers(): string[] {

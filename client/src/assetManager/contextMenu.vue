@@ -34,7 +34,7 @@ export default class AssetContextMenu extends Vue {
         this.left = event.pageX;
         this.top = event.pageY;
         this.$nextTick(() => {
-            this.$children[0].$el.focus();
+            (<HTMLElement>this.$children[0].$el).focus();
         });
     }
     close() {

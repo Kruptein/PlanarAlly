@@ -48,7 +48,10 @@ class Shape(BaseModel):
         return f"<Shape {self.get_path()}>"
 
     def get_path(self):
-        return f"{self.name}@{self.layer.get_path()}"
+        try:
+            return f"{self.name}@{self.layer.get_path()}"
+        except:
+            return self.name
 
     def as_dict(self, user: User, dm: bool):
         data = model_to_dict(self, recurse=False, exclude=[Shape.layer, Shape.index])
@@ -74,11 +77,12 @@ class Shape(BaseModel):
         data["auras"] = [a.as_dict() for a in aura_query]
         data["labels"] = [l.as_dict() for l in label_query]
         # Subtype
-        type_table = get_table(self.type_)
-        data.update(
-            **type_table.get(uuid=self.uuid).as_dict(exclude=[type_table.uuid])
-        )
+        data.update(**self.subtype.as_dict(exclude=[self.subtype.__class__.shape]))
         return data
+
+    @property
+    def subtype(self):
+        return getattr(self, f"{self.type_}_set").get()
 
 
 class ShapeLabel(BaseModel):
@@ -130,18 +134,18 @@ class ShapeOwner(BaseModel):
 
 
 class ShapeType(BaseModel):
-    abstract = True
-    uuid = TextField(primary_key=True)
+    abstract = False
+    shape = ForeignKeyField(Shape, primary_key=True, on_delete="CASCADE")
 
     def as_dict(self, *args, **kwargs):
         return model_to_dict(self, *args, **kwargs)
-    
+
     def update_from_dict(self, data, *args, **kwargs):
         return update_model_from_dict(self, data, *args, **kwargs)
 
 
 class BaseRect(ShapeType):
-    abstract = True
+    abstract = False
     width = FloatField()
     height = FloatField()
 
@@ -174,12 +178,11 @@ class MultiLine(ShapeType):
     line_width = IntegerField()
     points = TextField()
 
-    
     def as_dict(self, *args, **kwargs):
         model = model_to_dict(self, *args, **kwargs)
-        model['points'] = json.loads(model['points'])
+        model["points"] = json.loads(model["points"])
         return model
-    
+
     def update_from_dict(self, data, *args, **kwargs):
         data["points"] = json.dumps(data["points"])
         return update_model_from_dict(self, data, *args, **kwargs)
@@ -191,9 +194,9 @@ class Polygon(ShapeType):
 
     def as_dict(self, *args, **kwargs):
         model = model_to_dict(self, *args, **kwargs)
-        model['vertices'] = json.loads(model['vertices'])
+        model["vertices"] = json.loads(model["vertices"])
         return model
-    
+
     def update_from_dict(self, data, *args, **kwargs):
         data["vertices"] = json.dumps(data["vertices"])
         return update_model_from_dict(self, data, *args, **kwargs)

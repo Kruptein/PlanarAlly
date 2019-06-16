@@ -1,6 +1,6 @@
 {
   "name": "planarally-client",
-  "version": "0.16.0",
+  "version": "0.17.0",
   "description": "A companion tool for when you travel into the planes.",
   "scripts": {
     "serve": "vue-cli-service serve",
@@ -17,34 +17,34 @@
   },
   "homepage": "https://github.com/Kruptein/PlanarAlly#readme",
   "dependencies": {
-    "axios": "^0.18.0",
+    "axios": "^0.18.1",
     "lodash.throttle": "^4.1.1",
-    "socket.io-client": "^2.1.1",
+    "socket.io-client": "^2.2.0",
     "tinycolor2": "^1.4.1",
-    "vue": "^2.5.17",
+    "vue": "^2.6.10",
     "vue-class-component": "^6.0.0",
     "vue-color": "^2.7.0",
-    "vue-router": "^3.0.1",
-    "vue-slider-component": "^2.8.2",
-    "vuedraggable": "^2.16.0",
-    "vuex": "^3.0.1"
+    "vue-router": "^3.0.6",
+    "vue-slider-component": "^2.8.16",
+    "vuedraggable": "^2.21.0",
+    "vuex": "^3.1.1"
   },
   "devDependencies": {
-    "@types/lodash": "^4.14.118",
+    "@types/lodash": "^4.14.134",
     "@types/socket.io-client": "^1.4.32",
-    "@types/tinycolor2": "^1.4.1",
-    "@types/vue-color": "^2.4.1",
-    "@vue/cli-plugin-typescript": "^3.7.0",
-    "@vue/cli-service": "^3.7.0",
+    "@types/tinycolor2": "^1.4.2",
+    "@types/vue-color": "^2.4.2",
+    "@vue/cli-plugin-typescript": "^3.8.1",
+    "@vue/cli-service": "^3.8.3",
     "node-sass": "^4.12.0",
-    "prettier": "^1.15.2",
-    "rimraf": "^2.6.2",
+    "prettier": "^1.18.2",
+    "rimraf": "^2.6.3",
     "sass-loader": "^7.0.1",
-    "tslint": "^5.11.0",
-    "tslint-config-prettier": "^1.16.0",
-    "typescript": "^3.2.2",
-    "vue-property-decorator": "^7.2.0",
-    "vue-template-compiler": "^2.5.17",
-    "vuex-module-decorators": "^0.9.1"
+    "tslint": "^5.17.0",
+    "tslint-config-prettier": "^1.18.0",
+    "typescript": "^3.5.2",
+    "vue-property-decorator": "^7.3.0",
+    "vue-template-compiler": "^2.6.10",
+    "vuex-module-decorators": "^0.9.9"
   }
 }

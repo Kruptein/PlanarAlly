@@ -35,11 +35,13 @@ class GameStore extends VuexModule implements GameState {
 
     IS_DM = false;
     FAKE_PLAYER = false;
+    isLocked = false;
     gridSize = 50;
     username = "";
     roomName = "";
     roomCreator = "";
     invitationCode = "";
+    players: { id: number; name: string; }[] = [];
 
     gridColour = "rgba(0, 0, 0, 1)";
     fowColour = "rgba(0, 0, 0, 1)";
@@ -405,6 +407,29 @@ class GameStore extends VuexModule implements GameState {
         }
         this._activeTokens.splice(this._activeTokens.indexOf(token), 1);
         layerManager.invalidateLight();
+    }
+
+    @Mutation
+    setPlayers(players: { id: number; name: string; }[]) {
+        this.players = players;
+    }
+
+    @Mutation
+    addPlayer(player: { id: number; name: string }) {
+        this.players.push(player);
+    }
+
+    @Mutation
+    kickPlayer(playerId: number) {
+        this.players = this.players.filter(p => p.id !== playerId);
+    }
+
+    @Mutation
+    setIsLocked(data: {isLocked: boolean, sync: boolean}) {
+        this.isLocked = data.isLocked;
+        if (data.sync) {
+            socket.emit("Room.Info.Set.Locked", this.isLocked);
+        }
     }
 
     @Action

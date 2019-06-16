@@ -13,7 +13,6 @@ async def connect(sid, environ):
     if user is None:
         await sio.emit("redirect", "/", room=sid, namespace="/planarally")
     else:
-        # ref = unquote(environ["HTTP_REFERER"]).strip("/").split("/")
         ref = {
             k.split("=")[0]: k.split("=")[1]
             for k in unquote(environ["QUERY_STRING"]).strip().split("&")
@@ -26,6 +25,9 @@ async def connect(sid, environ):
             )
         except IndexError:
             return False
+        else:
+            if user != room.creator and (user not in [pr.player for pr in room.players] or room.is_locked):
+                return False
 
         if room.creator == user:
             location = Location.get(room=room, name=room.dm_location)
@@ -54,6 +56,7 @@ async def connect(sid, environ):
                 "name": room.name,
                 "creator": room.creator.name,
                 "invitationCode": str(room.invitation_code),
+                "players": [{'id': rp.player.id, 'name': rp.player.name} for rp in room.players]
             },
             room=sid,
             namespace="/planarally",

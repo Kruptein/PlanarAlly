@@ -241,8 +241,6 @@ async def update_initiative_effect(sid, data):
     if room.creator != user and not ShapeOwner.get_or_none(shape=data["actor"], user=user):
         logger.warning(f"{user.name} attempted to update an initiative effect")
         return
-    
-    print(data)
 
     with db.atomic():
         effect = InitiativeEffect.get(uuid=data["effect"]["uuid"])

@@ -30,6 +30,7 @@ class Room(BaseModel):
     invitation_code = TextField(default=uuid.uuid4, unique=True)
     player_location = TextField(null=True)
     dm_location = TextField(null=True)
+    is_locked = BooleanField(default=False)
 
     def __repr__(self):
         return f"<Room {self.get_path()}>"
@@ -180,6 +181,7 @@ class Layer(BaseModel):
 
 class GridLayer(BaseModel):
     size = FloatField(default=50)
+    layer = ForeignKeyField(Layer, on_delete="CASCADE")
 
 
 class LocationUserOption(BaseModel):

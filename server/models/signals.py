@@ -1,7 +1,10 @@
 from playhouse.signals import post_save, pre_delete
 
-from .campaign import GridLayer, Layer, Location, LocationUserOption, PlayerRoom, User
+from .campaign import GridLayer, Layer, Location, LocationUserOption, PlayerRoom, Room
 from .db import db
+from .shape import Shape
+from .user import User
+
 
 __all__ = []  # type: ignore
 
@@ -11,7 +14,7 @@ def on_layer_save(model_class, instance, created):
     if not created:
         return
     if instance.type_ == "grid":
-        GridLayer.create(id=instance.id)
+        GridLayer.create(id=instance.id, layer=instance)
 
 
 @pre_delete(sender=Layer)

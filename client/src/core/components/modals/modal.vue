@@ -7,7 +7,7 @@
       v-show="visible"
       @dragover.prevent="dragOver"
     >
-      <div class="modal-container" @click.stop ref="container">
+      <div class="modal-container" @click.stop ref="container" :style="{'background-color': colour}">
         <slot name="header" :dragStart="dragStart" :dragEnd="dragEnd"></slot>
         <slot></slot>
       </div>
@@ -25,6 +25,7 @@ import { Prop } from "vue-property-decorator";
 export default class Modal extends Vue {
     @Prop(Boolean) visible!: boolean;
     @Prop({ type: Boolean, default: true }) mask!: boolean;
+    @Prop({ type: String, default: "white" }) colour!: string;
 
     $refs!: {
         container: HTMLElement;
@@ -120,7 +121,6 @@ export default class Modal extends Vue {
     position: absolute;
     width: auto;
     height: auto;
-    background-color: #fff;
     border-radius: 2px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.33);
     font-family: Helvetica, Arial, sans-serif;

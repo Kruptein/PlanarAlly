@@ -55,7 +55,7 @@ export default class ShapeContext extends Vue {
         this.x = event.pageX;
         this.y = event.pageY;
         this.shape = shape;
-        this.$nextTick(() => this.$children[0].$el.focus());
+        this.$nextTick(() => (<HTMLElement>this.$children[0].$el).focus());
     }
     close() {
         this.visible = false;

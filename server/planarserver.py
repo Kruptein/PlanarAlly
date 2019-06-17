@@ -6,8 +6,8 @@ This is the code responsible for starting the backend and reacting to socket IO 
 # Mimetype recognition for js files apparently is not always properly setup out of the box for some users out there.
 import mimetypes
 
-if mimetypes.guess_type(".js")[0] == "text/plain":
-    mimetypes.add_type("application/javascript", ".js")
+mimetypes.init()
+mimetypes.types_map['.js'] = "application/javascript; charset=utf-8"
 
 import save
 

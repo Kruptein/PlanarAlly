@@ -7,6 +7,12 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+## [0.17.1] - 2019-06-17
+
+### Fixed
+
+- Issue with MIME-types of .js files being wrongly reported as text/plain.
+
 ## [0.17.0] - 2019-06-16
 
 ### Changed

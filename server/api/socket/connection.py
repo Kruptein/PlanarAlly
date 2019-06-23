@@ -56,6 +56,7 @@ async def connect(sid, environ):
                 "name": room.name,
                 "creator": room.creator.name,
                 "invitationCode": str(room.invitation_code),
+                "isLocked": room.is_locked,
                 "players": [{'id': rp.player.id, 'name': rp.player.name} for rp in room.players]
             },
             room=sid,

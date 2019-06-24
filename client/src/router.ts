@@ -6,6 +6,7 @@ import Router from "vue-router";
 
 Vue.use(Router);
 
+import AccountSettings from "@/dashboard/settings.vue";
 import AssetManager from "@/assetManager/manager.vue";
 import Login from "@/auth/login.vue";
 import Logout from "@/auth/logout";
@@ -53,6 +54,13 @@ export const router = new Router({
         {
             path: "/dashboard",
             component: Dashboard,
+            meta: {
+                auth: true,
+            },
+        },
+        {
+            path: "/account",
+            component: AccountSettings,
             meta: {
                 auth: true,
             },

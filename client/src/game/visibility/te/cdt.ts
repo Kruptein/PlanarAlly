@@ -1,26 +1,5 @@
-import {
-    BoundingBox,
-    EdgeCirculator,
-    FaceCirculator,
-    LineFaceCirculator,
-    LocateType,
-    Point,
-    Sign,
-    TDS,
-    Triangle,
-    Vertex,
-} from "./tds";
-import {
-    ccw,
-    collinearBetween,
-    cw,
-    edgeInfo,
-    hasInexactNegativeOrientation,
-    intersection,
-    orientation,
-    sideOfOrientedCircle,
-    xyEqual,
-} from "./triag";
+import { BoundingBox, EdgeCirculator, FaceCirculator, LineFaceCirculator, LocateType, Point, Sign, TDS, Triangle, Vertex } from "./tds";
+import { ccw, collinearBetween, cw, edgeInfo, hasInexactNegativeOrientation, intersection, orientation, sideOfOrientedCircle, xyEqual } from "./triag";
 
 export type Edge = [Triangle, number];
 
@@ -29,10 +8,11 @@ export class CDT {
     constructor() {
         this.tds = new TDS();
     }
-    insertConstraint(a: Point, b: Point) {
+    insertConstraint(a: Point, b: Point): { va: Vertex; vb: Vertex } {
         const va = this.insert(a);
         const vb = this.insert(b);
         if (va !== vb) this.insertConstraintV(va, vb);
+        return { va, vb };
     }
 
     insertConstraintV(va: Vertex, vb: Vertex) {
@@ -257,9 +237,47 @@ export class CDT {
         return vi;
     }
 
+    removeVertex(v: Vertex) {
+        if (this.tds.dimension <= 1) this.remove1D(v);
+        else this.remove2D(v);
+    }
+
+    remove1D(v: Vertex) {
+        console.warn("NOT IMPLEMENTED");
+    }
+
+    remove2D(v: Vertex) {
+        // if (testDimDown(v)) -> this.tds.removeTestDimDown(v)
+        // else
+        const hole: Edge[] = [];
+        this.tds.makeHole(v, hole);
+        const shell: Edge[] = [...hole];
+        this.tds.fillHoleDelaunay(hole);
+        this.updateConstraints(shell);
+        this.tds.deleteVertex(v);
+    }
+
+    updateConstraints(edgeList: Edge[]) {
+        let f: Triangle;
+        let i: number;
+        for (const edge of edgeList) {
+            f = edge[0];
+            i = edge[1];
+            f.neighbours[i]!.constraints[this.tds.mirrorIndex(f, i)] = f.isConstrained(i);
+        }
+    }
+
     removeConstrainedEdge(t: Triangle, i: number) {
         t.constraints[i] = false;
         if (this.tds.dimension === 2) t.neighbours[i]!.constraints[this.tds.mirrorIndex(t, i)] = false;
+    }
+
+    removeConstrainedEdgeDelaunay(t: Triangle, i: number) {
+        this.removeConstrainedEdge(t, i);
+        if (this.tds.dimension === 2) {
+            const listEdges: Edge[] = [[t, i]];
+            this.propagatingFlipE(listEdges)
+        }
     }
 
     updateConstraintsOpposite(v: Vertex) {

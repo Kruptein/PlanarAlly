@@ -1,5 +1,5 @@
 import { CDT } from "./cdt";
-import { ccw, cw, orientation, ulp } from "./triag";
+import { ccw, cw, orientation, sideOfOrientedCircleP, ulp } from "./triag";
 
 export type Point = number[];
 
@@ -61,6 +61,13 @@ export class Triangle {
         return this;
     }
 
+    get center(): number[] {
+        return [
+            (this.vertices[0]!.point![0] + this.vertices[1]!.point![0] + this.vertices[2]!.point![0]) / 3,
+            (this.vertices[0]!.point![1] + this.vertices[1]!.point![1] + this.vertices[2]!.point![1]) / 3,
+        ]
+    }
+
     get dimension() {
         return this.vertices.length - 1;
     }
@@ -94,7 +101,8 @@ export class Triangle {
 
     isInfinite(index?: number): boolean {
         if (index === undefined) {
-            return this.vertices.includes(_INFINITE_VERTEX);
+            // return this.vertices.includes(_INFINITE_VERTEX);
+            return this.vertices.some((v) => v!.infinite);
         } else {
             return this.vertices[ccw(index)]!.infinite || this.vertices[cw(index)]!.infinite;
         }
@@ -141,6 +149,24 @@ export class Vertex {
     set point(point: Point | undefined) {
         this._point = point;
         this.infinite = false;
+    }
+
+    getIncidentFaces(): Triangle[] {
+        const faces: Triangle[] = [];
+        const fc = new FaceCirculator(this, null);
+        do {
+            faces.push(fc.t!);
+        } while (fc.next());
+        return faces;
+    }
+
+    *getIncidentEdges(): IterableIterator<Edge> {
+        // const edges: Edge[] = [];
+        const ec = new EdgeCirculator(this, null);
+        do {
+            yield new Edge(ec.t, ec.ri);
+        } while (ec.valid && ec.next());
+        // return edges;
     }
 }
 
@@ -277,6 +303,10 @@ export class FaceCirculator {
         return this.t !== null && this.v !== null;
     }
 
+    get done() {
+        return this.v === this._v && this.t === this._t;
+    }
+
     prev() {
         const i = this.t!.indexV(this.v!);
         this.t = this.t!.neighbours[cw(i)];
@@ -285,7 +315,7 @@ export class FaceCirculator {
     next(): boolean {
         const i = this.t!.indexV(this.v!);
         this.t = this.t!.neighbours[ccw(i)];
-        return this.v !== this._v || this.t !== this._t;
+        return !this.done;
     }
 }
 
@@ -409,9 +439,14 @@ export class LineFaceCirculator {
     }
 }
 
-class Edge {
+export class Edge {
     first: Triangle | null = null;
     second: number = 0;
+
+    constructor(first: Triangle | null = null, second: number = 0) {
+        this.first = first;
+        this.second = second;
+    }
 }
 
 export enum LocateType {
@@ -438,11 +473,12 @@ export class TDS {
 
     createVertex(): Vertex {
         const v = this.infiniteVertex;
-        if (v === undefined) {
-            console.log("UNDEFINED HIERE");
-        }
         this.vertices.push(v);
         return v;
+    }
+
+    deleteVertex(vertex: Vertex) {
+        this.vertices = this.vertices.filter(v => v !== vertex);
     }
 
     createTriangle(
@@ -457,6 +493,35 @@ export class TDS {
         t.neighbours[0] = n0;
         t.neighbours[1] = n1;
         t.neighbours[2] = n2;
+        this.triangles.push(t);
+        return t;
+    }
+
+    createTriangle2(
+        f1: Triangle,
+        i1: number,
+        f2: Triangle,
+        i2: number,
+        f3: Triangle | null = null,
+        i3: number | null = null,
+    ) {
+        const v3 = f3 === null || i3 === null ? f2.vertices[ccw(i2)] : f3.vertices[cw(i3)];
+        const t = new Triangle(f1.vertices[cw(i1)], f2.vertices[cw(i2)], v3);
+        f1.neighbours[i1] = t;
+        f2.neighbours[i2] = t;
+        if (f3 !== null && i3 !== null) f3.neighbours[i3] = t;
+        t.neighbours[0] = f2;
+        if (f3 !== null) t.neighbours[1] = f3;
+        t.neighbours[2] = f1;
+        this.triangles.push(t);
+        return t;
+    }
+
+    createTriangle3(f1: Triangle, i1: number, v: Vertex) {
+        const t = new Triangle(f1.vertices[cw(i1)], f1.vertices[ccw(i1)], v);
+        t.neighbours[2] = f1;
+        // not sure if I should create new Triangle() in the other neighbor spots or leave them as null
+        f1.neighbours[i1] = t;
         this.triangles.push(t);
         return t;
     }
@@ -632,6 +697,139 @@ export class TDS {
             this.flip(n, ni);
         }
         return v;
+    }
+
+    makeHole(v: Vertex, hole: [Triangle, number][]) {
+        const deleteList: Triangle[] = [];
+        let f: Triangle;
+        let fn: Triangle;
+        let i: number;
+        let inn: number;
+        let vv: Vertex;
+        const fc = new FaceCirculator(v, null);
+        do {
+            f = fc.t!;
+            fc.next();
+            i = f.indexV(v);
+            fn = f.neighbours[i]!;
+            inn = fn.indexT(f);
+            vv = f.vertices[cw(i)]!;
+            vv.triangle = fn;
+            vv = f.vertices[ccw(i)]!;
+            vv.triangle = fn;
+            fn.neighbours[inn] = null;
+            hole.push([fn, inn]);
+            deleteList.push(f);
+        } while (!fc.done);
+        for (const t of deleteList) {
+            this.deleteTriangle(t);
+        }
+    }
+
+    fillHoleDelaunay(firstHole: [Triangle, number][]) {
+        let f: Triangle;
+        let ff: Triangle;
+        let fn: Triangle;
+        let i: number;
+        let ii: number;
+        let inn: number;
+        const holeList: [Triangle, number][][] = [];
+        holeList.push(firstHole);
+        while (holeList.length > 0) {
+            const hole = holeList[0];
+            let hit: number;
+
+            if (hole.length === 3) {
+                hit = 0;
+                f = hole[hit][0];
+                i = hole[hit][1];
+                ff = hole[++hit][0];
+                ii = hole[hit][1];
+                fn = hole[++hit][0];
+                inn = hole[hit][1];
+                this.createTriangle2(f, i, ff, ii, fn, inn);
+                holeList.shift();
+                continue;
+            }
+
+            let finite = false;
+            while (!finite) {
+                ff = hole[0][0];
+                ii = hole[0][1];
+                if (ff.vertices[cw(ii)]!.infinite || ff.vertices[ccw(ii)]!.infinite) {
+                    hole.push(hole.shift()!);
+                } else {
+                    finite = true;
+                }
+            }
+
+            ff = hole[0][0];
+            ii = hole[0][1];
+            hole.shift();
+
+            const v0 = ff.vertices[cw(ii)]!;
+            const v1 = ff.vertices[ccw(ii)]!;
+            let v2 = this.infiniteVertex;
+            let v3: Vertex;
+
+            const p0 = v0.point!;
+            const p1 = v1.point!;
+            hit = 0;
+            let cutAfter = 0;
+
+            while (hit !== hole.length - 1) {
+                fn = hole[hit][0];
+                inn = hole[hit][1];
+                const vv = fn.vertices[ccw(inn)]!;
+                if (vv.infinite && v2.infinite) cutAfter = hit;
+                else {
+                    const p = vv.point!;
+                    if (orientation(p0, p1, p) === Sign.COUNTERCLOCKWISE) {
+                        if (v2.infinite) {
+                            v2 = vv;
+                            v3 = vv;
+                            cutAfter = hit;
+                        } else if (sideOfOrientedCircleP(p0, p1, v3!.point!, p, true) === Sign.ON_POSITIVE_SIDE) {
+                            v2 = vv;
+                            v3 = vv;
+                            cutAfter = hit;
+                        }
+                    }
+                }
+                hit++;
+            }
+            let newf: Triangle;
+
+            fn = hole[0][0];
+            inn = hole[0][1];
+            if (fn.vertices[ccw(inn)] === v2) {
+                newf = this.createTriangle2(ff, ii, fn, inn);
+                hole.shift();
+                hole.unshift([newf, 1]);
+            } else {
+                fn = hole[hole.length - 1][0];
+                inn = hole[hole.length - 1][1];
+                const indx = fn.indexV(v2);
+                if (indx >= 0 && indx === cw(inn)) {
+                    newf = this.createTriangle2(fn, inn, ff, ii);
+                    hole.pop();
+                    hole.push([newf, 1]);
+                } else {
+                    // split the hole in two holes
+                    newf = this.createTriangle3(ff, ii, v2);
+                    const newHole: [Triangle, number][] = [];
+                    ++cutAfter;
+                    // while (hole.begin !== cut_after)
+                    while (hole[0] !== hole[cutAfter--]) {
+                        newHole.push(hole.shift()!);
+                    }
+
+                    hole.unshift([newf, 1]);
+                    newHole.unshift([newf, 0]);
+                    holeList.unshift(newHole);
+                }
+            }
+        }
     }
 }
 

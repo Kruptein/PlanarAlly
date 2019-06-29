@@ -96,7 +96,7 @@ export function sideOfOrientedCircle(t: Triangle, p: Point, perturb: boolean): S
     throw new Error("SSS");
 }
 
-function sideOfOrientedCircleP(p0: Point, p1: Point, p2: Point, p: Point, perturb: boolean): Sign {
+export function sideOfOrientedCircleP(p0: Point, p1: Point, p2: Point, p: Point, perturb: boolean): Sign {
     const os = getOrientedSide(p0, p1, p2, p);
     if (os !== Sign.ON_ORIENTED_BOUNDARY || !perturb) return os;
     const points = [p0, p1, p2, p];

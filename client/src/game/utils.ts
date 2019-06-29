@@ -23,3 +23,7 @@ export function zoomValue(display: number) {
 export function zoomDisplay(value: number) {
     return Math.log((1 / value + 5 / 3) * (15 / 28)) / 1.83;
 }
+
+export function equalPoints(a: number[], b: number[]): boolean {
+    return a[0] === b[0] && a[1] === b[1];
+}

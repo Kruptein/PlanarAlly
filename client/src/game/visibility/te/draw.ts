@@ -3,6 +3,20 @@ import { g2lx, g2ly } from "@/game/units";
 import { EdgeIterator, TDS } from "./tds";
 import { ccw, cw } from "./triag";
 
+export function drawPoint(point: number[], r: number, colour?: string) {
+    const dl = layerManager.getLayer("draw");
+    if (dl === undefined) return;
+    const ctx = dl.ctx;
+    ctx.lineJoin = "round";
+    ctx.strokeStyle =
+        colour === undefined ? `rgb(${Math.random() * 255}, ${Math.random() * 255}, ${Math.random() * 255})` : colour;
+    ctx.moveTo(g2lx(point[0]), g2ly(point[1]));
+    ctx.beginPath();
+    ctx.arc(g2lx(point[0]), g2ly(point[1]), r, 0, Math.PI * 2);
+    ctx.closePath();
+    ctx.stroke();
+}
+
 export function drawPolygon(polygon: number[][], colour?: string) {
     const dl = layerManager.getLayer("draw");
     if (dl === undefined) return;
@@ -61,14 +75,14 @@ function drl(ctx: CanvasRenderingContext2D, from: number[], to: number[], constr
     //     console.log(" ", from, to);
     // }
     ctx.beginPath();
-    ctx.strokeStyle = constrained ? "rgba(255, 0, 0, 0.30)" : "rgba(0, 0, 0, 0.30)";
+    ctx.strokeStyle = constrained ? "rgba(255, 255, 0, 0.30)" : "rgba(0, 0, 0, 0.30)";
     ctx.moveTo(x(from[0], local), y(from[1], local));
     ctx.lineTo(x(to[0], local), y(to[1], local));
     ctx.closePath();
     ctx.stroke();
 }
 
-function drawPolygonT(tds: TDS, local = true, clear = true, logs: 0 | 1 | 2 = 0) {
+export function drawPolygonT(tds: TDS, local = true, clear = true, logs: 0 | 1 | 2 = 0) {
     I = 0;
     J = 0;
     let T = 0;
@@ -96,8 +110,8 @@ function drawPolygonT(tds: TDS, local = true, clear = true, logs: 0 | 1 | 2 = 0)
             J++;
             if (ei.edge.first!.constraints[ei.edge.second]) {
                 I++;
-                if (logs === 2) console.log(`Edge: (*) ${fromP} > ${toP}`);
-            } else if (logs === 2) console.log(`Edge: ${fromP} > ${toP}`);
+                if (logs === 2) console.log(`Edge: (*) ${fromP} > ${toP}   (${ei.edge.first!.uid})`);
+            } else if (logs === 2) console.log(`Edge: ${fromP} > ${toP}   (${ei.edge.first!.uid})`);
         }
         do {
             ei.next();
@@ -108,7 +122,7 @@ function drawPolygonT(tds: TDS, local = true, clear = true, logs: 0 | 1 | 2 = 0)
         if (t.isInfinite()) continue;
         T++;
         const po = [];
-        ctx.fillStyle = "red";
+        ctx.fillStyle = "blue";
         if (t.vertices[0] !== undefined) {
             po.push(t.vertices[0]!.point);
             ctx.beginPath();
@@ -128,7 +142,7 @@ function drawPolygonT(tds: TDS, local = true, clear = true, logs: 0 | 1 | 2 = 0)
             ctx.closePath();
             ctx.fill();
         }
-        if (logs === 2) console.log("[T] ", ...po, t.constraints);
+        if (logs === 2) console.log(`[T ${t.uid}] `, ...po, t.constraints);
 
         ctx.moveTo(x(t.vertices[0]!.point![0], local), y(t.vertices[0]!.point![1], local));
         if (t.vertices[0] !== undefined && t.vertices[1] !== undefined)
@@ -144,6 +158,7 @@ function drawPolygonT(tds: TDS, local = true, clear = true, logs: 0 | 1 | 2 = 0)
     }
 }
 
+(<any>window).DC = drawPoint;
 (<any>window).DP = drawPolygon;
 (<any>window).DPL = drawPolygonL;
 (<any>window).DPT = drawPolygonT;

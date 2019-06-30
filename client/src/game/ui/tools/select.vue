@@ -226,12 +226,13 @@ export default class SelectTool extends Tool {
 
                     if (gameStore.useGrid && !e.altKey && !this.deltaChanged) {
                         if (sel.visionObstruction) gameStore.deleteFromTriag({ target: TriangulationTarget.VISION, points: sel.points, standalone: false});
+                        if (sel.movementObstruction) gameStore.deleteFromTriag({ target: TriangulationTarget.MOVEMENT, points: sel.points, standalone: false});
                         sel.snapToGrid();
                         if (sel.visionObstruction) gameStore.addToTriag({ target: TriangulationTarget.VISION, points: sel.points});
+                        if (sel.movementObstruction) gameStore.addToTriag({ target: TriangulationTarget.MOVEMENT, points: sel.points});
                     }
 
                     if (sel !== this.selectionHelper) {
-                        if (sel.movementObstruction) gameStore.recalculateMovement();
                         socket.emit("Shape.Update", { shape: sel.asDict(), redraw: true, temporary: false });
                     }
                     layer.invalidate(false);
@@ -239,11 +240,12 @@ export default class SelectTool extends Tool {
                 if (this.mode === SelectOperations.Resize) {
                     if (gameStore.useGrid && !e.altKey) {
                         if (sel.visionObstruction) gameStore.deleteFromTriag({ target: TriangulationTarget.VISION, points: sel.points, standalone: false});
+                        if (sel.movementObstruction) gameStore.deleteFromTriag({ target: TriangulationTarget.MOVEMENT, points: sel.points, standalone: false});
                         sel.snapToGrid();
+                        if (sel.visionObstruction) gameStore.addToTriag({ target: TriangulationTarget.VISION, points: sel.points});
                         if (sel.visionObstruction) gameStore.addToTriag({ target: TriangulationTarget.VISION, points: sel.points});
                     }
                     if (sel !== this.selectionHelper) {
-                        if (sel.movementObstruction) gameStore.recalculateMovement();
                         socket.emit("Shape.Update", { shape: sel.asDict(), redraw: true, temporary: false });
                     }
                     layer.invalidate(false);

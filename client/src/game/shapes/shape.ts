@@ -155,15 +155,21 @@ export abstract class Shape {
     setMovementBlock(blocksMovement: boolean, recalculate = true) {
         this.movementObstruction = blocksMovement || false;
         const obstructionIndex = gameStore.movementblockers.indexOf(this.uuid);
-        let update = false;
+        let alteredMovement = false;
         if (this.movementObstruction && obstructionIndex === -1) {
             gameStore.movementblockers.push(this.uuid);
-            update = true;
+            if (recalculate) {
+                gameStore.addToTriag({ target: TriangulationTarget.MOVEMENT, points: this.points });
+                alteredMovement = true;
+            }
         } else if (!this.movementObstruction && obstructionIndex >= 0) {
             gameStore.movementblockers.splice(obstructionIndex, 1);
-            update = true;
+            if (recalculate) {
+                gameStore.deleteFromTriag({ target: TriangulationTarget.MOVEMENT, points: this.points, standalone: true });
+                alteredMovement = true;
+            }
         }
-        if (update && recalculate) gameStore.recalculateMovement();
+        return alteredMovement;
     }
 
     setIsToken(isToken: boolean) {

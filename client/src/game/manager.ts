@@ -50,7 +50,7 @@ export class GameManager {
         const redrawInitiative = sh.owners !== oldShape.owners;
         const shape = Object.assign(oldShape, sh);
         const alteredVision = shape.checkVisionSources();
-        shape.setMovementBlock(shape.movementObstruction);
+        const alteredMovement = shape.setMovementBlock(shape.movementObstruction);
         shape.setIsToken(shape.isToken);
         if (data.redraw) {
             if (shape.visionObstruction && !alteredVision) {
@@ -58,7 +58,10 @@ export class GameManager {
                 gameStore.addToTriag({target: TriangulationTarget.VISION, points: shape.points});
             }
             layerManager.getLayer(data.shape.layer)!.invalidate(false);
-            if (shape.movementObstruction) gameStore.recalculateMovement();
+            if (shape.movementObstruction && !alteredMovement) {
+                gameStore.deleteFromTriag({target: TriangulationTarget.MOVEMENT, points: oldPoints, standalone: false});
+                gameStore.addToTriag({target: TriangulationTarget.MOVEMENT, points: shape.points});
+            }
         }
         if (redrawInitiative) getRef<Initiative>("initiative").$forceUpdate();
     }

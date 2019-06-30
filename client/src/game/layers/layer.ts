@@ -99,7 +99,7 @@ export class Layer {
         const index = this.selection.indexOf(shape);
         if (index >= 0) this.selection.splice(index, 1);
         if (lbI >= 0) gameStore.deleteFromTriag({ target: TriangulationTarget.VISION, points: shape.points, standalone: true });
-        if (mbI >= 0) gameStore.recalculateMovement();
+        if (mbI >= 0) gameStore.deleteFromTriag({ target: TriangulationTarget.MOVEMENT, points: shape.points, standalone: true });
         this.invalidate(!sync);
     }
 

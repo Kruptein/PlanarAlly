@@ -60,7 +60,8 @@ import { Rect } from "@/game/shapes/rect";
 import { Shape } from "@/game/shapes/shape";
 import { gameStore } from "@/game/store";
 import { getUnitDistance, l2g } from "@/game/units";
-import { getMouse } from "@/game/utils";
+import { getMouse, equalPoints } from "@/game/utils";
+import { TriangulationTarget, PA_CDT } from '../../visibility/te/pa';
 
 @Component({
     components: {
@@ -194,7 +195,7 @@ export default class DrawTool extends Tool {
             this.shape.addOwner(gameStore.username);
             if (layer.name === "fow" && this.modeSelect === "normal") {
                 this.shape.visionObstruction = true;
-                this.shape.movementObstruction = true;
+                // this.shape.movementObstruction = true;
             }
             layer.addShape(this.shape, true, false, false);
 
@@ -213,7 +214,7 @@ export default class DrawTool extends Tool {
                 this.ruler.refPoint = lastPoint;
                 this.ruler.endPoint = lastPoint;
             }
-            if (this.shape.visionObstruction) gameStore.recalculateVision();
+            if (this.shape.visionObstruction) PA_CDT.vision.insertConstraint(this.shape.points[this.shape.points.length - 2], this.shape.points[this.shape.points.length - 1]);
             layer.invalidate(false);
             socket.emit("Shape.Update", { shape: this.shape!.asDict(), redraw: true, temporary: true });
         }
@@ -234,22 +235,35 @@ export default class DrawTool extends Tool {
 
         if (!this.active || this.startPoint === null || this.shape === null) return;
 
+        const oldPoints = this.shape.points;
+
         switch (this.shapeSelect) {
             case "square": {
-                (<Rect>this.shape).w = Math.abs(endPoint.x - this.startPoint.x);
-                (<Rect>this.shape).h = Math.abs(endPoint.y - this.startPoint.y);
-                this.shape.refPoint = new GlobalPoint(
-                    Math.min(this.startPoint.x, endPoint.x),
-                    Math.min(this.startPoint.y, endPoint.y),
-                );
+                const rect = (<Rect>this.shape);
+                const newW = Math.abs(endPoint.x - this.startPoint.x);
+                const newH = Math.abs(endPoint.y - this.startPoint.y);
+                if (newW === rect.w && newH === rect.h) return;
+                rect.w = newW;
+                rect.h = newH;
+                if (endPoint.x < this.startPoint.x || endPoint.y < this.startPoint.y) {
+                    this.shape.refPoint = new GlobalPoint(
+                        Math.min(this.startPoint.x, endPoint.x),
+                        Math.min(this.startPoint.y, endPoint.y),
+                    );
+                }
                 break;
             }
             case "circle": {
-                (<Circle>this.shape).r = endPoint.subtract(this.startPoint).length();
+                const circ = (<Circle>this.shape);
+                const newR = endPoint.subtract(this.startPoint).length();
+                if (circ.r === newR) return;
+                circ.r = newR;
                 break;
             }
             case "paint-brush": {
-                (<MultiLine>this.shape)._points.push(endPoint);
+                const br = (<MultiLine>this.shape);
+                if (equalPoints(br.points[br.points.length - 1], [endPoint.x, endPoint.y])) return;
+                br._points.push(endPoint);
                 break;
             }
             case "draw-polygon": {
@@ -260,14 +274,19 @@ export default class DrawTool extends Tool {
 
         if (!(this.shape instanceof Polygon)) {
             socket.emit("Shape.Update", { shape: this.shape!.asDict(), redraw: true, temporary: true });
-            if (this.shape.visionObstruction) gameStore.recalculateVision();
+            if (this.shape.visionObstruction) {
+                if (oldPoints.length > 1) gameStore.deleteFromTriag({target: TriangulationTarget.VISION, points: oldPoints, standalone: false });
+                gameStore.addToTriag({ target: TriangulationTarget.VISION, points: this.shape.points });
+            }
         }
         layer.invalidate(false);
     }
     onMouseUp(event: MouseEvent) {
         if (!this.active || this.shape === null || this.shape instanceof Polygon) return;
         if (!event.altKey && this.useGrid) {
+            gameStore.deleteFromTriag({target: TriangulationTarget.VISION, points: this.shape.points, standalone: false });
             this.shape.resizeToGrid();
+            gameStore.addToTriag({ target: TriangulationTarget.VISION, points: this.shape.points });
         }
         this.finaliseShape();
     }

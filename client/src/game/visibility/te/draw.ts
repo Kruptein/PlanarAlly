@@ -89,7 +89,7 @@ export function drawPolygonT(tds: TDS, local = true, clear = true, logs: 0 | 1 |
     const dl = layerManager.getLayer("draw");
     if (dl === undefined) return;
     const ctx = dl.ctx;
-    if (clear) ctx.clearRect(0, 0, 2000, 1000);
+    if (clear) ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
     ctx.lineJoin = "round";
     // ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
     ctx.lineJoin = "round";

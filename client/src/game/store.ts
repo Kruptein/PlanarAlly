@@ -1,5 +1,4 @@
 import Vue from "vue";
-
 import { Action, getModule, Module, Mutation, VuexModule } from "vuex-module-decorators";
 
 import { AssetList } from "@/core/comm/types";
@@ -12,7 +11,7 @@ import { layerManager } from "@/game/layers/manager";
 import { g2l, l2g } from "@/game/units";
 import { zoomValue } from "@/game/utils";
 import { BoundingVolume } from "@/game/visibility/bvh/bvh";
-import { triangulate } from "@/game/visibility/te/pa";
+import { addShapeToTriag, deleteShapeFromTriag, triangulate } from "@/game/visibility/te/pa";
 import { rootStore } from "@/store";
 
 export interface GameState {
@@ -221,16 +220,31 @@ class GameStore extends VuexModule implements GameState {
     }
 
     @Mutation
-    recalculateVision(partial = false) {
+    recalculateVision() {
         if (this.boardInitialized) {
-            if (this.visionMode === "triangle") triangulate("vision", partial);
+            if (this.visionMode === "triangle") triangulate("vision");
             else this.BV = Object.freeze(new BoundingVolume(this.visionBlockers));
         }
     }
 
     @Mutation
-    recalculateMovement(partial = false) {
-        if (this.boardInitialized && this.visionMode === "triangle") triangulate("movement", partial);
+    deleteVision(points: number[][], standalone=false) {
+        if (this.visionMode === "triangle") {
+            deleteShapeFromTriag(points);
+        } else if (standalone) {
+            this.recalculateVision();
+        }
+    }
+
+    @Mutation
+    addVision(points: number[][]) {
+        if (this.visionMode === "triangle") addShapeToTriag(points);
+        else this.recalculateVision();
+    }
+
+    @Mutation
+    recalculateMovement() {
+        if (this.boardInitialized && this.visionMode === "triangle") triangulate("movement");
     }
 
     @Mutation

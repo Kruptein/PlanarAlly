@@ -113,18 +113,23 @@ export abstract class Shape {
         if (l) l.invalidate(skipLightUpdate);
     }
 
-    checkVisionSources(recalculate = true) {
+    checkVisionSources(recalculate = true): boolean {
+        let alteredVision = false;
         const self = this;
         const obstructionIndex = gameStore.visionBlockers.indexOf(this.uuid);
-        let update = false;
         if (this.visionObstruction && obstructionIndex === -1) {
             gameStore.visionBlockers.push(this.uuid);
-            update = true;
+            if (recalculate) {
+                gameStore.addVision(this.points);
+                alteredVision = true;
+            }
         } else if (!this.visionObstruction && obstructionIndex >= 0) {
             gameStore.visionBlockers.splice(obstructionIndex, 1);
-            update = true;
+            if (recalculate) {
+                gameStore.deleteVision(this.points, true);
+                alteredVision = true;
+            }
         }
-        if (update && recalculate) gameStore.recalculateVision();
 
         // Check if the visionsource auras are in the gameManager
         this.auras.forEach(au => {
@@ -143,6 +148,7 @@ export abstract class Shape {
                 if (!self.auras.some(a => a.uuid === ls.aura && a.visionSource)) gameStore.visionSources.splice(i, 1);
             }
         }
+        return alteredVision;
     }
 
     setMovementBlock(blocksMovement: boolean, recalculate = true) {

@@ -1,5 +1,3 @@
-import Initiative from "./ui/initiative.vue";
-
 import { getRef } from "@/core/utils";
 import { sendClientOptions } from "@/game/api/utils";
 import { ServerShape } from "@/game/comm/types/shapes";
@@ -9,6 +7,8 @@ import { createShapeFromDict } from "@/game/shapes/utils";
 import { gameStore } from "@/game/store";
 import { AnnotationManager } from "@/game/ui/annotation";
 import { g2l } from "@/game/units";
+import Initiative from "./ui/initiative.vue";
+
 
 export class GameManager {
     selectedTool: number = 0;
@@ -45,13 +45,17 @@ export class GameManager {
             console.log(`Shape with unknown id could not be updated`);
             return;
         }
+        const oldPoints = oldShape.points;
         const redrawInitiative = sh.owners !== oldShape.owners;
         const shape = Object.assign(oldShape, sh);
-        shape.checkVisionSources();
+        const alteredVision = shape.checkVisionSources();
         shape.setMovementBlock(shape.movementObstruction);
         shape.setIsToken(shape.isToken);
         if (data.redraw) {
-            if (shape.visionObstruction) gameStore.recalculateVision(data.temporary);
+            if (shape.visionObstruction && !alteredVision) {
+                gameStore.deleteVision(oldPoints);
+                gameStore.addVision(shape.points);
+            }
             layerManager.getLayer(data.shape.layer)!.invalidate(false);
             if (shape.movementObstruction) gameStore.recalculateMovement(data.temporary);
         }

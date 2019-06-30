@@ -213,7 +213,7 @@ export default class DrawTool extends Tool {
                 this.ruler.refPoint = lastPoint;
                 this.ruler.endPoint = lastPoint;
             }
-            if (this.shape.visionObstruction) gameStore.recalculateVision(true);
+            if (this.shape.visionObstruction) gameStore.recalculateVision();
             layer.invalidate(false);
             socket.emit("Shape.Update", { shape: this.shape!.asDict(), redraw: true, temporary: true });
         }
@@ -260,7 +260,7 @@ export default class DrawTool extends Tool {
 
         if (!(this.shape instanceof Polygon)) {
             socket.emit("Shape.Update", { shape: this.shape!.asDict(), redraw: true, temporary: true });
-            if (this.shape.visionObstruction) gameStore.recalculateVision(true);
+            if (this.shape.visionObstruction) gameStore.recalculateVision();
         }
         layer.invalidate(false);
     }

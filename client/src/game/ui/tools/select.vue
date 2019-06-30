@@ -155,9 +155,10 @@ export default class SelectTool extends Tool {
                 // Actually apply the delta on all shapes
                 for (const sel of layer.selection) {
                     if (!sel.ownedBy()) continue;
+                    if (sel.visionObstruction) gameStore.deleteVision(sel.points);
                     sel.refPoint = sel.refPoint.add(delta);
+                    if (sel.visionObstruction) gameStore.addVision(sel.points);
                     if (sel !== this.selectionHelper) {
-                        if (sel.visionObstruction) gameStore.recalculateVision(true);
                         socket.emit("Shape.Update", { shape: sel.asDict(), redraw: true, temporary: true });
                     }
                 }
@@ -165,9 +166,11 @@ export default class SelectTool extends Tool {
             } else if (this.mode === SelectOperations.Resize) {
                 for (const sel of layer.selection) {
                     if (!sel.ownedBy()) continue;
+                    if (sel.visionObstruction) gameStore.deleteVision(sel.points);
                     sel.resize(this.resizePoint, mouse);
                     if (sel !== this.selectionHelper) {
-                        if (sel.visionObstruction) gameStore.recalculateVision(true);
+                        // todo: think about calling deleteIntersectVertex directly on the corner point
+                        if (sel.visionObstruction) gameStore.addVision(sel.points);
                         socket.emit("Shape.Update", { shape: sel.asDict(), redraw: true, temporary: true });
                     }
                     layer.invalidate(false);
@@ -221,11 +224,12 @@ export default class SelectTool extends Tool {
                         return;
 
                     if (gameStore.useGrid && !e.altKey && !this.deltaChanged) {
+                        if (sel.visionObstruction) gameStore.deleteVision(sel.points);
                         sel.snapToGrid();
+                        if (sel.visionObstruction) gameStore.addVision(sel.points);
                     }
 
                     if (sel !== this.selectionHelper) {
-                        if (sel.visionObstruction) gameStore.recalculateVision();
                         if (sel.movementObstruction) gameStore.recalculateMovement();
                         socket.emit("Shape.Update", { shape: sel.asDict(), redraw: true, temporary: false });
                     }
@@ -233,10 +237,11 @@ export default class SelectTool extends Tool {
                 }
                 if (this.mode === SelectOperations.Resize) {
                     if (gameStore.useGrid && !e.altKey) {
-                        sel.resizeToGrid();
+                        if (sel.visionObstruction) gameStore.deleteVision(sel.points);
+                        sel.snapToGrid();
+                        if (sel.visionObstruction) gameStore.addVision(sel.points);
                     }
                     if (sel !== this.selectionHelper) {
-                        if (sel.visionObstruction) gameStore.recalculateVision();
                         if (sel.movementObstruction) gameStore.recalculateMovement();
                         socket.emit("Shape.Update", { shape: sel.asDict(), redraw: true, temporary: false });
                     }

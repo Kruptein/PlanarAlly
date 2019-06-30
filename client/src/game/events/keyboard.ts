@@ -1,5 +1,3 @@
-import Tools from "@/game/ui/tools/tools.vue";
-
 import { getRef, uuidv4 } from "@/core/utils";
 import { socket } from "@/game/api/socket";
 import { sendClientOptions } from "@/game/api/utils";
@@ -9,7 +7,9 @@ import { Vector } from "@/game/geom";
 import { layerManager } from "@/game/layers/manager";
 import { createShapeFromDict } from "@/game/shapes/utils";
 import { gameStore } from "@/game/store";
+import Tools from "@/game/ui/tools/tools.vue";
 import { calculateDelta } from "@/game/ui/tools/utils";
+
 
 export function onKeyUp(event: KeyboardEvent) {
     if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement) {
@@ -55,14 +55,18 @@ export function onKeyDown(event: KeyboardEvent) {
                         delta = calculateDelta(delta, sel);
                     }
                 }
+                if (delta.length() === 0) return;
                 for (const sel of selection) {
+                    console.log(`OLD POINTS: ${[...sel.points]}`);
                     if ((<any>getRef<Tools>("tools").$refs.selectTool).selectionHelper.uuid === sel.uuid) continue;
+                    if (sel.movementObstruction) gameStore.deleteVision(sel.points);
                     sel.refPoint = sel.refPoint.add(delta);
+                    if (sel.movementObstruction) gameStore.addVision(sel.points);
+                    console.log(`NEW POINTS: ${sel.points}`);
                     // todo: Fix again
                     // if (sel.refPoint.x % gridSize !== 0 || sel.refPoint.y % gridSize !== 0) sel.snapToGrid();
                     socket.emit("Shape.Position.Update", { shape: sel.asDict(), redraw: true, temporary: false });
                 }
-                gameStore.recalculateVision();
                 layerManager.getLayer()!.invalidate(false);
             } else {
                 // The pan offsets should be in the opposite direction to give the correct feel.

@@ -97,7 +97,7 @@ export class Layer {
 
         const index = this.selection.indexOf(shape);
         if (index >= 0) this.selection.splice(index, 1);
-        if (lbI >= 0) gameStore.recalculateVision();
+        if (lbI >= 0) gameStore.deleteVision(shape.points, true);
         if (mbI >= 0) gameStore.recalculateMovement();
         this.invalidate(!sync);
     }

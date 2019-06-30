@@ -1,21 +1,25 @@
 import { layerManager } from "@/game/layers/manager";
-import { Shape } from '@/game/shapes/shape';
 import { gameStore } from "@/game/store";
 import { equalPoints } from '@/game/utils';
 import { CDT } from "./cdt";
-import { drawPolygonT } from './draw';
 import { Edge, Vertex } from './tds';
 import { ccw, collinearBetween } from './triag';
 
 
+export enum TriangulationTarget {
+    VISION = "vision",
+    MOVEMENT = "movement"
+}
+
+
 export let PA_CDT = {
-    vision: new CDT(),
-    movement: new CDT(),
+    "vision": new CDT(),
+    "movement": new CDT(),
 };
 
 export let POINT_VERTEX_MAP: {[key: string]: Vertex} = {};
 
-export function triangulate(target: "vision" | "movement") {
+export function triangulate(target: TriangulationTarget) {
     console.warn(`RETRIANGULATING ${target}`);
     console.time("TRI");
     const cdt = new CDT();
@@ -100,9 +104,9 @@ function deleteIntersectVertex(vertex: Vertex, from: number[], target: number[],
     return deleteIntersectVertex(nextIntersect, vertex.point!, target, queues);
 }
 
-export function deleteShapeFromTriag(points: number[][]) {
+export function deleteShapeFromTriag(target: TriangulationTarget, points: number[][]) {
     console.time("DS");
-    const cdt = PA_CDT.vision;
+    const cdt = PA_CDT[target];
     const queues: {vertices: Set<Vertex>; edges: Edge[], newConstraints: Vertex[][], triBridge: Vertex[]} = {vertices: new Set(), edges: [], newConstraints: [], triBridge: []};
     const np = points.length;
     let from = points[np - 1];
@@ -121,9 +125,9 @@ export function deleteShapeFromTriag(points: number[][]) {
     console.timeEnd("DS");
 }
 
-export function addShapeToTriag(points: number[][]) {
+export function addShapeToTriag(target: TriangulationTarget, points: number[][]) {
     console.time("AS");
-    const cdt = PA_CDT.vision;
+    const cdt = PA_CDT[target];
     for (const [i, point] of points.entries()) {
         const n = points[(i + 1) % points.length];
         cdt.insertConstraint(point, n);

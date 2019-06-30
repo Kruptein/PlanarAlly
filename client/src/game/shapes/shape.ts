@@ -10,6 +10,7 @@ import { layerManager } from "@/game/layers/manager";
 import { BoundingRect } from "@/game/shapes/boundingrect";
 import { gameStore } from "@/game/store";
 import { g2l, g2lr, g2lx, g2ly, g2lz } from "@/game/units";
+import { TriangulationTarget } from '../visibility/te/pa';
 
 export abstract class Shape {
     // Used to create class instance from server shape data
@@ -120,13 +121,13 @@ export abstract class Shape {
         if (this.visionObstruction && obstructionIndex === -1) {
             gameStore.visionBlockers.push(this.uuid);
             if (recalculate) {
-                gameStore.addVision(this.points);
+                gameStore.addToTriag({target: TriangulationTarget.VISION, points: this.points });
                 alteredVision = true;
             }
         } else if (!this.visionObstruction && obstructionIndex >= 0) {
             gameStore.visionBlockers.splice(obstructionIndex, 1);
             if (recalculate) {
-                gameStore.deleteVision(this.points, true);
+                gameStore.deleteFromTriag({ target: TriangulationTarget.VISION, points: this.points, standalone: true });
                 alteredVision = true;
             }
         }

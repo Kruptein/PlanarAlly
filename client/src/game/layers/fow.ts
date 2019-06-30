@@ -7,6 +7,7 @@ import { Shape } from "@/game/shapes/shape";
 import { gameStore } from "@/game/store";
 import { g2l, g2lr, g2lx, g2ly, g2lz, getUnitDistance } from "@/game/units";
 import { getFogColour } from "@/game/utils";
+import { TriangulationTarget } from '../visibility/te/pa';
 import { computeVisibility } from "../visibility/te/te";
 
 export class FOWLayer extends Layer {
@@ -163,7 +164,7 @@ export class FOWLayer extends Layer {
                 } else {
                     this.vCtx.globalCompositeOperation = "source-over";
                     this.vCtx.fillStyle = "rgba(0, 0, 0, 1)";
-                    const polygon = computeVisibility(center, "vision");
+                    const polygon = computeVisibility(center, TriangulationTarget.VISION);
                     this.vCtx.beginPath();
                     this.vCtx.moveTo(g2lx(polygon[0][0]), g2ly(polygon[0][1]));
                     for (const point of polygon) this.vCtx.lineTo(g2lx(point[0]), g2ly(point[1]));

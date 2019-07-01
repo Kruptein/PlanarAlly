@@ -1,25 +1,45 @@
 <template>
-  <main>
-    <div id="title">{{ title }}</div>
-    <nav>
-        <div
-            v-for="(category, c) in categories"
-            :key="category"
-            @click="selection = c"
-        >{{ category }}</div>
-    </nav>
-    <div class="main" v-show="selection === 0">
-        <div class="spanrow header">General</div>
-        <div class="row">
-            <label for="username">Username:</label>
-            <div><input type='text' :value="$store.state.core.username"></div>
+    <main>
+        <div id="title">{{ title }}</div>
+        <nav>
+            <div
+                v-for="(category, c) in categories"
+                :key="category"
+                @click="selection = c"
+            >{{ category }}</div>
+        </nav>
+        <div class="main" v-show="selection === 0">
+            <div class="spanrow header">General</div>
+            <div class="row">
+                <label for="username">Username:</label>
+                <div>
+                    <input type="text" :value="$store.state.core.username">
+                </div>
+            </div>
+            <div class="row">
+                <label for="email">Email:</label>
+                <div>
+                    <input
+                        type="email"
+                        :placeholder="$store.state.core.email === undefined ? 'no email set' : ''"
+                        v-model="$store.state.core.email"
+                    >
+                </div>
+            </div>
+            <div class="spanrow header">Danger Zone</div>
+            <div class="row">
+                <div style="grid-column-start: value">
+                    <button class="danger">Change password</button>
+                </div>
+            </div>
+            <div class="row">
+                <div style="grid-column-start: value">
+                    <button class="danger">Delete account</button>
+                </div>
+            </div>
         </div>
-        <div class="spanrow header">Danger Zone</div>
-    </div>
-    <div class="main" v-show="selection === 1">
-        DSF
-    </div>
-  </main>
+        <div class="main" v-show="selection === 1">DSF</div>
+    </main>
 </template>
 
 <script lang="ts">
@@ -36,12 +56,15 @@ Component.registerHooks(["beforeRouteEnter"]);
 export default class AccountSettings extends Vue {
     selection = 0;
     categories = ["Account", "Presets"];
-    
+
     get title() {
         switch (this.selection) {
-            case 0: return "Account Settings";
-            case 1: return "Default presets";
-            default: return "Settings";
+            case 0:
+                return "Account Settings";
+            case 1:
+                return "Default presets";
+            default:
+                return "Settings";
         }
     }
 }
@@ -61,9 +84,10 @@ export default class AccountSettings extends Vue {
 main {
     margin: auto;
     display: grid;
-    grid-template-areas: "title title"
-                         "nav   main";
-                         /* "nav   main  main"; */
+    grid-template-areas:
+        "title title"
+        "nav   main";
+    /* "nav   main  main"; */
     grid-template-rows: 60px 1fr;
     grid-template-columns: 100px 1fr;
 }
@@ -78,6 +102,7 @@ main {
 
 nav {
     grid-area: nav;
+    background-color: lightblue;
 }
 
 nav > div {
@@ -85,6 +110,7 @@ nav > div {
 }
 
 .main {
+    background-color: white;
     grid-area: main;
     padding-left: 1em;
     padding-right: 1em;
@@ -159,7 +185,8 @@ input[type="checkbox"] {
 }
 
 input[type="number"],
-input[type="text"] {
+input[type="text"],
+input[type="email"] {
     width: 100%;
     padding: 5px;
 }

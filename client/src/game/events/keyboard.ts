@@ -1,7 +1,7 @@
 import { getRef, uuidv4 } from "@/core/utils";
 import { socket } from "@/game/api/socket";
 import { sendClientOptions } from "@/game/api/utils";
-import { ServerAura } from '@/game/comm/types/shapes';
+import { ServerAura } from "@/game/comm/types/shapes";
 import { EventBus } from "@/game/event-bus";
 import { Vector } from "@/game/geom";
 import { layerManager } from "@/game/layers/manager";
@@ -9,8 +9,7 @@ import { createShapeFromDict } from "@/game/shapes/utils";
 import { gameStore } from "@/game/store";
 import Tools from "@/game/ui/tools/tools.vue";
 import { calculateDelta } from "@/game/ui/tools/utils";
-import { TriangulationTarget } from '../visibility/te/pa';
-
+import { TriangulationTarget } from "../visibility/te/pa";
 
 export function onKeyUp(event: KeyboardEvent) {
     if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement) {
@@ -59,9 +58,15 @@ export function onKeyDown(event: KeyboardEvent) {
                 if (delta.length() === 0) return;
                 for (const sel of selection) {
                     if ((<any>getRef<Tools>("tools").$refs.selectTool).selectionHelper.uuid === sel.uuid) continue;
-                    if (sel.movementObstruction) gameStore.deleteFromTriag({ target: TriangulationTarget.VISION, points: sel.points, standalone: false });
+                    if (sel.movementObstruction)
+                        gameStore.deleteFromTriag({
+                            target: TriangulationTarget.VISION,
+                            shape: sel,
+                            standalone: false,
+                        });
                     sel.refPoint = sel.refPoint.add(delta);
-                    if (sel.movementObstruction) gameStore.addToTriag({ target: TriangulationTarget.VISION, points: sel.points });
+                    if (sel.movementObstruction)
+                        gameStore.addToTriag({ target: TriangulationTarget.VISION, points: sel.points });
                     // todo: Fix again
                     // if (sel.refPoint.x % gridSize !== 0 || sel.refPoint.y % gridSize !== 0) sel.snapToGrid();
                     socket.emit("Shape.Position.Update", { shape: sel.asDict(), redraw: true, temporary: false });
@@ -108,8 +113,8 @@ export function onKeyDown(event: KeyboardEvent) {
                 for (const tracker of oldTrackers) {
                     const newTracker: Tracker = {
                         ...tracker,
-                        uuid: uuidv4()
-                    }
+                        uuid: uuidv4(),
+                    };
                     clip.trackers.push(newTracker);
                 }
                 const oldAuras = clip.auras;
@@ -117,8 +122,8 @@ export function onKeyDown(event: KeyboardEvent) {
                 for (const aura of oldAuras) {
                     const newAura: ServerAura = {
                         ...aura,
-                        uuid: uuidv4()
-                    }
+                        uuid: uuidv4(),
+                    };
                     clip.auras.push(newAura);
                 }
                 const shape = createShapeFromDict(clip);

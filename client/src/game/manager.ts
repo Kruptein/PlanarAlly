@@ -8,8 +8,7 @@ import { gameStore } from "@/game/store";
 import { AnnotationManager } from "@/game/ui/annotation";
 import { g2l } from "@/game/units";
 import Initiative from "./ui/initiative.vue";
-import { TriangulationTarget } from './visibility/te/pa';
-
+import { TriangulationTarget } from "./visibility/te/pa";
 
 export class GameManager {
     selectedTool: number = 0;
@@ -54,13 +53,17 @@ export class GameManager {
         shape.setIsToken(shape.isToken);
         if (data.redraw) {
             if (shape.visionObstruction && !alteredVision) {
-                gameStore.deleteFromTriag({target: TriangulationTarget.VISION, points: oldPoints, standalone: false});
-                gameStore.addToTriag({target: TriangulationTarget.VISION, points: shape.points});
+                gameStore.deleteFromTriag({ target: TriangulationTarget.VISION, shape: oldPoints, standalone: false });
+                gameStore.addToTriag({ target: TriangulationTarget.VISION, points: shape.points });
             }
             layerManager.getLayer(data.shape.layer)!.invalidate(false);
             if (shape.movementObstruction && !alteredMovement) {
-                gameStore.deleteFromTriag({target: TriangulationTarget.MOVEMENT, points: oldPoints, standalone: false});
-                gameStore.addToTriag({target: TriangulationTarget.MOVEMENT, points: shape.points});
+                gameStore.deleteFromTriag({
+                    target: TriangulationTarget.MOVEMENT,
+                    shape: oldPoints,
+                    standalone: false,
+                });
+                gameStore.addToTriag({ target: TriangulationTarget.MOVEMENT, points: shape.points });
             }
         }
         if (redrawInitiative) getRef<Initiative>("initiative").$forceUpdate();

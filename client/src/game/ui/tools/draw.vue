@@ -28,8 +28,8 @@
         </div>
         <div>Colours</div>
         <div class="selectgroup">
-            <color-picker class="option" :color.sync="fillColour"/>
-            <color-picker class="option" :color.sync="borderColour"/>
+            <color-picker class="option" :color.sync="fillColour" />
+            <color-picker class="option" :color.sync="borderColour" />
         </div>
         <div v-show="shapeSelect === 'paint-brush'">Brush size</div>
         <input
@@ -37,7 +37,7 @@
             v-model="brushSize"
             v-show="shapeSelect === 'paint-brush'"
             style="max-width:100px;"
-        >
+        />
     </div>
 </template>
 
@@ -60,8 +60,8 @@ import { Rect } from "@/game/shapes/rect";
 import { Shape } from "@/game/shapes/shape";
 import { gameStore } from "@/game/store";
 import { getUnitDistance, l2g } from "@/game/units";
-import { getMouse, equalPoints } from "@/game/utils";
-import { TriangulationTarget, PA_CDT } from '../../visibility/te/pa';
+import { equalPoints, getMouse } from "@/game/utils";
+import { PA_CDT, TriangulationTarget } from "@/game/visibility/te/pa";
 
 @Component({
     components: {
@@ -214,7 +214,11 @@ export default class DrawTool extends Tool {
                 this.ruler.refPoint = lastPoint;
                 this.ruler.endPoint = lastPoint;
             }
-            if (this.shape.visionObstruction) PA_CDT.vision.insertConstraint(this.shape.points[this.shape.points.length - 2], this.shape.points[this.shape.points.length - 1]);
+            if (this.shape.visionObstruction)
+                PA_CDT.vision.insertConstraint(
+                    this.shape.points[this.shape.points.length - 2],
+                    this.shape.points[this.shape.points.length - 1],
+                );
             layer.invalidate(false);
             socket.emit("Shape.Update", { shape: this.shape!.asDict(), redraw: true, temporary: true });
         }
@@ -239,7 +243,7 @@ export default class DrawTool extends Tool {
 
         switch (this.shapeSelect) {
             case "square": {
-                const rect = (<Rect>this.shape);
+                const rect = <Rect>this.shape;
                 const newW = Math.abs(endPoint.x - this.startPoint.x);
                 const newH = Math.abs(endPoint.y - this.startPoint.y);
                 if (newW === rect.w && newH === rect.h) return;
@@ -254,14 +258,14 @@ export default class DrawTool extends Tool {
                 break;
             }
             case "circle": {
-                const circ = (<Circle>this.shape);
+                const circ = <Circle>this.shape;
                 const newR = endPoint.subtract(this.startPoint).length();
                 if (circ.r === newR) return;
                 circ.r = newR;
                 break;
             }
             case "paint-brush": {
-                const br = (<MultiLine>this.shape);
+                const br = <MultiLine>this.shape;
                 if (equalPoints(br.points[br.points.length - 1], [endPoint.x, endPoint.y])) return;
                 br._points.push(endPoint);
                 break;
@@ -275,7 +279,12 @@ export default class DrawTool extends Tool {
         if (!(this.shape instanceof Polygon)) {
             socket.emit("Shape.Update", { shape: this.shape!.asDict(), redraw: true, temporary: true });
             if (this.shape.visionObstruction) {
-                if (oldPoints.length > 1) gameStore.deleteFromTriag({target: TriangulationTarget.VISION, points: oldPoints, standalone: false });
+                if (oldPoints.length > 1)
+                    gameStore.deleteFromTriag({
+                        target: TriangulationTarget.VISION,
+                        shape: oldPoints,
+                        standalone: false,
+                    });
                 gameStore.addToTriag({ target: TriangulationTarget.VISION, points: this.shape.points });
             }
         }
@@ -284,7 +293,11 @@ export default class DrawTool extends Tool {
     onMouseUp(event: MouseEvent) {
         if (!this.active || this.shape === null || this.shape instanceof Polygon) return;
         if (!event.altKey && this.useGrid) {
-            gameStore.deleteFromTriag({target: TriangulationTarget.VISION, points: this.shape.points, standalone: false });
+            gameStore.deleteFromTriag({
+                target: TriangulationTarget.VISION,
+                shape: this.shape,
+                standalone: false,
+            });
             this.shape.resizeToGrid();
             gameStore.addToTriag({ target: TriangulationTarget.VISION, points: this.shape.points });
         }

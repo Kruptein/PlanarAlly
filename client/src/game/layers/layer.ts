@@ -6,7 +6,7 @@ import { Shape } from "@/game/shapes/shape";
 import { createShapeFromDict } from "@/game/shapes/utils";
 import { gameStore } from "@/game/store";
 import { g2lx, g2ly } from "@/game/units";
-import { TriangulationTarget } from '../visibility/te/pa';
+import { TriangulationTarget } from "../visibility/te/pa";
 
 export class Layer {
     name: string;
@@ -98,8 +98,8 @@ export class Layer {
 
         const index = this.selection.indexOf(shape);
         if (index >= 0) this.selection.splice(index, 1);
-        if (lbI >= 0) gameStore.deleteFromTriag({ target: TriangulationTarget.VISION, points: shape.points, standalone: true });
-        if (mbI >= 0) gameStore.deleteFromTriag({ target: TriangulationTarget.MOVEMENT, points: shape.points, standalone: true });
+        if (lbI >= 0) gameStore.deleteFromTriag({ target: TriangulationTarget.VISION, shape, standalone: true });
+        if (mbI >= 0) gameStore.deleteFromTriag({ target: TriangulationTarget.MOVEMENT, shape, standalone: true });
         this.invalidate(!sync);
     }
 

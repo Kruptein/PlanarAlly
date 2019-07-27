@@ -1,6 +1,3 @@
-import Vue from "vue";
-import { Action, getModule, Module, Mutation, VuexModule } from "vuex-module-decorators";
-
 import { AssetList } from "@/core/comm/types";
 import { socket } from "@/game/api/socket";
 import { sendClientOptions } from "@/game/api/utils";
@@ -13,6 +10,9 @@ import { zoomValue } from "@/game/utils";
 import { BoundingVolume } from "@/game/visibility/bvh/bvh";
 import { addShapeToTriag, deleteShapeFromTriag, triangulate, TriangulationTarget } from "@/game/visibility/te/pa";
 import { rootStore } from "@/store";
+import Vue from "vue";
+import { Action, getModule, Module, Mutation, VuexModule } from "vuex-module-decorators";
+import { Shape } from "./shapes/shape";
 
 export interface GameState {
     boardInitialized: boolean;
@@ -40,7 +40,7 @@ class GameStore extends VuexModule implements GameState {
     roomName = "";
     roomCreator = "";
     invitationCode = "";
-    players: { id: number; name: string; }[] = [];
+    players: { id: number; name: string }[] = [];
 
     gridColour = "rgba(0, 0, 0, 1)";
     fowColour = "rgba(0, 0, 0, 1)";
@@ -228,16 +228,16 @@ class GameStore extends VuexModule implements GameState {
     }
 
     @Mutation
-    deleteFromTriag(data: {target: TriangulationTarget, points: number[][]; standalone: boolean}) {
+    deleteFromTriag(data: { target: TriangulationTarget; shape: Shape; standalone: boolean }) {
         if (this.visionMode === "triangle") {
-            deleteShapeFromTriag(data.target, data.points);
+            deleteShapeFromTriag(data.target, data.shape);
         } else if (data.standalone) {
             this.recalculateVision();
         }
     }
 
     @Mutation
-    addToTriag(data: {target: TriangulationTarget, points: number[][]}) {
+    addToTriag(data: { target: TriangulationTarget; points: number[][] }) {
         if (this.visionMode === "triangle") addShapeToTriag(data.target, data.points);
         else this.recalculateVision();
     }
@@ -424,7 +424,7 @@ class GameStore extends VuexModule implements GameState {
     }
 
     @Mutation
-    setPlayers(players: { id: number; name: string; }[]) {
+    setPlayers(players: { id: number; name: string }[]) {
         this.players = players;
     }
 
@@ -439,7 +439,7 @@ class GameStore extends VuexModule implements GameState {
     }
 
     @Mutation
-    setIsLocked(data: {isLocked: boolean, sync: boolean}) {
+    setIsLocked(data: { isLocked: boolean; sync: boolean }) {
         this.isLocked = data.isLocked;
         if (data.sync) {
             socket.emit("Room.Info.Set.Locked", this.isLocked);

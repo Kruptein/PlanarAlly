@@ -1,3 +1,4 @@
+import { Shape } from "@/game/shapes/shape";
 import { CDT } from "./cdt";
 import { ccw, cw, orientation, sideOfOrientedCircleP, ulp } from "./triag";
 
@@ -65,7 +66,7 @@ export class Triangle {
         return [
             (this.vertices[0]!.point![0] + this.vertices[1]!.point![0] + this.vertices[2]!.point![0]) / 3,
             (this.vertices[0]!.point![1] + this.vertices[1]!.point![1] + this.vertices[2]!.point![1]) / 3,
-        ]
+        ];
     }
 
     get dimension() {
@@ -102,7 +103,7 @@ export class Triangle {
     isInfinite(index?: number): boolean {
         if (index === undefined) {
             // return this.vertices.includes(_INFINITE_VERTEX);
-            return this.vertices.some((v) => v!.infinite);
+            return this.vertices.some(v => v!.infinite);
         } else {
             return this.vertices[ccw(index)]!.infinite || this.vertices[cw(index)]!.infinite;
         }
@@ -137,6 +138,7 @@ export class Vertex {
     infinite = false;
     private _point: Point | undefined;
     triangle: Triangle | undefined;
+    shapes: Set<Shape> = new Set();
 
     constructor(point?: Point) {
         this._point = point;

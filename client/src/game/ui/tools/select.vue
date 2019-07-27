@@ -19,7 +19,7 @@ import { gameStore } from "@/game/store";
 import { calculateDelta } from "@/game/ui/tools/utils";
 import { g2l, g2lr, g2lx, g2ly, g2lz, l2g, l2gz } from "@/game/units";
 import { getMouse } from "@/game/utils";
-import { TriangulationTarget } from '../../visibility/te/pa';
+import { TriangulationTarget } from "../../visibility/te/pa";
 
 export enum SelectOperations {
     Noop,
@@ -156,9 +156,15 @@ export default class SelectTool extends Tool {
                 // Actually apply the delta on all shapes
                 for (const sel of layer.selection) {
                     if (!sel.ownedBy()) continue;
-                    if (sel.visionObstruction) gameStore.deleteFromTriag({ target: TriangulationTarget.VISION, points: sel.points, standalone: false});
+                    if (sel.visionObstruction)
+                        gameStore.deleteFromTriag({
+                            target: TriangulationTarget.VISION,
+                            shape: sel,
+                            standalone: false,
+                        });
                     sel.refPoint = sel.refPoint.add(delta);
-                    if (sel.visionObstruction) gameStore.addToTriag({ target: TriangulationTarget.VISION, points: sel.points});
+                    if (sel.visionObstruction)
+                        gameStore.addToTriag({ target: TriangulationTarget.VISION, points: sel.points });
                     if (sel !== this.selectionHelper) {
                         socket.emit("Shape.Update", { shape: sel.asDict(), redraw: true, temporary: true });
                     }
@@ -167,11 +173,17 @@ export default class SelectTool extends Tool {
             } else if (this.mode === SelectOperations.Resize) {
                 for (const sel of layer.selection) {
                     if (!sel.ownedBy()) continue;
-                    if (sel.visionObstruction) gameStore.deleteFromTriag({ target: TriangulationTarget.VISION, points: sel.points, standalone: false});
+                    if (sel.visionObstruction)
+                        gameStore.deleteFromTriag({
+                            target: TriangulationTarget.VISION,
+                            shape: sel,
+                            standalone: false,
+                        });
                     sel.resize(this.resizePoint, mouse);
                     if (sel !== this.selectionHelper) {
                         // todo: think about calling deleteIntersectVertex directly on the corner point
-                        if (sel.visionObstruction) gameStore.addToTriag({ target: TriangulationTarget.VISION, points: sel.points});
+                        if (sel.visionObstruction)
+                            gameStore.addToTriag({ target: TriangulationTarget.VISION, points: sel.points });
                         socket.emit("Shape.Update", { shape: sel.asDict(), redraw: true, temporary: true });
                     }
                     layer.invalidate(false);
@@ -225,11 +237,23 @@ export default class SelectTool extends Tool {
                         return;
 
                     if (gameStore.useGrid && !e.altKey && !this.deltaChanged) {
-                        if (sel.visionObstruction) gameStore.deleteFromTriag({ target: TriangulationTarget.VISION, points: sel.points, standalone: false});
-                        if (sel.movementObstruction) gameStore.deleteFromTriag({ target: TriangulationTarget.MOVEMENT, points: sel.points, standalone: false});
+                        if (sel.visionObstruction)
+                            gameStore.deleteFromTriag({
+                                target: TriangulationTarget.VISION,
+                                shape: sel,
+                                standalone: false,
+                            });
+                        if (sel.movementObstruction)
+                            gameStore.deleteFromTriag({
+                                target: TriangulationTarget.MOVEMENT,
+                                shape: sel,
+                                standalone: false,
+                            });
                         sel.snapToGrid();
-                        if (sel.visionObstruction) gameStore.addToTriag({ target: TriangulationTarget.VISION, points: sel.points});
-                        if (sel.movementObstruction) gameStore.addToTriag({ target: TriangulationTarget.MOVEMENT, points: sel.points});
+                        if (sel.visionObstruction)
+                            gameStore.addToTriag({ target: TriangulationTarget.VISION, points: sel.points });
+                        if (sel.movementObstruction)
+                            gameStore.addToTriag({ target: TriangulationTarget.MOVEMENT, points: sel.points });
                     }
 
                     if (sel !== this.selectionHelper) {
@@ -239,11 +263,23 @@ export default class SelectTool extends Tool {
                 }
                 if (this.mode === SelectOperations.Resize) {
                     if (gameStore.useGrid && !e.altKey) {
-                        if (sel.visionObstruction) gameStore.deleteFromTriag({ target: TriangulationTarget.VISION, points: sel.points, standalone: false});
-                        if (sel.movementObstruction) gameStore.deleteFromTriag({ target: TriangulationTarget.MOVEMENT, points: sel.points, standalone: false});
+                        if (sel.visionObstruction)
+                            gameStore.deleteFromTriag({
+                                target: TriangulationTarget.VISION,
+                                shape: sel,
+                                standalone: false,
+                            });
+                        if (sel.movementObstruction)
+                            gameStore.deleteFromTriag({
+                                target: TriangulationTarget.MOVEMENT,
+                                shape: sel,
+                                standalone: false,
+                            });
                         sel.snapToGrid();
-                        if (sel.visionObstruction) gameStore.addToTriag({ target: TriangulationTarget.VISION, points: sel.points});
-                        if (sel.visionObstruction) gameStore.addToTriag({ target: TriangulationTarget.VISION, points: sel.points});
+                        if (sel.visionObstruction)
+                            gameStore.addToTriag({ target: TriangulationTarget.VISION, points: sel.points });
+                        if (sel.visionObstruction)
+                            gameStore.addToTriag({ target: TriangulationTarget.VISION, points: sel.points });
                     }
                     if (sel !== this.selectionHelper) {
                         socket.emit("Shape.Update", { shape: sel.asDict(), redraw: true, temporary: false });

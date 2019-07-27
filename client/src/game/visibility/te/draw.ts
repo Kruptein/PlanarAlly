@@ -66,7 +66,7 @@ function y(yy: number, local: boolean) {
 let I = 0;
 let J = 0;
 
-function drl(ctx: CanvasRenderingContext2D, from: number[], to: number[], constrained: boolean, local: boolean) {
+function drl(from: number[], to: number[], constrained: boolean, local: boolean) {
     // J++;
     // if (constrained) {
     //     I++;
@@ -74,6 +74,9 @@ function drl(ctx: CanvasRenderingContext2D, from: number[], to: number[], constr
     // } else {
     //     console.log(" ", from, to);
     // }
+    const dl = layerManager.getLayer("draw");
+    if (dl === undefined) return;
+    const ctx = dl.ctx;
     ctx.beginPath();
     ctx.strokeStyle = constrained ? "rgba(255, 255, 0, 0.30)" : "rgba(0, 0, 0, 0.30)";
     ctx.moveTo(x(from[0], local), y(from[1], local));
@@ -146,11 +149,11 @@ export function drawPolygonT(tds: TDS, local = true, clear = true, logs: 0 | 1 |
 
         ctx.moveTo(x(t.vertices[0]!.point![0], local), y(t.vertices[0]!.point![1], local));
         if (t.vertices[0] !== undefined && t.vertices[1] !== undefined)
-            drl(ctx, t.vertices[0]!.point!, t.vertices[1]!.point!, t.constraints[2], local);
+            drl(t.vertices[0]!.point!, t.vertices[1]!.point!, t.constraints[2], local);
         if (t.vertices[1] !== undefined && t.vertices[2] !== undefined)
-            drl(ctx, t.vertices[1]!.point!, t.vertices[2]!.point!, t.constraints[0], local);
+            drl(t.vertices[1]!.point!, t.vertices[2]!.point!, t.constraints[0], local);
         if (t.vertices[2] !== undefined && t.vertices[0] !== undefined)
-            drl(ctx, t.vertices[2]!.point!, t.vertices[0]!.point!, t.constraints[1], local);
+            drl(t.vertices[2]!.point!, t.vertices[0]!.point!, t.constraints[1], local);
     }
     if (logs > 0) {
         console.log(`Edges: ${I}/${J}`);
@@ -159,6 +162,7 @@ export function drawPolygonT(tds: TDS, local = true, clear = true, logs: 0 | 1 |
 }
 
 (<any>window).DC = drawPoint;
+(<any>window).DL = drl;
 (<any>window).DP = drawPolygon;
 (<any>window).DPL = drawPolygonL;
 (<any>window).DPT = drawPolygonT;

@@ -2,6 +2,7 @@ import { layerManager } from "@/game/layers/manager";
 import { gameStore } from "@/game/store";
 
 import { CDT } from "./cdt";
+import { visibilityStore } from '../store';
 
 export let PA_CDT = {
     vision: new CDT(),
@@ -12,7 +13,7 @@ export function triangulate(target: "vision" | "movement", partial: boolean = fa
     const cdt = new CDT();
 
     let shapes;
-    if (target === "vision") shapes = gameStore.visionBlockers;
+    if (target === "vision") shapes = visibilityStore.visionBlockers;
     else shapes = gameStore.movementblockers;
 
     for (const sh of shapes) {

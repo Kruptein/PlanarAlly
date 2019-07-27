@@ -1,10 +1,7 @@
-import { GlobalPoint } from "@/game/geom";
 import { GridLayer } from "@/game/layers/grid";
 import { Layer } from "@/game/layers/layer";
-import { Asset } from "@/game/shapes/asset";
 import { Shape } from "@/game/shapes/shape";
 import { gameStore } from "@/game/store";
-import { l2gx, l2gy, l2gz } from "@/game/units";
 
 class LayerManager {
     layers: Layer[] = [];
@@ -107,32 +104,6 @@ class LayerManager {
     invalidateLight() {
         for (let i = this.layers.length - 1; i >= 0; i--)
             if (this.layers[i].isVisionLayer) this.layers[i].invalidate(true);
-    }
-
-    dropAsset(event: DragEvent) {
-        const layer = this.getLayer();
-        if (layer === undefined || event === null || event.dataTransfer === null) return;
-        const image = document.createElement("img");
-        image.src = event.dataTransfer.getData("text/plain");
-        const asset = new Asset(
-            image,
-            new GlobalPoint(l2gx(event.clientX), l2gy(event.clientY)),
-            l2gz(image.width),
-            l2gz(image.height),
-        );
-        asset.src = new URL(image.src).pathname;
-
-        if (gameStore.useGrid) {
-            const gs = gameStore.gridSize;
-            asset.refPoint = new GlobalPoint(
-                Math.round(asset.refPoint.x / gs) * gs,
-                Math.round(asset.refPoint.y / gs) * gs,
-            );
-            asset.w = Math.max(Math.round(asset.w / gs) * gs, gs);
-            asset.h = Math.max(Math.round(asset.h / gs) * gs, gs);
-        }
-
-        layer.addShape(asset, true);
     }
 }
 

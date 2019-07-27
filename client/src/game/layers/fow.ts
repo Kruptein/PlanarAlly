@@ -8,6 +8,7 @@ import { gameStore } from "@/game/store";
 import { g2l, g2lr, g2lx, g2ly, g2lz, getUnitDistance } from "@/game/units";
 import { getFogColour } from "@/game/utils";
 import { computeVisibility } from "../visibility/te/te";
+import { visibilityStore } from "../visibility/store";
 
 export class FOWLayer extends Layer {
     isVisionLayer: boolean = true;
@@ -91,7 +92,7 @@ export class FOWLayer extends Layer {
                 const auraCircle = new Circle(center, auraLength);
                 if (!auraCircle.visibleInCanvas(ctx.canvas)) continue;
 
-                if (gameStore.visionMode === "bvh") {
+                if (visibilityStore.visionMode === "bvh") {
                     let lastArcAngle = -1;
 
                     const path = new Path2D();
@@ -112,7 +113,7 @@ export class FOWLayer extends Layer {
 
                         // Check if there is a hit with one of the nearby light blockers.
                         const lightRay = Ray.fromPoints(center, anglePoint);
-                        const hitResult = gameStore.BV.intersect(lightRay);
+                        const hitResult = visibilityStore.BV.intersect(lightRay);
 
                         if (angle === 0) firstPoint = hitResult.hit ? hitResult.intersect : anglePoint;
 

@@ -10,8 +10,9 @@ import { layerManager } from "@/game/layers/manager";
 import { BoundingRect } from "@/game/shapes/boundingrect";
 import { gameStore } from "@/game/store";
 import { g2l, g2lr, g2lx, g2ly, g2lz } from "@/game/units";
+import { visibilityStore } from "../visibility/store";
 
-export abstract class Shape {
+export abstract class Shape implements IShape {
     // Used to create class instance from server shape data
     abstract readonly type: string;
     // The unique ID of this shape
@@ -115,16 +116,16 @@ export abstract class Shape {
 
     checkVisionSources(recalculate = true) {
         const self = this;
-        const obstructionIndex = gameStore.visionBlockers.indexOf(this.uuid);
+        const obstructionIndex = visibilityStore.visionBlockers.indexOf(this.uuid);
         let update = false;
         if (this.visionObstruction && obstructionIndex === -1) {
-            gameStore.visionBlockers.push(this.uuid);
+            visibilityStore.visionBlockers.push(this.uuid);
             update = true;
         } else if (!this.visionObstruction && obstructionIndex >= 0) {
-            gameStore.visionBlockers.splice(obstructionIndex, 1);
+            visibilityStore.visionBlockers.splice(obstructionIndex, 1);
             update = true;
         }
-        if (update && recalculate) gameStore.recalculateVision();
+        if (update && recalculate) visibilityStore.recalculateVision();
 
         // Check if the visionsource auras are in the gameManager
         this.auras.forEach(au => {
@@ -156,7 +157,7 @@ export abstract class Shape {
             gameStore.movementblockers.splice(obstructionIndex, 1);
             update = true;
         }
-        if (update && recalculate) gameStore.recalculateMovement();
+        if (update && recalculate) visibilityStore.recalculateMovement();
     }
 
     setIsToken(isToken: boolean) {
@@ -289,7 +290,11 @@ export abstract class Shape {
 
     ownedBy(username?: string) {
         if (username === undefined) username = gameStore.username;
-        return gameStore.IS_DM || this._owners.includes(username) || (gameStore.FAKE_PLAYER && gameStore.activeTokens.includes(this.uuid));
+        return (
+            gameStore.IS_DM ||
+            this._owners.includes(username) ||
+            (gameStore.FAKE_PLAYER && gameStore.activeTokens.includes(this.uuid))
+        );
     }
 
     addOwner(owner: string) {

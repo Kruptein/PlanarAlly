@@ -116,8 +116,8 @@
                     <label for="visionMode">Vision Mode:</label>
                     <div>
                         <select id="visionMode" @change="changeVisionMode">
-                            <option :selected="$store.state.game.visionMode === 'bvh'">BVH</option>
-                            <option :selected="$store.state.game.visionMode === 'triangle'">Triangle</option>
+                            <option :selected="$store.state.visibility.visionMode === 'bvh'">BVH</option>
+                            <option :selected="$store.state.visibility.visionMode === 'triangle'">Triangle</option>
                         </select>
                     </div>
                 </div>
@@ -163,6 +163,7 @@ import { socket } from "@/game/api/socket";
 import { EventBus } from "@/game/event-bus";
 import { gameStore } from "@/game/store";
 import { layerManager } from "../layers/manager";
+import { visibilityStore } from '../visibility/store';
 
 @Component({
     components: {
@@ -266,9 +267,9 @@ export default class DmSettings extends Vue {
     changeVisionMode(event: { target: HTMLSelectElement }) {
         const value = event.target.value.toLowerCase();
         if (value !== "bvh" && value !== "triangle") return;
-        gameStore.setVisionMode({ mode: value, sync: true });
-        gameStore.recalculateVision();
-        gameStore.recalculateMovement();
+        visibilityStore.setVisionMode({ mode: value, sync: true });
+        visibilityStore.recalculateVision();
+        visibilityStore.recalculateMovement();
         layerManager.invalidate();
     }
     handleClick(event: { target: HTMLElement }) {

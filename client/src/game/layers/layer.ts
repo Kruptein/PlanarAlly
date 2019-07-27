@@ -6,6 +6,7 @@ import { Shape } from "@/game/shapes/shape";
 import { createShapeFromDict } from "@/game/shapes/utils";
 import { gameStore } from "@/game/store";
 import { g2lx, g2ly } from "@/game/units";
+import { visibilityStore } from "../visibility/store";
 
 export class Layer {
     name: string;
@@ -78,12 +79,12 @@ export class Layer {
 
         if (sync) socket.emit("Shape.Remove", { shape: shape.asDict(), temporary });
         const lsI = gameStore.visionSources.findIndex(ls => ls.shape === shape.uuid);
-        const lbI = gameStore.visionBlockers.findIndex(ls => ls === shape.uuid);
+        const lbI = visibilityStore.visionBlockers.findIndex(ls => ls === shape.uuid);
 
         const mbI = gameStore.movementblockers.findIndex(ls => ls === shape.uuid);
         const anI = gameStore.annotations.findIndex(ls => ls === shape.uuid);
         if (lsI >= 0) gameStore.visionSources.splice(lsI, 1);
-        if (lbI >= 0) gameStore.visionBlockers.splice(lbI, 1);
+        if (lbI >= 0) visibilityStore.visionBlockers.splice(lbI, 1);
         if (mbI >= 0) gameStore.movementblockers.splice(mbI, 1);
         if (anI >= 0) gameStore.annotations.splice(anI, 1);
 
@@ -97,8 +98,8 @@ export class Layer {
 
         const index = this.selection.indexOf(shape);
         if (index >= 0) this.selection.splice(index, 1);
-        if (lbI >= 0) gameStore.recalculateVision();
-        if (mbI >= 0) gameStore.recalculateMovement();
+        if (lbI >= 0) visibilityStore.recalculateVision();
+        if (mbI >= 0) visibilityStore.recalculateMovement();
         this.invalidate(!sync);
     }
 

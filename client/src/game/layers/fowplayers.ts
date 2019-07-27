@@ -5,6 +5,7 @@ import { Settings } from "@/game/settings";
 import { gameStore } from "@/game/store";
 import { g2l, g2lr, g2lx, g2ly } from "@/game/units";
 import { computeVisibility } from "../visibility/te/te";
+import { visibilityStore } from "../visibility/store";
 
 export class FOWPlayersLayer extends Layer {
     isVisionLayer: boolean = true;
@@ -38,7 +39,7 @@ export class FOWPlayersLayer extends Layer {
                 if (token === undefined) continue;
                 const center = token.center();
                 const lcenter = g2l(center);
-                if (gameStore.visionMode === "bvh") {
+                if (visibilityStore.visionMode === "bvh") {
                     ctx.beginPath();
                     let lastArcAngle = -1;
 
@@ -47,7 +48,7 @@ export class FOWPlayersLayer extends Layer {
                         const sin = Math.sin(angle);
                         // Check if there is a hit with one of the nearby light blockers.
                         const lightRay = new Ray(center, new Vector(cos, sin));
-                        const hitResult = gameStore.BV.intersect(lightRay);
+                        const hitResult = visibilityStore.BV.intersect(lightRay);
 
                         // We can move on to the next angle if nothing was hit.
                         if (!hitResult.hit) {

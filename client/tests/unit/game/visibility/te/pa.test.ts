@@ -1,5 +1,5 @@
-import Vuex from "vuex";
-import { createLocalVue } from "@vue/test-utils";
+// import Vuex from "vuex";
+// import { createLocalVue } from "@vue/test-utils";
 import { CDT } from "@/game/visibility/te/cdt";
 import { PA_CDT, deleteShapeFromTriag, TriangulationTarget } from "@/game/visibility/te/pa";
 import { Shape } from '@/game/shapes/shape';
@@ -39,6 +39,6 @@ describe("Remove TRIAG test suite.", () => {
         expect(cdt.tds.vertices).toHaveLength(5);
         cdt.tds.numberOfEdges();
         deleteShapeFromTriag(TriangulationTarget.VISION, shape);
-        expect(cdt.tds.vertices).toHaveLength(0);
+        expect(cdt.tds.numberOfVertices(false)).toBe(0);
     });
 });

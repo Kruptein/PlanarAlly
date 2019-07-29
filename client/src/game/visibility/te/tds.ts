@@ -136,6 +136,18 @@ export class Triangle {
 
         return t > 0 && s + t < A * sign;
     }
+
+    cwPermute() {
+        this.vertices.push(this.vertices.shift()!);
+        this.neighbours.push(this.neighbours.shift()!);
+        this.constraints.push(this.constraints.shift()!);
+    }
+
+    ccwPermute() {
+        this.vertices.unshift(this.vertices.pop()!);
+        this.neighbours.unshift(this.neighbours.pop()!);
+        this.constraints.unshift(this.constraints.pop()!);
+    }
 }
 
 export class Vertex {
@@ -598,6 +610,11 @@ export class TDS {
         return a;
     }
 
+    numberOfVertices(includeInfinity: boolean): number {
+        // -1 for the infinity vertex
+        return this.vertices.length - (includeInfinity ? 0 : 1);
+    }
+
     insertDimUp(w: Vertex = new Vertex(), orient: boolean = true): Vertex {
         const v = this.createVertex();
         this.dimension++;
@@ -876,6 +893,48 @@ export class TDS {
                 }
             }
         }
+    }
+
+    removeDimDown(v: Vertex) {
+        let f: Triangle;
+        switch (this.dimension) {
+            case -1: {
+                this.deleteTriangle(v.triangle!);
+                break;
+            }
+            case 0: {
+                f = v.triangle!;
+                f.neighbours[0]!.neighbours[0] = null;
+                this.deleteTriangle(v.triangle!);
+                break;
+            }
+            case 1:
+            case 2: {
+                const toDelete: Triangle[] = [];
+                const toDowngrade: Triangle[] = [];
+                for (const triangle of this.triangles) {
+                    if (!triangle.hasVertex(v)) toDelete.push(triangle);
+                    else toDowngrade.push(triangle);
+                }
+                for (const down of toDowngrade) {
+                    const j = down.indexV(v);
+                    if (this.dimension === 1) {
+                        if (j === 0) down.reorient();
+                        down.vertices[1] = null;
+                        down.neighbours[1] = null;
+                    } else {
+                        if (j === 0) down.cwPermute();
+                        else if (j === 1) down.ccwPermute();
+                        down.vertices[2] = null;
+                        down.neighbours[2] = null;
+                    }
+                    down.vertices[0]!.triangle = down;
+                }
+                for (const del of toDelete) this.deleteTriangle(del);
+            }
+        }
+        this.deleteVertex(v);
+        this.dimension--;
     }
 }
 

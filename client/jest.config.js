@@ -10,7 +10,7 @@ module.exports = {
         "^@/(.*)$": "<rootDir>/src/$1",
     },
     snapshotSerializers: ["jest-serializer-vue"],
-    testMatch: ["**/tests/unit/**/*.spec.(js|ts)|**/__tests__/*.(js|ts)"],
+    testMatch: ["**/tests/unit/**/*.test.(js|ts)|**/__tests__/*.(js|ts)"],
     testURL: "http://localhost/",
     watchPlugins: ["jest-watch-typeahead/filename", "jest-watch-typeahead/testname"],
     globals: {

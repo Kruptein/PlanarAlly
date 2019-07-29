@@ -237,13 +237,18 @@ export class CDT {
         return vi;
     }
 
+    // This is the Constrained Delaunay version
     removeVertex(v: Vertex) {
-        if (this.tds.dimension <= 1) this.remove1D(v);
+        if (this.tds.dimension <= 1) this.removeConstrainedVertex(v);
         else this.remove2D(v);
     }
 
-    remove1D(v: Vertex) {
-        console.warn("NOT IMPLEMENTED");
+    // This is the normal Constrained version
+    private removeConstrainedVertex(v: Vertex) {
+        const vertexCount = this.tds.numberOfVertices(false);
+        if (vertexCount === 1 || vertexCount === 2 ) this.tds.removeDimDown(v);
+        else if (this.tds.dimension === 1) console.warn("NOT IMPLEMENTED.");// this.remove1D(v)
+        else this.remove2D(v);
     }
 
     remove2D(v: Vertex) {
@@ -281,48 +286,6 @@ export class CDT {
             }
         }
         return dim1;
-    }
-
-    removeDimDown(v: Vertex) {
-        let f: Triangle;
-        switch (this.tds.dimension) {
-            case -1: {
-                this.tds.deleteTriangle(v.triangle!);
-                break;
-            }
-            case 0: {
-                f = v.triangle!;
-                f.neighbours[0]!.neighbours[0] = null;
-                this.tds.deleteTriangle(v.triangle!);
-                break;
-            }
-            case 1:
-            case 2: {
-                const toDelete: Triangle[] = [];
-                const toDowngrade: Triangle[] = [];
-                for (const triangle of this.tds.triangles) {
-                    if (!triangle.hasVertex(v)) toDelete.push(triangle);
-                    else toDowngrade.push(triangle);
-                }
-                for (const down of toDowngrade) {
-                    const j = down.indexV(v);
-                    if (this.tds.dimension === 1) {
-                        if (j === 0) down.reorient();
-                        down.vertices[1] = null;
-                        down.neighbours[1] = null;
-                    } else {
-                        if (j === 0) down.cwPermute();
-                        else if (j === 1) down.ccwPermute();
-                        down.vertices[2] = null;
-                        down.neighbours[2] = null;
-                    }
-                    down.vertices[0]!.triangle = down;
-                }
-                for (const del of toDelete) this.tds.deleteTriangle(del);
-            }
-        }
-        this.tds.deleteVertex(v);
-        this.tds.dimension--;
     }
 
     updateConstraints(edgeList: Edge[]) {

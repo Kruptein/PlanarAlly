@@ -1,4 +1,7 @@
 // vue.config.js
+
+const CircularDependencyPlugin = require('circular-dependency-plugin');
+
 module.exports = {
     assetsDir: "static",
     outputDir: "../server",
@@ -9,5 +12,13 @@ module.exports = {
                 vue$: "vue/dist/vue.esm.js", // 'vue/dist/vue.common.js' for webpack 1
             },
         },
+        plugins: [
+            new CircularDependencyPlugin({
+                exclude: /a\.js|node_modules/,
+                failOnError: true,
+                allowAsyncCycles: false,
+                cwd: process.cwd(),
+            })
+        ]
     },
 };

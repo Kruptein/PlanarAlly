@@ -5,6 +5,7 @@ import { gameStore } from "@/game/store";
 import { PA_CDT } from "@/game/visibility/te/pa";
 import { Point, Sign, Triangle } from "@/game/visibility/te/tds";
 import { ccw, cw, intersection, orientation } from "@/game/visibility/te/triag";
+import { visibilityStore } from "@/game/visibility/store";
 
 // First go through each shape in the selection and see if the delta has to be truncated due to movement blockers
 
@@ -12,7 +13,7 @@ import { ccw, cw, intersection, orientation } from "@/game/visibility/te/triag";
 // And it does now, so hey ¯\_(ツ)_/¯
 export function calculateDelta(delta: Vector, sel: Shape, done?: string[]) {
     if (delta.x === 0 && delta.y === 0) return delta;
-    if (gameStore.visionMode === "bvh") {
+    if (visibilityStore.visionMode === "bvh") {
         if (done === undefined) done = [];
         const ogSelBBox = sel.getBoundingBox();
         const newSelBBox = ogSelBBox.offset(delta);

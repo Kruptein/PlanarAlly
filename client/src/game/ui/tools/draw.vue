@@ -62,6 +62,7 @@ import { gameStore } from "@/game/store";
 import { getUnitDistance, l2g } from "@/game/units";
 import { equalPoints, getMouse } from "@/game/utils";
 import { PA_CDT, TriangulationTarget } from "@/game/visibility/te/pa";
+import { visibilityStore } from '../../visibility/store';
 
 @Component({
     components: {
@@ -280,12 +281,12 @@ export default class DrawTool extends Tool {
             socket.emit("Shape.Update", { shape: this.shape!.asDict(), redraw: true, temporary: true });
             if (this.shape.visionObstruction) {
                 if (oldPoints.length > 1)
-                    gameStore.deleteFromTriag({
+                    visibilityStore.deleteFromTriag({
                         target: TriangulationTarget.VISION,
                         shape: oldPoints,
                         standalone: false,
                     });
-                gameStore.addToTriag({ target: TriangulationTarget.VISION, points: this.shape.points });
+                visibilityStore.addToTriag({ target: TriangulationTarget.VISION, points: this.shape.points });
             }
         }
         layer.invalidate(false);
@@ -293,13 +294,13 @@ export default class DrawTool extends Tool {
     onMouseUp(event: MouseEvent) {
         if (!this.active || this.shape === null || this.shape instanceof Polygon) return;
         if (!event.altKey && this.useGrid) {
-            gameStore.deleteFromTriag({
+            visibilityStore.deleteFromTriag({
                 target: TriangulationTarget.VISION,
                 shape: this.shape,
                 standalone: false,
             });
             this.shape.resizeToGrid();
-            gameStore.addToTriag({ target: TriangulationTarget.VISION, points: this.shape.points });
+            visibilityStore.addToTriag({ target: TriangulationTarget.VISION, points: this.shape.points });
         }
         this.finaliseShape();
     }
@@ -317,8 +318,8 @@ export default class DrawTool extends Tool {
 
     private finaliseShape() {
         if (this.shape === null) return;
-        if (this.shape.visionObstruction) gameStore.recalculateVision();
-        if (this.shape.movementObstruction) gameStore.recalculateMovement();
+        if (this.shape.visionObstruction) visibilityStore.recalculateVision();
+        if (this.shape.movementObstruction) visibilityStore.recalculateMovement();
         socket.emit("Shape.Update", { shape: this.shape!.asDict(), redraw: true, temporary: false });
         this.active = false;
     }

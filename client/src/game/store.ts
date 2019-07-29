@@ -1,3 +1,7 @@
+import Vue from "vue";
+import { rootStore } from "@/store";
+import { Action, getModule, Module, Mutation, VuexModule } from "vuex-module-decorators";
+
 import { AssetList } from "@/core/comm/types";
 import { socket } from "@/game/api/socket";
 import { sendClientOptions } from "@/game/api/utils";
@@ -7,12 +11,6 @@ import { GlobalPoint } from "@/game/geom";
 import { layerManager } from "@/game/layers/manager";
 import { g2l, l2g } from "@/game/units";
 import { zoomValue } from "@/game/utils";
-import { BoundingVolume } from "@/game/visibility/bvh/bvh";
-import { addShapeToTriag, deleteShapeFromTriag, triangulate, TriangulationTarget } from "@/game/visibility/te/pa";
-import { rootStore } from "@/store";
-import Vue from "vue";
-import { Action, getModule, Module, Mutation, VuexModule } from "vuex-module-decorators";
-import { Shape } from "./shapes/shape";
 
 export interface GameState {
     boardInitialized: boolean;
@@ -59,15 +57,11 @@ class GameStore extends VuexModule implements GameState {
     locationName = "";
 
     visionSources: { shape: string; aura: string }[] = [];
-    visionBlockers: string[] = [];
     annotations: string[] = [];
     movementblockers: string[] = [];
     ownedtokens: string[] = [];
     _activeTokens: string[] = [];
 
-    BV = Object.freeze(new BoundingVolume([]));
-
-    visionMode: "bvh" | "triangle" = "bvh";
     drawTEContour = false;
     visionRangeMin = 1640;
     visionRangeMax = 3281;
@@ -109,12 +103,6 @@ class GameStore extends VuexModule implements GameState {
         if (zoom > 1) zoom = 1;
         this.zoomDisplay = zoom;
         layerManager.invalidate();
-    }
-
-    @Mutation
-    setVisionMode(data: { mode: "bvh" | "triangle"; sync: boolean }) {
-        this.visionMode = data.mode;
-        if (data.sync) socket.emit("Location.Options.Set", { vision_mode: data.mode });
     }
 
     @Mutation
@@ -217,34 +205,6 @@ class GameStore extends VuexModule implements GameState {
     resetLayerInfo() {
         this.layers = [];
         this.selectedLayerIndex = -1;
-    }
-
-    @Mutation
-    recalculateVision() {
-        if (this.boardInitialized) {
-            if (this.visionMode === "triangle") triangulate(TriangulationTarget.VISION);
-            else this.BV = Object.freeze(new BoundingVolume(this.visionBlockers));
-        }
-    }
-
-    @Mutation
-    deleteFromTriag(data: { target: TriangulationTarget; shape: Shape; standalone: boolean }) {
-        if (this.visionMode === "triangle") {
-            deleteShapeFromTriag(data.target, data.shape);
-        } else if (data.standalone) {
-            this.recalculateVision();
-        }
-    }
-
-    @Mutation
-    addToTriag(data: { target: TriangulationTarget; points: number[][] }) {
-        if (this.visionMode === "triangle") addShapeToTriag(data.target, data.points);
-        else this.recalculateVision();
-    }
-
-    @Mutation
-    recalculateMovement() {
-        if (this.boardInitialized && this.visionMode === "triangle") triangulate(TriangulationTarget.MOVEMENT);
     }
 
     @Mutation
@@ -449,13 +409,10 @@ class GameStore extends VuexModule implements GameState {
     @Action
     clear() {
         (<any>this.context.state).visionSources = [];
-        (<any>this.context.state).visionBlockers = [];
         (<any>this.context.state).ownedtokens = [];
         (<any>this.context.state).annotations = [];
         (<any>this.context.state).movementblockers = [];
         (<any>this.context.state).notes = [];
-        this.context.commit("recalculateVision");
-        this.context.commit("recalculateMovement");
     }
 }
 

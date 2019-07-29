@@ -3,7 +3,6 @@
     "target": "es6",
     "module": "commonjs",
     "strict": true,
-    "jsx": "preserve",
     "importHelpers": true,
     "moduleResolution": "node",
     "experimentalDecorators": true,
@@ -31,10 +30,8 @@
   },
   "include": [
     "src/**/*.ts",
-    "src/**/*.tsx",
     "src/**/*.vue",
-    "test/**/*.ts",
-    "test/**/*.tsx"
+    "tests/**/*.ts"
   ],
   "exclude": [
     "node_modules"

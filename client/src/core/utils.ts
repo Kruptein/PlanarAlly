@@ -1,7 +1,5 @@
 import Vue from "vue";
 
-import { app } from "@/main";
-
 // Reference: https://stackoverflow.com/questions/105034/create-guid-uuid-in-javascript
 export function uuidv4() {
     return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, c => {
@@ -95,11 +93,3 @@ export class OrderedMap<K, V> {
     }
 }
 
-export function getComponent<T extends Vue>(): T {
-    return <T>app.$children[0].$refs.activeComponent;
-}
-
-export function getRef<T extends Vue>(ref: string): T {
-    const active = <Vue>app.$children[0].$refs.activeComponent;
-    return <T>active.$refs[ref];
-}

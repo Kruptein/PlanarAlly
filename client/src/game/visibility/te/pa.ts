@@ -10,13 +10,12 @@ export enum TriangulationTarget {
     VISION = "vision",
     MOVEMENT = "movement",
 }
+import { visibilityStore } from '../store';
 
 export let PA_CDT = {
     vision: new CDT(),
     movement: new CDT(),
 };
-
-export let POINT_VERTEX_MAP: { [key: string]: Vertex } = {};
 
 export function triangulate(target: TriangulationTarget) {
     console.warn(`RETRIANGULATING ${target}`);
@@ -24,7 +23,7 @@ export function triangulate(target: TriangulationTarget) {
     const cdt = new CDT();
 
     let shapes;
-    if (target === "vision") shapes = gameStore.visionBlockers;
+    if (target === "vision") shapes = visibilityStore.visionBlockers;
     else shapes = gameStore.movementblockers;
 
     for (const sh of shapes) {
@@ -61,7 +60,6 @@ export function triangulate(target: TriangulationTarget) {
     cdt.insertConstraint([-1e8, 1e11], [-1e8, 1e8]);
     PA_CDT[target] = cdt;
     (<any>window).CDT = PA_CDT;
-    (<any>window).PVM = POINT_VERTEX_MAP;
     console.timeEnd("TRI");
 }
 

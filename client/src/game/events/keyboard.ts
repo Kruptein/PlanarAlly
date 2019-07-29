@@ -10,6 +10,7 @@ import { gameStore } from "@/game/store";
 import Tools from "@/game/ui/tools/tools.vue";
 import { calculateDelta } from "@/game/ui/tools/utils";
 import { TriangulationTarget } from "../visibility/te/pa";
+import { visibilityStore } from "../visibility/store";
 
 export function onKeyUp(event: KeyboardEvent) {
     if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement) {
@@ -59,14 +60,14 @@ export function onKeyDown(event: KeyboardEvent) {
                 for (const sel of selection) {
                     if ((<any>getRef<Tools>("tools").$refs.selectTool).selectionHelper.uuid === sel.uuid) continue;
                     if (sel.movementObstruction)
-                        gameStore.deleteFromTriag({
+                        visibilityStore.deleteFromTriag({
                             target: TriangulationTarget.VISION,
                             shape: sel,
                             standalone: false,
                         });
                     sel.refPoint = sel.refPoint.add(delta);
                     if (sel.movementObstruction)
-                        gameStore.addToTriag({ target: TriangulationTarget.VISION, points: sel.points });
+                    visibilityStore.addToTriag({ target: TriangulationTarget.VISION, points: sel.points });
                     // todo: Fix again
                     // if (sel.refPoint.x % gridSize !== 0 || sel.refPoint.y % gridSize !== 0) sel.snapToGrid();
                     socket.emit("Shape.Position.Update", { shape: sel.asDict(), redraw: true, temporary: false });

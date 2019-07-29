@@ -247,14 +247,40 @@ export class CDT {
     }
 
     remove2D(v: Vertex) {
-        // if (testDimDown(v)) -> this.tds.removeTestDimDown(v)
-        // else
-        const hole: Edge[] = [];
-        this.tds.makeHole(v, hole);
-        const shell: Edge[] = [...hole];
-        this.tds.fillHoleDelaunay(hole);
-        this.updateConstraints(shell);
-        this.tds.deleteVertex(v);
+        if (this.testDimDown(v)) console.log(2);//this.tds.removeTestDimDown(v)
+        else {
+            const hole: Edge[] = [];
+            this.tds.makeHole(v, hole);
+            const shell: Edge[] = [...hole];
+            this.tds.fillHoleDelaunay(hole);
+            this.updateConstraints(shell);
+            this.tds.deleteVertex(v);
+        }
+    }
+
+    testDimDown(v: Vertex): boolean {
+        let dim1 = true;
+        for (const triangle of this.tds.triangles) {
+            if (triangle.isInfinite()) continue;
+            if (!triangle.hasVertex(v)) {
+                dim1 = false;
+                break;
+            }
+        }
+        const fc = new FaceCirculator(v, null);
+        while (fc.t!.isInfinite()) fc.next();
+        fc.setDone();
+        const start = fc.t!;
+        let iv = start.indexV(v);
+        const p = start.vertices[cw(iv)]!.point!;
+        const q = start.vertices[ccw(iv)]!.point!;
+        while (dim1 && fc.next()) {
+            iv = fc.t!.indexV(v);
+            if (fc.t!.vertices[ccw(iv)] !== this.tds.infiniteVertex) {
+                dim1 = dim1 && orientation(p, q, fc.t!.vertices[ccw(iv)]!.point!) === Sign.COLLINEAR;
+            }
+        }
+        return dim1;
     }
 
     updateConstraints(edgeList: Edge[]) {

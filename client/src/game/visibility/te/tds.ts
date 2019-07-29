@@ -92,6 +92,10 @@ export class Triangle {
         this.constraints = [this.constraints[1], this.constraints[0], this.constraints[2]];
     }
 
+    hasVertex(v: Vertex): boolean {
+        return this.vertices.includes(v);
+    }
+
     indexV(v: Vertex): number {
         return this.vertices.indexOf(v);
     }
@@ -309,6 +313,11 @@ export class FaceCirculator {
         return this.v === this._v && this.t === this._t;
     }
 
+    setDone() {
+        this._v = this.v;
+        this._t = this.t;
+    }
+
     prev() {
         const i = this.t!.indexV(this.v!);
         this.t = this.t!.neighbours[cw(i)];
@@ -449,6 +458,10 @@ export class Edge {
         this.first = first;
         this.second = second;
     }
+
+    toString(): string {
+        return `${this.first!.vertices[this.second === 1 ? 0 : 1]!.point} - ${this.first!.vertices[this.second === 1 ? 2 : 1]!.point}`;
+    }
 }
 
 export enum LocateType {
@@ -552,6 +565,37 @@ export class TDS {
         const ei = new EdgeIterator(this);
         while (ei.valid) ei.next();
         return ei.collect();
+    }
+
+    numberOfEdges(): string {
+        let i = 0;
+        let j = 0;
+        const ei = new EdgeIterator(this);
+        let a = '';
+        while (ei.valid) {
+            ei.next();
+            ei.collect();
+        }
+        ei.collect();
+        do {
+            const fromP = ei.edge.first!.vertices[ccw(ei.edge.second)]!.point!;
+            const toP = ei.edge.first!.vertices[cw(ei.edge.second)]!.point!;
+            // if (fromP[0] === -Infinity || toP[0] === -Infinity) {
+            //     ei.next();
+            //     continue;
+            // }
+            j++;
+            a += `${fromP} > ${toP}\n`;
+            if (ei.edge.first!.constraints[ei.edge.second]) {
+                i++;
+            }
+            do {
+                ei.next();
+                ei.collect();
+            } while (ei.valid);
+        } while (ei.pos !== null);
+        a = `${i}/${j}\n${a}`;
+        return a;
     }
 
     insertDimUp(w: Vertex = new Vertex(), orient: boolean = true): Vertex {

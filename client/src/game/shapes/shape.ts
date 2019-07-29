@@ -12,8 +12,9 @@ import { gameStore } from "@/game/store";
 import { g2l, g2lr, g2lx, g2ly, g2lz } from "@/game/units";
 import { TriangulationTarget } from "../visibility/te/pa";
 import { Vertex } from "../visibility/te/tds";
+import { visibilityStore } from "../visibility/store";
 
-export abstract class Shape {
+export abstract class Shape implements IShape {
     // Used to create class instance from server shape data
     abstract readonly type: string;
     // The unique ID of this shape
@@ -119,17 +120,17 @@ export abstract class Shape {
     checkVisionSources(recalculate = true): boolean {
         let alteredVision = false;
         const self = this;
-        const obstructionIndex = gameStore.visionBlockers.indexOf(this.uuid);
+        const obstructionIndex = visibilityStore.visionBlockers.indexOf(this.uuid);
         if (this.visionObstruction && obstructionIndex === -1) {
-            gameStore.visionBlockers.push(this.uuid);
+            visibilityStore.visionBlockers.push(this.uuid);
             if (recalculate) {
-                gameStore.addToTriag({ target: TriangulationTarget.VISION, points: this.points });
+                visibilityStore.addToTriag({ target: TriangulationTarget.VISION, points: this.points });
                 alteredVision = true;
             }
         } else if (!this.visionObstruction && obstructionIndex >= 0) {
-            gameStore.visionBlockers.splice(obstructionIndex, 1);
+            visibilityStore.visionBlockers.splice(obstructionIndex, 1);
             if (recalculate) {
-                gameStore.deleteFromTriag({
+                visibilityStore.deleteFromTriag({
                     target: TriangulationTarget.VISION,
                     shape: this,
                     standalone: true,
@@ -165,13 +166,13 @@ export abstract class Shape {
         if (this.movementObstruction && obstructionIndex === -1) {
             gameStore.movementblockers.push(this.uuid);
             if (recalculate) {
-                gameStore.addToTriag({ target: TriangulationTarget.MOVEMENT, points: this.points });
+                visibilityStore.addToTriag({ target: TriangulationTarget.MOVEMENT, points: this.points });
                 alteredMovement = true;
             }
         } else if (!this.movementObstruction && obstructionIndex >= 0) {
             gameStore.movementblockers.splice(obstructionIndex, 1);
             if (recalculate) {
-                gameStore.deleteFromTriag({
+                visibilityStore.deleteFromTriag({
                     target: TriangulationTarget.MOVEMENT,
                     shape: this,
                     standalone: true,

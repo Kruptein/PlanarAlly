@@ -10,7 +10,7 @@ export enum TriangulationTarget {
     VISION = "vision",
     MOVEMENT = "movement",
 }
-import { visibilityStore } from '../store';
+import { visibilityStore } from "../store";
 
 export let PA_CDT = {
     vision: new CDT(),
@@ -150,4 +150,17 @@ export function addShapeToTriag(target: TriangulationTarget, points: number[][])
         cdt.insertConstraint(point, n);
     }
     console.timeEnd("AS");
+}
+
+export function addShapesToTriag(target: TriangulationTarget, ...shapes: Shape[]) {
+    const cdt = PA_CDT[target];
+    for (const shape of shapes) {
+        for (const [i, pa] of shape.points.entries()) {
+            const pb = shape.points[(i + 1) % shape.points.length];
+            const { va, vb } = cdt.insertConstraint(pa, pb);
+            va.shapes.add(shape);
+            vb.shapes.add(shape);
+            shape.addTriagVertices(va, vb);
+        }
+    }
 }

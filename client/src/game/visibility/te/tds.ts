@@ -499,7 +499,8 @@ export class TDS {
     }
 
     createVertex(): Vertex {
-        const v = this.infiniteVertex;
+        const v = new Vertex(newPoint());
+        v.infinite = true;
         this.vertices.push(v);
         return v;
     }
@@ -566,12 +567,6 @@ export class TDS {
         return this.vertices[1];
     }
 
-    get infiniteVertex(): Vertex {
-        const v = new Vertex(newPoint());
-        v.infinite = true;
-        return v;
-    }
-
     get finiteEdge(): Edge {
         if (this.dimension < 1) throw new Error("aspo");
         const ei = new EdgeIterator(this);
@@ -579,25 +574,17 @@ export class TDS {
         return ei.collect();
     }
 
-    numberOfEdges(): string {
+    numberOfEdges(onlyConstraint: boolean = false): number {
         let i = 0;
         let j = 0;
         const ei = new EdgeIterator(this);
-        let a = '';
         while (ei.valid) {
             ei.next();
             ei.collect();
         }
         ei.collect();
         do {
-            const fromP = ei.edge.first!.vertices[ccw(ei.edge.second)]!.point!;
-            const toP = ei.edge.first!.vertices[cw(ei.edge.second)]!.point!;
-            // if (fromP[0] === -Infinity || toP[0] === -Infinity) {
-            //     ei.next();
-            //     continue;
-            // }
             j++;
-            a += `${fromP} > ${toP}\n`;
             if (ei.edge.first!.constraints[ei.edge.second]) {
                 i++;
             }
@@ -606,8 +593,8 @@ export class TDS {
                 ei.collect();
             } while (ei.valid);
         } while (ei.pos !== null);
-        a = `${i}/${j}\n${a}`;
-        return a;
+        if (onlyConstraint) return i;
+        return j;
     }
 
     numberOfVertices(includeInfinity: boolean): number {
@@ -832,7 +819,7 @@ export class TDS {
 
             const v0 = ff.vertices[cw(ii)]!;
             const v1 = ff.vertices[ccw(ii)]!;
-            let v2 = this.infiniteVertex;
+            let v2 = this._infinite;
             let v3: Vertex;
 
             const p0 = v0.point!;

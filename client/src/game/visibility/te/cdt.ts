@@ -281,7 +281,7 @@ export class CDT {
         const q = start.vertices[ccw(iv)]!.point!;
         while (dim1 && fc.next()) {
             iv = fc.t!.indexV(v);
-            if (fc.t!.vertices[ccw(iv)] !== this.tds.infiniteVertex) {
+            if (fc.t!.vertices[ccw(iv)] !== this.tds._infinite) {
                 dim1 = dim1 && orientation(p, q, fc.t!.vertices[ccw(iv)]!.point!) === Sign.COLLINEAR;
             }
         }

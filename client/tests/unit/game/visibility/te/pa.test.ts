@@ -40,7 +40,6 @@ describe("PA test suite.", () => {
             const shape = new Rect(new GlobalPoint(0, 0), 10, 10);
             const shape2 = new Rect(new GlobalPoint(5, 5), 10, 10);
             addShapesToTriag(TriangulationTarget.VISION, shape, shape2);
-            cdt.tds.numberOfEdges();
             deleteShapeFromTriag(TriangulationTarget.VISION, shape);
             expect(cdt.tds.numberOfVertices(false)).toBe(4);
             for (const vertex of shape2.triagVertices) {
@@ -51,7 +50,7 @@ describe("PA test suite.", () => {
             const shape = new Rect(new GlobalPoint(0, 0), 10, 10);
             const shape2 = new Rect(new GlobalPoint(10, 10), 10, 10);
             addShapesToTriag(TriangulationTarget.VISION, shape, shape2);
-            cdt.tds.numberOfEdges();
+            expect(cdt.tds.numberOfVertices(false)).toBe(7);
             deleteShapeFromTriag(TriangulationTarget.VISION, shape);
             expect(cdt.tds.numberOfVertices(false)).toBe(4);
             for (const vertex of shape2.triagVertices) {
@@ -62,7 +61,6 @@ describe("PA test suite.", () => {
             const shape = new Rect(new GlobalPoint(0, 0), 10, 10);
             const shape2 = new Rect(new GlobalPoint(10, 0), 10, 10);
             addShapesToTriag(TriangulationTarget.VISION, shape, shape2);
-            cdt.tds.numberOfEdges();
             deleteShapeFromTriag(TriangulationTarget.VISION, shape);
             expect(cdt.tds.numberOfVertices(false)).toBe(4);
             for (const vertex of shape2.triagVertices) {
@@ -73,7 +71,6 @@ describe("PA test suite.", () => {
             const shape = new Rect(new GlobalPoint(0, 0), 10, 10);
             const shape2 = new Rect(new GlobalPoint(10, 5), 10, 10);
             addShapesToTriag(TriangulationTarget.VISION, shape, shape2);
-            cdt.tds.numberOfEdges();
             deleteShapeFromTriag(TriangulationTarget.VISION, shape);
             expect(cdt.tds.numberOfVertices(false)).toBe(4);
             for (const vertex of shape2.triagVertices) {
@@ -83,6 +80,38 @@ describe("PA test suite.", () => {
         it("should handle case F", () => {
             const shape = new Rect(new GlobalPoint(10, 0), 10, 30);
             const shape2 = new Rect(new GlobalPoint(0, 10), 30, 10);
+            addShapesToTriag(TriangulationTarget.VISION, shape, shape2);
+            deleteShapeFromTriag(TriangulationTarget.VISION, shape);
+            expect(cdt.tds.numberOfVertices(false)).toBe(4);
+            for (const vertex of shape2.triagVertices) {
+                expect(cdt.tds.vertices.includes(vertex));
+            }
+        });
+        it("should handle case G", () => {
+            const shape = new Rect(new GlobalPoint(10, 0), 10, 10);
+            const shape2 = new Rect(new GlobalPoint(5, 0), 10, 10);
+            addShapesToTriag(TriangulationTarget.VISION, shape, shape2);
+            cdt.tds.numberOfEdges();
+            deleteShapeFromTriag(TriangulationTarget.VISION, shape);
+            expect(cdt.tds.numberOfVertices(false)).toBe(4);
+            for (const vertex of shape2.triagVertices) {
+                expect(cdt.tds.vertices.includes(vertex));
+            }
+        });
+        it("should handle case H", () => {
+            const shape = new Rect(new GlobalPoint(0, 0), 50, 50);
+            const shape2 = new Rect(new GlobalPoint(20, 20), 10, 10);
+            addShapesToTriag(TriangulationTarget.VISION, shape, shape2);
+            cdt.tds.numberOfEdges();
+            deleteShapeFromTriag(TriangulationTarget.VISION, shape);
+            expect(cdt.tds.numberOfVertices(false)).toBe(4);
+            for (const vertex of shape2.triagVertices) {
+                expect(cdt.tds.vertices.includes(vertex));
+            }
+        });
+        it("should handle case I", () => {
+            const shape = new Rect(new GlobalPoint(0, 0), 30, 30);
+            const shape2 = new Rect(new GlobalPoint(20, 10), 30, 10);
             addShapesToTriag(TriangulationTarget.VISION, shape, shape2);
             cdt.tds.numberOfEdges();
             deleteShapeFromTriag(TriangulationTarget.VISION, shape);

@@ -78,20 +78,19 @@ function deleteIntersectVertex(
     for (const edge of edges) {
         const ccwv = edge.first!.vertices[ccw(edge.second)]!;
         const ccwp = ccwv.point!;
-        const sharedEdge = sharesVertex && ccwv.shapes.size > (ccwv === target ? 1 : 0);
+        const sharesCCWP = ccwv.shapes.size > (ccwv === target ? 1 : 0);
         if (equalPoints(ccwp, target.point!)) {
-            if (!sharedEdge) queues.edges.push(edge);
+            if (!sharesCCWP) queues.edges.push(edge);
         } else if (equalPoints(ccwp, from.point!)) continue;
         else if (collinearBetween(vertex.point!, ccwp, target.point!)) {
             if (nextIntersect !== null) console.warn("Multiple collinear vertices found?");
-            if (!sharedEdge) queues.edges.push(edge);
+            if (!sharesCCWP) queues.edges.push(edge);
             nextIntersect = ccwv;
-        } else if (!sharedEdge && edges.length === 3) {
+        } else if (!sharesCCWP && edges.length === 3) {
             queues.edges.push(edge);
-            // if (!isCorner) queues.vertices.delete(vertex);
             if (queues.triBridge.length === 0) queues.triBridge.push(isCorner ? ccwv : vertex);
             else queues.newConstraints.push([queues.triBridge.pop()!, isCorner ? ccwv : vertex]);
-        } else if (!sharedEdge && edges.length === 4) {
+        } else if (!(sharesVertex && sharesCCWP) && edges.length === 4) {
             queues.edges.push(edge);
             if (queues.vertices.has(ccwv)) {
                 for (let i = queues.newConstraints.length - 1; i >= 0; i--) {
@@ -99,6 +98,7 @@ function deleteIntersectVertex(
                     if (from_ === vertex || to === vertex) {
                         const brokenBridge = queues.newConstraints.splice(i, 1)[0];
                         fixBridge = [...fixBridge, ...brokenBridge.filter(v => v !== vertex)];
+                        queues.vertices.add(vertex);
                     }
                 }
             } else if (queues.triBridge.includes(ccwv)) {

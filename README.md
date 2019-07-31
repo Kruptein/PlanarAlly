@@ -1,3 +1,5 @@
+[![Total Github Download Count](https://img.shields.io/github/downloads/kruptein/planarally/total.svg)](https://github.com/Kruptein/PlanarAlly/releases)
+
 # PlanarAlly
 
 _This project is still in early development; multiple bugs or structure changes can and will happen_
@@ -19,12 +21,20 @@ Some key features are:
 
 This tool is provided free to use and is open source.
 
+# Downloads
+
+_Typically only one person in your group should download and install PA, or even nobody if you use a publicly hosted version._
+
+Releases of PlanarAlly can be found on [the release page](https://github.com/Kruptein/PlanarAlly/releases).
+
+For more information on how to use/install PA, see the documentation.
+
 # Documentation
 
 User documentation can be found [here](https://planarally.readthedocs.io/en/dev/).
-This is still a work in progress, so some elements may still be undocumented.
 
-Installation instructions for DM's can also be found in the link above. As a player you won't have to install anything.
+This is still a work in progress, so some elements may still be undocumented or outdated.
+
 
 # Contributing
 

@@ -5,10 +5,11 @@ Installation
 
 As the DM you'll have to decide where you want to host your game.
 You can either use some service that hosts PlanarAlly for you,
-or you can host PA yourself, which requires a bit more setup.
+or you can host PA yourself.
 
 .. note::
     This only has to be done by the DM and is not relevant for normal players.
+
 
 Using existing services
 ~~~~~~~~~~~~~~~~~~~~~~~~
@@ -19,6 +20,9 @@ Using existing services
 
 The easiest setup is to use some existing online service.
 At the moment of writing the only active service I'm aware of is `dndbox <https://planarally.dndbox.com>`_.
+
+Using this method, gives you an instantly available service that requires no installation on your behalf.
+The downside of this method is that you completely rely on the service and you cannot use it to play offline.
 
 Self-hosting
 ~~~~~~~~~~~~~
@@ -33,23 +37,26 @@ Self-hosting involves 2 steps:
 * Installing/running the software,
 * Configuring your network correctly so that other players can join.
 
+.. warning::
+    If you ever want to upgrade PA to a newer version, be sure to read the remarks in :ref:`upgrading`.
+
 Installation
 *************
 
 For installation you again have two options:
 
 * Precompiled binary
-* Manual installtion
+* Manual installation
 
-The first option is easier, but is only available on Windows currently,
-and I do forget to create it from time to time. Feel free to ping me if I do.
+The precompiled binary is the go-to method if you're not super techsavy and if you use Windows.
+In all other circumstances, you'll have to manually install PlanarAlly.
 
 Precompiled binary
 ^^^^^^^^^^^^^^^^^^^^
 
-These are typically only provided for major releases and can be found `here <https://github.com/Kruptein/PlanarAlly/releases/>`_.
+The binaries are created for each release, which can be found `here <https://github.com/Kruptein/PlanarAlly/releases/>`_.
 
-1. Download the latest planarserver.zip
+1. Download the latest planarally-windows.zip
 2. Extract it to a folder on your server.
 3. Run the server by executing `PlanarAllyServer.exe`.
 4. Optionally you can configure the server in the `server_config.cfg` file.
@@ -101,3 +108,18 @@ Download and install the latest python 3 version from `the python site <https://
 
 Make sure to note where you install python as you will need it later on.
 
+
+.. _upgrading:
+
+Upgrading
+~~~~~~~~~~
+
+When upgrading to a newer version of PlanarAlly, the necessary care has to be taken to make sure your existing data is not lost.
+
+It's strongly advised to make a backup of the following data before performing an upgrade:
+
+* planar.sqlite: This is the database that contains all the saved sessions and user information.
+* static/assets: This folder contains all the uploaded images for tokens/maps/... during gameplay.
+
+When backed up, you should be able to safely overwrite any of the original PlanarAlly files
+with the newer files from the version you want to upgrade to.

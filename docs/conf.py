@@ -19,7 +19,7 @@
 
 # -- Project information -----------------------------------------------------
 
-project = 'Planar Ally'
+project = 'PlanarAlly'
 copyright = '2018, Kruptein (Darragh Van Tichelen)'
 author = 'Kruptein (Darragh Van Tichelen)'
 

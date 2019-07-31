@@ -18,7 +18,8 @@
                 id="initiative-list"
                 v-model="data"
                 @change="updateOrder"
-                :options="{setData: fakeSetData, disabled: !$store.state.game.IS_DM}"
+                :setData="fakeSetData"
+                :disabled="!$store.state.game.IS_DM"
             >
                 <template v-for="actor in data">
                     <div

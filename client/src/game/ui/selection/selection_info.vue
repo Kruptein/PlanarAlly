@@ -1,41 +1,40 @@
 <template>
-  <div v-if="shape !== null">
-    <div id="selection-menu">
-      <div id="selection-edit-button" @click="openEditDialog">
-        <i class="fas fa-edit"></i>
+  <div v-show="shapes.length > 0">
+    <div v-for="shape in shapes" :key="shape.uuid">
+      <div id="selection-menu">
+        <div id="selection-edit-button" @click="openEditDialog">
+          <i class="fas fa-edit"></i>
+        </div>
+        <div id="selection-name">{{ shape.name }}</div>
+        <div id="selection-trackers">
+          <template v-for="tracker in visibleTrackers">
+            <div :key="'name-' + tracker.uuid">{{ tracker.name }}</div>
+            <div
+              class="selection-tracker-value"
+              :key="'value-' + tracker.uuid"
+              @click="changeValue(tracker, false)"
+            >
+              <template v-if="tracker.maxvalue === 0">{{ tracker.value }}</template>
+              <template v-else>{{ tracker.value }} / {{ tracker.maxvalue }}</template>
+            </div>
+          </template>
+        </div>
+        <div id="selection-auras">
+          <template v-for="aura in visibleAuras">
+            <div :key="'name-' + aura.uuid">{{ aura.name }}</div>
+            <div
+              class="selection-tracker-value"
+              :key="'value-' + aura.uuid"
+              @click="changeValue(aura, true)"
+            >
+              <template v-if="aura.dim === 0">{{ aura.value }}</template>
+              <template v-else>{{ aura.value }} / {{ aura.dim }}</template>
+            </div>
+          </template>
+        </div>
       </div>
-      <div id="selection-name">{{ shape.name }}</div>
-      <div id="selection-trackers">
-        <template
-          v-for="tracker in shape.trackers"
-          v-if="tracker.name !== '' || tracker.value !== 0"
-        >
-          <div :key="'name-' + tracker.uuid">{{ tracker.name }}</div>
-          <div
-            class="selection-tracker-value"
-            :key="'value-' + tracker.uuid"
-            @click="changeValue(tracker, false)"
-          >
-            <template v-if="tracker.maxvalue === 0">{{ tracker.value }}</template>
-            <template v-else>{{ tracker.value }} / {{ tracker.maxvalue }}</template>
-          </div>
-        </template>
-      </div>
-      <div id="selection-auras">
-        <template v-for="aura in shape.auras" v-if="aura.name !== '' || aura.value !== 0">
-          <div :key="'name-' + aura.uuid">{{ aura.name }}</div>
-          <div
-            class="selection-tracker-value"
-            :key="'value-' + aura.uuid"
-            @click="changeValue(aura, true)"
-          >
-            <template v-if="aura.dim === 0">{{ aura.value }}</template>
-            <template v-else>{{ aura.value }} / {{ aura.dim }}</template>
-          </div>
-        </template>
-      </div>
+      <edit-dialog ref="editDialog" :shape="shape"></edit-dialog>
     </div>
-    <edit-dialog ref="editDialog" :shape="shape"></edit-dialog>
   </div>
 </template>
 
@@ -64,6 +63,21 @@ export default class SelectionInfo extends Vue {
         EventBus.$on("SelectionInfo.Shape.Set", (shape: Shape | null) => {
             this.shape = shape;
         });
+    }
+
+    get shapes() {
+      if (this.shape === null) return [];
+      return [this.shape];
+    }
+
+    get visibleTrackers() {
+      if (this.shape === null) return [];
+      return this.shape.trackers.filter(tr => tr.name !== '' || tr.value !== 0);
+    }
+
+    get visibleAuras() {
+      if (this.shape === null) return [];
+      return this.shape.auras.filter(au => au.name !== '' || au.value !== 0);
     }
 
     beforeDestroy() {

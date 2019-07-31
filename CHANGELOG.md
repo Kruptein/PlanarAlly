@@ -7,6 +7,10 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+### Fixed
+
+- [DM] Session lock state not being shown correctly upon joining.
+
 ## [0.17.1] - 2019-06-17
 
 ### Fixed

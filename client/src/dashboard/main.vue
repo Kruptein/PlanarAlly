@@ -7,12 +7,12 @@
           <router-link
             v-for="(room, i) in owned"
             :key="'o-'+i"
-            :to="'/game/' + room[1] + '/' + room[0]"
+            :to="'/game/' + encodeURIComponent(room[1]) + '/' + encodeURIComponent(room[0])"
           >{{ room[0] }}</router-link>
           <router-link
             v-for="(room, i) in joined"
             :key="'j-'+i"
-            :to="'/game/' + room[1] + '/' + room[0]"
+            :to="'/game/' + encodeURIComponent(room[1]) + '/' + encodeURIComponent(room[0])"
           >{{ room[1] }}/{{ room[0] }}</router-link>
         </div>
         <div class="input" v-if="owned.length === 0">No active sessions</div>
@@ -91,7 +91,7 @@ export default class Dashboard extends Vue {
                 name: this.newSessionName,
             })
             .then((response: AxiosResponse) => {
-                this.$router.push(`/game/${coreStore.username}/${this.newSessionName}`);
+                this.$router.push(`/game/${encodeURIComponent(coreStore.username)}/${encodeURIComponent(this.newSessionName)}`);
             })
             .catch((err: AxiosError) => {
                 this.error = err.message;

@@ -108,7 +108,7 @@ function deleteIntersectVertex(
     }
     if ((edges.length === 3 || edges.length === 4) && fixBridge.length === 1 && queues.triBridge.length === 1) {
         queues.newConstraints.push([fixBridge.pop()!, queues.triBridge.pop()!]);
-    } else if (edges.length === 4) queues.newConstraints.push(fixBridge);
+    } else if (edges.length === 4 && fixBridge.length > 0) queues.newConstraints.push(fixBridge);
     if (nextIntersect === null) return vertex;
     return deleteIntersectVertex(nextIntersect, vertex, target, queues, false);
 }

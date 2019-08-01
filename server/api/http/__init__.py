@@ -6,6 +6,8 @@ import api.http.rooms
 from app import sio, state
 from models import PlayerRoom, Room
 
+import urllib.parse
+
 
 async def claim_invite(request):
     user = await check_authorized(request)
@@ -22,5 +24,5 @@ async def claim_invite(request):
             for csid in state.get_sids(user=room.creator, room=room):
                 await sio.emit("Room.Info.Players.Add", {'id': user.id, 'name': user.name}, room=csid, namespace="/planarally")
         return web.json_response(
-            {"sessionUrl": f"/game/{room.creator.name}/{room.name}"}
+            {"sessionUrl": f"/game/{urllib.parse.quote(room.creator.name, safe='')}/{urllib.parse.quote(room.name, safe='')}"}
         )

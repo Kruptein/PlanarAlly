@@ -1,15 +1,9 @@
 <template>
-  <div
-    class="ContextMenu"
-    tabindex="-1"
-    v-if="visible"
-    :style="{left:left, top:top}"
-    @blur="$emit('close')"
-  >
-    <ul>
-      <slot></slot>
-    </ul>
-  </div>
+    <div class="ContextMenu" tabindex="-1" v-if="visible" :style="{ left: left, top: top }" @blur="$emit('close')">
+        <ul>
+            <slot></slot>
+        </ul>
+    </div>
 </template>
 
 <script lang="ts">

@@ -6,14 +6,17 @@
         :top="y + 'px'"
         @close="close"
     >
-        <li v-if="getLayers().length > 1">Layer
+        <li v-if="getLayers().length > 1">
+            Layer
             <ul>
                 <li
                     v-for="layer in getLayers()"
                     :key="layer.name"
-                    :style="[getActiveLayer().name === layer.name ? {'background-color':'#82c8a0'}: {}]"
+                    :style="[getActiveLayer().name === layer.name ? { 'background-color': '#82c8a0' } : {}]"
                     @click="setLayer(layer.name)"
-                >{{ layer.name }}</li>
+                >
+                    {{ layer.name }}
+                </li>
             </ul>
         </li>
         <li @click="moveToBack">Move to back</li>
@@ -28,13 +31,12 @@ import Vue from "vue";
 import Component from "vue-class-component";
 
 import ContextMenu from "@/core/components/contextmenu.vue";
-import Initiative from "@/game/ui/initiative.vue";
 
-import { getRef } from "@/core/utils";
 import { EventBus } from "@/game/event-bus";
 import { layerManager } from "@/game/layers/manager";
 import { Shape } from "@/game/shapes/shape";
 import { gameStore } from "@/game/store";
+import { initiativeStore } from "../initiative/store";
 
 @Component({
     components: {
@@ -69,7 +71,7 @@ export default class ShapeContext extends Vue {
     }
     getInitiativeWord() {
         if (this.shape === null) return "";
-        return getRef<Initiative>("initiative").contains(this.shape.uuid) ? "Show" : "Add";
+        return initiativeStore.contains(this.shape.uuid) ? "Show" : "Add";
     }
     setLayer(newLayer: string) {
         if (this.shape === null) return;
@@ -90,9 +92,9 @@ export default class ShapeContext extends Vue {
     }
     addInitiative() {
         if (this.shape === null) return;
-        const initiative = getRef<Initiative>("initiative");
-        if (!initiative.contains(this.shape.uuid)) initiative.addInitiative(this.shape.getInitiativeRepr());
-        initiative.visible = true;
+        this.$parent.$parent.$parent;
+        if (!initiativeStore.contains(this.shape.uuid)) initiativeStore.addInitiative(this.shape.getInitiativeRepr());
+        EventBus.$emit("Initiative.Show");
         this.close();
     }
     openEditDialog() {

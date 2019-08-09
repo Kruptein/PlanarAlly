@@ -27,7 +27,7 @@ export class BoundingRect {
         );
     }
 
-    get points() {
+    get points(): number[][] {
         if (this.w === 0 || this.h === 0) return [[this.topLeft.x, this.topLeft.y]];
         return [
             [this.topLeft.x, this.topLeft.y],
@@ -49,7 +49,7 @@ export class BoundingRect {
         return new BoundingRect(new GlobalPoint(xmin, ymin), xmax - xmin, ymax - ymin);
     }
 
-    getDiagCorner(botright: boolean) {
+    getDiagCorner(botright: boolean): GlobalPoint {
         return botright ? this.botRight : this.topLeft;
     }
 
@@ -71,7 +71,7 @@ export class BoundingRect {
         );
     }
 
-    intersectP(ray: Ray<Point>, invDir: Vector, dirIsNeg: boolean[]) {
+    intersectP(ray: Ray<Point>, invDir: Vector, dirIsNeg: boolean[]): { hit: boolean; min: number; max: number } {
         let txmin = invDir.x * (this.getDiagCorner(dirIsNeg[0]).x - ray.origin!.x);
         let txmax = invDir.x * (this.getDiagCorner(!dirIsNeg[0]).x - ray.origin!.x);
         const tymin = invDir.y * (this.getDiagCorner(dirIsNeg[1]).y - ray.origin!.y);
@@ -86,7 +86,7 @@ export class BoundingRect {
         return this.topLeft.add(new Vector(this.w / 2, this.h / 2));
     }
 
-    getMaxExtent() {
+    getMaxExtent(): number {
         return this.w > this.h ? 0 : 1;
     }
     visibleInCanvas(canvas: HTMLCanvasElement): boolean {

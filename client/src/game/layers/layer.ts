@@ -73,7 +73,7 @@ export class Layer {
         this.invalidate(false);
     }
 
-    removeShape(shape: Shape, sync: boolean, temporary?: boolean) {
+    removeShape(shape: Shape, sync: boolean, temporary?: boolean): void {
         if (temporary === undefined) temporary = false;
         this.shapes.splice(this.shapes.indexOf(shape), 1);
 

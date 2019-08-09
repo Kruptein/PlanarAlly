@@ -2,14 +2,14 @@ import { layerManager } from "@/game/layers/manager";
 import { gameStore } from "@/game/store";
 
 import { CDT } from "./cdt";
-import { visibilityStore } from '../store';
+import { visibilityStore } from "../store";
 
 export let PA_CDT = {
     vision: new CDT(),
     movement: new CDT(),
 };
 
-export function triangulate(target: "vision" | "movement", partial: boolean = false) {
+export function triangulate(target: "vision" | "movement", partial: boolean = false): void {
     const cdt = new CDT();
 
     let shapes;

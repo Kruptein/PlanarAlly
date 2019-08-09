@@ -2,15 +2,18 @@ import { EdgeCirculator, Point, Sign, Triangle, Vertex } from "./tds";
 
 type Line = number[];
 
-export function cw(index: number) {
+export function cw(index: number): number {
     return (index + 2) % 3;
 }
 
-export function ccw(index: number) {
+export function ccw(index: number): number {
     return (index + 1) % 3;
 }
 
-export function edgeInfo(va: Vertex, vb: Vertex) {
+export function edgeInfo(
+    va: Vertex,
+    vb: Vertex,
+): { includes: false } | { includes: true; vi: Vertex; fr: Triangle; i: number } {
     const ec = new EdgeCirculator(va, null);
     if (ec.valid) {
         do {
@@ -50,7 +53,7 @@ function compare(index: number, a: Point, b: Point): Sign {
     return Sign.EQUAL;
 }
 
-export function orientation(p: Point, q: Point, r: Point) {
+export function orientation(p: Point, q: Point, r: Point): Sign {
     const px = p[0];
     const py = p[1];
     const qx = q[0];
@@ -82,11 +85,11 @@ export function orientation(p: Point, q: Point, r: Point) {
     return Sign.ZERO;
 }
 
-export function determinant(a00: number, a01: number, a10: number, a11: number) {
+export function determinant(a00: number, a01: number, a10: number, a11: number): number {
     return a00 * a11 - a01 * a10;
 }
 
-export function hasInexactNegativeOrientation(p: Point, q: Point, r: Point) {
+export function hasInexactNegativeOrientation(p: Point, q: Point, r: Point): boolean {
     return determinant(q[0] - p[0], q[1] - p[1], r[0] - p[0], r[1] - p[1]) < 0;
 }
 
@@ -113,15 +116,15 @@ function sideOfOrientedCircleP(p0: Point, p1: Point, p2: Point, p: Point, pertur
     return Sign.ON_NEGATIVE_SIDE;
 }
 
-export function xyEqual(p: Point, q: Point) {
+export function xyEqual(p: Point, q: Point): boolean {
     return p[0] === q[0] && p[1] === q[1];
 }
 
-export function xySmaller(p: Point, q: Point) {
+export function xySmaller(p: Point, q: Point): boolean {
     return p[0] < q[0] || (p[0] === q[0] && p[1] < q[1]);
 }
 
-export function xyCompare(p: Point, q: Point) {
+export function xyCompare(p: Point, q: Point): Sign {
     if (xySmaller(p, q)) return Sign.SMALLER;
     if (xyEqual(p, q)) return Sign.EQUAL;
     return Sign.LARGER;
@@ -196,7 +199,7 @@ function segSegDoIntersectContained(p1: Point, p2: Point, p3: Point, p4: Point):
     }
 }
 
-export function intersection(pa: Point, pb: Point, pc: Point, pd: Point) {
+export function intersection(pa: Point, pb: Point, pc: Point, pd: Point): Point | null {
     const i = getIntersectionType(pa, pb, pc, pd);
     switch (i.intersectionType) {
         case IntersectionType.POINT:
@@ -221,7 +224,12 @@ function getLine(p0: Point, p1: Point): Line {
     return [-y, x, -x * p0[1] + y * p0[0]];
 }
 
-function getIntersectionType(pa: Point, pb: Point, pc: Point, pd: Point) {
+function getIntersectionType(
+    pa: Point,
+    pb: Point,
+    pc: Point,
+    pd: Point,
+): { intersectionType: IntersectionType; point: Point | null } {
     if (!doIntersect(pa, pb, pc, pd)) return { intersectionType: IntersectionType.NO_INTERSECTION, point: null };
     const l1 = getLine(pa, pb);
     const l2 = getLine(pc, pd);
@@ -234,7 +242,7 @@ function getIntersectionType(pa: Point, pb: Point, pc: Point, pd: Point) {
     throw new Error("gzseuihgpib");
 }
 
-function getIntersectionTypeLine(la: Line, lb: Line) {
+function getIntersectionTypeLine(la: Line, lb: Line): { intersectionType: IntersectionType; point: Point } {
     const denom = la[0] * lb[1] - lb[0] * la[1];
     const nom1 = la[1] * lb[2] - lb[1] * la[2];
     const nom2 = lb[0] * la[2] - la[0] * lb[2];
@@ -425,7 +433,7 @@ function doIntersect(A1: Point, A2: Point, B1: Point, B2: Point): boolean {
     }
 }
 
-function nextUp(x: number) {
+function nextUp(x: number): number {
     if (x !== x) {
         return x;
     }
@@ -456,6 +464,6 @@ function nextUp(x: number) {
     return y === 0 ? -0 : y;
 }
 
-export function ulp(x: number) {
+export function ulp(x: number): number {
     return x < 0 ? nextUp(x) - x : x + nextUp(-x);
 }

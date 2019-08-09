@@ -21,7 +21,7 @@ import { Shape } from "@/game/shapes/shape";
 import { Text } from "@/game/shapes/text";
 import { Polygon } from "./polygon";
 
-export function createShapeFromDict(shape: ServerShape) {
+export function createShapeFromDict(shape: ServerShape): Shape | undefined {
     let sh: Shape;
 
     // A fromJSON and toJSON on Shape would be cleaner but ts does not allow for static abstracts so yeah.

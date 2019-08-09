@@ -1,9 +1,9 @@
 <template>
-  <ContextMenu :visible="visible" :left="x + 'px'" :top="y + 'px'" @close="close">
-    <li @click="bringPlayers" v-if="IS_DM">Bring players</li>
-    <li @click="createToken">Create basic token</li>
-    <li @click="showInitiative">Show initiative</li>
-  </ContextMenu>
+    <ContextMenu :visible="visible" :left="x + 'px'" :top="y + 'px'" @close="close">
+        <li @click="bringPlayers" v-if="IS_DM">Bring players</li>
+        <li @click="createToken">Create basic token</li>
+        <li @click="showInitiative">Show initiative</li>
+    </ContextMenu>
 </template>
 
 <script lang="ts">

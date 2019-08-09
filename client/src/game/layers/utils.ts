@@ -5,11 +5,11 @@ import { GridLayer } from "@/game/layers/grid";
 import { Layer } from "@/game/layers/layer";
 import { layerManager } from "@/game/layers/manager";
 import { gameStore } from "@/game/store";
-import { GlobalPoint } from '../geom';
-import { Asset } from '../shapes/asset';
-import { l2gx, l2gy, l2gz } from '../units';
+import { GlobalPoint } from "../geom";
+import { Asset } from "../shapes/asset";
+import { l2gx, l2gy, l2gz } from "../units";
 
-export function createLayer(layerInfo: ServerLayer) {
+export function createLayer(layerInfo: ServerLayer): void {
     // Create canvas element
     const canvas = document.createElement("canvas");
     canvas.style.zIndex = layerManager.layers.length.toString();
@@ -39,7 +39,7 @@ export function createLayer(layerInfo: ServerLayer) {
     layer.setShapes(layerInfo.shapes);
 }
 
-export function dropAsset(event: DragEvent) {
+export function dropAsset(event: DragEvent): void {
     const layer = layerManager.getLayer();
     if (layer === undefined || event === null || event.dataTransfer === null) return;
     const image = document.createElement("img");

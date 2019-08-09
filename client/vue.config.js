@@ -1,6 +1,6 @@
 // vue.config.js
 
-const CircularDependencyPlugin = require('circular-dependency-plugin');
+const CircularDependencyPlugin = require("circular-dependency-plugin");
 
 module.exports = {
     assetsDir: "static",
@@ -15,10 +15,10 @@ module.exports = {
         plugins: [
             new CircularDependencyPlugin({
                 exclude: /a\.js|node_modules/,
-                failOnError: true,
+                failOnError: false,
                 allowAsyncCycles: false,
                 cwd: process.cwd(),
-            })
-        ]
+            }),
+        ],
     },
 };

@@ -1,54 +1,50 @@
 <template>
-  <div id="formcontainer">
-    <form v-if="owned || joined">
-      <fieldset>
-        <legend class="legend">Your sessions</legend>
-        <div class="input">
-          <router-link
-            v-for="(room, i) in owned"
-            :key="'o-'+i"
-            :to="'/game/' + room[1] + '/' + room[0]"
-          >{{ room[0] }}</router-link>
-          <router-link
-            v-for="(room, i) in joined"
-            :key="'j-'+i"
-            :to="'/game/' + room[1] + '/' + room[0]"
-          >{{ room[1] }}/{{ room[0] }}</router-link>
+    <div id="formcontainer">
+        <form v-if="owned || joined">
+            <fieldset>
+                <legend class="legend">Your sessions</legend>
+                <div class="input">
+                    <router-link v-for="(room, i) in owned" :key="'o-' + i" :to="'/game/' + room[1] + '/' + room[0]">
+                        {{ room[0] }}
+                    </router-link>
+                    <router-link v-for="(room, i) in joined" :key="'j-' + i" :to="'/game/' + room[1] + '/' + room[0]">
+                        {{ room[1] }}/{{ room[0] }}
+                    </router-link>
+                </div>
+                <div class="input" v-if="owned.length === 0">No active sessions</div>
+            </fieldset>
+        </form>
+        <h4>
+            <span>OR</span>
+        </h4>
+        <form @submit.prevent="createRoom">
+            <fieldset>
+                <legend v-if="!owned && !joined" class="legend">Create a session</legend>
+                <div v-else class="input">Create a new session</div>
+                <div class="input">
+                    <input type="text" v-model="newSessionName" name="room_name" placeholder="Session Name" />
+                    <span>
+                        <i class="fab fa-d-and-d"></i>
+                    </span>
+                </div>
+                <button type="submit" class="submit" title="Create">
+                    <i class="fas fa-arrow-right"></i>
+                </button>
+            </fieldset>
+        </form>
+        <div id="account-options">
+            <form @submit.prevent>
+                <router-link tag="button" class="submit" title="Account Settings" to="/account">
+                    <i class="fas fa-cog"></i>
+                </router-link>
+            </form>
+            <form @submit.prevent>
+                <router-link tag="button" class="submit" title="Logout" to="/auth/logout">
+                    <i class="fas fa-sign-out-alt"></i>
+                </router-link>
+            </form>
         </div>
-        <div class="input" v-if="owned.length === 0">No active sessions</div>
-      </fieldset>
-    </form>
-    <h4>
-      <span>OR</span>
-    </h4>
-    <form @submit.prevent="createRoom">
-      <fieldset>
-        <legend v-if="!owned && !joined" class="legend">Create a session</legend>
-        <div v-else class="input">Create a new session</div>
-        <div class="input">
-          <input type="text" v-model="newSessionName" name="room_name" placeholder="Session Name">
-          <span>
-            <i class="fab fa-d-and-d"></i>
-          </span>
-        </div>
-        <button type="submit" class="submit" title="Create">
-          <i class="fas fa-arrow-right"></i>
-        </button>
-      </fieldset>
-    </form>
-    <div id="account-options">
-      <form @submit.prevent>
-        <router-link tag="button" class="submit" title="Account Settings" to="/account">
-          <i class="fas fa-cog"></i>
-        </router-link>
-      </form>
-      <form @submit.prevent>
-        <router-link tag="button" class="submit" title="Logout" to="/auth/logout">
-          <i class="fas fa-sign-out-alt"></i>
-        </router-link>
-      </form>
     </div>
-  </div>
 </template>
 
 <script lang="ts">
@@ -69,6 +65,7 @@ export default class Dashboard extends Vue {
 
     newSessionName = "";
 
+    // eslint-disable-next-line no-empty-pattern
     beforeRouteEnter(to: Route, from: Route, next: ({}) => {}) {
         axios
             .get("/api/rooms")
@@ -85,12 +82,12 @@ export default class Dashboard extends Vue {
             });
     }
 
-    createRoom(event: Event) {
+    createRoom(_event: Event) {
         axios
             .post("/api/rooms", {
                 name: this.newSessionName,
             })
-            .then((response: AxiosResponse) => {
+            .then((_response: AxiosResponse) => {
                 this.$router.push(`/game/${coreStore.username}/${this.newSessionName}`);
             })
             .catch((err: AxiosError) => {

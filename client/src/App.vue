@@ -1,7 +1,7 @@
 <template>
-  <div id="app">
-    <router-view ref="activeComponent"></router-view>
-  </div>
+    <div id="app">
+        <router-view ref="activeComponent"></router-view>
+    </div>
 </template>
 
 <style>

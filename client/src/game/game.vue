@@ -14,7 +14,7 @@
                 @dragover.prevent
                 @drop.prevent.stop="drop"
             ></div>
-            <div id="layerselect" v-show="showUI && layers.length>1">
+            <div id="layerselect" v-show="showUI && layers.length > 1">
                 <ul>
                     <li
                         v-for="layer in layers"
@@ -34,24 +34,25 @@
         <dm-settings ref="dmsettings" v-if="IS_DM || FAKE_PLAYER"></dm-settings>
         <!-- When updating zoom boundaries, also update store updateZoom function;
         should probably do this using a store variable-->
-        <zoom-slider
-            id="zoomer"
-            v-model="zoomDisplay"
-            v-show="showUI"
-            :height="6"
-            :width="200"
-            :min="0"
-            :max="1"
-            :interval="0.1"
-            :dot-width="8"
-            :dot-height="20"
-            :tooltip-dir="'bottom'"
-            :tooltip="'hover'"
-            :formatter="zoomDisplay.toFixed(1)"
-            :slider-style="{'border-radius': '15%'}"
-            :bg-style="{'background-color': '#fff', 'box-shadow': '0.5px 0.5px 3px 1px rgba(0, 0, 0, .36)'}"
-            :process-style="{'background-color': '#fff'}"
-        ></zoom-slider>
+        <div id="zoomer">
+            <zoom-slider
+                id="zoomer"
+                v-model="zoomDisplay"
+                v-show="showUI"
+                :height="6"
+                :width="200"
+                :min="0"
+                :max="1"
+                :interval="0.1"
+                :dot-size="[8, 20]"
+                :dot-options="{ style: { 'border-radius': '15%', 'z-index': 11 } }"
+                :tooltip-placement="'bottom'"
+                :tooltip="'focus'"
+                :tooltip-formatter="zoomDisplay.toFixed(1)"
+                :rail-style="{ 'background-color': '#fff', 'box-shadow': '0.5px 0.5px 3px 1px rgba(0, 0, 0, .36)' }"
+                :process-style="{ 'background-color': '#fff' }"
+            ></zoom-slider>
+        </div>
         <prompt-dialog ref="prompt"></prompt-dialog>
         <confirm-dialog ref="confirm"></confirm-dialog>
     </div>
@@ -61,15 +62,15 @@
 import Vue from "vue";
 import Component from "vue-class-component";
 import vueSlider from "vue-slider-component";
+import "vue-slider-component/theme/default.css";
 
 import "@/game/api/events";
 
 import { throttle } from "lodash";
-import { mapGetters, mapState } from "vuex";
 
 import ConfirmDialog from "@/core/components/modals/confirm.vue";
 import Prompt from "@/core/components/modals/prompt.vue";
-import Initiative from "@/game/ui/initiative.vue";
+import Initiative from "@/game/ui/initiative/initiative.vue";
 import LabelManager from "@/game/ui/labels.vue";
 import MenuBar from "@/game/ui/menu/menu.vue";
 import NoteDialog from "@/game/ui/note.vue";
@@ -84,6 +85,7 @@ import { gameStore } from "@/game/store";
 import { l2g } from "@/game/units";
 import { LocalPoint } from "./geom";
 import DmSettings from "./ui/dmsettings.vue";
+import { dropAsset } from "./layers/utils";
 
 @Component({
     components: {
@@ -110,7 +112,9 @@ import DmSettings from "./ui/dmsettings.vue";
 export default class Game extends Vue {
     $refs!: {
         confirm: InstanceType<typeof ConfirmDialog>;
+        note: InstanceType<typeof NoteDialog>;
         tools: InstanceType<typeof Tools>;
+        prompt: InstanceType<typeof Prompt>;
     };
 
     ready = {
@@ -204,7 +208,7 @@ export default class Game extends Vue {
         } else if (event.dataTransfer.getData("text/plain") === "") {
             return;
         } else {
-            layerManager.dropAsset(event);
+            dropAsset(event);
         }
     }
 }
@@ -237,7 +241,6 @@ svg {
     overflow: hidden;
 }
 </style>
-
 
 <style scoped>
 #main {

@@ -1,55 +1,62 @@
 <template>
-  <div v-show="shapes.length > 0">
-    <div v-for="shape in shapes" :key="shape.uuid">
-      <div id="selection-menu">
-        <div id="selection-edit-button" @click="openEditDialog">
-          <i class="fas fa-edit"></i>
-        </div>
-        <div id="selection-name">{{ shape.name }}</div>
-        <div id="selection-trackers">
-          <template v-for="tracker in visibleTrackers">
-            <div :key="'name-' + tracker.uuid">{{ tracker.name }}</div>
-            <div
-              class="selection-tracker-value"
-              :key="'value-' + tracker.uuid"
-              @click="changeValue(tracker, false)"
-            >
-              <template v-if="tracker.maxvalue === 0">{{ tracker.value }}</template>
-              <template v-else>{{ tracker.value }} / {{ tracker.maxvalue }}</template>
+    <div v-show="shapes.length > 0">
+        <div v-for="shape in shapes" :key="shape.uuid">
+            <div id="selection-menu">
+                <div id="selection-edit-button" @click="openEditDialog">
+                    <i class="fas fa-edit"></i>
+                </div>
+                <div id="selection-name">{{ shape.name }}</div>
+                <div id="selection-trackers">
+                    <template v-for="tracker in visibleTrackers">
+                        <div :key="'name-' + tracker.uuid">{{ tracker.name }}</div>
+                        <div
+                            class="selection-tracker-value"
+                            :key="'value-' + tracker.uuid"
+                            @click="changeValue(tracker, false)"
+                        >
+                            <template v-if="tracker.maxvalue === 0">
+                                {{ tracker.value }}
+                            </template>
+                            <template v-else>
+                                {{ tracker.value }} / {{ tracker.maxvalue }}
+                            </template>
+                        </div>
+                    </template>
+                </div>
+                <div id="selection-auras">
+                    <template v-for="aura in visibleAuras">
+                        <div :key="'name-' + aura.uuid">{{ aura.name }}</div>
+                        <div
+                            class="selection-tracker-value"
+                            :key="'value-' + aura.uuid"
+                            @click="changeValue(aura, true)"
+                        >
+                            <template v-if="aura.dim === 0">
+                                {{ aura.value }}
+                            </template>
+                            <template v-else>
+                                {{ aura.value }} / {{ aura.dim }}
+                            </template>
+                        </div>
+                    </template>
+                </div>
             </div>
-          </template>
+            <edit-dialog ref="editDialog" :shape="shape"></edit-dialog>
         </div>
-        <div id="selection-auras">
-          <template v-for="aura in visibleAuras">
-            <div :key="'name-' + aura.uuid">{{ aura.name }}</div>
-            <div
-              class="selection-tracker-value"
-              :key="'value-' + aura.uuid"
-              @click="changeValue(aura, true)"
-            >
-              <template v-if="aura.dim === 0">{{ aura.value }}</template>
-              <template v-else>{{ aura.value }} / {{ aura.dim }}</template>
-            </div>
-          </template>
-        </div>
-      </div>
-      <edit-dialog ref="editDialog" :shape="shape"></edit-dialog>
     </div>
-  </div>
 </template>
 
 <script lang="ts">
 import Vue from "vue";
 import Component from "vue-class-component";
 
-import Prompt from "@/core/components/modals/prompt.vue";
 import EditDialog from "@/game/ui/selection/edit_dialog.vue";
 
-import { getRef } from "@/core/utils";
 import { socket } from "@/game/api/socket";
 import { EventBus } from "@/game/event-bus";
 import { layerManager } from "@/game/layers/manager";
 import { Shape } from "@/game/shapes/shape";
+import Game from "../../game.vue";
 
 @Component({
     components: {
@@ -66,18 +73,18 @@ export default class SelectionInfo extends Vue {
     }
 
     get shapes() {
-      if (this.shape === null) return [];
-      return [this.shape];
+        if (this.shape === null) return [];
+        return [this.shape];
     }
 
     get visibleTrackers() {
-      if (this.shape === null) return [];
-      return this.shape.trackers.filter(tr => tr.name !== '' || tr.value !== 0);
+        if (this.shape === null) return [];
+        return this.shape.trackers.filter(tr => tr.name !== "" || tr.value !== 0);
     }
 
     get visibleAuras() {
-      if (this.shape === null) return [];
-      return this.shape.auras.filter(au => au.name !== '' || au.value !== 0);
+        if (this.shape === null) return [];
+        return this.shape.auras.filter(au => au.name !== "" || au.value !== 0);
     }
 
     beforeDestroy() {
@@ -89,20 +96,18 @@ export default class SelectionInfo extends Vue {
     }
     changeValue(object: Tracker | Aura, redraw: boolean) {
         if (this.shape === null) return;
-        getRef<Prompt>("prompt")
-            .prompt(`New  ${object.name} value:`, `Updating ${object.name}`)
-            .then(
-                (value: string) => {
-                    if (this.shape === null) return;
-                    const ogValue = object.value;
-                    if (value[0] === "+" || value[0] === "-") object.value += parseInt(value, 10);
-                    else object.value = parseInt(value, 10);
-                    if (isNaN(object.value)) object.value = ogValue;
-                    socket.emit("Shape.Update", { shape: this.shape.asDict(), redraw, temporary: false });
-                    if (redraw) layerManager.invalidate();
-                },
-                () => {},
-            );
+        (<Game>this.$parent.$parent).$refs.prompt.prompt(`New  ${object.name} value:`, `Updating ${object.name}`).then(
+            (value: string) => {
+                if (this.shape === null) return;
+                const ogValue = object.value;
+                if (value[0] === "+" || value[0] === "-") object.value += parseInt(value, 10);
+                else object.value = parseInt(value, 10);
+                if (isNaN(object.value)) object.value = ogValue;
+                socket.emit("Shape.Update", { shape: this.shape.asDict(), redraw, temporary: false });
+                if (redraw) layerManager.invalidate();
+            },
+            () => {},
+        );
     }
 }
 </script>

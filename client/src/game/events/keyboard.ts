@@ -1,6 +1,4 @@
-import Tools from "@/game/ui/tools/tools.vue";
-
-import { getRef, uuidv4 } from "@/core/utils";
+import { uuidv4 } from "@/core/utils";
 import { socket } from "@/game/api/socket";
 import { sendClientOptions } from "@/game/api/utils";
 import { ServerAura } from "@/game/comm/types/shapes";
@@ -12,9 +10,8 @@ import { gameStore } from "@/game/store";
 import { calculateDelta } from "@/game/ui/tools/utils";
 import { visibilityStore } from "../visibility/store";
 
-export function onKeyUp(event: KeyboardEvent) {
-    if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement) {
-    } else {
+export function onKeyUp(event: KeyboardEvent): void {
+    if (!(event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement)) {
         if (event.key === "Delete" || event.key === "Del" || event.key === "Backspace") {
             if (layerManager.getLayer === undefined) {
                 console.log("No active layer selected for delete operation");
@@ -23,7 +20,7 @@ export function onKeyUp(event: KeyboardEvent) {
             const l = layerManager.getLayer()!;
             for (let i = l.selection.length - 1; i >= 0; i--) {
                 const sel = l.selection[i];
-                if ((<any>getRef<Tools>("tools").$refs.selectTool).selectionHelper.uuid === sel.uuid) {
+                if (gameStore.selectionHelperID === sel.uuid) {
                     l.selection.splice(i, 1);
                     continue;
                 }
@@ -35,7 +32,7 @@ export function onKeyUp(event: KeyboardEvent) {
     }
 }
 
-export function onKeyDown(event: KeyboardEvent) {
+export function onKeyDown(event: KeyboardEvent): void {
     if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement) {
         if (event.keyCode === 65 && event.ctrlKey) event.target!.select();
     } else {
@@ -52,12 +49,12 @@ export function onKeyDown(event: KeyboardEvent) {
                 if (!event.shiftKey || !gameStore.IS_DM) {
                     // First check for collisions.  Using the smooth wall slide collision check used on mouse move is overkill here.
                     for (const sel of selection) {
-                        if ((<any>getRef<Tools>("tools").$refs.selectTool).selectionHelper.uuid === sel.uuid) continue;
+                        if (gameStore.selectionHelperID === sel.uuid) continue;
                         delta = calculateDelta(delta, sel);
                     }
                 }
                 for (const sel of selection) {
-                    if ((<any>getRef<Tools>("tools").$refs.selectTool).selectionHelper.uuid === sel.uuid) continue;
+                    if (gameStore.selectionHelperID === sel.uuid) continue;
                     sel.refPoint = sel.refPoint.add(delta);
                     // todo: Fix again
                     // if (sel.refPoint.x % gridSize !== 0 || sel.refPoint.y % gridSize !== 0) sel.snapToGrid();
@@ -70,7 +67,7 @@ export function onKeyDown(event: KeyboardEvent) {
                 gameStore.increasePanX(offsetX * (event.keyCode <= 38 ? 1 : -1));
                 gameStore.increasePanY(offsetY * (event.keyCode <= 38 ? 1 : -1));
                 layerManager.invalidate();
-                sendClientOptions();
+                sendClientOptions(gameStore.locationOptions);
             }
         } else if (event.keyCode === 68) {
             const layer = layerManager.getLayer();
@@ -88,7 +85,7 @@ export function onKeyDown(event: KeyboardEvent) {
             if (!layer.selection) return;
             const clipboard = [];
             for (const shape of layer.selection) {
-                if ((<any>getRef<Tools>("tools").$refs.selectTool).selectionHelper.uuid === shape.uuid) continue;
+                if (gameStore.selectionHelperID === shape.uuid) continue;
                 clipboard.push(shape.asDict());
             }
             gameStore.setClipboard(clipboard);

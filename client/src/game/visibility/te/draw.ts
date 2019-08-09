@@ -3,7 +3,7 @@ import { g2lx, g2ly } from "@/game/units";
 import { EdgeIterator, TDS } from "./tds";
 import { ccw, cw } from "./triag";
 
-export function drawPolygon(polygon: number[][], colour?: string) {
+export function drawPolygon(polygon: number[][], colour?: string): void {
     const dl = layerManager.getLayer("draw");
     if (dl === undefined) return;
     const ctx = dl.ctx;
@@ -21,7 +21,7 @@ export function drawPolygon(polygon: number[][], colour?: string) {
     ctx.stroke();
 }
 
-export function drawPolygonL(polygon: number[][], colour?: string) {
+export function drawPolygonL(polygon: number[][], colour?: string): void {
     const dl = layerManager.getLayer("draw");
     if (dl === undefined) return;
     const ctx = dl.ctx;
@@ -39,12 +39,12 @@ export function drawPolygonL(polygon: number[][], colour?: string) {
     ctx.stroke();
 }
 
-function x(xx: number, local: boolean) {
+function x(xx: number, local: boolean): number {
     if (local) return xx;
     else return g2lx(xx);
 }
 
-function y(yy: number, local: boolean) {
+function y(yy: number, local: boolean): number {
     if (local) return yy;
     else return g2ly(yy);
 }
@@ -52,7 +52,7 @@ function y(yy: number, local: boolean) {
 let I = 0;
 let J = 0;
 
-function drl(ctx: CanvasRenderingContext2D, from: number[], to: number[], constrained: boolean, local: boolean) {
+function drl(ctx: CanvasRenderingContext2D, from: number[], to: number[], constrained: boolean, local: boolean): void {
     // J++;
     // if (constrained) {
     //     I++;
@@ -68,7 +68,7 @@ function drl(ctx: CanvasRenderingContext2D, from: number[], to: number[], constr
     ctx.stroke();
 }
 
-function drawPolygonT(tds: TDS, local = true, clear = true, logs: 0 | 1 | 2 = 0) {
+function drawPolygonT(tds: TDS, local = true, clear = true, logs: 0 | 1 | 2 = 0): void {
     I = 0;
     J = 0;
     let T = 0;

@@ -2,6 +2,7 @@ import { GlobalPoint, LocalPoint } from "@/game/geom";
 import { BoundingRect } from "@/game/shapes/boundingrect";
 import { Shape } from "@/game/shapes/shape";
 import { g2lx, g2ly, l2g } from "@/game/units";
+import { ServerLine } from "../comm/types/shapes";
 
 export class Line extends Shape {
     type = "line";
@@ -18,14 +19,15 @@ export class Line extends Shape {
         this.endPoint = endPoint;
         this.lineWidth = lineWidth === undefined ? 1 : lineWidth;
     }
-    asDict() {
+    asDict(): ServerLine {
         return Object.assign(this.getBaseDict(), {
             x2: this.endPoint.x,
             y2: this.endPoint.y,
+            // eslint-disable-next-line @typescript-eslint/camelcase
             line_width: this.lineWidth,
         });
     }
-    get points() {
+    get points(): number[][] {
         return [[this.refPoint.x, this.refPoint.y], [this.endPoint.x, this.endPoint.y]];
     }
     getBoundingBox(): BoundingRect {
@@ -35,7 +37,7 @@ export class Line extends Shape {
             Math.abs(this.refPoint.y - this.endPoint.y),
         );
     }
-    draw(ctx: CanvasRenderingContext2D) {
+    draw(ctx: CanvasRenderingContext2D): void {
         super.draw(ctx);
         ctx.strokeStyle = this.strokeColour;
         ctx.beginPath();
@@ -44,13 +46,13 @@ export class Line extends Shape {
         ctx.lineWidth = this.lineWidth;
         ctx.stroke();
     }
-    contains(point: GlobalPoint): boolean {
+    contains(_point: GlobalPoint): boolean {
         return false; // TODO
     }
 
     center(): GlobalPoint;
     center(centerPoint: GlobalPoint): void;
-    center(centerPoint?: GlobalPoint): GlobalPoint | void {} // TODO
+    center(_centerPoint?: GlobalPoint): GlobalPoint | void {} // TODO
     visibleInCanvas(canvas: HTMLCanvasElement): boolean {
         return this.getBoundingBox().visibleInCanvas(canvas);
     } // TODO

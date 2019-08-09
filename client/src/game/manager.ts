@@ -1,4 +1,3 @@
-import { getRef } from "@/core/utils";
 import { sendClientOptions } from "@/game/api/utils";
 import { ServerShape } from "@/game/comm/types/shapes";
 import { GlobalPoint } from "@/game/geom";
@@ -7,8 +6,8 @@ import { createShapeFromDict } from "@/game/shapes/utils";
 import { gameStore } from "@/game/store";
 import { AnnotationManager } from "@/game/ui/annotation";
 import { g2l } from "@/game/units";
-import Initiative from "./ui/initiative.vue";
 import { TriangulationTarget } from "./visibility/te/pa";
+import { EventBus } from "./event-bus";
 
 export class GameManager {
     selectedTool: number = 0;
@@ -66,15 +65,15 @@ export class GameManager {
                 gameStore.addToTriag({ target: TriangulationTarget.MOVEMENT, points: shape.points });
             }
         }
-        if (redrawInitiative) getRef<Initiative>("initiative").$forceUpdate();
+        if (redrawInitiative) EventBus.$emit("Initiative.ForceUpdate");
     }
 
-    setCenterPosition(position: GlobalPoint) {
+    setCenterPosition(position: GlobalPoint): void {
         const localPos = g2l(position);
         gameStore.increasePanX((window.innerWidth / 2 - localPos.x) / gameStore.zoomFactor);
         gameStore.increasePanY((window.innerHeight / 2 - localPos.y) / gameStore.zoomFactor);
         layerManager.invalidate();
-        sendClientOptions();
+        sendClientOptions(gameStore.locationOptions);
     }
 }
 

@@ -1,11 +1,14 @@
 import { socket } from "@/game/api/socket";
 import { rootStore } from "@/store";
 import { Action, getModule, Module, Mutation, VuexModule } from "vuex-module-decorators";
-import { Shape } from '../shapes/shape';
+import { Shape } from "../shapes/shape";
 import { BoundingVolume } from "./bvh/bvh";
 import { addShapeToTriag, deleteShapeFromTriag, triangulate, TriangulationTarget } from "./te/pa";
 
-export interface VisibilityState {}
+export interface VisibilityState {
+    visionMode: "bvh" | "triangle";
+    visionBlockers: string[];
+}
 
 @Module({ dynamic: true, store: rootStore, name: "visibility", namespaced: true })
 class VisibilityStore extends VuexModule implements VisibilityState {
@@ -15,24 +18,25 @@ class VisibilityStore extends VuexModule implements VisibilityState {
     visionBlockers: string[] = [];
 
     @Mutation
-    setVisionMode(data: { mode: "bvh" | "triangle"; sync: boolean }) {
+    setVisionMode(data: { mode: "bvh" | "triangle"; sync: boolean }): void {
         this.visionMode = data.mode;
+        // eslint-disable-next-line @typescript-eslint/camelcase
         if (data.sync) socket.emit("Location.Options.Set", { vision_mode: data.mode });
     }
 
     @Mutation
-    recalculateVision() {
+    recalculateVision(): void {
         if (this.visionMode === "triangle") triangulate(TriangulationTarget.VISION);
         else this.BV = Object.freeze(new BoundingVolume(this.visionBlockers));
     }
 
     @Mutation
-    recalculateMovement() {
+    recalculateMovement(): void {
         if (this.visionMode === "triangle") triangulate(TriangulationTarget.MOVEMENT);
     }
 
     @Mutation
-    deleteFromTriag(data: { target: TriangulationTarget; shape: Shape; standalone: boolean }) {
+    deleteFromTriag(data: { target: TriangulationTarget; shape: Shape; standalone: boolean }): void {
         if (this.visionMode === "triangle") {
             deleteShapeFromTriag(data.target, data.shape);
         } else if (data.standalone) {
@@ -41,13 +45,13 @@ class VisibilityStore extends VuexModule implements VisibilityState {
     }
 
     @Mutation
-    addToTriag(data: { target: TriangulationTarget; points: number[][] }) {
+    addToTriag(data: { target: TriangulationTarget; points: number[][] }): void {
         if (this.visionMode === "triangle") addShapeToTriag(data.target, data.points);
         else this.recalculateVision();
     }
 
     @Action
-    clear() {
+    clear(): void {
         (<any>this.context.state).visionBlockers = [];
         this.context.commit("recalculateVision");
         this.context.commit("recalculateMovement");

@@ -18,7 +18,7 @@ export class AnnotationManager {
         this.annotationRect = new Rect(origin, 0, 0, "rgba(0, 0, 0, 0.6)");
     }
 
-    setActiveText(text: string) {
+    setActiveText(text: string): void {
         if (this.layer === undefined) {
             if (layerManager.hasLayer("draw")) {
                 this.layer = layerManager.getLayer("draw")!;

@@ -14,7 +14,7 @@ import { TriangulationTarget } from "../visibility/te/pa";
 import { Vertex } from "../visibility/te/tds";
 import { visibilityStore } from "../visibility/store";
 
-export abstract class Shape implements IShape {
+export abstract class Shape {
     // Used to create class instance from server shape data
     abstract readonly type: string;
     // The unique ID of this shape
@@ -64,7 +64,7 @@ export abstract class Shape implements IShape {
         if (strokeColour !== undefined) this.strokeColour = strokeColour;
     }
 
-    get refPoint() {
+    get refPoint(): GlobalPoint {
         return this._refPoint;
     }
     set refPoint(point: GlobalPoint) {
@@ -78,7 +78,7 @@ export abstract class Shape implements IShape {
 
     abstract center(): GlobalPoint;
     abstract center(centerPoint: GlobalPoint): void;
-    visibleInCanvas(canvas: HTMLCanvasElement): boolean {
+    visibleInCanvas(_canvas: HTMLCanvasElement): boolean {
         // for (const aura of this.auras) {
         //     if (aura.value > 0) {
         //         const auraCircle = new Circle(this.center(), aura.value);
@@ -112,7 +112,7 @@ export abstract class Shape implements IShape {
         return point.subtract(mid).normalize();
     }
 
-    invalidate(skipLightUpdate: boolean) {
+    invalidate(skipLightUpdate: boolean): void {
         const l = layerManager.getLayer(this.layer);
         if (l) l.invalidate(skipLightUpdate);
     }
@@ -159,7 +159,7 @@ export abstract class Shape implements IShape {
         return alteredVision;
     }
 
-    setMovementBlock(blocksMovement: boolean, recalculate = true) {
+    setMovementBlock(blocksMovement: boolean, recalculate = true): boolean {
         this.movementObstruction = blocksMovement || false;
         const obstructionIndex = gameStore.movementblockers.indexOf(this.uuid);
         let alteredMovement = false;
@@ -183,7 +183,7 @@ export abstract class Shape implements IShape {
         return alteredMovement;
     }
 
-    setIsToken(isToken: boolean) {
+    setIsToken(isToken: boolean): void {
         this.isToken = isToken;
         if (this.ownedBy()) {
             const i = gameStore.ownedtokens.indexOf(this.uuid);
@@ -200,23 +200,30 @@ export abstract class Shape implements IShape {
             x: this.refPoint.x,
             y: this.refPoint.y,
             layer: this.layer,
+            // eslint-disable-next-line @typescript-eslint/camelcase
             draw_operator: this.globalCompositeOperation,
+            // eslint-disable-next-line @typescript-eslint/camelcase
             movement_obstruction: this.movementObstruction,
+            // eslint-disable-next-line @typescript-eslint/camelcase
             vision_obstruction: this.visionObstruction,
             auras: aurasToServer(this.auras),
             trackers: this.trackers,
             labels: this.labels,
             owners: this._owners,
+            // eslint-disable-next-line @typescript-eslint/camelcase
             fill_colour: this.fillColour,
+            // eslint-disable-next-line @typescript-eslint/camelcase
             stroke_colour: this.strokeColour,
             name: this.name,
+            // eslint-disable-next-line @typescript-eslint/camelcase
             name_visible: this.nameVisible,
             annotation: this.annotation,
+            // eslint-disable-next-line @typescript-eslint/camelcase
             is_token: this.isToken,
             options: JSON.stringify([...this.options]),
         };
     }
-    fromDict(data: ServerShape) {
+    fromDict(data: ServerShape): void {
         this.layer = data.layer;
         this.globalCompositeOperation = data.draw_operator;
         this.movementObstruction = data.movement_obstruction;
@@ -232,7 +239,7 @@ export abstract class Shape implements IShape {
         if (data.options) this.options = new Map(JSON.parse(data.options));
     }
 
-    draw(ctx: CanvasRenderingContext2D) {
+    draw(ctx: CanvasRenderingContext2D): void {
         if (this.globalCompositeOperation !== undefined) ctx.globalCompositeOperation = this.globalCompositeOperation;
         else ctx.globalCompositeOperation = "source-over";
         if (this.showHighlight) {
@@ -242,7 +249,7 @@ export abstract class Shape implements IShape {
         }
     }
 
-    drawAuras(ctx: CanvasRenderingContext2D) {
+    drawAuras(ctx: CanvasRenderingContext2D): void {
         for (const aura of this.auras) {
             if (aura.value === 0 && aura.dim === 0) return;
             ctx.beginPath();
@@ -286,13 +293,14 @@ export abstract class Shape implements IShape {
             visible: !gameStore.IS_DM,
             group: false,
             source: this.name,
+            // eslint-disable-next-line @typescript-eslint/camelcase
             has_img: false,
             effects: [],
             index: Infinity,
         };
     }
 
-    moveLayer(layer: string, sync: boolean) {
+    moveLayer(layer: string, sync: boolean): void {
         const oldLayer = layerManager.getLayer(this.layer);
         const newLayer = layerManager.getLayer(layer);
         if (oldLayer === undefined || newLayer === undefined) return;
@@ -307,11 +315,11 @@ export abstract class Shape implements IShape {
         if (sync) socket.emit("Shape.Layer.Change", { uuid: this.uuid, layer });
     }
 
-    get owners() {
+    get owners(): readonly string[] {
         return Object.freeze(this._owners.slice());
     }
 
-    ownedBy(username?: string) {
+    ownedBy(username?: string): boolean {
         if (username === undefined) username = gameStore.username;
         return (
             gameStore.IS_DM ||
@@ -320,33 +328,33 @@ export abstract class Shape implements IShape {
         );
     }
 
-    addOwner(owner: string) {
+    addOwner(owner: string): void {
         if (!this._owners.includes(owner)) this._owners.push(owner);
     }
 
-    updateOwner(oldValue: string, newValue: string) {
+    updateOwner(oldValue: string, newValue: string): void {
         const ownerIndex = this._owners.findIndex(o => o === oldValue);
         if (ownerIndex >= 0) this._owners.splice(ownerIndex, 1, newValue);
         else this.addOwner(newValue);
     }
 
-    removeOwner(owner: string) {
+    removeOwner(owner: string): void {
         const ownerIndex = this._owners.findIndex(o => o === owner);
         this._owners.splice(ownerIndex, 1);
     }
 
-    addTriagVertices(...vertices: Vertex[]) {
+    addTriagVertices(...vertices: Vertex[]): void {
         for (const vertex of vertices) {
             if (this._triagVertices.includes(vertex)) continue;
             this._triagVertices.push(vertex);
         }
     }
 
-    removeTriagVertices(...vertices: Vertex[]) {
+    removeTriagVertices(...vertices: Vertex[]): void {
         this._triagVertices = this._triagVertices.filter(v => !vertices.includes(v));
     }
 
-    get triagVertices() {
+    get triagVertices(): Vertex[] {
         return [...this._triagVertices];
     }
 }

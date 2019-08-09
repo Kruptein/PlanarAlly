@@ -26,32 +26,29 @@
                     <abbr title="Delete">Del.</abbr>
                 </div>
                 <div class="separator spanrow" style="margin: 0 0 7px;"></div>
-                <input class='spanrow' type='text' placeholder="search" v-model="search" ref="search">
+                <input class="spanrow" type="text" placeholder="search" v-model="search" ref="search" />
             </div>
             <div class="grid scroll">
                 <template v-for="category in categories">
                     <template v-for="label in labels[category]">
-                        <div :key="'row-'+label.uuid" class="row" @click="selectLabel(label.uuid)">
+                        <div :key="'row-' + label.uuid" class="row" @click="selectLabel(label.uuid)">
                             <template v-if="label.category">
-                                <div :key="'cat-'+label.uuid">{{ label.category }}</div>
-                                <div
-                                    class="name"
-                                    :key="'name-'+label.uuid"
-                                >{{ label.name }}</div>
+                                <div :key="'cat-' + label.uuid">{{ label.category }}</div>
+                                <div class="name" :key="'name-' + label.uuid">{{ label.name }}</div>
                             </template>
                             <template v-if="!label.category">
-                                <div :key="'cat-'+label.uuid"></div>
-                                <div class="name" :key="'name-'+label.uuid">{{ label.name }}</div>
+                                <div :key="'cat-' + label.uuid"></div>
+                                <div class="name" :key="'name-' + label.uuid">{{ label.name }}</div>
                             </template>
                             <div
-                                :key="'visible-'+label.uuid"
-                                :style="{textAlign: 'center'}"
-                                :class="{'lower-opacity': !label.visible}"
+                                :key="'visible-' + label.uuid"
+                                :style="{ textAlign: 'center' }"
+                                :class="{ 'lower-opacity': !label.visible }"
                                 @click.stop="toggleVisibility(label)"
                             >
                                 <i class="fas fa-eye"></i>
                             </div>
-                            <div :key="'delete-'+label.uuid" @click.stop="deleteLabel(label.uuid)">
+                            <div :key="'delete-' + label.uuid" @click.stop="deleteLabel(label.uuid)">
                                 <i class="fas fa-trash-alt"></i>
                             </div>
                         </div>
@@ -63,8 +60,8 @@
             </div>
             <div class="grid">
                 <div class="separator spanrow"></div>
-                <input type="text" v-model.trim="newCategory">
-                <input type="text" v-model.trim="newName">
+                <input type="text" v-model.trim="newCategory" />
+                <input type="text" v-model.trim="newName" />
                 <button id="addLabelButton" @click.stop="addLabel">Add</button>
             </div>
         </div>
@@ -107,12 +104,16 @@ export default class LabelManager extends Vue {
     }
 
     get labels() {
-        const cat: {[category: string]: Label[]} = {'': []};
+        const cat: { [category: string]: Label[] } = { "": [] };
         for (const uuid of Object.keys(gameStore.labels)) {
             const label = gameStore.labels[uuid];
-            if (this.search.length && `${label.category.toLowerCase()}${label.name.toLowerCase()}`.search(this.search.toLowerCase()) < 0) continue;
+            if (
+                this.search.length &&
+                `${label.category.toLowerCase()}${label.name.toLowerCase()}`.search(this.search.toLowerCase()) < 0
+            )
+                continue;
             if (label.user !== gameStore.username) continue;
-            if (!label.category) cat[''].push(label);
+            if (!label.category) cat[""].push(label);
             else {
                 if (!(label.category in cat)) cat[label.category] = [];
                 cat[label.category].push(label);

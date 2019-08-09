@@ -6,10 +6,9 @@ import { Circle } from "@/game/shapes/circle";
 import { Shape } from "@/game/shapes/shape";
 import { gameStore } from "@/game/store";
 import { g2l, g2lr, g2lx, g2ly, g2lz, getUnitDistance } from "@/game/units";
-import { getFogColour } from "@/game/utils";
-import { TriangulationTarget } from '../visibility/te/pa';
-import { computeVisibility } from "../visibility/te/te";
 import { visibilityStore } from "../visibility/store";
+import { TriangulationTarget } from "../visibility/te/pa";
+import { computeVisibility } from "../visibility/te/te";
 
 export class FOWLayer extends Layer {
     isVisionLayer: boolean = true;
@@ -32,7 +31,7 @@ export class FOWLayer extends Layer {
         }
     }
 
-    removeShape(shape: Shape, sync: boolean, temporary?: boolean) {
+    removeShape(shape: Shape, sync: boolean, temporary?: boolean): void {
         if (shape.options.has("preFogShape") && shape.options.get("preFogShape")) {
             const idx = this.preFogShapes.findIndex(s => s.uuid === shape.uuid);
             this.preFogShapes.splice(idx, 1);
@@ -216,7 +215,7 @@ export class FOWLayer extends Layer {
 
             if (gameStore.fullFOW) {
                 ctx.globalCompositeOperation = "source-out";
-                ctx.fillStyle = getFogColour();
+                ctx.fillStyle = gameStore.getFogColour();
                 ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
             }
 

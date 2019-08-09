@@ -17,7 +17,7 @@ export let PA_CDT = {
     movement: new CDT(),
 };
 
-export function triangulate(target: TriangulationTarget) {
+export function triangulate(target: TriangulationTarget): void {
     console.warn(`RETRIANGULATING ${target}`);
     console.time("TRI");
     const cdt = new CDT();
@@ -113,7 +113,7 @@ function deleteIntersectVertex(
     return deleteIntersectVertex(nextIntersect, vertex, target, queues, false);
 }
 
-export function deleteShapeFromTriag(target: TriangulationTarget, shape: Shape) {
+export function deleteShapeFromTriag(target: TriangulationTarget, shape: Shape): void {
     console.time("DS");
     const cdt = PA_CDT[target];
     const queues: { vertices: Set<Vertex>; edges: Edge[]; newConstraints: Vertex[][]; triBridge: Vertex[] } = {
@@ -141,18 +141,18 @@ export function deleteShapeFromTriag(target: TriangulationTarget, shape: Shape) 
     console.timeEnd("DS");
 }
 
-export function addShapeToTriag(target: TriangulationTarget, points: number[][]) {
+export function addShapeToTriag(_target: TriangulationTarget, _points: number[][]): void {
     return;
-    console.time("AS");
-    const cdt = PA_CDT[target];
-    for (const [i, point] of points.entries()) {
-        const n = points[(i + 1) % points.length];
-        cdt.insertConstraint(point, n);
-    }
-    console.timeEnd("AS");
+    // console.time("AS");
+    // const cdt = PA_CDT[target];
+    // for (const [i, point] of points.entries()) {
+    //     const n = points[(i + 1) % points.length];
+    //     cdt.insertConstraint(point, n);
+    // }
+    // console.timeEnd("AS");
 }
 
-export function addShapesToTriag(target: TriangulationTarget, ...shapes: Shape[]) {
+export function addShapesToTriag(target: TriangulationTarget, ...shapes: Shape[]): void {
     const cdt = PA_CDT[target];
     for (const shape of shapes) {
         for (const [i, pa] of shape.points.entries()) {

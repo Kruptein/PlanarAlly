@@ -2,8 +2,8 @@ import { GlobalPoint, LocalPoint } from "@/game/geom";
 import { BoundingRect } from "@/game/shapes/boundingrect";
 import { Shape } from "@/game/shapes/shape";
 import { g2lx, g2ly, g2lz, l2g } from "@/game/units";
-import { getFogColour } from "@/game/utils";
 import { ServerMultiLine } from "../comm/types/shapes";
+import { gameStore } from "../store";
 
 export class MultiLine extends Shape {
     type = "multiline";
@@ -21,7 +21,7 @@ export class MultiLine extends Shape {
         this.lineWidth = lineWidth || 3;
     }
 
-    get refPoint() {
+    get refPoint(): GlobalPoint {
         return this._refPoint;
     }
     set refPoint(point: GlobalPoint) {
@@ -30,17 +30,18 @@ export class MultiLine extends Shape {
         for (let i = 0; i < this._points.length; i++) this._points[i] = this._points[i].add(delta);
     }
 
-    asDict() {
+    asDict(): ServerMultiLine {
         return Object.assign(this.getBaseDict(), {
+            // eslint-disable-next-line @typescript-eslint/camelcase
             line_width: this.lineWidth,
             points: this._points.map(p => ({ x: p.x, y: p.y })),
         });
     }
-    fromDict(data: ServerMultiLine) {
+    fromDict(data: ServerMultiLine): void {
         super.fromDict(data);
         this._points = data.points.map(p => new GlobalPoint(p.x, p.y));
     }
-    get points() {
+    get points(): number[][] {
         return this._points.map(point => [point.x, point.y]);
     }
     getBoundingBox(): BoundingRect {
@@ -56,14 +57,14 @@ export class MultiLine extends Shape {
         }
         return new BoundingRect(new GlobalPoint(minx, miny), maxx - minx, maxy - miny);
     }
-    draw(ctx: CanvasRenderingContext2D) {
+    draw(ctx: CanvasRenderingContext2D): void {
         super.draw(ctx);
         ctx.beginPath();
         ctx.lineCap = "round";
         ctx.lineJoin = "round";
         ctx.moveTo(g2lx(this.refPoint.x), g2ly(this.refPoint.y));
         for (const p of this._points) ctx.lineTo(g2lx(p.x), g2ly(p.y));
-        if (this.strokeColour === "fog") ctx.strokeStyle = getFogColour();
+        if (this.strokeColour === "fog") ctx.strokeStyle = gameStore.getFogColour();
         else ctx.strokeStyle = this.strokeColour;
         ctx.lineWidth = g2lz(this.lineWidth);
         ctx.stroke();
@@ -74,7 +75,7 @@ export class MultiLine extends Shape {
 
     center(): GlobalPoint;
     center(centerPoint: GlobalPoint): void;
-    center(centerPoint?: GlobalPoint): GlobalPoint | void {
+    center(_centerPoint?: GlobalPoint): GlobalPoint | void {
         return this.getBoundingBox().center();
     }
     visibleInCanvas(canvas: HTMLCanvasElement): boolean {

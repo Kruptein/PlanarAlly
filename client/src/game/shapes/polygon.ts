@@ -1,7 +1,7 @@
 import { ServerPolygon } from "../comm/types/shapes";
 import { GlobalPoint, LocalPoint } from "../geom";
+import { gameStore } from "../store";
 import { g2lx, g2ly, g2lz, l2g } from "../units";
-import { getFogColour } from "../utils";
 import { BoundingRect } from "./boundingrect";
 import { Shape } from "./shape";
 
@@ -20,7 +20,7 @@ export class Polygon extends Shape {
         this._vertices = vertices;
     }
 
-    get refPoint() {
+    get refPoint(): GlobalPoint {
         return this._refPoint;
     }
     set refPoint(point: GlobalPoint) {
@@ -29,34 +29,34 @@ export class Polygon extends Shape {
         for (let i = 0; i < this._vertices.length; i++) this._vertices[i] = this._vertices[i].add(delta);
     }
 
-    get vertices() {
+    get vertices(): GlobalPoint[] {
         return [this._refPoint, ...this._vertices];
     }
 
-    asDict() {
+    asDict(): ServerPolygon {
         return Object.assign(this.getBaseDict(), {
             vertices: this._vertices.map(p => ({ x: p.x, y: p.y })),
         });
     }
 
-    fromDict(data: ServerPolygon) {
+    fromDict(data: ServerPolygon): void {
         super.fromDict(data);
         this._vertices = data.vertices.map(v => new GlobalPoint(v.x, v.y));
     }
 
-    get points() {
+    get points(): number[][] {
         return this.vertices.map(point => [point.x, point.y]);
     }
 
-    draw(ctx: CanvasRenderingContext2D) {
+    draw(ctx: CanvasRenderingContext2D): void {
         super.draw(ctx);
         ctx.lineCap = "round";
         ctx.lineJoin = "round";
 
-        if (this.strokeColour === "fog") ctx.strokeStyle = getFogColour();
+        if (this.strokeColour === "fog") ctx.strokeStyle = gameStore.getFogColour();
         else if (this.vertices.length === 2) ctx.strokeStyle = this.fillColour;
         else ctx.strokeStyle = this.strokeColour;
-        if (this.fillColour === "fog") ctx.fillStyle = getFogColour();
+        if (this.fillColour === "fog") ctx.fillStyle = gameStore.getFogColour();
         else ctx.fillStyle = this.fillColour;
         ctx.lineWidth = g2lz(2);
 
@@ -76,7 +76,7 @@ export class Polygon extends Shape {
 
     center(): GlobalPoint;
     center(centerPoint: GlobalPoint): void;
-    center(centerPoint?: GlobalPoint): GlobalPoint | void {
+    center(_centerPoint?: GlobalPoint): GlobalPoint | void {
         return this.getBoundingBox().center();
     }
     visibleInCanvas(canvas: HTMLCanvasElement): boolean {

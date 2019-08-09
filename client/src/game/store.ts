@@ -1,3 +1,4 @@
+import tinycolor from "tinycolor2";
 import Vue from "vue";
 import { rootStore } from "@/store";
 import { Action, getModule, Module, Mutation, VuexModule } from "vuex-module-decorators";
@@ -11,6 +12,12 @@ import { GlobalPoint } from "@/game/geom";
 import { layerManager } from "@/game/layers/manager";
 import { g2l, l2g } from "@/game/units";
 import { zoomValue } from "@/game/utils";
+
+export interface LocationOptions {
+    panX: number;
+    panY: number;
+    zoomFactor: number;
+}
 
 export interface GameState {
     boardInitialized: boolean;
@@ -76,28 +83,50 @@ class GameStore extends VuexModule implements GameState {
 
     showUI = true;
 
-    get selectedLayer() {
+    selectionHelperID: string | null = null;
+
+    get selectedLayer(): string {
         return this.layers[this.selectedLayerIndex];
     }
 
-    get zoomFactor() {
+    get zoomFactor(): number {
         return zoomValue(this.zoomDisplay);
     }
 
-    get activeTokens() {
+    get locationOptions(): LocationOptions {
+        return {
+            panX: gameStore.panX,
+            panY: gameStore.panY,
+            zoomFactor: gameStore.zoomFactor,
+        };
+    }
+
+    getFogColour(opposite: boolean = false): string {
+        const tc = tinycolor(gameStore.fowColour);
+        if (gameStore.IS_DM) tc.setAlpha(opposite ? 1 : gameStore.fowOpacity);
+        else tc.setAlpha(1);
+        return tc.toRgbString();
+    }
+
+    get activeTokens(): string[] {
         if (this._activeTokens.length === 0) return this.ownedtokens;
         return this._activeTokens;
     }
 
     @Mutation
-    setFakePlayer(value: boolean) {
+    setSelectionHelperId(id: string): void {
+        this.selectionHelperID = id;
+    }
+
+    @Mutation
+    setFakePlayer(value: boolean): void {
         this.FAKE_PLAYER = value;
         this.IS_DM = !value;
         layerManager.invalidate();
     }
 
     @Mutation
-    setZoomDisplay(zoom: number) {
+    setZoomDisplay(zoom: number): void {
         if (zoom === this.zoomDisplay) return;
         if (zoom < 0) zoom = 0;
         if (zoom > 1) zoom = 1;
@@ -106,33 +135,33 @@ class GameStore extends VuexModule implements GameState {
     }
 
     @Mutation
-    setBoardInitialized(boardInitialized: boolean) {
+    setBoardInitialized(boardInitialized: boolean): void {
         this.boardInitialized = boardInitialized;
     }
 
     @Mutation
-    toggleUnlabeledFilter() {
+    toggleUnlabeledFilter(): void {
         this.filterNoLabel = !this.filterNoLabel;
     }
 
     @Mutation
-    addLabel(label: Label) {
+    addLabel(label: Label): void {
         Vue.set(this.labels, label.uuid, label);
     }
 
     @Mutation
-    setLabelFilters(filters: string[]) {
+    setLabelFilters(filters: string[]): void {
         this.labelFilters = filters;
     }
 
     @Mutation
-    setLabelVisibility(data: { user: string; uuid: string; visible: boolean }) {
+    setLabelVisibility(data: { user: string; uuid: string; visible: boolean }): void {
         if (!(data.uuid in this.labels)) return;
         this.labels[data.uuid].visible = data.visible;
     }
 
     @Mutation
-    deleteLabel(data: { uuid: string; user: string }) {
+    deleteLabel(data: { uuid: string; user: string }): void {
         if (!(data.uuid in this.labels)) return;
         const label = this.labels[data.uuid];
         const updatedLayers: Set<string> = new Set();
@@ -148,67 +177,67 @@ class GameStore extends VuexModule implements GameState {
     }
 
     @Mutation
-    setDM(isDM: boolean) {
+    setDM(isDM: boolean): void {
         this.IS_DM = isDM;
     }
 
     @Mutation
-    setUsername(username: string) {
+    setUsername(username: string): void {
         this.username = username;
     }
 
     @Mutation
-    setRoomName(name: string) {
+    setRoomName(name: string): void {
         this.roomName = name;
     }
 
     @Mutation
-    setRoomCreator(name: string) {
+    setRoomCreator(name: string): void {
         this.roomCreator = name;
     }
 
     @Mutation
-    setInvitationCode(code: string) {
+    setInvitationCode(code: string): void {
         this.invitationCode = code;
     }
 
     @Mutation
-    addLayer(name: string) {
+    addLayer(name: string): void {
         this.layers.push(name);
         if (this.selectedLayerIndex === -1) this.selectedLayerIndex = this.layers.indexOf(name);
     }
 
     @Mutation
-    selectLayer(data: { name: string; sync: boolean }) {
+    selectLayer(data: { name: string; sync: boolean }): void {
         const index = this.layers.indexOf(data.name);
         if (index >= 0) this.selectedLayerIndex = index;
         if (data.sync) socket.emit("Client.ActiveLayer.Set", data.name);
     }
 
     @Mutation
-    newNote(data: { note: Note; sync: boolean }) {
+    newNote(data: { note: Note; sync: boolean }): void {
         this.notes.push(data.note);
         if (data.sync) socket.emit("Note.New", data.note);
     }
 
     @Mutation
-    setAssets(assets: AssetList) {
+    setAssets(assets: AssetList): void {
         this.assets = assets;
     }
 
     @Mutation
-    setLocations(locations: string[]) {
+    setLocations(locations: string[]): void {
         this.locations = locations;
     }
 
     @Mutation
-    resetLayerInfo() {
+    resetLayerInfo(): void {
         this.layers = [];
         this.selectedLayerIndex = -1;
     }
 
     @Mutation
-    updateZoom(data: { newZoomDisplay: number; zoomLocation: GlobalPoint }) {
+    updateZoom(data: { newZoomDisplay: number; zoomLocation: GlobalPoint }): void {
         if (data.newZoomDisplay === this.zoomDisplay) return;
         if (data.newZoomDisplay < 0) data.newZoomDisplay = 0;
         if (data.newZoomDisplay > 1) data.newZoomDisplay = 1;
@@ -220,65 +249,67 @@ class GameStore extends VuexModule implements GameState {
         this.panX += diff.x;
         this.panY += diff.y;
         layerManager.invalidate();
-        sendClientOptions();
+        sendClientOptions(this.locationOptions);
     }
 
     @Mutation
-    setGridColour(data: { colour: string; sync: boolean }) {
+    setGridColour(data: { colour: string; sync: boolean }): void {
         this.gridColour = data.colour;
         layerManager.getGridLayer()!.drawGrid();
         if (data.sync) socket.emit("Client.Options.Set", { gridColour: data.colour });
     }
 
     @Mutation
-    setFOWColour(data: { colour: string; sync: boolean }) {
+    setFOWColour(data: { colour: string; sync: boolean }): void {
         this.fowColour = data.colour;
         layerManager.invalidate();
         if (data.sync) socket.emit("Client.Options.Set", { fowColour: data.colour });
     }
 
     @Mutation
-    setRulerColour(data: { colour: string; sync: boolean }) {
+    setRulerColour(data: { colour: string; sync: boolean }): void {
         this.rulerColour = data.colour;
         if (data.sync) socket.emit("Client.Options.Set", { rulerColour: data.colour });
     }
 
     @Mutation
-    setPanX(x: number) {
+    setPanX(x: number): void {
         this.panX = x;
     }
 
     @Mutation
-    setPanY(y: number) {
+    setPanY(y: number): void {
         this.panY = y;
     }
 
     @Mutation
-    increasePanX(increase: number) {
+    increasePanX(increase: number): void {
         this.panX += increase;
     }
 
     @Mutation
-    increasePanY(increase: number) {
+    increasePanY(increase: number): void {
         this.panY += increase;
     }
 
     @Mutation
-    setUnitSize(data: { unitSize: number; sync: boolean }) {
+    setUnitSize(data: { unitSize: number; sync: boolean }): void {
         if (this.unitSize !== data.unitSize && data.unitSize > 0 && data.unitSize < Infinity) {
             this.unitSize = data.unitSize;
             layerManager.invalidate();
+            // eslint-disable-next-line @typescript-eslint/camelcase
             if (data.sync) socket.emit("Location.Options.Set", { unit_size: data.unitSize });
         }
     }
 
     @Mutation
-    setUseGrid(data: { useGrid: boolean; sync: boolean }) {
+    setUseGrid(data: { useGrid: boolean; sync: boolean }): void {
         if (this.useGrid !== data.useGrid) {
             this.useGrid = data.useGrid;
             const gridLayer = layerManager.getGridLayer()!;
             if (data.useGrid) gridLayer.canvas.style.display = "block";
             else gridLayer.canvas.style.display = "none";
+            // eslint-disable-next-line @typescript-eslint/camelcase
             if (data.sync) socket.emit("Location.Options.Set", { use_grid: data.useGrid });
         }
     }
@@ -297,6 +328,7 @@ class GameStore extends VuexModule implements GameState {
     setVisionRangeMin(data: { value: number; sync: boolean }): void {
         this.visionRangeMin = data.value;
         layerManager.invalidateLight();
+        // eslint-disable-next-line @typescript-eslint/camelcase
         if (data.sync) socket.emit("Location.Options.Set", { vision_min_range: data.value });
     }
 
@@ -304,41 +336,45 @@ class GameStore extends VuexModule implements GameState {
     setVisionRangeMax(data: { value: number; sync: boolean }): void {
         this.visionRangeMax = Math.max(data.value, this.visionRangeMin);
         layerManager.invalidateLight();
+        // eslint-disable-next-line @typescript-eslint/camelcase
         if (data.sync) socket.emit("Location.Options.Set", { vision_max_range: this.visionRangeMax });
     }
 
     @Mutation
-    setFullFOW(data: { fullFOW: boolean; sync: boolean }) {
+    setFullFOW(data: { fullFOW: boolean; sync: boolean }): void {
         if (this.fullFOW !== data.fullFOW) {
             this.fullFOW = data.fullFOW;
             layerManager.invalidateLight();
+            // eslint-disable-next-line @typescript-eslint/camelcase
             if (data.sync) socket.emit("Location.Options.Set", { full_fow: data.fullFOW });
         }
     }
 
     @Mutation
-    setFOWOpacity(data: { fowOpacity: number; sync: boolean }) {
+    setFOWOpacity(data: { fowOpacity: number; sync: boolean }): void {
         this.fowOpacity = data.fowOpacity;
         layerManager.invalidateLight();
+        // eslint-disable-next-line @typescript-eslint/camelcase
         if (data.sync) socket.emit("Location.Options.Set", { fow_opacity: data.fowOpacity });
     }
 
     @Mutation
-    setLineOfSight(data: { fowLOS: boolean; sync: boolean }) {
+    setLineOfSight(data: { fowLOS: boolean; sync: boolean }): void {
         if (this.fowLOS !== data.fowLOS) {
             this.fowLOS = data.fowLOS;
             layerManager.invalidate();
+            // eslint-disable-next-line @typescript-eslint/camelcase
             if (data.sync) socket.emit("Location.Options.Set", { fow_los: data.fowLOS });
         }
     }
 
     @Mutation
-    setLocationName(name: string) {
+    setLocationName(name: string): void {
         this.locationName = name;
     }
 
     @Mutation
-    updateNote(data: { note: Note; sync: boolean }) {
+    updateNote(data: { note: Note; sync: boolean }): void {
         const actualNote = this.notes.find(n => n.uuid === data.note.uuid);
         if (actualNote === undefined) return;
         actualNote.title = data.note.title;
@@ -347,35 +383,35 @@ class GameStore extends VuexModule implements GameState {
     }
 
     @Mutation
-    removeNote(data: { note: Note; sync: boolean }) {
+    removeNote(data: { note: Note; sync: boolean }): void {
         this.notes = this.notes.filter(n => n.uuid !== data.note.uuid);
         if (data.sync) socket.emit("Note.Remove", data.note.uuid);
     }
 
     @Mutation
-    toggleUI() {
+    toggleUI(): void {
         this.showUI = !this.showUI;
     }
 
     @Mutation
-    setClipboard(clipboard: ServerShape[]) {
+    setClipboard(clipboard: ServerShape[]): void {
         this.clipboard = clipboard;
     }
 
     @Mutation
-    setActiveTokens(tokens: string[]) {
+    setActiveTokens(tokens: string[]): void {
         this._activeTokens = tokens;
         layerManager.invalidateLight();
     }
 
     @Mutation
-    addActiveToken(token: string) {
+    addActiveToken(token: string): void {
         this._activeTokens.push(token);
         layerManager.invalidateLight();
     }
 
     @Mutation
-    removeActiveToken(token: string) {
+    removeActiveToken(token: string): void {
         if (this._activeTokens.length === 0) {
             this._activeTokens = [...this.ownedtokens];
         }
@@ -384,22 +420,22 @@ class GameStore extends VuexModule implements GameState {
     }
 
     @Mutation
-    setPlayers(players: { id: number; name: string }[]) {
+    setPlayers(players: { id: number; name: string }[]): void {
         this.players = players;
     }
 
     @Mutation
-    addPlayer(player: { id: number; name: string }) {
+    addPlayer(player: { id: number; name: string }): void {
         this.players.push(player);
     }
 
     @Mutation
-    kickPlayer(playerId: number) {
+    kickPlayer(playerId: number): void {
         this.players = this.players.filter(p => p.id !== playerId);
     }
 
     @Mutation
-    setIsLocked(data: { isLocked: boolean; sync: boolean }) {
+    setIsLocked(data: { isLocked: boolean; sync: boolean }): void {
         this.isLocked = data.isLocked;
         if (data.sync) {
             socket.emit("Room.Info.Set.Locked", this.isLocked);
@@ -407,7 +443,7 @@ class GameStore extends VuexModule implements GameState {
     }
 
     @Action
-    clear() {
+    clear(): void {
         (<any>this.context.state).visionSources = [];
         (<any>this.context.state).ownedtokens = [];
         (<any>this.context.state).annotations = [];

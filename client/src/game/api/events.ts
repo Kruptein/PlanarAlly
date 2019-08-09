@@ -18,11 +18,11 @@ socket.on("connect", () => {
 socket.on("disconnect", () => {
     console.log("Disconnected");
 });
-socket.on("connect_error", (error: any) => {
+socket.on("connect_error", (_error: any) => {
     console.error("Could not connect to game session.");
     router.push("/dashboard");
 });
-socket.on("error", (error: any) => {
+socket.on("error", (_error: any) => {
     console.error("Game session does not exist.");
     router.push("/dashboard");
 });

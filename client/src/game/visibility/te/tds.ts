@@ -69,11 +69,11 @@ export class Triangle {
         ];
     }
 
-    get dimension() {
+    get dimension(): number {
         return this.vertices.length - 1;
     }
 
-    addVertex(vertex: Vertex) {
+    addVertex(vertex: Vertex): void {
         if (vertex === undefined) {
             console.log("UNDEFINED HIERE");
         }
@@ -85,7 +85,7 @@ export class Triangle {
         return this.constraints[index];
     }
 
-    reorient() {
+    reorient(): void {
         // If certain indices do not exist yet thay will append faulty undefined's, thus we slice them
         this.vertices = [this.vertices[1], this.vertices[0], this.vertices[2]].slice(0, this.vertices.length);
         this.neighbours = [this.neighbours[1], this.neighbours[0], this.neighbours[2]];
@@ -113,7 +113,7 @@ export class Triangle {
         }
     }
 
-    contains(point: Point) {
+    contains(point: Point): boolean {
         const A =
             -this.vertices[1]!.point![1] * this.vertices[2]!.point![0] +
             this.vertices[0]!.point![1] * (-this.vertices[1]!.point![0] + this.vertices[2]!.point![0]) +
@@ -137,13 +137,13 @@ export class Triangle {
         return t > 0 && s + t < A * sign;
     }
 
-    cwPermute() {
+    cwPermute(): void {
         this.vertices.push(this.vertices.shift()!);
         this.neighbours.push(this.neighbours.shift()!);
         this.constraints.push(this.constraints.shift()!);
     }
 
-    ccwPermute() {
+    ccwPermute(): void {
         this.vertices.unshift(this.vertices.pop()!);
         this.neighbours.unshift(this.neighbours.pop()!);
         this.constraints.unshift(this.constraints.pop()!);
@@ -218,7 +218,7 @@ export class EdgeCirculator {
         this._t = this.t;
     }
 
-    get valid() {
+    get valid(): boolean {
         return this.t !== null && this.v !== null;
     }
 
@@ -261,7 +261,7 @@ export class EdgeIterator {
         return (this.pos !== null || this._es !== this.edge.second) && this.pos!.isInfinite(this.edge.second);
     }
 
-    next() {
+    next(): void {
         do {
             this.increment();
         } while (this.pos !== null && !this.associatedEdge());
@@ -279,7 +279,7 @@ export class EdgeIterator {
         );
     }
 
-    increment() {
+    increment(): void {
         if (this.tds.dimension === 1) {
             this.i++;
             if (this.tds.triangles.length <= this.i) this.pos = null;
@@ -317,20 +317,20 @@ export class FaceCirculator {
         this._t = this.t;
     }
 
-    get valid() {
+    get valid(): boolean {
         return this.t !== null && this.v !== null;
     }
 
-    get done() {
+    get done(): boolean {
         return this.v === this._v && this.t === this._t;
     }
 
-    setDone() {
+    setDone(): void {
         this._v = this.v;
         this._t = this.t;
     }
 
-    prev() {
+    prev(): void {
         const i = this.t!.indexV(this.v!);
         this.t = this.t!.neighbours[cw(i)];
     }
@@ -409,11 +409,11 @@ export class LineFaceCirculator {
         }
     }
 
-    next() {
+    next(): void {
         this.increment();
     }
 
-    increment() {
+    increment(): void {
         let o: Sign;
         if (this.s === LineFaceState.VERTEX_VERTEX || this.s === LineFaceState.EDGE_VERTEX) {
             do {
@@ -472,7 +472,9 @@ export class Edge {
     }
 
     toString(): string {
-        return `${this.first!.vertices[this.second === 1 ? 0 : 1]!.point} - ${this.first!.vertices[this.second === 1 ? 2 : 1]!.point}`;
+        return `${this.first!.vertices[this.second === 1 ? 0 : 1]!.point} - ${
+            this.first!.vertices[this.second === 1 ? 2 : 1]!.point
+        }`;
     }
 }
 
@@ -505,7 +507,7 @@ export class TDS {
         return v;
     }
 
-    deleteVertex(vertex: Vertex) {
+    deleteVertex(vertex: Vertex): void {
         this.vertices = this.vertices.filter(v => v !== vertex);
     }
 
@@ -516,7 +518,7 @@ export class TDS {
         n0: Triangle | null,
         n1: Triangle | null,
         n2: Triangle | null,
-    ) {
+    ): Triangle {
         const t = new Triangle(v0, v1, v2);
         t.neighbours[0] = n0;
         t.neighbours[1] = n1;
@@ -532,7 +534,7 @@ export class TDS {
         i2: number,
         f3: Triangle | null = null,
         i3: number | null = null,
-    ) {
+    ): Triangle {
         const v3 = f3 === null || i3 === null ? f2.vertices[ccw(i2)] : f3.vertices[cw(i3)];
         const t = new Triangle(f1.vertices[cw(i1)], f2.vertices[cw(i2)], v3);
         f1.neighbours[i1] = t;
@@ -545,7 +547,7 @@ export class TDS {
         return t;
     }
 
-    createTriangle3(f1: Triangle, i1: number, v: Vertex) {
+    createTriangle3(f1: Triangle, i1: number, v: Vertex): Triangle {
         const t = new Triangle(f1.vertices[cw(i1)], f1.vertices[ccw(i1)], v);
         t.neighbours[2] = f1;
         // not sure if I should create new Triangle() in the other neighbor spots or leave them as null
@@ -554,11 +556,11 @@ export class TDS {
         return t;
     }
 
-    deleteTriangle(trig: Triangle) {
+    deleteTriangle(trig: Triangle): void {
         this.triangles = this.triangles.filter(t => t !== trig);
     }
 
-    setAdjacency(t0: Triangle, i0: number, t1: Triangle, i1: number) {
+    setAdjacency(t0: Triangle, i0: number, t1: Triangle, i1: number): void {
         t0.neighbours[i0] = t1;
         t1.neighbours[i1] = t0;
     }
@@ -681,7 +683,7 @@ export class TDS {
         return ccw(t.neighbours[i]!.indexV(t.vertices[ccw(i)]!));
     }
 
-    insertInFace(t: Triangle) {
+    insertInFace(t: Triangle): Vertex {
         const v = this.createVertex();
         const v0 = t.vertices[0]!;
         const v1 = t.vertices[1]!;
@@ -707,7 +709,7 @@ export class TDS {
         return v;
     }
 
-    flip(t: Triangle, i: number) {
+    flip(t: Triangle, i: number): void {
         const n = t.neighbours[i]!;
         const ni = this.mirrorIndex(t, i);
         const vCW = t.vertices[cw(i)]!;
@@ -728,7 +730,7 @@ export class TDS {
         if (vCCW.triangle! === n) vCCW.triangle = t;
     }
 
-    insertInEdge(t: Triangle, i: number) {
+    insertInEdge(t: Triangle, i: number): Vertex {
         let v: Vertex;
         if (this.dimension === 1) {
             v = this.createVertex();
@@ -749,7 +751,7 @@ export class TDS {
         return v;
     }
 
-    makeHole(v: Vertex, hole: [Triangle, number][]) {
+    makeHole(v: Vertex, hole: [Triangle, number][]): void {
         const deleteList: Triangle[] = [];
         let f: Triangle;
         let fn: Triangle;
@@ -776,7 +778,7 @@ export class TDS {
         }
     }
 
-    fillHoleDelaunay(firstHole: [Triangle, number][]) {
+    fillHoleDelaunay(firstHole: [Triangle, number][]): void {
         let f: Triangle;
         let ff: Triangle;
         let fn: Triangle;
@@ -882,7 +884,7 @@ export class TDS {
         }
     }
 
-    removeDimDown(v: Vertex) {
+    removeDimDown(v: Vertex): void {
         let f: Triangle;
         switch (this.dimension) {
             case -1: {
@@ -937,7 +939,7 @@ export class BoundingBox {
         this.y2 = p[1];
     }
 
-    dilate(dist: number) {
+    dilate(dist: number): void {
         this.x1 -= dist * ulp(this.x1);
         this.y1 -= dist * ulp(this.y1);
         this.x2 += dist * ulp(this.x2);

@@ -17,7 +17,7 @@ class LayerManager {
         requestAnimationFrame(this.drawLoop);
     }
 
-    reset() {
+    reset(): void {
         this.layers = [];
         this.UUIDMap = new Map();
     }
@@ -55,7 +55,7 @@ class LayerManager {
         return this.layers.some(l => l.name === name);
     }
 
-    getLayer(name?: string) {
+    getLayer(name?: string): Layer | undefined {
         name = name === undefined ? gameStore.selectedLayer : name;
         for (const layer of this.layers) {
             if (layer.name === name) return layer;
@@ -83,13 +83,13 @@ class LayerManager {
         return <GridLayer>this.getLayer("grid");
     }
 
-    hasSelection() {
+    hasSelection(): boolean {
         const selection = this.getSelection();
         return selection !== undefined && selection.length > 0;
     }
 
     // THIS INCLUDES POTENTIALLY THE SelectTool.SelectionHelper !!!
-    getSelection() {
+    getSelection(): Shape[] | undefined {
         const layer = this.getLayer();
         if (layer === undefined) return undefined;
         return layer.selection;
@@ -101,7 +101,7 @@ class LayerManager {
         }
     }
 
-    invalidateLight() {
+    invalidateLight(): void {
         for (let i = this.layers.length - 1; i >= 0; i--)
             if (this.layers[i].isVisionLayer) this.layers[i].invalidate(true);
     }

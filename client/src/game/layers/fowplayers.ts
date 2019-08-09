@@ -98,7 +98,9 @@ export class FOWPlayersLayer extends Layer {
                         for (const point of polygon) ctx.lineTo(g2lx(point[0]), g2ly(point[1]));
                         ctx.closePath();
                         ctx.fill();
-                    } catch {}
+                    } catch {
+                        // no-op
+                    }
                 }
             }
 

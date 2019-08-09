@@ -1,47 +1,47 @@
 <template>
-  <modal v-if="note !== null" :visible="visible" @close="visible = false" :mask="false">
-    <div
-      class="modal-header"
-      slot="header"
-      slot-scope="m"
-      draggable="true"
-      @dragstart="m.dragStart"
-      @dragend="m.dragEnd"
-    >
-      <span @click="$refs.title.select()">
-        <i class="fas fa-pencil-alt" style="font-size: 15px"></i>
-      </span>
-      <input v-model="note.title" ref="title" @change="updateNote">
-      <div class="header-close" @click="visible = false">
-        <i class="far fa-window-close"></i>
-      </div>
-    </div>
-    <div class="modal-body">
-      <textarea
-        ref="textarea"
-        v-model="note.text"
-        :style="{'height': calcHeight()}"
-        @change="updateNote"
-      ></textarea>
-    </div>
-    <div class="modal-footer">
-      <button @click="removeNote">
-        <i class="far fa-trash-alt"></i> Remove
-      </button>
-    </div>
-  </modal>
+    <modal v-if="note !== null" :visible="visible" @close="visible = false" :mask="false">
+        <div
+            class="modal-header"
+            slot="header"
+            slot-scope="m"
+            draggable="true"
+            @dragstart="m.dragStart"
+            @dragend="m.dragEnd"
+        >
+            <span @click="$refs.title.select()">
+                <i class="fas fa-pencil-alt" style="font-size: 15px"></i>
+            </span>
+            <input v-model="note.title" ref="title" @change="updateNote" />
+            <div class="header-close" @click="visible = false">
+                <i class="far fa-window-close"></i>
+            </div>
+        </div>
+        <div class="modal-body">
+            <textarea
+                ref="textarea"
+                v-model="note.text"
+                :style="{ height: calcHeight() }"
+                @change="updateNote"
+            ></textarea>
+        </div>
+        <div class="modal-footer">
+            <button @click="removeNote">
+                <i class="far fa-trash-alt"></i>
+                Remove
+            </button>
+        </div>
+    </modal>
 </template>
 
 <script lang="ts">
 import Vue from "vue";
 import Component from "vue-class-component";
 
-import ConfirmDialog from "@/core/components/modals/confirm.vue";
 import Modal from "@/core/components/modals/modal.vue";
 
-import { getRef } from "@/core/utils";
 import { Note } from "@/game/comm/types/general";
 import { gameStore } from "@/game/store";
+import Game from "../game.vue";
 
 @Component({
     components: {
@@ -70,17 +70,15 @@ export default class NoteDialog extends Vue {
         if (this.note) gameStore.updateNote({ note: this.note, sync: true });
     }
     removeNote() {
-        getRef<ConfirmDialog>("confirm")
-            .open("Are you sure you wish to remove this?")
-            .then(
-                (result: boolean) => {
-                    if (result && this.note) {
-                        gameStore.removeNote({ note: this.note, sync: true });
-                        this.visible = false;
-                    }
-                },
-                () => {},
-            );
+        (<Game>this.$parent.$parent).$refs.confirm.open("Are you sure you wish to remove this?").then(
+            (result: boolean) => {
+                if (result && this.note) {
+                    gameStore.removeNote({ note: this.note, sync: true });
+                    this.visible = false;
+                }
+            },
+            () => {},
+        );
     }
 }
 </script>

@@ -4,6 +4,7 @@ import { Shape } from "@/game/shapes/shape";
 import { gameStore } from "@/game/store";
 import { calculateDelta } from "@/game/ui/tools/utils";
 import { g2lx, g2ly, l2g, l2gx, l2gy } from "@/game/units";
+import { ServerShape } from "../comm/types/shapes";
 
 export abstract class BaseRect extends Shape {
     w: number;
@@ -13,17 +14,17 @@ export abstract class BaseRect extends Shape {
         this.w = w;
         this.h = h;
     }
-    getBaseDict() {
+    getBaseDict(): ServerShape & { width: number; height: number } {
         return Object.assign(super.getBaseDict(), {
             width: this.w,
             height: this.h,
         });
     }
-    getBoundingBox() {
+    getBoundingBox(): BoundingRect {
         return new BoundingRect(this.refPoint, this.w, this.h);
     }
 
-    get points() {
+    get points(): number[][] {
         if (this.w === 0 || this.h === 0) return [[this.refPoint.x, this.refPoint.y]];
         // note to self: topright and botleft are swapped because I'm retarded.
         const topright = this.refPoint.add(new Vector(0, this.h));
@@ -63,7 +64,7 @@ export abstract class BaseRect extends Shape {
         if (coreVisible) return true;
         return false;
     }
-    snapToGrid() {
+    snapToGrid(): void {
         const gs = gameStore.gridSize;
         const center = this.center();
         const mx = center.x;
@@ -88,14 +89,14 @@ export abstract class BaseRect extends Shape {
 
         this.invalidate(false);
     }
-    resizeToGrid() {
+    resizeToGrid(): void {
         const gs = gameStore.gridSize;
         this.refPoint = new GlobalPoint(Math.round(this.refPoint.x / gs) * gs, Math.round(this.refPoint.y / gs) * gs);
         this.w = Math.max(Math.round(this.w / gs) * gs, gs);
         this.h = Math.max(Math.round(this.h / gs) * gs, gs);
         this.invalidate(false);
     }
-    resize(resizePoint: number, point: LocalPoint) {
+    resize(resizePoint: number, point: LocalPoint): void {
         const z = gameStore.zoomFactor;
         switch (resizePoint) {
             case 0: {

@@ -315,7 +315,9 @@ export abstract class Shape {
         if (sync) socket.emit("Shape.Layer.Change", { uuid: this.uuid, layer });
     }
 
-    get owners(): readonly string[] {
+    // This screws up vetur if typed as `readonly string[]`
+    // eslint-disable-next-line @typescript-eslint/array-type
+    get owners(): ReadonlyArray<string> {
         return Object.freeze(this._owners.slice());
     }
 

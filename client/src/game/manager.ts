@@ -7,6 +7,7 @@ import { gameStore } from "@/game/store";
 import { AnnotationManager } from "@/game/ui/annotation";
 import { g2l } from "@/game/units";
 import { TriangulationTarget } from "./visibility/te/pa";
+import { visibilityStore } from "./visibility/store";
 import { EventBus } from "./event-bus";
 
 export class GameManager {
@@ -52,17 +53,21 @@ export class GameManager {
         shape.setIsToken(shape.isToken);
         if (data.redraw) {
             if (shape.visionObstruction && !alteredVision) {
-                gameStore.deleteFromTriag({ target: TriangulationTarget.VISION, shape: oldPoints, standalone: false });
-                gameStore.addToTriag({ target: TriangulationTarget.VISION, points: shape.points });
+                visibilityStore.deleteFromTriag({
+                    target: TriangulationTarget.VISION,
+                    shape: oldPoints,
+                    standalone: false,
+                });
+                visibilityStore.addToTriag({ target: TriangulationTarget.VISION, points: shape.points });
             }
             layerManager.getLayer(data.shape.layer)!.invalidate(false);
             if (shape.movementObstruction && !alteredMovement) {
-                gameStore.deleteFromTriag({
+                visibilityStore.deleteFromTriag({
                     target: TriangulationTarget.MOVEMENT,
                     shape: oldPoints,
                     standalone: false,
                 });
-                gameStore.addToTriag({ target: TriangulationTarget.MOVEMENT, points: shape.points });
+                visibilityStore.addToTriag({ target: TriangulationTarget.MOVEMENT, points: shape.points });
             }
         }
         if (redrawInitiative) EventBus.$emit("Initiative.ForceUpdate");

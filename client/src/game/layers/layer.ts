@@ -102,13 +102,13 @@ export class Layer {
         if (lbI >= 0)
             visibilityStore.deleteFromTriag({
                 target: TriangulationTarget.VISION,
-                vertices: shape.triagVertices,
+                shape,
                 standalone: true,
             });
         if (mbI >= 0)
             visibilityStore.deleteFromTriag({
                 target: TriangulationTarget.MOVEMENT,
-                vertices: shape.triagVertices,
+                shape,
                 standalone: true,
             });
 

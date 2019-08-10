@@ -59,13 +59,21 @@ export function onKeyDown(event: KeyboardEvent): void {
                     if (gameStore.selectionHelperID === sel.uuid) continue;
                     if (sel.movementObstruction)
                         visibilityStore.deleteFromTriag({
+                            target: TriangulationTarget.MOVEMENT,
+                            shape: sel,
+                            standalone: false,
+                        });
+                    if (sel.visionObstruction)
+                        visibilityStore.deleteFromTriag({
                             target: TriangulationTarget.VISION,
-                            vertices: sel.triagVertices,
+                            shape: sel,
                             standalone: false,
                         });
                     sel.refPoint = sel.refPoint.add(delta);
                     if (sel.movementObstruction)
-                        visibilityStore.addToTriag({ target: TriangulationTarget.VISION, points: sel.points });
+                        visibilityStore.addToTriag({ target: TriangulationTarget.MOVEMENT, shape: sel });
+                    if (sel.visionObstruction)
+                        visibilityStore.addToTriag({ target: TriangulationTarget.VISION, shape: sel });
                     // todo: Fix again
                     // if (sel.refPoint.x % gridSize !== 0 || sel.refPoint.y % gridSize !== 0) sel.snapToGrid();
                     socket.emit("Shape.Position.Update", { shape: sel.asDict(), redraw: true, temporary: false });

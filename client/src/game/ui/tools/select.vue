@@ -145,6 +145,7 @@ export default class SelectTool extends Tool {
             let delta = mouse.subtract(origin).multiply(1 / gameStore.zoomFactor);
             const ogDelta = delta;
             if (this.mode === SelectOperations.Drag) {
+                if (ogDelta.length() === 0) return;
                 // If we are on the tokens layer do a movement block check.
                 if (layer.name === "tokens" && !(event.shiftKey && gameStore.IS_DM)) {
                     for (const sel of layer.selection) {
@@ -160,12 +161,12 @@ export default class SelectTool extends Tool {
                     if (sel.visionObstruction)
                         visibilityStore.deleteFromTriag({
                             target: TriangulationTarget.VISION,
-                            vertices: sel.triagVertices,
+                            shape: sel,
                             standalone: false,
                         });
                     sel.refPoint = sel.refPoint.add(delta);
                     if (sel.visionObstruction)
-                        visibilityStore.addToTriag({ target: TriangulationTarget.VISION, points: sel.points });
+                        visibilityStore.addToTriag({ target: TriangulationTarget.VISION, shape: sel });
                     if (sel !== this.selectionHelper) {
                         socket.emit("Shape.Update", { shape: sel.asDict(), redraw: true, temporary: true });
                     }
@@ -177,14 +178,14 @@ export default class SelectTool extends Tool {
                     if (sel.visionObstruction)
                         visibilityStore.deleteFromTriag({
                             target: TriangulationTarget.VISION,
-                            vertices: sel.triagVertices,
+                            shape: sel,
                             standalone: false,
                         });
                     sel.resize(this.resizePoint, mouse);
                     if (sel !== this.selectionHelper) {
                         // todo: think about calling deleteIntersectVertex directly on the corner point
                         if (sel.visionObstruction)
-                            visibilityStore.addToTriag({ target: TriangulationTarget.VISION, points: sel.points });
+                            visibilityStore.addToTriag({ target: TriangulationTarget.VISION, shape: sel });
                         socket.emit("Shape.Update", { shape: sel.asDict(), redraw: true, temporary: true });
                     }
                     layer.invalidate(false);
@@ -241,20 +242,20 @@ export default class SelectTool extends Tool {
                         if (sel.visionObstruction)
                             visibilityStore.deleteFromTriag({
                                 target: TriangulationTarget.VISION,
-                                vertices: sel.triagVertices,
+                                shape: sel,
                                 standalone: false,
                             });
                         if (sel.movementObstruction)
                             visibilityStore.deleteFromTriag({
                                 target: TriangulationTarget.MOVEMENT,
-                                vertices: sel.triagVertices,
+                                shape: sel,
                                 standalone: false,
                             });
                         sel.snapToGrid();
                         if (sel.visionObstruction)
-                            visibilityStore.addToTriag({ target: TriangulationTarget.VISION, points: sel.points });
+                            visibilityStore.addToTriag({ target: TriangulationTarget.VISION, shape: sel });
                         if (sel.movementObstruction)
-                            visibilityStore.addToTriag({ target: TriangulationTarget.MOVEMENT, points: sel.points });
+                            visibilityStore.addToTriag({ target: TriangulationTarget.MOVEMENT, shape: sel });
                     }
 
                     if (sel !== this.selectionHelper) {
@@ -267,20 +268,20 @@ export default class SelectTool extends Tool {
                         if (sel.visionObstruction)
                             visibilityStore.deleteFromTriag({
                                 target: TriangulationTarget.VISION,
-                                vertices: sel.triagVertices,
+                                shape: sel,
                                 standalone: false,
                             });
                         if (sel.movementObstruction)
                             visibilityStore.deleteFromTriag({
                                 target: TriangulationTarget.MOVEMENT,
-                                vertices: sel.triagVertices,
+                                shape: sel,
                                 standalone: false,
                             });
                         sel.snapToGrid();
                         if (sel.visionObstruction)
-                            visibilityStore.addToTriag({ target: TriangulationTarget.VISION, points: sel.points });
+                            visibilityStore.addToTriag({ target: TriangulationTarget.VISION, shape: sel });
                         if (sel.visionObstruction)
-                            visibilityStore.addToTriag({ target: TriangulationTarget.VISION, points: sel.points });
+                            visibilityStore.addToTriag({ target: TriangulationTarget.VISION, shape: sel });
                     }
                     if (sel !== this.selectionHelper) {
                         socket.emit("Shape.Update", { shape: sel.asDict(), redraw: true, temporary: false });

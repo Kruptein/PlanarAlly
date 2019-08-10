@@ -5,6 +5,7 @@ import { Shape } from "@/game/shapes/shape";
 import { gameStore } from "@/game/store";
 import { calculateDelta } from "@/game/ui/tools/utils";
 import { g2l, g2lz, l2g } from "@/game/units";
+import { getFogColour } from "../utils";
 
 export class Circle extends Shape {
     type = "circle";
@@ -41,7 +42,7 @@ export class Circle extends Shape {
     draw(ctx: CanvasRenderingContext2D): void {
         super.draw(ctx);
         ctx.beginPath();
-        if (this.fillColour === "fog") ctx.fillStyle = gameStore.getFogColour();
+        if (this.fillColour === "fog") ctx.fillStyle = getFogColour();
         else ctx.fillStyle = this.fillColour;
         const loc = g2l(this.refPoint);
         ctx.arc(loc.x, loc.y, g2lz(this.r), 0, 2 * Math.PI);

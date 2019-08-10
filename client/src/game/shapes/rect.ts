@@ -3,6 +3,7 @@ import { BaseRect } from "@/game/shapes/baserect";
 import { gameStore } from "@/game/store";
 import { g2l } from "@/game/units";
 import { ServerShape } from "../comm/types/shapes";
+import { getFogColour } from "../utils";
 
 export class Rect extends BaseRect {
     type = "rect";
@@ -14,7 +15,7 @@ export class Rect extends BaseRect {
     }
     draw(ctx: CanvasRenderingContext2D): void {
         super.draw(ctx);
-        if (this.fillColour === "fog") ctx.fillStyle = gameStore.getFogColour();
+        if (this.fillColour === "fog") ctx.fillStyle = getFogColour();
         else ctx.fillStyle = this.fillColour;
         const z = gameStore.zoomFactor;
         const loc = g2l(this.refPoint);

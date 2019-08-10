@@ -3,7 +3,7 @@ import { BoundingRect } from "@/game/shapes/boundingrect";
 import { Shape } from "@/game/shapes/shape";
 import { g2lx, g2ly, g2lz, l2g } from "@/game/units";
 import { ServerMultiLine } from "../comm/types/shapes";
-import { gameStore } from "../store";
+import { getFogColour } from "../utils";
 
 export class MultiLine extends Shape {
     type = "multiline";
@@ -64,7 +64,7 @@ export class MultiLine extends Shape {
         ctx.lineJoin = "round";
         ctx.moveTo(g2lx(this.refPoint.x), g2ly(this.refPoint.y));
         for (const p of this._points) ctx.lineTo(g2lx(p.x), g2ly(p.y));
-        if (this.strokeColour === "fog") ctx.strokeStyle = gameStore.getFogColour();
+        if (this.strokeColour === "fog") ctx.strokeStyle = getFogColour();
         else ctx.strokeStyle = this.strokeColour;
         ctx.lineWidth = g2lz(this.lineWidth);
         ctx.stroke();

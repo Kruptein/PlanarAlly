@@ -238,18 +238,20 @@ export class EdgeCirculator {
 export class EdgeIterator {
     private i = 0;
     pos: Triangle | null;
-    edge: Edge = new Edge();
+    es: number;
     tds: TDS;
     _es = 0;
-    constructor(tds: TDS) {
+    filterInfinite: boolean;
+    constructor(tds: TDS, filterInfinite = true) {
         this.tds = tds;
-        this.edge.second = 0;
+        this.filterInfinite = filterInfinite;
+        this.es = 0;
         if (tds.dimension <= 0) {
             this.pos = null;
             return;
         }
         this.pos = tds.triangles[0];
-        if (tds.dimension === 1) this.edge.second = 2;
+        if (tds.dimension === 1) this.es = 2;
         while (this.pos !== null && !this.associatedEdge()) {
             throw new Error("[poi");
         }
@@ -258,25 +260,32 @@ export class EdgeIterator {
     }
 
     get valid(): boolean {
-        return (this.pos !== null || this._es !== this.edge.second) && this.pos!.isInfinite(this.edge.second);
+        return (this.pos !== null || this._es !== this.es) && !this.predicate();
     }
 
     next(): void {
         do {
-            this.increment();
-        } while (this.pos !== null && !this.associatedEdge());
+            do {
+                this.increment();
+            } while (this.pos !== null && !this.associatedEdge());
+        } while (this.pos !== null && this.predicate());
     }
 
-    collect(): Edge {
-        this.edge.first = this.pos;
-        return this.edge;
+    // Returns true if the current element should be skipped
+    predicate(): boolean {
+        if (this.filterInfinite) {
+            return this.pos!.isInfinite(this.es);
+        }
+        return false;
+    }
+
+    get edge(): Edge {
+        return new Edge(this.pos, this.es);
     }
 
     associatedEdge(): boolean {
         if (this.tds.dimension === 1) return true;
-        return (
-            this.tds.triangles.indexOf(this.pos!) < this.tds.triangles.indexOf(this.pos!.neighbours[this.edge.second]!)
-        );
+        return this.tds.triangles.indexOf(this.pos!) < this.tds.triangles.indexOf(this.pos!.neighbours[this.es]!);
     }
 
     increment(): void {
@@ -284,13 +293,13 @@ export class EdgeIterator {
             this.i++;
             if (this.tds.triangles.length <= this.i) this.pos = null;
             else this.pos = this.tds.triangles[this.i];
-        } else if (this.edge.second === 2) {
-            this.edge.second = 0;
+        } else if (this.es === 2) {
+            this.es = 0;
             this.i++;
             if (this.tds.triangles.length <= this.i) this.pos = null;
             else this.pos = this.tds.triangles[this.i];
         } else {
-            this.edge.second++;
+            this.es++;
         }
     }
 }
@@ -571,30 +580,44 @@ export class TDS {
 
     get finiteEdge(): Edge {
         if (this.dimension < 1) throw new Error("aspo");
+        const ei = new EdgeIterator(this, true);
+        while (!ei.valid) ei.next();
+        return ei.edge;
+    }
+
+    getEdges(onlyConstraint: boolean = false): Edge[] {
         const ei = new EdgeIterator(this);
-        while (ei.valid) ei.next();
-        return ei.collect();
+        const edges: Edge[] = [];
+        if (ei.edge.first === null) return edges;
+        while (!ei.valid) ei.next();
+        do {
+            const edge = ei.edge;
+            if (onlyConstraint) {
+                if (edge.first!.constraints[edge.second]) {
+                    edges.push(edge);
+                }
+            } else {
+                edges.push(edge);
+            }
+            ei.next();
+        } while (ei.valid);
+        return edges;
     }
 
     numberOfEdges(onlyConstraint: boolean = false): number {
         let i = 0;
         let j = 0;
         const ei = new EdgeIterator(this);
-        while (ei.valid) {
-            ei.next();
-            ei.collect();
-        }
-        ei.collect();
+        if (ei.edge.first === null) return 0;
+        while (!ei.valid) ei.next();
         do {
             j++;
-            if (ei.edge.first!.constraints[ei.edge.second]) {
+            const edge = ei.edge;
+            if (edge.first!.constraints[edge.second]) {
                 i++;
             }
-            do {
-                ei.next();
-                ei.collect();
-            } while (ei.valid);
-        } while (ei.pos !== null);
+            ei.next();
+        } while (ei.valid);
         if (onlyConstraint) return i;
         return j;
     }

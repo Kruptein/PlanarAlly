@@ -1,4 +1,3 @@
-import tinycolor from "tinycolor2";
 import Vue from "vue";
 import { rootStore } from "@/store";
 import { Action, getModule, Module, Mutation, VuexModule } from "vuex-module-decorators";
@@ -99,13 +98,6 @@ class GameStore extends VuexModule implements GameState {
             panY: gameStore.panY,
             zoomFactor: gameStore.zoomFactor,
         };
-    }
-
-    getFogColour(opposite: boolean = false): string {
-        const tc = tinycolor(gameStore.fowColour);
-        if (gameStore.IS_DM) tc.setAlpha(opposite ? 1 : gameStore.fowOpacity);
-        else tc.setAlpha(1);
-        return tc.toRgbString();
     }
 
     get activeTokens(): string[] {

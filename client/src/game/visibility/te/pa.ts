@@ -63,11 +63,18 @@ export function triangulate(target: TriangulationTarget): void {
     console.timeEnd("TRI");
 }
 
+interface DeleteQueue {
+    vertices: Set<Vertex>;
+    edges: Edge[];
+    newConstraints: Vertex[][];
+    triBridge: Vertex[];
+}
+
 function deleteIntersectVertex(
     vertex: Vertex,
     from: Vertex,
     target: Vertex,
-    queues: { vertices: Set<Vertex>; edges: Edge[]; newConstraints: Vertex[][]; triBridge: Vertex[] },
+    queues: DeleteQueue,
     isCorner: boolean,
 ): Vertex {
     const sharesVertex = vertex.shapes.size >= (isCorner ? 2 : 1);
@@ -75,21 +82,48 @@ function deleteIntersectVertex(
     const edges = [...vertex.getIncidentEdges()].filter(e => e.first!.constraints[e.second]);
     let fixBridge: Vertex[] = [];
     let nextIntersect: Vertex | null = null;
+    let constrainedEdgeKept: Edge | null = null;
     for (const edge of edges) {
         const ccwv = edge.first!.vertices[ccw(edge.second)]!;
         const ccwp = ccwv.point!;
         const sharesCCWP = ccwv.shapes.size > (ccwv === target ? 1 : 0);
         if (equalPoints(ccwp, target.point!)) {
-            if (!sharesCCWP) queues.edges.push(edge);
+            if (!(sharesVertex && sharesCCWP)) queues.edges.push(edge);
         } else if (equalPoints(ccwp, from.point!)) continue;
         else if (collinearBetween(vertex.point!, ccwp, target.point!)) {
             if (nextIntersect !== null) console.warn("Multiple collinear vertices found?");
-            if (!sharesCCWP) queues.edges.push(edge);
+            if (sharesCCWP && edges.length === 3) {
+                if (constrainedEdgeKept === null) constrainedEdgeKept = edge;
+                else {
+                    let otherConstrainedEdgeVertex = constrainedEdgeKept.first!.vertices[
+                        constrainedEdgeKept.second === 0 ? 1 : 0
+                    ]!;
+                    if (otherConstrainedEdgeVertex === vertex)
+                        otherConstrainedEdgeVertex = constrainedEdgeKept.first!.vertices[2]!;
+                    queues.edges.push(edge, constrainedEdgeKept);
+                    queues.newConstraints.push([ccwv, otherConstrainedEdgeVertex]);
+                    constrainedEdgeKept = null;
+                }
+            } else queues.edges.push(edge);
             nextIntersect = ccwv;
-        } else if (!sharesCCWP && edges.length === 3) {
-            queues.edges.push(edge);
-            if (queues.triBridge.length === 0) queues.triBridge.push(isCorner ? ccwv : vertex);
-            else queues.newConstraints.push([queues.triBridge.pop()!, isCorner ? ccwv : vertex]);
+        } else if (edges.length === 3) {
+            if (sharesCCWP) {
+                if (constrainedEdgeKept === null) constrainedEdgeKept = edge;
+                else {
+                    let otherConstrainedEdgeVertex = constrainedEdgeKept.first!.vertices[
+                        constrainedEdgeKept.second === 0 ? 1 : 0
+                    ]!;
+                    if (otherConstrainedEdgeVertex === vertex)
+                        otherConstrainedEdgeVertex = constrainedEdgeKept.first!.vertices[2]!;
+                    queues.edges.push(edge, constrainedEdgeKept);
+                    queues.newConstraints.push([ccwv, otherConstrainedEdgeVertex]);
+                    constrainedEdgeKept = null;
+                }
+            } else {
+                queues.edges.push(edge);
+                if (queues.triBridge.length === 0) queues.triBridge.push(isCorner ? ccwv : vertex);
+                else queues.newConstraints.push([queues.triBridge.pop()!, isCorner ? ccwv : vertex]);
+            }
         } else if (!(sharesVertex && sharesCCWP) && edges.length === 4) {
             queues.edges.push(edge);
             if (queues.vertices.has(ccwv)) {
@@ -113,43 +147,29 @@ function deleteIntersectVertex(
     return deleteIntersectVertex(nextIntersect, vertex, target, queues, false);
 }
 
-export function deleteShapeFromTriag(target: TriangulationTarget, vertices: Vertex[]): void {
+export function deleteShapeFromTriag(target: TriangulationTarget, shape: Shape): void {
     console.time("DS");
     const cdt = PA_CDT[target];
-    const queues: { vertices: Set<Vertex>; edges: Edge[]; newConstraints: Vertex[][]; triBridge: Vertex[] } = {
+    const queues: DeleteQueue = {
         vertices: new Set(),
         edges: [],
         newConstraints: [],
         triBridge: [],
     };
-    const np = vertices.length;
-    let from = vertices[np - 1];
-    for (const [i, vertex] of vertices.entries()) {
-        const n = vertices[(i + 1) % np];
+    const np = shape.triagVertices.length;
+    let from = shape.triagVertices[np - 1];
+    for (const [i, vertex] of shape.triagVertices.entries()) {
+        const n = shape.triagVertices[(i + 1) % np];
         from = deleteIntersectVertex(vertex, from, n, queues, true);
     }
     // Clear up leftover tribridge from last iteration
-    if (queues.triBridge.length > 0) queues.newConstraints.push([queues.triBridge.pop()!, vertices[0]]);
+    if (queues.triBridge.length > 0) queues.newConstraints.push([queues.triBridge.pop()!, shape.triagVertices[0]]);
 
-    for (const edge of queues.edges) {
-        cdt.removeConstrainedEdgeDelaunay(edge.first!, edge.second);
-    }
-    for (const vertex of queues.vertices) {
-        cdt.removeVertex(vertex);
-    }
+    for (const edge of queues.edges) cdt.removeConstrainedEdgeDelaunay(edge.first!, edge.second);
+    for (const vertex of queues.vertices) cdt.removeVertex(vertex);
     for (const [from_, to] of queues.newConstraints) cdt.insertConstraintV(from_, to);
+    shape.removeTriagVertices(...queues.vertices);
     console.timeEnd("DS");
-}
-
-export function addShapeToTriag(_target: TriangulationTarget, _points: number[][]): void {
-    return;
-    // console.time("AS");
-    // const cdt = PA_CDT[target];
-    // for (const [i, point] of points.entries()) {
-    //     const n = points[(i + 1) % points.length];
-    //     cdt.insertConstraint(point, n);
-    // }
-    // console.timeEnd("AS");
 }
 
 export function addShapesToTriag(target: TriangulationTarget, ...shapes: Shape[]): void {

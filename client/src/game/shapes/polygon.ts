@@ -1,7 +1,7 @@
 import { ServerPolygon } from "../comm/types/shapes";
 import { GlobalPoint, LocalPoint } from "../geom";
-import { gameStore } from "../store";
 import { g2lx, g2ly, g2lz, l2g } from "../units";
+import { getFogColour } from "../utils";
 import { BoundingRect } from "./boundingrect";
 import { Shape } from "./shape";
 
@@ -53,10 +53,10 @@ export class Polygon extends Shape {
         ctx.lineCap = "round";
         ctx.lineJoin = "round";
 
-        if (this.strokeColour === "fog") ctx.strokeStyle = gameStore.getFogColour();
+        if (this.strokeColour === "fog") ctx.strokeStyle = getFogColour();
         else if (this.vertices.length === 2) ctx.strokeStyle = this.fillColour;
         else ctx.strokeStyle = this.strokeColour;
-        if (this.fillColour === "fog") ctx.fillStyle = gameStore.getFogColour();
+        if (this.fillColour === "fog") ctx.fillStyle = getFogColour();
         else ctx.fillStyle = this.fillColour;
         ctx.lineWidth = g2lz(2);
 

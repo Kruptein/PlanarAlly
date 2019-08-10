@@ -124,7 +124,7 @@ export abstract class Shape {
         if (this.visionObstruction && obstructionIndex === -1) {
             visibilityStore.visionBlockers.push(this.uuid);
             if (recalculate) {
-                visibilityStore.addToTriag({ target: TriangulationTarget.VISION, points: this.points });
+                visibilityStore.addToTriag({ target: TriangulationTarget.VISION, shape: this });
                 alteredVision = true;
             }
         } else if (!this.visionObstruction && obstructionIndex >= 0) {
@@ -132,7 +132,7 @@ export abstract class Shape {
             if (recalculate) {
                 visibilityStore.deleteFromTriag({
                     target: TriangulationTarget.VISION,
-                    vertices: this.triagVertices,
+                    shape: this,
                     standalone: true,
                 });
                 alteredVision = true;
@@ -166,7 +166,7 @@ export abstract class Shape {
         if (this.movementObstruction && obstructionIndex === -1) {
             gameStore.movementblockers.push(this.uuid);
             if (recalculate) {
-                visibilityStore.addToTriag({ target: TriangulationTarget.MOVEMENT, points: this.points });
+                visibilityStore.addToTriag({ target: TriangulationTarget.MOVEMENT, shape: this });
                 alteredMovement = true;
             }
         } else if (!this.movementObstruction && obstructionIndex >= 0) {
@@ -174,7 +174,7 @@ export abstract class Shape {
             if (recalculate) {
                 visibilityStore.deleteFromTriag({
                     target: TriangulationTarget.MOVEMENT,
-                    vertices: this.triagVertices,
+                    shape: this,
                     standalone: true,
                 });
                 alteredMovement = true;

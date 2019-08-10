@@ -1,4 +1,7 @@
+import tinycolor from "tinycolor2";
+
 import { LocalPoint } from "@/game/geom";
+import { gameStore } from "./store";
 
 export function getMouse(e: MouseEvent): LocalPoint {
     return new LocalPoint(e.pageX, e.pageY);
@@ -16,4 +19,11 @@ export function zoomDisplay(value: number): number {
 
 export function equalPoints(a: number[], b: number[]): boolean {
     return a[0] === b[0] && a[1] === b[1];
+}
+
+export function getFogColour(opposite: boolean = false): string {
+    const tc = tinycolor(gameStore.fowColour);
+    if (gameStore.IS_DM) tc.setAlpha(opposite ? 1 : gameStore.fowOpacity);
+    else tc.setAlpha(1);
+    return tc.toRgbString();
 }

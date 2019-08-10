@@ -15,10 +15,6 @@ class InitiativeStore extends VuexModule implements InitiativeState {
     currentActor: string | null = null;
     roundCounter = 0;
 
-    contains(uuid: string): boolean {
-        return this.data.some(d => d.uuid === uuid);
-    }
-
     syncInitiative(data: InitiativeData | { uuid: string }): void {
         socket.emit("Initiative.Update", data);
     }

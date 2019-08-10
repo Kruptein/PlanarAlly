@@ -274,10 +274,10 @@ export default class DrawTool extends Tool {
                 if (this.shape.triagVertices.length > 1)
                     visibilityStore.deleteFromTriag({
                         target: TriangulationTarget.VISION,
-                        vertices: this.shape.triagVertices,
+                        shape: this.shape,
                         standalone: false,
                     });
-                visibilityStore.addToTriag({ target: TriangulationTarget.VISION, points: this.shape.points });
+                visibilityStore.addToTriag({ target: TriangulationTarget.VISION, shape: this.shape });
             }
         }
         layer.invalidate(false);
@@ -287,11 +287,11 @@ export default class DrawTool extends Tool {
         if (!event.altKey && this.useGrid) {
             visibilityStore.deleteFromTriag({
                 target: TriangulationTarget.VISION,
-                vertices: this.shape.triagVertices,
+                shape: this.shape,
                 standalone: false,
             });
             this.shape.resizeToGrid();
-            visibilityStore.addToTriag({ target: TriangulationTarget.VISION, points: this.shape.points });
+            visibilityStore.addToTriag({ target: TriangulationTarget.VISION, shape: this.shape });
         }
         this.finaliseShape();
     }

@@ -37,6 +37,7 @@ import { layerManager } from "@/game/layers/manager";
 import { Shape } from "@/game/shapes/shape";
 import { gameStore } from "@/game/store";
 import { initiativeStore } from "../initiative/store";
+import { inInitiative } from "../initiative/utils";
 
 @Component({
     components: {
@@ -71,7 +72,7 @@ export default class ShapeContext extends Vue {
     }
     getInitiativeWord() {
         if (this.shape === null) return "";
-        return initiativeStore.contains(this.shape.uuid) ? "Show" : "Add";
+        return inInitiative(this.shape.uuid) ? "Show" : "Add";
     }
     setLayer(newLayer: string) {
         if (this.shape === null) return;
@@ -93,7 +94,7 @@ export default class ShapeContext extends Vue {
     addInitiative() {
         if (this.shape === null) return;
         this.$parent.$parent.$parent;
-        if (!initiativeStore.contains(this.shape.uuid)) initiativeStore.addInitiative(this.shape.getInitiativeRepr());
+        if (!inInitiative(this.shape.uuid)) initiativeStore.addInitiative(this.shape.getInitiativeRepr());
         EventBus.$emit("Initiative.Show");
         this.close();
     }

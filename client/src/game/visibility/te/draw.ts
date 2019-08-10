@@ -97,11 +97,7 @@ export function drawPolygonT(tds: TDS, local = true, clear = true, logs: 0 | 1 |
     // ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
     ctx.lineJoin = "round";
     const ei = new EdgeIterator(tds);
-    while (ei.valid) {
-        ei.next();
-        ei.collect();
-    }
-    ei.collect();
+    while (!ei.valid) ei.next();
     do {
         const fromP = ei.edge.first!.vertices[ccw(ei.edge.second)]!.point!;
         const toP = ei.edge.first!.vertices[cw(ei.edge.second)]!.point!;
@@ -116,11 +112,8 @@ export function drawPolygonT(tds: TDS, local = true, clear = true, logs: 0 | 1 |
                 if (logs === 2) console.log(`Edge: (*) ${fromP} > ${toP}   (${ei.edge.first!.uid})`);
             } else if (logs === 2) console.log(`Edge: ${fromP} > ${toP}   (${ei.edge.first!.uid})`);
         }
-        do {
-            ei.next();
-            ei.collect();
-        } while (ei.valid);
-    } while (ei.pos !== null);
+        ei.next();
+    } while (ei.valid);
     for (const t of tds.triangles) {
         if (t.isInfinite()) continue;
         T++;

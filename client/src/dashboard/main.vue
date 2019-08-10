@@ -4,10 +4,18 @@
             <fieldset>
                 <legend class="legend">Your sessions</legend>
                 <div class="input">
-                    <router-link v-for="(room, i) in owned" :key="'o-' + i" :to="'/game/' + room[1] + '/' + room[0]">
+                    <router-link
+                        v-for="(room, i) in owned"
+                        :key="'o-' + i"
+                        :to="'/game/' + encodeURIComponent(room[1]) + '/' + encodeURIComponent(room[0])"
+                    >
                         {{ room[0] }}
                     </router-link>
-                    <router-link v-for="(room, i) in joined" :key="'j-' + i" :to="'/game/' + room[1] + '/' + room[0]">
+                    <router-link
+                        v-for="(room, i) in joined"
+                        :key="'j-' + i"
+                        :to="'/game/' + encodeURIComponent(room[1]) + '/' + encodeURIComponent(room[0])"
+                    >
                         {{ room[1] }}/{{ room[0] }}
                     </router-link>
                 </div>
@@ -88,7 +96,9 @@ export default class Dashboard extends Vue {
                 name: this.newSessionName,
             })
             .then((_response: AxiosResponse) => {
-                this.$router.push(`/game/${coreStore.username}/${this.newSessionName}`);
+                this.$router.push(
+                    `/game/${encodeURIComponent(coreStore.username)}/${encodeURIComponent(this.newSessionName)}`,
+                );
             })
             .catch((err: AxiosError) => {
                 this.error = err.message;

@@ -55,7 +55,7 @@ socket.on("Room.Info.Players.Add", (data: { id: number; name: string }) => {
 });
 socket.on("Username.Set", (username: string) => {
     gameStore.setUsername(username);
-    gameStore.setDM(username === window.location.pathname.split("/")[2]);
+    gameStore.setDM(username === decodeURIComponent(window.location.pathname.split("/")[2]));
 });
 socket.on("Client.Options.Set", (options: ServerClient) => {
     gameStore.setGridColour({ colour: options.grid_colour, sync: false });

@@ -10,6 +10,7 @@ All notable changes to this project will be documented in this file.
 ### Fixed
 
 - [DM] Session lock state not being shown correctly upon joining.
+- Sessions with a slash in their name do not work
 
 ## [0.17.1] - 2019-06-17
 

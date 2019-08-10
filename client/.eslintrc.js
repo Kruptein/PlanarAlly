@@ -5,7 +5,8 @@ module.exports = {
     },
     extends: ["plugin:@typescript-eslint/recommended", "plugin:vue/essential", "@vue/typescript", "@vue/prettier"],
     rules: {
-        "no-console": process.env.NODE_ENV === "production" ? "error" : "off",
+        // "no-console": process.env.NODE_ENV === "production" ? "error" : "off",
+        "no-console": "off",
         "no-debugger": process.env.NODE_ENV === "production" ? "error" : "off",
         "@typescript-eslint/no-non-null-assertion": "off",
         "@typescript-eslint/no-angle-bracket-type-assertion": "off",

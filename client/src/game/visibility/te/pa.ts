@@ -113,7 +113,7 @@ function deleteIntersectVertex(
     return deleteIntersectVertex(nextIntersect, vertex, target, queues, false);
 }
 
-export function deleteShapeFromTriag(target: TriangulationTarget, shape: Shape): void {
+export function deleteShapeFromTriag(target: TriangulationTarget, vertices: Vertex[]): void {
     console.time("DS");
     const cdt = PA_CDT[target];
     const queues: { vertices: Set<Vertex>; edges: Edge[]; newConstraints: Vertex[][]; triBridge: Vertex[] } = {
@@ -122,14 +122,14 @@ export function deleteShapeFromTriag(target: TriangulationTarget, shape: Shape):
         newConstraints: [],
         triBridge: [],
     };
-    const np = shape.triagVertices.length;
-    let from = shape.triagVertices[np - 1];
-    for (const [i, vertex] of shape.triagVertices.entries()) {
-        const n = shape.triagVertices[(i + 1) % np];
+    const np = vertices.length;
+    let from = vertices[np - 1];
+    for (const [i, vertex] of vertices.entries()) {
+        const n = vertices[(i + 1) % np];
         from = deleteIntersectVertex(vertex, from, n, queues, true);
     }
     // Clear up leftover tribridge from last iteration
-    if (queues.triBridge.length > 0) queues.newConstraints.push([queues.triBridge.pop()!, shape.triagVertices[0]]);
+    if (queues.triBridge.length > 0) queues.newConstraints.push([queues.triBridge.pop()!, vertices[0]]);
 
     for (const edge of queues.edges) {
         cdt.removeConstrainedEdgeDelaunay(edge.first!, edge.second);

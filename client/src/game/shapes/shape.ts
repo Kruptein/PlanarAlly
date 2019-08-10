@@ -132,7 +132,7 @@ export abstract class Shape {
             if (recalculate) {
                 visibilityStore.deleteFromTriag({
                     target: TriangulationTarget.VISION,
-                    shape: this,
+                    vertices: this.triagVertices,
                     standalone: true,
                 });
                 alteredVision = true;
@@ -174,7 +174,7 @@ export abstract class Shape {
             if (recalculate) {
                 visibilityStore.deleteFromTriag({
                     target: TriangulationTarget.MOVEMENT,
-                    shape: this,
+                    vertices: this.triagVertices,
                     standalone: true,
                 });
                 alteredMovement = true;

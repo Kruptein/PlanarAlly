@@ -59,14 +59,13 @@
 </template>
 
 <script lang="ts">
+import throttle from "lodash/throttle";
 import Vue from "vue";
 import Component from "vue-class-component";
 import vueSlider from "vue-slider-component";
 import "vue-slider-component/theme/default.css";
 
 import "@/game/api/events";
-
-import { throttle } from "lodash";
 
 import ConfirmDialog from "@/core/components/modals/confirm.vue";
 import Prompt from "@/core/components/modals/prompt.vue";

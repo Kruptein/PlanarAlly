@@ -60,7 +60,7 @@ export function onKeyDown(event: KeyboardEvent): void {
                     if (sel.movementObstruction)
                         visibilityStore.deleteFromTriag({
                             target: TriangulationTarget.VISION,
-                            shape: sel,
+                            vertices: sel.triagVertices,
                             standalone: false,
                         });
                     sel.refPoint = sel.refPoint.add(delta);

@@ -1,6 +1,7 @@
 // vue.config.js
 
-const CircularDependencyPlugin = require("circular-dependency-plugin");
+// const CircularDependencyPlugin = require("circular-dependency-plugin");
+// const BundleAnalyzerPlugin = require("webpack-bundle-analyzer").BundleAnalyzerPlugin;
 
 module.exports = {
     assetsDir: "static",
@@ -13,12 +14,13 @@ module.exports = {
             },
         },
         plugins: [
-            new CircularDependencyPlugin({
-                exclude: /a\.js|node_modules/,
-                failOnError: false,
-                allowAsyncCycles: false,
-                cwd: process.cwd(),
-            }),
+            //     new CircularDependencyPlugin({
+            //         exclude: /a\.js|node_modules/,
+            //         failOnError: false,
+            //         allowAsyncCycles: false,
+            //         cwd: process.cwd(),
+            //     }),
+            // new BundleAnalyzerPlugin(),
         ],
     },
 };

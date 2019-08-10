@@ -160,7 +160,7 @@ export default class SelectTool extends Tool {
                     if (sel.visionObstruction)
                         visibilityStore.deleteFromTriag({
                             target: TriangulationTarget.VISION,
-                            shape: sel,
+                            vertices: sel.triagVertices,
                             standalone: false,
                         });
                     sel.refPoint = sel.refPoint.add(delta);
@@ -177,7 +177,7 @@ export default class SelectTool extends Tool {
                     if (sel.visionObstruction)
                         visibilityStore.deleteFromTriag({
                             target: TriangulationTarget.VISION,
-                            shape: sel,
+                            vertices: sel.triagVertices,
                             standalone: false,
                         });
                     sel.resize(this.resizePoint, mouse);
@@ -241,13 +241,13 @@ export default class SelectTool extends Tool {
                         if (sel.visionObstruction)
                             visibilityStore.deleteFromTriag({
                                 target: TriangulationTarget.VISION,
-                                shape: sel,
+                                vertices: sel.triagVertices,
                                 standalone: false,
                             });
                         if (sel.movementObstruction)
                             visibilityStore.deleteFromTriag({
                                 target: TriangulationTarget.MOVEMENT,
-                                shape: sel,
+                                vertices: sel.triagVertices,
                                 standalone: false,
                             });
                         sel.snapToGrid();
@@ -267,13 +267,13 @@ export default class SelectTool extends Tool {
                         if (sel.visionObstruction)
                             visibilityStore.deleteFromTriag({
                                 target: TriangulationTarget.VISION,
-                                shape: sel,
+                                vertices: sel.triagVertices,
                                 standalone: false,
                             });
                         if (sel.movementObstruction)
                             visibilityStore.deleteFromTriag({
                                 target: TriangulationTarget.MOVEMENT,
-                                shape: sel,
+                                vertices: sel.triagVertices,
                                 standalone: false,
                             });
                         sel.snapToGrid();

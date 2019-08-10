@@ -45,7 +45,7 @@ export class GameManager {
             console.log(`Shape with unknown id could not be updated`);
             return;
         }
-        const oldPoints = oldShape.points;
+        const oldVdertices = [...oldShape.triagVertices];
         const redrawInitiative = sh.owners !== oldShape.owners;
         const shape = Object.assign(oldShape, sh);
         const alteredVision = shape.checkVisionSources();
@@ -55,7 +55,7 @@ export class GameManager {
             if (shape.visionObstruction && !alteredVision) {
                 visibilityStore.deleteFromTriag({
                     target: TriangulationTarget.VISION,
-                    shape: oldPoints,
+                    vertices: oldVdertices,
                     standalone: false,
                 });
                 visibilityStore.addToTriag({ target: TriangulationTarget.VISION, points: shape.points });
@@ -64,7 +64,7 @@ export class GameManager {
             if (shape.movementObstruction && !alteredMovement) {
                 visibilityStore.deleteFromTriag({
                     target: TriangulationTarget.MOVEMENT,
-                    shape: oldPoints,
+                    vertices: oldVdertices,
                     standalone: false,
                 });
                 visibilityStore.addToTriag({ target: TriangulationTarget.MOVEMENT, points: shape.points });

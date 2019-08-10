@@ -86,7 +86,7 @@ export class BoundingRect {
         return this.topLeft.add(new Vector(this.w / 2, this.h / 2));
     }
 
-    getMaxExtent(): number {
+    getMaxExtent(): 0 | 1 {
         return this.w > this.h ? 0 : 1;
     }
     visibleInCanvas(canvas: HTMLCanvasElement): boolean {

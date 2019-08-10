@@ -233,8 +233,6 @@ export default class DrawTool extends Tool {
 
         if (!this.active || this.startPoint === null || this.shape === null) return;
 
-        const oldPoints = this.shape.points;
-
         switch (this.shapeSelect) {
             case "square": {
                 const rect = <Rect>this.shape;
@@ -273,10 +271,10 @@ export default class DrawTool extends Tool {
         if (!(this.shape instanceof Polygon)) {
             socket.emit("Shape.Update", { shape: this.shape!.asDict(), redraw: true, temporary: true });
             if (this.shape.visionObstruction) {
-                if (oldPoints.length > 1)
+                if (this.shape.triagVertices.length > 1)
                     visibilityStore.deleteFromTriag({
                         target: TriangulationTarget.VISION,
-                        shape: oldPoints,
+                        vertices: this.shape.triagVertices,
                         standalone: false,
                     });
                 visibilityStore.addToTriag({ target: TriangulationTarget.VISION, points: this.shape.points });
@@ -289,7 +287,7 @@ export default class DrawTool extends Tool {
         if (!event.altKey && this.useGrid) {
             visibilityStore.deleteFromTriag({
                 target: TriangulationTarget.VISION,
-                shape: this.shape,
+                vertices: this.shape.triagVertices,
                 standalone: false,
             });
             this.shape.resizeToGrid();

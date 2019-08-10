@@ -12,7 +12,7 @@ export interface InitiativeState {
 @Module({ dynamic: true, store: rootStore, name: "initiative", namespaced: true })
 class InitiativeStore extends VuexModule implements InitiativeState {
     data: InitiativeData[] = [];
-    currentActor = null;
+    currentActor: string | null = null;
     roundCounter = 0;
 
     contains(uuid: string): boolean {

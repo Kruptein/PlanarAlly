@@ -1,9 +1,9 @@
 import { socket } from "@/game/api/socket";
 import { rootStore } from "@/store";
 import { Action, getModule, Module, Mutation, VuexModule } from "vuex-module-decorators";
-import { Shape } from "../shapes/shape";
 import { BoundingVolume } from "./bvh/bvh";
 import { addShapeToTriag, deleteShapeFromTriag, triangulate, TriangulationTarget } from "./te/pa";
+import { Vertex } from "./te/tds";
 
 export interface VisibilityState {
     visionMode: "bvh" | "triangle";
@@ -36,9 +36,9 @@ class VisibilityStore extends VuexModule implements VisibilityState {
     }
 
     @Mutation
-    deleteFromTriag(data: { target: TriangulationTarget; shape: Shape; standalone: boolean }): void {
+    deleteFromTriag(data: { target: TriangulationTarget; vertices: Vertex[]; standalone: boolean }): void {
         if (this.visionMode === "triangle") {
-            deleteShapeFromTriag(data.target, data.shape);
+            deleteShapeFromTriag(data.target, data.vertices);
         } else if (data.standalone) {
             this.recalculateVision();
         }

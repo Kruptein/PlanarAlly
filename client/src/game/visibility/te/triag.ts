@@ -1,4 +1,4 @@
-import { EdgeCirculator, Point, Sign, Triangle, Vertex } from "./tds";
+import { EdgeCirculator, Point, Sign, Triangle, Vertex, Edge } from "./tds";
 
 type Line = number[];
 
@@ -466,4 +466,59 @@ function nextUp(x: number): number {
 
 export function ulp(x: number): number {
     return x < 0 ? nextUp(x) - x : x + nextUp(-x);
+}
+
+export function collinearInOrder(p: Point, q: Point, r: Point): boolean {
+    if (xyCompare(p, q) !== Sign.LARGER && xyCompare(q, r) === Sign.LARGER) return false;
+    if (xyCompare(p, q) !== Sign.SMALLER && xyCompare(q, r) === Sign.SMALLER) return false;
+    return p[0] * (q[1] - r[1]) + q[0] * (r[1] - p[1]) + r[0] * (p[1] - q[1]) === 0;
+}
+
+export function connectLinear(edgeA: Edge, edgeB: Edge): { borders: [Vertex, Vertex]; connection: Vertex } | null {
+    return connectLinearV(edgeA.vertices(), edgeB.vertices());
+}
+
+export function connectLinearV(
+    edgeA: (Vertex | null)[],
+    edgeB: (Vertex | null)[],
+): { borders: [Vertex, Vertex]; connection: Vertex } | null {
+    const [A1, A2] = [...edgeA];
+    const [B1, B2] = [...edgeB];
+    if (A1 === B1 && collinearInOrder(A2!.point!, A1!.point!, B2!.point!))
+        return { borders: [A2!, B2!], connection: A1! };
+    if (A1 === B2 && collinearInOrder(A2!.point!, A1!.point!, B1!.point!))
+        return { borders: [A2!, B1!], connection: A1! };
+    if (A2 === B1 && collinearInOrder(A1!.point!, A2!.point!, B2!.point!))
+        return { borders: [A1!, B2!], connection: A2! };
+    if (A2 === B2 && collinearInOrder(A1!.point!, A2!.point!, B1!.point!))
+        return { borders: [A1!, B1!], connection: A2! };
+    return null;
+}
+
+interface VPpair {
+    vertex: Vertex;
+    point: number[];
+}
+
+export function joinOverlap(edgeA: Vertex[], edgeB: Vertex[]): Vertex[] | null {
+    const [A1, A2] = edgeA
+        .map(v => ({ vertex: v!, point: v!.point! }))
+        .sort((a: VPpair, b: VPpair) => (xySmaller(a.point, b.point) ? -1 : 1));
+    const [B1, B2] = edgeB
+        .map(v => ({ vertex: v!, point: v!.point! }))
+        .sort((a: VPpair, b: VPpair) => (xySmaller(a.point, b.point) ? -1 : 1));
+    if (xySmaller(A1.point, B1.point)) {
+        if (xySmaller(A2.point, B1.point)) return null;
+        if (collinearInOrder(A1.point, B1.point, A2.point)) return [A1.vertex, B2.vertex];
+    } else if (xySmaller(B1.point, A1.point)) {
+        if (xySmaller(B2.point, A1.point)) return null;
+        if (collinearInOrder(B1.point, A1.point, B2.point)) return [B1.vertex, A2.vertex];
+    } else {
+        if (xySmaller(A2.point, B2.point)) {
+            if (collinearInOrder(A1.point, B2.point, A2.point)) return [A1.vertex, B2.vertex];
+        } else {
+            if (collinearInOrder(A1.point, A2.point, B2.point)) return [A1.vertex, A2.vertex];
+        }
+    }
+    return null;
 }

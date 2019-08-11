@@ -485,6 +485,10 @@ export class Edge {
             this.first!.vertices[this.second === 1 ? 2 : 1]!.point
         }`;
     }
+
+    vertices(): (Vertex | null)[] {
+        return [this.first!.vertices[this.second === 0 ? 1 : 0], this.first!.vertices[this.second === 2 ? 1 : 2]];
+    }
 }
 
 export enum LocateType {

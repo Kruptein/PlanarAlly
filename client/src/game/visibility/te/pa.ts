@@ -67,7 +67,6 @@ interface DeleteQueue {
     vertices: Set<Vertex>;
     edges: Edge[];
     newConstraints: Vertex[][];
-    triBridge: Vertex[];
     constrainedEdges: Edge[];
 }
 
@@ -93,7 +92,6 @@ function deleteIntersectVertex(
 ): Vertex {
     const sharesVertex = vertex.shapes.size >= (isCorner ? 2 : 1);
     if (!sharesVertex) queues.vertices.add(vertex);
-    // if (!sharesVertex && !queues.newConstraints.some(nc => nc.includes(vertex))) queues.vertices.add(vertex);
     const edges = [...vertex.getIncidentEdges()].filter(e => e.first!.constraints[e.second]);
     let fixBridge: Vertex[] = [];
     let nextIntersect: Vertex | null = null;
@@ -111,13 +109,7 @@ function deleteIntersectVertex(
             else if (!sharesCCWP) queues.edges.push(edge);
             nextIntersect = ccwv;
         } else if (edges.length === 3) {
-            if (sharesCCWP || sharesVertex) {
-                handleConstrainedEdgeKept(edge, queues);
-            } else {
-                queues.edges.push(edge);
-                if (queues.triBridge.length === 0) queues.triBridge.push(isCorner ? ccwv : vertex);
-                else queues.newConstraints.push([queues.triBridge.pop()!, isCorner ? ccwv : vertex]);
-            }
+            handleConstrainedEdgeKept(edge, queues);
         } else if (!(sharesVertex && sharesCCWP) && edges.length === 4) {
             queues.edges.push(edge);
             if (queues.vertices.has(ccwv)) {
@@ -129,8 +121,6 @@ function deleteIntersectVertex(
                         queues.vertices.add(vertex);
                     }
                 }
-            } else if (queues.triBridge.includes(ccwv)) {
-                fixBridge.push(queues.triBridge.pop()!);
             } else {
                 fixBridge.push(ccwv);
             }
@@ -149,9 +139,7 @@ function deleteIntersectVertex(
             }
         }
     }
-    if ((edges.length === 3 || edges.length === 4) && fixBridge.length === 1 && queues.triBridge.length === 1) {
-        queues.newConstraints.push([fixBridge.pop()!, queues.triBridge.pop()!]);
-    } else if (edges.length === 4 && fixBridge.length > 0) queues.newConstraints.push(fixBridge);
+    if (edges.length === 4 && fixBridge.length > 0) queues.newConstraints.push(fixBridge);
     if (nextIntersect === null) return vertex;
     return deleteIntersectVertex(nextIntersect, vertex, target, queues, false);
 }
@@ -162,7 +150,6 @@ export function deleteShapeFromTriag(target: TriangulationTarget, shape: Shape):
         vertices: new Set(),
         edges: [],
         newConstraints: [],
-        triBridge: [],
         constrainedEdges: [],
     };
     const np = shape.triagVertices.length;
@@ -171,8 +158,6 @@ export function deleteShapeFromTriag(target: TriangulationTarget, shape: Shape):
         const n = shape.triagVertices[(i + 1) % np];
         from = deleteIntersectVertex(vertex, from, n, queues, true);
     }
-    // Clear up leftover tribridge from last iteration
-    if (queues.triBridge.length > 0) queues.newConstraints.push([queues.triBridge.pop()!, shape.triagVertices[0]]);
 
     for (let c1 = queues.newConstraints.length - 1; c1 >= 0; c1--) {
         for (let c2 = c1 - 1; c2 >= 0; c2--) {
@@ -183,11 +168,6 @@ export function deleteShapeFromTriag(target: TriangulationTarget, shape: Shape):
                 break;
             }
         }
-    }
-
-    for (const [from_, to] of queues.newConstraints) {
-        if (queues.vertices.has(from_)) queues.vertices.delete(from_);
-        if (queues.vertices.has(to)) queues.vertices.delete(to);
     }
 
     for (const edge of queues.edges) cdt.removeConstrainedEdgeDelaunay(edge.first!, edge.second);

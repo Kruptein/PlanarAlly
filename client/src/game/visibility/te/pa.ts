@@ -5,7 +5,7 @@ import { equalPoints } from "@/game/utils";
 import { visibilityStore } from "../store";
 import { CDT } from "./cdt";
 import { Edge, Vertex } from "./tds";
-import { ccw, connectLinear, joinOverlap, collinearInOrder } from "./triag";
+import { ccw, collinearInOrder, connectLinear, joinOverlap } from "./triag";
 
 export enum TriangulationTarget {
     VISION = "vision",
@@ -83,6 +83,9 @@ function handleConstrainedEdgeKept(edge: Edge, queues: DeleteQueue): void {
     queues.constrainedEdges.push(edge);
 }
 
+// Todo:
+// - Move to a class to simplify state tracking
+// - Only check the constrainedEdge stuff when the queue actually changes
 function deleteIntersectVertex(
     vertex: Vertex,
     from: Vertex,
@@ -102,6 +105,8 @@ function deleteIntersectVertex(
         if (equalPoints(ccwp, target.point!)) {
             if (!(sharesVertex && sharesCCWP)) queues.edges.push(edge);
         } else if (equalPoints(ccwp, from.point!)) {
+            continue;
+        } else if (collinearInOrder(vertex.point!, ccwp, from.point!)) {
             continue;
         } else if (collinearInOrder(vertex.point!, ccwp, target.point!)) {
             if (nextIntersect !== null) console.warn("Multiple collinear vertices found?");

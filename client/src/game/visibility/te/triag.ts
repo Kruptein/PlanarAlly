@@ -1,4 +1,4 @@
-import { EdgeCirculator, Point, Sign, Triangle, Vertex, Edge } from "./tds";
+import { Edge, EdgeCirculator, Point, Sign, Triangle, Vertex } from "./tds";
 
 type Line = number[];
 
@@ -495,12 +495,28 @@ export function connectLinearV(
     return null;
 }
 
+export function joinOverlap(edgeA: Vertex[], edgeB: Vertex[]): Vertex[] | null {
+    const [A1, A2] = edgeA.sort((a: Vertex, b: Vertex) => (xySmaller(a.point!, b.point!) ? -1 : 1));
+    const [B1, B2] = edgeB.sort((a: Vertex, b: Vertex) => (xySmaller(a.point!, b.point!) ? -1 : 1));
+    const min = xySmaller(A1.point!, B1.point!) ? [A1, B1] : [B1, A1];
+    const max = xySmaller(A2.point!, B2.point!) ? [A2, B2] : [B2, A2];
+    if (xySmaller(max[0].point!, min[1].point!)) return null;
+    if (
+        (!collinearInOrder(min[0].point!, min[1].point!, max[1].point!) &&
+            !xyEqual(min[0].point!, min[1].point! || !xyEqual(min[1].point!, max[1].point!))) ||
+        (!collinearInOrder(min[0].point!, max[0].point!, max[1].point!) &&
+            !xyEqual(min[0].point!, max[0].point! || !xyEqual(max[0].point!, max[1].point!)))
+    )
+        return null;
+    return [min[0], max[1]];
+}
+
 interface VPpair {
     vertex: Vertex;
     point: number[];
 }
 
-export function joinOverlap(edgeA: Vertex[], edgeB: Vertex[]): Vertex[] | null {
+export function joinOverlap2(edgeA: Vertex[], edgeB: Vertex[]): Vertex[] | null {
     const [A1, A2] = edgeA
         .map(v => ({ vertex: v!, point: v!.point! }))
         .sort((a: VPpair, b: VPpair) => (xySmaller(a.point, b.point) ? -1 : 1));
@@ -521,4 +537,10 @@ export function joinOverlap(edgeA: Vertex[], edgeB: Vertex[]): Vertex[] | null {
         }
     }
     return null;
+}
+
+export function rotateAroundOrigin(p: Point, angle: number): Point {
+    const s = Math.sin(angle);
+    const c = Math.cos(angle);
+    return [p[0] * c - p[1] * s, p[0] * s + p[1] * c];
 }

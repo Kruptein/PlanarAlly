@@ -18,6 +18,14 @@ export function zoomDisplay(value: number): number {
 }
 
 export function equalPoints(a: number[], b: number[]): boolean {
+    if (
+        a[0] - 0.0001 < b[0] &&
+        a[0] + 0.0001 > b[0] &&
+        a[0] !== b[0] &&
+        (a[1] - 0.0001 < b[1] && a[1] + 0.0001 > b[1] && a[1] !== b[1])
+    ) {
+        console.warn(0);
+    }
     return a[0] === b[0] && a[1] === b[1];
 }
 

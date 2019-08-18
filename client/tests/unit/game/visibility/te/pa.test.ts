@@ -1,9 +1,10 @@
-import { GlobalPoint } from "@/game/geom";
+import { GlobalPoint, Vector } from "@/game/geom";
 import { Rect } from "@/game/shapes/rect";
+import { Shape } from "@/game/shapes/shape";
 import { CDT } from "@/game/visibility/te/cdt";
 import { addShapesToTriag, deleteShapeFromTriag, PA_CDT, TriangulationTarget } from "@/game/visibility/te/pa";
-import { Shape } from "@/game/shapes/shape";
 import { rotateAroundOrigin, xySmaller } from "@/game/visibility/te/triag";
+import { Polygon } from "@/game/shapes/polygon";
 
 jest.mock("@/game/api/socket", () => ({
     get socket() {
@@ -27,14 +28,18 @@ function _expectRemoveSuccess(shape1: Shape, shape2: Shape): void {
 function _expectRemoveSuccessRotation(shape1: Shape, shape2: Shape, rotate: boolean): void {
     cdt = new CDT();
     PA_CDT.vision = cdt;
-    shape1.removeTriagVertices(...shape1.triagVertices);
-    shape2.removeTriagVertices(...shape2.triagVertices);
+    shape1.clearTriagVertices();
+    shape2.clearTriagVertices();
     if (rotate) {
         _rotateShape(shape1);
         _rotateShape(shape2);
     }
     addShapesToTriag(TriangulationTarget.VISION, shape1, shape2);
+    expect(shape1.triagVertices).toHaveLength(4);
+    expect(shape2.triagVertices).toHaveLength(4);
     deleteShapeFromTriag(TriangulationTarget.VISION, shape1);
+    expect(shape1.triagVertices).toHaveLength(0);
+    expect(shape2.triagVertices).toHaveLength(4);
     expect(cdt.tds.numberOfVertices(false)).toBe(4);
     for (const vertex of shape2.triagVertices) {
         expect(cdt.tds.vertices.includes(vertex));
@@ -153,6 +158,19 @@ describe("PA test suite.", () => {
             const shape = new Rect(new GlobalPoint(0, 0), 10, 20);
             const shape2 = new Rect(new GlobalPoint(0, 5), 20, 10);
             expectRemoveSuccess(shape, shape2);
+        });
+        it("4,3d", () => {
+            const shape1 = new Polygon(new GlobalPoint(149.00000000000003, 102.00000000000003), [
+                new GlobalPoint(301.00000000000006, 303.00000000000006),
+                new GlobalPoint(450.0000000000001, 102.00000000000003),
+            ]);
+            cdt = new CDT();
+            PA_CDT.vision = cdt;
+            addShapesToTriag(TriangulationTarget.VISION, shape1);
+            deleteShapeFromTriag(TriangulationTarget.VISION, shape1);
+            shape1.refPoint = shape1.refPoint.add(new Vector(5, 0));
+            addShapesToTriag(TriangulationTarget.VISION, shape1);
+            expect(cdt.tds.vertices).toHaveLength(4);
         });
     });
 });

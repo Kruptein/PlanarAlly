@@ -280,8 +280,8 @@ export default class SelectTool extends Tool {
                         sel.snapToGrid();
                         if (sel.visionObstruction)
                             visibilityStore.addToTriag({ target: TriangulationTarget.VISION, shape: sel });
-                        if (sel.visionObstruction)
-                            visibilityStore.addToTriag({ target: TriangulationTarget.VISION, shape: sel });
+                        if (sel.movementObstruction)
+                            visibilityStore.addToTriag({ target: TriangulationTarget.MOVEMENT, shape: sel });
                     }
                     if (sel !== this.selectionHelper) {
                         socket.emit("Shape.Update", { shape: sel.asDict(), redraw: true, temporary: false });

@@ -70,7 +70,7 @@ export class Triangle {
     }
 
     get dimension(): number {
-        return this.vertices.length - 1;
+        return this.vertices.filter(v => v !== null).length - 1;
     }
 
     addVertex(vertex: Vertex): void {
@@ -178,11 +178,11 @@ export class Vertex {
         return faces;
     }
 
-    *getIncidentEdges(): IterableIterator<Edge> {
+    *getIncidentEdges(constrainedOnly = false): IterableIterator<Edge> {
         // const edges: Edge[] = [];
         const ec = new EdgeCirculator(this, null);
         do {
-            yield new Edge(ec.t, ec.ri);
+            if (!constrainedOnly || ec.t!.constraints[ec.ri]) yield new Edge(ec.t, ec.ri);
         } while (ec.valid && ec.next());
         // return edges;
     }
@@ -486,7 +486,7 @@ export class Edge {
         }`;
     }
 
-    vertices(): (Vertex | null)[] {
+    vertices(): [Vertex | null, Vertex | null] {
         return [this.first!.vertices[this.second === 0 ? 1 : 0], this.first!.vertices[this.second === 2 ? 1 : 2]];
     }
 }

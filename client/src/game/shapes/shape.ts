@@ -352,11 +352,11 @@ export abstract class Shape {
         }
     }
 
-    removeTriagVertices(...vertices: Vertex[]): void {
-        this._triagVertices = this._triagVertices.filter(v => !vertices.includes(v));
-    }
-
     get triagVertices(): Vertex[] {
         return [...this._triagVertices];
+    }
+
+    clearTriagVertices(): void {
+        this._triagVertices = [];
     }
 }

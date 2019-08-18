@@ -1,23 +1,23 @@
 on: pull_request
 name: PR
 jobs:
-  lint:
+  PR flow:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@master
+    - name: Use Node.js 10.x
+      uses: actions/setup-node@v1
+      with:
+        version: 10.x
+    - name: npm i
+      run: |
+        npm install
     - name: lint
-      uses: actions/npm@59b64a598378f31e49cb76f27d6f3312b582f680
-      with:
-        args: lint
-    - name: Install
-      uses: actions/npm@59b64a598378f31e49cb76f27d6f3312b582f680
-      with:
-        args: install
-    - name: GitHub Action for npm
-      uses: actions/npm@59b64a598378f31e49cb76f27d6f3312b582f680
-      with:
-        args: build
-    - name: Test
-      uses: actions/npm@59b64a598378f31e49cb76f27d6f3312b582f680
-      with:
-        args: test
+      run: |
+        npm run lint
+    - name: test
+      run: |
+        npm run test
+    - name: build
+      run: |
+        npm run build

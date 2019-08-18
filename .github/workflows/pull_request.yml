@@ -15,6 +15,7 @@ jobs:
         npm install
     - name: lint
       working-directory: client
+      continue-on-error: true
       run: |
         npm run lint
     - name: test

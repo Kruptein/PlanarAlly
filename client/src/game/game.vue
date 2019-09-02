@@ -121,6 +121,9 @@ export default class Game extends Vue {
         tools: false,
     };
 
+    throttledmoveSet = false;
+    throttledmove: (event: MouseEvent) => void = (_event: MouseEvent) => {};
+
     get showUI(): boolean {
         return gameStore.showUI;
     }
@@ -187,7 +190,11 @@ export default class Game extends Vue {
         this.$refs.tools.mouseup(event);
     }
     mousemove(event: MouseEvent) {
-        this.$refs.tools.mousemove(event);
+        if (!this.throttledmoveSet) {
+            this.throttledmoveSet = true;
+            this.throttledmove = throttle(this.$refs.tools.mousemove, 15);
+        }
+        this.throttledmove(event);
     }
     mouseleave(event: MouseEvent) {
         this.$refs.tools.mouseleave(event);

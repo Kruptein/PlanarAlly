@@ -3,7 +3,7 @@ import { rootStore } from "@/store";
 import { Action, getModule, Module, Mutation, VuexModule } from "vuex-module-decorators";
 import { Shape } from "../shapes/shape";
 import { BoundingVolume } from "./bvh/bvh";
-import { addShapesToTriag, deleteShapeFromTriag0, triangulate, TriangulationTarget, deleteShapeFromTriag } from "./te/pa";
+import { addShapesToTriag, deleteShapeFromTriag, triangulate, TriangulationTarget } from "./te/pa";
 
 export interface VisibilityState {
     visionMode: "bvh" | "triangle";

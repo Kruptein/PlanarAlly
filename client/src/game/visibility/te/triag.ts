@@ -1,4 +1,4 @@
-import { Edge, EdgeCirculator, Point, Sign, Triangle, Vertex } from "./tds";
+import { EdgeCirculator, Point, Sign, Triangle, Vertex } from "./tds";
 
 type Line = number[];
 

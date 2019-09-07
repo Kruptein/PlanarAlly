@@ -13,6 +13,7 @@ import { g2l, g2lr, g2lx, g2ly, g2lz } from "@/game/units";
 import { TriangulationTarget } from "../visibility/te/pa";
 import { Vertex } from "../visibility/te/tds";
 import { visibilityStore } from "../visibility/store";
+import { equalPoints } from "../utils";
 
 export abstract class Shape {
     // Used to create class instance from server shape data
@@ -347,7 +348,7 @@ export abstract class Shape {
 
     addTriagVertices(...vertices: Vertex[]): void {
         for (const vertex of vertices) {
-            if (this._triagVertices.includes(vertex)) continue;
+            if (this._triagVertices.some(v => equalPoints(vertex.point!, v.point!))) continue;
             this._triagVertices.push(vertex);
         }
     }

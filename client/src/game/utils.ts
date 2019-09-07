@@ -17,16 +17,12 @@ export function zoomDisplay(value: number): number {
     return Math.log((1 / value + 5 / 3) * (15 / 28)) / 1.83;
 }
 
+export function equalPoint(a: number, b: number, delta: number = 0.0001): boolean {
+    return a - delta < b && a + delta > b;
+}
+
 export function equalPoints(a: number[], b: number[]): boolean {
-    if (
-        a[0] - 0.0001 < b[0] &&
-        a[0] + 0.0001 > b[0] &&
-        a[0] !== b[0] &&
-        (a[1] - 0.0001 < b[1] && a[1] + 0.0001 > b[1] && a[1] !== b[1])
-    ) {
-        console.warn(0);
-    }
-    return a[0] === b[0] && a[1] === b[1];
+    return equalPoint(a[0], b[0]) && equalPoint(a[1], b[1]);
 }
 
 export function getFogColour(opposite: boolean = false): string {

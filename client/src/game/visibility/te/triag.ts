@@ -1,4 +1,5 @@
 import { EdgeCirculator, Point, Sign, Triangle, Vertex } from "./tds";
+import { equalPoint } from "@/game/utils";
 
 type Line = number[];
 
@@ -117,11 +118,11 @@ export function sideOfOrientedCircleP(p0: Point, p1: Point, p2: Point, p: Point,
 }
 
 export function xyEqual(p: Point, q: Point): boolean {
-    return p[0] === q[0] && p[1] === q[1];
+    return equalPoint(p[0], q[0]) && equalPoint(p[1], q[1]);
 }
 
 export function xySmaller(p: Point, q: Point): boolean {
-    return p[0] < q[0] || (p[0] === q[0] && p[1] < q[1]);
+    return p[0] < q[0] - 0.0001 || (equalPoint(p[0], q[0]) && p[1] < q[1] - 0.0001);
 }
 
 export function xyCompare(p: Point, q: Point): Sign {

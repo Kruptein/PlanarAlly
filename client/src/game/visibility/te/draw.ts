@@ -1,6 +1,6 @@
 import { layerManager } from "@/game/layers/manager";
 import { g2lx, g2ly } from "@/game/units";
-import { EdgeIterator, TDS } from "./tds";
+import { EdgeIterator, TDS, Edge } from "./tds";
 import { ccw, cw } from "./triag";
 
 export function drawPoint(point: number[], r: number, colour?: string): void {
@@ -85,6 +85,20 @@ function drl(from: number[], to: number[], constrained: boolean, local: boolean)
     ctx.stroke();
 }
 
+export function drawEdge(edge: Edge, colour: string, local: boolean = false): void {
+    const from = edge.first!.vertices[edge.second === 0 ? 1 : 0]!.point!;
+    const to = edge.first!.vertices[edge.second === 2 ? 1 : 2]!.point!;
+    const dl = layerManager.getLayer("draw");
+    if (dl === undefined) return;
+    const ctx = dl.ctx;
+    ctx.beginPath();
+    ctx.strokeStyle = colour || "rgba(0, 0, 255, 1)";
+    ctx.moveTo(x(from[0], local), y(from[1], local));
+    ctx.lineTo(x(to[0], local), y(to[1], local));
+    ctx.closePath();
+    ctx.stroke();
+}
+
 export function drawPolygonT(tds: TDS, local = true, clear = true, logs: 0 | 1 | 2 = 0): void {
     I = 0;
     J = 0;
@@ -156,6 +170,7 @@ export function drawPolygonT(tds: TDS, local = true, clear = true, logs: 0 | 1 |
 
 (<any>window).DC = drawPoint;
 (<any>window).DL = drl;
+(<any>window).DE = drawEdge;
 (<any>window).DP = drawPolygon;
 (<any>window).DPL = drawPolygonL;
 (<any>window).DPT = drawPolygonT;

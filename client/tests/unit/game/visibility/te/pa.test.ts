@@ -1,10 +1,10 @@
-import { GlobalPoint, Vector } from "@/game/geom";
+import { GlobalPoint } from "@/game/geom";
+import { Polygon } from "@/game/shapes/polygon";
 import { Rect } from "@/game/shapes/rect";
 import { Shape } from "@/game/shapes/shape";
 import { CDT } from "@/game/visibility/te/cdt";
 import { addShapesToTriag, deleteShapeFromTriag, PA_CDT, TriangulationTarget } from "@/game/visibility/te/pa";
 import { rotateAroundOrigin, xySmaller } from "@/game/visibility/te/triag";
-import { Polygon } from "@/game/shapes/polygon";
 
 jest.mock("@/game/api/socket", () => ({
     get socket() {
@@ -159,18 +159,19 @@ describe("PA test suite.", () => {
             const shape2 = new Rect(new GlobalPoint(0, 5), 20, 10);
             expectRemoveSuccess(shape, shape2);
         });
-        it("4,3d", () => {
-            const shape1 = new Polygon(new GlobalPoint(149.00000000000003, 102.00000000000003), [
-                new GlobalPoint(301.00000000000006, 303.00000000000006),
-                new GlobalPoint(450.0000000000001, 102.00000000000003),
+        it("self-crossing polygon", () => {
+            const shape = new Rect(new GlobalPoint(-5, 2), 20, 6);
+            const shape2 = new Polygon(new GlobalPoint(0, 0), [
+                new GlobalPoint(0, 10),
+                new GlobalPoint(10, 0),
+                new GlobalPoint(10, 10),
             ]);
             cdt = new CDT();
             PA_CDT.vision = cdt;
-            addShapesToTriag(TriangulationTarget.VISION, shape1);
-            deleteShapeFromTriag(TriangulationTarget.VISION, shape1);
-            shape1.refPoint = shape1.refPoint.add(new Vector(5, 0));
-            addShapesToTriag(TriangulationTarget.VISION, shape1);
-            expect(cdt.tds.vertices).toHaveLength(4);
+            addShapesToTriag(TriangulationTarget.VISION, shape, shape2);
+            deleteShapeFromTriag(TriangulationTarget.VISION, shape2);
+            expect(cdt.tds.numberOfVertices(false)).toBe(4);
+            expect(cdt.tds.numberOfEdges(true)).toBe(4);
         });
     });
 });

@@ -189,7 +189,7 @@ export default class DrawTool extends Tool {
             this.shape.addOwner(gameStore.username);
             if (layer.name === "fow" && this.modeSelect === "normal") {
                 this.shape.visionObstruction = true;
-                // this.shape.movementObstruction = true;
+                this.shape.movementObstruction = true;
             }
             layer.addShape(this.shape, true, false, false);
 

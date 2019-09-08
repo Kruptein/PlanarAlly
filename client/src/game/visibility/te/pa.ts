@@ -6,7 +6,6 @@ import { visibilityStore } from "../store";
 import { CDT } from "./cdt";
 import { Edge, Vertex } from "./tds";
 import { b, ccw, collinearInOrder, Constraint, xySmaller } from "./triag";
-import { drawPoint } from "./draw";
 export enum TriangulationTarget {
     VISION = "vision",
     MOVEMENT = "movement",
@@ -111,23 +110,30 @@ function deleteIntersectVertex(
     queues: DeleteQueue,
     isCorner: boolean,
 ): Vertex {
-    if (queues.handledPoints.some(p => equalPoints(p, vertex.point!))) return vertex;
-    queues.handledPoints.push(vertex.point!);
+    /*
+     * When cross-intersecting a polygon, a point is visited multiple times,
+     * we can skip a bunch of steps on subsequent arrivals in such points,
+     * but we need to ensure that any interruption towards the new target
+     * is handled properly and not skipped.
+     */
+    const pointHandled = queues.handledPoints.some(p => equalPoints(p, vertex.point!));
     const sharesVertex = vertex.shapes.size >= (isCorner ? 2 : 1);
-    if (!sharesVertex) queues.vertices.push(vertex);
+    if (!sharesVertex && !pointHandled) queues.vertices.push(vertex);
     let nextIntersect: Vertex | null = null;
     for (const edge of vertex.getIncidentEdges(true)) {
         const ccwv = edge.first!.vertices[ccw(edge.second)]!;
         const ccwp = ccwv.point!;
-        layerManager.getLayer("draw")!.clear();
-        drawPoint(vertex.point!, 10, "blue");
-        drawPoint(ccwp, 10, "green");
+        // layerManager.getLayer("draw")!.clear();
+        // drawPoint(vertex.point!, 10, "blue");
+        // drawPoint(ccwp, 10, "green");
         const edgeCovered = equalPoints(ccwp, from.point!) || collinearInOrder(vertex.point!, ccwp, from.point!);
         const targetEdge = equalPoints(ccwp, target.point!);
         const edgeInterruption = !edgeCovered && !targetEdge && collinearInOrder(vertex.point!, ccwp, target.point!);
         const onPath = edgeCovered || edgeInterruption || targetEdge;
         if (edgeInterruption) {
             nextIntersect = ccwv;
+        } else if (pointHandled) {
+            continue;
         }
         const ev = (edge.vertices() as [Vertex, Vertex]).sort((a: Vertex, b: Vertex) =>
             xySmaller(a.point!, b.point!) ? -1 : 1,
@@ -141,6 +147,7 @@ function deleteIntersectVertex(
         const edgeShapes = [...vertex.shapes].filter(sh => ccwv.shapes.has(sh) && sh !== shape);
         if (edgeShapes.length === 0) addEdgeToQueue(queues, edge);
     }
+    queues.handledPoints.push(vertex.point!);
     if (nextIntersect === null) return vertex;
     return deleteIntersectVertex(shape, nextIntersect, vertex, target, queues, false);
 }

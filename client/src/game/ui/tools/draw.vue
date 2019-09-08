@@ -296,6 +296,8 @@ export default class DrawTool extends Tool {
             this.shape.resizeToGrid();
             if (this.shape.visionObstruction)
                 visibilityStore.addToTriag({ target: TriangulationTarget.VISION, shape: this.shape });
+            if (this.shape.movementObstruction)
+                visibilityStore.addToTriag({ target: TriangulationTarget.MOVEMENT, shape: this.shape });
         }
         this.finaliseShape();
     }
@@ -313,8 +315,6 @@ export default class DrawTool extends Tool {
 
     private finaliseShape() {
         if (this.shape === null) return;
-        // if (this.shape.visionObstruction) visibilityStore.recalculateVision();
-        // if (this.shape.movementObstruction) visibilityStore.recalculateMovement();
         socket.emit("Shape.Update", { shape: this.shape!.asDict(), redraw: true, temporary: false });
         this.active = false;
     }

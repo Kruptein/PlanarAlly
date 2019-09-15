@@ -105,6 +105,7 @@
                     <div
                         v-for="location in locations"
                         :key="location"
+                        :style="[getCurrentLocation() === location ? {'background-color':'#82c8a0'}: {}]"
                         @click="changeLocation(location)"
                     >{{ location }}</div>
                     <div @click="createLocation">
@@ -177,6 +178,9 @@ export default class MenuBar extends Vue {
             const next = <HTMLElement>event.target.nextElementSibling;
             if (next !== null) next.style.display = next.style.display === "" ? "block" : "";
         }
+    }
+    getCurrentLocation(){
+        return gameStore.locationName;
     }
     changeLocation(name: string) {
         socket.emit("Location.Change", name);

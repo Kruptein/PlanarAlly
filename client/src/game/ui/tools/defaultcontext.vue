@@ -46,7 +46,7 @@ export default class DefaultContext extends Vue {
         this.close();
     }
     createToken() {
-        (<any>this.$parent.$parent.$refs.createtokendialog).open(this.x, this.y);
+        (<any>this.$parent.$refs.createtokendialog).open(this.x, this.y);
         this.close();
     }
     showInitiative() {

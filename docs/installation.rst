@@ -46,6 +46,8 @@ Installation
 For installation you again have two options:
 
 * Precompiled binary
+* Running through Docker with precompiled images
+* Compiling through Docker
 * Manual installation
 
 The precompiled binary is the go-to method if you're not super techsavy and if you use Windows.
@@ -62,6 +64,52 @@ The binaries are created for each release, which can be found `here <https://git
 4. Optionally you can configure the server in the `server_config.cfg` file.
 5. Restart the server after applying a change.
 
+Running through Docker with precompiled images
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Docker is a system to run programs in isolated environments,
+similar to virtual machines. It has the benefits that all
+other requirements are handled by docker without affecting the host machine
+
+Make sure you have a valid Docker installation with docker-compose.
+See :ref:`docker` if you don't know how.
+
+1. Create a folder for the files
+2. Inside that folder, create a file called docker-compose.yml with the following content::
+
+    version: "3.3"
+    services:
+      planarally:
+        image: 'kruptein/planarally'
+        ports:
+        - 8000:8000
+        volumes:
+        - 'data:/usr/src/app/data'
+        - 'assets:/usr/src/app/static/assets'
+        restart: always
+    volumes:
+      data:
+      assets:
+
+3. From a command line in the created folder, run `docker-compose up -d`
+
+The server will keep running in the background, reloading after resets
+To stop the server, run `docker-compose down`
+
+Compiling through Docker
+^^^^^^^^^^^^^^^^^^^^^^^^
+Same as the last option, but compiling the image
+directly instead using the precompiled one
+
+Make sure you have a valid Docker installation with docker-compose
+(usually installed sepatedly).
+See :ref:`docker` if you don't know how.
+
+1. Download the latest source code from `here <https://github.com/Kruptein/PlanarAlly/releases/>`_. and open it.
+2. Run `docker build -t planarally .`
+3. Run the newly compiled image with the same instructions as above, but removing the `kruptein/` from the `image` line (the whole line should end up as `image: 'planarally'`)
+
+.. note::
+    Althrough it is not necessary, it is recomended that the folder for the `docker-compose.yml` file is independent from the source folder.
 
 Manual Installation
 ^^^^^^^^^^^^^^^^^^^^^
@@ -109,6 +157,23 @@ Download and install the latest python 3 version from `the python site <https://
 Make sure to note where you install python as you will need it later on.
 
 
+.. _docker:
+
+Docker installation
+~~~~~~~~~~~~~~~~~~~~
+
+To install docker, follow the official instructions:
+
+* `Windows <https://docs.docker.com/docker-for-windows/install/>`_ (installation consists in downloading and running the `installer <https://hub.docker.com/editions/community/docker-ce-desktop-windows>`_)
+* `MacOs <https://docs.docker.com/docker-for-mac/install/>`_ (installation consists in downloading and running the `installer <https://hub.docker.com/editions/community/docker-ce-desktop-mac>`_)
+* Linux (Instructions are available for `Ubuntu <https://docs.docker.com/install/linux/docker-ce/ubuntu/>`_, `Debian <https://docs.docker.com/install/linux/docker-ce/debian/>`_, `CentOS <https://docs.docker.com/install/linux/docker-ce/centos/>`_, `Fedora <https://docs.docker.com/install/linux/docker-ce/fedora/>`_)
+
+.. note::
+    If you use linux, you will need to install `docker-compose <https://docs.docker.com/compose/install/>`_ separatedly
+    
+    You will probably want to run the `Linux post-installation steps <https://docs.docker.com/install/linux/linux-postinstall/>`_
+
+
 .. _upgrading:
 
 Upgrading
@@ -116,10 +181,38 @@ Upgrading
 
 When upgrading to a newer version of PlanarAlly, the necessary care has to be taken to make sure your existing data is not lost.
 
-It's strongly advised to make a backup of the following data before performing an upgrade:
+It's strongly advised to make a backup of the following data before performing an upgrade
+
+Upgrading with precompiled or manual installation
+*************************************************
+
+To backup the data, make copies to another folder of the following files/folders:
 
 * planar.sqlite: This is the database that contains all the saved sessions and user information.
 * static/assets: This folder contains all the uploaded images for tokens/maps/... during gameplay.
 
 When backed up, you should be able to safely overwrite any of the original PlanarAlly files
 with the newer files from the version you want to upgrade to.
+
+If you are running a manual installation, run `pip install -r requirements.txt` again in case the requiremens have changed.
+
+If the data is lost is not there after upgrading, copy the backups back where you copied them from
+
+Upgrading with docker
+*********************
+
+Upgrading with Docker is a much safer, but the backups are recommended anyway.
+
+The backup from docker can be created with (where the word `docker` in `docker_planarally_1` will be the name of the folder where the `docker-compose.yml` file is located):
+
+* planar.sqlite: `docker cp docker_planarally_1:/usr/src/app/data ./data`
+* static/assets: `docker cp docker_planarally_1:/usr/src/app/static/assets ./assets`
+
+If you compiled the image yourself, you will have to recompile it.
+
+To upgrade, just run `docker-compose pull && docker-compose up -d` in the folder with the original `docker-compose.yml` file
+
+If the data is lost, you can restore it by running the previous commands with the arguments swapped:
+
+* planar.sqlite: `docker cp ./data docker_planarally_1:/usr/src/app/data`
+* static/assets: `docker cp ./assets docker_planarally_1:/usr/src/app/static/assets`

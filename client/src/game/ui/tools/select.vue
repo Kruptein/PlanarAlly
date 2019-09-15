@@ -1,13 +1,12 @@
-<template>
-    <SelectContext ref="selectcontext"></SelectContext>
-</template>
+<template></template>
 
 <script lang="ts">
 import Component from "vue-class-component";
 
-import SelectContext from "@/game/ui/tools/selectcontext.vue";
+import SelectionInfo from "@/game/ui/selection/selection_info.vue";
+import ShapeContext from "@/game/ui/selection/shapecontext.vue";
+import DefaultContext from "@/game/ui/tools/defaultcontext.vue";
 import Tool from "@/game/ui/tools/tool.vue";
-import SelectionInfo from "../selection/selection_info.vue";
 
 import { getRef } from "@/core/utils";
 import { socket } from "@/game/api/socket";
@@ -29,11 +28,7 @@ export enum SelectOperations {
 
 const start = new GlobalPoint(-1000, -1000);
 
-@Component({
-    components: {
-        SelectContext,
-    },
-})
+@Component
 export default class SelectTool extends Tool {
     name = "Select";
     showContextMenu = false;
@@ -255,16 +250,28 @@ export default class SelectTool extends Tool {
         const layer = layerManager.getLayer()!;
         const mouse = getMouse(event);
         const globalMouse = l2g(mouse);
-        let selectedShapes = layer.selection.filter(shape => shape !== this.selectionHelper);
+        const selectedShapes = layer.selection.filter(shape => shape !== this.selectionHelper);
         for (const shape of selectedShapes) {
             if (shape.contains(globalMouse)) {
                 getRef<SelectionInfo>("selectionInfo").shape = shape;
                 layer.invalidate(true);
-                (<any>this.$parent.$refs.shapecontext).open(event, shape, selectedShapes);
+                (<ShapeContext>this.$parent.$refs.shapecontext).open(event, selectedShapes);
                 return;
             }
         }
-        (<any>this.$refs.selectcontext).open(event);
+
+        // Check if any other shapes are under the mouse
+        for (let i = layer.shapes.length - 1; i >= 0; i--) {
+            const shape = layer.shapes[i]
+            if (shape.contains(globalMouse)){
+                layer.selection = [shape]
+                getRef<SelectionInfo>("selectionInfo").shape = shape;
+                layer.invalidate(true);
+                (<ShapeContext>this.$parent.$refs.shapecontext).open(event, selectedShapes);
+                return;
+            }
+            }
+        (<DefaultContext>this.$parent.$refs.defaultcontext).open(event);
     }
     updateCursor(layer: Layer, globalMouse: GlobalPoint) {
         for (const sel of layer.selection) {

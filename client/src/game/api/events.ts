@@ -73,8 +73,10 @@ socket.on("Location.Set", (data: Partial<ServerLocation>) => {
         gameStore.recalculateMovement();
     }
 });
-socket.on("Position.Set", (data: { x: number; y: number }) => {
+socket.on("Position.Set", (data: { x: number; y: number, zoom: number }) => {
+    gameStore.setZoomDisplay(data.zoom);
     gameManager.setCenterPosition(new GlobalPoint(data.x, data.y));
+    
 });
 socket.on("Notes.Set", (notes: Note[]) => {
     for (const note of notes) gameStore.newNote({ note, sync: false });

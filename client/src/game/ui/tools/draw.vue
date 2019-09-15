@@ -47,6 +47,7 @@ import Component from "vue-class-component";
 import { Watch } from "vue-property-decorator";
 
 import ColorPicker from "@/core/components/colorpicker.vue";
+import DefaultContext from "@/game/ui/tools/defaultcontext.vue";
 import Tool from "@/game/ui/tools/tool.vue";
 
 import { socket } from "@/game/api/socket";
@@ -272,15 +273,19 @@ export default class DrawTool extends Tool {
         this.finaliseShape();
     }
     onContextMenu(event: MouseEvent) {
-        if (!this.active || this.shape === null || !(this.shape instanceof Polygon)) return;
-        const layer = this.getLayer();
-        if (layer === undefined) {
-            console.log("No active layer!");
-            return;
+        if (this.active && this.shape !== null && this.shape instanceof Polygon){
+            const layer = this.getLayer();
+            if (layer === undefined) {
+                console.log("No active layer!");
+                return;
+            }
+            layer.removeShape(this.ruler!, false);
+            this.ruler = null;
+            this.finaliseShape();
+        }else if (!this.active){
+            (<DefaultContext>this.$parent.$refs.defaultcontext).open(event);
         }
-        layer.removeShape(this.ruler!, false);
-        this.ruler = null;
-        this.finaliseShape();
+
     }
 
     private finaliseShape() {

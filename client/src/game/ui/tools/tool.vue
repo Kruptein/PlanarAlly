@@ -4,6 +4,8 @@
 import Vue from "vue";
 import Component from "vue-class-component";
 
+import DefaultContext from "@/game/ui/tools/defaultcontext.vue";
+
 @Component
 export default class Tool extends Vue {
     name = "";
@@ -49,7 +51,9 @@ export default class Tool extends Vue {
     onMouseDown(event: MouseEvent) {}
     onMouseUp(event: MouseEvent) {}
     onMouseMove(event: MouseEvent) {}
-    onContextMenu(event: MouseEvent) {}
+    onContextMenu(event: MouseEvent) {
+        (<DefaultContext>this.$parent.$refs.defaultcontext).open(event);
+    }
 }
 </script>
 

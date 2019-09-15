@@ -19,7 +19,7 @@
         <li @click="moveToBack">Move to back</li>
         <li @click="moveToFront">Move to front</li>
         <li @click="addInitiative">{{ getInitiativeWord() }} initiative</li>
-        <li @click="openEditDialog">Show properties</li>
+        <li v-if="hasSingleShape()" @click="openEditDialog">Show properties</li>
     </ContextMenu>
 </template>
 
@@ -45,23 +45,21 @@ export default class ShapeContext extends Vue {
     visible = false;
     x = 0;
     y = 0;
-    shape: Shape | null = null;
-    allShapes: Shape[] | null = null;
+    shapes: Shape[] | null = null;
     get activeLayer(): string {
         const layer = layerManager.getLayer();
         return layer === undefined ? "" : layer.name;
     }
-    open(event: MouseEvent, shape: Shape, allShapes: Shape[]) {
+    open(event: MouseEvent, shapes: Shape[]) {
         this.visible = true;
         this.x = event.pageX;
         this.y = event.pageY;
-        this.shape = shape;
-        this.allShapes = allShapes;
+        this.shapes = shapes;
         this.$nextTick(() => (<HTMLElement>this.$children[0].$el).focus());
     }
     close() {
         this.visible = false;
-        this.shape = null;
+        this.shapes = null;
     }
     getLayers() {
         return layerManager.layers.filter(l => l.selectable && (gameStore.IS_DM || l.playerEditable));
@@ -70,35 +68,45 @@ export default class ShapeContext extends Vue {
         return layerManager.getLayer();
     }
     getInitiativeWord() {
-        if (this.shape === null) return "";
-        return getRef<Initiative>("initiative").contains(this.shape.uuid) ? "Show" : "Add";
+        if (this.shapes === null) return "";
+        if (this.shapes.length === 1 ){
+            return getRef<Initiative>("initiative").contains(this.shapes[0].uuid) ? "Show" : "Add";
+        }else {
+            return this.shapes.every(shape => getRef<Initiative>("initiative").contains(shape.uuid)) ? "Show" : "Add all to";
+        }
+    }
+    hasSingleShape(): boolean{
+        return this.shapes !== null && this.shapes.length === 1
     }
     setLayer(newLayer: string) {
-        if (this.allShapes === null) return;
-        this.allShapes.forEach(shape => shape.moveLayer(newLayer, true));
+        if (this.shapes === null) return;
+        this.shapes.forEach(shape => shape.moveLayer(newLayer, true));
         this.close();
     }
     moveToBack() {
-        if (this.allShapes === null) return;
+        if (this.shapes === null) return;
         const layer = this.getActiveLayer()!;
-        this.allShapes.forEach(shape => layer.moveShapeOrder(shape, 0, true));
+        this.shapes.forEach(shape => layer.moveShapeOrder(shape, 0, true));
         this.close();
     }
     moveToFront() {
-        if (this.allShapes === null) return;
+        if (this.shapes === null) return;
         const layer = this.getActiveLayer()!;
-        this.allShapes.forEach(shape => layer.moveShapeOrder(shape, layer.shapes.length - 1, true));
+        this.shapes.forEach(shape => layer.moveShapeOrder(shape, layer.shapes.length - 1, true));
         this.close();
     }
     addInitiative() {
-        if (this.shape === null) return;
+        if (this.shapes === null) return;
         const initiative = getRef<Initiative>("initiative");
-        if (!initiative.contains(this.shape.uuid)) initiative.addInitiative(this.shape.getInitiativeRepr());
+        this.shapes
+            .filter(shape => !initiative.contains(shape.uuid))
+            .forEach(shape => initiative.addInitiative(shape.getInitiativeRepr()));
         initiative.visible = true;
         this.close();
     }
     openEditDialog() {
-        EventBus.$emit("EditDialog.Open", this.shape);
+        if (this.shapes === null || this.shapes.length !== 1) return
+        EventBus.$emit("EditDialog.Open", this.shapes[0]);
         this.close();
     }
 }

@@ -18,6 +18,7 @@ import { gameStore } from "@/game/store";
 import { calculateDelta } from "@/game/ui/tools/utils";
 import { g2l, g2lr, g2lx, g2ly, g2lz, l2g, l2gz } from "@/game/units";
 import { getMouse } from "@/game/utils";
+import { keyboardState } from '../../events/keyboard';
 
 export enum SelectOperations {
     Noop,
@@ -82,7 +83,11 @@ export default class SelectTool extends Tool {
             } else if (shape.contains(globalMouse)) {
                 const selection = shape;
                 if (layer.selection.indexOf(selection) === -1) {
-                    layer.selection = [selection];
+                    if (keyboardState.shiftPressed || keyboardState.ctrlPressed){
+                        layer.selection.push(selection)
+                    } else {
+                        layer.selection = [selection];
+                    }
                     getRef<SelectionInfo>("selectionInfo").shape = selection;
                 }
                 this.mode = SelectOperations.Drag;
@@ -105,7 +110,11 @@ export default class SelectTool extends Tool {
             this.selectionHelper.w = 0;
             this.selectionHelper.h = 0;
 
-            layer.selection = [this.selectionHelper];
+            if (keyboardState.shiftPressed || keyboardState.ctrlPressed){
+                // If either control or shift are pressed, do not remove selection
+            } else {
+                layer.selection = [this.selectionHelper];
+            }
             layer.invalidate(true);
         }
         this.active = true;
@@ -184,7 +193,11 @@ export default class SelectTool extends Tool {
         const layer = layerManager.getLayer()!;
 
         if (this.mode === SelectOperations.GroupSelect) {
-            layer.clearSelection();
+            if (keyboardState.shiftPressed || keyboardState.ctrlPressed){
+                // If either control or shift are pressed, do not remove selection
+            } else {
+                layer.clearSelection();
+            }
             layer.shapes.forEach(shape => {
                 if (!shape.ownedBy()) return;
                 if (shape === this.selectionHelper) return;

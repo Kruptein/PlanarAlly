@@ -16,9 +16,20 @@
                 >{{ layer.name }}</li>
             </ul>
         </li>
+        <li v-if="locations.length > 1">Location
+            <ul>
+                <li
+                    v-for="location in locations"
+                    :key="location"
+                    :style="[getCurrentLocation() === location ? {'background-color':'#82c8a0'}: {}]"
+                    @click="setLocation(location)"
+                >{{ location }}</li>
+            </ul>
+        </li>
         <li @click="moveToBack">Move to back</li>
         <li @click="moveToFront">Move to front</li>
         <li @click="addInitiative">{{ getInitiativeWord() }} initiative</li>
+        <li @click="deleteSelection">Delete shapes</li>
         <li v-if="hasSingleShape()" @click="openEditDialog">Show properties</li>
     </ContextMenu>
 </template>
@@ -27,18 +38,26 @@
 import Vue from "vue";
 import Component from "vue-class-component";
 
+import { mapState } from "vuex";
+
 import ContextMenu from "@/core/components/contextmenu.vue";
 import Initiative from "@/game/ui/initiative.vue";
 
 import { getRef } from "@/core/utils";
+import { socket } from "@/game/api/socket";
+import { ServerLocation } from "@/game/comm/types/general";
 import { EventBus } from "@/game/event-bus";
 import { layerManager } from "@/game/layers/manager";
 import { Shape } from "@/game/shapes/shape";
 import { gameStore } from "@/game/store";
+import { cutShapes,deleteShapes, pasteShapes } from '../../shapes/utils';
 
 @Component({
     components: {
         ContextMenu,
+    },
+    computed: {
+        ...mapState("game", ["locations", "assets", "notes"]),
     },
 })
 export default class ShapeContext extends Vue {
@@ -67,6 +86,9 @@ export default class ShapeContext extends Vue {
     getActiveLayer() {
         return layerManager.getLayer();
     }
+    getCurrentLocation(){
+        return gameStore.locationName;
+    }
     getInitiativeWord() {
         if (this.shapes === null) return "";
         if (this.shapes.length === 1 ){
@@ -81,6 +103,22 @@ export default class ShapeContext extends Vue {
     setLayer(newLayer: string) {
         if (this.shapes === null) return;
         this.shapes.forEach(shape => shape.moveLayer(newLayer, true));
+        this.close();
+    }
+    setLocation(newLocation: string){
+        if (this.shapes === null) return;
+        const layer = layerManager.getLayer()!;
+        layer.selection = this.shapes;
+        cutShapes();
+        // Request change to other location
+        socket.emit("Location.Change", newLocation);
+        socket.once("Location.Set", (data: Partial<ServerLocation>) => {
+            // Paste when location changes
+            // TODO: Shapes are pasted to map layer independently of where they come from. Fix this
+            this.shapes = pasteShapes(false);
+            // Workaround to force the shapes to the right layer
+            this.setLayer(layer.name);
+        });
         this.close();
     }
     moveToBack() {
@@ -102,6 +140,11 @@ export default class ShapeContext extends Vue {
             .filter(shape => !initiative.contains(shape.uuid))
             .forEach(shape => initiative.addInitiative(shape.getInitiativeRepr()));
         initiative.visible = true;
+        this.close();
+    }
+    deleteSelection(){
+        if (this.shapes === null) return;
+        deleteShapes()
         this.close();
     }
     openEditDialog() {

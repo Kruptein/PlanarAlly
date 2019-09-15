@@ -104,10 +104,10 @@ export function copyShapes() {
     gameStore.setClipboard(clipboard);
 }
 
-export function pasteShapes(offsetPosition: boolean = true) {
+export function pasteShapes(offsetPosition: boolean = true): Shape[] {
     const layer = layerManager.getLayer();
-    if (!layer) return;
-    if (!gameStore.clipboard) return;
+    if (!layer) return [];
+    if (!gameStore.clipboard) return [];
     layer.selection = [];
     for (const clip of gameStore.clipboard) {
         if (offsetPosition){
@@ -141,6 +141,7 @@ export function pasteShapes(offsetPosition: boolean = true) {
     if (layer.selection.length === 1) EventBus.$emit("SelectionInfo.Shape.Set", layer.selection[0]);
     else EventBus.$emit("SelectionInfo.Shape.Set", null);
     layer.invalidate(false);
+    return layer.selection;
 }
 
 export function deleteShapes() {

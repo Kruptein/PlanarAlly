@@ -50,7 +50,7 @@ export class RulerTool extends Tool {
         const xdiff = Math.abs(endPoint.x - this.startPoint.x);
         const ydiff = Math.abs(endPoint.y - this.startPoint.y);
         const label =
-            Math.round((Math.sqrt(xdiff ** 2 + ydiff ** 2) * gameStore.unitSize) / gameStore.gridSize) + " ft";
+            Math.round((Math.sqrt(xdiff ** 2 + ydiff ** 2) * gameStore.unitSize) / gameStore.gridSize) + " " + gameStore.unitSizeUnit;
         const angle = Math.atan2(diffsign * ydiff, xdiff);
         const xmid = Math.min(this.startPoint.x, endPoint.x) + xdiff / 2;
         const ymid = Math.min(this.startPoint.y, endPoint.y) + ydiff / 2;

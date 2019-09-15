@@ -72,7 +72,13 @@
                     </div>
                 </div>
                 <div class="row">
-                    <label for="unitSizeInput">Unit Size (in ft.):</label>
+                    <div> 
+                        <label for="unitSizeInput">Unit Size&nbsp;</label>
+                        <select id="unitSizeUnit" v-model="unitSizeUnit">
+                            <option value="m">(m)</option>
+                            <option value="ft">(ft)</option>
+                        </select>
+                    </div>
                     <div>
                         <input id="unitSizeInput" type="number" v-model.number="unitSize">
                     </div>
@@ -122,7 +128,7 @@
                     </div>
                 </div>
                 <div class="row">
-                    <label for="vmininp">Minimal full vision (ft):</label>
+                    <label for="vmininp">Minimal full vision ({{unitSizeUnit}}):</label>
                     <div>
                         <input
                             id="vmininp"
@@ -133,7 +139,7 @@
                     </div>
                 </div>
                 <div class="row">
-                    <label for="vmaxinp">Maximal vision (ft):</label>
+                    <label for="vmaxinp">Maximal vision ({{unitSizeUnit}}):</label>
                     <div>
                         <input
                             id="vmaxinp"
@@ -215,6 +221,12 @@ export default class DmSettings extends Vue {
     set unitSize(value: number) {
         if (typeof value !== "number") return;
         gameStore.setUnitSize({ unitSize: value, sync: true });
+    }
+    get unitSizeUnit(): string {
+        return gameStore.unitSizeUnit;
+    }
+    set unitSizeUnit(value: string) {
+        gameStore.setUnitSizeUnit({ unitSizeUnit: value, sync: true });
     }
     get gridSize(): number {
         return gameStore.gridSize;

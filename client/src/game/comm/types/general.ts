@@ -4,6 +4,7 @@ export interface ServerLocation {
     name: string;
     use_grid: boolean;
     unit_size: number;
+    unit_size_unit: string;
     full_fow: boolean;
     fow_opacity: number;
     fow_los: boolean;

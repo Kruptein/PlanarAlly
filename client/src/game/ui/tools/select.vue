@@ -255,13 +255,12 @@ export default class SelectTool extends Tool {
         const layer = layerManager.getLayer()!;
         const mouse = getMouse(event);
         const globalMouse = l2g(mouse);
-
-        for (const shape of layer.selection) {
-            if (shape.contains(globalMouse) && shape !== this.selectionHelper) {
-                layer.selection = [shape];
+        let selectedShapes = layer.selection.filter(shape => shape !== this.selectionHelper);
+        for (const shape of selectedShapes) {
+            if (shape.contains(globalMouse)) {
                 getRef<SelectionInfo>("selectionInfo").shape = shape;
                 layer.invalidate(true);
-                (<any>this.$parent.$refs.shapecontext).open(event, shape);
+                (<any>this.$parent.$refs.shapecontext).open(event, shape, selectedShapes);
                 return;
             }
         }

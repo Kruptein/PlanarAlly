@@ -46,15 +46,17 @@ export default class ShapeContext extends Vue {
     x = 0;
     y = 0;
     shape: Shape | null = null;
+    allShapes: Shape[] | null = null;
     get activeLayer(): string {
         const layer = layerManager.getLayer();
         return layer === undefined ? "" : layer.name;
     }
-    open(event: MouseEvent, shape: Shape) {
+    open(event: MouseEvent, shape: Shape, allShapes: Shape[]) {
         this.visible = true;
         this.x = event.pageX;
         this.y = event.pageY;
         this.shape = shape;
+        this.allShapes = allShapes;
         this.$nextTick(() => (<HTMLElement>this.$children[0].$el).focus());
     }
     close() {
@@ -72,20 +74,20 @@ export default class ShapeContext extends Vue {
         return getRef<Initiative>("initiative").contains(this.shape.uuid) ? "Show" : "Add";
     }
     setLayer(newLayer: string) {
-        if (this.shape === null) return;
-        this.shape.moveLayer(newLayer, true);
+        if (this.allShapes === null) return;
+        this.allShapes.forEach(shape => shape.moveLayer(newLayer, true));
         this.close();
     }
     moveToBack() {
-        if (this.shape === null) return;
+        if (this.allShapes === null) return;
         const layer = this.getActiveLayer()!;
-        layer.moveShapeOrder(this.shape, 0, true);
+        this.allShapes.forEach(shape => layer.moveShapeOrder(shape, 0, true));
         this.close();
     }
     moveToFront() {
-        if (this.shape === null) return;
+        if (this.allShapes === null) return;
         const layer = this.getActiveLayer()!;
-        layer.moveShapeOrder(this.shape, layer.shapes.length - 1, true);
+        this.allShapes.forEach(shape => layer.moveShapeOrder(shape, layer.shapes.length - 1, true));
         this.close();
     }
     addInitiative() {

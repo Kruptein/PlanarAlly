@@ -1,5 +1,9 @@
+import Tools from "@/game/ui/tools/tools.vue";
+
+import { getRef, uuidv4 } from '@/core/utils';
 import {
     ServerAsset,
+    ServerAura,
     ServerCircle,
     ServerCircularToken,
     ServerLine,
@@ -19,6 +23,8 @@ import { MultiLine } from "@/game/shapes/multiline";
 import { Rect } from "@/game/shapes/rect";
 import { Shape } from "@/game/shapes/shape";
 import { Text } from "@/game/shapes/text";
+import { EventBus } from '../event-bus';
+import { gameStore } from '../store';
 import { Polygon } from "./polygon";
 
 export function createShapeFromDict(shape: ServerShape) {
@@ -84,4 +90,78 @@ export function createShapeFromDict(shape: ServerShape) {
     }
     sh.fromDict(shape);
     return sh;
+}
+
+export function copyShapes() {
+    const layer = layerManager.getLayer();
+    if (!layer) return;
+    if (!layer.selection) return;
+    const clipboard = [];
+    for (const shape of layer.selection) {
+        if ((<any>getRef<Tools>("tools").$refs.selectTool).selectionHelper.uuid === shape.uuid) continue;
+        clipboard.push(shape.asDict());
+    }
+    gameStore.setClipboard(clipboard);
+}
+
+export function pasteShapes(offsetPosition: boolean = true) {
+    const layer = layerManager.getLayer();
+    if (!layer) return;
+    if (!gameStore.clipboard) return;
+    layer.selection = [];
+    for (const clip of gameStore.clipboard) {
+        if (offsetPosition){
+            clip.x += 10;
+            clip.y += 10;
+        }
+        clip.uuid = uuidv4();
+        const oldTrackers = clip.trackers;
+        clip.trackers = [];
+        for (const tracker of oldTrackers) {
+            const newTracker: Tracker = {
+                ...tracker,
+                uuid: uuidv4()
+            }
+            clip.trackers.push(newTracker);
+        }
+        const oldAuras = clip.auras;
+        clip.auras = [];
+        for (const aura of oldAuras) {
+            const newAura: ServerAura = {
+                ...aura,
+                uuid: uuidv4()
+            }
+            clip.auras.push(newAura);
+        }
+        const shape = createShapeFromDict(clip);
+        if (shape === undefined) continue;
+        layer.addShape(shape, true);
+        layer.selection.push(shape);
+    }
+    if (layer.selection.length === 1) EventBus.$emit("SelectionInfo.Shape.Set", layer.selection[0]);
+    else EventBus.$emit("SelectionInfo.Shape.Set", null);
+    layer.invalidate(false);
+}
+
+export function deleteShapes() {
+    if (layerManager.getLayer === undefined) {
+        console.log("No active layer selected for delete operation");
+        return;
+    }
+    const l = layerManager.getLayer()!;
+    for (let i = l.selection.length - 1; i >= 0; i--) {
+        const sel = l.selection[i];
+        if ((<any>getRef<Tools>("tools").$refs.selectTool).selectionHelper.uuid === sel.uuid) {
+            l.selection.splice(i, 1);
+            continue;
+        }
+        l.removeShape(sel, true, false);
+        EventBus.$emit("SelectionInfo.Shape.Set", null);
+        EventBus.$emit("Initiative.Remove", sel.uuid);
+    }
+}
+
+export function cutShapes() {
+    copyShapes()
+    deleteShapes()
 }

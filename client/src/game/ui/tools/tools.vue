@@ -22,6 +22,7 @@
                     <draw-tool v-show="currentTool === 'Draw'"></draw-tool>
                 </keep-alive>
                 <ruler-tool v-show="currentTool === 'Ruler'"></ruler-tool>
+                <ping-tool v-show="currentTool === 'Ping'"></ping-tool>
                 <map-tool v-show="currentTool === 'Map'"></map-tool>
                 <filter-tool v-show="currentTool === 'Filter'"></filter-tool>
                 <vision-tool v-show="currentTool === 'Vision'"></vision-tool>
@@ -48,6 +49,7 @@ import VisionTool from "@/game/ui/tools/vision.vue";
 import { layerManager } from "@/game/layers/manager";
 import { gameManager } from "@/game/manager";
 import { gameStore } from "@/game/store";
+import { PingTool } from "@/game/ui/tools/ping";
 import { RulerTool } from "@/game/ui/tools/ruler";
 import { l2g } from "@/game/units";
 import { getMouse } from "@/game/utils";
@@ -59,6 +61,7 @@ import Component from "vue-class-component";
         "pan-tool": PanTool,
         "draw-tool": DrawTool,
         "ruler-tool": RulerTool,
+        "ping-tool": PingTool,
         "map-tool": MapTool,
         "filter-tool": FilterTool,
         "vision-tool": VisionTool,
@@ -77,7 +80,7 @@ export default class Tools extends Vue {
     };
 
     currentTool = "Select";
-    tools = ["Select", "Pan", "Draw", "Ruler", "Map", "Filter", "Vision"];
+    tools = ["Select", "Pan", "Draw", "Ruler", "Ping", "Map", "Filter", "Vision"];
     dmTools = ["Map"];
 
     get IS_DM(): boolean {

@@ -7,6 +7,10 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+### Changed
+
+- Added option to set the length unit to metric
+
 ### Fixed
 
 - [DM] Session lock state not being shown correctly upon joining.
@@ -23,12 +27,12 @@ All notable changes to this project will be documented in this file.
 ### Changed
 
 - The DM options menu is now a proper dialog.
-    - Options are sorted by catecory.
-    - A list of players with access to the session is shown with an option to kick them.
-    - A url is shown for the invite url so you no longer have to figure this out yourself.
-    - A button to refresh the invite url is now present.
-    - A button to remove the session is added.
-    - A button to (un)lock the session is added.
+  - Options are sorted by catecory.
+  - A list of players with access to the session is shown with an option to kick them.
+  - A url is shown for the invite url so you no longer have to figure this out yourself.
+  - A button to refresh the invite url is now present.
+  - A button to remove the session is added.
+  - A button to (un)lock the session is added.
 
 ### Fixed
 
@@ -41,15 +45,15 @@ All notable changes to this project will be documented in this file.
 - Option to listen on a socket instead of HOST:PORT.
 - Vision tool to change active tokens.
 - Vision lock button to initiative to only show vision of current actor.
-    - This only applies to tokens the player owns for other tokens the normal vision is restored.
-    - This is purely client side and can thus be chosen by player/DM separately.
+  - This only applies to tokens the player owns for other tokens the normal vision is restored.
+  - This is purely client side and can thus be chosen by player/DM separately.
 - Camera lock button to initiative to automatically center on current actor.
-    - It will center when an actor begins its turn and the client is owner of that actor.
-    - It does not prevent camera movement after the initial center action.
+  - It will center when an actor begins its turn and the client is owner of that actor.
+  - It does not prevent camera movement after the initial center action.
 - Automatic build of windows executables on azure pipelines for all tags
-    - These will also create a github release automatically
+  - These will also create a github release automatically
 - Fake player button to DM Settings to disable all DM functions except DM settings.
-    - You can control which player(s) you want to emulate with the vision tool.
+  - You can control which player(s) you want to emulate with the vision tool.
 
 ### Changed
 
@@ -76,8 +80,8 @@ All notable changes to this project will be documented in this file.
 - Keybinding to copy selection to clipboard (ctrl+c).
 - Keybinding to paste clipboard to board (ctrl+v).
 - Labeling system.
-    - You can add labels to shapes.
-    - You can filter the gameboard on these labels.
+  - You can add labels to shapes.
+  - You can filter the gameboard on these labels.
 
 ### Changed
 
@@ -91,7 +95,7 @@ All notable changes to this project will be documented in this file.
   - Groupselect will only select your own tokens.
 - Some minor style changes to the edit asset dialog
 - Shape names can now be hidden from other users.
-- Default vision mode changed to triangle mode.  Legacy vision mode (bvh) can still be selected in the DM options.
+- Default vision mode changed to triangle mode. Legacy vision mode (bvh) can still be selected in the DM options.
 
 ### Fixed
 

@@ -9,7 +9,7 @@ docs
 extra
 
 Dockerfile
-*.md
+**/*.md
 azure-pipelines.yml
 tsconfig.json
 

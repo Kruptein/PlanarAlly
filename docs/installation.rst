@@ -80,11 +80,12 @@ See :ref:`docker` if you don't know how.
     services:
       planarally:
         image: 'kruptein/planarally'
+        container_name: planarally
         ports:
         - 8000:8000
         volumes:
-        - 'data:/usr/src/app/data'
-        - 'assets:/usr/src/app/static/assets'
+        - 'data:/planarally/data'
+        - 'assets:/planarally/static/assets'
         restart: always
     volumes:
       data:
@@ -203,16 +204,16 @@ Upgrading with docker
 
 Upgrading with Docker is much safer, but it's still recommended to make backups.
 
-The backup from docker can be created with (where the word `docker` in `docker_planarally_1` will be the name of the folder where the `docker-compose.yml` file is located):
+The backup from docker can be created with:
 
-* planar.sqlite: `docker cp docker_planarally_1:/usr/src/app/data ./data`
-* static/assets: `docker cp docker_planarally_1:/usr/src/app/static/assets ./assets`
+* planar.sqlite: `docker cp planarally:/planarally/data ./data`
+* static/assets: `docker cp planarally:/planarally/static/assets ./assets`
 
-If you compiled the image yourself, you will have to recompile it.
+If you compiled the image yourself, you will have to recompile it, and tell docker to use the new image by running `docker-compose up -d` again.
 
-To upgrade, just run `docker-compose pull && docker-compose up -d` in the folder with the original `docker-compose.yml` file
+If you are running the precompiled image, just run `docker-compose pull && docker-compose up -d` in the folder with the original `docker-compose.yml` file.
 
 If the data is lost, you can restore it by running the previous commands with the arguments swapped:
 
-* planar.sqlite: `docker cp ./data docker_planarally_1:/usr/src/app/data`
-* static/assets: `docker cp ./assets docker_planarally_1:/usr/src/app/static/assets`
+* planar.sqlite: `docker cp ./data planarally:/planarally/data`
+* static/assets: `docker cp ./assets planarally:/planarally/static/assets`

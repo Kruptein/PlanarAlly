@@ -23,10 +23,10 @@ MAINTAINER Kruptein <info@darragh.dev>
 
 EXPOSE 8000
 
-WORKDIR /usr/src/app
+WORKDIR /planarly
 
-VOLUME /usr/src/app/data
-VOLUME /usr/src/app/static/assets
+VOLUME /planarly/data
+VOLUME /planarly/static/assets
 
 ENTRYPOINT ["/usr/bin/dumb-init", "--"]
 # Copy first requirements.txt so changes in code dont require to reinstall python requirements

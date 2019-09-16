@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
     "target": "es6",
-    "module": "commonjs",
+    "module": "esnext",
     "strict": true,
     "jsx": "preserve",
     "importHelpers": true,
@@ -13,7 +13,8 @@
     "baseUrl": ".",
     "outDir": "dist",
     "types": [
-      "webpack-env"
+      "webpack-env",
+      "jest"
     ],
     "paths": {
       "@/*": [
@@ -30,10 +31,8 @@
   },
   "include": [
     "src/**/*.ts",
-    "src/**/*.tsx",
     "src/**/*.vue",
-    "tests/**/*.ts",
-    "tests/**/*.tsx"
+    "tests/**/*.ts"
   ],
   "exclude": [
     "node_modules"

@@ -101,7 +101,7 @@ Same as the last option, but compiling the image
 directly instead using the precompiled one
 
 Make sure you have a valid Docker installation with docker-compose
-(usually installed sepatedly).
+(usually installed separately).
 See :ref:`docker` if you don't know how.
 
 1. Download the latest source code from `here <https://github.com/Kruptein/PlanarAlly/releases/>`_. and open it.
@@ -109,7 +109,7 @@ See :ref:`docker` if you don't know how.
 3. Run the newly compiled image with the same instructions as above, but removing the `kruptein/` from the `image` line (the whole line should end up as `image: 'planarally'`)
 
 .. note::
-    Althrough it is not necessary, it is recomended that the folder for the `docker-compose.yml` file is independent from the source folder.
+    Although it is not necessary, it is recomended that the folder for the `docker-compose.yml` file is independent from the source folder.
 
 Manual Installation
 ^^^^^^^^^^^^^^^^^^^^^
@@ -169,7 +169,7 @@ To install docker, follow the official instructions:
 * Linux (Instructions are available for `Ubuntu <https://docs.docker.com/install/linux/docker-ce/ubuntu/>`_, `Debian <https://docs.docker.com/install/linux/docker-ce/debian/>`_, `CentOS <https://docs.docker.com/install/linux/docker-ce/centos/>`_, `Fedora <https://docs.docker.com/install/linux/docker-ce/fedora/>`_)
 
 .. note::
-    If you use linux, you will need to install `docker-compose <https://docs.docker.com/compose/install/>`_ separatedly
+    If you use linux, you will need to install `docker-compose <https://docs.docker.com/compose/install/>`_ separately.
     
     You will probably want to run the `Linux post-installation steps <https://docs.docker.com/install/linux/linux-postinstall/>`_
 
@@ -194,14 +194,14 @@ To backup the data, make copies to another folder of the following files/folders
 When backed up, you should be able to safely overwrite any of the original PlanarAlly files
 with the newer files from the version you want to upgrade to.
 
-If you are running a manual installation, run `pip install -r requirements.txt` again in case the requiremens have changed.
+If you are running a manual installation, run `pip install -r requirements.txt` again in case the requirements have changed.
 
-If the data is lost is not there after upgrading, copy the backups back where you copied them from
+If the data is lost or not there after upgrading, copy the earlier backed up files to their original location.
 
 Upgrading with docker
 *********************
 
-Upgrading with Docker is a much safer, but the backups are recommended anyway.
+Upgrading with Docker is much safer, but it's still recommended to make backups.
 
 The backup from docker can be created with (where the word `docker` in `docker_planarally_1` will be the name of the folder where the `docker-compose.yml` file is located):
 

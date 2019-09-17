@@ -56,12 +56,12 @@ export class GameManager {
         if (redrawInitiative) EventBus.$emit("Initiative.ForceUpdate");
     }
 
-    setCenterPosition(position: GlobalPoint) {
+    setCenterPosition(position: GlobalPoint): void {
         const localPos = g2l(position);
         gameStore.increasePanX((window.innerWidth / 2 - localPos.x) / gameStore.zoomFactor);
         gameStore.increasePanY((window.innerHeight / 2 - localPos.y) / gameStore.zoomFactor);
         layerManager.invalidate();
-        sendClientOptions();
+        sendClientOptions(gameStore.locationOptions);
     }
 }
 

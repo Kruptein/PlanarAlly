@@ -225,7 +225,7 @@ export default class AssetManager extends Vue {
                         slice * CHUNK_SIZE + Math.min(CHUNK_SIZE, file.size - slice * CHUNK_SIZE),
                     ),
                 );
-                fr.onload = e => {
+                fr.onload = _e => {
                     socket.emit("Asset.Upload", {
                         name: file.name,
                         directory: target,

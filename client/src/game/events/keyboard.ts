@@ -1,5 +1,3 @@
-import Tools from "@/game/ui/tools/tools.vue";
-
 import { uuidv4 } from "@/core/utils";
 import { socket } from "@/game/api/socket";
 import { sendClientOptions } from "@/game/api/utils";
@@ -11,9 +9,8 @@ import { createShapeFromDict } from "@/game/shapes/utils";
 import { gameStore } from "@/game/store";
 import { calculateDelta } from "@/game/ui/tools/utils";
 
-export function onKeyUp(event: KeyboardEvent) {
-    if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement) {
-    } else {
+export function onKeyUp(event: KeyboardEvent): void {
+    if (!(event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement)) {
         if (event.key === "Delete" || event.key === "Del" || event.key === "Backspace") {
             if (layerManager.getLayer === undefined) {
                 console.log("No active layer selected for delete operation");
@@ -34,7 +31,7 @@ export function onKeyUp(event: KeyboardEvent) {
     }
 }
 
-export function onKeyDown(event: KeyboardEvent) {
+export function onKeyDown(event: KeyboardEvent): void {
     if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement) {
         if (event.keyCode === 65 && event.ctrlKey) event.target!.select();
     } else {
@@ -69,7 +66,7 @@ export function onKeyDown(event: KeyboardEvent) {
                 gameStore.increasePanX(offsetX * (event.keyCode <= 38 ? 1 : -1));
                 gameStore.increasePanY(offsetY * (event.keyCode <= 38 ? 1 : -1));
                 layerManager.invalidate();
-                sendClientOptions();
+                sendClientOptions(gameStore.locationOptions);
             }
         } else if (event.keyCode === 68) {
             const layer = layerManager.getLayer();

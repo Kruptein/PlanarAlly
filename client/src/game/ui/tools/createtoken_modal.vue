@@ -68,15 +68,15 @@ export default class CreateTokenModal extends Vue {
     }
 
     @Watch("text")
-    onTextChange(newValue: string, oldValue: string) {
+    onTextChange(_newValue: string, _oldValue: string) {
         this.updatePreview();
     }
     @Watch("fillColour")
-    onFillChange(newValue: string, oldValue: string) {
+    onFillChange(_newValue: string, _oldValue: string) {
         this.updatePreview();
     }
     @Watch("borderColour")
-    onBorderChange(newValue: string, oldValue: string) {
+    onBorderChange(_newValue: string, _oldValue: string) {
         this.updatePreview();
     }
 

@@ -38,7 +38,7 @@ export default class ConfirmDialog extends Vue {
     no = "No";
     title = "";
 
-    resolve = (ok: boolean) => {};
+    resolve = (_ok: boolean) => {};
     reject = () => {};
 
     confirm() {

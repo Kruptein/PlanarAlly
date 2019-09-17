@@ -18,7 +18,6 @@ import Component from "vue-class-component";
 
 import Tool from "@/game/ui/tools/tool.vue";
 
-import { socket } from "@/game/api/socket";
 import { layerManager } from "@/game/layers/manager";
 import { gameStore } from "@/game/store";
 import { Shape } from "../../shapes/shape";

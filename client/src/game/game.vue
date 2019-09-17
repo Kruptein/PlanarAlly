@@ -58,23 +58,23 @@
 </template>
 
 <script lang="ts">
+import throttle from "lodash/throttle";
 import Vue from "vue";
 import Component from "vue-class-component";
 import vueSlider from "vue-slider-component";
+import "vue-slider-component/theme/default.css";
 
 import "@/game/api/events";
 
-import { throttle } from "lodash";
-import { mapGetters, mapState } from "vuex";
-
 import ConfirmDialog from "@/core/components/modals/confirm.vue";
 import Prompt from "@/core/components/modals/prompt.vue";
-import Initiative from "@/game/ui/initiative.vue";
+import Initiative from "@/game/ui/initiative/initiative.vue";
 import LabelManager from "@/game/ui/labels.vue";
 import MenuBar from "@/game/ui/menu/menu.vue";
 import NoteDialog from "@/game/ui/note.vue";
 import SelectionInfo from "@/game/ui/selection/selection_info.vue";
 import Tools from "@/game/ui/tools/tools.vue";
+import DmSettings from "./ui/dmsettings.vue";
 
 import { createConnection, socket } from "@/game/api/socket";
 import { onKeyDown, onKeyUp } from "@/game/events/keyboard";
@@ -83,7 +83,7 @@ import { layerManager } from "@/game/layers/manager";
 import { gameStore } from "@/game/store";
 import { l2g } from "@/game/units";
 import { LocalPoint } from "./geom";
-import DmSettings from "./ui/dmsettings.vue";
+import { dropAsset } from "./layers/utils";
 
 @Component({
     components: {
@@ -206,7 +206,7 @@ export default class Game extends Vue {
         } else if (event.dataTransfer.getData("text/plain") === "") {
             return;
         } else {
-            layerManager.dropAsset(event);
+            dropAsset(event);
         }
     }
 }

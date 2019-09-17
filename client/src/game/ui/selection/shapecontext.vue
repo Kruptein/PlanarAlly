@@ -31,7 +31,6 @@ import Vue from "vue";
 import Component from "vue-class-component";
 
 import ContextMenu from "@/core/components/contextmenu.vue";
-import Initiative from "@/game/ui/initiative.vue";
 
 import { EventBus } from "@/game/event-bus";
 import { layerManager } from "@/game/layers/manager";

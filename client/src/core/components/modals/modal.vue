@@ -46,7 +46,7 @@ export default class Modal extends Vue {
         this.updatePosition();
     }
 
-    close(event: MouseEvent) {
+    close(_event: MouseEvent) {
         this.$emit("close");
     }
     updatePosition() {
@@ -86,7 +86,7 @@ export default class Modal extends Vue {
         this.$refs.container.style.top = top + "px";
         this.$refs.container.style.display = "block";
     }
-    dragOver(event: DragEvent) {
+    dragOver(_event: DragEvent) {
         if (this.dragging) this.$refs.container.style.display = "none";
     }
 }

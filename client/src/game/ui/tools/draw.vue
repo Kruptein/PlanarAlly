@@ -264,7 +264,7 @@ export default class DrawTool extends Tool {
         }
         this.finaliseShape();
     }
-    onContextMenu(event: MouseEvent) {
+    onContextMenu(_event: MouseEvent) {
         if (!this.active || this.shape === null || !(this.shape instanceof Polygon)) return;
         const layer = this.getLayer();
         if (layer === undefined) {

@@ -30,7 +30,7 @@ export class FOWLayer extends Layer {
         }
     }
 
-    removeShape(shape: Shape, sync: boolean, temporary?: boolean) {
+    removeShape(shape: Shape, sync: boolean, temporary?: boolean): void {
         if (shape.options.has("preFogShape") && shape.options.get("preFogShape")) {
             const idx = this.preFogShapes.findIndex(s => s.uuid === shape.uuid);
             this.preFogShapes.splice(idx, 1);

@@ -8,7 +8,7 @@ export let PA_CDT = {
     movement: new CDT(),
 };
 
-export function triangulate(target: "vision" | "movement", partial: boolean = false) {
+export function triangulate(target: "vision" | "movement", partial: boolean = false): void {
     const cdt = new CDT();
 
     let shapes;

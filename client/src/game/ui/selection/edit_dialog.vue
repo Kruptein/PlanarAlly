@@ -328,7 +328,7 @@ export default class EditDialog extends Vue {
         this.shape.setIsToken(event.target.checked);
         this.updateShape(true);
     }
-    setVisionBlocker(event: { target: HTMLInputElement }) {
+    setVisionBlocker(_event: { target: HTMLInputElement }) {
         if (!this.owned) return;
         this.shape.checkVisionSources();
         this.updateShape(true);
@@ -380,7 +380,7 @@ export default class EditDialog extends Vue {
         else if (!aura.visionSource && i >= 0) gameStore.visionSources.splice(i, 1);
         this.updateShape(true);
     }
-    updateAuraColour(aura: Aura, colour: string) {
+    updateAuraColour(aura: Aura, _colour: string) {
         if (!this.owned) return;
         const layer = layerManager.getLayer(this.shape.layer);
         if (layer === undefined) return;

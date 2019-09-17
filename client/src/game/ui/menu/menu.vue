@@ -117,10 +117,8 @@ import Component from "vue-class-component";
 import { mapState } from "vuex";
 
 import ColorPicker from "@/core/components/colorpicker.vue";
-import Prompt from "@/core/components/modals/prompt.vue";
 import Game from "@/game/game.vue";
 import AssetNode from "@/game/ui/menu/asset_node.vue";
-import NoteDialog from "@/game/ui/note.vue";
 
 import { uuidv4 } from "@/core/utils";
 import { socket } from "@/game/api/socket";

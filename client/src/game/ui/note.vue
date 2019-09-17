@@ -37,7 +37,6 @@
 import Vue from "vue";
 import Component from "vue-class-component";
 
-import ConfirmDialog from "@/core/components/modals/confirm.vue";
 import Modal from "@/core/components/modals/modal.vue";
 import Game from "@/game/game.vue";
 

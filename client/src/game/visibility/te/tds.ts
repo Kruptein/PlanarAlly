@@ -61,11 +61,11 @@ export class Triangle {
         return this;
     }
 
-    get dimension() {
+    get dimension(): number {
         return this.vertices.length - 1;
     }
 
-    addVertex(vertex: Vertex) {
+    addVertex(vertex: Vertex): void {
         if (vertex === undefined) {
             console.log("UNDEFINED HIERE");
         }
@@ -77,7 +77,7 @@ export class Triangle {
         return this.constraints[index];
     }
 
-    reorient() {
+    reorient(): void {
         // If certain indices do not exist yet thay will append faulty undefined's, thus we slice them
         this.vertices = [this.vertices[1], this.vertices[0], this.vertices[2]].slice(0, this.vertices.length);
         this.neighbours = [this.neighbours[1], this.neighbours[0], this.neighbours[2]];
@@ -100,7 +100,7 @@ export class Triangle {
         }
     }
 
-    contains(point: Point) {
+    contains(point: Point): boolean {
         const A =
             -this.vertices[1]!.point![1] * this.vertices[2]!.point![0] +
             this.vertices[0]!.point![1] * (-this.vertices[1]!.point![0] + this.vertices[2]!.point![0]) +
@@ -174,7 +174,7 @@ export class EdgeCirculator {
         this._t = this.t;
     }
 
-    get valid() {
+    get valid(): boolean {
         return this.t !== null && this.v !== null;
     }
 
@@ -217,7 +217,7 @@ export class EdgeIterator {
         return (this.pos !== null || this._es !== this.edge.second) && this.pos!.isInfinite(this.edge.second);
     }
 
-    next() {
+    next(): void {
         do {
             this.increment();
         } while (this.pos !== null && !this.associatedEdge());
@@ -235,7 +235,7 @@ export class EdgeIterator {
         );
     }
 
-    increment() {
+    increment(): void {
         if (this.tds.dimension === 1) {
             this.i++;
             if (this.tds.triangles.length <= this.i) this.pos = null;
@@ -273,11 +273,11 @@ export class FaceCirculator {
         this._t = this.t;
     }
 
-    get valid() {
+    get valid(): boolean {
         return this.t !== null && this.v !== null;
     }
 
-    prev() {
+    prev(): void {
         const i = this.t!.indexV(this.v!);
         this.t = this.t!.neighbours[cw(i)];
     }
@@ -356,11 +356,11 @@ export class LineFaceCirculator {
         }
     }
 
-    next() {
+    next(): void {
         this.increment();
     }
 
-    increment() {
+    increment(): void {
         let o: Sign;
         if (this.s === LineFaceState.VERTEX_VERTEX || this.s === LineFaceState.EDGE_VERTEX) {
             do {
@@ -452,7 +452,7 @@ export class TDS {
         n0: Triangle | null,
         n1: Triangle | null,
         n2: Triangle | null,
-    ) {
+    ): Triangle {
         const t = new Triangle(v0, v1, v2);
         t.neighbours[0] = n0;
         t.neighbours[1] = n1;
@@ -461,11 +461,11 @@ export class TDS {
         return t;
     }
 
-    deleteTriangle(trig: Triangle) {
+    deleteTriangle(trig: Triangle): void {
         this.triangles = this.triangles.filter(t => t !== trig);
     }
 
-    setAdjacency(t0: Triangle, i0: number, t1: Triangle, i1: number) {
+    setAdjacency(t0: Triangle, i0: number, t1: Triangle, i1: number): void {
         t0.neighbours[i0] = t1;
         t1.neighbours[i1] = t0;
     }
@@ -566,7 +566,7 @@ export class TDS {
         return ccw(t.neighbours[i]!.indexV(t.vertices[ccw(i)]!));
     }
 
-    insertInFace(t: Triangle) {
+    insertInFace(t: Triangle): Vertex {
         const v = this.createVertex();
         const v0 = t.vertices[0]!;
         const v1 = t.vertices[1]!;
@@ -592,7 +592,7 @@ export class TDS {
         return v;
     }
 
-    flip(t: Triangle, i: number) {
+    flip(t: Triangle, i: number): void {
         const n = t.neighbours[i]!;
         const ni = this.mirrorIndex(t, i);
         const vCW = t.vertices[cw(i)]!;
@@ -613,7 +613,7 @@ export class TDS {
         if (vCCW.triangle! === n) vCCW.triangle = t;
     }
 
-    insertInEdge(t: Triangle, i: number) {
+    insertInEdge(t: Triangle, i: number): Vertex {
         let v: Vertex;
         if (this.dimension === 1) {
             v = this.createVertex();
@@ -647,7 +647,7 @@ export class BoundingBox {
         this.y2 = p[1];
     }
 
-    dilate(dist: number) {
+    dilate(dist: number): void {
         this.x1 -= dist * ulp(this.x1);
         this.y1 -= dist * ulp(this.y1);
         this.x2 += dist * ulp(this.x2);

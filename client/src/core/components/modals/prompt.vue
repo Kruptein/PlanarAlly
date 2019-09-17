@@ -41,7 +41,7 @@ export default class Prompt extends Vue {
     answer = "";
     title = "";
 
-    resolve = (value: string) => {};
+    resolve = (_value: string) => {};
     reject = () => {};
 
     submit() {

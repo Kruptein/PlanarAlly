@@ -7,7 +7,6 @@ import Component from "vue-class-component";
 
 import SelectContext from "@/game/ui/tools/selectcontext.vue";
 import Tool from "@/game/ui/tools/tool.vue";
-import SelectionInfo from "../selection/selection_info.vue";
 
 import { socket } from "@/game/api/socket";
 import { GlobalPoint, LocalPoint, Ray, Vector } from "@/game/geom";
@@ -16,9 +15,9 @@ import { layerManager } from "@/game/layers/manager";
 import { Rect } from "@/game/shapes/rect";
 import { gameStore } from "@/game/store";
 import { calculateDelta } from "@/game/ui/tools/utils";
-import { g2l, g2lr, g2lx, g2ly, g2lz, l2g, l2gz } from "@/game/units";
+import { g2l, g2lx, g2ly, l2g, l2gz } from "@/game/units";
 import { getMouse } from "@/game/utils";
-import { EventBus } from '../../event-bus';
+import { EventBus } from "../../event-bus";
 
 export enum SelectOperations {
     Noop,
@@ -103,7 +102,7 @@ export default class SelectTool extends Tool {
         // GroupSelect case, draw a selection box to select multiple shapes
         if (!hit) {
             this.mode = SelectOperations.GroupSelect;
-            for (const selection of layer.selection) EventBus.$emit("SelectionInfo.Shape.Set", selection);;
+            for (const selection of layer.selection) EventBus.$emit("SelectionInfo.Shape.Set", selection);
 
             this.selectionStartPoint = globalMouse;
 

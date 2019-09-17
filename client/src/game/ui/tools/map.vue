@@ -58,7 +58,7 @@ export default class MapTool extends Tool {
         );
         layer.invalidate(false);
     }
-    onMouseUp(event: MouseEvent) {
+    onMouseUp(_event: MouseEvent) {
         if (!this.active || this.rect === null) return;
         const layer = layerManager.getLayer();
         if (layer === undefined) {

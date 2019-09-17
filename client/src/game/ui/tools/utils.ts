@@ -10,7 +10,7 @@ import { ccw, cw, intersection, orientation } from "@/game/visibility/te/triag";
 
 // This is definitely super convoluted and inefficient but I was tired and really wanted the smooth wall sliding collision stuff to work
 // And it does now, so hey ¯\_(ツ)_/¯
-export function calculateDelta(delta: Vector, sel: Shape, done?: string[]) {
+export function calculateDelta(delta: Vector, sel: Shape, done?: string[]): Vector {
     if (delta.x === 0 && delta.y === 0) return delta;
     if (gameStore.visionMode === "bvh") {
         if (done === undefined) done = [];
@@ -92,7 +92,6 @@ function checkTriangle(point: Point, triangle: Triangle, delta: Vector, skip: Tr
         if (!triangle.isConstrained(i)) return checkTriangle(point, triangle.neighbours[i]!, delta, skip);
 
         if (ix[0] === p.x && ix[1] === p.y) {
-            const OR = orientation;
             const o = orientation(point, endpoint, _ccw);
             // Remember: canvas y axis is inverted
             if (o === Sign.LEFT_TURN) continue;

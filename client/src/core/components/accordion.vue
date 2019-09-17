@@ -22,7 +22,6 @@ import Vue from "vue";
 import Component from "vue-class-component";
 
 import { Prop } from "vue-property-decorator";
-import { gameStore } from "../../game/store";
 
 @Component
 export default class Accordion extends Vue {
@@ -40,7 +39,7 @@ export default class Accordion extends Vue {
         this.updateCategory();
     }
 
-    toggleDisplay(event: MouseEvent) {
+    toggleDisplay(_event: MouseEvent) {
         this.active = !this.active;
     }
 

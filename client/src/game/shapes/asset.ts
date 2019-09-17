@@ -13,16 +13,16 @@ export class Asset extends BaseRect {
         super(topleft, w, h, undefined, undefined, uuid);
         this.img = img;
     }
-    asDict() {
+    asDict(): ServerAsset {
         return Object.assign(this.getBaseDict(), {
             src: this.src,
         });
     }
-    fromDict(data: ServerAsset) {
+    fromDict(data: ServerAsset): void {
         super.fromDict(data);
         this.src = data.src;
     }
-    draw(ctx: CanvasRenderingContext2D) {
+    draw(ctx: CanvasRenderingContext2D): void {
         super.draw(ctx);
         try {
             ctx.drawImage(this.img, g2lx(this.refPoint.x), g2ly(this.refPoint.y), g2lz(this.w), g2lz(this.h));
@@ -36,6 +36,7 @@ export class Asset extends BaseRect {
             visible: !gameStore.IS_DM,
             group: false,
             source: this.src,
+            // eslint-disable-next-line @typescript-eslint/camelcase
             has_img: true,
             effects: [],
             index: Infinity,

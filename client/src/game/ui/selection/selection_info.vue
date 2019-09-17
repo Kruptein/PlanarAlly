@@ -50,7 +50,6 @@
 import Vue from "vue";
 import Component from "vue-class-component";
 
-import Prompt from "@/core/components/modals/prompt.vue";
 import Game from "@/game/game.vue";
 import EditDialog from "@/game/ui/selection/edit_dialog.vue";
 

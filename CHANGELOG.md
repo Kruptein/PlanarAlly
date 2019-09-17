@@ -9,7 +9,7 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
-- Added option to set the length unit to metric
+- Added option to set custom units of length
 
 ### Fixed
 

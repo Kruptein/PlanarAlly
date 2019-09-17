@@ -1,5 +1,10 @@
 <template>
-    <Modal :visible="visible" :colour="'rgba(255, 255, 255, 0.8)'" @close="visible = false" :mask="false">
+    <Modal
+        :visible="visible"
+        :colour="'rgba(255, 255, 255, 0.8)'"
+        @close="visible = false"
+        :mask="false"
+    >
         <div
             class="modal-header"
             slot="header"
@@ -25,62 +30,86 @@
             </div>
             <div class="panel" v-show="selection === 0">
                 <div class="spanrow header">Players</div>
-                <div class="row smallrow" v-for="player in $store.state.game.players" :key="player.id">
+                <div
+                    class="row smallrow"
+                    v-for="player in $store.state.game.players"
+                    :key="player.id"
+                >
                     <div>{{ player.name }}</div>
                     <div>
                         <div @click="kickPlayer(player.id)">Kick</div>
                     </div>
                 </div>
-                <div class="row smallrow" v-if="Object.values($store.state.game.players).length === 0">
-                    <div class='spanrow'>There are no players yet, invite some using the link below!</div>
+                <div
+                    class="row smallrow"
+                    v-if="Object.values($store.state.game.players).length === 0"
+                >
+                    <div class="spanrow">There are no players yet, invite some using the link below!</div>
                 </div>
                 <div class="spanrow header">Invite&nbsp;code</div>
                 <div class="row">
                     <div>Invitation URL:</div>
                     <template v-if="showRefreshState">
-                        <InputCopyElement :value=refreshState />
+                        <InputCopyElement :value="refreshState" />
                     </template>
                     <template v-else>
-                        <InputCopyElement :value=invitationUrl />
+                        <InputCopyElement :value="invitationUrl" />
                     </template>
                 </div>
                 <div class="row" @click="refreshInviteCode">
                     <div></div>
-                    <div><button>Refresh invitation code</button></div>
+                    <div>
+                        <button>Refresh invitation code</button>
+                    </div>
                 </div>
                 <div class="spanrow header">Danger&nbsp;Zone</div>
                 <div class="row">
-                    <div><template v-if="locked">Unlock</template><template v-else>Lock</template> Session&nbsp;<i>(DM access only)</i></div>
-                    <div><button class="danger" @click="toggleSessionLock"><template v-if="locked">Unlock</template><template v-else>Lock</template> this Session</button></div>
+                    <div>
+                        <template v-if="locked">Unlock</template>
+                        <template v-else>Lock</template> Session&nbsp;
+                        <i>(DM access only)</i>
+                    </div>
+                    <div>
+                        <button class="danger" @click="toggleSessionLock">
+                            <template v-if="locked">Unlock</template>
+                            <template v-else>Lock</template> this Session
+                        </button>
+                    </div>
                 </div>
                 <div class="row">
                     <div>Remove Session</div>
-                    <div><button class="danger" @click="deleteSession">Delete this Session</button></div>
+                    <div>
+                        <button class="danger" @click="deleteSession">Delete this Session</button>
+                    </div>
                 </div>
             </div>
             <div class="panel" v-show="selection === 1">
                 <div class="row">
                     <label for="useGridInput">Use grid</label>
                     <div>
-                        <input id="useGridInput" type="checkbox" v-model="useGrid">
+                        <input id="useGridInput" type="checkbox" v-model="useGrid" />
                     </div>
                 </div>
                 <div class="row">
                     <label for="gridSizeInput">Grid Size (in pixels):</label>
                     <div>
-                        <input id="gridSizeInput" type="number" min="0" v-model.number="gridSize">
+                        <input id="gridSizeInput" type="number" min="0" v-model.number="gridSize" />
                     </div>
                 </div>
                 <div class="row">
-                    <div> 
-                        <label for="unitSizeInput">Unit Size&nbsp;</label>
-                        <select id="unitSizeUnit" v-model="unitSizeUnit">
-                            <option value="m">(m)</option>
-                            <option value="ft">(ft)</option>
-                        </select>
+                    <div>
+                        <label for="unitSizeUnit">Size Unit</label>
                     </div>
                     <div>
-                        <input id="unitSizeInput" type="number" v-model.number="unitSize">
+                        <input id="unitSizeUnit" type="text" v-model="unitSizeUnit" />
+                    </div>
+                </div>
+                <div class="row">
+                    <div>
+                        <label for="unitSizeInput">Unit Size (in {{unitSizeUnit}})</label>
+                    </div>
+                    <div>
+                        <input id="unitSizeInput" type="number" v-model.number="unitSize" />
                     </div>
                 </div>
             </div>
@@ -89,19 +118,19 @@
                 <div class="row">
                     <label for="fakePlayerInput">Fake player:</label>
                     <div>
-                        <input id="fakePlayerInput" type="checkbox" v-model="fakePlayer">
+                        <input id="fakePlayerInput" type="checkbox" v-model="fakePlayer" />
                     </div>
                 </div>
                 <div class="row">
                     <label for="useFOWInput">Fill entire canvas with FOW:</label>
                     <div>
-                        <input id="useFOWInput" type="checkbox" v-model="fullFOW">
+                        <input id="useFOWInput" type="checkbox" v-model="fullFOW" />
                     </div>
                 </div>
                 <div class="row">
                     <label for="fowLOS">Only show lights in LoS:</label>
                     <div>
-                        <input id="fowLOS" type="checkbox" v-model="fowLOS">
+                        <input id="fowLOS" type="checkbox" v-model="fowLOS" />
                     </div>
                 </div>
                 <div class="row">
@@ -114,7 +143,7 @@
                             max="1"
                             step="0.1"
                             v-model.number="fowOpacity"
-                        >
+                        />
                     </div>
                 </div>
                 <div class="spanrow header">Advanced</div>
@@ -135,7 +164,7 @@
                             type="number"
                             min="0"
                             v-model.lazy.number="visionRangeMin"
-                        >
+                        />
                     </div>
                 </div>
                 <div class="row">
@@ -146,7 +175,7 @@
                             type="number"
                             min="0"
                             v-model.lazy.number="visionRangeMax"
-                        >
+                        />
                     </div>
                 </div>
             </div>
@@ -162,7 +191,7 @@ import { mapState } from "vuex";
 
 import InputCopyElement from "@/core/components/inputCopy.vue";
 import Modal from "@/core/components/modals/modal.vue";
-import Prompt from '../../core/components/modals/prompt.vue';
+import Prompt from "../../core/components/modals/prompt.vue";
 
 import { getRef, uuidv4 } from "@/core/utils";
 import { socket } from "@/game/api/socket";
@@ -203,7 +232,7 @@ export default class DmSettings extends Vue {
 
     // Admin
     get invitationUrl(): string {
-        return window.location.protocol + '//' + window.location.host + '/invite/' + gameStore.invitationCode;
+        return window.location.protocol + "//" + window.location.host + "/invite/" + gameStore.invitationCode;
     }
     get locked(): boolean {
         return gameStore.isLocked;
@@ -299,11 +328,14 @@ export default class DmSettings extends Vue {
         gameStore.kickPlayer(id);
     }
     toggleSessionLock() {
-        gameStore.setIsLocked({isLocked: !gameStore.isLocked, sync: true});
+        gameStore.setIsLocked({ isLocked: !gameStore.isLocked, sync: true });
     }
     deleteSession() {
         getRef<Prompt>("prompt")
-            .prompt(`ENTER ${gameStore.roomCreator}/${gameStore.roomName} TO CONFIRM SESSION REMOVAL.`, `DELETING SESSION`)
+            .prompt(
+                `ENTER ${gameStore.roomCreator}/${gameStore.roomName} TO CONFIRM SESSION REMOVAL.`,
+                `DELETING SESSION`,
+            )
             .then(
                 (value: string) => {
                     if (value !== `${gameStore.roomCreator}/${gameStore.roomName}`) return;

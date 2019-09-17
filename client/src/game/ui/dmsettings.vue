@@ -160,7 +160,6 @@ import { mapState } from "vuex";
 
 import InputCopyElement from "@/core/components/inputCopy.vue";
 import Modal from "@/core/components/modals/modal.vue";
-import Prompt from "../../core/components/modals/prompt.vue";
 
 import { socket } from "@/game/api/socket";
 import { EventBus } from "@/game/event-bus";

@@ -7,7 +7,7 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
-### Changed
+### Added
 
 - Added option to set the length unit to metric
 

@@ -7,16 +7,18 @@
             draggable="true"
             @dragstart="m.dragStart"
             @dragend="m.dragEnd"
-        >Create basic token</div>
+        >
+            Create basic token
+        </div>
         <div class="modal-body">
             <label for="createtokendialog-text">Text</label>
-            <input type="text" id="createtokendialog-name" v-model="text">
+            <input type="text" id="createtokendialog-name" v-model="text" />
             <label>Colours</label>
             <div class="colours">
                 <span>Fill:</span>
-                <color-picker :color.sync="fillColour"/>
+                <color-picker :color.sync="fillColour" />
                 <span>Border:</span>
-                <color-picker :color.sync="borderColour"/>
+                <color-picker :color.sync="borderColour" />
             </div>
             <canvas ref="canvas" width="100px" height="100px"></canvas>
         </div>

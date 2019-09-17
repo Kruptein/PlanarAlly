@@ -1,7 +1,6 @@
 <template>
-  <div>{{ message }}</div>
+    <div>{{ message }}</div>
 </template>
-
 
 <script lang="ts">
 import Vue from "vue";

@@ -1,35 +1,36 @@
 <template>
-  <modal v-if="note !== null" :visible="visible" @close="visible = false" :mask="false">
-    <div
-      class="modal-header"
-      slot="header"
-      slot-scope="m"
-      draggable="true"
-      @dragstart="m.dragStart"
-      @dragend="m.dragEnd"
-    >
-      <span @click="$refs.title.select()">
-        <i class="fas fa-pencil-alt" style="font-size: 15px"></i>
-      </span>
-      <input v-model="note.title" ref="title" @change="updateNote">
-      <div class="header-close" @click="visible = false">
-        <i class="far fa-window-close"></i>
-      </div>
-    </div>
-    <div class="modal-body">
-      <textarea
-        ref="textarea"
-        v-model="note.text"
-        :style="{'height': calcHeight()}"
-        @change="updateNote"
-      ></textarea>
-    </div>
-    <div class="modal-footer">
-      <button @click="removeNote">
-        <i class="far fa-trash-alt"></i> Remove
-      </button>
-    </div>
-  </modal>
+    <modal v-if="note !== null" :visible="visible" @close="visible = false" :mask="false">
+        <div
+            class="modal-header"
+            slot="header"
+            slot-scope="m"
+            draggable="true"
+            @dragstart="m.dragStart"
+            @dragend="m.dragEnd"
+        >
+            <span @click="$refs.title.select()">
+                <i class="fas fa-pencil-alt" style="font-size: 15px"></i>
+            </span>
+            <input v-model="note.title" ref="title" @change="updateNote" />
+            <div class="header-close" @click="visible = false">
+                <i class="far fa-window-close"></i>
+            </div>
+        </div>
+        <div class="modal-body">
+            <textarea
+                ref="textarea"
+                v-model="note.text"
+                :style="{ height: calcHeight() }"
+                @change="updateNote"
+            ></textarea>
+        </div>
+        <div class="modal-footer">
+            <button @click="removeNote">
+                <i class="far fa-trash-alt"></i>
+                Remove
+            </button>
+        </div>
+    </modal>
 </template>
 
 <script lang="ts">

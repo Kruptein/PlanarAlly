@@ -3,7 +3,7 @@ import Tools from "@/game/ui/tools/tools.vue";
 import { getRef, uuidv4 } from "@/core/utils";
 import { socket } from "@/game/api/socket";
 import { sendClientOptions } from "@/game/api/utils";
-import { ServerAura } from '@/game/comm/types/shapes';
+import { ServerAura } from "@/game/comm/types/shapes";
 import { EventBus } from "@/game/event-bus";
 import { Vector } from "@/game/geom";
 import { layerManager } from "@/game/layers/manager";
@@ -105,8 +105,8 @@ export function onKeyDown(event: KeyboardEvent) {
                 for (const tracker of oldTrackers) {
                     const newTracker: Tracker = {
                         ...tracker,
-                        uuid: uuidv4()
-                    }
+                        uuid: uuidv4(),
+                    };
                     clip.trackers.push(newTracker);
                 }
                 const oldAuras = clip.auras;
@@ -114,8 +114,8 @@ export function onKeyDown(event: KeyboardEvent) {
                 for (const aura of oldAuras) {
                     const newAura: ServerAura = {
                         ...aura,
-                        uuid: uuidv4()
-                    }
+                        uuid: uuidv4(),
+                    };
                     clip.auras.push(newAura);
                 }
                 const shape = createShapeFromDict(clip);

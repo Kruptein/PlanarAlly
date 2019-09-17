@@ -41,7 +41,7 @@ class GameStore extends VuexModule implements GameState {
     roomName = "";
     roomCreator = "";
     invitationCode = "";
-    players: { id: number; name: string; }[] = [];
+    players: { id: number; name: string }[] = [];
 
     gridColour = "rgba(0, 0, 0, 1)";
     fowColour = "rgba(0, 0, 0, 1)";
@@ -410,7 +410,7 @@ class GameStore extends VuexModule implements GameState {
     }
 
     @Mutation
-    setPlayers(players: { id: number; name: string; }[]) {
+    setPlayers(players: { id: number; name: string }[]) {
         this.players = players;
     }
 
@@ -425,7 +425,7 @@ class GameStore extends VuexModule implements GameState {
     }
 
     @Mutation
-    setIsLocked(data: {isLocked: boolean, sync: boolean}) {
+    setIsLocked(data: { isLocked: boolean; sync: boolean }) {
         this.isLocked = data.isLocked;
         if (data.sync) {
             socket.emit("Room.Info.Set.Locked", this.isLocked);

@@ -1,8 +1,8 @@
 <template>
-  <ContextMenu :visible="visible" :left="left + 'px'" :top="top + 'px'" @close="close">
-    <li @click="rename">Rename</li>
-    <li @click="remove">Remove</li>
-  </ContextMenu>
+    <ContextMenu :visible="visible" :left="left + 'px'" :top="top + 'px'" @close="close">
+        <li @click="rename">Rename</li>
+        <li @click="remove">Remove</li>
+    </ContextMenu>
 </template>
 
 <script lang="ts">

@@ -1,21 +1,23 @@
 <template>
-  <Modal :visible="visible" @close="close">
-    <div
-      class="modal-header"
-      slot="header"
-      slot-scope="m"
-      draggable="true"
-      @dragstart="m.dragStart"
-      @dragend="m.dragEnd"
-    >{{ title }}</div>
-    <div class="modal-body">
-      {{ question }}
-      <input type="text" ref="answer" v-model="answer" @keyup.enter="submit">
-    </div>
-    <div class="modal-footer">
-      <button @click="submit">Submit</button>
-    </div>
-  </Modal>
+    <Modal :visible="visible" @close="close">
+        <div
+            class="modal-header"
+            slot="header"
+            slot-scope="m"
+            draggable="true"
+            @dragstart="m.dragStart"
+            @dragend="m.dragEnd"
+        >
+            {{ title }}
+        </div>
+        <div class="modal-body">
+            {{ question }}
+            <input type="text" ref="answer" v-model="answer" @keyup.enter="submit" />
+        </div>
+        <div class="modal-footer">
+            <button @click="submit">Submit</button>
+        </div>
+    </Modal>
 </template>
 
 <script lang="ts">

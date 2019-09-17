@@ -17,12 +17,12 @@ module.exports = {
         "no-constant-condition": "off",
         "@typescript-eslint/no-unused-vars": [2, { argsIgnorePattern: "^_", varsIgnorePattern: "^_" }],
         "no-unused-vars": "off",
-        "no-dupe-class-members": "off"
+        "no-dupe-class-members": "off",
     },
     parserOptions: {
         parser: "@typescript-eslint/parser",
         ecmaFeatures: {
-            "jsx": false
-        }
+            jsx: false,
+        },
     },
 };

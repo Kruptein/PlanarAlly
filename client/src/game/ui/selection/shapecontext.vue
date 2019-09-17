@@ -6,14 +6,17 @@
         :top="y + 'px'"
         @close="close"
     >
-        <li v-if="getLayers().length > 1">Layer
+        <li v-if="getLayers().length > 1">
+            Layer
             <ul>
                 <li
                     v-for="layer in getLayers()"
                     :key="layer.name"
-                    :style="[getActiveLayer().name === layer.name ? {'background-color':'#82c8a0'}: {}]"
+                    :style="[getActiveLayer().name === layer.name ? { 'background-color': '#82c8a0' } : {}]"
                     @click="setLayer(layer.name)"
-                >{{ layer.name }}</li>
+                >
+                    {{ layer.name }}
+                </li>
             </ul>
         </li>
         <li @click="moveToBack">Move to back</li>

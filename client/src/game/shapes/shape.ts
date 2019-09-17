@@ -289,7 +289,11 @@ export abstract class Shape {
 
     ownedBy(username?: string) {
         if (username === undefined) username = gameStore.username;
-        return gameStore.IS_DM || this._owners.includes(username) || (gameStore.FAKE_PLAYER && gameStore.activeTokens.includes(this.uuid));
+        return (
+            gameStore.IS_DM ||
+            this._owners.includes(username) ||
+            (gameStore.FAKE_PLAYER && gameStore.activeTokens.includes(this.uuid))
+        );
     }
 
     addOwner(owner: string) {

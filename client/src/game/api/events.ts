@@ -29,18 +29,27 @@ socket.on("redirect", (destination: string) => {
     console.log("redirecting");
     router.push(destination);
 });
-socket.on("Room.Info.Set", (data: { name: string; creator: string; invitationCode: string, isLocked: boolean, players: { id: number; name: string }[] }) => {
-    gameStore.setRoomName(data.name);
-    gameStore.setRoomCreator(data.creator);
-    gameStore.setInvitationCode(data.invitationCode);
-    gameStore.setIsLocked({isLocked: data.isLocked, sync: false});
-    gameStore.setPlayers(data.players);
-});
+socket.on(
+    "Room.Info.Set",
+    (data: {
+        name: string;
+        creator: string;
+        invitationCode: string;
+        isLocked: boolean;
+        players: { id: number; name: string }[];
+    }) => {
+        gameStore.setRoomName(data.name);
+        gameStore.setRoomCreator(data.creator);
+        gameStore.setInvitationCode(data.invitationCode);
+        gameStore.setIsLocked({ isLocked: data.isLocked, sync: false });
+        gameStore.setPlayers(data.players);
+    },
+);
 socket.on("Room.Info.InvitationCode.Set", (invitationCode: string) => {
     gameStore.setInvitationCode(invitationCode);
     EventBus.$emit("DmSettings.RefreshedInviteCode");
 });
-socket.on("Room.Info.Players.Add", (data: {id: number, name: string}) => {
+socket.on("Room.Info.Players.Add", (data: { id: number; name: string }) => {
     gameStore.addPlayer(data);
 });
 socket.on("Username.Set", (username: string) => {
@@ -133,7 +142,7 @@ socket.on("Shape.Layer.Change", (data: { uuid: string; layer: string }) => {
     if (shape === undefined) return;
     shape.moveLayer(data.layer, false);
 });
-socket.on("Shape.Update", (data: { shape: ServerShape; redraw: boolean; move: boolean, temporary: boolean }) => {
+socket.on("Shape.Update", (data: { shape: ServerShape; redraw: boolean; move: boolean; temporary: boolean }) => {
     gameManager.updateShape(data);
 });
 socket.on("Temp.Clear", (shapes: ServerShape[]) => {
@@ -165,14 +174,14 @@ socket.on("Label.Delete", (data: { user: string; uuid: string }) => {
 socket.on("Labels.Filter.Add", (uuid: string) => {
     gameStore.labelFilters.push(uuid);
     layerManager.invalidate();
-})
+});
 socket.on("Labels.Filter.Remove", (uuid: string) => {
     const idx = gameStore.labelFilters.indexOf(uuid);
     if (idx >= 0) {
         gameStore.labelFilters.splice(idx, 1);
         layerManager.invalidate();
     }
-})
+});
 socket.on("Labels.Filters.Set", (filters: string[]) => {
     gameStore.setLabelFilters(filters);
-})
+});

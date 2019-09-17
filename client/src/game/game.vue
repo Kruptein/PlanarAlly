@@ -14,7 +14,7 @@
                 @dragover.prevent
                 @drop.prevent.stop="drop"
             ></div>
-            <div id="layerselect" v-show="showUI && layers.length>1">
+            <div id="layerselect" v-show="showUI && layers.length > 1">
                 <ul>
                     <li
                         v-for="layer in layers"
@@ -48,9 +48,9 @@
             :tooltip-dir="'bottom'"
             :tooltip="'hover'"
             :formatter="zoomDisplay.toFixed(1)"
-            :slider-style="{'border-radius': '15%'}"
-            :bg-style="{'background-color': '#fff', 'box-shadow': '0.5px 0.5px 3px 1px rgba(0, 0, 0, .36)'}"
-            :process-style="{'background-color': '#fff'}"
+            :slider-style="{ 'border-radius': '15%' }"
+            :bg-style="{ 'background-color': '#fff', 'box-shadow': '0.5px 0.5px 3px 1px rgba(0, 0, 0, .36)' }"
+            :process-style="{ 'background-color': '#fff' }"
         ></zoom-slider>
         <prompt-dialog ref="prompt"></prompt-dialog>
         <confirm-dialog ref="confirm"></confirm-dialog>
@@ -237,7 +237,6 @@ svg {
     overflow: hidden;
 }
 </style>
-
 
 <style scoped>
 #main {

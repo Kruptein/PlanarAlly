@@ -14,13 +14,13 @@ module.exports = {
             },
         },
     },
-    plugins: [
-        //     new CircularDependencyPlugin({
-        //         exclude: /a\.js|node_modules/,
-        //         failOnError: false,
-        //         allowAsyncCycles: false,
-        //         cwd: process.cwd(),
-        //     }),
-        // new BundleAnalyzerPlugin(),
-    ],
+    // plugins: [
+    //     new CircularDependencyPlugin({
+    //         exclude: /a\.js|node_modules/,
+    //         failOnError: false,
+    //         allowAsyncCycles: false,
+    //         cwd: process.cwd(),
+    //     }),
+    // new BundleAnalyzerPlugin(),
+    // ],
 };

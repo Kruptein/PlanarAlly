@@ -1,19 +1,20 @@
 <template>
-  <div class="accordion">
-    <div id="header" @click.prevent="toggleDisplay">
-        <input type="checkbox" @click.stop="toggleCategory" ref="overall">
-        <strong>{{title}}</strong>
-        <template v-if="showArrow">
-            <span class="down-Arrow" v-show="showArrow && !active">&#9660;</span>
-            <span class="up-Arrow" v-show="showArrow && active">&#9650;</span>
-        </template>
-    </div>
-    <div v-show="active" id="body">
-        <div v-for="item in items" :key="item[0]" class="item" @click="toggleSelection(item[0])">
-            <input type="checkbox" :checked="selected.includes(item[0])" @click.prevent> {{ item[1] }}
+    <div class="accordion">
+        <div id="header" @click.prevent="toggleDisplay">
+            <input type="checkbox" @click.stop="toggleCategory" ref="overall" />
+            <strong>{{ title }}</strong>
+            <template v-if="showArrow">
+                <span class="down-Arrow" v-show="showArrow && !active">&#9660;</span>
+                <span class="up-Arrow" v-show="showArrow && active">&#9650;</span>
+            </template>
+        </div>
+        <div v-show="active" id="body">
+            <div v-for="item in items" :key="item[0]" class="item" @click="toggleSelection(item[0])">
+                <input type="checkbox" :checked="selected.includes(item[0])" @click.prevent />
+                {{ item[1] }}
+            </div>
         </div>
     </div>
-  </div>
 </template>
 
 <script lang="ts">
@@ -21,14 +22,14 @@ import Vue from "vue";
 import Component from "vue-class-component";
 
 import { Prop } from "vue-property-decorator";
-import { gameStore } from '../../game/store';
+import { gameStore } from "../../game/store";
 
 @Component
 export default class Accordion extends Vue {
     @Prop(String) title!: string;
     @Prop({ default: true, type: Boolean }) showArrow!: boolean;
-    @Prop({ default: () => []}) items!: [string, string][];
-    @Prop({ default: () => []}) initialValues!: string[];
+    @Prop({ default: () => [] }) items!: [string, string][];
+    @Prop({ default: () => [] }) initialValues!: string[];
 
     selected: string[] = [];
 
@@ -45,9 +46,9 @@ export default class Accordion extends Vue {
 
     toggleCategory() {
         const overall = this.$refs.overall as HTMLInputElement;
-        if (overall.checked) this.selected = this.items.map((i) => i[0]);
+        if (overall.checked) this.selected = this.items.map(i => i[0]);
         else this.selected = [];
-        this.$emit("selectionupdate", {title: this.title, selection: this.selected});
+        this.$emit("selectionupdate", { title: this.title, selection: this.selected });
     }
 
     updateCategory() {
@@ -55,7 +56,7 @@ export default class Accordion extends Vue {
         if (this.selected.length === 0) {
             overall.checked = false;
             overall.indeterminate = false;
-        } else if(this.selected.length === this.items.length) {
+        } else if (this.selected.length === this.items.length) {
             overall.checked = true;
             overall.indeterminate = false;
         } else {
@@ -69,7 +70,7 @@ export default class Accordion extends Vue {
         if (found === -1) this.selected.push(item);
         else this.selected.splice(found, 1);
         this.updateCategory();
-        this.$emit("selectionupdate", {title: this.title, selection: this.selected});
+        this.$emit("selectionupdate", { title: this.title, selection: this.selected });
     }
 }
 </script>

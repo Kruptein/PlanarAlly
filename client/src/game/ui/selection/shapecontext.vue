@@ -33,11 +33,12 @@ import Component from "vue-class-component";
 import ContextMenu from "@/core/components/contextmenu.vue";
 import Initiative from "@/game/ui/initiative.vue";
 
-import { getRef } from "@/core/utils";
 import { EventBus } from "@/game/event-bus";
 import { layerManager } from "@/game/layers/manager";
 import { Shape } from "@/game/shapes/shape";
 import { gameStore } from "@/game/store";
+import { initiativeStore } from "../initiative/store";
+import { inInitiative } from "../initiative/utils";
 
 @Component({
     components: {
@@ -72,7 +73,7 @@ export default class ShapeContext extends Vue {
     }
     getInitiativeWord() {
         if (this.shape === null) return "";
-        return getRef<Initiative>("initiative").contains(this.shape.uuid) ? "Show" : "Add";
+        return inInitiative(this.shape.uuid) ? "Show" : "Add";
     }
     setLayer(newLayer: string) {
         if (this.shape === null) return;
@@ -93,9 +94,8 @@ export default class ShapeContext extends Vue {
     }
     addInitiative() {
         if (this.shape === null) return;
-        const initiative = getRef<Initiative>("initiative");
-        if (!initiative.contains(this.shape.uuid)) initiative.addInitiative(this.shape.getInitiativeRepr());
-        initiative.visible = true;
+        if (!inInitiative(this.shape.uuid)) initiativeStore.addInitiative(this.shape.getInitiativeRepr());
+        EventBus.$emit("Initiative.Show");
         this.close();
     }
     openEditDialog() {

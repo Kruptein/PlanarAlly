@@ -118,10 +118,11 @@ import { mapState } from "vuex";
 
 import ColorPicker from "@/core/components/colorpicker.vue";
 import Prompt from "@/core/components/modals/prompt.vue";
+import Game from "@/game/game.vue";
 import AssetNode from "@/game/ui/menu/asset_node.vue";
 import NoteDialog from "@/game/ui/note.vue";
 
-import { getRef, uuidv4 } from "@/core/utils";
+import { uuidv4 } from "@/core/utils";
 import { socket } from "@/game/api/socket";
 import { Note } from "@/game/comm/types/general";
 import { gameStore } from "@/game/store";
@@ -174,14 +175,12 @@ export default class MenuBar extends Vue {
         socket.emit("Location.Change", name);
     }
     createLocation() {
-        getRef<Prompt>("prompt")
-            .prompt(`New location name:`, `Create new location`)
-            .then(
-                (value: string) => {
-                    socket.emit("Location.New", value);
-                },
-                () => {},
-            );
+        (<Game>this.$parent.$parent).$refs.prompt.prompt(`New location name:`, `Create new location`).then(
+            (value: string) => {
+                socket.emit("Location.New", value);
+            },
+            () => {},
+        );
     }
     createNote() {
         const note = { title: "New note", text: "", uuid: uuidv4() };
@@ -189,7 +188,7 @@ export default class MenuBar extends Vue {
         this.openNote(note);
     }
     openNote(note: Note) {
-        getRef<NoteDialog>("note").open(note);
+        (<Game>this.$parent.$parent).$refs.note.open(note);
     }
 
     openDmSettings() {

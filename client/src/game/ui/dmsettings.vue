@@ -162,11 +162,11 @@ import InputCopyElement from "@/core/components/inputCopy.vue";
 import Modal from "@/core/components/modals/modal.vue";
 import Prompt from "../../core/components/modals/prompt.vue";
 
-import { getRef, uuidv4 } from "@/core/utils";
 import { socket } from "@/game/api/socket";
 import { EventBus } from "@/game/event-bus";
 import { gameStore } from "@/game/store";
 import { layerManager } from "../layers/manager";
+import Game from "../game.vue";
 
 @Component({
     components: {
@@ -294,7 +294,7 @@ export default class DmSettings extends Vue {
         gameStore.setIsLocked({ isLocked: !gameStore.isLocked, sync: true });
     }
     deleteSession() {
-        getRef<Prompt>("prompt")
+        (<Game>this.$parent.$parent).$refs.prompt
             .prompt(
                 `ENTER ${gameStore.roomCreator}/${gameStore.roomName} TO CONFIRM SESSION REMOVAL.`,
                 `DELETING SESSION`,

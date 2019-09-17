@@ -51,9 +51,9 @@ import Vue from "vue";
 import Component from "vue-class-component";
 
 import Prompt from "@/core/components/modals/prompt.vue";
+import Game from "@/game/game.vue";
 import EditDialog from "@/game/ui/selection/edit_dialog.vue";
 
-import { getRef } from "@/core/utils";
 import { socket } from "@/game/api/socket";
 import { EventBus } from "@/game/event-bus";
 import { layerManager } from "@/game/layers/manager";
@@ -97,20 +97,18 @@ export default class SelectionInfo extends Vue {
     }
     changeValue(object: Tracker | Aura, redraw: boolean) {
         if (this.shape === null) return;
-        getRef<Prompt>("prompt")
-            .prompt(`New  ${object.name} value:`, `Updating ${object.name}`)
-            .then(
-                (value: string) => {
-                    if (this.shape === null) return;
-                    const ogValue = object.value;
-                    if (value[0] === "+" || value[0] === "-") object.value += parseInt(value, 10);
-                    else object.value = parseInt(value, 10);
-                    if (isNaN(object.value)) object.value = ogValue;
-                    socket.emit("Shape.Update", { shape: this.shape.asDict(), redraw, temporary: false });
-                    if (redraw) layerManager.invalidate();
-                },
-                () => {},
-            );
+        (<Game>this.$parent.$parent).$refs.prompt.prompt(`New  ${object.name} value:`, `Updating ${object.name}`).then(
+            (value: string) => {
+                if (this.shape === null) return;
+                const ogValue = object.value;
+                if (value[0] === "+" || value[0] === "-") object.value += parseInt(value, 10);
+                else object.value = parseInt(value, 10);
+                if (isNaN(object.value)) object.value = ogValue;
+                socket.emit("Shape.Update", { shape: this.shape.asDict(), redraw, temporary: false });
+                if (redraw) layerManager.invalidate();
+            },
+            () => {},
+        );
     }
 }
 </script>

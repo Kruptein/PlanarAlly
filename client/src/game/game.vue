@@ -110,6 +110,8 @@ import DmSettings from "./ui/dmsettings.vue";
 export default class Game extends Vue {
     $refs!: {
         confirm: InstanceType<typeof ConfirmDialog>;
+        note: InstanceType<typeof NoteDialog>;
+        prompt: InstanceType<typeof Prompt>;
         tools: InstanceType<typeof Tools>;
     };
 

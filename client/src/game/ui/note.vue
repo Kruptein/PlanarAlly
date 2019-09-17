@@ -39,8 +39,8 @@ import Component from "vue-class-component";
 
 import ConfirmDialog from "@/core/components/modals/confirm.vue";
 import Modal from "@/core/components/modals/modal.vue";
+import Game from "@/game/game.vue";
 
-import { getRef } from "@/core/utils";
 import { Note } from "@/game/comm/types/general";
 import { gameStore } from "@/game/store";
 
@@ -71,17 +71,15 @@ export default class NoteDialog extends Vue {
         if (this.note) gameStore.updateNote({ note: this.note, sync: true });
     }
     removeNote() {
-        getRef<ConfirmDialog>("confirm")
-            .open("Are you sure you wish to remove this?")
-            .then(
-                (result: boolean) => {
-                    if (result && this.note) {
-                        gameStore.removeNote({ note: this.note, sync: true });
-                        this.visible = false;
-                    }
-                },
-                () => {},
-            );
+        (<Game>this.$parent.$parent).$refs.confirm.open("Are you sure you wish to remove this?").then(
+            (result: boolean) => {
+                if (result && this.note) {
+                    gameStore.removeNote({ note: this.note, sync: true });
+                    this.visible = false;
+                }
+            },
+            () => {},
+        );
     }
 }
 </script>

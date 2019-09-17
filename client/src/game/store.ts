@@ -83,6 +83,8 @@ class GameStore extends VuexModule implements GameState {
 
     showUI = true;
 
+    selectionHelperID: string | null = null;
+
     get selectedLayer() {
         return this.layers[this.selectedLayerIndex];
     }
@@ -94,6 +96,11 @@ class GameStore extends VuexModule implements GameState {
     get activeTokens() {
         if (this._activeTokens.length === 0) return this.ownedtokens;
         return this._activeTokens;
+    }
+
+    @Mutation
+    setSelectionHelperId(id: string): void {
+        this.selectionHelperID = id;
     }
 
     @Mutation

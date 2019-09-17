@@ -9,7 +9,6 @@ import SelectContext from "@/game/ui/tools/selectcontext.vue";
 import Tool from "@/game/ui/tools/tool.vue";
 import SelectionInfo from "../selection/selection_info.vue";
 
-import { getRef } from "@/core/utils";
 import { socket } from "@/game/api/socket";
 import { GlobalPoint, LocalPoint, Ray, Vector } from "@/game/geom";
 import { Layer } from "@/game/layers/layer";
@@ -19,6 +18,7 @@ import { gameStore } from "@/game/store";
 import { calculateDelta } from "@/game/ui/tools/utils";
 import { g2l, g2lr, g2lx, g2ly, g2lz, l2g, l2gz } from "@/game/units";
 import { getMouse } from "@/game/utils";
+import { EventBus } from '../../event-bus';
 
 export enum SelectOperations {
     Noop,
@@ -49,6 +49,7 @@ export default class SelectTool extends Tool {
     selectionHelper = new Rect(start, 0, 0);
     created() {
         this.selectionHelper.globalCompositeOperation = "source-over";
+        gameStore.setSelectionHelperId(this.selectionHelper.uuid);
     }
     onMouseDown(event: MouseEvent) {
         const layer = layerManager.getLayer();
@@ -77,7 +78,7 @@ export default class SelectTool extends Tool {
             // Resize case, a corner is selected
             if (this.resizePoint >= 0) {
                 layer.selection = [shape];
-                getRef<SelectionInfo>("selectionInfo").shape = shape;
+                EventBus.$emit("SelectionInfo.Shape.Set", shape);
                 this.mode = SelectOperations.Resize;
                 layer.invalidate(true);
                 hit = true;
@@ -88,7 +89,7 @@ export default class SelectTool extends Tool {
                 const selection = shape;
                 if (layer.selection.indexOf(selection) === -1) {
                     layer.selection = [selection];
-                    getRef<SelectionInfo>("selectionInfo").shape = selection;
+                    EventBus.$emit("SelectionInfo.Shape.Set", selection);
                 }
                 this.mode = SelectOperations.Drag;
                 const localRefPoint = g2l(selection.refPoint);
@@ -102,7 +103,7 @@ export default class SelectTool extends Tool {
         // GroupSelect case, draw a selection box to select multiple shapes
         if (!hit) {
             this.mode = SelectOperations.GroupSelect;
-            for (const selection of layer.selection) getRef<SelectionInfo>("selectionInfo").shape = selection;
+            for (const selection of layer.selection) EventBus.$emit("SelectionInfo.Shape.Set", selection);;
 
             this.selectionStartPoint = globalMouse;
 
@@ -259,7 +260,7 @@ export default class SelectTool extends Tool {
         for (const shape of layer.selection) {
             if (shape.contains(globalMouse) && shape !== this.selectionHelper) {
                 layer.selection = [shape];
-                getRef<SelectionInfo>("selectionInfo").shape = shape;
+                EventBus.$emit("SelectionInfo.Shape.Set", shape);
                 layer.invalidate(true);
                 (<any>this.$parent.$refs.shapecontext).open(event, shape);
                 return;

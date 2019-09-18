@@ -92,7 +92,7 @@ export default class ShapeContext extends Vue {
     }
     addInitiative() {
         if (this.shape === null) return;
-        if (!inInitiative(this.shape.uuid)) initiativeStore.addInitiative(this.shape.getInitiativeRepr());
+        initiativeStore.addInitiative(this.shape.getInitiativeRepr());
         EventBus.$emit("Initiative.Show");
         this.close();
     }

@@ -7,6 +7,7 @@ import { gameStore } from "@/game/store";
 import { AnnotationManager } from "@/game/ui/annotation";
 import { g2l } from "@/game/units";
 import { EventBus } from "./event-bus";
+import { visibilityStore } from "./visibility/store";
 
 export class GameManager {
     selectedTool: number = 0;
@@ -49,9 +50,9 @@ export class GameManager {
         shape.setMovementBlock(shape.movementObstruction);
         shape.setIsToken(shape.isToken);
         if (data.redraw) {
-            if (shape.visionObstruction) gameStore.recalculateVision(data.temporary);
+            if (shape.visionObstruction) visibilityStore.recalculateVision();
             layerManager.getLayer(data.shape.layer)!.invalidate(false);
-            if (shape.movementObstruction) gameStore.recalculateMovement(data.temporary);
+            if (shape.movementObstruction) visibilityStore.recalculateMovement();
         }
         if (redrawInitiative) EventBus.$emit("Initiative.ForceUpdate");
     }

@@ -10,6 +10,7 @@ import { gameManager } from "@/game/manager";
 import { gameStore } from "@/game/store";
 import { router } from "@/router";
 import { zoomDisplay } from "../utils";
+import { visibilityStore } from "../visibility/store";
 
 socket.on("connect", () => {
     console.log("Connected");
@@ -77,9 +78,9 @@ socket.on("Location.Set", (data: Partial<ServerLocation>) => {
     if (data.vision_min_range !== undefined) gameStore.setVisionRangeMin({ value: data.vision_min_range, sync: false });
     if (data.vision_max_range !== undefined) gameStore.setVisionRangeMax({ value: data.vision_max_range, sync: false });
     if (data.vision_mode !== undefined) {
-        gameStore.setVisionMode({ mode: data.vision_mode, sync: false });
-        gameStore.recalculateVision();
-        gameStore.recalculateMovement();
+        visibilityStore.setVisionMode({ mode: data.vision_mode, sync: false });
+        visibilityStore.recalculateVision();
+        visibilityStore.recalculateMovement();
     }
 });
 socket.on("Position.Set", (data: { x: number; y: number }) => {
@@ -101,8 +102,8 @@ socket.on("Board.Set", (locationInfo: BoardInfo) => {
     // Force the correct opacity render on other layers.
     layerManager.selectLayer(layerManager.getLayer()!.name, false);
     EventBus.$emit("Initiative.Clear");
-    gameStore.recalculateVision();
-    gameStore.recalculateMovement();
+    visibilityStore.recalculateVision();
+    visibilityStore.recalculateMovement();
     gameStore.setBoardInitialized(true);
 });
 socket.on("Gridsize.Set", (gridSize: number) => {

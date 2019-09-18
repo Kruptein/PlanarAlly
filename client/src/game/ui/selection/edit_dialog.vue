@@ -256,6 +256,7 @@ import { EventBus } from "@/game/event-bus";
 import { layerManager } from "@/game/layers/manager";
 import { Shape } from "@/game/shapes/shape";
 import { gameStore } from "@/game/store";
+import { visibilityStore } from "../../visibility/store";
 
 @Component({
     components: {
@@ -375,9 +376,10 @@ export default class EditDialog extends Vue {
     updateAuraVisionSource(aura: Aura) {
         if (!this.owned) return;
         aura.visionSource = !aura.visionSource;
-        const i = gameStore.visionSources.findIndex(ls => ls.aura === aura.uuid);
-        if (aura.visionSource && i === -1) gameStore.visionSources.push({ shape: this.shape.uuid, aura: aura.uuid });
-        else if (!aura.visionSource && i >= 0) gameStore.visionSources.splice(i, 1);
+        const i = visibilityStore.visionSources.findIndex(ls => ls.aura === aura.uuid);
+        if (aura.visionSource && i === -1)
+            visibilityStore.visionSources.push({ shape: this.shape.uuid, aura: aura.uuid });
+        else if (!aura.visionSource && i >= 0) visibilityStore.visionSources.splice(i, 1);
         this.updateShape(true);
     }
     updateAuraColour(aura: Aura, _colour: string) {

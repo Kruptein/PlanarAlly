@@ -1,6 +1,6 @@
 import Vue from "vue";
-
-import { Action, getModule, Module, Mutation, VuexModule } from "vuex-module-decorators";
+import { rootStore } from "@/store";
+import { getModule, Module, Mutation, VuexModule } from "vuex-module-decorators";
 
 import { AssetList } from "@/core/comm/types";
 import { socket } from "@/game/api/socket";
@@ -11,9 +11,6 @@ import { GlobalPoint } from "@/game/geom";
 import { layerManager } from "@/game/layers/manager";
 import { g2l, l2g } from "@/game/units";
 import { zoomValue } from "@/game/utils";
-import { BoundingVolume } from "@/game/visibility/bvh/bvh";
-import { triangulate } from "@/game/visibility/te/pa";
-import { rootStore } from "@/store";
 
 export interface LocationOptions {
     panX: number;
@@ -65,16 +62,10 @@ class GameStore extends VuexModule implements GameState {
     fowLOS = false;
     locationName = "";
 
-    visionSources: { shape: string; aura: string }[] = [];
-    visionBlockers: string[] = [];
     annotations: string[] = [];
-    movementblockers: string[] = [];
     ownedtokens: string[] = [];
     _activeTokens: string[] = [];
 
-    BV = Object.freeze(new BoundingVolume([]));
-
-    visionMode: "bvh" | "triangle" = "bvh";
     drawTEContour = false;
     visionRangeMin = 1640;
     visionRangeMax = 3281;
@@ -131,13 +122,6 @@ class GameStore extends VuexModule implements GameState {
         if (zoom > 1) zoom = 1;
         this.zoomDisplay = zoom;
         layerManager.invalidate();
-    }
-
-    @Mutation
-    setVisionMode(data: { mode: "bvh" | "triangle"; sync: boolean }): void {
-        this.visionMode = data.mode;
-        // eslint-disable-next-line @typescript-eslint/camelcase
-        if (data.sync) socket.emit("Location.Options.Set", { vision_mode: data.mode });
     }
 
     @Mutation
@@ -240,19 +224,6 @@ class GameStore extends VuexModule implements GameState {
     resetLayerInfo(): void {
         this.layers = [];
         this.selectedLayerIndex = -1;
-    }
-
-    @Mutation
-    recalculateVision(partial = false): void {
-        if (this.boardInitialized) {
-            if (this.visionMode === "triangle") triangulate("vision", partial);
-            else this.BV = Object.freeze(new BoundingVolume(this.visionBlockers));
-        }
-    }
-
-    @Mutation
-    recalculateMovement(partial = false): void {
-        if (this.boardInitialized && this.visionMode === "triangle") triangulate("movement", partial);
     }
 
     @Mutation
@@ -461,16 +432,11 @@ class GameStore extends VuexModule implements GameState {
         }
     }
 
-    @Action
+    @Mutation
     clear(): void {
-        (<any>this.context.state).visionSources = [];
-        (<any>this.context.state).visionBlockers = [];
-        (<any>this.context.state).ownedtokens = [];
-        (<any>this.context.state).annotations = [];
-        (<any>this.context.state).movementblockers = [];
-        (<any>this.context.state).notes = [];
-        this.context.commit("recalculateVision");
-        this.context.commit("recalculateMovement");
+        this.ownedtokens = [];
+        this.annotations = [];
+        this.notes = [];
     }
 }
 

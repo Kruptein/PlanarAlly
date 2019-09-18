@@ -54,6 +54,7 @@ import { Shape } from "@/game/shapes/shape";
 import { gameStore } from "@/game/store";
 import { getUnitDistance, l2g } from "@/game/units";
 import { getMouse } from "@/game/utils";
+import { visibilityStore } from "../../visibility/store";
 
 @Component({
     components: {
@@ -206,7 +207,7 @@ export default class DrawTool extends Tool {
                 this.ruler.refPoint = lastPoint;
                 this.ruler.endPoint = lastPoint;
             }
-            if (this.shape.visionObstruction) gameStore.recalculateVision(true);
+            if (this.shape.visionObstruction) visibilityStore.recalculateVision();
             layer.invalidate(false);
             socket.emit("Shape.Update", { shape: this.shape!.asDict(), redraw: true, temporary: true });
         }
@@ -253,7 +254,7 @@ export default class DrawTool extends Tool {
 
         if (!(this.shape instanceof Polygon)) {
             socket.emit("Shape.Update", { shape: this.shape!.asDict(), redraw: true, temporary: true });
-            if (this.shape.visionObstruction) gameStore.recalculateVision(true);
+            if (this.shape.visionObstruction) visibilityStore.recalculateVision();
         }
         layer.invalidate(false);
     }
@@ -278,8 +279,8 @@ export default class DrawTool extends Tool {
 
     private finaliseShape() {
         if (this.shape === null) return;
-        if (this.shape.visionObstruction) gameStore.recalculateVision();
-        if (this.shape.movementObstruction) gameStore.recalculateMovement();
+        if (this.shape.visionObstruction) visibilityStore.recalculateVision();
+        if (this.shape.movementObstruction) visibilityStore.recalculateMovement();
         socket.emit("Shape.Update", { shape: this.shape!.asDict(), redraw: true, temporary: false });
         this.active = false;
     }

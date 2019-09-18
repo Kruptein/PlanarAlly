@@ -8,6 +8,7 @@ import { layerManager } from "@/game/layers/manager";
 import { createShapeFromDict } from "@/game/shapes/utils";
 import { gameStore } from "@/game/store";
 import { calculateDelta } from "@/game/ui/tools/utils";
+import { visibilityStore } from "@/game/visibility/store";
 
 export function onKeyUp(event: KeyboardEvent): void {
     if (!(event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement)) {
@@ -59,7 +60,7 @@ export function onKeyDown(event: KeyboardEvent): void {
                     // if (sel.refPoint.x % gridSize !== 0 || sel.refPoint.y % gridSize !== 0) sel.snapToGrid();
                     socket.emit("Shape.Position.Update", { shape: sel.asDict(), redraw: true, temporary: false });
                 }
-                gameStore.recalculateVision();
+                visibilityStore.recalculateVision();
                 layerManager.getLayer()!.invalidate(false);
             } else {
                 // The pan offsets should be in the opposite direction to give the correct feel.

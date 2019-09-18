@@ -1,7 +1,7 @@
 import { GlobalPoint, Ray, Vector } from "@/game/geom";
 import { layerManager } from "@/game/layers/manager";
 import { Shape } from "@/game/shapes/shape";
-import { gameStore } from "@/game/store";
+import { visibilityStore } from "@/game/visibility/store";
 import { PA_CDT } from "@/game/visibility/te/pa";
 import { Point, Sign, Triangle } from "@/game/visibility/te/tds";
 import { ccw, cw, intersection, orientation } from "@/game/visibility/te/triag";
@@ -12,12 +12,12 @@ import { ccw, cw, intersection, orientation } from "@/game/visibility/te/triag";
 // And it does now, so hey ¯\_(ツ)_/¯
 export function calculateDelta(delta: Vector, sel: Shape, done?: string[]): Vector {
     if (delta.x === 0 && delta.y === 0) return delta;
-    if (gameStore.visionMode === "bvh") {
+    if (visibilityStore.visionMode === "bvh") {
         if (done === undefined) done = [];
         const ogSelBBox = sel.getBoundingBox();
         const newSelBBox = ogSelBBox.offset(delta);
         let refine = false;
-        for (const movementBlocker of gameStore.movementblockers) {
+        for (const movementBlocker of visibilityStore.movementblockers) {
             if (done.includes(movementBlocker)) continue;
             const blocker = layerManager.UUIDMap.get(movementBlocker)!;
             const blockerBBox = blocker.getBoundingBox();

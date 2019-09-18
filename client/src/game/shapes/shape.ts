@@ -1,5 +1,3 @@
-import tinycolor from "tinycolor2";
-
 import { uuidv4 } from "@/core/utils";
 import { socket } from "@/game/api/socket";
 import { aurasFromServer, aurasToServer } from "@/game/comm/conversion/aura";
@@ -10,6 +8,8 @@ import { layerManager } from "@/game/layers/manager";
 import { BoundingRect } from "@/game/shapes/boundingrect";
 import { gameStore } from "@/game/store";
 import { g2l, g2lr, g2lx, g2ly, g2lz } from "@/game/units";
+import tinycolor from "tinycolor2";
+import { visibilityStore } from "../visibility/store";
 
 export abstract class Shape {
     // Used to create class instance from server shape data
@@ -115,20 +115,20 @@ export abstract class Shape {
 
     checkVisionSources(recalculate = true): void {
         const self = this;
-        const obstructionIndex = gameStore.visionBlockers.indexOf(this.uuid);
+        const obstructionIndex = visibilityStore.visionBlockers.indexOf(this.uuid);
         let update = false;
         if (this.visionObstruction && obstructionIndex === -1) {
-            gameStore.visionBlockers.push(this.uuid);
+            visibilityStore.visionBlockers.push(this.uuid);
             update = true;
         } else if (!this.visionObstruction && obstructionIndex >= 0) {
-            gameStore.visionBlockers.splice(obstructionIndex, 1);
+            visibilityStore.visionBlockers.splice(obstructionIndex, 1);
             update = true;
         }
-        if (update && recalculate) gameStore.recalculateVision();
+        if (update && recalculate) visibilityStore.recalculateVision();
 
         // Check if the visionsource auras are in the gameManager
         this.auras.forEach(au => {
-            const ls = gameStore.visionSources;
+            const ls = visibilityStore.visionSources;
             const i = ls.findIndex(o => o.aura === au.uuid);
             if (au.visionSource && i === -1) {
                 ls.push({ shape: self.uuid, aura: au.uuid });
@@ -137,26 +137,27 @@ export abstract class Shape {
             }
         });
         // Check if anything in the gameManager referencing this shape is in fact still a visionsource
-        for (let i = gameStore.visionSources.length - 1; i >= 0; i--) {
-            const ls = gameStore.visionSources[i];
+        for (let i = visibilityStore.visionSources.length - 1; i >= 0; i--) {
+            const ls = visibilityStore.visionSources[i];
             if (ls.shape === self.uuid) {
-                if (!self.auras.some(a => a.uuid === ls.aura && a.visionSource)) gameStore.visionSources.splice(i, 1);
+                if (!self.auras.some(a => a.uuid === ls.aura && a.visionSource))
+                    visibilityStore.visionSources.splice(i, 1);
             }
         }
     }
 
     setMovementBlock(blocksMovement: boolean, recalculate = true): void {
         this.movementObstruction = blocksMovement || false;
-        const obstructionIndex = gameStore.movementblockers.indexOf(this.uuid);
+        const obstructionIndex = visibilityStore.movementblockers.indexOf(this.uuid);
         let update = false;
         if (this.movementObstruction && obstructionIndex === -1) {
-            gameStore.movementblockers.push(this.uuid);
+            visibilityStore.movementblockers.push(this.uuid);
             update = true;
         } else if (!this.movementObstruction && obstructionIndex >= 0) {
-            gameStore.movementblockers.splice(obstructionIndex, 1);
+            visibilityStore.movementblockers.splice(obstructionIndex, 1);
             update = true;
         }
-        if (update && recalculate) gameStore.recalculateMovement();
+        if (update && recalculate) visibilityStore.recalculateMovement();
     }
 
     setIsToken(isToken: boolean): void {

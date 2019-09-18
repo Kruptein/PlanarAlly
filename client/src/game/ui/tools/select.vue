@@ -18,6 +18,7 @@ import { calculateDelta } from "@/game/ui/tools/utils";
 import { g2l, g2lx, g2ly, l2g, l2gz } from "@/game/units";
 import { getMouse } from "@/game/utils";
 import { EventBus } from "../../event-bus";
+import { visibilityStore } from "../../visibility/store";
 
 export enum SelectOperations {
     Noop,
@@ -157,7 +158,7 @@ export default class SelectTool extends Tool {
                     if (!sel.ownedBy()) continue;
                     sel.refPoint = sel.refPoint.add(delta);
                     if (sel !== this.selectionHelper) {
-                        if (sel.visionObstruction) gameStore.recalculateVision(true);
+                        if (sel.visionObstruction) visibilityStore.recalculateVision();
                         socket.emit("Shape.Update", { shape: sel.asDict(), redraw: true, temporary: true });
                     }
                 }
@@ -167,7 +168,7 @@ export default class SelectTool extends Tool {
                     if (!sel.ownedBy()) continue;
                     sel.resize(this.resizePoint, mouse);
                     if (sel !== this.selectionHelper) {
-                        if (sel.visionObstruction) gameStore.recalculateVision(true);
+                        if (sel.visionObstruction) visibilityStore.recalculateVision();
                         socket.emit("Shape.Update", { shape: sel.asDict(), redraw: true, temporary: true });
                     }
                     layer.invalidate(false);
@@ -225,8 +226,8 @@ export default class SelectTool extends Tool {
                     }
 
                     if (sel !== this.selectionHelper) {
-                        if (sel.visionObstruction) gameStore.recalculateVision();
-                        if (sel.movementObstruction) gameStore.recalculateMovement();
+                        if (sel.visionObstruction) visibilityStore.recalculateVision();
+                        if (sel.movementObstruction) visibilityStore.recalculateMovement();
                         socket.emit("Shape.Update", { shape: sel.asDict(), redraw: true, temporary: false });
                     }
                     layer.invalidate(false);
@@ -236,8 +237,8 @@ export default class SelectTool extends Tool {
                         sel.resizeToGrid();
                     }
                     if (sel !== this.selectionHelper) {
-                        if (sel.visionObstruction) gameStore.recalculateVision();
-                        if (sel.movementObstruction) gameStore.recalculateMovement();
+                        if (sel.visionObstruction) visibilityStore.recalculateVision();
+                        if (sel.movementObstruction) visibilityStore.recalculateMovement();
                         socket.emit("Shape.Update", { shape: sel.asDict(), redraw: true, temporary: false });
                     }
                     layer.invalidate(false);

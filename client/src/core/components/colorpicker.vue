@@ -1,6 +1,8 @@
-// Extends vue-color functionality by providing an input picker // This component works on basis of rgba strings only,
-// and not the more general color object that vue-color itself uses // This due to the canvas elements requiring rgba
-strings for their colours and thus avoiding extra conversion steps
+<!--
+Extends vue-color functionality by providing an input picker.
+This component works on basis of rgba strings only and not the more general color object that vue-color itself uses
+this due to the canvas elements requiring rgba strings for their colours and thus avoiding extra conversion steps
+-->
 
 <template>
     <div class="outer" @click.self="open">

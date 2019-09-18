@@ -3,6 +3,10 @@ import { InitiativeData } from "@/game/comm/types/general";
 import { rootStore } from "@/store";
 import { getModule, Module, Mutation, VuexModule } from "vuex-module-decorators";
 
+export function inInitiative(uuid: string): boolean {
+    return initiativeStore.data.some(d => d.uuid === uuid);
+}
+
 export interface InitiativeState {
     data: InitiativeData[];
     currentActor: string | null;

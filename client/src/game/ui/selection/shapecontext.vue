@@ -36,8 +36,7 @@ import { EventBus } from "@/game/event-bus";
 import { layerManager } from "@/game/layers/manager";
 import { Shape } from "@/game/shapes/shape";
 import { gameStore } from "@/game/store";
-import { initiativeStore } from "../initiative/store";
-import { inInitiative } from "../initiative/utils";
+import { inInitiative, initiativeStore } from "../initiative/store";
 
 @Component({
     components: {

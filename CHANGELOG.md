@@ -15,6 +15,9 @@ All notable changes to this project will be documented in this file.
 
 - [DM] Session lock state not being shown correctly upon joining.
 - Sessions with a slash in their name do not work
+- [tech] Improved docker image creation script
+  - Faster compilation and smaller final size
+  - Now the frontend is also compiled inside a container
 
 ## [0.17.1] - 2019-06-17
 

@@ -1,21 +1,40 @@
+################################
+# Build stage for the frontend #
+################################
+FROM node:12-alpine as BUILDER
+
+WORKDIR /usr/src/client
+# Copy first package.json so changes in code dont require to reinstall all npm modules
+COPY client/package.json client/package-lock.json ./
+RUN npm i
+
+COPY . /usr/src
+RUN npm run build
+
+# Added here to avoid an extra layer in the final stage
+COPY Dockerfiles/server_config_docker.cfg /usr/src/server/server_config.cfg
+
+###############
+# Final stage #
+###############
 FROM python:3.6-slim
 
 MAINTAINER Kruptein <info@darragh.dev>
 
 EXPOSE 8000
 
-WORKDIR /usr/src/app
+WORKDIR /planarally
 
-VOLUME /usr/src/app/data
-VOLUME /usr/src/app/static/assets
+VOLUME /planarally/data
+VOLUME /planarally/static/assets
 
 ENTRYPOINT ["/usr/bin/dumb-init", "--"]
-
-COPY server/ .
+# Copy first requirements.txt so changes in code dont require to reinstall python requirements
+COPY --from=BUILDER /usr/src/server/requirements.txt .
 RUN apt-get update && apt-get install dumb-init curl -y && \
     rm -rf /var/lib/apt/lists/* && \
     pip install --no-cache-dir -r requirements.txt
-
-COPY Dockerfiles/server_config_docker.cfg server_config.cfg
+# Copy the final server files
+COPY --from=BUILDER /usr/src/server/ .
 
 CMD [ "python", "-u", "planarserver.py"]

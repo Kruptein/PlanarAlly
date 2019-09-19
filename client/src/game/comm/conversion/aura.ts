@@ -21,6 +21,7 @@ export const aurasToServer = (auras: Aura[]): ServerAura[] => {
     for (const aura of auras) {
         result.push({
             uuid: aura.uuid,
+            // eslint-disable-next-line @typescript-eslint/camelcase
             vision_source: aura.visionSource,
             visible: aura.visible,
             name: aura.name,

@@ -1,9 +1,5 @@
-import Vue from "vue";
-
-import { app } from "@/main";
-
 // Reference: https://stackoverflow.com/questions/105034/create-guid-uuid-in-javascript
-export function uuidv4() {
+export function uuidv4(): string {
     return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, c => {
         const r = (Math.random() * 16) | 0;
         const v = c === "x" ? r : (r & 0x3) | 0x8;
@@ -11,16 +7,16 @@ export function uuidv4() {
     });
 }
 
-export function capitalize(text: string) {
+export function capitalize(text: string): string {
     return text.charAt(0).toUpperCase() + text.slice(1);
 }
 
-export function alphSort(a: string, b: string) {
+export function alphSort(a: string, b: string): number {
     if (a.toLowerCase() < b.toLowerCase()) return -1;
     else return 1;
 }
 
-export function getHTMLFont(element: HTMLElement) {
+export function getHTMLFont(element: HTMLElement): string {
     let font = element.style.font;
     while (font === null && element.parentElement !== null) {
         element = element.parentElement;
@@ -43,19 +39,19 @@ export function getHTMLTextWidth(text: string, font: string): number {
     return Math.ceil(ctx.measureText(text).width);
 }
 
-export function partition<T>(arr: T[], predicate: (n: T) => boolean) {
+export function partition<T>(arr: T[], predicate: (n: T) => boolean): T[][] {
     const ret: T[][] = [[], []];
     arr.forEach(n => (predicate(n) ? ret[1].push(n) : ret[0].push(n)));
     return ret;
 }
 
-export function calcFontScale(ctx: CanvasRenderingContext2D, text: string, width: number, height: number) {
+export function calcFontScale(ctx: CanvasRenderingContext2D, text: string, width: number, height: number): number {
     const points = Number(ctx.font.split("px")[0]) * 0.2;
     const fontWidth = ctx.measureText(text).width;
     return Math.min(width / fontWidth, height / points);
 }
 
-export function fixedEncodeURIComponent(str: string) {
+export function fixedEncodeURIComponent(str: string): string {
     return encodeURIComponent(str).replace(/[!'()*]/g, c => {
         return "%" + c.charCodeAt(0).toString(16);
     });
@@ -65,41 +61,32 @@ export class OrderedMap<K, V> {
     keys: K[] = [];
     values: V[] = [];
 
-    get length() {
+    get length(): number {
         return this.keys.length;
     }
 
-    get(key: K) {
+    get(key: K): V {
         return this.values[this.keys.indexOf(key)];
     }
-    getIndexValue(idx: number) {
+    getIndexValue(idx: number): V {
         return this.values[idx];
     }
-    getIndexKey(idx: number) {
+    getIndexKey(idx: number): K {
         return this.keys[idx];
     }
-    set(key: K, value: V) {
+    set(key: K, value: V): void {
         this.keys.push(key);
         this.values.push(value);
     }
-    has(key: K) {
+    has(key: K): boolean {
         return this.indexOf(key) >= 0;
     }
-    indexOf(element: K) {
+    indexOf(element: K): number {
         return this.keys.indexOf(element);
     }
-    remove(element: K) {
+    remove(element: K): void {
         const idx = this.indexOf(element);
         this.keys.splice(idx, 1);
         this.values.splice(idx, 1);
     }
-}
-
-export function getComponent<T extends Vue>(): T {
-    return <T>app.$children[0].$refs.activeComponent;
-}
-
-export function getRef<T extends Vue>(ref: string): T {
-    const active = <Vue>app.$children[0].$refs.activeComponent;
-    return <T>active.$refs[ref];
 }

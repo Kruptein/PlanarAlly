@@ -1,10 +1,5 @@
 <template>
-    <Modal
-        :visible="visible"
-        :colour="'rgba(255, 255, 255, 0.8)'"
-        @close="visible = false"
-        :mask="false"
-    >
+    <Modal :visible="visible" :colour="'rgba(255, 255, 255, 0.8)'" @close="visible = false" :mask="false">
         <div
             class="modal-header"
             slot="header"
@@ -22,28 +17,23 @@
             <div id="categories">
                 <div
                     class="category"
-                    :class="{'selected': selection === c}"
+                    :class="{ selected: selection === c }"
                     v-for="(category, c) in categories"
                     :key="category"
                     @click="selection = c"
-                >{{ category }}</div>
+                >
+                    {{ category }}
+                </div>
             </div>
             <div class="panel" v-show="selection === 0">
                 <div class="spanrow header">Players</div>
-                <div
-                    class="row smallrow"
-                    v-for="player in $store.state.game.players"
-                    :key="player.id"
-                >
+                <div class="row smallrow" v-for="player in $store.state.game.players" :key="player.id">
                     <div>{{ player.name }}</div>
                     <div>
                         <div @click="kickPlayer(player.id)">Kick</div>
                     </div>
                 </div>
-                <div
-                    class="row smallrow"
-                    v-if="Object.values($store.state.game.players).length === 0"
-                >
+                <div class="row smallrow" v-if="Object.values($store.state.game.players).length === 0">
                     <div class="spanrow">There are no players yet, invite some using the link below!</div>
                 </div>
                 <div class="spanrow header">Invite&nbsp;code</div>
@@ -65,14 +55,24 @@
                 <div class="spanrow header">Danger&nbsp;Zone</div>
                 <div class="row">
                     <div>
-                        <template v-if="locked">Unlock</template>
-                        <template v-else>Lock</template> Session&nbsp;
+                        <template v-if="locked">
+                            Unlock
+                        </template>
+                        <template v-else>
+                            Lock
+                        </template>
+                        Session&nbsp;
                         <i>(DM access only)</i>
                     </div>
                     <div>
                         <button class="danger" @click="toggleSessionLock">
-                            <template v-if="locked">Unlock</template>
-                            <template v-else>Lock</template> this Session
+                            <template v-if="locked">
+                                Unlock
+                            </template>
+                            <template v-else>
+                                Lock
+                            </template>
+                            this Session
                         </button>
                     </div>
                 </div>
@@ -106,7 +106,7 @@
                 </div>
                 <div class="row">
                     <div>
-                        <label for="unitSizeInput">Unit Size (in {{unitSizeUnit}})</label>
+                        <label for="unitSizeInput">Unit Size (in {{ unitSizeUnit }})</label>
                     </div>
                     <div>
                         <input id="unitSizeInput" type="number" v-model.number="unitSize" />
@@ -136,14 +136,7 @@
                 <div class="row">
                     <label for="fowOpacity">FOW opacity:</label>
                     <div>
-                        <input
-                            id="fowOpacity"
-                            type="number"
-                            min="0"
-                            max="1"
-                            step="0.1"
-                            v-model.number="fowOpacity"
-                        />
+                        <input id="fowOpacity" type="number" min="0" max="1" step="0.1" v-model.number="fowOpacity" />
                     </div>
                 </div>
                 <div class="spanrow header">Advanced</div>
@@ -151,31 +144,21 @@
                     <label for="visionMode">Vision Mode:</label>
                     <div>
                         <select id="visionMode" @change="changeVisionMode">
-                            <option :selected="$store.state.game.visionMode === 'bvh'">BVH</option>
-                            <option :selected="$store.state.game.visionMode === 'triangle'">Triangle</option>
+                            <option :selected="$store.state.visibility.visionMode === 'bvh'">BVH</option>
+                            <option :selected="$store.state.visibility.visionMode === 'triangle'">Triangle</option>
                         </select>
                     </div>
                 </div>
                 <div class="row">
-                    <label for="vmininp">Minimal full vision ({{unitSizeUnit}}):</label>
+                    <label for="vmininp">Minimal full vision ({{ unitSizeUnit }}):</label>
                     <div>
-                        <input
-                            id="vmininp"
-                            type="number"
-                            min="0"
-                            v-model.lazy.number="visionRangeMin"
-                        />
+                        <input id="vmininp" type="number" min="0" v-model.lazy.number="visionRangeMin" />
                     </div>
                 </div>
                 <div class="row">
-                    <label for="vmaxinp">Maximal vision ({{unitSizeUnit}}):</label>
+                    <label for="vmaxinp">Maximal vision ({{ unitSizeUnit }}):</label>
                     <div>
-                        <input
-                            id="vmaxinp"
-                            type="number"
-                            min="0"
-                            v-model.lazy.number="visionRangeMax"
-                        />
+                        <input id="vmaxinp" type="number" min="0" v-model.lazy.number="visionRangeMax" />
                     </div>
                 </div>
             </div>
@@ -191,13 +174,13 @@ import { mapState } from "vuex";
 
 import InputCopyElement from "@/core/components/inputCopy.vue";
 import Modal from "@/core/components/modals/modal.vue";
-import Prompt from "../../core/components/modals/prompt.vue";
 
-import { getRef, uuidv4 } from "@/core/utils";
 import { socket } from "@/game/api/socket";
 import { EventBus } from "@/game/event-bus";
 import { gameStore } from "@/game/store";
 import { layerManager } from "../layers/manager";
+import Game from "../game.vue";
+import { visibilityStore } from "../visibility/store";
 
 @Component({
     components: {
@@ -307,9 +290,9 @@ export default class DmSettings extends Vue {
     changeVisionMode(event: { target: HTMLSelectElement }) {
         const value = event.target.value.toLowerCase();
         if (value !== "bvh" && value !== "triangle") return;
-        gameStore.setVisionMode({ mode: value, sync: true });
-        gameStore.recalculateVision();
-        gameStore.recalculateMovement();
+        visibilityStore.setVisionMode({ mode: value, sync: true });
+        visibilityStore.recalculateVision();
+        visibilityStore.recalculateMovement();
         layerManager.invalidate();
     }
     handleClick(event: { target: HTMLElement }) {
@@ -331,7 +314,7 @@ export default class DmSettings extends Vue {
         gameStore.setIsLocked({ isLocked: !gameStore.isLocked, sync: true });
     }
     deleteSession() {
-        getRef<Prompt>("prompt")
+        (<Game>this.$parent.$parent).$refs.prompt
             .prompt(
                 `ENTER ${gameStore.roomCreator}/${gameStore.roomName} TO CONFIRM SESSION REMOVAL.`,
                 `DELETING SESSION`,

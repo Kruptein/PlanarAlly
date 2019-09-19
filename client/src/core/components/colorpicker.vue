@@ -1,20 +1,25 @@
-// Extends vue-color functionality by providing an input picker
-// This component works on basis of rgba strings only,
-// and not the more general color object that vue-color itself uses
-// This due to the canvas elements requiring rgba strings for their colours and thus avoiding extra conversion steps
+<!--
+Extends vue-color functionality by providing an input picker.
+This component works on basis of rgba strings only and not the more general color object that vue-color itself uses
+this due to the canvas elements requiring rgba strings for their colours and thus avoiding extra conversion steps
+-->
 
 <template>
     <div class="outer" @click.self="open">
         <div
             class="current-color"
             @click.self="open"
-            :style="transparent ? 'background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAIAAADZF8uwAAAAGUlEQVQYV2M4gwH+YwCGIasIUwhT25BVBADtzYNYrHvv4gAAAABJRU5ErkJggg==)' : 'background-color:' + color"
+            :style="
+                transparent
+                    ? 'background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAIAAADZF8uwAAAAGUlEQVQYV2M4gwH+YwCGIasIUwhT25BVBADtzYNYrHvv4gAAAABJRU5ErkJggg==)'
+                    : 'background-color:' + color
+            "
         ></div>
         <div class="mask" v-show="display" @click.self="closePicker"></div>
         <chrome-picker
             :value="color"
             @input="updateColor"
-            :style="{position: 'fixed', left:left + 'px', top:top + 'px', 'z-index': 9999}"
+            :style="{ position: 'fixed', left: left + 'px', top: top + 'px', 'z-index': 9999 }"
             tabindex="-1"
             v-show="display"
             ref="chromePicker"

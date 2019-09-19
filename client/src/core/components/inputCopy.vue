@@ -1,11 +1,11 @@
 <template>
-  <div id="input-copy" @mouseleave="showPopup=false">
-    <input type="text" disabled="disabled" :value="value" id="input-element">
-    <div v-show="showPopup" id="show-popup">{{ popupString }}</div>
-    <div id="copy-button" @click="copy">
-      <i class="far fa-copy"></i>
+    <div id="input-copy" @mouseleave="showPopup = false">
+        <input type="text" disabled="disabled" :value="value" id="input-element" />
+        <div v-show="showPopup" id="show-popup">{{ popupString }}</div>
+        <div id="copy-button" @click="copy">
+            <i class="far fa-copy"></i>
+        </div>
     </div>
-  </div>
 </template>
 
 <script lang="ts">
@@ -37,7 +37,6 @@ export default class InputCopyElement extends Vue {
     }
 }
 </script>
-
 
 <style scoped>
 #input-copy {

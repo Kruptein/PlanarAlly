@@ -11,6 +11,11 @@ All notable changes to this project will be documented in this file.
 
 - Added option to set custom units of length
 
+### Changed
+
+- [tech] Mousemove events are now throttled, so that they don't fire a gazillion events.
+- [tech] tslint swapped out for eslint
+
 ### Fixed
 
 - [DM] Session lock state not being shown correctly upon joining.

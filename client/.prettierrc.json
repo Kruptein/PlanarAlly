@@ -1,7 +1,7 @@
 {
-    "parser": "typescript",
-    "singleQuote": false,
-    "trailingComma": "all",
+    "htmlWhitespaceSensitivity": "ignore",
     "printWidth": 120,
-    "tabWidth": 4
-  }
+    "singleQuote": false,
+    "tabWidth": 4,
+    "trailingComma": "all"
+}

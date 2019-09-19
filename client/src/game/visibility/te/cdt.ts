@@ -29,10 +29,11 @@ export class CDT {
     constructor() {
         this.tds = new TDS();
     }
-    insertConstraint(a: Point, b: Point): void {
+    insertConstraint(a: Point, b: Point): { va: Vertex; vb: Vertex } {
         const va = this.insert(a);
         const vb = this.insert(b);
         if (va !== vb) this.insertConstraintV(va, vb);
+        return { va, vb };
     }
 
     insertConstraintV(va: Vertex, vb: Vertex): void {
@@ -260,9 +261,79 @@ export class CDT {
         return vi;
     }
 
+    // This is the Constrained Delaunay version
+    removeVertex(v: Vertex): void {
+        if (this.tds.dimension <= 1) this.removeConstrainedVertex(v);
+        else this.remove2D(v);
+    }
+
+    // This is the normal Constrained version
+    private removeConstrainedVertex(v: Vertex): void {
+        const vertexCount = this.tds.numberOfVertices(false);
+        if (vertexCount === 1 || vertexCount === 2) this.tds.removeDimDown(v);
+        else if (this.tds.dimension === 1) console.warn("NOT IMPLEMENTED.");
+        // this.remove1D(v)
+        else this.remove2D(v);
+    }
+
+    remove2D(v: Vertex): void {
+        if (this.testDimDown(v)) this.tds.removeDimDown(v);
+        else {
+            const hole: Edge[] = [];
+            this.tds.makeHole(v, hole);
+            const shell: Edge[] = [...hole];
+            this.tds.fillHoleDelaunay(hole);
+            this.updateConstraints(shell);
+            this.tds.deleteVertex(v);
+        }
+    }
+
+    testDimDown(v: Vertex): boolean {
+        let dim1 = true;
+        for (const triangle of this.tds.triangles) {
+            if (triangle.isInfinite()) continue;
+            if (!triangle.hasVertex(v)) {
+                dim1 = false;
+                break;
+            }
+        }
+        const fc = new FaceCirculator(v, null);
+        while (fc.t!.isInfinite()) fc.next();
+        fc.setDone();
+        const start = fc.t!;
+        let iv = start.indexV(v);
+        const p = start.vertices[cw(iv)]!.point!;
+        const q = start.vertices[ccw(iv)]!.point!;
+        while (dim1 && fc.next()) {
+            iv = fc.t!.indexV(v);
+            if (fc.t!.vertices[ccw(iv)] !== this.tds._infinite) {
+                dim1 = dim1 && orientation(p, q, fc.t!.vertices[ccw(iv)]!.point!) === Sign.COLLINEAR;
+            }
+        }
+        return dim1;
+    }
+
+    updateConstraints(edgeList: Edge[]): void {
+        let f: Triangle;
+        let i: number;
+        for (const edge of edgeList) {
+            f = edge[0];
+            i = edge[1];
+            f.neighbours[i]!.constraints[this.tds.mirrorIndex(f, i)] = f.isConstrained(i);
+        }
+    }
+
     removeConstrainedEdge(t: Triangle, i: number): void {
         t.constraints[i] = false;
         if (this.tds.dimension === 2) t.neighbours[i]!.constraints[this.tds.mirrorIndex(t, i)] = false;
+    }
+
+    removeConstrainedEdgeDelaunay(t: Triangle, i: number): void {
+        this.removeConstrainedEdge(t, i);
+        if (this.tds.dimension === 2) {
+            const listEdges: Edge[] = [[t, i]];
+            this.propagatingFlipE(listEdges);
+        }
     }
 
     updateConstraintsOpposite(v: Vertex): void {

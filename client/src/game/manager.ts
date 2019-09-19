@@ -8,6 +8,7 @@ import { AnnotationManager } from "@/game/ui/annotation";
 import { g2l } from "@/game/units";
 import { EventBus } from "./event-bus";
 import { visibilityStore } from "./visibility/store";
+import { TriangulationTarget } from "./visibility/te/pa";
 
 export class GameManager {
     selectedTool: number = 0;
@@ -46,13 +47,27 @@ export class GameManager {
         }
         const redrawInitiative = sh.owners !== oldShape.owners;
         const shape = Object.assign(oldShape, sh);
-        shape.checkVisionSources();
-        shape.setMovementBlock(shape.movementObstruction);
+        const alteredVision = shape.checkVisionSources();
+        const alteredMovement = shape.setMovementBlock(shape.movementObstruction);
         shape.setIsToken(shape.isToken);
         if (data.redraw) {
-            if (shape.visionObstruction) visibilityStore.recalculateVision();
+            if (shape.visionObstruction && !alteredVision) {
+                visibilityStore.deleteFromTriag({
+                    target: TriangulationTarget.VISION,
+                    shape,
+                    standalone: false,
+                });
+                visibilityStore.addToTriag({ target: TriangulationTarget.VISION, shape });
+            }
             layerManager.getLayer(data.shape.layer)!.invalidate(false);
-            if (shape.movementObstruction) visibilityStore.recalculateMovement();
+            if (shape.movementObstruction && !alteredMovement) {
+                visibilityStore.deleteFromTriag({
+                    target: TriangulationTarget.MOVEMENT,
+                    shape,
+                    standalone: false,
+                });
+                visibilityStore.addToTriag({ target: TriangulationTarget.MOVEMENT, shape });
+            }
         }
         if (redrawInitiative) EventBus.$emit("Initiative.ForceUpdate");
     }

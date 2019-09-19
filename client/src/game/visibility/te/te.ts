@@ -3,11 +3,11 @@ import { gameStore } from "@/game/store";
 
 import { Edge } from "./cdt";
 import { drawPolygon } from "./draw";
-import { PA_CDT } from "./pa";
+import { PA_CDT, TriangulationTarget } from "./pa";
 import { Point, Sign, Triangle } from "./tds";
 import { ccw, cw, orientation } from "./triag";
 
-export function computeVisibility(q: GlobalPoint, target: "vision" | "movement", drawt?: boolean): number[][] {
+export function computeVisibility(q: GlobalPoint, target: TriangulationTarget, drawt?: boolean): number[][] {
     if (drawt === undefined) drawt = gameStore.drawTEContour;
     // console.time("CV");
     const Q: Point = [q.x, q.y];

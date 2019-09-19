@@ -1,4 +1,5 @@
 import { EdgeCirculator, Point, Sign, Triangle, Vertex } from "./tds";
+import { equalPoint } from "@/game/utils";
 
 type Line = number[];
 
@@ -117,11 +118,11 @@ export function sideOfOrientedCircleP(p0: Point, p1: Point, p2: Point, p: Point,
 }
 
 export function xyEqual(p: Point, q: Point): boolean {
-    return p[0] === q[0] && p[1] === q[1];
+    return equalPoint(p[0], q[0]) && equalPoint(p[1], q[1]);
 }
 
 export function xySmaller(p: Point, q: Point): boolean {
-    return p[0] < q[0] || (p[0] === q[0] && p[1] < q[1]);
+    return p[0] < q[0] - 0.0001 || (equalPoint(p[0], q[0]) && p[1] < q[1] - 0.0001);
 }
 
 export function xyCompare(p: Point, q: Point): Sign {
@@ -466,4 +467,67 @@ function nextUp(x: number): number {
 
 export function ulp(x: number): number {
     return x < 0 ? nextUp(x) - x : x + nextUp(-x);
+}
+
+export function collinearInOrder(p: Point, q: Point, r: Point): boolean {
+    if (xyCompare(p, q) !== Sign.LARGER && xyCompare(q, r) === Sign.LARGER) return false;
+    if (xyCompare(p, q) !== Sign.SMALLER && xyCompare(q, r) === Sign.SMALLER) return false;
+    return collinear(p, q, r);
+}
+
+function collinear(p: Point, q: Point, r: Point): boolean {
+    const surface = p[0] * (q[1] - r[1]) + q[0] * (r[1] - p[1]) + r[0] * (p[1] - q[1]);
+    return surface > -0.0001 && surface < 0.0001;
+}
+
+export interface Constraint {
+    combined: [Vertex, Vertex];
+    segments: [Vertex, Vertex][];
+}
+export function a(constraintA: Constraint, constraintB: Constraint): Constraint | null {
+    const [A1, A2] = [...constraintA.combined];
+    const [B1, B2] = [...constraintB.combined];
+    if (A1 === B2 && collinearInOrder(B1!.point!, A1!.point!, A2!.point!))
+        return { combined: [B1, A2], segments: [...constraintB.segments, ...constraintA.segments] };
+    if (A2 === B1 && collinearInOrder(A1!.point!, A2.point!, B2.point!))
+        return { combined: [A1, B2], segments: [...constraintA.segments, ...constraintB.segments] };
+    return null;
+}
+
+export function b(constraintA: Constraint, constraintB: Constraint): Constraint | null {
+    const [A0, A1] = constraintA.combined;
+    const [B0, B1] = constraintB.combined;
+    if (!collinear(A0.point!, A1.point!, B0.point!)) {
+        if (!xyEqual(A0.point!, B0.point!) || !xyEqual(A1.point!, B0.point!)) return null;
+    }
+    if (!collinear(A0.point!, A1.point!, B1.point!)) {
+        if (!xyEqual(A0.point!, B1.point!) || !xyEqual(A1.point!, B1.point!)) return null;
+    }
+    const newSegmentList: [Vertex, Vertex][] = [];
+    let iA = constraintA.segments.length - 1;
+    let iB = constraintB.segments.length - 1;
+    while (iA >= 0 && iB >= 0) {
+        const comp = xyCompare(constraintA.segments[iA][1].point!, constraintB.segments[iB][1].point!);
+        if (comp === Sign.SMALLER) {
+            newSegmentList.unshift(constraintB.segments.pop()!);
+            iB--;
+        } else if (comp === Sign.LARGER) {
+            newSegmentList.unshift(constraintA.segments.pop()!);
+            iA--;
+        } else {
+            newSegmentList.unshift(constraintA.segments.pop()!);
+            constraintB.segments.pop();
+            iB--;
+            iA--;
+        }
+    }
+    if (iA >= 0) newSegmentList.unshift(...constraintA.segments.slice(0, iA + 1));
+    if (iB >= 0) newSegmentList.unshift(...constraintB.segments.slice(0, iB + 1));
+    return { combined: [newSegmentList[0][0], newSegmentList[newSegmentList.length - 1][1]], segments: newSegmentList };
+}
+
+export function rotateAroundOrigin(p: Point, angle: number): Point {
+    const s = Math.sin(angle);
+    const c = Math.cos(angle);
+    return [p[0] * c - p[1] * s, p[0] * s + p[1] * c];
 }

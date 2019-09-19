@@ -9,6 +9,7 @@ import { createShapeFromDict } from "@/game/shapes/utils";
 import { gameStore } from "@/game/store";
 import { calculateDelta } from "@/game/ui/tools/utils";
 import { visibilityStore } from "@/game/visibility/store";
+import { TriangulationTarget } from "@/game/visibility/te/pa";
 
 export function onKeyUp(event: KeyboardEvent): void {
     if (!(event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement)) {
@@ -53,14 +54,30 @@ export function onKeyDown(event: KeyboardEvent): void {
                         delta = calculateDelta(delta, sel);
                     }
                 }
+                if (delta.length() === 0) return;
                 for (const sel of selection) {
                     if (gameStore.selectionHelperID === sel.uuid) continue;
+                    if (sel.movementObstruction)
+                        visibilityStore.deleteFromTriag({
+                            target: TriangulationTarget.MOVEMENT,
+                            shape: sel,
+                            standalone: false,
+                        });
+                    if (sel.visionObstruction)
+                        visibilityStore.deleteFromTriag({
+                            target: TriangulationTarget.VISION,
+                            shape: sel,
+                            standalone: false,
+                        });
                     sel.refPoint = sel.refPoint.add(delta);
+                    if (sel.movementObstruction)
+                        visibilityStore.addToTriag({ target: TriangulationTarget.MOVEMENT, shape: sel });
+                    if (sel.visionObstruction)
+                        visibilityStore.addToTriag({ target: TriangulationTarget.VISION, shape: sel });
                     // todo: Fix again
                     // if (sel.refPoint.x % gridSize !== 0 || sel.refPoint.y % gridSize !== 0) sel.snapToGrid();
                     socket.emit("Shape.Position.Update", { shape: sel.asDict(), redraw: true, temporary: false });
                 }
-                visibilityStore.recalculateVision();
                 layerManager.getLayer()!.invalidate(false);
             } else {
                 // The pan offsets should be in the opposite direction to give the correct feel.

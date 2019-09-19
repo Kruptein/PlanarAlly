@@ -1,3 +1,5 @@
+import tinycolor from "tinycolor2";
+
 import { uuidv4 } from "@/core/utils";
 import { socket } from "@/game/api/socket";
 import { aurasFromServer, aurasToServer } from "@/game/comm/conversion/aura";
@@ -8,8 +10,10 @@ import { layerManager } from "@/game/layers/manager";
 import { BoundingRect } from "@/game/shapes/boundingrect";
 import { gameStore } from "@/game/store";
 import { g2l, g2lr, g2lx, g2ly, g2lz } from "@/game/units";
-import tinycolor from "tinycolor2";
+import { equalPoints } from "../utils";
 import { visibilityStore } from "../visibility/store";
+import { TriangulationTarget } from "../visibility/te/pa";
+import { Vertex } from "../visibility/te/tds";
 
 export abstract class Shape {
     // Used to create class instance from server shape data
@@ -34,6 +38,7 @@ export abstract class Shape {
     auras: Aura[] = [];
     labels: Label[] = [];
     protected _owners: string[] = [];
+    protected _triagVertices: Vertex[] = [];
 
     // Block light sources
     visionObstruction = false;
@@ -113,18 +118,27 @@ export abstract class Shape {
         if (l) l.invalidate(skipLightUpdate);
     }
 
-    checkVisionSources(recalculate = true): void {
+    checkVisionSources(recalculate = true): boolean {
+        let alteredVision = false;
         const self = this;
         const obstructionIndex = visibilityStore.visionBlockers.indexOf(this.uuid);
-        let update = false;
         if (this.visionObstruction && obstructionIndex === -1) {
             visibilityStore.visionBlockers.push(this.uuid);
-            update = true;
+            if (recalculate) {
+                visibilityStore.addToTriag({ target: TriangulationTarget.VISION, shape: this });
+                alteredVision = true;
+            }
         } else if (!this.visionObstruction && obstructionIndex >= 0) {
             visibilityStore.visionBlockers.splice(obstructionIndex, 1);
-            update = true;
+            if (recalculate) {
+                visibilityStore.deleteFromTriag({
+                    target: TriangulationTarget.VISION,
+                    shape: this,
+                    standalone: true,
+                });
+                alteredVision = true;
+            }
         }
-        if (update && recalculate) visibilityStore.recalculateVision();
 
         // Check if the visionsource auras are in the gameManager
         this.auras.forEach(au => {
@@ -144,20 +158,31 @@ export abstract class Shape {
                     visibilityStore.visionSources.splice(i, 1);
             }
         }
+        return alteredVision;
     }
 
-    setMovementBlock(blocksMovement: boolean, recalculate = true): void {
+    setMovementBlock(blocksMovement: boolean, recalculate = true): boolean {
         this.movementObstruction = blocksMovement || false;
         const obstructionIndex = visibilityStore.movementblockers.indexOf(this.uuid);
-        let update = false;
+        let alteredMovement = false;
         if (this.movementObstruction && obstructionIndex === -1) {
             visibilityStore.movementblockers.push(this.uuid);
-            update = true;
+            if (recalculate) {
+                visibilityStore.addToTriag({ target: TriangulationTarget.MOVEMENT, shape: this });
+                alteredMovement = true;
+            }
         } else if (!this.movementObstruction && obstructionIndex >= 0) {
             visibilityStore.movementblockers.splice(obstructionIndex, 1);
-            update = true;
+            if (recalculate) {
+                visibilityStore.deleteFromTriag({
+                    target: TriangulationTarget.MOVEMENT,
+                    shape: this,
+                    standalone: true,
+                });
+                alteredMovement = true;
+            }
         }
-        if (update && recalculate) visibilityStore.recalculateMovement();
+        return alteredMovement;
     }
 
     setIsToken(isToken: boolean): void {
@@ -292,7 +317,7 @@ export abstract class Shape {
         if (sync) socket.emit("Shape.Layer.Change", { uuid: this.uuid, layer });
     }
 
-    // this screws up vetur if typed as `readonly stringp[]`
+    // This screws up vetur if typed as `readonly string[]`
     // eslint-disable-next-line @typescript-eslint/array-type
     get owners(): ReadonlyArray<string> {
         return Object.freeze(this._owners.slice());
@@ -320,5 +345,20 @@ export abstract class Shape {
     removeOwner(owner: string): void {
         const ownerIndex = this._owners.findIndex(o => o === owner);
         this._owners.splice(ownerIndex, 1);
+    }
+
+    addTriagVertices(...vertices: Vertex[]): void {
+        for (const vertex of vertices) {
+            if (this._triagVertices.some(v => equalPoints(vertex.point!, v.point!))) continue;
+            this._triagVertices.push(vertex);
+        }
+    }
+
+    get triagVertices(): Vertex[] {
+        return [...this._triagVertices];
+    }
+
+    clearTriagVertices(): void {
+        this._triagVertices = [];
     }
 }

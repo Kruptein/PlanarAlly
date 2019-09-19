@@ -96,7 +96,7 @@ export default class SelectionInfo extends Vue {
     }
     changeValue(object: Tracker | Aura, redraw: boolean) {
         if (this.shape === null) return;
-        (<Game>this.$parent.$parent).$refs.prompt.prompt(`New  ${object.name} value:`, `Updating ${object.name}`).then(
+        (<Game>this.$parent).$refs.prompt.prompt(`New  ${object.name} value:`, `Updating ${object.name}`).then(
             (value: string) => {
                 if (this.shape === null) return;
                 const ogValue = object.value;

@@ -173,7 +173,7 @@ export default class MenuBar extends Vue {
         socket.emit("Location.Change", name);
     }
     createLocation() {
-        (<Game>this.$parent.$parent).$refs.prompt.prompt(`New location name:`, `Create new location`).then(
+        (<Game>this.$parent).$refs.prompt.prompt(`New location name:`, `Create new location`).then(
             (value: string) => {
                 socket.emit("Location.New", value);
             },
@@ -186,7 +186,7 @@ export default class MenuBar extends Vue {
         this.openNote(note);
     }
     openNote(note: Note) {
-        (<Game>this.$parent.$parent).$refs.note.open(note);
+        (<Game>this.$parent).$refs.note.open(note);
     }
 
     openDmSettings() {

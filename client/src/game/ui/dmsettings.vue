@@ -314,7 +314,7 @@ export default class DmSettings extends Vue {
         gameStore.setIsLocked({ isLocked: !gameStore.isLocked, sync: true });
     }
     deleteSession() {
-        (<Game>this.$parent.$parent).$refs.prompt
+        (<Game>this.$parent).$refs.prompt
             .prompt(
                 `ENTER ${gameStore.roomCreator}/${gameStore.roomName} TO CONFIRM SESSION REMOVAL.`,
                 `DELETING SESSION`,

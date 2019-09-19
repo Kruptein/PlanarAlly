@@ -18,7 +18,7 @@ export class RulerTool extends Tool {
     startPoint: GlobalPoint | null = null;
     ruler: Line | null = null;
     text: Text | null = null;
-    onMouseDown(event: MouseEvent) {
+    onMouseDown(event: MouseEvent): void {
         const layer = layerManager.getLayer("draw");
         if (layer === undefined) {
             console.log("No draw layer!");
@@ -33,7 +33,7 @@ export class RulerTool extends Tool {
         layer.addShape(this.ruler, true, true);
         layer.addShape(this.text, true, true);
     }
-    onMouseMove(event: MouseEvent) {
+    onMouseMove(event: MouseEvent): void {
         if (!this.active || this.ruler === null || this.startPoint === null || this.text === null) return;
 
         const layer = layerManager.getLayer("draw");
@@ -60,7 +60,7 @@ export class RulerTool extends Tool {
         socket.emit("Shape.Update", { shape: this.text.asDict(), redraw: true, temporary: true });
         layer.invalidate(true);
     }
-    onMouseUp(event: MouseEvent) {
+    onMouseUp(_event: MouseEvent): void {
         if (!this.active || this.ruler === null || this.startPoint === null || this.text === null) return;
 
         const layer = layerManager.getLayer("draw");

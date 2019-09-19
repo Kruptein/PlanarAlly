@@ -4,7 +4,7 @@ A strong focus is made to ensure that at no time a global and a local point are 
 At first glance this adds weird looking hacks as ts does not support nominal typing.
 */
 
-export function getPointDistance(p1: Point, p2: Point) {
+export function getPointDistance(p1: Point, p2: Point): number {
     const a = p1.x - p2.x;
     const b = p1.y - p2.y;
     return Math.sqrt(a * a + b * b);
@@ -17,19 +17,19 @@ export class Point {
         this.x = x;
         this.y = y;
     }
-    static fromArray(point: number[]) {
+    static fromArray(point: number[]): Point {
         return new Point(point[0], point[1]);
     }
-    add(vec: Vector) {
+    add(vec: Vector): Point {
         return new Point(this.x + vec.x, this.y + vec.y);
     }
-    subtract(other: Point) {
+    subtract(other: Point): Vector {
         return new Vector(this.x - other.x, this.y - other.y);
     }
     clone(): Point {
         return new Point(this.x, this.y);
     }
-    get(dimension: 0 | 1) {
+    get(dimension: 0 | 1): number {
         if (dimension === 0) return this.x;
         return this.y;
     }
@@ -51,7 +51,7 @@ export class GlobalPoint extends Point {
     clone(): GlobalPoint {
         return <GlobalPoint>super.clone();
     }
-    static fromArray(point: number[]) {
+    static fromArray(point: number[]): GlobalPoint {
         return new GlobalPoint(point[0], point[1]);
     }
 }
@@ -123,10 +123,10 @@ export class Ray<T extends Point> {
     get(t: number): T {
         return <T>new Point(this.origin.x + t * this.direction.x, this.origin.y + t * this.direction.y);
     }
-    getDistance(t1: number, t2: number) {
+    getDistance(t1: number, t2: number): number {
         return Math.sqrt(Math.pow(t2 - t1, 2) * (Math.pow(this.direction.x, 2) + Math.pow(this.direction.y, 2)));
     }
-    getT(t1: number, distance: number) {
+    getT(t1: number, distance: number): number {
         return t1 + Math.sqrt(Math.pow(distance, 2) / (Math.pow(this.direction.x, 2) + Math.pow(this.direction.y, 2)));
     }
 }

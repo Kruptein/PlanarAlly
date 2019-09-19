@@ -7,6 +7,11 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+### Changed
+
+- [tech] Mousemove events are now throttled, so that they don't fire a gazillion events.
+- [tech] tslint swapped out for eslint
+
 ### Fixed
 
 - [DM] Session lock state not being shown correctly upon joining.

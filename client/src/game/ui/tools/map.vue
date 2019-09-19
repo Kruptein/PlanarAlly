@@ -1,14 +1,10 @@
 <template>
-  <div
-    class="tool-detail"
-    v-if="selected"
-    :style="{'--detailRight': detailRight, '--detailArrow': detailArrow}"
-  >
-    <div>#X</div>
-    <input type="text" v-model="xCount">
-    <div>#Y</div>
-    <input type="text" v-model="yCount">
-  </div>
+    <div class="tool-detail" v-if="selected" :style="{ '--detailRight': detailRight, '--detailArrow': detailArrow }">
+        <div>#X</div>
+        <input type="text" v-model="xCount" />
+        <div>#Y</div>
+        <input type="text" v-model="yCount" />
+    </div>
 </template>
 
 <script lang="ts">
@@ -62,7 +58,7 @@ export default class MapTool extends Tool {
         );
         layer.invalidate(false);
     }
-    onMouseUp(event: MouseEvent) {
+    onMouseUp(_event: MouseEvent) {
         if (!this.active || this.rect === null) return;
         const layer = layerManager.getLayer();
         if (layer === undefined) {

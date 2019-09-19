@@ -1,6 +1,3 @@
-import Initiative from "./ui/initiative.vue";
-
-import { getRef } from "@/core/utils";
 import { sendClientOptions } from "@/game/api/utils";
 import { ServerShape } from "@/game/comm/types/shapes";
 import { GlobalPoint } from "@/game/geom";
@@ -9,6 +6,8 @@ import { createShapeFromDict } from "@/game/shapes/utils";
 import { gameStore } from "@/game/store";
 import { AnnotationManager } from "@/game/ui/annotation";
 import { g2l } from "@/game/units";
+import { EventBus } from "./event-bus";
+import { visibilityStore } from "./visibility/store";
 
 export class GameManager {
     selectedTool: number = 0;
@@ -51,19 +50,19 @@ export class GameManager {
         shape.setMovementBlock(shape.movementObstruction);
         shape.setIsToken(shape.isToken);
         if (data.redraw) {
-            if (shape.visionObstruction) gameStore.recalculateVision(data.temporary);
+            if (shape.visionObstruction) visibilityStore.recalculateVision();
             layerManager.getLayer(data.shape.layer)!.invalidate(false);
-            if (shape.movementObstruction) gameStore.recalculateMovement(data.temporary);
+            if (shape.movementObstruction) visibilityStore.recalculateMovement();
         }
-        if (redrawInitiative) getRef<Initiative>("initiative").$forceUpdate();
+        if (redrawInitiative) EventBus.$emit("Initiative.ForceUpdate");
     }
 
-    setCenterPosition(position: GlobalPoint) {
+    setCenterPosition(position: GlobalPoint): void {
         const localPos = g2l(position);
         gameStore.increasePanX((window.innerWidth / 2 - localPos.x) / gameStore.zoomFactor);
         gameStore.increasePanY((window.innerHeight / 2 - localPos.y) / gameStore.zoomFactor);
         layerManager.invalidate();
-        sendClientOptions();
+        sendClientOptions(gameStore.locationOptions);
     }
 }
 

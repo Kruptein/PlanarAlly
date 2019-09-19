@@ -6,7 +6,7 @@
             ref="rm"
             :style="{
                 left: visible.settings ? '200px' : '0',
-                top: visible.locations ? '100px' : '0'
+                top: visible.locations ? '100px' : '0',
             }"
         >
             <div class="rm-wrapper">
@@ -22,11 +22,7 @@
                                 <i class="far fa-compass"></i>
                             </a>
                         </li>
-                        <li
-                            @click="visible.settings = !visible.settings"
-                            class="rm-item"
-                            id="rm-settings"
-                        >
+                        <li @click="visible.settings = !visible.settings" class="rm-item" id="rm-settings">
                             <a href="#">
                                 <i class="fas fa-cog"></i>
                             </a>
@@ -46,12 +42,7 @@
                     <template v-if="IS_DM">
                         <button class="menu-accordion">Assets</button>
                         <div class="menu-accordion-panel">
-                            <a
-                                class="actionButton"
-                                href="/assets"
-                                target="blank"
-                                title="Open asset manager"
-                            >
+                            <a class="actionButton" href="/assets" target="blank" title="Open asset manager">
                                 <i class="fas fa-external-link-alt"></i>
                             </a>
                             <div class="directory" id="menu-tokens">
@@ -71,7 +62,9 @@
                                     :key="note.uuid"
                                     @click="openNote(note)"
                                     style="cursor:pointer"
-                                >{{ note.title || "[?]" }}</div>
+                                >
+                                    {{ note.title || "[?]" }}
+                                </div>
                                 <div v-if="!notes.length">No notes</div>
                             </div>
                         </div>
@@ -83,11 +76,11 @@
                     <div class="menu-accordion-panel">
                         <div class="menu-accordion-subpanel">
                             <label for="gridColour">Grid Colour:</label>
-                            <color-picker id="gridColour" :color.sync="gridColour"/>
+                            <color-picker id="gridColour" :color.sync="gridColour" />
                             <label for="fowColour">FOW Colour:</label>
-                            <color-picker id="fowColour" :color.sync="fowColour"/>
+                            <color-picker id="fowColour" :color.sync="fowColour" />
                             <label for="rulerColour">Ruler Colour:</label>
-                            <color-picker id="rulerColour" :color.sync="rulerColour"/>
+                            <color-picker id="rulerColour" :color.sync="rulerColour" />
                         </div>
                     </div>
                 </div>
@@ -95,28 +88,27 @@
                     to="/dashboard"
                     class="menu-accordion"
                     style="text-decoration:none;display:inline-block;position:absolute;bottom:0;"
-                >Exit</router-link>
+                >
+                    Exit
+                </router-link>
             </div>
         </transition>
         <!-- LOCATIONS -->
         <transition name="locations" @enter="$refs.rm.style.transition = 'top 500ms'">
             <div id="locations-menu" v-if="IS_DM && visible.locations">
                 <div>
-                    <div
-                        v-for="location in locations"
-                        :key="location"
-                        @click="changeLocation(location)"
-                    >{{ location }}</div>
+                    <div v-for="location in locations" :key="location" @click="changeLocation(location)">
+                        {{ location }}
+                    </div>
                     <div @click="createLocation">
                         <i class="fas fa-plus"></i>
                     </div>
                 </div>
             </div>
         </transition>
-        <img id="dragImage">
+        <img id="dragImage" />
     </div>
 </template>
-
 
 <script lang="ts">
 import Vue from "vue";
@@ -125,11 +117,10 @@ import Component from "vue-class-component";
 import { mapState } from "vuex";
 
 import ColorPicker from "@/core/components/colorpicker.vue";
-import Prompt from "@/core/components/modals/prompt.vue";
+import Game from "@/game/game.vue";
 import AssetNode from "@/game/ui/menu/asset_node.vue";
-import NoteDialog from "@/game/ui/note.vue";
 
-import { getRef, uuidv4 } from "@/core/utils";
+import { uuidv4 } from "@/core/utils";
 import { socket } from "@/game/api/socket";
 import { Note } from "@/game/comm/types/general";
 import { gameStore } from "@/game/store";
@@ -182,14 +173,12 @@ export default class MenuBar extends Vue {
         socket.emit("Location.Change", name);
     }
     createLocation() {
-        getRef<Prompt>("prompt")
-            .prompt(`New location name:`, `Create new location`)
-            .then(
-                (value: string) => {
-                    socket.emit("Location.New", value);
-                },
-                () => {},
-            );
+        (<Game>this.$parent.$parent).$refs.prompt.prompt(`New location name:`, `Create new location`).then(
+            (value: string) => {
+                socket.emit("Location.New", value);
+            },
+            () => {},
+        );
     }
     createNote() {
         const note = { title: "New note", text: "", uuid: uuidv4() };
@@ -197,7 +186,7 @@ export default class MenuBar extends Vue {
         this.openNote(note);
     }
     openNote(note: Note) {
-        getRef<NoteDialog>("note").open(note);
+        (<Game>this.$parent.$parent).$refs.note.open(note);
     }
 
     openDmSettings() {
@@ -205,7 +194,6 @@ export default class MenuBar extends Vue {
     }
 }
 </script>
-
 
 <style scoped>
 /*

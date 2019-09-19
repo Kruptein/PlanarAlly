@@ -15,17 +15,17 @@ class CoreStore extends VuexModule implements CoreState {
     username = "";
 
     @Mutation
-    setAuthenticated(auth: boolean) {
+    setAuthenticated(auth: boolean): void {
         this.authenticated = auth;
     }
 
     @Mutation
-    setInitialized(init: boolean) {
+    setInitialized(init: boolean): void {
         this.initialized = init;
     }
 
     @Mutation
-    setUsername(username: string) {
+    setUsername(username: string): void {
         this.username = username;
     }
 }

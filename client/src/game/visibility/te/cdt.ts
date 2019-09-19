@@ -29,13 +29,13 @@ export class CDT {
     constructor() {
         this.tds = new TDS();
     }
-    insertConstraint(a: Point, b: Point) {
+    insertConstraint(a: Point, b: Point): void {
         const va = this.insert(a);
         const vb = this.insert(b);
         if (va !== vb) this.insertConstraintV(va, vb);
     }
 
-    insertConstraintV(va: Vertex, vb: Vertex) {
+    insertConstraintV(va: Vertex, vb: Vertex): void {
         const stack = [[va, vb]];
         while (stack.length > 0) {
             const v = stack.pop()!;
@@ -64,13 +64,13 @@ export class CDT {
         }
     }
 
-    triangulateHole(intersectedFaces: Triangle[], listAB: Edge[], listBA: Edge[]) {
+    triangulateHole(intersectedFaces: Triangle[], listAB: Edge[], listBA: Edge[]): void {
         const edges: Edge[] = [];
         this.triangulateHole2(intersectedFaces, listAB, listBA, edges);
         this.propagatingFlipE(edges);
     }
 
-    triangulateHole2(intersectedFaces: Triangle[], listAB: Edge[], listBA: Edge[], edges: Edge[]) {
+    triangulateHole2(intersectedFaces: Triangle[], listAB: Edge[], listBA: Edge[], edges: Edge[]): void {
         if (listAB.length > 0) {
             this.triangulateHalfHole(listAB, edges);
             this.triangulateHalfHole(listBA, edges);
@@ -87,13 +87,13 @@ export class CDT {
         }
     }
 
-    triangulateHalfHole(conflictBoundaries: Edge[], edges: Edge[]) {
+    triangulateHalfHole(conflictBoundaries: Edge[], edges: Edge[]): void {
         let iC = 0;
         let iN: number;
         let iT: number;
-        const current = () => conflictBoundaries[iC];
-        const next = () => conflictBoundaries[iN];
-        const tempo = () => conflictBoundaries[iT];
+        const current = (): [Triangle, number] => conflictBoundaries[iC];
+        const next = (): [Triangle, number] => conflictBoundaries[iN];
+        // const tempo = (): [Triangle, number] => conflictBoundaries[iT];
 
         const va = current()[0].vertices[ccw(current()[1])]!;
         iN = iC;
@@ -158,7 +158,10 @@ export class CDT {
         } while (iN < conflictBoundaries.length);
     }
 
-    findIntersectedFaces(vaa: Vertex, vbb: Vertex) {
+    findIntersectedFaces(
+        vaa: Vertex,
+        vbb: Vertex,
+    ): { found: boolean; vi: Vertex; listAB: Edge[]; listBA: Edge[]; intersectedFaces: Triangle[] } {
         const aa = vaa.point!;
         const bb = vbb.point!;
         const listAB: Edge[] = [];
@@ -257,12 +260,12 @@ export class CDT {
         return vi;
     }
 
-    removeConstrainedEdge(t: Triangle, i: number) {
+    removeConstrainedEdge(t: Triangle, i: number): void {
         t.constraints[i] = false;
         if (this.tds.dimension === 2) t.neighbours[i]!.constraints[this.tds.mirrorIndex(t, i)] = false;
     }
 
-    updateConstraintsOpposite(v: Vertex) {
+    updateConstraintsOpposite(v: Vertex): void {
         let t = v.triangle!;
         const start = t;
         let indf: number;
@@ -274,7 +277,7 @@ export class CDT {
         } while (t !== start);
     }
 
-    markConstraint(t: Triangle, i: number) {
+    markConstraint(t: Triangle, i: number): void {
         if (this.tds.dimension === 1) t.constraints[2] = true;
         else {
             t.constraints[i] = true;
@@ -282,14 +285,14 @@ export class CDT {
         }
     }
 
-    insert(p: Point, start: Triangle | null = null) {
+    insert(p: Point, start: Triangle | null = null): Vertex {
         const locateInfo = this.locate(p, this.iLocate(p, start));
         const va = this.insertb(p, locateInfo.loc, locateInfo.lt, locateInfo.li);
         this.flipAround(va);
         return va;
     }
 
-    flipAround(v: Vertex) {
+    flipAround(v: Vertex): void {
         if (this.tds.dimension <= 1) return;
         let t = v.triangle!;
         let i: number;
@@ -303,12 +306,11 @@ export class CDT {
         } while (next !== start);
     }
 
-    propagatingFlip(t: Triangle, i: number, depth = 0) {
+    propagatingFlip(t: Triangle, i: number, depth = 0): void {
         if (!this.isFlipable(t, i)) return;
         const maxDepth = 100;
         if (depth === maxDepth) {
             throw new Error("maxde");
-            return;
         }
         const ni = t.neighbours[i]!;
         this.flip(t, i);
@@ -317,13 +319,13 @@ export class CDT {
         this.propagatingFlip(ni, i, depth + 1);
     }
 
-    lessEdge(e1: Edge, e2: Edge) {
+    lessEdge(e1: Edge, e2: Edge): boolean {
         const ind1 = e1[1];
         const ind2 = e2[1];
         return e1[0].uid < e2[0].uid || (e1[0].uid === e2[0].uid && ind1 < ind2);
     }
 
-    propagatingFlipE(edges: Edge[]) {
+    propagatingFlipE(edges: Edge[]): void {
         let eI = 0;
         let t: Triangle;
         let i: number;
@@ -379,7 +381,7 @@ export class CDT {
         }
     }
 
-    flip(t: Triangle, i: number) {
+    flip(t: Triangle, i: number): void {
         const u = t.neighbours[i]!;
         const j = this.tds.mirrorIndex(t, i);
         const t1 = t.neighbours[cw(i)]!;
@@ -399,7 +401,7 @@ export class CDT {
         t4.neighbours[i4]!.constraints[this.tds.mirrorIndex(t4, i4)] = t4.constraints[i4];
     }
 
-    isFlipable(t: Triangle, i: number, perturb = true) {
+    isFlipable(t: Triangle, i: number, perturb = true): boolean {
         const ni = t.neighbours[i]!;
         if (t.isInfinite() || ni.isInfinite()) return false;
         if (t.constraints[i]) return false;
@@ -422,7 +424,7 @@ export class CDT {
         return va;
     }
 
-    updateConstraintsIncident(va: Vertex, c1: Vertex, c2: Vertex) {
+    updateConstraintsIncident(va: Vertex, c1: Vertex, c2: Vertex): void {
         if (this.tds.dimension === 0) return;
         if (this.tds.dimension === 1) {
             const ec = new EdgeCirculator(va, null);
@@ -446,7 +448,7 @@ export class CDT {
         }
     }
 
-    clearConstraintsIncident(v: Vertex) {
+    clearConstraintsIncident(v: Vertex): void {
         const ec = new EdgeCirculator(v, null);
         if (ec.valid) {
             do {
@@ -483,7 +485,6 @@ export class CDT {
             }
         }
         throw new Error("qwe");
-        return new Vertex();
     }
 
     insertInEdge(p: Point, loc: Triangle, li: number): Vertex {
@@ -578,7 +579,10 @@ export class CDT {
         return v;
     }
 
-    locate(p: Point, start: Triangle | null) {
+    locate(
+        p: Point,
+        start: Triangle | null,
+    ): { loc: Triangle; lt: LocateType; li: number } | { loc: null; lt: number; li: number } {
         let lt = 0;
         let li = 0;
         if (this.tds.dimension < 0) {
@@ -605,7 +609,7 @@ export class CDT {
         return this.marchLocate2D(start, p);
     }
 
-    marchLocate1D(p: Point) {
+    marchLocate1D(p: Point): { loc: Triangle; lt: LocateType; li: number } {
         const ff = this.tds._infinite.triangle!;
         const iv = ff.indexV(this.tds._infinite);
         const t = ff.neighbours[iv]!;
@@ -621,7 +625,7 @@ export class CDT {
         throw new Error("sdfsdf");
     }
 
-    marchLocate2D(c: Triangle, p: Point) {
+    marchLocate2D(c: Triangle, p: Point): { loc: Triangle; lt: LocateType; li: number } {
         let prev = null;
         let first = true;
         let lt: LocateType | undefined;
@@ -762,7 +766,7 @@ export class CDT {
         }
     }
 
-    iLocate(p: Point, start: Triangle | null) {
+    iLocate(p: Point, start: Triangle | null): Triangle | null {
         if (this.tds.dimension < 2) return start;
         if (start === null) {
             const t = this.tds._infinite.triangle!;

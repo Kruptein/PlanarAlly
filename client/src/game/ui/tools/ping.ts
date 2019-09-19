@@ -16,7 +16,7 @@ export class PingTool extends Tool {
     active = false;
     startPoint: GlobalPoint | null = null;
     ping: Circle | null = null;
-    onMouseDown(event: MouseEvent) {
+    onMouseDown(event: MouseEvent): void {
         const layer = layerManager.getLayer("draw");
         if (layer === undefined) {
             console.log("No draw layer!");
@@ -28,7 +28,7 @@ export class PingTool extends Tool {
         this.ping.addOwner(gameStore.username);
         layer.addShape(this.ping, true, true);
     }
-    onMouseMove(event: MouseEvent) {
+    onMouseMove(event: MouseEvent): void {
         if (!this.active || this.ping === null || this.startPoint === null) return;
 
         const layer = layerManager.getLayer("draw");
@@ -43,7 +43,7 @@ export class PingTool extends Tool {
 
         layer.invalidate(true);
     }
-    onMouseUp(event: MouseEvent) {
+    onMouseUp(_event: MouseEvent): void {
         if (!this.active || this.ping === null || this.startPoint === null) return;
 
         const layer = layerManager.getLayer("draw");

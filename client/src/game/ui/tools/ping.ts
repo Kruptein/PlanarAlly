@@ -1,3 +1,4 @@
+import debounce from "lodash/debounce";
 import Component from "vue-class-component";
 
 import Tool from "@/game/ui/tools/tool.vue";
@@ -16,6 +17,7 @@ export class PingTool extends Tool {
     active = false;
     startPoint: GlobalPoint | null = null;
     ping: Circle | null = null;
+    debouncedMouseMove = debounce(this.onMouseStop, 250);
     onMouseDown(event: MouseEvent): void {
         const layer = layerManager.getLayer("draw");
         if (layer === undefined) {
@@ -36,9 +38,12 @@ export class PingTool extends Tool {
             console.log("No draw layer!");
             return;
         }
+        this.debouncedMouseMove(event);
         const endPoint = l2g(getMouse(event));
 
         this.ping.center(endPoint);
+        this.ping.r = 30;
+
         socket.emit("Shape.Update", { shape: this.ping!.asDict(), redraw: true, temporary: true });
 
         layer.invalidate(true);
@@ -51,9 +56,24 @@ export class PingTool extends Tool {
             console.log("No active layer!");
             return;
         }
+        this.debouncedMouseMove.cancel();
         this.active = false;
         layer.removeShape(this.ping, true, true);
         layer.invalidate(true);
+        this.ping = null;
         this.startPoint = null;
+    }
+    onMouseStop(_event: MouseEvent): void {
+        if (!this.active || this.ping === null || this.startPoint === null) return;
+
+        const layer = layerManager.getLayer("draw");
+        if (layer === undefined) {
+            console.log("No active layer!");
+            return;
+        }
+        this.ping.r = 20;
+        socket.emit("Shape.Update", { shape: this.ping!.asDict(), redraw: true, temporary: true });
+
+        layer.invalidate(true);
     }
 }

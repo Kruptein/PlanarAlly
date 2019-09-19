@@ -2,6 +2,7 @@ import { GlobalPoint, LocalPoint } from "@/game/geom";
 import { BoundingRect } from "@/game/shapes/boundingrect";
 import { Shape } from "@/game/shapes/shape";
 import { g2l } from "@/game/units";
+import { ServerText } from "../comm/types/shapes";
 
 export class Text extends Shape {
     type = "text";
@@ -22,20 +23,20 @@ export class Text extends Shape {
         this.font = font;
         this.angle = angle || 0;
     }
-    asDict() {
+    asDict(): ServerText {
         return Object.assign(this.getBaseDict(), {
             text: this.text,
             font: this.font,
             angle: this.angle,
         });
     }
-    get points() {
+    get points(): number[][] {
         return [[this.refPoint.x, this.refPoint.y]];
     }
     getBoundingBox(): BoundingRect {
         return new BoundingRect(this.refPoint, 5, 5); // TODO: fix this bounding box
     }
-    draw(ctx: CanvasRenderingContext2D) {
+    draw(ctx: CanvasRenderingContext2D): void {
         super.draw(ctx);
         ctx.font = this.font;
         ctx.fillStyle = this.fillColour;
@@ -47,33 +48,33 @@ export class Text extends Shape {
         this.getLines(ctx).map(line => ctx.fillText(line.text, line.x, line.y));
         ctx.restore();
     }
-    contains(point: GlobalPoint): boolean {
+    contains(_point: GlobalPoint): boolean {
         return false; // TODO
     }
 
     center(): GlobalPoint;
     center(centerPoint: GlobalPoint): void;
-    center(centerPoint?: GlobalPoint): GlobalPoint | void {} // TODO
+    center(_centerPoint?: GlobalPoint): GlobalPoint | void {} // TODO
     visibleInCanvas(canvas: HTMLCanvasElement): boolean {
         return this.getBoundingBox().visibleInCanvas(canvas);
     } // TODO
     snapToGrid(): void {}
     resizeToGrid(): void {}
-    resize(resizePoint: number, point: LocalPoint): void {}
+    resize(_resizePoint: number, _point: LocalPoint): void {}
 
-    getMaxHeight(ctx: CanvasRenderingContext2D) {
+    getMaxHeight(ctx: CanvasRenderingContext2D): number {
         const lines = this.getLines(ctx);
         const lineHeight = 30;
         return lineHeight * lines.length;
     }
 
-    getMaxWidth(ctx: CanvasRenderingContext2D) {
+    getMaxWidth(ctx: CanvasRenderingContext2D): number {
         const lines = this.getLines(ctx);
         const widths = lines.map(line => ctx.measureText(line.text).width);
         return Math.max(...widths);
     }
 
-    private getLines(ctx: CanvasRenderingContext2D) {
+    private getLines(ctx: CanvasRenderingContext2D): { text: string; x: number; y: number }[] {
         const lines = this.text.split("\n");
         const allLines: { text: string; x: number; y: number }[] = [];
         const maxWidth = ctx.canvas.width;

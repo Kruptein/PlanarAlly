@@ -1,18 +1,16 @@
 <template>
-    <div
-        class="tool-detail"
-        v-if="selected"
-        :style="{'--detailRight': detailRight, '--detailArrow': detailArrow}"
-    >
+    <div class="tool-detail" v-if="selected" :style="{ '--detailRight': detailRight, '--detailArrow': detailArrow }">
         <div v-show="IS_DM">Mode</div>
         <div v-show="IS_DM" class="selectgroup">
             <div
                 v-for="mode in modes"
                 :key="mode"
                 class="option"
-                :class="{'option-selected': modeSelect === mode}"
+                :class="{ 'option-selected': modeSelect === mode }"
                 @click="modeSelect = mode"
-            >{{ mode }}</div>
+            >
+                {{ mode }}
+            </div>
         </div>
         <div>Shape</div>
         <div class="selectgroup">
@@ -20,7 +18,7 @@
                 v-for="shape in shapes"
                 :key="shape"
                 class="option"
-                :class="{'option-selected': shapeSelect === shape}"
+                :class="{ 'option-selected': shapeSelect === shape }"
                 @click="shapeSelect = shape"
             >
                 <i class="fas" :class="'fa-' + shape"></i>
@@ -28,16 +26,11 @@
         </div>
         <div>Colours</div>
         <div class="selectgroup">
-            <color-picker class="option" :color.sync="fillColour"/>
-            <color-picker class="option" :color.sync="borderColour"/>
+            <color-picker class="option" :color.sync="fillColour" />
+            <color-picker class="option" :color.sync="borderColour" />
         </div>
         <div v-show="shapeSelect === 'paint-brush'">Brush size</div>
-        <input
-            type="text"
-            v-model="brushSize"
-            v-show="shapeSelect === 'paint-brush'"
-            style="max-width:100px;"
-        >
+        <input type="text" v-model="brushSize" v-show="shapeSelect === 'paint-brush'" style="max-width:100px;" />
     </div>
 </template>
 
@@ -61,6 +54,7 @@ import { Shape } from "@/game/shapes/shape";
 import { gameStore } from "@/game/store";
 import { getUnitDistance, l2g } from "@/game/units";
 import { getMouse } from "@/game/utils";
+import { visibilityStore } from "../../visibility/store";
 
 @Component({
     components: {
@@ -213,7 +207,7 @@ export default class DrawTool extends Tool {
                 this.ruler.refPoint = lastPoint;
                 this.ruler.endPoint = lastPoint;
             }
-            if (this.shape.visionObstruction) gameStore.recalculateVision(true);
+            if (this.shape.visionObstruction) visibilityStore.recalculateVision();
             layer.invalidate(false);
             socket.emit("Shape.Update", { shape: this.shape!.asDict(), redraw: true, temporary: true });
         }
@@ -260,7 +254,7 @@ export default class DrawTool extends Tool {
 
         if (!(this.shape instanceof Polygon)) {
             socket.emit("Shape.Update", { shape: this.shape!.asDict(), redraw: true, temporary: true });
-            if (this.shape.visionObstruction) gameStore.recalculateVision(true);
+            if (this.shape.visionObstruction) visibilityStore.recalculateVision();
         }
         layer.invalidate(false);
     }
@@ -271,7 +265,7 @@ export default class DrawTool extends Tool {
         }
         this.finaliseShape();
     }
-    onContextMenu(event: MouseEvent) {
+    onContextMenu(_event: MouseEvent) {
         if (!this.active || this.shape === null || !(this.shape instanceof Polygon)) return;
         const layer = this.getLayer();
         if (layer === undefined) {
@@ -285,8 +279,8 @@ export default class DrawTool extends Tool {
 
     private finaliseShape() {
         if (this.shape === null) return;
-        if (this.shape.visionObstruction) gameStore.recalculateVision();
-        if (this.shape.movementObstruction) gameStore.recalculateMovement();
+        if (this.shape.visionObstruction) visibilityStore.recalculateVision();
+        if (this.shape.movementObstruction) visibilityStore.recalculateMovement();
         socket.emit("Shape.Update", { shape: this.shape!.asDict(), redraw: true, temporary: false });
         this.active = false;
     }

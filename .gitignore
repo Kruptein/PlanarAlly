@@ -13,9 +13,8 @@ server/dist/**
 server/build/**
 
 # JS
+client/coverage/**
 client/node_modules/**
-server/client/src/*.js
-sever/client/src/*.js.map
 
 # PlanarAlly
 server/planarallyserver.log

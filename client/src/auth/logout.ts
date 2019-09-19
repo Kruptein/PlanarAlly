@@ -9,7 +9,8 @@ Component.registerHooks(["beforeRouteEnter"]);
 
 @Component({})
 export default class Logout extends Vue {
-    beforeRouteEnter(to: Route, from: Route, next: ({}) => {}) {
+    // eslint-disable-next-line no-empty-pattern
+    beforeRouteEnter(to: Route, from: Route, next: ({}) => {}): void {
         Axios.post("/api/logout").then(() => {
             coreStore.setAuthenticated(false);
             coreStore.setUsername("");

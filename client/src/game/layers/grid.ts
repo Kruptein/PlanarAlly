@@ -5,7 +5,7 @@ export class GridLayer extends Layer {
     invalidate(): void {
         this.valid = false;
     }
-    draw(doClear?: boolean): void {
+    draw(_doClear?: boolean): void {
         if (!this.valid) {
             this.drawGrid();
         }

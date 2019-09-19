@@ -17,11 +17,13 @@
             <div id="categories">
                 <div
                     class="category"
-                    :class="{'selected': selection === c}"
+                    :class="{ selected: selection === c }"
                     v-for="(category, c) in categories"
                     :key="category"
                     @click="selection = c"
-                >{{ category }}</div>
+                >
+                    {{ category }}
+                </div>
             </div>
             <div class="panel" v-show="selection === 0">
                 <div class="spanrow header">Players</div>
@@ -32,16 +34,16 @@
                     </div>
                 </div>
                 <div class="row smallrow" v-if="Object.values($store.state.game.players).length === 0">
-                    <div class='spanrow'>There are no players yet, invite some using the link below!</div>
+                    <div class="spanrow">There are no players yet, invite some using the link below!</div>
                 </div>
                 <div class="spanrow header">Invite&nbsp;code</div>
                 <div class="row">
                     <div>Invitation URL:</div>
                     <template v-if="showRefreshState">
-                        <InputCopyElement :value=refreshState />
+                        <InputCopyElement :value="refreshState" />
                     </template>
                     <template v-else>
-                        <InputCopyElement :value=invitationUrl />
+                        <InputCopyElement :value="invitationUrl" />
                     </template>
                 </div>
                 <div class="row" @click="refreshInviteCode">
@@ -50,8 +52,27 @@
                 </div>
                 <div class="spanrow header">Danger&nbsp;Zone</div>
                 <div class="row">
-                    <div><template v-if="locked">Unlock</template><template v-else>Lock</template> Session&nbsp;<i>(DM access only)</i></div>
-                    <div><button class="danger" @click="toggleSessionLock"><template v-if="locked">Unlock</template><template v-else>Lock</template> this Session</button></div>
+                    <div>
+                        <template v-if="locked">
+                            Unlock
+                        </template>
+                        <template v-else>
+                            Lock
+                        </template>
+                        Session&nbsp;
+                        <i>(DM access only)</i>
+                    </div>
+                    <div>
+                        <button class="danger" @click="toggleSessionLock">
+                            <template v-if="locked">
+                                Unlock
+                            </template>
+                            <template v-else>
+                                Lock
+                            </template>
+                            this Session
+                        </button>
+                    </div>
                 </div>
                 <div class="row">
                     <div>Remove Session</div>
@@ -62,19 +83,19 @@
                 <div class="row">
                     <label for="useGridInput">Use grid</label>
                     <div>
-                        <input id="useGridInput" type="checkbox" v-model="useGrid">
+                        <input id="useGridInput" type="checkbox" v-model="useGrid" />
                     </div>
                 </div>
                 <div class="row">
                     <label for="gridSizeInput">Grid Size (in pixels):</label>
                     <div>
-                        <input id="gridSizeInput" type="number" min="0" v-model.number="gridSize">
+                        <input id="gridSizeInput" type="number" min="0" v-model.number="gridSize" />
                     </div>
                 </div>
                 <div class="row">
                     <label for="unitSizeInput">Unit Size (in ft.):</label>
                     <div>
-                        <input id="unitSizeInput" type="number" v-model.number="unitSize">
+                        <input id="unitSizeInput" type="number" v-model.number="unitSize" />
                     </div>
                 </div>
             </div>
@@ -83,32 +104,25 @@
                 <div class="row">
                     <label for="fakePlayerInput">Fake player:</label>
                     <div>
-                        <input id="fakePlayerInput" type="checkbox" v-model="fakePlayer">
+                        <input id="fakePlayerInput" type="checkbox" v-model="fakePlayer" />
                     </div>
                 </div>
                 <div class="row">
                     <label for="useFOWInput">Fill entire canvas with FOW:</label>
                     <div>
-                        <input id="useFOWInput" type="checkbox" v-model="fullFOW">
+                        <input id="useFOWInput" type="checkbox" v-model="fullFOW" />
                     </div>
                 </div>
                 <div class="row">
                     <label for="fowLOS">Only show lights in LoS:</label>
                     <div>
-                        <input id="fowLOS" type="checkbox" v-model="fowLOS">
+                        <input id="fowLOS" type="checkbox" v-model="fowLOS" />
                     </div>
                 </div>
                 <div class="row">
                     <label for="fowOpacity">FOW opacity:</label>
                     <div>
-                        <input
-                            id="fowOpacity"
-                            type="number"
-                            min="0"
-                            max="1"
-                            step="0.1"
-                            v-model.number="fowOpacity"
-                        >
+                        <input id="fowOpacity" type="number" min="0" max="1" step="0.1" v-model.number="fowOpacity" />
                     </div>
                 </div>
                 <div class="spanrow header">Advanced</div>
@@ -116,31 +130,21 @@
                     <label for="visionMode">Vision Mode:</label>
                     <div>
                         <select id="visionMode" @change="changeVisionMode">
-                            <option :selected="$store.state.game.visionMode === 'bvh'">BVH</option>
-                            <option :selected="$store.state.game.visionMode === 'triangle'">Triangle</option>
+                            <option :selected="$store.state.visibility.visionMode === 'bvh'">BVH</option>
+                            <option :selected="$store.state.visibility.visionMode === 'triangle'">Triangle</option>
                         </select>
                     </div>
                 </div>
                 <div class="row">
                     <label for="vmininp">Minimal full vision (ft):</label>
                     <div>
-                        <input
-                            id="vmininp"
-                            type="number"
-                            min="0"
-                            v-model.lazy.number="visionRangeMin"
-                        >
+                        <input id="vmininp" type="number" min="0" v-model.lazy.number="visionRangeMin" />
                     </div>
                 </div>
                 <div class="row">
                     <label for="vmaxinp">Maximal vision (ft):</label>
                     <div>
-                        <input
-                            id="vmaxinp"
-                            type="number"
-                            min="0"
-                            v-model.lazy.number="visionRangeMax"
-                        >
+                        <input id="vmaxinp" type="number" min="0" v-model.lazy.number="visionRangeMax" />
                     </div>
                 </div>
             </div>
@@ -156,13 +160,13 @@ import { mapState } from "vuex";
 
 import InputCopyElement from "@/core/components/inputCopy.vue";
 import Modal from "@/core/components/modals/modal.vue";
-import Prompt from '../../core/components/modals/prompt.vue';
 
-import { getRef, uuidv4 } from "@/core/utils";
 import { socket } from "@/game/api/socket";
 import { EventBus } from "@/game/event-bus";
 import { gameStore } from "@/game/store";
 import { layerManager } from "../layers/manager";
+import Game from "../game.vue";
+import { visibilityStore } from "../visibility/store";
 
 @Component({
     components: {
@@ -197,7 +201,7 @@ export default class DmSettings extends Vue {
 
     // Admin
     get invitationUrl(): string {
-        return window.location.protocol + '//' + window.location.host + '/invite/' + gameStore.invitationCode;
+        return window.location.protocol + "//" + window.location.host + "/invite/" + gameStore.invitationCode;
     }
     get locked(): boolean {
         return gameStore.isLocked;
@@ -266,9 +270,9 @@ export default class DmSettings extends Vue {
     changeVisionMode(event: { target: HTMLSelectElement }) {
         const value = event.target.value.toLowerCase();
         if (value !== "bvh" && value !== "triangle") return;
-        gameStore.setVisionMode({ mode: value, sync: true });
-        gameStore.recalculateVision();
-        gameStore.recalculateMovement();
+        visibilityStore.setVisionMode({ mode: value, sync: true });
+        visibilityStore.recalculateVision();
+        visibilityStore.recalculateMovement();
         layerManager.invalidate();
     }
     handleClick(event: { target: HTMLElement }) {
@@ -287,11 +291,14 @@ export default class DmSettings extends Vue {
         gameStore.kickPlayer(id);
     }
     toggleSessionLock() {
-        gameStore.setIsLocked({isLocked: !gameStore.isLocked, sync: true});
+        gameStore.setIsLocked({ isLocked: !gameStore.isLocked, sync: true });
     }
     deleteSession() {
-        getRef<Prompt>("prompt")
-            .prompt(`ENTER ${gameStore.roomCreator}/${gameStore.roomName} TO CONFIRM SESSION REMOVAL.`, `DELETING SESSION`)
+        (<Game>this.$parent.$parent).$refs.prompt
+            .prompt(
+                `ENTER ${gameStore.roomCreator}/${gameStore.roomName} TO CONFIRM SESSION REMOVAL.`,
+                `DELETING SESSION`,
+            )
             .then(
                 (value: string) => {
                     if (value !== `${gameStore.roomCreator}/${gameStore.roomName}`) return;

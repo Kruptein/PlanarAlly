@@ -8,23 +8,23 @@ export function g2l(obj: GlobalPoint): LocalPoint {
     return new LocalPoint((obj.x + panX) * z, (obj.y + panY) * z);
 }
 
-export function g2lx(x: number) {
+export function g2lx(x: number): number {
     return g2l(new GlobalPoint(x, 0)).x;
 }
 
-export function g2ly(y: number) {
+export function g2ly(y: number): number {
     return g2l(new GlobalPoint(0, y)).y;
 }
 
-export function g2lz(z: number) {
+export function g2lz(z: number): number {
     return z * gameStore.zoomFactor;
 }
 
-export function getUnitDistance(r: number) {
+export function getUnitDistance(r: number): number {
     return (r / gameStore.unitSize) * gameStore.gridSize;
 }
 
-export function g2lr(r: number) {
+export function g2lr(r: number): number {
     return g2lz(getUnitDistance(r));
 }
 
@@ -41,19 +41,19 @@ export function l2g(obj: LocalPoint | Ray<LocalPoint>): GlobalPoint | Ray<Global
     }
 }
 
-export function l2gx(x: number) {
+export function l2gx(x: number): number {
     return l2g(new LocalPoint(x, 0)).x;
 }
 
-export function l2gy(y: number) {
+export function l2gy(y: number): number {
     return l2g(new LocalPoint(0, y)).y;
 }
 
-export function l2gz(z: number) {
+export function l2gz(z: number): number {
     return z / gameStore.zoomFactor;
 }
 
-export function l2gr(r: number) {
+export function l2gr(r: number): number {
     return l2gz(getUnitDistance(r));
 }
 

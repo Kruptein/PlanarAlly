@@ -14,7 +14,7 @@
                 @dragover.prevent
                 @drop.prevent.stop="drop"
             ></div>
-            <div id="layerselect" v-show="showUI && layers.length>1">
+            <div id="layerselect" v-show="showUI && layers.length > 1">
                 <ul>
                     <li
                         v-for="layer in layers"
@@ -43,14 +43,13 @@
             :min="0"
             :max="1"
             :interval="0.1"
-            :dot-width="8"
-            :dot-height="20"
-            :tooltip-dir="'bottom'"
-            :tooltip="'hover'"
-            :formatter="zoomDisplay.toFixed(1)"
-            :slider-style="{'border-radius': '15%'}"
-            :bg-style="{'background-color': '#fff', 'box-shadow': '0.5px 0.5px 3px 1px rgba(0, 0, 0, .36)'}"
-            :process-style="{'background-color': '#fff'}"
+            :dot-size="[8, 20]"
+            :dot-options="{ style: { 'border-radius': '15%', 'z-index': 11 } }"
+            :tooltip-placement="'bottom'"
+            :tooltip="'focus'"
+            :tooltip-formatter="zoomDisplay.toFixed(1)"
+            :rail-style="{ 'background-color': '#fff', 'box-shadow': '0.5px 0.5px 3px 1px rgba(0, 0, 0, .36)' }"
+            :process-style="{ 'background-color': '#fff' }"
         ></zoom-slider>
         <prompt-dialog ref="prompt"></prompt-dialog>
         <confirm-dialog ref="confirm"></confirm-dialog>
@@ -58,23 +57,23 @@
 </template>
 
 <script lang="ts">
+import throttle from "lodash/throttle";
 import Vue from "vue";
 import Component from "vue-class-component";
 import vueSlider from "vue-slider-component";
+import "vue-slider-component/theme/default.css";
 
 import "@/game/api/events";
 
-import { throttle } from "lodash";
-import { mapGetters, mapState } from "vuex";
-
 import ConfirmDialog from "@/core/components/modals/confirm.vue";
 import Prompt from "@/core/components/modals/prompt.vue";
-import Initiative from "@/game/ui/initiative.vue";
+import Initiative from "@/game/ui/initiative/initiative.vue";
 import LabelManager from "@/game/ui/labels.vue";
 import MenuBar from "@/game/ui/menu/menu.vue";
 import NoteDialog from "@/game/ui/note.vue";
 import SelectionInfo from "@/game/ui/selection/selection_info.vue";
 import Tools from "@/game/ui/tools/tools.vue";
+import DmSettings from "./ui/dmsettings.vue";
 
 import { createConnection, socket } from "@/game/api/socket";
 import { onKeyDown, onKeyUp } from "@/game/events/keyboard";
@@ -83,7 +82,7 @@ import { layerManager } from "@/game/layers/manager";
 import { gameStore } from "@/game/store";
 import { l2g } from "@/game/units";
 import { LocalPoint } from "./geom";
-import DmSettings from "./ui/dmsettings.vue";
+import { dropAsset } from "./layers/utils";
 
 @Component({
     components: {
@@ -110,6 +109,8 @@ import DmSettings from "./ui/dmsettings.vue";
 export default class Game extends Vue {
     $refs!: {
         confirm: InstanceType<typeof ConfirmDialog>;
+        note: InstanceType<typeof NoteDialog>;
+        prompt: InstanceType<typeof Prompt>;
         tools: InstanceType<typeof Tools>;
     };
 
@@ -117,6 +118,9 @@ export default class Game extends Vue {
         manager: false,
         tools: false,
     };
+
+    throttledmoveSet = false;
+    throttledmove: (event: MouseEvent) => void = (_event: MouseEvent) => {};
 
     get showUI(): boolean {
         return gameStore.showUI;
@@ -184,7 +188,11 @@ export default class Game extends Vue {
         this.$refs.tools.mouseup(event);
     }
     mousemove(event: MouseEvent) {
-        this.$refs.tools.mousemove(event);
+        if (!this.throttledmoveSet) {
+            this.throttledmoveSet = true;
+            this.throttledmove = throttle(this.$refs.tools.mousemove, 15);
+        }
+        this.throttledmove(event);
     }
     mouseleave(event: MouseEvent) {
         this.$refs.tools.mouseleave(event);
@@ -204,7 +212,7 @@ export default class Game extends Vue {
         } else if (event.dataTransfer.getData("text/plain") === "") {
             return;
         } else {
-            layerManager.dropAsset(event);
+            dropAsset(event);
         }
     }
 }
@@ -237,7 +245,6 @@ svg {
     overflow: hidden;
 }
 </style>
-
 
 <style scoped>
 #main {

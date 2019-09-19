@@ -7,7 +7,9 @@ import { Shape } from "@/game/shapes/shape";
 import { gameStore } from "@/game/store";
 import { g2l, g2lr, g2lx, g2ly, g2lz, getUnitDistance } from "@/game/units";
 import { getFogColour } from "@/game/utils";
+import { visibilityStore } from "../visibility/store";
 import { computeVisibility } from "../visibility/te/te";
+import { TriangulationTarget } from "../visibility/te/pa";
 
 export class FOWLayer extends Layer {
     isVisionLayer: boolean = true;
@@ -30,7 +32,7 @@ export class FOWLayer extends Layer {
         }
     }
 
-    removeShape(shape: Shape, sync: boolean, temporary?: boolean) {
+    removeShape(shape: Shape, sync: boolean, temporary?: boolean): void {
         if (shape.options.has("preFogShape") && shape.options.get("preFogShape")) {
             const idx = this.preFogShapes.findIndex(s => s.uuid === shape.uuid);
             this.preFogShapes.splice(idx, 1);
@@ -78,7 +80,7 @@ export class FOWLayer extends Layer {
             this.vCtx.clearRect(0, 0, window.innerWidth, window.innerHeight);
 
             // First cut out all the light sources
-            for (const light of gameStore.visionSources) {
+            for (const light of visibilityStore.visionSources) {
                 const shape = layerManager.UUIDMap.get(light.shape);
                 if (shape === undefined) continue;
                 const aura = shape.auras.find(a => a.uuid === light.aura);
@@ -91,7 +93,7 @@ export class FOWLayer extends Layer {
                 const auraCircle = new Circle(center, auraLength);
                 if (!auraCircle.visibleInCanvas(ctx.canvas)) continue;
 
-                if (gameStore.visionMode === "bvh") {
+                if (visibilityStore.visionMode === "bvh") {
                     let lastArcAngle = -1;
 
                     const path = new Path2D();
@@ -112,7 +114,7 @@ export class FOWLayer extends Layer {
 
                         // Check if there is a hit with one of the nearby light blockers.
                         const lightRay = Ray.fromPoints(center, anglePoint);
-                        const hitResult = gameStore.BV.intersect(lightRay);
+                        const hitResult = visibilityStore.BV.intersect(lightRay);
 
                         if (angle === 0) firstPoint = hitResult.hit ? hitResult.intersect : anglePoint;
 
@@ -163,7 +165,7 @@ export class FOWLayer extends Layer {
                 } else {
                     this.vCtx.globalCompositeOperation = "source-over";
                     this.vCtx.fillStyle = "rgba(0, 0, 0, 1)";
-                    const polygon = computeVisibility(center, "vision");
+                    const polygon = computeVisibility(center, TriangulationTarget.VISION);
                     this.vCtx.beginPath();
                     this.vCtx.moveTo(g2lx(polygon[0][0]), g2ly(polygon[0][1]));
                     for (const point of polygon) this.vCtx.lineTo(g2lx(point[0]), g2ly(point[1]));

@@ -5,7 +5,7 @@
                 <li
                     v-for="tool in visibleTools"
                     :key="tool"
-                    :class="{'tool-selected': currentTool === tool}"
+                    :class="{ 'tool-selected': currentTool === tool }"
                     :ref="tool + '-selector'"
                     v-show="toolVisible(tool)"
                     @mousedown="currentTool = tool"
@@ -32,7 +32,6 @@
         </div>
     </div>
 </template>
-
 
 <script lang="ts">
 import Vue from "vue";
@@ -92,13 +91,13 @@ export default class Tools extends Vue {
     }
 
     get visibleTools(): string[] {
-        return this.tools.filter(t => (!this.dmTools.includes(t) || this.IS_DM));
+        return this.tools.filter(t => !this.dmTools.includes(t) || this.IS_DM);
     }
 
     toolVisible(tool: string): boolean {
-        if (tool === 'Filter') {
+        if (tool === "Filter") {
             return Object.keys(gameStore.labels).length > 0;
-        } else if (tool === 'Vision') {
+        } else if (tool === "Vision") {
             return gameStore.ownedtokens.length > 1;
         }
         return true;
@@ -168,7 +167,6 @@ export default class Tools extends Vue {
     }
 }
 </script>
-
 
 <style scoped>
 #toolselect {

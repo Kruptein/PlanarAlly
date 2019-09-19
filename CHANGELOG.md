@@ -9,6 +9,8 @@ All notable changes to this project will be documented in this file.
 
 ### Changed
 
+- [tech] Mousemove events are now throttled, so that they don't fire a gazillion events.
+- [tech] tslint swapped out for eslint
 - Added option to change the location of tokens/shapes
 - Added option to edit shapes un groups (move to other shape, move to other location, move to top/bottom, add initiative)
 - Added option to Shift-select tokens/shapes

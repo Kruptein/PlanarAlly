@@ -1,21 +1,17 @@
 <template>
-  <div
-    class="tool-detail"
-    v-if="selected"
-    :style="{'--detailRight': detailRight, '--detailArrow': detailArrow}"
-  >
-    <div id="accordion-container">
-      <accordion
-        v-for="category in categories"
-        :key="category"
-        :title="category === '' ? 'no category' : category"
-        :showArrow="false"
-        :items="labels[category]"
-        :initialValues="initalValues[category]"
-        @selectionupdate="updateSelection"
-      />
+    <div class="tool-detail" v-if="selected" :style="{ '--detailRight': detailRight, '--detailArrow': detailArrow }">
+        <div id="accordion-container">
+            <accordion
+                v-for="category in categories"
+                :key="category"
+                :title="category === '' ? 'no category' : category"
+                :showArrow="false"
+                :items="labels[category]"
+                :initialValues="initalValues[category]"
+                @selectionupdate="updateSelection"
+            />
+        </div>
     </div>
-  </div>
 </template>
 
 <script lang="ts">
@@ -38,7 +34,7 @@ export default class FilterTool extends Tool {
     active = false;
 
     get labels() {
-        const cat: { [category: string]: [string, string][] } = {'': []};
+        const cat: { [category: string]: [string, string][] } = { "": [] };
         for (const uuid of Object.keys(gameStore.labels)) {
             const label = gameStore.labels[uuid];
             if (!label.category) cat[""].push([label.uuid, label.name]);
@@ -108,7 +104,6 @@ export default class FilterTool extends Tool {
     display: block;
 }
 </style>
-
 
 <style scoped>
 #accordion-container {

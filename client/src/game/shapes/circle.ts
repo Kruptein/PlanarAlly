@@ -23,7 +23,7 @@ export class Circle extends Shape {
             radius: this.r,
         });
     }
-    fromDict(data: ServerCircle) {
+    fromDict(data: ServerCircle): void {
         super.fromDict(data);
         this.r = data.radius;
     }
@@ -35,11 +35,11 @@ export class Circle extends Shape {
         );
     }
 
-    get points() {
+    get points(): number[][] {
         return this.getBoundingBox().points;
     }
 
-    draw(ctx: CanvasRenderingContext2D) {
+    draw(ctx: CanvasRenderingContext2D): void {
         super.draw(ctx);
         ctx.beginPath();
         if (this.fillColour === "fog") ctx.fillStyle = getFogColour();
@@ -67,7 +67,7 @@ export class Circle extends Shape {
     visibleInCanvas(canvas: HTMLCanvasElement): boolean {
         return this.getBoundingBox().visibleInCanvas(canvas);
     } // TODO
-    snapToGrid() {
+    snapToGrid(): void {
         const gs = gameStore.gridSize;
         let targetX;
         let targetY;
@@ -85,13 +85,12 @@ export class Circle extends Shape {
         this.refPoint = this.refPoint.add(delta);
         this.invalidate(false);
     }
-    resizeToGrid() {
+    resizeToGrid(): void {
         const gs = gameStore.gridSize;
         this.r = Math.max(Math.round(this.r / gs) * gs, gs / 2);
         this.invalidate(false);
     }
-    resize(resizePoint: number, point: LocalPoint) {
-        const z = gameStore.zoomFactor;
+    resize(resizePoint: number, point: LocalPoint): void {
         const diff = l2g(point).subtract(this.refPoint);
         this.r = Math.sqrt(Math.pow(diff.length(), 2) / 2);
     }

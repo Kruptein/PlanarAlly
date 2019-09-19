@@ -1,37 +1,37 @@
-import Tools from "@/game/ui/tools/tools.vue";
-
-import { getRef } from "@/core/utils";
 import { socket } from "@/game/api/socket";
 import { sendClientOptions } from "@/game/api/utils";
 import { Vector } from "@/game/geom";
 import { layerManager } from "@/game/layers/manager";
 import { gameStore } from "@/game/store";
 import { calculateDelta } from "@/game/ui/tools/utils";
-import { copyShapes, deleteShapes, pasteShapes } from '../shapes/utils';
+import { copyShapes, deleteShapes, pasteShapes } from "../shapes/utils";
+import { visibilityStore } from "../visibility/store";
+import { noop } from "vue-class-component/lib/util";
 
 export const keyboardState = {
     shiftPressed: false,
     ctrlPressed: false,
     altPressed: false,
+};
+
+function updateKeyboardState(event: KeyboardEvent): void {
+    keyboardState.shiftPressed = event.getModifierState("Shift");
+    keyboardState.ctrlPressed = event.getModifierState("Control");
+    keyboardState.altPressed = event.getModifierState("Alt");
 }
 
-function updateKeyboardState(event: KeyboardEvent) {
-    keyboardState.shiftPressed = event.getModifierState("Shift")
-    keyboardState.ctrlPressed = event.getModifierState("Control")
-    keyboardState.altPressed = event.getModifierState("Alt")
-}
-
-export function onKeyUp(event: KeyboardEvent) {
+export function onKeyUp(event: KeyboardEvent): void {
     updateKeyboardState(event);
     if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement) {
+        noop;
     } else {
         if (event.key === "Delete" || event.key === "Del" || event.key === "Backspace") {
-            deleteShapes()
+            deleteShapes();
         }
     }
 }
 
-export function onKeyDown(event: KeyboardEvent) {
+export function onKeyDown(event: KeyboardEvent): void {
     updateKeyboardState(event);
     if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement) {
         // Ctrl-a with a HTMLInputElement or a HTMLTextAreaElement selected - select all the text
@@ -51,25 +51,25 @@ export function onKeyDown(event: KeyboardEvent) {
                 if (!event.shiftKey || !gameStore.IS_DM) {
                     // First check for collisions.  Using the smooth wall slide collision check used on mouse move is overkill here.
                     for (const sel of selection) {
-                        if ((<any>getRef<Tools>("tools").$refs.selectTool).selectionHelper.uuid === sel.uuid) continue;
+                        if (gameStore.selectionHelperID === sel.uuid) continue;
                         delta = calculateDelta(delta, sel);
                     }
                 }
                 for (const sel of selection) {
-                    if ((<any>getRef<Tools>("tools").$refs.selectTool).selectionHelper.uuid === sel.uuid) continue;
+                    if (gameStore.selectionHelperID === sel.uuid) continue;
                     sel.refPoint = sel.refPoint.add(delta);
                     // todo: Fix again
                     // if (sel.refPoint.x % gridSize !== 0 || sel.refPoint.y % gridSize !== 0) sel.snapToGrid();
                     socket.emit("Shape.Position.Update", { shape: sel.asDict(), redraw: true, temporary: false });
                 }
-                gameStore.recalculateVision();
+                visibilityStore.recalculateVision();
                 layerManager.getLayer()!.invalidate(false);
             } else {
                 // The pan offsets should be in the opposite direction to give the correct feel.
                 gameStore.increasePanX(offsetX * (event.keyCode <= 38 ? 1 : -1));
                 gameStore.increasePanY(offsetY * (event.keyCode <= 38 ? 1 : -1));
                 layerManager.invalidate();
-                sendClientOptions();
+                sendClientOptions(gameStore.locationOptions);
             }
         } else if (event.key === "d") {
             // d - Deselect all
@@ -85,10 +85,10 @@ export function onKeyDown(event: KeyboardEvent) {
             gameStore.toggleUI();
         } else if (event.key === "c" && event.ctrlKey) {
             // Ctrl-c - Copy
-            copyShapes()
+            copyShapes();
         } else if (event.key === "v" && event.ctrlKey) {
             // Ctrl-v - Paste
-            pasteShapes()
+            pasteShapes();
         }
     }
 }

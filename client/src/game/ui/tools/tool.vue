@@ -1,4 +1,6 @@
-<template></template>
+<template>
+    <div></div>
+</template>
 
 <script lang="ts">
 import Vue from "vue";
@@ -48,9 +50,9 @@ export default class Tool extends Vue {
     }
     onSelect() {}
     onDeselect() {}
-    onMouseDown(event: MouseEvent) {}
-    onMouseUp(event: MouseEvent) {}
-    onMouseMove(event: MouseEvent) {}
+    onMouseDown(_event: MouseEvent) {}
+    onMouseUp(_event: MouseEvent) {}
+    onMouseMove(_event: MouseEvent) {}
     onContextMenu(event: MouseEvent) {
         (<DefaultContext>this.$parent.$refs.defaultcontext).open(event);
     }

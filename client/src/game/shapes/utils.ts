@@ -1,6 +1,4 @@
-import Tools from "@/game/ui/tools/tools.vue";
-
-import { getRef, uuidv4 } from '@/core/utils';
+import { uuidv4 } from "@/core/utils";
 import {
     ServerAsset,
     ServerAura,
@@ -23,11 +21,11 @@ import { MultiLine } from "@/game/shapes/multiline";
 import { Rect } from "@/game/shapes/rect";
 import { Shape } from "@/game/shapes/shape";
 import { Text } from "@/game/shapes/text";
-import { EventBus } from '../event-bus';
-import { gameStore } from '../store';
+import { EventBus } from "../event-bus";
+import { gameStore } from "../store";
 import { Polygon } from "./polygon";
 
-export function createShapeFromDict(shape: ServerShape) {
+export function createShapeFromDict(shape: ServerShape): Shape | undefined {
     let sh: Shape;
 
     // A fromJSON and toJSON on Shape would be cleaner but ts does not allow for static abstracts so yeah.
@@ -92,13 +90,13 @@ export function createShapeFromDict(shape: ServerShape) {
     return sh;
 }
 
-export function copyShapes() {
+export function copyShapes(): void {
     const layer = layerManager.getLayer();
     if (!layer) return;
     if (!layer.selection) return;
     const clipboard = [];
     for (const shape of layer.selection) {
-        if ((<any>getRef<Tools>("tools").$refs.selectTool).selectionHelper.uuid === shape.uuid) continue;
+        if (gameStore.selectionHelperID === shape.uuid) continue;
         clipboard.push(shape.asDict());
     }
     gameStore.setClipboard(clipboard);
@@ -110,7 +108,7 @@ export function pasteShapes(offsetPosition: boolean = true): Shape[] {
     if (!gameStore.clipboard) return [];
     layer.selection = [];
     for (const clip of gameStore.clipboard) {
-        if (offsetPosition){
+        if (offsetPosition) {
             clip.x += 10;
             clip.y += 10;
         }
@@ -120,8 +118,8 @@ export function pasteShapes(offsetPosition: boolean = true): Shape[] {
         for (const tracker of oldTrackers) {
             const newTracker: Tracker = {
                 ...tracker,
-                uuid: uuidv4()
-            }
+                uuid: uuidv4(),
+            };
             clip.trackers.push(newTracker);
         }
         const oldAuras = clip.auras;
@@ -129,8 +127,8 @@ export function pasteShapes(offsetPosition: boolean = true): Shape[] {
         for (const aura of oldAuras) {
             const newAura: ServerAura = {
                 ...aura,
-                uuid: uuidv4()
-            }
+                uuid: uuidv4(),
+            };
             clip.auras.push(newAura);
         }
         const shape = createShapeFromDict(clip);
@@ -144,7 +142,7 @@ export function pasteShapes(offsetPosition: boolean = true): Shape[] {
     return layer.selection;
 }
 
-export function deleteShapes() {
+export function deleteShapes(): void {
     if (layerManager.getLayer === undefined) {
         console.log("No active layer selected for delete operation");
         return;
@@ -152,7 +150,7 @@ export function deleteShapes() {
     const l = layerManager.getLayer()!;
     for (let i = l.selection.length - 1; i >= 0; i--) {
         const sel = l.selection[i];
-        if ((<any>getRef<Tools>("tools").$refs.selectTool).selectionHelper.uuid === sel.uuid) {
+        if (gameStore.selectionHelperID === sel.uuid) {
             l.selection.splice(i, 1);
             continue;
         }
@@ -162,7 +160,7 @@ export function deleteShapes() {
     }
 }
 
-export function cutShapes() {
-    copyShapes()
-    deleteShapes()
+export function cutShapes(): void {
+    copyShapes();
+    deleteShapes();
 }

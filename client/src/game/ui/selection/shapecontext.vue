@@ -6,24 +6,30 @@
         :top="y + 'px'"
         @close="close"
     >
-        <li v-if="getLayers().length > 1">Layer
+        <li v-if="getLayers().length > 1">
+            Layer
             <ul>
                 <li
                     v-for="layer in getLayers()"
                     :key="layer.name"
-                    :style="[getActiveLayer().name === layer.name ? {'background-color':'#82c8a0'}: {}]"
+                    :style="[getActiveLayer().name === layer.name ? { 'background-color': '#82c8a0' } : {}]"
                     @click="setLayer(layer.name)"
-                >{{ layer.name }}</li>
+                >
+                    {{ layer.name }}
+                </li>
             </ul>
         </li>
-        <li v-if="locations.length > 1">Location
+        <li v-if="locations.length > 1">
+            Location
             <ul>
                 <li
                     v-for="location in locations"
                     :key="location"
-                    :style="[getCurrentLocation() === location ? {'background-color':'#82c8a0'}: {}]"
+                    :style="[getCurrentLocation() === location ? { 'background-color': '#82c8a0' } : {}]"
                     @click="setLocation(location)"
-                >{{ location }}</li>
+                >
+                    {{ location }}
+                </li>
             </ul>
         </li>
         <li @click="moveToBack">Move to back</li>
@@ -41,16 +47,15 @@ import Component from "vue-class-component";
 import { mapState } from "vuex";
 
 import ContextMenu from "@/core/components/contextmenu.vue";
-import Initiative from "@/game/ui/initiative.vue";
 
-import { getRef } from "@/core/utils";
 import { socket } from "@/game/api/socket";
 import { ServerLocation } from "@/game/comm/types/general";
 import { EventBus } from "@/game/event-bus";
 import { layerManager } from "@/game/layers/manager";
 import { Shape } from "@/game/shapes/shape";
 import { gameStore } from "@/game/store";
-import { cutShapes,deleteShapes, pasteShapes } from '../../shapes/utils';
+import { cutShapes, deleteShapes, pasteShapes } from "../../shapes/utils";
+import { initiativeStore, inInitiative } from "../initiative/store";
 
 @Component({
     components: {
@@ -86,33 +91,33 @@ export default class ShapeContext extends Vue {
     getActiveLayer() {
         return layerManager.getLayer();
     }
-    getCurrentLocation(){
+    getCurrentLocation() {
         return gameStore.locationName;
     }
     getInitiativeWord() {
         if (this.shapes === null) return "";
-        if (this.shapes.length === 1 ){
-            return getRef<Initiative>("initiative").contains(this.shapes[0].uuid) ? "Show" : "Add";
-        }else {
-            return this.shapes.every(shape => getRef<Initiative>("initiative").contains(shape.uuid)) ? "Show" : "Add all to";
+        if (this.shapes.length === 1) {
+            return inInitiative(this.shapes[0].uuid) ? "Show" : "Add";
+        } else {
+            return this.shapes.every(shape => inInitiative(shape.uuid)) ? "Show" : "Add all to";
         }
     }
-    hasSingleShape(): boolean{
-        return this.shapes !== null && this.shapes.length === 1
+    hasSingleShape(): boolean {
+        return this.shapes !== null && this.shapes.length === 1;
     }
     setLayer(newLayer: string) {
         if (this.shapes === null) return;
         this.shapes.forEach(shape => shape.moveLayer(newLayer, true));
         this.close();
     }
-    setLocation(newLocation: string){
+    setLocation(newLocation: string) {
         if (this.shapes === null) return;
         const layer = layerManager.getLayer()!;
         layer.selection = this.shapes;
         cutShapes();
         // Request change to other location
         socket.emit("Location.Change", newLocation);
-        socket.once("Location.Set", (data: Partial<ServerLocation>) => {
+        socket.once("Location.Set", (_data: Partial<ServerLocation>) => {
             // Paste when location changes
             // TODO: Shapes are pasted to map layer independently of where they come from. Fix this
             this.shapes = pasteShapes(false);
@@ -135,20 +140,17 @@ export default class ShapeContext extends Vue {
     }
     addInitiative() {
         if (this.shapes === null) return;
-        const initiative = getRef<Initiative>("initiative");
-        this.shapes
-            .filter(shape => !initiative.contains(shape.uuid))
-            .forEach(shape => initiative.addInitiative(shape.getInitiativeRepr()));
-        initiative.visible = true;
+        this.shapes.forEach(shape => initiativeStore.addInitiative(shape.getInitiativeRepr()));
+        EventBus.$emit("Initiative.Show");
         this.close();
     }
-    deleteSelection(){
+    deleteSelection() {
         if (this.shapes === null) return;
-        deleteShapes()
+        deleteShapes();
         this.close();
     }
     openEditDialog() {
-        if (this.shapes === null || this.shapes.length !== 1) return
+        if (this.shapes === null || this.shapes.length !== 1) return;
         EventBus.$emit("EditDialog.Open", this.shapes[0]);
         this.close();
     }

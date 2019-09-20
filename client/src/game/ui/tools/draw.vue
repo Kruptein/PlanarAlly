@@ -215,6 +215,13 @@ export default class DrawTool extends Tool {
                     this.shape.points[this.shape.points.length - 2],
                     this.shape.points[this.shape.points.length - 1],
                 );
+            if (this.shape.movementObstruction && this.shape.points.length > 1)
+                insertConstraint(
+                    TriangulationTarget.MOVEMENT,
+                    this.shape,
+                    this.shape.points[this.shape.points.length - 2],
+                    this.shape.points[this.shape.points.length - 1],
+                );
             layer.invalidate(false);
             socket.emit("Shape.Update", { shape: this.shape!.asDict(), redraw: true, temporary: true });
         }

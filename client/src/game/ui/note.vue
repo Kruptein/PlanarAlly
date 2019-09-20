@@ -70,7 +70,7 @@ export default class NoteDialog extends Vue {
         if (this.note) gameStore.updateNote({ note: this.note, sync: true });
     }
     removeNote() {
-        (<Game>this.$parent.$parent).$refs.confirm.open("Are you sure you wish to remove this?").then(
+        (<Game>this.$parent).$refs.confirm.open("Are you sure you wish to remove this?").then(
             (result: boolean) => {
                 if (result && this.note) {
                     gameStore.removeNote({ note: this.note, sync: true });

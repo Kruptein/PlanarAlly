@@ -484,16 +484,6 @@ export interface Constraint {
     combined: [Vertex, Vertex];
     segments: [Vertex, Vertex][];
 }
-export function a(constraintA: Constraint, constraintB: Constraint): Constraint | null {
-    const [A1, A2] = [...constraintA.combined];
-    const [B1, B2] = [...constraintB.combined];
-    if (A1 === B2 && collinearInOrder(B1!.point!, A1!.point!, A2!.point!))
-        return { combined: [B1, A2], segments: [...constraintB.segments, ...constraintA.segments] };
-    if (A2 === B1 && collinearInOrder(A1!.point!, A2.point!, B2.point!))
-        return { combined: [A1, B2], segments: [...constraintA.segments, ...constraintB.segments] };
-    return null;
-}
-
 export function b(constraintA: Constraint, constraintB: Constraint): Constraint | null {
     const [A0, A1] = constraintA.combined;
     const [B0, B1] = constraintB.combined;

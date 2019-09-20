@@ -317,6 +317,20 @@ export default class DrawTool extends Tool {
         }
         layer.removeShape(this.ruler!, false);
         this.ruler = null;
+        if (this.shape.visionObstruction && this.shape.points.length > 1)
+            insertConstraint(
+                TriangulationTarget.VISION,
+                this.shape,
+                this.shape.points[0],
+                this.shape.points[this.shape.points.length - 1],
+            );
+        if (this.shape.movementObstruction && this.shape.points.length > 1)
+            insertConstraint(
+                TriangulationTarget.MOVEMENT,
+                this.shape,
+                this.shape.points[0],
+                this.shape.points[this.shape.points.length - 1],
+            );
         this.finaliseShape();
     }
 
@@ -324,6 +338,10 @@ export default class DrawTool extends Tool {
         if (this.shape === null) return;
         socket.emit("Shape.Update", { shape: this.shape!.asDict(), redraw: true, temporary: false });
         this.active = false;
+        const layer = this.getLayer();
+        if (layer !== undefined) {
+            layer.invalidate(false);
+        }
     }
 
     onSelect() {

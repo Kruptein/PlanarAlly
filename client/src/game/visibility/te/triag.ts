@@ -475,45 +475,9 @@ export function collinearInOrder(p: Point, q: Point, r: Point): boolean {
     return collinear(p, q, r);
 }
 
-function collinear(p: Point, q: Point, r: Point): boolean {
+export function collinear(p: Point, q: Point, r: Point): boolean {
     const surface = p[0] * (q[1] - r[1]) + q[0] * (r[1] - p[1]) + r[0] * (p[1] - q[1]);
     return surface > -0.0001 && surface < 0.0001;
-}
-
-export interface Constraint {
-    combined: [Vertex, Vertex];
-    segments: [Vertex, Vertex][];
-}
-export function b(constraintA: Constraint, constraintB: Constraint): Constraint | null {
-    const [A0, A1] = constraintA.combined;
-    const [B0, B1] = constraintB.combined;
-    if (!collinear(A0.point!, A1.point!, B0.point!)) {
-        if (!xyEqual(A0.point!, B0.point!) || !xyEqual(A1.point!, B0.point!)) return null;
-    }
-    if (!collinear(A0.point!, A1.point!, B1.point!)) {
-        if (!xyEqual(A0.point!, B1.point!) || !xyEqual(A1.point!, B1.point!)) return null;
-    }
-    const newSegmentList: [Vertex, Vertex][] = [];
-    let iA = constraintA.segments.length - 1;
-    let iB = constraintB.segments.length - 1;
-    while (iA >= 0 && iB >= 0) {
-        const comp = xyCompare(constraintA.segments[iA][1].point!, constraintB.segments[iB][1].point!);
-        if (comp === Sign.SMALLER) {
-            newSegmentList.unshift(constraintB.segments.pop()!);
-            iB--;
-        } else if (comp === Sign.LARGER) {
-            newSegmentList.unshift(constraintA.segments.pop()!);
-            iA--;
-        } else {
-            newSegmentList.unshift(constraintA.segments.pop()!);
-            constraintB.segments.pop();
-            iB--;
-            iA--;
-        }
-    }
-    if (iA >= 0) newSegmentList.unshift(...constraintA.segments.slice(0, iA + 1));
-    if (iB >= 0) newSegmentList.unshift(...constraintB.segments.slice(0, iB + 1));
-    return { combined: [newSegmentList[0][0], newSegmentList[newSegmentList.length - 1][1]], segments: newSegmentList };
 }
 
 export function rotateAroundOrigin(p: Point, angle: number): Point {

@@ -2,8 +2,45 @@ import { Shape } from "@/game/shapes/shape";
 import { equalPoints } from "@/game/utils";
 import { CDT } from "./cdt";
 import { PA_CDT, TriangulationTarget } from "./pa";
-import { Edge, Vertex } from "./tds";
-import { Constraint, ccw, collinearInOrder, xySmaller, b } from "./triag";
+import { Edge, Vertex, Sign } from "./tds";
+import { ccw, collinearInOrder, xySmaller, collinear, xyEqual, xyCompare } from "./triag";
+
+interface Constraint {
+    combined: [Vertex, Vertex];
+    segments: [Vertex, Vertex][];
+}
+
+function mergeConstraints(constraintA: Constraint, constraintB: Constraint): Constraint | null {
+    const [A0, A1] = constraintA.combined;
+    const [B0, B1] = constraintB.combined;
+    if (!collinear(A0.point!, A1.point!, B0.point!)) {
+        if (!xyEqual(A0.point!, B0.point!) || !xyEqual(A1.point!, B0.point!)) return null;
+    }
+    if (!collinear(A0.point!, A1.point!, B1.point!)) {
+        if (!xyEqual(A0.point!, B1.point!) || !xyEqual(A1.point!, B1.point!)) return null;
+    }
+    const newSegmentList: [Vertex, Vertex][] = [];
+    let iA = constraintA.segments.length - 1;
+    let iB = constraintB.segments.length - 1;
+    while (iA >= 0 && iB >= 0) {
+        const comp = xyCompare(constraintA.segments[iA][1].point!, constraintB.segments[iB][1].point!);
+        if (comp === Sign.SMALLER) {
+            newSegmentList.unshift(constraintB.segments.pop()!);
+            iB--;
+        } else if (comp === Sign.LARGER) {
+            newSegmentList.unshift(constraintA.segments.pop()!);
+            iA--;
+        } else {
+            newSegmentList.unshift(constraintA.segments.pop()!);
+            constraintB.segments.pop();
+            iB--;
+            iA--;
+        }
+    }
+    if (iA >= 0) newSegmentList.unshift(...constraintA.segments.slice(0, iA + 1));
+    if (iB >= 0) newSegmentList.unshift(...constraintB.segments.slice(0, iB + 1));
+    return { combined: [newSegmentList[0][0], newSegmentList[newSegmentList.length - 1][1]], segments: newSegmentList };
+}
 
 interface NewConstraint {
     edge: Constraint;
@@ -58,7 +95,7 @@ export class IterativeDelete {
                     this.newConstraints.splice(j, 1);
                     break;
                 }
-                const join = b(A, B);
+                const join = mergeConstraints(A, B);
                 if (join !== null) {
                     this.newConstraints.splice(i, 1);
                     this.newConstraints.splice(j, 1, { edge: join, changed: true, onPath: false });

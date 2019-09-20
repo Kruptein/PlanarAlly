@@ -5,7 +5,7 @@ module.exports = {
         ".+\\.(css|styl|less|sass|scss|svg|png|jpg|ttf|woff|woff2)$": "jest-transform-stub",
         "^.+\\.ts$": "ts-jest",
     },
-    transformIgnorePatterns: ["/node_modules/(?!@babel)"],
+    transformIgnorePatterns: ["/node_modules/(?!@babel)", "/dist/"],
     moduleNameMapper: {
         "^@/(.*)$": "<rootDir>/src/$1",
     },

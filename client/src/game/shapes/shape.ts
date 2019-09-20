@@ -10,10 +10,8 @@ import { layerManager } from "@/game/layers/manager";
 import { BoundingRect } from "@/game/shapes/boundingrect";
 import { gameStore } from "@/game/store";
 import { g2l, g2lr, g2lx, g2ly, g2lz } from "@/game/units";
-import { equalPoints } from "../utils";
 import { visibilityStore } from "../visibility/store";
 import { TriangulationTarget } from "../visibility/te/pa";
-import { Vertex } from "../visibility/te/tds";
 
 export abstract class Shape {
     // Used to create class instance from server shape data
@@ -38,7 +36,6 @@ export abstract class Shape {
     auras: Aura[] = [];
     labels: Label[] = [];
     protected _owners: string[] = [];
-    protected _triagVertices: Vertex[] = [];
 
     // Block light sources
     visionObstruction = false;
@@ -345,20 +342,5 @@ export abstract class Shape {
     removeOwner(owner: string): void {
         const ownerIndex = this._owners.findIndex(o => o === owner);
         this._owners.splice(ownerIndex, 1);
-    }
-
-    addTriagVertices(...vertices: Vertex[]): void {
-        for (const vertex of vertices) {
-            if (this._triagVertices.some(v => equalPoints(vertex.point!, v.point!))) continue;
-            this._triagVertices.push(vertex);
-        }
-    }
-
-    get triagVertices(): Vertex[] {
-        return [...this._triagVertices];
-    }
-
-    clearTriagVertices(): void {
-        this._triagVertices = [];
     }
 }

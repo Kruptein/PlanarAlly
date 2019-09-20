@@ -28,20 +28,20 @@ function _expectRemoveSuccess(shape1: Shape, shape2: Shape): void {
 function _expectRemoveSuccessRotation(shape1: Shape, shape2: Shape, rotate: boolean): void {
     cdt = new CDT();
     PA_CDT.vision = cdt;
-    shape1.clearTriagVertices();
-    shape2.clearTriagVertices();
+    cdt.tds.clearTriagVertices(shape1.uuid);
+    cdt.tds.clearTriagVertices(shape2.uuid);
     if (rotate) {
         _rotateShape(shape1);
         _rotateShape(shape2);
     }
     addShapesToTriag(TriangulationTarget.VISION, shape1, shape2);
-    expect(shape1.triagVertices).toHaveLength(4);
-    expect(shape2.triagVertices).toHaveLength(4);
+    expect(cdt.tds.getTriagVertices(shape1.uuid)).toHaveLength(4);
+    expect(cdt.tds.getTriagVertices(shape2.uuid)).toHaveLength(4);
     deleteShapeFromTriag(TriangulationTarget.VISION, shape1);
-    expect(shape1.triagVertices).toHaveLength(0);
-    expect(shape2.triagVertices).toHaveLength(4);
+    expect(cdt.tds.getTriagVertices(shape1.uuid)).toHaveLength(0);
+    expect(cdt.tds.getTriagVertices(shape2.uuid)).toHaveLength(4);
     expect(cdt.tds.numberOfVertices(false)).toBe(4);
-    for (const vertex of shape2.triagVertices) {
+    for (const vertex of cdt.tds.getTriagVertices(shape2.uuid)) {
         expect(cdt.tds.vertices.includes(vertex));
     }
     expect(cdt.tds.numberOfEdges(true)).toBe(4);

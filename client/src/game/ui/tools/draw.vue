@@ -55,7 +55,7 @@ import { gameStore } from "@/game/store";
 import { getUnitDistance, l2g } from "@/game/units";
 import { equalPoints, getMouse } from "@/game/utils";
 import { visibilityStore } from "@/game/visibility/store";
-import { TriangulationTarget, insertConstraint } from "@/game/visibility/te/pa";
+import { TriangulationTarget, insertConstraint, PA_CDT } from "@/game/visibility/te/pa";
 
 @Component({
     components: {
@@ -280,7 +280,7 @@ export default class DrawTool extends Tool {
         if (!(this.shape instanceof Polygon)) {
             socket.emit("Shape.Update", { shape: this.shape!.asDict(), redraw: true, temporary: true });
             if (this.shape.visionObstruction) {
-                if (this.shape.triagVertices.length > 1)
+                if (PA_CDT[TriangulationTarget.VISION].tds.getTriagVertices(this.shape.uuid).length > 1)
                     visibilityStore.deleteFromTriag({
                         target: TriangulationTarget.VISION,
                         shape: this.shape,

@@ -1,4 +1,5 @@
 import { Shape } from "@/game/shapes/shape";
+import { equalPoints } from "@/game/utils";
 import { CDT } from "./cdt";
 import { ccw, cw, orientation, sideOfOrientedCircleP, ulp } from "./triag";
 
@@ -500,6 +501,7 @@ export enum LocateType {
 }
 
 export class TDS {
+    private triagVertices: Map<string, Vertex[]> = new Map();
     dimension = -1;
     vertices: Vertex[] = [];
     triangles: Triangle[] = [];
@@ -951,6 +953,23 @@ export class TDS {
         }
         this.deleteVertex(v);
         this.dimension--;
+    }
+
+    addTriagVertices(shape: string, ...vertices: Vertex[]): void {
+        const tv = this.triagVertices.get(shape) || this.triagVertices.set(shape, []).get(shape)!;
+        for (const vertex of vertices) {
+            if (tv.some(v => equalPoints(vertex.point!, v.point!))) continue;
+            tv.push(vertex);
+        }
+    }
+
+    getTriagVertices(shape: string): Vertex[] {
+        const tv = this.triagVertices.get(shape);
+        return tv === undefined ? [] : [...tv];
+    }
+
+    clearTriagVertices(shape: string): void {
+        this.triagVertices.set(shape, []);
     }
 }
 

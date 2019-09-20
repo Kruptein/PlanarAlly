@@ -16,10 +16,11 @@ export let PA_CDT = {
 };
 
 export function insertConstraint(target: TriangulationTarget, shape: Shape, pa: number[], pb: number[]): void {
-    const { va, vb } = PA_CDT[target].insertConstraint(pa, pb);
+    const cdt = PA_CDT[target];
+    const { va, vb } = cdt.insertConstraint(pa, pb);
     va.shapes.add(shape);
     vb.shapes.add(shape);
-    shape.addTriagVertices(va, vb);
+    cdt.tds.addTriagVertices(shape.uuid, va, vb);
 }
 
 export function triangulate(target: TriangulationTarget): void {
@@ -159,10 +160,11 @@ export function deleteShapeFromTriag(target: TriangulationTarget, shape: Shape):
         newConstraints: [],
         handledPoints: [],
     };
-    const np = shape.triagVertices.length;
-    let from = shape.triagVertices[np - 1];
-    for (const [i, vertex] of shape.triagVertices.entries()) {
-        const n = shape.triagVertices[(i + 1) % np];
+    const vertices = cdt.tds.getTriagVertices(shape.uuid);
+    const np = vertices.length;
+    let from = vertices[np - 1];
+    for (const [i, vertex] of vertices.entries()) {
+        const n = vertices[(i + 1) % np];
         from = deleteIntersectVertex(shape, vertex, from, n, queues, true);
     }
     const actualConstraints: [Vertex, Vertex][] = [];
@@ -245,6 +247,6 @@ export function deleteShapeFromTriag(target: TriangulationTarget, shape: Shape):
     for (const edge of queues.edges) cdt.removeConstrainedEdgeDelaunay(edge.first!, edge.second);
     for (const vertex of queues.vertices) cdt.removeVertex(vertex);
     for (const [from_, to] of actualConstraints) cdt.insertConstraintV(from_, to);
-    shape.clearTriagVertices();
+    cdt.tds.clearTriagVertices(shape.uuid);
     // console.timeEnd("DS");
 }

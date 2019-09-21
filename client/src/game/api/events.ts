@@ -94,6 +94,7 @@ socket.on("Asset.List.Set", (assets: AssetList) => {
 });
 socket.on("Board.Set", (locationInfo: BoardInfo) => {
     gameStore.clear();
+    visibilityStore.clear();
     gameStore.setLocations(locationInfo.locations);
     document.getElementById("layers")!.innerHTML = "";
     gameStore.resetLayerInfo();

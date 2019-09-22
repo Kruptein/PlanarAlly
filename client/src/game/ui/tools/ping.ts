@@ -17,6 +17,7 @@ export class PingTool extends Tool {
     active = false;
     startPoint: GlobalPoint | null = null;
     ping: Circle | null = null;
+    border: Circle | null = null;
     debouncedMouseMove = debounce(this.onMouseStop, 250);
     onMouseDown(event: MouseEvent): void {
         const layer = layerManager.getLayer("draw");
@@ -27,11 +28,14 @@ export class PingTool extends Tool {
         this.active = true;
         this.startPoint = l2g(getMouse(event));
         this.ping = new Circle(this.startPoint, 20, gameStore.rulerColour);
+        this.border = new Circle(this.startPoint, 40, "#0000", gameStore.rulerColour);
         this.ping.addOwner(gameStore.username);
+        this.border.addOwner(gameStore.username);
         layer.addShape(this.ping, true, true);
+        layer.addShape(this.border, true, true);
     }
     onMouseMove(event: MouseEvent): void {
-        if (!this.active || this.ping === null || this.startPoint === null) return;
+        if (!this.active || this.ping === null || this.border === null || this.startPoint === null) return;
 
         const layer = layerManager.getLayer("draw");
         if (layer === undefined) {
@@ -42,14 +46,16 @@ export class PingTool extends Tool {
         const endPoint = l2g(getMouse(event));
 
         this.ping.center(endPoint);
-        this.ping.r = 30;
+        this.ping.r = 20;
+        this.border.center(endPoint);
 
         socket.emit("Shape.Update", { shape: this.ping!.asDict(), redraw: true, temporary: true });
+        socket.emit("Shape.Update", { shape: this.border!.asDict(), redraw: true, temporary: true });
 
         layer.invalidate(true);
     }
     onMouseUp(_event: MouseEvent): void {
-        if (!this.active || this.ping === null || this.startPoint === null) return;
+        if (!this.active || this.ping === null || this.border === null || this.startPoint === null) return;
 
         const layer = layerManager.getLayer("draw");
         if (layer === undefined) {
@@ -59,12 +65,13 @@ export class PingTool extends Tool {
         this.debouncedMouseMove.cancel();
         this.active = false;
         layer.removeShape(this.ping, true, true);
+        layer.removeShape(this.border, true, true);
         layer.invalidate(true);
         this.ping = null;
         this.startPoint = null;
     }
     onMouseStop(_event: MouseEvent): void {
-        if (!this.active || this.ping === null || this.startPoint === null) return;
+        if (!this.active || this.ping === null || this.border === null || this.startPoint === null) return;
 
         const layer = layerManager.getLayer("draw");
         if (layer === undefined) {

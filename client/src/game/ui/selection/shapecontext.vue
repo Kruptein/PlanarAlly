@@ -69,21 +69,18 @@ export default class ShapeContext extends Vue {
     visible = false;
     x = 0;
     y = 0;
-    shapes: Shape[] | null = null;
     get activeLayer(): string {
         const layer = layerManager.getLayer();
         return layer === undefined ? "" : layer.name;
     }
-    open(event: MouseEvent, shapes: Shape[]) {
+    open(event: MouseEvent) {
         this.visible = true;
         this.x = event.pageX;
         this.y = event.pageY;
-        this.shapes = shapes;
         this.$nextTick(() => (<HTMLElement>this.$children[0].$el).focus());
     }
     close() {
         this.visible = false;
-        this.shapes = null;
     }
     getLayers() {
         return layerManager.layers.filter(l => l.selectable && (gameStore.IS_DM || l.playerEditable));
@@ -95,63 +92,60 @@ export default class ShapeContext extends Vue {
         return gameStore.locationName;
     }
     getInitiativeWord() {
-        if (this.shapes === null) return "";
-        if (this.shapes.length === 1) {
-            return inInitiative(this.shapes[0].uuid) ? "Show" : "Add";
+        const layer = layerManager.getLayer()!;
+        if (layer.selection.length === 1) {
+            return inInitiative(layer.selection[0].uuid) ? "Show" : "Add";
         } else {
-            return this.shapes.every(shape => inInitiative(shape.uuid)) ? "Show" : "Add all to";
+            return layer.selection.every(shape => inInitiative(shape.uuid)) ? "Show" : "Add all to";
         }
     }
     hasSingleShape(): boolean {
-        return this.shapes !== null && this.shapes.length === 1;
+        const layer = layerManager.getLayer()!;
+        return layer.selection.length === 1;
     }
     setLayer(newLayer: string) {
-        if (this.shapes === null) return;
-        this.shapes.forEach(shape => shape.moveLayer(newLayer, true));
+        const layer = layerManager.getLayer()!;
+        layer.selection.forEach(shape => shape.moveLayer(newLayer, true));
         this.close();
     }
     setLocation(newLocation: string) {
-        if (this.shapes === null) return;
         const layer = layerManager.getLayer()!;
-        layer.selection = this.shapes;
         cutShapes();
         // Request change to other location
         socket.emit("Location.Change", newLocation);
         socket.once("Location.Set", (_data: Partial<ServerLocation>) => {
-            // Paste when location changes
-            // TODO: Shapes are pasted to map layer independently of where they come from. Fix this
-            this.shapes = pasteShapes(false);
             // Workaround to force the shapes to the right layer
             this.setLayer(layer.name);
+            // Paste when location changes
+            // TODO: Shapes are pasted to map layer independently of where they come from. Fix this
+            layer.selection = pasteShapes(false);
         });
         this.close();
     }
     moveToBack() {
-        if (this.shapes === null) return;
         const layer = this.getActiveLayer()!;
-        this.shapes.forEach(shape => layer.moveShapeOrder(shape, 0, true));
+        layer.selection.forEach(shape => layer.moveShapeOrder(shape, 0, true));
         this.close();
     }
     moveToFront() {
-        if (this.shapes === null) return;
         const layer = this.getActiveLayer()!;
-        this.shapes.forEach(shape => layer.moveShapeOrder(shape, layer.shapes.length - 1, true));
+        layer.selection.forEach(shape => layer.moveShapeOrder(shape, layer.shapes.length - 1, true));
         this.close();
     }
     addInitiative() {
-        if (this.shapes === null) return;
-        this.shapes.forEach(shape => initiativeStore.addInitiative(shape.getInitiativeRepr()));
+        const layer = layerManager.getLayer()!;
+        layer.selection.forEach(shape => initiativeStore.addInitiative(shape.getInitiativeRepr()));
         EventBus.$emit("Initiative.Show");
         this.close();
     }
     deleteSelection() {
-        if (this.shapes === null) return;
         deleteShapes();
         this.close();
     }
     openEditDialog() {
-        if (this.shapes === null || this.shapes.length !== 1) return;
-        EventBus.$emit("EditDialog.Open", this.shapes[0]);
+        const layer = layerManager.getLayer()!;
+        if (layer.selection.length !== 1) return;
+        EventBus.$emit("EditDialog.Open", layer.selection[0]);
         this.close();
     }
 }

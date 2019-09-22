@@ -6,7 +6,6 @@ import { gameStore } from "@/game/store";
 import { calculateDelta } from "@/game/ui/tools/utils";
 import { copyShapes, deleteShapes, pasteShapes } from "../shapes/utils";
 import { visibilityStore } from "../visibility/store";
-import { noop } from "vue-class-component/lib/util";
 
 export const keyboardState = {
     shiftPressed: false,
@@ -23,7 +22,7 @@ function updateKeyboardState(event: KeyboardEvent): void {
 export function onKeyUp(event: KeyboardEvent): void {
     updateKeyboardState(event);
     if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement) {
-        noop;
+        // no-op (condition is cleaner this way)
     } else {
         if (event.key === "Delete" || event.key === "Del" || event.key === "Backspace") {
             deleteShapes();

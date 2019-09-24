@@ -95,7 +95,7 @@ class GameStore extends VuexModule implements GameState {
         return {
             panX: gameStore.panX,
             panY: gameStore.panY,
-            zoomFactor: gameStore.zoomDisplay,
+            zoomFactor: gameStore.zoomFactor,
         };
     }
 
@@ -240,7 +240,7 @@ class GameStore extends VuexModule implements GameState {
         this.panX += diff.x;
         this.panY += diff.y;
         layerManager.invalidate();
-        sendClientOptions(this.locationOptions);
+        sendClientOptions(gameStore.locationOptions);
     }
 
     @Mutation

@@ -110,7 +110,7 @@ export default class SelectTool extends Tool {
             this.selectionHelper.h = 0;
 
             if (keyboardState.shiftPressed || keyboardState.ctrlPressed) {
-                // If either control or shift are pressed, do not remove selection
+                layer.selection.push(this.selectionHelper);
             } else {
                 layer.selection = [this.selectionHelper];
             }
@@ -213,11 +213,7 @@ export default class SelectTool extends Tool {
                     }
                 }
             });
-
-            // Push the selection helper as the last element of the selection
-            // This makes sure that it will be the first one to be hit in the hit detection onMouseDown
-            if (layer.selection.length > 0) layer.selection.push(this.selectionHelper);
-
+            layer.selection = layer.selection.filter(it => it != this.selectionHelper);
             layer.invalidate(true);
         } else if (layer.selection.length) {
             layer.selection.forEach(sel => {
@@ -264,12 +260,11 @@ export default class SelectTool extends Tool {
         const layer = layerManager.getLayer()!;
         const mouse = getMouse(event);
         const globalMouse = l2g(mouse);
-        const selectedShapes = layer.selection.filter(shape => shape !== this.selectionHelper);
-        for (const shape of selectedShapes) {
+        for (const shape of layer.selection) {
             if (shape.contains(globalMouse)) {
                 EventBus.$emit("SelectionInfo.Shape.Set", shape);
                 layer.invalidate(true);
-                (<ShapeContext>this.$parent.$refs.shapecontext).open(event, selectedShapes);
+                (<ShapeContext>this.$parent.$refs.shapecontext).open(event);
                 return;
             }
         }
@@ -281,7 +276,7 @@ export default class SelectTool extends Tool {
                 layer.selection = [shape];
                 EventBus.$emit("SelectionInfo.Shape.Set", shape);
                 layer.invalidate(true);
-                (<ShapeContext>this.$parent.$refs.shapecontext).open(event, selectedShapes);
+                (<ShapeContext>this.$parent.$refs.shapecontext).open(event);
                 return;
             }
         }

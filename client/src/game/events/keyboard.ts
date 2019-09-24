@@ -7,20 +7,7 @@ import { calculateDelta } from "@/game/ui/tools/utils";
 import { copyShapes, deleteShapes, pasteShapes } from "../shapes/utils";
 import { visibilityStore } from "../visibility/store";
 
-export const keyboardState = {
-    shiftPressed: false,
-    ctrlPressed: false,
-    altPressed: false,
-};
-
-function updateKeyboardState(event: KeyboardEvent): void {
-    keyboardState.shiftPressed = event.getModifierState("Shift");
-    keyboardState.ctrlPressed = event.getModifierState("Control");
-    keyboardState.altPressed = event.getModifierState("Alt");
-}
-
 export function onKeyUp(event: KeyboardEvent): void {
-    updateKeyboardState(event);
     if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement) {
         // no-op (condition is cleaner this way)
     } else {
@@ -31,7 +18,6 @@ export function onKeyUp(event: KeyboardEvent): void {
 }
 
 export function onKeyDown(event: KeyboardEvent): void {
-    updateKeyboardState(event);
     if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement) {
         // Ctrl-a with a HTMLInputElement or a HTMLTextAreaElement selected - select all the text
         if (event.key === "a" && event.ctrlKey) event.target!.select();

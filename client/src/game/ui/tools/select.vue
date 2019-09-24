@@ -14,7 +14,6 @@ import { gameStore } from "@/game/store";
 import { calculateDelta } from "@/game/ui/tools/utils";
 import { g2l, g2lx, g2ly, l2g, l2gz } from "@/game/units";
 import { getMouse } from "@/game/utils";
-import { keyboardState } from "../../events/keyboard";
 import { EventBus } from "../../event-bus";
 import { visibilityStore } from "../../visibility/store";
 
@@ -82,7 +81,7 @@ export default class SelectTool extends Tool {
             } else if (shape.contains(globalMouse)) {
                 const selection = shape;
                 if (layer.selection.indexOf(selection) === -1) {
-                    if (keyboardState.shiftPressed || keyboardState.ctrlPressed) {
+                    if (event.shiftKey || event.ctrlKey) {
                         layer.selection.push(selection);
                     } else {
                         layer.selection = [selection];
@@ -109,7 +108,7 @@ export default class SelectTool extends Tool {
             this.selectionHelper.w = 0;
             this.selectionHelper.h = 0;
 
-            if (keyboardState.shiftPressed || keyboardState.ctrlPressed) {
+            if (event.shiftKey || event.ctrlKey) {
                 layer.selection.push(this.selectionHelper);
             } else {
                 layer.selection = [this.selectionHelper];
@@ -192,7 +191,7 @@ export default class SelectTool extends Tool {
         const layer = layerManager.getLayer()!;
 
         if (this.mode === SelectOperations.GroupSelect) {
-            if (keyboardState.shiftPressed || keyboardState.ctrlPressed) {
+            if (e.shiftKey || e.ctrlKey) {
                 // If either control or shift are pressed, do not remove selection
             } else {
                 layer.clearSelection();

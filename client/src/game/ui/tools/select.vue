@@ -208,7 +208,9 @@ export default class SelectTool extends Tool {
                     this.selectionHelper!.refPoint.y <= bbox.botLeft.y &&
                     this.selectionHelper!.refPoint.y + this.selectionHelper!.h >= bbox.topLeft.y
                 ) {
-                    layer.selection.push(shape);
+                    if (layer.selection.find(it => it == shape) === undefined) {
+                        layer.selection.push(shape);
+                    }
                 }
             });
 

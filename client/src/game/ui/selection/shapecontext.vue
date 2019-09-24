@@ -116,7 +116,7 @@ export default class ShapeContext extends Vue {
         socket.once("Location.Set", (_data: Partial<ServerLocation>) => {
             socket.once("Client.Options.Set", (_options: ServerClient) => {
                 // TODO: Shapes are pasted to their original position instead of the position the camera is now centered
-                layer.selection = pasteShapes(new Vector(0, 0), layer.name);
+                layer.selection = pasteShapes(undefined, layer.name);
                 layerManager.selectLayer(layer.name);
             });
         });

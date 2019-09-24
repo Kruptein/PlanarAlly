@@ -207,12 +207,12 @@ export default class SelectTool extends Tool {
                     this.selectionHelper!.refPoint.y <= bbox.botLeft.y &&
                     this.selectionHelper!.refPoint.y + this.selectionHelper!.h >= bbox.topLeft.y
                 ) {
-                    if (layer.selection.find(it => it == shape) === undefined) {
+                    if (layer.selection.find(it => it === shape) === undefined) {
                         layer.selection.push(shape);
                     }
                 }
             });
-            layer.selection = layer.selection.filter(it => it != this.selectionHelper);
+            layer.selection = layer.selection.filter(it => it !== this.selectionHelper);
             layer.invalidate(true);
         } else if (layer.selection.length) {
             layer.selection.forEach(sel => {

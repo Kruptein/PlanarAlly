@@ -48,7 +48,9 @@
                 </div>
                 <div class="row" @click="refreshInviteCode">
                     <div></div>
-                    <div><button>Refresh invitation code</button></div>
+                    <div>
+                        <button>Refresh invitation code</button>
+                    </div>
                 </div>
                 <div class="spanrow header">Danger&nbsp;Zone</div>
                 <div class="row">
@@ -76,7 +78,9 @@
                 </div>
                 <div class="row">
                     <div>Remove Session</div>
-                    <div><button class="danger" @click="deleteSession">Delete this Session</button></div>
+                    <div>
+                        <button class="danger" @click="deleteSession">Delete this Session</button>
+                    </div>
                 </div>
             </div>
             <div class="panel" v-show="selection === 1">
@@ -93,7 +97,17 @@
                     </div>
                 </div>
                 <div class="row">
-                    <label for="unitSizeInput">Unit Size (in ft.):</label>
+                    <div>
+                        <label for="unitSizeUnit">Size Unit</label>
+                    </div>
+                    <div>
+                        <input id="unitSizeUnit" type="text" v-model="unitSizeUnit" />
+                    </div>
+                </div>
+                <div class="row">
+                    <div>
+                        <label for="unitSizeInput">Unit Size (in {{ unitSizeUnit }})</label>
+                    </div>
                     <div>
                         <input id="unitSizeInput" type="number" v-model.number="unitSize" />
                     </div>
@@ -136,13 +150,13 @@
                     </div>
                 </div>
                 <div class="row">
-                    <label for="vmininp">Minimal full vision (ft):</label>
+                    <label for="vmininp">Minimal full vision ({{ unitSizeUnit }}):</label>
                     <div>
                         <input id="vmininp" type="number" min="0" v-model.lazy.number="visionRangeMin" />
                     </div>
                 </div>
                 <div class="row">
-                    <label for="vmaxinp">Maximal vision (ft):</label>
+                    <label for="vmaxinp">Maximal vision ({{ unitSizeUnit }}):</label>
                     <div>
                         <input id="vmaxinp" type="number" min="0" v-model.lazy.number="visionRangeMax" />
                     </div>
@@ -219,6 +233,12 @@ export default class DmSettings extends Vue {
     set unitSize(value: number) {
         if (typeof value !== "number") return;
         gameStore.setUnitSize({ unitSize: value, sync: true });
+    }
+    get unitSizeUnit(): string {
+        return gameStore.unitSizeUnit;
+    }
+    set unitSizeUnit(value: string) {
+        gameStore.setUnitSizeUnit({ unitSizeUnit: value, sync: true });
     }
     get gridSize(): number {
         return gameStore.gridSize;

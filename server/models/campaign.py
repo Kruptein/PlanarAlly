@@ -60,6 +60,7 @@ class Location(BaseModel):
     room = ForeignKeyField(Room, backref="locations", on_delete="CASCADE")
     name = TextField()
     unit_size = FloatField(default=5)
+    unit_size_unit = TextField(default="ft")
     use_grid = BooleanField(default=True)
     full_fow = BooleanField(default=False)
     fow_opacity = FloatField(default=0.3)

@@ -12,7 +12,7 @@ from config import SAVE_FILE
 from models import ALL_MODELS, Constants
 from models.db import db
 
-SAVE_VERSION = 16
+SAVE_VERSION = 17
 logger: logging.Logger = logging.getLogger("PlanarAllyServer")
 logger.setLevel(logging.INFO)
 
@@ -220,6 +220,17 @@ def upgrade(version):
         with db.atomic():
             migrate(
                 migrator.add_column("room", "is_locked", BooleanField(default=False))
+            )
+        db.foreign_keys = True
+        Constants.update(save_version=Constants.save_version + 1).execute()
+    elif version == 16:
+        from peewee import TextField
+        migrator = SqliteMigrator(db)
+        db.foreign_keys = False
+        with db.atomic():
+            migrate(
+                migrator.add_column("location", "unit_size_unit",
+                                    TextField(default="ft"))
             )
         db.foreign_keys = True
         Constants.update(save_version=Constants.save_version + 1).execute()

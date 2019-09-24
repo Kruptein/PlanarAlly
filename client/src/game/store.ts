@@ -56,6 +56,7 @@ class GameStore extends VuexModule implements GameState {
     // zoomFactor = 1;
 
     unitSize = 5;
+    unitSizeUnit = "ft";
     useGrid = true;
     fullFOW = false;
     fowOpacity = 0.3;
@@ -289,6 +290,16 @@ class GameStore extends VuexModule implements GameState {
             layerManager.invalidate();
             // eslint-disable-next-line @typescript-eslint/camelcase
             if (data.sync) socket.emit("Location.Options.Set", { unit_size: data.unitSize });
+        }
+    }
+
+    @Mutation
+    setUnitSizeUnit(data: { unitSizeUnit: string; sync: boolean }): void {
+        if (this.unitSizeUnit !== data.unitSizeUnit) {
+            this.unitSizeUnit = data.unitSizeUnit;
+            layerManager.invalidate();
+            // eslint-disable-next-line @typescript-eslint/camelcase
+            if (data.sync) socket.emit("Location.Options.Set", { unit_size_unit: data.unitSizeUnit });
         }
     }
 

@@ -11,7 +11,7 @@ import {
     ServerShape,
     ServerText,
 } from "@/game/comm/types/shapes";
-import { GlobalPoint } from "@/game/geom";
+import { GlobalPoint, Vector } from "@/game/geom";
 import { layerManager } from "@/game/layers/manager";
 import { Asset } from "@/game/shapes/asset";
 import { Circle } from "@/game/shapes/circle";
@@ -102,16 +102,17 @@ export function copyShapes(): void {
     gameStore.setClipboard(clipboard);
 }
 
-export function pasteShapes(offsetPosition: boolean = true): Shape[] {
-    const layer = layerManager.getLayer();
+export function pasteShapes(offset?: Vector, targetLayer?: string): Shape[] {
+    const layer = layerManager.getLayer(targetLayer);
     if (!layer) return [];
     if (!gameStore.clipboard) return [];
     layer.selection = [];
+    if (offset == null) {
+        offset = new Vector(10, 10);
+    }
     for (const clip of gameStore.clipboard) {
-        if (offsetPosition) {
-            clip.x += 10;
-            clip.y += 10;
-        }
+        clip.x += offset.x;
+        clip.y += offset.y;
         clip.uuid = uuidv4();
         const oldTrackers = clip.trackers;
         clip.trackers = [];

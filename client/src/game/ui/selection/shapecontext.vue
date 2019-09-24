@@ -49,12 +49,13 @@ import { mapState } from "vuex";
 import ContextMenu from "@/core/components/contextmenu.vue";
 
 import { socket } from "@/game/api/socket";
-import { ServerLocation } from "@/game/comm/types/general";
+import { ServerClient, ServerLocation } from "@/game/comm/types/general";
 import { EventBus } from "@/game/event-bus";
 import { layerManager } from "@/game/layers/manager";
 import { gameStore } from "@/game/store";
 import { cutShapes, deleteShapes, pasteShapes } from "../../shapes/utils";
 import { initiativeStore, inInitiative } from "../initiative/store";
+import { Vector } from "../../geom";
 
 @Component({
     components: {
@@ -113,11 +114,11 @@ export default class ShapeContext extends Vue {
         // Request change to other location
         socket.emit("Location.Change", newLocation);
         socket.once("Location.Set", (_data: Partial<ServerLocation>) => {
-            // Workaround to force the shapes to the right layer
-            this.setLayer(layer.name);
-            // Paste when location changes
-            // TODO: Shapes are pasted to map layer independently of where they come from. Fix this
-            layer.selection = pasteShapes(false);
+            socket.once("Client.Options.Set", (_options: ServerClient) => {
+                // TODO: Shapes are pasted to their original position instead of the position the camera is now centered
+                layer.selection = pasteShapes(new Vector(0, 0), layer.name);
+                layerManager.selectLayer(layer.name);
+            });
         });
         this.close();
     }

@@ -229,7 +229,7 @@ def upgrade(version):
         db.foreign_keys = False
         with db.atomic():
             migrate(
-                migrator.add_column("location_user_option", "unit_size_unit",
+                migrator.add_column("location", "unit_size_unit",
                                     TextField(default="ft"))
             )
         db.foreign_keys = True

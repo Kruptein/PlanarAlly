@@ -107,12 +107,11 @@ export function pasteShapes(offset?: Vector, targetLayer?: string): Shape[] {
     if (!layer) return [];
     if (!gameStore.clipboard) return [];
     layer.selection = [];
-    if (offset == null) {
-        offset = new Vector(10, 10);
-    }
     for (const clip of gameStore.clipboard) {
-        clip.x += offset.x;
-        clip.y += offset.y;
+        if (offset) {
+            clip.x += offset.x;
+            clip.y += offset.y;
+        }
         clip.uuid = uuidv4();
         const oldTrackers = clip.trackers;
         clip.trackers = [];

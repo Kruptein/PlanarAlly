@@ -73,7 +73,7 @@ export function onKeyDown(event: KeyboardEvent): void {
             copyShapes();
         } else if (event.key === "v" && event.ctrlKey) {
             // Ctrl-v - Paste
-            pasteShapes();
+            pasteShapes(new Vector(10, 10));
         }
     }
 }

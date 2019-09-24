@@ -55,7 +55,6 @@ import { layerManager } from "@/game/layers/manager";
 import { gameStore } from "@/game/store";
 import { cutShapes, deleteShapes, pasteShapes } from "../../shapes/utils";
 import { initiativeStore, inInitiative } from "../initiative/store";
-import { Vector } from "../../geom";
 
 @Component({
     components: {

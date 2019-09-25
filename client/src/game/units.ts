@@ -1,4 +1,4 @@
-import { GlobalPoint, LocalPoint, Ray } from "@/game/geom";
+import { GlobalPoint, LocalPoint, Ray, Point } from "@/game/geom";
 import { gameStore } from "@/game/store";
 
 export function g2l(obj: GlobalPoint): LocalPoint {
@@ -34,7 +34,7 @@ export function l2g(obj: LocalPoint | Ray<LocalPoint>): GlobalPoint | Ray<Global
     const z = gameStore.zoomFactor;
     const panX = gameStore.panX;
     const panY = gameStore.panY;
-    if (obj instanceof LocalPoint) {
+    if (obj instanceof LocalPoint || obj instanceof Point) {
         return new GlobalPoint(obj.x / z - panX, obj.y / z - panY);
     } else {
         return new Ray<GlobalPoint>(l2g(obj.origin), obj.direction.multiply(1 / z), obj.tMax);

@@ -11,9 +11,15 @@ All notable changes to this project will be documented in this file.
 
 - Added option to set custom units of length
 - Added ping tool
+- Added option to change the location of tokens/shapes
+- Added option to edit shapes in groups (move to other layer, move to other location, move to top/bottom, add initiative)
+- Added option to Shift-select tokens/shapes
+- Added the default right click menu to all tools that didnt have it
+- Added colour in the location bar to show current location
 
 ### Changed
 
+- Pasted shapes are now pasted relative to the screen position
 - [tech] Mousemove events are now throttled, so that they don't fire a gazillion events.
 - [tech] tslint swapped out for eslint
 

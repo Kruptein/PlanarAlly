@@ -27,6 +27,7 @@
                 <filter-tool v-show="currentTool === 'Filter'"></filter-tool>
                 <vision-tool v-show="currentTool === 'Vision'"></vision-tool>
                 <shape-menu ref="shapecontext"></shape-menu>
+                <default-menu ref="defaultcontext"></default-menu>
                 <createtoken-dialog ref="createtokendialog"></createtoken-dialog>
             </template>
         </div>
@@ -38,6 +39,7 @@ import Vue from "vue";
 
 import ShapeContext from "@/game/ui/selection/shapecontext.vue";
 import CreateTokenModal from "@/game/ui/tools/createtoken_modal.vue";
+import DefaultContext from "@/game/ui/tools/defaultcontext.vue";
 import DrawTool from "@/game/ui/tools/draw.vue";
 import FilterTool from "@/game/ui/tools/filter.vue";
 import MapTool from "@/game/ui/tools/map.vue";
@@ -65,6 +67,7 @@ import Component from "vue-class-component";
         "filter-tool": FilterTool,
         "vision-tool": VisionTool,
         "shape-menu": ShapeContext,
+        "default-menu": DefaultContext,
         "createtoken-dialog": CreateTokenModal,
     },
     watch: {

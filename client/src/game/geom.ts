@@ -20,14 +20,14 @@ export class Point {
     static fromArray(point: number[]): Point {
         return new Point(point[0], point[1]);
     }
-    add(vec: Vector): Point {
-        return new Point(this.x + vec.x, this.y + vec.y);
+    add(vec: Vector): this {
+        return new (this as any).constructor(this.x + vec.x, this.y + vec.y);
     }
-    subtract(other: Point): Vector {
+    subtract(other: this): Vector {
         return new Vector(this.x - other.x, this.y - other.y);
     }
-    clone(): Point {
-        return new Point(this.x, this.y);
+    clone(): this {
+        return new (this as any).constructor(this.x, this.y);
     }
     get(dimension: 0 | 1): number {
         if (dimension === 0) return this.x;
@@ -42,15 +42,6 @@ export class GlobalPoint extends Point {
     // We do ! to prevent errors that it never gets initialized
     // tslint:disable-next-line:variable-name
     _GlobalPoint!: string;
-    add(vec: Vector): GlobalPoint {
-        return <GlobalPoint>super.add(vec);
-    }
-    subtract(other: GlobalPoint): Vector {
-        return super.subtract(other);
-    }
-    clone(): GlobalPoint {
-        return <GlobalPoint>super.clone();
-    }
     static fromArray(point: number[]): GlobalPoint {
         return new GlobalPoint(point[0], point[1]);
     }
@@ -61,15 +52,6 @@ export class LocalPoint extends Point {
     // We do ! to prevent errors that it never gets initialized
     // tslint:disable-next-line:variable-name
     _LocalPoint!: string;
-    add(vec: Vector): LocalPoint {
-        return <LocalPoint>super.add(vec);
-    }
-    subtract(other: LocalPoint): Vector {
-        return super.subtract(other);
-    }
-    clone(): LocalPoint {
-        return <LocalPoint>super.clone();
-    }
 }
 
 export class Vector {

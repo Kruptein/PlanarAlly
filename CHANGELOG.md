@@ -10,6 +10,7 @@ All notable changes to this project will be documented in this file.
 ### Added
 
 - Added option to set custom units of length
+- Added ping tool
 - Added option to change the location of tokens/shapes
 - Added option to edit shapes in groups (move to other layer, move to other location, move to top/bottom, add initiative)
 - Added option to Shift-select tokens/shapes

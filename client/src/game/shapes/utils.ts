@@ -109,6 +109,7 @@ export function pasteShapes(targetLayer?: string): Shape[] {
     if (!gameStore.clipboard) return [];
     layer.selection = [];
     let offset = gameStore.screenCenter.subtract(gameStore.clipboardPosition);
+    gameStore.setClipboardPosition(gameStore.screenCenter);
     // Check against 200 as that is the squared length of a vector with size 10, 10
     if (offset.squaredLength() < 200) {
         offset = new Vector(10, 10);

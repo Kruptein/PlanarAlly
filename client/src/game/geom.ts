@@ -85,8 +85,11 @@ export class Vector {
     inverse(): Vector {
         return new Vector(this.x === 0 ? 0 : 1 / this.x, this.y === 0 ? 0 : 1 / this.y);
     }
+    squaredLength(): number {
+        return Math.pow(this.x, 2) + Math.pow(this.y, 2);
+    }
     length(): number {
-        return Math.sqrt(Math.pow(this.x, 2) + Math.pow(this.y, 2));
+        return Math.sqrt(this.squaredLength());
     }
     normalize(): Vector {
         const l = this.length();

@@ -100,18 +100,21 @@ export function copyShapes(): void {
         clipboard.push(shape.asDict());
     }
     gameStore.setClipboard(clipboard);
+    gameStore.setClipboardPosition(gameStore.screenCenter);
 }
 
-export function pasteShapes(offset?: Vector, targetLayer?: string): Shape[] {
+export function pasteShapes(targetLayer?: string): Shape[] {
     const layer = layerManager.getLayer(targetLayer);
     if (!layer) return [];
     if (!gameStore.clipboard) return [];
     layer.selection = [];
+    let offset = gameStore.screenCenter.subtract(gameStore.clipboardPosition);
+    if (offset.squaredLength() < 200) {
+        offset = new Vector(10, 10);
+    }
     for (const clip of gameStore.clipboard) {
-        if (offset) {
-            clip.x += offset.x;
-            clip.y += offset.y;
-        }
+        clip.x += offset.x;
+        clip.y += offset.y;
         clip.uuid = uuidv4();
         const oldTrackers = clip.trackers;
         clip.trackers = [];

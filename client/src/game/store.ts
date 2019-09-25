@@ -72,6 +72,7 @@ class GameStore extends VuexModule implements GameState {
     visionRangeMax = 3281;
 
     clipboard: ServerShape[] = [];
+    clipboardPosition: GlobalPoint = new GlobalPoint(0, 0);
 
     // Maps are not yet supported in Vue untill 3.X, so for now we're using a plain old object
     labels: { [uuid: string]: Label } = {};
@@ -406,6 +407,11 @@ class GameStore extends VuexModule implements GameState {
     @Mutation
     setClipboard(clipboard: ServerShape[]): void {
         this.clipboard = clipboard;
+    }
+
+    @Mutation
+    setClipboardPosition(position: GlobalPoint): void {
+        this.clipboardPosition = position;
     }
 
     @Mutation

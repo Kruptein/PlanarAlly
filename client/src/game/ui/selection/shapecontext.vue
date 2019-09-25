@@ -109,16 +109,12 @@ export default class ShapeContext extends Vue {
     }
     setLocation(newLocation: string) {
         const layer = layerManager.getLayer()!;
-        const originalPos = gameStore.screenCenter;
         cutShapes();
         // Request change to other location
         socket.emit("Location.Change", newLocation);
         socket.once("Location.Set", (_data: Partial<ServerLocation>) => {
             socket.once("Client.Options.Set", (_options: ServerClient) => {
-                // TODO: Shapes are pasted to their original position instead of the position the camera is now centered
-                const newPos = gameStore.screenCenter;
-                const difference = newPos.subtract(originalPos);
-                layer.selection = pasteShapes(difference, layer.name);
+                layer.selection = pasteShapes(layer.name);
                 layerManager.selectLayer(layer.name);
             });
         });

@@ -21,28 +21,9 @@
                     v-for="(category, c) in categories"
                     :key="category"
                     @click="selection = c"
-                >
-                    {{ category }}
-                </div>
+                >{{ category }}</div>
             </div>
             <div class="panel" v-show="selection === 0">
-                <div class="spanrow header">Selection</div>
-                <div class="row">
-                    <div>Cut:</div>
-                    <div>Ctrl+X</div>
-                </div>
-                <div class="row">
-                    <div>Copy:</div>
-                    <div>Ctrl+C</div>
-                </div>
-                <div class="row">
-                    <div>Paste:</div>
-                    <div>Ctrl+V</div>
-                </div>
-                <div class="row">
-                    <div>Deselect all:</div>
-                    <div>D</div>
-                </div>
                 <div class="spanrow header">Movement</div>
                 <div class="row smallrow">
                     <div>With shapes selected:</div>
@@ -74,6 +55,33 @@
                     <div>Ctrl+U</div>
                 </div>
             </div>
+            <div class="panel" v-show="selection === 1">
+                <div class="row">
+                    <div>Cut:</div>
+                    <div>Ctrl+X</div>
+                </div>
+                <div class="row">
+                    <div>Copy:</div>
+                    <div>Ctrl+C</div>
+                </div>
+                <div class="row">
+                    <div>Paste:</div>
+                    <div>Ctrl+V</div>
+                </div>
+                <div class="row">
+                    <div>Delete:</div>
+                    <div>Del</div>
+                </div>
+                <div class="row">
+                    <div>Deselect all:</div>
+                    <div>D</div>
+                </div>
+                <div class="spanrow header">Modifiers</div>
+                <div class="row">
+                    <div>Add to selection:</div>
+                    <div>Hold Shift/Ctrl</div>
+                </div>
+            </div>
         </div>
     </Modal>
 </template>
@@ -100,7 +108,7 @@ import { EventBus } from "@/game/event-bus";
 })
 export default class KeybindSettings extends Vue {
     visible = false;
-    categories = ["Main"];
+    categories = ["General", "Selection"];
     selection = 0;
 
     mounted() {
@@ -111,6 +119,13 @@ export default class KeybindSettings extends Vue {
 
     beforeDestroy() {
         EventBus.$off("KeybindSettings.Open");
+    }
+
+    handleClick(event: { target: HTMLElement }) {
+        const child = event.target.firstElementChild;
+        if (child instanceof HTMLInputElement) {
+            child.click();
+        }
     }
     onClose() {
         this.visible = false;

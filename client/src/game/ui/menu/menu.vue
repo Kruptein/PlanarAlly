@@ -69,7 +69,7 @@
                             </div>
                         </div>
                         <!-- DM OPTIONS -->
-                        <button class="menu-accordion" @click="openDmSettings">DM Options</button>
+                        <button class="menu-accordion menu-accordion-set" @click="openDmSettings">DM Options</button>
                     </template>
                     <!-- CLIENT OPTIONS -->
                     <button class="menu-accordion">Client Options</button>
@@ -81,6 +81,9 @@
                             <color-picker id="fowColour" :color.sync="fowColour" />
                             <label for="rulerColour">Ruler Colour:</label>
                             <color-picker id="rulerColour" :color.sync="rulerColour" />
+                            <button class="menu-accordion menu-accordion-set" @click="openKeybindSettings">
+                                Keybinds
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -163,7 +166,10 @@ export default class MenuBar extends Vue {
         gameStore.setRulerColour({ colour: value, sync: true });
     }
     settingsClick(event: { target: HTMLElement }) {
-        if (event.target.classList.contains("menu-accordion")) {
+        if (
+            event.target.classList.contains("menu-accordion") &&
+            !event.target.classList.contains("menu-accordion-set")
+        ) {
             event.target.classList.toggle("menu-accordion-active");
             const next = <HTMLElement>event.target.nextElementSibling;
             if (next !== null) next.style.display = next.style.display === "" ? "block" : "";
@@ -189,8 +195,20 @@ export default class MenuBar extends Vue {
         (<Game>this.$parent).$refs.note.open(note);
     }
 
-    openDmSettings() {
+    openDmSettings(event: { target: HTMLElement }) {
         EventBus.$emit("DmSettings.Open");
+        event.target.classList.add("menu-accordion-active");
+        EventBus.$once("DmSettings.Close", () => {
+            event.target.classList.remove("menu-accordion-active");
+        });
+    }
+
+    openKeybindSettings(event: { target: HTMLElement }) {
+        EventBus.$emit("KeybindSettings.Open");
+        event.target.classList.add("menu-accordion-active");
+        EventBus.$once("KeybindSettings.Close", () => {
+            event.target.classList.remove("menu-accordion-active");
+        });
     }
 }
 </script>

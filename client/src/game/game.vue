@@ -32,6 +32,7 @@
         <note-dialog ref="note"></note-dialog>
         <label-dialog ref="labels"></label-dialog>
         <dm-settings ref="dmsettings" v-if="IS_DM || FAKE_PLAYER"></dm-settings>
+        <keybind-settings ref="keybindsettings"></keybind-settings>
         <!-- When updating zoom boundaries, also update store updateZoom function;
         should probably do this using a store variable-->
         <zoom-slider
@@ -74,6 +75,7 @@ import NoteDialog from "@/game/ui/note.vue";
 import SelectionInfo from "@/game/ui/selection/selection_info.vue";
 import Tools from "@/game/ui/tools/tools.vue";
 import DmSettings from "./ui/dmsettings.vue";
+import KeybindSettings from "./ui/keybindsettings.vue";
 
 import { createConnection, socket } from "@/game/api/socket";
 import { onKeyDown, onKeyUp } from "@/game/events/keyboard";
@@ -96,6 +98,7 @@ import { dropAsset } from "./layers/utils";
         "note-dialog": NoteDialog,
         "label-dialog": LabelManager,
         "dm-settings": DmSettings,
+        "keybind-settings": KeybindSettings,
     },
     beforeRouteEnter(to, from, next) {
         createConnection(to);

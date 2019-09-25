@@ -1,5 +1,5 @@
 <template>
-    <Modal :visible="visible" :colour="'rgba(255, 255, 255, 0.8)'" @close="visible = false" :mask="false">
+    <Modal :visible="visible" :colour="'rgba(255, 255, 255, 0.8)'" @close="onClose" :mask="false">
         <div
             class="modal-header"
             slot="header"
@@ -9,7 +9,7 @@
             @dragend="m.dragEnd"
         >
             <div>DM Settings</div>
-            <div class="header-close" @click="visible = false">
+            <div class="header-close" @click="onClose">
                 <i class="far fa-window-close"></i>
             </div>
         </div>
@@ -286,6 +286,10 @@ export default class DmSettings extends Vue {
     set visionRangeMax(value: number) {
         if (typeof value !== "number") return;
         gameStore.setVisionRangeMax({ value, sync: true });
+    }
+    onClose() {
+        this.visible = false;
+        EventBus.$emit("DmSettings.Close");
     }
     changeVisionMode(event: { target: HTMLSelectElement }) {
         const value = event.target.value.toLowerCase();

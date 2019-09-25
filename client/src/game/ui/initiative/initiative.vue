@@ -187,6 +187,12 @@ export default class Initiative extends Vue {
         EventBus.$off("Initiative.Clear");
         EventBus.$off("Initiative.Remove");
         EventBus.$off("Initiative.Show");
+        socket.off("Initiative.Set");
+        socket.off("Initiative.Turn.Set");
+        socket.off("Initiative.Turn.Update");
+        socket.off("Initiative.Round.Update");
+        socket.off("Initiative.Effect.New");
+        socket.off("Initiative.Effect.Update");
     }
 
     // Utilities
@@ -206,11 +212,14 @@ export default class Initiative extends Vue {
     fakeSetData(dataTransfer: DataTransfer) {
         dataTransfer.setData("Hack", "");
     }
+    syncInitiative(data: InitiativeData | { uuid: string }) {
+        socket.emit("Initiative.Update", data);
+    }
     // Events
     removeInitiative(uuid: string) {
         const d = initiativeStore.data.findIndex(a => a.uuid === uuid);
         if (d < 0 || initiativeStore.data[d].group) return;
-        initiativeStore.syncInitiative({ uuid });
+        this.syncInitiative({ uuid });
         // Remove highlight
         const shape = layerManager.UUIDMap.get(uuid);
         if (shape === undefined) return;
@@ -272,7 +281,7 @@ export default class Initiative extends Vue {
     toggleOption(actor: InitiativeData, option: "visible" | "group") {
         if (!this.owns(actor)) return;
         actor[option] = !actor[option];
-        initiativeStore.syncInitiative(actor);
+        this.syncInitiative(actor);
     }
     createEffect(actor: InitiativeData, effect: InitiativeEffect, sync: boolean) {
         if (!this.owns(actor)) return;

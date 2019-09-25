@@ -71,6 +71,8 @@ socket.on("Client.Options.Set", (options: ServerClient) => {
 socket.on("Location.Set", (data: Partial<ServerLocation>) => {
     if (data.name !== undefined) gameStore.setLocationName(data.name);
     if (data.unit_size !== undefined) gameStore.setUnitSize({ unitSize: data.unit_size, sync: false });
+    if (data.unit_size_unit !== undefined)
+        gameStore.setUnitSizeUnit({ unitSizeUnit: data.unit_size_unit, sync: false });
     if (data.use_grid !== undefined) gameStore.setUseGrid({ useGrid: data.use_grid, sync: false });
     if (data.full_fow !== undefined) gameStore.setFullFOW({ fullFOW: data.full_fow, sync: false });
     if (data.fow_opacity !== undefined) gameStore.setFOWOpacity({ fowOpacity: data.fow_opacity, sync: false });
@@ -83,7 +85,8 @@ socket.on("Location.Set", (data: Partial<ServerLocation>) => {
         visibilityStore.recalculateMovement();
     }
 });
-socket.on("Position.Set", (data: { x: number; y: number }) => {
+socket.on("Position.Set", (data: { x: number; y: number; zoom: number }) => {
+    gameStore.setZoomDisplay(data.zoom);
     gameManager.setCenterPosition(new GlobalPoint(data.x, data.y));
 });
 socket.on("Notes.Set", (notes: Note[]) => {
@@ -94,6 +97,7 @@ socket.on("Asset.List.Set", (assets: AssetList) => {
 });
 socket.on("Board.Set", (locationInfo: BoardInfo) => {
     gameStore.clear();
+    visibilityStore.clear();
     gameStore.setLocations(locationInfo.locations);
     document.getElementById("layers")!.innerHTML = "";
     gameStore.resetLayerInfo();

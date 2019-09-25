@@ -40,6 +40,7 @@ import Component from "vue-class-component";
 import { Watch } from "vue-property-decorator";
 
 import ColorPicker from "@/core/components/colorpicker.vue";
+import DefaultContext from "@/game/ui/tools/defaultcontext.vue";
 import Tool from "@/game/ui/tools/tool.vue";
 
 import { socket } from "@/game/api/socket";
@@ -308,30 +309,33 @@ export default class DrawTool extends Tool {
         }
         this.finaliseShape();
     }
-    onContextMenu(_event: MouseEvent) {
-        if (!this.active || this.shape === null || !(this.shape instanceof Polygon)) return;
-        const layer = this.getLayer();
-        if (layer === undefined) {
-            console.log("No active layer!");
-            return;
+    onContextMenu(event: MouseEvent) {
+        if (this.active && this.shape !== null && this.shape instanceof Polygon) {
+            const layer = this.getLayer();
+            if (layer === undefined) {
+                console.log("No active layer!");
+                return;
+            }
+            layer.removeShape(this.ruler!, false);
+            this.ruler = null;
+            if (this.shape.visionObstruction && this.shape.points.length > 1)
+                insertConstraint(
+                    TriangulationTarget.VISION,
+                    this.shape,
+                    this.shape.points[0],
+                    this.shape.points[this.shape.points.length - 1],
+                );
+            if (this.shape.movementObstruction && this.shape.points.length > 1)
+                insertConstraint(
+                    TriangulationTarget.MOVEMENT,
+                    this.shape,
+                    this.shape.points[0],
+                    this.shape.points[this.shape.points.length - 1],
+                );
+            this.finaliseShape();
+        } else if (!this.active) {
+            (<DefaultContext>this.$parent.$refs.defaultcontext).open(event);
         }
-        layer.removeShape(this.ruler!, false);
-        this.ruler = null;
-        if (this.shape.visionObstruction && this.shape.points.length > 1)
-            insertConstraint(
-                TriangulationTarget.VISION,
-                this.shape,
-                this.shape.points[0],
-                this.shape.points[this.shape.points.length - 1],
-            );
-        if (this.shape.movementObstruction && this.shape.points.length > 1)
-            insertConstraint(
-                TriangulationTarget.MOVEMENT,
-                this.shape,
-                this.shape.points[0],
-                this.shape.points[this.shape.points.length - 1],
-            );
-        this.finaliseShape();
     }
 
     private finaliseShape() {

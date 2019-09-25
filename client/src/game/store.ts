@@ -7,7 +7,7 @@ import { socket } from "@/game/api/socket";
 import { sendClientOptions } from "@/game/api/utils";
 import { Note } from "@/game/comm/types/general";
 import { ServerShape } from "@/game/comm/types/shapes";
-import { GlobalPoint } from "@/game/geom";
+import { GlobalPoint, Vector } from "@/game/geom";
 import { layerManager } from "@/game/layers/manager";
 import { g2l, l2g } from "@/game/units";
 import { zoomValue } from "@/game/utils";
@@ -56,6 +56,7 @@ class GameStore extends VuexModule implements GameState {
     // zoomFactor = 1;
 
     unitSize = 5;
+    unitSizeUnit = "ft";
     useGrid = true;
     fullFOW = false;
     fowOpacity = 0.3;
@@ -71,6 +72,7 @@ class GameStore extends VuexModule implements GameState {
     visionRangeMax = 3281;
 
     clipboard: ServerShape[] = [];
+    clipboardPosition: GlobalPoint = new GlobalPoint(0, 0);
 
     // Maps are not yet supported in Vue untill 3.X, so for now we're using a plain old object
     labels: { [uuid: string]: Label } = {};
@@ -94,13 +96,22 @@ class GameStore extends VuexModule implements GameState {
         return {
             panX: gameStore.panX,
             panY: gameStore.panY,
-            zoomFactor: gameStore.zoomDisplay,
+            zoomFactor: gameStore.zoomFactor,
         };
     }
 
     get activeTokens(): string[] {
         if (this._activeTokens.length === 0) return this.ownedtokens;
         return this._activeTokens;
+    }
+
+    get screenTopLeft(): GlobalPoint {
+        return new GlobalPoint(-this.panX, -this.panY);
+    }
+
+    get screenCenter(): GlobalPoint {
+        const halfScreen = new Vector(window.innerWidth / 2, window.innerHeight / 2);
+        return l2g(g2l(this.screenTopLeft).add(halfScreen));
     }
 
     @Mutation
@@ -239,7 +250,7 @@ class GameStore extends VuexModule implements GameState {
         this.panX += diff.x;
         this.panY += diff.y;
         layerManager.invalidate();
-        sendClientOptions(this.locationOptions);
+        sendClientOptions(gameStore.locationOptions);
     }
 
     @Mutation
@@ -289,6 +300,16 @@ class GameStore extends VuexModule implements GameState {
             layerManager.invalidate();
             // eslint-disable-next-line @typescript-eslint/camelcase
             if (data.sync) socket.emit("Location.Options.Set", { unit_size: data.unitSize });
+        }
+    }
+
+    @Mutation
+    setUnitSizeUnit(data: { unitSizeUnit: string; sync: boolean }): void {
+        if (this.unitSizeUnit !== data.unitSizeUnit) {
+            this.unitSizeUnit = data.unitSizeUnit;
+            layerManager.invalidate();
+            // eslint-disable-next-line @typescript-eslint/camelcase
+            if (data.sync) socket.emit("Location.Options.Set", { unit_size_unit: data.unitSizeUnit });
         }
     }
 
@@ -386,6 +407,11 @@ class GameStore extends VuexModule implements GameState {
     @Mutation
     setClipboard(clipboard: ServerShape[]): void {
         this.clipboard = clipboard;
+    }
+
+    @Mutation
+    setClipboardPosition(position: GlobalPoint): void {
+        this.clipboardPosition = position;
     }
 
     @Mutation

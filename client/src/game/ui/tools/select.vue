@@ -1,11 +1,8 @@
-<template>
-    <SelectContext ref="selectcontext"></SelectContext>
-</template>
-
 <script lang="ts">
 import Component from "vue-class-component";
 
-import SelectContext from "@/game/ui/tools/selectcontext.vue";
+import ShapeContext from "@/game/ui/selection/shapecontext.vue";
+import DefaultContext from "@/game/ui/tools/defaultcontext.vue";
 import Tool from "@/game/ui/tools/tool.vue";
 
 import { socket } from "@/game/api/socket";
@@ -30,11 +27,7 @@ export enum SelectOperations {
 
 const start = new GlobalPoint(-1000, -1000);
 
-@Component({
-    components: {
-        SelectContext,
-    },
-})
+@Component
 export default class SelectTool extends Tool {
     name = "Select";
     showContextMenu = false;
@@ -89,7 +82,11 @@ export default class SelectTool extends Tool {
             } else if (shape.contains(globalMouse)) {
                 const selection = shape;
                 if (layer.selection.indexOf(selection) === -1) {
-                    layer.selection = [selection];
+                    if (event.shiftKey || event.ctrlKey) {
+                        layer.selection.push(selection);
+                    } else {
+                        layer.selection = [selection];
+                    }
                     EventBus.$emit("SelectionInfo.Shape.Set", selection);
                 }
                 this.mode = SelectOperations.Drag;
@@ -112,7 +109,11 @@ export default class SelectTool extends Tool {
             this.selectionHelper.w = 0;
             this.selectionHelper.h = 0;
 
-            layer.selection = [this.selectionHelper];
+            if (event.shiftKey || event.ctrlKey) {
+                layer.selection.push(this.selectionHelper);
+            } else {
+                layer.selection = [this.selectionHelper];
+            }
             layer.invalidate(true);
         }
         this.active = true;
@@ -207,7 +208,11 @@ export default class SelectTool extends Tool {
         const layer = layerManager.getLayer()!;
 
         if (this.mode === SelectOperations.GroupSelect) {
-            layer.clearSelection();
+            if (e.shiftKey || e.ctrlKey) {
+                // If either control or shift are pressed, do not remove selection
+            } else {
+                layer.clearSelection();
+            }
             layer.shapes.forEach(shape => {
                 if (!shape.ownedBy()) return;
                 if (shape === this.selectionHelper) return;
@@ -219,14 +224,12 @@ export default class SelectTool extends Tool {
                     this.selectionHelper!.refPoint.y <= bbox.botLeft.y &&
                     this.selectionHelper!.refPoint.y + this.selectionHelper!.h >= bbox.topLeft.y
                 ) {
-                    layer.selection.push(shape);
+                    if (layer.selection.find(it => it === shape) === undefined) {
+                        layer.selection.push(shape);
+                    }
                 }
             });
-
-            // Push the selection helper as the last element of the selection
-            // This makes sure that it will be the first one to be hit in the hit detection onMouseDown
-            if (layer.selection.length > 0) layer.selection.push(this.selectionHelper);
-
+            layer.selection = layer.selection.filter(it => it !== this.selectionHelper);
             layer.invalidate(true);
         } else if (layer.selection.length) {
             layer.selection.forEach(sel => {
@@ -301,17 +304,27 @@ export default class SelectTool extends Tool {
         const layer = layerManager.getLayer()!;
         const mouse = getMouse(event);
         const globalMouse = l2g(mouse);
-
         for (const shape of layer.selection) {
-            if (shape.contains(globalMouse) && shape !== this.selectionHelper) {
-                layer.selection = [shape];
+            if (shape.contains(globalMouse)) {
                 EventBus.$emit("SelectionInfo.Shape.Set", shape);
                 layer.invalidate(true);
-                (<any>this.$parent.$refs.shapecontext).open(event, shape);
+                (<ShapeContext>this.$parent.$refs.shapecontext).open(event);
                 return;
             }
         }
-        (<any>this.$refs.selectcontext).open(event);
+
+        // Check if any other shapes are under the mouse
+        for (let i = layer.shapes.length - 1; i >= 0; i--) {
+            const shape = layer.shapes[i];
+            if (shape.contains(globalMouse)) {
+                layer.selection = [shape];
+                EventBus.$emit("SelectionInfo.Shape.Set", shape);
+                layer.invalidate(true);
+                (<ShapeContext>this.$parent.$refs.shapecontext).open(event);
+                return;
+            }
+        }
+        (<DefaultContext>this.$parent.$refs.defaultcontext).open(event);
     }
     updateCursor(layer: Layer, globalMouse: GlobalPoint) {
         for (const sel of layer.selection) {

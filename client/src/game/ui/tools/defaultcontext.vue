@@ -22,7 +22,7 @@ import { l2gx, l2gy } from "@/game/units";
         ContextMenu,
     },
 })
-export default class SelectContext extends Vue {
+export default class DefaultContext extends Vue {
     visible = false;
     x = 0;
     y = 0;
@@ -42,11 +42,11 @@ export default class SelectContext extends Vue {
     }
     bringPlayers() {
         if (!gameStore.IS_DM) return;
-        socket.emit("Players.Bring", { x: l2gx(this.x), y: l2gy(this.y) });
+        socket.emit("Players.Bring", { x: l2gx(this.x), y: l2gy(this.y), zoom: gameStore.zoomDisplay });
         this.close();
     }
     createToken() {
-        (<any>this.$parent.$parent.$refs.createtokendialog).open(this.x, this.y);
+        (<any>this.$parent.$refs.createtokendialog).open(this.x, this.y);
         this.close();
     }
     showInitiative() {

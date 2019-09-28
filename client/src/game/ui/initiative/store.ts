@@ -1,4 +1,4 @@
-import { socket } from "@/assetManager/socket";
+import { socket } from "@/game/api/socket";
 import { InitiativeData } from "@/game/comm/types/general";
 import { rootStore } from "@/store";
 import { getModule, Module, Mutation, VuexModule } from "vuex-module-decorators";
@@ -19,10 +19,6 @@ class InitiativeStore extends VuexModule implements InitiativeState {
     currentActor: string | null = null;
     roundCounter = 0;
 
-    syncInitiative(data: InitiativeData | { uuid: string }): void {
-        socket.emit("Initiative.Update", data);
-    }
-
     @Mutation
     clear(): void {
         this.data = [];
@@ -39,7 +35,7 @@ class InitiativeStore extends VuexModule implements InitiativeState {
         const d = this.data.findIndex(a => a.uuid === data.uuid);
         if (d >= 0) return;
         if (data.initiative === undefined) data.initiative = 0;
-        this.syncInitiative(data);
+        socket.emit("Initiative.Update", data);
     }
 
     @Mutation

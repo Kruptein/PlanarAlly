@@ -1,18 +1,5 @@
 <template>
-    <Modal :visible="visible" @close="visible = false" :mask="false">
-        <div
-            class="modal-header"
-            slot="header"
-            slot-scope="m"
-            draggable="true"
-            @dragstart="m.dragStart"
-            @dragend="m.dragEnd"
-        >
-            <div>Edit asset</div>
-            <div class="header-close" @click="visible = false">
-                <i class="far fa-window-close"></i>
-            </div>
-        </div>
+    <CloseableModal :title="title">
         <div class="modal-body">
             <div class="grid">
                 <label for="shapeselectiondialog-name">Name</label>
@@ -238,7 +225,7 @@
                 ></textarea>
             </div>
         </div>
-    </Modal>
+    </CloseableModal>
 </template>
 
 <script lang="ts">
@@ -248,7 +235,7 @@ import Component from "vue-class-component";
 import { Prop } from "vue-property-decorator";
 
 import ColorPicker from "@/core/components/colorpicker.vue";
-import Modal from "@/core/components/modals/modal.vue";
+import CloseableModal from "@/core/components/modals/closeableModal.vue";
 
 import { uuidv4 } from "@/core/utils";
 import { socket } from "@/game/api/socket";
@@ -260,34 +247,27 @@ import { visibilityStore } from "../../visibility/store";
 
 @Component({
     components: {
-        Modal,
+        CloseableModal,
         "color-picker": ColorPicker,
     },
 })
 export default class EditDialog extends Vue {
     @Prop() shape!: Shape;
 
-    visible = false;
+    title = "EditDialog";
 
     get owned(): boolean {
         return this.shape.ownedBy();
     }
 
     mounted() {
-        EventBus.$on("EditDialog.Open", (shape: Shape) => {
-            this.shape = shape;
-            this.visible = true;
-        });
         EventBus.$on("EditDialog.AddLabel", (label: string) => {
-            if (this.visible) {
-                this.shape.labels.push(gameStore.labels[label]);
-                this.updateShape(true);
-            }
+            this.shape.labels.push(gameStore.labels[label]);
+            this.updateShape(true);
         });
     }
 
     beforeDestroy() {
-        EventBus.$off("EditDialog.Open");
         EventBus.$off("EditDialog.AddLabel");
     }
 
@@ -400,20 +380,6 @@ export default class EditDialog extends Vue {
 </script>
 
 <style scoped>
-.modal-header {
-    background-color: #ff7052;
-    padding: 10px;
-    font-size: 20px;
-    font-weight: bold;
-    cursor: move;
-}
-
-.header-close {
-    position: absolute;
-    top: 5px;
-    right: 5px;
-}
-
 .modal-body {
     padding: 10px;
     max-width: 450px;

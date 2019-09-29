@@ -1,18 +1,5 @@
 <template>
-    <Modal :visible="visible" @close="visible = false" :mask="false">
-        <div
-            class="modal-header"
-            slot="header"
-            slot-scope="m"
-            draggable="true"
-            @dragstart="m.dragStart"
-            @dragend="m.dragEnd"
-        >
-            <div>Label manager</div>
-            <div class="header-close" @click="visible = false">
-                <i class="far fa-window-close"></i>
-            </div>
-        </div>
+    <CloseableModal :title="title" :displayTitle="displayTitle">
         <div class="modal-body">
             <div class="grid">
                 <div class="header">
@@ -65,14 +52,14 @@
                 <button id="addLabelButton" @click.stop="addLabel">Add</button>
             </div>
         </div>
-    </Modal>
+    </CloseableModal>
 </template>
 
 <script lang="ts">
 import Vue from "vue";
 import Component from "vue-class-component";
 
-import Modal from "@/core/components/modals/modal.vue";
+import CloseableModal from "@/core/components/modals/closeableModal.vue";
 
 import { uuidv4 } from "@/core/utils";
 import { socket } from "@/game/api/socket";
@@ -81,18 +68,19 @@ import { gameStore } from "@/game/store";
 
 @Component({
     components: {
-        Modal,
+        CloseableModal,
     },
 })
 export default class LabelManager extends Vue {
-    visible = false;
     newCategory = "";
     newName = "";
     search = "";
 
+    title = "LabelManager";
+    displayTitle = "Lable Manager";
+
     mounted() {
         EventBus.$on("LabelManager.Open", () => {
-            this.visible = true;
             this.newCategory = "";
             this.newName = "";
             this.$nextTick(() => (<HTMLInputElement>this.$refs.search).focus());
@@ -129,7 +117,7 @@ export default class LabelManager extends Vue {
 
     selectLabel(label: string) {
         EventBus.$emit("EditDialog.AddLabel", label);
-        this.visible = false;
+        EventBus.$emit("LabelManager.Close");
     }
 
     toggleVisibility(label: Label) {
@@ -167,20 +155,6 @@ abbr {
 .scroll {
     max-height: 20em;
     overflow-y: auto;
-}
-
-.modal-header {
-    background-color: #ff7052;
-    padding: 10px;
-    font-size: 20px;
-    font-weight: bold;
-    cursor: move;
-}
-
-.header-close {
-    position: absolute;
-    top: 5px;
-    right: 5px;
 }
 
 .modal-body {

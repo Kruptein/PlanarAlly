@@ -1,169 +1,154 @@
 <template>
-    <Modal ref="modal" :visible="visible" :colour="'rgba(255, 255, 255, 0.8)'" @close="close" :mask="false">
-        <div
-            class="modal-header"
-            slot="header"
-            slot-scope="m"
-            draggable="true"
-            @dragstart="m.dragStart"
-            @dragend="m.dragEnd"
-        >
-            <div>DM Settings</div>
-            <div class="header-close" @click="close">
-                <i class="far fa-window-close"></i>
+    <CloseableModal :title="title">
+        <div id="categories">
+            <div
+                class="category"
+                :class="{ selected: selection === c }"
+                v-for="(category, c) in categories"
+                :key="category"
+                @click="selection = c"
+            >
+                {{ category }}
             </div>
         </div>
-        <div class="modal-body" @click="handleClick">
-            <div id="categories">
-                <div
-                    class="category"
-                    :class="{ selected: selection === c }"
-                    v-for="(category, c) in categories"
-                    :key="category"
-                    @click="selection = c"
-                >
-                    {{ category }}
+        <div class="panel" v-show="selection === 0">
+            <div class="spanrow header">Players</div>
+            <div class="row smallrow" v-for="player in $store.state.game.players" :key="player.id">
+                <div>{{ player.name }}</div>
+                <div>
+                    <div @click="kickPlayer(player.id)">Kick</div>
                 </div>
             </div>
-            <div class="panel" v-show="selection === 0">
-                <div class="spanrow header">Players</div>
-                <div class="row smallrow" v-for="player in $store.state.game.players" :key="player.id">
-                    <div>{{ player.name }}</div>
-                    <div>
-                        <div @click="kickPlayer(player.id)">Kick</div>
-                    </div>
+            <div class="row smallrow" v-if="Object.values($store.state.game.players).length === 0">
+                <div class="spanrow">There are no players yet, invite some using the link below!</div>
+            </div>
+            <div class="spanrow header">Invite&nbsp;code</div>
+            <div class="row">
+                <div>Invitation URL:</div>
+                <template v-if="showRefreshState">
+                    <InputCopyElement :value="refreshState" />
+                </template>
+                <template v-else>
+                    <InputCopyElement :value="invitationUrl" />
+                </template>
+            </div>
+            <div class="row" @click="refreshInviteCode">
+                <div></div>
+                <div>
+                    <button>Refresh invitation code</button>
                 </div>
-                <div class="row smallrow" v-if="Object.values($store.state.game.players).length === 0">
-                    <div class="spanrow">There are no players yet, invite some using the link below!</div>
-                </div>
-                <div class="spanrow header">Invite&nbsp;code</div>
-                <div class="row">
-                    <div>Invitation URL:</div>
-                    <template v-if="showRefreshState">
-                        <InputCopyElement :value="refreshState" />
+            </div>
+            <div class="spanrow header">Danger&nbsp;Zone</div>
+            <div class="row">
+                <div>
+                    <template v-if="locked">
+                        Unlock
                     </template>
                     <template v-else>
-                        <InputCopyElement :value="invitationUrl" />
+                        Lock
                     </template>
+                    Session&nbsp;
+                    <i>(DM access only)</i>
                 </div>
-                <div class="row" @click="refreshInviteCode">
-                    <div></div>
-                    <div>
-                        <button>Refresh invitation code</button>
-                    </div>
-                </div>
-                <div class="spanrow header">Danger&nbsp;Zone</div>
-                <div class="row">
-                    <div>
+                <div>
+                    <button class="danger" @click="toggleSessionLock">
                         <template v-if="locked">
                             Unlock
                         </template>
                         <template v-else>
                             Lock
                         </template>
-                        Session&nbsp;
-                        <i>(DM access only)</i>
-                    </div>
-                    <div>
-                        <button class="danger" @click="toggleSessionLock">
-                            <template v-if="locked">
-                                Unlock
-                            </template>
-                            <template v-else>
-                                Lock
-                            </template>
-                            this Session
-                        </button>
-                    </div>
-                </div>
-                <div class="row">
-                    <div>Remove Session</div>
-                    <div>
-                        <button class="danger" @click="deleteSession">Delete this Session</button>
-                    </div>
+                        this Session
+                    </button>
                 </div>
             </div>
-            <div class="panel" v-show="selection === 1">
-                <div class="row">
-                    <label for="useGridInput">Use grid</label>
-                    <div>
-                        <input id="useGridInput" type="checkbox" v-model="useGrid" />
-                    </div>
-                </div>
-                <div class="row">
-                    <label for="gridSizeInput">Grid Size (in pixels):</label>
-                    <div>
-                        <input id="gridSizeInput" type="number" min="0" v-model.number="gridSize" />
-                    </div>
-                </div>
-                <div class="row">
-                    <div>
-                        <label for="unitSizeUnit">Size Unit</label>
-                    </div>
-                    <div>
-                        <input id="unitSizeUnit" type="text" v-model="unitSizeUnit" />
-                    </div>
-                </div>
-                <div class="row">
-                    <div>
-                        <label for="unitSizeInput">Unit Size (in {{ unitSizeUnit }})</label>
-                    </div>
-                    <div>
-                        <input id="unitSizeInput" type="number" v-model.number="unitSize" />
-                    </div>
-                </div>
-            </div>
-            <div class="panel" v-show="selection === 2">
-                <div class="spanrow header">Core</div>
-                <div class="row">
-                    <label for="fakePlayerInput">Fake player:</label>
-                    <div>
-                        <input id="fakePlayerInput" type="checkbox" v-model="fakePlayer" />
-                    </div>
-                </div>
-                <div class="row">
-                    <label for="useFOWInput">Fill entire canvas with FOW:</label>
-                    <div>
-                        <input id="useFOWInput" type="checkbox" v-model="fullFOW" />
-                    </div>
-                </div>
-                <div class="row">
-                    <label for="fowLOS">Only show lights in LoS:</label>
-                    <div>
-                        <input id="fowLOS" type="checkbox" v-model="fowLOS" />
-                    </div>
-                </div>
-                <div class="row">
-                    <label for="fowOpacity">FOW opacity:</label>
-                    <div>
-                        <input id="fowOpacity" type="number" min="0" max="1" step="0.1" v-model.number="fowOpacity" />
-                    </div>
-                </div>
-                <div class="spanrow header">Advanced</div>
-                <div class="row">
-                    <label for="visionMode">Vision Mode:</label>
-                    <div>
-                        <select id="visionMode" @change="changeVisionMode">
-                            <option :selected="$store.state.visibility.visionMode === 'bvh'">BVH</option>
-                            <option :selected="$store.state.visibility.visionMode === 'triangle'">Triangle</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="row">
-                    <label for="vmininp">Minimal full vision ({{ unitSizeUnit }}):</label>
-                    <div>
-                        <input id="vmininp" type="number" min="0" v-model.lazy.number="visionRangeMin" />
-                    </div>
-                </div>
-                <div class="row">
-                    <label for="vmaxinp">Maximal vision ({{ unitSizeUnit }}):</label>
-                    <div>
-                        <input id="vmaxinp" type="number" min="0" v-model.lazy.number="visionRangeMax" />
-                    </div>
+            <div class="row">
+                <div>Remove Session</div>
+                <div>
+                    <button class="danger" @click="deleteSession">Delete this Session</button>
                 </div>
             </div>
         </div>
-    </Modal>
+        <div class="panel" v-show="selection === 1">
+            <div class="row">
+                <label for="useGridInput">Use grid</label>
+                <div>
+                    <input id="useGridInput" type="checkbox" v-model="useGrid" />
+                </div>
+            </div>
+            <div class="row">
+                <label for="gridSizeInput">Grid Size (in pixels):</label>
+                <div>
+                    <input id="gridSizeInput" type="number" min="0" v-model.number="gridSize" />
+                </div>
+            </div>
+            <div class="row">
+                <div>
+                    <label for="unitSizeUnit">Size Unit</label>
+                </div>
+                <div>
+                    <input id="unitSizeUnit" type="text" v-model="unitSizeUnit" />
+                </div>
+            </div>
+            <div class="row">
+                <div>
+                    <label for="unitSizeInput">Unit Size (in {{ unitSizeUnit }})</label>
+                </div>
+                <div>
+                    <input id="unitSizeInput" type="number" v-model.number="unitSize" />
+                </div>
+            </div>
+        </div>
+        <div class="panel" v-show="selection === 2">
+            <div class="spanrow header">Core</div>
+            <div class="row">
+                <label for="fakePlayerInput">Fake player:</label>
+                <div>
+                    <input id="fakePlayerInput" type="checkbox" v-model="fakePlayer" />
+                </div>
+            </div>
+            <div class="row">
+                <label for="useFOWInput">Fill entire canvas with FOW:</label>
+                <div>
+                    <input id="useFOWInput" type="checkbox" v-model="fullFOW" />
+                </div>
+            </div>
+            <div class="row">
+                <label for="fowLOS">Only show lights in LoS:</label>
+                <div>
+                    <input id="fowLOS" type="checkbox" v-model="fowLOS" />
+                </div>
+            </div>
+            <div class="row">
+                <label for="fowOpacity">FOW opacity:</label>
+                <div>
+                    <input id="fowOpacity" type="number" min="0" max="1" step="0.1" v-model.number="fowOpacity" />
+                </div>
+            </div>
+            <div class="spanrow header">Advanced</div>
+            <div class="row">
+                <label for="visionMode">Vision Mode:</label>
+                <div>
+                    <select id="visionMode" @change="changeVisionMode">
+                        <option :selected="$store.state.visibility.visionMode === 'bvh'">BVH</option>
+                        <option :selected="$store.state.visibility.visionMode === 'triangle'">Triangle</option>
+                    </select>
+                </div>
+            </div>
+            <div class="row">
+                <label for="vmininp">Minimal full vision ({{ unitSizeUnit }}):</label>
+                <div>
+                    <input id="vmininp" type="number" min="0" v-model.lazy.number="visionRangeMin" />
+                </div>
+            </div>
+            <div class="row">
+                <label for="vmaxinp">Maximal vision ({{ unitSizeUnit }}):</label>
+                <div>
+                    <input id="vmaxinp" type="number" min="0" v-model.lazy.number="visionRangeMax" />
+                </div>
+            </div>
+        </div>
+    </CloseableModal>
 </template>
 
 <script lang="ts">
@@ -173,8 +158,7 @@ import Component from "vue-class-component";
 import { mapState } from "vuex";
 
 import InputCopyElement from "@/core/components/inputCopy.vue";
-import Modal from "@/core/components/modals/modal.vue";
-import { modalsStore } from "@/core/components/modals/store";
+import CloseableModal from "@/core/components/modals/closeableModal.vue";
 
 import { socket } from "@/game/api/socket";
 import { EventBus } from "@/game/event-bus";
@@ -186,14 +170,14 @@ import { visibilityStore } from "../visibility/store";
 @Component({
     components: {
         InputCopyElement,
-        Modal,
+        CloseableModal,
     },
     computed: {
         ...mapState("game", ["invitationCode"]),
     },
 })
 export default class DmSettings extends Vue {
-    visible = false;
+    title = "DmSettings";
     categories = ["Admin", "Grid", "Vision"];
     selection = 0;
 
@@ -201,21 +185,12 @@ export default class DmSettings extends Vue {
     refreshState = "pending";
 
     mounted() {
-        EventBus.$on("DmSettings.Toggle", () => {
-            if (this.visible && modalsStore.topModal === this.$refs.modal) {
-                this.close();
-            } else {
-                this.visible = true;
-                modalsStore.setTopModal(this.$refs.modal as Modal);
-            }
-        });
         EventBus.$on("DmSettings.RefreshedInviteCode", () => {
             this.showRefreshState = false;
         });
     }
 
     beforeDestroy() {
-        EventBus.$off("DmSettings.Toggle");
         EventBus.$off("DmSettings.RefreshedInviteCode");
     }
 
@@ -293,11 +268,6 @@ export default class DmSettings extends Vue {
         if (typeof value !== "number") return;
         gameStore.setVisionRangeMax({ value, sync: true });
     }
-    close() {
-        this.visible = false;
-        EventBus.$emit("DmSettings.Close");
-        modalsStore.removeFromModals(this.$refs.modal as Modal);
-    }
     changeVisionMode(event: { target: HTMLSelectElement }) {
         const value = event.target.value.toLowerCase();
         if (value !== "bvh" && value !== "triangle") return;
@@ -305,12 +275,6 @@ export default class DmSettings extends Vue {
         visibilityStore.recalculateVision();
         visibilityStore.recalculateMovement();
         layerManager.invalidate();
-    }
-    handleClick(event: { target: HTMLElement }) {
-        const child = event.target.firstElementChild;
-        if (child instanceof HTMLInputElement) {
-            child.click();
-        }
     }
     refreshInviteCode() {
         socket.emit("Room.Info.InviteCode.Refresh");
@@ -343,25 +307,6 @@ export default class DmSettings extends Vue {
 </script>
 
 <style scoped>
-.modal-header {
-    background-color: #ff7052;
-    padding: 10px;
-    font-size: 20px;
-    font-weight: bold;
-    cursor: move;
-}
-
-.header-close {
-    position: absolute;
-    top: 5px;
-    right: 5px;
-}
-
-.modal-body {
-    display: flex;
-    flex-direction: row;
-}
-
 * {
     box-sizing: border-box;
 }

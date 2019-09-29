@@ -50,7 +50,7 @@ export default class DefaultContext extends Vue {
         this.close();
     }
     showInitiative() {
-        EventBus.$emit("Initiative.Show");
+        EventBus.$emit("Initiative.Open");
         this.close();
     }
 }

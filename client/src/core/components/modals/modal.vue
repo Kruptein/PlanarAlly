@@ -13,7 +13,7 @@
                 @click.stop
                 ref="container"
                 :style="{ 'background-color': colour }"
-                @click="onClick"
+                @click="click"
             >
                 <slot name="header" :dragStart="dragStart" :dragEnd="dragEnd"></slot>
                 <slot></slot>
@@ -106,7 +106,7 @@ export default class Modal extends Vue {
         }
     }
 
-    onClick() {
+    click() {
         modalsStore.setTopModal(this);
     }
 }

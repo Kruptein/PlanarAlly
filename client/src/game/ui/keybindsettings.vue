@@ -1,91 +1,76 @@
 <template>
-    <Modal ref="modal" :visible="visible" :colour="'rgba(255, 255, 255, 0.8)'" @close="close" :mask="false">
-        <div
-            class="modal-header"
-            slot="header"
-            slot-scope="m"
-            draggable="true"
-            @dragstart="m.dragStart"
-            @dragend="m.dragEnd"
-        >
-            <div>Keybinds</div>
-            <div class="header-close" @click="close">
-                <i class="far fa-window-close"></i>
+    <CloseableModal :title="title">
+        <div id="categories">
+            <div
+                class="category"
+                :class="{ selected: selection === c }"
+                v-for="(category, c) in categories"
+                :key="category"
+                @click="selection = c"
+            >
+                {{ category }}
             </div>
         </div>
-        <div class="modal-body" @click="handleClick">
-            <div id="categories">
-                <div
-                    class="category"
-                    :class="{ selected: selection === c }"
-                    v-for="(category, c) in categories"
-                    :key="category"
-                    @click="selection = c"
-                >
-                    {{ category }}
-                </div>
+        <div class="panel" v-show="selection === 0">
+            <div class="spanrow header">Movement</div>
+            <div class="row smallrow">
+                <div>With shapes selected:</div>
+                <div>Move the shapes</div>
             </div>
-            <div class="panel" v-show="selection === 0">
-                <div class="spanrow header">Movement</div>
-                <div class="row smallrow">
-                    <div>With shapes selected:</div>
-                    <div>Move the shapes</div>
-                </div>
-                <div class="row smallrow">
-                    <div>Without shapes selected:</div>
-                    <div>Move the camera</div>
-                </div>
-                <div class="row">
-                    <div>Move up:</div>
-                    <div>Arrow up</div>
-                </div>
-                <div class="row">
-                    <div>Move down:</div>
-                    <div>Arrow down</div>
-                </div>
-                <div class="row">
-                    <div>Move left:</div>
-                    <div>Arrow left</div>
-                </div>
-                <div class="row">
-                    <div>Move right:</div>
-                    <div>Arrow right</div>
-                </div>
-                <div class="spanrow header">UI</div>
-                <div class="row">
-                    <div>Hide/Show UI:</div>
-                    <div>Ctrl+U</div>
-                </div>
+            <div class="row smallrow">
+                <div>Without shapes selected:</div>
+                <div>Move the camera</div>
             </div>
-            <div class="panel" v-show="selection === 1">
-                <div class="row">
-                    <div>Cut:</div>
-                    <div>Ctrl+X</div>
-                </div>
-                <div class="row">
-                    <div>Copy:</div>
-                    <div>Ctrl+C</div>
-                </div>
-                <div class="row">
-                    <div>Paste:</div>
-                    <div>Ctrl+V</div>
-                </div>
-                <div class="row">
-                    <div>Delete:</div>
-                    <div>Del</div>
-                </div>
-                <div class="row">
-                    <div>Deselect all:</div>
-                    <div>D</div>
-                </div>
-                <div class="spanrow header">Modifiers</div>
-                <div class="row">
-                    <div>Add to selection:</div>
-                    <div>Hold Shift/Ctrl</div>
-                </div>
+            <div class="row">
+                <div>Move up:</div>
+                <div>Arrow up</div>
+            </div>
+            <div class="row">
+                <div>Move down:</div>
+                <div>Arrow down</div>
+            </div>
+            <div class="row">
+                <div>Move left:</div>
+                <div>Arrow left</div>
+            </div>
+            <div class="row">
+                <div>Move right:</div>
+                <div>Arrow right</div>
+            </div>
+            <div class="spanrow header">UI</div>
+            <div class="row">
+                <div>Hide/Show UI:</div>
+                <div>Ctrl+U</div>
             </div>
         </div>
-    </Modal>
+        <div class="panel" v-show="selection === 1">
+            <div class="row">
+                <div>Cut:</div>
+                <div>Ctrl+X</div>
+            </div>
+            <div class="row">
+                <div>Copy:</div>
+                <div>Ctrl+C</div>
+            </div>
+            <div class="row">
+                <div>Paste:</div>
+                <div>Ctrl+V</div>
+            </div>
+            <div class="row">
+                <div>Delete:</div>
+                <div>Del</div>
+            </div>
+            <div class="row">
+                <div>Deselect all:</div>
+                <div>D</div>
+            </div>
+            <div class="spanrow header">Modifiers</div>
+            <div class="row">
+                <div>Add to selection:</div>
+                <div>Hold Shift/Ctrl</div>
+            </div>
+        </div>
+    </CloseableModal>
 </template>
 
 <script lang="ts">
@@ -93,71 +78,22 @@ import Vue from "vue";
 import Component from "vue-class-component";
 
 import InputCopyElement from "@/core/components/inputCopy.vue";
-import Modal from "@/core/components/modals/modal.vue";
-import { modalsStore } from "@/core/components/modals/store";
-
-import { EventBus } from "@/game/event-bus";
+import CloseableModal from "@/core/components/modals/closeableModal.vue";
 
 @Component({
     components: {
         InputCopyElement,
-        Modal,
+        CloseableModal,
     },
 })
 export default class KeybindSettings extends Vue {
-    visible = false;
+    title = "KeybindSettings";
     categories = ["General", "Selection"];
     selection = 0;
-
-    mounted() {
-        EventBus.$on("KeybindSettings.Toggle", () => {
-            if (this.visible && modalsStore.topModal === this.$refs.modal) {
-                this.close();
-            } else {
-                this.visible = true;
-                modalsStore.setTopModal(this.$refs.modal as Modal);
-            }
-        });
-    }
-
-    beforeDestroy() {
-        EventBus.$off("KeybindSettings.Toggle");
-    }
-
-    handleClick(event: { target: HTMLElement }) {
-        const child = event.target.firstElementChild;
-        if (child instanceof HTMLInputElement) {
-            child.click();
-        }
-    }
-    close() {
-        this.visible = false;
-        EventBus.$emit("KeybindSettings.Close");
-        modalsStore.removeFromModals(this.$refs.modal as Modal);
-    }
 }
 </script>
 
 <style scoped>
-.modal-header {
-    background-color: #ff7052;
-    padding: 10px;
-    font-size: 20px;
-    font-weight: bold;
-    cursor: move;
-}
-
-.header-close {
-    position: absolute;
-    top: 5px;
-    right: 5px;
-}
-
-.modal-body {
-    display: flex;
-    flex-direction: row;
-}
-
 * {
     box-sizing: border-box;
 }

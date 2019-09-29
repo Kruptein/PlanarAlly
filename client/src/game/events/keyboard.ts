@@ -6,8 +6,7 @@ import { gameStore } from "@/game/store";
 import { calculateDelta } from "@/game/ui/tools/utils";
 import { copyShapes, deleteShapes, pasteShapes } from "../shapes/utils";
 import { visibilityStore } from "../visibility/store";
-import { modalsStore } from '@/core/components/modals/store';
-import { EventBus } from '../event-bus';
+import { EventBus } from "../event-bus";
 
 export function onKeyUp(event: KeyboardEvent): void {
     if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement) {

@@ -3,11 +3,18 @@
         <div
             class="mask"
             :class="{ 'modal-mask': mask, 'dialog-mask': !mask }"
+            :style="{ 'z-index': zIndex }"
             @click="close"
             v-show="visible"
             @dragover.prevent="dragOver"
         >
-            <div class="modal-container" @click.stop ref="container" :style="{ 'background-color': colour }">
+            <div
+                class="modal-container"
+                @click.stop
+                ref="container"
+                :style="{ 'background-color': colour }"
+                @click="onClick"
+            >
                 <slot name="header" :dragStart="dragStart" :dragEnd="dragEnd"></slot>
                 <slot></slot>
             </div>
@@ -18,7 +25,8 @@
 <script lang="ts">
 import Vue from "vue";
 import Component from "vue-class-component";
-import { Prop } from "vue-property-decorator";
+import { Prop, Watch } from "vue-property-decorator";
+import { modalsStore } from "./store";
 
 @Component
 export default class Modal extends Vue {
@@ -36,6 +44,8 @@ export default class Modal extends Vue {
     screenX = 0;
     screenY = 0;
     dragging = false;
+
+    zIndex = 8999;
 
     // Example of mounted required: opening note
     mounted() {
@@ -89,6 +99,16 @@ export default class Modal extends Vue {
     dragOver(_event: DragEvent) {
         if (this.dragging) this.$refs.container.style.display = "none";
     }
+
+    @Watch("visible") onVisibilityChanged(newValue: boolean, oldValue: boolean): void {
+        if (newValue && !oldValue) {
+            modalsStore.setTopModal(this);
+        }
+    }
+
+    onClick() {
+        modalsStore.setTopModal(this);
+    }
 }
 </script>
 
@@ -99,7 +119,6 @@ export default class Modal extends Vue {
 
 .mask {
     position: fixed;
-    z-index: 9998;
     top: 0;
     left: 0;
     width: 100%;

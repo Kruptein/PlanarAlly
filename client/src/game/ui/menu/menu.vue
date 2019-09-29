@@ -204,19 +204,19 @@ export default class MenuBar extends Vue {
     }
 
     openDmSettings(event: { target: HTMLElement }) {
-        EventBus.$emit("DmSettings.Open");
         event.target.classList.add("menu-accordion-active");
         EventBus.$once("DmSettings.Close", () => {
             event.target.classList.remove("menu-accordion-active");
         });
+        EventBus.$emit("DmSettings.Toggle");
     }
 
     openKeybindSettings(event: { target: HTMLElement }) {
-        EventBus.$emit("KeybindSettings.Open");
         event.target.classList.add("menu-accordion-active");
         EventBus.$once("KeybindSettings.Close", () => {
             event.target.classList.remove("menu-accordion-active");
         });
+        EventBus.$emit("KeybindSettings.Toggle");
     }
 }
 </script>

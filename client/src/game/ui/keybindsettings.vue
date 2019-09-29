@@ -1,5 +1,5 @@
 <template>
-    <Modal :visible="visible" :colour="'rgba(255, 255, 255, 0.8)'" @close="onClose" :mask="false">
+    <Modal ref="modal" :visible="visible" :colour="'rgba(255, 255, 255, 0.8)'" @close="close" :mask="false">
         <div
             class="modal-header"
             slot="header"
@@ -9,7 +9,7 @@
             @dragend="m.dragEnd"
         >
             <div>Keybinds</div>
-            <div class="header-close" @click="onClose">
+            <div class="header-close" @click="close">
                 <i class="far fa-window-close"></i>
             </div>
         </div>
@@ -21,7 +21,9 @@
                     v-for="(category, c) in categories"
                     :key="category"
                     @click="selection = c"
-                >{{ category }}</div>
+                >
+                    {{ category }}
+                </div>
             </div>
             <div class="panel" v-show="selection === 0">
                 <div class="spanrow header">Movement</div>
@@ -90,10 +92,9 @@
 import Vue from "vue";
 import Component from "vue-class-component";
 
-import { mapState } from "vuex";
-
 import InputCopyElement from "@/core/components/inputCopy.vue";
 import Modal from "@/core/components/modals/modal.vue";
+import { modalsStore } from "@/core/components/modals/store";
 
 import { EventBus } from "@/game/event-bus";
 
@@ -102,9 +103,6 @@ import { EventBus } from "@/game/event-bus";
         InputCopyElement,
         Modal,
     },
-    computed: {
-        ...mapState("game", ["invitationCode"]),
-    },
 })
 export default class KeybindSettings extends Vue {
     visible = false;
@@ -112,13 +110,18 @@ export default class KeybindSettings extends Vue {
     selection = 0;
 
     mounted() {
-        EventBus.$on("KeybindSettings.Open", () => {
-            this.visible = true;
+        EventBus.$on("KeybindSettings.Toggle", () => {
+            if (this.visible && modalsStore.topModal === this.$refs.modal) {
+                this.close();
+            } else {
+                this.visible = true;
+                modalsStore.setTopModal(this.$refs.modal as Modal);
+            }
         });
     }
 
     beforeDestroy() {
-        EventBus.$off("KeybindSettings.Open");
+        EventBus.$off("KeybindSettings.Toggle");
     }
 
     handleClick(event: { target: HTMLElement }) {
@@ -127,9 +130,10 @@ export default class KeybindSettings extends Vue {
             child.click();
         }
     }
-    onClose() {
+    close() {
         this.visible = false;
         EventBus.$emit("KeybindSettings.Close");
+        modalsStore.removeFromModals(this.$refs.modal as Modal);
     }
 }
 </script>

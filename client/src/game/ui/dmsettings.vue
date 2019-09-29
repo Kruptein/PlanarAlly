@@ -1,5 +1,5 @@
 <template>
-    <Modal :visible="visible" :colour="'rgba(255, 255, 255, 0.8)'" @close="onClose" :mask="false">
+    <Modal ref="modal" :visible="visible" :colour="'rgba(255, 255, 255, 0.8)'" @close="close" :mask="false">
         <div
             class="modal-header"
             slot="header"
@@ -9,7 +9,7 @@
             @dragend="m.dragEnd"
         >
             <div>DM Settings</div>
-            <div class="header-close" @click="onClose">
+            <div class="header-close" @click="close">
                 <i class="far fa-window-close"></i>
             </div>
         </div>
@@ -174,6 +174,7 @@ import { mapState } from "vuex";
 
 import InputCopyElement from "@/core/components/inputCopy.vue";
 import Modal from "@/core/components/modals/modal.vue";
+import { modalsStore } from "@/core/components/modals/store";
 
 import { socket } from "@/game/api/socket";
 import { EventBus } from "@/game/event-bus";
@@ -200,8 +201,13 @@ export default class DmSettings extends Vue {
     refreshState = "pending";
 
     mounted() {
-        EventBus.$on("DmSettings.Open", () => {
-            this.visible = true;
+        EventBus.$on("DmSettings.Toggle", () => {
+            if (this.visible && modalsStore.topModal === this.$refs.modal) {
+                this.close();
+            } else {
+                this.visible = true;
+                modalsStore.setTopModal(this.$refs.modal as Modal);
+            }
         });
         EventBus.$on("DmSettings.RefreshedInviteCode", () => {
             this.showRefreshState = false;
@@ -209,7 +215,7 @@ export default class DmSettings extends Vue {
     }
 
     beforeDestroy() {
-        EventBus.$off("DmSettings.Open");
+        EventBus.$off("DmSettings.Toggle");
         EventBus.$off("DmSettings.RefreshedInviteCode");
     }
 
@@ -287,9 +293,10 @@ export default class DmSettings extends Vue {
         if (typeof value !== "number") return;
         gameStore.setVisionRangeMax({ value, sync: true });
     }
-    onClose() {
+    close() {
         this.visible = false;
         EventBus.$emit("DmSettings.Close");
+        modalsStore.removeFromModals(this.$refs.modal as Modal);
     }
     changeVisionMode(event: { target: HTMLSelectElement }) {
         const value = event.target.value.toLowerCase();

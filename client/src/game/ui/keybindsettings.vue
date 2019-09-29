@@ -12,6 +12,11 @@
             </div>
         </div>
         <div class="panel" v-show="selection === 0">
+            <div class="spanrow header">General</div>
+            <div class="row">
+                <div>Escape:</div>
+                <div>Close and deselect all</div>
+            </div>
             <div class="spanrow header">Movement</div>
             <div class="row smallrow">
                 <div>With shapes selected:</div>

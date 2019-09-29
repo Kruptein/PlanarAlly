@@ -64,7 +64,7 @@ export default class CloseableModal extends Vue {
     beforeDestroy() {
         EventBus.$off(`${this.title}.Toggle`);
         EventBus.$off(`${this.title}.Open`);
-        EventBus.$off(`${this.title}.Close`)
+        EventBus.$off(`${this.title}.Close`);
     }
 
     handleClick(event: { target: HTMLElement }) {

@@ -149,6 +149,17 @@ export default class MenuBar extends Vue {
         locations: false,
     };
 
+    mounted() {
+        EventBus.$on("General.CloseAll", () => {
+            this.visible.settings = false;
+            this.visible.locations = false;
+        });
+    }
+
+    beforeDestroy() {
+        EventBus.$off("General.CloseAll");
+    }
+
     get IS_DM(): boolean {
         return gameStore.IS_DM || gameStore.FAKE_PLAYER;
     }

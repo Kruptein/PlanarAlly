@@ -17,10 +17,12 @@ All notable changes to this project will be documented in this file.
 - Added the default right click menu to all tools that didnt have it
 - Added colour in the location bar to show current location
 - Added keybinds window
+- Added Excape keybind that closes all modals and deselects all shapes
 
 ### Changed
 
 - Pasted shapes are now pasted relative to the screen position
+- Windows now reorder so that the most recent interacted window is on top
 - [tech] Mousemove events are now throttled, so that they don't fire a gazillion events.
 - [tech] tslint swapped out for eslint
 

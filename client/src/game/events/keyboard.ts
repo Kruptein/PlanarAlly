@@ -6,6 +6,7 @@ import { gameStore } from "@/game/store";
 import { calculateDelta } from "@/game/ui/tools/utils";
 import { copyShapes, deleteShapes, pasteShapes } from "../shapes/utils";
 import { visibilityStore } from "../visibility/store";
+import { EventBus } from "../event-bus";
 
 export function onKeyUp(event: KeyboardEvent): void {
     if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement) {
@@ -74,6 +75,9 @@ export function onKeyDown(event: KeyboardEvent): void {
         } else if (event.key === "v" && event.ctrlKey) {
             // Ctrl-v - Paste
             pasteShapes();
+        } else if (event.key === "Escape") {
+            //modalsStore.closeAll();
+            EventBus.$emit("General.CloseAll");
         }
     }
 }

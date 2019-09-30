@@ -69,7 +69,7 @@
                             </div>
                         </div>
                         <!-- DM OPTIONS -->
-                        <button class="menu-accordion" @click="openDmSettings">DM Options</button>
+                        <button class="menu-accordion menu-accordion-set" @click="openDmSettings">DM Options</button>
                     </template>
                     <!-- CLIENT OPTIONS -->
                     <button class="menu-accordion">Client Options</button>
@@ -81,6 +81,9 @@
                             <color-picker id="fowColour" :color.sync="fowColour" />
                             <label for="rulerColour">Ruler Colour:</label>
                             <color-picker id="rulerColour" :color.sync="rulerColour" />
+                            <button class="menu-accordion menu-accordion-set" @click="openKeybindSettings">
+                                Keybinds
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -146,6 +149,17 @@ export default class MenuBar extends Vue {
         locations: false,
     };
 
+    mounted() {
+        EventBus.$on("General.CloseAll", () => {
+            this.visible.settings = false;
+            this.visible.locations = false;
+        });
+    }
+
+    beforeDestroy() {
+        EventBus.$off("General.CloseAll");
+    }
+
     get IS_DM(): boolean {
         return gameStore.IS_DM || gameStore.FAKE_PLAYER;
     }
@@ -168,7 +182,10 @@ export default class MenuBar extends Vue {
         gameStore.setRulerColour({ colour: value, sync: true });
     }
     settingsClick(event: { target: HTMLElement }) {
-        if (event.target.classList.contains("menu-accordion")) {
+        if (
+            event.target.classList.contains("menu-accordion") &&
+            !event.target.classList.contains("menu-accordion-set")
+        ) {
             event.target.classList.toggle("menu-accordion-active");
             const next = <HTMLElement>event.target.nextElementSibling;
             if (next !== null) next.style.display = next.style.display === "" ? "block" : "";
@@ -197,8 +214,20 @@ export default class MenuBar extends Vue {
         (<Game>this.$parent).$refs.note.open(note);
     }
 
-    openDmSettings() {
-        EventBus.$emit("DmSettings.Open");
+    openDmSettings(event: { target: HTMLElement }) {
+        event.target.classList.add("menu-accordion-active");
+        EventBus.$once("DmSettings.Close", () => {
+            event.target.classList.remove("menu-accordion-active");
+        });
+        EventBus.$emit("DmSettings.Toggle");
+    }
+
+    openKeybindSettings(event: { target: HTMLElement }) {
+        event.target.classList.add("menu-accordion-active");
+        EventBus.$once("KeybindSettings.Close", () => {
+            event.target.classList.remove("menu-accordion-active");
+        });
+        EventBus.$emit("KeybindSettings.Toggle");
     }
 }
 </script>

@@ -1,18 +1,5 @@
 <template>
-    <modal :visible="visible" @close="visible = false" :mask="false">
-        <div
-            class="modal-header"
-            slot="header"
-            slot-scope="m"
-            draggable="true"
-            @dragstart="m.dragStart"
-            @dragend="m.dragEnd"
-        >
-            <div>Initiative</div>
-            <div class="header-close" @click="visible = false">
-                <i class="far fa-window-close"></i>
-            </div>
-        </div>
+    <CloseableModal :title="title">
         <div class="modal-body">
             <draggable
                 id="initiative-list"
@@ -131,7 +118,7 @@
                 </div>
             </div>
         </div>
-    </modal>
+    </CloseableModal>
 </template>
 
 <script lang="ts">
@@ -140,7 +127,7 @@ import Component from "vue-class-component";
 import draggable from "vuedraggable";
 Vue.component("draggable", draggable);
 
-import Modal from "@/core/components/modals/modal.vue";
+import CloseableModal from "@/core/components/modals/closeableModal.vue";
 
 import { uuidv4 } from "@/core/utils";
 import { socket } from "@/game/api/socket";
@@ -153,20 +140,20 @@ import { gameManager } from "../../manager";
 
 @Component({
     components: {
-        Modal,
+        CloseableModal,
         draggable,
     },
 })
 export default class Initiative extends Vue {
-    visible = false;
     visionLock = false;
     cameraLock = false;
     _activeTokens: string[] = [];
 
+    title = "Initiative";
+
     mounted() {
         EventBus.$on("Initiative.Clear", initiativeStore.clear);
         EventBus.$on("Initiative.Remove", (data: string) => this.removeInitiative(data));
-        EventBus.$on("Initiative.Show", () => (this.visible = true));
         EventBus.$on("Initiative.ForceUpdate", () => this.$forceUpdate());
 
         socket.on("Initiative.Set", initiativeStore.setData);
@@ -186,7 +173,6 @@ export default class Initiative extends Vue {
     beforeDestroy() {
         EventBus.$off("Initiative.Clear");
         EventBus.$off("Initiative.Remove");
-        EventBus.$off("Initiative.Show");
         socket.off("Initiative.Set");
         socket.off("Initiative.Turn.Set");
         socket.off("Initiative.Turn.Update");

@@ -44,6 +44,17 @@ export default class SelectTool extends Tool {
         this.selectionHelper.globalCompositeOperation = "source-over";
         gameStore.setSelectionHelperId(this.selectionHelper.uuid);
     }
+
+    mounted() {
+        EventBus.$on("General.CloseAll", () => {
+            this.deselectAll();
+        });
+    }
+
+    beforeDestroy() {
+        EventBus.$off("General.CloseAll");
+    }
+
     onMouseDown(event: MouseEvent) {
         const layer = layerManager.getLayer();
         if (layer === undefined) {
@@ -299,6 +310,15 @@ export default class SelectTool extends Tool {
                     document.body.style.cursor = "nesw-resize";
             }
         }
+    }
+    deselectAll() {
+        const layer = layerManager.getLayer();
+        if (layer === undefined) {
+            console.log("No active layer!");
+            return;
+        }
+        layer.selection = [];
+        layer.invalidate(true);
     }
 }
 </script>

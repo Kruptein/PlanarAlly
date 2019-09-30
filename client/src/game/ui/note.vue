@@ -1,5 +1,5 @@
 <template>
-    <modal v-if="note !== null" :visible="visible" @close="visible = false" :mask="false">
+    <Modal ref="modal" v-if="note !== null" :visible="visible" @close="close" :mask="false">
         <div
             class="modal-header"
             slot="header"
@@ -12,7 +12,7 @@
                 <i class="fas fa-pencil-alt" style="font-size: 15px"></i>
             </span>
             <input v-model="note.title" ref="title" @change="updateNote" />
-            <div class="header-close" @click="visible = false">
+            <div class="header-close" @click="close">
                 <i class="far fa-window-close"></i>
             </div>
         </div>
@@ -30,7 +30,7 @@
                 Remove
             </button>
         </div>
-    </modal>
+    </Modal>
 </template>
 
 <script lang="ts">
@@ -38,6 +38,7 @@ import Vue from "vue";
 import Component from "vue-class-component";
 
 import Modal from "@/core/components/modals/modal.vue";
+import { modalsStore } from "@/core/components/modals/store";
 import Game from "@/game/game.vue";
 
 import { Note } from "@/game/comm/types/general";
@@ -53,8 +54,13 @@ export default class NoteDialog extends Vue {
     note: Note | null = null;
 
     open(note: Note) {
-        this.visible = true;
-        this.note = note;
+        if (this.visible && this.note === note && modalsStore.topModal === this.$refs.modal) {
+            this.close();
+        } else {
+            this.visible = true;
+            modalsStore.setTopModal(this.$refs.modal as Modal);
+            this.note = note;
+        }
     }
     calcHeight() {
         if (this.$refs.textarea) {
@@ -74,11 +80,15 @@ export default class NoteDialog extends Vue {
             (result: boolean) => {
                 if (result && this.note) {
                     gameStore.removeNote({ note: this.note, sync: true });
-                    this.visible = false;
+                    this.close();
                 }
             },
             () => {},
         );
+    }
+    close() {
+        this.visible = false;
+        modalsStore.removeFromModals(this.$refs.modal as Modal);
     }
 }
 </script>

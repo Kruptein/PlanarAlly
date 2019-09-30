@@ -133,7 +133,7 @@ export default class ShapeContext extends Vue {
     addInitiative() {
         const layer = layerManager.getLayer()!;
         layer.selection.forEach(shape => initiativeStore.addInitiative(shape.getInitiativeRepr()));
-        EventBus.$emit("Initiative.Show");
+        EventBus.$emit("Initiative.Open");
         this.close();
     }
     deleteSelection() {

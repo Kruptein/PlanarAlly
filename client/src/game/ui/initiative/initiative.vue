@@ -234,7 +234,7 @@ export default class Initiative extends Vue {
     }
     updateTurn(actorId: string | null, sync: boolean) {
         if (!gameStore.IS_DM && sync) return;
-        initiativeStore.currentActor = actorId;
+        initiativeStore.setCurrentActor(actorId);
         const actor = initiativeStore.data.find(a => a.uuid === actorId);
         if (actor === undefined) return;
         if (actor.effects) {

@@ -26,6 +26,11 @@ class InitiativeStore extends VuexModule implements InitiativeState {
     }
 
     @Mutation
+    setCurrentActor(actor: string | null): void {
+        this.currentActor = actor;
+    }
+
+    @Mutation
     setData(data: InitiativeData[]): void {
         this.data = data;
     }

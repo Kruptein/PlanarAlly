@@ -191,6 +191,7 @@ class MultiLine(ShapeType):
 class Polygon(ShapeType):
     abstract = False
     vertices = TextField()
+    open_polygon = BooleanField()
 
     def as_dict(self, *args, **kwargs):
         model = model_to_dict(self, *args, **kwargs)

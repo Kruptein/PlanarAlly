@@ -8,16 +8,19 @@ import { Shape } from "./shape";
 export class Polygon extends Shape {
     type = "polygon";
     _vertices: GlobalPoint[] = [];
+    openPolygon = false;
 
     constructor(
         startPoint: GlobalPoint,
         vertices: GlobalPoint[] = [],
         fillColour?: string,
         strokeColour?: string,
+        openPolygon = false,
         uuid?: string,
     ) {
         super(startPoint, fillColour, strokeColour, uuid);
         this._vertices = vertices;
+        this.openPolygon = openPolygon;
     }
 
     get refPoint(): GlobalPoint {
@@ -36,12 +39,15 @@ export class Polygon extends Shape {
     asDict(): ServerPolygon {
         return Object.assign(this.getBaseDict(), {
             vertices: this._vertices.map(p => ({ x: p.x, y: p.y })),
+            // eslint-disable-next-line @typescript-eslint/camelcase
+            open_polygon: this.openPolygon,
         });
     }
 
     fromDict(data: ServerPolygon): void {
         super.fromDict(data);
         this._vertices = data.vertices.map(v => new GlobalPoint(v.x, v.y));
+        this.openPolygon = data.open_polygon;
     }
 
     get points(): number[][] {
@@ -62,11 +68,11 @@ export class Polygon extends Shape {
 
         ctx.beginPath();
         ctx.moveTo(g2lx(this.vertices[0].x), g2ly(this.vertices[0].y));
-        for (let i = 1; i <= this.vertices.length; i++) {
+        for (let i = 1; i <= this.vertices.length - (this.openPolygon ? 1 : 0); i++) {
             const vertex = this.vertices[i % this.vertices.length];
             ctx.lineTo(g2lx(vertex.x), g2ly(vertex.y));
         }
-        ctx.fill();
+        if (!this.openPolygon) ctx.fill();
         ctx.stroke();
     }
 

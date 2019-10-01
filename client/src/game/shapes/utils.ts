@@ -69,6 +69,7 @@ export function createShapeFromDict(shape: ServerShape): Shape | undefined {
             polygon.vertices.map(v => new GlobalPoint(v.x, v.y)),
             polygon.fill_colour,
             polygon.stroke_colour,
+            polygon.open_polygon,
             polygon.uuid,
         );
     } else if (shape.type_ === "text") {

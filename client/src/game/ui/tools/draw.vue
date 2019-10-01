@@ -31,6 +31,10 @@
         </div>
         <div v-show="shapeSelect === 'paint-brush'">Brush size</div>
         <input type="text" v-model="brushSize" v-show="shapeSelect === 'paint-brush'" style="max-width:100px;" />
+        <div v-show="shapeSelect === 'draw-polygon'">
+            <label for="polygon-close">Closed polygon?</label>
+            <input type="checkbox" id="polygon-close" v-model="closedPolygon" />
+        </div>
     </div>
 </template>
 
@@ -80,6 +84,7 @@ export default class DrawTool extends Tool {
     modes = ["normal", "reveal", "hide"];
 
     brushSize = getUnitDistance(gameStore.unitSize);
+    closedPolygon = false;
 
     get helperSize(): number {
         if (this.shapeSelect === "paint-brush") return this.brushSize / 2;
@@ -93,6 +98,11 @@ export default class DrawTool extends Tool {
     }
     get useGrid(): boolean {
         return gameStore.useGrid;
+    }
+
+    @Watch("closedPolygon")
+    onChangePolygonCloseBehaviour(closedPolygon: boolean) {
+        if (this.shape !== null) (<Polygon>this.shape).openPolygon = !closedPolygon;
     }
 
     @Watch("fillColour")
@@ -171,7 +181,13 @@ export default class DrawTool extends Tool {
                     break;
                 }
                 case "draw-polygon": {
-                    this.shape = new Polygon(this.startPoint.clone(), [], this.fillColour, this.borderColour);
+                    this.shape = new Polygon(
+                        this.startPoint.clone(),
+                        [],
+                        this.fillColour,
+                        this.borderColour,
+                        !this.closedPolygon,
+                    );
                     break;
                 }
                 default:

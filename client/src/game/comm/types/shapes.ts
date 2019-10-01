@@ -45,6 +45,7 @@ export interface ServerMultiLine extends ServerShape {
 }
 export interface ServerPolygon extends ServerShape {
     vertices: { x: number; y: number }[];
+    open_polygon: boolean;
 }
 export interface ServerText extends ServerShape {
     text: string;

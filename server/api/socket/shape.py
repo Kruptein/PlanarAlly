@@ -101,7 +101,7 @@ async def update_shape_position(sid, data):
             model = reduce_data_to_model(Shape, data["shape"])
             update_model_from_dict(shape, model)
             shape.save()
-            if shape.type_ in ["polygon", "multiline"]:
+            if shape.type_ == "polygon":
                 # Subshape
                 type_instance = shape.subtype
                 # no backrefs on these tables

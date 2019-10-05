@@ -39,13 +39,10 @@ export interface ServerLine extends ServerShape {
     y2: number;
     line_width: number;
 }
-export interface ServerMultiLine extends ServerShape {
-    points: { x: number; y: number }[];
-    line_width: number;
-}
 export interface ServerPolygon extends ServerShape {
     vertices: { x: number; y: number }[];
     open_polygon: boolean;
+    line_width: number;
 }
 export interface ServerText extends ServerShape {
     text: string;

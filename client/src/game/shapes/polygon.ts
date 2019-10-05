@@ -9,18 +9,21 @@ export class Polygon extends Shape {
     type = "polygon";
     _vertices: GlobalPoint[] = [];
     openPolygon = false;
+    lineWidth: number;
 
     constructor(
         startPoint: GlobalPoint,
-        vertices: GlobalPoint[] = [],
+        vertices?: GlobalPoint[],
         fillColour?: string,
         strokeColour?: string,
+        lineWidth?: number,
         openPolygon = false,
         uuid?: string,
     ) {
         super(startPoint, fillColour, strokeColour, uuid);
-        this._vertices = vertices;
+        this._vertices = vertices || [];
         this.openPolygon = openPolygon;
+        this.lineWidth = lineWidth || 2;
     }
 
     get refPoint(): GlobalPoint {
@@ -41,6 +44,8 @@ export class Polygon extends Shape {
             vertices: this._vertices.map(p => ({ x: p.x, y: p.y })),
             // eslint-disable-next-line @typescript-eslint/camelcase
             open_polygon: this.openPolygon,
+            // eslint-disable-next-line @typescript-eslint/camelcase
+            line_width: this.lineWidth,
         });
     }
 
@@ -48,6 +53,7 @@ export class Polygon extends Shape {
         super.fromDict(data);
         this._vertices = data.vertices.map(v => new GlobalPoint(v.x, v.y));
         this.openPolygon = data.open_polygon;
+        this.lineWidth = data.line_width;
     }
 
     get points(): number[][] {
@@ -58,13 +64,12 @@ export class Polygon extends Shape {
         super.draw(ctx);
         ctx.lineCap = "round";
         ctx.lineJoin = "round";
+        ctx.lineWidth = g2lz(this.lineWidth);
 
         if (this.strokeColour === "fog") ctx.strokeStyle = getFogColour();
-        else if (this.vertices.length === 2) ctx.strokeStyle = this.fillColour;
         else ctx.strokeStyle = this.strokeColour;
         if (this.fillColour === "fog") ctx.fillStyle = getFogColour();
         else ctx.fillStyle = this.fillColour;
-        ctx.lineWidth = g2lz(2);
 
         ctx.beginPath();
         ctx.moveTo(g2lx(this.vertices[0].x), g2ly(this.vertices[0].y));

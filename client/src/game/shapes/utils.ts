@@ -5,7 +5,6 @@ import {
     ServerCircle,
     ServerCircularToken,
     ServerLine,
-    ServerMultiLine,
     ServerPolygon,
     ServerRect,
     ServerShape,
@@ -17,7 +16,6 @@ import { Asset } from "@/game/shapes/asset";
 import { Circle } from "@/game/shapes/circle";
 import { CircularToken } from "@/game/shapes/circulartoken";
 import { Line } from "@/game/shapes/line";
-import { MultiLine } from "@/game/shapes/multiline";
 import { Rect } from "@/game/shapes/rect";
 import { Shape } from "@/game/shapes/shape";
 import { Text } from "@/game/shapes/text";
@@ -53,15 +51,6 @@ export function createShapeFromDict(shape: ServerShape): Shape | undefined {
     } else if (shape.type_ === "line") {
         const line = <ServerLine>shape;
         sh = new Line(refPoint, new GlobalPoint(line.x2, line.y2), line.line_width, line.stroke_colour, line.uuid);
-    } else if (shape.type_ === "multiline") {
-        const multiline = <ServerMultiLine>shape;
-        sh = new MultiLine(
-            refPoint,
-            multiline.points.map(p => new GlobalPoint(p.x, p.y)),
-            multiline.line_width,
-            multiline.stroke_colour,
-            multiline.uuid,
-        );
     } else if (shape.type_ === "polygon") {
         const polygon = <ServerPolygon>shape;
         sh = new Polygon(
@@ -69,6 +58,7 @@ export function createShapeFromDict(shape: ServerShape): Shape | undefined {
             polygon.vertices.map(v => new GlobalPoint(v.x, v.y)),
             polygon.fill_colour,
             polygon.stroke_colour,
+            polygon.line_width,
             polygon.open_polygon,
             polygon.uuid,
         );

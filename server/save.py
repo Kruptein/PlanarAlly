@@ -240,8 +240,12 @@ def upgrade(version):
         db.foreign_keys = False
         with db.atomic():
             migrate(
-                migrator.add_column("polygon", "open_polygon", BooleanField(default=False))
+                migrator.add_column("polygon", "open_polygon", BooleanField(default=False)),
+                migrator.add_column("polygon", "line_width", IntegerField(default=2))
             )
+            db.execute_sql("INSERT INTO polygon (shape_id, line_width, vertices, open_polygon) SELECT shape_id, line_width, points, 1 FROM multi_line")
+            db.execute_sql("DROP TABLE multi_line");
+            db.execute_sql("UPDATE shape SET type_ = 'polygon' WHERE type_ = 'multiline'")
         db.foreign_keys = True
         Constants.update(save_version=Constants.save_version + 1).execute()
     else:

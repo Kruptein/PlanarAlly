@@ -87,6 +87,14 @@ export default class DrawTool extends Tool {
     brushSize = getUnitDistance(gameStore.unitSize);
     closedPolygon = false;
 
+    mounted() {
+        window.addEventListener("keyup", this.onKeyUp);
+    }
+
+    destroyed() {
+        window.removeEventListener("keyup", this.onKeyUp);
+    }
+
     get helperSize(): number {
         if (this.hasBrushSize()) return this.brushSize / 2;
         return getUnitDistance(this.unitSize) / 8;
@@ -99,6 +107,14 @@ export default class DrawTool extends Tool {
     }
     get useGrid(): boolean {
         return gameStore.useGrid;
+    }
+
+    onKeyUp(event: KeyboardEvent): void {
+        if (event.defaultPrevented) return;
+        if (event.key === "Escape" && this.active) {
+            this.onDeselect();
+        }
+        event.preventDefault();
     }
 
     hasBrushSize(): boolean {
@@ -346,6 +362,7 @@ export default class DrawTool extends Tool {
     onDeselect() {
         const layer = this.getLayer();
         if (this.brushHelper !== null && layer !== undefined) layer.removeShape(this.brushHelper, false);
+        if (this.ruler !== null && layer !== undefined) layer.removeShape(this.ruler, false);
         if (this.active && layer !== undefined && this.shape !== null) {
             layer.removeShape(this.shape, true, false);
             this.shape = null;

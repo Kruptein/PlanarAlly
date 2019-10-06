@@ -19,6 +19,7 @@ All notable changes to this project will be documented in this file.
 - Polygon tool options
   - brush size (defaults to 1 grid cell in width)
   - closed/open polygon toggle, when enable automatically connects first and last point.
+- Escape cancels draw tool actions
 
 ### Changed
 

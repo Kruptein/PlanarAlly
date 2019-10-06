@@ -5,7 +5,6 @@ import { layerManager } from "@/game/layers/manager";
 import { Shape } from "@/game/shapes/shape";
 import { createShapeFromDict } from "@/game/shapes/utils";
 import { gameStore } from "@/game/store";
-import { g2lx, g2ly } from "@/game/units";
 import { visibilityStore } from "../visibility/store";
 
 export class Layer {
@@ -154,26 +153,9 @@ export class Layer {
                 ctx.fillStyle = this.selectionColor;
                 ctx.strokeStyle = this.selectionColor;
                 ctx.lineWidth = this.selectionWidth;
-                const z = gameStore.zoomFactor;
-                this.selection.forEach(sel => {
-                    ctx.globalCompositeOperation = sel.globalCompositeOperation;
-                    const bb = sel.getBoundingBox();
-                    // TODO: REFACTOR THIS TO Shape.drawSelection(ctx);
-                    ctx.strokeRect(g2lx(bb.topLeft.x), g2ly(bb.topLeft.y), bb.w * z, bb.h * z);
-
-                    for (const p of sel.points) {
-                        ctx.beginPath();
-                        ctx.arc(g2lx(p[0]), g2ly(p[1]), 3, 0, 2 * Math.PI);
-                        ctx.fill();
-                    }
-                    ctx.beginPath();
-                    ctx.moveTo(g2lx(sel.points[0][0]), g2ly(sel.points[0][1]));
-                    for (let i = 1; i <= sel.points.length; i++) {
-                        const vertex = sel.points[i % sel.points.length];
-                        ctx.lineTo(g2lx(vertex[0]), g2ly(vertex[1]));
-                    }
-                    ctx.stroke();
-                });
+                for (const shape of this.selection) {
+                    shape.drawSelection(ctx);
+                }
             }
             ctx.globalCompositeOperation = ogOP;
             this.valid = true;

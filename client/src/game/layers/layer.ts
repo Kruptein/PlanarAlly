@@ -125,14 +125,14 @@ export class Layer {
             // First to draw the auras and a second time to draw the shapes themselves
             // Otherwise auras from one shape could be overlapping another shape itself.
 
-            this.shapes.forEach(shape => {
-                if (shape.options.has("skipDraw") && shape.options.get("skipDraw")) return;
-                if (layerManager.getLayer() === undefined) return;
-                if (!shape.visibleInCanvas(state.canvas)) return;
+            for (const shape of this.shapes) {
+                if (shape.options.has("skipDraw") && shape.options.get("skipDraw")) continue;
+                if (layerManager.getLayer() === undefined) continue;
+                if (!shape.visibleInCanvas(state.canvas)) continue;
                 if (state.name === "fow" && shape.visionObstruction && layerManager.getLayer()!.name !== state.name)
-                    return;
+                    continue;
                 shape.drawAuras(ctx);
-            });
+            }
             this.shapes.forEach(shape => {
                 if (shape.options.has("skipDraw") && shape.options.get("skipDraw")) return;
                 if (shape.labels.length === 0 && gameStore.filterNoLabel) return;

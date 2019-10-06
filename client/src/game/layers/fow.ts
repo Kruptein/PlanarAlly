@@ -62,8 +62,8 @@ export class FOWLayer extends Layer {
 
             // At all times provide a minimal vision range to prevent losing your tokens in fog.
             if (gameStore.fullFOW && layerManager.hasLayer("tokens")) {
-                layerManager.getLayer("tokens")!.shapes.forEach(sh => {
-                    if (!sh.ownedBy() || !sh.isToken) return;
+                for (const sh of layerManager.getLayer("tokens")!.shapes) {
+                    if (!sh.ownedBy() || !sh.isToken) continue;
                     const bb = sh.getBoundingBox();
                     const lcenter = g2l(sh.center());
                     const alm = 0.8 * g2lz(bb.w);
@@ -74,7 +74,7 @@ export class FOWLayer extends Layer {
                     gradient.addColorStop(1, "rgba(0, 0, 0, 0)");
                     ctx.fillStyle = gradient;
                     ctx.fill();
-                });
+                }
             }
 
             this.vCtx.clearRect(0, 0, window.innerWidth, window.innerHeight);

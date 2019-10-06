@@ -19,6 +19,11 @@ export class Line extends Shape {
         this.endPoint = endPoint;
         this.lineWidth = lineWidth === undefined ? 1 : lineWidth;
     }
+
+    get isClosed(): boolean {
+        return false;
+    }
+
     asDict(): ServerLine {
         return Object.assign(this.getBaseDict(), {
             x2: this.endPoint.x,

@@ -60,6 +60,11 @@ export abstract class Shape {
         if (strokeColour !== undefined) this.strokeColour = strokeColour;
     }
 
+    // Are the last and first point connected
+    get isClosed(): boolean {
+        return true;
+    }
+
     get refPoint(): GlobalPoint {
         return this._refPoint;
     }
@@ -280,7 +285,8 @@ export abstract class Shape {
         // Draw edges
         ctx.beginPath();
         ctx.moveTo(g2lx(this.points[0][0]), g2ly(this.points[0][1]));
-        for (let i = 1; i <= this.points.length; i++) {
+        const j = this.isClosed ? 0 : 1;
+        for (let i = 1; i <= this.points.length - j; i++) {
             const vertex = this.points[i % this.points.length];
             ctx.lineTo(g2lx(vertex[0]), g2ly(vertex[1]));
         }

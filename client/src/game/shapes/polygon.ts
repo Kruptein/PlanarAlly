@@ -26,6 +26,10 @@ export class Polygon extends Shape {
         this.lineWidth = lineWidth || 2;
     }
 
+    get isClosed(): boolean {
+        return !this.openPolygon;
+    }
+
     get refPoint(): GlobalPoint {
         return this._refPoint;
     }

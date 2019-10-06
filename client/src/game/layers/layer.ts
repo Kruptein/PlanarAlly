@@ -122,7 +122,7 @@ export class Layer {
 
             const state = this;
 
-            // We iteratre twice over all shapes
+            // We iterate twice over all shapes
             // First to draw the auras and a second time to draw the shapes themselves
             // Otherwise auras from one shape could be overlapping another shape itself.
 

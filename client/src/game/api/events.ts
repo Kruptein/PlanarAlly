@@ -151,18 +151,18 @@ socket.on("Shape.Update", (data: { shape: ServerShape; redraw: boolean; move: bo
     gameManager.updateShape(data);
 });
 socket.on("Temp.Clear", (shapes: ServerShape[]) => {
-    shapes.forEach(shape => {
+    for (const shape of shapes) {
         if (!layerManager.UUIDMap.has(shape.uuid)) {
             console.log("Attempted to remove an unknown temporary shape");
-            return;
+            continue;
         }
         if (!layerManager.hasLayer(shape.layer)) {
             console.log(`Attempted to remove shape from an unknown layer ${shape.layer}`);
-            return;
+            continue;
         }
         const realShape = layerManager.UUIDMap.get(shape.uuid)!;
         layerManager.getLayer(shape.layer)!.removeShape(realShape, false);
-    });
+    }
 });
 socket.on("Labels.Set", (labels: Label[]) => {
     for (const label of labels) gameStore.addLabel(label);

@@ -127,7 +127,7 @@ export abstract class Shape {
         if (update && recalculate) visibilityStore.recalculateVision();
 
         // Check if the visionsource auras are in the gameManager
-        this.auras.forEach(au => {
+        for (const au of this.auras) {
             const ls = visibilityStore.visionSources;
             const i = ls.findIndex(o => o.aura === au.uuid);
             if (au.visionSource && i === -1) {
@@ -135,7 +135,7 @@ export abstract class Shape {
             } else if (!au.visionSource && i >= 0) {
                 ls.splice(i, 1);
             }
-        });
+        }
         // Check if anything in the gameManager referencing this shape is in fact still a visionsource
         for (let i = visibilityStore.visionSources.length - 1; i >= 0; i--) {
             const ls = visibilityStore.visionSources[i];

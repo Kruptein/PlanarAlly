@@ -88,7 +88,7 @@ export default class DrawTool extends Tool {
     closedPolygon = false;
 
     get helperSize(): number {
-        if (this.shapeSelect === "paint-brush") return this.brushSize / 2;
+        if (this.hasBrushSize()) return this.brushSize / 2;
         return getUnitDistance(this.unitSize) / 8;
     }
     get IS_DM(): boolean {
@@ -239,7 +239,7 @@ export default class DrawTool extends Tool {
         if (this.shape !== null && this.shapeSelect === "draw-polygon" && this.shape instanceof Polygon) {
             const lastPoint = l2g(getMouse(event));
             if (this.ruler === null) {
-                this.ruler = new Line(lastPoint, lastPoint, 3, "black");
+                this.ruler = new Line(lastPoint, lastPoint, this.brushSize, "black");
                 layer.addShape(this.ruler, false);
             } else {
                 this.ruler.refPoint = lastPoint;

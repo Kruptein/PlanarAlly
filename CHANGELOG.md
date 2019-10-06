@@ -23,6 +23,7 @@ All notable changes to this project will be documented in this file.
 - [tech] Mousemove events are now throttled, so that they don't fire a gazillion events.
 - [tech] tslint swapped out for eslint
 - [tech] Refactor Layer.draw to use Shape.drawSelection
+- [tech] Refactor most uses of forEach to for..of
 
 ### Fixed
 

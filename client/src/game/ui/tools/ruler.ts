@@ -8,7 +8,7 @@ import { layerManager } from "@/game/layers/manager";
 import { Line } from "@/game/shapes/line";
 import { Text } from "@/game/shapes/text";
 import { gameStore } from "@/game/store";
-import { l2g } from "@/game/units";
+import { l2g, l2gz } from "@/game/units";
 import { getMouse } from "@/game/utils";
 
 @Component
@@ -26,7 +26,7 @@ export class RulerTool extends Tool {
         }
         this.active = true;
         this.startPoint = l2g(getMouse(event));
-        this.ruler = new Line(this.startPoint, this.startPoint, 3, gameStore.rulerColour);
+        this.ruler = new Line(this.startPoint, this.startPoint, l2gz(3), gameStore.rulerColour);
         this.text = new Text(this.startPoint.clone(), "", "bold 20px serif");
         this.ruler.addOwner(gameStore.username);
         this.text.addOwner(gameStore.username);

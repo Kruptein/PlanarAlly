@@ -26,14 +26,16 @@
         </div>
         <div>Colours</div>
         <div class="selectgroup">
-            <color-picker class="option" :color.sync="fillColour" />
+            <color-picker class="option" :class="{ 'radius-right': !showBorderColour() }" :color.sync="fillColour" />
             <color-picker class="option" :color.sync="borderColour" v-show="showBorderColour()" />
         </div>
-        <div v-show="shapeSelect === 'paint-brush'">Brush size</div>
-        <input type="text" v-model="brushSize" v-show="shapeSelect === 'paint-brush'" style="max-width:100px;" />
-        <div v-show="shapeSelect === 'draw-polygon'">
-            <label for="polygon-close">Closed polygon?</label>
-            <input type="checkbox" id="polygon-close" v-model="closedPolygon" />
+        <div v-show="shapeSelect === 'draw-polygon'" style="display:flex">
+            <label for="polygon-close" style="flex:5">Closed polygon?</label>
+            <input type="checkbox" id="polygon-close" style="flex:1;align-self:center;" v-model="closedPolygon" />
+        </div>
+        <div v-show="hasBrushSize()" style="display:flex">
+            <label for="brush-size" style="flex:5">Brush size</label>
+            <input type="input" id="brush-size" v-model="brushSize" style="flex:4;align-self:center;max-width:100px;" />
         </div>
     </div>
 </template>
@@ -99,6 +101,10 @@ export default class DrawTool extends Tool {
         return gameStore.useGrid;
     }
 
+    hasBrushSize(): boolean {
+        return ["paint-brush", "draw-polygon"].includes(this.shapeSelect);
+    }
+
     showBorderColour(): boolean {
         if (this.shapeSelect === "paint-brush") return false;
         if (this.shapeSelect === "draw-polygon" && !this.closedPolygon) return false;
@@ -107,7 +113,7 @@ export default class DrawTool extends Tool {
 
     @Watch("closedPolygon")
     onChangePolygonCloseBehaviour(closedPolygon: boolean) {
-        if (this.shape !== null) (<Polygon>this.shape).openPolygon = !closedPolygon;
+        if (this.shape !== null && this.active) (<Polygon>this.shape).openPolygon = !closedPolygon;
     }
 
     @Watch("fillColour")
@@ -195,7 +201,14 @@ export default class DrawTool extends Tool {
                 case "draw-polygon": {
                     const fill = this.closedPolygon ? this.fillColour : undefined;
                     const stroke = this.closedPolygon ? this.borderColour : this.fillColour;
-                    this.shape = new Polygon(this.startPoint.clone(), [], fill, stroke, undefined, !this.closedPolygon);
+                    this.shape = new Polygon(
+                        this.startPoint.clone(),
+                        [],
+                        fill,
+                        stroke,
+                        this.brushSize,
+                        !this.closedPolygon,
+                    );
                     break;
                 }
                 default:
@@ -378,7 +391,8 @@ export default class DrawTool extends Tool {
     border-top-left-radius: 10px;
     border-bottom-left-radius: 10px;
 }
-.selectgroup > .option:last-of-type {
+.selectgroup > .option:last-of-type,
+.radius-right {
     border-top-right-radius: 10px;
     border-bottom-right-radius: 10px;
 }

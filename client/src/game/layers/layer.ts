@@ -5,7 +5,6 @@ import { layerManager } from "@/game/layers/manager";
 import { Shape } from "@/game/shapes/shape";
 import { createShapeFromDict } from "@/game/shapes/utils";
 import { gameStore } from "@/game/store";
-import { g2lx, g2ly } from "@/game/units";
 import { visibilityStore } from "../visibility/store";
 
 export class Layer {
@@ -122,58 +121,41 @@ export class Layer {
 
             const state = this;
 
-            // We iteratre twice over all shapes
+            // We iterate twice over all shapes
             // First to draw the auras and a second time to draw the shapes themselves
             // Otherwise auras from one shape could be overlapping another shape itself.
 
-            this.shapes.forEach(shape => {
-                if (shape.options.has("skipDraw") && shape.options.get("skipDraw")) return;
-                if (layerManager.getLayer() === undefined) return;
-                if (!shape.visibleInCanvas(state.canvas)) return;
+            for (const shape of this.shapes) {
+                if (shape.options.has("skipDraw") && shape.options.get("skipDraw")) continue;
+                if (layerManager.getLayer() === undefined) continue;
+                if (!shape.visibleInCanvas(state.canvas)) continue;
                 if (state.name === "fow" && shape.visionObstruction && layerManager.getLayer()!.name !== state.name)
-                    return;
+                    continue;
                 shape.drawAuras(ctx);
-            });
-            this.shapes.forEach(shape => {
-                if (shape.options.has("skipDraw") && shape.options.get("skipDraw")) return;
-                if (shape.labels.length === 0 && gameStore.filterNoLabel) return;
+            }
+            for (const shape of this.shapes) {
+                if (shape.options.has("skipDraw") && shape.options.get("skipDraw")) continue;
+                if (shape.labels.length === 0 && gameStore.filterNoLabel) continue;
                 if (
                     shape.labels.length &&
                     gameStore.labelFilters.length &&
                     !shape.labels.some(l => gameStore.labelFilters.includes(l.uuid))
                 )
-                    return;
-                if (layerManager.getLayer() === undefined) return;
-                if (!shape.visibleInCanvas(state.canvas)) return;
+                    continue;
+                if (layerManager.getLayer() === undefined) continue;
+                if (!shape.visibleInCanvas(state.canvas)) continue;
                 if (state.name === "fow" && shape.visionObstruction && layerManager.getLayer()!.name !== state.name)
-                    return;
+                    continue;
                 shape.draw(ctx);
-            });
+            }
 
             if (this.selection != null) {
                 ctx.fillStyle = this.selectionColor;
                 ctx.strokeStyle = this.selectionColor;
                 ctx.lineWidth = this.selectionWidth;
-                const z = gameStore.zoomFactor;
-                this.selection.forEach(sel => {
-                    ctx.globalCompositeOperation = sel.globalCompositeOperation;
-                    const bb = sel.getBoundingBox();
-                    // TODO: REFACTOR THIS TO Shape.drawSelection(ctx);
-                    ctx.strokeRect(g2lx(bb.topLeft.x), g2ly(bb.topLeft.y), bb.w * z, bb.h * z);
-
-                    for (const p of sel.points) {
-                        ctx.beginPath();
-                        ctx.arc(g2lx(p[0]), g2ly(p[1]), 3, 0, 2 * Math.PI);
-                        ctx.fill();
-                    }
-                    ctx.beginPath();
-                    ctx.moveTo(g2lx(sel.points[0][0]), g2ly(sel.points[0][1]));
-                    for (let i = 1; i <= sel.points.length; i++) {
-                        const vertex = sel.points[i % sel.points.length];
-                        ctx.lineTo(g2lx(vertex[0]), g2ly(vertex[1]));
-                    }
-                    ctx.stroke();
-                });
+                for (const shape of this.selection) {
+                    shape.drawSelection(ctx);
+                }
             }
             ctx.globalCompositeOperation = ogOP;
             this.valid = true;

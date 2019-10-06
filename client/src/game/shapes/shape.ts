@@ -127,7 +127,7 @@ export abstract class Shape {
         if (update && recalculate) visibilityStore.recalculateVision();
 
         // Check if the visionsource auras are in the gameManager
-        this.auras.forEach(au => {
+        for (const au of this.auras) {
             const ls = visibilityStore.visionSources;
             const i = ls.findIndex(o => o.aura === au.uuid);
             if (au.visionSource && i === -1) {
@@ -135,7 +135,7 @@ export abstract class Shape {
             } else if (!au.visionSource && i >= 0) {
                 ls.splice(i, 1);
             }
-        });
+        }
         // Check if anything in the gameManager referencing this shape is in fact still a visionsource
         for (let i = visibilityStore.visionSources.length - 1; i >= 0; i--) {
             const ls = visibilityStore.visionSources[i];
@@ -262,6 +262,29 @@ export abstract class Shape {
                 }
             }
         }
+    }
+
+    drawSelection(ctx: CanvasRenderingContext2D): void {
+        ctx.globalCompositeOperation = this.globalCompositeOperation;
+        const z = gameStore.zoomFactor;
+        const bb = this.getBoundingBox();
+        ctx.strokeRect(g2lx(bb.topLeft.x), g2ly(bb.topLeft.y), bb.w * z, bb.h * z);
+
+        // Draw vertices
+        for (const p of this.points) {
+            ctx.beginPath();
+            ctx.arc(g2lx(p[0]), g2ly(p[1]), 3, 0, 2 * Math.PI);
+            ctx.fill();
+        }
+
+        // Draw edges
+        ctx.beginPath();
+        ctx.moveTo(g2lx(this.points[0][0]), g2ly(this.points[0][1]));
+        for (let i = 1; i <= this.points.length; i++) {
+            const vertex = this.points[i % this.points.length];
+            ctx.lineTo(g2lx(vertex[0]), g2ly(vertex[1]));
+        }
+        ctx.stroke();
     }
 
     getInitiativeRepr(): InitiativeData {

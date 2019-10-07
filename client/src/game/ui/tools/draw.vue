@@ -113,6 +113,7 @@ export default class DrawTool extends Tool {
         if (event.defaultPrevented) return;
         if (event.key === "Escape" && this.active) {
             this.onDeselect();
+            this.onSelect();
         }
         event.preventDefault();
     }
@@ -361,8 +362,14 @@ export default class DrawTool extends Tool {
     }
     onDeselect() {
         const layer = this.getLayer();
-        if (this.brushHelper !== null && layer !== undefined) layer.removeShape(this.brushHelper, false);
-        if (this.ruler !== null && layer !== undefined) layer.removeShape(this.ruler, false);
+        if (this.brushHelper !== null && layer !== undefined) {
+            layer.removeShape(this.brushHelper, false);
+            this.brushHelper = null;
+        }
+        if (this.ruler !== null && layer !== undefined) {
+            layer.removeShape(this.ruler, false);
+            this.ruler = null;
+        }
         if (this.active && layer !== undefined && this.shape !== null) {
             layer.removeShape(this.shape, true, false);
             this.shape = null;

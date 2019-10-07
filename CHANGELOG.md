@@ -34,6 +34,7 @@ All notable changes to this project will be documented in this file.
 - [DM] Session lock state not being shown correctly upon joining.
 - Sessions with a slash in their name do not work
 - Ruler width not being the same at all zoom levels.
+- Brushhelper sticking around on layer change.
 - [tech] Improved docker image creation script
   - Faster compilation and smaller final size
   - Now the frontend is also compiled inside a container

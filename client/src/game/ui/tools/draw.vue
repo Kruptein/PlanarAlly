@@ -44,6 +44,7 @@
 import Component from "vue-class-component";
 
 import { Watch } from "vue-property-decorator";
+import { mapGetters } from "vuex";
 
 import ColorPicker from "@/core/components/colorpicker.vue";
 import DefaultContext from "@/game/ui/tools/defaultcontext.vue";
@@ -61,13 +62,19 @@ import { gameStore } from "@/game/store";
 import { getUnitDistance, l2g } from "@/game/units";
 import { getMouse } from "@/game/utils";
 import { visibilityStore } from "../../visibility/store";
+import Tools from "./tools.vue";
 
 @Component({
     components: {
         "color-picker": ColorPicker,
     },
+    computed: {
+        ...mapGetters("game", ["selectedLayer"]),
+    },
 })
 export default class DrawTool extends Tool {
+    selectedLayer!: string;
+
     name = "Draw";
     active = false;
 
@@ -143,6 +150,14 @@ export default class DrawTool extends Tool {
         this.onModeChange(newValue, oldValue);
     }
 
+    @Watch("selectedLayer")
+    onLayerChange(newValue: string, oldValue: string) {
+        if ((<Tools>this.$parent).currentTool === this.name) {
+            this.onDeselect(oldValue);
+            this.onSelect();
+        }
+    }
+
     setupBrush() {
         if (this.brushHelper === null) return;
         if (this.modeSelect === "reveal" || this.modeSelect === "hide") {
@@ -176,8 +191,8 @@ export default class DrawTool extends Tool {
             fowLayer.removeShape(this.brushHelper, false);
         }
     }
-    getLayer() {
-        if (this.modeSelect === "normal") return layerManager.getLayer();
+    getLayer(targetLayer?: string) {
+        if (this.modeSelect === "normal") return layerManager.getLayer(targetLayer);
         return layerManager.getLayer("fow");
     }
     onMouseDown(event: MouseEvent) {
@@ -360,8 +375,8 @@ export default class DrawTool extends Tool {
         this.setupBrush();
         layer.addShape(this.brushHelper, false); // during mode change the shape is already added
     }
-    onDeselect() {
-        const layer = this.getLayer();
+    onDeselect(targetLayer?: string) {
+        const layer = this.getLayer(targetLayer);
         if (this.brushHelper !== null && layer !== undefined) {
             layer.removeShape(this.brushHelper, false);
             this.brushHelper = null;

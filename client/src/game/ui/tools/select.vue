@@ -213,11 +213,11 @@ export default class SelectTool extends Tool {
             } else {
                 layer.clearSelection();
             }
-            layer.shapes.forEach(shape => {
-                if (!shape.ownedBy()) return;
-                if (shape === this.selectionHelper) return;
+            for (const shape of layer.shapes) {
+                if (!shape.ownedBy()) continue;
+                if (shape === this.selectionHelper) continue;
                 const bbox = shape.getBoundingBox();
-                if (!shape.ownedBy()) return;
+                if (!shape.ownedBy()) continue;
                 if (
                     this.selectionHelper!.refPoint.x <= bbox.topRight.x &&
                     this.selectionHelper!.refPoint.x + this.selectionHelper!.w >= bbox.topLeft.x &&
@@ -228,18 +228,18 @@ export default class SelectTool extends Tool {
                         layer.selection.push(shape);
                     }
                 }
-            });
+            }
             layer.selection = layer.selection.filter(it => it !== this.selectionHelper);
             layer.invalidate(true);
         } else if (layer.selection.length) {
-            layer.selection.forEach(sel => {
-                if (!sel.ownedBy()) return;
+            for (const sel of layer.selection) {
+                if (!sel.ownedBy()) continue;
                 if (this.mode === SelectOperations.Drag) {
                     if (
                         this.dragRay.origin!.x === g2lx(sel.refPoint.x) &&
                         this.dragRay.origin!.y === g2ly(sel.refPoint.y)
                     )
-                        return;
+                        continue;
 
                     if (gameStore.useGrid && !e.altKey && !this.deltaChanged) {
                         if (sel.visionObstruction)
@@ -291,7 +291,7 @@ export default class SelectTool extends Tool {
                     }
                     layer.invalidate(false);
                 }
-            });
+            }
         }
         this.mode = SelectOperations.Noop;
         this.active = false;

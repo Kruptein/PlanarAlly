@@ -38,6 +38,7 @@ async def add_shape(sid, data):
     if data["temporary"]:
         state.add_temp(sid, data["shape"]["uuid"])
     else:
+        print(data["shape"])
         with db.atomic():
             data["shape"]["layer"] = Layer.get(
                 location=location, name=data["shape"]["layer"]
@@ -47,6 +48,7 @@ async def add_shape(sid, data):
             shape = Shape.create(**reduce_data_to_model(Shape, data["shape"]))
             # Subshape
             type_table = get_table(shape.type_)
+            print(reduce_data_to_model(type_table, data["shape"]))
             type_table.create(shape=shape, **reduce_data_to_model(type_table, data["shape"]))
             # Owners
             ShapeOwner.create(shape=shape, user=user)
@@ -99,7 +101,7 @@ async def update_shape_position(sid, data):
             model = reduce_data_to_model(Shape, data["shape"])
             update_model_from_dict(shape, model)
             shape.save()
-            if shape.type_ in ["polygon", "multiline"]:
+            if shape.type_ == "polygon":
                 # Subshape
                 type_instance = shape.subtype
                 # no backrefs on these tables

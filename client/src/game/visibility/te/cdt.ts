@@ -681,17 +681,25 @@ export class CDT {
     }
 
     marchLocate1D(p: Point): { loc: Triangle; lt: LocateType; li: number } {
-        const ff = this.tds._infinite.triangle!;
-        const iv = ff.indexV(this.tds._infinite);
-        const t = ff.neighbours[iv]!;
+        let ff = this.tds._infinite.triangle!;
+        let iv = ff.indexV(this.tds._infinite);
+        let t = ff.neighbours[iv]!;
         const pqt = orientation(t.vertices[0]!.point!, t.vertices[1]!.point!, p);
         if (pqt === Sign.RIGHT_TURN || pqt === Sign.LEFT_TURN) {
             return { loc: new Triangle(), lt: LocateType.OUTSIDE_AFFINE_HULL, li: 4 };
         }
-        const i = t.indexT(ff);
+        let i = t.indexT(ff);
         if (collinearBetween(p, t.vertices[1 - i]!.point!, t.vertices[i]!.point!))
             return { loc: ff, lt: LocateType.OUTSIDE_CONVEX_HULL, li: iv };
 
+        if (xyEqual(p, t.vertices[1 - i]!.point!)) return { loc: t, lt: LocateType.VERTEX, li: 1 - i };
+
+        ff = ff.neighbours[1 - iv]!;
+        iv = ff.indexV(this.tds._infinite);
+        t = ff.neighbours[iv]!;
+        i = t.indexT(ff);
+        if (collinearBetween(p, t.vertices[1 - i]!.point!, t.vertices[i]!.point!))
+            return { loc: ff, lt: LocateType.OUTSIDE_CONVEX_HULL, li: iv };
         if (xyEqual(p, t.vertices[1 - i]!.point!)) return { loc: t, lt: LocateType.VERTEX, li: 1 - i };
         throw new Error("sdfsdf");
     }

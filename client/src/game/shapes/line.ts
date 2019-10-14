@@ -1,7 +1,7 @@
 import { GlobalPoint, LocalPoint } from "@/game/geom";
 import { BoundingRect } from "@/game/shapes/boundingrect";
 import { Shape } from "@/game/shapes/shape";
-import { g2lx, g2ly, l2g } from "@/game/units";
+import { g2lx, g2ly, l2g, g2lz } from "@/game/units";
 import { ServerLine } from "../comm/types/shapes";
 
 export class Line extends Shape {
@@ -19,6 +19,11 @@ export class Line extends Shape {
         this.endPoint = endPoint;
         this.lineWidth = lineWidth === undefined ? 1 : lineWidth;
     }
+
+    get isClosed(): boolean {
+        return false;
+    }
+
     asDict(): ServerLine {
         return Object.assign(this.getBaseDict(), {
             x2: this.endPoint.x,
@@ -43,7 +48,7 @@ export class Line extends Shape {
         ctx.beginPath();
         ctx.moveTo(g2lx(this.refPoint.x), g2ly(this.refPoint.y));
         ctx.lineTo(g2lx(this.endPoint.x), g2ly(this.endPoint.y));
-        ctx.lineWidth = this.lineWidth;
+        ctx.lineWidth = g2lz(this.lineWidth);
         ctx.stroke();
     }
     contains(_point: GlobalPoint): boolean {

@@ -31,7 +31,8 @@ export function triangulate(target: TriangulationTarget): void {
     else shapes = visibilityStore.movementblockers;
     for (const sh of shapes) {
         const shape = layerManager.UUIDMap.get(sh)!;
-        for (let i = 0; i < shape.points.length; i++) {
+        const j = shape.isClosed ? 0 : 1;
+        for (let i = 0; i < shape.points.length - j; i++) {
             const pa = shape.points[i];
             const pb = shape.points[(i + 1) % shape.points.length];
             insertConstraint(target, shape, pa, pb);

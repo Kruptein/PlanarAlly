@@ -9,24 +9,32 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
-- Added option to set custom units of length
-- Added ping tool
-- Added option to change the location of tokens/shapes
-- Added option to edit shapes in groups (move to other layer, move to other location, move to top/bottom, add initiative)
-- Added option to Shift-select tokens/shapes
-- Added the default right click menu to all tools that didnt have it
-- Added colour in the location bar to show current location
+- Option to set custom units of length (defaults to ft)
+- Ping tool
+- Option to change the location of tokens/shapes
+- Option to edit shapes in groups (move to other layer, move to other location, move to top/bottom, add initiative)
+- Option to Shift-select tokens/shapes
+- Default right click menu to all tools that didnt have it
+- Colour in the location bar to show current location
+- Polygon tool options
+  - brush size (defaults to 1 grid cell in width)
+  - closed/open polygon toggle, when enable automatically connects first and last point.
+- Escape cancels draw tool actions
 
 ### Changed
 
 - Pasted shapes are now pasted relative to the screen position
 - [tech] Mousemove events are now throttled, so that they don't fire a gazillion events.
 - [tech] tslint swapped out for eslint
+- [tech] Refactor Layer.draw to use Shape.drawSelection
+- [tech] Refactor most uses of forEach to for..of
 
 ### Fixed
 
 - [DM] Session lock state not being shown correctly upon joining.
 - Sessions with a slash in their name do not work
+- Ruler width not being the same at all zoom levels.
+- Brushhelper sticking around on layer change.
 - [tech] Improved docker image creation script
   - Faster compilation and smaller final size
   - Now the frontend is also compiled inside a container

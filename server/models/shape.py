@@ -15,7 +15,6 @@ __all__ = [
     "Circle",
     "CircularToken",
     "Line",
-    "MultiLine",
     "Polygon",
     "Rect",
     "Shape",
@@ -173,24 +172,11 @@ class Line(ShapeType):
     line_width = IntegerField()
 
 
-class MultiLine(ShapeType):
-    abstract = False
-    line_width = IntegerField()
-    points = TextField()
-
-    def as_dict(self, *args, **kwargs):
-        model = model_to_dict(self, *args, **kwargs)
-        model["points"] = json.loads(model["points"])
-        return model
-
-    def update_from_dict(self, data, *args, **kwargs):
-        data["points"] = json.dumps(data["points"])
-        return update_model_from_dict(self, data, *args, **kwargs)
-
-
 class Polygon(ShapeType):
     abstract = False
     vertices = TextField()
+    line_width = IntegerField()
+    open_polygon = BooleanField()
 
     def as_dict(self, *args, **kwargs):
         model = model_to_dict(self, *args, **kwargs)

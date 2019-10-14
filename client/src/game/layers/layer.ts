@@ -74,7 +74,12 @@ export class Layer {
 
     removeShape(shape: Shape, sync: boolean, temporary?: boolean): void {
         if (temporary === undefined) temporary = false;
-        this.shapes.splice(this.shapes.indexOf(shape), 1);
+        const idx = this.shapes.indexOf(shape);
+        if (idx < 0) {
+            console.error("attempted to remove shape not in layer.");
+            return;
+        }
+        this.shapes.splice(idx, 1);
 
         if (sync) socket.emit("Shape.Remove", { shape: shape.asDict(), temporary });
         const lsI = visibilityStore.visionSources.findIndex(ls => ls.shape === shape.uuid);

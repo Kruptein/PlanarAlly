@@ -116,15 +116,14 @@ export default class CreateTokenModal extends Vue {
             ctx.beginPath();
             ctx.lineWidth = 5;
             ctx.strokeStyle = this.borderColour;
-            ctx.arc(dest.x, dest.y, r, 0, 2 * Math.PI);
+            ctx.arc(dest.x, dest.y, r - 2.5, 0, 2 * Math.PI);
             ctx.stroke();
         }
         ctx.save();
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
-        const xs = calcFontScale(ctx, this.text, r, r);
-        const ys = 0;
-        ctx.transform(xs, ys, -ys, xs, dest.x, dest.y);
+        const fontScale = calcFontScale(ctx, this.text, r - 2.5);
+        ctx.setTransform(fontScale, 0, 0, fontScale, dest.x, dest.y);
         ctx.fillStyle = tinycolor.mostReadable(this.fillColour, ["#000", "#fff"]).toHexString();
         ctx.fillText(this.text, 0, 0);
         ctx.restore();

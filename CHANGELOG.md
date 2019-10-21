@@ -27,6 +27,7 @@ All notable changes to this project will be documented in this file.
 - Login page now autofocusses on the username input field.
 - All shapes on the FOW layer are now invisible while not on the FOW layer.
 - Circle borders (including basic tokens) are now inset, so that they fit within their squares.
+- Basic token text scaling has been changed slightly to have more uniformly sized characters.
 
 - [tech] Mousemove events are now throttled, so that they don't fire a gazillion events.
 - [tech] tslint swapped out for eslint

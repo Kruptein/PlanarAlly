@@ -41,6 +41,7 @@ All notable changes to this project will be documented in this file.
 - Ruler width not being the same at all zoom levels.
 - Brushhelper sticking around on layer change.
 - Temporary shapes not being properly cleared on player disconnect.
+- Private shape auras, trackers, labels and name being revealed during movement.
 
 - [tech] Improved docker image creation script
   - Faster compilation and smaller final size
@@ -95,7 +96,6 @@ All notable changes to this project will be documented in this file.
 - CSS bug with menu.
 - Bug making it impossible to remove trackers/auras.
 - Windows build being completely broken.
-- Private shape auras, trackers, labels and name being revealed during movement.
 
 ## [0.15.1] - 2019-05-15
 

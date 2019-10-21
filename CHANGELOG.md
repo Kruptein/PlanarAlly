@@ -26,6 +26,9 @@ All notable changes to this project will be documented in this file.
 - Pasted shapes are now pasted relative to the screen position
 - Login page now autofocusses on the username input field.
 - All shapes on the FOW layer are now invisible while not on the FOW layer.
+- Circle borders (including basic tokens) are now inset, so that they fit within their squares.
+- Basic token text scaling has been changed slightly to have more uniformly sized characters.
+
 - [tech] Mousemove events are now throttled, so that they don't fire a gazillion events.
 - [tech] tslint swapped out for eslint
 - [tech] Refactor Layer.draw to use Shape.drawSelection
@@ -38,6 +41,7 @@ All notable changes to this project will be documented in this file.
 - Ruler width not being the same at all zoom levels.
 - Brushhelper sticking around on layer change.
 - Temporary shapes not being properly cleared on player disconnect.
+
 - [tech] Improved docker image creation script
   - Faster compilation and smaller final size
   - Now the frontend is also compiled inside a container

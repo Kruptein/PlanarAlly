@@ -45,9 +45,8 @@ export class CircularToken extends Circle {
         const dest = g2l(this.center());
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
-        const xs = calcFontScale(ctx, this.text, g2lz(this.r), g2lz(this.r));
-        const ys = 0;
-        ctx.transform(xs, ys, -ys, xs, dest.x, dest.y);
+        const fontScale = calcFontScale(ctx, this.text, g2lz(this.r - 5));
+        ctx.setTransform(fontScale, 0, 0, fontScale, dest.x, dest.y);
         ctx.fillStyle = tinycolor.mostReadable(this.fillColour, ["#000", "#fff"]).toHexString();
         ctx.fillText(this.text, 0, 0);
         ctx.restore();

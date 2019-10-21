@@ -35,6 +35,8 @@ All notable changes to this project will be documented in this file.
 - Sessions with a slash in their name do not work
 - Ruler width not being the same at all zoom levels.
 - Brushhelper sticking around on layer change.
+- Temporary shapes not being properly cleared on player disconnect.
+    - These are things like rulers, ping indicators etc.
 - [tech] Improved docker image creation script
   - Faster compilation and smaller final size
   - Now the frontend is also compiled inside a container

@@ -95,6 +95,7 @@ All notable changes to this project will be documented in this file.
 - CSS bug with menu.
 - Bug making it impossible to remove trackers/auras.
 - Windows build being completely broken.
+- Private shape auras, trackers, labels and name being revealed during movement.
 
 ## [0.15.1] - 2019-05-15
 

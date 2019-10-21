@@ -1,3 +1,4 @@
+from copy import deepcopy
 from datetime import datetime
 from peewee import Case
 from playhouse.shortcuts import update_model_from_dict
@@ -386,30 +387,21 @@ async def move_shape_order(sid, data):
 
 
 async def sync_shape_update(layer, room, data, sid, shape):
-    # Send to players
-    # if layer.player_visible:
-    # for room_player in room.players:
     for psid, player in state.get_players(room=room):
         if psid == sid:
             continue
-        if not data["temporary"]:
-            data["shape"] = shape.as_dict(player, False)
-        await sio.emit("Shape.Update", data, room=psid, namespace="/planarally")
-    #     for player in User.select(User).join(PlayerRoom).where(PlayerRoom.room == room):
-    #         for psid in state.get_sids(user=player, room=room):
-    #             if psid == sid:
-    #                 continue
-    #             if not data["temporary"]:
-    #                 data["shape"] = shape.as_dict(player, False)
-    #             await sio.emit("Shape.Update", data, room=psid, namespace="/planarally")
-
-    # # Send to DM
-    # for csid in state.get_sids(user=room.creator, room=room):
-    #     if csid == sid:
-    #         continue
-    #     if not data["temporary"]:
-    #         data["shape"] = shape.as_dict(room.creator, True)
-    #     await sio.emit("Shape.Update", data, room=csid, namespace="/planarally")
+        pdata = { el: data[el] for el in data if el != "shape" }
+        if data["temporary"] and player.name not in data["shape"]["owners"]:
+            pdata["shape"] = deepcopy(data["shape"])
+            # Although we have no guarantees that the message is faked, we still would like to verify data as if it were legitimate.
+            for element in ["auras", "labels", "trackers"]:
+                print(pdata["shape"][element])
+                pdata["shape"][element] = [el for el in pdata["shape"][element] if el["visible"]]
+            if not pdata["shape"]["name_visible"]:
+                pdata["shape"]["name"] = "?"
+        else:
+            pdata["shape"] = shape.as_dict(player, False)
+        await sio.emit("Shape.Update", pdata, room=psid, namespace="/planarally")
 
 
 async def _get_shape(data, location, user):

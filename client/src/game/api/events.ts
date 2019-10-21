@@ -150,12 +150,13 @@ socket.on("Shape.Layer.Change", (data: { uuid: string; layer: string }) => {
 socket.on("Shape.Update", (data: { shape: ServerShape; redraw: boolean; move: boolean; temporary: boolean }) => {
     gameManager.updateShape(data);
 });
-socket.on("Temp.Clear", (shapes: ServerShape[]) => {
-    for (const shape of shapes) {
-        if (!layerManager.UUIDMap.has(shape.uuid)) {
+socket.on("Temp.Clear", (shapeIds: string[]) => {
+    for (const shapeId of shapeIds) {
+        if (!layerManager.UUIDMap.has(shapeId)) {
             console.log("Attempted to remove an unknown temporary shape");
             continue;
         }
+        const shape = layerManager.UUIDMap.get(shapeId)!;
         if (!layerManager.hasLayer(shape.layer)) {
             console.log(`Attempted to remove shape from an unknown layer ${shape.layer}`);
             continue;

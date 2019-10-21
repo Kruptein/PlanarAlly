@@ -41,6 +41,7 @@ All notable changes to this project will be documented in this file.
 - Ruler width not being the same at all zoom levels.
 - Brushhelper sticking around on layer change.
 - Temporary shapes not being properly cleared on player disconnect.
+- Private shape auras, trackers, labels and name being revealed during movement.
 
 - [tech] Improved docker image creation script
   - Faster compilation and smaller final size

@@ -13,7 +13,7 @@ All notable changes to this project will be documented in this file.
 - Ping tool
 - Option to change the location of tokens/shapes
 - Option to edit shapes in groups (move to other layer, move to other location, move to top/bottom, add initiative)
-- Option to Shift-select tokens/shapes
+- Option to Ctrl-select tokens/shapes
 - Default right click menu to all tools that didnt have it
 - Colour in the location bar to show current location
 - Polygon tool options

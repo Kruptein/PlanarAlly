@@ -81,7 +81,7 @@ export default class SelectTool extends Tool {
             } else if (shape.contains(globalMouse)) {
                 const selection = shape;
                 if (layer.selection.indexOf(selection) === -1) {
-                    if (event.shiftKey || event.ctrlKey) {
+                    if (event.ctrlKey) {
                         layer.selection.push(selection);
                     } else {
                         layer.selection = [selection];
@@ -108,7 +108,7 @@ export default class SelectTool extends Tool {
             this.selectionHelper.w = 0;
             this.selectionHelper.h = 0;
 
-            if (event.shiftKey || event.ctrlKey) {
+            if (event.ctrlKey) {
                 layer.selection.push(this.selectionHelper);
             } else {
                 layer.selection = [this.selectionHelper];
@@ -191,7 +191,7 @@ export default class SelectTool extends Tool {
         const layer = layerManager.getLayer()!;
 
         if (this.mode === SelectOperations.GroupSelect) {
-            if (e.shiftKey || e.ctrlKey) {
+            if (e.ctrlKey) {
                 // If either control or shift are pressed, do not remove selection
             } else {
                 layer.clearSelection();

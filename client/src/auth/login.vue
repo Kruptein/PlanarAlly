@@ -10,6 +10,7 @@
                     placeholder="Username"
                     autocomplete="username"
                     required
+                    autofocus
                 />
                 <span>
                     <i class="fas fa-user-circle"></i>

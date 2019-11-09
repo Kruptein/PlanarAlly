@@ -48,10 +48,12 @@ export class Circle extends Shape {
         ctx.arc(loc.x, loc.y, g2lz(this.r), 0, 2 * Math.PI);
         ctx.fill();
         if (this.strokeColour !== "rgba(0, 0, 0, 0)") {
+            const borderWidth = 5;
             ctx.beginPath();
-            ctx.lineWidth = g2lz(5);
+            ctx.lineWidth = g2lz(borderWidth);
             ctx.strokeStyle = this.strokeColour;
-            ctx.arc(loc.x, loc.y, g2lz(this.r), 0, 2 * Math.PI);
+            // Inset the border with - borderWidth / 2
+            ctx.arc(loc.x, loc.y, g2lz(this.r - borderWidth / 2), 0, 2 * Math.PI);
             ctx.stroke();
         }
     }

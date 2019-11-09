@@ -230,7 +230,10 @@ export default class Initiative extends Vue {
     }
     updateOrder() {
         if (!gameStore.IS_DM) return;
-        socket.emit("Initiative.Set", initiativeStore.data.map(d => d.uuid));
+        socket.emit(
+            "Initiative.Set",
+            initiativeStore.data.map(d => d.uuid),
+        );
     }
     updateTurn(actorId: string | null, sync: boolean) {
         if (!gameStore.IS_DM && sync) return;

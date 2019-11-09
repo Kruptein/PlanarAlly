@@ -45,10 +45,10 @@ export function partition<T>(arr: T[], predicate: (n: T) => boolean): T[][] {
     return ret;
 }
 
-export function calcFontScale(ctx: CanvasRenderingContext2D, text: string, width: number, height: number): number {
-    const points = Number(ctx.font.split("px")[0]) * 0.2;
+export function calcFontScale(ctx: CanvasRenderingContext2D, text: string, r: number): number {
     const fontWidth = ctx.measureText(text).width;
-    return Math.min(width / fontWidth, height / points);
+    const fontSize = Number(ctx.font.split("px")[0]) * 1.5;
+    return (Math.cos(Math.atan(fontSize / fontWidth)) * 2 * r) / fontWidth;
 }
 
 export function fixedEncodeURIComponent(str: string): string {

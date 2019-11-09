@@ -146,8 +146,7 @@ export class Layer {
                 if (shape.options.has("skipDraw") && shape.options.get("skipDraw")) continue;
                 if (layerManager.getLayer() === undefined) continue;
                 if (!shape.visibleInCanvas(state.canvas)) continue;
-                if (state.name === "fow" && shape.visionObstruction && layerManager.getLayer()!.name !== state.name)
-                    continue;
+                if (state.name === "fow" && layerManager.getLayer()!.name !== state.name) continue;
                 shape.drawAuras(ctx);
             }
             for (const shape of this.shapes) {
@@ -161,8 +160,7 @@ export class Layer {
                     continue;
                 if (layerManager.getLayer() === undefined) continue;
                 if (!shape.visibleInCanvas(state.canvas)) continue;
-                if (state.name === "fow" && shape.visionObstruction && layerManager.getLayer()!.name !== state.name)
-                    continue;
+                if (state.name === "fow" && layerManager.getLayer()!.name !== state.name) continue;
                 shape.draw(ctx);
             }
 

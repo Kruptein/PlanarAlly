@@ -352,7 +352,10 @@ export class CDT {
             ni = t.neighbours[indf]!;
             indn = this.tds.mirrorIndex(t, indf);
             ei = [t, indf];
-            edgeSet.splice(edgeSet.findIndex(ed => ed[0] === ei[0] && ed[1] === ei[1]), 1);
+            edgeSet.splice(
+                edgeSet.findIndex(ed => ed[0] === ei[0] && ed[1] === ei[1]),
+                1,
+            );
             e[0] = [t, cw(indf)];
             e[1] = [t, ccw(indf)];
             e[2] = [ni, cw(indn)];
@@ -363,8 +366,15 @@ export class CDT {
                 const ii = edge![1];
                 eni = [tt.neighbours[ii]!, this.tds.mirrorIndex(tt, ii)];
                 if (this.lessEdge(edge!, eni))
-                    edgeSet.splice(edgeSet.findIndex(ed => ed[0] === edge![0] && ed[1] === edge![1]), 1);
-                else edgeSet.splice(edgeSet.findIndex(ed => ed[0] === eni[0] && ed[1] === eni[1]), 1);
+                    edgeSet.splice(
+                        edgeSet.findIndex(ed => ed[0] === edge![0] && ed[1] === edge![1]),
+                        1,
+                    );
+                else
+                    edgeSet.splice(
+                        edgeSet.findIndex(ed => ed[0] === eni[0] && ed[1] === eni[1]),
+                        1,
+                    );
             }
 
             this.flip(t, indf);

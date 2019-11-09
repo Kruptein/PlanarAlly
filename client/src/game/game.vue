@@ -206,9 +206,10 @@ export default class Game extends Vue {
     drop(event: DragEvent) {
         if (event === null || event.dataTransfer === null) return;
         if (event.dataTransfer.files.length > 0) {
-            this.$refs.confirm
-                .open("Uploading files should be done through the asset manager.", "Ok", "")
-                .then(() => {}, () => {});
+            this.$refs.confirm.open("Uploading files should be done through the asset manager.", "Ok", "").then(
+                () => {},
+                () => {},
+            );
         } else if (event.dataTransfer.getData("text/plain") === "") {
             return;
         } else {

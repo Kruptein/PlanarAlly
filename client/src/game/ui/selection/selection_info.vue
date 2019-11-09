@@ -17,9 +17,7 @@
                             <template v-if="tracker.maxvalue === 0">
                                 {{ tracker.value }}
                             </template>
-                            <template v-else>
-                                {{ tracker.value }} / {{ tracker.maxvalue }}
-                            </template>
+                            <template v-else>{{ tracker.value }} / {{ tracker.maxvalue }}</template>
                         </div>
                     </template>
                 </div>
@@ -34,9 +32,7 @@
                             <template v-if="aura.dim === 0">
                                 {{ aura.value }}
                             </template>
-                            <template v-else>
-                                {{ aura.value }} / {{ aura.dim }}
-                            </template>
+                            <template v-else>{{ aura.value }} / {{ aura.dim }}</template>
                         </div>
                     </template>
                 </div>

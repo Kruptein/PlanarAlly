@@ -33,7 +33,10 @@ export class Line extends Shape {
         });
     }
     get points(): number[][] {
-        return [[this.refPoint.x, this.refPoint.y], [this.endPoint.x, this.endPoint.y]];
+        return [
+            [this.refPoint.x, this.refPoint.y],
+            [this.endPoint.x, this.endPoint.y],
+        ];
     }
     getBoundingBox(): BoundingRect {
         return new BoundingRect(

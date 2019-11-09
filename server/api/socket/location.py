@@ -78,6 +78,28 @@ async def load_location(sid, location):
         )
 
 
+@sio.on("Location.Delete", namespace="/planarally")
+@auth.login_required(app, sio)
+async def delete_location(sid, location):
+    sid_data = state.sid_map[sid]
+    user = sid_data["user"]
+    room = sid_data["room"]
+    active_location = room.get_active_location(dm=True)
+
+    if room.creator != user:
+        logger.warning(f"{user.name} attempted to delete location")
+        return
+
+    if location == active_location.name:
+        logger.warning(f"{user.name} attempted suicide")
+        return
+
+    location_object = Location.get(room=room, name=location)
+    location_object.delete_instance()
+    location_object.save()
+    await load_location(sid, active_location)
+
+
 @sio.on("Location.Change", namespace="/planarally")
 @auth.login_required(app, sio)
 async def change_location(sid, location):

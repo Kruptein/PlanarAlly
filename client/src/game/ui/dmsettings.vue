@@ -162,6 +162,18 @@
                     </div>
                 </div>
             </div>
+            <div class="panel" v-show="selection === 3">
+                <div
+                    class="row"
+                    v-for="location in locations"
+                    :key="location"
+                >
+                    <label>{{ location }}</label>
+                    <div>
+                        <div class="delete-location" @click="deleteLocation(location)">Delete</div>
+                    </div>
+                </div>
+            </div>
         </div>
     </Modal>
 </template>
@@ -188,12 +200,12 @@ import { visibilityStore } from "../visibility/store";
         Modal,
     },
     computed: {
-        ...mapState("game", ["invitationCode"]),
+        ...mapState("game", ["invitationCode", "locations"]),
     },
 })
 export default class DmSettings extends Vue {
     visible = false;
-    categories = ["Admin", "Grid", "Vision"];
+    categories = ["Admin", "Grid", "Vision", "Clean maps"];
     selection = 0;
 
     showRefreshState = false;
@@ -312,6 +324,9 @@ export default class DmSettings extends Vue {
     }
     toggleSessionLock() {
         gameStore.setIsLocked({ isLocked: !gameStore.isLocked, sync: true });
+    }
+    deleteLocation(name: string) {
+        socket.emit("Location.Delete", name);
     }
     deleteSession() {
         (<Game>this.$parent).$refs.prompt

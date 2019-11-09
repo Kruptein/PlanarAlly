@@ -1,59 +1,59 @@
 {
-    "name": "planarally-client",
-    "version": "0.17.1",
-    "description": "A companion tool for when you travel into the planes.",
-    "scripts": {
-        "serve": "vue-cli-service serve",
-        "build": "npm run clean && vue-cli-service build --no-clean --modern",
-        "lint": "vue-cli-service lint",
-        "clean": "rimraf ../server/static/js/ && rimraf ../server/static/css/"
-    },
-    "repository": {
-        "type": "git",
-        "url": "git+https://github.com/Kruptein/PlanarAlly.git"
-    },
-    "bugs": {
-        "url": "https://github.com/Kruptein/PlanarAlly/issues"
-    },
-    "homepage": "https://github.com/Kruptein/PlanarAlly#readme",
-    "dependencies": {
-        "axios": "^0.19.0",
-        "core-js": "^2.6.5",
-        "socket.io-client": "^2.2.0",
-        "tinycolor2": "^1.4.1",
-        "vue": "^2.6.10",
-        "vue-class-component": "^7.0.2",
-        "vue-color": "^2.7.0",
-        "vue-property-decorator": "^8.1.0",
-        "vue-router": "^3.0.3",
-        "vue-slider-component": "^3.0.33",
-        "vuedraggable": "^2.23.0",
-        "vuex": "^3.0.1",
-        "vuex-module-decorators": "^0.9.9"
-    },
-    "devDependencies": {
-        "@types/jest": "^23.1.4",
-        "@types/lodash": "^4.14.136",
-        "@types/socket.io-client": "^1.4.32",
-        "@types/tinycolor2": "^1.4.2",
-        "@types/vue-color": "^2.4.2",
-        "@vue/cli-plugin-babel": "^3.10.0",
-        "@vue/cli-plugin-eslint": "^3.10.0",
-        "@vue/cli-plugin-typescript": "^3.10.0",
-        "@vue/cli-plugin-unit-jest": "^3.10.0",
-        "@vue/cli-service": "^3.10.0",
-        "@vue/eslint-config-prettier": "^5.0.0",
-        "@vue/eslint-config-typescript": "^4.0.0",
-        "@vue/test-utils": "^1.0.0-beta.29",
-        "babel-core": "7.0.0-bridge.0",
-        "babel-eslint": "^10.0.1",
-        "eslint": "^5.16.0",
-        "eslint-plugin-prettier": "^3.1.0",
-        "eslint-plugin-vue": "^5.0.0",
-        "prettier": "^1.18.2",
-        "rimraf": "^3.0.0",
-        "ts-jest": "^23.0.0",
-        "typescript": "^3.4.3",
-        "vue-template-compiler": "^2.6.10"
-    }
+  "name": "planarally-client",
+  "version": "0.17.1",
+  "description": "A companion tool for when you travel into the planes.",
+  "scripts": {
+    "serve": "vue-cli-service serve",
+    "build": "npm run clean && vue-cli-service build --no-clean --modern",
+    "lint": "vue-cli-service lint",
+    "clean": "rimraf ../server/static/js/ && rimraf ../server/static/css/"
+  },
+  "dependencies": {
+    "axios": "^0.19.0",
+    "core-js": "^3.3.2",
+    "socket.io-client": "^2.2.0",
+    "tinycolor2": "^1.4.1",
+    "vue": "^2.6.10",
+    "vue-class-component": "^7.0.2",
+    "vue-color": "^2.7.0",
+    "vue-property-decorator": "^8.1.0",
+    "vue-router": "^3.0.3",
+    "vue-slider-component": "^3.0.33",
+    "vuedraggable": "^2.23.0",
+    "vuex": "^3.0.1",
+    "vuex-module-decorators": "^0.9.9"
+  },
+  "devDependencies": {
+    "@types/jest": "^23.1.4",
+    "@types/lodash": "^4.14.136",
+    "@types/socket.io-client": "^1.4.32",
+    "@types/tinycolor2": "^1.4.2",
+    "@types/vue-color": "^2.4.2",
+    "@vue/cli-plugin-babel": "^4.0.5",
+    "@vue/cli-plugin-eslint": "^4.0.5",
+    "@vue/cli-plugin-typescript": "^4.0.5",
+    "@vue/cli-plugin-unit-jest": "^4.0.5",
+    "@vue/cli-service": "^4.0.5",
+    "@vue/eslint-config-prettier": "^5.0.0",
+    "@vue/eslint-config-typescript": "^4.0.0",
+    "@vue/test-utils": "^1.0.0-beta.29",
+    "babel-core": "7.0.0-bridge.0",
+    "babel-eslint": "^10.0.1",
+    "eslint": "^5.16.0",
+    "eslint-plugin-prettier": "^3.1.0",
+    "eslint-plugin-vue": "^5.0.0",
+    "prettier": "^1.18.2",
+    "rimraf": "^3.0.0",
+    "ts-jest": "^23.0.0",
+    "typescript": "^3.4.3",
+    "vue-template-compiler": "^2.6.10"
+  },
+  "bugs": {
+    "url": "https://github.com/Kruptein/PlanarAlly/issues"
+  },
+  "homepage": "https://github.com/Kruptein/PlanarAlly#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Kruptein/PlanarAlly.git"
+  }
 }

@@ -98,6 +98,8 @@ export default class Dashboard extends Vue {
                 );
             })
             .catch((err: AxiosError) => {
+                if (err.response) this.error = err.response.statusText;
+                else this.error = err.message;
                 this.error = err.message;
             });
     }

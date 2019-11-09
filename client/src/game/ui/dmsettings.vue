@@ -114,6 +114,13 @@
                 </div>
             </div>
             <div class="panel" v-show="selection === 2">
+                <div class="spanrow header">Global</div>
+                <div class="row">
+                    <label>Focus everyone on your location</label>
+                    <div>
+                        <div class="focus-everyone" @click="focuseveryone()">Focus</div>
+                    </div>
+                </div>
                 <div class="spanrow header">Core</div>
                 <div class="row">
                     <label for="fakePlayerInput">Fake player:</label>
@@ -163,11 +170,7 @@
                 </div>
             </div>
             <div class="panel" v-show="selection === 3">
-                <div
-                    class="row"
-                    v-for="location in locations"
-                    :key="location"
-                >
+                <div class="row" v-for="location in locations" :key="location">
                     <label>{{ location }}</label>
                     <div>
                         <div class="delete-location" @click="deleteLocation(location)">Delete</div>
@@ -325,8 +328,22 @@ export default class DmSettings extends Vue {
     toggleSessionLock() {
         gameStore.setIsLocked({ isLocked: !gameStore.isLocked, sync: true });
     }
+    focuseveryone() {
+        socket.emit("Location.Focus");
+    }
     deleteLocation(name: string) {
-        socket.emit("Location.Delete", name);
+        (<Game>this.$parent).$refs.prompt
+            .prompt(
+                `Enter ${name} to confirm location removal.`,
+                `Be aware that only empty locations can be removed currently.`,
+            )
+            .then(
+                (value: string) => {
+                    if (value !== `${name}`) return;
+                    socket.emit("Location.Delete", name);
+                },
+                () => {},
+            );
     }
     deleteSession() {
         (<Game>this.$parent).$refs.prompt

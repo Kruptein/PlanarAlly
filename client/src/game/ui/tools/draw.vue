@@ -397,20 +397,22 @@ export default class DrawTool extends Tool {
             }
             layer.removeShape(this.ruler!, false);
             this.ruler = null;
-            if (this.shape.visionObstruction && this.shape.points.length > 1)
-                insertConstraint(
-                    TriangulationTarget.VISION,
-                    this.shape,
-                    this.shape.points[0],
-                    this.shape.points[this.shape.points.length - 1],
-                );
-            if (this.shape.movementObstruction && this.shape.points.length > 1)
-                insertConstraint(
-                    TriangulationTarget.MOVEMENT,
-                    this.shape,
-                    this.shape.points[0],
-                    this.shape.points[this.shape.points.length - 1],
-                );
+            if (this.closedPolygon) {
+                if (this.shape.visionObstruction && this.shape.points.length > 1)
+                    insertConstraint(
+                        TriangulationTarget.VISION,
+                        this.shape,
+                        this.shape.points[0],
+                        this.shape.points[this.shape.points.length - 1],
+                    );
+                if (this.shape.movementObstruction && this.shape.points.length > 1)
+                    insertConstraint(
+                        TriangulationTarget.MOVEMENT,
+                        this.shape,
+                        this.shape.points[0],
+                        this.shape.points[this.shape.points.length - 1],
+                    );
+            }
             this.finaliseShape();
         } else if (!this.active) {
             (<DefaultContext>this.$parent.$refs.defaultcontext).open(event);

@@ -1,6 +1,7 @@
 from aiohttp import web
 from aiohttp_security import check_authorized
 
+from config import config
 from models import Location, Room, User
 from models.db import db
 
@@ -24,6 +25,10 @@ async def get_list(request):
 
 
 async def create(request):
+    allow_new_sessions = config.getboolean("Access control", "allow_new_sessions")
+    if not allow_new_sessions:
+        return web.HTTPConflict(reason="This feature is disabled by administrator")
+
     user = await check_authorized(request)
     data = await request.json()
     roomname = data["name"]

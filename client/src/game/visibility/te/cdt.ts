@@ -348,7 +348,7 @@ export class CDT {
         if (this.tds.dimension === 2) t.neighbours[i]!.constraints[this.tds.mirrorIndex(t, i)] = false;
     }
 
-    removeConstrainedEdgeDelaunay(t: Triangle, i: number): [Triangle, number, Triangle, number][]  {
+    removeConstrainedEdgeDelaunay(t: Triangle, i: number): [Triangle, number, Triangle, number][] {
         this.removeConstrainedEdge(t, i);
         if (this.tds.dimension === 2) {
             const listEdges: Edge[] = [[t, i]];
@@ -749,10 +749,7 @@ export class CDT {
         let first = true;
         let lt: LocateType | undefined;
         let li: number | undefined;
-        let APPEL = 0;
         while (true) {
-            APPEL++;
-            if (APPEL > 2000) throw new Error('sdfsdfsdf');
             if (c.isInfinite()) {
                 return { loc: c, lt: LocateType.OUTSIDE_CONVEX_HULL, li: c.indexV(this.tds._infinite) };
             }

@@ -2,8 +2,8 @@ import { Shape } from "@/game/shapes/shape";
 import { equalPoints } from "@/game/utils";
 import { CDT } from "./cdt";
 import { PA_CDT, TriangulationTarget } from "./pa";
-import { Edge, Vertex, Sign } from "./tds";
-import { ccw, collinearInOrder, xySmaller, collinear, xyEqual, xyCompare } from "./triag";
+import { Edge, Sign, Triangle, Vertex } from "./tds";
+import { ccw, collinear, collinearInOrder, cw, xyCompare, xyEqual, xySmaller } from "./triag";
 
 interface Constraint {
     combined: [Vertex, Vertex];
@@ -123,7 +123,23 @@ export class IterativeDelete {
     }
 
     private finalise(): void {
-        for (const edge of this.edges) this.cdt.removeConstrainedEdgeDelaunay(edge.first!, edge.second);
+        // During constraint removal, triangles can flip and thus the edges we tracked can become broken
+        // To fix them we need to keep track of the changed faces and adjust accordingly.
+        const flippedFaces: [Triangle, number, Triangle, number][][] = [];
+        for (const edge of this.edges) {
+            for (const ff of flippedFaces) {
+                for (const fff of ff) {
+                    if (fff[0] === edge.first && cw(edge.second) === fff[1]) {
+                        edge.first = fff[2];
+                        edge.second = fff[3];
+                    } else if (fff[2] === edge.first && cw(edge.second) === fff[3]) {
+                        edge.first = fff[0];
+                        edge.second = fff[1];
+                    }
+                }
+            }
+            flippedFaces.push(this.cdt.removeConstrainedEdgeDelaunay(edge.first!, edge.second));
+        }
         for (const vertex of this.vertices) this.cdt.removeVertex(vertex);
         for (const [from_, to] of this.finalConstraints) this.cdt.insertConstraintV(from_, to);
         this.cdt.tds.clearTriagVertices(this.shape.uuid);

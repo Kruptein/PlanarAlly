@@ -39,7 +39,6 @@ async def add_shape(sid, data):
     if data["temporary"]:
         state.add_temp(sid, data["shape"]["uuid"])
     else:
-        print(data["shape"])
         with db.atomic():
             data["shape"]["layer"] = Layer.get(
                 location=location, name=data["shape"]["layer"]
@@ -49,7 +48,6 @@ async def add_shape(sid, data):
             shape = Shape.create(**reduce_data_to_model(Shape, data["shape"]))
             # Subshape
             type_table = get_table(shape.type_)
-            print(reduce_data_to_model(type_table, data["shape"]))
             type_table.create(shape=shape, **reduce_data_to_model(type_table, data["shape"]))
             # Owners
             ShapeOwner.create(shape=shape, user=user)
@@ -395,7 +393,6 @@ async def sync_shape_update(layer, room, data, sid, shape):
             pdata["shape"] = deepcopy(data["shape"])
             # Although we have no guarantees that the message is faked, we still would like to verify data as if it were legitimate.
             for element in ["auras", "labels", "trackers"]:
-                print(pdata["shape"][element])
                 pdata["shape"][element] = [el for el in pdata["shape"][element] if el["visible"]]
             if not pdata["shape"]["name_visible"]:
                 pdata["shape"]["name"] = "?"

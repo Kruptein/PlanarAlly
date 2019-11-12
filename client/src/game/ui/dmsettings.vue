@@ -36,7 +36,7 @@
                 <div class="row smallrow" v-if="Object.values($store.state.game.players).length === 0">
                     <div class="spanrow">There are no players yet, invite some using the link below!</div>
                 </div>
-                <div class="spanrow header">Invite&nbsp;code</div>
+                <div class="spanrow header">Invite code</div>
                 <div class="row">
                     <div>Invitation URL:</div>
                     <template v-if="showRefreshState">
@@ -421,13 +421,16 @@ export default class DmSettings extends Vue {
     line-height: 0.1em;
     margin: 20px 0 15px;
     font-style: italic;
+    overflow: hidden;
 }
 .header:after {
     position: relative;
-    left: 5px;
     width: 100%;
     border-bottom: 1px solid #000;
     content: "";
+    margin-right: -100%;
+    margin-left: 10px;
+    display: inline-block;
 }
 
 .spanrow {

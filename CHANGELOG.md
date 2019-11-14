@@ -20,6 +20,10 @@ All notable changes to this project will be documented in this file.
   - brush size (defaults to 1 grid cell in width)
   - closed/open polygon toggle, when enable automatically connects first and last point.
 - Escape cancels draw tool actions
+- Option to disable registration
+- Option to disable new sessions creation
+- A tool for DM to delete locations
+- A tool for DM to move eveyones viewport to his location
 
 ### Changed
 

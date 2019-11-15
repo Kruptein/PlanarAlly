@@ -88,7 +88,7 @@ export default class SelectionInfo extends Vue {
     }
 
     openEditDialog() {
-        (<any>this.$refs.editDialog).visible = true;
+        (<any>this.$refs.editDialog)[0].visible = true;
     }
     changeValue(object: Tracker | Aura, redraw: boolean) {
         if (this.shape === null) return;

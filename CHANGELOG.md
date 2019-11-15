@@ -7,6 +7,8 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+## [0.18.0] - 2019-09-11
+
 ### Added
 
 - Option to set custom units of length (defaults to ft)

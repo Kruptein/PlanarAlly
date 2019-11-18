@@ -362,9 +362,14 @@ export default class DrawTool extends Tool {
 
     private finaliseShape() {
         if (this.shape === null) return;
-        if (this.shape.visionObstruction) visibilityStore.recalculateVision();
-        if (this.shape.movementObstruction) visibilityStore.recalculateMovement();
-        socket.emit("Shape.Update", { shape: this.shape!.asDict(), redraw: true, temporary: false });
+        if (this.shape.points.length <= 1) {
+            this.onDeselect();
+            this.onSelect();
+        } else {
+            if (this.shape.visionObstruction) visibilityStore.recalculateVision();
+            if (this.shape.movementObstruction) visibilityStore.recalculateMovement();
+            socket.emit("Shape.Update", { shape: this.shape!.asDict(), redraw: true, temporary: false });
+        }
         this.active = false;
     }
 

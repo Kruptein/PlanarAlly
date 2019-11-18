@@ -247,7 +247,7 @@ export class FOWLayer extends Layer {
             if (ix.length === 0) {
                 // segment lies completely outside circle
                 if (!auraCircle.contains(p)) continue;
-                // Segment lies completely inside circle
+                // segment lies completely inside circle
                 else ix.push(pLoc, npLoc);
             } else if (ix.length === 1) {
                 // segment is tangent to circle, segment can be ignored
@@ -257,6 +257,14 @@ export class FOWLayer extends Layer {
                 } else {
                     ix.push(npLoc);
                 }
+            }
+            // Check some bad cases
+            if (ixs.length > 0) {
+                const lastIx = ixs[ixs.length - 1];
+                if (xyEqual(lastIx[0].asArray(), ix[1].asArray()) && xyEqual(lastIx[1].asArray(), ix[0].asArray()))
+                    continue;
+                if (xyEqual(lastIx[0].asArray(), ix[0].asArray()) && xyEqual(lastIx[1].asArray(), ix[1].asArray()))
+                    continue;
             }
             ixs.push(ix);
         }

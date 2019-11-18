@@ -236,6 +236,11 @@ export class FOWLayer extends Layer {
         let firstAngle: number | null = null;
         let lastAngle: number | null = null;
 
+        if (visibilityPolygon.length <= 1) {
+            path.arc(lCenter.x, lCenter.y, lRadius, 0, 2 * Math.PI);
+            return path;
+        }
+
         for (const [i, p] of visibilityPolygon.map(p => GlobalPoint.fromArray(p)).entries()) {
             const np = GlobalPoint.fromArray(visibilityPolygon[(i + 1) % visibilityPolygon.length]);
             const pLoc = g2l(p);

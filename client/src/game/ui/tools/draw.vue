@@ -271,7 +271,7 @@ export default class DrawTool extends Tool {
         if (this.shape !== null && this.shapeSelect === "draw-polygon" && this.shape instanceof Polygon) {
             const lastPoint = l2g(getMouse(event));
             if (this.ruler === null) {
-                this.ruler = new Line(lastPoint, lastPoint, this.brushSize, "black");
+                this.ruler = new Line(lastPoint, lastPoint, this.brushSize, this.fillColour);
                 layer.addShape(this.ruler, false);
             } else {
                 this.ruler.refPoint = lastPoint;

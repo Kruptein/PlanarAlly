@@ -45,6 +45,7 @@ All notable changes to this project will be documented in this file.
 - Temporary shapes not being properly cleared on player disconnect.
 - Private shape auras, trackers, labels and name being revealed during movement.
 - Fix light auras clipping over walls.
+- Fix bug with circle draws using negative radii.
 
 - [tech] Improved docker image creation script
   - Faster compilation and smaller final size

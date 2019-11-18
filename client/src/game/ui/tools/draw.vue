@@ -309,7 +309,7 @@ export default class DrawTool extends Tool {
                 break;
             }
             case "circle": {
-                (<Circle>this.shape).r = endPoint.subtract(this.startPoint).length();
+                (<Circle>this.shape).r = Math.abs(endPoint.subtract(this.startPoint).length());
                 break;
             }
             case "paint-brush": {

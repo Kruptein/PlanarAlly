@@ -8,6 +8,7 @@ module.exports = {
     outputDir: "../server",
     indexPath: "./templates/index.html",
     configureWebpack: {
+        devtool: "source-map",
         resolve: {
             alias: {
                 vue$: "vue/dist/vue.esm.js", // 'vue/dist/vue.common.js' for webpack 1

@@ -194,6 +194,7 @@ export class FOWLayer extends Layer {
                     this.vCtx.fill();
                     ctx.drawImage(this.virtualCanvas, 0, 0);
                     aura.lastPath = this.updateAuraPath(polygon, auraCircle);
+                    shape.invalidate(true);
                 }
             }
 

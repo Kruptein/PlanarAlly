@@ -21,19 +21,19 @@ class AssetStore extends VuexModule {
     selected: number[] = [];
 
     @Mutation
-    clear() {
+    clear(): void {
         this.folders = [];
         this.files = [];
     }
 
     @Mutation
-    clearSelected() {
+    clearSelected(): void {
         console.log("Cleared");
         this.selected = [];
     }
 
     @Mutation
-    setRoot(root: number) {
+    setRoot(root: number): void {
         this.root = root;
     }
 }

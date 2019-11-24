@@ -3,11 +3,11 @@
 Getting Started
 =================
 
-This document will show you how to get started using Planar Ally.
+This document will show you how to get started using PlanarAlly.
 
 If you are a player you can immediately continue to :ref:`login`,
 if you're a DM,
-you'll first need to decide where/how you want to run PlanarAlly.
+you'll first need to decide whether you want to host PlanarAlly yourself or use an existing service.
 See :ref:`installation <installation>` for more info .
 
 
@@ -62,9 +62,7 @@ Joining a new session
 
 To join a specific session, you need the invite link. Your DM should provide this to you.
 
-When visiting this link,
-you'll automatically join the session and in a future visit
-to the session hub it should be listed as well.
+When visiting this link, you'll automatically join the session.
 
 The game
 ---------
@@ -95,7 +93,8 @@ We'll give a brief overview of these UI elements soon, there is however another 
 When you select a token that you own,
 a red border will be drawn around the token
 to visually give a reminder of what you have selected and on top of that
-a box appears at the right side of the screen, with the name of the selected token as well as any tracker or aura active on the token (more on that later).
+a box appears at the right side of the screen, with the name of the selected token
+as well as any tracker or aura active on the token (more on that later).
 
 .. image:: images/player-selection.png
 
@@ -133,6 +132,8 @@ When you've selected a token however, the token itself will move.
 Pressing `Delete` will delete the current selected token.
 
 Pressing `d` will deselect your current selection.
+
+Pressing `Ctrl+U` will toggle the UI.
 
 Mouse
 ^^^^^^
@@ -230,7 +231,7 @@ When in select modus, your right mouse button will show a context menu.
 
 When you right click a selection,
 you'll have the option to move it to the front or back and
-add or show its initiative.
+add or show its initiative. Additionally you can also get the detailed properties of the selected object.
 When nothing is selected, you'll have the option to show the initiative tracker or create a new basic token.
 
 Pan
@@ -249,7 +250,7 @@ Draw
 
 The draw tool allows you to draw some simple shapes!
 
-You can choose between a rectangle, a circle, or a freehand brush.
+You can choose between a rectangle, a circle, a polygon or a freehand brush.
 
 You also have the option to select two colours.
 The left colour is used as the fill colour,
@@ -290,6 +291,15 @@ While holding the button it will show you the distance in ft between your initia
     Your ruler is visible to all players!
 
 Your DM can configure the size of one grid cell, which is used to calculate the distance the ruler shows.
+
+Vision
+^^^^^^^
+
+*This tool is only visible if you own multiple tokens.*
+
+When you control multiple tokens, you typically see the vision of all your owned tokens combined.
+In some cases however you would like to get the perspective of just one of these tokens.
+With the vision tool you can choose which tokens should contribute to your current vision.
 
 Map
 ^^^^

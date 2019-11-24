@@ -109,7 +109,7 @@ function expandEdge(
     }
 }
 
-function raySegIntersection(q: Point, b: Point, s: Point, t: Point) {
+function raySegIntersection(q: Point, b: Point, s: Point, t: Point): Point {
     const denominator = (t[1] - s[1]) * (b[0] - q[0]) - (t[0] - s[0]) * (b[1] - q[1]);
     const ua = ((t[0] - s[0]) * (q[1] - s[1]) - (t[1] - s[1]) * (q[0] - s[0])) / denominator;
     // const ub = ((b[0] - q.x) * (q.y - s[1]) - (b[1] - q.y) * (q.x - s[0])) / denominator;

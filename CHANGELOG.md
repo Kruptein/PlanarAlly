@@ -7,6 +7,51 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+## [0.18.0] - 2019-09-11
+
+### Added
+
+- Option to set custom units of length (defaults to ft)
+- Ping tool
+- Option to change the location of tokens/shapes
+- Option to edit shapes in groups (move to other layer, move to other location, move to top/bottom, add initiative)
+- Option to Ctrl-select tokens/shapes
+- Default right click menu to all tools that didnt have it
+- Colour in the location bar to show current location
+- Polygon tool options
+  - brush size (defaults to 1 grid cell in width)
+  - closed/open polygon toggle, when enable automatically connects first and last point.
+- Escape cancels draw tool actions
+
+### Changed
+
+- Pasted shapes are now pasted relative to the screen position
+- Login page now autofocusses on the username input field.
+- All shapes on the FOW layer are now invisible while not on the FOW layer.
+- Circle borders (including basic tokens) are now inset, so that they fit within their squares.
+- Basic token text scaling has been changed slightly to have more uniformly sized characters.
+
+- [tech] Mousemove events are now throttled, so that they don't fire a gazillion events.
+- [tech] tslint swapped out for eslint
+- [tech] Refactor Layer.draw to use Shape.drawSelection
+- [tech] Refactor most uses of forEach to for..of
+
+### Fixed
+
+- [DM] Session lock state not being shown correctly upon joining.
+- Sessions with a slash in their name do not work
+- Ruler width not being the same at all zoom levels.
+- Brushhelper sticking around on layer change.
+- Temporary shapes not being properly cleared on player disconnect.
+- Private shape auras, trackers, labels and name being revealed during movement.
+- Fix light auras clipping over walls.
+- Fix bug with circle draws using negative radii.
+- Polygon preview segment always showing up as black.
+
+- [tech] Improved docker image creation script
+  - Faster compilation and smaller final size
+  - Now the frontend is also compiled inside a container
+
 ## [0.17.1] - 2019-06-17
 
 ### Fixed
@@ -18,12 +63,12 @@ All notable changes to this project will be documented in this file.
 ### Changed
 
 - The DM options menu is now a proper dialog.
-    - Options are sorted by catecory.
-    - A list of players with access to the session is shown with an option to kick them.
-    - A url is shown for the invite url so you no longer have to figure this out yourself.
-    - A button to refresh the invite url is now present.
-    - A button to remove the session is added.
-    - A button to (un)lock the session is added.
+  - Options are sorted by catecory.
+  - A list of players with access to the session is shown with an option to kick them.
+  - A url is shown for the invite url so you no longer have to figure this out yourself.
+  - A button to refresh the invite url is now present.
+  - A button to remove the session is added.
+  - A button to (un)lock the session is added.
 
 ### Fixed
 
@@ -36,15 +81,15 @@ All notable changes to this project will be documented in this file.
 - Option to listen on a socket instead of HOST:PORT.
 - Vision tool to change active tokens.
 - Vision lock button to initiative to only show vision of current actor.
-    - This only applies to tokens the player owns for other tokens the normal vision is restored.
-    - This is purely client side and can thus be chosen by player/DM separately.
+  - This only applies to tokens the player owns for other tokens the normal vision is restored.
+  - This is purely client side and can thus be chosen by player/DM separately.
 - Camera lock button to initiative to automatically center on current actor.
-    - It will center when an actor begins its turn and the client is owner of that actor.
-    - It does not prevent camera movement after the initial center action.
+  - It will center when an actor begins its turn and the client is owner of that actor.
+  - It does not prevent camera movement after the initial center action.
 - Automatic build of windows executables on azure pipelines for all tags
-    - These will also create a github release automatically
+  - These will also create a github release automatically
 - Fake player button to DM Settings to disable all DM functions except DM settings.
-    - You can control which player(s) you want to emulate with the vision tool.
+  - You can control which player(s) you want to emulate with the vision tool.
 
 ### Changed
 
@@ -71,8 +116,8 @@ All notable changes to this project will be documented in this file.
 - Keybinding to copy selection to clipboard (ctrl+c).
 - Keybinding to paste clipboard to board (ctrl+v).
 - Labeling system.
-    - You can add labels to shapes.
-    - You can filter the gameboard on these labels.
+  - You can add labels to shapes.
+  - You can filter the gameboard on these labels.
 
 ### Changed
 
@@ -86,7 +131,7 @@ All notable changes to this project will be documented in this file.
   - Groupselect will only select your own tokens.
 - Some minor style changes to the edit asset dialog
 - Shape names can now be hidden from other users.
-- Default vision mode changed to triangle mode.  Legacy vision mode (bvh) can still be selected in the DM options.
+- Default vision mode changed to triangle mode. Legacy vision mode (bvh) can still be selected in the DM options.
 
 ### Fixed
 

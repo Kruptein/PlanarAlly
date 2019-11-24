@@ -16,24 +16,22 @@
         <div class="modal-body">
             <draggable
                 id="initiative-list"
-                v-model="data"
+                v-model="$store.state.initiative.data"
                 @change="updateOrder"
-                :options="{setData: fakeSetData, disabled: !$store.state.game.IS_DM}"
+                :setData="fakeSetData"
+                :disabled="!$store.state.game.IS_DM"
             >
-                <template v-for="actor in data">
-                    <div
-                        :key="actor.uuid"
-                        style="display:flex;flex-direction:column;align-items:flex-end;"
-                    >
+                <template v-for="actor in $store.state.initiative.data">
+                    <div :key="actor.uuid" style="display:flex;flex-direction:column;align-items:flex-end;">
                         <div
                             class="initiative-actor"
-                            :class="{'initiative-selected': currentActor === actor.uuid}"
-                            :style="{'cursor': $store.state.game.IS_DM && 'move'}"
+                            :class="{ 'initiative-selected': $store.state.initiative.currentActor === actor.uuid }"
+                            :style="{ cursor: $store.state.game.IS_DM && 'move' }"
                             @mouseenter="toggleHighlight(actor, true)"
                             @mouseleave="toggleHighlight(actor, false)"
                         >
                             <template v-if="actor.has_img">
-                                <img :src="actor.source" width="30px" height="30px">
+                                <img :src="actor.source" width="30px" height="30px" />
                             </template>
                             <template v-else>
                                 <span style="width: auto;">{{ actor.source }}</span>
@@ -43,36 +41,40 @@
                                 placeholder="value"
                                 v-model.lazy.number="actor.initiative"
                                 :disabled="!owns(actor)"
-                                :class="{'notAllowed': !owns(actor)}"
+                                :class="{ notAllowed: !owns(actor) }"
                                 @change="syncInitiative(actor)"
-                            >
+                            />
                             <div
                                 class="initiative-effects-icon"
                                 style="opacity: 0.6"
-                                :class="{'notAllowed': !owns(actor)}"
+                                :class="{ notAllowed: !owns(actor) }"
                                 @click="createEffect(actor, getDefaultEffect(), true)"
                             >
                                 <i class="fas fa-stopwatch"></i>
-                                <template v-if="actor.effects">{{actor.effects.length}}</template>
-                                <template v-else>0</template>
+                                <template v-if="actor.effects">
+                                    {{ actor.effects.length }}
+                                </template>
+                                <template v-else>
+                                    0
+                                </template>
                             </div>
                             <div
-                                :style="{'opacity': actor.visible ? '1.0' : '0.3'}"
-                                :class="{'notAllowed': !owns(actor)}"
+                                :style="{ opacity: actor.visible ? '1.0' : '0.3' }"
+                                :class="{ notAllowed: !owns(actor) }"
                                 @click="toggleOption(actor, 'visible')"
                             >
                                 <i class="fas fa-eye"></i>
                             </div>
                             <div
-                                :style="{'opacity': actor.group ? '1.0' : '0.3'}"
-                                :class="{'notAllowed': !owns(actor)}"
+                                :style="{ opacity: actor.group ? '1.0' : '0.3' }"
+                                :class="{ notAllowed: !owns(actor) }"
                                 @click="toggleOption(actor, 'group')"
                             >
                                 <i class="fas fa-users"></i>
                             </div>
                             <div
-                                :style="{'opacity': owns(actor) ? '1.0' : '0.3'}"
-                                :class="{'notAllowed': !owns(actor)}"
+                                :style="{ opacity: owns(actor) ? '1.0' : '0.3' }"
+                                :class="{ notAllowed: !owns(actor) }"
                                 @click="removeInitiative(actor.uuid, true, true)"
                             >
                                 <i class="fas fa-trash-alt"></i>
@@ -85,20 +87,20 @@
                                     v-model="effect.name"
                                     :size="effect.name.length || 1"
                                     @change="updateEffect(actor.uuid, effect, true)"
-                                >
+                                />
                                 <input
                                     type="text"
                                     v-model="effect.turns"
                                     :size="effect.turns.toString().length || 1"
                                     @change="updateEffect(actor.uuid, effect, true)"
-                                >
+                                />
                             </div>
                         </div>
                     </div>
                 </template>
             </draggable>
             <div id="initiative-bar">
-                <div id="initiative-round">Round {{ roundCounter }}</div>
+                <div id="initiative-round">Round {{ $store.state.initiative.roundCounter }}</div>
                 <div style="display:flex;"></div>
                 <div
                     class="initiative-bar-button"
@@ -116,16 +118,15 @@
                 </div>
                 <div
                     class="initiative-bar-button"
-                    :class="{'notAllowed': !$store.state.game.IS_DM}"
-                    @click="setRound(0, true); updateTurn(data[0].uuid, true)"
+                    :class="{ notAllowed: !$store.state.game.IS_DM }"
+                    @click="
+                        setRound(0, true);
+                        updateTurn($store.state.initiative.data[0].uuid, true);
+                    "
                 >
                     <i class="fas fa-sync-alt"></i>
                 </div>
-                <div
-                    class="initiative-bar-button"
-                    :class="{'notAllowed': !$store.state.game.IS_DM}"
-                    @click="nextTurn"
-                >
+                <div class="initiative-bar-button" :class="{ notAllowed: !$store.state.game.IS_DM }" @click="nextTurn">
                     <i class="fas fa-chevron-right"></i>
                 </div>
             </div>
@@ -147,7 +148,8 @@ import { InitiativeData, InitiativeEffect } from "@/game/comm/types/general";
 import { EventBus } from "@/game/event-bus";
 import { layerManager } from "@/game/layers/manager";
 import { gameStore } from "@/game/store";
-import { gameManager } from '../manager';
+import { initiativeStore } from "./store";
+import { gameManager } from "../../manager";
 
 @Component({
     components: {
@@ -157,21 +159,17 @@ import { gameManager } from '../manager';
 })
 export default class Initiative extends Vue {
     visible = false;
-    data: InitiativeData[] = [];
-    currentActor: string | null = null;
-    roundCounter = 0;
     visionLock = false;
     cameraLock = false;
     _activeTokens: string[] = [];
 
     mounted() {
-        EventBus.$on("Initiative.Clear", this.clear);
+        EventBus.$on("Initiative.Clear", initiativeStore.clear);
         EventBus.$on("Initiative.Remove", (data: string) => this.removeInitiative(data));
         EventBus.$on("Initiative.Show", () => (this.visible = true));
+        EventBus.$on("Initiative.ForceUpdate", () => this.$forceUpdate());
 
-        socket.on("Initiative.Set", (data: InitiativeData[]) => {
-            this.data = data;
-        });
+        socket.on("Initiative.Set", initiativeStore.setData);
         socket.on("Initiative.Turn.Set", (data: string) => this.setTurn(data));
         socket.on("Initiative.Turn.Update", (data: string) => this.updateTurn(data, false));
         socket.on("Initiative.Round.Update", (data: number) => this.setRound(data, false));
@@ -189,18 +187,17 @@ export default class Initiative extends Vue {
         EventBus.$off("Initiative.Clear");
         EventBus.$off("Initiative.Remove");
         EventBus.$off("Initiative.Show");
+        socket.off("Initiative.Set");
+        socket.off("Initiative.Turn.Set");
+        socket.off("Initiative.Turn.Update");
+        socket.off("Initiative.Round.Update");
+        socket.off("Initiative.Effect.New");
+        socket.off("Initiative.Effect.Update");
     }
 
     // Utilities
-    clear() {
-        this.data = [];
-        this.currentActor = null;
-    }
     getActor(actorId: string) {
-        return this.data.find(a => a.uuid === actorId);
-    }
-    contains(uuid: string) {
-        return this.data.some(d => d.uuid === uuid);
+        return initiativeStore.data.find(a => a.uuid === actorId);
     }
     owns(actor: InitiativeData): boolean {
         if (gameStore.IS_DM) return true;
@@ -219,15 +216,9 @@ export default class Initiative extends Vue {
         socket.emit("Initiative.Update", data);
     }
     // Events
-    addInitiative(data: InitiativeData) {
-        const d = this.data.findIndex(a => a.uuid === data.uuid);
-        if (d >= 0) return;
-        if (data.initiative === undefined) data.initiative = 0;
-        this.syncInitiative(data);
-    }
     removeInitiative(uuid: string) {
-        const d = this.data.findIndex(a => a.uuid === uuid);
-        if (d < 0 || this.data[d].group) return;
+        const d = initiativeStore.data.findIndex(a => a.uuid === uuid);
+        if (d < 0 || initiativeStore.data[d].group) return;
         this.syncInitiative({ uuid });
         // Remove highlight
         const shape = layerManager.UUIDMap.get(uuid);
@@ -239,12 +230,15 @@ export default class Initiative extends Vue {
     }
     updateOrder() {
         if (!gameStore.IS_DM) return;
-        socket.emit("Initiative.Set", this.data.map(d => d.uuid));
+        socket.emit(
+            "Initiative.Set",
+            initiativeStore.data.map(d => d.uuid),
+        );
     }
     updateTurn(actorId: string | null, sync: boolean) {
         if (!gameStore.IS_DM && sync) return;
-        this.currentActor = actorId;
-        const actor = this.data.find(a => a.uuid === actorId);
+        initiativeStore.setCurrentActor(actorId);
+        const actor = initiativeStore.data.find(a => a.uuid === actorId);
         if (actor === undefined) return;
         if (actor.effects) {
             for (let e = actor.effects.length - 1; e >= 0; e--) {
@@ -268,17 +262,17 @@ export default class Initiative extends Vue {
     }
     setRound(round: number, sync: boolean) {
         if (!gameStore.IS_DM && sync) return;
-        this.roundCounter = round;
+        initiativeStore.setRoundCounter(round);
         if (sync) socket.emit("Initiative.Round.Update", round);
     }
     setTurn(actorId: string | null) {
-        this.currentActor = actorId;
+        initiativeStore.setTurn(actorId);
     }
     nextTurn() {
         if (!gameStore.IS_DM) return;
-        const order = this.data;
-        const next = order[(order.findIndex(a => a.uuid === this.currentActor) + 1) % order.length];
-        if (this.data[0].uuid === next.uuid) this.setRound(this.roundCounter + 1, true);
+        const order = initiativeStore.data;
+        const next = order[(order.findIndex(a => a.uuid === initiativeStore.currentActor) + 1) % order.length];
+        if (initiativeStore.data[0].uuid === next.uuid) this.setRound(initiativeStore.roundCounter + 1, true);
         this.updateTurn(next.uuid, true);
     }
     toggleHighlight(actor: InitiativeData, show: boolean) {
@@ -302,7 +296,7 @@ export default class Initiative extends Vue {
         socket.emit("Initiative.Effect.Update", { actor: actor.uuid, effect });
     }
     updateEffect(actorId: string, effect: InitiativeEffect, sync: boolean) {
-        const actor = this.data.find(a => a.uuid === actorId);
+        const actor = initiativeStore.data.find(a => a.uuid === actorId);
         if (actor === undefined) return;
         const effectIndex = actor.effects.findIndex(e => e.uuid === effect.uuid);
         if (effectIndex === undefined) return;
@@ -314,14 +308,14 @@ export default class Initiative extends Vue {
         this.visionLock = !this.visionLock;
         if (this.visionLock) {
             this._activeTokens = [...gameStore._activeTokens];
-            if (this.currentActor !== null && gameStore.ownedtokens.includes(this.currentActor)) gameStore.setActiveTokens([this.currentActor]);
+            if (initiativeStore.currentActor !== null && gameStore.ownedtokens.includes(initiativeStore.currentActor))
+                gameStore.setActiveTokens([initiativeStore.currentActor]);
         } else {
             gameStore.setActiveTokens(this._activeTokens);
         }
     }
 }
 </script>
-
 
 <style scoped>
 .modal-header {

@@ -53,7 +53,7 @@ Filling the board with fog
 A more realistic system can be created by checking the DM option 'fill canvas with FOW'.
 This will fill the entire screen with fog.
 
-You can now start adding light sources to shapes and these will perce the fog.
+You can now start adding light sources to shapes and these will pierce the fog.
 When you move a shape with a lightsource, the light aura will follow the shape and
 fog will fill in where the shape left as one expects.
 
@@ -92,7 +92,7 @@ As the shapes on the fow layer are hidden from your view when you're on other la
 
 .. figure:: images/lighting-block-example.png
 
-    Example where the right wall has the 'blocks movement' option enabled.
+    Example where the right wall has the 'blocks vision' option enabled.
 
 Line of Sight based vision
 ---------------------------

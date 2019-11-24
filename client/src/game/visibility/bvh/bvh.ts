@@ -2,7 +2,6 @@ import { partition } from "@/core/utils";
 import { GlobalPoint, Ray } from "@/game/geom";
 import { layerManager } from "@/game/layers/manager";
 import { BoundingRect } from "@/game/shapes/boundingrect";
-import { gameStore } from "@/game/store";
 import { g2lx, g2ly, g2lz } from "@/game/units";
 import { BoundingNode, InteriorNode, LeafNode } from "@/game/visibility/bvh/node";
 
@@ -52,7 +51,7 @@ export class BoundingVolume {
         this.compact();
     }
 
-    draw() {
+    draw(): void {
         const ctx = layerManager.getLayer("draw")!.ctx;
         for (const node of this.nodes) {
             const b = node.bbox;
@@ -88,7 +87,10 @@ export class BoundingVolume {
         }
     }
 
-    intersect(ray: Ray<GlobalPoint>, stopOnFirstHit?: boolean) {
+    intersect(
+        ray: Ray<GlobalPoint>,
+        stopOnFirstHit?: boolean,
+    ): { hit: boolean; intersect: GlobalPoint; tMin: number; tMax: number } {
         if (this.nodes.length === 0) return { hit: false, intersect: ray.get(0), tMin: 0, tMax: ray.tMax };
         if (stopOnFirstHit === undefined) stopOnFirstHit = false;
         // Initialize return values
@@ -137,34 +139,36 @@ export class BoundingVolume {
         return { hit, intersect: ray.get(tMin), tMin, tMax };
     }
 
-    private compact() {
+    private compact(): void {
         this.offset = 0;
         if (this.root !== null) this.flatten(this.root);
     }
 
-    private flatten(node: BoundingNode) {
+    private flatten(node: BoundingNode): number {
         const index = this.offset;
         const myOffset = this.offset++;
         if (node.nPrimitives === 0) {
             this.flatten(node.children[0]);
             const secondOffset = this.flatten(node.children[1]);
-            this.nodes[index] = <LinearInternalNode>{
+            const linearNode: LinearInternalNode = {
                 bbox: node.bbox,
                 dimension: (<InteriorNode>node).dimension,
                 nPrimitives: 0,
                 secondChildOffset: secondOffset,
             };
+            this.nodes[index] = linearNode;
         } else {
-            this.nodes[index] = <LinearLeafNode>{
+            const leafNode: LinearLeafNode = {
                 bbox: node.bbox,
                 primitivesOffset: (<LeafNode>node).firstPrimOffset,
                 nPrimitives: node.nPrimitives,
             };
+            this.nodes[index] = leafNode;
         }
         return myOffset;
     }
 
-    private createLeaf(start: number, end: number, nPrimitives: number, bbox: BoundingRect) {
+    private createLeaf(start: number, end: number, nPrimitives: number, bbox: BoundingRect): LeafNode {
         const size = this.orderedPrims.length;
         for (let i = start; i < end; i++) this.orderedPrims.push(this.shapes[this.buildData[i].index]);
         return new LeafNode(size, nPrimitives, bbox);

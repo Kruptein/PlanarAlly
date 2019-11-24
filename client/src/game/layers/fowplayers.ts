@@ -4,6 +4,8 @@ import { layerManager } from "@/game/layers/manager";
 import { Settings } from "@/game/settings";
 import { gameStore } from "@/game/store";
 import { g2l, g2lr, g2lx, g2ly } from "@/game/units";
+import { visibilityStore } from "../visibility/store";
+import { TriangulationTarget } from "../visibility/te/pa";
 import { computeVisibility } from "../visibility/te/te";
 
 export class FOWPlayersLayer extends Layer {
@@ -38,7 +40,7 @@ export class FOWPlayersLayer extends Layer {
                 if (token === undefined) continue;
                 const center = token.center();
                 const lcenter = g2l(center);
-                if (gameStore.visionMode === "bvh") {
+                if (visibilityStore.visionMode === "bvh") {
                     ctx.beginPath();
                     let lastArcAngle = -1;
 
@@ -47,7 +49,7 @@ export class FOWPlayersLayer extends Layer {
                         const sin = Math.sin(angle);
                         // Check if there is a hit with one of the nearby light blockers.
                         const lightRay = new Ray(center, new Vector(cos, sin));
-                        const hitResult = gameStore.BV.intersect(lightRay);
+                        const hitResult = visibilityStore.BV.intersect(lightRay);
 
                         // We can move on to the next angle if nothing was hit.
                         if (!hitResult.hit) {
@@ -90,13 +92,15 @@ export class FOWPlayersLayer extends Layer {
                         ctx.fillStyle = "rgba(0, 0, 0, 1)";
                     }
                     try {
-                        const polygon = computeVisibility(token.center(), "vision");
+                        const polygon = computeVisibility(token.center(), TriangulationTarget.VISION);
                         ctx.beginPath();
                         ctx.moveTo(g2lx(polygon[0][0]), g2ly(polygon[0][1]));
                         for (const point of polygon) ctx.lineTo(g2lx(point[0]), g2ly(point[1]));
                         ctx.closePath();
                         ctx.fill();
-                    } catch {}
+                    } catch {
+                        // no-op
+                    }
                 }
             }
 

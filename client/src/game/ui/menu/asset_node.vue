@@ -15,12 +15,11 @@
         >
             {{ file.name }}
             <div v-if="showImage == file.hash" class="preview">
-                <img class="asset-preview-image" :src="'/static/assets/' + file.hash">
+                <img class="asset-preview-image" :src="'/static/assets/' + file.hash" />
             </div>
         </li>
     </ul>
 </template>
-
 
 <script lang="ts">
 import Vue from "vue";

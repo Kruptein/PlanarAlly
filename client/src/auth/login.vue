@@ -1,53 +1,54 @@
 <template>
-  <form @focusin="focusin" @focusout="focusout" @submit.prevent="login">
-    <fieldset>
-      <legend class="legend">PlanarAlly</legend>
-      <div class="input">
-        <input
-          type="text"
-          name="username"
-          v-model="username"
-          placeholder="Username"
-          autocomplete="username"
-          required
-        >
-        <span>
-          <i class="fas fa-user-circle"></i>
-        </span>
-      </div>
+    <form @focusin="focusin" @focusout="focusout" @submit.prevent="login">
+        <fieldset>
+            <legend class="legend">PlanarAlly</legend>
+            <div class="input">
+                <input
+                    type="text"
+                    name="username"
+                    v-model="username"
+                    placeholder="Username"
+                    autocomplete="username"
+                    required
+                    autofocus
+                />
+                <span>
+                    <i class="fas fa-user-circle"></i>
+                </span>
+            </div>
 
-      <div class="input">
-        <input
-          type="password"
-          name="password"
-          v-model="password"
-          placeholder="Password"
-          autocomplete="current-password"
-          required
-        >
-        <span>
-          <i class="fas fa-lock"></i>
-        </span>
-      </div>
+            <div class="input">
+                <input
+                    type="password"
+                    name="password"
+                    v-model="password"
+                    placeholder="Password"
+                    autocomplete="current-password"
+                    required
+                />
+                <span>
+                    <i class="fas fa-lock"></i>
+                </span>
+            </div>
 
-      <div style="display:flex;">
-        <button type="submit" name="login" style="visibility: hidden;display:none;"></button>
-        <button type="button" name="register" class="submit" title="Register" @click="register">
-          <i class="fas fa-plus"></i>
-        </button>
-        <button type="submit" name="login" class="submit" title="Login">
-          <i class="fas fa-arrow-right"></i>
-        </button>
-      </div>
-    </fieldset>
+            <div style="display:flex;">
+                <button type="submit" name="login" style="visibility: hidden;display:none;"></button>
+                <button type="button" name="register" class="submit" title="Register" @click="register">
+                    <i class="fas fa-plus"></i>
+                </button>
+                <button type="submit" name="login" class="submit" title="Login">
+                    <i class="fas fa-arrow-right"></i>
+                </button>
+            </div>
+        </fieldset>
 
-    <div class="feedback" v-if="error">
-      <p class="error">
-        <strong>Error:</strong>
-        {{ error }}
-      </p>
-    </div>
-  </form>
+        <div class="feedback" v-if="error">
+            <p class="error">
+                <strong>Error:</strong>
+                {{ error }}
+            </p>
+        </div>
+    </form>
 </template>
 
 <script lang="ts">
@@ -69,7 +70,7 @@ export default class Login extends Vue {
                 username: this.username,
                 password: this.password,
             })
-            .then((response: AxiosResponse) => {
+            .then((_response: AxiosResponse) => {
                 coreStore.setUsername(this.username);
                 coreStore.setAuthenticated(true);
                 this.$router.push(<string>this.$route.query.redirect || "/");
@@ -86,7 +87,7 @@ export default class Login extends Vue {
                 username: this.username,
                 password: this.password,
             })
-            .then((response: AxiosResponse) => {
+            .then((_response: AxiosResponse) => {
                 coreStore.setUsername(this.username);
                 coreStore.setAuthenticated(true);
                 this.$router.push(<string>this.$route.query.redirect || "/");

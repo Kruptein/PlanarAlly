@@ -1,3 +1,5 @@
+[![Total Github Download Count](https://img.shields.io/github/downloads/kruptein/planarally/total.svg)](https://github.com/Kruptein/PlanarAlly/releases)
+
 # PlanarAlly
 
 _This project is still in early development; multiple bugs or structure changes can and will happen_
@@ -19,12 +21,20 @@ Some key features are:
 
 This tool is provided free to use and is open source.
 
+# Downloads
+
+_Typically only one person in your group should download and install PA, or even nobody if you use a publicly hosted version._
+
+Releases of PlanarAlly can be found on [the release page](https://github.com/Kruptein/PlanarAlly/releases).
+
+For more information on how to use/install PA, see the documentation.
+
 # Documentation
 
-User documentation can be found [here](https://planarally.readthedocs.io/en/dev/).
-This is still a work in progress, so some elements may still be undocumented.
+User documentation can be found [here](https://planarally.io/docs/).
 
-Installation instructions for DM's can also be found in the link above. As a player you won't have to install anything.
+This is still a work in progress, so some elements may still be undocumented or outdated.
+
 
 # Contributing
 
@@ -34,5 +44,5 @@ If you simply have feedback, or found a bug, go to the issues tab above. First s
 
 If you want to contribute to the actual codebase, you can read more about how to setup a development environment in the CONTRIBUTING document.
 
-![Example view of a player with a light source](https://planarally.readthedocs.io/en/dev/_images/player-base.png)
+![Example view of a player with a light source](https://github.com/Kruptein/PlanarAlly/blob/dev/extra/player_light_example.png?raw=true)
 _Credits to Gogots for the background map used [source](https://gogots.deviantart.com/art/City-of-Moarkaliff-702295905)_

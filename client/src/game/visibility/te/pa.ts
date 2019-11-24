@@ -1,24 +1,29 @@
 import { layerManager } from "@/game/layers/manager";
-import { gameStore } from "@/game/store";
-
+import { visibilityStore } from "../store";
 import { CDT } from "./cdt";
+
+export enum TriangulationTarget {
+    VISION = "vision",
+    MOVEMENT = "movement",
+}
 
 export let PA_CDT = {
     vision: new CDT(),
     movement: new CDT(),
 };
 
-export function triangulate(target: "vision" | "movement", partial: boolean = false) {
+export function triangulate(target: TriangulationTarget, partial: boolean = false): void {
     const cdt = new CDT();
-
+    PA_CDT[target] = cdt;
     let shapes;
-    if (target === "vision") shapes = gameStore.visionBlockers;
-    else shapes = gameStore.movementblockers;
+    if (target === "vision") shapes = visibilityStore.visionBlockers;
+    else shapes = visibilityStore.movementblockers;
 
     for (const sh of shapes) {
         const shape = layerManager.UUIDMap.get(sh)!;
         if (partial && !shape.visibleInCanvas(layerManager.getLayer()!.canvas)) continue;
-        for (let i = 0; i < shape.points.length; i++) {
+        const j = shape.isClosed ? 0 : 1;
+        for (let i = 0; i < shape.points.length - j; i++) {
             cdt.insertConstraint(shape.points[i], shape.points[(i + 1) % shape.points.length]);
         }
     }
@@ -42,6 +47,5 @@ export function triangulate(target: "vision" | "movement", partial: boolean = fa
     cdt.insertConstraint([1e8, 1e8], [1e8, 1e11]);
     cdt.insertConstraint([1e8, 1e11], [-1e8, 1e11]);
     cdt.insertConstraint([-1e8, 1e11], [-1e8, 1e8]);
-    PA_CDT[target] = cdt;
     (<any>window).CDT = PA_CDT;
 }

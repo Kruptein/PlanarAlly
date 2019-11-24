@@ -1,15 +1,10 @@
-<template>
-    <SelectContext ref="selectcontext"></SelectContext>
-</template>
-
 <script lang="ts">
 import Component from "vue-class-component";
 
-import SelectContext from "@/game/ui/tools/selectcontext.vue";
+import ShapeContext from "@/game/ui/selection/shapecontext.vue";
+import DefaultContext from "@/game/ui/tools/defaultcontext.vue";
 import Tool from "@/game/ui/tools/tool.vue";
-import SelectionInfo from "../selection/selection_info.vue";
 
-import { getRef } from "@/core/utils";
 import { socket } from "@/game/api/socket";
 import { GlobalPoint, LocalPoint, Ray, Vector } from "@/game/geom";
 import { Layer } from "@/game/layers/layer";
@@ -17,8 +12,10 @@ import { layerManager } from "@/game/layers/manager";
 import { Rect } from "@/game/shapes/rect";
 import { gameStore } from "@/game/store";
 import { calculateDelta } from "@/game/ui/tools/utils";
-import { g2l, g2lr, g2lx, g2ly, g2lz, l2g, l2gz } from "@/game/units";
+import { g2l, g2lx, g2ly, l2g, l2gz } from "@/game/units";
 import { getMouse } from "@/game/utils";
+import { EventBus } from "../../event-bus";
+import { visibilityStore } from "../../visibility/store";
 
 export enum SelectOperations {
     Noop,
@@ -29,11 +26,7 @@ export enum SelectOperations {
 
 const start = new GlobalPoint(-1000, -1000);
 
-@Component({
-    components: {
-        SelectContext,
-    },
-})
+@Component
 export default class SelectTool extends Tool {
     name = "Select";
     showContextMenu = false;
@@ -49,6 +42,7 @@ export default class SelectTool extends Tool {
     selectionHelper = new Rect(start, 0, 0);
     created() {
         this.selectionHelper.globalCompositeOperation = "source-over";
+        gameStore.setSelectionHelperId(this.selectionHelper.uuid);
     }
     onMouseDown(event: MouseEvent) {
         const layer = layerManager.getLayer();
@@ -77,7 +71,7 @@ export default class SelectTool extends Tool {
             // Resize case, a corner is selected
             if (this.resizePoint >= 0) {
                 layer.selection = [shape];
-                getRef<SelectionInfo>("selectionInfo").shape = shape;
+                EventBus.$emit("SelectionInfo.Shape.Set", shape);
                 this.mode = SelectOperations.Resize;
                 layer.invalidate(true);
                 hit = true;
@@ -87,8 +81,12 @@ export default class SelectTool extends Tool {
             } else if (shape.contains(globalMouse)) {
                 const selection = shape;
                 if (layer.selection.indexOf(selection) === -1) {
-                    layer.selection = [selection];
-                    getRef<SelectionInfo>("selectionInfo").shape = selection;
+                    if (event.ctrlKey) {
+                        layer.selection.push(selection);
+                    } else {
+                        layer.selection = [selection];
+                    }
+                    EventBus.$emit("SelectionInfo.Shape.Set", selection);
                 }
                 this.mode = SelectOperations.Drag;
                 const localRefPoint = g2l(selection.refPoint);
@@ -102,7 +100,7 @@ export default class SelectTool extends Tool {
         // GroupSelect case, draw a selection box to select multiple shapes
         if (!hit) {
             this.mode = SelectOperations.GroupSelect;
-            for (const selection of layer.selection) getRef<SelectionInfo>("selectionInfo").shape = selection;
+            for (const selection of layer.selection) EventBus.$emit("SelectionInfo.Shape.Set", selection);
 
             this.selectionStartPoint = globalMouse;
 
@@ -110,7 +108,11 @@ export default class SelectTool extends Tool {
             this.selectionHelper.w = 0;
             this.selectionHelper.h = 0;
 
-            layer.selection = [this.selectionHelper];
+            if (event.ctrlKey) {
+                layer.selection.push(this.selectionHelper);
+            } else {
+                layer.selection = [this.selectionHelper];
+            }
             layer.invalidate(true);
         }
         this.active = true;
@@ -157,7 +159,7 @@ export default class SelectTool extends Tool {
                     if (!sel.ownedBy()) continue;
                     sel.refPoint = sel.refPoint.add(delta);
                     if (sel !== this.selectionHelper) {
-                        if (sel.visionObstruction) gameStore.recalculateVision(true);
+                        if (sel.visionObstruction) visibilityStore.recalculateVision();
                         socket.emit("Shape.Update", { shape: sel.asDict(), redraw: true, temporary: true });
                     }
                 }
@@ -167,7 +169,7 @@ export default class SelectTool extends Tool {
                     if (!sel.ownedBy()) continue;
                     sel.resize(this.resizePoint, mouse);
                     if (sel !== this.selectionHelper) {
-                        if (sel.visionObstruction) gameStore.recalculateVision(true);
+                        if (sel.visionObstruction) visibilityStore.recalculateVision();
                         socket.emit("Shape.Update", { shape: sel.asDict(), redraw: true, temporary: true });
                     }
                     layer.invalidate(false);
@@ -189,44 +191,46 @@ export default class SelectTool extends Tool {
         const layer = layerManager.getLayer()!;
 
         if (this.mode === SelectOperations.GroupSelect) {
-            layer.clearSelection();
-            layer.shapes.forEach(shape => {
-                if (!shape.ownedBy()) return;
-                if (shape === this.selectionHelper) return;
+            if (e.ctrlKey) {
+                // If either control or shift are pressed, do not remove selection
+            } else {
+                layer.clearSelection();
+            }
+            for (const shape of layer.shapes) {
+                if (!shape.ownedBy()) continue;
+                if (shape === this.selectionHelper) continue;
                 const bbox = shape.getBoundingBox();
-                if (!shape.ownedBy()) return;
+                if (!shape.ownedBy()) continue;
                 if (
                     this.selectionHelper!.refPoint.x <= bbox.topRight.x &&
                     this.selectionHelper!.refPoint.x + this.selectionHelper!.w >= bbox.topLeft.x &&
                     this.selectionHelper!.refPoint.y <= bbox.botLeft.y &&
                     this.selectionHelper!.refPoint.y + this.selectionHelper!.h >= bbox.topLeft.y
                 ) {
-                    layer.selection.push(shape);
+                    if (layer.selection.find(it => it === shape) === undefined) {
+                        layer.selection.push(shape);
+                    }
                 }
-            });
-
-            // Push the selection helper as the last element of the selection
-            // This makes sure that it will be the first one to be hit in the hit detection onMouseDown
-            if (layer.selection.length > 0) layer.selection.push(this.selectionHelper);
-
+            }
+            layer.selection = layer.selection.filter(it => it !== this.selectionHelper);
             layer.invalidate(true);
         } else if (layer.selection.length) {
-            layer.selection.forEach(sel => {
-                if (!sel.ownedBy()) return;
+            for (const sel of layer.selection) {
+                if (!sel.ownedBy()) continue;
                 if (this.mode === SelectOperations.Drag) {
                     if (
                         this.dragRay.origin!.x === g2lx(sel.refPoint.x) &&
                         this.dragRay.origin!.y === g2ly(sel.refPoint.y)
                     )
-                        return;
+                        continue;
 
                     if (gameStore.useGrid && !e.altKey && !this.deltaChanged) {
                         sel.snapToGrid();
                     }
 
                     if (sel !== this.selectionHelper) {
-                        if (sel.visionObstruction) gameStore.recalculateVision();
-                        if (sel.movementObstruction) gameStore.recalculateMovement();
+                        if (sel.visionObstruction) visibilityStore.recalculateVision();
+                        if (sel.movementObstruction) visibilityStore.recalculateMovement();
                         socket.emit("Shape.Update", { shape: sel.asDict(), redraw: true, temporary: false });
                     }
                     layer.invalidate(false);
@@ -236,13 +240,13 @@ export default class SelectTool extends Tool {
                         sel.resizeToGrid();
                     }
                     if (sel !== this.selectionHelper) {
-                        if (sel.visionObstruction) gameStore.recalculateVision();
-                        if (sel.movementObstruction) gameStore.recalculateMovement();
+                        if (sel.visionObstruction) visibilityStore.recalculateVision();
+                        if (sel.movementObstruction) visibilityStore.recalculateMovement();
                         socket.emit("Shape.Update", { shape: sel.asDict(), redraw: true, temporary: false });
                     }
                     layer.invalidate(false);
                 }
-            });
+            }
         }
         this.mode = SelectOperations.Noop;
         this.active = false;
@@ -255,17 +259,27 @@ export default class SelectTool extends Tool {
         const layer = layerManager.getLayer()!;
         const mouse = getMouse(event);
         const globalMouse = l2g(mouse);
-
         for (const shape of layer.selection) {
-            if (shape.contains(globalMouse) && shape !== this.selectionHelper) {
-                layer.selection = [shape];
-                getRef<SelectionInfo>("selectionInfo").shape = shape;
+            if (shape.contains(globalMouse)) {
+                EventBus.$emit("SelectionInfo.Shape.Set", shape);
                 layer.invalidate(true);
-                (<any>this.$parent.$refs.shapecontext).open(event, shape);
+                (<ShapeContext>this.$parent.$refs.shapecontext).open(event);
                 return;
             }
         }
-        (<any>this.$refs.selectcontext).open(event);
+
+        // Check if any other shapes are under the mouse
+        for (let i = layer.shapes.length - 1; i >= 0; i--) {
+            const shape = layer.shapes[i];
+            if (shape.contains(globalMouse)) {
+                layer.selection = [shape];
+                EventBus.$emit("SelectionInfo.Shape.Set", shape);
+                layer.invalidate(true);
+                (<ShapeContext>this.$parent.$refs.shapecontext).open(event);
+                return;
+            }
+        }
+        (<DefaultContext>this.$parent.$refs.defaultcontext).open(event);
     }
     updateCursor(layer: Layer, globalMouse: GlobalPoint) {
         for (const sel of layer.selection) {

@@ -31,7 +31,7 @@ For more information on how to use/install PA, see the documentation.
 
 # Documentation
 
-User documentation can be found [here](https://planarally.readthedocs.io/en/dev/).
+User documentation can be found [here](https://planarally.io/docs/).
 
 This is still a work in progress, so some elements may still be undocumented or outdated.
 

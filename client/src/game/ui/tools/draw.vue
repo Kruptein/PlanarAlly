@@ -271,7 +271,7 @@ export default class DrawTool extends Tool {
         if (this.shape !== null && this.shapeSelect === "draw-polygon" && this.shape instanceof Polygon) {
             const lastPoint = l2g(getMouse(event));
             if (this.ruler === null) {
-                this.ruler = new Line(lastPoint, lastPoint, this.brushSize, "black");
+                this.ruler = new Line(lastPoint, lastPoint, this.brushSize, this.fillColour);
                 layer.addShape(this.ruler, false);
             } else {
                 this.ruler.refPoint = lastPoint;
@@ -309,7 +309,7 @@ export default class DrawTool extends Tool {
                 break;
             }
             case "circle": {
-                (<Circle>this.shape).r = endPoint.subtract(this.startPoint).length();
+                (<Circle>this.shape).r = Math.abs(endPoint.subtract(this.startPoint).length());
                 break;
             }
             case "paint-brush": {
@@ -362,9 +362,14 @@ export default class DrawTool extends Tool {
 
     private finaliseShape() {
         if (this.shape === null) return;
-        if (this.shape.visionObstruction) visibilityStore.recalculateVision();
-        if (this.shape.movementObstruction) visibilityStore.recalculateMovement();
-        socket.emit("Shape.Update", { shape: this.shape!.asDict(), redraw: true, temporary: false });
+        if (this.shape.points.length <= 1) {
+            this.onDeselect();
+            this.onSelect();
+        } else {
+            if (this.shape.visionObstruction) visibilityStore.recalculateVision();
+            if (this.shape.movementObstruction) visibilityStore.recalculateMovement();
+            socket.emit("Shape.Update", { shape: this.shape!.asDict(), redraw: true, temporary: false });
+        }
         this.active = false;
     }
 

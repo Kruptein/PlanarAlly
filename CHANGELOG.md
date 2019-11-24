@@ -44,6 +44,9 @@ All notable changes to this project will be documented in this file.
 - Brushhelper sticking around on layer change.
 - Temporary shapes not being properly cleared on player disconnect.
 - Private shape auras, trackers, labels and name being revealed during movement.
+- Fix light auras clipping over walls.
+- Fix bug with circle draws using negative radii.
+- Polygon preview segment always showing up as black.
 
 - [tech] Improved docker image creation script
   - Faster compilation and smaller final size

@@ -1,3 +1,4 @@
+import { GlobalPoint, Ray } from "@/game/geom";
 import { EdgeCirculator, Point, Sign, Triangle, Vertex } from "./tds";
 
 type Line = number[];
@@ -466,4 +467,28 @@ function nextUp(x: number): number {
 
 export function ulp(x: number): number {
     return x < 0 ? nextUp(x) - x : x + nextUp(-x);
+}
+
+export function circleLineIntersection(
+    circleCenter: GlobalPoint,
+    circleRadius: number,
+    A: GlobalPoint,
+    B: GlobalPoint,
+): GlobalPoint[] {
+    const segmentRay = Ray.fromPoints(A, B); // d
+    const circleLineRay = Ray.fromPoints(circleCenter, A); // f
+    const a = segmentRay.direction.dot(segmentRay.direction);
+    const b = 2 * circleLineRay.direction.dot(segmentRay.direction);
+    const c = circleLineRay.direction.dot(circleLineRay.direction) - circleRadius ** 2;
+    let d = b ** 2 - 4 * a * c;
+    if (d < 0) return [];
+
+    const intersectionPoints: GlobalPoint[] = [];
+
+    d = Math.sqrt(d);
+    const t1 = (-b - d) / (2 * a);
+    const t2 = (-b + d) / (2 * a);
+    if (t1 >= 0 && t1 <= 1) intersectionPoints.push(segmentRay.get(t1));
+    if (t2 >= 0 && t2 <= 1) intersectionPoints.push(segmentRay.get(t2));
+    return intersectionPoints;
 }

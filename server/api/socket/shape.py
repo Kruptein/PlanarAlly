@@ -389,13 +389,16 @@ async def sync_shape_update(layer, room, data, sid, shape):
         if psid == sid:
             continue
         pdata = { el: data[el] for el in data if el != "shape" }
-        if data["temporary"] and player.name not in data["shape"]["owners"]:
-            pdata["shape"] = deepcopy(data["shape"])
-            # Although we have no guarantees that the message is faked, we still would like to verify data as if it were legitimate.
-            for element in ["auras", "labels", "trackers"]:
-                pdata["shape"][element] = [el for el in pdata["shape"][element] if el["visible"]]
-            if not pdata["shape"]["name_visible"]:
-                pdata["shape"]["name"] = "?"
+        if data["temporary"]:
+            if player.name not in data["shape"]["owners"]:
+                pdata["shape"] = deepcopy(data["shape"])
+                # Although we have no guarantees that the message is faked, we still would like to verify data as if it were legitimate.
+                for element in ["auras", "labels", "trackers"]:
+                    pdata["shape"][element] = [el for el in pdata["shape"][element] if el["visible"]]
+                if not pdata["shape"]["name_visible"]:
+                    pdata["shape"]["name"] = "?"
+            else:
+                pdata["shape"] = shape
         else:
             pdata["shape"] = shape.as_dict(player, False)
         await sio.emit("Shape.Update", pdata, room=psid, namespace="/planarally")

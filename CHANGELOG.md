@@ -7,7 +7,13 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
-## [0.18.0] - 2019-09-11
+## [0.18.1] - 2019-12-05
+
+### Fixed
+
+- Shapes not syncing on mouse move.
+
+## [0.18.0] - 2019-11-09
 
 ### Added
 

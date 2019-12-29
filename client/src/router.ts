@@ -41,7 +41,10 @@ export const router = new Router({
         {
             path: "/auth",
             component: { template: "<router-view></router-view>" },
-            children: [{ path: "login", component: Login }, { path: "logout", component: Logout }],
+            children: [
+                { path: "login", component: Login },
+                { path: "logout", component: Logout },
+            ],
         },
         {
             path: "/invite/:code",

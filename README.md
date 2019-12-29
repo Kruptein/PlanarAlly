@@ -31,7 +31,7 @@ For more information on how to use/install PA, see the documentation.
 
 # Documentation
 
-User documentation can be found [here](https://planarally.readthedocs.io/en/dev/).
+User documentation can be found [here](https://planarally.io/docs/).
 
 This is still a work in progress, so some elements may still be undocumented or outdated.
 
@@ -44,5 +44,5 @@ If you simply have feedback, or found a bug, go to the issues tab above. First s
 
 If you want to contribute to the actual codebase, you can read more about how to setup a development environment in the CONTRIBUTING document.
 
-![Example view of a player with a light source](https://planarally.readthedocs.io/en/dev/_images/player-base.png)
+![Example view of a player with a light source](https://github.com/Kruptein/PlanarAlly/blob/dev/extra/player_light_example.png?raw=true)
 _Credits to Gogots for the background map used [source](https://gogots.deviantart.com/art/City-of-Moarkaliff-702295905)_

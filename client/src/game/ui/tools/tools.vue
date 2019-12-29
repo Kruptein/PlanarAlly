@@ -5,7 +5,7 @@
                 <li
                     v-for="tool in visibleTools"
                     :key="tool"
-                    :class="{'tool-selected': currentTool === tool}"
+                    :class="{ 'tool-selected': currentTool === tool }"
                     :ref="tool + '-selector'"
                     v-show="toolVisible(tool)"
                     @mousedown="currentTool = tool"
@@ -22,22 +22,24 @@
                     <draw-tool v-show="currentTool === 'Draw'"></draw-tool>
                 </keep-alive>
                 <ruler-tool v-show="currentTool === 'Ruler'"></ruler-tool>
+                <ping-tool v-show="currentTool === 'Ping'"></ping-tool>
                 <map-tool v-show="currentTool === 'Map'"></map-tool>
                 <filter-tool v-show="currentTool === 'Filter'"></filter-tool>
                 <vision-tool v-show="currentTool === 'Vision'"></vision-tool>
                 <shape-menu ref="shapecontext"></shape-menu>
+                <default-menu ref="defaultcontext"></default-menu>
                 <createtoken-dialog ref="createtokendialog"></createtoken-dialog>
             </template>
         </div>
     </div>
 </template>
 
-
 <script lang="ts">
 import Vue from "vue";
 
 import ShapeContext from "@/game/ui/selection/shapecontext.vue";
 import CreateTokenModal from "@/game/ui/tools/createtoken_modal.vue";
+import DefaultContext from "@/game/ui/tools/defaultcontext.vue";
 import DrawTool from "@/game/ui/tools/draw.vue";
 import FilterTool from "@/game/ui/tools/filter.vue";
 import MapTool from "@/game/ui/tools/map.vue";
@@ -48,6 +50,7 @@ import VisionTool from "@/game/ui/tools/vision.vue";
 import { layerManager } from "@/game/layers/manager";
 import { gameManager } from "@/game/manager";
 import { gameStore } from "@/game/store";
+import { PingTool } from "@/game/ui/tools/ping";
 import { RulerTool } from "@/game/ui/tools/ruler";
 import { l2g } from "@/game/units";
 import { getMouse } from "@/game/utils";
@@ -59,10 +62,12 @@ import Component from "vue-class-component";
         "pan-tool": PanTool,
         "draw-tool": DrawTool,
         "ruler-tool": RulerTool,
+        "ping-tool": PingTool,
         "map-tool": MapTool,
         "filter-tool": FilterTool,
         "vision-tool": VisionTool,
         "shape-menu": ShapeContext,
+        "default-menu": DefaultContext,
         "createtoken-dialog": CreateTokenModal,
     },
     watch: {
@@ -77,7 +82,7 @@ export default class Tools extends Vue {
     };
 
     currentTool = "Select";
-    tools = ["Select", "Pan", "Draw", "Ruler", "Map", "Filter", "Vision"];
+    tools = ["Select", "Pan", "Draw", "Ruler", "Ping", "Map", "Filter", "Vision"];
     dmTools = ["Map"];
 
     get IS_DM(): boolean {
@@ -89,13 +94,13 @@ export default class Tools extends Vue {
     }
 
     get visibleTools(): string[] {
-        return this.tools.filter(t => (!this.dmTools.includes(t) || this.IS_DM));
+        return this.tools.filter(t => !this.dmTools.includes(t) || this.IS_DM);
     }
 
     toolVisible(tool: string): boolean {
-        if (tool === 'Filter') {
+        if (tool === "Filter") {
             return Object.keys(gameStore.labels).length > 0;
-        } else if (tool === 'Vision') {
+        } else if (tool === "Vision") {
             return gameStore.ownedtokens.length > 1;
         }
         return true;
@@ -165,7 +170,6 @@ export default class Tools extends Vue {
     }
 }
 </script>
-
 
 <style scoped>
 #toolselect {

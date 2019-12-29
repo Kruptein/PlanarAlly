@@ -51,10 +51,9 @@ class State:
         self.sid_map = {}
 
     async def clear_temporaries(self, sid):
-        location_id = self.sid_map[sid]["location"].id
-        if sid in self.client_temporaries.get(location_id, []):
-            await sio.emit("Temp.Clear", self.client_temporaries[location_id][sid])
-            del self.client_temporaries[location_id][sid]
+        if sid in self.client_temporaries:
+            await sio.emit("Temp.Clear", self.client_temporaries[sid], namespace="/planarally")
+            del self.client_temporaries[sid]
 
     def add_sid(self, sid, **options):
         self.sid_map[sid] = options

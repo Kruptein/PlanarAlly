@@ -4,7 +4,7 @@ A strong focus is made to ensure that at no time a global and a local point are 
 At first glance this adds weird looking hacks as ts does not support nominal typing.
 */
 
-export function getPointDistance(p1: Point, p2: Point) {
+export function getPointDistance(p1: Point, p2: Point): number {
     const a = p1.x - p2.x;
     const b = p1.y - p2.y;
     return Math.sqrt(a * a + b * b);
@@ -17,19 +17,19 @@ export class Point {
         this.x = x;
         this.y = y;
     }
-    static fromArray(point: number[]) {
+    static fromArray(point: number[]): Point {
         return new Point(point[0], point[1]);
     }
-    add(vec: Vector) {
-        return new Point(this.x + vec.x, this.y + vec.y);
+    add(vec: Vector): this {
+        return new (this as any).constructor(this.x + vec.x, this.y + vec.y);
     }
-    subtract(other: Point) {
+    subtract(other: this): Vector {
         return new Vector(this.x - other.x, this.y - other.y);
     }
-    clone(): Point {
-        return new Point(this.x, this.y);
+    clone(): this {
+        return new (this as any).constructor(this.x, this.y);
     }
-    get(dimension: 0 | 1) {
+    get(dimension: 0 | 1): number {
         if (dimension === 0) return this.x;
         return this.y;
     }
@@ -42,16 +42,7 @@ export class GlobalPoint extends Point {
     // We do ! to prevent errors that it never gets initialized
     // tslint:disable-next-line:variable-name
     _GlobalPoint!: string;
-    add(vec: Vector): GlobalPoint {
-        return <GlobalPoint>super.add(vec);
-    }
-    subtract(other: GlobalPoint): Vector {
-        return super.subtract(other);
-    }
-    clone(): GlobalPoint {
-        return <GlobalPoint>super.clone();
-    }
-    static fromArray(point: number[]) {
+    static fromArray(point: number[]): GlobalPoint {
         return new GlobalPoint(point[0], point[1]);
     }
 }
@@ -61,15 +52,6 @@ export class LocalPoint extends Point {
     // We do ! to prevent errors that it never gets initialized
     // tslint:disable-next-line:variable-name
     _LocalPoint!: string;
-    add(vec: Vector): LocalPoint {
-        return <LocalPoint>super.add(vec);
-    }
-    subtract(other: LocalPoint): Vector {
-        return super.subtract(other);
-    }
-    clone(): LocalPoint {
-        return <LocalPoint>super.clone();
-    }
 }
 
 export class Vector {
@@ -85,8 +67,11 @@ export class Vector {
     inverse(): Vector {
         return new Vector(this.x === 0 ? 0 : 1 / this.x, this.y === 0 ? 0 : 1 / this.y);
     }
+    squaredLength(): number {
+        return Math.pow(this.x, 2) + Math.pow(this.y, 2);
+    }
     length(): number {
-        return Math.sqrt(Math.pow(this.x, 2) + Math.pow(this.y, 2));
+        return Math.sqrt(this.squaredLength());
     }
     normalize(): Vector {
         const l = this.length();
@@ -123,10 +108,10 @@ export class Ray<T extends Point> {
     get(t: number): T {
         return <T>new Point(this.origin.x + t * this.direction.x, this.origin.y + t * this.direction.y);
     }
-    getDistance(t1: number, t2: number) {
+    getDistance(t1: number, t2: number): number {
         return Math.sqrt(Math.pow(t2 - t1, 2) * (Math.pow(this.direction.x, 2) + Math.pow(this.direction.y, 2)));
     }
-    getT(t1: number, distance: number) {
+    getT(t1: number, distance: number): number {
         return t1 + Math.sqrt(Math.pow(distance, 2) / (Math.pow(this.direction.x, 2) + Math.pow(this.direction.y, 2)));
     }
 }

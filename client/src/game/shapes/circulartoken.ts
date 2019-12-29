@@ -32,22 +32,21 @@ export class CircularToken extends Circle {
             font: this.font,
         });
     }
-    fromDict(data: ServerCircularToken) {
+    fromDict(data: ServerCircularToken): void {
         super.fromDict(data);
         this.r = data.radius;
         this.text = data.text;
         this.font = data.font;
     }
-    draw(ctx: CanvasRenderingContext2D) {
+    draw(ctx: CanvasRenderingContext2D): void {
         super.draw(ctx);
         ctx.font = this.font;
         ctx.save();
         const dest = g2l(this.center());
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
-        const xs = calcFontScale(ctx, this.text, g2lz(this.r), g2lz(this.r));
-        const ys = 0;
-        ctx.transform(xs, ys, -ys, xs, dest.x, dest.y);
+        const fontScale = calcFontScale(ctx, this.text, g2lz(this.r - 5));
+        ctx.setTransform(fontScale, 0, 0, fontScale, dest.x, dest.y);
         ctx.fillStyle = tinycolor.mostReadable(this.fillColour, ["#000", "#fff"]).toHexString();
         ctx.fillText(this.text, 0, 0);
         ctx.restore();
@@ -58,6 +57,7 @@ export class CircularToken extends Circle {
             visible: !gameStore.IS_DM,
             group: false,
             source: this.name === "" || this.name === "Unknown shape" ? this.text : this.name,
+            // eslint-disable-next-line @typescript-eslint/camelcase
             has_img: false,
             effects: [],
             index: Infinity,

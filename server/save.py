@@ -12,7 +12,7 @@ from config import SAVE_FILE
 from models import ALL_MODELS, Constants
 from models.db import db
 
-SAVE_VERSION = 16
+SAVE_VERSION = 18
 logger: logging.Logger = logging.getLogger("PlanarAllyServer")
 logger.setLevel(logging.INFO)
 
@@ -221,6 +221,31 @@ def upgrade(version):
             migrate(
                 migrator.add_column("room", "is_locked", BooleanField(default=False))
             )
+        db.foreign_keys = True
+        Constants.update(save_version=Constants.save_version + 1).execute()
+    elif version == 16:
+        from peewee import TextField
+        migrator = SqliteMigrator(db)
+        db.foreign_keys = False
+        with db.atomic():
+            migrate(
+                migrator.add_column("location", "unit_size_unit",
+                                    TextField(default="ft"))
+            )
+        db.foreign_keys = True
+        Constants.update(save_version=Constants.save_version + 1).execute()
+    elif version == 17:
+        from peewee import BooleanField
+        migrator = SqliteMigrator(db)
+        db.foreign_keys = False
+        with db.atomic():
+            migrate(
+                migrator.add_column("polygon", "open_polygon", BooleanField(default=False)),
+                migrator.add_column("polygon", "line_width", IntegerField(default=2))
+            )
+            db.execute_sql("INSERT INTO polygon (shape_id, line_width, vertices, open_polygon) SELECT shape_id, line_width, points, 1 FROM multi_line")
+            db.execute_sql("DROP TABLE multi_line");
+            db.execute_sql("UPDATE shape SET type_ = 'polygon' WHERE type_ = 'multiline'")
         db.foreign_keys = True
         Constants.update(save_version=Constants.save_version + 1).execute()
     else:

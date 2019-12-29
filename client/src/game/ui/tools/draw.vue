@@ -1,18 +1,16 @@
 <template>
-    <div
-        class="tool-detail"
-        v-if="selected"
-        :style="{'--detailRight': detailRight, '--detailArrow': detailArrow}"
-    >
+    <div class="tool-detail" v-if="selected" :style="{ '--detailRight': detailRight, '--detailArrow': detailArrow }">
         <div v-show="IS_DM">Mode</div>
         <div v-show="IS_DM" class="selectgroup">
             <div
                 v-for="mode in modes"
                 :key="mode"
                 class="option"
-                :class="{'option-selected': modeSelect === mode}"
+                :class="{ 'option-selected': modeSelect === mode }"
                 @click="modeSelect = mode"
-            >{{ mode }}</div>
+            >
+                {{ mode }}
+            </div>
         </div>
         <div>Shape</div>
         <div class="selectgroup">
@@ -20,7 +18,7 @@
                 v-for="shape in shapes"
                 :key="shape"
                 class="option"
-                :class="{'option-selected': shapeSelect === shape}"
+                :class="{ 'option-selected': shapeSelect === shape }"
                 @click="shapeSelect = shape"
             >
                 <i class="fas" :class="'fa-' + shape"></i>
@@ -28,16 +26,17 @@
         </div>
         <div>Colours</div>
         <div class="selectgroup">
-            <color-picker class="option" :color.sync="fillColour"/>
-            <color-picker class="option" :color.sync="borderColour"/>
+            <color-picker class="option" :class="{ 'radius-right': !showBorderColour() }" :color.sync="fillColour" />
+            <color-picker class="option" :color.sync="borderColour" v-show="showBorderColour()" />
         </div>
-        <div v-show="shapeSelect === 'paint-brush'">Brush size</div>
-        <input
-            type="text"
-            v-model="brushSize"
-            v-show="shapeSelect === 'paint-brush'"
-            style="max-width:100px;"
-        >
+        <div v-show="shapeSelect === 'draw-polygon'" style="display:flex">
+            <label for="polygon-close" style="flex:5">Closed polygon?</label>
+            <input type="checkbox" id="polygon-close" style="flex:1;align-self:center;" v-model="closedPolygon" />
+        </div>
+        <div v-show="hasBrushSize()" style="display:flex">
+            <label for="brush-size" style="flex:5">Brush size</label>
+            <input type="input" id="brush-size" v-model="brushSize" style="flex:4;align-self:center;max-width:100px;" />
+        </div>
     </div>
 </template>
 
@@ -45,8 +44,10 @@
 import Component from "vue-class-component";
 
 import { Watch } from "vue-property-decorator";
+import { mapGetters } from "vuex";
 
 import ColorPicker from "@/core/components/colorpicker.vue";
+import DefaultContext from "@/game/ui/tools/defaultcontext.vue";
 import Tool from "@/game/ui/tools/tool.vue";
 
 import { socket } from "@/game/api/socket";
@@ -54,20 +55,26 @@ import { GlobalPoint } from "@/game/geom";
 import { layerManager } from "@/game/layers/manager";
 import { Circle } from "@/game/shapes/circle";
 import { Line } from "@/game/shapes/line";
-import { MultiLine } from "@/game/shapes/multiline";
 import { Polygon } from "@/game/shapes/polygon";
 import { Rect } from "@/game/shapes/rect";
 import { Shape } from "@/game/shapes/shape";
 import { gameStore } from "@/game/store";
 import { getUnitDistance, l2g } from "@/game/units";
 import { getMouse } from "@/game/utils";
+import { visibilityStore } from "../../visibility/store";
+import Tools from "./tools.vue";
 
 @Component({
     components: {
         "color-picker": ColorPicker,
     },
+    computed: {
+        ...mapGetters("game", ["selectedLayer"]),
+    },
 })
 export default class DrawTool extends Tool {
+    selectedLayer!: string;
+
     name = "Draw";
     active = false;
 
@@ -85,9 +92,18 @@ export default class DrawTool extends Tool {
     modes = ["normal", "reveal", "hide"];
 
     brushSize = getUnitDistance(gameStore.unitSize);
+    closedPolygon = false;
+
+    mounted() {
+        window.addEventListener("keyup", this.onKeyUp);
+    }
+
+    destroyed() {
+        window.removeEventListener("keyup", this.onKeyUp);
+    }
 
     get helperSize(): number {
-        if (this.shapeSelect === "paint-brush") return this.brushSize / 2;
+        if (this.hasBrushSize()) return this.brushSize / 2;
         return getUnitDistance(this.unitSize) / 8;
     }
     get IS_DM(): boolean {
@@ -100,6 +116,30 @@ export default class DrawTool extends Tool {
         return gameStore.useGrid;
     }
 
+    onKeyUp(event: KeyboardEvent): void {
+        if (event.defaultPrevented) return;
+        if (event.key === "Escape" && this.active) {
+            this.onDeselect();
+            this.onSelect();
+        }
+        event.preventDefault();
+    }
+
+    hasBrushSize(): boolean {
+        return ["paint-brush", "draw-polygon"].includes(this.shapeSelect);
+    }
+
+    showBorderColour(): boolean {
+        if (this.shapeSelect === "paint-brush") return false;
+        if (this.shapeSelect === "draw-polygon" && !this.closedPolygon) return false;
+        return true;
+    }
+
+    @Watch("closedPolygon")
+    onChangePolygonCloseBehaviour(closedPolygon: boolean) {
+        if (this.shape !== null && this.active) (<Polygon>this.shape).openPolygon = !closedPolygon;
+    }
+
     @Watch("fillColour")
     onFillChange() {
         if (this.brushHelper) this.brushHelper.fillColour = this.fillColour;
@@ -108,6 +148,14 @@ export default class DrawTool extends Tool {
     @Watch("modeSelect")
     onModeUpdate(newValue: string, oldValue: string) {
         this.onModeChange(newValue, oldValue);
+    }
+
+    @Watch("selectedLayer")
+    onLayerChange(newValue: string, oldValue: string) {
+        if ((<Tools>this.$parent).currentTool === this.name) {
+            this.onDeselect(oldValue);
+            this.onSelect();
+        }
     }
 
     setupBrush() {
@@ -143,8 +191,8 @@ export default class DrawTool extends Tool {
             fowLayer.removeShape(this.brushHelper, false);
         }
     }
-    getLayer() {
-        if (this.modeSelect === "normal") return layerManager.getLayer();
+    getLayer(targetLayer?: string) {
+        if (this.modeSelect === "normal") return layerManager.getLayer(targetLayer);
         return layerManager.getLayer("fow");
     }
     onMouseDown(event: MouseEvent) {
@@ -171,12 +219,28 @@ export default class DrawTool extends Tool {
                     break;
                 }
                 case "paint-brush": {
-                    this.shape = new MultiLine(this.startPoint.clone(), [], this.brushSize);
+                    this.shape = new Polygon(
+                        this.startPoint.clone(),
+                        [],
+                        undefined,
+                        this.fillColour,
+                        this.brushSize,
+                        true,
+                    );
                     this.shape.fillColour = this.fillColour;
                     break;
                 }
                 case "draw-polygon": {
-                    this.shape = new Polygon(this.startPoint.clone(), [], this.fillColour, this.borderColour);
+                    const fill = this.closedPolygon ? this.fillColour : undefined;
+                    const stroke = this.closedPolygon ? this.borderColour : this.fillColour;
+                    this.shape = new Polygon(
+                        this.startPoint.clone(),
+                        [],
+                        fill,
+                        stroke,
+                        this.brushSize,
+                        !this.closedPolygon,
+                    );
                     break;
                 }
                 default:
@@ -200,20 +264,20 @@ export default class DrawTool extends Tool {
 
             // Push brushhelper to back
             this.pushBrushBack();
-        } else if (this.shape !== null && this.shape instanceof Polygon) {
+        } else if (this.shape !== null && this.shapeSelect === "draw-polygon" && this.shape instanceof Polygon) {
             // For polygon draw
             this.shape._vertices.push(l2g(getMouse(event)));
         }
-        if (this.shape !== null && this.shape instanceof Polygon) {
+        if (this.shape !== null && this.shapeSelect === "draw-polygon" && this.shape instanceof Polygon) {
             const lastPoint = l2g(getMouse(event));
             if (this.ruler === null) {
-                this.ruler = new Line(lastPoint, lastPoint, 3, "black");
+                this.ruler = new Line(lastPoint, lastPoint, this.brushSize, this.fillColour);
                 layer.addShape(this.ruler, false);
             } else {
                 this.ruler.refPoint = lastPoint;
                 this.ruler.endPoint = lastPoint;
             }
-            if (this.shape.visionObstruction) gameStore.recalculateVision(true);
+            if (this.shape.visionObstruction) visibilityStore.recalculateVision();
             layer.invalidate(false);
             socket.emit("Shape.Update", { shape: this.shape!.asDict(), redraw: true, temporary: true });
         }
@@ -245,11 +309,11 @@ export default class DrawTool extends Tool {
                 break;
             }
             case "circle": {
-                (<Circle>this.shape).r = endPoint.subtract(this.startPoint).length();
+                (<Circle>this.shape).r = Math.abs(endPoint.subtract(this.startPoint).length());
                 break;
             }
             case "paint-brush": {
-                (<MultiLine>this.shape)._points.push(endPoint);
+                (<Polygon>this.shape)._vertices.push(endPoint);
                 break;
             }
             case "draw-polygon": {
@@ -258,36 +322,54 @@ export default class DrawTool extends Tool {
             }
         }
 
-        if (!(this.shape instanceof Polygon)) {
+        if (!(this.shapeSelect === "draw-polygon" && this.shape instanceof Polygon)) {
             socket.emit("Shape.Update", { shape: this.shape!.asDict(), redraw: true, temporary: true });
-            if (this.shape.visionObstruction) gameStore.recalculateVision(true);
+            if (this.shape.visionObstruction) visibilityStore.recalculateVision();
         }
         layer.invalidate(false);
     }
     onMouseUp(event: MouseEvent) {
-        if (!this.active || this.shape === null || this.shape instanceof Polygon) return;
+        if (
+            !this.active ||
+            this.shape === null ||
+            (this.shape instanceof Polygon && this.shapeSelect === "draw-polygon")
+        )
+            return;
         if (!event.altKey && this.useGrid) {
             this.shape.resizeToGrid();
         }
         this.finaliseShape();
     }
     onContextMenu(event: MouseEvent) {
-        if (!this.active || this.shape === null || !(this.shape instanceof Polygon)) return;
-        const layer = this.getLayer();
-        if (layer === undefined) {
-            console.log("No active layer!");
-            return;
+        if (
+            this.active &&
+            this.shape !== null &&
+            this.shapeSelect === "draw-polygon" &&
+            this.shape instanceof Polygon
+        ) {
+            const layer = this.getLayer();
+            if (layer === undefined) {
+                console.log("No active layer!");
+                return;
+            }
+            layer.removeShape(this.ruler!, false);
+            this.ruler = null;
+            this.finaliseShape();
+        } else if (!this.active) {
+            (<DefaultContext>this.$parent.$refs.defaultcontext).open(event);
         }
-        layer.removeShape(this.ruler!, false);
-        this.ruler = null;
-        this.finaliseShape();
     }
 
     private finaliseShape() {
         if (this.shape === null) return;
-        if (this.shape.visionObstruction) gameStore.recalculateVision();
-        if (this.shape.movementObstruction) gameStore.recalculateMovement();
-        socket.emit("Shape.Update", { shape: this.shape!.asDict(), redraw: true, temporary: false });
+        if (this.shape.points.length <= 1) {
+            this.onDeselect();
+            this.onSelect();
+        } else {
+            if (this.shape.visionObstruction) visibilityStore.recalculateVision();
+            if (this.shape.movementObstruction) visibilityStore.recalculateMovement();
+            socket.emit("Shape.Update", { shape: this.shape!.asDict(), redraw: true, temporary: false });
+        }
         this.active = false;
     }
 
@@ -298,9 +380,16 @@ export default class DrawTool extends Tool {
         this.setupBrush();
         layer.addShape(this.brushHelper, false); // during mode change the shape is already added
     }
-    onDeselect() {
-        const layer = this.getLayer();
-        if (this.brushHelper !== null && layer !== undefined) layer.removeShape(this.brushHelper, false);
+    onDeselect(targetLayer?: string) {
+        const layer = this.getLayer(targetLayer);
+        if (this.brushHelper !== null && layer !== undefined) {
+            layer.removeShape(this.brushHelper, false);
+            this.brushHelper = null;
+        }
+        if (this.ruler !== null && layer !== undefined) {
+            layer.removeShape(this.ruler, false);
+            this.ruler = null;
+        }
         if (this.active && layer !== undefined && this.shape !== null) {
             layer.removeShape(this.shape, true, false);
             this.shape = null;
@@ -346,7 +435,8 @@ export default class DrawTool extends Tool {
     border-top-left-radius: 10px;
     border-bottom-left-radius: 10px;
 }
-.selectgroup > .option:last-of-type {
+.selectgroup > .option:last-of-type,
+.radius-right {
     border-top-right-radius: 10px;
     border-bottom-right-radius: 10px;
 }

@@ -1,7 +1,8 @@
 import { GlobalPoint, LocalPoint } from "@/game/geom";
 import { BoundingRect } from "@/game/shapes/boundingrect";
 import { Shape } from "@/game/shapes/shape";
-import { g2lx, g2ly, l2g } from "@/game/units";
+import { g2lx, g2ly, l2g, g2lz } from "@/game/units";
+import { ServerLine } from "../comm/types/shapes";
 
 export class Line extends Shape {
     type = "line";
@@ -18,15 +19,24 @@ export class Line extends Shape {
         this.endPoint = endPoint;
         this.lineWidth = lineWidth === undefined ? 1 : lineWidth;
     }
-    asDict() {
+
+    get isClosed(): boolean {
+        return false;
+    }
+
+    asDict(): ServerLine {
         return Object.assign(this.getBaseDict(), {
             x2: this.endPoint.x,
             y2: this.endPoint.y,
+            // eslint-disable-next-line @typescript-eslint/camelcase
             line_width: this.lineWidth,
         });
     }
-    get points() {
-        return [[this.refPoint.x, this.refPoint.y], [this.endPoint.x, this.endPoint.y]];
+    get points(): number[][] {
+        return [
+            [this.refPoint.x, this.refPoint.y],
+            [this.endPoint.x, this.endPoint.y],
+        ];
     }
     getBoundingBox(): BoundingRect {
         return new BoundingRect(
@@ -35,22 +45,22 @@ export class Line extends Shape {
             Math.abs(this.refPoint.y - this.endPoint.y),
         );
     }
-    draw(ctx: CanvasRenderingContext2D) {
+    draw(ctx: CanvasRenderingContext2D): void {
         super.draw(ctx);
         ctx.strokeStyle = this.strokeColour;
         ctx.beginPath();
         ctx.moveTo(g2lx(this.refPoint.x), g2ly(this.refPoint.y));
         ctx.lineTo(g2lx(this.endPoint.x), g2ly(this.endPoint.y));
-        ctx.lineWidth = this.lineWidth;
+        ctx.lineWidth = g2lz(this.lineWidth);
         ctx.stroke();
     }
-    contains(point: GlobalPoint): boolean {
+    contains(_point: GlobalPoint): boolean {
         return false; // TODO
     }
 
     center(): GlobalPoint;
     center(centerPoint: GlobalPoint): void;
-    center(centerPoint?: GlobalPoint): GlobalPoint | void {} // TODO
+    center(_centerPoint?: GlobalPoint): GlobalPoint | void {} // TODO
     visibleInCanvas(canvas: HTMLCanvasElement): boolean {
         return this.getBoundingBox().visibleInCanvas(canvas);
     } // TODO

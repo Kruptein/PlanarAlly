@@ -8,7 +8,7 @@ import { layerManager } from "@/game/layers/manager";
 import { Line } from "@/game/shapes/line";
 import { Text } from "@/game/shapes/text";
 import { gameStore } from "@/game/store";
-import { l2g } from "@/game/units";
+import { l2g, l2gz } from "@/game/units";
 import { getMouse } from "@/game/utils";
 
 @Component
@@ -18,7 +18,7 @@ export class RulerTool extends Tool {
     startPoint: GlobalPoint | null = null;
     ruler: Line | null = null;
     text: Text | null = null;
-    onMouseDown(event: MouseEvent) {
+    onMouseDown(event: MouseEvent): void {
         const layer = layerManager.getLayer("draw");
         if (layer === undefined) {
             console.log("No draw layer!");
@@ -26,14 +26,14 @@ export class RulerTool extends Tool {
         }
         this.active = true;
         this.startPoint = l2g(getMouse(event));
-        this.ruler = new Line(this.startPoint, this.startPoint, 3, gameStore.rulerColour);
+        this.ruler = new Line(this.startPoint, this.startPoint, l2gz(3), gameStore.rulerColour);
         this.text = new Text(this.startPoint.clone(), "", "bold 20px serif");
         this.ruler.addOwner(gameStore.username);
         this.text.addOwner(gameStore.username);
         layer.addShape(this.ruler, true, true);
         layer.addShape(this.text, true, true);
     }
-    onMouseMove(event: MouseEvent) {
+    onMouseMove(event: MouseEvent): void {
         if (!this.active || this.ruler === null || this.startPoint === null || this.text === null) return;
 
         const layer = layerManager.getLayer("draw");
@@ -50,7 +50,9 @@ export class RulerTool extends Tool {
         const xdiff = Math.abs(endPoint.x - this.startPoint.x);
         const ydiff = Math.abs(endPoint.y - this.startPoint.y);
         const label =
-            Math.round((Math.sqrt(xdiff ** 2 + ydiff ** 2) * gameStore.unitSize) / gameStore.gridSize) + " ft";
+            Math.round((Math.sqrt(xdiff ** 2 + ydiff ** 2) * gameStore.unitSize) / gameStore.gridSize) +
+            " " +
+            gameStore.unitSizeUnit;
         const angle = Math.atan2(diffsign * ydiff, xdiff);
         const xmid = Math.min(this.startPoint.x, endPoint.x) + xdiff / 2;
         const ymid = Math.min(this.startPoint.y, endPoint.y) + ydiff / 2;
@@ -60,7 +62,7 @@ export class RulerTool extends Tool {
         socket.emit("Shape.Update", { shape: this.text.asDict(), redraw: true, temporary: true });
         layer.invalidate(true);
     }
-    onMouseUp(event: MouseEvent) {
+    onMouseUp(_event: MouseEvent): void {
         if (!this.active || this.ruler === null || this.startPoint === null || this.text === null) return;
 
         const layer = layerManager.getLayer("draw");

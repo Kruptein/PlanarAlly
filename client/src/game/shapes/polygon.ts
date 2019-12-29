@@ -8,19 +8,29 @@ import { Shape } from "./shape";
 export class Polygon extends Shape {
     type = "polygon";
     _vertices: GlobalPoint[] = [];
+    openPolygon = false;
+    lineWidth: number;
 
     constructor(
         startPoint: GlobalPoint,
-        vertices: GlobalPoint[] = [],
+        vertices?: GlobalPoint[],
         fillColour?: string,
         strokeColour?: string,
+        lineWidth?: number,
+        openPolygon = false,
         uuid?: string,
     ) {
         super(startPoint, fillColour, strokeColour, uuid);
-        this._vertices = vertices;
+        this._vertices = vertices || [];
+        this.openPolygon = openPolygon;
+        this.lineWidth = lineWidth || 2;
     }
 
-    get refPoint() {
+    get isClosed(): boolean {
+        return !this.openPolygon;
+    }
+
+    get refPoint(): GlobalPoint {
         return this._refPoint;
     }
     set refPoint(point: GlobalPoint) {
@@ -29,44 +39,49 @@ export class Polygon extends Shape {
         for (let i = 0; i < this._vertices.length; i++) this._vertices[i] = this._vertices[i].add(delta);
     }
 
-    get vertices() {
+    get vertices(): GlobalPoint[] {
         return [this._refPoint, ...this._vertices];
     }
 
-    asDict() {
+    asDict(): ServerPolygon {
         return Object.assign(this.getBaseDict(), {
             vertices: this._vertices.map(p => ({ x: p.x, y: p.y })),
+            // eslint-disable-next-line @typescript-eslint/camelcase
+            open_polygon: this.openPolygon,
+            // eslint-disable-next-line @typescript-eslint/camelcase
+            line_width: this.lineWidth,
         });
     }
 
-    fromDict(data: ServerPolygon) {
+    fromDict(data: ServerPolygon): void {
         super.fromDict(data);
         this._vertices = data.vertices.map(v => new GlobalPoint(v.x, v.y));
+        this.openPolygon = data.open_polygon;
+        this.lineWidth = data.line_width;
     }
 
-    get points() {
+    get points(): number[][] {
         return this.vertices.map(point => [point.x, point.y]);
     }
 
-    draw(ctx: CanvasRenderingContext2D) {
+    draw(ctx: CanvasRenderingContext2D): void {
         super.draw(ctx);
         ctx.lineCap = "round";
         ctx.lineJoin = "round";
+        ctx.lineWidth = g2lz(this.lineWidth);
 
         if (this.strokeColour === "fog") ctx.strokeStyle = getFogColour();
-        else if (this.vertices.length === 2) ctx.strokeStyle = this.fillColour;
         else ctx.strokeStyle = this.strokeColour;
         if (this.fillColour === "fog") ctx.fillStyle = getFogColour();
         else ctx.fillStyle = this.fillColour;
-        ctx.lineWidth = g2lz(2);
 
         ctx.beginPath();
         ctx.moveTo(g2lx(this.vertices[0].x), g2ly(this.vertices[0].y));
-        for (let i = 1; i <= this.vertices.length; i++) {
+        for (let i = 1; i <= this.vertices.length - (this.openPolygon ? 1 : 0); i++) {
             const vertex = this.vertices[i % this.vertices.length];
             ctx.lineTo(g2lx(vertex.x), g2ly(vertex.y));
         }
-        ctx.fill();
+        if (!this.openPolygon) ctx.fill();
         ctx.stroke();
     }
 
@@ -76,7 +91,7 @@ export class Polygon extends Shape {
 
     center(): GlobalPoint;
     center(centerPoint: GlobalPoint): void;
-    center(centerPoint?: GlobalPoint): GlobalPoint | void {
+    center(_centerPoint?: GlobalPoint): GlobalPoint | void {
         return this.getBoundingBox().center();
     }
     visibleInCanvas(canvas: HTMLCanvasElement): boolean {

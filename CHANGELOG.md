@@ -7,6 +7,10 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+### Fixed
+
+- JS build files being out of date.
+
 ## [0.18.1] - 2019-12-05
 
 ### Fixed

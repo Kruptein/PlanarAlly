@@ -2,6 +2,7 @@ from aiohttp import web
 from aiohttp_security import authorized_userid, forget, remember
 
 from app import logger
+from config import config
 from models import User
 from models.db import db
 
@@ -32,6 +33,10 @@ async def login(request):
 
 
 async def register(request):
+    allow_registration = config.getboolean("Access control", "allow_registration")
+    if not allow_registration:
+        return web.HTTPConflict(reason="This feature is disabled by administrator")
+
     username = await authorized_userid(request)
     if username:
         return web.HTTPOk()

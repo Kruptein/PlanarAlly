@@ -42,7 +42,7 @@
         </form>
         <div id="account-options">
             <form @submit.prevent>
-                <router-link tag="button" class="submit" title="Account Settings" to="/account">
+                <router-link tag="button" class="submit" title="Account Settings" to="/settings">
                     <i class="fas fa-cog"></i>
                 </router-link>
             </form>

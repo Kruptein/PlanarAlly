@@ -10,7 +10,7 @@ import Login from "@/auth/login.vue";
 import Logout from "@/auth/logout";
 import LoadComponent from "@/core/components/load.vue";
 import Dashboard from "@/dashboard/main.vue";
-import AccountSettings from "@/dashboard/settings.vue";
+import Settings from "@/settings/settings.vue";
 import Game from "@/game/game.vue";
 import Invitation from "@/invitation/invitation";
 
@@ -61,8 +61,9 @@ export const router = new Router({
             },
         },
         {
-            path: "/account",
-            component: AccountSettings,
+            path: "/settings/:page?",
+            name: "settings",
+            component: Settings,
             meta: {
                 auth: true,
             },

@@ -1,71 +1,70 @@
 <template>
     <main>
-        <div id="title">{{ title }}</div>
+        <div id="title">{{ activeComponent.title }}</div>
         <nav>
             <div
-                v-for="(category, c) in categories"
-                :key="category"
-                @click="selection = c"
-            >{{ category }}</div>
+                v-for="component in components"
+                :key="component.nav"
+                @click="setActiveComponent(component)"
+                :class="{ active: activeComponent === component }"
+            >
+                {{ component.nav }}
+            </div>
         </nav>
-        <div class="main" v-show="selection === 0">
-            <div class="spanrow header">General</div>
-            <div class="row">
-                <label for="username">Username:</label>
-                <div>
-                    <input type="text" :value="$store.state.core.username">
-                </div>
-            </div>
-            <div class="row">
-                <label for="email">Email:</label>
-                <div>
-                    <input
-                        type="email"
-                        :placeholder="$store.state.core.email === undefined ? 'no email set' : ''"
-                        v-model="$store.state.core.email"
-                    >
-                </div>
-            </div>
-            <div class="spanrow header">Danger Zone</div>
-            <div class="row">
-                <div style="grid-column-start: value">
-                    <button class="danger">Change password</button>
-                </div>
-            </div>
-            <div class="row">
-                <div style="grid-column-start: value">
-                    <button class="danger">Delete account</button>
-                </div>
-            </div>
-        </div>
-        <div class="main" v-show="selection === 1">DSF</div>
+        <component :is="activeComponent.class" class="main" />
     </main>
 </template>
 
 <script lang="ts">
-import axios, { AxiosError, AxiosResponse } from "axios";
 import Vue from "vue";
 import Component from "vue-class-component";
-import { Route } from "vue-router";
 
-import { coreStore } from "@/core/store";
+import AccountSettings from "./account.vue";
+import { Route, NavigationGuard } from "vue-router";
 
-Component.registerHooks(["beforeRouteEnter"]);
+interface ActiveComponent {
+    title: string;
+    nav: string;
+    class: typeof Vue;
+}
 
-@Component
-export default class AccountSettings extends Vue {
-    selection = 0;
-    categories = ["Account", "Presets"];
+@Component({
+    components: {
+        AccountSettings,
+    },
+})
+export default class Settings extends Vue {
+    components: ActiveComponent[] = [
+        {
+            title: "Account Settings",
+            nav: "Account",
+            class: AccountSettings,
+        },
+        {
+            title: "TE",
+            nav: "Accoungt",
+            class: AccountSettings,
+        },
+    ];
+    activeComponent = this.components[0];
 
-    get title() {
-        switch (this.selection) {
-            case 0:
-                return "Account Settings";
-            case 1:
-                return "Default presets";
-            default:
-                return "Settings";
-        }
+    setActiveComponent(component: ActiveComponent) {
+        if (this.activeComponent === component) return;
+        this.activeComponent = component;
+        this.$router.push({ name: "settings", params: { page: component.nav.toLowerCase() } });
+    }
+
+    beforeRouteEnter(to: Route, _from: Route, next: Parameters<NavigationGuard>[2]): void {
+        console.log("Entering");
+        next(vm => {
+            if ("page" in to.params && to.params.page !== undefined) {
+                for (const component of (<Settings>vm).components) {
+                    if (component.nav.toLowerCase() === to.params.page.toLowerCase()) {
+                        (<Settings>vm).activeComponent = component;
+                    }
+                }
+            }
+        });
     }
 }
 </script>
@@ -107,6 +106,19 @@ nav {
 
 nav > div {
     padding: 0.5em;
+}
+
+nav > div:hover {
+    cursor: pointer;
+    background-color: white;
+}
+
+nav > .active {
+    background-color: white;
+}
+
+nav > .active:hover {
+    cursor: default;
 }
 
 .main {

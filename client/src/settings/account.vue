@@ -4,7 +4,7 @@
         <div class="row">
             <label for="username">Username:</label>
             <div>
-                <input type="text" :value="$store.state.core.username" />
+                <input type="text" id="username" ref="username" :value="$store.state.core.username" />
             </div>
         </div>
         <div class="row">
@@ -12,8 +12,10 @@
             <div>
                 <input
                     type="email"
+                    id="email"
                     :placeholder="$store.state.core.email === undefined ? 'no email set' : ''"
-                    v-model="$store.state.core.email"
+                    :value="$store.state.core.email"
+                    @change="updateEmail"
                 />
             </div>
         </div>
@@ -34,9 +36,26 @@
 <script lang="ts">
 import Vue from "vue";
 import Component from "vue-class-component";
+import { coreStore } from "../core/store";
+import { postFetch } from "../core/utils";
 
 @Component
-export default class AccountSettings extends Vue {}
+export default class AccountSettings extends Vue {
+    async updateEmail(event: { target?: HTMLInputElement }): Promise<void> {
+        if (event.target?.checkValidity() && event.target.value !== this.$store.state.core.email) {
+            const result = await postFetch("/api/users/email", {
+                email: event.target.value,
+            });
+            const data: { success: boolean } = await result.json();
+            if (data.success) {
+                coreStore.setEmail(event.target.value);
+                // todo: show some kind of notification to notify of success
+            } else {
+                event.target.value = coreStore.email ?? "";
+            }
+        }
+    }
+}
 </script>
 
 <style scoped>
@@ -48,6 +67,10 @@ export default class AccountSettings extends Vue {}
     margin: 0;
     padding: 0;
     border: 0;
+}
+
+:invalid {
+    background-color: rgba(255, 0, 0, 0.1);
 }
 
 main {

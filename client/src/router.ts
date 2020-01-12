@@ -86,6 +86,7 @@ router.beforeEach(async (to, from, next) => {
             if (data.auth) {
                 coreStore.setAuthenticated(true);
                 coreStore.setUsername(data.username);
+                coreStore.setEmail(data.email);
             }
             coreStore.setInitialized(true);
             router.push(to.path);

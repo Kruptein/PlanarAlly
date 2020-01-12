@@ -7,6 +7,11 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+### Added
+
+- Account Settings
+  - Ability to set an email address.
+
 ## [0.18.2] - 2019-12-29
 
 ### Fixed

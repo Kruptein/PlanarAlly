@@ -11,7 +11,7 @@ async def is_authed(request):
     if user is None:
         data = {"auth": False, "username": ""}
     else:
-        data = {"auth": True, "username": user.name}
+        data = {"auth": True, "username": user.name, "email": user.email}
     return web.json_response(data)
 
 
@@ -26,7 +26,7 @@ async def login(request):
     u = User.by_name(username)
     if u is None or not u.check_password(password):
         return web.HTTPUnauthorized(reason="Username and/or Password do not match")
-    response = web.HTTPOk()
+    response = web.json_response({"email": u.email})
     await remember(request, response, username)
     return response
 

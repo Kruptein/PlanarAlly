@@ -71,7 +71,6 @@ export default class Login extends Vue {
         if (response.ok) {
             coreStore.setUsername(this.username);
             coreStore.setAuthenticated(true);
-            console.log(0);
             coreStore.setEmail((await response.json()).email);
             this.$router.push(<string>this.$route.query.redirect || "/");
         } else {

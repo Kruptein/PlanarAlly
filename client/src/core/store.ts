@@ -33,7 +33,6 @@ class CoreStore extends VuexModule implements CoreState {
 
     @Mutation
     setEmail(email: string): void {
-        console.log(email);
         this.email = email;
     }
 }

@@ -1,10 +1,17 @@
 <template>
-    <div>
+    <form @submit.prevent>
         <div class="spanrow header">General</div>
         <div class="row">
             <label for="username">Username:</label>
             <div>
-                <input type="text" id="username" ref="username" :value="$store.state.core.username" />
+                <input
+                    type="text"
+                    id="username"
+                    ref="username"
+                    :value="$store.state.core.username"
+                    autocomplete="username"
+                    readonly
+                />
             </div>
         </div>
         <div class="row">
@@ -15,14 +22,37 @@
                     id="email"
                     :placeholder="$store.state.core.email === undefined ? 'no email set' : ''"
                     :value="$store.state.core.email"
+                    autocomplete="email"
                     @change="updateEmail"
                 />
             </div>
         </div>
-        <div class="spanrow header">Danger Zone</div>
+        <div class="spanrow header">
+            Danger Zone
+        </div>
+        <div class="row" :class="{ 'password-change': !showPasswordFields }">
+            <label for="password-reset">New Password:</label>
+            <div>
+                <input ref="passwordResetField" type="password" id="password-reset" autocomplete="new-password" />
+            </div>
+        </div>
+        <div class="row" :class="{ 'password-change': !showPasswordFields }">
+            <label for="password-repeat">Repeat password:</label>
+            <div>
+                <input ref="passwordRepeatField" type="password" id="password-repeat" autocomplete="new-password" />
+            </div>
+        </div>
+        <div class="spanrow" v-show="errorMessage" style="display:flex;justify-content:center;">
+            <span v-show="errorMessage" class="danger" style="font-weight:bold;">{{ errorMessage }}</span>
+        </div>
         <div class="row">
-            <div style="grid-column-start: value">
-                <button class="danger">Change password</button>
+            <div>
+                <button class="danger" :class="{ 'password-change': !showPasswordFields }" @click="hidePasswordChange">
+                    Cancel password change
+                </button>
+            </div>
+            <div>
+                <button class="danger" @click="changePassword" ref="changePasswordButton">Change password</button>
             </div>
         </div>
         <div class="row">
@@ -30,17 +60,38 @@
                 <button class="danger">Delete account</button>
             </div>
         </div>
-    </div>
+    </form>
 </template>
 
 <script lang="ts">
 import Vue from "vue";
 import Component from "vue-class-component";
+
+import Settings from "./settings.vue";
+import Prompt from "../core/components/modals/prompt.vue";
+
 import { coreStore } from "../core/store";
 import { postFetch } from "../core/utils";
 
-@Component
+@Component({
+    components: {
+        Prompt,
+    },
+})
 export default class AccountSettings extends Vue {
+    $refs!: {
+        changePasswordButton: HTMLButtonElement;
+        passwordResetField: HTMLInputElement;
+        passwordRepeatField: HTMLInputElement;
+    };
+
+    showPasswordFields = false;
+    errorMessage = "";
+
+    get parent(): Settings {
+        return <Settings>this.$parent;
+    }
+
     async updateEmail(event: { target?: HTMLInputElement }): Promise<void> {
         if (event.target?.checkValidity() && event.target.value !== this.$store.state.core.email) {
             const result = await postFetch("/api/users/email", {
@@ -54,6 +105,33 @@ export default class AccountSettings extends Vue {
                 event.target.value = coreStore.email ?? "";
             }
         }
+    }
+
+    async changePassword(): Promise<void> {
+        if (this.showPasswordFields) {
+            if (this.$refs.passwordResetField.value === "") {
+                this.errorMessage = "No new password given!";
+                return;
+            }
+            if (this.$refs.passwordRepeatField.value !== this.$refs.passwordResetField.value) {
+                this.errorMessage = "The password fields don't match!";
+                return;
+            }
+            const response = await postFetch("/api/users/password", { password: this.$refs.passwordResetField.value });
+            if (response.ok) {
+                this.hidePasswordChange();
+            } else {
+                this.errorMessage = (await response.json()).error ?? "Something went wrong during the server request";
+            }
+        }
+        this.showPasswordFields = true;
+        this.$refs.changePasswordButton.textContent = "Confirm password change";
+        this.$nextTick(() => this.$refs.passwordResetField.focus());
+    }
+
+    hidePasswordChange(): void {
+        this.showPasswordFields = false;
+        this.errorMessage = "";
     }
 }
 </script>
@@ -178,7 +256,8 @@ input[type="checkbox"] {
 
 input[type="number"],
 input[type="text"],
-input[type="email"] {
+input[type="email"],
+input[type="password"] {
     width: 100%;
     padding: 5px;
 }
@@ -187,5 +266,9 @@ button {
     border: 1px solid lightgray;
     border-radius: 0.25em;
     background-color: rgb(235, 235, 228);
+}
+
+.password-change {
+    display: none;
 }
 </style>

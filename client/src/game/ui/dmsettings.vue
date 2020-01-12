@@ -313,20 +313,14 @@ export default class DmSettings extends Vue {
     toggleSessionLock(): void {
         gameStore.setIsLocked({ isLocked: !gameStore.isLocked, sync: true });
     }
-    deleteSession(): void {
-        (<Game>this.$parent).$refs.prompt
-            .prompt(
-                `ENTER ${gameStore.roomCreator}/${gameStore.roomName} TO CONFIRM SESSION REMOVAL.`,
-                `DELETING SESSION`,
-            )
-            .then(
-                (value: string) => {
-                    if (value !== `${gameStore.roomCreator}/${gameStore.roomName}`) return;
-                    socket.emit("Room.Delete");
-                    this.$router.push("/");
-                },
-                () => {},
-            );
+    async deleteSession(): Promise<void> {
+        const value = await (<Game>this.$parent).$refs.prompt.prompt(
+            `ENTER ${gameStore.roomCreator}/${gameStore.roomName} TO CONFIRM SESSION REMOVAL.`,
+            `DELETING SESSION`,
+        );
+        if (value !== `${gameStore.roomCreator}/${gameStore.roomName}`) return;
+        socket.emit("Room.Delete");
+        this.$router.push("/");
     }
 }
 </script>

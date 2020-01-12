@@ -4,6 +4,7 @@
             <legend class="legend">PlanarAlly</legend>
             <div class="input">
                 <input
+                    id="username"
                     type="text"
                     name="username"
                     v-model="username"
@@ -19,6 +20,7 @@
 
             <div class="input">
                 <input
+                    id="password"
                     type="password"
                     name="password"
                     v-model="password"
@@ -52,11 +54,11 @@
 </template>
 
 <script lang="ts">
-import axios, { AxiosError, AxiosResponse } from "axios";
 import Vue from "vue";
 import Component from "vue-class-component";
 
 import { coreStore } from "@/core/store";
+import { postFetch } from "../core/utils";
 
 @Component
 export default class Login extends Vue {
@@ -64,38 +66,26 @@ export default class Login extends Vue {
     password = "";
     error = "";
 
-    login(): void {
-        axios
-            .post("/api/login", {
-                username: this.username,
-                password: this.password,
-            })
-            .then((_response: AxiosResponse) => {
-                coreStore.setUsername(this.username);
-                coreStore.setAuthenticated(true);
-                this.$router.push(<string>this.$route.query.redirect || "/");
-            })
-            .catch((error: AxiosError) => {
-                if (error.response) this.error = error.response.statusText;
-                else this.error = "Unknown error occured";
-            });
+    async login(): Promise<void> {
+        const response = await postFetch("/api/login", { username: this.username, password: this.password });
+        if (response.ok) {
+            coreStore.setUsername(this.username);
+            coreStore.setAuthenticated(true);
+            this.$router.push(<string>this.$route.query.redirect || "/");
+        } else {
+            this.error = response.statusText;
+        }
     }
 
-    register(): void {
-        axios
-            .post("/api/register", {
-                username: this.username,
-                password: this.password,
-            })
-            .then((_response: AxiosResponse) => {
-                coreStore.setUsername(this.username);
-                coreStore.setAuthenticated(true);
-                this.$router.push(<string>this.$route.query.redirect || "/");
-            })
-            .catch((error: AxiosError) => {
-                if (error.response) this.error = error.response.statusText;
-                else this.error = "Unknown error occured";
-            });
+    async register(): Promise<void> {
+        const response = await postFetch("/api/register", { username: this.username, password: this.password });
+        if (response.ok) {
+            coreStore.setUsername(this.username);
+            coreStore.setAuthenticated(true);
+            this.$router.push(<string>this.$route.query.redirect || "/");
+        } else {
+            this.error = response.statusText;
+        }
     }
 
     focusin(event: { target?: { nextElementSibling?: HTMLElement } }): void {

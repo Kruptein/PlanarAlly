@@ -1,6 +1,5 @@
 // import "./class-component-hooks";
 
-import axios, { AxiosResponse } from "axios";
 import Vue from "vue";
 import Router from "vue-router";
 
@@ -78,22 +77,21 @@ export const router = new Router({
     ],
 });
 
-router.beforeEach((to, from, next) => {
+router.beforeEach(async (to, from, next) => {
     if (!coreStore.initialized && to.path !== "/_load") {
         next({ path: "/_load" });
-        axios
-            .get("/api/auth")
-            .then((response: AxiosResponse) => {
-                if (response.data.auth) {
-                    coreStore.setAuthenticated(true);
-                    coreStore.setUsername(response.data.username);
-                }
-                coreStore.setInitialized(true);
-                router.push(to.path);
-            })
-            .catch(() => {
-                console.error("Authentication check could not be fulfilled.");
-            });
+        const response = await fetch("/api/auth");
+        if (response.ok) {
+            const data = await response.json();
+            if (data.auth) {
+                coreStore.setAuthenticated(true);
+                coreStore.setUsername(data.username);
+            }
+            coreStore.setInitialized(true);
+            router.push(to.path);
+        } else {
+            console.error("Authentication check could not be fulfilled.");
+        }
     } else if (to.matched.some(record => record.meta.auth) && !coreStore.authenticated) {
         next({ path: "/auth/login", query: { redirect: to.path } });
     } else {

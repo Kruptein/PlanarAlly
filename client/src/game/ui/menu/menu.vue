@@ -180,13 +180,9 @@ export default class MenuBar extends Vue {
     changeLocation(name: string): void {
         socket.emit("Location.Change", name);
     }
-    createLocation(): void {
-        (<Game>this.$parent).$refs.prompt.prompt(`New location name:`, `Create new location`).then(
-            (value: string) => {
-                socket.emit("Location.New", value);
-            },
-            () => {},
-        );
+    async createLocation(): Promise<void> {
+        const value = await (<Game>this.$parent).$refs.prompt.prompt(`New location name:`, `Create new location`);
+        socket.emit("Location.New", value);
     }
     createNote(): void {
         const note = { title: "New note", text: "", uuid: uuidv4() };

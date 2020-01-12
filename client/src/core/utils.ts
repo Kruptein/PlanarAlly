@@ -90,3 +90,11 @@ export class OrderedMap<K, V> {
         this.values.splice(idx, 1);
     }
 }
+
+export async function postFetch(url: string, data?: any): Promise<Response> {
+    return await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data ?? {}),
+    });
+}

@@ -203,13 +203,10 @@ export default class Game extends Vue {
     selectLayer(layer: string): void {
         layerManager.selectLayer(layer);
     }
-    drop(event: DragEvent): void {
+    async drop(event: DragEvent): Promise<void> {
         if (event === null || event.dataTransfer === null) return;
         if (event.dataTransfer.files.length > 0) {
-            this.$refs.confirm.open("Uploading files should be done through the asset manager.", "Ok", "").then(
-                () => {},
-                () => {},
-            );
+            await this.$refs.confirm.open("Uploading files should be done through the asset manager.", "Ok", "");
         } else if (event.dataTransfer.getData("text/plain") === "") {
             return;
         } else {

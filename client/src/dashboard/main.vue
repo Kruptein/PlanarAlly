@@ -56,12 +56,12 @@
 </template>
 
 <script lang="ts">
-import axios, { AxiosError, AxiosResponse } from "axios";
 import Vue from "vue";
 import Component from "vue-class-component";
-import { Route } from "vue-router";
+import { Route, NavigationGuard } from "vue-router";
 
 import { coreStore } from "@/core/store";
+import { postFetch } from "../core/utils";
 
 Component.registerHooks(["beforeRouteEnter"]);
 
@@ -73,36 +73,30 @@ export default class Dashboard extends Vue {
 
     newSessionName = "";
 
-    // eslint-disable-next-line no-empty-pattern
-    beforeRouteEnter(to: Route, from: Route, next: ({}) => {}): void {
-        axios
-            .get("/api/rooms")
-            .then((response: AxiosResponse) => {
-                next((vm: this) => {
-                    vm.owned = response.data.owned;
-                    vm.joined = response.data.joined;
-                });
-            })
-            .catch((err: AxiosError) => {
-                next((vm: this) => {
-                    vm.error = err.message;
-                });
-            });
+    async beforeRouteEnter(to: Route, from: Route, next: Parameters<NavigationGuard>[2]): Promise<void> {
+        const response = await fetch("/api/rooms");
+        next(async (vm: Vue) => {
+            if (response.ok) {
+                const data = await response.json();
+                (<this>vm).owned = data.owned;
+                (<this>vm).joined = data.joined;
+            } else {
+                (<this>vm).error = response.statusText;
+            }
+        });
     }
 
-    createRoom(_event: Event): void {
-        axios
-            .post("/api/rooms", {
-                name: this.newSessionName,
-            })
-            .then((_response: AxiosResponse) => {
-                this.$router.push(
-                    `/game/${encodeURIComponent(coreStore.username)}/${encodeURIComponent(this.newSessionName)}`,
-                );
-            })
-            .catch((err: AxiosError) => {
-                this.error = err.message;
-            });
+    async createRoom(_event: Event): Promise<void> {
+        const response = await postFetch("/api/rooms", {
+            name: this.newSessionName,
+        });
+        if (response.ok) {
+            this.$router.push(
+                `/game/${encodeURIComponent(coreStore.username)}/${encodeURIComponent(this.newSessionName)}`,
+            );
+        } else {
+            this.error = response.statusText;
+        }
     }
 }
 </script>

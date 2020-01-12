@@ -90,20 +90,19 @@ export default class SelectionInfo extends Vue {
     openEditDialog(): void {
         (<any>this.$refs.editDialog)[0].visible = true;
     }
-    changeValue(object: Tracker | Aura, redraw: boolean): void {
+    async changeValue(object: Tracker | Aura, redraw: boolean): Promise<void> {
         if (this.shape === null) return;
-        (<Game>this.$parent).$refs.prompt.prompt(`New  ${object.name} value:`, `Updating ${object.name}`).then(
-            (value: string) => {
-                if (this.shape === null) return;
-                const ogValue = object.value;
-                if (value[0] === "+" || value[0] === "-") object.value += parseInt(value, 10);
-                else object.value = parseInt(value, 10);
-                if (isNaN(object.value)) object.value = ogValue;
-                socket.emit("Shape.Update", { shape: this.shape.asDict(), redraw, temporary: false });
-                if (redraw) layerManager.invalidate();
-            },
-            () => {},
+        const value = await (<Game>this.$parent).$refs.prompt.prompt(
+            `New  ${object.name} value:`,
+            `Updating ${object.name}`,
         );
+        if (this.shape === null) return;
+        const ogValue = object.value;
+        if (value[0] === "+" || value[0] === "-") object.value += parseInt(value, 10);
+        else object.value = parseInt(value, 10);
+        if (isNaN(object.value)) object.value = ogValue;
+        socket.emit("Shape.Update", { shape: this.shape.asDict(), redraw, temporary: false });
+        if (redraw) layerManager.invalidate();
     }
 }
 </script>

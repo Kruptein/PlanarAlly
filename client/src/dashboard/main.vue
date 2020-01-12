@@ -74,7 +74,7 @@ export default class Dashboard extends Vue {
     newSessionName = "";
 
     // eslint-disable-next-line no-empty-pattern
-    beforeRouteEnter(to: Route, from: Route, next: ({}) => {}) {
+    beforeRouteEnter(to: Route, from: Route, next: ({}) => {}): void {
         axios
             .get("/api/rooms")
             .then((response: AxiosResponse) => {
@@ -90,7 +90,7 @@ export default class Dashboard extends Vue {
             });
     }
 
-    createRoom(_event: Event) {
+    createRoom(_event: Event): void {
         axios
             .post("/api/rooms", {
                 name: this.newSessionName,

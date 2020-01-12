@@ -38,18 +38,18 @@ export default class ConfirmDialog extends Vue {
     no = "No";
     title = "";
 
-    resolve = (_ok: boolean) => {};
-    reject = () => {};
+    resolve: (ok: boolean) => void = (_ok: boolean) => {};
+    reject: () => void = () => {};
 
-    confirm() {
+    confirm(): void {
         this.resolve(true);
         this.close();
     }
-    deny() {
+    deny(): void {
         this.resolve(false);
         this.close();
     }
-    close() {
+    close(): void {
         this.reject();
         this.visible = false;
         this.title = "";

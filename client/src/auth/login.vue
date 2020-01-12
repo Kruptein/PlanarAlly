@@ -64,7 +64,7 @@ export default class Login extends Vue {
     password = "";
     error = "";
 
-    login() {
+    login(): void {
         axios
             .post("/api/login", {
                 username: this.username,
@@ -81,7 +81,7 @@ export default class Login extends Vue {
             });
     }
 
-    register() {
+    register(): void {
         axios
             .post("/api/register", {
                 username: this.username,
@@ -98,14 +98,14 @@ export default class Login extends Vue {
             });
     }
 
-    focusin(event: { target?: { nextElementSibling?: HTMLElement } }) {
+    focusin(event: { target?: { nextElementSibling?: HTMLElement } }): void {
         if (event.target && event.target.nextElementSibling) {
             const span = event.target.nextElementSibling;
             span.style.opacity = "0";
         }
     }
 
-    focusout(event: { target?: { nextElementSibling?: HTMLElement } }) {
+    focusout(event: { target?: { nextElementSibling?: HTMLElement } }): void {
         if (event.target && event.target.nextElementSibling) {
             const span = event.target.nextElementSibling;
             span.style.opacity = "1";

@@ -40,11 +40,11 @@ export default class SelectTool extends Tool {
     dragRay = new Ray<LocalPoint>(new LocalPoint(0, 0), new Vector(0, 0));
     selectionStartPoint = start;
     selectionHelper = new Rect(start, 0, 0);
-    created() {
+    created(): void {
         this.selectionHelper.globalCompositeOperation = "source-over";
         gameStore.setSelectionHelperId(this.selectionHelper.uuid);
     }
-    onMouseDown(event: MouseEvent) {
+    onMouseDown(event: MouseEvent): void {
         const layer = layerManager.getLayer();
         if (layer === undefined) {
             console.log("No active layer!");
@@ -117,7 +117,7 @@ export default class SelectTool extends Tool {
         }
         this.active = true;
     }
-    onMouseMove(event: MouseEvent) {
+    onMouseMove(event: MouseEvent): void {
         // if (!this.active) return;   we require mousemove for the resize cursor
         const layer = layerManager.getLayer();
         if (layer === undefined) {
@@ -251,7 +251,7 @@ export default class SelectTool extends Tool {
         this.mode = SelectOperations.Noop;
         this.active = false;
     }
-    onContextMenu(event: MouseEvent) {
+    onContextMenu(event: MouseEvent): void {
         if (layerManager.getLayer() === undefined) {
             console.log("No active layer!");
             return;
@@ -281,7 +281,7 @@ export default class SelectTool extends Tool {
         }
         (<DefaultContext>this.$parent.$refs.defaultcontext).open(event);
     }
-    updateCursor(layer: Layer, globalMouse: GlobalPoint) {
+    updateCursor(layer: Layer, globalMouse: GlobalPoint): void {
         for (const sel of layer.selection) {
             const resizePoint = sel.getPointIndex(globalMouse, l2gz(3));
             if (resizePoint < 0) document.body.style.cursor = "default";

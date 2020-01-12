@@ -63,6 +63,7 @@ import { getUnitDistance, l2g } from "@/game/units";
 import { getMouse } from "@/game/utils";
 import { visibilityStore } from "../../visibility/store";
 import Tools from "./tools.vue";
+import { Layer } from "../../layers/layer";
 
 @Component({
     components: {
@@ -94,11 +95,11 @@ export default class DrawTool extends Tool {
     brushSize = getUnitDistance(gameStore.unitSize);
     closedPolygon = false;
 
-    mounted() {
+    mounted(): void {
         window.addEventListener("keyup", this.onKeyUp);
     }
 
-    destroyed() {
+    destroyed(): void {
         window.removeEventListener("keyup", this.onKeyUp);
     }
 
@@ -136,29 +137,29 @@ export default class DrawTool extends Tool {
     }
 
     @Watch("closedPolygon")
-    onChangePolygonCloseBehaviour(closedPolygon: boolean) {
+    onChangePolygonCloseBehaviour(closedPolygon: boolean): void {
         if (this.shape !== null && this.active) (<Polygon>this.shape).openPolygon = !closedPolygon;
     }
 
     @Watch("fillColour")
-    onFillChange() {
+    onFillChange(): void {
         if (this.brushHelper) this.brushHelper.fillColour = this.fillColour;
     }
 
     @Watch("modeSelect")
-    onModeUpdate(newValue: string, oldValue: string) {
+    onModeUpdate(newValue: string, oldValue: string): void {
         this.onModeChange(newValue, oldValue);
     }
 
     @Watch("selectedLayer")
-    onLayerChange(newValue: string, oldValue: string) {
+    onLayerChange(newValue: string, oldValue: string): void {
         if ((<Tools>this.$parent).currentTool === this.name) {
             this.onDeselect(oldValue);
             this.onSelect();
         }
     }
 
-    setupBrush() {
+    setupBrush(): void {
         if (this.brushHelper === null) return;
         if (this.modeSelect === "reveal" || this.modeSelect === "hide") {
             this.brushHelper.options.set("preFogShape", true);
@@ -174,7 +175,7 @@ export default class DrawTool extends Tool {
             this.brushHelper.fillColour = this.fillColour;
         }
     }
-    onModeChange(newValue: string, oldValue: string) {
+    onModeChange(newValue: string, oldValue: string): void {
         if (this.brushHelper === null) return;
 
         const fowLayer = layerManager.getLayer("fow");
@@ -191,11 +192,11 @@ export default class DrawTool extends Tool {
             fowLayer.removeShape(this.brushHelper, false);
         }
     }
-    getLayer(targetLayer?: string) {
+    getLayer(targetLayer?: string): Layer | undefined {
         if (this.modeSelect === "normal") return layerManager.getLayer(targetLayer);
         return layerManager.getLayer("fow");
     }
-    onMouseDown(event: MouseEvent) {
+    onMouseDown(event: MouseEvent): void {
         const layer = this.getLayer();
         if (layer === undefined) {
             console.log("No active layer!");
@@ -282,7 +283,7 @@ export default class DrawTool extends Tool {
             socket.emit("Shape.Update", { shape: this.shape!.asDict(), redraw: true, temporary: true });
         }
     }
-    onMouseMove(event: MouseEvent) {
+    onMouseMove(event: MouseEvent): void {
         const endPoint = l2g(getMouse(event));
         const layer = this.getLayer();
         if (layer === undefined) {
@@ -328,7 +329,7 @@ export default class DrawTool extends Tool {
         }
         layer.invalidate(false);
     }
-    onMouseUp(event: MouseEvent) {
+    onMouseUp(event: MouseEvent): void {
         if (
             !this.active ||
             this.shape === null ||
@@ -340,7 +341,7 @@ export default class DrawTool extends Tool {
         }
         this.finaliseShape();
     }
-    onContextMenu(event: MouseEvent) {
+    onContextMenu(event: MouseEvent): void {
         if (
             this.active &&
             this.shape !== null &&
@@ -360,7 +361,7 @@ export default class DrawTool extends Tool {
         }
     }
 
-    private finaliseShape() {
+    private finaliseShape(): void {
         if (this.shape === null) return;
         if (this.shape.points.length <= 1) {
             this.onDeselect();
@@ -373,14 +374,14 @@ export default class DrawTool extends Tool {
         this.active = false;
     }
 
-    onSelect() {
+    onSelect(): void {
         const layer = this.getLayer();
         if (layer === undefined) return;
         this.brushHelper = new Circle(new GlobalPoint(-1000, -1000), this.brushSize / 2, this.fillColour);
         this.setupBrush();
         layer.addShape(this.brushHelper, false); // during mode change the shape is already added
     }
-    onDeselect(targetLayer?: string) {
+    onDeselect(targetLayer?: string): void {
         const layer = this.getLayer(targetLayer);
         if (this.brushHelper !== null && layer !== undefined) {
             layer.removeShape(this.brushHelper, false);
@@ -398,7 +399,7 @@ export default class DrawTool extends Tool {
         }
     }
 
-    private pushBrushBack() {
+    private pushBrushBack(): void {
         const layer = this.getLayer();
         if (layer === undefined) {
             console.log("No active layer!");

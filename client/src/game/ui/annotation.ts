@@ -10,7 +10,7 @@ export class AnnotationManager {
     annotationText: Text;
     annotationRect: Rect;
     layer: Layer | undefined;
-    shown: boolean = false;
+    shown = false;
 
     constructor() {
         const origin = new GlobalPoint(0, 0);

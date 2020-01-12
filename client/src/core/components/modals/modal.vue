@@ -38,18 +38,18 @@ export default class Modal extends Vue {
     dragging = false;
 
     // Example of mounted required: opening note
-    mounted() {
+    mounted(): void {
         this.updatePosition();
     }
     // Example of updated required: opening initiative
-    updated() {
+    updated(): void {
         this.updatePosition();
     }
 
-    close(_event: MouseEvent) {
+    close(_event: MouseEvent): void {
         this.$emit("close");
     }
-    updatePosition() {
+    updatePosition(): void {
         if (!this.positioned) {
             const container = <any>this.$refs.container;
             if (container.offsetWidth === 0 && container.offsetHeight === 0) return;
@@ -58,7 +58,7 @@ export default class Modal extends Vue {
             this.positioned = true;
         }
     }
-    dragStart(event: DragEvent) {
+    dragStart(event: DragEvent): void {
         if (event === null || event.dataTransfer === null) return;
         event.dataTransfer.setData("Hack", "");
         // Because the drag event is happening on the header, we have to change the drag image
@@ -70,7 +70,7 @@ export default class Modal extends Vue {
         this.screenY = event.screenY;
         this.dragging = true;
     }
-    dragEnd(event: DragEvent) {
+    dragEnd(event: DragEvent): void {
         this.dragging = false;
         let left = event.clientX - this.offsetX;
         let top = event.clientY - this.offsetY;
@@ -86,7 +86,7 @@ export default class Modal extends Vue {
         this.$refs.container.style.top = top + "px";
         this.$refs.container.style.display = "block";
     }
-    dragOver(_event: DragEvent) {
+    dragOver(_event: DragEvent): void {
         if (this.dragging) this.$refs.container.style.display = "none";
     }
 }

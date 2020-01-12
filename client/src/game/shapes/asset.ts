@@ -8,7 +8,7 @@ import { g2lx, g2ly, g2lz } from "@/game/units";
 export class Asset extends BaseRect {
     type = "assetrect";
     img: HTMLImageElement;
-    src: string = "";
+    src = "";
     constructor(img: HTMLImageElement, topleft: GlobalPoint, w: number, h: number, uuid?: string) {
         super(topleft, w, h, undefined, undefined, uuid);
         this.img = img;

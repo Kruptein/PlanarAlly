@@ -411,7 +411,7 @@ export class LineFaceCirculator {
 
 class Edge {
     first: Triangle | null = null;
-    second: number = 0;
+    second = 0;
 }
 
 export enum LocateType {
@@ -487,7 +487,7 @@ export class TDS {
         return ei.collect();
     }
 
-    insertDimUp(w: Vertex = new Vertex(), orient: boolean = true): Vertex {
+    insertDimUp(w: Vertex = new Vertex(), orient = true): Vertex {
         const v = this.createVertex();
         this.dimension++;
         let t1: Triangle;

@@ -43,7 +43,7 @@ export default class Settings extends Vue {
     ];
     activeComponent = this.components[0];
 
-    setActiveComponent(component: ActiveComponent) {
+    setActiveComponent(component: ActiveComponent): void {
         if (this.activeComponent === component) return;
         this.activeComponent = component;
         this.$router.push({ name: "settings", params: { page: component.nav.toLowerCase() } });

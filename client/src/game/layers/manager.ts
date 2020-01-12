@@ -22,7 +22,7 @@ class LayerManager {
         this.UUIDMap = new Map();
     }
 
-    drawLoop = () => {
+    drawLoop = (): void => {
         for (let i = this.layers.length - 1; i >= 0; i--) {
             this.layers[i].draw();
         }
@@ -62,7 +62,7 @@ class LayerManager {
         }
     }
 
-    selectLayer(name: string, sync: boolean = true): void {
+    selectLayer(name: string, sync = true): void {
         let found = false;
         for (const layer of this.layers) {
             if (!layer.selectable) continue;

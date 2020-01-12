@@ -62,35 +62,35 @@ import { Shape } from "@/game/shapes/shape";
 export default class SelectionInfo extends Vue {
     shape: Shape | null = null;
 
-    mounted() {
+    mounted(): void {
         EventBus.$on("SelectionInfo.Shape.Set", (shape: Shape | null) => {
             this.shape = shape;
         });
     }
 
-    get shapes() {
+    get shapes(): Shape[] {
         if (this.shape === null) return [];
         return [this.shape];
     }
 
-    get visibleTrackers() {
+    get visibleTrackers(): Tracker[] {
         if (this.shape === null) return [];
         return this.shape.trackers.filter(tr => tr.name !== "" || tr.value !== 0);
     }
 
-    get visibleAuras() {
+    get visibleAuras(): Aura[] {
         if (this.shape === null) return [];
         return this.shape.auras.filter(au => au.name !== "" || au.value !== 0);
     }
 
-    beforeDestroy() {
+    beforeDestroy(): void {
         EventBus.$off("SelectionInfo.Shape.Set");
     }
 
-    openEditDialog() {
+    openEditDialog(): void {
         (<any>this.$refs.editDialog)[0].visible = true;
     }
-    changeValue(object: Tracker | Aura, redraw: boolean) {
+    changeValue(object: Tracker | Aura, redraw: boolean): void {
         if (this.shape === null) return;
         (<Game>this.$parent).$refs.prompt.prompt(`New  ${object.name} value:`, `Updating ${object.name}`).then(
             (value: string) => {

@@ -13,7 +13,7 @@ import { TriangulationTarget } from "../visibility/te/pa";
 import { circleLineIntersection, xyEqual } from "../visibility/te/triag";
 
 export class FOWLayer extends Layer {
-    isVisionLayer: boolean = true;
+    isVisionLayer = true;
     preFogShapes: Shape[] = [];
     virtualCanvas: HTMLCanvasElement;
     vCtx: CanvasRenderingContext2D;

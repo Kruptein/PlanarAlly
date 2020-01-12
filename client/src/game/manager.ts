@@ -10,7 +10,7 @@ import { EventBus } from "./event-bus";
 import { visibilityStore } from "./visibility/store";
 
 export class GameManager {
-    selectedTool: number = 0;
+    selectedTool = 0;
 
     annotationManager = new AnnotationManager();
 

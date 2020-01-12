@@ -50,7 +50,7 @@ export default class AssetNode extends Vue {
         return [];
     }
 
-    toggle(event: { target: HTMLElement }) {
+    toggle(event: { target: HTMLElement }): void {
         // tslint:disable-next-line:prefer-for-of
         for (let i = 0; i < event.target.children.length; i++) {
             const el = <HTMLElement>event.target.children[i];
@@ -58,7 +58,7 @@ export default class AssetNode extends Vue {
         }
     }
 
-    dragStart(event: DragEvent, imageSource: string) {
+    dragStart(event: DragEvent, imageSource: string): void {
         this.showImage = null;
         if (event === null || event.dataTransfer === null) return;
         const img = (<HTMLElement>event.target).querySelector(".preview")!;

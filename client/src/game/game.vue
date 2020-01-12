@@ -153,14 +153,14 @@ export default class Game extends Vue {
         });
     }
 
-    mounted() {
+    mounted(): void {
         window.addEventListener("resize", this.resizeWindow);
         window.addEventListener("keyup", onKeyUp);
         window.addEventListener("keydown", onKeyDown);
         this.ready.manager = true;
     }
 
-    destroyed() {
+    destroyed(): void {
         window.removeEventListener("resize", this.resizeWindow);
         window.removeEventListener("keyup", onKeyUp);
         window.removeEventListener("keydown", onKeyDown);
@@ -169,11 +169,11 @@ export default class Game extends Vue {
 
     // Window events
 
-    zoom(event: WheelEvent) {
+    zoom(event: WheelEvent): void {
         throttle(scrollZoom)(event);
     }
 
-    resizeWindow() {
+    resizeWindow(): void {
         layerManager.setWidth(window.innerWidth);
         layerManager.setHeight(window.innerHeight);
         layerManager.invalidate();
@@ -181,29 +181,29 @@ export default class Game extends Vue {
 
     // Mouse events
 
-    mousedown(event: MouseEvent) {
+    mousedown(event: MouseEvent): void {
         this.$refs.tools.mousedown(event);
     }
-    mouseup(event: MouseEvent) {
+    mouseup(event: MouseEvent): void {
         this.$refs.tools.mouseup(event);
     }
-    mousemove(event: MouseEvent) {
+    mousemove(event: MouseEvent): void {
         if (!this.throttledmoveSet) {
             this.throttledmoveSet = true;
             this.throttledmove = throttle(this.$refs.tools.mousemove, 15);
         }
         this.throttledmove(event);
     }
-    mouseleave(event: MouseEvent) {
+    mouseleave(event: MouseEvent): void {
         this.$refs.tools.mouseleave(event);
     }
-    contextmenu(event: MouseEvent) {
+    contextmenu(event: MouseEvent): void {
         this.$refs.tools.contextmenu(event);
     }
-    selectLayer(layer: string) {
+    selectLayer(layer: string): void {
         layerManager.selectLayer(layer);
     }
-    drop(event: DragEvent) {
+    drop(event: DragEvent): void {
         if (event === null || event.dataTransfer === null) return;
         if (event.dataTransfer.files.length > 0) {
             this.$refs.confirm.open("Uploading files should be done through the asset manager.", "Ok", "").then(

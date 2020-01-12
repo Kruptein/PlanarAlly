@@ -22,7 +22,7 @@ export default class InputCopyElement extends Vue {
     popupString = "";
     showPopup = false;
 
-    copy() {
+    copy(): void {
         (<any>navigator).clipboard.writeText(this.value).then(
             () => {
                 this.popupString = "Copied!";

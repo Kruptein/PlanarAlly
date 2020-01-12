@@ -25,7 +25,7 @@ export default class Tool extends Vue {
         const right = Math.min(window.innerWidth - 25, mid + 75);
         return `${right - mid - 14}px`; // border width
     }
-    created() {
+    created(): void {
         this.$parent.$on("mousedown", (event: MouseEvent, tool: string) => {
             if (tool === this.name) this.onMouseDown(event);
         });
@@ -48,12 +48,12 @@ export default class Tool extends Vue {
             }
         });
     }
-    onSelect() {}
-    onDeselect() {}
-    onMouseDown(_event: MouseEvent) {}
-    onMouseUp(_event: MouseEvent) {}
-    onMouseMove(_event: MouseEvent) {}
-    onContextMenu(event: MouseEvent) {
+    onSelect(): void {}
+    onDeselect(): void {}
+    onMouseDown(_event: MouseEvent): void {}
+    onMouseUp(_event: MouseEvent): void {}
+    onMouseMove(_event: MouseEvent): void {}
+    onContextMenu(event: MouseEvent): void {
         (<DefaultContext>this.$parent.$refs.defaultcontext).open(event);
     }
 }

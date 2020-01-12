@@ -106,7 +106,7 @@ export default class Tools extends Vue {
         return true;
     }
 
-    mousedown(event: MouseEvent) {
+    mousedown(event: MouseEvent): void {
         if ((<HTMLElement>event.target).tagName !== "CANVAS") return;
 
         let targetTool = this.currentTool;
@@ -118,7 +118,7 @@ export default class Tools extends Vue {
 
         this.$emit("mousedown", event, targetTool);
     }
-    mouseup(event: MouseEvent) {
+    mouseup(event: MouseEvent): void {
         if ((<HTMLElement>event.target).tagName !== "CANVAS") return;
 
         let targetTool = this.currentTool;
@@ -130,7 +130,7 @@ export default class Tools extends Vue {
 
         this.$emit("mouseup", event, targetTool);
     }
-    mousemove(event: MouseEvent) {
+    mousemove(event: MouseEvent): void {
         if ((<HTMLElement>event.target).tagName !== "CANVAS") return;
 
         let targetTool = this.currentTool;
@@ -157,13 +157,13 @@ export default class Tools extends Vue {
             gameManager.annotationManager.setActiveText("");
         }
     }
-    mouseleave(event: MouseEvent) {
+    mouseleave(event: MouseEvent): void {
         // When leaving the window while a mouse is pressed down, act as if it was released
         if ((event.buttons & 1) !== 0) {
             this.$emit("mouseup", event, this.currentTool);
         }
     }
-    contextmenu(event: MouseEvent) {
+    contextmenu(event: MouseEvent): void {
         if ((<HTMLElement>event.target).tagName !== "CANVAS") return;
         if (event.button !== 2 || (<HTMLElement>event.target).tagName !== "CANVAS") return;
         this.$emit("contextmenu", event, this.currentTool);

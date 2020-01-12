@@ -163,7 +163,7 @@ export default class Initiative extends Vue {
     cameraLock = false;
     _activeTokens: string[] = [];
 
-    mounted() {
+    mounted(): void {
         EventBus.$on("Initiative.Clear", initiativeStore.clear);
         EventBus.$on("Initiative.Remove", (data: string) => this.removeInitiative(data));
         EventBus.$on("Initiative.Show", () => (this.visible = true));
@@ -183,7 +183,7 @@ export default class Initiative extends Vue {
         );
     }
 
-    beforeDestroy() {
+    beforeDestroy(): void {
         EventBus.$off("Initiative.Clear");
         EventBus.$off("Initiative.Remove");
         EventBus.$off("Initiative.Show");
@@ -196,7 +196,7 @@ export default class Initiative extends Vue {
     }
 
     // Utilities
-    getActor(actorId: string) {
+    getActor(actorId: string): InitiativeData | undefined {
         return initiativeStore.data.find(a => a.uuid === actorId);
     }
     owns(actor: InitiativeData): boolean {
@@ -206,17 +206,17 @@ export default class Initiative extends Vue {
         if (shape === undefined) return false;
         return shape.owners.includes(gameStore.username);
     }
-    getDefaultEffect() {
+    getDefaultEffect(): { uuid: string; name: string; turns: number } {
         return { uuid: uuidv4(), name: "New Effect", turns: 10 };
     }
-    fakeSetData(dataTransfer: DataTransfer) {
+    fakeSetData(dataTransfer: DataTransfer): void {
         dataTransfer.setData("Hack", "");
     }
-    syncInitiative(data: InitiativeData | { uuid: string }) {
+    syncInitiative(data: InitiativeData | { uuid: string }): void {
         socket.emit("Initiative.Update", data);
     }
     // Events
-    removeInitiative(uuid: string) {
+    removeInitiative(uuid: string): void {
         const d = initiativeStore.data.findIndex(a => a.uuid === uuid);
         if (d < 0 || initiativeStore.data[d].group) return;
         this.syncInitiative({ uuid });
@@ -228,14 +228,14 @@ export default class Initiative extends Vue {
             layerManager.getLayer(shape.layer)!.invalidate(true);
         }
     }
-    updateOrder() {
+    updateOrder(): void {
         if (!gameStore.IS_DM) return;
         socket.emit(
             "Initiative.Set",
             initiativeStore.data.map(d => d.uuid),
         );
     }
-    updateTurn(actorId: string | null, sync: boolean) {
+    updateTurn(actorId: string | null, sync: boolean): void {
         if (!gameStore.IS_DM && sync) return;
         initiativeStore.setCurrentActor(actorId);
         const actor = initiativeStore.data.find(a => a.uuid === actorId);
@@ -260,42 +260,42 @@ export default class Initiative extends Vue {
         }
         if (sync) socket.emit("Initiative.Turn.Update", actorId);
     }
-    setRound(round: number, sync: boolean) {
+    setRound(round: number, sync: boolean): void {
         if (!gameStore.IS_DM && sync) return;
         initiativeStore.setRoundCounter(round);
         if (sync) socket.emit("Initiative.Round.Update", round);
     }
-    setTurn(actorId: string | null) {
+    setTurn(actorId: string | null): void {
         initiativeStore.setTurn(actorId);
     }
-    nextTurn() {
+    nextTurn(): void {
         if (!gameStore.IS_DM) return;
         const order = initiativeStore.data;
         const next = order[(order.findIndex(a => a.uuid === initiativeStore.currentActor) + 1) % order.length];
         if (initiativeStore.data[0].uuid === next.uuid) this.setRound(initiativeStore.roundCounter + 1, true);
         this.updateTurn(next.uuid, true);
     }
-    toggleHighlight(actor: InitiativeData, show: boolean) {
+    toggleHighlight(actor: InitiativeData, show: boolean): void {
         const shape = layerManager.UUIDMap.get(actor.uuid);
         if (shape === undefined) return;
         shape.showHighlight = show;
         layerManager.getLayer(shape.layer)!.invalidate(true);
     }
-    toggleOption(actor: InitiativeData, option: "visible" | "group") {
+    toggleOption(actor: InitiativeData, option: "visible" | "group"): void {
         if (!this.owns(actor)) return;
         actor[option] = !actor[option];
         this.syncInitiative(actor);
     }
-    createEffect(actor: InitiativeData, effect: InitiativeEffect, sync: boolean) {
+    createEffect(actor: InitiativeData, effect: InitiativeEffect, sync: boolean): void {
         if (!this.owns(actor)) return;
         actor.effects.push(effect);
         if (sync) socket.emit("Initiative.Effect.New", { actor: actor.uuid, effect });
     }
-    syncEffect(actor: InitiativeData, effect: InitiativeEffect) {
+    syncEffect(actor: InitiativeData, effect: InitiativeEffect): void {
         if (!this.owns(actor)) return;
         socket.emit("Initiative.Effect.Update", { actor: actor.uuid, effect });
     }
-    updateEffect(actorId: string, effect: InitiativeEffect, sync: boolean) {
+    updateEffect(actorId: string, effect: InitiativeEffect, sync: boolean): void {
         const actor = initiativeStore.data.find(a => a.uuid === actorId);
         if (actor === undefined) return;
         const effectIndex = actor.effects.findIndex(e => e.uuid === effect.uuid);
@@ -304,7 +304,7 @@ export default class Initiative extends Vue {
         if (sync) this.syncEffect(actor, effect);
         else this.$forceUpdate();
     }
-    toggleVisionLock() {
+    toggleVisionLock(): void {
         this.visionLock = !this.visionLock;
         if (this.visionLock) {
             this._activeTokens = [...gameStore._activeTokens];

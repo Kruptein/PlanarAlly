@@ -199,7 +199,7 @@ export default class DmSettings extends Vue {
     showRefreshState = false;
     refreshState = "pending";
 
-    mounted() {
+    mounted(): void {
         EventBus.$on("DmSettings.Open", () => {
             this.visible = true;
         });
@@ -208,7 +208,7 @@ export default class DmSettings extends Vue {
         });
     }
 
-    beforeDestroy() {
+    beforeDestroy(): void {
         EventBus.$off("DmSettings.Open");
         EventBus.$off("DmSettings.RefreshedInviteCode");
     }
@@ -287,7 +287,7 @@ export default class DmSettings extends Vue {
         if (typeof value !== "number") return;
         gameStore.setVisionRangeMax({ value, sync: true });
     }
-    changeVisionMode(event: { target: HTMLSelectElement }) {
+    changeVisionMode(event: { target: HTMLSelectElement }): void {
         const value = event.target.value.toLowerCase();
         if (value !== "bvh" && value !== "triangle") return;
         visibilityStore.setVisionMode({ mode: value, sync: true });
@@ -295,25 +295,25 @@ export default class DmSettings extends Vue {
         visibilityStore.recalculateMovement();
         layerManager.invalidate();
     }
-    handleClick(event: { target: HTMLElement }) {
+    handleClick(event: { target: HTMLElement }): void {
         const child = event.target.firstElementChild;
         if (child instanceof HTMLInputElement) {
             child.click();
         }
     }
-    refreshInviteCode() {
+    refreshInviteCode(): void {
         socket.emit("Room.Info.InviteCode.Refresh");
         this.refreshState = "pending";
         this.showRefreshState = true;
     }
-    kickPlayer(id: number) {
+    kickPlayer(id: number): void {
         socket.emit("Room.Info.Players.Kick", id);
         gameStore.kickPlayer(id);
     }
-    toggleSessionLock() {
+    toggleSessionLock(): void {
         gameStore.setIsLocked({ isLocked: !gameStore.isLocked, sync: true });
     }
-    deleteSession() {
+    deleteSession(): void {
         (<Game>this.$parent).$refs.prompt
             .prompt(
                 `ENTER ${gameStore.roomCreator}/${gameStore.roomName} TO CONFIRM SESSION REMOVAL.`,

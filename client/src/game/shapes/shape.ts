@@ -23,8 +23,8 @@ export abstract class Shape {
     protected _refPoint: GlobalPoint;
 
     // Fill colour of the shape
-    fillColour: string = "#000";
-    strokeColour: string = "rgba(0,0,0,0)";
+    fillColour = "#000";
+    strokeColour = "rgba(0,0,0,0)";
     // The optional name associated with the shape
     name = "Unknown shape";
     nameVisible = true;
@@ -45,10 +45,10 @@ export abstract class Shape {
     showHighlight = false;
 
     // Mouseover annotation
-    annotation: string = "";
+    annotation = "";
 
     // Draw modus to use
-    globalCompositeOperation: string = "source-over";
+    globalCompositeOperation = "source-over";
 
     // Additional options for specialized uses
     options: Map<string, any> = new Map();
@@ -119,7 +119,6 @@ export abstract class Shape {
     }
 
     checkVisionSources(recalculate = true): void {
-        const self = this;
         const obstructionIndex = visibilityStore.visionBlockers.indexOf(this.uuid);
         let update = false;
         if (this.visionObstruction && obstructionIndex === -1) {
@@ -136,7 +135,7 @@ export abstract class Shape {
             const ls = visibilityStore.visionSources;
             const i = ls.findIndex(o => o.aura === au.uuid);
             if (au.visionSource && i === -1) {
-                ls.push({ shape: self.uuid, aura: au.uuid });
+                ls.push({ shape: this.uuid, aura: au.uuid });
             } else if (!au.visionSource && i >= 0) {
                 ls.splice(i, 1);
             }
@@ -144,8 +143,8 @@ export abstract class Shape {
         // Check if anything in the gameManager referencing this shape is in fact still a visionsource
         for (let i = visibilityStore.visionSources.length - 1; i >= 0; i--) {
             const ls = visibilityStore.visionSources[i];
-            if (ls.shape === self.uuid) {
-                if (!self.auras.some(a => a.uuid === ls.aura && a.visionSource))
+            if (ls.shape === this.uuid) {
+                if (!this.auras.some(a => a.uuid === ls.aura && a.visionSource))
                     visibilityStore.visionSources.splice(i, 1);
             }
         }

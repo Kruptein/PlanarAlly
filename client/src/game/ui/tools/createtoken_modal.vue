@@ -63,29 +63,29 @@ export default class CreateTokenModal extends Vue {
     fillColour = "rgba(255, 255, 255, 1)";
     borderColour = "rgba(0, 0, 0, 1)";
 
-    mounted() {
+    mounted(): void {
         this.updatePreview();
     }
 
     @Watch("text")
-    onTextChange(_newValue: string, _oldValue: string) {
+    onTextChange(_newValue: string, _oldValue: string): void {
         this.updatePreview();
     }
     @Watch("fillColour")
-    onFillChange(_newValue: string, _oldValue: string) {
+    onFillChange(_newValue: string, _oldValue: string): void {
         this.updatePreview();
     }
     @Watch("borderColour")
-    onBorderChange(_newValue: string, _oldValue: string) {
+    onBorderChange(_newValue: string, _oldValue: string): void {
         this.updatePreview();
     }
 
-    open(x: number, y: number) {
+    open(x: number, y: number): void {
         this.visible = true;
         this.x = x;
         this.y = y;
     }
-    submit() {
+    submit(): void {
         const layer = layerManager.getLayer();
         if (layer === undefined) return;
         const token = new CircularToken(
@@ -101,7 +101,7 @@ export default class CreateTokenModal extends Vue {
         layer.invalidate(false);
         this.visible = false;
     }
-    updatePreview() {
+    updatePreview(): void {
         const ctx = (<HTMLCanvasElement>this.$refs.canvas).getContext("2d")!;
         ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
         ctx.beginPath();

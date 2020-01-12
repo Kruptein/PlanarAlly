@@ -9,7 +9,7 @@ import { TriangulationTarget } from "../visibility/te/pa";
 import { computeVisibility } from "../visibility/te/te";
 
 export class FOWPlayersLayer extends Layer {
-    isVisionLayer: boolean = true;
+    isVisionLayer = true;
 
     draw(): void {
         if (!this.valid) {

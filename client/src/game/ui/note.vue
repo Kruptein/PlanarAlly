@@ -52,11 +52,11 @@ export default class NoteDialog extends Vue {
     visible = false;
     note: Note | null = null;
 
-    open(note: Note) {
+    open(note: Note): void {
         this.visible = true;
         this.note = note;
     }
-    calcHeight() {
+    calcHeight(): string {
         if (this.$refs.textarea) {
             const el = <HTMLElement>this.$refs.textarea;
             el.style.height = "auto";
@@ -66,10 +66,10 @@ export default class NoteDialog extends Vue {
         }
         return "100px";
     }
-    updateNote() {
+    updateNote(): void {
         if (this.note) gameStore.updateNote({ note: this.note, sync: true });
     }
-    removeNote() {
+    removeNote(): void {
         (<Game>this.$parent).$refs.confirm.open("Are you sure you wish to remove this?").then(
             (result: boolean) => {
                 if (result && this.note) {

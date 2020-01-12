@@ -55,6 +55,7 @@ import { layerManager } from "@/game/layers/manager";
 import { gameStore } from "@/game/store";
 import { cutShapes, deleteShapes, pasteShapes } from "../../shapes/utils";
 import { initiativeStore, inInitiative } from "../initiative/store";
+import { Layer } from "../../layers/layer";
 
 @Component({
     components: {
@@ -72,25 +73,25 @@ export default class ShapeContext extends Vue {
         const layer = layerManager.getLayer();
         return layer === undefined ? "" : layer.name;
     }
-    open(event: MouseEvent) {
+    open(event: MouseEvent): void {
         this.visible = true;
         this.x = event.pageX;
         this.y = event.pageY;
         this.$nextTick(() => (<HTMLElement>this.$children[0].$el).focus());
     }
-    close() {
+    close(): void {
         this.visible = false;
     }
-    getLayers() {
+    getLayers(): Layer[] {
         return layerManager.layers.filter(l => l.selectable && (gameStore.IS_DM || l.playerEditable));
     }
-    getActiveLayer() {
+    getActiveLayer(): Layer | undefined {
         return layerManager.getLayer();
     }
-    getCurrentLocation() {
+    getCurrentLocation(): string {
         return gameStore.locationName;
     }
-    getInitiativeWord() {
+    getInitiativeWord(): string {
         const layer = layerManager.getLayer()!;
         if (layer.selection.length === 1) {
             return inInitiative(layer.selection[0].uuid) ? "Show" : "Add";
@@ -102,12 +103,12 @@ export default class ShapeContext extends Vue {
         const layer = layerManager.getLayer()!;
         return layer.selection.length === 1;
     }
-    setLayer(newLayer: string) {
+    setLayer(newLayer: string): void {
         const layer = layerManager.getLayer()!;
         layer.selection.forEach(shape => shape.moveLayer(newLayer, true));
         this.close();
     }
-    setLocation(newLocation: string) {
+    setLocation(newLocation: string): void {
         const layer = layerManager.getLayer()!;
         cutShapes();
         // Request change to other location
@@ -120,27 +121,27 @@ export default class ShapeContext extends Vue {
         });
         this.close();
     }
-    moveToBack() {
+    moveToBack(): void {
         const layer = this.getActiveLayer()!;
         layer.selection.forEach(shape => layer.moveShapeOrder(shape, 0, true));
         this.close();
     }
-    moveToFront() {
+    moveToFront(): void {
         const layer = this.getActiveLayer()!;
         layer.selection.forEach(shape => layer.moveShapeOrder(shape, layer.shapes.length - 1, true));
         this.close();
     }
-    addInitiative() {
+    addInitiative(): void {
         const layer = layerManager.getLayer()!;
         layer.selection.forEach(shape => initiativeStore.addInitiative(shape.getInitiativeRepr()));
         EventBus.$emit("Initiative.Show");
         this.close();
     }
-    deleteSelection() {
+    deleteSelection(): void {
         deleteShapes();
         this.close();
     }
-    openEditDialog() {
+    openEditDialog(): void {
         const layer = layerManager.getLayer()!;
         if (layer.selection.length !== 1) return;
         EventBus.$emit("EditDialog.Open", layer.selection[0]);

@@ -28,7 +28,7 @@ export default class MapTool extends Tool {
     startPoint: GlobalPoint | null = null;
     rect: Rect | null = null;
 
-    onMouseDown(event: MouseEvent) {
+    onMouseDown(event: MouseEvent): void {
         const layer = layerManager.getLayer();
         if (layer === undefined) {
             console.log("No active layer!");
@@ -40,7 +40,7 @@ export default class MapTool extends Tool {
         this.rect = new Rect(this.startPoint.clone(), 0, 0, "rgba(0,0,0,0)", "black");
         layer.addShape(this.rect, false, false);
     }
-    onMouseMove(event: MouseEvent) {
+    onMouseMove(event: MouseEvent): void {
         if (!this.active || this.rect === null || this.startPoint === null) return;
         const layer = layerManager.getLayer();
         if (layer === undefined) {
@@ -58,7 +58,7 @@ export default class MapTool extends Tool {
         );
         layer.invalidate(false);
     }
-    onMouseUp(_event: MouseEvent) {
+    onMouseUp(_event: MouseEvent): void {
         if (!this.active || this.rect === null) return;
         const layer = layerManager.getLayer();
         if (layer === undefined) {

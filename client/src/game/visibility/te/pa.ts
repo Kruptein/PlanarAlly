@@ -7,12 +7,12 @@ export enum TriangulationTarget {
     MOVEMENT = "movement",
 }
 
-export let PA_CDT = {
+export const PA_CDT = {
     vision: new CDT(),
     movement: new CDT(),
 };
 
-export function triangulate(target: TriangulationTarget, partial: boolean = false): void {
+export function triangulate(target: TriangulationTarget, partial = false): void {
     const cdt = new CDT();
     PA_CDT[target] = cdt;
     let shapes;

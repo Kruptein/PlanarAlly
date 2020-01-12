@@ -14,12 +14,12 @@ export class Layer {
     canvas: HTMLCanvasElement;
     ctx: CanvasRenderingContext2D;
 
-    selectable: boolean = false;
-    playerEditable: boolean = false;
-    isVisionLayer: boolean = false;
+    selectable = false;
+    playerEditable = false;
+    isVisionLayer = false;
 
     // When set to false, the layer will be redrawn on the next tick
-    valid: boolean = false;
+    valid = false;
     // The collection of shapes that this layer contains.
     // These are ordered on a depth basis.
     shapes: Shape[] = [];
@@ -124,8 +124,6 @@ export class Layer {
 
             if (doClear) this.clear();
 
-            const state = this;
-
             // We iterate twice over all shapes
             // First to draw the auras and a second time to draw the shapes themselves
             // Otherwise auras from one shape could be overlapping another shape itself.
@@ -133,8 +131,8 @@ export class Layer {
             for (const shape of this.shapes) {
                 if (shape.options.has("skipDraw") && shape.options.get("skipDraw")) continue;
                 if (layerManager.getLayer() === undefined) continue;
-                if (!shape.visibleInCanvas(state.canvas)) continue;
-                if (state.name === "fow" && layerManager.getLayer()!.name !== state.name) continue;
+                if (!shape.visibleInCanvas(this.canvas)) continue;
+                if (this.name === "fow" && layerManager.getLayer()!.name !== this.name) continue;
                 shape.drawAuras(ctx);
             }
             for (const shape of this.shapes) {
@@ -147,8 +145,8 @@ export class Layer {
                 )
                     continue;
                 if (layerManager.getLayer() === undefined) continue;
-                if (!shape.visibleInCanvas(state.canvas)) continue;
-                if (state.name === "fow" && layerManager.getLayer()!.name !== state.name) continue;
+                if (!shape.visibleInCanvas(this.canvas)) continue;
+                if (this.name === "fow" && layerManager.getLayer()!.name !== this.name) continue;
                 shape.draw(ctx);
             }
 

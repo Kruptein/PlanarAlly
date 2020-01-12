@@ -40,11 +40,6 @@ export default class Settings extends Vue {
             nav: "Account",
             class: AccountSettings,
         },
-        {
-            title: "TE",
-            nav: "Accoungt",
-            class: AccountSettings,
-        },
     ];
     activeComponent = this.components[0];
 
@@ -55,7 +50,6 @@ export default class Settings extends Vue {
     }
 
     beforeRouteEnter(to: Route, _from: Route, next: Parameters<NavigationGuard>[2]): void {
-        console.log("Entering");
         next(vm => {
             if ("page" in to.params && to.params.page !== undefined) {
                 for (const component of (<Settings>vm).components) {

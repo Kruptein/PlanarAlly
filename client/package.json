@@ -9,7 +9,6 @@
     "clean": "rimraf ../server/static/js/ && rimraf ../server/static/css/"
   },
   "dependencies": {
-    "axios": "^0.19.0",
     "core-js": "^3.3.2",
     "socket.io-client": "^2.2.0",
     "tinycolor2": "^1.4.1",

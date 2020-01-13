@@ -27,16 +27,14 @@
                 />
             </div>
         </div>
-        <div class="spanrow header">
-            Danger Zone
-        </div>
-        <div class="row" :class="{ 'password-change': !showPasswordFields }">
+        <div class="spanrow header">Danger Zone</div>
+        <div class="row" v-if="showPasswordFields">
             <label for="password-reset">New Password:</label>
             <div>
                 <input ref="passwordResetField" type="password" id="password-reset" autocomplete="new-password" />
             </div>
         </div>
-        <div class="row" :class="{ 'password-change': !showPasswordFields }">
+        <div class="row" v-if="showPasswordFields">
             <label for="password-repeat">Repeat password:</label>
             <div>
                 <input ref="passwordRepeatField" type="password" id="password-repeat" autocomplete="new-password" />
@@ -47,8 +45,8 @@
         </div>
         <div class="row">
             <div>
-                <button class="danger" :class="{ 'password-change': !showPasswordFields }" @click="hidePasswordChange">
-                    Cancel password change
+                <button class="danger" v-if="showPasswordFields" @click="hidePasswordChange">
+                    Cancel
                 </button>
             </div>
             <div>
@@ -67,17 +65,10 @@
 import Vue from "vue";
 import Component from "vue-class-component";
 
-import Settings from "./settings.vue";
-import Prompt from "../core/components/modals/prompt.vue";
-
 import { coreStore } from "../core/store";
 import { postFetch } from "../core/utils";
 
-@Component({
-    components: {
-        Prompt,
-    },
-})
+@Component
 export default class AccountSettings extends Vue {
     $refs!: {
         changePasswordButton: HTMLButtonElement;
@@ -87,10 +78,6 @@ export default class AccountSettings extends Vue {
 
     showPasswordFields = false;
     errorMessage = "";
-
-    get parent(): Settings {
-        return <Settings>this.$parent;
-    }
 
     async updateEmail(event: { target?: HTMLInputElement }): Promise<void> {
         if (event.target?.checkValidity() && event.target.value !== this.$store.state.core.email) {
@@ -123,15 +110,17 @@ export default class AccountSettings extends Vue {
             } else {
                 this.errorMessage = (await response.json()).error ?? "Something went wrong during the server request";
             }
+        } else {
+            this.showPasswordFields = true;
+            this.$refs.changePasswordButton.textContent = "Confirm";
+            this.$nextTick(() => this.$refs.passwordResetField.focus());
         }
-        this.showPasswordFields = true;
-        this.$refs.changePasswordButton.textContent = "Confirm password change";
-        this.$nextTick(() => this.$refs.passwordResetField.focus());
     }
 
     hidePasswordChange(): void {
         this.showPasswordFields = false;
         this.errorMessage = "";
+        this.$refs.changePasswordButton.textContent = "Change password";
     }
 }
 </script>
@@ -266,9 +255,5 @@ button {
     border: 1px solid lightgray;
     border-radius: 0.25em;
     background-color: rgb(235, 235, 228);
-}
-
-.password-change {
-    display: none;
 }
 </style>

@@ -55,9 +55,10 @@
         </div>
         <div class="row">
             <div style="grid-column-start: value">
-                <button class="danger">Delete account</button>
+                <button class="danger" @click="deleteAccount">Delete account</button>
             </div>
         </div>
+        <ConfirmDialog ref="confirm"></ConfirmDialog>
     </form>
 </template>
 
@@ -65,12 +66,19 @@
 import Vue from "vue";
 import Component from "vue-class-component";
 
+import ConfirmDialog from "@/core/components/modals/confirm.vue";
+
 import { coreStore } from "../core/store";
 import { postFetch } from "../core/utils";
 
-@Component
+@Component({
+    components: {
+        ConfirmDialog,
+    },
+})
 export default class AccountSettings extends Vue {
     $refs!: {
+        confirm: InstanceType<typeof ConfirmDialog>;
         changePasswordButton: HTMLButtonElement;
         passwordResetField: HTMLInputElement;
         passwordRepeatField: HTMLInputElement;
@@ -121,6 +129,13 @@ export default class AccountSettings extends Vue {
         this.showPasswordFields = false;
         this.errorMessage = "";
         this.$refs.changePasswordButton.textContent = "Change password";
+    }
+
+    async deleteAccount(): Promise<void> {
+        const result = await this.$refs.confirm.open("Are you sure you wish to remove your account?");
+        if (result) {
+            // send server request
+        }
     }
 }
 </script>

@@ -44,6 +44,8 @@ async def on_shutdown(_):
 app.router.add_static("/static", "static")
 app.router.add_get("/api/auth", api.http.auth.is_authed)
 app.router.add_post("/api/users/email", api.http.users.set_email)
+app.router.add_post("/api/users/password", api.http.users.set_password)
+app.router.add_post("/api/users/delete", api.http.users.delete_account)
 app.router.add_post("/api/login", api.http.auth.login)
 app.router.add_post("/api/register", api.http.auth.register)
 app.router.add_post("/api/logout", api.http.auth.logout)

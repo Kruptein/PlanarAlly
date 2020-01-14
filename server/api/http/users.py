@@ -7,9 +7,20 @@ from models import User
 async def set_email(request: web.Request):
     user: User = await check_authorized(request)
     data = await request.json()
-    try:
-        user.email = data["email"]
-        user.save()
-    except:
-        return web.json_response({"success": False})
-    return web.json_response({"success": True})
+    user.email = data["email"]
+    user.save()
+    return web.HTTPOk()
+
+
+async def set_password(request: web.Request):
+    user: User = await check_authorized(request)
+    data = await request.json()
+    user.set_password(data["password"])
+    user.save()
+    return web.HTTPOk()
+
+
+async def delete_account(request: web.Request):
+    user: User = await check_authorized(request)
+    user.delete()
+    return web.HTTPOk()

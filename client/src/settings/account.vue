@@ -58,7 +58,9 @@
                 <button class="danger" @click="deleteAccount">Delete account</button>
             </div>
         </div>
-        <ConfirmDialog ref="confirm"></ConfirmDialog>
+        <ConfirmDialog ref="confirm">
+            This action is irrevocable!
+        </ConfirmDialog>
     </form>
 </template>
 
@@ -92,8 +94,7 @@ export default class AccountSettings extends Vue {
             const result = await postFetch("/api/users/email", {
                 email: event.target.value,
             });
-            const data: { success: boolean } = await result.json();
-            if (data.success) {
+            if (result.ok) {
                 coreStore.setEmail(event.target.value);
                 // todo: show some kind of notification to notify of success
             } else {
@@ -116,7 +117,7 @@ export default class AccountSettings extends Vue {
             if (response.ok) {
                 this.hidePasswordChange();
             } else {
-                this.errorMessage = (await response.json()).error ?? "Something went wrong during the server request";
+                this.errorMessage = response.statusText ?? "Something went wrong during the server request";
             }
         } else {
             this.showPasswordFields = true;
@@ -134,7 +135,13 @@ export default class AccountSettings extends Vue {
     async deleteAccount(): Promise<void> {
         const result = await this.$refs.confirm.open("Are you sure you wish to remove your account?");
         if (result) {
-            // send server request
+            const response = await postFetch("/api/users/delete");
+            if (response.ok) {
+                coreStore.setAuthenticated(false);
+                this.$router.push("/");
+            } else {
+                this.errorMessage = "Something went wrong with the delete request.";
+            }
         }
     }
 }

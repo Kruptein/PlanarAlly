@@ -16,9 +16,9 @@ async def is_authed(request):
 
 
 async def login(request):
-    username = await authorized_userid(request)
-    if username:
-        return web.HTTPOk()
+    user = await authorized_userid(request)
+    if user:
+        return web.json_response({"email": user.email})
 
     data = await request.json()
     username = data["username"]

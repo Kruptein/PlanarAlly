@@ -1,5 +1,5 @@
 from aiohttp import web
-from aiohttp_security import check_authorized
+from aiohttp_security import check_authorized, forget
 
 from models import User
 
@@ -22,5 +22,7 @@ async def set_password(request: web.Request):
 
 async def delete_account(request: web.Request):
     user: User = await check_authorized(request)
-    user.delete()
-    return web.HTTPOk()
+    user.delete_instance(recursive=True)
+    response = web.HTTPOk()
+    await forget(request, response)
+    return response

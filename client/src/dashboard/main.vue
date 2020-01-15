@@ -31,24 +31,21 @@
                 <div v-else class="input">Create a new session</div>
                 <div class="input">
                     <input type="text" v-model="newSessionName" name="room_name" placeholder="Session Name" />
-                    <span>
-                        <i class="fab fa-d-and-d"></i>
-                    </span>
                 </div>
                 <button type="submit" class="submit" title="Create">
-                    <i class="fas fa-arrow-right"></i>
+                    Create
                 </button>
             </fieldset>
         </form>
         <div id="account-options">
             <form @submit.prevent>
                 <router-link tag="button" class="submit" title="Account Settings" to="/account">
-                    <i class="fas fa-cog"></i>
+                    Settings
                 </router-link>
             </form>
             <form @submit.prevent>
                 <router-link tag="button" class="submit" title="Logout" to="/auth/logout">
-                    <i class="fas fa-sign-out-alt"></i>
+                    Logout
                 </router-link>
             </form>
         </div>
@@ -179,7 +176,7 @@ form {
     background: #fff;
     border-radius: 4px;
     margin-top: 50px;
-    height: 45px;
+    height: 52px;
 }
 
 #account-options form {
@@ -205,7 +202,7 @@ form {
 
 .input input {
     width: 100%;
-    padding: 10px 5px 10px 40px;
+    padding: 10px 5px 10px 10px;
     display: block;
     border: 1px solid #ededed;
     border-radius: 4px;
@@ -220,12 +217,12 @@ form {
 }
 
 .submit {
-    width: 45px;
-    height: 45px;
+    width: 96px;
+    height: 32px;
     display: block;
-    margin: 0 auto -15px auto;
+    margin: 10px;
     background: #fff;
-    border-radius: 100%;
+    border-radius: 5px;
     border: 1px solid #ff7052;
     color: #ff7052;
     font-size: 24px;

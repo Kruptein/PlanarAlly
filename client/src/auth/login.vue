@@ -34,10 +34,10 @@
             <div style="display:flex;">
                 <button type="submit" name="login" style="visibility: hidden;display:none;"></button>
                 <button type="button" name="register" class="submit" title="Register" @click="register">
-                    <i class="fas fa-plus"></i>
+                    Register
                 </button>
                 <button type="submit" name="login" class="submit" title="Login">
-                    <i class="fas fa-arrow-right"></i>
+                    Login
                 </button>
             </div>
         </fieldset>
@@ -188,12 +188,12 @@ form {
 }
 
 .submit {
-    width: 45px;
-    height: 45px;
+    width: 96px;
+    height: 32px;
     display: block;
     margin: 0 auto -15px auto;
     background: #fff;
-    border-radius: 100%;
+    border-radius: 5px;
     border: 1px solid #ff7052;
     color: #ff7052;
     font-size: 24px;

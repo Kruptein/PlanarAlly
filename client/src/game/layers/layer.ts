@@ -31,6 +31,8 @@ export class Layer {
     selectionColor = "#CC0000";
     selectionWidth = 2;
 
+    points: Map<number[], number> = new Map();
+
     constructor(canvas: HTMLCanvasElement, name: string) {
         this.canvas = canvas;
         this.name = name;
@@ -53,6 +55,9 @@ export class Layer {
         layerManager.UUIDMap.set(shape.uuid, shape);
         shape.checkVisionSources(invalidate);
         shape.setMovementBlock(shape.movementObstruction, invalidate);
+        for (const point of shape.points) {
+            this.points.set(point, (this.points.get(point) || 0) + 1);
+        }
         if (shape.ownedBy(gameStore.username) && shape.isToken) gameStore.ownedtokens.push(shape.uuid);
         if (shape.annotation.length) gameStore.annotations.push(shape.uuid);
         if (sync) socket.emit("Shape.Add", { shape: shape.asDict(), temporary });
@@ -99,6 +104,12 @@ export class Layer {
         if (ownedIndex >= 0) gameStore.ownedtokens.splice(ownedIndex, 1);
 
         layerManager.UUIDMap.delete(shape.uuid);
+
+        for (const point of shape.points) {
+            const val = this.points.get(point) || 0;
+            if (val <= 1) this.points.delete(point);
+            else this.points.set(point, val - 1);
+        }
 
         const index = this.selection.indexOf(shape);
         if (index >= 0) this.selection.splice(index, 1);

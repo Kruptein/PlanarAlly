@@ -49,6 +49,7 @@ import { mapGetters } from "vuex";
 import ColorPicker from "@/core/components/colorpicker.vue";
 import DefaultContext from "@/game/ui/tools/defaultcontext.vue";
 import Tool from "@/game/ui/tools/tool.vue";
+import Tools from "./tools.vue";
 
 import { socket } from "@/game/api/socket";
 import { GlobalPoint } from "@/game/geom";
@@ -59,10 +60,9 @@ import { Polygon } from "@/game/shapes/polygon";
 import { Rect } from "@/game/shapes/rect";
 import { Shape } from "@/game/shapes/shape";
 import { gameStore } from "@/game/store";
-import { getUnitDistance, l2g } from "@/game/units";
+import { getUnitDistance, l2g, g2lx, g2ly } from "@/game/units";
 import { getMouse } from "@/game/utils";
 import { visibilityStore } from "../../visibility/store";
-import Tools from "./tools.vue";
 import { Layer } from "../../layers/layer";
 
 @Component({
@@ -380,6 +380,7 @@ export default class DrawTool extends Tool {
         this.brushHelper = new Circle(new GlobalPoint(-1000, -1000), this.brushSize / 2, this.fillColour);
         this.setupBrush();
         layer.addShape(this.brushHelper, false); // during mode change the shape is already added
+        this.showLayerPoints();
     }
     onDeselect(targetLayer?: string): void {
         const layer = this.getLayer(targetLayer);
@@ -397,6 +398,7 @@ export default class DrawTool extends Tool {
             this.active = false;
             layer.invalidate(false);
         }
+        this.hideLayerPoints();
     }
 
     private pushBrushBack(): void {
@@ -409,6 +411,22 @@ export default class DrawTool extends Tool {
         this.brushHelper = new Circle(new GlobalPoint(-1000, -1000), this.brushSize / 2, this.fillColour);
         this.setupBrush();
         layer.addShape(this.brushHelper, false); // during mode change the shape is already added
+    }
+
+    private async showLayerPoints(): Promise<void> {
+        const layer = this.getLayer()!;
+        await layer.waitValid();
+        const dL = layerManager.getLayer("draw")!;
+        for (const point of layer.points.keys()) {
+            dL.ctx.beginPath();
+            dL.ctx.arc(g2lx(point[0]), g2ly(point[1]), 5, 0, 2 * Math.PI);
+            dL.ctx.fill();
+        }
+    }
+
+    private hideLayerPoints(): void {
+        console.log("Clearing");
+        layerManager.getLayer("draw")?.invalidate(true);
     }
 }
 </script>

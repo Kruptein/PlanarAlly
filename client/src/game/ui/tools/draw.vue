@@ -60,7 +60,7 @@ import { Polygon } from "@/game/shapes/polygon";
 import { Rect } from "@/game/shapes/rect";
 import { Shape } from "@/game/shapes/shape";
 import { gameStore } from "@/game/store";
-import { getUnitDistance, l2g, g2lx, g2ly } from "@/game/units";
+import { getUnitDistance, l2g, g2lx, g2ly, l2gz } from "@/game/units";
 import { getMouse } from "@/game/utils";
 import { visibilityStore } from "../../visibility/store";
 import { Layer } from "../../layers/layer";
@@ -202,8 +202,9 @@ export default class DrawTool extends Tool {
             console.log("No active layer!");
             return;
         }
+        if (this.brushHelper === null) return;
         if (!this.active) {
-            this.startPoint = l2g(getMouse(event));
+            this.startPoint = this.brushHelper.refPoint; // l2g(getMouse(event));
             this.active = true;
             switch (this.shapeSelect) {
                 case "square": {
@@ -267,7 +268,7 @@ export default class DrawTool extends Tool {
             this.pushBrushBack();
         } else if (this.shape !== null && this.shapeSelect === "draw-polygon" && this.shape instanceof Polygon) {
             // For polygon draw
-            this.shape._vertices.push(l2g(getMouse(event)));
+            this.shape._vertices.push(this.brushHelper.refPoint);
         }
         if (this.shape !== null && this.shapeSelect === "draw-polygon" && this.shape instanceof Polygon) {
             const lastPoint = l2g(getMouse(event));
@@ -284,12 +285,23 @@ export default class DrawTool extends Tool {
         }
     }
     onMouseMove(event: MouseEvent): void {
-        const endPoint = l2g(getMouse(event));
+        let endPoint = l2g(getMouse(event));
         const layer = this.getLayer();
         if (layer === undefined) {
             console.log("No active layer!");
             return;
         }
+
+        // do if check for snapping
+        const snapDistance = l2gz(20);
+        let smallestPoint: [number, GlobalPoint] | undefined;
+        for (const point of layer.points.keys()) {
+            const gp = GlobalPoint.fromArray(point);
+            const l = endPoint.subtract(gp).length();
+            if (smallestPoint === undefined && l < snapDistance) smallestPoint = [l, gp];
+            else if (smallestPoint !== undefined && l < smallestPoint[0]) smallestPoint = [l, gp];
+        }
+        if (smallestPoint !== undefined) endPoint = smallestPoint[1];
 
         if (this.brushHelper !== null) {
             this.brushHelper.r = this.helperSize;
@@ -377,6 +389,7 @@ export default class DrawTool extends Tool {
     onSelect(): void {
         const layer = this.getLayer();
         if (layer === undefined) return;
+        layer.canvas.parentElement!.style.cursor = "none";
         this.brushHelper = new Circle(new GlobalPoint(-1000, -1000), this.brushSize / 2, this.fillColour);
         this.setupBrush();
         layer.addShape(this.brushHelper, false); // during mode change the shape is already added
@@ -384,20 +397,22 @@ export default class DrawTool extends Tool {
     }
     onDeselect(targetLayer?: string): void {
         const layer = this.getLayer(targetLayer);
-        if (this.brushHelper !== null && layer !== undefined) {
+        if (layer === undefined) return;
+        if (this.brushHelper !== null) {
             layer.removeShape(this.brushHelper, false);
             this.brushHelper = null;
         }
-        if (this.ruler !== null && layer !== undefined) {
+        if (this.ruler !== null) {
             layer.removeShape(this.ruler, false);
             this.ruler = null;
         }
-        if (this.active && layer !== undefined && this.shape !== null) {
+        if (this.active && this.shape !== null) {
             layer.removeShape(this.shape, true, false);
             this.shape = null;
             this.active = false;
             layer.invalidate(false);
         }
+        layer.canvas.parentElement!.style.cursor = "default";
         this.hideLayerPoints();
     }
 

@@ -32,6 +32,7 @@ export class Layer {
     selectionWidth = 2;
 
     points: Map<number[], number> = new Map();
+    postDrawCallbacks: (() => void)[] = [];
 
     constructor(canvas: HTMLCanvasElement, name: string) {
         this.canvas = canvas;
@@ -171,7 +172,19 @@ export class Layer {
             }
             ctx.globalCompositeOperation = ogOP;
             this.valid = true;
+            this.resolveCallbacks();
         }
+    }
+
+    waitValid(): Promise<void> {
+        return new Promise((resolve, _reject) => {
+            this.postDrawCallbacks.push(resolve);
+        });
+    }
+
+    private resolveCallbacks(): void {
+        for (const cb of this.postDrawCallbacks) cb();
+        this.postDrawCallbacks = [];
     }
 
     moveShapeOrder(shape: Shape, destinationIndex: number, sync: boolean): void {

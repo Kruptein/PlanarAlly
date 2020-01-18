@@ -31,7 +31,7 @@ export class Layer {
     selectionColor = "#CC0000";
     selectionWidth = 2;
 
-    points: Map<number[], number> = new Map();
+    points: Map<number[], Set<string>> = new Map();
     postDrawCallbacks: (() => void)[] = [];
 
     constructor(canvas: HTMLCanvasElement, name: string) {
@@ -57,7 +57,7 @@ export class Layer {
         shape.checkVisionSources(invalidate);
         shape.setMovementBlock(shape.movementObstruction, invalidate);
         for (const point of shape.points) {
-            this.points.set(point, (this.points.get(point) || 0) + 1);
+            this.points.set(point, (this.points.get(point) || new Set()).add(shape.uuid));
         }
         if (shape.ownedBy(gameStore.username) && shape.isToken) gameStore.ownedtokens.push(shape.uuid);
         if (shape.annotation.length) gameStore.annotations.push(shape.uuid);
@@ -107,9 +107,9 @@ export class Layer {
         layerManager.UUIDMap.delete(shape.uuid);
 
         for (const point of shape.points) {
-            const val = this.points.get(point) || 0;
-            if (val <= 1) this.points.delete(point);
-            else this.points.set(point, val - 1);
+            const val = this.points.get(point);
+            if (val === undefined || val.size === 1) this.points.delete(point);
+            else val.delete(shape.uuid);
         }
 
         const index = this.selection.indexOf(shape);
@@ -194,5 +194,17 @@ export class Layer {
         this.shapes.splice(destinationIndex, 0, shape);
         if (sync) socket.emit("Shape.Order.Set", { shape: shape.asDict(), index: destinationIndex });
         this.invalidate(true);
+    }
+
+    updateShapePoints(shape: Shape): void {
+        for (const point of this.points) {
+            if (point[1].has(shape.uuid)) {
+                if (point[1].size === 1) this.points.delete(point[0]);
+                else point[1].delete(shape.uuid);
+            }
+        }
+        for (const point of shape.points) {
+            if (this.points.has(point) && )
+        }
     }
 }

@@ -349,4 +349,8 @@ export abstract class Shape {
         const ownerIndex = this._owners.findIndex(o => o === owner);
         this._owners.splice(ownerIndex, 1);
     }
+
+    private updatePoints(): void {
+        this.layer.updateShapePoints(this);
+    }
 }

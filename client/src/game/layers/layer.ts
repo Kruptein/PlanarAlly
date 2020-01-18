@@ -31,7 +31,7 @@ export class Layer {
     selectionColor = "#CC0000";
     selectionWidth = 2;
 
-    points: Map<number[], Set<string>> = new Map();
+    points: Map<string, Set<string>> = new Map();
     postDrawCallbacks: (() => void)[] = [];
 
     constructor(canvas: HTMLCanvasElement, name: string) {
@@ -57,7 +57,8 @@ export class Layer {
         shape.checkVisionSources(invalidate);
         shape.setMovementBlock(shape.movementObstruction, invalidate);
         for (const point of shape.points) {
-            this.points.set(point, (this.points.get(point) || new Set()).add(shape.uuid));
+            const strp = JSON.stringify(point);
+            this.points.set(strp, (this.points.get(strp) || new Set()).add(shape.uuid));
         }
         if (shape.ownedBy(gameStore.username) && shape.isToken) gameStore.ownedtokens.push(shape.uuid);
         if (shape.annotation.length) gameStore.annotations.push(shape.uuid);
@@ -107,8 +108,9 @@ export class Layer {
         layerManager.UUIDMap.delete(shape.uuid);
 
         for (const point of shape.points) {
-            const val = this.points.get(point);
-            if (val === undefined || val.size === 1) this.points.delete(point);
+            const strp = JSON.stringify(point);
+            const val = this.points.get(strp);
+            if (val === undefined || val.size === 1) this.points.delete(strp);
             else val.delete(shape.uuid);
         }
 
@@ -204,7 +206,10 @@ export class Layer {
             }
         }
         for (const point of shape.points) {
-            if (this.points.has(point) && )
+            const strp = JSON.stringify(point);
+            if (this.points.has(strp) && !this.points.get(strp)!.has(shape.uuid))
+                this.points.get(strp)!.add(shape.uuid);
+            else if (!this.points.has(strp)) this.points.set(strp, new Set([shape.uuid]));
         }
     }
 }

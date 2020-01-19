@@ -6,6 +6,7 @@ import { Shape } from "@/game/shapes/shape";
 import { createShapeFromDict } from "@/game/shapes/utils";
 import { gameStore } from "@/game/store";
 import { visibilityStore } from "../visibility/store";
+import { SyncMode } from "@/core/comm/types";
 
 export class Layer {
     name: string;
@@ -49,8 +50,7 @@ export class Layer {
         }
     }
 
-    addShape(shape: Shape, sync: boolean, temporary?: boolean, invalidate = true, snappable = true): void {
-        if (temporary === undefined) temporary = false;
+    addShape(shape: Shape, sync: SyncMode, invalidate = true, snappable = true): void {
         shape.layer = this.name;
         this.shapes.push(shape);
         layerManager.UUIDMap.set(shape.uuid, shape);
@@ -64,7 +64,8 @@ export class Layer {
         }
         if (shape.ownedBy(gameStore.username) && shape.isToken) gameStore.ownedtokens.push(shape.uuid);
         if (shape.annotation.length) gameStore.annotations.push(shape.uuid);
-        if (sync) socket.emit("Shape.Add", { shape: shape.asDict(), temporary });
+        if (sync !== SyncMode.NO_SYNC)
+            socket.emit("Shape.Add", { shape: shape.asDict(), temporary: sync === SyncMode.TEMP_SYNC });
         if (invalidate) this.invalidate(!sync);
     }
 
@@ -75,14 +76,13 @@ export class Layer {
                 console.log(`Shape with unknown type ${serverShape.type_} could not be added`);
                 return;
             }
-            this.addShape(shape, false, false, false);
+            this.addShape(shape, SyncMode.NO_SYNC, false);
         }
         this.clearSelection(); // TODO: Fix keeping selection on those items that are not moved.
         this.invalidate(false);
     }
 
-    removeShape(shape: Shape, sync: boolean, temporary?: boolean): void {
-        if (temporary === undefined) temporary = false;
+    removeShape(shape: Shape, sync: SyncMode): void {
         const idx = this.shapes.indexOf(shape);
         if (idx < 0) {
             console.error("attempted to remove shape not in layer.");
@@ -90,7 +90,8 @@ export class Layer {
         }
         this.shapes.splice(idx, 1);
 
-        if (sync) socket.emit("Shape.Remove", { shape: shape.asDict(), temporary });
+        if (sync !== SyncMode.NO_SYNC)
+            socket.emit("Shape.Remove", { shape: shape.asDict(), temporary: sync === SyncMode.TEMP_SYNC });
         const lsI = visibilityStore.visionSources.findIndex(ls => ls.shape === shape.uuid);
         const lbI = visibilityStore.visionBlockers.findIndex(ls => ls === shape.uuid);
 

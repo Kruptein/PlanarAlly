@@ -22,6 +22,7 @@ import { Text } from "@/game/shapes/text";
 import { EventBus } from "../event-bus";
 import { gameStore } from "../store";
 import { Polygon } from "./polygon";
+import { SyncMode } from "@/core/comm/types";
 
 export function createShapeFromDict(shape: ServerShape): Shape | undefined {
     let sh: Shape;
@@ -129,7 +130,7 @@ export function pasteShapes(targetLayer?: string): Shape[] {
         }
         const shape = createShapeFromDict(clip);
         if (shape === undefined) continue;
-        layer.addShape(shape, true);
+        layer.addShape(shape, SyncMode.FULL_SYNC);
         layer.selection.push(shape);
     }
     if (layer.selection.length === 1) EventBus.$emit("SelectionInfo.Shape.Set", layer.selection[0]);
@@ -150,7 +151,7 @@ export function deleteShapes(): void {
             l.selection.splice(i, 1);
             continue;
         }
-        l.removeShape(sel, true, false);
+        l.removeShape(sel, SyncMode.FULL_SYNC);
         EventBus.$emit("SelectionInfo.Shape.Set", null);
         EventBus.$emit("Initiative.Remove", sel.uuid);
     }

@@ -8,6 +8,7 @@ import { AnnotationManager } from "@/game/ui/annotation";
 import { g2l } from "@/game/units";
 import { EventBus } from "./event-bus";
 import { visibilityStore } from "./visibility/store";
+import { SyncMode } from "@/core/comm/types";
 
 export class GameManager {
     selectedTool = 0;
@@ -25,7 +26,7 @@ export class GameManager {
             console.log(`Shape with unknown type ${shape.type_} could not be added`);
             return;
         }
-        layer.addShape(sh, false);
+        layer.addShape(sh, SyncMode.NO_SYNC);
         layer.invalidate(false);
     }
 

@@ -18,6 +18,7 @@ import { gameStore } from "@/game/store";
 import { l2g } from "@/game/units";
 import { getMouse } from "@/game/utils";
 import Component from "vue-class-component";
+import { SyncMode } from "../../../core/comm/types";
 
 @Component
 export default class MapTool extends Tool {
@@ -38,7 +39,7 @@ export default class MapTool extends Tool {
 
         this.startPoint = l2g(getMouse(event));
         this.rect = new Rect(this.startPoint.clone(), 0, 0, "rgba(0,0,0,0)", "black");
-        layer.addShape(this.rect, false, false);
+        layer.addShape(this.rect, SyncMode.NO_SYNC);
     }
     onMouseMove(event: MouseEvent): void {
         if (!this.active || this.rect === null || this.startPoint === null) return;
@@ -68,7 +69,7 @@ export default class MapTool extends Tool {
         this.active = false;
 
         if (layer.selection.length !== 1) {
-            layer.removeShape(this.rect, false, false);
+            layer.removeShape(this.rect, SyncMode.NO_SYNC);
             return;
         }
 
@@ -81,7 +82,7 @@ export default class MapTool extends Tool {
             sel.h *= (this.yCount * gameStore.gridSize) / h;
         }
 
-        layer.removeShape(this.rect, false, false);
+        layer.removeShape(this.rect, SyncMode.NO_SYNC);
     }
 }
 </script>

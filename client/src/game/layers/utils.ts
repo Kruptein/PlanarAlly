@@ -8,6 +8,7 @@ import { gameStore } from "@/game/store";
 import { GlobalPoint, LocalPoint } from "../geom";
 import { Asset } from "../shapes/asset";
 import { l2gx, l2gy, l2gz, g2l } from "../units";
+import { SyncMode } from "@/core/comm/types";
 
 export function createLayer(layerInfo: ServerLayer): void {
     // Create canvas element
@@ -62,7 +63,7 @@ export function dropAsset(event: DragEvent): void {
         asset.h = Math.max(Math.round(asset.h / gs) * gs, gs);
     }
 
-    layer.addShape(asset, true);
+    layer.addShape(asset, SyncMode.FULL_SYNC);
 }
 
 export function snapToPoint(layer: Layer, endPoint: GlobalPoint): GlobalPoint {

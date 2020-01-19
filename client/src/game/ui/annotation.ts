@@ -5,6 +5,7 @@ import { Rect } from "@/game/shapes/rect";
 import { Text } from "@/game/shapes/text";
 import { gameStore } from "@/game/store";
 import { l2g } from "@/game/units";
+import { SyncMode } from "@/core/comm/types";
 
 export class AnnotationManager {
     annotationText: Text;
@@ -22,8 +23,8 @@ export class AnnotationManager {
         if (this.layer === undefined) {
             if (layerManager.hasLayer("draw")) {
                 this.layer = layerManager.getLayer("draw")!;
-                this.layer.addShape(this.annotationRect, false);
-                this.layer.addShape(this.annotationText, false);
+                this.layer.addShape(this.annotationRect, SyncMode.NO_SYNC);
+                this.layer.addShape(this.annotationText, SyncMode.NO_SYNC);
             } else {
                 console.warn("There is no draw layer to draw annotations on!");
                 return;

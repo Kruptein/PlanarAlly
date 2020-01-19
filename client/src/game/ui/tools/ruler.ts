@@ -10,6 +10,7 @@ import { Text } from "@/game/shapes/text";
 import { gameStore } from "@/game/store";
 import { l2g, l2gz } from "@/game/units";
 import { getMouse } from "@/game/utils";
+import { SyncMode } from "@/core/comm/types";
 
 @Component
 export class RulerTool extends Tool {
@@ -30,8 +31,8 @@ export class RulerTool extends Tool {
         this.text = new Text(this.startPoint.clone(), "", "bold 20px serif");
         this.ruler.addOwner(gameStore.username);
         this.text.addOwner(gameStore.username);
-        layer.addShape(this.ruler, true, true);
-        layer.addShape(this.text, true, true);
+        layer.addShape(this.ruler, SyncMode.TEMP_SYNC);
+        layer.addShape(this.text, SyncMode.TEMP_SYNC);
     }
     onMouseMove(event: MouseEvent): void {
         if (!this.active || this.ruler === null || this.startPoint === null || this.text === null) return;
@@ -72,8 +73,8 @@ export class RulerTool extends Tool {
         }
         this.active = false;
 
-        layer.removeShape(this.ruler, true, true);
-        layer.removeShape(this.text, true, true);
+        layer.removeShape(this.ruler, SyncMode.TEMP_SYNC);
+        layer.removeShape(this.text, SyncMode.TEMP_SYNC);
         layer.invalidate(true);
         this.ruler = this.startPoint = this.text = null;
     }

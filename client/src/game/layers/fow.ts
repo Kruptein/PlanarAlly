@@ -11,6 +11,7 @@ import { visibilityStore } from "../visibility/store";
 import { computeVisibility } from "../visibility/te/te";
 import { TriangulationTarget } from "../visibility/te/pa";
 import { circleLineIntersection, xyEqual } from "../visibility/te/triag";
+import { SyncMode } from "@/core/comm/types";
 
 export class FOWLayer extends Layer {
     isVisionLayer = true;
@@ -26,19 +27,19 @@ export class FOWLayer extends Layer {
         this.vCtx = this.virtualCanvas.getContext("2d")!;
     }
 
-    addShape(shape: Shape, sync: boolean, temporary?: boolean, invalidate = true): void {
-        super.addShape(shape, sync, temporary, invalidate);
+    addShape(shape: Shape, sync: SyncMode, invalidate = true, snappable = true): void {
+        super.addShape(shape, sync, invalidate, snappable);
         if (shape.options.has("preFogShape") && shape.options.get("preFogShape")) {
             this.preFogShapes.push(shape);
         }
     }
 
-    removeShape(shape: Shape, sync: boolean, temporary?: boolean): void {
+    removeShape(shape: Shape, sync: SyncMode): void {
         if (shape.options.has("preFogShape") && shape.options.get("preFogShape")) {
             const idx = this.preFogShapes.findIndex(s => s.uuid === shape.uuid);
             this.preFogShapes.splice(idx, 1);
         }
-        super.removeShape(shape, sync, temporary);
+        super.removeShape(shape, sync);
     }
 
     draw(): void {

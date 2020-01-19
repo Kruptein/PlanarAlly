@@ -45,6 +45,7 @@ import { CircularToken } from "@/game/shapes/circulartoken";
 import { gameStore } from "@/game/store";
 import { getUnitDistance, l2g } from "@/game/units";
 import { Watch } from "vue-property-decorator";
+import { SyncMode } from "../../../core/comm/types";
 
 @Component({
     components: {
@@ -97,7 +98,7 @@ export default class CreateTokenModal extends Vue {
             this.borderColour,
         );
         token.addOwner(gameStore.username);
-        layer.addShape(token, true);
+        layer.addShape(token, SyncMode.FULL_SYNC);
         layer.invalidate(false);
         this.visible = false;
     }

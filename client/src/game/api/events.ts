@@ -1,4 +1,4 @@
-import { AssetList } from "@/core/comm/types";
+import { AssetList, SyncMode } from "@/core/comm/types";
 import { socket } from "@/game/api/socket";
 import { BoardInfo, Note, ServerClient, ServerLocation } from "@/game/comm/types/general";
 import { ServerShape } from "@/game/comm/types/shapes";
@@ -126,7 +126,7 @@ socket.on("Shape.Remove", (shape: ServerShape) => {
         return;
     }
     const layer = layerManager.getLayer(shape.layer)!;
-    layer.removeShape(layerManager.UUIDMap.get(shape.uuid)!, false);
+    layer.removeShape(layerManager.UUIDMap.get(shape.uuid)!, SyncMode.NO_SYNC);
     layer.invalidate(false);
 });
 socket.on("Shape.Order.Set", (data: { shape: ServerShape; index: number }) => {
@@ -162,7 +162,7 @@ socket.on("Temp.Clear", (shapeIds: string[]) => {
             continue;
         }
         const realShape = layerManager.UUIDMap.get(shape.uuid)!;
-        layerManager.getLayer(shape.layer)!.removeShape(realShape, false);
+        layerManager.getLayer(shape.layer)!.removeShape(realShape, SyncMode.NO_SYNC);
     }
 });
 socket.on("Labels.Set", (labels: Label[]) => {

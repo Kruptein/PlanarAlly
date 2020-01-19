@@ -94,6 +94,7 @@ export default class DrawTool extends Tool {
 
     brushSize = getUnitDistance(gameStore.unitSize);
     closedPolygon = false;
+    activeTool = false;
 
     mounted(): void {
         window.addEventListener("keyup", this.onKeyUp);
@@ -186,9 +187,9 @@ export default class DrawTool extends Tool {
 
         if (newValue !== "normal" && oldValue === "normal") {
             normalLayer.removeShape(this.brushHelper, false);
-            fowLayer.addShape(this.brushHelper, false);
+            fowLayer.addShape(this.brushHelper, false, true, false);
         } else if (newValue === "normal" && oldValue !== "normal") {
-            normalLayer.addShape(this.brushHelper, false);
+            normalLayer.addShape(this.brushHelper, false, true, false);
             fowLayer.removeShape(this.brushHelper, false);
         }
     }
@@ -196,7 +197,7 @@ export default class DrawTool extends Tool {
         if (this.modeSelect === "normal") return layerManager.getLayer(targetLayer);
         return layerManager.getLayer("fow");
     }
-    onMouseDown(event: MouseEvent): void {
+    onMouseDown(_event: MouseEvent): void {
         const layer = this.getLayer();
         if (layer === undefined) {
             console.log("No active layer!");
@@ -204,7 +205,7 @@ export default class DrawTool extends Tool {
         }
         if (this.brushHelper === null) return;
         if (!this.active) {
-            this.startPoint = this.brushHelper.refPoint; // l2g(getMouse(event));
+            this.startPoint = this.brushHelper.refPoint;
             this.active = true;
             switch (this.shapeSelect) {
                 case "square": {
@@ -271,10 +272,10 @@ export default class DrawTool extends Tool {
             this.shape._vertices.push(this.brushHelper.refPoint);
         }
         if (this.shape !== null && this.shapeSelect === "draw-polygon" && this.shape instanceof Polygon) {
-            const lastPoint = l2g(getMouse(event));
+            const lastPoint = this.brushHelper.refPoint;
             if (this.ruler === null) {
                 this.ruler = new Line(lastPoint, lastPoint, this.brushSize, this.fillColour);
-                layer.addShape(this.ruler, false);
+                layer.addShape(this.ruler, false, true, false);
             } else {
                 this.ruler.refPoint = lastPoint;
                 this.ruler.endPoint = lastPoint;
@@ -285,23 +286,13 @@ export default class DrawTool extends Tool {
         }
     }
     onMouseMove(event: MouseEvent): void {
-        let endPoint = l2g(getMouse(event));
         const layer = this.getLayer();
         if (layer === undefined) {
             console.log("No active layer!");
             return;
         }
 
-        // do if check for snapping
-        const snapDistance = l2gz(20);
-        let smallestPoint: [number, GlobalPoint] | undefined;
-        for (const point of layer.points.keys()) {
-            const gp = GlobalPoint.fromArray(JSON.parse(point));
-            const l = endPoint.subtract(gp).length();
-            if (smallestPoint === undefined && l < snapDistance) smallestPoint = [l, gp];
-            else if (smallestPoint !== undefined && l < smallestPoint[0]) smallestPoint = [l, gp];
-        }
-        if (smallestPoint !== undefined) endPoint = smallestPoint[1];
+        const endPoint = this.snapToPoint(l2g(getMouse(event)));
 
         if (this.brushHelper !== null) {
             this.brushHelper.r = this.helperSize;
@@ -388,15 +379,17 @@ export default class DrawTool extends Tool {
     }
 
     onSelect(): void {
+        this.activeTool = true;
         const layer = this.getLayer();
         if (layer === undefined) return;
         layer.canvas.parentElement!.style.cursor = "none";
         this.brushHelper = new Circle(new GlobalPoint(-1000, -1000), this.brushSize / 2, this.fillColour);
         this.setupBrush();
-        layer.addShape(this.brushHelper, false); // during mode change the shape is already added
+        layer.addShape(this.brushHelper, false, true, false); // during mode change the shape is already added
         this.showLayerPoints();
     }
     onDeselect(targetLayer?: string): void {
+        this.activeTool = false;
         const layer = this.getLayer(targetLayer);
         if (layer === undefined) return;
         if (this.brushHelper !== null) {
@@ -423,15 +416,19 @@ export default class DrawTool extends Tool {
             console.log("No active layer!");
             return;
         }
+        const refPoint = this.brushHelper?.refPoint;
+        const bs = this.brushHelper?.r;
         if (this.brushHelper !== null) layer.removeShape(this.brushHelper, false);
-        this.brushHelper = new Circle(new GlobalPoint(-1000, -1000), this.brushSize / 2, this.fillColour);
+        this.brushHelper = new Circle(new GlobalPoint(-1000, -1000), bs ?? this.brushSize / 2, this.fillColour);
         this.setupBrush();
-        layer.addShape(this.brushHelper, false); // during mode change the shape is already added
+        layer.addShape(this.brushHelper, false, true, false); // during mode change the shape is already added
+        if (refPoint) this.brushHelper.refPoint = refPoint;
     }
 
     private async showLayerPoints(): Promise<void> {
         const layer = this.getLayer()!;
         await layer.waitValid();
+        if (!this.activeTool) return;
         const dL = layerManager.getLayer("draw")!;
         for (const point of layer.points.keys()) {
             const parsedPoint = JSON.parse(point);
@@ -444,6 +441,20 @@ export default class DrawTool extends Tool {
     private hideLayerPoints(): void {
         console.log("Clearing");
         layerManager.getLayer("draw")?.invalidate(true);
+    }
+
+    private snapToPoint(endPoint: GlobalPoint): GlobalPoint {
+        const layer = this.getLayer()!;
+        const snapDistance = l2gz(20);
+        let smallestPoint: [number, GlobalPoint] | undefined;
+        for (const point of layer.points.keys()) {
+            const gp = GlobalPoint.fromArray(JSON.parse(point));
+            const l = endPoint.subtract(gp).length();
+            if (smallestPoint === undefined && l < snapDistance) smallestPoint = [l, gp];
+            else if (smallestPoint !== undefined && l < smallestPoint[0]) smallestPoint = [l, gp];
+        }
+        if (smallestPoint !== undefined) endPoint = smallestPoint[1];
+        return endPoint;
     }
 }
 </script>

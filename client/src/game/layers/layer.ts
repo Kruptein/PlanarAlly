@@ -49,16 +49,18 @@ export class Layer {
         }
     }
 
-    addShape(shape: Shape, sync: boolean, temporary?: boolean, invalidate = true): void {
+    addShape(shape: Shape, sync: boolean, temporary?: boolean, invalidate = true, snappable = true): void {
         if (temporary === undefined) temporary = false;
         shape.layer = this.name;
         this.shapes.push(shape);
         layerManager.UUIDMap.set(shape.uuid, shape);
         shape.checkVisionSources(invalidate);
         shape.setMovementBlock(shape.movementObstruction, invalidate);
-        for (const point of shape.points) {
-            const strp = JSON.stringify(point);
-            this.points.set(strp, (this.points.get(strp) || new Set()).add(shape.uuid));
+        if (snappable) {
+            for (const point of shape.points) {
+                const strp = JSON.stringify(point);
+                this.points.set(strp, (this.points.get(strp) || new Set()).add(shape.uuid));
+            }
         }
         if (shape.ownedBy(gameStore.username) && shape.isToken) gameStore.ownedtokens.push(shape.uuid);
         if (shape.annotation.length) gameStore.annotations.push(shape.uuid);

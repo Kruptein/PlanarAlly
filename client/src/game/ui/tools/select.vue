@@ -246,6 +246,7 @@ export default class SelectTool extends Tool {
                     }
                     layer.invalidate(false);
                 }
+                sel.updatePoints();
             }
         }
         this.mode = SelectOperations.Noop;

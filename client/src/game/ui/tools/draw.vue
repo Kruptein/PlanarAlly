@@ -272,6 +272,7 @@ export default class DrawTool extends Tool {
         } else if (this.shape !== null && this.shapeSelect === "draw-polygon" && this.shape instanceof Polygon) {
             // For polygon draw
             this.shape._vertices.push(this.brushHelper.refPoint);
+            this.shape.updatePoints();
         }
         if (this.shape !== null && this.shapeSelect === "draw-polygon" && this.shape instanceof Polygon) {
             const lastPoint = this.brushHelper.refPoint;

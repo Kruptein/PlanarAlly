@@ -16,6 +16,7 @@ import { g2l, g2lx, g2ly, l2g, l2gz } from "@/game/units";
 import { getMouse } from "@/game/utils";
 import { EventBus } from "../../event-bus";
 import { visibilityStore } from "../../visibility/store";
+import { snapToPointLocal } from "../../layers/utils";
 
 export enum SelectOperations {
     Noop,
@@ -66,7 +67,7 @@ export default class SelectTool extends Tool {
         for (let i = selectionStack.length - 1; i >= 0; i--) {
             const shape = selectionStack[i];
 
-            this.resizePoint = shape.getPointIndex(globalMouse, l2gz(3));
+            this.resizePoint = shape.getPointIndex(globalMouse, l2gz(5));
 
             // Resize case, a corner is selected
             if (this.resizePoint >= 0) {
@@ -167,7 +168,7 @@ export default class SelectTool extends Tool {
             } else if (this.mode === SelectOperations.Resize) {
                 for (const sel of layer.selection) {
                     if (!sel.ownedBy()) continue;
-                    sel.resize(this.resizePoint, mouse);
+                    sel.resize(this.resizePoint, snapToPointLocal(layerManager.getLayer()!, mouse));
                     if (sel !== this.selectionHelper) {
                         if (sel.visionObstruction) visibilityStore.recalculateVision();
                         socket.emit("Shape.Update", { shape: sel.asDict(), redraw: true, temporary: true });
@@ -246,6 +247,7 @@ export default class SelectTool extends Tool {
                     }
                     layer.invalidate(false);
                 }
+                sel.updatePoints();
             }
         }
         this.mode = SelectOperations.Noop;

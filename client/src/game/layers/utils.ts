@@ -5,9 +5,9 @@ import { GridLayer } from "@/game/layers/grid";
 import { Layer } from "@/game/layers/layer";
 import { layerManager } from "@/game/layers/manager";
 import { gameStore } from "@/game/store";
-import { GlobalPoint } from "../geom";
+import { GlobalPoint, LocalPoint } from "../geom";
 import { Asset } from "../shapes/asset";
-import { l2gx, l2gy, l2gz } from "../units";
+import { l2gx, l2gy, l2gz, g2l } from "../units";
 
 export function createLayer(layerInfo: ServerLayer): void {
     // Create canvas element
@@ -63,4 +63,30 @@ export function dropAsset(event: DragEvent): void {
     }
 
     layer.addShape(asset, true);
+}
+
+export function snapToPoint(layer: Layer, endPoint: GlobalPoint): GlobalPoint {
+    const snapDistance = l2gz(20);
+    let smallestPoint: [number, GlobalPoint] | undefined;
+    for (const point of layer.points.keys()) {
+        const gp = GlobalPoint.fromArray(JSON.parse(point));
+        const l = endPoint.subtract(gp).length();
+        if (smallestPoint === undefined && l < snapDistance) smallestPoint = [l, gp];
+        else if (smallestPoint !== undefined && l < smallestPoint[0]) smallestPoint = [l, gp];
+    }
+    if (smallestPoint !== undefined) endPoint = smallestPoint[1];
+    return endPoint;
+}
+
+export function snapToPointLocal(layer: Layer, endPoint: LocalPoint): LocalPoint {
+    const snapDistance = 20;
+    let smallestPoint: [number, LocalPoint] | undefined;
+    for (const point of layer.points.keys()) {
+        const lp = g2l(GlobalPoint.fromArray(JSON.parse(point)));
+        const l = endPoint.subtract(lp).length();
+        if (smallestPoint === undefined && l < snapDistance) smallestPoint = [l, lp];
+        else if (smallestPoint !== undefined && l < smallestPoint[0]) smallestPoint = [l, lp];
+    }
+    if (smallestPoint !== undefined) endPoint = smallestPoint[1];
+    return endPoint;
 }

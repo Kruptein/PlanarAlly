@@ -31,6 +31,9 @@ export class Layer {
     selectionColor = "#CC0000";
     selectionWidth = 2;
 
+    points: Map<string, Set<string>> = new Map();
+    postDrawCallbacks: (() => void)[] = [];
+
     constructor(canvas: HTMLCanvasElement, name: string) {
         this.canvas = canvas;
         this.name = name;
@@ -46,13 +49,19 @@ export class Layer {
         }
     }
 
-    addShape(shape: Shape, sync: boolean, temporary?: boolean, invalidate = true): void {
+    addShape(shape: Shape, sync: boolean, temporary?: boolean, invalidate = true, snappable = true): void {
         if (temporary === undefined) temporary = false;
         shape.layer = this.name;
         this.shapes.push(shape);
         layerManager.UUIDMap.set(shape.uuid, shape);
         shape.checkVisionSources(invalidate);
         shape.setMovementBlock(shape.movementObstruction, invalidate);
+        if (snappable) {
+            for (const point of shape.points) {
+                const strp = JSON.stringify(point);
+                this.points.set(strp, (this.points.get(strp) || new Set()).add(shape.uuid));
+            }
+        }
         if (shape.ownedBy(gameStore.username) && shape.isToken) gameStore.ownedtokens.push(shape.uuid);
         if (shape.annotation.length) gameStore.annotations.push(shape.uuid);
         if (sync) socket.emit("Shape.Add", { shape: shape.asDict(), temporary });
@@ -99,6 +108,13 @@ export class Layer {
         if (ownedIndex >= 0) gameStore.ownedtokens.splice(ownedIndex, 1);
 
         layerManager.UUIDMap.delete(shape.uuid);
+
+        for (const point of shape.points) {
+            const strp = JSON.stringify(point);
+            const val = this.points.get(strp);
+            if (val === undefined || val.size === 1) this.points.delete(strp);
+            else val.delete(shape.uuid);
+        }
 
         const index = this.selection.indexOf(shape);
         if (index >= 0) this.selection.splice(index, 1);
@@ -160,7 +176,19 @@ export class Layer {
             }
             ctx.globalCompositeOperation = ogOP;
             this.valid = true;
+            this.resolveCallbacks();
         }
+    }
+
+    waitValid(): Promise<void> {
+        return new Promise((resolve, _reject) => {
+            this.postDrawCallbacks.push(resolve);
+        });
+    }
+
+    private resolveCallbacks(): void {
+        for (const cb of this.postDrawCallbacks) cb();
+        this.postDrawCallbacks = [];
     }
 
     moveShapeOrder(shape: Shape, destinationIndex: number, sync: boolean): void {
@@ -170,5 +198,20 @@ export class Layer {
         this.shapes.splice(destinationIndex, 0, shape);
         if (sync) socket.emit("Shape.Order.Set", { shape: shape.asDict(), index: destinationIndex });
         this.invalidate(true);
+    }
+
+    updateShapePoints(shape: Shape): void {
+        for (const point of this.points) {
+            if (point[1].has(shape.uuid)) {
+                if (point[1].size === 1) this.points.delete(point[0]);
+                else point[1].delete(shape.uuid);
+            }
+        }
+        for (const point of shape.points) {
+            const strp = JSON.stringify(point);
+            if (this.points.has(strp) && !this.points.get(strp)!.has(shape.uuid))
+                this.points.get(strp)!.add(shape.uuid);
+            else if (!this.points.has(strp)) this.points.set(strp, new Set([shape.uuid]));
+        }
     }
 }

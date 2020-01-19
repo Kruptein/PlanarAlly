@@ -29,13 +29,14 @@ Change the server.cfg file to what you wish to use and you can start the webserv
 
 `python planarserver.py`
 
-The above command will start the server in production mode. To use the server together with a development version of the client use:
+The above command will start the server in production mode. This expects build js artifacts to be created and available to the server. (These can be created by building a production version of the client).
+To use the server together with a development version of the client instead use:
 
 `python planarserver.py dev`
 
 ## Client
 
-The client is written in typescript. If you wish to modify any of the client code, you are required to install the client side dev environment. Editing the javascript file directly is strongly discouraged and any pull request that only changes the js file will also be declined.
+The client is written in typescript, editing the javascript file directly is strongly discouraged and any pull request that only changes the js file will also be declined.
 
 To get the client side up and running you'll need to install the dependencies with
 

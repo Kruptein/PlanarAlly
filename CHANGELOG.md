@@ -15,6 +15,10 @@ All notable changes to this project will be documented in this file.
   - Delete account
 - Snap to nearby existing points while drawing and while resizing points
 
+### Removed
+
+- [tech] Client build artifacts are no longer available in the server folder
+
 ## [0.18.2] - 2019-12-29
 
 ### Fixed

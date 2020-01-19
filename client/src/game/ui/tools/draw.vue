@@ -60,10 +60,11 @@ import { Polygon } from "@/game/shapes/polygon";
 import { Rect } from "@/game/shapes/rect";
 import { Shape } from "@/game/shapes/shape";
 import { gameStore } from "@/game/store";
-import { getUnitDistance, l2g, g2lx, g2ly, l2gz } from "@/game/units";
+import { getUnitDistance, l2g, g2lx, g2ly } from "@/game/units";
 import { getMouse } from "@/game/utils";
 import { visibilityStore } from "../../visibility/store";
 import { Layer } from "../../layers/layer";
+import { snapToPoint } from "../../layers/utils";
 
 @Component({
     components: {
@@ -292,7 +293,7 @@ export default class DrawTool extends Tool {
             return;
         }
 
-        const endPoint = this.snapToPoint(l2g(getMouse(event)));
+        const endPoint = snapToPoint(this.getLayer()!, l2g(getMouse(event)));
 
         if (this.brushHelper !== null) {
             this.brushHelper.r = this.helperSize;
@@ -406,7 +407,7 @@ export default class DrawTool extends Tool {
             this.active = false;
             layer.invalidate(false);
         }
-        layer.canvas.parentElement!.style.cursor = "default";
+        layer.canvas.parentElement!.style.removeProperty("cursor");
         this.hideLayerPoints();
     }
 
@@ -441,20 +442,6 @@ export default class DrawTool extends Tool {
     private hideLayerPoints(): void {
         console.log("Clearing");
         layerManager.getLayer("draw")?.invalidate(true);
-    }
-
-    private snapToPoint(endPoint: GlobalPoint): GlobalPoint {
-        const layer = this.getLayer()!;
-        const snapDistance = l2gz(20);
-        let smallestPoint: [number, GlobalPoint] | undefined;
-        for (const point of layer.points.keys()) {
-            const gp = GlobalPoint.fromArray(JSON.parse(point));
-            const l = endPoint.subtract(gp).length();
-            if (smallestPoint === undefined && l < snapDistance) smallestPoint = [l, gp];
-            else if (smallestPoint !== undefined && l < smallestPoint[0]) smallestPoint = [l, gp];
-        }
-        if (smallestPoint !== undefined) endPoint = smallestPoint[1];
-        return endPoint;
     }
 }
 </script>

@@ -350,7 +350,7 @@ export abstract class Shape {
         this._owners.splice(ownerIndex, 1);
     }
 
-    private updatePoints(): void {
-        this.layer.updateShapePoints(this);
+    updatePoints(): void {
+        layerManager.getLayer(this.layer)?.updateShapePoints(this);
     }
 }

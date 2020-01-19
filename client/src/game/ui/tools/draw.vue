@@ -296,7 +296,7 @@ export default class DrawTool extends Tool {
         const snapDistance = l2gz(20);
         let smallestPoint: [number, GlobalPoint] | undefined;
         for (const point of layer.points.keys()) {
-            const gp = GlobalPoint.fromArray(point);
+            const gp = GlobalPoint.fromArray(JSON.parse(point));
             const l = endPoint.subtract(gp).length();
             if (smallestPoint === undefined && l < snapDistance) smallestPoint = [l, gp];
             else if (smallestPoint !== undefined && l < smallestPoint[0]) smallestPoint = [l, gp];
@@ -375,6 +375,7 @@ export default class DrawTool extends Tool {
 
     private finaliseShape(): void {
         if (this.shape === null) return;
+        this.shape.updatePoints();
         if (this.shape.points.length <= 1) {
             this.onDeselect();
             this.onSelect();
@@ -433,8 +434,9 @@ export default class DrawTool extends Tool {
         await layer.waitValid();
         const dL = layerManager.getLayer("draw")!;
         for (const point of layer.points.keys()) {
+            const parsedPoint = JSON.parse(point);
             dL.ctx.beginPath();
-            dL.ctx.arc(g2lx(point[0]), g2ly(point[1]), 5, 0, 2 * Math.PI);
+            dL.ctx.arc(g2lx(parsedPoint[0]), g2ly(parsedPoint[1]), 5, 0, 2 * Math.PI);
             dL.ctx.fill();
         }
     }

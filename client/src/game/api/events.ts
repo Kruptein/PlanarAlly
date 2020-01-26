@@ -102,7 +102,10 @@ socket.on("Board.Set", (locationInfo: BoardInfo) => {
     document.getElementById("layers")!.innerHTML = "";
     gameStore.resetLayerInfo();
     layerManager.reset();
-    for (const layer of locationInfo.layers) createLayer(layer);
+    for (const floor of locationInfo.floors) {
+        gameStore.floors.push(floor.name);
+        for (const layer of floor.layers) createLayer(layer, floor.name);
+    }
     // Force the correct opacity render on other layers.
     layerManager.selectLayer(layerManager.getLayer()!.name, false);
     EventBus.$emit("Initiative.Clear");

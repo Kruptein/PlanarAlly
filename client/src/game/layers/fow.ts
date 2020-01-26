@@ -19,8 +19,8 @@ export class FOWLayer extends Layer {
     virtualCanvas: HTMLCanvasElement;
     vCtx: CanvasRenderingContext2D;
 
-    constructor(canvas: HTMLCanvasElement, name: string) {
-        super(canvas, name);
+    constructor(canvas: HTMLCanvasElement, name: string, floor: string) {
+        super(canvas, name, floor);
         this.virtualCanvas = document.createElement("canvas");
         this.virtualCanvas.width = window.innerWidth;
         this.virtualCanvas.height = window.innerHeight;

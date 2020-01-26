@@ -5,6 +5,7 @@ import auth
 from .initiative import send_client_initiatives
 from app import app, logger, sio, state
 from models import (
+    Floor,
     Initiative,
     InitiativeLocationData,
     Layer,
@@ -25,15 +26,10 @@ async def load_location(sid, location):
 
     data = {}
     data["locations"] = [l.name for l in room.locations]
-    if user == room.creator:
-        data["layers"] = [
-            l.as_dict(user, True) for l in location.layers.order_by(Layer.index)
-        ]
-    else:
-        data["layers"] = [
-            l.as_dict(user, False)
-            for l in location.layers.order_by(Layer.index).where(Layer.player_visible)
-        ]
+    data["floors"] = [
+        f.as_dict(user, user == room.creator)
+        for f in location.floors.order_by(Floor.index)
+    ]
     client_options = user.as_dict()
     client_options.update(
         **LocationUserOption.get(user=user, location=location).as_dict()
@@ -56,14 +52,6 @@ async def load_location(sid, location):
         namespace="/planarally",
     )
 
-    sorted_initiatives = [
-        init.as_dict()
-        for init in Initiative.select()
-        .join(Shape, JOIN.LEFT_OUTER, on=(Initiative.uuid == Shape.uuid))
-        .join(Layer)
-        .where((Layer.location == location))
-        .order_by(Initiative.index)
-    ]
     location_data = InitiativeLocationData.get_or_none(location=location)
     if location_data:
         await send_client_initiatives(room, location, user)

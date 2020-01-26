@@ -10,7 +10,7 @@ import { Asset } from "../shapes/asset";
 import { l2gx, l2gy, l2gz, g2l } from "../units";
 import { SyncMode } from "@/core/comm/types";
 
-export function createLayer(layerInfo: ServerLayer): void {
+export function createLayer(layerInfo: ServerLayer, floor: string): void {
     // Create canvas element
     const canvas = document.createElement("canvas");
     canvas.style.zIndex = layerManager.layers.length.toString();
@@ -19,10 +19,10 @@ export function createLayer(layerInfo: ServerLayer): void {
 
     // Create the Layer instance
     let layer: Layer;
-    if (layerInfo.type_ === "grid") layer = new GridLayer(canvas, layerInfo.name);
-    else if (layerInfo.type_ === "fow") layer = new FOWLayer(canvas, layerInfo.name);
-    else if (layerInfo.type_ === "fow-players") layer = new FOWPlayersLayer(canvas, layerInfo.name);
-    else layer = new Layer(canvas, layerInfo.name);
+    if (layerInfo.type_ === "grid") layer = new GridLayer(canvas, layerInfo.name, floor);
+    else if (layerInfo.type_ === "fow") layer = new FOWLayer(canvas, layerInfo.name, floor);
+    else if (layerInfo.type_ === "fow-players") layer = new FOWPlayersLayer(canvas, layerInfo.name, floor);
+    else layer = new Layer(canvas, layerInfo.name, floor);
     layer.selectable = layerInfo.selectable;
     layer.playerEditable = layerInfo.player_editable;
     layerManager.addLayer(layer);

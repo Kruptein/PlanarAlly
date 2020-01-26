@@ -45,7 +45,11 @@ export function onKeyDown(event: KeyboardEvent): void {
                     sel.refPoint = sel.refPoint.add(delta);
                     // todo: Fix again
                     // if (sel.refPoint.x % gridSize !== 0 || sel.refPoint.y % gridSize !== 0) sel.snapToGrid();
-                    socket.emit("Shape.Position.Update", { shape: sel.asDict(), redraw: true, temporary: false });
+                    socket.emit("Shape.Position.Update", {
+                        shape: sel.asDict(),
+                        redraw: true,
+                        temporary: false,
+                    });
                 }
                 visibilityStore.recalculateVision();
                 layerManager.getLayer()!.invalidate(false);

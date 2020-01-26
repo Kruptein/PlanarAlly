@@ -14,6 +14,7 @@ export class Layer {
     height: number;
     canvas: HTMLCanvasElement;
     ctx: CanvasRenderingContext2D;
+    floor: string;
 
     selectable = false;
     playerEditable = false;
@@ -35,12 +36,13 @@ export class Layer {
     points: Map<string, Set<string>> = new Map();
     postDrawCallbacks: (() => void)[] = [];
 
-    constructor(canvas: HTMLCanvasElement, name: string) {
+    constructor(canvas: HTMLCanvasElement, name: string, floor: string) {
         this.canvas = canvas;
         this.name = name;
         this.width = canvas.width;
         this.height = canvas.height;
         this.ctx = canvas.getContext("2d")!;
+        this.floor = floor;
     }
 
     invalidate(skipLightUpdate: boolean): void {

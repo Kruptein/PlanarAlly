@@ -11,6 +11,7 @@ import { GlobalPoint, Vector } from "@/game/geom";
 import { layerManager } from "@/game/layers/manager";
 import { g2l, l2g } from "@/game/units";
 import { zoomValue } from "@/game/utils";
+import { Layer } from "./layers/layer";
 
 export interface LocationOptions {
     panX: number;
@@ -31,6 +32,7 @@ class GameStore extends VuexModule implements GameState {
     boardInitialized = false;
 
     locations: string[] = [];
+    floors: string[] = [];
 
     assets: AssetList = {};
 
@@ -209,10 +211,10 @@ class GameStore extends VuexModule implements GameState {
     }
 
     @Mutation
-    selectLayer(data: { name: string; sync: boolean }): void {
-        const index = this.layers.indexOf(data.name);
+    selectLayer(data: { layer: Layer; sync: boolean }): void {
+        const index = this.layers.indexOf(data.layer.name);
         if (index >= 0) this.selectedLayerIndex = index;
-        if (data.sync) socket.emit("Client.ActiveLayer.Set", data.name);
+        if (data.sync) socket.emit("Client.ActiveLayer.Set", { floor: data.layer.floor, layer: data.layer.name });
     }
 
     @Mutation

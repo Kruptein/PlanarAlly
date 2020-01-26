@@ -180,6 +180,7 @@ export abstract class Shape {
             uuid: this.uuid,
             x: this.refPoint.x,
             y: this.refPoint.y,
+            floor: layerManager.getLayer(this.layer)!.floor,
             layer: this.layer,
             // eslint-disable-next-line @typescript-eslint/camelcase
             draw_operator: this.globalCompositeOperation,
@@ -317,7 +318,7 @@ export abstract class Shape {
         oldLayer.invalidate(true);
         newLayer.invalidate(false);
         // Sync!
-        if (sync) socket.emit("Shape.Layer.Change", { uuid: this.uuid, layer });
+        if (sync) socket.emit("Shape.Layer.Change", { uuid: this.uuid, layer, floor: newLayer.floor });
     }
 
     // this screws up vetur if typed as `readonly stringp[]`

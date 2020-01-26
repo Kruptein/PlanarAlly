@@ -70,7 +70,7 @@ class LayerManager {
             else layer.ctx.globalAlpha = 1.0;
 
             if (name === layer.name) {
-                gameStore.selectLayer({ name, sync });
+                gameStore.selectLayer({ layer, sync });
                 found = true;
             }
 

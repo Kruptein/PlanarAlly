@@ -14,6 +14,7 @@ from .user import User
 from .utils import get_table
 
 __all__ = [
+    "Floor",
     "GridLayer",
     "Layer",
     "Location",
@@ -80,8 +81,14 @@ class Location(BaseModel):
         return model_to_dict(self, recurse=False, exclude=[Location.id, Location.room])
 
     def add_default_layers(self):
+        floor = Floor.create(location=self, name="ground", index=0)
         Layer.create(
-            location=self, name="map", type_="normal", player_visible=True, index=0
+            location=self,
+            name="map",
+            type_="normal",
+            player_visible=True,
+            index=0,
+            floor=floor,
         )
         Layer.create(
             location=self,
@@ -90,6 +97,7 @@ class Location(BaseModel):
             selectable=False,
             player_visible=True,
             index=1,
+            floor=floor,
         )
         Layer.create(
             location=self,
@@ -98,10 +106,16 @@ class Location(BaseModel):
             player_visible=True,
             player_editable=True,
             index=2,
+            floor=floor,
         )
-        Layer.create(location=self, type_="normal", name="dm", index=3)
+        Layer.create(location=self, type_="normal", name="dm", index=3, floor=floor)
         Layer.create(
-            location=self, type_="fow", name="fow", player_visible=True, index=4
+            location=self,
+            type_="fow",
+            name="fow",
+            player_visible=True,
+            index=4,
+            floor=floor,
         )
         Layer.create(
             location=self,
@@ -110,6 +124,7 @@ class Location(BaseModel):
             selectable=False,
             player_visible=True,
             index=5,
+            floor=floor,
         )
         Layer.create(
             location=self,
@@ -119,6 +134,7 @@ class Location(BaseModel):
             player_visible=True,
             player_editable=True,
             index=6,
+            floor=floor,
         )
 
     class Meta:
@@ -144,8 +160,30 @@ class Note(BaseModel):
         )
 
 
+class Floor(BaseModel):
+    location = ForeignKeyField(Location, backref="floors", on_delete="CASCADE")
+    index = IntegerField()
+    name = TextField()
+
+    def __repr__(self):
+        return f"<Floor {self.name} {[self.index]}>"
+
+    def as_dict(self, user: User, dm: bool):
+        data = model_to_dict(self, recurse=False, exclude=[Floor.id, Floor.location])
+        if dm:
+            data["layers"] = [
+                l.as_dict(user, True) for l in self.layers.order_by(Layer.index)
+            ]
+        else:
+            data["layers"] = [
+                l.as_dict(user, False)
+                for l in self.layers.order_by(Layer.index).where(Layer.player_visible)
+            ]
+        return data
+
+
 class Layer(BaseModel):
-    location = ForeignKeyField(Location, backref="layers", on_delete="CASCADE")
+    floor = ForeignKeyField(Floor, backref="layers")
     name = TextField()
     type_ = TextField()
     # TYPE = IntegerField()  # normal/grid/dm/lighting ???????????
@@ -158,7 +196,7 @@ class Layer(BaseModel):
         return f"<Layer {self.get_path()}>"
 
     def get_path(self):
-        return f"{self.location.get_path()}/{self.name}"
+        return f"{self.floor.location.get_path()}/{self.name}"
 
     def as_dict(self, user: User, dm: bool):
         from .shape import Shape
@@ -177,7 +215,7 @@ class Layer(BaseModel):
         return data
 
     class Meta:
-        indexes = ((("location", "name"), True), (("location", "index"), True))
+        indexes = ((("floor", "name"), True), (("floor", "index"), True))
 
 
 class GridLayer(BaseModel):

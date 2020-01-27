@@ -14,18 +14,7 @@
                 @dragover.prevent
                 @drop.prevent.stop="drop"
             ></div>
-            <div id="layerselect" v-show="showUI && layers.length > 1">
-                <ul>
-                    <li
-                        v-for="layer in layers"
-                        :key="layer.name"
-                        :class="{ 'layer-selected': layer === selectedLayer }"
-                        @mousedown="selectLayer(layer)"
-                    >
-                        <a href="#">{{ layer }}</a>
-                    </li>
-                </ul>
-            </div>
+            <floor-select v-show="showUI"></floor-select>
         </div>
         <selection-info ref="selectionInfo" v-show="showUI"></selection-info>
         <initiative-dialog ref="initiative" id="initiativedialog"></initiative-dialog>
@@ -68,6 +57,7 @@ import "@/game/api/events";
 import ConfirmDialog from "@/core/components/modals/confirm.vue";
 import Prompt from "@/core/components/modals/prompt.vue";
 import Initiative from "@/game/ui/initiative/initiative.vue";
+import FloorSelect from "@/game/ui/floors.vue";
 import LabelManager from "@/game/ui/labels.vue";
 import MenuBar from "@/game/ui/menu/menu.vue";
 import NoteDialog from "@/game/ui/note.vue";
@@ -90,6 +80,7 @@ import { dropAsset } from "./layers/utils";
         "selection-info": SelectionInfo,
         "prompt-dialog": Prompt,
         "confirm-dialog": ConfirmDialog,
+        "floor-select": FloorSelect,
         "menu-bar": MenuBar,
         "initiative-dialog": Initiative,
         "zoom-slider": vueSlider,
@@ -132,14 +123,6 @@ export default class Game extends Vue {
 
     get FAKE_PLAYER(): boolean {
         return gameStore.FAKE_PLAYER;
-    }
-
-    get layers(): string[] {
-        return gameStore.layers;
-    }
-
-    get selectedLayer(): string {
-        return gameStore.selectedLayer;
     }
 
     get zoomDisplay(): number {
@@ -200,9 +183,6 @@ export default class Game extends Vue {
     contextmenu(event: MouseEvent): void {
         this.$refs.tools.contextmenu(event);
     }
-    selectLayer(layer: string): void {
-        layerManager.selectLayer(layer);
-    }
     async drop(event: DragEvent): Promise<void> {
         if (event === null || event.dataTransfer === null) return;
         if (event.dataTransfer.files.length > 0) {
@@ -235,6 +215,7 @@ svg {
 
 #layers,
 #layers canvas {
+    z-index: 0;
     width: 100%;
     height: 100%;
     position: absolute;
@@ -255,56 +236,6 @@ svg {
     position: relative;
     width: 100%;
     height: 100%;
-}
-
-#layerselect {
-    position: absolute;
-    bottom: 25px;
-    left: 25px;
-    z-index: 10;
-}
-
-#layerselect * {
-    user-select: none !important;
-    -webkit-user-drag: none !important;
-}
-
-#layerselect ul {
-    display: flex;
-    list-style: none;
-    padding: 0;
-    margin: 0;
-    border: solid 1px #82c8a0;
-    border-radius: 6px;
-}
-
-#layerselect li {
-    display: flex;
-    background-color: #eee;
-    border-right: solid 1px #82c8a0;
-}
-
-#layerselect li:first-child {
-    border-radius: 4px 0px 0px 4px; /* Border radius needs to be two less than the actual border, otherwise there will be a gap */
-}
-
-#layerselect li:last-child {
-    border-right: none;
-    border-radius: 0px 4px 4px 0px;
-}
-
-#layerselect li:hover {
-    background-color: #82c8a0;
-}
-
-#layerselect li a {
-    display: flex;
-    padding: 10px;
-    text-decoration: none;
-}
-
-#layerselect .layer-selected {
-    background-color: #82c8a0;
 }
 
 #zoomer {

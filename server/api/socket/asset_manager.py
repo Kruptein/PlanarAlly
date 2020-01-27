@@ -23,7 +23,6 @@ async def assetmgmt_connect(sid, environ):
         state.add_sid(sid, user=user)
         root = Asset.get_root_folder(user)
         await sio.emit("Folder.Root.Set", root.id, room=sid, namespace="/pa_assetmgmt")
-        await get_folder(sid, root.id)
 
 
 @sio.on("Folder.Get", namespace="/pa_assetmgmt")
@@ -38,7 +37,32 @@ async def get_folder(sid, folder=None):
     if folder.owner != user:
         raise web.HTTPForbidden
     await sio.emit(
-        "Folder.Set", folder.as_dict(children=True), room=sid, namespace="/pa_assetmgmt"
+        "Folder.Set",
+        {"folder": folder.as_dict(children=True)},
+        room=sid,
+        namespace="/pa_assetmgmt",
+    )
+
+
+@sio.on("Folder.GetByPath", namespace="/pa_assetmgmt")
+async def get_folder_by_path(sid, folder):
+    user = state.sid_map[sid]["user"]
+
+    folder = folder.strip("/")
+    target_folder = Asset.get_root_folder(user)
+
+    idPath = []
+
+    if folder:
+        for path in folder.split("/"):
+            target_folder = target_folder.get_child(path)
+            idPath.append(target_folder.id)
+
+    await sio.emit(
+        "Folder.Set",
+        {"folder": target_folder.as_dict(children=True), "path": idPath},
+        room=sid,
+        namespace="/pa_assetmgmt",
     )
 
 

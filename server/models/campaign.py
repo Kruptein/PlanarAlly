@@ -80,8 +80,11 @@ class Location(BaseModel):
     def as_dict(self):
         return model_to_dict(self, recurse=False, exclude=[Location.id, Location.room])
 
-    def add_default_layers(self):
-        floor = Floor.create(location=self, name="ground", index=0)
+    def create_floor(self, name="ground"):
+        index = (
+            Floor.select(fn.Max(Floor.index)).where(Floor.location == self).scalar() + 1
+        )
+        floor = Floor.create(location=self, name=name, index=index)
         Layer.create(
             location=self,
             name="map",
@@ -136,6 +139,7 @@ class Location(BaseModel):
             index=6,
             floor=floor,
         )
+        return floor
 
     class Meta:
         indexes = ((("room", "name"), True),)

@@ -1,4 +1,4 @@
-import { ServerLayer } from "@/game/comm/types/general";
+import { ServerLayer, ServerFloor } from "@/game/comm/types/general";
 import { FOWLayer } from "@/game/layers/fow";
 import { FOWPlayersLayer } from "@/game/layers/fowplayers";
 import { GridLayer } from "@/game/layers/grid";
@@ -10,10 +10,17 @@ import { Asset } from "../shapes/asset";
 import { l2gx, l2gy, l2gz, g2l } from "../units";
 import { SyncMode } from "@/core/comm/types";
 
+export function addFloor(floor: ServerFloor): void {
+    gameStore.floors.push(floor.name);
+    layerManager.floors.push({ name: floor.name, layers: [] });
+    if (gameStore.selectedFloorIndex < 0) gameStore.selectFloor(0);
+    for (const layer of floor.layers) createLayer(layer, floor.name);
+}
+
 export function createLayer(layerInfo: ServerLayer, floor: string): void {
     // Create canvas element
     const canvas = document.createElement("canvas");
-    canvas.style.zIndex = layerManager.layers.length.toString();
+    canvas.style.zIndex = layerManager.floors.flatMap(f => f.layers).length.toString();
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
 
@@ -25,7 +32,7 @@ export function createLayer(layerInfo: ServerLayer, floor: string): void {
     else layer = new Layer(canvas, layerInfo.name, floor);
     layer.selectable = layerInfo.selectable;
     layer.playerEditable = layerInfo.player_editable;
-    layerManager.addLayer(layer);
+    layerManager.addLayer(layer, floor);
 
     // Add the element to the DOM
     const layers = document.getElementById("layers");

@@ -33,6 +33,7 @@ class GameStore extends VuexModule implements GameState {
 
     locations: string[] = [];
     floors: string[] = [];
+    selectedFloorIndex = -1;
 
     assets: AssetList = {};
 
@@ -212,9 +213,33 @@ class GameStore extends VuexModule implements GameState {
 
     @Mutation
     selectLayer(data: { layer: Layer; sync: boolean }): void {
-        const index = this.layers.indexOf(data.layer.name);
-        if (index >= 0) this.selectedLayerIndex = index;
+        let index = this.layers.indexOf(data.layer.name);
+        if (index < 0) index = 0;
+        // else if (index >= this.layers.reduce((acc: number, val: Layer) => val.floor === data.layer.floor))
+        this.selectedLayerIndex = index;
         if (data.sync) socket.emit("Client.ActiveLayer.Set", { floor: data.layer.floor, layer: data.layer.name });
+    }
+
+    @Mutation
+    createFloor(name: string): void {
+        socket.emit("Floor.Create", { name });
+    }
+
+    @Mutation
+    selectFloor(floor: number): void {
+        for (let j = this.floors.length - 1; j > Math.min(this.selectedFloorIndex, floor); j--) {
+            for (const layer of layerManager.floors[j].layers) {
+                if (j > floor) {
+                    layer.canvas.style.display = "none";
+                    console.log(`Hiding ${layer.name}`);
+                } else layer.canvas.style.removeProperty("display");
+            }
+        }
+        this.selectedFloorIndex = floor;
+        this.layers = layerManager.floor!.layers.reduce(
+            (acc: string[], val: Layer) => (val.selectable ? [...acc, val.name] : acc),
+            [],
+        );
     }
 
     @Mutation

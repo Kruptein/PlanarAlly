@@ -83,7 +83,7 @@ export default class ShapeContext extends Vue {
         this.visible = false;
     }
     getLayers(): Layer[] {
-        return layerManager.layers.filter(l => l.selectable && (gameStore.IS_DM || l.playerEditable));
+        return layerManager.floor?.layers.filter(l => l.selectable && (gameStore.IS_DM || l.playerEditable)) || [];
     }
     getActiveLayer(): Layer | undefined {
         return layerManager.getLayer();

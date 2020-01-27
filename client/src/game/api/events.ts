@@ -5,7 +5,7 @@ import { ServerShape } from "@/game/comm/types/shapes";
 import { EventBus } from "@/game/event-bus";
 import { GlobalPoint } from "@/game/geom";
 import { layerManager } from "@/game/layers/manager";
-import { createLayer } from "@/game/layers/utils";
+import { addFloor } from "@/game/layers/utils";
 import { gameManager } from "@/game/manager";
 import { gameStore } from "@/game/store";
 import { router } from "@/router";
@@ -102,10 +102,7 @@ socket.on("Board.Set", (locationInfo: BoardInfo) => {
     document.getElementById("layers")!.innerHTML = "";
     gameStore.resetLayerInfo();
     layerManager.reset();
-    for (const floor of locationInfo.floors) {
-        gameStore.floors.push(floor.name);
-        for (const layer of floor.layers) createLayer(layer, floor.name);
-    }
+    for (const floor of locationInfo.floors) addFloor(floor);
     // Force the correct opacity render on other layers.
     layerManager.selectLayer(layerManager.getLayer()!.name, false);
     EventBus.$emit("Initiative.Clear");
@@ -113,6 +110,7 @@ socket.on("Board.Set", (locationInfo: BoardInfo) => {
     visibilityStore.recalculateMovement();
     gameStore.setBoardInitialized(true);
 });
+socket.on("Board.Floors.Add", addFloor);
 socket.on("Gridsize.Set", (gridSize: number) => {
     gameStore.setGridSize({ gridSize, sync: false });
 });

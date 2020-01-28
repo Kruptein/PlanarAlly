@@ -236,7 +236,8 @@ class GameStore extends VuexModule implements GameState {
         }
         this.selectedFloorIndex = floor;
         this.layers = layerManager.floor!.layers.reduce(
-            (acc: string[], val: Layer) => (val.selectable ? [...acc, val.name] : acc),
+            (acc: string[], val: Layer) =>
+                val.selectable && (val.playerEditable || this.IS_DM) ? [...acc, val.name] : acc,
             [],
         );
     }

@@ -37,7 +37,7 @@ export class FOWPlayersLayer extends Layer {
 
             for (const tokenId of gameStore.activeTokens) {
                 const token = layerManager.UUIDMap.get(tokenId);
-                if (token === undefined) continue;
+                if (token === undefined || token.floor !== this.floor) continue;
                 const center = token.center();
                 const lcenter = g2l(center);
                 if (visibilityStore.visionMode === "bvh") {

@@ -114,6 +114,7 @@ socket.on("Board.Set", (locationInfo: BoardInfo) => {
         visibilityStore.recalculateVision(floor.name);
         visibilityStore.recalculateMovement(floor.name);
     }
+    gameStore.selectFloor(0);
     gameStore.setBoardInitialized(true);
 });
 socket.on("Board.Floors.Add", addFloor);

@@ -82,8 +82,9 @@ class Location(BaseModel):
 
     def create_floor(self, name="ground"):
         index = (
-            Floor.select(fn.Max(Floor.index)).where(Floor.location == self).scalar() + 1
-        )
+            Floor.select(fn.Max(Floor.index)).where(Floor.location == self).scalar()
+            or -1
+        ) + 1
         floor = Floor.create(location=self, name=name, index=index)
         Layer.create(
             location=self,

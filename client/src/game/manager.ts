@@ -62,7 +62,7 @@ export class GameManager {
         const localPos = g2l(position);
         gameStore.increasePanX((window.innerWidth / 2 - localPos.x) / gameStore.zoomFactor);
         gameStore.increasePanY((window.innerHeight / 2 - localPos.y) / gameStore.zoomFactor);
-        layerManager.invalidate();
+        layerManager.invalidateAllFloors();
         sendClientOptions(gameStore.locationOptions);
     }
 }

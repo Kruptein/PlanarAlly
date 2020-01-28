@@ -295,7 +295,7 @@ export default class DmSettings extends Vue {
             visibilityStore.recalculateVision(floor.name);
             visibilityStore.recalculateMovement(floor.name);
         }
-        layerManager.invalidate();
+        layerManager.invalidateAllFloors();
     }
     handleClick(event: { target: HTMLElement }): void {
         const child = event.target.firstElementChild;

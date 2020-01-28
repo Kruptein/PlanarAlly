@@ -112,15 +112,29 @@ class LayerManager {
         return layer.selection;
     }
 
-    invalidate(floor?: string): void {
-        for (let i = this.getFloor(floor)!.layers.length - 1; i >= 0; i--) {
-            this.floor!.layers[i].invalidate(true);
+    invalidate(floorName: string): void {
+        const floor = this.getFloor(floorName)!;
+        for (let i = floor.layers.length - 1; i >= 0; i--) {
+            floor.layers[i].invalidate(true);
         }
     }
 
-    invalidateLight(floor?: string): void {
-        for (let i = this.getFloor(floor)!.layers.length - 1; i >= 0; i--)
-            if (this.floor!.layers[i].isVisionLayer) this.floor!.layers[i].invalidate(true);
+    invalidateAllFloors(): void {
+        for (const floor of this.floors) {
+            this.invalidate(floor.name);
+        }
+    }
+
+    invalidateLight(floorName: string): void {
+        const floor = this.getFloor(floorName)!;
+        for (let i = floor.layers.length - 1; i >= 0; i--)
+            if (floor.layers[i].isVisionLayer) floor.layers[i].invalidate(true);
+    }
+
+    invalidateLightAllFloors(): void {
+        for (const floor of this.floors) {
+            this.invalidateLight(floor.name);
+        }
     }
 }
 

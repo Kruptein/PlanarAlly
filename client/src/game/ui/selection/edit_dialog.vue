@@ -321,7 +321,7 @@ export default class EditDialog extends Vue {
     updateShape(redraw: boolean, temporary = false): void {
         if (!this.owned) return;
         socket.emit("Shape.Update", { shape: this.shape.asDict(), redraw, temporary });
-        if (redraw) layerManager.invalidate();
+        if (redraw) layerManager.invalidate(this.shape.floor);
         this.addEmpty();
     }
     setToken(event: { target: HTMLInputElement }): void {

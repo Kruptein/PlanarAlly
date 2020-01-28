@@ -126,7 +126,7 @@ class GameStore extends VuexModule implements GameState {
     setFakePlayer(value: boolean): void {
         this.FAKE_PLAYER = value;
         this.IS_DM = !value;
-        layerManager.invalidate();
+        layerManager.invalidateAllFloors();
     }
 
     @Mutation
@@ -135,7 +135,7 @@ class GameStore extends VuexModule implements GameState {
         if (zoom < 0) zoom = 0;
         if (zoom > 1) zoom = 1;
         this.zoomDisplay = zoom;
-        layerManager.invalidate();
+        layerManager.invalidateAllFloors();
     }
 
     @Mutation
@@ -275,7 +275,7 @@ class GameStore extends VuexModule implements GameState {
         const diff = newLoc.subtract(data.zoomLocation);
         this.panX += diff.x;
         this.panY += diff.y;
-        layerManager.invalidate();
+        layerManager.invalidateAllFloors();
         sendClientOptions(gameStore.locationOptions);
     }
 
@@ -289,7 +289,7 @@ class GameStore extends VuexModule implements GameState {
     @Mutation
     setFOWColour(data: { colour: string; sync: boolean }): void {
         this.fowColour = data.colour;
-        layerManager.invalidate();
+        layerManager.invalidateAllFloors();
         if (data.sync) socket.emit("Client.Options.Set", { fowColour: data.colour });
     }
 
@@ -323,7 +323,7 @@ class GameStore extends VuexModule implements GameState {
     setUnitSize(data: { unitSize: number; sync: boolean }): void {
         if (this.unitSize !== data.unitSize && data.unitSize > 0 && data.unitSize < Infinity) {
             this.unitSize = data.unitSize;
-            layerManager.invalidate();
+            layerManager.invalidateAllFloors();
             // eslint-disable-next-line @typescript-eslint/camelcase
             if (data.sync) socket.emit("Location.Options.Set", { unit_size: data.unitSize });
         }
@@ -333,7 +333,7 @@ class GameStore extends VuexModule implements GameState {
     setUnitSizeUnit(data: { unitSizeUnit: string; sync: boolean }): void {
         if (this.unitSizeUnit !== data.unitSizeUnit) {
             this.unitSizeUnit = data.unitSizeUnit;
-            layerManager.invalidate();
+            layerManager.invalidateAllFloors();
             // eslint-disable-next-line @typescript-eslint/camelcase
             if (data.sync) socket.emit("Location.Options.Set", { unit_size_unit: data.unitSizeUnit });
         }
@@ -364,7 +364,7 @@ class GameStore extends VuexModule implements GameState {
     @Mutation
     setVisionRangeMin(data: { value: number; sync: boolean }): void {
         this.visionRangeMin = data.value;
-        layerManager.invalidateLight();
+        layerManager.invalidateLightAllFloors();
         // eslint-disable-next-line @typescript-eslint/camelcase
         if (data.sync) socket.emit("Location.Options.Set", { vision_min_range: data.value });
     }
@@ -372,7 +372,7 @@ class GameStore extends VuexModule implements GameState {
     @Mutation
     setVisionRangeMax(data: { value: number; sync: boolean }): void {
         this.visionRangeMax = Math.max(data.value, this.visionRangeMin);
-        layerManager.invalidateLight();
+        layerManager.invalidateLightAllFloors();
         // eslint-disable-next-line @typescript-eslint/camelcase
         if (data.sync) socket.emit("Location.Options.Set", { vision_max_range: this.visionRangeMax });
     }
@@ -381,7 +381,7 @@ class GameStore extends VuexModule implements GameState {
     setFullFOW(data: { fullFOW: boolean; sync: boolean }): void {
         if (this.fullFOW !== data.fullFOW) {
             this.fullFOW = data.fullFOW;
-            layerManager.invalidateLight();
+            layerManager.invalidateLightAllFloors();
             // eslint-disable-next-line @typescript-eslint/camelcase
             if (data.sync) socket.emit("Location.Options.Set", { full_fow: data.fullFOW });
         }
@@ -390,7 +390,7 @@ class GameStore extends VuexModule implements GameState {
     @Mutation
     setFOWOpacity(data: { fowOpacity: number; sync: boolean }): void {
         this.fowOpacity = data.fowOpacity;
-        layerManager.invalidateLight();
+        layerManager.invalidateLightAllFloors();
         // eslint-disable-next-line @typescript-eslint/camelcase
         if (data.sync) socket.emit("Location.Options.Set", { fow_opacity: data.fowOpacity });
     }
@@ -399,7 +399,7 @@ class GameStore extends VuexModule implements GameState {
     setLineOfSight(data: { fowLOS: boolean; sync: boolean }): void {
         if (this.fowLOS !== data.fowLOS) {
             this.fowLOS = data.fowLOS;
-            layerManager.invalidate();
+            layerManager.invalidateAllFloors();
             // eslint-disable-next-line @typescript-eslint/camelcase
             if (data.sync) socket.emit("Location.Options.Set", { fow_los: data.fowLOS });
         }
@@ -443,13 +443,13 @@ class GameStore extends VuexModule implements GameState {
     @Mutation
     setActiveTokens(tokens: string[]): void {
         this._activeTokens = tokens;
-        layerManager.invalidateLight();
+        layerManager.invalidateLightAllFloors();
     }
 
     @Mutation
     addActiveToken(token: string): void {
         this._activeTokens.push(token);
-        layerManager.invalidateLight();
+        layerManager.invalidateLightAllFloors();
     }
 
     @Mutation
@@ -458,7 +458,7 @@ class GameStore extends VuexModule implements GameState {
             this._activeTokens = [...this.ownedtokens];
         }
         this._activeTokens.splice(this._activeTokens.indexOf(token), 1);
-        layerManager.invalidateLight();
+        layerManager.invalidateLightAllFloors();
     }
 
     @Mutation

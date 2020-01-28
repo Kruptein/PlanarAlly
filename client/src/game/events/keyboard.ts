@@ -57,7 +57,7 @@ export function onKeyDown(event: KeyboardEvent): void {
                 // The pan offsets should be in the opposite direction to give the correct feel.
                 gameStore.increasePanX(offsetX * (event.keyCode <= 38 ? 1 : -1));
                 gameStore.increasePanY(offsetY * (event.keyCode <= 38 ? 1 : -1));
-                layerManager.invalidate();
+                layerManager.invalidateAllFloors();
                 sendClientOptions(gameStore.locationOptions);
             }
         } else if (event.key === "d") {

@@ -159,7 +159,7 @@ export default class Game extends Vue {
     resizeWindow(): void {
         layerManager.setWidth(window.innerWidth);
         layerManager.setHeight(window.innerHeight);
-        layerManager.invalidate();
+        layerManager.invalidateAllFloors();
     }
 
     // Mouse events

@@ -184,13 +184,13 @@ socket.on("Label.Delete", (data: { user: string; uuid: string }) => {
 });
 socket.on("Labels.Filter.Add", (uuid: string) => {
     gameStore.labelFilters.push(uuid);
-    layerManager.invalidate();
+    layerManager.invalidateAllFloors();
 });
 socket.on("Labels.Filter.Remove", (uuid: string) => {
     const idx = gameStore.labelFilters.indexOf(uuid);
     if (idx >= 0) {
         gameStore.labelFilters.splice(idx, 1);
-        layerManager.invalidate();
+        layerManager.invalidateAllFloors();
     }
 });
 socket.on("Labels.Filters.Set", (filters: string[]) => {

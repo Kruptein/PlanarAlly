@@ -50,7 +50,7 @@ export class Layer {
     invalidate(skipLightUpdate: boolean): void {
         this.valid = false;
         if (!skipLightUpdate) {
-            layerManager.invalidateLight();
+            layerManager.invalidateLight(this.floor);
         }
     }
 

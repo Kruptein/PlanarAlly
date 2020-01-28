@@ -98,7 +98,6 @@ async def update_shape_position(sid, data):
         with db.atomic():
             # Shape
             model = reduce_data_to_model(Shape, data["shape"])
-            print(model)
             # update_model_from_dict(shape, model)
             shape.save()
             if shape.type_ == "polygon":

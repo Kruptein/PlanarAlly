@@ -207,16 +207,17 @@ class Layer(BaseModel):
         from .shape import Shape
 
         data = model_to_dict(
-            self, recurse=False, exclude=[Layer.id, Layer.player_visible]
+            self,
+            recurse=False,
+            backrefs=False,
+            exclude=[Layer.id, Layer.player_visible],
         )
         data["shapes"] = [
             shape.as_dict(user, dm) for shape in self.shapes.order_by(Shape.index)
         ]
         if self.type_ == "grid":
             type_table = get_table(f"{self.type_}layer")
-            data.update(
-                **model_to_dict(type_table.get(id=self.id), exclude=[type_table.id])
-            )
+            data.update(**type_table.get(id=self.id).as_dict())
         return data
 
     class Meta:
@@ -226,6 +227,11 @@ class Layer(BaseModel):
 class GridLayer(BaseModel):
     size = FloatField(default=50)
     layer = ForeignKeyField(Layer, on_delete="CASCADE")
+
+    def as_dict(self):
+        return model_to_dict(
+            self, recurse=False, backrefs=False, exclude=[GridLayer.id]
+        )
 
 
 class LocationUserOption(BaseModel):

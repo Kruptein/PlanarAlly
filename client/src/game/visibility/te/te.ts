@@ -6,12 +6,17 @@ import { getCDT, TriangulationTarget } from "./pa";
 import { Point, Sign, Triangle } from "./tds";
 import { ccw, cw, orientation } from "./triag";
 
-export function computeVisibility(q: GlobalPoint, target: TriangulationTarget, drawt?: boolean): number[][] {
+export function computeVisibility(
+    q: GlobalPoint,
+    target: TriangulationTarget,
+    floor: string,
+    drawt?: boolean,
+): number[][] {
     if (drawt === undefined) drawt = gameStore.drawTEContour;
     // console.time("CV");
     const Q: Point = [q.x, q.y];
     const rawOutput: number[][] = [];
-    const triangle = getCDT(target).locate(Q, null).loc;
+    const triangle = getCDT(target, floor).locate(Q, null).loc;
     if (triangle === null) {
         console.error("Triangle not found");
         return [];

@@ -92,7 +92,7 @@ export class FOWPlayersLayer extends Layer {
                         ctx.fillStyle = "rgba(0, 0, 0, 1)";
                     }
                     try {
-                        const polygon = computeVisibility(token.center(), TriangulationTarget.VISION);
+                        const polygon = computeVisibility(token.center(), TriangulationTarget.VISION, token.floor);
                         ctx.beginPath();
                         ctx.moveTo(g2lx(polygon[0][0]), g2ly(polygon[0][1]));
                         for (const point of polygon) ctx.lineTo(g2lx(point[0]), g2ly(point[1]));

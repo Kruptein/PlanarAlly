@@ -81,8 +81,10 @@ socket.on("Location.Set", (data: Partial<ServerLocation>) => {
     if (data.vision_max_range !== undefined) gameStore.setVisionRangeMax({ value: data.vision_max_range, sync: false });
     if (data.vision_mode !== undefined) {
         visibilityStore.setVisionMode({ mode: data.vision_mode, sync: false });
-        visibilityStore.recalculateVision();
-        visibilityStore.recalculateMovement();
+        for (const floor of layerManager.floors) {
+            visibilityStore.recalculateVision(floor.name);
+            visibilityStore.recalculateMovement(floor.name);
+        }
     }
 });
 socket.on("Position.Set", (data: { x: number; y: number; zoom: number }) => {
@@ -106,8 +108,10 @@ socket.on("Board.Set", (locationInfo: BoardInfo) => {
     // Force the correct opacity render on other layers.
     layerManager.selectLayer(layerManager.getLayer()!.name, false);
     EventBus.$emit("Initiative.Clear");
-    visibilityStore.recalculateVision();
-    visibilityStore.recalculateMovement();
+    for (const floor of layerManager.floors) {
+        visibilityStore.recalculateVision(floor.name);
+        visibilityStore.recalculateMovement(floor.name);
+    }
     gameStore.setBoardInitialized(true);
 });
 socket.on("Board.Floors.Add", addFloor);

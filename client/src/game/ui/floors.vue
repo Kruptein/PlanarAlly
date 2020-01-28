@@ -46,6 +46,7 @@ import Game from "@/game/game.vue";
 import { layerManager } from "@/game/layers/manager";
 import { gameStore } from "@/game/store";
 import { removeCDT } from "../visibility/te/pa";
+import { visibilityStore } from "../visibility/store";
 
 @Component
 export default class FloorSelect extends Vue {
@@ -81,7 +82,20 @@ export default class FloorSelect extends Vue {
     }
 
     removeFloor(index: number): void {
-        removeCDT(gameStore.floors[gameStore.selectedFloorIndex]);
+        const floor = gameStore.floors[gameStore.selectedFloorIndex];
+        removeCDT(floor);
+        visibilityStore.movementBlockers.splice(
+            visibilityStore.movementBlockers.findIndex(mb => mb.floor === floor),
+            1,
+        );
+        visibilityStore.visionBlockers.splice(
+            visibilityStore.visionBlockers.findIndex(vb => vb.floor === floor),
+            1,
+        );
+        visibilityStore.visionSources.splice(
+            visibilityStore.visionSources.findIndex(vs => vs.floor === floor),
+            1,
+        );
         gameStore.floors.splice(index, 1);
         gameStore.selectFloor(index - 1);
     }

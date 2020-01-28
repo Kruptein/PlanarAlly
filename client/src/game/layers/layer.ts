@@ -1,3 +1,4 @@
+import { SyncMode } from "@/core/comm/types";
 import { socket } from "@/game/api/socket";
 import { ServerShape } from "@/game/comm/types/shapes";
 import { EventBus } from "@/game/event-bus";
@@ -6,7 +7,8 @@ import { Shape } from "@/game/shapes/shape";
 import { createShapeFromDict } from "@/game/shapes/utils";
 import { gameStore } from "@/game/store";
 import { visibilityStore } from "../visibility/store";
-import { SyncMode } from "@/core/comm/types";
+import { getVisionSources, getBlockers, sliceVisionSources, sliceBlockers } from "../visibility/utils";
+import { TriangulationTarget } from "../visibility/te/pa";
 
 export class Layer {
     name: string;
@@ -54,6 +56,7 @@ export class Layer {
 
     addShape(shape: Shape, sync: SyncMode, invalidate = true, snappable = true): void {
         shape.layer = this.name;
+        shape.floor = this.floor;
         this.shapes.push(shape);
         layerManager.UUIDMap.set(shape.uuid, shape);
         shape.checkVisionSources(invalidate);
@@ -94,14 +97,19 @@ export class Layer {
 
         if (sync !== SyncMode.NO_SYNC)
             socket.emit("Shape.Remove", { shape: shape.asDict(), temporary: sync === SyncMode.TEMP_SYNC });
-        const lsI = visibilityStore.visionSources.findIndex(ls => ls.shape === shape.uuid);
-        const lbI = visibilityStore.visionBlockers.findIndex(ls => ls === shape.uuid);
 
-        const mbI = visibilityStore.movementblockers.findIndex(ls => ls === shape.uuid);
+        const visionSources = getVisionSources(this.floor);
+        const visionBlockers = getBlockers(TriangulationTarget.VISION, this.floor);
+        const movementBlockers = getBlockers(TriangulationTarget.MOVEMENT, this.floor);
+
+        const lsI = visionSources.findIndex(ls => ls.shape === shape.uuid);
+        const lbI = visionBlockers.findIndex(ls => ls === shape.uuid);
+        const mbI = movementBlockers.findIndex(ls => ls === shape.uuid);
         const anI = gameStore.annotations.findIndex(ls => ls === shape.uuid);
-        if (lsI >= 0) visibilityStore.visionSources.splice(lsI, 1);
-        if (lbI >= 0) visibilityStore.visionBlockers.splice(lbI, 1);
-        if (mbI >= 0) visibilityStore.movementblockers.splice(mbI, 1);
+
+        if (lsI >= 0) sliceVisionSources(lsI, this.floor);
+        if (lbI >= 0) sliceBlockers(TriangulationTarget.VISION, lbI, this.floor);
+        if (mbI >= 0) sliceBlockers(TriangulationTarget.MOVEMENT, mbI, this.floor);
         if (anI >= 0) gameStore.annotations.splice(anI, 1);
 
         const annotationIndex = gameStore.annotations.indexOf(shape.uuid);
@@ -121,8 +129,8 @@ export class Layer {
 
         const index = this.selection.indexOf(shape);
         if (index >= 0) this.selection.splice(index, 1);
-        if (lbI >= 0) visibilityStore.recalculateVision();
-        if (mbI >= 0) visibilityStore.recalculateMovement();
+        if (lbI >= 0) visibilityStore.recalculateVision(this.floor);
+        if (mbI >= 0) visibilityStore.recalculateMovement(this.floor);
         this.invalidate(!sync);
     }
 

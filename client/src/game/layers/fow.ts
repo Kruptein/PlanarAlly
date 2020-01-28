@@ -1,4 +1,5 @@
-import { GlobalPoint, Ray, LocalPoint } from "@/game/geom";
+import { SyncMode } from "@/core/comm/types";
+import { GlobalPoint, LocalPoint, Ray } from "@/game/geom";
 import { Layer } from "@/game/layers/layer";
 import { layerManager } from "@/game/layers/manager";
 import { Settings } from "@/game/settings";
@@ -7,11 +8,11 @@ import { Shape } from "@/game/shapes/shape";
 import { gameStore } from "@/game/store";
 import { g2l, g2lr, g2lx, g2ly, g2lz, getUnitDistance } from "@/game/units";
 import { getFogColour } from "@/game/utils";
+import { getVisionSources } from "@/game/visibility/utils";
 import { visibilityStore } from "../visibility/store";
-import { computeVisibility } from "../visibility/te/te";
 import { TriangulationTarget } from "../visibility/te/pa";
+import { computeVisibility } from "../visibility/te/te";
 import { circleLineIntersection, xyEqual } from "../visibility/te/triag";
-import { SyncMode } from "@/core/comm/types";
 
 export class FOWLayer extends Layer {
     isVisionLayer = true;
@@ -82,7 +83,7 @@ export class FOWLayer extends Layer {
             this.vCtx.clearRect(0, 0, window.innerWidth, window.innerHeight);
 
             // First cut out all the light sources
-            for (const light of visibilityStore.visionSources) {
+            for (const light of getVisionSources(this.floor)) {
                 const shape = layerManager.UUIDMap.get(light.shape);
                 if (shape === undefined) continue;
                 const aura = shape.auras.find(a => a.uuid === light.aura);
@@ -167,7 +168,7 @@ export class FOWLayer extends Layer {
                 } else {
                     this.vCtx.globalCompositeOperation = "source-over";
                     this.vCtx.fillStyle = "rgba(0, 0, 0, 1)";
-                    const polygon = computeVisibility(center, TriangulationTarget.VISION);
+                    const polygon = computeVisibility(center, TriangulationTarget.VISION, shape.floor);
                     this.vCtx.beginPath();
                     this.vCtx.moveTo(g2lx(polygon[0][0]), g2ly(polygon[0][1]));
                     for (const point of polygon) this.vCtx.lineTo(g2lx(point[0]), g2ly(point[1]));

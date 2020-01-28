@@ -283,7 +283,7 @@ export default class DrawTool extends Tool {
                 this.ruler.refPoint = lastPoint;
                 this.ruler.endPoint = lastPoint;
             }
-            if (this.shape.visionObstruction) visibilityStore.recalculateVision();
+            if (this.shape.visionObstruction) visibilityStore.recalculateVision(this.shape.floor);
             layer.invalidate(false);
             socket.emit("Shape.Update", { shape: this.shape!.asDict(), redraw: true, temporary: true });
         }
@@ -331,7 +331,7 @@ export default class DrawTool extends Tool {
 
         if (!(this.shapeSelect === "draw-polygon" && this.shape instanceof Polygon)) {
             socket.emit("Shape.Update", { shape: this.shape!.asDict(), redraw: true, temporary: true });
-            if (this.shape.visionObstruction) visibilityStore.recalculateVision();
+            if (this.shape.visionObstruction) visibilityStore.recalculateVision(this.shape.floor);
         }
         layer.invalidate(false);
     }
@@ -374,8 +374,8 @@ export default class DrawTool extends Tool {
             this.onDeselect();
             this.onSelect();
         } else {
-            if (this.shape.visionObstruction) visibilityStore.recalculateVision();
-            if (this.shape.movementObstruction) visibilityStore.recalculateMovement();
+            if (this.shape.visionObstruction) visibilityStore.recalculateVision(this.shape.floor);
+            if (this.shape.movementObstruction) visibilityStore.recalculateMovement(this.shape.floor);
             socket.emit("Shape.Update", { shape: this.shape!.asDict(), redraw: true, temporary: false });
         }
         this.active = false;

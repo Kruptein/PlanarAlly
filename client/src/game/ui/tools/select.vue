@@ -160,7 +160,7 @@ export default class SelectTool extends Tool {
                     if (!sel.ownedBy()) continue;
                     sel.refPoint = sel.refPoint.add(delta);
                     if (sel !== this.selectionHelper) {
-                        if (sel.visionObstruction) visibilityStore.recalculateVision();
+                        if (sel.visionObstruction) visibilityStore.recalculateVision(sel.floor);
                         socket.emit("Shape.Update", { shape: sel.asDict(), redraw: true, temporary: true });
                     }
                 }
@@ -170,7 +170,7 @@ export default class SelectTool extends Tool {
                     if (!sel.ownedBy()) continue;
                     sel.resize(this.resizePoint, snapToPointLocal(layerManager.getLayer()!, mouse));
                     if (sel !== this.selectionHelper) {
-                        if (sel.visionObstruction) visibilityStore.recalculateVision();
+                        if (sel.visionObstruction) visibilityStore.recalculateVision(sel.floor);
                         socket.emit("Shape.Update", { shape: sel.asDict(), redraw: true, temporary: true });
                     }
                     layer.invalidate(false);
@@ -230,8 +230,8 @@ export default class SelectTool extends Tool {
                     }
 
                     if (sel !== this.selectionHelper) {
-                        if (sel.visionObstruction) visibilityStore.recalculateVision();
-                        if (sel.movementObstruction) visibilityStore.recalculateMovement();
+                        if (sel.visionObstruction) visibilityStore.recalculateVision(sel.floor);
+                        if (sel.movementObstruction) visibilityStore.recalculateMovement(sel.floor);
                         socket.emit("Shape.Update", { shape: sel.asDict(), redraw: true, temporary: false });
                     }
                     layer.invalidate(false);
@@ -241,8 +241,8 @@ export default class SelectTool extends Tool {
                         sel.resizeToGrid();
                     }
                     if (sel !== this.selectionHelper) {
-                        if (sel.visionObstruction) visibilityStore.recalculateVision();
-                        if (sel.movementObstruction) visibilityStore.recalculateMovement();
+                        if (sel.visionObstruction) visibilityStore.recalculateVision(sel.floor);
+                        if (sel.movementObstruction) visibilityStore.recalculateMovement(sel.floor);
                         socket.emit("Shape.Update", { shape: sel.asDict(), redraw: true, temporary: false });
                     }
                     layer.invalidate(false);

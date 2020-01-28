@@ -51,9 +51,9 @@ export class GameManager {
         shape.setMovementBlock(shape.movementObstruction);
         shape.setIsToken(shape.isToken);
         if (data.redraw) {
-            if (shape.visionObstruction) visibilityStore.recalculateVision();
+            if (shape.visionObstruction) visibilityStore.recalculateVision(shape.floor);
             layerManager.getLayer(data.shape.layer)!.invalidate(false);
-            if (shape.movementObstruction) visibilityStore.recalculateMovement();
+            if (shape.movementObstruction) visibilityStore.recalculateMovement(shape.floor);
         }
         if (redrawInitiative) EventBus.$emit("Initiative.ForceUpdate");
     }

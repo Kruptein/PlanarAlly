@@ -51,7 +51,7 @@ export function onKeyDown(event: KeyboardEvent): void {
                         temporary: false,
                     });
                 }
-                visibilityStore.recalculateVision();
+                visibilityStore.recalculateVision(layerManager.floor!.name);
                 layerManager.getLayer()!.invalidate(false);
             } else {
                 // The pan offsets should be in the opposite direction to give the correct feel.

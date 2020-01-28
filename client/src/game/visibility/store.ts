@@ -6,7 +6,6 @@ import { triangulate, TriangulationTarget } from "./te/pa";
 
 export interface VisibilityState {
     visionMode: "bvh" | "triangle";
-    visionBlockers: string[];
 }
 
 @Module({ dynamic: true, store: rootStore, name: "visibility", namespaced: true })
@@ -14,9 +13,9 @@ class VisibilityStore extends VuexModule implements VisibilityState {
     BV = Object.freeze(new BoundingVolume([]));
 
     visionMode: "bvh" | "triangle" = "bvh";
-    visionBlockers: string[] = [];
-    movementblockers: string[] = [];
-    visionSources: { shape: string; aura: string }[] = [];
+    visionBlockers: { floor: string; blockers: string[] }[] = [];
+    movementBlockers: { floor: string; blockers: string[] }[] = [];
+    visionSources: { floor: string; sources: { shape: string; aura: string }[] }[] = [];
 
     @Mutation
     setVisionMode(data: { mode: "bvh" | "triangle"; sync: boolean }): void {
@@ -26,14 +25,14 @@ class VisibilityStore extends VuexModule implements VisibilityState {
     }
 
     @Mutation
-    recalculateVision(): void {
-        if (this.visionMode === "triangle") triangulate(TriangulationTarget.VISION);
-        else this.BV = Object.freeze(new BoundingVolume(this.visionBlockers));
+    recalculateVision(floor: string): void {
+        if (this.visionMode === "triangle") triangulate(TriangulationTarget.VISION, false, floor);
+        // else this.BV = Object.freeze(new BoundingVolume(getVisionBlockers(floor)));
     }
 
     @Mutation
-    recalculateMovement(): void {
-        if (this.visionMode === "triangle") triangulate(TriangulationTarget.MOVEMENT);
+    recalculateMovement(floor: string): void {
+        if (this.visionMode === "triangle") triangulate(TriangulationTarget.MOVEMENT, false, floor);
     }
 
     @Action

@@ -17,6 +17,7 @@ export abstract class Shape {
     // The unique ID of this shape
     readonly uuid: string;
     // The layer the shape is currently on
+    floor!: string;
     layer!: string;
 
     // A reference point regarding that specific shape's structure
@@ -180,7 +181,7 @@ export abstract class Shape {
             uuid: this.uuid,
             x: this.refPoint.x,
             y: this.refPoint.y,
-            floor: layerManager.getLayer(this.layer)!.floor,
+            floor: this.floor,
             layer: this.layer,
             // eslint-disable-next-line @typescript-eslint/camelcase
             draw_operator: this.globalCompositeOperation,
@@ -207,6 +208,7 @@ export abstract class Shape {
     }
     fromDict(data: ServerShape): void {
         this.layer = data.layer;
+        this.floor = data.floor;
         this.globalCompositeOperation = data.draw_operator;
         this.movementObstruction = data.movement_obstruction;
         this.visionObstruction = data.vision_obstruction;

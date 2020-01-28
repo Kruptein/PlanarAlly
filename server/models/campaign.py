@@ -78,7 +78,9 @@ class Location(BaseModel):
         return f"{self.room.get_path()}/{self.name}"
 
     def as_dict(self):
-        return model_to_dict(self, recurse=False, exclude=[Location.id, Location.room])
+        return model_to_dict(
+            self, backrefs=False, recurse=False, exclude=[Location.id, Location.room]
+        )
 
     def create_floor(self, name="ground"):
         index = (

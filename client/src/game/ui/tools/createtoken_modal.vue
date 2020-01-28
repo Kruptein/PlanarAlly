@@ -87,7 +87,7 @@ export default class CreateTokenModal extends Vue {
         this.y = y;
     }
     submit(): void {
-        const layer = layerManager.getLayer();
+        const layer = layerManager.getLayer(layerManager.floor!.name);
         if (layer === undefined) return;
         const token = new CircularToken(
             l2g(new LocalPoint(this.x, this.y)),

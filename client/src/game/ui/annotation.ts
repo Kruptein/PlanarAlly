@@ -21,8 +21,8 @@ export class AnnotationManager {
 
     setActiveText(text: string): void {
         if (this.layer === undefined) {
-            if (layerManager.hasLayer("draw")) {
-                this.layer = layerManager.getLayer("draw")!;
+            if (layerManager.hasLayer(layerManager.floor!.name, "draw")) {
+                this.layer = layerManager.getLayer(layerManager.floor!.name, "draw")!;
                 this.layer.addShape(this.annotationRect, SyncMode.NO_SYNC);
                 this.layer.addShape(this.annotationText, SyncMode.NO_SYNC);
             } else {

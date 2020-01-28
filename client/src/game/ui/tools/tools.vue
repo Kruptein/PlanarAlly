@@ -145,7 +145,7 @@ export default class Tools extends Vue {
         // Annotation hover
         let found = false;
         for (const uuid of gameStore.annotations) {
-            if (layerManager.UUIDMap.has(uuid) && layerManager.hasLayer("draw")) {
+            if (layerManager.UUIDMap.has(uuid) && layerManager.hasLayer(layerManager.floor!.name, "draw")) {
                 const shape = layerManager.UUIDMap.get(uuid)!;
                 if (shape.contains(l2g(getMouse(event)))) {
                     found = true;

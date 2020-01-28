@@ -282,7 +282,9 @@ class GameStore extends VuexModule implements GameState {
     @Mutation
     setGridColour(data: { colour: string; sync: boolean }): void {
         this.gridColour = data.colour;
-        layerManager.getGridLayer()!.drawGrid();
+        for (const floor of layerManager.floors) {
+            layerManager.getGridLayer(floor.name)!.drawGrid();
+        }
         if (data.sync) socket.emit("Client.Options.Set", { gridColour: data.colour });
     }
 
@@ -343,9 +345,11 @@ class GameStore extends VuexModule implements GameState {
     setUseGrid(data: { useGrid: boolean; sync: boolean }): void {
         if (this.useGrid !== data.useGrid) {
             this.useGrid = data.useGrid;
-            const gridLayer = layerManager.getGridLayer()!;
-            if (data.useGrid) gridLayer.canvas.style.display = "block";
-            else gridLayer.canvas.style.display = "none";
+            for (const floor of layerManager.floors) {
+                const gridLayer = layerManager.getGridLayer(floor.name)!;
+                if (data.useGrid) gridLayer.canvas.style.display = "block";
+                else gridLayer.canvas.style.display = "none";
+            }
             // eslint-disable-next-line @typescript-eslint/camelcase
             if (data.sync) socket.emit("Location.Options.Set", { use_grid: data.useGrid });
         }
@@ -355,8 +359,10 @@ class GameStore extends VuexModule implements GameState {
     setGridSize(data: { gridSize: number; sync: boolean }): void {
         if (this.gridSize !== data.gridSize && data.gridSize > 0) {
             this.gridSize = data.gridSize;
-            const gridLayer = layerManager.getGridLayer();
-            if (gridLayer !== undefined) gridLayer.drawGrid();
+            for (const floor of layerManager.floors) {
+                const gridLayer = layerManager.getGridLayer(floor.name);
+                if (gridLayer !== undefined) gridLayer.drawGrid();
+            }
             if (data.sync) socket.emit("Gridsize.Set", data.gridSize);
         }
     }

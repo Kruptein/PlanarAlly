@@ -37,7 +37,7 @@ export function triangulate(target: TriangulationTarget, partial = false, floor:
     for (const sh of shapes) {
         const shape = layerManager.UUIDMap.get(sh)!;
         if (shape.floor !== floor) continue;
-        if (partial && !shape.visibleInCanvas(layerManager.getLayer()!.canvas)) continue;
+        if (partial && !shape.visibleInCanvas(layerManager.getLayer(floor)!.canvas)) continue;
         const j = shape.isClosed ? 0 : 1;
         for (let i = 0; i < shape.points.length - j; i++) {
             cdt.insertConstraint(shape.points[i], shape.points[(i + 1) % shape.points.length]);

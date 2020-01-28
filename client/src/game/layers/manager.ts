@@ -63,13 +63,13 @@ class LayerManager {
         }
     }
 
-    hasLayer(name: string): boolean {
-        return this.floor!.layers.some(l => l.name === name);
+    hasLayer(floor: string, name: string): boolean {
+        return this.getFloor(floor)!.layers.some(l => l.name === name);
     }
 
-    getLayer(name?: string): Layer | undefined {
+    getLayer(floor: string, name?: string): Layer | undefined {
         name = name === undefined ? gameStore.selectedLayer : name;
-        for (const layer of this.floor?.layers || []) {
+        for (const layer of this.getFloor(floor)?.layers || []) {
             if (layer.name === name) return layer;
         }
     }
@@ -96,8 +96,8 @@ class LayerManager {
         }
     }
 
-    getGridLayer(): GridLayer | undefined {
-        return <GridLayer>this.getLayer("grid");
+    getGridLayer(floor: string): GridLayer | undefined {
+        return <GridLayer>this.getLayer(floor, "grid");
     }
 
     hasSelection(): boolean {
@@ -107,7 +107,7 @@ class LayerManager {
 
     // THIS INCLUDES POTENTIALLY THE SelectTool.SelectionHelper !!!
     getSelection(): Shape[] | undefined {
-        const layer = this.getLayer();
+        const layer = this.getLayer(this.floor!.name);
         if (layer === undefined) return undefined;
         return layer.selection;
     }

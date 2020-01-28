@@ -16,11 +16,11 @@ export class GameManager {
     annotationManager = new AnnotationManager();
 
     addShape(shape: ServerShape): void {
-        if (!layerManager.hasLayer(shape.layer)) {
+        if (!layerManager.hasLayer(shape.floor, shape.layer)) {
             console.log(`Shape with unknown layer ${shape.layer} could not be added`);
             return;
         }
-        const layer = layerManager.getLayer(shape.layer)!;
+        const layer = layerManager.getLayer(shape.floor, shape.layer)!;
         const sh = createShapeFromDict(shape);
         if (sh === undefined) {
             console.log(`Shape with unknown type ${shape.type_} could not be added`);
@@ -31,7 +31,7 @@ export class GameManager {
     }
 
     updateShape(data: { shape: ServerShape; redraw: boolean; move: boolean; temporary: boolean }): void {
-        if (!layerManager.hasLayer(data.shape.layer)) {
+        if (!layerManager.hasLayer(data.shape.floor, data.shape.layer)) {
             console.log(`Shape with unknown layer ${data.shape.layer} could not be added`);
             return;
         }
@@ -52,7 +52,7 @@ export class GameManager {
         shape.setIsToken(shape.isToken);
         if (data.redraw) {
             if (shape.visionObstruction) visibilityStore.recalculateVision(shape.floor);
-            layerManager.getLayer(data.shape.layer)!.invalidate(false);
+            layerManager.getLayer(data.shape.floor, data.shape.layer)!.invalidate(false);
             if (shape.movementObstruction) visibilityStore.recalculateMovement(shape.floor);
         }
         if (redrawInitiative) EventBus.$emit("Initiative.ForceUpdate");

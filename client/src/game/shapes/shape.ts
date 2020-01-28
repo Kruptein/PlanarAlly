@@ -117,7 +117,7 @@ export abstract class Shape {
     }
 
     invalidate(skipLightUpdate: boolean): void {
-        const l = layerManager.getLayer(this.layer);
+        const l = layerManager.getLayer(this.floor, this.layer);
         if (l) l.invalidate(skipLightUpdate);
     }
 
@@ -313,8 +313,8 @@ export abstract class Shape {
     }
 
     moveLayer(layer: string, sync: boolean): void {
-        const oldLayer = layerManager.getLayer(this.layer);
-        const newLayer = layerManager.getLayer(layer);
+        const oldLayer = layerManager.getLayer(this.floor, this.layer);
+        const newLayer = layerManager.getLayer(this.floor, layer);
         if (oldLayer === undefined || newLayer === undefined) return;
         this.layer = layer;
         // Update layer shapes
@@ -358,6 +358,6 @@ export abstract class Shape {
     }
 
     updatePoints(): void {
-        layerManager.getLayer(this.layer)?.updateShapePoints(this);
+        layerManager.getLayer(this.floor, this.layer)?.updateShapePoints(this);
     }
 }

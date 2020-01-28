@@ -181,8 +181,8 @@ export default class DrawTool extends Tool {
     onModeChange(newValue: string, oldValue: string): void {
         if (this.brushHelper === null) return;
 
-        const fowLayer = layerManager.getLayer("fow");
-        const normalLayer = layerManager.getLayer();
+        const fowLayer = layerManager.getLayer(layerManager.floor!.name, "fow");
+        const normalLayer = layerManager.getLayer(layerManager.floor!.name);
         if (fowLayer === undefined || normalLayer === undefined) return;
 
         this.setupBrush();
@@ -196,8 +196,8 @@ export default class DrawTool extends Tool {
         }
     }
     getLayer(targetLayer?: string): Layer | undefined {
-        if (this.modeSelect === "normal") return layerManager.getLayer(targetLayer);
-        return layerManager.getLayer("fow");
+        if (this.modeSelect === "normal") return layerManager.getLayer(layerManager.floor!.name, targetLayer);
+        return layerManager.getLayer(layerManager.floor!.name, "fow");
     }
     onMouseDown(_event: MouseEvent): void {
         const layer = this.getLayer();
@@ -432,7 +432,7 @@ export default class DrawTool extends Tool {
         const layer = this.getLayer()!;
         await layer.waitValid();
         if (!this.activeTool) return;
-        const dL = layerManager.getLayer("draw")!;
+        const dL = layerManager.getLayer(layerManager.floor!.name, "draw")!;
         for (const point of layer.points.keys()) {
             const parsedPoint = JSON.parse(point);
             dL.ctx.beginPath();
@@ -443,7 +443,7 @@ export default class DrawTool extends Tool {
 
     private hideLayerPoints(): void {
         console.log("Clearing");
-        layerManager.getLayer("draw")?.invalidate(true);
+        layerManager.getLayer(layerManager.floor!.name, "draw")?.invalidate(true);
     }
 }
 </script>

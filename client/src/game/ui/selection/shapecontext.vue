@@ -69,10 +69,6 @@ export default class ShapeContext extends Vue {
     visible = false;
     x = 0;
     y = 0;
-    get activeLayer(): string {
-        const layer = layerManager.getLayer();
-        return layer === undefined ? "" : layer.name;
-    }
     open(event: MouseEvent): void {
         this.visible = true;
         this.x = event.pageX;
@@ -86,13 +82,13 @@ export default class ShapeContext extends Vue {
         return layerManager.floor?.layers.filter(l => l.selectable && (gameStore.IS_DM || l.playerEditable)) || [];
     }
     getActiveLayer(): Layer | undefined {
-        return layerManager.getLayer();
+        return layerManager.getLayer(layerManager.floor!.name);
     }
     getCurrentLocation(): string {
         return gameStore.locationName;
     }
     getInitiativeWord(): string {
-        const layer = layerManager.getLayer()!;
+        const layer = this.getActiveLayer()!;
         if (layer.selection.length === 1) {
             return inInitiative(layer.selection[0].uuid) ? "Show" : "Add";
         } else {
@@ -100,16 +96,16 @@ export default class ShapeContext extends Vue {
         }
     }
     hasSingleShape(): boolean {
-        const layer = layerManager.getLayer()!;
+        const layer = this.getActiveLayer()!;
         return layer.selection.length === 1;
     }
     setLayer(newLayer: string): void {
-        const layer = layerManager.getLayer()!;
+        const layer = this.getActiveLayer()!;
         layer.selection.forEach(shape => shape.moveLayer(newLayer, true));
         this.close();
     }
     setLocation(newLocation: string): void {
-        const layer = layerManager.getLayer()!;
+        const layer = this.getActiveLayer()!;
         cutShapes();
         // Request change to other location
         socket.emit("Location.Change", newLocation);
@@ -132,7 +128,7 @@ export default class ShapeContext extends Vue {
         this.close();
     }
     addInitiative(): void {
-        const layer = layerManager.getLayer()!;
+        const layer = this.getActiveLayer()!;
         layer.selection.forEach(shape => initiativeStore.addInitiative(shape.getInitiativeRepr()));
         EventBus.$emit("Initiative.Show");
         this.close();
@@ -142,7 +138,7 @@ export default class ShapeContext extends Vue {
         this.close();
     }
     openEditDialog(): void {
-        const layer = layerManager.getLayer()!;
+        const layer = this.getActiveLayer()!;
         if (layer.selection.length !== 1) return;
         EventBus.$emit("EditDialog.Open", layer.selection[0]);
         this.close();

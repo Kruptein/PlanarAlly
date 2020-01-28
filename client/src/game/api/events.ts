@@ -66,7 +66,9 @@ socket.on("Client.Options.Set", (options: ServerClient) => {
     gameStore.setZoomDisplay(zoomDisplay(options.zoom_factor));
     // gameStore.setZoomDisplay(0.5);
     if (options.active_layer) layerManager.selectLayer(options.active_layer, false);
-    if (layerManager.getGridLayer() !== undefined) layerManager.getGridLayer()!.invalidate();
+    for (const floor of layerManager.floors) {
+        if (layerManager.getGridLayer(floor.name) !== undefined) layerManager.getGridLayer(floor.name)!.invalidate();
+    }
 });
 socket.on("Location.Set", (data: Partial<ServerLocation>) => {
     if (data.name !== undefined) gameStore.setLocationName(data.name);
@@ -106,7 +108,7 @@ socket.on("Board.Set", (locationInfo: BoardInfo) => {
     layerManager.reset();
     for (const floor of locationInfo.floors) addFloor(floor);
     // Force the correct opacity render on other layers.
-    layerManager.selectLayer(layerManager.getLayer()!.name, false);
+    layerManager.selectLayer(layerManager.getLayer(layerManager.floor!.name)!.name, false);
     EventBus.$emit("Initiative.Clear");
     for (const floor of layerManager.floors) {
         visibilityStore.recalculateVision(floor.name);
@@ -126,11 +128,11 @@ socket.on("Shape.Remove", (shape: ServerShape) => {
         console.log(`Attempted to remove an unknown shape`);
         return;
     }
-    if (!layerManager.hasLayer(shape.layer)) {
+    if (!layerManager.hasLayer(shape.floor, shape.layer)) {
         console.log(`Attempted to remove shape from an unknown layer ${shape.layer}`);
         return;
     }
-    const layer = layerManager.getLayer(shape.layer)!;
+    const layer = layerManager.getLayer(shape.floor, shape.layer)!;
     layer.removeShape(layerManager.UUIDMap.get(shape.uuid)!, SyncMode.NO_SYNC);
     layer.invalidate(false);
 });
@@ -139,12 +141,12 @@ socket.on("Shape.Order.Set", (data: { shape: ServerShape; index: number }) => {
         console.log(`Attempted to move the shape order of an unknown shape`);
         return;
     }
-    if (!layerManager.hasLayer(data.shape.layer)) {
+    if (!layerManager.hasLayer(data.shape.floor, data.shape.layer)) {
         console.log(`Attempted to remove shape from an unknown layer ${data.shape.layer}`);
         return;
     }
     const shape = layerManager.UUIDMap.get(data.shape.uuid)!;
-    const layer = layerManager.getLayer(shape.layer)!;
+    const layer = layerManager.getLayer(shape.floor, shape.layer)!;
     layer.moveShapeOrder(shape, data.index, false);
 });
 socket.on("Shape.Layer.Change", (data: { uuid: string; layer: string }) => {
@@ -162,12 +164,12 @@ socket.on("Temp.Clear", (shapeIds: string[]) => {
             continue;
         }
         const shape = layerManager.UUIDMap.get(shapeId)!;
-        if (!layerManager.hasLayer(shape.layer)) {
+        if (!layerManager.hasLayer(shape.floor, shape.layer)) {
             console.log(`Attempted to remove shape from an unknown layer ${shape.layer}`);
             continue;
         }
         const realShape = layerManager.UUIDMap.get(shape.uuid)!;
-        layerManager.getLayer(shape.layer)!.removeShape(realShape, SyncMode.NO_SYNC);
+        layerManager.getLayer(shape.floor, shape.layer)!.removeShape(realShape, SyncMode.NO_SYNC);
     }
 });
 socket.on("Labels.Set", (labels: Label[]) => {

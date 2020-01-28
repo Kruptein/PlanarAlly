@@ -58,14 +58,14 @@ export class FOWLayer extends Layer {
 
             ctx.fillStyle = "rgba(0, 0, 0, 1)";
 
-            const dctx = layerManager.getLayer("draw")!.ctx;
+            const dctx = layerManager.getLayer(this.floor, "draw")!.ctx;
             if (Settings.drawAngleLines || Settings.drawFirstLightHit) {
                 dctx.clearRect(0, 0, dctx.canvas.width, dctx.canvas.height);
             }
 
             // At all times provide a minimal vision range to prevent losing your tokens in fog.
-            if (gameStore.fullFOW && layerManager.hasLayer("tokens")) {
-                for (const sh of layerManager.getLayer("tokens")!.shapes) {
+            if (gameStore.fullFOW && layerManager.hasLayer(this.floor, "tokens")) {
+                for (const sh of layerManager.getLayer(this.floor, "tokens")!.shapes) {
                     if (!sh.ownedBy() || !sh.isToken) continue;
                     const bb = sh.getBoundingBox();
                     const lcenter = g2l(sh.center());
@@ -203,7 +203,7 @@ export class FOWLayer extends Layer {
             // At the DM Side due to opacity of the two fow layers, it looks strange if we just render them on top of eachother like players.
             if (gameStore.fowLOS) {
                 ctx.globalCompositeOperation = "source-in";
-                ctx.drawImage(layerManager.getLayer("fow-players")!.canvas, 0, 0);
+                ctx.drawImage(layerManager.getLayer(this.floor, "fow-players")!.canvas, 0, 0);
             }
 
             for (const preShape of this.preFogShapes) {

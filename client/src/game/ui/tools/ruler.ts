@@ -20,7 +20,7 @@ export class RulerTool extends Tool {
     ruler: Line | null = null;
     text: Text | null = null;
     onMouseDown(event: MouseEvent): void {
-        const layer = layerManager.getLayer("draw");
+        const layer = layerManager.getLayer(layerManager.floor!.name, "draw");
         if (layer === undefined) {
             console.log("No draw layer!");
             return;
@@ -37,7 +37,7 @@ export class RulerTool extends Tool {
     onMouseMove(event: MouseEvent): void {
         if (!this.active || this.ruler === null || this.startPoint === null || this.text === null) return;
 
-        const layer = layerManager.getLayer("draw");
+        const layer = layerManager.getLayer(layerManager.floor!.name, "draw");
         if (layer === undefined) {
             console.log("No draw layer!");
             return;
@@ -66,7 +66,7 @@ export class RulerTool extends Tool {
     onMouseUp(_event: MouseEvent): void {
         if (!this.active || this.ruler === null || this.startPoint === null || this.text === null) return;
 
-        const layer = layerManager.getLayer("draw");
+        const layer = layerManager.getLayer(layerManager.floor!.name, "draw");
         if (layer === undefined) {
             console.log("No active layer!");
             return;

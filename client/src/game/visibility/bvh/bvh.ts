@@ -52,7 +52,7 @@ export class BoundingVolume {
     }
 
     draw(): void {
-        const ctx = layerManager.getLayer("draw")!.ctx;
+        const ctx = layerManager.getLayer(layerManager.floor!.name, "draw")!.ctx;
         for (const node of this.nodes) {
             const b = node.bbox;
             ctx.strokeRect(g2lx(b.topLeft.x), g2ly(b.topLeft.y), g2lz(b.w), g2lz(b.h));

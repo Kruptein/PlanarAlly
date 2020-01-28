@@ -73,7 +73,7 @@ export function createShapeFromDict(shape: ServerShape): Shape | undefined {
         else img.src = asset.src;
         sh = new Asset(img, refPoint, asset.width, asset.height, asset.uuid);
         img.onload = () => {
-            layerManager.getLayer(shape.layer)!.invalidate(false);
+            layerManager.getLayer(shape.floor, shape.layer)!.invalidate(false);
         };
     } else {
         return undefined;
@@ -83,7 +83,7 @@ export function createShapeFromDict(shape: ServerShape): Shape | undefined {
 }
 
 export function copyShapes(): void {
-    const layer = layerManager.getLayer();
+    const layer = layerManager.getLayer(layerManager.floor!.name);
     if (!layer) return;
     if (!layer.selection) return;
     const clipboard = [];
@@ -96,7 +96,7 @@ export function copyShapes(): void {
 }
 
 export function pasteShapes(targetLayer?: string): Shape[] {
-    const layer = layerManager.getLayer(targetLayer);
+    const layer = layerManager.getLayer(layerManager.floor!.name, targetLayer);
     if (!layer) return [];
     if (!gameStore.clipboard) return [];
     layer.selection = [];
@@ -144,7 +144,7 @@ export function deleteShapes(): void {
         console.log("No active layer selected for delete operation");
         return;
     }
-    const l = layerManager.getLayer()!;
+    const l = layerManager.getLayer(layerManager.floor!.name)!;
     for (let i = l.selection.length - 1; i >= 0; i--) {
         const sel = l.selection[i];
         if (gameStore.selectionHelperID === sel.uuid) {

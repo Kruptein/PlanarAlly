@@ -52,7 +52,7 @@ export function onKeyDown(event: KeyboardEvent): void {
                     });
                 }
                 visibilityStore.recalculateVision(layerManager.floor!.name);
-                layerManager.getLayer()!.invalidate(false);
+                layerManager.getLayer(layerManager.floor!.name)!.invalidate(false);
             } else {
                 // The pan offsets should be in the opposite direction to give the correct feel.
                 gameStore.increasePanX(offsetX * (event.keyCode <= 38 ? 1 : -1));
@@ -62,7 +62,7 @@ export function onKeyDown(event: KeyboardEvent): void {
             }
         } else if (event.key === "d") {
             // d - Deselect all
-            const layer = layerManager.getLayer();
+            const layer = layerManager.getLayer(layerManager.floor!.name);
             if (layer) {
                 layer.clearSelection();
                 layer.invalidate(true);

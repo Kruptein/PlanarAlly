@@ -157,9 +157,9 @@ export class Layer {
 
             for (const shape of this.shapes) {
                 if (shape.options.has("skipDraw") && shape.options.get("skipDraw")) continue;
-                if (layerManager.getLayer() === undefined) continue;
+                if (layerManager.getLayer(this.floor) === undefined) continue;
                 if (!shape.visibleInCanvas(this.canvas)) continue;
-                if (this.name === "fow" && layerManager.getLayer()!.name !== this.name) continue;
+                if (this.name === "fow" && layerManager.getLayer(this.floor)!.name !== this.name) continue;
                 shape.drawAuras(ctx);
             }
             for (const shape of this.shapes) {
@@ -171,9 +171,9 @@ export class Layer {
                     !shape.labels.some(l => gameStore.labelFilters.includes(l.uuid))
                 )
                     continue;
-                if (layerManager.getLayer() === undefined) continue;
+                if (layerManager.getLayer(this.floor) === undefined) continue;
                 if (!shape.visibleInCanvas(this.canvas)) continue;
-                if (this.name === "fow" && layerManager.getLayer()!.name !== this.name) continue;
+                if (this.name === "fow" && layerManager.getLayer(this.floor)!.name !== this.name) continue;
                 shape.draw(ctx);
             }
 

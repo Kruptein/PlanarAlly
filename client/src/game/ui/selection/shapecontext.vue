@@ -82,7 +82,7 @@ export default class ShapeContext extends Vue {
         return layerManager.floor?.layers.filter(l => l.selectable && (gameStore.IS_DM || l.playerEditable)) || [];
     }
     getActiveLayer(): Layer | undefined {
-        return layerManager.getLayer(layerManager.floor!.name);
+        if (layerManager.floor !== undefined) return layerManager.getLayer(layerManager.floor.name);
     }
     getCurrentLocation(): string {
         return gameStore.locationName;

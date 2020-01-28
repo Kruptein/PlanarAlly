@@ -131,6 +131,6 @@ async def add_new_location(sid, location):
         return
 
     new_location = Location.create(room=room, name=location)
-    new_location.add_default_layers()
+    new_location.create_floor()
 
     await load_location(sid, new_location)

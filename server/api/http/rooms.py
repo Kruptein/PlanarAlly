@@ -33,7 +33,7 @@ async def create(request):
         with db.atomic():
             room = Room.create(name=roomname, creator=user)
             loc = Location.create(room=room, name="start")
-            loc.add_default_layers()
+            loc.create_floor()
             room.dm_location = loc.name
             room.player_location = loc.name
             room.save()

@@ -2,7 +2,7 @@ import { GlobalPoint, Ray, Vector } from "@/game/geom";
 import { layerManager } from "@/game/layers/manager";
 import { Shape } from "@/game/shapes/shape";
 import { visibilityStore } from "@/game/visibility/store";
-import { PA_CDT } from "@/game/visibility/te/pa";
+import { getCDT, TriangulationTarget } from "@/game/visibility/te/pa";
 import { Point, Sign, Triangle } from "@/game/visibility/te/tds";
 import { ccw, cw, intersection, orientation } from "@/game/visibility/te/triag";
 
@@ -63,9 +63,9 @@ export function calculateDelta(delta: Vector, sel: Shape, done?: string[]): Vect
         if (refine) delta = calculateDelta(delta, sel, done);
         return delta;
     } else {
-        const centerTriangle = PA_CDT.movement.locate(sel.center().asArray(), null).loc;
+        const centerTriangle = getCDT(TriangulationTarget.MOVEMENT).locate(sel.center().asArray(), null).loc;
         for (const point of sel.points) {
-            const lt = PA_CDT.movement.locate(point, centerTriangle);
+            const lt = getCDT(TriangulationTarget.MOVEMENT).locate(point, centerTriangle);
             const triangle = lt.loc;
             if (triangle === null) continue;
             delta = checkTriangle(point, triangle, delta);

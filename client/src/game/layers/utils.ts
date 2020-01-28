@@ -1,17 +1,19 @@
-import { ServerLayer, ServerFloor } from "@/game/comm/types/general";
+import { SyncMode } from "@/core/comm/types";
+import { ServerFloor, ServerLayer } from "@/game/comm/types/general";
+import { GlobalPoint, LocalPoint } from "@/game/geom";
 import { FOWLayer } from "@/game/layers/fow";
 import { FOWPlayersLayer } from "@/game/layers/fowplayers";
 import { GridLayer } from "@/game/layers/grid";
 import { Layer } from "@/game/layers/layer";
 import { layerManager } from "@/game/layers/manager";
+import { Asset } from "@/game/shapes/asset";
 import { gameStore } from "@/game/store";
-import { GlobalPoint, LocalPoint } from "../geom";
-import { Asset } from "../shapes/asset";
-import { l2gx, l2gy, l2gz, g2l } from "../units";
-import { SyncMode } from "@/core/comm/types";
+import { g2l, l2gx, l2gy, l2gz } from "@/game/units";
+import { addCDT } from "@/game/visibility/te/pa";
 
 export function addFloor(floor: ServerFloor): void {
     gameStore.floors.push(floor.name);
+    addCDT(floor.name);
     layerManager.floors.push({ name: floor.name, layers: [] });
     if (gameStore.selectedFloorIndex < 0) gameStore.selectFloor(0);
     for (const layer of floor.layers) createLayer(layer, floor.name);

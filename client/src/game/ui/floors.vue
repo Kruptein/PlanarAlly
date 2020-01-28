@@ -45,6 +45,7 @@ import Game from "@/game/game.vue";
 
 import { layerManager } from "@/game/layers/manager";
 import { gameStore } from "@/game/store";
+import { removeCDT } from "../visibility/te/pa";
 
 @Component
 export default class FloorSelect extends Vue {
@@ -80,6 +81,7 @@ export default class FloorSelect extends Vue {
     }
 
     removeFloor(index: number): void {
+        removeCDT(gameStore.floors[gameStore.selectedFloorIndex]);
         gameStore.floors.splice(index, 1);
         gameStore.selectFloor(index - 1);
     }

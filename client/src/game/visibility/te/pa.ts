@@ -7,14 +7,29 @@ export enum TriangulationTarget {
     MOVEMENT = "movement",
 }
 
-export const PA_CDT = {
-    vision: new CDT(),
-    movement: new CDT(),
-};
+const PA_CDT: Map<string, { vision: CDT; movement: CDT }> = new Map();
+
+export function getCDT(target: TriangulationTarget, floor?: string): CDT {
+    if (floor === undefined) floor = layerManager.floor!.name;
+    return PA_CDT.get(floor)![target];
+}
+
+function setCDT(target: TriangulationTarget, cdt: CDT, floor?: string): void {
+    if (floor === undefined) floor = layerManager.floor!.name;
+    PA_CDT.set(floor, { ...PA_CDT.get(floor)!, [target]: cdt });
+}
+
+export function addCDT(floor: string): void {
+    PA_CDT.set(floor, { vision: new CDT(), movement: new CDT() });
+}
+
+export function removeCDT(floor: string): void {
+    PA_CDT.delete(floor);
+}
 
 export function triangulate(target: TriangulationTarget, partial = false): void {
     const cdt = new CDT();
-    PA_CDT[target] = cdt;
+    setCDT(target, cdt);
     let shapes;
     if (target === "vision") shapes = visibilityStore.visionBlockers;
     else shapes = visibilityStore.movementblockers;

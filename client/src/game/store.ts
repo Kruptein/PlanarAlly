@@ -260,6 +260,8 @@ class GameStore extends VuexModule implements GameState {
 
     @Mutation
     resetLayerInfo(): void {
+        this.floors = [];
+        this.selectedFloorIndex = -1;
         this.layers = [];
         this.selectedLayerIndex = -1;
     }

@@ -227,19 +227,24 @@ class GameStore extends VuexModule implements GameState {
 
     @Mutation
     selectFloor(floor: number): void {
-        for (let j = this.floors.length - 1; j > Math.min(this.selectedFloorIndex, floor); j--) {
-            for (const layer of layerManager.floors[j].layers) {
-                if (j > floor) {
-                    layer.canvas.style.display = "none";
-                } else layer.canvas.style.removeProperty("display");
-            }
-        }
+        let cutoff = Math.min(this.selectedFloorIndex, floor);
+        if (cutoff < 0) cutoff = 0;
+
         this.selectedFloorIndex = floor;
         this.layers = layerManager.floor!.layers.reduce(
             (acc: string[], val: Layer) =>
                 val.selectable && (val.playerEditable || this.IS_DM) ? [...acc, val.name] : acc,
             [],
         );
+
+        for (let j = this.floors.length - 1; j >= cutoff; j--) {
+            for (const layer of layerManager.floors[j].layers) {
+                if (j > floor) {
+                    layer.canvas.style.display = "none";
+                } else layer.canvas.style.removeProperty("display");
+                layerManager.invalidate(layerManager.floors[j].name);
+            }
+        }
     }
 
     @Mutation

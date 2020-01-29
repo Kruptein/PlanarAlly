@@ -271,7 +271,7 @@ export class FOWLayer extends Layer {
             ixs.push(ix);
         }
 
-        if (ixs.length <= 1) {
+        if (ixs.length < 1) {
             path.arc(lCenter.x, lCenter.y, lRadius, 0, 2 * Math.PI);
             return path;
         }

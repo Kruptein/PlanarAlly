@@ -10,7 +10,7 @@ import { gameManager } from "@/game/manager";
 import { gameStore } from "@/game/store";
 import { router } from "@/router";
 import { zoomDisplay } from "../utils";
-import { visibilityStore } from "../visibility/store";
+import { visibilityStore, VisibilityMode } from "../visibility/store";
 
 socket.on("connect", () => {
     console.log("Connected");
@@ -80,7 +80,7 @@ socket.on("Location.Set", (data: Partial<ServerLocation>) => {
     if (data.vision_min_range !== undefined) gameStore.setVisionRangeMin({ value: data.vision_min_range, sync: false });
     if (data.vision_max_range !== undefined) gameStore.setVisionRangeMax({ value: data.vision_max_range, sync: false });
     if (data.vision_mode !== undefined) {
-        visibilityStore.setVisionMode({ mode: data.vision_mode, sync: false });
+        visibilityStore.setVisionMode({ mode: VisibilityMode.TRIANGLE, sync: false });
         visibilityStore.recalculateVision();
         visibilityStore.recalculateMovement();
     }

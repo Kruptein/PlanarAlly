@@ -1,4 +1,4 @@
-import { GlobalPoint, Ray, LocalPoint } from "@/game/geom";
+import { GlobalPoint, LocalPoint } from "@/game/geom";
 import { Layer } from "@/game/layers/layer";
 import { layerManager } from "@/game/layers/manager";
 import { Settings } from "@/game/settings";
@@ -95,108 +95,37 @@ export class FOWLayer extends Layer {
                 const auraCircle = new Circle(center, auraLength);
                 if (!auraCircle.visibleInCanvas(ctx.canvas)) continue;
 
-                if (visibilityStore.visionMode === "bvh") {
-                    let lastArcAngle = -1;
-
-                    const path = new Path2D();
-                    path.moveTo(lcenter.x, lcenter.y);
-                    let firstPoint: GlobalPoint;
-
-                    for (let angle = 0; angle < 2 * Math.PI; angle += (Settings.angleSteps / 180) * Math.PI) {
-                        const anglePoint = new GlobalPoint(
-                            center.x + auraLength * Math.cos(angle),
-                            center.y + auraLength * Math.sin(angle),
-                        );
-                        if (Settings.drawAngleLines) {
-                            dctx!.beginPath();
-                            dctx!.moveTo(g2lx(center.x), g2ly(center.y));
-                            dctx!.lineTo(g2lx(anglePoint.x), g2ly(anglePoint.y));
-                            dctx!.stroke();
-                        }
-
-                        // Check if there is a hit with one of the nearby light blockers.
-                        const lightRay = Ray.fromPoints(center, anglePoint);
-                        const hitResult = visibilityStore.BV.intersect(lightRay);
-
-                        if (angle === 0) firstPoint = hitResult.hit ? hitResult.intersect : anglePoint;
-
-                        // We can move on to the next angle if nothing was hit.
-                        if (!hitResult.hit) {
-                            // If an earlier hit caused the aura to leave the arc, we need to go back to the arc
-                            if (lastArcAngle === -1) {
-                                // Set the start of a new arc beginning at the current angle
-                                lastArcAngle = angle;
-                                // Draw a line from the last non arc location back to the arc
-                                const dest = g2l(anglePoint);
-                                ctx.lineTo(dest.x, dest.y);
-                            }
-                            continue;
-                        }
-                        // If hit , first finish any ongoing arc, then move to the intersection point
-                        if (lastArcAngle !== -1) {
-                            path.arc(lcenter.x, lcenter.y, g2lr(aura.value + aura.dim), lastArcAngle, angle);
-                            lastArcAngle = -1;
-                        }
-                        path.lineTo(g2lx(hitResult.intersect.x), g2ly(hitResult.intersect.y));
-                    }
-                    // Finish the final arc.
-                    if (lastArcAngle === -1) path.lineTo(g2lx(firstPoint!.x), g2ly(firstPoint!.y));
-                    else path.arc(lcenter.x, lcenter.y, g2lr(aura.value + aura.dim), lastArcAngle, 2 * Math.PI);
-
-                    if (gameStore.fullFOW) {
-                        if (aura.dim > 0) {
-                            // Fill the light aura with a radial dropoff towards the outside.
-                            const gradient = ctx.createRadialGradient(
-                                lcenter.x,
-                                lcenter.y,
-                                g2lr(aura.value),
-                                lcenter.x,
-                                lcenter.y,
-                                g2lr(aura.value + aura.dim),
-                            );
-                            gradient.addColorStop(0, "rgba(0, 0, 0, 1)");
-                            gradient.addColorStop(1, "rgba(0, 0, 0, 0)");
-                            ctx.fillStyle = gradient;
-                        } else {
-                            ctx.fillStyle = "rgba(0, 0, 0, 1)";
-                        }
-                        ctx.fill(path);
-                    }
-
-                    aura.lastPath = path;
+                this.vCtx.globalCompositeOperation = "source-over";
+                this.vCtx.fillStyle = "rgba(0, 0, 0, 1)";
+                const polygon = computeVisibility(center, TriangulationTarget.VISION);
+                this.vCtx.beginPath();
+                this.vCtx.moveTo(g2lx(polygon[0][0]), g2ly(polygon[0][1]));
+                for (const point of polygon) this.vCtx.lineTo(g2lx(point[0]), g2ly(point[1]));
+                this.vCtx.closePath();
+                this.vCtx.fill();
+                if (aura.dim > 0) {
+                    // Fill the light aura with a radial dropoff towards the outside.
+                    const gradient = this.vCtx.createRadialGradient(
+                        lcenter.x,
+                        lcenter.y,
+                        g2lr(aura.value),
+                        lcenter.x,
+                        lcenter.y,
+                        g2lr(aura.value + aura.dim),
+                    );
+                    gradient.addColorStop(0, "rgba(0, 0, 0, 1)");
+                    gradient.addColorStop(1, "rgba(0, 0, 0, 0)");
+                    this.vCtx.fillStyle = gradient;
                 } else {
-                    this.vCtx.globalCompositeOperation = "source-over";
                     this.vCtx.fillStyle = "rgba(0, 0, 0, 1)";
-                    const polygon = computeVisibility(center, TriangulationTarget.VISION);
-                    this.vCtx.beginPath();
-                    this.vCtx.moveTo(g2lx(polygon[0][0]), g2ly(polygon[0][1]));
-                    for (const point of polygon) this.vCtx.lineTo(g2lx(point[0]), g2ly(point[1]));
-                    this.vCtx.closePath();
-                    this.vCtx.fill();
-                    if (aura.dim > 0) {
-                        // Fill the light aura with a radial dropoff towards the outside.
-                        const gradient = this.vCtx.createRadialGradient(
-                            lcenter.x,
-                            lcenter.y,
-                            g2lr(aura.value),
-                            lcenter.x,
-                            lcenter.y,
-                            g2lr(aura.value + aura.dim),
-                        );
-                        gradient.addColorStop(0, "rgba(0, 0, 0, 1)");
-                        gradient.addColorStop(1, "rgba(0, 0, 0, 0)");
-                        this.vCtx.fillStyle = gradient;
-                    } else {
-                        this.vCtx.fillStyle = "rgba(0, 0, 0, 1)";
-                    }
-                    this.vCtx.globalCompositeOperation = "source-in";
-                    this.vCtx.beginPath();
-                    this.vCtx.arc(lcenter.x, lcenter.y, g2lr(aura.value + aura.dim), 0, 2 * Math.PI);
-                    this.vCtx.fill();
-                    ctx.drawImage(this.virtualCanvas, 0, 0);
-                    aura.lastPath = this.updateAuraPath(polygon, auraCircle);
-                    shape.invalidate(true);
                 }
+                this.vCtx.globalCompositeOperation = "source-in";
+                this.vCtx.beginPath();
+                this.vCtx.arc(lcenter.x, lcenter.y, g2lr(aura.value + aura.dim), 0, 2 * Math.PI);
+                this.vCtx.fill();
+                ctx.drawImage(this.virtualCanvas, 0, 0);
+                aura.lastPath = this.updateAuraPath(polygon, auraCircle);
+                shape.invalidate(true);
             }
 
             // At the DM Side due to opacity of the two fow layers, it looks strange if we just render them on top of eachother like players.

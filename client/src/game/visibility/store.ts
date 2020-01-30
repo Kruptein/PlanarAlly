@@ -1,25 +1,26 @@
 import { socket } from "@/game/api/socket";
 import { rootStore } from "@/store";
 import { Action, getModule, Module, Mutation, VuexModule } from "vuex-module-decorators";
-import { BoundingVolume } from "./bvh/bvh";
 import { triangulate, TriangulationTarget } from "./te/pa";
 
+export enum VisibilityMode {
+    TRIANGLE,
+}
+
 export interface VisibilityState {
-    visionMode: "bvh" | "triangle";
+    visionMode: VisibilityMode;
     visionBlockers: string[];
 }
 
 @Module({ dynamic: true, store: rootStore, name: "visibility", namespaced: true })
 class VisibilityStore extends VuexModule implements VisibilityState {
-    BV = Object.freeze(new BoundingVolume([]));
-
-    visionMode: "bvh" | "triangle" = "bvh";
+    visionMode = VisibilityMode.TRIANGLE;
     visionBlockers: string[] = [];
     movementblockers: string[] = [];
     visionSources: { shape: string; aura: string }[] = [];
 
     @Mutation
-    setVisionMode(data: { mode: "bvh" | "triangle"; sync: boolean }): void {
+    setVisionMode(data: { mode: VisibilityMode; sync: boolean }): void {
         this.visionMode = data.mode;
         // eslint-disable-next-line @typescript-eslint/camelcase
         if (data.sync) socket.emit("Location.Options.Set", { vision_mode: data.mode });
@@ -27,13 +28,12 @@ class VisibilityStore extends VuexModule implements VisibilityState {
 
     @Mutation
     recalculateVision(): void {
-        if (this.visionMode === "triangle") triangulate(TriangulationTarget.VISION);
-        else this.BV = Object.freeze(new BoundingVolume(this.visionBlockers));
+        triangulate(TriangulationTarget.VISION);
     }
 
     @Mutation
     recalculateMovement(): void {
-        if (this.visionMode === "triangle") triangulate(TriangulationTarget.MOVEMENT);
+        triangulate(TriangulationTarget.MOVEMENT);
     }
 
     @Action

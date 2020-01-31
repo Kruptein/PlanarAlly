@@ -144,7 +144,7 @@ export class Layer {
     }
 
     draw(doClear?: boolean): void {
-        if (!this.valid) {
+        if (!this.valid && this.name === "fow") {
             const ctx = this.ctx;
             const ogOP = ctx.globalCompositeOperation;
             doClear = doClear === undefined ? true : doClear;

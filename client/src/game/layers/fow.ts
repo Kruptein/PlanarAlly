@@ -58,6 +58,14 @@ export class FOWLayer extends Layer {
 
             ctx.fillStyle = "rgba(0, 0, 0, 1)";
 
+            // const activeFloorIndex = gameStore.selectedFloorIndex;
+            // if (activeFloorIndex > 0 && this.floor === gameStore.floors[activeFloorIndex]) {
+            //     for (const [index, floor] of layerManager.floors.entries()) {
+            //         if (index >= activeFloorIndex) break;
+            //         ctx.drawImage(layerManager.getLayer(floor.name, "fow")!.canvas, 0, 0);
+            //     }
+            // }
+
             const dctx = layerManager.getLayer(this.floor, "draw")!.ctx;
             if (Settings.drawAngleLines || Settings.drawFirstLightHit) {
                 dctx.clearRect(0, 0, dctx.canvas.width, dctx.canvas.height);
@@ -165,7 +173,7 @@ export class FOWLayer extends Layer {
                     }
 
                     aura.lastPath = path;
-                } else {
+                } else if (this.floor === "ground") {
                     this.vCtx.globalCompositeOperation = "source-over";
                     this.vCtx.fillStyle = "rgba(0, 0, 0, 1)";
                     const polygon = computeVisibility(center, TriangulationTarget.VISION, shape.floor);
@@ -194,7 +202,8 @@ export class FOWLayer extends Layer {
                     this.vCtx.beginPath();
                     this.vCtx.arc(lcenter.x, lcenter.y, g2lr(aura.value + aura.dim), 0, 2 * Math.PI);
                     this.vCtx.fill();
-                    ctx.drawImage(this.virtualCanvas, 0, 0);
+                    if (this.floor === gameStore.floors[gameStore.selectedFloorIndex])
+                        ctx.drawImage(this.virtualCanvas, 0, 0);
                     aura.lastPath = this.updateAuraPath(polygon, auraCircle);
                     shape.invalidate(true);
                 }

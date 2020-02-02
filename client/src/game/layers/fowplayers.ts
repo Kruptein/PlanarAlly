@@ -11,6 +11,17 @@ import { computeVisibility } from "../visibility/te/te";
 export class FOWPlayersLayer extends Layer {
     isVisionLayer = true;
 
+    virtualCanvas: HTMLCanvasElement;
+    vCtx: CanvasRenderingContext2D;
+
+    constructor(canvas: HTMLCanvasElement, name: string, floor: string) {
+        super(canvas, name, floor);
+        this.virtualCanvas = document.createElement("canvas");
+        this.virtualCanvas.width = window.innerWidth;
+        this.virtualCanvas.height = window.innerHeight;
+        this.vCtx = this.virtualCanvas.getContext("2d")!;
+    }
+
     draw(): void {
         if (!this.valid) {
             // console.time("VI");
@@ -23,14 +34,42 @@ export class FOWPlayersLayer extends Layer {
             }
 
             ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+            this.vCtx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
             const originalOperation = ctx.globalCompositeOperation;
 
             ctx.fillStyle = "rgba(0, 0, 0, 1)";
 
+            const activeFloorName = gameStore.floors[gameStore.selectedFloorIndex];
+
+            if (this.floor === activeFloorName && this.canvas.style.display === "none")
+                this.canvas.style.removeProperty("display");
+            else if (this.floor !== activeFloorName && this.canvas.style.display !== "none")
+                this.canvas.style.display = "none";
+
+            if (this.floor === activeFloorName && layerManager.floors.length > 1) {
+                for (const floor of layerManager.floors) {
+                    if (floor.name !== gameStore.floors[0]) {
+                        const mapl = layerManager.getLayer(floor.name, "map");
+                        if (mapl === undefined) continue;
+                        ctx.globalCompositeOperation = "destination-out";
+                        ctx.drawImage(mapl.canvas, 0, 0);
+                    }
+                    if (floor.name !== activeFloorName) {
+                        const fowl = layerManager.getLayer(floor.name, this.name);
+                        if (fowl === undefined) continue;
+                        ctx.globalCompositeOperation = "source-over";
+                        ctx.drawImage(fowl.canvas, 0, 0);
+                    }
+                    if (floor.name === activeFloorName) break;
+                }
+            }
+
+            ctx.globalCompositeOperation = "source-over";
+
             // For the DM this is done at the end of this function.  TODO: why the split up ???
             // This was done in commit be1e65cff1e7369375fe11cfa1643fab1d11beab.
-            if (!gameStore.IS_DM) super.draw(!gameStore.fullFOW);
+            if (!gameStore.IS_DM) super.draw(false);
 
             // Then cut out all the player vision auras
             const maxLength = ctx.canvas.width + ctx.canvas.height;
@@ -104,9 +143,26 @@ export class FOWPlayersLayer extends Layer {
                 }
             }
 
+            if (this.floor === activeFloorName && layerManager.floors.length > 1) {
+                for (let f = layerManager.floors.length - 1; f > gameStore.selectedFloorIndex; f--) {
+                    const floor = layerManager.floors[f];
+                    if (floor.name === activeFloorName) break;
+                    const fowl = layerManager.getLayer(floor.name, this.name);
+                    if (fowl === undefined) continue;
+                    this.vCtx.globalCompositeOperation = "destination-over";
+                    this.vCtx.drawImage(fowl.canvas, 0, 0);
+                    const mapl = layerManager.getLayer(floor.name, "map");
+                    if (mapl === undefined) continue;
+                    this.vCtx.globalCompositeOperation = "destination-out";
+                    this.vCtx.drawImage(mapl.canvas, 0, 0);
+                }
+                ctx.globalCompositeOperation = "source-over";
+                ctx.drawImage(this.virtualCanvas, 0, 0);
+            }
+
             // For the players this is done at the beginning of this function.  TODO: why the split up ???
             // This was done in commit be1e65cff1e7369375fe11cfa1643fab1d11beab.
-            if (gameStore.IS_DM) super.draw(!gameStore.fullFOW);
+            if (gameStore.IS_DM) super.draw(false);
 
             ctx.globalCompositeOperation = originalOperation;
             // console.timeEnd("VI");

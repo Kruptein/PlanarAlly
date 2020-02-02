@@ -1,5 +1,6 @@
 import { Layer } from "@/game/layers/layer";
 import { gameStore } from "@/game/store";
+import { layerManager } from "./manager";
 
 export class GridLayer extends Layer {
     invalidate(): void {
@@ -11,6 +12,13 @@ export class GridLayer extends Layer {
         }
     }
     drawGrid(): void {
+        const activeFowFloorName = layerManager.floor?.name;
+
+        if (this.floor === activeFowFloorName && this.canvas.style.display === "none")
+            this.canvas.style.removeProperty("display");
+        else if (this.floor !== activeFowFloorName && this.canvas.style.display !== "none")
+            this.canvas.style.display = "none";
+
         const ctx = this.ctx;
         this.clear();
         ctx.beginPath();

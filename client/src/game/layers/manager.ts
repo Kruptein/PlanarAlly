@@ -23,10 +23,10 @@ class LayerManager {
     }
 
     drawLoop = (): void => {
-        for (let f = this.floors.length - 1; f >= 0; f--) {
-            const floor = this.floors[f];
+        for (const [f, floor] of this.floors.entries()) {
+            if (f > gameStore.selectedFloorIndex) break;
             for (let i = floor.layers.length - 1; i >= 0; i--) {
-                if (f <= gameStore.selectedFloorIndex) floor.layers[i].draw();
+                floor.layers[i].draw();
             }
         }
         requestAnimationFrame(this.drawLoop);
@@ -120,19 +120,23 @@ class LayerManager {
     }
 
     invalidateAllFloors(): void {
-        for (const floor of this.floors) {
+        for (const [f, floor] of this.floors.entries()) {
+            if (f > gameStore.selectedFloorIndex) return;
             this.invalidate(floor.name);
         }
     }
 
     invalidateLight(floorName: string): void {
-        const floor = this.getFloor(floorName)!;
-        for (let i = floor.layers.length - 1; i >= 0; i--)
-            if (floor.layers[i].isVisionLayer) floor.layers[i].invalidate(true);
+        for (const floor of this.floors) {
+            for (let i = floor.layers.length - 1; i >= 0; i--)
+                if (floor.layers[i].isVisionLayer) floor.layers[i].invalidate(true);
+            if (floorName && floor.name === floorName) return;
+        }
     }
 
     invalidateLightAllFloors(): void {
-        for (const floor of this.floors) {
+        for (const [f, floor] of this.floors.entries()) {
+            if (f > gameStore.selectedFloorIndex) return;
             this.invalidateLight(floor.name);
         }
     }

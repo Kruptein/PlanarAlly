@@ -143,11 +143,10 @@ export class Layer {
         EventBus.$emit("SelectionInfo.Shape.Set", null);
     }
 
-    draw(doClear?: boolean): void {
-        if (!this.valid && this.name === "fow") {
+    draw(doClear = true): void {
+        if (!this.valid) {
             const ctx = this.ctx;
             const ogOP = ctx.globalCompositeOperation;
-            doClear = doClear === undefined ? true : doClear;
 
             if (doClear) this.clear();
 
@@ -185,6 +184,7 @@ export class Layer {
                     shape.drawSelection(ctx);
                 }
             }
+
             ctx.globalCompositeOperation = ogOP;
             this.valid = true;
             this.resolveCallbacks();

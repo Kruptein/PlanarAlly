@@ -58,21 +58,43 @@ export class FOWLayer extends Layer {
 
             ctx.fillStyle = "rgba(0, 0, 0, 1)";
 
-            // const activeFloorIndex = gameStore.selectedFloorIndex;
-            // if (activeFloorIndex > 0 && this.floor === gameStore.floors[activeFloorIndex]) {
-            //     for (const [index, floor] of layerManager.floors.entries()) {
-            //         if (index >= activeFloorIndex) break;
-            //         ctx.drawImage(layerManager.getLayer(floor.name, "fow")!.canvas, 0, 0);
-            //     }
-            // }
-
             const dctx = layerManager.getLayer(this.floor, "draw")!.ctx;
             if (Settings.drawAngleLines || Settings.drawFirstLightHit) {
                 dctx.clearRect(0, 0, dctx.canvas.width, dctx.canvas.height);
             }
 
+            const activeFloorName = gameStore.floors[gameStore.selectedFloorIndex];
+
+            if (this.floor === activeFloorName && this.canvas.style.display === "none")
+                this.canvas.style.removeProperty("display");
+            else if (this.floor !== activeFloorName && this.canvas.style.display !== "none")
+                this.canvas.style.display = "none";
+
+            if (this.floor === activeFloorName && layerManager.floors.length > 1) {
+                for (const floor of layerManager.floors) {
+                    if (floor.name !== gameStore.floors[0]) {
+                        const mapl = layerManager.getLayer(floor.name, "map");
+                        if (mapl === undefined) continue;
+                        ctx.globalCompositeOperation = "destination-out";
+                        ctx.drawImage(mapl.canvas, 0, 0);
+                    }
+                    if (floor.name !== activeFloorName) {
+                        const fowl = layerManager.getLayer(floor.name, this.name);
+                        if (fowl === undefined) continue;
+                        ctx.globalCompositeOperation = "source-over";
+                        ctx.drawImage(fowl.canvas, 0, 0);
+                    }
+                    if (floor.name === activeFloorName) break;
+                }
+            }
+            ctx.globalCompositeOperation = "source-over";
+
             // At all times provide a minimal vision range to prevent losing your tokens in fog.
-            if (gameStore.fullFOW && layerManager.hasLayer(this.floor, "tokens")) {
+            if (
+                gameStore.fullFOW &&
+                layerManager.hasLayer(this.floor, "tokens") &&
+                this.floor === gameStore.floors[gameStore.selectedFloorIndex]
+            ) {
                 for (const sh of layerManager.getLayer(this.floor, "tokens")!.shapes) {
                     if (!sh.ownedBy() || !sh.isToken) continue;
                     const bb = sh.getBoundingBox();
@@ -173,7 +195,7 @@ export class FOWLayer extends Layer {
                     }
 
                     aura.lastPath = path;
-                } else if (this.floor === "ground") {
+                } else {
                     this.vCtx.globalCompositeOperation = "source-over";
                     this.vCtx.fillStyle = "rgba(0, 0, 0, 1)";
                     const polygon = computeVisibility(center, TriangulationTarget.VISION, shape.floor);
@@ -202,15 +224,13 @@ export class FOWLayer extends Layer {
                     this.vCtx.beginPath();
                     this.vCtx.arc(lcenter.x, lcenter.y, g2lr(aura.value + aura.dim), 0, 2 * Math.PI);
                     this.vCtx.fill();
-                    if (this.floor === gameStore.floors[gameStore.selectedFloorIndex])
-                        ctx.drawImage(this.virtualCanvas, 0, 0);
+                    ctx.drawImage(this.virtualCanvas, 0, 0);
                     aura.lastPath = this.updateAuraPath(polygon, auraCircle);
                     shape.invalidate(true);
                 }
             }
 
-            // At the DM Side due to opacity of the two fow layers, it looks strange if we just render them on top of eachother like players.
-            if (gameStore.fowLOS) {
+            if (gameStore.fowLOS && this.floor === activeFloorName) {
                 ctx.globalCompositeOperation = "source-in";
                 ctx.drawImage(layerManager.getLayer(this.floor, "fow-players")!.canvas, 0, 0);
             }
@@ -228,7 +248,7 @@ export class FOWLayer extends Layer {
                 preShape.globalCompositeOperation = ogComposite;
             }
 
-            if (gameStore.fullFOW) {
+            if (gameStore.fullFOW && this.floor === activeFloorName) {
                 ctx.globalCompositeOperation = "source-out";
                 ctx.fillStyle = getFogColour();
                 ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);

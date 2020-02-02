@@ -226,25 +226,31 @@ class GameStore extends VuexModule implements GameState {
     }
 
     @Mutation
-    selectFloor(floor: number): void {
-        let cutoff = Math.min(this.selectedFloorIndex, floor);
-        if (cutoff < 0) cutoff = 0;
-
-        this.selectedFloorIndex = floor;
+    selectFloor(targetFloorIndex: number): void {
+        this.selectedFloorIndex = targetFloorIndex;
         this.layers = layerManager.floor!.layers.reduce(
             (acc: string[], val: Layer) =>
                 val.selectable && (val.playerEditable || this.IS_DM) ? [...acc, val.name] : acc,
             [],
         );
 
-        for (let j = this.floors.length - 1; j >= cutoff; j--) {
-            for (const layer of layerManager.floors[j].layers) {
-                if (j > floor) {
-                    layer.canvas.style.display = "none";
-                } else layer.canvas.style.removeProperty("display");
-                layerManager.invalidate(layerManager.floors[j].name);
+        for (const [f, floor] of layerManager.floors.entries()) {
+            for (const layer of floor.layers) {
+                if (f > targetFloorIndex) layer.canvas.style.display = "none";
+                else layer.canvas.style.removeProperty("display");
             }
         }
+        layerManager.invalidateAllFloors();
+        // During the above invalidation call with multiple floors,
+        // the map layer is always invalidated after fow as we invalidate from top to bottom
+        // this makes it that the fow invalidation is working with out of date map stuff
+        if (this.floors.length > 1)
+            layerManager
+                .getLayer(this.floors[this.selectedFloorIndex])
+                ?.waitValid()
+                .then(() => {
+                    layerManager.invalidateLight(this.floors[this.selectedFloorIndex]);
+                });
     }
 
     @Mutation

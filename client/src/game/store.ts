@@ -237,9 +237,14 @@ class GameStore extends VuexModule implements GameState {
 
         for (const [f, floor] of layerManager.floors.entries()) {
             for (const layer of floor.layers) {
-                // todo opacity for lower floors
                 if (f > targetFloorIndex) layer.canvas.style.display = "none";
                 else layer.canvas.style.removeProperty("display");
+
+                if (f < targetFloorIndex) {
+                    layer.ctx.globalAlpha = 0.7;
+                } else {
+                    layer.ctx.globalAlpha = 1.0;
+                }
             }
         }
         layerManager.selectLayer(layerManager.getLayer(layerManager.floor!.name)!.name, false, false);

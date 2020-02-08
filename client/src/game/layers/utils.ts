@@ -1,4 +1,4 @@
-import { SyncMode } from "@/core/comm/types";
+import { SyncMode, InvalidationMode } from "@/core/comm/types";
 import { ServerFloor, ServerLayer } from "@/game/comm/types/general";
 import { GlobalPoint, LocalPoint } from "@/game/geom";
 import { FOWLayer } from "@/game/layers/fow";
@@ -72,7 +72,7 @@ export function dropAsset(event: DragEvent): void {
         asset.h = Math.max(Math.round(asset.h / gs) * gs, gs);
     }
 
-    layer.addShape(asset, SyncMode.FULL_SYNC);
+    layer.addShape(asset, SyncMode.FULL_SYNC, InvalidationMode.WITH_LIGHT);
 }
 
 export function snapToPoint(layer: Layer, endPoint: GlobalPoint): GlobalPoint {

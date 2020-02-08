@@ -1,4 +1,4 @@
-import { SyncMode } from "@/core/comm/types";
+import { SyncMode, InvalidationMode } from "@/core/comm/types";
 import { socket } from "@/game/api/socket";
 import { ServerShape } from "@/game/comm/types/shapes";
 import { EventBus } from "@/game/event-bus";
@@ -54,13 +54,13 @@ export class Layer {
         }
     }
 
-    addShape(shape: Shape, sync: SyncMode, invalidate = true, snappable = true): void {
+    addShape(shape: Shape, sync: SyncMode, invalidate: InvalidationMode, snappable = true): void {
         shape.layer = this.name;
         shape.floor = this.floor;
         this.shapes.push(shape);
         layerManager.UUIDMap.set(shape.uuid, shape);
-        shape.checkVisionSources(invalidate);
-        shape.setMovementBlock(shape.movementObstruction, invalidate);
+        shape.checkVisionSources(invalidate !== InvalidationMode.NO);
+        shape.setMovementBlock(shape.movementObstruction, invalidate !== InvalidationMode.NO);
         if (snappable) {
             for (const point of shape.points) {
                 const strp = JSON.stringify(point);
@@ -71,7 +71,7 @@ export class Layer {
         if (shape.annotation.length) gameStore.annotations.push(shape.uuid);
         if (sync !== SyncMode.NO_SYNC)
             socket.emit("Shape.Add", { shape: shape.asDict(), temporary: sync === SyncMode.TEMP_SYNC });
-        if (invalidate) this.invalidate(!sync);
+        if (invalidate) this.invalidate(invalidate === InvalidationMode.WITH_LIGHT);
     }
 
     setShapes(shapes: ServerShape[]): void {
@@ -81,7 +81,7 @@ export class Layer {
                 console.log(`Shape with unknown type ${serverShape.type_} could not be added`);
                 return;
             }
-            this.addShape(shape, SyncMode.NO_SYNC, false);
+            this.addShape(shape, SyncMode.NO_SYNC, InvalidationMode.NORMAL);
         }
         this.clearSelection(); // TODO: Fix keeping selection on those items that are not moved.
         this.invalidate(false);

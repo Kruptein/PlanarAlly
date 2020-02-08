@@ -1,4 +1,4 @@
-import { SyncMode } from "@/core/comm/types";
+import { SyncMode, InvalidationMode } from "@/core/comm/types";
 import { GlobalPoint, LocalPoint, Ray } from "@/game/geom";
 import { Layer } from "@/game/layers/layer";
 import { layerManager } from "@/game/layers/manager";
@@ -28,7 +28,7 @@ export class FOWLayer extends Layer {
         this.vCtx = this.virtualCanvas.getContext("2d")!;
     }
 
-    addShape(shape: Shape, sync: SyncMode, invalidate = true, snappable = true): void {
+    addShape(shape: Shape, sync: SyncMode, invalidate: InvalidationMode, snappable = true): void {
         super.addShape(shape, sync, invalidate, snappable);
         if (shape.options.has("preFogShape") && shape.options.get("preFogShape")) {
             this.preFogShapes.push(shape);

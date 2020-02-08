@@ -22,7 +22,7 @@ import { Text } from "@/game/shapes/text";
 import { EventBus } from "../event-bus";
 import { gameStore } from "../store";
 import { Polygon } from "./polygon";
-import { SyncMode } from "@/core/comm/types";
+import { SyncMode, InvalidationMode } from "@/core/comm/types";
 
 export function createShapeFromDict(shape: ServerShape): Shape | undefined {
     let sh: Shape;
@@ -130,7 +130,7 @@ export function pasteShapes(targetLayer?: string): Shape[] {
         }
         const shape = createShapeFromDict(clip);
         if (shape === undefined) continue;
-        layer.addShape(shape, SyncMode.FULL_SYNC);
+        layer.addShape(shape, SyncMode.FULL_SYNC, InvalidationMode.WITH_LIGHT);
         layer.selection.push(shape);
     }
     if (layer.selection.length === 1) EventBus.$emit("SelectionInfo.Shape.Set", layer.selection[0]);

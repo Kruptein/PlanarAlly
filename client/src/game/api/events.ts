@@ -107,8 +107,6 @@ socket.on("Board.Set", (locationInfo: BoardInfo) => {
     gameStore.resetLayerInfo();
     layerManager.reset();
     for (const floor of locationInfo.floors) addFloor(floor);
-    // Force the correct opacity render on other layers.
-    layerManager.selectLayer(layerManager.getLayer(layerManager.floor!.name)!.name, false);
     EventBus.$emit("Initiative.Clear");
     for (const floor of layerManager.floors) {
         visibilityStore.recalculateVision(floor.name);

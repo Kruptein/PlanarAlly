@@ -233,13 +233,16 @@ class GameStore extends VuexModule implements GameState {
                 val.selectable && (val.playerEditable || this.IS_DM) ? [...acc, val.name] : acc,
             [],
         );
+        if (this.selectedLayerIndex < 0) this.selectedLayerIndex = 0;
 
         for (const [f, floor] of layerManager.floors.entries()) {
             for (const layer of floor.layers) {
+                // todo opacity for lower floors
                 if (f > targetFloorIndex) layer.canvas.style.display = "none";
                 else layer.canvas.style.removeProperty("display");
             }
         }
+        layerManager.selectLayer(layerManager.getLayer(layerManager.floor!.name)!.name, false, false);
         layerManager.invalidateAllFloors();
         // During the above invalidation call with multiple floors,
         // the map layer is always invalidated after fow as we invalidate from top to bottom

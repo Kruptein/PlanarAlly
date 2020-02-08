@@ -81,10 +81,9 @@ export class Layer {
                 console.log(`Shape with unknown type ${serverShape.type_} could not be added`);
                 return;
             }
-            this.addShape(shape, SyncMode.NO_SYNC, InvalidationMode.NORMAL);
+            this.addShape(shape, SyncMode.NO_SYNC, InvalidationMode.NO);
         }
         this.clearSelection(); // TODO: Fix keeping selection on those items that are not moved.
-        this.invalidate(false);
     }
 
     removeShape(shape: Shape, sync: SyncMode): void {

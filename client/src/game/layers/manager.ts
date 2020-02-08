@@ -24,7 +24,6 @@ class LayerManager {
 
     drawLoop = (): void => {
         for (const [f, floor] of this.floors.entries()) {
-            if (f > gameStore.selectedFloorIndex) break;
             for (let i = floor.layers.length - 1; i >= 0; i--) {
                 floor.layers[i].draw();
             }
@@ -61,6 +60,7 @@ class LayerManager {
                 return;
             }
         }
+        console.error(`Attempt to add layer to unknown floor ${floorName}`);
     }
 
     hasLayer(floor: string, name: string): boolean {
@@ -79,7 +79,7 @@ class LayerManager {
         for (const floor of this.floors) if (floor.name === name) return floor;
     }
 
-    selectLayer(name: string, sync = true): void {
+    selectLayer(name: string, sync = true, invalidate = true): void {
         let found = false;
         for (const layer of this.floor!.layers) {
             if (!layer.selectable) continue;
@@ -92,7 +92,7 @@ class LayerManager {
             }
 
             layer.clearSelection();
-            layer.invalidate(true);
+            if (invalidate) layer.invalidate(true);
         }
     }
 
@@ -121,17 +121,21 @@ class LayerManager {
 
     invalidateAllFloors(): void {
         for (const [f, floor] of this.floors.entries()) {
-            if (f > gameStore.selectedFloorIndex) return;
             this.invalidate(floor.name);
         }
     }
 
+    // Lighting of multiple floors is heavily dependent on eachother
+    // This method only updates a single floor and should thus only be used for very specific cases
+    // as you typically require the allFloor variant
     invalidateLight(floorName: string): void {
-        for (const floor of this.floors) {
-            for (let i = floor.layers.length - 1; i >= 0; i--)
-                if (floor.layers[i].isVisionLayer) floor.layers[i].invalidate(true);
-            if (floorName && floor.name === floorName) return;
+        const floor = this.getFloor(floorName);
+        if (floor === undefined) {
+            console.error(`Unknown floor ${floorName} requested light invalidation`);
+            return;
         }
+        for (let i = floor.layers.length - 1; i >= 0; i--)
+            if (floor.layers[i].isVisionLayer) floor.layers[i].invalidate(true);
     }
 
     invalidateLightAllFloors(): void {

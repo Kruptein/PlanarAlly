@@ -53,6 +53,7 @@ export class GameManager {
         if (data.redraw) {
             if (shape.visionObstruction) visibilityStore.recalculateVision(shape.floor);
             layerManager.getLayer(data.shape.floor, data.shape.layer)!.invalidate(false);
+            layerManager.invalidateLightAllFloors();
             if (shape.movementObstruction) visibilityStore.recalculateMovement(shape.floor);
         }
         if (redrawInitiative) EventBus.$emit("Initiative.ForceUpdate");

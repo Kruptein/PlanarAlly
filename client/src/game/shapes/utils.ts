@@ -73,7 +73,7 @@ export function createShapeFromDict(shape: ServerShape): Shape | undefined {
         else img.src = asset.src;
         sh = new Asset(img, refPoint, asset.width, asset.height, asset.uuid);
         img.onload = () => {
-            layerManager.getLayer(shape.floor, shape.layer)!.invalidate(false);
+            layerManager.getLayer(shape.floor, shape.layer)!.invalidate(true);
         };
     } else {
         return undefined;

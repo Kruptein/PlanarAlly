@@ -68,6 +68,12 @@ export function onKeyDown(event: KeyboardEvent): void {
             event.preventDefault();
             event.stopPropagation();
             gameStore.toggleUI();
+        } else if (event.key === "r" && event.ctrlKey) {
+            // Ctrl-r - Re-center/reset the viewport
+            gameStore.setPanX(0);
+            gameStore.setPanY(0);
+            sendClientOptions(gameStore.locationOptions);
+            window.location.reload();
         } else if (event.key === "c" && event.ctrlKey) {
             // Ctrl-c - Copy
             copyShapes();

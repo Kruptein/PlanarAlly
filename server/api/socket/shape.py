@@ -408,6 +408,7 @@ async def sync_shape_update(layer, room, data, sid, shape):
                     pdata["shape"]["name"] = "?"
             else:
                 pdata["shape"] = shape
+            pdata["shape"]["layer"] = pdata["shape"]["layer"].name
         else:
             pdata["shape"] = shape.as_dict(player, False)
         await sio.emit("Shape.Update", pdata, room=psid, namespace="/planarally")

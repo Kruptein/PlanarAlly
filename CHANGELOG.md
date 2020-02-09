@@ -14,6 +14,7 @@ All notable changes to this project will be documented in this file.
     -   Change password
     -   Delete account
 -   Snap to nearby existing points while drawing and while resizing points
+-   CTRL-0 (zero) now resets the viewport to origin (0,0) [LDeeJay1969]
 
 ### Removed
 

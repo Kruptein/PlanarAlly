@@ -65,7 +65,7 @@ import { getMouse } from "@/game/utils";
 import { visibilityStore } from "../../visibility/store";
 import { Layer } from "../../layers/layer";
 import { snapToPoint } from "../../layers/utils";
-import { SyncMode } from "../../../core/comm/types";
+import { SyncMode, InvalidationMode } from "../../../core/comm/types";
 
 @Component({
     components: {
@@ -189,9 +189,9 @@ export default class DrawTool extends Tool {
 
         if (newValue !== "normal" && oldValue === "normal") {
             normalLayer.removeShape(this.brushHelper, SyncMode.NO_SYNC);
-            fowLayer.addShape(this.brushHelper, SyncMode.NO_SYNC, true, false);
+            fowLayer.addShape(this.brushHelper, SyncMode.NO_SYNC, InvalidationMode.NORMAL, false);
         } else if (newValue === "normal" && oldValue !== "normal") {
-            normalLayer.addShape(this.brushHelper, SyncMode.NO_SYNC, true, false);
+            normalLayer.addShape(this.brushHelper, SyncMode.NO_SYNC, InvalidationMode.NORMAL, false);
             fowLayer.removeShape(this.brushHelper, SyncMode.NO_SYNC);
         }
     }
@@ -265,7 +265,7 @@ export default class DrawTool extends Tool {
                 this.shape.visionObstruction = true;
                 this.shape.movementObstruction = true;
             }
-            layer.addShape(this.shape, SyncMode.FULL_SYNC, false);
+            layer.addShape(this.shape, SyncMode.FULL_SYNC, InvalidationMode.NO);
 
             // Push brushhelper to back
             this.pushBrushBack();
@@ -278,7 +278,7 @@ export default class DrawTool extends Tool {
             const lastPoint = this.brushHelper.refPoint;
             if (this.ruler === null) {
                 this.ruler = new Line(lastPoint, lastPoint, this.brushSize, this.fillColour);
-                layer.addShape(this.ruler, SyncMode.NO_SYNC, true, false);
+                layer.addShape(this.ruler, SyncMode.NO_SYNC, InvalidationMode.NORMAL, false);
             } else {
                 this.ruler.refPoint = lastPoint;
                 this.ruler.endPoint = lastPoint;
@@ -388,7 +388,7 @@ export default class DrawTool extends Tool {
         layer.canvas.parentElement!.style.cursor = "none";
         this.brushHelper = new Circle(new GlobalPoint(-1000, -1000), this.brushSize / 2, this.fillColour);
         this.setupBrush();
-        layer.addShape(this.brushHelper, SyncMode.NO_SYNC, true, false); // during mode change the shape is already added
+        layer.addShape(this.brushHelper, SyncMode.NO_SYNC, InvalidationMode.NORMAL, false); // during mode change the shape is already added
         this.showLayerPoints();
     }
     onDeselect(targetLayer?: string): void {
@@ -424,7 +424,7 @@ export default class DrawTool extends Tool {
         if (this.brushHelper !== null) layer.removeShape(this.brushHelper, SyncMode.NO_SYNC);
         this.brushHelper = new Circle(new GlobalPoint(-1000, -1000), bs ?? this.brushSize / 2, this.fillColour);
         this.setupBrush();
-        layer.addShape(this.brushHelper, SyncMode.NO_SYNC, true, false); // during mode change the shape is already added
+        layer.addShape(this.brushHelper, SyncMode.NO_SYNC, InvalidationMode.NORMAL, false); // during mode change the shape is already added
         if (refPoint) this.brushHelper.refPoint = refPoint;
     }
 

@@ -249,16 +249,6 @@ class GameStore extends VuexModule implements GameState {
         }
         layerManager.selectLayer(layerManager.getLayer(layerManager.floor!.name)!.name, false, false);
         layerManager.invalidateAllFloors();
-        // During the above invalidation call with multiple floors,
-        // the map layer is always invalidated after fow as we invalidate from top to bottom
-        // this makes it that the fow invalidation is working with out of date map stuff
-        if (this.floors.length > 1)
-            layerManager
-                .getLayer(this.floors[this.selectedFloorIndex])
-                ?.waitValid()
-                .then(() => {
-                    layerManager.invalidateLight(this.floors[this.selectedFloorIndex]);
-                });
     }
 
     @Mutation

@@ -142,6 +142,14 @@ export class Layer {
         EventBus.$emit("SelectionInfo.Shape.Set", null);
     }
 
+    hide(): void {
+        this.canvas.style.display = "none";
+    }
+
+    show(): void {
+        this.canvas.style.removeProperty("display");
+    }
+
     draw(doClear = true): void {
         if (!this.valid) {
             const ctx = this.ctx;

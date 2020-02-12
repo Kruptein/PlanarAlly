@@ -3,8 +3,13 @@ import { Layer } from "@/game/layers/layer";
 import { Shape } from "@/game/shapes/shape";
 import { gameStore } from "@/game/store";
 
+interface Floor {
+    name: string;
+    layers: Layer[];
+}
+
 class LayerManager {
-    floors: { name: string; layers: Layer[] }[] = [];
+    floors: Floor[] = [];
     width = window.innerWidth;
     height = window.innerHeight;
 
@@ -22,16 +27,42 @@ class LayerManager {
         this.UUIDMap = new Map();
     }
 
+    private drawFloor(floor: Floor): void {
+        let fowLayer: Layer | undefined;
+        for (const layer of floor.layers) {
+            layer.hide();
+            // we need to draw fow later because it depends on fow-players
+            // and historically we did the draw loop in the other direction
+            if (layer.name === "fow") {
+                fowLayer = layer;
+                continue;
+            }
+            layer.draw();
+        }
+        if (fowLayer) fowLayer.draw();
+    }
+
     drawLoop = (): void => {
+        // First process all other floors
         for (const [f, floor] of this.floors.entries()) {
-            for (let i = floor.layers.length - 1; i >= 0; i--) {
-                floor.layers[i].draw();
+            if (f === gameStore.selectedFloorIndex) continue;
+            this.drawFloor(floor);
+        }
+        // Then process the current floor
+        if (this.floor !== undefined) {
+            this.drawFloor(this.floor!);
+        }
+        for (const floor of this.floors) {
+            for (let i = gameStore.selectedFloorIndex; i >= 0; i--) {
+                for (const layer of this.floors[i].layers) {
+                    if (i === gameStore.selectedFloorIndex || !layer.isVisionLayer) layer.show();
+                }
             }
         }
         requestAnimationFrame(this.drawLoop);
     };
 
-    get floor(): { name: string; layers: Layer[] } | undefined {
+    get floor(): Floor | undefined {
         return this.floors[gameStore.selectedFloorIndex];
     }
 
@@ -74,7 +105,7 @@ class LayerManager {
         }
     }
 
-    getFloor(name?: string): { name: string; layers: Layer[] } | undefined {
+    getFloor(name?: string): Floor | undefined {
         if (name === undefined) return this.floor;
         for (const floor of this.floors) if (floor.name === name) return floor;
     }
@@ -120,7 +151,7 @@ class LayerManager {
     }
 
     invalidateAllFloors(): void {
-        for (const [f, floor] of this.floors.entries()) {
+        for (const floor of this.floors) {
             this.invalidate(floor.name);
         }
     }

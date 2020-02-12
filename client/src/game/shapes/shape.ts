@@ -7,11 +7,13 @@ import { GlobalPoint, LocalPoint, Vector } from "@/game/geom";
 import { layerManager } from "@/game/layers/manager";
 import { BoundingRect } from "@/game/shapes/boundingrect";
 import { gameStore } from "@/game/store";
-import { g2l, g2lr, g2lx, g2ly, g2lz } from "@/game/units";
+import { g2l, g2lr, g2lx, g2ly, g2lz, getUnitDistance } from "@/game/units";
 import { addBlocker, getBlockers, getVisionSources, setVisionSources, sliceBlockers } from "@/game/visibility/utils";
 import tinycolor from "tinycolor2";
 import { visibilityStore } from "../visibility/store";
 import { TriangulationTarget } from "../visibility/te/pa";
+import { computeVisibility } from "../visibility/te/te";
+import { updateAuraPath } from "./utils";
 
 export abstract class Shape {
     // Used to create class instance from server shape data
@@ -260,10 +262,12 @@ export abstract class Shape {
                 gradient.addColorStop(0, aura.colour);
                 gradient.addColorStop(1, tc.setAlpha(0).toRgbString());
             }
-            if (!aura.visionSource || aura.lastPath === undefined) {
+            if (!aura.visionSource) {
                 ctx.arc(loc.x, loc.y, innerRange, 0, 2 * Math.PI);
                 ctx.fill();
             } else {
+                const polygon = computeVisibility(this.center(), TriangulationTarget.VISION, this.floor);
+                aura.lastPath = updateAuraPath(polygon, this.center(), getUnitDistance(aura.value + aura.dim));
                 try {
                     ctx.fill(aura.lastPath);
                 } catch (e) {

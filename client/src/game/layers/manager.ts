@@ -52,11 +52,9 @@ class LayerManager {
         if (this.floor !== undefined) {
             this.drawFloor(this.floor!);
         }
-        for (const floor of this.floors) {
-            for (let i = gameStore.selectedFloorIndex; i >= 0; i--) {
-                for (const layer of this.floors[i].layers) {
-                    if (i === gameStore.selectedFloorIndex || !layer.isVisionLayer) layer.show();
-                }
+        for (let i = gameStore.selectedFloorIndex; i >= 0; i--) {
+            for (const layer of this.floors[i].layers) {
+                if (i === gameStore.selectedFloorIndex || !layer.isVisionLayer) layer.show();
             }
         }
         requestAnimationFrame(this.drawLoop);

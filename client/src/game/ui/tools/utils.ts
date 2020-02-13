@@ -1,10 +1,8 @@
 import { GlobalPoint, Vector } from "@/game/geom";
 import { Shape } from "@/game/shapes/shape";
-import { visibilityStore } from "@/game/visibility/store";
 import { getCDT, TriangulationTarget } from "@/game/visibility/te/pa";
 import { Point, Sign, Triangle } from "@/game/visibility/te/tds";
 import { ccw, cw, intersection, orientation } from "@/game/visibility/te/triag";
-import { getBlockers } from "@/game/visibility/utils";
 
 // First go through each shape in the selection and see if the delta has to be truncated due to movement blockers
 

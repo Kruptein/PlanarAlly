@@ -77,7 +77,7 @@ export function onKeyDown(event: KeyboardEvent): void {
             gameStore.setPanX(0);
             gameStore.setPanY(0);
             sendClientOptions(gameStore.locationOptions);
-            layerManager.invalidate();
+            layerManager.invalidateAllFloors();
         } else if (event.key === "c" && event.ctrlKey) {
             // Ctrl-c - Copy
             copyShapes();

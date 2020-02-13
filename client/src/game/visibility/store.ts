@@ -39,9 +39,7 @@ class VisibilityStore extends VuexModule implements VisibilityState {
     clear(): void {
         (<any>this.context.state).visionBlockers = [];
         (<any>this.context.state).visionSources = [];
-        (<any>this.context.state).movementblockers = [];
-        this.context.commit("recalculateVision");
-        this.context.commit("recalculateMovement");
+        (<any>this.context.state).movementBlockers = [];
     }
 }
 

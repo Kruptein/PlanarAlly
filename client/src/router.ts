@@ -31,8 +31,9 @@ export const router = new Router({
             component: LoadComponent,
         },
         {
-            path: "/assets",
+            path: "/assets/:folder*",
             component: AssetManager,
+            name: "assets",
             meta: {
                 auth: true,
             },

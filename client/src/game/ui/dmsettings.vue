@@ -140,7 +140,7 @@
                     </div>
                 </div>
                 <div class="spanrow header">Advanced</div>
-                <div class="row">
+                <!-- <div class="row">
                     <label for="visionMode">Vision Mode:</label>
                     <div>
                         <select id="visionMode" @change="changeVisionMode">
@@ -148,7 +148,7 @@
                             <option :selected="$store.state.visibility.visionMode === 'triangle'">Triangle</option>
                         </select>
                     </div>
-                </div>
+                </div> -->
                 <div class="row">
                     <label for="vmininp">Minimal full vision ({{ unitSizeUnit }}):</label>
                     <div>
@@ -178,9 +178,7 @@ import Modal from "@/core/components/modals/modal.vue";
 import { socket } from "@/game/api/socket";
 import { EventBus } from "@/game/event-bus";
 import { gameStore } from "@/game/store";
-import { layerManager } from "../layers/manager";
 import Game from "../game.vue";
-import { visibilityStore } from "../visibility/store";
 
 @Component({
     components: {
@@ -287,16 +285,16 @@ export default class DmSettings extends Vue {
         if (typeof value !== "number") return;
         gameStore.setVisionRangeMax({ value, sync: true });
     }
-    changeVisionMode(event: { target: HTMLSelectElement }): void {
-        const value = event.target.value.toLowerCase();
-        if (value !== "bvh" && value !== "triangle") return;
-        visibilityStore.setVisionMode({ mode: value, sync: true });
-        for (const floor of layerManager.floors) {
-            visibilityStore.recalculateVision(floor.name);
-            visibilityStore.recalculateMovement(floor.name);
-        }
-        layerManager.invalidateAllFloors();
-    }
+    // changeVisionMode(event: { target: HTMLSelectElement }): void {
+    //     const value = event.target.value.toLowerCase();
+    //     if (value !== "bvh" && value !== "triangle") return;
+    //     visibilityStore.setVisionMode({ mode: value, sync: true });
+    //     for (const floor of layerManager.floors) {
+    //         visibilityStore.recalculateVision(floor.name);
+    //         visibilityStore.recalculateMovement(floor.name);
+    //     }
+    //     layerManager.invalidateAllFloors();
+    // }
     handleClick(event: { target: HTMLElement }): void {
         const child = event.target.firstElementChild;
         if (child instanceof HTMLInputElement) {

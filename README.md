@@ -1,8 +1,12 @@
-[![Total Github Download Count](https://img.shields.io/github/downloads/kruptein/planarally/total.svg)](https://github.com/Kruptein/PlanarAlly/releases)
+<p align="center"><a href="https://planarally.io" target="_blank" rel="noopener noreferrer"><img width="200" src="https://planarally.io/assets/general/Logo_PlanarAlly_V1.png" alt="PlanarAlly logo"></a></p>
+
+<p align="center">
+    <a href="https://github.com/Kruptein/PlanarAlly/releases"><img src="https://img.shields.io/github/downloads/kruptein/planarally/total.svg" alt="Downloads"></a>
+</p>
 
 # PlanarAlly
 
-_This project is still in early development; multiple bugs or structure changes can and will happen_
+_This project is still in active development; multiple bugs or structure changes can and will happen_
 
 A companion tool for when you travel into the planes.
 
@@ -34,7 +38,6 @@ For more information on how to use/install PA, see the documentation.
 User documentation can be found [here](https://planarally.io/docs/).
 
 This is still a work in progress, so some elements may still be undocumented or outdated.
-
 
 # Contributing
 

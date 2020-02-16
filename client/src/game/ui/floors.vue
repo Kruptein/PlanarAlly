@@ -1,13 +1,13 @@
 <template>
     <div>
-        <div id="floor">
+        <div id="floor" @click="selected = !selected">
             <ul>
                 <li>
                     <a href="#">{{ selectedFloorIndex }}</a>
                 </li>
             </ul>
         </div>
-        <div id="floor-detail">
+        <div id="floor-detail" v-if="selected">
             <template v-for="[index, floor] of floors.entries()">
                 <div class="floor-row" :key="floor" @click="selectFloor(index)">
                     <div class="floor-index">
@@ -50,6 +50,8 @@ import { visibilityStore } from "../visibility/store";
 
 @Component
 export default class FloorSelect extends Vue {
+    selected = false;
+
     get floors(): string[] {
         return gameStore.floors;
     }

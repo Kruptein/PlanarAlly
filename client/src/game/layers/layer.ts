@@ -192,6 +192,17 @@ export class Layer {
                 }
             }
 
+            // If this is the last layer of the floor below, render some shadow
+            if (gameStore.selectedFloorIndex > 0) {
+                const lowerFloor = layerManager.floors[gameStore.selectedFloorIndex - 1];
+                if (lowerFloor.name === this.floor) {
+                    if (lowerFloor.layers[lowerFloor.layers.length - 1].name === this.name) {
+                        ctx.fillStyle = "rgba(0, 0, 0, 0.3)";
+                        ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+                    }
+                }
+            }
+
             ctx.globalCompositeOperation = ogOP;
             this.valid = true;
             this.resolveCallbacks();

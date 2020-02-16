@@ -1,6 +1,6 @@
 <template>
     <div>
-        <div id="floor" @click="selected = !selected">
+        <div id="floor" @click="selected = !selected" v-if="floors.length > 1 || IS_DM">
             <ul>
                 <li>
                     <a href="#">{{ selectedFloorIndex }}</a>
@@ -51,6 +51,10 @@ import { visibilityStore } from "../visibility/store";
 @Component
 export default class FloorSelect extends Vue {
     selected = false;
+
+    get IS_DM(): boolean {
+        return gameStore.IS_DM || gameStore.FAKE_PLAYER;
+    }
 
     get floors(): string[] {
         return gameStore.floors;

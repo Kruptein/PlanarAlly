@@ -6,13 +6,13 @@ import shutil
 import sys
 
 from peewee import FloatField, OperationalError
-from playhouse.migrate import *
+from playhouse.migrate import fn, migrate, SqliteMigrator
 
 from config import SAVE_FILE
 from models import ALL_MODELS, Constants
 from models.db import db
 
-SAVE_VERSION = 19
+SAVE_VERSION = 20
 logger: logging.Logger = logging.getLogger("PlanarAllyServer")
 logger.setLevel(logging.INFO)
 
@@ -25,7 +25,7 @@ def upgrade(version):
         db.drop_tables([GridLayer])
         db.create_tables([GridLayer])
         db.execute_sql("INSERT INTO grid_layer SELECT * FROM _grid_layer")
-        Constants.update(save_version=Constants.save_version + 1).execute()
+        Constants.get().update(save_version=Constants.save_version + 1).execute()
     elif version == 4:
         from models import Location
 
@@ -35,9 +35,10 @@ def upgrade(version):
         db.create_tables([Location])
         db.execute_sql("INSERT INTO location SELECT * FROM _location")
         db.foreign_keys = True
-        Constants.update(save_version=Constants.save_version + 1).execute()
+        Constants.get().update(save_version=Constants.save_version + 1).execute()
     elif version == 5:
         from models import Layer
+        from peewee import ForeignKeyField
 
         migrator = SqliteMigrator(db)
         field = ForeignKeyField(Layer, Layer.id, backref="active_users", null=True)
@@ -54,11 +55,11 @@ def upgrade(version):
                 )[0]
                 luo.save()
             migrate(migrator.add_not_null("location_user_option", "active_layer_id"))
-            Constants.update(save_version=Constants.save_version + 1).execute()
+            Constants.get().update(save_version=Constants.save_version + 1).execute()
     elif version == 6:
         migrator = SqliteMigrator(db)
         migrate(migrator.drop_not_null("location_user_option", "active_layer_id"))
-        Constants.update(save_version=Constants.save_version + 1).execute()
+        Constants.get().update(save_version=Constants.save_version + 1).execute()
     elif version == 7:
         # Remove shape index unique constraint
         from models import Shape
@@ -79,12 +80,12 @@ def upgrade(version):
                 for i, shape in enumerate(shapes):
                     shape.index = i
                     shape.save()
-        Constants.update(save_version=Constants.save_version + 1).execute()
+        Constants.get().update(save_version=Constants.save_version + 1).execute()
     elif version == 8:
         from models import Polygon
 
         db.create_tables([Polygon])
-        Constants.update(save_version=Constants.save_version + 1).execute()
+        Constants.get().update(save_version=Constants.save_version + 1).execute()
     elif version == 9:
         from models import Location
 
@@ -101,7 +102,7 @@ def upgrade(version):
                 ),
             )
         db.foreign_keys = True
-        Constants.update(save_version=Constants.save_version + 1).execute()
+        Constants.get().update(save_version=Constants.save_version + 1).execute()
     elif version == 10:
         from models import Shape
 
@@ -110,7 +111,7 @@ def upgrade(version):
         with db.atomic():
             migrate(migrator.add_column("shape", "name_visible", Shape.name_visible))
         db.foreign_keys = True
-        Constants.update(save_version=Constants.save_version + 1).execute()
+        Constants.get().update(save_version=Constants.save_version + 1).execute()
     elif version == 11:
         from models import Label, LocationUserOption, ShapeLabel
 
@@ -126,7 +127,7 @@ def upgrade(version):
                 )
             )
         db.foreign_keys = True
-        Constants.update(save_version=Constants.save_version + 1).execute()
+        Constants.get().update(save_version=Constants.save_version + 1).execute()
     elif version == 12:
         from models import Label, LabelSelection
 
@@ -148,7 +149,7 @@ def upgrade(version):
                 label.name = ":".join(name)
                 label.save()
         db.foreign_keys = True
-        Constants.update(save_version=Constants.save_version + 1).execute()
+        Constants.get().update(save_version=Constants.save_version + 1).execute()
     elif version == 13:
         from models import LocationUserOption, MultiLine, Polygon
 
@@ -158,7 +159,7 @@ def upgrade(version):
         migrate(migrator.drop_column("location_user_option", "active_filters"))
 
         db.foreign_keys = True
-        Constants.update(save_version=Constants.save_version + 1).execute()
+        Constants.get().update(save_version=Constants.save_version + 1).execute()
     elif version == 14:
         db.foreign_keys = False
         migrator = SqliteMigrator(db)
@@ -216,7 +217,7 @@ def upgrade(version):
             migrate(migrator.add_not_null("grid_layer", "layer_id"))
 
         db.foreign_keys = True
-        Constants.update(save_version=Constants.save_version + 1).execute()
+        Constants.get().update(save_version=Constants.save_version + 1).execute()
     elif version == 15:
         from peewee import BooleanField
 
@@ -227,7 +228,7 @@ def upgrade(version):
                 migrator.add_column("room", "is_locked", BooleanField(default=False))
             )
         db.foreign_keys = True
-        Constants.update(save_version=Constants.save_version + 1).execute()
+        Constants.get().update(save_version=Constants.save_version + 1).execute()
     elif version == 16:
         from peewee import TextField
 
@@ -240,9 +241,9 @@ def upgrade(version):
                 )
             )
         db.foreign_keys = True
-        Constants.update(save_version=Constants.save_version + 1).execute()
+        Constants.get().update(save_version=Constants.save_version + 1).execute()
     elif version == 17:
-        from peewee import BooleanField
+        from peewee import BooleanField, IntegerField
 
         migrator = SqliteMigrator(db)
         db.foreign_keys = False
@@ -261,7 +262,7 @@ def upgrade(version):
                 "UPDATE shape SET type_ = 'polygon' WHERE type_ = 'multiline'"
             )
         db.foreign_keys = True
-        Constants.update(save_version=Constants.save_version + 1).execute()
+        Constants.get().update(save_version=Constants.save_version + 1).execute()
     elif version == 18:
         from peewee import TextField
 
@@ -270,7 +271,32 @@ def upgrade(version):
         with db.atomic():
             migrate(migrator.add_column("user", "email", TextField(null=True)))
         db.foreign_keys = True
-        Constants.update(save_version=Constants.save_version + 1).execute()
+        Constants.get().update(save_version=Constants.save_version + 1).execute()
+    elif version == 19:
+        from peewee import ForeignKeyField
+
+        db.foreign_keys = False
+        migrator = SqliteMigrator(db)
+
+        db.execute_sql(
+            'CREATE TABLE IF NOT EXISTS "floor" ("id" INTEGER NOT NULL PRIMARY KEY, "location_id" INTEGER NOT NULL, "name" TEXT, "index" INTEGER NOT NULL, FOREIGN KEY ("location_id") REFERENCES "location" ("id") ON DELETE CASCADE)'
+        )
+        db.execute_sql(
+            'INSERT INTO floor (location_id, name, "index") SELECT id, "ground", 0 FROM location'
+        )
+
+        with db.atomic():
+            db.execute_sql("CREATE TEMPORARY TABLE _layer AS SELECT * FROM layer")
+            db.execute_sql("DROP TABLE layer")
+            db.execute_sql(
+                'CREATE TABLE IF NOT EXISTS "layer" ("id" INTEGER NOT NULL PRIMARY KEY, "floor_id" INTEGER NOT NULL, "name" TEXT NOT NULL, "type_" TEXT NOT NULL, "player_visible" INTEGER NOT NULL, "player_editable" INTEGER NOT NULL, "selectable" INTEGER NOT NULL, "index" INTEGER NOT NULL, FOREIGN KEY ("floor_id") REFERENCES "floor" ("id") ON DELETE CASCADE)'
+            )
+            db.execute_sql(
+                'INSERT INTO layer (id, floor_id, name, type_, player_visible, player_editable, selectable, "index") SELECT _layer.id, floor.id, _layer.name, type_, player_visible, player_editable, selectable, _layer."index" FROM _layer INNER JOIN floor ON floor.location_id = _layer.location_id'
+            )
+
+        db.foreign_keys = True
+        Constants.get().update(save_version=Constants.save_version + 1).execute()
     else:
         raise Exception(f"No upgrade code for save format {version} was found.")
 

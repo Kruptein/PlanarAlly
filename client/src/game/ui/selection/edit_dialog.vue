@@ -256,7 +256,7 @@ import { EventBus } from "@/game/event-bus";
 import { layerManager } from "@/game/layers/manager";
 import { Shape } from "@/game/shapes/shape";
 import { gameStore } from "@/game/store";
-import { visibilityStore } from "../../visibility/store";
+import { getVisionSources, addVisionSource, sliceVisionSources } from "@/game/visibility/utils";
 
 @Component({
     components: {
@@ -321,7 +321,7 @@ export default class EditDialog extends Vue {
     updateShape(redraw: boolean, temporary = false): void {
         if (!this.owned) return;
         socket.emit("Shape.Update", { shape: this.shape.asDict(), redraw, temporary });
-        if (redraw) layerManager.invalidate();
+        if (redraw) layerManager.invalidate(this.shape.floor);
         this.addEmpty();
     }
     setToken(event: { target: HTMLInputElement }): void {
@@ -345,10 +345,12 @@ export default class EditDialog extends Vue {
         this.shape.annotation = event.target.value;
         if (this.shape.annotation !== "" && !hadAnnotation) {
             gameStore.annotations.push(this.shape.uuid);
-            if (layerManager.hasLayer("draw")) layerManager.getLayer("draw")!.invalidate(true);
+            if (layerManager.hasLayer(layerManager.floor!.name, "draw"))
+                layerManager.getLayer(layerManager.floor!.name, "draw")!.invalidate(true);
         } else if (this.shape.annotation === "" && hadAnnotation) {
             gameStore.annotations.splice(gameStore.annotations.findIndex(an => an === this.shape.uuid));
-            if (layerManager.hasLayer("draw")) layerManager.getLayer("draw")!.invalidate(true);
+            if (layerManager.hasLayer(layerManager.floor!.name, "draw"))
+                layerManager.getLayer(layerManager.floor!.name, "draw")!.invalidate(true);
         }
         this.updateShape(false);
     }
@@ -376,15 +378,16 @@ export default class EditDialog extends Vue {
     updateAuraVisionSource(aura: Aura): void {
         if (!this.owned) return;
         aura.visionSource = !aura.visionSource;
-        const i = visibilityStore.visionSources.findIndex(ls => ls.aura === aura.uuid);
+        const visionSources = getVisionSources(this.shape.floor);
+        const i = visionSources.findIndex(ls => ls.aura === aura.uuid);
         if (aura.visionSource && i === -1)
-            visibilityStore.visionSources.push({ shape: this.shape.uuid, aura: aura.uuid });
-        else if (!aura.visionSource && i >= 0) visibilityStore.visionSources.splice(i, 1);
+            addVisionSource({ shape: this.shape.uuid, aura: aura.uuid }, this.shape.floor);
+        else if (!aura.visionSource && i >= 0) sliceVisionSources(i, this.shape.floor);
         this.updateShape(true);
     }
     updateAuraColour(aura: Aura, _colour: string): void {
         if (!this.owned) return;
-        const layer = layerManager.getLayer(this.shape.layer);
+        const layer = layerManager.getLayer(this.shape.floor, this.shape.layer);
         if (layer === undefined) return;
         layer.invalidate(!aura.visionSource);
     }

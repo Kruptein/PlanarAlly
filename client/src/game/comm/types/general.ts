@@ -41,6 +41,11 @@ export interface InitiativeEffect {
     turns: number;
 }
 
+export interface ServerFloor {
+    name: string;
+    layers: ServerLayer[];
+}
+
 export interface ServerLayer {
     type_: string;
     name: string;
@@ -54,7 +59,7 @@ export interface ServerLayer {
 
 export interface BoardInfo {
     locations: string[];
-    layers: ServerLayer[];
+    floors: ServerFloor[];
 }
 
 export interface Note {

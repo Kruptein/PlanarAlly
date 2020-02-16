@@ -1,8 +1,9 @@
 import uuid
 
 import auth
-from app import app, sio, state
+from app import app, logger, sio, state
 from models import PlayerRoom
+
 
 @sio.on("Room.Info.InviteCode.Refresh", namespace="/planarally")
 @auth.login_required(app, sio)
@@ -14,7 +15,7 @@ async def refresh_invite_code(sid):
     if room.creator != user:
         logger.warning(f"{user.name} attempted to refresh the invitation code.")
         return
-    
+
     room.invitation_code = uuid.uuid4()
     room.save()
 
@@ -36,7 +37,7 @@ async def kick_player(sid, playerId):
     if room.creator != user:
         logger.warning(f"{user.name} attempted to refresh the invitation code.")
         return
-    
+
     pr = PlayerRoom.get_or_none(player=playerId, room=room)
     if pr:
         for psid in state.get_sids(user=pr.player, room=room):
@@ -55,7 +56,6 @@ async def delete_session(sid):
         logger.warning(f"{user.name} attempted to REMOVE A SESSION.")
         return
 
-    
     room.delete_instance(True)
 
 
@@ -69,7 +69,7 @@ async def set_locked_state(sid, is_locked):
     if room.creator != user:
         logger.warning(f"{user.name} attempted to set the locked state.")
         return
-    
+
     room.is_locked = is_locked
     room.save()
     for psid, player in state.get_players(room=room):

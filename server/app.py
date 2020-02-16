@@ -52,7 +52,9 @@ class State:
 
     async def clear_temporaries(self, sid):
         if sid in self.client_temporaries:
-            await sio.emit("Temp.Clear", self.client_temporaries[sid], namespace="/planarally")
+            await sio.emit(
+                "Temp.Clear", self.client_temporaries[sid], namespace="/planarally"
+            )
             del self.client_temporaries[sid]
 
     def add_sid(self, sid, **options):

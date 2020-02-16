@@ -3,6 +3,7 @@ export interface ServerShape {
     type_: string;
     x: number;
     y: number;
+    floor: string;
     layer: string;
     movement_obstruction: boolean;
     vision_obstruction: boolean;

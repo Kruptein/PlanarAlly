@@ -18,7 +18,7 @@ import { gameStore } from "@/game/store";
 import { l2g } from "@/game/units";
 import { getMouse } from "@/game/utils";
 import Component from "vue-class-component";
-import { SyncMode } from "../../../core/comm/types";
+import { SyncMode, InvalidationMode } from "../../../core/comm/types";
 
 @Component
 export default class MapTool extends Tool {
@@ -30,7 +30,7 @@ export default class MapTool extends Tool {
     rect: Rect | null = null;
 
     onMouseDown(event: MouseEvent): void {
-        const layer = layerManager.getLayer();
+        const layer = layerManager.getLayer(layerManager.floor!.name);
         if (layer === undefined) {
             console.log("No active layer!");
             return;
@@ -39,11 +39,11 @@ export default class MapTool extends Tool {
 
         this.startPoint = l2g(getMouse(event));
         this.rect = new Rect(this.startPoint.clone(), 0, 0, "rgba(0,0,0,0)", "black");
-        layer.addShape(this.rect, SyncMode.NO_SYNC);
+        layer.addShape(this.rect, SyncMode.NO_SYNC, InvalidationMode.NORMAL);
     }
     onMouseMove(event: MouseEvent): void {
         if (!this.active || this.rect === null || this.startPoint === null) return;
-        const layer = layerManager.getLayer();
+        const layer = layerManager.getLayer(layerManager.floor!.name);
         if (layer === undefined) {
             console.log("No active layer!");
             return;
@@ -61,7 +61,7 @@ export default class MapTool extends Tool {
     }
     onMouseUp(_event: MouseEvent): void {
         if (!this.active || this.rect === null) return;
-        const layer = layerManager.getLayer();
+        const layer = layerManager.getLayer(layerManager.floor!.name);
         if (layer === undefined) {
             console.log("No active layer!");
             return;

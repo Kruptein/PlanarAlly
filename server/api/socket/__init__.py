@@ -1,8 +1,18 @@
 import auth
 from app import app, logger, sio, state
-from models import GridLayer, Layer, LocationUserOption
+from models import Floor, GridLayer, Layer, LocationUserOption
 from models.db import db
-from . import asset_manager, connection, initiative, label, location, note, room, shape
+from . import (
+    asset_manager,
+    connection,
+    floor,
+    initiative,
+    label,
+    location,
+    note,
+    room,
+    shape,
+)
 
 
 @sio.on("Client.Options.Set", namespace="/planarally")
@@ -40,7 +50,8 @@ async def set_layer(sid, data):
     location = sid_data["location"]
 
     try:
-        layer = location.layers.select().where(Layer.name == data)[0]
+        floor = location.floors.select().where(Floor.name == data["floor"])[0]
+        layer = floor.layers.select().where(Layer.name == data["layer"])[0]
     except IndexError:
         pass
     else:

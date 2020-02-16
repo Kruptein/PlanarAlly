@@ -46,7 +46,7 @@ export default class SelectTool extends Tool {
         gameStore.setSelectionHelperId(this.selectionHelper.uuid);
     }
     onMouseDown(event: MouseEvent): void {
-        const layer = layerManager.getLayer();
+        const layer = layerManager.getLayer(layerManager.floor!.name);
         if (layer === undefined) {
             console.log("No active layer!");
             return;
@@ -120,7 +120,7 @@ export default class SelectTool extends Tool {
     }
     onMouseMove(event: MouseEvent): void {
         // if (!this.active) return;   we require mousemove for the resize cursor
-        const layer = layerManager.getLayer();
+        const layer = layerManager.getLayer(layerManager.floor!.name);
         if (layer === undefined) {
             console.log("No active layer!");
             return;
@@ -160,7 +160,7 @@ export default class SelectTool extends Tool {
                     if (!sel.ownedBy()) continue;
                     sel.refPoint = sel.refPoint.add(delta);
                     if (sel !== this.selectionHelper) {
-                        if (sel.visionObstruction) visibilityStore.recalculateVision();
+                        if (sel.visionObstruction) visibilityStore.recalculateVision(sel.floor);
                         socket.emit("Shape.Update", { shape: sel.asDict(), redraw: true, temporary: true });
                     }
                 }
@@ -168,9 +168,12 @@ export default class SelectTool extends Tool {
             } else if (this.mode === SelectOperations.Resize) {
                 for (const sel of layer.selection) {
                     if (!sel.ownedBy()) continue;
-                    sel.resize(this.resizePoint, snapToPointLocal(layerManager.getLayer()!, mouse));
+                    sel.resize(
+                        this.resizePoint,
+                        snapToPointLocal(layerManager.getLayer(layerManager.floor!.name)!, mouse),
+                    );
                     if (sel !== this.selectionHelper) {
-                        if (sel.visionObstruction) visibilityStore.recalculateVision();
+                        if (sel.visionObstruction) visibilityStore.recalculateVision(sel.floor);
                         socket.emit("Shape.Update", { shape: sel.asDict(), redraw: true, temporary: true });
                     }
                     layer.invalidate(false);
@@ -185,11 +188,11 @@ export default class SelectTool extends Tool {
     }
     onMouseUp(e: MouseEvent): void {
         if (!this.active) return;
-        if (layerManager.getLayer() === undefined) {
+        if (layerManager.getLayer(layerManager.floor!.name) === undefined) {
             console.log("No active layer!");
             return;
         }
-        const layer = layerManager.getLayer()!;
+        const layer = layerManager.getLayer(layerManager.floor!.name)!;
 
         if (this.mode === SelectOperations.GroupSelect) {
             if (e.ctrlKey) {
@@ -230,8 +233,8 @@ export default class SelectTool extends Tool {
                     }
 
                     if (sel !== this.selectionHelper) {
-                        if (sel.visionObstruction) visibilityStore.recalculateVision();
-                        if (sel.movementObstruction) visibilityStore.recalculateMovement();
+                        if (sel.visionObstruction) visibilityStore.recalculateVision(sel.floor);
+                        if (sel.movementObstruction) visibilityStore.recalculateMovement(sel.floor);
                         socket.emit("Shape.Update", { shape: sel.asDict(), redraw: true, temporary: false });
                     }
                     layer.invalidate(false);
@@ -241,8 +244,8 @@ export default class SelectTool extends Tool {
                         sel.resizeToGrid();
                     }
                     if (sel !== this.selectionHelper) {
-                        if (sel.visionObstruction) visibilityStore.recalculateVision();
-                        if (sel.movementObstruction) visibilityStore.recalculateMovement();
+                        if (sel.visionObstruction) visibilityStore.recalculateVision(sel.floor);
+                        if (sel.movementObstruction) visibilityStore.recalculateMovement(sel.floor);
                         socket.emit("Shape.Update", { shape: sel.asDict(), redraw: true, temporary: false });
                     }
                     layer.invalidate(false);
@@ -254,11 +257,11 @@ export default class SelectTool extends Tool {
         this.active = false;
     }
     onContextMenu(event: MouseEvent): void {
-        if (layerManager.getLayer() === undefined) {
+        if (layerManager.getLayer(layerManager.floor!.name) === undefined) {
             console.log("No active layer!");
             return;
         }
-        const layer = layerManager.getLayer()!;
+        const layer = layerManager.getLayer(layerManager.floor!.name)!;
         const mouse = getMouse(event);
         const globalMouse = l2g(mouse);
         for (const shape of layer.selection) {

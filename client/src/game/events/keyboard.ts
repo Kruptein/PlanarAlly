@@ -13,6 +13,10 @@ export function onKeyUp(event: KeyboardEvent): void {
     } else {
         if (event.key === "Delete" || event.key === "Del" || event.key === "Backspace") {
             deleteShapes();
+        } else if (event.key === "PageUp" && gameStore.selectedFloorIndex < gameStore.floors.length - 1) {
+            gameStore.selectFloor(gameStore.selectedFloorIndex + 1);
+        } else if (event.key === "PageDown" && gameStore.selectedFloorIndex > 0) {
+            gameStore.selectFloor(gameStore.selectedFloorIndex - 1);
         }
     }
 }
@@ -45,20 +49,24 @@ export function onKeyDown(event: KeyboardEvent): void {
                     sel.refPoint = sel.refPoint.add(delta);
                     // todo: Fix again
                     // if (sel.refPoint.x % gridSize !== 0 || sel.refPoint.y % gridSize !== 0) sel.snapToGrid();
-                    socket.emit("Shape.Position.Update", { shape: sel.asDict(), redraw: true, temporary: false });
+                    socket.emit("Shape.Position.Update", {
+                        shape: sel.asDict(),
+                        redraw: true,
+                        temporary: false,
+                    });
                 }
-                visibilityStore.recalculateVision();
-                layerManager.getLayer()!.invalidate(false);
+                visibilityStore.recalculateVision(layerManager.floor!.name);
+                layerManager.getLayer(layerManager.floor!.name)!.invalidate(false);
             } else {
                 // The pan offsets should be in the opposite direction to give the correct feel.
                 gameStore.increasePanX(offsetX * (event.keyCode <= 38 ? 1 : -1));
                 gameStore.increasePanY(offsetY * (event.keyCode <= 38 ? 1 : -1));
-                layerManager.invalidate();
+                layerManager.invalidateAllFloors();
                 sendClientOptions(gameStore.locationOptions);
             }
         } else if (event.key === "d") {
             // d - Deselect all
-            const layer = layerManager.getLayer();
+            const layer = layerManager.getLayer(layerManager.floor!.name);
             if (layer) {
                 layer.clearSelection();
                 layer.invalidate(true);
@@ -73,7 +81,7 @@ export function onKeyDown(event: KeyboardEvent): void {
             gameStore.setPanX(0);
             gameStore.setPanY(0);
             sendClientOptions(gameStore.locationOptions);
-            layerManager.invalidate();
+            layerManager.invalidateAllFloors();
         } else if (event.key === "c" && event.ctrlKey) {
             // Ctrl-c - Copy
             copyShapes();

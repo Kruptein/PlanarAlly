@@ -80,7 +80,6 @@ export default class FloorSelect extends Vue {
         const value = await (<Game>this.$parent).$refs.prompt.prompt("New floor name", "Floor Creation");
         if (value === undefined) return;
         socket.emit("Floor.Create", value);
-        gameStore.selectFloor(gameStore.floors.length - 1);
     }
 
     selectFloor(index: number): void {

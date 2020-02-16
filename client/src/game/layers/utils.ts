@@ -17,6 +17,7 @@ export function addFloor(floor: ServerFloor): void {
     addCDT(floor.name);
     layerManager.floors.push({ name: floor.name, layers: [] });
     for (const layer of floor.layers) createLayer(layer, floor.name);
+    gameStore.selectFloor(gameStore.floors.length - 1);
 }
 
 export function removeFloor(floor: string): void {

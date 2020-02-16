@@ -5,12 +5,12 @@ import { ServerShape } from "@/game/comm/types/shapes";
 import { EventBus } from "@/game/event-bus";
 import { GlobalPoint } from "@/game/geom";
 import { layerManager } from "@/game/layers/manager";
-import { addFloor } from "@/game/layers/utils";
+import { addFloor, removeFloor } from "@/game/layers/utils";
 import { gameManager } from "@/game/manager";
 import { gameStore } from "@/game/store";
 import { router } from "@/router";
 import { zoomDisplay } from "../utils";
-import { visibilityStore, VisibilityMode } from "../visibility/store";
+import { VisibilityMode, visibilityStore } from "../visibility/store";
 
 socket.on("connect", () => {
     console.log("Connected");
@@ -115,7 +115,8 @@ socket.on("Board.Set", (locationInfo: BoardInfo) => {
     gameStore.selectFloor(0);
     gameStore.setBoardInitialized(true);
 });
-socket.on("Board.Floors.Add", addFloor);
+socket.on("Floor.Create", addFloor);
+socket.on("Floor.Remove", removeFloor);
 socket.on("Gridsize.Set", (gridSize: number) => {
     gameStore.setGridSize({ gridSize, sync: false });
 });

@@ -1,4 +1,4 @@
-import { SyncMode, InvalidationMode } from "@/core/comm/types";
+import { InvalidationMode, SyncMode } from "@/core/comm/types";
 import { ServerFloor, ServerLayer } from "@/game/comm/types/general";
 import { GlobalPoint, LocalPoint } from "@/game/geom";
 import { FOWLayer } from "@/game/layers/fow";
@@ -9,13 +9,33 @@ import { layerManager } from "@/game/layers/manager";
 import { Asset } from "@/game/shapes/asset";
 import { gameStore } from "@/game/store";
 import { g2l, l2gx, l2gy, l2gz } from "@/game/units";
-import { addCDT } from "@/game/visibility/te/pa";
+import { visibilityStore } from "@/game/visibility/store";
+import { addCDT, removeCDT } from "@/game/visibility/te/pa";
 
 export function addFloor(floor: ServerFloor): void {
     gameStore.floors.push(floor.name);
     addCDT(floor.name);
     layerManager.floors.push({ name: floor.name, layers: [] });
     for (const layer of floor.layers) createLayer(layer, floor.name);
+}
+
+export function removeFloor(floor: string): void {
+    removeCDT(floor);
+    visibilityStore.movementBlockers.splice(
+        visibilityStore.movementBlockers.findIndex(mb => mb.floor === floor),
+        1,
+    );
+    visibilityStore.visionBlockers.splice(
+        visibilityStore.visionBlockers.findIndex(vb => vb.floor === floor),
+        1,
+    );
+    visibilityStore.visionSources.splice(
+        visibilityStore.visionSources.findIndex(vs => vs.floor === floor),
+        1,
+    );
+    const index = gameStore.floors.findIndex(f => f === floor);
+    gameStore.floors.splice(index, 1);
+    if (gameStore.selectedFloorIndex === index) gameStore.selectFloor(index - 1);
 }
 
 export function createLayer(layerInfo: ServerLayer, floor: string): void {

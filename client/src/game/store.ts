@@ -221,11 +221,6 @@ class GameStore extends VuexModule implements GameState {
     }
 
     @Mutation
-    createFloor(name: string): void {
-        socket.emit("Floor.Create", { name });
-    }
-
-    @Mutation
     selectFloor(targetFloorIndex: number): void {
         this.selectedFloorIndex = targetFloorIndex;
         this.layers = layerManager.floor!.layers.reduce(

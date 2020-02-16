@@ -43,10 +43,10 @@ import Component from "vue-class-component";
 
 import Game from "@/game/game.vue";
 
+import { socket } from "@/game/api/socket";
 import { layerManager } from "@/game/layers/manager";
+import { removeFloor } from "@/game/layers/utils";
 import { gameStore } from "@/game/store";
-import { removeCDT } from "../visibility/te/pa";
-import { visibilityStore } from "../visibility/store";
 
 @Component
 export default class FloorSelect extends Vue {
@@ -79,7 +79,7 @@ export default class FloorSelect extends Vue {
     async addFloor(): Promise<void> {
         const value = await (<Game>this.$parent).$refs.prompt.prompt("New floor name", "Floor Creation");
         if (value === undefined) return;
-        gameStore.createFloor(value);
+        socket.emit("Floor.Create", value);
         gameStore.selectFloor(gameStore.floors.length - 1);
     }
 
@@ -91,21 +91,8 @@ export default class FloorSelect extends Vue {
         const floor = gameStore.floors[index];
         if (!(await (<Game>this.$parent).$refs.confirm.open(`Are you sure you wish to remove the ${floor} floor?`)))
             return;
-        removeCDT(floor);
-        visibilityStore.movementBlockers.splice(
-            visibilityStore.movementBlockers.findIndex(mb => mb.floor === floor),
-            1,
-        );
-        visibilityStore.visionBlockers.splice(
-            visibilityStore.visionBlockers.findIndex(vb => vb.floor === floor),
-            1,
-        );
-        visibilityStore.visionSources.splice(
-            visibilityStore.visionSources.findIndex(vs => vs.floor === floor),
-            1,
-        );
-        gameStore.floors.splice(index, 1);
-        if (gameStore.selectedFloorIndex === index) gameStore.selectFloor(index - 1);
+        socket.emit("Floor.Remove", floor);
+        removeFloor(floor);
     }
 }
 </script>

@@ -13,6 +13,10 @@ export function onKeyUp(event: KeyboardEvent): void {
     } else {
         if (event.key === "Delete" || event.key === "Del" || event.key === "Backspace") {
             deleteShapes();
+        } else if (event.key === "PageUp" && gameStore.selectedFloorIndex < gameStore.floors.length - 1) {
+            gameStore.selectFloor(gameStore.selectedFloorIndex + 1);
+        } else if (event.key === "PageDown" && gameStore.selectedFloorIndex > 0) {
+            gameStore.selectFloor(gameStore.selectedFloorIndex - 1);
         }
     }
 }

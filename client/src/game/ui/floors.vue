@@ -87,8 +87,10 @@ export default class FloorSelect extends Vue {
         gameStore.selectFloor(index);
     }
 
-    removeFloor(index: number): void {
-        const floor = gameStore.floors[gameStore.selectedFloorIndex];
+    async removeFloor(index: number): Promise<void> {
+        const floor = gameStore.floors[index];
+        if (!(await (<Game>this.$parent).$refs.confirm.open(`Are you sure you wish to remove the ${floor} floor?`)))
+            return;
         removeCDT(floor);
         visibilityStore.movementBlockers.splice(
             visibilityStore.movementBlockers.findIndex(mb => mb.floor === floor),
@@ -103,7 +105,7 @@ export default class FloorSelect extends Vue {
             1,
         );
         gameStore.floors.splice(index, 1);
-        gameStore.selectFloor(index - 1);
+        if (gameStore.selectedFloorIndex === index) gameStore.selectFloor(index - 1);
     }
 }
 </script>

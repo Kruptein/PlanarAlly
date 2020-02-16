@@ -15,6 +15,9 @@ All notable changes to this project will be documented in this file.
     -   Delete account
 -   Snap to nearby existing points while drawing and while resizing points
 -   CTRL-0 (zero) now resets the viewport to origin (0,0) [LDeeJay1969]
+-   Floors
+    -   Create/Delete floors that are rendered on top of eachother to increase immersion
+    -   Use Page Up/Down as a quick keybinding to move between floors
 
 ### Removed
 

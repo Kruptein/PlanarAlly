@@ -16,7 +16,7 @@
                     </div>
                     <div class="floor-name">{{ floor }}</div>
                     <div class="floor-actions">
-                        <div @click="removeFloor(index)"><i class="fas fa-trash-alt"></i></div>
+                        <div @click.stop="removeFloor(index)"><i class="fas fa-trash-alt"></i></div>
                     </div>
                 </div>
             </template>

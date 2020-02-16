@@ -3,7 +3,7 @@ import { Layer } from "@/game/layers/layer";
 import { Shape } from "@/game/shapes/shape";
 import { gameStore } from "@/game/store";
 
-interface Floor {
+export interface Floor {
     name: string;
     layers: Layer[];
 }

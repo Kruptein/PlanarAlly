@@ -148,6 +148,11 @@ socket.on("Shape.Order.Set", (data: { shape: ServerShape; index: number }) => {
     const layer = layerManager.getLayer(shape.floor, shape.layer)!;
     layer.moveShapeOrder(shape, data.index, false);
 });
+socket.on("Shape.Floor.Change", (data: { uuid: string; floor: string }) => {
+    const shape = layerManager.UUIDMap.get(data.uuid);
+    if (shape === undefined) return;
+    shape.moveFloor(data.floor, false);
+});
 socket.on("Shape.Layer.Change", (data: { uuid: string; layer: string }) => {
     const shape = layerManager.UUIDMap.get(data.uuid);
     if (shape === undefined) return;

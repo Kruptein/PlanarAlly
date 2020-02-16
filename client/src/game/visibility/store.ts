@@ -1,7 +1,9 @@
 import { socket } from "@/game/api/socket";
 import { rootStore } from "@/store";
 import { Action, getModule, Module, Mutation, VuexModule } from "vuex-module-decorators";
+import { Shape } from "../shapes/shape";
 import { triangulate, TriangulationTarget } from "./te/pa";
+import { moveBlocker, moveVisionSource } from "./utils";
 
 export enum VisibilityMode {
     TRIANGLE,
@@ -33,6 +35,17 @@ class VisibilityStore extends VuexModule implements VisibilityState {
     @Mutation
     recalculateMovement(floor: string): void {
         triangulate(TriangulationTarget.MOVEMENT, false, floor);
+    }
+
+    @Mutation
+    moveShape(data: { shape: Shape; oldFloor: string; newFloor: string }): void {
+        if (data.shape.movementObstruction) {
+            moveBlocker(TriangulationTarget.MOVEMENT, data.shape.uuid, data.oldFloor, data.newFloor);
+        }
+        if (data.shape.visionObstruction) {
+            moveBlocker(TriangulationTarget.VISION, data.shape.uuid, data.oldFloor, data.newFloor);
+        }
+        moveVisionSource(data.shape.uuid, data.shape.auras, data.oldFloor, data.newFloor);
     }
 
     @Action

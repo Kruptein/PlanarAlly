@@ -6,6 +6,19 @@
         :top="y + 'px'"
         @close="close"
     >
+        <li v-if="getFloors().length > 1">
+            Floor
+            <ul>
+                <li
+                    v-for="(floor, idx) in getFloors()"
+                    :key="floor.name"
+                    :style="[idx === activeFloorIndex ? { 'background-color': '#82c8a0' } : {}]"
+                    @click="setFloor(floor)"
+                >
+                    {{ floor.name }}
+                </li>
+            </ul>
+        </li>
         <li v-if="getLayers().length > 1">
             Layer
             <ul>
@@ -44,14 +57,14 @@
 import Vue from "vue";
 import Component from "vue-class-component";
 
-import { mapState } from "vuex";
+import { mapState, mapMutations } from "vuex";
 
 import ContextMenu from "@/core/components/contextmenu.vue";
 
 import { socket } from "@/game/api/socket";
 import { ServerClient, ServerLocation } from "@/game/comm/types/general";
 import { EventBus } from "@/game/event-bus";
-import { layerManager } from "@/game/layers/manager";
+import { layerManager, Floor } from "@/game/layers/manager";
 import { gameStore } from "@/game/store";
 import { cutShapes, deleteShapes, pasteShapes } from "../../shapes/utils";
 import { initiativeStore, inInitiative } from "../initiative/store";
@@ -62,7 +75,8 @@ import { Layer } from "../../layers/layer";
         ContextMenu,
     },
     computed: {
-        ...mapState("game", ["locations", "assets", "notes"]),
+        ...mapState("game", ["activeFloorIndex", "assets", "locations", "notes"]),
+        ...mapMutations("game", ["selectFloor"]),
     },
 })
 export default class ShapeContext extends Vue {
@@ -77,6 +91,9 @@ export default class ShapeContext extends Vue {
     }
     close(): void {
         this.visible = false;
+    }
+    getFloors(): Floor[] {
+        return layerManager.floors;
     }
     getLayers(): Layer[] {
         return layerManager.floor?.layers.filter(l => l.selectable && (gameStore.IS_DM || l.playerEditable)) || [];
@@ -98,6 +115,11 @@ export default class ShapeContext extends Vue {
     hasSingleShape(): boolean {
         const layer = this.getActiveLayer()!;
         return layer.selection.length === 1;
+    }
+    setFloor(floor: Floor): void {
+        const layer = this.getActiveLayer()!;
+        layer.selection.forEach(shape => shape.moveFloor(floor.name, true));
+        this.close();
     }
     setLayer(newLayer: string): void {
         const layer = this.getActiveLayer()!;

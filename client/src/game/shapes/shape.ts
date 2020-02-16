@@ -4,7 +4,7 @@ import { aurasFromServer, aurasToServer } from "@/game/comm/conversion/aura";
 import { InitiativeData } from "@/game/comm/types/general";
 import { ServerShape } from "@/game/comm/types/shapes";
 import { GlobalPoint, LocalPoint, Vector } from "@/game/geom";
-import { layerManager } from "@/game/layers/manager";
+import { layerManager, Floor } from "@/game/layers/manager";
 import { BoundingRect } from "@/game/shapes/boundingrect";
 import { gameStore } from "@/game/store";
 import { g2l, g2lr, g2lx, g2ly, g2lz, getUnitDistance } from "@/game/units";
@@ -314,6 +314,19 @@ export abstract class Shape {
             effects: [],
             index: Infinity,
         };
+    }
+
+    moveFloor(floor: string, sync: boolean): void {
+        const oldLayer = layerManager.getLayer(this.floor, this.layer);
+        const newLayer = layerManager.getLayer(floor, this.layer);
+        if (oldLayer === undefined || newLayer === undefined) return;
+        visibilityStore.moveShape({ shape: this, oldFloor: this.floor, newFloor: floor });
+        this.floor = floor;
+        oldLayer.shapes.splice(oldLayer.shapes.indexOf(this), 1);
+        newLayer.shapes.push(this);
+        oldLayer.invalidate(false);
+        newLayer.invalidate(false);
+        if (sync) socket.emit("Shape.Floor.Change", { uuid: this.uuid, floor });
     }
 
     moveLayer(layer: string, sync: boolean): void {

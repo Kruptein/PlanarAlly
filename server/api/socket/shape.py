@@ -279,6 +279,41 @@ async def remove_shape(sid, data):
             )
 
 
+@sio.on("Shape.Floor.Change", namespace="/planarally")
+@auth.login_required(app, sio)
+async def change_shape_layer(sid, data):
+    sid_data = state.sid_map[sid]
+    user = sid_data["user"]
+    room = sid_data["room"]
+    location = sid_data["location"]
+
+    if room.creator != user:
+        logger.warning(f"{user.name} attempted to move the floor of a shape")
+        return
+
+    floor: Floor = Floor.get(location=location, name=data["floor"])
+    shape: Shape = Shape.get(uuid=data["uuid"])
+    layer: Layer = Layer.get(floor=floor, name=shape.layer.name)
+    old_layer = shape.layer
+    old_index = shape.index
+
+    shape.layer = layer
+    shape.index = layer.shapes.count()
+    shape.save()
+
+    Shape.update(index=Shape.index - 1).where(
+        (Shape.layer == old_layer) & (Shape.index >= old_index)
+    ).execute()
+
+    await sio.emit(
+        "Shape.Floor.Change",
+        data,
+        room=location.get_path(),
+        skip_sid=sid,
+        namespace="/planarally",
+    )
+
+
 @sio.on("Shape.Layer.Change", namespace="/planarally")
 @auth.login_required(app, sio)
 async def change_shape_layer(sid, data):

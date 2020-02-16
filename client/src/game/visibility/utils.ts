@@ -49,3 +49,23 @@ export function addBlocker(target: TriangulationTarget, blocker: string, floor?:
     const blockers = getBlockers(target, floor);
     setBlockers(target, [...blockers, blocker], floor);
 }
+
+export function moveBlocker(target: TriangulationTarget, blocker: string, oldFloor: string, newFloor: string): void {
+    sliceBlockers(
+        target,
+        getBlockers(target, oldFloor).findIndex(shape => shape === blocker),
+        oldFloor,
+    );
+    addBlocker(target, blocker, newFloor);
+}
+
+export function moveVisionSource(source: string, auras: Aura[], oldFloor: string, newFloor: string): void {
+    for (const aura of auras) {
+        if (!aura.visionSource) continue;
+        sliceVisionSources(
+            getVisionSources(oldFloor).findIndex(s => s.shape === source && s.aura === aura.uuid),
+            oldFloor,
+        );
+        addVisionSource({ shape: source, aura: aura.uuid }, newFloor);
+    }
+}

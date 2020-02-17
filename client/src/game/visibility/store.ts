@@ -6,7 +6,7 @@ import { BoundingVolume } from "./bvh/bvh";
 import { addShapesToTriag, deleteShapeFromTriag, triangulate, TriangulationTarget } from "./te/pa";
 
 export interface VisibilityState {
-    visionMode: "bvh" | "triangle";
+    visionMode: "triangle-plus" | "triangle";
     visionBlockers: string[];
 }
 
@@ -14,13 +14,13 @@ export interface VisibilityState {
 class VisibilityStore extends VuexModule implements VisibilityState {
     BV = Object.freeze(new BoundingVolume([]));
 
-    visionMode: "bvh" | "triangle" = "bvh";
+    visionMode: "triangle-plus" | "triangle" = "triangle";
     visionBlockers: string[] = [];
     movementblockers: string[] = [];
     visionSources: { shape: string; aura: string }[] = [];
 
     @Mutation
-    setVisionMode(data: { mode: "bvh" | "triangle"; sync: boolean }): void {
+    setVisionMode(data: { mode: "triangle-plus" | "triangle"; sync: boolean }): void {
         this.visionMode = data.mode;
         // eslint-disable-next-line @typescript-eslint/camelcase
         if (data.sync) socket.emit("Location.Options.Set", { vision_mode: data.mode });
@@ -29,7 +29,6 @@ class VisibilityStore extends VuexModule implements VisibilityState {
     @Mutation
     recalculateVision(): void {
         if (this.visionMode === "triangle") triangulate(TriangulationTarget.VISION);
-        else this.BV = Object.freeze(new BoundingVolume(this.visionBlockers));
     }
 
     @Mutation
@@ -38,18 +37,15 @@ class VisibilityStore extends VuexModule implements VisibilityState {
     }
 
     @Mutation
-    deleteFromTriag(data: { target: TriangulationTarget; shape: Shape; standalone: boolean }): void {
-        if (this.visionMode === "triangle") {
+    deleteFromTriag(data: { target: TriangulationTarget; shape: Shape }): void {
+        if (this.visionMode === "triangle-plus") {
             deleteShapeFromTriag(data.target, data.shape);
-        } else if (data.standalone) {
-            this.recalculateVision();
         }
     }
 
     @Mutation
     addToTriag(data: { target: TriangulationTarget; shape: Shape }): void {
-        if (this.visionMode === "triangle") addShapesToTriag(data.target, data.shape);
-        else this.recalculateVision();
+        if (this.visionMode === "triangle-plus") addShapesToTriag(data.target, data.shape);
     }
 
     @Action

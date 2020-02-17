@@ -103,18 +103,20 @@ export class Layer {
 
         const index = this.selection.indexOf(shape);
         if (index >= 0) this.selection.splice(index, 1);
-        if (lbI >= 0)
+        if (lbI >= 0) {
             visibilityStore.deleteFromTriag({
                 target: TriangulationTarget.VISION,
                 shape,
-                standalone: true,
             });
-        if (mbI >= 0)
+            visibilityStore.recalculateVision();
+        }
+        if (mbI >= 0) {
             visibilityStore.deleteFromTriag({
                 target: TriangulationTarget.MOVEMENT,
                 shape,
-                standalone: true,
             });
+            visibilityStore.recalculateMovement();
+        }
 
         this.invalidate(!sync);
     }

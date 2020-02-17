@@ -55,18 +55,18 @@ export class GameManager {
                 visibilityStore.deleteFromTriag({
                     target: TriangulationTarget.VISION,
                     shape,
-                    standalone: false,
                 });
                 visibilityStore.addToTriag({ target: TriangulationTarget.VISION, shape });
+                visibilityStore.recalculateVision();
             }
             layerManager.getLayer(data.shape.layer)!.invalidate(false);
             if (shape.movementObstruction && !alteredMovement) {
                 visibilityStore.deleteFromTriag({
                     target: TriangulationTarget.MOVEMENT,
                     shape,
-                    standalone: false,
                 });
                 visibilityStore.addToTriag({ target: TriangulationTarget.MOVEMENT, shape });
+                visibilityStore.recalculateMovement();
             }
         }
         if (redrawInitiative) EventBus.$emit("Initiative.ForceUpdate");

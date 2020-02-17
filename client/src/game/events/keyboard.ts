@@ -42,20 +42,24 @@ export function onKeyDown(event: KeyboardEvent): void {
                     }
                 }
                 if (delta.length() === 0) return;
+                let recalculateVision = false;
+                let recalculateMovement = false;
                 for (const sel of selection) {
                     if (gameStore.selectionHelperID === sel.uuid) continue;
-                    if (sel.movementObstruction)
+                    if (sel.movementObstruction) {
+                        recalculateMovement = true;
                         visibilityStore.deleteFromTriag({
                             target: TriangulationTarget.MOVEMENT,
                             shape: sel,
-                            standalone: false,
                         });
-                    if (sel.visionObstruction)
+                    }
+                    if (sel.visionObstruction) {
+                        recalculateVision = true;
                         visibilityStore.deleteFromTriag({
                             target: TriangulationTarget.VISION,
                             shape: sel,
-                            standalone: false,
                         });
+                    }
                     sel.refPoint = sel.refPoint.add(delta);
                     if (sel.movementObstruction)
                         visibilityStore.addToTriag({ target: TriangulationTarget.MOVEMENT, shape: sel });
@@ -65,6 +69,8 @@ export function onKeyDown(event: KeyboardEvent): void {
                     // if (sel.refPoint.x % gridSize !== 0 || sel.refPoint.y % gridSize !== 0) sel.snapToGrid();
                     socket.emit("Shape.Position.Update", { shape: sel.asDict(), redraw: true, temporary: false });
                 }
+                if (recalculateVision) visibilityStore.recalculateVision();
+                if (recalculateMovement) visibilityStore.recalculateMovement();
                 layerManager.getLayer()!.invalidate(false);
             } else {
                 // The pan offsets should be in the opposite direction to give the correct feel.

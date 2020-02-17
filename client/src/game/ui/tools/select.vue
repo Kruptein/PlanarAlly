@@ -163,11 +163,12 @@ export default class SelectTool extends Tool {
                         visibilityStore.deleteFromTriag({
                             target: TriangulationTarget.VISION,
                             shape: sel,
-                            standalone: false,
                         });
                     sel.refPoint = sel.refPoint.add(delta);
-                    if (sel.visionObstruction)
+                    if (sel.visionObstruction) {
                         visibilityStore.addToTriag({ target: TriangulationTarget.VISION, shape: sel });
+                        visibilityStore.recalculateVision();
+                    }
                     if (sel !== this.selectionHelper) {
                         socket.emit("Shape.Update", { shape: sel.asDict(), redraw: true, temporary: true });
                     }
@@ -180,13 +181,14 @@ export default class SelectTool extends Tool {
                         visibilityStore.deleteFromTriag({
                             target: TriangulationTarget.VISION,
                             shape: sel,
-                            standalone: false,
                         });
                     sel.resize(this.resizePoint, mouse);
                     if (sel !== this.selectionHelper) {
                         // todo: think about calling deleteIntersectVertex directly on the corner point
-                        if (sel.visionObstruction)
+                        if (sel.visionObstruction) {
                             visibilityStore.addToTriag({ target: TriangulationTarget.VISION, shape: sel });
+                            visibilityStore.recalculateVision();
+                        }
                         socket.emit("Shape.Update", { shape: sel.asDict(), redraw: true, temporary: true });
                     }
                     layer.invalidate(false);
@@ -246,19 +248,21 @@ export default class SelectTool extends Tool {
                             visibilityStore.deleteFromTriag({
                                 target: TriangulationTarget.VISION,
                                 shape: sel,
-                                standalone: false,
                             });
                         if (sel.movementObstruction)
                             visibilityStore.deleteFromTriag({
                                 target: TriangulationTarget.MOVEMENT,
                                 shape: sel,
-                                standalone: false,
                             });
                         sel.snapToGrid();
-                        if (sel.visionObstruction)
+                        if (sel.visionObstruction) {
                             visibilityStore.addToTriag({ target: TriangulationTarget.VISION, shape: sel });
-                        if (sel.movementObstruction)
+                            visibilityStore.recalculateVision();
+                        }
+                        if (sel.movementObstruction) {
                             visibilityStore.addToTriag({ target: TriangulationTarget.MOVEMENT, shape: sel });
+                            visibilityStore.recalculateMovement();
+                        }
                     }
 
                     if (sel !== this.selectionHelper) {
@@ -272,19 +276,21 @@ export default class SelectTool extends Tool {
                             visibilityStore.deleteFromTriag({
                                 target: TriangulationTarget.VISION,
                                 shape: sel,
-                                standalone: false,
                             });
                         if (sel.movementObstruction)
                             visibilityStore.deleteFromTriag({
                                 target: TriangulationTarget.MOVEMENT,
                                 shape: sel,
-                                standalone: false,
                             });
                         sel.snapToGrid();
-                        if (sel.visionObstruction)
+                        if (sel.visionObstruction) {
                             visibilityStore.addToTriag({ target: TriangulationTarget.VISION, shape: sel });
-                        if (sel.movementObstruction)
+                            visibilityStore.recalculateVision();
+                        }
+                        if (sel.movementObstruction) {
                             visibilityStore.addToTriag({ target: TriangulationTarget.MOVEMENT, shape: sel });
+                            visibilityStore.recalculateMovement();
+                        }
                     }
                     if (sel !== this.selectionHelper) {
                         socket.emit("Shape.Update", { shape: sel.asDict(), redraw: true, temporary: false });

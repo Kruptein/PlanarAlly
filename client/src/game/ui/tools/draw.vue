@@ -354,9 +354,9 @@ export default class DrawTool extends Tool {
                     visibilityStore.deleteFromTriag({
                         target: TriangulationTarget.VISION,
                         shape: this.shape,
-                        standalone: false,
                     });
                 visibilityStore.addToTriag({ target: TriangulationTarget.VISION, shape: this.shape });
+                visibilityStore.recalculateVision();
             }
         }
         layer.invalidate(false);
@@ -373,13 +373,16 @@ export default class DrawTool extends Tool {
                 visibilityStore.deleteFromTriag({
                     target: TriangulationTarget.VISION,
                     shape: this.shape,
-                    standalone: false,
                 });
             this.shape.resizeToGrid();
-            if (this.shape.visionObstruction)
+            if (this.shape.visionObstruction) {
                 visibilityStore.addToTriag({ target: TriangulationTarget.VISION, shape: this.shape });
-            if (this.shape.movementObstruction)
+                visibilityStore.recalculateVision();
+            }
+            if (this.shape.movementObstruction) {
                 visibilityStore.addToTriag({ target: TriangulationTarget.MOVEMENT, shape: this.shape });
+                visibilityStore.recalculateMovement();
+            }
         }
         this.finaliseShape();
     }

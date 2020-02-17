@@ -13,7 +13,13 @@
                 @contextmenu.prevent.stop="contextmenu"
                 @dragover.prevent
                 @drop.prevent.stop="drop"
+                @touchstart="mousedown"
+                @touchend="mouseup"
+                @touchmove="mousemove"
             ></div>
+            <!-- v-touch:tap="mouseup"
+            v-touch:
+            v-touch:end="drop" -->
             <floor-select v-show="showUI"></floor-select>
         </div>
         <selection-info ref="selectionInfo" v-show="showUI"></selection-info>

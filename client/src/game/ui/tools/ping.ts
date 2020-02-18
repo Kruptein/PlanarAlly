@@ -19,8 +19,7 @@ export class PingTool extends Tool {
     ping: Circle | null = null;
     border: Circle | null = null;
 
-    pingDown(gp: GlobalPoint): void {
-        console.log("pingDown");
+    onDown(gp: GlobalPoint): void {
         this.startPoint = gp;
         const layer = layerManager.getLayer(layerManager.floor!.name, "draw");
 
@@ -38,9 +37,9 @@ export class PingTool extends Tool {
         layer.addShape(this.border, SyncMode.TEMP_SYNC, InvalidationMode.NORMAL);
     }
 
-    pingUp(): void {
+    onUp(): void {
         if (!this.active || this.ping === null || this.border === null || this.startPoint === null) return;
-        console.log("pingUp");
+        console.log("onUp");
 
         const layer = layerManager.getLayer(layerManager.floor!.name, "draw");
         if (layer === undefined) {
@@ -56,7 +55,7 @@ export class PingTool extends Tool {
         this.startPoint = null;
     }
 
-    pingMove(gp: GlobalPoint): void {
+    onMove(gp: GlobalPoint): void {
         if (!this.active || this.ping === null || this.border === null || this.startPoint === null) return;
 
         const layer = layerManager.getLayer(layerManager.floor!.name, "draw");
@@ -76,29 +75,29 @@ export class PingTool extends Tool {
 
     onMouseDown(event: MouseEvent): void {
         const startingPoint = l2g(getLocalPointFromEvent(event));
-        this.pingDown(startingPoint);
+        this.onDown(startingPoint);
     }
 
     onMouseMove(event: MouseEvent): void {
         const endPoint = l2g(getLocalPointFromEvent(event));
-        this.pingMove(endPoint);
+        this.onMove(endPoint);
     }
 
     onMouseUp(_event: MouseEvent): void {
-        this.pingUp();
+        this.onUp();
     }
 
     onTouchStart(event: TouchEvent): void {
         const startingPoint = l2g(getLocalPointFromEvent(event));
-        this.pingDown(startingPoint);
+        this.onDown(startingPoint);
     }
 
     onTouchMove(event: TouchEvent): void {
         const endPoint = l2g(getLocalPointFromEvent(event));
-        this.pingMove(endPoint);
+        this.onMove(endPoint);
     }
 
     onTouchEnd(_event: TouchEvent): void {
-        this.pingUp();
+        this.onUp();
     }
 }

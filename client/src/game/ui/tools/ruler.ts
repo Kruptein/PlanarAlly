@@ -20,7 +20,7 @@ export class RulerTool extends Tool {
     ruler: Line | null = null;
     text: Text | null = null;
 
-    rulerDown(gp: GlobalPoint): void {
+    onDown(gp: GlobalPoint): void {
         this.startPoint = gp;
 
         const layer = layerManager.getLayer(layerManager.floor!.name, "draw");
@@ -37,7 +37,7 @@ export class RulerTool extends Tool {
         layer.addShape(this.text, SyncMode.TEMP_SYNC, InvalidationMode.NORMAL);
     }
 
-    rulerMove(endPoint: GlobalPoint): void {
+    onMove(endPoint: GlobalPoint): void {
         if (!this.active || this.ruler === null || this.startPoint === null || this.text === null) return;
 
         const layer = layerManager.getLayer(layerManager.floor!.name, "draw");
@@ -66,7 +66,7 @@ export class RulerTool extends Tool {
         layer.invalidate(true);
     }
 
-    rulerUp(): void {
+    onUp(): void {
         if (!this.active || this.ruler === null || this.startPoint === null || this.text === null) return;
 
         const layer = layerManager.getLayer(layerManager.floor!.name, "draw");
@@ -84,29 +84,29 @@ export class RulerTool extends Tool {
 
     onMouseDown(event: MouseEvent): void {
         const startPoint = l2g(getLocalPointFromEvent(event));
-        this.rulerDown(startPoint);
+        this.onDown(startPoint);
     }
 
     onMouseMove(event: MouseEvent): void {
         const endPoint = l2g(getLocalPointFromEvent(event));
-        this.rulerMove(endPoint);
+        this.onMove(endPoint);
     }
 
     onMouseUp(_event: MouseEvent): void {
-        this.rulerUp();
+        this.onUp();
     }
 
     onTouchStart(event: TouchEvent): void {
         const startPoint = l2g(getLocalPointFromEvent(event));
-        this.rulerDown(startPoint);
+        this.onDown(startPoint);
     }
 
     onTouchMove(event: TouchEvent): void {
         const endPoint = l2g(getLocalPointFromEvent(event));
-        this.rulerMove(endPoint);
+        this.onMove(endPoint);
     }
 
     onTouchEnd(_event: TouchEvent): void {
-        this.rulerUp();
+        this.onUp();
     }
 }

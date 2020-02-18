@@ -24,7 +24,7 @@ export function zoomDisplay(value: number): number {
     return Math.log((1 / value + 5 / 3) * (15 / 28)) / 1.83;
 }
 
-export function equalPoint(a: number, b: number, delta: number = 0.0001): boolean {
+export function equalPoint(a: number, b: number, delta = 0.0001): boolean {
     return a - delta < b && a + delta > b;
 }
 

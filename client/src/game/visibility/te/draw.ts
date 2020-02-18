@@ -85,7 +85,7 @@ function drl(from: number[], to: number[], constrained: boolean, local: boolean)
     ctx.stroke();
 }
 
-export function drawEdge(edge: Edge, colour: string, local: boolean = false): void {
+export function drawEdge(edge: Edge, colour: string, local = false): void {
     const from = edge.first!.vertices[edge.second === 0 ? 1 : 0]!.point!;
     const to = edge.first!.vertices[edge.second === 2 ? 1 : 2]!.point!;
     const dl = layerManager.getLayer("draw");

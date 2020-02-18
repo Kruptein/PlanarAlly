@@ -16,7 +16,7 @@ export function getCDT(target: TriangulationTarget, floor: string): CDT {
     return PA_CDT.get(floor)![target];
 }
 
-function setCDT(target: TriangulationTarget, cdt: CDT, floor: string): void {
+export function setCDT(target: TriangulationTarget, floor: string, cdt: CDT): void {
     PA_CDT.set(floor, { ...PA_CDT.get(floor)!, [target]: cdt });
 }
 
@@ -41,7 +41,7 @@ export function insertConstraint(target: TriangulationTarget, shape: Shape, pa: 
 
 export function triangulate(target: TriangulationTarget, floor: string): void {
     const cdt = new CDT();
-    setCDT(target, cdt, floor);
+    setCDT(target, floor, cdt);
     const shapes = getBlockers(target, floor);
 
     for (const sh of shapes) {

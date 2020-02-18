@@ -474,9 +474,9 @@ export class LineFaceCirculator {
 
 export class Edge {
     first: Triangle | null = null;
-    second: number = 0;
+    second = 0;
 
-    constructor(first: Triangle | null = null, second: number = 0) {
+    constructor(first: Triangle | null = null, second = 0) {
         this.first = first;
         this.second = second;
     }
@@ -591,7 +591,7 @@ export class TDS {
         return ei.edge;
     }
 
-    getEdges(onlyConstraint: boolean = false): Edge[] {
+    getEdges(onlyConstraint = false): Edge[] {
         const ei = new EdgeIterator(this);
         const edges: Edge[] = [];
         if (ei.edge.first === null) return edges;
@@ -610,7 +610,7 @@ export class TDS {
         return edges;
     }
 
-    numberOfEdges(onlyConstraint: boolean = false): number {
+    numberOfEdges(onlyConstraint = false): number {
         let i = 0;
         let j = 0;
         const ei = new EdgeIterator(this);

@@ -1,7 +1,7 @@
 import { Shape } from "@/game/shapes/shape";
 import { equalPoints } from "@/game/utils";
 import { CDT } from "./cdt";
-import { PA_CDT, TriangulationTarget } from "./pa";
+import { TriangulationTarget, getCDT } from "./pa";
 import { Edge, Sign, Triangle, Vertex } from "./tds";
 import { ccw, collinear, collinearInOrder, cw, xyCompare, xyEqual, xySmaller } from "./triag";
 
@@ -64,7 +64,7 @@ export class IterativeDelete {
         this.handledPoints = [];
         this.finalConstraints = [];
 
-        this.cdt = PA_CDT[target];
+        this.cdt = getCDT(target, shape.floor);
         this.shape = shape;
 
         this.deleteVertices();
@@ -172,10 +172,10 @@ export class IterativeDelete {
             } else if (pointHandled) {
                 continue;
             }
-            const ev = (edge.vertices() as [Vertex, Vertex]).sort((a: Vertex, b: Vertex) =>
+            const ev = (<[Vertex, Vertex]>edge.vertices()).sort((a: Vertex, b: Vertex) =>
                 xySmaller(a.point!, b.point!) ? -1 : 1,
             );
-            let constraint: Constraint = {
+            const constraint: Constraint = {
                 combined: ev,
                 segments: [ev],
             };
@@ -190,11 +190,11 @@ export class IterativeDelete {
     }
 
     private addEdge(edge: Edge): void {
-        const ev = (edge.vertices() as [Vertex, Vertex]).sort((a: Vertex, b: Vertex) =>
+        const ev = (<[Vertex, Vertex]>edge.vertices()).sort((a: Vertex, b: Vertex) =>
             xySmaller(a.point!, b.point!) ? -1 : 1,
         );
         for (const e of this.edges) {
-            const evO = (e.vertices() as [Vertex, Vertex]).sort((a: Vertex, b: Vertex) =>
+            const evO = (<[Vertex, Vertex]>e.vertices()).sort((a: Vertex, b: Vertex) =>
                 xySmaller(a.point!, b.point!) ? -1 : 1,
             );
             if (equalPoints(ev[0].point!, evO[0].point!) && equalPoints(ev[1].point!, evO[1].point!)) return;

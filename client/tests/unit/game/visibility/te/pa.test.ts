@@ -3,7 +3,7 @@ import { Polygon } from "@/game/shapes/polygon";
 import { Rect } from "@/game/shapes/rect";
 import { Shape } from "@/game/shapes/shape";
 import { CDT } from "@/game/visibility/te/cdt";
-import { addShapesToTriag, deleteShapeFromTriag, PA_CDT, TriangulationTarget } from "@/game/visibility/te/pa";
+import { addShapesToTriag, deleteShapeFromTriag, TriangulationTarget, setCDT } from "@/game/visibility/te/pa";
 import { rotateAroundOrigin, xySmaller } from "@/game/visibility/te/triag";
 
 jest.mock("@/game/api/socket", () => ({
@@ -27,7 +27,7 @@ function _expectRemoveSuccess(shape1: Shape, shape2: Shape): void {
 }
 function _expectRemoveSuccessRotation(shape1: Shape, shape2: Shape, rotate: boolean): void {
     cdt = new CDT();
-    PA_CDT.vision = cdt;
+    setCDT(TriangulationTarget.VISION, shape1.floor, cdt);
     cdt.tds.clearTriagVertices(shape1.uuid);
     cdt.tds.clearTriagVertices(shape2.uuid);
     if (rotate) {
@@ -167,7 +167,7 @@ describe("PA test suite.", () => {
                 new GlobalPoint(10, 10),
             ]);
             cdt = new CDT();
-            PA_CDT.vision = cdt;
+            setCDT(TriangulationTarget.VISION, shape.floor, cdt);
             addShapesToTriag(TriangulationTarget.VISION, shape, shape2);
             deleteShapeFromTriag(TriangulationTarget.VISION, shape2);
             expect(cdt.tds.numberOfVertices(false)).toBe(4);

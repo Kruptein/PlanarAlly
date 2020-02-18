@@ -174,17 +174,14 @@ export default class Game extends Vue {
     // Touch events
 
     touchend(event: TouchEvent): void {
-        console.log("touchend event");
         this.$refs.tools.touchend(event);
     }
 
     touchstart(event: TouchEvent): void {
-        console.log("touchstart event");
         this.$refs.tools.touchstart(event);
     }
 
     touchmove(event: TouchEvent): void {
-        // console.log(event);
         // limit the number of touch moves to ease server load
         if (!this.throttledtouchmoveSet) {
             this.throttledtouchmoveSet = true;
@@ -197,11 +194,9 @@ export default class Game extends Vue {
     // Mouse events
 
     mousedown(event: MouseEvent): void {
-        console.log("mousedown event");
         this.$refs.tools.mousedown(event);
     }
     mouseup(event: MouseEvent): void {
-        console.log("mouseup event");
         this.$refs.tools.mouseup(event);
     }
     mousemove(event: MouseEvent): void {
@@ -209,19 +204,15 @@ export default class Game extends Vue {
             this.throttledmoveSet = true;
             this.throttledmove = throttle(this.$refs.tools.mousemove, 15);
         }
-        console.log(event);
         this.throttledmove(event);
     }
     mouseleave(event: MouseEvent): void {
-        console.log("mouseleave");
         this.$refs.tools.mouseleave(event);
     }
     contextmenu(event: MouseEvent): void {
-        console.log("contextmenu");
         this.$refs.tools.contextmenu(event);
     }
     async drop(event: DragEvent): Promise<void> {
-        console.log("drop");
         if (event === null || event.dataTransfer === null) return;
         if (event.dataTransfer.files.length > 0) {
             await this.$refs.confirm.open("Uploading files should be done through the asset manager.", "Ok", "");

@@ -20,50 +20,34 @@ export class PingTool extends Tool {
     border: Circle | null = null;
 
     pingDown(gp: GlobalPoint): void {
+        console.log("pingDown");
+        this.startPoint = gp;
         const layer = layerManager.getLayer(layerManager.floor!.name, "draw");
+
         if (layer === undefined) {
             console.log("No draw layer!");
             return;
         }
+
         this.active = true;
-        this.ping = new Circle(gp, 20, gameStore.rulerColour);
-        this.border = new Circle(gp, 40, "#0000", gameStore.rulerColour);
+        this.ping = new Circle(this.startPoint, 20, gameStore.rulerColour);
+        this.border = new Circle(this.startPoint, 40, "#0000", gameStore.rulerColour);
         this.ping.addOwner(gameStore.username);
         this.border.addOwner(gameStore.username);
         layer.addShape(this.ping, SyncMode.TEMP_SYNC, InvalidationMode.NORMAL);
         layer.addShape(this.border, SyncMode.TEMP_SYNC, InvalidationMode.NORMAL);
     }
 
-    onMouseDown(event: MouseEvent): void {
-        const startingPoint = l2g(getMouse(event));
-        this.pingDown(startingPoint);
-    }
-    onMouseMove(event: MouseEvent): void {
+    pingUp(): void {
         if (!this.active || this.ping === null || this.border === null || this.startPoint === null) return;
-
-        const layer = layerManager.getLayer(layerManager.floor!.name, "draw");
-        if (layer === undefined) {
-            console.log("No draw layer!");
-            return;
-        }
-        const endPoint = l2g(getMouse(event));
-
-        this.ping.center(endPoint);
-        this.border.center(endPoint);
-
-        socket.emit("Shape.Update", { shape: this.ping!.asDict(), redraw: true, temporary: true });
-        socket.emit("Shape.Update", { shape: this.border!.asDict(), redraw: true, temporary: true });
-
-        layer.invalidate(true);
-    }
-    onMouseUp(_event: MouseEvent): void {
-        if (!this.active || this.ping === null || this.border === null || this.startPoint === null) return;
+        console.log("pingUp");
 
         const layer = layerManager.getLayer(layerManager.floor!.name, "draw");
         if (layer === undefined) {
             console.log("No active layer!");
             return;
         }
+
         this.active = false;
         layer.removeShape(this.ping, SyncMode.TEMP_SYNC);
         layer.removeShape(this.border, SyncMode.TEMP_SYNC);
@@ -72,8 +56,49 @@ export class PingTool extends Tool {
         this.startPoint = null;
     }
 
+    pingMove(gp: GlobalPoint): void {
+        if (!this.active || this.ping === null || this.border === null || this.startPoint === null) return;
+
+        const layer = layerManager.getLayer(layerManager.floor!.name, "draw");
+        if (layer === undefined) {
+            console.log("No draw layer!");
+            return;
+        }
+
+        this.ping.center(gp);
+        this.border.center(gp);
+
+        socket.emit("Shape.Update", { shape: this.ping!.asDict(), redraw: true, temporary: true });
+        socket.emit("Shape.Update", { shape: this.border!.asDict(), redraw: true, temporary: true });
+
+        layer.invalidate(true);
+    }
+
+    onMouseDown(event: MouseEvent): void {
+        const startingPoint = l2g(getMouse(event));
+        this.pingDown(startingPoint);
+    }
+
+    onMouseMove(event: MouseEvent): void {
+        const endPoint = l2g(getMouse(event));
+        this.pingMove(endPoint);
+    }
+
+    onMouseUp(_event: MouseEvent): void {
+        this.pingUp();
+    }
+
     onTouchStart(event: TouchEvent): void {
         const startingPoint = l2g(getTouch(event));
         this.pingDown(startingPoint);
+    }
+
+    onTouchMove(event: TouchEvent): void {
+        const endPoint = l2g(getTouch(event));
+        this.pingMove(endPoint);
+    }
+
+    onTouchEnd(_event: TouchEvent): void {
+        this.pingUp();
     }
 }

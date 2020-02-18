@@ -9,7 +9,7 @@ import { Line } from "@/game/shapes/line";
 import { Text } from "@/game/shapes/text";
 import { gameStore } from "@/game/store";
 import { l2g, l2gz } from "@/game/units";
-import { getMouse } from "@/game/utils";
+import { getMouse, getTouch } from "@/game/utils";
 import { SyncMode, InvalidationMode } from "@/core/comm/types";
 
 @Component
@@ -19,14 +19,16 @@ export class RulerTool extends Tool {
     startPoint: GlobalPoint | null = null;
     ruler: Line | null = null;
     text: Text | null = null;
-    onMouseDown(event: MouseEvent): void {
+
+    rulerDown(gp: GlobalPoint): void {
+        this.startPoint = gp;
+
         const layer = layerManager.getLayer(layerManager.floor!.name, "draw");
         if (layer === undefined) {
             console.log("No draw layer!");
             return;
         }
         this.active = true;
-        this.startPoint = l2g(getMouse(event));
         this.ruler = new Line(this.startPoint, this.startPoint, l2gz(3), gameStore.rulerColour);
         this.text = new Text(this.startPoint.clone(), "", "bold 20px serif");
         this.ruler.addOwner(gameStore.username);
@@ -34,7 +36,8 @@ export class RulerTool extends Tool {
         layer.addShape(this.ruler, SyncMode.TEMP_SYNC, InvalidationMode.NORMAL);
         layer.addShape(this.text, SyncMode.TEMP_SYNC, InvalidationMode.NORMAL);
     }
-    onMouseMove(event: MouseEvent): void {
+
+    rulerMove(endPoint: GlobalPoint): void {
         if (!this.active || this.ruler === null || this.startPoint === null || this.text === null) return;
 
         const layer = layerManager.getLayer(layerManager.floor!.name, "draw");
@@ -42,7 +45,6 @@ export class RulerTool extends Tool {
             console.log("No draw layer!");
             return;
         }
-        const endPoint = l2g(getMouse(event));
 
         this.ruler.endPoint = endPoint;
         socket.emit("Shape.Update", { shape: this.ruler!.asDict(), redraw: true, temporary: true });
@@ -63,7 +65,8 @@ export class RulerTool extends Tool {
         socket.emit("Shape.Update", { shape: this.text.asDict(), redraw: true, temporary: true });
         layer.invalidate(true);
     }
-    onMouseUp(_event: MouseEvent): void {
+
+    rulerUp(): void {
         if (!this.active || this.ruler === null || this.startPoint === null || this.text === null) return;
 
         const layer = layerManager.getLayer(layerManager.floor!.name, "draw");
@@ -77,5 +80,33 @@ export class RulerTool extends Tool {
         layer.removeShape(this.text, SyncMode.TEMP_SYNC);
         layer.invalidate(true);
         this.ruler = this.startPoint = this.text = null;
+    }
+
+    onMouseDown(event: MouseEvent): void {
+        const startPoint = l2g(getMouse(event));
+        this.rulerDown(startPoint);
+    }
+
+    onMouseMove(event: MouseEvent): void {
+        const endPoint = l2g(getMouse(event));
+        this.rulerMove(endPoint);
+    }
+
+    onMouseUp(_event: MouseEvent): void {
+        this.rulerUp();
+    }
+
+    onTouchStart(event: TouchEvent): void {
+        const startPoint = l2g(getTouch(event));
+        this.rulerDown(startPoint);
+    }
+
+    onTouchMove(event: TouchEvent): void {
+        const endPoint = l2g(getTouch(event));
+        this.rulerMove(endPoint);
+    }
+
+    onTouchEnd(_event: TouchEvent): void {
+        this.rulerUp();
     }
 }

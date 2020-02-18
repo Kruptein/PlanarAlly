@@ -35,6 +35,9 @@ export default class Tool extends Vue {
         this.$parent.$on("mousemove", (event: MouseEvent, tool: string) => {
             if (tool === this.name) this.onMouseMove(event);
         });
+        this.$parent.$on("touchmove", (event: TouchEvent, tool: string) => {
+            if (tool === this.name) this.onTouchMove(event);
+        });
         this.$parent.$on("contextmenu", (event: MouseEvent, tool: string) => {
             if (tool === this.name) this.onContextMenu(event);
         });
@@ -53,6 +56,7 @@ export default class Tool extends Vue {
     onMouseDown(_event: MouseEvent): void {}
     onMouseUp(_event: MouseEvent): void {}
     onMouseMove(_event: MouseEvent): void {}
+    onTouchMove(_event: TouchEvent): void {}
     onContextMenu(event: MouseEvent): void {
         (<DefaultContext>this.$parent.$refs.defaultcontext).open(event);
     }

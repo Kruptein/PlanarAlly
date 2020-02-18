@@ -13,9 +13,7 @@
                 @contextmenu.prevent.stop="contextmenu"
                 @dragover.prevent
                 @drop.prevent.stop="drop"
-                @touchstart="mousedown"
-                @touchend="mouseup"
-                @touchmove="mousemove"
+                @touchmove="touchmove"
             ></div>
             <!-- v-touch:tap="mouseup"
             v-touch:
@@ -119,6 +117,9 @@ export default class Game extends Vue {
     throttledmoveSet = false;
     throttledmove: (event: MouseEvent) => void = (_event: MouseEvent) => {};
 
+    throttledtouchmoveSet = false;
+    throttledtouchmove: (event: TouchEvent) => void = (_event: TouchEvent) => {};
+
     get showUI(): boolean {
         return gameStore.showUI;
     }
@@ -168,12 +169,27 @@ export default class Game extends Vue {
         layerManager.invalidateAllFloors();
     }
 
+    // Touch events
+
+    touchmove(event: TouchEvent): void {
+        console.log(event);
+        // limit the number of touch moves to ease server load
+        if (!this.throttledtouchmoveSet) {
+            this.throttledtouchmoveSet = true;
+            this.throttledtouchmove = throttle(this.$refs.tools.touchmove, 5);
+        }
+        // after throttling pass event to object
+        this.throttledtouchmove(event);
+    }
+
     // Mouse events
 
     mousedown(event: MouseEvent): void {
+        console.log("mousedown");
         this.$refs.tools.mousedown(event);
     }
     mouseup(event: MouseEvent): void {
+        console.log("mouseup");
         this.$refs.tools.mouseup(event);
     }
     mousemove(event: MouseEvent): void {
@@ -181,15 +197,19 @@ export default class Game extends Vue {
             this.throttledmoveSet = true;
             this.throttledmove = throttle(this.$refs.tools.mousemove, 15);
         }
+        console.log(event);
         this.throttledmove(event);
     }
     mouseleave(event: MouseEvent): void {
+        console.log("mouseleave");
         this.$refs.tools.mouseleave(event);
     }
     contextmenu(event: MouseEvent): void {
+        console.log("contextmenu");
         this.$refs.tools.contextmenu(event);
     }
     async drop(event: DragEvent): Promise<void> {
+        console.log("drop");
         if (event === null || event.dataTransfer === null) return;
         if (event.dataTransfer.files.length > 0) {
             await this.$refs.confirm.open("Uploading files should be done through the asset manager.", "Ok", "");

@@ -7,6 +7,14 @@ export function getMouse(e: MouseEvent): LocalPoint {
     return new LocalPoint(e.pageX, e.pageY);
 }
 
+// takes a given touch event and converts to LocalPoint
+export function getTouch(e: TouchEvent): LocalPoint {
+    console.log("getTouch");
+    // touches is a TouchList, which is a list of touches (for each finger)
+    // default to first touch (first index) to get x/y
+    return new LocalPoint(e.touches[0].pageX, e.touches[0].pageY);
+}
+
 export function getFogColour(opposite = false): string {
     const tc = tinycolor(gameStore.fowColour);
     if (gameStore.IS_DM) tc.setAlpha(opposite ? 1 : gameStore.fowOpacity);

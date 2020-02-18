@@ -341,8 +341,10 @@ export default class DrawTool extends Tool {
             !this.active ||
             this.shape === null ||
             (this.shape instanceof Polygon && this.shapeSelect === "draw-polygon")
-        )
+        ) {
             return;
+        }
+        // TODO: handle touch event different than altKey, long press
         if (!event.altKey && this.useGrid) {
             this.shape.resizeToGrid();
         }

@@ -196,9 +196,11 @@ export default class Game extends Vue {
     mousedown(event: MouseEvent): void {
         this.$refs.tools.mousedown(event);
     }
+
     mouseup(event: MouseEvent): void {
         this.$refs.tools.mouseup(event);
     }
+
     mousemove(event: MouseEvent): void {
         if (!this.throttledmoveSet) {
             this.throttledmoveSet = true;
@@ -206,12 +208,15 @@ export default class Game extends Vue {
         }
         this.throttledmove(event);
     }
+
     mouseleave(event: MouseEvent): void {
         this.$refs.tools.mouseleave(event);
     }
+
     contextmenu(event: MouseEvent): void {
         this.$refs.tools.contextmenu(event);
     }
+
     async drop(event: DragEvent): Promise<void> {
         if (event === null || event.dataTransfer === null) return;
         if (event.dataTransfer.files.length > 0) {

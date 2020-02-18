@@ -8,7 +8,7 @@ import { layerManager } from "@/game/layers/manager";
 import { Circle } from "@/game/shapes/circle";
 import { gameStore } from "@/game/store";
 import { l2g } from "@/game/units";
-import { getMouse } from "@/game/utils";
+import { getMouse, getTouch } from "@/game/utils";
 import { SyncMode, InvalidationMode } from "@/core/comm/types";
 
 @Component
@@ -18,20 +18,25 @@ export class PingTool extends Tool {
     startPoint: GlobalPoint | null = null;
     ping: Circle | null = null;
     border: Circle | null = null;
-    onMouseDown(event: MouseEvent): void {
+
+    pingDown(gp: GlobalPoint): void {
         const layer = layerManager.getLayer(layerManager.floor!.name, "draw");
         if (layer === undefined) {
             console.log("No draw layer!");
             return;
         }
         this.active = true;
-        this.startPoint = l2g(getMouse(event));
-        this.ping = new Circle(this.startPoint, 20, gameStore.rulerColour);
-        this.border = new Circle(this.startPoint, 40, "#0000", gameStore.rulerColour);
+        this.ping = new Circle(gp, 20, gameStore.rulerColour);
+        this.border = new Circle(gp, 40, "#0000", gameStore.rulerColour);
         this.ping.addOwner(gameStore.username);
         this.border.addOwner(gameStore.username);
         layer.addShape(this.ping, SyncMode.TEMP_SYNC, InvalidationMode.NORMAL);
         layer.addShape(this.border, SyncMode.TEMP_SYNC, InvalidationMode.NORMAL);
+    }
+
+    onMouseDown(event: MouseEvent): void {
+        const startingPoint = l2g(getMouse(event));
+        this.pingDown(startingPoint);
     }
     onMouseMove(event: MouseEvent): void {
         if (!this.active || this.ping === null || this.border === null || this.startPoint === null) return;
@@ -65,5 +70,10 @@ export class PingTool extends Tool {
         layer.invalidate(true);
         this.ping = null;
         this.startPoint = null;
+    }
+
+    onTouchStart(event: TouchEvent): void {
+        const startingPoint = l2g(getTouch(event));
+        this.pingDown(startingPoint);
     }
 }

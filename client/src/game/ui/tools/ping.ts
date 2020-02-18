@@ -8,7 +8,7 @@ import { layerManager } from "@/game/layers/manager";
 import { Circle } from "@/game/shapes/circle";
 import { gameStore } from "@/game/store";
 import { l2g } from "@/game/units";
-import { getMouse, getTouch } from "@/game/utils";
+import { getLocalPointFromEvent } from "@/game/utils";
 import { SyncMode, InvalidationMode } from "@/core/comm/types";
 
 @Component
@@ -75,12 +75,12 @@ export class PingTool extends Tool {
     }
 
     onMouseDown(event: MouseEvent): void {
-        const startingPoint = l2g(getMouse(event));
+        const startingPoint = l2g(getLocalPointFromEvent(event));
         this.pingDown(startingPoint);
     }
 
     onMouseMove(event: MouseEvent): void {
-        const endPoint = l2g(getMouse(event));
+        const endPoint = l2g(getLocalPointFromEvent(event));
         this.pingMove(endPoint);
     }
 
@@ -89,12 +89,12 @@ export class PingTool extends Tool {
     }
 
     onTouchStart(event: TouchEvent): void {
-        const startingPoint = l2g(getTouch(event));
+        const startingPoint = l2g(getLocalPointFromEvent(event));
         this.pingDown(startingPoint);
     }
 
     onTouchMove(event: TouchEvent): void {
-        const endPoint = l2g(getTouch(event));
+        const endPoint = l2g(getLocalPointFromEvent(event));
         this.pingMove(endPoint);
     }
 

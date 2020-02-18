@@ -9,7 +9,7 @@ import { Line } from "@/game/shapes/line";
 import { Text } from "@/game/shapes/text";
 import { gameStore } from "@/game/store";
 import { l2g, l2gz } from "@/game/units";
-import { getMouse, getTouch } from "@/game/utils";
+import { getLocalPointFromEvent } from "@/game/utils";
 import { SyncMode, InvalidationMode } from "@/core/comm/types";
 
 @Component
@@ -83,12 +83,12 @@ export class RulerTool extends Tool {
     }
 
     onMouseDown(event: MouseEvent): void {
-        const startPoint = l2g(getMouse(event));
+        const startPoint = l2g(getLocalPointFromEvent(event));
         this.rulerDown(startPoint);
     }
 
     onMouseMove(event: MouseEvent): void {
-        const endPoint = l2g(getMouse(event));
+        const endPoint = l2g(getLocalPointFromEvent(event));
         this.rulerMove(endPoint);
     }
 
@@ -97,12 +97,12 @@ export class RulerTool extends Tool {
     }
 
     onTouchStart(event: TouchEvent): void {
-        const startPoint = l2g(getTouch(event));
+        const startPoint = l2g(getLocalPointFromEvent(event));
         this.rulerDown(startPoint);
     }
 
     onTouchMove(event: TouchEvent): void {
-        const endPoint = l2g(getTouch(event));
+        const endPoint = l2g(getLocalPointFromEvent(event));
         this.rulerMove(endPoint);
     }
 

@@ -40,7 +40,6 @@ export default class MapTool extends Tool {
 
         this.rect = new Rect(this.startPoint.clone(), 0, 0, "rgba(0,0,0,0)", "black");
         layer.addShape(this.rect, SyncMode.NO_SYNC, InvalidationMode.NORMAL);
-
     }
 
     onMove(endPoint: GlobalPoint): void {
@@ -94,7 +93,6 @@ export default class MapTool extends Tool {
     onMouseMove(event: MouseEvent): void {
         const endPoint = l2g(getMouse(event));
         this.onMove(endPoint);
-
     }
 
     onMouseUp(_event: MouseEvent): void {
@@ -111,7 +109,7 @@ export default class MapTool extends Tool {
         this.onMove(endPoint);
     }
 
-    onTouchEnd(event: TouchEvent): void {
+    onTouchEnd(_event: TouchEvent): void {
         this.onUp();
     }
 }

@@ -6,7 +6,7 @@
 trigger:
   tags:
     include:
-      - '*'
+      - "*"
 
 jobs:
   - job: "Pyinstaller_Windows"
@@ -14,6 +14,13 @@ jobs:
       vmImage: "vs2017-win2016"
 
     steps:
+      - script: npm install
+        workingDirectory: "client"
+        displayName: "npm i"
+      - script: npm run build
+        workingDirectory: "client"
+        displayName: "npm run build"
+
       - task: UsePythonVersion@0
         inputs:
           versionSpec: "3.7"
@@ -29,18 +36,18 @@ jobs:
       - script: pyinstaller --clean -y --dist $(Build.ArtifactStagingDirectory)\windows --workpath D:\ PA.spec
         displayName: "Run pyinstaller"
         workingDirectory: "server"
-      
+
       - task: ArchiveFiles@2
         inputs:
           rootFolderOrFile: $(Build.ArtifactStagingDirectory)\windows\planarserver
           includeRootFolder: false
-          archiveType: 'zip'
+          archiveType: "zip"
           archiveFile: '$(Build.ArtifactStagingDirectory)\planarally-windows.zip'
-      
+
       - task: GitHubRelease@0
         inputs:
           gitHubConnection: Kruptein
-          action: 'create'
+          action: "create"
           assets: '$(Build.ArtifactStagingDirectory)\planarally-windows.zip'
-          assetsUploadMode: 'replace'
+          assetsUploadMode: "replace"
           addChangeLog: false

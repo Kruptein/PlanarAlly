@@ -5,5 +5,5 @@ export class Settings {
     static skipPlayerFOW = false;
     static skipLightFOW = false;
 
-    static tempFill: string = "fog";
+    static tempFill = "fog";
 }

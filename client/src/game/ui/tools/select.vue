@@ -6,9 +6,11 @@ import DefaultContext from "@/game/ui/tools/defaultcontext.vue";
 import Tool from "@/game/ui/tools/tool.vue";
 
 import { socket } from "@/game/api/socket";
+import { EventBus } from "@/game/event-bus";
 import { GlobalPoint, LocalPoint, Ray, Vector } from "@/game/geom";
 import { Layer } from "@/game/layers/layer";
 import { layerManager } from "@/game/layers/manager";
+import { snapToPointLocal } from "@/game/layers/utils";
 import { Rect } from "@/game/shapes/rect";
 import { gameStore } from "@/game/store";
 import { calculateDelta } from "@/game/ui/tools/utils";
@@ -16,7 +18,6 @@ import { g2l, g2lx, g2ly, l2g, l2gz } from "@/game/units";
 import { getMouse } from "@/game/utils";
 import { visibilityStore } from "@/game/visibility/store";
 import { TriangulationTarget } from "@/game/visibility/te/pa";
-import { EventBus } from "../../event-bus";
 
 export enum SelectOperations {
     Noop,
@@ -41,12 +42,12 @@ export default class SelectTool extends Tool {
     dragRay = new Ray<LocalPoint>(new LocalPoint(0, 0), new Vector(0, 0));
     selectionStartPoint = start;
     selectionHelper = new Rect(start, 0, 0);
-    created() {
+    created(): void {
         this.selectionHelper.globalCompositeOperation = "source-over";
         gameStore.setSelectionHelperId(this.selectionHelper.uuid);
     }
-    onMouseDown(event: MouseEvent) {
-        const layer = layerManager.getLayer();
+    onMouseDown(event: MouseEvent): void {
+        const layer = layerManager.getLayer(layerManager.floor!.name);
         if (layer === undefined) {
             console.log("No active layer!");
             return;
@@ -67,7 +68,7 @@ export default class SelectTool extends Tool {
         for (let i = selectionStack.length - 1; i >= 0; i--) {
             const shape = selectionStack[i];
 
-            this.resizePoint = shape.getPointIndex(globalMouse, l2gz(3));
+            this.resizePoint = shape.getPointIndex(globalMouse, l2gz(5));
 
             // Resize case, a corner is selected
             if (this.resizePoint >= 0) {
@@ -118,9 +119,9 @@ export default class SelectTool extends Tool {
         }
         this.active = true;
     }
-    onMouseMove(event: MouseEvent) {
+    onMouseMove(event: MouseEvent): void {
         // if (!this.active) return;   we require mousemove for the resize cursor
-        const layer = layerManager.getLayer();
+        const layer = layerManager.getLayer(layerManager.floor!.name);
         if (layer === undefined) {
             console.log("No active layer!");
             return;
@@ -167,9 +168,10 @@ export default class SelectTool extends Tool {
                     sel.refPoint = sel.refPoint.add(delta);
                     if (sel.visionObstruction) {
                         visibilityStore.addToTriag({ target: TriangulationTarget.VISION, shape: sel });
-                        visibilityStore.recalculateVision();
+                        visibilityStore.recalculateVision(sel.floor);
                     }
                     if (sel !== this.selectionHelper) {
+                        if (sel.visionObstruction) visibilityStore.recalculateVision(sel.floor);
                         socket.emit("Shape.Update", { shape: sel.asDict(), redraw: true, temporary: true });
                     }
                 }
@@ -182,12 +184,15 @@ export default class SelectTool extends Tool {
                             target: TriangulationTarget.VISION,
                             shape: sel,
                         });
-                    sel.resize(this.resizePoint, mouse);
+                    sel.resize(
+                        this.resizePoint,
+                        snapToPointLocal(layerManager.getLayer(layerManager.floor!.name)!, mouse),
+                    );
                     if (sel !== this.selectionHelper) {
                         // todo: think about calling deleteIntersectVertex directly on the corner point
                         if (sel.visionObstruction) {
                             visibilityStore.addToTriag({ target: TriangulationTarget.VISION, shape: sel });
-                            visibilityStore.recalculateVision();
+                            visibilityStore.recalculateVision(sel.floor);
                         }
                         socket.emit("Shape.Update", { shape: sel.asDict(), redraw: true, temporary: true });
                     }
@@ -203,11 +208,11 @@ export default class SelectTool extends Tool {
     }
     onMouseUp(e: MouseEvent): void {
         if (!this.active) return;
-        if (layerManager.getLayer() === undefined) {
+        if (layerManager.getLayer(layerManager.floor!.name) === undefined) {
             console.log("No active layer!");
             return;
         }
-        const layer = layerManager.getLayer()!;
+        const layer = layerManager.getLayer(layerManager.floor!.name)!;
 
         if (this.mode === SelectOperations.GroupSelect) {
             if (e.ctrlKey) {
@@ -257,15 +262,17 @@ export default class SelectTool extends Tool {
                         sel.snapToGrid();
                         if (sel.visionObstruction) {
                             visibilityStore.addToTriag({ target: TriangulationTarget.VISION, shape: sel });
-                            visibilityStore.recalculateVision();
+                            visibilityStore.recalculateVision(sel.floor);
                         }
                         if (sel.movementObstruction) {
                             visibilityStore.addToTriag({ target: TriangulationTarget.MOVEMENT, shape: sel });
-                            visibilityStore.recalculateMovement();
+                            visibilityStore.recalculateMovement(sel.floor);
                         }
                     }
 
                     if (sel !== this.selectionHelper) {
+                        if (sel.visionObstruction) visibilityStore.recalculateVision(sel.floor);
+                        if (sel.movementObstruction) visibilityStore.recalculateMovement(sel.floor);
                         socket.emit("Shape.Update", { shape: sel.asDict(), redraw: true, temporary: false });
                     }
                     layer.invalidate(false);
@@ -285,11 +292,11 @@ export default class SelectTool extends Tool {
                         sel.snapToGrid();
                         if (sel.visionObstruction) {
                             visibilityStore.addToTriag({ target: TriangulationTarget.VISION, shape: sel });
-                            visibilityStore.recalculateVision();
+                            visibilityStore.recalculateVision(sel.floor);
                         }
                         if (sel.movementObstruction) {
                             visibilityStore.addToTriag({ target: TriangulationTarget.MOVEMENT, shape: sel });
-                            visibilityStore.recalculateMovement();
+                            visibilityStore.recalculateMovement(sel.floor);
                         }
                     }
                     if (sel !== this.selectionHelper) {
@@ -297,17 +304,18 @@ export default class SelectTool extends Tool {
                     }
                     layer.invalidate(false);
                 }
+                sel.updatePoints();
             }
         }
         this.mode = SelectOperations.Noop;
         this.active = false;
     }
-    onContextMenu(event: MouseEvent) {
-        if (layerManager.getLayer() === undefined) {
+    onContextMenu(event: MouseEvent): void {
+        if (layerManager.getLayer(layerManager.floor!.name) === undefined) {
             console.log("No active layer!");
             return;
         }
-        const layer = layerManager.getLayer()!;
+        const layer = layerManager.getLayer(layerManager.floor!.name)!;
         const mouse = getMouse(event);
         const globalMouse = l2g(mouse);
         for (const shape of layer.selection) {
@@ -332,7 +340,7 @@ export default class SelectTool extends Tool {
         }
         (<DefaultContext>this.$parent.$refs.defaultcontext).open(event);
     }
-    updateCursor(layer: Layer, globalMouse: GlobalPoint) {
+    updateCursor(layer: Layer, globalMouse: GlobalPoint): void {
         for (const sel of layer.selection) {
             const resizePoint = sel.getPointIndex(globalMouse, l2gz(3));
             if (resizePoint < 0) document.body.style.cursor = "default";

@@ -97,7 +97,9 @@ export class Polygon extends Shape {
     visibleInCanvas(canvas: HTMLCanvasElement): boolean {
         return this.getBoundingBox().visibleInCanvas(canvas);
     } // TODO
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
     snapToGrid(): void {}
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
     resizeToGrid(): void {}
     resize(resizePoint: number, point: LocalPoint): void {
         if (resizePoint === 0) this._refPoint = l2g(point);

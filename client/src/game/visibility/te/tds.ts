@@ -633,7 +633,7 @@ export class TDS {
         return this.vertices.length - (includeInfinity ? 0 : 1);
     }
 
-    insertDimUp(w: Vertex = new Vertex(), orient: boolean = true): Vertex {
+    insertDimUp(w: Vertex = new Vertex(), orient = true): Vertex {
         const v = this.createVertex();
         this.dimension++;
         let t1: Triangle;

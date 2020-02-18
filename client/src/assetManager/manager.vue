@@ -5,7 +5,7 @@
             <div id="assets" @dragover.prevent="moveDrag" @drop.prevent.stop="stopDrag($event, currentFolder)">
                 <div id="breadcrumbs">
                     <div>/</div>
-                    <div v-for="dir in path" :key="dir">{{ idMap.get(dir).name }}</div>
+                    <div v-for="dir in path" :key="dir">{{ idMap.has(dir) ? idMap.get(dir).name : "" }}</div>
                 </div>
                 <div id="actionbar">
                     <input id="files" type="file" multiple hidden @change="upload()" />
@@ -75,6 +75,9 @@
 import Vue from "vue";
 import Component from "vue-class-component";
 
+import { Route, NavigationGuard } from "vue-router";
+import { mapGetters } from "vuex";
+
 import AssetContextMenu from "@/assetManager/contextMenu.vue";
 import ConfirmDialog from "@/core/components/modals/confirm.vue";
 import Prompt from "@/core/components/modals/prompt.vue";
@@ -84,15 +87,25 @@ import { assetStore } from "@/assetManager/store";
 import { Asset } from "@/core/comm/types";
 import { uuidv4 } from "@/core/utils";
 
+Component.registerHooks(["beforeRouteEnter"]);
+
 @Component({
     components: {
         Prompt,
         ConfirmDialog,
         AssetContextMenu,
     },
-    beforeRouteEnter(to, from, next) {
-        socket.connect();
-        next();
+    computed: {
+        ...mapGetters("assets", [
+            "currentFolder",
+            "files",
+            "firstSelectedFile",
+            "folders",
+            "idMap",
+            "parentFolder",
+            "path",
+            "selected",
+        ]),
     },
     beforeRouteLeave(to, from, next) {
         socket.disconnect();
@@ -100,61 +113,42 @@ import { uuidv4 } from "@/core/utils";
     },
 })
 export default class AssetManager extends Vue {
-    path: number[] = [];
+    currentFolder!: number;
+    fildes!: number[];
+    firstSelectedFile!: Asset | null;
+    folders!: number[];
+    idMap!: Map<number, Asset>;
+    parentFolder!: number;
+    path!: number[];
+    selected!: number[];
+
     draggingSelection = false;
 
-    get folders(): number[] {
-        return assetStore.folders;
+    beforeRouteEnter(to: Route, _from: Route, next: Parameters<NavigationGuard>[2]): void {
+        socket.connect();
+        socket.emit("Folder.GetByPath", to.path.slice("/assets".length));
+        next();
     }
 
-    get files(): number[] {
-        return assetStore.files;
-    }
-
-    get selected(): number[] {
-        return assetStore.selected;
-    }
-
-    get idMap() {
-        return assetStore.idMap;
-    }
-
-    get currentFolder(): number {
-        if (this.path.length) return this.path[this.path.length - 1];
-        return assetStore.root;
-    }
-    get parentFolder(): number {
-        let parent = this.path[this.path.length - 2];
-        if (parent === undefined) parent = assetStore.root;
-        return parent;
-    }
-    get firstSelectedFile(): Asset | null {
-        for (const sel of assetStore.selected) {
-            if (assetStore.idMap.get(sel)!.file_hash) {
-                return assetStore.idMap.get(sel)!;
-            }
-        }
-        return null;
-    }
-    changeDirectory(nextFolder: number) {
-        if (nextFolder < 0) this.path.pop();
-        else this.path.push(nextFolder);
+    changeDirectory(nextFolder: number): void {
+        if (nextFolder < 0) assetStore.folderPath.pop();
+        else assetStore.folderPath.push(nextFolder);
         assetStore.clearSelected();
         socket.emit("Folder.Get", this.currentFolder);
     }
-    createDirectory() {
+    createDirectory(): void {
         const name = window.prompt("New folder name");
         if (name !== null) {
             socket.emit("Folder.Create", { name, parent: this.currentFolder });
         }
     }
-    moveInode(inode: number, target: number) {
+    moveInode(inode: number, target: number): void {
         if (assetStore.files.includes(inode)) assetStore.files.splice(assetStore.files.indexOf(inode), 1);
         else assetStore.folders.splice(assetStore.folders.indexOf(inode), 1);
         assetStore.idMap.delete(inode);
         socket.emit("Inode.Move", { inode, target });
     }
-    select(event: MouseEvent, inode: number) {
+    select(event: MouseEvent, inode: number): void {
         if (event.shiftKey && assetStore.selected.length > 0) {
             const inodes = [...assetStore.files, ...assetStore.folders];
             const start = inodes.indexOf(assetStore.selected[assetStore.selected.length - 1]);
@@ -171,22 +165,22 @@ export default class AssetManager extends Vue {
             assetStore.selected.push(inode);
         }
     }
-    startDrag(event: DragEvent, file: number) {
+    startDrag(event: DragEvent, file: number): void {
         if (event.dataTransfer === null) return;
         event.dataTransfer.setData("Hack", "ittyHack");
         event.dataTransfer.dropEffect = "move";
         if (!assetStore.selected.includes(file)) assetStore.selected.push(file);
         this.draggingSelection = true;
     }
-    moveDrag(event: DragEvent) {
+    moveDrag(event: DragEvent): void {
         if ((<HTMLElement>event.target).classList.contains("folder"))
             (<HTMLElement>event.target).classList.add("inode-selected");
     }
-    leaveDrag(event: DragEvent) {
+    leaveDrag(event: DragEvent): void {
         if ((<HTMLElement>event.target).classList.contains("folder"))
             (<HTMLElement>event.target).classList.remove("inode-selected");
     }
-    stopDrag(event: DragEvent, target: number) {
+    stopDrag(event: DragEvent, target: number): void {
         (<HTMLElement>event.target).classList.remove("inode-selected");
         if (this.draggingSelection) {
             if (
@@ -203,10 +197,10 @@ export default class AssetManager extends Vue {
         }
         this.draggingSelection = false;
     }
-    prepareUpload() {
+    prepareUpload(): void {
         document.getElementById("files")!.click();
     }
-    upload(fls?: FileList, target?: number) {
+    upload(fls?: FileList, target?: number): void {
         const files = (<HTMLInputElement>document.getElementById("files")!).files;
         if (fls === undefined) {
             if (files) fls = files;

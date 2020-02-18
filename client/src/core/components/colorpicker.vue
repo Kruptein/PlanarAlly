@@ -49,28 +49,28 @@ export default class ColorPicker extends Vue {
     top = 0;
     transparent = false;
 
-    mounted() {
+    mounted(): void {
         this.transparent = (<any>this.$refs.chromePicker).val.rgba.a === 0;
         this.setPosition();
     }
 
-    open() {
+    open(): void {
         if (this.display || this.disabled) return; // click on the picker itself
         this.setPosition();
         this.display = true;
         this.$nextTick(() => (<HTMLElement>this.$children[0].$el).focus());
     }
-    updateColor(value: { rgba: { r: number; g: number; b: number; a: number } }) {
+    updateColor(value: { rgba: { r: number; g: number; b: number; a: number } }): void {
         this.transparent = value.rgba.a === 0;
         const newColor = tinycolor(value.rgba).toRgbString();
         this.$emit("update:color", newColor);
         this.$emit("input", newColor);
     }
-    closePicker() {
+    closePicker(): void {
         this.display = false;
         this.$emit("change", this.color);
     }
-    setPosition() {
+    setPosition(): void {
         const rect = this.$el.getBoundingClientRect();
         // 224 is the width of the picker, 242 the height
         if (rect.right + 224 > window.innerWidth) this.left = rect.left - 224;

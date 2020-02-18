@@ -1,36 +1,52 @@
 import { layerManager } from "@/game/layers/manager";
 import { Shape } from "@/game/shapes/shape";
 import { visibilityStore } from "../store";
+import { getBlockers } from "../utils";
 import { CDT } from "./cdt";
 import { IterativeDelete } from "./iterative";
+
 export enum TriangulationTarget {
     VISION = "vision",
     MOVEMENT = "movement",
 }
-export let PA_CDT = {
-    vision: new CDT(),
-    a: new CDT(),
-    movement: new CDT(),
-};
+
+const PA_CDT: Map<string, { vision: CDT; movement: CDT }> = new Map();
+
+export function getCDT(target: TriangulationTarget, floor: string): CDT {
+    return PA_CDT.get(floor)![target];
+}
+
+function setCDT(target: TriangulationTarget, cdt: CDT, floor: string): void {
+    PA_CDT.set(floor, { ...PA_CDT.get(floor)!, [target]: cdt });
+}
+
+export function addCDT(floor: string): void {
+    PA_CDT.set(floor, { vision: new CDT(), movement: new CDT() });
+    visibilityStore.movementBlockers.push({ floor, blockers: [] });
+    visibilityStore.visionBlockers.push({ floor, blockers: [] });
+    visibilityStore.visionSources.push({ floor, sources: [] });
+}
+
+export function removeCDT(floor: string): void {
+    PA_CDT.delete(floor);
+}
 
 export function insertConstraint(target: TriangulationTarget, shape: Shape, pa: number[], pb: number[]): void {
-    const cdt = PA_CDT[target];
+    const cdt = getCDT(target, shape.floor);
     const { va, vb } = cdt.insertConstraint(pa, pb);
     va.shapes.add(shape);
     vb.shapes.add(shape);
     cdt.tds.addTriagVertices(shape.uuid, va, vb);
 }
 
-export function triangulate(target: TriangulationTarget): void {
-    console.warn(`RETRIANGULATING ${target}`);
-    console.time("TRI");
+export function triangulate(target: TriangulationTarget, floor: string): void {
     const cdt = new CDT();
-    PA_CDT[target] = cdt;
-    let shapes;
-    if (target === "vision") shapes = visibilityStore.visionBlockers;
-    else shapes = visibilityStore.movementblockers;
+    setCDT(target, cdt, floor);
+    const shapes = getBlockers(target, floor);
+
     for (const sh of shapes) {
         const shape = layerManager.UUIDMap.get(sh)!;
+        if (shape.floor !== floor) continue;
         const j = shape.isClosed ? 0 : 1;
         for (let i = 0; i < shape.points.length - j; i++) {
             const pa = shape.points[i];

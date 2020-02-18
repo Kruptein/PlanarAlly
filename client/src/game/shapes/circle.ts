@@ -53,7 +53,7 @@ export class Circle extends Shape {
             ctx.lineWidth = g2lz(borderWidth);
             ctx.strokeStyle = this.strokeColour;
             // Inset the border with - borderWidth / 2
-            ctx.arc(loc.x, loc.y, g2lz(this.r - borderWidth / 2), 0, 2 * Math.PI);
+            ctx.arc(loc.x, loc.y, Math.max(borderWidth / 2, g2lz(this.r - borderWidth / 2)), 0, 2 * Math.PI);
             ctx.stroke();
         }
     }

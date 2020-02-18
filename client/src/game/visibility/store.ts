@@ -2,59 +2,68 @@ import { socket } from "@/game/api/socket";
 import { rootStore } from "@/store";
 import { Action, getModule, Module, Mutation, VuexModule } from "vuex-module-decorators";
 import { Shape } from "../shapes/shape";
-import { BoundingVolume } from "./bvh/bvh";
 import { addShapesToTriag, deleteShapeFromTriag, triangulate, TriangulationTarget } from "./te/pa";
+import { moveBlocker, moveVisionSource } from "./utils";
+
+export enum VisibilityMode {
+    TRIANGLE,
+    TRIANGLE_ITERATIVE,
+}
 
 export interface VisibilityState {
-    visionMode: "triangle-plus" | "triangle" | "bvh";
-    visionBlockers: string[];
+    visionMode: VisibilityMode;
 }
 
 @Module({ dynamic: true, store: rootStore, name: "visibility", namespaced: true })
 class VisibilityStore extends VuexModule implements VisibilityState {
-    BV = Object.freeze(new BoundingVolume([]));
-
-    visionMode: "triangle-plus" | "triangle" | "bvh" = "triangle";
-    visionBlockers: string[] = [];
-    movementblockers: string[] = [];
-    visionSources: { shape: string; aura: string }[] = [];
+    visionMode = VisibilityMode.TRIANGLE;
+    visionBlockers: { floor: string; blockers: string[] }[] = [];
+    movementBlockers: { floor: string; blockers: string[] }[] = [];
+    visionSources: { floor: string; sources: { shape: string; aura: string }[] }[] = [];
 
     @Mutation
-    setVisionMode(data: { mode: "triangle-plus" | "triangle" | "bvh"; sync: boolean }): void {
+    setVisionMode(data: { mode: VisibilityMode; sync: boolean }): void {
         this.visionMode = data.mode;
         // eslint-disable-next-line @typescript-eslint/camelcase
         if (data.sync) socket.emit("Location.Options.Set", { vision_mode: data.mode });
     }
 
     @Mutation
-    recalculateVision(): void {
-        if (this.visionMode === "triangle") triangulate(TriangulationTarget.VISION);
+    recalculateVision(floor: string): void {
+        if (this.visionMode === VisibilityMode.TRIANGLE) triangulate(TriangulationTarget.VISION, floor);
     }
 
     @Mutation
-    recalculateMovement(): void {
-        if (this.visionMode === "triangle") triangulate(TriangulationTarget.MOVEMENT);
+    recalculateMovement(floor: string): void {
+        if (this.visionMode === VisibilityMode.TRIANGLE) triangulate(TriangulationTarget.MOVEMENT, floor);
+    }
+
+    @Mutation
+    moveShape(data: { shape: Shape; oldFloor: string; newFloor: string }): void {
+        if (data.shape.movementObstruction) {
+            moveBlocker(TriangulationTarget.MOVEMENT, data.shape.uuid, data.oldFloor, data.newFloor);
+        }
+        if (data.shape.visionObstruction) {
+            moveBlocker(TriangulationTarget.VISION, data.shape.uuid, data.oldFloor, data.newFloor);
+        }
+        moveVisionSource(data.shape.uuid, data.shape.auras, data.oldFloor, data.newFloor);
     }
 
     @Mutation
     deleteFromTriag(data: { target: TriangulationTarget; shape: Shape }): void {
-        if (this.visionMode === "triangle-plus") {
-            deleteShapeFromTriag(data.target, data.shape);
-        }
+        if (this.visionMode === VisibilityMode.TRIANGLE_ITERATIVE) deleteShapeFromTriag(data.target, data.shape);
     }
 
     @Mutation
     addToTriag(data: { target: TriangulationTarget; shape: Shape }): void {
-        if (this.visionMode === "triangle-plus") addShapesToTriag(data.target, data.shape);
+        if (this.visionMode === VisibilityMode.TRIANGLE_ITERATIVE) addShapesToTriag(data.target, data.shape);
     }
 
     @Action
     clear(): void {
         (<any>this.context.state).visionBlockers = [];
         (<any>this.context.state).visionSources = [];
-        (<any>this.context.state).movementblockers = [];
-        this.context.commit("recalculateVision");
-        this.context.commit("recalculateMovement");
+        (<any>this.context.state).movementBlockers = [];
     }
 }
 

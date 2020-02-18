@@ -22,18 +22,15 @@ export default class InputCopyElement extends Vue {
     popupString = "";
     showPopup = false;
 
-    copy() {
-        (<any>navigator).clipboard.writeText(this.value).then(
-            () => {
-                this.popupString = "Copied!";
-                this.showPopup = true;
-            },
-            () => {
-                console.log("Could not copy to clipboard :(");
-                this.popupString = "Error!";
-                this.showPopup = true;
-            },
-        );
+    async copy(): Promise<void> {
+        try {
+            await navigator.clipboard.writeText(this.value);
+            this.popupString = "Copied!";
+        } catch {
+            console.log("Could not copy to clipboard :(");
+            this.popupString = "Error!";
+        }
+        this.showPopup = true;
     }
 }
 </script>

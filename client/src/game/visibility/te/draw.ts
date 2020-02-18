@@ -18,7 +18,7 @@ export function drawPoint(point: number[], r: number, colour?: string): void {
 }
 
 export function drawPolygon(polygon: number[][], colour?: string): void {
-    const dl = layerManager.getLayer("draw");
+    const dl = layerManager.getLayer(layerManager.floor!.name, "draw");
     if (dl === undefined) return;
     const ctx = dl.ctx;
     ctx.lineJoin = "round";
@@ -36,7 +36,7 @@ export function drawPolygon(polygon: number[][], colour?: string): void {
 }
 
 export function drawPolygonL(polygon: number[][], colour?: string): void {
-    const dl = layerManager.getLayer("draw");
+    const dl = layerManager.getLayer(layerManager.floor!.name, "draw");
     if (dl === undefined) return;
     const ctx = dl.ctx;
     ctx.lineJoin = "round";
@@ -103,7 +103,7 @@ export function drawPolygonT(tds: TDS, local = true, clear = true, logs: 0 | 1 |
     I = 0;
     J = 0;
     let T = 0;
-    const dl = layerManager.getLayer("draw");
+    const dl = layerManager.getLayer(layerManager.floor!.name, "draw");
     if (dl === undefined) return;
     const ctx = dl.ctx;
     if (clear) ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);

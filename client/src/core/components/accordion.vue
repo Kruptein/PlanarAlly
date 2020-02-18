@@ -34,24 +34,24 @@ export default class Accordion extends Vue {
 
     active = false;
 
-    mounted() {
+    mounted(): void {
         this.selected = this.initialValues;
         this.updateCategory();
     }
 
-    toggleDisplay(_event: MouseEvent) {
+    toggleDisplay(_event: MouseEvent): void {
         this.active = !this.active;
     }
 
-    toggleCategory() {
-        const overall = this.$refs.overall as HTMLInputElement;
+    toggleCategory(): void {
+        const overall = <HTMLInputElement>this.$refs.overall;
         if (overall.checked) this.selected = this.items.map(i => i[0]);
         else this.selected = [];
         this.$emit("selectionupdate", { title: this.title, selection: this.selected });
     }
 
-    updateCategory() {
-        const overall = this.$refs.overall as HTMLInputElement;
+    updateCategory(): void {
+        const overall = <HTMLInputElement>this.$refs.overall;
         if (this.selected.length === 0) {
             overall.checked = false;
             overall.indeterminate = false;
@@ -64,7 +64,7 @@ export default class Accordion extends Vue {
         }
     }
 
-    toggleSelection(item: string) {
+    toggleSelection(item: string): void {
         const found = this.selected.indexOf(item);
         if (found === -1) this.selected.push(item);
         else this.selected.splice(found, 1);

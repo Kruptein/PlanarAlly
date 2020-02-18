@@ -9,8 +9,7 @@ __all__ = ["Asset"]
 
 class Asset(BaseModel):
     owner = ForeignKeyField(User, backref="assets", on_delete="CASCADE")
-    parent = ForeignKeyField("self", backref="children",
-                             null=True, on_delete="CASCADE")
+    parent = ForeignKeyField("self", backref="children", null=True, on_delete="CASCADE")
     name = TextField()
     file_hash = TextField(null=True)
 
@@ -27,6 +26,11 @@ class Asset(BaseModel):
                 )
             ]
         return asset
+
+    def get_child(self, name: str) -> "Asset":
+        return Asset.get(
+            (Asset.owner == self.owner) & (Asset.parent == self) & (Asset.name == name)
+        )
 
     @classmethod
     def get_root_folder(cls, user):
@@ -46,8 +50,7 @@ class Asset(BaseModel):
             (Asset.owner == user) & (Asset.parent == parent)
         ):
             if asset.file_hash:
-                data["__files"].append(
-                    {"name": asset.name, "hash": asset.file_hash})
+                data["__files"].append({"name": asset.name, "hash": asset.file_hash})
             else:
                 data[asset.name] = cls.get_user_structure(user, asset)
         return data

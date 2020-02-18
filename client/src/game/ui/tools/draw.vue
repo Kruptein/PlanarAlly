@@ -61,7 +61,7 @@ import { Rect } from "@/game/shapes/rect";
 import { Shape } from "@/game/shapes/shape";
 import { gameStore } from "@/game/store";
 import { getUnitDistance, l2g, g2lx, g2ly } from "@/game/units";
-import { getMouse } from "@/game/utils";
+import { getMouse, getTouch } from "@/game/utils";
 import { visibilityStore } from "../../visibility/store";
 import { Layer } from "../../layers/layer";
 import { snapToPoint } from "../../layers/utils";
@@ -199,7 +199,8 @@ export default class DrawTool extends Tool {
         if (this.modeSelect === "normal") return layerManager.getLayer(layerManager.floor!.name, targetLayer);
         return layerManager.getLayer(layerManager.floor!.name, "fow");
     }
-    onMouseDown(_event: MouseEvent): void {
+
+    onDown(): void {
         const layer = this.getLayer();
         if (layer === undefined) {
             console.log("No active layer!");
@@ -288,14 +289,13 @@ export default class DrawTool extends Tool {
             socket.emit("Shape.Update", { shape: this.shape!.asDict(), redraw: true, temporary: true });
         }
     }
-    onMouseMove(event: MouseEvent): void {
+
+    onMove(endPoint: GlobalPoint): void {
         const layer = this.getLayer();
         if (layer === undefined) {
             console.log("No active layer!");
             return;
         }
-
-        const endPoint = snapToPoint(this.getLayer()!, l2g(getMouse(event)));
 
         if (this.brushHelper !== null) {
             this.brushHelper.r = this.helperSize;
@@ -335,7 +335,8 @@ export default class DrawTool extends Tool {
         }
         layer.invalidate(false);
     }
-    onMouseUp(event: MouseEvent): void {
+
+    onUp(event: MouseEvent | TouchEvent): void {
         if (
             !this.active ||
             this.shape === null ||
@@ -347,6 +348,33 @@ export default class DrawTool extends Tool {
         }
         this.finaliseShape();
     }
+
+    onMouseDown(_event: MouseEvent): void {
+        this.onDown();
+    }
+
+    onMouseMove(event: MouseEvent): void {
+        const endPoint = snapToPoint(this.getLayer()!, l2g(getMouse(event)));
+        this.onMove(endPoint);
+    }
+
+    onMouseUp(event: MouseEvent): void {
+        this.onUp(event);
+    }
+
+    onTouchStart(_event: TouchEvent): void {
+        this.onDown();
+    }
+
+    onTouchMove(event: TouchEvent): void {
+        const endPoint = snapToPoint(this.getLayer()!, l2g(getTouch(event)));
+        this.onMove(endPoint);
+    }
+
+    onTouchEnd(event: TouchEvent): void {
+        this.onUp(event);
+    }
+
     onContextMenu(event: MouseEvent): void {
         if (
             this.active &&

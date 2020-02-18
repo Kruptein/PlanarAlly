@@ -76,7 +76,6 @@ export function triangulate(target: TriangulationTarget, floor: string): void {
     cdt.insertConstraint([1e8, 1e11], [-1e8, 1e11]);
     cdt.insertConstraint([-1e8, 1e11], [-1e8, 1e8]);
     (<any>window).CDT = PA_CDT;
-    console.timeEnd("TRI");
 }
 (<any>window).TRIAG = triangulate;
 

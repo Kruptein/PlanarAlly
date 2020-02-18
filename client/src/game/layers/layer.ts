@@ -9,6 +9,7 @@ import { gameStore } from "@/game/store";
 import { visibilityStore } from "@/game/visibility/store";
 import { TriangulationTarget } from "@/game/visibility/te/pa";
 import { getBlockers, getVisionSources, sliceBlockers, sliceVisionSources } from "@/game/visibility/utils";
+import { drawAuras } from "../shapes/aura";
 
 export class Layer {
     name: string;
@@ -179,7 +180,7 @@ export class Layer {
                 if (layerManager.getLayer(this.floor) === undefined) continue;
                 if (!shape.visibleInCanvas(this.canvas)) continue;
                 if (this.name === "fow" && layerManager.getLayer(this.floor)!.name !== this.name) continue;
-                shape.drawAuras(ctx);
+                drawAuras(shape, ctx);
             }
             for (const shape of this.shapes) {
                 if (shape.options.has("skipDraw") && shape.options.get("skipDraw")) continue;

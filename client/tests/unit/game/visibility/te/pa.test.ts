@@ -1,7 +1,7 @@
 import { GlobalPoint } from "@/game/geom";
+import { Shape } from "@/game/shapes/shape";
 import { Polygon } from "@/game/shapes/polygon";
 import { Rect } from "@/game/shapes/rect";
-import { Shape } from "@/game/shapes/shape";
 import { CDT } from "@/game/visibility/te/cdt";
 import { addShapesToTriag, deleteShapeFromTriag, TriangulationTarget, setCDT } from "@/game/visibility/te/pa";
 import { rotateAroundOrigin, xySmaller } from "@/game/visibility/te/triag";

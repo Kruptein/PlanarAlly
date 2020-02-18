@@ -5,15 +5,15 @@ import { InitiativeData } from "@/game/comm/types/general";
 import { ServerShape } from "@/game/comm/types/shapes";
 import { GlobalPoint, LocalPoint, Vector } from "@/game/geom";
 import { layerManager } from "@/game/layers/manager";
-import { BoundingRect } from "@/game/shapes/boundingrect";
 import { gameStore } from "@/game/store";
 import { g2l, g2lr, g2lx, g2ly, g2lz, getUnitDistance } from "@/game/units";
+import { visibilityStore } from "@/game/visibility/store";
+import { TriangulationTarget } from "@/game/visibility/te/pa";
+import { computeVisibility } from "@/game/visibility/te/te";
 import { addBlocker, getBlockers, getVisionSources, setVisionSources, sliceBlockers } from "@/game/visibility/utils";
 import tinycolor from "tinycolor2";
-import { visibilityStore } from "../visibility/store";
-import { TriangulationTarget } from "../visibility/te/pa";
-import { computeVisibility } from "../visibility/te/te";
-import { updateAuraPath } from "./utils";
+import { updateAuraPath } from "./aura";
+import { BoundingRect } from "./boundingrect";
 
 export abstract class Shape {
     // Used to create class instance from server shape data
@@ -242,46 +242,6 @@ export abstract class Shape {
             const bbox = this.getBoundingBox();
             ctx.strokeStyle = "red";
             ctx.strokeRect(g2lx(bbox.topLeft.x) - 5, g2ly(bbox.topLeft.y) - 5, g2lz(bbox.w) + 10, g2lz(bbox.h) + 10);
-        }
-    }
-
-    drawAuras(ctx: CanvasRenderingContext2D): void {
-        for (const aura of this.auras) {
-            if (aura.value === 0 && aura.dim === 0) return;
-            ctx.beginPath();
-
-            const loc = g2l(this.center());
-            const innerRange = g2lr(aura.value + aura.dim);
-
-            if (aura.dim === 0) ctx.fillStyle = aura.colour;
-            else {
-                const gradient = ctx.createRadialGradient(
-                    loc.x,
-                    loc.y,
-                    g2lr(aura.value),
-                    loc.x,
-                    loc.y,
-                    g2lr(aura.value + aura.dim),
-                );
-                const tc = tinycolor(aura.colour);
-                ctx.fillStyle = gradient;
-                gradient.addColorStop(0, aura.colour);
-                gradient.addColorStop(1, tc.setAlpha(0).toRgbString());
-            }
-            if (!aura.visionSource) {
-                ctx.arc(loc.x, loc.y, innerRange, 0, 2 * Math.PI);
-                ctx.fill();
-            } else {
-                const polygon = computeVisibility(this.center(), TriangulationTarget.VISION, this.floor);
-                aura.lastPath = updateAuraPath(polygon, this.center(), getUnitDistance(aura.value + aura.dim));
-                try {
-                    ctx.fill(aura.lastPath);
-                } catch (e) {
-                    ctx.arc(loc.x, loc.y, innerRange, 0, 2 * Math.PI);
-                    ctx.fill();
-                    console.warn(e);
-                }
-            }
         }
     }
 

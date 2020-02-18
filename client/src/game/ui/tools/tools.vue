@@ -170,6 +170,22 @@ export default class Tools extends Vue {
         this.$emit("contextmenu", event, this.currentTool);
     }
 
+    touchstart(event: TouchEvent): void {
+        if ((<HTMLElement>event.target).tagName !== "CANVAS") return;
+
+        const targetTool = this.currentTool;
+
+        this.$emit("touchstart", event, targetTool);
+    }
+
+    touchend(event: TouchEvent): void {
+        if ((<HTMLElement>event.target).tagName !== "CANVAS") return;
+
+        const targetTool = this.currentTool;
+
+        this.$emit("touchend", event, targetTool);
+    }
+
     touchmove(event: TouchEvent): void {
         if ((<HTMLElement>event.target).tagName !== "CANVAS") return;
 

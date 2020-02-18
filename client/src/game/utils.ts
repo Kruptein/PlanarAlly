@@ -10,6 +10,8 @@ export function getMouse(e: MouseEvent): LocalPoint {
 // takes a given touch event and converts to LocalPoint
 export function getTouch(e: TouchEvent): LocalPoint {
     console.log("getTouch");
+    console.log(e);
+    console.log("getTouchExit");
     // touches is a TouchList, which is a list of touches (for each finger)
     // default to first touch (first index) to get x/y
     return new LocalPoint(e.touches[0].pageX, e.touches[0].pageY);

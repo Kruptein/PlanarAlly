@@ -39,10 +39,18 @@ export default class PanTool extends Tool {
         sendClientOptions(gameStore.locationOptions);
     }
 
+    onTouchStart(event: TouchEvent): void {
+        this.panStart = getTouch(event);
+        this.active = true;
+    }
+
+    onTouchEnd(_event: TouchEvent): void {
+        this.active = false;
+        sendClientOptions(gameStore.locationOptions);
+    }
+
     onTouchMove(event: TouchEvent): void {
-        console.log("Pan onTouchMove event");
-        console.log(event);
-        // if (!this.active) return;
+        if (!this.active) return;
         // get the point of the mouse event
         const point = getTouch(event);
         this.panScreen(point);

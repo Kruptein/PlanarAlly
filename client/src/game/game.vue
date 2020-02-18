@@ -14,6 +14,8 @@
                 @dragover.prevent
                 @drop.prevent.stop="drop"
                 @touchmove="touchmove"
+                @touchstart="touchstart"
+                @touchend="touchend"
             ></div>
             <!-- v-touch:tap="mouseup"
             v-touch:
@@ -171,8 +173,18 @@ export default class Game extends Vue {
 
     // Touch events
 
+    touchend(event: TouchEvent): void {
+        console.log("touchend event");
+        this.$refs.tools.touchend(event);
+    }
+
+    touchstart(event: TouchEvent): void {
+        console.log("touchstart event");
+        this.$refs.tools.touchstart(event);
+    }
+
     touchmove(event: TouchEvent): void {
-        console.log(event);
+        // console.log(event);
         // limit the number of touch moves to ease server load
         if (!this.throttledtouchmoveSet) {
             this.throttledtouchmoveSet = true;
@@ -185,11 +197,11 @@ export default class Game extends Vue {
     // Mouse events
 
     mousedown(event: MouseEvent): void {
-        console.log("mousedown");
+        console.log("mousedown event");
         this.$refs.tools.mousedown(event);
     }
     mouseup(event: MouseEvent): void {
-        console.log("mouseup");
+        console.log("mouseup event");
         this.$refs.tools.mouseup(event);
     }
     mousemove(event: MouseEvent): void {

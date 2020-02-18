@@ -6,13 +6,10 @@ import { ServerShape } from "@/game/comm/types/shapes";
 import { GlobalPoint, LocalPoint, Vector } from "@/game/geom";
 import { layerManager } from "@/game/layers/manager";
 import { gameStore } from "@/game/store";
-import { g2l, g2lr, g2lx, g2ly, g2lz, getUnitDistance } from "@/game/units";
+import { g2lx, g2ly, g2lz } from "@/game/units";
 import { visibilityStore } from "@/game/visibility/store";
 import { TriangulationTarget } from "@/game/visibility/te/pa";
-import { computeVisibility } from "@/game/visibility/te/te";
 import { addBlocker, getBlockers, getVisionSources, setVisionSources, sliceBlockers } from "@/game/visibility/utils";
-import tinycolor from "tinycolor2";
-import { updateAuraPath } from "./aura";
 import { BoundingRect } from "./boundingrect";
 
 export abstract class Shape {

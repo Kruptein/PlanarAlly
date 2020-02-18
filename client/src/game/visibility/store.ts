@@ -6,7 +6,7 @@ import { BoundingVolume } from "./bvh/bvh";
 import { addShapesToTriag, deleteShapeFromTriag, triangulate, TriangulationTarget } from "./te/pa";
 
 export interface VisibilityState {
-    visionMode: "triangle-plus" | "triangle";
+    visionMode: "triangle-plus" | "triangle" | "bvh";
     visionBlockers: string[];
 }
 
@@ -14,13 +14,13 @@ export interface VisibilityState {
 class VisibilityStore extends VuexModule implements VisibilityState {
     BV = Object.freeze(new BoundingVolume([]));
 
-    visionMode: "triangle-plus" | "triangle" = "triangle";
+    visionMode: "triangle-plus" | "triangle" | "bvh" = "triangle";
     visionBlockers: string[] = [];
     movementblockers: string[] = [];
     visionSources: { shape: string; aura: string }[] = [];
 
     @Mutation
-    setVisionMode(data: { mode: "triangle-plus" | "triangle"; sync: boolean }): void {
+    setVisionMode(data: { mode: "triangle-plus" | "triangle" | "bvh"; sync: boolean }): void {
         this.visionMode = data.mode;
         // eslint-disable-next-line @typescript-eslint/camelcase
         if (data.sync) socket.emit("Location.Options.Set", { vision_mode: data.mode });

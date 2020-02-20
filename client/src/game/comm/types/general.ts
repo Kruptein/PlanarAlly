@@ -62,3 +62,9 @@ export interface Note {
     text: string;
     uuid: string;
 }
+
+export interface Marker {
+    uuid: string;
+    name: string;
+}
+

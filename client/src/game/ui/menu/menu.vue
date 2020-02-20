@@ -68,6 +68,25 @@
                                 <div v-if="!notes.length">No notes</div>
                             </div>
                         </div>
+                        <!-- MARKERS -->
+                        <button class="menu-accordion">Markers</button>
+                        <div class="menu-accordion-panel">
+                            <div id="menu-markers">
+                                <table width="100%">
+                                    <tbody>
+                                        <tr v-for="marker in markers" :key="marker.uuid" style="cursor:pointer">
+                                            <td style="white-space: nowrap;" width="99%" @click="jumpToMarker(marker)">
+                                                {{ marker.name || "[?]" }}
+                                            </td>
+                                            <td style="white-space: nowrap;" @click="delMarker(marker)">
+                                                <i class="far fa-minus-square"></i>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                                <div v-if="!markers.length">No markers</div>
+                            </div>
+                        </div>
                         <!-- DM OPTIONS -->
                         <button class="menu-accordion" @click="openDmSettings">DM Options</button>
                     </template>
@@ -127,7 +146,7 @@ import AssetNode from "@/game/ui/menu/asset_node.vue";
 
 import { uuidv4 } from "@/core/utils";
 import { socket } from "@/game/api/socket";
-import { Note } from "@/game/comm/types/general";
+import { Note, Marker } from "@/game/comm/types/general";
 import { gameStore } from "@/game/store";
 import { EventBus } from "../../event-bus";
 
@@ -137,7 +156,7 @@ import { EventBus } from "../../event-bus";
         "asset-node": AssetNode,
     },
     computed: {
-        ...mapState("game", ["locations", "assets", "notes"]),
+        ...mapState("game", ["locations", "assets", "notes", "markers"]),
     },
 })
 export default class MenuBar extends Vue {
@@ -195,6 +214,14 @@ export default class MenuBar extends Vue {
 
     openDmSettings(): void {
         EventBus.$emit("DmSettings.Open");
+    }
+
+    delMarker(marker: Marker): void {
+        gameStore.removeMarker({ marker, sync: true });
+    }
+
+    jumpToMarker(marker: Marker): void {
+        gameStore.jumpToMarker({ marker, sync: true });
     }
 }
 </script>
@@ -324,8 +351,8 @@ DIRECTORY.CSS changes
 .menu-accordion-subpanel > * {
     padding: 5px;
     display: flex;
-    justify-content: space-evenly;
     align-items: center;
+    text-align: left;
 }
 
 .menu-accordion-subpanel > *:hover {

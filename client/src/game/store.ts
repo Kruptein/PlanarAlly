@@ -280,7 +280,7 @@ class GameStore extends VuexModule implements GameState {
                 this.panX = -shape.refPoint.x + nh * this.gridSize;
                 this.panY = -shape.refPoint.y + nv * this.gridSize;
                 sendClientOptions(this.locationOptions);
-                layerManager.invalidate();
+                layerManager.invalidateAllFloors();
             }
         }
     }

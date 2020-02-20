@@ -14,11 +14,11 @@ export default class PanTool extends Tool {
     panStart = new LocalPoint(0, 0);
     active = false;
 
-    panScreen(l: LocalPoint): void {
-        const distance = l.subtract(this.panStart).multiply(1 / gameStore.zoomFactor);
+    panScreen(target: LocalPoint): void {
+        const distance = target.subtract(this.panStart).multiply(1 / gameStore.zoomFactor);
         gameStore.increasePanX(Math.round(distance.x));
         gameStore.increasePanY(Math.round(distance.y));
-        this.panStart = l;
+        this.panStart = target;
         layerManager.invalidateAllFloors();
     }
 

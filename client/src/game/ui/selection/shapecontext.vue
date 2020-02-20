@@ -168,7 +168,7 @@ export default class ShapeContext extends Vue {
         this.close();
     }
     setMarker(): void {
-        const layer = layerManager.getLayer()!;
+        const layer = this.getActiveLayer()!;
         if (layer.selection.length !== 1) return;
         const marker = {
             uuid: layer.selection[0].uuid,

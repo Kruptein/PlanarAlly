@@ -12,7 +12,7 @@ from config import SAVE_FILE
 from models import ALL_MODELS, Constants
 from models.db import db
 
-SAVE_VERSION = 19
+SAVE_VERSION = 20
 logger: logging.Logger = logging.getLogger("PlanarAllyServer")
 logger.setLevel(logging.INFO)
 
@@ -270,6 +270,11 @@ def upgrade(version):
         with db.atomic():
             migrate(migrator.add_column("user", "email", TextField(null=True)))
         db.foreign_keys = True
+        Constants.update(save_version=Constants.save_version + 1).execute()
+    elif version == 19:
+        db.execute_sql(
+            'CREATE TABLE IF NOT EXISTS "marker" ("uuid" TEXT NOT NULL PRIMARY KEY, "room_id" INTEGER NOT NULL, "location_id" INTEGER, "user_id" INTEGER NOT NULL, FOREIGN KEY ("room_id") REFERENCES "room" ("id") ON DELETE CASCADE, FOREIGN KEY ("location_id") REFERENCES "location" ("id") ON DELETE CASCADE, FOREIGN KEY ("user_id") REFERENCES "user" ("id") ON DELETE CASCADE)'
+        )
         Constants.update(save_version=Constants.save_version + 1).execute()
     else:
         raise Exception(f"No upgrade code for save format {version} was found.")

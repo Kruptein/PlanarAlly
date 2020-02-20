@@ -10,6 +10,10 @@ Vue.config.productionTip = false;
 Vue.config.devtools = true;
 Vue.config.performance = true;
 
+VueHammer.config.pinch = {
+    threshold: 1,
+};
+
 Vue.use(VueHammer);
 
 export const app = new Vue({

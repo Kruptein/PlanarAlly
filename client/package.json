@@ -49,7 +49,7 @@
     "rimraf": "^3.0.0",
     "ts-jest": "^24.1.0",
     "typescript": "~3.7.5",
-    "vue-template-compiler": "^2.6.10",
+    "vue-template-compiler": "^2.6.10"
   },
   "bugs": {
     "url": "https://github.com/Kruptein/PlanarAlly/issues"

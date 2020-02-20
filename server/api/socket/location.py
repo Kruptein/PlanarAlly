@@ -10,6 +10,7 @@ from models import (
     Layer,
     Location,
     LocationUserOption,
+    Marker,
     Note,
     Shape,
 )
@@ -55,7 +56,15 @@ async def load_location(sid, location):
         room=sid,
         namespace="/planarally",
     )
-
+    await sio.emit(
+        "Markers.Set",
+        [
+            marker.as_dict()
+            for marker in Marker.select().where(Marker.user == user)
+        ],
+        room=sid,
+        namespace="/planarally",
+    )
     sorted_initiatives = [
         init.as_dict()
         for init in Initiative.select()

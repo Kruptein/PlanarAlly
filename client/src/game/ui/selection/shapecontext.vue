@@ -37,6 +37,7 @@
         <li @click="addInitiative">{{ getInitiativeWord() }} initiative</li>
         <li @click="deleteSelection">Delete shapes</li>
         <li v-if="hasSingleShape()" @click="openEditDialog">Show properties</li>
+        <li @click="setMarker">Set marker</li>
     </ContextMenu>
 </template>
 
@@ -62,7 +63,7 @@ import { Layer } from "../../layers/layer";
         ContextMenu,
     },
     computed: {
-        ...mapState("game", ["locations", "assets", "notes"]),
+        ...mapState("game", ["locations", "assets", "notes", "markers"]),
     },
 })
 export default class ShapeContext extends Vue {
@@ -145,6 +146,16 @@ export default class ShapeContext extends Vue {
         const layer = layerManager.getLayer()!;
         if (layer.selection.length !== 1) return;
         EventBus.$emit("EditDialog.Open", layer.selection[0]);
+        this.close();
+    }
+    setMarker(): void {
+        const layer = layerManager.getLayer()!;
+        if (layer.selection.length !== 1) return;
+        const marker = {
+            uuid: layer.selection[0].uuid,
+            name: layer.selection[0].name,
+        };
+        gameStore.newMarker({ marker, sync: true });
         this.close();
     }
 }

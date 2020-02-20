@@ -1,4 +1,4 @@
-import { GlobalPoint, LocalPoint } from "@/game/geom";
+import { InvalidationMode, SyncMode } from "@/core/comm/types";
 import { Layer } from "@/game/layers/layer";
 import { layerManager } from "@/game/layers/manager";
 import { Settings } from "@/game/settings";
@@ -7,11 +7,9 @@ import { Shape } from "@/game/shapes/shape";
 import { gameStore } from "@/game/store";
 import { g2l, g2lr, g2lx, g2ly, g2lz, getUnitDistance } from "@/game/units";
 import { getFogColour } from "@/game/utils";
-import { visibilityStore } from "../visibility/store";
-import { computeVisibility } from "../visibility/te/te";
+import { getVisionSources } from "@/game/visibility/utils";
 import { TriangulationTarget } from "../visibility/te/pa";
-import { circleLineIntersection, xyEqual } from "../visibility/te/triag";
-import { SyncMode } from "@/core/comm/types";
+import { computeVisibility } from "../visibility/te/te";
 
 export class FOWLayer extends Layer {
     isVisionLayer = true;
@@ -19,15 +17,15 @@ export class FOWLayer extends Layer {
     virtualCanvas: HTMLCanvasElement;
     vCtx: CanvasRenderingContext2D;
 
-    constructor(canvas: HTMLCanvasElement, name: string) {
-        super(canvas, name);
+    constructor(canvas: HTMLCanvasElement, name: string, floor: string) {
+        super(canvas, name, floor);
         this.virtualCanvas = document.createElement("canvas");
         this.virtualCanvas.width = window.innerWidth;
         this.virtualCanvas.height = window.innerHeight;
         this.vCtx = this.virtualCanvas.getContext("2d")!;
     }
 
-    addShape(shape: Shape, sync: SyncMode, invalidate = true, snappable = true): void {
+    addShape(shape: Shape, sync: SyncMode, invalidate: InvalidationMode, snappable = true): void {
         super.addShape(shape, sync, invalidate, snappable);
         if (shape.options.has("preFogShape") && shape.options.get("preFogShape")) {
             this.preFogShapes.push(shape);
@@ -57,14 +55,44 @@ export class FOWLayer extends Layer {
 
             ctx.fillStyle = "rgba(0, 0, 0, 1)";
 
-            const dctx = layerManager.getLayer("draw")!.ctx;
+            const dctx = layerManager.getLayer(this.floor, "draw")!.ctx;
             if (Settings.drawAngleLines || Settings.drawFirstLightHit) {
                 dctx.clearRect(0, 0, dctx.canvas.width, dctx.canvas.height);
             }
 
+            const activeFloorName = gameStore.floors[gameStore.selectedFloorIndex];
+
+            if (this.floor === activeFloorName && this.canvas.style.display === "none")
+                this.canvas.style.removeProperty("display");
+            else if (this.floor !== activeFloorName && this.canvas.style.display !== "none")
+                this.canvas.style.display = "none";
+
+            if (this.floor === activeFloorName && layerManager.floors.length > 1) {
+                for (const floor of layerManager.floors) {
+                    if (floor.name !== gameStore.floors[0]) {
+                        const mapl = layerManager.getLayer(floor.name, "map");
+                        if (mapl === undefined) continue;
+                        ctx.globalCompositeOperation = "destination-out";
+                        ctx.drawImage(mapl.canvas, 0, 0);
+                    }
+                    if (floor.name !== activeFloorName) {
+                        const fowl = layerManager.getLayer(floor.name, this.name);
+                        if (fowl === undefined) continue;
+                        ctx.globalCompositeOperation = "source-over";
+                        ctx.drawImage(fowl.canvas, 0, 0);
+                    }
+                    if (floor.name === activeFloorName) break;
+                }
+            }
+            ctx.globalCompositeOperation = "source-over";
+
             // At all times provide a minimal vision range to prevent losing your tokens in fog.
-            if (gameStore.fullFOW && layerManager.hasLayer("tokens")) {
-                for (const sh of layerManager.getLayer("tokens")!.shapes) {
+            if (
+                gameStore.fullFOW &&
+                layerManager.hasLayer(this.floor, "tokens") &&
+                this.floor === gameStore.floors[gameStore.selectedFloorIndex]
+            ) {
+                for (const sh of layerManager.getLayer(this.floor, "tokens")!.shapes) {
                     if (!sh.ownedBy() || !sh.isToken) continue;
                     const bb = sh.getBoundingBox();
                     const lcenter = g2l(sh.center());
@@ -82,7 +110,7 @@ export class FOWLayer extends Layer {
             this.vCtx.clearRect(0, 0, window.innerWidth, window.innerHeight);
 
             // First cut out all the light sources
-            for (const light of visibilityStore.visionSources) {
+            for (const light of getVisionSources(this.floor)) {
                 const shape = layerManager.UUIDMap.get(light.shape);
                 if (shape === undefined) continue;
                 const aura = shape.auras.find(a => a.uuid === light.aura);
@@ -97,7 +125,7 @@ export class FOWLayer extends Layer {
 
                 this.vCtx.globalCompositeOperation = "source-over";
                 this.vCtx.fillStyle = "rgba(0, 0, 0, 1)";
-                const polygon = computeVisibility(center, TriangulationTarget.VISION);
+                const polygon = computeVisibility(center, TriangulationTarget.VISION, shape.floor);
                 this.vCtx.beginPath();
                 this.vCtx.moveTo(g2lx(polygon[0][0]), g2ly(polygon[0][1]));
                 for (const point of polygon) this.vCtx.lineTo(g2lx(point[0]), g2ly(point[1]));
@@ -124,14 +152,13 @@ export class FOWLayer extends Layer {
                 this.vCtx.arc(lcenter.x, lcenter.y, g2lr(aura.value + aura.dim), 0, 2 * Math.PI);
                 this.vCtx.fill();
                 ctx.drawImage(this.virtualCanvas, 0, 0);
-                aura.lastPath = this.updateAuraPath(polygon, auraCircle);
-                shape.invalidate(true);
+                // aura.lastPath = this.updateAuraPath(polygon, auraCircle);
+                // shape.invalidate(true);
             }
 
-            // At the DM Side due to opacity of the two fow layers, it looks strange if we just render them on top of eachother like players.
-            if (gameStore.fowLOS) {
+            if (gameStore.fowLOS && this.floor === activeFloorName) {
                 ctx.globalCompositeOperation = "source-in";
-                ctx.drawImage(layerManager.getLayer("fow-players")!.canvas, 0, 0);
+                ctx.drawImage(layerManager.getLayer(this.floor, "fow-players")!.canvas, 0, 0);
             }
 
             for (const preShape of this.preFogShapes) {
@@ -147,7 +174,7 @@ export class FOWLayer extends Layer {
                 preShape.globalCompositeOperation = ogComposite;
             }
 
-            if (gameStore.fullFOW) {
+            if (gameStore.fullFOW && this.floor === activeFloorName) {
                 ctx.globalCompositeOperation = "source-out";
                 ctx.fillStyle = getFogColour();
                 ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
@@ -157,69 +184,5 @@ export class FOWLayer extends Layer {
 
             ctx.globalCompositeOperation = originalOperation;
         }
-    }
-
-    updateAuraPath(visibilityPolygon: number[][], auraCircle: Circle): Path2D {
-        const path = new Path2D();
-        const lCenter = g2l(auraCircle.center());
-        const lRadius = g2lz(auraCircle.r);
-        let firstAngle: number | null = null;
-        let lastAngle: number | null = null;
-
-        const ixs: LocalPoint[][] = [];
-
-        // First find all polygon segments that are actually relevant
-        for (const [i, p] of visibilityPolygon.map(p => GlobalPoint.fromArray(p)).entries()) {
-            const np = GlobalPoint.fromArray(visibilityPolygon[(i + 1) % visibilityPolygon.length]);
-            const pLoc = g2l(p);
-            const npLoc = g2l(np);
-            const ix = circleLineIntersection(auraCircle.center(), auraCircle.r, p, np).map(x => g2l(x));
-            if (ix.length === 0) {
-                // segment lies completely outside circle
-                if (!auraCircle.contains(p)) continue;
-                // segment lies completely inside circle
-                else ix.push(pLoc, npLoc);
-            } else if (ix.length === 1) {
-                // segment is tangent to circle, segment can be ignored
-                if (xyEqual(ix[0].asArray(), pLoc.asArray()) || xyEqual(ix[0].asArray(), npLoc.asArray())) continue;
-                if (auraCircle.contains(p)) {
-                    ix.unshift(pLoc);
-                } else {
-                    ix.push(npLoc);
-                }
-            }
-            // Check some bad cases
-            if (ixs.length > 0) {
-                const lastIx = ixs[ixs.length - 1];
-                if (xyEqual(lastIx[0].asArray(), ix[1].asArray()) && xyEqual(lastIx[1].asArray(), ix[0].asArray()))
-                    continue;
-                if (xyEqual(lastIx[0].asArray(), ix[0].asArray()) && xyEqual(lastIx[1].asArray(), ix[1].asArray()))
-                    continue;
-            }
-            ixs.push(ix);
-        }
-
-        if (ixs.length <= 1) {
-            path.arc(lCenter.x, lCenter.y, lRadius, 0, 2 * Math.PI);
-            return path;
-        }
-
-        // If enough interesting edges have been found, cut the circle up.
-        for (const ix of ixs) {
-            const circleHitAngle = Math.atan2(ix[0].y - lCenter.y, ix[0].x - lCenter.x);
-            if (lastAngle === null) {
-                path.moveTo(ix[0].x, ix[0].y);
-                firstAngle = Math.atan2(ix[0].y - lCenter.y, ix[0].x - lCenter.x);
-            } else if (lastAngle !== circleHitAngle) {
-                path.arc(lCenter.x, lCenter.y, lRadius, lastAngle, circleHitAngle);
-            }
-            lastAngle = Math.atan2(ix[1].y - lCenter.y, ix[1].x - lCenter.x);
-            path.lineTo(ix[1].x, ix[1].y);
-        }
-        if (firstAngle && lastAngle) {
-            if (firstAngle !== lastAngle) path.arc(lCenter.x, lCenter.y, lRadius, lastAngle, firstAngle);
-        } else path.arc(lCenter.x, lCenter.y, lRadius, 0, 2 * Math.PI);
-
-        return path;
     }
 }

@@ -26,7 +26,9 @@ async def connect(sid, environ):
         except IndexError:
             return False
         else:
-            if user != room.creator and (user not in [pr.player for pr in room.players] or room.is_locked):
+            if user != room.creator and (
+                user not in [pr.player for pr in room.players] or room.is_locked
+            ):
                 return False
 
         if room.creator == user:
@@ -39,7 +41,9 @@ async def connect(sid, environ):
         logger.info(f"User {user.name} connected with identifier {sid}")
 
         labels = Label.select().where((Label.user == user) | (Label.visible == True))
-        label_filters = LabelSelection.select().where((LabelSelection.user == user) & (LabelSelection.room == room))
+        label_filters = LabelSelection.select().where(
+            (LabelSelection.user == user) & (LabelSelection.room == room)
+        )
 
         sio.enter_room(sid, location.get_path(), namespace="/planarally")
         await sio.emit("Username.Set", user.name, room=sid, namespace="/planarally")
@@ -49,7 +53,12 @@ async def connect(sid, environ):
             room=sid,
             namespace="/planarally",
         )
-        await sio.emit("Labels.Filters.Set", [l.label.uuid for l in label_filters], room=sid, namespace="/planarally")
+        await sio.emit(
+            "Labels.Filters.Set",
+            [l.label.uuid for l in label_filters],
+            room=sid,
+            namespace="/planarally",
+        )
         await sio.emit(
             "Room.Info.Set",
             {
@@ -57,7 +66,9 @@ async def connect(sid, environ):
                 "creator": room.creator.name,
                 "invitationCode": str(room.invitation_code),
                 "isLocked": room.is_locked,
-                "players": [{'id': rp.player.id, 'name': rp.player.name} for rp in room.players]
+                "players": [
+                    {"id": rp.player.id, "name": rp.player.name} for rp in room.players
+                ],
             },
             room=sid,
             namespace="/planarally",

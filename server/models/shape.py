@@ -60,6 +60,7 @@ class Shape(BaseModel):
         ]
         # Layer query > layer name
         data["layer"] = self.layer.name
+        data["floor"] = self.layer.floor.name
         # Aura and Tracker queries > json
         owned = dm or (user.name in data["owners"])
         tracker_query = self.trackers

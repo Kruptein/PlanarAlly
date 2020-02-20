@@ -25,7 +25,7 @@ export default class PanTool extends Tool {
         gameStore.increasePanX(Math.round(distance.x));
         gameStore.increasePanY(Math.round(distance.y));
         this.panStart = mouse;
-        layerManager.invalidate();
+        layerManager.invalidateAllFloors();
     }
     onMouseUp(_event: MouseEvent): void {
         this.active = false;

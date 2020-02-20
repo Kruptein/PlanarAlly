@@ -1,7 +1,9 @@
 import { socket } from "@/game/api/socket";
 import { rootStore } from "@/store";
 import { Action, getModule, Module, Mutation, VuexModule } from "vuex-module-decorators";
+import { Shape } from "../shapes/shape";
 import { triangulate, TriangulationTarget } from "./te/pa";
+import { moveBlocker, moveVisionSource } from "./utils";
 
 export enum VisibilityMode {
     TRIANGLE,
@@ -9,15 +11,14 @@ export enum VisibilityMode {
 
 export interface VisibilityState {
     visionMode: VisibilityMode;
-    visionBlockers: string[];
 }
 
 @Module({ dynamic: true, store: rootStore, name: "visibility", namespaced: true })
 class VisibilityStore extends VuexModule implements VisibilityState {
     visionMode = VisibilityMode.TRIANGLE;
-    visionBlockers: string[] = [];
-    movementblockers: string[] = [];
-    visionSources: { shape: string; aura: string }[] = [];
+    visionBlockers: { floor: string; blockers: string[] }[] = [];
+    movementBlockers: { floor: string; blockers: string[] }[] = [];
+    visionSources: { floor: string; sources: { shape: string; aura: string }[] }[] = [];
 
     @Mutation
     setVisionMode(data: { mode: VisibilityMode; sync: boolean }): void {
@@ -27,22 +28,31 @@ class VisibilityStore extends VuexModule implements VisibilityState {
     }
 
     @Mutation
-    recalculateVision(): void {
-        triangulate(TriangulationTarget.VISION);
+    recalculateVision(floor: string): void {
+        triangulate(TriangulationTarget.VISION, false, floor);
     }
 
     @Mutation
-    recalculateMovement(): void {
-        triangulate(TriangulationTarget.MOVEMENT);
+    recalculateMovement(floor: string): void {
+        triangulate(TriangulationTarget.MOVEMENT, false, floor);
+    }
+
+    @Mutation
+    moveShape(data: { shape: Shape; oldFloor: string; newFloor: string }): void {
+        if (data.shape.movementObstruction) {
+            moveBlocker(TriangulationTarget.MOVEMENT, data.shape.uuid, data.oldFloor, data.newFloor);
+        }
+        if (data.shape.visionObstruction) {
+            moveBlocker(TriangulationTarget.VISION, data.shape.uuid, data.oldFloor, data.newFloor);
+        }
+        moveVisionSource(data.shape.uuid, data.shape.auras, data.oldFloor, data.newFloor);
     }
 
     @Action
     clear(): void {
         (<any>this.context.state).visionBlockers = [];
         (<any>this.context.state).visionSources = [];
-        (<any>this.context.state).movementblockers = [];
-        this.context.commit("recalculateVision");
-        this.context.commit("recalculateMovement");
+        (<any>this.context.state).movementBlockers = [];
     }
 }
 

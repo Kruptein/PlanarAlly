@@ -1,3 +1,4 @@
+import { SyncMode, InvalidationMode } from "@/core/comm/types";
 import { socket } from "@/game/api/socket";
 import { ServerShape } from "@/game/comm/types/shapes";
 import { EventBus } from "@/game/event-bus";
@@ -6,7 +7,8 @@ import { Shape } from "@/game/shapes/shape";
 import { createShapeFromDict } from "@/game/shapes/utils";
 import { gameStore } from "@/game/store";
 import { visibilityStore } from "../visibility/store";
-import { SyncMode } from "@/core/comm/types";
+import { getVisionSources, getBlockers, sliceVisionSources, sliceBlockers } from "../visibility/utils";
+import { TriangulationTarget } from "../visibility/te/pa";
 
 export class Layer {
     name: string;
@@ -14,6 +16,7 @@ export class Layer {
     height: number;
     canvas: HTMLCanvasElement;
     ctx: CanvasRenderingContext2D;
+    floor: string;
 
     selectable = false;
     playerEditable = false;
@@ -35,27 +38,29 @@ export class Layer {
     points: Map<string, Set<string>> = new Map();
     postDrawCallbacks: (() => void)[] = [];
 
-    constructor(canvas: HTMLCanvasElement, name: string) {
+    constructor(canvas: HTMLCanvasElement, name: string, floor: string) {
         this.canvas = canvas;
         this.name = name;
         this.width = canvas.width;
         this.height = canvas.height;
         this.ctx = canvas.getContext("2d")!;
+        this.floor = floor;
     }
 
     invalidate(skipLightUpdate: boolean): void {
         this.valid = false;
         if (!skipLightUpdate) {
-            layerManager.invalidateLight();
+            layerManager.invalidateLight(this.floor);
         }
     }
 
-    addShape(shape: Shape, sync: SyncMode, invalidate = true, snappable = true): void {
+    addShape(shape: Shape, sync: SyncMode, invalidate: InvalidationMode, snappable = true): void {
         shape.layer = this.name;
+        shape.floor = this.floor;
         this.shapes.push(shape);
         layerManager.UUIDMap.set(shape.uuid, shape);
-        shape.checkVisionSources(invalidate);
-        shape.setMovementBlock(shape.movementObstruction, invalidate);
+        shape.checkVisionSources(invalidate !== InvalidationMode.NO);
+        shape.setMovementBlock(shape.movementObstruction, invalidate !== InvalidationMode.NO);
         if (snappable) {
             for (const point of shape.points) {
                 const strp = JSON.stringify(point);
@@ -66,7 +71,7 @@ export class Layer {
         if (shape.annotation.length) gameStore.annotations.push(shape.uuid);
         if (sync !== SyncMode.NO_SYNC)
             socket.emit("Shape.Add", { shape: shape.asDict(), temporary: sync === SyncMode.TEMP_SYNC });
-        if (invalidate) this.invalidate(!sync);
+        if (invalidate) this.invalidate(invalidate === InvalidationMode.WITH_LIGHT);
     }
 
     setShapes(shapes: ServerShape[]): void {
@@ -76,10 +81,9 @@ export class Layer {
                 console.log(`Shape with unknown type ${serverShape.type_} could not be added`);
                 return;
             }
-            this.addShape(shape, SyncMode.NO_SYNC, false);
+            this.addShape(shape, SyncMode.NO_SYNC, InvalidationMode.NO);
         }
         this.clearSelection(); // TODO: Fix keeping selection on those items that are not moved.
-        this.invalidate(false);
     }
 
     removeShape(shape: Shape, sync: SyncMode): void {
@@ -92,14 +96,19 @@ export class Layer {
 
         if (sync !== SyncMode.NO_SYNC)
             socket.emit("Shape.Remove", { shape: shape.asDict(), temporary: sync === SyncMode.TEMP_SYNC });
-        const lsI = visibilityStore.visionSources.findIndex(ls => ls.shape === shape.uuid);
-        const lbI = visibilityStore.visionBlockers.findIndex(ls => ls === shape.uuid);
 
-        const mbI = visibilityStore.movementblockers.findIndex(ls => ls === shape.uuid);
+        const visionSources = getVisionSources(this.floor);
+        const visionBlockers = getBlockers(TriangulationTarget.VISION, this.floor);
+        const movementBlockers = getBlockers(TriangulationTarget.MOVEMENT, this.floor);
+
+        const lsI = visionSources.findIndex(ls => ls.shape === shape.uuid);
+        const lbI = visionBlockers.findIndex(ls => ls === shape.uuid);
+        const mbI = movementBlockers.findIndex(ls => ls === shape.uuid);
         const anI = gameStore.annotations.findIndex(ls => ls === shape.uuid);
-        if (lsI >= 0) visibilityStore.visionSources.splice(lsI, 1);
-        if (lbI >= 0) visibilityStore.visionBlockers.splice(lbI, 1);
-        if (mbI >= 0) visibilityStore.movementblockers.splice(mbI, 1);
+
+        if (lsI >= 0) sliceVisionSources(lsI, this.floor);
+        if (lbI >= 0) sliceBlockers(TriangulationTarget.VISION, lbI, this.floor);
+        if (mbI >= 0) sliceBlockers(TriangulationTarget.MOVEMENT, mbI, this.floor);
         if (anI >= 0) gameStore.annotations.splice(anI, 1);
 
         const annotationIndex = gameStore.annotations.indexOf(shape.uuid);
@@ -119,8 +128,8 @@ export class Layer {
 
         const index = this.selection.indexOf(shape);
         if (index >= 0) this.selection.splice(index, 1);
-        if (lbI >= 0) visibilityStore.recalculateVision();
-        if (mbI >= 0) visibilityStore.recalculateMovement();
+        if (lbI >= 0) visibilityStore.recalculateVision(this.floor);
+        if (mbI >= 0) visibilityStore.recalculateMovement(this.floor);
         this.invalidate(!sync);
     }
 
@@ -133,11 +142,18 @@ export class Layer {
         EventBus.$emit("SelectionInfo.Shape.Set", null);
     }
 
-    draw(doClear?: boolean): void {
+    hide(): void {
+        this.canvas.style.display = "none";
+    }
+
+    show(): void {
+        this.canvas.style.removeProperty("display");
+    }
+
+    draw(doClear = true): void {
         if (!this.valid) {
             const ctx = this.ctx;
             const ogOP = ctx.globalCompositeOperation;
-            doClear = doClear === undefined ? true : doClear;
 
             if (doClear) this.clear();
 
@@ -147,9 +163,9 @@ export class Layer {
 
             for (const shape of this.shapes) {
                 if (shape.options.has("skipDraw") && shape.options.get("skipDraw")) continue;
-                if (layerManager.getLayer() === undefined) continue;
+                if (layerManager.getLayer(this.floor) === undefined) continue;
                 if (!shape.visibleInCanvas(this.canvas)) continue;
-                if (this.name === "fow" && layerManager.getLayer()!.name !== this.name) continue;
+                if (this.name === "fow" && layerManager.getLayer(this.floor)!.name !== this.name) continue;
                 shape.drawAuras(ctx);
             }
             for (const shape of this.shapes) {
@@ -161,9 +177,9 @@ export class Layer {
                     !shape.labels.some(l => gameStore.labelFilters.includes(l.uuid))
                 )
                     continue;
-                if (layerManager.getLayer() === undefined) continue;
+                if (layerManager.getLayer(this.floor) === undefined) continue;
                 if (!shape.visibleInCanvas(this.canvas)) continue;
-                if (this.name === "fow" && layerManager.getLayer()!.name !== this.name) continue;
+                if (this.name === "fow" && layerManager.getLayer(this.floor)!.name !== this.name) continue;
                 shape.draw(ctx);
             }
 
@@ -175,6 +191,18 @@ export class Layer {
                     shape.drawSelection(ctx);
                 }
             }
+
+            // If this is the last layer of the floor below, render some shadow
+            if (gameStore.selectedFloorIndex > 0) {
+                const lowerFloor = layerManager.floors[gameStore.selectedFloorIndex - 1];
+                if (lowerFloor.name === this.floor) {
+                    if (lowerFloor.layers[lowerFloor.layers.length - 1].name === this.name) {
+                        ctx.fillStyle = "rgba(0, 0, 0, 0.3)";
+                        ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+                    }
+                }
+            }
+
             ctx.globalCompositeOperation = ogOP;
             this.valid = true;
             this.resolveCallbacks();

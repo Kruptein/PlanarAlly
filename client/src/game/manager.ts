@@ -8,7 +8,7 @@ import { AnnotationManager } from "@/game/ui/annotation";
 import { g2l } from "@/game/units";
 import { EventBus } from "./event-bus";
 import { visibilityStore } from "./visibility/store";
-import { SyncMode } from "@/core/comm/types";
+import { SyncMode, InvalidationMode } from "@/core/comm/types";
 
 export class GameManager {
     selectedTool = 0;
@@ -16,22 +16,22 @@ export class GameManager {
     annotationManager = new AnnotationManager();
 
     addShape(shape: ServerShape): void {
-        if (!layerManager.hasLayer(shape.layer)) {
+        if (!layerManager.hasLayer(shape.floor, shape.layer)) {
             console.log(`Shape with unknown layer ${shape.layer} could not be added`);
             return;
         }
-        const layer = layerManager.getLayer(shape.layer)!;
+        const layer = layerManager.getLayer(shape.floor, shape.layer)!;
         const sh = createShapeFromDict(shape);
         if (sh === undefined) {
             console.log(`Shape with unknown type ${shape.type_} could not be added`);
             return;
         }
-        layer.addShape(sh, SyncMode.NO_SYNC);
+        layer.addShape(sh, SyncMode.NO_SYNC, InvalidationMode.NORMAL);
         layer.invalidate(false);
     }
 
     updateShape(data: { shape: ServerShape; redraw: boolean; move: boolean; temporary: boolean }): void {
-        if (!layerManager.hasLayer(data.shape.layer)) {
+        if (!layerManager.hasLayer(data.shape.floor, data.shape.layer)) {
             console.log(`Shape with unknown layer ${data.shape.layer} could not be added`);
             return;
         }
@@ -51,9 +51,10 @@ export class GameManager {
         shape.setMovementBlock(shape.movementObstruction);
         shape.setIsToken(shape.isToken);
         if (data.redraw) {
-            if (shape.visionObstruction) visibilityStore.recalculateVision();
-            layerManager.getLayer(data.shape.layer)!.invalidate(false);
-            if (shape.movementObstruction) visibilityStore.recalculateMovement();
+            if (shape.visionObstruction) visibilityStore.recalculateVision(shape.floor);
+            layerManager.getLayer(data.shape.floor, data.shape.layer)!.invalidate(false);
+            layerManager.invalidateLightAllFloors();
+            if (shape.movementObstruction) visibilityStore.recalculateMovement(shape.floor);
         }
         if (redrawInitiative) EventBus.$emit("Initiative.ForceUpdate");
     }
@@ -62,7 +63,7 @@ export class GameManager {
         const localPos = g2l(position);
         gameStore.increasePanX((window.innerWidth / 2 - localPos.x) / gameStore.zoomFactor);
         gameStore.increasePanY((window.innerHeight / 2 - localPos.y) / gameStore.zoomFactor);
-        layerManager.invalidate();
+        layerManager.invalidateAllFloors();
         sendClientOptions(gameStore.locationOptions);
     }
 }

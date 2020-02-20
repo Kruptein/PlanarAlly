@@ -67,12 +67,12 @@ export default class FilterTool extends Tool {
         const i = gameStore.labelFilters.indexOf(uuid);
         if (i >= 0) gameStore.labelFilters.splice(i, 1);
         else gameStore.labelFilters.push(uuid);
-        layerManager.invalidate();
+        layerManager.invalidateAllFloors();
     }
 
     toggleUnlabeled(): void {
         gameStore.toggleUnlabeledFilter();
-        layerManager.invalidate();
+        layerManager.invalidateAllFloors();
     }
 
     updateSelection(data: { title: string; selection: string[] }): void {
@@ -88,7 +88,7 @@ export default class FilterTool extends Tool {
                 socket.emit("Labels.Filter.Add", uuid);
             }
         }
-        layerManager.invalidate();
+        layerManager.invalidateAllFloors();
     }
 }
 </script>

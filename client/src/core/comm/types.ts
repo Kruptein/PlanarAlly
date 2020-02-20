@@ -19,3 +19,9 @@ export enum SyncMode {
     TEMP_SYNC,
     FULL_SYNC,
 }
+
+export enum InvalidationMode {
+    NO,
+    NORMAL,
+    WITH_LIGHT,
+}

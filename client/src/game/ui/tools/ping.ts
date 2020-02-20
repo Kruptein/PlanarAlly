@@ -9,7 +9,7 @@ import { Circle } from "@/game/shapes/circle";
 import { gameStore } from "@/game/store";
 import { l2g } from "@/game/units";
 import { getMouse } from "@/game/utils";
-import { SyncMode } from "@/core/comm/types";
+import { SyncMode, InvalidationMode } from "@/core/comm/types";
 
 @Component
 export class PingTool extends Tool {
@@ -19,7 +19,7 @@ export class PingTool extends Tool {
     ping: Circle | null = null;
     border: Circle | null = null;
     onMouseDown(event: MouseEvent): void {
-        const layer = layerManager.getLayer("draw");
+        const layer = layerManager.getLayer(layerManager.floor!.name, "draw");
         if (layer === undefined) {
             console.log("No draw layer!");
             return;
@@ -30,13 +30,13 @@ export class PingTool extends Tool {
         this.border = new Circle(this.startPoint, 40, "#0000", gameStore.rulerColour);
         this.ping.addOwner(gameStore.username);
         this.border.addOwner(gameStore.username);
-        layer.addShape(this.ping, SyncMode.TEMP_SYNC);
-        layer.addShape(this.border, SyncMode.TEMP_SYNC);
+        layer.addShape(this.ping, SyncMode.TEMP_SYNC, InvalidationMode.NORMAL);
+        layer.addShape(this.border, SyncMode.TEMP_SYNC, InvalidationMode.NORMAL);
     }
     onMouseMove(event: MouseEvent): void {
         if (!this.active || this.ping === null || this.border === null || this.startPoint === null) return;
 
-        const layer = layerManager.getLayer("draw");
+        const layer = layerManager.getLayer(layerManager.floor!.name, "draw");
         if (layer === undefined) {
             console.log("No draw layer!");
             return;
@@ -54,7 +54,7 @@ export class PingTool extends Tool {
     onMouseUp(_event: MouseEvent): void {
         if (!this.active || this.ping === null || this.border === null || this.startPoint === null) return;
 
-        const layer = layerManager.getLayer("draw");
+        const layer = layerManager.getLayer(layerManager.floor!.name, "draw");
         if (layer === undefined) {
             console.log("No active layer!");
             return;

@@ -289,9 +289,11 @@ export default class DmSettings extends Vue {
     //     const value = event.target.value.toLowerCase();
     //     if (value !== "bvh" && value !== "triangle") return;
     //     visibilityStore.setVisionMode({ mode: value, sync: true });
-    //     visibilityStore.recalculateVision();
-    //     visibilityStore.recalculateMovement();
-    //     layerManager.invalidate();
+    //     for (const floor of layerManager.floors) {
+    //         visibilityStore.recalculateVision(floor.name);
+    //         visibilityStore.recalculateMovement(floor.name);
+    //     }
+    //     layerManager.invalidateAllFloors();
     // }
     handleClick(event: { target: HTMLElement }): void {
         const child = event.target.firstElementChild;

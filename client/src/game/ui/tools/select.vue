@@ -46,7 +46,8 @@ export default class SelectTool extends Tool {
         gameStore.setSelectionHelperId(this.selectionHelper.uuid);
     }
 
-    onDown(lp: LocalPoint, gp: GlobalPoint, event: MouseEvent | TouchEvent): void {
+    onDown(lp: LocalPoint, event: MouseEvent | TouchEvent): void {
+        const gp = l2g(lp);
         const layer = layerManager.getLayer(layerManager.floor!.name);
         if (layer === undefined) {
             console.log("No active layer!");
@@ -256,8 +257,7 @@ export default class SelectTool extends Tool {
 
     onMouseDown(event: MouseEvent): void {
         const localPoint = getLocalPointFromEvent(event);
-        const globalPoint = l2g(localPoint);
-        this.onDown(localPoint, globalPoint, event);
+        this.onDown(localPoint, event);
     }
 
     onMouseMove(event: MouseEvent): void {
@@ -272,8 +272,7 @@ export default class SelectTool extends Tool {
 
     onTouchStart(event: TouchEvent): void {
         const localPoint = getLocalPointFromEvent(event);
-        const globalPoint = l2g(localPoint);
-        this.onDown(localPoint, globalPoint, event);
+        this.onDown(localPoint, event);
     }
 
     onTouchMove(event: TouchEvent): void {

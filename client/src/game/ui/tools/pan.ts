@@ -50,7 +50,6 @@ export default class PanTool extends Tool {
 
     onTouchMove(event: TouchEvent): void {
         if (!this.active) return;
-        // get the point of the mouse event
         const point = getLocalPointFromEvent(event);
         this.panScreen(point);
     }

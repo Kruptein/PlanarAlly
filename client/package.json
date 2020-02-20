@@ -9,7 +9,6 @@
     "clean": "rimraf ../server/static/js/ && rimraf ../server/static/css/"
   },
   "dependencies": {
-    "@types/vue2-hammer": "^2.1.0",
     "core-js": "^3.3.2",
     "socket.io-client": "^2.2.0",
     "tinycolor2": "^1.4.1",
@@ -21,7 +20,8 @@
     "vue-slider-component": "^3.0.42",
     "vuedraggable": "^2.23.2",
     "vuex": "^3.0.1",
-    "vuex-module-decorators": "^0.11.0"
+    "vuex-module-decorators": "^0.11.0",
+    "vue2-hammer": "^2.1.2"
   },
   "devDependencies": {
     "@types/jest": "^24.0.22",
@@ -29,6 +29,7 @@
     "@types/socket.io-client": "^1.4.32",
     "@types/tinycolor2": "^1.4.2",
     "@types/vue-color": "^2.4.2",
+    "@types/vue2-hammer": "^2.1.0",
     "@typescript-eslint/eslint-plugin": "^2.15.0",
     "@typescript-eslint/parser": "^2.15.0",
     "@vue/cli-plugin-babel": "~4.2.2",
@@ -49,7 +50,6 @@
     "ts-jest": "^24.1.0",
     "typescript": "~3.7.5",
     "vue-template-compiler": "^2.6.10",
-    "vue2-hammer": "^2.1.2"
   },
   "bugs": {
     "url": "https://github.com/Kruptein/PlanarAlly/issues"

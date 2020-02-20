@@ -6,7 +6,7 @@ import { sendClientOptions } from "@/game/api/utils";
 import { LocalPoint } from "@/game/geom";
 import { layerManager } from "@/game/layers/manager";
 import { gameStore } from "@/game/store";
-import { getMouse, getTouch } from "@/game/utils";
+import { getLocalPointFromEvent } from "@/game/utils";
 
 @Component
 export default class PanTool extends Tool {
@@ -24,13 +24,13 @@ export default class PanTool extends Tool {
     }
 
     onMouseDown(event: MouseEvent): void {
-        this.panStart = getMouse(event);
+        this.panStart = getLocalPointFromEvent(event);
         this.active = true;
     }
 
     onMouseMove(event: MouseEvent): void {
         if (!this.active) return;
-        const mouse = getMouse(event);
+        const mouse = getLocalPointFromEvent(event);
         this.panScreen(mouse);
     }
 
@@ -40,7 +40,7 @@ export default class PanTool extends Tool {
     }
 
     onTouchStart(event: TouchEvent): void {
-        this.panStart = getTouch(event);
+        this.panStart = getLocalPointFromEvent(event);
         this.active = true;
     }
 
@@ -52,7 +52,7 @@ export default class PanTool extends Tool {
     onTouchMove(event: TouchEvent): void {
         if (!this.active) return;
         // get the point of the mouse event
-        const point = getTouch(event);
+        const point = getLocalPointFromEvent(event);
         this.panScreen(point);
     }
 }

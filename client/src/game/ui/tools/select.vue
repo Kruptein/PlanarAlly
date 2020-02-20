@@ -13,7 +13,7 @@ import { Rect } from "@/game/shapes/rect";
 import { gameStore } from "@/game/store";
 import { calculateDelta } from "@/game/ui/tools/utils";
 import { g2l, g2lx, g2ly, l2g, l2gz } from "@/game/units";
-import { getMouse, getTouch } from "@/game/utils";
+import { getLocalPointFromEvent } from "@/game/utils";
 import { EventBus } from "../../event-bus";
 import { visibilityStore } from "../../visibility/store";
 import { snapToPointLocal } from "../../layers/utils";
@@ -255,13 +255,13 @@ export default class SelectTool extends Tool {
     }
 
     onMouseDown(event: MouseEvent): void {
-        const localPoint = getMouse(event);
+        const localPoint = getLocalPointFromEvent(event);
         const globalPoint = l2g(localPoint);
         this.onDown(localPoint, globalPoint, event);
     }
 
     onMouseMove(event: MouseEvent): void {
-        const localPoint = getMouse(event);
+        const localPoint = getLocalPointFromEvent(event);
         const globalPoint = l2g(localPoint);
         this.onMove(localPoint, globalPoint, event);
     }
@@ -271,13 +271,13 @@ export default class SelectTool extends Tool {
     }
 
     onTouchStart(event: TouchEvent): void {
-        const localPoint = getTouch(event);
+        const localPoint = getLocalPointFromEvent(event);
         const globalPoint = l2g(localPoint);
         this.onDown(localPoint, globalPoint, event);
     }
 
     onTouchMove(event: TouchEvent): void {
-        const localPoint = getTouch(event);
+        const localPoint = getLocalPointFromEvent(event);
         const globalPoint = l2g(localPoint);
         this.onMove(localPoint, globalPoint, event);
     }
@@ -292,7 +292,7 @@ export default class SelectTool extends Tool {
             return;
         }
         const layer = layerManager.getLayer(layerManager.floor!.name)!;
-        const mouse = getMouse(event);
+        const mouse = getLocalPointFromEvent(event);
         const globalMouse = l2g(mouse);
         for (const shape of layer.selection) {
             if (shape.contains(globalMouse)) {

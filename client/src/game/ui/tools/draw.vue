@@ -61,7 +61,7 @@ import { Rect } from "@/game/shapes/rect";
 import { Shape } from "@/game/shapes/shape";
 import { gameStore } from "@/game/store";
 import { getUnitDistance, l2g, g2lx, g2ly } from "@/game/units";
-import { getMouse, getTouch, getLocalPointFromEvent } from "@/game/utils";
+import { getLocalPointFromEvent } from "@/game/utils";
 import { visibilityStore } from "../../visibility/store";
 import { Layer } from "../../layers/layer";
 import { snapToPoint } from "../../layers/utils";
@@ -360,7 +360,7 @@ export default class DrawTool extends Tool {
     }
 
     onMouseMove(event: MouseEvent): void {
-        const endPoint = snapToPoint(this.getLayer()!, l2g(getMouse(event)));
+        const endPoint = snapToPoint(this.getLayer()!, l2g(getLocalPointFromEvent(event)));
         this.onMove(endPoint);
     }
 
@@ -374,7 +374,7 @@ export default class DrawTool extends Tool {
     }
 
     onTouchMove(event: TouchEvent): void {
-        const endPoint = snapToPoint(this.getLayer()!, l2g(getTouch(event)));
+        const endPoint = snapToPoint(this.getLayer()!, l2g(getLocalPointFromEvent(event)));
         this.onMove(endPoint);
     }
 

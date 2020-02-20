@@ -16,7 +16,7 @@ import { BaseRect } from "@/game/shapes/baserect";
 import { Rect } from "@/game/shapes/rect";
 import { gameStore } from "@/game/store";
 import { l2g } from "@/game/units";
-import { getMouse, getTouch } from "@/game/utils";
+import { getLocalPointFromEvent } from "@/game/utils";
 import Component from "vue-class-component";
 import { SyncMode, InvalidationMode } from "../../../core/comm/types";
 
@@ -86,12 +86,12 @@ export default class MapTool extends Tool {
     }
 
     onMouseDown(event: MouseEvent): void {
-        const startPoint = l2g(getMouse(event));
+        const startPoint = l2g(getLocalPointFromEvent(event));
         this.onDown(startPoint);
     }
 
     onMouseMove(event: MouseEvent): void {
-        const endPoint = l2g(getMouse(event));
+        const endPoint = l2g(getLocalPointFromEvent(event));
         this.onMove(endPoint);
     }
 
@@ -100,12 +100,12 @@ export default class MapTool extends Tool {
     }
 
     onTouchStart(event: TouchEvent): void {
-        const startPoint = l2g(getTouch(event));
+        const startPoint = l2g(getLocalPointFromEvent(event));
         this.onDown(startPoint);
     }
 
     onTouchMove(event: TouchEvent): void {
-        const endPoint = l2g(getTouch(event));
+        const endPoint = l2g(getLocalPointFromEvent(event));
         this.onMove(endPoint);
     }
 

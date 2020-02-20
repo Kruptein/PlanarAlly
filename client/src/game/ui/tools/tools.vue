@@ -53,7 +53,7 @@ import { gameStore } from "@/game/store";
 import { PingTool } from "@/game/ui/tools/ping";
 import { RulerTool } from "@/game/ui/tools/ruler";
 import { l2g } from "@/game/units";
-import { getMouse, getTouch } from "@/game/utils";
+import { getLocalPointFromEvent } from "@/game/utils";
 import Component from "vue-class-component";
 
 @Component({
@@ -148,7 +148,7 @@ export default class Tools extends Vue {
         for (const uuid of gameStore.annotations) {
             if (layerManager.UUIDMap.has(uuid) && layerManager.hasLayer(layerManager.floor!.name, "draw")) {
                 const shape = layerManager.UUIDMap.get(uuid)!;
-                if (shape.contains(l2g(getMouse(event)))) {
+                if (shape.contains(l2g(getLocalPointFromEvent(event)))) {
                     found = true;
                     gameManager.annotationManager.setActiveText(shape.annotation);
                 }
@@ -198,7 +198,7 @@ export default class Tools extends Vue {
         for (const uuid of gameStore.annotations) {
             if (layerManager.UUIDMap.has(uuid) && layerManager.hasLayer(layerManager.floor!.name, "draw")) {
                 const shape = layerManager.UUIDMap.get(uuid)!;
-                if (shape.contains(l2g(getTouch(event)))) {
+                if (shape.contains(l2g(getLocalPointFromEvent(event)))) {
                     found = true;
                     gameManager.annotationManager.setActiveText(shape.annotation);
                 }

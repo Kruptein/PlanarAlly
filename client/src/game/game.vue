@@ -176,7 +176,7 @@ export default class Game extends Vue {
     // Touch events
 
     pinch(e: any): void {
-        if (!e.target || !(<HTMLElement>e.target).tagName || (<HTMLElement>e.target).tagName !== "CANVAS") return;
+        if (e?.target?.tagName !== "CANVAS") return;
         let delta = 0;
         if (e.additionalEvent === "pinchin") {
             delta = 1;

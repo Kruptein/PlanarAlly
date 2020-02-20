@@ -9,6 +9,7 @@
     "clean": "rimraf ../server/static/js/ && rimraf ../server/static/css/"
   },
   "dependencies": {
+    "@types/vue2-hammer": "^2.1.0",
     "core-js": "^3.3.2",
     "socket.io-client": "^2.2.0",
     "tinycolor2": "^1.4.1",

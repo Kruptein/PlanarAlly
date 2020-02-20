@@ -18,9 +18,6 @@
                 @touchend="touchend"
                 v-hammer:pinch="pinch"
             ></div>
-            <!-- v-touch:tap="mouseup"
-            v-touch:
-            v-touch:end="drop" -->
             <floor-select v-show="showUI"></floor-select>
         </div>
         <selection-info ref="selectionInfo" v-show="showUI"></selection-info>

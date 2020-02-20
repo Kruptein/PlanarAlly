@@ -176,9 +176,9 @@ export default class Game extends Vue {
         if (e?.target?.tagName !== "CANVAS") return;
         let delta = 0;
         if (e.additionalEvent === "pinchin") {
-            delta = 1;
-        } else {
             delta = -1;
+        } else {
+            delta = 1;
         }
         gameStore.updateZoom({
             newZoomDisplay: gameStore.zoomDisplay - 0.005 * delta,

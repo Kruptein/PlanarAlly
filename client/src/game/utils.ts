@@ -6,8 +6,10 @@ import { gameStore } from "./store";
 export function getLocalPointFromEvent(e: MouseEvent | TouchEvent): LocalPoint {
     if (e instanceof MouseEvent) {
         return getMouse(e);
-    } else {
+    } else if (e instanceof TouchEvent) {
         return getTouch(e);
+    } else {
+        return getMouse(e);
     }
 }
 

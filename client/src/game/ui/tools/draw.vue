@@ -208,8 +208,6 @@ export default class DrawTool extends Tool {
         }
         if (this.brushHelper === null) return;
         if (!this.active) {
-            // TODO: change start point to be relative to the point, not the brush helper
-            // this.startPoint = this.brushHelper.refPoint;
             this.startPoint = startPoint;
             this.active = true;
             switch (this.shapeSelect) {

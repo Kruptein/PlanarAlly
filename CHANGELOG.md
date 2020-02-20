@@ -14,6 +14,7 @@ All notable changes to this project will be documented in this file.
     -   Change password
     -   Delete account
 -   Snap to nearby existing points while drawing and while resizing points
+-   Set any shape as marker and jump to that position from the sidebar [by LDeeJay1969]
 
 ### Removed
 

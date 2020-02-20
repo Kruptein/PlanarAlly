@@ -178,7 +178,10 @@ export default class Game extends Vue {
     pinch(e: any): void {
         if (!e.target || !(<HTMLElement>e.target).tagName || (<HTMLElement>e.target).tagName !== "CANVAS") return;
         const delta = Math.sign(e.deltaY) * -1;
-        gameStore.updateZoom({ newZoomDisplay: gameStore.zoomDisplay - 0.1 * delta, zoomLocation: l2g(getLocalPointFromEvent(e.srcEvent)) });
+        gameStore.updateZoom({
+            newZoomDisplay: gameStore.zoomDisplay - 0.005 * delta,
+            zoomLocation: l2g(getLocalPointFromEvent(e.srcEvent)),
+        });
     }
 
     touchend(event: TouchEvent): void {

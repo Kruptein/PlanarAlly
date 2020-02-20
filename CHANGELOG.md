@@ -18,7 +18,7 @@ All notable changes to this project will be documented in this file.
 -   Floors
     -   Create/Delete floors that are rendered on top of eachother to increase immersion
     -   Use Page Up/Down as a quick keybinding to move between floors
--  Touch Gestures
+-  Touch Gestures [ZachMyers3]
 
 ### Removed
 

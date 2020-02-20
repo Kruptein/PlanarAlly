@@ -41,9 +41,11 @@ export default class Tool extends Vue {
             if (tool !== this.name) {
                 return;
             }
+            console.log(event);
             if (event.touches.length === 2) {
                 this.scaling = true;
                 this.onPinchStart(event);
+                console.log("Enabling onPinch start");
             } else {
                 this.onTouchStart(event);
             }
@@ -68,6 +70,8 @@ export default class Tool extends Vue {
             }
 
             if (this.scaling) {
+                event.preventDefault();
+                console.log("Pinch event");
                 this.onPinchMove(event);
             }
 

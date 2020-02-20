@@ -1,6 +1,6 @@
 import Vue from "vue";
 
-import Vue2TouchEvents from "vue2-touch-events";
+import { VueHammer } from "vue2-hammer";
 
 import App from "@/App.vue";
 import { router } from "@/router";
@@ -10,8 +10,7 @@ Vue.config.productionTip = false;
 Vue.config.devtools = true;
 Vue.config.performance = true;
 
-// use touch events
-Vue.use(Vue2TouchEvents);
+Vue.use(VueHammer);
 
 export const app = new Vue({
     router,

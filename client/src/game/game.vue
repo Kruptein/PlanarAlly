@@ -16,6 +16,7 @@
                 @touchmove="touchmove"
                 @touchstart="touchstart"
                 @touchend="touchend"
+                v-hammer:pinch="pinch"
             ></div>
             <!-- v-touch:tap="mouseup"
             v-touch:
@@ -172,6 +173,10 @@ export default class Game extends Vue {
     }
 
     // Touch events
+
+    pinch(event: TouchEvent): void {
+        console.log(event);
+    }
 
     touchend(event: TouchEvent): void {
         this.$refs.tools.touchend(event);

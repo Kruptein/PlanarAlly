@@ -61,7 +61,7 @@ import { Rect } from "@/game/shapes/rect";
 import { Shape } from "@/game/shapes/shape";
 import { gameStore } from "@/game/store";
 import { getUnitDistance, l2g, g2lx, g2ly } from "@/game/units";
-import { getMouse, getTouch } from "@/game/utils";
+import { getMouse, getTouch, getLocalPointFromEvent } from "@/game/utils";
 import { visibilityStore } from "../../visibility/store";
 import { Layer } from "../../layers/layer";
 import { snapToPoint } from "../../layers/utils";
@@ -200,7 +200,7 @@ export default class DrawTool extends Tool {
         return layerManager.getLayer(layerManager.floor!.name, "fow");
     }
 
-    onDown(): void {
+    onDown(startPoint: GlobalPoint): void {
         const layer = this.getLayer();
         if (layer === undefined) {
             console.log("No active layer!");
@@ -208,7 +208,9 @@ export default class DrawTool extends Tool {
         }
         if (this.brushHelper === null) return;
         if (!this.active) {
-            this.startPoint = this.brushHelper.refPoint;
+            // TODO: change start point to be relative to the point, not the brush helper
+            // this.startPoint = this.brushHelper.refPoint;
+            this.startPoint = startPoint;
             this.active = true;
             switch (this.shapeSelect) {
                 case "square": {
@@ -352,7 +354,9 @@ export default class DrawTool extends Tool {
     }
 
     onMouseDown(_event: MouseEvent): void {
-        this.onDown();
+        if (this.brushHelper === null) return;
+        const startPoint = this.brushHelper.refPoint;
+        this.onDown(startPoint);
     }
 
     onMouseMove(event: MouseEvent): void {
@@ -364,8 +368,9 @@ export default class DrawTool extends Tool {
         this.onUp(event);
     }
 
-    onTouchStart(_event: TouchEvent): void {
-        this.onDown();
+    onTouchStart(event: TouchEvent): void {
+        const startPoint = snapToPoint(this.getLayer()!, l2g(getLocalPointFromEvent(event)));
+        this.onDown(startPoint);
     }
 
     onTouchMove(event: TouchEvent): void {

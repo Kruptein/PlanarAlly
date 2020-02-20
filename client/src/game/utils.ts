@@ -3,7 +3,7 @@ import tinycolor from "tinycolor2";
 import { LocalPoint } from "@/game/geom";
 import { gameStore } from "./store";
 
-export function getLocalPointFromEvent(e: MouseEvent | TouchEvent): LocalPoint {
+export function getLocalPointFromEvent(e: any): LocalPoint {
     if (e instanceof MouseEvent) {
         return getMouse(e);
     } else if (e instanceof TouchEvent) {

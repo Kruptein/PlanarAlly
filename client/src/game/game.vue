@@ -176,18 +176,9 @@ export default class Game extends Vue {
     // Touch events
 
     pinch(e: any): void {
-        // TODO: adjust zoom level on pinch event
-        console.log("Adjust zoom from pinch..");
-        console.log(event);
         if (!e.target || !(<HTMLElement>e.target).tagName || (<HTMLElement>e.target).tagName !== "CANVAS") return;
         const delta = Math.sign(e.deltaY) * -1;
-        console.log("delta: " + delta.toString());
-        const lp = new LocalPoint(e.srcEvent.pageX, e.srcEvent.pageY);
-        console.log(e);
-        console.log(e.srcEvent.pageX);
-        console.log(e.srcEvent.pageY);
-        console.log(lp);
-        gameStore.updateZoom({ newZoomDisplay: gameStore.zoomDisplay - 0.1 * delta, zoomLocation: l2g(lp) });
+        gameStore.updateZoom({ newZoomDisplay: gameStore.zoomDisplay - 0.1 * delta, zoomLocation: l2g(getLocalPointFromEvent(e.srcEvent)) });
     }
 
     touchend(event: TouchEvent): void {

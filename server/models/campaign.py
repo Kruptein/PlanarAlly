@@ -18,6 +18,7 @@ __all__ = [
     "Layer",
     "Location",
     "LocationUserOption",
+    "Marker",
     "Note",
     "PlayerRoom",
     "Room",
@@ -143,6 +144,21 @@ class Note(BaseModel):
             self, recurse=False, exclude=[Note.room, Note.location, Note.user]
         )
 
+class Marker(BaseModel):
+    uuid = TextField(primary_key=True)
+    room = ForeignKeyField(Room, backref="markers", on_delete="CASCADE")
+    location = ForeignKeyField(
+        Location, null=True, backref="markers", on_delete="CASCADE"
+    )
+    user = ForeignKeyField(User, backref="markers", on_delete="CASCADE")
+
+    def __repr__(self):
+        return f"<Marker {self.uuid} {self.room.get_path()} - {self.user.name}"
+
+    def as_dict(self):
+        return model_to_dict(
+            self, recurse=False, exclude=[Marker.room, Marker.location, Marker.user]
+        )
 
 class Layer(BaseModel):
     location = ForeignKeyField(Location, backref="layers", on_delete="CASCADE")

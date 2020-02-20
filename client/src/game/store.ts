@@ -5,7 +5,7 @@ import { getModule, Module, Mutation, VuexModule } from "vuex-module-decorators"
 import { AssetList } from "@/core/comm/types";
 import { socket } from "@/game/api/socket";
 import { sendClientOptions } from "@/game/api/utils";
-import { Note } from "@/game/comm/types/general";
+import { Note, Marker } from "@/game/comm/types/general";
 import { ServerShape } from "@/game/comm/types/shapes";
 import { GlobalPoint, Vector } from "@/game/geom";
 import { layerManager } from "@/game/layers/manager";
@@ -35,6 +35,8 @@ class GameStore extends VuexModule implements GameState {
     assets: AssetList = {};
 
     notes: Note[] = [];
+
+    markers: Marker[] = [];
 
     IS_DM = false;
     FAKE_PLAYER = false;
@@ -219,6 +221,43 @@ class GameStore extends VuexModule implements GameState {
     newNote(data: { note: Note; sync: boolean }): void {
         this.notes.push(data.note);
         if (data.sync) socket.emit("Note.New", data.note);
+    }
+
+    @Mutation
+    newMarker(data: { marker: Marker; sync: boolean }): void {
+        let changed = false;
+        for (const shape of layerManager.UUIDMap.values()) {
+            if (data.marker.uuid == shape.uuid) data.marker.name = shape.name;
+        }
+        for (const m of this.markers) {
+            if (m.uuid == data.marker.uuid) {
+                m.name = data.marker.name;
+                changed = true;
+                break;
+            }
+        }
+        if (!changed) this.markers.push(data.marker);
+        if (data.sync) socket.emit("Marker.New", data.marker);
+    }
+
+    @Mutation
+    removeMarker(data: { marker: Marker; sync: boolean }): void {
+        this.markers = this.markers.filter(m => m.uuid !== data.marker.uuid);
+        if (data.sync) socket.emit("Marker.Remove", data.marker.uuid);
+    }
+
+    @Mutation
+    jumpToMarker(data: { marker: Marker; sync: boolean }): void {
+        for (const shape of layerManager.UUIDMap.values()) {
+            if (data.marker.uuid == shape.uuid) {
+                const nh = window.innerWidth / this.gridSize / zoomValue(this.zoomDisplay) / 2;
+                const nv = window.innerHeight / this.gridSize / zoomValue(this.zoomDisplay) / 2;
+                this.panX = -shape.refPoint.x + nh * this.gridSize;
+                this.panY = -shape.refPoint.y + nv * this.gridSize;
+                sendClientOptions(this.locationOptions);
+                layerManager.invalidate();
+            }
+        }
     }
 
     @Mutation

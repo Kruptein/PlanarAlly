@@ -16,7 +16,6 @@ export default class PanTool extends Tool {
 
     panScreen(l: LocalPoint): void {
         const distance = l.subtract(this.panStart).multiply(1 / gameStore.zoomFactor);
-        console.log(distance);
         gameStore.increasePanX(Math.round(distance.x));
         gameStore.increasePanY(Math.round(distance.y));
         this.panStart = l;

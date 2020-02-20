@@ -41,7 +41,6 @@ export default class Tool extends Vue {
             if (tool !== this.name) {
                 return;
             }
-            console.log(event);
             if (event.touches.length === 2) {
                 this.scaling = true;
                 this.onPinchStart(event);

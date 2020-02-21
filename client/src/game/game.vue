@@ -76,7 +76,6 @@ import { gameStore } from "@/game/store";
 import { l2g } from "@/game/units";
 import { LocalPoint } from "./geom";
 import { dropAsset } from "./layers/utils";
-import { getLocalPointFromEvent } from "@/game/utils";
 
 @Component({
     components: {

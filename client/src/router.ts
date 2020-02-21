@@ -78,25 +78,46 @@ export const router = new Router({
     ],
 });
 
-router.beforeEach(async (to, from, next) => {
-    if (!coreStore.initialized && to.path !== "/_load") {
-        next({ path: "/_load" });
-        const response = await fetch("/api/auth");
-        if (response.ok) {
-            const data = await response.json();
-            if (data.auth) {
-                coreStore.setAuthenticated(true);
-                coreStore.setUsername(data.username);
-                coreStore.setEmail(data.email);
+router.beforeEach(async (to, _from, next) => {
+    if (to.matched.some(record => record.meta.auth)) {
+        // authentication is required, but the store isnt authenticated
+        if (!coreStore.authenticated) {
+            console.log("Not authenticated");
+            // verify with the api to see if really authenticated
+            const response = await fetch("/api/auth");
+            if (response.ok) {
+                const data = await response.json();
+                if (data.auth) {
+                    // api reports authentication, adjust state and proceed
+                    coreStore.setAuthenticated(true);
+                    coreStore.setUsername(data.username);
+                    coreStore.setEmail(data.email);
+                    coreStore.setInitialized(true);
+                    next();
+                } else {
+                    // api reports not authenticated, redirect
+                    next({
+                        path: "/auth/login",
+                        query: {
+                            redirect: to.path,
+                        },
+                    });
+                }
+            } else {
+                // truly not authenticated, redirect to login
+                next({
+                    path: "/auth/login",
+                    query: {
+                        redirect: to.path,
+                    },
+                });
             }
-            coreStore.setInitialized(true);
-            router.push(to.path);
         } else {
-            console.error("Authentication check could not be fulfilled.");
+            // the store says client is initialized
+            next();
         }
-    } else if (to.matched.some(record => record.meta.auth) && !coreStore.authenticated) {
-        next({ path: "/auth/login", query: { redirect: to.path } });
     } else {
+        // no authentication required
         next();
     }
 });

@@ -1,18 +1,21 @@
 <template>
     <div id="app">
-        <LoadComponent v-if="loading"></LoadComponent>
-        <router-view v-else ref="activeComponent"></router-view>
+        <loading :active.sync="loading" :is-full-page="true"></loading>
+        <router-view ref="activeComponent"></router-view>
     </div>
 </template>
 
 <script lang="ts">
 import { Component, Vue } from "vue-property-decorator";
 import LoadComponent from "@/core/components/load.vue";
+import Loading from "vue-loading-overlay";
+import "vue-loading-overlay/dist/vue-loading.css";
 import { coreStore } from "@/core/store";
 
 @Component({
     components: {
         LoadComponent,
+        Loading,
     },
 })
 export default class App extends Vue {

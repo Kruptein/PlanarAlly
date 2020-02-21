@@ -53,7 +53,7 @@ import { gameStore } from "@/game/store";
 import { PingTool } from "@/game/ui/tools/ping";
 import { RulerTool } from "@/game/ui/tools/ruler";
 import { l2g } from "@/game/units";
-import { getMouse } from "@/game/utils";
+import { getLocalPointFromEvent } from "@/game/utils";
 import Component from "vue-class-component";
 
 @Component({
@@ -134,6 +134,7 @@ export default class Tools extends Vue {
         if ((<HTMLElement>event.target).tagName !== "CANVAS") return;
 
         let targetTool = this.currentTool;
+        // force targetTool to pan if hitting mouse wheel
         if ((event.buttons & 4) !== 0) {
             targetTool = "Pan";
         } else if ((event.button & 1) > 1) {
@@ -147,7 +148,7 @@ export default class Tools extends Vue {
         for (const uuid of gameStore.annotations) {
             if (layerManager.UUIDMap.has(uuid) && layerManager.hasLayer(layerManager.floor!.name, "draw")) {
                 const shape = layerManager.UUIDMap.get(uuid)!;
-                if (shape.contains(l2g(getMouse(event)))) {
+                if (shape.contains(l2g(getLocalPointFromEvent(event)))) {
                     found = true;
                     gameManager.annotationManager.setActiveText(shape.annotation);
                 }
@@ -167,6 +168,45 @@ export default class Tools extends Vue {
         if ((<HTMLElement>event.target).tagName !== "CANVAS") return;
         if (event.button !== 2 || (<HTMLElement>event.target).tagName !== "CANVAS") return;
         this.$emit("contextmenu", event, this.currentTool);
+    }
+
+    touchstart(event: TouchEvent): void {
+        if ((<HTMLElement>event.target).tagName !== "CANVAS") return;
+
+        const targetTool = this.currentTool;
+
+        this.$emit("touchstart", event, targetTool);
+    }
+
+    touchend(event: TouchEvent): void {
+        if ((<HTMLElement>event.target).tagName !== "CANVAS") return;
+
+        const targetTool = this.currentTool;
+
+        this.$emit("touchend", event, targetTool);
+    }
+
+    touchmove(event: TouchEvent): void {
+        if ((<HTMLElement>event.target).tagName !== "CANVAS") return;
+
+        const targetTool = this.currentTool;
+
+        this.$emit("touchmove", event, targetTool);
+
+        // Annotation hover
+        let found = false;
+        for (const uuid of gameStore.annotations) {
+            if (layerManager.UUIDMap.has(uuid) && layerManager.hasLayer(layerManager.floor!.name, "draw")) {
+                const shape = layerManager.UUIDMap.get(uuid)!;
+                if (shape.contains(l2g(getLocalPointFromEvent(event)))) {
+                    found = true;
+                    gameManager.annotationManager.setActiveText(shape.annotation);
+                }
+            }
+        }
+        if (!found && gameManager.annotationManager.shown) {
+            gameManager.annotationManager.setActiveText("");
+        }
     }
 }
 </script>

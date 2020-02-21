@@ -3,8 +3,25 @@ import tinycolor from "tinycolor2";
 import { LocalPoint } from "@/game/geom";
 import { gameStore } from "./store";
 
-export function getMouse(e: MouseEvent): LocalPoint {
+export function getLocalPointFromEvent(e: any): LocalPoint {
+    if (e instanceof MouseEvent) {
+        return getMouse(e);
+    } else if (e instanceof TouchEvent) {
+        return getTouch(e);
+    } else {
+        return getMouse(e);
+    }
+}
+
+function getMouse(e: MouseEvent): LocalPoint {
     return new LocalPoint(e.pageX, e.pageY);
+}
+
+// takes a given touch event and converts to LocalPoint
+function getTouch(e: TouchEvent): LocalPoint {
+    // touches is a TouchList, which is a list of touches (for each finger)
+    // default to first touch (first index) to get x/y
+    return new LocalPoint(e.touches[0].pageX, e.touches[0].pageY);
 }
 
 export function getFogColour(opposite = false): string {

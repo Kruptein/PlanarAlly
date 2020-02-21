@@ -9,5 +9,9 @@ import Component from "vue-class-component";
 @Component
 export default class LoadComponent extends Vue {
     message = "Loading...";
+
+    mounted(): void {
+        console.log("Loading...");
+    }
 }
 </script>

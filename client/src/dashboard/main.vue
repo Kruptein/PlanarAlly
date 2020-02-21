@@ -98,6 +98,14 @@ export default class Dashboard extends Vue {
             this.error = response.statusText;
         }
     }
+
+    beforeCreate(): void {
+        console.log("Before create");
+    }
+
+    created(): void {
+        console.log("Created");
+    }
 }
 </script>
 

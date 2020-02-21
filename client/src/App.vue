@@ -1,8 +1,26 @@
 <template>
     <div id="app">
-        <router-view ref="activeComponent"></router-view>
+        <LoadComponent v-if="loading"></LoadComponent>
+        <router-view v-else ref="activeComponent"></router-view>
     </div>
 </template>
+
+<script lang="ts">
+import { Component, Vue } from "vue-property-decorator";
+import LoadComponent from "@/core/components/load.vue";
+import { coreStore } from "@/core/store";
+
+@Component({
+    components: {
+        LoadComponent,
+    },
+})
+export default class App extends Vue {
+    get loading(): boolean {
+        return coreStore.loading;
+    }
+}
+</script>
 
 <style>
 @import url("https://maxcdn.bootstrapcdn.com/font-awesome/4.6.1/css/font-awesome.min.css");

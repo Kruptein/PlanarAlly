@@ -7,7 +7,6 @@ Vue.use(Router);
 import AssetManager from "@/assetManager/manager.vue";
 import Login from "@/auth/login.vue";
 import Logout from "@/auth/logout";
-import LoadComponent from "@/core/components/load.vue";
 import Dashboard from "@/dashboard/main.vue";
 import Settings from "@/settings/settings.vue";
 import Game from "@/game/game.vue";
@@ -24,11 +23,6 @@ export const router = new Router({
         {
             path: "/",
             redirect: "/dashboard",
-        },
-        {
-            path: "/_load",
-            name: "load",
-            component: LoadComponent,
         },
         {
             path: "/assets/:folder*",
@@ -79,6 +73,7 @@ export const router = new Router({
 });
 
 router.beforeEach(async (to, _from, next) => {
+    coreStore.setLoading(true);
     if (to.matched.some(record => record.meta.auth)) {
         // authentication is required, but the store isnt authenticated
         if (!coreStore.authenticated) {
@@ -120,4 +115,8 @@ router.beforeEach(async (to, _from, next) => {
         // no authentication required
         next();
     }
+});
+
+router.afterEach((_to, _from) => {
+    coreStore.setLoading(false);
 });

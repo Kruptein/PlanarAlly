@@ -9,7 +9,6 @@
     "clean": "rimraf ../server/static/js/ && rimraf ../server/static/css/"
   },
   "dependencies": {
-    "@types/vue2-hammer": "^2.1.0",
     "core-js": "^3.3.2",
     "socket.io-client": "^2.2.0",
     "tinycolor2": "^1.4.1",
@@ -48,8 +47,7 @@
     "rimraf": "^3.0.0",
     "ts-jest": "^24.1.0",
     "typescript": "~3.7.5",
-    "vue-template-compiler": "^2.6.10",
-    "vue2-hammer": "^2.1.2"
+    "vue-template-compiler": "^2.6.10"
   },
   "bugs": {
     "url": "https://github.com/Kruptein/PlanarAlly/issues"

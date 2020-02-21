@@ -16,7 +16,6 @@
                 @touchmove="touchmove"
                 @touchstart="touchstart"
                 @touchend="touchend"
-                v-hammer:pinch="pinch"
             ></div>
             <floor-select v-show="showUI"></floor-select>
         </div>
@@ -77,7 +76,6 @@ import { gameStore } from "@/game/store";
 import { l2g } from "@/game/units";
 import { LocalPoint } from "./geom";
 import { dropAsset } from "./layers/utils";
-import { getLocalPointFromEvent } from "@/game/utils";
 
 @Component({
     components: {
@@ -171,20 +169,6 @@ export default class Game extends Vue {
     }
 
     // Touch events
-
-    pinch(e: any): void {
-        if (e?.target?.tagName !== "CANVAS") return;
-        let delta = 0;
-        if (e.additionalEvent === "pinchin") {
-            delta = -1;
-        } else {
-            delta = 1;
-        }
-        gameStore.updateZoom({
-            newZoomDisplay: gameStore.zoomDisplay - 0.005 * delta,
-            zoomLocation: l2g(getLocalPointFromEvent(e.srcEvent)),
-        });
-    }
 
     touchend(event: TouchEvent): void {
         this.$refs.tools.touchend(event);

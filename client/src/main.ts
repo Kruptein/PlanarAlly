@@ -1,7 +1,5 @@
 import Vue from "vue";
 
-import { VueHammer } from "vue2-hammer";
-
 import App from "@/App.vue";
 import { router } from "@/router";
 import { rootStore } from "@/store";
@@ -9,12 +7,6 @@ import { rootStore } from "@/store";
 Vue.config.productionTip = false;
 Vue.config.devtools = true;
 Vue.config.performance = true;
-
-VueHammer.config.pinch = {
-    threshold: 1,
-};
-
-Vue.use(VueHammer);
 
 export const app = new Vue({
     router,

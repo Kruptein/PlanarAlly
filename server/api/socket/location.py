@@ -52,14 +52,6 @@ async def load_location(sid, location):
         room=sid,
         namespace="/planarally",
     )
-    sorted_initiatives = [
-        init.as_dict()
-        for init in Initiative.select()
-        .join(Shape, JOIN.LEFT_OUTER, on=(Initiative.uuid == Shape.uuid))
-        .join(Layer)
-        .where((Layer.location == location))
-        .order_by(Initiative.index)
-    ]    
     await sio.emit(
         "Markers.Set",
         [

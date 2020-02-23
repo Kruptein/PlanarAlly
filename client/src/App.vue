@@ -7,7 +7,6 @@
 
 <script lang="ts">
 import { Component, Vue } from "vue-property-decorator";
-import LoadComponent from "@/core/components/load.vue";
 import Loading from "vue-loading-overlay";
 import "vue-loading-overlay/dist/vue-loading.css";
 import { coreStore } from "@/core/store";

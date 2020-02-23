@@ -2,6 +2,7 @@ import { GridLayer } from "@/game/layers/grid";
 import { Layer } from "@/game/layers/layer";
 import { Shape } from "@/game/shapes/shape";
 import { gameStore } from "@/game/store";
+import { coreStore } from "@/core/store";
 
 export interface Floor {
     name: string;

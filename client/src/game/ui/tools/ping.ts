@@ -39,7 +39,6 @@ export class PingTool extends Tool {
 
     onUp(): void {
         if (!this.active || this.ping === null || this.border === null || this.startPoint === null) return;
-        console.log("onUp");
 
         const layer = layerManager.getLayer(layerManager.floor!.name, "draw");
         if (layer === undefined) {

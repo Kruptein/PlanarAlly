@@ -76,6 +76,7 @@ import { gameStore } from "@/game/store";
 import { l2g } from "@/game/units";
 import { LocalPoint } from "./geom";
 import { dropAsset } from "./layers/utils";
+import { coreStore } from "@/core/store";
 
 @Component({
     components: {
@@ -92,6 +93,7 @@ import { dropAsset } from "./layers/utils";
         "dm-settings": DmSettings,
     },
     beforeRouteEnter(to, from, next) {
+        coreStore.setLoading(true);
         createConnection(to);
         next();
     },

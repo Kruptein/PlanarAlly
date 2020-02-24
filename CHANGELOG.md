@@ -18,6 +18,8 @@ All notable changes to this project will be documented in this file.
 -   Floors
     -   Create/Delete floors that are rendered on top of eachother to increase immersion
     -   Use Page Up/Down as a quick keybinding to move between floors
+-  Touch Gestures [ZachMyers3]
+-  Easier client traversing by removing _load route [ZachMyers3] 
 -   Set any shape as marker and jump to that position from the sidebar [LDeeJay1969]
 
 ### Removed

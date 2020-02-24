@@ -55,10 +55,9 @@ async def load_location(sid, location):
     await sio.emit(
         "Markers.Set",
         [
-            marker.as_dict()
+            marker.as_string()
             for marker in Marker.select().where(Marker.user == user)
         ],
-        room=sid,
         namespace="/planarally",
     )
     

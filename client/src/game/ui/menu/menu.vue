@@ -74,9 +74,9 @@
                             <div id="menu-markers">
                                 <table width="100%">
                                     <tbody>
-                                        <tr v-for="marker in markers" :key="marker.uuid" style="cursor:pointer">
+                                        <tr v-for="marker in markers" :key="marker" style="cursor:pointer">
                                             <td style="white-space: nowrap;" width="99%" @click="jumpToMarker(marker)">
-                                                {{ marker.name || "[?]" }}
+                                                {{ nameMarker(marker) || "[?]" }}
                                             </td>
                                             <td style="white-space: nowrap;" @click="delMarker(marker)">
                                                 <i class="far fa-minus-square"></i>
@@ -146,7 +146,7 @@ import AssetNode from "@/game/ui/menu/asset_node.vue";
 
 import { uuidv4 } from "@/core/utils";
 import { socket } from "@/game/api/socket";
-import { Note, Marker } from "@/game/comm/types/general";
+import { Note } from "@/game/comm/types/general";
 import { gameStore } from "@/game/store";
 import { EventBus } from "../../event-bus";
 
@@ -216,12 +216,16 @@ export default class MenuBar extends Vue {
         EventBus.$emit("DmSettings.Open");
     }
 
-    delMarker(marker: Marker): void {
-        gameStore.removeMarker({ marker, sync: true });
+    delMarker(marker: string): void {
+        gameStore.removeMarker({ marker: marker, sync: true });
     }
 
-    jumpToMarker(marker: Marker): void {
-        gameStore.jumpToMarker({ marker, sync: true });
+    jumpToMarker(marker: string): void {
+        gameStore.jumpToMarker(marker);
+    }
+
+    nameMarker(marker: string): string {
+        return layerManager.UUIDMap.get(marker)!.name;
     }
 }
 </script>

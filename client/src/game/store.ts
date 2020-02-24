@@ -5,7 +5,7 @@ import { getModule, Module, Mutation, VuexModule } from "vuex-module-decorators"
 import { AssetList } from "@/core/comm/types";
 import { socket } from "@/game/api/socket";
 import { sendClientOptions } from "@/game/api/utils";
-import { Note, Marker } from "@/game/comm/types/general";
+import { Note } from "@/game/comm/types/general";
 import { ServerShape } from "@/game/comm/types/shapes";
 import { GlobalPoint, Vector } from "@/game/geom";
 import { layerManager } from "@/game/layers/manager";
@@ -39,7 +39,7 @@ class GameStore extends VuexModule implements GameState {
 
     notes: Note[] = [];
 
-    markers: Marker[] = [];
+    markers: string[] = [];
 
     IS_DM = false;
     FAKE_PLAYER = false;
@@ -249,32 +249,27 @@ class GameStore extends VuexModule implements GameState {
     }
 
     @Mutation
-    newMarker(data: { marker: Marker; sync: boolean }): void {
-        let changed = false;
-        for (const shape of layerManager.UUIDMap.values()) {
-            if (data.marker.uuid == shape.uuid) data.marker.name = shape.name;
-        }
+    newMarker(data: { marker: string; sync: boolean }): void {
+        let alreadyhere = false;
         for (const m of this.markers) {
-            if (m.uuid == data.marker.uuid) {
-                m.name = data.marker.name;
-                changed = true;
-                break;
+            if (m == data.marker) {
+                alreadyhere = true;
             }
         }
-        if (!changed) this.markers.push(data.marker);
+        if (!alreadyhere) this.markers.push(data.marker);
         if (data.sync) socket.emit("Marker.New", data.marker);
     }
 
     @Mutation
-    removeMarker(data: { marker: Marker; sync: boolean }): void {
-        this.markers = this.markers.filter(m => m.uuid !== data.marker.uuid);
-        if (data.sync) socket.emit("Marker.Remove", data.marker.uuid);
+    removeMarker(data: { marker: string; sync: boolean }): void {
+        this.markers = this.markers.filter(m => m !== data.marker);
+        if (data.sync) socket.emit("Marker.Remove", data.marker);
     }
 
     @Mutation
-    jumpToMarker(data: { marker: Marker; sync: boolean }): void {
+    jumpToMarker(marker: string): void {
         for (const shape of layerManager.UUIDMap.values()) {
-            if (data.marker.uuid == shape.uuid) {
+            if (marker == shape.uuid) {
                 const nh = window.innerWidth / this.gridSize / zoomValue(this.zoomDisplay) / 2;
                 const nv = window.innerHeight / this.gridSize / zoomValue(this.zoomDisplay) / 2;
                 this.panX = -shape.refPoint.x + nh * this.gridSize;

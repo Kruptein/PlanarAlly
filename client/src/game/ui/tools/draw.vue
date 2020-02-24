@@ -61,7 +61,7 @@ import { Rect } from "@/game/shapes/rect";
 import { Shape } from "@/game/shapes/shape";
 import { gameStore } from "@/game/store";
 import { getUnitDistance, l2g, g2lx, g2ly } from "@/game/units";
-import { getMouse } from "@/game/utils";
+import { getLocalPointFromEvent } from "@/game/utils";
 import { visibilityStore } from "../../visibility/store";
 import { Layer } from "../../layers/layer";
 import { snapToPoint } from "../../layers/utils";
@@ -199,7 +199,8 @@ export default class DrawTool extends Tool {
         if (this.modeSelect === "normal") return layerManager.getLayer(layerManager.floor!.name, targetLayer);
         return layerManager.getLayer(layerManager.floor!.name, "fow");
     }
-    onMouseDown(_event: MouseEvent): void {
+
+    onDown(startPoint: GlobalPoint): void {
         const layer = this.getLayer();
         if (layer === undefined) {
             console.log("No active layer!");
@@ -207,7 +208,7 @@ export default class DrawTool extends Tool {
         }
         if (this.brushHelper === null) return;
         if (!this.active) {
-            this.startPoint = this.brushHelper.refPoint;
+            this.startPoint = startPoint;
             this.active = true;
             switch (this.shapeSelect) {
                 case "square": {
@@ -288,14 +289,13 @@ export default class DrawTool extends Tool {
             socket.emit("Shape.Update", { shape: this.shape!.asDict(), redraw: true, temporary: true });
         }
     }
-    onMouseMove(event: MouseEvent): void {
+
+    onMove(endPoint: GlobalPoint): void {
         const layer = this.getLayer();
         if (layer === undefined) {
             console.log("No active layer!");
             return;
         }
-
-        const endPoint = snapToPoint(this.getLayer()!, l2g(getMouse(event)));
 
         if (this.brushHelper !== null) {
             this.brushHelper.r = this.helperSize;
@@ -335,18 +335,51 @@ export default class DrawTool extends Tool {
         }
         layer.invalidate(false);
     }
-    onMouseUp(event: MouseEvent): void {
+
+    onUp(event: MouseEvent | TouchEvent): void {
         if (
             !this.active ||
             this.shape === null ||
             (this.shape instanceof Polygon && this.shapeSelect === "draw-polygon")
-        )
+        ) {
             return;
+        }
+        // TODO: handle touch event different than altKey, long press
         if (!event.altKey && this.useGrid) {
             this.shape.resizeToGrid();
         }
         this.finaliseShape();
     }
+
+    onMouseDown(_event: MouseEvent): void {
+        if (this.brushHelper === null) return;
+        const startPoint = this.brushHelper.refPoint;
+        this.onDown(startPoint);
+    }
+
+    onMouseMove(event: MouseEvent): void {
+        const endPoint = snapToPoint(this.getLayer()!, l2g(getLocalPointFromEvent(event)));
+        this.onMove(endPoint);
+    }
+
+    onMouseUp(event: MouseEvent): void {
+        this.onUp(event);
+    }
+
+    onTouchStart(event: TouchEvent): void {
+        const startPoint = snapToPoint(this.getLayer()!, l2g(getLocalPointFromEvent(event)));
+        this.onDown(startPoint);
+    }
+
+    onTouchMove(event: TouchEvent): void {
+        const endPoint = snapToPoint(this.getLayer()!, l2g(getLocalPointFromEvent(event)));
+        this.onMove(endPoint);
+    }
+
+    onTouchEnd(event: TouchEvent): void {
+        this.onUp(event);
+    }
+
     onContextMenu(event: MouseEvent): void {
         if (
             this.active &&

@@ -13,6 +13,7 @@ export default class Tool extends Vue {
     name = "";
     selected = false;
     active = false;
+    scaling = false;
     get detailRight(): string {
         const rect = (<any>this.$parent.$refs[this.name + "-selector"])[0].getBoundingClientRect();
         const mid = rect.left + rect.width / 2;
@@ -35,6 +36,49 @@ export default class Tool extends Vue {
         this.$parent.$on("mousemove", (event: MouseEvent, tool: string) => {
             if (tool === this.name) this.onMouseMove(event);
         });
+        this.$parent.$on("touchstart", (event: TouchEvent, tool: string) => {
+            // a different tool cant trigger anothers event
+            if (tool !== this.name) {
+                return;
+            }
+            if (event.touches.length === 2) {
+                this.scaling = true;
+                this.onPinchStart(event);
+            } else {
+                this.onTouchStart(event);
+            }
+        });
+        this.$parent.$on("touchend", (event: TouchEvent, tool: string) => {
+            // a different tool cant trigger anothers event
+            if (tool !== this.name) {
+                return;
+            }
+
+            if (this.scaling) {
+                this.onPinchEnd(event);
+                this.scaling = false;
+            } else {
+                this.onTouchEnd(event);
+            }
+        });
+        this.$parent.$on("touchmove", (event: TouchEvent, tool: string) => {
+            // a different tool cant trigger anothers event
+            if (tool !== this.name) {
+                return;
+            }
+
+            if (this.scaling) {
+                event.preventDefault();
+                this.onPinchMove(event);
+            }
+
+            // determine the number of fingers on screen to trigger different events
+            if (event.touches.length >= 3) {
+                this.onThreeTouchMove(event);
+            } else {
+                this.onTouchMove(event);
+            }
+        });
         this.$parent.$on("contextmenu", (event: MouseEvent, tool: string) => {
             if (tool === this.name) this.onContextMenu(event);
         });
@@ -53,6 +97,13 @@ export default class Tool extends Vue {
     onMouseDown(_event: MouseEvent): void {}
     onMouseUp(_event: MouseEvent): void {}
     onMouseMove(_event: MouseEvent): void {}
+    onTouchStart(_event: TouchEvent): void {}
+    onTouchEnd(_event: TouchEvent): void {}
+    onTouchMove(_event: TouchEvent): void {}
+    onThreeTouchMove(_event: TouchEvent): void {}
+    onPinchStart(_event: TouchEvent): void {}
+    onPinchMove(_event: TouchEvent): void {}
+    onPinchEnd(_event: TouchEvent): void {}
     onContextMenu(event: MouseEvent): void {
         (<DefaultContext>this.$parent.$refs.defaultcontext).open(event);
     }

@@ -1,8 +1,27 @@
 <template>
     <div id="app">
+        <loading :active.sync="loading" :is-full-page="true"></loading>
         <router-view ref="activeComponent"></router-view>
     </div>
 </template>
+
+<script lang="ts">
+import { Component, Vue } from "vue-property-decorator";
+import Loading from "vue-loading-overlay";
+import "vue-loading-overlay/dist/vue-loading.css";
+import { coreStore } from "@/core/store";
+
+@Component({
+    components: {
+        Loading,
+    },
+})
+export default class App extends Vue {
+    get loading(): boolean {
+        return coreStore.loading;
+    }
+}
+</script>
 
 <style>
 @import url("https://maxcdn.bootstrapcdn.com/font-awesome/4.6.1/css/font-awesome.min.css");

@@ -13,6 +13,9 @@
                 @contextmenu.prevent.stop="contextmenu"
                 @dragover.prevent
                 @drop.prevent.stop="drop"
+                @touchmove="touchmove"
+                @touchstart="touchstart"
+                @touchend="touchend"
             ></div>
             <floor-select v-show="showUI"></floor-select>
         </div>
@@ -73,6 +76,7 @@ import { gameStore } from "@/game/store";
 import { l2g } from "@/game/units";
 import { LocalPoint } from "./geom";
 import { dropAsset } from "./layers/utils";
+import { coreStore } from "@/core/store";
 
 @Component({
     components: {
@@ -89,6 +93,7 @@ import { dropAsset } from "./layers/utils";
         "dm-settings": DmSettings,
     },
     beforeRouteEnter(to, from, next) {
+        coreStore.setLoading(true);
         createConnection(to);
         next();
     },
@@ -112,6 +117,9 @@ export default class Game extends Vue {
 
     throttledmoveSet = false;
     throttledmove: (event: MouseEvent) => void = (_event: MouseEvent) => {};
+
+    throttledtouchmoveSet = false;
+    throttledtouchmove: (event: TouchEvent) => void = (_event: TouchEvent) => {};
 
     get showUI(): boolean {
         return gameStore.showUI;
@@ -162,14 +170,36 @@ export default class Game extends Vue {
         layerManager.invalidateAllFloors();
     }
 
+    // Touch events
+
+    touchend(event: TouchEvent): void {
+        this.$refs.tools.touchend(event);
+    }
+
+    touchstart(event: TouchEvent): void {
+        this.$refs.tools.touchstart(event);
+    }
+
+    touchmove(event: TouchEvent): void {
+        // limit the number of touch moves to ease server load
+        if (!this.throttledtouchmoveSet) {
+            this.throttledtouchmoveSet = true;
+            this.throttledtouchmove = throttle(this.$refs.tools.touchmove, 5);
+        }
+        // after throttling pass event to object
+        this.throttledtouchmove(event);
+    }
+
     // Mouse events
 
     mousedown(event: MouseEvent): void {
         this.$refs.tools.mousedown(event);
     }
+
     mouseup(event: MouseEvent): void {
         this.$refs.tools.mouseup(event);
     }
+
     mousemove(event: MouseEvent): void {
         if (!this.throttledmoveSet) {
             this.throttledmoveSet = true;
@@ -177,12 +207,15 @@ export default class Game extends Vue {
         }
         this.throttledmove(event);
     }
+
     mouseleave(event: MouseEvent): void {
         this.$refs.tools.mouseleave(event);
     }
+
     contextmenu(event: MouseEvent): void {
         this.$refs.tools.contextmenu(event);
     }
+
     async drop(event: DragEvent): Promise<void> {
         if (event === null || event.dataTransfer === null) return;
         if (event.dataTransfer.files.length > 0) {

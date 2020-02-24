@@ -13,7 +13,7 @@ import { Rect } from "@/game/shapes/rect";
 import { gameStore } from "@/game/store";
 import { calculateDelta } from "@/game/ui/tools/utils";
 import { g2l, g2lx, g2ly, l2g, l2gz } from "@/game/units";
-import { getMouse } from "@/game/utils";
+import { getLocalPointFromEvent } from "@/game/utils";
 import { EventBus } from "../../event-bus";
 import { visibilityStore } from "../../visibility/store";
 import { snapToPointLocal } from "../../layers/utils";
@@ -45,7 +45,9 @@ export default class SelectTool extends Tool {
         this.selectionHelper.globalCompositeOperation = "source-over";
         gameStore.setSelectionHelperId(this.selectionHelper.uuid);
     }
-    onMouseDown(event: MouseEvent): void {
+
+    onDown(lp: LocalPoint, event: MouseEvent | TouchEvent): void {
+        const gp = l2g(lp);
         const layer = layerManager.getLayer(layerManager.floor!.name);
         if (layer === undefined) {
             console.log("No active layer!");
@@ -56,9 +58,6 @@ export default class SelectTool extends Tool {
             this.selectionHelper.addOwner(gameStore.username);
         }
 
-        const mouse = getMouse(event);
-        const globalMouse = l2g(mouse);
-
         let hit = false;
         // The selectionStack allows for lower positioned objects that are selected to have precedence during overlap.
         let selectionStack;
@@ -67,19 +66,18 @@ export default class SelectTool extends Tool {
         for (let i = selectionStack.length - 1; i >= 0; i--) {
             const shape = selectionStack[i];
 
-            this.resizePoint = shape.getPointIndex(globalMouse, l2gz(5));
+            this.resizePoint = shape.getPointIndex(gp, l2gz(5));
 
-            // Resize case, a corner is selected
             if (this.resizePoint >= 0) {
+                // Resize case, a corner is selected
                 layer.selection = [shape];
                 EventBus.$emit("SelectionInfo.Shape.Set", shape);
                 this.mode = SelectOperations.Resize;
                 layer.invalidate(true);
                 hit = true;
                 break;
-
+            } else if (shape.contains(gp)) {
                 // Drag case, a shape is selected
-            } else if (shape.contains(globalMouse)) {
                 const selection = shape;
                 if (layer.selection.indexOf(selection) === -1) {
                     if (event.ctrlKey) {
@@ -91,7 +89,7 @@ export default class SelectTool extends Tool {
                 }
                 this.mode = SelectOperations.Drag;
                 const localRefPoint = g2l(selection.refPoint);
-                this.dragRay = new Ray<LocalPoint>(localRefPoint, mouse.subtract(localRefPoint));
+                this.dragRay = new Ray<LocalPoint>(localRefPoint, lp.subtract(localRefPoint));
                 layer.invalidate(true);
                 hit = true;
                 break;
@@ -103,7 +101,7 @@ export default class SelectTool extends Tool {
             this.mode = SelectOperations.GroupSelect;
             for (const selection of layer.selection) EventBus.$emit("SelectionInfo.Shape.Set", selection);
 
-            this.selectionStartPoint = globalMouse;
+            this.selectionStartPoint = gp;
 
             this.selectionHelper.refPoint = this.selectionStartPoint;
             this.selectionHelper.w = 0;
@@ -118,20 +116,19 @@ export default class SelectTool extends Tool {
         }
         this.active = true;
     }
-    onMouseMove(event: MouseEvent): void {
+
+    onMove(lp: LocalPoint, gp: GlobalPoint, event: MouseEvent | TouchEvent): void {
         // if (!this.active) return;   we require mousemove for the resize cursor
         const layer = layerManager.getLayer(layerManager.floor!.name);
         if (layer === undefined) {
             console.log("No active layer!");
             return;
         }
-        const mouse = getMouse(event);
-        const globalMouse = l2g(mouse);
         this.deltaChanged = false;
 
         if (this.mode === SelectOperations.GroupSelect) {
             // Currently draw on active layer
-            const endPoint = globalMouse;
+            const endPoint = gp;
 
             this.selectionHelper.w = Math.abs(endPoint.x - this.selectionStartPoint.x);
             this.selectionHelper.h = Math.abs(endPoint.y - this.selectionStartPoint.y);
@@ -143,7 +140,7 @@ export default class SelectTool extends Tool {
         } else if (layer.selection.length) {
             const og = g2l(layer.selection[layer.selection.length - 1].refPoint);
             const origin = og.add(this.dragRay.direction);
-            let delta = mouse.subtract(origin).multiply(1 / gameStore.zoomFactor);
+            let delta = lp.subtract(origin).multiply(1 / gameStore.zoomFactor);
             const ogDelta = delta;
             if (this.mode === SelectOperations.Drag) {
                 // If we are on the tokens layer do a movement block check.
@@ -170,23 +167,24 @@ export default class SelectTool extends Tool {
                     if (!sel.ownedBy()) continue;
                     sel.resize(
                         this.resizePoint,
-                        snapToPointLocal(layerManager.getLayer(layerManager.floor!.name)!, mouse),
+                        snapToPointLocal(layerManager.getLayer(layerManager.floor!.name)!, lp),
                     );
                     if (sel !== this.selectionHelper) {
                         if (sel.visionObstruction) visibilityStore.recalculateVision(sel.floor);
                         socket.emit("Shape.Update", { shape: sel.asDict(), redraw: true, temporary: true });
                     }
                     layer.invalidate(false);
-                    this.updateCursor(layer, globalMouse);
+                    this.updateCursor(layer, gp);
                 }
             } else {
-                this.updateCursor(layer, globalMouse);
+                this.updateCursor(layer, gp);
             }
         } else {
             document.body.style.cursor = "default";
         }
     }
-    onMouseUp(e: MouseEvent): void {
+
+    onUp(e: MouseEvent | TouchEvent): void {
         if (!this.active) return;
         if (layerManager.getLayer(layerManager.floor!.name) === undefined) {
             console.log("No active layer!");
@@ -256,13 +254,44 @@ export default class SelectTool extends Tool {
         this.mode = SelectOperations.Noop;
         this.active = false;
     }
+
+    onMouseDown(event: MouseEvent): void {
+        const localPoint = getLocalPointFromEvent(event);
+        this.onDown(localPoint, event);
+    }
+
+    onMouseMove(event: MouseEvent): void {
+        const localPoint = getLocalPointFromEvent(event);
+        const globalPoint = l2g(localPoint);
+        this.onMove(localPoint, globalPoint, event);
+    }
+
+    onMouseUp(event: MouseEvent): void {
+        this.onUp(event);
+    }
+
+    onTouchStart(event: TouchEvent): void {
+        const localPoint = getLocalPointFromEvent(event);
+        this.onDown(localPoint, event);
+    }
+
+    onTouchMove(event: TouchEvent): void {
+        const localPoint = getLocalPointFromEvent(event);
+        const globalPoint = l2g(localPoint);
+        this.onMove(localPoint, globalPoint, event);
+    }
+
+    onTouchEnd(event: TouchEvent): void {
+        this.onUp(event);
+    }
+
     onContextMenu(event: MouseEvent): void {
         if (layerManager.getLayer(layerManager.floor!.name) === undefined) {
             console.log("No active layer!");
             return;
         }
         const layer = layerManager.getLayer(layerManager.floor!.name)!;
-        const mouse = getMouse(event);
+        const mouse = getLocalPointFromEvent(event);
         const globalMouse = l2g(mouse);
         for (const shape of layer.selection) {
             if (shape.contains(globalMouse)) {

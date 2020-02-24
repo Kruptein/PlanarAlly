@@ -169,19 +169,13 @@ class Note(BaseModel):
 
 class Marker(BaseModel):
     uuid = TextField(primary_key=True)
-    room = ForeignKeyField(Room, backref="markers", on_delete="CASCADE")
-    location = ForeignKeyField(
-        Location, null=True, backref="markers", on_delete="CASCADE"
-    )
     user = ForeignKeyField(User, backref="markers", on_delete="CASCADE")
 
     def __repr__(self):
         return f"<Marker {self.uuid} {self.room.get_path()} - {self.user.name}"
 
-    def as_dict(self):
-        return model_to_dict(
-            self, recurse=False, exclude=[Marker.room, Marker.location, Marker.user]
-        )
+    def as_string(self):
+        return self.uuid
 
 class Floor(BaseModel):
     location = ForeignKeyField(Location, backref="floors", on_delete="CASCADE")

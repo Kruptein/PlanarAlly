@@ -156,6 +156,7 @@ export function deleteShapes(): void {
         l.removeShape(sel, SyncMode.FULL_SYNC);
         EventBus.$emit("SelectionInfo.Shape.Set", null);
         EventBus.$emit("Initiative.Remove", sel.uuid);
+        gameStore.removeMarker({ marker: sel.uuid, sync: true }); //delete marker.... even if it doesn't exist.
     }
 }
 

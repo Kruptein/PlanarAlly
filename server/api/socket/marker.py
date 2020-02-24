@@ -9,18 +9,15 @@ from models.db import db
 async def new_marker(sid, data):
     sid_data = state.sid_map[sid]
     user = sid_data["user"]
-    room = sid_data["room"]
-    location = sid_data["location"]
 
-    if Marker.get_or_none(uuid=data["uuid"]):
-        #if it's already there, no need to add it twice.
+    marker = Marker.get_or_none(uuid=data)
+
+    if not marker:
         return
 
     Marker.create(
-        uuid=data["uuid"],
-        user=user,
-        room=room,
-        location=location
+        uuid=data,
+        user=user
     )
 
 @sio.on("Marker.Remove", namespace="/planarally")
@@ -32,9 +29,6 @@ async def delete_marker(sid, uuid):
     location = sid_data["location"]
 
     marker = Marker.get_or_none(uuid=uuid)
-    logger.warning(
-        f"{user.name} removed marker with id: '{uuid}'"
-    )
     if not marker:
         logger.warning(
             f"{user.name} tried to remove non-existant marker with id: '{uuid}'"

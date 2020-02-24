@@ -1,6 +1,6 @@
 import { AssetList, SyncMode } from "@/core/comm/types";
 import { socket } from "@/game/api/socket";
-import { BoardInfo, Marker, Note, ServerClient, ServerLocation } from "@/game/comm/types/general";
+import { BoardInfo, Note, ServerClient, ServerLocation } from "@/game/comm/types/general";
 import { ServerShape } from "@/game/comm/types/shapes";
 import { EventBus } from "@/game/event-bus";
 import { GlobalPoint } from "@/game/geom";
@@ -96,7 +96,7 @@ socket.on("Position.Set", (data: { x: number; y: number; zoom: number }) => {
 socket.on("Notes.Set", (notes: Note[]) => {
     for (const note of notes) gameStore.newNote({ note, sync: false });
 });
-socket.on("Markers.Set", (markers: Marker[]) => {
+socket.on("Markers.Set", (markers: string) => {
     for (const marker of markers) gameStore.newMarker({ marker, sync: false });
 });
 socket.on("Asset.List.Set", (assets: AssetList) => {

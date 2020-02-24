@@ -140,6 +140,8 @@ import ColorPicker from "@/core/components/colorpicker.vue";
 import Game from "@/game/game.vue";
 import AssetNode from "@/game/ui/menu/asset_node.vue";
 
+import { layerManager } from "@/game/layers/manager";
+
 import { uuidv4 } from "@/core/utils";
 import { socket } from "@/game/api/socket";
 import { Note } from "@/game/comm/types/general";

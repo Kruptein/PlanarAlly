@@ -12,7 +12,7 @@ async def new_marker(sid, data):
 
     marker = Marker.get_or_none(uuid=data)
 
-    if not marker:
+    if marker is not None:
         return
 
     Marker.create(

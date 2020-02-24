@@ -71,19 +71,15 @@
                         <!-- MARKERS -->
                         <button class="menu-accordion">Markers</button>
                         <div class="menu-accordion-panel">
-                            <div id="menu-markers">
-                                <table width="100%">
-                                    <tbody>
-                                        <tr v-for="marker in markers" :key="marker" style="cursor:pointer">
-                                            <td style="white-space: nowrap;" width="99%" @click="jumpToMarker(marker)">
-                                                {{ nameMarker(marker) || "[?]" }}
-                                            </td>
-                                            <td style="white-space: nowrap;" @click="delMarker(marker)">
-                                                <i class="far fa-minus-square"></i>
-                                            </td>
-                                        </tr>
-                                    </tbody>
-                                </table>
+                            <div class="menu-accordion-subpanel" id="menu-markers">
+                                <div v-for="marker in markers" :key="marker" style="cursor:pointer">
+                                    <div @click="jumpToMarker(marker)" class="menu-accordion-subpanel-text">
+                                        {{ nameMarker(marker) || "[?]" }}
+                                    </div>
+                                    <div @click="delMarker(marker)">
+                                        <i class="far fa-minus-square"></i>
+                                    </div>
+                                </div>
                                 <div v-if="!markers.length">No markers</div>
                             </div>
                         </div>
@@ -361,6 +357,10 @@ DIRECTORY.CSS changes
 
 .menu-accordion-subpanel > *:hover {
     background-color: #82c8a0;
+}
+
+.menu-accordion-subpanel-text {
+    flex: 1;
 }
 
 #exitButton {

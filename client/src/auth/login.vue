@@ -1,7 +1,7 @@
 <template>
     <form @focusin="focusin" @focusout="focusout" @submit.prevent="login">
         <fieldset>
-            <legend class="legend">PlanarAlly v{{version}}</legend>
+            <legend class="legend">PlanarAlly v{{ version }}</legend>
             <div class="input">
                 <input
                     id="username"

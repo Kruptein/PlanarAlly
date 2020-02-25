@@ -75,8 +75,8 @@ export const router = new Router({
 router.beforeEach(async (to, _from, next) => {
     coreStore.setLoading(true);
     if (!coreStore.initialized) {
-        const authResponse = await fetch("/api/auth");
-        const versionResponse = await fetch("/api/version");
+        const promiseArray = [fetch("/api/auth"), fetch("/api/version")];
+        const [authResponse, versionResponse] = await Promise.all(promiseArray);
         if (authResponse.ok && versionResponse.ok) {
             const authData = await authResponse.json();
             const versionData = await versionResponse.json();

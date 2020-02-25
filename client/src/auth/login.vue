@@ -105,6 +105,7 @@ export default class Login extends Vue {
     }
 
     get version(): string {
+        console.log(coreStore.version);
         return coreStore.version;
     }
 }

@@ -83,6 +83,7 @@ router.beforeEach(async (to, _from, next) => {
                 coreStore.setUsername(data.username);
                 coreStore.setEmail(data.email);
                 coreStore.setVersion(data.version);
+                console.log(data.version);
             }
             coreStore.setInitialized(true);
             router.push(to.path);
@@ -92,6 +93,11 @@ router.beforeEach(async (to, _from, next) => {
     } else if (to.matched.some(record => record.meta.auth) && !coreStore.authenticated) {
         next({ path: "/auth/login", query: { redirect: to.path } });
     } else {
+        const response = await fetch("/api/version");
+        if (response.ok) {
+            const data = await response.json();
+            coreStore.setVersion(data.version);
+        }
         next();
     }
 });

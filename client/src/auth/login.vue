@@ -1,7 +1,7 @@
 <template>
     <form @focusin="focusin" @focusout="focusout" @submit.prevent="login">
         <fieldset>
-            <legend class="legend">PlanarAlly</legend>
+            <legend class="legend">PlanarAlly v{{version}}</legend>
             <div class="input">
                 <input
                     id="username"
@@ -65,6 +65,7 @@ export default class Login extends Vue {
     username = "";
     password = "";
     error = "";
+    version = "";
 
     async login(): Promise<void> {
         const response = await postFetch("/api/login", { username: this.username, password: this.password });
@@ -101,6 +102,16 @@ export default class Login extends Vue {
         if (event.target && event.target.nextElementSibling) {
             const span = event.target.nextElementSibling;
             span.style.opacity = "1";
+        }
+    }
+
+    async mounted(): Promise<void> {
+        const response = await fetch("/api/version");
+        if (response.ok) {
+            const data = await response.json();
+            this.version = data.version;
+        } else {
+            this.version = "0.0.0";
         }
     }
 }

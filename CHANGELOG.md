@@ -20,6 +20,7 @@ All notable changes to this project will be documented in this file.
     -   Use Page Up/Down as a quick keybinding to move between floors
 -  Touch Gestures [ZachMyers3]
 -  Easier client traversing by removing _load route [ZachMyers3] 
+-  Display current version on client [ZachMyers3]
 
 ### Removed
 

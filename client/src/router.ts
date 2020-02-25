@@ -83,7 +83,6 @@ router.beforeEach(async (to, _from, next) => {
                 coreStore.setUsername(data.username);
                 coreStore.setEmail(data.email);
                 coreStore.setVersion(data.version);
-                console.log(data.version);
             }
             coreStore.setInitialized(true);
             router.push(to.path);

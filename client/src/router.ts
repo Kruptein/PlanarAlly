@@ -77,7 +77,7 @@ router.beforeEach(async (to, _from, next) => {
     if (!coreStore.initialized) {
         const authResponse = await fetch("/api/auth");
         const versionResponse = await fetch("/api/version");
-        if (authResponse.ok) {
+        if (authResponse.ok && versionResponse.ok) {
             const authData = await authResponse.json();
             const versionData = await versionResponse.json();
             if (authData.auth) {

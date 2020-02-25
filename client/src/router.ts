@@ -75,15 +75,17 @@ export const router = new Router({
 router.beforeEach(async (to, _from, next) => {
     coreStore.setLoading(true);
     if (!coreStore.initialized) {
-        const response = await fetch("/api/auth");
-        if (response.ok) {
-            const data = await response.json();
-            if (data.auth) {
+        const authResponse = await fetch("/api/auth");
+        const versionResponse = await fetch("/api/version");
+        if (authResponse.ok) {
+            const authData = await authResponse.json();
+            const versionData = await versionResponse.json();
+            if (authData.auth) {
                 coreStore.setAuthenticated(true);
-                coreStore.setUsername(data.username);
-                coreStore.setEmail(data.email);
-                coreStore.setVersion(data.version);
+                coreStore.setUsername(authData.username);
+                coreStore.setEmail(authData.email);
             }
+            coreStore.setVersion(versionData.version);
             coreStore.setInitialized(true);
             router.push(to.path);
         } else {
@@ -92,11 +94,6 @@ router.beforeEach(async (to, _from, next) => {
     } else if (to.matched.some(record => record.meta.auth) && !coreStore.authenticated) {
         next({ path: "/auth/login", query: { redirect: to.path } });
     } else {
-        const response = await fetch("/api/version");
-        if (response.ok) {
-            const data = await response.json();
-            coreStore.setVersion(data.version);
-        }
         next();
     }
 });

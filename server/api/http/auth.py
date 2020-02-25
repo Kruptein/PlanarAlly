@@ -8,16 +8,11 @@ from models.db import db
 
 async def is_authed(request):
     user = await authorized_userid(request)
-    try:
-        with open('VERSION', 'r') as version_file:
-            version_data = version_file.read()
-    except:
-        return web.HTTPError()
 
     if user is None:
-        data = {"auth": False, "username": "", "version": version_data}
+        data = {"auth": False, "username": ""}
     else:
-        data = {"auth": True, "username": user.name, "email": user.email, "version": version_data}
+        data = {"auth": True, "username": user.name, "email": user.email}
     return web.json_response(data)
 
 

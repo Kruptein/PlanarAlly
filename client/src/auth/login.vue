@@ -65,7 +65,6 @@ export default class Login extends Vue {
     username = "";
     password = "";
     error = "";
-    version = "";
 
     async login(): Promise<void> {
         const response = await postFetch("/api/login", { username: this.username, password: this.password });
@@ -105,14 +104,8 @@ export default class Login extends Vue {
         }
     }
 
-    async mounted(): Promise<void> {
-        const response = await fetch("/api/version");
-        if (response.ok) {
-            const data = await response.json();
-            this.version = data.version;
-        } else {
-            this.version = "0.0.0";
-        }
+    get version(): string {
+        return coreStore.version;
     }
 }
 </script>

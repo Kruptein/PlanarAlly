@@ -13,10 +13,6 @@ export function onKeyUp(event: KeyboardEvent): void {
     } else {
         if (event.key === "Delete" || event.key === "Del" || event.key === "Backspace") {
             deleteShapes();
-        } else if (event.key === "PageUp" && gameStore.selectedFloorIndex < gameStore.floors.length - 1) {
-            gameStore.selectFloor(gameStore.selectedFloorIndex + 1);
-        } else if (event.key === "PageDown" && gameStore.selectedFloorIndex > 0) {
-            gameStore.selectFloor(gameStore.selectedFloorIndex - 1);
         }
     }
 }
@@ -66,11 +62,7 @@ export function onKeyDown(event: KeyboardEvent): void {
             }
         } else if (event.key === "d") {
             // d - Deselect all
-            const layer = layerManager.getLayer(layerManager.floor!.name);
-            if (layer) {
-                layer.clearSelection();
-                layer.invalidate(true);
-            }
+            layerManager.clearSelection();
         } else if (event.key === "u" && event.ctrlKey) {
             // Ctrl-u - disable and reenable the Interface
             event.preventDefault();
@@ -88,6 +80,46 @@ export function onKeyDown(event: KeyboardEvent): void {
         } else if (event.key === "v" && event.ctrlKey) {
             // Ctrl-v - Paste
             pasteShapes();
+        } else if (event.key === "PageUp" && gameStore.selectedFloorIndex < gameStore.floors.length - 1) {
+            // Page Up - Move floor up
+            // Ctrl + Page Up - Move selected shapes floor up
+            // Ctrl + Shift + Page Up - Move selected shapes floor up AND move floor up
+            event.preventDefault();
+            if (gameStore.selectedFloorIndex + 1 >= gameStore.floors.length) return;
+            const selection = layerManager.getSelection() ?? [];
+            const newFloor = gameStore.floors[gameStore.selectedFloorIndex + 1];
+            const newLayer = layerManager.getLayer(newFloor)!;
+
+            if (event.ctrlKey) {
+                for (const shape of selection) {
+                    shape.moveFloor(newFloor, true);
+                }
+            }
+            if (!event.shiftKey) layerManager.clearSelection();
+            if (!event.ctrlKey || event.shiftKey) {
+                gameStore.selectFloor(gameStore.selectedFloorIndex + 1);
+            }
+            if (event.shiftKey) for (const shape of selection) newLayer.selection.push(shape);
+        } else if (event.key === "PageDown" && gameStore.selectedFloorIndex > 0) {
+            // Page Down - Move floor down
+            // Ctrl + Page Down - Move selected shape floor down
+            // Ctrl + Shift + Page Down - Move selected shapes floor down AND move floor down
+            event.preventDefault();
+            if (gameStore.selectedFloorIndex - 1 < 0) return;
+            const selection = layerManager.getSelection() ?? [];
+            const newFloor = gameStore.floors[gameStore.selectedFloorIndex - 1];
+            const newLayer = layerManager.getLayer(newFloor)!;
+
+            if (event.ctrlKey) {
+                for (const shape of selection) {
+                    shape.moveFloor(newFloor, true);
+                }
+            }
+            if (!event.shiftKey) layerManager.clearSelection();
+            if (!event.ctrlKey || event.shiftKey) {
+                gameStore.selectFloor(gameStore.selectedFloorIndex - 1);
+            }
+            if (event.shiftKey) for (const shape of selection) newLayer.selection.push(shape);
         }
     }
 }

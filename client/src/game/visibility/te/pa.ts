@@ -84,7 +84,7 @@ export function addShapesToTriag(target: TriangulationTarget, ...shapes: Shape[]
     for (const shape of shapes) {
         if (shape.points.length <= 1) continue;
         const j = shape.isClosed ? 0 : 1;
-        for (let i = 0; i <= shape.points.length - j; i++) {
+        for (let i = 0; i < shape.points.length - j; i++) {
             const pa = shape.points[i % shape.points.length];
             const pb = shape.points[(i + 1) % shape.points.length];
             insertConstraint(target, shape, pa, pb);

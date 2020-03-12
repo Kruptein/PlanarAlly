@@ -141,6 +141,14 @@ class LayerManager {
         return layer.selection;
     }
 
+    clearSelection(): void {
+        const layer = this.getLayer(layerManager.floor!.name);
+        if (layer) {
+            layer.clearSelection();
+            layer.invalidate(true);
+        }
+    }
+
     invalidate(floorName: string): void {
         const floor = this.getFloor(floorName)!;
         for (let i = floor.layers.length - 1; i >= 0; i--) {

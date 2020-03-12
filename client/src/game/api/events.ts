@@ -11,9 +11,11 @@ import { gameStore } from "@/game/store";
 import { router } from "@/router";
 import { zoomDisplay } from "../utils";
 import { VisibilityMode, visibilityStore } from "../visibility/store";
+import { coreStore } from "@/core/store";
 
 socket.on("connect", () => {
     console.log("Connected");
+    coreStore.setLoading(false);
 });
 socket.on("disconnect", () => {
     console.log("Disconnected");

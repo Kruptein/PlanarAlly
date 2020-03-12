@@ -15,7 +15,7 @@
                         {{ index }}
                     </div>
                     <div class="floor-name">{{ floor }}</div>
-                    <div class="floor-actions">
+                    <div class="floor-actions" v-show="floors.length > 1">
                         <div @click.stop="removeFloor(index)"><i class="fas fa-trash-alt"></i></div>
                     </div>
                 </div>
@@ -87,6 +87,7 @@ export default class FloorSelect extends Vue {
     }
 
     async removeFloor(index: number): Promise<void> {
+        if (this.floors.length <= 1) return;
         const floor = gameStore.floors[index];
         if (!(await (<Game>this.$parent).$refs.confirm.open(`Are you sure you wish to remove the ${floor} floor?`)))
             return;

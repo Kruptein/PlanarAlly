@@ -1,7 +1,7 @@
 <template>
     <form @focusin="focusin" @focusout="focusout" @submit.prevent="login">
         <fieldset>
-            <legend class="legend">PlanarAlly</legend>
+            <legend class="legend">PlanarAlly v{{ version }}</legend>
             <div class="input">
                 <input
                     id="username"
@@ -102,6 +102,10 @@ export default class Login extends Vue {
             const span = event.target.nextElementSibling;
             span.style.opacity = "1";
         }
+    }
+
+    get version(): string {
+        return coreStore.version;
     }
 }
 </script>

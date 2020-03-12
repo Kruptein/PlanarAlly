@@ -7,7 +7,6 @@ Vue.use(Router);
 import AssetManager from "@/assetManager/manager.vue";
 import Login from "@/auth/login.vue";
 import Logout from "@/auth/logout";
-import LoadComponent from "@/core/components/load.vue";
 import Dashboard from "@/dashboard/main.vue";
 import Settings from "@/settings/settings.vue";
 import Game from "@/game/game.vue";
@@ -24,11 +23,6 @@ export const router = new Router({
         {
             path: "/",
             redirect: "/dashboard",
-        },
-        {
-            path: "/_load",
-            name: "load",
-            component: LoadComponent,
         },
         {
             path: "/assets/:folder*",
@@ -78,17 +72,20 @@ export const router = new Router({
     ],
 });
 
-router.beforeEach(async (to, from, next) => {
-    if (!coreStore.initialized && to.path !== "/_load") {
-        next({ path: "/_load" });
-        const response = await fetch("/api/auth");
-        if (response.ok) {
-            const data = await response.json();
-            if (data.auth) {
+router.beforeEach(async (to, _from, next) => {
+    coreStore.setLoading(true);
+    if (!coreStore.initialized) {
+        const promiseArray = [fetch("/api/auth"), fetch("/api/version")];
+        const [authResponse, versionResponse] = await Promise.all(promiseArray);
+        if (authResponse.ok && versionResponse.ok) {
+            const authData = await authResponse.json();
+            const versionData = await versionResponse.json();
+            if (authData.auth) {
                 coreStore.setAuthenticated(true);
-                coreStore.setUsername(data.username);
-                coreStore.setEmail(data.email);
+                coreStore.setUsername(authData.username);
+                coreStore.setEmail(authData.email);
             }
+            coreStore.setVersion(versionData.version);
             coreStore.setInitialized(true);
             router.push(to.path);
         } else {
@@ -99,4 +96,8 @@ router.beforeEach(async (to, from, next) => {
     } else {
         next();
     }
+});
+
+router.afterEach((_to, _from) => {
+    coreStore.setLoading(false);
 });

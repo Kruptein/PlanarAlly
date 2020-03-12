@@ -15,6 +15,8 @@ class CoreStore extends VuexModule implements CoreState {
     initialized = false;
     username = "";
     email: string | undefined = undefined;
+    loading = false;
+    version = "";
 
     @Mutation
     setAuthenticated(auth: boolean): void {
@@ -34,6 +36,16 @@ class CoreStore extends VuexModule implements CoreState {
     @Mutation
     setEmail(email: string): void {
         this.email = email;
+    }
+
+    @Mutation
+    setLoading(loading: boolean): void {
+        this.loading = loading;
+    }
+
+    @Mutation
+    setVersion(version: string): void {
+        this.version = version;
     }
 }
 

@@ -8,6 +8,7 @@ from models.db import db
 
 async def is_authed(request):
     user = await authorized_userid(request)
+
     if user is None:
         data = {"auth": False, "username": ""}
     else:

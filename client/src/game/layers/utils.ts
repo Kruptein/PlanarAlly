@@ -35,7 +35,10 @@ export function removeFloor(floor: string): void {
         1,
     );
     const index = gameStore.floors.findIndex(f => f === floor);
+    for (const layer of layerManager.floors[index].layers) layer.canvas.remove();
+    // todo: once vue 3 hits, fix this split up
     gameStore.floors.splice(index, 1);
+    layerManager.floors.splice(index, 1);
     if (gameStore.selectedFloorIndex === index) gameStore.selectFloor(index - 1);
 }
 

@@ -23,6 +23,10 @@ All notable changes to this project will be documented in this file.
 -   Easier client traversing by removing \_load route [ZachMyers3]
 -   Display current version on client [ZachMyers3]
 
+### Fixed
+
+-   Annotations stop working when changing location
+
 ### Removed
 
 -   [tech] Client build artifacts are no longer available in the server folder

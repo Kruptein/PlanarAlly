@@ -20,15 +20,13 @@ export class AnnotationManager {
     }
 
     setActiveText(text: string): void {
-        if (this.layer === undefined) {
-            if (layerManager.hasLayer(layerManager.floor!.name, "draw")) {
-                this.layer = layerManager.getLayer(layerManager.floor!.name, "draw")!;
-                this.layer.addShape(this.annotationRect, SyncMode.NO_SYNC, InvalidationMode.NORMAL);
-                this.layer.addShape(this.annotationText, SyncMode.NO_SYNC, InvalidationMode.NORMAL);
-            } else {
-                console.warn("There is no draw layer to draw annotations on!");
-                return;
-            }
+        if (layerManager.hasLayer(layerManager.floor!.name, "draw")) {
+            this.layer = layerManager.getLayer(layerManager.floor!.name, "draw")!;
+            this.layer.addShape(this.annotationRect, SyncMode.NO_SYNC, InvalidationMode.NORMAL);
+            this.layer.addShape(this.annotationText, SyncMode.NO_SYNC, InvalidationMode.NORMAL);
+        } else {
+            console.warn("There is no draw layer to draw annotations on!");
+            return;
         }
         this.shown = text !== "";
         this.annotationText.refPoint = l2g(new LocalPoint(this.layer.canvas.width / 2, 50));

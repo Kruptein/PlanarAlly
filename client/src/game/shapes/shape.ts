@@ -240,6 +240,9 @@ export abstract class Shape {
     draw(ctx: CanvasRenderingContext2D): void {
         if (this.globalCompositeOperation !== undefined) ctx.globalCompositeOperation = this.globalCompositeOperation;
         else ctx.globalCompositeOperation = "source-over";
+    }
+
+    drawPost(ctx: CanvasRenderingContext2D): void {
         if (this.showHighlight) {
             const bbox = this.getBoundingBox();
             ctx.strokeStyle = "red";

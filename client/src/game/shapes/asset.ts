@@ -29,6 +29,7 @@ export class Asset extends BaseRect {
         } catch (error) {
             console.warn(`Shape ${this.uuid} could not load the image ${this.src}`);
         }
+        super.drawPost(ctx);
     }
     getInitiativeRepr(): InitiativeData {
         return {

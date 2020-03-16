@@ -53,6 +53,7 @@ export class Line extends Shape {
         ctx.lineTo(g2lx(this.endPoint.x), g2ly(this.endPoint.y));
         ctx.lineWidth = g2lz(this.lineWidth);
         ctx.stroke();
+        super.drawPost(ctx);
     }
     contains(_point: GlobalPoint): boolean {
         return false; // TODO

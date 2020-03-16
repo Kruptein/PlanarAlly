@@ -56,6 +56,7 @@ export class Circle extends Shape {
             ctx.arc(loc.x, loc.y, Math.max(borderWidth / 2, g2lz(this.r - borderWidth / 2)), 0, 2 * Math.PI);
             ctx.stroke();
         }
+        super.drawPost(ctx);
     }
     contains(point: GlobalPoint): boolean {
         return (point.x - this.refPoint.x) ** 2 + (point.y - this.refPoint.y) ** 2 < this.r ** 2;

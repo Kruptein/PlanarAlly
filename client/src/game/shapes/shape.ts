@@ -6,10 +6,11 @@ import { ServerShape } from "@/game/comm/types/shapes";
 import { GlobalPoint, LocalPoint, Vector } from "@/game/geom";
 import { layerManager } from "@/game/layers/manager";
 import { gameStore } from "@/game/store";
-import { g2lx, g2ly, g2lz } from "@/game/units";
+import { g2l, g2lx, g2ly, g2lz } from "@/game/units";
 import { visibilityStore } from "@/game/visibility/store";
 import { TriangulationTarget } from "@/game/visibility/te/pa";
 import { addBlocker, getBlockers, getVisionSources, setVisionSources, sliceBlockers } from "@/game/visibility/utils";
+import tinycolor from "tinycolor2";
 import { BoundingRect } from "./boundingrect";
 
 export abstract class Shape {
@@ -243,8 +244,27 @@ export abstract class Shape {
     }
 
     drawPost(ctx: CanvasRenderingContext2D): void {
+        let bbox: BoundingRect | undefined;
+        if (this.badge) {
+            bbox = this.getBoundingBox();
+            const location = g2l(bbox.botRight);
+            const r = g2lz(10);
+            ctx.strokeStyle = tinycolor.mostReadable(this.strokeColour, ["#000", "#fff"]).toHexString();
+            ctx.fillStyle = this.strokeColour;
+            ctx.lineWidth = g2lz(4);
+            ctx.beginPath();
+            ctx.arc(location.x - r, location.y - r, r, 0, 2 * Math.PI);
+            ctx.stroke();
+            ctx.fill();
+            ctx.fillStyle = ctx.strokeStyle;
+
+            ctx.font = `${r}px sans-serif`;
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            ctx.fillText(`${this.badge}`, location.x - r, location.y - r, 2 * r);
+        }
         if (this.showHighlight) {
-            const bbox = this.getBoundingBox();
+            if (bbox === undefined) bbox = this.getBoundingBox();
             ctx.strokeStyle = "red";
             ctx.strokeRect(g2lx(bbox.topLeft.x) - 5, g2ly(bbox.topLeft.y) - 5, g2lz(bbox.w) + 10, g2lz(bbox.h) + 10);
         }

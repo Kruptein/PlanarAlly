@@ -55,6 +55,8 @@ export abstract class Shape {
     // Additional options for specialized uses
     options: Map<string, any> = new Map();
 
+    badge: number | undefined;
+
     constructor(refPoint: GlobalPoint, fillColour?: string, strokeColour?: string, uuid?: string) {
         this._refPoint = refPoint;
         this.uuid = uuid || uuidv4();
@@ -213,6 +215,7 @@ export abstract class Shape {
             // eslint-disable-next-line @typescript-eslint/camelcase
             is_token: this.isToken,
             options: JSON.stringify([...this.options]),
+            badge: this.badge,
         };
     }
     fromDict(data: ServerShape): void {
@@ -230,6 +233,8 @@ export abstract class Shape {
         if (data.annotation) this.annotation = data.annotation;
         if (data.name) this.name = data.name;
         if (data.options) this.options = new Map(JSON.parse(data.options));
+        if (data.badge) this.badge = data.badge;
+        else this.badge = 1;
     }
 
     draw(ctx: CanvasRenderingContext2D): void {

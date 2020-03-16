@@ -42,6 +42,7 @@ class Shape(BaseModel):
     draw_operator = TextField(default="source-over")
     index = IntegerField()
     options = TextField(null=True)
+    badge = IntegerField(null=True)
 
     def __repr__(self):
         return f"<Shape {self.get_path()}>"

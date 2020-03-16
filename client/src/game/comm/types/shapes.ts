@@ -19,6 +19,7 @@ export interface ServerShape {
     annotation: string;
     is_token: boolean;
     options?: string;
+    badge?: number;
 }
 
 export interface ServerRect extends ServerShape {

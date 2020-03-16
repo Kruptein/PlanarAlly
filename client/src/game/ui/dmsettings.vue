@@ -140,15 +140,19 @@
                     </div>
                 </div>
                 <div class="spanrow header">Advanced</div>
-                <!-- <div class="row">
+                <div class="row">
                     <label for="visionMode">Vision Mode:</label>
                     <div>
                         <select id="visionMode" @change="changeVisionMode">
-                            <option :selected="$store.state.visibility.visionMode === 'bvh'">BVH</option>
-                            <option :selected="$store.state.visibility.visionMode === 'triangle'">Triangle</option>
+                            <option :selected="$store.state.visibility.visionMode === 0">
+                                Default
+                            </option>
+                            <option :selected="$store.state.visibility.visionMode === 1">
+                                Experimental
+                            </option>
                         </select>
                     </div>
-                </div> -->
+                </div>
                 <div class="row">
                     <label for="vmininp">Minimal full vision ({{ unitSizeUnit }}):</label>
                     <div>
@@ -179,6 +183,8 @@ import { socket } from "@/game/api/socket";
 import { EventBus } from "@/game/event-bus";
 import { gameStore } from "@/game/store";
 import Game from "../game.vue";
+import { visibilityStore, VisibilityMode } from "../visibility/store";
+import { layerManager } from "../layers/manager";
 
 @Component({
     components: {
@@ -285,16 +291,19 @@ export default class DmSettings extends Vue {
         if (typeof value !== "number") return;
         gameStore.setVisionRangeMax({ value, sync: true });
     }
-    // changeVisionMode(event: { target: HTMLSelectElement }): void {
-    //     const value = event.target.value.toLowerCase();
-    //     if (value !== "bvh" && value !== "triangle") return;
-    //     visibilityStore.setVisionMode({ mode: value, sync: true });
-    //     for (const floor of layerManager.floors) {
-    //         visibilityStore.recalculateVision(floor.name);
-    //         visibilityStore.recalculateMovement(floor.name);
-    //     }
-    //     layerManager.invalidateAllFloors();
-    // }
+    changeVisionMode(event: { target: HTMLSelectElement }): void {
+        const value = event.target.value.toLowerCase();
+        let mode: VisibilityMode;
+        if (value === "default") mode = VisibilityMode.TRIANGLE;
+        else if (value === "experimental") mode = VisibilityMode.TRIANGLE_ITERATIVE;
+        else return;
+        visibilityStore.setVisionMode({ mode, sync: true });
+        for (const floor of layerManager.floors) {
+            visibilityStore.recalculateVision(floor.name);
+            visibilityStore.recalculateMovement(floor.name);
+        }
+        layerManager.invalidateAllFloors();
+    }
     handleClick(event: { target: HTMLElement }): void {
         const child = event.target.firstElementChild;
         if (child instanceof HTMLInputElement) {

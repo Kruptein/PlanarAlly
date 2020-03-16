@@ -1,14 +1,15 @@
+import { InvalidationMode, SyncMode } from "@/core/comm/types";
 import { sendClientOptions } from "@/game/api/utils";
 import { ServerShape } from "@/game/comm/types/shapes";
+import { EventBus } from "@/game/event-bus";
 import { GlobalPoint } from "@/game/geom";
 import { layerManager } from "@/game/layers/manager";
 import { createShapeFromDict } from "@/game/shapes/utils";
 import { gameStore } from "@/game/store";
 import { AnnotationManager } from "@/game/ui/annotation";
 import { g2l } from "@/game/units";
-import { EventBus } from "./event-bus";
-import { visibilityStore } from "./visibility/store";
-import { SyncMode, InvalidationMode } from "@/core/comm/types";
+import { visibilityStore } from "@/game/visibility/store";
+import { TriangulationTarget } from "@/game/visibility/te/pa";
 
 export class GameManager {
     selectedTool = 0;
@@ -47,14 +48,28 @@ export class GameManager {
         }
         const redrawInitiative = sh.owners !== oldShape.owners;
         const shape = Object.assign(oldShape, sh);
-        shape.checkVisionSources();
-        shape.setMovementBlock(shape.movementObstruction);
+        const alteredVision = shape.checkVisionSources();
+        const alteredMovement = shape.setMovementBlock(shape.movementObstruction);
         shape.setIsToken(shape.isToken);
         if (data.redraw) {
-            if (shape.visionObstruction) visibilityStore.recalculateVision(shape.floor);
-            layerManager.getLayer(data.shape.floor, data.shape.layer)!.invalidate(false);
+            if (shape.visionObstruction && !alteredVision) {
+                visibilityStore.deleteFromTriag({
+                    target: TriangulationTarget.VISION,
+                    shape,
+                });
+                visibilityStore.addToTriag({ target: TriangulationTarget.VISION, shape });
+                visibilityStore.recalculateVision(shape.floor);
+            }
+            layerManager.getLayer(data.shape.layer)!.invalidate(false);
             layerManager.invalidateLightAllFloors();
-            if (shape.movementObstruction) visibilityStore.recalculateMovement(shape.floor);
+            if (shape.movementObstruction && !alteredMovement) {
+                visibilityStore.deleteFromTriag({
+                    target: TriangulationTarget.MOVEMENT,
+                    shape,
+                });
+                visibilityStore.addToTriag({ target: TriangulationTarget.MOVEMENT, shape });
+                visibilityStore.recalculateMovement(shape.floor);
+            }
         }
         if (redrawInitiative) EventBus.$emit("Initiative.ForceUpdate");
     }

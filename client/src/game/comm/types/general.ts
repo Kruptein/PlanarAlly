@@ -1,4 +1,5 @@
 import { ServerShape } from "@/game/comm/types/shapes";
+import { VisibilityMode } from "@/game/visibility/store";
 
 export interface ServerLocation {
     name: string;
@@ -8,7 +9,7 @@ export interface ServerLocation {
     full_fow: boolean;
     fow_opacity: number;
     fow_los: boolean;
-    vision_mode: "triangle";
+    vision_mode: string;
     vision_min_range: number;
     vision_max_range: number;
 }

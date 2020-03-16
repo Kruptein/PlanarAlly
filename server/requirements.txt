@@ -7,4 +7,3 @@ bcrypt
 cryptography
 python-socketio
 peewee
-

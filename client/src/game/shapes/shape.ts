@@ -5,15 +5,12 @@ import { InitiativeData } from "@/game/comm/types/general";
 import { ServerShape } from "@/game/comm/types/shapes";
 import { GlobalPoint, LocalPoint, Vector } from "@/game/geom";
 import { layerManager } from "@/game/layers/manager";
-import { BoundingRect } from "@/game/shapes/boundingrect";
 import { gameStore } from "@/game/store";
-import { g2l, g2lr, g2lx, g2ly, g2lz, getUnitDistance } from "@/game/units";
+import { g2lx, g2ly, g2lz } from "@/game/units";
+import { visibilityStore } from "@/game/visibility/store";
+import { TriangulationTarget } from "@/game/visibility/te/pa";
 import { addBlocker, getBlockers, getVisionSources, setVisionSources, sliceBlockers } from "@/game/visibility/utils";
-import tinycolor from "tinycolor2";
-import { visibilityStore } from "../visibility/store";
-import { TriangulationTarget } from "../visibility/te/pa";
-import { computeVisibility } from "../visibility/te/te";
-import { updateAuraPath } from "./utils";
+import { BoundingRect } from "./boundingrect";
 
 export abstract class Shape {
     // Used to create class instance from server shape data
@@ -123,18 +120,20 @@ export abstract class Shape {
         if (l) l.invalidate(skipLightUpdate);
     }
 
-    checkVisionSources(recalculate = true): void {
+    checkVisionSources(recalculate = true): boolean {
+        let alteredVision = false;
         const visionBlockers = getBlockers(TriangulationTarget.VISION, this.floor);
         const obstructionIndex = visionBlockers.indexOf(this.uuid);
-        let update = false;
         if (this.visionObstruction && obstructionIndex === -1) {
             addBlocker(TriangulationTarget.VISION, this.uuid, this.floor);
-            update = true;
+            if (recalculate) visibilityStore.addToTriag({ target: TriangulationTarget.VISION, shape: this });
+            alteredVision = true;
         } else if (!this.visionObstruction && obstructionIndex >= 0) {
             sliceBlockers(TriangulationTarget.VISION, obstructionIndex, this.floor);
-            update = true;
+            if (recalculate) visibilityStore.deleteFromTriag({ target: TriangulationTarget.VISION, shape: this });
+            alteredVision = true;
         }
-        if (update && recalculate) visibilityStore.recalculateVision(this.floor);
+        if (alteredVision && recalculate) visibilityStore.recalculateVision(this.floor);
 
         // Check if the visionsource auras are in the gameManager
         const visionSources: { shape: string; aura: string }[] = [...getVisionSources(this.floor)];
@@ -154,21 +153,25 @@ export abstract class Shape {
             }
         }
         setVisionSources(visionSources, this.floor);
+        return alteredVision;
     }
 
-    setMovementBlock(blocksMovement: boolean, recalculate = true): void {
+    setMovementBlock(blocksMovement: boolean, recalculate = true): boolean {
+        let alteredMovement = false;
         this.movementObstruction = blocksMovement || false;
         const movementBlockers = getBlockers(TriangulationTarget.MOVEMENT, this.floor);
         const obstructionIndex = movementBlockers.indexOf(this.uuid);
-        let update = false;
         if (this.movementObstruction && obstructionIndex === -1) {
             addBlocker(TriangulationTarget.MOVEMENT, this.uuid, this.floor);
-            update = true;
+            if (recalculate) visibilityStore.addToTriag({ target: TriangulationTarget.MOVEMENT, shape: this });
+            alteredMovement = true;
         } else if (!this.movementObstruction && obstructionIndex >= 0) {
             sliceBlockers(TriangulationTarget.MOVEMENT, obstructionIndex, this.floor);
-            update = true;
+            if (recalculate) visibilityStore.deleteFromTriag({ target: TriangulationTarget.MOVEMENT, shape: this });
+            alteredMovement = true;
         }
-        if (update && recalculate) visibilityStore.recalculateMovement(this.floor);
+        if (alteredMovement && recalculate) visibilityStore.recalculateMovement(this.floor);
+        return alteredMovement;
     }
 
     setIsToken(isToken: boolean): void {
@@ -239,46 +242,6 @@ export abstract class Shape {
         }
     }
 
-    drawAuras(ctx: CanvasRenderingContext2D): void {
-        for (const aura of this.auras) {
-            if (aura.value === 0 && aura.dim === 0) return;
-            ctx.beginPath();
-
-            const loc = g2l(this.center());
-            const innerRange = g2lr(aura.value + aura.dim);
-
-            if (aura.dim === 0) ctx.fillStyle = aura.colour;
-            else {
-                const gradient = ctx.createRadialGradient(
-                    loc.x,
-                    loc.y,
-                    g2lr(aura.value),
-                    loc.x,
-                    loc.y,
-                    g2lr(aura.value + aura.dim),
-                );
-                const tc = tinycolor(aura.colour);
-                ctx.fillStyle = gradient;
-                gradient.addColorStop(0, aura.colour);
-                gradient.addColorStop(1, tc.setAlpha(0).toRgbString());
-            }
-            if (!aura.visionSource) {
-                ctx.arc(loc.x, loc.y, innerRange, 0, 2 * Math.PI);
-                ctx.fill();
-            } else {
-                const polygon = computeVisibility(this.center(), TriangulationTarget.VISION, this.floor);
-                aura.lastPath = updateAuraPath(polygon, this.center(), getUnitDistance(aura.value + aura.dim));
-                try {
-                    ctx.fill(aura.lastPath);
-                } catch (e) {
-                    ctx.arc(loc.x, loc.y, innerRange, 0, 2 * Math.PI);
-                    ctx.fill();
-                    console.warn(e);
-                }
-            }
-        }
-    }
-
     drawSelection(ctx: CanvasRenderingContext2D): void {
         ctx.globalCompositeOperation = this.globalCompositeOperation;
         const z = gameStore.zoomFactor;
@@ -344,7 +307,7 @@ export abstract class Shape {
         if (sync) socket.emit("Shape.Layer.Change", { uuid: this.uuid, layer, floor: newLayer.floor });
     }
 
-    // this screws up vetur if typed as `readonly stringp[]`
+    // This screws up vetur if typed as `readonly string[]`
     // eslint-disable-next-line @typescript-eslint/array-type
     get owners(): ReadonlyArray<string> {
         return Object.freeze(this._owners.slice());

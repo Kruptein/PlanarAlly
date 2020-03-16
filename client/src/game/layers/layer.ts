@@ -1,4 +1,4 @@
-import { SyncMode, InvalidationMode } from "@/core/comm/types";
+import { InvalidationMode, SyncMode } from "@/core/comm/types";
 import { socket } from "@/game/api/socket";
 import { ServerShape } from "@/game/comm/types/shapes";
 import { EventBus } from "@/game/event-bus";
@@ -6,9 +6,10 @@ import { layerManager } from "@/game/layers/manager";
 import { Shape } from "@/game/shapes/shape";
 import { createShapeFromDict } from "@/game/shapes/utils";
 import { gameStore } from "@/game/store";
-import { visibilityStore } from "../visibility/store";
-import { getVisionSources, getBlockers, sliceVisionSources, sliceBlockers } from "../visibility/utils";
-import { TriangulationTarget } from "../visibility/te/pa";
+import { visibilityStore } from "@/game/visibility/store";
+import { TriangulationTarget } from "@/game/visibility/te/pa";
+import { getBlockers, getVisionSources, sliceBlockers, sliceVisionSources } from "@/game/visibility/utils";
+import { drawAuras } from "../shapes/aura";
 
 export class Layer {
     name: string;
@@ -128,8 +129,21 @@ export class Layer {
 
         const index = this.selection.indexOf(shape);
         if (index >= 0) this.selection.splice(index, 1);
-        if (lbI >= 0) visibilityStore.recalculateVision(this.floor);
-        if (mbI >= 0) visibilityStore.recalculateMovement(this.floor);
+        if (lbI >= 0) {
+            visibilityStore.deleteFromTriag({
+                target: TriangulationTarget.VISION,
+                shape,
+            });
+            visibilityStore.recalculateVision(this.floor);
+        }
+        if (mbI >= 0) {
+            visibilityStore.deleteFromTriag({
+                target: TriangulationTarget.MOVEMENT,
+                shape,
+            });
+            visibilityStore.recalculateMovement(this.floor);
+        }
+
         this.invalidate(!sync);
     }
 
@@ -166,7 +180,7 @@ export class Layer {
                 if (layerManager.getLayer(this.floor) === undefined) continue;
                 if (!shape.visibleInCanvas(this.canvas)) continue;
                 if (this.name === "fow" && layerManager.getLayer(this.floor)!.name !== this.name) continue;
-                shape.drawAuras(ctx);
+                drawAuras(shape, ctx);
             }
             for (const shape of this.shapes) {
                 if (shape.options.has("skipDraw") && shape.options.get("skipDraw")) continue;

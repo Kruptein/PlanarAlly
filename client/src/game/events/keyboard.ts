@@ -2,10 +2,11 @@ import { socket } from "@/game/api/socket";
 import { sendClientOptions } from "@/game/api/utils";
 import { Vector } from "@/game/geom";
 import { layerManager } from "@/game/layers/manager";
+import { copyShapes, deleteShapes, pasteShapes } from "@/game/shapes/utils";
 import { gameStore } from "@/game/store";
 import { calculateDelta } from "@/game/ui/tools/utils";
-import { copyShapes, deleteShapes, pasteShapes } from "../shapes/utils";
-import { visibilityStore } from "../visibility/store";
+import { visibilityStore } from "@/game/visibility/store";
+import { TriangulationTarget } from "@/game/visibility/te/pa";
 
 export function onKeyUp(event: KeyboardEvent): void {
     if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement) {
@@ -40,9 +41,30 @@ export function onKeyDown(event: KeyboardEvent): void {
                         delta = calculateDelta(delta, sel);
                     }
                 }
+                if (delta.length() === 0) return;
+                let recalculateVision = false;
+                let recalculateMovement = false;
                 for (const sel of selection) {
                     if (gameStore.selectionHelperID === sel.uuid) continue;
+                    if (sel.movementObstruction) {
+                        recalculateMovement = true;
+                        visibilityStore.deleteFromTriag({
+                            target: TriangulationTarget.MOVEMENT,
+                            shape: sel,
+                        });
+                    }
+                    if (sel.visionObstruction) {
+                        recalculateVision = true;
+                        visibilityStore.deleteFromTriag({
+                            target: TriangulationTarget.VISION,
+                            shape: sel,
+                        });
+                    }
                     sel.refPoint = sel.refPoint.add(delta);
+                    if (sel.movementObstruction)
+                        visibilityStore.addToTriag({ target: TriangulationTarget.MOVEMENT, shape: sel });
+                    if (sel.visionObstruction)
+                        visibilityStore.addToTriag({ target: TriangulationTarget.VISION, shape: sel });
                     // todo: Fix again
                     // if (sel.refPoint.x % gridSize !== 0 || sel.refPoint.y % gridSize !== 0) sel.snapToGrid();
                     socket.emit("Shape.Position.Update", {
@@ -51,7 +73,9 @@ export function onKeyDown(event: KeyboardEvent): void {
                         temporary: false,
                     });
                 }
-                visibilityStore.recalculateVision(layerManager.floor!.name);
+                const floorName = layerManager.floor!.name;
+                if (recalculateVision) visibilityStore.recalculateVision(floorName);
+                if (recalculateMovement) visibilityStore.recalculateMovement(floorName);
                 layerManager.getLayer(layerManager.floor!.name)!.invalidate(false);
             } else {
                 // The pan offsets should be in the opposite direction to give the correct feel.

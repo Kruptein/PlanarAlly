@@ -168,7 +168,7 @@ class Note(BaseModel):
         )
 
 class Marker(BaseModel):
-    uuid = ForeignKeyField(Shape, primary_key=True, on_delete="CASCADE")
+    uuid = TextField(primary_key=True)
     user = ForeignKeyField(User, backref="markers", on_delete="CASCADE")
 
     def __repr__(self):

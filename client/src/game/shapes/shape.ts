@@ -249,19 +249,19 @@ export abstract class Shape {
             bbox = this.getBoundingBox();
             const location = g2l(bbox.botRight);
             const r = g2lz(10);
-            ctx.strokeStyle = tinycolor.mostReadable(this.strokeColour, ["#000", "#fff"]).toHexString();
+            ctx.strokeStyle = "black";
             ctx.fillStyle = this.strokeColour;
-            ctx.lineWidth = g2lz(4);
+            ctx.lineWidth = g2lz(2);
             ctx.beginPath();
             ctx.arc(location.x - r, location.y - r, r, 0, 2 * Math.PI);
             ctx.stroke();
             ctx.fill();
-            ctx.fillStyle = ctx.strokeStyle;
+            ctx.fillStyle = tinycolor.mostReadable(this.strokeColour, ["#000", "#fff"]).toHexString();
 
-            ctx.font = `${r}px sans-serif`;
+            ctx.font = `${1.8 * r}px bold Calibri, sans-serif`;
             ctx.textAlign = "center";
             ctx.textBaseline = "middle";
-            ctx.fillText(`${this.badge}`, location.x - r, location.y - r, 2 * r);
+            ctx.fillText(`${this.badge}`, location.x - r, location.y - r + g2lz(1));
         }
         if (this.showHighlight) {
             if (bbox === undefined) bbox = this.getBoundingBox();

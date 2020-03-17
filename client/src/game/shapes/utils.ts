@@ -23,6 +23,7 @@ import { Text } from "@/game/shapes/text";
 import { EventBus } from "../event-bus";
 import { gameStore } from "../store";
 import { Polygon } from "./polygon";
+import { socket } from "../api/socket";
 
 export function createShapeFromDict(shape: ServerShape): Shape | undefined {
     let sh: Shape;
@@ -86,7 +87,7 @@ export function copyShapes(): void {
     const layer = layerManager.getLayer(layerManager.floor!.name);
     if (!layer) return;
     if (!layer.selection) return;
-    const clipboard = [];
+    const clipboard: ServerShape[] = [];
     for (const shape of layer.selection) {
         if (gameStore.selectionHelperID === shape.uuid) continue;
         clipboard.push(shape.asDict());
@@ -109,7 +110,9 @@ export function pasteShapes(targetLayer?: string): Shape[] {
     for (const clip of gameStore.clipboard) {
         clip.x += offset.x;
         clip.y += offset.y;
+        const ogUuid = clip.uuid;
         clip.uuid = uuidv4();
+        // Trackers
         const oldTrackers = clip.trackers;
         clip.trackers = [];
         for (const tracker of oldTrackers) {
@@ -119,6 +122,7 @@ export function pasteShapes(targetLayer?: string): Shape[] {
             };
             clip.trackers.push(newTracker);
         }
+        // Auras
         const oldAuras = clip.auras;
         clip.auras = [];
         for (const aura of oldAuras) {
@@ -128,6 +132,32 @@ export function pasteShapes(targetLayer?: string): Shape[] {
             };
             clip.auras.push(newAura);
         }
+        // Badge
+        const options = clip.options ? new Map(JSON.parse(clip.options)) : new Map();
+        let groupLeader: Shape | undefined;
+        if (options.has("groupId")) {
+            groupLeader = layerManager.UUIDMap.get(<string>options.get("groupId"));
+        } else {
+            groupLeader = layerManager.UUIDMap.get(ogUuid)!;
+        }
+        if (groupLeader === undefined) console.error("Missing group leader on paste");
+        else {
+            const groupIds = <string[] | undefined>groupLeader.options.get("groupInfo") ?? [];
+            const groupMembers = [
+                groupLeader,
+                ...groupIds.reduce(
+                    (acc: Shape[], u: string) =>
+                        layerManager.UUIDMap.has(u) ? [...acc, layerManager.UUIDMap.get(u)!] : acc,
+                    [],
+                ),
+            ];
+            clip.badge = groupMembers.reduce((acc: number, shape: Shape) => Math.max(acc, shape.badge ?? 1), 0) + 1;
+            groupLeader.options.set("groupInfo", [...groupIds, clip.uuid]);
+            options.set("groupId", groupLeader.uuid);
+            clip.options = JSON.stringify([...options]);
+            socket.emit("Shape.Update", { shape: groupLeader.asDict(), redraw: false, temporary: false });
+        }
+        // Finalize
         const shape = createShapeFromDict(clip);
         if (shape === undefined) continue;
         layer.addShape(shape, SyncMode.FULL_SYNC, InvalidationMode.WITH_LIGHT);

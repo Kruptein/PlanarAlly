@@ -263,16 +263,13 @@ class GameStore extends VuexModule implements GameState {
 
     @Mutation
     jumpToMarker(marker: string): void {
-        for (const shape of layerManager.UUIDMap.values()) {
-            if (marker == shape.uuid) {
-                const nh = window.innerWidth / this.gridSize / zoomValue(this.zoomDisplay) / 2;
-                const nv = window.innerHeight / this.gridSize / zoomValue(this.zoomDisplay) / 2;
-                this.panX = -shape.refPoint.x + nh * this.gridSize;
-                this.panY = -shape.refPoint.y + nv * this.gridSize;
-                sendClientOptions(this.locationOptions);
-                layerManager.invalidateAllFloors();
-            }
-        }
+        shape.uuid = layerManager.UUIDMap.get(marker);
+        const nh = window.innerWidth / this.gridSize / zoomValue(this.zoomDisplay) / 2;
+        const nv = window.innerHeight / this.gridSize / zoomValue(this.zoomDisplay) / 2;
+        this.panX = -shape.refPoint.x + nh * this.gridSize;
+        this.panY = -shape.refPoint.y + nv * this.gridSize;
+        sendClientOptions(this.locationOptions);
+        layerManager.invalidateAllFloors();
     }
 
     @Mutation

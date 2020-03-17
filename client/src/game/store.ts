@@ -250,13 +250,8 @@ class GameStore extends VuexModule implements GameState {
 
     @Mutation
     newMarker(data: { marker: string; sync: boolean }): void {
-        let alreadyhere = false;
-        for (const m of this.markers) {
-            if (m == data.marker) {
-                alreadyhere = true;
-            }
-        }
-        if (!alreadyhere) this.markers.push(data.marker);
+        const exists = this.markers.some(m => m === data.marker)
+        if (!exists) this.markers.push(data.marker);
         if (data.sync) socket.emit("Marker.New", data.marker);
     }
 

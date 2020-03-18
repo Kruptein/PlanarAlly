@@ -126,7 +126,6 @@ async def update_shape(sid, data):
     # Overwrite the old data with the new data
     if not data["temporary"]:
         with db.atomic():
-            print(data["shape"]["showBadge"])
             # Shape
             update_model_from_dict(shape, reduce_data_to_model(Shape, data["shape"]))
             shape.save()

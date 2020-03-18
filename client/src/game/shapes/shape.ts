@@ -56,7 +56,8 @@ export abstract class Shape {
     // Additional options for specialized uses
     options: Map<string, any> = new Map();
 
-    badge: number | undefined;
+    badge = 1;
+    showBadge = false;
 
     constructor(refPoint: GlobalPoint, fillColour?: string, strokeColour?: string, uuid?: string) {
         this._refPoint = refPoint;
@@ -217,6 +218,7 @@ export abstract class Shape {
             is_token: this.isToken,
             options: JSON.stringify([...this.options]),
             badge: this.badge,
+            showBadge: this.showBadge,
         };
     }
     fromDict(data: ServerShape): void {
@@ -231,11 +233,11 @@ export abstract class Shape {
         this._owners = data.owners;
         this.isToken = data.is_token;
         this.nameVisible = data.name_visible;
+        this.badge = data.badge;
+        this.showBadge = data.showBadge;
         if (data.annotation) this.annotation = data.annotation;
         if (data.name) this.name = data.name;
         if (data.options) this.options = new Map(JSON.parse(data.options));
-        if (data.badge) this.badge = data.badge;
-        else this.badge = 1;
     }
 
     draw(ctx: CanvasRenderingContext2D): void {
@@ -245,7 +247,7 @@ export abstract class Shape {
 
     drawPost(ctx: CanvasRenderingContext2D): void {
         let bbox: BoundingRect | undefined;
-        if (this.badge) {
+        if (this.showBadge) {
             bbox = this.getBoundingBox();
             const location = g2l(bbox.botRight);
             const r = g2lz(10);
@@ -367,5 +369,21 @@ export abstract class Shape {
 
     updatePoints(): void {
         layerManager.getLayer(this.floor, this.layer)?.updateShapePoints(this);
+    }
+
+    getGroupMembers(): Shape[] {
+        if (!(this.options.has("groupId") || this.options.has("groupInfo"))) return [];
+        const groupId = this.options.get("groupId") ?? this.uuid;
+        const groupLeader = groupId === this.uuid ? this : layerManager.UUIDMap.get(groupId);
+        if (groupLeader === undefined || !groupLeader.options.has("groupInfo")) return [];
+        const groupIds = <string[]>groupLeader.options.get("groupInfo");
+        return [
+            groupLeader,
+            ...groupIds.reduce(
+                (acc: Shape[], u: string) =>
+                    layerManager.UUIDMap.has(u) ? [...acc, layerManager.UUIDMap.get(u)!] : acc,
+                [],
+            ),
+        ];
     }
 }

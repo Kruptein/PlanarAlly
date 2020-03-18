@@ -44,6 +44,16 @@
                     class="styled-checkbox"
                     :disabled="!owned"
                 />
+                <label for="shapeselectiondialog-showBadge">Show badge</label>
+                <input
+                    type="checkbox"
+                    id="shapeselectiondialog-showBadge"
+                    :checked="shape.showBadge"
+                    @click="toggleBadge"
+                    style="grid-column-start: remove;"
+                    class="styled-checkbox"
+                    :disabled="!owned"
+                />
                 <label for="shapeselectiondialog-visionblocker">Blocks vision/light</label>
                 <input
                     type="checkbox"
@@ -328,6 +338,19 @@ export default class EditDialog extends Vue {
         if (!this.owned) return;
         this.shape.setIsToken(event.target.checked);
         this.updateShape(true);
+    }
+    toggleBadge(_event: { target: HTMLInputElement }): void {
+        if (!this.owned) return;
+        const groupMembers = this.shape.getGroupMembers();
+        for (const [i, shape] of groupMembers.entries()) {
+            shape.showBadge = !shape.showBadge;
+            socket.emit("Shape.Update", {
+                shape: shape.asDict(),
+                redraw: groupMembers.length === i - 1,
+                temporary: false,
+            });
+        }
+        layerManager.invalidate(this.shape.floor);
     }
     setVisionBlocker(_event: { target: HTMLInputElement }): void {
         if (!this.owned) return;

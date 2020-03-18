@@ -142,17 +142,9 @@ export function pasteShapes(targetLayer?: string): Shape[] {
         }
         if (groupLeader === undefined) console.error("Missing group leader on paste");
         else {
-            const groupIds = <string[] | undefined>groupLeader.options.get("groupInfo") ?? [];
-            const groupMembers = [
-                groupLeader,
-                ...groupIds.reduce(
-                    (acc: Shape[], u: string) =>
-                        layerManager.UUIDMap.has(u) ? [...acc, layerManager.UUIDMap.get(u)!] : acc,
-                    [],
-                ),
-            ];
+            const groupMembers = groupLeader.getGroupMembers();
             clip.badge = groupMembers.reduce((acc: number, shape: Shape) => Math.max(acc, shape.badge ?? 1), 0) + 1;
-            groupLeader.options.set("groupInfo", [...groupIds, clip.uuid]);
+            groupLeader.options.set("groupInfo", [...groupLeader.options.get("groupInfo"), clip.uuid]);
             options.set("groupId", groupLeader.uuid);
             clip.options = JSON.stringify([...options]);
             socket.emit("Shape.Update", { shape: groupLeader.asDict(), redraw: false, temporary: false });

@@ -47,6 +47,7 @@ export class Text extends Shape {
         ctx.textAlign = "center";
         this.getLines(ctx).map(line => ctx.fillText(line.text, line.x, line.y));
         ctx.restore();
+        super.drawPost(ctx);
     }
     contains(_point: GlobalPoint): boolean {
         return false; // TODO

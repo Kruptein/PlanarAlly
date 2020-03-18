@@ -6,10 +6,11 @@ import { ServerShape } from "@/game/comm/types/shapes";
 import { GlobalPoint, LocalPoint, Vector } from "@/game/geom";
 import { layerManager } from "@/game/layers/manager";
 import { gameStore } from "@/game/store";
-import { g2lx, g2ly, g2lz } from "@/game/units";
+import { g2l, g2lx, g2ly, g2lz } from "@/game/units";
 import { visibilityStore } from "@/game/visibility/store";
 import { TriangulationTarget } from "@/game/visibility/te/pa";
 import { addBlocker, getBlockers, getVisionSources, setVisionSources, sliceBlockers } from "@/game/visibility/utils";
+import tinycolor from "tinycolor2";
 import { BoundingRect } from "./boundingrect";
 
 export abstract class Shape {
@@ -54,6 +55,9 @@ export abstract class Shape {
 
     // Additional options for specialized uses
     options: Map<string, any> = new Map();
+
+    badge = 1;
+    showBadge = false;
 
     constructor(refPoint: GlobalPoint, fillColour?: string, strokeColour?: string, uuid?: string) {
         this._refPoint = refPoint;
@@ -213,6 +217,9 @@ export abstract class Shape {
             // eslint-disable-next-line @typescript-eslint/camelcase
             is_token: this.isToken,
             options: JSON.stringify([...this.options]),
+            badge: this.badge,
+            // eslint-disable-next-line @typescript-eslint/camelcase
+            show_badge: this.showBadge,
         };
     }
     fromDict(data: ServerShape): void {
@@ -227,6 +234,8 @@ export abstract class Shape {
         this._owners = data.owners;
         this.isToken = data.is_token;
         this.nameVisible = data.name_visible;
+        this.badge = data.badge;
+        this.showBadge = data.show_badge;
         if (data.annotation) this.annotation = data.annotation;
         if (data.name) this.name = data.name;
         if (data.options) this.options = new Map(JSON.parse(data.options));
@@ -235,8 +244,30 @@ export abstract class Shape {
     draw(ctx: CanvasRenderingContext2D): void {
         if (this.globalCompositeOperation !== undefined) ctx.globalCompositeOperation = this.globalCompositeOperation;
         else ctx.globalCompositeOperation = "source-over";
+    }
+
+    drawPost(ctx: CanvasRenderingContext2D): void {
+        let bbox: BoundingRect | undefined;
+        if (this.showBadge) {
+            bbox = this.getBoundingBox();
+            const location = g2l(bbox.botRight);
+            const r = g2lz(10);
+            ctx.strokeStyle = "black";
+            ctx.fillStyle = this.strokeColour;
+            ctx.lineWidth = g2lz(2);
+            ctx.beginPath();
+            ctx.arc(location.x - r, location.y - r, r, 0, 2 * Math.PI);
+            ctx.stroke();
+            ctx.fill();
+            ctx.fillStyle = tinycolor.mostReadable(this.strokeColour, ["#000", "#fff"]).toHexString();
+
+            ctx.font = `${1.8 * r}px bold Calibri, sans-serif`;
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            ctx.fillText(`${this.badge}`, location.x - r, location.y - r + g2lz(1));
+        }
         if (this.showHighlight) {
-            const bbox = this.getBoundingBox();
+            if (bbox === undefined) bbox = this.getBoundingBox();
             ctx.strokeStyle = "red";
             ctx.strokeRect(g2lx(bbox.topLeft.x) - 5, g2ly(bbox.topLeft.y) - 5, g2lz(bbox.w) + 10, g2lz(bbox.h) + 10);
         }
@@ -339,5 +370,21 @@ export abstract class Shape {
 
     updatePoints(): void {
         layerManager.getLayer(this.floor, this.layer)?.updateShapePoints(this);
+    }
+
+    getGroupMembers(): Shape[] {
+        if (!(this.options.has("groupId") || this.options.has("groupInfo"))) return [this];
+        const groupId = this.options.get("groupId") ?? this.uuid;
+        const groupLeader = groupId === this.uuid ? this : layerManager.UUIDMap.get(groupId);
+        if (groupLeader === undefined || !groupLeader.options.has("groupInfo")) return [this];
+        const groupIds = <string[]>groupLeader.options.get("groupInfo");
+        return [
+            groupLeader,
+            ...groupIds.reduce(
+                (acc: Shape[], u: string) =>
+                    layerManager.UUIDMap.has(u) ? [...acc, layerManager.UUIDMap.get(u)!] : acc,
+                [],
+            ),
+        ];
     }
 }

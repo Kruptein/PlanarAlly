@@ -83,6 +83,7 @@ export class Polygon extends Shape {
         }
         if (!this.openPolygon) ctx.fill();
         ctx.stroke();
+        super.drawPost(ctx);
     }
 
     contains(point: GlobalPoint): boolean {

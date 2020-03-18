@@ -95,6 +95,23 @@ export class Layer {
         }
         this.shapes.splice(idx, 1);
 
+        if (shape.options.has("groupInfo")) {
+            const groupMembers = shape.getGroupMembers();
+            if (groupMembers.length > 1) {
+                const groupLeader = groupMembers[1];
+                for (const member of groupMembers.slice(2)) {
+                    member.options.set("groupId", groupLeader.uuid);
+                    socket.emit("Shape.Update", { shape: member.asDict(), redraw: false, temporary: false });
+                }
+                groupLeader.options.set(
+                    "groupInfo",
+                    groupMembers.slice(2).map(s => s.uuid),
+                );
+                groupLeader.options.delete("groupId");
+                socket.emit("Shape.Update", { shape: groupLeader.asDict(), redraw: false, temporary: false });
+            }
+        }
+
         if (sync !== SyncMode.NO_SYNC)
             socket.emit("Shape.Remove", { shape: shape.asDict(), temporary: sync === SyncMode.TEMP_SYNC });
 

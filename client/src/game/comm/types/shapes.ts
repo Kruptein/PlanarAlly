@@ -20,7 +20,7 @@ export interface ServerShape {
     is_token: boolean;
     options?: string;
     badge: number;
-    showBadge: boolean;
+    show_badge: boolean;
 }
 
 export interface ServerRect extends ServerShape {

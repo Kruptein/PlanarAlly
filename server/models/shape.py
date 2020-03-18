@@ -43,7 +43,7 @@ class Shape(BaseModel):
     index = IntegerField()
     options = TextField(null=True)
     badge = IntegerField(default=1)
-    showBadge = BooleanField(default=False)
+    show_badge = BooleanField(default=False)
 
     def __repr__(self):
         return f"<Shape {self.get_path()}>"

@@ -218,7 +218,8 @@ export abstract class Shape {
             is_token: this.isToken,
             options: JSON.stringify([...this.options]),
             badge: this.badge,
-            showBadge: this.showBadge,
+            // eslint-disable-next-line @typescript-eslint/camelcase
+            show_badge: this.showBadge,
         };
     }
     fromDict(data: ServerShape): void {
@@ -234,7 +235,7 @@ export abstract class Shape {
         this.isToken = data.is_token;
         this.nameVisible = data.name_visible;
         this.badge = data.badge;
-        this.showBadge = data.showBadge;
+        this.showBadge = data.show_badge;
         if (data.annotation) this.annotation = data.annotation;
         if (data.name) this.name = data.name;
         if (data.options) this.options = new Map(JSON.parse(data.options));

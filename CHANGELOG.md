@@ -22,6 +22,8 @@ All notable changes to this project will be documented in this file.
 -   Touch Gestures [ZachMyers3]
 -   Easier client traversing by removing \_load route [ZachMyers3]
 -   Display current version on client [ZachMyers3]
+-   Shape badges
+    -   Toggleable badge display showing the shape's group number
 
 ### Fixed
 

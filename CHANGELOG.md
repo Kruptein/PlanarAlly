@@ -25,6 +25,10 @@ All notable changes to this project will be documented in this file.
 -   Shape badges
     -   Toggleable badge display showing the shape's group number
 
+### Changed
+
+-   When resizing on mouse up, a different method will be used to resize/snap the shape to the grid
+
 ### Fixed
 
 -   Annotations stop working when changing location

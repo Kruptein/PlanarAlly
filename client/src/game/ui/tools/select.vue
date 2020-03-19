@@ -288,7 +288,7 @@ export default class SelectTool extends Tool {
                                 target: TriangulationTarget.MOVEMENT,
                                 shape: sel,
                             });
-                        sel.snapToGrid();
+                        sel.resizeToGrid();
                         if (sel.visionObstruction) {
                             visibilityStore.addToTriag({ target: TriangulationTarget.VISION, shape: sel });
                             visibilityStore.recalculateVision(sel.floor);

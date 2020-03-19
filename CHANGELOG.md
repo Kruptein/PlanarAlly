@@ -7,7 +7,7 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
-## [0.19.0-rc.0] - 2020-03-19
+## [0.19.0-rc.1] - 2020-03-19
 
 ### Added
 
@@ -26,6 +26,7 @@ All notable changes to this project will be documented in this file.
 -   Display current version on client [ZachMyers3]
 -   Shape badges
     -   Toggleable badge display showing the shape's group number
+-   Logo to the planarserver.exe
 
 ### Changed
 

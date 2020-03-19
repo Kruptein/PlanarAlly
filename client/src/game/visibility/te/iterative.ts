@@ -159,7 +159,7 @@ export class IterativeDelete {
         for (const edge of vertex.getIncidentEdges(true)) {
             const ccwv = edge.first!.vertices[ccw(edge.second)]!;
             const ccwp = ccwv.point!;
-            // layerManager.getLayer("draw")!.clear();
+            // layerManager.getLayer(layerManager.floor!.name, "draw")!.clear();
             // drawPoint(vertex.point!, 10, "blue");
             // drawPoint(ccwp, 10, "green");
             const edgeCovered = equalPoints(ccwp, from.point!) || collinearInOrder(vertex.point!, ccwp, from.point!);

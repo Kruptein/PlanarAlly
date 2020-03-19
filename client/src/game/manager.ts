@@ -60,7 +60,7 @@ export class GameManager {
                 visibilityStore.addToTriag({ target: TriangulationTarget.VISION, shape });
                 visibilityStore.recalculateVision(shape.floor);
             }
-            layerManager.getLayer(data.shape.layer)!.invalidate(false);
+            layerManager.getLayer(data.shape.floor, data.shape.layer)!.invalidate(false);
             layerManager.invalidateLightAllFloors();
             if (shape.movementObstruction && !alteredMovement) {
                 visibilityStore.deleteFromTriag({

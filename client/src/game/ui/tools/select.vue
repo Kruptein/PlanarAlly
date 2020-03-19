@@ -370,23 +370,24 @@ export default class SelectTool extends Tool {
         (<DefaultContext>this.$parent.$refs.defaultcontext).open(event);
     }
     updateCursor(layer: Layer, globalMouse: GlobalPoint): void {
+        let cursorStyle = "default";
         for (const sel of layer.selection) {
             const resizePoint = sel.getPointIndex(globalMouse, l2gz(3));
-            if (resizePoint < 0) document.body.style.cursor = "default";
+            if (resizePoint < 0) continue;
             else {
                 let angle = sel.getPointOrientation(resizePoint).angle();
                 if (angle < 0) angle += 360;
                 const d = 45 / 2;
-                if (angle >= 315 + d || angle < d || (angle >= 135 + d && angle < 225 - d))
-                    document.body.style.cursor = "ew-resize";
+                if (angle >= 315 + d || angle < d || (angle >= 135 + d && angle < 225 - d)) cursorStyle = "ew-resize";
                 if ((angle >= 45 + d && angle < 135 - d) || (angle >= 225 + d && angle < 315 - d))
-                    document.body.style.cursor = "ns-resize";
+                    cursorStyle = "ns-resize";
                 if ((angle >= d && angle < 90 - d) || (angle >= 180 + d && angle < 270 - d))
-                    document.body.style.cursor = "nwse-resize";
+                    cursorStyle = "nwse-resize";
                 if ((angle >= 90 + d && angle < 180 - d) || (angle >= 270 + d && angle < 360 - d))
-                    document.body.style.cursor = "nesw-resize";
+                    cursorStyle = "nesw-resize";
             }
         }
+        document.body.style.cursor = cursorStyle;
     }
 }
 </script>

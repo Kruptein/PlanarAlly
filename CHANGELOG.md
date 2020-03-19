@@ -28,6 +28,7 @@ All notable changes to this project will be documented in this file.
 ### Fixed
 
 -   Annotations stop working when changing location
+-   Cursor resize icon not correct in multiselect
 
 ### Removed
 

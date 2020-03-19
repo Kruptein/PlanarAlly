@@ -16,6 +16,7 @@ block_cipher = None
 a = Analysis([_('planarserver.py')],
              pathex=[pa_dir],
              datas=[
+    (_('VERSION'), '.'),
     (_('server_config.cfg'), '.'),
     (_('static'), 'static'),
     (_('templates'), 'templates'),

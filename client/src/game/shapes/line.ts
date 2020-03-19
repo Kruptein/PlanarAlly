@@ -70,8 +70,9 @@ export class Line extends Shape {
     snapToGrid(): void {}
     // eslint-disable-next-line @typescript-eslint/no-empty-function
     resizeToGrid(): void {}
-    resize(resizePoint: number, point: LocalPoint): void {
-        if (resizePoint === 0) this.refPoint = l2g(point);
-        else this.endPoint = l2g(point);
+    resize(resizePoint: number, point: GlobalPoint): number {
+        if (resizePoint === 0) this.refPoint = point;
+        else this.endPoint = point;
+        return resizePoint;
     }
 }

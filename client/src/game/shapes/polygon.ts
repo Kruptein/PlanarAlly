@@ -102,9 +102,10 @@ export class Polygon extends Shape {
     snapToGrid(): void {}
     // eslint-disable-next-line @typescript-eslint/no-empty-function
     resizeToGrid(): void {}
-    resize(resizePoint: number, point: LocalPoint): void {
-        if (resizePoint === 0) this._refPoint = l2g(point);
-        else this._vertices[resizePoint - 1] = l2g(point);
+    resize(resizePoint: number, point: GlobalPoint): number {
+        if (resizePoint === 0) this._refPoint = point;
+        else this._vertices[resizePoint - 1] = point;
+        return resizePoint;
     }
     getBoundingBox(): BoundingRect {
         let minx: number = this.refPoint.x;

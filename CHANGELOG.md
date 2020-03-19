@@ -25,9 +25,17 @@ All notable changes to this project will be documented in this file.
 -   Shape badges
     -   Toggleable badge display showing the shape's group number
 
+### Changed
+
+-   When resizing on mouse up, a different method will be used to resize/snap the shape to the grid
+
 ### Fixed
 
 -   Annotations stop working when changing location
+-   Cursor resize icon not correct in multiselect
+-   Movement of shapes not working 100% correctly
+    -   In particular, moving a group of tokens now behaves correctly and doesn't suddenly jump around
+-   Resize of rectangle shapes (and assets) working in all directions
 
 ### Removed
 

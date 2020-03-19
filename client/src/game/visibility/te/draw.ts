@@ -4,7 +4,7 @@ import { EdgeIterator, TDS, Edge } from "./tds";
 import { ccw, cw } from "./triag";
 
 export function drawPoint(point: number[], r: number, colour?: string): void {
-    const dl = layerManager.getLayer("draw");
+    const dl = layerManager.getLayer(layerManager.floor!.name, "draw");
     if (dl === undefined) return;
     const ctx = dl.ctx;
     ctx.lineJoin = "round";
@@ -13,6 +13,20 @@ export function drawPoint(point: number[], r: number, colour?: string): void {
     ctx.moveTo(g2lx(point[0]), g2ly(point[1]));
     ctx.beginPath();
     ctx.arc(g2lx(point[0]), g2ly(point[1]), r, 0, Math.PI * 2);
+    ctx.closePath();
+    ctx.stroke();
+}
+
+export function drawPointL(point: number[], r: number, colour?: string): void {
+    const dl = layerManager.getLayer(layerManager.floor!.name, "draw");
+    if (dl === undefined) return;
+    const ctx = dl.ctx;
+    ctx.lineJoin = "round";
+    ctx.strokeStyle =
+        colour === undefined ? `rgb(${Math.random() * 255}, ${Math.random() * 255}, ${Math.random() * 255})` : colour;
+    ctx.moveTo(point[0], point[1]);
+    ctx.beginPath();
+    ctx.arc(point[0], point[1], r, 0, Math.PI * 2);
     ctx.closePath();
     ctx.stroke();
 }

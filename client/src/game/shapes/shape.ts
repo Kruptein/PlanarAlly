@@ -99,7 +99,7 @@ export abstract class Shape {
     // This is shape dependent as the shape refPoints are shape specific in
     abstract snapToGrid(): void;
     abstract resizeToGrid(): void;
-    abstract resize(resizePoint: number, point: LocalPoint): void;
+    abstract resize(resizePoint: number, point: GlobalPoint): number;
 
     abstract get points(): number[][];
 

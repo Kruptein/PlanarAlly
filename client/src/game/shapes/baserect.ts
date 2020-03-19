@@ -65,7 +65,7 @@ export abstract class BaseRect extends Shape {
         return false;
     }
     snapToGrid(): void {
-        const gs = l2gz(gameStore.gridSize);
+        const gs = gameStore.gridSize;
         const center = this.center();
         const mx = center.x;
         const my = center.y;

@@ -232,6 +232,8 @@ export abstract class Shape {
         this.trackers = data.trackers;
         this.labels = data.labels;
         this._owners = data.owners;
+        this.fillColour = data.fill_colour;
+        this.strokeColour = data.stroke_colour;
         this.isToken = data.is_token;
         this.nameVisible = data.name_visible;
         this.badge = data.badge;

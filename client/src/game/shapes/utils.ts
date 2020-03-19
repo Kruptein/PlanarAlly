@@ -163,7 +163,7 @@ export function pasteShapes(targetLayer?: string): Shape[] {
 }
 
 export function deleteShapes(): void {
-    if (layerManager.getLayer === undefined) {
+    if (layerManager.getLayer(layerManager.floor!.name) === undefined) {
         console.log("No active layer selected for delete operation");
         return;
     }

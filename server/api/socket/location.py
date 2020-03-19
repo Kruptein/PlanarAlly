@@ -56,7 +56,7 @@ async def load_location(sid, location):
         "Markers.Set",
         [
             marker.as_string()
-            for marker in Marker.select().where(Marker.user == user)
+            for marker in Marker.select().where((Marker.user == user) & (Marker.room == room))
         ],
         namespace="/planarally",
     )

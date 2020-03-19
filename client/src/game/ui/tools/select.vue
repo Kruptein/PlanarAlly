@@ -90,7 +90,7 @@ export default class SelectTool extends Tool {
                 }
                 this.mode = SelectOperations.Drag;
                 const localRefPoint = g2l(selection.refPoint);
-                this.dragRay = new Ray<LocalPoint>(localRefPoint, lp.subtract(localRefPoint));
+                this.dragRay = Ray.fromPoints(localRefPoint, lp);
                 layer.invalidate(true);
                 hit = true;
                 break;
@@ -139,9 +139,9 @@ export default class SelectTool extends Tool {
             );
             layer.invalidate(true);
         } else if (layer.selection.length) {
-            const og = g2l(layer.selection[layer.selection.length - 1].refPoint);
-            const origin = og.add(this.dragRay.direction);
-            let delta = lp.subtract(origin).multiply(1 / gameStore.zoomFactor);
+            let delta = Ray.fromPoints(this.dragRay.get(this.dragRay.tMax), lp).direction.multiply(
+                1 / gameStore.zoomFactor,
+            );
             const ogDelta = delta;
             if (this.mode === SelectOperations.Drag) {
                 if (ogDelta.length() === 0) return;
@@ -172,6 +172,7 @@ export default class SelectTool extends Tool {
                         socket.emit("Shape.Update", { shape: sel.asDict(), redraw: true, temporary: true });
                     }
                 }
+                this.dragRay = Ray.fromPoints(this.dragRay.origin, lp);
                 layer.invalidate(false);
             } else if (this.mode === SelectOperations.Resize) {
                 for (const sel of layer.selection) {

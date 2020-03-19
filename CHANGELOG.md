@@ -29,6 +29,8 @@ All notable changes to this project will be documented in this file.
 
 -   Annotations stop working when changing location
 -   Cursor resize icon not correct in multiselect
+-   Movement of shapes not working 100% correctly
+    -   In particular, moving a group of tokens now behaves correctly and doesn't suddenly jump around
 
 ### Removed
 

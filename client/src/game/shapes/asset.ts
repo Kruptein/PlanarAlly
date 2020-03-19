@@ -9,6 +9,8 @@ export class Asset extends BaseRect {
     type = "assetrect";
     img: HTMLImageElement;
     src = "";
+    strokeColour = "white";
+
     constructor(img: HTMLImageElement, topleft: GlobalPoint, w: number, h: number, uuid?: string) {
         super(topleft, w, h, undefined, undefined, uuid);
         this.img = img;

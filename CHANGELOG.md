@@ -31,6 +31,7 @@ All notable changes to this project will be documented in this file.
 -   Cursor resize icon not correct in multiselect
 -   Movement of shapes not working 100% correctly
     -   In particular, moving a group of tokens now behaves correctly and doesn't suddenly jump around
+-   Resize of rectangle shapes (and assets) working in all directions
 
 ### Removed
 

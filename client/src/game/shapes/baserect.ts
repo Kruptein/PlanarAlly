@@ -96,16 +96,16 @@ export abstract class BaseRect extends Shape {
         this.h = Math.max(Math.round(this.h / gs) * gs, gs);
         this.invalidate(false);
     }
-    resize(resizePoint: number, point: GlobalPoint): void {
+    resize(resizePoint: number, point: GlobalPoint): number {
         switch (resizePoint) {
             case 0: {
-                this.w = this.refPoint.x + this.w - point.x;
-                this.h = this.refPoint.y + this.h - point.y;
+                this.w += this.refPoint.x - point.x;
+                this.h += this.refPoint.y - point.y;
                 this.refPoint = point;
                 break;
             }
             case 1: {
-                this.w = this.refPoint.x + this.w - point.x;
+                this.w += this.refPoint.x - point.x;
                 this.h = point.y - this.refPoint.y;
                 this.refPoint = new GlobalPoint(point.x, this.refPoint.y);
                 break;
@@ -117,11 +117,15 @@ export abstract class BaseRect extends Shape {
             }
             case 3: {
                 this.w = point.x - this.refPoint.x;
-                this.h = this.refPoint.y + this.h - point.y;
+                this.h += this.refPoint.y - point.y;
                 this.refPoint = new GlobalPoint(this.refPoint.x, point.y);
                 break;
             }
         }
+
+        if (this.w < 0 && this.h < 0) resizePoint += 2;
+        else if (this.w < 0) resizePoint += resizePoint % 2 === 0 ? -1 : 1;
+        else if (this.h < 0) resizePoint += resizePoint % 2 === 0 ? 1 : -1;
 
         if (this.w < 0) {
             this.refPoint = this.refPoint.add(new Vector(this.w, 0));
@@ -131,5 +135,7 @@ export abstract class BaseRect extends Shape {
             this.refPoint = this.refPoint.add(new Vector(0, this.h));
             this.h = Math.abs(this.h);
         }
+
+        return (resizePoint + 4) % 4;
     }
 }

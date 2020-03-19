@@ -182,7 +182,10 @@ export default class SelectTool extends Tool {
                             target: TriangulationTarget.VISION,
                             shape: sel,
                         });
-                    sel.resize(this.resizePoint, snapToPoint(layerManager.getLayer(layerManager.floor!.name)!, gp));
+                    this.resizePoint = sel.resize(
+                        this.resizePoint,
+                        snapToPoint(layerManager.getLayer(layerManager.floor!.name)!, gp),
+                    );
                     if (sel !== this.selectionHelper) {
                         // todo: think about calling deleteIntersectVertex directly on the corner point
                         if (sel.visionObstruction) {

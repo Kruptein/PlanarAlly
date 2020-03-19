@@ -170,6 +170,7 @@ class Note(BaseModel):
 class Marker(BaseModel):
     uuid = TextField(primary_key=True)
     user = ForeignKeyField(User, backref="markers", on_delete="CASCADE")
+    room = ForeignKeyField(Room, backref="markers", on_delete="CASCADE")
 
     def __repr__(self):
         return f"<Marker {self.uuid} {self.room.get_path()} - {self.user.name}"

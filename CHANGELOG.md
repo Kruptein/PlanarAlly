@@ -7,6 +7,8 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+## [0.19.0-rc.0] - 2020-03-19
+
 ### Added
 
 -   Account Settings

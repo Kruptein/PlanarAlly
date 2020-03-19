@@ -65,7 +65,7 @@ export class Text extends Shape {
     // eslint-disable-next-line @typescript-eslint/no-empty-function
     resizeToGrid(): void {}
     // eslint-disable-next-line @typescript-eslint/no-empty-function
-    resize(_resizePoint: number, _point: LocalPoint): void {}
+    resize(_resizePoint: number, _point: GlobalPoint): void {}
 
     getMaxHeight(ctx: CanvasRenderingContext2D): number {
         const lines = this.getLines(ctx);

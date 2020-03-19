@@ -93,8 +93,8 @@ export class Circle extends Shape {
         this.r = Math.max(Math.round(this.r / gs) * gs, gs / 2);
         this.invalidate(false);
     }
-    resize(resizePoint: number, point: LocalPoint): void {
-        const diff = l2g(point).subtract(this.refPoint);
+    resize(resizePoint: number, point: GlobalPoint): void {
+        const diff = point.subtract(this.refPoint);
         this.r = Math.sqrt(Math.pow(diff.length(), 2) / 2);
     }
 }

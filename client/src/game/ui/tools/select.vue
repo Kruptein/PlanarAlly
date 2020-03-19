@@ -10,7 +10,7 @@ import { EventBus } from "@/game/event-bus";
 import { GlobalPoint, LocalPoint, Ray, Vector } from "@/game/geom";
 import { Layer } from "@/game/layers/layer";
 import { layerManager } from "@/game/layers/manager";
-import { snapToPointLocal } from "@/game/layers/utils";
+import { snapToPoint } from "@/game/layers/utils";
 import { Rect } from "@/game/shapes/rect";
 import { gameStore } from "@/game/store";
 import { calculateDelta } from "@/game/ui/tools/utils";
@@ -182,10 +182,7 @@ export default class SelectTool extends Tool {
                             target: TriangulationTarget.VISION,
                             shape: sel,
                         });
-                    sel.resize(
-                        this.resizePoint,
-                        snapToPointLocal(layerManager.getLayer(layerManager.floor!.name)!, lp),
-                    );
+                    sel.resize(this.resizePoint, snapToPoint(layerManager.getLayer(layerManager.floor!.name)!, gp));
                     if (sel !== this.selectionHelper) {
                         // todo: think about calling deleteIntersectVertex directly on the corner point
                         if (sel.visionObstruction) {

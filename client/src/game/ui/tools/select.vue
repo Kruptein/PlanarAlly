@@ -36,6 +36,7 @@ export default class SelectTool extends Tool {
 
     mode = SelectOperations.Noop;
     resizePoint = 0;
+    originalResizePoints: number[][] = [];
     deltaChanged = false;
     // Because we never drag from the asset's (0, 0) coord and want a smoother drag experience
     // we keep track of the actual offset within the asset.
@@ -72,6 +73,7 @@ export default class SelectTool extends Tool {
             if (this.resizePoint >= 0) {
                 // Resize case, a corner is selected
                 layer.selection = [shape];
+                this.originalResizePoints = shape.points;
                 EventBus.$emit("SelectionInfo.Shape.Set", shape);
                 this.mode = SelectOperations.Resize;
                 layer.invalidate(true);
@@ -182,9 +184,12 @@ export default class SelectTool extends Tool {
                             target: TriangulationTarget.VISION,
                             shape: sel,
                         });
+                    let ignorePoint: GlobalPoint | undefined;
+                    if (this.resizePoint >= 0)
+                        ignorePoint = GlobalPoint.fromArray(this.originalResizePoints[this.resizePoint]);
                     this.resizePoint = sel.resize(
                         this.resizePoint,
-                        snapToPoint(layerManager.getLayer(layerManager.floor!.name)!, gp),
+                        snapToPoint(layerManager.getLayer(layerManager.floor!.name)!, gp, ignorePoint),
                     );
                     if (sel !== this.selectionHelper) {
                         // todo: think about calling deleteIntersectVertex directly on the corner point

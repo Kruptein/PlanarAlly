@@ -7,6 +7,8 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+## [0.19.0-rc.1] - 2020-03-19
+
 ### Added
 
 -   Account Settings
@@ -24,6 +26,9 @@ All notable changes to this project will be documented in this file.
 -   Display current version on client [ZachMyers3]
 -   Shape badges
     -   Toggleable badge display showing the shape's group number
+-   Logo to the planarserver.exe
+-   New experimental vision mode
+    -   Recalculates vision based on small changes instead of recalculing the entire scene.
 
 ### Changed
 
@@ -36,6 +41,7 @@ All notable changes to this project will be documented in this file.
 -   Movement of shapes not working 100% correctly
     -   In particular, moving a group of tokens now behaves correctly and doesn't suddenly jump around
 -   Resize of rectangle shapes (and assets) working in all directions
+-   Bug where shapes moved by players would remove auras/trackers from shapes for the DM
 
 ### Removed
 

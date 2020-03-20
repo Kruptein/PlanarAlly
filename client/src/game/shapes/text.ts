@@ -1,4 +1,4 @@
-import { GlobalPoint, LocalPoint } from "@/game/geom";
+import { GlobalPoint } from "@/game/geom";
 import { BoundingRect } from "@/game/shapes/boundingrect";
 import { Shape } from "@/game/shapes/shape";
 import { g2l } from "@/game/units";

@@ -27,6 +27,8 @@ All notable changes to this project will be documented in this file.
 -   Shape badges
     -   Toggleable badge display showing the shape's group number
 -   Logo to the planarserver.exe
+-   New experimental vision mode
+    -   Recalculates vision based on small changes instead of recalculing the entire scene.
 
 ### Changed
 

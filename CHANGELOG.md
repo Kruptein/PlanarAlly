@@ -41,6 +41,7 @@ All notable changes to this project will be documented in this file.
 -   Movement of shapes not working 100% correctly
     -   In particular, moving a group of tokens now behaves correctly and doesn't suddenly jump around
 -   Resize of rectangle shapes (and assets) working in all directions
+-   Bug where shapes moved by players would remove auras/trackers from shapes for the DM
 
 ### Removed
 

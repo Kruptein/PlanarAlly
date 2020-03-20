@@ -1,7 +1,7 @@
-import { GlobalPoint, LocalPoint } from "@/game/geom";
+import { GlobalPoint } from "@/game/geom";
 import { BoundingRect } from "@/game/shapes/boundingrect";
 import { Shape } from "@/game/shapes/shape";
-import { g2lx, g2ly, l2g, g2lz } from "@/game/units";
+import { g2lx, g2ly, g2lz } from "@/game/units";
 import { ServerLine } from "../comm/types/shapes";
 
 export class Line extends Shape {

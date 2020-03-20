@@ -1,6 +1,6 @@
 import { ServerPolygon } from "../comm/types/shapes";
-import { GlobalPoint, LocalPoint } from "../geom";
-import { g2lx, g2ly, g2lz, l2g } from "../units";
+import { GlobalPoint } from "../geom";
+import { g2lx, g2ly, g2lz } from "../units";
 import { getFogColour } from "../utils";
 import { BoundingRect } from "./boundingrect";
 import { Shape } from "./shape";

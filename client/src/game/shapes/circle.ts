@@ -1,10 +1,10 @@
 import { ServerCircle } from "@/game/comm/types/shapes";
-import { GlobalPoint, LocalPoint, Vector } from "@/game/geom";
+import { GlobalPoint, Vector } from "@/game/geom";
 import { BoundingRect } from "@/game/shapes/boundingrect";
 import { Shape } from "@/game/shapes/shape";
 import { gameStore } from "@/game/store";
 import { calculateDelta } from "@/game/ui/tools/utils";
-import { g2l, g2lz, l2g } from "@/game/units";
+import { g2l, g2lz } from "@/game/units";
 import { getFogColour } from "@/game/utils";
 
 export class Circle extends Shape {

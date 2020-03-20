@@ -3,7 +3,7 @@ import { BoundingRect } from "@/game/shapes/boundingrect";
 import { Shape } from "@/game/shapes/shape";
 import { gameStore } from "@/game/store";
 import { calculateDelta } from "@/game/ui/tools/utils";
-import { g2lx, g2ly, l2gz } from "@/game/units";
+import { g2lx, g2ly } from "@/game/units";
 import { ServerShape } from "../comm/types/shapes";
 
 export abstract class BaseRect extends Shape {

@@ -36,6 +36,9 @@ export class Point {
     asArray(): number[] {
         return [this.x, this.y];
     }
+    equals(other: GlobalPoint): boolean {
+        return this.x === other.x && this.y === other.y;
+    }
 }
 export class GlobalPoint extends Point {
     // This is to differentiate with LocalPoint, is actually never used

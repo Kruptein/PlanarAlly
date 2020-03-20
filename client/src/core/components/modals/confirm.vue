@@ -11,8 +11,11 @@
             {{ title }}
         </div>
         <div class="modal-body">
-            <button @click="confirm" ref="confirm">{{ yes }}</button>
-            <button @click="deny" v-if="!!no">{{ no }}</button>
+            <slot></slot>
+            <div class="buttons">
+                <button @click="confirm" ref="confirm">{{ yes }}</button>
+                <button @click="deny" v-if="!!no">{{ no }}</button>
+            </div>
         </div>
     </modal>
 </template>
@@ -37,22 +40,22 @@ export default class ConfirmDialog extends Vue {
     yes = "Yes";
     no = "No";
     title = "";
+    body = "";
 
-    resolve = (_ok: boolean) => {};
-    reject = () => {};
+    resolve: (ok: boolean) => void = (_ok: boolean) => {};
+    reject: () => void = () => {};
 
-    confirm() {
+    confirm(): void {
         this.resolve(true);
         this.close();
     }
-    deny() {
+    deny(): void {
         this.resolve(false);
         this.close();
     }
-    close() {
+    close(): void {
         this.reject();
         this.visible = false;
-        this.title = "";
     }
     open(title: string, yes = "yes", no = "no"): Promise<boolean> {
         this.yes = yes;
@@ -84,7 +87,12 @@ export default class ConfirmDialog extends Vue {
 .modal-body {
     padding: 10px;
     display: flex;
-    justify-content: flex-end;
+    flex-direction: column;
+    align-items: center;
+}
+
+.buttons {
+    align-self: flex-end;
 }
 
 button:first-of-type {

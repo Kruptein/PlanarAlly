@@ -19,10 +19,11 @@ socket.on("redirect", (destination: string) => {
 socket.on("Folder.Root.Set", (root: number) => {
     assetStore.setRoot(root);
 });
-socket.on("Folder.Set", (folder: Asset) => {
+socket.on("Folder.Set", (data: { folder: Asset; path?: number[] }) => {
     assetStore.clear();
-    if (folder.children) {
-        for (const child of folder.children) {
+    assetStore.idMap.set(data.folder.id, data.folder);
+    if (data.folder.children) {
+        for (const child of data.folder.children) {
             assetStore.idMap.set(child.id, child);
             if (child.file_hash) {
                 assetStore.files.push(child.id);
@@ -31,6 +32,8 @@ socket.on("Folder.Set", (folder: Asset) => {
             }
         }
     }
+    if (data.path) assetStore.setPath(data.path);
+    window.history.pushState(null, "Asset Manager", `/assets${assetStore.currentFilePath}`);
 });
 socket.on("Folder.Create", (folder: Asset) => {
     assetStore.folders.push(folder.id);

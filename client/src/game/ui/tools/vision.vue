@@ -35,7 +35,7 @@ export default class VisionTool extends Tool {
         return gameStore.ownedtokens.map(t => layerManager.UUIDMap.get(t)!);
     }
 
-    toggle(uuid: string) {
+    toggle(uuid: string): void {
         if (this.selection.includes(uuid)) gameStore.removeActiveToken(uuid);
         else gameStore.addActiveToken(uuid);
     }

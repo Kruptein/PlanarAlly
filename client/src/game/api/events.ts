@@ -1,19 +1,21 @@
-import { AssetList } from "@/core/comm/types";
+import { AssetList, SyncMode } from "@/core/comm/types";
 import { socket } from "@/game/api/socket";
 import { BoardInfo, Note, ServerClient, ServerLocation } from "@/game/comm/types/general";
 import { ServerShape } from "@/game/comm/types/shapes";
 import { EventBus } from "@/game/event-bus";
 import { GlobalPoint } from "@/game/geom";
 import { layerManager } from "@/game/layers/manager";
-import { createLayer } from "@/game/layers/utils";
+import { addFloor, removeFloor } from "@/game/layers/utils";
 import { gameManager } from "@/game/manager";
 import { gameStore } from "@/game/store";
 import { router } from "@/router";
 import { zoomDisplay } from "../utils";
-import { visibilityStore } from "../visibility/store";
+import { VisibilityMode, visibilityStore } from "../visibility/store";
+import { coreStore } from "@/core/store";
 
 socket.on("connect", () => {
     console.log("Connected");
+    coreStore.setLoading(false);
 });
 socket.on("disconnect", () => {
     console.log("Disconnected");
@@ -66,7 +68,9 @@ socket.on("Client.Options.Set", (options: ServerClient) => {
     gameStore.setZoomDisplay(zoomDisplay(options.zoom_factor));
     // gameStore.setZoomDisplay(0.5);
     if (options.active_layer) layerManager.selectLayer(options.active_layer, false);
-    if (layerManager.getGridLayer() !== undefined) layerManager.getGridLayer()!.invalidate();
+    for (const floor of layerManager.floors) {
+        if (layerManager.getGridLayer(floor.name) !== undefined) layerManager.getGridLayer(floor.name)!.invalidate();
+    }
 });
 socket.on("Location.Set", (data: Partial<ServerLocation>) => {
     if (data.name !== undefined) gameStore.setLocationName(data.name);
@@ -79,13 +83,19 @@ socket.on("Location.Set", (data: Partial<ServerLocation>) => {
     if (data.fow_los !== undefined) gameStore.setLineOfSight({ fowLOS: data.fow_los, sync: false });
     if (data.vision_min_range !== undefined) gameStore.setVisionRangeMin({ value: data.vision_min_range, sync: false });
     if (data.vision_max_range !== undefined) gameStore.setVisionRangeMax({ value: data.vision_max_range, sync: false });
-    if (data.vision_mode !== undefined) {
-        visibilityStore.setVisionMode({ mode: data.vision_mode, sync: false });
-        visibilityStore.recalculateVision();
-        visibilityStore.recalculateMovement();
+    if (data.vision_mode !== undefined && data.vision_mode in VisibilityMode) {
+        visibilityStore.setVisionMode({
+            mode: VisibilityMode[<keyof typeof VisibilityMode>data.vision_mode],
+            sync: false,
+        });
+        for (const floor of layerManager.floors) {
+            visibilityStore.recalculateVision(floor.name);
+            visibilityStore.recalculateMovement(floor.name);
+        }
     }
 });
-socket.on("Position.Set", (data: { x: number; y: number; zoom: number }) => {
+socket.on("Position.Set", (data: { floor: string; x: number; y: number; zoom: number }) => {
+    gameStore.selectFloor(gameStore.floors.findIndex(f => f === data.floor));
     gameStore.setZoomDisplay(data.zoom);
     gameManager.setCenterPosition(new GlobalPoint(data.x, data.y));
 });
@@ -102,14 +112,17 @@ socket.on("Board.Set", (locationInfo: BoardInfo) => {
     document.getElementById("layers")!.innerHTML = "";
     gameStore.resetLayerInfo();
     layerManager.reset();
-    for (const layer of locationInfo.layers) createLayer(layer);
-    // Force the correct opacity render on other layers.
-    layerManager.selectLayer(layerManager.getLayer()!.name, false);
+    for (const floor of locationInfo.floors) addFloor(floor);
     EventBus.$emit("Initiative.Clear");
-    visibilityStore.recalculateVision();
-    visibilityStore.recalculateMovement();
+    for (const floor of layerManager.floors) {
+        visibilityStore.recalculateVision(floor.name);
+        visibilityStore.recalculateMovement(floor.name);
+    }
+    gameStore.selectFloor(0);
     gameStore.setBoardInitialized(true);
 });
+socket.on("Floor.Create", addFloor);
+socket.on("Floor.Remove", removeFloor);
 socket.on("Gridsize.Set", (gridSize: number) => {
     gameStore.setGridSize({ gridSize, sync: false });
 });
@@ -121,12 +134,12 @@ socket.on("Shape.Remove", (shape: ServerShape) => {
         console.log(`Attempted to remove an unknown shape`);
         return;
     }
-    if (!layerManager.hasLayer(shape.layer)) {
+    if (!layerManager.hasLayer(shape.floor, shape.layer)) {
         console.log(`Attempted to remove shape from an unknown layer ${shape.layer}`);
         return;
     }
-    const layer = layerManager.getLayer(shape.layer)!;
-    layer.removeShape(layerManager.UUIDMap.get(shape.uuid)!, false);
+    const layer = layerManager.getLayer(shape.floor, shape.layer)!;
+    layer.removeShape(layerManager.UUIDMap.get(shape.uuid)!, SyncMode.NO_SYNC);
     layer.invalidate(false);
 });
 socket.on("Shape.Order.Set", (data: { shape: ServerShape; index: number }) => {
@@ -134,13 +147,18 @@ socket.on("Shape.Order.Set", (data: { shape: ServerShape; index: number }) => {
         console.log(`Attempted to move the shape order of an unknown shape`);
         return;
     }
-    if (!layerManager.hasLayer(data.shape.layer)) {
+    if (!layerManager.hasLayer(data.shape.floor, data.shape.layer)) {
         console.log(`Attempted to remove shape from an unknown layer ${data.shape.layer}`);
         return;
     }
     const shape = layerManager.UUIDMap.get(data.shape.uuid)!;
-    const layer = layerManager.getLayer(shape.layer)!;
+    const layer = layerManager.getLayer(shape.floor, shape.layer)!;
     layer.moveShapeOrder(shape, data.index, false);
+});
+socket.on("Shape.Floor.Change", (data: { uuid: string; floor: string }) => {
+    const shape = layerManager.UUIDMap.get(data.uuid);
+    if (shape === undefined) return;
+    shape.moveFloor(data.floor, false);
 });
 socket.on("Shape.Layer.Change", (data: { uuid: string; layer: string }) => {
     const shape = layerManager.UUIDMap.get(data.uuid);
@@ -157,12 +175,12 @@ socket.on("Temp.Clear", (shapeIds: string[]) => {
             continue;
         }
         const shape = layerManager.UUIDMap.get(shapeId)!;
-        if (!layerManager.hasLayer(shape.layer)) {
+        if (!layerManager.hasLayer(shape.floor, shape.layer)) {
             console.log(`Attempted to remove shape from an unknown layer ${shape.layer}`);
             continue;
         }
         const realShape = layerManager.UUIDMap.get(shape.uuid)!;
-        layerManager.getLayer(shape.layer)!.removeShape(realShape, false);
+        layerManager.getLayer(shape.floor, shape.layer)!.removeShape(realShape, SyncMode.NO_SYNC);
     }
 });
 socket.on("Labels.Set", (labels: Label[]) => {
@@ -179,13 +197,13 @@ socket.on("Label.Delete", (data: { user: string; uuid: string }) => {
 });
 socket.on("Labels.Filter.Add", (uuid: string) => {
     gameStore.labelFilters.push(uuid);
-    layerManager.invalidate();
+    layerManager.invalidateAllFloors();
 });
 socket.on("Labels.Filter.Remove", (uuid: string) => {
     const idx = gameStore.labelFilters.indexOf(uuid);
     if (idx >= 0) {
         gameStore.labelFilters.splice(idx, 1);
-        layerManager.invalidate();
+        layerManager.invalidateAllFloors();
     }
 });
 socket.on("Labels.Filters.Set", (filters: string[]) => {

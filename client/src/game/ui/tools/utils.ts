@@ -1,8 +1,6 @@
-import { GlobalPoint, Ray, Vector } from "@/game/geom";
-import { layerManager } from "@/game/layers/manager";
+import { GlobalPoint, Vector } from "@/game/geom";
 import { Shape } from "@/game/shapes/shape";
-import { visibilityStore } from "@/game/visibility/store";
-import { PA_CDT } from "@/game/visibility/te/pa";
+import { getCDT, TriangulationTarget } from "@/game/visibility/te/pa";
 import { Point, Sign, Triangle } from "@/game/visibility/te/tds";
 import { ccw, cw, intersection, orientation } from "@/game/visibility/te/triag";
 
@@ -10,68 +8,16 @@ import { ccw, cw, intersection, orientation } from "@/game/visibility/te/triag";
 
 // This is definitely super convoluted and inefficient but I was tired and really wanted the smooth wall sliding collision stuff to work
 // And it does now, so hey ¯\_(ツ)_/¯
-export function calculateDelta(delta: Vector, sel: Shape, done?: string[]): Vector {
+export function calculateDelta(delta: Vector, sel: Shape): Vector {
     if (delta.x === 0 && delta.y === 0) return delta;
-    if (visibilityStore.visionMode === "bvh") {
-        if (done === undefined) done = [];
-        const ogSelBBox = sel.getBoundingBox();
-        const newSelBBox = ogSelBBox.offset(delta);
-        let refine = false;
-        for (const movementBlocker of visibilityStore.movementblockers) {
-            if (done.includes(movementBlocker)) continue;
-            const blocker = layerManager.UUIDMap.get(movementBlocker)!;
-            const blockerBBox = blocker.getBoundingBox();
-            let found = blockerBBox.intersectsWithInner(newSelBBox);
-            if (!found) {
-                // This is an edge case, precalculating the rays is not worth in this case.
-                const ray = Ray.fromPoints(ogSelBBox.topLeft.add(delta.normalize()), newSelBBox.topLeft);
-                const invDir = ray.direction.inverse();
-                const dirIsNegative = [invDir.x < 0, invDir.y < 0];
-                found = blockerBBox.intersectP(ray, invDir, dirIsNegative).hit;
-            }
-            // Check if the bounding box of our destination would intersect with the bounding box of the movementblocker
-            if (found) {
-                const bCenter = blockerBBox.center();
-                const sCenter = ogSelBBox.center();
-
-                const d = sCenter.subtract(bCenter);
-                const ux = new Vector(1, 0);
-                const uy = new Vector(0, 1);
-                let dx = d.dot(ux);
-                let dy = d.dot(uy);
-                if (dx > blockerBBox.w / 2) dx = blockerBBox.w / 2;
-                if (dx < -blockerBBox.w / 2) dx = -blockerBBox.w / 2;
-                if (dy > blockerBBox.h / 2) dy = blockerBBox.h / 2;
-                if (dy < -blockerBBox.h / 2) dy = -blockerBBox.h / 2;
-
-                // Closest point / intersection point between the two bboxes.  Not the delta intersect!
-                const p = bCenter.add(ux.multiply(dx)).add(uy.multiply(dy));
-
-                if (p.x === ogSelBBox.topLeft.x || p.x === ogSelBBox.topRight.x) delta = new Vector(0, delta.y);
-                else if (p.y === ogSelBBox.topLeft.y || p.y === ogSelBBox.botLeft.y) delta = new Vector(delta.x, 0);
-                else {
-                    if (p.x < ogSelBBox.topLeft.x) delta = new Vector(p.x - ogSelBBox.topLeft.x, delta.y);
-                    else if (p.x > ogSelBBox.topRight.x) delta = new Vector(p.x - ogSelBBox.topRight.x, delta.y);
-                    else if (p.y < ogSelBBox.topLeft.y) delta = new Vector(delta.x, p.y - ogSelBBox.topLeft.y);
-                    else if (p.y > ogSelBBox.botLeft.y) delta = new Vector(delta.x, p.y - ogSelBBox.botLeft.y);
-                }
-                refine = true;
-                done.push(movementBlocker);
-                break;
-            }
-        }
-        if (refine) delta = calculateDelta(delta, sel, done);
-        return delta;
-    } else {
-        const centerTriangle = PA_CDT.movement.locate(sel.center().asArray(), null).loc;
-        for (const point of sel.points) {
-            const lt = PA_CDT.movement.locate(point, centerTriangle);
-            const triangle = lt.loc;
-            if (triangle === null) continue;
-            delta = checkTriangle(point, triangle, delta);
-        }
-        return delta;
+    const centerTriangle = getCDT(TriangulationTarget.MOVEMENT, sel.floor).locate(sel.center().asArray(), null).loc;
+    for (const point of sel.points) {
+        const lt = getCDT(TriangulationTarget.MOVEMENT, sel.floor).locate(point, centerTriangle);
+        const triangle = lt.loc;
+        if (triangle === null) continue;
+        delta = checkTriangle(point, triangle, delta);
     }
+    return delta;
 }
 
 function checkTriangle(point: Point, triangle: Triangle, delta: Vector, skip: Triangle[] = []): Vector {

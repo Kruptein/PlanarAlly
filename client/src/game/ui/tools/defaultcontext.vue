@@ -16,6 +16,7 @@ import { socket } from "@/game/api/socket";
 import { EventBus } from "@/game/event-bus";
 import { gameStore } from "@/game/store";
 import { l2gx, l2gy } from "@/game/units";
+import { layerManager } from "../../layers/manager";
 
 @Component({
     components: {
@@ -31,25 +32,30 @@ export default class DefaultContext extends Vue {
         return gameStore.IS_DM;
     }
 
-    open(event: MouseEvent) {
+    open(event: MouseEvent): void {
         this.visible = true;
         this.x = event.pageX;
         this.y = event.pageY;
         this.$nextTick(() => (<HTMLElement>this.$children[0].$el).focus());
     }
-    close() {
+    close(): void {
         this.visible = false;
     }
-    bringPlayers() {
+    bringPlayers(): void {
         if (!gameStore.IS_DM) return;
-        socket.emit("Players.Bring", { x: l2gx(this.x), y: l2gy(this.y), zoom: gameStore.zoomDisplay });
+        socket.emit("Players.Bring", {
+            floor: layerManager.floor!.name,
+            x: l2gx(this.x),
+            y: l2gy(this.y),
+            zoom: gameStore.zoomDisplay,
+        });
         this.close();
     }
-    createToken() {
+    createToken(): void {
         (<any>this.$parent.$refs.createtokendialog).open(this.x, this.y);
         this.close();
     }
-    showInitiative() {
+    showInitiative(): void {
         EventBus.$emit("Initiative.Show");
         this.close();
     }

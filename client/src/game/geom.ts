@@ -21,13 +21,13 @@ export class Point {
         return new Point(point[0], point[1]);
     }
     add(vec: Vector): this {
-        return new (this as any).constructor(this.x + vec.x, this.y + vec.y);
+        return new (<any>this).constructor(this.x + vec.x, this.y + vec.y);
     }
     subtract(other: this): Vector {
         return new Vector(this.x - other.x, this.y - other.y);
     }
     clone(): this {
-        return new (this as any).constructor(this.x, this.y);
+        return new (<any>this).constructor(this.x, this.y);
     }
     get(dimension: 0 | 1): number {
         if (dimension === 0) return this.x;
@@ -35,6 +35,9 @@ export class Point {
     }
     asArray(): number[] {
         return [this.x, this.y];
+    }
+    equals(other: GlobalPoint): boolean {
+        return this.x === other.x && this.y === other.y;
     }
 }
 export class GlobalPoint extends Point {

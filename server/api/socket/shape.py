@@ -8,9 +8,11 @@ from .initiative import send_client_initiatives
 from app import app, logger, sio, state
 from models import (
     Aura,
+    Floor,
     Label,
     Layer,
     PlayerRoom,
+    Room,
     Shape,
     ShapeLabel,
     ShapeOwner,
@@ -28,10 +30,12 @@ async def add_shape(sid, data):
     user = sid_data["user"]
     room = sid_data["room"]
     location = sid_data["location"]
+
     if "temporary" not in data:
         data["temporary"] = False
 
-    layer = location.layers.where(Layer.name == data["shape"]["layer"])[0]
+    floor = location.floors.select().where(Floor.name == data["shape"]["floor"])[0]
+    layer = floor.layers.where(Layer.name == data["shape"]["layer"])[0]
 
     if room.creator != user and not layer.player_editable:
         logger.warning(f"{user.name} attempted to add a shape to a dm layer")
@@ -40,15 +44,15 @@ async def add_shape(sid, data):
         state.add_temp(sid, data["shape"]["uuid"])
     else:
         with db.atomic():
-            data["shape"]["layer"] = Layer.get(
-                location=location, name=data["shape"]["layer"]
-            )
+            data["shape"]["layer"] = layer
             data["shape"]["index"] = layer.shapes.count()
             # Shape itself
             shape = Shape.create(**reduce_data_to_model(Shape, data["shape"]))
             # Subshape
             type_table = get_table(shape.type_)
-            type_table.create(shape=shape, **reduce_data_to_model(type_table, data["shape"]))
+            type_table.create(
+                shape=shape, **reduce_data_to_model(type_table, data["shape"])
+            )
             # Owners
             ShapeOwner.create(shape=shape, user=user)
             # Trackers
@@ -93,12 +97,9 @@ async def update_shape_position(sid, data):
     # Overwrite the old data with the new data
     if not data["temporary"]:
         with db.atomic():
-            data["shape"]["layer"] = Layer.get(
-                location=location, name=data["shape"]["layer"]
-            )
             # Shape
             model = reduce_data_to_model(Shape, data["shape"])
-            update_model_from_dict(shape, model)
+            # update_model_from_dict(shape, model)
             shape.save()
             if shape.type_ == "polygon":
                 # Subshape
@@ -126,9 +127,6 @@ async def update_shape(sid, data):
     # Overwrite the old data with the new data
     if not data["temporary"]:
         with db.atomic():
-            data["shape"]["layer"] = Layer.get(
-                location=location, name=data["shape"]["layer"]
-            )
             # Shape
             update_model_from_dict(shape, reduce_data_to_model(Shape, data["shape"]))
             shape.save()
@@ -155,7 +153,11 @@ async def update_shape(sid, data):
             for tracker_id in old_trackers | new_trackers:
                 remove = tracker_id in old_trackers - new_trackers
                 if not remove:
-                    tracker = next(tr for tr in data["shape"]["trackers"] if tr["uuid"] == tracker_id)
+                    tracker = next(
+                        tr
+                        for tr in data["shape"]["trackers"]
+                        if tr["uuid"] == tracker_id
+                    )
                     reduced = reduce_data_to_model(Tracker, tracker)
                     reduced["shape"] = shape
                 if tracker_id in new_trackers - old_trackers:
@@ -167,14 +169,16 @@ async def update_shape(sid, data):
                 else:
                     update_model_from_dict(tracker_db, reduced)
                     tracker_db.save()
-                
+
             # Auras
             old_auras = {aura.uuid for aura in shape.auras}
             new_auras = {aura["uuid"] for aura in data["shape"]["auras"]}
             for aura_id in old_auras | new_auras:
                 remove = aura_id in old_auras - new_auras
                 if not remove:
-                    aura = next(au for au in data["shape"]["auras"] if au["uuid"] == aura_id)
+                    aura = next(
+                        au for au in data["shape"]["auras"] if au["uuid"] == aura_id
+                    )
                     reduced = reduce_data_to_model(Aura, aura)
                     reduced["shape"] = shape
                 if aura_id in new_auras - old_auras:
@@ -205,7 +209,9 @@ async def update_shape(sid, data):
                 if label in new_labels:
                     ShapeLabel.create(shape=shape, label=Label.get(uuid=label))
                 else:
-                    ShapeLabel.get(label=Label.get(uuid=label), shape=shape).delete_instance(True)
+                    ShapeLabel.get(
+                        label=Label.get(uuid=label), shape=shape
+                    ).delete_instance(True)
 
     await sync_shape_update(layer, room, data, sid, shape)
 
@@ -222,7 +228,8 @@ async def remove_shape(sid, data):
     if data["temporary"]:
         # This stuff is not stored so we cannot do any server side validation /shrug
         shape = data["shape"]
-        layer = location.layers.where(Layer.name == data["shape"]["layer"])[0]
+        floor = location.floors.select().where(Floor.name == data["shape"]["floor"])[0]
+        layer = floor.layers.where(Layer.name == data["shape"]["layer"])[0]
     else:
         # Use the server version of the shape.
         try:
@@ -273,6 +280,41 @@ async def remove_shape(sid, data):
             )
 
 
+@sio.on("Shape.Floor.Change", namespace="/planarally")
+@auth.login_required(app, sio)
+async def change_shape_layer(sid, data):
+    sid_data = state.sid_map[sid]
+    user = sid_data["user"]
+    room = sid_data["room"]
+    location = sid_data["location"]
+
+    if room.creator != user:
+        logger.warning(f"{user.name} attempted to move the floor of a shape")
+        return
+
+    floor: Floor = Floor.get(location=location, name=data["floor"])
+    shape: Shape = Shape.get(uuid=data["uuid"])
+    layer: Layer = Layer.get(floor=floor, name=shape.layer.name)
+    old_layer = shape.layer
+    old_index = shape.index
+
+    shape.layer = layer
+    shape.index = layer.shapes.count()
+    shape.save()
+
+    Shape.update(index=Shape.index - 1).where(
+        (Shape.layer == old_layer) & (Shape.index >= old_index)
+    ).execute()
+
+    await sio.emit(
+        "Shape.Floor.Change",
+        data,
+        room=location.get_path(),
+        skip_sid=sid,
+        namespace="/planarally",
+    )
+
+
 @sio.on("Shape.Layer.Change", namespace="/planarally")
 @auth.login_required(app, sio)
 async def change_shape_layer(sid, data):
@@ -285,7 +327,8 @@ async def change_shape_layer(sid, data):
         logger.warning(f"{user.name} attempted to move the layer of a shape")
         return
 
-    layer = Layer.get(location=location, name=data["layer"])
+    floor = Floor.get(location=location, name=data["floor"])
+    layer = Layer.get(floor=floor, name=data["layer"])
     shape = Shape.get(uuid=data["uuid"])
     old_layer = shape.layer
     old_index = shape.index
@@ -384,23 +427,26 @@ async def move_shape_order(sid, data):
             )
 
 
-async def sync_shape_update(layer, room, data, sid, shape):
+async def sync_shape_update(layer, room: Room, data, sid, shape):
     for psid, player in state.get_players(room=room):
         if psid == sid:
             continue
-        pdata = { el: data[el] for el in data if el != "shape" }
+        pdata = {el: data[el] for el in data if el != "shape"}
         if data["temporary"]:
-            if player.name not in data["shape"]["owners"]:
+            if player != room.creator and player.name not in data["shape"]["owners"]:
                 pdata["shape"] = deepcopy(data["shape"])
                 # Although we have no guarantees that the message is faked, we still would like to verify data as if it were legitimate.
                 for element in ["auras", "labels", "trackers"]:
-                    pdata["shape"][element] = [el for el in pdata["shape"][element] if el["visible"]]
+                    pdata["shape"][element] = [
+                        el for el in pdata["shape"][element] if el["visible"]
+                    ]
                 if not pdata["shape"]["name_visible"]:
                     pdata["shape"]["name"] = "?"
             else:
                 pdata["shape"] = shape
+            pdata["shape"]["layer"] = pdata["shape"]["layer"].name
         else:
-            pdata["shape"] = shape.as_dict(player, False)
+            pdata["shape"] = shape.as_dict(player, player == room.creator)
         await sio.emit("Shape.Update", pdata, room=psid, namespace="/planarally")
 
 
@@ -409,7 +455,8 @@ async def _get_shape(data, location, user):
     if data["temporary"]:
         # This stuff is not stored so we cannot do any server side validation /shrug
         shape = data["shape"]
-        layer = location.layers.where(Layer.name == data["shape"]["layer"])[0]
+        floor = location.floors.select().where(Floor.name == shape["floor"])[0]
+        layer = floor.layers.where(Layer.name == data["shape"]["layer"])[0]
     else:
         # Use the server version of the shape.
         try:
@@ -420,6 +467,8 @@ async def _get_shape(data, location, user):
             )
             raise exc
         layer = shape.layer
+
+    data["shape"]["layer"] = layer
 
     return shape, layer
 

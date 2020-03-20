@@ -144,8 +144,12 @@
                     <label for="visionMode">Vision Mode:</label>
                     <div>
                         <select id="visionMode" @change="changeVisionMode">
-                            <option :selected="$store.state.visibility.visionMode === 'bvh'">BVH</option>
-                            <option :selected="$store.state.visibility.visionMode === 'triangle'">Triangle</option>
+                            <option :selected="$store.state.visibility.visionMode === 0">
+                                Default
+                            </option>
+                            <option :selected="$store.state.visibility.visionMode === 1">
+                                Experimental
+                            </option>
                         </select>
                     </div>
                 </div>
@@ -178,9 +182,9 @@ import Modal from "@/core/components/modals/modal.vue";
 import { socket } from "@/game/api/socket";
 import { EventBus } from "@/game/event-bus";
 import { gameStore } from "@/game/store";
-import { layerManager } from "../layers/manager";
 import Game from "../game.vue";
-import { visibilityStore } from "../visibility/store";
+import { visibilityStore, VisibilityMode } from "../visibility/store";
+import { layerManager } from "../layers/manager";
 
 @Component({
     components: {
@@ -199,7 +203,7 @@ export default class DmSettings extends Vue {
     showRefreshState = false;
     refreshState = "pending";
 
-    mounted() {
+    mounted(): void {
         EventBus.$on("DmSettings.Open", () => {
             this.visible = true;
         });
@@ -208,7 +212,7 @@ export default class DmSettings extends Vue {
         });
     }
 
-    beforeDestroy() {
+    beforeDestroy(): void {
         EventBus.$off("DmSettings.Open");
         EventBus.$off("DmSettings.RefreshedInviteCode");
     }
@@ -287,46 +291,45 @@ export default class DmSettings extends Vue {
         if (typeof value !== "number") return;
         gameStore.setVisionRangeMax({ value, sync: true });
     }
-    changeVisionMode(event: { target: HTMLSelectElement }) {
+    changeVisionMode(event: { target: HTMLSelectElement }): void {
         const value = event.target.value.toLowerCase();
-        if (value !== "bvh" && value !== "triangle") return;
-        visibilityStore.setVisionMode({ mode: value, sync: true });
-        visibilityStore.recalculateVision();
-        visibilityStore.recalculateMovement();
-        layerManager.invalidate();
+        let mode: VisibilityMode;
+        if (value === "default") mode = VisibilityMode.TRIANGLE;
+        else if (value === "experimental") mode = VisibilityMode.TRIANGLE_ITERATIVE;
+        else return;
+        visibilityStore.setVisionMode({ mode, sync: true });
+        for (const floor of layerManager.floors) {
+            visibilityStore.recalculateVision(floor.name);
+            visibilityStore.recalculateMovement(floor.name);
+        }
+        layerManager.invalidateAllFloors();
     }
-    handleClick(event: { target: HTMLElement }) {
+    handleClick(event: { target: HTMLElement }): void {
         const child = event.target.firstElementChild;
         if (child instanceof HTMLInputElement) {
             child.click();
         }
     }
-    refreshInviteCode() {
+    refreshInviteCode(): void {
         socket.emit("Room.Info.InviteCode.Refresh");
         this.refreshState = "pending";
         this.showRefreshState = true;
     }
-    kickPlayer(id: number) {
+    kickPlayer(id: number): void {
         socket.emit("Room.Info.Players.Kick", id);
         gameStore.kickPlayer(id);
     }
-    toggleSessionLock() {
+    toggleSessionLock(): void {
         gameStore.setIsLocked({ isLocked: !gameStore.isLocked, sync: true });
     }
-    deleteSession() {
-        (<Game>this.$parent).$refs.prompt
-            .prompt(
-                `ENTER ${gameStore.roomCreator}/${gameStore.roomName} TO CONFIRM SESSION REMOVAL.`,
-                `DELETING SESSION`,
-            )
-            .then(
-                (value: string) => {
-                    if (value !== `${gameStore.roomCreator}/${gameStore.roomName}`) return;
-                    socket.emit("Room.Delete");
-                    this.$router.push("/");
-                },
-                () => {},
-            );
+    async deleteSession(): Promise<void> {
+        const value = await (<Game>this.$parent).$refs.prompt.prompt(
+            `ENTER ${gameStore.roomCreator}/${gameStore.roomName} TO CONFIRM SESSION REMOVAL.`,
+            `DELETING SESSION`,
+        );
+        if (value !== `${gameStore.roomCreator}/${gameStore.roomName}`) return;
+        socket.emit("Room.Delete");
+        this.$router.push("/");
     }
 }
 </script>

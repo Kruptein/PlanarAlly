@@ -11,6 +11,7 @@ import { GlobalPoint, Vector } from "@/game/geom";
 import { layerManager } from "@/game/layers/manager";
 import { g2l, l2g } from "@/game/units";
 import { zoomValue } from "@/game/utils";
+import { Layer } from "./layers/layer";
 
 export interface LocationOptions {
     panX: number;
@@ -31,6 +32,8 @@ class GameStore extends VuexModule implements GameState {
     boardInitialized = false;
 
     locations: string[] = [];
+    floors: string[] = [];
+    selectedFloorIndex = -1;
 
     assets: AssetList = {};
 
@@ -123,7 +126,7 @@ class GameStore extends VuexModule implements GameState {
     setFakePlayer(value: boolean): void {
         this.FAKE_PLAYER = value;
         this.IS_DM = !value;
-        layerManager.invalidate();
+        layerManager.invalidateAllFloors();
     }
 
     @Mutation
@@ -132,7 +135,7 @@ class GameStore extends VuexModule implements GameState {
         if (zoom < 0) zoom = 0;
         if (zoom > 1) zoom = 1;
         this.zoomDisplay = zoom;
-        layerManager.invalidate();
+        layerManager.invalidateAllFloors();
     }
 
     @Mutation
@@ -165,15 +168,13 @@ class GameStore extends VuexModule implements GameState {
     deleteLabel(data: { uuid: string; user: string }): void {
         if (!(data.uuid in this.labels)) return;
         const label = this.labels[data.uuid];
-        const updatedLayers: Set<string> = new Set();
         for (const shape of layerManager.UUIDMap.values()) {
             const i = shape.labels.indexOf(label);
             if (i >= 0) {
                 shape.labels.splice(i, 1);
-                updatedLayers.add(shape.layer);
+                layerManager.getLayer(shape.floor, shape.layer)!.invalidate(false);
             }
         }
-        for (const layer of updatedLayers) layerManager.getLayer(layer)!.invalidate(false);
         Vue.delete(this.labels, data.uuid);
     }
 
@@ -209,10 +210,32 @@ class GameStore extends VuexModule implements GameState {
     }
 
     @Mutation
-    selectLayer(data: { name: string; sync: boolean }): void {
-        const index = this.layers.indexOf(data.name);
-        if (index >= 0) this.selectedLayerIndex = index;
-        if (data.sync) socket.emit("Client.ActiveLayer.Set", data.name);
+    selectLayer(data: { layer: Layer; sync: boolean }): void {
+        let index = this.layers.indexOf(data.layer.name);
+        if (index < 0) index = 0;
+        // else if (index >= this.layers.reduce((acc: number, val: Layer) => val.floor === data.layer.floor))
+        this.selectedLayerIndex = index;
+        if (data.sync) socket.emit("Client.ActiveLayer.Set", { floor: data.layer.floor, layer: data.layer.name });
+    }
+
+    @Mutation
+    selectFloor(targetFloorIndex: number): void {
+        this.selectedFloorIndex = targetFloorIndex;
+        this.layers = layerManager.floor!.layers.reduce(
+            (acc: string[], val: Layer) =>
+                val.selectable && (val.playerEditable || this.IS_DM) ? [...acc, val.name] : acc,
+            [],
+        );
+        if (this.selectedLayerIndex < 0) this.selectedLayerIndex = 0;
+
+        for (const [f, floor] of layerManager.floors.entries()) {
+            for (const layer of floor.layers) {
+                if (f > targetFloorIndex) layer.canvas.style.display = "none";
+                else layer.canvas.style.removeProperty("display");
+            }
+        }
+        layerManager.selectLayer(layerManager.getLayer(layerManager.floor!.name)!.name, false, false);
+        layerManager.invalidateAllFloors();
     }
 
     @Mutation
@@ -233,6 +256,8 @@ class GameStore extends VuexModule implements GameState {
 
     @Mutation
     resetLayerInfo(): void {
+        this.floors = [];
+        this.selectedFloorIndex = -1;
         this.layers = [];
         this.selectedLayerIndex = -1;
     }
@@ -249,21 +274,23 @@ class GameStore extends VuexModule implements GameState {
         const diff = newLoc.subtract(data.zoomLocation);
         this.panX += diff.x;
         this.panY += diff.y;
-        layerManager.invalidate();
+        layerManager.invalidateAllFloors();
         sendClientOptions(gameStore.locationOptions);
     }
 
     @Mutation
     setGridColour(data: { colour: string; sync: boolean }): void {
         this.gridColour = data.colour;
-        layerManager.getGridLayer()!.drawGrid();
+        for (const floor of layerManager.floors) {
+            layerManager.getGridLayer(floor.name)!.drawGrid();
+        }
         if (data.sync) socket.emit("Client.Options.Set", { gridColour: data.colour });
     }
 
     @Mutation
     setFOWColour(data: { colour: string; sync: boolean }): void {
         this.fowColour = data.colour;
-        layerManager.invalidate();
+        layerManager.invalidateAllFloors();
         if (data.sync) socket.emit("Client.Options.Set", { fowColour: data.colour });
     }
 
@@ -297,7 +324,7 @@ class GameStore extends VuexModule implements GameState {
     setUnitSize(data: { unitSize: number; sync: boolean }): void {
         if (this.unitSize !== data.unitSize && data.unitSize > 0 && data.unitSize < Infinity) {
             this.unitSize = data.unitSize;
-            layerManager.invalidate();
+            layerManager.invalidateAllFloors();
             // eslint-disable-next-line @typescript-eslint/camelcase
             if (data.sync) socket.emit("Location.Options.Set", { unit_size: data.unitSize });
         }
@@ -307,7 +334,7 @@ class GameStore extends VuexModule implements GameState {
     setUnitSizeUnit(data: { unitSizeUnit: string; sync: boolean }): void {
         if (this.unitSizeUnit !== data.unitSizeUnit) {
             this.unitSizeUnit = data.unitSizeUnit;
-            layerManager.invalidate();
+            layerManager.invalidateAllFloors();
             // eslint-disable-next-line @typescript-eslint/camelcase
             if (data.sync) socket.emit("Location.Options.Set", { unit_size_unit: data.unitSizeUnit });
         }
@@ -317,9 +344,11 @@ class GameStore extends VuexModule implements GameState {
     setUseGrid(data: { useGrid: boolean; sync: boolean }): void {
         if (this.useGrid !== data.useGrid) {
             this.useGrid = data.useGrid;
-            const gridLayer = layerManager.getGridLayer()!;
-            if (data.useGrid) gridLayer.canvas.style.display = "block";
-            else gridLayer.canvas.style.display = "none";
+            for (const floor of layerManager.floors) {
+                const gridLayer = layerManager.getGridLayer(floor.name)!;
+                if (data.useGrid) gridLayer.canvas.style.display = "block";
+                else gridLayer.canvas.style.display = "none";
+            }
             // eslint-disable-next-line @typescript-eslint/camelcase
             if (data.sync) socket.emit("Location.Options.Set", { use_grid: data.useGrid });
         }
@@ -329,8 +358,10 @@ class GameStore extends VuexModule implements GameState {
     setGridSize(data: { gridSize: number; sync: boolean }): void {
         if (this.gridSize !== data.gridSize && data.gridSize > 0) {
             this.gridSize = data.gridSize;
-            const gridLayer = layerManager.getGridLayer();
-            if (gridLayer !== undefined) gridLayer.drawGrid();
+            for (const floor of layerManager.floors) {
+                const gridLayer = layerManager.getGridLayer(floor.name);
+                if (gridLayer !== undefined) gridLayer.drawGrid();
+            }
             if (data.sync) socket.emit("Gridsize.Set", data.gridSize);
         }
     }
@@ -338,7 +369,7 @@ class GameStore extends VuexModule implements GameState {
     @Mutation
     setVisionRangeMin(data: { value: number; sync: boolean }): void {
         this.visionRangeMin = data.value;
-        layerManager.invalidateLight();
+        layerManager.invalidateLightAllFloors();
         // eslint-disable-next-line @typescript-eslint/camelcase
         if (data.sync) socket.emit("Location.Options.Set", { vision_min_range: data.value });
     }
@@ -346,7 +377,7 @@ class GameStore extends VuexModule implements GameState {
     @Mutation
     setVisionRangeMax(data: { value: number; sync: boolean }): void {
         this.visionRangeMax = Math.max(data.value, this.visionRangeMin);
-        layerManager.invalidateLight();
+        layerManager.invalidateLightAllFloors();
         // eslint-disable-next-line @typescript-eslint/camelcase
         if (data.sync) socket.emit("Location.Options.Set", { vision_max_range: this.visionRangeMax });
     }
@@ -355,7 +386,7 @@ class GameStore extends VuexModule implements GameState {
     setFullFOW(data: { fullFOW: boolean; sync: boolean }): void {
         if (this.fullFOW !== data.fullFOW) {
             this.fullFOW = data.fullFOW;
-            layerManager.invalidateLight();
+            layerManager.invalidateLightAllFloors();
             // eslint-disable-next-line @typescript-eslint/camelcase
             if (data.sync) socket.emit("Location.Options.Set", { full_fow: data.fullFOW });
         }
@@ -364,7 +395,7 @@ class GameStore extends VuexModule implements GameState {
     @Mutation
     setFOWOpacity(data: { fowOpacity: number; sync: boolean }): void {
         this.fowOpacity = data.fowOpacity;
-        layerManager.invalidateLight();
+        layerManager.invalidateLightAllFloors();
         // eslint-disable-next-line @typescript-eslint/camelcase
         if (data.sync) socket.emit("Location.Options.Set", { fow_opacity: data.fowOpacity });
     }
@@ -373,7 +404,7 @@ class GameStore extends VuexModule implements GameState {
     setLineOfSight(data: { fowLOS: boolean; sync: boolean }): void {
         if (this.fowLOS !== data.fowLOS) {
             this.fowLOS = data.fowLOS;
-            layerManager.invalidate();
+            layerManager.invalidateAllFloors();
             // eslint-disable-next-line @typescript-eslint/camelcase
             if (data.sync) socket.emit("Location.Options.Set", { fow_los: data.fowLOS });
         }
@@ -417,13 +448,13 @@ class GameStore extends VuexModule implements GameState {
     @Mutation
     setActiveTokens(tokens: string[]): void {
         this._activeTokens = tokens;
-        layerManager.invalidateLight();
+        layerManager.invalidateLightAllFloors();
     }
 
     @Mutation
     addActiveToken(token: string): void {
         this._activeTokens.push(token);
-        layerManager.invalidateLight();
+        layerManager.invalidateLightAllFloors();
     }
 
     @Mutation
@@ -432,7 +463,7 @@ class GameStore extends VuexModule implements GameState {
             this._activeTokens = [...this.ownedtokens];
         }
         this._activeTokens.splice(this._activeTokens.indexOf(token), 1);
-        layerManager.invalidateLight();
+        layerManager.invalidateLightAllFloors();
     }
 
     @Mutation

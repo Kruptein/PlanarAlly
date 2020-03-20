@@ -1,36 +1,38 @@
+import { InvalidationMode, SyncMode } from "@/core/comm/types";
 import { sendClientOptions } from "@/game/api/utils";
 import { ServerShape } from "@/game/comm/types/shapes";
+import { EventBus } from "@/game/event-bus";
 import { GlobalPoint } from "@/game/geom";
 import { layerManager } from "@/game/layers/manager";
 import { createShapeFromDict } from "@/game/shapes/utils";
 import { gameStore } from "@/game/store";
 import { AnnotationManager } from "@/game/ui/annotation";
 import { g2l } from "@/game/units";
-import { EventBus } from "./event-bus";
-import { visibilityStore } from "./visibility/store";
+import { visibilityStore } from "@/game/visibility/store";
+import { TriangulationTarget } from "@/game/visibility/te/pa";
 
 export class GameManager {
-    selectedTool: number = 0;
+    selectedTool = 0;
 
     annotationManager = new AnnotationManager();
 
     addShape(shape: ServerShape): void {
-        if (!layerManager.hasLayer(shape.layer)) {
+        if (!layerManager.hasLayer(shape.floor, shape.layer)) {
             console.log(`Shape with unknown layer ${shape.layer} could not be added`);
             return;
         }
-        const layer = layerManager.getLayer(shape.layer)!;
+        const layer = layerManager.getLayer(shape.floor, shape.layer)!;
         const sh = createShapeFromDict(shape);
         if (sh === undefined) {
             console.log(`Shape with unknown type ${shape.type_} could not be added`);
             return;
         }
-        layer.addShape(sh, false);
+        layer.addShape(sh, SyncMode.NO_SYNC, InvalidationMode.NORMAL);
         layer.invalidate(false);
     }
 
     updateShape(data: { shape: ServerShape; redraw: boolean; move: boolean; temporary: boolean }): void {
-        if (!layerManager.hasLayer(data.shape.layer)) {
+        if (!layerManager.hasLayer(data.shape.floor, data.shape.layer)) {
             console.log(`Shape with unknown layer ${data.shape.layer} could not be added`);
             return;
         }
@@ -46,13 +48,28 @@ export class GameManager {
         }
         const redrawInitiative = sh.owners !== oldShape.owners;
         const shape = Object.assign(oldShape, sh);
-        shape.checkVisionSources();
-        shape.setMovementBlock(shape.movementObstruction);
+        const alteredVision = shape.checkVisionSources();
+        const alteredMovement = shape.setMovementBlock(shape.movementObstruction);
         shape.setIsToken(shape.isToken);
         if (data.redraw) {
-            if (shape.visionObstruction) visibilityStore.recalculateVision();
-            layerManager.getLayer(data.shape.layer)!.invalidate(false);
-            if (shape.movementObstruction) visibilityStore.recalculateMovement();
+            if (shape.visionObstruction && !alteredVision) {
+                visibilityStore.deleteFromTriag({
+                    target: TriangulationTarget.VISION,
+                    shape,
+                });
+                visibilityStore.addToTriag({ target: TriangulationTarget.VISION, shape });
+                visibilityStore.recalculateVision(shape.floor);
+            }
+            layerManager.getLayer(data.shape.floor, data.shape.layer)!.invalidate(false);
+            layerManager.invalidateLightAllFloors();
+            if (shape.movementObstruction && !alteredMovement) {
+                visibilityStore.deleteFromTriag({
+                    target: TriangulationTarget.MOVEMENT,
+                    shape,
+                });
+                visibilityStore.addToTriag({ target: TriangulationTarget.MOVEMENT, shape });
+                visibilityStore.recalculateMovement(shape.floor);
+            }
         }
         if (redrawInitiative) EventBus.$emit("Initiative.ForceUpdate");
     }
@@ -61,7 +78,7 @@ export class GameManager {
         const localPos = g2l(position);
         gameStore.increasePanX((window.innerWidth / 2 - localPos.x) / gameStore.zoomFactor);
         gameStore.increasePanY((window.innerHeight / 2 - localPos.y) / gameStore.zoomFactor);
-        layerManager.invalidate();
+        layerManager.invalidateAllFloors();
         sendClientOptions(gameStore.locationOptions);
     }
 }

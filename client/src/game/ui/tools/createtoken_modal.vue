@@ -45,6 +45,7 @@ import { CircularToken } from "@/game/shapes/circulartoken";
 import { gameStore } from "@/game/store";
 import { getUnitDistance, l2g } from "@/game/units";
 import { Watch } from "vue-property-decorator";
+import { SyncMode, InvalidationMode } from "../../../core/comm/types";
 
 @Component({
     components: {
@@ -63,30 +64,30 @@ export default class CreateTokenModal extends Vue {
     fillColour = "rgba(255, 255, 255, 1)";
     borderColour = "rgba(0, 0, 0, 1)";
 
-    mounted() {
+    mounted(): void {
         this.updatePreview();
     }
 
     @Watch("text")
-    onTextChange(_newValue: string, _oldValue: string) {
+    onTextChange(_newValue: string, _oldValue: string): void {
         this.updatePreview();
     }
     @Watch("fillColour")
-    onFillChange(_newValue: string, _oldValue: string) {
+    onFillChange(_newValue: string, _oldValue: string): void {
         this.updatePreview();
     }
     @Watch("borderColour")
-    onBorderChange(_newValue: string, _oldValue: string) {
+    onBorderChange(_newValue: string, _oldValue: string): void {
         this.updatePreview();
     }
 
-    open(x: number, y: number) {
+    open(x: number, y: number): void {
         this.visible = true;
         this.x = x;
         this.y = y;
     }
-    submit() {
-        const layer = layerManager.getLayer();
+    submit(): void {
+        const layer = layerManager.getLayer(layerManager.floor!.name);
         if (layer === undefined) return;
         const token = new CircularToken(
             l2g(new LocalPoint(this.x, this.y)),
@@ -97,11 +98,11 @@ export default class CreateTokenModal extends Vue {
             this.borderColour,
         );
         token.addOwner(gameStore.username);
-        layer.addShape(token, true);
+        layer.addShape(token, SyncMode.FULL_SYNC, InvalidationMode.WITH_LIGHT);
         layer.invalidate(false);
         this.visible = false;
     }
-    updatePreview() {
+    updatePreview(): void {
         const ctx = (<HTMLCanvasElement>this.$refs.canvas).getContext("2d")!;
         ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
         ctx.beginPath();

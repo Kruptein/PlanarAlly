@@ -5,12 +5,13 @@ import { Rect } from "@/game/shapes/rect";
 import { Text } from "@/game/shapes/text";
 import { gameStore } from "@/game/store";
 import { l2g } from "@/game/units";
+import { SyncMode, InvalidationMode } from "@/core/comm/types";
 
 export class AnnotationManager {
     annotationText: Text;
     annotationRect: Rect;
     layer: Layer | undefined;
-    shown: boolean = false;
+    shown = false;
 
     constructor() {
         const origin = new GlobalPoint(0, 0);
@@ -19,15 +20,13 @@ export class AnnotationManager {
     }
 
     setActiveText(text: string): void {
-        if (this.layer === undefined) {
-            if (layerManager.hasLayer("draw")) {
-                this.layer = layerManager.getLayer("draw")!;
-                this.layer.addShape(this.annotationRect, false);
-                this.layer.addShape(this.annotationText, false);
-            } else {
-                console.warn("There is no draw layer to draw annotations on!");
-                return;
-            }
+        if (layerManager.hasLayer(layerManager.floor!.name, "draw")) {
+            this.layer = layerManager.getLayer(layerManager.floor!.name, "draw")!;
+            this.layer.addShape(this.annotationRect, SyncMode.NO_SYNC, InvalidationMode.NORMAL);
+            this.layer.addShape(this.annotationText, SyncMode.NO_SYNC, InvalidationMode.NORMAL);
+        } else {
+            console.warn("There is no draw layer to draw annotations on!");
+            return;
         }
         this.shown = text !== "";
         this.annotationText.refPoint = l2g(new LocalPoint(this.layer.canvas.width / 2, 50));

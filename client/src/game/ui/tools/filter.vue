@@ -33,7 +33,7 @@ export default class FilterTool extends Tool {
     name = "Filter";
     active = false;
 
-    get labels() {
+    get labels(): { [category: string]: [string, string][] } {
         const cat: { [category: string]: [string, string][] } = { "": [] };
         for (const uuid of Object.keys(gameStore.labels)) {
             const label = gameStore.labels[uuid];
@@ -47,7 +47,7 @@ export default class FilterTool extends Tool {
         return cat;
     }
 
-    get initalValues() {
+    get initalValues(): { [category: string]: string[] } {
         const values: { [category: string]: string[] } = {};
         for (const cat of Object.keys(this.labels)) {
             values[cat] = gameStore.labelFilters.filter(f => this.labels[cat].map(l => l[0]).includes(f));
@@ -55,7 +55,7 @@ export default class FilterTool extends Tool {
         return values;
     }
 
-    get categories() {
+    get categories(): string[] {
         return Object.keys(this.labels).sort();
     }
 
@@ -63,19 +63,19 @@ export default class FilterTool extends Tool {
         return gameStore.labelFilters.includes(uuid);
     }
 
-    toggleFilter(uuid: string) {
+    toggleFilter(uuid: string): void {
         const i = gameStore.labelFilters.indexOf(uuid);
         if (i >= 0) gameStore.labelFilters.splice(i, 1);
         else gameStore.labelFilters.push(uuid);
-        layerManager.invalidate();
+        layerManager.invalidateAllFloors();
     }
 
-    toggleUnlabeled() {
+    toggleUnlabeled(): void {
         gameStore.toggleUnlabeledFilter();
-        layerManager.invalidate();
+        layerManager.invalidateAllFloors();
     }
 
-    updateSelection(data: { title: string; selection: string[] }) {
+    updateSelection(data: { title: string; selection: string[] }): void {
         if (!(data.title in this.labels)) return;
         for (const [uuid, _] of this.labels[data.title]) {
             const idx = gameStore.labelFilters.indexOf(uuid);
@@ -88,7 +88,7 @@ export default class FilterTool extends Tool {
                 socket.emit("Labels.Filter.Add", uuid);
             }
         }
-        layerManager.invalidate();
+        layerManager.invalidateAllFloors();
     }
 }
 </script>

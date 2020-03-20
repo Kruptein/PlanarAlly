@@ -25,5 +25,6 @@ export class Rect extends BaseRect {
             ctx.lineWidth = 5;
             ctx.strokeRect(loc.x, loc.y, this.w * z, this.h * z);
         }
+        super.drawPost(ctx);
     }
 }

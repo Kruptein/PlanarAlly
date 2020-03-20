@@ -32,7 +32,7 @@ export default class AssetContextMenu extends Vue {
         return <AssetManager>this.$parent;
     }
 
-    open(event: MouseEvent, inode: number) {
+    open(event: MouseEvent, inode: number): void {
         if (!assetStore.selected.includes(inode)) this.parent.select(event, inode);
 
         this.visible = true;
@@ -42,41 +42,33 @@ export default class AssetContextMenu extends Vue {
             (<HTMLElement>this.$children[0].$el).focus();
         });
     }
-    close() {
+    close(): void {
         this.visible = false;
     }
-    rename() {
+    async rename(): Promise<void> {
         if (assetStore.selected.length !== 1) return;
         const asset = assetStore.idMap.get(assetStore.selected[0])!;
 
-        (<Prompt>this.parent.$refs.prompt).prompt("New name:", `Renaming ${asset.name}`).then(
-            (name: string) => {
-                socket.emit("Asset.Rename", {
-                    asset: asset.id,
-                    name,
-                });
-                asset.name = name;
-                this.parent.$forceUpdate();
-            },
-            () => {},
-        );
+        const name = await (<Prompt>this.parent.$refs.prompt).prompt("New name:", `Renaming ${asset.name}`);
+        socket.emit("Asset.Rename", {
+            asset: asset.id,
+            name,
+        });
+        asset.name = name;
+        this.parent.$forceUpdate();
         this.close();
     }
-    remove() {
+    async remove(): Promise<void> {
         if (assetStore.selected.length === 0) return;
-        (<ConfirmDialog>this.parent.$refs.confirm).open("Are you sure you wish to remove this?").then(
-            (result: boolean) => {
-                if (result) {
-                    for (const sel of assetStore.selected) {
-                        socket.emit("Asset.Remove", sel);
-                        if (assetStore.files.includes(sel)) assetStore.files.splice(assetStore.files.indexOf(sel), 1);
-                        else assetStore.folders.splice(assetStore.folders.indexOf(sel), 1);
-                    }
-                    assetStore.clearSelected();
-                }
-            },
-            () => {},
-        );
+        const result = await (<ConfirmDialog>this.parent.$refs.confirm).open("Are you sure you wish to remove this?");
+        if (result) {
+            for (const sel of assetStore.selected) {
+                socket.emit("Asset.Remove", sel);
+                if (assetStore.files.includes(sel)) assetStore.files.splice(assetStore.files.indexOf(sel), 1);
+                else assetStore.folders.splice(assetStore.folders.indexOf(sel), 1);
+            }
+            assetStore.clearSelected();
+        }
         this.close();
     }
 }

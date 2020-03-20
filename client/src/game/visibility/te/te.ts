@@ -1,18 +1,22 @@
 import { GlobalPoint } from "@/game/geom";
 import { gameStore } from "@/game/store";
-
 import { Edge } from "./cdt";
 import { drawPolygon } from "./draw";
-import { PA_CDT } from "./pa";
+import { getCDT, TriangulationTarget } from "./pa";
 import { Point, Sign, Triangle } from "./tds";
 import { ccw, cw, orientation } from "./triag";
 
-export function computeVisibility(q: GlobalPoint, target: "vision" | "movement", drawt?: boolean): number[][] {
+export function computeVisibility(
+    q: GlobalPoint,
+    target: TriangulationTarget,
+    floor: string,
+    drawt?: boolean,
+): number[][] {
     if (drawt === undefined) drawt = gameStore.drawTEContour;
     // console.time("CV");
     const Q: Point = [q.x, q.y];
     const rawOutput: number[][] = [];
-    const triangle = PA_CDT[target].locate(Q, null).loc;
+    const triangle = getCDT(target, floor).locate(Q, null).loc;
     if (triangle === null) {
         console.error("Triangle not found");
         return [];
@@ -58,7 +62,7 @@ function expandEdge(
     const ro = orientation(q, right, nvh.point!);
     const lo = orientation(q, left, nvh.point!);
 
-    // const ctx = layerManager.getLayer("draw")!.ctx;
+    // const ctx = layerManager.getLayer(layerManager.floor!.name, "draw")!.ctx;
     // ctx.beginPath();
     // ctx.strokeStyle = "red";
     // ctx.lineJoin = "round";

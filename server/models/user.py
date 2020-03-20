@@ -10,6 +10,7 @@ __all__ = ["User"]
 
 class User(BaseModel):
     name = TextField()
+    email = TextField(null=True)
     password_hash = TextField()
     fow_colour = TextField(default="#000")
     grid_colour = TextField(default="#000")

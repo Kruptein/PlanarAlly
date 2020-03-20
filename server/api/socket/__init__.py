@@ -1,8 +1,18 @@
 import auth
 from app import app, logger, sio, state
-from models import GridLayer, Layer, LocationUserOption
+from models import Floor, GridLayer, Layer, LocationUserOption
 from models.db import db
-from . import asset_manager, connection, initiative, label, location, note, room, shape
+from . import (
+    asset_manager,
+    connection,
+    floor,
+    initiative,
+    label,
+    location,
+    note,
+    room,
+    shape,
+)
 
 
 @sio.on("Client.Options.Set", namespace="/planarally")
@@ -40,7 +50,8 @@ async def set_layer(sid, data):
     location = sid_data["location"]
 
     try:
-        layer = location.layers.select().where(Layer.name == data)[0]
+        floor = location.floors.select().where(Floor.name == data["floor"])[0]
+        layer = floor.layers.select().where(Layer.name == data["layer"])[0]
     except IndexError:
         pass
     else:
@@ -60,9 +71,14 @@ async def set_gridsize(sid, grid_size):
     if room.creator != user:
         logger.warning(f"{user.name} attempted to set gridsize without DM rights")
         return
-    gl = GridLayer[Layer.get(location=location, name="grid")]
-    gl.size = grid_size
-    gl.save()
+    for layer in (
+        Layer.select()
+        .join(Floor)
+        .where((Floor.location == location) & (Layer.name == "grid"))
+    ):
+        gl = GridLayer[layer]
+        gl.size = grid_size
+        gl.save()
     await sio.emit(
         "Gridsize.Set",
         grid_size,

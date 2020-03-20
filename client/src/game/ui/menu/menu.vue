@@ -167,37 +167,33 @@ export default class MenuBar extends Vue {
     set rulerColour(value: string) {
         gameStore.setRulerColour({ colour: value, sync: true });
     }
-    settingsClick(event: { target: HTMLElement }) {
+    settingsClick(event: { target: HTMLElement }): void {
         if (event.target.classList.contains("menu-accordion")) {
             event.target.classList.toggle("menu-accordion-active");
             const next = <HTMLElement>event.target.nextElementSibling;
             if (next !== null) next.style.display = next.style.display === "" ? "block" : "";
         }
     }
-    getCurrentLocation() {
+    getCurrentLocation(): string {
         return gameStore.locationName;
     }
-    changeLocation(name: string) {
+    changeLocation(name: string): void {
         socket.emit("Location.Change", name);
     }
-    createLocation() {
-        (<Game>this.$parent).$refs.prompt.prompt(`New location name:`, `Create new location`).then(
-            (value: string) => {
-                socket.emit("Location.New", value);
-            },
-            () => {},
-        );
+    async createLocation(): Promise<void> {
+        const value = await (<Game>this.$parent).$refs.prompt.prompt(`New location name:`, `Create new location`);
+        socket.emit("Location.New", value);
     }
-    createNote() {
+    createNote(): void {
         const note = { title: "New note", text: "", uuid: uuidv4() };
         gameStore.newNote({ note, sync: true });
         this.openNote(note);
     }
-    openNote(note: Note) {
+    openNote(note: Note): void {
         (<Game>this.$parent).$refs.note.open(note);
     }
 
-    openDmSettings() {
+    openDmSettings(): void {
         EventBus.$emit("DmSettings.Open");
     }
 }

@@ -3,13 +3,15 @@ import { socket } from "@/game/api/socket";
 import { aurasFromServer, aurasToServer } from "@/game/comm/conversion/aura";
 import { InitiativeData } from "@/game/comm/types/general";
 import { ServerShape } from "@/game/comm/types/shapes";
-import { GlobalPoint, LocalPoint, Vector } from "@/game/geom";
+import { GlobalPoint, Vector } from "@/game/geom";
 import { layerManager } from "@/game/layers/manager";
-import { BoundingRect } from "@/game/shapes/boundingrect";
 import { gameStore } from "@/game/store";
-import { g2l, g2lr, g2lx, g2ly, g2lz } from "@/game/units";
+import { g2l, g2lx, g2ly, g2lz } from "@/game/units";
+import { visibilityStore } from "@/game/visibility/store";
+import { TriangulationTarget } from "@/game/visibility/te/pa";
+import { addBlocker, getBlockers, getVisionSources, setVisionSources, sliceBlockers } from "@/game/visibility/utils";
 import tinycolor from "tinycolor2";
-import { visibilityStore } from "../visibility/store";
+import { BoundingRect } from "./boundingrect";
 
 export abstract class Shape {
     // Used to create class instance from server shape data
@@ -17,14 +19,15 @@ export abstract class Shape {
     // The unique ID of this shape
     readonly uuid: string;
     // The layer the shape is currently on
+    floor!: string;
     layer!: string;
 
     // A reference point regarding that specific shape's structure
     protected _refPoint: GlobalPoint;
 
     // Fill colour of the shape
-    fillColour: string = "#000";
-    strokeColour: string = "rgba(0,0,0,0)";
+    fillColour = "#000";
+    strokeColour = "rgba(0,0,0,0)";
     // The optional name associated with the shape
     name = "Unknown shape";
     nameVisible = true;
@@ -45,13 +48,16 @@ export abstract class Shape {
     showHighlight = false;
 
     // Mouseover annotation
-    annotation: string = "";
+    annotation = "";
 
     // Draw modus to use
-    globalCompositeOperation: string = "source-over";
+    globalCompositeOperation = "source-over";
 
     // Additional options for specialized uses
     options: Map<string, any> = new Map();
+
+    badge = 1;
+    showBadge = false;
 
     constructor(refPoint: GlobalPoint, fillColour?: string, strokeColour?: string, uuid?: string) {
         this._refPoint = refPoint;
@@ -93,7 +99,7 @@ export abstract class Shape {
     // This is shape dependent as the shape refPoints are shape specific in
     abstract snapToGrid(): void;
     abstract resizeToGrid(): void;
-    abstract resize(resizePoint: number, point: LocalPoint): void;
+    abstract resize(resizePoint: number, point: GlobalPoint): number;
 
     abstract get points(): number[][];
 
@@ -114,55 +120,62 @@ export abstract class Shape {
     }
 
     invalidate(skipLightUpdate: boolean): void {
-        const l = layerManager.getLayer(this.layer);
+        const l = layerManager.getLayer(this.floor, this.layer);
         if (l) l.invalidate(skipLightUpdate);
     }
 
-    checkVisionSources(recalculate = true): void {
-        const self = this;
-        const obstructionIndex = visibilityStore.visionBlockers.indexOf(this.uuid);
-        let update = false;
+    checkVisionSources(recalculate = true): boolean {
+        let alteredVision = false;
+        const visionBlockers = getBlockers(TriangulationTarget.VISION, this.floor);
+        const obstructionIndex = visionBlockers.indexOf(this.uuid);
         if (this.visionObstruction && obstructionIndex === -1) {
-            visibilityStore.visionBlockers.push(this.uuid);
-            update = true;
+            addBlocker(TriangulationTarget.VISION, this.uuid, this.floor);
+            if (recalculate) visibilityStore.addToTriag({ target: TriangulationTarget.VISION, shape: this });
+            alteredVision = true;
         } else if (!this.visionObstruction && obstructionIndex >= 0) {
-            visibilityStore.visionBlockers.splice(obstructionIndex, 1);
-            update = true;
+            sliceBlockers(TriangulationTarget.VISION, obstructionIndex, this.floor);
+            if (recalculate) visibilityStore.deleteFromTriag({ target: TriangulationTarget.VISION, shape: this });
+            alteredVision = true;
         }
-        if (update && recalculate) visibilityStore.recalculateVision();
+        if (alteredVision && recalculate) visibilityStore.recalculateVision(this.floor);
 
         // Check if the visionsource auras are in the gameManager
+        const visionSources: { shape: string; aura: string }[] = [...getVisionSources(this.floor)];
         for (const au of this.auras) {
-            const ls = visibilityStore.visionSources;
-            const i = ls.findIndex(o => o.aura === au.uuid);
+            const i = visionSources.findIndex(o => o.aura === au.uuid);
             if (au.visionSource && i === -1) {
-                ls.push({ shape: self.uuid, aura: au.uuid });
+                visionSources.push({ shape: this.uuid, aura: au.uuid });
             } else if (!au.visionSource && i >= 0) {
-                ls.splice(i, 1);
+                visionSources.splice(i, 1);
             }
         }
         // Check if anything in the gameManager referencing this shape is in fact still a visionsource
-        for (let i = visibilityStore.visionSources.length - 1; i >= 0; i--) {
-            const ls = visibilityStore.visionSources[i];
-            if (ls.shape === self.uuid) {
-                if (!self.auras.some(a => a.uuid === ls.aura && a.visionSource))
-                    visibilityStore.visionSources.splice(i, 1);
+        for (let i = visionSources.length - 1; i >= 0; i--) {
+            const ls = visionSources[i];
+            if (ls.shape === this.uuid) {
+                if (!this.auras.some(a => a.uuid === ls.aura && a.visionSource)) visionSources.splice(i, 1);
             }
         }
+        setVisionSources(visionSources, this.floor);
+        return alteredVision;
     }
 
-    setMovementBlock(blocksMovement: boolean, recalculate = true): void {
+    setMovementBlock(blocksMovement: boolean, recalculate = true): boolean {
+        let alteredMovement = false;
         this.movementObstruction = blocksMovement || false;
-        const obstructionIndex = visibilityStore.movementblockers.indexOf(this.uuid);
-        let update = false;
+        const movementBlockers = getBlockers(TriangulationTarget.MOVEMENT, this.floor);
+        const obstructionIndex = movementBlockers.indexOf(this.uuid);
         if (this.movementObstruction && obstructionIndex === -1) {
-            visibilityStore.movementblockers.push(this.uuid);
-            update = true;
+            addBlocker(TriangulationTarget.MOVEMENT, this.uuid, this.floor);
+            if (recalculate) visibilityStore.addToTriag({ target: TriangulationTarget.MOVEMENT, shape: this });
+            alteredMovement = true;
         } else if (!this.movementObstruction && obstructionIndex >= 0) {
-            visibilityStore.movementblockers.splice(obstructionIndex, 1);
-            update = true;
+            sliceBlockers(TriangulationTarget.MOVEMENT, obstructionIndex, this.floor);
+            if (recalculate) visibilityStore.deleteFromTriag({ target: TriangulationTarget.MOVEMENT, shape: this });
+            alteredMovement = true;
         }
-        if (update && recalculate) visibilityStore.recalculateMovement();
+        if (alteredMovement && recalculate) visibilityStore.recalculateMovement(this.floor);
+        return alteredMovement;
     }
 
     setIsToken(isToken: boolean): void {
@@ -181,6 +194,7 @@ export abstract class Shape {
             uuid: this.uuid,
             x: this.refPoint.x,
             y: this.refPoint.y,
+            floor: this.floor,
             layer: this.layer,
             // eslint-disable-next-line @typescript-eslint/camelcase
             draw_operator: this.globalCompositeOperation,
@@ -203,10 +217,14 @@ export abstract class Shape {
             // eslint-disable-next-line @typescript-eslint/camelcase
             is_token: this.isToken,
             options: JSON.stringify([...this.options]),
+            badge: this.badge,
+            // eslint-disable-next-line @typescript-eslint/camelcase
+            show_badge: this.showBadge,
         };
     }
     fromDict(data: ServerShape): void {
         this.layer = data.layer;
+        this.floor = data.floor;
         this.globalCompositeOperation = data.draw_operator;
         this.movementObstruction = data.movement_obstruction;
         this.visionObstruction = data.vision_obstruction;
@@ -214,8 +232,12 @@ export abstract class Shape {
         this.trackers = data.trackers;
         this.labels = data.labels;
         this._owners = data.owners;
+        this.fillColour = data.fill_colour;
+        this.strokeColour = data.stroke_colour;
         this.isToken = data.is_token;
         this.nameVisible = data.name_visible;
+        this.badge = data.badge;
+        this.showBadge = data.show_badge;
         if (data.annotation) this.annotation = data.annotation;
         if (data.name) this.name = data.name;
         if (data.options) this.options = new Map(JSON.parse(data.options));
@@ -224,48 +246,32 @@ export abstract class Shape {
     draw(ctx: CanvasRenderingContext2D): void {
         if (this.globalCompositeOperation !== undefined) ctx.globalCompositeOperation = this.globalCompositeOperation;
         else ctx.globalCompositeOperation = "source-over";
-        if (this.showHighlight) {
-            const bbox = this.getBoundingBox();
-            ctx.strokeStyle = "red";
-            ctx.strokeRect(g2lx(bbox.topLeft.x) - 5, g2ly(bbox.topLeft.y) - 5, g2lz(bbox.w) + 10, g2lz(bbox.h) + 10);
-        }
     }
 
-    drawAuras(ctx: CanvasRenderingContext2D): void {
-        for (const aura of this.auras) {
-            if (aura.value === 0 && aura.dim === 0) return;
+    drawPost(ctx: CanvasRenderingContext2D): void {
+        let bbox: BoundingRect | undefined;
+        if (this.showBadge) {
+            bbox = this.getBoundingBox();
+            const location = g2l(bbox.botRight);
+            const r = g2lz(10);
+            ctx.strokeStyle = "black";
+            ctx.fillStyle = this.strokeColour;
+            ctx.lineWidth = g2lz(2);
             ctx.beginPath();
+            ctx.arc(location.x - r, location.y - r, r, 0, 2 * Math.PI);
+            ctx.stroke();
+            ctx.fill();
+            ctx.fillStyle = tinycolor.mostReadable(this.strokeColour, ["#000", "#fff"]).toHexString();
 
-            const loc = g2l(this.center());
-            const innerRange = g2lr(aura.value + aura.dim);
-
-            if (aura.dim === 0) ctx.fillStyle = aura.colour;
-            else {
-                const gradient = ctx.createRadialGradient(
-                    loc.x,
-                    loc.y,
-                    g2lr(aura.value),
-                    loc.x,
-                    loc.y,
-                    g2lr(aura.value + aura.dim),
-                );
-                const tc = tinycolor(aura.colour);
-                ctx.fillStyle = gradient;
-                gradient.addColorStop(0, aura.colour);
-                gradient.addColorStop(1, tc.setAlpha(0).toRgbString());
-            }
-            if (!aura.visionSource || aura.lastPath === undefined) {
-                ctx.arc(loc.x, loc.y, innerRange, 0, 2 * Math.PI);
-                ctx.fill();
-            } else {
-                try {
-                    ctx.fill(aura.lastPath);
-                } catch (e) {
-                    ctx.arc(loc.x, loc.y, innerRange, 0, 2 * Math.PI);
-                    ctx.fill();
-                    console.warn(e);
-                }
-            }
+            ctx.font = `${1.8 * r}px bold Calibri, sans-serif`;
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            ctx.fillText(`${this.badge}`, location.x - r, location.y - r + g2lz(1));
+        }
+        if (this.showHighlight) {
+            if (bbox === undefined) bbox = this.getBoundingBox();
+            ctx.strokeStyle = "red";
+            ctx.strokeRect(g2lx(bbox.topLeft.x) - 5, g2ly(bbox.topLeft.y) - 5, g2lz(bbox.w) + 10, g2lz(bbox.h) + 10);
         }
     }
 
@@ -306,9 +312,22 @@ export abstract class Shape {
         };
     }
 
+    moveFloor(floor: string, sync: boolean): void {
+        const oldLayer = layerManager.getLayer(this.floor, this.layer);
+        const newLayer = layerManager.getLayer(floor, this.layer);
+        if (oldLayer === undefined || newLayer === undefined) return;
+        visibilityStore.moveShape({ shape: this, oldFloor: this.floor, newFloor: floor });
+        this.floor = floor;
+        oldLayer.shapes.splice(oldLayer.shapes.indexOf(this), 1);
+        newLayer.shapes.push(this);
+        oldLayer.invalidate(false);
+        newLayer.invalidate(false);
+        if (sync) socket.emit("Shape.Floor.Change", { uuid: this.uuid, floor });
+    }
+
     moveLayer(layer: string, sync: boolean): void {
-        const oldLayer = layerManager.getLayer(this.layer);
-        const newLayer = layerManager.getLayer(layer);
+        const oldLayer = layerManager.getLayer(this.floor, this.layer);
+        const newLayer = layerManager.getLayer(this.floor, layer);
         if (oldLayer === undefined || newLayer === undefined) return;
         this.layer = layer;
         // Update layer shapes
@@ -318,10 +337,10 @@ export abstract class Shape {
         oldLayer.invalidate(true);
         newLayer.invalidate(false);
         // Sync!
-        if (sync) socket.emit("Shape.Layer.Change", { uuid: this.uuid, layer });
+        if (sync) socket.emit("Shape.Layer.Change", { uuid: this.uuid, layer, floor: newLayer.floor });
     }
 
-    // this screws up vetur if typed as `readonly stringp[]`
+    // This screws up vetur if typed as `readonly string[]`
     // eslint-disable-next-line @typescript-eslint/array-type
     get owners(): ReadonlyArray<string> {
         return Object.freeze(this._owners.slice());
@@ -349,5 +368,25 @@ export abstract class Shape {
     removeOwner(owner: string): void {
         const ownerIndex = this._owners.findIndex(o => o === owner);
         this._owners.splice(ownerIndex, 1);
+    }
+
+    updatePoints(): void {
+        layerManager.getLayer(this.floor, this.layer)?.updateShapePoints(this);
+    }
+
+    getGroupMembers(): Shape[] {
+        if (!(this.options.has("groupId") || this.options.has("groupInfo"))) return [this];
+        const groupId = this.options.get("groupId") ?? this.uuid;
+        const groupLeader = groupId === this.uuid ? this : layerManager.UUIDMap.get(groupId);
+        if (groupLeader === undefined || !groupLeader.options.has("groupInfo")) return [this];
+        const groupIds = <string[]>groupLeader.options.get("groupInfo");
+        return [
+            groupLeader,
+            ...groupIds.reduce(
+                (acc: Shape[], u: string) =>
+                    layerManager.UUIDMap.has(u) ? [...acc, layerManager.UUIDMap.get(u)!] : acc,
+                [],
+            ),
+        ];
     }
 }

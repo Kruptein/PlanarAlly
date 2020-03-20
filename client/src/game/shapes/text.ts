@@ -1,4 +1,4 @@
-import { GlobalPoint, LocalPoint } from "@/game/geom";
+import { GlobalPoint } from "@/game/geom";
 import { BoundingRect } from "@/game/shapes/boundingrect";
 import { Shape } from "@/game/shapes/shape";
 import { g2l } from "@/game/units";
@@ -47,6 +47,7 @@ export class Text extends Shape {
         ctx.textAlign = "center";
         this.getLines(ctx).map(line => ctx.fillText(line.text, line.x, line.y));
         ctx.restore();
+        super.drawPost(ctx);
     }
     contains(_point: GlobalPoint): boolean {
         return false; // TODO
@@ -54,13 +55,19 @@ export class Text extends Shape {
 
     center(): GlobalPoint;
     center(centerPoint: GlobalPoint): void;
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
     center(_centerPoint?: GlobalPoint): GlobalPoint | void {} // TODO
     visibleInCanvas(canvas: HTMLCanvasElement): boolean {
         return this.getBoundingBox().visibleInCanvas(canvas);
     } // TODO
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
     snapToGrid(): void {}
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
     resizeToGrid(): void {}
-    resize(_resizePoint: number, _point: LocalPoint): void {}
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
+    resize(resizePoint: number, _point: GlobalPoint): number {
+        return resizePoint;
+    }
 
     getMaxHeight(ctx: CanvasRenderingContext2D): number {
         const lines = this.getLines(ctx);

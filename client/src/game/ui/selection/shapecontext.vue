@@ -6,6 +6,19 @@
         :top="y + 'px'"
         @close="close"
     >
+        <li v-if="getFloors().length > 1">
+            Floor
+            <ul>
+                <li
+                    v-for="(floor, idx) in getFloors()"
+                    :key="floor.name"
+                    :style="[idx === activeFloorIndex ? { 'background-color': '#82c8a0' } : {}]"
+                    @click="setFloor(floor)"
+                >
+                    {{ floor.name }}
+                </li>
+            </ul>
+        </li>
         <li v-if="getLayers().length > 1">
             Layer
             <ul>
@@ -44,54 +57,55 @@
 import Vue from "vue";
 import Component from "vue-class-component";
 
-import { mapState } from "vuex";
+import { mapState, mapMutations } from "vuex";
 
 import ContextMenu from "@/core/components/contextmenu.vue";
 
 import { socket } from "@/game/api/socket";
 import { ServerClient, ServerLocation } from "@/game/comm/types/general";
 import { EventBus } from "@/game/event-bus";
-import { layerManager } from "@/game/layers/manager";
+import { layerManager, Floor } from "@/game/layers/manager";
 import { gameStore } from "@/game/store";
 import { cutShapes, deleteShapes, pasteShapes } from "../../shapes/utils";
 import { initiativeStore, inInitiative } from "../initiative/store";
+import { Layer } from "../../layers/layer";
 
 @Component({
     components: {
         ContextMenu,
     },
     computed: {
-        ...mapState("game", ["locations", "assets", "notes"]),
+        ...mapState("game", ["activeFloorIndex", "assets", "locations", "notes"]),
+        ...mapMutations("game", ["selectFloor"]),
     },
 })
 export default class ShapeContext extends Vue {
     visible = false;
     x = 0;
     y = 0;
-    get activeLayer(): string {
-        const layer = layerManager.getLayer();
-        return layer === undefined ? "" : layer.name;
-    }
-    open(event: MouseEvent) {
+    open(event: MouseEvent): void {
         this.visible = true;
         this.x = event.pageX;
         this.y = event.pageY;
         this.$nextTick(() => (<HTMLElement>this.$children[0].$el).focus());
     }
-    close() {
+    close(): void {
         this.visible = false;
     }
-    getLayers() {
-        return layerManager.layers.filter(l => l.selectable && (gameStore.IS_DM || l.playerEditable));
+    getFloors(): Floor[] {
+        return layerManager.floors;
     }
-    getActiveLayer() {
-        return layerManager.getLayer();
+    getLayers(): Layer[] {
+        return layerManager.floor?.layers.filter(l => l.selectable && (gameStore.IS_DM || l.playerEditable)) || [];
     }
-    getCurrentLocation() {
+    getActiveLayer(): Layer | undefined {
+        if (layerManager.floor !== undefined) return layerManager.getLayer(layerManager.floor.name);
+    }
+    getCurrentLocation(): string {
         return gameStore.locationName;
     }
-    getInitiativeWord() {
-        const layer = layerManager.getLayer()!;
+    getInitiativeWord(): string {
+        const layer = this.getActiveLayer()!;
         if (layer.selection.length === 1) {
             return inInitiative(layer.selection[0].uuid) ? "Show" : "Add";
         } else {
@@ -99,16 +113,21 @@ export default class ShapeContext extends Vue {
         }
     }
     hasSingleShape(): boolean {
-        const layer = layerManager.getLayer()!;
+        const layer = this.getActiveLayer()!;
         return layer.selection.length === 1;
     }
-    setLayer(newLayer: string) {
-        const layer = layerManager.getLayer()!;
+    setFloor(floor: Floor): void {
+        const layer = this.getActiveLayer()!;
+        layer.selection.forEach(shape => shape.moveFloor(floor.name, true));
+        this.close();
+    }
+    setLayer(newLayer: string): void {
+        const layer = this.getActiveLayer()!;
         layer.selection.forEach(shape => shape.moveLayer(newLayer, true));
         this.close();
     }
-    setLocation(newLocation: string) {
-        const layer = layerManager.getLayer()!;
+    setLocation(newLocation: string): void {
+        const layer = this.getActiveLayer()!;
         cutShapes();
         // Request change to other location
         socket.emit("Location.Change", newLocation);
@@ -120,28 +139,28 @@ export default class ShapeContext extends Vue {
         });
         this.close();
     }
-    moveToBack() {
+    moveToBack(): void {
         const layer = this.getActiveLayer()!;
         layer.selection.forEach(shape => layer.moveShapeOrder(shape, 0, true));
         this.close();
     }
-    moveToFront() {
+    moveToFront(): void {
         const layer = this.getActiveLayer()!;
         layer.selection.forEach(shape => layer.moveShapeOrder(shape, layer.shapes.length - 1, true));
         this.close();
     }
-    addInitiative() {
-        const layer = layerManager.getLayer()!;
+    addInitiative(): void {
+        const layer = this.getActiveLayer()!;
         layer.selection.forEach(shape => initiativeStore.addInitiative(shape.getInitiativeRepr()));
         EventBus.$emit("Initiative.Show");
         this.close();
     }
-    deleteSelection() {
+    deleteSelection(): void {
         deleteShapes();
         this.close();
     }
-    openEditDialog() {
-        const layer = layerManager.getLayer()!;
+    openEditDialog(): void {
+        const layer = this.getActiveLayer()!;
         if (layer.selection.length !== 1) return;
         EventBus.$emit("EditDialog.Open", layer.selection[0]);
         this.close();

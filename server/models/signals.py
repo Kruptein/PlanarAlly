@@ -10,11 +10,17 @@ __all__ = []  # type: ignore
 
 
 @post_save(sender=Layer)
-def on_layer_save(model_class, instance, created):
+def on_layer_save(model_class, instance: Layer, created: bool):
     if not created:
         return
     if instance.type_ == "grid":
-        GridLayer.create(id=instance.id, layer=instance)
+        floors = instance.floor.location.floors
+        size = GridLayer.size.default
+        if len(floors) > 1:
+            # If there already are floors, we set the gridsize to the value of the first gridlayer.
+            # This is a bit hacky, but works for now until a decission is made on whether or not different floors should be able to have different grid sizes.
+            size = floors[0].layers.where(Layer.name == "grid")[0].gridlayer_set[0].size
+        GridLayer.create(id=instance.id, layer=instance, size=size)
 
 
 @pre_delete(sender=Layer)

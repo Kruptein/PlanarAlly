@@ -16,8 +16,9 @@ import { BaseRect } from "@/game/shapes/baserect";
 import { Rect } from "@/game/shapes/rect";
 import { gameStore } from "@/game/store";
 import { l2g } from "@/game/units";
-import { getMouse } from "@/game/utils";
+import { getLocalPointFromEvent } from "@/game/utils";
 import Component from "vue-class-component";
+import { SyncMode, InvalidationMode } from "../../../core/comm/types";
 
 @Component
 export default class MapTool extends Tool {
@@ -28,27 +29,26 @@ export default class MapTool extends Tool {
     startPoint: GlobalPoint | null = null;
     rect: Rect | null = null;
 
-    onMouseDown(event: MouseEvent) {
-        const layer = layerManager.getLayer();
+    onDown(startPoint: GlobalPoint): void {
+        this.startPoint = startPoint;
+        const layer = layerManager.getLayer(layerManager.floor!.name);
         if (layer === undefined) {
             console.log("No active layer!");
             return;
         }
         this.active = true;
 
-        this.startPoint = l2g(getMouse(event));
         this.rect = new Rect(this.startPoint.clone(), 0, 0, "rgba(0,0,0,0)", "black");
-        layer.addShape(this.rect, false, false);
+        layer.addShape(this.rect, SyncMode.NO_SYNC, InvalidationMode.NORMAL);
     }
-    onMouseMove(event: MouseEvent) {
+
+    onMove(endPoint: GlobalPoint): void {
         if (!this.active || this.rect === null || this.startPoint === null) return;
-        const layer = layerManager.getLayer();
+        const layer = layerManager.getLayer(layerManager.floor!.name);
         if (layer === undefined) {
             console.log("No active layer!");
             return;
         }
-
-        const endPoint = l2g(getMouse(event));
 
         this.rect.w = Math.abs(endPoint.x - this.startPoint.x);
         this.rect.h = Math.abs(endPoint.y - this.startPoint.y);
@@ -58,9 +58,10 @@ export default class MapTool extends Tool {
         );
         layer.invalidate(false);
     }
-    onMouseUp(_event: MouseEvent) {
+
+    onUp(): void {
         if (!this.active || this.rect === null) return;
-        const layer = layerManager.getLayer();
+        const layer = layerManager.getLayer(layerManager.floor!.name);
         if (layer === undefined) {
             console.log("No active layer!");
             return;
@@ -68,7 +69,7 @@ export default class MapTool extends Tool {
         this.active = false;
 
         if (layer.selection.length !== 1) {
-            layer.removeShape(this.rect, false, false);
+            layer.removeShape(this.rect, SyncMode.NO_SYNC);
             return;
         }
 
@@ -81,7 +82,35 @@ export default class MapTool extends Tool {
             sel.h *= (this.yCount * gameStore.gridSize) / h;
         }
 
-        layer.removeShape(this.rect, false, false);
+        layer.removeShape(this.rect, SyncMode.NO_SYNC);
+    }
+
+    onMouseDown(event: MouseEvent): void {
+        const startPoint = l2g(getLocalPointFromEvent(event));
+        this.onDown(startPoint);
+    }
+
+    onMouseMove(event: MouseEvent): void {
+        const endPoint = l2g(getLocalPointFromEvent(event));
+        this.onMove(endPoint);
+    }
+
+    onMouseUp(_event: MouseEvent): void {
+        this.onUp();
+    }
+
+    onTouchStart(event: TouchEvent): void {
+        const startPoint = l2g(getLocalPointFromEvent(event));
+        this.onDown(startPoint);
+    }
+
+    onTouchMove(event: TouchEvent): void {
+        const endPoint = l2g(getLocalPointFromEvent(event));
+        this.onMove(endPoint);
+    }
+
+    onTouchEnd(_event: TouchEvent): void {
+        this.onUp();
     }
 }
 </script>

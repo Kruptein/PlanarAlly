@@ -1,10 +1,10 @@
 import { ServerCircle } from "@/game/comm/types/shapes";
-import { GlobalPoint, LocalPoint, Vector } from "@/game/geom";
+import { GlobalPoint, Vector } from "@/game/geom";
 import { BoundingRect } from "@/game/shapes/boundingrect";
 import { Shape } from "@/game/shapes/shape";
 import { gameStore } from "@/game/store";
 import { calculateDelta } from "@/game/ui/tools/utils";
-import { g2l, g2lz, l2g } from "@/game/units";
+import { g2l, g2lz } from "@/game/units";
 import { getFogColour } from "@/game/utils";
 
 export class Circle extends Shape {
@@ -56,6 +56,7 @@ export class Circle extends Shape {
             ctx.arc(loc.x, loc.y, Math.max(borderWidth / 2, g2lz(this.r - borderWidth / 2)), 0, 2 * Math.PI);
             ctx.stroke();
         }
+        super.drawPost(ctx);
     }
     contains(point: GlobalPoint): boolean {
         return (point.x - this.refPoint.x) ** 2 + (point.y - this.refPoint.y) ** 2 < this.r ** 2;
@@ -92,8 +93,9 @@ export class Circle extends Shape {
         this.r = Math.max(Math.round(this.r / gs) * gs, gs / 2);
         this.invalidate(false);
     }
-    resize(resizePoint: number, point: LocalPoint): void {
-        const diff = l2g(point).subtract(this.refPoint);
+    resize(resizePoint: number, point: GlobalPoint): number {
+        const diff = point.subtract(this.refPoint);
         this.r = Math.sqrt(Math.pow(diff.length(), 2) / 2);
+        return resizePoint;
     }
 }

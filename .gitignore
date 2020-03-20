@@ -7,6 +7,9 @@ server/env/**
 server/**/__pycache__/**
 server/venv
 .mypy**
+.venv
+venv/
+env/
 
 # PyInstaller
 server/dist/**
@@ -21,9 +24,13 @@ server/planarallyserver.log
 server/planar.save*
 server/planar.sqlite*
 server/server_config.cfg
-# server/static/img/**
+
+# These folders are all output directories for the vue client build
 server/static/assets/**
+server/static/css/**
+server/static/js/**
 server/static/img/assets/**
+server/templates/**
 
 # docs
 docs/_build

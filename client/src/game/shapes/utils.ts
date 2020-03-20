@@ -1,3 +1,4 @@
+import { InvalidationMode, SyncMode } from "@/core/comm/types";
 import { uuidv4 } from "@/core/utils";
 import {
     ServerAsset,
@@ -22,6 +23,7 @@ import { Text } from "@/game/shapes/text";
 import { EventBus } from "../event-bus";
 import { gameStore } from "../store";
 import { Polygon } from "./polygon";
+import { socket } from "../api/socket";
 
 export function createShapeFromDict(shape: ServerShape): Shape | undefined {
     let sh: Shape;
@@ -72,7 +74,7 @@ export function createShapeFromDict(shape: ServerShape): Shape | undefined {
         else img.src = asset.src;
         sh = new Asset(img, refPoint, asset.width, asset.height, asset.uuid);
         img.onload = () => {
-            layerManager.getLayer(shape.layer)!.invalidate(false);
+            layerManager.getLayer(shape.floor, shape.layer)!.invalidate(true);
         };
     } else {
         return undefined;
@@ -82,10 +84,10 @@ export function createShapeFromDict(shape: ServerShape): Shape | undefined {
 }
 
 export function copyShapes(): void {
-    const layer = layerManager.getLayer();
+    const layer = layerManager.getLayer(layerManager.floor!.name);
     if (!layer) return;
     if (!layer.selection) return;
-    const clipboard = [];
+    const clipboard: ServerShape[] = [];
     for (const shape of layer.selection) {
         if (gameStore.selectionHelperID === shape.uuid) continue;
         clipboard.push(shape.asDict());
@@ -95,7 +97,7 @@ export function copyShapes(): void {
 }
 
 export function pasteShapes(targetLayer?: string): Shape[] {
-    const layer = layerManager.getLayer(targetLayer);
+    const layer = layerManager.getLayer(layerManager.floor!.name, targetLayer);
     if (!layer) return [];
     if (!gameStore.clipboard) return [];
     layer.selection = [];
@@ -108,7 +110,9 @@ export function pasteShapes(targetLayer?: string): Shape[] {
     for (const clip of gameStore.clipboard) {
         clip.x += offset.x;
         clip.y += offset.y;
+        const ogUuid = clip.uuid;
         clip.uuid = uuidv4();
+        // Trackers
         const oldTrackers = clip.trackers;
         clip.trackers = [];
         for (const tracker of oldTrackers) {
@@ -118,6 +122,7 @@ export function pasteShapes(targetLayer?: string): Shape[] {
             };
             clip.trackers.push(newTracker);
         }
+        // Auras
         const oldAuras = clip.auras;
         clip.auras = [];
         for (const aura of oldAuras) {
@@ -127,9 +132,28 @@ export function pasteShapes(targetLayer?: string): Shape[] {
             };
             clip.auras.push(newAura);
         }
+        // Badge
+        const options = clip.options ? new Map(JSON.parse(clip.options)) : new Map();
+        let groupLeader: Shape | undefined;
+        if (options.has("groupId")) {
+            groupLeader = layerManager.UUIDMap.get(<string>options.get("groupId"));
+        } else {
+            groupLeader = layerManager.UUIDMap.get(ogUuid)!;
+        }
+        if (groupLeader === undefined) console.error("Missing group leader on paste");
+        else {
+            if (!groupLeader.options.has("groupInfo")) groupLeader.options.set("groupInfo", []);
+            const groupMembers = groupLeader.getGroupMembers();
+            clip.badge = groupMembers.reduce((acc: number, shape: Shape) => Math.max(acc, shape.badge ?? 1), 0) + 1;
+            groupLeader.options.set("groupInfo", [...groupLeader.options.get("groupInfo"), clip.uuid]);
+            options.set("groupId", groupLeader.uuid);
+            clip.options = JSON.stringify([...options]);
+            socket.emit("Shape.Update", { shape: groupLeader.asDict(), redraw: false, temporary: false });
+        }
+        // Finalize
         const shape = createShapeFromDict(clip);
         if (shape === undefined) continue;
-        layer.addShape(shape, true);
+        layer.addShape(shape, SyncMode.FULL_SYNC, InvalidationMode.WITH_LIGHT);
         layer.selection.push(shape);
     }
     if (layer.selection.length === 1) EventBus.$emit("SelectionInfo.Shape.Set", layer.selection[0]);
@@ -139,18 +163,18 @@ export function pasteShapes(targetLayer?: string): Shape[] {
 }
 
 export function deleteShapes(): void {
-    if (layerManager.getLayer === undefined) {
+    if (layerManager.getLayer(layerManager.floor!.name) === undefined) {
         console.log("No active layer selected for delete operation");
         return;
     }
-    const l = layerManager.getLayer()!;
+    const l = layerManager.getLayer(layerManager.floor!.name)!;
     for (let i = l.selection.length - 1; i >= 0; i--) {
         const sel = l.selection[i];
         if (gameStore.selectionHelperID === sel.uuid) {
             l.selection.splice(i, 1);
             continue;
         }
-        l.removeShape(sel, true, false);
+        l.removeShape(sel, SyncMode.FULL_SYNC);
         EventBus.$emit("SelectionInfo.Shape.Set", null);
         EventBus.$emit("Initiative.Remove", sel.uuid);
     }

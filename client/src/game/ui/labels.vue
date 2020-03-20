@@ -90,7 +90,7 @@ export default class LabelManager extends Vue {
     newName = "";
     search = "";
 
-    mounted() {
+    mounted(): void {
         EventBus.$on("LabelManager.Open", () => {
             this.visible = true;
             this.newCategory = "";
@@ -99,11 +99,11 @@ export default class LabelManager extends Vue {
         });
     }
 
-    beforeDestroy() {
+    beforeDestroy(): void {
         EventBus.$off("LabelManager.Open");
     }
 
-    get labels() {
+    get labels(): { [category: string]: Label[] } {
         const cat: { [category: string]: Label[] } = { "": [] };
         for (const uuid of Object.keys(gameStore.labels)) {
             const label = gameStore.labels[uuid];
@@ -123,21 +123,21 @@ export default class LabelManager extends Vue {
         return cat;
     }
 
-    get categories() {
+    get categories(): string[] {
         return Object.keys(this.labels).sort();
     }
 
-    selectLabel(label: string) {
+    selectLabel(label: string): void {
         EventBus.$emit("EditDialog.AddLabel", label);
         this.visible = false;
     }
 
-    toggleVisibility(label: Label) {
+    toggleVisibility(label: Label): void {
         label.visible = !label.visible;
         socket.emit("Label.Visibility.Set", { uuid: label.uuid, visible: label.visible });
     }
 
-    addLabel() {
+    addLabel(): void {
         if (this.newName === "") return;
         const label = {
             uuid: uuidv4(),
@@ -152,7 +152,7 @@ export default class LabelManager extends Vue {
         this.newName = "";
     }
 
-    deleteLabel(uuid: string) {
+    deleteLabel(uuid: string): void {
         gameStore.deleteLabel({ uuid, user: gameStore.username });
         socket.emit("Label.Delete", uuid);
     }

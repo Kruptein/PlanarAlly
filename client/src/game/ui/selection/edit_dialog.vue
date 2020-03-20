@@ -44,6 +44,16 @@
                     class="styled-checkbox"
                     :disabled="!owned"
                 />
+                <label for="shapeselectiondialog-showBadge">Show badge</label>
+                <input
+                    type="checkbox"
+                    id="shapeselectiondialog-showBadge"
+                    :checked="shape.showBadge"
+                    @click="toggleBadge"
+                    style="grid-column-start: remove;"
+                    class="styled-checkbox"
+                    :disabled="!owned"
+                />
                 <label for="shapeselectiondialog-visionblocker">Blocks vision/light</label>
                 <input
                     type="checkbox"
@@ -256,7 +266,7 @@ import { EventBus } from "@/game/event-bus";
 import { layerManager } from "@/game/layers/manager";
 import { Shape } from "@/game/shapes/shape";
 import { gameStore } from "@/game/store";
-import { visibilityStore } from "../../visibility/store";
+import { getVisionSources, addVisionSource, sliceVisionSources } from "@/game/visibility/utils";
 
 @Component({
     components: {
@@ -273,7 +283,7 @@ export default class EditDialog extends Vue {
         return this.shape.ownedBy();
     }
 
-    mounted() {
+    mounted(): void {
         EventBus.$on("EditDialog.Open", (shape: Shape) => {
             this.shape = shape;
             this.visible = true;
@@ -286,16 +296,16 @@ export default class EditDialog extends Vue {
         });
     }
 
-    beforeDestroy() {
+    beforeDestroy(): void {
         EventBus.$off("EditDialog.Open");
         EventBus.$off("EditDialog.AddLabel");
     }
 
-    updated() {
+    updated(): void {
         this.addEmpty();
     }
 
-    addEmpty() {
+    addEmpty(): void {
         if (this.shape.owners[this.shape.owners.length - 1] !== "") this.shape.addOwner("");
         if (
             !this.shape.trackers.length ||
@@ -318,80 +328,96 @@ export default class EditDialog extends Vue {
                 visible: false,
             });
     }
-    updateShape(redraw: boolean, temporary = false) {
+    updateShape(redraw: boolean, temporary = false): void {
         if (!this.owned) return;
         socket.emit("Shape.Update", { shape: this.shape.asDict(), redraw, temporary });
-        if (redraw) layerManager.invalidate();
+        if (redraw) layerManager.invalidate(this.shape.floor);
         this.addEmpty();
     }
-    setToken(event: { target: HTMLInputElement }) {
+    setToken(event: { target: HTMLInputElement }): void {
         if (!this.owned) return;
         this.shape.setIsToken(event.target.checked);
         this.updateShape(true);
     }
-    setVisionBlocker(_event: { target: HTMLInputElement }) {
+    toggleBadge(_event: { target: HTMLInputElement }): void {
+        if (!this.owned) return;
+        const groupMembers = this.shape.getGroupMembers();
+        for (const [i, shape] of groupMembers.entries()) {
+            shape.showBadge = !shape.showBadge;
+            socket.emit("Shape.Update", {
+                shape: shape.asDict(),
+                redraw: groupMembers.length === i - 1,
+                temporary: false,
+            });
+        }
+        layerManager.invalidate(this.shape.floor);
+    }
+    setVisionBlocker(_event: { target: HTMLInputElement }): void {
         if (!this.owned) return;
         this.shape.checkVisionSources();
         this.updateShape(true);
     }
-    setMovementBlocker(event: { target: HTMLInputElement }) {
+    setMovementBlocker(event: { target: HTMLInputElement }): void {
         if (!this.owned) return;
         this.shape.setMovementBlock(event.target.checked);
         this.updateShape(false);
     }
-    updateAnnotation(event: { target: HTMLInputElement }) {
+    updateAnnotation(event: { target: HTMLInputElement }): void {
         if (!this.owned) return;
         const hadAnnotation = this.shape.annotation !== "";
         this.shape.annotation = event.target.value;
         if (this.shape.annotation !== "" && !hadAnnotation) {
             gameStore.annotations.push(this.shape.uuid);
-            if (layerManager.hasLayer("draw")) layerManager.getLayer("draw")!.invalidate(true);
+            if (layerManager.hasLayer(layerManager.floor!.name, "draw"))
+                layerManager.getLayer(layerManager.floor!.name, "draw")!.invalidate(true);
         } else if (this.shape.annotation === "" && hadAnnotation) {
             gameStore.annotations.splice(gameStore.annotations.findIndex(an => an === this.shape.uuid));
-            if (layerManager.hasLayer("draw")) layerManager.getLayer("draw")!.invalidate(true);
+            if (layerManager.hasLayer(layerManager.floor!.name, "draw"))
+                layerManager.getLayer(layerManager.floor!.name, "draw")!.invalidate(true);
         }
         this.updateShape(false);
     }
-    updateOwner(event: { target: HTMLInputElement }, oldValue: string) {
+    updateOwner(event: { target: HTMLInputElement }, oldValue: string): void {
         if (!this.owned) return;
         this.shape.updateOwner(oldValue, event.target.value);
         this.updateShape(gameStore.fowLOS);
     }
-    removeOwner(value: string) {
+    removeOwner(value: string): void {
         if (!this.owned) return;
         this.shape.removeOwner(value);
         this.updateShape(gameStore.fowLOS);
     }
-    removeTracker(uuid: string) {
+    removeTracker(uuid: string): void {
         if (!this.owned) return;
         this.shape.trackers = this.shape.trackers.filter(tr => tr.uuid !== uuid);
         this.updateShape(false);
     }
-    removeAura(uuid: string) {
+    removeAura(uuid: string): void {
         if (!this.owned) return;
         this.shape.auras = this.shape.auras.filter(au => au.uuid !== uuid);
         this.shape.checkVisionSources();
         this.updateShape(true);
     }
-    updateAuraVisionSource(aura: Aura) {
+    updateAuraVisionSource(aura: Aura): void {
         if (!this.owned) return;
         aura.visionSource = !aura.visionSource;
-        const i = visibilityStore.visionSources.findIndex(ls => ls.aura === aura.uuid);
+        const visionSources = getVisionSources(this.shape.floor);
+        const i = visionSources.findIndex(ls => ls.aura === aura.uuid);
         if (aura.visionSource && i === -1)
-            visibilityStore.visionSources.push({ shape: this.shape.uuid, aura: aura.uuid });
-        else if (!aura.visionSource && i >= 0) visibilityStore.visionSources.splice(i, 1);
+            addVisionSource({ shape: this.shape.uuid, aura: aura.uuid }, this.shape.floor);
+        else if (!aura.visionSource && i >= 0) sliceVisionSources(i, this.shape.floor);
         this.updateShape(true);
     }
-    updateAuraColour(aura: Aura, _colour: string) {
+    updateAuraColour(aura: Aura, _colour: string): void {
         if (!this.owned) return;
-        const layer = layerManager.getLayer(this.shape.layer);
+        const layer = layerManager.getLayer(this.shape.floor, this.shape.layer);
         if (layer === undefined) return;
         layer.invalidate(!aura.visionSource);
     }
-    openLabelManager() {
+    openLabelManager(): void {
         EventBus.$emit("LabelManager.Open");
     }
-    removeLabel(uuid: string) {
+    removeLabel(uuid: string): void {
         if (!this.owned) return;
         this.shape.labels = this.shape.labels.filter(l => l.uuid !== uuid);
         this.updateShape(true);

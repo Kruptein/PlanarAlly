@@ -3,6 +3,7 @@ export interface ServerShape {
     type_: string;
     x: number;
     y: number;
+    floor: string;
     layer: string;
     movement_obstruction: boolean;
     vision_obstruction: boolean;
@@ -18,6 +19,8 @@ export interface ServerShape {
     annotation: string;
     is_token: boolean;
     options?: string;
+    badge: number;
+    show_badge: boolean;
 }
 
 export interface ServerRect extends ServerShape {

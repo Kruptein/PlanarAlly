@@ -7,6 +7,23 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+## [0.19.2] - 2020-03-22
+
+### Added
+
+-   Favicon
+
+### Changed
+
+-   Only show snap points visually for the DM
+    -   This could otherwise expose hidden things to players.
+
+### Fixed
+
+-   Use grid toggle not working properly
+-   Show badge toggle not always synchronizing
+-   Moving shape to a different layer no longer leaves the old selection box around
+
 ## [0.19.1] - 2020-03-22
 
 ### Fixed

@@ -346,7 +346,7 @@ export default class EditDialog extends Vue {
             shape.showBadge = !shape.showBadge;
             socket.emit("Shape.Update", {
                 shape: shape.asDict(),
-                redraw: groupMembers.length === i - 1,
+                redraw: groupMembers.length === i + 1,
                 temporary: false,
             });
         }

@@ -7,7 +7,13 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
-## [0.19.0-rc.1] - 2020-03-19
+## [0.19.1] - 2020-03-22
+
+### Fixed
+
+-   Keyboard movement not synchronizing
+
+## [0.19.0] - 2020-03-19
 
 ### Added
 

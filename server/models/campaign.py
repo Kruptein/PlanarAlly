@@ -168,7 +168,7 @@ class Note(BaseModel):
         )
 
 class Marker(BaseModel):
-    uuid = TextField(primary_key=True)
+    uuid = TextField()
     user = ForeignKeyField(User, backref="markers", on_delete="CASCADE")
     room = ForeignKeyField(Room, backref="markers", on_delete="CASCADE")
 

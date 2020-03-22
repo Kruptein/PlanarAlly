@@ -124,6 +124,7 @@ export default class ShapeContext extends Vue {
     setLayer(newLayer: string): void {
         const layer = this.getActiveLayer()!;
         layer.selection.forEach(shape => shape.moveLayer(newLayer, true));
+        layer.clearSelection();
         this.close();
     }
     setLocation(newLocation: string): void {

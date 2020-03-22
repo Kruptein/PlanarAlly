@@ -7,6 +7,10 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+### Added
+
+-   Favicon
+
 ### Changed
 
 -   Only show snap points visually for the DM

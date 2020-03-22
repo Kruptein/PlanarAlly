@@ -98,8 +98,7 @@ async def update_shape_position(sid, data):
     if not data["temporary"]:
         with db.atomic():
             # Shape
-            model = reduce_data_to_model(Shape, data["shape"])
-            # update_model_from_dict(shape, model)
+            update_model_from_dict(shape, reduce_data_to_model(Shape, data["shape"]))
             shape.save()
             if shape.type_ == "polygon":
                 # Subshape

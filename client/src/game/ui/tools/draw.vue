@@ -491,7 +491,7 @@ export default class DrawTool extends Tool {
         this.brushHelper = new Circle(new GlobalPoint(-1000, -1000), this.brushSize / 2, this.fillColour);
         this.setupBrush();
         layer.addShape(this.brushHelper, SyncMode.NO_SYNC, InvalidationMode.NORMAL, false); // during mode change the shape is already added
-        this.showLayerPoints();
+        if (gameStore.IS_DM) this.showLayerPoints();
     }
     onDeselect(targetLayer?: string): void {
         this.activeTool = false;

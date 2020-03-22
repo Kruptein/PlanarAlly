@@ -7,6 +7,11 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+### Changed
+
+-   Only show snap points visually for the DM
+    -   This could otherwise expose hidden things to players.
+
 ### Fixed
 
 -   Use grid toggle not working properly

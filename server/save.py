@@ -295,7 +295,7 @@ def upgrade(version):
                 'INSERT INTO layer (id, floor_id, name, type_, player_visible, player_editable, selectable, "index") SELECT _layer.id, floor.id, _layer.name, type_, player_visible, player_editable, selectable, _layer."index" FROM _layer INNER JOIN floor ON floor.location_id = _layer.location_id'
             )
         db.execute_sql(
-            'CREATE TABLE IF NOT EXIST "marker" ( `uuid` TEXT NOT NULL PRIMARY KEY, `user_id` INTEGER NOT NULL, `room_id` INTEGER NOT NULL, FOREIGN KEY(`room_id`) REFERENCES `room`(`id`) ON DELETE CASCADE, FOREIGN KEY(`user_id`) REFERENCES `user`(`id`) ON DELETE CASCADE)'
+            'CREATE TABLE IF NOT EXIST "marker" ( `uuid` TEXT NOT NULL, `user_id` INTEGER NOT NULL, `room_id` INTEGER NOT NULL, FOREIGN KEY(`room_id`) REFERENCES `room`(`id`) ON DELETE CASCADE, FOREIGN KEY(`user_id`) REFERENCES `user`(`id`) ON DELETE CASCADE)'
         )
         db.foreign_keys = True
         Constants.get().update(save_version=Constants.save_version + 1).execute()

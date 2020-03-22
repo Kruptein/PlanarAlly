@@ -15,6 +15,7 @@ All notable changes to this project will be documented in this file.
 ### Fixed
 
 -   Use grid toggle not working properly
+-   Show badge toggle not always synchronizing
 
 ## [0.19.1] - 2020-03-22
 

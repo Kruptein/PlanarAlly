@@ -7,6 +7,10 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+### Fixed
+
+-   Use grid toggle not working properly
+
 ## [0.19.1] - 2020-03-22
 
 ### Fixed

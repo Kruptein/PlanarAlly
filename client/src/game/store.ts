@@ -282,7 +282,7 @@ class GameStore extends VuexModule implements GameState {
     setGridColour(data: { colour: string; sync: boolean }): void {
         this.gridColour = data.colour;
         for (const floor of layerManager.floors) {
-            layerManager.getGridLayer(floor.name)!.drawGrid();
+            layerManager.getGridLayer(floor.name)!.invalidate();
         }
         if (data.sync) socket.emit("Client.Options.Set", { gridColour: data.colour });
     }
@@ -348,6 +348,7 @@ class GameStore extends VuexModule implements GameState {
                 const gridLayer = layerManager.getGridLayer(floor.name)!;
                 if (data.useGrid) gridLayer.canvas.style.display = "block";
                 else gridLayer.canvas.style.display = "none";
+                gridLayer.invalidate();
             }
             // eslint-disable-next-line @typescript-eslint/camelcase
             if (data.sync) socket.emit("Location.Options.Set", { use_grid: data.useGrid });
@@ -360,7 +361,7 @@ class GameStore extends VuexModule implements GameState {
             this.gridSize = data.gridSize;
             for (const floor of layerManager.floors) {
                 const gridLayer = layerManager.getGridLayer(floor.name);
-                if (gridLayer !== undefined) gridLayer.drawGrid();
+                if (gridLayer !== undefined) gridLayer.invalidate();
             }
             if (data.sync) socket.emit("Gridsize.Set", data.gridSize);
         }

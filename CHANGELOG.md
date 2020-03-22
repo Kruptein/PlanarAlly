@@ -7,6 +7,8 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+## [0.19.2] - 2020-03-22
+
 ### Added
 
 -   Favicon

@@ -16,6 +16,7 @@ All notable changes to this project will be documented in this file.
 
 -   Use grid toggle not working properly
 -   Show badge toggle not always synchronizing
+-   Moving shape to a different layer no longer leaves the old selection box around
 
 ## [0.19.1] - 2020-03-22
 

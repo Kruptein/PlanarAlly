@@ -522,6 +522,7 @@ class GameStore extends VuexModule implements GameState {
         this.ownedtokens = [];
         this.annotations = [];
         this.notes = [];
+        this.markers = [];
     }
 }
 

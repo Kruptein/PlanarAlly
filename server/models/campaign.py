@@ -168,15 +168,19 @@ class Note(BaseModel):
         )
 
 class Marker(BaseModel):
-    uuid = TextField()
+    from .shape import Shape
+
+    uuid = ForeignKeyField(Shape, backref="markers", on_delete="CASCADE")
     user = ForeignKeyField(User, backref="markers", on_delete="CASCADE")
     room = ForeignKeyField(Room, backref="markers", on_delete="CASCADE")
 
     def __repr__(self):
-        return f"<Marker {self.uuid} {self.room.get_path()} - {self.user.name}"
+        return f"<Marker {self.shape.uuid} {self.room.get_path()} - {self.user.name}"
 
-    def as_string(self):
-        return self.uuid
+    def as_dict(self):
+        return model_to_dict(
+            self, recurse=False, exclude=[Marker.id, Marker.room, Marker.user]
+        )
 
 class Floor(BaseModel):
     location = ForeignKeyField(Location, backref="floors", on_delete="CASCADE")

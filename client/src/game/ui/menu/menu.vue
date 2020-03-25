@@ -223,7 +223,7 @@ export default class MenuBar extends Vue {
     }
 
     nameMarker(marker: string): string {
-        if (layerManager.UUIDMap.get(marker) != undefined) {
+        if (layerManager.UUIDMap.get(marker) !== undefined) {
             return layerManager.UUIDMap.get(marker)!.name;
         } else {
             return "";

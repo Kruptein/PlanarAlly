@@ -177,10 +177,8 @@ class Marker(BaseModel):
     def __repr__(self):
         return f"<Marker {self.shape.uuid} {self.room.get_path()} - {self.user.name}"
 
-    def as_dict(self):
-        return model_to_dict(
-            self, recurse=False, exclude=[Marker.id, Marker.room, Marker.user]
-        )
+    def as_string(self):
+        return f"{self.uuid}"
 
 class Floor(BaseModel):
     location = ForeignKeyField(Location, backref="floors", on_delete="CASCADE")

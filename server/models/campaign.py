@@ -172,10 +172,10 @@ class Marker(BaseModel):
 
     uuid = ForeignKeyField(Shape, backref="markers", on_delete="CASCADE")
     user = ForeignKeyField(User, backref="markers", on_delete="CASCADE")
-    room = ForeignKeyField(Room, backref="markers", on_delete="CASCADE")
+    location = ForeignKeyField(Location, backref="markers", on_delete="CASCADE")
 
     def __repr__(self):
-        return f"<Marker {self.shape.uuid} {self.room.get_path()} - {self.user.name}"
+        return f"<Marker {self.shape.uuid} {self.location.get_path()} - {self.user.name}"
 
     def as_string(self):
         return f"{self.uuid}"

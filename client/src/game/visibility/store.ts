@@ -2,11 +2,12 @@ import { socket } from "@/game/api/socket";
 import { rootStore } from "@/store";
 import { Action, getModule, Module, Mutation, VuexModule } from "vuex-module-decorators";
 import { Shape } from "../shapes/shape";
-import { triangulate, TriangulationTarget } from "./te/pa";
+import { addShapesToTriag, deleteShapeFromTriag, triangulate, TriangulationTarget } from "./te/pa";
 import { moveBlocker, moveVisionSource } from "./utils";
 
 export enum VisibilityMode {
     TRIANGLE,
+    TRIANGLE_ITERATIVE,
 }
 
 export interface VisibilityState {
@@ -24,17 +25,17 @@ class VisibilityStore extends VuexModule implements VisibilityState {
     setVisionMode(data: { mode: VisibilityMode; sync: boolean }): void {
         this.visionMode = data.mode;
         // eslint-disable-next-line @typescript-eslint/camelcase
-        if (data.sync) socket.emit("Location.Options.Set", { vision_mode: data.mode });
+        if (data.sync) socket.emit("Location.Options.Set", { vision_mode: VisibilityMode[data.mode] });
     }
 
     @Mutation
     recalculateVision(floor: string): void {
-        triangulate(TriangulationTarget.VISION, false, floor);
+        if (this.visionMode === VisibilityMode.TRIANGLE) triangulate(TriangulationTarget.VISION, floor);
     }
 
     @Mutation
     recalculateMovement(floor: string): void {
-        triangulate(TriangulationTarget.MOVEMENT, false, floor);
+        if (this.visionMode === VisibilityMode.TRIANGLE) triangulate(TriangulationTarget.MOVEMENT, floor);
     }
 
     @Mutation
@@ -46,6 +47,16 @@ class VisibilityStore extends VuexModule implements VisibilityState {
             moveBlocker(TriangulationTarget.VISION, data.shape.uuid, data.oldFloor, data.newFloor);
         }
         moveVisionSource(data.shape.uuid, data.shape.auras, data.oldFloor, data.newFloor);
+    }
+
+    @Mutation
+    deleteFromTriag(data: { target: TriangulationTarget; shape: Shape }): void {
+        if (this.visionMode === VisibilityMode.TRIANGLE_ITERATIVE) deleteShapeFromTriag(data.target, data.shape);
+    }
+
+    @Mutation
+    addToTriag(data: { target: TriangulationTarget; shape: Shape }): void {
+        if (this.visionMode === VisibilityMode.TRIANGLE_ITERATIVE) addShapesToTriag(data.target, data.shape);
     }
 
     @Action

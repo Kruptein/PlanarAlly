@@ -1,6 +1,6 @@
 import { ServerPolygon } from "../comm/types/shapes";
-import { GlobalPoint, LocalPoint } from "../geom";
-import { g2lx, g2ly, g2lz, l2g } from "../units";
+import { GlobalPoint } from "../geom";
+import { g2lx, g2ly, g2lz } from "../units";
 import { getFogColour } from "../utils";
 import { BoundingRect } from "./boundingrect";
 import { Shape } from "./shape";
@@ -83,6 +83,7 @@ export class Polygon extends Shape {
         }
         if (!this.openPolygon) ctx.fill();
         ctx.stroke();
+        super.drawPost(ctx);
     }
 
     contains(point: GlobalPoint): boolean {
@@ -101,9 +102,10 @@ export class Polygon extends Shape {
     snapToGrid(): void {}
     // eslint-disable-next-line @typescript-eslint/no-empty-function
     resizeToGrid(): void {}
-    resize(resizePoint: number, point: LocalPoint): void {
-        if (resizePoint === 0) this._refPoint = l2g(point);
-        else this._vertices[resizePoint - 1] = l2g(point);
+    resize(resizePoint: number, point: GlobalPoint): number {
+        if (resizePoint === 0) this._refPoint = point;
+        else this._vertices[resizePoint - 1] = point;
+        return resizePoint;
     }
     getBoundingBox(): BoundingRect {
         let minx: number = this.refPoint.x;

@@ -47,12 +47,15 @@ import { Watch } from "vue-property-decorator";
 import { mapGetters } from "vuex";
 
 import ColorPicker from "@/core/components/colorpicker.vue";
-import DefaultContext from "@/game/ui/tools/defaultcontext.vue";
-import Tool from "@/game/ui/tools/tool.vue";
+import DefaultContext from "./defaultcontext.vue";
+import Tool from "./tool.vue";
 import Tools from "./tools.vue";
 
+import { SyncMode, InvalidationMode } from "@/core/comm/types";
 import { socket } from "@/game/api/socket";
 import { GlobalPoint } from "@/game/geom";
+import { Layer } from "@/game/layers/layer";
+import { snapToPoint } from "@/game/layers/utils";
 import { layerManager } from "@/game/layers/manager";
 import { Circle } from "@/game/shapes/circle";
 import { Line } from "@/game/shapes/line";
@@ -61,11 +64,9 @@ import { Rect } from "@/game/shapes/rect";
 import { Shape } from "@/game/shapes/shape";
 import { gameStore } from "@/game/store";
 import { getUnitDistance, l2g, g2lx, g2ly } from "@/game/units";
-import { getLocalPointFromEvent } from "@/game/utils";
-import { visibilityStore } from "../../visibility/store";
-import { Layer } from "../../layers/layer";
-import { snapToPoint } from "../../layers/utils";
-import { SyncMode, InvalidationMode } from "../../../core/comm/types";
+import { equalPoints, getLocalPointFromEvent } from "@/game/utils";
+import { visibilityStore } from "@/game/visibility/store";
+import { TriangulationTarget, insertConstraint, getCDT } from "@/game/visibility/te/pa";
 
 @Component({
     components: {
@@ -284,7 +285,20 @@ export default class DrawTool extends Tool {
                 this.ruler.refPoint = lastPoint;
                 this.ruler.endPoint = lastPoint;
             }
-            if (this.shape.visionObstruction) visibilityStore.recalculateVision(this.shape.floor);
+            if (this.shape.visionObstruction && this.shape.points.length > 1)
+                insertConstraint(
+                    TriangulationTarget.VISION,
+                    this.shape,
+                    this.shape.points[this.shape.points.length - 2],
+                    this.shape.points[this.shape.points.length - 1],
+                );
+            if (this.shape.movementObstruction && this.shape.points.length > 1)
+                insertConstraint(
+                    TriangulationTarget.MOVEMENT,
+                    this.shape,
+                    this.shape.points[this.shape.points.length - 2],
+                    this.shape.points[this.shape.points.length - 1],
+                );
             layer.invalidate(false);
             socket.emit("Shape.Update", { shape: this.shape!.asDict(), redraw: true, temporary: true });
         }
@@ -307,20 +321,31 @@ export default class DrawTool extends Tool {
 
         switch (this.shapeSelect) {
             case "square": {
-                (<Rect>this.shape).w = Math.abs(endPoint.x - this.startPoint.x);
-                (<Rect>this.shape).h = Math.abs(endPoint.y - this.startPoint.y);
-                this.shape.refPoint = new GlobalPoint(
-                    Math.min(this.startPoint.x, endPoint.x),
-                    Math.min(this.startPoint.y, endPoint.y),
-                );
+                const rect = <Rect>this.shape;
+                const newW = Math.abs(endPoint.x - this.startPoint.x);
+                const newH = Math.abs(endPoint.y - this.startPoint.y);
+                if (newW === rect.w && newH === rect.h) return;
+                rect.w = newW;
+                rect.h = newH;
+                if (endPoint.x < this.startPoint.x || endPoint.y < this.startPoint.y) {
+                    this.shape.refPoint = new GlobalPoint(
+                        Math.min(this.startPoint.x, endPoint.x),
+                        Math.min(this.startPoint.y, endPoint.y),
+                    );
+                }
                 break;
             }
             case "circle": {
-                (<Circle>this.shape).r = Math.abs(endPoint.subtract(this.startPoint).length());
+                const circ = <Circle>this.shape;
+                const newR = Math.abs(endPoint.subtract(this.startPoint).length());
+                if (circ.r === newR) return;
+                circ.r = newR;
                 break;
             }
             case "paint-brush": {
-                (<Polygon>this.shape)._vertices.push(endPoint);
+                const br = <Polygon>this.shape;
+                if (equalPoints(br.points[br.points.length - 1], [endPoint.x, endPoint.y])) return;
+                br._vertices.push(endPoint);
                 break;
             }
             case "draw-polygon": {
@@ -331,7 +356,18 @@ export default class DrawTool extends Tool {
 
         if (!(this.shapeSelect === "draw-polygon" && this.shape instanceof Polygon)) {
             socket.emit("Shape.Update", { shape: this.shape!.asDict(), redraw: true, temporary: true });
-            if (this.shape.visionObstruction) visibilityStore.recalculateVision(this.shape.floor);
+            if (this.shape.visionObstruction) {
+                if (
+                    getCDT(TriangulationTarget.VISION, this.shape.floor).tds.getTriagVertices(this.shape.uuid).length >
+                    1
+                )
+                    visibilityStore.deleteFromTriag({
+                        target: TriangulationTarget.VISION,
+                        shape: this.shape,
+                    });
+                visibilityStore.addToTriag({ target: TriangulationTarget.VISION, shape: this.shape });
+                visibilityStore.recalculateVision(this.shape.floor);
+            }
         }
         layer.invalidate(false);
     }
@@ -346,7 +382,20 @@ export default class DrawTool extends Tool {
         }
         // TODO: handle touch event different than altKey, long press
         if (!event.altKey && this.useGrid) {
+            if (this.shape.visionObstruction)
+                visibilityStore.deleteFromTriag({
+                    target: TriangulationTarget.VISION,
+                    shape: this.shape,
+                });
             this.shape.resizeToGrid();
+            if (this.shape.visionObstruction) {
+                visibilityStore.addToTriag({ target: TriangulationTarget.VISION, shape: this.shape });
+                visibilityStore.recalculateVision(this.shape.floor);
+            }
+            if (this.shape.movementObstruction) {
+                visibilityStore.addToTriag({ target: TriangulationTarget.MOVEMENT, shape: this.shape });
+                visibilityStore.recalculateMovement(this.shape.floor);
+            }
         }
         this.finaliseShape();
     }
@@ -358,7 +407,7 @@ export default class DrawTool extends Tool {
     }
 
     onMouseMove(event: MouseEvent): void {
-        const endPoint = snapToPoint(this.getLayer()!, l2g(getLocalPointFromEvent(event)));
+        const endPoint = snapToPoint(this.getLayer()!, l2g(getLocalPointFromEvent(event)), this.ruler?.refPoint);
         this.onMove(endPoint);
     }
 
@@ -367,12 +416,12 @@ export default class DrawTool extends Tool {
     }
 
     onTouchStart(event: TouchEvent): void {
-        const startPoint = snapToPoint(this.getLayer()!, l2g(getLocalPointFromEvent(event)));
+        const startPoint = snapToPoint(this.getLayer()!, l2g(getLocalPointFromEvent(event)), this.ruler?.refPoint);
         this.onDown(startPoint);
     }
 
     onTouchMove(event: TouchEvent): void {
-        const endPoint = snapToPoint(this.getLayer()!, l2g(getLocalPointFromEvent(event)));
+        const endPoint = snapToPoint(this.getLayer()!, l2g(getLocalPointFromEvent(event)), this.ruler?.refPoint);
         this.onMove(endPoint);
     }
 
@@ -394,6 +443,22 @@ export default class DrawTool extends Tool {
             }
             layer.removeShape(this.ruler!, SyncMode.NO_SYNC);
             this.ruler = null;
+            if (this.closedPolygon) {
+                if (this.shape.visionObstruction && this.shape.points.length > 1)
+                    insertConstraint(
+                        TriangulationTarget.VISION,
+                        this.shape,
+                        this.shape.points[0],
+                        this.shape.points[this.shape.points.length - 1],
+                    );
+                if (this.shape.movementObstruction && this.shape.points.length > 1)
+                    insertConstraint(
+                        TriangulationTarget.MOVEMENT,
+                        this.shape,
+                        this.shape.points[0],
+                        this.shape.points[this.shape.points.length - 1],
+                    );
+            }
             this.finaliseShape();
         } else if (!this.active) {
             (<DefaultContext>this.$parent.$refs.defaultcontext).open(event);
@@ -412,6 +477,10 @@ export default class DrawTool extends Tool {
             socket.emit("Shape.Update", { shape: this.shape!.asDict(), redraw: true, temporary: false });
         }
         this.active = false;
+        const layer = this.getLayer();
+        if (layer !== undefined) {
+            layer.invalidate(false);
+        }
     }
 
     onSelect(): void {
@@ -422,7 +491,7 @@ export default class DrawTool extends Tool {
         this.brushHelper = new Circle(new GlobalPoint(-1000, -1000), this.brushSize / 2, this.fillColour);
         this.setupBrush();
         layer.addShape(this.brushHelper, SyncMode.NO_SYNC, InvalidationMode.NORMAL, false); // during mode change the shape is already added
-        this.showLayerPoints();
+        if (gameStore.IS_DM) this.showLayerPoints();
     }
     onDeselect(targetLayer?: string): void {
         this.activeTool = false;

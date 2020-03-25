@@ -12,7 +12,7 @@ from config import SAVE_FILE
 from models import ALL_MODELS, Constants
 from models.db import db
 
-SAVE_VERSION = 20
+SAVE_VERSION = 21
 logger: logging.Logger = logging.getLogger("PlanarAllyServer")
 logger.setLevel(logging.INFO)
 
@@ -297,6 +297,18 @@ def upgrade(version):
         db.execute_sql(
             'CREATE TABLE IF NOT EXIST "marker" ("id" INTEGER NOT NULL PRIMARY KEY, `uuid` TEXT NOT NULL , `user_id` INTEGER NOT NULL, `room_id` INTEGER NOT NULL, FOREIGN KEY(`uuid`) REFERENCES `shape`(`uuid`) ON DELETE CASCADE, FOREIGN KEY(`room_id`) REFERENCES `room`(`id`) ON DELETE CASCADE, FOREIGN KEY(`user_id`) REFERENCES `user`(`id`) ON DELETE CASCADE)'
         )
+        db.foreign_keys = True
+        Constants.get().update(save_version=Constants.save_version + 1).execute()
+    elif version == 20:
+        from peewee import BooleanField, BooleanField, IntegerField
+
+        migrator = SqliteMigrator(db)
+        db.foreign_keys = False
+        with db.atomic():
+            migrate(
+                migrator.add_column("shape", "badge", IntegerField(default=1)),
+                migrator.add_column("shape", "show_badge", BooleanField(default=False)),
+            )
         db.foreign_keys = True
         Constants.get().update(save_version=Constants.save_version + 1).execute()
     else:

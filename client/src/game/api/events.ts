@@ -83,15 +83,19 @@ socket.on("Location.Set", (data: Partial<ServerLocation>) => {
     if (data.fow_los !== undefined) gameStore.setLineOfSight({ fowLOS: data.fow_los, sync: false });
     if (data.vision_min_range !== undefined) gameStore.setVisionRangeMin({ value: data.vision_min_range, sync: false });
     if (data.vision_max_range !== undefined) gameStore.setVisionRangeMax({ value: data.vision_max_range, sync: false });
-    if (data.vision_mode !== undefined) {
-        visibilityStore.setVisionMode({ mode: VisibilityMode.TRIANGLE, sync: false });
+    if (data.vision_mode !== undefined && data.vision_mode in VisibilityMode) {
+        visibilityStore.setVisionMode({
+            mode: VisibilityMode[<keyof typeof VisibilityMode>data.vision_mode],
+            sync: false,
+        });
         for (const floor of layerManager.floors) {
             visibilityStore.recalculateVision(floor.name);
             visibilityStore.recalculateMovement(floor.name);
         }
     }
 });
-socket.on("Position.Set", (data: { x: number; y: number; zoom: number }) => {
+socket.on("Position.Set", (data: { floor: string; x: number; y: number; zoom: number }) => {
+    gameStore.selectFloor(gameStore.floors.findIndex(f => f === data.floor));
     gameStore.setZoomDisplay(data.zoom);
     gameManager.setCenterPosition(new GlobalPoint(data.x, data.y));
 });

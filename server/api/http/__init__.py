@@ -4,6 +4,7 @@ from aiohttp_security import check_authorized
 import api.http.auth
 import api.http.rooms
 import api.http.users
+import api.http.version
 
 from app import sio, state
 from models import PlayerRoom, Room

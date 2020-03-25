@@ -1,6 +1,6 @@
 import { InvalidationMode, SyncMode } from "@/core/comm/types";
 import { ServerFloor, ServerLayer } from "@/game/comm/types/general";
-import { GlobalPoint, LocalPoint } from "@/game/geom";
+import { GlobalPoint } from "@/game/geom";
 import { FOWLayer } from "@/game/layers/fow";
 import { FOWPlayersLayer } from "@/game/layers/fowplayers";
 import { GridLayer } from "@/game/layers/grid";
@@ -8,7 +8,7 @@ import { Layer } from "@/game/layers/layer";
 import { layerManager } from "@/game/layers/manager";
 import { Asset } from "@/game/shapes/asset";
 import { gameStore } from "@/game/store";
-import { g2l, l2gx, l2gy, l2gz } from "@/game/units";
+import { l2gx, l2gy, l2gz } from "@/game/units";
 import { visibilityStore } from "@/game/visibility/store";
 import { addCDT, removeCDT } from "@/game/visibility/te/pa";
 
@@ -35,7 +35,10 @@ export function removeFloor(floor: string): void {
         1,
     );
     const index = gameStore.floors.findIndex(f => f === floor);
+    for (const layer of layerManager.floors[index].layers) layer.canvas.remove();
+    // todo: once vue 3 hits, fix this split up
     gameStore.floors.splice(index, 1);
+    layerManager.floors.splice(index, 1);
     if (gameStore.selectedFloorIndex === index) gameStore.selectFloor(index - 1);
 }
 
@@ -95,27 +98,15 @@ export function dropAsset(event: DragEvent): void {
     layer.addShape(asset, SyncMode.FULL_SYNC, InvalidationMode.WITH_LIGHT);
 }
 
-export function snapToPoint(layer: Layer, endPoint: GlobalPoint): GlobalPoint {
+export function snapToPoint(layer: Layer, endPoint: GlobalPoint, ignore?: GlobalPoint): GlobalPoint {
     const snapDistance = l2gz(20);
     let smallestPoint: [number, GlobalPoint] | undefined;
     for (const point of layer.points.keys()) {
         const gp = GlobalPoint.fromArray(JSON.parse(point));
+        if (ignore && gp.equals(ignore)) continue;
         const l = endPoint.subtract(gp).length();
         if (smallestPoint === undefined && l < snapDistance) smallestPoint = [l, gp];
         else if (smallestPoint !== undefined && l < smallestPoint[0]) smallestPoint = [l, gp];
-    }
-    if (smallestPoint !== undefined) endPoint = smallestPoint[1];
-    return endPoint;
-}
-
-export function snapToPointLocal(layer: Layer, endPoint: LocalPoint): LocalPoint {
-    const snapDistance = 20;
-    let smallestPoint: [number, LocalPoint] | undefined;
-    for (const point of layer.points.keys()) {
-        const lp = g2l(GlobalPoint.fromArray(JSON.parse(point)));
-        const l = endPoint.subtract(lp).length();
-        if (smallestPoint === undefined && l < snapDistance) smallestPoint = [l, lp];
-        else if (smallestPoint !== undefined && l < smallestPoint[0]) smallestPoint = [l, lp];
     }
     if (smallestPoint !== undefined) endPoint = smallestPoint[1];
     return endPoint;

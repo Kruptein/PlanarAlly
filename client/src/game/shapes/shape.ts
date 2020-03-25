@@ -3,17 +3,15 @@ import { socket } from "@/game/api/socket";
 import { aurasFromServer, aurasToServer } from "@/game/comm/conversion/aura";
 import { InitiativeData } from "@/game/comm/types/general";
 import { ServerShape } from "@/game/comm/types/shapes";
-import { GlobalPoint, LocalPoint, Vector } from "@/game/geom";
+import { GlobalPoint, Vector } from "@/game/geom";
 import { layerManager } from "@/game/layers/manager";
-import { BoundingRect } from "@/game/shapes/boundingrect";
 import { gameStore } from "@/game/store";
-import { g2l, g2lr, g2lx, g2ly, g2lz, getUnitDistance } from "@/game/units";
+import { g2l, g2lx, g2ly, g2lz } from "@/game/units";
+import { visibilityStore } from "@/game/visibility/store";
+import { TriangulationTarget } from "@/game/visibility/te/pa";
 import { addBlocker, getBlockers, getVisionSources, setVisionSources, sliceBlockers } from "@/game/visibility/utils";
 import tinycolor from "tinycolor2";
-import { visibilityStore } from "../visibility/store";
-import { TriangulationTarget } from "../visibility/te/pa";
-import { computeVisibility } from "../visibility/te/te";
-import { updateAuraPath } from "./utils";
+import { BoundingRect } from "./boundingrect";
 
 export abstract class Shape {
     // Used to create class instance from server shape data
@@ -58,6 +56,9 @@ export abstract class Shape {
     // Additional options for specialized uses
     options: Map<string, any> = new Map();
 
+    badge = 1;
+    showBadge = false;
+
     constructor(refPoint: GlobalPoint, fillColour?: string, strokeColour?: string, uuid?: string) {
         this._refPoint = refPoint;
         this.uuid = uuid || uuidv4();
@@ -98,7 +99,7 @@ export abstract class Shape {
     // This is shape dependent as the shape refPoints are shape specific in
     abstract snapToGrid(): void;
     abstract resizeToGrid(): void;
-    abstract resize(resizePoint: number, point: LocalPoint): void;
+    abstract resize(resizePoint: number, point: GlobalPoint): number;
 
     abstract get points(): number[][];
 
@@ -123,18 +124,20 @@ export abstract class Shape {
         if (l) l.invalidate(skipLightUpdate);
     }
 
-    checkVisionSources(recalculate = true): void {
+    checkVisionSources(recalculate = true): boolean {
+        let alteredVision = false;
         const visionBlockers = getBlockers(TriangulationTarget.VISION, this.floor);
         const obstructionIndex = visionBlockers.indexOf(this.uuid);
-        let update = false;
         if (this.visionObstruction && obstructionIndex === -1) {
             addBlocker(TriangulationTarget.VISION, this.uuid, this.floor);
-            update = true;
+            if (recalculate) visibilityStore.addToTriag({ target: TriangulationTarget.VISION, shape: this });
+            alteredVision = true;
         } else if (!this.visionObstruction && obstructionIndex >= 0) {
             sliceBlockers(TriangulationTarget.VISION, obstructionIndex, this.floor);
-            update = true;
+            if (recalculate) visibilityStore.deleteFromTriag({ target: TriangulationTarget.VISION, shape: this });
+            alteredVision = true;
         }
-        if (update && recalculate) visibilityStore.recalculateVision(this.floor);
+        if (alteredVision && recalculate) visibilityStore.recalculateVision(this.floor);
 
         // Check if the visionsource auras are in the gameManager
         const visionSources: { shape: string; aura: string }[] = [...getVisionSources(this.floor)];
@@ -154,21 +157,25 @@ export abstract class Shape {
             }
         }
         setVisionSources(visionSources, this.floor);
+        return alteredVision;
     }
 
-    setMovementBlock(blocksMovement: boolean, recalculate = true): void {
+    setMovementBlock(blocksMovement: boolean, recalculate = true): boolean {
+        let alteredMovement = false;
         this.movementObstruction = blocksMovement || false;
         const movementBlockers = getBlockers(TriangulationTarget.MOVEMENT, this.floor);
         const obstructionIndex = movementBlockers.indexOf(this.uuid);
-        let update = false;
         if (this.movementObstruction && obstructionIndex === -1) {
             addBlocker(TriangulationTarget.MOVEMENT, this.uuid, this.floor);
-            update = true;
+            if (recalculate) visibilityStore.addToTriag({ target: TriangulationTarget.MOVEMENT, shape: this });
+            alteredMovement = true;
         } else if (!this.movementObstruction && obstructionIndex >= 0) {
             sliceBlockers(TriangulationTarget.MOVEMENT, obstructionIndex, this.floor);
-            update = true;
+            if (recalculate) visibilityStore.deleteFromTriag({ target: TriangulationTarget.MOVEMENT, shape: this });
+            alteredMovement = true;
         }
-        if (update && recalculate) visibilityStore.recalculateMovement(this.floor);
+        if (alteredMovement && recalculate) visibilityStore.recalculateMovement(this.floor);
+        return alteredMovement;
     }
 
     setIsToken(isToken: boolean): void {
@@ -210,6 +217,9 @@ export abstract class Shape {
             // eslint-disable-next-line @typescript-eslint/camelcase
             is_token: this.isToken,
             options: JSON.stringify([...this.options]),
+            badge: this.badge,
+            // eslint-disable-next-line @typescript-eslint/camelcase
+            show_badge: this.showBadge,
         };
     }
     fromDict(data: ServerShape): void {
@@ -222,8 +232,12 @@ export abstract class Shape {
         this.trackers = data.trackers;
         this.labels = data.labels;
         this._owners = data.owners;
+        this.fillColour = data.fill_colour;
+        this.strokeColour = data.stroke_colour;
         this.isToken = data.is_token;
         this.nameVisible = data.name_visible;
+        this.badge = data.badge;
+        this.showBadge = data.show_badge;
         if (data.annotation) this.annotation = data.annotation;
         if (data.name) this.name = data.name;
         if (data.options) this.options = new Map(JSON.parse(data.options));
@@ -232,50 +246,32 @@ export abstract class Shape {
     draw(ctx: CanvasRenderingContext2D): void {
         if (this.globalCompositeOperation !== undefined) ctx.globalCompositeOperation = this.globalCompositeOperation;
         else ctx.globalCompositeOperation = "source-over";
-        if (this.showHighlight) {
-            const bbox = this.getBoundingBox();
-            ctx.strokeStyle = "red";
-            ctx.strokeRect(g2lx(bbox.topLeft.x) - 5, g2ly(bbox.topLeft.y) - 5, g2lz(bbox.w) + 10, g2lz(bbox.h) + 10);
-        }
     }
 
-    drawAuras(ctx: CanvasRenderingContext2D): void {
-        for (const aura of this.auras) {
-            if (aura.value === 0 && aura.dim === 0) return;
+    drawPost(ctx: CanvasRenderingContext2D): void {
+        let bbox: BoundingRect | undefined;
+        if (this.showBadge) {
+            bbox = this.getBoundingBox();
+            const location = g2l(bbox.botRight);
+            const r = g2lz(10);
+            ctx.strokeStyle = "black";
+            ctx.fillStyle = this.strokeColour;
+            ctx.lineWidth = g2lz(2);
             ctx.beginPath();
+            ctx.arc(location.x - r, location.y - r, r, 0, 2 * Math.PI);
+            ctx.stroke();
+            ctx.fill();
+            ctx.fillStyle = tinycolor.mostReadable(this.strokeColour, ["#000", "#fff"]).toHexString();
 
-            const loc = g2l(this.center());
-            const innerRange = g2lr(aura.value + aura.dim);
-
-            if (aura.dim === 0) ctx.fillStyle = aura.colour;
-            else {
-                const gradient = ctx.createRadialGradient(
-                    loc.x,
-                    loc.y,
-                    g2lr(aura.value),
-                    loc.x,
-                    loc.y,
-                    g2lr(aura.value + aura.dim),
-                );
-                const tc = tinycolor(aura.colour);
-                ctx.fillStyle = gradient;
-                gradient.addColorStop(0, aura.colour);
-                gradient.addColorStop(1, tc.setAlpha(0).toRgbString());
-            }
-            if (!aura.visionSource) {
-                ctx.arc(loc.x, loc.y, innerRange, 0, 2 * Math.PI);
-                ctx.fill();
-            } else {
-                const polygon = computeVisibility(this.center(), TriangulationTarget.VISION, this.floor);
-                aura.lastPath = updateAuraPath(polygon, this.center(), getUnitDistance(aura.value + aura.dim));
-                try {
-                    ctx.fill(aura.lastPath);
-                } catch (e) {
-                    ctx.arc(loc.x, loc.y, innerRange, 0, 2 * Math.PI);
-                    ctx.fill();
-                    console.warn(e);
-                }
-            }
+            ctx.font = `${1.8 * r}px bold Calibri, sans-serif`;
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            ctx.fillText(`${this.badge}`, location.x - r, location.y - r + g2lz(1));
+        }
+        if (this.showHighlight) {
+            if (bbox === undefined) bbox = this.getBoundingBox();
+            ctx.strokeStyle = "red";
+            ctx.strokeRect(g2lx(bbox.topLeft.x) - 5, g2ly(bbox.topLeft.y) - 5, g2lz(bbox.w) + 10, g2lz(bbox.h) + 10);
         }
     }
 
@@ -344,7 +340,7 @@ export abstract class Shape {
         if (sync) socket.emit("Shape.Layer.Change", { uuid: this.uuid, layer, floor: newLayer.floor });
     }
 
-    // this screws up vetur if typed as `readonly stringp[]`
+    // This screws up vetur if typed as `readonly string[]`
     // eslint-disable-next-line @typescript-eslint/array-type
     get owners(): ReadonlyArray<string> {
         return Object.freeze(this._owners.slice());
@@ -376,5 +372,21 @@ export abstract class Shape {
 
     updatePoints(): void {
         layerManager.getLayer(this.floor, this.layer)?.updateShapePoints(this);
+    }
+
+    getGroupMembers(): Shape[] {
+        if (!(this.options.has("groupId") || this.options.has("groupInfo"))) return [this];
+        const groupId = this.options.get("groupId") ?? this.uuid;
+        const groupLeader = groupId === this.uuid ? this : layerManager.UUIDMap.get(groupId);
+        if (groupLeader === undefined || !groupLeader.options.has("groupInfo")) return [this];
+        const groupIds = <string[]>groupLeader.options.get("groupInfo");
+        return [
+            groupLeader,
+            ...groupIds.reduce(
+                (acc: Shape[], u: string) =>
+                    layerManager.UUIDMap.has(u) ? [...acc, layerManager.UUIDMap.get(u)!] : acc,
+                [],
+            ),
+        ];
     }
 }

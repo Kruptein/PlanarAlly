@@ -7,6 +7,33 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+-   Set any shape as marker and jump to that position from the sidebar [LDeeJay1969]
+
+## [0.19.2] - 2020-03-22
+
+### Added
+
+-   Favicon
+
+### Changed
+
+-   Only show snap points visually for the DM
+    -   This could otherwise expose hidden things to players.
+
+### Fixed
+
+-   Use grid toggle not working properly
+-   Show badge toggle not always synchronizing
+-   Moving shape to a different layer no longer leaves the old selection box around
+
+## [0.19.1] - 2020-03-22
+
+### Fixed
+
+-   Keyboard movement not synchronizing
+
+## [0.19.0] - 2020-03-19
+
 ### Added
 
 -   Account Settings
@@ -20,7 +47,28 @@ All notable changes to this project will be documented in this file.
     -   Use Page Up/Down as a quick keybinding to move between floors
 -  Touch Gestures [ZachMyers3]
 -  Easier client traversing by removing _load route [ZachMyers3] 
--   Set any shape as marker and jump to that position from the sidebar [LDeeJay1969]
+    -   Use Ctrl + Page Up/Down to move shapes across floors (combine with Shift to immediately move the camera as well)
+-   Touch Gestures [ZachMyers3]
+-   Easier client traversing by removing \_load route [ZachMyers3]
+-   Display current version on client [ZachMyers3]
+-   Shape badges
+    -   Toggleable badge display showing the shape's group number
+-   Logo to the planarserver.exe
+-   New experimental vision mode
+    -   Recalculates vision based on small changes instead of recalculing the entire scene.
+
+### Changed
+
+-   When resizing on mouse up, a different method will be used to resize/snap the shape to the grid
+
+### Fixed
+
+-   Annotations stop working when changing location
+-   Cursor resize icon not correct in multiselect
+-   Movement of shapes not working 100% correctly
+    -   In particular, moving a group of tokens now behaves correctly and doesn't suddenly jump around
+-   Resize of rectangle shapes (and assets) working in all directions
+-   Bug where shapes moved by players would remove auras/trackers from shapes for the DM
 
 ### Removed
 

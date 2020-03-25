@@ -1,7 +1,7 @@
-import { GlobalPoint, LocalPoint } from "@/game/geom";
+import { GlobalPoint } from "@/game/geom";
 import { BoundingRect } from "@/game/shapes/boundingrect";
 import { Shape } from "@/game/shapes/shape";
-import { g2lx, g2ly, l2g, g2lz } from "@/game/units";
+import { g2lx, g2ly, g2lz } from "@/game/units";
 import { ServerLine } from "../comm/types/shapes";
 
 export class Line extends Shape {
@@ -53,6 +53,7 @@ export class Line extends Shape {
         ctx.lineTo(g2lx(this.endPoint.x), g2ly(this.endPoint.y));
         ctx.lineWidth = g2lz(this.lineWidth);
         ctx.stroke();
+        super.drawPost(ctx);
     }
     contains(_point: GlobalPoint): boolean {
         return false; // TODO
@@ -69,8 +70,9 @@ export class Line extends Shape {
     snapToGrid(): void {}
     // eslint-disable-next-line @typescript-eslint/no-empty-function
     resizeToGrid(): void {}
-    resize(resizePoint: number, point: LocalPoint): void {
-        if (resizePoint === 0) this.refPoint = l2g(point);
-        else this.endPoint = l2g(point);
+    resize(resizePoint: number, point: GlobalPoint): number {
+        if (resizePoint === 0) this.refPoint = point;
+        else this.endPoint = point;
+        return resizePoint;
     }
 }

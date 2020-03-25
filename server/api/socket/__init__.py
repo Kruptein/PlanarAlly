@@ -72,9 +72,14 @@ async def set_gridsize(sid, grid_size):
     if room.creator != user:
         logger.warning(f"{user.name} attempted to set gridsize without DM rights")
         return
-    gl = GridLayer[Layer.get(location=location, name="grid")]
-    gl.size = grid_size
-    gl.save()
+    for layer in (
+        Layer.select()
+        .join(Floor)
+        .where((Floor.location == location) & (Layer.name == "grid"))
+    ):
+        gl = GridLayer[layer]
+        gl.size = grid_size
+        gl.save()
     await sio.emit(
         "Gridsize.Set",
         grid_size,

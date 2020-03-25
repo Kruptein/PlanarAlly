@@ -6,17 +6,18 @@ import DefaultContext from "@/game/ui/tools/defaultcontext.vue";
 import Tool from "@/game/ui/tools/tool.vue";
 
 import { socket } from "@/game/api/socket";
+import { EventBus } from "@/game/event-bus";
 import { GlobalPoint, LocalPoint, Ray, Vector } from "@/game/geom";
 import { Layer } from "@/game/layers/layer";
 import { layerManager } from "@/game/layers/manager";
+import { snapToPoint } from "@/game/layers/utils";
 import { Rect } from "@/game/shapes/rect";
 import { gameStore } from "@/game/store";
 import { calculateDelta } from "@/game/ui/tools/utils";
 import { g2l, g2lx, g2ly, l2g, l2gz } from "@/game/units";
 import { getLocalPointFromEvent } from "@/game/utils";
-import { EventBus } from "../../event-bus";
-import { visibilityStore } from "../../visibility/store";
-import { snapToPointLocal } from "../../layers/utils";
+import { visibilityStore } from "@/game/visibility/store";
+import { TriangulationTarget } from "@/game/visibility/te/pa";
 
 export enum SelectOperations {
     Noop,
@@ -35,6 +36,7 @@ export default class SelectTool extends Tool {
 
     mode = SelectOperations.Noop;
     resizePoint = 0;
+    originalResizePoints: number[][] = [];
     deltaChanged = false;
     // Because we never drag from the asset's (0, 0) coord and want a smoother drag experience
     // we keep track of the actual offset within the asset.
@@ -71,6 +73,7 @@ export default class SelectTool extends Tool {
             if (this.resizePoint >= 0) {
                 // Resize case, a corner is selected
                 layer.selection = [shape];
+                this.originalResizePoints = shape.points;
                 EventBus.$emit("SelectionInfo.Shape.Set", shape);
                 this.mode = SelectOperations.Resize;
                 layer.invalidate(true);
@@ -89,7 +92,7 @@ export default class SelectTool extends Tool {
                 }
                 this.mode = SelectOperations.Drag;
                 const localRefPoint = g2l(selection.refPoint);
-                this.dragRay = new Ray<LocalPoint>(localRefPoint, lp.subtract(localRefPoint));
+                this.dragRay = Ray.fromPoints(localRefPoint, lp);
                 layer.invalidate(true);
                 hit = true;
                 break;
@@ -138,11 +141,12 @@ export default class SelectTool extends Tool {
             );
             layer.invalidate(true);
         } else if (layer.selection.length) {
-            const og = g2l(layer.selection[layer.selection.length - 1].refPoint);
-            const origin = og.add(this.dragRay.direction);
-            let delta = lp.subtract(origin).multiply(1 / gameStore.zoomFactor);
+            let delta = Ray.fromPoints(this.dragRay.get(this.dragRay.tMax), lp).direction.multiply(
+                1 / gameStore.zoomFactor,
+            );
             const ogDelta = delta;
             if (this.mode === SelectOperations.Drag) {
+                if (ogDelta.length() === 0) return;
                 // If we are on the tokens layer do a movement block check.
                 if (layer.name === "tokens" && !(event.shiftKey && gameStore.IS_DM)) {
                     for (const sel of layer.selection) {
@@ -155,22 +159,44 @@ export default class SelectTool extends Tool {
                 // Actually apply the delta on all shapes
                 for (const sel of layer.selection) {
                     if (!sel.ownedBy()) continue;
+                    if (sel.visionObstruction)
+                        visibilityStore.deleteFromTriag({
+                            target: TriangulationTarget.VISION,
+                            shape: sel,
+                        });
                     sel.refPoint = sel.refPoint.add(delta);
+                    if (sel.visionObstruction) {
+                        visibilityStore.addToTriag({ target: TriangulationTarget.VISION, shape: sel });
+                        visibilityStore.recalculateVision(sel.floor);
+                    }
                     if (sel !== this.selectionHelper) {
                         if (sel.visionObstruction) visibilityStore.recalculateVision(sel.floor);
                         socket.emit("Shape.Update", { shape: sel.asDict(), redraw: true, temporary: true });
                     }
                 }
+                this.dragRay = Ray.fromPoints(this.dragRay.origin, lp);
                 layer.invalidate(false);
             } else if (this.mode === SelectOperations.Resize) {
                 for (const sel of layer.selection) {
                     if (!sel.ownedBy()) continue;
-                    sel.resize(
+                    if (sel.visionObstruction)
+                        visibilityStore.deleteFromTriag({
+                            target: TriangulationTarget.VISION,
+                            shape: sel,
+                        });
+                    let ignorePoint: GlobalPoint | undefined;
+                    if (this.resizePoint >= 0)
+                        ignorePoint = GlobalPoint.fromArray(this.originalResizePoints[this.resizePoint]);
+                    this.resizePoint = sel.resize(
                         this.resizePoint,
-                        snapToPointLocal(layerManager.getLayer(layerManager.floor!.name)!, lp),
+                        snapToPoint(layerManager.getLayer(layerManager.floor!.name)!, gp, ignorePoint),
                     );
                     if (sel !== this.selectionHelper) {
-                        if (sel.visionObstruction) visibilityStore.recalculateVision(sel.floor);
+                        // todo: think about calling deleteIntersectVertex directly on the corner point
+                        if (sel.visionObstruction) {
+                            visibilityStore.addToTriag({ target: TriangulationTarget.VISION, shape: sel });
+                            visibilityStore.recalculateVision(sel.floor);
+                        }
                         socket.emit("Shape.Update", { shape: sel.asDict(), redraw: true, temporary: true });
                     }
                     layer.invalidate(false);
@@ -227,7 +253,25 @@ export default class SelectTool extends Tool {
                         continue;
 
                     if (gameStore.useGrid && !e.altKey && !this.deltaChanged) {
+                        if (sel.visionObstruction)
+                            visibilityStore.deleteFromTriag({
+                                target: TriangulationTarget.VISION,
+                                shape: sel,
+                            });
+                        if (sel.movementObstruction)
+                            visibilityStore.deleteFromTriag({
+                                target: TriangulationTarget.MOVEMENT,
+                                shape: sel,
+                            });
                         sel.snapToGrid();
+                        if (sel.visionObstruction) {
+                            visibilityStore.addToTriag({ target: TriangulationTarget.VISION, shape: sel });
+                            visibilityStore.recalculateVision(sel.floor);
+                        }
+                        if (sel.movementObstruction) {
+                            visibilityStore.addToTriag({ target: TriangulationTarget.MOVEMENT, shape: sel });
+                            visibilityStore.recalculateMovement(sel.floor);
+                        }
                     }
 
                     if (sel !== this.selectionHelper) {
@@ -239,11 +283,27 @@ export default class SelectTool extends Tool {
                 }
                 if (this.mode === SelectOperations.Resize) {
                     if (gameStore.useGrid && !e.altKey) {
+                        if (sel.visionObstruction)
+                            visibilityStore.deleteFromTriag({
+                                target: TriangulationTarget.VISION,
+                                shape: sel,
+                            });
+                        if (sel.movementObstruction)
+                            visibilityStore.deleteFromTriag({
+                                target: TriangulationTarget.MOVEMENT,
+                                shape: sel,
+                            });
                         sel.resizeToGrid();
+                        if (sel.visionObstruction) {
+                            visibilityStore.addToTriag({ target: TriangulationTarget.VISION, shape: sel });
+                            visibilityStore.recalculateVision(sel.floor);
+                        }
+                        if (sel.movementObstruction) {
+                            visibilityStore.addToTriag({ target: TriangulationTarget.MOVEMENT, shape: sel });
+                            visibilityStore.recalculateMovement(sel.floor);
+                        }
                     }
                     if (sel !== this.selectionHelper) {
-                        if (sel.visionObstruction) visibilityStore.recalculateVision(sel.floor);
-                        if (sel.movementObstruction) visibilityStore.recalculateMovement(sel.floor);
                         socket.emit("Shape.Update", { shape: sel.asDict(), redraw: true, temporary: false });
                     }
                     layer.invalidate(false);
@@ -316,23 +376,24 @@ export default class SelectTool extends Tool {
         (<DefaultContext>this.$parent.$refs.defaultcontext).open(event);
     }
     updateCursor(layer: Layer, globalMouse: GlobalPoint): void {
+        let cursorStyle = "default";
         for (const sel of layer.selection) {
             const resizePoint = sel.getPointIndex(globalMouse, l2gz(3));
-            if (resizePoint < 0) document.body.style.cursor = "default";
+            if (resizePoint < 0) continue;
             else {
                 let angle = sel.getPointOrientation(resizePoint).angle();
                 if (angle < 0) angle += 360;
                 const d = 45 / 2;
-                if (angle >= 315 + d || angle < d || (angle >= 135 + d && angle < 225 - d))
-                    document.body.style.cursor = "ew-resize";
+                if (angle >= 315 + d || angle < d || (angle >= 135 + d && angle < 225 - d)) cursorStyle = "ew-resize";
                 if ((angle >= 45 + d && angle < 135 - d) || (angle >= 225 + d && angle < 315 - d))
-                    document.body.style.cursor = "ns-resize";
+                    cursorStyle = "ns-resize";
                 if ((angle >= d && angle < 90 - d) || (angle >= 180 + d && angle < 270 - d))
-                    document.body.style.cursor = "nwse-resize";
+                    cursorStyle = "nwse-resize";
                 if ((angle >= 90 + d && angle < 180 - d) || (angle >= 270 + d && angle < 360 - d))
-                    document.body.style.cursor = "nesw-resize";
+                    cursorStyle = "nesw-resize";
             }
         }
+        document.body.style.cursor = cursorStyle;
     }
 }
 </script>

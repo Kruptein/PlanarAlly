@@ -1,9 +1,9 @@
-import { GlobalPoint, LocalPoint, Vector } from "@/game/geom";
+import { GlobalPoint, Vector } from "@/game/geom";
 import { BoundingRect } from "@/game/shapes/boundingrect";
 import { Shape } from "@/game/shapes/shape";
 import { gameStore } from "@/game/store";
 import { calculateDelta } from "@/game/ui/tools/utils";
-import { g2lx, g2ly, l2g, l2gx, l2gy } from "@/game/units";
+import { g2lx, g2ly } from "@/game/units";
 import { ServerShape } from "../comm/types/shapes";
 
 export abstract class BaseRect extends Shape {
@@ -96,36 +96,36 @@ export abstract class BaseRect extends Shape {
         this.h = Math.max(Math.round(this.h / gs) * gs, gs);
         this.invalidate(false);
     }
-    resize(resizePoint: number, point: LocalPoint): void {
-        const z = gameStore.zoomFactor;
+    resize(resizePoint: number, point: GlobalPoint): number {
         switch (resizePoint) {
             case 0: {
-                this.w = g2lx(this.refPoint.x) + this.w * z - point.x;
-                this.h = g2ly(this.refPoint.y) + this.h * z - point.y;
-                this.refPoint = l2g(point);
+                this.w += this.refPoint.x - point.x;
+                this.h += this.refPoint.y - point.y;
+                this.refPoint = point;
                 break;
             }
             case 1: {
-                this.w = g2lx(this.refPoint.x) + this.w * z - point.x;
-                this.h = point.y - g2ly(this.refPoint.y);
-                this.refPoint = new GlobalPoint(l2gx(point.x), this.refPoint.y);
+                this.w += this.refPoint.x - point.x;
+                this.h = point.y - this.refPoint.y;
+                this.refPoint = new GlobalPoint(point.x, this.refPoint.y);
                 break;
             }
             case 2: {
-                this.w = point.x - g2lx(this.refPoint.x);
-                this.h = point.y - g2ly(this.refPoint.y);
+                this.w = point.x - this.refPoint.x;
+                this.h = point.y - this.refPoint.y;
                 break;
             }
             case 3: {
-                this.w = point.x - g2lx(this.refPoint.x);
-                this.h = g2ly(this.refPoint.y) + this.h * z - point.y;
-                this.refPoint = new GlobalPoint(this.refPoint.x, l2gy(point.y));
+                this.w = point.x - this.refPoint.x;
+                this.h += this.refPoint.y - point.y;
+                this.refPoint = new GlobalPoint(this.refPoint.x, point.y);
                 break;
             }
         }
 
-        this.w /= z;
-        this.h /= z;
+        if (this.w < 0 && this.h < 0) resizePoint += 2;
+        else if (this.w < 0) resizePoint += resizePoint % 2 === 0 ? -1 : 1;
+        else if (this.h < 0) resizePoint += resizePoint % 2 === 0 ? 1 : -1;
 
         if (this.w < 0) {
             this.refPoint = this.refPoint.add(new Vector(this.w, 0));
@@ -135,5 +135,7 @@ export abstract class BaseRect extends Shape {
             this.refPoint = this.refPoint.add(new Vector(0, this.h));
             this.h = Math.abs(this.h);
         }
+
+        return (resizePoint + 4) % 4;
     }
 }

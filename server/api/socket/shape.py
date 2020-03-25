@@ -12,6 +12,7 @@ from models import (
     Label,
     Layer,
     PlayerRoom,
+    Room,
     Shape,
     ShapeLabel,
     ShapeOwner,
@@ -97,8 +98,7 @@ async def update_shape_position(sid, data):
     if not data["temporary"]:
         with db.atomic():
             # Shape
-            model = reduce_data_to_model(Shape, data["shape"])
-            # update_model_from_dict(shape, model)
+            update_model_from_dict(shape, reduce_data_to_model(Shape, data["shape"]))
             shape.save()
             if shape.type_ == "polygon":
                 # Subshape
@@ -426,13 +426,13 @@ async def move_shape_order(sid, data):
             )
 
 
-async def sync_shape_update(layer, room, data, sid, shape):
+async def sync_shape_update(layer, room: Room, data, sid, shape):
     for psid, player in state.get_players(room=room):
         if psid == sid:
             continue
         pdata = {el: data[el] for el in data if el != "shape"}
         if data["temporary"]:
-            if player.name not in data["shape"]["owners"]:
+            if player != room.creator and player.name not in data["shape"]["owners"]:
                 pdata["shape"] = deepcopy(data["shape"])
                 # Although we have no guarantees that the message is faked, we still would like to verify data as if it were legitimate.
                 for element in ["auras", "labels", "trackers"]:
@@ -443,9 +443,14 @@ async def sync_shape_update(layer, room, data, sid, shape):
                     pdata["shape"]["name"] = "?"
             else:
                 pdata["shape"] = shape
-            pdata["shape"]["layer"] = pdata["shape"]["layer"].name
+            try:
+                pdata["shape"]["layer"] = pdata["shape"]["layer"].name
+            except AttributeError:
+                logger.error(
+                    f"Shape {pdata['shape']} does not have an expected layer configuration"
+                )
         else:
-            pdata["shape"] = shape.as_dict(player, False)
+            pdata["shape"] = shape.as_dict(player, player == room.creator)
         await sio.emit("Shape.Update", pdata, room=psid, namespace="/planarally")
 
 

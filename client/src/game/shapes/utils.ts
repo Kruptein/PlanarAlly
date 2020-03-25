@@ -11,7 +11,7 @@ import {
     ServerShape,
     ServerText,
 } from "@/game/comm/types/shapes";
-import { GlobalPoint, LocalPoint, Vector } from "@/game/geom";
+import { GlobalPoint, Vector } from "@/game/geom";
 import { layerManager } from "@/game/layers/manager";
 import { Asset } from "@/game/shapes/asset";
 import { Circle } from "@/game/shapes/circle";
@@ -22,9 +22,8 @@ import { Shape } from "@/game/shapes/shape";
 import { Text } from "@/game/shapes/text";
 import { EventBus } from "../event-bus";
 import { gameStore } from "../store";
-import { g2l, g2lz } from "../units";
-import { circleLineIntersection, xyEqual } from "../visibility/te/triag";
 import { Polygon } from "./polygon";
+import { socket } from "../api/socket";
 
 export function createShapeFromDict(shape: ServerShape): Shape | undefined {
     let sh: Shape;
@@ -88,7 +87,7 @@ export function copyShapes(): void {
     const layer = layerManager.getLayer(layerManager.floor!.name);
     if (!layer) return;
     if (!layer.selection) return;
-    const clipboard = [];
+    const clipboard: ServerShape[] = [];
     for (const shape of layer.selection) {
         if (gameStore.selectionHelperID === shape.uuid) continue;
         clipboard.push(shape.asDict());
@@ -111,7 +110,9 @@ export function pasteShapes(targetLayer?: string): Shape[] {
     for (const clip of gameStore.clipboard) {
         clip.x += offset.x;
         clip.y += offset.y;
+        const ogUuid = clip.uuid;
         clip.uuid = uuidv4();
+        // Trackers
         const oldTrackers = clip.trackers;
         clip.trackers = [];
         for (const tracker of oldTrackers) {
@@ -121,6 +122,7 @@ export function pasteShapes(targetLayer?: string): Shape[] {
             };
             clip.trackers.push(newTracker);
         }
+        // Auras
         const oldAuras = clip.auras;
         clip.auras = [];
         for (const aura of oldAuras) {
@@ -130,6 +132,25 @@ export function pasteShapes(targetLayer?: string): Shape[] {
             };
             clip.auras.push(newAura);
         }
+        // Badge
+        const options = clip.options ? new Map(JSON.parse(clip.options)) : new Map();
+        let groupLeader: Shape | undefined;
+        if (options.has("groupId")) {
+            groupLeader = layerManager.UUIDMap.get(<string>options.get("groupId"));
+        } else {
+            groupLeader = layerManager.UUIDMap.get(ogUuid)!;
+        }
+        if (groupLeader === undefined) console.error("Missing group leader on paste");
+        else {
+            if (!groupLeader.options.has("groupInfo")) groupLeader.options.set("groupInfo", []);
+            const groupMembers = groupLeader.getGroupMembers();
+            clip.badge = groupMembers.reduce((acc: number, shape: Shape) => Math.max(acc, shape.badge ?? 1), 0) + 1;
+            groupLeader.options.set("groupInfo", [...groupLeader.options.get("groupInfo"), clip.uuid]);
+            options.set("groupId", groupLeader.uuid);
+            clip.options = JSON.stringify([...options]);
+            socket.emit("Shape.Update", { shape: groupLeader.asDict(), redraw: false, temporary: false });
+        }
+        // Finalize
         const shape = createShapeFromDict(clip);
         if (shape === undefined) continue;
         layer.addShape(shape, SyncMode.FULL_SYNC, InvalidationMode.WITH_LIGHT);
@@ -142,7 +163,7 @@ export function pasteShapes(targetLayer?: string): Shape[] {
 }
 
 export function deleteShapes(): void {
-    if (layerManager.getLayer === undefined) {
+    if (layerManager.getLayer(layerManager.floor!.name) === undefined) {
         console.log("No active layer selected for delete operation");
         return;
     }
@@ -162,69 +183,4 @@ export function deleteShapes(): void {
 export function cutShapes(): void {
     copyShapes();
     deleteShapes();
-}
-
-export function updateAuraPath(visibilityPolygon: number[][], center: GlobalPoint, aura: number): Path2D {
-    const auraCircle = new Circle(center, aura);
-    const path = new Path2D();
-    const lCenter = g2l(auraCircle.center());
-    const lRadius = g2lz(auraCircle.r);
-    let firstAngle: number | null = null;
-    let lastAngle: number | null = null;
-
-    const ixs: LocalPoint[][] = [];
-
-    // First find all polygon segments that are actually relevant
-    for (const [i, p] of visibilityPolygon.map(p => GlobalPoint.fromArray(p)).entries()) {
-        const np = GlobalPoint.fromArray(visibilityPolygon[(i + 1) % visibilityPolygon.length]);
-        const pLoc = g2l(p);
-        const npLoc = g2l(np);
-        const ix = circleLineIntersection(auraCircle.center(), auraCircle.r, p, np).map(x => g2l(x));
-        if (ix.length === 0) {
-            // segment lies completely outside circle
-            if (!auraCircle.contains(p)) continue;
-            // segment lies completely inside circle
-            else ix.push(pLoc, npLoc);
-        } else if (ix.length === 1) {
-            // segment is tangent to circle, segment can be ignored
-            if (xyEqual(ix[0].asArray(), pLoc.asArray()) || xyEqual(ix[0].asArray(), npLoc.asArray())) continue;
-            if (auraCircle.contains(p)) {
-                ix.unshift(pLoc);
-            } else {
-                ix.push(npLoc);
-            }
-        }
-        // Check some bad cases
-        if (ixs.length > 0) {
-            const lastIx = ixs[ixs.length - 1];
-            if (xyEqual(lastIx[0].asArray(), ix[1].asArray()) && xyEqual(lastIx[1].asArray(), ix[0].asArray()))
-                continue;
-            if (xyEqual(lastIx[0].asArray(), ix[0].asArray()) && xyEqual(lastIx[1].asArray(), ix[1].asArray()))
-                continue;
-        }
-        ixs.push(ix);
-    }
-
-    if (ixs.length < 1) {
-        path.arc(lCenter.x, lCenter.y, lRadius, 0, 2 * Math.PI);
-        return path;
-    }
-
-    // If enough interesting edges have been found, cut the circle up.
-    for (const ix of ixs) {
-        const circleHitAngle = Math.atan2(ix[0].y - lCenter.y, ix[0].x - lCenter.x);
-        if (lastAngle === null) {
-            path.moveTo(ix[0].x, ix[0].y);
-            firstAngle = Math.atan2(ix[0].y - lCenter.y, ix[0].x - lCenter.x);
-        } else if (lastAngle !== circleHitAngle) {
-            path.arc(lCenter.x, lCenter.y, lRadius, lastAngle, circleHitAngle);
-        }
-        lastAngle = Math.atan2(ix[1].y - lCenter.y, ix[1].x - lCenter.x);
-        path.lineTo(ix[1].x, ix[1].y);
-    }
-    if (firstAngle && lastAngle) {
-        if (firstAngle !== lastAngle) path.arc(lCenter.x, lCenter.y, lRadius, lastAngle, firstAngle);
-    } else path.arc(lCenter.x, lCenter.y, lRadius, 0, 2 * Math.PI);
-
-    return path;
 }

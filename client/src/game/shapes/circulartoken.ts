@@ -50,6 +50,7 @@ export class CircularToken extends Circle {
         ctx.fillStyle = tinycolor.mostReadable(this.fillColour, ["#000", "#fff"]).toHexString();
         ctx.fillText(this.text, 0, 0);
         ctx.restore();
+        super.drawPost(ctx);
     }
     getInitiativeRepr(): InitiativeData {
         return {

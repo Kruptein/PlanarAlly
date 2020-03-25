@@ -29,10 +29,11 @@ export class CDT {
     constructor() {
         this.tds = new TDS();
     }
-    insertConstraint(a: Point, b: Point): void {
+    insertConstraint(a: Point, b: Point): { va: Vertex; vb: Vertex } {
         const va = this.insert(a);
         const vb = this.insert(b);
         if (va !== vb) this.insertConstraintV(va, vb);
+        return { va, vb };
     }
 
     insertConstraintV(va: Vertex, vb: Vertex): void {
@@ -236,17 +237,37 @@ export class CDT {
         const pc = vcc.point!;
         const pd = vdd.point!;
         let pi = intersection(pa, pb, pc, pd);
-        if (pi !== pa && pi !== pb && pi !== pc && pi !== pd) {
-            const bbox = new BoundingBox(pi!);
-            bbox.dilate(4);
-            if (bbox.overlaps(new BoundingBox(pa))) pi = pa;
-            if (bbox.overlaps(new BoundingBox(pb))) pi = pb;
-            if (bbox.overlaps(new BoundingBox(pc))) pi = pc;
-            if (bbox.overlaps(new BoundingBox(pd))) pi = pd;
-        }
         let vi: Vertex;
-        if (pi === null) throw new Error("what");
-        else {
+        if (pi === null) {
+            // CGAL limit_intersection returns 0 for exact intersections and no intersections, but has an implementation for exact predicates ?? unsure which path we would like to take
+            const limitIntersection = 0;
+            switch (limitIntersection) {
+                case 0:
+                    vi = vaa;
+                    break;
+                // case 1:
+                //     vi = vbb;
+                //     break;
+                // case 2:
+                //     vi = vcc;
+                //     break;
+                // case 3:
+                //     vi = vdd;
+                //     break;
+                default:
+                    throw new Error("limit_intersection should return 0 to 4");
+            }
+            if (vi === vaa || vi === vbb) this.removeConstrainedEdge(t, limitIntersection);
+        } else {
+            if (pi !== pa && pi !== pb && pi !== pc && pi !== pd) {
+                // Try to snap to an existing point
+                const bbox = new BoundingBox(pi!);
+                bbox.dilate(4);
+                if (bbox.overlaps(new BoundingBox(pa))) pi = pa;
+                if (bbox.overlaps(new BoundingBox(pb))) pi = pb;
+                if (bbox.overlaps(new BoundingBox(pc))) pi = pc;
+                if (bbox.overlaps(new BoundingBox(pd))) pi = pd;
+            }
             this.removeConstrainedEdge(t, i);
             vi = this.insert(pi, t);
         }
@@ -260,9 +281,80 @@ export class CDT {
         return vi;
     }
 
+    // This is the Constrained Delaunay version
+    removeVertex(v: Vertex): void {
+        if (this.tds.dimension <= 1) this.removeConstrainedVertex(v);
+        else this.remove2D(v);
+    }
+
+    // This is the normal Constrained version
+    private removeConstrainedVertex(v: Vertex): void {
+        const vertexCount = this.tds.numberOfVertices(false);
+        if (vertexCount === 1 || vertexCount === 2) this.tds.removeDimDown(v);
+        else if (this.tds.dimension === 1) console.warn("NOT IMPLEMENTED.");
+        // this.remove1D(v)
+        else this.remove2D(v);
+    }
+
+    remove2D(v: Vertex): void {
+        if (this.testDimDown(v)) this.tds.removeDimDown(v);
+        else {
+            const hole: Edge[] = [];
+            this.tds.makeHole(v, hole);
+            const shell: Edge[] = [...hole];
+            this.tds.fillHoleDelaunay(hole);
+            this.updateConstraints(shell);
+            this.tds.deleteVertex(v);
+        }
+    }
+
+    testDimDown(v: Vertex): boolean {
+        let dim1 = true;
+        for (const triangle of this.tds.triangles) {
+            if (triangle.isInfinite()) continue;
+            if (!triangle.hasVertex(v)) {
+                dim1 = false;
+                break;
+            }
+        }
+        const fc = new FaceCirculator(v, null);
+        while (fc.t!.isInfinite()) fc.next();
+        fc.setDone();
+        const start = fc.t!;
+        let iv = start.indexV(v);
+        const p = start.vertices[cw(iv)]!.point!;
+        const q = start.vertices[ccw(iv)]!.point!;
+        while (dim1 && fc.next()) {
+            iv = fc.t!.indexV(v);
+            if (fc.t!.vertices[ccw(iv)] !== this.tds._infinite) {
+                dim1 = dim1 && orientation(p, q, fc.t!.vertices[ccw(iv)]!.point!) === Sign.COLLINEAR;
+            }
+        }
+        return dim1;
+    }
+
+    updateConstraints(edgeList: Edge[]): void {
+        let f: Triangle;
+        let i: number;
+        for (const edge of edgeList) {
+            f = edge[0];
+            i = edge[1];
+            f.neighbours[i]!.constraints[this.tds.mirrorIndex(f, i)] = f.isConstrained(i);
+        }
+    }
+
     removeConstrainedEdge(t: Triangle, i: number): void {
         t.constraints[i] = false;
         if (this.tds.dimension === 2) t.neighbours[i]!.constraints[this.tds.mirrorIndex(t, i)] = false;
+    }
+
+    removeConstrainedEdgeDelaunay(t: Triangle, i: number): [Triangle, number, Triangle, number][] {
+        this.removeConstrainedEdge(t, i);
+        if (this.tds.dimension === 2) {
+            const listEdges: Edge[] = [[t, i]];
+            return this.propagatingFlipE(listEdges);
+        }
+        return [];
     }
 
     updateConstraintsOpposite(v: Vertex): void {
@@ -325,7 +417,9 @@ export class CDT {
         return e1[0].uid < e2[0].uid || (e1[0].uid === e2[0].uid && ind1 < ind2);
     }
 
-    propagatingFlipE(edges: Edge[]): void {
+    // Instead of only the affected triangles also send the indices around which the flip happened
+    propagatingFlipE(edges: Edge[]): [Triangle, number, Triangle, number][] {
+        const out: [Triangle, number, Triangle, number][] = [];
         let eI = 0;
         let t: Triangle;
         let i: number;
@@ -377,7 +471,13 @@ export class CDT {
                     );
             }
 
+            out.push([t, indf, t.neighbours[indf]!, this.tds.mirrorIndex(t, indf)]);
             this.flip(t, indf);
+
+            e[0] = [t, indf];
+            e[1] = [t, cw(indf)];
+            e[2] = [ni, indn];
+            e[3] = [ni, cw(indn)];
 
             for (const edge of e) {
                 const tt = edge![0];
@@ -389,6 +489,7 @@ export class CDT {
                 }
             }
         }
+        return out;
     }
 
     flip(t: Triangle, i: number): void {

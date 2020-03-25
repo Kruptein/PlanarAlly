@@ -62,7 +62,7 @@ function expandEdge(
     const ro = orientation(q, right, nvh.point!);
     const lo = orientation(q, left, nvh.point!);
 
-    // const ctx = layerManager.getLayer("draw")!.ctx;
+    // const ctx = layerManager.getLayer(layerManager.floor!.name, "draw")!.ctx;
     // ctx.beginPath();
     // ctx.strokeStyle = "red";
     // ctx.lineJoin = "round";

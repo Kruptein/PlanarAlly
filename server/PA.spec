@@ -16,6 +16,7 @@ block_cipher = None
 a = Analysis([_('planarserver.py')],
              pathex=[pa_dir],
              datas=[
+    (_('VERSION'), '.'),
     (_('server_config.cfg'), '.'),
     (_('static'), 'static'),
     (_('templates'), 'templates'),
@@ -36,7 +37,8 @@ exe = EXE(pyz,
           debug=False,
           strip=None,
           upx=True,
-          console=True)
+          console=True,
+          icon='./static/favicon.ico')
 coll = COLLECT(exe,
                a.binaries,
                a.zipfiles,

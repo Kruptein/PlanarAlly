@@ -50,7 +50,7 @@
         <li @click="addInitiative">{{ getInitiativeWord() }} initiative</li>
         <li @click="deleteSelection">Delete shapes</li>
         <li v-if="hasSingleShape()" @click="openEditDialog">Show properties</li>
-        <li @click="setMarker">Set marker</li>
+        <li v-if="hasSingleShape()" @click="setMarker">Set marker</li>
     </ContextMenu>
 </template>
 

@@ -9,7 +9,7 @@ from models.db import db
 async def new_marker(sid, data):
     sid_data = state.sid_map[sid]
     user = sid_data["user"]
-    room = sid_data["room"]
+    location = sid_data["location"]
 
     marker = Marker.get_or_none(uuid=data)
 
@@ -19,7 +19,7 @@ async def new_marker(sid, data):
     Marker.create(
         uuid=data,
         user=user,
-        room=room
+        location=location
     )
 
 @sio.on("Marker.Remove", namespace="/planarally")
@@ -27,7 +27,6 @@ async def new_marker(sid, data):
 async def delete_marker(sid, uuid):
     sid_data = state.sid_map[sid]
     user = sid_data["user"]
-    room = sid_data["room"]
     location = sid_data["location"]
 
     marker = Marker.get_or_none(uuid=uuid)

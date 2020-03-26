@@ -2,6 +2,8 @@
 
 <p align="center">
     <a href="https://github.com/Kruptein/PlanarAlly/releases"><img src="https://img.shields.io/github/downloads/kruptein/planarally/total.svg" alt="Downloads"></a>
+    <a href="https://github.com/Kruptein/PlanarAlly/releases/latest"><img alt="GitHub release (latest by date)" src="https://img.shields.io/github/v/release/kruptein/planarally"></a>
+    <a href="https://patreon.com/planarally" title="Donate to this project using Patreon"><img src="https://img.shields.io/badge/patreon-donate-red.svg" alt="Patreon donate button" /></a>
 </p>
 
 # PlanarAlly

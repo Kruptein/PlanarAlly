@@ -49,7 +49,7 @@ If you simply have feedback, or found a bug, go to the issues tab above. First s
 
 If you want to contribute to the actual codebase, you can read more about how to setup a development environment in the CONTRIBUTING document.
 
-If you want to contribute some gold pieces, feel free to checkout my [pateron](https://patreon.com/planarally)
+If you want to contribute some gold pieces, feel free to checkout my [Patreon](https://patreon.com/planarally)
 
 ![Example view of a player with a light source](https://github.com/Kruptein/PlanarAlly/blob/dev/extra/player_light_example.png?raw=true)
 _Credits to Gogots for the background map used [source](https://gogots.deviantart.com/art/City-of-Moarkaliff-702295905)_

@@ -311,7 +311,7 @@ def upgrade(version):
     elif version == 21:
         db.foreign_keys = False
         db.execute_sql(
-            'CREATE TABLE IF NOT EXISTS "marker" ("id" INTEGER NOT NULL PRIMARY KEY, `uuid_id` TEXT NOT NULL, `user_id` INTEGER NOT NULL, `location_id` INTEGER NOT NULL, FOREIGN KEY(`uuid_id`) REFERENCES `shape`(`uuid`) ON DELETE CASCADE, FOREIGN KEY ("location_id") REFERENCES "location" ("id") ON DELETE CASCADE, FOREIGN KEY(`user_id`) REFERENCES `user`(`id`) ON DELETE CASCADE)'
+            'CREATE TABLE IF NOT EXISTS "marker" ("id" INTEGER NOT NULL PRIMARY KEY, "shape_id" TEXT NOT NULL, "user_id" INTEGER NOT NULL, "location_id" INTEGER NOT NULL, FOREIGN KEY("shape_id") REFERENCES "shape"("uuid") ON DELETE CASCADE, FOREIGN KEY ("location_id") REFERENCES "location" ("id") ON DELETE CASCADE, FOREIGN KEY("user_id") REFERENCES "user"("id") ON DELETE CASCADE)'
         )
         db.foreign_keys = True
         Constants.get().update(save_version=Constants.save_version + 1).execute()

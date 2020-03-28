@@ -275,4 +275,4 @@ class Marker(BaseModel):
         return f"<Marker {self.shape.uuid} {self.location.get_path()} - {self.user.name}"
 
     def as_string(self):
-        return f"{self.uuid}"
+        return f"{self.shape_id}"

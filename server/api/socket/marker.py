@@ -11,13 +11,13 @@ async def new_marker(sid, data):
     user = sid_data["user"]
     location = sid_data["location"]
 
-    marker = Marker.get_or_none(uuid=data)
+    marker = Marker.get_or_none(shape=data)
 
     if marker is not None:
         return
 
     Marker.create(
-        uuid=data,
+        shape=data,
         user=user,
         location=location
     )

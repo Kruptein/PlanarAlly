@@ -267,7 +267,7 @@ class LocationUserOption(BaseModel):
 class Marker(BaseModel):
     from .shape import Shape
 
-    uuid = ForeignKeyField(Shape, backref="markers", on_delete="CASCADE")
+    shape = ForeignKeyField(Shape, backref="markers", on_delete="CASCADE")
     user = ForeignKeyField(User, backref="markers", on_delete="CASCADE")
     location = ForeignKeyField(Location, backref="markers", on_delete="CASCADE")
 

@@ -167,19 +167,6 @@ class Note(BaseModel):
             self, recurse=False, exclude=[Note.room, Note.location, Note.user]
         )
 
-class Marker(BaseModel):
-    from .shape import Shape
-
-    uuid = ForeignKeyField(Shape, backref="markers", on_delete="CASCADE")
-    user = ForeignKeyField(User, backref="markers", on_delete="CASCADE")
-    location = ForeignKeyField(Location, backref="markers", on_delete="CASCADE")
-
-    def __repr__(self):
-        return f"<Marker {self.shape.uuid} {self.location.get_path()} - {self.user.name}"
-
-    def as_string(self):
-        return f"{self.uuid}"
-
 class Floor(BaseModel):
     location = ForeignKeyField(Location, backref="floors", on_delete="CASCADE")
     index = IntegerField()
@@ -276,3 +263,16 @@ class LocationUserOption(BaseModel):
 
     class Meta:
         indexes = ((("location", "user"), True),)
+    
+class Marker(BaseModel):
+    from .shape import Shape
+
+    uuid = ForeignKeyField(Shape, backref="markers", on_delete="CASCADE")
+    user = ForeignKeyField(User, backref="markers", on_delete="CASCADE")
+    location = ForeignKeyField(Location, backref="markers", on_delete="CASCADE")
+
+    def __repr__(self):
+        return f"<Marker {self.shape.uuid} {self.location.get_path()} - {self.user.name}"
+
+    def as_string(self):
+        return f"{self.uuid}"

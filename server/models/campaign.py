@@ -19,6 +19,7 @@ __all__ = [
     "Layer",
     "Location",
     "LocationUserOption",
+    "Marker",
     "Note",
     "PlayerRoom",
     "Room",

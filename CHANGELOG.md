@@ -7,6 +7,14 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+### Fixed
+
+-   Clientside access violations
+    -   shape keyboard movement
+    -   shape delete
+    -   shape copy
+    -   All of the above were only visible on the client issuing the 'illegal' inputs, they were always rejected by the server and thus not synced to other players
+
 ## [0.19.2] - 2020-03-22
 
 ### Added

@@ -7,6 +7,10 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+### Added
+
+-   configuration option to specify allowed CORS origins
+
 ### Fixed
 
 -   Clientside access violations

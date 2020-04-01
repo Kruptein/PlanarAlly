@@ -11,6 +11,8 @@ All notable changes to this project will be documented in this file.
 
 -   configuration option to specify allowed CORS origins
 
+## [0.19.3] - 2020-04-01
+
 ### Fixed
 
 -   Clientside access violations

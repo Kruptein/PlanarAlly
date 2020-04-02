@@ -182,6 +182,13 @@ export default class ShapeContext extends Vue {
         gameStore.newMarker({ marker, sync: true });
         this.close();
     }
+    deleteMarker(): void {
+        const layer = this.getActiveLayer()!;
+        if (layer.selection.length !== 1) return;
+        const marker = layer.selection[0].uuid;
+        gameStore.removeMarker({ marker, sync: true });
+        this.close();
+    }
 }
 </script>
 

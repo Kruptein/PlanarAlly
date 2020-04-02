@@ -358,8 +358,8 @@ DIRECTORY.CSS changes
 .menu-accordion-subpanel > * {
     padding: 5px;
     display: flex;
+    justify-content: space-evenly;
     align-items: center;
-    text-align: left;
 }
 
 .menu-accordion-subpanel > *:hover {
@@ -367,6 +367,8 @@ DIRECTORY.CSS changes
 }
 
 .menu-accordion-subpanel-text {
+    text-align: left;
+    justify-content: flex-start;
     flex: 1;
 }
 

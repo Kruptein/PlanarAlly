@@ -50,7 +50,10 @@
         <li @click="addInitiative">{{ getInitiativeWord() }} initiative</li>
         <li @click="deleteSelection">Delete shapes</li>
         <li v-if="hasSingleShape()" @click="openEditDialog">Show properties</li>
-        <li v-if="hasSingleShape()" @click="setMarker">Set marker</li>
+        <template v-if="hasSingleShape()">
+            <li v-if="markers.includes(getMarker())" @click="deleteMarker">Remove marker</li>
+            <li v-else @click="setMarker">Set marker</li>
+        </template>
     </ContextMenu>
 </template>
 
@@ -92,6 +95,11 @@ export default class ShapeContext extends Vue {
     }
     close(): void {
         this.visible = false;
+    }
+    getMarker(): string | undefined {
+        const layer = this.getActiveLayer()!;
+        if (layer.selection.length !== 1) return;
+        return layer.selection[0].uuid;
     }
     getFloors(): Floor[] {
         return layerManager.floors;

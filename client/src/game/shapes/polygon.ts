@@ -90,6 +90,7 @@ export class Polygon extends Shape {
         if (nearbyThreshold === undefined) nearbyThreshold = this.lineWidth / 2;
         const bbox = this.getBoundingBox(nearbyThreshold);
         if (!bbox.contains(point)) return false;
+        if (this.isClosed) return true;
         const vertices = this.vertices;
         for (const [i, v] of vertices.entries()) {
             const nv = vertices[(i + 1) % vertices.length];

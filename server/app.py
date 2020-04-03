@@ -12,11 +12,16 @@ from aiohttp_security import SessionIdentityPolicy
 from aiohttp_session.cookie_storage import EncryptedCookieStorage
 
 import auth
+from config import config
 from utils import FILE_DIR
 
 # SETUP SERVER
 
-sio = socketio.AsyncServer(async_mode="aiohttp", engineio_logger=False)
+sio = socketio.AsyncServer(
+    async_mode="aiohttp",
+    engineio_logger=False,
+    cors_allowed_origins=config.get("general", "cors_allowed_origins", fallback=None),
+)
 app = web.Application()
 app["AuthzPolicy"] = auth.AuthPolicy()
 aiohttp_security.setup(app, SessionIdentityPolicy(), app["AuthzPolicy"])

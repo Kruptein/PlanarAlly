@@ -8,5 +8,6 @@ from .label import *
 from .shape import *
 from .signals import *
 from .user import *
+from .marker import *
 
 ALL_MODELS = [model for model in all_subclasses(_BaseModel) if not model.abstract]

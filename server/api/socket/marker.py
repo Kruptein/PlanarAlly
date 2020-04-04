@@ -29,7 +29,7 @@ async def delete_marker(sid, uuid):
     user = sid_data["user"]
     location = sid_data["location"]
 
-    marker = Marker.get_or_none(uuid=uuid)
+    marker = Marker.get_or_none(shape_id=uuid)
     if not marker:
         return
 

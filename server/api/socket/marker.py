@@ -11,7 +11,7 @@ async def new_marker(sid, data):
     user = sid_data["user"]
     location = sid_data["location"]
 
-    marker = Marker.get_or_none(shape=data)
+    marker = Marker.get_or_none(shape=data, user=user)
 
     if marker is not None:
         return

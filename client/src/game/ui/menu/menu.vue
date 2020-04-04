@@ -68,24 +68,24 @@
                                 <div v-if="!notes.length">No notes</div>
                             </div>
                         </div>
-                        <!-- MARKERS -->
-                        <button class="menu-accordion">Markers</button>
-                        <div class="menu-accordion-panel">
-                            <div class="menu-accordion-subpanel" id="menu-markers">
-                                <div v-for="marker in markers" :key="marker" style="cursor:pointer">
-                                    <div @click="jumpToMarker(marker)" class="menu-accordion-subpanel-text">
-                                        {{ nameMarker(marker) || "[?]" }}
-                                    </div>
-                                    <div @click="delMarker(marker)">
-                                        <i class="far fa-minus-square"></i>
-                                    </div>
-                                </div>
-                                <div v-if="!markers.length">No markers</div>
-                            </div>
-                        </div>
                         <!-- DM OPTIONS -->
                         <button class="menu-accordion" @click="openDmSettings">DM Options</button>
                     </template>
+                    <!-- MARKERS -->
+                    <button class="menu-accordion">Markers</button>
+                    <div class="menu-accordion-panel">
+                        <div class="menu-accordion-subpanel" id="menu-markers">
+                            <div v-for="marker in markers" :key="marker" style="cursor:pointer">
+                                <div @click="jumpToMarker(marker)" class="menu-accordion-subpanel-text">
+                                    {{ nameMarker(marker) || "[?]" }}
+                                </div>
+                                <div @click="delMarker(marker)">
+                                    <i class="far fa-minus-square"></i>
+                                </div>
+                            </div>
+                            <div v-if="!markers.length">No markers</div>
+                        </div>
+                    </div>
                     <!-- CLIENT OPTIONS -->
                     <button class="menu-accordion">Client Options</button>
                     <div class="menu-accordion-panel">

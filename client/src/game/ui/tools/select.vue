@@ -15,7 +15,7 @@ import { Rect } from "@/game/shapes/rect";
 import { gameStore } from "@/game/store";
 import { calculateDelta } from "@/game/ui/tools/utils";
 import { g2l, g2lx, g2ly, l2g, l2gz } from "@/game/units";
-import { getLocalPointFromEvent } from "@/game/utils";
+import { getLocalPointFromEvent, useSnapping } from "@/game/utils";
 import { visibilityStore } from "@/game/visibility/store";
 import { TriangulationTarget } from "@/game/visibility/te/pa";
 
@@ -188,7 +188,7 @@ export default class SelectTool extends Tool {
                     if (this.resizePoint >= 0)
                         ignorePoint = GlobalPoint.fromArray(this.originalResizePoints[this.resizePoint]);
                     let targetPoint = gp;
-                    if (!event.altKey)
+                    if (useSnapping(event))
                         targetPoint = snapToPoint(layerManager.getLayer(layerManager.floor!.name)!, gp, ignorePoint);
                     this.resizePoint = sel.resize(this.resizePoint, targetPoint);
                     if (sel !== this.selectionHelper) {
@@ -252,7 +252,7 @@ export default class SelectTool extends Tool {
                     )
                         continue;
 
-                    if (gameStore.useGrid && !e.altKey && !this.deltaChanged) {
+                    if (gameStore.useGrid && useSnapping(e) && !this.deltaChanged) {
                         if (sel.visionObstruction)
                             visibilityStore.deleteFromTriag({
                                 target: TriangulationTarget.VISION,
@@ -282,7 +282,7 @@ export default class SelectTool extends Tool {
                     layer.invalidate(false);
                 }
                 if (this.mode === SelectOperations.Resize) {
-                    if (gameStore.useGrid && !e.altKey) {
+                    if (gameStore.useGrid && useSnapping(e)) {
                         if (sel.visionObstruction)
                             visibilityStore.deleteFromTriag({
                                 target: TriangulationTarget.VISION,

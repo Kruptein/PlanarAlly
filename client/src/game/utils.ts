@@ -48,3 +48,7 @@ export function equalPoint(a: number, b: number, delta = 0.0001): boolean {
 export function equalPoints(a: number[], b: number[]): boolean {
     return equalPoint(a[0], b[0]) && equalPoint(a[1], b[1]);
 }
+
+export function useSnapping(event: MouseEvent | TouchEvent): boolean {
+    return gameStore.invertAlt === event.altKey;
+}

@@ -11,6 +11,10 @@ All notable changes to this project will be documented in this file.
 
 -   configuration option to specify allowed CORS origins
 
+### Fixed
+
+-   Polygon width now properly taken into account when trying to select it
+
 ## [0.19.3] - 2020-04-01
 
 ### Fixed

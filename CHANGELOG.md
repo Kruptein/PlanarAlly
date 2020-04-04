@@ -16,6 +16,7 @@ All notable changes to this project will be documented in this file.
 ### Fixed
 
 -   Polygon width now properly taken into account when trying to select it
+-   Set any shape as marker and jump to that position from the sidebar [LDeeJay1969]
 
 ## [0.19.3] - 2020-04-01
 

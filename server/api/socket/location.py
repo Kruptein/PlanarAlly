@@ -11,6 +11,7 @@ from models import (
     Layer,
     Location,
     LocationUserOption,
+    Marker,
     Note,
     Shape,
 )
@@ -51,7 +52,16 @@ async def load_location(sid, location):
         room=sid,
         namespace="/planarally",
     )
-
+    await sio.emit(
+        "Markers.Set",
+        [
+            marker.as_string()
+            for marker in Marker.select(Marker.shape_id).where((Marker.user == user) & (Marker.location == location))
+        ],
+        room=sid,
+        namespace="/planarally",
+    )
+    
     location_data = InitiativeLocationData.get_or_none(location=location)
     if location_data:
         await send_client_initiatives(room, location, user)

@@ -50,6 +50,10 @@
         <li @click="addInitiative">{{ getInitiativeWord() }} initiative</li>
         <li @click="deleteSelection">Delete shapes</li>
         <li v-if="hasSingleShape()" @click="openEditDialog">Show properties</li>
+        <template v-if="hasSingleShape()">
+            <li v-if="markers.includes(getMarker())" @click="deleteMarker">Remove marker</li>
+            <li v-else @click="setMarker">Set marker</li>
+        </template>
     </ContextMenu>
 </template>
 
@@ -75,7 +79,7 @@ import { Layer } from "../../layers/layer";
         ContextMenu,
     },
     computed: {
-        ...mapState("game", ["activeFloorIndex", "assets", "locations", "notes"]),
+        ...mapState("game", ["activeFloorIndex", "assets", "locations", "notes", "markers"]),
         ...mapMutations("game", ["selectFloor"]),
     },
 })
@@ -91,6 +95,11 @@ export default class ShapeContext extends Vue {
     }
     close(): void {
         this.visible = false;
+    }
+    getMarker(): string | undefined {
+        const layer = this.getActiveLayer()!;
+        if (layer.selection.length !== 1) return;
+        return layer.selection[0].uuid;
     }
     getFloors(): Floor[] {
         return layerManager.floors;
@@ -164,6 +173,20 @@ export default class ShapeContext extends Vue {
         const layer = this.getActiveLayer()!;
         if (layer.selection.length !== 1) return;
         EventBus.$emit("EditDialog.Open", layer.selection[0]);
+        this.close();
+    }
+    setMarker(): void {
+        const layer = this.getActiveLayer()!;
+        if (layer.selection.length !== 1) return;
+        const marker = layer.selection[0].uuid;
+        gameStore.newMarker({ marker, sync: true });
+        this.close();
+    }
+    deleteMarker(): void {
+        const layer = this.getActiveLayer()!;
+        if (layer.selection.length !== 1) return;
+        const marker = layer.selection[0].uuid;
+        gameStore.removeMarker({ marker, sync: true });
         this.close();
     }
 }

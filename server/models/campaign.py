@@ -166,7 +166,6 @@ class Note(BaseModel):
             self, recurse=False, exclude=[Note.room, Note.location, Note.user]
         )
 
-
 class Floor(BaseModel):
     location = ForeignKeyField(Location, backref="floors", on_delete="CASCADE")
     index = IntegerField()

@@ -103,6 +103,9 @@ socket.on("Position.Set", (data: { floor: string; x: number; y: number; zoom: nu
 socket.on("Notes.Set", (notes: Note[]) => {
     for (const note of notes) gameStore.newNote({ note, sync: false });
 });
+socket.on("Markers.Set", (markers: string[]) => {
+    for (const marker of markers) gameStore.newMarker({ marker, sync: false });
+});
 socket.on("Asset.List.Set", (assets: AssetList) => {
     gameStore.setAssets(assets);
 });

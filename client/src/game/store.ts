@@ -39,6 +39,8 @@ class GameStore extends VuexModule implements GameState {
 
     notes: Note[] = [];
 
+    markers: string[] = [];
+
     IS_DM = false;
     FAKE_PLAYER = false;
     isLocked = false;
@@ -244,6 +246,33 @@ class GameStore extends VuexModule implements GameState {
     newNote(data: { note: Note; sync: boolean }): void {
         this.notes.push(data.note);
         if (data.sync) socket.emit("Note.New", data.note);
+    }
+
+    @Mutation
+    newMarker(data: { marker: string; sync: boolean }): void {
+        const exists = this.markers.some(m => m === data.marker);
+        if (!exists) {
+            this.markers.push(data.marker);
+            if (data.sync) socket.emit("Marker.New", data.marker);
+        }
+    }
+
+    @Mutation
+    removeMarker(data: { marker: string; sync: boolean }): void {
+        this.markers = this.markers.filter(m => m !== data.marker);
+        if (data.sync) socket.emit("Marker.Remove", data.marker);
+    }
+
+    @Mutation
+    jumpToMarker(marker: string): void {
+        const shape = layerManager.UUIDMap.get(marker);
+        if (shape == undefined) return;
+        const nh = window.innerWidth / this.gridSize / zoomValue(this.zoomDisplay) / 2;
+        const nv = window.innerHeight / this.gridSize / zoomValue(this.zoomDisplay) / 2;
+        this.panX = -shape.refPoint.x + nh * this.gridSize;
+        this.panY = -shape.refPoint.y + nv * this.gridSize;
+        sendClientOptions(this.locationOptions);
+        layerManager.invalidateAllFloors();
     }
 
     @Mutation
@@ -503,6 +532,7 @@ class GameStore extends VuexModule implements GameState {
         this.ownedtokens = [];
         this.annotations = [];
         this.notes = [];
+        this.markers = [];
     }
 }
 

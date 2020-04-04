@@ -9,6 +9,7 @@ from . import (
     initiative,
     label,
     location,
+    marker,
     note,
     room,
     shape,

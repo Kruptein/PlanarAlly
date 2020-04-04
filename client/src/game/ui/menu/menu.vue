@@ -71,6 +71,21 @@
                         <!-- DM OPTIONS -->
                         <button class="menu-accordion" @click="openDmSettings">DM Options</button>
                     </template>
+                    <!-- MARKERS -->
+                    <button class="menu-accordion">Markers</button>
+                    <div class="menu-accordion-panel">
+                        <div class="menu-accordion-subpanel" id="menu-markers">
+                            <div v-for="marker in markers" :key="marker" style="cursor:pointer">
+                                <div @click="jumpToMarker(marker)" class="menu-accordion-subpanel-text">
+                                    {{ nameMarker(marker) || "[?]" }}
+                                </div>
+                                <div @click="delMarker(marker)">
+                                    <i class="far fa-minus-square"></i>
+                                </div>
+                            </div>
+                            <div v-if="!markers.length">No markers</div>
+                        </div>
+                    </div>
                     <!-- CLIENT OPTIONS -->
                     <button class="menu-accordion">Client Options</button>
                     <div class="menu-accordion-panel">
@@ -127,6 +142,8 @@ import ColorPicker from "@/core/components/colorpicker.vue";
 import Game from "@/game/game.vue";
 import AssetNode from "@/game/ui/menu/asset_node.vue";
 
+import { layerManager } from "@/game/layers/manager";
+
 import { uuidv4 } from "@/core/utils";
 import { socket } from "@/game/api/socket";
 import { Note } from "@/game/comm/types/general";
@@ -139,7 +156,7 @@ import { EventBus } from "../../event-bus";
         "asset-node": AssetNode,
     },
     computed: {
-        ...mapState("game", ["locations", "assets", "notes"]),
+        ...mapState("game", ["locations", "assets", "notes", "markers"]),
     },
 })
 export default class MenuBar extends Vue {
@@ -203,6 +220,23 @@ export default class MenuBar extends Vue {
 
     openDmSettings(): void {
         EventBus.$emit("DmSettings.Open");
+    }
+
+    delMarker(marker: string): void {
+        gameStore.removeMarker({ marker: marker, sync: true });
+    }
+
+    jumpToMarker(marker: string): void {
+        gameStore.jumpToMarker(marker);
+    }
+
+    nameMarker(marker: string): string {
+        const shape = layerManager.UUIDMap.get(marker);
+        if (shape !== undefined) {
+            return shape.name;
+        } else {
+            return "";
+        }
     }
 }
 </script>
@@ -338,6 +372,12 @@ DIRECTORY.CSS changes
 
 .menu-accordion-subpanel > *:hover {
     background-color: #82c8a0;
+}
+
+.menu-accordion-subpanel-text {
+    text-align: left;
+    justify-content: flex-start;
+    flex: 1;
 }
 
 #exitButton {

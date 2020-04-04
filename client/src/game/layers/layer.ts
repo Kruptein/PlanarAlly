@@ -136,6 +136,7 @@ export class Layer {
         if (ownedIndex >= 0) gameStore.ownedtokens.splice(ownedIndex, 1);
 
         layerManager.UUIDMap.delete(shape.uuid);
+        gameStore.removeMarker({ marker: shape.uuid, sync: true });
 
         for (const point of shape.points) {
             const strp = JSON.stringify(point);

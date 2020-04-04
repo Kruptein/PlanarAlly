@@ -63,6 +63,7 @@ socket.on("Client.Options.Set", (options: ServerClient) => {
     gameStore.setGridColour({ colour: options.grid_colour, sync: false });
     gameStore.setFOWColour({ colour: options.fow_colour, sync: false });
     gameStore.setRulerColour({ colour: options.ruler_colour, sync: false });
+    gameStore.setInvertAlt({ invertAlt: options.invert_alt, sync: false });
     gameStore.setPanX(options.pan_x);
     gameStore.setPanY(options.pan_y);
     gameStore.setZoomDisplay(zoomDisplay(options.zoom_factor));

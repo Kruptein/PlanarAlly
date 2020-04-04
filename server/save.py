@@ -13,6 +13,7 @@ from models import ALL_MODELS, Constants
 from models.db import db
 
 SAVE_VERSION = 23
+
 logger: logging.Logger = logging.getLogger("PlanarAllyServer")
 logger.setLevel(logging.INFO)
 

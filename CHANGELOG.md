@@ -10,6 +10,12 @@ All notable changes to this project will be documented in this file.
 ### Added
 
 -   configuration option to specify allowed CORS origins
+-   alt modifier can be used to disable draw/resize snapping
+-   Client option to invert the ALT behaviour (i.e. invert snapping behaviour)
+
+### Fixed
+
+-   Polygon width now properly taken into account when trying to select it
 -   Set any shape as marker and jump to that position from the sidebar [LDeeJay1969]
 
 ## [0.19.3] - 2020-04-01

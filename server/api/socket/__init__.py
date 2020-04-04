@@ -28,6 +28,7 @@ async def set_client(sid, data):
             ("gridColour", "grid_colour"),
             ("fowColour", "fow_colour"),
             ("rulerColour", "ruler_colour"),
+            ("invertAlt", "invert_alt"),
         ]:
             if option[0] in data:
                 setattr(user, option[1], data[option[0]])

@@ -89,6 +89,8 @@ class GameStore extends VuexModule implements GameState {
 
     selectionHelperID: string | null = null;
 
+    invertAlt = false;
+
     get selectedLayer(): string {
         return this.layers[this.selectedLayerIndex];
     }
@@ -517,6 +519,12 @@ class GameStore extends VuexModule implements GameState {
         if (data.sync) {
             socket.emit("Room.Info.Set.Locked", this.isLocked);
         }
+    }
+
+    @Mutation
+    setInvertAlt(data: { invertAlt: boolean; sync: boolean }): void {
+        this.invertAlt = data.invertAlt;
+        if (data.sync) socket.emit("Client.Options.Set", { invertAlt: data.invertAlt });
     }
 
     @Mutation

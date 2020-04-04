@@ -64,7 +64,7 @@ import { Rect } from "@/game/shapes/rect";
 import { Shape } from "@/game/shapes/shape";
 import { gameStore } from "@/game/store";
 import { getUnitDistance, l2g, g2lx, g2ly } from "@/game/units";
-import { equalPoints, getLocalPointFromEvent } from "@/game/utils";
+import { equalPoints, getLocalPointFromEvent, useSnapping } from "@/game/utils";
 import { visibilityStore } from "@/game/visibility/store";
 import { TriangulationTarget, insertConstraint, getCDT } from "@/game/visibility/te/pa";
 
@@ -381,7 +381,7 @@ export default class DrawTool extends Tool {
             return;
         }
         // TODO: handle touch event different than altKey, long press
-        if (!event.altKey && this.useGrid) {
+        if (useSnapping(event) && this.useGrid) {
             if (this.shape.visionObstruction)
                 visibilityStore.deleteFromTriag({
                     target: TriangulationTarget.VISION,
@@ -407,7 +407,8 @@ export default class DrawTool extends Tool {
     }
 
     onMouseMove(event: MouseEvent): void {
-        const endPoint = snapToPoint(this.getLayer()!, l2g(getLocalPointFromEvent(event)), this.ruler?.refPoint);
+        let endPoint = l2g(getLocalPointFromEvent(event));
+        if (useSnapping(event)) endPoint = snapToPoint(this.getLayer()!, endPoint, this.ruler?.refPoint);
         this.onMove(endPoint);
     }
 
@@ -416,12 +417,14 @@ export default class DrawTool extends Tool {
     }
 
     onTouchStart(event: TouchEvent): void {
-        const startPoint = snapToPoint(this.getLayer()!, l2g(getLocalPointFromEvent(event)), this.ruler?.refPoint);
+        let startPoint = l2g(getLocalPointFromEvent(event));
+        if (useSnapping(event)) startPoint = snapToPoint(this.getLayer()!, startPoint, this.ruler?.refPoint);
         this.onDown(startPoint);
     }
 
     onTouchMove(event: TouchEvent): void {
-        const endPoint = snapToPoint(this.getLayer()!, l2g(getLocalPointFromEvent(event)), this.ruler?.refPoint);
+        let endPoint = l2g(getLocalPointFromEvent(event));
+        if (useSnapping(event)) endPoint = snapToPoint(this.getLayer()!, endPoint, this.ruler?.refPoint);
         this.onMove(endPoint);
     }
 

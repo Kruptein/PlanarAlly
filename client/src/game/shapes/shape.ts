@@ -80,8 +80,7 @@ export abstract class Shape {
 
     abstract getBoundingBox(): BoundingRect;
 
-    // If inWorldCoord is
-    abstract contains(point: GlobalPoint): boolean;
+    abstract contains(point: GlobalPoint, nearbyThreshold?: number): boolean;
 
     abstract center(): GlobalPoint;
     abstract center(centerPoint: GlobalPoint): void;

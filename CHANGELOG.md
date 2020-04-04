@@ -10,6 +10,7 @@ All notable changes to this project will be documented in this file.
 ### Added
 
 -   configuration option to specify allowed CORS origins
+-   alt modifier can be used to disable draw/resize snapping
 
 ### Fixed
 

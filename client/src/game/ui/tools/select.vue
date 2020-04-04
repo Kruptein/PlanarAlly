@@ -187,10 +187,10 @@ export default class SelectTool extends Tool {
                     let ignorePoint: GlobalPoint | undefined;
                     if (this.resizePoint >= 0)
                         ignorePoint = GlobalPoint.fromArray(this.originalResizePoints[this.resizePoint]);
-                    this.resizePoint = sel.resize(
-                        this.resizePoint,
-                        snapToPoint(layerManager.getLayer(layerManager.floor!.name)!, gp, ignorePoint),
-                    );
+                    let targetPoint = gp;
+                    if (!event.altKey)
+                        targetPoint = snapToPoint(layerManager.getLayer(layerManager.floor!.name)!, gp, ignorePoint);
+                    this.resizePoint = sel.resize(this.resizePoint, targetPoint);
                     if (sel !== this.selectionHelper) {
                         // todo: think about calling deleteIntersectVertex directly on the corner point
                         if (sel.visionObstruction) {

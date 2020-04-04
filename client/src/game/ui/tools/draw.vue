@@ -407,7 +407,8 @@ export default class DrawTool extends Tool {
     }
 
     onMouseMove(event: MouseEvent): void {
-        const endPoint = snapToPoint(this.getLayer()!, l2g(getLocalPointFromEvent(event)), this.ruler?.refPoint);
+        let endPoint = l2g(getLocalPointFromEvent(event));
+        if (!event.altKey) endPoint = snapToPoint(this.getLayer()!, endPoint, this.ruler?.refPoint);
         this.onMove(endPoint);
     }
 
@@ -416,12 +417,14 @@ export default class DrawTool extends Tool {
     }
 
     onTouchStart(event: TouchEvent): void {
-        const startPoint = snapToPoint(this.getLayer()!, l2g(getLocalPointFromEvent(event)), this.ruler?.refPoint);
+        let startPoint = l2g(getLocalPointFromEvent(event));
+        if (!event.altKey) startPoint = snapToPoint(this.getLayer()!, startPoint, this.ruler?.refPoint);
         this.onDown(startPoint);
     }
 
     onTouchMove(event: TouchEvent): void {
-        const endPoint = snapToPoint(this.getLayer()!, l2g(getLocalPointFromEvent(event)), this.ruler?.refPoint);
+        let endPoint = l2g(getLocalPointFromEvent(event));
+        if (!event.altKey) endPoint = snapToPoint(this.getLayer()!, endPoint, this.ruler?.refPoint);
         this.onMove(endPoint);
     }
 

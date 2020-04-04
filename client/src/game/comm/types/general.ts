@@ -19,6 +19,7 @@ export interface ServerClient {
     grid_colour: string;
     fow_colour: string;
     ruler_colour: string;
+    invert_alt: boolean;
     pan_x: number;
     pan_y: number;
     zoom_factor: number;

@@ -11,6 +11,7 @@ All notable changes to this project will be documented in this file.
 
 -   configuration option to specify allowed CORS origins
 -   alt modifier can be used to disable draw/resize snapping
+-   Client option to invert the ALT behaviour (i.e. invert snapping behaviour)
 
 ### Fixed
 

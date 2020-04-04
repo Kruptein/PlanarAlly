@@ -81,6 +81,8 @@
                             <color-picker id="fowColour" :color.sync="fowColour" />
                             <label for="rulerColour">Ruler Colour:</label>
                             <color-picker id="rulerColour" :color.sync="rulerColour" />
+                            <label for="invertAlt">Invert ALT behaviour</label>
+                            <div><input id="invertAlt" type="checkbox" v-model="invertAlt" /></div>
                         </div>
                     </div>
                 </div>
@@ -166,6 +168,12 @@ export default class MenuBar extends Vue {
     }
     set rulerColour(value: string) {
         gameStore.setRulerColour({ colour: value, sync: true });
+    }
+    get invertAlt(): boolean {
+        return gameStore.invertAlt;
+    }
+    set invertAlt(value: boolean) {
+        gameStore.setInvertAlt({ invertAlt: value, sync: true });
     }
     settingsClick(event: { target: HTMLElement }): void {
         if (event.target.classList.contains("menu-accordion")) {

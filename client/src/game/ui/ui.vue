@@ -4,9 +4,15 @@
             <div id="logo-icons">
                 <img src="/static/favicon.png" />
                 <div id="logo-links">
-                    <i class="fab fa-github"></i>
-                    <i class="fab fa-discord"></i>
-                    <i class="fab fa-patreon"></i>
+                    <a href="https://github.com/kruptein/PlanarAlly" target="_blank" title="Find the code on github!">
+                        <i class="fab fa-github"></i>
+                    </a>
+                    <a href="https://discord.gg/mubGnTe" target="_blank" title="Join the community on discord!">
+                        <i class="fab fa-discord"></i>
+                    </a>
+                    <a href="https://www.patreon.com/planarally" target="_blank" title="Contribute using patreon!">
+                        <i class="fab fa-patreon"></i>
+                    </a>
                 </div>
             </div>
             <div id="logo-version">
@@ -205,6 +211,7 @@ export default class UI extends Vue {
 }
 
 #logo {
+    pointer-events: auto;
     grid-area: topleft;
     background-color: #fa5a5a;
     display: flex;
@@ -230,7 +237,7 @@ export default class UI extends Vue {
     justify-content: space-evenly;
 }
 
-#logo-links > svg {
+#logo-links > a {
     padding: 0 3px;
 }
 

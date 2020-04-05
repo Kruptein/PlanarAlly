@@ -446,9 +446,7 @@ async def sync_shape_update(layer, room: Room, data, sid, shape):
             try:
                 pdata["shape"]["layer"] = pdata["shape"]["layer"].name
             except AttributeError:
-                logger.error(
-                    f"Shape {pdata['shape']} does not have an expected layer configuration"
-                )
+                pass  # To solve this error, we need to clean this mess of shape functions
         else:
             pdata["shape"] = shape.as_dict(player, player == room.creator)
         await sio.emit("Shape.Update", pdata, room=psid, namespace="/planarally")

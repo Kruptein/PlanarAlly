@@ -68,7 +68,6 @@
             Exit
         </router-link>
     </div>
-    <!-- <img id="dragImage" /> -->
 </template>
 
 <script lang="ts">
@@ -269,37 +268,5 @@ DIRECTORY.CSS changes
     text-align: left;
     justify-content: flex-start;
     flex: 1;
-}
-
-#exitButton {
-    /* position: fixed; */
-    bottom: 0px;
-    /* width: 100%; */
-}
-
-.settings-enter-active,
-.settings-leave-active {
-    transition: width 500ms;
-}
-.settings-leave-to,
-.settings-enter {
-    width: 0;
-}
-.settings-enter-to,
-.settings-leave {
-    width: 200px;
-}
-
-.locations-enter-active,
-.locations-leave-active {
-    transition: height 500ms;
-}
-.locations-leave-to,
-.locations-enter {
-    height: 0;
-}
-.locations-enter-to,
-.locations-leave {
-    height: 100px;
 }
 </style>

@@ -12,11 +12,14 @@ All notable changes to this project will be documented in this file.
 -   configuration option to specify allowed CORS origins
 -   alt modifier can be used to disable draw/resize snapping
 -   Client option to invert the ALT behaviour (i.e. invert snapping behaviour)
+-   Logo, version info and some urls to the topleft section which is only visible if both locations bar and menu are opened
 
 ### Fixed
 
 -   Polygon width now properly taken into account when trying to select it
 -   Set any shape as marker and jump to that position from the sidebar [LDeeJay1969]
+-   Floor/Layer bar now moves along with the side menu when opened
+-   Side menu and locations menu no longer overlap
 
 ## [0.19.3] - 2020-04-01
 

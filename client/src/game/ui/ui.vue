@@ -2,7 +2,7 @@
     <div id="ui" v-show="showUI">
         <div id="logo" v-show="visible.topleft">
             <div id="logo-icons">
-                <img src="/static/favicon.png" />
+                <a href="https://www.planarally.io" target="_blank"><img src="/static/favicon.png" /></a>
                 <div id="logo-links">
                     <a href="https://github.com/kruptein/PlanarAlly" target="_blank" title="Find the code on github!">
                         <i class="fab fa-github"></i>
@@ -227,7 +227,11 @@ export default class UI extends Vue {
     justify-content: space-evenly;
 }
 
-#logo-icons > img {
+#logo-icons > a {
+    display: contents;
+}
+
+#logo-icons > a > img {
     display: block;
     max-width: 45%;
 }

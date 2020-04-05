@@ -1,6 +1,19 @@
 <template>
     <div id="ui" v-show="showUI">
-        <div id="logo"><img src="/static/favicon.png" /></div>
+        <div id="logo" v-show="visible.topleft">
+            <div id="logo-icons">
+                <img src="/static/favicon.png" />
+                <div id="logo-links">
+                    <i class="fab fa-github"></i>
+                    <i class="fab fa-discord"></i>
+                    <i class="fab fa-patreon"></i>
+                </div>
+            </div>
+            <div id="logo-version">
+                <span>version</span>
+                <span>{{ version }}</span>
+            </div>
+        </div>
         <!-- RADIAL MENU -->
         <div id="radialmenu">
             <div class="rm-wrapper">
@@ -82,6 +95,7 @@ import { gameStore } from "../store";
 import { l2g } from "../units";
 import { socket } from "../api/socket";
 import Game from "../game.vue";
+import { coreStore } from "../../core/store";
 
 @Component({
     components: {
@@ -101,12 +115,15 @@ export default class UI extends Vue {
         tools: InstanceType<typeof Tools>;
     };
 
-    //
-
     visible = {
         locations: false,
         settings: false,
+        topleft: false,
     };
+
+    get version(): string {
+        return coreStore.version;
+    }
 
     get IS_DM(): boolean {
         return gameStore.IS_DM;
@@ -129,24 +146,31 @@ export default class UI extends Vue {
 
     toggleMenu(_el: any): void {
         this.visible.settings = !this.visible.settings;
+        if (this.visible.locations && this.visible.settings) this.visible.topleft = true;
         const uiEl = <HTMLDivElement>this.$el;
         let i = 0;
         const interval = setInterval(() => {
             i += 10;
             uiEl.style.gridTemplateColumns = `${this.visible.settings ? i : 200 - i}px repeat(3, 1fr)`;
-            if (i >= 200) clearInterval(interval);
+            if (i >= 200) {
+                clearInterval(interval);
+                if (!this.visible.settings) this.visible.topleft = false;
+            }
         }, 20);
     }
 
     toggleLocations(_el: any): void {
         this.visible.locations = !this.visible.locations;
+        if (this.visible.locations && this.visible.settings) this.visible.topleft = true;
         const uiEl = <HTMLDivElement>this.$el;
-        console.log(uiEl);
         let i = 0;
         const interval = setInterval(() => {
             i += 10;
             uiEl.style.gridTemplateRows = `${this.visible.locations ? i : 100 - i}px auto 1fr auto`;
-            if (i >= 120) clearInterval(interval);
+            if (i >= 100) {
+                clearInterval(interval);
+                if (!this.visible.locations) this.visible.topleft = false;
+            }
         }, 20);
     }
 
@@ -184,16 +208,37 @@ export default class UI extends Vue {
     grid-area: topleft;
     background-color: #fa5a5a;
     display: flex;
-    justify-content: center;
     align-items: center;
 }
 
-#logo > img {
+#logo-icons {
+    flex: 1 1 0px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-evenly;
+}
+
+#logo-icons > img {
     display: block;
-    /* width: 357px;
-    height: 432px; */
-    max-height: 80%;
-    max-width: 80%;
+    max-width: 45%;
+}
+
+#logo-links {
+    display: flex;
+    justify-content: space-evenly;
+}
+
+#logo-links > svg {
+    padding: 0 3px;
+}
+
+#logo-version {
+    flex: 1 1 0px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 }
 
 #zoom {
@@ -226,7 +271,7 @@ export default class UI extends Vue {
 #locations > div > div {
     background-color: white;
     text-align: center;
-    line-height: 120px;
+    line-height: 100px;
     width: 100px;
     border-right: solid 1px #82c8a0;
 }

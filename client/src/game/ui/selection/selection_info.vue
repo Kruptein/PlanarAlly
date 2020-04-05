@@ -92,7 +92,7 @@ export default class SelectionInfo extends Vue {
     }
     async changeValue(object: Tracker | Aura, redraw: boolean): Promise<void> {
         if (this.shape === null) return;
-        const value = await (<Game>this.$parent).$refs.prompt.prompt(
+        const value = await (<Game>this.$parent.$parent).$refs.prompt.prompt(
             `New  ${object.name} value:`,
             `Updating ${object.name}`,
         );
@@ -110,6 +110,7 @@ export default class SelectionInfo extends Vue {
 <style scoped>
 #selection-menu {
     position: absolute;
+    pointer-events: auto;
     display: flex;
     flex-direction: column;
     top: 75px;

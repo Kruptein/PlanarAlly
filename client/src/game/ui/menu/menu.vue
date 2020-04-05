@@ -1,7 +1,7 @@
 <template>
     <!-- SETTINGS -->
     <div id="menu" @click="settingsClick" ref="settings">
-        <div style="width:200px;height:90%;overflow-y:auto;overflow-x:hidden;">
+        <div style="width:200px;overflow-y:auto;overflow-x:hidden;">
             <!-- ASSETS -->
             <template v-if="IS_DM">
                 <button class="menu-accordion">Assets</button>
@@ -60,13 +60,13 @@
                 </div>
             </div>
         </div>
-        <!-- <router-link
-                to="/dashboard"
-                class="menu-accordion"
-                style="text-decoration:none;display:inline-block;position:absolute;bottom:0;"
-            >
-                Exit
-            </router-link> -->
+        <router-link
+            to="/dashboard"
+            class="menu-accordion"
+            style="width:200px;box-sizing:border-box;text-decoration:none;display:inline-block;"
+        >
+            Exit
+        </router-link>
     </div>
     <!-- <img id="dragImage" /> -->
 </template>
@@ -202,12 +202,10 @@ DIRECTORY.CSS changes
 }
 
 #menu {
-    /* position: absolute; */
     grid-area: menu;
-    /* top: 0;
-    left: 0; */
-    /* height: 100%; */
-    /* z-index: 21; */
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
     background-color: #fa5a5a;
     overflow: auto;
     pointer-events: auto;

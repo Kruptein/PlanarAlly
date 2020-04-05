@@ -1,0 +1,350 @@
+<template>
+    <div id="ui" v-show="showUI">
+        <div id="logo"><img src="/static/favicon.png" /></div>
+        <!-- RADIAL MENU -->
+        <div id="radialmenu">
+            <div class="rm-wrapper">
+                <div class="rm-toggler">
+                    <ul class="rm-list" :class="{ 'rm-list-dm': IS_DM }">
+                        <li @click="toggleLocations" v-if="IS_DM" class="rm-item" id="rm-locations">
+                            <a href="#">
+                                <i class="far fa-compass"></i>
+                            </a>
+                        </li>
+                        <li @click="toggleMenu" class="rm-item" id="rm-settings">
+                            <a href="#">
+                                <i class="fas fa-cog"></i>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+                <span class="rm-topper">
+                    <i class="icon-share-alt"></i>
+                </span>
+            </div>
+        </div>
+        <menu-bar></menu-bar>
+        <div id="locations" v-if="IS_DM">
+            <div>
+                <div
+                    v-for="location in locations"
+                    :key="location"
+                    :style="[getCurrentLocation() === location ? { 'background-color': '#82c8a0' } : {}]"
+                    @click="changeLocation(location)"
+                >
+                    {{ location }}
+                </div>
+                <div @click="createLocation">
+                    <i class="fas fa-plus"></i>
+                </div>
+            </div>
+        </div>
+        <tool-bar ref="tools"></tool-bar>
+        <floor-select></floor-select>
+        <selection-info></selection-info>
+        <!-- When updating zoom boundaries, also update store updateZoom function;
+            should probably do this using a store variable-->
+        <zoom-slider
+            id="zoom"
+            v-model="zoomDisplay"
+            :height="6"
+            :width="200"
+            :min="0"
+            :max="1"
+            :interval="0.1"
+            :dot-size="[8, 20]"
+            :dot-options="{ style: { 'border-radius': '15%', 'z-index': 11 } }"
+            :tooltip-placement="'bottom'"
+            :tooltip="'focus'"
+            :tooltip-formatter="zoomDisplay.toFixed(1)"
+            :rail-style="{ 'background-color': '#fff', 'box-shadow': '0.5px 0.5px 3px 1px rgba(0, 0, 0, .36)' }"
+            :process-style="{ 'background-color': '#fff' }"
+        ></zoom-slider>
+    </div>
+</template>
+
+<script lang="ts">
+import Vue from "vue";
+import vueSlider from "vue-slider-component";
+import "vue-slider-component/theme/default.css";
+import Component from "vue-class-component";
+
+import { mapState } from "vuex";
+
+import DmSettings from "@/game/ui/dmsettings.vue";
+import FloorSelect from "@/game/ui/floors.vue";
+import MenuBar from "@/game/ui/menu/menu.vue";
+import SelectionInfo from "@/game/ui/selection/selection_info.vue";
+import Tools from "@/game/ui/tools/tools.vue";
+
+import { LocalPoint } from "../geom";
+import { gameStore } from "../store";
+import { l2g } from "../units";
+import { socket } from "../api/socket";
+import Game from "../game.vue";
+
+@Component({
+    components: {
+        "tool-bar": Tools,
+        "selection-info": SelectionInfo,
+        "floor-select": FloorSelect,
+        "menu-bar": MenuBar,
+        "zoom-slider": vueSlider,
+        "dm-settings": DmSettings,
+    },
+    computed: {
+        ...mapState("game", ["locations"]),
+    },
+})
+export default class UI extends Vue {
+    $refs!: {
+        tools: InstanceType<typeof Tools>;
+    };
+
+    //
+
+    visible = {
+        locations: false,
+        settings: false,
+    };
+
+    get IS_DM(): boolean {
+        return gameStore.IS_DM;
+    }
+
+    get showUI(): boolean {
+        return gameStore.showUI;
+    }
+
+    get zoomDisplay(): number {
+        return gameStore.zoomDisplay;
+    }
+
+    set zoomDisplay(value: number) {
+        gameStore.updateZoom({
+            newZoomDisplay: value,
+            zoomLocation: l2g(new LocalPoint(window.innerWidth / 2, window.innerHeight / 2)),
+        });
+    }
+
+    toggleMenu(_el: any): void {
+        this.visible.settings = !this.visible.settings;
+        const uiEl = <HTMLDivElement>this.$el;
+        let i = 0;
+        const interval = setInterval(() => {
+            i += 10;
+            uiEl.style.gridTemplateColumns = `${this.visible.settings ? i : 200 - i}px repeat(3, 1fr)`;
+            if (i >= 200) clearInterval(interval);
+        }, 20);
+    }
+
+    toggleLocations(_el: any): void {
+        this.visible.locations = !this.visible.locations;
+        const uiEl = <HTMLDivElement>this.$el;
+        console.log(uiEl);
+        let i = 0;
+        const interval = setInterval(() => {
+            i += 10;
+            uiEl.style.gridTemplateRows = `${this.visible.locations ? i : 100 - i}px auto 1fr auto`;
+            if (i >= 120) clearInterval(interval);
+        }, 20);
+    }
+
+    getCurrentLocation(): string {
+        return gameStore.locationName;
+    }
+    changeLocation(name: string): void {
+        socket.emit("Location.Change", name);
+    }
+    async createLocation(): Promise<void> {
+        const value = await (<Game>this.$parent).$refs.prompt.prompt(`New location name:`, `Create new location`);
+        socket.emit("Location.New", value);
+    }
+}
+</script>
+
+<style scoped>
+#ui {
+    pointer-events: none;
+    position: absolute;
+    display: grid;
+    grid-template-areas:
+        "topleft locations locations locations"
+        "menu    menutoggle  .       zoom     "
+        "menu        .       .         .      "
+        "menu      layer     .       tools    ";
+    grid-template-rows: 0 auto 1fr auto;
+    grid-template-columns: 0 repeat(3, 1fr);
+    width: 100%;
+    height: 100%;
+    z-index: 10;
+}
+
+#logo {
+    grid-area: topleft;
+    background-color: #fa5a5a;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#logo > img {
+    display: block;
+    /* width: 357px;
+    height: 432px; */
+    max-height: 80%;
+    max-width: 80%;
+}
+
+#zoom {
+    pointer-events: auto;
+    justify-self: end;
+    top: 15px;
+    right: 25px;
+    grid-area: zoom;
+}
+
+#radialmenu {
+    z-index: -1;
+    grid-area: menutoggle;
+    pointer-events: auto;
+}
+
+#locations {
+    pointer-events: auto;
+    grid-area: locations;
+    background-color: #fa5a5a;
+    overflow: auto;
+}
+
+#locations > div {
+    display: flex;
+    width: 100%;
+    height: 100%;
+}
+
+#locations > div > div {
+    background-color: white;
+    text-align: center;
+    line-height: 120px;
+    width: 100px;
+    border-right: solid 1px #82c8a0;
+}
+
+#locations > div > div:hover {
+    cursor: pointer;
+    background-color: #82c8a0;
+}
+
+/* The svg is added by Font Awesome */
+
+.rm-list-dm #rm-locations svg {
+    margin-left: 50px;
+}
+
+.rm-list-dm #rm-settings svg {
+    margin-bottom: 50px;
+}
+
+/* https://codepen.io/jonigiuro/pen/kclIu/ */
+
+.rm-wrapper {
+    position: relative;
+    width: 200px;
+    height: 200px;
+    top: -100px;
+    left: -100px;
+}
+
+.rm-wrapper .rm-topper {
+    pointer-events: none;
+    text-align: center;
+    line-height: 50px;
+    font-size: 25px;
+}
+
+.rm-wrapper .rm-toggler,
+.rm-wrapper .rm-topper {
+    display: block;
+    position: absolute;
+    width: 50px;
+    height: 50px;
+    left: 50%;
+    top: 50%;
+    margin-left: -25px;
+    margin-top: -25px;
+    background: #fa5a5a;
+    color: white;
+    border-radius: 50%;
+}
+
+.rm-wrapper .rm-toggler .rm-list,
+.rm-wrapper .rm-topper .rm-list {
+    opacity: 0.5;
+    list-style: none;
+    padding: 0;
+    width: 200px;
+    height: 200px;
+    overflow: hidden;
+    display: block;
+    border-radius: 50%;
+    transform: rotate(180deg);
+    box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.2);
+    margin: -75px 0 0 -75px;
+}
+
+.rm-list-dm {
+    transform: rotate(135deg) !important; /* total deg: 135 */
+}
+
+.rm-wrapper .rm-toggler:hover .rm-list,
+.rm-wrapper .rm-topper:hover .rm-list {
+    opacity: 1;
+}
+
+.rm-wrapper .rm-toggler .rm-list .rm-item,
+.rm-wrapper .rm-topper .rm-list .rm-item {
+    display: table;
+    width: 50%;
+    height: 50%;
+    float: left;
+    text-align: center;
+    box-shadow: inset 0 0 2px 0 rgba(0, 0, 0, 0.2);
+    background-color: white;
+}
+
+.rm-wrapper .rm-toggler .rm-list .rm-item:hover,
+.rm-wrapper .rm-topper .rm-list .rm-item:hover {
+    background-color: #82c8a0;
+}
+
+.rm-wrapper .rm-toggler .rm-list .rm-item:hover a,
+.rm-wrapper .rm-topper .rm-list .rm-item:hover a {
+    color: white;
+}
+
+.rm-wrapper .rm-toggler .rm-list .rm-item a,
+.rm-wrapper .rm-topper .rm-list .rm-item a {
+    display: table-cell;
+    vertical-align: middle;
+    transform: rotate(-45deg);
+    text-decoration: none;
+    font-size: 25px;
+    color: #82c8a0;
+    border: none;
+    outline: none;
+}
+
+.settingsfade-enter-active,
+.settingsfade-leave-active {
+    transition: width 500ms;
+}
+.settingsfade-leave-to,
+.settingsfade-enter {
+    width: 0;
+}
+.settingsfade-enter-to,
+.settingsfade-leave {
+    width: 200px;
+}
+</style>

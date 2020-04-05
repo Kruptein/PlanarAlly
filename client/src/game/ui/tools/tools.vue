@@ -1,5 +1,5 @@
 <template>
-    <div>
+    <div style="pointer-events: auto;">
         <div id="toolselect">
             <ul>
                 <li

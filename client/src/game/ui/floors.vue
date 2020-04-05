@@ -1,11 +1,7 @@
 <template>
-    <div>
-        <div id="floor" @click="selected = !selected" v-if="floors.length > 1 || IS_DM">
-            <ul>
-                <li>
-                    <a href="#">{{ selectedFloorIndex }}</a>
-                </li>
-            </ul>
+    <div id="floor-layer">
+        <div id="floor-selector">
+            <a href="#">{{ selectedFloorIndex }}</a>
         </div>
         <div id="floor-detail" v-if="selected">
             <template v-for="[index, floor] of floors.entries()">
@@ -22,7 +18,7 @@
             </template>
             <div class="floor-add" @click="addFloor">Add new floor</div>
         </div>
-        <div id="layerselect" v-show="layers.length > 1">
+        <!-- <template >
             <ul>
                 <li
                     v-for="layer in layers"
@@ -33,6 +29,17 @@
                     <a href="#">{{ layer }}</a>
                 </li>
             </ul>
+        </template> -->
+        <div style="display:contents" v-show="layers.length > 1">
+            <div
+                v-for="layer in layers"
+                class="layer"
+                :key="layer"
+                :class="{ 'layer-selected': layer === selectedLayer }"
+                @mousedown="selectLayer(layer)"
+            >
+                <a href="#">{{ layer }}</a>
+            </div>
         </div>
     </div>
 </template>
@@ -98,70 +105,49 @@ export default class FloorSelect extends Vue {
 </script>
 
 <style scoped>
-#floor {
-    position: absolute;
-    bottom: 25px;
-    left: 25px;
-    z-index: 10;
-}
-
-#layerselect {
-    position: absolute;
-    bottom: 25px;
-    left: 75px;
-    z-index: 10;
-}
-
-#layerselect *,
-#floor * {
-    user-select: none !important;
-    -webkit-user-drag: none !important;
-}
-
-#layerselect ul,
-#floor ul {
+#floor-layer {
+    grid-area: layer;
     display: flex;
     list-style: none;
-    padding: 0;
-    margin: 0;
-    border: solid 1px #82c8a0;
-    border-radius: 6px;
+    margin-left: 25px;
+    margin-bottom: 25px;
+    pointer-events: auto;
 }
 
-#layerselect li,
-#floor li {
-    display: flex;
+#floor-selector {
+    margin-right: 50px;
+    border-radius: 4px;
+}
+
+#floor-selector,
+.layer {
     background-color: #eee;
     border-right: solid 1px #82c8a0;
 }
 
-#floor li {
-    border-radius: 4px;
-}
-
-#layerselect li:first-child {
-    border-radius: 4px 0px 0px 4px; /* Border radius needs to be two less than the actual border, otherwise there will be a gap */
-}
-
-#layerselect li:last-child {
-    border-right: none;
-    border-radius: 0px 4px 4px 0px;
-}
-
-#layerselect li:hover,
-#floor li:hover {
+#floor-selector:hover,
+.layer:hover,
+.layer-selected {
     background-color: #82c8a0;
 }
 
-#layerselect li a,
-#floor li a {
-    display: flex;
+a {
     padding: 10px;
     text-decoration: none;
+    display: inline-block;
 }
 
-#layerselect .layer-selected {
-    background-color: #82c8a0;
+.layer {
+    border: solid 1px #82c8a0;
+    border-left: none;
+}
+
+.layer:first-of-type {
+    border-radius: 4px 0 0 4px;
+}
+
+.layer:last-of-type {
+    border-radius: 0 4px 4px 0;
 }
 
 #floor-detail {

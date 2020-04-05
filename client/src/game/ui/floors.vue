@@ -106,6 +106,11 @@ export default class FloorSelect extends Vue {
     pointer-events: auto;
 }
 
+#floor-layer * {
+    user-select: none !important;
+    -webkit-user-drag: none !important;
+}
+
 #floor-selector {
     margin-right: 50px;
     border-radius: 4px;

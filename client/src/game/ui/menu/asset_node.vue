@@ -6,7 +6,7 @@
         </li>
         <li
             v-for="file in files"
-            :key="file.name"
+            :key="file.uuid"
             class="file draggable token"
             draggable="true"
             @mouseover="showImage = file.hash"

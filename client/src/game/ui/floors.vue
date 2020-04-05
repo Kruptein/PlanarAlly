@@ -1,6 +1,6 @@
 <template>
     <div id="floor-layer">
-        <div id="floor-selector">
+        <div id="floor-selector" @click="selected = !selected" v-if="showFloorSelector">
             <a href="#">{{ selectedFloorIndex }}</a>
         </div>
         <div id="floor-detail" v-if="selected">
@@ -18,18 +18,6 @@
             </template>
             <div class="floor-add" @click="addFloor">Add new floor</div>
         </div>
-        <!-- <template >
-            <ul>
-                <li
-                    v-for="layer in layers"
-                    :key="layer"
-                    :class="{ 'layer-selected': layer === selectedLayer }"
-                    @mousedown="selectLayer(layer)"
-                >
-                    <a href="#">{{ layer }}</a>
-                </li>
-            </ul>
-        </template> -->
         <div style="display:contents" v-show="layers.length > 1">
             <div
                 v-for="layer in layers"
@@ -77,6 +65,10 @@ export default class FloorSelect extends Vue {
 
     get selectedLayer(): string {
         return gameStore.selectedLayer;
+    }
+
+    get showFloorSelector(): boolean {
+        return this.floors.length > 1 || this.IS_DM;
     }
 
     selectLayer(layer: string): void {

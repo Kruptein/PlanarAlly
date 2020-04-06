@@ -5,7 +5,7 @@
             <!-- ASSETS -->
             <template v-if="IS_DM">
                 <button class="menu-accordion">Assets</button>
-                <div class="menu-accordion-panel">
+                <div id="menu-assets" class="menu-accordion-panel">
                     <a class="actionButton" href="/assets" target="blank" title="Open asset manager">
                         <i class="fas fa-external-link-alt"></i>
                     </a>
@@ -164,6 +164,11 @@ export default class MenuBar extends Vue {
 </script>
 
 <style scoped>
+#menu-assets {
+    display: flex;
+    flex-direction: column;
+}
+
 /*
 DIRECTORY.CSS changes
 
@@ -212,11 +217,10 @@ DIRECTORY.CSS changes
 }
 
 .actionButton {
-    position: absolute;
-    right: 0;
     margin: 5px;
-    margin-right: 10px;
-    padding: 0;
+    align-self: flex-end;
+    margin-bottom: -30px;
+    z-index: 11;
 }
 
 .menu-accordion {

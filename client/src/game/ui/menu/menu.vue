@@ -129,8 +129,11 @@ export default class MenuBar extends Vue {
     settingsClick(event: { target: HTMLElement }): void {
         if (event.target.classList.contains("menu-accordion")) {
             event.target.classList.toggle("menu-accordion-active");
-            const next = <HTMLElement>event.target.nextElementSibling;
-            if (next !== null) next.style.display = next.style.display === "" ? "block" : "";
+            // const next = <HTMLElement>event.target.nextElementSibling;
+            // if (next !== null) {
+            //     if (next.style.display === "") next.style.removeProperty("display");
+            //     else next.style.display = "";
+            // }
         }
     }
     createNote(): void {
@@ -166,7 +169,7 @@ export default class MenuBar extends Vue {
 </script>
 
 <style scoped>
-#menu-assets {
+.menu-accordion-active + #menu-assets {
     display: flex;
     flex-direction: column;
 }
@@ -259,6 +262,10 @@ DIRECTORY.CSS changes
     display: none;
     overflow: hidden;
     min-height: 2em;
+}
+
+.menu-accordion-active + .menu-accordion-panel {
+    display: block;
 }
 
 .menu-accordion-subpanel {

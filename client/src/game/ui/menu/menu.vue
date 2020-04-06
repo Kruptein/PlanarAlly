@@ -5,12 +5,13 @@
             <!-- ASSETS -->
             <template v-if="IS_DM">
                 <button class="menu-accordion">Assets</button>
-                <div class="menu-accordion-panel">
+                <div id="menu-assets" class="menu-accordion-panel">
+                    <input id="asset-search" v-if="assets" v-model="assetSearch" placeholder="Search" />
                     <a class="actionButton" href="/assets" target="blank" title="Open asset manager">
                         <i class="fas fa-external-link-alt"></i>
                     </a>
                     <div class="directory" id="menu-tokens">
-                        <asset-node :asset="assets"></asset-node>
+                        <asset-node :asset="assets" :search="assetSearch"></asset-node>
                         <div v-if="!assets">No assets</div>
                     </div>
                 </div>
@@ -80,10 +81,9 @@ import ColorPicker from "@/core/components/colorpicker.vue";
 import Game from "@/game/game.vue";
 import AssetNode from "@/game/ui/menu/asset_node.vue";
 
-import { layerManager } from "@/game/layers/manager";
-
 import { uuidv4 } from "@/core/utils";
 import { Note } from "@/game/comm/types/general";
+import { layerManager } from "@/game/layers/manager";
 import { gameStore } from "@/game/store";
 import { EventBus } from "../../event-bus";
 
@@ -97,6 +97,8 @@ import { EventBus } from "../../event-bus";
     },
 })
 export default class MenuBar extends Vue {
+    assetSearch = "";
+
     get IS_DM(): boolean {
         return gameStore.IS_DM || gameStore.FAKE_PLAYER;
     }
@@ -127,8 +129,11 @@ export default class MenuBar extends Vue {
     settingsClick(event: { target: HTMLElement }): void {
         if (event.target.classList.contains("menu-accordion")) {
             event.target.classList.toggle("menu-accordion-active");
-            const next = <HTMLElement>event.target.nextElementSibling;
-            if (next !== null) next.style.display = next.style.display === "" ? "block" : "";
+            // const next = <HTMLElement>event.target.nextElementSibling;
+            // if (next !== null) {
+            //     if (next.style.display === "") next.style.removeProperty("display");
+            //     else next.style.display = "";
+            // }
         }
     }
     createNote(): void {
@@ -164,6 +169,19 @@ export default class MenuBar extends Vue {
 </script>
 
 <style scoped>
+.menu-accordion-active + #menu-assets {
+    display: flex;
+    flex-direction: column;
+}
+
+#asset-search {
+    text-align: center;
+}
+
+#asset-search::placeholder {
+    text-align: center;
+}
+
 /*
 DIRECTORY.CSS changes
 
@@ -212,11 +230,10 @@ DIRECTORY.CSS changes
 }
 
 .actionButton {
-    position: absolute;
-    right: 0;
     margin: 5px;
-    margin-right: 10px;
-    padding: 0;
+    align-self: flex-end;
+    margin-bottom: -30px;
+    z-index: 11;
 }
 
 .menu-accordion {
@@ -245,6 +262,10 @@ DIRECTORY.CSS changes
     display: none;
     overflow: hidden;
     min-height: 2em;
+}
+
+.menu-accordion-active + .menu-accordion-panel {
+    display: block;
 }
 
 .menu-accordion-subpanel {

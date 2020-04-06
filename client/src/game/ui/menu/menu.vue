@@ -6,11 +6,12 @@
             <template v-if="IS_DM">
                 <button class="menu-accordion">Assets</button>
                 <div id="menu-assets" class="menu-accordion-panel">
+                    <input id="asset-search" v-if="assets" v-model="assetSearch" placeholder="Search" />
                     <a class="actionButton" href="/assets" target="blank" title="Open asset manager">
                         <i class="fas fa-external-link-alt"></i>
                     </a>
                     <div class="directory" id="menu-tokens">
-                        <asset-node :asset="assets"></asset-node>
+                        <asset-node :asset="assets" :search="assetSearch"></asset-node>
                         <div v-if="!assets">No assets</div>
                     </div>
                 </div>
@@ -80,10 +81,9 @@ import ColorPicker from "@/core/components/colorpicker.vue";
 import Game from "@/game/game.vue";
 import AssetNode from "@/game/ui/menu/asset_node.vue";
 
-import { layerManager } from "@/game/layers/manager";
-
 import { uuidv4 } from "@/core/utils";
 import { Note } from "@/game/comm/types/general";
+import { layerManager } from "@/game/layers/manager";
 import { gameStore } from "@/game/store";
 import { EventBus } from "../../event-bus";
 
@@ -97,6 +97,8 @@ import { EventBus } from "../../event-bus";
     },
 })
 export default class MenuBar extends Vue {
+    assetSearch = "";
+
     get IS_DM(): boolean {
         return gameStore.IS_DM || gameStore.FAKE_PLAYER;
     }
@@ -167,6 +169,14 @@ export default class MenuBar extends Vue {
 #menu-assets {
     display: flex;
     flex-direction: column;
+}
+
+#asset-search {
+    text-align: center;
+}
+
+#asset-search::placeholder {
+    text-align: center;
 }
 
 /*

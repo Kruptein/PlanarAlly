@@ -20,7 +20,7 @@ from utils import FILE_DIR
 sio = socketio.AsyncServer(
     async_mode="aiohttp",
     engineio_logger=False,
-    cors_allowed_origins=config.get("general", "cors_allowed_origins", fallback=None),
+    cors_allowed_origins=config.get("Webserver", "cors_allowed_origins", fallback=None),
 )
 app = web.Application()
 app["AuthzPolicy"] = auth.AuthPolicy()

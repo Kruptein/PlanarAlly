@@ -14,6 +14,7 @@ All notable changes to this project will be documented in this file.
 -   Client option to invert the ALT behaviour (i.e. invert snapping behaviour)
 -   Logo, version info and some urls to the topleft section which is only visible if both locations bar and menu are opened
 -   Search bar to asset menu
+-   Some basic tooltips to icons
 
 ### Fixed
 

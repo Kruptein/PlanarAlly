@@ -27,8 +27,18 @@
         </div>
         <div>Colours</div>
         <div class="selectgroup">
-            <color-picker class="option" :class="{ 'radius-right': !showBorderColour() }" :color.sync="fillColour" />
-            <color-picker class="option" :color.sync="borderColour" v-show="showBorderColour()" />
+            <color-picker
+                class="option"
+                :class="{ 'radius-right': !showBorderColour() }"
+                :color.sync="fillColour"
+                title="Foreground colour"
+            />
+            <color-picker
+                class="option"
+                :color.sync="borderColour"
+                v-show="showBorderColour()"
+                title="Background colour"
+            />
         </div>
         <div v-show="shapeSelect === 'draw-polygon'" style="display:flex">
             <label for="polygon-close" style="flex:5">Closed polygon?</label>

@@ -76,7 +76,7 @@ export default class FloorSelect extends Vue {
     }
 
     async addFloor(): Promise<void> {
-        const value = await (<Game>this.$parent).$refs.prompt.prompt("New floor name", "Floor Creation");
+        const value = await (<Game>this.$parent.$parent).$refs.prompt.prompt("New floor name", "Floor Creation");
         if (value === undefined) return;
         socket.emit("Floor.Create", value);
     }
@@ -88,7 +88,11 @@ export default class FloorSelect extends Vue {
     async removeFloor(index: number): Promise<void> {
         if (this.floors.length <= 1) return;
         const floor = gameStore.floors[index];
-        if (!(await (<Game>this.$parent).$refs.confirm.open(`Are you sure you wish to remove the ${floor} floor?`)))
+        if (
+            !(await (<Game>this.$parent.$parent).$refs.confirm.open(
+                `Are you sure you wish to remove the ${floor} floor?`,
+            ))
+        )
             return;
         socket.emit("Floor.Remove", floor);
         removeFloor(floor);

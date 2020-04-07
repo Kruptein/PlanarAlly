@@ -95,7 +95,6 @@ export class Polygon extends Shape {
         for (const [i, v] of vertices.entries()) {
             const nv = vertices[(i + 1) % vertices.length];
             const distance = getDistanceToSegment(point, [v, nv]);
-            console.log(distance);
             if (distance <= nearbyThreshold) return true;
         }
         return false;

@@ -9,7 +9,7 @@
             @dragend="m.dragEnd"
         >
             <div>DM Settings</div>
-            <div class="header-close" @click="visible = false">
+            <div class="header-close" @click="visible = false" title="Close">
                 <i class="far fa-window-close"></i>
             </div>
         </div>

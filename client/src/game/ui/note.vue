@@ -8,11 +8,11 @@
             @dragstart="m.dragStart"
             @dragend="m.dragEnd"
         >
-            <span @click="$refs.title.select()">
+            <span @click="$refs.title.select()" title="Edit title">
                 <i class="fas fa-pencil-alt" style="font-size: 15px"></i>
             </span>
             <input v-model="note.title" ref="title" @change="updateNote" />
-            <div class="header-close" @click="visible = false">
+            <div class="header-close" @click="visible = false" title="Close">
                 <i class="far fa-window-close"></i>
             </div>
         </div>
@@ -25,7 +25,7 @@
             ></textarea>
         </div>
         <div class="modal-footer">
-            <button @click="removeNote">
+            <button @click="removeNote" title="Remove note">
                 <i class="far fa-trash-alt"></i>
                 Remove
             </button>
@@ -93,6 +93,7 @@ export default class NoteDialog extends Vue {
     border: none;
     font-weight: bold;
     font-size: large;
+    margin-left: 5px;
 }
 
 .header-close {

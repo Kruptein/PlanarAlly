@@ -25,12 +25,18 @@
             <div class="rm-wrapper">
                 <div class="rm-toggler">
                     <ul class="rm-list" :class="{ 'rm-list-dm': IS_DM }">
-                        <li @click="toggleLocations" v-if="IS_DM" class="rm-item" id="rm-locations">
+                        <li
+                            @click="toggleLocations"
+                            v-if="IS_DM"
+                            class="rm-item"
+                            id="rm-locations"
+                            title="Open location menu"
+                        >
                             <a href="#">
                                 <i class="far fa-compass"></i>
                             </a>
                         </li>
-                        <li @click="toggleMenu" class="rm-item" id="rm-settings">
+                        <li @click="toggleMenu" class="rm-item" id="rm-settings" title="Open settings">
                             <a href="#">
                                 <i class="fas fa-cog"></i>
                             </a>
@@ -53,7 +59,7 @@
                 >
                     {{ location }}
                 </div>
-                <div @click="createLocation">
+                <div @click="createLocation" title="Create new location">
                     <i class="fas fa-plus"></i>
                 </div>
             </div>

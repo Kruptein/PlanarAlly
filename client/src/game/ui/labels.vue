@@ -9,7 +9,7 @@
             @dragend="m.dragEnd"
         >
             <div>Label manager</div>
-            <div class="header-close" @click="visible = false">
+            <div class="header-close" @click="visible = false" title="Close">
                 <i class="far fa-window-close"></i>
             </div>
         </div>
@@ -45,10 +45,15 @@
                                 :style="{ textAlign: 'center' }"
                                 :class="{ 'lower-opacity': !label.visible }"
                                 @click.stop="toggleVisibility(label)"
+                                title="Toggle public/private"
                             >
                                 <i class="fas fa-eye"></i>
                             </div>
-                            <div :key="'delete-' + label.uuid" @click.stop="deleteLabel(label.uuid)">
+                            <div
+                                :key="'delete-' + label.uuid"
+                                @click.stop="deleteLabel(label.uuid)"
+                                title="Delete label"
+                            >
                                 <i class="fas fa-trash-alt"></i>
                             </div>
                         </div>

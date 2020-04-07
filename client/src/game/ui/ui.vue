@@ -263,6 +263,9 @@ export default class UI extends Vue {
 #radialmenu {
     z-index: -1;
     grid-area: menutoggle;
+}
+
+.rm-item {
     pointer-events: auto;
 }
 

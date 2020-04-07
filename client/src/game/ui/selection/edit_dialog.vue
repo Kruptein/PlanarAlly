@@ -9,7 +9,7 @@
             @dragend="m.dragEnd"
         >
             <div>Edit asset</div>
-            <div class="header-close" @click="visible = false">
+            <div class="header-close" @click="visible = false" title="Close">
                 <i class="far fa-window-close"></i>
             </div>
         </div>
@@ -31,6 +31,7 @@
                         updateShape(false);
                     "
                     :disabled="!owned"
+                    title="Toggle public/private"
                 >
                     <i class="fas fa-eye"></i>
                 </div>
@@ -105,6 +106,7 @@
                         @click="removeOwner(owner)"
                         :style="{ opacity: owned ? 1.0 : 0.3, textAlign: 'center', gridColumnStart: 'remove' }"
                         :disabled="!owned"
+                        title="Remove owner access"
                     >
                         <i class="fas fa-trash-alt"></i>
                     </div>
@@ -146,6 +148,7 @@
                             updateShape(false);
                         "
                         :disabled="!owned"
+                        title="Toggle public/private"
                     >
                         <i class="fas fa-eye"></i>
                     </div>
@@ -156,6 +159,7 @@
                         @click="removeTracker(tracker.uuid)"
                         :disabled="!owned"
                         :style="{ opacity: owned ? 1.0 : 0.3, textAlign: 'center' }"
+                        title="Remove tracker"
                     >
                         <i class="fas fa-trash-alt"></i>
                     </div>
@@ -203,6 +207,7 @@
                             updateShape(true);
                         "
                         :disabled="!owned"
+                        title="Toggle public/private"
                     >
                         <i class="fas fa-eye"></i>
                     </div>
@@ -211,6 +216,7 @@
                         :style="{ opacity: aura.visionSource ? 1.0 : 0.3, textAlign: 'center' }"
                         @click="updateAuraVisionSource(aura)"
                         :disabled="!owned"
+                        title="Toggle light source"
                     >
                         <i class="fas fa-lightbulb"></i>
                     </div>
@@ -220,6 +226,7 @@
                         @click="removeAura(aura.uuid)"
                         :disabled="!owned"
                         :style="{ opacity: owned ? 1.0 : 0.3, textAlign: 'center' }"
+                        title="Delete aura"
                     >
                         <i class="fas fa-trash-alt"></i>
                     </div>

@@ -20,6 +20,7 @@
                 class="option"
                 :class="{ 'option-selected': shapeSelect === shape }"
                 @click="shapeSelect = shape"
+                :title="shape"
             >
                 <i class="fas" :class="'fa-' + shape"></i>
             </div>

@@ -19,7 +19,7 @@
                 <button class="menu-accordion">Notes</button>
                 <div class="menu-accordion-panel">
                     <div class="menu-accordion-subpanel" id="menu-notes">
-                        <a class="actionButton" @click="createNote">
+                        <a class="actionButton" @click="createNote" title="Create note">
                             <i class="far fa-plus-square"></i>
                         </a>
                         <div v-for="note in notes" :key="note.uuid" @click="openNote(note)" style="cursor:pointer">
@@ -39,7 +39,7 @@
                         <div @click="jumpToMarker(marker)" class="menu-accordion-subpanel-text">
                             {{ nameMarker(marker) || "[?]" }}
                         </div>
-                        <div @click="delMarker(marker)">
+                        <div @click="delMarker(marker)" title="Delete marker">
                             <i class="far fa-minus-square"></i>
                         </div>
                     </div>

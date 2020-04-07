@@ -2,7 +2,7 @@
     <div v-show="shapes.length > 0">
         <div v-for="shape in shapes" :key="shape.uuid">
             <div id="selection-menu">
-                <div id="selection-edit-button" @click="openEditDialog">
+                <div id="selection-edit-button" @click="openEditDialog" title="Open shape properties">
                     <i class="fas fa-edit"></i>
                 </div>
                 <div id="selection-name">{{ shape.name }}</div>
@@ -13,6 +13,7 @@
                             class="selection-tracker-value"
                             :key="'value-' + tracker.uuid"
                             @click="changeValue(tracker, false)"
+                            title="Quick edit tracker"
                         >
                             <template v-if="tracker.maxvalue === 0">
                                 {{ tracker.value }}
@@ -28,6 +29,7 @@
                             class="selection-tracker-value"
                             :key="'value-' + aura.uuid"
                             @click="changeValue(aura, true)"
+                            title="Quick edit aura"
                         >
                             <template v-if="aura.dim === 0">
                                 {{ aura.value }}

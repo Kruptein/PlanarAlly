@@ -81,6 +81,8 @@ workflows:
                       - build-client
                   filters:
                       branches:
-                          ignore: /.*/
+                          # ignore: /.*/
+                          only:
+                              - feature/circle-builds
                       tags:
                           only: /^\d+\.\d+\.\d+[-a-zA-Z0-9]*$/

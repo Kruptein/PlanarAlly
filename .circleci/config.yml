@@ -1,89 +1,86 @@
 version: 2
 jobs:
-  windows:
-    docker:
-      - image: cdrx/pyinstaller-windows:python3
+    build-client:
+        docker:
+            - image: circleci/node:12
 
-    working_directory: ~/PlanarAlly/server
+        working_directory: ~/PlanarAlly/client
 
-    steps:
-      - checkout:
-          path: ~/PlanarAlly
-      
-      # - restore_cache:
-      #     key: pip-{{ checksum "requirements.txt" }}
-      #     name: Restoring pip cache
+        steps:
+            - checkout:
+                  path: ~/PlanarAlly
 
-      - run:
-          name: install sqlite3
-          command: apt update && apt install --no-install-recommends -y sqlite3
-      
-      - run:
-          name: pip install
-          command: pip install -U setuptools && pip install -r requirements.txt
-      
-      - save_cache:
-          key: pip-{{ checksum "requirements.txt" }}
-          paths:
-            - /wine/drive_c/users/root/Local\ Settings/Application\ Data/pip/Cache
+            - restore_cache:
+                  key: npm-{{ checksum "package-lock.json" }}
+                  name: Restoring npm cache
 
-      - run:
-          name: Build Windows executable
-          command: pyinstaller --clean -y --dist ./dist/windows --workpath /tmp *.spec
+            - run:
+                  name: npm install
+                  command: npm i
 
-      - store_artifacts:
-          path: ./dist/windows
-      
-      - persist_to_workspace:
-          root: ./
-          paths:
-            - VERSION
-            - ./dist/windows
+            - save_cache:
+                  key: npm-{{ checksum "package-lock.json" }}
+                  paths:
+                      - ./node-modules
 
-  release:
-    docker:
-      - image: cibuilds/github:0.12.1
-    
-    working_directory: /tmp/workspace
-    
-    steps:
-      - attach_workspace:
-          at: /tmp/workspace
-      
-      - run:
-          name: Zip artifacts
-          command: |
-            VERSION=$(cat VERSION)
-            cd dist/windows
-            zip -r windows-${VERSION}.zip *
-            cd -
-      
-      - run:
-          name: "Publish release on github"
-          command: |
-            VERSION=$(cat VERSION)
-            ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -replace ${VERSION} ./dist/windows/windows-${VERSION}.zip
+            - run:
+                  name: Build artifacts
+                  command: npm run build
+
+            - persist_to_workspace:
+                  root: ../
+                  paths:
+                      - server
+
+    release-server:
+        docker:
+            - image: cibuilds/github:0.13.0
+
+        working_directory: ~/PlanarAlly
+
+        steps:
+            - attach_workspace:
+                  at: ./
+
+            - run:
+                  name: Create tmp folder
+                  command: mkdir /tmp/archives
+
+            - run:
+                  name: Zip artifacts
+                  command: |
+                      VERSION=$(cat server/VERSION)
+                      zip -r /tmp/archives/planarally-bin-${VERSION}.zip server/*
+
+            - run:
+                  name: Gunzip artifacts
+                  command: |
+                      VERSION=$(cat VERSION)
+                      tar -czf /tmp/archives/planarally-bin-${VERSION}.tar.gz server/*
+
+            - run:
+                  name: "Publish release on github"
+                  command: |
+                      VERSION=$(cat VERSION)
+                      ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -draft -replace ${VERSION} /tmp/archives
 
 workflows:
-  version: 2
-  build:
-    jobs:
-      - windows:
-          filters:
-            branches:
-              ignore: /.*/
-            #   only:
-            #     - dev
-            #     - bugfix/windows-build
-            # tags:
-            #   only: /^\d+\.\d+\.\d+[-a-zA-Z0-9]*$/
-      - release:
-          requires:
-            - windows
-          filters:
-            branches:
-              ignore: /.*/
-            #   only:
-            #     - bugfix/windows-build
-            # tags:
-            #   only: /^\d+\.\d+\.\d+[-a-zA-Z0-9]*$/
+    version: 2
+    build:
+        jobs:
+            - build-client:
+                  filters:
+                      branches:
+                          # ignore: /.*/
+                          only:
+                              - feature/circle-builds
+                      tags:
+                          only: /^\d+\.\d+\.\d+[-a-zA-Z0-9]*$/
+            - release-server:
+                  requires:
+                      - windows
+                  filters:
+                      branches:
+                          ignore: /.*/
+                      tags:
+                          only: /^\d+\.\d+\.\d+[-a-zA-Z0-9]*$/

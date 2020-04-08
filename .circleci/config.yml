@@ -55,13 +55,13 @@ jobs:
             - run:
                   name: Gunzip artifacts
                   command: |
-                      VERSION=$(cat VERSION)
+                      VERSION=$(cat server/VERSION)
                       tar -czf /tmp/archives/planarally-bin-${VERSION}.tar.gz server/*
 
             - run:
                   name: "Publish release on github"
                   command: |
-                      VERSION=$(cat VERSION)
+                      VERSION=$(cat server/VERSION)
                       ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -draft -replace ${VERSION} /tmp/archives
 
 workflows:

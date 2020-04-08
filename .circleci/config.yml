@@ -78,7 +78,7 @@ workflows:
                           only: /^\d+\.\d+\.\d+[-a-zA-Z0-9]*$/
             - release-server:
                   requires:
-                      - windows
+                      - build-client
                   filters:
                       branches:
                           ignore: /.*/

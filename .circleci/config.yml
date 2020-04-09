@@ -62,7 +62,7 @@ jobs:
                   name: "Publish release on github"
                   command: |
                       VERSION=$(cat server/VERSION)
-                      ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -draft -replace ${VERSION} /tmp/archives
+                      ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -replace ${VERSION} /tmp/archives
 
 workflows:
     version: 2
@@ -71,9 +71,7 @@ workflows:
             - build-client:
                   filters:
                       branches:
-                          # ignore: /.*/
-                          only:
-                              - feature/circle-builds
+                          ignore: /.*/
                       tags:
                           only: /^\d+\.\d+\.\d+[-a-zA-Z0-9]*$/
             - release-server:
@@ -81,8 +79,6 @@ workflows:
                       - build-client
                   filters:
                       branches:
-                          # ignore: /.*/
-                          only:
-                              - feature/circle-builds
+                          ignore: /.*/
                       tags:
                           only: /^\d+\.\d+\.\d+[-a-zA-Z0-9]*$/

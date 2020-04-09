@@ -119,11 +119,14 @@ Make sure you have a valid python 3.6+ installation.
 See :ref:`python` if you don't know how.
 
 1. Download the latest source code from `here <https://github.com/Kruptein/PlanarAlly/releases/>`_.
-2. Open the server folder.
-3. Execute `pip install -r requirements.txt`.
-4. Run the server by executing `python planarserver.py`.
-5. Optionally you can configure the server in the `server_config.cfg` file.
-6. Restart the server after applying a change.
+2. Open the client folder.
+3. Execute `npm install`.
+4. Execute `npm run build`.
+5. Return to the PlanarAlly folder and open the server folder.
+6. Execute `pip install -r requirements.txt`.
+7. Run the server by executing `python planarserver.py`.
+8. Optionally you can configure the server in the `server_config.cfg` file.
+9. Restart the server after applying a change.
 
 Configuring
 ************

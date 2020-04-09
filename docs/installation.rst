@@ -142,6 +142,7 @@ Additionally you'll probably need to modify your router to allow access from
 the outside world on your personal computer on port 8000.
 Look up information on `port forwarding` for more info on this topic.
 
+In folder "extra", you can find example systemd.service and nginx server configuration.
 
 .. _python:
 

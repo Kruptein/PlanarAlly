@@ -117,16 +117,23 @@ Manual Installation
 
 Make sure you have a valid python 3.6+ installation.
 See :ref:`python` if you don't know how.
+You may have to use `python3` instead of `python` on some systems.
 
 1. Download the latest source code from `here <https://github.com/Kruptein/PlanarAlly/releases/>`_.
-2. Open the client folder.
-3. Execute `npm install`.
-4. Execute `npm run build`.
-5. Return to the PlanarAlly folder and open the server folder.
-6. Execute `pip install -r requirements.txt`.
-7. Run the server by executing `python planarserver.py`.
-8. Optionally you can configure the server in the `server_config.cfg` file.
-9. Restart the server after applying a change.
+2. Open the server folder.
+3. Create virtual environment `python -m venv .venv`.
+4. Execute `source .venv/bin/activate`.
+5. Execute `pip install -r requirements.txt`.
+6. Run the server by executing `python planarserver.py`.
+7. Optionally you can configure the server in the `server_config.cfg` file.
+8. Restart the server after applying a change.
+9. To exit virtual environment execute `deactivate`.
+
+If you install version 0.19.3 or older, you have to build client manually.
+
+1. Open the client folder.
+2. Execute `npm install`.
+3. Execute `npm run build`.
 
 Configuring
 ************

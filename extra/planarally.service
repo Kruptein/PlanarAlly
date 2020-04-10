@@ -7,7 +7,9 @@ Type=simple
 #User www-data is necessary for nginx to work
 User=www-data
 WorkingDirectory=/path/to/PlanarAlly
-ExecStart=/path/to/python3.6+ /path/to/PlanarAlly/server/planarserver.py
+ExecStart=/path/to/virtualenv/bin/python /path/to/PlanarAlly/server/planarserver.py
+#If you don't use a virtual environment, comment out previous line and use the following one instead
+#ExecStart=/path/to/python3.6+ /path/to/PlanarAlly/server/planarserver.py
 Restart=on-failure
 RestartSec=5
 

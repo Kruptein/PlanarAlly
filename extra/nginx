@@ -5,10 +5,10 @@ upstream pa {
 
 #Forward http to https
 server {
-    listen 80;
-    listen [::]:80; #IPV6
-    server_name dnd.example.com;
-    return 301 http://www.$server_name$request_uri; 
+	listen 80;
+	listen [::]:80; #IPV6
+	server_name dnd.example.com;
+	return 301 https://www.$server_name$request_uri; 
 }
 
 
@@ -16,20 +16,24 @@ server {
 	listen 443 ssl http2;
 	listen [::]:443 ssl http2; #IPV6
 
-	index index.html index.htm index.php index;
+	index index.htm;
   
 	client_max_body_size 4G;
-  server_name dnd.example.com;
+	server_name dnd.example.com;
 	
-	#protection against abuse - without it anyone can create their account
-	satisfy any;
-  #httpaswd for anyone outside local network
-	auth_basic	"Enter credentials";
-	auth_basic_user_file /path/to/.httpaswd;
-  #allow from local network - adjust for your network
-	allow 192.168.0.0/16; 
-	allow fe80::/10;
-
+#	#####
+#	#protection against abuse - without it anyone can create their account
+#	
+#	#if you want to be accessible only with login+local network change "any" to "all"
+#	satisfy any;  
+#	#httpaswd fil for protection with login
+#	auth_basic	"Enter credentials";
+#	auth_basic_user_file /path/to/.httpaswd;
+#	#allow from local network - adjust for your network
+#	allow 192.168.0.0/16; 
+#	allow fe80::/10;
+#	#####
+	
 	location / {
 		proxy_set_header Host $http_host;
 		proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
@@ -55,11 +59,11 @@ server {
 	}
 
 
-  # SSL Certs, adjust to your location
+	# SSL Certs, adjust to your location
 	ssl_certificate /etc/letsencrypt/live/dnd.example.com/fullchain.pem;
-  ssl_certificate_key /etc/letsencrypt/live/dnd.example.com/privkey.pem;
+	ssl_certificate_key /etc/letsencrypt/live/dnd.example.com/privkey.pem;
 
-  ###If you have problems connecting from older systems, remove these settings
+	#If you have problems connecting from older systems, remove these settings
 	ssl_session_timeout 1d;
 	ssl_session_cache shared:MozSSL:10m;  # about 40000 sessions
 	ssl_session_tickets off;

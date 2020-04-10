@@ -5,6 +5,7 @@ After=network.target
 [Service]
 Type=simple
 #User www-data is necessary for nginx to work
+#You must install requirements for this user if you don't use virtual environment
 User=www-data
 WorkingDirectory=/path/to/PlanarAlly
 ExecStart=/path/to/virtualenv/bin/python /path/to/PlanarAlly/server/planarserver.py

@@ -361,10 +361,8 @@ export abstract class Shape {
     }
 
     rotate(degrees: number, sync: boolean): void {
-        const oldLayer = layerManager.getLayer(this.floor, this.layer);
         this.rotationDegrees = degrees % 360;
-        if (oldLayer === undefined) return;
-        oldLayer.invalidate(true);
+        this.invalidate(true);
         // Sync!
         if (sync) socket.emit("Shape.Update", { shape: this.asDict(), redraw: true, temporary: false });
     }

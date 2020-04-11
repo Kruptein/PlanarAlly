@@ -2,7 +2,7 @@ import { uuidv4 } from "@/core/utils";
 import { socket } from "@/game/api/socket";
 import { aurasFromServer, aurasToServer } from "@/game/comm/conversion/aura";
 import { InitiativeData } from "@/game/comm/types/general";
-import { ServerShape } from "@/game/comm/types/shapes";
+import { ownerToServer, ServerShape } from "@/game/comm/types/shapes";
 import { GlobalPoint, Vector } from "@/game/geom";
 import { layerManager } from "@/game/layers/manager";
 import { gameStore } from "@/game/store";
@@ -12,6 +12,8 @@ import { TriangulationTarget } from "@/game/visibility/te/pa";
 import { addBlocker, getBlockers, getVisionSources, setVisionSources, sliceBlockers } from "@/game/visibility/utils";
 import tinycolor from "tinycolor2";
 import { BoundingRect } from "./boundingrect";
+import { ShapeOwner } from "./owners";
+import { PartialBy } from "../../core/types";
 
 export abstract class Shape {
     // Used to create class instance from server shape data
@@ -36,7 +38,7 @@ export abstract class Shape {
     trackers: Tracker[] = [];
     auras: Aura[] = [];
     labels: Label[] = [];
-    protected _owners: string[] = [];
+    protected _owners: ShapeOwner[] = [];
 
     // Block light sources
     visionObstruction = false;
@@ -204,7 +206,7 @@ export abstract class Shape {
             auras: aurasToServer(this.auras),
             trackers: this.trackers,
             labels: this.labels,
-            owners: this._owners,
+            owners: this._owners.map(owner => ownerToServer(owner)),
             // eslint-disable-next-line @typescript-eslint/camelcase
             fill_colour: this.fillColour,
             // eslint-disable-next-line @typescript-eslint/camelcase
@@ -230,7 +232,12 @@ export abstract class Shape {
         this.auras = aurasFromServer(data.auras);
         this.trackers = data.trackers;
         this.labels = data.labels;
-        this._owners = data.owners;
+        this._owners = data.owners.map(owner => ({
+            user: owner.user,
+            shape: owner.shape,
+            editAccess: owner.edit_access,
+            visionAccess: owner.vision_access,
+        }));
         this.fillColour = data.fill_colour;
         this.strokeColour = data.stroke_colour;
         this.isToken = data.is_token;
@@ -341,7 +348,7 @@ export abstract class Shape {
 
     // This screws up vetur if typed as `readonly string[]`
     // eslint-disable-next-line @typescript-eslint/array-type
-    get owners(): ReadonlyArray<string> {
+    get owners(): ReadonlyArray<ShapeOwner> {
         return Object.freeze(this._owners.slice());
     }
 
@@ -349,24 +356,29 @@ export abstract class Shape {
         if (username === undefined) username = gameStore.username;
         return (
             gameStore.IS_DM ||
-            this._owners.includes(username) ||
+            this._owners.some(u => u.user === username) ||
             (gameStore.FAKE_PLAYER && gameStore.activeTokens.includes(this.uuid))
         );
     }
 
-    addOwner(owner: string): void {
-        if (!this._owners.includes(owner)) this._owners.push(owner);
+    hasOwner(username: string): boolean {
+        return this._owners.some(u => u.user === username);
     }
 
-    updateOwner(oldValue: string, newValue: string): void {
-        const ownerIndex = this._owners.findIndex(o => o === oldValue);
-        if (ownerIndex >= 0) this._owners.splice(ownerIndex, 1, newValue);
-        else this.addOwner(newValue);
+    addOwner(owner: PartialBy<ShapeOwner, "shape">, sync: boolean): void {
+        const fullOwner = { shape: this.uuid, ...owner };
+        if (fullOwner.shape !== this.uuid) return;
+        if (!this.hasOwner(owner.user)) {
+            this._owners.push(fullOwner);
+            if (sync) socket.emit("Shape.Owner.Add", ownerToServer(fullOwner));
+        }
     }
 
-    removeOwner(owner: string): void {
-        const ownerIndex = this._owners.findIndex(o => o === owner);
-        this._owners.splice(ownerIndex, 1);
+    removeOwner(owner: string, sync: boolean): void {
+        const ownerIndex = this._owners.findIndex(o => o.user === owner);
+        if (ownerIndex < 0) return;
+        const removed = this._owners.splice(ownerIndex, 1)[0];
+        if (sync) socket.emit("Shape.Owner.Delete", ownerToServer(removed));
     }
 
     updatePoints(): void {

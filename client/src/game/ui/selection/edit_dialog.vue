@@ -91,19 +91,34 @@
                 />
                 <div class="spanrow header">Access</div>
                 <template v-for="owner in shape.owners">
-                    <input
-                        :key="owner"
-                        :value="owner"
-                        @change="updateOwner($event, owner)"
-                        type="text"
-                        placeholder="name"
-                        style="grid-column-start: name"
-                        :disabled="!owned"
-                    />
+                    <div style="grid-column-start: name;margin-bottom:5px;margin-left:5px;" :key="owner.user">
+                        {{ owner.user }}
+                    </div>
                     <div
-                        v-if="owner !== ''"
-                        :key="'remove-' + owner"
-                        @click="removeOwner(owner)"
+                        :key="'ownerEdit-' + owner.user"
+                        :style="{
+                            opacity: owner.editAccess ? 1.0 : 0.3,
+                            textAlign: 'center',
+                            gridColumnStart: 'visible',
+                        }"
+                        :disabled="!owned"
+                        @click="toggleOwnerEditAccess(owner)"
+                        title="Toggle edit access"
+                    >
+                        <i class="fas fa-pencil-alt"></i>
+                    </div>
+                    <div
+                        :key="'ownerVision-' + owner.user"
+                        :style="{ opacity: owner.visionAccess ? 1.0 : 0.3, textAlign: 'center' }"
+                        :disabled="!owned"
+                        @click="toggleOwnerVisionAccess(owner)"
+                        title="Toggle vision access"
+                    >
+                        <i class="fas fa-lightbulb"></i>
+                    </div>
+                    <div
+                        :key="'remove-' + owner.user"
+                        @click="removeOwner(owner.user)"
                         :style="{ opacity: owned ? 1.0 : 0.3, textAlign: 'center', gridColumnStart: 'remove' }"
                         :disabled="!owned"
                         title="Remove owner access"
@@ -111,6 +126,22 @@
                         <i class="fas fa-trash-alt"></i>
                     </div>
                 </template>
+                <select
+                    style="grid-column: name/colour;margin-top:5px;"
+                    ref="accessDropdown"
+                    v-show="playersWithoutAccess.length > 0"
+                >
+                    <option v-for="player in playersWithoutAccess" :key="player.uuid" :disabled="!owned">
+                        {{ player.name }}
+                    </option>
+                </select>
+                <button
+                    style="grid-column: visible/end;margin-top:5px;"
+                    @click="addOwner"
+                    v-show="playersWithoutAccess.length > 0"
+                >
+                    Add access
+                </button>
                 <div class="spanrow header">Trackers</div>
                 <template v-for="tracker in shape.trackers">
                     <input
@@ -274,6 +305,8 @@ import { layerManager } from "@/game/layers/manager";
 import { Shape } from "@/game/shapes/shape";
 import { gameStore } from "@/game/store";
 import { getVisionSources, addVisionSource, sliceVisionSources } from "@/game/visibility/utils";
+import { ShapeOwner } from "../../shapes/owners";
+import { ownerToServer } from "../../comm/types/shapes";
 
 @Component({
     components: {
@@ -284,10 +317,22 @@ import { getVisionSources, addVisionSource, sliceVisionSources } from "@/game/vi
 export default class EditDialog extends Vue {
     @Prop() shape!: Shape;
 
+    $refs!: {
+        accessDropdown: HTMLSelectElement;
+    };
+
     visible = false;
 
     get owned(): boolean {
         return this.shape.ownedBy();
+    }
+
+    get players(): { id: number; name: string }[] {
+        return gameStore.players;
+    }
+
+    get playersWithoutAccess(): { id: number; name: string }[] {
+        return gameStore.players.filter(p => !this.shape.hasOwner(p.name));
     }
 
     mounted(): void {
@@ -313,7 +358,7 @@ export default class EditDialog extends Vue {
     }
 
     addEmpty(): void {
-        if (this.shape.owners[this.shape.owners.length - 1] !== "") this.shape.addOwner("");
+        // if (this.shape.owners[this.shape.owners.length - 1] !== "") this.shape.addOwner("");
         if (
             !this.shape.trackers.length ||
             this.shape.trackers[this.shape.trackers.length - 1].name !== "" ||
@@ -384,15 +429,30 @@ export default class EditDialog extends Vue {
         }
         this.updateShape(false);
     }
-    updateOwner(event: { target: HTMLInputElement }, oldValue: string): void {
+    addOwner(): void {
         if (!this.owned) return;
-        this.shape.updateOwner(oldValue, event.target.value);
-        this.updateShape(gameStore.fowLOS);
+        const dropdown = this.$refs.accessDropdown;
+        const selectedUser = dropdown.options[dropdown.selectedIndex].value;
+        if (selectedUser === "") return;
+        this.shape.addOwner({ user: selectedUser, editAccess: true, visionAccess: true }, true);
+        if (gameStore.fowLOS) layerManager.invalidate(this.shape.floor);
     }
     removeOwner(value: string): void {
         if (!this.owned) return;
-        this.shape.removeOwner(value);
-        this.updateShape(gameStore.fowLOS);
+        this.shape.removeOwner(value, true);
+        if (gameStore.fowLOS) layerManager.invalidate(this.shape.floor);
+    }
+    toggleOwnerEditAccess(owner: ShapeOwner): void {
+        if (!this.owned) return;
+        owner.editAccess = !owner.editAccess;
+        socket.emit("Shape.Owner.Update", ownerToServer(owner));
+        if (gameStore.fowLOS) layerManager.invalidate(this.shape.floor);
+    }
+    toggleOwnerVisionAccess(owner: ShapeOwner): void {
+        if (!this.owned) return;
+        owner.visionAccess = !owner.visionAccess;
+        socket.emit("Shape.Owner.Update", ownerToServer(owner));
+        if (gameStore.fowLOS) layerManager.invalidate(this.shape.floor);
     }
     removeTracker(uuid: string): void {
         if (!this.owned) return;
@@ -482,7 +542,7 @@ export default class EditDialog extends Vue {
     grid-column: 1 / end;
 }
 
-#labels {
+.owner-row #labels {
     flex-wrap: wrap;
 }
 
@@ -546,5 +606,9 @@ input[type="checkbox"] {
     margin: 0 8px 0 8px;
     white-space: nowrap;
     display: inline-block;
+}
+
+input[type="text"] {
+    padding: 2px;
 }
 </style>

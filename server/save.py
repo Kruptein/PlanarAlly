@@ -12,7 +12,7 @@ from config import SAVE_FILE
 from models import ALL_MODELS, Constants
 from models.db import db
 
-SAVE_VERSION = 23
+SAVE_VERSION = 24
 
 logger: logging.Logger = logging.getLogger("PlanarAllyServer")
 logger.setLevel(logging.INFO)
@@ -299,7 +299,7 @@ def upgrade(version):
         db.foreign_keys = True
         Constants.get().update(save_version=Constants.save_version + 1).execute()
     elif version == 20:
-        from peewee import BooleanField, BooleanField, IntegerField
+        from peewee import BooleanField, IntegerField
 
         migrator = SqliteMigrator(db)
         db.foreign_keys = False
@@ -311,7 +311,7 @@ def upgrade(version):
         db.foreign_keys = True
         Constants.get().update(save_version=Constants.save_version + 1).execute()
     elif version == 21:
-        from peewee import BooleanField, BooleanField, IntegerField
+        from peewee import BooleanField, IntegerField
 
         migrator = SqliteMigrator(db)
         db.foreign_keys = False
@@ -327,6 +327,22 @@ def upgrade(version):
         with db.atomic():
             db.execute_sql(
                 'CREATE TABLE IF NOT EXISTS "marker" ("id" INTEGER NOT NULL PRIMARY KEY, "shape_id" TEXT NOT NULL, "user_id" INTEGER NOT NULL, "location_id" INTEGER NOT NULL, FOREIGN KEY ("shape_id") REFERENCES "shape"("uuid") ON DELETE CASCADE, FOREIGN KEY ("location_id") REFERENCES "location" ("id") ON DELETE CASCADE, FOREIGN KEY ("user_id") REFERENCES "user"("id") ON DELETE CASCADE)'
+            )
+        db.foreign_keys = True
+        Constants.get().update(save_version=Constants.save_version + 1).execute()
+    elif version == 23:
+        from peewee import BooleanField, IntegerField
+
+        migrator = SqliteMigrator(db)
+        db.foreign_keys = False
+        with db.atomic():
+            migrate(
+                migrator.add_column(
+                    "shape_owner", "edit_access", BooleanField(default=True)
+                ),
+                migrator.add_column(
+                    "shape_owner", "vision_access", BooleanField(default=True)
+                ),
             )
         db.foreign_keys = True
         Constants.get().update(save_version=Constants.save_version + 1).execute()

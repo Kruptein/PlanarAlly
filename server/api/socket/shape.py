@@ -54,7 +54,13 @@ async def add_shape(sid, data):
                 shape=shape, **reduce_data_to_model(type_table, data["shape"])
             )
             # Owners
-            ShapeOwner.create(shape=shape, user=user)
+            # ShapeOwner.create(shape=shape, user=user)
+            for owner in data["shape"]["owners"]:
+                ShapeOwner.create(
+                    **reduce_data_to_model(ShapeOwner, owner),
+                    shape=shape,
+                    user=User.by_name(owner.user),
+                )
             # Trackers
             for tracker in data["shape"]["trackers"]:
                 Tracker.create(**reduce_data_to_model(Tracker, tracker), shape=shape)
@@ -110,6 +116,122 @@ async def update_shape_position(sid, data):
     await sync_shape_update(layer, room, data, sid, shape)
 
 
+@sio.on("Shape.Owner.Add", namespace="/planarally")
+@auth.login_required(app, sio)
+async def add_shape_owner(sid, data):
+    sid_data = state.sid_map[sid]
+    user = sid_data["user"]
+    room: Room = sid_data["room"]
+    location = sid_data["location"]
+
+    try:
+        shape = Shape.get(uuid=data["shape"])
+    except Shape.DoesNotExist as exc:
+        logger.warning(
+            f"Attempt to add owner to unknown shape by {user.name} [{data['shape']}]"
+        )
+        raise exc
+
+    target_user = User.by_name(data["user"])
+    if target_user is None:
+        logger.warning(
+            f"Attempt to add unknown user as owner to shape by {user.name} [{data['user']}]"
+        )
+        return
+
+    # Adding the DM as user is redundant and can only lead to confusion
+    if target_user == room.creator:
+        return
+
+    if not ShapeOwner.get_or_none(shape=shape, user=target_user):
+        ShapeOwner.create(
+            shape=shape,
+            user=target_user,
+            edit_access=data["edit_access"],
+            vision_access=data["vision_access"],
+        )
+    await send_client_initiatives(room, location, target_user)
+    await sio.emit(
+        "Shape.Owner.Add", data, room=room, skip_sid=sid, namespace="/planarally"
+    )
+
+
+@sio.on("Shape.Owner.Update", namespace="/planarally")
+@auth.login_required(app, sio)
+async def update_shape_owner(sid, data):
+    sid_data = state.sid_map[sid]
+    user = sid_data["user"]
+    room: Room = sid_data["room"]
+    location = sid_data["location"]
+
+    try:
+        shape = Shape.get(uuid=data["shape"])
+    except Shape.DoesNotExist as exc:
+        logger.warning(
+            f"Attempt to update owner of unknown shape by {user.name} [{data['shape']}]"
+        )
+        raise exc
+
+    target_user = User.by_name(data["user"])
+    if target_user is None:
+        logger.warning(
+            f"Attempt to update unknown user as owner to shape by {user.name} [{data['user']}]"
+        )
+        return
+
+    try:
+        so = ShapeOwner.get(shape=shape, user=target_user)
+    except ShapeOwner.DoesNotExist as exc:
+        logger.warning(f"Attempt to update unknown shape-owner relation by {user.name}")
+
+    so.shape = shape
+    so.user = target_user
+    so.edit_access = data["edit_access"]
+    so.vision_access = data["vision_access"]
+    so.save()
+
+    await sio.emit(
+        "Shape.Owner.Update", data, room=room, skip_sid=sid, namespace="/planarally"
+    )
+
+
+@sio.on("Shape.Owner.Delete", namespace="/planarally")
+@auth.login_required(app, sio)
+async def delete_shape_owner(sid, data):
+    sid_data = state.sid_map[sid]
+    user = sid_data["user"]
+    room: Room = sid_data["room"]
+    location = sid_data["location"]
+
+    try:
+        shape = Shape.get(uuid=data["shape"])
+    except Shape.DoesNotExist as exc:
+        logger.warning(
+            f"Attempt to delete owner of unknown shape by {user.name} [{data['shape']}]"
+        )
+        raise exc
+
+    target_user = User.by_name(data["user"])
+    if target_user is None:
+        logger.warning(
+            f"Attempt to delete unknown user as owner to shape by {user.name} [{data['user']}]"
+        )
+        return
+
+    try:
+        so = (
+            ShapeOwner.delete()
+            .where((ShapeOwner.shape == shape) & (ShapeOwner.user == target_user))
+            .execute()
+        )
+    except Exception as e:
+        logger.warning(f"Could not delete shape-owner relation by {user.name}")
+
+    await sio.emit(
+        "Shape.Owner.Delete", data, room=room, skip_sid=sid, namespace="/planarally"
+    )
+
+
 @sio.on("Shape.Update", namespace="/planarally")
 @auth.login_required(app, sio)
 async def update_shape(sid, data):
@@ -134,18 +256,6 @@ async def update_shape(sid, data):
             # no backrefs on these tables
             type_instance.update_from_dict(data["shape"], ignore_unknown=True)
             type_instance.save()
-            # Owners
-            old_owners = {owner.user.name for owner in shape.owners}
-            new_owners = set(data["shape"]["owners"])
-            for owner in old_owners ^ new_owners:
-                if owner == "":
-                    continue
-                delta_owner = User.by_name(owner)
-                if owner in new_owners:
-                    ShapeOwner.create(shape=shape, user=delta_owner)
-                else:
-                    ShapeOwner.get(shape=shape, user=delta_owner).delete_instance(True)
-                await send_client_initiatives(room, location, delta_owner)
             # Trackers
             old_trackers = {tracker.uuid for tracker in shape.trackers}
             new_trackers = {tracker["uuid"] for tracker in data["shape"]["trackers"]}

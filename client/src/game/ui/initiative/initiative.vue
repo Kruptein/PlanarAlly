@@ -216,7 +216,7 @@ export default class Initiative extends Vue {
         const shape = layerManager.UUIDMap.get(actor.uuid);
         // Shapes that are unknown to this client are hidden from this client but owned by other clients
         if (shape === undefined) return false;
-        return shape.owners.includes(gameStore.username);
+        return shape.hasOwner(gameStore.username);
     }
     getDefaultEffect(): { uuid: string; name: string; turns: number } {
         return { uuid: uuidv4(), name: "New Effect", turns: 10 };

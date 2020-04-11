@@ -31,8 +31,8 @@ export class PingTool extends Tool {
         this.active = true;
         this.ping = new Circle(this.startPoint, 20, gameStore.rulerColour);
         this.border = new Circle(this.startPoint, 40, "#0000", gameStore.rulerColour);
-        this.ping.addOwner(gameStore.username);
-        this.border.addOwner(gameStore.username);
+        this.ping.addOwner({ user: gameStore.username, editAccess: false, visionAccess: false }, false);
+        this.border.addOwner({ user: gameStore.username, editAccess: false, visionAccess: false }, false);
         layer.addShape(this.ping, SyncMode.TEMP_SYNC, InvalidationMode.NORMAL);
         layer.addShape(this.border, SyncMode.TEMP_SYNC, InvalidationMode.NORMAL);
     }

@@ -362,8 +362,7 @@ export abstract class Shape {
 
     rotate(degrees: number, sync: boolean): void {
         const oldLayer = layerManager.getLayer(this.floor, this.layer);
-        this.rotationDegrees = degrees;
-        if (this.rotationDegrees >= 360) this.rotationDegrees = 0;
+        this.rotationDegrees = degrees % 360;
         if (oldLayer === undefined) return;
         oldLayer.invalidate(true);
         // Sync!

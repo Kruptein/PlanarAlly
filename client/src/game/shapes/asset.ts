@@ -35,8 +35,7 @@ export class Asset extends BaseRect {
 
             if (this.rotationDegrees == 0) {
                 ctx.drawImage(this.img, g2lx(this.refPoint.x), g2ly(this.refPoint.y), g2lz(this.w), g2lz(this.h));
-            }
-            else {
+            } else {
 
                 ctx.save();
 

@@ -1,5 +1,4 @@
 import { ServerShape } from "@/game/comm/types/shapes";
-import { VisibilityMode } from "@/game/visibility/store";
 
 export interface ServerLocation {
     name: string;

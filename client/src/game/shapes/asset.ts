@@ -1,7 +1,7 @@
 // Developer Note: Rotation
 // We only allow 0, 90 ,180 and 270 degrees
 // On an Asset, we need to keep the rotationDegrees to ensure the image is drawn correctly
-// We change the Height and Width for 90 and 270 roations so the selection, resize and bisection code still works
+// We change the Height and Width for 90 and 270 rotations so the selection, resize and bisection code still works
 
 import { InitiativeData } from "@/game/comm/types/general";
 import { ServerAsset } from "@/game/comm/types/shapes";
@@ -58,7 +58,7 @@ export class Asset extends BaseRect {
                 else
                     ctx.drawImage(this.img, g2lx(this.refPoint.x), g2ly(this.refPoint.y), g2lz(this.w), g2lz(this.h));
 
-                // we’re done with the rotating so restore the unrotated context
+                // weâ€™re done with the rotating so restore the unrotated context
                 ctx.restore();
             }
         } catch (error) {

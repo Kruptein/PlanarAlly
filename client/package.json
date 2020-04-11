@@ -6,6 +6,7 @@
         "serve": "vue-cli-service serve",
         "build": "npm run clean && vue-cli-service build --no-clean --modern",
         "lint": "vue-cli-service lint",
+        "lint:ci": "vue-cli-service lint --no-fix",
         "clean": "rimraf ../server/static/js/ && rimraf ../server/static/css/",
         "test": "vue-cli-service test:unit",
         "test:coverage": "vue-cli-service test:unit --coverage"

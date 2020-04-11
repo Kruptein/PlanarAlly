@@ -7,7 +7,7 @@ The Planar Ally server is a python codebase.
 ### Installation of depencencies
 
 ```
-pip install -r requirements.txt
+pip -r requirements.txt
 ```
 
 ### Run in development mode

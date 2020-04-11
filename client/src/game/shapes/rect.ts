@@ -27,4 +27,11 @@ export class Rect extends BaseRect {
         }
         super.drawPost(ctx);
     }
+
+    rotate(degrees: number, sync: boolean): void {
+        const w = this.w;
+        this.w = this.h;
+        this.h = w;
+        super.rotate(degrees, sync);
+    }
 }

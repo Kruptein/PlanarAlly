@@ -47,6 +47,7 @@
         </li>
         <li @click="moveToBack">Move to back</li>
         <li @click="moveToFront">Move to front</li>
+        <li @click="rotate">Rotate</li>
         <li @click="addInitiative">{{ getInitiativeWord() }} initiative</li>
         <li @click="deleteSelection">Delete shapes</li>
         <li v-if="hasSingleShape()" @click="openEditDialog">Show properties</li>
@@ -157,6 +158,11 @@ export default class ShapeContext extends Vue {
     moveToFront(): void {
         const layer = this.getActiveLayer()!;
         layer.selection.forEach(shape => layer.moveShapeOrder(shape, layer.shapes.length - 1, true));
+        this.close();
+    }
+    rotate(): void {
+        const layer = this.getActiveLayer()!;
+        layer.selection.forEach(shape => shape.rotate(shape.rotationDegrees + 90, true));
         this.close();
     }
     addInitiative(): void {

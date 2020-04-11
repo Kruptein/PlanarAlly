@@ -21,6 +21,7 @@ export interface ServerShape {
     options?: string;
     badge: number;
     show_badge: boolean;
+    rotation_degrees: number;
 }
 
 export interface ServerRect extends ServerShape {

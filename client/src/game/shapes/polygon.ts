@@ -134,4 +134,19 @@ export class Polygon extends Shape {
             maxy - miny + 2 * delta,
         );
     }
+
+    rotate(degrees: number, sync: boolean): void {
+        const newVertices: GlobalPoint[] = [];
+
+        for (let i = 0; i < this._vertices.length; i++) {
+            const vertex = this._vertices[i % this._vertices.length];
+            console.log(i + " " + vertex.x + " " + vertex.y)
+            newVertices[i] = this.rotatePoint(vertex, this.center(), degrees);
+        }
+
+        this._vertices = newVertices;
+        this._refPoint = this.rotatePoint(this._refPoint, this.center(), degrees);
+
+        super.rotate(degrees, sync);
+    }
 }

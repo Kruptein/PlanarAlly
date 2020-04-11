@@ -44,6 +44,7 @@ class Shape(BaseModel):
     options = TextField(null=True)
     badge = IntegerField(default=1)
     show_badge = BooleanField(default=False)
+    rotation_degrees = IntegerField(default=0)
 
     def __repr__(self):
         return f"<Shape {self.get_path()}>"

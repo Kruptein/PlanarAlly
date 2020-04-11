@@ -1,3 +1,10 @@
+// Developer Note: Rotation
+// In most shapes the Global Points making up the path of the shape are simply rotated on a centre point and replotted
+// We only allow 0, 90, 180 and 270 degrees 
+//
+// On an Asset, we need to keep the rotationDegrees to ensure the image is drawn correctly
+// We change the Height and Width for 90 and 270 roations so the selection, resize and bisection code still works
+
 import { uuidv4 } from "@/core/utils";
 import { socket } from "@/game/api/socket";
 import { aurasFromServer, aurasToServer } from "@/game/comm/conversion/aura";
@@ -58,6 +65,7 @@ export abstract class Shape {
 
     badge = 1;
     showBadge = false;
+    rotationDegrees = 0;
 
     constructor(refPoint: GlobalPoint, fillColour?: string, strokeColour?: string, uuid?: string) {
         this._refPoint = refPoint;
@@ -116,6 +124,13 @@ export abstract class Shape {
         const vec = next.subtract(prev);
         const mid = prev.add(vec.multiply(0.5));
         return point.subtract(mid).normalize();
+    }
+
+    rotatePoint(p: GlobalPoint, center: GlobalPoint, angle: number): GlobalPoint {
+        const rangle = angle * (Math.PI / 180); // Convert to radians
+        const rotatedX = Math.cos(rangle) * (p.x - center.x) - Math.sin(rangle) * (p.y - center.y) + center.x;
+        const rotatedY = Math.sin(rangle) * (p.x - center.x) + Math.cos(rangle) * (p.y - center.y) + center.y;
+        return new GlobalPoint(rotatedX, rotatedY);
     }
 
     invalidate(skipLightUpdate: boolean): void {
@@ -187,6 +202,7 @@ export abstract class Shape {
     }
 
     abstract asDict(): ServerShape;
+
     getBaseDict(): ServerShape {
         return {
             type_: this.type,
@@ -219,8 +235,11 @@ export abstract class Shape {
             badge: this.badge,
             // eslint-disable-next-line @typescript-eslint/camelcase
             show_badge: this.showBadge,
+            // eslint-disable-next-line @typescript-eslint/camelcase
+            rotation_degrees: this.rotationDegrees,
         };
     }
+
     fromDict(data: ServerShape): void {
         this.layer = data.layer;
         this.floor = data.floor;
@@ -237,6 +256,8 @@ export abstract class Shape {
         this.nameVisible = data.name_visible;
         this.badge = data.badge;
         this.showBadge = data.show_badge;
+        this.rotationDegrees = data.rotation_degrees;
+
         if (data.annotation) this.annotation = data.annotation;
         if (data.name) this.name = data.name;
         if (data.options) this.options = new Map(JSON.parse(data.options));
@@ -337,6 +358,16 @@ export abstract class Shape {
         newLayer.invalidate(false);
         // Sync!
         if (sync) socket.emit("Shape.Layer.Change", { uuid: this.uuid, layer, floor: newLayer.floor });
+    }
+
+    rotate(degrees: number, sync: boolean): void {
+        const oldLayer = layerManager.getLayer(this.floor, this.layer);
+        this.rotationDegrees = degrees;
+        if (this.rotationDegrees >= 360) this.rotationDegrees = 0;
+        if (oldLayer === undefined) return;
+        oldLayer.invalidate(true);
+        // Sync!
+        if (sync) socket.emit("Shape.Update", { shape: this.asDict(), redraw: true, temporary: false });
     }
 
     // This screws up vetur if typed as `readonly string[]`

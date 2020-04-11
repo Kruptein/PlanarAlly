@@ -330,6 +330,15 @@ def upgrade(version):
             )
         db.foreign_keys = True
         Constants.get().update(save_version=Constants.save_version + 1).execute()
+    elif version == 23:
+        migrator = SqliteMigrator(db)
+        db.foreign_keys = False
+        with db.atomic():
+            migrate(
+                migrator.add_column("shape", "rotation_degrees", IntegerField(default=0))
+            )
+        db.foreign_keys = True
+        Constants.get().update(save_version=Constants.save_version + 1).execute()
     else:
         raise Exception(f"No upgrade code for save format {version} was found.")
 

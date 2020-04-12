@@ -25,6 +25,16 @@ export class FOWLayer extends Layer {
         this.vCtx = this.virtualCanvas.getContext("2d")!;
     }
 
+    set width(width: number) {
+        super.width = width;
+        this.virtualCanvas.width = width;
+    }
+
+    set height(height: number) {
+        super.height = height;
+        this.virtualCanvas.height = height;
+    }
+
     addShape(shape: Shape, sync: SyncMode, invalidate: InvalidationMode, snappable = true): void {
         super.addShape(shape, sync, invalidate, snappable);
         if (shape.options.has("preFogShape") && shape.options.get("preFogShape")) {

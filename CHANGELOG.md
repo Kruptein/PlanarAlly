@@ -30,6 +30,7 @@ All notable changes to this project will be documented in this file.
 -   Set any shape as marker and jump to that position from the sidebar [LDeeJay1969]
 -   Floor/Layer bar now moves along with the side menu when opened
 -   Side menu and locations menu no longer overlap
+-   Window resizing messing with the lighting borders
 
 ## [0.19.3] - 2020-04-01
 

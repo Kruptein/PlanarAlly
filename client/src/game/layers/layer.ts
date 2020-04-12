@@ -13,8 +13,6 @@ import { drawAuras } from "../shapes/aura";
 
 export class Layer {
     name: string;
-    width: number;
-    height: number;
     canvas: HTMLCanvasElement;
     ctx: CanvasRenderingContext2D;
     floor: string;
@@ -42,8 +40,6 @@ export class Layer {
     constructor(canvas: HTMLCanvasElement, name: string, floor: string) {
         this.canvas = canvas;
         this.name = name;
-        this.width = canvas.width;
-        this.height = canvas.height;
         this.ctx = canvas.getContext("2d")!;
         this.floor = floor;
     }
@@ -53,6 +49,22 @@ export class Layer {
         if (!skipLightUpdate) {
             layerManager.invalidateLight(this.floor);
         }
+    }
+
+    get width(): number {
+        return this.canvas.width;
+    }
+
+    set width(width: number) {
+        this.canvas.width = width;
+    }
+
+    get height(): number {
+        return this.canvas.height;
+    }
+
+    set height(height: number) {
+        this.canvas.height = height;
     }
 
     addShape(shape: Shape, sync: SyncMode, invalidate: InvalidationMode, snappable = true): void {

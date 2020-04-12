@@ -17,6 +17,13 @@ All notable changes to this project will be documented in this file.
 -   Some basic tooltips to icons
 -   Tiered configuration. Configuration file in the data directory takes precedence over one in the folder with server files. Useful for docker deployments to keep the configuration in a volume.
 
+### Changed
+
+-   Shape access
+    -   Now uses a dropdown prefilled with players so you no longer need to manually type it
+    -   Option to choose full edit access or only vision access
+    -   Default access to specify behaviour for non selected players
+
 ### Fixed
 
 -   Polygon width now properly taken into account when trying to select it

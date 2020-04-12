@@ -45,7 +45,7 @@ export function onKeyDown(event: KeyboardEvent): void {
                 let recalculateVision = false;
                 let recalculateMovement = false;
                 for (const sel of selection) {
-                    if (!sel.ownedBy()) continue;
+                    if (!sel.ownedBy({ editAccess: true })) continue;
                     if (gameStore.selectionHelperID === sel.uuid) continue;
                     if (sel.movementObstruction) {
                         recalculateMovement = true;

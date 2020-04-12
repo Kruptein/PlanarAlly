@@ -4,7 +4,8 @@ from peewee import Case
 from playhouse.shortcuts import update_model_from_dict
 
 import auth
-from .initiative import send_client_initiatives
+from ..initiative import send_client_initiatives
+from . import access
 from app import app, logger, sio, state
 from models import (
     Aura,
@@ -54,7 +55,13 @@ async def add_shape(sid, data):
                 shape=shape, **reduce_data_to_model(type_table, data["shape"])
             )
             # Owners
-            ShapeOwner.create(shape=shape, user=user)
+            # ShapeOwner.create(shape=shape, user=user)
+            for owner in data["shape"]["owners"]:
+                ShapeOwner.create(
+                    **reduce_data_to_model(ShapeOwner, owner),
+                    shape=shape,
+                    user=User.by_name(owner.user),
+                )
             # Trackers
             for tracker in data["shape"]["trackers"]:
                 Tracker.create(**reduce_data_to_model(Tracker, tracker), shape=shape)
@@ -134,18 +141,6 @@ async def update_shape(sid, data):
             # no backrefs on these tables
             type_instance.update_from_dict(data["shape"], ignore_unknown=True)
             type_instance.save()
-            # Owners
-            old_owners = {owner.user.name for owner in shape.owners}
-            new_owners = set(data["shape"]["owners"])
-            for owner in old_owners ^ new_owners:
-                if owner == "":
-                    continue
-                delta_owner = User.by_name(owner)
-                if owner in new_owners:
-                    ShapeOwner.create(shape=shape, user=delta_owner)
-                else:
-                    ShapeOwner.get(shape=shape, user=delta_owner).delete_instance(True)
-                await send_client_initiatives(room, location, delta_owner)
             # Trackers
             old_trackers = {tracker.uuid for tracker in shape.trackers}
             new_trackers = {tracker["uuid"] for tracker in data["shape"]["trackers"]}

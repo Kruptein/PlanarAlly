@@ -1,4 +1,7 @@
+import "@/game/api/events/access";
+
 import { AssetList, SyncMode } from "@/core/comm/types";
+import { coreStore } from "@/core/store";
 import { socket } from "@/game/api/socket";
 import { BoardInfo, Note, ServerClient, ServerLocation } from "@/game/comm/types/general";
 import { ServerShape } from "@/game/comm/types/shapes";
@@ -11,7 +14,6 @@ import { gameStore } from "@/game/store";
 import { router } from "@/router";
 import { zoomDisplay } from "../utils";
 import { VisibilityMode, visibilityStore } from "../visibility/store";
-import { coreStore } from "@/core/store";
 
 socket.on("connect", () => {
     console.log("Connected");

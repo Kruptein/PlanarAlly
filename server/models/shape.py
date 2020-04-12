@@ -44,6 +44,8 @@ class Shape(BaseModel):
     options = TextField(null=True)
     badge = IntegerField(default=1)
     show_badge = BooleanField(default=False)
+    default_edit_access = BooleanField(default=False)
+    default_vision_access = BooleanField(default=False)
 
     def __repr__(self):
         return f"<Shape {self.get_path()}>"
@@ -57,9 +59,7 @@ class Shape(BaseModel):
     def as_dict(self, user: User, dm: bool):
         data = model_to_dict(self, recurse=False, exclude=[Shape.layer, Shape.index])
         # Owner query > list of usernames
-        data["owners"] = [
-            so.user.name for so in self.owners.select(User.name).join(User)
-        ]
+        data["owners"] = [owner.as_dict() for owner in self.owners]
         # Layer query > layer name
         data["layer"] = self.layer.name
         data["floor"] = self.layer.floor.name
@@ -130,9 +130,19 @@ class Aura(BaseModel):
 class ShapeOwner(BaseModel):
     shape = ForeignKeyField(Shape, backref="owners", on_delete="CASCADE")
     user = ForeignKeyField(User, backref="shapes", on_delete="CASCADE")
+    edit_access = BooleanField()
+    vision_access = BooleanField()
 
     def __repr__(self):
         return f"<ShapeOwner {self.user.name} {self.shape.get_path()}>"
+
+    def as_dict(self):
+        return {
+            "shape": self.shape.uuid,
+            "user": self.user.name,
+            "edit_access": self.edit_access,
+            "vision_access": self.vision_access,
+        }
 
 
 class ShapeType(BaseModel):

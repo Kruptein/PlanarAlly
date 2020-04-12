@@ -89,28 +89,7 @@
                     style="grid-column-start: remove;"
                     :disabled="!owned"
                 />
-                <div class="spanrow header">Access</div>
-                <template v-for="owner in shape.owners">
-                    <input
-                        :key="owner"
-                        :value="owner"
-                        @change="updateOwner($event, owner)"
-                        type="text"
-                        placeholder="name"
-                        style="grid-column-start: name"
-                        :disabled="!owned"
-                    />
-                    <div
-                        v-if="owner !== ''"
-                        :key="'remove-' + owner"
-                        @click="removeOwner(owner)"
-                        :style="{ opacity: owned ? 1.0 : 0.3, textAlign: 'center', gridColumnStart: 'remove' }"
-                        :disabled="!owned"
-                        title="Remove owner access"
-                    >
-                        <i class="fas fa-trash-alt"></i>
-                    </div>
-                </template>
+                <EditDialogAccess :shape="shape" :owned="owned" />
                 <div class="spanrow header">Trackers</div>
                 <template v-for="tracker in shape.trackers">
                     <input
@@ -266,6 +245,7 @@ import { Prop } from "vue-property-decorator";
 
 import ColorPicker from "@/core/components/colorpicker.vue";
 import Modal from "@/core/components/modals/modal.vue";
+import EditDialogAccess from "./access.vue";
 
 import { uuidv4 } from "@/core/utils";
 import { socket } from "@/game/api/socket";
@@ -277,6 +257,7 @@ import { getVisionSources, addVisionSource, sliceVisionSources } from "@/game/vi
 
 @Component({
     components: {
+        EditDialogAccess,
         Modal,
         "color-picker": ColorPicker,
     },
@@ -287,7 +268,7 @@ export default class EditDialog extends Vue {
     visible = false;
 
     get owned(): boolean {
-        return this.shape.ownedBy();
+        return this.shape.ownedBy({ editAccess: true });
     }
 
     mounted(): void {
@@ -313,7 +294,7 @@ export default class EditDialog extends Vue {
     }
 
     addEmpty(): void {
-        if (this.shape.owners[this.shape.owners.length - 1] !== "") this.shape.addOwner("");
+        // if (this.shape.owners[this.shape.owners.length - 1] !== "") this.shape.addOwner("");
         if (
             !this.shape.trackers.length ||
             this.shape.trackers[this.shape.trackers.length - 1].name !== "" ||
@@ -383,16 +364,6 @@ export default class EditDialog extends Vue {
                 layerManager.getLayer(layerManager.floor!.name, "draw")!.invalidate(true);
         }
         this.updateShape(false);
-    }
-    updateOwner(event: { target: HTMLInputElement }, oldValue: string): void {
-        if (!this.owned) return;
-        this.shape.updateOwner(oldValue, event.target.value);
-        this.updateShape(gameStore.fowLOS);
-    }
-    removeOwner(value: string): void {
-        if (!this.owned) return;
-        this.shape.removeOwner(value);
-        this.updateShape(gameStore.fowLOS);
     }
     removeTracker(uuid: string): void {
         if (!this.owned) return;
@@ -465,12 +436,12 @@ export default class EditDialog extends Vue {
     justify-content: space-between;
 }
 
-.header {
+::v-deep .header {
     line-height: 0.1em;
     margin: 20px 0 15px;
 }
 
-.header:after {
+::v-deep .header:after {
     position: absolute;
     right: 5px;
     width: 75%;
@@ -478,12 +449,8 @@ export default class EditDialog extends Vue {
     content: "";
 }
 
-.spanrow {
+::v-deep .spanrow {
     grid-column: 1 / end;
-}
-
-#labels {
-    flex-wrap: wrap;
 }
 
 .label {
@@ -546,5 +513,9 @@ input[type="checkbox"] {
     margin: 0 8px 0 8px;
     white-space: nowrap;
     display: inline-block;
+}
+
+input[type="text"] {
+    padding: 2px;
 }
 </style>

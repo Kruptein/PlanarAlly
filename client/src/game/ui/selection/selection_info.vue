@@ -1,49 +1,3 @@
-<template>
-    <div v-show="shapes.length > 0">
-        <div v-for="shape in shapes" :key="shape.uuid">
-            <div id="selection-menu">
-                <div id="selection-edit-button" @click="openEditDialog" title="Open shape properties">
-                    <i class="fas fa-edit"></i>
-                </div>
-                <div id="selection-name">{{ shape.name }}</div>
-                <div id="selection-trackers">
-                    <template v-for="tracker in visibleTrackers">
-                        <div :key="'name-' + tracker.uuid">{{ tracker.name }}</div>
-                        <div
-                            class="selection-tracker-value"
-                            :key="'value-' + tracker.uuid"
-                            @click="changeValue(tracker, false)"
-                            title="Quick edit tracker"
-                        >
-                            <template v-if="tracker.maxvalue === 0">
-                                {{ tracker.value }}
-                            </template>
-                            <template v-else>{{ tracker.value }} / {{ tracker.maxvalue }}</template>
-                        </div>
-                    </template>
-                </div>
-                <div id="selection-auras">
-                    <template v-for="aura in visibleAuras">
-                        <div :key="'name-' + aura.uuid">{{ aura.name }}</div>
-                        <div
-                            class="selection-tracker-value"
-                            :key="'value-' + aura.uuid"
-                            @click="changeValue(aura, true)"
-                            title="Quick edit aura"
-                        >
-                            <template v-if="aura.dim === 0">
-                                {{ aura.value }}
-                            </template>
-                            <template v-else>{{ aura.value }} / {{ aura.dim }}</template>
-                        </div>
-                    </template>
-                </div>
-            </div>
-            <edit-dialog ref="editDialog" :shape="shape"></edit-dialog>
-        </div>
-    </div>
-</template>
-
 <script lang="ts">
 import Vue from "vue";
 import Component from "vue-class-component";
@@ -108,6 +62,52 @@ export default class SelectionInfo extends Vue {
     }
 }
 </script>
+
+<template>
+    <div v-show="shapes.length > 0">
+        <div v-for="shape in shapes" :key="shape.uuid">
+            <div id="selection-menu">
+                <div id="selection-edit-button" @click="openEditDialog" title="Open shape properties">
+                    <i class="fas fa-edit"></i>
+                </div>
+                <div id="selection-name">{{ shape.name }}</div>
+                <div id="selection-trackers">
+                    <template v-for="tracker in visibleTrackers">
+                        <div :key="'name-' + tracker.uuid">{{ tracker.name }}</div>
+                        <div
+                            class="selection-tracker-value"
+                            :key="'value-' + tracker.uuid"
+                            @click="changeValue(tracker, false)"
+                            title="Quick edit tracker"
+                        >
+                            <template v-if="tracker.maxvalue === 0">
+                                {{ tracker.value }}
+                            </template>
+                            <template v-else>{{ tracker.value }} / {{ tracker.maxvalue }}</template>
+                        </div>
+                    </template>
+                </div>
+                <div id="selection-auras">
+                    <template v-for="aura in visibleAuras">
+                        <div :key="'name-' + aura.uuid">{{ aura.name }}</div>
+                        <div
+                            class="selection-tracker-value"
+                            :key="'value-' + aura.uuid"
+                            @click="changeValue(aura, true)"
+                            title="Quick edit aura"
+                        >
+                            <template v-if="aura.dim === 0">
+                                {{ aura.value }}
+                            </template>
+                            <template v-else>{{ aura.value }} / {{ aura.dim }}</template>
+                        </div>
+                    </template>
+                </div>
+            </div>
+            <edit-dialog ref="editDialog" :shape="shape"></edit-dialog>
+        </div>
+    </div>
+</template>
 
 <style scoped>
 #selection-menu {

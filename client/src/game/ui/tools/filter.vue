@@ -1,19 +1,3 @@
-<template>
-    <div class="tool-detail" v-if="selected" :style="{ '--detailRight': detailRight, '--detailArrow': detailArrow }">
-        <div id="accordion-container">
-            <accordion
-                v-for="category in categories"
-                :key="category"
-                :title="category === '' ? 'no category' : category"
-                :showArrow="false"
-                :items="labels[category]"
-                :initialValues="initalValues[category]"
-                @selectionupdate="updateSelection"
-            />
-        </div>
-    </div>
-</template>
-
 <script lang="ts">
 import Component from "vue-class-component";
 
@@ -92,6 +76,22 @@ export default class FilterTool extends Tool {
     }
 }
 </script>
+
+<template>
+    <div class="tool-detail" v-if="selected" :style="{ '--detailRight': detailRight, '--detailArrow': detailArrow }">
+        <div id="accordion-container">
+            <accordion
+                v-for="category in categories"
+                :key="category"
+                :title="category === '' ? 'no category' : category"
+                :showArrow="false"
+                :items="labels[category]"
+                :initialValues="initalValues[category]"
+                @selectionupdate="updateSelection"
+            />
+        </div>
+    </div>
+</template>
 
 <style>
 .accordion {

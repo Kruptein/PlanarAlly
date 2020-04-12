@@ -1,3 +1,169 @@
+<script lang="ts">
+import Vue from "vue";
+import Component from "vue-class-component";
+
+import { Prop } from "vue-property-decorator";
+
+import ColorPicker from "@/core/components/colorpicker.vue";
+import Modal from "@/core/components/modals/modal.vue";
+import EditDialogAccess from "./access.vue";
+
+import { uuidv4 } from "@/core/utils";
+import { socket } from "@/game/api/socket";
+import { EventBus } from "@/game/event-bus";
+import { layerManager } from "@/game/layers/manager";
+import { Shape } from "@/game/shapes/shape";
+import { gameStore } from "@/game/store";
+import { getVisionSources, addVisionSource, sliceVisionSources } from "@/game/visibility/utils";
+
+@Component({
+    components: {
+        EditDialogAccess,
+        Modal,
+        "color-picker": ColorPicker,
+    },
+})
+export default class EditDialog extends Vue {
+    @Prop() shape!: Shape;
+
+    visible = false;
+
+    get owned(): boolean {
+        return this.shape.ownedBy({ editAccess: true });
+    }
+
+    mounted(): void {
+        EventBus.$on("EditDialog.Open", (shape: Shape) => {
+            this.shape = shape;
+            this.visible = true;
+        });
+        EventBus.$on("EditDialog.AddLabel", (label: string) => {
+            if (this.visible) {
+                this.shape.labels.push(gameStore.labels[label]);
+                this.updateShape(true);
+            }
+        });
+    }
+
+    beforeDestroy(): void {
+        EventBus.$off("EditDialog.Open");
+        EventBus.$off("EditDialog.AddLabel");
+    }
+
+    updated(): void {
+        this.addEmpty();
+    }
+
+    addEmpty(): void {
+        // if (this.shape.owners[this.shape.owners.length - 1] !== "") this.shape.addOwner("");
+        if (
+            !this.shape.trackers.length ||
+            this.shape.trackers[this.shape.trackers.length - 1].name !== "" ||
+            this.shape.trackers[this.shape.trackers.length - 1].value !== 0
+        )
+            this.shape.trackers.push({ uuid: uuidv4(), name: "", value: 0, maxvalue: 0, visible: false });
+        if (
+            !this.shape.auras.length ||
+            this.shape.auras[this.shape.auras.length - 1].name !== "" ||
+            this.shape.auras[this.shape.auras.length - 1].value !== 0
+        )
+            this.shape.auras.push({
+                uuid: uuidv4(),
+                name: "",
+                value: 0,
+                dim: 0,
+                visionSource: false,
+                colour: "rgba(0,0,0,0)",
+                visible: false,
+            });
+    }
+    updateShape(redraw: boolean, temporary = false): void {
+        if (!this.owned) return;
+        socket.emit("Shape.Update", { shape: this.shape.asDict(), redraw, temporary });
+        if (redraw) layerManager.invalidate(this.shape.floor);
+        this.addEmpty();
+    }
+    setToken(event: { target: HTMLInputElement }): void {
+        if (!this.owned) return;
+        this.shape.setIsToken(event.target.checked);
+        this.updateShape(true);
+    }
+    toggleBadge(_event: { target: HTMLInputElement }): void {
+        if (!this.owned) return;
+        const groupMembers = this.shape.getGroupMembers();
+        for (const [i, shape] of groupMembers.entries()) {
+            shape.showBadge = !shape.showBadge;
+            socket.emit("Shape.Update", {
+                shape: shape.asDict(),
+                redraw: groupMembers.length === i + 1,
+                temporary: false,
+            });
+        }
+        layerManager.invalidate(this.shape.floor);
+    }
+    setVisionBlocker(_event: { target: HTMLInputElement }): void {
+        if (!this.owned) return;
+        this.shape.checkVisionSources();
+        this.updateShape(true);
+    }
+    setMovementBlocker(event: { target: HTMLInputElement }): void {
+        if (!this.owned) return;
+        this.shape.setMovementBlock(event.target.checked);
+        this.updateShape(false);
+    }
+    updateAnnotation(event: { target: HTMLInputElement }): void {
+        if (!this.owned) return;
+        const hadAnnotation = this.shape.annotation !== "";
+        this.shape.annotation = event.target.value;
+        if (this.shape.annotation !== "" && !hadAnnotation) {
+            gameStore.annotations.push(this.shape.uuid);
+            if (layerManager.hasLayer(layerManager.floor!.name, "draw"))
+                layerManager.getLayer(layerManager.floor!.name, "draw")!.invalidate(true);
+        } else if (this.shape.annotation === "" && hadAnnotation) {
+            gameStore.annotations.splice(gameStore.annotations.findIndex(an => an === this.shape.uuid));
+            if (layerManager.hasLayer(layerManager.floor!.name, "draw"))
+                layerManager.getLayer(layerManager.floor!.name, "draw")!.invalidate(true);
+        }
+        this.updateShape(false);
+    }
+    removeTracker(uuid: string): void {
+        if (!this.owned) return;
+        this.shape.trackers = this.shape.trackers.filter(tr => tr.uuid !== uuid);
+        this.updateShape(false);
+    }
+    removeAura(uuid: string): void {
+        if (!this.owned) return;
+        this.shape.auras = this.shape.auras.filter(au => au.uuid !== uuid);
+        this.shape.checkVisionSources();
+        this.updateShape(true);
+    }
+    updateAuraVisionSource(aura: Aura): void {
+        if (!this.owned) return;
+        aura.visionSource = !aura.visionSource;
+        const visionSources = getVisionSources(this.shape.floor);
+        const i = visionSources.findIndex(ls => ls.aura === aura.uuid);
+        if (aura.visionSource && i === -1)
+            addVisionSource({ shape: this.shape.uuid, aura: aura.uuid }, this.shape.floor);
+        else if (!aura.visionSource && i >= 0) sliceVisionSources(i, this.shape.floor);
+        this.updateShape(true);
+    }
+    updateAuraColour(aura: Aura, _colour: string): void {
+        if (!this.owned) return;
+        const layer = layerManager.getLayer(this.shape.floor, this.shape.layer);
+        if (layer === undefined) return;
+        layer.invalidate(!aura.visionSource);
+    }
+    openLabelManager(): void {
+        EventBus.$emit("LabelManager.Open");
+    }
+    removeLabel(uuid: string): void {
+        if (!this.owned) return;
+        this.shape.labels = this.shape.labels.filter(l => l.uuid !== uuid);
+        this.updateShape(true);
+    }
+}
+</script>
+
 <template>
     <Modal :visible="visible" @close="visible = false" :mask="false">
         <div
@@ -236,172 +402,6 @@
         </div>
     </Modal>
 </template>
-
-<script lang="ts">
-import Vue from "vue";
-import Component from "vue-class-component";
-
-import { Prop } from "vue-property-decorator";
-
-import ColorPicker from "@/core/components/colorpicker.vue";
-import Modal from "@/core/components/modals/modal.vue";
-import EditDialogAccess from "./access.vue";
-
-import { uuidv4 } from "@/core/utils";
-import { socket } from "@/game/api/socket";
-import { EventBus } from "@/game/event-bus";
-import { layerManager } from "@/game/layers/manager";
-import { Shape } from "@/game/shapes/shape";
-import { gameStore } from "@/game/store";
-import { getVisionSources, addVisionSource, sliceVisionSources } from "@/game/visibility/utils";
-
-@Component({
-    components: {
-        EditDialogAccess,
-        Modal,
-        "color-picker": ColorPicker,
-    },
-})
-export default class EditDialog extends Vue {
-    @Prop() shape!: Shape;
-
-    visible = false;
-
-    get owned(): boolean {
-        return this.shape.ownedBy({ editAccess: true });
-    }
-
-    mounted(): void {
-        EventBus.$on("EditDialog.Open", (shape: Shape) => {
-            this.shape = shape;
-            this.visible = true;
-        });
-        EventBus.$on("EditDialog.AddLabel", (label: string) => {
-            if (this.visible) {
-                this.shape.labels.push(gameStore.labels[label]);
-                this.updateShape(true);
-            }
-        });
-    }
-
-    beforeDestroy(): void {
-        EventBus.$off("EditDialog.Open");
-        EventBus.$off("EditDialog.AddLabel");
-    }
-
-    updated(): void {
-        this.addEmpty();
-    }
-
-    addEmpty(): void {
-        // if (this.shape.owners[this.shape.owners.length - 1] !== "") this.shape.addOwner("");
-        if (
-            !this.shape.trackers.length ||
-            this.shape.trackers[this.shape.trackers.length - 1].name !== "" ||
-            this.shape.trackers[this.shape.trackers.length - 1].value !== 0
-        )
-            this.shape.trackers.push({ uuid: uuidv4(), name: "", value: 0, maxvalue: 0, visible: false });
-        if (
-            !this.shape.auras.length ||
-            this.shape.auras[this.shape.auras.length - 1].name !== "" ||
-            this.shape.auras[this.shape.auras.length - 1].value !== 0
-        )
-            this.shape.auras.push({
-                uuid: uuidv4(),
-                name: "",
-                value: 0,
-                dim: 0,
-                visionSource: false,
-                colour: "rgba(0,0,0,0)",
-                visible: false,
-            });
-    }
-    updateShape(redraw: boolean, temporary = false): void {
-        if (!this.owned) return;
-        socket.emit("Shape.Update", { shape: this.shape.asDict(), redraw, temporary });
-        if (redraw) layerManager.invalidate(this.shape.floor);
-        this.addEmpty();
-    }
-    setToken(event: { target: HTMLInputElement }): void {
-        if (!this.owned) return;
-        this.shape.setIsToken(event.target.checked);
-        this.updateShape(true);
-    }
-    toggleBadge(_event: { target: HTMLInputElement }): void {
-        if (!this.owned) return;
-        const groupMembers = this.shape.getGroupMembers();
-        for (const [i, shape] of groupMembers.entries()) {
-            shape.showBadge = !shape.showBadge;
-            socket.emit("Shape.Update", {
-                shape: shape.asDict(),
-                redraw: groupMembers.length === i + 1,
-                temporary: false,
-            });
-        }
-        layerManager.invalidate(this.shape.floor);
-    }
-    setVisionBlocker(_event: { target: HTMLInputElement }): void {
-        if (!this.owned) return;
-        this.shape.checkVisionSources();
-        this.updateShape(true);
-    }
-    setMovementBlocker(event: { target: HTMLInputElement }): void {
-        if (!this.owned) return;
-        this.shape.setMovementBlock(event.target.checked);
-        this.updateShape(false);
-    }
-    updateAnnotation(event: { target: HTMLInputElement }): void {
-        if (!this.owned) return;
-        const hadAnnotation = this.shape.annotation !== "";
-        this.shape.annotation = event.target.value;
-        if (this.shape.annotation !== "" && !hadAnnotation) {
-            gameStore.annotations.push(this.shape.uuid);
-            if (layerManager.hasLayer(layerManager.floor!.name, "draw"))
-                layerManager.getLayer(layerManager.floor!.name, "draw")!.invalidate(true);
-        } else if (this.shape.annotation === "" && hadAnnotation) {
-            gameStore.annotations.splice(gameStore.annotations.findIndex(an => an === this.shape.uuid));
-            if (layerManager.hasLayer(layerManager.floor!.name, "draw"))
-                layerManager.getLayer(layerManager.floor!.name, "draw")!.invalidate(true);
-        }
-        this.updateShape(false);
-    }
-    removeTracker(uuid: string): void {
-        if (!this.owned) return;
-        this.shape.trackers = this.shape.trackers.filter(tr => tr.uuid !== uuid);
-        this.updateShape(false);
-    }
-    removeAura(uuid: string): void {
-        if (!this.owned) return;
-        this.shape.auras = this.shape.auras.filter(au => au.uuid !== uuid);
-        this.shape.checkVisionSources();
-        this.updateShape(true);
-    }
-    updateAuraVisionSource(aura: Aura): void {
-        if (!this.owned) return;
-        aura.visionSource = !aura.visionSource;
-        const visionSources = getVisionSources(this.shape.floor);
-        const i = visionSources.findIndex(ls => ls.aura === aura.uuid);
-        if (aura.visionSource && i === -1)
-            addVisionSource({ shape: this.shape.uuid, aura: aura.uuid }, this.shape.floor);
-        else if (!aura.visionSource && i >= 0) sliceVisionSources(i, this.shape.floor);
-        this.updateShape(true);
-    }
-    updateAuraColour(aura: Aura, _colour: string): void {
-        if (!this.owned) return;
-        const layer = layerManager.getLayer(this.shape.floor, this.shape.layer);
-        if (layer === undefined) return;
-        layer.invalidate(!aura.visionSource);
-    }
-    openLabelManager(): void {
-        EventBus.$emit("LabelManager.Open");
-    }
-    removeLabel(uuid: string): void {
-        if (!this.owned) return;
-        this.shape.labels = this.shape.labels.filter(l => l.uuid !== uuid);
-        this.updateShape(true);
-    }
-}
-</script>
 
 <style scoped>
 .modal-header {

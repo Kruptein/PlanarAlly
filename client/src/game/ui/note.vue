@@ -1,38 +1,3 @@
-<template>
-    <modal v-if="note !== null" :visible="visible" @close="visible = false" :mask="false">
-        <div
-            class="modal-header"
-            slot="header"
-            slot-scope="m"
-            draggable="true"
-            @dragstart="m.dragStart"
-            @dragend="m.dragEnd"
-        >
-            <span @click="$refs.title.select()" title="Edit title">
-                <i class="fas fa-pencil-alt" style="font-size: 15px"></i>
-            </span>
-            <input v-model="note.title" ref="title" @change="updateNote" />
-            <div class="header-close" @click="visible = false" title="Close">
-                <i class="far fa-window-close"></i>
-            </div>
-        </div>
-        <div class="modal-body">
-            <textarea
-                ref="textarea"
-                v-model="note.text"
-                :style="{ height: calcHeight() }"
-                @change="updateNote"
-            ></textarea>
-        </div>
-        <div class="modal-footer">
-            <button @click="removeNote" title="Remove note">
-                <i class="far fa-trash-alt"></i>
-                Remove
-            </button>
-        </div>
-    </modal>
-</template>
-
 <script lang="ts">
 import Vue from "vue";
 import Component from "vue-class-component";
@@ -78,6 +43,41 @@ export default class NoteDialog extends Vue {
     }
 }
 </script>
+
+<template>
+    <modal v-if="note !== null" :visible="visible" @close="visible = false" :mask="false">
+        <div
+            class="modal-header"
+            slot="header"
+            slot-scope="m"
+            draggable="true"
+            @dragstart="m.dragStart"
+            @dragend="m.dragEnd"
+        >
+            <span @click="$refs.title.select()" title="Edit title">
+                <i class="fas fa-pencil-alt" style="font-size: 15px"></i>
+            </span>
+            <input v-model="note.title" ref="title" @change="updateNote" />
+            <div class="header-close" @click="visible = false" title="Close">
+                <i class="far fa-window-close"></i>
+            </div>
+        </div>
+        <div class="modal-body">
+            <textarea
+                ref="textarea"
+                v-model="note.text"
+                :style="{ height: calcHeight() }"
+                @change="updateNote"
+            ></textarea>
+        </div>
+        <div class="modal-footer">
+            <button @click="removeNote" title="Remove note">
+                <i class="far fa-trash-alt"></i>
+                Remove
+            </button>
+        </div>
+    </modal>
+</template>
 
 <style scoped>
 .modal-header {

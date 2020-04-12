@@ -1,3 +1,167 @@
+<script lang="ts">
+import Vue from "vue";
+import Component from "vue-class-component";
+
+import { mapState } from "vuex";
+
+import InputCopyElement from "@/core/components/inputCopy.vue";
+import Modal from "@/core/components/modals/modal.vue";
+
+import { socket } from "@/game/api/socket";
+import { EventBus } from "@/game/event-bus";
+import { gameStore } from "@/game/store";
+import Game from "../game.vue";
+import { visibilityStore, VisibilityMode } from "../visibility/store";
+import { layerManager } from "../layers/manager";
+
+@Component({
+    components: {
+        InputCopyElement,
+        Modal,
+    },
+    computed: {
+        ...mapState("game", ["invitationCode"]),
+    },
+})
+export default class DmSettings extends Vue {
+    visible = false;
+    categories = ["Admin", "Grid", "Vision"];
+    selection = 0;
+
+    showRefreshState = false;
+    refreshState = "pending";
+
+    mounted(): void {
+        EventBus.$on("DmSettings.Open", () => {
+            this.visible = true;
+        });
+        EventBus.$on("DmSettings.RefreshedInviteCode", () => {
+            this.showRefreshState = false;
+        });
+    }
+
+    beforeDestroy(): void {
+        EventBus.$off("DmSettings.Open");
+        EventBus.$off("DmSettings.RefreshedInviteCode");
+    }
+
+    // Admin
+    get invitationUrl(): string {
+        return window.location.protocol + "//" + window.location.host + "/invite/" + gameStore.invitationCode;
+    }
+    get locked(): boolean {
+        return gameStore.isLocked;
+    }
+    // Grid
+    get useGrid(): boolean {
+        return gameStore.useGrid;
+    }
+    set useGrid(value: boolean) {
+        gameStore.setUseGrid({ useGrid: value, sync: true });
+    }
+    get unitSize(): number {
+        return gameStore.unitSize;
+    }
+    set unitSize(value: number) {
+        if (typeof value !== "number") return;
+        gameStore.setUnitSize({ unitSize: value, sync: true });
+    }
+    get unitSizeUnit(): string {
+        return gameStore.unitSizeUnit;
+    }
+    set unitSizeUnit(value: string) {
+        gameStore.setUnitSizeUnit({ unitSizeUnit: value, sync: true });
+    }
+    get gridSize(): number {
+        return gameStore.gridSize;
+    }
+    set gridSize(value: number) {
+        if (typeof value !== "number") return;
+        gameStore.setGridSize({ gridSize: value, sync: true });
+    }
+    // Vision
+    get fakePlayer(): boolean {
+        return gameStore.FAKE_PLAYER;
+    }
+    set fakePlayer(value: boolean) {
+        gameStore.setFakePlayer(value);
+    }
+    get fullFOW(): boolean {
+        return gameStore.fullFOW;
+    }
+    set fullFOW(value: boolean) {
+        gameStore.setFullFOW({ fullFOW: value, sync: true });
+    }
+    get fowOpacity(): number {
+        return gameStore.fowOpacity;
+    }
+    set fowOpacity(value: number) {
+        if (typeof value !== "number") return;
+        gameStore.setFOWOpacity({ fowOpacity: value, sync: true });
+    }
+    get fowLOS(): boolean {
+        return gameStore.fowLOS;
+    }
+    set fowLOS(value: boolean) {
+        gameStore.setLineOfSight({ fowLOS: value, sync: true });
+    }
+    get visionRangeMin(): number {
+        return gameStore.visionRangeMin;
+    }
+    set visionRangeMin(value: number) {
+        if (typeof value !== "number") return;
+        gameStore.setVisionRangeMin({ value, sync: true });
+    }
+    get visionRangeMax(): number {
+        return gameStore.visionRangeMax;
+    }
+    set visionRangeMax(value: number) {
+        if (typeof value !== "number") return;
+        gameStore.setVisionRangeMax({ value, sync: true });
+    }
+    changeVisionMode(event: { target: HTMLSelectElement }): void {
+        const value = event.target.value.toLowerCase();
+        let mode: VisibilityMode;
+        if (value === "default") mode = VisibilityMode.TRIANGLE;
+        else if (value === "experimental") mode = VisibilityMode.TRIANGLE_ITERATIVE;
+        else return;
+        visibilityStore.setVisionMode({ mode, sync: true });
+        for (const floor of layerManager.floors) {
+            visibilityStore.recalculateVision(floor.name);
+            visibilityStore.recalculateMovement(floor.name);
+        }
+        layerManager.invalidateAllFloors();
+    }
+    handleClick(event: { target: HTMLElement }): void {
+        const child = event.target.firstElementChild;
+        if (child instanceof HTMLInputElement) {
+            child.click();
+        }
+    }
+    refreshInviteCode(): void {
+        socket.emit("Room.Info.InviteCode.Refresh");
+        this.refreshState = "pending";
+        this.showRefreshState = true;
+    }
+    kickPlayer(id: number): void {
+        socket.emit("Room.Info.Players.Kick", id);
+        gameStore.kickPlayer(id);
+    }
+    toggleSessionLock(): void {
+        gameStore.setIsLocked({ isLocked: !gameStore.isLocked, sync: true });
+    }
+    async deleteSession(): Promise<void> {
+        const value = await (<Game>this.$parent).$refs.prompt.prompt(
+            `ENTER ${gameStore.roomCreator}/${gameStore.roomName} TO CONFIRM SESSION REMOVAL.`,
+            `DELETING SESSION`,
+        );
+        if (value !== `${gameStore.roomCreator}/${gameStore.roomName}`) return;
+        socket.emit("Room.Delete");
+        this.$router.push("/");
+    }
+}
+</script>
+
 <template>
     <Modal :visible="visible" :colour="'rgba(255, 255, 255, 0.8)'" @close="visible = false" :mask="false">
         <div
@@ -169,170 +333,6 @@
         </div>
     </Modal>
 </template>
-
-<script lang="ts">
-import Vue from "vue";
-import Component from "vue-class-component";
-
-import { mapState } from "vuex";
-
-import InputCopyElement from "@/core/components/inputCopy.vue";
-import Modal from "@/core/components/modals/modal.vue";
-
-import { socket } from "@/game/api/socket";
-import { EventBus } from "@/game/event-bus";
-import { gameStore } from "@/game/store";
-import Game from "../game.vue";
-import { visibilityStore, VisibilityMode } from "../visibility/store";
-import { layerManager } from "../layers/manager";
-
-@Component({
-    components: {
-        InputCopyElement,
-        Modal,
-    },
-    computed: {
-        ...mapState("game", ["invitationCode"]),
-    },
-})
-export default class DmSettings extends Vue {
-    visible = false;
-    categories = ["Admin", "Grid", "Vision"];
-    selection = 0;
-
-    showRefreshState = false;
-    refreshState = "pending";
-
-    mounted(): void {
-        EventBus.$on("DmSettings.Open", () => {
-            this.visible = true;
-        });
-        EventBus.$on("DmSettings.RefreshedInviteCode", () => {
-            this.showRefreshState = false;
-        });
-    }
-
-    beforeDestroy(): void {
-        EventBus.$off("DmSettings.Open");
-        EventBus.$off("DmSettings.RefreshedInviteCode");
-    }
-
-    // Admin
-    get invitationUrl(): string {
-        return window.location.protocol + "//" + window.location.host + "/invite/" + gameStore.invitationCode;
-    }
-    get locked(): boolean {
-        return gameStore.isLocked;
-    }
-    // Grid
-    get useGrid(): boolean {
-        return gameStore.useGrid;
-    }
-    set useGrid(value: boolean) {
-        gameStore.setUseGrid({ useGrid: value, sync: true });
-    }
-    get unitSize(): number {
-        return gameStore.unitSize;
-    }
-    set unitSize(value: number) {
-        if (typeof value !== "number") return;
-        gameStore.setUnitSize({ unitSize: value, sync: true });
-    }
-    get unitSizeUnit(): string {
-        return gameStore.unitSizeUnit;
-    }
-    set unitSizeUnit(value: string) {
-        gameStore.setUnitSizeUnit({ unitSizeUnit: value, sync: true });
-    }
-    get gridSize(): number {
-        return gameStore.gridSize;
-    }
-    set gridSize(value: number) {
-        if (typeof value !== "number") return;
-        gameStore.setGridSize({ gridSize: value, sync: true });
-    }
-    // Vision
-    get fakePlayer(): boolean {
-        return gameStore.FAKE_PLAYER;
-    }
-    set fakePlayer(value: boolean) {
-        gameStore.setFakePlayer(value);
-    }
-    get fullFOW(): boolean {
-        return gameStore.fullFOW;
-    }
-    set fullFOW(value: boolean) {
-        gameStore.setFullFOW({ fullFOW: value, sync: true });
-    }
-    get fowOpacity(): number {
-        return gameStore.fowOpacity;
-    }
-    set fowOpacity(value: number) {
-        if (typeof value !== "number") return;
-        gameStore.setFOWOpacity({ fowOpacity: value, sync: true });
-    }
-    get fowLOS(): boolean {
-        return gameStore.fowLOS;
-    }
-    set fowLOS(value: boolean) {
-        gameStore.setLineOfSight({ fowLOS: value, sync: true });
-    }
-    get visionRangeMin(): number {
-        return gameStore.visionRangeMin;
-    }
-    set visionRangeMin(value: number) {
-        if (typeof value !== "number") return;
-        gameStore.setVisionRangeMin({ value, sync: true });
-    }
-    get visionRangeMax(): number {
-        return gameStore.visionRangeMax;
-    }
-    set visionRangeMax(value: number) {
-        if (typeof value !== "number") return;
-        gameStore.setVisionRangeMax({ value, sync: true });
-    }
-    changeVisionMode(event: { target: HTMLSelectElement }): void {
-        const value = event.target.value.toLowerCase();
-        let mode: VisibilityMode;
-        if (value === "default") mode = VisibilityMode.TRIANGLE;
-        else if (value === "experimental") mode = VisibilityMode.TRIANGLE_ITERATIVE;
-        else return;
-        visibilityStore.setVisionMode({ mode, sync: true });
-        for (const floor of layerManager.floors) {
-            visibilityStore.recalculateVision(floor.name);
-            visibilityStore.recalculateMovement(floor.name);
-        }
-        layerManager.invalidateAllFloors();
-    }
-    handleClick(event: { target: HTMLElement }): void {
-        const child = event.target.firstElementChild;
-        if (child instanceof HTMLInputElement) {
-            child.click();
-        }
-    }
-    refreshInviteCode(): void {
-        socket.emit("Room.Info.InviteCode.Refresh");
-        this.refreshState = "pending";
-        this.showRefreshState = true;
-    }
-    kickPlayer(id: number): void {
-        socket.emit("Room.Info.Players.Kick", id);
-        gameStore.kickPlayer(id);
-    }
-    toggleSessionLock(): void {
-        gameStore.setIsLocked({ isLocked: !gameStore.isLocked, sync: true });
-    }
-    async deleteSession(): Promise<void> {
-        const value = await (<Game>this.$parent).$refs.prompt.prompt(
-            `ENTER ${gameStore.roomCreator}/${gameStore.roomName} TO CONFIRM SESSION REMOVAL.`,
-            `DELETING SESSION`,
-        );
-        if (value !== `${gameStore.roomCreator}/${gameStore.roomName}`) return;
-        socket.emit("Room.Delete");
-        this.$router.push("/");
-    }
-}
-</script>
 
 <style scoped>
 .modal-header {

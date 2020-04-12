@@ -1,20 +1,3 @@
-<template>
-    <main>
-        <div id="title">{{ activeComponent.title }}</div>
-        <nav>
-            <div
-                v-for="component in components"
-                :key="component.nav"
-                @click="setActiveComponent(component)"
-                :class="{ active: activeComponent === component }"
-            >
-                {{ component.nav }}
-            </div>
-        </nav>
-        <component :is="activeComponent.class" class="main" />
-    </main>
-</template>
-
 <script lang="ts">
 import Vue from "vue";
 import Component from "vue-class-component";
@@ -62,6 +45,23 @@ export default class Settings extends Vue {
     }
 }
 </script>
+
+<template>
+    <main>
+        <div id="title">{{ activeComponent.title }}</div>
+        <nav>
+            <div
+                v-for="component in components"
+                :key="component.nav"
+                @click="setActiveComponent(component)"
+                :class="{ active: activeComponent === component }"
+            >
+                {{ component.nav }}
+            </div>
+        </nav>
+        <component :is="activeComponent.class" class="main" />
+    </main>
+</template>
 
 <style scoped>
 * {

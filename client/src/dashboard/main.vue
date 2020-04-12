@@ -1,3 +1,49 @@
+<script lang="ts">
+import Vue from "vue";
+import Component from "vue-class-component";
+import { Route, NavigationGuard } from "vue-router";
+
+import { coreStore } from "@/core/store";
+import { postFetch } from "../core/utils";
+
+Component.registerHooks(["beforeRouteEnter"]);
+
+@Component
+export default class Dashboard extends Vue {
+    owned = [];
+    joined = [];
+    error = "";
+
+    newSessionName = "";
+
+    async beforeRouteEnter(to: Route, from: Route, next: Parameters<NavigationGuard>[2]): Promise<void> {
+        const response = await fetch("/api/rooms");
+        next(async (vm: Vue) => {
+            if (response.ok) {
+                const data = await response.json();
+                (<this>vm).owned = data.owned;
+                (<this>vm).joined = data.joined;
+            } else {
+                (<this>vm).error = response.statusText;
+            }
+        });
+    }
+
+    async createRoom(_event: Event): Promise<void> {
+        const response = await postFetch("/api/rooms", {
+            name: this.newSessionName,
+        });
+        if (response.ok) {
+            this.$router.push(
+                `/game/${encodeURIComponent(coreStore.username)}/${encodeURIComponent(this.newSessionName)}`,
+            );
+        } else {
+            this.error = response.statusText;
+        }
+    }
+}
+</script>
+
 <template>
     <div id="formcontainer">
         <form>
@@ -54,52 +100,6 @@
         </div>
     </div>
 </template>
-
-<script lang="ts">
-import Vue from "vue";
-import Component from "vue-class-component";
-import { Route, NavigationGuard } from "vue-router";
-
-import { coreStore } from "@/core/store";
-import { postFetch } from "../core/utils";
-
-Component.registerHooks(["beforeRouteEnter"]);
-
-@Component
-export default class Dashboard extends Vue {
-    owned = [];
-    joined = [];
-    error = "";
-
-    newSessionName = "";
-
-    async beforeRouteEnter(to: Route, from: Route, next: Parameters<NavigationGuard>[2]): Promise<void> {
-        const response = await fetch("/api/rooms");
-        next(async (vm: Vue) => {
-            if (response.ok) {
-                const data = await response.json();
-                (<this>vm).owned = data.owned;
-                (<this>vm).joined = data.joined;
-            } else {
-                (<this>vm).error = response.statusText;
-            }
-        });
-    }
-
-    async createRoom(_event: Event): Promise<void> {
-        const response = await postFetch("/api/rooms", {
-            name: this.newSessionName,
-        });
-        if (response.ok) {
-            this.$router.push(
-                `/game/${encodeURIComponent(coreStore.username)}/${encodeURIComponent(this.newSessionName)}`,
-            );
-        } else {
-            this.error = response.statusText;
-        }
-    }
-}
-</script>
 
 <style scoped>
 * {

@@ -1,18 +1,3 @@
-<template>
-    <div class="tool-detail" v-if="selected" :style="{ '--detailRight': detailRight, '--detailArrow': detailArrow }">
-        <div
-            v-for="token in tokens"
-            :key="token.uuid"
-            class="token"
-            :class="{ selected: selection.includes(token.uuid) }"
-            @click="toggle(token.uuid)"
-        >
-            <img :src="token.src" width="30px" height="30px" v-if="token.src" />
-            <div>{{ token.name }}</div>
-        </div>
-    </div>
-</template>
-
 <script lang="ts">
 import Component from "vue-class-component";
 
@@ -41,6 +26,21 @@ export default class VisionTool extends Tool {
     }
 }
 </script>
+
+<template>
+    <div class="tool-detail" v-if="selected" :style="{ '--detailRight': detailRight, '--detailArrow': detailArrow }">
+        <div
+            v-for="token in tokens"
+            :key="token.uuid"
+            class="token"
+            :class="{ selected: selection.includes(token.uuid) }"
+            @click="toggle(token.uuid)"
+        >
+            <img :src="token.src" width="30px" height="30px" v-if="token.src" />
+            <div>{{ token.name }}</div>
+        </div>
+    </div>
+</template>
 
 <style scoped>
 .token {

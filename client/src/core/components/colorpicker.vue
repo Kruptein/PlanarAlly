@@ -4,29 +4,6 @@ This component works on basis of rgba strings only and not the more general colo
 this due to the canvas elements requiring rgba strings for their colours and thus avoiding extra conversion steps
 -->
 
-<template>
-    <div class="outer" @click.self="open">
-        <div
-            class="current-color"
-            @click.self="open"
-            :style="
-                transparent
-                    ? 'background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAIAAADZF8uwAAAAGUlEQVQYV2M4gwH+YwCGIasIUwhT25BVBADtzYNYrHvv4gAAAABJRU5ErkJggg==)'
-                    : 'background-color:' + color
-            "
-        ></div>
-        <div class="mask" v-show="display" @click.self="closePicker"></div>
-        <chrome-picker
-            :value="color"
-            @input="updateColor"
-            :style="{ position: 'fixed', left: left + 'px', top: top + 'px', 'z-index': 9999 }"
-            tabindex="-1"
-            v-show="display"
-            ref="chromePicker"
-        />
-    </div>
-</template>
-
 <script lang="ts">
 import tinycolor from "tinycolor2";
 import Vue from "vue";
@@ -80,6 +57,29 @@ export default class ColorPicker extends Vue {
     }
 }
 </script>
+
+<template>
+    <div class="outer" @click.self="open">
+        <div
+            class="current-color"
+            @click.self="open"
+            :style="
+                transparent
+                    ? 'background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAIAAADZF8uwAAAAGUlEQVQYV2M4gwH+YwCGIasIUwhT25BVBADtzYNYrHvv4gAAAABJRU5ErkJggg==)'
+                    : 'background-color:' + color
+            "
+        ></div>
+        <div class="mask" v-show="display" @click.self="closePicker"></div>
+        <chrome-picker
+            :value="color"
+            @input="updateColor"
+            :style="{ position: 'fixed', left: left + 'px', top: top + 'px', 'z-index': 9999 }"
+            tabindex="-1"
+            v-show="display"
+            ref="chromePicker"
+        />
+    </div>
+</template>
 
 <style scoped>
 .outer {

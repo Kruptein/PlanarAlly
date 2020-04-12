@@ -1,76 +1,3 @@
-<template>
-    <!-- SETTINGS -->
-    <div id="menu" @click="settingsClick" ref="settings">
-        <div style="width:200px;overflow-y:auto;overflow-x:hidden;">
-            <!-- ASSETS -->
-            <template v-if="IS_DM">
-                <button class="menu-accordion">Assets</button>
-                <div id="menu-assets" class="menu-accordion-panel">
-                    <input id="asset-search" v-if="assets" v-model="assetSearch" placeholder="Search" />
-                    <a class="actionButton" href="/assets" target="blank" title="Open asset manager">
-                        <i class="fas fa-external-link-alt"></i>
-                    </a>
-                    <div class="directory" id="menu-tokens">
-                        <asset-node :asset="assets" :search="assetSearch"></asset-node>
-                        <div v-if="!assets">No assets</div>
-                    </div>
-                </div>
-                <!-- NOTES -->
-                <button class="menu-accordion">Notes</button>
-                <div class="menu-accordion-panel">
-                    <div class="menu-accordion-subpanel" id="menu-notes">
-                        <a class="actionButton" @click="createNote" title="Create note">
-                            <i class="far fa-plus-square"></i>
-                        </a>
-                        <div v-for="note in notes" :key="note.uuid" @click="openNote(note)" style="cursor:pointer">
-                            {{ note.title || "[?]" }}
-                        </div>
-                        <div v-if="!notes.length">No notes</div>
-                    </div>
-                </div>
-                <!-- DM OPTIONS -->
-                <button class="menu-accordion" @click="openDmSettings">DM Options</button>
-            </template>
-            <!-- MARKERS -->
-            <button class="menu-accordion">Markers</button>
-            <div class="menu-accordion-panel">
-                <div class="menu-accordion-subpanel" id="menu-markers">
-                    <div v-for="marker in markers" :key="marker" style="cursor:pointer">
-                        <div @click="jumpToMarker(marker)" class="menu-accordion-subpanel-text">
-                            {{ nameMarker(marker) || "[?]" }}
-                        </div>
-                        <div @click="delMarker(marker)" title="Delete marker">
-                            <i class="far fa-minus-square"></i>
-                        </div>
-                    </div>
-                    <div v-if="!markers.length">No markers</div>
-                </div>
-            </div>
-            <!-- CLIENT OPTIONS -->
-            <button class="menu-accordion">Client Options</button>
-            <div class="menu-accordion-panel">
-                <div class="menu-accordion-subpanel">
-                    <label for="gridColour">Grid Colour:</label>
-                    <color-picker id="gridColour" :color.sync="gridColour" />
-                    <label for="fowColour">FOW Colour:</label>
-                    <color-picker id="fowColour" :color.sync="fowColour" />
-                    <label for="rulerColour">Ruler Colour:</label>
-                    <color-picker id="rulerColour" :color.sync="rulerColour" />
-                    <label for="invertAlt">Invert ALT behaviour</label>
-                    <div><input id="invertAlt" type="checkbox" v-model="invertAlt" /></div>
-                </div>
-            </div>
-        </div>
-        <router-link
-            to="/dashboard"
-            class="menu-accordion"
-            style="width:200px;box-sizing:border-box;text-decoration:none;display:inline-block;"
-        >
-            Exit
-        </router-link>
-    </div>
-</template>
-
 <script lang="ts">
 import Vue from "vue";
 import Component from "vue-class-component";
@@ -167,6 +94,79 @@ export default class MenuBar extends Vue {
     }
 }
 </script>
+
+<template>
+    <!-- SETTINGS -->
+    <div id="menu" @click="settingsClick" ref="settings">
+        <div style="width:200px;overflow-y:auto;overflow-x:hidden;">
+            <!-- ASSETS -->
+            <template v-if="IS_DM">
+                <button class="menu-accordion">Assets</button>
+                <div id="menu-assets" class="menu-accordion-panel">
+                    <input id="asset-search" v-if="assets" v-model="assetSearch" placeholder="Search" />
+                    <a class="actionButton" href="/assets" target="blank" title="Open asset manager">
+                        <i class="fas fa-external-link-alt"></i>
+                    </a>
+                    <div class="directory" id="menu-tokens">
+                        <asset-node :asset="assets" :search="assetSearch"></asset-node>
+                        <div v-if="!assets">No assets</div>
+                    </div>
+                </div>
+                <!-- NOTES -->
+                <button class="menu-accordion">Notes</button>
+                <div class="menu-accordion-panel">
+                    <div class="menu-accordion-subpanel" id="menu-notes">
+                        <a class="actionButton" @click="createNote" title="Create note">
+                            <i class="far fa-plus-square"></i>
+                        </a>
+                        <div v-for="note in notes" :key="note.uuid" @click="openNote(note)" style="cursor:pointer">
+                            {{ note.title || "[?]" }}
+                        </div>
+                        <div v-if="!notes.length">No notes</div>
+                    </div>
+                </div>
+                <!-- DM OPTIONS -->
+                <button class="menu-accordion" @click="openDmSettings">DM Options</button>
+            </template>
+            <!-- MARKERS -->
+            <button class="menu-accordion">Markers</button>
+            <div class="menu-accordion-panel">
+                <div class="menu-accordion-subpanel" id="menu-markers">
+                    <div v-for="marker in markers" :key="marker" style="cursor:pointer">
+                        <div @click="jumpToMarker(marker)" class="menu-accordion-subpanel-text">
+                            {{ nameMarker(marker) || "[?]" }}
+                        </div>
+                        <div @click="delMarker(marker)" title="Delete marker">
+                            <i class="far fa-minus-square"></i>
+                        </div>
+                    </div>
+                    <div v-if="!markers.length">No markers</div>
+                </div>
+            </div>
+            <!-- CLIENT OPTIONS -->
+            <button class="menu-accordion">Client Options</button>
+            <div class="menu-accordion-panel">
+                <div class="menu-accordion-subpanel">
+                    <label for="gridColour">Grid Colour:</label>
+                    <color-picker id="gridColour" :color.sync="gridColour" />
+                    <label for="fowColour">FOW Colour:</label>
+                    <color-picker id="fowColour" :color.sync="fowColour" />
+                    <label for="rulerColour">Ruler Colour:</label>
+                    <color-picker id="rulerColour" :color.sync="rulerColour" />
+                    <label for="invertAlt">Invert ALT behaviour</label>
+                    <div><input id="invertAlt" type="checkbox" v-model="invertAlt" /></div>
+                </div>
+            </div>
+        </div>
+        <router-link
+            to="/dashboard"
+            class="menu-accordion"
+            style="width:200px;box-sizing:border-box;text-decoration:none;display:inline-block;"
+        >
+            Exit
+        </router-link>
+    </div>
+</template>
 
 <style scoped>
 .menu-accordion-active + #menu-assets {

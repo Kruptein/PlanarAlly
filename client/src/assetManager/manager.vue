@@ -1,76 +1,3 @@
-<template>
-    <div id="AssetManager" v-cloak>
-        <div id="titlebar">Asset Manager</div>
-        <div id="main">
-            <div id="assets" @dragover.prevent="moveDrag" @drop.prevent.stop="stopDrag($event, currentFolder)">
-                <div id="breadcrumbs">
-                    <div>/</div>
-                    <div v-for="dir in path" :key="dir">{{ idMap.has(dir) ? idMap.get(dir).name : "" }}</div>
-                </div>
-                <div id="actionbar">
-                    <input id="files" type="file" multiple hidden @change="upload()" />
-                    <div @click="createDirectory" title="Create folder">
-                        <i class="fas fa-plus-square"></i>
-                    </div>
-                    <div @click="prepareUpload" title="Upload files">
-                        <i class="fas fa-upload"></i>
-                    </div>
-                </div>
-                <div id="explorer">
-                    <div
-                        class="inode folder"
-                        v-if="path.length"
-                        @dblclick="changeDirectory(-1)"
-                        @dragover.prevent="moveDrag"
-                        @dragleave.prevent="leaveDrag"
-                        @drop.prevent.stop="stopDrag($event, parentFolder)"
-                    >
-                        <i class="fas fa-folder" style="font-size: 50px;"></i>
-                        <div class="title">..</div>
-                    </div>
-                    <div
-                        class="inode folder"
-                        draggable="true"
-                        v-for="key in folders"
-                        :key="key"
-                        :class="{ 'inode-selected': selected.includes(key) }"
-                        @click="select($event, key)"
-                        @dblclick="changeDirectory(key)"
-                        @contextmenu.prevent="$refs.cm.open($event, key)"
-                        @dragstart="startDrag($event, key)"
-                        @dragover.prevent="moveDrag"
-                        @dragleave.prevent="leaveDrag"
-                        @drop.prevent.stop="stopDrag($event, key)"
-                    >
-                        <i class="fas fa-folder" style="font-size: 50px;"></i>
-                        <div class="title">{{ idMap.get(key).name }}</div>
-                    </div>
-                    <div
-                        class="inode file"
-                        draggable="true"
-                        v-for="file in files"
-                        :key="file"
-                        :class="{ 'inode-selected': selected.includes(file) }"
-                        @click="select($event, file)"
-                        @contextmenu.prevent="$refs.cm.open($event, file)"
-                        @dragstart="startDrag($event, file)"
-                    >
-                        <img :src="'/static/assets/' + idMap.get(file).file_hash" width="50" />
-                        <div class="title">{{ idMap.get(file).name }}</div>
-                    </div>
-                </div>
-            </div>
-            <div id="asset-details" v-if="firstSelectedFile">
-                <div id="asset-detail-title">{{ firstSelectedFile.name }}</div>
-                <img :src="'/static/assets/' + firstSelectedFile.file_hash" />
-            </div>
-        </div>
-        <AssetContextMenu ref="cm"></AssetContextMenu>
-        <Prompt ref="prompt"></Prompt>
-        <ConfirmDialog ref="confirm"></ConfirmDialog>
-    </div>
-</template>
-
 <script lang="ts">
 import Vue from "vue";
 import Component from "vue-class-component";
@@ -234,6 +161,79 @@ export default class AssetManager extends Vue {
     }
 }
 </script>
+
+<template>
+    <div id="AssetManager" v-cloak>
+        <div id="titlebar">Asset Manager</div>
+        <div id="main">
+            <div id="assets" @dragover.prevent="moveDrag" @drop.prevent.stop="stopDrag($event, currentFolder)">
+                <div id="breadcrumbs">
+                    <div>/</div>
+                    <div v-for="dir in path" :key="dir">{{ idMap.has(dir) ? idMap.get(dir).name : "" }}</div>
+                </div>
+                <div id="actionbar">
+                    <input id="files" type="file" multiple hidden @change="upload()" />
+                    <div @click="createDirectory" title="Create folder">
+                        <i class="fas fa-plus-square"></i>
+                    </div>
+                    <div @click="prepareUpload" title="Upload files">
+                        <i class="fas fa-upload"></i>
+                    </div>
+                </div>
+                <div id="explorer">
+                    <div
+                        class="inode folder"
+                        v-if="path.length"
+                        @dblclick="changeDirectory(-1)"
+                        @dragover.prevent="moveDrag"
+                        @dragleave.prevent="leaveDrag"
+                        @drop.prevent.stop="stopDrag($event, parentFolder)"
+                    >
+                        <i class="fas fa-folder" style="font-size: 50px;"></i>
+                        <div class="title">..</div>
+                    </div>
+                    <div
+                        class="inode folder"
+                        draggable="true"
+                        v-for="key in folders"
+                        :key="key"
+                        :class="{ 'inode-selected': selected.includes(key) }"
+                        @click="select($event, key)"
+                        @dblclick="changeDirectory(key)"
+                        @contextmenu.prevent="$refs.cm.open($event, key)"
+                        @dragstart="startDrag($event, key)"
+                        @dragover.prevent="moveDrag"
+                        @dragleave.prevent="leaveDrag"
+                        @drop.prevent.stop="stopDrag($event, key)"
+                    >
+                        <i class="fas fa-folder" style="font-size: 50px;"></i>
+                        <div class="title">{{ idMap.get(key).name }}</div>
+                    </div>
+                    <div
+                        class="inode file"
+                        draggable="true"
+                        v-for="file in files"
+                        :key="file"
+                        :class="{ 'inode-selected': selected.includes(file) }"
+                        @click="select($event, file)"
+                        @contextmenu.prevent="$refs.cm.open($event, file)"
+                        @dragstart="startDrag($event, file)"
+                    >
+                        <img :src="'/static/assets/' + idMap.get(file).file_hash" width="50" />
+                        <div class="title">{{ idMap.get(file).name }}</div>
+                    </div>
+                </div>
+            </div>
+            <div id="asset-details" v-if="firstSelectedFile">
+                <div id="asset-detail-title">{{ firstSelectedFile.name }}</div>
+                <img :src="'/static/assets/' + firstSelectedFile.file_hash" />
+            </div>
+        </div>
+        <AssetContextMenu ref="cm"></AssetContextMenu>
+        <Prompt ref="prompt"></Prompt>
+        <ConfirmDialog ref="confirm"></ConfirmDialog>
+    </div>
+</template>
 
 <style>
 [v-cloak],

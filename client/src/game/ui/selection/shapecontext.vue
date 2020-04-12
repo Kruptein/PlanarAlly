@@ -1,62 +1,3 @@
-<template>
-    <ContextMenu
-        v-if="getActiveLayer() !== undefined"
-        :visible="visible"
-        :left="x + 'px'"
-        :top="y + 'px'"
-        @close="close"
-    >
-        <li v-if="getFloors().length > 1">
-            Floor
-            <ul>
-                <li
-                    v-for="(floor, idx) in getFloors()"
-                    :key="floor.name"
-                    :style="[idx === activeFloorIndex ? { 'background-color': '#82c8a0' } : {}]"
-                    @click="setFloor(floor)"
-                >
-                    {{ floor.name }}
-                </li>
-            </ul>
-        </li>
-        <li v-if="getLayers().length > 1">
-            Layer
-            <ul>
-                <li
-                    v-for="layer in getLayers()"
-                    :key="layer.name"
-                    :style="[getActiveLayer().name === layer.name ? { 'background-color': '#82c8a0' } : {}]"
-                    @click="setLayer(layer.name)"
-                >
-                    {{ layer.name }}
-                </li>
-            </ul>
-        </li>
-        <li v-if="locations.length > 1">
-            Location
-            <ul>
-                <li
-                    v-for="location in locations"
-                    :key="location"
-                    :style="[getCurrentLocation() === location ? { 'background-color': '#82c8a0' } : {}]"
-                    @click="setLocation(location)"
-                >
-                    {{ location }}
-                </li>
-            </ul>
-        </li>
-        <li @click="moveToBack">Move to back</li>
-        <li @click="moveToFront">Move to front</li>
-        <li @click="addInitiative">{{ getInitiativeWord() }} initiative</li>
-        <li @click="deleteSelection">Delete shapes</li>
-        <li v-if="hasSingleShape()" @click="openEditDialog">Show properties</li>
-        <template v-if="hasSingleShape()">
-            <li v-if="markers.includes(getMarker())" @click="deleteMarker">Remove marker</li>
-            <li v-else @click="setMarker">Set marker</li>
-        </template>
-    </ContextMenu>
-</template>
-
 <script lang="ts">
 import Vue from "vue";
 import Component from "vue-class-component";
@@ -191,6 +132,65 @@ export default class ShapeContext extends Vue {
     }
 }
 </script>
+
+<template>
+    <ContextMenu
+        v-if="getActiveLayer() !== undefined"
+        :visible="visible"
+        :left="x + 'px'"
+        :top="y + 'px'"
+        @close="close"
+    >
+        <li v-if="getFloors().length > 1">
+            Floor
+            <ul>
+                <li
+                    v-for="(floor, idx) in getFloors()"
+                    :key="floor.name"
+                    :style="[idx === activeFloorIndex ? { 'background-color': '#82c8a0' } : {}]"
+                    @click="setFloor(floor)"
+                >
+                    {{ floor.name }}
+                </li>
+            </ul>
+        </li>
+        <li v-if="getLayers().length > 1">
+            Layer
+            <ul>
+                <li
+                    v-for="layer in getLayers()"
+                    :key="layer.name"
+                    :style="[getActiveLayer().name === layer.name ? { 'background-color': '#82c8a0' } : {}]"
+                    @click="setLayer(layer.name)"
+                >
+                    {{ layer.name }}
+                </li>
+            </ul>
+        </li>
+        <li v-if="locations.length > 1">
+            Location
+            <ul>
+                <li
+                    v-for="location in locations"
+                    :key="location"
+                    :style="[getCurrentLocation() === location ? { 'background-color': '#82c8a0' } : {}]"
+                    @click="setLocation(location)"
+                >
+                    {{ location }}
+                </li>
+            </ul>
+        </li>
+        <li @click="moveToBack">Move to back</li>
+        <li @click="moveToFront">Move to front</li>
+        <li @click="addInitiative">{{ getInitiativeWord() }} initiative</li>
+        <li @click="deleteSelection">Delete shapes</li>
+        <li v-if="hasSingleShape()" @click="openEditDialog">Show properties</li>
+        <template v-if="hasSingleShape()">
+            <li v-if="markers.includes(getMarker())" @click="deleteMarker">Remove marker</li>
+            <li v-else @click="setMarker">Set marker</li>
+        </template>
+    </ContextMenu>
+</template>
 
 <style scoped>
 .ContextMenu ul {

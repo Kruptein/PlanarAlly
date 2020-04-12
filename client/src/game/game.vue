@@ -1,29 +1,3 @@
-<template>
-    <div id="main" @mouseleave="mouseleave" @wheel="zoom">
-        <ui ref="ui" v-if="ready.manager"></ui>
-        <div id="board">
-            <div
-                id="layers"
-                @mousedown="mousedown"
-                @mouseup="mouseup"
-                @mousemove="mousemove"
-                @contextmenu.prevent.stop="contextmenu"
-                @dragover.prevent
-                @drop.prevent.stop="drop"
-                @touchmove="touchmove"
-                @touchstart="touchstart"
-                @touchend="touchend"
-            ></div>
-        </div>
-        <initiative-dialog ref="initiative" id="initiativedialog"></initiative-dialog>
-        <note-dialog ref="note"></note-dialog>
-        <label-dialog ref="labels"></label-dialog>
-        <dm-settings ref="dmsettings" v-if="IS_DM || FAKE_PLAYER"></dm-settings>
-        <prompt-dialog ref="prompt"></prompt-dialog>
-        <confirm-dialog ref="confirm"></confirm-dialog>
-    </div>
-</template>
-
 <script lang="ts">
 import throttle from "lodash/throttle";
 import Vue from "vue";
@@ -178,6 +152,32 @@ export default class Game extends Vue {
     }
 }
 </script>
+
+<template>
+    <div id="main" @mouseleave="mouseleave" @wheel="zoom">
+        <ui ref="ui" v-if="ready.manager"></ui>
+        <div id="board">
+            <div
+                id="layers"
+                @mousedown="mousedown"
+                @mouseup="mouseup"
+                @mousemove="mousemove"
+                @contextmenu.prevent.stop="contextmenu"
+                @dragover.prevent
+                @drop.prevent.stop="drop"
+                @touchmove="touchmove"
+                @touchstart="touchstart"
+                @touchend="touchend"
+            ></div>
+        </div>
+        <initiative-dialog ref="initiative" id="initiativedialog"></initiative-dialog>
+        <note-dialog ref="note"></note-dialog>
+        <label-dialog ref="labels"></label-dialog>
+        <dm-settings ref="dmsettings" v-if="IS_DM || FAKE_PLAYER"></dm-settings>
+        <prompt-dialog ref="prompt"></prompt-dialog>
+        <confirm-dialog ref="confirm"></confirm-dialog>
+    </div>
+</template>
 
 <style>
 a,

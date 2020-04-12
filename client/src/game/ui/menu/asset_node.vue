@@ -1,38 +1,3 @@
-<template>
-    <ul>
-        <li
-            v-for="folder in folders"
-            :key="folder"
-            class="folder"
-            @click.stop="toggle"
-            v-show="!emptyFolders.includes(folder)"
-        >
-            {{ folder }}
-            <asset-node
-                :asset="asset[folder]"
-                :name="folder"
-                :search="search"
-                @folderShow="folderShow"
-                @folderEmpty="folderEmpty"
-            ></asset-node>
-        </li>
-        <li
-            v-for="file in files"
-            :key="file.uuid"
-            class="file draggable token"
-            draggable="true"
-            @mouseover="showImage = file.hash"
-            @mouseout="showImage = null"
-            @dragstart="dragStart($event, '/static/assets/' + file.hash)"
-        >
-            {{ file.name }}
-            <div v-if="showImage == file.hash" class="preview">
-                <img class="asset-preview-image" :src="'/static/assets/' + file.hash" />
-            </div>
-        </li>
-    </ul>
-</template>
-
 <script lang="ts">
 import Vue from "vue";
 import Component from "vue-class-component";
@@ -113,6 +78,41 @@ export default class AssetNode extends Vue {
     }
 }
 </script>
+
+<template>
+    <ul>
+        <li
+            v-for="folder in folders"
+            :key="folder"
+            class="folder"
+            @click.stop="toggle"
+            v-show="!emptyFolders.includes(folder)"
+        >
+            {{ folder }}
+            <asset-node
+                :asset="asset[folder]"
+                :name="folder"
+                :search="search"
+                @folderShow="folderShow"
+                @folderEmpty="folderEmpty"
+            ></asset-node>
+        </li>
+        <li
+            v-for="file in files"
+            :key="file.uuid"
+            class="file draggable token"
+            draggable="true"
+            @mouseover="showImage = file.hash"
+            @mouseout="showImage = null"
+            @dragstart="dragStart($event, '/static/assets/' + file.hash)"
+        >
+            {{ file.name }}
+            <div v-if="showImage == file.hash" class="preview">
+                <img class="asset-preview-image" :src="'/static/assets/' + file.hash" />
+            </div>
+        </li>
+    </ul>
+</template>
 
 <style scoped>
 .preview {

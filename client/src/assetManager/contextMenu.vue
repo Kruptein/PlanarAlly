@@ -1,10 +1,3 @@
-<template>
-    <ContextMenu :visible="visible" :left="left + 'px'" :top="top + 'px'" @close="close">
-        <li @click="rename">Rename</li>
-        <li @click="remove">Remove</li>
-    </ContextMenu>
-</template>
-
 <script lang="ts">
 import Vue from "vue";
 
@@ -73,3 +66,10 @@ export default class AssetContextMenu extends Vue {
     }
 }
 </script>
+
+<template>
+    <ContextMenu :visible="visible" :left="left + 'px'" :top="top + 'px'" @close="close">
+        <li @click="rename">Rename</li>
+        <li @click="remove">Remove</li>
+    </ContextMenu>
+</template>

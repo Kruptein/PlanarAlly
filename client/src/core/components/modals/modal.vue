@@ -1,20 +1,3 @@
-<template>
-    <transition name="modal">
-        <div
-            class="mask"
-            :class="{ 'modal-mask': mask, 'dialog-mask': !mask }"
-            @click="close"
-            v-show="visible"
-            @dragover.prevent="dragOver"
-        >
-            <div class="modal-container" @click.stop ref="container" :style="{ 'background-color': colour }">
-                <slot name="header" :dragStart="dragStart" :dragEnd="dragEnd"></slot>
-                <slot></slot>
-            </div>
-        </div>
-    </transition>
-</template>
-
 <script lang="ts">
 import Vue from "vue";
 import Component from "vue-class-component";
@@ -91,6 +74,23 @@ export default class Modal extends Vue {
     }
 }
 </script>
+
+<template>
+    <transition name="modal">
+        <div
+            class="mask"
+            :class="{ 'modal-mask': mask, 'dialog-mask': !mask }"
+            @click="close"
+            v-show="visible"
+            @dragover.prevent="dragOver"
+        >
+            <div class="modal-container" @click.stop ref="container" :style="{ 'background-color': colour }">
+                <slot name="header" :dragStart="dragStart" :dragEnd="dragEnd"></slot>
+                <slot></slot>
+            </div>
+        </div>
+    </transition>
+</template>
 
 <style scoped>
 .hide {

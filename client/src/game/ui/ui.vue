@@ -1,93 +1,3 @@
-<template>
-    <div id="ui" v-show="showUI">
-        <div id="logo" v-show="visible.topleft">
-            <div id="logo-icons">
-                <a href="https://www.planarally.io" target="_blank"><img src="/static/favicon.png" /></a>
-                <div id="logo-links">
-                    <a href="https://github.com/kruptein/PlanarAlly" target="_blank" title="Find the code on github!">
-                        <i class="fab fa-github"></i>
-                    </a>
-                    <a href="https://discord.gg/mubGnTe" target="_blank" title="Join the community on discord!">
-                        <i class="fab fa-discord"></i>
-                    </a>
-                    <a href="https://www.patreon.com/planarally" target="_blank" title="Contribute using patreon!">
-                        <i class="fab fa-patreon"></i>
-                    </a>
-                </div>
-            </div>
-            <div id="logo-version">
-                <span>version</span>
-                <span>{{ version }}</span>
-            </div>
-        </div>
-        <!-- RADIAL MENU -->
-        <div id="radialmenu">
-            <div class="rm-wrapper">
-                <div class="rm-toggler">
-                    <ul class="rm-list" :class="{ 'rm-list-dm': IS_DM }">
-                        <li
-                            @click="toggleLocations"
-                            v-if="IS_DM"
-                            class="rm-item"
-                            id="rm-locations"
-                            title="Open location menu"
-                        >
-                            <a href="#">
-                                <i class="far fa-compass"></i>
-                            </a>
-                        </li>
-                        <li @click="toggleMenu" class="rm-item" id="rm-settings" title="Open settings">
-                            <a href="#">
-                                <i class="fas fa-cog"></i>
-                            </a>
-                        </li>
-                    </ul>
-                </div>
-                <span class="rm-topper">
-                    <i class="icon-share-alt"></i>
-                </span>
-            </div>
-        </div>
-        <menu-bar></menu-bar>
-        <div id="locations" v-if="IS_DM">
-            <div>
-                <div
-                    v-for="location in locations"
-                    :key="location"
-                    :style="[getCurrentLocation() === location ? { 'background-color': '#82c8a0' } : {}]"
-                    @click="changeLocation(location)"
-                >
-                    {{ location }}
-                </div>
-                <div @click="createLocation" title="Create new location">
-                    <i class="fas fa-plus"></i>
-                </div>
-            </div>
-        </div>
-        <tool-bar ref="tools"></tool-bar>
-        <floor-select></floor-select>
-        <selection-info></selection-info>
-        <!-- When updating zoom boundaries, also update store updateZoom function;
-            should probably do this using a store variable-->
-        <zoom-slider
-            id="zoom"
-            v-model="zoomDisplay"
-            :height="6"
-            :width="200"
-            :min="0"
-            :max="1"
-            :interval="0.1"
-            :dot-size="[8, 20]"
-            :dot-options="{ style: { 'border-radius': '15%', 'z-index': 11 } }"
-            :tooltip-placement="'bottom'"
-            :tooltip="'focus'"
-            :tooltip-formatter="zoomDisplay.toFixed(1)"
-            :rail-style="{ 'background-color': '#fff', 'box-shadow': '0.5px 0.5px 3px 1px rgba(0, 0, 0, .36)' }"
-            :process-style="{ 'background-color': '#fff' }"
-        ></zoom-slider>
-    </div>
-</template>
-
 <script lang="ts">
 import Vue from "vue";
 import vueSlider from "vue-slider-component";
@@ -198,6 +108,96 @@ export default class UI extends Vue {
     }
 }
 </script>
+
+<template>
+    <div id="ui" v-show="showUI">
+        <div id="logo" v-show="visible.topleft">
+            <div id="logo-icons">
+                <a href="https://www.planarally.io" target="_blank"><img src="/static/favicon.png" /></a>
+                <div id="logo-links">
+                    <a href="https://github.com/kruptein/PlanarAlly" target="_blank" title="Find the code on github!">
+                        <i class="fab fa-github"></i>
+                    </a>
+                    <a href="https://discord.gg/mubGnTe" target="_blank" title="Join the community on discord!">
+                        <i class="fab fa-discord"></i>
+                    </a>
+                    <a href="https://www.patreon.com/planarally" target="_blank" title="Contribute using patreon!">
+                        <i class="fab fa-patreon"></i>
+                    </a>
+                </div>
+            </div>
+            <div id="logo-version">
+                <span>version</span>
+                <span>{{ version }}</span>
+            </div>
+        </div>
+        <!-- RADIAL MENU -->
+        <div id="radialmenu">
+            <div class="rm-wrapper">
+                <div class="rm-toggler">
+                    <ul class="rm-list" :class="{ 'rm-list-dm': IS_DM }">
+                        <li
+                            @click="toggleLocations"
+                            v-if="IS_DM"
+                            class="rm-item"
+                            id="rm-locations"
+                            title="Open location menu"
+                        >
+                            <a href="#">
+                                <i class="far fa-compass"></i>
+                            </a>
+                        </li>
+                        <li @click="toggleMenu" class="rm-item" id="rm-settings" title="Open settings">
+                            <a href="#">
+                                <i class="fas fa-cog"></i>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+                <span class="rm-topper">
+                    <i class="icon-share-alt"></i>
+                </span>
+            </div>
+        </div>
+        <menu-bar></menu-bar>
+        <div id="locations" v-if="IS_DM">
+            <div>
+                <div
+                    v-for="location in locations"
+                    :key="location"
+                    :style="[getCurrentLocation() === location ? { 'background-color': '#82c8a0' } : {}]"
+                    @click="changeLocation(location)"
+                >
+                    {{ location }}
+                </div>
+                <div @click="createLocation" title="Create new location">
+                    <i class="fas fa-plus"></i>
+                </div>
+            </div>
+        </div>
+        <tool-bar ref="tools"></tool-bar>
+        <floor-select></floor-select>
+        <selection-info></selection-info>
+        <!-- When updating zoom boundaries, also update store updateZoom function;
+            should probably do this using a store variable-->
+        <zoom-slider
+            id="zoom"
+            v-model="zoomDisplay"
+            :height="6"
+            :width="200"
+            :min="0"
+            :max="1"
+            :interval="0.1"
+            :dot-size="[8, 20]"
+            :dot-options="{ style: { 'border-radius': '15%', 'z-index': 11 } }"
+            :tooltip-placement="'bottom'"
+            :tooltip="'focus'"
+            :tooltip-formatter="zoomDisplay.toFixed(1)"
+            :rail-style="{ 'background-color': '#fff', 'box-shadow': '0.5px 0.5px 3px 1px rgba(0, 0, 0, .36)' }"
+            :process-style="{ 'background-color': '#fff' }"
+        ></zoom-slider>
+    </div>
+</template>
 
 <style scoped>
 #ui {

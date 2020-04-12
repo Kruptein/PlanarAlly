@@ -1,33 +1,3 @@
-<template>
-    <modal :visible="visible" @close="visible = false">
-        <div
-            class="modal-header"
-            slot="header"
-            slot-scope="m"
-            draggable="true"
-            @dragstart="m.dragStart"
-            @dragend="m.dragEnd"
-        >
-            Create basic token
-        </div>
-        <div class="modal-body">
-            <label for="createtokendialog-text">Text</label>
-            <input type="text" id="createtokendialog-name" v-model="text" />
-            <label>Colours</label>
-            <div class="colours">
-                <span>Fill:</span>
-                <color-picker :color.sync="fillColour" />
-                <span>Border:</span>
-                <color-picker :color.sync="borderColour" />
-            </div>
-            <canvas ref="canvas" width="100px" height="100px"></canvas>
-        </div>
-        <div class="modal-footer">
-            <button @click="submit">Submit</button>
-        </div>
-    </modal>
-</template>
-
 <script lang="ts">
 import * as tinycolor from "tinycolor2";
 import Vue from "vue";
@@ -130,6 +100,36 @@ export default class CreateTokenModal extends Vue {
     }
 }
 </script>
+
+<template>
+    <modal :visible="visible" @close="visible = false">
+        <div
+            class="modal-header"
+            slot="header"
+            slot-scope="m"
+            draggable="true"
+            @dragstart="m.dragStart"
+            @dragend="m.dragEnd"
+        >
+            Create basic token
+        </div>
+        <div class="modal-body">
+            <label for="createtokendialog-text">Text</label>
+            <input type="text" id="createtokendialog-name" v-model="text" />
+            <label>Colours</label>
+            <div class="colours">
+                <span>Fill:</span>
+                <color-picker :color.sync="fillColour" />
+                <span>Border:</span>
+                <color-picker :color.sync="borderColour" />
+            </div>
+            <canvas ref="canvas" width="100px" height="100px"></canvas>
+        </div>
+        <div class="modal-footer">
+            <button @click="submit">Submit</button>
+        </div>
+    </modal>
+</template>
 
 <style scoped>
 canvas {

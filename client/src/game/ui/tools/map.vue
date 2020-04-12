@@ -1,12 +1,3 @@
-<template>
-    <div class="tool-detail" v-if="selected" :style="{ '--detailRight': detailRight, '--detailArrow': detailArrow }">
-        <div>#X</div>
-        <input type="text" v-model="xCount" />
-        <div>#Y</div>
-        <input type="text" v-model="yCount" />
-    </div>
-</template>
-
 <script lang="ts">
 import Tool from "@/game/ui/tools/tool.vue";
 
@@ -114,3 +105,12 @@ export default class MapTool extends Tool {
     }
 }
 </script>
+
+<template>
+    <div class="tool-detail" v-if="selected" :style="{ '--detailRight': detailRight, '--detailArrow': detailArrow }">
+        <div>#X</div>
+        <input type="text" v-model="xCount" />
+        <div>#Y</div>
+        <input type="text" v-model="yCount" />
+    </div>
+</template>

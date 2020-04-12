@@ -1,39 +1,3 @@
-<template>
-    <div id="floor-layer">
-        <div id="floor-selector" @click="selected = !selected" v-if="showFloorSelector">
-            <a href="#">{{ selectedFloorIndex }}</a>
-        </div>
-        <div id="floor-detail" v-if="selected">
-            <template v-for="[index, floor] of floors.entries()">
-                <div class="floor-row" :key="floor" @click="selectFloor(index)">
-                    <div class="floor-index">
-                        <template v-if="index == selectedFloorIndex">></template>
-                        {{ index }}
-                    </div>
-                    <div class="floor-name">{{ floor }}</div>
-                    <div class="floor-actions" v-show="floors.length > 1">
-                        <div @click.stop="removeFloor(index)" title="Delete floor">
-                            <i class="fas fa-trash-alt"></i>
-                        </div>
-                    </div>
-                </div>
-            </template>
-            <div class="floor-add" @click="addFloor">Add new floor</div>
-        </div>
-        <div style="display:contents" v-show="layers.length > 1">
-            <div
-                v-for="layer in layers"
-                class="layer"
-                :key="layer"
-                :class="{ 'layer-selected': layer === selectedLayer }"
-                @mousedown="selectLayer(layer)"
-            >
-                <a href="#">{{ layer }}</a>
-            </div>
-        </div>
-    </div>
-</template>
-
 <script lang="ts">
 import Vue from "vue";
 import Component from "vue-class-component";
@@ -101,6 +65,42 @@ export default class FloorSelect extends Vue {
     }
 }
 </script>
+
+<template>
+    <div id="floor-layer">
+        <div id="floor-selector" @click="selected = !selected" v-if="showFloorSelector">
+            <a href="#">{{ selectedFloorIndex }}</a>
+        </div>
+        <div id="floor-detail" v-if="selected">
+            <template v-for="[index, floor] of floors.entries()">
+                <div class="floor-row" :key="floor" @click="selectFloor(index)">
+                    <div class="floor-index">
+                        <template v-if="index == selectedFloorIndex">></template>
+                        {{ index }}
+                    </div>
+                    <div class="floor-name">{{ floor }}</div>
+                    <div class="floor-actions" v-show="floors.length > 1">
+                        <div @click.stop="removeFloor(index)" title="Delete floor">
+                            <i class="fas fa-trash-alt"></i>
+                        </div>
+                    </div>
+                </div>
+            </template>
+            <div class="floor-add" @click="addFloor">Add new floor</div>
+        </div>
+        <div style="display:contents" v-show="layers.length > 1">
+            <div
+                v-for="layer in layers"
+                class="layer"
+                :key="layer"
+                :class="{ 'layer-selected': layer === selectedLayer }"
+                @mousedown="selectLayer(layer)"
+            >
+                <a href="#">{{ layer }}</a>
+            </div>
+        </div>
+    </div>
+</template>
 
 <style scoped>
 #floor-layer {

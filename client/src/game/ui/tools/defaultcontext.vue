@@ -1,11 +1,3 @@
-<template>
-    <ContextMenu :visible="visible" :left="x + 'px'" :top="y + 'px'" @close="close">
-        <li @click="bringPlayers" v-if="IS_DM">Bring players</li>
-        <li @click="createToken">Create basic token</li>
-        <li @click="showInitiative">Show initiative</li>
-    </ContextMenu>
-</template>
-
 <script lang="ts">
 import Vue from "vue";
 import Component from "vue-class-component";
@@ -61,6 +53,14 @@ export default class DefaultContext extends Vue {
     }
 }
 </script>
+
+<template>
+    <ContextMenu :visible="visible" :left="x + 'px'" :top="y + 'px'" @close="close">
+        <li @click="bringPlayers" v-if="IS_DM">Bring players</li>
+        <li @click="createToken">Create basic token</li>
+        <li @click="showInitiative">Show initiative</li>
+    </ContextMenu>
+</template>
 
 <style scoped>
 .ContextMenu ul {

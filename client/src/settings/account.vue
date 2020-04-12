@@ -1,69 +1,3 @@
-<template>
-    <form @submit.prevent>
-        <div class="spanrow header">General</div>
-        <div class="row">
-            <label for="username">Username:</label>
-            <div>
-                <input
-                    type="text"
-                    id="username"
-                    ref="username"
-                    :value="$store.state.core.username"
-                    autocomplete="username"
-                    readonly
-                />
-            </div>
-        </div>
-        <div class="row">
-            <label for="email">Email:</label>
-            <div>
-                <input
-                    type="email"
-                    id="email"
-                    :placeholder="$store.state.core.email === undefined ? 'no email set' : ''"
-                    :value="$store.state.core.email"
-                    autocomplete="email"
-                    @change="updateEmail"
-                />
-            </div>
-        </div>
-        <div class="spanrow header">Danger Zone</div>
-        <div class="row" v-if="showPasswordFields">
-            <label for="password-reset">New Password:</label>
-            <div>
-                <input ref="passwordResetField" type="password" id="password-reset" autocomplete="new-password" />
-            </div>
-        </div>
-        <div class="row" v-if="showPasswordFields">
-            <label for="password-repeat">Repeat password:</label>
-            <div>
-                <input ref="passwordRepeatField" type="password" id="password-repeat" autocomplete="new-password" />
-            </div>
-        </div>
-        <div class="spanrow" v-show="errorMessage" style="display:flex;justify-content:center;">
-            <span v-show="errorMessage" class="danger" style="font-weight:bold;">{{ errorMessage }}</span>
-        </div>
-        <div class="row">
-            <div>
-                <button class="danger" v-if="showPasswordFields" @click="hidePasswordChange">
-                    Cancel
-                </button>
-            </div>
-            <div>
-                <button class="danger" @click="changePassword" ref="changePasswordButton">Change password</button>
-            </div>
-        </div>
-        <div class="row">
-            <div style="grid-column-start: value">
-                <button class="danger" @click="deleteAccount">Delete account</button>
-            </div>
-        </div>
-        <ConfirmDialog ref="confirm">
-            This action is irrevocable!
-        </ConfirmDialog>
-    </form>
-</template>
-
 <script lang="ts">
 import Vue from "vue";
 import Component from "vue-class-component";
@@ -146,6 +80,72 @@ export default class AccountSettings extends Vue {
     }
 }
 </script>
+
+<template>
+    <form @submit.prevent>
+        <div class="spanrow header">General</div>
+        <div class="row">
+            <label for="username">Username:</label>
+            <div>
+                <input
+                    type="text"
+                    id="username"
+                    ref="username"
+                    :value="$store.state.core.username"
+                    autocomplete="username"
+                    readonly
+                />
+            </div>
+        </div>
+        <div class="row">
+            <label for="email">Email:</label>
+            <div>
+                <input
+                    type="email"
+                    id="email"
+                    :placeholder="$store.state.core.email === undefined ? 'no email set' : ''"
+                    :value="$store.state.core.email"
+                    autocomplete="email"
+                    @change="updateEmail"
+                />
+            </div>
+        </div>
+        <div class="spanrow header">Danger Zone</div>
+        <div class="row" v-if="showPasswordFields">
+            <label for="password-reset">New Password:</label>
+            <div>
+                <input ref="passwordResetField" type="password" id="password-reset" autocomplete="new-password" />
+            </div>
+        </div>
+        <div class="row" v-if="showPasswordFields">
+            <label for="password-repeat">Repeat password:</label>
+            <div>
+                <input ref="passwordRepeatField" type="password" id="password-repeat" autocomplete="new-password" />
+            </div>
+        </div>
+        <div class="spanrow" v-show="errorMessage" style="display:flex;justify-content:center;">
+            <span v-show="errorMessage" class="danger" style="font-weight:bold;">{{ errorMessage }}</span>
+        </div>
+        <div class="row">
+            <div>
+                <button class="danger" v-if="showPasswordFields" @click="hidePasswordChange">
+                    Cancel
+                </button>
+            </div>
+            <div>
+                <button class="danger" @click="changePassword" ref="changePasswordButton">Change password</button>
+            </div>
+        </div>
+        <div class="row">
+            <div style="grid-column-start: value">
+                <button class="danger" @click="deleteAccount">Delete account</button>
+            </div>
+        </div>
+        <ConfirmDialog ref="confirm">
+            This action is irrevocable!
+        </ConfirmDialog>
+    </form>
+</template>
 
 <style scoped>
 * {

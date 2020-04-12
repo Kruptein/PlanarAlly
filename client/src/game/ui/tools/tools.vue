@@ -1,39 +1,3 @@
-<template>
-    <div style="pointer-events: auto;">
-        <div id="toolselect">
-            <ul>
-                <li
-                    v-for="tool in visibleTools"
-                    :key="tool"
-                    :class="{ 'tool-selected': currentTool === tool }"
-                    :ref="tool + '-selector'"
-                    v-show="toolVisible(tool)"
-                    @mousedown="currentTool = tool"
-                >
-                    <a href="#">{{ tool }}</a>
-                </li>
-            </ul>
-        </div>
-        <div>
-            <template>
-                <select-tool v-show="currentTool === 'Select'" ref="selectTool"></select-tool>
-                <pan-tool v-show="currentTool === 'Pan'"></pan-tool>
-                <keep-alive>
-                    <draw-tool v-show="currentTool === 'Draw'"></draw-tool>
-                </keep-alive>
-                <ruler-tool v-show="currentTool === 'Ruler'"></ruler-tool>
-                <ping-tool v-show="currentTool === 'Ping'"></ping-tool>
-                <map-tool v-show="currentTool === 'Map'"></map-tool>
-                <filter-tool v-show="currentTool === 'Filter'"></filter-tool>
-                <vision-tool v-show="currentTool === 'Vision'"></vision-tool>
-                <shape-menu ref="shapecontext"></shape-menu>
-                <default-menu ref="defaultcontext"></default-menu>
-                <createtoken-dialog ref="createtokendialog"></createtoken-dialog>
-            </template>
-        </div>
-    </div>
-</template>
-
 <script lang="ts">
 import Vue from "vue";
 
@@ -210,6 +174,42 @@ export default class Tools extends Vue {
     }
 }
 </script>
+
+<template>
+    <div style="pointer-events: auto;">
+        <div id="toolselect">
+            <ul>
+                <li
+                    v-for="tool in visibleTools"
+                    :key="tool"
+                    :class="{ 'tool-selected': currentTool === tool }"
+                    :ref="tool + '-selector'"
+                    v-show="toolVisible(tool)"
+                    @mousedown="currentTool = tool"
+                >
+                    <a href="#">{{ tool }}</a>
+                </li>
+            </ul>
+        </div>
+        <div>
+            <template>
+                <select-tool v-show="currentTool === 'Select'" ref="selectTool"></select-tool>
+                <pan-tool v-show="currentTool === 'Pan'"></pan-tool>
+                <keep-alive>
+                    <draw-tool v-show="currentTool === 'Draw'"></draw-tool>
+                </keep-alive>
+                <ruler-tool v-show="currentTool === 'Ruler'"></ruler-tool>
+                <ping-tool v-show="currentTool === 'Ping'"></ping-tool>
+                <map-tool v-show="currentTool === 'Map'"></map-tool>
+                <filter-tool v-show="currentTool === 'Filter'"></filter-tool>
+                <vision-tool v-show="currentTool === 'Vision'"></vision-tool>
+                <shape-menu ref="shapecontext"></shape-menu>
+                <default-menu ref="defaultcontext"></default-menu>
+                <createtoken-dialog ref="createtokendialog"></createtoken-dialog>
+            </template>
+        </div>
+    </div>
+</template>
 
 <style scoped>
 #toolselect {

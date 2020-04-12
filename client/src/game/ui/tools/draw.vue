@@ -1,56 +1,3 @@
-<template>
-    <div class="tool-detail" v-if="selected" :style="{ '--detailRight': detailRight, '--detailArrow': detailArrow }">
-        <div v-show="IS_DM">Mode</div>
-        <div v-show="IS_DM" class="selectgroup">
-            <div
-                v-for="mode in modes"
-                :key="mode"
-                class="option"
-                :class="{ 'option-selected': modeSelect === mode }"
-                @click="modeSelect = mode"
-            >
-                {{ mode }}
-            </div>
-        </div>
-        <div>Shape</div>
-        <div class="selectgroup">
-            <div
-                v-for="shape in shapes"
-                :key="shape"
-                class="option"
-                :class="{ 'option-selected': shapeSelect === shape }"
-                @click="shapeSelect = shape"
-                :title="shape"
-            >
-                <i class="fas" :class="'fa-' + shape"></i>
-            </div>
-        </div>
-        <div>Colours</div>
-        <div class="selectgroup">
-            <color-picker
-                class="option"
-                :class="{ 'radius-right': !showBorderColour() }"
-                :color.sync="fillColour"
-                title="Foreground colour"
-            />
-            <color-picker
-                class="option"
-                :color.sync="borderColour"
-                v-show="showBorderColour()"
-                title="Background colour"
-            />
-        </div>
-        <div v-show="shapeSelect === 'draw-polygon'" style="display:flex">
-            <label for="polygon-close" style="flex:5">Closed polygon?</label>
-            <input type="checkbox" id="polygon-close" style="flex:1;align-self:center;" v-model="closedPolygon" />
-        </div>
-        <div v-show="hasBrushSize()" style="display:flex">
-            <label for="brush-size" style="flex:5">Brush size</label>
-            <input type="input" id="brush-size" v-model="brushSize" style="flex:4;align-self:center;max-width:100px;" />
-        </div>
-    </div>
-</template>
-
 <script lang="ts">
 import Component from "vue-class-component";
 
@@ -563,6 +510,59 @@ export default class DrawTool extends Tool {
     }
 }
 </script>
+
+<template>
+    <div class="tool-detail" v-if="selected" :style="{ '--detailRight': detailRight, '--detailArrow': detailArrow }">
+        <div v-show="IS_DM">Mode</div>
+        <div v-show="IS_DM" class="selectgroup">
+            <div
+                v-for="mode in modes"
+                :key="mode"
+                class="option"
+                :class="{ 'option-selected': modeSelect === mode }"
+                @click="modeSelect = mode"
+            >
+                {{ mode }}
+            </div>
+        </div>
+        <div>Shape</div>
+        <div class="selectgroup">
+            <div
+                v-for="shape in shapes"
+                :key="shape"
+                class="option"
+                :class="{ 'option-selected': shapeSelect === shape }"
+                @click="shapeSelect = shape"
+                :title="shape"
+            >
+                <i class="fas" :class="'fa-' + shape"></i>
+            </div>
+        </div>
+        <div>Colours</div>
+        <div class="selectgroup">
+            <color-picker
+                class="option"
+                :class="{ 'radius-right': !showBorderColour() }"
+                :color.sync="fillColour"
+                title="Foreground colour"
+            />
+            <color-picker
+                class="option"
+                :color.sync="borderColour"
+                v-show="showBorderColour()"
+                title="Background colour"
+            />
+        </div>
+        <div v-show="shapeSelect === 'draw-polygon'" style="display:flex">
+            <label for="polygon-close" style="flex:5">Closed polygon?</label>
+            <input type="checkbox" id="polygon-close" style="flex:1;align-self:center;" v-model="closedPolygon" />
+        </div>
+        <div v-show="hasBrushSize()" style="display:flex">
+            <label for="brush-size" style="flex:5">Brush size</label>
+            <input type="input" id="brush-size" v-model="brushSize" style="flex:4;align-self:center;max-width:100px;" />
+        </div>
+    </div>
+</template>
 
 <style scoped>
 .option {

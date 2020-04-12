@@ -25,13 +25,13 @@ export class FOWLayer extends Layer {
         this.vCtx = this.virtualCanvas.getContext("2d")!;
     }
 
-    setWidth(width: number): void {
-        super.setWidth(width);
+    set width(width: number) {
+        super.width = width;
         this.virtualCanvas.width = width;
     }
 
-    setHeight(height: number): void {
-        super.setHeight(height);
+    set height(height: number) {
+        super.height = height;
         this.virtualCanvas.height = height;
     }
 

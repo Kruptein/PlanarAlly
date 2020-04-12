@@ -10,8 +10,6 @@ export interface Floor {
 
 class LayerManager {
     floors: Floor[] = [];
-    width = window.innerWidth;
-    height = window.innerHeight;
 
     UUIDMap: Map<string, Shape> = new Map();
 
@@ -65,14 +63,12 @@ class LayerManager {
     }
 
     setWidth(width: number): void {
-        this.width = width;
         for (const layer of this.floors.flatMap(f => f.layers)) {
             layer.width = width;
         }
     }
 
     setHeight(height: number): void {
-        this.height = height;
         for (const layer of this.floors.flatMap(f => f.layers)) {
             layer.height = height;
         }

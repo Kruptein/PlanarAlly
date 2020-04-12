@@ -89,59 +89,7 @@
                     style="grid-column-start: remove;"
                     :disabled="!owned"
                 />
-                <div class="spanrow header">Access</div>
-                <template v-for="owner in shape.owners">
-                    <div style="grid-column-start: name;margin-bottom:5px;margin-left:5px;" :key="owner.user">
-                        {{ owner.user }}
-                    </div>
-                    <div
-                        :key="'ownerEdit-' + owner.user"
-                        :style="{
-                            opacity: owner.editAccess ? 1.0 : 0.3,
-                            textAlign: 'center',
-                            gridColumnStart: 'visible',
-                        }"
-                        :disabled="!owned"
-                        @click="toggleOwnerEditAccess(owner)"
-                        title="Toggle edit access"
-                    >
-                        <i class="fas fa-pencil-alt"></i>
-                    </div>
-                    <div
-                        :key="'ownerVision-' + owner.user"
-                        :style="{ opacity: owner.visionAccess ? 1.0 : 0.3, textAlign: 'center' }"
-                        :disabled="!owned"
-                        @click="toggleOwnerVisionAccess(owner)"
-                        title="Toggle vision access"
-                    >
-                        <i class="fas fa-lightbulb"></i>
-                    </div>
-                    <div
-                        :key="'remove-' + owner.user"
-                        @click="removeOwner(owner.user)"
-                        :style="{ opacity: owned ? 1.0 : 0.3, textAlign: 'center', gridColumnStart: 'remove' }"
-                        :disabled="!owned"
-                        title="Remove owner access"
-                    >
-                        <i class="fas fa-trash-alt"></i>
-                    </div>
-                </template>
-                <select
-                    style="grid-column: name/colour;margin-top:5px;"
-                    ref="accessDropdown"
-                    v-show="playersWithoutAccess.length > 0"
-                >
-                    <option v-for="player in playersWithoutAccess" :key="player.uuid" :disabled="!owned">
-                        {{ player.name }}
-                    </option>
-                </select>
-                <button
-                    style="grid-column: visible/end;margin-top:5px;"
-                    @click="addOwner"
-                    v-show="playersWithoutAccess.length > 0"
-                >
-                    Add access
-                </button>
+                <EditDialogAccess :shape="shape" :owned="owned" />
                 <div class="spanrow header">Trackers</div>
                 <template v-for="tracker in shape.trackers">
                     <input
@@ -297,6 +245,7 @@ import { Prop } from "vue-property-decorator";
 
 import ColorPicker from "@/core/components/colorpicker.vue";
 import Modal from "@/core/components/modals/modal.vue";
+import EditDialogAccess from "./access.vue";
 
 import { uuidv4 } from "@/core/utils";
 import { socket } from "@/game/api/socket";
@@ -305,11 +254,10 @@ import { layerManager } from "@/game/layers/manager";
 import { Shape } from "@/game/shapes/shape";
 import { gameStore } from "@/game/store";
 import { getVisionSources, addVisionSource, sliceVisionSources } from "@/game/visibility/utils";
-import { ShapeOwner } from "../../shapes/owners";
-import { ownerToServer } from "../../comm/types/shapes";
 
 @Component({
     components: {
+        EditDialogAccess,
         Modal,
         "color-picker": ColorPicker,
     },
@@ -317,22 +265,10 @@ import { ownerToServer } from "../../comm/types/shapes";
 export default class EditDialog extends Vue {
     @Prop() shape!: Shape;
 
-    $refs!: {
-        accessDropdown: HTMLSelectElement;
-    };
-
     visible = false;
 
     get owned(): boolean {
-        return this.shape.ownedBy();
-    }
-
-    get players(): { id: number; name: string }[] {
-        return gameStore.players;
-    }
-
-    get playersWithoutAccess(): { id: number; name: string }[] {
-        return gameStore.players.filter(p => !this.shape.hasOwner(p.name));
+        return this.shape.ownedBy({ editAccess: true });
     }
 
     mounted(): void {
@@ -429,31 +365,6 @@ export default class EditDialog extends Vue {
         }
         this.updateShape(false);
     }
-    addOwner(): void {
-        if (!this.owned) return;
-        const dropdown = this.$refs.accessDropdown;
-        const selectedUser = dropdown.options[dropdown.selectedIndex].value;
-        if (selectedUser === "") return;
-        this.shape.addOwner({ user: selectedUser, editAccess: true, visionAccess: true }, true);
-        if (gameStore.fowLOS) layerManager.invalidate(this.shape.floor);
-    }
-    removeOwner(value: string): void {
-        if (!this.owned) return;
-        this.shape.removeOwner(value, true);
-        if (gameStore.fowLOS) layerManager.invalidate(this.shape.floor);
-    }
-    toggleOwnerEditAccess(owner: ShapeOwner): void {
-        if (!this.owned) return;
-        owner.editAccess = !owner.editAccess;
-        socket.emit("Shape.Owner.Update", ownerToServer(owner));
-        if (gameStore.fowLOS) layerManager.invalidate(this.shape.floor);
-    }
-    toggleOwnerVisionAccess(owner: ShapeOwner): void {
-        if (!this.owned) return;
-        owner.visionAccess = !owner.visionAccess;
-        socket.emit("Shape.Owner.Update", ownerToServer(owner));
-        if (gameStore.fowLOS) layerManager.invalidate(this.shape.floor);
-    }
     removeTracker(uuid: string): void {
         if (!this.owned) return;
         this.shape.trackers = this.shape.trackers.filter(tr => tr.uuid !== uuid);
@@ -525,12 +436,12 @@ export default class EditDialog extends Vue {
     justify-content: space-between;
 }
 
-.header {
+::v-deep .header {
     line-height: 0.1em;
     margin: 20px 0 15px;
 }
 
-.header:after {
+::v-deep .header:after {
     position: absolute;
     right: 5px;
     width: 75%;
@@ -538,12 +449,8 @@ export default class EditDialog extends Vue {
     content: "";
 }
 
-.spanrow {
+::v-deep .spanrow {
     grid-column: 1 / end;
-}
-
-.owner-row #labels {
-    flex-wrap: wrap;
 }
 
 .label {

@@ -23,6 +23,8 @@ export interface ServerShape {
     options?: string;
     badge: number;
     show_badge: boolean;
+    default_edit_access: boolean;
+    default_vision_access: boolean;
 }
 
 export interface ServerShapeOwner {
@@ -82,4 +84,11 @@ export const ownerToServer = (owner: ShapeOwner): ServerShapeOwner => ({
     edit_access: owner.editAccess,
     // eslint-disable-next-line @typescript-eslint/camelcase
     vision_access: owner.visionAccess,
+});
+
+export const ownerToClient = (owner: ServerShapeOwner): ShapeOwner => ({
+    user: owner.user,
+    shape: owner.shape,
+    editAccess: owner.edit_access,
+    visionAccess: owner.vision_access,
 });

@@ -2,7 +2,7 @@ import { uuidv4 } from "@/core/utils";
 import { socket } from "@/game/api/socket";
 import { aurasFromServer, aurasToServer } from "@/game/comm/conversion/aura";
 import { InitiativeData } from "@/game/comm/types/general";
-import { ownerToServer, ServerShape } from "@/game/comm/types/shapes";
+import { ownerToClient, ownerToServer, ServerShape } from "@/game/comm/types/shapes";
 import { GlobalPoint, Vector } from "@/game/geom";
 import { layerManager } from "@/game/layers/manager";
 import { gameStore } from "@/game/store";
@@ -11,9 +11,9 @@ import { visibilityStore } from "@/game/visibility/store";
 import { TriangulationTarget } from "@/game/visibility/te/pa";
 import { addBlocker, getBlockers, getVisionSources, setVisionSources, sliceBlockers } from "@/game/visibility/utils";
 import tinycolor from "tinycolor2";
+import { PartialBy } from "../../core/types";
 import { BoundingRect } from "./boundingrect";
 import { ShapeOwner } from "./owners";
-import { PartialBy } from "../../core/types";
 
 export abstract class Shape {
     // Used to create class instance from server shape data
@@ -60,6 +60,9 @@ export abstract class Shape {
 
     badge = 1;
     showBadge = false;
+
+    defaultEditAccess = false;
+    defaultVisionAccess = false;
 
     constructor(refPoint: GlobalPoint, fillColour?: string, strokeColour?: string, uuid?: string) {
         this._refPoint = refPoint;
@@ -181,7 +184,7 @@ export abstract class Shape {
 
     setIsToken(isToken: boolean): void {
         this.isToken = isToken;
-        if (this.ownedBy()) {
+        if (this.ownedBy({ visionAccess: true })) {
             const i = gameStore.ownedtokens.indexOf(this.uuid);
             if (this.isToken && i === -1) gameStore.ownedtokens.push(this.uuid);
             else if (!this.isToken && i >= 0) gameStore.ownedtokens.splice(i, 1);
@@ -190,6 +193,7 @@ export abstract class Shape {
 
     abstract asDict(): ServerShape;
     getBaseDict(): ServerShape {
+        /* eslint-disable @typescript-eslint/camelcase */
         return {
             type_: this.type,
             uuid: this.uuid,
@@ -197,30 +201,24 @@ export abstract class Shape {
             y: this.refPoint.y,
             floor: this.floor,
             layer: this.layer,
-            // eslint-disable-next-line @typescript-eslint/camelcase
             draw_operator: this.globalCompositeOperation,
-            // eslint-disable-next-line @typescript-eslint/camelcase
             movement_obstruction: this.movementObstruction,
-            // eslint-disable-next-line @typescript-eslint/camelcase
             vision_obstruction: this.visionObstruction,
             auras: aurasToServer(this.auras),
             trackers: this.trackers,
             labels: this.labels,
             owners: this._owners.map(owner => ownerToServer(owner)),
-            // eslint-disable-next-line @typescript-eslint/camelcase
             fill_colour: this.fillColour,
-            // eslint-disable-next-line @typescript-eslint/camelcase
             stroke_colour: this.strokeColour,
             name: this.name,
-            // eslint-disable-next-line @typescript-eslint/camelcase
             name_visible: this.nameVisible,
             annotation: this.annotation,
-            // eslint-disable-next-line @typescript-eslint/camelcase
             is_token: this.isToken,
             options: JSON.stringify([...this.options]),
             badge: this.badge,
-            // eslint-disable-next-line @typescript-eslint/camelcase
             show_badge: this.showBadge,
+            default_edit_access: this.defaultEditAccess,
+            default_vision_access: this.defaultVisionAccess,
         };
     }
     fromDict(data: ServerShape): void {
@@ -232,18 +230,15 @@ export abstract class Shape {
         this.auras = aurasFromServer(data.auras);
         this.trackers = data.trackers;
         this.labels = data.labels;
-        this._owners = data.owners.map(owner => ({
-            user: owner.user,
-            shape: owner.shape,
-            editAccess: owner.edit_access,
-            visionAccess: owner.vision_access,
-        }));
+        this._owners = data.owners.map(owner => ownerToClient(owner));
         this.fillColour = data.fill_colour;
         this.strokeColour = data.stroke_colour;
         this.isToken = data.is_token;
         this.nameVisible = data.name_visible;
         this.badge = data.badge;
         this.showBadge = data.show_badge;
+        this.defaultEditAccess = data.default_edit_access;
+        this.defaultVisionAccess = data.default_vision_access;
         if (data.annotation) this.annotation = data.annotation;
         if (data.name) this.name = data.name;
         if (data.options) this.options = new Map(JSON.parse(data.options));
@@ -352,12 +347,18 @@ export abstract class Shape {
         return Object.freeze(this._owners.slice());
     }
 
-    ownedBy(username?: string): boolean {
-        if (username === undefined) username = gameStore.username;
+    ownedBy(options: Partial<{ editAccess: boolean; visionAccess: boolean }>): boolean {
         return (
             gameStore.IS_DM ||
-            this._owners.some(u => u.user === username) ||
-            (gameStore.FAKE_PLAYER && gameStore.activeTokens.includes(this.uuid))
+            (gameStore.FAKE_PLAYER && gameStore.activeTokens.includes(this.uuid)) ||
+            (options.editAccess && this.defaultEditAccess) ||
+            (options.visionAccess && this.defaultVisionAccess) ||
+            this._owners.some(
+                u =>
+                    u.user === gameStore.username &&
+                    (options.editAccess ? u.editAccess === true : true) &&
+                    (options.visionAccess ? u.visionAccess === true : true),
+            )
         );
     }
 
@@ -370,15 +371,39 @@ export abstract class Shape {
         if (fullOwner.shape !== this.uuid) return;
         if (!this.hasOwner(owner.user)) {
             this._owners.push(fullOwner);
+            if (owner.visionAccess && this.isToken) gameStore.ownedtokens.push(this.uuid);
             if (sync) socket.emit("Shape.Owner.Add", ownerToServer(fullOwner));
+            if (gameStore.fowLOS) layerManager.invalidateLightAllFloors();
         }
+    }
+
+    updateOwner(owner: PartialBy<ShapeOwner, "shape">, sync: boolean): void {
+        const fullOwner = { shape: this.uuid, ...owner };
+        if (fullOwner.shape !== this.uuid) return;
+        if (!this.hasOwner(owner.user)) return;
+        const targetOwner = this._owners.find(o => o.user === owner.user)!;
+        if (targetOwner.visionAccess !== fullOwner.visionAccess) {
+            const ownedIndex = gameStore.ownedtokens.indexOf(this.uuid);
+            if (fullOwner.visionAccess) {
+                if (ownedIndex === -1) gameStore.ownedtokens.push(this.uuid);
+            } else {
+                if (ownedIndex >= 0) gameStore.ownedtokens.splice(ownedIndex, 1);
+            }
+            targetOwner.visionAccess = fullOwner.visionAccess;
+        }
+        targetOwner.editAccess = fullOwner.editAccess;
+        if (sync) socket.emit("Shape.Owner.Update", ownerToServer(fullOwner));
+        if (gameStore.fowLOS) layerManager.invalidateLightAllFloors();
     }
 
     removeOwner(owner: string, sync: boolean): void {
         const ownerIndex = this._owners.findIndex(o => o.user === owner);
         if (ownerIndex < 0) return;
         const removed = this._owners.splice(ownerIndex, 1)[0];
+        const ownedIndex = gameStore.ownedtokens.indexOf(this.uuid);
+        if (ownedIndex >= 0) gameStore.ownedtokens.splice(ownedIndex, 1);
         if (sync) socket.emit("Shape.Owner.Delete", ownerToServer(removed));
+        if (gameStore.fowLOS) layerManager.invalidateLightAllFloors();
     }
 
     updatePoints(): void {

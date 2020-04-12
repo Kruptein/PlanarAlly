@@ -265,7 +265,7 @@ export default class Initiative extends Vue {
         if (this.cameraLock) {
             if (actorId !== null) {
                 const shape = layerManager.UUIDMap.get(actorId);
-                if (shape !== undefined && shape.ownedBy()) {
+                if (shape?.ownedBy({ visionAccess: true })) {
                     gameManager.setCenterPosition(shape.center());
                 }
             }

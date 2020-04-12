@@ -44,6 +44,8 @@ class Shape(BaseModel):
     options = TextField(null=True)
     badge = IntegerField(default=1)
     show_badge = BooleanField(default=False)
+    default_edit_access = BooleanField(default=False)
+    default_vision_access = BooleanField(default=False)
 
     def __repr__(self):
         return f"<Shape {self.get_path()}>"

@@ -49,7 +49,7 @@ import Vue from "vue";
 import Component from "vue-class-component";
 
 import Game from "@/game/game.vue";
-import EditDialog from "@/game/ui/selection/edit_dialog.vue";
+import EditDialog from "@/game/ui/selection/edit_dialog/dialog.vue";
 
 import { socket } from "@/game/api/socket";
 import { EventBus } from "@/game/event-bus";

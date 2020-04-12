@@ -343,6 +343,12 @@ def upgrade(version):
                 migrator.add_column(
                     "shape_owner", "vision_access", BooleanField(default=True)
                 ),
+                migrator.add_column(
+                    "shape", "default_edit_access", BooleanField(default=False)
+                ),
+                migrator.add_column(
+                    "shape", "default_vision_access", BooleanField(default=False)
+                ),
             )
         db.foreign_keys = True
         Constants.get().update(save_version=Constants.save_version + 1).execute()

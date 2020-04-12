@@ -34,6 +34,8 @@ To use the server together with a development version of the client instead use:
 
 `python planarserver.py dev`
 
+If both server and client are running you can launch PA by visiting http://localhost:8000
+
 ## Client
 
 The client is written in typescript, editing the javascript file directly is strongly discouraged and any pull request that only changes the js file will also be declined.

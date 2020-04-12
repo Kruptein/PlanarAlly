@@ -3,7 +3,7 @@ import configparser
 from utils import FILE_DIR
 
 config = configparser.ConfigParser()
-config.read(FILE_DIR / "server_config.cfg")
+config.read([FILE_DIR / "server_config.cfg", FILE_DIR / "data" / "server_config.cfg"])
 
 SAVE_FILE = config['General']['save_file']
 

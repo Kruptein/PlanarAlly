@@ -15,6 +15,7 @@ module.exports = {
             },
         },
     },
+    parallel: require("os").cpus().length > 1 && !process.env.CIRCLECI,
     // plugins: [
     //     new CircularDependencyPlugin({
     //         exclude: /a\.js|node_modules/,

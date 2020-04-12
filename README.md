@@ -39,7 +39,7 @@ For more information on how to use/install PA, see the documentation.
 
 User documentation can be found [here](https://planarally.io/docs/).
 
-This is still a work in progress, so some elements may still be undocumented or outdated.
+This is still a work in progress, so some elements may still be undocumented or outdated. If you wish to contribute to the docs, they are hosted in a different [repository](https://github.com/Kruptein/planarally-docs).
 
 # Contributing
 

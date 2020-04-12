@@ -20,6 +20,16 @@ export class FOWPlayersLayer extends Layer {
         this.vCtx = this.virtualCanvas.getContext("2d")!;
     }
 
+    setWidth(width: number): void {
+        super.setWidth(width);
+        this.virtualCanvas.width = width;
+    }
+
+    setHeight(height: number): void {
+        super.setHeight(height);
+        this.virtualCanvas.height = height;
+    }
+
     draw(): void {
         if (!this.valid) {
             // console.time("VI");

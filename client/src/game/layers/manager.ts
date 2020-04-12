@@ -67,16 +67,14 @@ class LayerManager {
     setWidth(width: number): void {
         this.width = width;
         for (const layer of this.floors.flatMap(f => f.layers)) {
-            layer.canvas.width = width;
-            layer.width = width;
+            layer.setWidth(width);
         }
     }
 
     setHeight(height: number): void {
         this.height = height;
         for (const layer of this.floors.flatMap(f => f.layers)) {
-            layer.canvas.height = height;
-            layer.height = height;
+            layer.setHeight(height);
         }
     }
 

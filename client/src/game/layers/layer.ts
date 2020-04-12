@@ -55,6 +55,16 @@ export class Layer {
         }
     }
 
+    setWidth(width: number): void {
+        this.canvas.width = width;
+        this.width = width;
+    }
+
+    setHeight(height: number): void {
+        this.canvas.height = height;
+        this.height = height;
+    }
+
     addShape(shape: Shape, sync: SyncMode, invalidate: InvalidationMode, snappable = true): void {
         shape.layer = this.name;
         shape.floor = this.floor;

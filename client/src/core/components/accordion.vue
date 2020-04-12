@@ -74,7 +74,6 @@ export default class Accordion extends Vue {
     </div>
 </template>
 
-
 <style scoped>
 .accordion {
     border: solid 2px #ff7052;

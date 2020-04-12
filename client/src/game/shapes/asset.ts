@@ -32,30 +32,33 @@ export class Asset extends BaseRect {
     draw(ctx: CanvasRenderingContext2D): void {
         super.draw(ctx);
         try {
-
             if (this.rotationDegrees == 0) {
                 ctx.drawImage(this.img, g2lx(this.refPoint.x), g2ly(this.refPoint.y), g2lz(this.w), g2lz(this.h));
             } else {
-
                 ctx.save();
 
                 // translate from the center of the image
-                ctx.translate((g2lx(this.refPoint.x) + (g2lz(this.w) / 2)), (g2ly(this.refPoint.y) + (g2lz(this.h) / 2)))
+                ctx.translate(g2lx(this.refPoint.x) + g2lz(this.w) / 2, g2ly(this.refPoint.y) + g2lz(this.h) / 2);
 
                 // rotate the canvas to the specified degrees
-                ctx.rotate(this.rotationDegrees * Math.PI / 180);
+                ctx.rotate((this.rotationDegrees * Math.PI) / 180);
 
                 // find the new 0,0 point
                 if (this.rotationDegrees == 90 || this.rotationDegrees == 270)
-                    ctx.translate(-(g2ly(this.refPoint.y) + (g2lz(this.h) / 2)), -(g2lx(this.refPoint.x) + (g2lz(this.w) / 2)))
+                    ctx.translate(
+                        -(g2ly(this.refPoint.y) + g2lz(this.h) / 2),
+                        -(g2lx(this.refPoint.x) + g2lz(this.w) / 2),
+                    );
                 else
-                    ctx.translate(-(g2lx(this.refPoint.x) + (g2lz(this.w) / 2)), -(g2ly(this.refPoint.y) + (g2lz(this.h) / 2)))
+                    ctx.translate(
+                        -(g2lx(this.refPoint.x) + g2lz(this.w) / 2),
+                        -(g2ly(this.refPoint.y) + g2lz(this.h) / 2),
+                    );
 
                 // draw the image
                 if (this.rotationDegrees == 90 || this.rotationDegrees == 270)
                     ctx.drawImage(this.img, g2ly(this.refPoint.y), g2lx(this.refPoint.x), g2lz(this.h), g2lz(this.w));
-                else
-                    ctx.drawImage(this.img, g2lx(this.refPoint.x), g2ly(this.refPoint.y), g2lz(this.w), g2lz(this.h));
+                else ctx.drawImage(this.img, g2lx(this.refPoint.x), g2ly(this.refPoint.y), g2lz(this.w), g2lz(this.h));
 
                 // we’re done with the rotating so restore the unrotated context
                 ctx.restore();

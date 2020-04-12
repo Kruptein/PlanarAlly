@@ -140,7 +140,7 @@ export class Polygon extends Shape {
 
         for (let i = 0; i < this._vertices.length; i++) {
             const vertex = this._vertices[i % this._vertices.length];
-            console.log(i + " " + vertex.x + " " + vertex.y)
+            console.log(i + " " + vertex.x + " " + vertex.y);
             newVertices[i] = this.rotatePoint(vertex, this.center(), degrees);
         }
 

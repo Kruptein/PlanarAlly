@@ -1,6 +1,6 @@
 // Developer Note: Rotation
 // In most shapes the Global Points making up the path of the shape are simply rotated on a centre point and replotted
-// We only allow 0, 90, 180 and 270 degrees 
+// We only allow 0, 90, 180 and 270 degrees
 //
 // On an Asset, we need to keep the rotationDegrees to ensure the image is drawn correctly
 // We change the Height and Width for 90 and 270 roations so the selection, resize and bisection code still works

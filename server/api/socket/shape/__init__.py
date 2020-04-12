@@ -58,9 +58,10 @@ async def add_shape(sid, data):
             # ShapeOwner.create(shape=shape, user=user)
             for owner in data["shape"]["owners"]:
                 ShapeOwner.create(
-                    **reduce_data_to_model(ShapeOwner, owner),
                     shape=shape,
-                    user=User.by_name(owner.user),
+                    user=User.by_name(owner["user"]),
+                    edit_access=owner["edit_access"],
+                    vision_access=owner["vision_access"],
                 )
             # Trackers
             for tracker in data["shape"]["trackers"]:

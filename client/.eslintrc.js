@@ -13,7 +13,7 @@ module.exports = {
         "@typescript-eslint/no-explicit-any": "off",
         "@typescript-eslint/no-non-null-assertion": "off",
         "@typescript-eslint/no-unused-vars": [
-            process.env.GITHUB_ACTION === "" ? 1 : 2,
+            process.env.GITHUB_ACTION === undefined ? 1 : 2,
             { argsIgnorePattern: "^_", varsIgnorePattern: "^_" },
         ],
         "@typescript-eslint/no-use-before-define": 0,

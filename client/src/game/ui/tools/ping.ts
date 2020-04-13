@@ -10,10 +10,11 @@ import { gameStore } from "@/game/store";
 import { l2g } from "@/game/units";
 import { getLocalPointFromEvent } from "@/game/utils";
 import { SyncMode, InvalidationMode } from "@/core/comm/types";
+import { ToolName } from "./utils";
 
 @Component
 export class PingTool extends Tool {
-    name = "Ping";
+    name = ToolName.Ping;
     active = false;
     startPoint: GlobalPoint | null = null;
     ping: Circle | null = null;

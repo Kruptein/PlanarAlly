@@ -1,4 +1,6 @@
 <script lang="ts">
+import Component from "vue-class-component";
+
 import Tool from "@/game/ui/tools/tool.vue";
 
 import { GlobalPoint } from "@/game/geom";
@@ -8,19 +10,79 @@ import { Rect } from "@/game/shapes/rect";
 import { gameStore } from "@/game/store";
 import { l2g } from "@/game/units";
 import { getLocalPointFromEvent } from "@/game/utils";
-import Component from "vue-class-component";
 import { SyncMode, InvalidationMode } from "../../../core/comm/types";
+import { SelectFeatures } from "./select.vue";
+import { ToolName, ToolPermission } from "./utils";
+import { EventBus } from "@/game/event-bus";
+import { Shape } from "@/game/shapes/shape";
 
 @Component
 export default class MapTool extends Tool {
-    name = "Map";
+    name = ToolName.Map;
     active = false;
     xCount = 3;
     yCount = 3;
     startPoint: GlobalPoint | null = null;
     rect: Rect | null = null;
+    shape: Shape | null = null;
+
+    shapeSelected = false;
+
+    permittedTools_: ToolPermission[] = [{ name: ToolName.Select, features: [SelectFeatures.ChangeSelection] }];
+
+    get permittedTools(): ToolPermission[] {
+        return this.permittedTools_;
+    }
+
+    // Life cycle
+
+    mounted(): void {
+        EventBus.$on("SelectionInfo.Shape.Set", (shape: Shape | null) => {
+            this.shapeSelected = shape !== null;
+        });
+    }
+
+    beforeDestroy(): void {
+        EventBus.$off("SelectionInfo.Shape.Set");
+    }
+
+    // End life cycle
+
+    removeRect(): void {
+        if (this.rect) {
+            const layer = layerManager.getLayer(layerManager.floor!.name)!;
+            layer.removeShape(this.rect, SyncMode.NO_SYNC);
+            this.rect = null;
+        }
+        this.permittedTools_ = [{ name: ToolName.Select, features: [SelectFeatures.ChangeSelection] }];
+        this.shapeSelected = false;
+        this.shape = null;
+    }
+
+    apply(): void {
+        if (this.rect === null) return;
+
+        const w = this.rect.w;
+        const h = this.rect.h;
+
+        if (this.shape instanceof BaseRect) {
+            this.shape.w *= (this.xCount * gameStore.gridSize) / w;
+            this.shape.h *= (this.yCount * gameStore.gridSize) / h;
+        }
+        this.removeRect();
+    }
+
+    onSelect(): void {
+        this.shapeSelected = (layerManager.getSelection()?.length || 0) === 1;
+    }
+
+    onDeselect(): void {
+        this.removeRect();
+    }
 
     onDown(startPoint: GlobalPoint): void {
+        if (this.rect !== null || !layerManager.hasSelection()) return;
+
         this.startPoint = startPoint;
         const layer = layerManager.getLayer(layerManager.floor!.name);
         if (layer === undefined) {
@@ -31,6 +93,8 @@ export default class MapTool extends Tool {
 
         this.rect = new Rect(this.startPoint.clone(), 0, 0, "rgba(0,0,0,0)", "black");
         layer.addShape(this.rect, SyncMode.NO_SYNC, InvalidationMode.NORMAL);
+        this.shape = layer.selection[0];
+        layer.selection = [this.rect];
     }
 
     onMove(endPoint: GlobalPoint): void {
@@ -60,20 +124,11 @@ export default class MapTool extends Tool {
         this.active = false;
 
         if (layer.selection.length !== 1) {
-            layer.removeShape(this.rect, SyncMode.NO_SYNC);
+            this.removeRect();
             return;
         }
 
-        const w = this.rect.w;
-        const h = this.rect.h;
-        const sel = layer.selection[0];
-
-        if (sel instanceof BaseRect) {
-            sel.w *= (this.xCount * gameStore.gridSize) / w;
-            sel.h *= (this.yCount * gameStore.gridSize) / h;
-        }
-
-        layer.removeShape(this.rect, SyncMode.NO_SYNC);
+        this.permittedTools_ = [{ name: ToolName.Select, features: [SelectFeatures.Drag, SelectFeatures.Resize] }];
     }
 
     onMouseDown(event: MouseEvent): void {
@@ -107,10 +162,101 @@ export default class MapTool extends Tool {
 </script>
 
 <template>
-    <div class="tool-detail" v-if="selected" :style="{ '--detailRight': detailRight, '--detailArrow': detailArrow }">
-        <div>#X</div>
-        <input type="text" v-model="xCount" />
-        <div>#Y</div>
-        <input type="text" v-model="yCount" />
+    <div
+        class="tool-detail map"
+        v-if="selected"
+        :style="{ '--detailRight': detailRight, '--detailArrow': detailArrow }"
+    >
+        <template v-if="shapeSelected">
+            <template v-if="rect === null">Drag an area you wish to resize</template>
+            <template v-else>
+                <div class="explanation">Set target grid cells</div>
+                <div>Horizontal</div>
+                <input type="text" v-model="xCount" class="hinput" />
+                <div>Vertical</div>
+                <input type="text" v-model="yCount" class="vinput" />
+                <div class="button apply" @click="apply">APPLY</div>
+                <div class="button cancel" @click="removeRect">CANCEL</div>
+            </template>
+        </template>
+        <template v-else>Please select a shape first.</template>
     </div>
 </template>
+
+<style scoped>
+.map {
+    display: grid;
+    grid-template-areas:
+        "text text"
+        "horiz hinput"
+        "verti vinput"
+        "submit cancel";
+}
+
+.map > * {
+    text-align: right;
+}
+
+.explanation {
+    grid-area: text;
+    text-align: center;
+    margin-bottom: 10px;
+    padding-bottom: 5px;
+    border-bottom: 1px solid black;
+}
+
+.horiz {
+    grid-area: horiz;
+    padding: 2px;
+}
+
+.verti {
+    grid-area: verti;
+    padding: 2px;
+}
+
+.hinput,
+.vinput {
+    width: 75px;
+    padding: 2px;
+}
+
+.hinput {
+    grid-area: hinput;
+}
+
+.vinput {
+    grid-area: vinput;
+}
+
+.button {
+    margin-top: 10px;
+    margin-bottom: 5px;
+    padding: 5px;
+    font-size: 15px;
+    font-weight: bold;
+    text-align: center;
+    font-style: italic;
+    border: solid 1px black;
+}
+.button:hover {
+    font-style: normal;
+    cursor: pointer;
+    margin-top: 8px;
+    margin-bottom: 7px;
+    box-shadow: 1px 3px;
+}
+
+.apply {
+    grid-area: submit;
+    font-weight: bold;
+    box-shadow: 1px 1px 0px black;
+}
+
+.cancel {
+    grid-area: cancel;
+    color: lightcoral;
+    border-color: lightcoral;
+    box-shadow: 1px 1px lightcoral;
+}
+</style>

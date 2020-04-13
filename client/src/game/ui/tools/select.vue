@@ -13,24 +13,33 @@ import { layerManager } from "@/game/layers/manager";
 import { snapToPoint } from "@/game/layers/utils";
 import { Rect } from "@/game/shapes/rect";
 import { gameStore } from "@/game/store";
-import { calculateDelta } from "@/game/ui/tools/utils";
+import { calculateDelta, ToolName } from "@/game/ui/tools/utils";
 import { g2l, g2lx, g2ly, l2g, l2gz } from "@/game/units";
 import { getLocalPointFromEvent, useSnapping } from "@/game/utils";
 import { visibilityStore } from "@/game/visibility/store";
 import { TriangulationTarget } from "@/game/visibility/te/pa";
 
-export enum SelectOperations {
+enum SelectOperations {
     Noop,
     Resize,
     Drag,
     GroupSelect,
 }
 
+export enum SelectFeatures {
+    ChangeSelection,
+    Context,
+    Drag,
+    GroupSelect,
+    Resize,
+    Snapping,
+}
+
 const start = new GlobalPoint(-1000, -1000);
 
 @Component
 export default class SelectTool extends Tool {
-    name = "Select";
+    name = ToolName.Select;
     showContextMenu = false;
     active = false;
 
@@ -43,12 +52,13 @@ export default class SelectTool extends Tool {
     dragRay = new Ray<LocalPoint>(new LocalPoint(0, 0), new Vector(0, 0));
     selectionStartPoint = start;
     selectionHelper = new Rect(start, 0, 0);
+
     created(): void {
         this.selectionHelper.globalCompositeOperation = "source-over";
         gameStore.setSelectionHelperId(this.selectionHelper.uuid);
     }
 
-    onDown(lp: LocalPoint, event: MouseEvent | TouchEvent): void {
+    onDown(lp: LocalPoint, event: MouseEvent | TouchEvent, features: SelectFeatures[]): void {
         const gp = l2g(lp);
         const layer = layerManager.getLayer(layerManager.floor!.name);
         if (layer === undefined) {
@@ -61,16 +71,19 @@ export default class SelectTool extends Tool {
         }
 
         let hit = false;
+
         // The selectionStack allows for lower positioned objects that are selected to have precedence during overlap.
         let selectionStack;
-        if (!layer.selection.length) selectionStack = layer.shapes;
+        if (!this.hasFeature(SelectFeatures.ChangeSelection, features)) selectionStack = layer.selection;
+        else if (!layer.selection.length) selectionStack = layer.shapes;
         else selectionStack = layer.shapes.concat(layer.selection);
+
         for (let i = selectionStack.length - 1; i >= 0; i--) {
             const shape = selectionStack[i];
 
             this.resizePoint = shape.getPointIndex(gp, l2gz(5));
 
-            if (this.resizePoint >= 0) {
+            if (this.resizePoint >= 0 && this.hasFeature(SelectFeatures.Resize, features)) {
                 // Resize case, a corner is selected
                 layer.selection = [shape];
                 this.originalResizePoints = shape.points;
@@ -80,7 +93,6 @@ export default class SelectTool extends Tool {
                 hit = true;
                 break;
             } else if (shape.contains(gp)) {
-                // Drag case, a shape is selected
                 const selection = shape;
                 if (layer.selection.indexOf(selection) === -1) {
                     if (event.ctrlKey) {
@@ -90,9 +102,12 @@ export default class SelectTool extends Tool {
                     }
                     EventBus.$emit("SelectionInfo.Shape.Set", selection);
                 }
-                this.mode = SelectOperations.Drag;
-                const localRefPoint = g2l(selection.refPoint);
-                this.dragRay = Ray.fromPoints(localRefPoint, lp);
+                // Drag case, a shape is selected
+                if (this.hasFeature(SelectFeatures.Drag, features)) {
+                    this.mode = SelectOperations.Drag;
+                    const localRefPoint = g2l(selection.refPoint);
+                    this.dragRay = Ray.fromPoints(localRefPoint, lp);
+                }
                 layer.invalidate(true);
                 hit = true;
                 break;
@@ -101,6 +116,8 @@ export default class SelectTool extends Tool {
 
         // GroupSelect case, draw a selection box to select multiple shapes
         if (!hit) {
+            if (!this.hasFeature(SelectFeatures.ChangeSelection, features)) return;
+            if (!this.hasFeature(SelectFeatures.GroupSelect, features)) return;
             this.mode = SelectOperations.GroupSelect;
             for (const selection of layer.selection) EventBus.$emit("SelectionInfo.Shape.Set", selection);
 
@@ -117,10 +134,10 @@ export default class SelectTool extends Tool {
             }
             layer.invalidate(true);
         }
-        this.active = true;
+        if (this.mode !== SelectOperations.Noop) this.active = true;
     }
 
-    onMove(lp: LocalPoint, gp: GlobalPoint, event: MouseEvent | TouchEvent): void {
+    onMove(lp: LocalPoint, gp: GlobalPoint, event: MouseEvent | TouchEvent, features: SelectFeatures[]): void {
         // if (!this.active) return;   we require mousemove for the resize cursor
         const layer = layerManager.getLayer(layerManager.floor!.name);
         if (layer === undefined) {
@@ -188,7 +205,7 @@ export default class SelectTool extends Tool {
                     if (this.resizePoint >= 0)
                         ignorePoint = GlobalPoint.fromArray(this.originalResizePoints[this.resizePoint]);
                     let targetPoint = gp;
-                    if (useSnapping(event))
+                    if (useSnapping(event) && this.hasFeature(SelectFeatures.Snapping, features))
                         targetPoint = snapToPoint(layerManager.getLayer(layerManager.floor!.name)!, gp, ignorePoint);
                     this.resizePoint = sel.resize(this.resizePoint, targetPoint);
                     if (sel !== this.selectionHelper) {
@@ -210,7 +227,7 @@ export default class SelectTool extends Tool {
         }
     }
 
-    onUp(e: MouseEvent | TouchEvent): void {
+    onUp(e: MouseEvent | TouchEvent, features: SelectFeatures[]): void {
         if (!this.active) return;
         if (layerManager.getLayer(layerManager.floor!.name) === undefined) {
             console.log("No active layer!");
@@ -252,7 +269,12 @@ export default class SelectTool extends Tool {
                     )
                         continue;
 
-                    if (gameStore.useGrid && useSnapping(e) && !this.deltaChanged) {
+                    if (
+                        gameStore.useGrid &&
+                        useSnapping(e) &&
+                        this.hasFeature(SelectFeatures.Snapping, features) &&
+                        !this.deltaChanged
+                    ) {
                         if (sel.visionObstruction)
                             visibilityStore.deleteFromTriag({
                                 target: TriangulationTarget.VISION,
@@ -282,7 +304,7 @@ export default class SelectTool extends Tool {
                     layer.invalidate(false);
                 }
                 if (this.mode === SelectOperations.Resize) {
-                    if (gameStore.useGrid && useSnapping(e)) {
+                    if (gameStore.useGrid && useSnapping(e) && this.hasFeature(SelectFeatures.Snapping, features)) {
                         if (sel.visionObstruction)
                             visibilityStore.deleteFromTriag({
                                 target: TriangulationTarget.VISION,
@@ -315,37 +337,38 @@ export default class SelectTool extends Tool {
         this.active = false;
     }
 
-    onMouseDown(event: MouseEvent): void {
+    onMouseDown(event: MouseEvent, features: SelectFeatures[]): void {
         const localPoint = getLocalPointFromEvent(event);
-        this.onDown(localPoint, event);
+        this.onDown(localPoint, event, features);
     }
 
-    onMouseMove(event: MouseEvent): void {
-        const localPoint = getLocalPointFromEvent(event);
-        const globalPoint = l2g(localPoint);
-        this.onMove(localPoint, globalPoint, event);
-    }
-
-    onMouseUp(event: MouseEvent): void {
-        this.onUp(event);
-    }
-
-    onTouchStart(event: TouchEvent): void {
-        const localPoint = getLocalPointFromEvent(event);
-        this.onDown(localPoint, event);
-    }
-
-    onTouchMove(event: TouchEvent): void {
+    onMouseMove(event: MouseEvent, features: SelectFeatures[]): void {
         const localPoint = getLocalPointFromEvent(event);
         const globalPoint = l2g(localPoint);
-        this.onMove(localPoint, globalPoint, event);
+        this.onMove(localPoint, globalPoint, event, features);
     }
 
-    onTouchEnd(event: TouchEvent): void {
-        this.onUp(event);
+    onMouseUp(event: MouseEvent, features: SelectFeatures[]): void {
+        this.onUp(event, features);
     }
 
-    onContextMenu(event: MouseEvent): void {
+    onTouchStart(event: TouchEvent, features: SelectFeatures[]): void {
+        const localPoint = getLocalPointFromEvent(event);
+        this.onDown(localPoint, event, features);
+    }
+
+    onTouchMove(event: TouchEvent, features: SelectFeatures[]): void {
+        const localPoint = getLocalPointFromEvent(event);
+        const globalPoint = l2g(localPoint);
+        this.onMove(localPoint, globalPoint, event, features);
+    }
+
+    onTouchEnd(event: TouchEvent, features: SelectFeatures[]): void {
+        this.onUp(event, features);
+    }
+
+    onContextMenu(event: MouseEvent, features: SelectFeatures[]): void {
+        if (!this.hasFeature(SelectFeatures.Context, features)) return;
         if (layerManager.getLayer(layerManager.floor!.name) === undefined) {
             console.log("No active layer!");
             return;

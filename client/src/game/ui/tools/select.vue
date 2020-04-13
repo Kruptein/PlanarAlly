@@ -92,8 +92,7 @@ export default class SelectTool extends Tool {
                 layer.invalidate(true);
                 hit = true;
                 break;
-            } else if (shape.contains(gp) && this.hasFeature(SelectFeatures.Drag, features)) {
-                // Drag case, a shape is selected
+            } else if (shape.contains(gp)) {
                 const selection = shape;
                 if (layer.selection.indexOf(selection) === -1) {
                     if (event.ctrlKey) {
@@ -103,9 +102,12 @@ export default class SelectTool extends Tool {
                     }
                     EventBus.$emit("SelectionInfo.Shape.Set", selection);
                 }
-                this.mode = SelectOperations.Drag;
-                const localRefPoint = g2l(selection.refPoint);
-                this.dragRay = Ray.fromPoints(localRefPoint, lp);
+                // Drag case, a shape is selected
+                if (this.hasFeature(SelectFeatures.Drag, features)) {
+                    this.mode = SelectOperations.Drag;
+                    const localRefPoint = g2l(selection.refPoint);
+                    this.dragRay = Ray.fromPoints(localRefPoint, lp);
+                }
                 layer.invalidate(true);
                 hit = true;
                 break;
@@ -132,7 +134,7 @@ export default class SelectTool extends Tool {
             }
             layer.invalidate(true);
         }
-        this.active = true;
+        if (this.mode !== SelectOperations.Noop) this.active = true;
     }
 
     onMove(lp: LocalPoint, gp: GlobalPoint, event: MouseEvent | TouchEvent, features: SelectFeatures[]): void {

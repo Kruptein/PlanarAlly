@@ -17,9 +17,11 @@ export function onKeyUp(event: KeyboardEvent): void {
             deleteShapes();
         }
         if (event.key === " ") {
-            const tokens = gameStore.ownedtokens.map(o => layerManager.UUIDMap.get(o)!.center());
-            const i = tokens.findIndex(o => o.equals(gameStore.screenCenter));
-            gameManager.setCenterPosition(tokens[(i + 1) % tokens.length]);
+            const tokens = gameStore.ownedtokens.map(o => layerManager.UUIDMap.get(o)!);
+            const i = tokens.findIndex(o => o.center().equals(gameStore.screenCenter));
+            const token = tokens[(i + 1) % tokens.length];
+            gameManager.setCenterPosition(token.center());
+            gameStore.selectFloor(token.floor);
         }
     }
 }

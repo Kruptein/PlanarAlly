@@ -25,6 +25,7 @@ import { getUnitDistance, l2g, g2lx, g2ly } from "@/game/units";
 import { equalPoints, getLocalPointFromEvent, useSnapping } from "@/game/utils";
 import { visibilityStore } from "@/game/visibility/store";
 import { TriangulationTarget, insertConstraint, getCDT } from "@/game/visibility/te/pa";
+import { ToolName } from "./utils";
 
 @Component({
     components: {
@@ -37,7 +38,7 @@ import { TriangulationTarget, insertConstraint, getCDT } from "@/game/visibility
 export default class DrawTool extends Tool {
     selectedLayer!: string;
 
-    name = "Draw";
+    name = ToolName.Draw;
     active = false;
 
     startPoint: GlobalPoint | null = null;

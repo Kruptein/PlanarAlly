@@ -4,6 +4,17 @@ import { getCDT, TriangulationTarget } from "@/game/visibility/te/pa";
 import { Point, Sign, Triangle } from "@/game/visibility/te/tds";
 import { ccw, cw, intersection, orientation } from "@/game/visibility/te/triag";
 
+export enum ToolName {
+    Select = "Select",
+    Pan = "Pan",
+    Draw = "Draw",
+    Ruler = "Ruler",
+    Ping = "Ping",
+    Map = "Map",
+    Filter = "Filter",
+    Vision = "Vision",
+}
+
 // First go through each shape in the selection and see if the delta has to be truncated due to movement blockers
 
 // This is definitely super convoluted and inefficient but I was tired and really wanted the smooth wall sliding collision stuff to work

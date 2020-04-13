@@ -1,4 +1,6 @@
 <script lang="ts">
+import Component from "vue-class-component";
+
 import Tool from "@/game/ui/tools/tool.vue";
 
 import { GlobalPoint } from "@/game/geom";
@@ -8,19 +10,42 @@ import { Rect } from "@/game/shapes/rect";
 import { gameStore } from "@/game/store";
 import { l2g } from "@/game/units";
 import { getLocalPointFromEvent } from "@/game/utils";
-import Component from "vue-class-component";
 import { SyncMode, InvalidationMode } from "../../../core/comm/types";
+import { SelectFeatures } from "./select.vue";
+import { ToolName } from "./utils";
 
 @Component
 export default class MapTool extends Tool {
-    name = "Map";
+    name = ToolName.Map;
     active = false;
     xCount = 3;
     yCount = 3;
     startPoint: GlobalPoint | null = null;
     rect: Rect | null = null;
 
+    get permittedTools(): { name: ToolName; features: number[] }[] {
+        return [{ name: ToolName.Select, features: [SelectFeatures.Drag, SelectFeatures.Resize] }];
+    }
+
+    shapeSelected(): boolean {
+        return (layerManager.getSelection()?.length || 0) > 0;
+    }
+
+    removeRect(): void {
+        if (this.rect) {
+            const layer = layerManager.getLayer(layerManager.floor!.name)!;
+            layer.removeShape(this.rect, SyncMode.NO_SYNC);
+            this.rect = null;
+        }
+    }
+
+    onDeselect(): void {
+        this.removeRect();
+    }
+
     onDown(startPoint: GlobalPoint): void {
+        if (this.rect !== null) return;
+
         this.startPoint = startPoint;
         const layer = layerManager.getLayer(layerManager.floor!.name);
         if (layer === undefined) {
@@ -31,6 +56,7 @@ export default class MapTool extends Tool {
 
         this.rect = new Rect(this.startPoint.clone(), 0, 0, "rgba(0,0,0,0)", "black");
         layer.addShape(this.rect, SyncMode.NO_SYNC, InvalidationMode.NORMAL);
+        layer.selection = [this.rect];
     }
 
     onMove(endPoint: GlobalPoint): void {
@@ -60,20 +86,18 @@ export default class MapTool extends Tool {
         this.active = false;
 
         if (layer.selection.length !== 1) {
-            layer.removeShape(this.rect, SyncMode.NO_SYNC);
+            this.removeRect();
             return;
         }
 
-        const w = this.rect.w;
-        const h = this.rect.h;
-        const sel = layer.selection[0];
+        // const w = this.rect.w;
+        // const h = this.rect.h;
+        // const sel = layer.selection[0];
 
-        if (sel instanceof BaseRect) {
-            sel.w *= (this.xCount * gameStore.gridSize) / w;
-            sel.h *= (this.yCount * gameStore.gridSize) / h;
-        }
-
-        layer.removeShape(this.rect, SyncMode.NO_SYNC);
+        // if (sel instanceof BaseRect) {
+        //     sel.w *= (this.xCount * gameStore.gridSize) / w;
+        //     sel.h *= (this.yCount * gameStore.gridSize) / h;
+        // }
     }
 
     onMouseDown(event: MouseEvent): void {
@@ -108,9 +132,15 @@ export default class MapTool extends Tool {
 
 <template>
     <div class="tool-detail" v-if="selected" :style="{ '--detailRight': detailRight, '--detailArrow': detailArrow }">
-        <div>#X</div>
-        <input type="text" v-model="xCount" />
-        <div>#Y</div>
-        <input type="text" v-model="yCount" />
+        <div v-if="shapeSelected()">
+            <div v-if="rect === null">Drag an area you wish to resize</div>
+            <div v-else>
+                <div>#X</div>
+                <input type="text" v-model="xCount" />
+                <div>#Y</div>
+                <input type="text" v-model="yCount" />
+            </div>
+        </div>
+        <div v-else>Please select a shape first.</div>
     </div>
 </template>

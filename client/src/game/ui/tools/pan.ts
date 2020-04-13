@@ -7,10 +7,11 @@ import { LocalPoint } from "@/game/geom";
 import { layerManager } from "@/game/layers/manager";
 import { gameStore } from "@/game/store";
 import { getLocalPointFromEvent } from "@/game/utils";
+import { ToolName } from "./utils";
 
 @Component
 export default class PanTool extends Tool {
-    name = "Pan";
+    name = ToolName.Pan;
     panStart = new LocalPoint(0, 0);
     active = false;
 

@@ -7,6 +7,7 @@ import Tool from "@/game/ui/tools/tool.vue";
 import { socket } from "@/game/api/socket";
 import { layerManager } from "@/game/layers/manager";
 import { gameStore } from "@/game/store";
+import { ToolName } from "./utils";
 
 @Component({
     components: {
@@ -14,7 +15,7 @@ import { gameStore } from "@/game/store";
     },
 })
 export default class FilterTool extends Tool {
-    name = "Filter";
+    name = ToolName.Filter;
     active = false;
 
     get labels(): { [category: string]: [string, string][] } {

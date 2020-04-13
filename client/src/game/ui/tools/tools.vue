@@ -1,5 +1,6 @@
 <script lang="ts">
 import Vue from "vue";
+import Component from "vue-class-component";
 
 import ShapeContext from "@/game/ui/selection/shapecontext.vue";
 import CreateTokenModal from "@/game/ui/tools/createtoken_modal.vue";
@@ -9,6 +10,7 @@ import FilterTool from "@/game/ui/tools/filter.vue";
 import MapTool from "@/game/ui/tools/map.vue";
 import PanTool from "@/game/ui/tools/pan";
 import SelectTool from "@/game/ui/tools/select.vue";
+import Tool from "./tool.vue";
 import VisionTool from "@/game/ui/tools/vision.vue";
 
 import { layerManager } from "@/game/layers/manager";
@@ -18,21 +20,21 @@ import { PingTool } from "@/game/ui/tools/ping";
 import { RulerTool } from "@/game/ui/tools/ruler";
 import { l2g } from "@/game/units";
 import { getLocalPointFromEvent } from "@/game/utils";
-import Component from "vue-class-component";
+import { ToolName } from "./utils";
 
 @Component({
     components: {
-        "select-tool": SelectTool,
-        "pan-tool": PanTool,
-        "draw-tool": DrawTool,
-        "ruler-tool": RulerTool,
-        "ping-tool": PingTool,
-        "map-tool": MapTool,
-        "filter-tool": FilterTool,
-        "vision-tool": VisionTool,
-        "shape-menu": ShapeContext,
-        "default-menu": DefaultContext,
-        "createtoken-dialog": CreateTokenModal,
+        SelectTool,
+        PanTool,
+        DrawTool,
+        RulerTool,
+        PingTool,
+        MapTool,
+        FilterTool,
+        VisionTool,
+        ShapeContext,
+        DefaultContext,
+        CreateTokenModal,
     },
     watch: {
         currentTool(newValue, oldValue) {
@@ -43,18 +45,38 @@ import Component from "vue-class-component";
 export default class Tools extends Vue {
     $refs!: {
         selectTool: InstanceType<typeof SelectTool>;
+        panTool: InstanceType<typeof PanTool>;
+        drawTool: InstanceType<typeof PanTool>;
+        rulerTool: InstanceType<typeof PanTool>;
+        pingTool: InstanceType<typeof PanTool>;
+        mapTool: InstanceType<typeof PanTool>;
+        filterTool: InstanceType<typeof PanTool>;
+        visionTool: InstanceType<typeof PanTool>;
     };
 
-    currentTool = "Select";
-    tools = ["Select", "Pan", "Draw", "Ruler", "Ping", "Map", "Filter", "Vision"];
-    dmTools = ["Map"];
+    currentTool = ToolName.Select;
+    tools = Object.values(ToolName);
+    dmTools = [ToolName.Map];
+
+    getComponentMap(): { [key in ToolName]: InstanceType<typeof Tool> } {
+        return {
+            [ToolName.Select]: this.$refs.selectTool,
+            [ToolName.Pan]: this.$refs.panTool,
+            [ToolName.Draw]: this.$refs.drawTool,
+            [ToolName.Ruler]: this.$refs.rulerTool,
+            [ToolName.Ping]: this.$refs.pingTool,
+            [ToolName.Map]: this.$refs.mapTool,
+            [ToolName.Filter]: this.$refs.filterTool,
+            [ToolName.Vision]: this.$refs.visionTool,
+        };
+    }
 
     get IS_DM(): boolean {
         return gameStore.IS_DM;
     }
 
-    get currentToolComponent(): string {
-        return `${this.currentTool.toLowerCase()}-tool`;
+    getCurrentToolComponent(): Tool {
+        return this.getComponentMap()[this.currentTool];
     }
 
     get visibleTools(): string[] {
@@ -75,7 +97,7 @@ export default class Tools extends Vue {
 
         let targetTool = this.currentTool;
         if (event.button === 1) {
-            targetTool = "Pan";
+            targetTool = ToolName.Pan;
         } else if (event.button !== 0) {
             return;
         }
@@ -87,7 +109,7 @@ export default class Tools extends Vue {
 
         let targetTool = this.currentTool;
         if (event.button === 1) {
-            targetTool = "Pan";
+            targetTool = ToolName.Pan;
         } else if (event.button !== 0) {
             return;
         }
@@ -100,7 +122,7 @@ export default class Tools extends Vue {
         let targetTool = this.currentTool;
         // force targetTool to pan if hitting mouse wheel
         if ((event.buttons & 4) !== 0) {
-            targetTool = "Pan";
+            targetTool = ToolName.Pan;
         } else if ((event.button & 1) > 1) {
             return;
         }
@@ -193,19 +215,19 @@ export default class Tools extends Vue {
         </div>
         <div>
             <template>
-                <select-tool v-show="currentTool === 'Select'" ref="selectTool"></select-tool>
-                <pan-tool v-show="currentTool === 'Pan'"></pan-tool>
+                <SelectTool v-show="currentTool === 'Select'" ref="selectTool"></SelectTool>
+                <PanTool v-show="currentTool === 'Pan'" ref="panTool"></PanTool>
                 <keep-alive>
-                    <draw-tool v-show="currentTool === 'Draw'"></draw-tool>
+                    <DrawTool v-show="currentTool === 'Draw'" ref="drawTool"></DrawTool>
                 </keep-alive>
-                <ruler-tool v-show="currentTool === 'Ruler'"></ruler-tool>
-                <ping-tool v-show="currentTool === 'Ping'"></ping-tool>
-                <map-tool v-show="currentTool === 'Map'"></map-tool>
-                <filter-tool v-show="currentTool === 'Filter'"></filter-tool>
-                <vision-tool v-show="currentTool === 'Vision'"></vision-tool>
-                <shape-menu ref="shapecontext"></shape-menu>
-                <default-menu ref="defaultcontext"></default-menu>
-                <createtoken-dialog ref="createtokendialog"></createtoken-dialog>
+                <RulerTool v-show="currentTool === 'Ruler'" ref="rulerTool"></RulerTool>
+                <PingTool v-show="currentTool === 'Ping'" ref="pingTool"></PingTool>
+                <MapTool v-show="currentTool === 'Map'" ref="mapTool"></MapTool>
+                <FilterTool v-show="currentTool === 'Filter'" ref="filterTool"></FilterTool>
+                <VisionTool v-show="currentTool === 'Vision'" ref="visionTool"></VisionTool>
+                <ShapeContext ref="shapecontext"></ShapeContext>
+                <DefaultContext ref="defaultcontext"></DefaultContext>
+                <CreateTokenModal ref="createtokendialog"></CreateTokenModal>
             </template>
         </div>
     </div>

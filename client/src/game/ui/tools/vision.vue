@@ -6,10 +6,11 @@ import Tool from "@/game/ui/tools/tool.vue";
 import { layerManager } from "@/game/layers/manager";
 import { gameStore } from "@/game/store";
 import { Shape } from "../../shapes/shape";
+import { ToolName } from "./utils";
 
 @Component
 export default class VisionTool extends Tool {
-    name = "Vision";
+    name = ToolName.Vision;
     active = false;
 
     get selection(): string[] {

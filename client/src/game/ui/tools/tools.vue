@@ -37,8 +37,13 @@ import { ToolName } from "./utils";
         CreateTokenModal,
     },
     watch: {
-        currentTool(newValue, oldValue) {
-            this.$emit("tools-select-change", newValue, oldValue);
+        currentTool(newValue: ToolName, oldValue: ToolName) {
+            const old = (<Tools>this).componentMap[oldValue];
+            old.selected = false;
+            old.onDeselect();
+            const new_ = (<Tools>this).componentMap[newValue];
+            new_.selected = true;
+            new_.onSelect();
         },
     },
 })
@@ -54,12 +59,10 @@ export default class Tools extends Vue {
         visionTool: InstanceType<typeof PanTool>;
     };
 
-    currentTool = ToolName.Select;
-    tools = Object.values(ToolName);
-    dmTools = [ToolName.Map];
+    private componentmap_: { [key in ToolName]: InstanceType<typeof Tool> } = <any>{};
 
-    getComponentMap(): { [key in ToolName]: InstanceType<typeof Tool> } {
-        return {
+    mounted(): void {
+        this.componentmap_ = {
             [ToolName.Select]: this.$refs.selectTool,
             [ToolName.Pan]: this.$refs.panTool,
             [ToolName.Draw]: this.$refs.drawTool,
@@ -71,12 +74,20 @@ export default class Tools extends Vue {
         };
     }
 
+    currentTool = ToolName.Select;
+    tools = Object.values(ToolName);
+    dmTools = [ToolName.Map];
+
+    get componentMap(): { [key in ToolName]: InstanceType<typeof Tool> } {
+        return this.componentmap_;
+    }
+
     get IS_DM(): boolean {
         return gameStore.IS_DM;
     }
 
     getCurrentToolComponent(): Tool {
-        return this.getComponentMap()[this.currentTool];
+        return this.componentMap[this.currentTool];
     }
 
     get visibleTools(): string[] {
@@ -102,7 +113,10 @@ export default class Tools extends Vue {
             return;
         }
 
-        this.$emit("mousedown", event, targetTool);
+        const tool = this.componentMap[targetTool];
+        tool.onMouseDown(event, []);
+        for (const permitted of tool.permittedTools)
+            this.componentMap[permitted.name].onMouseDown(event, permitted.features);
     }
     mouseup(event: MouseEvent): void {
         if ((<HTMLElement>event.target).tagName !== "CANVAS") return;
@@ -114,7 +128,10 @@ export default class Tools extends Vue {
             return;
         }
 
-        this.$emit("mouseup", event, targetTool);
+        const tool = this.componentMap[targetTool];
+        tool.onMouseUp(event, []);
+        for (const permitted of tool.permittedTools)
+            this.componentMap[permitted.name].onMouseUp(event, permitted.features);
     }
     mousemove(event: MouseEvent): void {
         if ((<HTMLElement>event.target).tagName !== "CANVAS") return;
@@ -127,7 +144,10 @@ export default class Tools extends Vue {
             return;
         }
 
-        this.$emit("mousemove", event, targetTool);
+        const tool = this.componentMap[targetTool];
+        tool.onMouseMove(event, []);
+        for (const permitted of tool.permittedTools)
+            this.componentMap[permitted.name].onMouseMove(event, permitted.features);
 
         // Annotation hover
         let found = false;
@@ -147,37 +167,76 @@ export default class Tools extends Vue {
     mouseleave(event: MouseEvent): void {
         // When leaving the window while a mouse is pressed down, act as if it was released
         if ((event.buttons & 1) !== 0) {
-            this.$emit("mouseup", event, this.currentTool);
+            const tool = this.componentMap[this.currentTool];
+            tool.onMouseUp(event, []);
+            for (const permitted of tool.permittedTools)
+                this.componentMap[permitted.name].onMouseUp(event, permitted.features);
         }
     }
     contextmenu(event: MouseEvent): void {
         if ((<HTMLElement>event.target).tagName !== "CANVAS") return;
         if (event.button !== 2 || (<HTMLElement>event.target).tagName !== "CANVAS") return;
-        this.$emit("contextmenu", event, this.currentTool);
+        const tool = this.componentMap[this.currentTool];
+        tool.onContextMenu(event, []);
+        for (const permitted of tool.permittedTools)
+            this.componentMap[permitted.name].onContextMenu(event, permitted.features);
     }
 
     touchstart(event: TouchEvent): void {
         if ((<HTMLElement>event.target).tagName !== "CANVAS") return;
 
-        const targetTool = this.currentTool;
+        const tool = this.componentMap[this.currentTool];
 
-        this.$emit("touchstart", event, targetTool);
+        if (event.touches.length === 2) {
+            tool.scaling = true;
+        }
+
+        if (tool.scaling) tool.onPinchStart(event, []);
+        else tool.onTouchStart(event, []);
+        for (const permitted of tool.permittedTools) {
+            const otherTool = this.componentMap[permitted.name];
+            otherTool.scaling = tool.scaling;
+            if (otherTool.scaling) otherTool.onPinchStart(event, permitted.features);
+            else otherTool.onTouchStart(event, permitted.features);
+        }
     }
 
     touchend(event: TouchEvent): void {
         if ((<HTMLElement>event.target).tagName !== "CANVAS") return;
 
-        const targetTool = this.currentTool;
+        const tool = this.componentMap[this.currentTool];
 
-        this.$emit("touchend", event, targetTool);
+        if (tool.scaling) tool.onPinchEnd(event, []);
+        else tool.onTouchEnd(event, []);
+        tool.scaling = false;
+        for (const permitted of tool.permittedTools) {
+            const otherTool = this.componentMap[permitted.name];
+            if (otherTool.scaling) otherTool.onPinchEnd(event, permitted.features);
+            else otherTool.onTouchEnd(event, permitted.features);
+            otherTool.scaling = false;
+        }
     }
 
     touchmove(event: TouchEvent): void {
         if ((<HTMLElement>event.target).tagName !== "CANVAS") return;
 
-        const targetTool = this.currentTool;
+        const tool = this.componentMap[this.currentTool];
 
-        this.$emit("touchmove", event, targetTool);
+        if (tool.scaling) {
+            event.preventDefault();
+            tool.onPinchMove(event, []);
+        } else if (event.touches.length >= 3) {
+            tool.onThreeTouchMove(event, []);
+        } else {
+            tool.onTouchMove(event, []);
+        }
+
+        for (const permitted of tool.permittedTools) {
+            const otherTool = this.componentMap[permitted.name];
+            if (otherTool.scaling) otherTool.onPinchMove(event, permitted.features);
+            else if (event.touches.length >= 3) otherTool.onThreeTouchMove(event, permitted.features);
+            else otherTool.onTouchMove(event, permitted.features);
+        }
 
         // Annotation hover
         let found = false;

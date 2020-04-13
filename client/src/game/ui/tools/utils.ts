@@ -15,6 +15,8 @@ export enum ToolName {
     Vision = "Vision",
 }
 
+export type ToolPermission = { name: ToolName; features: number[] };
+
 // First go through each shape in the selection and see if the delta has to be truncated due to movement blockers
 
 // This is definitely super convoluted and inefficient but I was tired and really wanted the smooth wall sliding collision stuff to work

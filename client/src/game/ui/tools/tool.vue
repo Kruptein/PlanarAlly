@@ -4,7 +4,7 @@ import Component from "vue-class-component";
 
 import DefaultContext from "@/game/ui/tools/defaultcontext.vue";
 import Tools from "./tools.vue";
-import { ToolName } from "./utils";
+import { ToolName, ToolPermission } from "./utils";
 
 @Component
 export default class Tool extends Vue {
@@ -13,23 +13,12 @@ export default class Tool extends Vue {
     active = false;
     scaling = false;
 
-    get permittedTools(): { name: ToolName; features: number[] }[] {
+    get permittedTools(): ToolPermission[] {
         return [];
-    }
-
-    getPermission(toolName: ToolName): number[] | undefined {
-        for (const tool of this.permittedTools) {
-            if (tool.name === toolName) return tool.features || [];
-        }
-        return undefined;
     }
 
     hasFeature(feature: number, features: number[]): boolean {
         return features.length === 0 || features.includes(feature);
-    }
-
-    private getTool(tool: ToolName): Tool {
-        return (<Tools>this.$parent).getComponentMap()[tool];
     }
 
     get detailRight(): string {
@@ -44,77 +33,7 @@ export default class Tool extends Vue {
         const right = Math.min(window.innerWidth - 25, mid + 75);
         return `${right - mid - 14}px`; // border width
     }
-    created(): void {
-        this.$parent.$on("mousedown", (event: MouseEvent, tool: ToolName) => {
-            const permission = tool === this.name ? [] : this.getTool(tool).getPermission(this.name!);
-            if (permission !== undefined) this.onMouseDown(event, permission);
-        });
-        this.$parent.$on("mouseup", (event: MouseEvent, tool: ToolName) => {
-            const permission = tool === this.name ? [] : this.getTool(tool).getPermission(this.name!);
-            if (permission !== undefined) this.onMouseUp(event, permission);
-        });
-        this.$parent.$on("mousemove", (event: MouseEvent, tool: ToolName) => {
-            const permission = tool === this.name ? [] : this.getTool(tool).getPermission(this.name!);
-            if (permission !== undefined) this.onMouseMove(event, permission);
-        });
-        this.$parent.$on("touchstart", (event: TouchEvent, tool: ToolName) => {
-            const permission = tool === this.name ? [] : this.getTool(tool).getPermission(this.name!);
-            if (permission === undefined) {
-                return;
-            }
 
-            if (event.touches.length === 2) {
-                this.scaling = true;
-                this.onPinchStart(event, permission);
-            } else {
-                this.onTouchStart(event, permission);
-            }
-        });
-        this.$parent.$on("touchend", (event: TouchEvent, tool: ToolName) => {
-            const permission = tool === this.name ? [] : this.getTool(tool).getPermission(this.name!);
-            if (permission === undefined) {
-                return;
-            }
-
-            if (this.scaling) {
-                this.onPinchEnd(event, permission);
-                this.scaling = false;
-            } else {
-                this.onTouchEnd(event, permission);
-            }
-        });
-        this.$parent.$on("touchmove", (event: TouchEvent, tool: ToolName) => {
-            const permission = tool === this.name ? [] : this.getTool(tool).getPermission(this.name!);
-            if (permission === undefined) {
-                return;
-            }
-
-            if (this.scaling) {
-                event.preventDefault();
-                this.onPinchMove(event, permission);
-            }
-
-            // determine the number of fingers on screen to trigger different events
-            if (event.touches.length >= 3) {
-                this.onThreeTouchMove(event, permission);
-            } else {
-                this.onTouchMove(event, permission);
-            }
-        });
-        this.$parent.$on("contextmenu", (event: MouseEvent, tool: ToolName) => {
-            const permission = tool === this.name ? [] : this.getTool(tool).getPermission(this.name!);
-            if (permission !== undefined) this.onContextMenu(event, permission);
-        });
-        this.$parent.$on("tools-select-change", (newValue: ToolName, oldValue: ToolName) => {
-            if (oldValue === this.name) {
-                this.selected = false;
-                this.onDeselect();
-            } else if (newValue === this.name) {
-                this.selected = true;
-                this.onSelect();
-            }
-        });
-    }
     onSelect(): void {}
     onDeselect(): void {}
     onMouseDown(_event: MouseEvent, _features: number[]): void {}

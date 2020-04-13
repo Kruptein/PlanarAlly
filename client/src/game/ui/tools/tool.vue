@@ -117,17 +117,17 @@ export default class Tool extends Vue {
     }
     onSelect(): void {}
     onDeselect(): void {}
-    onMouseDown(_event: MouseEvent, features: number[]): void {}
-    onMouseUp(_event: MouseEvent, features: number[]): void {}
-    onMouseMove(_event: MouseEvent, features: number[]): void {}
-    onTouchStart(_event: TouchEvent, features: number[]): void {}
-    onTouchEnd(_event: TouchEvent, features: number[]): void {}
-    onTouchMove(_event: TouchEvent, features: number[]): void {}
-    onThreeTouchMove(_event: TouchEvent, features: number[]): void {}
-    onPinchStart(_event: TouchEvent, features: number[]): void {}
-    onPinchMove(_event: TouchEvent, features: number[]): void {}
-    onPinchEnd(_event: TouchEvent, features: number[]): void {}
-    onContextMenu(event: MouseEvent, features: number[]): void {
+    onMouseDown(_event: MouseEvent, _features: number[]): void {}
+    onMouseUp(_event: MouseEvent, _features: number[]): void {}
+    onMouseMove(_event: MouseEvent, _features: number[]): void {}
+    onTouchStart(_event: TouchEvent, _features: number[]): void {}
+    onTouchEnd(_event: TouchEvent, _features: number[]): void {}
+    onTouchMove(_event: TouchEvent, _features: number[]): void {}
+    onThreeTouchMove(_event: TouchEvent, _features: number[]): void {}
+    onPinchStart(_event: TouchEvent, _features: number[]): void {}
+    onPinchMove(_event: TouchEvent, _features: number[]): void {}
+    onPinchEnd(_event: TouchEvent, _features: number[]): void {}
+    onContextMenu(event: MouseEvent, _features: number[]): void {
         (<DefaultContext>this.$parent.$refs.defaultcontext).open(event);
     }
 }

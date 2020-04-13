@@ -7,6 +7,7 @@ import { gameStore } from "@/game/store";
 import { calculateDelta } from "@/game/ui/tools/utils";
 import { visibilityStore } from "@/game/visibility/store";
 import { TriangulationTarget } from "@/game/visibility/te/pa";
+import { gameManager } from "../manager";
 
 export function onKeyUp(event: KeyboardEvent): void {
     if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement) {
@@ -14,6 +15,11 @@ export function onKeyUp(event: KeyboardEvent): void {
     } else {
         if (event.key === "Delete" || event.key === "Del" || event.key === "Backspace") {
             deleteShapes();
+        }
+        if (event.key === " ") {
+            const tokens = gameStore.ownedtokens.map(o => layerManager.UUIDMap.get(o)!.center());
+            const i = tokens.findIndex(o => o.equals(gameStore.screenCenter));
+            gameManager.setCenterPosition(tokens[(i + 1) % tokens.length]);
         }
     }
 }

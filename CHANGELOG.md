@@ -23,6 +23,10 @@ All notable changes to this project will be documented in this file.
     -   Now uses a dropdown prefilled with players so you no longer need to manually type it
     -   Option to choose full edit access or only vision access
     -   Default access to specify behaviour for non selected players
+-   Map tool UX
+    -   Now gives a bit more information on how to use it
+    -   After making a selection you can adjust it to better fit your needs
+    -   Choose the X/Y numbers after selecting the shape
 
 ### Fixed
 

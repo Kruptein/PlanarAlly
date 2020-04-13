@@ -223,7 +223,15 @@ class GameStore extends VuexModule implements GameState {
     }
 
     @Mutation
-    selectFloor(targetFloorIndex: number): void {
+    selectFloor(targetFloor: number | string): void {
+        let targetFloorIndex: number;
+        if (typeof targetFloor === "string") {
+            targetFloorIndex = layerManager.floors.findIndex(f => f.name === targetFloor);
+        } else {
+            targetFloorIndex = targetFloor;
+        }
+        if (targetFloorIndex === this.selectedFloorIndex) return;
+
         this.selectedFloorIndex = targetFloorIndex;
         this.layers = layerManager.floor!.layers.reduce(
             (acc: string[], val: Layer) =>

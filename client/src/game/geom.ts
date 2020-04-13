@@ -47,8 +47,8 @@ export class Point {
     asArray(): number[] {
         return [this.x, this.y];
     }
-    equals(other: GlobalPoint): boolean {
-        return this.x === other.x && this.y === other.y;
+    equals(other: GlobalPoint, delta = 0.0001): boolean {
+        return Math.abs(this.x - other.x) < delta && Math.abs(this.y - other.y) < delta;
     }
 }
 export class GlobalPoint extends Point {

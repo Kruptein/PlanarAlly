@@ -98,7 +98,7 @@ socket.on("Location.Set", (data: Partial<ServerLocation>) => {
     }
 });
 socket.on("Position.Set", (data: { floor: string; x: number; y: number; zoom: number }) => {
-    gameStore.selectFloor(gameStore.floors.findIndex(f => f === data.floor));
+    gameStore.selectFloor(data.floor);
     gameStore.setZoomDisplay(data.zoom);
     gameManager.setCenterPosition(new GlobalPoint(data.x, data.y));
 });

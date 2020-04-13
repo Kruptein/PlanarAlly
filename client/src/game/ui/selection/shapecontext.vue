@@ -2,7 +2,7 @@
 import Vue from "vue";
 import Component from "vue-class-component";
 
-import { mapState, mapMutations } from "vuex";
+import { mapState } from "vuex";
 
 import ContextMenu from "@/core/components/contextmenu.vue";
 
@@ -20,8 +20,7 @@ import { Layer } from "../../layers/layer";
         ContextMenu,
     },
     computed: {
-        ...mapState("game", ["activeFloorIndex", "assets", "locations", "notes", "markers"]),
-        ...mapMutations("game", ["selectFloor"]),
+        ...mapState("game", ["activeFloorIndex", "locations", "markers"]),
     },
 })
 export default class ShapeContext extends Vue {

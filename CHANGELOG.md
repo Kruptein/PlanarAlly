@@ -15,7 +15,8 @@ All notable changes to this project will be documented in this file.
 -   Logo, version info and some urls to the topleft section which is only visible if both locations bar and menu are opened
 -   Search bar to asset menu
 -   Some basic tooltips to icons
--   Tiered configuration. Configuration file in the data directory takes precedence over one in the folder with server files. Useful for docker deployments to keep the configuration in a volume.
+-   Tiered configuration. Configuration file in the data directory takes precedence over one in the folder with server files. Useful for docker deployments to keep the configuration in a volume
+-   Use spacebar to cycle between your owned tokens
 
 ### Changed
 

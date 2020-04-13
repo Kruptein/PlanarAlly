@@ -2,7 +2,7 @@
 import Vue from "vue";
 import Component from "vue-class-component";
 
-import { mapState, mapMutations } from "vuex";
+import { mapState } from "vuex";
 
 import ContextMenu from "@/core/components/contextmenu.vue";
 

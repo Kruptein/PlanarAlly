@@ -3,7 +3,6 @@ import Vue from "vue";
 import Component from "vue-class-component";
 
 import DefaultContext from "@/game/ui/tools/defaultcontext.vue";
-import Tools from "./tools.vue";
 import { ToolName, ToolPermission } from "./utils";
 
 @Component

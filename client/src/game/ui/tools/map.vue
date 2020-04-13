@@ -61,7 +61,6 @@ export default class MapTool extends Tool {
 
     apply(): void {
         if (this.rect === null) return;
-        const layer = layerManager.getLayer(layerManager.floor!.name)!;
 
         const w = this.rect.w;
         const h = this.rect.h;

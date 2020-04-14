@@ -28,6 +28,8 @@ WORKDIR /planarally
 VOLUME /planarally/data
 VOLUME /planarally/static/assets
 
+ENV PA_GIT_INFO = docker:$DOCKER_TAG-$SOURCE_COMMIT
+
 ENTRYPOINT ["/usr/bin/dumb-init", "--"]
 # Copy first requirements.txt so changes in code dont require to reinstall python requirements
 COPY --from=BUILDER /usr/src/server/requirements.txt .

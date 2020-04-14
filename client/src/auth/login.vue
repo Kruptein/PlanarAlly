@@ -1,58 +1,3 @@
-<template>
-    <form @focusin="focusin" @focusout="focusout" @submit.prevent="login">
-        <fieldset>
-            <legend class="legend">PlanarAlly v{{ version }}</legend>
-            <div class="input">
-                <input
-                    id="username"
-                    type="text"
-                    name="username"
-                    v-model="username"
-                    placeholder="Username"
-                    autocomplete="username"
-                    required
-                    autofocus
-                />
-                <span>
-                    <i class="fas fa-user-circle"></i>
-                </span>
-            </div>
-
-            <div class="input">
-                <input
-                    id="password"
-                    type="password"
-                    name="password"
-                    v-model="password"
-                    placeholder="Password"
-                    autocomplete="current-password"
-                    required
-                />
-                <span>
-                    <i class="fas fa-lock"></i>
-                </span>
-            </div>
-
-            <div style="display:flex;">
-                <button type="submit" name="login" style="visibility: hidden;display:none;"></button>
-                <button type="button" name="register" class="submit" title="Register" @click="register">
-                    <i class="fas fa-plus"></i>
-                </button>
-                <button type="submit" name="login" class="submit" title="Login">
-                    <i class="fas fa-arrow-right"></i>
-                </button>
-            </div>
-        </fieldset>
-
-        <div class="feedback" v-if="error">
-            <p class="error">
-                <strong>Error:</strong>
-                {{ error }}
-            </p>
-        </div>
-    </form>
-</template>
-
 <script lang="ts">
 import Vue from "vue";
 import Component from "vue-class-component";
@@ -107,8 +52,78 @@ export default class Login extends Vue {
     get version(): string {
         return coreStore.version;
     }
+
+    get githubUrl(): string {
+        const spl = this.version.split("-");
+        if (spl.length > 1) {
+            return "https://github.com/Kruptein/PlanarAlly/commit/" + spl[spl.length - 1].slice(1);
+        } else {
+            return "https://github.com/Kruptein/PlanarAlly/releases/tag/" + this.version;
+        }
+    }
 }
 </script>
+
+<template>
+    <div style="display:contents">
+        <form @focusin="focusin" @focusout="focusout" @submit.prevent="login">
+            <fieldset>
+                <legend class="legend">PlanarAlly</legend>
+                <div class="input">
+                    <input
+                        id="username"
+                        type="text"
+                        name="username"
+                        v-model="username"
+                        placeholder="Username"
+                        autocomplete="username"
+                        required
+                        autofocus
+                    />
+                    <span>
+                        <i class="fas fa-user-circle"></i>
+                    </span>
+                </div>
+
+                <div class="input">
+                    <input
+                        id="password"
+                        type="password"
+                        name="password"
+                        v-model="password"
+                        placeholder="Password"
+                        autocomplete="current-password"
+                        required
+                    />
+                    <span>
+                        <i class="fas fa-lock"></i>
+                    </span>
+                </div>
+
+                <div style="display:flex;">
+                    <button type="submit" name="login" style="visibility: hidden;display:none;"></button>
+                    <button type="button" name="register" class="submit" title="Register" @click="register">
+                        <i class="fas fa-plus"></i>
+                    </button>
+                    <button type="submit" name="login" class="submit" title="Login">
+                        <i class="fas fa-arrow-right"></i>
+                    </button>
+                </div>
+            </fieldset>
+
+            <div class="feedback" v-if="error">
+                <p class="error">
+                    <strong>Error:</strong>
+                    {{ error }}
+                </p>
+            </div>
+        </form>
+        <div id="version">
+            Server version:
+            <a :href="githubUrl">{{ version }}</a>
+        </div>
+    </div>
+</template>
 
 <style scoped>
 * {
@@ -119,6 +134,19 @@ export default class Login extends Vue {
     margin: 0;
     padding: 0;
     border: 0;
+}
+
+#version {
+    position: absolute;
+    bottom: 15px;
+    color: #a1a1a1;
+    display: flex;
+    justify-content: center;
+    width: 100%;
+}
+
+#version > a {
+    margin-left: 10px;
 }
 
 form {

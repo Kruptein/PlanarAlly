@@ -3,7 +3,7 @@ import { BoundingRect } from "@/game/shapes/boundingrect";
 import { Shape } from "@/game/shapes/shape";
 import { gameStore } from "@/game/store";
 import { calculateDelta } from "@/game/ui/tools/utils";
-import { g2lx, g2ly } from "@/game/units";
+import { g2lx, g2ly, clampGridLine } from "@/game/units";
 import { ServerShape } from "../comm/types/shapes";
 
 export abstract class BaseRect extends Shape {
@@ -74,12 +74,12 @@ export abstract class BaseRect extends Shape {
         let targetY;
 
         if ((this.w / gs) % 2 === 0) {
-            targetX = Math.round(mx / gs) * gs - this.w / 2;
+            targetX = clampGridLine(mx) - this.w / 2;
         } else {
             targetX = (Math.round((mx + gs / 2) / gs) - 1 / 2) * gs - this.w / 2;
         }
         if ((this.h / gs) % 2 === 0) {
-            targetY = Math.round(my / gs) * gs - this.h / 2;
+            targetY = clampGridLine(my) - this.h / 2;
         } else {
             targetY = (Math.round((my + gs / 2) / gs) - 1 / 2) * gs - this.h / 2;
         }
@@ -89,12 +89,15 @@ export abstract class BaseRect extends Shape {
 
         this.invalidate(false);
     }
-    resizeToGrid(): void {
-        const gs = gameStore.gridSize;
-        this.refPoint = new GlobalPoint(Math.round(this.refPoint.x / gs) * gs, Math.round(this.refPoint.y / gs) * gs);
-        this.w = Math.max(Math.round(this.w / gs) * gs, gs);
-        this.h = Math.max(Math.round(this.h / gs) * gs, gs);
-        this.invalidate(false);
+    resizeToGrid(resizePoint: number, retainAspectRatio: boolean): void {
+        this.resize(
+            resizePoint,
+            new GlobalPoint(
+                clampGridLine(this.refPoint.x + (resizePoint > 1 ? this.w : 0)),
+                clampGridLine(this.refPoint.y + ([1, 2].includes(resizePoint) ? this.h : 0)),
+            ),
+            retainAspectRatio,
+        );
     }
     resize(resizePoint: number, point: GlobalPoint, retainAspectRatio: boolean): number {
         const aspectRatio = this.w / this.h;

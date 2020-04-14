@@ -21,7 +21,7 @@ import { Polygon } from "@/game/shapes/polygon";
 import { Rect } from "@/game/shapes/rect";
 import { Shape } from "@/game/shapes/shape";
 import { gameStore } from "@/game/store";
-import { getUnitDistance, l2g, g2lx, g2ly } from "@/game/units";
+import { getUnitDistance, l2g, g2lx, g2ly, l2gz, clampGridLine } from "@/game/units";
 import { equalPoints, getLocalPointFromEvent, useSnapping } from "@/game/utils";
 import { visibilityStore } from "@/game/visibility/store";
 import { TriangulationTarget, insertConstraint, getCDT } from "@/game/visibility/te/pa";
@@ -160,13 +160,14 @@ export default class DrawTool extends Tool {
         return layerManager.getLayer(layerManager.floor!.name, "fow");
     }
 
-    onDown(startPoint: GlobalPoint): void {
+    onDown(startPoint: GlobalPoint, event: MouseEvent | TouchEvent): void {
         const layer = this.getLayer();
         if (layer === undefined) {
             console.log("No active layer!");
             return;
         }
         if (this.brushHelper === null) return;
+        if (useSnapping(event)) startPoint = new GlobalPoint(clampGridLine(startPoint.x), clampGridLine(startPoint.y));
         if (!this.active) {
             this.startPoint = startPoint;
             this.active = true;
@@ -331,7 +332,7 @@ export default class DrawTool extends Tool {
         layer.invalidate(false);
     }
 
-    onUp(event: MouseEvent | TouchEvent): void {
+    onUp(endPoint: GlobalPoint, event: MouseEvent | TouchEvent): void {
         if (
             !this.active ||
             this.shape === null ||
@@ -346,7 +347,7 @@ export default class DrawTool extends Tool {
                     target: TriangulationTarget.VISION,
                     shape: this.shape,
                 });
-            this.shape.resizeToGrid();
+            this.shape.resizeToGrid(this.shape.getPointIndex(endPoint, l2gz(5)), event.ctrlKey);
             if (this.shape.visionObstruction) {
                 visibilityStore.addToTriag({ target: TriangulationTarget.VISION, shape: this.shape });
                 visibilityStore.recalculateVision(this.shape.floor);
@@ -359,10 +360,10 @@ export default class DrawTool extends Tool {
         this.finaliseShape();
     }
 
-    onMouseDown(_event: MouseEvent): void {
+    onMouseDown(event: MouseEvent): void {
         if (this.brushHelper === null) return;
         const startPoint = this.brushHelper.refPoint;
-        this.onDown(startPoint);
+        this.onDown(startPoint, event);
     }
 
     onMouseMove(event: MouseEvent): void {
@@ -372,13 +373,15 @@ export default class DrawTool extends Tool {
     }
 
     onMouseUp(event: MouseEvent): void {
-        this.onUp(event);
+        let endPoint = l2g(getLocalPointFromEvent(event));
+        if (useSnapping(event)) endPoint = snapToPoint(this.getLayer()!, endPoint, this.ruler?.refPoint);
+        this.onUp(endPoint, event);
     }
 
     onTouchStart(event: TouchEvent): void {
         let startPoint = l2g(getLocalPointFromEvent(event));
         if (useSnapping(event)) startPoint = snapToPoint(this.getLayer()!, startPoint, this.ruler?.refPoint);
-        this.onDown(startPoint);
+        this.onDown(startPoint, event);
     }
 
     onTouchMove(event: TouchEvent): void {
@@ -388,7 +391,9 @@ export default class DrawTool extends Tool {
     }
 
     onTouchEnd(event: TouchEvent): void {
-        this.onUp(event);
+        let endPoint = l2g(getLocalPointFromEvent(event));
+        if (useSnapping(event)) endPoint = snapToPoint(this.getLayer()!, endPoint, this.ruler?.refPoint);
+        this.onUp(endPoint, event);
     }
 
     onContextMenu(event: MouseEvent): void {

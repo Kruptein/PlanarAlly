@@ -17,6 +17,7 @@ All notable changes to this project will be documented in this file.
 -   Some basic tooltips to icons
 -   Tiered configuration. Configuration file in the data directory takes precedence over one in the folder with server files. Useful for docker deployments to keep the configuration in a volume
 -   Use spacebar to cycle between your owned tokens
+-   Aspect ratio lock with ctrl modifier
 
 ### Changed
 
@@ -28,6 +29,10 @@ All notable changes to this project will be documented in this file.
     -   Now gives a bit more information on how to use it
     -   After making a selection you can adjust it to better fit your needs
     -   Choose the X/Y numbers after selecting the shape
+-   Shape resizing
+    -   Now only snaps the point you're resizing instead of an awkward complete shape resize
+-   Drawing
+    -   When snapping enabled will now snap startpoint on mouse down and last point on mouse up
 
 ### Fixed
 

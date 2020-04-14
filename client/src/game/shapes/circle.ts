@@ -4,7 +4,7 @@ import { BoundingRect } from "@/game/shapes/boundingrect";
 import { Shape } from "@/game/shapes/shape";
 import { gameStore } from "@/game/store";
 import { calculateDelta } from "@/game/ui/tools/utils";
-import { g2l, g2lz } from "@/game/units";
+import { g2l, g2lz, clampGridLine } from "@/game/units";
 import { getFogColour } from "@/game/utils";
 
 export class Circle extends Shape {
@@ -75,12 +75,12 @@ export class Circle extends Shape {
         let targetX;
         let targetY;
         if (((2 * this.r) / gs) % 2 === 0) {
-            targetX = Math.round(this.refPoint.x / gs) * gs;
+            targetX = clampGridLine(this.refPoint.x);
         } else {
             targetX = Math.round((this.refPoint.x - gs / 2) / gs) * gs + this.r;
         }
         if (((2 * this.r) / gs) % 2 === 0) {
-            targetY = Math.round(this.refPoint.y / gs) * gs;
+            targetY = clampGridLine(this.refPoint.y);
         } else {
             targetY = Math.round((this.refPoint.y - gs / 2) / gs) * gs + this.r;
         }
@@ -90,7 +90,7 @@ export class Circle extends Shape {
     }
     resizeToGrid(): void {
         const gs = gameStore.gridSize;
-        this.r = Math.max(Math.round(this.r / gs) * gs, gs / 2);
+        this.r = Math.max(clampGridLine(this.r), gs / 2);
         this.invalidate(false);
     }
     resize(resizePoint: number, point: GlobalPoint): number {

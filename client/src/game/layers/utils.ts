@@ -8,7 +8,7 @@ import { Layer } from "@/game/layers/layer";
 import { layerManager } from "@/game/layers/manager";
 import { Asset } from "@/game/shapes/asset";
 import { gameStore } from "@/game/store";
-import { l2gx, l2gy, l2gz } from "@/game/units";
+import { l2gx, l2gy, l2gz, clampGridLine } from "@/game/units";
 import { visibilityStore } from "@/game/visibility/store";
 import { addCDT, removeCDT } from "@/game/visibility/te/pa";
 
@@ -87,12 +87,9 @@ export function dropAsset(event: DragEvent): void {
 
     if (gameStore.useGrid) {
         const gs = gameStore.gridSize;
-        asset.refPoint = new GlobalPoint(
-            Math.round(asset.refPoint.x / gs) * gs,
-            Math.round(asset.refPoint.y / gs) * gs,
-        );
-        asset.w = Math.max(Math.round(asset.w / gs) * gs, gs);
-        asset.h = Math.max(Math.round(asset.h / gs) * gs, gs);
+        asset.refPoint = new GlobalPoint(clampGridLine(asset.refPoint.x), clampGridLine(asset.refPoint.y));
+        asset.w = Math.max(clampGridLine(asset.w), gs);
+        asset.h = Math.max(clampGridLine(asset.h), gs);
     }
 
     layer.addShape(asset, SyncMode.FULL_SYNC, InvalidationMode.WITH_LIGHT);

@@ -182,7 +182,8 @@ export function drawPolygonT(tds: TDS, local = true, clear = true, logs: 0 | 1 |
     }
 }
 
-(<any>window).DC = drawPoint;
+(<any>window).drawPoint = drawPoint;
+(<any>window).drawPointLocal = drawPointL;
 (<any>window).DL = drl;
 (<any>window).DE = drawEdge;
 (<any>window).DP = drawPolygon;

@@ -102,8 +102,8 @@ export abstract class Shape {
     // Code to snap a shape to the grid
     // This is shape dependent as the shape refPoints are shape specific in
     abstract snapToGrid(): void;
-    abstract resizeToGrid(): void;
-    abstract resize(resizePoint: number, point: GlobalPoint): number;
+    abstract resizeToGrid(resizePoint: number, retainAspectRatio: boolean): void;
+    abstract resize(resizePoint: number, point: GlobalPoint, retainAspectRatio: boolean): number;
 
     abstract get points(): number[][];
 

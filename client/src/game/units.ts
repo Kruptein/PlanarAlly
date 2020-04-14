@@ -57,5 +57,9 @@ export function l2gr(r: number): number {
     return l2gz(getUnitDistance(r));
 }
 
+export function clampGridLine(point: number): number {
+    return Math.round(point / gameStore.gridSize) * gameStore.gridSize;
+}
+
 (<any>window).g2lx = g2lx;
 (<any>window).g2ly = g2ly;

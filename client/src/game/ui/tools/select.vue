@@ -207,7 +207,7 @@ export default class SelectTool extends Tool {
                     let targetPoint = gp;
                     if (useSnapping(event) && this.hasFeature(SelectFeatures.Snapping, features))
                         targetPoint = snapToPoint(layerManager.getLayer(layerManager.floor!.name)!, gp, ignorePoint);
-                    this.resizePoint = sel.resize(this.resizePoint, targetPoint);
+                    this.resizePoint = sel.resize(this.resizePoint, targetPoint, event.ctrlKey);
                     if (sel !== this.selectionHelper) {
                         // todo: think about calling deleteIntersectVertex directly on the corner point
                         if (sel.visionObstruction) {
@@ -227,7 +227,7 @@ export default class SelectTool extends Tool {
         }
     }
 
-    onUp(e: MouseEvent | TouchEvent, features: SelectFeatures[]): void {
+    onUp(event: MouseEvent | TouchEvent, features: SelectFeatures[]): void {
         if (!this.active) return;
         if (layerManager.getLayer(layerManager.floor!.name) === undefined) {
             console.log("No active layer!");
@@ -236,7 +236,7 @@ export default class SelectTool extends Tool {
         const layer = layerManager.getLayer(layerManager.floor!.name)!;
 
         if (this.mode === SelectOperations.GroupSelect) {
-            if (e.ctrlKey) {
+            if (event.ctrlKey) {
                 // If either control or shift are pressed, do not remove selection
             } else {
                 layer.clearSelection();
@@ -271,7 +271,7 @@ export default class SelectTool extends Tool {
 
                     if (
                         gameStore.useGrid &&
-                        useSnapping(e) &&
+                        useSnapping(event) &&
                         this.hasFeature(SelectFeatures.Snapping, features) &&
                         !this.deltaChanged
                     ) {
@@ -304,7 +304,7 @@ export default class SelectTool extends Tool {
                     layer.invalidate(false);
                 }
                 if (this.mode === SelectOperations.Resize) {
-                    if (gameStore.useGrid && useSnapping(e) && this.hasFeature(SelectFeatures.Snapping, features)) {
+                    if (gameStore.useGrid && useSnapping(event) && this.hasFeature(SelectFeatures.Snapping, features)) {
                         if (sel.visionObstruction)
                             visibilityStore.deleteFromTriag({
                                 target: TriangulationTarget.VISION,
@@ -315,7 +315,7 @@ export default class SelectTool extends Tool {
                                 target: TriangulationTarget.MOVEMENT,
                                 shape: sel,
                             });
-                        sel.resizeToGrid();
+                        sel.resizeToGrid(this.resizePoint, event.ctrlKey);
                         if (sel.visionObstruction) {
                             visibilityStore.addToTriag({ target: TriangulationTarget.VISION, shape: sel });
                             visibilityStore.recalculateVision(sel.floor);

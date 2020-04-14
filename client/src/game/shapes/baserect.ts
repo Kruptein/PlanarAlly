@@ -96,12 +96,16 @@ export abstract class BaseRect extends Shape {
         this.h = Math.max(Math.round(this.h / gs) * gs, gs);
         this.invalidate(false);
     }
-    resize(resizePoint: number, point: GlobalPoint): number {
+    resize(resizePoint: number, point: GlobalPoint, retainAspectRatio: boolean): number {
+        const aspectRatio = this.w / this.h;
+        const oldW = this.w;
+        const oldH = this.h;
+
         switch (resizePoint) {
             case 0: {
                 this.w += this.refPoint.x - point.x;
                 this.h += this.refPoint.y - point.y;
-                this.refPoint = point;
+                this.refPoint = this.refPoint.add(new Vector(oldW - this.w, oldH - this.h));
                 break;
             }
             case 1: {
@@ -134,6 +138,21 @@ export abstract class BaseRect extends Shape {
         if (this.h < 0) {
             this.refPoint = this.refPoint.add(new Vector(0, this.h));
             this.h = Math.abs(this.h);
+        }
+
+        if (retainAspectRatio && !isNaN(aspectRatio)) {
+            const tempAspectRatio = this.w / this.h;
+            if (tempAspectRatio > aspectRatio) {
+                if (resizePoint === 0 || resizePoint === 3) {
+                    this.refPoint = new GlobalPoint(this.refPoint.x, this.refPoint.y + this.h - this.w / aspectRatio);
+                }
+                this.h = this.w / aspectRatio;
+            } else if (tempAspectRatio < aspectRatio) {
+                if (resizePoint === 0 || resizePoint === 1) {
+                    this.refPoint = new GlobalPoint(this.refPoint.x + this.w - this.h * aspectRatio, this.refPoint.y);
+                }
+                this.w = this.h * aspectRatio;
+            }
         }
 
         return (resizePoint + 4) % 4;

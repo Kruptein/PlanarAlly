@@ -44,7 +44,7 @@ export default class AssetNode extends Vue {
         if (this.asset.__files)
             return (<AssetFile[]>this.asset.__files)
                 .concat()
-                .filter(f => f.name.includes(this.search))
+                .filter(f => f.name.toLowerCase().includes(this.search.toLowerCase()))
                 .sort((a, b) => (a.name.toLowerCase() > b.name.toLowerCase() ? 1 : -1));
         return [];
     }

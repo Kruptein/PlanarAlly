@@ -31,6 +31,7 @@ export default class Prompt extends Vue {
         this.visible = false;
     }
     prompt(question: string, title: string): Promise<string> {
+        this.answer = "";
         this.question = question;
         this.title = title;
         this.visible = true;

@@ -30,6 +30,7 @@ socket.on("Folder.Set", (data: { folder: Asset; path?: number[] }) => {
         for (const child of data.folder.children) {
             assetStore.idMap.set(child.id, child);
             if (child.file_hash) {
+                assetStore.resolveUpload(child.name);
                 assetStore.files.push(child.id);
             } else {
                 assetStore.folders.push(child.id);
@@ -46,4 +47,5 @@ socket.on("Folder.Create", (folder: Asset) => {
 socket.on("Asset.Upload.Finish", (asset: Asset) => {
     assetStore.idMap.set(asset.id, asset);
     assetStore.files.push(asset.id);
+    assetStore.resolveUpload(asset.name);
 });

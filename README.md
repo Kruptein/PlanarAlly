@@ -3,7 +3,7 @@
 <p align="center">
     <a href="https://github.com/Kruptein/PlanarAlly/releases"><img src="https://img.shields.io/github/downloads/kruptein/planarally/total.svg" alt="Downloads"></a>
     <a href="https://github.com/Kruptein/PlanarAlly/releases/latest"><img alt="GitHub release (latest by date)" src="https://img.shields.io/github/v/release/kruptein/planarally"></a>
-    <img src="https://img.shields.io/discord/695640902135185449?logo=discord" alt="Discord invite button" title="Join the discord server!" />
+    <a href="https://discord.gg/mubGnTe" title="Join the discord server!"><img src="https://img.shields.io/discord/695640902135185449?logo=discord" alt="Discord invite button" /></a>
     <a href="https://planarally.io" title="Visit the planarally documentation"><img src="https://img.shields.io/badge/docs-read-lightblue.svg" alt="Documentation site button" /></a>
     <a href="https://patreon.com/planarally" title="Donate to this project using Patreon"><img src="https://img.shields.io/badge/patreon-donate-red.svg" alt="Patreon donate button" /></a>
 </p>

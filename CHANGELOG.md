@@ -42,7 +42,7 @@ All notable changes to this project will be documented in this file.
 -   Floor/Layer bar now moves along with the side menu when opened
 -   Side menu and locations menu no longer overlap
 -   Window resizing messing with the lighting borders
--   Previous prompt values are now cleared before showing a new prompt.
+-   Asset manager contextmenu not rendering correctly when scrolling down
 
 ## [0.19.3] - 2020-04-01
 

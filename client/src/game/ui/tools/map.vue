@@ -3,7 +3,7 @@ import Component from "vue-class-component";
 
 import Tool from "@/game/ui/tools/tool.vue";
 
-import { GlobalPoint } from "@/game/geom";
+import { GlobalPoint, Vector } from "@/game/geom";
 import { layerManager } from "@/game/layers/manager";
 import { BaseRect } from "@/game/shapes/baserect";
 import { Rect } from "@/game/shapes/rect";
@@ -60,14 +60,20 @@ export default class MapTool extends Tool {
     }
 
     apply(): void {
-        if (this.rect === null) return;
-
-        const w = this.rect.w;
-        const h = this.rect.h;
+        if (this.shape === null || this.rect === null) return;
+        const oldRefpoint = this.shape.refPoint;
+        const oldCenter = this.rect.center();
 
         if (this.shape instanceof BaseRect) {
-            this.shape.w *= (this.xCount * gameStore.gridSize) / w;
-            this.shape.h *= (this.yCount * gameStore.gridSize) / h;
+            const xFactor = (this.xCount * gameStore.gridSize) / this.rect.w;
+            const yFactor = (this.yCount * gameStore.gridSize) / this.rect.h;
+
+            this.shape.w *= xFactor;
+            this.shape.h *= yFactor;
+
+            const delta = oldCenter.subtract(oldRefpoint);
+            const newCenter = oldRefpoint.add(new Vector(xFactor * delta.x, yFactor * delta.y));
+            this.shape.refPoint = this.shape.refPoint.add(oldCenter.subtract(newCenter));
         }
         this.removeRect();
     }

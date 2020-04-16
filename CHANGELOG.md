@@ -29,6 +29,7 @@ All notable changes to this project will be documented in this file.
     -   Now gives a bit more information on how to use it
     -   After making a selection you can adjust it to better fit your needs
     -   Choose the X/Y numbers after selecting the shape
+    -   The center of the drawn resize rectangle now will remain in the exact same place after resize. This prevents sudden map jump.
 -   Shape resizing
     -   Now only snaps the point you're resizing instead of an awkward complete shape resize
 -   Drawing

@@ -25,12 +25,14 @@ Component.registerHooks(["beforeRouteEnter"]);
     computed: {
         ...mapGetters("assets", [
             "currentFolder",
+            "expectedUploads",
             "files",
             "firstSelectedFile",
             "folders",
             "idMap",
             "parentFolder",
             "path",
+            "resolvedUploads",
             "selected",
         ]),
     },
@@ -133,11 +135,13 @@ export default class AssetManager extends Vue {
             if (files) fls = files;
             else return;
         }
+        assetStore.addExpectedUploads(fls.length);
         if (target === undefined) target = this.currentFolder;
         const CHUNK_SIZE = 100000;
         for (const file of fls) {
             const uuid = uuidv4();
             const slices = Math.ceil(file.size / CHUNK_SIZE);
+            assetStore._pendingUploads.push(file.name);
             for (let slice = 0; slice < slices; slice++) {
                 const fr = new FileReader();
                 fr.readAsArrayBuffer(
@@ -165,68 +169,68 @@ export default class AssetManager extends Vue {
 <template>
     <div id="AssetManager" v-cloak>
         <div id="titlebar">Asset Manager</div>
-        <div id="main">
-            <div id="assets" @dragover.prevent="moveDrag" @drop.prevent.stop="stopDrag($event, currentFolder)">
-                <div id="breadcrumbs">
-                    <div>/</div>
-                    <div v-for="dir in path" :key="dir">{{ idMap.has(dir) ? idMap.get(dir).name : "" }}</div>
+        <div id="progressbar" v-show="expectedUploads > 0 && expectedUploads !== resolvedUploads">
+            <div id="progressbar-label">Uploading files: {{ resolvedUploads }} / {{ expectedUploads }}</div>
+            <div id="progressbar-meter">
+                <span :style="{ width: (resolvedUploads / expectedUploads) * 100 + '%' }"></span>
+            </div>
+        </div>
+        <div id="assets" @dragover.prevent="moveDrag" @drop.prevent.stop="stopDrag($event, currentFolder)">
+            <div id="breadcrumbs">
+                <div>/</div>
+                <div v-for="dir in path" :key="dir">{{ idMap.has(dir) ? idMap.get(dir).name : "" }}</div>
+            </div>
+            <div id="actionbar">
+                <input id="files" type="file" multiple hidden @change="upload()" />
+                <div @click="createDirectory" title="Create folder">
+                    <i class="fas fa-plus-square"></i>
                 </div>
-                <div id="actionbar">
-                    <input id="files" type="file" multiple hidden @change="upload()" />
-                    <div @click="createDirectory" title="Create folder">
-                        <i class="fas fa-plus-square"></i>
-                    </div>
-                    <div @click="prepareUpload" title="Upload files">
-                        <i class="fas fa-upload"></i>
-                    </div>
-                </div>
-                <div id="explorer">
-                    <div
-                        class="inode folder"
-                        v-if="path.length"
-                        @dblclick="changeDirectory(-1)"
-                        @dragover.prevent="moveDrag"
-                        @dragleave.prevent="leaveDrag"
-                        @drop.prevent.stop="stopDrag($event, parentFolder)"
-                    >
-                        <i class="fas fa-folder" style="font-size: 50px;"></i>
-                        <div class="title">..</div>
-                    </div>
-                    <div
-                        class="inode folder"
-                        draggable="true"
-                        v-for="key in folders"
-                        :key="key"
-                        :class="{ 'inode-selected': selected.includes(key) }"
-                        @click="select($event, key)"
-                        @dblclick="changeDirectory(key)"
-                        @contextmenu.prevent="$refs.cm.open($event, key)"
-                        @dragstart="startDrag($event, key)"
-                        @dragover.prevent="moveDrag"
-                        @dragleave.prevent="leaveDrag"
-                        @drop.prevent.stop="stopDrag($event, key)"
-                    >
-                        <i class="fas fa-folder" style="font-size: 50px;"></i>
-                        <div class="title">{{ idMap.get(key).name }}</div>
-                    </div>
-                    <div
-                        class="inode file"
-                        draggable="true"
-                        v-for="file in files"
-                        :key="file"
-                        :class="{ 'inode-selected': selected.includes(file) }"
-                        @click="select($event, file)"
-                        @contextmenu.prevent="$refs.cm.open($event, file)"
-                        @dragstart="startDrag($event, file)"
-                    >
-                        <img :src="'/static/assets/' + idMap.get(file).file_hash" width="50" />
-                        <div class="title">{{ idMap.get(file).name }}</div>
-                    </div>
+                <div @click="prepareUpload" title="Upload files">
+                    <i class="fas fa-upload"></i>
                 </div>
             </div>
-            <div id="asset-details" v-if="firstSelectedFile">
-                <div id="asset-detail-title">{{ firstSelectedFile.name }}</div>
-                <img :src="'/static/assets/' + firstSelectedFile.file_hash" />
+            <div id="explorer">
+                <div
+                    class="inode folder"
+                    v-if="path.length"
+                    @dblclick="changeDirectory(-1)"
+                    @dragover.prevent="moveDrag"
+                    @dragleave.prevent="leaveDrag"
+                    @drop.prevent.stop="stopDrag($event, parentFolder)"
+                >
+                    <i class="fas fa-folder" style="font-size: 50px;"></i>
+                    <div class="title">..</div>
+                </div>
+                <div
+                    class="inode folder"
+                    draggable="true"
+                    v-for="key in folders"
+                    :key="key"
+                    :class="{ 'inode-selected': selected.includes(key) }"
+                    @click="select($event, key)"
+                    @dblclick="changeDirectory(key)"
+                    @contextmenu.prevent="$refs.cm.open($event, key)"
+                    @dragstart="startDrag($event, key)"
+                    @dragover.prevent="moveDrag"
+                    @dragleave.prevent="leaveDrag"
+                    @drop.prevent.stop="stopDrag($event, key)"
+                >
+                    <i class="fas fa-folder" style="font-size: 50px;"></i>
+                    <div class="title">{{ idMap.get(key).name }}</div>
+                </div>
+                <div
+                    class="inode file"
+                    draggable="true"
+                    v-for="file in files"
+                    :key="file"
+                    :class="{ 'inode-selected': selected.includes(file) }"
+                    @click="select($event, file)"
+                    @contextmenu.prevent="$refs.cm.open($event, file)"
+                    @dragstart="startDrag($event, file)"
+                >
+                    <img :src="'/static/assets/' + idMap.get(file).file_hash" width="50" />
+                    <div class="title">{{ idMap.get(file).name }}</div>
+                </div>
             </div>
         </div>
         <AssetContextMenu ref="cm"></AssetContextMenu>
@@ -270,10 +274,67 @@ body {
     box-shadow: 2px 2px gray;
 }
 
-#main {
+#progressbar {
+    margin: 10px;
     display: flex;
     flex-direction: row;
+    border: solid 1px black;
+    box-shadow: 2px 2px gray;
+}
+
+#progressbar-label {
+    padding: 10px 15px;
+    background-color: #ff7052;
+}
+
+#progressbar-meter {
+    background-color: white;
+    padding: 5px;
+    flex-grow: 2;
+}
+
+#progressbar-meter > span {
+    display: block;
     height: 100%;
+    position: relative;
+    overflow: hidden;
+    /* background-color: #ff7052;
+    background-image: linear-gradient(center bottom, #ff7052 37%, white 69%); */
+    background-color: #ff7052;
+    background-image: linear-gradient(to bottom, #ff7052 37%, #ff7052 69%);
+    box-shadow: inset 0 2px 9px rgba(255, 255, 255, 0.3), inset 0 -2px 6px rgba(0, 0, 0, 0.4);
+}
+
+#progressbar-meter > span:after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+    background-image: linear-gradient(
+        -45deg,
+        rgba(255, 255, 255, 0.2) 25%,
+        transparent 25%,
+        transparent 50%,
+        rgba(255, 255, 255, 0.2) 50%,
+        rgba(255, 255, 255, 0.2) 75%,
+        transparent 75%,
+        transparent
+    );
+    z-index: 1;
+    background-size: 50px 50px;
+    overflow: hidden;
+    animation: move 2s linear infinite;
+}
+
+@keyframes move {
+    0% {
+        background-position: 0 0;
+    }
+    100% {
+        background-position: 50px 50px;
+    }
 }
 
 #assets,

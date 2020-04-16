@@ -29,8 +29,8 @@ export default class AssetContextMenu extends Vue {
         if (!assetStore.selected.includes(inode)) this.parent.select(event, inode);
 
         this.visible = true;
-        this.left = event.pageX;
-        this.top = event.pageY;
+        this.left = event.clientX;
+        this.top = event.clientY;
         this.$nextTick(() => {
             (<HTMLElement>this.$children[0].$el).focus();
         });

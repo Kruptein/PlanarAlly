@@ -5,12 +5,16 @@ import { assetStore } from "./store";
 
 export const socket = io(location.protocol + "//" + location.host + "/pa_assetmgmt", { autoConnect: false });
 
+let disConnected = false;
+
 // export const socket = io.connect(location.protocol + "//" + location.host + "/pa_assetmgmt");
 socket.on("connect", () => {
     console.log("Connected");
+    if (disConnected) socket.emit("Folder.Get", assetStore.folderPath);
 });
 socket.on("disconnect", () => {
     console.log("Disconnected");
+    disConnected = true;
 });
 socket.on("redirect", (destination: string) => {
     console.log("redirecting");
@@ -26,6 +30,7 @@ socket.on("Folder.Set", (data: { folder: Asset; path?: number[] }) => {
         for (const child of data.folder.children) {
             assetStore.idMap.set(child.id, child);
             if (child.file_hash) {
+                assetStore.resolveUpload(child.name);
                 assetStore.files.push(child.id);
             } else {
                 assetStore.folders.push(child.id);
@@ -42,4 +47,5 @@ socket.on("Folder.Create", (folder: Asset) => {
 socket.on("Asset.Upload.Finish", (asset: Asset) => {
     assetStore.idMap.set(asset.id, asset);
     assetStore.files.push(asset.id);
+    assetStore.resolveUpload(asset.name);
 });

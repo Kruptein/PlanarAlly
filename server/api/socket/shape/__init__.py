@@ -241,7 +241,7 @@ async def remove_shape(sid, data):
             return
 
         if data["temporary"]:
-            if user.name not in shape["owners"]:
+            if not any(user.name == o["user"] for o in shape["owners"]):
                 logger.warning(f"{user.name} attempted to remove asset it does not own")
                 return
         else:
@@ -479,7 +479,7 @@ async def has_ownership(layer, room, data, user, shape):
             return False
 
         if data["temporary"]:
-            if user.name not in shape["owners"]:
+            if not any(user.name == o["user"] for o in shape["owners"]):
                 logger.warning(f"{user.name} attempted to move asset it does not own")
                 return False
         else:

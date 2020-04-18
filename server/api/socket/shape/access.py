@@ -53,6 +53,13 @@ async def add_shape_owner(sid, data):
         skip_sid=sid,
         namespace="/planarally",
     )
+    for sid in state.get_sids(user=target_user, room=room):
+        await sio.emit(
+            "Shape.Set",
+            shape.as_dict(target_user, False),
+            room=sid,
+            namespace="/planarally",
+        )
 
 
 @sio.on("Shape.Owner.Update", namespace="/planarally")

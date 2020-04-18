@@ -1,6 +1,6 @@
 import "@/game/api/events/access";
 
-import { AssetList, SyncMode } from "@/core/comm/types";
+import { AssetList, SyncMode, InvalidationMode } from "@/core/comm/types";
 import { coreStore } from "@/core/store";
 import { socket } from "@/game/api/socket";
 import { BoardInfo, Note, ServerClient, ServerLocation } from "@/game/comm/types/general";
@@ -14,6 +14,7 @@ import { gameStore } from "@/game/store";
 import { router } from "@/router";
 import { zoomDisplay } from "../utils";
 import { VisibilityMode, visibilityStore } from "../visibility/store";
+import { createShapeFromDict } from "../shapes/utils";
 
 socket.on("connect", () => {
     console.log("Connected");
@@ -173,6 +174,17 @@ socket.on("Shape.Layer.Change", (data: { uuid: string; layer: string }) => {
 });
 socket.on("Shape.Update", (data: { shape: ServerShape; redraw: boolean; move: boolean; temporary: boolean }) => {
     gameManager.updateShape(data);
+});
+socket.on("Shape.Set", (data: ServerShape) => {
+    // hard reset a shape
+    const old = layerManager.UUIDMap.get(data.uuid);
+    if (old) layerManager.getLayer(old.floor, old.layer)?.removeShape(old, SyncMode.NO_SYNC);
+    const shape = createShapeFromDict(data);
+    if (shape === undefined) {
+        console.log(`Shape with unknown type ${data.type_} could not be added`);
+        return;
+    }
+    layerManager.getLayer(data.floor, data.layer)?.addShape(shape, SyncMode.NO_SYNC, InvalidationMode.WITH_LIGHT);
 });
 socket.on("Temp.Clear", (shapeIds: string[]) => {
     for (const shapeId of shapeIds) {

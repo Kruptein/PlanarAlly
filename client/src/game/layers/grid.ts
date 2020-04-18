@@ -7,7 +7,7 @@ export class GridLayer extends Layer {
         this.valid = false;
     }
     show(): void {
-        if (gameStore.useGrid) this.canvas.style.removeProperty("display");
+        if (gameStore.useGrid && this.floor === layerManager.floor?.name) this.canvas.style.removeProperty("display");
     }
     draw(_doClear?: boolean): void {
         if (!this.valid) {

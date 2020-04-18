@@ -46,6 +46,7 @@ All notable changes to this project will be documented in this file.
 -   Previous prompt values are now cleared before showing a new prompt
 -   Asset manager not showing uploaded files until refreshed
 -   Asset manager contextmenu not rendering correctly when scrolling down
+-   Grid layers of al lower floors being visible
 
 ## [0.19.3] - 2020-04-01
 

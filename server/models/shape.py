@@ -64,7 +64,7 @@ class Shape(BaseModel):
         data["layer"] = self.layer.name
         data["floor"] = self.layer.floor.name
         # Aura and Tracker queries > json
-        owned = dm or (user.name in data["owners"])
+        owned = dm or any(user.name == o["user"] for o in data["owners"])
         tracker_query = self.trackers
         aura_query = self.auras
         label_query = self.labels.join(Label)

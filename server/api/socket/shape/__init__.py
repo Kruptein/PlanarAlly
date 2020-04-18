@@ -428,7 +428,9 @@ async def sync_shape_update(layer, room: Room, data, sid, shape):
             continue
         pdata = {el: data[el] for el in data if el != "shape"}
         if data["temporary"]:
-            if player != room.creator and player.name not in data["shape"]["owners"]:
+            if player != room.creator and not any(
+                player.name == o["user"] for o in data["shape"]["owners"]
+            ):
                 pdata["shape"] = deepcopy(data["shape"])
                 # Although we have no guarantees that the message is faked, we still would like to verify data as if it were legitimate.
                 for element in ["auras", "labels", "trackers"]:

@@ -22,6 +22,7 @@ from models import (
 )
 from models.db import db
 from models.utils import get_table, reduce_data_to_model
+from models.shape.access import has_ownership, has_ownership_temp
 
 
 @sio.on("Shape.Add", namespace="/planarally")
@@ -55,7 +56,6 @@ async def add_shape(sid, data):
                 shape=shape, **reduce_data_to_model(type_table, data["shape"])
             )
             # Owners
-            # ShapeOwner.create(shape=shape, user=user)
             for owner in data["shape"]["owners"]:
                 ShapeOwner.create(
                     shape=shape,
@@ -97,13 +97,20 @@ async def update_shape_position(sid, data):
     room = sid_data["room"]
     location = sid_data["location"]
 
-    shape, layer = await _get_shape(data, location, user)
-
-    if not await has_ownership(layer, room, data, user, shape):
+    if data["temporary"] and not has_ownership_temp(data["shape"], sid_data):
+        logger.warning(f"User {user.name} attempted to move a shape it does not own.")
         return
+
+    shape, layer = await _get_shape(data, location, user)
 
     # Overwrite the old data with the new data
     if not data["temporary"]:
+        if not has_ownership(shape, sid_data):
+            logger.warning(
+                f"User {user.name} attempted to move a shape it does not own."
+            )
+            return
+
         with db.atomic():
             # Shape
             update_model_from_dict(shape, reduce_data_to_model(Shape, data["shape"]))
@@ -126,13 +133,18 @@ async def update_shape(sid, data):
     room = sid_data["room"]
     location = sid_data["location"]
 
-    shape, layer = await _get_shape(data, location, user)
-
-    if not await has_ownership(layer, room, data, user, shape):
+    if data["temporary"] and not has_ownership_temp(data["shape"], sid_data):
+        logger.warning(f"User {user.name} tried to update a shape it does not own.")
         return
+
+    # todo clean up this mess that deals with both temporary and non temporary shapes
+    shape, layer = await _get_shape(data, location, user)
 
     # Overwrite the old data with the new data
     if not data["temporary"]:
+        if not has_ownership(shape, sid_data):
+            logger.warning(f"User {user.name} tried to update a shape it does not own.")
+            return
         with db.atomic():
             # Shape
             update_model_from_dict(shape, reduce_data_to_model(Shape, data["shape"]))
@@ -221,6 +233,10 @@ async def remove_shape(sid, data):
 
     # We're first gonna retrieve the existing server side shape for some validation checks
     if data["temporary"]:
+        if not has_ownership_temp(data["shape"], sid_data):
+            logger.warning(f"User {user.name} tried to update a shape it does not own.")
+            return
+
         # This stuff is not stored so we cannot do any server side validation /shrug
         shape = data["shape"]
         floor = location.floors.select().where(Floor.name == data["shape"]["floor"])[0]
@@ -234,20 +250,9 @@ async def remove_shape(sid, data):
             return
         layer = shape.layer
 
-    # Ownership validatation
-    if room.creator != user:
-        if not layer.player_editable:
-            logger.warning(f"{user.name} attempted to remove a shape on a dm layer")
+        if not has_ownership(shape, sid_data):
+            logger.warning(f"User {user.name} tried to update a shape it does not own.")
             return
-
-        if data["temporary"]:
-            if not any(user.name == o["user"] for o in shape["owners"]):
-                logger.warning(f"{user.name} attempted to remove asset it does not own")
-                return
-        else:
-            if not ShapeOwner.get_or_none(shape=shape, user=user):
-                logger.warning(f"{user.name} attempted to remove asset it does not own")
-                return
 
     if data["temporary"]:
         state.remove_temp(sid, data["shape"]["uuid"])
@@ -277,7 +282,7 @@ async def remove_shape(sid, data):
 
 @sio.on("Shape.Floor.Change", namespace="/planarally")
 @auth.login_required(app, sio)
-async def change_shape_layer(sid, data):
+async def change_shape_floor(sid, data):
     sid_data = state.sid_map[sid]
     user = sid_data["user"]
     room = sid_data["room"]
@@ -428,8 +433,9 @@ async def sync_shape_update(layer, room: Room, data, sid, shape):
             continue
         pdata = {el: data[el] for el in data if el != "shape"}
         if data["temporary"]:
-            if player != room.creator and not any(
-                player.name == o["user"] for o in data["shape"]["owners"]
+            if player != room.creator and not (
+                data["shape"]["default_edit_access"]
+                or any(player.name == o["user"] for o in data["shape"]["owners"])
             ):
                 pdata["shape"] = deepcopy(data["shape"])
                 # Although we have no guarantees that the message is faked, we still would like to verify data as if it were legitimate.
@@ -471,21 +477,3 @@ async def _get_shape(data, location, user):
     data["shape"]["layer"] = layer
 
     return shape, layer
-
-
-async def has_ownership(layer, room, data, user, shape):
-    # Ownership validatation
-    if room.creator != user:
-        if not layer.player_editable:
-            logger.warning(f"{user.name} attempted to move a shape on a dm layer")
-            return False
-
-        if data["temporary"]:
-            if not any(user.name == o["user"] for o in shape["owners"]):
-                logger.warning(f"{user.name} attempted to move asset it does not own")
-                return False
-        else:
-            if not ShapeOwner.get_or_none(shape=shape, user=user):
-                logger.warning(f"{user.name} attempted to move asset it does not own")
-                return False
-    return True

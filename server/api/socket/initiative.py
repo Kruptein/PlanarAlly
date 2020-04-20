@@ -14,6 +14,7 @@ from models import (
 )
 from models.db import db
 from models.utils import reduce_data_to_model
+from models.shape.access import has_ownership, has_ownership_temp
 
 
 @sio.on("Initiative.Update", namespace="/planarally")
@@ -25,9 +26,8 @@ async def update_initiative(sid, data):
     location = sid_data["location"]
 
     shape = Shape.get_or_none(uuid=data["uuid"])
-    owner = ShapeOwner.get_or_none(shape=shape, user=user) is not None
 
-    if room.creator != user and not owner:
+    if not has_ownership(shape, sid_data):
         logger.warning(
             f"{user.name} attempted to change initiative of an asset it does not own"
         )
@@ -210,7 +210,7 @@ async def new_initiative_effect(sid, data):
     room = sid_data["room"]
     location = sid_data["location"]
 
-    if room.creator != user and not ShapeOwner.get_or_none(shape=data["actor"], user=user):
+    if not has_ownership(data["actor"], sid_data):
         logger.warning(f"{user.name} attempted to create a new initiative effect")
         return
 
@@ -237,8 +237,8 @@ async def update_initiative_effect(sid, data):
     user = sid_data["user"]
     room = sid_data["room"]
     location = sid_data["location"]
-    
-    if room.creator != user and not ShapeOwner.get_or_none(shape=data["actor"], user=user):
+
+    if not has_ownership(data["actor"], sid_data):
         logger.warning(f"{user.name} attempted to update an initiative effect")
         return
 
@@ -268,7 +268,12 @@ def get_client_initiatives(user, location):
             initiatives.join(
                 ShapeOwner, JOIN.LEFT_OUTER, on=Initiative.uuid == ShapeOwner.shape
             )
-            .where((Initiative.visible == True) | (ShapeOwner.user == user))
+            .join(Shape, JOIN.LEFT_OUTER, on=Initiative.uuid == Shape.uuid)
+            .where(
+                (Initiative.visible == True)
+                | (Shape.default_edit_access == True)
+                | (ShapeOwner.user == user)
+            )
             .distinct()
         )
     return [i.as_dict() for i in initiatives.order_by(Initiative.index)]

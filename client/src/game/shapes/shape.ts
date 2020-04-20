@@ -400,8 +400,10 @@ export abstract class Shape {
         const ownerIndex = this._owners.findIndex(o => o.user === owner);
         if (ownerIndex < 0) return;
         const removed = this._owners.splice(ownerIndex, 1)[0];
-        const ownedIndex = gameStore.ownedtokens.indexOf(this.uuid);
-        if (ownedIndex >= 0) gameStore.ownedtokens.splice(ownedIndex, 1);
+        if (owner === gameStore.username) {
+            const ownedIndex = gameStore.ownedtokens.indexOf(this.uuid);
+            if (ownedIndex >= 0) gameStore.ownedtokens.splice(ownedIndex, 1);
+        }
         if (sync) socket.emit("Shape.Owner.Delete", ownerToServer(removed));
         if (gameStore.fowLOS) layerManager.invalidateLightAllFloors();
     }

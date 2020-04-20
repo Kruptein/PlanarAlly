@@ -2,7 +2,8 @@ import auth
 
 from api.socket.initiative import send_client_initiatives
 from app import app, logger, sio, state
-from models import Shape, ShapeOwner, User
+from models import Floor, Layer, Location, Room, Shape, ShapeOwner, User
+from models.shape.access import has_ownership
 
 
 @sio.on("Shape.Owner.Add", namespace="/planarally")
@@ -21,7 +22,7 @@ async def add_shape_owner(sid, data):
         )
         raise exc
 
-    if not ShapeOwner.get_or_none(shape=shape, user=user):
+    if not has_ownership(shape, sid_data):
         logger.warning(
             f"{user.name} attempted to change asset ownership of a shape it does not own"
         )
@@ -53,13 +54,14 @@ async def add_shape_owner(sid, data):
         skip_sid=sid,
         namespace="/planarally",
     )
-    for sid in state.get_sids(user=target_user, room=room):
-        await sio.emit(
-            "Shape.Set",
-            shape.as_dict(target_user, False),
-            room=sid,
-            namespace="/planarally",
-        )
+    if not (shape.vision_access or shape.default_edit_access):
+        for sid in state.get_sids(user=target_user, room=room):
+            await sio.emit(
+                "Shape.Set",
+                shape.as_dict(target_user, False),
+                room=sid,
+                namespace="/planarally",
+            )
 
 
 @sio.on("Shape.Owner.Update", namespace="/planarally")
@@ -127,7 +129,7 @@ async def delete_shape_owner(sid, data):
         )
         raise exc
 
-    if not ShapeOwner.get_or_none(shape=shape, user=user):
+    if not has_ownership(shape, sid_data):
         logger.warning(
             f"{user.name} attempted to change asset ownership of a shape it does not own"
         )
@@ -174,9 +176,7 @@ async def update_default_shape_owner(sid, data):
         )
         raise exc
 
-    if not shape.default_edit_access and not ShapeOwner.get_or_none(
-        shape=shape, user=user
-    ):
+    if not has_ownership(shape, sid_data):
         logger.warning(
             f"{user.name} attempted to change asset ownership of a shape it does not own"
         )
@@ -197,3 +197,12 @@ async def update_default_shape_owner(sid, data):
         skip_sid=sid,
         namespace="/planarally",
     )
+
+    if shape.default_vision_access or shape.default_edit_access:
+        for sid, player in state.get_players(room=room):
+            await sio.emit(
+                "Shape.Set",
+                shape.as_dict(player, player.name == room.creator),
+                room=sid,
+                namespace="/planarally",
+            )

@@ -24,10 +24,10 @@ socket.on("Shape.Owner.Delete", (data: ServerShapeOwner) => {
 socket.on("Shape.Owner.Default.Update", (data: { shape: string; edit_access?: boolean; vision_access?: boolean }) => {
     const shape = layerManager.UUIDMap.get(data.shape);
     if (shape === undefined) return;
-    if (data.edit_access) shape.defaultEditAccess = data.edit_access;
-    if (data.vision_access) shape.defaultVisionAccess = data.vision_access;
+    if (data.edit_access !== undefined) shape.defaultEditAccess = data.edit_access;
+    if (data.vision_access !== undefined) shape.defaultVisionAccess = data.vision_access;
     const ownedIndex = gameStore.ownedtokens.indexOf(shape.uuid);
-    if (data.vision_access) {
+    if (shape.defaultVisionAccess || shape.defaultEditAccess) {
         if (ownedIndex === -1) gameStore.ownedtokens.push(shape.uuid);
     } else {
         if (ownedIndex >= 0) gameStore.ownedtokens.splice(ownedIndex, 1);

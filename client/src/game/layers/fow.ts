@@ -126,6 +126,8 @@ export class FOWLayer extends Layer {
                 const aura = shape.auras.find(a => a.uuid === light.aura);
                 if (aura === undefined) continue;
 
+                if (!shape.ownedBy({ visionAccess: true }) && !aura.visible) continue;
+
                 const auraLength = getUnitDistance(aura.value + aura.dim);
                 const center = shape.center();
                 const lcenter = g2l(center);

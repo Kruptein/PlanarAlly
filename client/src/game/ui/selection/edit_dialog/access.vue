@@ -41,19 +41,15 @@ export default class EditDialogAccess extends Vue {
     }
     toggleOwnerEditAccess(owner: ShapeOwner): void {
         if (!this.owned) return;
-        owner.editAccess = !owner.editAccess;
-        socket.emit("Shape.Owner.Update", ownerToServer(owner));
-        if (gameStore.fowLOS) layerManager.invalidateLightAllFloors();
+        this.shape.updateOwner({ ...owner, editAccess: !owner.editAccess }, true);
     }
     toggleOwnerVisionAccess(owner: ShapeOwner): void {
         if (!this.owned) return;
-        owner.visionAccess = !owner.visionAccess;
-        socket.emit("Shape.Owner.Update", ownerToServer(owner));
-        if (gameStore.fowLOS) layerManager.invalidateLightAllFloors();
+        this.shape.updateOwner({ ...owner, visionAccess: !owner.visionAccess }, true);
     }
     toggleDefaultEditAccess(): void {
         if (!this.owned) return;
-        this.shape.defaultEditAccess = !this.shape.defaultEditAccess;
+        this.shape.updateDefaultOwner({ editAccess: !this.shape.defaultEditAccess });
         socket.emit("Shape.Owner.Default.Update", {
             shape: this.shape.uuid,
             // eslint-disable-next-line @typescript-eslint/camelcase
@@ -62,7 +58,7 @@ export default class EditDialogAccess extends Vue {
     }
     toggleDefaultVisionAccess(): void {
         if (!this.owned) return;
-        this.shape.defaultVisionAccess = !this.shape.defaultVisionAccess;
+        this.shape.updateDefaultOwner({ visionAccess: !this.shape.defaultVisionAccess });
         socket.emit("Shape.Owner.Default.Update", {
             shape: this.shape.uuid,
             // eslint-disable-next-line @typescript-eslint/camelcase

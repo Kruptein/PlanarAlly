@@ -371,7 +371,8 @@ export abstract class Shape {
         if (fullOwner.shape !== this.uuid) return;
         if (!this.hasOwner(owner.user)) {
             this._owners.push(fullOwner);
-            if (owner.visionAccess && this.isToken) gameStore.ownedtokens.push(this.uuid);
+            if (owner.visionAccess && this.isToken && owner.user === gameStore.username)
+                gameStore.ownedtokens.push(this.uuid);
             if (sync) socket.emit("Shape.Owner.Add", ownerToServer(fullOwner));
             if (gameStore.fowLOS) layerManager.invalidateLightAllFloors();
         }
@@ -383,11 +384,13 @@ export abstract class Shape {
         if (!this.hasOwner(owner.user)) return;
         const targetOwner = this._owners.find(o => o.user === owner.user)!;
         if (targetOwner.visionAccess !== fullOwner.visionAccess) {
-            const ownedIndex = gameStore.ownedtokens.indexOf(this.uuid);
-            if (fullOwner.visionAccess) {
-                if (ownedIndex === -1) gameStore.ownedtokens.push(this.uuid);
-            } else {
-                if (ownedIndex >= 0) gameStore.ownedtokens.splice(ownedIndex, 1);
+            if (targetOwner.user === gameStore.username) {
+                const ownedIndex = gameStore.ownedtokens.indexOf(this.uuid);
+                if (fullOwner.visionAccess) {
+                    if (ownedIndex === -1) gameStore.ownedtokens.push(this.uuid);
+                } else {
+                    if (ownedIndex >= 0) gameStore.ownedtokens.splice(ownedIndex, 1);
+                }
             }
             targetOwner.visionAccess = fullOwner.visionAccess;
         }
@@ -405,6 +408,20 @@ export abstract class Shape {
             if (ownedIndex >= 0) gameStore.ownedtokens.splice(ownedIndex, 1);
         }
         if (sync) socket.emit("Shape.Owner.Delete", ownerToServer(removed));
+        if (gameStore.fowLOS) layerManager.invalidateLightAllFloors();
+    }
+
+    updateDefaultOwner(options: { editAccess?: boolean; visionAccess?: boolean }): void {
+        if (options.editAccess !== undefined) this.defaultEditAccess = options.editAccess;
+        if (options.visionAccess !== undefined) this.defaultVisionAccess = options.visionAccess;
+        const ownedIndex = gameStore.ownedtokens.indexOf(this.uuid);
+        if (this.defaultVisionAccess || this.defaultEditAccess) {
+            if ((this.ownedBy({ editAccess: true }) || this.ownedBy({ visionAccess: true })) && ownedIndex === -1)
+                gameStore.ownedtokens.push(this.uuid);
+        } else {
+            if (!(this.ownedBy({ editAccess: true }) || this.ownedBy({ visionAccess: true })) && ownedIndex >= 0)
+                gameStore.ownedtokens.splice(ownedIndex, 1);
+        }
         if (gameStore.fowLOS) layerManager.invalidateLightAllFloors();
     }
 

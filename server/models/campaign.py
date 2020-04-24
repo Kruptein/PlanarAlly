@@ -29,7 +29,6 @@ class Room(BaseModel):
     name = TextField()
     creator = ForeignKeyField(User, backref="rooms_created", on_delete="CASCADE")
     invitation_code = TextField(default=uuid.uuid4, unique=True)
-    player_location = TextField(null=True)
     dm_location = TextField(null=True)
     is_locked = BooleanField(default=False)
 
@@ -47,14 +46,6 @@ class Room(BaseModel):
 
     class Meta:
         indexes = ((("name", "creator"), True),)
-
-
-class PlayerRoom(BaseModel):
-    player = ForeignKeyField(User, backref="rooms_joined", on_delete="CASCADE")
-    room = ForeignKeyField(Room, backref="players", on_delete="CASCADE")
-
-    def __repr__(self):
-        return f"<PlayerRoom {self.room.get_path()} - {self.player.name}>"
 
 
 class Location(BaseModel):
@@ -148,6 +139,17 @@ class Location(BaseModel):
         indexes = ((("room", "name"), True),)
 
 
+class PlayerRoom(BaseModel):
+    player = ForeignKeyField(User, backref="rooms_joined", on_delete="CASCADE")
+    room = ForeignKeyField(Room, backref="players", on_delete="CASCADE")
+    active_location = ForeignKeyField(
+        Location, backref="players", on_delete="CASCADE", null=True
+    )
+
+    def __repr__(self):
+        return f"<PlayerRoom {self.room.get_path()} - {self.player.name}>"
+
+
 class Note(BaseModel):
     uuid = TextField(primary_key=True)
     room = ForeignKeyField(Room, backref="notes", on_delete="CASCADE")
@@ -165,6 +167,7 @@ class Note(BaseModel):
         return model_to_dict(
             self, recurse=False, exclude=[Note.room, Note.location, Note.user]
         )
+
 
 class Floor(BaseModel):
     location = ForeignKeyField(Location, backref="floors", on_delete="CASCADE")

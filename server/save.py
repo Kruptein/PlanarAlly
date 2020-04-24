@@ -12,7 +12,7 @@ from config import SAVE_FILE
 from models import ALL_MODELS, Constants
 from models.db import db
 
-SAVE_VERSION = 25
+SAVE_VERSION = 26
 
 logger: logging.Logger = logging.getLogger("PlanarAllyServer")
 logger.setLevel(logging.INFO)
@@ -359,6 +359,30 @@ def upgrade(version):
             db.execute_sql(
                 'DELETE FROM "player_room" WHERE id IN (SELECT pr.id FROM "player_room" pr INNER JOIN "room" r ON r.id = pr.room_id WHERE r.creator_id = pr.player_id )'
             )
+    elif version == 25:
+        from peewee import ForeignKeyField
+        from models import Location
+
+        migrator = SqliteMigrator(db)
+        db.foreign_keys = False
+        with db.atomic():
+            migrate(
+                migrator.add_column(
+                    "player_room",
+                    "active_location",
+                    ForeignKeyField(
+                        Location,
+                        Location.id,
+                        backref="players",
+                        on_delete="CASCADE",
+                        null=True,
+                    ),
+                )
+            )
+            db.execute_sql(
+                "UPDATE player_room SET active_location = (SELECT location.id FROM room INNER JOIN location ON room.id = location.room_id WHERE location.name = room.player_location AND room.id = player_room.room_id)"
+            )
+            migrate(migrator.drop_column("room", "player_location"))
         db.foreign_keys = True
         Constants.get().update(save_version=Constants.save_version + 1).execute()
     else:

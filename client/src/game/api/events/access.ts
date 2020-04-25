@@ -1,7 +1,6 @@
 import { ownerToClient, ServerShapeOwner } from "../../comm/types/shapes";
 import { layerManager } from "../../layers/manager";
 import { socket } from "../socket";
-import { gameStore } from "../../store";
 
 socket.on("Shape.Owner.Add", (data: ServerShapeOwner) => {
     const shape = layerManager.UUIDMap.get(data.shape);

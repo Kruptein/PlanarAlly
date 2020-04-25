@@ -5,11 +5,9 @@ import Component from "vue-class-component";
 import { Prop } from "vue-property-decorator";
 
 import { socket } from "@/game/api/socket";
-import { layerManager } from "@/game/layers/manager";
 import { Shape } from "@/game/shapes/shape";
 import { gameStore } from "@/game/store";
 import { ShapeOwner } from "../../../shapes/owners";
-import { ownerToServer } from "../../../comm/types/shapes";
 
 @Component
 export default class EditDialogAccess extends Vue {

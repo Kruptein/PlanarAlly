@@ -19,9 +19,7 @@ async def claim_invite(request):
     if room is None:
         return web.HTTPNotFound()
     else:
-        if user.name != room.creator and not PlayerRoom.get_or_none(
-            player=user, room=room
-        ):
+        if user != room.creator and not PlayerRoom.get_or_none(player=user, room=room):
             PlayerRoom.create(player=user, room=room)
 
             for csid in state.get_sids(user=room.creator, room=room):

@@ -12,7 +12,7 @@ from config import SAVE_FILE
 from models import ALL_MODELS, Constants
 from models.db import db
 
-SAVE_VERSION = 24
+SAVE_VERSION = 25
 
 logger: logging.Logger = logging.getLogger("PlanarAllyServer")
 logger.setLevel(logging.INFO)
@@ -349,6 +349,15 @@ def upgrade(version):
                 migrator.add_column(
                     "shape", "default_vision_access", BooleanField(default=False)
                 ),
+            )
+        db.foreign_keys = True
+        Constants.get().update(save_version=Constants.save_version + 1).execute()
+    elif version == 24:
+        migrator = SqliteMigrator(db)
+        db.foreign_keys = False
+        with db.atomic():
+            db.execute_sql(
+                'DELETE FROM "player_room" WHERE id IN (SELECT pr.id FROM "player_room" pr INNER JOIN "room" r ON r.id = pr.room_id WHERE r.creator_id = pr.player_id )'
             )
         db.foreign_keys = True
         Constants.get().update(save_version=Constants.save_version + 1).execute()

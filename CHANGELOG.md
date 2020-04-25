@@ -47,6 +47,7 @@ All notable changes to this project will be documented in this file.
 -   Asset manager not showing uploaded files until refreshed
 -   Asset manager contextmenu not rendering correctly when scrolling down
 -   Grid layers of al lower floors being visible
+-   DM being able to invite themselves to the room as a player
 
 ## [0.19.3] - 2020-04-01
 

@@ -369,7 +369,7 @@ def upgrade(version):
             migrate(
                 migrator.add_column(
                     "player_room",
-                    "active_location",
+                    "active_location_id",
                     ForeignKeyField(
                         Location,
                         Location.id,
@@ -380,7 +380,7 @@ def upgrade(version):
                 )
             )
             db.execute_sql(
-                "UPDATE player_room SET active_location = (SELECT location.id FROM room INNER JOIN location ON room.id = location.room_id WHERE location.name = room.player_location AND room.id = player_room.room_id)"
+                "UPDATE player_room SET active_location_id = (SELECT location.id FROM room INNER JOIN location ON room.id = location.room_id WHERE location.name = room.player_location AND room.id = player_room.room_id)"
             )
             migrate(migrator.drop_column("room", "player_location"))
         db.foreign_keys = True

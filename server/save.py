@@ -5,7 +5,14 @@ import secrets
 import shutil
 import sys
 
-from peewee import FloatField, OperationalError
+from peewee import (
+    BooleanField,
+    FloatField,
+    ForeignKeyField,
+    IntegerField,
+    OperationalError,
+    TextField,
+)
 from playhouse.migrate import fn, migrate, SqliteMigrator
 
 from config import SAVE_FILE
@@ -92,8 +99,6 @@ def upgrade(version):
         db.foreign_keys = True
         Constants.get().update(save_version=Constants.save_version + 1).execute()
     elif version == 15:
-        from peewee import BooleanField
-
         migrator = SqliteMigrator(db)
         db.foreign_keys = False
         with db.atomic():
@@ -103,8 +108,6 @@ def upgrade(version):
         db.foreign_keys = True
         Constants.get().update(save_version=Constants.save_version + 1).execute()
     elif version == 16:
-        from peewee import TextField
-
         migrator = SqliteMigrator(db)
         db.foreign_keys = False
         with db.atomic():
@@ -116,8 +119,6 @@ def upgrade(version):
         db.foreign_keys = True
         Constants.get().update(save_version=Constants.save_version + 1).execute()
     elif version == 17:
-        from peewee import BooleanField, IntegerField
-
         migrator = SqliteMigrator(db)
         db.foreign_keys = False
         with db.atomic():
@@ -137,8 +138,6 @@ def upgrade(version):
         db.foreign_keys = True
         Constants.get().update(save_version=Constants.save_version + 1).execute()
     elif version == 18:
-        from peewee import TextField
-
         migrator = SqliteMigrator(db)
         db.foreign_keys = False
         with db.atomic():
@@ -146,8 +145,6 @@ def upgrade(version):
         db.foreign_keys = True
         Constants.get().update(save_version=Constants.save_version + 1).execute()
     elif version == 19:
-        from peewee import ForeignKeyField
-
         db.foreign_keys = False
         migrator = SqliteMigrator(db)
 
@@ -171,8 +168,6 @@ def upgrade(version):
         db.foreign_keys = True
         Constants.get().update(save_version=Constants.save_version + 1).execute()
     elif version == 20:
-        from peewee import BooleanField, IntegerField
-
         migrator = SqliteMigrator(db)
         db.foreign_keys = False
         with db.atomic():
@@ -183,8 +178,6 @@ def upgrade(version):
         db.foreign_keys = True
         Constants.get().update(save_version=Constants.save_version + 1).execute()
     elif version == 21:
-        from peewee import BooleanField, IntegerField
-
         migrator = SqliteMigrator(db)
         db.foreign_keys = False
         with db.atomic():
@@ -203,8 +196,6 @@ def upgrade(version):
         db.foreign_keys = True
         Constants.get().update(save_version=Constants.save_version + 1).execute()
     elif version == 23:
-        from peewee import BooleanField, IntegerField
-
         migrator = SqliteMigrator(db)
         db.foreign_keys = False
         with db.atomic():
@@ -232,7 +223,6 @@ def upgrade(version):
                 'DELETE FROM "player_room" WHERE id IN (SELECT pr.id FROM "player_room" pr INNER JOIN "room" r ON r.id = pr.room_id WHERE r.creator_id = pr.player_id )'
             )
     elif version == 25:
-        from peewee import ForeignKeyField
         from models import Location
 
         migrator = SqliteMigrator(db)

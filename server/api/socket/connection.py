@@ -4,7 +4,7 @@ from aiohttp_security import authorized_userid
 
 from .location import load_location
 from app import logger, sio, state
-from models import Asset, Label, LabelSelection, Location, Room, User
+from models import Asset, Label, LabelSelection, Location, PlayerRoom, Room, User
 
 
 @sio.on("connect", namespace="/planarally")
@@ -31,11 +31,9 @@ async def connect(sid, environ):
             ):
                 return False
 
-        if room.creator == user:
-            location = Location.get(room=room, name=room.dm_location)
-        else:
-            location = Location.get(room=room, name=room.player_location)
+        location = PlayerRoom.get(room=room, player=user).active_location
 
+        # todo: just store PlayerRoom as it has all the info
         state.add_sid(sid, user=user, room=room, location=location)
 
         logger.info(f"User {user.name} connected with identifier {sid}")
@@ -67,7 +65,12 @@ async def connect(sid, environ):
                 "invitationCode": str(room.invitation_code),
                 "isLocked": room.is_locked,
                 "players": [
-                    {"id": rp.player.id, "name": rp.player.name} for rp in room.players
+                    {
+                        "id": rp.player.id,
+                        "name": rp.player.name,
+                        "location": rp.active_location.name,
+                    }
+                    for rp in room.players
                 ],
             },
             room=sid,

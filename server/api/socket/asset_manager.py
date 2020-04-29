@@ -117,6 +117,11 @@ async def assetmgmt_rm(sid, data):
         return
     asset.delete_instance(recursive=True, delete_nullable=True)
 
+    if asset.file_hash is not None and (ASSETS_DIR / asset.file_hash).exists():
+        if Asset.select().where(Asset.file_hash == asset.file_hash).count() == 0:
+            logger.info(f"No asset maps to file {asset.file_hash}, removing from server")
+            (ASSETS_DIR / asset.file_hash).unlink()
+
 
 @sio.on("Asset.Upload", namespace="/pa_assetmgmt")
 @auth.login_required(app, sio)

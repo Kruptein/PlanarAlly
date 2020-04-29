@@ -42,7 +42,7 @@ socket.on(
         creator: string;
         invitationCode: string;
         isLocked: boolean;
-        players: { id: number; name: string }[];
+        players: { id: number; name: string; location: string }[];
     }) => {
         gameStore.setRoomName(data.name);
         gameStore.setRoomCreator(data.creator);
@@ -55,7 +55,7 @@ socket.on("Room.Info.InvitationCode.Set", (invitationCode: string) => {
     gameStore.setInvitationCode(invitationCode);
     EventBus.$emit("DmSettings.RefreshedInviteCode");
 });
-socket.on("Room.Info.Players.Add", (data: { id: number; name: string }) => {
+socket.on("Room.Info.Players.Add", (data: { id: number; name: string; location: string }) => {
     gameStore.addPlayer(data);
 });
 socket.on("Username.Set", (username: string) => {

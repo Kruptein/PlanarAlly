@@ -1,27 +1,27 @@
-import auth
-from app import app, logger, sio, state
+from typing import Any, Dict
 
-from models import Floor, Room
+import auth
+from app import app, logger, sio
+from models import Floor, Room, PlayerRoom
+from models.role import Role
+from state.game import game_state
 
 
 @sio.on("Floor.Create", namespace="/planarally")
 @auth.login_required(app, sio)
-async def create_floor(sid, data):
-    sid_data = state.sid_map[sid]
-    user = sid_data["user"]
-    room: Room = sid_data["room"]
-    location = sid_data["location"]
+async def create_floor(sid: int, data: Dict[str, Any]):
+    pr: PlayerRoom = game_state.get(sid)
 
-    if room.creator != user:
-        logger.warning(f"{user.name} attempted to create a new floor")
+    if pr.role != Role.DM:
+        logger.warning(f"{pr.player.name} attempted to create a new floor")
         return
 
-    floor: Floor = location.create_floor(data)
+    floor: Floor = pr.active_location.create_floor(data)
 
-    for psid, player in state.get_players(room=room):
+    for psid, player in game_state.get_users(room=pr.room):
         await sio.emit(
             "Floor.Create",
-            floor.as_dict(player, player == room.creator),
+            floor.as_dict(player, player == pr.room.creator),
             room=psid,
             namespace="/planarally",
         )
@@ -30,22 +30,19 @@ async def create_floor(sid, data):
 @sio.on("Floor.Remove", namespace="/planarally")
 @auth.login_required(app, sio)
 async def remove_floor(sid, data):
-    sid_data = state.sid_map[sid]
-    user = sid_data["user"]
-    room: Room = sid_data["room"]
-    location = sid_data["location"]
+    pr: PlayerRoom = game_state.get(sid)
 
-    if room.creator != user:
-        logger.warning(f"{user.name} attempted to remove a floor")
+    if pr.role != Role.DM:
+        logger.warning(f"{pr.player.name} attempted to remove a floor")
         return
 
-    floor: Floor = Floor.get(location=location, name=data)
+    floor: Floor = Floor.get(location=pr.active_location, name=data)
     floor.delete_instance(recursive=True)
 
     await sio.emit(
         "Floor.Remove",
         data,
-        room=location.get_path(),
+        room=pr.active_location.get_path(),
         skip_sid=sid,
         namespace="/planarally",
     )

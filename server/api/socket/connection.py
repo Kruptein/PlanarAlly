@@ -3,8 +3,10 @@ from urllib.parse import unquote
 from aiohttp_security import authorized_userid
 
 from .location import load_location
-from app import logger, sio, state
+from app import logger, sio
 from models import Asset, Label, LabelSelection, Location, PlayerRoom, Room, User
+from models.role import Role
+from state.game import game_state
 
 
 @sio.on("connect", namespace="/planarally")
@@ -26,15 +28,18 @@ async def connect(sid, environ):
         except IndexError:
             return False
         else:
-            if user != room.creator and (
-                user not in [pr.player for pr in room.players] or room.is_locked
-            ):
+            for pr in room.players:
+                if pr.player == user:
+                    if pr.role != Role.DM and room.is_locked:
+                        return False
+                    break
+            else:
                 return False
 
-        location = PlayerRoom.get(room=room, player=user).active_location
+        pr = PlayerRoom.get(room=room, player=user)
 
         # todo: just store PlayerRoom as it has all the info
-        state.add_sid(sid, user=user, room=room, location=location)
+        await game_state.add_sid(sid, pr)
 
         logger.info(f"User {user.name} connected with identifier {sid}")
 
@@ -43,7 +48,7 @@ async def connect(sid, environ):
             (LabelSelection.user == user) & (LabelSelection.room == room)
         )
 
-        sio.enter_room(sid, location.get_path(), namespace="/planarally")
+        sio.enter_room(sid, pr.active_location.get_path(), namespace="/planarally")
         await sio.emit("Username.Set", user.name, room=sid, namespace="/planarally")
         await sio.emit(
             "Labels.Set",
@@ -82,14 +87,15 @@ async def connect(sid, environ):
             room=sid,
             namespace="/planarally",
         )
-        await load_location(sid, location)
+        await load_location(sid, pr.active_location)
 
 
 @sio.on("disconnect", namespace="/planarally")
-async def test_disconnect(sid):
-    if sid not in state.sid_map:
+async def disconnect(sid):
+    if not game_state.has_sid(sid):
         return
-    user = state.sid_map[sid]["user"]
+
+    user = game_state.get_user(sid)
 
     logger.info(f"User {user.name} disconnected with identifier {sid}")
-    await state.remove_sid(sid)
+    await game_state.remove_sid(sid)

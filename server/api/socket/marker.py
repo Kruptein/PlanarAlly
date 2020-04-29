@@ -1,35 +1,31 @@
+from typing import Any, Dict
+
 import auth
-from app import app, logger, sio, state
-from models import Marker
+from app import app, logger, sio
+from models import Marker, PlayerRoom
 from models.db import db
+from state.game import game_state
 
 
 @sio.on("Marker.New", namespace="/planarally")
 @auth.login_required(app, sio)
-async def new_marker(sid, data):
-    sid_data = state.sid_map[sid]
-    user = sid_data["user"]
-    location = sid_data["location"]
+async def new_marker(sid: int, data):
+    pr: PlayerRoom = game_state.get(sid)
 
-    marker = Marker.get_or_none(shape=data, user=user)
+    marker = Marker.get_or_none(shape=data, user=pr.player)
 
     if marker is not None:
         return
 
-    Marker.create(
-        shape=data,
-        user=user,
-        location=location
-    )
+    Marker.create(shape=data, user=pr.player, location=pr.active_location)
+
 
 @sio.on("Marker.Remove", namespace="/planarally")
 @auth.login_required(app, sio)
-async def delete_marker(sid, uuid):
-    sid_data = state.sid_map[sid]
-    user = sid_data["user"]
-    location = sid_data["location"]
+async def delete_marker(sid: int, uuid: str):
+    pr: PlayerRoom = game_state.get(sid)
 
-    marker = Marker.get_or_none(shape_id=uuid, user=user)
+    marker = Marker.get_or_none(shape_id=uuid, user=pr.player)
     if not marker:
         return
 

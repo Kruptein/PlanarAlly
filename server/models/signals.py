@@ -48,7 +48,7 @@ def on_player_join(model_class, instance, created):
         return
     with db.atomic():
         for location in instance.room.locations:
-            LocationUserOption.create(location=location, user=instance.player)
+            LocationUserOption.get_or_create(location=location, user=instance.player)
 
 
 @pre_delete(sender=PlayerRoom)

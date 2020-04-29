@@ -1,20 +1,20 @@
+from typing import Any, Dict
+
 import auth
-from app import app, logger, sio, state
-from models import Note
+from app import app, logger, sio
+from models import Note, PlayerRoom
 from models.db import db
+from state.game import game_state
 
 
 @sio.on("Note.New", namespace="/planarally")
 @auth.login_required(app, sio)
-async def new_note(sid, data):
-    sid_data = state.sid_map[sid]
-    user = sid_data["user"]
-    room = sid_data["room"]
-    location = sid_data["location"]
+async def new_note(sid: int, data: Dict[str, Any]):
+    pr: PlayerRoom = game_state.get(sid)
 
     if Note.get_or_none(uuid=data["uuid"]):
         logger.warning(
-            f"{user.name} tried to overwrite existing note with id: '{data['uuid']}'"
+            f"{pr.player.name} tried to overwrite existing note with id: '{data['uuid']}'"
         )
         return
 
@@ -22,30 +22,27 @@ async def new_note(sid, data):
         uuid=data["uuid"],
         title=data["title"],
         text=data["text"],
-        user=user,
-        room=room,
-        location=location,
+        user=pr.player,
+        room=pr.room,
+        location=pr.active_location,
     )
 
 
 @sio.on("Note.Update", namespace="/planarally")
 @auth.login_required(app, sio)
-async def update_note(sid, data):
-    sid_data = state.sid_map[sid]
-    user = sid_data["user"]
-    room = sid_data["room"]
-    location = sid_data["location"]
+async def update_note(sid: int, data: Dict[str, Any]):
+    pr: PlayerRoom = game_state.get(sid)
 
     note = Note.get_or_none(uuid=data["uuid"])
 
     if not note:
         logger.warning(
-            f"{user.name} tried to update non-existant note with id: '{data['uuid']}'"
+            f"{pr.player.name} tried to update non-existant note with id: '{data['uuid']}'"
         )
         return
 
-    if note.user != user:
-        logger.warn(f"{user.name} tried to update note not belonging to him/her.")
+    if note.user != pr.player:
+        logger.warn(f"{pr.player.name} tried to update note not belonging to him/her.")
     else:
         with db.atomic():
             note.title = data["title"]
@@ -56,16 +53,13 @@ async def update_note(sid, data):
 @sio.on("Note.Remove", namespace="/planarally")
 @auth.login_required(app, sio)
 async def delete_note(sid, uuid):
-    sid_data = state.sid_map[sid]
-    user = sid_data["user"]
-    room = sid_data["room"]
-    location = sid_data["location"]
+    pr: PlayerRoom = game_state.get(sid)
 
     note = Note.get_or_none(uuid=uuid)
 
     if not note:
         logger.warning(
-            f"{user.name} tried to remove non-existant note with id: '{uuid}'"
+            f"{pr.player.name} tried to remove non-existant note with id: '{uuid}'"
         )
         return
 

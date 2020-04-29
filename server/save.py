@@ -246,7 +246,7 @@ def upgrade(version):
                 "UPDATE player_room SET active_location_id = (SELECT location.id FROM room INNER JOIN location ON room.id = location.room_id WHERE location.name = room.player_location AND room.id = player_room.room_id)"
             )
             db.execute_sql(
-                "INSERT INTO player_room (role, player_id, room_id, active_location_id) SELECT 1, u.id, r.id, l.id FROM room r INNER JOIN user u ON u.id = r.creator_id INNER JOIN location l ON l.name = r.dm_location"
+                "INSERT INTO player_room (role, player_id, room_id, active_location_id) SELECT 1, u.id, r.id, l.id FROM room r INNER JOIN user u ON u.id = r.creator_id INNER JOIN location l ON l.name = r.dm_location AND l.room_id = r.id"
             )
             migrate(
                 migrator.drop_column("room", "player_location"),

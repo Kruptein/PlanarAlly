@@ -19,6 +19,7 @@ async def get_list(request):
                 for r in user.rooms_joined.select(Room.name, User.name)
                 .join(Room)
                 .join(User)
+                .where(Room.creator != user)
             ],
         }
     )

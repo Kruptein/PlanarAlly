@@ -1,7 +1,7 @@
-from enum import Enum
+from enum import IntEnum
 
 
-class Role(Enum):
+class Role(IntEnum):
     PLAYER = 0
     DM = 1
     SPECTATOR = 2

@@ -6,7 +6,8 @@ import api.http.rooms
 import api.http.users
 import api.http.version
 
-from app import sio, state
+from app import sio
+from state.game import game_state
 from models import PlayerRoom, Room
 from models.role import Role
 
@@ -30,7 +31,7 @@ async def claim_invite(request):
                 player=user, room=room, role=Role.PLAYER, active_location=loc
             )
 
-            for csid in state.get_sids(user=room.creator, room=room):
+            for csid in game_state.get_sids(player=room.creator, room=room):
                 await sio.emit(
                     "Room.Info.Players.Add",
                     {"id": user.id, "name": user.name},

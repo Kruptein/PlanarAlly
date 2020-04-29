@@ -49,7 +49,7 @@ class GameStore extends VuexModule implements GameState {
     roomName = "";
     roomCreator = "";
     invitationCode = "";
-    players: { id: number; name: string }[] = [];
+    players: { id: number; name: string; location: string }[] = [];
 
     gridColour = "rgba(0, 0, 0, 1)";
     fowColour = "rgba(0, 0, 0, 1)";
@@ -507,12 +507,12 @@ class GameStore extends VuexModule implements GameState {
     }
 
     @Mutation
-    setPlayers(players: { id: number; name: string }[]): void {
+    setPlayers(players: { id: number; name: string; location: string }[]): void {
         this.players = players;
     }
 
     @Mutation
-    addPlayer(player: { id: number; name: string }): void {
+    addPlayer(player: { id: number; name: string; location: string }): void {
         this.players.push(player);
     }
 

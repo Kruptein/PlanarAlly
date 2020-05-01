@@ -54,6 +54,7 @@ class Location(BaseModel):
     # default is 1km max, 0.5km min
     vision_min_range = FloatField(default=1640)
     vision_max_range = FloatField(default=3281)
+    index = IntegerField()
 
     def __repr__(self):
         return f"<Location {self.get_path()}>"
@@ -63,7 +64,10 @@ class Location(BaseModel):
 
     def as_dict(self):
         return model_to_dict(
-            self, backrefs=False, recurse=False, exclude=[Location.id, Location.room]
+            self,
+            backrefs=False,
+            recurse=False,
+            exclude=[Location.id, Location.room, Location.index],
         )
 
     def create_floor(self, name="ground"):
@@ -129,7 +133,7 @@ class Location(BaseModel):
         return floor
 
     class Meta:
-        indexes = ((("room", "name"), True),)
+        indexes = ((("room", "name"), True), (("room", "index"), True))
 
 
 class PlayerRoom(BaseModel):

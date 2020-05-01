@@ -1,4 +1,4 @@
-from typing import Any, Dict
+from typing import Any, Dict, List
 
 from peewee import JOIN
 from playhouse.shortcuts import update_model_from_dict
@@ -31,7 +31,7 @@ async def load_location(sid: int, location: Location):
         pr.save()
 
     data = {}
-    data["locations"] = [l.name for l in pr.room.locations]
+    data["locations"] = [l.name for l in pr.room.locations.order_by(Location.index)]
     data["floors"] = [
         f.as_dict(pr.player, pr.player == pr.room.creator)
         for f in location.floors.order_by(Floor.index)
@@ -141,3 +141,27 @@ async def add_new_location(sid: int, location: str):
     new_location.create_floor()
 
     await load_location(sid, new_location)
+
+
+@sio.on("Locations.Order.Set", namespace="/planarally")
+@auth.login_required(app, sio)
+async def set_locations_order(sid: int, locations: List[str]):
+    pr: PlayerRoom = game_state.get(sid)
+
+    if pr.role != Role.DM:
+        logger.warning(f"{pr.player.name} attempted to reorder locations.")
+        return
+
+    location_query = Location.select().where(Location.room == pr.room)
+    for i, location in enumerate(locations):
+        l: Location = location_query.where(Location.name == location)[0]
+        l.index = i + 1
+        l.save()
+
+    for player_room in pr.room.players:
+        if player_room.role != Role.DM:
+            continue
+        for psid in game_state.get_sids(skip_sid=sid, player=player_room.player):
+            await sio.emit(
+                "Locations.Order.Set", locations, room=psid, namespace="/planarally"
+            )

@@ -223,6 +223,10 @@ def upgrade(version):
                 'DELETE FROM "player_room" WHERE id IN (SELECT pr.id FROM "player_room" pr INNER JOIN "room" r ON r.id = pr.room_id WHERE r.creator_id = pr.player_id )'
             )
     elif version == 25:
+        # Move Room.dm_location and Room.player_location to PlayerRoom.active_location
+        # Add PlayerRoom.role
+        # Add order index on location
+
         from models import Location
 
         migrator = SqliteMigrator(db)
@@ -241,12 +245,16 @@ def upgrade(version):
                     ),
                 ),
                 migrator.add_column("player_room", "role", IntegerField(default=0)),
+                migrator.add_column("location", "index", IntegerField(default=0)),
             )
             db.execute_sql(
                 "UPDATE player_room SET active_location_id = (SELECT location.id FROM room INNER JOIN location ON room.id = location.room_id WHERE location.name = room.player_location AND room.id = player_room.room_id)"
             )
             db.execute_sql(
                 "INSERT INTO player_room (role, player_id, room_id, active_location_id) SELECT 1, u.id, r.id, l.id FROM room r INNER JOIN user u ON u.id = r.creator_id INNER JOIN location l ON l.name = r.dm_location AND l.room_id = r.id"
+            )
+            db.execute_sql(
+                "UPDATE location SET 'index' = (SELECT COUNT(*) + 1 FROM location l INNER JOIN room r WHERE location.room_id = r.id AND l.room_id = r.id AND l.'index' != 0) "
             )
             migrate(
                 migrator.drop_column("room", "player_location"),

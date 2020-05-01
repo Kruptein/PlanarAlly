@@ -289,8 +289,9 @@ class GameStore extends VuexModule implements GameState {
     }
 
     @Mutation
-    setLocations(locations: string[]): void {
-        this.locations = locations;
+    setLocations(data: { locations: string[]; sync: boolean }): void {
+        this.locations = data.locations;
+        if (data.sync) socket.emit("Locations.Order.Set", this.locations);
     }
 
     @Mutation

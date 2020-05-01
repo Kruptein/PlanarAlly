@@ -1,9 +1,10 @@
 import "@/game/api/events/access";
+import "@/game/api/events/location";
 
-import { AssetList, SyncMode, InvalidationMode } from "@/core/comm/types";
+import { AssetList, InvalidationMode, SyncMode } from "@/core/comm/types";
 import { coreStore } from "@/core/store";
 import { socket } from "@/game/api/socket";
-import { BoardInfo, Note, ServerClient, ServerLocation } from "@/game/comm/types/general";
+import { BoardInfo, Note, ServerClient } from "@/game/comm/types/general";
 import { ServerShape } from "@/game/comm/types/shapes";
 import { EventBus } from "@/game/event-bus";
 import { GlobalPoint } from "@/game/geom";
@@ -12,9 +13,9 @@ import { addFloor, removeFloor } from "@/game/layers/utils";
 import { gameManager } from "@/game/manager";
 import { gameStore } from "@/game/store";
 import { router } from "@/router";
-import { zoomDisplay } from "../utils";
-import { VisibilityMode, visibilityStore } from "../visibility/store";
 import { createShapeFromDict } from "../shapes/utils";
+import { zoomDisplay } from "../utils";
+import { visibilityStore } from "../visibility/store";
 
 socket.on("connect", () => {
     console.log("Connected");
@@ -76,28 +77,6 @@ socket.on("Client.Options.Set", (options: ServerClient) => {
         if (layerManager.getGridLayer(floor.name) !== undefined) layerManager.getGridLayer(floor.name)!.invalidate();
     }
 });
-socket.on("Location.Set", (data: Partial<ServerLocation>) => {
-    if (data.name !== undefined) gameStore.setLocationName(data.name);
-    if (data.unit_size !== undefined) gameStore.setUnitSize({ unitSize: data.unit_size, sync: false });
-    if (data.unit_size_unit !== undefined)
-        gameStore.setUnitSizeUnit({ unitSizeUnit: data.unit_size_unit, sync: false });
-    if (data.use_grid !== undefined) gameStore.setUseGrid({ useGrid: data.use_grid, sync: false });
-    if (data.full_fow !== undefined) gameStore.setFullFOW({ fullFOW: data.full_fow, sync: false });
-    if (data.fow_opacity !== undefined) gameStore.setFOWOpacity({ fowOpacity: data.fow_opacity, sync: false });
-    if (data.fow_los !== undefined) gameStore.setLineOfSight({ fowLOS: data.fow_los, sync: false });
-    if (data.vision_min_range !== undefined) gameStore.setVisionRangeMin({ value: data.vision_min_range, sync: false });
-    if (data.vision_max_range !== undefined) gameStore.setVisionRangeMax({ value: data.vision_max_range, sync: false });
-    if (data.vision_mode !== undefined && data.vision_mode in VisibilityMode) {
-        visibilityStore.setVisionMode({
-            mode: VisibilityMode[<keyof typeof VisibilityMode>data.vision_mode],
-            sync: false,
-        });
-        for (const floor of layerManager.floors) {
-            visibilityStore.recalculateVision(floor.name);
-            visibilityStore.recalculateMovement(floor.name);
-        }
-    }
-});
 socket.on("Position.Set", (data: { floor: string; x: number; y: number; zoom: number }) => {
     gameStore.selectFloor(data.floor);
     gameStore.setZoomDisplay(data.zoom);
@@ -115,7 +94,7 @@ socket.on("Asset.List.Set", (assets: AssetList) => {
 socket.on("Board.Set", (locationInfo: BoardInfo) => {
     gameStore.clear();
     visibilityStore.clear();
-    gameStore.setLocations(locationInfo.locations);
+    gameStore.setLocations({ locations: locationInfo.locations, sync: false });
     document.getElementById("layers")!.innerHTML = "";
     gameStore.resetLayerInfo();
     layerManager.reset();

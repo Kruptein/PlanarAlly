@@ -53,16 +53,6 @@ export default class MenuBar extends Vue {
     set invertAlt(value: boolean) {
         gameStore.setInvertAlt({ invertAlt: value, sync: true });
     }
-    settingsClick(event: { target: HTMLElement }): void {
-        if (event.target.classList.contains("menu-accordion")) {
-            event.target.classList.toggle("menu-accordion-active");
-            // const next = <HTMLElement>event.target.nextElementSibling;
-            // if (next !== null) {
-            //     if (next.style.display === "") next.style.removeProperty("display");
-            //     else next.style.display = "";
-            // }
-        }
-    }
     createNote(): void {
         const note = { title: "New note", text: "", uuid: uuidv4() };
         gameStore.newNote({ note, sync: true });
@@ -97,7 +87,7 @@ export default class MenuBar extends Vue {
 
 <template>
     <!-- SETTINGS -->
-    <div id="menu" @click="settingsClick" ref="settings">
+    <div id="menu" ref="settings">
         <div style="width:200px;overflow-y:auto;overflow-x:hidden;">
             <!-- ASSETS -->
             <template v-if="IS_DM">

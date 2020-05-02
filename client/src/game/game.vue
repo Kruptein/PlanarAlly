@@ -10,7 +10,7 @@ import Prompt from "@/core/components/modals/prompt.vue";
 import Initiative from "@/game/ui/initiative/initiative.vue";
 import LabelManager from "@/game/ui/labels.vue";
 import NoteDialog from "@/game/ui/note.vue";
-import DmSettings from "./ui/dmsettings.vue";
+import DmSettings from "./ui/settings/dm/DmSettings.vue";
 import UI from "./ui/ui.vue";
 
 import { createConnection, socket } from "@/game/api/socket";

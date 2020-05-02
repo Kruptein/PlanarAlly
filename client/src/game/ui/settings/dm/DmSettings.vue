@@ -2,26 +2,26 @@
 import Vue from "vue";
 import Component from "vue-class-component";
 
-import AdminDmSettings from "./admin.vue";
-import GridDmSettings from "./grid.vue";
+import AdminSettings from "./AdminSettings.vue";
+import GridSettings from "../GridSettings.vue";
 import Modal from "@/core/components/modals/modal.vue";
-import PermissionsDmSettings from "./permissions.vue";
-import VisionDmSettings from "./vision.vue";
+// import PermissionsDmSettings from "./permissions.vue";
+import VisionSettings from "../VisionSettings.vue";
 
 import { EventBus } from "@/game/event-bus";
 
 @Component({
     components: {
-        AdminDmSettings,
-        GridDmSettings,
+        AdminSettings,
+        GridSettings,
         Modal,
-        PermissionsDmSettings,
-        VisionDmSettings,
+        // PermissionsDmSettings,
+        VisionSettings,
     },
 })
 export default class DmSettings extends Vue {
     visible = false;
-    categories = ["Admin", "Grid", "Vision", "Permissions"];
+    categories = ["Admin", "Grid", "Vision"];
     selection = 0;
 
     mounted(): void {
@@ -70,10 +70,10 @@ export default class DmSettings extends Vue {
                     {{ category }}
                 </div>
             </div>
-            <AdminDmSettings v-show="selection === 0"></AdminDmSettings>
-            <GridDmSettings v-show="selection === 1"></GridDmSettings>
-            <VisionDmSettings v-show="selection === 2"></VisionDmSettings>
-            <PermissionsDmSettings v-show="selection === 3"></PermissionsDmSettings>
+            <AdminSettings v-show="selection === 0"></AdminSettings>
+            <GridSettings v-show="selection === 1"></GridSettings>
+            <VisionSettings v-show="selection === 2"></VisionSettings>
+            <!-- <PermissionsDmSettings v-show="selection === 3"></PermissionsDmSettings> -->
         </div>
     </Modal>
 </template>

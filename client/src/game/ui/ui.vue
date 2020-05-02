@@ -82,17 +82,20 @@ export default class UI extends Vue {
     }
 
     toggleLocations(_el: any): void {
-        this.visible.locations = !this.visible.locations;
-        if (this.visible.locations && this.visible.settings) this.visible.topleft = true;
+        const oldState = this.visible.locations;
+        // Split up visible.locations setting to smooth in/out overflow fix
+        if (oldState) this.visible.locations = false;
         const uiEl = <HTMLDivElement>this.$el;
         let i = 0;
         const interval = setInterval(() => {
             i += 10;
-            uiEl.style.gridTemplateRows = `${this.visible.locations ? i : 100 - i}px auto 1fr auto`;
+            uiEl.style.gridTemplateRows = `${!oldState ? i : 100 - i}px auto 1fr auto`;
             if (i >= 100) {
                 clearInterval(interval);
                 // Force height to become auto instead of harcoding it to 100px
-                uiEl.style.gridTemplateRows = `${this.visible.locations ? "auto" : 0} auto 1fr auto`;
+                uiEl.style.gridTemplateRows = `${!oldState ? "auto" : 0} auto 1fr auto`;
+                if (!oldState) this.visible.locations = true;
+                if (this.visible.locations && this.visible.settings) this.visible.topleft = true;
                 if (!this.visible.locations) this.visible.topleft = false;
             }
         }, 20);
@@ -151,7 +154,7 @@ export default class UI extends Vue {
             </div>
         </div>
         <MenuBar></MenuBar>
-        <LocationBar active="visible.locations"></LocationBar>
+        <LocationBar :active="visible.locations"></LocationBar>
         <Tools ref="tools"></Tools>
         <FloorSelect></FloorSelect>
         <SelectionInfo></SelectionInfo>

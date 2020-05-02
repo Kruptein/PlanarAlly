@@ -3,7 +3,7 @@ import Vue from "vue";
 import Component from "vue-class-component";
 
 import { mapState } from "vuex";
-import { Prop } from "vue-property-decorator";
+import { Prop, Watch } from "vue-property-decorator";
 
 import Game from "@/game/game.vue";
 
@@ -18,6 +18,20 @@ import { coreStore } from "../../../core/store";
 })
 export default class LocationBar extends Vue {
     @Prop() active!: boolean;
+
+    @Watch("active")
+    toggleActive(active: boolean): void {
+        for (const expandEl of (<any>this.$refs.locations).$el.querySelectorAll(".player-collapse-content")) {
+            const hEl = <HTMLElement>expandEl;
+            if (this.expanded.includes(hEl.dataset.loc || "")) {
+                if (active) {
+                    expandEl.style.removeProperty("display");
+                } else {
+                    expandEl.style.display = "none";
+                }
+            }
+        }
+    }
 
     expanded: string[] = [];
     horizontalOffset = 0;
@@ -222,7 +236,7 @@ export default class LocationBar extends Vue {
     /* grid-auto-columns: 300px; */
     grid-gap: 10px;
     overflow-y: hidden;
-    overflow-x: auto;
+    /* overflow-x: auto; */
 
     scrollbar-width: thin;
     scrollbar-color: var(--secondary) var(--primary);
@@ -271,6 +285,7 @@ export default class LocationBar extends Vue {
     color: #fca5be;
     background-color: var(--primary);
     display: flex;
+    position: relative;
 }
 
 .drag-handle {
@@ -279,19 +294,13 @@ export default class LocationBar extends Vue {
 
 .drag-handle::before {
     position: absolute;
-    top: 17px;
+    top: 8px;
     content: ".";
     color: white;
     font-size: 20px;
     line-height: 20px;
     text-shadow: 0 5px white, 0 10px white, 5px 0 white, 5px 5px white, 5px 10px white, 10px 0 white, 10px 5px white,
         10px 10px white;
-}
-
-/* fix handle otherwise being lower on move and drop animation */
-.sortable-drag .drag-handle::before,
-.sortable-ghost .drag-handle::before {
-    top: 8px;
 }
 
 .drag-handle:hover,

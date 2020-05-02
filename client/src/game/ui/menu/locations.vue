@@ -9,6 +9,7 @@ import Game from "@/game/game.vue";
 
 import { gameStore } from "@/game/store";
 import { socket } from "@/game/api/socket";
+import { coreStore } from "../../../core/store";
 
 @Component({
     computed: {
@@ -26,7 +27,8 @@ export default class LocationBar extends Vue {
     }
 
     changeLocation(name: string): void {
-        socket.emit("Location.Change", name);
+        socket.emit("Location.Change", { location: name, users: [gameStore.username] });
+        coreStore.setLoading(true);
     }
 
     get locations(): string[] {
@@ -40,6 +42,7 @@ export default class LocationBar extends Vue {
     get playerLocations(): Map<string, string[]> {
         const map: Map<string, string[]> = new Map();
         for (const player of gameStore.players) {
+            if (player.name === gameStore.username && gameStore.IS_DM) continue;
             if (!map.has(player.location)) map.set(player.location, []);
             map.get(player.location)!.push(player.name);
         }
@@ -60,9 +63,44 @@ export default class LocationBar extends Vue {
         else this.expanded.splice(idx, 1);
     }
 
-    endDrag(e: any): void {
-        e.item.style.transform = null;
-        console.log(gameStore.locations);
+    endLocationDrag(e: { item: HTMLDivElement }): void {
+        e.item.style.removeProperty("transform");
+    }
+
+    endPlayersDrag(e: { item: HTMLDivElement; from: HTMLDivElement; to: HTMLDivElement }): void {
+        e.item.style.removeProperty("transform");
+        const fromLocation = e.from.dataset.loc!;
+        const toLocation = e.to.dataset.loc!;
+        if (toLocation === undefined || fromLocation === toLocation) return;
+        const players = [];
+        for (const player of gameStore.players) {
+            if (player.location === fromLocation) {
+                player.location = toLocation;
+                players.push(player.name);
+            }
+        }
+        const idx = this.expanded.findIndex(x => x === fromLocation);
+        if (idx >= 0) {
+            this.expanded.slice(idx, 1);
+            this.expanded.push(toLocation);
+        }
+        e.item.remove();
+        socket.emit("Location.Change", { location: toLocation, users: players });
+    }
+
+    endPlayerDrag(e: { item: HTMLDivElement; from: HTMLDivElement; to: HTMLDivElement }): void {
+        e.item.style.removeProperty("transform");
+        const fromLocation = e.from.dataset.loc!;
+        const toLocation = e.to.dataset.loc!;
+        if (toLocation === undefined || fromLocation === toLocation) return;
+        const targetPlayer = e.item.textContent!.trim();
+        for (const player of gameStore.players) {
+            if (player.name === targetPlayer) {
+                player.location = toLocation;
+                socket.emit("Location.Change", { location: toLocation, users: [targetPlayer] });
+                break;
+            }
+        }
     }
 
     doHorizontalScroll(e: WheelEvent): void {
@@ -96,14 +134,12 @@ export default class LocationBar extends Vue {
 </script>
 
 <template>
-    <div id="location-bar">
+    <div id="location-bar" v-if="IS_DM">
         <div id="create-location" title="Add new location" @click="createLocation">+</div>
         <draggable
             id="locations"
-            v-if="IS_DM"
             v-model="locations"
-            :style="{ active: active }"
-            @end="endDrag"
+            @end="endLocationDrag"
             handle=".drag-handle"
             @wheel.native="doHorizontalScroll"
             @scroll.native="doHorizontalScrollA"
@@ -118,7 +154,14 @@ export default class LocationBar extends Vue {
                     <div class="drag-handle"><i class="fas fa-grip-vertical"></i></div>
                     {{ location }}
                 </div>
-                <div class="location-players" v-show="playerLocations.has(location)">
+                <draggable
+                    class="location-players"
+                    v-show="playerLocations.has(location)"
+                    group="players"
+                    @end="endPlayersDrag"
+                    handle=".player-collapse-header"
+                    :data-loc="location"
+                >
                     <div class="player-collapse-header">
                         Players
                         <div title="Show specific players" @click="toggleExpanded(location)">
@@ -126,12 +169,35 @@ export default class LocationBar extends Vue {
                             <span v-show="!expanded.includes(location)"><i class="fas fa-chevron-down"></i></span>
                         </div>
                     </div>
-                    <div class="player-collapse-content" v-show="expanded.includes(location)" :data-loc="location">
-                        <div class="player-collapse-item" v-for="player in playerLocations.get(location)" :key="player">
+                    <draggable
+                        class="player-collapse-content"
+                        v-show="expanded.includes(location)"
+                        :data-loc="location"
+                        group="player"
+                        @end="endPlayerDrag"
+                    >
+                        <div
+                            class="player-collapse-item"
+                            v-for="player in playerLocations.get(location)"
+                            :key="player"
+                            :data-loc="location"
+                        >
                             {{ player }}
                         </div>
-                    </div>
-                </div>
+                    </draggable>
+                    <draggable
+                        class="location-players-empty"
+                        v-show="!expanded.includes(location)"
+                        group="player"
+                        :data-loc="location"
+                    ></draggable>
+                </draggable>
+                <draggable
+                    class="location-players-empty"
+                    v-show="!playerLocations.has(location)"
+                    :group="{ name: 'empty-players', put: ['players', 'player'] }"
+                    :data-loc="location"
+                ></draggable>
             </div>
         </draggable>
     </div>
@@ -146,6 +212,7 @@ export default class LocationBar extends Vue {
     grid-area: locations;
     border-bottom: solid 1px var(--secondary);
     background-color: var(--primaryBG);
+    pointer-events: auto;
 }
 
 #locations {
@@ -174,10 +241,11 @@ export default class LocationBar extends Vue {
 }
 
 #create-location {
+    overflow: hidden;
     flex-shrink: 0;
-    display: grid;
+    display: inline-grid;
     width: 85px;
-    height: 85px;
+    /* height: 85px; */
     color: white;
     background-color: var(--secondary);
     font-size: 30px;

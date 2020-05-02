@@ -1,3 +1,4 @@
+import { coreStore } from "../../../core/store";
 import { ServerLocation } from "../../comm/types/general";
 import { layerManager } from "../../layers/manager";
 import { gameStore } from "../../store";
@@ -5,6 +6,7 @@ import { VisibilityMode, visibilityStore } from "../../visibility/store";
 import { socket } from "../socket";
 
 socket.on("Location.Set", (data: Partial<ServerLocation>) => {
+    coreStore.setLoading(false);
     if (data.name !== undefined) gameStore.setLocationName(data.name);
     if (data.unit_size !== undefined) gameStore.setUnitSize({ unitSize: data.unit_size, sync: false });
     if (data.unit_size_unit !== undefined)
@@ -29,4 +31,8 @@ socket.on("Location.Set", (data: Partial<ServerLocation>) => {
 
 socket.on("Locations.Order.Set", (locations: string[]) => {
     gameStore.setLocations({ locations, sync: false });
+});
+
+socket.on("Location.Change.Start", () => {
+    coreStore.setLoading(true);
 });

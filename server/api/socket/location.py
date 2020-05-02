@@ -94,9 +94,23 @@ async def change_location(sid: int, data: Dict[str, str]):
         logger.warning(f"{pr.player.name} attempted to change location")
         return
 
-    new_location = pr.room.locations.where(Location.name == data["location"])
+    # Send an anouncement to show loading state
+    for room_player in pr.room.players:
+        print(room_player.player.name)
+        if not room_player.player.name in data["users"]:
+            continue
+
+        print("Anounce")
+        for psid in game_state.get_sids(player=room_player.player, room=pr.room):
+            print("gone")
+            await sio.emit("Location.Change.Start", room=psid, namespace="/planarally")
+
+    new_location = pr.room.locations.where(Location.name == data["location"])[0]
 
     for room_player in pr.room.players:
+        if not room_player.player.name in data["users"]:
+            continue
+
         for psid in game_state.get_sids(player=room_player.player, room=pr.room):
             sio.leave_room(
                 psid, room_player.active_location.get_path(), namespace="/planarally"
@@ -137,7 +151,9 @@ async def add_new_location(sid: int, location: str):
         logger.warning(f"{pr.player.name} attempted to add a new location")
         return
 
-    new_location = Location.create(room=pr.room, name=location)
+    new_location = Location.create(
+        room=pr.room, name=location, index=pr.room.locations.count()
+    )
     new_location.create_floor()
 
     await load_location(sid, new_location)

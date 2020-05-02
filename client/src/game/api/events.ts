@@ -19,7 +19,6 @@ import { visibilityStore } from "../visibility/store";
 
 socket.on("connect", () => {
     console.log("Connected");
-    coreStore.setLoading(false);
 });
 socket.on("disconnect", () => {
     console.log("Disconnected");

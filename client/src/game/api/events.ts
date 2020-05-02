@@ -2,7 +2,6 @@ import "@/game/api/events/access";
 import "@/game/api/events/location";
 
 import { AssetList, InvalidationMode, SyncMode } from "@/core/comm/types";
-import { coreStore } from "@/core/store";
 import { socket } from "@/game/api/socket";
 import { BoardInfo, Note, ServerClient } from "@/game/comm/types/general";
 import { ServerShape } from "@/game/comm/types/shapes";

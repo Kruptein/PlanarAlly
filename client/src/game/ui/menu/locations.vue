@@ -151,7 +151,7 @@ export default class LocationBar extends Vue {
                     @click="changeLocation(location)"
                     :class="{ 'active-location': getCurrentLocation() === location }"
                 >
-                    <div class="drag-handle"><i class="fas fa-grip-vertical"></i></div>
+                    <div class="drag-handle"></div>
                     {{ location }}
                 </div>
                 <draggable
@@ -268,12 +268,30 @@ export default class LocationBar extends Vue {
 
 .location-name {
     padding: 1em;
+    color: #fca5be;
     background-color: var(--primary);
     display: flex;
 }
 
 .drag-handle {
-    margin-right: 10px;
+    width: 25px;
+}
+
+.drag-handle::before {
+    position: absolute;
+    top: 17px;
+    content: ".";
+    color: white;
+    font-size: 20px;
+    line-height: 20px;
+    text-shadow: 0 5px white, 0 10px white, 5px 0 white, 5px 5px white, 5px 10px white, 10px 0 white, 10px 5px white,
+        10px 10px white;
+}
+
+/* fix handle otherwise being lower on move and drop animation */
+.sortable-drag .drag-handle::before,
+.sortable-ghost .drag-handle::before {
+    top: 8px;
 }
 
 .drag-handle:hover,

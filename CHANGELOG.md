@@ -35,6 +35,10 @@ All notable changes to this project will be documented in this file.
     -   Now only snaps the point you're resizing instead of an awkward complete shape resize
 -   Drawing
     -   When snapping enabled will now snap startpoint on mouse down and last point on mouse up
+-   Location bar reworked
+    -   Move around as a DM without bringing your players along
+    -   shows which players are in which location
+    -   now has UI to move groups of players as a whole or individually to other locations
 
 ### Fixed
 

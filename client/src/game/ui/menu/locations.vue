@@ -10,6 +10,7 @@ import Game from "@/game/game.vue";
 import { gameStore } from "@/game/store";
 import { socket } from "@/game/api/socket";
 import { coreStore } from "../../../core/store";
+import { EventBus } from "../../event-bus";
 
 @Component({
     computed: {
@@ -69,6 +70,10 @@ export default class LocationBar extends Vue {
             `Create new location`,
         );
         socket.emit("Location.New", value);
+    }
+
+    openLocationSettings(location: string): void {
+        EventBus.$emit("LocationSettings.Open", location);
     }
 
     toggleExpanded(name: string): void {
@@ -166,7 +171,10 @@ export default class LocationBar extends Vue {
                     :class="{ 'active-location': getCurrentLocation() === location }"
                 >
                     <div class="drag-handle"></div>
-                    {{ location }}
+                    <div class="location-name-label">{{ location }}</div>
+                    <div class="location-settings-icon" @click="openLocationSettings(location)">
+                        <i class="fas fa-cog"></i>
+                    </div>
                 </div>
                 <draggable
                     class="location-players"
@@ -233,7 +241,6 @@ export default class LocationBar extends Vue {
     pointer-events: auto;
     display: grid;
     grid-auto-flow: column;
-    /* grid-auto-columns: 300px; */
     grid-gap: 10px;
     overflow-y: hidden;
     /* overflow-x: auto; */
@@ -259,7 +266,6 @@ export default class LocationBar extends Vue {
     flex-shrink: 0;
     display: inline-grid;
     width: 85px;
-    /* height: 85px; */
     color: white;
     background-color: var(--secondary);
     font-size: 30px;
@@ -286,6 +292,24 @@ export default class LocationBar extends Vue {
     background-color: var(--primary);
     display: flex;
     position: relative;
+    align-items: center;
+}
+
+.location-name-label {
+    flex-grow: 2;
+}
+
+.location-settings-icon {
+    padding-left: 10px;
+}
+
+.location-settings-icon svg {
+    transition: transform 0.8s ease-in-out;
+}
+
+.location-settings-icon:hover svg {
+    transform: rotate(180deg);
+    transform-origin: center center;
 }
 
 .drag-handle {

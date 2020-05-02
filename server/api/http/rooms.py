@@ -1,8 +1,9 @@
 from aiohttp import web
 from aiohttp_security import check_authorized
 
-from models import Location, Room, User
+from models import Location, PlayerRoom, Room, User
 from models.db import db
+from models.role import Role
 
 
 async def get_list(request):
@@ -18,6 +19,7 @@ async def get_list(request):
                 for r in user.rooms_joined.select(Room.name, User.name)
                 .join(Room)
                 .join(User)
+                .where(Room.creator != user)
             ],
         }
     )
@@ -32,9 +34,8 @@ async def create(request):
     else:
         with db.atomic():
             room = Room.create(name=roomname, creator=user)
-            loc = Location.create(room=room, name="start")
+            loc = Location.create(room=room, name="start", index=1)
             loc.create_floor()
-            room.dm_location = loc.name
-            room.player_location = loc.name
+            PlayerRoom.create(player=user, room=room, role=Role.DM, active_location=loc)
             room.save()
         return web.HTTPOk()

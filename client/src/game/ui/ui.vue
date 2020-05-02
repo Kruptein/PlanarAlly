@@ -15,18 +15,18 @@ import Tools from "@/game/ui/tools/tools.vue";
 import { LocalPoint } from "../geom";
 import { gameStore } from "../store";
 import { l2g } from "../units";
-import { socket } from "../api/socket";
-import Game from "../game.vue";
 import { coreStore } from "../../core/store";
+import LocationBar from "./menu/locations.vue";
 
 @Component({
     components: {
-        "tool-bar": Tools,
-        "selection-info": SelectionInfo,
-        "floor-select": FloorSelect,
-        "menu-bar": MenuBar,
-        "zoom-slider": vueSlider,
-        "dm-settings": DmSettings,
+        DmSettings,
+        FloorSelect,
+        LocationBar,
+        MenuBar,
+        SelectionInfo,
+        Tools,
+        vueSlider,
     },
     computed: {
         ...mapState("game", ["locations"]),
@@ -82,29 +82,23 @@ export default class UI extends Vue {
     }
 
     toggleLocations(_el: any): void {
-        this.visible.locations = !this.visible.locations;
-        if (this.visible.locations && this.visible.settings) this.visible.topleft = true;
+        const oldState = this.visible.locations;
+        // Split up visible.locations setting to smooth in/out overflow fix
+        if (oldState) this.visible.locations = false;
         const uiEl = <HTMLDivElement>this.$el;
         let i = 0;
         const interval = setInterval(() => {
             i += 10;
-            uiEl.style.gridTemplateRows = `${this.visible.locations ? i : 100 - i}px auto 1fr auto`;
+            uiEl.style.gridTemplateRows = `${!oldState ? i : 100 - i}px auto 1fr auto`;
             if (i >= 100) {
                 clearInterval(interval);
+                // Force height to become auto instead of harcoding it to 100px
+                uiEl.style.gridTemplateRows = `${!oldState ? "auto" : 0} auto 1fr auto`;
+                if (!oldState) this.visible.locations = true;
+                if (this.visible.locations && this.visible.settings) this.visible.topleft = true;
                 if (!this.visible.locations) this.visible.topleft = false;
             }
         }, 20);
-    }
-
-    getCurrentLocation(): string {
-        return gameStore.locationName;
-    }
-    changeLocation(name: string): void {
-        socket.emit("Location.Change", name);
-    }
-    async createLocation(): Promise<void> {
-        const value = await (<Game>this.$parent).$refs.prompt.prompt(`New location name:`, `Create new location`);
-        socket.emit("Location.New", value);
     }
 }
 </script>
@@ -159,28 +153,14 @@ export default class UI extends Vue {
                 </span>
             </div>
         </div>
-        <menu-bar></menu-bar>
-        <div id="locations" v-if="IS_DM">
-            <div>
-                <div
-                    v-for="location in locations"
-                    :key="location"
-                    :style="[getCurrentLocation() === location ? { 'background-color': '#82c8a0' } : {}]"
-                    @click="changeLocation(location)"
-                >
-                    {{ location }}
-                </div>
-                <div @click="createLocation" title="Create new location">
-                    <i class="fas fa-plus"></i>
-                </div>
-            </div>
-        </div>
-        <tool-bar ref="tools"></tool-bar>
-        <floor-select></floor-select>
-        <selection-info></selection-info>
+        <MenuBar></MenuBar>
+        <LocationBar :active="visible.locations"></LocationBar>
+        <Tools ref="tools"></Tools>
+        <FloorSelect></FloorSelect>
+        <SelectionInfo></SelectionInfo>
         <!-- When updating zoom boundaries, also update store updateZoom function;
             should probably do this using a store variable-->
-        <zoom-slider
+        <vueSlider
             id="zoom"
             v-model="zoomDisplay"
             :height="6"
@@ -195,7 +175,7 @@ export default class UI extends Vue {
             :tooltip-formatter="zoomDisplay.toFixed(1)"
             :rail-style="{ 'background-color': '#fff', 'box-shadow': '0.5px 0.5px 3px 1px rgba(0, 0, 0, .36)' }"
             :process-style="{ 'background-color': '#fff' }"
-        ></zoom-slider>
+        ></vueSlider>
     </div>
 </template>
 
@@ -273,32 +253,6 @@ export default class UI extends Vue {
 
 .rm-item {
     pointer-events: auto;
-}
-
-#locations {
-    pointer-events: auto;
-    grid-area: locations;
-    background-color: #fa5a5a;
-    overflow: auto;
-}
-
-#locations > div {
-    display: flex;
-    width: 100%;
-    height: 100%;
-}
-
-#locations > div > div {
-    background-color: white;
-    text-align: center;
-    line-height: 100px;
-    width: 100px;
-    border-right: solid 1px #82c8a0;
-}
-
-#locations > div > div:hover {
-    cursor: pointer;
-    background-color: #82c8a0;
 }
 
 /* The svg is added by Font Awesome */

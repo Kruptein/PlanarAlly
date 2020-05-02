@@ -1,6 +1,10 @@
 import os
 import subprocess
+from typing import Optional
+
 from aiohttp import web
+
+version: Optional[str]
 
 try:
     with open("VERSION", "r") as version_file:

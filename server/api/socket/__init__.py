@@ -1,7 +1,12 @@
+from typing import Any, Dict
+
 import auth
-from app import app, logger, sio, state
-from models import Floor, GridLayer, Layer, LocationUserOption
+from app import app, logger, sio
+from models import Floor, GridLayer, Layer, LocationUserOption, PlayerRoom
 from models.db import db
+from models.role import Role
+from state.game import game_state
+
 from . import (
     asset_manager,
     connection,
@@ -18,10 +23,8 @@ from . import (
 
 @sio.on("Client.Options.Set", namespace="/planarally")
 @auth.login_required(app, sio)
-async def set_client(sid, data):
-    sid_data = state.sid_map[sid]
-    user = sid_data["user"]
-    location = sid_data["location"]
+async def set_client(sid: int, data: Dict[str, Any]):
+    pr: PlayerRoom = game_state.get(sid)
 
     with db.atomic():
         for option in [
@@ -31,52 +34,47 @@ async def set_client(sid, data):
             ("invertAlt", "invert_alt"),
         ]:
             if option[0] in data:
-                setattr(user, option[1], data[option[0]])
-        user.save()
+                setattr(pr.player, option[1], data[option[0]])
+        pr.player.save()
     if "locationOptions" in data:
         LocationUserOption.update(
             pan_x=data["locationOptions"]["panX"],
             pan_y=data["locationOptions"]["panY"],
             zoom_factor=data["locationOptions"]["zoomFactor"],
         ).where(
-            (LocationUserOption.location == location)
-            & (LocationUserOption.user == user)
+            (LocationUserOption.location == pr.active_location)
+            & (LocationUserOption.user == pr.player)
         ).execute()
 
 
 @sio.on("Client.ActiveLayer.Set", namespace="/planarally")
 @auth.login_required(app, sio)
-async def set_layer(sid, data):
-    sid_data = state.sid_map[sid]
-    user = sid_data["user"]
-    location = sid_data["location"]
+async def set_layer(sid: int, data: Dict[str, Any]):
+    pr: PlayerRoom = game_state.get(sid)
 
     try:
-        floor = location.floors.select().where(Floor.name == data["floor"])[0]
+        floor = pr.active_location.floors.select().where(Floor.name == data["floor"])[0]
         layer = floor.layers.select().where(Layer.name == data["layer"])[0]
     except IndexError:
         pass
     else:
-        luo = LocationUserOption.get(user=user, location=location)
+        luo = LocationUserOption.get(user=pr.player, location=pr.active_location)
         luo.active_layer = layer
         luo.save()
 
 
 @sio.on("Gridsize.Set", namespace="/planarally")
 @auth.login_required(app, sio)
-async def set_gridsize(sid, grid_size):
-    sid_data = state.sid_map[sid]
-    user = sid_data["user"]
-    room = sid_data["room"]
-    location = sid_data["location"]
+async def set_gridsize(sid: int, grid_size: int):
+    pr: PlayerRoom = game_state.get(sid)
 
-    if room.creator != user:
-        logger.warning(f"{user.name} attempted to set gridsize without DM rights")
+    if pr.role != Role.DM:
+        logger.warning(f"{pr.player.name} attempted to set gridsize without DM rights")
         return
     for layer in (
         Layer.select()
         .join(Floor)
-        .where((Floor.location == location) & (Layer.name == "grid"))
+        .where((Floor.location == pr.active_location) & (Layer.name == "grid"))
     ):
         gl = GridLayer[layer]
         gl.size = grid_size
@@ -84,7 +82,7 @@ async def set_gridsize(sid, grid_size):
     await sio.emit(
         "Gridsize.Set",
         grid_size,
-        room=location.get_path(),
+        room=pr.active_location.get_path(),
         skip_sid=sid,
         namespace="/planarally",
     )
@@ -92,16 +90,13 @@ async def set_gridsize(sid, grid_size):
 
 @sio.on("Players.Bring", namespace="/planarally")
 @auth.login_required(app, sio)
-async def bring_players(sid, data):
-    sid_data = state.sid_map[sid]
-    user = sid_data["user"]
-    room = sid_data["room"]
-    location = sid_data["location"]
+async def bring_players(sid: int, data: Dict[str, Any]):
+    pr: PlayerRoom = game_state.get(sid)
 
     await sio.emit(
         "Position.Set",
         data,
-        room=location.get_path(),
+        room=pr.active_location.get_path(),
         skip_sid=sid,
         namespace="/planarally",
     )

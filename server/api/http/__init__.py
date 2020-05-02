@@ -6,8 +6,10 @@ import api.http.rooms
 import api.http.users
 import api.http.version
 
-from app import sio, state
+from app import sio
+from state.game import game_state
 from models import PlayerRoom, Room
+from models.role import Role
 
 import urllib.parse
 
@@ -20,9 +22,16 @@ async def claim_invite(request):
         return web.HTTPNotFound()
     else:
         if user != room.creator and not PlayerRoom.get_or_none(player=user, room=room):
-            PlayerRoom.create(player=user, room=room)
+            query = PlayerRoom.select().where(PlayerRoom.room == room)
+            try:
+                loc = query.where(PlayerRoom.role == Role.PLAYER)[0].active_location
+            except IndexError:
+                loc = query.where(PlayerRoom.role == Role.DM)[0].active_location
+            PlayerRoom.create(
+                player=user, room=room, role=Role.PLAYER, active_location=loc
+            )
 
-            for csid in state.get_sids(user=room.creator, room=room):
+            for csid in game_state.get_sids(player=room.creator, room=room):
                 await sio.emit(
                     "Room.Info.Players.Add",
                     {"id": user.id, "name": user.name},

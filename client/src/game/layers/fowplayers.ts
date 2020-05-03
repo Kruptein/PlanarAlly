@@ -35,7 +35,7 @@ export class FOWPlayersLayer extends Layer {
             // console.time("VI");
             const ctx = this.ctx;
 
-            if (!gameSettingsStore.fowLOS) {
+            if (!gameSettingsStore.fowLos) {
                 ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
                 this.valid = true;
                 return;
@@ -90,10 +90,10 @@ export class FOWPlayersLayer extends Layer {
                     const gradient = ctx.createRadialGradient(
                         lcenter.x,
                         lcenter.y,
-                        g2lr(gameSettingsStore.visionRangeMin),
+                        g2lr(gameSettingsStore.visionMinRange),
                         lcenter.x,
                         lcenter.y,
-                        g2lr(gameSettingsStore.visionRangeMax),
+                        g2lr(gameSettingsStore.visionMaxRange),
                     );
                     gradient.addColorStop(0, "rgba(0, 0, 0, 1)");
                     gradient.addColorStop(1, "rgba(0, 0, 0, 0)");

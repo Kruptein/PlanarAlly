@@ -5,75 +5,60 @@ import { socket } from "./api/socket";
 import { LocationOptions } from "./comm/types/settings";
 import { layerManager } from "./layers/manager";
 
-@Module({ dynamic: true, store: rootStore, name: "game", namespaced: true })
-class GameSettingsStore extends VuexModule {
-    locationName!: string;
+export interface GameSettingsState {
+    locationName: string;
 
-    defaultLocationOptions!: LocationOptions;
+    gridSize: number;
+    unitSize: number;
+    unitSizeUnit: string;
+    useGrid: boolean;
+    fullFow: boolean;
+    fowOpacity: number;
+    fowLos: boolean;
+    visionMinRange: number;
+    visionMaxRange: number;
+}
 
-    gridSize!: number;
-    unitSize!: number;
-    unitSizeUnit!: string;
-    useGrid!: boolean;
-    fullFOW!: boolean;
-    fowOpacity!: number;
-    fowLOS!: boolean;
-    visionRangeMin!: number;
-    visionRangeMax!: number;
+@Module({ dynamic: true, store: rootStore, name: "gameSettings", namespaced: true })
+class GameSettingsStore extends VuexModule implements GameSettingsState {
+    locationName = "";
+
+    defaultLocationOptions: LocationOptions | null = null;
+    locationOptions: Partial<LocationOptions> = {};
+
+    get gridSize(): number {
+        return this.locationOptions?.gridSize ?? this.defaultLocationOptions!.gridSize;
+    }
+
+    get unitSize(): number {
+        return this.locationOptions?.unitSize ?? this.defaultLocationOptions!.unitSize;
+    }
+
+    get unitSizeUnit(): string {
+        return this.locationOptions?.unitSizeUnit ?? this.defaultLocationOptions!.unitSizeUnit;
+    }
+    get useGrid(): boolean {
+        return this.locationOptions?.useGrid ?? this.defaultLocationOptions!.useGrid;
+    }
+    get fullFow(): boolean {
+        return this.locationOptions?.fullFow ?? this.defaultLocationOptions!.fullFow;
+    }
+    get fowOpacity(): number {
+        return this.locationOptions?.fowOpacity ?? this.defaultLocationOptions!.fowOpacity;
+    }
+    get fowLos(): boolean {
+        return this.locationOptions?.fowLos ?? this.defaultLocationOptions!.fowLos;
+    }
+    get visionMinRange(): number {
+        return this.locationOptions?.visionMinRange ?? this.defaultLocationOptions!.visionMinRange;
+    }
+    get visionMaxRange(): number {
+        return this.locationOptions?.visionMaxRange ?? this.defaultLocationOptions!.visionMaxRange;
+    }
 
     @Mutation
     setLocationName(name: string): void {
         this.locationName = name;
-    }
-
-    @Mutation
-    setUnitSize(data: { unitSize: number; location: string | null; sync: boolean }): void {
-        const _default = data.location === null;
-        if (this.unitSize !== data.unitSize && data.unitSize > 0 && data.unitSize < Infinity) {
-            if (
-                this.unitSize === undefined ||
-                (!_default && data.location === this.locationName) ||
-                (_default && this.unitSize === this.defaultLocationOptions.unitSize)
-            )
-                this.unitSize = data.unitSize;
-            if (_default) this.defaultLocationOptions.unitSize = data.unitSize;
-            layerManager.invalidateAllFloors();
-            // eslint-disable-next-line @typescript-eslint/camelcase
-            if (data.sync) socket.emit("Location.Options.Set", { unit_size: data.unitSize, location: data.location });
-        }
-    }
-
-    @Mutation
-    setUnitSizeUnit(data: { unitSizeUnit: string; location: string | null; sync: boolean }): void {
-        const _default = data.location === null;
-        if (this.unitSizeUnit !== data.unitSizeUnit) {
-            if (
-                this.unitSizeUnit === undefined ||
-                (!_default && data.location === this.locationName) ||
-                (_default && this.unitSizeUnit === this.defaultLocationOptions.unitSizeUnit)
-            )
-                this.unitSizeUnit = data.unitSizeUnit;
-            if (_default) this.defaultLocationOptions.unitSizeUnit = data.unitSizeUnit;
-            layerManager.invalidateAllFloors();
-            // eslint-disable-next-line @typescript-eslint/camelcase
-            if (data.sync) socket.emit("Location.Options.Set", { unit_size_unit: data.unitSizeUnit });
-        }
-    }
-
-    @Mutation
-    setUseGrid(data: { useGrid: boolean; location: string | null; sync: boolean }): void {
-        const _default = data.location === null;
-        if (this.useGrid !== data.useGrid) {
-            this.useGrid = data.useGrid;
-            for (const floor of layerManager.floors) {
-                const gridLayer = layerManager.getGridLayer(floor.name)!;
-                if (data.useGrid) gridLayer.canvas.style.display = "block";
-                else gridLayer.canvas.style.display = "none";
-                gridLayer.invalidate();
-            }
-            // eslint-disable-next-line @typescript-eslint/camelcase
-            if (data.sync) socket.emit("Location.Options.Set", { use_grid: data.useGrid });
-        }
     }
 
     @Mutation
@@ -82,65 +67,118 @@ class GameSettingsStore extends VuexModule {
     }
 
     @Mutation
+    setUnitSize(data: { unitSize: number; location: string | null; sync: boolean }): void {
+        if (this.mutateLocationOption("unitSize", data.unitSize, data.location)) {
+            layerManager.invalidateAllFloors();
+            // eslint-disable-next-line @typescript-eslint/camelcase
+            if (data.sync) socket.emit("Location.Options.Set", { unit_size: data.unitSize, location: data.location });
+        }
+    }
+
+    @Mutation
+    setUnitSizeUnit(data: { unitSizeUnit: string; location: string | null; sync: boolean }): void {
+        if (this.mutateLocationOption("unitSizeUnit", data.unitSizeUnit, data.location)) {
+            layerManager.invalidateAllFloors();
+            if (data.sync)
+                // eslint-disable-next-line @typescript-eslint/camelcase
+                socket.emit("Location.Options.Set", { unit_size_unit: data.unitSizeUnit, location: data.location });
+        }
+    }
+
+    @Mutation
+    setUseGrid(data: { useGrid: boolean; location: string | null; sync: boolean }): void {
+        if (this.mutateLocationOption("useGrid", data.useGrid, data.location)) {
+            for (const floor of layerManager.floors) {
+                const gridLayer = layerManager.getGridLayer(floor.name)!;
+                if (data.useGrid) gridLayer.canvas.style.display = "block";
+                else gridLayer.canvas.style.display = "none";
+                gridLayer.invalidate();
+            }
+
+            // eslint-disable-next-line @typescript-eslint/camelcase
+            if (data.sync) socket.emit("Location.Options.Set", { use_grid: data.useGrid, location: data.location });
+        }
+    }
+
+    @Mutation
     setGridSize(data: { gridSize: number; location: string | null; sync: boolean }): void {
-        const _default = data.location === null;
-        if (this.gridSize !== data.gridSize && data.gridSize > 0) {
-            this.gridSize = data.gridSize;
+        if (this.mutateLocationOption("gridSize", data.gridSize, data.location)) {
             for (const floor of layerManager.floors) {
                 const gridLayer = layerManager.getGridLayer(floor.name);
                 if (gridLayer !== undefined) gridLayer.invalidate();
             }
+
             if (data.sync) socket.emit("Location.Options.Set", { gridSize: data.gridSize, location: data.location });
         }
     }
 
     @Mutation
-    setVisionRangeMin(data: { value: number; location: string | null; sync: boolean }): void {
-        const _default = data.location === null;
-        this.visionRangeMin = data.value;
-        layerManager.invalidateLightAllFloors();
-        // eslint-disable-next-line @typescript-eslint/camelcase
-        if (data.sync) socket.emit("Location.Options.Set", { vision_min_range: data.value });
+    setVisionRangeMin(data: { visionMinRange: number; location: string | null; sync: boolean }): void {
+        if (this.mutateLocationOption("visionMinRange", data.visionMinRange, data.location)) {
+            layerManager.invalidateLightAllFloors();
+            if (data.sync)
+                // eslint-disable-next-line @typescript-eslint/camelcase
+                socket.emit("Location.Options.Set", { vision_min_range: data.visionMinRange, location: data.location });
+        }
     }
 
     @Mutation
-    setVisionRangeMax(data: { value: number; location: string | null; sync: boolean }): void {
-        const _default = data.location === null;
-        this.visionRangeMax = Math.max(data.value, this.visionRangeMin);
-        layerManager.invalidateLightAllFloors();
-        // eslint-disable-next-line @typescript-eslint/camelcase
-        if (data.sync) socket.emit("Location.Options.Set", { vision_max_range: this.visionRangeMax });
+    setVisionRangeMax(data: { visionMaxRange: number; location: string | null; sync: boolean }): void {
+        if (this.mutateLocationOption("visionMaxRange", data.visionMaxRange, data.location)) {
+            layerManager.invalidateLightAllFloors();
+            if (data.sync)
+                // eslint-disable-next-line @typescript-eslint/camelcase
+                socket.emit("Location.Options.Set", { vision_max_range: data.visionMaxRange, location: data.location });
+        }
     }
 
     @Mutation
-    setFullFOW(data: { fullFOW: boolean; location: string | null; sync: boolean }): void {
-        const _default = data.location === null;
-        if (this.fullFOW !== data.fullFOW) {
-            this.fullFOW = data.fullFOW;
+    setFullFow(data: { fullFow: boolean; location: string | null; sync: boolean }): void {
+        if (this.mutateLocationOption("fullFow", data.fullFow, data.location)) {
             layerManager.invalidateLightAllFloors();
             // eslint-disable-next-line @typescript-eslint/camelcase
-            if (data.sync) socket.emit("Location.Options.Set", { full_fow: data.fullFOW });
+            if (data.sync) socket.emit("Location.Options.Set", { full_fow: data.fullFow, location: data.location });
         }
     }
 
     @Mutation
-    setFOWOpacity(data: { fowOpacity: number; location: string | null; sync: boolean }): void {
-        const _default = data.location === null;
-        this.fowOpacity = data.fowOpacity;
-        layerManager.invalidateLightAllFloors();
-        // eslint-disable-next-line @typescript-eslint/camelcase
-        if (data.sync) socket.emit("Location.Options.Set", { fow_opacity: data.fowOpacity });
+    setFowOpacity(data: { fowOpacity: number; location: string | null; sync: boolean }): void {
+        if (this.mutateLocationOption("fowOpacity", data.fowOpacity, data.location)) {
+            layerManager.invalidateLightAllFloors();
+            // eslint-disable-next-line @typescript-eslint/camelcase
+            if (data.sync)
+                socket.emit("Location.Options.Set", { fow_opacity: data.fowOpacity, location: data.location });
+        }
     }
 
     @Mutation
-    setLineOfSight(data: { fowLOS: boolean; location: string | null; sync: boolean }): void {
-        const _default = data.location === null;
-        if (this.fowLOS !== data.fowLOS) {
-            this.fowLOS = data.fowLOS;
+    setLineOfSight(data: { fowLos: boolean; location: string | null; sync: boolean }): void {
+        if (this.mutateLocationOption("fowLos", data.fowLos, data.location)) {
             layerManager.invalidateAllFloors();
             // eslint-disable-next-line @typescript-eslint/camelcase
-            if (data.sync) socket.emit("Location.Options.Set", { fow_los: data.fowLOS });
+            if (data.sync) socket.emit("Location.Options.Set", { fow_los: data.fowLos, location: data.location });
         }
+    }
+
+    mutateLocationOption<K extends keyof LocationOptions>(
+        key: K,
+        value: LocationOptions[K],
+        location: string | null,
+    ): boolean {
+        if (location === null) {
+            if (this.defaultLocationOptions![key] !== value) {
+                this.defaultLocationOptions![key] = value;
+                return true;
+            }
+        } else if (location === this.locationName) {
+            if (this.locationOptions[key] !== value) {
+                this.locationOptions[key] = value;
+                return true;
+            }
+        } else {
+            return true;
+        }
+        return false;
     }
 }
 

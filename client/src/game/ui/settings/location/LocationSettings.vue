@@ -1,7 +1,6 @@
 <script lang="ts">
 import Vue from "vue";
 import Component from "vue-class-component";
-import { Prop } from "vue-property-decorator";
 
 // import AdminSettings from "./AdminSettings.vue";
 import GridSettings from "../GridSettings.vue";
@@ -20,7 +19,7 @@ import { EventBus } from "@/game/event-bus";
     },
 })
 export default class LocationSettings extends Vue {
-    location: string | null = null;
+    location = "";
     visible = false;
 
     mounted(): void {

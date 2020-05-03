@@ -1,32 +1,16 @@
 import { coreStore } from "../../../core/store";
 import { ServerLocation } from "../../comm/types/general";
+import { ServerLocationOptions } from "../../comm/types/settings";
 import { layerManager } from "../../layers/manager";
+import { gameSettingsStore } from "../../settings";
 import { gameStore } from "../../store";
 import { VisibilityMode, visibilityStore } from "../../visibility/store";
 import { socket } from "../socket";
 
-socket.on("Location.Set", (data: Partial<ServerLocation>) => {
+socket.on("Location.Set", (data: ServerLocation) => {
     coreStore.setLoading(false);
-    if (data.name !== undefined) gameStore.setLocationName(data.name);
-    if (data.unit_size !== undefined) gameStore.setUnitSize({ unitSize: data.unit_size, sync: false });
-    if (data.unit_size_unit !== undefined)
-        gameStore.setUnitSizeUnit({ unitSizeUnit: data.unit_size_unit, sync: false });
-    if (data.use_grid !== undefined) gameStore.setUseGrid({ useGrid: data.use_grid, sync: false });
-    if (data.full_fow !== undefined) gameStore.setFullFOW({ fullFOW: data.full_fow, sync: false });
-    if (data.fow_opacity !== undefined) gameStore.setFOWOpacity({ fowOpacity: data.fow_opacity, sync: false });
-    if (data.fow_los !== undefined) gameStore.setLineOfSight({ fowLOS: data.fow_los, sync: false });
-    if (data.vision_min_range !== undefined) gameStore.setVisionRangeMin({ value: data.vision_min_range, sync: false });
-    if (data.vision_max_range !== undefined) gameStore.setVisionRangeMax({ value: data.vision_max_range, sync: false });
-    if (data.vision_mode !== undefined && data.vision_mode in VisibilityMode) {
-        visibilityStore.setVisionMode({
-            mode: VisibilityMode[<keyof typeof VisibilityMode>data.vision_mode],
-            sync: false,
-        });
-        for (const floor of layerManager.floors) {
-            visibilityStore.recalculateVision(floor.name);
-            visibilityStore.recalculateMovement(floor.name);
-        }
-    }
+    gameSettingsStore.setLocationName(data.name);
+    setLocationOptions(data.options, data.name);
 });
 
 socket.on("Locations.Order.Set", (locations: string[]) => {
@@ -36,3 +20,30 @@ socket.on("Locations.Order.Set", (locations: string[]) => {
 socket.on("Location.Change.Start", () => {
     coreStore.setLoading(true);
 });
+
+export function setLocationOptions(options: Partial<ServerLocationOptions>, location: string | null): void {
+    if (options.grid_size) gameSettingsStore.setGridSize({ gridSize: options.grid_size, location, sync: false });
+    if (options.unit_size) gameSettingsStore.setUnitSize({ unitSize: options.unit_size, location, sync: false });
+    if (options.unit_size_unit)
+        gameSettingsStore.setUnitSizeUnit({ unitSizeUnit: options.unit_size_unit, location, sync: false });
+    if (options.use_grid) gameSettingsStore.setUseGrid({ useGrid: options.use_grid, location, sync: false });
+    if (options.full_fow) gameSettingsStore.setFullFow({ fullFow: options.full_fow, location, sync: false });
+    if (options.fow_opacity)
+        gameSettingsStore.setFowOpacity({ fowOpacity: options.fow_opacity, location, sync: false });
+    if (options.fow_los) gameSettingsStore.setLineOfSight({ fowLos: options.fow_los, location, sync: false });
+    if (options.vision_min_range)
+        gameSettingsStore.setVisionRangeMin({ visionMinRange: options.vision_min_range, location, sync: false });
+    if (options.vision_max_range)
+        gameSettingsStore.setVisionRangeMax({ visionMaxRange: options.vision_max_range, location, sync: false });
+    if (options.vision_mode && options.vision_mode in VisibilityMode) {
+        visibilityStore.setVisionMode({
+            mode: VisibilityMode[<keyof typeof VisibilityMode>options.vision_mode],
+            location,
+            sync: false,
+        });
+        for (const floor of layerManager.floors) {
+            visibilityStore.recalculateVision(floor.name);
+            visibilityStore.recalculateMovement(floor.name);
+        }
+    }
+}

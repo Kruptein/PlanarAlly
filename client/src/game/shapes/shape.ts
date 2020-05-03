@@ -375,7 +375,7 @@ export abstract class Shape {
             if (owner.visionAccess && this.isToken && owner.user === gameStore.username)
                 gameStore.ownedtokens.push(this.uuid);
             if (sync) socket.emit("Shape.Owner.Add", ownerToServer(fullOwner));
-            if (gameSettingsStore.fowLOS) layerManager.invalidateLightAllFloors();
+            if (gameSettingsStore.fowLos) layerManager.invalidateLightAllFloors();
         }
     }
 
@@ -397,7 +397,7 @@ export abstract class Shape {
         }
         targetOwner.editAccess = fullOwner.editAccess;
         if (sync) socket.emit("Shape.Owner.Update", ownerToServer(fullOwner));
-        if (gameSettingsStore.fowLOS) layerManager.invalidateLightAllFloors();
+        if (gameSettingsStore.fowLos) layerManager.invalidateLightAllFloors();
     }
 
     removeOwner(owner: string, sync: boolean): void {
@@ -409,7 +409,7 @@ export abstract class Shape {
             if (ownedIndex >= 0) gameStore.ownedtokens.splice(ownedIndex, 1);
         }
         if (sync) socket.emit("Shape.Owner.Delete", ownerToServer(removed));
-        if (gameSettingsStore.fowLOS) layerManager.invalidateLightAllFloors();
+        if (gameSettingsStore.fowLos) layerManager.invalidateLightAllFloors();
     }
 
     updateDefaultOwner(options: { editAccess?: boolean; visionAccess?: boolean }): void {
@@ -423,7 +423,7 @@ export abstract class Shape {
             if (!(this.ownedBy({ editAccess: true }) || this.ownedBy({ visionAccess: true })) && ownedIndex >= 0)
                 gameStore.ownedtokens.splice(ownedIndex, 1);
         }
-        if (gameSettingsStore.fowLOS) layerManager.invalidateLightAllFloors();
+        if (gameSettingsStore.fowLos) layerManager.invalidateLightAllFloors();
     }
 
     updatePoints(): void {

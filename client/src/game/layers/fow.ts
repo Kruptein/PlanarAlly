@@ -87,7 +87,7 @@ export class FOWLayer extends Layer {
 
             // At all times provide a minimal vision range to prevent losing your tokens in fog.
             if (
-                gameSettingsStore.fullFOW &&
+                gameSettingsStore.fullFow &&
                 layerManager.hasLayer(this.floor, "tokens") &&
                 this.floor === gameStore.floors[gameStore.selectedFloorIndex]
             ) {
@@ -157,7 +157,7 @@ export class FOWLayer extends Layer {
                 // shape.invalidate(true);
             }
 
-            if (gameSettingsStore.fowLOS && this.floor === activeFloorName) {
+            if (gameSettingsStore.fowLos && this.floor === activeFloorName) {
                 ctx.globalCompositeOperation = "source-in";
                 ctx.drawImage(layerManager.getLayer(this.floor, "fow-players")!.canvas, 0, 0);
             }
@@ -165,7 +165,7 @@ export class FOWLayer extends Layer {
             for (const preShape of this.preFogShapes) {
                 if (!preShape.visibleInCanvas(this.canvas)) continue;
                 const ogComposite = preShape.globalCompositeOperation;
-                if (!gameSettingsStore.fullFOW) {
+                if (!gameSettingsStore.fullFow) {
                     if (preShape.globalCompositeOperation === "source-over")
                         preShape.globalCompositeOperation = "destination-out";
                     else if (preShape.globalCompositeOperation === "destination-out")
@@ -175,7 +175,7 @@ export class FOWLayer extends Layer {
                 preShape.globalCompositeOperation = ogComposite;
             }
 
-            if (gameSettingsStore.fullFOW && this.floor === activeFloorName) {
+            if (gameSettingsStore.fullFow && this.floor === activeFloorName) {
                 ctx.globalCompositeOperation = "source-out";
                 ctx.fillStyle = getFogColour();
                 ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);

@@ -26,6 +26,9 @@ export class GridLayer extends Layer {
                 ctx.beginPath();
 
                 const gs = gameSettingsStore.gridSize;
+                if (gs <= 0 || gs === undefined) {
+                    throw new Error("Grid size is not set, while grid is enabled.");
+                }
 
                 for (let i = 0; i < this.width; i += gs * gameStore.zoomFactor) {
                     ctx.moveTo(i + (gameStore.panX % gs) * gameStore.zoomFactor, 0);

@@ -228,9 +228,6 @@ class Layer(BaseModel):
         data["shapes"] = [
             shape.as_dict(user, dm) for shape in self.shapes.order_by(Shape.index)
         ]
-        if self.type_ == "grid":
-            type_table = get_table(f"{self.type_}layer")
-            data.update(**type_table.get(id=self.id).as_dict())
         return data
 
     class Meta:

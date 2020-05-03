@@ -1,96 +1,75 @@
 <script lang="ts">
 import Vue from "vue";
 import Component from "vue-class-component";
+import { Prop } from "vue-property-decorator";
 
-import { gameStore } from "@/game/store";
-import { VisibilityMode, visibilityStore } from "@/game/visibility/store";
-import { layerManager } from "@/game/layers/manager";
+import { gameSettingsStore } from "../../settings";
 
 @Component
 export default class GridSettings extends Vue {
-    get fakePlayer(): boolean {
-        return gameStore.FAKE_PLAYER;
+    @Prop() location!: string | null;
+
+    get useGrid(): boolean {
+        return gameSettingsStore.useGrid;
     }
-    set fakePlayer(value: boolean) {
-        gameStore.setFakePlayer(value);
+    // set useGrid(value: boolean) {
+    //     gameSettingsStore.setUseGrid({ useGrid: value, location: this.location, sync: true });
+    // }
+    get unitSize(): number {
+        console.log(gameSettingsStore.unitSize);
+        return gameSettingsStore.unitSize;
     }
-    get fullFOW(): boolean {
-        return gameStore.fullFOW;
-    }
-    set fullFOW(value: boolean) {
-        gameStore.setFullFOW({ fullFOW: value, sync: true });
-    }
-    get fowOpacity(): number {
-        return gameStore.fowOpacity;
-    }
-    set fowOpacity(value: number) {
+    set unitSize(value: number) {
         if (typeof value !== "number") return;
-        gameStore.setFOWOpacity({ fowOpacity: value, sync: true });
+        gameSettingsStore.setUnitSize({ unitSize: value, location: this.location, sync: true });
     }
-    get fowLOS(): boolean {
-        return gameStore.fowLOS;
+    get unitSizeUnit(): string {
+        return gameSettingsStore.unitSizeUnit;
     }
-    set fowLOS(value: boolean) {
-        gameStore.setLineOfSight({ fowLOS: value, sync: true });
+    set unitSizeUnit(value: string) {
+        gameSettingsStore.setUnitSizeUnit({ unitSizeUnit: value, location: this.location, sync: true });
     }
-    get visionRangeMin(): number {
-        return gameStore.visionRangeMin;
+    get gridSize(): number {
+        return gameSettingsStore.gridSize;
     }
-    set visionRangeMin(value: number) {
+    set gridSize(value: number) {
         if (typeof value !== "number") return;
-        gameStore.setVisionRangeMin({ value, sync: true });
-    }
-    get visionRangeMax(): number {
-        return gameStore.visionRangeMax;
-    }
-    set visionRangeMax(value: number) {
-        if (typeof value !== "number") return;
-        gameStore.setVisionRangeMax({ value, sync: true });
-    }
-    changeVisionMode(event: { target: HTMLSelectElement }): void {
-        const value = event.target.value.toLowerCase();
-        let mode: VisibilityMode;
-        if (value === "default") mode = VisibilityMode.TRIANGLE;
-        else if (value === "experimental") mode = VisibilityMode.TRIANGLE_ITERATIVE;
-        else return;
-        visibilityStore.setVisionMode({ mode, sync: true });
-        for (const floor of layerManager.floors) {
-            visibilityStore.recalculateVision(floor.name);
-            visibilityStore.recalculateMovement(floor.name);
-        }
-        layerManager.invalidateAllFloors();
+        gameSettingsStore.setGridSize({ gridSize: value, location: this.location, sync: true });
     }
 }
 </script>
 
 <template>
     <div class="panel">
+        <div class="spanrow">
+            <i style="max-width: 40vw">These settings can be overriden by location specific settings</i>
+        </div>
         <div class="row">
-            <label for="useGridInput">Use grid</label>
+            <label :for="'useGridInput-' + location">Use grid</label>
             <div>
-                <input id="useGridInput" type="checkbox" v-model="useGrid" />
+                <input :id="'useGridInput-' + location" type="checkbox" v-model="useGrid" />
             </div>
         </div>
         <div class="row">
-            <label for="gridSizeInput">Grid Size (in pixels):</label>
+            <label :for="'gridSizeInput-' + location">Grid Size (in pixels):</label>
             <div>
-                <input id="gridSizeInput" type="number" min="0" v-model.number="gridSize" />
-            </div>
-        </div>
-        <div class="row">
-            <div>
-                <label for="unitSizeUnit">Size Unit</label>
-            </div>
-            <div>
-                <input id="unitSizeUnit" type="text" v-model="unitSizeUnit" />
+                <input :id="'gridSizeInput-' + location" type="number" min="0" v-model.number="gridSize" />
             </div>
         </div>
         <div class="row">
             <div>
-                <label for="unitSizeInput">Unit Size (in {{ unitSizeUnit }})</label>
+                <label :for="'unitSizeUnit-' + location">Size Unit</label>
             </div>
             <div>
-                <input id="unitSizeInput" type="number" v-model.number="unitSize" />
+                <input :id="'unitSizeUnit-' + location" type="text" v-model="unitSizeUnit" />
+            </div>
+        </div>
+        <div class="row">
+            <div>
+                <label :for="'unitSizeInput-' + location">Unit Size (in {{ unitSizeUnit }})</label>
+            </div>
+            <div>
+                <input :id="'unitSizeInput-' + location" type="number" v-model.number="unitSize" />
             </div>
         </div>
     </div>

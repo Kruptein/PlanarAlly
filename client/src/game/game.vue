@@ -28,7 +28,6 @@ import { coreStore } from "@/core/store";
         "initiative-dialog": Initiative,
         "note-dialog": NoteDialog,
         "label-dialog": LabelManager,
-        "dm-settings": DmSettings,
         ui: UI,
     },
     beforeRouteEnter(to, from, next) {
@@ -59,14 +58,6 @@ export default class Game extends Vue {
 
     throttledtouchmoveSet = false;
     throttledtouchmove: (event: TouchEvent) => void = (_event: TouchEvent) => {};
-
-    get FAKE_PLAYER(): boolean {
-        return gameStore.FAKE_PLAYER;
-    }
-
-    get IS_DM(): boolean {
-        return gameStore.IS_DM;
-    }
 
     mounted(): void {
         window.addEventListener("resize", this.resizeWindow);
@@ -173,7 +164,6 @@ export default class Game extends Vue {
         <initiative-dialog ref="initiative" id="initiativedialog"></initiative-dialog>
         <note-dialog ref="note"></note-dialog>
         <label-dialog ref="labels"></label-dialog>
-        <dm-settings ref="dmsettings" v-if="IS_DM || FAKE_PLAYER"></dm-settings>
         <prompt-dialog ref="prompt"></prompt-dialog>
         <confirm-dialog ref="confirm"></confirm-dialog>
     </div>

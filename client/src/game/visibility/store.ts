@@ -22,7 +22,7 @@ class VisibilityStore extends VuexModule implements VisibilityState {
     visionSources: { floor: string; sources: { shape: string; aura: string }[] }[] = [];
 
     @Mutation
-    setVisionMode(data: { mode: VisibilityMode; sync: boolean }): void {
+    setVisionMode(data: { mode: VisibilityMode; location: string | null; sync: boolean }): void {
         this.visionMode = data.mode;
         // eslint-disable-next-line @typescript-eslint/camelcase
         if (data.sync) socket.emit("Location.Options.Set", { vision_mode: VisibilityMode[data.mode] });

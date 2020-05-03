@@ -12,6 +12,7 @@ import { TriangulationTarget } from "@/game/visibility/te/pa";
 import { addBlocker, getBlockers, getVisionSources, setVisionSources, sliceBlockers } from "@/game/visibility/utils";
 import tinycolor from "tinycolor2";
 import { PartialBy } from "../../core/types";
+import { gameSettingsStore } from "../settings";
 import { BoundingRect } from "./boundingrect";
 import { ShapeOwner } from "./owners";
 
@@ -374,7 +375,7 @@ export abstract class Shape {
             if (owner.visionAccess && this.isToken && owner.user === gameStore.username)
                 gameStore.ownedtokens.push(this.uuid);
             if (sync) socket.emit("Shape.Owner.Add", ownerToServer(fullOwner));
-            if (gameStore.fowLOS) layerManager.invalidateLightAllFloors();
+            if (gameSettingsStore.fowLOS) layerManager.invalidateLightAllFloors();
         }
     }
 
@@ -396,7 +397,7 @@ export abstract class Shape {
         }
         targetOwner.editAccess = fullOwner.editAccess;
         if (sync) socket.emit("Shape.Owner.Update", ownerToServer(fullOwner));
-        if (gameStore.fowLOS) layerManager.invalidateLightAllFloors();
+        if (gameSettingsStore.fowLOS) layerManager.invalidateLightAllFloors();
     }
 
     removeOwner(owner: string, sync: boolean): void {
@@ -408,7 +409,7 @@ export abstract class Shape {
             if (ownedIndex >= 0) gameStore.ownedtokens.splice(ownedIndex, 1);
         }
         if (sync) socket.emit("Shape.Owner.Delete", ownerToServer(removed));
-        if (gameStore.fowLOS) layerManager.invalidateLightAllFloors();
+        if (gameSettingsStore.fowLOS) layerManager.invalidateLightAllFloors();
     }
 
     updateDefaultOwner(options: { editAccess?: boolean; visionAccess?: boolean }): void {
@@ -422,7 +423,7 @@ export abstract class Shape {
             if (!(this.ownedBy({ editAccess: true }) || this.ownedBy({ visionAccess: true })) && ownedIndex >= 0)
                 gameStore.ownedtokens.splice(ownedIndex, 1);
         }
-        if (gameStore.fowLOS) layerManager.invalidateLightAllFloors();
+        if (gameSettingsStore.fowLOS) layerManager.invalidateLightAllFloors();
     }
 
     updatePoints(): void {

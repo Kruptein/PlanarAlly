@@ -18,6 +18,7 @@ import { g2l, g2lx, g2ly, l2g, l2gz } from "@/game/units";
 import { getLocalPointFromEvent, useSnapping } from "@/game/utils";
 import { visibilityStore } from "@/game/visibility/store";
 import { TriangulationTarget } from "@/game/visibility/te/pa";
+import { gameSettingsStore } from "../../settings";
 
 enum SelectOperations {
     Noop,
@@ -270,7 +271,7 @@ export default class SelectTool extends Tool {
                         continue;
 
                     if (
-                        gameStore.useGrid &&
+                        gameSettingsStore.useGrid &&
                         useSnapping(event) &&
                         this.hasFeature(SelectFeatures.Snapping, features) &&
                         !this.deltaChanged
@@ -304,7 +305,11 @@ export default class SelectTool extends Tool {
                     layer.invalidate(false);
                 }
                 if (this.mode === SelectOperations.Resize) {
-                    if (gameStore.useGrid && useSnapping(event) && this.hasFeature(SelectFeatures.Snapping, features)) {
+                    if (
+                        gameSettingsStore.useGrid &&
+                        useSnapping(event) &&
+                        this.hasFeature(SelectFeatures.Snapping, features)
+                    ) {
                         if (sel.visionObstruction)
                             visibilityStore.deleteFromTriag({
                                 target: TriangulationTarget.VISION,

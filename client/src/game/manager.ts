@@ -79,7 +79,7 @@ export class GameManager {
         gameStore.increasePanX((window.innerWidth / 2 - localPos.x) / gameStore.zoomFactor);
         gameStore.increasePanY((window.innerHeight / 2 - localPos.y) / gameStore.zoomFactor);
         layerManager.invalidateAllFloors();
-        sendClientOptions(gameStore.locationOptions);
+        sendClientOptions(gameStore.locationUserOptions);
     }
 }
 

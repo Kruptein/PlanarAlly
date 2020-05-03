@@ -8,9 +8,10 @@ import { Layer } from "@/game/layers/layer";
 import { layerManager } from "@/game/layers/manager";
 import { Asset } from "@/game/shapes/asset";
 import { gameStore } from "@/game/store";
-import { l2gx, l2gy, l2gz, clampGridLine } from "@/game/units";
+import { clampGridLine, l2gx, l2gy, l2gz } from "@/game/units";
 import { visibilityStore } from "@/game/visibility/store";
 import { addCDT, removeCDT } from "@/game/visibility/te/pa";
+import { gameSettingsStore } from "../settings";
 
 export function addFloor(floor: ServerFloor): void {
     gameStore.floors.push(floor.name);
@@ -66,8 +67,6 @@ export function createLayer(layerInfo: ServerLayer, floor: string): void {
         return;
     }
     if (layerInfo.name !== "fow-players") layers.appendChild(canvas);
-
-    if (layerInfo.type_ === "grid" && layerInfo.size) gameStore.setGridSize({ gridSize: layerInfo.size, sync: false });
     // Load layer shapes
     layer.setShapes(layerInfo.shapes);
 }
@@ -85,8 +84,8 @@ export function dropAsset(event: DragEvent): void {
     );
     asset.src = new URL(image.src).pathname;
 
-    if (gameStore.useGrid) {
-        const gs = gameStore.gridSize;
+    if (gameSettingsStore.useGrid) {
+        const gs = gameSettingsStore.gridSize;
         asset.refPoint = new GlobalPoint(clampGridLine(asset.refPoint.x), clampGridLine(asset.refPoint.y));
         asset.w = Math.max(clampGridLine(asset.w), gs);
         asset.h = Math.max(clampGridLine(asset.h), gs);

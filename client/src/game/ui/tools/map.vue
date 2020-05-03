@@ -7,7 +7,6 @@ import { GlobalPoint, Vector } from "@/game/geom";
 import { layerManager } from "@/game/layers/manager";
 import { BaseRect } from "@/game/shapes/baserect";
 import { Rect } from "@/game/shapes/rect";
-import { gameStore } from "@/game/store";
 import { l2g } from "@/game/units";
 import { getLocalPointFromEvent } from "@/game/utils";
 import { SyncMode, InvalidationMode } from "../../../core/comm/types";
@@ -15,6 +14,7 @@ import { SelectFeatures } from "./select.vue";
 import { ToolName, ToolPermission } from "./utils";
 import { EventBus } from "@/game/event-bus";
 import { Shape } from "@/game/shapes/shape";
+import { gameSettingsStore } from "../../settings";
 
 @Component
 export default class MapTool extends Tool {
@@ -65,8 +65,8 @@ export default class MapTool extends Tool {
         const oldCenter = this.rect.center();
 
         if (this.shape instanceof BaseRect) {
-            const xFactor = (this.xCount * gameStore.gridSize) / this.rect.w;
-            const yFactor = (this.yCount * gameStore.gridSize) / this.rect.h;
+            const xFactor = (this.xCount * gameSettingsStore.gridSize) / this.rect.w;
+            const yFactor = (this.yCount * gameSettingsStore.gridSize) / this.rect.h;
 
             this.shape.w *= xFactor;
             this.shape.h *= yFactor;

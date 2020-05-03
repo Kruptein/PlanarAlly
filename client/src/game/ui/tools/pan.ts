@@ -36,7 +36,7 @@ export default class PanTool extends Tool {
 
     onMouseUp(_event: MouseEvent): void {
         this.active = false;
-        sendClientOptions(gameStore.locationOptions);
+        sendClientOptions(gameStore.locationUserOptions);
     }
 
     onTouchStart(event: TouchEvent): void {
@@ -46,7 +46,7 @@ export default class PanTool extends Tool {
 
     onTouchEnd(_event: TouchEvent): void {
         this.active = false;
-        sendClientOptions(gameStore.locationOptions);
+        sendClientOptions(gameStore.locationUserOptions);
     }
 
     onTouchMove(event: TouchEvent): void {

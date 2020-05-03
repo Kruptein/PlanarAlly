@@ -96,13 +96,10 @@ async def change_location(sid: int, data: Dict[str, str]):
 
     # Send an anouncement to show loading state
     for room_player in pr.room.players:
-        print(room_player.player.name)
         if not room_player.player.name in data["users"]:
             continue
 
-        print("Anounce")
         for psid in game_state.get_sids(player=room_player.player, room=pr.room):
-            print("gone")
             await sio.emit("Location.Change.Start", room=psid, namespace="/planarally")
 
     new_location = pr.room.locations.where(Location.name == data["location"])[0]
@@ -130,8 +127,13 @@ async def set_location_options(sid: int, data: Dict[str, Any]):
         logger.warning(f"{pr.player.name} attempted to set a room option")
         return
 
-    update_model_from_dict(pr.active_location, data)
-    pr.active_location.save()
+    if data.get("location", None) is None:
+        options = pr.room.default_options
+    else:
+        options = pr.room.locations.where(Location.Name == data["location"])[0].options
+
+    update_model_from_dict(options, data)
+    options.save()
 
     await sio.emit(
         "Location.Set",

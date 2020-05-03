@@ -7,13 +7,15 @@ import { mapState } from "vuex";
 import ContextMenu from "@/core/components/contextmenu.vue";
 
 import { socket } from "@/game/api/socket";
-import { ServerClient, ServerLocation } from "@/game/comm/types/general";
+import { ServerLocation } from "@/game/comm/types/general";
 import { EventBus } from "@/game/event-bus";
 import { layerManager, Floor } from "@/game/layers/manager";
 import { gameStore } from "@/game/store";
 import { cutShapes, deleteShapes, pasteShapes } from "../../shapes/utils";
 import { initiativeStore, inInitiative } from "../initiative/store";
 import { Layer } from "../../layers/layer";
+import { gameSettingsStore } from "../../settings";
+import { ServerClient } from "@/game/comm/types/settings";
 
 @Component({
     components: {
@@ -51,7 +53,7 @@ export default class ShapeContext extends Vue {
         if (layerManager.floor !== undefined) return layerManager.getLayer(layerManager.floor.name);
     }
     getCurrentLocation(): string {
-        return gameStore.locationName;
+        return gameSettingsStore.locationName;
     }
     getInitiativeWord(): string {
         const layer = this.getActiveLayer()!;

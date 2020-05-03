@@ -1,10 +1,10 @@
 import { GlobalPoint, Vector } from "@/game/geom";
 import { BoundingRect } from "@/game/shapes/boundingrect";
 import { Shape } from "@/game/shapes/shape";
-import { gameStore } from "@/game/store";
 import { calculateDelta } from "@/game/ui/tools/utils";
-import { g2lx, g2ly, clampGridLine } from "@/game/units";
+import { clampGridLine, g2lx, g2ly } from "@/game/units";
 import { ServerShape } from "../comm/types/shapes";
+import { gameSettingsStore } from "../settings";
 
 export abstract class BaseRect extends Shape {
     w: number;
@@ -65,7 +65,7 @@ export abstract class BaseRect extends Shape {
         return false;
     }
     snapToGrid(): void {
-        const gs = gameStore.gridSize;
+        const gs = gameSettingsStore.gridSize;
         const center = this.center();
         const mx = center.x;
         const my = center.y;

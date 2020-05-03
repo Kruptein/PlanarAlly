@@ -11,6 +11,7 @@ import { gameStore } from "@/game/store";
 import { socket } from "@/game/api/socket";
 import { coreStore } from "../../../core/store";
 import { EventBus } from "../../event-bus";
+import { gameSettingsStore } from "../../settings";
 
 @Component({
     computed: {
@@ -38,7 +39,7 @@ export default class LocationBar extends Vue {
     horizontalOffset = 0;
 
     getCurrentLocation(): string {
-        return gameStore.locationName;
+        return gameSettingsStore.locationName;
     }
 
     changeLocation(name: string): void {
@@ -167,7 +168,7 @@ export default class LocationBar extends Vue {
             <div class="location" v-for="location in locations" :key="location">
                 <div
                     class="location-name"
-                    @click="changeLocation(location)"
+                    @click.self="changeLocation(location)"
                     :class="{ 'active-location': getCurrentLocation() === location }"
                 >
                     <div class="drag-handle"></div>

@@ -26,6 +26,7 @@ import { equalPoints, getLocalPointFromEvent, useSnapping } from "@/game/utils";
 import { visibilityStore } from "@/game/visibility/store";
 import { TriangulationTarget, insertConstraint, getCDT } from "@/game/visibility/te/pa";
 import { ToolName } from "./utils";
+import { gameSettingsStore } from "../../settings";
 
 @Component({
     components: {
@@ -54,7 +55,7 @@ export default class DrawTool extends Tool {
     modeSelect = "normal";
     modes = ["normal", "reveal", "hide"];
 
-    brushSize = getUnitDistance(gameStore.unitSize);
+    brushSize = getUnitDistance(gameSettingsStore.unitSize);
     closedPolygon = false;
     activeTool = false;
 
@@ -74,10 +75,10 @@ export default class DrawTool extends Tool {
         return gameStore.IS_DM;
     }
     get unitSize(): number {
-        return gameStore.unitSize;
+        return gameSettingsStore.unitSize;
     }
     get useGrid(): boolean {
-        return gameStore.useGrid;
+        return gameSettingsStore.useGrid;
     }
 
     onKeyUp(event: KeyboardEvent): void {

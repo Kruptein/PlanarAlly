@@ -69,6 +69,7 @@ async def connect(sid, environ):
                 "creator": room.creator.name,
                 "invitationCode": str(room.invitation_code),
                 "isLocked": room.is_locked,
+                "default_options": room.default_options.as_dict(),
                 "players": [
                     {
                         "id": rp.player.id,

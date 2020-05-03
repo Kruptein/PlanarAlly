@@ -1,8 +1,9 @@
 <script lang="ts">
 import Vue from "vue";
 import Component from "vue-class-component";
+import { Prop } from "vue-property-decorator";
 
-import AdminSettings from "./AdminSettings.vue";
+// import AdminSettings from "./AdminSettings.vue";
 import GridSettings from "../GridSettings.vue";
 // import PermissionsDmSettings from "./permissions.vue";
 import VisionSettings from "../VisionSettings.vue";
@@ -12,35 +13,36 @@ import { EventBus } from "@/game/event-bus";
 
 @Component({
     components: {
-        AdminSettings,
         GridSettings,
         // PermissionsDmSettings,
         PanelModal,
         VisionSettings,
     },
 })
-export default class DmSettings extends Vue {
+export default class LocationSettings extends Vue {
+    location: string | null = null;
     visible = false;
 
     mounted(): void {
-        EventBus.$on("DmSettings.Open", () => {
+        EventBus.$on("LocationSettings.Open", (location: string) => {
             this.visible = true;
+            this.location = location;
         });
     }
 
     beforeDestroy(): void {
-        EventBus.$off("DmSettings.Open");
+        EventBus.$off("LocationSettings.Open");
     }
 }
 </script>
 
 <template>
     <PanelModal :visible.sync="visible" :categories="['Admin', 'Grid', 'Vision']">
-        <template v-slot:title>DM Settings</template>
+        <template v-slot:title>Location "{{ location }}" Settings</template>
         <template v-slot:default="{ selection }">
-            <AdminSettings v-show="selection === 0"></AdminSettings>
-            <GridSettings :location="null" v-show="selection === 1"></GridSettings>
-            <VisionSettings :location="null" v-show="selection === 2"></VisionSettings>
+            <!-- <AdminSettings v-show="selection === 0"></AdminSettings> -->
+            <GridSettings :location="location" v-show="selection === 1"></GridSettings>
+            <VisionSettings :location="location" v-show="selection === 2"></VisionSettings>
         </template>
     </PanelModal>
 </template>

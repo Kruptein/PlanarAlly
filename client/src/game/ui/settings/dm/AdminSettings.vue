@@ -2,12 +2,17 @@
 import Vue from "vue";
 import Component from "vue-class-component";
 
+import InputCopyElement from "@/core/components/inputCopy.vue";
 import Game from "../../../game.vue";
 import { socket } from "@/game/api/socket";
 import { EventBus } from "@/game/event-bus";
 import { gameStore } from "@/game/store";
 
-@Component
+@Component({
+    components: {
+        InputCopyElement,
+    },
+})
 export default class AdminSettings extends Vue {
     showRefreshState = false;
     refreshState = "pending";
@@ -42,7 +47,7 @@ export default class AdminSettings extends Vue {
         gameStore.setIsLocked({ isLocked: !gameStore.isLocked, sync: true });
     }
     async deleteSession(): Promise<void> {
-        const value = await (<Game>this.$parent).$refs.prompt.prompt(
+        const value = await (<Game>this.$parent.$parent.$parent.$parent.$parent).$refs.prompt.prompt(
             `ENTER ${gameStore.roomCreator}/${gameStore.roomName} TO CONFIRM SESSION REMOVAL.`,
             `DELETING SESSION`,
         );

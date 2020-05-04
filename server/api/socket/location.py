@@ -205,3 +205,16 @@ async def rename_location(sid: int, data: Dict[str, str]):
     for player_room in pr.room.players:
         for psid in game_state.get_sids(skip_sid=sid, player=player_room.player):
             await sio.emit("Location.Rename", data, room=psid, namespace="/planarally")
+
+
+@sio.on("Location.Delete", namespace="/planarally")
+@auth.login_required(app, sio)
+async def delete_location(sid: int, data: int):
+    pr: PlayerRoom = game_state.get(sid)
+
+    if pr.role != Role.DM:
+        logger.warning(f"{pr.player.name} attempted to rename a location.")
+        return
+
+    location = Location[data]
+    location.delete_instance()

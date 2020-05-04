@@ -166,13 +166,9 @@ export default class LocationBar extends Vue {
             ref="locations"
         >
             <div class="location" v-for="location in locations" :key="location">
-                <div
-                    class="location-name"
-                    @click.self="changeLocation(location)"
-                    :class="{ 'active-location': getCurrentLocation() === location }"
-                >
+                <div class="location-name" :class="{ 'active-location': getCurrentLocation() === location }">
                     <div class="drag-handle"></div>
-                    <div class="location-name-label">{{ location }}</div>
+                    <div class="location-name-label" @click.self="changeLocation(location)">{{ location }}</div>
                     <div class="location-settings-icon" @click="openLocationSettings(location)">
                         <i class="fas fa-cog"></i>
                     </div>

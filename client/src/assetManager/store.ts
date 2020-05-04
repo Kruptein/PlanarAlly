@@ -65,6 +65,10 @@ class AssetStore extends VuexModule {
         if (idx >= 0) {
             this._pendingUploads.splice(idx, 1);
             this._resolvedUploads++;
+            if (this._expectedUploads <= this._resolvedUploads) {
+                this._expectedUploads = 0;
+                this._resolvedUploads = 0;
+            }
         }
     }
 

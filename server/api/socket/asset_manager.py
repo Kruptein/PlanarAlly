@@ -56,8 +56,11 @@ async def get_folder_by_path(sid: int, folder):
 
     if folder:
         for path in folder.split("/"):
-            target_folder = target_folder.get_child(path)
-            idPath.append(target_folder.id)
+            try:
+                target_folder = target_folder.get_child(path)
+                idPath.append(target_folder.id)
+            except Asset.DoesNotExist:
+                return await get_folder_by_path(sid, "/")
 
     await sio.emit(
         "Folder.Set",
@@ -152,8 +155,7 @@ async def assetmgmt_upload(sid: int, file_data):
 
     del asset_state.pending_file_upload_cache[uuid]
 
-    sid_data = asset_state.sid_map[sid]
-    user = sid_data["user"]
+    user = asset_state.get_user(sid)
 
     asset = Asset.create(
         name=file_data["name"],

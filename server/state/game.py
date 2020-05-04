@@ -9,7 +9,6 @@ class GameState(State[PlayerRoom]):
     def __init__(self) -> None:
         super().__init__()
         self.client_temporaries: Dict[int, Set[str]] = {}
-        self.pending_file_upload_cache: Dict[str, Any] = {}
 
     def get_user(self, sid: int) -> User:
         return self._sid_map[sid].player

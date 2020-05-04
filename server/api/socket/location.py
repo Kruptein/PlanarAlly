@@ -96,13 +96,10 @@ async def change_location(sid: int, data: Dict[str, str]):
 
     # Send an anouncement to show loading state
     for room_player in pr.room.players:
-        print(room_player.player.name)
         if not room_player.player.name in data["users"]:
             continue
 
-        print("Anounce")
         for psid in game_state.get_sids(player=room_player.player, room=pr.room):
-            print("gone")
             await sio.emit("Location.Change.Start", room=psid, namespace="/planarally")
 
     new_location = pr.room.locations.where(Location.name == data["location"])[0]

@@ -12,4 +12,3 @@ class AssetState(State[User]):
 
 asset_state = AssetState()
 app["state"]["asset"] = asset_state
-

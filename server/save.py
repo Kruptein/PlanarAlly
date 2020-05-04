@@ -222,6 +222,8 @@ def upgrade(version):
             db.execute_sql(
                 'DELETE FROM "player_room" WHERE id IN (SELECT pr.id FROM "player_room" pr INNER JOIN "room" r ON r.id = pr.room_id WHERE r.creator_id = pr.player_id )'
             )
+        db.foreign_keys = True
+        Constants.get().update(save_version=Constants.save_version + 1).execute()
     elif version == 25:
         # Move Room.dm_location and Room.player_location to PlayerRoom.active_location
         # Add PlayerRoom.role

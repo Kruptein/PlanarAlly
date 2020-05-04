@@ -22,6 +22,12 @@ export default class VisionSettings extends Vue {
         return gameSettingsStore.locationOptions[this.location] ?? {};
     }
 
+    get fakePlayer(): boolean {
+        return gameStore.FAKE_PLAYER;
+    }
+    set fakePlayer(value: boolean) {
+        gameStore.setFakePlayer(value);
+    }
     get fullFow(): boolean {
         return getLocationOption("fullFow", this.location)!;
     }
@@ -93,6 +99,13 @@ export default class VisionSettings extends Vue {
             </template>
         </div>
         <div class="spanrow header">Core</div>
+        <div class="row" v-if="location === null">
+            <label for="fakePlayerInput">Fake player:</label>
+            <div>
+                <input id="fakePlayerInput" type="checkbox" v-model="fakePlayer" />
+            </div>
+            <div></div>
+        </div>
         <div class="row" :class="{ overwritten: location !== null && options.fullFow !== undefined }">
             <label :for="'useFOWInput-' + location">Fill entire canvas with FOW:</label>
             <div>
@@ -143,7 +156,7 @@ export default class VisionSettings extends Vue {
             <div v-else></div>
         </div>
         <div class="spanrow header">Advanced</div>
-        <div class="row" :class="{ overwritten: location !== null && options.visionMode !== undefined }">
+        <div class="row" v-if="location === null">
             <label :for="'visionMode-' + location">Vision Mode:</label>
             <div>
                 <select :id="'visionMode-' + location" @change="changeVisionMode">
@@ -155,14 +168,7 @@ export default class VisionSettings extends Vue {
                     </option>
                 </select>
             </div>
-            <div
-                v-if="location !== null && options.visionMode !== undefined"
-                @click="reset('visionMode')"
-                title="Reset to the campaign default"
-            >
-                <i class="fas fa-times-circle"></i>
-            </div>
-            <div v-else></div>
+            <div></div>
         </div>
         <div class="row" :class="{ overwritten: location !== null && options.visionMinRange !== undefined }">
             <label :for="'vmininp-' + location">Minimal full vision ({{ unitSizeUnit }}):</label>

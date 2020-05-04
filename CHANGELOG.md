@@ -19,6 +19,8 @@ All notable changes to this project will be documented in this file.
 -   Use spacebar to cycle between your owned tokens
 -   Aspect ratio lock with ctrl modifier
 -   Progressbar to the asset manager
+-   Location rename
+-   Location removal
 
 ### Changed
 
@@ -39,6 +41,9 @@ All notable changes to this project will be documented in this file.
     -   Move around as a DM without bringing your players along
     -   shows which players are in which location
     -   now has UI to move groups of players as a whole or individually to other locations
+-   Location settings
+    -   DM options is now used to configure the default settings
+    -   Locations have their own setting menu to override the defaults
 
 ### Fixed
 

@@ -130,13 +130,15 @@ async def set_location_options(sid: int, data: Dict[str, Any]):
     if data.get("location", None) is None:
         options = pr.room.default_options
     else:
-        options = pr.room.locations.where(Location.Name == data["location"])[0].options
+        options = pr.room.locations.where(Location.name == data["location"])[0].options
 
-    update_model_from_dict(options, data)
+    update_model_from_dict(options, data["options"])
     options.save()
 
+    print(data)
+
     await sio.emit(
-        "Location.Set",
+        "Location.Options.Set",
         data,
         room=pr.active_location.get_path(),
         skip_sid=sid,
@@ -183,3 +185,15 @@ async def set_locations_order(sid: int, locations: List[str]):
             await sio.emit(
                 "Locations.Order.Set", locations, room=psid, namespace="/planarally"
             )
+
+
+# @sio.on("Location.Options.Delete", namepsace="/planarally")
+# @auth.login_required(app, sio)
+# async def delete_location_option(sid: int, data: Dict[str, Any]):
+#     pr: PlayerRoom = game_state.get(sid)
+
+#     if pr.role != Role.DM:
+#         logger.warning(f"{pr.player.name} attempted to reorder locations.")
+#         return
+
+#     options = pr.room.locations.where(Location.name == data["location"])[0].options

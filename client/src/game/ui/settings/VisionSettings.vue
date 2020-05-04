@@ -6,49 +6,53 @@ import { Prop } from "vue-property-decorator";
 import { gameStore } from "@/game/store";
 import { VisibilityMode, visibilityStore } from "@/game/visibility/store";
 import { layerManager } from "@/game/layers/manager";
-import { gameSettingsStore } from "../../settings";
+import { gameSettingsStore, getLocationOption } from "../../settings";
+import { LocationOptions } from "@/game/comm/types/settings";
 
 @Component
 export default class VisionSettings extends Vue {
     @Prop() location!: string | null;
 
-    get fakePlayer(): boolean {
-        return gameStore.FAKE_PLAYER;
+    get defaults(): LocationOptions {
+        return gameSettingsStore.defaultLocationOptions!;
     }
-    set fakePlayer(value: boolean) {
-        gameStore.setFakePlayer(value);
+
+    get options(): Partial<LocationOptions> {
+        if (this.location === null) return this.defaults;
+        return gameSettingsStore.locationOptions[this.location] ?? {};
     }
+
     get fullFow(): boolean {
-        return gameSettingsStore.fullFow;
+        return getLocationOption("fullFow", this.location)!;
     }
     set fullFow(fullFow: boolean) {
         gameSettingsStore.setFullFow({ fullFow, location: this.location, sync: true });
     }
     get fowOpacity(): number {
-        return gameSettingsStore.fowOpacity;
+        return getLocationOption("fowOpacity", this.location)!;
     }
     set fowOpacity(fowOpacity: number) {
         if (typeof fowOpacity !== "number") return;
         gameSettingsStore.setFowOpacity({ fowOpacity, location: this.location, sync: true });
     }
     get fowLos(): boolean {
-        return gameSettingsStore.fowLos;
+        return getLocationOption("fowLos", this.location)!;
     }
     set fowLos(fowLos: boolean) {
         gameSettingsStore.setLineOfSight({ fowLos, location: this.location, sync: true });
     }
     get unitSizeUnit(): string {
-        return gameSettingsStore.unitSizeUnit;
+        return getLocationOption("unitSizeUnit", this.location)!;
     }
     get visionMinRange(): number {
-        return gameSettingsStore.visionMinRange;
+        return getLocationOption("visionMinRange", this.location)!;
     }
     set visionMinRange(visionMinRange: number) {
         if (typeof visionMinRange !== "number") return;
         gameSettingsStore.setVisionRangeMin({ visionMinRange, location: this.location, sync: true });
     }
     get visionMaxRange(): number {
-        return gameSettingsStore.visionMaxRange;
+        return getLocationOption("visionMaxRange", this.location)!;
     }
     set visionMaxRange(visionMaxRange: number) {
         if (typeof visionMaxRange !== "number") return;
@@ -67,39 +71,57 @@ export default class VisionSettings extends Vue {
         }
         layerManager.invalidateAllFloors();
     }
+
+    reset(key: keyof LocationOptions): void {
+        if (this.location === null) return;
+        gameSettingsStore.reset({ key, location: this.location });
+    }
 }
 </script>
 
 <template>
-    <div class="panel">
+    <div class="panel restore-panel">
         <div class="spanrow">
-            <i style="max-width: 40vw">
-                <template v-if="location === null">
-                    Some of these settings can be overriden by location specific settings
-                </template>
-                <template v-else>Settings that override the campaign defaults are highlighted</template>
-            </i>
+            <template v-if="location === null">
+                Some of these settings can be overriden by location specific settings
+            </template>
+            <template v-else>
+                <span>
+                    Settings that override the campaign defaults are
+                    <span class="overwritten">highlighted</span>
+                </span>
+            </template>
         </div>
         <div class="spanrow header">Core</div>
-        <div class="row">
-            <label :for="'fakePlayerInput-' + location">Fake player:</label>
-            <div>
-                <input :id="'fakePlayerInput-' + location" type="checkbox" v-model="fakePlayer" />
-            </div>
-        </div>
-        <div class="row">
+        <div class="row" :class="{ overwritten: location !== null && options.fullFow !== undefined }">
             <label :for="'useFOWInput-' + location">Fill entire canvas with FOW:</label>
             <div>
                 <input :id="'useFOWInput-' + location" type="checkbox" v-model="fullFow" />
             </div>
+            <div
+                v-if="location !== null && options.fullFow !== undefined"
+                @click="reset('fullFow')"
+                title="Reset to the campaign default"
+            >
+                <i class="fas fa-times-circle"></i>
+            </div>
+            <div v-else></div>
         </div>
-        <div class="row">
+        <div class="row" :class="{ overwritten: location !== null && options.fowLos !== undefined }">
             <label :for="'fowLos-' + location">Only show lights in LoS:</label>
             <div>
                 <input :id="'fowLos-' + location" type="checkbox" v-model="fowLos" />
             </div>
+            <div
+                v-if="location !== null && options.fowLos !== undefined"
+                @click="reset('fowLos')"
+                title="Reset to the campaign default"
+            >
+                <i class="fas fa-times-circle"></i>
+            </div>
+            <div v-else></div>
         </div>
-        <div class="row">
+        <div class="row" :class="{ overwritten: location !== null && options.fowOpacity !== undefined }">
             <label :for="'fowOpacity-' + location">FOW opacity:</label>
             <div>
                 <input
@@ -111,9 +133,17 @@ export default class VisionSettings extends Vue {
                     v-model.number="fowOpacity"
                 />
             </div>
+            <div
+                v-if="location !== null && options.fowOpacity !== undefined"
+                @click="reset('fowOpacity')"
+                title="Reset to the campaign default"
+            >
+                <i class="fas fa-times-circle"></i>
+            </div>
+            <div v-else></div>
         </div>
         <div class="spanrow header">Advanced</div>
-        <div class="row">
+        <div class="row" :class="{ overwritten: location !== null && options.visionMode !== undefined }">
             <label :for="'visionMode-' + location">Vision Mode:</label>
             <div>
                 <select :id="'visionMode-' + location" @change="changeVisionMode">
@@ -125,18 +155,55 @@ export default class VisionSettings extends Vue {
                     </option>
                 </select>
             </div>
+            <div
+                v-if="location !== null && options.visionMode !== undefined"
+                @click="reset('visionMode')"
+                title="Reset to the campaign default"
+            >
+                <i class="fas fa-times-circle"></i>
+            </div>
+            <div v-else></div>
         </div>
-        <div class="row">
+        <div class="row" :class="{ overwritten: location !== null && options.visionMinRange !== undefined }">
             <label :for="'vmininp-' + location">Minimal full vision ({{ unitSizeUnit }}):</label>
             <div>
                 <input :id="'vmininp-' + location" type="number" min="0" v-model.lazy.number="visionMinRange" />
             </div>
+            <div
+                v-if="location !== null && options.visionMinRange !== undefined"
+                @click="reset('visionMinRange')"
+                title="Reset to the campaign default"
+            >
+                <i class="fas fa-times-circle"></i>
+            </div>
+            <div v-else></div>
         </div>
-        <div class="row">
+        <div class="row" :class="{ overwritten: location !== null && options.visionMaxRange !== undefined }">
             <label :for="'vmaxinp-' + location">Maximal vision ({{ unitSizeUnit }}):</label>
             <div>
                 <input :id="'vmaxinp-' + location" type="number" min="0" v-model.lazy.number="visionMaxRange" />
             </div>
+            <div
+                v-if="location !== null && options.visionMaxRange !== undefined"
+                @click="reset('visionMaxRange')"
+                title="Reset to the campaign default"
+            >
+                <i class="fas fa-times-circle"></i>
+            </div>
+            <div v-else></div>
         </div>
     </div>
 </template>
+
+<style scoped>
+/* Force higher specificity without !important abuse */
+.panel.restore-panel {
+    grid-template-columns: [setting] 1fr [value] 1fr [restore] 30px [end];
+}
+
+.overwritten,
+.restore-panel .row.overwritten * {
+    color: #7c253e;
+    font-weight: bold;
+}
+</style>

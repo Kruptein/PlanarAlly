@@ -39,9 +39,13 @@ class LocationOptions(BaseModel):
     vision_max_range = FloatField(default=3281)
 
     def as_dict(self):
-        return model_to_dict(
-            self, backrefs=None, recurse=None, exclude=[LocationOptions.id]
-        )
+        return {
+            k: v
+            for k, v in model_to_dict(
+                self, backrefs=None, recurse=None, exclude=[LocationOptions.id]
+            ).items()
+            if v is not None
+        }
 
 
 class Room(BaseModel):

@@ -37,7 +37,7 @@ export default class LocationSettings extends Vue {
 
 <template>
     <PanelModal :visible.sync="visible" :categories="['Admin', 'Grid', 'Vision']">
-        <template v-slot:title>Location "{{ location }}" Settings</template>
+        <template v-slot:title>Location Settings: {{ location }}</template>
         <template v-slot:default="{ selection }">
             <!-- <AdminSettings v-show="selection === 0"></AdminSettings> -->
             <GridSettings :location="location" v-show="selection === 1"></GridSettings>

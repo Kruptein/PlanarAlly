@@ -88,6 +88,13 @@ async def connect(sid, environ):
             room=sid,
             namespace="/planarally",
         )
+        if pr.role == Role.DM:
+            await sio.emit(
+                "Locations.Settings.Set",
+                {l.name: l.options.as_dict() for l in pr.room.locations},
+                room=sid,
+                namespace="/planarally",
+            )
         await load_location(sid, pr.active_location)
 
 

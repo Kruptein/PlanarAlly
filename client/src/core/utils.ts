@@ -16,6 +16,14 @@ export function alphSort(a: string, b: string): number {
     else return 1;
 }
 
+export function toSnakeCase(s: string): string {
+    return s
+        .replace(/\.?([A-Z]+)/g, function(x, y) {
+            return "_" + y.toLowerCase();
+        })
+        .replace(/^_/, "");
+}
+
 export function getHTMLFont(element: HTMLElement): string {
     let font = element.style.font;
     while (font === null && element.parentElement !== null) {

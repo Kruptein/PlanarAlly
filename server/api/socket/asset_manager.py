@@ -21,7 +21,7 @@ async def assetmgmt_connect(sid: int, environ):
     if user is None:
         await sio.emit("redirect", "/", room=sid, namespace="/pa_assetmgmt")
     else:
-        asset_state.add_sid(sid, user=user)
+        await asset_state.add_sid(sid, user)
         root = Asset.get_root_folder(user)
         await sio.emit("Folder.Root.Set", root.id, room=sid, namespace="/pa_assetmgmt")
 
@@ -120,7 +120,9 @@ async def assetmgmt_rm(sid: int, data):
 
     if asset.file_hash is not None and (ASSETS_DIR / asset.file_hash).exists():
         if Asset.select().where(Asset.file_hash == asset.file_hash).count() == 0:
-            logger.info(f"No asset maps to file {asset.file_hash}, removing from server")
+            logger.info(
+                f"No asset maps to file {asset.file_hash}, removing from server"
+            )
             (ASSETS_DIR / asset.file_hash).unlink()
 
 

@@ -50,7 +50,6 @@ export default class Game extends Vue {
 
     ready = {
         manager: false,
-        tools: false,
     };
 
     throttledmoveSet = false;

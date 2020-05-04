@@ -27,6 +27,7 @@ import { visibilityStore } from "@/game/visibility/store";
 import { TriangulationTarget, insertConstraint, getCDT } from "@/game/visibility/te/pa";
 import { ToolName } from "./utils";
 import { gameSettingsStore } from "../../settings";
+import { EventBus } from "../../event-bus";
 
 @Component({
     components: {
@@ -55,11 +56,14 @@ export default class DrawTool extends Tool {
     modeSelect = "normal";
     modes = ["normal", "reveal", "hide"];
 
-    brushSize = getUnitDistance(gameSettingsStore.unitSize);
+    brushSize = 5;
     closedPolygon = false;
     activeTool = false;
 
     mounted(): void {
+        EventBus.$on("Location.Options.Set", () => {
+            if (this.brushSize === 0) this.brushSize = getUnitDistance(gameSettingsStore.unitSize) / 10;
+        });
         window.addEventListener("keyup", this.onKeyUp);
     }
 

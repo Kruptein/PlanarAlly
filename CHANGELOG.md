@@ -44,6 +44,7 @@ All notable changes to this project will be documented in this file.
 -   Location settings
     -   DM options is now used to configure the default settings
     -   Locations have their own setting menu to override the defaults
+-   Default brush size is now 1/10th of the grid size instead of the full grid size
 
 ### Fixed
 

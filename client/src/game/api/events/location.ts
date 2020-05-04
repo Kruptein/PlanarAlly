@@ -1,6 +1,7 @@
 import { coreStore } from "../../../core/store";
 import { ServerLocation } from "../../comm/types/general";
 import { ServerLocationOptions } from "../../comm/types/settings";
+import { EventBus } from "../../event-bus";
 import { layerManager } from "../../layers/manager";
 import { gameSettingsStore } from "../../settings";
 import { gameStore } from "../../store";
@@ -11,6 +12,7 @@ socket.on("Location.Set", (data: ServerLocation) => {
     coreStore.setLoading(false);
     gameSettingsStore.setActiveLocation(data.id);
     setLocationOptions(data.id, data.options);
+    EventBus.$emit("Location.Options.Set");
 });
 
 socket.on("Location.Options.Set", (data: { options: Partial<ServerLocationOptions>; location: number | null }) => {

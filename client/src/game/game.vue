@@ -10,14 +10,12 @@ import Prompt from "@/core/components/modals/prompt.vue";
 import Initiative from "@/game/ui/initiative/initiative.vue";
 import LabelManager from "@/game/ui/labels.vue";
 import NoteDialog from "@/game/ui/note.vue";
-import DmSettings from "./ui/settings/dm/DmSettings.vue";
 import UI from "./ui/ui.vue";
 
 import { createConnection, socket } from "@/game/api/socket";
 import { onKeyDown, onKeyUp } from "@/game/events/keyboard";
 import { scrollZoom } from "@/game/events/mouse";
 import { layerManager } from "@/game/layers/manager";
-import { gameStore } from "@/game/store";
 import { dropAsset } from "./layers/utils";
 import { coreStore } from "@/core/store";
 

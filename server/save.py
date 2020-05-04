@@ -359,6 +359,7 @@ def upgrade(version):
                 migrator.drop_column("location", "vision_mode"),
                 migrator.drop_column("location", "vision_min_range"),
                 migrator.drop_column("location", "vision_max_range"),
+                migrator.drop_index("location", "location_room_id_name"),
             )
             db.execute_sql("DROP TABLE 'grid_layer'")
 

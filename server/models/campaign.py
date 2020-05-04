@@ -82,7 +82,7 @@ class Location(BaseModel):
             self,
             backrefs=False,
             recurse=False,
-            exclude=[Location.id, Location.room, Location.index, Location.options],
+            exclude=[Location.room, Location.index, Location.options],
         )
         data["options"] = self.options.as_dict()
         return data
@@ -148,9 +148,6 @@ class Location(BaseModel):
             floor=floor,
         )
         return floor
-
-    class Meta:
-        indexes = ((("room", "name"), True), (("room", "index"), True))
 
 
 class PlayerRoom(BaseModel):

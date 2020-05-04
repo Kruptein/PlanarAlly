@@ -2,6 +2,7 @@ import { ServerShape } from "@/game/comm/types/shapes";
 import { ServerLocationOptions } from "./settings";
 
 export interface ServerLocation {
+    id: number;
     name: string;
     options: Partial<ServerLocationOptions>;
 }
@@ -40,7 +41,7 @@ export interface ServerLayer {
 }
 
 export interface BoardInfo {
-    locations: string[];
+    locations: { id: number; name: string }[];
     floors: ServerFloor[];
     options: ServerLocationOptions;
 }

@@ -3,12 +3,12 @@ import Vue from "vue";
 import Component from "vue-class-component";
 import { Prop } from "vue-property-decorator";
 
-import { gameSettingsStore, getLocationOption } from "../../settings";
+import { gameSettingsStore } from "../../settings";
 import { LocationOptions } from "../../comm/types/settings";
 
 @Component
 export default class GridSettings extends Vue {
-    @Prop() location!: string | null;
+    @Prop() location!: number | null;
 
     get defaults(): LocationOptions {
         return gameSettingsStore.defaultLocationOptions!;

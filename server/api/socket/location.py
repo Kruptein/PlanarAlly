@@ -31,7 +31,9 @@ async def load_location(sid: int, location: Location):
         pr.save()
 
     data = {}
-    data["locations"] = [l.name for l in pr.room.locations.order_by(Location.index)]
+    data["locations"] = [
+        {"id": l.id, "name": l.name} for l in pr.room.locations.order_by(Location.index)
+    ]
     data["floors"] = [
         f.as_dict(pr.player, pr.player == pr.room.creator)
         for f in location.floors.order_by(Floor.index)
@@ -102,7 +104,7 @@ async def change_location(sid: int, data: Dict[str, str]):
         for psid in game_state.get_sids(player=room_player.player, room=pr.room):
             await sio.emit("Location.Change.Start", room=psid, namespace="/planarally")
 
-    new_location = pr.room.locations.where(Location.name == data["location"])[0]
+    new_location = Location[data["location"]]
 
     for room_player in pr.room.players:
         if not room_player.player.name in data["users"]:
@@ -130,7 +132,7 @@ async def set_location_options(sid: int, data: Dict[str, Any]):
     if data.get("location", None) is None:
         options = pr.room.default_options
     else:
-        options = pr.room.locations.where(Location.name == data["location"])[0].options
+        options = Location[data["location"]].options
 
     update_model_from_dict(options, data["options"])
     options.save()
@@ -165,7 +167,7 @@ async def add_new_location(sid: int, location: str):
 
 @sio.on("Locations.Order.Set", namespace="/planarally")
 @auth.login_required(app, sio)
-async def set_locations_order(sid: int, locations: List[str]):
+async def set_locations_order(sid: int, locations: List[int]):
     pr: PlayerRoom = game_state.get(sid)
 
     if pr.role != Role.DM:
@@ -173,8 +175,8 @@ async def set_locations_order(sid: int, locations: List[str]):
         return
 
     location_query = Location.select().where(Location.room == pr.room)
-    for i, location in enumerate(locations):
-        l: Location = location_query.where(Location.name == location)[0]
+    for i, idx in enumerate(locations):
+        l: Location = Location[idx]
         l.index = i + 1
         l.save()
 
@@ -187,13 +189,19 @@ async def set_locations_order(sid: int, locations: List[str]):
             )
 
 
-# @sio.on("Location.Options.Delete", namepsace="/planarally")
-# @auth.login_required(app, sio)
-# async def delete_location_option(sid: int, data: Dict[str, Any]):
-#     pr: PlayerRoom = game_state.get(sid)
+@sio.on("Location.Rename", namespace="/planarally")
+@auth.login_required(app, sio)
+async def rename_location(sid: int, data: Dict[str, str]):
+    pr: PlayerRoom = game_state.get(sid)
 
-#     if pr.role != Role.DM:
-#         logger.warning(f"{pr.player.name} attempted to reorder locations.")
-#         return
+    if pr.role != Role.DM:
+        logger.warning(f"{pr.player.name} attempted to rename a location.")
+        return
 
-#     options = pr.room.locations.where(Location.name == data["location"])[0].options
+    location = Location[data["id"]]
+    location.name = data["new"]
+    location.save()
+
+    for player_room in pr.room.players:
+        for psid in game_state.get_sids(skip_sid=sid, player=player_room.player):
+            await sio.emit("Location.Rename", data, room=psid, namespace="/planarally")

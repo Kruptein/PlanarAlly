@@ -11,7 +11,7 @@ import { LocationOptions } from "@/game/comm/types/settings";
 
 @Component
 export default class VisionSettings extends Vue {
-    @Prop() location!: string | null;
+    @Prop() location!: number | null;
 
     get defaults(): LocationOptions {
         return gameSettingsStore.defaultLocationOptions!;
@@ -70,7 +70,7 @@ export default class VisionSettings extends Vue {
         if (value === "default") mode = VisibilityMode.TRIANGLE;
         else if (value === "experimental") mode = VisibilityMode.TRIANGLE_ITERATIVE;
         else return;
-        visibilityStore.setVisionMode({ mode, location: this.location, sync: true });
+        visibilityStore.setVisionMode({ mode, sync: true });
         for (const floor of layerManager.floors) {
             visibilityStore.recalculateVision(floor.name);
             visibilityStore.recalculateMovement(floor.name);

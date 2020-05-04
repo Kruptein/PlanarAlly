@@ -31,7 +31,7 @@ class GameStore extends VuexModule implements GameState {
     selectedLayerIndex = -1;
     boardInitialized = false;
 
-    locations: string[] = [];
+    locations: { id: number; name: string }[] = [];
     floors: string[] = [];
     selectedFloorIndex = -1;
 
@@ -48,7 +48,7 @@ class GameStore extends VuexModule implements GameState {
     roomName = "";
     roomCreator = "";
     invitationCode = "";
-    players: { id: number; name: string; location: string }[] = [];
+    players: { id: number; name: string; location: number }[] = [];
 
     gridColour = "rgba(0, 0, 0, 1)";
     fowColour = "rgba(0, 0, 0, 1)";
@@ -278,9 +278,13 @@ class GameStore extends VuexModule implements GameState {
     }
 
     @Mutation
-    setLocations(data: { locations: string[]; sync: boolean }): void {
+    setLocations(data: { locations: { id: number; name: string }[]; sync: boolean }): void {
         this.locations = data.locations;
-        if (data.sync) socket.emit("Locations.Order.Set", this.locations);
+        if (data.sync)
+            socket.emit(
+                "Locations.Order.Set",
+                this.locations.map(l => l.id),
+            );
     }
 
     @Mutation
@@ -401,12 +405,12 @@ class GameStore extends VuexModule implements GameState {
     }
 
     @Mutation
-    setPlayers(players: { id: number; name: string; location: string }[]): void {
+    setPlayers(players: { id: number; name: string; location: number }[]): void {
         this.players = players;
     }
 
     @Mutation
-    addPlayer(player: { id: number; name: string; location: string }): void {
+    addPlayer(player: { id: number; name: string; location: number }): void {
         this.players.push(player);
     }
 

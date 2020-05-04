@@ -4,7 +4,6 @@ import Component from "vue-class-component";
 import { Prop } from "vue-property-decorator";
 
 import Modal from "@/core/components/modals/modal.vue";
-import { EventBus } from "@/game/event-bus";
 
 @Component({
     components: {

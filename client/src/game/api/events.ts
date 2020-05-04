@@ -44,7 +44,7 @@ socket.on(
         invitationCode: string;
         isLocked: boolean;
         default_options: ServerLocationOptions;
-        players: { id: number; name: string; location: string }[];
+        players: { id: number; name: string; location: number }[];
     }) => {
         gameStore.setRoomName(data.name);
         gameStore.setRoomCreator(data.creator);
@@ -52,14 +52,14 @@ socket.on(
         gameStore.setIsLocked({ isLocked: data.isLocked, sync: false });
         gameStore.setPlayers(data.players);
         gameSettingsStore.setDefaultLocationOptions(optionsToClient(data.default_options));
-        setLocationOptions(data.default_options, null);
+        setLocationOptions(null, data.default_options);
     },
 );
 socket.on("Room.Info.InvitationCode.Set", (invitationCode: string) => {
     gameStore.setInvitationCode(invitationCode);
     EventBus.$emit("DmSettings.RefreshedInviteCode");
 });
-socket.on("Room.Info.Players.Add", (data: { id: number; name: string; location: string }) => {
+socket.on("Room.Info.Players.Add", (data: { id: number; name: string; location: number }) => {
     gameStore.addPlayer(data);
 });
 socket.on("Username.Set", (username: string) => {

@@ -14,7 +14,6 @@ import { gameStore } from "@/game/store";
 import { cutShapes, deleteShapes, pasteShapes } from "../../shapes/utils";
 import { initiativeStore, inInitiative } from "../initiative/store";
 import { Layer } from "../../layers/layer";
-import { gameSettingsStore } from "../../settings";
 import { ServerClient } from "@/game/comm/types/settings";
 
 @Component({
@@ -23,6 +22,7 @@ import { ServerClient } from "@/game/comm/types/settings";
     },
     computed: {
         ...mapState("game", ["activeFloorIndex", "locations", "markers"]),
+        ...mapState("gameSettings", ["activeLocation"]),
     },
 })
 export default class ShapeContext extends Vue {
@@ -51,9 +51,6 @@ export default class ShapeContext extends Vue {
     }
     getActiveLayer(): Layer | undefined {
         if (layerManager.floor !== undefined) return layerManager.getLayer(layerManager.floor.name);
-    }
-    getCurrentLocation(): string {
-        return gameSettingsStore.locationName;
     }
     getInitiativeWord(): string {
         const layer = this.getActiveLayer()!;
@@ -173,11 +170,11 @@ export default class ShapeContext extends Vue {
             <ul>
                 <li
                     v-for="location in locations"
-                    :key="location"
-                    :style="[getCurrentLocation() === location ? { 'background-color': '#82c8a0' } : {}]"
-                    @click="setLocation(location)"
+                    :key="location.id"
+                    :style="[activeLocation === location.id ? { 'background-color': '#82c8a0' } : {}]"
+                    @click="setLocation(location.id)"
                 >
-                    {{ location }}
+                    {{ location.name }}
                 </li>
             </ul>
         </li>

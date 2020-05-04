@@ -8,7 +8,7 @@ import Vue from "vue";
 import { toSnakeCase } from "../core/utils";
 
 export interface GameSettingsState {
-    locationName: string;
+    activeLocation: number;
 
     defaultLocationOptions: LocationOptions | null;
     locationOptions: Partial<LocationOptions>;
@@ -27,7 +27,7 @@ export interface GameSettingsState {
 function mutateLocationOption<K extends keyof LocationOptions>(
     key: K,
     value: LocationOptions[K],
-    location: string | null,
+    location: number | null,
 ): boolean {
     if (location === null) {
         if (gameSettingsStore.defaultLocationOptions![key] !== value) {
@@ -52,7 +52,7 @@ function mutateLocationOption<K extends keyof LocationOptions>(
 
 export function getLocationOption<K extends keyof LocationOptions>(
     key: K,
-    location: string | null,
+    location: number | null,
 ): Partial<LocationOptions>[K] {
     if (location === null) return gameSettingsStore.defaultLocationOptions![key];
     return gameSettingsStore.locationOptions[location]?.[key] ?? gameSettingsStore.defaultLocationOptions![key];
@@ -60,13 +60,13 @@ export function getLocationOption<K extends keyof LocationOptions>(
 
 @Module({ dynamic: true, store: rootStore, name: "gameSettings", namespaced: true })
 class GameSettingsStore extends VuexModule implements GameSettingsState {
-    locationName = "";
+    activeLocation = 0;
 
     defaultLocationOptions: LocationOptions | null = null;
-    locationOptions: { [key: string]: Partial<LocationOptions> } = {};
+    locationOptions: { [key: number]: Partial<LocationOptions> } = {};
 
     get currentLocationOptions(): Partial<LocationOptions> {
-        return this.locationOptions[this.locationName];
+        return this.locationOptions[this.activeLocation];
     }
 
     get gridSize(): number {
@@ -100,7 +100,7 @@ class GameSettingsStore extends VuexModule implements GameSettingsState {
     }
 
     @Mutation
-    reset(data: { key: keyof LocationOptions; location: string }): void {
+    reset(data: { key: keyof LocationOptions; location: number }): void {
         if (data.key in this.locationOptions[data.location]) {
             Vue.delete(this.locationOptions[data.location], data.key);
             socket.emit("Location.Options.Set", {
@@ -111,8 +111,8 @@ class GameSettingsStore extends VuexModule implements GameSettingsState {
     }
 
     @Mutation
-    setLocationName(name: string): void {
-        this.locationName = name;
+    setActiveLocation(location: number): void {
+        this.activeLocation = location;
     }
 
     @Mutation
@@ -121,7 +121,7 @@ class GameSettingsStore extends VuexModule implements GameSettingsState {
     }
 
     @Mutation
-    setUnitSize(data: { unitSize: number; location: string | null; sync: boolean }): void {
+    setUnitSize(data: { unitSize: number; location: number | null; sync: boolean }): void {
         if (mutateLocationOption("unitSize", data.unitSize, data.location)) {
             layerManager.invalidateAllFloors();
             if (data.sync)
@@ -131,7 +131,7 @@ class GameSettingsStore extends VuexModule implements GameSettingsState {
     }
 
     @Mutation
-    setUnitSizeUnit(data: { unitSizeUnit: string; location: string | null; sync: boolean }): void {
+    setUnitSizeUnit(data: { unitSizeUnit: string; location: number | null; sync: boolean }): void {
         if (mutateLocationOption("unitSizeUnit", data.unitSizeUnit, data.location)) {
             layerManager.invalidateAllFloors();
             if (data.sync)
@@ -144,7 +144,7 @@ class GameSettingsStore extends VuexModule implements GameSettingsState {
     }
 
     @Mutation
-    setUseGrid(data: { useGrid: boolean; location: string | null; sync: boolean }): void {
+    setUseGrid(data: { useGrid: boolean; location: number | null; sync: boolean }): void {
         if (mutateLocationOption("useGrid", data.useGrid, data.location)) {
             for (const floor of layerManager.floors) {
                 const gridLayer = layerManager.getGridLayer(floor.name)!;
@@ -160,7 +160,7 @@ class GameSettingsStore extends VuexModule implements GameSettingsState {
     }
 
     @Mutation
-    setGridSize(data: { gridSize: number; location: string | null; sync: boolean }): void {
+    setGridSize(data: { gridSize: number; location: number | null; sync: boolean }): void {
         if (mutateLocationOption("gridSize", data.gridSize, data.location)) {
             for (const floor of layerManager.floors) {
                 const gridLayer = layerManager.getGridLayer(floor.name);
@@ -174,7 +174,7 @@ class GameSettingsStore extends VuexModule implements GameSettingsState {
     }
 
     @Mutation
-    setVisionRangeMin(data: { visionMinRange: number; location: string | null; sync: boolean }): void {
+    setVisionRangeMin(data: { visionMinRange: number; location: number | null; sync: boolean }): void {
         if (mutateLocationOption("visionMinRange", data.visionMinRange, data.location)) {
             layerManager.invalidateLightAllFloors();
             if (data.sync)
@@ -187,7 +187,7 @@ class GameSettingsStore extends VuexModule implements GameSettingsState {
     }
 
     @Mutation
-    setVisionRangeMax(data: { visionMaxRange: number; location: string | null; sync: boolean }): void {
+    setVisionRangeMax(data: { visionMaxRange: number; location: number | null; sync: boolean }): void {
         if (mutateLocationOption("visionMaxRange", data.visionMaxRange, data.location)) {
             layerManager.invalidateLightAllFloors();
             if (data.sync)
@@ -200,7 +200,7 @@ class GameSettingsStore extends VuexModule implements GameSettingsState {
     }
 
     @Mutation
-    setFullFow(data: { fullFow: boolean; location: string | null; sync: boolean }): void {
+    setFullFow(data: { fullFow: boolean; location: number | null; sync: boolean }): void {
         if (mutateLocationOption("fullFow", data.fullFow, data.location)) {
             layerManager.invalidateLightAllFloors();
             if (data.sync)
@@ -210,7 +210,7 @@ class GameSettingsStore extends VuexModule implements GameSettingsState {
     }
 
     @Mutation
-    setFowOpacity(data: { fowOpacity: number; location: string | null; sync: boolean }): void {
+    setFowOpacity(data: { fowOpacity: number; location: number | null; sync: boolean }): void {
         if (mutateLocationOption("fowOpacity", data.fowOpacity, data.location)) {
             layerManager.invalidateLightAllFloors();
             if (data.sync)
@@ -223,7 +223,7 @@ class GameSettingsStore extends VuexModule implements GameSettingsState {
     }
 
     @Mutation
-    setLineOfSight(data: { fowLos: boolean; location: string | null; sync: boolean }): void {
+    setLineOfSight(data: { fowLos: boolean; location: number | null; sync: boolean }): void {
         if (mutateLocationOption("fowLos", data.fowLos, data.location)) {
             layerManager.invalidateAllFloors();
             if (data.sync)

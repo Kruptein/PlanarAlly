@@ -74,7 +74,7 @@ async def connect(sid, environ):
                     {
                         "id": rp.player.id,
                         "name": rp.player.name,
-                        "location": rp.active_location.name,
+                        "location": rp.active_location.id,
                     }
                     for rp in room.players
                 ],

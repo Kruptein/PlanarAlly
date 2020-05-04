@@ -350,7 +350,6 @@ def upgrade(version):
                 )
 
             migrate(
-                migrator.add_not_null("location", "options_id"),
                 migrator.add_not_null("room", "default_options_id"),
                 migrator.drop_column("location", "unit_size"),
                 migrator.drop_column("location", "unit_size_unit"),

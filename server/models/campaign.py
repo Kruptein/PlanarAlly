@@ -26,17 +26,17 @@ __all__ = [
 
 
 class LocationOptions(BaseModel):
-    unit_size = FloatField(default=5)
-    unit_size_unit = TextField(default="ft")
-    use_grid = BooleanField(default=True)
-    full_fow = BooleanField(default=False)
-    fow_opacity = FloatField(default=0.3)
-    fow_los = BooleanField(default=False)
-    vision_mode = TextField(default="triangle")
-    grid_size = IntegerField(default=50)
+    unit_size = FloatField(default=5, null=True)
+    unit_size_unit = TextField(default="ft", null=True)
+    use_grid = BooleanField(default=True, null=True)
+    full_fow = BooleanField(default=False, null=True)
+    fow_opacity = FloatField(default=0.3, null=True)
+    fow_los = BooleanField(default=False, null=True)
+    vision_mode = TextField(default="triangle", null=True)
+    grid_size = IntegerField(default=50, null=True)
     # default is 1km max, 0.5km min
-    vision_min_range = FloatField(default=1640)
-    vision_max_range = FloatField(default=3281)
+    vision_min_range = FloatField(default=1640, null=True)
+    vision_max_range = FloatField(default=3281, null=True)
 
     def as_dict(self):
         return {
@@ -68,7 +68,7 @@ class Room(BaseModel):
 class Location(BaseModel):
     room = ForeignKeyField(Room, backref="locations", on_delete="CASCADE")
     name = TextField()
-    options = ForeignKeyField(LocationOptions, on_delete="CASCADE")
+    options = ForeignKeyField(LocationOptions, on_delete="CASCADE", null=True)
     index = IntegerField()
 
     def __repr__(self):
@@ -84,7 +84,10 @@ class Location(BaseModel):
             recurse=False,
             exclude=[Location.room, Location.index, Location.options],
         )
-        data["options"] = self.options.as_dict()
+        if self.options is not None:
+            data["options"] = self.options.as_dict()
+        else:
+            data["options"] = {}
         return data
 
     def create_floor(self, name="ground"):

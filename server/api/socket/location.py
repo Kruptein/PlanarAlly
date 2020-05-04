@@ -12,6 +12,7 @@ from models import (
     InitiativeLocationData,
     Layer,
     Location,
+    LocationOptions,
     LocationUserOption,
     Marker,
     Note,
@@ -132,12 +133,24 @@ async def set_location_options(sid: int, data: Dict[str, Any]):
     if data.get("location", None) is None:
         options = pr.room.default_options
     else:
-        options = Location[data["location"]].options
+        loc = Location[data["location"]]
+        if loc.options is None:
+            loc.options = LocationOptions.create(
+                unit_size=None,
+                unit_size_unit=None,
+                use_grid=None,
+                full_fow=None,
+                fow_opacity=None,
+                fow_los=None,
+                vision_mode=None,
+                grid_size=None,
+                vision_min_range=None,
+                vision_max_range=None,
+            )
+        options = loc.options
 
     update_model_from_dict(options, data["options"])
     options.save()
-
-    print(data)
 
     await sio.emit(
         "Location.Options.Set",

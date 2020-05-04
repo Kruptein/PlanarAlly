@@ -1,7 +1,7 @@
 from aiohttp import web
 from aiohttp_security import check_authorized
 
-from models import Location, PlayerRoom, Room, User
+from models import Location, LocationOptions, PlayerRoom, Room, User
 from models.db import db
 from models.role import Role
 
@@ -33,7 +33,10 @@ async def create(request):
         return web.HTTPBadRequest()
     else:
         with db.atomic():
-            room = Room.create(name=roomname, creator=user)
+            default_options = LocationOptions.create()
+            room = Room.create(
+                name=roomname, creator=user, default_options=default_options
+            )
             loc = Location.create(room=room, name="start", index=1)
             loc.create_floor()
             PlayerRoom.create(player=user, room=room, role=Role.DM, active_location=loc)

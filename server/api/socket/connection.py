@@ -91,7 +91,10 @@ async def connect(sid, environ):
         if pr.role == Role.DM:
             await sio.emit(
                 "Locations.Settings.Set",
-                {l.name: l.options.as_dict() for l in pr.room.locations},
+                {
+                    l.name: {} if l.options is None else l.options.as_dict()
+                    for l in pr.room.locations
+                },
                 room=sid,
                 namespace="/planarally",
             )

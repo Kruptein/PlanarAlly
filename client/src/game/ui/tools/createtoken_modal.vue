@@ -16,6 +16,7 @@ import { gameStore } from "@/game/store";
 import { getUnitDistance, l2g } from "@/game/units";
 import { Watch } from "vue-property-decorator";
 import { SyncMode, InvalidationMode } from "../../../core/comm/types";
+import { gameSettingsStore } from "../../settings";
 
 @Component({
     components: {
@@ -61,7 +62,7 @@ export default class CreateTokenModal extends Vue {
         if (layer === undefined) return;
         const token = new CircularToken(
             l2g(new LocalPoint(this.x, this.y)),
-            getUnitDistance(gameStore.unitSize / 2),
+            getUnitDistance(gameSettingsStore.unitSize / 2),
             this.text,
             "10px serif",
             this.fillColour,

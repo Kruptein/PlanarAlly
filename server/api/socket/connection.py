@@ -69,11 +69,12 @@ async def connect(sid, environ):
                 "creator": room.creator.name,
                 "invitationCode": str(room.invitation_code),
                 "isLocked": room.is_locked,
+                "default_options": room.default_options.as_dict(),
                 "players": [
                     {
                         "id": rp.player.id,
                         "name": rp.player.name,
-                        "location": rp.active_location.name,
+                        "location": rp.active_location.id,
                     }
                     for rp in room.players
                 ],
@@ -87,6 +88,16 @@ async def connect(sid, environ):
             room=sid,
             namespace="/planarally",
         )
+        if pr.role == Role.DM:
+            await sio.emit(
+                "Locations.Settings.Set",
+                {
+                    l.name: {} if l.options is None else l.options.as_dict()
+                    for l in pr.room.locations
+                },
+                room=sid,
+                namespace="/planarally",
+            )
         await load_location(sid, pr.active_location)
 
 

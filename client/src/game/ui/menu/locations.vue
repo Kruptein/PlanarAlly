@@ -15,6 +15,7 @@ import { EventBus } from "../../event-bus";
 @Component({
     computed: {
         ...mapState("game", ["IS_DM"]),
+        ...mapState("gameSettings", ["activeLocation"]),
     },
 })
 export default class LocationBar extends Vue {
@@ -24,7 +25,7 @@ export default class LocationBar extends Vue {
     toggleActive(active: boolean): void {
         for (const expandEl of (<any>this.$refs.locations).$el.querySelectorAll(".player-collapse-content")) {
             const hEl = <HTMLElement>expandEl;
-            if (this.expanded.includes(hEl.dataset.loc || "")) {
+            if (this.expanded.includes(Number.parseInt(hEl.dataset.loc || "-1"))) {
                 if (active) {
                     expandEl.style.removeProperty("display");
                 } else {
@@ -34,28 +35,24 @@ export default class LocationBar extends Vue {
         }
     }
 
-    expanded: string[] = [];
+    expanded: number[] = [];
     horizontalOffset = 0;
 
-    getCurrentLocation(): string {
-        return gameStore.locationName;
-    }
-
-    changeLocation(name: string): void {
-        socket.emit("Location.Change", { location: name, users: [gameStore.username] });
+    changeLocation(id: number): void {
+        socket.emit("Location.Change", { location: id, users: [gameStore.username] });
         coreStore.setLoading(true);
     }
 
-    get locations(): string[] {
+    get locations(): { id: number; name: string }[] {
         return gameStore.locations;
     }
 
-    set locations(locations: string[]) {
+    set locations(locations: { id: number; name: string }[]) {
         gameStore.setLocations({ locations, sync: true });
     }
 
-    get playerLocations(): Map<string, string[]> {
-        const map: Map<string, string[]> = new Map();
+    get playerLocations(): Map<number, string[]> {
+        const map: Map<number, string[]> = new Map();
         for (const player of gameStore.players) {
             if (player.name === gameStore.username && gameStore.IS_DM) continue;
             if (!map.has(player.location)) map.set(player.location, []);
@@ -76,9 +73,9 @@ export default class LocationBar extends Vue {
         EventBus.$emit("LocationSettings.Open", location);
     }
 
-    toggleExpanded(name: string): void {
-        const idx = this.expanded.indexOf(name);
-        if (idx < 0) this.expanded.push(name);
+    toggleExpanded(id: number): void {
+        const idx = this.expanded.indexOf(id);
+        if (idx < 0) this.expanded.push(id);
         else this.expanded.splice(idx, 1);
     }
 
@@ -86,10 +83,10 @@ export default class LocationBar extends Vue {
         e.item.style.removeProperty("transform");
     }
 
-    endPlayersDrag(e: { item: HTMLDivElement; from: HTMLDivElement; to: HTMLDivElement }): void {
+    endPlayersDrag(e: { item: HTMLDivElement; clone: HTMLDivElement; from: HTMLDivElement; to: HTMLDivElement }): void {
         e.item.style.removeProperty("transform");
-        const fromLocation = e.from.dataset.loc!;
-        const toLocation = e.to.dataset.loc!;
+        const fromLocation = Number.parseInt(e.from.dataset.loc!);
+        const toLocation = Number.parseInt(e.to.dataset.loc!);
         if (toLocation === undefined || fromLocation === toLocation) return;
         const players = [];
         for (const player of gameStore.players) {
@@ -103,14 +100,15 @@ export default class LocationBar extends Vue {
             this.expanded.slice(idx, 1);
             this.expanded.push(toLocation);
         }
-        e.item.remove();
-        socket.emit("Location.Change", { location: toLocation, users: players });
+        // e.item.remove();
+        // e.clone.remove();
+        // socket.emit("Location.Change", { location: toLocation, users: players });
     }
 
     endPlayerDrag(e: { item: HTMLDivElement; from: HTMLDivElement; to: HTMLDivElement }): void {
         e.item.style.removeProperty("transform");
-        const fromLocation = e.from.dataset.loc!;
-        const toLocation = e.to.dataset.loc!;
+        const fromLocation = Number.parseInt(e.from.dataset.loc!);
+        const toLocation = Number.parseInt(e.to.dataset.loc!);
         if (toLocation === undefined || fromLocation === toLocation) return;
         const targetPlayer = e.item.textContent!.trim();
         for (const player of gameStore.players) {
@@ -120,6 +118,10 @@ export default class LocationBar extends Vue {
                 break;
             }
         }
+    }
+
+    onDragAdd(e: { item: HTMLDivElement; clone: HTMLDivElement }): void {
+        e.clone.replaceWith(e.item);
     }
 
     doHorizontalScroll(e: WheelEvent): void {
@@ -139,7 +141,7 @@ export default class LocationBar extends Vue {
         for (const expandEl of el.querySelectorAll(".player-collapse-content")) {
             const hEl = <HTMLElement>expandEl;
             hEl.style.marginLeft = `-${el.scrollLeft}px`;
-            if (this.expanded.includes(hEl.dataset.loc || "")) {
+            if (this.expanded.includes(Number.parseInt(hEl.dataset.loc || "-1"))) {
                 if (hEl.style.display === "none") hEl.style.removeProperty("display");
             } else {
                 continue;
@@ -164,61 +166,59 @@ export default class LocationBar extends Vue {
             @scroll.native="doHorizontalScrollA"
             ref="locations"
         >
-            <div class="location" v-for="location in locations" :key="location">
-                <div
-                    class="location-name"
-                    @click="changeLocation(location)"
-                    :class="{ 'active-location': getCurrentLocation() === location }"
-                >
+            <div class="location" v-for="location in locations" :key="location.id">
+                <div class="location-name" :class="{ 'active-location': activeLocation === location.id }">
                     <div class="drag-handle"></div>
-                    <div class="location-name-label">{{ location }}</div>
-                    <div class="location-settings-icon" @click="openLocationSettings(location)">
+                    <div class="location-name-label" @click.self="changeLocation(location.id)">{{ location.name }}</div>
+                    <div class="location-settings-icon" @click="openLocationSettings(location.id)">
                         <i class="fas fa-cog"></i>
                     </div>
                 </div>
                 <draggable
                     class="location-players"
-                    v-show="playerLocations.has(location)"
-                    group="players"
+                    v-show="playerLocations.has(location.id)"
+                    :group="{ name: 'players', pull: 'clone' }"
                     @end="endPlayersDrag"
+                    @add="onDragAdd"
                     handle=".player-collapse-header"
-                    :data-loc="location"
+                    :data-loc="location.id"
                 >
                     <div class="player-collapse-header">
                         Players
-                        <div title="Show specific players" @click="toggleExpanded(location)">
-                            <span v-show="expanded.includes(location)"><i class="fas fa-chevron-up"></i></span>
-                            <span v-show="!expanded.includes(location)"><i class="fas fa-chevron-down"></i></span>
+                        <div title="Show specific players" @click="toggleExpanded(location.id)">
+                            <span v-show="expanded.includes(location.id)"><i class="fas fa-chevron-up"></i></span>
+                            <span v-show="!expanded.includes(location.id)"><i class="fas fa-chevron-down"></i></span>
                         </div>
                     </div>
                     <draggable
                         class="player-collapse-content"
-                        v-show="expanded.includes(location)"
-                        :data-loc="location"
+                        v-show="expanded.includes(location.id)"
+                        :data-loc="location.id"
                         group="player"
                         @end="endPlayerDrag"
                     >
                         <div
                             class="player-collapse-item"
-                            v-for="player in playerLocations.get(location)"
+                            v-for="player in playerLocations.get(location.id)"
                             :key="player"
-                            :data-loc="location"
+                            :data-loc="location.id"
                         >
                             {{ player }}
                         </div>
                     </draggable>
                     <draggable
                         class="location-players-empty"
-                        v-show="!expanded.includes(location)"
+                        v-show="!expanded.includes(location.id)"
                         group="player"
-                        :data-loc="location"
+                        :data-loc="location.id"
                     ></draggable>
                 </draggable>
                 <draggable
                     class="location-players-empty"
-                    v-show="!playerLocations.has(location)"
+                    v-show="!playerLocations.has(location.id)"
+                    @add="onDragAdd"
                     :group="{ name: 'empty-players', put: ['players', 'player'] }"
-                    :data-loc="location"
+                    :data-loc="location.id"
                 ></draggable>
             </div>
         </draggable>
@@ -314,6 +314,7 @@ export default class LocationBar extends Vue {
 
 .drag-handle {
     width: 25px;
+    height: 20px;
 }
 
 .drag-handle::before {

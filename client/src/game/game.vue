@@ -10,14 +10,12 @@ import Prompt from "@/core/components/modals/prompt.vue";
 import Initiative from "@/game/ui/initiative/initiative.vue";
 import LabelManager from "@/game/ui/labels.vue";
 import NoteDialog from "@/game/ui/note.vue";
-import DmSettings from "./ui/dmsettings.vue";
 import UI from "./ui/ui.vue";
 
 import { createConnection, socket } from "@/game/api/socket";
 import { onKeyDown, onKeyUp } from "@/game/events/keyboard";
 import { scrollZoom } from "@/game/events/mouse";
 import { layerManager } from "@/game/layers/manager";
-import { gameStore } from "@/game/store";
 import { dropAsset } from "./layers/utils";
 import { coreStore } from "@/core/store";
 
@@ -28,7 +26,6 @@ import { coreStore } from "@/core/store";
         "initiative-dialog": Initiative,
         "note-dialog": NoteDialog,
         "label-dialog": LabelManager,
-        "dm-settings": DmSettings,
         ui: UI,
     },
     beforeRouteEnter(to, from, next) {
@@ -51,7 +48,6 @@ export default class Game extends Vue {
 
     ready = {
         manager: false,
-        tools: false,
     };
 
     throttledmoveSet = false;
@@ -59,14 +55,6 @@ export default class Game extends Vue {
 
     throttledtouchmoveSet = false;
     throttledtouchmove: (event: TouchEvent) => void = (_event: TouchEvent) => {};
-
-    get FAKE_PLAYER(): boolean {
-        return gameStore.FAKE_PLAYER;
-    }
-
-    get IS_DM(): boolean {
-        return gameStore.IS_DM;
-    }
 
     mounted(): void {
         window.addEventListener("resize", this.resizeWindow);
@@ -173,7 +161,6 @@ export default class Game extends Vue {
         <initiative-dialog ref="initiative" id="initiativedialog"></initiative-dialog>
         <note-dialog ref="note"></note-dialog>
         <label-dialog ref="labels"></label-dialog>
-        <dm-settings ref="dmsettings" v-if="IS_DM || FAKE_PLAYER"></dm-settings>
         <prompt-dialog ref="prompt"></prompt-dialog>
         <confirm-dialog ref="confirm"></confirm-dialog>
     </div>

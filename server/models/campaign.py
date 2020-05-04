@@ -15,9 +15,9 @@ from .utils import get_table
 
 __all__ = [
     "Floor",
-    "GridLayer",
     "Layer",
     "Location",
+    "LocationOptions",
     "LocationUserOption",
     "Note",
     "PlayerRoom",
@@ -25,11 +25,35 @@ __all__ = [
 ]
 
 
+class LocationOptions(BaseModel):
+    unit_size = FloatField(default=5, null=True)
+    unit_size_unit = TextField(default="ft", null=True)
+    use_grid = BooleanField(default=True, null=True)
+    full_fow = BooleanField(default=False, null=True)
+    fow_opacity = FloatField(default=0.3, null=True)
+    fow_los = BooleanField(default=False, null=True)
+    vision_mode = TextField(default="triangle", null=True)
+    grid_size = IntegerField(default=50, null=True)
+    # default is 1km max, 0.5km min
+    vision_min_range = FloatField(default=1640, null=True)
+    vision_max_range = FloatField(default=3281, null=True)
+
+    def as_dict(self):
+        return {
+            k: v
+            for k, v in model_to_dict(
+                self, backrefs=None, recurse=None, exclude=[LocationOptions.id]
+            ).items()
+            if v is not None
+        }
+
+
 class Room(BaseModel):
     name = TextField()
     creator = ForeignKeyField(User, backref="rooms_created", on_delete="CASCADE")
     invitation_code = TextField(default=uuid.uuid4, unique=True)
     is_locked = BooleanField(default=False)
+    default_options = ForeignKeyField(LocationOptions, on_delete="CASCADE")
 
     def __repr__(self):
         return f"<Room {self.get_path()}>"
@@ -44,16 +68,7 @@ class Room(BaseModel):
 class Location(BaseModel):
     room = ForeignKeyField(Room, backref="locations", on_delete="CASCADE")
     name = TextField()
-    unit_size = FloatField(default=5)
-    unit_size_unit = TextField(default="ft")
-    use_grid = BooleanField(default=True)
-    full_fow = BooleanField(default=False)
-    fow_opacity = FloatField(default=0.3)
-    fow_los = BooleanField(default=False)
-    vision_mode = TextField(default="triangle")
-    # default is 1km max, 0.5km min
-    vision_min_range = FloatField(default=1640)
-    vision_max_range = FloatField(default=3281)
+    options = ForeignKeyField(LocationOptions, on_delete="CASCADE", null=True)
     index = IntegerField()
 
     def __repr__(self):
@@ -63,12 +78,17 @@ class Location(BaseModel):
         return f"{self.room.get_path()}/{self.name}"
 
     def as_dict(self):
-        return model_to_dict(
+        data = model_to_dict(
             self,
             backrefs=False,
             recurse=False,
-            exclude=[Location.id, Location.room, Location.index],
+            exclude=[Location.room, Location.index, Location.options],
         )
+        if self.options is not None:
+            data["options"] = self.options.as_dict()
+        else:
+            data["options"] = {}
+        return data
 
     def create_floor(self, name="ground"):
         index = (
@@ -131,9 +151,6 @@ class Location(BaseModel):
             floor=floor,
         )
         return floor
-
-    class Meta:
-        indexes = ((("room", "name"), True), (("room", "index"), True))
 
 
 class PlayerRoom(BaseModel):
@@ -215,23 +232,10 @@ class Layer(BaseModel):
         data["shapes"] = [
             shape.as_dict(user, dm) for shape in self.shapes.order_by(Shape.index)
         ]
-        if self.type_ == "grid":
-            type_table = get_table(f"{self.type_}layer")
-            data.update(**type_table.get(id=self.id).as_dict())
         return data
 
     class Meta:
         indexes = ((("floor", "name"), True), (("floor", "index"), True))
-
-
-class GridLayer(BaseModel):
-    size = FloatField(default=50)
-    layer = ForeignKeyField(Layer, on_delete="CASCADE")
-
-    def as_dict(self):
-        return model_to_dict(
-            self, recurse=False, backrefs=False, exclude=[GridLayer.id]
-        )
 
 
 class LocationUserOption(BaseModel):

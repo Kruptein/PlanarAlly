@@ -2,10 +2,10 @@ import { ServerCircle } from "@/game/comm/types/shapes";
 import { GlobalPoint, Vector } from "@/game/geom";
 import { BoundingRect } from "@/game/shapes/boundingrect";
 import { Shape } from "@/game/shapes/shape";
-import { gameStore } from "@/game/store";
 import { calculateDelta } from "@/game/ui/tools/utils";
-import { g2l, g2lz, clampGridLine } from "@/game/units";
+import { clampGridLine, g2l, g2lz } from "@/game/units";
 import { getFogColour } from "@/game/utils";
+import { gameSettingsStore } from "../settings";
 
 export class Circle extends Shape {
     type = "circle";
@@ -71,7 +71,7 @@ export class Circle extends Shape {
         return this.getBoundingBox().visibleInCanvas(canvas);
     } // TODO
     snapToGrid(): void {
-        const gs = gameStore.gridSize;
+        const gs = gameSettingsStore.gridSize;
         let targetX;
         let targetY;
         if (((2 * this.r) / gs) % 2 === 0) {
@@ -89,7 +89,7 @@ export class Circle extends Shape {
         this.invalidate(false);
     }
     resizeToGrid(): void {
-        const gs = gameStore.gridSize;
+        const gs = gameSettingsStore.gridSize;
         this.r = Math.max(clampGridLine(this.r), gs / 2);
         this.invalidate(false);
     }

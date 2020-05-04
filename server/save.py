@@ -19,7 +19,7 @@ from config import SAVE_FILE
 from models import ALL_MODELS, Constants
 from models.db import db
 
-SAVE_VERSION = 26
+SAVE_VERSION = 27
 
 logger: logging.Logger = logging.getLogger("PlanarAllyServer")
 logger.setLevel(logging.INFO)
@@ -228,7 +228,6 @@ def upgrade(version):
         # Move Room.dm_location and Room.player_location to PlayerRoom.active_location
         # Add PlayerRoom.role
         # Add order index on location
-
         from models import Location
 
         migrator = SqliteMigrator(db)
@@ -263,6 +262,107 @@ def upgrade(version):
                 migrator.drop_column("room", "dm_location"),
                 migrator.add_not_null("player_room", "active_location_id"),
             )
+
+        db.foreign_keys = True
+        Constants.get().update(save_version=Constants.save_version + 1).execute()
+    elif version == 26:
+        # Move Location settings to a separate LocationSettings table
+        # Add a default_settings field to Room that refers to such a LocationSettings row
+        from models import LocationOptions
+
+        migrator = SqliteMigrator(db)
+
+        db.foreign_keys = False
+        with db.atomic():
+            db.execute_sql(
+                'CREATE TABLE IF NOT EXISTS "location_options" ("id" INTEGER NOT NULL PRIMARY KEY, "unit_size" REAL DEFAULT 5, "unit_size_unit" TEXT DEFAULT "ft", "use_grid" INTEGER DEFAULT 1, "full_fow" INTEGER DEFAULT 0, "fow_opacity" REAL DEFAULT 0.3, "fow_los" INTEGER DEFAULT 0, "vision_mode" TEXT DEFAULT "triangle", "vision_min_range" REAL DEFAULT 1640, "vision_max_range" REAL DEFAULT 3281, "grid_size" INTEGER DEFAULT 50)'
+            )
+            migrate(
+                migrator.add_column(
+                    "location",
+                    "options_id",
+                    ForeignKeyField(
+                        LocationOptions,
+                        LocationOptions.id,
+                        on_delete="CASCADE",
+                        null=True,
+                    ),
+                ),
+                migrator.add_column(
+                    "room",
+                    "default_options_id",
+                    ForeignKeyField(
+                        LocationOptions,
+                        LocationOptions.id,
+                        on_delete="CASCADE",
+                        null=True,
+                    ),
+                ),
+            )
+            data = db.execute_sql(
+                """SELECT l.id, r.id, l.unit_size, l.unit_size_unit, l.use_grid, l.full_fow, l.fow_opacity, l.fow_los, l.vision_mode, l.vision_min_range, l.vision_max_range, g.size AS grid_size
+                FROM location l
+                INNER JOIN room r
+                INNER JOIN floor f ON f.id = (SELECT id FROM floor f2 WHERE f2.location_id = l.id LIMIT 1)
+                INNER JOIN layer la
+                INNER JOIN grid_layer g
+                WHERE r.id = l.room_id AND la.floor_id = f.id AND la.name = 'grid' AND g.layer_id = la.id"""
+            )
+            room_options = {}
+            descr = data.description
+            mapping = {
+                "unit_size": 0,
+                "unit_size_unit": 1,
+                "use_grid": 2,
+                "full_fow": 3,
+                "fow_opacity": 4,
+                "fow_los": 5,
+                "vision_mode": 6,
+                "vision_min_range": 7,
+                "vision_max_range": 8,
+                "grid_size": 9,
+            }
+            default_row = [5, "ft", True, False, 0.3, False, "triangle", 1640, 3281, 50]
+            for row in data.fetchall():
+                new_row = [None, None, None, None, None, None, None, None, None, None]
+
+                if row[1] not in room_options:
+                    room_options[row[1]] = db.execute_sql(
+                        "INSERT INTO location_options (unit_size, unit_size_unit, use_grid, full_fow, fow_opacity, fow_los, vision_mode, vision_min_range, vision_max_range, grid_size) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                        default_row,
+                    ).lastrowid
+                    db.execute_sql(
+                        f"UPDATE room SET default_options_id = {room_options[row[1]]} WHERE id = {row[1]}"
+                    )
+                for col, val in zip(descr, row):
+                    if col[0] in ["id", "room_id"]:
+                        continue
+                    idx = mapping[col[0]]
+                    if val != default_row[idx]:
+                        new_row[idx] = val
+
+                loc_id = db.execute_sql(
+                    "INSERT INTO location_options (unit_size, unit_size_unit, use_grid, full_fow, fow_opacity, fow_los, vision_mode, vision_min_range, vision_max_range, grid_size) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                    new_row,
+                ).lastrowid
+                db.execute_sql(
+                    f"UPDATE location SET options_id = {loc_id} WHERE id = {row[0]}"
+                )
+
+            migrate(
+                migrator.add_not_null("room", "default_options_id"),
+                migrator.drop_column("location", "unit_size"),
+                migrator.drop_column("location", "unit_size_unit"),
+                migrator.drop_column("location", "use_grid"),
+                migrator.drop_column("location", "full_fow"),
+                migrator.drop_column("location", "fow_opacity"),
+                migrator.drop_column("location", "fow_los"),
+                migrator.drop_column("location", "vision_mode"),
+                migrator.drop_column("location", "vision_min_range"),
+                migrator.drop_column("location", "vision_max_range"),
+                migrator.drop_index("location", "location_room_id_name"),
+            )
+            db.execute_sql("DROP TABLE 'grid_layer'")
 
         db.foreign_keys = True
         Constants.get().update(save_version=Constants.save_version + 1).execute()

@@ -6,8 +6,10 @@ import Component from "vue-class-component";
 
 import { mapState } from "vuex";
 
-import DmSettings from "@/game/ui/dmsettings.vue";
+import DmSettings from "@/game/ui/settings/dm/DmSettings.vue";
 import FloorSelect from "@/game/ui/floors.vue";
+import LocationBar from "./menu/locations.vue";
+import LocationSettings from "@/game/ui/settings/location/LocationSettings.vue";
 import MenuBar from "@/game/ui/menu/menu.vue";
 import SelectionInfo from "@/game/ui/selection/selection_info.vue";
 import Tools from "@/game/ui/tools/tools.vue";
@@ -16,13 +18,13 @@ import { LocalPoint } from "../geom";
 import { gameStore } from "../store";
 import { l2g } from "../units";
 import { coreStore } from "../../core/store";
-import LocationBar from "./menu/locations.vue";
 
 @Component({
     components: {
         DmSettings,
         FloorSelect,
         LocationBar,
+        LocationSettings,
         MenuBar,
         SelectionInfo,
         Tools,
@@ -45,6 +47,10 @@ export default class UI extends Vue {
 
     get version(): string {
         return coreStore.version;
+    }
+
+    get FAKE_PLAYER(): boolean {
+        return gameStore.FAKE_PLAYER;
     }
 
     get IS_DM(): boolean {
@@ -158,6 +164,8 @@ export default class UI extends Vue {
         <Tools ref="tools"></Tools>
         <FloorSelect></FloorSelect>
         <SelectionInfo></SelectionInfo>
+        <DmSettings ref="dmsettings" v-if="IS_DM || FAKE_PLAYER"></DmSettings>
+        <LocationSettings v-if="IS_DM || FAKE_PLAYER"></LocationSettings>
         <!-- When updating zoom boundaries, also update store updateZoom function;
             should probably do this using a store variable-->
         <vueSlider

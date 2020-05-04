@@ -54,13 +54,11 @@ export default class MenuBar extends Vue {
         gameStore.setInvertAlt({ invertAlt: value, sync: true });
     }
     settingsClick(event: { target: HTMLElement }): void {
-        if (event.target.classList.contains("menu-accordion")) {
+        if (
+            event.target.classList.contains("menu-accordion") &&
+            event.target.nextElementSibling!.classList.contains("menu-accordion-panel")
+        ) {
             event.target.classList.toggle("menu-accordion-active");
-            // const next = <HTMLElement>event.target.nextElementSibling;
-            // if (next !== null) {
-            //     if (next.style.display === "") next.style.removeProperty("display");
-            //     else next.style.display = "";
-            // }
         }
     }
     createNote(): void {

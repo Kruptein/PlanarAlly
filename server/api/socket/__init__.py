@@ -2,7 +2,7 @@ from typing import Any, Dict
 
 import auth
 from app import app, logger, sio
-from models import Floor, GridLayer, Layer, LocationUserOption, PlayerRoom
+from models import Floor, Layer, LocationUserOption, PlayerRoom
 from models.db import db
 from models.role import Role
 from state.game import game_state
@@ -61,31 +61,6 @@ async def set_layer(sid: int, data: Dict[str, Any]):
         luo = LocationUserOption.get(user=pr.player, location=pr.active_location)
         luo.active_layer = layer
         luo.save()
-
-
-@sio.on("Gridsize.Set", namespace="/planarally")
-@auth.login_required(app, sio)
-async def set_gridsize(sid: int, grid_size: int):
-    pr: PlayerRoom = game_state.get(sid)
-
-    if pr.role != Role.DM:
-        logger.warning(f"{pr.player.name} attempted to set gridsize without DM rights")
-        return
-    for layer in (
-        Layer.select()
-        .join(Floor)
-        .where((Floor.location == pr.active_location) & (Layer.name == "grid"))
-    ):
-        gl = GridLayer[layer]
-        gl.size = grid_size
-        gl.save()
-    await sio.emit(
-        "Gridsize.Set",
-        grid_size,
-        room=pr.active_location.get_path(),
-        skip_sid=sid,
-        namespace="/planarally",
-    )
 
 
 @sio.on("Players.Bring", namespace="/planarally")

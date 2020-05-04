@@ -1,9 +1,9 @@
+import { AssetList, InvalidationMode, SyncMode } from "@/core/comm/types";
 import "@/game/api/events/access";
 import "@/game/api/events/location";
-
-import { AssetList, InvalidationMode, SyncMode } from "@/core/comm/types";
+import { setLocationOptions } from "@/game/api/events/location";
 import { socket } from "@/game/api/socket";
-import { BoardInfo, Note, ServerClient } from "@/game/comm/types/general";
+import { BoardInfo, Note } from "@/game/comm/types/general";
 import { ServerShape } from "@/game/comm/types/shapes";
 import { EventBus } from "@/game/event-bus";
 import { GlobalPoint } from "@/game/geom";
@@ -12,6 +12,8 @@ import { addFloor, removeFloor } from "@/game/layers/utils";
 import { gameManager } from "@/game/manager";
 import { gameStore } from "@/game/store";
 import { router } from "@/router";
+import { optionsToClient, ServerClient, ServerLocationOptions } from "../comm/types/settings";
+import { gameSettingsStore } from "../settings";
 import { createShapeFromDict } from "../shapes/utils";
 import { zoomDisplay } from "../utils";
 import { visibilityStore } from "../visibility/store";
@@ -41,20 +43,23 @@ socket.on(
         creator: string;
         invitationCode: string;
         isLocked: boolean;
-        players: { id: number; name: string; location: string }[];
+        default_options: ServerLocationOptions;
+        players: { id: number; name: string; location: number }[];
     }) => {
         gameStore.setRoomName(data.name);
         gameStore.setRoomCreator(data.creator);
         gameStore.setInvitationCode(data.invitationCode);
         gameStore.setIsLocked({ isLocked: data.isLocked, sync: false });
         gameStore.setPlayers(data.players);
+        gameSettingsStore.setDefaultLocationOptions(optionsToClient(data.default_options));
+        setLocationOptions(null, data.default_options);
     },
 );
 socket.on("Room.Info.InvitationCode.Set", (invitationCode: string) => {
     gameStore.setInvitationCode(invitationCode);
     EventBus.$emit("DmSettings.RefreshedInviteCode");
 });
-socket.on("Room.Info.Players.Add", (data: { id: number; name: string; location: string }) => {
+socket.on("Room.Info.Players.Add", (data: { id: number; name: string; location: number }) => {
     gameStore.addPlayer(data);
 });
 socket.on("Username.Set", (username: string) => {
@@ -107,9 +112,6 @@ socket.on("Board.Set", (locationInfo: BoardInfo) => {
 });
 socket.on("Floor.Create", addFloor);
 socket.on("Floor.Remove", removeFloor);
-socket.on("Gridsize.Set", (gridSize: number) => {
-    gameStore.setGridSize({ gridSize, sync: false });
-});
 socket.on("Shape.Add", (shape: ServerShape) => {
     gameManager.addShape(shape);
 });

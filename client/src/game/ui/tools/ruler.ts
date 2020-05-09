@@ -31,8 +31,8 @@ export class RulerTool extends Tool {
         this.active = true;
         this.ruler = new Line(this.startPoint, this.startPoint, l2gz(3), gameStore.rulerColour);
         this.text = new Text(this.startPoint.clone(), "", "bold 20px serif");
-        this.ruler.addOwner({ user: gameStore.username, editAccess: false, visionAccess: false }, false);
-        this.text.addOwner({ user: gameStore.username, editAccess: false, visionAccess: false }, false);
+        this.ruler.addOwner({ user: gameStore.username, editAccess: true, visionAccess: true }, false);
+        this.text.addOwner({ user: gameStore.username, editAccess: true, visionAccess: true }, false);
         layer.addShape(this.ruler, SyncMode.TEMP_SYNC, InvalidationMode.NORMAL);
         layer.addShape(this.text, SyncMode.TEMP_SYNC, InvalidationMode.NORMAL);
     }

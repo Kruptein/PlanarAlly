@@ -68,7 +68,7 @@ export default class SelectTool extends Tool {
         }
 
         if (!this.selectionHelper.hasOwner(gameStore.username)) {
-            this.selectionHelper.addOwner({ user: gameStore.username, editAccess: false, visionAccess: false }, false);
+            this.selectionHelper.addOwner({ user: gameStore.username, editAccess: true, visionAccess: true }, false);
         }
 
         let hit = false;

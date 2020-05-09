@@ -21,6 +21,7 @@ All notable changes to this project will be documented in this file.
 -   Progressbar to the asset manager
 -   Location rename
 -   Location removal
+-   Upon floor change all players with edit access will auto move to the same floor
 
 ### Changed
 

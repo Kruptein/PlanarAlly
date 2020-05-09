@@ -34,10 +34,11 @@ import { EventBus } from "../../event-bus";
         "color-picker": ColorPicker,
     },
     computed: {
-        ...mapGetters("game", ["selectedLayer"]),
+        ...mapGetters("game", ["selectedFloor", "selectedLayer"]),
     },
 })
 export default class DrawTool extends Tool {
+    selectedFloor!: number;
     selectedLayer!: string;
 
     name = ToolName.Draw;
@@ -88,8 +89,12 @@ export default class DrawTool extends Tool {
     onKeyUp(event: KeyboardEvent): void {
         if (event.defaultPrevented) return;
         if (event.key === "Escape" && this.active) {
+            let mouse: { x: number; y: number } | undefined = undefined;
+            if (this.brushHelper !== null) {
+                mouse = { x: this.brushHelper.refPoint.x, y: this.brushHelper.refPoint.y };
+            }
             this.onDeselect();
-            this.onSelect();
+            this.onSelect(mouse);
         }
         event.preventDefault();
     }
@@ -119,11 +124,27 @@ export default class DrawTool extends Tool {
         this.onModeChange(newValue, oldValue);
     }
 
+    @Watch("selectedFloor")
+    onFloorChange(newValue: string, oldValue: string): void {
+        if ((<Tools>this.$parent).currentTool === this.name) {
+            let mouse: { x: number; y: number } | undefined = undefined;
+            if (this.brushHelper !== null) {
+                mouse = { x: this.brushHelper.refPoint.x, y: this.brushHelper.refPoint.y };
+            }
+            this.onDeselect({ floor: oldValue });
+            this.onSelect(mouse);
+        }
+    }
+
     @Watch("selectedLayer")
     onLayerChange(newValue: string, oldValue: string): void {
         if ((<Tools>this.$parent).currentTool === this.name) {
-            this.onDeselect(oldValue);
-            this.onSelect();
+            let mouse: { x: number; y: number } | undefined = undefined;
+            if (this.brushHelper !== null) {
+                mouse = { x: this.brushHelper.refPoint.x, y: this.brushHelper.refPoint.y };
+            }
+            this.onDeselect({ layer: oldValue });
+            this.onSelect(mouse);
         }
     }
 
@@ -142,6 +163,7 @@ export default class DrawTool extends Tool {
             this.brushHelper.globalCompositeOperation = "source-over";
             this.brushHelper.fillColour = this.fillColour;
         }
+        this.brushHelper.r = this.helperSize;
     }
     onModeChange(newValue: string, oldValue: string): void {
         if (this.brushHelper === null) return;
@@ -160,8 +182,9 @@ export default class DrawTool extends Tool {
             fowLayer.removeShape(this.brushHelper, SyncMode.NO_SYNC);
         }
     }
-    getLayer(targetLayer?: string): Layer | undefined {
-        if (this.modeSelect === "normal") return layerManager.getLayer(layerManager.floor!.name, targetLayer);
+    getLayer(data?: { floor?: string; layer?: string }): Layer | undefined {
+        if (this.modeSelect === "normal")
+            return layerManager.getLayer(data?.floor ?? layerManager.floor!.name, data?.layer);
         return layerManager.getLayer(layerManager.floor!.name, "fow");
     }
 
@@ -441,8 +464,12 @@ export default class DrawTool extends Tool {
         if (this.shape === null) return;
         this.shape.updatePoints();
         if (this.shape.points.length <= 1) {
+            let mouse: { x: number; y: number } | undefined = undefined;
+            if (this.brushHelper !== null) {
+                mouse = { x: this.brushHelper.refPoint.x, y: this.brushHelper.refPoint.y };
+            }
             this.onDeselect();
-            this.onSelect();
+            this.onSelect(mouse);
         } else {
             if (this.shape.visionObstruction) visibilityStore.recalculateVision(this.shape.floor);
             if (this.shape.movementObstruction) visibilityStore.recalculateMovement(this.shape.floor);
@@ -455,19 +482,23 @@ export default class DrawTool extends Tool {
         }
     }
 
-    onSelect(): void {
+    onSelect(mouse?: { x: number; y: number }): void {
         this.activeTool = true;
         const layer = this.getLayer();
         if (layer === undefined) return;
         layer.canvas.parentElement!.style.cursor = "none";
-        this.brushHelper = new Circle(new GlobalPoint(-1000, -1000), this.brushSize / 2, this.fillColour);
+        this.brushHelper = new Circle(
+            new GlobalPoint(mouse?.x ?? -1000, mouse?.y ?? -1000),
+            this.brushSize / 2,
+            this.fillColour,
+        );
         this.setupBrush();
         layer.addShape(this.brushHelper, SyncMode.NO_SYNC, InvalidationMode.NORMAL, false); // during mode change the shape is already added
         if (gameStore.IS_DM) this.showLayerPoints();
     }
-    onDeselect(targetLayer?: string): void {
+    onDeselect(data?: { floor?: string; layer?: string }): void {
         this.activeTool = false;
-        const layer = this.getLayer(targetLayer);
+        const layer = this.getLayer(data);
         if (layer === undefined) return;
         if (this.brushHelper !== null) {
             layer.removeShape(this.brushHelper, SyncMode.NO_SYNC);
@@ -516,7 +547,6 @@ export default class DrawTool extends Tool {
     }
 
     private hideLayerPoints(): void {
-        console.log("Clearing");
         layerManager.getLayer(layerManager.floor!.name, "draw")?.invalidate(true);
     }
 }

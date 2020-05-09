@@ -102,7 +102,7 @@ export default class LocationBar extends Vue {
         }
         // e.item.remove();
         // e.clone.remove();
-        // socket.emit("Location.Change", { location: toLocation, users: players });
+        socket.emit("Location.Change", { location: toLocation, users: players });
     }
 
     endPlayerDrag(e: { item: HTMLDivElement; from: HTMLDivElement; to: HTMLDivElement }): void {

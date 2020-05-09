@@ -33,6 +33,7 @@ export interface ServerClient {
     pan_x: number;
     pan_y: number;
     zoom_factor: number;
+    active_floor?: string;
     active_layer?: string;
 }
 

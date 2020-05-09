@@ -75,7 +75,10 @@ socket.on("Client.Options.Set", (options: ServerClient) => {
     gameStore.setPanY(options.pan_y);
     gameStore.setZoomDisplay(zoomDisplay(options.zoom_factor));
     // gameStore.setZoomDisplay(0.5);
-    if (options.active_layer) layerManager.selectLayer(options.active_layer, false);
+    if (options.active_layer && options.active_floor) {
+        gameStore.selectFloor(options.active_floor);
+        layerManager.selectLayer(options.active_layer, false);
+    }
     for (const floor of layerManager.floors) {
         if (layerManager.getGridLayer(floor.name) !== undefined) layerManager.getGridLayer(floor.name)!.invalidate();
     }

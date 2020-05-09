@@ -84,6 +84,10 @@ class GameStore extends VuexModule implements GameState {
         return this.layers[this.selectedLayerIndex];
     }
 
+    get selectedFloor(): string {
+        return this.floors[this.selectedFloorIndex];
+    }
+
     get zoomFactor(): number {
         return zoomValue(this.zoomDisplay);
     }

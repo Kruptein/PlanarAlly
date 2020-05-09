@@ -59,6 +59,7 @@ All notable changes to this project will be documented in this file.
 -   Grid layers of al lower floors being visible
 -   DM being able to invite themselves to the room as a player
 -   Removing a file in the asset manager now deletes the file on the server
+-   Draw tool no longer delays rendering brush helper after layer/floor change
 
 ## [0.19.3] - 2020-04-01
 

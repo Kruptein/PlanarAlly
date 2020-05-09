@@ -261,6 +261,7 @@ class LocationUserOption(BaseModel):
         )
         if self.active_layer:
             d["active_layer"] = self.active_layer.name
+            d["active_floor"] = self.active_layer.floor.name
         return d
 
     class Meta:

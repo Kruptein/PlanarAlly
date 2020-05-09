@@ -60,6 +60,7 @@ All notable changes to this project will be documented in this file.
 -   DM being able to invite themselves to the room as a player
 -   Removing a file in the asset manager now deletes the file on the server
 -   Draw tool no longer delays rendering brush helper after layer/floor change
+-   Active floor is remembered upon rejoining the session
 
 ## [0.19.3] - 2020-04-01
 

@@ -172,7 +172,7 @@ export default class DrawTool extends Tool {
             return;
         }
         if (this.brushHelper === null) return;
-        if (useSnapping(event)) startPoint = new GlobalPoint(clampGridLine(startPoint.x), clampGridLine(startPoint.y));
+        // if (useSnapping(event)) startPoint = new GlobalPoint(clampGridLine(startPoint.x), clampGridLine(startPoint.y));
         if (!this.active) {
             this.startPoint = startPoint;
             this.active = true;

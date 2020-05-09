@@ -148,6 +148,7 @@ socket.on("Shape.Floor.Change", (data: { uuid: string; floor: string }) => {
     const shape = layerManager.UUIDMap.get(data.uuid);
     if (shape === undefined) return;
     shape.moveFloor(data.floor, false);
+    if (shape.ownedBy({ editAccess: true })) gameStore.selectFloor(data.floor);
 });
 socket.on("Shape.Layer.Change", (data: { uuid: string; layer: string }) => {
     const shape = layerManager.UUIDMap.get(data.uuid);

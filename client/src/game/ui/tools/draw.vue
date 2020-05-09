@@ -21,7 +21,7 @@ import { Polygon } from "@/game/shapes/polygon";
 import { Rect } from "@/game/shapes/rect";
 import { Shape } from "@/game/shapes/shape";
 import { gameStore } from "@/game/store";
-import { getUnitDistance, l2g, g2lx, g2ly, l2gz, clampGridLine } from "@/game/units";
+import { getUnitDistance, l2g, g2lx, g2ly, l2gz } from "@/game/units";
 import { equalPoints, getLocalPointFromEvent, useSnapping } from "@/game/utils";
 import { visibilityStore } from "@/game/visibility/store";
 import { TriangulationTarget, insertConstraint, getCDT } from "@/game/visibility/te/pa";
@@ -165,7 +165,7 @@ export default class DrawTool extends Tool {
         return layerManager.getLayer(layerManager.floor!.name, "fow");
     }
 
-    onDown(startPoint: GlobalPoint, event: MouseEvent | TouchEvent): void {
+    onDown(startPoint: GlobalPoint, _event: MouseEvent | TouchEvent): void {
         const layer = this.getLayer();
         if (layer === undefined) {
             console.log("No active layer!");

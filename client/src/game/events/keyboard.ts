@@ -129,7 +129,7 @@ export function onKeyDown(event: KeyboardEvent): void {
                     shape.moveFloor(newFloor, true);
                 }
             }
-            if (!event.shiftKey) layerManager.clearSelection();
+            layerManager.clearSelection();
             if (!event.ctrlKey || event.shiftKey) {
                 gameStore.selectFloor(gameStore.selectedFloorIndex + 1);
             }

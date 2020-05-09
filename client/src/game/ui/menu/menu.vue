@@ -56,7 +56,7 @@ export default class MenuBar extends Vue {
     settingsClick(event: { target: HTMLElement }): void {
         if (
             event.target.classList.contains("menu-accordion") &&
-            event.target.nextElementSibling!.classList.contains("menu-accordion-panel")
+            event.target.nextElementSibling?.classList.contains("menu-accordion-panel")
         ) {
             event.target.classList.toggle("menu-accordion-active");
         }

@@ -3,7 +3,7 @@ import Vue from "vue";
 import Component from "vue-class-component";
 import { Prop } from "vue-property-decorator";
 
-import { gameSettingsStore } from "../../settings";
+import { gameSettingsStore, getLocationOption } from "../../settings";
 import { LocationOptions } from "../../comm/types/settings";
 
 @Component
@@ -20,26 +20,26 @@ export default class GridSettings extends Vue {
     }
 
     get useGrid(): boolean {
-        return gameSettingsStore.useGrid;
+        return getLocationOption("useGrid", this.location)!;
     }
     set useGrid(value: boolean) {
         gameSettingsStore.setUseGrid({ useGrid: value, location: this.location, sync: true });
     }
     get unitSize(): number {
-        return gameSettingsStore.unitSize;
+        return getLocationOption("unitSize", this.location)!;
     }
     set unitSize(value: number) {
         if (typeof value !== "number") return;
         gameSettingsStore.setUnitSize({ unitSize: value, location: this.location, sync: true });
     }
     get unitSizeUnit(): string {
-        return gameSettingsStore.unitSizeUnit;
+        return getLocationOption("unitSizeUnit", this.location)!;
     }
     set unitSizeUnit(value: string) {
         gameSettingsStore.setUnitSizeUnit({ unitSizeUnit: value, location: this.location, sync: true });
     }
     get gridSize(): number {
-        return gameSettingsStore.gridSize;
+        return getLocationOption("gridSize", this.location)!;
     }
     set gridSize(value: number) {
         if (typeof value !== "number") return;

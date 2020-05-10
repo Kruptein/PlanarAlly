@@ -36,8 +36,6 @@ All notable changes to this project will be documented in this file.
     -   The center of the drawn resize rectangle now will remain in the exact same place after resize. This prevents sudden map jump.
 -   Shape resizing
     -   Now only snaps the point you're resizing instead of an awkward complete shape resize
--   Drawing
-    -   When snapping enabled will now snap startpoint on mouse down and last point on mouse up
 -   Location bar reworked
     -   Move around as a DM without bringing your players along
     -   shows which players are in which location

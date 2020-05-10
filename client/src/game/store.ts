@@ -292,6 +292,12 @@ class GameStore extends VuexModule implements GameState {
     }
 
     @Mutation
+    removeLocation(id: number): void {
+        const idx = this.locations.findIndex(l => l.id === id);
+        if (idx >= 0) this.locations.splice(idx, 1);
+    }
+
+    @Mutation
     resetLayerInfo(): void {
         this.floors = [];
         this.selectedFloorIndex = -1;
@@ -416,6 +422,15 @@ class GameStore extends VuexModule implements GameState {
     @Mutation
     addPlayer(player: { id: number; name: string; location: number }): void {
         this.players.push(player);
+    }
+
+    @Mutation
+    updatePlayer(data: { player: string; location: number }): void {
+        for (const player of this.players) {
+            if (player.name === data.player) {
+                player.location = data.location;
+            }
+        }
     }
 
     @Mutation

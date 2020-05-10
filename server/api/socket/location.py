@@ -175,7 +175,12 @@ async def add_new_location(sid: int, location: str):
     )
     new_location.create_floor()
 
-    await load_location(sid, new_location)
+    for psid in game_state.get_sids(player=pr.player, room=pr.room):
+        sio.leave_room(psid, pr.active_location.get_path(), namespace="/planarally")
+        sio.enter_room(psid, new_location.get_path(), namespace="/planarally")
+        await load_location(psid, new_location)
+    pr.active_location = new_location
+    pr.save()
 
 
 @sio.on("Locations.Order.Set", namespace="/planarally")
@@ -230,4 +235,11 @@ async def delete_location(sid: int, data: int):
         return
 
     location = Location[data]
+
+    if location.players.count() > 0:
+        logger.error(
+            "A location was attempted to be removed that still has players! This has been prevented"
+        )
+        return
+
     location.delete_instance()

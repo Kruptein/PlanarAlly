@@ -31,7 +31,6 @@ export default class LocationAdminSettings extends Vue {
     }
 
     async deleteLocation(): Promise<void> {
-        console.log("removing");
         const remove = await (<Game>this.$parent.$parent.$parent.$parent.$parent).$refs.confirm.open(
             `Are you sure you wish to remove location ${this.name}`,
             `Yes, delete this location`,
@@ -39,6 +38,9 @@ export default class LocationAdminSettings extends Vue {
         );
         if (!remove) return;
         socket.emit("Location.Delete", this.location);
+        this.$emit("update:location", gameStore.locations.find(l => l.id !== this.location)!.id);
+        gameStore.removeLocation(this.location);
+        this.$emit("close");
     }
 }
 </script>

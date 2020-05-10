@@ -11,6 +11,7 @@ import { socket } from "../socket";
 socket.on("Location.Set", (data: ServerLocation) => {
     coreStore.setLoading(false);
     gameSettingsStore.setActiveLocation(data.id);
+    gameStore.updatePlayer({ player: gameStore.username, location: data.id });
     setLocationOptions(data.id, data.options);
     EventBus.$emit("Location.Options.Set");
 });

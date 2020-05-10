@@ -420,7 +420,7 @@ class GameStore extends VuexModule implements GameState {
     }
 
     @Mutation
-    addPlayer(player: { id: number; name: string; location: number }): void {
+    addPlayer(player: { id: number; name: string; location: number; role: number }): void {
         this.players.push(player);
     }
 

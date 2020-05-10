@@ -59,7 +59,7 @@ socket.on("Room.Info.InvitationCode.Set", (invitationCode: string) => {
     gameStore.setInvitationCode(invitationCode);
     EventBus.$emit("DmSettings.RefreshedInviteCode");
 });
-socket.on("Room.Info.Players.Add", (data: { id: number; name: string; location: number }) => {
+socket.on("Room.Info.Players.Add", (data: { id: number; name: string; location: number; role: number }) => {
     gameStore.addPlayer(data);
 });
 socket.on("Username.Set", (username: string) => {

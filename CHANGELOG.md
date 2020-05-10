@@ -22,6 +22,7 @@ All notable changes to this project will be documented in this file.
 -   Location rename
 -   Location removal
 -   Upon floor change all players with edit access will auto move to the same floor
+-   Set any shape as marker and jump to that position from the sidebar [LDeeJay1969]
 
 ### Changed
 
@@ -48,7 +49,6 @@ All notable changes to this project will be documented in this file.
 ### Fixed
 
 -   Polygon width now properly taken into account when trying to select it
--   Set any shape as marker and jump to that position from the sidebar [LDeeJay1969]
 -   Floor/Layer bar now moves along with the side menu when opened
 -   Side menu and locations menu no longer overlap
 -   Window resizing messing with the lighting borders

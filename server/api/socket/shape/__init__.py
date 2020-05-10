@@ -74,7 +74,9 @@ async def add_shape(sid: int, data: Dict[str, Any]):
 
     for room_player in pr.room.players:
         is_dm = room_player.role == Role.DM
-        for psid in game_state.get_sids(player=room_player.player, room=pr.room):
+        for psid in game_state.get_sids(
+            player=room_player.player, active_location=pr.active_location
+        ):
             if psid == sid:
                 continue
             if not is_dm and not layer.player_visible:
@@ -118,7 +120,7 @@ async def update_shape_position(sid: str, data: Dict[str, Any]):
                 type_instance.update_from_dict(data["shape"], ignore_unknown=True)
                 type_instance.save()
 
-    await sync_shape_update(layer, pr.room, data, sid, shape)
+    await sync_shape_update(layer, pr, data, sid, shape)
 
 
 @sio.on("Shape.Update", namespace="/planarally")
@@ -217,7 +219,7 @@ async def update_shape(sid: int, data: Dict[str, Any]):
                         label=Label.get(uuid=label), shape=shape
                     ).delete_instance(True)
 
-    await sync_shape_update(layer, pr.room, data, sid, shape)
+    await sync_shape_update(layer, pr, data, sid, shape)
 
 
 @sio.on("Shape.Remove", namespace="/planarally")
@@ -272,7 +274,9 @@ async def remove_shape(sid: int, data: Dict[str, Any]):
             namespace="/planarally",
         )
     else:
-        for csid in game_state.get_sids(player=pr.room.creator, room=pr.room):
+        for csid in game_state.get_sids(
+            player=pr.room.creator, active_location=pr.active_location
+        ):
             if csid == sid:
                 continue
             await sio.emit(
@@ -331,7 +335,9 @@ async def change_shape_layer(sid: int, data: Dict[str, Any]):
         for room_player in pr.room.players:
             if room_player.role == Role.DM:
                 continue
-            for psid in game_state.get_sids(player=room_player.player, room=pr.room):
+            for psid in game_state.get_sids(
+                player=room_player.player, active_location=pr.active_location
+            ):
                 if psid == sid:
                     continue
                 await sio.emit(
@@ -359,7 +365,9 @@ async def change_shape_layer(sid: int, data: Dict[str, Any]):
     else:
         for room_player in pr.room.players:
             is_dm = room_player.role == Role.DM
-            for psid in game_state.get_sids(player=room_player.player, room=pr.room):
+            for psid in game_state.get_sids(
+                player=room_player.player, active_location=pr.active_location
+            ):
                 if psid == sid:
                     continue
                 if is_dm:
@@ -421,13 +429,13 @@ async def move_shape_order(sid: int, data: Dict[str, Any]):
             )
 
 
-async def sync_shape_update(layer, room: Room, data, sid, shape):
-    for psid, player in game_state.get_users(room=room):
+async def sync_shape_update(layer, pr: PlayerRoom, data, sid, shape):
+    for psid, player in game_state.get_users(active_location=pr.active_location):
         if psid == sid:
             continue
         pdata = {el: data[el] for el in data if el != "shape"}
         if data["temporary"]:
-            if player != room.creator and not (
+            if player != pr.room.creator and not (
                 data["shape"]["default_edit_access"]
                 or any(player.name == o["user"] for o in data["shape"]["owners"])
             ):
@@ -446,7 +454,7 @@ async def sync_shape_update(layer, room: Room, data, sid, shape):
             except AttributeError:
                 pass  # To solve this error, we need to clean this mess of shape functions
         else:
-            pdata["shape"] = shape.as_dict(player, player == room.creator)
+            pdata["shape"] = shape.as_dict(player, player == pr.room.creator)
         await sio.emit("Shape.Update", pdata, room=psid, namespace="/planarally")
 
 

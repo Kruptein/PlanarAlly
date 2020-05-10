@@ -274,7 +274,9 @@ async def send_client_initiatives(
 ) -> None:
     for room_player in pr.room.players:
         if target_user is None or target_user == room_player.player:
-            for psid in game_state.get_sids(player=room_player.player, room=pr.room):
+            for psid in game_state.get_sids(
+                player=room_player.player, active_location=pr.active_location
+            ):
                 if psid == skip_sid:
                     continue
                 await sio.emit(

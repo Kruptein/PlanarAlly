@@ -55,7 +55,9 @@ async def add_shape_owner(sid: int, data: Dict[str, Any]):
         namespace="/planarally",
     )
     if not (shape.default_vision_access or shape.default_edit_access):
-        for sid in game_state.get_sids(player=target_user, room=pr.room):
+        for sid in game_state.get_sids(
+            player=target_user, active_location=pr.active_location
+        ):
             await sio.emit(
                 "Shape.Set",
                 shape.as_dict(target_user, False),
@@ -192,7 +194,7 @@ async def update_default_shape_owner(sid: int, data: Dict[str, Any]):
     )
 
     if shape.default_vision_access or shape.default_edit_access:
-        for sid, player in game_state.get_users(room=pr.room):
+        for sid, player in game_state.get_users(active_location=pr.active_location):
             await sio.emit(
                 "Shape.Set",
                 shape.as_dict(player, player.name == pr.room.creator),

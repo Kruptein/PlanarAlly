@@ -175,7 +175,9 @@ async def add_new_location(sid: int, location: str):
     )
     new_location.create_floor()
 
-    for psid in game_state.get_sids(player=pr.player, room=pr.room):
+    for psid in game_state.get_sids(
+        player=pr.player, active_location=pr.active_location
+    ):
         sio.leave_room(psid, pr.active_location.get_path(), namespace="/planarally")
         sio.enter_room(psid, new_location.get_path(), namespace="/planarally")
         await load_location(psid, new_location)

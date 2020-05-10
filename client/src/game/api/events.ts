@@ -44,7 +44,7 @@ socket.on(
         invitationCode: string;
         isLocked: boolean;
         default_options: ServerLocationOptions;
-        players: { id: number; name: string; location: number }[];
+        players: { id: number; name: string; location: number; role: number }[];
     }) => {
         gameStore.setRoomName(data.name);
         gameStore.setRoomCreator(data.creator);

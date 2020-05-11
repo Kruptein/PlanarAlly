@@ -15,6 +15,7 @@ class User(BaseModel):
     fow_colour = TextField(default="#000")
     grid_colour = TextField(default="#000")
     ruler_colour = TextField(default="#F00")
+    invert_alt = BooleanField(default=False)
 
     def __repr__(self):
         return f"<User {self.name}>"
@@ -35,4 +36,3 @@ class User(BaseModel):
     @classmethod
     def by_name(cls, name):
         return cls.get_or_none(fn.Lower(cls.name) == name.lower())
-

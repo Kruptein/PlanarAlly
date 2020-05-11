@@ -1,25 +1,3 @@
-<template>
-    <modal :visible="visible" @close="close">
-        <div
-            class="modal-header"
-            slot="header"
-            slot-scope="m"
-            draggable="true"
-            @dragstart="m.dragStart"
-            @dragend="m.dragEnd"
-        >
-            {{ title }}
-        </div>
-        <div class="modal-body">
-            <slot></slot>
-            <div class="buttons">
-                <button @click="confirm" ref="confirm">{{ yes }}</button>
-                <button @click="deny" v-if="!!no">{{ no }}</button>
-            </div>
-        </div>
-    </modal>
-</template>
-
 <script lang="ts">
 import Vue from "vue";
 import Component from "vue-class-component";
@@ -34,6 +12,7 @@ import Modal from "@/core/components/modals/modal.vue";
 export default class ConfirmDialog extends Vue {
     $refs!: {
         confirm: HTMLButtonElement;
+        deny: HTMLButtonElement;
     };
 
     visible = false;
@@ -41,6 +20,7 @@ export default class ConfirmDialog extends Vue {
     no = "No";
     title = "";
     body = "";
+    focus: "confirm" | "deny" = "deny";
 
     resolve: (ok: boolean) => void = (_ok: boolean) => {};
     reject: () => void = () => {};
@@ -57,14 +37,16 @@ export default class ConfirmDialog extends Vue {
         this.reject();
         this.visible = false;
     }
-    open(title: string, yes = "yes", no = "no"): Promise<boolean> {
+    open(title: string, yes = "yes", no = "no", focus: "confirm" | "deny" = "deny"): Promise<boolean> {
+        this.focus = focus;
         this.yes = yes;
         this.no = no;
         this.title = title;
 
         this.visible = true;
         this.$nextTick(() => {
-            this.$refs.confirm.focus();
+            if (focus === "confirm") this.$refs.confirm.focus();
+            else this.$refs.deny.focus();
         });
 
         return new Promise((resolve, reject) => {
@@ -74,6 +56,28 @@ export default class ConfirmDialog extends Vue {
     }
 }
 </script>
+
+<template>
+    <modal :visible="visible" @close="close">
+        <div
+            class="modal-header"
+            slot="header"
+            slot-scope="m"
+            draggable="true"
+            @dragstart="m.dragStart"
+            @dragend="m.dragEnd"
+        >
+            {{ title }}
+        </div>
+        <div class="modal-body">
+            <slot></slot>
+            <div class="buttons">
+                <button @click="confirm" ref="confirm" :class="{ focus: focus === 'confirm' }">{{ yes }}</button>
+                <button @click="deny" v-if="!!no" ref="deny" :class="{ focus: focus === 'deny' }">{{ no }}</button>
+            </div>
+        </div>
+    </modal>
+</template>
 
 <style scoped>
 .modal-header {
@@ -97,5 +101,10 @@ export default class ConfirmDialog extends Vue {
 
 button:first-of-type {
     margin-right: 10px;
+}
+
+.focus {
+    color: #7c253e;
+    font-weight: bold;
 }
 </style>

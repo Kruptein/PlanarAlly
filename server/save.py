@@ -5,151 +5,31 @@ import secrets
 import shutil
 import sys
 
-from peewee import FloatField, OperationalError
+from peewee import (
+    BooleanField,
+    FloatField,
+    ForeignKeyField,
+    IntegerField,
+    OperationalError,
+    TextField,
+)
 from playhouse.migrate import fn, migrate, SqliteMigrator
 
 from config import SAVE_FILE
 from models import ALL_MODELS, Constants
 from models.db import db
 
-SAVE_VERSION = 21
+SAVE_VERSION = 27
+
 logger: logging.Logger = logging.getLogger("PlanarAllyServer")
 logger.setLevel(logging.INFO)
 
 
 def upgrade(version):
-    if version == 3:
-        from models import GridLayer
-
-        db.execute_sql("CREATE TEMPORARY TABLE _grid_layer AS SELECT * FROM grid_layer")
-        db.drop_tables([GridLayer])
-        db.create_tables([GridLayer])
-        db.execute_sql("INSERT INTO grid_layer SELECT * FROM _grid_layer")
-        Constants.get().update(save_version=Constants.save_version + 1).execute()
-    elif version == 4:
-        from models import Location
-
-        db.foreign_keys = False
-        db.execute_sql("CREATE TEMPORARY TABLE _location AS SELECT * FROM location")
-        db.execute_sql("DROP TABLE location")
-        db.create_tables([Location])
-        db.execute_sql("INSERT INTO location SELECT * FROM _location")
-        db.foreign_keys = True
-        Constants.get().update(save_version=Constants.save_version + 1).execute()
-    elif version == 5:
-        from models import Layer
-        from peewee import ForeignKeyField
-
-        migrator = SqliteMigrator(db)
-        field = ForeignKeyField(Layer, Layer.id, backref="active_users", null=True)
-        with db.atomic():
-            migrate(
-                migrator.add_column("location_user_option", "active_layer_id", field)
-            )
-            from models import LocationUserOption
-
-            LocationUserOption._meta.add_field("active_layer", field)
-            for luo in LocationUserOption.select():
-                luo.active_layer = luo.location.layers.select().where(
-                    Layer.name == "tokens"
-                )[0]
-                luo.save()
-            migrate(migrator.add_not_null("location_user_option", "active_layer_id"))
-            Constants.get().update(save_version=Constants.save_version + 1).execute()
-    elif version == 6:
-        migrator = SqliteMigrator(db)
-        migrate(migrator.drop_not_null("location_user_option", "active_layer_id"))
-        Constants.get().update(save_version=Constants.save_version + 1).execute()
-    elif version == 7:
-        # Remove shape index unique constraint
-        from models import Shape
-
-        db.foreign_keys = False
-        db.execute_sql("CREATE TEMPORARY TABLE _shape AS SELECT * FROM shape")
-        db.execute_sql("DROP TABLE shape")
-        db.create_tables([Shape])
-        db.execute_sql("INSERT INTO shape SELECT * FROM _shape")
-        db.foreign_keys = True
-        # Check all indices and reset to 0 index
-        logger.info("Validating all shape indices")
-        from models import Layer
-
-        with db.atomic():
-            for layer in Layer.select():
-                shapes = layer.shapes.order_by(fn.ABS(Shape.index))
-                for i, shape in enumerate(shapes):
-                    shape.index = i
-                    shape.save()
-        Constants.get().update(save_version=Constants.save_version + 1).execute()
-    elif version == 8:
-        from models import Polygon
-
-        db.create_tables([Polygon])
-        Constants.get().update(save_version=Constants.save_version + 1).execute()
-    elif version == 9:
-        from models import Location
-
-        db.foreign_keys = False
-        migrator = SqliteMigrator(db)
-        with db.atomic():
-            migrate(
-                migrator.add_column("location", "vision_mode", Location.vision_mode),
-                migrator.add_column(
-                    "location", "vision_min_range", Location.vision_min_range
-                ),
-                migrator.add_column(
-                    "location", "vision_max_range", Location.vision_max_range
-                ),
-            )
-        db.foreign_keys = True
-        Constants.get().update(save_version=Constants.save_version + 1).execute()
-    elif version == 10:
-        from models import Shape
-
-        db.foreign_keys = False
-        migrator = SqliteMigrator(db)
-        with db.atomic():
-            migrate(migrator.add_column("shape", "name_visible", Shape.name_visible))
-        db.foreign_keys = True
-        Constants.get().update(save_version=Constants.save_version + 1).execute()
-    elif version == 11:
-        from models import Label, LocationUserOption, ShapeLabel
-
-        db.foreign_keys = False
-        migrator = SqliteMigrator(db)
-        with db.atomic():
-            db.create_tables([Label, ShapeLabel])
-            migrate(
-                migrator.add_column(
-                    "location_user_option",
-                    "active_filters",
-                    LocationUserOption.active_filters,
-                )
-            )
-        db.foreign_keys = True
-        Constants.get().update(save_version=Constants.save_version + 1).execute()
-    elif version == 12:
-        from models import Label, LabelSelection
-
-        db.foreign_keys = False
-        migrator = SqliteMigrator(db)
-        with db.atomic():
-            try:
-                migrate(migrator.add_column("label", "category", Label.category))
-            except OperationalError as e:
-                if e.args[0] != "duplicate column name: category":
-                    raise e
-            db.create_tables([LabelSelection])
-        with db.atomic():
-            for label in Label:
-                if ":" not in label.name:
-                    continue
-                cat, *name = label.name.split(":")
-                label.category = cat
-                label.name = ":".join(name)
-                label.save()
-        db.foreign_keys = True
-        Constants.get().update(save_version=Constants.save_version + 1).execute()
+    if version < 13:
+        raise Exception(
+            f"Upgrade code for this version is >1 year old and is no longer in the active codebase to reduce clutter. You can still find this code on github, contact me for more info."
+        )
     elif version == 13:
         from models import LocationUserOption, MultiLine, Polygon
 
@@ -219,8 +99,6 @@ def upgrade(version):
         db.foreign_keys = True
         Constants.get().update(save_version=Constants.save_version + 1).execute()
     elif version == 15:
-        from peewee import BooleanField
-
         migrator = SqliteMigrator(db)
         db.foreign_keys = False
         with db.atomic():
@@ -230,8 +108,6 @@ def upgrade(version):
         db.foreign_keys = True
         Constants.get().update(save_version=Constants.save_version + 1).execute()
     elif version == 16:
-        from peewee import TextField
-
         migrator = SqliteMigrator(db)
         db.foreign_keys = False
         with db.atomic():
@@ -243,8 +119,6 @@ def upgrade(version):
         db.foreign_keys = True
         Constants.get().update(save_version=Constants.save_version + 1).execute()
     elif version == 17:
-        from peewee import BooleanField, IntegerField
-
         migrator = SqliteMigrator(db)
         db.foreign_keys = False
         with db.atomic():
@@ -264,8 +138,6 @@ def upgrade(version):
         db.foreign_keys = True
         Constants.get().update(save_version=Constants.save_version + 1).execute()
     elif version == 18:
-        from peewee import TextField
-
         migrator = SqliteMigrator(db)
         db.foreign_keys = False
         with db.atomic():
@@ -273,8 +145,6 @@ def upgrade(version):
         db.foreign_keys = True
         Constants.get().update(save_version=Constants.save_version + 1).execute()
     elif version == 19:
-        from peewee import ForeignKeyField
-
         db.foreign_keys = False
         migrator = SqliteMigrator(db)
 
@@ -298,8 +168,6 @@ def upgrade(version):
         db.foreign_keys = True
         Constants.get().update(save_version=Constants.save_version + 1).execute()
     elif version == 20:
-        from peewee import BooleanField, BooleanField, IntegerField
-
         migrator = SqliteMigrator(db)
         db.foreign_keys = False
         with db.atomic():
@@ -307,6 +175,195 @@ def upgrade(version):
                 migrator.add_column("shape", "badge", IntegerField(default=1)),
                 migrator.add_column("shape", "show_badge", BooleanField(default=False)),
             )
+        db.foreign_keys = True
+        Constants.get().update(save_version=Constants.save_version + 1).execute()
+    elif version == 21:
+        migrator = SqliteMigrator(db)
+        db.foreign_keys = False
+        with db.atomic():
+            migrate(
+                migrator.add_column("user", "invert_alt", BooleanField(default=False))
+            )
+        db.foreign_keys = True
+        Constants.get().update(save_version=Constants.save_version + 1).execute()
+    elif version == 22:
+        migrator = SqliteMigrator(db)
+        db.foreign_keys = False
+        with db.atomic():
+            db.execute_sql(
+                'CREATE TABLE IF NOT EXISTS "marker" ("id" INTEGER NOT NULL PRIMARY KEY, "shape_id" TEXT NOT NULL, "user_id" INTEGER NOT NULL, "location_id" INTEGER NOT NULL, FOREIGN KEY ("shape_id") REFERENCES "shape"("uuid") ON DELETE CASCADE, FOREIGN KEY ("location_id") REFERENCES "location" ("id") ON DELETE CASCADE, FOREIGN KEY ("user_id") REFERENCES "user"("id") ON DELETE CASCADE)'
+            )
+        db.foreign_keys = True
+        Constants.get().update(save_version=Constants.save_version + 1).execute()
+    elif version == 23:
+        migrator = SqliteMigrator(db)
+        db.foreign_keys = False
+        with db.atomic():
+            migrate(
+                migrator.add_column(
+                    "shape_owner", "edit_access", BooleanField(default=True)
+                ),
+                migrator.add_column(
+                    "shape_owner", "vision_access", BooleanField(default=True)
+                ),
+                migrator.add_column(
+                    "shape", "default_edit_access", BooleanField(default=False)
+                ),
+                migrator.add_column(
+                    "shape", "default_vision_access", BooleanField(default=False)
+                ),
+            )
+        db.foreign_keys = True
+        Constants.get().update(save_version=Constants.save_version + 1).execute()
+    elif version == 24:
+        migrator = SqliteMigrator(db)
+        db.foreign_keys = False
+        with db.atomic():
+            db.execute_sql(
+                'DELETE FROM "player_room" WHERE id IN (SELECT pr.id FROM "player_room" pr INNER JOIN "room" r ON r.id = pr.room_id WHERE r.creator_id = pr.player_id )'
+            )
+        db.foreign_keys = True
+        Constants.get().update(save_version=Constants.save_version + 1).execute()
+    elif version == 25:
+        # Move Room.dm_location and Room.player_location to PlayerRoom.active_location
+        # Add PlayerRoom.role
+        # Add order index on location
+        from models import Location
+
+        migrator = SqliteMigrator(db)
+        db.foreign_keys = False
+        with db.atomic():
+            migrate(
+                migrator.add_column(
+                    "player_room",
+                    "active_location_id",
+                    ForeignKeyField(
+                        Location,
+                        Location.id,
+                        backref="players",
+                        on_delete="CASCADE",
+                        null=True,
+                    ),
+                ),
+                migrator.add_column("player_room", "role", IntegerField(default=0)),
+                migrator.add_column("location", "index", IntegerField(default=0)),
+            )
+            db.execute_sql(
+                "UPDATE player_room SET active_location_id = (SELECT location.id FROM room INNER JOIN location ON room.id = location.room_id WHERE location.name = room.player_location AND room.id = player_room.room_id)"
+            )
+            db.execute_sql(
+                "INSERT INTO player_room (role, player_id, room_id, active_location_id) SELECT 1, u.id, r.id, l.id FROM room r INNER JOIN user u ON u.id = r.creator_id INNER JOIN location l ON l.name = r.dm_location AND l.room_id = r.id"
+            )
+            db.execute_sql(
+                "UPDATE location SET 'index' = (SELECT COUNT(*) + 1 FROM location l INNER JOIN room r WHERE location.room_id = r.id AND l.room_id = r.id AND l.'index' != 0) "
+            )
+            migrate(
+                migrator.drop_column("room", "player_location"),
+                migrator.drop_column("room", "dm_location"),
+                migrator.add_not_null("player_room", "active_location_id"),
+            )
+
+        db.foreign_keys = True
+        Constants.get().update(save_version=Constants.save_version + 1).execute()
+    elif version == 26:
+        # Move Location settings to a separate LocationSettings table
+        # Add a default_settings field to Room that refers to such a LocationSettings row
+        from models import LocationOptions
+
+        migrator = SqliteMigrator(db)
+
+        db.foreign_keys = False
+        with db.atomic():
+            db.execute_sql(
+                'CREATE TABLE IF NOT EXISTS "location_options" ("id" INTEGER NOT NULL PRIMARY KEY, "unit_size" REAL DEFAULT 5, "unit_size_unit" TEXT DEFAULT "ft", "use_grid" INTEGER DEFAULT 1, "full_fow" INTEGER DEFAULT 0, "fow_opacity" REAL DEFAULT 0.3, "fow_los" INTEGER DEFAULT 0, "vision_mode" TEXT DEFAULT "triangle", "vision_min_range" REAL DEFAULT 1640, "vision_max_range" REAL DEFAULT 3281, "grid_size" INTEGER DEFAULT 50)'
+            )
+            migrate(
+                migrator.add_column(
+                    "location",
+                    "options_id",
+                    ForeignKeyField(
+                        LocationOptions,
+                        LocationOptions.id,
+                        on_delete="CASCADE",
+                        null=True,
+                    ),
+                ),
+                migrator.add_column(
+                    "room",
+                    "default_options_id",
+                    ForeignKeyField(
+                        LocationOptions,
+                        LocationOptions.id,
+                        on_delete="CASCADE",
+                        null=True,
+                    ),
+                ),
+            )
+            data = db.execute_sql(
+                """SELECT l.id, r.id, l.unit_size, l.unit_size_unit, l.use_grid, l.full_fow, l.fow_opacity, l.fow_los, l.vision_mode, l.vision_min_range, l.vision_max_range, g.size AS grid_size
+                FROM location l
+                INNER JOIN room r
+                INNER JOIN floor f ON f.id = (SELECT id FROM floor f2 WHERE f2.location_id = l.id LIMIT 1)
+                INNER JOIN layer la
+                INNER JOIN grid_layer g
+                WHERE r.id = l.room_id AND la.floor_id = f.id AND la.name = 'grid' AND g.layer_id = la.id"""
+            )
+            room_options = {}
+            descr = data.description
+            mapping = {
+                "unit_size": 0,
+                "unit_size_unit": 1,
+                "use_grid": 2,
+                "full_fow": 3,
+                "fow_opacity": 4,
+                "fow_los": 5,
+                "vision_mode": 6,
+                "vision_min_range": 7,
+                "vision_max_range": 8,
+                "grid_size": 9,
+            }
+            default_row = [5, "ft", True, False, 0.3, False, "triangle", 1640, 3281, 50]
+            for row in data.fetchall():
+                new_row = [None, None, None, None, None, None, None, None, None, None]
+
+                if row[1] not in room_options:
+                    room_options[row[1]] = db.execute_sql(
+                        "INSERT INTO location_options (unit_size, unit_size_unit, use_grid, full_fow, fow_opacity, fow_los, vision_mode, vision_min_range, vision_max_range, grid_size) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                        default_row,
+                    ).lastrowid
+                    db.execute_sql(
+                        f"UPDATE room SET default_options_id = {room_options[row[1]]} WHERE id = {row[1]}"
+                    )
+                for col, val in zip(descr, row):
+                    if col[0] in ["id", "room_id"]:
+                        continue
+                    idx = mapping[col[0]]
+                    if val != default_row[idx]:
+                        new_row[idx] = val
+
+                loc_id = db.execute_sql(
+                    "INSERT INTO location_options (unit_size, unit_size_unit, use_grid, full_fow, fow_opacity, fow_los, vision_mode, vision_min_range, vision_max_range, grid_size) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                    new_row,
+                ).lastrowid
+                db.execute_sql(
+                    f"UPDATE location SET options_id = {loc_id} WHERE id = {row[0]}"
+                )
+
+            migrate(
+                migrator.add_not_null("room", "default_options_id"),
+                migrator.drop_column("location", "unit_size"),
+                migrator.drop_column("location", "unit_size_unit"),
+                migrator.drop_column("location", "use_grid"),
+                migrator.drop_column("location", "full_fow"),
+                migrator.drop_column("location", "fow_opacity"),
+                migrator.drop_column("location", "fow_los"),
+                migrator.drop_column("location", "vision_mode"),
+                migrator.drop_column("location", "vision_min_range"),
+                migrator.drop_column("location", "vision_max_range"),
+                migrator.drop_index("location", "location_room_id_name"),
+            )
+            db.execute_sql("DROP TABLE 'grid_layer'")
+
         db.foreign_keys = True
         Constants.get().update(save_version=Constants.save_version + 1).execute()
     else:

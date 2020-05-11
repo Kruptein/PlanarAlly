@@ -1,19 +1,3 @@
-<template>
-    <div class="tool-detail" v-if="selected" :style="{ '--detailRight': detailRight, '--detailArrow': detailArrow }">
-        <div id="accordion-container">
-            <accordion
-                v-for="category in categories"
-                :key="category"
-                :title="category === '' ? 'no category' : category"
-                :showArrow="false"
-                :items="labels[category]"
-                :initialValues="initalValues[category]"
-                @selectionupdate="updateSelection"
-            />
-        </div>
-    </div>
-</template>
-
 <script lang="ts">
 import Component from "vue-class-component";
 
@@ -23,6 +7,7 @@ import Tool from "@/game/ui/tools/tool.vue";
 import { socket } from "@/game/api/socket";
 import { layerManager } from "@/game/layers/manager";
 import { gameStore } from "@/game/store";
+import { ToolName } from "./utils";
 
 @Component({
     components: {
@@ -30,7 +15,7 @@ import { gameStore } from "@/game/store";
     },
 })
 export default class FilterTool extends Tool {
-    name = "Filter";
+    name = ToolName.Filter;
     active = false;
 
     get labels(): { [category: string]: [string, string][] } {
@@ -92,6 +77,22 @@ export default class FilterTool extends Tool {
     }
 }
 </script>
+
+<template>
+    <div class="tool-detail" v-if="selected" :style="{ '--detailRight': detailRight, '--detailArrow': detailArrow }">
+        <div id="accordion-container">
+            <accordion
+                v-for="category in categories"
+                :key="category"
+                :title="category === '' ? 'no category' : category"
+                :showArrow="false"
+                :items="labels[category]"
+                :initialValues="initalValues[category]"
+                @selectionupdate="updateSelection"
+            />
+        </div>
+    </div>
+</template>
 
 <style>
 .accordion {

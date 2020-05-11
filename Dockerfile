@@ -28,12 +28,14 @@ WORKDIR /planarally
 VOLUME /planarally/data
 VOLUME /planarally/static/assets
 
+ENV PA_GIT_INFO = docker:$DOCKER_TAG-$SOURCE_COMMIT
+
 ENTRYPOINT ["/usr/bin/dumb-init", "--"]
 # Copy first requirements.txt so changes in code dont require to reinstall python requirements
 COPY --from=BUILDER /usr/src/server/requirements.txt .
-RUN apt-get update && apt-get install dumb-init curl -y && \
-    rm -rf /var/lib/apt/lists/* && \
-    pip install --no-cache-dir -r requirements.txt
+RUN apt-get update && apt-get install dumb-init curl build-essential libffi-dev libssl-dev -y && \
+    rm -rf /var/lib/apt/lists/*
+RUN pip install --no-cache-dir -r requirements.txt
 # Copy the final server files
 COPY --from=BUILDER /usr/src/server/ .
 

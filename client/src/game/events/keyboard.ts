@@ -7,6 +7,8 @@ import { gameStore } from "@/game/store";
 import { calculateDelta } from "@/game/ui/tools/utils";
 import { visibilityStore } from "@/game/visibility/store";
 import { TriangulationTarget } from "@/game/visibility/te/pa";
+import { gameManager } from "../manager";
+import { gameSettingsStore } from "../settings";
 
 export function onKeyUp(event: KeyboardEvent): void {
     if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement) {
@@ -14,6 +16,13 @@ export function onKeyUp(event: KeyboardEvent): void {
     } else {
         if (event.key === "Delete" || event.key === "Del" || event.key === "Backspace") {
             deleteShapes();
+        }
+        if (event.key === " ") {
+            const tokens = gameStore.ownedtokens.map(o => layerManager.UUIDMap.get(o)!);
+            const i = tokens.findIndex(o => o.center().equals(gameStore.screenCenter));
+            const token = tokens[(i + 1) % tokens.length];
+            gameManager.setCenterPosition(token.center());
+            gameStore.selectFloor(token.floor);
         }
     }
 }
@@ -26,7 +35,7 @@ export function onKeyDown(event: KeyboardEvent): void {
         if (event.keyCode >= 37 && event.keyCode <= 40) {
             // Arrow keys - move the selection or the camera
             // todo: this should already be rounded
-            const gridSize = Math.round(gameStore.gridSize);
+            const gridSize = Math.round(gameSettingsStore.gridSize);
             let offsetX = gridSize * (event.keyCode % 2);
             let offsetY = gridSize * (event.keyCode % 2 ? 0 : 1);
             if (layerManager.hasSelection()) {
@@ -45,7 +54,7 @@ export function onKeyDown(event: KeyboardEvent): void {
                 let recalculateVision = false;
                 let recalculateMovement = false;
                 for (const sel of selection) {
-                    if (!sel.ownedBy()) continue;
+                    if (!sel.ownedBy({ editAccess: true })) continue;
                     if (gameStore.selectionHelperID === sel.uuid) continue;
                     if (sel.movementObstruction) {
                         recalculateMovement = true;
@@ -83,7 +92,7 @@ export function onKeyDown(event: KeyboardEvent): void {
                 gameStore.increasePanX(offsetX * (event.keyCode <= 38 ? 1 : -1));
                 gameStore.increasePanY(offsetY * (event.keyCode <= 38 ? 1 : -1));
                 layerManager.invalidateAllFloors();
-                sendClientOptions(gameStore.locationOptions);
+                sendClientOptions(gameStore.locationUserOptions);
             }
         } else if (event.key === "d") {
             // d - Deselect all
@@ -97,7 +106,7 @@ export function onKeyDown(event: KeyboardEvent): void {
             // Ctrl-0 - Re-center/reset the viewport
             gameStore.setPanX(0);
             gameStore.setPanY(0);
-            sendClientOptions(gameStore.locationOptions);
+            sendClientOptions(gameStore.locationUserOptions);
             layerManager.invalidateAllFloors();
         } else if (event.key === "c" && event.ctrlKey) {
             // Ctrl-c - Copy
@@ -120,7 +129,7 @@ export function onKeyDown(event: KeyboardEvent): void {
                     shape.moveFloor(newFloor, true);
                 }
             }
-            if (!event.shiftKey) layerManager.clearSelection();
+            layerManager.clearSelection();
             if (!event.ctrlKey || event.shiftKey) {
                 gameStore.selectFloor(gameStore.selectedFloorIndex + 1);
             }

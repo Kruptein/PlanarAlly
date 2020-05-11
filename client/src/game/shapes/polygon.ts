@@ -1,5 +1,5 @@
 import { ServerPolygon } from "../comm/types/shapes";
-import { GlobalPoint } from "../geom";
+import { GlobalPoint, getDistanceToSegment } from "../geom";
 import { g2lx, g2ly, g2lz } from "../units";
 import { getFogColour } from "../utils";
 import { BoundingRect } from "./boundingrect";
@@ -86,8 +86,18 @@ export class Polygon extends Shape {
         super.drawPost(ctx);
     }
 
-    contains(point: GlobalPoint): boolean {
-        return this.getBoundingBox().contains(point);
+    contains(point: GlobalPoint, nearbyThreshold?: number): boolean {
+        if (nearbyThreshold === undefined) nearbyThreshold = this.lineWidth / 2;
+        const bbox = this.getBoundingBox(nearbyThreshold);
+        if (!bbox.contains(point)) return false;
+        if (this.isClosed) return true;
+        const vertices = this.vertices;
+        for (const [i, v] of vertices.entries()) {
+            const nv = vertices[(i + 1) % vertices.length];
+            const distance = getDistanceToSegment(point, [v, nv]);
+            if (distance <= nearbyThreshold) return true;
+        }
+        return false;
     }
 
     center(): GlobalPoint;
@@ -107,7 +117,7 @@ export class Polygon extends Shape {
         else this._vertices[resizePoint - 1] = point;
         return resizePoint;
     }
-    getBoundingBox(): BoundingRect {
+    getBoundingBox(delta = 0): BoundingRect {
         let minx: number = this.refPoint.x;
         let maxx: number = this.refPoint.x;
         let miny: number = this.refPoint.y;
@@ -118,6 +128,10 @@ export class Polygon extends Shape {
             if (p.y < miny) miny = p.y;
             if (p.y > maxy) maxy = p.y;
         }
-        return new BoundingRect(new GlobalPoint(minx, miny), maxx - minx, maxy - miny);
+        return new BoundingRect(
+            new GlobalPoint(minx - delta, miny - delta),
+            maxx - minx + 2 * delta,
+            maxy - miny + 2 * delta,
+        );
     }
 }

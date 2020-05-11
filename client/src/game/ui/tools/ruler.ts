@@ -1,20 +1,20 @@
-import Component from "vue-class-component";
-
-import Tool from "@/game/ui/tools/tool.vue";
-
+import { InvalidationMode, SyncMode } from "@/core/comm/types";
 import { socket } from "@/game/api/socket";
 import { GlobalPoint } from "@/game/geom";
 import { layerManager } from "@/game/layers/manager";
 import { Line } from "@/game/shapes/line";
 import { Text } from "@/game/shapes/text";
 import { gameStore } from "@/game/store";
+import Tool from "@/game/ui/tools/tool.vue";
 import { l2g, l2gz } from "@/game/units";
 import { getLocalPointFromEvent } from "@/game/utils";
-import { SyncMode, InvalidationMode } from "@/core/comm/types";
+import Component from "vue-class-component";
+import { gameSettingsStore } from "../../settings";
+import { ToolName } from "./utils";
 
 @Component
 export class RulerTool extends Tool {
-    name = "Ruler";
+    name = ToolName.Ruler;
     active = false;
     startPoint: GlobalPoint | null = null;
     ruler: Line | null = null;
@@ -31,8 +31,8 @@ export class RulerTool extends Tool {
         this.active = true;
         this.ruler = new Line(this.startPoint, this.startPoint, l2gz(3), gameStore.rulerColour);
         this.text = new Text(this.startPoint.clone(), "", "bold 20px serif");
-        this.ruler.addOwner(gameStore.username);
-        this.text.addOwner(gameStore.username);
+        this.ruler.addOwner({ user: gameStore.username, editAccess: true, visionAccess: true }, false);
+        this.text.addOwner({ user: gameStore.username, editAccess: true, visionAccess: true }, false);
         layer.addShape(this.ruler, SyncMode.TEMP_SYNC, InvalidationMode.NORMAL);
         layer.addShape(this.text, SyncMode.TEMP_SYNC, InvalidationMode.NORMAL);
     }
@@ -53,9 +53,9 @@ export class RulerTool extends Tool {
         const xdiff = Math.abs(endPoint.x - this.startPoint.x);
         const ydiff = Math.abs(endPoint.y - this.startPoint.y);
         const label =
-            Math.round((Math.sqrt(xdiff ** 2 + ydiff ** 2) * gameStore.unitSize) / gameStore.gridSize) +
+            Math.round((Math.sqrt(xdiff ** 2 + ydiff ** 2) * gameSettingsStore.unitSize) / gameSettingsStore.gridSize) +
             " " +
-            gameStore.unitSizeUnit;
+            gameSettingsStore.unitSizeUnit;
         const angle = Math.atan2(diffsign * ydiff, xdiff);
         const xmid = Math.min(this.startPoint.x, endPoint.x) + xdiff / 2;
         const ymid = Math.min(this.startPoint.y, endPoint.y) + ydiff / 2;

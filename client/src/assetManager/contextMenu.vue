@@ -1,10 +1,3 @@
-<template>
-    <ContextMenu :visible="visible" :left="left + 'px'" :top="top + 'px'" @close="close">
-        <li @click="rename">Rename</li>
-        <li @click="remove">Remove</li>
-    </ContextMenu>
-</template>
-
 <script lang="ts">
 import Vue from "vue";
 
@@ -36,8 +29,8 @@ export default class AssetContextMenu extends Vue {
         if (!assetStore.selected.includes(inode)) this.parent.select(event, inode);
 
         this.visible = true;
-        this.left = event.pageX;
-        this.top = event.pageY;
+        this.left = event.clientX;
+        this.top = event.clientY;
         this.$nextTick(() => {
             (<HTMLElement>this.$children[0].$el).focus();
         });
@@ -73,3 +66,10 @@ export default class AssetContextMenu extends Vue {
     }
 }
 </script>
+
+<template>
+    <ContextMenu :visible="visible" :left="left + 'px'" :top="top + 'px'" @close="close">
+        <li @click="rename">Rename</li>
+        <li @click="remove">Remove</li>
+    </ContextMenu>
+</template>

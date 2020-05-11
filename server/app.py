@@ -1,6 +1,7 @@
 import logging
 import os
 import sys
+from typing import Dict, Union
 
 import aiohttp_jinja2
 import aiohttp_security
@@ -12,11 +13,17 @@ from aiohttp_security import SessionIdentityPolicy
 from aiohttp_session.cookie_storage import EncryptedCookieStorage
 
 import auth
+from config import config
+from models import PlayerRoom, User
 from utils import FILE_DIR
 
 # SETUP SERVER
 
-sio = socketio.AsyncServer(async_mode="aiohttp", engineio_logger=False)
+sio = socketio.AsyncServer(
+    async_mode="aiohttp",
+    engineio_logger=False,
+    cors_allowed_origins=config.get("Webserver", "cors_allowed_origins", fallback=None),
+)
 app = web.Application()
 app["AuthzPolicy"] = auth.AuthPolicy()
 aiohttp_security.setup(app, SessionIdentityPolicy(), app["AuthzPolicy"])
@@ -42,56 +49,4 @@ stream_handler.setFormatter(formatter)
 logger.addHandler(file_handler)
 logger.addHandler(stream_handler)
 
-
-# SETUP STATE
-class State:
-    def __init__(self):
-        self.client_temporaries = {}
-        self.pending_file_upload_cache = {}
-        self.sid_map = {}
-
-    async def clear_temporaries(self, sid):
-        if sid in self.client_temporaries:
-            await sio.emit(
-                "Temp.Clear", self.client_temporaries[sid], namespace="/planarally"
-            )
-            del self.client_temporaries[sid]
-
-    def add_sid(self, sid, **options):
-        self.sid_map[sid] = options
-
-    async def remove_sid(self, sid):
-        await state.clear_temporaries(sid)
-        del self.sid_map[sid]
-
-    def get_sids(self, skip_sid=None, **options):
-        for sid in dict(self.sid_map):
-            if all(
-                self.sid_map[sid].get(option, None) == value
-                for option, value in options.items()
-            ):
-                if skip_sid != sid:
-                    yield sid
-
-    def get_players(self, **options):
-        for sid in dict(self.sid_map):
-            if all(
-                self.sid_map[sid].get(option, None) == value
-                for option, value in options.items()
-            ):
-                yield sid, self.get_user(sid)
-
-    def get_user(self, sid):
-        return self.sid_map[sid]["user"]
-
-    def add_temp(self, sid, uid):
-        if sid not in self.client_temporaries:
-            self.client_temporaries[sid] = []
-        self.client_temporaries[sid].append(uid)
-
-    def remove_temp(self, sid, uid):
-        self.client_temporaries[sid].remove(uid)
-
-
-state = State()
-app["state"] = state
+app["state"] = {}

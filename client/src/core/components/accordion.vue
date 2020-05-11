@@ -1,22 +1,3 @@
-<template>
-    <div class="accordion">
-        <div id="header" @click.prevent="toggleDisplay">
-            <input type="checkbox" @click.stop="toggleCategory" ref="overall" />
-            <strong>{{ title }}</strong>
-            <template v-if="showArrow">
-                <span class="down-Arrow" v-show="showArrow && !active">&#9660;</span>
-                <span class="up-Arrow" v-show="showArrow && active">&#9650;</span>
-            </template>
-        </div>
-        <div v-show="active" id="body">
-            <div v-for="item in items" :key="item[0]" class="item" @click="toggleSelection(item[0])">
-                <input type="checkbox" :checked="selected.includes(item[0])" @click.prevent />
-                {{ item[1] }}
-            </div>
-        </div>
-    </div>
-</template>
-
 <script lang="ts">
 import Vue from "vue";
 import Component from "vue-class-component";
@@ -73,6 +54,25 @@ export default class Accordion extends Vue {
     }
 }
 </script>
+
+<template>
+    <div class="accordion">
+        <div id="header" @click.prevent="toggleDisplay">
+            <input type="checkbox" @click.stop="toggleCategory" ref="overall" />
+            <strong>{{ title }}</strong>
+            <template v-if="showArrow">
+                <span class="down-Arrow" v-show="showArrow && !active">&#9660;</span>
+                <span class="up-Arrow" v-show="showArrow && active">&#9650;</span>
+            </template>
+        </div>
+        <div v-show="active" id="body">
+            <div v-for="item in items" :key="item[0]" class="item" @click="toggleSelection(item[0])">
+                <input type="checkbox" :checked="selected.includes(item[0])" @click.prevent />
+                {{ item[1] }}
+            </div>
+        </div>
+    </div>
+</template>
 
 <style scoped>
 .accordion {

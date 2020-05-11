@@ -22,6 +22,10 @@ class AssetStore extends VuexModule {
     _selected: number[] = [];
     folderPath: number[] = [];
 
+    _pendingUploads: string[] = [];
+    _resolvedUploads = 0;
+    private _expectedUploads = 0;
+
     @Mutation
     clear(): void {
         this._folders = [];
@@ -32,6 +36,11 @@ class AssetStore extends VuexModule {
     clearSelected(): void {
         console.log("Cleared");
         this._selected = [];
+    }
+
+    @Mutation
+    addExpectedUploads(number: number): void {
+        this._expectedUploads += number;
     }
 
     @Mutation
@@ -50,8 +59,25 @@ class AssetStore extends VuexModule {
         }
     }
 
+    @Mutation
+    resolveUpload(file: string): void {
+        const idx = this._pendingUploads.findIndex(f => f === file);
+        if (idx >= 0) {
+            this._pendingUploads.splice(idx, 1);
+            this._resolvedUploads++;
+            if (this._expectedUploads <= this._resolvedUploads) {
+                this._expectedUploads = 0;
+                this._resolvedUploads = 0;
+            }
+        }
+    }
+
     get path(): number[] {
         return this.folderPath;
+    }
+
+    get expectedUploads(): number {
+        return this._expectedUploads;
     }
 
     get files(): number[] {
@@ -64,6 +90,14 @@ class AssetStore extends VuexModule {
 
     get idMap(): Map<number, Asset> {
         return this._idMap;
+    }
+
+    get pendingUploads(): string[] {
+        return this._pendingUploads;
+    }
+
+    get resolvedUploads(): number {
+        return this._resolvedUploads;
     }
 
     get selected(): number[] {

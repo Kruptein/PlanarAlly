@@ -1,41 +1,6 @@
-<template>
-    <div>
-        <div id="toolselect">
-            <ul>
-                <li
-                    v-for="tool in visibleTools"
-                    :key="tool"
-                    :class="{ 'tool-selected': currentTool === tool }"
-                    :ref="tool + '-selector'"
-                    v-show="toolVisible(tool)"
-                    @mousedown="currentTool = tool"
-                >
-                    <a href="#">{{ tool }}</a>
-                </li>
-            </ul>
-        </div>
-        <div>
-            <template>
-                <select-tool v-show="currentTool === 'Select'" ref="selectTool"></select-tool>
-                <pan-tool v-show="currentTool === 'Pan'"></pan-tool>
-                <keep-alive>
-                    <draw-tool v-show="currentTool === 'Draw'"></draw-tool>
-                </keep-alive>
-                <ruler-tool v-show="currentTool === 'Ruler'"></ruler-tool>
-                <ping-tool v-show="currentTool === 'Ping'"></ping-tool>
-                <map-tool v-show="currentTool === 'Map'"></map-tool>
-                <filter-tool v-show="currentTool === 'Filter'"></filter-tool>
-                <vision-tool v-show="currentTool === 'Vision'"></vision-tool>
-                <shape-menu ref="shapecontext"></shape-menu>
-                <default-menu ref="defaultcontext"></default-menu>
-                <createtoken-dialog ref="createtokendialog"></createtoken-dialog>
-            </template>
-        </div>
-    </div>
-</template>
-
 <script lang="ts">
 import Vue from "vue";
+import Component from "vue-class-component";
 
 import ShapeContext from "@/game/ui/selection/shapecontext.vue";
 import CreateTokenModal from "@/game/ui/tools/createtoken_modal.vue";
@@ -45,6 +10,7 @@ import FilterTool from "@/game/ui/tools/filter.vue";
 import MapTool from "@/game/ui/tools/map.vue";
 import PanTool from "@/game/ui/tools/pan";
 import SelectTool from "@/game/ui/tools/select.vue";
+import Tool from "./tool.vue";
 import VisionTool from "@/game/ui/tools/vision.vue";
 
 import { layerManager } from "@/game/layers/manager";
@@ -54,43 +20,74 @@ import { PingTool } from "@/game/ui/tools/ping";
 import { RulerTool } from "@/game/ui/tools/ruler";
 import { l2g } from "@/game/units";
 import { getLocalPointFromEvent } from "@/game/utils";
-import Component from "vue-class-component";
+import { ToolName } from "./utils";
 
 @Component({
     components: {
-        "select-tool": SelectTool,
-        "pan-tool": PanTool,
-        "draw-tool": DrawTool,
-        "ruler-tool": RulerTool,
-        "ping-tool": PingTool,
-        "map-tool": MapTool,
-        "filter-tool": FilterTool,
-        "vision-tool": VisionTool,
-        "shape-menu": ShapeContext,
-        "default-menu": DefaultContext,
-        "createtoken-dialog": CreateTokenModal,
+        SelectTool,
+        PanTool,
+        DrawTool,
+        RulerTool,
+        PingTool,
+        MapTool,
+        FilterTool,
+        VisionTool,
+        ShapeContext,
+        DefaultContext,
+        CreateTokenModal,
     },
     watch: {
-        currentTool(newValue, oldValue) {
-            this.$emit("tools-select-change", newValue, oldValue);
+        currentTool(newValue: ToolName, oldValue: ToolName) {
+            const old = (<Tools>this).componentMap[oldValue];
+            old.selected = false;
+            old.onDeselect();
+            const new_ = (<Tools>this).componentMap[newValue];
+            new_.selected = true;
+            new_.onSelect();
         },
     },
 })
 export default class Tools extends Vue {
     $refs!: {
         selectTool: InstanceType<typeof SelectTool>;
+        panTool: InstanceType<typeof PanTool>;
+        drawTool: InstanceType<typeof PanTool>;
+        rulerTool: InstanceType<typeof PanTool>;
+        pingTool: InstanceType<typeof PanTool>;
+        mapTool: InstanceType<typeof PanTool>;
+        filterTool: InstanceType<typeof PanTool>;
+        visionTool: InstanceType<typeof PanTool>;
     };
 
-    currentTool = "Select";
-    tools = ["Select", "Pan", "Draw", "Ruler", "Ping", "Map", "Filter", "Vision"];
-    dmTools = ["Map"];
+    private componentmap_: { [key in ToolName]: InstanceType<typeof Tool> } = <any>{};
+
+    mounted(): void {
+        this.componentmap_ = {
+            [ToolName.Select]: this.$refs.selectTool,
+            [ToolName.Pan]: this.$refs.panTool,
+            [ToolName.Draw]: this.$refs.drawTool,
+            [ToolName.Ruler]: this.$refs.rulerTool,
+            [ToolName.Ping]: this.$refs.pingTool,
+            [ToolName.Map]: this.$refs.mapTool,
+            [ToolName.Filter]: this.$refs.filterTool,
+            [ToolName.Vision]: this.$refs.visionTool,
+        };
+    }
+
+    currentTool = ToolName.Select;
+    tools = Object.values(ToolName);
+    dmTools = [ToolName.Map];
+
+    get componentMap(): { [key in ToolName]: InstanceType<typeof Tool> } {
+        return this.componentmap_;
+    }
 
     get IS_DM(): boolean {
         return gameStore.IS_DM;
     }
 
-    get currentToolComponent(): string {
-        return `${this.currentTool.toLowerCase()}-tool`;
+    getCurrentToolComponent(): Tool {
+        return this.componentMap[this.currentTool];
     }
 
     get visibleTools(): string[] {
@@ -111,24 +108,30 @@ export default class Tools extends Vue {
 
         let targetTool = this.currentTool;
         if (event.button === 1) {
-            targetTool = "Pan";
+            targetTool = ToolName.Pan;
         } else if (event.button !== 0) {
             return;
         }
 
-        this.$emit("mousedown", event, targetTool);
+        const tool = this.componentMap[targetTool];
+        tool.onMouseDown(event, []);
+        for (const permitted of tool.permittedTools)
+            this.componentMap[permitted.name].onMouseDown(event, permitted.features);
     }
     mouseup(event: MouseEvent): void {
         if ((<HTMLElement>event.target).tagName !== "CANVAS") return;
 
         let targetTool = this.currentTool;
         if (event.button === 1) {
-            targetTool = "Pan";
+            targetTool = ToolName.Pan;
         } else if (event.button !== 0) {
             return;
         }
 
-        this.$emit("mouseup", event, targetTool);
+        const tool = this.componentMap[targetTool];
+        tool.onMouseUp(event, []);
+        for (const permitted of tool.permittedTools)
+            this.componentMap[permitted.name].onMouseUp(event, permitted.features);
     }
     mousemove(event: MouseEvent): void {
         if ((<HTMLElement>event.target).tagName !== "CANVAS") return;
@@ -136,12 +139,15 @@ export default class Tools extends Vue {
         let targetTool = this.currentTool;
         // force targetTool to pan if hitting mouse wheel
         if ((event.buttons & 4) !== 0) {
-            targetTool = "Pan";
+            targetTool = ToolName.Pan;
         } else if ((event.button & 1) > 1) {
             return;
         }
 
-        this.$emit("mousemove", event, targetTool);
+        const tool = this.componentMap[targetTool];
+        tool.onMouseMove(event, []);
+        for (const permitted of tool.permittedTools)
+            this.componentMap[permitted.name].onMouseMove(event, permitted.features);
 
         // Annotation hover
         let found = false;
@@ -161,37 +167,76 @@ export default class Tools extends Vue {
     mouseleave(event: MouseEvent): void {
         // When leaving the window while a mouse is pressed down, act as if it was released
         if ((event.buttons & 1) !== 0) {
-            this.$emit("mouseup", event, this.currentTool);
+            const tool = this.componentMap[this.currentTool];
+            tool.onMouseUp(event, []);
+            for (const permitted of tool.permittedTools)
+                this.componentMap[permitted.name].onMouseUp(event, permitted.features);
         }
     }
     contextmenu(event: MouseEvent): void {
         if ((<HTMLElement>event.target).tagName !== "CANVAS") return;
         if (event.button !== 2 || (<HTMLElement>event.target).tagName !== "CANVAS") return;
-        this.$emit("contextmenu", event, this.currentTool);
+        const tool = this.componentMap[this.currentTool];
+        tool.onContextMenu(event, []);
+        for (const permitted of tool.permittedTools)
+            this.componentMap[permitted.name].onContextMenu(event, permitted.features);
     }
 
     touchstart(event: TouchEvent): void {
         if ((<HTMLElement>event.target).tagName !== "CANVAS") return;
 
-        const targetTool = this.currentTool;
+        const tool = this.componentMap[this.currentTool];
 
-        this.$emit("touchstart", event, targetTool);
+        if (event.touches.length === 2) {
+            tool.scaling = true;
+        }
+
+        if (tool.scaling) tool.onPinchStart(event, []);
+        else tool.onTouchStart(event, []);
+        for (const permitted of tool.permittedTools) {
+            const otherTool = this.componentMap[permitted.name];
+            otherTool.scaling = tool.scaling;
+            if (otherTool.scaling) otherTool.onPinchStart(event, permitted.features);
+            else otherTool.onTouchStart(event, permitted.features);
+        }
     }
 
     touchend(event: TouchEvent): void {
         if ((<HTMLElement>event.target).tagName !== "CANVAS") return;
 
-        const targetTool = this.currentTool;
+        const tool = this.componentMap[this.currentTool];
 
-        this.$emit("touchend", event, targetTool);
+        if (tool.scaling) tool.onPinchEnd(event, []);
+        else tool.onTouchEnd(event, []);
+        tool.scaling = false;
+        for (const permitted of tool.permittedTools) {
+            const otherTool = this.componentMap[permitted.name];
+            if (otherTool.scaling) otherTool.onPinchEnd(event, permitted.features);
+            else otherTool.onTouchEnd(event, permitted.features);
+            otherTool.scaling = false;
+        }
     }
 
     touchmove(event: TouchEvent): void {
         if ((<HTMLElement>event.target).tagName !== "CANVAS") return;
 
-        const targetTool = this.currentTool;
+        const tool = this.componentMap[this.currentTool];
 
-        this.$emit("touchmove", event, targetTool);
+        if (tool.scaling) {
+            event.preventDefault();
+            tool.onPinchMove(event, []);
+        } else if (event.touches.length >= 3) {
+            tool.onThreeTouchMove(event, []);
+        } else {
+            tool.onTouchMove(event, []);
+        }
+
+        for (const permitted of tool.permittedTools) {
+            const otherTool = this.componentMap[permitted.name];
+            if (otherTool.scaling) otherTool.onPinchMove(event, permitted.features);
+            else if (event.touches.length >= 3) otherTool.onThreeTouchMove(event, permitted.features);
+            else otherTool.onTouchMove(event, permitted.features);
+        }
 
         // Annotation hover
         let found = false;
@@ -210,6 +255,42 @@ export default class Tools extends Vue {
     }
 }
 </script>
+
+<template>
+    <div style="pointer-events: auto;">
+        <div id="toolselect">
+            <ul>
+                <li
+                    v-for="tool in visibleTools"
+                    :key="tool"
+                    :class="{ 'tool-selected': currentTool === tool }"
+                    :ref="tool + '-selector'"
+                    v-show="toolVisible(tool)"
+                    @mousedown="currentTool = tool"
+                >
+                    <a href="#">{{ tool }}</a>
+                </li>
+            </ul>
+        </div>
+        <div>
+            <template>
+                <SelectTool v-show="currentTool === 'Select'" ref="selectTool"></SelectTool>
+                <PanTool v-show="currentTool === 'Pan'" ref="panTool"></PanTool>
+                <keep-alive>
+                    <DrawTool v-show="currentTool === 'Draw'" ref="drawTool"></DrawTool>
+                </keep-alive>
+                <RulerTool v-show="currentTool === 'Ruler'" ref="rulerTool"></RulerTool>
+                <PingTool v-show="currentTool === 'Ping'" ref="pingTool"></PingTool>
+                <MapTool v-show="currentTool === 'Map'" ref="mapTool"></MapTool>
+                <FilterTool v-show="currentTool === 'Filter'" ref="filterTool"></FilterTool>
+                <VisionTool v-show="currentTool === 'Vision'" ref="visionTool"></VisionTool>
+                <ShapeContext ref="shapecontext"></ShapeContext>
+                <DefaultContext ref="defaultcontext"></DefaultContext>
+                <CreateTokenModal ref="createtokendialog"></CreateTokenModal>
+            </template>
+        </div>
+    </div>
+</template>
 
 <style scoped>
 #toolselect {

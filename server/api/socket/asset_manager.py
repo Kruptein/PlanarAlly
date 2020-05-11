@@ -5,8 +5,9 @@ from aiohttp import web
 from aiohttp_security import authorized_userid
 
 import auth
-from app import app, logger, sio, state
+from app import app, logger, sio
 from models import Asset
+from state.asset import asset_state
 from utils import FILE_DIR
 
 ASSETS_DIR = FILE_DIR / "static" / "assets"
@@ -15,19 +16,19 @@ if not ASSETS_DIR.exists():
 
 
 @sio.on("connect", namespace="/pa_assetmgmt")
-async def assetmgmt_connect(sid, environ):
+async def assetmgmt_connect(sid: int, environ):
     user = await authorized_userid(environ["aiohttp.request"])
     if user is None:
         await sio.emit("redirect", "/", room=sid, namespace="/pa_assetmgmt")
     else:
-        state.add_sid(sid, user=user)
+        await asset_state.add_sid(sid, user)
         root = Asset.get_root_folder(user)
         await sio.emit("Folder.Root.Set", root.id, room=sid, namespace="/pa_assetmgmt")
 
 
 @sio.on("Folder.Get", namespace="/pa_assetmgmt")
-async def get_folder(sid, folder=None):
-    user = state.sid_map[sid]["user"]
+async def get_folder(sid: int, folder=None):
+    user = asset_state.get_user(sid)
 
     if folder is None:
         folder = Asset.get_root_folder(user)
@@ -45,8 +46,8 @@ async def get_folder(sid, folder=None):
 
 
 @sio.on("Folder.GetByPath", namespace="/pa_assetmgmt")
-async def get_folder_by_path(sid, folder):
-    user = state.sid_map[sid]["user"]
+async def get_folder_by_path(sid: int, folder):
+    user = asset_state.get_user(sid)
 
     folder = folder.strip("/")
     target_folder = Asset.get_root_folder(user)
@@ -55,8 +56,11 @@ async def get_folder_by_path(sid, folder):
 
     if folder:
         for path in folder.split("/"):
-            target_folder = target_folder.get_child(path)
-            idPath.append(target_folder.id)
+            try:
+                target_folder = target_folder.get_child(path)
+                idPath.append(target_folder.id)
+            except Asset.DoesNotExist:
+                return await get_folder_by_path(sid, "/")
 
     await sio.emit(
         "Folder.Set",
@@ -68,8 +72,8 @@ async def get_folder_by_path(sid, folder):
 
 @sio.on("Folder.Create", namespace="/pa_assetmgmt")
 @auth.login_required(app, sio)
-async def create_folder(sid, data):
-    user = state.sid_map[sid]["user"]
+async def create_folder(sid: int, data):
+    user = asset_state.get_user(sid)
     parent = data.get("parent", None)
     if parent is None:
         parent = Asset.get_root_folder(user)
@@ -81,8 +85,8 @@ async def create_folder(sid, data):
 
 @sio.on("Inode.Move", namespace="/pa_assetmgmt")
 @auth.login_required(app, sio)
-async def move_inode(sid, data):
-    user = state.sid_map[sid]["user"]
+async def move_inode(sid: int, data):
+    user = asset_state.get_user(sid)
     target = data.get("target", None)
     if target is None:
         target = Asset.get_root_folder(user)
@@ -97,8 +101,8 @@ async def move_inode(sid, data):
 
 @sio.on("Asset.Rename", namespace="/pa_assetmgmt")
 @auth.login_required(app, sio)
-async def assetmgmt_rename(sid, data):
-    user = state.sid_map[sid]["user"]
+async def assetmgmt_rename(sid: int, data):
+    user = asset_state.get_user(sid)
     asset = Asset[data["asset"]]
     if asset.owner != user:
         logger.warning(f"{user.name} attempted to rename a file it doesn't own.")
@@ -109,31 +113,38 @@ async def assetmgmt_rename(sid, data):
 
 @sio.on("Asset.Remove", namespace="/pa_assetmgmt")
 @auth.login_required(app, sio)
-async def assetmgmt_rm(sid, data):
-    user = state.sid_map[sid]["user"]
+async def assetmgmt_rm(sid: int, data):
+    user = asset_state.get_user(sid)
     asset = Asset[data]
     if asset.owner != user:
         logger.warning(f"{user.name} attempted to remove a file it doesn't own.")
         return
     asset.delete_instance(recursive=True, delete_nullable=True)
 
+    if asset.file_hash is not None and (ASSETS_DIR / asset.file_hash).exists():
+        if Asset.select().where(Asset.file_hash == asset.file_hash).count() == 0:
+            logger.info(
+                f"No asset maps to file {asset.file_hash}, removing from server"
+            )
+            (ASSETS_DIR / asset.file_hash).unlink()
+
 
 @sio.on("Asset.Upload", namespace="/pa_assetmgmt")
 @auth.login_required(app, sio)
-async def assetmgmt_upload(sid, file_data):
+async def assetmgmt_upload(sid: int, file_data):
     uuid = file_data["uuid"]
 
-    if uuid not in state.pending_file_upload_cache:
-        state.pending_file_upload_cache[uuid] = {}
-    state.pending_file_upload_cache[uuid][file_data["slice"]] = file_data
-    if len(state.pending_file_upload_cache[uuid]) != file_data["totalSlices"]:
+    if uuid not in asset_state.pending_file_upload_cache:
+        asset_state.pending_file_upload_cache[uuid] = {}
+    asset_state.pending_file_upload_cache[uuid][file_data["slice"]] = file_data
+    if len(asset_state.pending_file_upload_cache[uuid]) != file_data["totalSlices"]:
         # wait for the rest of the slices
         return
 
     # All slices are present
     data = b""
     for slice_ in range(file_data["totalSlices"]):
-        data += state.pending_file_upload_cache[uuid][slice_]["data"]
+        data += asset_state.pending_file_upload_cache[uuid][slice_]["data"]
 
     sh = hashlib.sha1(data)
     hashname = sh.hexdigest()
@@ -142,10 +153,9 @@ async def assetmgmt_upload(sid, file_data):
         with open(ASSETS_DIR / hashname, "wb") as f:
             f.write(data)
 
-    del state.pending_file_upload_cache[uuid]
+    del asset_state.pending_file_upload_cache[uuid]
 
-    sid_data = state.sid_map[sid]
-    user = sid_data["user"]
+    user = asset_state.get_user(sid)
 
     asset = Asset.create(
         name=file_data["name"],

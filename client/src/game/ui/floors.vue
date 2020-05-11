@@ -1,42 +1,3 @@
-<template>
-    <div>
-        <div id="floor" @click="selected = !selected" v-if="floors.length > 1 || IS_DM">
-            <ul>
-                <li>
-                    <a href="#">{{ selectedFloorIndex }}</a>
-                </li>
-            </ul>
-        </div>
-        <div id="floor-detail" v-if="selected">
-            <template v-for="[index, floor] of floors.entries()">
-                <div class="floor-row" :key="floor" @click="selectFloor(index)">
-                    <div class="floor-index">
-                        <template v-if="index == selectedFloorIndex">></template>
-                        {{ index }}
-                    </div>
-                    <div class="floor-name">{{ floor }}</div>
-                    <div class="floor-actions" v-show="floors.length > 1">
-                        <div @click.stop="removeFloor(index)"><i class="fas fa-trash-alt"></i></div>
-                    </div>
-                </div>
-            </template>
-            <div class="floor-add" @click="addFloor">Add new floor</div>
-        </div>
-        <div id="layerselect" v-show="layers.length > 1">
-            <ul>
-                <li
-                    v-for="layer in layers"
-                    :key="layer"
-                    :class="{ 'layer-selected': layer === selectedLayer }"
-                    @mousedown="selectLayer(layer)"
-                >
-                    <a href="#">{{ layer }}</a>
-                </li>
-            </ul>
-        </div>
-    </div>
-</template>
-
 <script lang="ts">
 import Vue from "vue";
 import Component from "vue-class-component";
@@ -72,12 +33,16 @@ export default class FloorSelect extends Vue {
         return gameStore.selectedLayer;
     }
 
+    get showFloorSelector(): boolean {
+        return this.floors.length > 1 || this.IS_DM;
+    }
+
     selectLayer(layer: string): void {
         layerManager.selectLayer(layer);
     }
 
     async addFloor(): Promise<void> {
-        const value = await (<Game>this.$parent).$refs.prompt.prompt("New floor name", "Floor Creation");
+        const value = await (<Game>this.$parent.$parent).$refs.prompt.prompt("New floor name", "Floor Creation");
         if (value === undefined) return;
         socket.emit("Floor.Create", value);
     }
@@ -89,7 +54,11 @@ export default class FloorSelect extends Vue {
     async removeFloor(index: number): Promise<void> {
         if (this.floors.length <= 1) return;
         const floor = gameStore.floors[index];
-        if (!(await (<Game>this.$parent).$refs.confirm.open(`Are you sure you wish to remove the ${floor} floor?`)))
+        if (
+            !(await (<Game>this.$parent.$parent).$refs.confirm.open(
+                `Are you sure you wish to remove the ${floor} floor?`,
+            ))
+        )
             return;
         socket.emit("Floor.Remove", floor);
         removeFloor(floor);
@@ -97,71 +66,91 @@ export default class FloorSelect extends Vue {
 }
 </script>
 
+<template>
+    <div id="floor-layer">
+        <div id="floor-selector" @click="selected = !selected" v-if="showFloorSelector">
+            <a href="#">{{ selectedFloorIndex }}</a>
+        </div>
+        <div id="floor-detail" v-if="selected">
+            <template v-for="[index, floor] of floors.entries()">
+                <div class="floor-row" :key="floor" @click="selectFloor(index)">
+                    <div class="floor-index">
+                        <template v-if="index == selectedFloorIndex">></template>
+                        {{ index }}
+                    </div>
+                    <div class="floor-name">{{ floor }}</div>
+                    <div class="floor-actions" v-show="floors.length > 1">
+                        <div @click.stop="removeFloor(index)" title="Delete floor">
+                            <i class="fas fa-trash-alt"></i>
+                        </div>
+                    </div>
+                </div>
+            </template>
+            <div class="floor-add" @click="addFloor">Add new floor</div>
+        </div>
+        <div style="display:contents" v-show="layers.length > 1">
+            <div
+                v-for="layer in layers"
+                class="layer"
+                :key="layer"
+                :class="{ 'layer-selected': layer === selectedLayer }"
+                @mousedown="selectLayer(layer)"
+            >
+                <a href="#">{{ layer }}</a>
+            </div>
+        </div>
+    </div>
+</template>
+
 <style scoped>
-#floor {
-    position: absolute;
-    bottom: 25px;
-    left: 25px;
-    z-index: 10;
+#floor-layer {
+    grid-area: layer;
+    display: flex;
+    list-style: none;
+    margin-left: 25px;
+    margin-bottom: 25px;
+    pointer-events: auto;
 }
 
-#layerselect {
-    position: absolute;
-    bottom: 25px;
-    left: 75px;
-    z-index: 10;
-}
-
-#layerselect *,
-#floor * {
+#floor-layer * {
     user-select: none !important;
     -webkit-user-drag: none !important;
 }
 
-#layerselect ul,
-#floor ul {
-    display: flex;
-    list-style: none;
-    padding: 0;
-    margin: 0;
-    border: solid 1px #82c8a0;
-    border-radius: 6px;
+#floor-selector {
+    margin-right: 50px;
+    border-radius: 4px;
 }
 
-#layerselect li,
-#floor li {
-    display: flex;
+#floor-selector,
+.layer {
     background-color: #eee;
     border-right: solid 1px #82c8a0;
 }
 
-#floor li {
-    border-radius: 4px;
-}
-
-#layerselect li:first-child {
-    border-radius: 4px 0px 0px 4px; /* Border radius needs to be two less than the actual border, otherwise there will be a gap */
-}
-
-#layerselect li:last-child {
-    border-right: none;
-    border-radius: 0px 4px 4px 0px;
-}
-
-#layerselect li:hover,
-#floor li:hover {
+#floor-selector:hover,
+.layer:hover,
+.layer-selected {
     background-color: #82c8a0;
 }
 
-#layerselect li a,
-#floor li a {
-    display: flex;
+a {
     padding: 10px;
     text-decoration: none;
+    display: inline-block;
 }
 
-#layerselect .layer-selected {
-    background-color: #82c8a0;
+.layer {
+    border: solid 1px #82c8a0;
+    border-left: none;
+}
+
+.layer:first-of-type {
+    border-radius: 4px 0 0 4px;
+}
+
+.layer:last-of-type {
+    border-radius: 0 4px 4px 0;
 }
 
 #floor-detail {

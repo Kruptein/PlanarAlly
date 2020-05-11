@@ -1,6 +1,6 @@
-import tinycolor from "tinycolor2";
-
 import { LocalPoint } from "@/game/geom";
+import tinycolor from "tinycolor2";
+import { gameSettingsStore } from "./settings";
 import { gameStore } from "./store";
 
 export function getLocalPointFromEvent(e: any): LocalPoint {
@@ -26,7 +26,7 @@ function getTouch(e: TouchEvent): LocalPoint {
 
 export function getFogColour(opposite = false): string {
     const tc = tinycolor(gameStore.fowColour);
-    if (gameStore.IS_DM) tc.setAlpha(opposite ? 1 : gameStore.fowOpacity);
+    if (gameStore.IS_DM) tc.setAlpha(opposite ? 1 : gameSettingsStore.fowOpacity);
     else tc.setAlpha(1);
     return tc.toRgbString();
 }
@@ -47,4 +47,8 @@ export function equalPoint(a: number, b: number, delta = 0.0001): boolean {
 
 export function equalPoints(a: number[], b: number[]): boolean {
     return equalPoint(a[0], b[0]) && equalPoint(a[1], b[1]);
+}
+
+export function useSnapping(event: MouseEvent | TouchEvent): boolean {
+    return gameStore.invertAlt === event.altKey;
 }

@@ -4,7 +4,7 @@ from functools import wraps
 
 from models import Constants, User
 
-logger = logging.getLogger('PlanarAllyServer')
+logger = logging.getLogger("PlanarAllyServer")
 
 
 class AuthPolicy(AbstractAuthorizationPolicy):
@@ -33,15 +33,20 @@ def login_required(app, sio):
     """
     Decorator that restrict access only for authorized users in a websocket context.
     """
+
     def real_decorator(fn):
         @wraps(fn)
         async def wrapped(*args, **kwargs):
             sid = args[0]
-            if sid not in app['state'].sid_map:
+            if not app["state"]["asset"].has_sid(sid) and not app["state"][
+                "game"
+            ].has_sid(sid):
                 await sio.emit("redirect", "/")
                 return
             return await fn(*args, **kwargs)
+
         return wrapped
+
     return real_decorator
 
 

@@ -1,13 +1,13 @@
 import { InvalidationMode, SyncMode } from "@/core/comm/types";
 import { Layer } from "@/game/layers/layer";
 import { layerManager } from "@/game/layers/manager";
-import { Settings } from "@/game/settings";
 import { Circle } from "@/game/shapes/circle";
 import { Shape } from "@/game/shapes/shape";
 import { gameStore } from "@/game/store";
 import { g2l, g2lr, g2lx, g2ly, g2lz, getUnitDistance } from "@/game/units";
 import { getFogColour } from "@/game/utils";
 import { getVisionSources } from "@/game/visibility/utils";
+import { gameSettingsStore } from "../settings";
 import { TriangulationTarget } from "../visibility/te/pa";
 import { computeVisibility } from "../visibility/te/te";
 
@@ -23,6 +23,16 @@ export class FOWLayer extends Layer {
         this.virtualCanvas.width = window.innerWidth;
         this.virtualCanvas.height = window.innerHeight;
         this.vCtx = this.virtualCanvas.getContext("2d")!;
+    }
+
+    set width(width: number) {
+        super.width = width;
+        this.virtualCanvas.width = width;
+    }
+
+    set height(height: number) {
+        super.height = height;
+        this.virtualCanvas.height = height;
     }
 
     addShape(shape: Shape, sync: SyncMode, invalidate: InvalidationMode, snappable = true): void {
@@ -44,21 +54,10 @@ export class FOWLayer extends Layer {
         if (!this.valid) {
             const ctx = this.ctx;
 
-            if (Settings.skipLightFOW) {
-                ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-                this.valid = true;
-                return;
-            }
-
             const originalOperation = ctx.globalCompositeOperation;
             ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
             ctx.fillStyle = "rgba(0, 0, 0, 1)";
-
-            const dctx = layerManager.getLayer(this.floor, "draw")!.ctx;
-            if (Settings.drawAngleLines || Settings.drawFirstLightHit) {
-                dctx.clearRect(0, 0, dctx.canvas.width, dctx.canvas.height);
-            }
 
             const activeFloorName = gameStore.floors[gameStore.selectedFloorIndex];
 
@@ -88,12 +87,12 @@ export class FOWLayer extends Layer {
 
             // At all times provide a minimal vision range to prevent losing your tokens in fog.
             if (
-                gameStore.fullFOW &&
+                gameSettingsStore.fullFow &&
                 layerManager.hasLayer(this.floor, "tokens") &&
                 this.floor === gameStore.floors[gameStore.selectedFloorIndex]
             ) {
                 for (const sh of layerManager.getLayer(this.floor, "tokens")!.shapes) {
-                    if (!sh.ownedBy() || !sh.isToken) continue;
+                    if (!sh.ownedBy({ visionAccess: true }) || !sh.isToken) continue;
                     const bb = sh.getBoundingBox();
                     const lcenter = g2l(sh.center());
                     const alm = 0.8 * g2lz(bb.w);
@@ -115,6 +114,8 @@ export class FOWLayer extends Layer {
                 if (shape === undefined) continue;
                 const aura = shape.auras.find(a => a.uuid === light.aura);
                 if (aura === undefined) continue;
+
+                if (!shape.ownedBy({ visionAccess: true }) && !aura.visible) continue;
 
                 const auraLength = getUnitDistance(aura.value + aura.dim);
                 const center = shape.center();
@@ -156,7 +157,7 @@ export class FOWLayer extends Layer {
                 // shape.invalidate(true);
             }
 
-            if (gameStore.fowLOS && this.floor === activeFloorName) {
+            if (gameSettingsStore.fowLos && this.floor === activeFloorName) {
                 ctx.globalCompositeOperation = "source-in";
                 ctx.drawImage(layerManager.getLayer(this.floor, "fow-players")!.canvas, 0, 0);
             }
@@ -164,7 +165,7 @@ export class FOWLayer extends Layer {
             for (const preShape of this.preFogShapes) {
                 if (!preShape.visibleInCanvas(this.canvas)) continue;
                 const ogComposite = preShape.globalCompositeOperation;
-                if (!gameStore.fullFOW) {
+                if (!gameSettingsStore.fullFow) {
                     if (preShape.globalCompositeOperation === "source-over")
                         preShape.globalCompositeOperation = "destination-out";
                     else if (preShape.globalCompositeOperation === "destination-out")
@@ -174,7 +175,7 @@ export class FOWLayer extends Layer {
                 preShape.globalCompositeOperation = ogComposite;
             }
 
-            if (gameStore.fullFOW && this.floor === activeFloorName) {
+            if (gameSettingsStore.fullFow && this.floor === activeFloorName) {
                 ctx.globalCompositeOperation = "source-out";
                 ctx.fillStyle = getFogColour();
                 ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);

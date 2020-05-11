@@ -1,11 +1,12 @@
 {
     "name": "planarally-client",
-    "version": "0.19.3",
+    "version": "0.20.0",
     "description": "A companion tool for when you travel into the planes.",
     "scripts": {
         "serve": "vue-cli-service serve",
         "build": "npm run clean && vue-cli-service build --no-clean --modern",
         "lint": "vue-cli-service lint",
+        "lint:ci": "vue-cli-service lint --no-fix",
         "clean": "rimraf ../server/static/js/ && rimraf ../server/static/css/",
         "test": "vue-cli-service test:unit",
         "test:coverage": "vue-cli-service test:unit --coverage"
@@ -35,7 +36,7 @@
         "@typescript-eslint/parser": "^2.15.0",
         "@vue/cli-plugin-babel": "~4.2.2",
         "@vue/cli-plugin-eslint": "~4.2.2",
-        "@vue/cli-plugin-typescript": "~4.2.2",
+        "@vue/cli-plugin-typescript": "^4.3.0",
         "@vue/cli-plugin-unit-jest": "~4.2.2",
         "@vue/cli-service": "~4.2.2",
         "@vue/eslint-config-prettier": "^5.0.0",

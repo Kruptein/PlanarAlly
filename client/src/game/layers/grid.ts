@@ -1,5 +1,6 @@
 import { Layer } from "@/game/layers/layer";
 import { gameStore } from "@/game/store";
+import { gameSettingsStore } from "../settings";
 import { layerManager } from "./manager";
 
 export class GridLayer extends Layer {
@@ -7,11 +8,12 @@ export class GridLayer extends Layer {
         this.valid = false;
     }
     show(): void {
-        if (gameStore.useGrid) this.canvas.style.removeProperty("display");
+        if (gameSettingsStore.useGrid && this.floor === layerManager.floor?.name)
+            this.canvas.style.removeProperty("display");
     }
     draw(_doClear?: boolean): void {
         if (!this.valid) {
-            if (gameStore.useGrid) {
+            if (gameSettingsStore.useGrid) {
                 const activeFowFloorName = layerManager.floor?.name;
 
                 if (this.floor === activeFowFloorName && this.canvas.style.display === "none")
@@ -23,7 +25,10 @@ export class GridLayer extends Layer {
                 this.clear();
                 ctx.beginPath();
 
-                const gs = gameStore.gridSize;
+                const gs = gameSettingsStore.gridSize;
+                if (gs <= 0 || gs === undefined) {
+                    throw new Error("Grid size is not set, while grid is enabled.");
+                }
 
                 for (let i = 0; i < this.width; i += gs * gameStore.zoomFactor) {
                     ctx.moveTo(i + (gameStore.panX % gs) * gameStore.zoomFactor, 0);

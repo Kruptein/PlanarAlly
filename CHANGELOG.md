@@ -7,6 +7,62 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+## [0.20.0] - 2020-05-11
+
+### Added
+
+-   configuration option to specify allowed CORS origins
+-   alt modifier can be used to disable draw/resize snapping
+-   Client option to invert the ALT behaviour (i.e. invert snapping behaviour)
+-   Logo, version info and some urls to the topleft section which is only visible if both locations bar and menu are opened
+-   Search bar to asset menu
+-   Some basic tooltips to icons
+-   Tiered configuration. Configuration file in the data directory takes precedence over one in the folder with server files. Useful for docker deployments to keep the configuration in a volume
+-   Use spacebar to cycle between your owned tokens
+-   Aspect ratio lock with ctrl modifier
+-   Progressbar to the asset manager
+-   Location rename
+-   Location removal
+-   Upon floor change all players with edit access will auto move to the same floor
+-   Set any shape as marker and jump to that position from the sidebar [LDeeJay1969]
+
+### Changed
+
+-   Shape access
+    -   Now uses a dropdown prefilled with players so you no longer need to manually type it
+    -   Option to choose full edit access or only vision access
+    -   Default access to specify behaviour for non selected players
+-   Map tool UX
+    -   Now gives a bit more information on how to use it
+    -   After making a selection you can adjust it to better fit your needs
+    -   Choose the X/Y numbers after selecting the shape
+    -   The center of the drawn resize rectangle now will remain in the exact same place after resize. This prevents sudden map jump.
+-   Shape resizing
+    -   Now only snaps the point you're resizing instead of an awkward complete shape resize
+-   Location bar reworked
+    -   Move around as a DM without bringing your players along
+    -   shows which players are in which location
+    -   now has UI to move groups of players as a whole or individually to other locations
+-   Location settings
+    -   DM options is now used to configure the default settings
+    -   Locations have their own setting menu to override the defaults
+-   Default brush size is now 1/10th of the grid size instead of the full grid size
+
+### Fixed
+
+-   Polygon width now properly taken into account when trying to select it
+-   Floor/Layer bar now moves along with the side menu when opened
+-   Side menu and locations menu no longer overlap
+-   Window resizing messing with the lighting borders
+-   Previous prompt values are now cleared before showing a new prompt
+-   Asset manager not showing uploaded files until refreshed
+-   Asset manager contextmenu not rendering correctly when scrolling down
+-   Grid layers of al lower floors being visible
+-   DM being able to invite themselves to the room as a player
+-   Removing a file in the asset manager now deletes the file on the server
+-   Draw tool no longer delays rendering brush helper after layer/floor change
+-   Active floor is remembered upon rejoining the session
+
 ## [0.19.3] - 2020-04-01
 
 ### Fixed

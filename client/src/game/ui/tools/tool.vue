@@ -1,19 +1,25 @@
-<template>
-    <div></div>
-</template>
-
 <script lang="ts">
 import Vue from "vue";
 import Component from "vue-class-component";
 
 import DefaultContext from "@/game/ui/tools/defaultcontext.vue";
+import { ToolName, ToolPermission } from "./utils";
 
 @Component
 export default class Tool extends Vue {
-    name = "";
+    name: ToolName | null = null;
     selected = false;
     active = false;
     scaling = false;
+
+    get permittedTools(): ToolPermission[] {
+        return [];
+    }
+
+    hasFeature(feature: number, features: number[]): boolean {
+        return features.length === 0 || features.includes(feature);
+    }
+
     get detailRight(): string {
         const rect = (<any>this.$parent.$refs[this.name + "-selector"])[0].getBoundingClientRect();
         const mid = rect.left + rect.width / 2;
@@ -26,89 +32,28 @@ export default class Tool extends Vue {
         const right = Math.min(window.innerWidth - 25, mid + 75);
         return `${right - mid - 14}px`; // border width
     }
-    created(): void {
-        this.$parent.$on("mousedown", (event: MouseEvent, tool: string) => {
-            if (tool === this.name) this.onMouseDown(event);
-        });
-        this.$parent.$on("mouseup", (event: MouseEvent, tool: string) => {
-            if (tool === this.name) this.onMouseUp(event);
-        });
-        this.$parent.$on("mousemove", (event: MouseEvent, tool: string) => {
-            if (tool === this.name) this.onMouseMove(event);
-        });
-        this.$parent.$on("touchstart", (event: TouchEvent, tool: string) => {
-            // a different tool cant trigger anothers event
-            if (tool !== this.name) {
-                return;
-            }
-            if (event.touches.length === 2) {
-                this.scaling = true;
-                this.onPinchStart(event);
-            } else {
-                this.onTouchStart(event);
-            }
-        });
-        this.$parent.$on("touchend", (event: TouchEvent, tool: string) => {
-            // a different tool cant trigger anothers event
-            if (tool !== this.name) {
-                return;
-            }
 
-            if (this.scaling) {
-                this.onPinchEnd(event);
-                this.scaling = false;
-            } else {
-                this.onTouchEnd(event);
-            }
-        });
-        this.$parent.$on("touchmove", (event: TouchEvent, tool: string) => {
-            // a different tool cant trigger anothers event
-            if (tool !== this.name) {
-                return;
-            }
-
-            if (this.scaling) {
-                event.preventDefault();
-                this.onPinchMove(event);
-            }
-
-            // determine the number of fingers on screen to trigger different events
-            if (event.touches.length >= 3) {
-                this.onThreeTouchMove(event);
-            } else {
-                this.onTouchMove(event);
-            }
-        });
-        this.$parent.$on("contextmenu", (event: MouseEvent, tool: string) => {
-            if (tool === this.name) this.onContextMenu(event);
-        });
-        this.$parent.$on("tools-select-change", (newValue: string, oldValue: string) => {
-            if (oldValue === this.name) {
-                this.selected = false;
-                this.onDeselect();
-            } else if (newValue === this.name) {
-                this.selected = true;
-                this.onSelect();
-            }
-        });
-    }
     onSelect(): void {}
     onDeselect(): void {}
-    onMouseDown(_event: MouseEvent): void {}
-    onMouseUp(_event: MouseEvent): void {}
-    onMouseMove(_event: MouseEvent): void {}
-    onTouchStart(_event: TouchEvent): void {}
-    onTouchEnd(_event: TouchEvent): void {}
-    onTouchMove(_event: TouchEvent): void {}
-    onThreeTouchMove(_event: TouchEvent): void {}
-    onPinchStart(_event: TouchEvent): void {}
-    onPinchMove(_event: TouchEvent): void {}
-    onPinchEnd(_event: TouchEvent): void {}
-    onContextMenu(event: MouseEvent): void {
+    onMouseDown(_event: MouseEvent, _features: number[]): void {}
+    onMouseUp(_event: MouseEvent, _features: number[]): void {}
+    onMouseMove(_event: MouseEvent, _features: number[]): void {}
+    onTouchStart(_event: TouchEvent, _features: number[]): void {}
+    onTouchEnd(_event: TouchEvent, _features: number[]): void {}
+    onTouchMove(_event: TouchEvent, _features: number[]): void {}
+    onThreeTouchMove(_event: TouchEvent, _features: number[]): void {}
+    onPinchStart(_event: TouchEvent, _features: number[]): void {}
+    onPinchMove(_event: TouchEvent, _features: number[]): void {}
+    onPinchEnd(_event: TouchEvent, _features: number[]): void {}
+    onContextMenu(event: MouseEvent, _features: number[]): void {
         (<DefaultContext>this.$parent.$refs.defaultcontext).open(event);
     }
 }
 </script>
+
+<template>
+    <div></div>
+</template>
 
 <style>
 .tool-detail {

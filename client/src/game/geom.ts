@@ -4,10 +4,21 @@ A strong focus is made to ensure that at no time a global and a local point are 
 At first glance this adds weird looking hacks as ts does not support nominal typing.
 */
 
-export function getPointDistance(p1: Point, p2: Point): number {
+export function getPointDistance(p1: Point | Vector, p2: Point | Vector): number {
     const a = p1.x - p2.x;
     const b = p1.y - p2.y;
     return Math.sqrt(a * a + b * b);
+}
+
+export function getDistanceToSegment(p: Point, line: [Point, Point]): number {
+    const lineVector = Vector.fromPoints(...line);
+    const pointVector = Vector.fromPoints(line[0], p);
+    const pointVectorScaled = pointVector.multiply(1 / lineVector.length());
+    let t = lineVector.normalize().dot(pointVectorScaled);
+    if (t < 0) t = 0;
+    else if (t > 1) t = 1;
+    const nearest = lineVector.multiply(t);
+    return getPointDistance(nearest, pointVector);
 }
 
 export class Point {
@@ -36,8 +47,8 @@ export class Point {
     asArray(): number[] {
         return [this.x, this.y];
     }
-    equals(other: GlobalPoint): boolean {
-        return this.x === other.x && this.y === other.y;
+    equals(other: GlobalPoint, delta = 0.0001): boolean {
+        return Math.abs(this.x - other.x) < delta && Math.abs(this.y - other.y) < delta;
     }
 }
 export class GlobalPoint extends Point {
@@ -64,6 +75,9 @@ export class Vector {
         this.x = x;
         this.y = y;
     }
+    static fromPoints(p1: Point, p2: Point): Vector {
+        return new Vector(p2.x - p1.x, p2.y - p1.y);
+    }
     dot(other: Vector): number {
         return this.x * other.x + this.y * other.y;
     }
@@ -82,6 +96,9 @@ export class Vector {
     }
     reverse(): Vector {
         return new Vector(-this.x, -this.y);
+    }
+    add(other: Vector): Vector {
+        return new Vector(this.x + other.x, this.y + other.y);
     }
     multiply(scale: number): Vector {
         return new Vector(this.x * scale, this.y * scale);

@@ -13,8 +13,6 @@ import { drawAuras } from "../shapes/aura";
 
 export class Layer {
     name: string;
-    width: number;
-    height: number;
     canvas: HTMLCanvasElement;
     ctx: CanvasRenderingContext2D;
     floor: string;
@@ -42,8 +40,6 @@ export class Layer {
     constructor(canvas: HTMLCanvasElement, name: string, floor: string) {
         this.canvas = canvas;
         this.name = name;
-        this.width = canvas.width;
-        this.height = canvas.height;
         this.ctx = canvas.getContext("2d")!;
         this.floor = floor;
     }
@@ -53,6 +49,22 @@ export class Layer {
         if (!skipLightUpdate) {
             layerManager.invalidateLight(this.floor);
         }
+    }
+
+    get width(): number {
+        return this.canvas.width;
+    }
+
+    set width(width: number) {
+        this.canvas.width = width;
+    }
+
+    get height(): number {
+        return this.canvas.height;
+    }
+
+    set height(height: number) {
+        this.canvas.height = height;
     }
 
     addShape(shape: Shape, sync: SyncMode, invalidate: InvalidationMode, snappable = true): void {
@@ -68,7 +80,7 @@ export class Layer {
                 this.points.set(strp, (this.points.get(strp) || new Set()).add(shape.uuid));
             }
         }
-        if (shape.ownedBy(gameStore.username) && shape.isToken) gameStore.ownedtokens.push(shape.uuid);
+        if (shape.ownedBy({ visionAccess: true }) && shape.isToken) gameStore.ownedtokens.push(shape.uuid);
         if (shape.annotation.length) gameStore.annotations.push(shape.uuid);
         if (sync !== SyncMode.NO_SYNC)
             socket.emit("Shape.Add", { shape: shape.asDict(), temporary: sync === SyncMode.TEMP_SYNC });
@@ -136,6 +148,7 @@ export class Layer {
         if (ownedIndex >= 0) gameStore.ownedtokens.splice(ownedIndex, 1);
 
         layerManager.UUIDMap.delete(shape.uuid);
+        gameStore.removeMarker({ marker: shape.uuid, sync: true });
 
         for (const point of shape.points) {
             const strp = JSON.stringify(point);

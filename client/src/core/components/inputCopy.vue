@@ -1,13 +1,3 @@
-<template>
-    <div id="input-copy" @mouseleave="showPopup = false">
-        <input type="text" disabled="disabled" :value="value" id="input-element" />
-        <div v-show="showPopup" id="show-popup">{{ popupString }}</div>
-        <div id="copy-button" @click="copy">
-            <i class="far fa-copy"></i>
-        </div>
-    </div>
-</template>
-
 <script lang="ts">
 import Vue from "vue";
 import Component from "vue-class-component";
@@ -34,6 +24,16 @@ export default class InputCopyElement extends Vue {
     }
 }
 </script>
+
+<template>
+    <div id="input-copy" @mouseleave="showPopup = false">
+        <input type="text" disabled="disabled" :value="value" id="input-element" />
+        <div v-show="showPopup" id="show-popup">{{ popupString }}</div>
+        <div id="copy-button" @click="copy" title="Copy">
+            <i class="far fa-copy"></i>
+        </div>
+    </div>
+</template>
 
 <style scoped>
 #input-copy {

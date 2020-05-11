@@ -1,60 +1,3 @@
-<template>
-    <div id="formcontainer">
-        <form>
-            <fieldset>
-                <legend class="legend">Your sessions</legend>
-                <div class="input">
-                    <router-link
-                        v-for="(room, i) in owned"
-                        :key="'o-' + i"
-                        :to="'/game/' + encodeURIComponent(room[1]) + '/' + encodeURIComponent(room[0])"
-                    >
-                        {{ room[0] }}
-                    </router-link>
-                    <router-link
-                        v-for="(room, i) in joined"
-                        :key="'j-' + i"
-                        :to="'/game/' + encodeURIComponent(room[1]) + '/' + encodeURIComponent(room[0])"
-                    >
-                        {{ room[1] }}/{{ room[0] }}
-                    </router-link>
-                </div>
-                <div class="input" v-if="owned.length === 0 && joined.length === 0">No active sessions</div>
-            </fieldset>
-        </form>
-        <h4>
-            <span>OR</span>
-        </h4>
-        <form @submit.prevent="createRoom">
-            <fieldset>
-                <legend v-if="!owned && !joined" class="legend">Create a session</legend>
-                <div v-else class="input">Create a new session</div>
-                <div class="input">
-                    <input type="text" v-model="newSessionName" name="room_name" placeholder="Session Name" />
-                    <span>
-                        <i class="fab fa-d-and-d"></i>
-                    </span>
-                </div>
-                <button type="submit" class="submit" title="Create">
-                    <i class="fas fa-arrow-right"></i>
-                </button>
-            </fieldset>
-        </form>
-        <div id="account-options">
-            <form @submit.prevent>
-                <router-link tag="button" class="submit" title="Account Settings" to="/settings">
-                    <i class="fas fa-cog"></i>
-                </router-link>
-            </form>
-            <form @submit.prevent>
-                <router-link tag="button" class="submit" title="Logout" to="/auth/logout">
-                    <i class="fas fa-sign-out-alt"></i>
-                </router-link>
-            </form>
-        </div>
-    </div>
-</template>
-
 <script lang="ts">
 import Vue from "vue";
 import Component from "vue-class-component";
@@ -98,8 +41,84 @@ export default class Dashboard extends Vue {
             this.error = response.statusText;
         }
     }
+
+    get version(): string {
+        return coreStore.version;
+    }
+
+    get githubUrl(): string {
+        const spl = this.version.split("-");
+        if (spl.length > 1) {
+            return "https://github.com/Kruptein/PlanarAlly/commit/" + spl[spl.length - 1].slice(1);
+        } else {
+            return "https://github.com/Kruptein/PlanarAlly/releases/tag/" + this.version;
+        }
+    }
 }
 </script>
+
+<template>
+    <div style="display:contents">
+        <div id="formcontainer">
+            <form>
+                <fieldset>
+                    <legend class="legend">Your sessions</legend>
+                    <div class="input">
+                        <router-link
+                            v-for="(room, i) in owned"
+                            :key="'o-' + i"
+                            :to="'/game/' + encodeURIComponent(room[1]) + '/' + encodeURIComponent(room[0])"
+                        >
+                            {{ room[0] }}
+                        </router-link>
+                        <router-link
+                            v-for="(room, i) in joined"
+                            :key="'j-' + i"
+                            :to="'/game/' + encodeURIComponent(room[1]) + '/' + encodeURIComponent(room[0])"
+                        >
+                            {{ room[1] }}/{{ room[0] }}
+                        </router-link>
+                    </div>
+                    <div class="input" v-if="owned.length === 0 && joined.length === 0">No active sessions</div>
+                </fieldset>
+            </form>
+            <h4>
+                <span>OR</span>
+            </h4>
+            <form @submit.prevent="createRoom">
+                <fieldset>
+                    <legend v-if="!owned && !joined" class="legend">Create a session</legend>
+                    <div v-else class="input">Create a new session</div>
+                    <div class="input">
+                        <input type="text" v-model="newSessionName" name="room_name" placeholder="Session Name" />
+                        <span>
+                            <i class="fab fa-d-and-d"></i>
+                        </span>
+                    </div>
+                    <button type="submit" class="submit" title="Create">
+                        <i class="fas fa-arrow-right"></i>
+                    </button>
+                </fieldset>
+            </form>
+            <div id="account-options">
+                <form @submit.prevent>
+                    <router-link tag="button" class="submit" title="Account Settings" to="/settings">
+                        <i class="fas fa-cog"></i>
+                    </router-link>
+                </form>
+                <form @submit.prevent>
+                    <router-link tag="button" class="submit" title="Logout" to="/auth/logout">
+                        <i class="fas fa-sign-out-alt"></i>
+                    </router-link>
+                </form>
+            </div>
+        </div>
+        <div id="version">
+            Server version:
+            <a :href="githubUrl">{{ version }}</a>
+        </div>
+    </div>
+</template>
 
 <style scoped>
 * {
@@ -112,7 +131,7 @@ export default class Dashboard extends Vue {
     border: 0;
 }
 
-a {
+#formcontainer a {
     text-decoration: inherit;
     color: inherit;
     width: 100%;
@@ -121,20 +140,20 @@ a {
     border: 1px solid #ff7052;
 }
 
-a:hover {
+#formcontainer a:hover {
     background-color: #ff7052;
     color: white;
 }
 
-a:first-child {
+#formcontainer a:first-child {
     border-radius: 10px 10px 0 0;
 }
 
-a:last-child {
+#formcontainer a:last-child {
     border-radius: 0 0 10px 10px;
 }
 
-a:only-child {
+#formcontainer a:only-child {
     border-radius: 10px;
 }
 
@@ -274,5 +293,18 @@ h4 {
 h4 span {
     background: #fff;
     padding: 0 10px;
+}
+
+#version {
+    position: absolute;
+    bottom: 15px;
+    color: #a1a1a1;
+    display: flex;
+    justify-content: center;
+    width: 100%;
+}
+
+#version > a {
+    margin-left: 10px;
 }
 </style>

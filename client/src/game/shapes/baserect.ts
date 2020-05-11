@@ -1,10 +1,10 @@
 import { GlobalPoint, Vector } from "@/game/geom";
 import { BoundingRect } from "@/game/shapes/boundingrect";
 import { Shape } from "@/game/shapes/shape";
-import { gameStore } from "@/game/store";
 import { calculateDelta } from "@/game/ui/tools/utils";
-import { g2lx, g2ly } from "@/game/units";
+import { clampGridLine, g2lx, g2ly } from "@/game/units";
 import { ServerShape } from "../comm/types/shapes";
+import { gameSettingsStore } from "../settings";
 
 export abstract class BaseRect extends Shape {
     w: number;
@@ -65,7 +65,7 @@ export abstract class BaseRect extends Shape {
         return false;
     }
     snapToGrid(): void {
-        const gs = gameStore.gridSize;
+        const gs = gameSettingsStore.gridSize;
         const center = this.center();
         const mx = center.x;
         const my = center.y;
@@ -74,12 +74,12 @@ export abstract class BaseRect extends Shape {
         let targetY;
 
         if ((this.w / gs) % 2 === 0) {
-            targetX = Math.round(mx / gs) * gs - this.w / 2;
+            targetX = clampGridLine(mx) - this.w / 2;
         } else {
             targetX = (Math.round((mx + gs / 2) / gs) - 1 / 2) * gs - this.w / 2;
         }
         if ((this.h / gs) % 2 === 0) {
-            targetY = Math.round(my / gs) * gs - this.h / 2;
+            targetY = clampGridLine(my) - this.h / 2;
         } else {
             targetY = (Math.round((my + gs / 2) / gs) - 1 / 2) * gs - this.h / 2;
         }
@@ -89,19 +89,26 @@ export abstract class BaseRect extends Shape {
 
         this.invalidate(false);
     }
-    resizeToGrid(): void {
-        const gs = gameStore.gridSize;
-        this.refPoint = new GlobalPoint(Math.round(this.refPoint.x / gs) * gs, Math.round(this.refPoint.y / gs) * gs);
-        this.w = Math.max(Math.round(this.w / gs) * gs, gs);
-        this.h = Math.max(Math.round(this.h / gs) * gs, gs);
-        this.invalidate(false);
+    resizeToGrid(resizePoint: number, retainAspectRatio: boolean): void {
+        this.resize(
+            resizePoint,
+            new GlobalPoint(
+                clampGridLine(this.refPoint.x + (resizePoint > 1 ? this.w : 0)),
+                clampGridLine(this.refPoint.y + ([1, 2].includes(resizePoint) ? this.h : 0)),
+            ),
+            retainAspectRatio,
+        );
     }
-    resize(resizePoint: number, point: GlobalPoint): number {
+    resize(resizePoint: number, point: GlobalPoint, retainAspectRatio: boolean): number {
+        const aspectRatio = this.w / this.h;
+        const oldW = this.w;
+        const oldH = this.h;
+
         switch (resizePoint) {
             case 0: {
                 this.w += this.refPoint.x - point.x;
                 this.h += this.refPoint.y - point.y;
-                this.refPoint = point;
+                this.refPoint = this.refPoint.add(new Vector(oldW - this.w, oldH - this.h));
                 break;
             }
             case 1: {
@@ -134,6 +141,21 @@ export abstract class BaseRect extends Shape {
         if (this.h < 0) {
             this.refPoint = this.refPoint.add(new Vector(0, this.h));
             this.h = Math.abs(this.h);
+        }
+
+        if (retainAspectRatio && !isNaN(aspectRatio)) {
+            const tempAspectRatio = this.w / this.h;
+            if (tempAspectRatio > aspectRatio) {
+                if (resizePoint === 0 || resizePoint === 3) {
+                    this.refPoint = new GlobalPoint(this.refPoint.x, this.refPoint.y + this.h - this.w / aspectRatio);
+                }
+                this.h = this.w / aspectRatio;
+            } else if (tempAspectRatio < aspectRatio) {
+                if (resizePoint === 0 || resizePoint === 1) {
+                    this.refPoint = new GlobalPoint(this.refPoint.x + this.w - this.h * aspectRatio, this.refPoint.y);
+                }
+                this.w = this.h * aspectRatio;
+            }
         }
 
         return (resizePoint + 4) % 4;

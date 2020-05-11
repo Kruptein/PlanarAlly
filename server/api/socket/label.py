@@ -1,32 +1,35 @@
+from typing import Any, Dict
+
 import auth
-from app import app, logger, sio, state
-from models import Label, LabelSelection, User
+from app import app, logger, sio
+from models import Label, LabelSelection, PlayerRoom, User
 from models.db import db
+from models.role import Role
+from state.game import game_state
 
 
 @sio.on("Label.Add", namespace="/planarally")
 @auth.login_required(app, sio)
-async def add(sid, data):
-    sid_data = state.sid_map[sid]
-    user = sid_data["user"]
-    room = sid_data["room"]
-    location = sid_data["location"]
+async def add(sid: int, data: Dict[str, Any]):
+    pr: PlayerRoom = game_state.get(sid)
 
     label = Label.get_or_none(uuid=data)
 
     if label is not None:
-        logger.warn(f"{user.name} tried to add a label with an id that already exists.")
+        logger.warn(
+            f"{pr.player.name} tried to add a label with an id that already exists."
+        )
         return
 
-    if data["user"] != user.name:
-        logger.warn(f"{user.name} tried to add a label for someone else.")
+    if data["user"] != pr.player.name:
+        logger.warn(f"{pr.player.name} tried to add a label for someone else.")
         return
 
     data["user"] = User.by_name(data["user"])
     label = Label.create(**data)
 
-    for psid in state.get_sids(skip_sid=sid, room=room):
-        if state.get_user(psid) == user or label.visible:
+    for psid in game_state.get_sids(skip_sid=sid, room=pr.room):
+        if game_state.get_user(psid) == pr.player or label.visible:
             await sio.emit(
                 "Label.Add", label.as_dict(), room=psid, namespace="/planarally"
             )
@@ -34,27 +37,24 @@ async def add(sid, data):
 
 @sio.on("Label.Delete", namespace="/planarally")
 @auth.login_required(app, sio)
-async def delete(sid, data):
-    sid_data = state.sid_map[sid]
-    user = sid_data["user"]
-    room = sid_data["room"]
-    location = sid_data["location"]
+async def delete(sid: int, data: Dict[str, Any]):
+    pr: PlayerRoom = game_state.get(sid)
 
     label = Label.get_or_none(uuid=data)
 
     if label is None:
-        logger.warn(f"{user.name} tried to delete a non-existing label.")
+        logger.warn(f"{pr.player.name} tried to delete a non-existing label.")
         return
 
-    if label.user != user:
-        logger.warn(f"{user.name} tried to delete another user's label.")
+    if label.user != pr.player:
+        logger.warn(f"{pr.player.name} tried to delete another user's label.")
         return
 
     label.delete_instance(True)
 
     await sio.emit(
         "Label.Delete",
-        {"user": user.name, "uuid": data},
+        {"user": pr.player.name, "uuid": data},
         skip_sid=sid,
         namespace="/planarally",
     )
@@ -62,30 +62,27 @@ async def delete(sid, data):
 
 @sio.on("Label.Visibility.Set", namespace="/planarally")
 @auth.login_required(app, sio)
-async def set_visibility(sid, data):
-    sid_data = state.sid_map[sid]
-    user = sid_data["user"]
-    room = sid_data["room"]
-    location = sid_data["location"]
+async def set_visibility(sid: int, data: Dict[str, Any]):
+    pr: PlayerRoom = game_state.get(sid)
 
     label = Label.get_or_none(uuid=data["uuid"])
 
     if label is None:
-        logger.warn(f"{user.name} tried to change a non-existing label.")
+        logger.warn(f"{pr.player.name} tried to change a non-existing label.")
         return
 
-    if label.user != user:
-        logger.warn(f"{user.name} tried to change another user's label.")
+    if label.user != pr.player:
+        logger.warn(f"{pr.player.name} tried to change another user's label.")
         return
 
     label.visible = data["visible"]
     label.save()
 
-    for psid in state.get_sids(skip_sid=sid, room=room):
-        if state.get_user(psid) == user:
+    for psid in game_state.get_sids(skip_sid=sid, room=pr.room):
+        if game_state.get_user(psid) == pr.player:
             await sio.emit(
                 "Label.Visibility.Set",
-                {"user": label.user.name, **data},
+                {"user": label.pr.player.name, **data},
                 room=psid,
                 namespace="/planarally",
             )
@@ -96,40 +93,43 @@ async def set_visibility(sid, data):
                 )
             else:
                 await sio.emit(
-                    "Label.Delete", {'uuid': label.uuid, 'user': label.user.name}, room=psid, namespace="/planarally"
+                    "Label.Delete",
+                    {"uuid": label.uuid, "user": label.pr.player.name},
+                    room=psid,
+                    namespace="/planarally",
                 )
 
 
 @sio.on("Labels.Filter.Add", namespace="/planarally")
 @auth.login_required(app, sio)
-async def add_filter(sid, uuid):
-    sid_data = state.sid_map[sid]
-    user = sid_data["user"]
-    room = sid_data["room"]
+async def add_filter(sid: int, uuid: str):
+    pr: PlayerRoom = game_state.get(sid)
 
     label = Label.get_or_none(uuid=uuid)
 
-    LabelSelection.create(label=label, user=user, room=room)
+    LabelSelection.create(label=label, user=pr.player, room=pr.room)
 
-    for psid in state.get_sids(skip_sid=sid, room=room):
-        if state.get_user(psid) == user:
-            await sio.emit("Labels.Filter.Add", uuid, room=psid, namespace="/planarally")
+    for psid in game_state.get_sids(skip_sid=sid, room=pr.room):
+        if game_state.get_user(psid) == pr.player:
+            await sio.emit(
+                "Labels.Filter.Add", uuid, room=psid, namespace="/planarally"
+            )
 
 
 @sio.on("Labels.Filter.Remove", namespace="/planarally")
 @auth.login_required(app, sio)
-async def remove_filter(sid, uuid):
-    sid_data = state.sid_map[sid]
-    user = sid_data["user"]
-    room = sid_data["room"]
+async def remove_filter(sid: int, uuid: str):
+    pr: PlayerRoom = game_state.get(sid)
 
     label = Label.get_or_none(uuid=uuid)
 
-    ls = LabelSelection.get_or_none(label=label, room=room, user=user)
+    ls = LabelSelection.get_or_none(label=label, room=pr.room, user=pr.player)
 
     if ls:
         ls.delete_instance(True)
 
-    for psid in state.get_sids(skip_sid=sid, room=room):
-        if state.get_user(psid) == user:
-            await sio.emit("Labels.Filter.Remove", uuid, room=psid, namespace="/planarally")
+    for psid in game_state.get_sids(skip_sid=sid, room=pr.room):
+        if game_state.get_user(psid) == pr.player:
+            await sio.emit(
+                "Labels.Filter.Remove", uuid, room=psid, namespace="/planarally"
+            )

@@ -7,10 +7,11 @@ import { LocalPoint } from "@/game/geom";
 import { layerManager } from "@/game/layers/manager";
 import { gameStore } from "@/game/store";
 import { getLocalPointFromEvent } from "@/game/utils";
+import { ToolName } from "./utils";
 
 @Component
 export default class PanTool extends Tool {
-    name = "Pan";
+    name = ToolName.Pan;
     panStart = new LocalPoint(0, 0);
     active = false;
 
@@ -35,7 +36,7 @@ export default class PanTool extends Tool {
 
     onMouseUp(_event: MouseEvent): void {
         this.active = false;
-        sendClientOptions(gameStore.locationOptions);
+        sendClientOptions(gameStore.locationUserOptions);
     }
 
     onTouchStart(event: TouchEvent): void {
@@ -45,7 +46,7 @@ export default class PanTool extends Tool {
 
     onTouchEnd(_event: TouchEvent): void {
         this.active = false;
-        sendClientOptions(gameStore.locationOptions);
+        sendClientOptions(gameStore.locationUserOptions);
     }
 
     onTouchMove(event: TouchEvent): void {

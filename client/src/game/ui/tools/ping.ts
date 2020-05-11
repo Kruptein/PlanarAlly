@@ -10,10 +10,11 @@ import { gameStore } from "@/game/store";
 import { l2g } from "@/game/units";
 import { getLocalPointFromEvent } from "@/game/utils";
 import { SyncMode, InvalidationMode } from "@/core/comm/types";
+import { ToolName } from "./utils";
 
 @Component
 export class PingTool extends Tool {
-    name = "Ping";
+    name = ToolName.Ping;
     active = false;
     startPoint: GlobalPoint | null = null;
     ping: Circle | null = null;
@@ -31,8 +32,8 @@ export class PingTool extends Tool {
         this.active = true;
         this.ping = new Circle(this.startPoint, 20, gameStore.rulerColour);
         this.border = new Circle(this.startPoint, 40, "#0000", gameStore.rulerColour);
-        this.ping.addOwner(gameStore.username);
-        this.border.addOwner(gameStore.username);
+        this.ping.addOwner({ user: gameStore.username, editAccess: true, visionAccess: true }, false);
+        this.border.addOwner({ user: gameStore.username, editAccess: true, visionAccess: true }, false);
         layer.addShape(this.ping, SyncMode.TEMP_SYNC, InvalidationMode.NORMAL);
         layer.addShape(this.border, SyncMode.TEMP_SYNC, InvalidationMode.NORMAL);
     }

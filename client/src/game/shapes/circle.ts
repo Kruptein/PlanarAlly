@@ -2,10 +2,10 @@ import { ServerCircle } from "@/game/comm/types/shapes";
 import { GlobalPoint, Vector } from "@/game/geom";
 import { BoundingRect } from "@/game/shapes/boundingrect";
 import { Shape } from "@/game/shapes/shape";
-import { gameStore } from "@/game/store";
 import { calculateDelta } from "@/game/ui/tools/utils";
-import { g2l, g2lz } from "@/game/units";
+import { clampGridLine, g2l, g2lz } from "@/game/units";
 import { getFogColour } from "@/game/utils";
+import { gameSettingsStore } from "../settings";
 
 export class Circle extends Shape {
     type = "circle";
@@ -71,16 +71,16 @@ export class Circle extends Shape {
         return this.getBoundingBox().visibleInCanvas(canvas);
     } // TODO
     snapToGrid(): void {
-        const gs = gameStore.gridSize;
+        const gs = gameSettingsStore.gridSize;
         let targetX;
         let targetY;
         if (((2 * this.r) / gs) % 2 === 0) {
-            targetX = Math.round(this.refPoint.x / gs) * gs;
+            targetX = clampGridLine(this.refPoint.x);
         } else {
             targetX = Math.round((this.refPoint.x - gs / 2) / gs) * gs + this.r;
         }
         if (((2 * this.r) / gs) % 2 === 0) {
-            targetY = Math.round(this.refPoint.y / gs) * gs;
+            targetY = clampGridLine(this.refPoint.y);
         } else {
             targetY = Math.round((this.refPoint.y - gs / 2) / gs) * gs + this.r;
         }
@@ -89,8 +89,8 @@ export class Circle extends Shape {
         this.invalidate(false);
     }
     resizeToGrid(): void {
-        const gs = gameStore.gridSize;
-        this.r = Math.max(Math.round(this.r / gs) * gs, gs / 2);
+        const gs = gameSettingsStore.gridSize;
+        this.r = Math.max(clampGridLine(this.r), gs / 2);
         this.invalidate(false);
     }
     resize(resizePoint: number, point: GlobalPoint): number {

@@ -1,8 +1,8 @@
 import { Layer } from "@/game/layers/layer";
 import { layerManager } from "@/game/layers/manager";
-import { Settings } from "@/game/settings";
 import { gameStore } from "@/game/store";
 import { g2l, g2lr, g2lx, g2ly } from "@/game/units";
+import { gameSettingsStore } from "../settings";
 import { TriangulationTarget } from "../visibility/te/pa";
 import { computeVisibility } from "../visibility/te/te";
 
@@ -20,12 +20,22 @@ export class FOWPlayersLayer extends Layer {
         this.vCtx = this.virtualCanvas.getContext("2d")!;
     }
 
+    set width(width: number) {
+        super.width = width;
+        this.virtualCanvas.width = width;
+    }
+
+    set height(height: number) {
+        super.height = height;
+        this.virtualCanvas.height = height;
+    }
+
     draw(): void {
         if (!this.valid) {
             // console.time("VI");
             const ctx = this.ctx;
 
-            if (!gameStore.fowLOS || Settings.skipPlayerFOW) {
+            if (!gameSettingsStore.fowLos) {
                 ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
                 this.valid = true;
                 return;
@@ -80,10 +90,10 @@ export class FOWPlayersLayer extends Layer {
                     const gradient = ctx.createRadialGradient(
                         lcenter.x,
                         lcenter.y,
-                        g2lr(gameStore.visionRangeMin),
+                        g2lr(gameSettingsStore.visionMinRange),
                         lcenter.x,
                         lcenter.y,
-                        g2lr(gameStore.visionRangeMax),
+                        g2lr(gameSettingsStore.visionMaxRange),
                     );
                     gradient.addColorStop(0, "rgba(0, 0, 0, 1)");
                     gradient.addColorStop(1, "rgba(0, 0, 0, 0)");

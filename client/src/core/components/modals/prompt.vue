@@ -1,25 +1,3 @@
-<template>
-    <Modal :visible="visible" @close="close">
-        <div
-            class="modal-header"
-            slot="header"
-            slot-scope="m"
-            draggable="true"
-            @dragstart="m.dragStart"
-            @dragend="m.dragEnd"
-        >
-            {{ title }}
-        </div>
-        <div class="modal-body">
-            {{ question }}
-            <input type="text" ref="answer" v-model="answer" @keyup.enter="submit" />
-        </div>
-        <div class="modal-footer">
-            <button @click="submit">Submit</button>
-        </div>
-    </Modal>
-</template>
-
 <script lang="ts">
 import Vue from "vue";
 import Component from "vue-class-component";
@@ -53,6 +31,7 @@ export default class Prompt extends Vue {
         this.visible = false;
     }
     prompt(question: string, title: string): Promise<string> {
+        this.answer = "";
         this.question = question;
         this.title = title;
         this.visible = true;
@@ -66,6 +45,28 @@ export default class Prompt extends Vue {
     }
 }
 </script>
+
+<template>
+    <Modal :visible="visible" @close="close">
+        <div
+            class="modal-header"
+            slot="header"
+            slot-scope="m"
+            draggable="true"
+            @dragstart="m.dragStart"
+            @dragend="m.dragEnd"
+        >
+            {{ title }}
+        </div>
+        <div class="modal-body">
+            {{ question }}
+            <input type="text" ref="answer" v-model="answer" @keyup.enter="submit" />
+        </div>
+        <div class="modal-footer">
+            <button @click="submit">Submit</button>
+        </div>
+    </Modal>
+</template>
 
 <style scoped>
 .modal-header {

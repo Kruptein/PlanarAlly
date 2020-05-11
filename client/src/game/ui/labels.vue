@@ -1,73 +1,3 @@
-<template>
-    <Modal :visible="visible" @close="visible = false" :mask="false">
-        <div
-            class="modal-header"
-            slot="header"
-            slot-scope="m"
-            draggable="true"
-            @dragstart="m.dragStart"
-            @dragend="m.dragEnd"
-        >
-            <div>Label manager</div>
-            <div class="header-close" @click="visible = false">
-                <i class="far fa-window-close"></i>
-            </div>
-        </div>
-        <div class="modal-body">
-            <div class="grid">
-                <div class="header">
-                    <abbr title="Category">Cat.</abbr>
-                </div>
-                <div class="header name">Name</div>
-                <div class="header">
-                    <abbr title="Visible">Vis.</abbr>
-                </div>
-                <div class="header">
-                    <abbr title="Delete">Del.</abbr>
-                </div>
-                <div class="separator spanrow" style="margin: 0 0 7px;"></div>
-                <input class="spanrow" type="text" placeholder="search" v-model="search" ref="search" />
-            </div>
-            <div class="grid scroll">
-                <template v-for="category in categories">
-                    <template v-for="label in labels[category]">
-                        <div :key="'row-' + label.uuid" class="row" @click="selectLabel(label.uuid)">
-                            <template v-if="label.category">
-                                <div :key="'cat-' + label.uuid">{{ label.category }}</div>
-                                <div class="name" :key="'name-' + label.uuid">{{ label.name }}</div>
-                            </template>
-                            <template v-if="!label.category">
-                                <div :key="'cat-' + label.uuid"></div>
-                                <div class="name" :key="'name-' + label.uuid">{{ label.name }}</div>
-                            </template>
-                            <div
-                                :key="'visible-' + label.uuid"
-                                :style="{ textAlign: 'center' }"
-                                :class="{ 'lower-opacity': !label.visible }"
-                                @click.stop="toggleVisibility(label)"
-                            >
-                                <i class="fas fa-eye"></i>
-                            </div>
-                            <div :key="'delete-' + label.uuid" @click.stop="deleteLabel(label.uuid)">
-                                <i class="fas fa-trash-alt"></i>
-                            </div>
-                        </div>
-                    </template>
-                </template>
-                <template v-if="labels.length === 0">
-                    <div id="no-labels">No labels exist yet</div>
-                </template>
-            </div>
-            <div class="grid">
-                <div class="separator spanrow"></div>
-                <input type="text" v-model.trim="newCategory" />
-                <input type="text" v-model.trim="newName" />
-                <button id="addLabelButton" @click.stop="addLabel">Add</button>
-            </div>
-        </div>
-    </Modal>
-</template>
-
 <script lang="ts">
 import Vue from "vue";
 import Component from "vue-class-component";
@@ -158,6 +88,81 @@ export default class LabelManager extends Vue {
     }
 }
 </script>
+
+<template>
+    <Modal :visible="visible" @close="visible = false" :mask="false">
+        <div
+            class="modal-header"
+            slot="header"
+            slot-scope="m"
+            draggable="true"
+            @dragstart="m.dragStart"
+            @dragend="m.dragEnd"
+        >
+            <div>Label manager</div>
+            <div class="header-close" @click="visible = false" title="Close">
+                <i class="far fa-window-close"></i>
+            </div>
+        </div>
+        <div class="modal-body">
+            <div class="grid">
+                <div class="header">
+                    <abbr title="Category">Cat.</abbr>
+                </div>
+                <div class="header name">Name</div>
+                <div class="header">
+                    <abbr title="Visible">Vis.</abbr>
+                </div>
+                <div class="header">
+                    <abbr title="Delete">Del.</abbr>
+                </div>
+                <div class="separator spanrow" style="margin: 0 0 7px;"></div>
+                <input class="spanrow" type="text" placeholder="search" v-model="search" ref="search" />
+            </div>
+            <div class="grid scroll">
+                <template v-for="category in categories">
+                    <template v-for="label in labels[category]">
+                        <div :key="'row-' + label.uuid" class="row" @click="selectLabel(label.uuid)">
+                            <template v-if="label.category">
+                                <div :key="'cat-' + label.uuid">{{ label.category }}</div>
+                                <div class="name" :key="'name-' + label.uuid">{{ label.name }}</div>
+                            </template>
+                            <template v-if="!label.category">
+                                <div :key="'cat-' + label.uuid"></div>
+                                <div class="name" :key="'name-' + label.uuid">{{ label.name }}</div>
+                            </template>
+                            <div
+                                :key="'visible-' + label.uuid"
+                                :style="{ textAlign: 'center' }"
+                                :class="{ 'lower-opacity': !label.visible }"
+                                @click.stop="toggleVisibility(label)"
+                                title="Toggle public/private"
+                            >
+                                <i class="fas fa-eye"></i>
+                            </div>
+                            <div
+                                :key="'delete-' + label.uuid"
+                                @click.stop="deleteLabel(label.uuid)"
+                                title="Delete label"
+                            >
+                                <i class="fas fa-trash-alt"></i>
+                            </div>
+                        </div>
+                    </template>
+                </template>
+                <template v-if="labels.length === 0">
+                    <div id="no-labels">No labels exist yet</div>
+                </template>
+            </div>
+            <div class="grid">
+                <div class="separator spanrow"></div>
+                <input type="text" v-model.trim="newCategory" />
+                <input type="text" v-model.trim="newName" />
+                <button id="addLabelButton" @click.stop="addLabel">Add</button>
+            </div>
+        </div>
+    </Modal>
+</template>
 
 <style scoped>
 abbr {

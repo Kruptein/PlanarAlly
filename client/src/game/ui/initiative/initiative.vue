@@ -1,139 +1,3 @@
-<template>
-    <modal :visible="visible" @close="visible = false" :mask="false">
-        <div
-            class="modal-header"
-            slot="header"
-            slot-scope="m"
-            draggable="true"
-            @dragstart="m.dragStart"
-            @dragend="m.dragEnd"
-        >
-            <div>Initiative</div>
-            <div class="header-close" @click="visible = false">
-                <i class="far fa-window-close"></i>
-            </div>
-        </div>
-        <div class="modal-body">
-            <draggable
-                id="initiative-list"
-                v-model="$store.state.initiative.data"
-                @change="updateOrder"
-                :setData="fakeSetData"
-                :disabled="!$store.state.game.IS_DM"
-            >
-                <template v-for="actor in $store.state.initiative.data">
-                    <div :key="actor.uuid" style="display:flex;flex-direction:column;align-items:flex-end;">
-                        <div
-                            class="initiative-actor"
-                            :class="{ 'initiative-selected': $store.state.initiative.currentActor === actor.uuid }"
-                            :style="{ cursor: $store.state.game.IS_DM && 'move' }"
-                            @mouseenter="toggleHighlight(actor, true)"
-                            @mouseleave="toggleHighlight(actor, false)"
-                        >
-                            <template v-if="actor.has_img">
-                                <img :src="actor.source" width="30px" height="30px" />
-                            </template>
-                            <template v-else>
-                                <span style="width: auto;">{{ actor.source }}</span>
-                            </template>
-                            <input
-                                type="text"
-                                placeholder="value"
-                                v-model.lazy.number="actor.initiative"
-                                :disabled="!owns(actor)"
-                                :class="{ notAllowed: !owns(actor) }"
-                                @change="syncInitiative(actor)"
-                            />
-                            <div
-                                class="initiative-effects-icon"
-                                style="opacity: 0.6"
-                                :class="{ notAllowed: !owns(actor) }"
-                                @click="createEffect(actor, getDefaultEffect(), true)"
-                            >
-                                <i class="fas fa-stopwatch"></i>
-                                <template v-if="actor.effects">
-                                    {{ actor.effects.length }}
-                                </template>
-                                <template v-else>
-                                    0
-                                </template>
-                            </div>
-                            <div
-                                :style="{ opacity: actor.visible ? '1.0' : '0.3' }"
-                                :class="{ notAllowed: !owns(actor) }"
-                                @click="toggleOption(actor, 'visible')"
-                            >
-                                <i class="fas fa-eye"></i>
-                            </div>
-                            <div
-                                :style="{ opacity: actor.group ? '1.0' : '0.3' }"
-                                :class="{ notAllowed: !owns(actor) }"
-                                @click="toggleOption(actor, 'group')"
-                            >
-                                <i class="fas fa-users"></i>
-                            </div>
-                            <div
-                                :style="{ opacity: owns(actor) ? '1.0' : '0.3' }"
-                                :class="{ notAllowed: !owns(actor) }"
-                                @click="removeInitiative(actor.uuid, true, true)"
-                            >
-                                <i class="fas fa-trash-alt"></i>
-                            </div>
-                        </div>
-                        <div class="initiative-effect" v-if="actor.effects">
-                            <div v-for="effect in actor.effects" :key="effect.uuid">
-                                <input
-                                    type="text"
-                                    v-model="effect.name"
-                                    :size="effect.name.length || 1"
-                                    @change="updateEffect(actor.uuid, effect, true)"
-                                />
-                                <input
-                                    type="text"
-                                    v-model="effect.turns"
-                                    :size="effect.turns.toString().length || 1"
-                                    @change="updateEffect(actor.uuid, effect, true)"
-                                />
-                            </div>
-                        </div>
-                    </div>
-                </template>
-            </draggable>
-            <div id="initiative-bar">
-                <div id="initiative-round">Round {{ $store.state.initiative.roundCounter }}</div>
-                <div style="display:flex;"></div>
-                <div
-                    class="initiative-bar-button"
-                    :style="visionLock ? 'background-color: #82c8a0' : ''"
-                    @click="toggleVisionLock"
-                >
-                    <i class="fas fa-eye"></i>
-                </div>
-                <div
-                    class="initiative-bar-button"
-                    :style="cameraLock ? 'background-color: #82c8a0' : ''"
-                    @click="cameraLock = !cameraLock"
-                >
-                    <i class="fas fa-video"></i>
-                </div>
-                <div
-                    class="initiative-bar-button"
-                    :class="{ notAllowed: !$store.state.game.IS_DM }"
-                    @click="
-                        setRound(0, true);
-                        updateTurn($store.state.initiative.data[0].uuid, true);
-                    "
-                >
-                    <i class="fas fa-sync-alt"></i>
-                </div>
-                <div class="initiative-bar-button" :class="{ notAllowed: !$store.state.game.IS_DM }" @click="nextTurn">
-                    <i class="fas fa-chevron-right"></i>
-                </div>
-            </div>
-        </div>
-    </modal>
-</template>
-
 <script lang="ts">
 import Vue from "vue";
 import Component from "vue-class-component";
@@ -204,7 +68,7 @@ export default class Initiative extends Vue {
         const shape = layerManager.UUIDMap.get(actor.uuid);
         // Shapes that are unknown to this client are hidden from this client but owned by other clients
         if (shape === undefined) return false;
-        return shape.owners.includes(gameStore.username);
+        return shape.hasOwner(gameStore.username);
     }
     getDefaultEffect(): { uuid: string; name: string; turns: number } {
         return { uuid: uuidv4(), name: "New Effect", turns: 10 };
@@ -253,7 +117,7 @@ export default class Initiative extends Vue {
         if (this.cameraLock) {
             if (actorId !== null) {
                 const shape = layerManager.UUIDMap.get(actorId);
-                if (shape !== undefined && shape.ownedBy()) {
+                if (shape?.ownedBy({ visionAccess: true })) {
                     gameManager.setCenterPosition(shape.center());
                 }
             }
@@ -316,6 +180,154 @@ export default class Initiative extends Vue {
     }
 }
 </script>
+
+<template>
+    <modal :visible="visible" @close="visible = false" :mask="false">
+        <div
+            class="modal-header"
+            slot="header"
+            slot-scope="m"
+            draggable="true"
+            @dragstart="m.dragStart"
+            @dragend="m.dragEnd"
+        >
+            <div>Initiative</div>
+            <div class="header-close" @click="visible = false" title="Close">
+                <i class="far fa-window-close"></i>
+            </div>
+        </div>
+        <div class="modal-body">
+            <draggable
+                id="initiative-list"
+                v-model="$store.state.initiative.data"
+                @change="updateOrder"
+                :setData="fakeSetData"
+                :disabled="!$store.state.game.IS_DM"
+            >
+                <template v-for="actor in $store.state.initiative.data">
+                    <div :key="actor.uuid" style="display:flex;flex-direction:column;align-items:flex-end;">
+                        <div
+                            class="initiative-actor"
+                            :class="{ 'initiative-selected': $store.state.initiative.currentActor === actor.uuid }"
+                            :style="{ cursor: $store.state.game.IS_DM && 'move' }"
+                            @mouseenter="toggleHighlight(actor, true)"
+                            @mouseleave="toggleHighlight(actor, false)"
+                        >
+                            <template v-if="actor.has_img">
+                                <img :src="actor.source" width="30px" height="30px" />
+                            </template>
+                            <template v-else>
+                                <span style="width: auto;">{{ actor.source }}</span>
+                            </template>
+                            <input
+                                type="text"
+                                placeholder="value"
+                                v-model.lazy.number="actor.initiative"
+                                :disabled="!owns(actor)"
+                                :class="{ notAllowed: !owns(actor) }"
+                                @change="syncInitiative(actor)"
+                            />
+                            <div
+                                class="initiative-effects-icon"
+                                style="opacity: 0.6"
+                                :class="{ notAllowed: !owns(actor) }"
+                                @click="createEffect(actor, getDefaultEffect(), true)"
+                                title="Add timed effect"
+                            >
+                                <i class="fas fa-stopwatch"></i>
+                                <template v-if="actor.effects">
+                                    {{ actor.effects.length }}
+                                </template>
+                                <template v-else>
+                                    0
+                                </template>
+                            </div>
+                            <div
+                                :style="{ opacity: actor.visible ? '1.0' : '0.3' }"
+                                :class="{ notAllowed: !owns(actor) }"
+                                @click="toggleOption(actor, 'visible')"
+                                title="Toggle public / private"
+                            >
+                                <i class="fas fa-eye"></i>
+                            </div>
+                            <div
+                                :style="{ opacity: actor.group ? '1.0' : '0.3' }"
+                                :class="{ notAllowed: !owns(actor) }"
+                                @click="toggleOption(actor, 'group')"
+                                title="Toggle individual / group initiative"
+                            >
+                                <i class="fas fa-users"></i>
+                            </div>
+                            <div
+                                :style="{ opacity: owns(actor) ? '1.0' : '0.3' }"
+                                :class="{ notAllowed: !owns(actor) }"
+                                @click="removeInitiative(actor.uuid, true, true)"
+                                title="Delete initiative"
+                            >
+                                <i class="fas fa-trash-alt"></i>
+                            </div>
+                        </div>
+                        <div class="initiative-effect" v-if="actor.effects">
+                            <div v-for="effect in actor.effects" :key="effect.uuid">
+                                <input
+                                    type="text"
+                                    v-model="effect.name"
+                                    :size="effect.name.length || 1"
+                                    @change="updateEffect(actor.uuid, effect, true)"
+                                />
+                                <input
+                                    type="text"
+                                    v-model="effect.turns"
+                                    :size="effect.turns.toString().length || 1"
+                                    @change="updateEffect(actor.uuid, effect, true)"
+                                />
+                            </div>
+                        </div>
+                    </div>
+                </template>
+            </draggable>
+            <div id="initiative-bar">
+                <div id="initiative-round">Round {{ $store.state.initiative.roundCounter }}</div>
+                <div style="display:flex;"></div>
+                <div
+                    class="initiative-bar-button"
+                    :style="visionLock ? 'background-color: #82c8a0' : ''"
+                    @click="toggleVisionLock"
+                    title="Auto lock vision (only show vision active token)"
+                >
+                    <i class="fas fa-eye"></i>
+                </div>
+                <div
+                    class="initiative-bar-button"
+                    :style="cameraLock ? 'background-color: #82c8a0' : ''"
+                    @click="cameraLock = !cameraLock"
+                    title="Auto camera lock on active token"
+                >
+                    <i class="fas fa-video"></i>
+                </div>
+                <div
+                    class="initiative-bar-button"
+                    :class="{ notAllowed: !$store.state.game.IS_DM }"
+                    @click="
+                        setRound(0, true);
+                        updateTurn($store.state.initiative.data[0].uuid, true);
+                    "
+                    title="Reset rounds/turns"
+                >
+                    <i class="fas fa-sync-alt"></i>
+                </div>
+                <div
+                    class="initiative-bar-button"
+                    :class="{ notAllowed: !$store.state.game.IS_DM }"
+                    @click="nextTurn"
+                    title="Next"
+                >
+                    <i class="fas fa-chevron-right"></i>
+                </div>
+            </div>
+        </div>
+    </modal>
+</template>
 
 <style scoped>
 .modal-header {

@@ -2,6 +2,10 @@
 
 <p align="center">
     <a href="https://github.com/Kruptein/PlanarAlly/releases"><img src="https://img.shields.io/github/downloads/kruptein/planarally/total.svg" alt="Downloads"></a>
+    <a href="https://github.com/Kruptein/PlanarAlly/releases/latest"><img alt="GitHub release (latest by date)" src="https://img.shields.io/github/v/release/kruptein/planarally"></a>
+    <a href="https://discord.gg/mubGnTe" title="Join the discord server!"><img src="https://img.shields.io/discord/695640902135185449?logo=discord" alt="Discord invite button" /></a>
+    <a href="https://planarally.io" title="Visit the planarally documentation"><img src="https://img.shields.io/badge/docs-read-lightblue.svg" alt="Documentation site button" /></a>
+    <a href="https://patreon.com/planarally" title="Donate to this project using Patreon"><img src="https://img.shields.io/badge/patreon-donate-red.svg" alt="Patreon donate button" /></a>
 </p>
 
 # PlanarAlly
@@ -37,7 +41,7 @@ For more information on how to use/install PA, see the documentation.
 
 User documentation can be found [here](https://planarally.io/docs/).
 
-This is still a work in progress, so some elements may still be undocumented or outdated.
+This is still a work in progress, so some elements may still be undocumented or outdated. If you wish to contribute to the docs, they are hosted in a different [repository](https://github.com/Kruptein/planarally-docs).
 
 # Contributing
 
@@ -47,7 +51,7 @@ If you simply have feedback, or found a bug, go to the issues tab above. First s
 
 If you want to contribute to the actual codebase, you can read more about how to setup a development environment in the CONTRIBUTING document.
 
-If you want to contribute some gold pieces, feel free to checkout my [pateron](https://patreon.com/planarally)
+If you want to contribute some gold pieces, feel free to checkout my [Patreon](https://patreon.com/planarally)
 
 ![Example view of a player with a light source](https://github.com/Kruptein/PlanarAlly/blob/dev/extra/player_light_example.png?raw=true)
 _Credits to Gogots for the background map used [source](https://gogots.deviantart.com/art/City-of-Moarkaliff-702295905)_

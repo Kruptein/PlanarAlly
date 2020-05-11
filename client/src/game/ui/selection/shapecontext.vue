@@ -1,82 +1,28 @@
-<template>
-    <ContextMenu
-        v-if="getActiveLayer() !== undefined"
-        :visible="visible"
-        :left="x + 'px'"
-        :top="y + 'px'"
-        @close="close"
-    >
-        <li v-if="getFloors().length > 1">
-            Floor
-            <ul>
-                <li
-                    v-for="(floor, idx) in getFloors()"
-                    :key="floor.name"
-                    :style="[idx === activeFloorIndex ? { 'background-color': '#82c8a0' } : {}]"
-                    @click="setFloor(floor)"
-                >
-                    {{ floor.name }}
-                </li>
-            </ul>
-        </li>
-        <li v-if="getLayers().length > 1">
-            Layer
-            <ul>
-                <li
-                    v-for="layer in getLayers()"
-                    :key="layer.name"
-                    :style="[getActiveLayer().name === layer.name ? { 'background-color': '#82c8a0' } : {}]"
-                    @click="setLayer(layer.name)"
-                >
-                    {{ layer.name }}
-                </li>
-            </ul>
-        </li>
-        <li v-if="locations.length > 1">
-            Location
-            <ul>
-                <li
-                    v-for="location in locations"
-                    :key="location"
-                    :style="[getCurrentLocation() === location ? { 'background-color': '#82c8a0' } : {}]"
-                    @click="setLocation(location)"
-                >
-                    {{ location }}
-                </li>
-            </ul>
-        </li>
-        <li @click="moveToBack">Move to back</li>
-        <li @click="moveToFront">Move to front</li>
-        <li @click="addInitiative">{{ getInitiativeWord() }} initiative</li>
-        <li @click="deleteSelection">Delete shapes</li>
-        <li v-if="hasSingleShape()" @click="openEditDialog">Show properties</li>
-    </ContextMenu>
-</template>
-
 <script lang="ts">
 import Vue from "vue";
 import Component from "vue-class-component";
 
-import { mapState, mapMutations } from "vuex";
+import { mapState } from "vuex";
 
 import ContextMenu from "@/core/components/contextmenu.vue";
 
 import { socket } from "@/game/api/socket";
-import { ServerClient, ServerLocation } from "@/game/comm/types/general";
+import { ServerLocation } from "@/game/comm/types/general";
 import { EventBus } from "@/game/event-bus";
 import { layerManager, Floor } from "@/game/layers/manager";
 import { gameStore } from "@/game/store";
 import { cutShapes, deleteShapes, pasteShapes } from "../../shapes/utils";
 import { initiativeStore, inInitiative } from "../initiative/store";
 import { Layer } from "../../layers/layer";
+import { ServerClient } from "@/game/comm/types/settings";
 
 @Component({
     components: {
         ContextMenu,
     },
     computed: {
-        ...mapState("game", ["activeFloorIndex", "assets", "locations", "notes"]),
-        ...mapMutations("game", ["selectFloor"]),
+        ...mapState("game", ["activeFloorIndex", "locations", "markers"]),
+        ...mapState("gameSettings", ["activeLocation"]),
     },
 })
 export default class ShapeContext extends Vue {
@@ -92,6 +38,11 @@ export default class ShapeContext extends Vue {
     close(): void {
         this.visible = false;
     }
+    getMarker(): string | undefined {
+        const layer = this.getActiveLayer()!;
+        if (layer.selection.length !== 1) return;
+        return layer.selection[0].uuid;
+    }
     getFloors(): Floor[] {
         return layerManager.floors;
     }
@@ -100,9 +51,6 @@ export default class ShapeContext extends Vue {
     }
     getActiveLayer(): Layer | undefined {
         if (layerManager.floor !== undefined) return layerManager.getLayer(layerManager.floor.name);
-    }
-    getCurrentLocation(): string {
-        return gameStore.locationName;
     }
     getInitiativeWord(): string {
         const layer = this.getActiveLayer()!;
@@ -166,8 +114,81 @@ export default class ShapeContext extends Vue {
         EventBus.$emit("EditDialog.Open", layer.selection[0]);
         this.close();
     }
+    setMarker(): void {
+        const layer = this.getActiveLayer()!;
+        if (layer.selection.length !== 1) return;
+        const marker = layer.selection[0].uuid;
+        gameStore.newMarker({ marker, sync: true });
+        this.close();
+    }
+    deleteMarker(): void {
+        const layer = this.getActiveLayer()!;
+        if (layer.selection.length !== 1) return;
+        const marker = layer.selection[0].uuid;
+        gameStore.removeMarker({ marker, sync: true });
+        this.close();
+    }
 }
 </script>
+
+<template>
+    <ContextMenu
+        v-if="getActiveLayer() !== undefined"
+        :visible="visible"
+        :left="x + 'px'"
+        :top="y + 'px'"
+        @close="close"
+    >
+        <li v-if="getFloors().length > 1">
+            Floor
+            <ul>
+                <li
+                    v-for="(floor, idx) in getFloors()"
+                    :key="floor.name"
+                    :style="[idx === activeFloorIndex ? { 'background-color': '#82c8a0' } : {}]"
+                    @click="setFloor(floor)"
+                >
+                    {{ floor.name }}
+                </li>
+            </ul>
+        </li>
+        <li v-if="getLayers().length > 1">
+            Layer
+            <ul>
+                <li
+                    v-for="layer in getLayers()"
+                    :key="layer.name"
+                    :style="[getActiveLayer().name === layer.name ? { 'background-color': '#82c8a0' } : {}]"
+                    @click="setLayer(layer.name)"
+                >
+                    {{ layer.name }}
+                </li>
+            </ul>
+        </li>
+        <li v-if="locations.length > 1">
+            Location
+            <ul>
+                <li
+                    v-for="location in locations"
+                    :key="location.id"
+                    :style="[activeLocation === location.id ? { 'background-color': '#82c8a0' } : {}]"
+                    @click="setLocation(location.id)"
+                >
+                    {{ location.name }}
+                </li>
+            </ul>
+        </li>
+        <li @click="moveToBack">Move to back</li>
+        <li @click="moveToFront">Move to front</li>
+        <li @click="addInitiative">{{ getInitiativeWord() }} initiative</li>
+        <li @click="deleteSelection">Delete shapes</li>
+        <li v-if="hasSingleShape()" @click="openEditDialog">Show properties</li>
+        <template v-if="hasSingleShape()">
+            <li v-if="markers.includes(getMarker())" @click="deleteMarker">Remove marker</li>
+            <li v-else @click="setMarker">Set marker</li>
+        </template>
+    </ContextMenu>
+</template>
 
 <style scoped>
 .ContextMenu ul {

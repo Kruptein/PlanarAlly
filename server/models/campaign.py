@@ -205,7 +205,7 @@ class Floor(BaseModel):
 
 
 class Layer(BaseModel):
-    floor = ForeignKeyField(Floor, backref="layers")
+    floor = ForeignKeyField(Floor, backref="layers", on_delete="CASCADE")
     name = TextField()
     type_ = TextField()
     # TYPE = IntegerField()  # normal/grid/dm/lighting ???????????

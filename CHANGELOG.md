@@ -7,6 +7,8 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+## [0.20.0] - 2020-05-11
+
 ### Added
 
 -   configuration option to specify allowed CORS origins

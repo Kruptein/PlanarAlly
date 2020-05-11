@@ -7,6 +7,13 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+## [0.20.1] - 2020-05-11
+
+### Fixed
+
+-   Schema differences between new saves and older saves
+-   Location removal failing on the server
+
 ## [0.20.0] - 2020-05-11
 
 ### Added

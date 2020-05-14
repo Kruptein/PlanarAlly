@@ -19,7 +19,7 @@ from config import SAVE_FILE
 from models import ALL_MODELS, Constants
 from models.db import db
 
-SAVE_VERSION = 27
+SAVE_VERSION = 28
 
 logger: logging.Logger = logging.getLogger("PlanarAllyServer")
 logger.setLevel(logging.INFO)
@@ -363,6 +363,197 @@ def upgrade(version):
                 migrator.drop_index("location", "location_room_id_name"),
             )
             db.execute_sql("DROP TABLE 'grid_layer'")
+
+        db.foreign_keys = True
+        Constants.get().update(save_version=Constants.save_version + 1).execute()
+    elif version == 27:
+        # Fix broken schemas from older save upgrades
+        migrator = SqliteMigrator(db)
+
+        db.foreign_keys = False
+        with db.atomic():
+            db.execute_sql("CREATE TEMPORARY TABLE _floor AS SELECT * FROM floor")
+            db.execute_sql("DROP TABLE floor")
+            db.execute_sql(
+                'CREATE TABLE "floor" ("id" INTEGER NOT NULL PRIMARY KEY, "location_id" INTEGER NOT NULL, "index" INTEGER NOT NULL, "name" TEXT NOT NULL, FOREIGN KEY ("location_id") REFERENCES "location" ("id") ON DELETE CASCADE)'
+            )
+            db.execute_sql(
+                'CREATE INDEX IF NOT EXISTS "floor_location_id" ON "floor" ("location_id")'
+            )
+            db.execute_sql(
+                'INSERT INTO floor (id, location_id, "index", name) SELECT id, location_id, "index", name FROM _floor'
+            )
+
+            db.execute_sql("CREATE TEMPORARY TABLE _label AS SELECT * FROM label")
+            db.execute_sql("DROP TABLE label")
+            db.execute_sql(
+                'CREATE TABLE "label" ("uuid" TEXT NOT NULL PRIMARY KEY, "user_id" INTEGER NOT NULL, "category" TEXT, "name" TEXT NOT NULL, "visible" INTEGER NOT NULL, FOREIGN KEY ("user_id") REFERENCES "user" ("id") ON DELETE CASCADE)'
+            )
+            db.execute_sql(
+                'CREATE INDEX IF NOT EXISTS "label_user_id" ON "label" ("user_id")'
+            )
+            db.execute_sql(
+                "INSERT INTO label (uuid, user_id, category, name, visible) SELECT uuid, user_id, category, name, visible FROM _label"
+            )
+
+            db.execute_sql("CREATE TEMPORARY TABLE _layer AS SELECT * FROM layer")
+            db.execute_sql("DROP TABLE layer")
+            db.execute_sql(
+                'CREATE TABLE "layer" ("id" INTEGER NOT NULL PRIMARY KEY, "floor_id" INTEGER NOT NULL, "name" TEXT NOT NULL, "type_" TEXT NOT NULL, "player_visible" INTEGER NOT NULL, "player_editable" INTEGER NOT NULL, "selectable" INTEGER NOT NULL, "index" INTEGER NOT NULL, FOREIGN KEY ("floor_id") REFERENCES "floor" ("id") ON DELETE CASCADE)'
+            )
+            db.execute_sql(
+                'CREATE INDEX IF NOT EXISTS "layer_floor_id" ON "layer" ("floor_id")'
+            )
+            db.execute_sql(
+                'CREATE UNIQUE INDEX "layer_floor_id_index" ON "layer" ("floor_id", "index")'
+            )
+            db.execute_sql(
+                'CREATE UNIQUE INDEX "layer_floor_id_name" ON "layer" ("floor_id", "name")'
+            )
+            db.execute_sql(
+                'INSERT INTO layer (id, floor_id, name, type_, player_visible, player_editable, selectable, "index") SELECT id, floor_id, name, type_, player_visible, player_editable, selectable, "index" FROM _layer'
+            )
+
+            db.execute_sql("CREATE TEMPORARY TABLE _location AS SELECT * FROM location")
+            db.execute_sql("DROP TABLE location")
+            db.execute_sql(
+                'CREATE TABLE "location" ("id" INTEGER NOT NULL PRIMARY KEY, "room_id" INTEGER NOT NULL, "name" TEXT NOT NULL, "options_id" INTEGER, "index" INTEGER NOT NULL, FOREIGN KEY ("room_id") REFERENCES "room" ("id") ON DELETE CASCADE, FOREIGN KEY ("options_id") REFERENCES "location_options" ("id") ON DELETE CASCADE)'
+            )
+            db.execute_sql(
+                'CREATE INDEX IF NOT EXISTS "location_room_id" ON "location" ("room_id")'
+            )
+            db.execute_sql(
+                'INSERT INTO location (id, room_id, name, options_id, "index") SELECT id, room_id, name, options_id, "index" FROM _location'
+            )
+
+            db.execute_sql(
+                "CREATE TEMPORARY TABLE _location_options AS SELECT * FROM location_options"
+            )
+            db.execute_sql("DROP TABLE location_options")
+            db.execute_sql(
+                'CREATE TABLE "location_options" ("id" INTEGER NOT NULL PRIMARY KEY, "unit_size" REAL, "unit_size_unit" TEXT, "use_grid" INTEGER, "full_fow" INTEGER, "fow_opacity" REAL, "fow_los" INTEGER, "vision_mode" TEXT, "grid_size" INTEGER, "vision_min_range" REAL, "vision_max_range" REAL)'
+            )
+            db.execute_sql(
+                'CREATE INDEX IF NOT EXISTS "location_options_id" ON "location" ("options_id")'
+            )
+            db.execute_sql(
+                "INSERT INTO location_options (id, unit_size, unit_size_unit, use_grid, full_fow, fow_opacity, fow_los, vision_mode, grid_size, vision_min_range, vision_max_range) SELECT id, unit_size, unit_size_unit, use_grid, full_fow, fow_opacity, fow_los, vision_mode, grid_size, vision_min_range, vision_max_range FROM _location_options"
+            )
+
+            db.execute_sql(
+                "CREATE TEMPORARY TABLE _location_user_option AS SELECT * FROM location_user_option"
+            )
+            db.execute_sql("DROP TABLE location_user_option")
+            db.execute_sql(
+                'CREATE TABLE "location_user_option" ("id" INTEGER NOT NULL PRIMARY KEY, "location_id" INTEGER NOT NULL, "user_id" INTEGER NOT NULL, "pan_x" INTEGER NOT NULL, "pan_y" INTEGER NOT NULL, "zoom_factor" REAL NOT NULL, "active_layer_id" INTEGER, FOREIGN KEY ("location_id") REFERENCES "location" ("id") ON DELETE CASCADE, FOREIGN KEY ("user_id") REFERENCES "user" ("id") ON DELETE CASCADE, FOREIGN KEY ("active_layer_id") REFERENCES "layer" ("id"))'
+            )
+            db.execute_sql(
+                'CREATE INDEX IF NOT EXISTS "location_user_option_location_id" ON "location_user_option" ("location_id")'
+            )
+            db.execute_sql(
+                'CREATE INDEX IF NOT EXISTS "location_user_option_active_layer_id" ON "location_user_option" ("active_layer_id")'
+            )
+            db.execute_sql(
+                'CREATE INDEX IF NOT EXISTS "location_user_option_user_id" ON "location_user_option" ("user_id")'
+            )
+            db.execute_sql(
+                'CREATE UNIQUE INDEX "location_user_option_location_id_user_id" ON "location_user_option" ("location_id", "user_id")'
+            )
+            db.execute_sql(
+                "INSERT INTO location_user_option (id, location_id, user_id, pan_x, pan_y, zoom_factor, active_layer_id) SELECT id, location_id, user_id, pan_x, pan_y, zoom_factor, active_layer_id FROM _location_user_option"
+            )
+
+            db.execute_sql("CREATE TEMPORARY TABLE _marker AS SELECT * FROM marker")
+            db.execute_sql("DROP TABLE marker")
+            db.execute_sql(
+                'CREATE TABLE "marker" ("id" INTEGER NOT NULL PRIMARY KEY, "shape_id" TEXT NOT NULL, "user_id" INTEGER NOT NULL, "location_id" INTEGER NOT NULL, FOREIGN KEY ("shape_id") REFERENCES "shape" ("uuid") ON DELETE CASCADE, FOREIGN KEY ("user_id") REFERENCES "user" ("id") ON DELETE CASCADE, FOREIGN KEY ("location_id") REFERENCES "location" ("id") ON DELETE CASCADE)'
+            )
+            db.execute_sql(
+                'CREATE INDEX IF NOT EXISTS "marker_location_id" ON "marker" ("location_id")'
+            )
+            db.execute_sql(
+                'CREATE INDEX IF NOT EXISTS "marker_shape_id" ON "marker" ("shape_id")'
+            )
+            db.execute_sql(
+                'CREATE INDEX IF NOT EXISTS "marker_user_id" ON "marker" ("user_id")'
+            )
+            db.execute_sql(
+                'CREATE INDEX IF NOT EXISTS "marker_location_id" ON "marker" ("location_id")'
+            )
+            db.execute_sql(
+                "INSERT INTO marker (id, shape_id, user_id, location_id) SELECT id, shape_id, user_id, location_id FROM _marker"
+            )
+
+            db.execute_sql(
+                "CREATE TEMPORARY TABLE _player_room AS SELECT * FROM player_room"
+            )
+            db.execute_sql("DROP TABLE player_room")
+            db.execute_sql(
+                'CREATE TABLE "player_room" ("id" INTEGER NOT NULL PRIMARY KEY, "role" INTEGER NOT NULL, "player_id" INTEGER NOT NULL, "room_id" INTEGER NOT NULL, "active_location_id" INTEGER NOT NULL, FOREIGN KEY ("player_id") REFERENCES "user" ("id") ON DELETE CASCADE, FOREIGN KEY ("room_id") REFERENCES "room" ("id") ON DELETE CASCADE, FOREIGN KEY ("active_location_id") REFERENCES "location" ("id") ON DELETE CASCADE)'
+            )
+            db.execute_sql(
+                'CREATE INDEX IF NOT EXISTS "player_room_active_location_id" ON "player_room" ("active_location_id")'
+            )
+            db.execute_sql(
+                'CREATE INDEX IF NOT EXISTS "player_room_player_id" ON "player_room" ("player_id")'
+            )
+            db.execute_sql(
+                'CREATE INDEX IF NOT EXISTS "player_room_room_id" ON "player_room" ("room_id")'
+            )
+            db.execute_sql(
+                "INSERT INTO player_room (id, role, player_id, room_id, active_location_id) SELECT id, role, player_id, room_id, active_location_id FROM _player_room"
+            )
+
+            db.execute_sql("CREATE TEMPORARY TABLE _polygon AS SELECT * FROM polygon")
+            db.execute_sql("DROP TABLE polygon")
+            db.execute_sql(
+                'CREATE TABLE "polygon" ("shape_id" TEXT NOT NULL PRIMARY KEY, "vertices" TEXT NOT NULL, "line_width" INTEGER NOT NULL, "open_polygon" INTEGER NOT NULL, FOREIGN KEY ("shape_id") REFERENCES "shape" ("uuid") ON DELETE CASCADE)'
+            )
+            db.execute_sql(
+                "INSERT INTO polygon (shape_id,vertices, line_width, open_polygon) SELECT shape_id,vertices, line_width, open_polygon FROM _polygon"
+            )
+
+            db.execute_sql("CREATE TEMPORARY TABLE _room AS SELECT * FROM room")
+            db.execute_sql("DROP TABLE room")
+            db.execute_sql(
+                'CREATE TABLE "room" ("id" INTEGER NOT NULL PRIMARY KEY, "name" TEXT NOT NULL, "creator_id" INTEGER NOT NULL, "invitation_code" TEXT NOT NULL, "is_locked" INTEGER NOT NULL, "default_options_id" INTEGER NOT NULL, FOREIGN KEY ("creator_id") REFERENCES "user" ("id") ON DELETE CASCADE, FOREIGN KEY ("default_options_id") REFERENCES "location_options" ("id") ON DELETE CASCADE)'
+            )
+            db.execute_sql(
+                'CREATE INDEX IF NOT EXISTS "room_creator_id" ON "room" ("creator_id")'
+            )
+            db.execute_sql(
+                'CREATE INDEX IF NOT EXISTS "room_default_options_id" ON "room" ("default_options_id")'
+            )
+            db.execute_sql(
+                'CREATE UNIQUE INDEX "room_invitation_code" ON "room" ("invitation_code")'
+            )
+            db.execute_sql(
+                'CREATE UNIQUE INDEX "room_name_creator_id" ON "room" ("name", "creator_id")'
+            )
+            db.execute_sql(
+                "INSERT INTO room (id, name, creator_id, invitation_code, is_locked, default_options_id) SELECT id, name, creator_id, invitation_code, is_locked, default_options_id FROM _room"
+            )
+
+            db.execute_sql("CREATE TEMPORARY TABLE _shape AS SELECT * FROM shape")
+            db.execute_sql("DROP TABLE shape")
+            db.execute_sql(
+                'CREATE TABLE "shape" ("uuid" TEXT NOT NULL PRIMARY KEY, "layer_id" INTEGER NOT NULL, "type_" TEXT NOT NULL, "x" REAL NOT NULL, "y" REAL NOT NULL, "name" TEXT, "name_visible" INTEGER NOT NULL, "fill_colour" TEXT NOT NULL, "stroke_colour" TEXT NOT NULL, "vision_obstruction" INTEGER NOT NULL, "movement_obstruction" INTEGER NOT NULL, "is_token" INTEGER NOT NULL, "annotation" TEXT NOT NULL, "draw_operator" TEXT NOT NULL, "index" INTEGER NOT NULL, "options" TEXT, "badge" INTEGER NOT NULL, "show_badge" INTEGER NOT NULL, "default_edit_access" INTEGER NOT NULL, "default_vision_access" INTEGER NOT NULL, FOREIGN KEY ("layer_id") REFERENCES "layer" ("id") ON DELETE CASCADE)'
+            )
+            db.execute_sql(
+                'CREATE INDEX IF NOT EXISTS "shape_layer_id" ON "shape" ("layer_id")'
+            )
+            db.execute_sql(
+                'INSERT INTO shape (uuid, layer_id, type_, x, y, name, name_visible, fill_colour, stroke_colour, vision_obstruction, movement_obstruction, is_token, annotation, draw_operator, "index", options, badge, show_badge, default_edit_access, default_vision_access) SELECT uuid, layer_id, type_, x, y, name, name_visible, fill_colour, stroke_colour, vision_obstruction, movement_obstruction, is_token, annotation, draw_operator, "index", options, badge, show_badge, default_edit_access, default_vision_access FROM _shape'
+            )
+
+            db.execute_sql("CREATE TEMPORARY TABLE _user AS SELECT * FROM user")
+            db.execute_sql("DROP TABLE user")
+            db.execute_sql(
+                'CREATE TABLE "user" ("id" INTEGER NOT NULL PRIMARY KEY, "name" TEXT NOT NULL, "email" TEXT, "password_hash" TEXT NOT NULL, "fow_colour" TEXT NOT NULL, "grid_colour" TEXT NOT NULL, "ruler_colour" TEXT NOT NULL, "invert_alt" INTEGER NOT NULL)'
+            )
+            db.execute_sql(
+                "INSERT INTO user (id, name, email, password_hash, fow_colour, grid_colour, ruler_colour, invert_alt) SELECT id, name, email, password_hash, fow_colour, grid_colour, ruler_colour, invert_alt FROM _user"
+            )
 
         db.foreign_keys = True
         Constants.get().update(save_version=Constants.save_version + 1).execute()

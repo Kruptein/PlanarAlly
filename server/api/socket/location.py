@@ -244,4 +244,4 @@ async def delete_location(sid: int, data: int):
         )
         return
 
-    location.delete_instance()
+    location.delete_instance(recursive=True)

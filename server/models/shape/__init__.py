@@ -154,6 +154,10 @@ class ShapeType(BaseModel):
     abstract = False
     shape = ForeignKeyField(Shape, primary_key=True, on_delete="CASCADE")
 
+    @staticmethod
+    def pre_create(**kwargs):
+        return kwargs
+
     def as_dict(self, *args, **kwargs):
         return model_to_dict(self, *args, **kwargs)
 
@@ -195,6 +199,11 @@ class Polygon(ShapeType):
     vertices = TextField()
     line_width = IntegerField()
     open_polygon = BooleanField()
+
+    @staticmethod
+    def pre_create(**kwargs):
+        kwargs["vertices"] = json.dumps(kwargs["vertices"])
+        return kwargs
 
     def as_dict(self, *args, **kwargs):
         model = model_to_dict(self, *args, **kwargs)

@@ -10,7 +10,11 @@ All notable changes to this project will be documented in this file.
 ### Changed
 
 -   During shape drag/move use a smaller version to do hitbox tests
-    - This improves behaviour when going through a very tight hallway or a door
+    -   This improves behaviour when going through a very tight hallway or a door
+
+### Fixed
+
+-   Polygon server creation with initial vertices list breaks session
 
 ## [0.20.1] - 2020-05-11
 

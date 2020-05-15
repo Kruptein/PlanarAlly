@@ -55,7 +55,10 @@ async def add_shape(sid: int, data: Dict[str, Any]):
             # Subshape
             type_table = get_table(shape.type_)
             type_table.create(
-                shape=shape, **reduce_data_to_model(type_table, data["shape"])
+                shape=shape,
+                **type_table.pre_create(
+                    **reduce_data_to_model(type_table, data["shape"])
+                ),
             )
             # Owners
             for owner in data["shape"]["owners"]:

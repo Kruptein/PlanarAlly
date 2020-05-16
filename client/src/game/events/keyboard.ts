@@ -22,7 +22,7 @@ export function onKeyUp(event: KeyboardEvent): void {
             const i = tokens.findIndex(o => o.center().equals(gameStore.screenCenter));
             const token = tokens[(i + 1) % tokens.length];
             gameManager.setCenterPosition(token.center());
-            gameStore.selectFloor(token.floor);
+            gameStore.selectFloor({ targetFloor: token.floor, sync: true });
         }
     }
 }
@@ -131,7 +131,7 @@ export function onKeyDown(event: KeyboardEvent): void {
             }
             layerManager.clearSelection();
             if (!event.ctrlKey || event.shiftKey) {
-                gameStore.selectFloor(gameStore.selectedFloorIndex + 1);
+                gameStore.selectFloor({ targetFloor: gameStore.selectedFloorIndex + 1, sync: true });
             }
             if (event.shiftKey) for (const shape of selection) newLayer.selection.push(shape);
         } else if (event.key === "PageDown" && gameStore.selectedFloorIndex > 0) {
@@ -151,7 +151,7 @@ export function onKeyDown(event: KeyboardEvent): void {
             }
             if (!event.shiftKey) layerManager.clearSelection();
             if (!event.ctrlKey || event.shiftKey) {
-                gameStore.selectFloor(gameStore.selectedFloorIndex - 1);
+                gameStore.selectFloor({ targetFloor: gameStore.selectedFloorIndex - 1, sync: true });
             }
             if (event.shiftKey) for (const shape of selection) newLayer.selection.push(shape);
         }

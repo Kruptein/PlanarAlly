@@ -18,7 +18,7 @@ export function addFloor(floor: ServerFloor): void {
     addCDT(floor.name);
     layerManager.floors.push({ name: floor.name, layers: [] });
     for (const layer of floor.layers) createLayer(layer, floor.name);
-    gameStore.selectFloor(gameStore.floors.length - 1);
+    gameStore.selectFloor({ targetFloor: gameStore.floors.length - 1, sync: true });
 }
 
 export function removeFloor(floor: string): void {
@@ -40,7 +40,7 @@ export function removeFloor(floor: string): void {
     // todo: once vue 3 hits, fix this split up
     gameStore.floors.splice(index, 1);
     layerManager.floors.splice(index, 1);
-    if (gameStore.selectedFloorIndex === index) gameStore.selectFloor(index - 1);
+    if (gameStore.selectedFloorIndex === index) gameStore.selectFloor({ targetFloor: index - 1, sync: true });
 }
 
 export function createLayer(layerInfo: ServerLayer, floor: string): void {

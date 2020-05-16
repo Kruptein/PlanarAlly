@@ -76,7 +76,7 @@ socket.on("Client.Options.Set", (options: ServerClient) => {
     gameStore.setZoomDisplay(zoomDisplay(options.zoom_factor));
     // gameStore.setZoomDisplay(0.5);
     if (options.active_layer && options.active_floor) {
-        gameStore.selectFloor(options.active_floor);
+        gameStore.selectFloor({ targetFloor: options.active_floor, sync: false });
         layerManager.selectLayer(options.active_layer, false);
     }
     for (const floor of layerManager.floors) {
@@ -84,7 +84,7 @@ socket.on("Client.Options.Set", (options: ServerClient) => {
     }
 });
 socket.on("Position.Set", (data: { floor: string; x: number; y: number; zoom: number }) => {
-    gameStore.selectFloor(data.floor);
+    gameStore.selectFloor({ targetFloor: data.floor, sync: false });
     gameStore.setZoomDisplay(data.zoom);
     gameManager.setCenterPosition(new GlobalPoint(data.x, data.y));
 });
@@ -110,7 +110,7 @@ socket.on("Board.Set", (locationInfo: BoardInfo) => {
         visibilityStore.recalculateVision(floor.name);
         visibilityStore.recalculateMovement(floor.name);
     }
-    gameStore.selectFloor(0);
+    gameStore.selectFloor({ targetFloor: 0, sync: false });
     gameStore.setBoardInitialized(true);
 });
 socket.on("Floor.Create", addFloor);
@@ -148,7 +148,7 @@ socket.on("Shape.Floor.Change", (data: { uuid: string; floor: string }) => {
     const shape = layerManager.UUIDMap.get(data.uuid);
     if (shape === undefined) return;
     shape.moveFloor(data.floor, false);
-    if (shape.ownedBy({ editAccess: true })) gameStore.selectFloor(data.floor);
+    if (shape.ownedBy({ editAccess: true })) gameStore.selectFloor({ targetFloor: data.floor, sync: false });
 });
 socket.on("Shape.Layer.Change", (data: { uuid: string; layer: string }) => {
     const shape = layerManager.UUIDMap.get(data.uuid);

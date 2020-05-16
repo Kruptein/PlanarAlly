@@ -15,6 +15,7 @@ All notable changes to this project will be documented in this file.
 ### Fixed
 
 -   Polygon server creation with initial vertices list breaks session
+-   Player floor location not being remembered
 
 ## [0.20.1] - 2020-05-11
 

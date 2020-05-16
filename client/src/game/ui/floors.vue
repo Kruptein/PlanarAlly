@@ -48,7 +48,7 @@ export default class FloorSelect extends Vue {
     }
 
     selectFloor(index: number): void {
-        gameStore.selectFloor(index);
+        gameStore.selectFloor({ targetFloor: index, sync: true });
     }
 
     async removeFloor(index: number): Promise<void> {

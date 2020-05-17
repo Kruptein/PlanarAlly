@@ -47,6 +47,7 @@ export abstract class Shape {
     movementObstruction = false;
     // Does this shape represent a playable token
     isToken = false;
+    isInvisible = false;
     // Show a highlight box
     showHighlight = false;
 
@@ -192,6 +193,13 @@ export abstract class Shape {
         }
     }
 
+    setInvisible(isInvisible: boolean, sync: boolean): void {
+        this.isInvisible = isInvisible;
+        // eslint-disable-next-line @typescript-eslint/camelcase
+        if (sync) socket.emit("Shape.Options.Invisible.Set", { shape: this.uuid, is_invisible: isInvisible });
+        this.invalidate(true);
+    }
+
     abstract asDict(): ServerShape;
     getBaseDict(): ServerShape {
         /* eslint-disable @typescript-eslint/camelcase */
@@ -215,6 +223,7 @@ export abstract class Shape {
             name_visible: this.nameVisible,
             annotation: this.annotation,
             is_token: this.isToken,
+            is_invisible: this.isInvisible,
             options: JSON.stringify([...this.options]),
             badge: this.badge,
             show_badge: this.showBadge,
@@ -235,6 +244,7 @@ export abstract class Shape {
         this.fillColour = data.fill_colour;
         this.strokeColour = data.stroke_colour;
         this.isToken = data.is_token;
+        this.isInvisible = data.is_invisible;
         this.nameVisible = data.name_visible;
         this.badge = data.badge;
         this.showBadge = data.show_badge;

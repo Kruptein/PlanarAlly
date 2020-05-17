@@ -6,7 +6,7 @@ from peewee import Case
 from playhouse.shortcuts import update_model_from_dict
 
 import auth
-from . import access
+from . import access, options
 from app import app, logger, sio
 from models import (
     Aura,

@@ -112,7 +112,7 @@ export default class GridSettings extends Vue {
                 <label :for="'unitSizeInput-' + location">Unit Size (in {{ unitSizeUnit }})</label>
             </div>
             <div>
-                <input :id="'unitSizeInput-' + location" type="number" v-model.number="unitSize" />
+                <input :id="'unitSizeInput-' + location" type="number" step="any" v-model.number="unitSize" />
             </div>
             <div
                 v-if="location !== null && options.unitSize !== undefined"

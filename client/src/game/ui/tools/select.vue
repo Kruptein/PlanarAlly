@@ -81,6 +81,7 @@ export default class SelectTool extends Tool {
 
         for (let i = selectionStack.length - 1; i >= 0; i--) {
             const shape = selectionStack[i];
+            if (shape.isInvisible && !shape.ownedBy({ editAccess: true })) continue;
 
             this.resizePoint = shape.getPointIndex(gp, l2gz(5));
 

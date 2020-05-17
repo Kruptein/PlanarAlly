@@ -19,7 +19,7 @@ from config import SAVE_FILE
 from models import ALL_MODELS, Constants
 from models.db import db
 
-SAVE_VERSION = 28
+SAVE_VERSION = 29
 
 logger: logging.Logger = logging.getLogger("PlanarAllyServer")
 logger.setLevel(logging.INFO)
@@ -553,6 +553,18 @@ def upgrade(version):
             )
             db.execute_sql(
                 "INSERT INTO user (id, name, email, password_hash, fow_colour, grid_colour, ruler_colour, invert_alt) SELECT id, name, email, password_hash, fow_colour, grid_colour, ruler_colour, invert_alt FROM _user"
+            )
+
+        db.foreign_keys = True
+        Constants.get().update(save_version=Constants.save_version + 1).execute()
+    elif version == 28:
+        # Add invisibility toggle to shapes
+        migrator = SqliteMigrator(db)
+
+        db.foreign_keys = False
+        with db.atomic():
+            db.execute_sql(
+                "ALTER TABLE shape ADD COLUMN is_invisible INTEGER NOT NULL DEFAULT 0"
             )
 
         db.foreign_keys = True

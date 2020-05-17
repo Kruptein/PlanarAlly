@@ -7,6 +7,12 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+### Added
+
+-   Shape invisible toggle
+    -   Only players with edit access can see and interact with the shape
+    -   Public auras are still visible to all players (e.g. invisible creature with a torch would still shed light)
+
 ### Changed
 
 -   During shape drag/move use a smaller version to do hitbox tests

@@ -1,6 +1,7 @@
 import { AssetList, InvalidationMode, SyncMode } from "@/core/comm/types";
 import "@/game/api/events/access";
 import "@/game/api/events/location";
+import "@/game/api/events/shape";
 import { setLocationOptions } from "@/game/api/events/location";
 import { socket } from "@/game/api/socket";
 import { BoardInfo, Note } from "@/game/comm/types/general";

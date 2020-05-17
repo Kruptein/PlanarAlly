@@ -20,6 +20,7 @@ export interface ServerShape {
     name_visible: boolean;
     annotation: string;
     is_token: boolean;
+    is_invisible: boolean;
     options?: string;
     badge: number;
     show_badge: boolean;

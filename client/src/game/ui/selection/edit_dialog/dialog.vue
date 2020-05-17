@@ -88,6 +88,10 @@ export default class EditDialog extends Vue {
         this.shape.setIsToken(event.target.checked);
         this.updateShape(true);
     }
+    setInvisible(event: { target: HTMLInputElement }): void {
+        if (!this.owned) return;
+        this.shape.setInvisible(event.target.checked, true);
+    }
     toggleBadge(_event: { target: HTMLInputElement }): void {
         if (!this.owned) return;
         const groupMembers = this.shape.getGroupMembers();
@@ -207,6 +211,16 @@ export default class EditDialog extends Vue {
                     id="shapeselectiondialog-istoken"
                     :checked="shape.isToken"
                     @click="setToken"
+                    style="grid-column-start: remove;"
+                    class="styled-checkbox"
+                    :disabled="!owned"
+                />
+                <label for="shapeselectiondialog-is-invisible">Is invisible</label>
+                <input
+                    type="checkbox"
+                    id="shapeselectiondialog-is-invisible"
+                    :checked="shape.isInvisible"
+                    @click="setInvisible"
                     style="grid-column-start: remove;"
                     class="styled-checkbox"
                     :disabled="!owned"

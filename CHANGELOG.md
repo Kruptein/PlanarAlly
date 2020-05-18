@@ -24,6 +24,7 @@ All notable changes to this project will be documented in this file.
 -   Player floor location not being remembered
 -   Ruler not showing decimal points
 -   DM settings/grid unit size showing invalid input on firefox for floating point numbers
+-   Server showing JSON decode errors
 
 ## [0.20.1] - 2020-05-11
 

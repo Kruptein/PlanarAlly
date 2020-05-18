@@ -20,7 +20,9 @@ class GameState(State[PlayerRoom]):
     async def clear_temporaries(self, sid: int) -> None:
         if sid in self.client_temporaries:
             await sio.emit(
-                "Temp.Clear", self.client_temporaries[sid], namespace="/planarally"
+                "Temp.Clear",
+                list(self.client_temporaries[sid]),
+                namespace="/planarally",
             )
             del self.client_temporaries[sid]
 

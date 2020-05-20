@@ -178,6 +178,9 @@ export default class Initiative extends Vue {
             gameStore.setActiveTokens(this._activeTokens);
         }
     }
+    setLock(lock: boolean): void {
+        initiativeStore.setLock(lock);
+    }
 }
 </script>
 
@@ -225,6 +228,8 @@ export default class Initiative extends Vue {
                                 v-model.lazy.number="actor.initiative"
                                 :disabled="!owns(actor)"
                                 :class="{ notAllowed: !owns(actor) }"
+                                @focus="setLock(true)"
+                                @blur="setLock(false)"
                                 @change="syncInitiative(actor)"
                             />
                             <div

@@ -228,7 +228,15 @@ async def new_initiative_effect(sid: int, data: Dict[str, Any]):
 async def update_initiative_effect(sid: int, data: Dict[str, Any]):
     pr: PlayerRoom = game_state.get(sid)
 
-    if not has_ownership(data["actor"], pr):
+    try:
+        shape = Shape.get(uuid=data["actor"])
+    except Shape.DoesNotExist:
+        logger.warning(
+            f"{pr.player.name} attempted to update an initiative effect of an unknown actor"
+        )
+        return
+
+    if not has_ownership(shape, pr):
         logger.warning(f"{pr.player.name} attempted to update an initiative effect")
         return
 

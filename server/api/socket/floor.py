@@ -21,7 +21,7 @@ async def create_floor(sid: int, data: Dict[str, Any]):
     for psid, player in game_state.get_users(active_location=pr.active_location):
         await sio.emit(
             "Floor.Create",
-            floor.as_dict(player, player == pr.room.creator),
+            { "floor": floor.as_dict(player, player == pr.room.creator), "creator": pr.player.name },
             room=psid,
             namespace="/planarally",
         )

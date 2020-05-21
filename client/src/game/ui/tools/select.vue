@@ -145,7 +145,9 @@ export default class SelectTool extends Tool {
         event: MouseEvent | TouchEvent,
         features: ToolFeatures<SelectFeatures>,
     ): void {
-        // if (!this.active) return;   we require mousemove for the resize cursor
+        // We require move for the resize cursor
+        if (!this.active && !this.hasFeature(SelectFeatures.Resize, features)) return;
+
         const layer = layerManager.getLayer(layerManager.floor!.name);
         if (layer === undefined) {
             console.log("No active layer!");

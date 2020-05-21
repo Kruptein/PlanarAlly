@@ -20,7 +20,7 @@ import { PingTool } from "@/game/ui/tools/ping";
 import { RulerTool } from "@/game/ui/tools/ruler";
 import { l2g } from "@/game/units";
 import { getLocalPointFromEvent } from "@/game/utils";
-import { ToolName, ToolFeatures, ToolPermission } from "./utils";
+import { ToolName, ToolFeatures } from "./utils";
 import { EventBus } from "@/game/event-bus";
 
 @Component({

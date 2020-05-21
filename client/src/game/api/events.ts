@@ -4,7 +4,7 @@ import "@/game/api/events/location";
 import "@/game/api/events/shape";
 import { setLocationOptions } from "@/game/api/events/location";
 import { socket } from "@/game/api/socket";
-import { BoardInfo, Note } from "@/game/comm/types/general";
+import { BoardInfo, Note, ServerFloor } from "@/game/comm/types/general";
 import { ServerShape } from "@/game/comm/types/shapes";
 import { EventBus } from "@/game/event-bus";
 import { GlobalPoint } from "@/game/geom";
@@ -18,6 +18,7 @@ import { gameSettingsStore } from "../settings";
 import { createShapeFromDict } from "../shapes/utils";
 import { zoomDisplay } from "../utils";
 import { visibilityStore } from "../visibility/store";
+import { coreStore } from "../../core/store";
 
 socket.on("connect", () => {
     console.log("Connected");
@@ -114,7 +115,10 @@ socket.on("Board.Set", (locationInfo: BoardInfo) => {
     gameStore.selectFloor({ targetFloor: 0, sync: false });
     gameStore.setBoardInitialized(true);
 });
-socket.on("Floor.Create", addFloor);
+socket.on("Floor.Create", (data: { floor: ServerFloor; creator: string }) => {
+    addFloor(data.floor);
+    if (data.creator === coreStore.username) gameStore.selectFloor({ targetFloor: data.floor.name, sync: true });
+});
 socket.on("Floor.Remove", removeFloor);
 socket.on("Shape.Add", (shape: ServerShape) => {
     gameManager.addShape(shape);

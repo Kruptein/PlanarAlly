@@ -18,6 +18,7 @@ All notable changes to this project will be documented in this file.
 -   During shape drag/move use a smaller version to do hitbox tests
     -   This improves behaviour when going through a very tight hallway or a door
 -   Delayed initiative updating during edit
+-   Creating a new floor will no longer automatically move everyone to that floor
 
 ### Fixed
 
@@ -27,6 +28,7 @@ All notable changes to this project will be documented in this file.
 -   DM settings/grid unit size showing invalid input on firefox for floating point numbers
 -   Server showing JSON decode errors
 -   Players not being able to update initiative effects
+-   Active layer sometimes resetting on reload
 
 ## [0.20.1] - 2020-05-11
 

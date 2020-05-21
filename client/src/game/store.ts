@@ -19,6 +19,13 @@ export interface LocationUserOptions {
     zoomFactor: number;
 }
 
+export interface Player {
+    id: number;
+    name: string;
+    location: number;
+    role: number;
+}
+
 export interface GameState {
     boardInitialized: boolean;
 }
@@ -48,7 +55,7 @@ class GameStore extends VuexModule implements GameState {
     roomName = "";
     roomCreator = "";
     invitationCode = "";
-    players: { id: number; name: string; location: number; role: number }[] = [];
+    players: Player[] = [];
 
     gridColour = "rgba(0, 0, 0, 1)";
     fowColour = "rgba(0, 0, 0, 1)";
@@ -415,12 +422,12 @@ class GameStore extends VuexModule implements GameState {
     }
 
     @Mutation
-    setPlayers(players: { id: number; name: string; location: number; role: number }[]): void {
+    setPlayers(players: Player[]): void {
         this.players = players;
     }
 
     @Mutation
-    addPlayer(player: { id: number; name: string; location: number; role: number }): void {
+    addPlayer(player: Player): void {
         this.players.push(player);
     }
 

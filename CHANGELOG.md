@@ -29,6 +29,7 @@ All notable changes to this project will be documented in this file.
 -   Server showing JSON decode errors
 -   Players not being able to update initiative effects
 -   Active layer sometimes resetting on reload
+-   DMs no longer being able to kick themselves
 
 ## [0.20.1] - 2020-05-11
 

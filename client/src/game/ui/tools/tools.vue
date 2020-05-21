@@ -91,7 +91,7 @@ export default class Tools extends Vue {
     }
 
     get visibleTools(): string[] {
-        return this.tools.filter(t => !this.dmTools.includes(t) || this.IS_DM);
+        return this.tools.filter(t => (!this.dmTools.includes(t) || this.IS_DM) && this.toolVisible(t));
     }
 
     toolVisible(tool: string): boolean {
@@ -265,7 +265,6 @@ export default class Tools extends Vue {
                     :key="tool"
                     :class="{ 'tool-selected': currentTool === tool }"
                     :ref="tool + '-selector'"
-                    v-show="toolVisible(tool)"
                     @mousedown="currentTool = tool"
                 >
                     <a href="#">{{ tool }}</a>

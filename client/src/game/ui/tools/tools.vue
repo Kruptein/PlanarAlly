@@ -20,7 +20,7 @@ import { PingTool } from "@/game/ui/tools/ping";
 import { RulerTool } from "@/game/ui/tools/ruler";
 import { l2g } from "@/game/units";
 import { getLocalPointFromEvent } from "@/game/utils";
-import { ToolName } from "./utils";
+import { ToolName, ToolFeatures, ToolPermission } from "./utils";
 
 @Component({
     components: {
@@ -75,19 +75,24 @@ export default class Tools extends Vue {
     }
 
     currentTool = ToolName.Select;
-    tools = Object.values(ToolName);
     dmTools = [ToolName.Map];
 
-    buildTools = [
-        ToolName.Select,
-        ToolName.Pan,
-        ToolName.Draw,
-        ToolName.Ruler,
-        ToolName.Map,
-        ToolName.Filter,
-        ToolName.Vision,
+    buildTools: [ToolName, ToolFeatures][] = [
+        [ToolName.Select, {}],
+        [ToolName.Pan, {}],
+        [ToolName.Draw, {}],
+        [ToolName.Ruler, {}],
+        [ToolName.Map, {}],
+        [ToolName.Filter, {}],
+        [ToolName.Vision, {}],
     ];
-    playTools: [ToolName, number[]][] = [[ToolName.Select, [SelectFeatures.Resize]]];
+    playTools: [ToolName, ToolFeatures][] = [
+        [ToolName.Select, { disabled: [SelectFeatures.Resize] }],
+        [ToolName.Pan, {}],
+        [ToolName.Ruler, {}],
+        [ToolName.Filter, {}],
+        [ToolName.Vision, {}],
+    ];
     mode: "Build" | "Play" = "Build";
 
     get componentMap(): { [key in ToolName]: InstanceType<typeof Tool> } {
@@ -102,8 +107,16 @@ export default class Tools extends Vue {
         return this.componentMap[this.currentTool];
     }
 
+    get tools(): [ToolName, ToolFeatures][] {
+        return this.mode === "Build" ? this.buildTools : this.playTools;
+    }
+
     get visibleTools(): string[] {
-        return this.tools.filter(t => (!this.dmTools.includes(t) || this.IS_DM) && this.toolVisible(t));
+        return this.tools.map(t => t[0]).filter(t => (!this.dmTools.includes(t) || this.IS_DM) && this.toolVisible(t));
+    }
+
+    private getFeatures(tool: ToolName): ToolFeatures {
+        return this.tools.find(t => t[0] === tool)?.[1] ?? {};
     }
 
     toolVisible(tool: string): boolean {
@@ -126,7 +139,7 @@ export default class Tools extends Vue {
         }
 
         const tool = this.componentMap[targetTool];
-        tool.onMouseDown(event, {});
+        tool.onMouseDown(event, this.getFeatures(targetTool));
         for (const permitted of tool.permittedTools)
             this.componentMap[permitted.name].onMouseDown(event, permitted.features);
     }
@@ -141,7 +154,7 @@ export default class Tools extends Vue {
         }
 
         const tool = this.componentMap[targetTool];
-        tool.onMouseUp(event, {});
+        tool.onMouseUp(event, this.getFeatures(targetTool));
         for (const permitted of tool.permittedTools)
             this.componentMap[permitted.name].onMouseUp(event, permitted.features);
     }
@@ -157,7 +170,7 @@ export default class Tools extends Vue {
         }
 
         const tool = this.componentMap[targetTool];
-        tool.onMouseMove(event, {});
+        tool.onMouseMove(event, this.getFeatures(targetTool));
         for (const permitted of tool.permittedTools)
             this.componentMap[permitted.name].onMouseMove(event, permitted.features);
 
@@ -180,7 +193,7 @@ export default class Tools extends Vue {
         // When leaving the window while a mouse is pressed down, act as if it was released
         if ((event.buttons & 1) !== 0) {
             const tool = this.componentMap[this.currentTool];
-            tool.onMouseUp(event, {});
+            tool.onMouseUp(event, this.getFeatures(this.currentTool));
             for (const permitted of tool.permittedTools)
                 this.componentMap[permitted.name].onMouseUp(event, permitted.features);
         }
@@ -189,7 +202,7 @@ export default class Tools extends Vue {
         if ((<HTMLElement>event.target).tagName !== "CANVAS") return;
         if (event.button !== 2 || (<HTMLElement>event.target).tagName !== "CANVAS") return;
         const tool = this.componentMap[this.currentTool];
-        tool.onContextMenu(event, {});
+        tool.onContextMenu(event, this.getFeatures(this.currentTool));
         for (const permitted of tool.permittedTools)
             this.componentMap[permitted.name].onContextMenu(event, permitted.features);
     }
@@ -203,8 +216,8 @@ export default class Tools extends Vue {
             tool.scaling = true;
         }
 
-        if (tool.scaling) tool.onPinchStart(event, {});
-        else tool.onTouchStart(event, {});
+        if (tool.scaling) tool.onPinchStart(event, this.getFeatures(this.currentTool));
+        else tool.onTouchStart(event, this.getFeatures(this.currentTool));
         for (const permitted of tool.permittedTools) {
             const otherTool = this.componentMap[permitted.name];
             otherTool.scaling = tool.scaling;
@@ -218,8 +231,8 @@ export default class Tools extends Vue {
 
         const tool = this.componentMap[this.currentTool];
 
-        if (tool.scaling) tool.onPinchEnd(event, {});
-        else tool.onTouchEnd(event, {});
+        if (tool.scaling) tool.onPinchEnd(event, this.getFeatures(this.currentTool));
+        else tool.onTouchEnd(event, this.getFeatures(this.currentTool));
         tool.scaling = false;
         for (const permitted of tool.permittedTools) {
             const otherTool = this.componentMap[permitted.name];
@@ -236,11 +249,11 @@ export default class Tools extends Vue {
 
         if (tool.scaling) {
             event.preventDefault();
-            tool.onPinchMove(event, {});
+            tool.onPinchMove(event, this.getFeatures(this.currentTool));
         } else if (event.touches.length >= 3) {
-            tool.onThreeTouchMove(event, {});
+            tool.onThreeTouchMove(event, this.getFeatures(this.currentTool));
         } else {
-            tool.onTouchMove(event, {});
+            tool.onTouchMove(event, this.getFeatures(this.currentTool));
         }
 
         for (const permitted of tool.permittedTools) {
@@ -265,6 +278,10 @@ export default class Tools extends Vue {
             gameManager.annotationManager.setActiveText("");
         }
     }
+
+    toggleMode(): void {
+        this.mode = this.mode === "Build" ? "Play" : "Build";
+    }
 }
 </script>
 
@@ -272,7 +289,6 @@ export default class Tools extends Vue {
     <div style="pointer-events: auto;">
         <div id="toolselect">
             <ul>
-                <li id="tool-mode">B</li>
                 <li
                     v-for="tool in visibleTools"
                     :key="tool"
@@ -283,6 +299,7 @@ export default class Tools extends Vue {
                 >
                     <a href="#">{{ tool }}</a>
                 </li>
+                <li id="tool-mode" @click="toggleMode" title="Change mode">{{ mode }}</li>
             </ul>
         </div>
         <div>
@@ -334,6 +351,16 @@ export default class Tools extends Vue {
     align-self: center;
     border-right: 0;
     padding: 5px;
+    font-size: 0;
+}
+
+#tool-mode::first-letter {
+    font-size: 1rem;
+}
+
+#tool-mode:hover {
+    cursor: pointer;
+    font-size: 1em;
 }
 
 .tool {
@@ -341,15 +368,14 @@ export default class Tools extends Vue {
     border-right: solid 1px #82c8a0;
 }
 
-.tool:last-child {
+#toolselect > ul > li:nth-last-child(2) {
     border-right: solid 1px #82c8a0;
     border-radius: 0px 10px 10px 0px; /* Border radius needs to be two less than the actual border, otherwise there will be a gap */
 }
 
-#toolselect > ul > li:first-child + .tool {
-    border-left: solid 2px #82c8a0;
+#toolselect > ul > li:first-child {
+    border-left: solid 1px #82c8a0;
     border-radius: 10px 0px 0px 10px;
-    /* box-shadow: #82c8a0 -2px 1px; */
 }
 
 .tool:hover {

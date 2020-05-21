@@ -96,6 +96,7 @@ export default class Tools extends Vue {
         [ToolName.Select, { disabled: [SelectFeatures.Resize] }],
         [ToolName.Pan, {}],
         [ToolName.Ruler, {}],
+        [ToolName.Ping, {}],
         [ToolName.Filter, {}],
         [ToolName.Vision, {}],
     ];

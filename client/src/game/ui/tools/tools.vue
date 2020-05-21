@@ -99,7 +99,7 @@ export default class Tools extends Vue {
         [ToolName.Filter, {}],
         [ToolName.Vision, {}],
     ];
-    mode: "Build" | "Play" = "Build";
+    mode: "Build" | "Play" = "Play";
 
     get componentMap(): { [key in ToolName]: InstanceType<typeof Tool> } {
         return this.componentmap_;

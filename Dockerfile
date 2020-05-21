@@ -1,3 +1,6 @@
+ARG DOCKER_TAG
+ARG SOURCE_COMMIT
+
 ################################
 # Build stage for the frontend #
 ################################

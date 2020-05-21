@@ -263,6 +263,7 @@ export default class Tools extends Vue {
                 <li
                     v-for="tool in visibleTools"
                     :key="tool"
+                    class="tool"
                     :class="{ 'tool-selected': currentTool === tool }"
                     :ref="tool + '-selector'"
                     @mousedown="currentTool = tool"
@@ -297,6 +298,8 @@ export default class Tools extends Vue {
     bottom: 25px;
     right: 25px;
     z-index: 10;
+    display: flex;
+    align-items: center;
 }
 
 #toolselect * {
@@ -310,30 +313,33 @@ export default class Tools extends Vue {
     padding: 0;
     margin: 0;
     border: solid 1px #82c8a0;
-    border-radius: 7px;
+    background-color: cadetblue;
+    border-radius: 10px;
 }
 
-#toolselect > ul > li {
-    display: flex;
+
+.tool {
     background-color: #eee;
     border-right: solid 1px #82c8a0;
 }
 
-#toolselect > ul > li:last-child {
-    border-right: none;
-    border-radius: 0px 4px 4px 0px; /* Border radius needs to be two less than the actual border, otherwise there will be a gap */
+.tool:last-child {
+    border-right: solid 1px #82c8a0;
+    border-radius: 0px 10px 10px 0px; /* Border radius needs to be two less than the actual border, otherwise there will be a gap */
 }
 
-#toolselect > ul > li:first-child {
-    border-radius: 4px 0px 0px 4px;
+#toolselect > ul > li:first-child + .tool {
+    border-left: solid 2px #82c8a0;
+    border-radius: 10px 0px 0px 10px;
+    /* box-shadow: #82c8a0 -2px 1px; */
 }
 
-#toolselect > ul > li:hover {
+.tool:hover {
     background-color: #82c8a0;
 }
 
-#toolselect > ul > li a {
-    display: flex;
+.tool a {
+    display: block;
     padding: 10px;
     text-decoration: none;
 }

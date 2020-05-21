@@ -27,6 +27,7 @@ All notable changes to this project will be documented in this file.
 -   DM settings/grid unit size showing invalid input on firefox for floating point numbers
 -   Server showing JSON decode errors
 -   Players not being able to update initiative effects
+-   Active layer sometimes resetting on reload
 
 ## [0.20.1] - 2020-05-11
 

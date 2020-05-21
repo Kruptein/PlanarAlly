@@ -21,6 +21,7 @@ import { RulerTool } from "@/game/ui/tools/ruler";
 import { l2g } from "@/game/units";
 import { getLocalPointFromEvent } from "@/game/utils";
 import { ToolName, ToolFeatures, ToolPermission } from "./utils";
+import { EventBus } from "@/game/event-bus";
 
 @Component({
     components: {
@@ -72,6 +73,11 @@ export default class Tools extends Vue {
             [ToolName.Filter]: this.$refs.filterTool,
             [ToolName.Vision]: this.$refs.visionTool,
         };
+        EventBus.$on("ToolMode.Toggle", this.toggleMode);
+    }
+
+    beforeDestroy(): void {
+        EventBus.$off("ToolMode.Toggle");
     }
 
     currentTool = ToolName.Select;

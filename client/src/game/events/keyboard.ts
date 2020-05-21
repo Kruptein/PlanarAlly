@@ -7,6 +7,7 @@ import { gameStore } from "@/game/store";
 import { calculateDelta } from "@/game/ui/tools/utils";
 import { visibilityStore } from "@/game/visibility/store";
 import { TriangulationTarget } from "@/game/visibility/te/pa";
+import { EventBus } from "../event-bus";
 import { gameManager } from "../manager";
 import { gameSettingsStore } from "../settings";
 
@@ -23,6 +24,9 @@ export function onKeyUp(event: KeyboardEvent): void {
             const token = tokens[(i + 1) % tokens.length];
             gameManager.setCenterPosition(token.center());
             gameStore.selectFloor({ targetFloor: token.floor, sync: true });
+        }
+        if (event.key === "Tab") {
+            EventBus.$emit("ToolMode.Toggle");
         }
     }
 }

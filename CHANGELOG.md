@@ -12,12 +12,15 @@ All notable changes to this project will be documented in this file.
 -   Shape invisible toggle
     -   Only players with edit access can see and interact with the shape
     -   Public auras are still visible to all players (e.g. invisible creature with a torch would still shed light)
+-   Build/Play mode
+    -   Show different set of tools dependening on the active mode
 
 ### Changed
 
 -   During shape drag/move use a smaller version to do hitbox tests
     -   This improves behaviour when going through a very tight hallway or a door
 -   Delayed initiative updating during edit
+-   In Play mode (see #added) the select tool will no longer allow resizing
 
 ### Fixed
 

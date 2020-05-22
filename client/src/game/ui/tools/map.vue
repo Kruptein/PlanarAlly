@@ -28,7 +28,9 @@ export default class MapTool extends Tool {
 
     shapeSelected = false;
 
-    permittedTools_: ToolPermission[] = [{ name: ToolName.Select, features: [SelectFeatures.ChangeSelection] }];
+    permittedTools_: ToolPermission[] = [
+        { name: ToolName.Select, features: { enabled: [SelectFeatures.ChangeSelection] } },
+    ];
 
     get permittedTools(): ToolPermission[] {
         return this.permittedTools_;
@@ -54,7 +56,7 @@ export default class MapTool extends Tool {
             layer.removeShape(this.rect, SyncMode.NO_SYNC);
             this.rect = null;
         }
-        this.permittedTools_ = [{ name: ToolName.Select, features: [SelectFeatures.ChangeSelection] }];
+        this.permittedTools_ = [{ name: ToolName.Select, features: { enabled: [SelectFeatures.ChangeSelection] } }];
         this.shapeSelected = false;
         this.shape = null;
     }
@@ -134,7 +136,9 @@ export default class MapTool extends Tool {
             return;
         }
 
-        this.permittedTools_ = [{ name: ToolName.Select, features: [SelectFeatures.Drag, SelectFeatures.Resize] }];
+        this.permittedTools_ = [
+            { name: ToolName.Select, features: { enabled: [SelectFeatures.Drag, SelectFeatures.Resize] } },
+        ];
     }
 
     onMouseDown(event: MouseEvent): void {

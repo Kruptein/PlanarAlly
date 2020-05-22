@@ -3,7 +3,7 @@ import Vue from "vue";
 import Component from "vue-class-component";
 
 import DefaultContext from "@/game/ui/tools/defaultcontext.vue";
-import { ToolName, ToolPermission } from "./utils";
+import { ToolName, ToolPermission, ToolFeatures } from "./utils";
 
 @Component
 export default class Tool extends Vue {
@@ -16,8 +16,11 @@ export default class Tool extends Vue {
         return [];
     }
 
-    hasFeature(feature: number, features: number[]): boolean {
-        return features.length === 0 || features.includes(feature);
+    hasFeature(feature: number, features: ToolFeatures): boolean {
+        return (
+            (!features.disabled?.includes(feature) ?? true) &&
+            ((features.enabled?.length ?? 0) === 0 || (features.enabled?.includes(feature) ?? false))
+        );
     }
 
     get detailRight(): string {
@@ -35,17 +38,17 @@ export default class Tool extends Vue {
 
     onSelect(): void {}
     onDeselect(): void {}
-    onMouseDown(_event: MouseEvent, _features: number[]): void {}
-    onMouseUp(_event: MouseEvent, _features: number[]): void {}
-    onMouseMove(_event: MouseEvent, _features: number[]): void {}
-    onTouchStart(_event: TouchEvent, _features: number[]): void {}
-    onTouchEnd(_event: TouchEvent, _features: number[]): void {}
-    onTouchMove(_event: TouchEvent, _features: number[]): void {}
-    onThreeTouchMove(_event: TouchEvent, _features: number[]): void {}
-    onPinchStart(_event: TouchEvent, _features: number[]): void {}
-    onPinchMove(_event: TouchEvent, _features: number[]): void {}
-    onPinchEnd(_event: TouchEvent, _features: number[]): void {}
-    onContextMenu(event: MouseEvent, _features: number[]): void {
+    onMouseDown(_event: MouseEvent, _features: ToolFeatures): void {}
+    onMouseUp(_event: MouseEvent, _features: ToolFeatures): void {}
+    onMouseMove(_event: MouseEvent, _features: ToolFeatures): void {}
+    onTouchStart(_event: TouchEvent, _features: ToolFeatures): void {}
+    onTouchEnd(_event: TouchEvent, _features: ToolFeatures): void {}
+    onTouchMove(_event: TouchEvent, _features: ToolFeatures): void {}
+    onThreeTouchMove(_event: TouchEvent, _features: ToolFeatures): void {}
+    onPinchStart(_event: TouchEvent, _features: ToolFeatures): void {}
+    onPinchMove(_event: TouchEvent, _features: ToolFeatures): void {}
+    onPinchEnd(_event: TouchEvent, _features: ToolFeatures): void {}
+    onContextMenu(event: MouseEvent, _features: ToolFeatures): void {
         (<DefaultContext>this.$parent.$refs.defaultcontext).open(event);
     }
 }

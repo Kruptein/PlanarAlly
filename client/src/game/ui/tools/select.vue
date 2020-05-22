@@ -13,7 +13,7 @@ import { layerManager } from "@/game/layers/manager";
 import { snapToPoint } from "@/game/layers/utils";
 import { Rect } from "@/game/shapes/rect";
 import { gameStore } from "@/game/store";
-import { calculateDelta, ToolName } from "@/game/ui/tools/utils";
+import { calculateDelta, ToolName, ToolFeatures } from "@/game/ui/tools/utils";
 import { g2l, g2lx, g2ly, l2g, l2gz } from "@/game/units";
 import { getLocalPointFromEvent, useSnapping } from "@/game/utils";
 import { visibilityStore } from "@/game/visibility/store";
@@ -59,7 +59,7 @@ export default class SelectTool extends Tool {
         gameStore.setSelectionHelperId(this.selectionHelper.uuid);
     }
 
-    onDown(lp: LocalPoint, event: MouseEvent | TouchEvent, features: SelectFeatures[]): void {
+    onDown(lp: LocalPoint, event: MouseEvent | TouchEvent, features: ToolFeatures<SelectFeatures>): void {
         const gp = l2g(lp);
         const layer = layerManager.getLayer(layerManager.floor!.name);
         if (layer === undefined) {
@@ -139,8 +139,15 @@ export default class SelectTool extends Tool {
         if (this.mode !== SelectOperations.Noop) this.active = true;
     }
 
-    onMove(lp: LocalPoint, gp: GlobalPoint, event: MouseEvent | TouchEvent, features: SelectFeatures[]): void {
-        // if (!this.active) return;   we require mousemove for the resize cursor
+    onMove(
+        lp: LocalPoint,
+        gp: GlobalPoint,
+        event: MouseEvent | TouchEvent,
+        features: ToolFeatures<SelectFeatures>,
+    ): void {
+        // We require move for the resize cursor
+        if (!this.active && !this.hasFeature(SelectFeatures.Resize, features)) return;
+
         const layer = layerManager.getLayer(layerManager.floor!.name);
         if (layer === undefined) {
             console.log("No active layer!");
@@ -229,7 +236,7 @@ export default class SelectTool extends Tool {
         }
     }
 
-    onUp(event: MouseEvent | TouchEvent, features: SelectFeatures[]): void {
+    onUp(event: MouseEvent | TouchEvent, features: ToolFeatures<SelectFeatures>): void {
         if (!this.active) return;
         if (layerManager.getLayer(layerManager.floor!.name) === undefined) {
             console.log("No active layer!");
@@ -343,37 +350,37 @@ export default class SelectTool extends Tool {
         this.active = false;
     }
 
-    onMouseDown(event: MouseEvent, features: SelectFeatures[]): void {
+    onMouseDown(event: MouseEvent, features: ToolFeatures<SelectFeatures>): void {
         const localPoint = getLocalPointFromEvent(event);
         this.onDown(localPoint, event, features);
     }
 
-    onMouseMove(event: MouseEvent, features: SelectFeatures[]): void {
+    onMouseMove(event: MouseEvent, features: ToolFeatures<SelectFeatures>): void {
         const localPoint = getLocalPointFromEvent(event);
         const globalPoint = l2g(localPoint);
         this.onMove(localPoint, globalPoint, event, features);
     }
 
-    onMouseUp(event: MouseEvent, features: SelectFeatures[]): void {
+    onMouseUp(event: MouseEvent, features: ToolFeatures<SelectFeatures>): void {
         this.onUp(event, features);
     }
 
-    onTouchStart(event: TouchEvent, features: SelectFeatures[]): void {
+    onTouchStart(event: TouchEvent, features: ToolFeatures<SelectFeatures>): void {
         const localPoint = getLocalPointFromEvent(event);
         this.onDown(localPoint, event, features);
     }
 
-    onTouchMove(event: TouchEvent, features: SelectFeatures[]): void {
+    onTouchMove(event: TouchEvent, features: ToolFeatures<SelectFeatures>): void {
         const localPoint = getLocalPointFromEvent(event);
         const globalPoint = l2g(localPoint);
         this.onMove(localPoint, globalPoint, event, features);
     }
 
-    onTouchEnd(event: TouchEvent, features: SelectFeatures[]): void {
+    onTouchEnd(event: TouchEvent, features: ToolFeatures<SelectFeatures>): void {
         this.onUp(event, features);
     }
 
-    onContextMenu(event: MouseEvent, features: SelectFeatures[]): void {
+    onContextMenu(event: MouseEvent, features: ToolFeatures<SelectFeatures>): void {
         if (!this.hasFeature(SelectFeatures.Context, features)) return;
         if (layerManager.getLayer(layerManager.floor!.name) === undefined) {
             console.log("No active layer!");

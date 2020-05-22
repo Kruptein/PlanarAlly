@@ -6,7 +6,7 @@ import InputCopyElement from "@/core/components/inputCopy.vue";
 import Game from "../../../game.vue";
 import { socket } from "@/game/api/socket";
 import { EventBus } from "@/game/event-bus";
-import { gameStore } from "@/game/store";
+import { gameStore, Player } from "@/game/store";
 
 @Component({
     components: {
@@ -32,6 +32,10 @@ export default class AdminSettings extends Vue {
     }
     get locked(): boolean {
         return gameStore.isLocked;
+    }
+
+    get players(): Player[] {
+        return gameStore.players.filter(p => p.role !== 1);
     }
 
     refreshInviteCode(): void {
@@ -61,13 +65,13 @@ export default class AdminSettings extends Vue {
 <template>
     <div class="panel">
         <div class="spanrow header">Players</div>
-        <div class="row smallrow" v-for="player in $store.state.game.players" :key="player.id">
+        <div class="row smallrow" v-for="player in players" :key="player.id">
             <div>{{ player.name }}</div>
             <div>
                 <div @click="kickPlayer(player.id)">Kick</div>
             </div>
         </div>
-        <div class="row smallrow" v-if="Object.values($store.state.game.players).length === 0">
+        <div class="row smallrow" v-if="Object.values(players).length === 0">
             <div class="spanrow">There are no players yet, invite some using the link below!</div>
         </div>
         <div class="spanrow header">Invite code</div>

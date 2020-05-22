@@ -21,6 +21,7 @@ All notable changes to this project will be documented in this file.
     -   This improves behaviour when going through a very tight hallway or a door
 -   Delayed initiative updating during edit
 -   In Play mode (see #added) the select tool will no longer allow resizing
+-   Creating a new floor will no longer automatically move everyone to that floor
 
 ### Fixed
 
@@ -30,6 +31,8 @@ All notable changes to this project will be documented in this file.
 -   DM settings/grid unit size showing invalid input on firefox for floating point numbers
 -   Server showing JSON decode errors
 -   Players not being able to update initiative effects
+-   Active layer sometimes resetting on reload
+-   DMs no longer being able to kick themselves
 
 ## [0.20.1] - 2020-05-11
 

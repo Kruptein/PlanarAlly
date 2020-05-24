@@ -4,7 +4,6 @@ import Component from "vue-class-component";
 
 import { Prop } from "vue-property-decorator";
 
-import { socket } from "@/game/api/socket";
 import { Shape } from "@/game/shapes/shape";
 import { gameStore } from "@/game/store";
 import { ShapeOwner } from "../../../shapes/owners";
@@ -51,30 +50,18 @@ export default class EditDialogAccess extends Vue {
     }
     toggleDefaultEditAccess(): void {
         if (!this.owned) return;
-        this.shape.updateDefaultOwner({ editAccess: !this.shape.defaultAccess.edit });
-        socket.emit("Shape.Owner.Default.Update", {
-            shape: this.shape.uuid,
-            // eslint-disable-next-line @typescript-eslint/camelcase
-            edit_access: this.shape.defaultAccess.edit,
-        });
+        this.shape.updateDefaultOwner({ ...this.shape.defaultAccess, edit: !this.shape.defaultAccess.edit }, true);
     }
     toggleDefaultMovementAccess(): void {
         if (!this.owned) return;
-        this.shape.updateDefaultOwner({ visionAccess: !this.shape.defaultAccess.movement });
-        socket.emit("Shape.Owner.Default.Update", {
-            shape: this.shape.uuid,
-            // eslint-disable-next-line @typescript-eslint/camelcase
-            movement_access: this.shape.defaultAccess.movement,
-        });
+        this.shape.updateDefaultOwner(
+            { ...this.shape.defaultAccess, movement: !this.shape.defaultAccess.movement },
+            true,
+        );
     }
     toggleDefaultVisionAccess(): void {
         if (!this.owned) return;
-        this.shape.updateDefaultOwner({ visionAccess: !this.shape.defaultAccess.vision });
-        socket.emit("Shape.Owner.Default.Update", {
-            shape: this.shape.uuid,
-            // eslint-disable-next-line @typescript-eslint/camelcase
-            vision_access: this.shape.defaultAccess.vision,
-        });
+        this.shape.updateDefaultOwner({ ...this.shape.defaultAccess, vision: !this.shape.defaultAccess.vision }, true);
     }
 }
 </script>

@@ -190,19 +190,12 @@ async def update_default_shape_owner(sid: int, data: Dict[str, Any]):
 
     shape.save()
 
-    await sio.emit(
-        "Shape.Owner.Default.Update",
-        data,
-        room=pr.active_location.get_path(),
-        skip_sid=sid,
-        namespace="/planarally",
-    )
-
-    if shape.default_vision_access or shape.default_edit_access:
-        for sid, player in game_state.get_users(active_location=pr.active_location):
-            await sio.emit(
-                "Shape.Set",
-                shape.as_dict(player, player.name == pr.room.creator),
-                room=sid,
-                namespace="/planarally",
-            )
+    # We need to send each player their new view of the shape which includes the default access fields,
+    # so there is no use in sending those separately
+    for sid, player in game_state.get_users(active_location=pr.active_location):
+        await sio.emit(
+            "Shape.Set",
+            shape.as_dict(player, player.name == pr.room.creator),
+            room=sid,
+            namespace="/planarally",
+        )

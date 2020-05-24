@@ -1,4 +1,4 @@
-import { ownerToClient, ServerShapeOwner } from "../../comm/types/shapes";
+import { ownerToClient, ServerShapeOwner, accessToClient, ServerShapeAccess } from "../../comm/types/shapes";
 import { layerManager } from "../../layers/manager";
 import { socket } from "../socket";
 
@@ -20,8 +20,8 @@ socket.on("Shape.Owner.Delete", (data: ServerShapeOwner) => {
     shape.removeOwner(data.user, false);
 });
 
-socket.on("Shape.Owner.Default.Update", (data: { shape: string; edit_access?: boolean; vision_access?: boolean }) => {
+socket.on("Shape.Owner.Default.Update", (data: ServerShapeAccess & { shape: string }) => {
     const shape = layerManager.UUIDMap.get(data.shape);
     if (shape === undefined) return;
-    shape.updateDefaultOwner({ editAccess: data.edit_access, visionAccess: data.vision_access });
+    shape.updateDefaultOwner(accessToClient(data), false);
 });

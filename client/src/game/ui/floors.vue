@@ -109,7 +109,6 @@ export default class FloorSelect extends Vue {
     list-style: none;
     margin-left: 25px;
     margin-bottom: 25px;
-    pointer-events: auto;
 }
 
 #floor-layer * {
@@ -124,6 +123,7 @@ export default class FloorSelect extends Vue {
 
 #floor-selector,
 .layer {
+    pointer-events: auto;
     background-color: #eee;
     border-right: solid 1px #82c8a0;
 }

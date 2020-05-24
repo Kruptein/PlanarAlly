@@ -68,7 +68,7 @@ export default class SelectTool extends Tool {
         }
 
         if (!this.selectionHelper.hasOwner(gameStore.username)) {
-            this.selectionHelper.addOwner({ user: gameStore.username, editAccess: true, visionAccess: true }, false);
+            this.selectionHelper.addOwner({ user: gameStore.username, access: { edit: true } }, false);
         }
 
         let hit = false;
@@ -81,7 +81,7 @@ export default class SelectTool extends Tool {
 
         for (let i = selectionStack.length - 1; i >= 0; i--) {
             const shape = selectionStack[i];
-            if (shape.isInvisible && !shape.ownedBy({ editAccess: true })) continue;
+            if (shape.isInvisible && !shape.ownedBy({ movementAccess: true })) continue;
 
             this.resizePoint = shape.getPointIndex(gp, l2gz(5));
 
@@ -176,7 +176,7 @@ export default class SelectTool extends Tool {
                 // If we are on the tokens layer do a movement block check.
                 if (layer.name === "tokens" && !(event.shiftKey && gameStore.IS_DM)) {
                     for (const sel of layer.selection) {
-                        if (!sel.ownedBy({ editAccess: true })) continue;
+                        if (!sel.ownedBy({ movementAccess: true })) continue;
                         if (sel.uuid === this.selectionHelper.uuid) continue; // the selection helper should not be treated as a real shape.
                         delta = calculateDelta(delta, sel, true);
                         if (delta !== ogDelta) this.deltaChanged = true;
@@ -184,7 +184,7 @@ export default class SelectTool extends Tool {
                 }
                 // Actually apply the delta on all shapes
                 for (const sel of layer.selection) {
-                    if (!sel.ownedBy({ editAccess: true })) continue;
+                    if (!sel.ownedBy({ movementAccess: true })) continue;
                     if (sel.visionObstruction)
                         visibilityStore.deleteFromTriag({
                             target: TriangulationTarget.VISION,
@@ -204,7 +204,7 @@ export default class SelectTool extends Tool {
                 layer.invalidate(false);
             } else if (this.mode === SelectOperations.Resize) {
                 for (const sel of layer.selection) {
-                    if (!sel.ownedBy({ editAccess: true })) continue;
+                    if (!sel.ownedBy({ movementAccess: true })) continue;
                     if (sel.visionObstruction)
                         visibilityStore.deleteFromTriag({
                             target: TriangulationTarget.VISION,
@@ -251,10 +251,10 @@ export default class SelectTool extends Tool {
                 layer.clearSelection();
             }
             for (const shape of layer.shapes) {
-                if (!shape.ownedBy({ editAccess: true })) continue;
+                if (!shape.ownedBy({ movementAccess: true })) continue;
                 if (shape === this.selectionHelper) continue;
                 const bbox = shape.getBoundingBox();
-                if (!shape.ownedBy({ editAccess: true })) continue;
+                if (!shape.ownedBy({ movementAccess: true })) continue;
                 if (
                     this.selectionHelper!.refPoint.x <= bbox.topRight.x &&
                     this.selectionHelper!.refPoint.x + this.selectionHelper!.w >= bbox.topLeft.x &&
@@ -270,7 +270,7 @@ export default class SelectTool extends Tool {
             layer.invalidate(true);
         } else if (layer.selection.length) {
             for (const sel of layer.selection) {
-                if (!sel.ownedBy({ editAccess: true })) continue;
+                if (!sel.ownedBy({ movementAccess: true })) continue;
                 if (this.mode === SelectOperations.Drag) {
                     if (
                         this.dragRay.origin!.x === g2lx(sel.refPoint.x) &&

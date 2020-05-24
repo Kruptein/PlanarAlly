@@ -250,7 +250,7 @@ export default class DrawTool extends Tool {
             if (this.modeSelect === "reveal") this.shape.globalCompositeOperation = "source-over";
             else if (this.modeSelect === "hide") this.shape.globalCompositeOperation = "destination-out";
 
-            this.shape.addOwner({ user: gameStore.username, editAccess: true, visionAccess: true }, false);
+            this.shape.addOwner({ user: gameStore.username, access: { edit: true } }, false);
             if (layer.name === "fow" && this.modeSelect === "normal") {
                 this.shape.visionObstruction = true;
                 this.shape.movementObstruction = true;

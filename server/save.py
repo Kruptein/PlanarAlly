@@ -19,7 +19,7 @@ from config import SAVE_FILE
 from models import ALL_MODELS, Constants
 from models.db import db
 
-SAVE_VERSION = 29
+SAVE_VERSION = 30
 
 logger: logging.Logger = logging.getLogger("PlanarAllyServer")
 logger.setLevel(logging.INFO)
@@ -566,6 +566,24 @@ def upgrade(version):
             db.execute_sql(
                 "ALTER TABLE shape ADD COLUMN is_invisible INTEGER NOT NULL DEFAULT 0"
             )
+
+        db.foreign_keys = True
+        Constants.get().update(save_version=Constants.save_version + 1).execute()
+    elif version == 29:
+        # Add movement access permission
+        migrator = SqliteMigrator(db)
+
+        db.foreign_keys = False
+        with db.atomic():
+            db.execute_sql(
+                "ALTER TABLE shape ADD COLUMN default_movement_access INTEGER NOT NULL DEFAULT 0"
+            )
+            db.execute_sql("ALTER TABLE shape_owner ADD COLUMN movement_access INTEGER")
+            db.execute_sql(
+                "UPDATE shape_owner SET movement_access = CASE WHEN edit_access = 0 THEN 0 ELSE 1 END"
+            )
+
+            migrate(migrator.add_not_null("shape_owner", "movement_access"),)
 
         db.foreign_keys = True
         Constants.get().update(save_version=Constants.save_version + 1).execute()

@@ -47,6 +47,7 @@ class Shape(BaseModel):
     default_edit_access = BooleanField(default=False)
     default_vision_access = BooleanField(default=False)
     is_invisible = BooleanField(default=False)
+    default_movement_access = BooleanField(default=False)
 
     def __repr__(self):
         return f"<Shape {self.get_path()}>"
@@ -138,6 +139,7 @@ class ShapeOwner(BaseModel):
     user = ForeignKeyField(User, backref="shapes", on_delete="CASCADE")
     edit_access = BooleanField()
     vision_access = BooleanField()
+    movement_access = BooleanField()
 
     def __repr__(self):
         return f"<ShapeOwner {self.user.name} {self.shape.get_path()}>"
@@ -147,6 +149,7 @@ class ShapeOwner(BaseModel):
             "shape": self.shape.uuid,
             "user": self.user.name,
             "edit_access": self.edit_access,
+            "movement_access": self.movement_access,
             "vision_access": self.vision_access,
         }
 

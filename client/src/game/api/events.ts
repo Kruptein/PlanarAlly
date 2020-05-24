@@ -1,8 +1,8 @@
-import { AssetList, InvalidationMode, SyncMode } from "@/core/comm/types";
+import { AssetList, SyncMode } from "@/core/comm/types";
 import "@/game/api/events/access";
 import "@/game/api/events/location";
-import "@/game/api/events/shape";
 import { setLocationOptions } from "@/game/api/events/location";
+import "@/game/api/events/shape";
 import { socket } from "@/game/api/socket";
 import { BoardInfo, Note, ServerFloor } from "@/game/comm/types/general";
 import { ServerShape } from "@/game/comm/types/shapes";
@@ -13,12 +13,11 @@ import { addFloor, removeFloor } from "@/game/layers/utils";
 import { gameManager } from "@/game/manager";
 import { gameStore } from "@/game/store";
 import { router } from "@/router";
+import { coreStore } from "../../core/store";
 import { optionsToClient, ServerClient, ServerLocationOptions } from "../comm/types/settings";
 import { gameSettingsStore } from "../settings";
-import { createShapeFromDict } from "../shapes/utils";
 import { zoomDisplay } from "../utils";
 import { visibilityStore } from "../visibility/store";
-import { coreStore } from "../../core/store";
 
 socket.on("connect", () => {
     console.log("Connected");
@@ -160,19 +159,8 @@ socket.on("Shape.Layer.Change", (data: { uuid: string; layer: string }) => {
     if (shape === undefined) return;
     shape.moveLayer(data.layer, false);
 });
-socket.on("Shape.Update", (data: { shape: ServerShape; redraw: boolean; move: boolean; temporary: boolean }) => {
+socket.on("Shape.Update", (data: { shape: ServerShape; redraw: boolean }) => {
     gameManager.updateShape(data);
-});
-socket.on("Shape.Set", (data: ServerShape) => {
-    // hard reset a shape
-    const old = layerManager.UUIDMap.get(data.uuid);
-    if (old) layerManager.getLayer(old.floor, old.layer)?.removeShape(old, SyncMode.NO_SYNC);
-    const shape = createShapeFromDict(data);
-    if (shape === undefined) {
-        console.log(`Shape with unknown type ${data.type_} could not be added`);
-        return;
-    }
-    layerManager.getLayer(data.floor, data.layer)?.addShape(shape, SyncMode.NO_SYNC, InvalidationMode.WITH_LIGHT);
 });
 socket.on("Temp.Clear", (shapeIds: string[]) => {
     for (const shapeId of shapeIds) {

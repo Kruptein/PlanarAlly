@@ -44,6 +44,7 @@ async def add_shape_owner(sid: int, data: Dict[str, Any]):
             shape=shape,
             user=target_user,
             edit_access=data["edit_access"],
+            movement_access=data["movement_access"],
             vision_access=data["vision_access"],
         )
     await send_client_initiatives(pr, target_user)
@@ -102,6 +103,7 @@ async def update_shape_owner(sid: int, data: Dict[str, Any]):
     so.shape = shape
     so.user = target_user
     so.edit_access = data["edit_access"]
+    so.movement_access = data["movement_access"]
     so.vision_access = data["vision_access"]
     so.save()
 
@@ -183,21 +185,17 @@ async def update_default_shape_owner(sid: int, data: Dict[str, Any]):
     if "vision_access" in data:
         shape.default_vision_access = data["vision_access"]
 
+    if "movement_access" in data:
+        shape.default_movement_access = data["movement_access"]
+
     shape.save()
 
-    await sio.emit(
-        "Shape.Owner.Default.Update",
-        data,
-        room=pr.active_location.get_path(),
-        skip_sid=sid,
-        namespace="/planarally",
-    )
-
-    if shape.default_vision_access or shape.default_edit_access:
-        for sid, player in game_state.get_users(active_location=pr.active_location):
-            await sio.emit(
-                "Shape.Set",
-                shape.as_dict(player, player.name == pr.room.creator),
-                room=sid,
-                namespace="/planarally",
-            )
+    # We need to send each player their new view of the shape which includes the default access fields,
+    # so there is no use in sending those separately
+    for sid, player in game_state.get_users(active_location=pr.active_location):
+        await sio.emit(
+            "Shape.Set",
+            shape.as_dict(player, player.name == pr.room.creator),
+            room=sid,
+            namespace="/planarally",
+        )

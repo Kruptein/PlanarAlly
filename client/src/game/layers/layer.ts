@@ -214,7 +214,7 @@ export class Layer {
             }
             for (const shape of this.shapes) {
                 if (shape.options.has("skipDraw") && shape.options.get("skipDraw")) continue;
-                if (shape.isInvisible && !shape.ownedBy({ editAccess: true })) continue;
+                if (shape.isInvisible && !shape.ownedBy({ visionAccess: true })) continue;
                 if (shape.labels.length === 0 && gameStore.filterNoLabel) continue;
                 if (
                     shape.labels.length &&

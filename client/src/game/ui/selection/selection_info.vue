@@ -19,6 +19,11 @@ export default class SelectionInfo extends Vue {
     shape: Shape | null = null;
 
     mounted(): void {
+        EventBus.$on("Shape.Set", (shape: Shape) => {
+            if (this.shape && shape.uuid === this.shape.uuid) {
+                this.shape = shape;
+            }
+        });
         EventBus.$on("SelectionInfo.Shape.Set", (shape: Shape | null) => {
             this.shape = shape;
         });

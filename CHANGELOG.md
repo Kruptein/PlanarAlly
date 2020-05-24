@@ -10,10 +10,11 @@ All notable changes to this project will be documented in this file.
 ### Added
 
 -   Shape invisible toggle
-    -   Only players with edit access can see and interact with the shape
+    -   Only players with vision access can see and interact with the shape
     -   Public auras are still visible to all players (e.g. invisible creature with a torch would still shed light)
 -   Build/Play mode
     -   Show different set of tools dependening on the active mode
+-   Movement access permission
 
 ### Changed
 
@@ -33,6 +34,7 @@ All notable changes to this project will be documented in this file.
 -   Players not being able to update initiative effects
 -   Active layer sometimes resetting on reload
 -   DMs no longer being able to kick themselves
+-   Some UI components not properly updating on shape reset
 
 ## [0.20.1] - 2020-05-11
 

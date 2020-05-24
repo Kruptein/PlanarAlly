@@ -10,13 +10,14 @@ import { AnnotationManager } from "@/game/ui/annotation";
 import { g2l } from "@/game/units";
 import { visibilityStore } from "@/game/visibility/store";
 import { TriangulationTarget } from "@/game/visibility/te/pa";
+import { Shape } from "./shapes/shape";
 
 export class GameManager {
     selectedTool = 0;
 
     annotationManager = new AnnotationManager();
 
-    addShape(shape: ServerShape): void {
+    addShape(shape: ServerShape): Shape | undefined {
         if (!layerManager.hasLayer(shape.floor, shape.layer)) {
             console.log(`Shape with unknown layer ${shape.layer} could not be added`);
             return;
@@ -29,6 +30,7 @@ export class GameManager {
         }
         layer.addShape(sh, SyncMode.NO_SYNC, InvalidationMode.NORMAL);
         layer.invalidate(false);
+        return sh;
     }
 
     updateShape(data: { shape: ServerShape; redraw: boolean; move: boolean; temporary: boolean }): void {

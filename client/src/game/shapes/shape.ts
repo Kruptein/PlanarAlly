@@ -63,8 +63,7 @@ export abstract class Shape {
     badge = 1;
     showBadge = false;
 
-    defaultEditAccess = false;
-    defaultVisionAccess = false;
+    defaultAccess = { vision: false, movement: false, edit: false };
 
     constructor(refPoint: GlobalPoint, fillColour?: string, strokeColour?: string, uuid?: string) {
         this._refPoint = refPoint;
@@ -227,8 +226,9 @@ export abstract class Shape {
             options: JSON.stringify([...this.options]),
             badge: this.badge,
             show_badge: this.showBadge,
-            default_edit_access: this.defaultEditAccess,
-            default_vision_access: this.defaultVisionAccess,
+            default_edit_access: this.defaultAccess.edit,
+            default_movement_access: this.defaultAccess.movement,
+            default_vision_access: this.defaultAccess.vision,
         };
     }
     fromDict(data: ServerShape): void {
@@ -248,8 +248,11 @@ export abstract class Shape {
         this.nameVisible = data.name_visible;
         this.badge = data.badge;
         this.showBadge = data.show_badge;
-        this.defaultEditAccess = data.default_edit_access;
-        this.defaultVisionAccess = data.default_vision_access;
+        this.defaultAccess = {
+            edit: data.default_edit_access,
+            vision: data.default_vision_access,
+            movement: data.default_movement_access,
+        };
         if (data.annotation) this.annotation = data.annotation;
         if (data.name) this.name = data.name;
         if (data.options) this.options = new Map(JSON.parse(data.options));
@@ -358,17 +361,19 @@ export abstract class Shape {
         return Object.freeze(this._owners.slice());
     }
 
-    ownedBy(options: Partial<{ editAccess: boolean; visionAccess: boolean }>): boolean {
+    ownedBy(options: Partial<{ editAccess: boolean; visionAccess: boolean; movementAccess: boolean }>): boolean {
         return (
             gameStore.IS_DM ||
             (gameStore.FAKE_PLAYER && gameStore.activeTokens.includes(this.uuid)) ||
-            (options.editAccess && this.defaultEditAccess) ||
-            (options.visionAccess && this.defaultVisionAccess) ||
+            (options.editAccess && this.defaultAccess.edit) ||
+            (options.movementAccess && this.defaultAccess.movement) ||
+            (options.visionAccess && this.defaultAccess.vision) ||
             this._owners.some(
                 u =>
                     u.user === gameStore.username &&
-                    (options.editAccess ? u.editAccess === true : true) &&
-                    (options.visionAccess ? u.visionAccess === true : true),
+                    (options.editAccess ? u.access.edit === true : true) &&
+                    (options.movementAccess ? u.access.movement === true : true) &&
+                    (options.visionAccess ? u.access.vision === true : true),
             )
         );
     }
@@ -378,11 +383,16 @@ export abstract class Shape {
     }
 
     addOwner(owner: PartialBy<ShapeOwner, "shape">, sync: boolean): void {
+        // Force other permissions to true if edit access is granted
+        if (owner.access.edit) {
+            owner.access.movement = true;
+            owner.access.vision = true;
+        }
         const fullOwner = { shape: this.uuid, ...owner };
         if (fullOwner.shape !== this.uuid) return;
         if (!this.hasOwner(owner.user)) {
             this._owners.push(fullOwner);
-            if (owner.visionAccess && this.isToken && owner.user === gameStore.username)
+            if (owner.access.vision && this.isToken && owner.user === gameStore.username)
                 gameStore.ownedtokens.push(this.uuid);
             if (sync) socket.emit("Shape.Owner.Add", ownerToServer(fullOwner));
             if (gameSettingsStore.fowLos) layerManager.invalidateLightAllFloors();
@@ -394,18 +404,18 @@ export abstract class Shape {
         if (fullOwner.shape !== this.uuid) return;
         if (!this.hasOwner(owner.user)) return;
         const targetOwner = this._owners.find(o => o.user === owner.user)!;
-        if (targetOwner.visionAccess !== fullOwner.visionAccess) {
+        if (targetOwner.access.vision !== fullOwner.access.vision) {
             if (targetOwner.user === gameStore.username) {
                 const ownedIndex = gameStore.ownedtokens.indexOf(this.uuid);
-                if (fullOwner.visionAccess) {
+                if (fullOwner.access.vision) {
                     if (ownedIndex === -1) gameStore.ownedtokens.push(this.uuid);
                 } else {
                     if (ownedIndex >= 0) gameStore.ownedtokens.splice(ownedIndex, 1);
                 }
             }
-            targetOwner.visionAccess = fullOwner.visionAccess;
+            targetOwner.access.vision = fullOwner.access.vision;
         }
-        targetOwner.editAccess = fullOwner.editAccess;
+        targetOwner.access.edit = fullOwner.access.edit;
         if (sync) socket.emit("Shape.Owner.Update", ownerToServer(fullOwner));
         if (gameSettingsStore.fowLos) layerManager.invalidateLightAllFloors();
     }
@@ -422,11 +432,11 @@ export abstract class Shape {
         if (gameSettingsStore.fowLos) layerManager.invalidateLightAllFloors();
     }
 
-    updateDefaultOwner(options: { editAccess?: boolean; visionAccess?: boolean }): void {
-        if (options.editAccess !== undefined) this.defaultEditAccess = options.editAccess;
-        if (options.visionAccess !== undefined) this.defaultVisionAccess = options.visionAccess;
+    updateDefaultOwner(options: { editAccess?: boolean; movementAccess?: boolean; visionAccess?: boolean }): void {
+        if (options.editAccess !== undefined) this.defaultAccess.edit = options.editAccess;
+        if (options.visionAccess !== undefined) this.defaultAccess.vision = options.visionAccess;
         const ownedIndex = gameStore.ownedtokens.indexOf(this.uuid);
-        if (this.defaultVisionAccess || this.defaultEditAccess) {
+        if (this.defaultAccess.vision || this.defaultAccess.edit) {
             if ((this.ownedBy({ editAccess: true }) || this.ownedBy({ visionAccess: true })) && ownedIndex === -1)
                 gameStore.ownedtokens.push(this.uuid);
         } else {

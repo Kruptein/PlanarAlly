@@ -31,7 +31,7 @@ export default class EditDialogAccess extends Vue {
         const dropdown = this.$refs.accessDropdown;
         const selectedUser = dropdown.options[dropdown.selectedIndex].value;
         if (selectedUser === "") return;
-        this.shape.addOwner({ user: selectedUser, editAccess: true, visionAccess: true }, true);
+        this.shape.addOwner({ user: selectedUser, access: { edit: true, movement: true, vision: true } }, true);
     }
     removeOwner(value: string): void {
         if (!this.owned) return;
@@ -39,28 +39,41 @@ export default class EditDialogAccess extends Vue {
     }
     toggleOwnerEditAccess(owner: ShapeOwner): void {
         if (!this.owned) return;
-        this.shape.updateOwner({ ...owner, editAccess: !owner.editAccess }, true);
+        this.shape.updateOwner({ ...owner, access: { ...owner.access, edit: !owner.access.edit } }, true);
+    }
+    toggleOwnerMovementAccess(owner: ShapeOwner): void {
+        if (!this.owned) return;
+        this.shape.updateOwner({ ...owner, access: { ...owner.access, movement: !owner.access.movement } }, true);
     }
     toggleOwnerVisionAccess(owner: ShapeOwner): void {
         if (!this.owned) return;
-        this.shape.updateOwner({ ...owner, visionAccess: !owner.visionAccess }, true);
+        this.shape.updateOwner({ ...owner, access: { ...owner.access, vision: !owner.access.vision } }, true);
     }
     toggleDefaultEditAccess(): void {
         if (!this.owned) return;
-        this.shape.updateDefaultOwner({ editAccess: !this.shape.defaultEditAccess });
+        this.shape.updateDefaultOwner({ editAccess: !this.shape.defaultAccess.edit });
         socket.emit("Shape.Owner.Default.Update", {
             shape: this.shape.uuid,
             // eslint-disable-next-line @typescript-eslint/camelcase
-            edit_access: this.shape.defaultEditAccess,
+            edit_access: this.shape.defaultAccess.edit,
+        });
+    }
+    toggleDefaultMovementAccess(): void {
+        if (!this.owned) return;
+        this.shape.updateDefaultOwner({ visionAccess: !this.shape.defaultAccess.movement });
+        socket.emit("Shape.Owner.Default.Update", {
+            shape: this.shape.uuid,
+            // eslint-disable-next-line @typescript-eslint/camelcase
+            movement_access: this.shape.defaultAccess.movement,
         });
     }
     toggleDefaultVisionAccess(): void {
         if (!this.owned) return;
-        this.shape.updateDefaultOwner({ visionAccess: !this.shape.defaultVisionAccess });
+        this.shape.updateDefaultOwner({ visionAccess: !this.shape.defaultAccess.vision });
         socket.emit("Shape.Owner.Default.Update", {
             shape: this.shape.uuid,
             // eslint-disable-next-line @typescript-eslint/camelcase
-            vision_access: this.shape.defaultVisionAccess,
+            vision_access: this.shape.defaultAccess.vision,
         });
     }
 }
@@ -72,9 +85,9 @@ export default class EditDialogAccess extends Vue {
         <div class="owner"><i>Default</i></div>
         <div
             :style="{
-                opacity: shape.defaultEditAccess ? 1.0 : 0.3,
+                opacity: shape.defaultAccess.edit ? 1.0 : 0.3,
                 textAlign: 'center',
-                gridColumnStart: 'visible',
+                gridColumnStart: 'colour',
             }"
             :disabled="!owned"
             @click="toggleDefaultEditAccess"
@@ -83,7 +96,15 @@ export default class EditDialogAccess extends Vue {
             <i class="fas fa-pencil-alt"></i>
         </div>
         <div
-            :style="{ opacity: shape.defaultVisionAccess ? 1.0 : 0.3, textAlign: 'center' }"
+            :style="{ opacity: shape.defaultAccess.movement ? 1.0 : 0.3, textAlign: 'center' }"
+            :disabled="!owned"
+            @click="toggleDefaultMovementAccess"
+            title="Toggle movement access"
+        >
+            <i class="fas fa-arrows-alt"></i>
+        </div>
+        <div
+            :style="{ opacity: shape.defaultAccess.vision ? 1.0 : 0.3, textAlign: 'center' }"
             :disabled="!owned"
             @click="toggleDefaultVisionAccess"
             title="Toggle vision access"
@@ -97,9 +118,9 @@ export default class EditDialogAccess extends Vue {
             <div
                 :key="'ownerEdit-' + owner.user"
                 :style="{
-                    opacity: owner.editAccess ? 1.0 : 0.3,
+                    opacity: owner.access.edit ? 1.0 : 0.3,
                     textAlign: 'center',
-                    gridColumnStart: 'visible',
+                    gridColumnStart: 'colour',
                 }"
                 :disabled="!owned"
                 @click="toggleOwnerEditAccess(owner)"
@@ -108,8 +129,17 @@ export default class EditDialogAccess extends Vue {
                 <i class="fas fa-pencil-alt"></i>
             </div>
             <div
+                :key="'ownerMovement-' + owner.user"
+                :style="{ opacity: owner.access.movement ? 1.0 : 0.3, textAlign: 'center' }"
+                :disabled="!owned"
+                @click="toggleOwnerMovementAccess(owner)"
+                title="Toggle movement access"
+            >
+                <i class="fas fa-arrows-alt"></i>
+            </div>
+            <div
                 :key="'ownerVision-' + owner.user"
-                :style="{ opacity: owner.visionAccess ? 1.0 : 0.3, textAlign: 'center' }"
+                :style="{ opacity: owner.access.vision ? 1.0 : 0.3, textAlign: 'center' }"
                 :disabled="!owned"
                 @click="toggleOwnerVisionAccess(owner)"
                 title="Toggle vision access"

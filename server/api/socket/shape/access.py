@@ -44,6 +44,7 @@ async def add_shape_owner(sid: int, data: Dict[str, Any]):
             shape=shape,
             user=target_user,
             edit_access=data["edit_access"],
+            movement_access=data["movement_access"],
             vision_access=data["vision_access"],
         )
     await send_client_initiatives(pr, target_user)
@@ -102,6 +103,7 @@ async def update_shape_owner(sid: int, data: Dict[str, Any]):
     so.shape = shape
     so.user = target_user
     so.edit_access = data["edit_access"]
+    so.movement_access = data["movement_access"]
     so.vision_access = data["vision_access"]
     so.save()
 
@@ -182,6 +184,9 @@ async def update_default_shape_owner(sid: int, data: Dict[str, Any]):
 
     if "vision_access" in data:
         shape.default_vision_access = data["vision_access"]
+
+    if "movement_access" in data:
+        shape.default_movement_access = data["movement_access"]
 
     shape.save()
 

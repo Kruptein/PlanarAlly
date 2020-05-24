@@ -66,6 +66,7 @@ async def add_shape(sid: int, data: Dict[str, Any]):
                     shape=shape,
                     user=User.by_name(owner["user"]),
                     edit_access=owner["edit_access"],
+                    movement_access=owner["movement_access"],
                     vision_access=owner["vision_access"],
                 )
             # Trackers

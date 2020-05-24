@@ -1,6 +1,5 @@
 export interface ShapeOwner {
     shape: string;
     user: string;
-    editAccess: boolean;
-    visionAccess: boolean;
+    access: Partial<{ edit: boolean; vision: boolean; movement: boolean }>;
 }

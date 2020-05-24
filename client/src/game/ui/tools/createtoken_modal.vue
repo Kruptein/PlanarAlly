@@ -68,7 +68,7 @@ export default class CreateTokenModal extends Vue {
             this.fillColour,
             this.borderColour,
         );
-        token.addOwner({ user: gameStore.username, editAccess: true, visionAccess: true }, false);
+        token.addOwner({ user: gameStore.username, access: { edit: true } }, false);
         layer.addShape(token, SyncMode.FULL_SYNC, InvalidationMode.WITH_LIGHT);
         this.visible = false;
     }

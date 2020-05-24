@@ -33,7 +33,7 @@ export class GameManager {
         return sh;
     }
 
-    updateShape(data: { shape: ServerShape; redraw: boolean; move: boolean; temporary: boolean }): void {
+    updateShape(data: { shape: ServerShape; redraw: boolean }): void {
         if (!layerManager.hasLayer(data.shape.floor, data.shape.layer)) {
             console.log(`Shape with unknown layer ${data.shape.layer} could not be added`);
             return;

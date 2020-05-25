@@ -38,6 +38,7 @@ All notable changes to this project will be documented in this file.
 -   DMs no longer being able to kick themselves
 -   Some UI components not properly updating on shape reset
 -   Area right of layer selector preventing draw/select
+-   Keyboard center throwing error when no tokens are defined
 
 ## [0.20.1] - 2020-05-11
 

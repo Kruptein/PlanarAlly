@@ -20,6 +20,7 @@ export function onKeyUp(event: KeyboardEvent): void {
         }
         if (event.key === " ") {
             const tokens = gameStore.ownedtokens.map(o => layerManager.UUIDMap.get(o)!);
+            if (tokens.length === 0) return;
             const i = tokens.findIndex(o => o.center().equals(gameStore.screenCenter));
             const token = tokens[(i + 1) % tokens.length];
             gameManager.setCenterPosition(token.center());

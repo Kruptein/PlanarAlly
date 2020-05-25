@@ -45,8 +45,12 @@ export default class UI extends Vue {
         topleft: false,
     };
 
-    get version(): string {
+    get version(): { release: string; env: string } {
         return coreStore.version;
+    }
+
+    get changelog(): string {
+        return coreStore.changelog;
     }
 
     get FAKE_PLAYER(): boolean {
@@ -70,6 +74,15 @@ export default class UI extends Vue {
             newZoomDisplay: value,
             zoomLocation: l2g(new LocalPoint(window.innerWidth / 2, window.innerHeight / 2)),
         });
+    }
+
+    get showChangelog(): boolean {
+        const version = localStorage.getItem("last-version");
+        if (version !== coreStore.version.release) {
+            localStorage.setItem("last-version", coreStore.version.release);
+            return true;
+        }
+        return false;
     }
 
     toggleMenu(_el: any): void {
@@ -128,7 +141,7 @@ export default class UI extends Vue {
             </div>
             <div id="logo-version">
                 <span>version</span>
-                <span>{{ version }}</span>
+                <span>{{ version.release }}</span>
             </div>
         </div>
         <!-- RADIAL MENU -->

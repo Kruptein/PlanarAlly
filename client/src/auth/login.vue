@@ -50,7 +50,7 @@ export default class Login extends Vue {
     }
 
     get version(): string {
-        return coreStore.version;
+        return coreStore.version.env;
     }
 
     get githubUrl(): string {

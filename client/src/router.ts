@@ -75,17 +75,19 @@ export const router = new Router({
 router.beforeEach(async (to, _from, next) => {
     coreStore.setLoading(true);
     if (!coreStore.initialized) {
-        const promiseArray = [fetch("/api/auth"), fetch("/api/version")];
-        const [authResponse, versionResponse] = await Promise.all(promiseArray);
+        const promiseArray = [fetch("/api/auth"), fetch("/api/version"), fetch("/api/changelog")];
+        const [authResponse, versionResponse, changelogResponse] = await Promise.all(promiseArray);
         if (authResponse.ok && versionResponse.ok) {
             const authData = await authResponse.json();
             const versionData = await versionResponse.json();
+            const changelogData = await changelogResponse.json();
             if (authData.auth) {
                 coreStore.setAuthenticated(true);
                 coreStore.setUsername(authData.username);
                 coreStore.setEmail(authData.email);
             }
-            coreStore.setVersion(versionData.version);
+            coreStore.setVersion(versionData);
+            coreStore.setChangelog(changelogData.changelog);
             coreStore.setInitialized(true);
             router.push(to.path);
         } else {

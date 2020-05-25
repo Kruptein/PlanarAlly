@@ -79,7 +79,7 @@ export default class EditDialog extends Vue {
     }
     updateShape(redraw: boolean, temporary = false): void {
         if (!this.owned) return;
-        socket.emit("Shape.Update", { shape: this.shape.asDict(), redraw, temporary });
+        if (!this.shape.preventSync) socket.emit("Shape.Update", { shape: this.shape.asDict(), redraw, temporary });
         if (redraw) layerManager.invalidate(this.shape.floor);
         this.addEmpty();
     }
@@ -97,11 +97,12 @@ export default class EditDialog extends Vue {
         const groupMembers = this.shape.getGroupMembers();
         for (const [i, shape] of groupMembers.entries()) {
             shape.showBadge = !shape.showBadge;
-            socket.emit("Shape.Update", {
-                shape: shape.asDict(),
-                redraw: groupMembers.length === i + 1,
-                temporary: false,
-            });
+            if (!shape.preventSync)
+                socket.emit("Shape.Update", {
+                    shape: shape.asDict(),
+                    redraw: groupMembers.length === i + 1,
+                    temporary: false,
+                });
         }
         layerManager.invalidate(this.shape.floor);
     }

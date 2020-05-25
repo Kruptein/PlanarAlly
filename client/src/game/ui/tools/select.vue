@@ -197,7 +197,8 @@ export default class SelectTool extends Tool {
                     }
                     if (sel !== this.selectionHelper) {
                         if (sel.visionObstruction) visibilityStore.recalculateVision(sel.floor);
-                        socket.emit("Shape.Update", { shape: sel.asDict(), redraw: true, temporary: true });
+                        if (!sel.preventSync)
+                            socket.emit("Shape.Update", { shape: sel.asDict(), redraw: true, temporary: true });
                     }
                 }
                 this.dragRay = Ray.fromPoints(this.dragRay.origin, lp);
@@ -223,7 +224,8 @@ export default class SelectTool extends Tool {
                             visibilityStore.addToTriag({ target: TriangulationTarget.VISION, shape: sel });
                             visibilityStore.recalculateVision(sel.floor);
                         }
-                        socket.emit("Shape.Update", { shape: sel.asDict(), redraw: true, temporary: true });
+                        if (!sel.preventSync)
+                            socket.emit("Shape.Update", { shape: sel.asDict(), redraw: true, temporary: true });
                     }
                     layer.invalidate(false);
                     this.updateCursor(layer, gp);
@@ -308,7 +310,8 @@ export default class SelectTool extends Tool {
                     if (sel !== this.selectionHelper) {
                         if (sel.visionObstruction) visibilityStore.recalculateVision(sel.floor);
                         if (sel.movementObstruction) visibilityStore.recalculateMovement(sel.floor);
-                        socket.emit("Shape.Update", { shape: sel.asDict(), redraw: true, temporary: false });
+                        if (!sel.preventSync)
+                            socket.emit("Shape.Update", { shape: sel.asDict(), redraw: true, temporary: false });
                     }
                     layer.invalidate(false);
                 }
@@ -338,7 +341,7 @@ export default class SelectTool extends Tool {
                             visibilityStore.recalculateMovement(sel.floor);
                         }
                     }
-                    if (sel !== this.selectionHelper) {
+                    if (sel !== this.selectionHelper && !sel.preventSync) {
                         socket.emit("Shape.Update", { shape: sel.asDict(), redraw: true, temporary: false });
                     }
                     layer.invalidate(false);

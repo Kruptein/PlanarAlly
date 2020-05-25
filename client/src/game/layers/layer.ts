@@ -82,7 +82,7 @@ export class Layer {
         }
         if (shape.ownedBy({ visionAccess: true }) && shape.isToken) gameStore.ownedtokens.push(shape.uuid);
         if (shape.annotation.length) gameStore.annotations.push(shape.uuid);
-        if (sync !== SyncMode.NO_SYNC)
+        if (sync !== SyncMode.NO_SYNC && !shape.preventSync)
             socket.emit("Shape.Add", { shape: shape.asDict(), temporary: sync === SyncMode.TEMP_SYNC });
         if (invalidate) this.invalidate(invalidate === InvalidationMode.WITH_LIGHT);
     }
@@ -113,18 +113,20 @@ export class Layer {
                 const groupLeader = groupMembers[1];
                 for (const member of groupMembers.slice(2)) {
                     member.options.set("groupId", groupLeader.uuid);
-                    socket.emit("Shape.Update", { shape: member.asDict(), redraw: false, temporary: false });
+                    if (!member.preventSync)
+                        socket.emit("Shape.Update", { shape: member.asDict(), redraw: false, temporary: false });
                 }
                 groupLeader.options.set(
                     "groupInfo",
                     groupMembers.slice(2).map(s => s.uuid),
                 );
                 groupLeader.options.delete("groupId");
-                socket.emit("Shape.Update", { shape: groupLeader.asDict(), redraw: false, temporary: false });
+                if (!groupLeader.preventSync)
+                    socket.emit("Shape.Update", { shape: groupLeader.asDict(), redraw: false, temporary: false });
             }
         }
 
-        if (sync !== SyncMode.NO_SYNC)
+        if (sync !== SyncMode.NO_SYNC && !shape.preventSync)
             socket.emit("Shape.Remove", { shape: shape.asDict(), temporary: sync === SyncMode.TEMP_SYNC });
 
         const visionSources = getVisionSources(this.floor);
@@ -270,7 +272,8 @@ export class Layer {
         if (oldIdx === destinationIndex) return;
         this.shapes.splice(oldIdx, 1);
         this.shapes.splice(destinationIndex, 0, shape);
-        if (sync) socket.emit("Shape.Order.Set", { shape: shape.asDict(), index: destinationIndex });
+        if (sync && !shape.preventSync)
+            socket.emit("Shape.Order.Set", { shape: shape.asDict(), index: destinationIndex });
         this.invalidate(true);
     }
 

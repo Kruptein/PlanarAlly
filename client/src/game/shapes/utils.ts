@@ -149,7 +149,8 @@ export function pasteShapes(targetLayer?: string): Shape[] {
             groupLeader.options.set("groupInfo", [...groupLeader.options.get("groupInfo"), clip.uuid]);
             options.set("groupId", groupLeader.uuid);
             clip.options = JSON.stringify([...options]);
-            socket.emit("Shape.Update", { shape: groupLeader.asDict(), redraw: false, temporary: false });
+            if (!groupLeader.preventSync)
+                socket.emit("Shape.Update", { shape: groupLeader.asDict(), redraw: false, temporary: false });
         }
         // Finalize
         const shape = createShapeFromDict(clip);

@@ -288,7 +288,8 @@ export default class DrawTool extends Tool {
                     this.shape.points[this.shape.points.length - 1],
                 );
             layer.invalidate(false);
-            socket.emit("Shape.Update", { shape: this.shape!.asDict(), redraw: true, temporary: true });
+            if (!this.shape!.preventSync)
+                socket.emit("Shape.Update", { shape: this.shape!.asDict(), redraw: true, temporary: true });
         }
     }
 
@@ -343,7 +344,8 @@ export default class DrawTool extends Tool {
         }
 
         if (!(this.shapeSelect === "draw-polygon" && this.shape instanceof Polygon)) {
-            socket.emit("Shape.Update", { shape: this.shape!.asDict(), redraw: true, temporary: true });
+            if (!this.shape!.preventSync)
+                socket.emit("Shape.Update", { shape: this.shape!.asDict(), redraw: true, temporary: true });
             if (this.shape.visionObstruction) {
                 if (
                     getCDT(TriangulationTarget.VISION, this.shape.floor).tds.getTriagVertices(this.shape.uuid).length >
@@ -473,7 +475,8 @@ export default class DrawTool extends Tool {
         } else {
             if (this.shape.visionObstruction) visibilityStore.recalculateVision(this.shape.floor);
             if (this.shape.movementObstruction) visibilityStore.recalculateMovement(this.shape.floor);
-            socket.emit("Shape.Update", { shape: this.shape!.asDict(), redraw: true, temporary: false });
+            if (!this.shape!.preventSync)
+                socket.emit("Shape.Update", { shape: this.shape!.asDict(), redraw: true, temporary: false });
         }
         this.active = false;
         const layer = this.getLayer();

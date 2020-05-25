@@ -10,6 +10,7 @@ import DmSettings from "@/game/ui/settings/dm/DmSettings.vue";
 import FloorSelect from "@/game/ui/floors.vue";
 import LocationBar from "./menu/locations.vue";
 import LocationSettings from "@/game/ui/settings/location/LocationSettings.vue";
+import MarkdownModal from "@/core/components/modals/MarkdownModal.vue";
 import MenuBar from "@/game/ui/menu/menu.vue";
 import SelectionInfo from "@/game/ui/selection/selection_info.vue";
 import Tools from "@/game/ui/tools/tools.vue";
@@ -25,6 +26,7 @@ import { coreStore } from "../../core/store";
         FloorSelect,
         LocationBar,
         LocationSettings,
+        MarkdownModal,
         MenuBar,
         SelectionInfo,
         Tools,
@@ -179,6 +181,9 @@ export default class UI extends Vue {
         <SelectionInfo></SelectionInfo>
         <DmSettings ref="dmsettings" v-if="IS_DM || FAKE_PLAYER"></DmSettings>
         <LocationSettings v-if="IS_DM || FAKE_PLAYER"></LocationSettings>
+        <MarkdownModal v-if="showChangelog" title="There is a new version!">
+            {{ `# Release ${version.release}\n*For more details visit https://www.planarally.io/blog/*\n${changelog}` }}
+        </MarkdownModal>
         <!-- When updating zoom boundaries, also update store updateZoom function;
             should probably do this using a store variable-->
         <vueSlider

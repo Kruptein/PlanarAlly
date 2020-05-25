@@ -231,6 +231,23 @@ class GameSettingsStore extends VuexModule implements GameSettingsState {
                 socket.emit("Location.Options.Set", { options: { fow_los: data.fowLos }, location: data.location });
         }
     }
+
+    @Mutation
+    setSpawnLocations(data: {
+        spawnLocations: { x: number; y: number; name: string }[];
+        location: number | null;
+        sync: boolean;
+    }): void {
+        if (mutateLocationOption("spawnLocations", data.spawnLocations, data.location)) {
+            layerManager.invalidateAllFloors();
+            if (data.sync)
+                socket.emit("Location.Options.Set", {
+                    // eslint-disable-next-line @typescript-eslint/camelcase
+                    options: { spawn_locations: JSON.stringify(data.spawnLocations) },
+                    location: data.location,
+                });
+        }
+    }
 }
 
 export const gameSettingsStore = getModule(GameSettingsStore);

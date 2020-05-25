@@ -7,6 +7,8 @@ export interface CoreState {
     initialized: boolean;
     username: string;
     email?: string;
+    version: { release: string; env: string };
+    changelog: string;
 }
 
 @Module({ dynamic: true, store: rootStore, name: "core" })
@@ -16,7 +18,8 @@ class CoreStore extends VuexModule implements CoreState {
     username = "";
     email: string | undefined = undefined;
     loading = false;
-    version = "";
+    version = { release: "", env: "" };
+    changelog = "";
 
     @Mutation
     setAuthenticated(auth: boolean): void {
@@ -44,8 +47,13 @@ class CoreStore extends VuexModule implements CoreState {
     }
 
     @Mutation
-    setVersion(version: string): void {
+    setVersion(version: { release: string; env: string }): void {
         this.version = version;
+    }
+
+    @Mutation
+    setChangelog(changelog: string): void {
+        this.changelog = changelog;
     }
 }
 

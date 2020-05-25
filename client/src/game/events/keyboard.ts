@@ -26,9 +26,6 @@ export function onKeyUp(event: KeyboardEvent): void {
             gameManager.setCenterPosition(token.center());
             gameStore.selectFloor({ targetFloor: token.floor, sync: true });
         }
-        if (event.key === "Tab") {
-            EventBus.$emit("ToolMode.Toggle");
-        }
     }
 }
 
@@ -159,6 +156,9 @@ export function onKeyDown(event: KeyboardEvent): void {
                 gameStore.selectFloor({ targetFloor: gameStore.selectedFloorIndex - 1, sync: true });
             }
             if (event.shiftKey) for (const shape of selection) newLayer.selection.push(shape);
+        } else if (event.key === "Tab") {
+            event.preventDefault();
+            EventBus.$emit("ToolMode.Toggle");
         }
     }
 }

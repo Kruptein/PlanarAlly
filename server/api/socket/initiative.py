@@ -74,14 +74,6 @@ async def update_initiative(sid: int, data: Dict[str, Any]):
             initiative.location_data = location_data
             initiative.index = index
             initiative.save(force_insert=True)
-    # Remove initiative
-    elif "initiative" not in data:
-        with db.atomic():
-            Initiative.update(index=Initiative.index - 1).where(
-                (Initiative.location_data == location_data)
-                & (Initiative.index >= initiative.index)
-            )
-            initiative.delete_instance(True)
     # Update initiative
     else:
         used_to_be_visible = initiative.visible
@@ -118,6 +110,35 @@ async def update_initiative(sid: int, data: Dict[str, Any]):
             initiative.save()
 
     data["index"] = initiative.index
+
+    await send_client_initiatives(pr)
+
+
+@sio.on("Initiative.Remove", namespace="/planarally")
+@auth.login_required(app, sio)
+async def remove_initiative(sid: int, data: Dict[str, Any]):
+    pr: PlayerRoom = game_state.get(sid)
+
+    shape = Shape.get_or_none(uuid=data["uuid"])
+
+    if not has_ownership(shape, pr):
+        logger.warning(
+            f"{pr.player.name} attempted to remove initiative of an asset it does not own"
+        )
+        return
+
+    used_to_be_visible = False
+
+    initiative = Initiative.get_or_none(uuid=data["uuid"])
+    location_data = InitiativeLocationData.get_or_none(location=pr.active_location)
+
+    if initiative:
+        with db.atomic():
+            Initiative.update(index=Initiative.index - 1).where(
+                (Initiative.location_data == location_data)
+                & (Initiative.index >= initiative.index)
+            )
+            initiative.delete_instance(True)
 
     await send_client_initiatives(pr)
 
@@ -203,7 +224,7 @@ async def update_initiative_round(sid: int, data: Dict[str, Any]):
 async def new_initiative_effect(sid: int, data: Dict[str, Any]):
     pr: PlayerRoom = game_state.get(sid)
 
-    if not has_ownership(data["actor"], pr):
+    if not has_ownership(Shape.get_or_none(uuid=data["actor"]), pr):
         logger.warning(f"{pr.player.name} attempted to create a new initiative effect")
         return
 
@@ -228,15 +249,7 @@ async def new_initiative_effect(sid: int, data: Dict[str, Any]):
 async def update_initiative_effect(sid: int, data: Dict[str, Any]):
     pr: PlayerRoom = game_state.get(sid)
 
-    try:
-        shape = Shape.get(uuid=data["actor"])
-    except Shape.DoesNotExist:
-        logger.warning(
-            f"{pr.player.name} attempted to update an initiative effect of an unknown actor"
-        )
-        return
-
-    if not has_ownership(shape, pr):
+    if not has_ownership(Shape.get_or_none(uuid=data["actor"]), pr):
         logger.warning(f"{pr.player.name} attempted to update an initiative effect")
         return
 

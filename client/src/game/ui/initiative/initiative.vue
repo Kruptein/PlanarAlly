@@ -76,14 +76,14 @@ export default class Initiative extends Vue {
     fakeSetData(dataTransfer: DataTransfer): void {
         dataTransfer.setData("Hack", "");
     }
-    syncInitiative(data: InitiativeData | { uuid: string }): void {
+    syncInitiative(data: InitiativeData): void {
         socket.emit("Initiative.Update", data);
     }
     // Events
     removeInitiative(uuid: string): void {
         const d = initiativeStore.data.findIndex(a => a.uuid === uuid);
         if (d < 0 || initiativeStore.data[d].group) return;
-        this.syncInitiative({ uuid });
+        socket.emit("Initiative.Remove", uuid);
         // Remove highlight
         const shape = layerManager.UUIDMap.get(uuid);
         if (shape === undefined) return;

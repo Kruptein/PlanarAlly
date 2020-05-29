@@ -42,9 +42,9 @@ export class CDT {
             const v = stack.pop()!;
             const info = edgeInfo(v[0], v[1]);
             if (info.includes) {
-                this.markConstraint(info.fr!, info.i!);
-                if (info.vi! !== v[1]) {
-                    stack.push([info.vi!, v[1]]);
+                this.markConstraint(info.fr, info.i);
+                if (info.vi !== v[1]) {
+                    stack.push([info.vi, v[1]]);
                 }
                 continue;
             }
@@ -261,7 +261,7 @@ export class CDT {
         } else {
             if (pi !== pa && pi !== pb && pi !== pc && pi !== pd) {
                 // Try to snap to an existing point
-                const bbox = new BoundingBox(pi!);
+                const bbox = new BoundingBox(pi);
                 bbox.dilate(4);
                 if (bbox.overlaps(new BoundingBox(pa))) pi = pa;
                 if (bbox.overlaps(new BoundingBox(pb))) pi = pb;

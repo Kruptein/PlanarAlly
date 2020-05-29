@@ -47,7 +47,7 @@ export class RulerTool extends Tool {
         }
 
         this.ruler.endPoint = endPoint;
-        socket.emit("Shape.Update", { shape: this.ruler!.asDict(), redraw: true, temporary: true });
+        socket.emit("Shape.Update", { shape: this.ruler.asDict(), redraw: true, temporary: true });
 
         const diffsign = Math.sign(endPoint.x - this.startPoint.x) * Math.sign(endPoint.y - this.startPoint.y);
         const xdiff = Math.abs(endPoint.x - this.startPoint.x);

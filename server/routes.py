@@ -10,10 +10,8 @@ from models.db import db
 from models.role import Role
 
 
-# @aiohttp_jinja2.template("app.jinja2")
 async def root(request):
     return web.FileResponse("./templates/index.html")
-    # return {}
 
 
 async def root_dev(request):

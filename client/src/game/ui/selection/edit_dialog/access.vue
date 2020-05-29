@@ -69,7 +69,7 @@ export default class EditDialogAccess extends Vue {
 <template>
     <div style="display:contents">
         <div class="spanrow header">Access</div>
-        <div class="owner"><i>Default</i></div>
+        <div class="owner"><em>Default</em></div>
         <div
             :style="{
                 opacity: shape.defaultAccess.edit ? 1.0 : 0.3,

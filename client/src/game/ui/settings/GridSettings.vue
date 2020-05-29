@@ -56,12 +56,12 @@ export default class GridSettings extends Vue {
 <template>
     <div class="panel restore-panel">
         <div class="spanrow">
-            <i style="max-width: 40vw">
+            <em style="max-width: 40vw">
                 <template v-if="location === null">
                     Some of these settings can be overriden by location specific settings
                 </template>
                 <template v-else>Settings that override the campaign defaults are highlighted</template>
-            </i>
+            </em>
         </div>
         <div class="row" :class="{ overwritten: location !== null && options.useGrid !== undefined }">
             <label :for="'useGridInput-' + location">Use grid</label>

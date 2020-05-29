@@ -100,7 +100,7 @@ export default class AdminSettings extends Vue {
                     Lock
                 </template>
                 Session&nbsp;
-                <i>(DM access only)</i>
+                <em>(DM access only)</em>
             </div>
             <div>
                 <button class="danger" @click="toggleSessionLock">

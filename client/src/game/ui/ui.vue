@@ -128,15 +128,35 @@ export default class UI extends Vue {
     <div id="ui" v-show="showUI">
         <div id="logo" v-show="visible.topleft">
             <div id="logo-icons">
-                <a href="https://www.planarally.io" target="_blank"><img src="/static/favicon.png" /></a>
+                <a href="https://www.planarally.io" target="_blank" noopener noreferrer>
+                    <img src="/static/favicon.png" />
+                </a>
                 <div id="logo-links">
-                    <a href="https://github.com/kruptein/PlanarAlly" target="_blank" title="Find the code on github!">
+                    <a
+                        href="https://github.com/kruptein/PlanarAlly"
+                        target="_blank"
+                        title="Find the code on github!"
+                        noopener
+                        noreferrer
+                    >
                         <i class="fab fa-github"></i>
                     </a>
-                    <a href="https://discord.gg/mubGnTe" target="_blank" title="Join the community on discord!">
+                    <a
+                        href="https://discord.gg/mubGnTe"
+                        target="_blank"
+                        title="Join the community on discord!"
+                        noopener
+                        noreferrer
+                    >
                         <i class="fab fa-discord"></i>
                     </a>
-                    <a href="https://www.patreon.com/planarally" target="_blank" title="Contribute using patreon!">
+                    <a
+                        href="https://www.patreon.com/planarally"
+                        target="_blank"
+                        title="Contribute using patreon!"
+                        noopener
+                        noreferrer
+                    >
                         <i class="fab fa-patreon"></i>
                     </a>
                 </div>

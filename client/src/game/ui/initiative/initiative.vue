@@ -196,7 +196,7 @@ export default class Initiative extends Vue {
         >
             <div>Initiative</div>
             <div class="header-close" @click="visible = false" title="Close">
-                <i class="far fa-window-close"></i>
+                <i aria-hidden="true" class="far fa-window-close"></i>
             </div>
         </div>
         <div class="modal-body">
@@ -239,7 +239,7 @@ export default class Initiative extends Vue {
                                 @click="createEffect(actor, getDefaultEffect(), true)"
                                 title="Add timed effect"
                             >
-                                <i class="fas fa-stopwatch"></i>
+                                <i aria-hidden="true" class="fas fa-stopwatch"></i>
                                 <template v-if="actor.effects">
                                     {{ actor.effects.length }}
                                 </template>
@@ -253,7 +253,7 @@ export default class Initiative extends Vue {
                                 @click="toggleOption(actor, 'visible')"
                                 title="Toggle public / private"
                             >
-                                <i class="fas fa-eye"></i>
+                                <i aria-hidden="true" class="fas fa-eye"></i>
                             </div>
                             <div
                                 :style="{ opacity: actor.group ? '1.0' : '0.3' }"
@@ -261,7 +261,7 @@ export default class Initiative extends Vue {
                                 @click="toggleOption(actor, 'group')"
                                 title="Toggle individual / group initiative"
                             >
-                                <i class="fas fa-users"></i>
+                                <i aria-hidden="true" class="fas fa-users"></i>
                             </div>
                             <div
                                 :style="{ opacity: owns(actor) ? '1.0' : '0.3' }"
@@ -269,7 +269,7 @@ export default class Initiative extends Vue {
                                 @click="removeInitiative(actor.uuid, true, true)"
                                 title="Delete initiative"
                             >
-                                <i class="fas fa-trash-alt"></i>
+                                <i aria-hidden="true" class="fas fa-trash-alt"></i>
                             </div>
                         </div>
                         <div class="initiative-effect" v-if="actor.effects">
@@ -300,7 +300,7 @@ export default class Initiative extends Vue {
                     @click="toggleVisionLock"
                     title="Auto lock vision (only show vision active token)"
                 >
-                    <i class="fas fa-eye"></i>
+                    <i aria-hidden="true" class="fas fa-eye"></i>
                 </div>
                 <div
                     class="initiative-bar-button"
@@ -308,7 +308,7 @@ export default class Initiative extends Vue {
                     @click="cameraLock = !cameraLock"
                     title="Auto camera lock on active token"
                 >
-                    <i class="fas fa-video"></i>
+                    <i aria-hidden="true" class="fas fa-video"></i>
                 </div>
                 <div
                     class="initiative-bar-button"
@@ -319,7 +319,7 @@ export default class Initiative extends Vue {
                     "
                     title="Reset rounds/turns"
                 >
-                    <i class="fas fa-sync-alt"></i>
+                    <i aria-hidden="true" class="fas fa-sync-alt"></i>
                 </div>
                 <div
                     class="initiative-bar-button"
@@ -327,7 +327,7 @@ export default class Initiative extends Vue {
                     @click="nextTurn"
                     title="Next"
                 >
-                    <i class="fas fa-chevron-right"></i>
+                    <i aria-hidden="true" class="fas fa-chevron-right"></i>
                 </div>
             </div>
         </div>

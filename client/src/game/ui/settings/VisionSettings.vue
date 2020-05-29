@@ -116,7 +116,7 @@ export default class VisionSettings extends Vue {
                 @click="reset('fullFow')"
                 title="Reset to the campaign default"
             >
-                <i class="fas fa-times-circle"></i>
+                <i aria-hidden="true" class="fas fa-times-circle"></i>
             </div>
             <div v-else></div>
         </div>
@@ -130,7 +130,7 @@ export default class VisionSettings extends Vue {
                 @click="reset('fowLos')"
                 title="Reset to the campaign default"
             >
-                <i class="fas fa-times-circle"></i>
+                <i aria-hidden="true" class="fas fa-times-circle"></i>
             </div>
             <div v-else></div>
         </div>
@@ -151,7 +151,7 @@ export default class VisionSettings extends Vue {
                 @click="reset('fowOpacity')"
                 title="Reset to the campaign default"
             >
-                <i class="fas fa-times-circle"></i>
+                <i aria-hidden="true" class="fas fa-times-circle"></i>
             </div>
             <div v-else></div>
         </div>
@@ -180,7 +180,7 @@ export default class VisionSettings extends Vue {
                 @click="reset('visionMinRange')"
                 title="Reset to the campaign default"
             >
-                <i class="fas fa-times-circle"></i>
+                <i aria-hidden="true" class="fas fa-times-circle"></i>
             </div>
             <div v-else></div>
         </div>
@@ -194,7 +194,7 @@ export default class VisionSettings extends Vue {
                 @click="reset('visionMaxRange')"
                 title="Reset to the campaign default"
             >
-                <i class="fas fa-times-circle"></i>
+                <i aria-hidden="true" class="fas fa-times-circle"></i>
             </div>
             <div v-else></div>
         </div>

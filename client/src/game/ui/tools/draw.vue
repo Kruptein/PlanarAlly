@@ -576,7 +576,7 @@ export default class DrawTool extends Tool {
                 @click="shapeSelect = shape"
                 :title="shape"
             >
-                <i class="fas" :class="'fa-' + shape"></i>
+                <i aria-hidden="true" class="fas" :class="'fa-' + shape"></i>
             </div>
         </div>
         <div>Colours</div>

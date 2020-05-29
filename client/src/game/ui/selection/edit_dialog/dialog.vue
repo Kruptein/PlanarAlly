@@ -180,7 +180,7 @@ export default class EditDialog extends Vue {
         >
             <div>Edit asset</div>
             <div class="header-close" @click="visible = false" title="Close">
-                <i class="far fa-window-close"></i>
+                <i aria-hidden="true" class="far fa-window-close"></i>
             </div>
         </div>
         <div class="modal-body">
@@ -203,7 +203,7 @@ export default class EditDialog extends Vue {
                     :disabled="!owned"
                     title="Toggle public/private"
                 >
-                    <i class="fas fa-eye"></i>
+                    <i aria-hidden="true" class="fas fa-eye"></i>
                 </div>
                 <label for="shapeselectiondialog-istoken">Is a token</label>
                 <input
@@ -309,7 +309,7 @@ export default class EditDialog extends Vue {
                         :disabled="!owned"
                         title="Toggle public/private"
                     >
-                        <i class="fas fa-eye"></i>
+                        <i aria-hidden="true" class="fas fa-eye"></i>
                     </div>
                     <span :key="'tspan-' + tracker.uuid"></span>
                     <div
@@ -320,7 +320,7 @@ export default class EditDialog extends Vue {
                         :style="{ opacity: owned ? 1.0 : 0.3, textAlign: 'center' }"
                         title="Remove tracker"
                     >
-                        <i class="fas fa-trash-alt"></i>
+                        <i aria-hidden="true" class="fas fa-trash-alt"></i>
                     </div>
                 </template>
                 <div class="spanrow header">Auras</div>
@@ -368,7 +368,7 @@ export default class EditDialog extends Vue {
                         :disabled="!owned"
                         title="Toggle public/private"
                     >
-                        <i class="fas fa-eye"></i>
+                        <i aria-hidden="true" class="fas fa-eye"></i>
                     </div>
                     <div
                         :key="'visionsource-' + aura.uuid"
@@ -377,7 +377,7 @@ export default class EditDialog extends Vue {
                         :disabled="!owned"
                         title="Toggle light source"
                     >
-                        <i class="fas fa-lightbulb"></i>
+                        <i aria-hidden="true" class="fas fa-lightbulb"></i>
                     </div>
                     <div
                         v-if="aura.name !== '' || aura.value !== 0"
@@ -387,7 +387,7 @@ export default class EditDialog extends Vue {
                         :style="{ opacity: owned ? 1.0 : 0.3, textAlign: 'center' }"
                         title="Delete aura"
                     >
-                        <i class="fas fa-trash-alt"></i>
+                        <i aria-hidden="true" class="fas fa-trash-alt"></i>
                     </div>
                 </template>
                 <div class="spanrow header">Labels</div>

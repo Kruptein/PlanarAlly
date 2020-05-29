@@ -138,7 +138,7 @@ export default class UI extends Vue {
                         title="Find the code on github!"
                         rel="noopener noreferrer"
                     >
-                        <i class="fab fa-github"></i>
+                        <i aria-hidden="true" class="fab fa-github"></i>
                     </a>
                     <a
                         href="https://discord.gg/mubGnTe"
@@ -146,7 +146,7 @@ export default class UI extends Vue {
                         title="Join the community on discord!"
                         rel="noopener noreferrer"
                     >
-                        <i class="fab fa-discord"></i>
+                        <i aria-hidden="true" class="fab fa-discord"></i>
                     </a>
                     <a
                         href="https://www.patreon.com/planarally"
@@ -154,7 +154,7 @@ export default class UI extends Vue {
                         title="Contribute using patreon!"
                         rel="noopener noreferrer"
                     >
-                        <i class="fab fa-patreon"></i>
+                        <i aria-hidden="true" class="fab fa-patreon"></i>
                     </a>
                 </div>
             </div>
@@ -176,18 +176,18 @@ export default class UI extends Vue {
                             title="Open location menu"
                         >
                             <a href="#">
-                                <i class="far fa-compass"></i>
+                                <i aria-hidden="true" class="far fa-compass"></i>
                             </a>
                         </li>
                         <li @click="toggleMenu" class="rm-item" id="rm-settings" title="Open settings">
                             <a href="#">
-                                <i class="fas fa-cog"></i>
+                                <i aria-hidden="true" class="fas fa-cog"></i>
                             </a>
                         </li>
                     </ul>
                 </div>
                 <span class="rm-topper">
-                    <i class="icon-share-alt"></i>
+                    <i aria-hidden="true" class="icon-share-alt"></i>
                 </span>
             </div>
         </div>

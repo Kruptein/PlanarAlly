@@ -42,7 +42,7 @@ export default class PanelModal extends Vue {
         >
             <div><slot name="title"></slot></div>
             <div class="header-close" @click="hideModal" title="Close">
-                <i class="far fa-window-close"></i>
+                <i aria-hidden="true" class="far fa-window-close"></i>
             </div>
         </div>
         <div class="modal-body" @click="handleClick">

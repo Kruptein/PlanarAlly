@@ -81,7 +81,7 @@ export default class FloorSelect extends Vue {
                     <div class="floor-name">{{ floor }}</div>
                     <div class="floor-actions" v-show="floors.length > 1">
                         <div @click.stop="removeFloor(index)" title="Delete floor">
-                            <i class="fas fa-trash-alt"></i>
+                            <i aria-hidden="true" class="fas fa-trash-alt"></i>
                         </div>
                     </div>
                 </div>

@@ -171,7 +171,7 @@ export default class LocationBar extends Vue {
                     <div class="drag-handle"></div>
                     <div class="location-name-label" @click.self="changeLocation(location.id)">{{ location.name }}</div>
                     <div class="location-settings-icon" @click="openLocationSettings(location.id)">
-                        <i class="fas fa-cog"></i>
+                        <i aria-hidden="true" class="fas fa-cog"></i>
                     </div>
                 </div>
                 <draggable
@@ -186,8 +186,12 @@ export default class LocationBar extends Vue {
                     <div class="player-collapse-header">
                         Players
                         <div title="Show specific players" @click="toggleExpanded(location.id)">
-                            <span v-show="expanded.includes(location.id)"><i class="fas fa-chevron-up"></i></span>
-                            <span v-show="!expanded.includes(location.id)"><i class="fas fa-chevron-down"></i></span>
+                            <span v-show="expanded.includes(location.id)">
+                                <i aria-hidden="true" class="fas fa-chevron-up"></i>
+                            </span>
+                            <span v-show="!expanded.includes(location.id)">
+                                <i aria-hidden="true" class="fas fa-chevron-down"></i>
+                            </span>
                         </div>
                     </div>
                     <draggable

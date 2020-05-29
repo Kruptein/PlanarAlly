@@ -55,11 +55,11 @@ export default class NoteDialog extends Vue {
             @dragend="m.dragEnd"
         >
             <span @click="$refs.title.select()" title="Edit title">
-                <i class="fas fa-pencil-alt" style="font-size: 15px"></i>
+                <i aria-hidden="true" class="fas fa-pencil-alt" style="font-size: 15px"></i>
             </span>
             <input v-model="note.title" ref="title" @change="updateNote" />
             <div class="header-close" @click="visible = false" title="Close">
-                <i class="far fa-window-close"></i>
+                <i aria-hidden="true" class="far fa-window-close"></i>
             </div>
         </div>
         <div class="modal-body">
@@ -72,7 +72,7 @@ export default class NoteDialog extends Vue {
         </div>
         <div class="modal-footer">
             <button @click="removeNote" title="Remove note">
-                <i class="far fa-trash-alt"></i>
+                <i aria-hidden="true" class="far fa-trash-alt"></i>
                 Remove
             </button>
         </div>

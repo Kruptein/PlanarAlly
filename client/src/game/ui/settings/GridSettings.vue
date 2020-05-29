@@ -73,7 +73,7 @@ export default class GridSettings extends Vue {
                 @click="reset('useGrid')"
                 title="Reset to the campaign default"
             >
-                <i class="fas fa-times-circle"></i>
+                <i aria-hidden="true" class="fas fa-times-circle"></i>
             </div>
             <div v-else></div>
         </div>
@@ -87,7 +87,7 @@ export default class GridSettings extends Vue {
                 @click="reset('gridSize')"
                 title="Reset to the campaign default"
             >
-                <i class="fas fa-times-circle"></i>
+                <i aria-hidden="true" class="fas fa-times-circle"></i>
             </div>
             <div v-else></div>
         </div>
@@ -103,7 +103,7 @@ export default class GridSettings extends Vue {
                 @click="reset('unitSizeUnit')"
                 title="Reset to the campaign default"
             >
-                <i class="fas fa-times-circle"></i>
+                <i aria-hidden="true" class="fas fa-times-circle"></i>
             </div>
             <div v-else></div>
         </div>
@@ -119,7 +119,7 @@ export default class GridSettings extends Vue {
                 @click="reset('unitSize')"
                 title="Reset to the campaign default"
             >
-                <i class="fas fa-times-circle"></i>
+                <i aria-hidden="true" class="fas fa-times-circle"></i>
             </div>
             <div v-else></div>
         </div>

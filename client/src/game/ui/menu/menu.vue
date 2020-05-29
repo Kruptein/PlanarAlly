@@ -103,7 +103,7 @@ export default class MenuBar extends Vue {
                 <div id="menu-assets" class="menu-accordion-panel">
                     <input id="asset-search" v-if="assets" v-model="assetSearch" placeholder="Search" />
                     <a class="actionButton" href="/assets" target="blank" title="Open asset manager">
-                        <i class="fas fa-external-link-alt"></i>
+                        <i aria-hidden="true" class="fas fa-external-link-alt"></i>
                     </a>
                     <div class="directory" id="menu-tokens">
                         <asset-node :asset="assets" :search="assetSearch"></asset-node>
@@ -115,7 +115,7 @@ export default class MenuBar extends Vue {
                 <div class="menu-accordion-panel">
                     <div class="menu-accordion-subpanel" id="menu-notes">
                         <a class="actionButton" @click="createNote" title="Create note">
-                            <i class="far fa-plus-square"></i>
+                            <i aria-hidden="true" class="far fa-plus-square"></i>
                         </a>
                         <div v-for="note in notes" :key="note.uuid" @click="openNote(note)" style="cursor:pointer">
                             {{ note.title || "[?]" }}
@@ -135,7 +135,7 @@ export default class MenuBar extends Vue {
                             {{ nameMarker(marker) || "[?]" }}
                         </div>
                         <div @click="delMarker(marker)" title="Delete marker">
-                            <i class="far fa-minus-square"></i>
+                            <i aria-hidden="true" class="far fa-minus-square"></i>
                         </div>
                     </div>
                     <div v-if="!markers.length">No markers</div>

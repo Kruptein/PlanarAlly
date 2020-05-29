@@ -73,7 +73,7 @@ export default class SelectionInfo extends Vue {
         <div v-for="shape in shapes" :key="shape.uuid">
             <div id="selection-menu">
                 <div id="selection-edit-button" @click="openEditDialog" title="Open shape properties">
-                    <i class="fas fa-edit"></i>
+                    <i aria-hidden="true" class="fas fa-edit"></i>
                 </div>
                 <div id="selection-name">{{ shape.name }}</div>
                 <div id="selection-trackers">

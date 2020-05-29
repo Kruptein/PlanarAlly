@@ -92,23 +92,23 @@ export default class Dashboard extends Vue {
                     <div class="input">
                         <input type="text" v-model="newSessionName" name="room_name" placeholder="Session Name" />
                         <span>
-                            <i class="fab fa-d-and-d"></i>
+                            <i aria-hidden="true" class="fab fa-d-and-d"></i>
                         </span>
                     </div>
                     <button type="submit" class="submit" title="Create">
-                        <i class="fas fa-arrow-right"></i>
+                        <i aria-hidden="true" class="fas fa-arrow-right"></i>
                     </button>
                 </fieldset>
             </form>
             <div id="account-options">
                 <form @submit.prevent>
                     <router-link tag="button" class="submit" title="Account Settings" to="/settings">
-                        <i class="fas fa-cog"></i>
+                        <i aria-hidden="true" class="fas fa-cog"></i>
                     </router-link>
                 </form>
                 <form @submit.prevent>
                     <router-link tag="button" class="submit" title="Logout" to="/auth/logout">
-                        <i class="fas fa-sign-out-alt"></i>
+                        <i aria-hidden="true" class="fas fa-sign-out-alt"></i>
                     </router-link>
                 </form>
             </div>

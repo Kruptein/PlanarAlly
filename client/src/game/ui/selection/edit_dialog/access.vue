@@ -80,7 +80,7 @@ export default class EditDialogAccess extends Vue {
             @click="toggleDefaultEditAccess"
             title="Toggle edit access"
         >
-            <i class="fas fa-pencil-alt"></i>
+            <i aria-hidden="true" class="fas fa-pencil-alt"></i>
         </div>
         <div
             :style="{ opacity: shape.defaultAccess.movement ? 1.0 : 0.3, textAlign: 'center' }"
@@ -88,7 +88,7 @@ export default class EditDialogAccess extends Vue {
             @click="toggleDefaultMovementAccess"
             title="Toggle movement access"
         >
-            <i class="fas fa-arrows-alt"></i>
+            <i aria-hidden="true" class="fas fa-arrows-alt"></i>
         </div>
         <div
             :style="{ opacity: shape.defaultAccess.vision ? 1.0 : 0.3, textAlign: 'center' }"
@@ -96,7 +96,7 @@ export default class EditDialogAccess extends Vue {
             @click="toggleDefaultVisionAccess"
             title="Toggle vision access"
         >
-            <i class="fas fa-lightbulb"></i>
+            <i aria-hidden="true" class="fas fa-lightbulb"></i>
         </div>
         <template v-for="owner in shape.owners">
             <div class="owner" :key="owner.user">
@@ -113,7 +113,7 @@ export default class EditDialogAccess extends Vue {
                 @click="toggleOwnerEditAccess(owner)"
                 title="Toggle edit access"
             >
-                <i class="fas fa-pencil-alt"></i>
+                <i aria-hidden="true" class="fas fa-pencil-alt"></i>
             </div>
             <div
                 :key="'ownerMovement-' + owner.user"
@@ -122,7 +122,7 @@ export default class EditDialogAccess extends Vue {
                 @click="toggleOwnerMovementAccess(owner)"
                 title="Toggle movement access"
             >
-                <i class="fas fa-arrows-alt"></i>
+                <i aria-hidden="true" class="fas fa-arrows-alt"></i>
             </div>
             <div
                 :key="'ownerVision-' + owner.user"
@@ -131,7 +131,7 @@ export default class EditDialogAccess extends Vue {
                 @click="toggleOwnerVisionAccess(owner)"
                 title="Toggle vision access"
             >
-                <i class="fas fa-lightbulb"></i>
+                <i aria-hidden="true" class="fas fa-lightbulb"></i>
             </div>
             <div
                 :key="'remove-' + owner.user"
@@ -140,7 +140,7 @@ export default class EditDialogAccess extends Vue {
                 :disabled="!owned"
                 title="Remove owner access"
             >
-                <i class="fas fa-trash-alt"></i>
+                <i aria-hidden="true" class="fas fa-trash-alt"></i>
             </div>
         </template>
         <select

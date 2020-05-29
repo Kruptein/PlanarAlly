@@ -30,7 +30,7 @@ export default class InputCopyElement extends Vue {
         <input type="text" disabled="disabled" :value="value" id="input-element" />
         <div v-show="showPopup" id="show-popup">{{ popupString }}</div>
         <div id="copy-button" @click="copy" title="Copy">
-            <i class="far fa-copy"></i>
+            <i aria-hidden="true" class="far fa-copy"></i>
         </div>
     </div>
 </template>

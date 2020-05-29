@@ -155,7 +155,6 @@ canvas {
 }
 
 .modal-footer {
-    padding-top: 0;
     padding: 10px;
     text-align: right;
 }

@@ -430,12 +430,12 @@ export class LineFaceCirculator {
                 const n = this.pos!.neighbours[cw(this.i)]!;
                 this.i = n.indexT(this.pos!);
                 this.pos = n;
-                if (this.pos!.vertices[this.i] === _INFINITE_VERTEX) {
+                if (this.pos.vertices[this.i] === _INFINITE_VERTEX) {
                     o = Sign.COLLINEAR;
                     this.i = cw(this.i);
                     break;
                 }
-                o = orientation(this.p, this.q, this.pos!.vertices[this.i]!.point!);
+                o = orientation(this.p, this.q, this.pos.vertices[this.i]!.point!);
                 this.i = cw(this.i);
             } while (o === Sign.LEFT_TURN);
             if (o === Sign.COLLINEAR) {
@@ -449,9 +449,9 @@ export class LineFaceCirculator {
             const ni = n.indexT(this.pos!);
             this.pos = n;
             o =
-                this.pos!.vertices[ni]! === _INFINITE_VERTEX
+                this.pos.vertices[ni] === _INFINITE_VERTEX
                     ? Sign.COLLINEAR
-                    : orientation(this.p, this.q, this.pos!.vertices[ni]!.point!);
+                    : orientation(this.p, this.q, this.pos.vertices[ni]!.point!);
             switch (o) {
                 case Sign.LEFT_TURN: {
                     this.s = LineFaceState.EDGE_EDGE;

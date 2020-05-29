@@ -48,7 +48,7 @@ class LayerManager {
         }
         // Then process the current floor
         if (this.floor !== undefined) {
-            this.drawFloor(this.floor!);
+            this.drawFloor(this.floor);
         }
         for (let i = gameStore.selectedFloorIndex; i >= 0; i--) {
             for (const layer of this.floors[i].layers) {

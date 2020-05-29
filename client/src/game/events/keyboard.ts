@@ -32,7 +32,7 @@ export function onKeyUp(event: KeyboardEvent): void {
 export function onKeyDown(event: KeyboardEvent): void {
     if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement) {
         // Ctrl-a with a HTMLInputElement or a HTMLTextAreaElement selected - select all the text
-        if (event.key === "a" && event.ctrlKey) event.target!.select();
+        if (event.key === "a" && event.ctrlKey) event.target.select();
     } else {
         if (event.keyCode >= 37 && event.keyCode <= 40) {
             // Arrow keys - move the selection or the camera

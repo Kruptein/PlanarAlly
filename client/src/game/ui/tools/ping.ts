@@ -67,8 +67,8 @@ export class PingTool extends Tool {
         this.ping.center(gp);
         this.border.center(gp);
 
-        socket.emit("Shape.Update", { shape: this.ping!.asDict(), redraw: true, temporary: true });
-        socket.emit("Shape.Update", { shape: this.border!.asDict(), redraw: true, temporary: true });
+        socket.emit("Shape.Update", { shape: this.ping.asDict(), redraw: true, temporary: true });
+        socket.emit("Shape.Update", { shape: this.border.asDict(), redraw: true, temporary: true });
 
         layer.invalidate(true);
     }

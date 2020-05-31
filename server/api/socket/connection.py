@@ -91,7 +91,7 @@ async def connect(sid, environ):
             await sio.emit(
                 "Locations.Settings.Set",
                 {
-                    l.name: {} if l.options is None else l.options.as_dict()
+                    l.id: {} if l.options is None else l.options.as_dict()
                     for l in pr.room.locations
                 },
                 room=sid,

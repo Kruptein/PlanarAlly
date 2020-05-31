@@ -141,6 +141,7 @@ async def set_location_options(sid: int, data: Dict[str, Any]):
                 vision_min_range=None,
                 vision_max_range=None,
             )
+            loc.save()
         options = loc.options
 
     update_model_from_dict(options, data["options"])

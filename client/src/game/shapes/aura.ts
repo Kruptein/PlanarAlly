@@ -59,7 +59,7 @@ export function updateAuraPath(visibilityPolygon: number[][], center: GlobalPoin
     const ixs: LocalPoint[][] = [];
 
     // First find all polygon segments that are actually relevant
-    for (const [i, p] of visibilityPolygon.map(p => GlobalPoint.fromArray(p)).entries()) {
+    for (const [i, p] of visibilityPolygon.map(vp => GlobalPoint.fromArray(vp)).entries()) {
         const np = GlobalPoint.fromArray(visibilityPolygon[(i + 1) % visibilityPolygon.length]);
         const pLoc = g2l(p);
         const npLoc = g2l(np);

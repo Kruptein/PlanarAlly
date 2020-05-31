@@ -147,7 +147,6 @@ def upgrade(version):
         Constants.get().update(save_version=Constants.save_version + 1).execute()
     elif version == 19:
         db.foreign_keys = False
-        migrator = SqliteMigrator(db)
 
         db.execute_sql(
             'CREATE TABLE IF NOT EXISTS "floor" ("id" INTEGER NOT NULL PRIMARY KEY, "location_id" INTEGER NOT NULL, "name" TEXT, "index" INTEGER NOT NULL, FOREIGN KEY ("location_id") REFERENCES "location" ("id") ON DELETE CASCADE)'
@@ -188,7 +187,6 @@ def upgrade(version):
         db.foreign_keys = True
         Constants.get().update(save_version=Constants.save_version + 1).execute()
     elif version == 22:
-        migrator = SqliteMigrator(db)
         db.foreign_keys = False
         with db.atomic():
             db.execute_sql(
@@ -217,7 +215,6 @@ def upgrade(version):
         db.foreign_keys = True
         Constants.get().update(save_version=Constants.save_version + 1).execute()
     elif version == 24:
-        migrator = SqliteMigrator(db)
         db.foreign_keys = False
         with db.atomic():
             db.execute_sql(
@@ -369,8 +366,6 @@ def upgrade(version):
         Constants.get().update(save_version=Constants.save_version + 1).execute()
     elif version == 27:
         # Fix broken schemas from older save upgrades
-        migrator = SqliteMigrator(db)
-
         db.foreign_keys = False
         with db.atomic():
             db.execute_sql("CREATE TEMPORARY TABLE _floor AS SELECT * FROM floor")
@@ -560,8 +555,6 @@ def upgrade(version):
         Constants.get().update(save_version=Constants.save_version + 1).execute()
     elif version == 28:
         # Add invisibility toggle to shapes
-        migrator = SqliteMigrator(db)
-
         db.foreign_keys = False
         with db.atomic():
             db.execute_sql(

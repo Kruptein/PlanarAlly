@@ -100,8 +100,8 @@ export function snapToPoint(layer: Layer, endPoint: GlobalPoint, ignore?: Global
         const gp = GlobalPoint.fromArray(JSON.parse(point));
         if (ignore && gp.equals(ignore)) continue;
         const l = endPoint.subtract(gp).length();
-        if (smallestPoint === undefined && l < snapDistance) smallestPoint = [l, gp];
-        else if (smallestPoint !== undefined && l < smallestPoint[0]) smallestPoint = [l, gp];
+
+        if (l < (smallestPoint?.[0] ?? snapDistance)) smallestPoint = [l, gp];
     }
     if (smallestPoint !== undefined) endPoint = smallestPoint[1];
     return endPoint;

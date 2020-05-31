@@ -53,19 +53,19 @@ async def get_folder_by_path(sid: int, folder):
     folder = folder.strip("/")
     target_folder = Asset.get_root_folder(user)
 
-    idPath = []
+    id_path = []
 
     if folder:
         for path in folder.split("/"):
             try:
                 target_folder = target_folder.get_child(path)
-                idPath.append(target_folder.id)
+                id_path.append(target_folder.id)
             except Asset.DoesNotExist:
                 return await get_folder_by_path(sid, "/")
 
     await sio.emit(
         "Folder.Set",
-        {"folder": target_folder.as_dict(children=True), "path": idPath},
+        {"folder": target_folder.as_dict(children=True), "path": id_path},
         room=sid,
         namespace=ASSET_NS,
     )

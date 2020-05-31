@@ -30,14 +30,14 @@ async def refresh_invite_code(sid: int):
 
 @sio.on("Room.Info.Players.Kick", namespace=GAME_NS)
 @auth.login_required(app, sio)
-async def kick_player(sid: int, playerId: int):
+async def kick_player(sid: int, player_id: int):
     pr: PlayerRoom = game_state.get(sid)
 
     if pr.role != Role.DM:
         logger.warning(f"{pr.player.name} attempted to refresh the invitation code.")
         return
 
-    pr = PlayerRoom.get_or_none(player=playerId, room=pr.room)
+    pr = PlayerRoom.get_or_none(player=player_id, room=pr.room)
     if pr:
         for psid in game_state.get_sids(player=pr.player, room=pr.room):
             await sio.disconnect(psid, namespace=GAME_NS)

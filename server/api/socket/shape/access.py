@@ -1,6 +1,7 @@
 from typing import Any, Dict
 
 import auth
+from api.socket.constants import GAME_NS
 from api.socket.initiative import send_client_initiatives
 from app import app, logger, sio
 from models import Floor, Layer, Location, PlayerRoom, Room, Shape, ShapeOwner, User
@@ -9,7 +10,7 @@ from models.shape.access import has_ownership
 from state.game import game_state
 
 
-@sio.on("Shape.Owner.Add", namespace="/planarally")
+@sio.on("Shape.Owner.Add", namespace=GAME_NS)
 @auth.login_required(app, sio)
 async def add_shape_owner(sid: int, data: Dict[str, Any]):
     pr: PlayerRoom = game_state.get(sid)
@@ -53,7 +54,7 @@ async def add_shape_owner(sid: int, data: Dict[str, Any]):
         data,
         room=pr.active_location.get_path(),
         skip_sid=sid,
-        namespace="/planarally",
+        namespace=GAME_NS,
     )
     if not (shape.default_vision_access or shape.default_edit_access):
         for sid in game_state.get_sids(
@@ -63,11 +64,11 @@ async def add_shape_owner(sid: int, data: Dict[str, Any]):
                 "Shape.Set",
                 shape.as_dict(target_user, False),
                 room=sid,
-                namespace="/planarally",
+                namespace=GAME_NS,
             )
 
 
-@sio.on("Shape.Owner.Update", namespace="/planarally")
+@sio.on("Shape.Owner.Update", namespace=GAME_NS)
 @auth.login_required(app, sio)
 async def update_shape_owner(sid: int, data: Dict[str, Any]):
     pr: PlayerRoom = game_state.get(sid)
@@ -112,11 +113,11 @@ async def update_shape_owner(sid: int, data: Dict[str, Any]):
         data,
         room=pr.active_location.get_path(),
         skip_sid=sid,
-        namespace="/planarally",
+        namespace=GAME_NS,
     )
 
 
-@sio.on("Shape.Owner.Delete", namespace="/planarally")
+@sio.on("Shape.Owner.Delete", namespace=GAME_NS)
 @auth.login_required(app, sio)
 async def delete_shape_owner(sid: int, data: Dict[str, Any]):
     pr: PlayerRoom = game_state.get(sid)
@@ -154,11 +155,11 @@ async def delete_shape_owner(sid: int, data: Dict[str, Any]):
         data,
         room=pr.active_location.get_path(),
         skip_sid=sid,
-        namespace="/planarally",
+        namespace=GAME_NS,
     )
 
 
-@sio.on("Shape.Owner.Default.Update", namespace="/planarally")
+@sio.on("Shape.Owner.Default.Update", namespace=GAME_NS)
 @auth.login_required(app, sio)
 async def update_default_shape_owner(sid: int, data: Dict[str, Any]):
     pr: PlayerRoom = game_state.get(sid)
@@ -195,5 +196,5 @@ async def update_default_shape_owner(sid: int, data: Dict[str, Any]):
             "Shape.Set",
             shape.as_dict(player, player.name == pr.room.creator),
             room=sid,
-            namespace="/planarally",
+            namespace=GAME_NS,
         )

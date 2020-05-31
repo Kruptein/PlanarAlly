@@ -4,7 +4,7 @@ import { Route } from "vue-router";
 import { postFetch } from "@/core/utils";
 
 @Component({ template: "" })
-export default class Initiative extends Vue {
+export default class Invitation extends Vue {
     async beforeRouteEnter(to: Route, from: Route, next: (nextInfo: { path: string }) => {}): Promise<void> {
         const response = await postFetch("/api/invite", {
             code: to.params.code,

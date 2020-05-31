@@ -7,6 +7,7 @@ from playhouse.shortcuts import update_model_from_dict
 
 import auth
 from . import access, options
+from api.socket.constants import GAME_NS
 from app import app, logger, sio
 from models import (
     Aura,
@@ -28,7 +29,7 @@ from models.shape.access import has_ownership, has_ownership_temp
 from state.game import game_state
 
 
-@sio.on("Shape.Add", namespace="/planarally")
+@sio.on("Shape.Add", namespace=GAME_NS)
 @auth.login_required(app, sio)
 async def add_shape(sid: int, data: Dict[str, Any]):
     pr: PlayerRoom = game_state.get(sid)
@@ -87,12 +88,10 @@ async def add_shape(sid: int, data: Dict[str, Any]):
                 continue
             if not data["temporary"]:
                 data["shape"] = shape.as_dict(room_player.player, is_dm)
-            await sio.emit(
-                "Shape.Add", data["shape"], room=psid, namespace="/planarally"
-            )
+            await sio.emit("Shape.Add", data["shape"], room=psid, namespace=GAME_NS)
 
 
-@sio.on("Shape.Position.Update", namespace="/planarally")
+@sio.on("Shape.Position.Update", namespace=GAME_NS)
 @auth.login_required(app, sio)
 async def update_shape_position(sid: str, data: Dict[str, Any]):
     pr: PlayerRoom = game_state.get(sid)
@@ -127,7 +126,7 @@ async def update_shape_position(sid: str, data: Dict[str, Any]):
     await sync_shape_update(layer, pr, data, sid, shape)
 
 
-@sio.on("Shape.Update", namespace="/planarally")
+@sio.on("Shape.Update", namespace=GAME_NS)
 @auth.login_required(app, sio)
 async def update_shape(sid: int, data: Dict[str, Any]):
     pr: PlayerRoom = game_state.get(sid)
@@ -210,7 +209,6 @@ async def update_shape(sid: int, data: Dict[str, Any]):
                     label_db.save()
                 else:
                     Label.create(**reduced)
-                shape_label_db = ShapeLabel.get_or_none(shape=shape, label=label_db)
             old_labels = {shape_label.label.uuid for shape_label in shape.labels}
             new_labels = set(label["uuid"] for label in data["shape"]["labels"])
             for label in old_labels ^ new_labels:
@@ -226,7 +224,7 @@ async def update_shape(sid: int, data: Dict[str, Any]):
     await sync_shape_update(layer, pr, data, sid, shape)
 
 
-@sio.on("Shape.Remove", namespace="/planarally")
+@sio.on("Shape.Remove", namespace=GAME_NS)
 @auth.login_required(app, sio)
 async def remove_shape(sid: int, data: Dict[str, Any]):
     pr: PlayerRoom = game_state.get(sid)
@@ -275,7 +273,7 @@ async def remove_shape(sid: int, data: Dict[str, Any]):
             data["shape"],
             room=pr.active_location.get_path(),
             skip_sid=sid,
-            namespace="/planarally",
+            namespace=GAME_NS,
         )
     else:
         for csid in game_state.get_sids(
@@ -283,12 +281,10 @@ async def remove_shape(sid: int, data: Dict[str, Any]):
         ):
             if csid == sid:
                 continue
-            await sio.emit(
-                "Shape.Remove", data["shape"], room=csid, namespace="/planarally"
-            )
+            await sio.emit("Shape.Remove", data["shape"], room=csid, namespace=GAME_NS)
 
 
-@sio.on("Shape.Floor.Change", namespace="/planarally")
+@sio.on("Shape.Floor.Change", namespace=GAME_NS)
 @auth.login_required(app, sio)
 async def change_shape_floor(sid: int, data: Dict[str, Any]):
     pr: PlayerRoom = game_state.get(sid)
@@ -316,11 +312,11 @@ async def change_shape_floor(sid: int, data: Dict[str, Any]):
         data,
         room=pr.active_location.get_path(),
         skip_sid=sid,
-        namespace="/planarally",
+        namespace=GAME_NS,
     )
 
 
-@sio.on("Shape.Layer.Change", namespace="/planarally")
+@sio.on("Shape.Layer.Change", namespace=GAME_NS)
 @auth.login_required(app, sio)
 async def change_shape_layer(sid: int, data: Dict[str, Any]):
     pr: PlayerRoom = game_state.get(sid)
@@ -348,7 +344,7 @@ async def change_shape_layer(sid: int, data: Dict[str, Any]):
                     "Shape.Remove",
                     shape.as_dict(room_player.player, False),
                     room=psid,
-                    namespace="/planarally",
+                    namespace=GAME_NS,
                 )
 
     shape.layer = layer
@@ -364,7 +360,7 @@ async def change_shape_layer(sid: int, data: Dict[str, Any]):
             data,
             room=pr.active_location.get_path(),
             skip_sid=sid,
-            namespace="/planarally",
+            namespace=GAME_NS,
         )
     else:
         for room_player in pr.room.players:
@@ -380,18 +376,18 @@ async def change_shape_layer(sid: int, data: Dict[str, Any]):
                         data,
                         room=pr.active_location.get_path(),
                         skip_sid=sid,
-                        namespace="/planarally",
+                        namespace=GAME_NS,
                     )
                 elif layer.player_visible:
                     await sio.emit(
                         "Shape.Add",
                         shape.as_dict(room_player.player, False),
                         room=psid,
-                        namespace="/planarally",
+                        namespace=GAME_NS,
                     )
 
 
-@sio.on("Shape.Order.Set", namespace="/planarally")
+@sio.on("Shape.Order.Set", namespace=GAME_NS)
 @auth.login_required(app, sio)
 async def move_shape_order(sid: int, data: Dict[str, Any]):
     pr: PlayerRoom = game_state.get(sid)
@@ -422,14 +418,14 @@ async def move_shape_order(sid: int, data: Dict[str, Any]):
             data,
             room=pr.active_location.get_path(),
             skip_sid=sid,
-            namespace="/planarally",
+            namespace=GAME_NS,
         )
     else:
         for csid in game_state.get_sids(player=pr.room.creator, room=pr.room):
             if csid == sid:
                 continue
             await sio.emit(
-                "Shape.Order.Set", data["shape"], room=csid, namespace="/planarally"
+                "Shape.Order.Set", data["shape"], room=csid, namespace=GAME_NS
             )
 
 
@@ -459,7 +455,7 @@ async def sync_shape_update(layer, pr: PlayerRoom, data, sid, shape):
                 pass  # To solve this error, we need to clean this mess of shape functions
         else:
             pdata["shape"] = shape.as_dict(player, player == pr.room.creator)
-        await sio.emit("Shape.Update", pdata, room=psid, namespace="/planarally")
+        await sio.emit("Shape.Update", pdata, room=psid, namespace=GAME_NS)
 
 
 async def _get_shape(data: Dict[str, Any], pr: PlayerRoom):

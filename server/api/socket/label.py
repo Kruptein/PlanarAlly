@@ -1,6 +1,7 @@
 from typing import Any, Dict
 
 import auth
+from api.socket.constants import GAME_NS
 from app import app, logger, sio
 from models import Label, LabelSelection, PlayerRoom, User
 from models.db import db
@@ -8,7 +9,7 @@ from models.role import Role
 from state.game import game_state
 
 
-@sio.on("Label.Add", namespace="/planarally")
+@sio.on("Label.Add", namespace=GAME_NS)
 @auth.login_required(app, sio)
 async def add(sid: int, data: Dict[str, Any]):
     pr: PlayerRoom = game_state.get(sid)
@@ -30,12 +31,10 @@ async def add(sid: int, data: Dict[str, Any]):
 
     for psid in game_state.get_sids(skip_sid=sid, room=pr.room):
         if game_state.get_user(psid) == pr.player or label.visible:
-            await sio.emit(
-                "Label.Add", label.as_dict(), room=psid, namespace="/planarally"
-            )
+            await sio.emit("Label.Add", label.as_dict(), room=psid, namespace=GAME_NS)
 
 
-@sio.on("Label.Delete", namespace="/planarally")
+@sio.on("Label.Delete", namespace=GAME_NS)
 @auth.login_required(app, sio)
 async def delete(sid: int, data: Dict[str, Any]):
     pr: PlayerRoom = game_state.get(sid)
@@ -56,11 +55,11 @@ async def delete(sid: int, data: Dict[str, Any]):
         "Label.Delete",
         {"user": pr.player.name, "uuid": data},
         skip_sid=sid,
-        namespace="/planarally",
+        namespace=GAME_NS,
     )
 
 
-@sio.on("Label.Visibility.Set", namespace="/planarally")
+@sio.on("Label.Visibility.Set", namespace=GAME_NS)
 @auth.login_required(app, sio)
 async def set_visibility(sid: int, data: Dict[str, Any]):
     pr: PlayerRoom = game_state.get(sid)
@@ -84,23 +83,23 @@ async def set_visibility(sid: int, data: Dict[str, Any]):
                 "Label.Visibility.Set",
                 {"user": label.pr.player.name, **data},
                 room=psid,
-                namespace="/planarally",
+                namespace=GAME_NS,
             )
         else:
             if data["visible"]:
                 await sio.emit(
-                    "Label.Add", label.as_dict(), room=psid, namespace="/planarally"
+                    "Label.Add", label.as_dict(), room=psid, namespace=GAME_NS
                 )
             else:
                 await sio.emit(
                     "Label.Delete",
                     {"uuid": label.uuid, "user": label.pr.player.name},
                     room=psid,
-                    namespace="/planarally",
+                    namespace=GAME_NS,
                 )
 
 
-@sio.on("Labels.Filter.Add", namespace="/planarally")
+@sio.on("Labels.Filter.Add", namespace=GAME_NS)
 @auth.login_required(app, sio)
 async def add_filter(sid: int, uuid: str):
     pr: PlayerRoom = game_state.get(sid)
@@ -111,12 +110,10 @@ async def add_filter(sid: int, uuid: str):
 
     for psid in game_state.get_sids(skip_sid=sid, room=pr.room):
         if game_state.get_user(psid) == pr.player:
-            await sio.emit(
-                "Labels.Filter.Add", uuid, room=psid, namespace="/planarally"
-            )
+            await sio.emit("Labels.Filter.Add", uuid, room=psid, namespace=GAME_NS)
 
 
-@sio.on("Labels.Filter.Remove", namespace="/planarally")
+@sio.on("Labels.Filter.Remove", namespace=GAME_NS)
 @auth.login_required(app, sio)
 async def remove_filter(sid: int, uuid: str):
     pr: PlayerRoom = game_state.get(sid)
@@ -130,6 +127,4 @@ async def remove_filter(sid: int, uuid: str):
 
     for psid in game_state.get_sids(skip_sid=sid, room=pr.room):
         if game_state.get_user(psid) == pr.player:
-            await sio.emit(
-                "Labels.Filter.Remove", uuid, room=psid, namespace="/planarally"
-            )
+            await sio.emit("Labels.Filter.Remove", uuid, room=psid, namespace=GAME_NS)

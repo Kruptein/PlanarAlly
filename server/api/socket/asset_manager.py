@@ -6,6 +6,7 @@ from aiohttp_security import authorized_userid
 
 import auth
 from app import app, logger, sio
+from .constants import ASSET_NS
 from models import Asset
 from state.asset import asset_state
 from utils import FILE_DIR
@@ -15,18 +16,18 @@ if not ASSETS_DIR.exists():
     ASSETS_DIR.mkdir()
 
 
-@sio.on("connect", namespace="/pa_assetmgmt")
+@sio.on("connect", namespace=ASSET_NS)
 async def assetmgmt_connect(sid: int, environ):
     user = await authorized_userid(environ["aiohttp.request"])
     if user is None:
-        await sio.emit("redirect", "/", room=sid, namespace="/pa_assetmgmt")
+        await sio.emit("redirect", "/", room=sid, namespace=ASSET_NS)
     else:
         await asset_state.add_sid(sid, user)
         root = Asset.get_root_folder(user)
-        await sio.emit("Folder.Root.Set", root.id, room=sid, namespace="/pa_assetmgmt")
+        await sio.emit("Folder.Root.Set", root.id, room=sid, namespace=ASSET_NS)
 
 
-@sio.on("Folder.Get", namespace="/pa_assetmgmt")
+@sio.on("Folder.Get", namespace=ASSET_NS)
 async def get_folder(sid: int, folder=None):
     user = asset_state.get_user(sid)
 
@@ -41,36 +42,36 @@ async def get_folder(sid: int, folder=None):
         "Folder.Set",
         {"folder": folder.as_dict(children=True)},
         room=sid,
-        namespace="/pa_assetmgmt",
+        namespace=ASSET_NS,
     )
 
 
-@sio.on("Folder.GetByPath", namespace="/pa_assetmgmt")
+@sio.on("Folder.GetByPath", namespace=ASSET_NS)
 async def get_folder_by_path(sid: int, folder):
     user = asset_state.get_user(sid)
 
     folder = folder.strip("/")
     target_folder = Asset.get_root_folder(user)
 
-    idPath = []
+    id_path = []
 
     if folder:
         for path in folder.split("/"):
             try:
                 target_folder = target_folder.get_child(path)
-                idPath.append(target_folder.id)
+                id_path.append(target_folder.id)
             except Asset.DoesNotExist:
                 return await get_folder_by_path(sid, "/")
 
     await sio.emit(
         "Folder.Set",
-        {"folder": target_folder.as_dict(children=True), "path": idPath},
+        {"folder": target_folder.as_dict(children=True), "path": id_path},
         room=sid,
-        namespace="/pa_assetmgmt",
+        namespace=ASSET_NS,
     )
 
 
-@sio.on("Folder.Create", namespace="/pa_assetmgmt")
+@sio.on("Folder.Create", namespace=ASSET_NS)
 @auth.login_required(app, sio)
 async def create_folder(sid: int, data):
     user = asset_state.get_user(sid)
@@ -78,12 +79,10 @@ async def create_folder(sid: int, data):
     if parent is None:
         parent = Asset.get_root_folder(user)
     asset = Asset.create(name=data["name"], owner=user, parent=parent)
-    await sio.emit(
-        "Folder.Create", asset.as_dict(), room=sid, namespace="/pa_assetmgmt"
-    )
+    await sio.emit("Folder.Create", asset.as_dict(), room=sid, namespace=ASSET_NS)
 
 
-@sio.on("Inode.Move", namespace="/pa_assetmgmt")
+@sio.on("Inode.Move", namespace=ASSET_NS)
 @auth.login_required(app, sio)
 async def move_inode(sid: int, data):
     user = asset_state.get_user(sid)
@@ -99,7 +98,7 @@ async def move_inode(sid: int, data):
     asset.save()
 
 
-@sio.on("Asset.Rename", namespace="/pa_assetmgmt")
+@sio.on("Asset.Rename", namespace=ASSET_NS)
 @auth.login_required(app, sio)
 async def assetmgmt_rename(sid: int, data):
     user = asset_state.get_user(sid)
@@ -111,7 +110,7 @@ async def assetmgmt_rename(sid: int, data):
     asset.save()
 
 
-@sio.on("Asset.Remove", namespace="/pa_assetmgmt")
+@sio.on("Asset.Remove", namespace=ASSET_NS)
 @auth.login_required(app, sio)
 async def assetmgmt_rm(sid: int, data):
     user = asset_state.get_user(sid)
@@ -129,7 +128,7 @@ async def assetmgmt_rm(sid: int, data):
             (ASSETS_DIR / asset.file_hash).unlink()
 
 
-@sio.on("Asset.Upload", namespace="/pa_assetmgmt")
+@sio.on("Asset.Upload", namespace=ASSET_NS)
 @auth.login_required(app, sio)
 async def assetmgmt_upload(sid: int, file_data):
     uuid = file_data["uuid"]
@@ -164,6 +163,4 @@ async def assetmgmt_upload(sid: int, file_data):
         parent=file_data["directory"],
     )
 
-    await sio.emit(
-        "Asset.Upload.Finish", asset.as_dict(), room=sid, namespace="/pa_assetmgmt"
-    )
+    await sio.emit("Asset.Upload.Finish", asset.as_dict(), room=sid, namespace=ASSET_NS)

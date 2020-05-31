@@ -253,7 +253,7 @@ export class EdgeIterator {
         }
         this.pos = tds.triangles[0];
         if (tds.dimension === 1) this.es = 2;
-        while (this.pos !== null && !this.associatedEdge()) {
+        if (this.pos !== null && !this.associatedEdge()) {
             throw new Error("[poi");
         }
 

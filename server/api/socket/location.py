@@ -5,6 +5,7 @@ from playhouse.shortcuts import update_model_from_dict
 
 import auth
 from .initiative import send_client_initiatives
+from api.socket.constants import GAME_NS
 from app import app, logger, sio
 from models import (
     Floor,
@@ -44,13 +45,9 @@ async def load_location(sid: int, location: Location):
         **LocationUserOption.get(user=pr.player, location=location).as_dict()
     )
 
-    await sio.emit("Board.Set", data, room=sid, namespace="/planarally")
-    await sio.emit(
-        "Location.Set", location.as_dict(), room=sid, namespace="/planarally"
-    )
-    await sio.emit(
-        "Client.Options.Set", client_options, room=sid, namespace="/planarally"
-    )
+    await sio.emit("Board.Set", data, room=sid, namespace=GAME_NS)
+    await sio.emit("Location.Set", location.as_dict(), room=sid, namespace=GAME_NS)
+    await sio.emit("Client.Options.Set", client_options, room=sid, namespace=GAME_NS)
     await sio.emit(
         "Notes.Set",
         [
@@ -60,7 +57,7 @@ async def load_location(sid: int, location: Location):
             )
         ],
         room=sid,
-        namespace="/planarally",
+        namespace=GAME_NS,
     )
     await sio.emit(
         "Markers.Set",
@@ -71,24 +68,21 @@ async def load_location(sid: int, location: Location):
             )
         ],
         room=sid,
-        namespace="/planarally",
+        namespace=GAME_NS,
     )
 
     location_data = InitiativeLocationData.get_or_none(location=location)
     if location_data:
         await send_client_initiatives(pr, pr.player)
         await sio.emit(
-            "Initiative.Round.Update",
-            location_data.round,
-            room=sid,
-            namespace="/planarally",
+            "Initiative.Round.Update", location_data.round, room=sid, namespace=GAME_NS,
         )
         await sio.emit(
-            "Initiative.Turn.Set", location_data.turn, room=sid, namespace="/planarally"
+            "Initiative.Turn.Set", location_data.turn, room=sid, namespace=GAME_NS
         )
 
 
-@sio.on("Location.Change", namespace="/planarally")
+@sio.on("Location.Change", namespace=GAME_NS)
 @auth.login_required(app, sio)
 async def change_location(sid: int, data: Dict[str, str]):
     pr: PlayerRoom = game_state.get(sid)
@@ -103,7 +97,7 @@ async def change_location(sid: int, data: Dict[str, str]):
             continue
 
         for psid in game_state.get_sids(player=room_player.player, room=pr.room):
-            await sio.emit("Location.Change.Start", room=psid, namespace="/planarally")
+            await sio.emit("Location.Change.Start", room=psid, namespace=GAME_NS)
 
     new_location = Location[data["location"]]
 
@@ -113,15 +107,15 @@ async def change_location(sid: int, data: Dict[str, str]):
 
         for psid in game_state.get_sids(player=room_player.player, room=pr.room):
             sio.leave_room(
-                psid, room_player.active_location.get_path(), namespace="/planarally"
+                psid, room_player.active_location.get_path(), namespace=GAME_NS
             )
-            sio.enter_room(psid, new_location.get_path(), namespace="/planarally")
+            sio.enter_room(psid, new_location.get_path(), namespace=GAME_NS)
             await load_location(psid, new_location)
         room_player.active_location = new_location
         room_player.save()
 
 
-@sio.on("Location.Options.Set", namespace="/planarally")
+@sio.on("Location.Options.Set", namespace=GAME_NS)
 @auth.login_required(app, sio)
 async def set_location_options(sid: int, data: Dict[str, Any]):
     pr: PlayerRoom = game_state.get(sid)
@@ -157,11 +151,11 @@ async def set_location_options(sid: int, data: Dict[str, Any]):
         data,
         room=pr.active_location.get_path(),
         skip_sid=sid,
-        namespace="/planarally",
+        namespace=GAME_NS,
     )
 
 
-@sio.on("Location.New", namespace="/planarally")
+@sio.on("Location.New", namespace=GAME_NS)
 @auth.login_required(app, sio)
 async def add_new_location(sid: int, location: str):
     pr: PlayerRoom = game_state.get(sid)
@@ -178,14 +172,14 @@ async def add_new_location(sid: int, location: str):
     for psid in game_state.get_sids(
         player=pr.player, active_location=pr.active_location
     ):
-        sio.leave_room(psid, pr.active_location.get_path(), namespace="/planarally")
-        sio.enter_room(psid, new_location.get_path(), namespace="/planarally")
+        sio.leave_room(psid, pr.active_location.get_path(), namespace=GAME_NS)
+        sio.enter_room(psid, new_location.get_path(), namespace=GAME_NS)
         await load_location(psid, new_location)
     pr.active_location = new_location
     pr.save()
 
 
-@sio.on("Locations.Order.Set", namespace="/planarally")
+@sio.on("Locations.Order.Set", namespace=GAME_NS)
 @auth.login_required(app, sio)
 async def set_locations_order(sid: int, locations: List[int]):
     pr: PlayerRoom = game_state.get(sid)
@@ -204,11 +198,11 @@ async def set_locations_order(sid: int, locations: List[int]):
             continue
         for psid in game_state.get_sids(skip_sid=sid, player=player_room.player):
             await sio.emit(
-                "Locations.Order.Set", locations, room=psid, namespace="/planarally"
+                "Locations.Order.Set", locations, room=psid, namespace=GAME_NS
             )
 
 
-@sio.on("Location.Rename", namespace="/planarally")
+@sio.on("Location.Rename", namespace=GAME_NS)
 @auth.login_required(app, sio)
 async def rename_location(sid: int, data: Dict[str, str]):
     pr: PlayerRoom = game_state.get(sid)
@@ -223,10 +217,10 @@ async def rename_location(sid: int, data: Dict[str, str]):
 
     for player_room in pr.room.players:
         for psid in game_state.get_sids(skip_sid=sid, player=player_room.player):
-            await sio.emit("Location.Rename", data, room=psid, namespace="/planarally")
+            await sio.emit("Location.Rename", data, room=psid, namespace=GAME_NS)
 
 
-@sio.on("Location.Delete", namespace="/planarally")
+@sio.on("Location.Delete", namespace=GAME_NS)
 @auth.login_required(app, sio)
 async def delete_location(sid: int, data: int):
     pr: PlayerRoom = game_state.get(sid)

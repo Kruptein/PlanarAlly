@@ -1,6 +1,7 @@
 from typing import Any, Dict
 
 import auth
+from api.socket.constants import GAME_NS
 from app import app, logger, sio
 from models import Floor, Layer, LocationUserOption, PlayerRoom
 from models.db import db
@@ -21,7 +22,7 @@ from . import (
 )
 
 
-@sio.on("Client.Options.Set", namespace="/planarally")
+@sio.on("Client.Options.Set", namespace=GAME_NS)
 @auth.login_required(app, sio)
 async def set_client(sid: int, data: Dict[str, Any]):
     pr: PlayerRoom = game_state.get(sid)
@@ -47,7 +48,7 @@ async def set_client(sid: int, data: Dict[str, Any]):
         ).execute()
 
 
-@sio.on("Client.ActiveLayer.Set", namespace="/planarally")
+@sio.on("Client.ActiveLayer.Set", namespace=GAME_NS)
 @auth.login_required(app, sio)
 async def set_layer(sid: int, data: Dict[str, Any]):
     pr: PlayerRoom = game_state.get(sid)
@@ -63,7 +64,7 @@ async def set_layer(sid: int, data: Dict[str, Any]):
         luo.save()
 
 
-@sio.on("Players.Bring", namespace="/planarally")
+@sio.on("Players.Bring", namespace=GAME_NS)
 @auth.login_required(app, sio)
 async def bring_players(sid: int, data: Dict[str, Any]):
     pr: PlayerRoom = game_state.get(sid)
@@ -73,5 +74,5 @@ async def bring_players(sid: int, data: Dict[str, Any]):
         data,
         room=pr.active_location.get_path(),
         skip_sid=sid,
-        namespace="/planarally",
+        namespace=GAME_NS,
     )

@@ -387,7 +387,7 @@ export class LineFaceCirculator {
         }
 
         ic = fc.t!.indexV(v);
-        vt = fc.t!.vertices[cw(ic)]!;
+        // vt = fc.t!.vertices[cw(ic)]!;  used for assert check in cgal
 
         if (vr === _INFINITE_VERTEX) {
             fc.prev();

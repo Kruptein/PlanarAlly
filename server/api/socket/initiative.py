@@ -38,8 +38,6 @@ async def update_initiative(sid: int, data: Dict[str, Any]):
         )
         return
 
-    used_to_be_visible = False
-
     location_data = InitiativeLocationData.get_or_none(location=pr.active_location)
     if location_data is None:
         location_data = InitiativeLocationData.create(
@@ -76,8 +74,6 @@ async def update_initiative(sid: int, data: Dict[str, Any]):
             initiative.save(force_insert=True)
     # Update initiative
     else:
-        used_to_be_visible = initiative.visible
-
         with db.atomic():
             if data["initiative"] != initiative.initiative:
                 # Update indices
@@ -127,8 +123,6 @@ async def remove_initiative(sid: int, data: Dict[str, Any]):
         )
         return
 
-    used_to_be_visible = False
-
     initiative = Initiative.get_or_none(uuid=data)
     location_data = InitiativeLocationData.get_or_none(location=pr.active_location)
 
@@ -151,8 +145,6 @@ async def update_initiative_order(sid: int, data: Dict[str, Any]):
     if pr.role != Role.DM:
         logger.warning(f"{pr.player.name} attempted to change the initiative order")
         return
-
-    location_data = InitiativeLocationData.get(location=pr.active_location)
 
     with db.atomic():
         for i, uuid in enumerate(data):

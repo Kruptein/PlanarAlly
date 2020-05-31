@@ -194,7 +194,6 @@ async def set_locations_order(sid: int, locations: List[int]):
         logger.warning(f"{pr.player.name} attempted to reorder locations.")
         return
 
-    location_query = Location.select().where(Location.room == pr.room)
     for i, idx in enumerate(locations):
         l: Location = Location[idx]
         l.index = i + 1

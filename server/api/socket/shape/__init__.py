@@ -210,7 +210,6 @@ async def update_shape(sid: int, data: Dict[str, Any]):
                     label_db.save()
                 else:
                     Label.create(**reduced)
-                shape_label_db = ShapeLabel.get_or_none(shape=shape, label=label_db)
             old_labels = {shape_label.label.uuid for shape_label in shape.labels}
             new_labels = set(label["uuid"] for label in data["shape"]["labels"])
             for label in old_labels ^ new_labels:

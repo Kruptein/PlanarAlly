@@ -143,12 +143,10 @@ async def delete_shape_owner(sid: int, data: Dict[str, Any]):
         return
 
     try:
-        so = (
-            ShapeOwner.delete()
-            .where((ShapeOwner.shape == shape) & (ShapeOwner.user == target_user))
-            .execute()
-        )
-    except Exception as e:
+        ShapeOwner.delete().where(
+            (ShapeOwner.shape == shape) & (ShapeOwner.user == target_user)
+        ).execute()
+    except Exception:
         logger.warning(f"Could not delete shape-owner relation by {pr.player.name}")
 
     await sio.emit(

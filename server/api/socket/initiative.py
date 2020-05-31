@@ -119,9 +119,9 @@ async def update_initiative(sid: int, data: Dict[str, Any]):
 async def remove_initiative(sid: int, data: Dict[str, Any]):
     pr: PlayerRoom = game_state.get(sid)
 
-    shape = Shape.get_or_none(uuid=data["uuid"])
+    shape = Shape.get_or_none(uuid=data)
 
-    if not has_ownership(shape, pr):
+    if shape is not None and not has_ownership(shape, pr):
         logger.warning(
             f"{pr.player.name} attempted to remove initiative of an asset it does not own"
         )
@@ -129,7 +129,7 @@ async def remove_initiative(sid: int, data: Dict[str, Any]):
 
     used_to_be_visible = False
 
-    initiative = Initiative.get_or_none(uuid=data["uuid"])
+    initiative = Initiative.get_or_none(uuid=data)
     location_data = InitiativeLocationData.get_or_none(location=pr.active_location)
 
     if initiative:
@@ -140,7 +140,7 @@ async def remove_initiative(sid: int, data: Dict[str, Any]):
             )
             initiative.delete_instance(True)
 
-    await send_client_initiatives(pr)
+        await send_client_initiatives(pr)
 
 
 @sio.on("Initiative.Set", namespace="/planarally")

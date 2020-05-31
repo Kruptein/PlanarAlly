@@ -13,11 +13,12 @@ from peewee import (
     OperationalError,
     TextField,
 )
-from playhouse.migrate import fn, migrate, SqliteMigrator
+from playhouse.migrate import SqliteMigrator, fn, migrate
 
 from config import SAVE_FILE
 from models import ALL_MODELS, Constants
 from models.db import db
+from utils import OldVersionException, UnknownVersionException
 
 SAVE_VERSION = 30
 
@@ -27,7 +28,7 @@ logger.setLevel(logging.INFO)
 
 def upgrade(version):
     if version < 13:
-        raise Exception(
+        raise OldVersionException(
             f"Upgrade code for this version is >1 year old and is no longer in the active codebase to reduce clutter. You can still find this code on github, contact me for more info."
         )
     elif version == 13:
@@ -588,7 +589,9 @@ def upgrade(version):
         db.foreign_keys = True
         Constants.get().update(save_version=Constants.save_version + 1).execute()
     else:
-        raise Exception(f"No upgrade code for save format {version} was found.")
+        raise UnknownVersionException(
+            f"No upgrade code for save format {version} was found."
+        )
 
 
 def check_save():

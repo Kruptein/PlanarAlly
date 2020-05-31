@@ -129,7 +129,8 @@ export default class AssetNode extends Vue {
 
 .draggable {
     list-style: none;
-    font-family: helvetica;
+    font-family: "HelveticaNeue-Light", "Helvetica Neue Light", "Helvetica Neue", Helvetica, Arial, "Lucida Grande",
+        sans-serif;
 }
 
 .token {

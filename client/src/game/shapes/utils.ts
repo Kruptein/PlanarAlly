@@ -145,7 +145,7 @@ export function pasteShapes(targetLayer?: string): Shape[] {
         else {
             if (!groupLeader.options.has("groupInfo")) groupLeader.options.set("groupInfo", []);
             const groupMembers = groupLeader.getGroupMembers();
-            clip.badge = groupMembers.reduce((acc: number, shape: Shape) => Math.max(acc, shape.badge ?? 1), 0) + 1;
+            clip.badge = groupMembers.reduce((acc: number, sh: Shape) => Math.max(acc, sh.badge ?? 1), 0) + 1;
             groupLeader.options.set("groupInfo", [...groupLeader.options.get("groupInfo"), clip.uuid]);
             options.set("groupId", groupLeader.uuid);
             clip.options = JSON.stringify([...options]);

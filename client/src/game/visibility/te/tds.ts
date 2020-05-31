@@ -866,11 +866,10 @@ export class TDS {
                 else {
                     const p = vv.point!;
                     if (orientation(p0, p1, p) === Sign.COUNTERCLOCKWISE) {
-                        if (v2.infinite) {
-                            v2 = vv;
-                            v3 = vv;
-                            cutAfter = hit;
-                        } else if (sideOfOrientedCircleP(p0, p1, v3!.point!, p, true) === Sign.ON_POSITIVE_SIDE) {
+                        if (
+                            v2.infinite ||
+                            sideOfOrientedCircleP(p0, p1, v3!.point!, p, true) === Sign.ON_POSITIVE_SIDE
+                        ) {
                             v2 = vv;
                             v3 = vv;
                             cutAfter = hit;

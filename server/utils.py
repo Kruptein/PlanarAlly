@@ -15,3 +15,11 @@ def get_file_dir():
 
 
 FILE_DIR = get_file_dir()
+
+
+class OldVersionException(Exception):
+    pass
+
+
+class UnknownVersionException(Exception):
+    pass

@@ -87,6 +87,9 @@ async def connect(sid, environ):
             room=sid,
             namespace=GAME_NS,
         )
+
+        await load_location(sid, pr.active_location)
+
         if pr.role == Role.DM:
             await sio.emit(
                 "Locations.Settings.Set",
@@ -97,7 +100,6 @@ async def connect(sid, environ):
                 room=sid,
                 namespace=GAME_NS,
             )
-        await load_location(sid, pr.active_location)
 
 
 @sio.on("disconnect", namespace=GAME_NS)

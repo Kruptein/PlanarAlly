@@ -176,6 +176,7 @@ export class Layer {
             visibilityStore.recalculateMovement(this.floor);
         }
 
+        EventBus.$emit("Initiative.Remove", shape.uuid);
         this.invalidate(!sync);
     }
 

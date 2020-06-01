@@ -178,8 +178,7 @@ export function deleteShapes(): void {
             l.selection.splice(i, 1);
             continue;
         }
-        l.removeShape(sel, SyncMode.FULL_SYNC);
-        EventBus.$emit("SelectionInfo.Shape.Set", null);
+        if (l.removeShape(sel, SyncMode.FULL_SYNC)) EventBus.$emit("SelectionInfo.Shape.Set", null);
     }
 }
 

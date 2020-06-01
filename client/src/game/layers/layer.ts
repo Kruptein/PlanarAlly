@@ -10,6 +10,7 @@ import { visibilityStore } from "@/game/visibility/store";
 import { TriangulationTarget } from "@/game/visibility/te/pa";
 import { getBlockers, getVisionSources, sliceBlockers, sliceVisionSources } from "@/game/visibility/utils";
 import { drawAuras } from "../shapes/aura";
+import { gameSettingsStore } from "../settings";
 
 export class Layer {
     name: string;
@@ -99,11 +100,15 @@ export class Layer {
         this.clearSelection(); // TODO: Fix keeping selection on those items that are not moved.
     }
 
-    removeShape(shape: Shape, sync: SyncMode): void {
+    removeShape(shape: Shape, sync: SyncMode): boolean {
         const idx = this.shapes.indexOf(shape);
         if (idx < 0) {
             console.error("attempted to remove shape not in layer.");
-            return;
+            return false;
+        }
+        if (gameSettingsStore.currentLocationOptions.spawnLocations!.includes(shape.uuid)) {
+            console.error("attempted to remove spawn location");
+            return false;
         }
         this.shapes.splice(idx, 1);
 
@@ -178,6 +183,7 @@ export class Layer {
 
         EventBus.$emit("Initiative.Remove", shape.uuid);
         this.invalidate(!sync);
+        return true;
     }
 
     clear(): void {

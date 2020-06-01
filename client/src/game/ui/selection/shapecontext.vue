@@ -17,6 +17,7 @@ import { Layer } from "../../layers/layer";
 import { gameSettingsStore } from "../../settings";
 import Game from "@/game/game.vue";
 import { ServerAsset } from "../../comm/types/shapes";
+import { Shape } from "@/game/shapes/shape";
 
 @Component({
     components: {
@@ -24,7 +25,7 @@ import { ServerAsset } from "../../comm/types/shapes";
         Prompt,
     },
     computed: {
-        ...mapState("game", ["activeFloorIndex", "locations", "markers"]),
+        ...mapState("game", ["activeFloorIndex", "markers"]),
         ...mapState("gameSettings", ["activeLocation"]),
     },
 })
@@ -36,6 +37,15 @@ export default class ShapeContext extends Vue {
     visible = false;
     x = 0;
     y = 0;
+
+    getSelection(): Shape[] {
+        return this.getActiveLayer()!.selection;
+    }
+
+    hasSpawnToken(): boolean {
+        return this.getSelection().some(s => gameSettingsStore.currentLocationOptions.spawnLocations!.includes(s.uuid));
+    }
+
     open(event: MouseEvent): void {
         this.visible = true;
         this.x = event.pageX;
@@ -53,7 +63,12 @@ export default class ShapeContext extends Vue {
     getFloors(): Floor[] {
         return layerManager.floors;
     }
+    getLocations(): { id: number; name: string }[] {
+        if (this.hasSpawnToken()) return [];
+        return gameStore.locations;
+    }
     getLayers(): Layer[] {
+        if (this.hasSpawnToken()) return [];
         return layerManager.floor?.layers.filter(l => l.selectable && (gameStore.IS_DM || l.playerEditable)) || [];
     }
     getActiveLayer(): Layer | undefined {
@@ -86,7 +101,6 @@ export default class ShapeContext extends Vue {
         const selection = this.getActiveLayer()!.selection;
 
         const spawnLocations = (gameSettingsStore.locationOptions[newLocation]?.spawnLocations ?? []).length;
-        console.log(spawnLocations);
         if (spawnLocations === 0) {
             await (<Game>this.$parent.$parent.$parent).$refs.confirm.open(
                 "Spawn location info",
@@ -162,6 +176,12 @@ export default class ShapeContext extends Vue {
         gameStore.removeMarker({ marker, sync: true });
         this.close();
     }
+    showInitiative(): boolean {
+        return !this.hasSpawnToken();
+    }
+    showDelete(): boolean {
+        return !this.hasSpawnToken();
+    }
 }
 </script>
 
@@ -200,11 +220,11 @@ export default class ShapeContext extends Vue {
                 </li>
             </ul>
         </li>
-        <li v-if="locations.length > 1">
+        <li v-if="getLocations().length > 1">
             Location
             <ul>
                 <li
-                    v-for="location in locations"
+                    v-for="location in getLocations()"
                     :key="location.id"
                     :style="[activeLocation === location.id ? { 'background-color': '#82c8a0' } : {}]"
                     @click="setLocation(location.id)"
@@ -215,8 +235,8 @@ export default class ShapeContext extends Vue {
         </li>
         <li @click="moveToBack">Move to back</li>
         <li @click="moveToFront">Move to front</li>
-        <li @click="addInitiative">{{ getInitiativeWord() }} initiative</li>
-        <li @click="deleteSelection">Delete shapes</li>
+        <li @click="addInitiative" v-if="showInitiative()">{{ getInitiativeWord() }} initiative</li>
+        <li @click="deleteSelection" v-if="showDelete()">Delete shapes</li>
         <li v-if="hasSingleShape()" @click="openEditDialog">Show properties</li>
         <template v-if="hasSingleShape()">
             <li v-if="markers.includes(getMarker())" @click="deleteMarker">Remove marker</li>

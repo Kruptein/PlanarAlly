@@ -23,7 +23,7 @@ export interface LocationOptions {
     visionMinRange: number;
     visionMaxRange: number;
     gridSize: number;
-    spawnLocations: { x: number; y: number; name: string }[];
+    spawnLocations: string[];
 }
 
 export interface ServerClient {

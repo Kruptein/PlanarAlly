@@ -586,7 +586,7 @@ def upgrade(version):
         db.foreign_keys = False
         with db.atomic():
             db.execute_sql(
-                'ALTER TABLE location_options ADD COLUMN spawn_locations TEXT NOT NULL DEFAULT \'[{"x": 0, "y": 0, "name": "default"}]\''
+                'ALTER TABLE location_options ADD COLUMN spawn_locations TEXT NOT NULL DEFAULT "[]"'
             )
 
         db.foreign_keys = True

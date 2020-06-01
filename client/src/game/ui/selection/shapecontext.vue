@@ -5,20 +5,23 @@ import Component from "vue-class-component";
 import { mapState } from "vuex";
 
 import ContextMenu from "@/core/components/contextmenu.vue";
+import Prompt from "@/core/components/modals/prompt.vue";
 
 import { socket } from "@/game/api/socket";
-import { ServerLocation } from "@/game/comm/types/general";
 import { EventBus } from "@/game/event-bus";
 import { layerManager, Floor } from "@/game/layers/manager";
 import { gameStore } from "@/game/store";
-import { cutShapes, deleteShapes, pasteShapes } from "../../shapes/utils";
+import { deleteShapes } from "../../shapes/utils";
 import { initiativeStore, inInitiative } from "../initiative/store";
 import { Layer } from "../../layers/layer";
-import { ServerClient } from "@/game/comm/types/settings";
+import { gameSettingsStore } from "../../settings";
+import Game from "@/game/game.vue";
+import { ServerShape, ServerAsset } from "../../comm/types/shapes";
 
 @Component({
     components: {
         ContextMenu,
+        Prompt,
     },
     computed: {
         ...mapState("game", ["activeFloorIndex", "locations", "markers"]),
@@ -26,6 +29,10 @@ import { ServerClient } from "@/game/comm/types/settings";
     },
 })
 export default class ShapeContext extends Vue {
+    $refs!: {
+        prompt: InstanceType<typeof Prompt>;
+    };
+
     visible = false;
     x = 0;
     y = 0;
@@ -75,17 +82,44 @@ export default class ShapeContext extends Vue {
         layer.clearSelection();
         this.close();
     }
-    setLocation(newLocation: string): void {
-        const layer = this.getActiveLayer()!;
-        cutShapes();
-        // Request change to other location
-        socket.emit("Location.Change", newLocation);
-        socket.once("Location.Set", (_data: Partial<ServerLocation>) => {
-            socket.once("Client.Options.Set", (_options: ServerClient) => {
-                layer.selection = pasteShapes(layer.name);
-                layerManager.selectLayer(layer.name);
-            });
+    async setLocation(newLocation: number): Promise<void> {
+        const selection = this.getActiveLayer()!.selection;
+
+        const spawnLocations = (gameSettingsStore.locationOptions[newLocation]?.spawnLocations ?? []).length;
+        console.log(spawnLocations);
+        if (spawnLocations === 0) {
+            await (<Game>this.$parent.$parent.$parent).$refs.confirm.open(
+                "Spawn location info",
+                "Since version 0.21 a concept of spawn locations has been introduced. The target location does not yet have a spawn location; Visit it manually first to autogenerate one.",
+                { showNo: false, yes: "Ok" },
+            );
+            this.close();
+            return;
+        }
+
+        socket.emit("Location.Spawn.Info.Get", newLocation);
+        const spawnInfo = await new Promise((resolve: (value: ServerAsset[]) => void) =>
+            socket.once("Location.Spawn.Info", resolve),
+        );
+        if (spawnInfo.length !== spawnLocations) {
+            console.error("Spawn location info mismatch.");
+            this.close();
+            return;
+        }
+        const targetLocation = {
+            floor: spawnInfo[0].floor,
+            x: spawnInfo[0].x + spawnInfo[0].width / 2,
+            y: spawnInfo[0].y + spawnInfo[0].height / 2,
+        };
+        // if (spawnLocations > 1) {
+        //     // todo
+        // }
+
+        socket.emit("Shapes.Location.Move", {
+            shapes: selection.map(s => s.uuid),
+            target: { location: newLocation, ...targetLocation },
         });
+
         this.close();
     }
     moveToBack(): void {
@@ -139,6 +173,7 @@ export default class ShapeContext extends Vue {
         :top="y + 'px'"
         @close="close"
     >
+        <Prompt ref="prompt"></Prompt>
         <li v-if="getFloors().length > 1">
             Floor
             <ul>

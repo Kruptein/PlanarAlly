@@ -18,8 +18,9 @@ export default class ConfirmDialog extends Vue {
     visible = false;
     yes = "Yes";
     no = "No";
+    showNo = true;
     title = "";
-    body = "";
+    text = "";
     focus: "confirm" | "deny" = "deny";
 
     resolve: (ok: boolean) => void = (_ok: boolean) => {};
@@ -37,15 +38,21 @@ export default class ConfirmDialog extends Vue {
         this.reject();
         this.visible = false;
     }
-    open(title: string, yes = "yes", no = "no", focus: "confirm" | "deny" = "deny"): Promise<boolean> {
-        this.focus = focus;
-        this.yes = yes;
-        this.no = no;
+    open(
+        title: string,
+        text = "",
+        buttons?: { yes?: string; no?: string; focus?: "confirm" | "deny"; showNo?: boolean },
+    ): Promise<boolean> {
+        this.yes = buttons?.yes ?? "yes";
+        this.no = buttons?.no ?? "no";
+        this.showNo = buttons?.showNo ?? true;
+        this.focus = buttons?.focus ?? (this.showNo ? "deny" : "confirm");
         this.title = title;
+        this.text = text;
 
         this.visible = true;
         this.$nextTick(() => {
-            if (focus === "confirm") this.$refs.confirm.focus();
+            if (this.focus === "confirm") this.$refs.confirm.focus();
             else this.$refs.deny.focus();
         });
 
@@ -70,10 +77,10 @@ export default class ConfirmDialog extends Vue {
             {{ title }}
         </div>
         <div class="modal-body">
-            <slot></slot>
+            <slot>{{ text }}</slot>
             <div class="buttons">
                 <button @click="confirm" ref="confirm" :class="{ focus: focus === 'confirm' }">{{ yes }}</button>
-                <button @click="deny" v-if="!!no" ref="deny" :class="{ focus: focus === 'deny' }">{{ no }}</button>
+                <button @click="deny" v-if="showNo" ref="deny" :class="{ focus: focus === 'deny' }">{{ no }}</button>
             </div>
         </div>
     </modal>
@@ -89,6 +96,7 @@ export default class ConfirmDialog extends Vue {
 }
 
 .modal-body {
+    max-width: 30vw;
     padding: 10px;
     display: flex;
     flex-direction: column;

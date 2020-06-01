@@ -16,7 +16,7 @@ import { initiativeStore, inInitiative } from "../initiative/store";
 import { Layer } from "../../layers/layer";
 import { gameSettingsStore } from "../../settings";
 import Game from "@/game/game.vue";
-import { ServerShape, ServerAsset } from "../../comm/types/shapes";
+import { ServerAsset } from "../../comm/types/shapes";
 
 @Component({
     components: {

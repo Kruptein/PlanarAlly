@@ -16,6 +16,8 @@ All notable changes to this project will be documented in this file.
     -   Show different set of tools dependening on the active mode
 -   Movement access permission
 -   Changelog modal if a new version comes out
+-   Spawn locations
+    -   Define where shapes you move to other locations are spawned
 
 ### Changed
 

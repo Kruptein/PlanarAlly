@@ -41,6 +41,7 @@ All notable changes to this project will be documented in this file.
 -   Keyboard center throwing error when no tokens are defined
 -   Multiple bugs with initiative syncing
 -   Two bugs with location specific options not properly loading/saving
+-   Scrollbar on bottom of page in firefox when location bar does not fit the screen
 
 ## [0.20.1] - 2020-05-11
 

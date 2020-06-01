@@ -1,6 +1,7 @@
 import json
 from peewee import BooleanField, FloatField, ForeignKeyField, IntegerField, TextField
 from playhouse.shortcuts import model_to_dict, update_model_from_dict
+from typing import Tuple
 
 from ..base import BaseModel
 from ..campaign import Layer
@@ -58,6 +59,7 @@ class Shape(BaseModel):
         except:
             return self.name
 
+    # todo: Change this API to accept a PlayerRoom instead
     def as_dict(self, user: User, dm: bool):
         data = model_to_dict(self, recurse=False, exclude=[Shape.layer, Shape.index])
         # Owner query > list of usernames
@@ -88,6 +90,11 @@ class Shape(BaseModel):
         # Subtype
         data.update(**self.subtype.as_dict(exclude=[self.subtype.__class__.shape]))
         return data
+
+    def center_at(self, x: int, y: int) -> None:
+        x_off, y_off = self.subtype.get_center_offset(x, y)
+        self.x = x - x_off
+        self.y = y - y_off
 
     @property
     def subtype(self):
@@ -168,11 +175,17 @@ class ShapeType(BaseModel):
     def update_from_dict(self, data, *args, **kwargs):
         return update_model_from_dict(self, data, *args, **kwargs)
 
+    def get_center_offset(self, x: int, y: int) -> Tuple[int, int]:
+        return 0, 0
+
 
 class BaseRect(ShapeType):
     abstract = False
     width = FloatField()
     height = FloatField()
+
+    def get_center_offset(self, x: int, y: int) -> Tuple[int, int]:
+        return self.width / 2, self.height / 2
 
 
 class AssetRect(BaseRect):
@@ -196,6 +209,9 @@ class Line(ShapeType):
     x2 = FloatField()
     y2 = FloatField()
     line_width = IntegerField()
+
+    def get_center_offset(self, x: int, y: int) -> Tuple[int, int]:
+        return (self.x2 - self.x) / 2, (self.y2 - self.y) / 2
 
 
 class Polygon(ShapeType):

@@ -155,6 +155,7 @@ a {
 }
 
 #floor-detail {
+    pointer-events: auto;
     position: absolute;
     left: 25px;
     bottom: 80px;

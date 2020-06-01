@@ -65,12 +65,11 @@ export function setLocationOptions(id: number | null, options: Partial<ServerLoc
             visibilityStore.recalculateMovement(floor.name);
         }
     }
-    if (options.spawn_locations)
-        gameSettingsStore.setSpawnLocations({
-            spawnLocations: JSON.parse(options.spawn_locations),
-            location: id,
-            sync: false,
-        });
+    gameSettingsStore.setSpawnLocations({
+        spawnLocations: JSON.parse(options.spawn_locations ?? "[]"),
+        location: id,
+        sync: false,
+    });
 }
 
 export function renameLocation(id: number, name: string): void {

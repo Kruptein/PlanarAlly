@@ -18,7 +18,6 @@ function removeShape(shape: ServerShape): void {
     }
     const layer = layerManager.getLayer(shape.floor, shape.layer)!;
     layer.removeShape(layerManager.UUIDMap.get(shape.uuid)!, SyncMode.NO_SYNC);
-    layer.invalidate(false);
 }
 
 socket.on("Shape.Set", (data: ServerShape) => {

@@ -50,7 +50,6 @@ export class PingTool extends Tool {
         this.active = false;
         layer.removeShape(this.ping, SyncMode.TEMP_SYNC);
         layer.removeShape(this.border, SyncMode.TEMP_SYNC);
-        layer.invalidate(true);
         this.ping = null;
         this.startPoint = null;
     }

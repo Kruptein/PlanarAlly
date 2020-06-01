@@ -78,7 +78,6 @@ export class RulerTool extends Tool {
 
         layer.removeShape(this.ruler, SyncMode.TEMP_SYNC);
         layer.removeShape(this.text, SyncMode.TEMP_SYNC);
-        layer.invalidate(true);
         this.ruler = this.startPoint = this.text = null;
     }
 

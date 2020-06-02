@@ -79,11 +79,12 @@ export function onKeyDown(event: KeyboardEvent): void {
                         visibilityStore.addToTriag({ target: TriangulationTarget.VISION, shape: sel });
                     // todo: Fix again
                     // if (sel.refPoint.x % gridSize !== 0 || sel.refPoint.y % gridSize !== 0) sel.snapToGrid();
-                    socket.emit("Shape.Position.Update", {
-                        shape: sel.asDict(),
-                        redraw: true,
-                        temporary: false,
-                    });
+                    if (!sel.preventSync)
+                        socket.emit("Shape.Position.Update", {
+                            shape: sel.asDict(),
+                            redraw: true,
+                            temporary: false,
+                        });
                 }
                 const floorName = layerManager.floor!.name;
                 if (recalculateVision) visibilityStore.recalculateVision(floorName);

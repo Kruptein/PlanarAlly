@@ -25,6 +25,9 @@ export abstract class Shape {
     floor!: string;
     layer!: string;
 
+    // Explicitly prevent any sync to the server
+    preventSync = false;
+
     // A reference point regarding that specific shape's structure
     protected _refPoint: GlobalPoint;
 

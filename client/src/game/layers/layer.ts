@@ -10,6 +10,7 @@ import { visibilityStore } from "@/game/visibility/store";
 import { TriangulationTarget } from "@/game/visibility/te/pa";
 import { getBlockers, getVisionSources, sliceBlockers, sliceVisionSources } from "@/game/visibility/utils";
 import { drawAuras } from "../shapes/aura";
+import { gameSettingsStore } from "../settings";
 
 export class Layer {
     name: string;
@@ -82,7 +83,7 @@ export class Layer {
         }
         if (shape.ownedBy({ visionAccess: true }) && shape.isToken) gameStore.ownedtokens.push(shape.uuid);
         if (shape.annotation.length) gameStore.annotations.push(shape.uuid);
-        if (sync !== SyncMode.NO_SYNC)
+        if (sync !== SyncMode.NO_SYNC && !shape.preventSync)
             socket.emit("Shape.Add", { shape: shape.asDict(), temporary: sync === SyncMode.TEMP_SYNC });
         if (invalidate) this.invalidate(invalidate === InvalidationMode.WITH_LIGHT);
     }
@@ -99,11 +100,15 @@ export class Layer {
         this.clearSelection(); // TODO: Fix keeping selection on those items that are not moved.
     }
 
-    removeShape(shape: Shape, sync: SyncMode): void {
+    removeShape(shape: Shape, sync: SyncMode): boolean {
         const idx = this.shapes.indexOf(shape);
         if (idx < 0) {
             console.error("attempted to remove shape not in layer.");
-            return;
+            return false;
+        }
+        if (gameSettingsStore.currentLocationOptions.spawnLocations!.includes(shape.uuid)) {
+            console.error("attempted to remove spawn location");
+            return false;
         }
         this.shapes.splice(idx, 1);
 
@@ -113,18 +118,20 @@ export class Layer {
                 const groupLeader = groupMembers[1];
                 for (const member of groupMembers.slice(2)) {
                     member.options.set("groupId", groupLeader.uuid);
-                    socket.emit("Shape.Update", { shape: member.asDict(), redraw: false, temporary: false });
+                    if (!member.preventSync)
+                        socket.emit("Shape.Update", { shape: member.asDict(), redraw: false, temporary: false });
                 }
                 groupLeader.options.set(
                     "groupInfo",
                     groupMembers.slice(2).map(s => s.uuid),
                 );
                 groupLeader.options.delete("groupId");
-                socket.emit("Shape.Update", { shape: groupLeader.asDict(), redraw: false, temporary: false });
+                if (!groupLeader.preventSync)
+                    socket.emit("Shape.Update", { shape: groupLeader.asDict(), redraw: false, temporary: false });
             }
         }
 
-        if (sync !== SyncMode.NO_SYNC)
+        if (sync !== SyncMode.NO_SYNC && !shape.preventSync)
             socket.emit("Shape.Remove", { shape: shape.asDict(), temporary: sync === SyncMode.TEMP_SYNC });
 
         const visionSources = getVisionSources(this.floor);
@@ -174,7 +181,9 @@ export class Layer {
             visibilityStore.recalculateMovement(this.floor);
         }
 
+        EventBus.$emit("Initiative.Remove", shape.uuid);
         this.invalidate(!sync);
+        return true;
     }
 
     clear(): void {
@@ -270,7 +279,8 @@ export class Layer {
         if (oldIdx === destinationIndex) return;
         this.shapes.splice(oldIdx, 1);
         this.shapes.splice(destinationIndex, 0, shape);
-        if (sync) socket.emit("Shape.Order.Set", { shape: shape.asDict(), index: destinationIndex });
+        if (sync && !shape.preventSync)
+            socket.emit("Shape.Order.Set", { shape: shape.asDict(), index: destinationIndex });
         this.invalidate(true);
     }
 

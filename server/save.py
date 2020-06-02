@@ -20,7 +20,7 @@ from models import ALL_MODELS, Constants
 from models.db import db
 from utils import OldVersionException, UnknownVersionException
 
-SAVE_VERSION = 30
+SAVE_VERSION = 31
 
 logger: logging.Logger = logging.getLogger("PlanarAllyServer")
 logger.setLevel(logging.INFO)
@@ -578,6 +578,16 @@ def upgrade(version):
             )
 
             migrate(migrator.add_not_null("shape_owner", "movement_access"),)
+
+        db.foreign_keys = True
+        Constants.get().update(save_version=Constants.save_version + 1).execute()
+    elif version == 30:
+        # Add spawn locations
+        db.foreign_keys = False
+        with db.atomic():
+            db.execute_sql(
+                'ALTER TABLE location_options ADD COLUMN spawn_locations TEXT NOT NULL DEFAULT "[]"'
+            )
 
         db.foreign_keys = True
         Constants.get().update(save_version=Constants.save_version + 1).execute()

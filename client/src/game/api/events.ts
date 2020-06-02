@@ -5,7 +5,6 @@ import { setLocationOptions } from "@/game/api/events/location";
 import "@/game/api/events/shape";
 import { socket } from "@/game/api/socket";
 import { BoardInfo, Note, ServerFloor } from "@/game/comm/types/general";
-import { ServerShape } from "@/game/comm/types/shapes";
 import { EventBus } from "@/game/event-bus";
 import { GlobalPoint } from "@/game/geom";
 import { layerManager } from "@/game/layers/manager";
@@ -119,49 +118,6 @@ socket.on("Floor.Create", (data: { floor: ServerFloor; creator: string }) => {
     if (data.creator === coreStore.username) gameStore.selectFloor({ targetFloor: data.floor.name, sync: true });
 });
 socket.on("Floor.Remove", removeFloor);
-socket.on("Shape.Add", (shape: ServerShape) => {
-    gameManager.addShape(shape);
-});
-socket.on("Shape.Remove", (shape: ServerShape) => {
-    if (!layerManager.UUIDMap.has(shape.uuid)) {
-        console.log(`Attempted to remove an unknown shape`);
-        return;
-    }
-    if (!layerManager.hasLayer(shape.floor, shape.layer)) {
-        console.log(`Attempted to remove shape from an unknown layer ${shape.layer}`);
-        return;
-    }
-    const layer = layerManager.getLayer(shape.floor, shape.layer)!;
-    layer.removeShape(layerManager.UUIDMap.get(shape.uuid)!, SyncMode.NO_SYNC);
-    layer.invalidate(false);
-});
-socket.on("Shape.Order.Set", (data: { shape: ServerShape; index: number }) => {
-    if (!layerManager.UUIDMap.has(data.shape.uuid)) {
-        console.log(`Attempted to move the shape order of an unknown shape`);
-        return;
-    }
-    if (!layerManager.hasLayer(data.shape.floor, data.shape.layer)) {
-        console.log(`Attempted to remove shape from an unknown layer ${data.shape.layer}`);
-        return;
-    }
-    const shape = layerManager.UUIDMap.get(data.shape.uuid)!;
-    const layer = layerManager.getLayer(shape.floor, shape.layer)!;
-    layer.moveShapeOrder(shape, data.index, false);
-});
-socket.on("Shape.Floor.Change", (data: { uuid: string; floor: string }) => {
-    const shape = layerManager.UUIDMap.get(data.uuid);
-    if (shape === undefined) return;
-    shape.moveFloor(data.floor, false);
-    if (shape.ownedBy({ editAccess: true })) gameStore.selectFloor({ targetFloor: data.floor, sync: false });
-});
-socket.on("Shape.Layer.Change", (data: { uuid: string; layer: string }) => {
-    const shape = layerManager.UUIDMap.get(data.uuid);
-    if (shape === undefined) return;
-    shape.moveLayer(data.layer, false);
-});
-socket.on("Shape.Update", (data: { shape: ServerShape; redraw: boolean }) => {
-    gameManager.updateShape(data);
-});
 socket.on("Temp.Clear", (shapeIds: string[]) => {
     for (const shapeId of shapeIds) {
         if (!layerManager.UUIDMap.has(shapeId)) {

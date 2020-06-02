@@ -1,11 +1,13 @@
-import { Module, Mutation, VuexModule, getModule } from "vuex-module-decorators";
-
+import Vue from "vue";
+import { getModule, Module, Mutation, VuexModule } from "vuex-module-decorators";
+import { InvalidationMode, SyncMode } from "../core/comm/types";
+import { toSnakeCase, uuidv4 } from "../core/utils";
 import { rootStore } from "../store";
 import { socket } from "./api/socket";
 import { LocationOptions } from "./comm/types/settings";
 import { layerManager } from "./layers/manager";
-import Vue from "vue";
-import { toSnakeCase } from "../core/utils";
+import { Asset } from "./shapes/asset";
+import { gameStore } from "./store";
 
 export interface GameSettingsState {
     activeLocation: number;
@@ -229,6 +231,58 @@ class GameSettingsStore extends VuexModule implements GameSettingsState {
             if (data.sync)
                 // eslint-disable-next-line @typescript-eslint/camelcase
                 socket.emit("Location.Options.Set", { options: { fow_los: data.fowLos }, location: data.location });
+        }
+    }
+
+    @Mutation
+    async setSpawnLocations(data: { spawnLocations: string[]; location: number | null; sync: boolean }): Promise<void> {
+        if (
+            data.location === null ||
+            (data.spawnLocations.length === 0 && (this.locationOptions[data.location]?.spawnLocations?.length ?? 0) > 1)
+        )
+            return;
+        if (mutateLocationOption("spawnLocations", data.spawnLocations, data.location)) {
+            layerManager.invalidateAllFloors();
+            if (data.sync)
+                socket.emit("Location.Options.Set", {
+                    // eslint-disable-next-line @typescript-eslint/camelcase
+                    options: { spawn_locations: JSON.stringify(data.spawnLocations) },
+                    location: data.location,
+                });
+        }
+
+        if ((this.locationOptions[data.location].spawnLocations?.length ?? 0) === 0) {
+            if (gameSettingsStore.activeLocation === 0) {
+                await new Promise(resolve => socket.once("Client.Options.Set", resolve));
+            }
+            if (gameSettingsStore.activeLocation !== data.location) return;
+
+            console.log(data);
+            console.log(gameSettingsStore.currentLocationOptions);
+            console.trace();
+
+            const uuid = uuidv4();
+            console.log(uuid);
+
+            const img = new Image(64, 64);
+            img.src = "/static/img/spawn.png";
+
+            const shape = new Asset(img, gameStore.screenCenter, 50, 50, uuid);
+            shape.name = "Default";
+            shape.src = img.src;
+
+            layerManager
+                .getLayer(layerManager.getFloor()!.name, "dm")!
+                .addShape(shape, SyncMode.FULL_SYNC, InvalidationMode.NO, false);
+            img.onload = () => {
+                layerManager.getLayer(shape.floor, shape.layer)!.invalidate(true);
+            };
+
+            gameSettingsStore.setSpawnLocations({
+                spawnLocations: [uuid],
+                location: data.location,
+                sync: true,
+            });
         }
     }
 }

@@ -1,3 +1,4 @@
+import json
 from typing import Any, Dict, List
 
 from peewee import JOIN
@@ -223,14 +224,14 @@ async def rename_location(sid: int, data: Dict[str, str]):
 
 @sio.on("Location.Delete", namespace=GAME_NS)
 @auth.login_required(app, sio)
-async def delete_location(sid: int, data: int):
+async def delete_location(sid: int, location_id: int):
     pr: PlayerRoom = game_state.get(sid)
 
     if pr.role != Role.DM:
         logger.warning(f"{pr.player.name} attempted to rename a location.")
         return
 
-    location = Location[data]
+    location = Location[location_id]
 
     if location.players.count() > 0:
         logger.error(
@@ -239,3 +240,23 @@ async def delete_location(sid: int, data: int):
         return
 
     location.delete_instance(recursive=True)
+
+
+@sio.on("Location.Spawn.Info.Get", namespace=GAME_NS)
+@auth.login_required(app, sio)
+async def get_location_spawn_info(sid: int, location_id: int):
+    pr: PlayerRoom = game_state.get(sid)
+
+    if pr.role != Role.DM:
+        logger.warning(f"{pr.player.name} attempted to retrieve spawn locations.")
+        return
+
+    location = Location[location_id]
+
+    data = []
+
+    for spawn in json.loads(location.options.spawn_locations):
+        shape = Shape[spawn]
+        data.append(shape.as_dict(pr.player, True))
+
+    await sio.emit("Location.Spawn.Info", data=data, room=sid, namespace=GAME_NS)

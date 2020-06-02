@@ -6,7 +6,6 @@ from peewee import Case
 from playhouse.shortcuts import update_model_from_dict
 
 import auth
-from . import access, options
 from api.socket.constants import GAME_NS
 from app import app, logger, sio
 from models import (
@@ -22,11 +21,14 @@ from models import (
     Tracker,
     User,
 )
+from models.campaign import Location
 from models.db import db
 from models.role import Role
-from models.utils import get_table, reduce_data_to_model
 from models.shape.access import has_ownership, has_ownership_temp
+from models.utils import get_table, reduce_data_to_model
 from state.game import game_state
+
+from . import access, options
 
 
 @sio.on("Shape.Add", namespace=GAME_NS)
@@ -481,3 +483,41 @@ async def _get_shape(data: Dict[str, Any], pr: PlayerRoom):
     data["shape"]["layer"] = layer
 
     return shape, layer
+
+
+@sio.on("Shapes.Location.Move", namespace=GAME_NS)
+@auth.login_required(app, sio)
+async def move_shapes(sid: int, data: Dict[str, Any]):
+    pr: PlayerRoom = game_state.get(sid)
+
+    if pr.role != Role.DM:
+        logger.warning(f"{pr.player.name} attempted to move shape locations")
+        return
+
+    location = Location[data["target"]["location"]]
+    floor = location.floors.select().where(Floor.name == data["target"]["floor"])[0]
+    x = data["target"]["x"]
+    y = data["target"]["y"]
+
+    shapes = [Shape[sh] for sh in data["shapes"]]
+
+    for psid, player in game_state.get_users(active_location=pr.active_location):
+        await sio.emit(
+            "Shapes.Remove",
+            [sh.as_dict(player, player == pr.room.creator) for sh in shapes],
+            room=psid,
+            namespace=GAME_NS,
+        )
+
+    for shape in shapes:
+        shape.layer = floor.layers.where(Layer.name == shape.layer.name)[0]
+        shape.center_at(x, y)
+        shape.save()
+
+    for psid, player in game_state.get_users(active_location=location):
+        await sio.emit(
+            "Shapes.Add",
+            [sh.as_dict(player, player == pr.room.creator) for sh in shapes],
+            room=psid,
+            namespace=GAME_NS,
+        )

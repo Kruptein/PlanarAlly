@@ -62,7 +62,8 @@ export default class SelectionInfo extends Vue {
         if (value[0] === "+" || value[0] === "-") object.value += parseInt(value, 10);
         else object.value = parseInt(value, 10);
         if (isNaN(object.value)) object.value = ogValue;
-        socket.emit("Shape.Update", { shape: this.shape.asDict(), redraw, temporary: false });
+        if (!this.shape.preventSync)
+            socket.emit("Shape.Update", { shape: this.shape.asDict(), redraw, temporary: false });
         if (redraw) layerManager.invalidate(this.shape.floor);
     }
 }

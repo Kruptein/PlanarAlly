@@ -3,21 +3,21 @@ import Component from "vue-class-component";
 
 import Tool from "@/game/ui/tools/tool.vue";
 
-import { GlobalPoint, Vector } from "@/game/geom";
+import { GlobalPoint, Vector, LocalPoint } from "@/game/geom";
 import { layerManager } from "@/game/layers/manager";
 import { BaseRect } from "@/game/shapes/baserect";
 import { Rect } from "@/game/shapes/rect";
 import { l2g } from "@/game/units";
-import { getLocalPointFromEvent } from "@/game/utils";
 import { SyncMode, InvalidationMode } from "../../../core/comm/types";
 import { SelectFeatures } from "./select.vue";
 import { ToolName, ToolPermission } from "./utils";
 import { EventBus } from "@/game/event-bus";
 import { Shape } from "@/game/shapes/shape";
 import { gameSettingsStore } from "../../settings";
+import { ITool } from "./ITool";
 
 @Component
-export default class MapTool extends Tool {
+export default class MapTool extends Tool implements ITool {
     name = ToolName.Map;
     active = false;
     xCount = 3;
@@ -88,8 +88,10 @@ export default class MapTool extends Tool {
         this.removeRect();
     }
 
-    onDown(startPoint: GlobalPoint): void {
+    onDown(lp: LocalPoint): void {
         if (this.rect !== null || !layerManager.hasSelection()) return;
+
+        const startPoint = l2g(lp);
 
         this.startPoint = startPoint;
         const layer = layerManager.getLayer(layerManager.floor!.name);
@@ -106,8 +108,11 @@ export default class MapTool extends Tool {
         layer.selection = [this.rect];
     }
 
-    onMove(endPoint: GlobalPoint): void {
+    onMove(lp: LocalPoint): void {
         if (!this.active || this.rect === null || this.startPoint === null) return;
+
+        const endPoint = l2g(lp);
+
         const layer = layerManager.getLayer(layerManager.floor!.name);
         if (layer === undefined) {
             console.log("No active layer!");
@@ -140,34 +145,6 @@ export default class MapTool extends Tool {
         this.permittedTools_ = [
             { name: ToolName.Select, features: { enabled: [SelectFeatures.Drag, SelectFeatures.Resize] } },
         ];
-    }
-
-    onMouseDown(event: MouseEvent): void {
-        const startPoint = l2g(getLocalPointFromEvent(event));
-        this.onDown(startPoint);
-    }
-
-    onMouseMove(event: MouseEvent): void {
-        const endPoint = l2g(getLocalPointFromEvent(event));
-        this.onMove(endPoint);
-    }
-
-    onMouseUp(_event: MouseEvent): void {
-        this.onUp();
-    }
-
-    onTouchStart(event: TouchEvent): void {
-        const startPoint = l2g(getLocalPointFromEvent(event));
-        this.onDown(startPoint);
-    }
-
-    onTouchMove(event: TouchEvent): void {
-        const endPoint = l2g(getLocalPointFromEvent(event));
-        this.onMove(endPoint);
-    }
-
-    onTouchEnd(_event: TouchEvent): void {
-        this.onUp();
     }
 }
 </script>

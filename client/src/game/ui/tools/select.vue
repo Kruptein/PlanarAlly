@@ -2,7 +2,6 @@
 import Component from "vue-class-component";
 
 import ShapeContext from "@/game/ui/selection/shapecontext.vue";
-import DefaultContext from "@/game/ui/tools/defaultcontext.vue";
 import Tool from "@/game/ui/tools/tool.vue";
 
 import { socket } from "@/game/api/socket";
@@ -19,6 +18,7 @@ import { getLocalPointFromEvent, useSnapping } from "@/game/utils";
 import { visibilityStore } from "@/game/visibility/store";
 import { TriangulationTarget } from "@/game/visibility/te/pa";
 import { gameSettingsStore } from "../../settings";
+import { ITool } from "./ITool";
 
 enum SelectOperations {
     Noop,
@@ -39,7 +39,7 @@ export enum SelectFeatures {
 const start = new GlobalPoint(-1000, -1000);
 
 @Component
-export default class SelectTool extends Tool {
+export default class SelectTool extends Tool implements ITool {
     name = ToolName.Select;
     showContextMenu = false;
     active = false;
@@ -139,12 +139,8 @@ export default class SelectTool extends Tool {
         if (this.mode !== SelectOperations.Noop) this.active = true;
     }
 
-    onMove(
-        lp: LocalPoint,
-        gp: GlobalPoint,
-        event: MouseEvent | TouchEvent,
-        features: ToolFeatures<SelectFeatures>,
-    ): void {
+    onMove(lp: LocalPoint, event: MouseEvent | TouchEvent, features: ToolFeatures<SelectFeatures>): void {
+        const gp = l2g(lp);
         // We require move for the resize cursor
         if (!this.active && !this.hasFeature(SelectFeatures.Resize, features)) return;
 
@@ -238,7 +234,7 @@ export default class SelectTool extends Tool {
         }
     }
 
-    onUp(event: MouseEvent | TouchEvent, features: ToolFeatures<SelectFeatures>): void {
+    onUp(_lp: LocalPoint, event: MouseEvent | TouchEvent, features: ToolFeatures<SelectFeatures>): void {
         if (!this.active) return;
         if (layerManager.getLayer(layerManager.floor!.name) === undefined) {
             console.log("No active layer!");
@@ -353,36 +349,6 @@ export default class SelectTool extends Tool {
         this.active = false;
     }
 
-    onMouseDown(event: MouseEvent, features: ToolFeatures<SelectFeatures>): void {
-        const localPoint = getLocalPointFromEvent(event);
-        this.onDown(localPoint, event, features);
-    }
-
-    onMouseMove(event: MouseEvent, features: ToolFeatures<SelectFeatures>): void {
-        const localPoint = getLocalPointFromEvent(event);
-        const globalPoint = l2g(localPoint);
-        this.onMove(localPoint, globalPoint, event, features);
-    }
-
-    onMouseUp(event: MouseEvent, features: ToolFeatures<SelectFeatures>): void {
-        this.onUp(event, features);
-    }
-
-    onTouchStart(event: TouchEvent, features: ToolFeatures<SelectFeatures>): void {
-        const localPoint = getLocalPointFromEvent(event);
-        this.onDown(localPoint, event, features);
-    }
-
-    onTouchMove(event: TouchEvent, features: ToolFeatures<SelectFeatures>): void {
-        const localPoint = getLocalPointFromEvent(event);
-        const globalPoint = l2g(localPoint);
-        this.onMove(localPoint, globalPoint, event, features);
-    }
-
-    onTouchEnd(event: TouchEvent, features: ToolFeatures<SelectFeatures>): void {
-        this.onUp(event, features);
-    }
-
     onContextMenu(event: MouseEvent, features: ToolFeatures<SelectFeatures>): void {
         if (!this.hasFeature(SelectFeatures.Context, features)) return;
         if (layerManager.getLayer(layerManager.floor!.name) === undefined) {
@@ -412,7 +378,8 @@ export default class SelectTool extends Tool {
                 return;
             }
         }
-        (<DefaultContext>this.$parent.$refs.defaultcontext).open(event);
+        // super call
+        (<any>Tool).options.methods.onContextMenu.call(this, event, features);
     }
     updateCursor(layer: Layer, globalMouse: GlobalPoint): void {
         let cursorStyle = "default";

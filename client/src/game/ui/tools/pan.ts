@@ -1,16 +1,14 @@
-import Component from "vue-class-component";
-
-import Tool from "@/game/ui/tools/tool.vue";
-
 import { sendClientOptions } from "@/game/api/utils";
 import { LocalPoint } from "@/game/geom";
 import { layerManager } from "@/game/layers/manager";
 import { gameStore } from "@/game/store";
-import { getLocalPointFromEvent } from "@/game/utils";
+import Tool from "@/game/ui/tools/tool.vue";
+import Component from "vue-class-component";
+import { ITool } from "./ITool";
 import { ToolName } from "./utils";
 
 @Component
-export default class PanTool extends Tool {
+export default class PanTool extends Tool implements ITool {
     name = ToolName.Pan;
     panStart = new LocalPoint(0, 0);
     active = false;
@@ -23,35 +21,18 @@ export default class PanTool extends Tool {
         layerManager.invalidateAllFloors();
     }
 
-    onMouseDown(event: MouseEvent): void {
-        this.panStart = getLocalPointFromEvent(event);
+    onMove(lp: LocalPoint): void {
+        if (!this.active) return;
+        this.panScreen(lp);
+    }
+
+    onDown(lp: LocalPoint): void {
+        this.panStart = lp;
         this.active = true;
     }
 
-    onMouseMove(event: MouseEvent): void {
-        if (!this.active) return;
-        const mouse = getLocalPointFromEvent(event);
-        this.panScreen(mouse);
-    }
-
-    onMouseUp(_event: MouseEvent): void {
+    onUp(): void {
         this.active = false;
         sendClientOptions(gameStore.locationUserOptions);
-    }
-
-    onTouchStart(event: TouchEvent): void {
-        this.panStart = getLocalPointFromEvent(event);
-        this.active = true;
-    }
-
-    onTouchEnd(_event: TouchEvent): void {
-        this.active = false;
-        sendClientOptions(gameStore.locationUserOptions);
-    }
-
-    onTouchMove(event: TouchEvent): void {
-        if (!this.active) return;
-        const point = getLocalPointFromEvent(event);
-        this.panScreen(point);
     }
 }

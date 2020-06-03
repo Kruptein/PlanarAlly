@@ -28,6 +28,7 @@ All notable changes to this project will be documented in this file.
 -   In Play mode (see #added) the select tool will no longer allow resizing
 -   Creating a new floor will no longer automatically move everyone to that floor
 -   The version shown in the topleft area in-game will now be limited to the latest release version
+-   Basic tokens will now have their default name set to their label instead of 'Unknown shape'
 
 ### Fixed
 

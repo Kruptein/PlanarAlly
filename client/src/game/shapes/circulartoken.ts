@@ -24,6 +24,7 @@ export class CircularToken extends Circle {
         super(center, r, fillColour, strokeColour, uuid);
         this.text = text;
         this.font = font;
+        this.name = this.text;
     }
     asDict(): ServerCircularToken {
         return Object.assign(this.getBaseDict(), {

@@ -28,7 +28,7 @@ import { TriangulationTarget, insertConstraint, getCDT } from "@/game/visibility
 import { ToolName } from "./utils";
 import { gameSettingsStore } from "../../settings";
 import { EventBus } from "../../event-bus";
-import { ITool } from "./ITool";
+import { ToolBasics } from "./ToolBasics";
 
 @Component({
     components: {
@@ -38,7 +38,7 @@ import { ITool } from "./ITool";
         ...mapGetters("game", ["selectedFloor", "selectedLayer"]),
     },
 })
-export default class DrawTool extends Tool implements ITool {
+export default class DrawTool extends Tool implements ToolBasics {
     selectedFloor!: number;
     selectedLayer!: string;
 

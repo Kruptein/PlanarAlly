@@ -247,7 +247,7 @@ export default class LocationBar extends Vue {
     grid-auto-flow: column;
     grid-gap: 10px;
     overflow-y: hidden;
-    width: calc(100vw - 105px); /* 105 = width of the #create-location div */
+    max-width: calc(100vw - 105px); /* 105 = width of the #create-location div */
 
     scrollbar-width: thin;
     scrollbar-color: var(--secondary) var(--primary);

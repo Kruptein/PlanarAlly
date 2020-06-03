@@ -1,7 +1,7 @@
 import { LocalPoint } from "../../geom";
 import { ToolFeatures, ToolName } from "./utils";
 
-export interface ITool {
+export interface ToolBasics {
     name: ToolName | null;
     active: boolean;
 

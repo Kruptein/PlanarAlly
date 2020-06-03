@@ -18,7 +18,7 @@ import { getLocalPointFromEvent, useSnapping } from "@/game/utils";
 import { visibilityStore } from "@/game/visibility/store";
 import { TriangulationTarget } from "@/game/visibility/te/pa";
 import { gameSettingsStore } from "../../settings";
-import { ITool } from "./ITool";
+import { ToolBasics } from "./ToolBasics";
 
 enum SelectOperations {
     Noop,
@@ -39,7 +39,7 @@ export enum SelectFeatures {
 const start = new GlobalPoint(-1000, -1000);
 
 @Component
-export default class SelectTool extends Tool implements ITool {
+export default class SelectTool extends Tool implements ToolBasics {
     name = ToolName.Select;
     showContextMenu = false;
     active = false;

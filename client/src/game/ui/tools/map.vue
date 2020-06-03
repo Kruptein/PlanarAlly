@@ -14,10 +14,10 @@ import { ToolName, ToolPermission } from "./utils";
 import { EventBus } from "@/game/event-bus";
 import { Shape } from "@/game/shapes/shape";
 import { gameSettingsStore } from "../../settings";
-import { ITool } from "./ITool";
+import { ToolBasics } from "./ToolBasics";
 
 @Component
-export default class MapTool extends Tool implements ITool {
+export default class MapTool extends Tool implements ToolBasics {
     name = ToolName.Map;
     active = false;
     xCount = 3;

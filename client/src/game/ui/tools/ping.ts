@@ -7,11 +7,11 @@ import { gameStore } from "@/game/store";
 import Tool from "@/game/ui/tools/tool.vue";
 import { l2g } from "@/game/units";
 import Component from "vue-class-component";
-import { ITool } from "./ITool";
+import { ToolBasics } from "./ToolBasics";
 import { ToolName } from "./utils";
 
 @Component
-export class PingTool extends Tool implements ITool {
+export class PingTool extends Tool implements ToolBasics {
     name = ToolName.Ping;
     active = false;
     startPoint: GlobalPoint | null = null;

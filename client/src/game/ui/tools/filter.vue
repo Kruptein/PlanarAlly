@@ -8,14 +8,14 @@ import { socket } from "@/game/api/socket";
 import { layerManager } from "@/game/layers/manager";
 import { gameStore } from "@/game/store";
 import { ToolName } from "./utils";
-import { ITool } from "./ITool";
+import { ToolBasics } from "./ToolBasics";
 
 @Component({
     components: {
         accordion: Accordion,
     },
 })
-export default class FilterTool extends Tool implements ITool {
+export default class FilterTool extends Tool implements ToolBasics {
     name = ToolName.Filter;
     active = false;
 

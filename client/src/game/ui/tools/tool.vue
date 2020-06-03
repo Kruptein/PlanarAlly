@@ -3,13 +3,13 @@ import Vue from "vue";
 import Component from "vue-class-component";
 
 import DefaultContext from "@/game/ui/tools/defaultcontext.vue";
-import { ITool } from "./ITool";
 import { ToolName, ToolPermission, ToolFeatures } from "./utils";
 import { LocalPoint } from "../../geom";
 import { getLocalPointFromEvent } from "@/game/utils";
+import { ToolBasics } from "./ToolBasics";
 
 @Component
-export default class Tool extends Vue implements ITool {
+export default class Tool extends Vue implements ToolBasics {
     name: ToolName | null = null;
     selected = false;
     active = false;

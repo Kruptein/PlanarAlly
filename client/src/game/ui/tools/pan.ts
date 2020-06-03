@@ -4,11 +4,11 @@ import { layerManager } from "@/game/layers/manager";
 import { gameStore } from "@/game/store";
 import Tool from "@/game/ui/tools/tool.vue";
 import Component from "vue-class-component";
-import { ITool } from "./ITool";
+import { ToolBasics } from "./ToolBasics";
 import { ToolName } from "./utils";
 
 @Component
-export default class PanTool extends Tool implements ITool {
+export default class PanTool extends Tool implements ToolBasics {
     name = ToolName.Pan;
     panStart = new LocalPoint(0, 0);
     active = false;

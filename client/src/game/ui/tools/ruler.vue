@@ -9,14 +9,14 @@ import { l2g, l2gz } from "@/game/units";
 import { SyncMode, InvalidationMode } from "../../../core/comm/types";
 import { ToolName } from "./utils";
 import { gameSettingsStore } from "../../settings";
-import { ITool } from "./ITool";
+import { ToolBasics } from "./ToolBasics";
 import { Line } from "@/game/shapes/line";
 import { gameStore } from "@/game/store";
 import { Text } from "../../shapes/text";
 import { socket } from "@/game/api/socket";
 
 @Component
-export default class RulerTool extends Tool implements ITool {
+export default class RulerTool extends Tool implements ToolBasics {
     name = ToolName.Ruler;
     active = false;
     startPoint: GlobalPoint | null = null;

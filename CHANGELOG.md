@@ -18,6 +18,7 @@ All notable changes to this project will be documented in this file.
 -   Changelog modal if a new version comes out
 -   Spawn locations
     -   Define where shapes you move to other locations are spawned
+-   Public toggle to ruler tool
 
 ### Changed
 

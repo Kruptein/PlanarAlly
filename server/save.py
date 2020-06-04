@@ -519,7 +519,7 @@ def upgrade(version):
         db.foreign_keys = False
         with db.atomic():
             db.execute_sql(
-                'ALTER TABLE location_options ADD COLUMN spawn_locations TEXT NOT NULL DEFAULT "[]"'
+                "ALTER TABLE shape ADD COLUMN is_locked INTEGER NOT NULL DEFAULT 0"
             )
 
         db.foreign_keys = True

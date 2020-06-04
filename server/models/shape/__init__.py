@@ -49,6 +49,7 @@ class Shape(BaseModel):
     default_vision_access = BooleanField(default=False)
     is_invisible = BooleanField(default=False)
     default_movement_access = BooleanField(default=False)
+    is_locked = BooleanField(default=False)
 
     def __repr__(self):
         return f"<Shape {self.get_path()}>"

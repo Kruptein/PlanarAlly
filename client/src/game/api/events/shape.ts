@@ -34,6 +34,12 @@ socket.on("Shape.Options.Invisible.Set", (data: { shape: string; is_invisible: b
     shape.setInvisible(data.is_invisible, false);
 });
 
+socket.on("Shape.Options.Locked.Set", (data: { shape: string; is_locked: boolean }) => {
+    const shape = layerManager.UUIDMap.get(data.shape);
+    if (shape === undefined) return;
+    shape.setLocked(data.is_locked, false);
+});
+
 socket.on("Shape.Add", (shape: ServerShape) => {
     gameManager.addShape(shape);
 });

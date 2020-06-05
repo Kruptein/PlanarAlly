@@ -66,7 +66,7 @@ export abstract class Shape {
     badge = 1;
     showBadge = false;
 
-    isLocked: boolean = false;
+    isLocked = false;
     defaultAccess: ShapeAccess = { vision: false, movement: false, edit: false };
 
     constructor(refPoint: GlobalPoint, fillColour?: string, strokeColour?: string, uuid?: string) {
@@ -200,6 +200,13 @@ export abstract class Shape {
         this.isInvisible = isInvisible;
         // eslint-disable-next-line @typescript-eslint/camelcase
         if (sync) socket.emit("Shape.Options.Invisible.Set", { shape: this.uuid, is_invisible: isInvisible });
+        this.invalidate(true);
+    }
+
+    setLocked(isLocked: boolean, sync: boolean): void {
+        this.isLocked = isLocked;
+        // eslint-disable-next-line @typescript-eslint/camelcase
+        if (sync) socket.emit("Shape.Options.Locked.Set", { shape: this.uuid, is_locked: isLocked });
         this.invalidate(true);
     }
 

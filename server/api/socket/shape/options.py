@@ -1,13 +1,14 @@
 from typing import Any, Dict
 
 import auth
+from api.socket.constants import GAME_NS
 from app import app, logger, sio
 from models import PlayerRoom, Shape
 from models.shape.access import has_ownership
 from state.game import game_state
 
 
-@sio.on("Shape.Options.Invisible.Set", namespace="/planarally")
+@sio.on("Shape.Options.Invisible.Set", namespace=GAME_NS)
 @auth.login_required(app, sio)
 async def add_shape(sid: int, data: Dict[str, Any]):
     pr: PlayerRoom = game_state.get(sid)
@@ -33,5 +34,5 @@ async def add_shape(sid: int, data: Dict[str, Any]):
         "Shape.Options.Invisible.Set",
         data,
         room=pr.active_location.get_path(),
-        namespace="/planarally",
+        namespace=GAME_NS,
     )

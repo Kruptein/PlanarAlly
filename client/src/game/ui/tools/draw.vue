@@ -11,7 +11,7 @@ import Tools from "./tools.vue";
 
 import { SyncMode, InvalidationMode } from "@/core/comm/types";
 import { socket } from "@/game/api/socket";
-import { GlobalPoint } from "@/game/geom";
+import { GlobalPoint, LocalPoint } from "@/game/geom";
 import { Layer } from "@/game/layers/layer";
 import { snapToPoint } from "@/game/layers/utils";
 import { layerManager } from "@/game/layers/manager";
@@ -22,12 +22,13 @@ import { Rect } from "@/game/shapes/rect";
 import { Shape } from "@/game/shapes/shape";
 import { gameStore } from "@/game/store";
 import { getUnitDistance, l2g, g2lx, g2ly, l2gz } from "@/game/units";
-import { equalPoints, getLocalPointFromEvent, useSnapping } from "@/game/utils";
+import { equalPoints, useSnapping } from "@/game/utils";
 import { visibilityStore } from "@/game/visibility/store";
 import { TriangulationTarget, insertConstraint, getCDT } from "@/game/visibility/te/pa";
 import { ToolName } from "./utils";
 import { gameSettingsStore } from "../../settings";
 import { EventBus } from "../../event-bus";
+import { ToolBasics } from "./ToolBasics";
 
 @Component({
     components: {
@@ -37,7 +38,7 @@ import { EventBus } from "../../event-bus";
         ...mapGetters("game", ["selectedFloor", "selectedLayer"]),
     },
 })
-export default class DrawTool extends Tool {
+export default class DrawTool extends Tool implements ToolBasics {
     selectedFloor!: number;
     selectedLayer!: string;
 
@@ -188,7 +189,8 @@ export default class DrawTool extends Tool {
         return layerManager.getLayer(layerManager.floor!.name, "fow");
     }
 
-    onDown(startPoint: GlobalPoint, _event: MouseEvent | TouchEvent): void {
+    onDown(lp: LocalPoint): void {
+        const startPoint = l2g(lp);
         const layer = this.getLayer();
         if (layer === undefined) {
             console.log("No active layer!");
@@ -288,16 +290,20 @@ export default class DrawTool extends Tool {
                     this.shape.points[this.shape.points.length - 1],
                 );
             layer.invalidate(false);
-            socket.emit("Shape.Update", { shape: this.shape!.asDict(), redraw: true, temporary: true });
+            if (!this.shape!.preventSync)
+                socket.emit("Shape.Update", { shape: this.shape!.asDict(), redraw: true, temporary: true });
         }
     }
 
-    onMove(endPoint: GlobalPoint): void {
+    onMove(lp: LocalPoint, event: MouseEvent | TouchEvent): void {
+        let endPoint = l2g(lp);
         const layer = this.getLayer();
         if (layer === undefined) {
             console.log("No active layer!");
             return;
         }
+
+        if (useSnapping(event)) endPoint = snapToPoint(this.getLayer()!, endPoint, this.ruler?.refPoint);
 
         if (this.brushHelper !== null) {
             this.brushHelper.r = this.helperSize;
@@ -343,7 +349,8 @@ export default class DrawTool extends Tool {
         }
 
         if (!(this.shapeSelect === "draw-polygon" && this.shape instanceof Polygon)) {
-            socket.emit("Shape.Update", { shape: this.shape!.asDict(), redraw: true, temporary: true });
+            if (!this.shape!.preventSync)
+                socket.emit("Shape.Update", { shape: this.shape!.asDict(), redraw: true, temporary: true });
             if (this.shape.visionObstruction) {
                 if (
                     getCDT(TriangulationTarget.VISION, this.shape.floor).tds.getTriagVertices(this.shape.uuid).length >
@@ -360,7 +367,7 @@ export default class DrawTool extends Tool {
         layer.invalidate(false);
     }
 
-    onUp(endPoint: GlobalPoint, event: MouseEvent | TouchEvent): void {
+    onUp(lp: LocalPoint, event: MouseEvent | TouchEvent): void {
         if (
             !this.active ||
             this.shape === null ||
@@ -368,6 +375,9 @@ export default class DrawTool extends Tool {
         ) {
             return;
         }
+        let endPoint = l2g(lp);
+        if (useSnapping(event)) endPoint = snapToPoint(this.getLayer()!, endPoint, this.ruler?.refPoint);
+
         // TODO: handle touch event different than altKey, long press
         if (useSnapping(event) && this.useGrid) {
             if (this.shape.visionObstruction)
@@ -386,42 +396,6 @@ export default class DrawTool extends Tool {
             }
         }
         this.finaliseShape();
-    }
-
-    onMouseDown(event: MouseEvent): void {
-        if (this.brushHelper === null) return;
-        const startPoint = this.brushHelper.refPoint;
-        this.onDown(startPoint, event);
-    }
-
-    onMouseMove(event: MouseEvent): void {
-        let endPoint = l2g(getLocalPointFromEvent(event));
-        if (useSnapping(event)) endPoint = snapToPoint(this.getLayer()!, endPoint, this.ruler?.refPoint);
-        this.onMove(endPoint);
-    }
-
-    onMouseUp(event: MouseEvent): void {
-        let endPoint = l2g(getLocalPointFromEvent(event));
-        if (useSnapping(event)) endPoint = snapToPoint(this.getLayer()!, endPoint, this.ruler?.refPoint);
-        this.onUp(endPoint, event);
-    }
-
-    onTouchStart(event: TouchEvent): void {
-        let startPoint = l2g(getLocalPointFromEvent(event));
-        if (useSnapping(event)) startPoint = snapToPoint(this.getLayer()!, startPoint, this.ruler?.refPoint);
-        this.onDown(startPoint, event);
-    }
-
-    onTouchMove(event: TouchEvent): void {
-        let endPoint = l2g(getLocalPointFromEvent(event));
-        if (useSnapping(event)) endPoint = snapToPoint(this.getLayer()!, endPoint, this.ruler?.refPoint);
-        this.onMove(endPoint);
-    }
-
-    onTouchEnd(event: TouchEvent): void {
-        let endPoint = l2g(getLocalPointFromEvent(event));
-        if (useSnapping(event)) endPoint = snapToPoint(this.getLayer()!, endPoint, this.ruler?.refPoint);
-        this.onUp(endPoint, event);
     }
 
     onContextMenu(event: MouseEvent): void {
@@ -473,7 +447,8 @@ export default class DrawTool extends Tool {
         } else {
             if (this.shape.visionObstruction) visibilityStore.recalculateVision(this.shape.floor);
             if (this.shape.movementObstruction) visibilityStore.recalculateMovement(this.shape.floor);
-            socket.emit("Shape.Update", { shape: this.shape!.asDict(), redraw: true, temporary: false });
+            if (!this.shape!.preventSync)
+                socket.emit("Shape.Update", { shape: this.shape!.asDict(), redraw: true, temporary: false });
         }
         this.active = false;
         const layer = this.getLayer();

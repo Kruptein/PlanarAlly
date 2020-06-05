@@ -5,6 +5,7 @@ from peewee import JOIN
 from playhouse.shortcuts import dict_to_model, update_model_from_dict
 
 import auth
+from api.socket.constants import GAME_NS
 from app import app, logger, sio
 from models import (
     Initiative,
@@ -25,7 +26,7 @@ from models.utils import reduce_data_to_model
 from state.game import game_state
 
 
-@sio.on("Initiative.Update", namespace="/planarally")
+@sio.on("Initiative.Update", namespace=GAME_NS)
 @auth.login_required(app, sio)
 async def update_initiative(sid: int, data: Dict[str, Any]):
     pr: PlayerRoom = game_state.get(sid)
@@ -37,8 +38,6 @@ async def update_initiative(sid: int, data: Dict[str, Any]):
             f"{pr.player.name} attempted to change initiative of an asset it does not own"
         )
         return
-
-    used_to_be_visible = False
 
     location_data = InitiativeLocationData.get_or_none(location=pr.active_location)
     if location_data is None:
@@ -76,8 +75,6 @@ async def update_initiative(sid: int, data: Dict[str, Any]):
             initiative.save(force_insert=True)
     # Update initiative
     else:
-        used_to_be_visible = initiative.visible
-
         with db.atomic():
             if data["initiative"] != initiative.initiative:
                 # Update indices
@@ -114,22 +111,20 @@ async def update_initiative(sid: int, data: Dict[str, Any]):
     await send_client_initiatives(pr)
 
 
-@sio.on("Initiative.Remove", namespace="/planarally")
+@sio.on("Initiative.Remove", namespace=GAME_NS)
 @auth.login_required(app, sio)
 async def remove_initiative(sid: int, data: Dict[str, Any]):
     pr: PlayerRoom = game_state.get(sid)
 
-    shape = Shape.get_or_none(uuid=data["uuid"])
+    shape = Shape.get_or_none(uuid=data)
 
-    if not has_ownership(shape, pr):
+    if shape is not None and not has_ownership(shape, pr):
         logger.warning(
             f"{pr.player.name} attempted to remove initiative of an asset it does not own"
         )
         return
 
-    used_to_be_visible = False
-
-    initiative = Initiative.get_or_none(uuid=data["uuid"])
+    initiative = Initiative.get_or_none(uuid=data)
     location_data = InitiativeLocationData.get_or_none(location=pr.active_location)
 
     if initiative:
@@ -140,10 +135,10 @@ async def remove_initiative(sid: int, data: Dict[str, Any]):
             )
             initiative.delete_instance(True)
 
-    await send_client_initiatives(pr)
+        await send_client_initiatives(pr)
 
 
-@sio.on("Initiative.Set", namespace="/planarally")
+@sio.on("Initiative.Set", namespace=GAME_NS)
 @auth.login_required(app, sio)
 async def update_initiative_order(sid: int, data: Dict[str, Any]):
     pr: PlayerRoom = game_state.get(sid)
@@ -151,8 +146,6 @@ async def update_initiative_order(sid: int, data: Dict[str, Any]):
     if pr.role != Role.DM:
         logger.warning(f"{pr.player.name} attempted to change the initiative order")
         return
-
-    location_data = InitiativeLocationData.get(location=pr.active_location)
 
     with db.atomic():
         for i, uuid in enumerate(data):
@@ -163,7 +156,7 @@ async def update_initiative_order(sid: int, data: Dict[str, Any]):
     await send_client_initiatives(pr)
 
 
-@sio.on("Initiative.Turn.Update", namespace="/planarally")
+@sio.on("Initiative.Turn.Update", namespace=GAME_NS)
 @auth.login_required(app, sio)
 async def update_initiative_turn(sid: int, data: Dict[str, Any]):
     pr: PlayerRoom = game_state.get(sid)
@@ -192,11 +185,11 @@ async def update_initiative_turn(sid: int, data: Dict[str, Any]):
         data,
         room=pr.active_location.get_path(),
         skip_sid=sid,
-        namespace="/planarally",
+        namespace=GAME_NS,
     )
 
 
-@sio.on("Initiative.Round.Update", namespace="/planarally")
+@sio.on("Initiative.Round.Update", namespace=GAME_NS)
 @auth.login_required(app, sio)
 async def update_initiative_round(sid: int, data: Dict[str, Any]):
     pr: PlayerRoom = game_state.get(sid)
@@ -215,11 +208,11 @@ async def update_initiative_round(sid: int, data: Dict[str, Any]):
         data,
         room=pr.active_location.get_path(),
         skip_sid=sid,
-        namespace="/planarally",
+        namespace=GAME_NS,
     )
 
 
-@sio.on("Initiative.Effect.New", namespace="/planarally")
+@sio.on("Initiative.Effect.New", namespace=GAME_NS)
 @auth.login_required(app, sio)
 async def new_initiative_effect(sid: int, data: Dict[str, Any]):
     pr: PlayerRoom = game_state.get(sid)
@@ -240,11 +233,11 @@ async def new_initiative_effect(sid: int, data: Dict[str, Any]):
         data,
         room=pr.active_location.get_path(),
         skip_sid=sid,
-        namespace="/planarally",
+        namespace=GAME_NS,
     )
 
 
-@sio.on("Initiative.Effect.Update", namespace="/planarally")
+@sio.on("Initiative.Effect.Update", namespace=GAME_NS)
 @auth.login_required(app, sio)
 async def update_initiative_effect(sid: int, data: Dict[str, Any]):
     pr: PlayerRoom = game_state.get(sid)
@@ -265,7 +258,7 @@ async def update_initiative_effect(sid: int, data: Dict[str, Any]):
         data,
         room=pr.active_location.get_path(),
         skip_sid=sid,
-        namespace="/planarally",
+        namespace=GAME_NS,
     )
 
 
@@ -304,5 +297,5 @@ async def send_client_initiatives(
                     "Initiative.Set",
                     get_client_initiatives(room_player.player, pr.active_location),
                     room=psid,
-                    namespace="/planarally",
+                    namespace=GAME_NS,
                 )

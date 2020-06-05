@@ -26,6 +26,7 @@ from state.game import game_state
 
 # Force loading of socketio routes
 from api.socket import *
+from api.socket.constants import GAME_NS
 from app import app, logger, sio
 from config import config
 
@@ -40,7 +41,7 @@ if sys.platform.startswith("win"):
 
 async def on_shutdown(_):
     for sid in [*game_state._sid_map.keys(), *asset_state._sid_map.keys()]:
-        await sio.disconnect(sid, namespace="/planarally")
+        await sio.disconnect(sid, namespace=GAME_NS)
 
 
 app.router.add_static("/static", "static")

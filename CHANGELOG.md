@@ -16,6 +16,9 @@ All notable changes to this project will be documented in this file.
     -   Show different set of tools dependening on the active mode
 -   Movement access permission
 -   Changelog modal if a new version comes out
+-   Spawn locations
+    -   Define where shapes you move to other locations are spawned
+-   Public toggle to ruler tool
 
 ### Changed
 
@@ -25,6 +28,7 @@ All notable changes to this project will be documented in this file.
 -   In Play mode (see #added) the select tool will no longer allow resizing
 -   Creating a new floor will no longer automatically move everyone to that floor
 -   The version shown in the topleft area in-game will now be limited to the latest release version
+-   Basic tokens will now have their default name set to their label instead of 'Unknown shape'
 
 ### Fixed
 
@@ -40,6 +44,8 @@ All notable changes to this project will be documented in this file.
 -   Area right of layer selector preventing draw/select
 -   Keyboard center throwing error when no tokens are defined
 -   Multiple bugs with initiative syncing
+-   Two bugs with location specific options not properly loading/saving
+-   Scrollbar on bottom of page in firefox when location bar does not fit the screen
 
 ## [0.20.1] - 2020-05-11
 

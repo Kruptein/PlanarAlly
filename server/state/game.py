@@ -1,6 +1,7 @@
 from typing import Any, Dict, Generator, Set, Tuple
 
 from . import State
+from api.socket.constants import GAME_NS
 from app import app, sio
 from models import PlayerRoom, User
 
@@ -20,9 +21,7 @@ class GameState(State[PlayerRoom]):
     async def clear_temporaries(self, sid: int) -> None:
         if sid in self.client_temporaries:
             await sio.emit(
-                "Temp.Clear",
-                list(self.client_temporaries[sid]),
-                namespace="/planarally",
+                "Temp.Clear", list(self.client_temporaries[sid]), namespace=GAME_NS,
             )
             del self.client_temporaries[sid]
 

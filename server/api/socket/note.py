@@ -1,13 +1,14 @@
 from typing import Any, Dict
 
 import auth
+from api.socket.constants import GAME_NS
 from app import app, logger, sio
 from models import Note, PlayerRoom
 from models.db import db
 from state.game import game_state
 
 
-@sio.on("Note.New", namespace="/planarally")
+@sio.on("Note.New", namespace=GAME_NS)
 @auth.login_required(app, sio)
 async def new_note(sid: int, data: Dict[str, Any]):
     pr: PlayerRoom = game_state.get(sid)
@@ -28,7 +29,7 @@ async def new_note(sid: int, data: Dict[str, Any]):
     )
 
 
-@sio.on("Note.Update", namespace="/planarally")
+@sio.on("Note.Update", namespace=GAME_NS)
 @auth.login_required(app, sio)
 async def update_note(sid: int, data: Dict[str, Any]):
     pr: PlayerRoom = game_state.get(sid)
@@ -50,7 +51,7 @@ async def update_note(sid: int, data: Dict[str, Any]):
             note.save()
 
 
-@sio.on("Note.Remove", namespace="/planarally")
+@sio.on("Note.Remove", namespace=GAME_NS)
 @auth.login_required(app, sio)
 async def delete_note(sid, uuid):
     pr: PlayerRoom = game_state.get(sid)

@@ -42,12 +42,14 @@ export class FOWLayer extends Layer {
         }
     }
 
-    removeShape(shape: Shape, sync: SyncMode): void {
+    removeShape(shape: Shape, sync: SyncMode): boolean {
+        let idx = -1;
         if (shape.options.has("preFogShape") && shape.options.get("preFogShape")) {
-            const idx = this.preFogShapes.findIndex(s => s.uuid === shape.uuid);
-            this.preFogShapes.splice(idx, 1);
+            idx = this.preFogShapes.findIndex(s => s.uuid === shape.uuid);
         }
-        super.removeShape(shape, sync);
+        const remove = super.removeShape(shape, sync);
+        if (remove && idx >= 0) this.preFogShapes.splice(idx, 1);
+        return remove;
     }
 
     draw(): void {

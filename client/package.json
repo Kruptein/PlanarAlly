@@ -52,7 +52,7 @@
         "prettier": "^1.19.1",
         "rimraf": "^3.0.0",
         "ts-jest": "^24.1.0",
-        "typescript": "~3.7.5",
+        "typescript": "~3.9.3",
         "vue-template-compiler": "^2.6.10"
     },
     "bugs": {

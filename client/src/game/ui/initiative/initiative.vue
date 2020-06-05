@@ -217,7 +217,7 @@ export default class Initiative extends Vue {
                             @mouseleave="toggleHighlight(actor, false)"
                         >
                             <template v-if="actor.has_img">
-                                <img :src="actor.source" width="30px" height="30px" />
+                                <img :src="actor.source" width="30px" height="30px" alt="" />
                             </template>
                             <template v-else>
                                 <span style="width: auto;">{{ actor.source }}</span>

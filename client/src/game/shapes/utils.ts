@@ -145,11 +145,12 @@ export function pasteShapes(targetLayer?: string): Shape[] {
         else {
             if (!groupLeader.options.has("groupInfo")) groupLeader.options.set("groupInfo", []);
             const groupMembers = groupLeader.getGroupMembers();
-            clip.badge = groupMembers.reduce((acc: number, shape: Shape) => Math.max(acc, shape.badge ?? 1), 0) + 1;
+            clip.badge = groupMembers.reduce((acc: number, sh: Shape) => Math.max(acc, sh.badge ?? 1), 0) + 1;
             groupLeader.options.set("groupInfo", [...groupLeader.options.get("groupInfo"), clip.uuid]);
             options.set("groupId", groupLeader.uuid);
             clip.options = JSON.stringify([...options]);
-            socket.emit("Shape.Update", { shape: groupLeader.asDict(), redraw: false, temporary: false });
+            if (!groupLeader.preventSync)
+                socket.emit("Shape.Update", { shape: groupLeader.asDict(), redraw: false, temporary: false });
         }
         // Finalize
         const shape = createShapeFromDict(clip);
@@ -163,6 +164,7 @@ export function pasteShapes(targetLayer?: string): Shape[] {
     return layer.selection;
 }
 
+// todo: refactor with removeShape in api/events/shape
 export function deleteShapes(): void {
     if (layerManager.getLayer(layerManager.floor!.name) === undefined) {
         console.log("No active layer selected for delete operation");
@@ -176,9 +178,7 @@ export function deleteShapes(): void {
             l.selection.splice(i, 1);
             continue;
         }
-        l.removeShape(sel, SyncMode.FULL_SYNC);
-        EventBus.$emit("SelectionInfo.Shape.Set", null);
-        EventBus.$emit("Initiative.Remove", sel.uuid);
+        if (l.removeShape(sel, SyncMode.FULL_SYNC)) EventBus.$emit("SelectionInfo.Shape.Set", null);
     }
 }
 

@@ -4,9 +4,12 @@ import Component from "vue-class-component";
 
 import DefaultContext from "@/game/ui/tools/defaultcontext.vue";
 import { ToolName, ToolPermission, ToolFeatures } from "./utils";
+import { LocalPoint } from "../../geom";
+import { getLocalPointFromEvent } from "@/game/utils";
+import { ToolBasics } from "./ToolBasics";
 
 @Component
-export default class Tool extends Vue {
+export default class Tool extends Vue implements ToolBasics {
     name: ToolName | null = null;
     selected = false;
     active = false;
@@ -36,14 +39,24 @@ export default class Tool extends Vue {
         return `${right - mid - 14}px`; // border width
     }
 
-    onSelect(): void {}
-    onDeselect(): void {}
-    onMouseDown(_event: MouseEvent, _features: ToolFeatures): void {}
-    onMouseUp(_event: MouseEvent, _features: ToolFeatures): void {}
-    onMouseMove(_event: MouseEvent, _features: ToolFeatures): void {}
-    onTouchStart(_event: TouchEvent, _features: ToolFeatures): void {}
-    onTouchEnd(_event: TouchEvent, _features: ToolFeatures): void {}
-    onTouchMove(_event: TouchEvent, _features: ToolFeatures): void {}
+    onMouseDown(event: MouseEvent | TouchEvent, features: ToolFeatures): void {
+        this.onDown(getLocalPointFromEvent(event), event, features);
+    }
+    onMouseUp(event: MouseEvent, features: ToolFeatures): void {
+        this.onUp(getLocalPointFromEvent(event), event, features);
+    }
+    onMouseMove(event: MouseEvent, features: ToolFeatures): void {
+        this.onMove(getLocalPointFromEvent(event), event, features);
+    }
+    onTouchStart(event: TouchEvent, features: ToolFeatures): void {
+        this.onDown(getLocalPointFromEvent(event), event, features);
+    }
+    onTouchEnd(event: TouchEvent, features: ToolFeatures): void {
+        this.onUp(getLocalPointFromEvent(event), event, features);
+    }
+    onTouchMove(event: TouchEvent, features: ToolFeatures): void {
+        this.onMove(getLocalPointFromEvent(event), event, features);
+    }
     onThreeTouchMove(_event: TouchEvent, _features: ToolFeatures): void {}
     onPinchStart(_event: TouchEvent, _features: ToolFeatures): void {}
     onPinchMove(_event: TouchEvent, _features: ToolFeatures): void {}
@@ -51,6 +64,12 @@ export default class Tool extends Vue {
     onContextMenu(event: MouseEvent, _features: ToolFeatures): void {
         (<DefaultContext>this.$parent.$refs.defaultcontext).open(event);
     }
+
+    onSelect(): void {}
+    onDeselect(): void {}
+    onDown(_lp: LocalPoint, _event: MouseEvent | TouchEvent, _features: ToolFeatures): void {}
+    onUp(_lp: LocalPoint, _event: MouseEvent | TouchEvent, _features: ToolFeatures): void {}
+    onMove(_lp: LocalPoint, _event: MouseEvent | TouchEvent, _features: ToolFeatures): void {}
 }
 </script>
 

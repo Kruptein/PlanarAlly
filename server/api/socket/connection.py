@@ -3,17 +3,18 @@ from urllib.parse import unquote
 from aiohttp_security import authorized_userid
 
 from .location import load_location
+from api.socket.constants import GAME_NS
 from app import logger, sio
 from models import Asset, Label, LabelSelection, Location, PlayerRoom, Room, User
 from models.role import Role
 from state.game import game_state
 
 
-@sio.on("connect", namespace="/planarally")
+@sio.on("connect", namespace=GAME_NS)
 async def connect(sid, environ):
     user = await authorized_userid(environ["aiohttp.request"])
     if user is None:
-        await sio.emit("redirect", "/", room=sid, namespace="/planarally")
+        await sio.emit("redirect", "/", room=sid, namespace=GAME_NS)
     else:
         ref = {
             k.split("=")[0]: k.split("=")[1]
@@ -48,19 +49,16 @@ async def connect(sid, environ):
             (LabelSelection.user == user) & (LabelSelection.room == room)
         )
 
-        sio.enter_room(sid, pr.active_location.get_path(), namespace="/planarally")
-        await sio.emit("Username.Set", user.name, room=sid, namespace="/planarally")
+        sio.enter_room(sid, pr.active_location.get_path(), namespace=GAME_NS)
+        await sio.emit("Username.Set", user.name, room=sid, namespace=GAME_NS)
         await sio.emit(
-            "Labels.Set",
-            [l.as_dict() for l in labels],
-            room=sid,
-            namespace="/planarally",
+            "Labels.Set", [l.as_dict() for l in labels], room=sid, namespace=GAME_NS,
         )
         await sio.emit(
             "Labels.Filters.Set",
             [l.label.uuid for l in label_filters],
             room=sid,
-            namespace="/planarally",
+            namespace=GAME_NS,
         )
         await sio.emit(
             "Room.Info.Set",
@@ -81,28 +79,30 @@ async def connect(sid, environ):
                 ],
             },
             room=sid,
-            namespace="/planarally",
+            namespace=GAME_NS,
         )
         await sio.emit(
             "Asset.List.Set",
             Asset.get_user_structure(user),
             room=sid,
-            namespace="/planarally",
+            namespace=GAME_NS,
         )
+
+        await load_location(sid, pr.active_location)
+
         if pr.role == Role.DM:
             await sio.emit(
                 "Locations.Settings.Set",
                 {
-                    l.name: {} if l.options is None else l.options.as_dict()
+                    l.id: {} if l.options is None else l.options.as_dict()
                     for l in pr.room.locations
                 },
                 room=sid,
-                namespace="/planarally",
+                namespace=GAME_NS,
             )
-        await load_location(sid, pr.active_location)
 
 
-@sio.on("disconnect", namespace="/planarally")
+@sio.on("disconnect", namespace=GAME_NS)
 async def disconnect(sid):
     if not game_state.has_sid(sid):
         return

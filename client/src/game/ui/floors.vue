@@ -56,6 +56,7 @@ export default class FloorSelect extends Vue {
         const floor = gameStore.floors[index];
         if (
             !(await (<Game>this.$parent.$parent).$refs.confirm.open(
+                "Warning",
                 `Are you sure you wish to remove the ${floor} floor?`,
             ))
         )
@@ -154,6 +155,7 @@ a {
 }
 
 #floor-detail {
+    pointer-events: auto;
     position: absolute;
     left: 25px;
     bottom: 80px;

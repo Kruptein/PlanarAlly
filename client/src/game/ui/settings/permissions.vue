@@ -22,17 +22,17 @@ export default class PermissionsDmSettings extends Vue {
 
 <template>
     <div class="panel">
-        <div class="spanrow header">Tokens</div>
+        <div class="spanrow header" v-t="'Tokens'"></div>
         <div class="row">
-            <label for="editOwnedTokens">Edit owned tokens:</label>
+            <label for="editOwnedTokens" v-t="'Edit owned tokens:'"></label>
             <div>
                 <input id="editOwnedTokens" type="checkbox" v-model="editOwnedTokens" />
             </div>
-            <label for="moveOwnedTokens">Move owned tokens:</label>
+            <label for="moveOwnedTokens" v-t="'Move owned tokens:'"></label>
             <div>
                 <input id="moveOwnedTokens" type="checkbox" v-model="moveOwnedTokens" />
             </div>
-            <label for="resizeOwnedTokens">Resize owned tokens:</label>
+            <label for="resizeOwnedTokens" v-t="'Resize owned tokens:'"></label>
             <div>
                 <input id="resizeOwnedTokens" type="checkbox" v-model="resizeOwnedTokens" />
             </div>

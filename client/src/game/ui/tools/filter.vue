@@ -85,7 +85,7 @@ export default class FilterTool extends Tool implements ToolBasics {
             <accordion
                 v-for="category in categories"
                 :key="category"
-                :title="category === '' ? 'no category' : category"
+                :title="category === '' ? $t('no category') : category"
                 :showArrow="false"
                 :items="labels[category]"
                 :initialValues="initalValues[category]"

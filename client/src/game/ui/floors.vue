@@ -42,7 +42,10 @@ export default class FloorSelect extends Vue {
     }
 
     async addFloor(): Promise<void> {
-        const value = await (<Game>this.$parent.$parent).$refs.prompt.prompt("New floor name", "Floor Creation");
+        const value = await (<Game>this.$parent.$parent).$refs.prompt.prompt(
+            this.$t("New floor name").toString(),
+            this.$t("Floor Creation").toString(),
+        );
         if (value === undefined) return;
         socket.emit("Floor.Create", value);
     }
@@ -64,6 +67,24 @@ export default class FloorSelect extends Vue {
         socket.emit("Floor.Remove", floor);
         removeFloor(floor);
     }
+    getLayerWord(layer: string): string {
+        switch (layer) {
+            case "map":
+                return this.$t("map").toString();
+
+            case "tokens":
+                return this.$t("tokens").toString();
+
+            case "dm":
+                return this.$t("dm").toString();
+
+            case "fow":
+                return this.$t("fow").toString();
+
+            default:
+                return "";
+        }
+    }
 }
 </script>
 
@@ -81,13 +102,13 @@ export default class FloorSelect extends Vue {
                     </div>
                     <div class="floor-name">{{ floor }}</div>
                     <div class="floor-actions" v-show="floors.length > 1">
-                        <div @click.stop="removeFloor(index)" title="Delete floor">
+                        <div @click.stop="removeFloor(index)" :title="$t('Delete floor')">
                             <i aria-hidden="true" class="fas fa-trash-alt"></i>
                         </div>
                     </div>
                 </div>
             </template>
-            <div class="floor-add" @click="addFloor">Add new floor</div>
+            <div class="floor-add" @click="addFloor" v-t="'Add new floor'"></div>
         </div>
         <div style="display:contents" v-show="layers.length > 1">
             <div
@@ -97,7 +118,7 @@ export default class FloorSelect extends Vue {
                 :class="{ 'layer-selected': layer === selectedLayer }"
                 @mousedown="selectLayer(layer)"
             >
-                <a href="#">{{ layer }}</a>
+                <a href="#">{{ getLayerWord(layer) }}</a>
             </div>
         </div>
     </div>

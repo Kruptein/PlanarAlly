@@ -38,12 +38,16 @@ export default class LocationSettings extends Vue {
     beforeDestroy(): void {
         EventBus.$off("LocationSettings.Open");
     }
+
+    get categoryNames(): string[] {
+        return [this.$t("Admin").toString(), this.$t("Grid").toString(), this.$t("Vision").toString()];
+    }
 }
 </script>
 
 <template>
-    <PanelModal :visible.sync="visible" :categories="['Admin', 'Grid', 'Vision']">
-        <template v-slot:title>Location Settings: {{ locationName }}</template>
+    <PanelModal :visible.sync="visible" :categories="categoryNames">
+        <template v-slot:title>{{ $t("Location Settings:") }} {{ locationName }}</template>
         <template v-slot:default="{ selection }">
             <LocationAdminSettings
                 :location.sync="location"

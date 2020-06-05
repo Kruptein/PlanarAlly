@@ -168,9 +168,9 @@ export default class AssetManager extends Vue {
 
 <template>
     <div id="AssetManager" v-cloak>
-        <div id="titlebar">Asset Manager</div>
+        <div id="titlebar" v-t="'Asset Manager'"></div>
         <div id="progressbar" v-show="expectedUploads > 0 && expectedUploads !== resolvedUploads">
-            <div id="progressbar-label">Uploading files: {{ resolvedUploads }} / {{ expectedUploads }}</div>
+            <div id="progressbar-label">{{ $t("Uploading files") }} {{ resolvedUploads }} / {{ expectedUploads }}</div>
             <div id="progressbar-meter">
                 <span :style="{ width: (resolvedUploads / expectedUploads) * 100 + '%' }"></span>
             </div>
@@ -182,10 +182,10 @@ export default class AssetManager extends Vue {
             </div>
             <div id="actionbar">
                 <input id="files" type="file" multiple hidden @change="upload()" />
-                <div @click="createDirectory" title="Create folder">
+                <div @click="createDirectory" :title="$t('Create folder')">
                     <i aria-hidden="true" class="fas fa-plus-square"></i>
                 </div>
-                <div @click="prepareUpload" title="Upload files">
+                <div @click="prepareUpload" :title="$t('Upload files')">
                     <i aria-hidden="true" class="fas fa-upload"></i>
                 </div>
             </div>

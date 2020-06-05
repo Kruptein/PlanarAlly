@@ -75,7 +75,7 @@ export default class Login extends Vue {
                         type="text"
                         name="username"
                         v-model="username"
-                        placeholder="Username"
+                        :placeholder="$t('Username')"
                         autocomplete="username"
                         required
                         autofocus
@@ -91,7 +91,7 @@ export default class Login extends Vue {
                         type="password"
                         name="password"
                         v-model="password"
-                        placeholder="Password"
+                        :placeholder="$t('Password')"
                         autocomplete="current-password"
                         required
                     />
@@ -102,10 +102,10 @@ export default class Login extends Vue {
 
                 <div style="display:flex;">
                     <button type="submit" name="login" style="visibility: hidden;display:none;"></button>
-                    <button type="button" name="register" class="submit" title="Register" @click="register">
+                    <button type="button" name="register" class="submit" :title="$t('Register')" @click="register">
                         <i aria-hidden="true" class="fas fa-plus"></i>
                     </button>
-                    <button type="submit" name="login" class="submit" title="Login">
+                    <button type="submit" name="login" class="submit" :title="$t('Login')">
                         <i aria-hidden="true" class="fas fa-arrow-right"></i>
                     </button>
                 </div>
@@ -113,13 +113,13 @@ export default class Login extends Vue {
 
             <div class="feedback" v-if="error">
                 <p class="error">
-                    <strong>Error:</strong>
+                    <strong v-t="'Error:'"></strong>
                     {{ error }}
                 </p>
             </div>
         </form>
         <div id="version">
-            Server version:
+            {{ $t("Server version:") }}
             <a :href="githubUrl">{{ version }}</a>
         </div>
     </div>

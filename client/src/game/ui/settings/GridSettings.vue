@@ -58,34 +58,36 @@ export default class GridSettings extends Vue {
         <div class="spanrow">
             <em style="max-width: 40vw">
                 <template v-if="location === null">
-                    Some of these settings can be overriden by location specific settings
+                    {{ $t("Some of these settings can be overriden by location specific settings") }}
                 </template>
-                <template v-else>Settings that override the campaign defaults are highlighted</template>
+                <template v-else>
+                    {{ $t("Settings that override the campaign defaults are highlighted") }}
+                </template>
             </em>
         </div>
         <div class="row" :class="{ overwritten: location !== null && options.useGrid !== undefined }">
-            <label :for="'useGridInput-' + location">Use grid</label>
+            <label :for="'useGridInput-' + location" v-t="'Use grid'"></label>
             <div>
                 <input :id="'useGridInput-' + location" type="checkbox" v-model="useGrid" />
             </div>
             <div
                 v-if="location !== null && options.useGrid !== undefined"
                 @click="reset('useGrid')"
-                title="Reset to the campaign default"
+                :title="$t('Reset to the campaign default')"
             >
                 <i aria-hidden="true" class="fas fa-times-circle"></i>
             </div>
             <div v-else></div>
         </div>
         <div class="row" :class="{ overwritten: location !== null && options.gridSize !== undefined }">
-            <label :for="'gridSizeInput-' + location">Grid Size (in pixels):</label>
+            <label :for="'gridSizeInput-' + location" v-t="'Grid Size (in pixels):'"></label>
             <div>
                 <input :id="'gridSizeInput-' + location" type="number" min="0" v-model.number="gridSize" />
             </div>
             <div
                 v-if="location !== null && options.gridSize !== undefined"
                 @click="reset('gridSize')"
-                title="Reset to the campaign default"
+                :title="$t('Reset to the campaign default')"
             >
                 <i aria-hidden="true" class="fas fa-times-circle"></i>
             </div>
@@ -93,7 +95,7 @@ export default class GridSettings extends Vue {
         </div>
         <div class="row" :class="{ overwritten: location !== null && options.unitSizeUnit !== undefined }">
             <div>
-                <label :for="'unitSizeUnit-' + location">Size Unit</label>
+                <label :for="'unitSizeUnit-' + location" v-t="'Size Unit'"></label>
             </div>
             <div>
                 <input :id="'unitSizeUnit-' + location" type="text" v-model="unitSizeUnit" />
@@ -101,7 +103,7 @@ export default class GridSettings extends Vue {
             <div
                 v-if="location !== null && options.unitSizeUnit !== undefined"
                 @click="reset('unitSizeUnit')"
-                title="Reset to the campaign default"
+                :title="$t('Reset to the campaign default')"
             >
                 <i aria-hidden="true" class="fas fa-times-circle"></i>
             </div>
@@ -109,7 +111,9 @@ export default class GridSettings extends Vue {
         </div>
         <div class="row" :class="{ overwritten: location !== null && options.unitSize !== undefined }">
             <div>
-                <label :for="'unitSizeInput-' + location">Unit Size (in {{ unitSizeUnit }})</label>
+                <label :for="'unitSizeInput-' + location">
+                    {{ $t("Unit Size (in {unit})", { unit: unitSizeUnit }) }}
+                </label>
             </div>
             <div>
                 <input :id="'unitSizeInput-' + location" type="number" step="any" v-model.number="unitSize" />
@@ -117,7 +121,7 @@ export default class GridSettings extends Vue {
             <div
                 v-if="location !== null && options.unitSize !== undefined"
                 @click="reset('unitSize')"
-                title="Reset to the campaign default"
+                :title="$t('Reset to the campaign default')"
             >
                 <i aria-hidden="true" class="fas fa-times-circle"></i>
             </div>

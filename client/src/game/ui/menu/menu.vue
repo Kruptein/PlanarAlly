@@ -62,7 +62,7 @@ export default class MenuBar extends Vue {
         }
     }
     createNote(): void {
-        const note = { title: "New note", text: "", uuid: uuidv4() };
+        const note = { title: this.$t("New note").toString(), text: "", uuid: uuidv4() };
         gameStore.newNote({ note, sync: true });
         this.openNote(note);
     }
@@ -99,59 +99,61 @@ export default class MenuBar extends Vue {
         <div style="width:200px;overflow-y:auto;overflow-x:hidden;">
             <!-- ASSETS -->
             <template v-if="IS_DM">
-                <button class="menu-accordion">Assets</button>
+                <button class="menu-accordion" v-t="'Assets'"></button>
                 <div id="menu-assets" class="menu-accordion-panel">
-                    <input id="asset-search" v-if="assets" v-model="assetSearch" placeholder="Search" />
-                    <a class="actionButton" href="/assets" target="blank" title="Open asset manager">
+                    <input id="asset-search" v-if="assets" v-model="assetSearch" :placeholder="$t('Search')" />
+                    <a class="actionButton" href="/assets" target="blank" :title="$t('Open asset manager')">
                         <i aria-hidden="true" class="fas fa-external-link-alt"></i>
                     </a>
                     <div class="directory" id="menu-tokens">
                         <asset-node :asset="assets" :search="assetSearch"></asset-node>
-                        <div v-if="!assets">No assets</div>
+                        <div v-if="Object.keys(assets).length === 1 && assets['__files'].length <= 0">
+                            {{ $t("No assets") }}
+                        </div>
                     </div>
                 </div>
                 <!-- NOTES -->
-                <button class="menu-accordion">Notes</button>
+                <button class="menu-accordion" v-t="'Notes'"></button>
                 <div class="menu-accordion-panel">
                     <div class="menu-accordion-subpanel" id="menu-notes">
-                        <a class="actionButton" @click="createNote" title="Create note">
+                        <a class="actionButton" @click="createNote" :title="$t('Create note')">
                             <i aria-hidden="true" class="far fa-plus-square"></i>
                         </a>
                         <div v-for="note in notes" :key="note.uuid" @click="openNote(note)" style="cursor:pointer">
                             {{ note.title || "[?]" }}
                         </div>
-                        <div v-if="!notes.length">No notes</div>
+                        <div v-if="!notes.length" v-t="'No notes'"></div>
                     </div>
                 </div>
                 <!-- DM OPTIONS -->
-                <button class="menu-accordion" @click="openDmSettings">DM Options</button>
+                <button class="menu-accordion" @click="openDmSettings" v-t="'DM Options'"></button>
             </template>
             <!-- MARKERS -->
-            <button class="menu-accordion">Markers</button>
+            <button class="menu-accordion" v-t="'Markers'"></button>
             <div class="menu-accordion-panel">
                 <div class="menu-accordion-subpanel" id="menu-markers">
                     <div v-for="marker in markers" :key="marker" style="cursor:pointer">
                         <div @click="jumpToMarker(marker)" class="menu-accordion-subpanel-text">
                             {{ nameMarker(marker) || "[?]" }}
                         </div>
-                        <div @click="delMarker(marker)" title="Delete marker">
+                        <div @click="delMarker(marker)" :title="$t('Delete marker')">
                             <i aria-hidden="true" class="far fa-minus-square"></i>
                         </div>
                     </div>
-                    <div v-if="!markers.length">No markers</div>
+                    <div v-if="!markers.length" v-t="'No markers'"></div>
                 </div>
             </div>
             <!-- CLIENT OPTIONS -->
-            <button class="menu-accordion">Client Options</button>
+            <button class="menu-accordion" v-t="'Client Options'"></button>
             <div class="menu-accordion-panel">
                 <div class="menu-accordion-subpanel">
-                    <label for="gridColour">Grid Colour:</label>
+                    <label for="gridColour" v-t="'Grid Colour:'"></label>
                     <color-picker id="gridColour" :color.sync="gridColour" />
-                    <label for="fowColour">FOW Colour:</label>
+                    <label for="fowColour" v-t="'FOW Colour:'"></label>
                     <color-picker id="fowColour" :color.sync="fowColour" />
-                    <label for="rulerColour">Ruler Colour:</label>
+                    <label for="rulerColour" v-t="'Ruler Colour:'"></label>
                     <color-picker id="rulerColour" :color.sync="rulerColour" />
-                    <label for="invertAlt">Invert ALT behaviour</label>
+                    <label for="invertAlt" v-t="'Invert ALT behaviour'"></label>
                     <div><input id="invertAlt" type="checkbox" v-model="invertAlt" /></div>
                 </div>
             </div>
@@ -161,7 +163,7 @@ export default class MenuBar extends Vue {
             class="menu-accordion"
             style="width:200px;box-sizing:border-box;text-decoration:none;display:inline-block;"
         >
-            Exit
+            {{ $t("Exit") }}
         </router-link>
     </div>
 </template>

@@ -49,23 +49,22 @@ export default class LocationAdminSettings extends Vue {
     <div class="panel">
         <div class="row">
             <div>
-                <label :for="'rename-' + location">Name</label>
+                <label :for="'rename-' + location" v-t="'Name'"></label>
             </div>
             <div>
                 <input :id="'rename-' + location" type="text" v-model="name" />
             </div>
         </div>
         <div class="row">
-            <div>Remove Location</div>
+            <div v-t="'Remove Location'"></div>
             <div>
                 <button
                     class="danger"
                     @click="deleteLocation"
                     :disabled="hasPlayers"
-                    :title="hasPlayers ? 'Move existing players on this location' : 'Delete this location'"
-                >
-                    Delete this Location
-                </button>
+                    :title="hasPlayers ? $t('Move existing players on this location') : $t('Delete this location')"
+                    v-t="'Delete this Location'"
+                ></button>
             </div>
         </div>
     </div>

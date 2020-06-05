@@ -179,14 +179,14 @@ export default class EditDialog extends Vue {
             @dragstart="m.dragStart"
             @dragend="m.dragEnd"
         >
-            <div>Edit asset</div>
-            <div class="header-close" @click="visible = false" title="Close">
+            <div v-t="'Edit asset'"></div>
+            <div class="header-close" @click="visible = false" :title="$t('Close')">
                 <i aria-hidden="true" class="far fa-window-close"></i>
             </div>
         </div>
         <div class="modal-body">
             <div class="grid">
-                <label for="shapeselectiondialog-name">Name</label>
+                <label for="shapeselectiondialog-name" v-t="'Name'"></label>
                 <input
                     type="text"
                     id="shapeselectiondialog-name"
@@ -202,11 +202,11 @@ export default class EditDialog extends Vue {
                         updateShape(false);
                     "
                     :disabled="!owned"
-                    title="Toggle public/private"
+                    :title="$t('Toggle public/private')"
                 >
                     <i aria-hidden="true" class="fas fa-eye"></i>
                 </div>
-                <label for="shapeselectiondialog-istoken">Is a token</label>
+                <label for="shapeselectiondialog-istoken" v-t="'Is a token'"></label>
                 <input
                     type="checkbox"
                     id="shapeselectiondialog-istoken"
@@ -216,7 +216,7 @@ export default class EditDialog extends Vue {
                     class="styled-checkbox"
                     :disabled="!owned"
                 />
-                <label for="shapeselectiondialog-is-invisible">Is invisible</label>
+                <label for="shapeselectiondialog-is-invisible" v-t="'Is invisible'"></label>
                 <input
                     type="checkbox"
                     id="shapeselectiondialog-is-invisible"
@@ -226,7 +226,7 @@ export default class EditDialog extends Vue {
                     class="styled-checkbox"
                     :disabled="!owned"
                 />
-                <label for="shapeselectiondialog-showBadge">Show badge</label>
+                <label for="shapeselectiondialog-showBadge" v-t="'Show badge'"></label>
                 <input
                     type="checkbox"
                     id="shapeselectiondialog-showBadge"
@@ -236,7 +236,7 @@ export default class EditDialog extends Vue {
                     class="styled-checkbox"
                     :disabled="!owned"
                 />
-                <label for="shapeselectiondialog-visionblocker">Blocks vision/light</label>
+                <label for="shapeselectiondialog-visionblocker" v-t="'Blocks vision/light'"></label>
                 <input
                     type="checkbox"
                     id="shapeselectiondialog-visionblocker"
@@ -245,7 +245,7 @@ export default class EditDialog extends Vue {
                     style="grid-column-start: remove;"
                     :disabled="!owned"
                 />
-                <label for="shapeselectiondialog-moveblocker">Blocks movement</label>
+                <label for="shapeselectiondialog-moveblocker" v-t="'Blocks movement'"></label>
                 <input
                     type="checkbox"
                     id="shapeselectiondialog-moveblocker"
@@ -254,7 +254,7 @@ export default class EditDialog extends Vue {
                     style="grid-column-start: remove;"
                     :disabled="!owned"
                 />
-                <label for="shapeselectiondialog-strokecolour">Border colour</label>
+                <label for="shapeselectiondialog-strokecolour" v-t="'Border colour'"></label>
                 <color-picker
                     :color.sync="shape.strokeColour"
                     @input="updateShape(true, true)"
@@ -262,7 +262,7 @@ export default class EditDialog extends Vue {
                     style="grid-column-start: remove;"
                     :disabled="!owned"
                 />
-                <label for="shapeselectiondialog-fillcolour">Fill colour</label>
+                <label for="shapeselectiondialog-fillcolour" v-t="'Fill colour'"></label>
                 <color-picker
                     :color.sync="shape.fillColour"
                     @input="updateShape(true, true)"
@@ -271,14 +271,14 @@ export default class EditDialog extends Vue {
                     :disabled="!owned"
                 />
                 <EditDialogAccess :shape="shape" :owned="owned" />
-                <div class="spanrow header">Trackers</div>
+                <div class="spanrow header" v-t="'Trackers'"></div>
                 <template v-for="tracker in shape.trackers">
                     <input
                         :key="'name-' + tracker.uuid"
                         v-model="tracker.name"
                         @change="updateShape(false)"
                         type="text"
-                        placeholder="name"
+                        :placeholder="$t('name')"
                         style="grid-column-start: name"
                         :disabled="!owned"
                     />
@@ -287,7 +287,7 @@ export default class EditDialog extends Vue {
                         v-model.number="tracker.value"
                         @change="updateShape(false)"
                         type="text"
-                        title="Current value"
+                        :title="$t('Current value')"
                         :disabled="!owned"
                     />
                     <span :key="'fspan-' + tracker.uuid">/</span>
@@ -296,7 +296,7 @@ export default class EditDialog extends Vue {
                         v-model.number="tracker.maxvalue"
                         @change="updateShape(false)"
                         type="text"
-                        title="Current value"
+                        :title="$t('Current value')"
                         :disabled="!owned"
                     />
                     <span :key="'sspan-' + tracker.uuid"></span>
@@ -308,7 +308,7 @@ export default class EditDialog extends Vue {
                             updateShape(false);
                         "
                         :disabled="!owned"
-                        title="Toggle public/private"
+                        :title="$t('Toggle public/private')"
                     >
                         <i aria-hidden="true" class="fas fa-eye"></i>
                     </div>
@@ -319,19 +319,19 @@ export default class EditDialog extends Vue {
                         @click="removeTracker(tracker.uuid)"
                         :disabled="!owned"
                         :style="{ opacity: owned ? 1.0 : 0.3, textAlign: 'center' }"
-                        title="Remove tracker"
+                        :title="$t('Remove tracker')"
                     >
                         <i aria-hidden="true" class="fas fa-trash-alt"></i>
                     </div>
                 </template>
-                <div class="spanrow header">Auras</div>
+                <div class="spanrow header" v-t="'Auras'"></div>
                 <template v-for="aura in shape.auras">
                     <input
                         :key="'name-' + aura.uuid"
                         v-model="aura.name"
                         @change="updateShape(false)"
                         type="text"
-                        placeholder="name"
+                        :placeholder="$t('name')"
                         style="grid-column-start: name"
                         :disabled="!owned"
                     />
@@ -340,7 +340,7 @@ export default class EditDialog extends Vue {
                         v-model.number="aura.value"
                         @change="updateShape(true)"
                         type="text"
-                        title="Current value"
+                        :title="$t('Current value')"
                         :disabled="!owned"
                     />
                     <span :key="'fspan-' + aura.uuid">/</span>
@@ -349,7 +349,7 @@ export default class EditDialog extends Vue {
                         v-model.number="aura.dim"
                         @change="updateShape(true)"
                         type="text"
-                        title="Dim value"
+                        :title="$t('Dim value')"
                         :disabled="!owned"
                     />
                     <color-picker
@@ -367,7 +367,7 @@ export default class EditDialog extends Vue {
                             updateShape(true);
                         "
                         :disabled="!owned"
-                        title="Toggle public/private"
+                        :title="$t('Toggle public/private')"
                     >
                         <i aria-hidden="true" class="fas fa-eye"></i>
                     </div>
@@ -376,7 +376,7 @@ export default class EditDialog extends Vue {
                         :style="{ opacity: aura.visionSource ? 1.0 : 0.3, textAlign: 'center' }"
                         @click="updateAuraVisionSource(aura)"
                         :disabled="!owned"
-                        title="Toggle light source"
+                        :title="$t('Toggle light source')"
                     >
                         <i aria-hidden="true" class="fas fa-lightbulb"></i>
                     </div>
@@ -386,12 +386,12 @@ export default class EditDialog extends Vue {
                         @click="removeAura(aura.uuid)"
                         :disabled="!owned"
                         :style="{ opacity: owned ? 1.0 : 0.3, textAlign: 'center' }"
-                        title="Delete aura"
+                        :title="$t('Delete aura')"
                     >
                         <i aria-hidden="true" class="fas fa-trash-alt"></i>
                     </div>
                 </template>
-                <div class="spanrow header">Labels</div>
+                <div class="spanrow header" v-t="'Labels'"></div>
                 <div id="labels" class="spanrow">
                     <div v-for="label in shape.labels" class="label" :key="label.uuid">
                         <template v-if="label.category">
@@ -406,7 +406,7 @@ export default class EditDialog extends Vue {
                         <div class="label-main" @click="openLabelManager">+</div>
                     </div>
                 </div>
-                <div class="spanrow header">Annotation</div>
+                <div class="spanrow header" v-t="'Annotation'"></div>
                 <textarea
                     class="spanrow"
                     :value="shape.annotation"

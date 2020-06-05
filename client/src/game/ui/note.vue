@@ -54,11 +54,11 @@ export default class NoteDialog extends Vue {
             @dragstart="m.dragStart"
             @dragend="m.dragEnd"
         >
-            <span @click="$refs.title.select()" title="Edit title">
+            <span @click="$refs.title.select()" :title="$t('Edit title')">
                 <i aria-hidden="true" class="fas fa-pencil-alt" style="font-size: 15px"></i>
             </span>
             <input v-model="note.title" ref="title" @change="updateNote" />
-            <div class="header-close" @click="visible = false" title="Close">
+            <div class="header-close" @click="visible = false" :title="$t('Close')">
                 <i aria-hidden="true" class="far fa-window-close"></i>
             </div>
         </div>
@@ -71,9 +71,9 @@ export default class NoteDialog extends Vue {
             ></textarea>
         </div>
         <div class="modal-footer">
-            <button @click="removeNote" title="Remove note">
+            <button @click="removeNote" :title="$t('Remove note')">
                 <i aria-hidden="true" class="far fa-trash-alt"></i>
-                Remove
+                {{ $t("Remove note") }}
             </button>
         </div>
     </modal>

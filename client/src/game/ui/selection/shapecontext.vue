@@ -77,9 +77,13 @@ export default class ShapeContext extends Vue {
     getInitiativeWord(): string {
         const layer = this.getActiveLayer()!;
         if (layer.selection.length === 1) {
-            return inInitiative(layer.selection[0].uuid) ? "Show" : "Add";
+            return inInitiative(layer.selection[0].uuid)
+                ? this.$t("Show initiative").toString()
+                : this.$t("Add initiative").toString();
         } else {
-            return layer.selection.every(shape => inInitiative(shape.uuid)) ? "Show" : "Add all to";
+            return layer.selection.every(shape => inInitiative(shape.uuid))
+                ? this.$t("Show initiative").toString()
+                : this.$t("Add all to initiative").toString();
         }
     }
     hasSingleShape(): boolean {
@@ -182,6 +186,24 @@ export default class ShapeContext extends Vue {
     showDelete(): boolean {
         return !this.hasSpawnToken();
     }
+    getLayerWord(layer: string): string {
+        switch (layer) {
+            case "map":
+                return this.$t("map").toString();
+
+            case "tokens":
+                return this.$t("tokens").toString();
+
+            case "dm":
+                return this.$t("dm").toString();
+
+            case "fow":
+                return this.$t("fow").toString();
+
+            default:
+                return "";
+        }
+    }
 }
 </script>
 
@@ -195,7 +217,7 @@ export default class ShapeContext extends Vue {
     >
         <Prompt ref="prompt"></Prompt>
         <li v-if="getFloors().length > 1">
-            Floor
+            {{ $t("Floor") }}
             <ul>
                 <li
                     v-for="(floor, idx) in getFloors()"
@@ -208,7 +230,7 @@ export default class ShapeContext extends Vue {
             </ul>
         </li>
         <li v-if="getLayers().length > 1">
-            Layer
+            {{ $t("Layer") }}
             <ul>
                 <li
                     v-for="layer in getLayers()"
@@ -216,12 +238,12 @@ export default class ShapeContext extends Vue {
                     :style="[getActiveLayer().name === layer.name ? { 'background-color': '#82c8a0' } : {}]"
                     @click="setLayer(layer.name)"
                 >
-                    {{ layer.name }}
+                    {{ getLayerWord(layer.name) }}
                 </li>
             </ul>
         </li>
         <li v-if="getLocations().length > 1">
-            Location
+            {{ $t("Location") }}
             <ul>
                 <li
                     v-for="location in getLocations()"
@@ -233,14 +255,14 @@ export default class ShapeContext extends Vue {
                 </li>
             </ul>
         </li>
-        <li @click="moveToBack">Move to back</li>
-        <li @click="moveToFront">Move to front</li>
-        <li @click="addInitiative" v-if="showInitiative()">{{ getInitiativeWord() }} initiative</li>
-        <li @click="deleteSelection" v-if="showDelete()">Delete shapes</li>
-        <li v-if="hasSingleShape()" @click="openEditDialog">Show properties</li>
+        <li @click="moveToBack" v-t="'Move to back'"></li>
+        <li @click="moveToFront" v-t="'Move to front'"></li>
+        <li @click="addInitiative" v-if="showInitiative()">{{ getInitiativeWord() }}</li>
+        <li @click="deleteSelection" v-if="showDelete()" v-t="'Delete shapes'"></li>
+        <li v-if="hasSingleShape()" @click="openEditDialog" v-t="'Show properties'"></li>
         <template v-if="hasSingleShape()">
-            <li v-if="markers.includes(getMarker())" @click="deleteMarker">Remove marker</li>
-            <li v-else @click="setMarker">Set marker</li>
+            <li v-if="markers.includes(getMarker())" @click="deleteMarker" v-t="'Remove marker'"></li>
+            <li v-else @click="setMarker" v-t="'Set marker'"></li>
         </template>
     </ContextMenu>
 </template>

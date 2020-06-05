@@ -109,7 +109,7 @@ export default class RulerTool extends Tool implements ToolBasics {
         v-if="selected"
         :style="{ '--detailRight': detailRight, '--detailArrow': detailArrow }"
     >
-        <button @click="toggle" aria-pressed="true">Share with others</button>
+        <button @click="toggle" aria-pressed="true" v-t="'Share with others'"></button>
     </div>
 </template>
 

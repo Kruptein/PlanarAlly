@@ -89,53 +89,52 @@ export default class VisionSettings extends Vue {
     <div class="panel restore-panel">
         <div class="spanrow">
             <template v-if="location === null">
-                Some of these settings can be overriden by location specific settings
+                {{ $t("Some of these settings can be overriden by location specific settings") }}
             </template>
             <template v-else>
-                <span>
-                    Settings that override the campaign defaults are
-                    <span class="overwritten">highlighted</span>
-                </span>
+                <i18n path="Settings that override the campaign defaults are {0}" tag="span" for="[highlighted]">
+                    <span class="overwritten">{{ $t("highlighted") }}</span>
+                </i18n>
             </template>
         </div>
-        <div class="spanrow header">Core</div>
+        <div class="spanrow header" v-t="'Core'"></div>
         <div class="row" v-if="location === null">
-            <label for="fakePlayerInput">Fake player:</label>
+            <label for="fakePlayerInput" v-t="'Fake player:'"></label>
             <div>
                 <input id="fakePlayerInput" type="checkbox" v-model="fakePlayer" />
             </div>
             <div></div>
         </div>
         <div class="row" :class="{ overwritten: location !== null && options.fullFow !== undefined }">
-            <label :for="'useFOWInput-' + location">Fill entire canvas with FOW:</label>
+            <label :for="'useFOWInput-' + location" v-t="'Fill entire canvas with FOW:'"></label>
             <div>
                 <input :id="'useFOWInput-' + location" type="checkbox" v-model="fullFow" />
             </div>
             <div
                 v-if="location !== null && options.fullFow !== undefined"
                 @click="reset('fullFow')"
-                title="Reset to the campaign default"
+                :title="$t('Reset to the campaign default')"
             >
                 <i aria-hidden="true" class="fas fa-times-circle"></i>
             </div>
             <div v-else></div>
         </div>
         <div class="row" :class="{ overwritten: location !== null && options.fowLos !== undefined }">
-            <label :for="'fowLos-' + location">Only show lights in LoS:</label>
+            <label :for="'fowLos-' + location" v-t="'Only show lights in LoS:'"></label>
             <div>
                 <input :id="'fowLos-' + location" type="checkbox" v-model="fowLos" />
             </div>
             <div
                 v-if="location !== null && options.fowLos !== undefined"
                 @click="reset('fowLos')"
-                title="Reset to the campaign default"
+                :title="$t('Reset to the campaign default')"
             >
                 <i aria-hidden="true" class="fas fa-times-circle"></i>
             </div>
             <div v-else></div>
         </div>
         <div class="row" :class="{ overwritten: location !== null && options.fowOpacity !== undefined }">
-            <label :for="'fowOpacity-' + location">FOW opacity:</label>
+            <label :for="'fowOpacity-' + location" v-t="'FOW opacity:'"></label>
             <div>
                 <input
                     :id="'fowOpacity-' + location"
@@ -149,50 +148,48 @@ export default class VisionSettings extends Vue {
             <div
                 v-if="location !== null && options.fowOpacity !== undefined"
                 @click="reset('fowOpacity')"
-                title="Reset to the campaign default"
+                :title="$t('Reset to the campaign default')"
             >
                 <i aria-hidden="true" class="fas fa-times-circle"></i>
             </div>
             <div v-else></div>
         </div>
-        <div class="spanrow header">Advanced</div>
+        <div class="spanrow header" v-t="'Advanced'"></div>
         <div class="row" v-if="location === null">
-            <label :for="'visionMode-' + location">Vision Mode:</label>
+            <label :for="'visionMode-' + location" v-t="'Vision Mode:'"></label>
             <div>
                 <select :id="'visionMode-' + location" @change="changeVisionMode">
-                    <option :selected="$store.state.visibility.visionMode === 0">
-                        Default
-                    </option>
-                    <option :selected="$store.state.visibility.visionMode === 1">
-                        Experimental
-                    </option>
+                    <option :selected="$store.state.visibility.visionMode === 0" v-t="'Default'"></option>
+                    <option :selected="$store.state.visibility.visionMode === 1" v-t="'Experimental'"></option>
                 </select>
             </div>
             <div></div>
         </div>
         <div class="row" :class="{ overwritten: location !== null && options.visionMinRange !== undefined }">
-            <label :for="'vmininp-' + location">Minimal full vision ({{ unitSizeUnit }}):</label>
+            <label :for="'vmininp-' + location">
+                {{ $t("Minimal full vision ({unit}):", { unit: unitSizeUnit }) }}
+            </label>
             <div>
                 <input :id="'vmininp-' + location" type="number" min="0" v-model.lazy.number="visionMinRange" />
             </div>
             <div
                 v-if="location !== null && options.visionMinRange !== undefined"
                 @click="reset('visionMinRange')"
-                title="Reset to the campaign default"
+                :title="$t('Reset to the campaign default')"
             >
                 <i aria-hidden="true" class="fas fa-times-circle"></i>
             </div>
             <div v-else></div>
         </div>
         <div class="row" :class="{ overwritten: location !== null && options.visionMaxRange !== undefined }">
-            <label :for="'vmaxinp-' + location">Maximal vision ({{ unitSizeUnit }}):</label>
+            <label :for="'vmaxinp-' + location">{{ $t("Maximal vision ({unit}):", { unit: unitSizeUnit }) }}</label>
             <div>
                 <input :id="'vmaxinp-' + location" type="number" min="0" v-model.lazy.number="visionMaxRange" />
             </div>
             <div
                 v-if="location !== null && options.visionMaxRange !== undefined"
                 @click="reset('visionMaxRange')"
-                title="Reset to the campaign default"
+                :title="$t('Reset to the campaign default')"
             >
                 <i aria-hidden="true" class="fas fa-times-circle"></i>
             </div>

@@ -56,9 +56,9 @@ export default class DefaultContext extends Vue {
 
 <template>
     <ContextMenu :visible="visible" :left="x + 'px'" :top="y + 'px'" @close="close">
-        <li @click="bringPlayers" v-if="IS_DM">Bring players</li>
-        <li @click="createToken">Create basic token</li>
-        <li @click="showInitiative">Show initiative</li>
+        <li @click="bringPlayers" v-if="IS_DM" v-t="'Bring players'"></li>
+        <li @click="createToken" v-t="'Create basic token'"></li>
+        <li @click="showInitiative" v-t="'Show initiative'"></li>
     </ContextMenu>
 </template>
 

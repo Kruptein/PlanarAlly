@@ -289,6 +289,41 @@ export default class Tools extends Vue {
     toggleMode(): void {
         this.mode = this.mode === "Build" ? "Play" : "Build";
     }
+
+    getModeWord(): string {
+        return this.mode === "Build" ? this.$t("Build").toString() : this.$t("Play").toString();
+    }
+
+    getToolWord(tool: string): string {
+        switch (tool) {
+            case ToolName.Select:
+                return this.$t("Select").toString();
+
+            case ToolName.Pan:
+                return this.$t("Pan").toString();
+
+            case ToolName.Draw:
+                return this.$t("Draw").toString();
+
+            case ToolName.Ruler:
+                return this.$t("Ruler").toString();
+
+            case ToolName.Ping:
+                return this.$t("Ping").toString();
+
+            case ToolName.Map:
+                return this.$t("Map").toString();
+
+            case ToolName.Filter:
+                return this.$t("Filter").toString();
+
+            case ToolName.Vision:
+                return this.$t("Vision").toString();
+
+            default:
+                return "";
+        }
+    }
 }
 </script>
 
@@ -304,9 +339,9 @@ export default class Tools extends Vue {
                     :ref="tool + '-selector'"
                     @mousedown="currentTool = tool"
                 >
-                    <a href="#">{{ tool }}</a>
+                    <a href="#">{{ getToolWord(tool) }}</a>
                 </li>
-                <li id="tool-mode" @click="toggleMode" title="Change mode">{{ mode }}</li>
+                <li id="tool-mode" @click="toggleMode" :title="$t('Change mode')">{{ getModeWord() }}</li>
             </ul>
         </div>
         <div>

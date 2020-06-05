@@ -135,7 +135,7 @@ export default class UI extends Vue {
                     <a
                         href="https://github.com/kruptein/PlanarAlly"
                         target="_blank"
-                        title="Find the code on github!"
+                        :title="$t('Find the code on github!')"
                         rel="noopener noreferrer"
                     >
                         <i aria-hidden="true" class="fab fa-github"></i>
@@ -143,7 +143,7 @@ export default class UI extends Vue {
                     <a
                         href="https://discord.gg/mubGnTe"
                         target="_blank"
-                        title="Join the community on discord!"
+                        :title="$t('Join the community on discord!')"
                         rel="noopener noreferrer"
                     >
                         <i aria-hidden="true" class="fab fa-discord"></i>
@@ -151,7 +151,7 @@ export default class UI extends Vue {
                     <a
                         href="https://www.patreon.com/planarally"
                         target="_blank"
-                        title="Contribute using patreon!"
+                        :title="$t('Contribute using patreon!')"
                         rel="noopener noreferrer"
                     >
                         <i aria-hidden="true" class="fab fa-patreon"></i>
@@ -159,7 +159,7 @@ export default class UI extends Vue {
                 </div>
             </div>
             <div id="logo-version">
-                <span>version</span>
+                <span v-t="'version'"></span>
                 <span>{{ version.release }}</span>
             </div>
         </div>
@@ -173,13 +173,13 @@ export default class UI extends Vue {
                             v-if="IS_DM"
                             class="rm-item"
                             id="rm-locations"
-                            title="Open location menu"
+                            :title="$t('Open location menu')"
                         >
                             <a href="#">
                                 <i aria-hidden="true" class="far fa-compass"></i>
                             </a>
                         </li>
-                        <li @click="toggleMenu" class="rm-item" id="rm-settings" title="Open settings">
+                        <li @click="toggleMenu" class="rm-item" id="rm-settings" :title="$t('Open settings')">
                             <a href="#">
                                 <i aria-hidden="true" class="fas fa-cog"></i>
                             </a>
@@ -198,8 +198,13 @@ export default class UI extends Vue {
         <SelectionInfo></SelectionInfo>
         <DmSettings ref="dmsettings" v-if="IS_DM || FAKE_PLAYER"></DmSettings>
         <LocationSettings v-if="IS_DM || FAKE_PLAYER"></LocationSettings>
-        <MarkdownModal v-if="showChangelog" title="There is a new version!">
-            {{ `# Release ${version.release}\n*For more details visit https://www.planarally.io/blog/*\n${changelog}` }}
+        <MarkdownModal v-if="showChangelog" :title="$t('There is a new version!')">
+            {{
+                $t(
+                    "`# Release {release}[LB]*For more details visit https://www[DOT]planarally[DOT]io/blog/*[LB]{log}`",
+                    { release: version.release, log: changelog },
+                )
+            }}
         </MarkdownModal>
         <!-- When updating zoom boundaries, also update store updateZoom function;
             should probably do this using a store variable-->

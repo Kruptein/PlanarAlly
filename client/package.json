@@ -8,7 +8,6 @@
     "lint": "vue-cli-service lint",
     "clean": "rimraf ../server/static/js/ && rimraf ../server/static/css/",
     "i18n:report": "vue-cli-service i18n:report --src './src/**/*.?(js|vue)' --locales './src/locales/**/*.json'",
-    "vue-i18n-extract": "vue-i18n-extract",
     "lint:ci": "vue-cli-service lint --no-fix",
     "test": "vue-cli-service test:unit",
     "test:coverage": "vue-cli-service test:unit --coverage"
@@ -59,7 +58,6 @@
     "ts-jest": "^24.1.0",
     "typescript": "~3.9.3",
     "vue-cli-plugin-i18n": "~1.0.1",
-    "vue-i18n-extract": "^1.1.1",
     "vue-template-compiler": "^2.6.10"
   },
   "bugs": {

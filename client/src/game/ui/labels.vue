@@ -151,7 +151,7 @@ export default class LabelManager extends Vue {
                     </template>
                 </template>
                 <template v-if="labels.length === 0">
-                    <div id="no-labels" v-t="''"></div>
+                    <div id="no-labels" v-t="'No labels exist yet'"></div>
                 </template>
             </div>
             <div class="grid">

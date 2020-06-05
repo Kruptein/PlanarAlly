@@ -36,7 +36,7 @@
   "Toggle public / private": "Toggle public / private",
   "Toggle individual / group initiative": "Toggle individual / group initiative",
   "Delete initiative": "Delete initiative",
-  "Round {n}": "Round 0 | Round 1 | Round {n}",
+  "Round {n}": "Round {n}",
   "Auto lock vision (only show vision active token)": "Auto lock vision (only show vision active token)",
   "Auto camera lock on active token": "Auto camera lock on active token",
   "Reset rounds/turns": "Reset rounds/turns",
@@ -53,7 +53,6 @@
   "Name": "Name",
   "Vis[DOT]": "Vis.",
   "Del[DOT]": "Del.",
-  "": "",
   "Add": "Add",
   "Add new location": "Add new location",
   "Show specific players": "Show specific players",
@@ -228,5 +227,6 @@
   "Cancel": "Cancel",
   "Delete account": "Delete account",
   "This action is irrevocable!": "This action is irrevocable!",
-  "Account": "Account"
+  "Account": "Account",
+  "No labels exist yet": "No labels exist yet"
 }

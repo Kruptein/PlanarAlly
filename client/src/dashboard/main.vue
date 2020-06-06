@@ -62,7 +62,7 @@ export default class Dashboard extends Vue {
         <div id="formcontainer">
             <form>
                 <fieldset>
-                    <legend class="legend">Your sessions</legend>
+                    <legend class="legend" v-t="'dashboard.main.your_sessions'"></legend>
                     <div class="input">
                         <router-link
                             v-for="(room, i) in owned"
@@ -79,7 +79,11 @@ export default class Dashboard extends Vue {
                             {{ room[1] }}/{{ room[0] }}
                         </router-link>
                     </div>
-                    <div class="input" v-if="owned.length === 0 && joined.length === 0">No active sessions</div>
+                    <div
+                        class="input"
+                        v-if="owned.length === 0 && joined.length === 0"
+                        v-t="'dashboard.main.no_sessions'"
+                    ></div>
                 </fieldset>
             </form>
             <h4>
@@ -87,34 +91,44 @@ export default class Dashboard extends Vue {
             </h4>
             <form @submit.prevent="createRoom">
                 <fieldset>
-                    <legend v-if="!owned && !joined" class="legend">Create a session</legend>
-                    <div v-else class="input">Create a new session</div>
+                    <legend v-if="!owned && !joined" class="legend" v-t="'dashboard.main.create_session'"></legend>
+                    <div v-else class="input" v-t="'dashboard.main.create_new_session'"></div>
                     <div class="input">
-                        <input type="text" v-model="newSessionName" name="room_name" placeholder="Session Name" />
+                        <input
+                            type="text"
+                            v-model="newSessionName"
+                            name="room_name"
+                            :placeholder="$t('dashboard.main.session_name')"
+                        />
                         <span>
                             <i aria-hidden="true" class="fab fa-d-and-d"></i>
                         </span>
                     </div>
-                    <button type="submit" class="submit" title="Create">
+                    <button type="submit" class="submit" :title="$t('common.create')">
                         <i aria-hidden="true" class="fas fa-arrow-right"></i>
                     </button>
                 </fieldset>
             </form>
             <div id="account-options">
                 <form @submit.prevent>
-                    <router-link tag="button" class="submit" title="Account Settings" to="/settings">
+                    <router-link
+                        tag="button"
+                        class="submit"
+                        :title="$t('dashboard.main.account_settings')"
+                        to="/settings"
+                    >
                         <i aria-hidden="true" class="fas fa-cog"></i>
                     </router-link>
                 </form>
                 <form @submit.prevent>
-                    <router-link tag="button" class="submit" title="Logout" to="/auth/logout">
+                    <router-link tag="button" class="submit" :title="$t('dashboard.main.logout')" to="/auth/logout">
                         <i aria-hidden="true" class="fas fa-sign-out-alt"></i>
                     </router-link>
                 </form>
             </div>
         </div>
         <div id="version">
-            Server version:
+            {{ $t("common.server_ver_prefix") }}
             <a :href="githubUrl">{{ version }}</a>
         </div>
     </div>

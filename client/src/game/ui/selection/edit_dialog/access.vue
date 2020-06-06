@@ -68,8 +68,8 @@ export default class EditDialogAccess extends Vue {
 
 <template>
     <div style="display:contents">
-        <div class="spanrow header">Access</div>
-        <div class="owner"><em>Default</em></div>
+        <div class="spanrow header" v-t="'game.ui.selection.edit_dialog.access.access'"></div>
+        <div class="owner"><em v-t="'game.ui.selection.edit_dialog.access.default'"></em></div>
         <div
             :style="{
                 opacity: shape.defaultAccess.edit ? 1.0 : 0.3,
@@ -78,7 +78,7 @@ export default class EditDialogAccess extends Vue {
             }"
             :disabled="!owned"
             @click="toggleDefaultEditAccess"
-            title="Toggle edit access"
+            :title="$t('game.ui.selection.edit_dialog.access.toggle_edit_access')"
         >
             <i aria-hidden="true" class="fas fa-pencil-alt"></i>
         </div>
@@ -86,7 +86,7 @@ export default class EditDialogAccess extends Vue {
             :style="{ opacity: shape.defaultAccess.movement ? 1.0 : 0.3, textAlign: 'center' }"
             :disabled="!owned"
             @click="toggleDefaultMovementAccess"
-            title="Toggle movement access"
+            :title="$t('game.ui.selection.edit_dialog.access.toggle_movement_access')"
         >
             <i aria-hidden="true" class="fas fa-arrows-alt"></i>
         </div>
@@ -94,7 +94,7 @@ export default class EditDialogAccess extends Vue {
             :style="{ opacity: shape.defaultAccess.vision ? 1.0 : 0.3, textAlign: 'center' }"
             :disabled="!owned"
             @click="toggleDefaultVisionAccess"
-            title="Toggle vision access"
+            :title="$t('game.ui.selection.edit_dialog.access.toggle_vision_access')"
         >
             <i aria-hidden="true" class="fas fa-lightbulb"></i>
         </div>
@@ -111,7 +111,7 @@ export default class EditDialogAccess extends Vue {
                 }"
                 :disabled="!owned"
                 @click="toggleOwnerEditAccess(owner)"
-                title="Toggle edit access"
+                :title="$t('game.ui.selection.edit_dialog.access.toggle_edit_access')"
             >
                 <i aria-hidden="true" class="fas fa-pencil-alt"></i>
             </div>
@@ -120,7 +120,7 @@ export default class EditDialogAccess extends Vue {
                 :style="{ opacity: owner.access.movement ? 1.0 : 0.3, textAlign: 'center' }"
                 :disabled="!owned"
                 @click="toggleOwnerMovementAccess(owner)"
-                title="Toggle movement access"
+                :title="$t('game.ui.selection.edit_dialog.access.toggle_movement_access')"
             >
                 <i aria-hidden="true" class="fas fa-arrows-alt"></i>
             </div>
@@ -129,7 +129,7 @@ export default class EditDialogAccess extends Vue {
                 :style="{ opacity: owner.access.vision ? 1.0 : 0.3, textAlign: 'center' }"
                 :disabled="!owned"
                 @click="toggleOwnerVisionAccess(owner)"
-                title="Toggle vision access"
+                :title="$t('game.ui.selection.edit_dialog.access.toggle_vision_access')"
             >
                 <i aria-hidden="true" class="fas fa-lightbulb"></i>
             </div>
@@ -138,7 +138,7 @@ export default class EditDialogAccess extends Vue {
                 @click="removeOwner(owner.user)"
                 :style="{ opacity: owned ? 1.0 : 0.3, textAlign: 'center', gridColumnStart: 'remove' }"
                 :disabled="!owned"
-                title="Remove owner access"
+                :title="$t('game.ui.selection.edit_dialog.access.remove_owner_access')"
             >
                 <i aria-hidden="true" class="fas fa-trash-alt"></i>
             </div>
@@ -156,9 +156,8 @@ export default class EditDialogAccess extends Vue {
             style="grid-column: visible/end;margin-top:5px;"
             @click="addOwner"
             v-show="playersWithoutAccess.length > 0 && owned"
-        >
-            Add access
-        </button>
+            v-t="'game.ui.selection.edit_dialog.access.add_access'"
+        ></button>
     </div>
 </template>
 

@@ -96,7 +96,9 @@ export default class AdminSettings extends Vue {
         <div class="spanrow header" v-t="'game.ui.settings.dm.AdminSettings.danger_NBSP_zone'"></div>
         <div class="row">
             <div>
-                <template v-if="locked">{{ $t("game.ui.settings.dm.AdminSettings.unlock_NBSP_Session_NBSP") }}</template>
+                <template v-if="locked">
+                    {{ $t("game.ui.settings.dm.AdminSettings.unlock_NBSP_Session_NBSP") }}
+                </template>
                 <template v-else>{{ $t("game.ui.settings.dm.AdminSettings.lock_NBSP_Session_NBSP") }}</template>
                 <em v-t="'game.ui.settings.dm.AdminSettings.dm_access_only'"></em>
             </div>
@@ -110,7 +112,11 @@ export default class AdminSettings extends Vue {
         <div class="row">
             <div v-t="'game.ui.settings.dm.AdminSettings.remove_session'"></div>
             <div>
-                <button class="danger" @click="deleteSession" v-t="'game.ui.settings.dm.AdminSettings.delete_session'"></button>
+                <button
+                    class="danger"
+                    @click="deleteSession"
+                    v-t="'game.ui.settings.dm.AdminSettings.delete_session'"
+                ></button>
             </div>
         </div>
     </div>

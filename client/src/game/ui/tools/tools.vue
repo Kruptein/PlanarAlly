@@ -341,7 +341,9 @@ export default class Tools extends Vue {
                 >
                     <a href="#">{{ getToolWord(tool) }}</a>
                 </li>
-                <li id="tool-mode" @click="toggleMode" :title="$t('game.ui.tools.tools.change_mode')">{{ getModeWord() }}</li>
+                <li id="tool-mode" @click="toggleMode" :title="$t('game.ui.tools.tools.change_mode')">
+                    {{ getModeWord() }}
+                </li>
             </ul>
         </div>
         <div>

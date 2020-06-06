@@ -102,7 +102,13 @@ export default class Login extends Vue {
 
                 <div style="display:flex;">
                     <button type="submit" name="login" style="visibility: hidden;display:none;"></button>
-                    <button type="button" name="register" class="submit" :title="$t('auth.login.register')" @click="register">
+                    <button
+                        type="button"
+                        name="register"
+                        class="submit"
+                        :title="$t('auth.login.register')"
+                        @click="register"
+                    >
                         <i aria-hidden="true" class="fas fa-plus"></i>
                     </button>
                     <button type="submit" name="login" class="submit" :title="$t('auth.login.login')">

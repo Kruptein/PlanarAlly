@@ -161,8 +161,14 @@ export default class VisionSettings extends Vue {
             <label :for="'visionMode-' + location" v-t="'game.ui.settings.VisionSettings.vision_mode'"></label>
             <div>
                 <select :id="'visionMode-' + location" @change="changeVisionMode">
-                    <option :selected="$store.state.visibility.visionMode === 0" v-t="'game.ui.settings.VisionSettings.default'"></option>
-                    <option :selected="$store.state.visibility.visionMode === 1" v-t="'game.ui.settings.VisionSettings.experimental'"></option>
+                    <option
+                        :selected="$store.state.visibility.visionMode === 0"
+                        v-t="'game.ui.settings.VisionSettings.default'"
+                    ></option>
+                    <option
+                        :selected="$store.state.visibility.visionMode === 1"
+                        v-t="'game.ui.settings.VisionSettings.experimental'"
+                    ></option>
                 </select>
             </div>
             <div></div>
@@ -184,7 +190,9 @@ export default class VisionSettings extends Vue {
             <div v-else></div>
         </div>
         <div class="row" :class="{ overwritten: location !== null && options.visionMaxRange !== undefined }">
-            <label :for="'vmaxinp-' + location">{{ $t("game.ui.settings.VisionSettings.max_vision_UNIT", { unit: unitSizeUnit }) }}</label>
+            <label :for="'vmaxinp-' + location">
+                {{ $t("game.ui.settings.VisionSettings.max_vision_UNIT", { unit: unitSizeUnit }) }}
+            </label>
             <div>
                 <input :id="'vmaxinp-' + location" type="number" min="0" v-model.lazy.number="visionMaxRange" />
             </div>

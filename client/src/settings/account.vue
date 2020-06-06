@@ -51,8 +51,7 @@ export default class AccountSettings extends Vue {
             if (response.ok) {
                 this.hidePasswordChange();
             } else {
-                this.errorMessage =
-                    response.statusText ?? this.$t("settings.account.server_request_error").toString();
+                this.errorMessage = response.statusText ?? this.$t("settings.account.server_request_error").toString();
             }
         } else {
             this.showPasswordFields = true;
@@ -68,9 +67,7 @@ export default class AccountSettings extends Vue {
     }
 
     async deleteAccount(): Promise<void> {
-        const result = await this.$refs.confirm.open(
-            this.$t("settings.account.remove_account_msg").toString(),
-        );
+        const result = await this.$refs.confirm.open(this.$t("settings.account.remove_account_msg").toString());
         if (result) {
             const response = await postFetch("/api/users/delete");
             if (response.ok) {
@@ -131,7 +128,12 @@ export default class AccountSettings extends Vue {
         </div>
         <div class="row">
             <div>
-                <button class="danger" v-if="showPasswordFields" @click="hidePasswordChange" v-t="'common.cancel'"></button>
+                <button
+                    class="danger"
+                    v-if="showPasswordFields"
+                    @click="hidePasswordChange"
+                    v-t="'common.cancel'"
+                ></button>
             </div>
             <div>
                 <button

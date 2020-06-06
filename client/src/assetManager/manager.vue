@@ -170,7 +170,9 @@ export default class AssetManager extends Vue {
     <div id="AssetManager" v-cloak>
         <div id="titlebar" v-t="'assetManager.manager.title'"></div>
         <div id="progressbar" v-show="expectedUploads > 0 && expectedUploads !== resolvedUploads">
-            <div id="progressbar-label">{{ $t("assetManager.manager.uploading") }} {{ resolvedUploads }} / {{ expectedUploads }}</div>
+            <div id="progressbar-label">
+                {{ $t("assetManager.manager.uploading") }} {{ resolvedUploads }} / {{ expectedUploads }}
+            </div>
             <div id="progressbar-meter">
                 <span :style="{ width: (resolvedUploads / expectedUploads) * 100 + '%' }"></span>
             </div>

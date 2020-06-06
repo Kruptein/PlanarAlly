@@ -33,7 +33,11 @@ export default class DmSettings extends Vue {
     }
 
     get categoryNames(): string[] {
-        return [this.$t("common.admin").toString(), this.$t("common.grid").toString(), this.$t("common.vision").toString()];
+        return [
+            this.$t("common.admin").toString(),
+            this.$t("common.grid").toString(),
+            this.$t("common.vision").toString(),
+        ];
     }
 }
 </script>

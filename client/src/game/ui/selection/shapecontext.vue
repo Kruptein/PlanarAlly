@@ -106,7 +106,9 @@ export default class ShapeContext extends Vue {
 
         const spawnLocations = (gameSettingsStore.locationOptions[newLocation]?.spawnLocations ?? []).length;
         if (spawnLocations === 0) {
-            await (<Game>this.$parent.$parent.$parent).$refs.confirm.open(
+            await (<Game>(
+                this.$parent.$parent.$parent
+            )).$refs.confirm.open(
                 "game.ui.selection.shapecontext.spawn_location_info",
                 "game.ui.selection.shapecontext.spawn_location_info_msg",
                 { showNo: false, yes: "Ok" },
@@ -261,7 +263,11 @@ export default class ShapeContext extends Vue {
         <li @click="deleteSelection" v-if="showDelete()" v-t="'game.ui.selection.shapecontext.delete_shapes'"></li>
         <li v-if="hasSingleShape()" @click="openEditDialog" v-t="'game.ui.selection.shapecontext.show_props'"></li>
         <template v-if="hasSingleShape()">
-            <li v-if="markers.includes(getMarker())" @click="deleteMarker" v-t="'game.ui.selection.shapecontext.remove_marker'"></li>
+            <li
+                v-if="markers.includes(getMarker())"
+                @click="deleteMarker"
+                v-t="'game.ui.selection.shapecontext.remove_marker'"
+            ></li>
             <li v-else @click="setMarker" v-t="'game.ui.selection.shapecontext.set_marker'"></li>
         </template>
     </ContextMenu>

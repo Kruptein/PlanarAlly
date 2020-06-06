@@ -102,7 +102,12 @@ export default class MenuBar extends Vue {
                 <button class="menu-accordion" v-t="'common.assets'"></button>
                 <div id="menu-assets" class="menu-accordion-panel">
                     <input id="asset-search" v-if="assets" v-model="assetSearch" :placeholder="$t('common.search')" />
-                    <a class="actionButton" href="/assets" target="blank" :title="$t('game.ui.menu.menu.open_asset_manager')">
+                    <a
+                        class="actionButton"
+                        href="/assets"
+                        target="blank"
+                        :title="$t('game.ui.menu.menu.open_asset_manager')"
+                    >
                         <i aria-hidden="true" class="fas fa-external-link-alt"></i>
                     </a>
                     <div class="directory" id="menu-tokens">

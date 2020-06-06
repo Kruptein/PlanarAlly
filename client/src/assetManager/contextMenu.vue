@@ -42,8 +42,10 @@ export default class AssetContextMenu extends Vue {
         if (assetStore.selected.length !== 1) return;
         const asset = assetStore.idMap.get(assetStore.selected[0])!;
 
-        const name = await (<Prompt>this.parent.$refs.prompt).prompt(this.$t("assetManager.contextMenu.new_name").toString(),
-            this.$t("assetManager.contextMenu.renaming_NAME", { name: asset.name }).toString());
+        const name = await (<Prompt>this.parent.$refs.prompt).prompt(
+            this.$t("assetManager.contextMenu.new_name").toString(),
+            this.$t("assetManager.contextMenu.renaming_NAME", { name: asset.name }).toString(),
+        );
         socket.emit("Asset.Rename", {
             asset: asset.id,
             name,
@@ -54,7 +56,9 @@ export default class AssetContextMenu extends Vue {
     }
     async remove(): Promise<void> {
         if (assetStore.selected.length === 0) return;
-        const result = await (<ConfirmDialog>this.parent.$refs.confirm).open(this.$t("assetManager.contextMenu.ask_remove").toString());
+        const result = await (<ConfirmDialog>this.parent.$refs.confirm).open(
+            this.$t("assetManager.contextMenu.ask_remove").toString(),
+        );
         if (result) {
             for (const sel of assetStore.selected) {
                 socket.emit("Asset.Remove", sel);

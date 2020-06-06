@@ -184,7 +184,10 @@ export default class LocationBar extends Vue {
                     :data-loc="location.id"
                 >
                     <div class="player-collapse-header" v-t="'common.players'">
-                        <div :title="$t('game.ui.menu.locations.show_specific_pl')" @click="toggleExpanded(location.id)">
+                        <div
+                            :title="$t('game.ui.menu.locations.show_specific_pl')"
+                            @click="toggleExpanded(location.id)"
+                        >
                             <span v-show="expanded.includes(location.id)">
                                 <i aria-hidden="true" class="fas fa-chevron-up"></i>
                             </span>

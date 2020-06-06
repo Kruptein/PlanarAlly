@@ -111,7 +111,12 @@ export default class Dashboard extends Vue {
             </form>
             <div id="account-options">
                 <form @submit.prevent>
-                    <router-link tag="button" class="submit" :title="$t('dashboard.main.account_settings')" to="/settings">
+                    <router-link
+                        tag="button"
+                        class="submit"
+                        :title="$t('dashboard.main.account_settings')"
+                        to="/settings"
+                    >
                         <i aria-hidden="true" class="fas fa-cog"></i>
                     </router-link>
                 </form>

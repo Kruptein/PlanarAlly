@@ -33,8 +33,10 @@ export default class LocationAdminSettings extends Vue {
     async deleteLocation(): Promise<void> {
         const remove = await (<Game>this.$parent.$parent.$parent.$parent.$parent).$refs.confirm.open(
             this.$t("common.warning").toString(),
-            this.$t("game.ui.settings.location.LocationAdminSettings.remove_location_msg_NAME", { name: this.name }).toString(),
-            { 
+            this.$t("game.ui.settings.location.LocationAdminSettings.remove_location_msg_NAME", {
+                name: this.name,
+            }).toString(),
+            {
                 yes: this.$t("game.ui.settings.location.LocationAdminSettings.remove_location_yes").toString(),
                 no: this.$t("game.ui.settings.location.LocationAdminSettings.remove_location_no").toString(),
             },
@@ -65,7 +67,11 @@ export default class LocationAdminSettings extends Vue {
                     class="danger"
                     @click="deleteLocation"
                     :disabled="hasPlayers"
-                    :title="hasPlayers? $t('game.ui.settings.location.LocationAdminSettings.move_existing_pl') : $t('game.ui.settings.location.LocationAdminSettings.delete_this_location')"
+                    :title="
+                        hasPlayers
+                            ? $t('game.ui.settings.location.LocationAdminSettings.move_existing_pl')
+                            : $t('game.ui.settings.location.LocationAdminSettings.delete_this_location')
+                    "
                     v-t="'game.ui.settings.location.LocationAdminSettings.delete_this_location'"
                 ></button>
             </div>

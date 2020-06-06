@@ -179,7 +179,12 @@ export default class UI extends Vue {
                                 <i aria-hidden="true" class="far fa-compass"></i>
                             </a>
                         </li>
-                        <li @click="toggleMenu" class="rm-item" id="rm-settings" :title="$t('game.ui.ui.open_settings')">
+                        <li
+                            @click="toggleMenu"
+                            class="rm-item"
+                            id="rm-settings"
+                            :title="$t('game.ui.ui.open_settings')"
+                        >
                             <a href="#">
                                 <i aria-hidden="true" class="fas fa-cog"></i>
                             </a>
@@ -199,9 +204,7 @@ export default class UI extends Vue {
         <DmSettings ref="dmsettings" v-if="IS_DM || FAKE_PLAYER"></DmSettings>
         <LocationSettings v-if="IS_DM || FAKE_PLAYER"></LocationSettings>
         <MarkdownModal v-if="showChangelog" :title="$t('game.ui.ui.new_ver_msg')">
-            {{
-                $t("game.ui.ui.changelog_RELEASE_LOG", { release: version.release, log: changelog })
-            }}
+            {{ $t("game.ui.ui.changelog_RELEASE_LOG", { release: version.release, log: changelog }) }}
         </MarkdownModal>
         <!-- When updating zoom boundaries, also update store updateZoom function;
             should probably do this using a store variable-->

@@ -206,7 +206,10 @@ export default class EditDialog extends Vue {
                 >
                     <i aria-hidden="true" class="fas fa-eye"></i>
                 </div>
-                <label for="shapeselectiondialog-istoken" v-t="'game.ui.selection.edit_dialog.dialog.is_a_token'"></label>
+                <label
+                    for="shapeselectiondialog-istoken"
+                    v-t="'game.ui.selection.edit_dialog.dialog.is_a_token'"
+                ></label>
                 <input
                     type="checkbox"
                     id="shapeselectiondialog-istoken"
@@ -216,7 +219,10 @@ export default class EditDialog extends Vue {
                     class="styled-checkbox"
                     :disabled="!owned"
                 />
-                <label for="shapeselectiondialog-is-invisible" v-t="'game.ui.selection.edit_dialog.dialog.is_invisible'"></label>
+                <label
+                    for="shapeselectiondialog-is-invisible"
+                    v-t="'game.ui.selection.edit_dialog.dialog.is_invisible'"
+                ></label>
                 <input
                     type="checkbox"
                     id="shapeselectiondialog-is-invisible"
@@ -226,7 +232,10 @@ export default class EditDialog extends Vue {
                     class="styled-checkbox"
                     :disabled="!owned"
                 />
-                <label for="shapeselectiondialog-showBadge" v-t="'game.ui.selection.edit_dialog.dialog.show_badge'"></label>
+                <label
+                    for="shapeselectiondialog-showBadge"
+                    v-t="'game.ui.selection.edit_dialog.dialog.show_badge'"
+                ></label>
                 <input
                     type="checkbox"
                     id="shapeselectiondialog-showBadge"
@@ -236,7 +245,10 @@ export default class EditDialog extends Vue {
                     class="styled-checkbox"
                     :disabled="!owned"
                 />
-                <label for="shapeselectiondialog-visionblocker" v-t="'game.ui.selection.edit_dialog.dialog.block_vision_light'"></label>
+                <label
+                    for="shapeselectiondialog-visionblocker"
+                    v-t="'game.ui.selection.edit_dialog.dialog.block_vision_light'"
+                ></label>
                 <input
                     type="checkbox"
                     id="shapeselectiondialog-visionblocker"
@@ -245,7 +257,10 @@ export default class EditDialog extends Vue {
                     style="grid-column-start: remove;"
                     :disabled="!owned"
                 />
-                <label for="shapeselectiondialog-moveblocker" v-t="'game.ui.selection.edit_dialog.dialog.block_movement'"></label>
+                <label
+                    for="shapeselectiondialog-moveblocker"
+                    v-t="'game.ui.selection.edit_dialog.dialog.block_movement'"
+                ></label>
                 <input
                     type="checkbox"
                     id="shapeselectiondialog-moveblocker"

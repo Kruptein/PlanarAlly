@@ -99,25 +99,25 @@ export default class LabelManager extends Vue {
             @dragstart="m.dragStart"
             @dragend="m.dragEnd"
         >
-            <div v-t="'Label manager'"></div>
-            <div class="header-close" @click="visible = false" :title="$t('Close')">
+            <div v-t="'game.ui.labels.title'"></div>
+            <div class="header-close" @click="visible = false" :title="$t('common.close')">
                 <i aria-hidden="true" class="far fa-window-close"></i>
             </div>
         </div>
         <div class="modal-body">
             <div class="grid">
                 <div class="header">
-                    <abbr :title="$t('Category')" v-t="'Cat[DOT]'"></abbr>
+                    <abbr :title="$t('game.ui.labels.category')" v-t="'game.ui.labels.cat_abbr'"></abbr>
                 </div>
-                <div class="header name" v-t="'Name'"></div>
+                <div class="header name" v-t="'common.name'"></div>
                 <div class="header">
-                    <abbr :title="$t('Visible')" v-t="'Vis[DOT]'"></abbr>
+                    <abbr :title="$t('game.ui.labels.visible')" v-t="'game.ui.labels.vis_abbr'"></abbr>
                 </div>
                 <div class="header">
-                    <abbr :title="$t('Delete')" v-t="'Del[DOT]'"></abbr>
+                    <abbr :title="$t('game.ui.labels.delete')" v-t="'game.ui.labels.del_abbr'"></abbr>
                 </div>
                 <div class="separator spanrow" style="margin: 0 0 7px;"></div>
-                <input class="spanrow" type="text" :placeholder="$t('search')" v-model="search" ref="search" />
+                <input class="spanrow" type="text" :placeholder="$t('common.search')" v-model="search" ref="search" />
             </div>
             <div class="grid scroll">
                 <template v-for="category in categories">
@@ -136,14 +136,14 @@ export default class LabelManager extends Vue {
                                 :style="{ textAlign: 'center' }"
                                 :class="{ 'lower-opacity': !label.visible }"
                                 @click.stop="toggleVisibility(label)"
-                                :title="$t('Toggle public/private')"
+                                :title="$t('common.toggle_public_private')"
                             >
                                 <i aria-hidden="true" class="fas fa-eye"></i>
                             </div>
                             <div
                                 :key="'delete-' + label.uuid"
                                 @click.stop="deleteLabel(label.uuid)"
-                                :title="$t('Delete label')"
+                                :title="$t('game.ui.labels.delete_label')"
                             >
                                 <i aria-hidden="true" class="fas fa-trash-alt"></i>
                             </div>
@@ -151,14 +151,14 @@ export default class LabelManager extends Vue {
                     </template>
                 </template>
                 <template v-if="labels.length === 0">
-                    <div id="no-labels" v-t="'No labels exist yet'"></div>
+                    <div id="no-labels" v-t="'game.ui.labels.no_exist_msg'"></div>
                 </template>
             </div>
             <div class="grid">
                 <div class="separator spanrow"></div>
                 <input type="text" v-model.trim="newCategory" />
                 <input type="text" v-model.trim="newName" />
-                <button id="addLabelButton" @click.stop="addLabel" v-t="'Add'"></button>
+                <button id="addLabelButton" @click.stop="addLabel" v-t="'common.add'"></button>
             </div>
         </div>
     </Modal>

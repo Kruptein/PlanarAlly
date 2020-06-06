@@ -47,7 +47,7 @@ export default class Settings extends Vue {
     getComponentTitle(title: string): string {
         switch (title) {
             case "Account Settings":
-                return this.$t("Account Settings").toString();
+                return this.$t("settings.settings.account_settings").toString();
 
             default:
                 return "";
@@ -57,7 +57,7 @@ export default class Settings extends Vue {
     getComponentNav(nav: string): string {
         switch (nav) {
             case "Account":
-                return this.$t("Account").toString();
+                return this.$t("settings.settings.account").toString();
 
             default:
                 return "";

@@ -528,16 +528,16 @@ export default class DrawTool extends Tool implements ToolBasics {
     getShapeWord(shape: string): string {
         switch (shape) {
             case "square":
-                return this.$t("square").toString();
+                return this.$t("draw.square").toString();
 
             case "circle":
-                return this.$t("circle").toString();
+                return this.$t("draw.circle").toString();
 
             case "draw-polygon":
-                return this.$t("draw-polygon").toString();
+                return this.$t("draw.draw-polygon").toString();
 
             case "paint-brush":
-                return this.$t("paint-brush").toString();
+                return this.$t("draw.paint-brush").toString();
 
             default:
                 return "";
@@ -547,13 +547,13 @@ export default class DrawTool extends Tool implements ToolBasics {
     getModeWord(mode: string): string {
         switch (mode) {
             case "normal":
-                return this.$t("normal").toString();
+                return this.$t("draw.normal").toString();
 
             case "reveal":
-                return this.$t("reveal").toString();
+                return this.$t("draw.reveal").toString();
 
             case "hide":
-                return this.$t("hide").toString();
+                return this.$t("draw.hide").toString();
 
             default:
                 return "";
@@ -564,7 +564,7 @@ export default class DrawTool extends Tool implements ToolBasics {
 
 <template>
     <div class="tool-detail" v-if="selected" :style="{ '--detailRight': detailRight, '--detailArrow': detailArrow }">
-        <div v-show="IS_DM" v-t="'Mode'"></div>
+        <div v-show="IS_DM" v-t="'game.ui.tools.draw.mode'"></div>
         <div v-show="IS_DM" class="selectgroup">
             <div
                 v-for="mode in modes"
@@ -576,7 +576,7 @@ export default class DrawTool extends Tool implements ToolBasics {
                 {{ getModeWord(mode) }}
             </div>
         </div>
-        <div v-t="'Shape'"></div>
+        <div v-t="'common.shape'"></div>
         <div class="selectgroup">
             <div
                 v-for="shape in shapes"
@@ -589,27 +589,27 @@ export default class DrawTool extends Tool implements ToolBasics {
                 <i aria-hidden="true" class="fas" :class="'fa-' + shape"></i>
             </div>
         </div>
-        <div v-t="'Colours'"></div>
+        <div v-t="'common.colors'"></div>
         <div class="selectgroup">
             <color-picker
                 class="option"
                 :class="{ 'radius-right': !showBorderColour() }"
                 :color.sync="fillColour"
-                :title="$t('Foreground colour')"
+                :title="$t('game.ui.tools.draw.foreground_color')"
             />
             <color-picker
                 class="option"
                 :color.sync="borderColour"
                 v-show="showBorderColour()"
-                :title="$t('Background colour')"
+                :title="$t('game.ui.tools.draw.background_color')"
             />
         </div>
         <div v-show="shapeSelect === 'draw-polygon'" style="display:flex">
-            <label for="polygon-close" style="flex:5" v-t="'Closed polygon?'"></label>
+            <label for="polygon-close" style="flex:5" v-t="'game.ui.tools.draw.closed_polygon'"></label>
             <input type="checkbox" id="polygon-close" style="flex:1;align-self:center;" v-model="closedPolygon" />
         </div>
         <div v-show="hasBrushSize()" style="display:flex">
-            <label for="brush-size" style="flex:5" v-t="'Brush size'"></label>
+            <label for="brush-size" style="flex:5" v-t="'game.ui.tools.draw.brush_size'"></label>
             <input type="input" id="brush-size" v-model="brushSize" style="flex:4;align-self:center;max-width:100px;" />
         </div>
     </div>

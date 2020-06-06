@@ -68,14 +68,14 @@ export default class Login extends Vue {
     <div style="display:contents">
         <form @focusin="focusin" @focusout="focusout" @submit.prevent="login">
             <fieldset>
-                <legend class="legend">PlanarAlly</legend>
+                <legend class="legend" v-t="'common.PlanarAlly'"></legend>
                 <div class="input">
                     <input
                         id="username"
                         type="text"
                         name="username"
                         v-model="username"
-                        :placeholder="$t('Username')"
+                        :placeholder="$t('common.username')"
                         autocomplete="username"
                         required
                         autofocus
@@ -91,7 +91,7 @@ export default class Login extends Vue {
                         type="password"
                         name="password"
                         v-model="password"
-                        :placeholder="$t('Password')"
+                        :placeholder="$t('common.password')"
                         autocomplete="current-password"
                         required
                     />
@@ -102,10 +102,16 @@ export default class Login extends Vue {
 
                 <div style="display:flex;">
                     <button type="submit" name="login" style="visibility: hidden;display:none;"></button>
-                    <button type="button" name="register" class="submit" :title="$t('Register')" @click="register">
+                    <button
+                        type="button"
+                        name="register"
+                        class="submit"
+                        :title="$t('auth.login.register')"
+                        @click="register"
+                    >
                         <i aria-hidden="true" class="fas fa-plus"></i>
                     </button>
-                    <button type="submit" name="login" class="submit" :title="$t('Login')">
+                    <button type="submit" name="login" class="submit" :title="$t('auth.login.login')">
                         <i aria-hidden="true" class="fas fa-arrow-right"></i>
                     </button>
                 </div>
@@ -113,13 +119,13 @@ export default class Login extends Vue {
 
             <div class="feedback" v-if="error">
                 <p class="error">
-                    <strong v-t="'Error:'"></strong>
+                    <strong v-t="'common.error_prefix'"></strong>
                     {{ error }}
                 </p>
             </div>
         </form>
         <div id="version">
-            {{ $t("Server version:") }}
+            {{ $t("common.server_ver_prefix") }}
             <a :href="githubUrl">{{ version }}</a>
         </div>
     </div>

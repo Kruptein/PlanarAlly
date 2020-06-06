@@ -73,7 +73,11 @@ export default class SelectionInfo extends Vue {
     <div v-show="shapes.length > 0">
         <div v-for="shape in shapes" :key="shape.uuid">
             <div id="selection-menu">
-                <div id="selection-edit-button" @click="openEditDialog" :title="$t('Open shape properties')">
+                <div
+                    id="selection-edit-button"
+                    @click="openEditDialog"
+                    :title="$t('game.ui.selection.select_info.open_shape_props')"
+                >
                     <i aria-hidden="true" class="fas fa-edit"></i>
                 </div>
                 <div id="selection-name">{{ shape.name }}</div>
@@ -84,7 +88,7 @@ export default class SelectionInfo extends Vue {
                             class="selection-tracker-value"
                             :key="'value-' + tracker.uuid"
                             @click="changeValue(tracker, false)"
-                            :title="$t('Quick edit tracker')"
+                            :title="$t('game.ui.selection.select_info.quick_edit_tracker')"
                         >
                             <template v-if="tracker.maxvalue === 0">
                                 {{ tracker.value }}
@@ -100,7 +104,7 @@ export default class SelectionInfo extends Vue {
                             class="selection-tracker-value"
                             :key="'value-' + aura.uuid"
                             @click="changeValue(aura, true)"
-                            :title="$t('Quick edit aura')"
+                            :title="$t('game.ui.selection.select_info.quick_edit_aura')"
                         >
                             <template v-if="aura.dim === 0">
                                 {{ aura.value }}

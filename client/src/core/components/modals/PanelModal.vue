@@ -41,7 +41,7 @@ export default class PanelModal extends Vue {
             @dragend="m.dragEnd"
         >
             <div><slot name="title"></slot></div>
-            <div class="header-close" @click="hideModal" :title="$t('Close')">
+            <div class="header-close" @click="hideModal" :title="$t('common.close')">
                 <i aria-hidden="true" class="far fa-window-close"></i>
             </div>
         </div>

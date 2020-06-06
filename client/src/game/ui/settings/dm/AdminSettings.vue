@@ -52,11 +52,11 @@ export default class AdminSettings extends Vue {
     }
     async deleteSession(): Promise<void> {
         const value = await (<Game>this.$parent.$parent.$parent.$parent.$parent).$refs.prompt.prompt(
-            this.$t("ENTER {creator}/{room} TO CONFIRM SESSION REMOVAL[DOT]", {
+            this.$t("game.ui.settings.dm.AdminSettings.delete_session_msg_CREATOR_ROOM", {
                 creator: gameStore.roomCreator,
                 room: gameStore.roomName,
             }).toString(),
-            this.$t("DELETING SESSION").toString(),
+            this.$t("game.ui.settings.dm.AdminSettings.deleting_session").toString(),
         );
         if (value !== `${gameStore.roomCreator}/${gameStore.roomName}`) return;
         socket.emit("Room.Delete");
@@ -67,19 +67,19 @@ export default class AdminSettings extends Vue {
 
 <template>
     <div class="panel">
-        <div class="spanrow header" v-t="'Players'"></div>
+        <div class="spanrow header" v-t="'common.players'"></div>
         <div class="row smallrow" v-for="player in players" :key="player.id">
             <div>{{ player.name }}</div>
             <div>
-                <div @click="kickPlayer(player.id)" v-t="'Kick'"></div>
+                <div @click="kickPlayer(player.id)" v-t="'game.ui.settings.dm.AdminSettings.kick'"></div>
             </div>
         </div>
         <div class="row smallrow" v-if="Object.values(players).length === 0">
-            <div class="spanrow" v-t="'There are no players yet, invite some using the link below!'"></div>
+            <div class="spanrow" v-t="'game.ui.settings.dm.AdminSettings.no_players_invite_msg'"></div>
         </div>
-        <div class="spanrow header" v-t="'Invite code'"></div>
+        <div class="spanrow header" v-t="'game.ui.settings.dm.AdminSettings.invite_code'"></div>
         <div class="row">
-            <div v-t="'Invitation URL:'"></div>
+            <div v-t="'game.ui.settings.dm.AdminSettings.invitation_url'"></div>
             <template v-if="showRefreshState">
                 <InputCopyElement :value="refreshState" />
             </template>
@@ -90,29 +90,33 @@ export default class AdminSettings extends Vue {
         <div class="row" @click="refreshInviteCode">
             <div></div>
             <div>
-                <button v-t="'Refresh invitation code'"></button>
+                <button v-t="'game.ui.settings.dm.AdminSettings.refresh_invitation_code'"></button>
             </div>
         </div>
-        <div class="spanrow header" v-t="'Danger[NBSP]Zone'"></div>
+        <div class="spanrow header" v-t="'game.ui.settings.dm.AdminSettings.danger_NBSP_zone'"></div>
         <div class="row">
             <div>
-                <template v-if="locked">{{ $t("Unlock") }}</template>
-                <template v-else>{{ $t("Lock") }}</template>
-                {{ $t("Session[NBSP]") }}
-                <em v-t="'(DM access only)'"></em>
+                <template v-if="locked">
+                    {{ $t("game.ui.settings.dm.AdminSettings.unlock_NBSP_Session_NBSP") }}
+                </template>
+                <template v-else>{{ $t("game.ui.settings.dm.AdminSettings.lock_NBSP_Session_NBSP") }}</template>
+                <em v-t="'game.ui.settings.dm.AdminSettings.dm_access_only'"></em>
             </div>
             <div>
                 <button class="danger" @click="toggleSessionLock">
-                    <template v-if="locked">{{ $t("Unlock") }}</template>
-                    <template v-else>{{ $t("Lock") }}</template>
-                    {{ $t("this Session") }}
+                    <template v-if="locked">{{ $t("game.ui.settings.dm.AdminSettings.unlock_this_session") }}</template>
+                    <template v-else>{{ $t("game.ui.settings.dm.AdminSettings.lock_this_session") }}</template>
                 </button>
             </div>
         </div>
         <div class="row">
-            <div v-t="'Remove Session'"></div>
+            <div v-t="'game.ui.settings.dm.AdminSettings.remove_session'"></div>
             <div>
-                <button class="danger" @click="deleteSession" v-t="'Delete this Session'"></button>
+                <button
+                    class="danger"
+                    @click="deleteSession"
+                    v-t="'game.ui.settings.dm.AdminSettings.delete_session'"
+                ></button>
             </div>
         </div>
     </div>

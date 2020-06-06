@@ -291,34 +291,34 @@ export default class Tools extends Vue {
     }
 
     getModeWord(): string {
-        return this.mode === "Build" ? this.$t("Build").toString() : this.$t("Play").toString();
+        return this.mode === "Build" ? this.$t("tool.Build").toString() : this.$t("tool.Play").toString();
     }
 
     getToolWord(tool: string): string {
         switch (tool) {
             case ToolName.Select:
-                return this.$t("Select").toString();
+                return this.$t("tool.Select").toString();
 
             case ToolName.Pan:
-                return this.$t("Pan").toString();
+                return this.$t("tool.Pan").toString();
 
             case ToolName.Draw:
-                return this.$t("Draw").toString();
+                return this.$t("tool.Draw").toString();
 
             case ToolName.Ruler:
-                return this.$t("Ruler").toString();
+                return this.$t("tool.Ruler").toString();
 
             case ToolName.Ping:
-                return this.$t("Ping").toString();
+                return this.$t("tool.Ping").toString();
 
             case ToolName.Map:
-                return this.$t("Map").toString();
+                return this.$t("tool.Map").toString();
 
             case ToolName.Filter:
-                return this.$t("Filter").toString();
+                return this.$t("tool.Filter").toString();
 
             case ToolName.Vision:
-                return this.$t("Vision").toString();
+                return this.$t("tool.Vision").toString();
 
             default:
                 return "";
@@ -341,7 +341,9 @@ export default class Tools extends Vue {
                 >
                     <a href="#">{{ getToolWord(tool) }}</a>
                 </li>
-                <li id="tool-mode" @click="toggleMode" :title="$t('Change mode')">{{ getModeWord() }}</li>
+                <li id="tool-mode" @click="toggleMode" :title="$t('game.ui.tools.tools.change_mode')">
+                    {{ getModeWord() }}
+                </li>
             </ul>
         </div>
         <div>

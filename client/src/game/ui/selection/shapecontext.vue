@@ -78,12 +78,12 @@ export default class ShapeContext extends Vue {
         const layer = this.getActiveLayer()!;
         if (layer.selection.length === 1) {
             return inInitiative(layer.selection[0].uuid)
-                ? this.$t("Show initiative").toString()
-                : this.$t("Add initiative").toString();
+                ? this.$t("game.ui.selection.shapecontext.show_initiative").toString()
+                : this.$t("game.ui.selection.shapecontext.add_initiative").toString();
         } else {
             return layer.selection.every(shape => inInitiative(shape.uuid))
-                ? this.$t("Show initiative").toString()
-                : this.$t("Add all to initiative").toString();
+                ? this.$t("game.ui.selection.shapecontext.show_initiative").toString()
+                : this.$t("game.ui.selection.shapecontext.add_all_initiative").toString();
         }
     }
     hasSingleShape(): boolean {
@@ -106,9 +106,11 @@ export default class ShapeContext extends Vue {
 
         const spawnLocations = (gameSettingsStore.locationOptions[newLocation]?.spawnLocations ?? []).length;
         if (spawnLocations === 0) {
-            await (<Game>this.$parent.$parent.$parent).$refs.confirm.open(
-                "Spawn location info",
-                "Since version 0.21 a concept of spawn locations has been introduced. The target location does not yet have a spawn location; Visit it manually first to autogenerate one.",
+            await (<Game>(
+                this.$parent.$parent.$parent
+            )).$refs.confirm.open(
+                "game.ui.selection.shapecontext.spawn_location_info",
+                "game.ui.selection.shapecontext.spawn_location_info_msg",
                 { showNo: false, yes: "Ok" },
             );
             this.close();
@@ -189,16 +191,16 @@ export default class ShapeContext extends Vue {
     getLayerWord(layer: string): string {
         switch (layer) {
             case "map":
-                return this.$t("map").toString();
+                return this.$t("layer.map").toString();
 
             case "tokens":
-                return this.$t("tokens").toString();
+                return this.$t("layer.tokens").toString();
 
             case "dm":
-                return this.$t("dm").toString();
+                return this.$t("layer.dm").toString();
 
             case "fow":
-                return this.$t("fow").toString();
+                return this.$t("layer.fow").toString();
 
             default:
                 return "";
@@ -217,7 +219,7 @@ export default class ShapeContext extends Vue {
     >
         <Prompt ref="prompt"></Prompt>
         <li v-if="getFloors().length > 1">
-            {{ $t("Floor") }}
+            {{ $t("common.floor") }}
             <ul>
                 <li
                     v-for="(floor, idx) in getFloors()"
@@ -230,7 +232,7 @@ export default class ShapeContext extends Vue {
             </ul>
         </li>
         <li v-if="getLayers().length > 1">
-            {{ $t("Layer") }}
+            {{ $t("common.layer") }}
             <ul>
                 <li
                     v-for="layer in getLayers()"
@@ -243,7 +245,7 @@ export default class ShapeContext extends Vue {
             </ul>
         </li>
         <li v-if="getLocations().length > 1">
-            {{ $t("Location") }}
+            {{ $t("common.location") }}
             <ul>
                 <li
                     v-for="location in getLocations()"
@@ -255,14 +257,18 @@ export default class ShapeContext extends Vue {
                 </li>
             </ul>
         </li>
-        <li @click="moveToBack" v-t="'Move to back'"></li>
-        <li @click="moveToFront" v-t="'Move to front'"></li>
+        <li @click="moveToBack" v-t="'game.ui.selection.shapecontext.move_back'"></li>
+        <li @click="moveToFront" v-t="'game.ui.selection.shapecontext.move_front'"></li>
         <li @click="addInitiative" v-if="showInitiative()">{{ getInitiativeWord() }}</li>
-        <li @click="deleteSelection" v-if="showDelete()" v-t="'Delete shapes'"></li>
-        <li v-if="hasSingleShape()" @click="openEditDialog" v-t="'Show properties'"></li>
+        <li @click="deleteSelection" v-if="showDelete()" v-t="'game.ui.selection.shapecontext.delete_shapes'"></li>
+        <li v-if="hasSingleShape()" @click="openEditDialog" v-t="'game.ui.selection.shapecontext.show_props'"></li>
         <template v-if="hasSingleShape()">
-            <li v-if="markers.includes(getMarker())" @click="deleteMarker" v-t="'Remove marker'"></li>
-            <li v-else @click="setMarker" v-t="'Set marker'"></li>
+            <li
+                v-if="markers.includes(getMarker())"
+                @click="deleteMarker"
+                v-t="'game.ui.selection.shapecontext.remove_marker'"
+            ></li>
+            <li v-else @click="setMarker" v-t="'game.ui.selection.shapecontext.set_marker'"></li>
         </template>
     </ContextMenu>
 </template>

@@ -40,14 +40,20 @@ export default class LocationSettings extends Vue {
     }
 
     get categoryNames(): string[] {
-        return [this.$t("Admin").toString(), this.$t("Grid").toString(), this.$t("Vision").toString()];
+        return [
+            this.$t("common.admin").toString(),
+            this.$t("common.grid").toString(),
+            this.$t("common.vision").toString(),
+        ];
     }
 }
 </script>
 
 <template>
     <PanelModal :visible.sync="visible" :categories="categoryNames">
-        <template v-slot:title>{{ $t("Location Settings:") }} {{ locationName }}</template>
+        <template v-slot:title>
+            {{ $t("game.ui.settings.location.LocationSettings.location_settings") }} {{ locationName }}
+        </template>
         <template v-slot:default="{ selection }">
             <LocationAdminSettings
                 :location.sync="location"

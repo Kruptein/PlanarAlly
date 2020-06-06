@@ -111,22 +111,22 @@ export default class CreateTokenModal extends Vue {
             draggable="true"
             @dragstart="m.dragStart"
             @dragend="m.dragEnd"
-            v-t="'Create basic token'"
+            v-t="'game.ui.tools.createtoken_modal.create_basic_token'"
         ></div>
         <div class="modal-body">
-            <label for="createtokendialog-text" v-t="'Text'"></label>
+            <label for="createtokendialog-text" v-t="'game.ui.tools.createtoken_modal.text'"></label>
             <input type="text" id="createtokendialog-name" v-model="text" />
-            <label v-t="'Colours'"></label>
+            <label v-t="'common.colors'"></label>
             <div class="colours">
-                <span v-t="'Fill:'"></span>
+                <span v-t="'game.ui.tools.createtoken_modal.fill'"></span>
                 <color-picker :color.sync="fillColour" />
-                <span v-t="'Border:'"></span>
+                <span v-t="'game.ui.tools.createtoken_modal.border'"></span>
                 <color-picker :color.sync="borderColour" />
             </div>
             <canvas ref="canvas" width="100px" height="100px"></canvas>
         </div>
         <div class="modal-footer">
-            <button @click="submit" v-t="'Submit'"></button>
+            <button @click="submit" v-t="'common.submit'"></button>
         </div>
     </modal>
 </template>

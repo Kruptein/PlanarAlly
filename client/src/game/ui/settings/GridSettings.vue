@@ -56,38 +56,40 @@ export default class GridSettings extends Vue {
 <template>
     <div class="panel restore-panel">
         <div class="spanrow">
-            <em style="max-width: 40vw">
-                <template v-if="location === null">
-                    {{ $t("Some of these settings can be overriden by location specific settings") }}
-                </template>
-                <template v-else>
-                    {{ $t("Settings that override the campaign defaults are highlighted") }}
-                </template>
-            </em>
+            <template v-if="location === null">
+                <em style="max-width: 40vw">
+                    {{ $t("game.ui.settings.common.overridden_msg") }}
+                </em>
+            </template>
+            <template v-else>
+                <i18n path="game.ui.settings.common.overridden_highlight_path" tag="span">
+                    <span class="overwritten">{{ $t("game.ui.settings.common.overridden_highlight") }}</span>
+                </i18n>
+            </template>
         </div>
         <div class="row" :class="{ overwritten: location !== null && options.useGrid !== undefined }">
-            <label :for="'useGridInput-' + location" v-t="'Use grid'"></label>
+            <label :for="'useGridInput-' + location" v-t="'game.ui.settings.GridSettings.use_grid'"></label>
             <div>
                 <input :id="'useGridInput-' + location" type="checkbox" v-model="useGrid" />
             </div>
             <div
                 v-if="location !== null && options.useGrid !== undefined"
                 @click="reset('useGrid')"
-                :title="$t('Reset to the campaign default')"
+                :title="$t('game.ui.settings.common.reset_default')"
             >
                 <i aria-hidden="true" class="fas fa-times-circle"></i>
             </div>
             <div v-else></div>
         </div>
         <div class="row" :class="{ overwritten: location !== null && options.gridSize !== undefined }">
-            <label :for="'gridSizeInput-' + location" v-t="'Grid Size (in pixels):'"></label>
+            <label :for="'gridSizeInput-' + location" v-t="'game.ui.settings.GridSettings.grid_size_in_pixels'"></label>
             <div>
                 <input :id="'gridSizeInput-' + location" type="number" min="0" v-model.number="gridSize" />
             </div>
             <div
                 v-if="location !== null && options.gridSize !== undefined"
                 @click="reset('gridSize')"
-                :title="$t('Reset to the campaign default')"
+                :title="$t('game.ui.settings.common.reset_default')"
             >
                 <i aria-hidden="true" class="fas fa-times-circle"></i>
             </div>
@@ -95,7 +97,7 @@ export default class GridSettings extends Vue {
         </div>
         <div class="row" :class="{ overwritten: location !== null && options.unitSizeUnit !== undefined }">
             <div>
-                <label :for="'unitSizeUnit-' + location" v-t="'Size Unit'"></label>
+                <label :for="'unitSizeUnit-' + location" v-t="'game.ui.settings.GridSettings.size_unit'"></label>
             </div>
             <div>
                 <input :id="'unitSizeUnit-' + location" type="text" v-model="unitSizeUnit" />
@@ -103,7 +105,7 @@ export default class GridSettings extends Vue {
             <div
                 v-if="location !== null && options.unitSizeUnit !== undefined"
                 @click="reset('unitSizeUnit')"
-                :title="$t('Reset to the campaign default')"
+                :title="$t('game.ui.settings.common.reset_default')"
             >
                 <i aria-hidden="true" class="fas fa-times-circle"></i>
             </div>
@@ -112,7 +114,7 @@ export default class GridSettings extends Vue {
         <div class="row" :class="{ overwritten: location !== null && options.unitSize !== undefined }">
             <div>
                 <label :for="'unitSizeInput-' + location">
-                    {{ $t("Unit Size (in {unit})", { unit: unitSizeUnit }) }}
+                    {{ $t("game.ui.settings.GridSettings.unit_size_in_UNIT", { unit: unitSizeUnit }) }}
                 </label>
             </div>
             <div>
@@ -121,7 +123,7 @@ export default class GridSettings extends Vue {
             <div
                 v-if="location !== null && options.unitSize !== undefined"
                 @click="reset('unitSize')"
-                :title="$t('Reset to the campaign default')"
+                :title="$t('game.ui.settings.common.reset_default')"
             >
                 <i aria-hidden="true" class="fas fa-times-circle"></i>
             </div>
@@ -136,6 +138,7 @@ export default class GridSettings extends Vue {
     grid-template-columns: [setting] 1fr [value] 1fr [restore] 30px [end];
 }
 
+.overwritten,
 .restore-panel .row.overwritten * {
     color: #7c253e;
     font-weight: bold;

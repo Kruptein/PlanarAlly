@@ -34,7 +34,7 @@ export default class MarkdownModal extends Vue {
             @dragend="m.dragEnd"
         >
             <div>{{ title }}</div>
-            <div class="header-close" @click="close" :title="$t('Close')">
+            <div class="header-close" @click="close" :title="$t('common.close')">
                 <i aria-hidden="true" class="far fa-window-close"></i>
             </div>
         </div>

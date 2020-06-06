@@ -66,6 +66,7 @@ export abstract class Shape {
     badge = 1;
     showBadge = false;
 
+    isLocked = false;
     defaultAccess: ShapeAccess = { vision: false, movement: false, edit: false };
 
     constructor(refPoint: GlobalPoint, fillColour?: string, strokeColour?: string, uuid?: string) {
@@ -202,6 +203,13 @@ export abstract class Shape {
         this.invalidate(true);
     }
 
+    setLocked(isLocked: boolean, sync: boolean): void {
+        this.isLocked = isLocked;
+        // eslint-disable-next-line @typescript-eslint/camelcase
+        if (sync) socket.emit("Shape.Options.Locked.Set", { shape: this.uuid, is_locked: isLocked });
+        this.invalidate(true);
+    }
+
     abstract asDict(): ServerShape;
     getBaseDict(): ServerShape {
         /* eslint-disable @typescript-eslint/camelcase */
@@ -229,6 +237,7 @@ export abstract class Shape {
             options: JSON.stringify([...this.options]),
             badge: this.badge,
             show_badge: this.showBadge,
+            is_locked: this.isLocked,
             default_edit_access: this.defaultAccess.edit,
             default_movement_access: this.defaultAccess.movement,
             default_vision_access: this.defaultAccess.vision,
@@ -251,6 +260,7 @@ export abstract class Shape {
         this.nameVisible = data.name_visible;
         this.badge = data.badge;
         this.showBadge = data.show_badge;
+        this.isLocked = data.is_locked;
         if (data.annotation) this.annotation = data.annotation;
         if (data.name) this.name = data.name;
         if (data.options) this.options = new Map(JSON.parse(data.options));

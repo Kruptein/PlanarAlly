@@ -28,7 +28,7 @@ export default class App extends Vue {
 @import url("https://fonts.googleapis.com/css?family=Open+Sans");
 
 body {
-  overscroll-behavior: contain;
+    overscroll-behavior: contain;
 }
 
 html,

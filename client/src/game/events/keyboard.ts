@@ -100,6 +100,13 @@ export function onKeyDown(event: KeyboardEvent): void {
         } else if (event.key === "d") {
             // d - Deselect all
             layerManager.clearSelection();
+        } else if (event.key === "l" && event.ctrlKey) {
+            const selection = layerManager.getSelection() ?? [];
+            for (const shape of selection) {
+                shape.isLocked = !shape.isLocked;
+            }
+            event.preventDefault();
+            event.stopPropagation();
         } else if (event.key === "u" && event.ctrlKey) {
             // Ctrl-u - disable and reenable the Interface
             event.preventDefault();

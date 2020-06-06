@@ -24,6 +24,7 @@ export interface ServerShape {
     options?: string;
     badge: number;
     show_badge: boolean;
+    is_locked: boolean;
     default_edit_access: boolean;
     default_movement_access: boolean;
     default_vision_access: boolean;

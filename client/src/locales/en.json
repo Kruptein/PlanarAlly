@@ -72,13 +72,13 @@
     },
     "dashboard": {
         "main": {
-            "session_name": "Session Name",
+            "session_name": "Campaign Name",
             "account_settings": "Account Settings",
             "logout": "Logout",
-            "your_sessions": "Your sessions",
-            "no_sessions": "No active sessions",
-            "create_session": "Create a session",
-            "create_new_session": "Create a new session"
+            "your_sessions": "Your campaigns",
+            "no_sessions": "No active campaigns",
+            "create_session": "Create a campaign",
+            "create_new_session": "Create a new campaign"
         }
     },
     "game": {
@@ -188,12 +188,12 @@
             "settings": {
                 "dm": {
                     "AdminSettings": {
-                        "delete_session_msg_CREATOR_ROOM": "ENTER {creator}/{room} TO CONFIRM SESSION REMOVAL.",
-                        "deleting_session": "DELETING SESSION",
-                        "unlock_NBSP_Session_NBSP": "Unlock\u00a0Session\u00a0",
-                        "lock_NBSP_Session_NBSP": "Lock\u00a0Session\u00a0",
-                        "unlock_this_session": "Unlock this session",
-                        "lock_this_session": "Lock this session",
+                        "delete_session_msg_CREATOR_ROOM": "ENTER {creator}/{room} TO CONFIRM CAMPAIGN REMOVAL.",
+                        "deleting_session": "DELETING CAMPAIGN",
+                        "unlock_NBSP_Session_NBSP": "Unlock\u00a0Campaign\u00a0",
+                        "lock_NBSP_Session_NBSP": "Lock\u00a0Campaign\u00a0",
+                        "unlock_this_session": "Unlock this campaign",
+                        "lock_this_session": "Lock this campaign",
                         "kick": "Kick",
                         "no_players_invite_msg": "There are no players yet, invite some using the link below!",
                         "invite_code": "Invite code",
@@ -201,8 +201,8 @@
                         "refresh_invitation_code": "Refresh invitation code",
                         "danger_NBSP_zone": "Danger\u00a0Zone",
                         "dm_access_only": "(DM access only)",
-                        "remove_session": "Remove Session",
-                        "delete_session": "Delete this Session"
+                        "remove_session": "Remove Campaign",
+                        "delete_session": "Delete this Campaign"
                     },
                     "DmSettings": {
                         "dm_settings": "DM Settings"

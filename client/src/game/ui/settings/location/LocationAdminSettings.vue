@@ -32,9 +32,14 @@ export default class LocationAdminSettings extends Vue {
 
     async deleteLocation(): Promise<void> {
         const remove = await (<Game>this.$parent.$parent.$parent.$parent.$parent).$refs.confirm.open(
-            "Warning",
-            `Are you sure you wish to remove location ${this.name}`,
-            { yes: "Yes, delete this location", no: "please no" },
+            this.$t("common.warning").toString(),
+            this.$t("game.ui.settings.location.LocationAdminSettings.remove_location_msg_NAME", {
+                name: this.name,
+            }).toString(),
+            {
+                yes: this.$t("game.ui.settings.location.LocationAdminSettings.remove_location_yes").toString(),
+                no: this.$t("game.ui.settings.location.LocationAdminSettings.remove_location_no").toString(),
+            },
         );
         if (!remove) return;
         socket.emit("Location.Delete", this.location);
@@ -49,23 +54,26 @@ export default class LocationAdminSettings extends Vue {
     <div class="panel">
         <div class="row">
             <div>
-                <label :for="'rename-' + location">Name</label>
+                <label :for="'rename-' + location" v-t="'common.name'"></label>
             </div>
             <div>
                 <input :id="'rename-' + location" type="text" v-model="name" />
             </div>
         </div>
         <div class="row">
-            <div>Remove Location</div>
+            <div v-t="'game.ui.settings.location.LocationAdminSettings.remove_location'"></div>
             <div>
                 <button
                     class="danger"
                     @click="deleteLocation"
                     :disabled="hasPlayers"
-                    :title="hasPlayers ? 'Move existing players on this location' : 'Delete this location'"
-                >
-                    Delete this Location
-                </button>
+                    :title="
+                        hasPlayers
+                            ? $t('game.ui.settings.location.LocationAdminSettings.move_existing_pl')
+                            : $t('game.ui.settings.location.LocationAdminSettings.delete_this_location')
+                    "
+                    v-t="'game.ui.settings.location.LocationAdminSettings.delete_this_location'"
+                ></button>
             </div>
         </div>
     </div>

@@ -289,6 +289,41 @@ export default class Tools extends Vue {
     toggleMode(): void {
         this.mode = this.mode === "Build" ? "Play" : "Build";
     }
+
+    getModeWord(): string {
+        return this.mode === "Build" ? this.$t("tool.Build").toString() : this.$t("tool.Play").toString();
+    }
+
+    getToolWord(tool: string): string {
+        switch (tool) {
+            case ToolName.Select:
+                return this.$t("tool.Select").toString();
+
+            case ToolName.Pan:
+                return this.$t("tool.Pan").toString();
+
+            case ToolName.Draw:
+                return this.$t("tool.Draw").toString();
+
+            case ToolName.Ruler:
+                return this.$t("tool.Ruler").toString();
+
+            case ToolName.Ping:
+                return this.$t("tool.Ping").toString();
+
+            case ToolName.Map:
+                return this.$t("tool.Map").toString();
+
+            case ToolName.Filter:
+                return this.$t("tool.Filter").toString();
+
+            case ToolName.Vision:
+                return this.$t("tool.Vision").toString();
+
+            default:
+                return "";
+        }
+    }
 }
 </script>
 
@@ -304,9 +339,11 @@ export default class Tools extends Vue {
                     :ref="tool + '-selector'"
                     @mousedown="currentTool = tool"
                 >
-                    <a href="#">{{ tool }}</a>
+                    <a href="#">{{ getToolWord(tool) }}</a>
                 </li>
-                <li id="tool-mode" @click="toggleMode" title="Change mode">{{ mode }}</li>
+                <li id="tool-mode" @click="toggleMode" :title="$t('game.ui.tools.tools.change_mode')">
+                    {{ getModeWord() }}
+                </li>
             </ul>
         </div>
         <div>

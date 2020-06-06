@@ -63,7 +63,7 @@ export default class Prompt extends Vue {
             <input type="text" ref="answer" v-model="answer" @keyup.enter="submit" />
         </div>
         <div class="modal-footer">
-            <button @click="submit">Submit</button>
+            <button @click="submit" v-t="'common.submit'"></button>
         </div>
     </Modal>
 </template>

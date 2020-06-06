@@ -156,18 +156,18 @@ export default class MapTool extends Tool implements ToolBasics {
         :style="{ '--detailRight': detailRight, '--detailArrow': detailArrow }"
     >
         <template v-if="shapeSelected">
-            <template v-if="rect === null">Drag an area you wish to resize</template>
+            <template v-if="rect === null">{{ $t("game.ui.tools.map.drag_to_resize") }}</template>
             <template v-else>
-                <div class="explanation">Set target grid cells</div>
-                <div>Horizontal</div>
+                <div class="explanation" v-t="'game.ui.tools.map.set_target_grid_cells'"></div>
+                <div v-t="'game.ui.tools.map.horizontal'"></div>
                 <input type="text" v-model="xCount" class="hinput" />
-                <div>Vertical</div>
+                <div v-t="'game.ui.tools.map.vertical'"></div>
                 <input type="text" v-model="yCount" class="vinput" />
-                <div class="button apply" @click="apply">APPLY</div>
-                <div class="button cancel" @click="removeRect">CANCEL</div>
+                <div class="button apply" @click="apply" v-t="'game.ui.tools.map.apply'"></div>
+                <div class="button cancel" @click="removeRect" v-t="'game.ui.tools.map.cancel'"></div>
             </template>
         </template>
-        <template v-else>Please select a shape first.</template>
+        <template v-else>{{ $t("game.ui.tools.map.select_shape_msg") }}</template>
     </div>
 </template>
 

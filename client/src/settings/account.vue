@@ -40,22 +40,22 @@ export default class AccountSettings extends Vue {
     async changePassword(): Promise<void> {
         if (this.showPasswordFields) {
             if (this.$refs.passwordResetField.value === "") {
-                this.errorMessage = "No new password given!";
+                this.errorMessage = this.$t("settings.account.no_pwd_msg").toString();
                 return;
             }
             if (this.$refs.passwordRepeatField.value !== this.$refs.passwordResetField.value) {
-                this.errorMessage = "The password fields don't match!";
+                this.errorMessage = this.$t("settings.account.pwd_not_match").toString();
                 return;
             }
             const response = await postFetch("/api/users/password", { password: this.$refs.passwordResetField.value });
             if (response.ok) {
                 this.hidePasswordChange();
             } else {
-                this.errorMessage = response.statusText ?? "Something went wrong during the server request";
+                this.errorMessage = response.statusText ?? this.$t("settings.account.server_request_error").toString();
             }
         } else {
             this.showPasswordFields = true;
-            this.$refs.changePasswordButton.textContent = "Confirm";
+            this.$refs.changePasswordButton.textContent = this.$t("common.confirm").toString();
             this.$nextTick(() => this.$refs.passwordResetField.focus());
         }
     }
@@ -63,18 +63,18 @@ export default class AccountSettings extends Vue {
     hidePasswordChange(): void {
         this.showPasswordFields = false;
         this.errorMessage = "";
-        this.$refs.changePasswordButton.textContent = "Change password";
+        this.$refs.changePasswordButton.textContent = this.$t("settings.account.change_pwd").toString();
     }
 
     async deleteAccount(): Promise<void> {
-        const result = await this.$refs.confirm.open("Are you sure you wish to remove your account?");
+        const result = await this.$refs.confirm.open(this.$t("settings.account.remove_account_msg").toString());
         if (result) {
             const response = await postFetch("/api/users/delete");
             if (response.ok) {
                 coreStore.setAuthenticated(false);
                 this.$router.push("/");
             } else {
-                this.errorMessage = "Something went wrong with the delete request.";
+                this.errorMessage = this.$t("settings.account.delete_request_error").toString();
             }
         }
     }
@@ -83,9 +83,9 @@ export default class AccountSettings extends Vue {
 
 <template>
     <form @submit.prevent>
-        <div class="spanrow header">General</div>
+        <div class="spanrow header" v-t="'settings.account.general'"></div>
         <div class="row">
-            <label for="username">Username:</label>
+            <label for="username" v-t="'settings.account.username'"></label>
             <div>
                 <input
                     type="text"
@@ -98,27 +98,27 @@ export default class AccountSettings extends Vue {
             </div>
         </div>
         <div class="row">
-            <label for="email">Email:</label>
+            <label for="email" v-t="'settings.account.email'"></label>
             <div>
                 <input
                     type="email"
                     id="email"
-                    :placeholder="$store.state.core.email === undefined ? 'no email set' : ''"
+                    :placeholder="$store.state.core.email === undefined ? $t('settings.account.no_email_set') : ''"
                     :value="$store.state.core.email"
                     autocomplete="email"
                     @change="updateEmail"
                 />
             </div>
         </div>
-        <div class="spanrow header">Danger Zone</div>
+        <div class="spanrow header" v-t="'settings.account.danger_zone'"></div>
         <div class="row" v-if="showPasswordFields">
-            <label for="password-reset">New Password:</label>
+            <label for="password-reset" v-t="'settings.account.new_pwd'"></label>
             <div>
                 <input ref="passwordResetField" type="password" id="password-reset" autocomplete="new-password" />
             </div>
         </div>
         <div class="row" v-if="showPasswordFields">
-            <label for="password-repeat">Repeat password:</label>
+            <label for="password-repeat" v-t="'settings.account.repeat_pwd'"></label>
             <div>
                 <input ref="passwordRepeatField" type="password" id="password-repeat" autocomplete="new-password" />
             </div>
@@ -128,22 +128,28 @@ export default class AccountSettings extends Vue {
         </div>
         <div class="row">
             <div>
-                <button class="danger" v-if="showPasswordFields" @click="hidePasswordChange">
-                    Cancel
-                </button>
+                <button
+                    class="danger"
+                    v-if="showPasswordFields"
+                    @click="hidePasswordChange"
+                    v-t="'common.cancel'"
+                ></button>
             </div>
             <div>
-                <button class="danger" @click="changePassword" ref="changePasswordButton">Change password</button>
+                <button
+                    class="danger"
+                    @click="changePassword"
+                    ref="changePasswordButton"
+                    v-t="'settings.account.change_pwd'"
+                ></button>
             </div>
         </div>
         <div class="row">
             <div style="grid-column-start: value">
-                <button class="danger" @click="deleteAccount">Delete account</button>
+                <button class="danger" @click="deleteAccount" v-t="'settings.account.delete_account'"></button>
             </div>
         </div>
-        <ConfirmDialog ref="confirm">
-            This action is irrevocable!
-        </ConfirmDialog>
+        <ConfirmDialog ref="confirm" v-t="'settings.account.delete_confirm_msg'"></ConfirmDialog>
     </form>
 </template>
 

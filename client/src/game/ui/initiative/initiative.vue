@@ -71,7 +71,7 @@ export default class Initiative extends Vue {
         return shape.hasOwner(gameStore.username);
     }
     getDefaultEffect(): { uuid: string; name: string; turns: number } {
-        return { uuid: uuidv4(), name: "New Effect", turns: 10 };
+        return { uuid: uuidv4(), name: this.$t("game.ui.initiative.initiative.new_effect").toString(), turns: 10 };
     }
     fakeSetData(dataTransfer: DataTransfer): void {
         dataTransfer.setData("Hack", "");
@@ -194,8 +194,8 @@ export default class Initiative extends Vue {
             @dragstart="m.dragStart"
             @dragend="m.dragEnd"
         >
-            <div>Initiative</div>
-            <div class="header-close" @click="visible = false" title="Close">
+            <div v-t="'common.initiative'"></div>
+            <div class="header-close" @click="visible = false" :title="$t('common.close')">
                 <i aria-hidden="true" class="far fa-window-close"></i>
             </div>
         </div>
@@ -224,7 +224,7 @@ export default class Initiative extends Vue {
                             </template>
                             <input
                                 type="text"
-                                placeholder="value"
+                                :placeholder="$t('common.value')"
                                 v-model.lazy.number="actor.initiative"
                                 :disabled="!owns(actor)"
                                 :class="{ notAllowed: !owns(actor) }"
@@ -237,7 +237,7 @@ export default class Initiative extends Vue {
                                 style="opacity: 0.6"
                                 :class="{ notAllowed: !owns(actor) }"
                                 @click="createEffect(actor, getDefaultEffect(), true)"
-                                title="Add timed effect"
+                                :title="$t('game.ui.initiative.initiative.add_timed_effect')"
                             >
                                 <i aria-hidden="true" class="fas fa-stopwatch"></i>
                                 <template v-if="actor.effects">
@@ -251,7 +251,7 @@ export default class Initiative extends Vue {
                                 :style="{ opacity: actor.visible ? '1.0' : '0.3' }"
                                 :class="{ notAllowed: !owns(actor) }"
                                 @click="toggleOption(actor, 'visible')"
-                                title="Toggle public / private"
+                                :title="$t('common.toggle_public_private')"
                             >
                                 <i aria-hidden="true" class="fas fa-eye"></i>
                             </div>
@@ -259,7 +259,7 @@ export default class Initiative extends Vue {
                                 :style="{ opacity: actor.group ? '1.0' : '0.3' }"
                                 :class="{ notAllowed: !owns(actor) }"
                                 @click="toggleOption(actor, 'group')"
-                                title="Toggle individual / group initiative"
+                                :title="$t('game.ui.initiative.initiative.toggle_group')"
                             >
                                 <i aria-hidden="true" class="fas fa-users"></i>
                             </div>
@@ -267,7 +267,7 @@ export default class Initiative extends Vue {
                                 :style="{ opacity: owns(actor) ? '1.0' : '0.3' }"
                                 :class="{ notAllowed: !owns(actor) }"
                                 @click="removeInitiative(actor.uuid, true, true)"
-                                title="Delete initiative"
+                                :title="$t('game.ui.initiative.initiative.delete_init')"
                             >
                                 <i aria-hidden="true" class="fas fa-trash-alt"></i>
                             </div>
@@ -292,13 +292,15 @@ export default class Initiative extends Vue {
                 </template>
             </draggable>
             <div id="initiative-bar">
-                <div id="initiative-round">Round {{ $store.state.initiative.roundCounter }}</div>
+                <div id="initiative-round">
+                    {{ $tc("game.ui.initiative.initiative.round_N", $store.state.initiative.roundCounter) }}
+                </div>
                 <div style="display:flex;"></div>
                 <div
                     class="initiative-bar-button"
                     :style="visionLock ? 'background-color: #82c8a0' : ''"
                     @click="toggleVisionLock"
-                    title="Auto lock vision (only show vision active token)"
+                    :title="$t('game.ui.initiative.initiative.vision_log_msg')"
                 >
                     <i aria-hidden="true" class="fas fa-eye"></i>
                 </div>
@@ -306,7 +308,7 @@ export default class Initiative extends Vue {
                     class="initiative-bar-button"
                     :style="cameraLock ? 'background-color: #82c8a0' : ''"
                     @click="cameraLock = !cameraLock"
-                    title="Auto camera lock on active token"
+                    :title="$t('game.ui.initiative.initiative.camera_log_msg')"
                 >
                     <i aria-hidden="true" class="fas fa-video"></i>
                 </div>
@@ -317,7 +319,7 @@ export default class Initiative extends Vue {
                         setRound(0, true);
                         updateTurn($store.state.initiative.data[0].uuid, true);
                     "
-                    title="Reset rounds/turns"
+                    :title="$t('game.ui.initiative.initiative.reset_round')"
                 >
                     <i aria-hidden="true" class="fas fa-sync-alt"></i>
                 </div>
@@ -325,7 +327,7 @@ export default class Initiative extends Vue {
                     class="initiative-bar-button"
                     :class="{ notAllowed: !$store.state.game.IS_DM }"
                     @click="nextTurn"
-                    title="Next"
+                    :title="$t('game.ui.initiative.initiative.next')"
                 >
                     <i aria-hidden="true" class="fas fa-chevron-right"></i>
                 </div>

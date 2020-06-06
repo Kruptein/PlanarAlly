@@ -149,6 +149,8 @@ export default class SelectTool extends Tool implements ToolBasics {
             console.log("No active layer!");
             return;
         }
+        if (layer.selection.some(s => s.isLocked)) return;
+
         this.deltaChanged = false;
 
         if (this.mode === SelectOperations.GroupSelect) {
@@ -241,6 +243,7 @@ export default class SelectTool extends Tool implements ToolBasics {
             return;
         }
         const layer = layerManager.getLayer(layerManager.floor!.name)!;
+        if (layer.selection.some(s => s.isLocked)) return;
 
         if (this.mode === SelectOperations.GroupSelect) {
             if (event.ctrlKey) {
@@ -265,6 +268,7 @@ export default class SelectTool extends Tool implements ToolBasics {
                 }
             }
             layer.selection = layer.selection.filter(it => it !== this.selectionHelper);
+            if (layer.selection.some(s => !s.isLocked)) layer.selection = layer.selection.filter(s => !s.isLocked);
             layer.invalidate(true);
         } else if (layer.selection.length) {
             for (const sel of layer.selection) {

@@ -27,6 +27,10 @@ export default class App extends Vue {
 @import url("https://maxcdn.bootstrapcdn.com/font-awesome/4.6.1/css/font-awesome.min.css");
 @import url("https://fonts.googleapis.com/css?family=Open+Sans");
 
+body {
+    overscroll-behavior: contain;
+}
+
 html,
 body,
 #app {

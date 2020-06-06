@@ -92,6 +92,10 @@ export default class EditDialog extends Vue {
         if (!this.owned) return;
         this.shape.setInvisible(event.target.checked, true);
     }
+    setLocked(event: { target: HTMLInputElement }): void {
+        if (!this.owned) return;
+        this.shape.setLocked(event.target.checked, true);
+    }
     toggleBadge(_event: { target: HTMLInputElement }): void {
         if (!this.owned) return;
         const groupMembers = this.shape.getGroupMembers();
@@ -228,6 +232,19 @@ export default class EditDialog extends Vue {
                     id="shapeselectiondialog-is-invisible"
                     :checked="shape.isInvisible"
                     @click="setInvisible"
+                    style="grid-column-start: remove;"
+                    class="styled-checkbox"
+                    :disabled="!owned"
+                />
+                <label
+                    for="shapeselectiondialog-is-locked"
+                    v-t="'game.ui.selection.edit_dialog.dialog.is_locked'"
+                ></label>
+                <input
+                    type="checkbox"
+                    id="shapeselectiondialog-is-locked"
+                    :checked="shape.isLocked"
+                    @click="setLocked"
                     style="grid-column-start: remove;"
                     class="styled-checkbox"
                     :disabled="!owned"

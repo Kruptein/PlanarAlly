@@ -268,6 +268,7 @@ export default class SelectTool extends Tool implements ToolBasics {
                 }
             }
             layer.selection = layer.selection.filter(it => it !== this.selectionHelper);
+            if (layer.selection.some(s => !s.isLocked)) layer.selection = layer.selection.filter(s => !s.isLocked);
             layer.invalidate(true);
         } else if (layer.selection.length) {
             for (const sel of layer.selection) {

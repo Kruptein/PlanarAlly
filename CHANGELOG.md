@@ -21,6 +21,7 @@ All notable changes to this project will be documented in this file.
 -   Public toggle to ruler tool
 -   Shape locked toggle
     -   When locked, a shape cannot be moved/resized
+    -   Locked shapes can only be selected if no non-locked shapes are included in the selection area
 
 ### Changed
 

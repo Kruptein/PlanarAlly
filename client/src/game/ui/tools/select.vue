@@ -149,6 +149,8 @@ export default class SelectTool extends Tool implements ToolBasics {
             console.log("No active layer!");
             return;
         }
+        if (layer.selection.some(s => s.isLocked)) return;
+
         this.deltaChanged = false;
 
         if (this.mode === SelectOperations.GroupSelect) {
@@ -241,6 +243,7 @@ export default class SelectTool extends Tool implements ToolBasics {
             return;
         }
         const layer = layerManager.getLayer(layerManager.floor!.name)!;
+        if (layer.selection.some(s => s.isLocked)) return;
 
         if (this.mode === SelectOperations.GroupSelect) {
             if (event.ctrlKey) {

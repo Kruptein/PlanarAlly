@@ -26,6 +26,7 @@ All notable changes to this project will be documented in this file.
 -   Internationalization base
     -   English as default and fallback locale
     -   Chinese localization
+    -   German localization (some terminology like "Asset" or "Tracker" still english, until appropriate German term found)
 
 ### Changed
 

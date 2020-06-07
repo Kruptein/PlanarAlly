@@ -56,6 +56,7 @@ All notable changes to this project will be documented in this file.
 -   Scrollbar on bottom of page in firefox when location bar does not fit the screen
 -   Players can no longer remove or add floors
 -   Players can no longer move their shape to other layers/floors/locations themselves
+-   Bug where a light source with 0/0 radii would block all lights of that shape
 
 ## [0.20.1] - 2020-05-11
 

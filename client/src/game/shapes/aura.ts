@@ -10,7 +10,7 @@ import { Shape } from "./shape";
 
 export function drawAuras(shape: Shape, ctx: CanvasRenderingContext2D): void {
     for (const aura of shape.auras) {
-        if (aura.value === 0 && aura.dim === 0) return;
+        if (aura.value === 0 && aura.dim === 0) continue;
         ctx.beginPath();
 
         const loc = g2l(shape.center());

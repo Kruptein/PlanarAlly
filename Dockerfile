@@ -22,7 +22,7 @@ FROM python:3.6-slim
 ARG DOCKER_TAG
 ARG SOURCE_COMMIT
 
-MAINTAINER Kruptein <info@darragh.dev>
+LABEL maintainer="Kruptein <info@darragh.dev>"
 
 EXPOSE 8000
 

@@ -181,6 +181,14 @@ export default class Initiative extends Vue {
     setLock(lock: boolean): void {
         initiativeStore.setLock(lock);
     }
+    getName(actor: InitiativeData): string {
+        const shape = layerManager.UUIDMap.get(actor.uuid);
+        if (shape !== undefined) {
+            if (shape.nameVisible) return shape.name;
+            if (shape.ownedBy({ editAccess: true })) return shape.name;
+        }
+        return actor.source;
+    }
 }
 </script>
 
@@ -217,10 +225,10 @@ export default class Initiative extends Vue {
                             @mouseleave="toggleHighlight(actor, false)"
                         >
                             <template v-if="actor.has_img">
-                                <img :src="actor.source" width="30px" height="30px" alt="" />
+                                <img :src="actor.source" width="30px" height="30px" :title="getName(actor)" alt="" />
                             </template>
                             <template v-else>
-                                <span style="width: auto;">{{ actor.source }}</span>
+                                <span style="width: auto;">{{ getName(actor) }}</span>
                             </template>
                             <input
                                 type="text"

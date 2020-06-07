@@ -183,7 +183,8 @@ export default class LocationBar extends Vue {
                     handle=".player-collapse-header"
                     :data-loc="location.id"
                 >
-                    <div class="player-collapse-header" v-t="'common.players'">
+                    <div class="player-collapse-header">
+                        {{ $t("common.players") }}
                         <div
                             :title="$t('game.ui.menu.locations.show_specific_pl')"
                             @click="toggleExpanded(location.id)"

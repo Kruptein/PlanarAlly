@@ -61,15 +61,16 @@ export default class ShapeContext extends Vue {
         return layer.selection[0].uuid;
     }
     getFloors(): Floor[] {
-        return layerManager.floors;
+        if (gameStore.IS_DM) return layerManager.floors;
+        return [];
     }
     getLocations(): { id: number; name: string }[] {
-        if (this.hasSpawnToken()) return [];
+        if (!gameStore.IS_DM || this.hasSpawnToken()) return [];
         return gameStore.locations;
     }
     getLayers(): Layer[] {
-        if (this.hasSpawnToken()) return [];
-        return layerManager.floor?.layers.filter(l => l.selectable && (gameStore.IS_DM || l.playerEditable)) || [];
+        if (!gameStore.IS_DM || this.hasSpawnToken()) return [];
+        return layerManager.floor?.layers.filter(l => l.selectable) || [];
     }
     getActiveLayer(): Layer | undefined {
         if (layerManager.floor !== undefined) return layerManager.getLayer(layerManager.floor.name);
@@ -186,7 +187,9 @@ export default class ShapeContext extends Vue {
         return !this.hasSpawnToken();
     }
     showDelete(): boolean {
-        return !this.hasSpawnToken();
+        if (this.hasSpawnToken()) return false;
+        if (gameStore.IS_DM) return true;
+        return this.getSelection().every(s => s.ownedBy({ editAccess: true }));
     }
     getLayerWord(layer: string): string {
         switch (layer) {

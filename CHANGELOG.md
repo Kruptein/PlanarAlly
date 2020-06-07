@@ -52,7 +52,7 @@ All notable changes to this project will be documented in this file.
 -   Area right of layer selector preventing draw/select
 -   Keyboard center throwing error when no tokens are defined
 -   Multiple bugs with initiative syncing
--   Two bugs with location specific options not properly loading/saving
+-   Three bugs with location specific options not properly loading/saving
 -   Scrollbar on bottom of page in firefox when location bar does not fit the screen
 -   Players can no longer remove or add floors
 -   Players can no longer move their shape to other layers/floors/locations themselves

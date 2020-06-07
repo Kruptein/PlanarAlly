@@ -148,13 +148,17 @@ async def set_location_options(sid: int, data: Dict[str, Any]):
     update_model_from_dict(options, data["options"])
     options.save()
 
-    await sio.emit(
-        "Location.Options.Set",
-        data,
-        room=pr.active_location.get_path(),
-        skip_sid=sid,
-        namespace=GAME_NS,
-    )
+    if data.get("location", None) is None:
+        for sid in game_state.get_sids(skip_sid=sid, room=pr.room):
+            await sio.emit("Location.Options.Set", data, room=sid, namespace=GAME_NS)
+    else:
+        await sio.emit(
+            "Location.Options.Set",
+            data,
+            room=pr.active_location.get_path(),
+            skip_sid=sid,
+            namespace=GAME_NS,
+        )
 
 
 @sio.on("Location.New", namespace=GAME_NS)

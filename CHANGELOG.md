@@ -83,6 +83,7 @@ All notable changes to this project will be documented in this file.
 -   Location removal
 -   Upon floor change all players with edit access will auto move to the same floor
 -   Set any shape as marker and jump to that position from the sidebar [LDeeJay1969]
+-   Initiative token images now have their name shown on hover
 
 ### Changed
 

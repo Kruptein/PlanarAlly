@@ -102,14 +102,14 @@ export default class FloorSelect extends Vue {
                         {{ index }}
                     </div>
                     <div class="floor-name">{{ floor }}</div>
-                    <div class="floor-actions" v-show="floors.length > 1">
+                    <div class="floor-actions" v-show="floors.length > 1 && IS_DM">
                         <div @click.stop="removeFloor(index)" :title="$t('game.ui.floors.delete_floor')">
                             <i aria-hidden="true" class="fas fa-trash-alt"></i>
                         </div>
                     </div>
                 </div>
             </template>
-            <div class="floor-add" @click="addFloor" v-t="'game.ui.floors.add_new_floor'"></div>
+            <div class="floor-add" @click="addFloor" v-if="IS_DM" v-t="'game.ui.floors.add_new_floor'"></div>
         </div>
         <div style="display:contents" v-show="layers.length > 1">
             <div
@@ -226,6 +226,7 @@ a {
 }
 
 .floor-index {
+    grid-column-start: 1;
     padding-right: 5px;
     border-right: 1px solid black;
     justify-self: end;

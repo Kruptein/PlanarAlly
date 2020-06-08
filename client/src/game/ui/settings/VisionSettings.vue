@@ -65,10 +65,11 @@ export default class VisionSettings extends Vue {
         gameSettingsStore.setVisionRangeMax({ visionMaxRange, location: this.location, sync: true });
     }
     changeVisionMode(event: { target: HTMLSelectElement }): void {
-        const value = event.target.value.toLowerCase();
+        const value = event.target.value;
         let mode: VisibilityMode;
-        if (value === "default") mode = VisibilityMode.TRIANGLE;
-        else if (value === "experimental") mode = VisibilityMode.TRIANGLE_ITERATIVE;
+        if (value === this.$t("game.ui.settings.VisionSettings.default").toString()) mode = VisibilityMode.TRIANGLE;
+        else if (value === this.$t("game.ui.settings.VisionSettings.experimental").toString())
+            mode = VisibilityMode.TRIANGLE_ITERATIVE;
         else return;
         visibilityStore.setVisionMode({ mode, sync: true });
         for (const floor of layerManager.floors) {

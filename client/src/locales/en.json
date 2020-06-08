@@ -1,4 +1,10 @@
 {
+    "locale": {
+        "select": "Select Language:",
+        "en": "English",
+        "zh": "中文",
+        "de": "Deutsch"
+    },
     "assetManager": {
         "contextMenu": {
             "new_name": "New name:",

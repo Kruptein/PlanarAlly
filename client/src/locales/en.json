@@ -3,7 +3,8 @@
         "select": "Select Language:",
         "en": "English",
         "zh": "中文",
-        "de": "Deutsch"
+        "de": "Deutsch",
+        "ru": "Русский"
     },
     "assetManager": {
         "contextMenu": {

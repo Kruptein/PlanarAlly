@@ -27,6 +27,7 @@ All notable changes to this project will be documented in this file.
     -   English as default and fallback locale
     -   Chinese localization
     -   German localization (some terminology like "Asset" or "Tracker" still english, until appropriate German term found)
+    -   Russian localization
     -   A dropdown selection component to switch languages in both login page and the Client Options of main menu
 
 ### Changed

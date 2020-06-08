@@ -276,8 +276,8 @@
                 },
                 "map": {
                     "drag_to_resize": "Drag an area you wish to resize",
-                    "select_shape_msg": "Set target grid cells",
-                    "set_target_grid_cells": "Please select a shape first.",
+                    "select_shape_msg": "Please select a shape first.",
+                    "set_target_grid_cells": "Set target grid cells",
                     "horizontal": "Horizontal",
                     "vertical": "Vertical",
                     "apply": "APPLY",

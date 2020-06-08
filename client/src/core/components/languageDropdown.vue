@@ -2,12 +2,8 @@
 import Vue from "vue";
 import Component from "vue-class-component";
 
-import { Prop } from "vue-property-decorator";
-
 @Component
 export default class LanguageDropdown extends Vue {
-    @Prop() value!: string;
-
     locales = ["en", "zh", "de"];
 
     changeLocale(event: { target: HTMLSelectElement }): void {

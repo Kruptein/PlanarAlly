@@ -7,6 +7,7 @@ import { mapState } from "vuex";
 import ColorPicker from "@/core/components/colorpicker.vue";
 import Game from "@/game/game.vue";
 import AssetNode from "@/game/ui/menu/asset_node.vue";
+import LanguageDropdown from "@/core/components/languageDropdown.vue";
 
 import { uuidv4 } from "@/core/utils";
 import { Note } from "@/game/comm/types/general";
@@ -18,6 +19,7 @@ import { EventBus } from "../../event-bus";
     components: {
         "color-picker": ColorPicker,
         "asset-node": AssetNode,
+        languageDropdown: LanguageDropdown,
     },
     computed: {
         ...mapState("game", ["assets", "notes", "markers"]),
@@ -160,6 +162,8 @@ export default class MenuBar extends Vue {
                     <color-picker id="rulerColour" :color.sync="rulerColour" />
                     <label for="invertAlt" v-t="'game.ui.menu.menu.invert_alt_set'"></label>
                     <div><input id="invertAlt" type="checkbox" v-model="invertAlt" /></div>
+                    <label for="languageSelect" v-t="'locale.select'"></label>
+                    <div><languageDropdown id="languageSelect" /></div>
                 </div>
             </div>
         </div>

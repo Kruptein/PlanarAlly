@@ -2,10 +2,16 @@
 import Vue from "vue";
 import Component from "vue-class-component";
 
+import LanguageDropdown from "@/core/components/languageDropdown.vue";
+
 import { coreStore } from "@/core/store";
 import { postFetch } from "../core/utils";
 
-@Component
+@Component({
+    components: {
+        languageDropdown: LanguageDropdown,
+    },
+})
 export default class Login extends Vue {
     username = "";
     password = "";
@@ -98,6 +104,11 @@ export default class Login extends Vue {
                     <span>
                         <i aria-hidden="true" class="fas fa-lock"></i>
                     </span>
+                </div>
+
+                <div class="input">
+                    <label for="langDropdown" v-t="'locale.select'"></label>
+                    <languageDropdown id="langDropdown" />
                 </div>
 
                 <div style="display:flex;">

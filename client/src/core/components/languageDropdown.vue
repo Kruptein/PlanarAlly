@@ -4,7 +4,7 @@ import Component from "vue-class-component";
 
 @Component
 export default class LanguageDropdown extends Vue {
-    locales = ["en", "zh", "de"];
+    locales = ["en", "zh", "de", "ru"];
 
     changeLocale(event: { target: HTMLSelectElement }): void {
         const value = event.target.value;

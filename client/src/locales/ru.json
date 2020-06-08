@@ -1,0 +1,361 @@
+{
+    "locale": {
+        "select": "Выберите язык:",
+        "en": "English",
+        "zh": "中文",
+        "de": "Deutsch",
+        "ru": "Русский"
+    },
+    "assetManager": {
+        "contextMenu": {
+            "new_name": "Новое имя:",
+            "renaming_NAME": "Переименовать {name}",
+            "ask_remove": "Вы уверены, что хотите удалить это?"
+        },
+        "manager": {
+            "new_folder_name": "Имя нового каталога",
+            "uploading": "Загружаем файлы",
+            "create_folder": "Создать каталог",
+            "upload_files": "Загрузить файл",
+            "title": "Управление объектами"
+        }
+    },
+    "common": {
+        "rename": "Переименовать",
+        "remove": "Удалить",
+        "username": "Имя пользователя",
+        "password": "Пароль",
+        "server_ver_prefix": "Версия сервера:",
+        "PlanarAlly": "PlanarAlly",
+        "error_prefix": "Ошибка:",
+        "error_msg": "Ошибка!",
+        "close": "Закрыть",
+        "submit": "Отправить",
+        "create": "Создать",
+        "warning": "Внимание",
+        "value": "Значение",
+        "toggle_public_private": "Переключить публично / приватно",
+        "initiative": "Инициатива",
+        "search": "Поиск",
+        "name": "Имя",
+        "add": "Добавить",
+        "players": "Игроки",
+        "exit": "Выйти",
+        "assets": "Объекты",
+        "notes": "Заметки",
+        "markers": "Маркеры",
+        "border_color": "Цвет границ",
+        "fill_color": "Цвет заполнения",
+        "trackers": "Отслеживание",
+        "auras": "Ауры",
+        "labels": "Метки",
+        "annotation": "Аннотация",
+        "floor": "Этаж",
+        "layer": "Слой",
+        "location": "Регион",
+        "admin": "Админ",
+        "grid": "Сетка",
+        "vision": "Видимость",
+        "tokens": "Токены",
+        "shape": "Фигура",
+        "colors": "Цвета",
+        "version": "версия",
+        "confirm": "Подтвердить",
+        "cancel": "Отменить"
+    },
+    "auth": {
+        "login": {
+            "register": "Регистрация",
+            "login": "Вход"
+        }
+    },
+    "core": {
+        "components": {
+            "inputCopy": {
+                "copied": "Скопировано!",
+                "copy": "Копировать"
+            }
+        }
+    },
+    "dashboard": {
+        "main": {
+            "session_name": "Имя компании",
+            "account_settings": "Настройки учётной записи",
+            "logout": "Выход",
+            "your_sessions": "Ваши компании",
+            "no_sessions": "Нет активных компаний",
+            "create_session": "Создать компанию",
+            "create_new_session": "Создать новую компанию"
+        }
+    },
+    "game": {
+        "ui": {
+            "floors": {
+                "new_name": "Имя нового этажа",
+                "creation": "Создание этажа",
+                "warning_msg_Z": "Вы уверены, что хотите удалить этаж {z}?",
+                "delete_floor": "Удалить этаж",
+                "add_new_floor": "Добавить новый этаж"
+            },
+            "initiative": {
+                "initiative": {
+                    "new_effect": "Новый эффект",
+                    "add_timed_effect": "Добавить временный эффект",
+                    "toggle_group": "Переключить индивидуальную / групповую инициативу",
+                    "delete_init": "Удалить инициативу",
+                    "round_N": "Раунд {n}",
+                    "vision_log_msg": "Автоматически привязывать видимость (показывать видимость только активного токена)",
+                    "camera_log_msg": "Автоматически привязывать камеру к активному токену",
+                    "reset_round": "Сбросить раунды/ходы",
+                    "next": "Следующий"
+                }
+            },
+            "labels": {
+                "category": "Категория",
+                "visible": "Видимость",
+                "delete": "Удалить",
+                "delete_label": "Удалить метку",
+                "title": "Управление метками",
+                "cat_abbr": "Кат.",
+                "vis_abbr": "Вид.",
+                "del_abbr": "Удал.",
+                "no_exist_msg": "Меток пока нет"
+            },
+            "menu": {
+                "locations": {
+                    "new_location_name": "Новое имя региона:",
+                    "create_new_location": "Создать новый регион",
+                    "add_new_location": "Добавить новый регион",
+                    "show_specific_pl": "Показывать определённых игроков"
+                },
+                "menu": {
+                    "new_note": "Новая заметка",
+                    "open_asset_manager": "Открыть управление объектами",
+                    "no_assets": "Нет объектов",
+                    "create_note": "Создать заметку",
+                    "delete_marker": "Удалить маркер",
+                    "no_notes": "Нет заметок",
+                    "dm_options": "Опции для мастера",
+                    "no_markers": "Нет маркеров",
+                    "client_options": "Опции клиента",
+                    "grid_color_set": "Цвет сетки:",
+                    "fow_color_set": "Цвет тумана войны:",
+                    "ruler_color_set": "Цвет линейки:",
+                    "invert_alt_set": "Инвертировать поведение по ALT"
+                }
+            },
+            "note": {
+                "warning_msg": "Вы уверены, что хотите удалить это?",
+                "edit_title": "Редактировать заголовок",
+                "remove_note": "Удалить заметку"
+            },
+            "selection": {
+                "edit_dialog": {
+                    "access": {
+                        "toggle_edit_access": "Переключить доступ на редактирование",
+                        "toggle_movement_access": "Переключить доступ на перемещение",
+                        "toggle_vision_access": "Переключить доступ на видимость",
+                        "remove_owner_access": "Убрать доступ",
+                        "access": "Доступ",
+                        "default": "По умолчанию",
+                        "add_access": "Добавить доступ"
+                    },
+                    "dialog": {
+                        "current_value": "Текущее значение",
+                        "remove_tracker": "Удалить отслеживание",
+                        "dim_value": "Dim value",
+                        "toggle_light_source": "Переключить источник света",
+                        "delete_aura": "Удалить ауру",
+                        "edit_asset": "Редактировать объект",
+                        "is_a_token": "Это токен",
+                        "is_invisible": "Невидимо",
+                        "is_locked": "Заблокировано",
+                        "show_badge": "Показать значок",
+                        "block_vision_light": "Блокирует видимость/свет",
+                        "block_movement": "Блокирует передвижение"
+                    }
+                },
+                "select_info": {
+                    "open_shape_props": "Открыть свойства фигуры",
+                    "quick_edit_tracker": "Быстро изменить отслеживание",
+                    "quick_edit_aura": "Быстро изменить ауру"
+                },
+                "shapecontext": {
+                    "show_initiative": "Показать инициативу",
+                    "add_initiative": "Добавить инициативу",
+                    "add_all_initiative": "Добавить всё в инициативу",
+                    "move_back": "На задний план",
+                    "move_front": "На задний план",
+                    "delete_shapes": "Удалить фигуры",
+                    "show_props": "Показать свойства",
+                    "remove_marker": "Удалить маркер",
+                    "set_marker": "Установить маркер"
+                }
+            },
+            "settings": {
+                "dm": {
+                    "AdminSettings": {
+                        "delete_session_msg_CREATOR_ROOM": "ВВЕДИТЕ {creator}/{room} ЧТОБЫ ПОДТВЕРДИТЬ УДАЛЕНИЕ КОМПАНИИ.",
+                        "deleting_session": "УДАЛЕНИЕ КОМПАНИИ",
+                        "unlock_NBSP_Session_NBSP": "Разблокировать\u00a0Компанию\u00a0",
+                        "lock_NBSP_Session_NBSP": "Блокировать\u00a0Компанию\u00a0",
+                        "unlock_this_session": "Разблокировать эту компанию",
+                        "lock_this_session": "Заблокировать эту компанию",
+                        "kick": "Выкинуть",
+                        "no_players_invite_msg": "Пока что тут нет игроков, пригласите их с помощью ссылки ниже!",
+                        "invite_code": "Код приглашения",
+                        "invitation_url": "Ссылка приглашения:",
+                        "refresh_invitation_code": "Обновить ссылку приглашения",
+                        "danger_NBSP_zone": "Опасная\u00a0Зона",
+                        "dm_access_only": "(Доступ только для мастера)",
+                        "remove_session": "Удалить компанию",
+                        "delete_session": "Удалить эту Компанию"
+                    },
+                    "DmSettings": {
+                        "dm_settings": "Настройки мастера"
+                    }
+                },
+                "common": {
+                    "overridden_msg": "Некоторые из этих настроек могут быть переопределены настройками отдельных регионов",
+                    "overridden_highlight": "подсвечены",
+                    "reset_default": "Сбросить до общих для компании",
+                    "overridden_highlight_path": "Настройки, которые переопределяют общие для компании настройки, {0}"
+                },
+                "GridSettings": {
+                    "unit_size_in_UNIT": "Размер клетки (в {unit})",
+                    "use_grid": "Использовать сетку",
+                    "grid_size_in_pixels": "Размер сетки (в пикселях):",
+                    "size_unit": "Единица измерения"
+                },
+                "location": {
+                    "LocationAdminSettings": {
+                        "remove_location_msg_NAME": "Вы уверены, что нужно удалить регион {name}",
+                        "remove_location_yes": "Да, удалить этот регион",
+                        "remove_location_no": "пожалуйста не надо",
+                        "move_existing_pl": "Перенести существующих игроков в этот регион",
+                        "delete_this_location": "Удалить этот регион",
+                        "remove_location": "Удалить регион"
+                    },
+                    "LocationSettings": {
+                        "location_settings": "Настройки региона:"
+                    }
+                },
+                "permissions": {
+                    "edit_owned_tokens": "Редактировать принадлежащие токены:",
+                    "move_owned_tokens": "Передвигать принадлежащие токены:",
+                    "resize_owned_tokens": "Изменять размер принадлежащих токеноа:"
+                },
+                "VisionSettings": {
+                    "min_full_vision_UNIT": "Минимальная полная видимость ({unit}):",
+                    "max_vision_UNIT": "Максимальная видимость ({unit}):",
+                    "core": "Основное",
+                    "fake_player": "Притвориться игроком:",
+                    "fill_fow": "Залить весь холст туманом войны:",
+                    "only_show_lights_los": "Показывать источники света только на линии видимости:",
+                    "fow_opacity": "Непрозрачность тумана войны:",
+                    "advanced": "Дополнительные",
+                    "vision_mode": "Режим видимости:",
+                    "default": "По умолчанию",
+                    "experimental": "Экспериментальный"
+                }
+            },
+            "tools": {
+                "createtoken_modal": {
+                    "create_basic_token": "Создать базовый токен",
+                    "text": "Текст",
+                    "fill": "Заполнение:",
+                    "border": "Граница:"
+                },
+                "defaultcontext": {
+                    "bring_pl": "Привести игроков",
+                    "create_basic_token": "Создать базовый токен",
+                    "show_initiative": "Показать инициативу"
+                },
+                "draw": {
+                    "foreground_color": "Цвет переднего плана",
+                    "background_color": "Цвет фона",
+                    "mode": "Режим",
+                    "closed_polygon": "Замкнутый полигон?",
+                    "brush_size": "Размер кисти"
+                },
+                "filter": {
+                    "no_category": "без категории"
+                },
+                "map": {
+                    "drag_to_resize": "Потяните область, размер которой хотите изменить",
+                    "select_shape_msg": "Установить целевые клетки сетки",
+                    "set_target_grid_cells": "Выберите фигуру сначала.",
+                    "horizontal": "Горизонтально",
+                    "vertical": "Вертикально",
+                    "apply": "ПРИМЕНИТЬ",
+                    "cancel": "ОТМЕНА"
+                },
+                "ruler": {
+                    "share": "Показывать остальным"
+                },
+                "tools": {
+                    "change_mode": "Изменить режим"
+                }
+            },
+            "ui": {
+                "github_msg": "Прочитать код на github!",
+                "discord_msg": "Вступить в сообщество в discord!",
+                "patreon_msg": "Учавствовать в компании на patreon!",
+                "open_loc_menu": "Открыть меню регионов",
+                "new_ver_msg": "Есть новая версия!",
+                "open_settings": "Открыть настройки",
+                "changelog_RELEASE_LOG": "# Релиз {release}\n*Читайте подробности по ссылке: https://www.planarally.io/blog/*\n{log}"
+            }
+        }
+    },
+    "layer": {
+        "map": "карта",
+        "tokens": "токены",
+        "dm": "дм",
+        "fow": "туман войны"
+    },
+    "draw": {
+        "square": "прямоугольник",
+        "circle": "круг",
+        "draw-polygon": "многоугольник",
+        "paint-brush": "кисть-карандаш",
+        "normal": "нормальный",
+        "reveal": "показывать",
+        "hide": "скрывать"
+    },
+    "tool": {
+        "Build": "Стройка",
+        "Play": "Игра",
+        "Select": "Выбор",
+        "Pan": "Сдвигать",
+        "Draw": "Рисование",
+        "Ruler": "Линейка",
+        "Ping": "Пинг",
+        "Map": "Карта",
+        "Filter": "Фильтра",
+        "Vision": "Видимость"
+    },
+    "settings": {
+        "account": {
+            "no_pwd_msg": "Не указан новый пароль!",
+            "pwd_not_match": "Пароли не совпадают!",
+            "server_request_error": "Что-то пошло не так во время запроса на сервер",
+            "change_pwd": "Изменить пароль",
+            "remove_account_msg": "Вы уверены, что хотите удалить свою учётную запись?",
+            "delete_request_error": "Что-то пошло не так во время запроса на удаление.",
+            "no_email_set": "не установлен адрес электронной почты",
+            "general": "Общие",
+            "username": "Имя пользователя:",
+            "email": "Адрес электронной почты:",
+            "danger_zone": "Опасная зона",
+            "new_pwd": "Новый пароль:",
+            "repeat_pwd": "Повторите пароль:",
+            "delete_account": "Удалить учётную запись",
+            "delete_confirm_msg": "Это действие нельзя отменить!"
+        },
+        "settings": {
+            "account_settings": "Настройки учётной записи",
+            "account": "Учётная запись"
+        }
+    }
+}

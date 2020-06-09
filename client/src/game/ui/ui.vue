@@ -7,6 +7,7 @@ import Component from "vue-class-component";
 import { mapState } from "vuex";
 
 import DmSettings from "@/game/ui/settings/dm/DmSettings.vue";
+import ClientSettings from "@/game/ui/settings/client/ClientSettings.vue";
 import FloorSelect from "@/game/ui/floors.vue";
 import LocationBar from "./menu/locations.vue";
 import LocationSettings from "@/game/ui/settings/location/LocationSettings.vue";
@@ -23,6 +24,7 @@ import { coreStore } from "../../core/store";
 @Component({
     components: {
         DmSettings,
+        ClientSettings,
         FloorSelect,
         LocationBar,
         LocationSettings,
@@ -197,6 +199,7 @@ export default class UI extends Vue {
             </div>
         </div>
         <MenuBar></MenuBar>
+        <ClientSettings ref="clientsettings"></ClientSettings>
         <LocationBar :active="visible.locations"></LocationBar>
         <Tools ref="tools"></Tools>
         <FloorSelect></FloorSelect>

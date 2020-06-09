@@ -7,7 +7,6 @@ import { mapState } from "vuex";
 import ColorPicker from "@/core/components/colorpicker.vue";
 import Game from "@/game/game.vue";
 import AssetNode from "@/game/ui/menu/asset_node.vue";
-import LanguageDropdown from "@/core/components/languageDropdown.vue";
 
 import { uuidv4 } from "@/core/utils";
 import { Note } from "@/game/comm/types/general";
@@ -19,7 +18,6 @@ import { EventBus } from "../../event-bus";
     components: {
         "color-picker": ColorPicker,
         "asset-node": AssetNode,
-        languageDropdown: LanguageDropdown,
     },
     computed: {
         ...mapState("game", ["assets", "notes", "markers"]),
@@ -30,30 +28,6 @@ export default class MenuBar extends Vue {
 
     get IS_DM(): boolean {
         return gameStore.IS_DM || gameStore.FAKE_PLAYER;
-    }
-    get gridColour(): string {
-        return gameStore.gridColour;
-    }
-    set gridColour(value: string) {
-        gameStore.setGridColour({ colour: value, sync: true });
-    }
-    get fowColour(): string {
-        return gameStore.fowColour;
-    }
-    set fowColour(value: string) {
-        gameStore.setFOWColour({ colour: value, sync: true });
-    }
-    get rulerColour(): string {
-        return gameStore.rulerColour;
-    }
-    set rulerColour(value: string) {
-        gameStore.setRulerColour({ colour: value, sync: true });
-    }
-    get invertAlt(): boolean {
-        return gameStore.invertAlt;
-    }
-    set invertAlt(value: boolean) {
-        gameStore.setInvertAlt({ invertAlt: value, sync: true });
     }
     settingsClick(event: { target: HTMLElement }): void {
         if (
@@ -74,6 +48,10 @@ export default class MenuBar extends Vue {
 
     openDmSettings(): void {
         EventBus.$emit("DmSettings.Open");
+    }
+
+    openClientSettings(): void {
+        EventBus.$emit("ClientSettings.Open");
     }
 
     delMarker(marker: string): void {
@@ -151,21 +129,11 @@ export default class MenuBar extends Vue {
                 </div>
             </div>
             <!-- CLIENT OPTIONS -->
-            <button class="menu-accordion" v-t="'game.ui.menu.menu.client_options'"></button>
-            <div class="menu-accordion-panel">
-                <div class="menu-accordion-subpanel">
-                    <label for="gridColour" v-t="'game.ui.menu.menu.grid_color_set'"></label>
-                    <color-picker id="gridColour" :color.sync="gridColour" />
-                    <label for="fowColour" v-t="'game.ui.menu.menu.fow_color_set'"></label>
-                    <color-picker id="fowColour" :color.sync="fowColour" />
-                    <label for="rulerColour" v-t="'game.ui.menu.menu.ruler_color_set'"></label>
-                    <color-picker id="rulerColour" :color.sync="rulerColour" />
-                    <label for="invertAlt" v-t="'game.ui.menu.menu.invert_alt_set'"></label>
-                    <div><input id="invertAlt" type="checkbox" v-model="invertAlt" /></div>
-                    <label for="languageSelect" v-t="'locale.select'"></label>
-                    <div><languageDropdown id="languageSelect" /></div>
-                </div>
-            </div>
+            <button
+                class="menu-accordion"
+                @click="openClientSettings"
+                v-t="'game.ui.menu.menu.client_options'"
+            ></button>
         </div>
         <router-link
             to="/dashboard"

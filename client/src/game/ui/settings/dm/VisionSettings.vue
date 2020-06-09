@@ -6,7 +6,7 @@ import { Prop } from "vue-property-decorator";
 import { gameStore } from "@/game/store";
 import { VisibilityMode, visibilityStore } from "@/game/visibility/store";
 import { layerManager } from "@/game/layers/manager";
-import { gameSettingsStore, getLocationOption } from "../../settings";
+import { gameSettingsStore, getLocationOption } from "../../../settings";
 import { LocationOptions } from "@/game/comm/types/settings";
 
 @Component

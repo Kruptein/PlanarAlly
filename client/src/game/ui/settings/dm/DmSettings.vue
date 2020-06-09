@@ -3,9 +3,9 @@ import Vue from "vue";
 import Component from "vue-class-component";
 
 import AdminSettings from "./AdminSettings.vue";
-import GridSettings from "../GridSettings.vue";
+import GridSettings from "./GridSettings.vue";
 // import PermissionsDmSettings from "./permissions.vue";
-import VisionSettings from "../VisionSettings.vue";
+import VisionSettings from "./VisionSettings.vue";
 
 import PanelModal from "../../../../core/components/modals/PanelModal.vue";
 import { EventBus } from "@/game/event-bus";

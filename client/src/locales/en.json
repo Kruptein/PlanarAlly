@@ -60,7 +60,9 @@
         "colors": "Colours",
         "version": "version",
         "confirm": "Confirm",
-        "cancel": "Cancel"
+        "cancel": "Cancel",
+        "general": "General",
+        "keys": "Key Bindings"
     },
     "auth": {
         "login": {
@@ -212,6 +214,17 @@
                     },
                     "DmSettings": {
                         "dm_settings": "DM Settings"
+                    }
+                },
+                "client": {
+                    "GeneralSettings": {
+                        "client_settings": "Client Settings"
+                    },
+                    "ColorSettings": {
+
+                    },
+                    "KeyBindings": {
+
                     }
                 },
                 "common": {

@@ -282,9 +282,9 @@
                     "no_category": "keine Kategorie"
                 },
                 "map": {
-                    "drag_to_resize": "Markiere den Bereich, dessen Größe Du verändern willstDrag an area you wish to resize",
-                    "select_shape_msg": "Feld-Zielgröße setzen",
-                    "set_target_grid_cells": "Bitte wähle zuerst eine Form aus.",
+                    "drag_to_resize": "Markiere den Bereich, dessen Größe Du verändern willst",
+                    "select_shape_msg": "Bitte wähle zuerst eine Form aus.",
+                    "set_target_grid_cells": "Feld-Zielgröße setzen",
                     "horizontal": "Horizontal",
                     "vertical": "Vertikal",
                     "apply": "ANWENDEN",

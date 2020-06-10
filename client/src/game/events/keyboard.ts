@@ -124,6 +124,10 @@ export function onKeyDown(event: KeyboardEvent): void {
         } else if (event.key === "v" && event.ctrlKey) {
             // Ctrl-v - Paste
             pasteShapes();
+        } else if (event.key === "Escape") {
+            // Escape - close all open modals
+            event.preventDefault();
+            EventBus.$emit("General.CloseAll");
         } else if (event.key === "PageUp" && gameStore.selectedFloorIndex < gameStore.floors.length - 1) {
             // Page Up - Move floor up
             // Ctrl + Page Up - Move selected shapes floor up

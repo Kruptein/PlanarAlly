@@ -1,7 +1,9 @@
 <script lang="ts">
 import Vue from "vue";
 import Component from "vue-class-component";
-import { Prop } from "vue-property-decorator";
+import { Prop, Watch } from "vue-property-decorator";
+import { modalsStore } from "./store";
+import { EventBus } from "@/game/event-bus";
 
 @Component
 export default class Modal extends Vue {
@@ -20,9 +22,12 @@ export default class Modal extends Vue {
     screenY = 0;
     dragging = false;
 
+    zIndex = 8999;
+
     // Example of mounted required: opening note
     mounted(): void {
         this.updatePosition();
+        EventBus.$on("General.CloseAll", modalsStore.closeAll);
     }
     // Example of updated required: opening initiative
     updated(): void {
@@ -32,6 +37,7 @@ export default class Modal extends Vue {
     close(_event: MouseEvent): void {
         this.$emit("close");
     }
+
     updatePosition(): void {
         if (!this.positioned) {
             const container = <any>this.$refs.container;
@@ -41,6 +47,7 @@ export default class Modal extends Vue {
             this.positioned = true;
         }
     }
+
     dragStart(event: DragEvent): void {
         if (event === null || event.dataTransfer === null) return;
         event.dataTransfer.setData("Hack", "");
@@ -53,6 +60,7 @@ export default class Modal extends Vue {
         this.screenY = event.screenY;
         this.dragging = true;
     }
+
     dragEnd(event: DragEvent): void {
         this.dragging = false;
         let left = event.clientX - this.offsetX;
@@ -69,8 +77,19 @@ export default class Modal extends Vue {
         this.$refs.container.style.top = top + "px";
         this.$refs.container.style.display = "block";
     }
+
     dragOver(_event: DragEvent): void {
         if (this.dragging) this.$refs.container.style.display = "none";
+    }
+
+    @Watch("visible") onVisibilityChanged(newValue: boolean, oldValue: boolean): void {
+        if (newValue && !oldValue) {
+            modalsStore.setTopModal(this);
+        }
+    }
+
+    click(): void {
+        modalsStore.setTopModal(this);
     }
 }
 </script>
@@ -80,11 +99,18 @@ export default class Modal extends Vue {
         <div
             class="mask"
             :class="{ 'modal-mask': mask, 'dialog-mask': !mask }"
+            :style="{ 'z-index': zIndex }"
             @click="close"
             v-show="visible"
             @dragover.prevent="dragOver"
         >
-            <div class="modal-container" @click.stop ref="container" :style="{ 'background-color': colour }">
+            <div
+                class="modal-container"
+                @click.stop
+                @click="click"
+                ref="container"
+                :style="{ 'background-color': colour }"
+            >
                 <slot name="header" :dragStart="dragStart" :dragEnd="dragEnd"></slot>
                 <slot></slot>
             </div>
@@ -99,7 +125,7 @@ export default class Modal extends Vue {
 
 .mask {
     position: fixed;
-    z-index: 9998;
+    /*z-index: 9998;*/
     top: 0;
     left: 0;
     width: 100%;

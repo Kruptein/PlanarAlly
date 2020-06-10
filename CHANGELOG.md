@@ -28,6 +28,10 @@ All notable changes to this project will be documented in this file.
     -   Chinese localization
     -   German localization (some terminology like "Asset" or "Tracker" still english, until appropriate German term found)
     -   A dropdown selection component to switch languages in both login page and the Client Options of main menu
+-   Added Client Options modal
+-   Added keybindings pane to Client Options modal
+-   Added Escape keybinding that closes all modals and deselects all shapes
+-   Added interface to allow users to customize keybindings
 
 ### Changed
 
@@ -39,6 +43,8 @@ All notable changes to this project will be documented in this file.
 -   The version shown in the topleft area in-game will now be limited to the latest release version
 -   Basic tokens will now have their default name set to their label instead of 'Unknown shape'
 -   Mobile device users are now unable to trigger overscroll refresh by simply moving around
+-   Moved existing Client Options from menu to Client Options modal
+-   Windows now reorder so that the most recently interacted window is on top
 
 ### Fixed
 

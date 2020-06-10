@@ -19,7 +19,7 @@ import Tools from "@/game/ui/tools/tools.vue";
 import { LocalPoint } from "../geom";
 import { gameStore } from "../store";
 import { l2g } from "../units";
-import { coreStore } from "../../core/store";
+import { coreStore } from "@/core/store";
 
 @Component({
     components: {

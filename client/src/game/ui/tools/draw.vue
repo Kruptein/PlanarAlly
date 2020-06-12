@@ -21,7 +21,7 @@ import { Polygon } from "@/game/shapes/polygon";
 import { Rect } from "@/game/shapes/rect";
 import { Shape } from "@/game/shapes/shape";
 import { gameStore } from "@/game/store";
-import { getUnitDistance, l2g, g2lx, g2ly, l2gz } from "@/game/units";
+import { getUnitDistance, l2g, g2lx, g2ly, l2gz, clampGridLine } from "@/game/units";
 import { equalPoints, useSnapping } from "@/game/utils";
 import { visibilityStore } from "@/game/visibility/store";
 import { TriangulationTarget, insertConstraint, getCDT } from "@/game/visibility/te/pa";
@@ -189,7 +189,7 @@ export default class DrawTool extends Tool implements ToolBasics {
         return layerManager.getLayer(layerManager.floor!.name, "fow");
     }
 
-    onDown(lp: LocalPoint): void {
+    onDown(lp: LocalPoint, event: MouseEvent | TouchEvent): void {
         const startPoint = l2g(lp);
         const layer = this.getLayer();
         if (layer === undefined) {
@@ -197,47 +197,32 @@ export default class DrawTool extends Tool implements ToolBasics {
             return;
         }
         if (this.brushHelper === null) return;
-        // if (useSnapping(event)) startPoint = new GlobalPoint(clampGridLine(startPoint.x), clampGridLine(startPoint.y));
         if (!this.active) {
             this.startPoint = startPoint;
             this.active = true;
+            let clonedStartPoint = this.startPoint.clone();
             switch (this.shapeSelect) {
                 case "square": {
-                    this.shape = new Rect(this.startPoint.clone(), 0, 0, this.fillColour, this.borderColour);
+                    this.shape = new Rect(clonedStartPoint, 0, 0, this.fillColour, this.borderColour);
                     break;
                 }
                 case "circle": {
-                    this.shape = new Circle(
-                        this.startPoint.clone(),
-                        this.helperSize,
-                        this.fillColour,
-                        this.borderColour,
-                    );
+                    this.shape = new Circle(clonedStartPoint, this.helperSize, this.fillColour, this.borderColour);
                     break;
                 }
                 case "paint-brush": {
-                    this.shape = new Polygon(
-                        this.startPoint.clone(),
-                        [],
-                        undefined,
-                        this.fillColour,
-                        this.brushSize,
-                        true,
-                    );
+                    this.shape = new Polygon(clonedStartPoint, [], undefined, this.fillColour, this.brushSize, true);
                     this.shape.fillColour = this.fillColour;
                     break;
                 }
                 case "draw-polygon": {
                     const fill = this.closedPolygon ? this.fillColour : undefined;
                     const stroke = this.closedPolygon ? this.borderColour : this.fillColour;
-                    this.shape = new Polygon(
-                        this.startPoint.clone(),
-                        [],
-                        fill,
-                        stroke,
-                        this.brushSize,
-                        !this.closedPolygon,
-                    );
+                    if (useSnapping(event)) {
+                        clonedStartPoint = new GlobalPoint(clampGridLine(startPoint.x), clampGridLine(startPoint.y));
+                        this.brushHelper.refPoint = clonedStartPoint;
+                    }
+                    this.shape = new Polygon(clonedStartPoint, [], fill, stroke, this.brushSize, !this.closedPolygon);
                     break;
                 }
                 default:
@@ -263,6 +248,11 @@ export default class DrawTool extends Tool implements ToolBasics {
             this.pushBrushBack();
         } else if (this.shape !== null && this.shapeSelect === "draw-polygon" && this.shape instanceof Polygon) {
             // For polygon draw
+            if (useSnapping(event))
+                this.brushHelper.refPoint = new GlobalPoint(
+                    clampGridLine(this.brushHelper.refPoint.x),
+                    clampGridLine(this.brushHelper.refPoint.y),
+                );
             this.shape._vertices.push(this.brushHelper.refPoint);
             this.shape.updatePoints();
         }

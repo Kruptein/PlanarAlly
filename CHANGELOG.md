@@ -40,6 +40,7 @@ All notable changes to this project will be documented in this file.
 -   The version shown in the topleft area in-game will now be limited to the latest release version
 -   Basic tokens will now have their default name set to their label instead of 'Unknown shape'
 -   Mobile device users are now unable to trigger overscroll refresh by simply moving around
+-   Polygon points now also respect grid snapping as all other shapes do during draw
 
 ### Fixed
 

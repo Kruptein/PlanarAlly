@@ -53,19 +53,19 @@ jobs:
             - run:
                   name: Zip artifacts
                   command: |
-                      VERSION=$(cat server/VERSION)
+                      VERSION=$(head -1 server/VERSION)
                       zip -r /tmp/archives/planarally-bin-${VERSION}.zip server/*
 
             - run:
                   name: Gunzip artifacts
                   command: |
-                      VERSION=$(cat server/VERSION)
+                      VERSION=$(head -1 server/VERSION)
                       tar -czf /tmp/archives/planarally-bin-${VERSION}.tar.gz server/*
 
             - run:
                   name: "Publish release on github"
                   command: |
-                      VERSION=$(cat server/VERSION)
+                      VERSION=$(head -1 server/VERSION)
                       ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -replace ${VERSION} /tmp/archives
 
     build-windows:
@@ -104,7 +104,7 @@ jobs:
             - run:
                   name: Zip artifacts
                   command: |
-                      $VERSION=$(cat VERSION)
+                      $VERSION=$(Get-Content -TotalCount 1 VERSION)
                       Compress-Archive -Path C:\Users\circleci\dist -DestinationPath C:\Users\circleci\archives\planarally-windows-${VERSION}.zip
 
             - run:
@@ -114,7 +114,7 @@ jobs:
             - run:
                   name: Publish release on github
                   command: |
-                      $VERSION=$(cat VERSION)
+                      $VERSION=$(Get-Content -TotalCount 1 VERSION)
                       C:\Windows\system32\config\systemprofile\go\bin\ghr.exe -t $env:GITHUB_TOKEN -u $env:CIRCLE_PROJECT_USERNAME -r $env:CIRCLE_PROJECT_REPONAME -c $env:CIRCLE_SHA1 -replace $VERSION C:\Users\circleci\archives
 
 workflows:

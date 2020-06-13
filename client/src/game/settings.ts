@@ -257,12 +257,7 @@ class GameSettingsStore extends VuexModule implements GameSettingsState {
             }
             if (gameSettingsStore.activeLocation !== data.location) return;
 
-            console.log(data);
-            console.log(gameSettingsStore.currentLocationOptions);
-            console.trace();
-
             const uuid = uuidv4();
-            console.log(uuid);
 
             const img = new Image(64, 64);
             img.src = "/static/img/spawn.png";

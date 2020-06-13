@@ -1,13 +1,14 @@
 from typing import Any, Dict
 
 import auth
+from api.socket.constants import GAME_NS
 from app import app, logger, sio
 from models import Floor, Room, PlayerRoom
 from models.role import Role
 from state.game import game_state
 
 
-@sio.on("Floor.Create", namespace="/planarally")
+@sio.on("Floor.Create", namespace=GAME_NS)
 @auth.login_required(app, sio)
 async def create_floor(sid: int, data: Dict[str, Any]):
     pr: PlayerRoom = game_state.get(sid)
@@ -21,13 +22,16 @@ async def create_floor(sid: int, data: Dict[str, Any]):
     for psid, player in game_state.get_users(active_location=pr.active_location):
         await sio.emit(
             "Floor.Create",
-            floor.as_dict(player, player == pr.room.creator),
+            {
+                "floor": floor.as_dict(player, player == pr.room.creator),
+                "creator": pr.player.name,
+            },
             room=psid,
-            namespace="/planarally",
+            namespace=GAME_NS,
         )
 
 
-@sio.on("Floor.Remove", namespace="/planarally")
+@sio.on("Floor.Remove", namespace=GAME_NS)
 @auth.login_required(app, sio)
 async def remove_floor(sid, data):
     pr: PlayerRoom = game_state.get(sid)
@@ -44,5 +48,5 @@ async def remove_floor(sid, data):
         data,
         room=pr.active_location.get_path(),
         skip_sid=sid,
-        namespace="/planarally",
+        namespace=GAME_NS,
     )

@@ -19,7 +19,10 @@ COPY Dockerfiles/server_config_docker.cfg /usr/src/server/server_config.cfg
 ###############
 FROM python:3.6-slim
 
-MAINTAINER Kruptein <info@darragh.dev>
+ARG DOCKER_TAG
+ARG SOURCE_COMMIT
+
+LABEL maintainer="Kruptein <info@darragh.dev>"
 
 EXPOSE 8000
 
@@ -28,7 +31,7 @@ WORKDIR /planarally
 VOLUME /planarally/data
 VOLUME /planarally/static/assets
 
-ENV PA_GIT_INFO = docker:$DOCKER_TAG-$SOURCE_COMMIT
+ENV PA_GIT_INFO docker:${DOCKER_TAG}-${SOURCE_COMMIT}
 
 ENTRYPOINT ["/usr/bin/dumb-init", "--"]
 # Copy first requirements.txt so changes in code dont require to reinstall python requirements

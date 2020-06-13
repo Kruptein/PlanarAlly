@@ -37,7 +37,7 @@ export default class VisionTool extends Tool {
             :class="{ selected: selection.includes(token.uuid) }"
             @click="toggle(token.uuid)"
         >
-            <img :src="token.src" width="30px" height="30px" v-if="token.src" />
+            <img :src="token.src" width="30px" height="30px" v-if="token.src" alt="" />
             <div>{{ token.name }}</div>
         </div>
     </div>

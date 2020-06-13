@@ -19,6 +19,11 @@ export default class SelectionInfo extends Vue {
     shape: Shape | null = null;
 
     mounted(): void {
+        EventBus.$on("Shape.Set", (shape: Shape) => {
+            if (this.shape && shape.uuid === this.shape.uuid) {
+                this.shape = shape;
+            }
+        });
         EventBus.$on("SelectionInfo.Shape.Set", (shape: Shape | null) => {
             this.shape = shape;
         });
@@ -57,7 +62,8 @@ export default class SelectionInfo extends Vue {
         if (value[0] === "+" || value[0] === "-") object.value += parseInt(value, 10);
         else object.value = parseInt(value, 10);
         if (isNaN(object.value)) object.value = ogValue;
-        socket.emit("Shape.Update", { shape: this.shape.asDict(), redraw, temporary: false });
+        if (!this.shape.preventSync)
+            socket.emit("Shape.Update", { shape: this.shape.asDict(), redraw, temporary: false });
         if (redraw) layerManager.invalidate(this.shape.floor);
     }
 }
@@ -67,8 +73,12 @@ export default class SelectionInfo extends Vue {
     <div v-show="shapes.length > 0">
         <div v-for="shape in shapes" :key="shape.uuid">
             <div id="selection-menu">
-                <div id="selection-edit-button" @click="openEditDialog" title="Open shape properties">
-                    <i class="fas fa-edit"></i>
+                <div
+                    id="selection-edit-button"
+                    @click="openEditDialog"
+                    :title="$t('game.ui.selection.select_info.open_shape_props')"
+                >
+                    <i aria-hidden="true" class="fas fa-edit"></i>
                 </div>
                 <div id="selection-name">{{ shape.name }}</div>
                 <div id="selection-trackers">
@@ -78,7 +88,7 @@ export default class SelectionInfo extends Vue {
                             class="selection-tracker-value"
                             :key="'value-' + tracker.uuid"
                             @click="changeValue(tracker, false)"
-                            title="Quick edit tracker"
+                            :title="$t('game.ui.selection.select_info.quick_edit_tracker')"
                         >
                             <template v-if="tracker.maxvalue === 0">
                                 {{ tracker.value }}
@@ -94,7 +104,7 @@ export default class SelectionInfo extends Vue {
                             class="selection-tracker-value"
                             :key="'value-' + aura.uuid"
                             @click="changeValue(aura, true)"
-                            title="Quick edit aura"
+                            :title="$t('game.ui.selection.select_info.quick_edit_aura')"
                         >
                             <template v-if="aura.dim === 0">
                                 {{ aura.value }}

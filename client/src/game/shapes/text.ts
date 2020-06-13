@@ -45,7 +45,7 @@ export class Text extends Shape {
         ctx.translate(dest.x, dest.y);
         ctx.rotate(this.angle);
         ctx.textAlign = "center";
-        this.getLines(ctx).map(line => ctx.fillText(line.text, line.x, line.y));
+        for (const line of this.getLines(ctx)) ctx.fillText(line.text, line.x, line.y);
         ctx.restore();
         super.drawPost(ctx);
     }

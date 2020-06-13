@@ -4,7 +4,6 @@ import Component from "vue-class-component";
 
 import { Prop } from "vue-property-decorator";
 
-import { socket } from "@/game/api/socket";
 import { Shape } from "@/game/shapes/shape";
 import { gameStore } from "@/game/store";
 import { ShapeOwner } from "../../../shapes/owners";
@@ -31,7 +30,7 @@ export default class EditDialogAccess extends Vue {
         const dropdown = this.$refs.accessDropdown;
         const selectedUser = dropdown.options[dropdown.selectedIndex].value;
         if (selectedUser === "") return;
-        this.shape.addOwner({ user: selectedUser, editAccess: true, visionAccess: true }, true);
+        this.shape.addOwner({ user: selectedUser, access: { edit: true, movement: true, vision: true } }, true);
     }
     removeOwner(value: string): void {
         if (!this.owned) return;
@@ -39,56 +38,65 @@ export default class EditDialogAccess extends Vue {
     }
     toggleOwnerEditAccess(owner: ShapeOwner): void {
         if (!this.owned) return;
-        this.shape.updateOwner({ ...owner, editAccess: !owner.editAccess }, true);
+        this.shape.updateOwner({ ...owner, access: { ...owner.access, edit: !owner.access.edit } }, true);
+    }
+    toggleOwnerMovementAccess(owner: ShapeOwner): void {
+        if (!this.owned) return;
+        this.shape.updateOwner({ ...owner, access: { ...owner.access, movement: !owner.access.movement } }, true);
     }
     toggleOwnerVisionAccess(owner: ShapeOwner): void {
         if (!this.owned) return;
-        this.shape.updateOwner({ ...owner, visionAccess: !owner.visionAccess }, true);
+        this.shape.updateOwner({ ...owner, access: { ...owner.access, vision: !owner.access.vision } }, true);
     }
     toggleDefaultEditAccess(): void {
         if (!this.owned) return;
-        this.shape.updateDefaultOwner({ editAccess: !this.shape.defaultEditAccess });
-        socket.emit("Shape.Owner.Default.Update", {
-            shape: this.shape.uuid,
-            // eslint-disable-next-line @typescript-eslint/camelcase
-            edit_access: this.shape.defaultEditAccess,
-        });
+        this.shape.updateDefaultOwner({ ...this.shape.defaultAccess, edit: !this.shape.defaultAccess.edit }, true);
+    }
+    toggleDefaultMovementAccess(): void {
+        if (!this.owned) return;
+        this.shape.updateDefaultOwner(
+            { ...this.shape.defaultAccess, movement: !this.shape.defaultAccess.movement },
+            true,
+        );
     }
     toggleDefaultVisionAccess(): void {
         if (!this.owned) return;
-        this.shape.updateDefaultOwner({ visionAccess: !this.shape.defaultVisionAccess });
-        socket.emit("Shape.Owner.Default.Update", {
-            shape: this.shape.uuid,
-            // eslint-disable-next-line @typescript-eslint/camelcase
-            vision_access: this.shape.defaultVisionAccess,
-        });
+        this.shape.updateDefaultOwner({ ...this.shape.defaultAccess, vision: !this.shape.defaultAccess.vision }, true);
     }
 }
 </script>
 
 <template>
     <div style="display:contents">
-        <div class="spanrow header">Access</div>
-        <div class="owner"><i>Default</i></div>
+        <div class="spanrow header" v-t="'game.ui.selection.edit_dialog.access.access'"></div>
+        <div class="owner"><em v-t="'game.ui.selection.edit_dialog.access.default'"></em></div>
         <div
             :style="{
-                opacity: shape.defaultEditAccess ? 1.0 : 0.3,
+                opacity: shape.defaultAccess.edit ? 1.0 : 0.3,
                 textAlign: 'center',
-                gridColumnStart: 'visible',
+                gridColumnStart: 'colour',
             }"
             :disabled="!owned"
             @click="toggleDefaultEditAccess"
-            title="Toggle edit access"
+            :title="$t('game.ui.selection.edit_dialog.access.toggle_edit_access')"
         >
-            <i class="fas fa-pencil-alt"></i>
+            <i aria-hidden="true" class="fas fa-pencil-alt"></i>
         </div>
         <div
-            :style="{ opacity: shape.defaultVisionAccess ? 1.0 : 0.3, textAlign: 'center' }"
+            :style="{ opacity: shape.defaultAccess.movement ? 1.0 : 0.3, textAlign: 'center' }"
+            :disabled="!owned"
+            @click="toggleDefaultMovementAccess"
+            :title="$t('game.ui.selection.edit_dialog.access.toggle_movement_access')"
+        >
+            <i aria-hidden="true" class="fas fa-arrows-alt"></i>
+        </div>
+        <div
+            :style="{ opacity: shape.defaultAccess.vision ? 1.0 : 0.3, textAlign: 'center' }"
             :disabled="!owned"
             @click="toggleDefaultVisionAccess"
-            title="Toggle vision access"
+            :title="$t('game.ui.selection.edit_dialog.access.toggle_vision_access')"
         >
-            <i class="fas fa-lightbulb"></i>
+            <i aria-hidden="true" class="fas fa-lightbulb"></i>
         </div>
         <template v-for="owner in shape.owners">
             <div class="owner" :key="owner.user">
@@ -97,33 +105,42 @@ export default class EditDialogAccess extends Vue {
             <div
                 :key="'ownerEdit-' + owner.user"
                 :style="{
-                    opacity: owner.editAccess ? 1.0 : 0.3,
+                    opacity: owner.access.edit ? 1.0 : 0.3,
                     textAlign: 'center',
-                    gridColumnStart: 'visible',
+                    gridColumnStart: 'colour',
                 }"
                 :disabled="!owned"
                 @click="toggleOwnerEditAccess(owner)"
-                title="Toggle edit access"
+                :title="$t('game.ui.selection.edit_dialog.access.toggle_edit_access')"
             >
-                <i class="fas fa-pencil-alt"></i>
+                <i aria-hidden="true" class="fas fa-pencil-alt"></i>
+            </div>
+            <div
+                :key="'ownerMovement-' + owner.user"
+                :style="{ opacity: owner.access.movement ? 1.0 : 0.3, textAlign: 'center' }"
+                :disabled="!owned"
+                @click="toggleOwnerMovementAccess(owner)"
+                :title="$t('game.ui.selection.edit_dialog.access.toggle_movement_access')"
+            >
+                <i aria-hidden="true" class="fas fa-arrows-alt"></i>
             </div>
             <div
                 :key="'ownerVision-' + owner.user"
-                :style="{ opacity: owner.visionAccess ? 1.0 : 0.3, textAlign: 'center' }"
+                :style="{ opacity: owner.access.vision ? 1.0 : 0.3, textAlign: 'center' }"
                 :disabled="!owned"
                 @click="toggleOwnerVisionAccess(owner)"
-                title="Toggle vision access"
+                :title="$t('game.ui.selection.edit_dialog.access.toggle_vision_access')"
             >
-                <i class="fas fa-lightbulb"></i>
+                <i aria-hidden="true" class="fas fa-lightbulb"></i>
             </div>
             <div
                 :key="'remove-' + owner.user"
                 @click="removeOwner(owner.user)"
                 :style="{ opacity: owned ? 1.0 : 0.3, textAlign: 'center', gridColumnStart: 'remove' }"
                 :disabled="!owned"
-                title="Remove owner access"
+                :title="$t('game.ui.selection.edit_dialog.access.remove_owner_access')"
             >
-                <i class="fas fa-trash-alt"></i>
+                <i aria-hidden="true" class="fas fa-trash-alt"></i>
             </div>
         </template>
         <select
@@ -139,9 +156,8 @@ export default class EditDialogAccess extends Vue {
             style="grid-column: visible/end;margin-top:5px;"
             @click="addOwner"
             v-show="playersWithoutAccess.length > 0 && owned"
-        >
-            Add access
-        </button>
+            v-t="'game.ui.selection.edit_dialog.access.add_access'"
+        ></button>
     </div>
 </template>
 

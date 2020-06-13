@@ -7,6 +7,63 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+## [0.21.0] - 2020-06-13
+
+### Added
+
+-   Shape invisible toggle
+    -   Only players with vision access can see and interact with the shape
+    -   Public auras are still visible to all players (e.g. invisible creature with a torch would still shed light)
+-   Build/Play mode
+    -   Show different set of tools dependening on the active mode
+-   Movement access permission
+-   Changelog modal if a new version comes out
+-   Spawn locations
+    -   Define where shapes you move to other locations are spawned
+-   Public toggle to ruler tool
+-   Shape locked toggle
+    -   When locked, a shape cannot be moved/resized
+    -   Locked shapes can only be selected if no non-locked shapes are included in the selection area
+    -   Ctrl+l is a keybinding to toggle lock state of a selection group
+-   Internationalization base
+    -   English as default and fallback locale
+    -   Chinese localization
+    -   German localization (some terminology like "Asset" or "Tracker" still english, until appropriate German term found)
+    -   Russian localization
+    -   A dropdown selection component to switch languages in both login page and the Client Options of main menu
+
+### Changed
+
+-   During shape drag/move use a smaller version to do hitbox tests
+    -   This improves behaviour when going through a very tight hallway or a door
+-   Delayed initiative updating during edit
+-   In Play mode (see #added) the select tool will no longer allow resizing
+-   Creating a new floor will no longer automatically move everyone to that floor
+-   The version shown in the topleft area in-game will now be limited to the latest release version
+-   Basic tokens will now have their default name set to their label instead of 'Unknown shape'
+-   Mobile device users are now unable to trigger overscroll refresh by simply moving around
+-   Polygon points now also respect grid snapping as all other shapes do during draw
+
+### Fixed
+
+-   Polygon server creation with initial vertices list breaks session
+-   Player floor location not being remembered
+-   Ruler not showing decimal points
+-   DM settings/grid unit size showing invalid input on firefox for floating point numbers
+-   Server showing JSON decode errors
+-   Players not being able to update initiative effects
+-   Active layer sometimes resetting on reload
+-   DMs no longer being able to kick themselves
+-   Some UI components not properly updating on shape reset
+-   Area right of layer selector preventing draw/select
+-   Keyboard center throwing error when no tokens are defined
+-   Multiple bugs with initiative syncing
+-   Three bugs with location specific options not properly loading/saving
+-   Scrollbar on bottom of page in firefox when location bar does not fit the screen
+-   Players can no longer remove or add floors
+-   Players can no longer move their shape to other layers/floors/locations themselves
+-   Bug where a light source with 0/0 radii would block all lights of that shape
+
 ## [0.20.1] - 2020-05-11
 
 ### Fixed
@@ -32,6 +89,7 @@ All notable changes to this project will be documented in this file.
 -   Location removal
 -   Upon floor change all players with edit access will auto move to the same floor
 -   Set any shape as marker and jump to that position from the sidebar [LDeeJay1969]
+-   Initiative token images now have their name shown on hover
 
 ### Changed
 

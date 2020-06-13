@@ -1,27 +1,25 @@
-import Component from "vue-class-component";
-
-import Tool from "@/game/ui/tools/tool.vue";
-
+import { InvalidationMode, SyncMode } from "@/core/comm/types";
 import { socket } from "@/game/api/socket";
-import { GlobalPoint } from "@/game/geom";
+import { GlobalPoint, LocalPoint } from "@/game/geom";
 import { layerManager } from "@/game/layers/manager";
 import { Circle } from "@/game/shapes/circle";
 import { gameStore } from "@/game/store";
+import Tool from "@/game/ui/tools/tool.vue";
 import { l2g } from "@/game/units";
-import { getLocalPointFromEvent } from "@/game/utils";
-import { SyncMode, InvalidationMode } from "@/core/comm/types";
+import Component from "vue-class-component";
+import { ToolBasics } from "./ToolBasics";
 import { ToolName } from "./utils";
 
 @Component
-export class PingTool extends Tool {
+export class PingTool extends Tool implements ToolBasics {
     name = ToolName.Ping;
     active = false;
     startPoint: GlobalPoint | null = null;
     ping: Circle | null = null;
     border: Circle | null = null;
 
-    onDown(gp: GlobalPoint): void {
-        this.startPoint = gp;
+    onDown(lp: LocalPoint): void {
+        this.startPoint = l2g(lp);
         const layer = layerManager.getLayer(layerManager.floor!.name, "draw");
 
         if (layer === undefined) {
@@ -32,8 +30,8 @@ export class PingTool extends Tool {
         this.active = true;
         this.ping = new Circle(this.startPoint, 20, gameStore.rulerColour);
         this.border = new Circle(this.startPoint, 40, "#0000", gameStore.rulerColour);
-        this.ping.addOwner({ user: gameStore.username, editAccess: true, visionAccess: true }, false);
-        this.border.addOwner({ user: gameStore.username, editAccess: true, visionAccess: true }, false);
+        this.ping.addOwner({ user: gameStore.username, access: { edit: true } }, false);
+        this.border.addOwner({ user: gameStore.username, access: { edit: true } }, false);
         layer.addShape(this.ping, SyncMode.TEMP_SYNC, InvalidationMode.NORMAL);
         layer.addShape(this.border, SyncMode.TEMP_SYNC, InvalidationMode.NORMAL);
     }
@@ -50,13 +48,14 @@ export class PingTool extends Tool {
         this.active = false;
         layer.removeShape(this.ping, SyncMode.TEMP_SYNC);
         layer.removeShape(this.border, SyncMode.TEMP_SYNC);
-        layer.invalidate(true);
         this.ping = null;
         this.startPoint = null;
     }
 
-    onMove(gp: GlobalPoint): void {
+    onMove(lp: LocalPoint): void {
         if (!this.active || this.ping === null || this.border === null || this.startPoint === null) return;
+
+        const gp = l2g(lp);
 
         const layer = layerManager.getLayer(layerManager.floor!.name, "draw");
         if (layer === undefined) {
@@ -67,37 +66,9 @@ export class PingTool extends Tool {
         this.ping.center(gp);
         this.border.center(gp);
 
-        socket.emit("Shape.Update", { shape: this.ping!.asDict(), redraw: true, temporary: true });
-        socket.emit("Shape.Update", { shape: this.border!.asDict(), redraw: true, temporary: true });
+        socket.emit("Shape.Update", { shape: this.ping.asDict(), redraw: true, temporary: true });
+        socket.emit("Shape.Update", { shape: this.border.asDict(), redraw: true, temporary: true });
 
         layer.invalidate(true);
-    }
-
-    onMouseDown(event: MouseEvent): void {
-        const startingPoint = l2g(getLocalPointFromEvent(event));
-        this.onDown(startingPoint);
-    }
-
-    onMouseMove(event: MouseEvent): void {
-        const endPoint = l2g(getLocalPointFromEvent(event));
-        this.onMove(endPoint);
-    }
-
-    onMouseUp(_event: MouseEvent): void {
-        this.onUp();
-    }
-
-    onTouchStart(event: TouchEvent): void {
-        const startingPoint = l2g(getLocalPointFromEvent(event));
-        this.onDown(startingPoint);
-    }
-
-    onTouchMove(event: TouchEvent): void {
-        const endPoint = l2g(getLocalPointFromEvent(event));
-        this.onMove(endPoint);
-    }
-
-    onTouchEnd(_event: TouchEvent): void {
-        this.onUp();
     }
 }

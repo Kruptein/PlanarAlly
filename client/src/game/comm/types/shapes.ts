@@ -1,4 +1,4 @@
-import { ShapeOwner } from "../../shapes/owners";
+import { ShapeOwner, ShapeAccess } from "../../shapes/owners";
 
 export interface ServerShape {
     uuid: string;
@@ -20,18 +20,25 @@ export interface ServerShape {
     name_visible: boolean;
     annotation: string;
     is_token: boolean;
+    is_invisible: boolean;
     options?: string;
     badge: number;
     show_badge: boolean;
+    is_locked: boolean;
     default_edit_access: boolean;
+    default_movement_access: boolean;
     default_vision_access: boolean;
 }
 
-export interface ServerShapeOwner {
+export interface ServerShapeAccess {
+    edit_access: boolean;
+    movement_access: boolean;
+    vision_access: boolean;
+}
+
+export interface ServerShapeOwner extends ServerShapeAccess {
     shape: string;
     user: string;
-    edit_access: boolean;
-    vision_access: boolean;
 }
 
 export interface ServerRect extends ServerShape {
@@ -77,18 +84,29 @@ export interface ServerAura {
     colour: string;
 }
 
+export const accessToServer = (access: ShapeAccess): ServerShapeAccess => ({
+    // eslint-disable-next-line @typescript-eslint/camelcase
+    edit_access: access.edit || false,
+    // eslint-disable-next-line @typescript-eslint/camelcase
+    movement_access: access.movement || false,
+    // eslint-disable-next-line @typescript-eslint/camelcase
+    vision_access: access.vision || false,
+});
+
 export const ownerToServer = (owner: ShapeOwner): ServerShapeOwner => ({
     user: owner.user,
     shape: owner.shape,
-    // eslint-disable-next-line @typescript-eslint/camelcase
-    edit_access: owner.editAccess,
-    // eslint-disable-next-line @typescript-eslint/camelcase
-    vision_access: owner.visionAccess,
+    ...accessToServer(owner.access),
+});
+
+export const accessToClient = (access: ServerShapeAccess): ShapeAccess => ({
+    edit: access.edit_access,
+    movement: access.movement_access,
+    vision: access.vision_access,
 });
 
 export const ownerToClient = (owner: ServerShapeOwner): ShapeOwner => ({
     user: owner.user,
     shape: owner.shape,
-    editAccess: owner.edit_access,
-    visionAccess: owner.vision_access,
+    access: accessToClient(owner),
 });

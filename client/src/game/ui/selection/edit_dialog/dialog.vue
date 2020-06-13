@@ -79,7 +79,7 @@ export default class EditDialog extends Vue {
     }
     updateShape(redraw: boolean, temporary = false): void {
         if (!this.owned) return;
-        socket.emit("Shape.Update", { shape: this.shape.asDict(), redraw, temporary });
+        if (!this.shape.preventSync) socket.emit("Shape.Update", { shape: this.shape.asDict(), redraw, temporary });
         if (redraw) layerManager.invalidate(this.shape.floor);
         this.addEmpty();
     }
@@ -88,16 +88,25 @@ export default class EditDialog extends Vue {
         this.shape.setIsToken(event.target.checked);
         this.updateShape(true);
     }
+    setInvisible(event: { target: HTMLInputElement }): void {
+        if (!this.owned) return;
+        this.shape.setInvisible(event.target.checked, true);
+    }
+    setLocked(event: { target: HTMLInputElement }): void {
+        if (!this.owned) return;
+        this.shape.setLocked(event.target.checked, true);
+    }
     toggleBadge(_event: { target: HTMLInputElement }): void {
         if (!this.owned) return;
         const groupMembers = this.shape.getGroupMembers();
         for (const [i, shape] of groupMembers.entries()) {
             shape.showBadge = !shape.showBadge;
-            socket.emit("Shape.Update", {
-                shape: shape.asDict(),
-                redraw: groupMembers.length === i + 1,
-                temporary: false,
-            });
+            if (!shape.preventSync)
+                socket.emit("Shape.Update", {
+                    shape: shape.asDict(),
+                    redraw: groupMembers.length === i + 1,
+                    temporary: false,
+                });
         }
         layerManager.invalidate(this.shape.floor);
     }
@@ -174,14 +183,14 @@ export default class EditDialog extends Vue {
             @dragstart="m.dragStart"
             @dragend="m.dragEnd"
         >
-            <div>Edit asset</div>
-            <div class="header-close" @click="visible = false" title="Close">
-                <i class="far fa-window-close"></i>
+            <div v-t="'game.ui.selection.edit_dialog.dialog.edit_asset'"></div>
+            <div class="header-close" @click="visible = false" :title="$t('common.close')">
+                <i aria-hidden="true" class="far fa-window-close"></i>
             </div>
         </div>
         <div class="modal-body">
             <div class="grid">
-                <label for="shapeselectiondialog-name">Name</label>
+                <label for="shapeselectiondialog-name" v-t="'common.name'"></label>
                 <input
                     type="text"
                     id="shapeselectiondialog-name"
@@ -197,11 +206,14 @@ export default class EditDialog extends Vue {
                         updateShape(false);
                     "
                     :disabled="!owned"
-                    title="Toggle public/private"
+                    :title="$t('common.toggle_public_private')"
                 >
-                    <i class="fas fa-eye"></i>
+                    <i aria-hidden="true" class="fas fa-eye"></i>
                 </div>
-                <label for="shapeselectiondialog-istoken">Is a token</label>
+                <label
+                    for="shapeselectiondialog-istoken"
+                    v-t="'game.ui.selection.edit_dialog.dialog.is_a_token'"
+                ></label>
                 <input
                     type="checkbox"
                     id="shapeselectiondialog-istoken"
@@ -211,7 +223,36 @@ export default class EditDialog extends Vue {
                     class="styled-checkbox"
                     :disabled="!owned"
                 />
-                <label for="shapeselectiondialog-showBadge">Show badge</label>
+                <label
+                    for="shapeselectiondialog-is-invisible"
+                    v-t="'game.ui.selection.edit_dialog.dialog.is_invisible'"
+                ></label>
+                <input
+                    type="checkbox"
+                    id="shapeselectiondialog-is-invisible"
+                    :checked="shape.isInvisible"
+                    @click="setInvisible"
+                    style="grid-column-start: remove;"
+                    class="styled-checkbox"
+                    :disabled="!owned"
+                />
+                <label
+                    for="shapeselectiondialog-is-locked"
+                    v-t="'game.ui.selection.edit_dialog.dialog.is_locked'"
+                ></label>
+                <input
+                    type="checkbox"
+                    id="shapeselectiondialog-is-locked"
+                    :checked="shape.isLocked"
+                    @click="setLocked"
+                    style="grid-column-start: remove;"
+                    class="styled-checkbox"
+                    :disabled="!owned"
+                />
+                <label
+                    for="shapeselectiondialog-showBadge"
+                    v-t="'game.ui.selection.edit_dialog.dialog.show_badge'"
+                ></label>
                 <input
                     type="checkbox"
                     id="shapeselectiondialog-showBadge"
@@ -221,7 +262,10 @@ export default class EditDialog extends Vue {
                     class="styled-checkbox"
                     :disabled="!owned"
                 />
-                <label for="shapeselectiondialog-visionblocker">Blocks vision/light</label>
+                <label
+                    for="shapeselectiondialog-visionblocker"
+                    v-t="'game.ui.selection.edit_dialog.dialog.block_vision_light'"
+                ></label>
                 <input
                     type="checkbox"
                     id="shapeselectiondialog-visionblocker"
@@ -230,7 +274,10 @@ export default class EditDialog extends Vue {
                     style="grid-column-start: remove;"
                     :disabled="!owned"
                 />
-                <label for="shapeselectiondialog-moveblocker">Blocks movement</label>
+                <label
+                    for="shapeselectiondialog-moveblocker"
+                    v-t="'game.ui.selection.edit_dialog.dialog.block_movement'"
+                ></label>
                 <input
                     type="checkbox"
                     id="shapeselectiondialog-moveblocker"
@@ -239,7 +286,7 @@ export default class EditDialog extends Vue {
                     style="grid-column-start: remove;"
                     :disabled="!owned"
                 />
-                <label for="shapeselectiondialog-strokecolour">Border colour</label>
+                <label for="shapeselectiondialog-strokecolour" v-t="'common.border_color'"></label>
                 <color-picker
                     :color.sync="shape.strokeColour"
                     @input="updateShape(true, true)"
@@ -247,7 +294,7 @@ export default class EditDialog extends Vue {
                     style="grid-column-start: remove;"
                     :disabled="!owned"
                 />
-                <label for="shapeselectiondialog-fillcolour">Fill colour</label>
+                <label for="shapeselectiondialog-fillcolour" v-t="'common.fill_color'"></label>
                 <color-picker
                     :color.sync="shape.fillColour"
                     @input="updateShape(true, true)"
@@ -256,14 +303,14 @@ export default class EditDialog extends Vue {
                     :disabled="!owned"
                 />
                 <EditDialogAccess :shape="shape" :owned="owned" />
-                <div class="spanrow header">Trackers</div>
+                <div class="spanrow header" v-t="'common.trackers'"></div>
                 <template v-for="tracker in shape.trackers">
                     <input
                         :key="'name-' + tracker.uuid"
                         v-model="tracker.name"
                         @change="updateShape(false)"
                         type="text"
-                        placeholder="name"
+                        :placeholder="$t('common.name')"
                         style="grid-column-start: name"
                         :disabled="!owned"
                     />
@@ -272,7 +319,7 @@ export default class EditDialog extends Vue {
                         v-model.number="tracker.value"
                         @change="updateShape(false)"
                         type="text"
-                        title="Current value"
+                        :title="$t('game.ui.selection.edit_dialog.dialog.current_value')"
                         :disabled="!owned"
                     />
                     <span :key="'fspan-' + tracker.uuid">/</span>
@@ -281,7 +328,7 @@ export default class EditDialog extends Vue {
                         v-model.number="tracker.maxvalue"
                         @change="updateShape(false)"
                         type="text"
-                        title="Current value"
+                        :title="$t('game.ui.selection.edit_dialog.dialog.current_value')"
                         :disabled="!owned"
                     />
                     <span :key="'sspan-' + tracker.uuid"></span>
@@ -293,9 +340,9 @@ export default class EditDialog extends Vue {
                             updateShape(false);
                         "
                         :disabled="!owned"
-                        title="Toggle public/private"
+                        :title="$t('common.toggle_public_private')"
                     >
-                        <i class="fas fa-eye"></i>
+                        <i aria-hidden="true" class="fas fa-eye"></i>
                     </div>
                     <span :key="'tspan-' + tracker.uuid"></span>
                     <div
@@ -304,19 +351,19 @@ export default class EditDialog extends Vue {
                         @click="removeTracker(tracker.uuid)"
                         :disabled="!owned"
                         :style="{ opacity: owned ? 1.0 : 0.3, textAlign: 'center' }"
-                        title="Remove tracker"
+                        :title="$t('game.ui.selection.edit_dialog.dialog.remove_tracker')"
                     >
-                        <i class="fas fa-trash-alt"></i>
+                        <i aria-hidden="true" class="fas fa-trash-alt"></i>
                     </div>
                 </template>
-                <div class="spanrow header">Auras</div>
+                <div class="spanrow header" v-t="'common.auras'"></div>
                 <template v-for="aura in shape.auras">
                     <input
                         :key="'name-' + aura.uuid"
                         v-model="aura.name"
                         @change="updateShape(false)"
                         type="text"
-                        placeholder="name"
+                        :placeholder="$t('common.name')"
                         style="grid-column-start: name"
                         :disabled="!owned"
                     />
@@ -325,7 +372,7 @@ export default class EditDialog extends Vue {
                         v-model.number="aura.value"
                         @change="updateShape(true)"
                         type="text"
-                        title="Current value"
+                        :title="$t('game.ui.selection.edit_dialog.dialog.current_value')"
                         :disabled="!owned"
                     />
                     <span :key="'fspan-' + aura.uuid">/</span>
@@ -334,7 +381,7 @@ export default class EditDialog extends Vue {
                         v-model.number="aura.dim"
                         @change="updateShape(true)"
                         type="text"
-                        title="Dim value"
+                        :title="$t('game.ui.selection.edit_dialog.dialog.dim_value')"
                         :disabled="!owned"
                     />
                     <color-picker
@@ -352,18 +399,18 @@ export default class EditDialog extends Vue {
                             updateShape(true);
                         "
                         :disabled="!owned"
-                        title="Toggle public/private"
+                        :title="$t('common.toggle_public_private')"
                     >
-                        <i class="fas fa-eye"></i>
+                        <i aria-hidden="true" class="fas fa-eye"></i>
                     </div>
                     <div
                         :key="'visionsource-' + aura.uuid"
                         :style="{ opacity: aura.visionSource ? 1.0 : 0.3, textAlign: 'center' }"
                         @click="updateAuraVisionSource(aura)"
                         :disabled="!owned"
-                        title="Toggle light source"
+                        :title="$t('game.ui.selection.edit_dialog.dialog.toggle_light_source')"
                     >
-                        <i class="fas fa-lightbulb"></i>
+                        <i aria-hidden="true" class="fas fa-lightbulb"></i>
                     </div>
                     <div
                         v-if="aura.name !== '' || aura.value !== 0"
@@ -371,12 +418,12 @@ export default class EditDialog extends Vue {
                         @click="removeAura(aura.uuid)"
                         :disabled="!owned"
                         :style="{ opacity: owned ? 1.0 : 0.3, textAlign: 'center' }"
-                        title="Delete aura"
+                        :title="$t('game.ui.selection.edit_dialog.dialog.delete_aura')"
                     >
-                        <i class="fas fa-trash-alt"></i>
+                        <i aria-hidden="true" class="fas fa-trash-alt"></i>
                     </div>
                 </template>
-                <div class="spanrow header">Labels</div>
+                <div class="spanrow header" v-t="'common.labels'"></div>
                 <div id="labels" class="spanrow">
                     <div v-for="label in shape.labels" class="label" :key="label.uuid">
                         <template v-if="label.category">
@@ -391,7 +438,7 @@ export default class EditDialog extends Vue {
                         <div class="label-main" @click="openLabelManager">+</div>
                     </div>
                 </div>
-                <div class="spanrow header">Annotation</div>
+                <div class="spanrow header" v-t="'common.annotation'"></div>
                 <textarea
                     class="spanrow"
                     :value="shape.annotation"

@@ -1,10 +1,10 @@
-import { AssetList, InvalidationMode, SyncMode } from "@/core/comm/types";
+import { AssetList, SyncMode } from "@/core/comm/types";
 import "@/game/api/events/access";
 import "@/game/api/events/location";
 import { setLocationOptions } from "@/game/api/events/location";
+import "@/game/api/events/shape";
 import { socket } from "@/game/api/socket";
-import { BoardInfo, Note } from "@/game/comm/types/general";
-import { ServerShape } from "@/game/comm/types/shapes";
+import { BoardInfo, Note, ServerFloor } from "@/game/comm/types/general";
 import { EventBus } from "@/game/event-bus";
 import { GlobalPoint } from "@/game/geom";
 import { layerManager } from "@/game/layers/manager";
@@ -12,9 +12,9 @@ import { addFloor, removeFloor } from "@/game/layers/utils";
 import { gameManager } from "@/game/manager";
 import { gameStore } from "@/game/store";
 import { router } from "@/router";
+import { coreStore } from "../../core/store";
 import { optionsToClient, ServerClient, ServerLocationOptions } from "../comm/types/settings";
 import { gameSettingsStore } from "../settings";
-import { createShapeFromDict } from "../shapes/utils";
 import { zoomDisplay } from "../utils";
 import { visibilityStore } from "../visibility/store";
 
@@ -76,7 +76,7 @@ socket.on("Client.Options.Set", (options: ServerClient) => {
     gameStore.setZoomDisplay(zoomDisplay(options.zoom_factor));
     // gameStore.setZoomDisplay(0.5);
     if (options.active_layer && options.active_floor) {
-        gameStore.selectFloor(options.active_floor);
+        gameStore.selectFloor({ targetFloor: options.active_floor, sync: false });
         layerManager.selectLayer(options.active_layer, false);
     }
     for (const floor of layerManager.floors) {
@@ -84,7 +84,7 @@ socket.on("Client.Options.Set", (options: ServerClient) => {
     }
 });
 socket.on("Position.Set", (data: { floor: string; x: number; y: number; zoom: number }) => {
-    gameStore.selectFloor(data.floor);
+    gameStore.selectFloor({ targetFloor: data.floor, sync: false });
     gameStore.setZoomDisplay(data.zoom);
     gameManager.setCenterPosition(new GlobalPoint(data.x, data.y));
 });
@@ -110,65 +110,14 @@ socket.on("Board.Set", (locationInfo: BoardInfo) => {
         visibilityStore.recalculateVision(floor.name);
         visibilityStore.recalculateMovement(floor.name);
     }
-    gameStore.selectFloor(0);
+    gameStore.selectFloor({ targetFloor: 0, sync: false });
     gameStore.setBoardInitialized(true);
 });
-socket.on("Floor.Create", addFloor);
+socket.on("Floor.Create", (data: { floor: ServerFloor; creator: string }) => {
+    addFloor(data.floor);
+    if (data.creator === coreStore.username) gameStore.selectFloor({ targetFloor: data.floor.name, sync: true });
+});
 socket.on("Floor.Remove", removeFloor);
-socket.on("Shape.Add", (shape: ServerShape) => {
-    gameManager.addShape(shape);
-});
-socket.on("Shape.Remove", (shape: ServerShape) => {
-    if (!layerManager.UUIDMap.has(shape.uuid)) {
-        console.log(`Attempted to remove an unknown shape`);
-        return;
-    }
-    if (!layerManager.hasLayer(shape.floor, shape.layer)) {
-        console.log(`Attempted to remove shape from an unknown layer ${shape.layer}`);
-        return;
-    }
-    const layer = layerManager.getLayer(shape.floor, shape.layer)!;
-    layer.removeShape(layerManager.UUIDMap.get(shape.uuid)!, SyncMode.NO_SYNC);
-    layer.invalidate(false);
-});
-socket.on("Shape.Order.Set", (data: { shape: ServerShape; index: number }) => {
-    if (!layerManager.UUIDMap.has(data.shape.uuid)) {
-        console.log(`Attempted to move the shape order of an unknown shape`);
-        return;
-    }
-    if (!layerManager.hasLayer(data.shape.floor, data.shape.layer)) {
-        console.log(`Attempted to remove shape from an unknown layer ${data.shape.layer}`);
-        return;
-    }
-    const shape = layerManager.UUIDMap.get(data.shape.uuid)!;
-    const layer = layerManager.getLayer(shape.floor, shape.layer)!;
-    layer.moveShapeOrder(shape, data.index, false);
-});
-socket.on("Shape.Floor.Change", (data: { uuid: string; floor: string }) => {
-    const shape = layerManager.UUIDMap.get(data.uuid);
-    if (shape === undefined) return;
-    shape.moveFloor(data.floor, false);
-    if (shape.ownedBy({ editAccess: true })) gameStore.selectFloor(data.floor);
-});
-socket.on("Shape.Layer.Change", (data: { uuid: string; layer: string }) => {
-    const shape = layerManager.UUIDMap.get(data.uuid);
-    if (shape === undefined) return;
-    shape.moveLayer(data.layer, false);
-});
-socket.on("Shape.Update", (data: { shape: ServerShape; redraw: boolean; move: boolean; temporary: boolean }) => {
-    gameManager.updateShape(data);
-});
-socket.on("Shape.Set", (data: ServerShape) => {
-    // hard reset a shape
-    const old = layerManager.UUIDMap.get(data.uuid);
-    if (old) layerManager.getLayer(old.floor, old.layer)?.removeShape(old, SyncMode.NO_SYNC);
-    const shape = createShapeFromDict(data);
-    if (shape === undefined) {
-        console.log(`Shape with unknown type ${data.type_} could not be added`);
-        return;
-    }
-    layerManager.getLayer(data.floor, data.layer)?.addShape(shape, SyncMode.NO_SYNC, InvalidationMode.WITH_LIGHT);
-});
 socket.on("Temp.Clear", (shapeIds: string[]) => {
     for (const shapeId of shapeIds) {
         if (!layerManager.UUIDMap.has(shapeId)) {

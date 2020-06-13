@@ -8,13 +8,14 @@ import { socket } from "@/game/api/socket";
 import { layerManager } from "@/game/layers/manager";
 import { gameStore } from "@/game/store";
 import { ToolName } from "./utils";
+import { ToolBasics } from "./ToolBasics";
 
 @Component({
     components: {
         accordion: Accordion,
     },
 })
-export default class FilterTool extends Tool {
+export default class FilterTool extends Tool implements ToolBasics {
     name = ToolName.Filter;
     active = false;
 
@@ -84,7 +85,7 @@ export default class FilterTool extends Tool {
             <accordion
                 v-for="category in categories"
                 :key="category"
-                :title="category === '' ? 'no category' : category"
+                :title="category === '' ? $t('game.ui.tools.filter.no_category') : category"
                 :showArrow="false"
                 :items="labels[category]"
                 :initialValues="initalValues[category]"

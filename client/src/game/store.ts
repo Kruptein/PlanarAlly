@@ -19,6 +19,13 @@ export interface LocationUserOptions {
     zoomFactor: number;
 }
 
+export interface Player {
+    id: number;
+    name: string;
+    location: number;
+    role: number;
+}
+
 export interface GameState {
     boardInitialized: boolean;
 }
@@ -48,7 +55,7 @@ class GameStore extends VuexModule implements GameState {
     roomName = "";
     roomCreator = "";
     invitationCode = "";
-    players: { id: number; name: string; location: number; role: number }[] = [];
+    players: Player[] = [];
 
     gridColour = "rgba(0, 0, 0, 1)";
     fowColour = "rgba(0, 0, 0, 1)";
@@ -216,12 +223,12 @@ class GameStore extends VuexModule implements GameState {
     }
 
     @Mutation
-    selectFloor(targetFloor: number | string): void {
+    selectFloor(data: { targetFloor: number | string; sync: boolean }): void {
         let targetFloorIndex: number;
-        if (typeof targetFloor === "string") {
-            targetFloorIndex = layerManager.floors.findIndex(f => f.name === targetFloor);
+        if (typeof data.targetFloor === "string") {
+            targetFloorIndex = layerManager.floors.findIndex(f => f.name === data.targetFloor);
         } else {
-            targetFloorIndex = targetFloor;
+            targetFloorIndex = data.targetFloor;
         }
         if (targetFloorIndex === this.selectedFloorIndex) return;
 
@@ -239,7 +246,7 @@ class GameStore extends VuexModule implements GameState {
                 else layer.canvas.style.removeProperty("display");
             }
         }
-        layerManager.selectLayer(layerManager.getLayer(layerManager.floor!.name)!.name, false, false);
+        layerManager.selectLayer(layerManager.getLayer(layerManager.floor!.name)!.name, data.sync, false);
         layerManager.invalidateAllFloors();
     }
 
@@ -415,12 +422,12 @@ class GameStore extends VuexModule implements GameState {
     }
 
     @Mutation
-    setPlayers(players: { id: number; name: string; location: number; role: number }[]): void {
+    setPlayers(players: Player[]): void {
         this.players = players;
     }
 
     @Mutation
-    addPlayer(player: { id: number; name: string; location: number; role: number }): void {
+    addPlayer(player: Player): void {
         this.players.push(player);
     }
 

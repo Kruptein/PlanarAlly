@@ -10,5 +10,6 @@ export function createConnection(route: Route): void {
     socket.io.opts.query = `user=${decodeURIComponent(route.params.creator)}&room=${decodeURIComponent(
         route.params.room,
     )}`;
+    socket.io.opts.transports = ["websocket", "polling"];
     socket.connect();
 }

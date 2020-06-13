@@ -1,13 +1,14 @@
 {
     "name": "planarally-client",
-    "version": "0.20.0",
+    "version": "0.21.0",
     "description": "A companion tool for when you travel into the planes.",
     "scripts": {
         "serve": "vue-cli-service serve",
         "build": "npm run clean && vue-cli-service build --no-clean --modern",
         "lint": "vue-cli-service lint",
-        "lint:ci": "vue-cli-service lint --no-fix",
         "clean": "rimraf ../server/static/js/ && rimraf ../server/static/css/",
+        "i18n:report": "vue-cli-service i18n:report --src './src/**/*.?(js|vue)' --locales './src/locales/**/*.json'",
+        "lint:ci": "vue-cli-service lint --no-fix",
         "test": "vue-cli-service test:unit",
         "test:coverage": "vue-cli-service test:unit --coverage"
     },
@@ -18,7 +19,9 @@
         "vue": "^2.6.10",
         "vue-class-component": "^7.0.2",
         "vue-color": "^2.7.0",
+        "vue-i18n": "^8.18.1",
         "vue-loading-overlay": "^3.3.0",
+        "vue-markdown": "^2.2.4",
         "vue-property-decorator": "^8.3.0",
         "vue-router": "^3.1.3",
         "vue-slider-component": "^3.0.42",
@@ -27,11 +30,14 @@
         "vuex-module-decorators": "^0.11.0"
     },
     "devDependencies": {
+        "@intlify/vue-i18n-loader": "^1.0.0",
         "@types/jest": "^24.0.22",
         "@types/lodash": "^4.14.146",
         "@types/socket.io-client": "^1.4.32",
         "@types/tinycolor2": "^1.4.2",
         "@types/vue-color": "^2.4.2",
+        "@types/vue-markdown": "^2.2.1",
+        "@types/webpack": "^4.4.0",
         "@typescript-eslint/eslint-plugin": "^2.15.0",
         "@typescript-eslint/parser": "^2.15.0",
         "@vue/cli-plugin-babel": "~4.2.2",
@@ -50,7 +56,8 @@
         "prettier": "^1.19.1",
         "rimraf": "^3.0.0",
         "ts-jest": "^24.1.0",
-        "typescript": "~3.7.5",
+        "typescript": "~3.9.3",
+        "vue-cli-plugin-i18n": "~1.0.1",
         "vue-template-compiler": "^2.6.10"
     },
     "bugs": {

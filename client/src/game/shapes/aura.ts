@@ -10,7 +10,7 @@ import { Shape } from "./shape";
 
 export function drawAuras(shape: Shape, ctx: CanvasRenderingContext2D): void {
     for (const aura of shape.auras) {
-        if (aura.value === 0 && aura.dim === 0) return;
+        if (aura.value === 0 && aura.dim === 0) continue;
         ctx.beginPath();
 
         const loc = g2l(shape.center());
@@ -59,7 +59,7 @@ export function updateAuraPath(visibilityPolygon: number[][], center: GlobalPoin
     const ixs: LocalPoint[][] = [];
 
     // First find all polygon segments that are actually relevant
-    for (const [i, p] of visibilityPolygon.map(p => GlobalPoint.fromArray(p)).entries()) {
+    for (const [i, p] of visibilityPolygon.map(vp => GlobalPoint.fromArray(vp)).entries()) {
         const np = GlobalPoint.fromArray(visibilityPolygon[(i + 1) % visibilityPolygon.length]);
         const pLoc = g2l(p);
         const npLoc = g2l(np);

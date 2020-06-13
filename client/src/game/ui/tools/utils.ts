@@ -15,16 +15,21 @@ export enum ToolName {
     Vision = "Vision",
 }
 
-export type ToolPermission = { name: ToolName; features: number[] };
+export type ToolPermission = { name: ToolName; features: ToolFeatures };
+export type ToolFeatures<T = number> = { enabled?: T[]; disabled?: T[] };
 
 // First go through each shape in the selection and see if the delta has to be truncated due to movement blockers
 
 // This is definitely super convoluted and inefficient but I was tired and really wanted the smooth wall sliding collision stuff to work
 // And it does now, so hey ¯\_(ツ)_/¯
-export function calculateDelta(delta: Vector, sel: Shape): Vector {
+export function calculateDelta(delta: Vector, sel: Shape, shrink = false): Vector {
     if (delta.x === 0 && delta.y === 0) return delta;
-    const centerTriangle = getCDT(TriangulationTarget.MOVEMENT, sel.floor).locate(sel.center().asArray(), null).loc;
-    for (const point of sel.points) {
+    const center = sel.center().asArray();
+    const centerTriangle = getCDT(TriangulationTarget.MOVEMENT, sel.floor).locate(center, null).loc;
+    for (let point of sel.points) {
+        if (shrink) {
+            point = [point[0] - (point[0] - center[0]) * 0.75, point[1] - (point[1] - center[1]) * 0.75];
+        }
         const lt = getCDT(TriangulationTarget.MOVEMENT, sel.floor).locate(point, centerTriangle);
         const triangle = lt.loc;
         if (triangle === null) continue;

@@ -42,13 +42,16 @@ export default class FloorSelect extends Vue {
     }
 
     async addFloor(): Promise<void> {
-        const value = await (<Game>this.$parent.$parent).$refs.prompt.prompt("New floor name", "Floor Creation");
+        const value = await (<Game>this.$parent.$parent).$refs.prompt.prompt(
+            this.$t("game.ui.floors.new_name").toString(),
+            this.$t("game.ui.floors.creation").toString(),
+        );
         if (value === undefined) return;
         socket.emit("Floor.Create", value);
     }
 
     selectFloor(index: number): void {
-        gameStore.selectFloor(index);
+        gameStore.selectFloor({ targetFloor: index, sync: true });
     }
 
     async removeFloor(index: number): Promise<void> {
@@ -56,12 +59,32 @@ export default class FloorSelect extends Vue {
         const floor = gameStore.floors[index];
         if (
             !(await (<Game>this.$parent.$parent).$refs.confirm.open(
-                `Are you sure you wish to remove the ${floor} floor?`,
+                this.$t("common.warning").toString(),
+                this.$t("game.ui.floors.warning_msg_Z", { z: floor }).toString(),
             ))
         )
             return;
         socket.emit("Floor.Remove", floor);
         removeFloor(floor);
+    }
+
+    getLayerWord(layer: string): string {
+        switch (layer) {
+            case "map":
+                return this.$t("layer.map").toString();
+
+            case "tokens":
+                return this.$t("layer.tokens").toString();
+
+            case "dm":
+                return this.$t("layer.dm").toString();
+
+            case "fow":
+                return this.$t("layer.fow").toString();
+
+            default:
+                return "";
+        }
     }
 }
 </script>
@@ -79,14 +102,14 @@ export default class FloorSelect extends Vue {
                         {{ index }}
                     </div>
                     <div class="floor-name">{{ floor }}</div>
-                    <div class="floor-actions" v-show="floors.length > 1">
-                        <div @click.stop="removeFloor(index)" title="Delete floor">
-                            <i class="fas fa-trash-alt"></i>
+                    <div class="floor-actions" v-show="floors.length > 1 && IS_DM">
+                        <div @click.stop="removeFloor(index)" :title="$t('game.ui.floors.delete_floor')">
+                            <i aria-hidden="true" class="fas fa-trash-alt"></i>
                         </div>
                     </div>
                 </div>
             </template>
-            <div class="floor-add" @click="addFloor">Add new floor</div>
+            <div class="floor-add" @click="addFloor" v-if="IS_DM" v-t="'game.ui.floors.add_new_floor'"></div>
         </div>
         <div style="display:contents" v-show="layers.length > 1">
             <div
@@ -96,7 +119,7 @@ export default class FloorSelect extends Vue {
                 :class="{ 'layer-selected': layer === selectedLayer }"
                 @mousedown="selectLayer(layer)"
             >
-                <a href="#">{{ layer }}</a>
+                <a href="#">{{ getLayerWord(layer) }}</a>
             </div>
         </div>
     </div>
@@ -109,7 +132,6 @@ export default class FloorSelect extends Vue {
     list-style: none;
     margin-left: 25px;
     margin-bottom: 25px;
-    pointer-events: auto;
 }
 
 #floor-layer * {
@@ -124,6 +146,7 @@ export default class FloorSelect extends Vue {
 
 #floor-selector,
 .layer {
+    pointer-events: auto;
     background-color: #eee;
     border-right: solid 1px #82c8a0;
 }
@@ -154,6 +177,7 @@ a {
 }
 
 #floor-detail {
+    pointer-events: auto;
     position: absolute;
     left: 25px;
     bottom: 80px;
@@ -202,6 +226,7 @@ a {
 }
 
 .floor-index {
+    grid-column-start: 1;
     padding-right: 5px;
     border-right: 1px solid black;
     justify-self: end;

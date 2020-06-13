@@ -24,6 +24,7 @@ module.exports = {
         "no-dupe-class-members": "off",
         "no-empty-function": "off",
         "no-unused-vars": "off",
+        "prettier/prettier": [process.env.GITHUB_ACTION === undefined ? 1 : 2],
     },
     parserOptions: {
         parser: "@typescript-eslint/parser",

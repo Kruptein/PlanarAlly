@@ -2,10 +2,16 @@
 import Vue from "vue";
 import Component from "vue-class-component";
 
+import LanguageDropdown from "@/core/components/languageDropdown.vue";
+
 import { coreStore } from "@/core/store";
 import { postFetch } from "../core/utils";
 
-@Component
+@Component({
+    components: {
+        languageDropdown: LanguageDropdown,
+    },
+})
 export default class Login extends Vue {
     username = "";
     password = "";
@@ -50,7 +56,7 @@ export default class Login extends Vue {
     }
 
     get version(): string {
-        return coreStore.version;
+        return coreStore.version.env;
     }
 
     get githubUrl(): string {
@@ -68,20 +74,20 @@ export default class Login extends Vue {
     <div style="display:contents">
         <form @focusin="focusin" @focusout="focusout" @submit.prevent="login">
             <fieldset>
-                <legend class="legend">PlanarAlly</legend>
+                <legend class="legend" v-t="'common.PlanarAlly'"></legend>
                 <div class="input">
                     <input
                         id="username"
                         type="text"
                         name="username"
                         v-model="username"
-                        placeholder="Username"
+                        :placeholder="$t('common.username')"
                         autocomplete="username"
                         required
                         autofocus
                     />
                     <span>
-                        <i class="fas fa-user-circle"></i>
+                        <i aria-hidden="true" class="fas fa-user-circle"></i>
                     </span>
                 </div>
 
@@ -91,35 +97,46 @@ export default class Login extends Vue {
                         type="password"
                         name="password"
                         v-model="password"
-                        placeholder="Password"
+                        :placeholder="$t('common.password')"
                         autocomplete="current-password"
                         required
                     />
                     <span>
-                        <i class="fas fa-lock"></i>
+                        <i aria-hidden="true" class="fas fa-lock"></i>
                     </span>
+                </div>
+
+                <div class="input">
+                    <label for="langDropdown" v-t="'locale.select'"></label>
+                    <languageDropdown id="langDropdown" />
                 </div>
 
                 <div style="display:flex;">
                     <button type="submit" name="login" style="visibility: hidden;display:none;"></button>
-                    <button type="button" name="register" class="submit" title="Register" @click="register">
-                        <i class="fas fa-plus"></i>
+                    <button
+                        type="button"
+                        name="register"
+                        class="submit"
+                        :title="$t('auth.login.register')"
+                        @click="register"
+                    >
+                        <i aria-hidden="true" class="fas fa-plus"></i>
                     </button>
-                    <button type="submit" name="login" class="submit" title="Login">
-                        <i class="fas fa-arrow-right"></i>
+                    <button type="submit" name="login" class="submit" :title="$t('auth.login.login')">
+                        <i aria-hidden="true" class="fas fa-arrow-right"></i>
                     </button>
                 </div>
             </fieldset>
 
             <div class="feedback" v-if="error">
                 <p class="error">
-                    <strong>Error:</strong>
+                    <strong v-t="'common.error_prefix'"></strong>
                     {{ error }}
                 </p>
             </div>
         </form>
         <div id="version">
-            Server version:
+            {{ $t("common.server_ver_prefix") }}
             <a :href="githubUrl">{{ version }}</a>
         </div>
     </div>

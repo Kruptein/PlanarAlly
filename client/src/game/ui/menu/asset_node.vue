@@ -108,7 +108,7 @@ export default class AssetNode extends Vue {
         >
             {{ file.name }}
             <div v-if="showImage == file.hash" class="preview">
-                <img class="asset-preview-image" :src="'/static/assets/' + file.hash" />
+                <img class="asset-preview-image" :src="'/static/assets/' + file.hash" alt="" />
             </div>
         </li>
     </ul>
@@ -129,7 +129,8 @@ export default class AssetNode extends Vue {
 
 .draggable {
     list-style: none;
-    font-family: helvetica;
+    font-family: "HelveticaNeue-Light", "Helvetica Neue Light", "Helvetica Neue", Helvetica, Arial, "Lucida Grande",
+        sans-serif;
 }
 
 .token {

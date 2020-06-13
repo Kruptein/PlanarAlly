@@ -11,17 +11,21 @@ export interface InitiativeState {
     data: InitiativeData[];
     currentActor: string | null;
     roundCounter: number;
+    editLock: boolean;
 }
 
 @Module({ dynamic: true, store: rootStore, name: "initiative", namespaced: true })
 class InitiativeStore extends VuexModule implements InitiativeState {
     data: InitiativeData[] = [];
+    dataNew: InitiativeData[] = [];
     currentActor: string | null = null;
     roundCounter = 0;
+    editLock = false;
 
     @Mutation
     clear(): void {
         this.data = [];
+        this.dataNew = [];
         this.currentActor = null;
     }
 
@@ -32,7 +36,8 @@ class InitiativeStore extends VuexModule implements InitiativeState {
 
     @Mutation
     setData(data: InitiativeData[]): void {
-        this.data = data;
+        if (this.editLock) this.dataNew = data;
+        else this.data = data;
     }
 
     @Mutation
@@ -51,6 +56,13 @@ class InitiativeStore extends VuexModule implements InitiativeState {
     @Mutation
     setTurn(actorId: string | null): void {
         this.currentActor = actorId;
+    }
+
+    @Mutation
+    setLock(lock: boolean): void {
+        if (lock) this.dataNew = this.data;
+        else this.data = this.dataNew;
+        this.editLock = lock;
     }
 }
 

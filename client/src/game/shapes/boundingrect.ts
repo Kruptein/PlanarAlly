@@ -72,14 +72,14 @@ export class BoundingRect {
     }
 
     intersectP(ray: Ray<Point>, invDir: Vector, dirIsNeg: boolean[]): { hit: boolean; min: number; max: number } {
-        let txmin = invDir.x * (this.getDiagCorner(dirIsNeg[0]).x - ray.origin!.x);
-        let txmax = invDir.x * (this.getDiagCorner(!dirIsNeg[0]).x - ray.origin!.x);
-        const tymin = invDir.y * (this.getDiagCorner(dirIsNeg[1]).y - ray.origin!.y);
-        const tymax = invDir.y * (this.getDiagCorner(!dirIsNeg[1]).y - ray.origin!.y);
+        let txmin = invDir.x * (this.getDiagCorner(dirIsNeg[0]).x - ray.origin.x);
+        let txmax = invDir.x * (this.getDiagCorner(!dirIsNeg[0]).x - ray.origin.x);
+        const tymin = invDir.y * (this.getDiagCorner(dirIsNeg[1]).y - ray.origin.y);
+        const tymax = invDir.y * (this.getDiagCorner(!dirIsNeg[1]).y - ray.origin.y);
         if (txmin > tymax || tymin > txmax) return { hit: false, min: txmin, max: txmax };
         if (tymin > txmin) txmin = tymin;
         if (tymax < txmax) txmax = tymax;
-        return { hit: txmin < ray.tMax! && txmax > 0, min: txmin, max: txmax };
+        return { hit: txmin < ray.tMax && txmax > 0, min: txmin, max: txmax };
     }
 
     center(): GlobalPoint {

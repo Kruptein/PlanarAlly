@@ -1,4 +1,8 @@
-version: 2
+version: 2.1
+
+orbs:
+    windows: circleci/windows@2.4.0
+
 jobs:
     build-client:
         docker:
@@ -64,10 +68,67 @@ jobs:
                       VERSION=$(cat server/VERSION)
                       ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -replace ${VERSION} /tmp/archives
 
+    build-windows:
+        executor: windows/default
+
+        working_directory: ~/PlanarAlly/server
+
+        steps:
+            - attach_workspace:
+                  at: ../
+
+            - run:
+                  name: Create archives folder
+                  command: mkdir ~/archives
+
+            - run:
+                  name: Create dist folder
+                  command: mkdir ~/dist
+
+            - run:
+                  name: Upgrade pip
+                  command: python -m pip install --upgrade pip
+
+            - run:
+                  name: Install python dependencies
+                  command: python -m pip install -r requirements.txt
+
+            - run:
+                  name: Install pyinstaller
+                  command: python -m pip install pyinstaller
+
+            - run:
+                  name: Run pyinstaller
+                  command: pyinstaller --clean -y --dist ~/dist/ PA.spec
+
+            - run:
+                  name: Zip artifacts
+                  command: |
+                      $VERSION=$(cat VERSION)
+                      Compress-Archive -Path C:\Users\circleci\dist -DestinationPath C:\Users\circleci\archives\planarally-windows-${VERSION}.zip
+
+            - run:
+                  name: Install ghr
+                  command: go get -u github.com/tcnksm/ghr
+
+            - run:
+                  name: Publish release on github
+                  command: |
+                      $VERSION=$(cat VERSION)
+                      C:\Windows\system32\config\systemprofile\go\bin\ghr.exe -t $env:GITHUB_TOKEN -u $env:CIRCLE_PROJECT_USERNAME -r $env:CIRCLE_PROJECT_REPONAME -c $env:CIRCLE_SHA1 -replace $VERSION C:\Users\circleci\archives
+
 workflows:
     version: 2
     build:
         jobs:
+            - build-windows:
+                  requires:
+                      - build-client
+                  filters:
+                      branches:
+                          ignore: /.*/
+                      tags:
+                          only: /^\d+\.\d+\.\d+[-a-zA-Z0-9]*$/
             - build-client:
                   filters:
                       branches:

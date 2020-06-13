@@ -35,7 +35,7 @@ export default class NoteDialog extends Vue {
         if (this.note) gameStore.updateNote({ note: this.note, sync: true });
     }
     async removeNote(): Promise<void> {
-        const result = await (<Game>this.$parent).$refs.confirm.open("Are you sure you wish to remove this?");
+        const result = await (<Game>this.$parent).$refs.confirm.open(this.$t("game.ui.note.warning_msg").toString());
         if (result && this.note) {
             gameStore.removeNote({ note: this.note, sync: true });
             this.visible = false;
@@ -54,12 +54,12 @@ export default class NoteDialog extends Vue {
             @dragstart="m.dragStart"
             @dragend="m.dragEnd"
         >
-            <span @click="$refs.title.select()" title="Edit title">
-                <i class="fas fa-pencil-alt" style="font-size: 15px"></i>
+            <span @click="$refs.title.select()" :title="$t('game.ui.note.edit_title')">
+                <i aria-hidden="true" class="fas fa-pencil-alt" style="font-size: 15px"></i>
             </span>
             <input v-model="note.title" ref="title" @change="updateNote" />
-            <div class="header-close" @click="visible = false" title="Close">
-                <i class="far fa-window-close"></i>
+            <div class="header-close" @click="visible = false" :title="$t('common.close')">
+                <i aria-hidden="true" class="far fa-window-close"></i>
             </div>
         </div>
         <div class="modal-body">
@@ -71,9 +71,9 @@ export default class NoteDialog extends Vue {
             ></textarea>
         </div>
         <div class="modal-footer">
-            <button @click="removeNote" title="Remove note">
-                <i class="far fa-trash-alt"></i>
-                Remove
+            <button @click="removeNote" :title="$t('game.ui.note.remove_note')">
+                <i aria-hidden="true" class="far fa-trash-alt"></i>
+                {{ $t("game.ui.note.remove_note") }}
             </button>
         </div>
     </modal>
@@ -113,7 +113,6 @@ export default class NoteDialog extends Vue {
 }
 
 .modal-footer {
-    padding-top: 0;
     padding: 10px;
     text-align: right;
 }

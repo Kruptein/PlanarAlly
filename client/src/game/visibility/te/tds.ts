@@ -253,7 +253,7 @@ export class EdgeIterator {
         }
         this.pos = tds.triangles[0];
         if (tds.dimension === 1) this.es = 2;
-        while (this.pos !== null && !this.associatedEdge()) {
+        if (this.pos !== null && !this.associatedEdge()) {
             throw new Error("[poi");
         }
 
@@ -387,7 +387,7 @@ export class LineFaceCirculator {
         }
 
         ic = fc.t!.indexV(v);
-        vt = fc.t!.vertices[cw(ic)]!;
+        // vt = fc.t!.vertices[cw(ic)]!;  used for assert check in cgal
 
         if (vr === _INFINITE_VERTEX) {
             fc.prev();
@@ -430,12 +430,12 @@ export class LineFaceCirculator {
                 const n = this.pos!.neighbours[cw(this.i)]!;
                 this.i = n.indexT(this.pos!);
                 this.pos = n;
-                if (this.pos!.vertices[this.i] === _INFINITE_VERTEX) {
+                if (this.pos.vertices[this.i] === _INFINITE_VERTEX) {
                     o = Sign.COLLINEAR;
                     this.i = cw(this.i);
                     break;
                 }
-                o = orientation(this.p, this.q, this.pos!.vertices[this.i]!.point!);
+                o = orientation(this.p, this.q, this.pos.vertices[this.i]!.point!);
                 this.i = cw(this.i);
             } while (o === Sign.LEFT_TURN);
             if (o === Sign.COLLINEAR) {
@@ -449,9 +449,9 @@ export class LineFaceCirculator {
             const ni = n.indexT(this.pos!);
             this.pos = n;
             o =
-                this.pos!.vertices[ni]! === _INFINITE_VERTEX
+                this.pos.vertices[ni] === _INFINITE_VERTEX
                     ? Sign.COLLINEAR
-                    : orientation(this.p, this.q, this.pos!.vertices[ni]!.point!);
+                    : orientation(this.p, this.q, this.pos.vertices[ni]!.point!);
             switch (o) {
                 case Sign.LEFT_TURN: {
                     this.s = LineFaceState.EDGE_EDGE;
@@ -866,11 +866,10 @@ export class TDS {
                 else {
                     const p = vv.point!;
                     if (orientation(p0, p1, p) === Sign.COUNTERCLOCKWISE) {
-                        if (v2.infinite) {
-                            v2 = vv;
-                            v3 = vv;
-                            cutAfter = hit;
-                        } else if (sideOfOrientedCircleP(p0, p1, v3!.point!, p, true) === Sign.ON_POSITIVE_SIDE) {
+                        if (
+                            v2.infinite ||
+                            sideOfOrientedCircleP(p0, p1, v3!.point!, p, true) === Sign.ON_POSITIVE_SIDE
+                        ) {
                             v2 = vv;
                             v3 = vv;
                             cutAfter = hit;

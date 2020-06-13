@@ -4,6 +4,9 @@ from models.shape import Shape, ShapeOwner
 
 
 def has_ownership(shape: Shape, pr: PlayerRoom) -> bool:
+    if shape is None:
+        return False
+
     if pr.role == Role.DM:
         return True
 
@@ -17,6 +20,9 @@ def has_ownership(shape: Shape, pr: PlayerRoom) -> bool:
 
 
 def has_ownership_temp(shape: Shape, pr: PlayerRoom) -> bool:
+    if shape is None:
+        return False
+
     if pr.role == Role.DM:
         return True
 

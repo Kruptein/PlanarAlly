@@ -31,12 +31,20 @@ export default class DmSettings extends Vue {
     beforeDestroy(): void {
         EventBus.$off("DmSettings.Open");
     }
+
+    get categoryNames(): string[] {
+        return [
+            this.$t("common.admin").toString(),
+            this.$t("common.grid").toString(),
+            this.$t("common.vision").toString(),
+        ];
+    }
 }
 </script>
 
 <template>
-    <PanelModal :visible.sync="visible" :categories="['Admin', 'Grid', 'Vision']">
-        <template v-slot:title>DM Settings</template>
+    <PanelModal :visible.sync="visible" :categories="categoryNames">
+        <template v-slot:title>{{ $t("game.ui.settings.dm.DmSettings.dm_settings") }}</template>
         <template v-slot:default="{ selection }">
             <AdminSettings v-show="selection === 0"></AdminSettings>
             <GridSettings :location="null" v-show="selection === 1"></GridSettings>

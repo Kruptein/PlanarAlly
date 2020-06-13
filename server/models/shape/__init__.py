@@ -1,6 +1,7 @@
 import json
 from peewee import BooleanField, FloatField, ForeignKeyField, IntegerField, TextField
 from playhouse.shortcuts import model_to_dict, update_model_from_dict
+from typing import Tuple
 
 from ..base import BaseModel
 from ..campaign import Layer
@@ -46,6 +47,9 @@ class Shape(BaseModel):
     show_badge = BooleanField(default=False)
     default_edit_access = BooleanField(default=False)
     default_vision_access = BooleanField(default=False)
+    is_invisible = BooleanField(default=False)
+    default_movement_access = BooleanField(default=False)
+    is_locked = BooleanField(default=False)
 
     def __repr__(self):
         return f"<Shape {self.get_path()}>"
@@ -56,6 +60,7 @@ class Shape(BaseModel):
         except:
             return self.name
 
+    # todo: Change this API to accept a PlayerRoom instead
     def as_dict(self, user: User, dm: bool):
         data = model_to_dict(self, recurse=False, exclude=[Shape.layer, Shape.index])
         # Owner query > list of usernames
@@ -86,6 +91,11 @@ class Shape(BaseModel):
         # Subtype
         data.update(**self.subtype.as_dict(exclude=[self.subtype.__class__.shape]))
         return data
+
+    def center_at(self, x: int, y: int) -> None:
+        x_off, y_off = self.subtype.get_center_offset(x, y)
+        self.x = x - x_off
+        self.y = y - y_off
 
     @property
     def subtype(self):
@@ -137,6 +147,7 @@ class ShapeOwner(BaseModel):
     user = ForeignKeyField(User, backref="shapes", on_delete="CASCADE")
     edit_access = BooleanField()
     vision_access = BooleanField()
+    movement_access = BooleanField()
 
     def __repr__(self):
         return f"<ShapeOwner {self.user.name} {self.shape.get_path()}>"
@@ -146,6 +157,7 @@ class ShapeOwner(BaseModel):
             "shape": self.shape.uuid,
             "user": self.user.name,
             "edit_access": self.edit_access,
+            "movement_access": self.movement_access,
             "vision_access": self.vision_access,
         }
 
@@ -154,17 +166,27 @@ class ShapeType(BaseModel):
     abstract = False
     shape = ForeignKeyField(Shape, primary_key=True, on_delete="CASCADE")
 
+    @staticmethod
+    def pre_create(**kwargs):
+        return kwargs
+
     def as_dict(self, *args, **kwargs):
         return model_to_dict(self, *args, **kwargs)
 
     def update_from_dict(self, data, *args, **kwargs):
         return update_model_from_dict(self, data, *args, **kwargs)
 
+    def get_center_offset(self, x: int, y: int) -> Tuple[int, int]:
+        return 0, 0
+
 
 class BaseRect(ShapeType):
     abstract = False
     width = FloatField()
     height = FloatField()
+
+    def get_center_offset(self, x: int, y: int) -> Tuple[int, int]:
+        return self.width / 2, self.height / 2
 
 
 class AssetRect(BaseRect):
@@ -189,12 +211,20 @@ class Line(ShapeType):
     y2 = FloatField()
     line_width = IntegerField()
 
+    def get_center_offset(self, x: int, y: int) -> Tuple[int, int]:
+        return (self.x2 - self.x) / 2, (self.y2 - self.y) / 2
+
 
 class Polygon(ShapeType):
     abstract = False
     vertices = TextField()
     line_width = IntegerField()
     open_polygon = BooleanField()
+
+    @staticmethod
+    def pre_create(**kwargs):
+        kwargs["vertices"] = json.dumps(kwargs["vertices"])
+        return kwargs
 
     def as_dict(self, *args, **kwargs):
         model = model_to_dict(self, *args, **kwargs)

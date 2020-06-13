@@ -63,7 +63,7 @@ export default class Prompt extends Vue {
             <input type="text" ref="answer" v-model="answer" @keyup.enter="submit" />
         </div>
         <div class="modal-footer">
-            <button @click="submit">Submit</button>
+            <button @click="submit" v-t="'common.submit'"></button>
         </div>
     </Modal>
 </template>
@@ -85,7 +85,6 @@ export default class Prompt extends Vue {
 }
 
 .modal-footer {
-    padding-top: 0;
     padding: 10px;
     text-align: right;
 }

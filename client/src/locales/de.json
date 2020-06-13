@@ -1,0 +1,361 @@
+{
+    "locale": {
+        "select": "Sprache auswählen:",
+        "en": "English",
+        "zh": "中文",
+        "de": "Deutsch",
+        "ru": "Русский"
+    },
+    "assetManager": {
+        "contextMenu": {
+            "new_name": "Neuer Name:",
+            "renaming_NAME": "Benenne {name} um",
+            "ask_remove": "Bist Du sicher, dass Du das hier entfernen möchtest?"
+        },
+        "manager": {
+            "new_folder_name": "Name des neuen Ordners",
+            "uploading": "Lade Dateien hoch",
+            "create_folder": "Erstelle Ordner",
+            "upload_files": "Dateien hochladen",
+            "title": "Asset Verwaltung"
+        }
+    },
+    "common": {
+        "rename": "Umbenennen",
+        "remove": "Entfernen",
+        "username": "Benutzername",
+        "password": "Passwort",
+        "server_ver_prefix": "Server Version:",
+        "PlanarAlly": "PlanarAlly",
+        "error_prefix": "Fehler:",
+        "error_msg": "Fehler!",
+        "close": "Schließen",
+        "submit": "Übernehmen",
+        "create": "Erstellen",
+        "warning": "Warnung",
+        "value": "Wert",
+        "toggle_public_private": "Öffentlich/Privat umschalten",
+        "initiative": "Initiative",
+        "search": "Suchen",
+        "name": "Name",
+        "add": "hinzufügen",
+        "players": "Spieler",
+        "exit": "Verlassen",
+        "assets": "Assets",
+        "notes": "Notizen",
+        "markers": "Markierungen",
+        "border_color": "Rahmenfarbe",
+        "fill_color": "Füllfarbe",
+        "trackers": "Trackers",
+        "auras": "Auren",
+        "labels": "Schlagwort",
+        "annotation": "Anmerkungen",
+        "floor": "Stockwerk",
+        "layer": "Ebene",
+        "location": "Ort",
+        "admin": "Admin",
+        "grid": "Gitter",
+        "vision": "Sicht",
+        "tokens": "Spielstein",
+        "shape": "Form",
+        "colors": "Farben",
+        "version": "Version",
+        "confirm": "Bestätigen",
+        "cancel": "Abbrechen"
+    },
+    "auth": {
+        "login": {
+            "register": "Registrieren",
+            "login": "Anmelden"
+        }
+    },
+    "core": {
+        "components": {
+            "inputCopy": {
+                "copied": "Kopiert!",
+                "copy": "Kopieren"
+            }
+        }
+    },
+    "dashboard": {
+        "main": {
+            "session_name": "Kampagnenname",
+            "account_settings": "Benutzerkonten-Einstellungen",
+            "logout": "Abmelden",
+            "your_sessions": "Deine Kampagnen",
+            "no_sessions": "Keine aktiven Kampagnen",
+            "create_session": "Kampagne erstellen",
+            "create_new_session": "Neue Kampagne erstellen"
+        }
+    },
+    "game": {
+        "ui": {
+            "floors": {
+                "new_name": "Name des neuen Stockwerks",
+                "creation": "Stockwerkerstellung",
+                "warning_msg_Z": "Bist Du sicher, dass Du das Stockwerk {z} löschen willst?",
+                "delete_floor": "Stockwerk löschen",
+                "add_new_floor": "Neues Stockwerk hinzufügen"
+            },
+            "initiative": {
+                "initiative": {
+                    "new_effect": "Neuer Effekt",
+                    "add_timed_effect": "Effekt mit Wirkungsdauer erstellen",
+                    "toggle_group": "Individuelle / Gruppen-Initiative umschalten",
+                    "delete_init": "Aus Initiative löschen",
+                    "round_N": "Runde {n}",
+                    "vision_log_msg": "Sicht automatisch sperren (zeige nur Sicht des aktiven Spielsteins)",
+                    "camera_log_msg": "Ansicht automatisch auf aktiven Spielstein zentrieren",
+                    "reset_round": "Runden/Züge zurücksetzen",
+                    "next": "Nächster Zug"
+                }
+            },
+            "labels": {
+                "category": "Kategorie",
+                "visible": "Sichtbarkeit",
+                "delete": "Löschen",
+                "delete_label": "Schlagwort löschen",
+                "title": "Schlagwortverwaltung",
+                "cat_abbr": "Kat.",
+                "vis_abbr": "Sib.",
+                "del_abbr": "Entf.",
+                "no_exist_msg": "Bislang existieren keine Schlagworte"
+            },
+            "menu": {
+                "locations": {
+                    "new_location_name": "Name des neuen Ortes:",
+                    "create_new_location": "Neuen Ort erstellen",
+                    "add_new_location": "Neuen Ort hinzufügen",
+                    "show_specific_pl": "Spezifische Spieler anzeigen"
+                },
+                "menu": {
+                    "new_note": "Neue Notiz",
+                    "open_asset_manager": "Asset Verwaltung öffnen",
+                    "no_assets": "Keine Assets",
+                    "create_note": "Notiz erstellen",
+                    "delete_marker": "Markierung löschen",
+                    "no_notes": "Keine Notizen",
+                    "dm_options": "SL Optionen",
+                    "no_markers": "Keine Markierungen",
+                    "client_options": "Client Optionen",
+                    "grid_color_set": "Gitterfarbe:",
+                    "fow_color_set": "Farbe „Nebel des Krieges“:",
+                    "ruler_color_set": "Linealfarbe:",
+                    "invert_alt_set": "ALT-Tasten Verhalten umkehren"
+                }
+            },
+            "note": {
+                "warning_msg": "Bist Du sicher, dass du das löschen willst?",
+                "edit_title": "Titel bearbeiten",
+                "remove_note": "Notiz löschen"
+            },
+            "selection": {
+                "edit_dialog": {
+                    "access": {
+                        "toggle_edit_access": "Bearbeitungszugriff umschalten",
+                        "toggle_movement_access": "Bewegungszugriff umschalten",
+                        "toggle_vision_access": "Sichtzugriff umschalten",
+                        "remove_owner_access": "Eigentümer entfernen",
+                        "access": "Zugriff",
+                        "default": "Standard",
+                        "add_access": "Zugriff hinzufügen"
+                    },
+                    "dialog": {
+                        "current_value": "Derzeitiger Wert",
+                        "remove_tracker": "Tracker entfernen",
+                        "dim_value": "Wert diffus",
+                        "toggle_light_source": "Lichtquelle umschalten",
+                        "delete_aura": "Aura löschen",
+                        "edit_asset": "Asset bearbeiten",
+                        "is_a_token": "Ist ein Spielstein",
+                        "is_invisible": "Ist unsichtbar",
+                        "is_locked": "Ist verankert",
+                        "show_badge": "Abzeichen anzeigen",
+                        "block_vision_light": "Blockiert Sicht/Licht",
+                        "block_movement": "Blockiert Bewegung"
+                    }
+                },
+                "select_info": {
+                    "open_shape_props": "Eigenschaften der Form öffnen",
+                    "quick_edit_tracker": "Tracker schnell ändern",
+                    "quick_edit_aura": "Aura schnell ändern"
+                },
+                "shapecontext": {
+                    "show_initiative": "Initiative anzeigen",
+                    "add_initiative": "Initiative hinzufügen",
+                    "add_all_initiative": "Alle Initiativen hinzufügen",
+                    "move_back": "Nach hinten",
+                    "move_front": "Nach vorne",
+                    "delete_shapes": "Formen löschen",
+                    "show_props": "Eigenschaften anzeigen",
+                    "remove_marker": "Markierung löschen",
+                    "set_marker": "Markierung setzen"
+                }
+            },
+            "settings": {
+                "dm": {
+                    "AdminSettings": {
+                        "delete_session_msg_CREATOR_ROOM": "GIB {creator}/{room} EIN UM DIE LÖSCHUNG DER KAMPAGNE ZU BESTÄTIGEN.",
+                        "deleting_session": "KAMPAGNE LÖSCHEN",
+                        "unlock_NBSP_Session_NBSP": "\u00a0Kampagne\u00a0freigeben",
+                        "lock_NBSP_Session_NBSP": "\u00a0Kampagne\u00a0 sperren",
+                        "unlock_this_session": "Diese Kampagne freigeben",
+                        "lock_this_session": "Diese Kampagne sperren",
+                        "kick": "Rauswerfen",
+                        "no_players_invite_msg": "Noch sind keine Spieler vorhanden, lade sie über den untenstehenden Link ein!",
+                        "invite_code": "Einladungscode",
+                        "invitation_url": "Einladungslink (URL):",
+                        "refresh_invitation_code": "Einladungscode erneuern",
+                        "danger_NBSP_zone": "\u00a0Gefahrenzone",
+                        "dm_access_only": "(ausschließlich SL-Zugriff)",
+                        "remove_session": "Kampagne entfernen",
+                        "delete_session": "Diese Kampagne löschen"
+                    },
+                    "DmSettings": {
+                        "dm_settings": "SL Einstellungen"
+                    }
+                },
+                "common": {
+                    "overridden_msg": "Einige dieser Einstellungen können von Orts-spezifischen Einstellungen überschrieben werden",
+                    "overridden_highlight": "hervorgehoben",
+                    "reset_default": "Zum Kampagnen-Standard zurücksetzen",
+                    "overridden_highlight_path": "Einstellungen, die die Kampagnen-Standards überschreiten sind {0}"
+                },
+                "GridSettings": {
+                    "unit_size_in_UNIT": "Feldgröße (in {unit})",
+                    "use_grid": "Gitter benutzen",
+                    "grid_size_in_pixels": "Gittergröße (in Pixel):",
+                    "size_unit": "Längeneinheit"
+                },
+                "location": {
+                    "LocationAdminSettings": {
+                        "remove_location_msg_NAME": "Bist Du sicher, dass Du den Ort {name} entfernen willst",
+                        "remove_location_yes": "Ja, lösche diesen Ort",
+                        "remove_location_no": "Bitte nicht",
+                        "move_existing_pl": "Bestehende Spieler zu diesem Ort bewegen",
+                        "delete_this_location": "Diesen Ort löschen",
+                        "remove_location": "Ort entfernen"
+                    },
+                    "LocationSettings": {
+                        "location_settings": "Ortseinstellungen:"
+                    }
+                },
+                "permissions": {
+                    "edit_owned_tokens": "Eigene Spielsteine bearbeiten:",
+                    "move_owned_tokens": "Eigene Spielsteine bewegen:",
+                    "resize_owned_tokens": "Größe eigener Spielsteine verändern:"
+                },
+                "VisionSettings": {
+                    "min_full_vision_UNIT": "Minimale volle Sichtweite ({unit}):",
+                    "max_vision_UNIT": "Maximale Sichtweite ({unit}):",
+                    "core": "Grundlagen",
+                    "fake_player": "Spieleransicht simulieren:",
+                    "fill_fow": "Gesamte Leinwand mit Nebel des Kriegs füllen:",
+                    "only_show_lights_los": "Nur Licht in Sichtlinie anzeigen:",
+                    "fow_opacity": "Deckkraft des Nebels des Kriegs:",
+                    "advanced": "Erweitert",
+                    "vision_mode": "Sicht-Modus:",
+                    "default": "Standard",
+                    "experimental": "Experimentell"
+                }
+            },
+            "tools": {
+                "createtoken_modal": {
+                    "create_basic_token": "Einfachen Spielstein erstellen",
+                    "text": "Text",
+                    "fill": "Füllung:",
+                    "border": "Rahmen:"
+                },
+                "defaultcontext": {
+                    "bring_pl": "Spieler herbringen",
+                    "create_basic_token": "Einfachen Spielstein erstellen",
+                    "show_initiative": "Initiative anzeigen"
+                },
+                "draw": {
+                    "foreground_color": "Vordergrundfarbe",
+                    "background_color": "Hintergrundfarbe",
+                    "mode": "Modus",
+                    "closed_polygon": "Geschlossenes Vieleck?",
+                    "brush_size": "Pinselgröße"
+                },
+                "filter": {
+                    "no_category": "keine Kategorie"
+                },
+                "map": {
+                    "drag_to_resize": "Markiere den Bereich, dessen Größe Du verändern willst",
+                    "select_shape_msg": "Bitte wähle zuerst eine Form aus.",
+                    "set_target_grid_cells": "Feld-Zielgröße setzen",
+                    "horizontal": "Horizontal",
+                    "vertical": "Vertikal",
+                    "apply": "ANWENDEN",
+                    "cancel": "ABBRECHEN"
+                },
+                "ruler": {
+                    "share": "Mit den anderen teilen"
+                },
+                "tools": {
+                    "change_mode": "Modus ändern"
+                }
+            },
+            "ui": {
+                "github_msg": "Finde den Quelltext auf github!",
+                "discord_msg": "Tritt der Community auf discord bei!",
+                "patreon_msg": "Leiste einen Beitrag über patreon!",
+                "open_loc_menu": "Orte-Menü öffnen",
+                "new_ver_msg": "Eine neue Version ist erschienen!",
+                "open_settings": "Einstellungen öffnen",
+                "changelog_RELEASE_LOG": "# Versionsnummer {release}\n*Für mehr Details besuche https://www.planarally.io/blog\n{log}"
+            }
+        }
+    },
+    "layer": {
+        "map": "Karte",
+        "tokens": "Spielbrett",
+        "dm": "SL",
+        "fow": "Kriegsnebel"
+    },
+    "draw": {
+        "square": "Quadrat",
+        "circle": "Kreis",
+        "draw-polygon": "Vieleck",
+        "paint-brush": "Freihand",
+        "normal": "normal",
+        "reveal": "enthüllen",
+        "hide": "verstecken"
+    },
+    "tool": {
+        "Build": "Planen",
+        "Play": "Spielen",
+        "Select": "Auswählen",
+        "Pan": "Verschieben",
+        "Draw": "Zeichnen",
+        "Ruler": "Lineal",
+        "Ping": "Ping",
+        "Map": "Karte",
+        "Filter": "Filter",
+        "Vision": "Sicht"
+    },
+    "settings": {
+        "account": {
+            "no_pwd_msg": "Kein neues Passwort eingegeben!",
+            "pwd_not_match": "Die Passwörter stimmen nicht überein!",
+            "server_request_error": "Etwas ist während der Serveranfrage schiefgelaufen",
+            "change_pwd": "Passwort ändern",
+            "remove_account_msg": "Bist Du sicher, dass Du Dein Benutzerkonto entfernen willst?",
+            "delete_request_error": "Etwas ist während des Löschauftrages schiefgelaufen.",
+            "no_email_set": "Keine E-Mail eingetragen",
+            "general": "Allgemein",
+            "username": "Benutzername:",
+            "email": "E-Mail:",
+            "danger_zone": "Gefahrenzone",
+            "new_pwd": "Neues Passwort:",
+            "repeat_pwd": "Passwort wiederholen:",
+            "delete_account": "Benutzerkonto löschen",
+            "delete_confirm_msg": "Diese Aktion ist unwiderruflich!"
+        },
+        "settings": {
+            "account_settings": "Benutzerkonten-Einstellungen",
+            "account": "Benutzerkonto"
+        }
+    }
+}

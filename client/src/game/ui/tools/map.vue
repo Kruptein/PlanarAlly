@@ -3,21 +3,21 @@ import Component from "vue-class-component";
 
 import Tool from "@/game/ui/tools/tool.vue";
 
-import { GlobalPoint, Vector } from "@/game/geom";
+import { GlobalPoint, Vector, LocalPoint } from "@/game/geom";
 import { layerManager } from "@/game/layers/manager";
 import { BaseRect } from "@/game/shapes/baserect";
 import { Rect } from "@/game/shapes/rect";
 import { l2g } from "@/game/units";
-import { getLocalPointFromEvent } from "@/game/utils";
 import { SyncMode, InvalidationMode } from "../../../core/comm/types";
 import { SelectFeatures } from "./select.vue";
 import { ToolName, ToolPermission } from "./utils";
 import { EventBus } from "@/game/event-bus";
 import { Shape } from "@/game/shapes/shape";
 import { gameSettingsStore } from "../../settings";
+import { ToolBasics } from "./ToolBasics";
 
 @Component
-export default class MapTool extends Tool {
+export default class MapTool extends Tool implements ToolBasics {
     name = ToolName.Map;
     active = false;
     xCount = 3;
@@ -28,7 +28,9 @@ export default class MapTool extends Tool {
 
     shapeSelected = false;
 
-    permittedTools_: ToolPermission[] = [{ name: ToolName.Select, features: [SelectFeatures.ChangeSelection] }];
+    permittedTools_: ToolPermission[] = [
+        { name: ToolName.Select, features: { enabled: [SelectFeatures.ChangeSelection] } },
+    ];
 
     get permittedTools(): ToolPermission[] {
         return this.permittedTools_;
@@ -54,7 +56,7 @@ export default class MapTool extends Tool {
             layer.removeShape(this.rect, SyncMode.NO_SYNC);
             this.rect = null;
         }
-        this.permittedTools_ = [{ name: ToolName.Select, features: [SelectFeatures.ChangeSelection] }];
+        this.permittedTools_ = [{ name: ToolName.Select, features: { enabled: [SelectFeatures.ChangeSelection] } }];
         this.shapeSelected = false;
         this.shape = null;
     }
@@ -86,8 +88,10 @@ export default class MapTool extends Tool {
         this.removeRect();
     }
 
-    onDown(startPoint: GlobalPoint): void {
+    onDown(lp: LocalPoint): void {
         if (this.rect !== null || !layerManager.hasSelection()) return;
+
+        const startPoint = l2g(lp);
 
         this.startPoint = startPoint;
         const layer = layerManager.getLayer(layerManager.floor!.name);
@@ -98,13 +102,17 @@ export default class MapTool extends Tool {
         this.active = true;
 
         this.rect = new Rect(this.startPoint.clone(), 0, 0, "rgba(0,0,0,0)", "black");
+        this.rect.preventSync = true;
         layer.addShape(this.rect, SyncMode.NO_SYNC, InvalidationMode.NORMAL);
         this.shape = layer.selection[0];
         layer.selection = [this.rect];
     }
 
-    onMove(endPoint: GlobalPoint): void {
+    onMove(lp: LocalPoint): void {
         if (!this.active || this.rect === null || this.startPoint === null) return;
+
+        const endPoint = l2g(lp);
+
         const layer = layerManager.getLayer(layerManager.floor!.name);
         if (layer === undefined) {
             console.log("No active layer!");
@@ -134,35 +142,9 @@ export default class MapTool extends Tool {
             return;
         }
 
-        this.permittedTools_ = [{ name: ToolName.Select, features: [SelectFeatures.Drag, SelectFeatures.Resize] }];
-    }
-
-    onMouseDown(event: MouseEvent): void {
-        const startPoint = l2g(getLocalPointFromEvent(event));
-        this.onDown(startPoint);
-    }
-
-    onMouseMove(event: MouseEvent): void {
-        const endPoint = l2g(getLocalPointFromEvent(event));
-        this.onMove(endPoint);
-    }
-
-    onMouseUp(_event: MouseEvent): void {
-        this.onUp();
-    }
-
-    onTouchStart(event: TouchEvent): void {
-        const startPoint = l2g(getLocalPointFromEvent(event));
-        this.onDown(startPoint);
-    }
-
-    onTouchMove(event: TouchEvent): void {
-        const endPoint = l2g(getLocalPointFromEvent(event));
-        this.onMove(endPoint);
-    }
-
-    onTouchEnd(_event: TouchEvent): void {
-        this.onUp();
+        this.permittedTools_ = [
+            { name: ToolName.Select, features: { enabled: [SelectFeatures.Drag, SelectFeatures.Resize] } },
+        ];
     }
 }
 </script>
@@ -174,18 +156,18 @@ export default class MapTool extends Tool {
         :style="{ '--detailRight': detailRight, '--detailArrow': detailArrow }"
     >
         <template v-if="shapeSelected">
-            <template v-if="rect === null">Drag an area you wish to resize</template>
+            <template v-if="rect === null">{{ $t("game.ui.tools.map.drag_to_resize") }}</template>
             <template v-else>
-                <div class="explanation">Set target grid cells</div>
-                <div>Horizontal</div>
+                <div class="explanation" v-t="'game.ui.tools.map.set_target_grid_cells'"></div>
+                <div v-t="'game.ui.tools.map.horizontal'"></div>
                 <input type="text" v-model="xCount" class="hinput" />
-                <div>Vertical</div>
+                <div v-t="'game.ui.tools.map.vertical'"></div>
                 <input type="text" v-model="yCount" class="vinput" />
-                <div class="button apply" @click="apply">APPLY</div>
-                <div class="button cancel" @click="removeRect">CANCEL</div>
+                <div class="button apply" @click="apply" v-t="'game.ui.tools.map.apply'"></div>
+                <div class="button cancel" @click="removeRect" v-t="'game.ui.tools.map.cancel'"></div>
             </template>
         </template>
-        <template v-else>Please select a shape first.</template>
+        <template v-else>{{ $t("game.ui.tools.map.select_shape_msg") }}</template>
     </div>
 </template>
 

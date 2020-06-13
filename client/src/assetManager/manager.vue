@@ -66,7 +66,7 @@ export default class AssetManager extends Vue {
         socket.emit("Folder.Get", this.currentFolder);
     }
     createDirectory(): void {
-        const name = window.prompt("New folder name");
+        const name = window.prompt(this.$t("assetManager.manager.new_folder_name").toString());
         if (name !== null) {
             socket.emit("Folder.Create", { name, parent: this.currentFolder });
         }
@@ -168,9 +168,11 @@ export default class AssetManager extends Vue {
 
 <template>
     <div id="AssetManager" v-cloak>
-        <div id="titlebar">Asset Manager</div>
+        <div id="titlebar" v-t="'assetManager.manager.title'"></div>
         <div id="progressbar" v-show="expectedUploads > 0 && expectedUploads !== resolvedUploads">
-            <div id="progressbar-label">Uploading files: {{ resolvedUploads }} / {{ expectedUploads }}</div>
+            <div id="progressbar-label">
+                {{ $t("assetManager.manager.uploading") }} {{ resolvedUploads }} / {{ expectedUploads }}
+            </div>
             <div id="progressbar-meter">
                 <span :style="{ width: (resolvedUploads / expectedUploads) * 100 + '%' }"></span>
             </div>
@@ -182,11 +184,11 @@ export default class AssetManager extends Vue {
             </div>
             <div id="actionbar">
                 <input id="files" type="file" multiple hidden @change="upload()" />
-                <div @click="createDirectory" title="Create folder">
-                    <i class="fas fa-plus-square"></i>
+                <div @click="createDirectory" :title="$t('assetManager.manager.create_folder')">
+                    <i aria-hidden="true" class="fas fa-plus-square"></i>
                 </div>
-                <div @click="prepareUpload" title="Upload files">
-                    <i class="fas fa-upload"></i>
+                <div @click="prepareUpload" :title="$t('assetManager.manager.upload_files')">
+                    <i aria-hidden="true" class="fas fa-upload"></i>
                 </div>
             </div>
             <div id="explorer">
@@ -198,7 +200,7 @@ export default class AssetManager extends Vue {
                     @dragleave.prevent="leaveDrag"
                     @drop.prevent.stop="stopDrag($event, parentFolder)"
                 >
-                    <i class="fas fa-folder" style="font-size: 50px;"></i>
+                    <i aria-hidden="true" class="fas fa-folder" style="font-size: 50px;"></i>
                     <div class="title">..</div>
                 </div>
                 <div
@@ -215,7 +217,7 @@ export default class AssetManager extends Vue {
                     @dragleave.prevent="leaveDrag"
                     @drop.prevent.stop="stopDrag($event, key)"
                 >
-                    <i class="fas fa-folder" style="font-size: 50px;"></i>
+                    <i aria-hidden="true" class="fas fa-folder" style="font-size: 50px;"></i>
                     <div class="title">{{ idMap.get(key).name }}</div>
                 </div>
                 <div
@@ -228,7 +230,7 @@ export default class AssetManager extends Vue {
                     @contextmenu.prevent="$refs.cm.open($event, file)"
                     @dragstart="startDrag($event, file)"
                 >
-                    <img :src="'/static/assets/' + idMap.get(file).file_hash" width="50" />
+                    <img :src="'/static/assets/' + idMap.get(file).file_hash" width="50" alt="" />
                     <div class="title">{{ idMap.get(file).name }}</div>
                 </div>
             </div>

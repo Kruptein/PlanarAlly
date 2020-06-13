@@ -63,8 +63,8 @@ export default class LocationBar extends Vue {
 
     async createLocation(): Promise<void> {
         const value = await (<Game>this.$parent.$parent).$refs.prompt.prompt(
-            `New location name:`,
-            `Create new location`,
+            this.$t("game.ui.menu.locations.new_location_name").toString(),
+            this.$t("game.ui.menu.locations.create_new_location").toString(),
         );
         socket.emit("Location.New", value);
     }
@@ -156,7 +156,7 @@ export default class LocationBar extends Vue {
 
 <template>
     <div id="location-bar" v-if="IS_DM">
-        <div id="create-location" title="Add new location" @click="createLocation">+</div>
+        <div id="create-location" :title="$t('game.ui.menu.locations.add_new_location')" @click="createLocation">+</div>
         <draggable
             id="locations"
             v-model="locations"
@@ -171,7 +171,7 @@ export default class LocationBar extends Vue {
                     <div class="drag-handle"></div>
                     <div class="location-name-label" @click.self="changeLocation(location.id)">{{ location.name }}</div>
                     <div class="location-settings-icon" @click="openLocationSettings(location.id)">
-                        <i class="fas fa-cog"></i>
+                        <i aria-hidden="true" class="fas fa-cog"></i>
                     </div>
                 </div>
                 <draggable
@@ -184,10 +184,17 @@ export default class LocationBar extends Vue {
                     :data-loc="location.id"
                 >
                     <div class="player-collapse-header">
-                        Players
-                        <div title="Show specific players" @click="toggleExpanded(location.id)">
-                            <span v-show="expanded.includes(location.id)"><i class="fas fa-chevron-up"></i></span>
-                            <span v-show="!expanded.includes(location.id)"><i class="fas fa-chevron-down"></i></span>
+                        {{ $t("common.players") }}
+                        <div
+                            :title="$t('game.ui.menu.locations.show_specific_pl')"
+                            @click="toggleExpanded(location.id)"
+                        >
+                            <span v-show="expanded.includes(location.id)">
+                                <i aria-hidden="true" class="fas fa-chevron-up"></i>
+                            </span>
+                            <span v-show="!expanded.includes(location.id)">
+                                <i aria-hidden="true" class="fas fa-chevron-down"></i>
+                            </span>
                         </div>
                     </div>
                     <draggable
@@ -243,7 +250,7 @@ export default class LocationBar extends Vue {
     grid-auto-flow: column;
     grid-gap: 10px;
     overflow-y: hidden;
-    /* overflow-x: auto; */
+    max-width: calc(100vw - 105px); /* 105 = width of the #create-location div */
 
     scrollbar-width: thin;
     scrollbar-color: var(--secondary) var(--primary);

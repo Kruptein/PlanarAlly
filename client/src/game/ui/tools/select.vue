@@ -2,7 +2,6 @@
 import Component from "vue-class-component";
 
 import ShapeContext from "@/game/ui/selection/shapecontext.vue";
-import DefaultContext from "@/game/ui/tools/defaultcontext.vue";
 import Tool from "@/game/ui/tools/tool.vue";
 
 import { socket } from "@/game/api/socket";
@@ -13,12 +12,13 @@ import { layerManager } from "@/game/layers/manager";
 import { snapToPoint } from "@/game/layers/utils";
 import { Rect } from "@/game/shapes/rect";
 import { gameStore } from "@/game/store";
-import { calculateDelta, ToolName } from "@/game/ui/tools/utils";
+import { calculateDelta, ToolName, ToolFeatures } from "@/game/ui/tools/utils";
 import { g2l, g2lx, g2ly, l2g, l2gz } from "@/game/units";
 import { getLocalPointFromEvent, useSnapping } from "@/game/utils";
 import { visibilityStore } from "@/game/visibility/store";
 import { TriangulationTarget } from "@/game/visibility/te/pa";
 import { gameSettingsStore } from "../../settings";
+import { ToolBasics } from "./ToolBasics";
 
 enum SelectOperations {
     Noop,
@@ -39,7 +39,7 @@ export enum SelectFeatures {
 const start = new GlobalPoint(-1000, -1000);
 
 @Component
-export default class SelectTool extends Tool {
+export default class SelectTool extends Tool implements ToolBasics {
     name = ToolName.Select;
     showContextMenu = false;
     active = false;
@@ -59,7 +59,7 @@ export default class SelectTool extends Tool {
         gameStore.setSelectionHelperId(this.selectionHelper.uuid);
     }
 
-    onDown(lp: LocalPoint, event: MouseEvent | TouchEvent, features: SelectFeatures[]): void {
+    onDown(lp: LocalPoint, event: MouseEvent | TouchEvent, features: ToolFeatures<SelectFeatures>): void {
         const gp = l2g(lp);
         const layer = layerManager.getLayer(layerManager.floor!.name);
         if (layer === undefined) {
@@ -68,7 +68,7 @@ export default class SelectTool extends Tool {
         }
 
         if (!this.selectionHelper.hasOwner(gameStore.username)) {
-            this.selectionHelper.addOwner({ user: gameStore.username, editAccess: true, visionAccess: true }, false);
+            this.selectionHelper.addOwner({ user: gameStore.username, access: { edit: true } }, false);
         }
 
         let hit = false;
@@ -81,6 +81,7 @@ export default class SelectTool extends Tool {
 
         for (let i = selectionStack.length - 1; i >= 0; i--) {
             const shape = selectionStack[i];
+            if (shape.isInvisible && !shape.ownedBy({ movementAccess: true })) continue;
 
             this.resizePoint = shape.getPointIndex(gp, l2gz(5));
 
@@ -138,13 +139,18 @@ export default class SelectTool extends Tool {
         if (this.mode !== SelectOperations.Noop) this.active = true;
     }
 
-    onMove(lp: LocalPoint, gp: GlobalPoint, event: MouseEvent | TouchEvent, features: SelectFeatures[]): void {
-        // if (!this.active) return;   we require mousemove for the resize cursor
+    onMove(lp: LocalPoint, event: MouseEvent | TouchEvent, features: ToolFeatures<SelectFeatures>): void {
+        const gp = l2g(lp);
+        // We require move for the resize cursor
+        if (!this.active && !this.hasFeature(SelectFeatures.Resize, features)) return;
+
         const layer = layerManager.getLayer(layerManager.floor!.name);
         if (layer === undefined) {
             console.log("No active layer!");
             return;
         }
+        if (layer.selection.some(s => s.isLocked)) return;
+
         this.deltaChanged = false;
 
         if (this.mode === SelectOperations.GroupSelect) {
@@ -168,15 +174,15 @@ export default class SelectTool extends Tool {
                 // If we are on the tokens layer do a movement block check.
                 if (layer.name === "tokens" && !(event.shiftKey && gameStore.IS_DM)) {
                     for (const sel of layer.selection) {
-                        if (!sel.ownedBy({ editAccess: true })) continue;
+                        if (!sel.ownedBy({ movementAccess: true })) continue;
                         if (sel.uuid === this.selectionHelper.uuid) continue; // the selection helper should not be treated as a real shape.
-                        delta = calculateDelta(delta, sel);
+                        delta = calculateDelta(delta, sel, true);
                         if (delta !== ogDelta) this.deltaChanged = true;
                     }
                 }
                 // Actually apply the delta on all shapes
                 for (const sel of layer.selection) {
-                    if (!sel.ownedBy({ editAccess: true })) continue;
+                    if (!sel.ownedBy({ movementAccess: true })) continue;
                     if (sel.visionObstruction)
                         visibilityStore.deleteFromTriag({
                             target: TriangulationTarget.VISION,
@@ -189,14 +195,15 @@ export default class SelectTool extends Tool {
                     }
                     if (sel !== this.selectionHelper) {
                         if (sel.visionObstruction) visibilityStore.recalculateVision(sel.floor);
-                        socket.emit("Shape.Update", { shape: sel.asDict(), redraw: true, temporary: true });
+                        if (!sel.preventSync)
+                            socket.emit("Shape.Update", { shape: sel.asDict(), redraw: true, temporary: true });
                     }
                 }
                 this.dragRay = Ray.fromPoints(this.dragRay.origin, lp);
                 layer.invalidate(false);
             } else if (this.mode === SelectOperations.Resize) {
                 for (const sel of layer.selection) {
-                    if (!sel.ownedBy({ editAccess: true })) continue;
+                    if (!sel.ownedBy({ movementAccess: true })) continue;
                     if (sel.visionObstruction)
                         visibilityStore.deleteFromTriag({
                             target: TriangulationTarget.VISION,
@@ -215,7 +222,8 @@ export default class SelectTool extends Tool {
                             visibilityStore.addToTriag({ target: TriangulationTarget.VISION, shape: sel });
                             visibilityStore.recalculateVision(sel.floor);
                         }
-                        socket.emit("Shape.Update", { shape: sel.asDict(), redraw: true, temporary: true });
+                        if (!sel.preventSync)
+                            socket.emit("Shape.Update", { shape: sel.asDict(), redraw: true, temporary: true });
                     }
                     layer.invalidate(false);
                     this.updateCursor(layer, gp);
@@ -228,13 +236,14 @@ export default class SelectTool extends Tool {
         }
     }
 
-    onUp(event: MouseEvent | TouchEvent, features: SelectFeatures[]): void {
+    onUp(_lp: LocalPoint, event: MouseEvent | TouchEvent, features: ToolFeatures<SelectFeatures>): void {
         if (!this.active) return;
         if (layerManager.getLayer(layerManager.floor!.name) === undefined) {
             console.log("No active layer!");
             return;
         }
         const layer = layerManager.getLayer(layerManager.floor!.name)!;
+        if (layer.selection.some(s => s.isLocked)) return;
 
         if (this.mode === SelectOperations.GroupSelect) {
             if (event.ctrlKey) {
@@ -243,10 +252,10 @@ export default class SelectTool extends Tool {
                 layer.clearSelection();
             }
             for (const shape of layer.shapes) {
-                if (!shape.ownedBy({ editAccess: true })) continue;
+                if (!shape.ownedBy({ movementAccess: true })) continue;
                 if (shape === this.selectionHelper) continue;
                 const bbox = shape.getBoundingBox();
-                if (!shape.ownedBy({ editAccess: true })) continue;
+                if (!shape.ownedBy({ movementAccess: true })) continue;
                 if (
                     this.selectionHelper!.refPoint.x <= bbox.topRight.x &&
                     this.selectionHelper!.refPoint.x + this.selectionHelper!.w >= bbox.topLeft.x &&
@@ -259,10 +268,11 @@ export default class SelectTool extends Tool {
                 }
             }
             layer.selection = layer.selection.filter(it => it !== this.selectionHelper);
+            if (layer.selection.some(s => !s.isLocked)) layer.selection = layer.selection.filter(s => !s.isLocked);
             layer.invalidate(true);
         } else if (layer.selection.length) {
             for (const sel of layer.selection) {
-                if (!sel.ownedBy({ editAccess: true })) continue;
+                if (!sel.ownedBy({ movementAccess: true })) continue;
                 if (this.mode === SelectOperations.Drag) {
                     if (
                         this.dragRay.origin!.x === g2lx(sel.refPoint.x) &&
@@ -300,7 +310,8 @@ export default class SelectTool extends Tool {
                     if (sel !== this.selectionHelper) {
                         if (sel.visionObstruction) visibilityStore.recalculateVision(sel.floor);
                         if (sel.movementObstruction) visibilityStore.recalculateMovement(sel.floor);
-                        socket.emit("Shape.Update", { shape: sel.asDict(), redraw: true, temporary: false });
+                        if (!sel.preventSync)
+                            socket.emit("Shape.Update", { shape: sel.asDict(), redraw: true, temporary: false });
                     }
                     layer.invalidate(false);
                 }
@@ -330,7 +341,7 @@ export default class SelectTool extends Tool {
                             visibilityStore.recalculateMovement(sel.floor);
                         }
                     }
-                    if (sel !== this.selectionHelper) {
+                    if (sel !== this.selectionHelper && !sel.preventSync) {
                         socket.emit("Shape.Update", { shape: sel.asDict(), redraw: true, temporary: false });
                     }
                     layer.invalidate(false);
@@ -342,37 +353,7 @@ export default class SelectTool extends Tool {
         this.active = false;
     }
 
-    onMouseDown(event: MouseEvent, features: SelectFeatures[]): void {
-        const localPoint = getLocalPointFromEvent(event);
-        this.onDown(localPoint, event, features);
-    }
-
-    onMouseMove(event: MouseEvent, features: SelectFeatures[]): void {
-        const localPoint = getLocalPointFromEvent(event);
-        const globalPoint = l2g(localPoint);
-        this.onMove(localPoint, globalPoint, event, features);
-    }
-
-    onMouseUp(event: MouseEvent, features: SelectFeatures[]): void {
-        this.onUp(event, features);
-    }
-
-    onTouchStart(event: TouchEvent, features: SelectFeatures[]): void {
-        const localPoint = getLocalPointFromEvent(event);
-        this.onDown(localPoint, event, features);
-    }
-
-    onTouchMove(event: TouchEvent, features: SelectFeatures[]): void {
-        const localPoint = getLocalPointFromEvent(event);
-        const globalPoint = l2g(localPoint);
-        this.onMove(localPoint, globalPoint, event, features);
-    }
-
-    onTouchEnd(event: TouchEvent, features: SelectFeatures[]): void {
-        this.onUp(event, features);
-    }
-
-    onContextMenu(event: MouseEvent, features: SelectFeatures[]): void {
+    onContextMenu(event: MouseEvent, features: ToolFeatures<SelectFeatures>): void {
         if (!this.hasFeature(SelectFeatures.Context, features)) return;
         if (layerManager.getLayer(layerManager.floor!.name) === undefined) {
             console.log("No active layer!");
@@ -401,7 +382,8 @@ export default class SelectTool extends Tool {
                 return;
             }
         }
-        (<DefaultContext>this.$parent.$refs.defaultcontext).open(event);
+        // super call
+        (<any>Tool).options.methods.onContextMenu.call(this, event, features);
     }
     updateCursor(layer: Layer, globalMouse: GlobalPoint): void {
         let cursorStyle = "default";

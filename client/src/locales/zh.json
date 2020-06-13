@@ -1,0 +1,361 @@
+{
+    "locale": {
+        "select": "选择语言：",
+        "en": "English",
+        "zh": "中文",
+        "de": "Deutsch",
+        "ru": "Русский"
+    },
+    "assetManager": {
+        "contextMenu": {
+            "new_name": "新名称：",
+            "renaming_NAME": "重命名 {name}",
+            "ask_remove": "你确定要移除这个吗？"
+        },
+        "manager": {
+            "new_folder_name": "新文件夹名",
+            "uploading": "文件上传中",
+            "create_folder": "创建文件夹",
+            "upload_files": "上传文件",
+            "title": "素材管理器"
+        }
+    },
+    "common": {
+        "rename": "重命名",
+        "remove": "移除",
+        "username": "用户名",
+        "password": "密码",
+        "server_ver_prefix": "服务器版本：",
+        "PlanarAlly": "PlanarAlly",
+        "error_prefix": "错误：",
+        "error_msg": "错误！",
+        "close": "关闭",
+        "submit": "提交",
+        "create": "创建",
+        "warning": "警告",
+        "value": "值",
+        "toggle_public_private": "切换公开/私有",
+        "initiative": "先攻",
+        "search": "搜索",
+        "name": "名称",
+        "add": "添加",
+        "players": "玩家",
+        "exit": "退出",
+        "assets": "素材",
+        "notes": "便签",
+        "markers": "记号",
+        "border_color": "描边色",
+        "fill_color": "填充色",
+        "trackers": "追踪值",
+        "auras": "光晕",
+        "labels": "标签",
+        "annotation": "注释",
+        "floor": "楼层",
+        "layer": "图层",
+        "location": "地点",
+        "admin": "管理员",
+        "grid": "网格",
+        "vision": "视野",
+        "tokens": "象征物",
+        "shape": "图形",
+        "colors": "颜色",
+        "version": "版本号",
+        "confirm": "确认",
+        "cancel": "取消"
+    },
+    "auth": {
+        "login": {
+            "register": "注册",
+            "login": "登录"
+        }
+    },
+    "core": {
+        "components": {
+            "inputCopy": {
+                "copied": "已复制！",
+                "copy": "复制"
+            }
+        }
+    },
+    "dashboard": {
+        "main": {
+            "session_name": "战局名称",
+            "account_settings": "账号设置",
+            "logout": "注销",
+            "your_sessions": "你的战局",
+            "no_sessions": "无可用战局",
+            "create_session": "创建战局",
+            "create_new_session": "创建一个新的战局"
+        }
+    },
+    "game": {
+        "ui": {
+            "floors": {
+                "new_name": "新楼层名称",
+                "creation": "楼层创建",
+                "warning_msg_Z": "你确定要移除楼层 {z} 吗？",
+                "delete_floor": "移除楼层",
+                "add_new_floor": "添加新楼层"
+            },
+            "initiative": {
+                "initiative": {
+                    "new_effect": "新的效果",
+                    "add_timed_effect": "添加倒计时效果",
+                    "toggle_group": "切换个体/群体先攻",
+                    "delete_init": "移除先攻",
+                    "round_N": "第{n}轮",
+                    "vision_log_msg": "自动锁定视野（只显示视野可用的象征物）",
+                    "camera_log_msg": "自动跟踪象征物所在的视角",
+                    "reset_round": "重置轮次/回合",
+                    "next": "下一个"
+                }
+            },
+            "labels": {
+                "category": "分类",
+                "visible": "可见",
+                "delete": "删除",
+                "delete_label": "删除标签",
+                "title": "标签管理器",
+                "cat_abbr": "分类",
+                "vis_abbr": "视野",
+                "del_abbr": "删除",
+                "no_exist_msg": "暂无标签"
+            },
+            "menu": {
+                "locations": {
+                    "new_location_name": "新地点名称",
+                    "create_new_location": "创建新地点",
+                    "add_new_location": "添加新地点",
+                    "show_specific_pl": "显示特定玩家"
+                },
+                "menu": {
+                    "new_note": "新便签",
+                    "open_asset_manager": "打开素材管理器",
+                    "no_assets": "暂无素材",
+                    "create_note": "创建便签",
+                    "delete_marker": "删除记号",
+                    "no_notes": "暂无便签",
+                    "dm_options": "DM选项",
+                    "no_markers": "暂无记号",
+                    "client_options": "客户端选项",
+                    "grid_color_set": "网格颜色：",
+                    "fow_color_set": "迷雾颜色：",
+                    "ruler_color_set": "直尺颜色：",
+                    "invert_alt_set": "反转ALT使用"
+                }
+            },
+            "note": {
+                "warning_msg": "你确认要移除这个吗？",
+                "edit_title": "编辑标题",
+                "remove_note": "移除便签"
+            },
+            "selection": {
+                "edit_dialog": {
+                    "access": {
+                        "toggle_edit_access": "切换编辑权限",
+                        "toggle_movement_access": "切换移动权限",
+                        "toggle_vision_access": "切换视野权限",
+                        "remove_owner_access": "移除拥有者权限",
+                        "access": "权限",
+                        "default": "默认",
+                        "add_access": "添加权限"
+                    },
+                    "dialog": {
+                        "current_value": "当前值",
+                        "remove_tracker": "移除追踪值",
+                        "dim_value": "模糊值",
+                        "toggle_light_source": "切换光源",
+                        "delete_aura": "移除光晕",
+                        "edit_asset": "编辑素材",
+                        "is_a_token": "象征物属性",
+                        "is_invisible": "不可见状态",
+                        "is_locked": "锁定状态",
+                        "show_badge": "显示数字标识",
+                        "block_vision_light": "阻挡视野/光照",
+                        "block_movement": "阻挡移动"
+                    }
+                },
+                "select_info": {
+                    "open_shape_props": "打开图形属性",
+                    "quick_edit_tracker": "快速编辑追踪值",
+                    "quick_edit_aura": "快速编辑光晕"
+                },
+                "shapecontext": {
+                    "show_initiative": "显示先攻",
+                    "add_initiative": "添加先攻",
+                    "add_all_initiative": "全部添加先攻",
+                    "move_back": "下移一级",
+                    "move_front": "上移一级",
+                    "delete_shapes": "移除图形",
+                    "show_props": "显示属性",
+                    "remove_marker": "移除记号",
+                    "set_marker": "设置记号"
+                }
+            },
+            "settings": {
+                "dm": {
+                    "AdminSettings": {
+                        "delete_session_msg_CREATOR_ROOM": "输入 {creator}/{room} 以确认删除战局。",
+                        "deleting_session": "删除战局",
+                        "unlock_NBSP_Session_NBSP": "解锁战局",
+                        "lock_NBSP_Session_NBSP": "锁定战局",
+                        "unlock_this_session": "解锁该战局",
+                        "lock_this_session": "锁定该战局",
+                        "kick": "踢出",
+                        "no_players_invite_msg": "暂无玩家，可用下方链接邀请！",
+                        "invite_code": "邀请码",
+                        "invitation_url": "邀请链接",
+                        "refresh_invitation_code": "刷新邀请码",
+                        "danger_NBSP_zone": "危险区",
+                        "dm_access_only": "（DM限定）",
+                        "remove_session": "移除战局",
+                        "delete_session": "删除战局"
+                    },
+                    "DmSettings": {
+                        "dm_settings": "DM设置"
+                    }
+                },
+                "common": {
+                    "overridden_msg": "这些设置可能被特定地点的设置覆盖",
+                    "overridden_highlight": "被高亮",
+                    "reset_default": "重设为战局默认值",
+                    "overridden_highlight_path": "覆盖了战局设置的选项会{0}"
+                },
+                "GridSettings": {
+                    "unit_size_in_UNIT": "单位尺寸（{unit}）",
+                    "use_grid": "启用网格",
+                    "grid_size_in_pixels": "网格尺寸（像素）：",
+                    "size_unit": "尺寸单位"
+                },
+                "location": {
+                    "LocationAdminSettings": {
+                        "remove_location_msg_NAME": "你确定要移除地点 {name} 吗？",
+                        "remove_location_yes": "确认，移除该地点",
+                        "remove_location_no": "否",
+                        "move_existing_pl": "移动此地点的玩家",
+                        "delete_this_location": "移除该地点",
+                        "remove_location": "移除地点"
+                    },
+                    "LocationSettings": {
+                        "location_settings": "地点设置："
+                    }
+                },
+                "permissions": {
+                    "edit_owned_tokens": "编辑拥有的象征物：",
+                    "move_owned_tokens": "移动拥有的象征物：",
+                    "resize_owned_tokens": "缩放拥有的象征物："
+                },
+                "VisionSettings": {
+                    "min_full_vision_UNIT": "最短完全视距（{unit}）：",
+                    "max_vision_UNIT": "最长视距（{unit}）：",
+                    "core": "核心",
+                    "fake_player": "模拟玩家：",
+                    "fill_fow": "整片区域填满迷雾：",
+                    "only_show_lights_los": "只显示视线所及光照：",
+                    "fow_opacity": "迷雾不透明度：",
+                    "advanced": "高级",
+                    "vision_mode": "视野模式：",
+                    "default": "默认",
+                    "experimental": "实验性"
+                }
+            },
+            "tools": {
+                "createtoken_modal": {
+                    "create_basic_token": "创建基础象征物",
+                    "text": "文本",
+                    "fill": "填充：",
+                    "border": "描边："
+                },
+                "defaultcontext": {
+                    "bring_pl": "玩家视角至此",
+                    "create_basic_token": "创建基础象征物",
+                    "show_initiative": "显示先攻"
+                },
+                "draw": {
+                    "foreground_color": "前景色",
+                    "background_color": "背景色",
+                    "mode": "模式",
+                    "closed_polygon": "闭合多边形？",
+                    "brush_size": "笔刷尺寸"
+                },
+                "filter": {
+                    "no_category": "无分类"
+                },
+                "map": {
+                    "drag_to_resize": "拖动出你想要作为缩放基准的区域",
+                    "select_shape_msg": "请先选择一个图形。",
+                    "set_target_grid_cells": "设定目标区域网格数",
+                    "horizontal": "水平",
+                    "vertical": "竖直",
+                    "apply": "确认",
+                    "cancel": "取消"
+                },
+                "ruler": {
+                    "share": "公开"
+                },
+                "tools": {
+                    "change_mode": "改变模式"
+                }
+            },
+            "ui": {
+                "github_msg": "在GitHub上阅读代码！",
+                "discord_msg": "加入Discord社群！",
+                "patreon_msg": "使用Patreon捐助！",
+                "open_loc_menu": "打开地点菜单",
+                "new_ver_msg": "新版本上线啦！",
+                "open_settings": "打开设置",
+                "changelog_RELEASE_LOG": "# 新上线版本 {release}\n*需要了解更多细节，请参见 https://www.planarally.io/blog/*\n{log}"
+            }
+        }
+    },
+    "layer": {
+        "map": "地图",
+        "tokens": "象征物",
+        "dm": "DM",
+        "fow": "迷雾"
+    },
+    "draw": {
+        "square": "方块",
+        "circle": "圆圈",
+        "draw-polygon": "多边形",
+        "paint-brush": "笔刷",
+        "normal": "普通",
+        "reveal": "揭示",
+        "hide": "隐藏"
+    },
+    "tool": {
+        "Build": "构建",
+        "Play": "游玩",
+        "Select": "选择",
+        "Pan": "平移",
+        "Draw": "绘图",
+        "Ruler": "直尺",
+        "Ping": "指示",
+        "Map": "缩图",
+        "Filter": "筛选",
+        "Vision": "视野"
+    },
+    "settings": {
+        "account": {
+            "no_pwd_msg": "没有设置新密码！",
+            "pwd_not_match": "输入的密码不匹配！",
+            "server_request_error": "服务器请求发生错误",
+            "change_pwd": "修改密码",
+            "remove_account_msg": "你确认要移除你的账号吗？",
+            "delete_request_error": "删除请求发生错误",
+            "no_email_set": "未设置邮箱",
+            "general": "通用",
+            "username": "用户名：",
+            "email": "邮箱：",
+            "danger_zone": "危险区",
+            "new_pwd": "新密码：",
+            "repeat_pwd": "重复密码：",
+            "delete_account": "删除账号",
+            "delete_confirm_msg": "该动作无法撤回！"
+        },
+        "settings": {
+            "account_settings": "账号设置",
+            "account": "账号"
+        }
+    }
+}

@@ -1,0 +1,361 @@
+{
+    "locale": {
+        "select": "Select Language:",
+        "en": "English",
+        "zh": "中文",
+        "de": "Deutsch",
+        "ru": "Русский"
+    },
+    "assetManager": {
+        "contextMenu": {
+            "new_name": "New name:",
+            "renaming_NAME": "Renaming {name}",
+            "ask_remove": "Are you sure you wish to remove this?"
+        },
+        "manager": {
+            "new_folder_name": "New folder name",
+            "uploading": "Uploading files",
+            "create_folder": "Create folder",
+            "upload_files": "Upload files",
+            "title": "Asset manager"
+        }
+    },
+    "common": {
+        "rename": "Rename",
+        "remove": "Remove",
+        "username": "Username",
+        "password": "Password",
+        "server_ver_prefix": "Server version:",
+        "PlanarAlly": "PlanarAlly",
+        "error_prefix": "Error:",
+        "error_msg": "Error!",
+        "close": "Close",
+        "submit": "Submit",
+        "create": "Create",
+        "warning": "Warning",
+        "value": "Value",
+        "toggle_public_private": "Toggle public / private",
+        "initiative": "Initiative",
+        "search": "Search",
+        "name": "Name",
+        "add": "Add",
+        "players": "Players",
+        "exit": "Exit",
+        "assets": "Assets",
+        "notes": "Notes",
+        "markers": "Markers",
+        "border_color": "Border colour",
+        "fill_color": "Fill colour",
+        "trackers": "Trackers",
+        "auras": "Auras",
+        "labels": "Labels",
+        "annotation": "Annotation",
+        "floor": "Floor",
+        "layer": "Layer",
+        "location": "Location",
+        "admin": "Admin",
+        "grid": "Grid",
+        "vision": "Vision",
+        "tokens": "Tokens",
+        "shape": "Shape",
+        "colors": "Colours",
+        "version": "version",
+        "confirm": "Confirm",
+        "cancel": "Cancel"
+    },
+    "auth": {
+        "login": {
+            "register": "Register",
+            "login": "Login"
+        }
+    },
+    "core": {
+        "components": {
+            "inputCopy": {
+                "copied": "Copied!",
+                "copy": "Copy"
+            }
+        }
+    },
+    "dashboard": {
+        "main": {
+            "session_name": "Campaign Name",
+            "account_settings": "Account Settings",
+            "logout": "Logout",
+            "your_sessions": "Your campaigns",
+            "no_sessions": "No active campaigns",
+            "create_session": "Create a campaign",
+            "create_new_session": "Create a new campaign"
+        }
+    },
+    "game": {
+        "ui": {
+            "floors": {
+                "new_name": "New floor name",
+                "creation": "Floor Creation",
+                "warning_msg_Z": "Are you sure you wish to remove the {z} floor?",
+                "delete_floor": "Delete floor",
+                "add_new_floor": "Add new floor"
+            },
+            "initiative": {
+                "initiative": {
+                    "new_effect": "New effect",
+                    "add_timed_effect": "Add timed effect",
+                    "toggle_group": "Toggle individual / group initiative",
+                    "delete_init": "Delete initiative",
+                    "round_N": "Round {n}",
+                    "vision_log_msg": "Auto lock vision (only show vision active token)",
+                    "camera_log_msg": "Auto camera lock on active token",
+                    "reset_round": "Reset rounds/turns",
+                    "next": "Next"
+                }
+            },
+            "labels": {
+                "category": "Category",
+                "visible": "Visible",
+                "delete": "Delete",
+                "delete_label": "Delete label",
+                "title": "Label manager",
+                "cat_abbr": "Cat.",
+                "vis_abbr": "Vis.",
+                "del_abbr": "Del.",
+                "no_exist_msg": "No labels exist yet"
+            },
+            "menu": {
+                "locations": {
+                    "new_location_name": "New location name:",
+                    "create_new_location": "Create new location",
+                    "add_new_location": "Add new location",
+                    "show_specific_pl": "Show specific players"
+                },
+                "menu": {
+                    "new_note": "New note",
+                    "open_asset_manager": "Open asset manager",
+                    "no_assets": "No assets",
+                    "create_note": "Create note",
+                    "delete_marker": "Delete marker",
+                    "no_notes": "No notes",
+                    "dm_options": "DM Options",
+                    "no_markers": "No markers",
+                    "client_options": "Client Options",
+                    "grid_color_set": "Grid Colour:",
+                    "fow_color_set": "FOW Colour:",
+                    "ruler_color_set": "Ruler Colour:",
+                    "invert_alt_set": "Invert ALT behaviour"
+                }
+            },
+            "note": {
+                "warning_msg": "Are you sure you wish to remove this?",
+                "edit_title": "Edit title",
+                "remove_note": "Remove note"
+            },
+            "selection": {
+                "edit_dialog": {
+                    "access": {
+                        "toggle_edit_access": "Toggle edit access",
+                        "toggle_movement_access": "Toggle movement access",
+                        "toggle_vision_access": "Toggle vision access",
+                        "remove_owner_access": "Remove owner access",
+                        "access": "Access",
+                        "default": "Default",
+                        "add_access": "Add access"
+                    },
+                    "dialog": {
+                        "current_value": "Current value",
+                        "remove_tracker": "Remove tracker",
+                        "dim_value": "Dim value",
+                        "toggle_light_source": "Toggle light source",
+                        "delete_aura": "Delete aura",
+                        "edit_asset": "Edit asset",
+                        "is_a_token": "Is a token",
+                        "is_invisible": "Is invisible",
+                        "is_locked": "Is locked",
+                        "show_badge": "Show badge",
+                        "block_vision_light": "Blocks vision/light",
+                        "block_movement": "Blocks movement"
+                    }
+                },
+                "select_info": {
+                    "open_shape_props": "Open shape properties",
+                    "quick_edit_tracker": "Quick edit tracker",
+                    "quick_edit_aura": "Quick edit aura"
+                },
+                "shapecontext": {
+                    "show_initiative": "Show initiative",
+                    "add_initiative": "Add initiative",
+                    "add_all_initiative": "Add all to initiative",
+                    "move_back": "Move to back",
+                    "move_front": "Move to front",
+                    "delete_shapes": "Delete shapes",
+                    "show_props": "Show properties",
+                    "remove_marker": "Remove marker",
+                    "set_marker": "Set marker"
+                }
+            },
+            "settings": {
+                "dm": {
+                    "AdminSettings": {
+                        "delete_session_msg_CREATOR_ROOM": "ENTER {creator}/{room} TO CONFIRM CAMPAIGN REMOVAL.",
+                        "deleting_session": "DELETING CAMPAIGN",
+                        "unlock_NBSP_Session_NBSP": "Unlock\u00a0Campaign\u00a0",
+                        "lock_NBSP_Session_NBSP": "Lock\u00a0Campaign\u00a0",
+                        "unlock_this_session": "Unlock this campaign",
+                        "lock_this_session": "Lock this campaign",
+                        "kick": "Kick",
+                        "no_players_invite_msg": "There are no players yet, invite some using the link below!",
+                        "invite_code": "Invite code",
+                        "invitation_url": "Invitation URL:",
+                        "refresh_invitation_code": "Refresh invitation code",
+                        "danger_NBSP_zone": "Danger\u00a0Zone",
+                        "dm_access_only": "(DM access only)",
+                        "remove_session": "Remove Campaign",
+                        "delete_session": "Delete this Campaign"
+                    },
+                    "DmSettings": {
+                        "dm_settings": "DM Settings"
+                    }
+                },
+                "common": {
+                    "overridden_msg": "Some of these settings can be overriden by location specific settings",
+                    "overridden_highlight": "highlighted",
+                    "reset_default": "Reset to the campaign default",
+                    "overridden_highlight_path": "Settings that override the campaign defaults are {0}"
+                },
+                "GridSettings": {
+                    "unit_size_in_UNIT": "Unit Size (in {unit})",
+                    "use_grid": "Use grid",
+                    "grid_size_in_pixels": "Grid Size (in pixels):",
+                    "size_unit": "Size Unit"
+                },
+                "location": {
+                    "LocationAdminSettings": {
+                        "remove_location_msg_NAME": "Are you sure you wish to remove location {name}",
+                        "remove_location_yes": "Yes, delete this location",
+                        "remove_location_no": "please no",
+                        "move_existing_pl": "Move existing players on this location",
+                        "delete_this_location": "Delete this location",
+                        "remove_location": "Remove Location"
+                    },
+                    "LocationSettings": {
+                        "location_settings": "Location Settings:"
+                    }
+                },
+                "permissions": {
+                    "edit_owned_tokens": "Edit owned tokens:",
+                    "move_owned_tokens": "Move owned tokens:",
+                    "resize_owned_tokens": "Resize owned tokens:"
+                },
+                "VisionSettings": {
+                    "min_full_vision_UNIT": "Minimal full vision ({unit}):",
+                    "max_vision_UNIT": "Maximal vision ({unit}):",
+                    "core": "Core",
+                    "fake_player": "Fake player:",
+                    "fill_fow": "Fill entire canvas with FOW:",
+                    "only_show_lights_los": "Only show lights in LoS:",
+                    "fow_opacity": "FOW opacity:",
+                    "advanced": "Advanced",
+                    "vision_mode": "Vision Mode:",
+                    "default": "Default",
+                    "experimental": "Experimental"
+                }
+            },
+            "tools": {
+                "createtoken_modal": {
+                    "create_basic_token": "Create basic token",
+                    "text": "Text",
+                    "fill": "Fill:",
+                    "border": "Border:"
+                },
+                "defaultcontext": {
+                    "bring_pl": "Bring players",
+                    "create_basic_token": "Create basic token",
+                    "show_initiative": "Show initiative"
+                },
+                "draw": {
+                    "foreground_color": "Foreground colour",
+                    "background_color": "Background colour",
+                    "mode": "Mode",
+                    "closed_polygon": "Closed polygon?",
+                    "brush_size": "Brush size"
+                },
+                "filter": {
+                    "no_category": "no category"
+                },
+                "map": {
+                    "drag_to_resize": "Drag an area you wish to resize",
+                    "select_shape_msg": "Please select a shape first.",
+                    "set_target_grid_cells": "Set target grid cells",
+                    "horizontal": "Horizontal",
+                    "vertical": "Vertical",
+                    "apply": "APPLY",
+                    "cancel": "CANCEL"
+                },
+                "ruler": {
+                    "share": "Share with others"
+                },
+                "tools": {
+                    "change_mode": "Change mode"
+                }
+            },
+            "ui": {
+                "github_msg": "Find the code on github!",
+                "discord_msg": "Join the community on discord!",
+                "patreon_msg": "Contribute using patreon!",
+                "open_loc_menu": "Open location menu",
+                "new_ver_msg": "There is a new version!",
+                "open_settings": "Open settings",
+                "changelog_RELEASE_LOG": "# Release {release}\n*For more details visit https://www.planarally.io/blog/*\n{log}"
+            }
+        }
+    },
+    "layer": {
+        "map": "map",
+        "tokens": "tokens",
+        "dm": "dm",
+        "fow": "fow"
+    },
+    "draw": {
+        "square": "square",
+        "circle": "circle",
+        "draw-polygon": "draw-polygon",
+        "paint-brush": "paint-brush",
+        "normal": "normal",
+        "reveal": "reveal",
+        "hide": "hide"
+    },
+    "tool": {
+        "Build": "Build",
+        "Play": "Play",
+        "Select": "Select",
+        "Pan": "Pan",
+        "Draw": "Draw",
+        "Ruler": "Ruler",
+        "Ping": "Ping",
+        "Map": "Map",
+        "Filter": "Filter",
+        "Vision": "Vision"
+    },
+    "settings": {
+        "account": {
+            "no_pwd_msg": "No new password given!",
+            "pwd_not_match": "The password fields don't match!",
+            "server_request_error": "Something went wrong during the server request",
+            "change_pwd": "Change password",
+            "remove_account_msg": "Are you sure you wish to remove your account?",
+            "delete_request_error": "Something went wrong with the delete request.",
+            "no_email_set": "no email set",
+            "general": "General",
+            "username": "Username:",
+            "email": "Email:",
+            "danger_zone": "Danger Zone",
+            "new_pwd": "New Password:",
+            "repeat_pwd": "Repeat password:",
+            "delete_account": "Delete account",
+            "delete_confirm_msg": "This action is irrevocable!"
+        },
+        "settings": {
+            "account_settings": "Account Settings",
+            "account": "Account"
+        }
+    }
+}

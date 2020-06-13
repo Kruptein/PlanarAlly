@@ -65,10 +65,11 @@ export default class VisionSettings extends Vue {
         gameSettingsStore.setVisionRangeMax({ visionMaxRange, location: this.location, sync: true });
     }
     changeVisionMode(event: { target: HTMLSelectElement }): void {
-        const value = event.target.value.toLowerCase();
+        const value = event.target.value;
         let mode: VisibilityMode;
-        if (value === "default") mode = VisibilityMode.TRIANGLE;
-        else if (value === "experimental") mode = VisibilityMode.TRIANGLE_ITERATIVE;
+        if (value === this.$t("game.ui.settings.VisionSettings.default").toString()) mode = VisibilityMode.TRIANGLE;
+        else if (value === this.$t("game.ui.settings.VisionSettings.experimental").toString())
+            mode = VisibilityMode.TRIANGLE_ITERATIVE;
         else return;
         visibilityStore.setVisionMode({ mode, sync: true });
         for (const floor of layerManager.floors) {
@@ -89,53 +90,54 @@ export default class VisionSettings extends Vue {
     <div class="panel restore-panel">
         <div class="spanrow">
             <template v-if="location === null">
-                Some of these settings can be overriden by location specific settings
+                <em style="max-width: 40vw">
+                    {{ $t("game.ui.settings.common.overridden_msg") }}
+                </em>
             </template>
             <template v-else>
-                <span>
-                    Settings that override the campaign defaults are
-                    <span class="overwritten">highlighted</span>
-                </span>
+                <i18n path="game.ui.settings.common.overridden_highlight_path" tag="span">
+                    <span class="overwritten">{{ $t("game.ui.settings.common.overridden_highlight") }}</span>
+                </i18n>
             </template>
         </div>
-        <div class="spanrow header">Core</div>
+        <div class="spanrow header" v-t="'game.ui.settings.VisionSettings.core'"></div>
         <div class="row" v-if="location === null">
-            <label for="fakePlayerInput">Fake player:</label>
+            <label for="fakePlayerInput" v-t="'game.ui.settings.VisionSettings.fake_player'"></label>
             <div>
                 <input id="fakePlayerInput" type="checkbox" v-model="fakePlayer" />
             </div>
             <div></div>
         </div>
         <div class="row" :class="{ overwritten: location !== null && options.fullFow !== undefined }">
-            <label :for="'useFOWInput-' + location">Fill entire canvas with FOW:</label>
+            <label :for="'useFOWInput-' + location" v-t="'game.ui.settings.VisionSettings.fill_fow'"></label>
             <div>
                 <input :id="'useFOWInput-' + location" type="checkbox" v-model="fullFow" />
             </div>
             <div
                 v-if="location !== null && options.fullFow !== undefined"
                 @click="reset('fullFow')"
-                title="Reset to the campaign default"
+                :title="$t('game.ui.settings.common.reset_default')"
             >
-                <i class="fas fa-times-circle"></i>
+                <i aria-hidden="true" class="fas fa-times-circle"></i>
             </div>
             <div v-else></div>
         </div>
         <div class="row" :class="{ overwritten: location !== null && options.fowLos !== undefined }">
-            <label :for="'fowLos-' + location">Only show lights in LoS:</label>
+            <label :for="'fowLos-' + location" v-t="'game.ui.settings.VisionSettings.only_show_lights_los'"></label>
             <div>
                 <input :id="'fowLos-' + location" type="checkbox" v-model="fowLos" />
             </div>
             <div
                 v-if="location !== null && options.fowLos !== undefined"
                 @click="reset('fowLos')"
-                title="Reset to the campaign default"
+                :title="$t('game.ui.settings.common.reset_default')"
             >
-                <i class="fas fa-times-circle"></i>
+                <i aria-hidden="true" class="fas fa-times-circle"></i>
             </div>
             <div v-else></div>
         </div>
         <div class="row" :class="{ overwritten: location !== null && options.fowOpacity !== undefined }">
-            <label :for="'fowOpacity-' + location">FOW opacity:</label>
+            <label :for="'fowOpacity-' + location" v-t="'game.ui.settings.VisionSettings.fow_opacity'"></label>
             <div>
                 <input
                     :id="'fowOpacity-' + location"
@@ -149,52 +151,58 @@ export default class VisionSettings extends Vue {
             <div
                 v-if="location !== null && options.fowOpacity !== undefined"
                 @click="reset('fowOpacity')"
-                title="Reset to the campaign default"
+                :title="$t('game.ui.settings.common.reset_default')"
             >
-                <i class="fas fa-times-circle"></i>
+                <i aria-hidden="true" class="fas fa-times-circle"></i>
             </div>
             <div v-else></div>
         </div>
-        <div class="spanrow header">Advanced</div>
+        <div class="spanrow header" v-t="'game.ui.settings.VisionSettings.advanced'"></div>
         <div class="row" v-if="location === null">
-            <label :for="'visionMode-' + location">Vision Mode:</label>
+            <label :for="'visionMode-' + location" v-t="'game.ui.settings.VisionSettings.vision_mode'"></label>
             <div>
                 <select :id="'visionMode-' + location" @change="changeVisionMode">
-                    <option :selected="$store.state.visibility.visionMode === 0">
-                        Default
-                    </option>
-                    <option :selected="$store.state.visibility.visionMode === 1">
-                        Experimental
-                    </option>
+                    <option
+                        :selected="$store.state.visibility.visionMode === 0"
+                        v-t="'game.ui.settings.VisionSettings.default'"
+                    ></option>
+                    <option
+                        :selected="$store.state.visibility.visionMode === 1"
+                        v-t="'game.ui.settings.VisionSettings.experimental'"
+                    ></option>
                 </select>
             </div>
             <div></div>
         </div>
         <div class="row" :class="{ overwritten: location !== null && options.visionMinRange !== undefined }">
-            <label :for="'vmininp-' + location">Minimal full vision ({{ unitSizeUnit }}):</label>
+            <label :for="'vmininp-' + location">
+                {{ $t("game.ui.settings.VisionSettings.min_full_vision_UNIT", { unit: unitSizeUnit }) }}
+            </label>
             <div>
                 <input :id="'vmininp-' + location" type="number" min="0" v-model.lazy.number="visionMinRange" />
             </div>
             <div
                 v-if="location !== null && options.visionMinRange !== undefined"
                 @click="reset('visionMinRange')"
-                title="Reset to the campaign default"
+                :title="$t('game.ui.settings.common.reset_default')"
             >
-                <i class="fas fa-times-circle"></i>
+                <i aria-hidden="true" class="fas fa-times-circle"></i>
             </div>
             <div v-else></div>
         </div>
         <div class="row" :class="{ overwritten: location !== null && options.visionMaxRange !== undefined }">
-            <label :for="'vmaxinp-' + location">Maximal vision ({{ unitSizeUnit }}):</label>
+            <label :for="'vmaxinp-' + location">
+                {{ $t("game.ui.settings.VisionSettings.max_vision_UNIT", { unit: unitSizeUnit }) }}
+            </label>
             <div>
                 <input :id="'vmaxinp-' + location" type="number" min="0" v-model.lazy.number="visionMaxRange" />
             </div>
             <div
                 v-if="location !== null && options.visionMaxRange !== undefined"
                 @click="reset('visionMaxRange')"
-                title="Reset to the campaign default"
+                :title="$t('game.ui.settings.common.reset_default')"
             >
-                <i class="fas fa-times-circle"></i>
+                <i aria-hidden="true" class="fas fa-times-circle"></i>
             </div>
             <div v-else></div>
         </div>

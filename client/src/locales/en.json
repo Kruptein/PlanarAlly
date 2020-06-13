@@ -4,7 +4,8 @@
         "en": "English",
         "zh": "中文",
         "de": "Deutsch",
-        "ru": "Русский"
+        "ru": "Русский",
+        "dk": "Dansk"
     },
     "assetManager": {
         "contextMenu": {

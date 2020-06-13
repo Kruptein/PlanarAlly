@@ -6,7 +6,7 @@ import { ServerCircularToken } from "@/game/comm/types/shapes";
 import { GlobalPoint } from "@/game/geom";
 import { Circle } from "@/game/shapes/circle";
 import { gameStore } from "@/game/store";
-import { g2l, g2lz } from "@/game/units";
+import { g2l, g2lz, getUnitDistance } from "@/game/units";
 
 export class CircularToken extends Circle {
     type = "circulartoken";
@@ -64,5 +64,16 @@ export class CircularToken extends Circle {
             effects: [],
             index: Infinity,
         };
+    }
+    visibleInCanvas(canvas: HTMLCanvasElement): boolean {
+        for (const aura of this.auras) {
+            if (aura.value > 0 || aura.dim > 0) {
+                const auraCircle = new Circle(this.center(), getUnitDistance(aura.value + aura.dim));
+                if (auraCircle.visibleInCanvas(canvas)) {
+                    return true;
+                }
+            }
+        }
+        return this.getBoundingBox().visibleInCanvas(canvas);
     }
 }

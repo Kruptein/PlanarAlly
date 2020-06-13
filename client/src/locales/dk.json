@@ -1,0 +1,362 @@
+{
+    "locale": {
+        "select": "Vælg sprog:",
+        "en": "English",
+        "zh": "中文",
+        "de": "Deutsch",
+        "ru": "Русский",
+		"dk": "Dansk"
+    },
+    "assetManager": {
+        "contextMenu": {
+            "new_name": "Nyt navn:",
+            "renaming_NAME": "Omdøb {name}",
+            "ask_remove": "Er du sikker på, at du vil fjerne dette?"
+        },
+        "manager": {
+            "new_folder_name": "Ny mappes navn",
+            "uploading": "Uploader fil",
+            "create_folder": "Opret mappe",
+            "upload_files": "Upload filer",
+            "title": "Materiale håndtering"
+        }
+    },
+    "common": {
+        "rename": "Omdøb",
+        "remove": "Fjern",
+        "username": "Brugernavn",
+        "password": "Adgangskode",
+        "server_ver_prefix": "Server version:",
+        "PlanarAlly": "PlanarAlly",
+        "error_prefix": "Fejl:",
+        "error_msg": "Fejl!",
+        "close": "Luk",
+        "submit": "Indsend",
+        "create": "Opret",
+        "warning": "Advarsel",
+        "value": "Værdi",
+        "toggle_public_private": "Skift offentlig / privat",
+        "initiative": "Initiativ",
+        "search": "Søg",
+        "name": "Navn",
+        "add": "Tilføj",
+        "players": "Spiller",
+        "exit": "Forlad", 
+        "assets": "Materialer",
+        "notes": "Noter",
+        "markers": "Markører",
+        "border_color": "Kantfarve",
+        "fill_color": "Fyldfarve",
+        "trackers": "Trackers",
+        "auras": "Auraer",
+        "labels": "Mærkater",
+        "annotation": "Anmærkning",
+        "floor": "Etage",
+        "layer": "Lag",
+        "location": "Placering",
+        "admin": "Admin",
+        "grid": "Gitter",
+        "vision": "Syn",
+        "tokens": "Poletter",
+        "shape": "Form",
+        "colors": "Farver",
+        "version": "version",
+        "confirm": "Bekræft",
+        "cancel": "Annuller"
+    },
+    "auth": {
+        "login": {
+            "register": "Tilmed",
+            "login": "Login"
+        }
+    },
+    "core": {
+        "components": {
+            "inputCopy": {
+                "copied": "Kopieret!",
+                "copy": "Kopier"
+            }
+        }
+    },
+    "dashboard": {
+        "main": {
+            "session_name": "Kampagne navn",
+            "account_settings": "Konto instillinger",
+            "logout": "Log ud",
+            "your_sessions": "Dine kampagner",
+            "no_sessions": "Ingen aktive kampagner",
+            "create_session": "Lav en kampagne",
+            "create_new_session": "Lav en ny kampagne"
+        }
+    },
+    "game": {
+        "ui": {
+            "floors": {
+                "new_name": "Ny etage navn",
+                "creation": "Etageoprettelse",
+                "warning_msg_Z": "Er du sikker på at du vil fjerne d. {z} etage?",
+                "delete_floor": "Slet etage",
+                "add_new_floor": "Tilføj en ny etage"
+            },
+            "initiative": {
+                "initiative": {
+                    "new_effect": "Ny effekt",
+                    "add_timed_effect": "Tilføj effekt med varighed",
+                    "toggle_group": "Skift individuel / gruppe initiativ",
+                    "delete_init": "Slet initiativ",
+                    "round_N": "Runde {n}",
+                    "vision_log_msg": "Autolås syn (vis kun den aktive polet)",
+                    "camera_log_msg": "Autolås kamera ved aktiv polet",
+                    "reset_round": "Nulstil runder/ture",
+                    "next": "Næste"
+                }
+            },
+            "labels": {
+                "category": "Kategori",
+                "visible": "Synlig",
+                "delete": "Slet",
+                "delete_label": "Slet mærkat",
+                "title": "Mærkat håndtering",
+                "cat_abbr": "Kat.",
+                "vis_abbr": "Syn",
+                "del_abbr": "Slet",
+                "no_exist_msg": "Der er ingen mærkater"
+            },
+            "menu": {
+                "locations": {
+                    "new_location_name": "Navn på den nye placering:",
+                    "create_new_location": "Lav en ny placering",
+                    "add_new_location": "Tilføj ny placering",
+                    "show_specific_pl": "Vis specifik spiller"
+                },
+                "menu": {
+                    "new_note": "Ny note",
+                    "open_asset_manager": "Åben materiale håndtering",
+                    "no_assets": "Ingen materialer",
+                    "create_note": "Lav note",
+                    "delete_marker": "Slet markør",
+                    "no_notes": "Ingen noter",
+                    "dm_options": "DM Instillinger",
+                    "no_markers": "Ingen markører",
+                    "client_options": "Klient instillinger",
+                    "grid_color_set": "Gitter Farve:",
+                    "fow_color_set": "FOW Farve:",
+                    "ruler_color_set": "Lineal farve:",
+                    "invert_alt_set": "Omvend ALT-tast adfærd"
+                }
+            },
+            "note": {
+                "warning_msg": "Er du sikker på at du vil fjerne dette?",
+                "edit_title": "Ændrer titel",
+                "remove_note": "Fjern note"
+            },
+            "selection": {
+                "edit_dialog": {
+                    "access": {
+                        "toggle_edit_access": "Skift redigeringsadgang",
+                        "toggle_movement_access": "Skift bevægelsesadgang",
+                        "toggle_vision_access": "Skift synadgang",
+                        "remove_owner_access": "Fjern ejeradgang",
+                        "access": "Adgang",
+                        "default": "Standard",
+                        "add_access": "Tilføj adgang"
+                    },
+                    "dialog": {
+                        "current_value": "Nuværende værdi",
+                        "remove_tracker": "Fjern tracker",
+                        "dim_value": "Dim værdi",
+                        "toggle_light_source": "Skift lyskilde",
+                        "delete_aura": "Slet aura",
+                        "edit_asset": "Rediger materiale",
+                        "is_a_token": "Er en polet",
+                        "is_invisible": "Er usynlig",
+                        "is_locked": "Er låst",
+                        "show_badge": "Vis emblem",
+                        "block_vision_light": "Blokere syn/lys",
+                        "block_movement": "Blokerer bevægelse"
+                    }
+                },
+                "select_info": {
+                    "open_shape_props": "Åben form egenskaber",
+                    "quick_edit_tracker": "Hurtig rediger tracker",
+                    "quick_edit_aura": "Hurtig rediger aura"
+                },
+                "shapecontext": {
+                    "show_initiative": "Vis initiativ",
+                    "add_initiative": "Tilføj initiative",
+                    "add_all_initiative": "Tilføj alt til initiativ",
+                    "move_back": "Flyt bagud",
+                    "move_front": "Flyt frem",
+                    "delete_shapes": "Slet former",
+                    "show_props": "Vis egenskaber",
+                    "remove_marker": "Slet markør",
+                    "set_marker": "Set markør"
+                }
+            },
+            "settings": {
+                "dm": {
+                    "AdminSettings": {
+                        "delete_session_msg_CREATOR_ROOM": "INTAST {creator}/{room} FOR AT BEKRÆFTE FJERNELSE AF KAMPAGNEN.",
+                        "deleting_session": "SLETTER KAMPAGNE",
+                        "unlock_NBSP_Session_NBSP": "Frigør\u00a0Kampagne\u00a0",
+                        "lock_NBSP_Session_NBSP": "Lås\u00a0Kampagne\u00a0",
+                        "unlock_this_session": "Frigør denne kampagne",
+                        "lock_this_session": "Lås denne kampagne",
+                        "kick": "Smid ud",
+                        "no_players_invite_msg": "Der er ikke nogle spillere endu, inviter nogle med linket nedenunder!",
+                        "invite_code": "Invitationskode",
+                        "invitation_url": "Invitations-URL:",
+                        "refresh_invitation_code": "Gendan invitationskode",
+                        "danger_NBSP_zone": "\u00a0Farezone",
+                        "dm_access_only": "(Kun for DM'en)",
+                        "remove_session": "Fjern kampagne",
+                        "delete_session": "Slet denne Kampagne"
+                    },
+                    "DmSettings": {
+                        "dm_settings": "DM Indstillinger"
+                    }
+                },
+                "common": {
+                    "overridden_msg": "Nogle af disse instillinger kan bliver overskrevet af placeringsspecifikke instillinger.",
+                    "overridden_highlight": "fremhævet",
+                    "reset_default": "Nustil to standard kampagnen",
+                    "overridden_highlight_path": "Instillinger der overskriver kampagnestandarderne er {0}"
+                },
+                "GridSettings": {
+                    "unit_size_in_UNIT": "Feltstørelse (i {unit})",
+                    "use_grid": "Brug gitter",
+                    "grid_size_in_pixels": "Gitterstørrelse (i pixels):",
+                    "size_unit": "Længdeenhed"
+                },
+                "location": {
+                    "LocationAdminSettings": {
+                        "remove_location_msg_NAME": "Er du sikker på at du vil fjerne placeringen {name}",
+                        "remove_location_yes": "Ja, slet placeringen",
+                        "remove_location_no": "Vær sød at lade være",
+                        "move_existing_pl": "Flyt eksisterende spiller til denne placering",
+                        "delete_this_location": "Slet denne placering",
+                        "remove_location": "Fjern placering"
+                    },
+                    "LocationSettings": {
+                        "location_settings": "Placeringsinstillinger:"
+                    }
+                },
+                "permissions": {
+                    "edit_owned_tokens": "Rediger dine poletter:",
+                    "move_owned_tokens": "Flyt dine poletter:",
+                    "resize_owned_tokens": "Ændre størelsen af dine poletter:"
+                },
+                "VisionSettings": {
+                    "min_full_vision_UNIT": "Minimal fuld synlighed ({unit}):",
+                    "max_vision_UNIT": "Maximal synlighed ({unit}):",
+                    "core": "Grundlæggende",
+                    "fake_player": "Forfalsk spiller:",
+                    "fill_fow": "Fyld hele lærredet med FOW:",
+                    "only_show_lights_los": "Vis kun lys i LoS:",
+                    "fow_opacity": "FOW gennemsigtighed:",
+                    "advanced": "Avanceret",
+                    "vision_mode": "Visningstilstand:",
+                    "default": "Standard",
+                    "experimental": "Experimentel"
+                }
+            },
+            "tools": {
+                "createtoken_modal": {
+                    "create_basic_token": "Skab basal polet",
+                    "text": "Tekst",
+                    "fill": "Fyld:",
+                    "border": "Kant:"
+                },
+                "defaultcontext": {
+                    "bring_pl": "Bring spillere",
+                    "create_basic_token": "Skab basal polet",
+                    "show_initiative": "Vis initiativ"
+                },
+                "draw": {
+                    "foreground_color": "Forgrundsfarve",
+                    "background_color": "Baggrundsfarve",
+                    "mode": "Tilstand",
+                    "closed_polygon": "Lukket polygon?",
+                    "brush_size": "Pensel størelse"
+                },
+                "filter": {
+                    "no_category": "ingen kategori"
+                },
+                "map": {
+                    "drag_to_resize": "Træk et område du ænsker at ændrer størelsen på",
+                    "select_shape_msg": "Vælg venligst en form først.",
+                    "set_target_grid_cells": "Indstil målet for feltstørrelsen",
+                    "horizontal": "Vandret",
+                    "vertical": "Lodret",
+                    "apply": "ANVEND",
+                    "cancel": "CANCEL"
+                },
+                "ruler": {
+                    "share": "Del med andre"
+                },
+                "tools": {
+                    "change_mode": "Skift tilstand"
+                }
+            },
+            "ui": {
+                "github_msg": "Find koden på github!",
+                "discord_msg": "Bliv en del af fælleskabet på discord!",
+                "patreon_msg": "Bidrag ved hjælp af patreon!",
+                "open_loc_menu": "Åben placeringsmenu",
+                "new_ver_msg": "Der er en ny version!",
+                "open_settings": "Åben instillinger",
+                "changelog_RELEASE_LOG": "# Versionnummer {release}\n*For flere detaljer, besøg https://www.planarally.io/blog/*\n{log}"
+            }
+        }
+    },
+    "layer": {
+        "map": "kort",
+        "tokens": "poletter",
+        "dm": "dm",
+        "fow": "fow"
+    },
+    "draw": {
+        "square": "kvadrat",
+        "circle": "cirkel",
+        "draw-polygon": "polygon",
+        "paint-brush": "malerpensel",
+        "normal": "normal",
+        "reveal": "afslør",
+        "hide": "gem"
+    },
+    "tool": {
+        "Build": "Byg",
+        "Play": "Spil",
+        "Select": "Vælg",
+        "Pan": "Panorer",
+        "Draw": "Tegn",
+        "Ruler": "Lineal",
+        "Ping": "Ping",
+        "Map": "Kort",
+        "Filter": "Filter",
+        "Vision": "Syn"
+    },
+    "settings": {
+        "account": {
+            "no_pwd_msg": "Ingen ny adgangskode givet!",
+            "pwd_not_match": "Adgangskodefelterne er ikke ens!",
+            "server_request_error": "Noget gik galt med server anmodningen",
+            "change_pwd": "Ændrer adgangskoden",
+            "remove_account_msg": "Er du sikker på at du ønsker at slette din konto?",
+            "delete_request_error": "Noget gik galt med sletningsanmodningen.",
+            "no_email_set": "Ingen email givet",
+            "general": "Generalt",
+            "username": "Brugernavn:",
+            "email": "Email:",
+            "danger_zone": "Farezone",
+            "new_pwd": "Ny adgangskode:",
+            "repeat_pwd": "Gentag adgangskode:",
+            "delete_account": "Slet konto",
+            "delete_confirm_msg": "Denne handling er uigenkaldelig!"
+        },
+        "settings": {
+            "account_settings": "Konto instillinger",
+            "account": "Konto"
+        }
+    }
+}

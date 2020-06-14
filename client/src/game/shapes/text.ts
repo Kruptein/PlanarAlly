@@ -58,8 +58,9 @@ export class Text extends Shape {
     // eslint-disable-next-line @typescript-eslint/no-empty-function
     center(_centerPoint?: GlobalPoint): GlobalPoint | void {} // TODO
     visibleInCanvas(canvas: HTMLCanvasElement): boolean {
+        if (super.visibleInCanvas(canvas)) return true;
         return this.getBoundingBox().visibleInCanvas(canvas);
-    } // TODO
+    }
     // eslint-disable-next-line @typescript-eslint/no-empty-function
     snapToGrid(): void {}
     // eslint-disable-next-line @typescript-eslint/no-empty-function

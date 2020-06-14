@@ -106,8 +106,9 @@ export class Polygon extends Shape {
         return this.getBoundingBox().center();
     }
     visibleInCanvas(canvas: HTMLCanvasElement): boolean {
+        if (super.visibleInCanvas(canvas)) return true;
         return this.getBoundingBox().visibleInCanvas(canvas);
-    } // TODO
+    }
     // eslint-disable-next-line @typescript-eslint/no-empty-function
     snapToGrid(): void {}
     // eslint-disable-next-line @typescript-eslint/no-empty-function

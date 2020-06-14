@@ -8,6 +8,8 @@ import { gameStore } from "../../store";
 import { VisibilityMode, visibilityStore } from "../../visibility/store";
 import { socket } from "../socket";
 
+// Bootup Sequence
+
 socket.on("Location.Set", (data: ServerLocation) => {
     coreStore.setLoading(false);
     gameSettingsStore.setActiveLocation(data.id);
@@ -15,6 +17,12 @@ socket.on("Location.Set", (data: ServerLocation) => {
     setLocationOptions(data.id, data.options);
     EventBus.$emit("Location.Options.Set");
 });
+
+socket.on("Locations.Settings.Set", (data: { [key: number]: Partial<ServerLocationOptions> }) => {
+    for (const key in data) setLocationOptions(Number.parseInt(key), data[key]);
+});
+
+// Varia
 
 socket.on("Location.Options.Set", (data: { options: Partial<ServerLocationOptions>; location: number | null }) => {
     setLocationOptions(data.location, data.options);
@@ -26,10 +34,6 @@ socket.on("Locations.Order.Set", (locations: { id: number; name: string }[]) => 
 
 socket.on("Location.Change.Start", () => {
     coreStore.setLoading(true);
-});
-
-socket.on("Locations.Settings.Set", (data: { [key: number]: Partial<ServerLocationOptions> }) => {
-    for (const key in data) setLocationOptions(Number.parseInt(key), data[key]);
 });
 
 socket.on("Location.Rename", (data: { id: number; name: string }) => {

@@ -1,11 +1,7 @@
 import json
 from typing import Any, Dict, List
 
-from peewee import JOIN
-from playhouse.shortcuts import update_model_from_dict
-
 import auth
-from .initiative import send_client_initiatives
 from api.socket.constants import GAME_NS
 from app import app, logger, sio
 from models import (
@@ -22,16 +18,74 @@ from models import (
     Room,
     Shape,
 )
+from models.label import Label, LabelSelection
 from models.role import Role
+from peewee import JOIN
+from playhouse.shortcuts import update_model_from_dict
 from state.game import game_state
+
+from .initiative import send_client_initiatives
+from models.asset import Asset
 
 
 @auth.login_required(app, sio)
-async def load_location(sid: int, location: Location):
+async def load_location(sid: int, location: Location, *, complete=False):
     pr: PlayerRoom = game_state.get(sid)
     if pr.active_location != location:
         pr.active_location = location
         pr.save()
+
+    # 1. Load client options
+
+    client_options = pr.player.as_dict()
+    client_options.update(
+        **LocationUserOption.get(user=pr.player, location=location).as_dict()
+    )
+    await sio.emit("Client.Options.Set", client_options, room=sid, namespace=GAME_NS)
+
+    # 2. Load room info
+
+    if complete:
+        await sio.emit(
+            "Room.Info.Set",
+            {
+                "name": pr.room.name,
+                "creator": pr.room.creator.name,
+                "invitationCode": str(pr.room.invitation_code),
+                "isLocked": pr.room.is_locked,
+                "default_options": pr.room.default_options.as_dict(),
+                "players": [
+                    {
+                        "id": rp.player.id,
+                        "name": rp.player.name,
+                        "location": rp.active_location.id,
+                        "role": rp.role,
+                    }
+                    for rp in pr.room.players
+                ],
+            },
+            room=sid,
+            namespace=GAME_NS,
+        )
+
+    # 3. Load location
+
+    await sio.emit("Location.Set", location.as_dict(), room=sid, namespace=GAME_NS)
+
+    # 4. Load all location settings (DM)
+
+    if complete and pr.role == Role.DM:
+        await sio.emit(
+            "Locations.Settings.Set",
+            {
+                l.id: {} if l.options is None else l.options.as_dict()
+                for l in pr.room.locations
+            },
+            room=sid,
+            namespace=GAME_NS,
+        )
+
+    # 5. Load Board
 
     data = {}
     data["locations"] = [
@@ -41,25 +95,57 @@ async def load_location(sid: int, location: Location):
         f.as_dict(pr.player, pr.player == pr.room.creator)
         for f in location.floors.order_by(Floor.index)
     ]
-    client_options = pr.player.as_dict()
-    client_options.update(
-        **LocationUserOption.get(user=pr.player, location=location).as_dict()
-    )
-
     await sio.emit("Board.Set", data, room=sid, namespace=GAME_NS)
-    await sio.emit("Location.Set", location.as_dict(), room=sid, namespace=GAME_NS)
-    await sio.emit("Client.Options.Set", client_options, room=sid, namespace=GAME_NS)
-    await sio.emit(
-        "Notes.Set",
-        [
-            note.as_dict()
-            for note in Note.select().where(
-                (Note.user == pr.player) & (Note.room == pr.room)
-            )
-        ],
-        room=sid,
-        namespace=GAME_NS,
-    )
+
+    # 6. Load Initiative
+
+    location_data = InitiativeLocationData.get_or_none(location=location)
+    if location_data:
+        await send_client_initiatives(pr, pr.player)
+        await sio.emit(
+            "Initiative.Round.Update", location_data.round, room=sid, namespace=GAME_NS,
+        )
+        await sio.emit(
+            "Initiative.Turn.Set", location_data.turn, room=sid, namespace=GAME_NS
+        )
+
+    # 7. Load labels
+
+    if complete:
+        labels = Label.select().where(
+            (Label.user == pr.player) | (Label.visible == True)
+        )
+        label_filters = LabelSelection.select().where(
+            (LabelSelection.user == pr.player) & (LabelSelection.room == pr.room)
+        )
+
+        await sio.emit(
+            "Labels.Set", [l.as_dict() for l in labels], room=sid, namespace=GAME_NS,
+        )
+        await sio.emit(
+            "Labels.Filters.Set",
+            [l.label.uuid for l in label_filters],
+            room=sid,
+            namespace=GAME_NS,
+        )
+
+    # 8. Load Notes
+
+    if complete:
+        await sio.emit(
+            "Notes.Set",
+            [
+                note.as_dict()
+                for note in Note.select().where(
+                    (Note.user == pr.player) & (Note.room == pr.room)
+                )
+            ],
+            room=sid,
+            namespace=GAME_NS,
+        )
+
+    # 9. Load Markers
+
     await sio.emit(
         "Markers.Set",
         [
@@ -72,14 +158,14 @@ async def load_location(sid: int, location: Location):
         namespace=GAME_NS,
     )
 
-    location_data = InitiativeLocationData.get_or_none(location=location)
-    if location_data:
-        await send_client_initiatives(pr, pr.player)
+    # 10. Load Assets
+
+    if complete:
         await sio.emit(
-            "Initiative.Round.Update", location_data.round, room=sid, namespace=GAME_NS,
-        )
-        await sio.emit(
-            "Initiative.Turn.Set", location_data.turn, room=sid, namespace=GAME_NS
+            "Asset.List.Set",
+            Asset.get_user_structure(pr.player),
+            room=sid,
+            namespace=GAME_NS,
         )
 
 

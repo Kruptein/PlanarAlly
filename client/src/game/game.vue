@@ -13,8 +13,8 @@ import NoteDialog from "@/game/ui/note.vue";
 import UI from "./ui/ui.vue";
 
 import { createConnection, socket } from "@/game/api/socket";
-import { onKeyDown, onKeyUp } from "@/game/events/keyboard";
-import { scrollZoom } from "@/game/events/mouse";
+import { onKeyDown, onKeyUp } from "@/game/input/keyboard";
+import { scrollZoom } from "@/game/input/mouse";
 import { layerManager } from "@/game/layers/manager";
 import { dropAsset } from "./layers/utils";
 import { coreStore } from "@/core/store";

@@ -252,9 +252,6 @@ class GameSettingsStore extends VuexModule implements GameSettingsState {
         }
 
         if ((this.locationOptions[data.location].spawnLocations?.length ?? 0) === 0) {
-            if (gameSettingsStore.activeLocation === 0) {
-                await new Promise(resolve => socket.once("Client.Options.Set", resolve));
-            }
             if (gameSettingsStore.activeLocation !== data.location) return;
 
             const uuid = uuidv4();

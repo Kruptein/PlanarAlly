@@ -101,11 +101,11 @@ export default class Dashboard extends Vue {
                             :placeholder="$t('dashboard.main.session_name')"
                         />
                         <span>
-                            <i aria-hidden="true" class="fab fa-d-and-d"></i>
+                            <font-awesome-icon :icon="['fab', 'd-and-d']" />
                         </span>
                     </div>
                     <button type="submit" class="submit" :title="$t('common.create')">
-                        <i aria-hidden="true" class="fas fa-arrow-right"></i>
+                        <font-awesome-icon icon="arrow-right" />
                     </button>
                 </fieldset>
             </form>
@@ -117,12 +117,12 @@ export default class Dashboard extends Vue {
                         :title="$t('dashboard.main.account_settings')"
                         to="/settings"
                     >
-                        <i aria-hidden="true" class="fas fa-cog"></i>
+                        <font-awesome-icon icon="cog" />
                     </router-link>
                 </form>
                 <form @submit.prevent>
                     <router-link tag="button" class="submit" :title="$t('dashboard.main.logout')" to="/auth/logout">
-                        <i aria-hidden="true" class="fas fa-sign-out-alt"></i>
+                        <font-awesome-icon icon="sign-out-alt" />
                     </router-link>
                 </form>
             </div>

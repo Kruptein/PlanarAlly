@@ -104,7 +104,7 @@ export default class FloorSelect extends Vue {
                     <div class="floor-name">{{ floor }}</div>
                     <div class="floor-actions" v-show="floors.length > 1 && IS_DM">
                         <div @click.stop="removeFloor(index)" :title="$t('game.ui.floors.delete_floor')">
-                            <i aria-hidden="true" class="fas fa-trash-alt"></i>
+                            <font-awesome-icon icon="trash-alt" />
                         </div>
                     </div>
                 </div>

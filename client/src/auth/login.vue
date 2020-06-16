@@ -87,7 +87,7 @@ export default class Login extends Vue {
                         autofocus
                     />
                     <span>
-                        <i aria-hidden="true" class="fas fa-user-circle"></i>
+                        <font-awesome-icon icon="user-circle" />
                     </span>
                 </div>
 
@@ -102,7 +102,7 @@ export default class Login extends Vue {
                         required
                     />
                     <span>
-                        <i aria-hidden="true" class="fas fa-lock"></i>
+                        <font-awesome-icon icon="lock" />
                     </span>
                 </div>
 
@@ -120,10 +120,10 @@ export default class Login extends Vue {
                         :title="$t('auth.login.register')"
                         @click="register"
                     >
-                        <i aria-hidden="true" class="fas fa-plus"></i>
+                        <font-awesome-icon icon="plus" />
                     </button>
                     <button type="submit" name="login" class="submit" :title="$t('auth.login.login')">
-                        <i aria-hidden="true" class="fas fa-arrow-right"></i>
+                        <font-awesome-icon icon="arrow-right" />
                     </button>
                 </div>
             </fieldset>

@@ -185,7 +185,7 @@ export default class EditDialog extends Vue {
         >
             <div v-t="'game.ui.selection.edit_dialog.dialog.edit_asset'"></div>
             <div class="header-close" @click="visible = false" :title="$t('common.close')">
-                <i aria-hidden="true" class="far fa-window-close"></i>
+                <font-awesome-icon :icon="['far', 'window-close']" />
             </div>
         </div>
         <div class="modal-body">
@@ -208,7 +208,7 @@ export default class EditDialog extends Vue {
                     :disabled="!owned"
                     :title="$t('common.toggle_public_private')"
                 >
-                    <i aria-hidden="true" class="fas fa-eye"></i>
+                    <font-awesome-icon icon="eye" />
                 </div>
                 <label
                     for="shapeselectiondialog-istoken"
@@ -342,7 +342,7 @@ export default class EditDialog extends Vue {
                         :disabled="!owned"
                         :title="$t('common.toggle_public_private')"
                     >
-                        <i aria-hidden="true" class="fas fa-eye"></i>
+                        <font-awesome-icon icon="eye" />
                     </div>
                     <span :key="'tspan-' + tracker.uuid"></span>
                     <div
@@ -353,7 +353,7 @@ export default class EditDialog extends Vue {
                         :style="{ opacity: owned ? 1.0 : 0.3, textAlign: 'center' }"
                         :title="$t('game.ui.selection.edit_dialog.dialog.remove_tracker')"
                     >
-                        <i aria-hidden="true" class="fas fa-trash-alt"></i>
+                        <font-awesome-icon icon="trash-alt" />
                     </div>
                 </template>
                 <div class="spanrow header" v-t="'common.auras'"></div>
@@ -401,7 +401,7 @@ export default class EditDialog extends Vue {
                         :disabled="!owned"
                         :title="$t('common.toggle_public_private')"
                     >
-                        <i aria-hidden="true" class="fas fa-eye"></i>
+                        <font-awesome-icon icon="eye" />
                     </div>
                     <div
                         :key="'visionsource-' + aura.uuid"
@@ -410,7 +410,7 @@ export default class EditDialog extends Vue {
                         :disabled="!owned"
                         :title="$t('game.ui.selection.edit_dialog.dialog.toggle_light_source')"
                     >
-                        <i aria-hidden="true" class="fas fa-lightbulb"></i>
+                        <font-awesome-icon icon="lightbulb" />
                     </div>
                     <div
                         v-if="aura.name !== '' || aura.value !== 0"
@@ -420,7 +420,7 @@ export default class EditDialog extends Vue {
                         :style="{ opacity: owned ? 1.0 : 0.3, textAlign: 'center' }"
                         :title="$t('game.ui.selection.edit_dialog.dialog.delete_aura')"
                     >
-                        <i aria-hidden="true" class="fas fa-trash-alt"></i>
+                        <font-awesome-icon icon="trash-alt" />
                     </div>
                 </template>
                 <div class="spanrow header" v-t="'common.labels'"></div>

@@ -78,7 +78,7 @@ export default class SelectionInfo extends Vue {
                     @click="openEditDialog"
                     :title="$t('game.ui.selection.select_info.open_shape_props')"
                 >
-                    <i aria-hidden="true" class="fas fa-edit"></i>
+                    <font-awesome-icon icon="edit" />
                 </div>
                 <div id="selection-name">{{ shape.name }}</div>
                 <div id="selection-trackers">

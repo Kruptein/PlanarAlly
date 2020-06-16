@@ -24,7 +24,6 @@ export default class App extends Vue {
 </template>
 
 <style>
-@import url("https://maxcdn.bootstrapcdn.com/font-awesome/4.6.1/css/font-awesome.min.css");
 @import url("https://fonts.googleapis.com/css?family=Open+Sans");
 
 body {

@@ -77,7 +77,7 @@ export default class GridSettings extends Vue {
                 @click="reset('useGrid')"
                 :title="$t('game.ui.settings.common.reset_default')"
             >
-                <i aria-hidden="true" class="fas fa-times-circle"></i>
+                <font-awesome-icon icon="times-circle" />
             </div>
             <div v-else></div>
         </div>
@@ -91,7 +91,7 @@ export default class GridSettings extends Vue {
                 @click="reset('gridSize')"
                 :title="$t('game.ui.settings.common.reset_default')"
             >
-                <i aria-hidden="true" class="fas fa-times-circle"></i>
+                <font-awesome-icon icon="times-circle" />
             </div>
             <div v-else></div>
         </div>
@@ -107,7 +107,7 @@ export default class GridSettings extends Vue {
                 @click="reset('unitSizeUnit')"
                 :title="$t('game.ui.settings.common.reset_default')"
             >
-                <i aria-hidden="true" class="fas fa-times-circle"></i>
+                <font-awesome-icon icon="times-circle" />
             </div>
             <div v-else></div>
         </div>
@@ -125,7 +125,7 @@ export default class GridSettings extends Vue {
                 @click="reset('unitSize')"
                 :title="$t('game.ui.settings.common.reset_default')"
             >
-                <i aria-hidden="true" class="fas fa-times-circle"></i>
+                <font-awesome-icon icon="times-circle" />
             </div>
             <div v-else></div>
         </div>

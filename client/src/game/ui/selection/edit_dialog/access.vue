@@ -80,7 +80,7 @@ export default class EditDialogAccess extends Vue {
             @click="toggleDefaultEditAccess"
             :title="$t('game.ui.selection.edit_dialog.access.toggle_edit_access')"
         >
-            <i aria-hidden="true" class="fas fa-pencil-alt"></i>
+            <font-awesome-icon icon="pencil-alt" />
         </div>
         <div
             :style="{ opacity: shape.defaultAccess.movement ? 1.0 : 0.3, textAlign: 'center' }"
@@ -88,7 +88,7 @@ export default class EditDialogAccess extends Vue {
             @click="toggleDefaultMovementAccess"
             :title="$t('game.ui.selection.edit_dialog.access.toggle_movement_access')"
         >
-            <i aria-hidden="true" class="fas fa-arrows-alt"></i>
+            <font-awesome-icon icon="arrows-alt" />
         </div>
         <div
             :style="{ opacity: shape.defaultAccess.vision ? 1.0 : 0.3, textAlign: 'center' }"
@@ -96,7 +96,7 @@ export default class EditDialogAccess extends Vue {
             @click="toggleDefaultVisionAccess"
             :title="$t('game.ui.selection.edit_dialog.access.toggle_vision_access')"
         >
-            <i aria-hidden="true" class="fas fa-lightbulb"></i>
+            <font-awesome-icon icon="lightbulb" />
         </div>
         <template v-for="owner in shape.owners">
             <div class="owner" :key="owner.user">
@@ -113,7 +113,7 @@ export default class EditDialogAccess extends Vue {
                 @click="toggleOwnerEditAccess(owner)"
                 :title="$t('game.ui.selection.edit_dialog.access.toggle_edit_access')"
             >
-                <i aria-hidden="true" class="fas fa-pencil-alt"></i>
+                <font-awesome-icon icon="pencil-alt" />
             </div>
             <div
                 :key="'ownerMovement-' + owner.user"
@@ -122,7 +122,7 @@ export default class EditDialogAccess extends Vue {
                 @click="toggleOwnerMovementAccess(owner)"
                 :title="$t('game.ui.selection.edit_dialog.access.toggle_movement_access')"
             >
-                <i aria-hidden="true" class="fas fa-arrows-alt"></i>
+                <font-awesome-icon icon="arrows-alt" />
             </div>
             <div
                 :key="'ownerVision-' + owner.user"
@@ -131,7 +131,7 @@ export default class EditDialogAccess extends Vue {
                 @click="toggleOwnerVisionAccess(owner)"
                 :title="$t('game.ui.selection.edit_dialog.access.toggle_vision_access')"
             >
-                <i aria-hidden="true" class="fas fa-lightbulb"></i>
+                <font-awesome-icon icon="lightbulb" />
             </div>
             <div
                 :key="'remove-' + owner.user"
@@ -140,7 +140,7 @@ export default class EditDialogAccess extends Vue {
                 :disabled="!owned"
                 :title="$t('game.ui.selection.edit_dialog.access.remove_owner_access')"
             >
-                <i aria-hidden="true" class="fas fa-trash-alt"></i>
+                <font-awesome-icon icon="trash-alt" />
             </div>
         </template>
         <select

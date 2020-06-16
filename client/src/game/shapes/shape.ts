@@ -94,13 +94,13 @@ export abstract class Shape {
 
     abstract center(): GlobalPoint;
     abstract center(centerPoint: GlobalPoint): void;
-    visibleInCanvas(_canvas: HTMLCanvasElement): boolean {
+    visibleInCanvas(canvas: HTMLCanvasElement): boolean {
         for (const aura of this.auras) {
             if (aura.value > 0 || aura.dim > 0) {
                 const r = getUnitDistance(aura.value + aura.dim);
                 const center = this.center();
                 const auraArea = new BoundingRect(new GlobalPoint(center.x - r, center.y - r), r * 2, r * 2);
-                if (auraArea.visibleInCanvas(_canvas)) return true;
+                if (auraArea.visibleInCanvas(canvas)) return true;
             }
         }
         return false;

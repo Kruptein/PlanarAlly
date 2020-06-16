@@ -6,7 +6,7 @@ import { accessToServer, ownerToClient, ownerToServer, ServerShape } from "@/gam
 import { GlobalPoint, Vector } from "@/game/geom";
 import { layerManager } from "@/game/layers/manager";
 import { gameStore } from "@/game/store";
-import { g2l, g2lx, g2ly, g2lz } from "@/game/units";
+import { g2l, g2lx, g2ly, g2lz, getUnitDistance } from "@/game/units";
 import { visibilityStore } from "@/game/visibility/store";
 import { TriangulationTarget } from "@/game/visibility/te/pa";
 import { addBlocker, getBlockers, getVisionSources, setVisionSources, sliceBlockers } from "@/game/visibility/utils";
@@ -94,13 +94,15 @@ export abstract class Shape {
 
     abstract center(): GlobalPoint;
     abstract center(centerPoint: GlobalPoint): void;
-    visibleInCanvas(_canvas: HTMLCanvasElement): boolean {
-        // for (const aura of this.auras) {
-        //     if (aura.value > 0) {
-        //         const auraCircle = new Circle(this.center(), aura.value);
-        //         if (auraCircle.visibleInCanvas(canvas)) return true;
-        //     }
-        // }
+    visibleInCanvas(canvas: HTMLCanvasElement): boolean {
+        for (const aura of this.auras) {
+            if (aura.value > 0 || aura.dim > 0) {
+                const r = getUnitDistance(aura.value + aura.dim);
+                const center = this.center();
+                const auraArea = new BoundingRect(new GlobalPoint(center.x - r, center.y - r), r * 2, r * 2);
+                if (auraArea.visibleInCanvas(canvas)) return true;
+            }
+        }
         return false;
     }
 

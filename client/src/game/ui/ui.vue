@@ -138,7 +138,7 @@ export default class UI extends Vue {
                         :title="$t('game.ui.ui.github_msg')"
                         rel="noopener noreferrer"
                     >
-                        <i aria-hidden="true" class="fab fa-github"></i>
+                        <font-awesome-icon :icon="['fab', 'github']" />
                     </a>
                     <a
                         href="https://discord.gg/mubGnTe"
@@ -146,7 +146,7 @@ export default class UI extends Vue {
                         :title="$t('game.ui.ui.discord_msg')"
                         rel="noopener noreferrer"
                     >
-                        <i aria-hidden="true" class="fab fa-discord"></i>
+                        <font-awesome-icon :icon="['fab', 'discord']" />
                     </a>
                     <a
                         href="https://www.patreon.com/planarally"
@@ -154,7 +154,7 @@ export default class UI extends Vue {
                         :title="$t('game.ui.ui.patreon_msg')"
                         rel="noopener noreferrer"
                     >
-                        <i aria-hidden="true" class="fab fa-patreon"></i>
+                        <font-awesome-icon :icon="['fab', 'patreon']" />
                     </a>
                 </div>
             </div>
@@ -176,7 +176,7 @@ export default class UI extends Vue {
                             :title="$t('game.ui.ui.open_loc_menu')"
                         >
                             <a href="#">
-                                <i aria-hidden="true" class="far fa-compass"></i>
+                                <font-awesome-icon :icon="['far', 'compass']" />
                             </a>
                         </li>
                         <li
@@ -186,13 +186,13 @@ export default class UI extends Vue {
                             :title="$t('game.ui.ui.open_settings')"
                         >
                             <a href="#">
-                                <i aria-hidden="true" class="fas fa-cog"></i>
+                                <font-awesome-icon icon="cog" />
                             </a>
                         </li>
                     </ul>
                 </div>
                 <span class="rm-topper">
-                    <i aria-hidden="true" class="icon-share-alt"></i>
+                    <font-awesome-icon icon="share-alt" />
                 </span>
             </div>
         </div>

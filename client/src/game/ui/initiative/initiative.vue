@@ -204,7 +204,7 @@ export default class Initiative extends Vue {
         >
             <div v-t="'common.initiative'"></div>
             <div class="header-close" @click="visible = false" :title="$t('common.close')">
-                <i aria-hidden="true" class="far fa-window-close"></i>
+                <font-awesome-icon :icon="['far', 'window-close']" />
             </div>
         </div>
         <div class="modal-body">
@@ -247,7 +247,7 @@ export default class Initiative extends Vue {
                                 @click="createEffect(actor, getDefaultEffect(), true)"
                                 :title="$t('game.ui.initiative.initiative.add_timed_effect')"
                             >
-                                <i aria-hidden="true" class="fas fa-stopwatch"></i>
+                                <font-awesome-icon icon="stopwatch" />
                                 <template v-if="actor.effects">
                                     {{ actor.effects.length }}
                                 </template>
@@ -261,7 +261,7 @@ export default class Initiative extends Vue {
                                 @click="toggleOption(actor, 'visible')"
                                 :title="$t('common.toggle_public_private')"
                             >
-                                <i aria-hidden="true" class="fas fa-eye"></i>
+                                <font-awesome-icon icon="eye" />
                             </div>
                             <div
                                 :style="{ opacity: actor.group ? '1.0' : '0.3' }"
@@ -269,7 +269,7 @@ export default class Initiative extends Vue {
                                 @click="toggleOption(actor, 'group')"
                                 :title="$t('game.ui.initiative.initiative.toggle_group')"
                             >
-                                <i aria-hidden="true" class="fas fa-users"></i>
+                                <font-awesome-icon icon="users" />
                             </div>
                             <div
                                 :style="{ opacity: owns(actor) ? '1.0' : '0.3' }"
@@ -277,7 +277,7 @@ export default class Initiative extends Vue {
                                 @click="removeInitiative(actor.uuid, true, true)"
                                 :title="$t('game.ui.initiative.initiative.delete_init')"
                             >
-                                <i aria-hidden="true" class="fas fa-trash-alt"></i>
+                                <font-awesome-icon icon="trash-alt" />
                             </div>
                         </div>
                         <div class="initiative-effect" v-if="actor.effects">
@@ -310,7 +310,7 @@ export default class Initiative extends Vue {
                     @click="toggleVisionLock"
                     :title="$t('game.ui.initiative.initiative.vision_log_msg')"
                 >
-                    <i aria-hidden="true" class="fas fa-eye"></i>
+                    <font-awesome-icon icon="eye" />
                 </div>
                 <div
                     class="initiative-bar-button"
@@ -318,7 +318,7 @@ export default class Initiative extends Vue {
                     @click="cameraLock = !cameraLock"
                     :title="$t('game.ui.initiative.initiative.camera_log_msg')"
                 >
-                    <i aria-hidden="true" class="fas fa-video"></i>
+                    <font-awesome-icon icon="video" />
                 </div>
                 <div
                     class="initiative-bar-button"
@@ -329,7 +329,7 @@ export default class Initiative extends Vue {
                     "
                     :title="$t('game.ui.initiative.initiative.reset_round')"
                 >
-                    <i aria-hidden="true" class="fas fa-sync-alt"></i>
+                    <font-awesome-icon icon="sync-alt" />
                 </div>
                 <div
                     class="initiative-bar-button"
@@ -337,7 +337,7 @@ export default class Initiative extends Vue {
                     @click="nextTurn"
                     :title="$t('game.ui.initiative.initiative.next')"
                 >
-                    <i aria-hidden="true" class="fas fa-chevron-right"></i>
+                    <font-awesome-icon icon="chevron-right" />
                 </div>
             </div>
         </div>

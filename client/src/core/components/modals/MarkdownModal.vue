@@ -35,7 +35,7 @@ export default class MarkdownModal extends Vue {
         >
             <div>{{ title }}</div>
             <div class="header-close" @click="close" :title="$t('common.close')">
-                <i aria-hidden="true" class="far fa-window-close"></i>
+                <font-awesome-icon :icon="['far', 'window-close']" />
             </div>
         </div>
         <div class="modal-body">

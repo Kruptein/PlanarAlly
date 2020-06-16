@@ -110,7 +110,7 @@ export default class MenuBar extends Vue {
                         target="blank"
                         :title="$t('game.ui.menu.menu.open_asset_manager')"
                     >
-                        <i aria-hidden="true" class="fas fa-external-link-alt"></i>
+                        <font-awesome-icon icon="external-link-alt" />
                     </a>
                     <div class="directory" id="menu-tokens">
                         <asset-node :asset="assets" :search="assetSearch"></asset-node>
@@ -124,7 +124,7 @@ export default class MenuBar extends Vue {
                 <div class="menu-accordion-panel">
                     <div class="menu-accordion-subpanel" id="menu-notes">
                         <a class="actionButton" @click="createNote" :title="$t('game.ui.menu.menu.create_note')">
-                            <i aria-hidden="true" class="far fa-plus-square"></i>
+                            <font-awesome-icon icon="plus-square" />
                         </a>
                         <div v-for="note in notes" :key="note.uuid" @click="openNote(note)" style="cursor:pointer">
                             {{ note.title || "[?]" }}
@@ -144,7 +144,7 @@ export default class MenuBar extends Vue {
                             {{ nameMarker(marker) || "[?]" }}
                         </div>
                         <div @click="delMarker(marker)" :title="$t('game.ui.menu.menu.delete_marker')">
-                            <i aria-hidden="true" class="far fa-minus-square"></i>
+                            <font-awesome-icon icon="minus-square" />
                         </div>
                     </div>
                     <div v-if="!markers.length" v-t="'game.ui.menu.menu.no_markers'"></div>

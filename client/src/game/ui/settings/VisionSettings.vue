@@ -118,7 +118,7 @@ export default class VisionSettings extends Vue {
                 @click="reset('fullFow')"
                 :title="$t('game.ui.settings.common.reset_default')"
             >
-                <i aria-hidden="true" class="fas fa-times-circle"></i>
+                <font-awesome-icon icon="times-circle" />
             </div>
             <div v-else></div>
         </div>
@@ -132,7 +132,7 @@ export default class VisionSettings extends Vue {
                 @click="reset('fowLos')"
                 :title="$t('game.ui.settings.common.reset_default')"
             >
-                <i aria-hidden="true" class="fas fa-times-circle"></i>
+                <font-awesome-icon icon="times-circle" />
             </div>
             <div v-else></div>
         </div>
@@ -153,7 +153,7 @@ export default class VisionSettings extends Vue {
                 @click="reset('fowOpacity')"
                 :title="$t('game.ui.settings.common.reset_default')"
             >
-                <i aria-hidden="true" class="fas fa-times-circle"></i>
+                <font-awesome-icon icon="times-circle" />
             </div>
             <div v-else></div>
         </div>
@@ -186,7 +186,7 @@ export default class VisionSettings extends Vue {
                 @click="reset('visionMinRange')"
                 :title="$t('game.ui.settings.common.reset_default')"
             >
-                <i aria-hidden="true" class="fas fa-times-circle"></i>
+                <font-awesome-icon icon="times-circle" />
             </div>
             <div v-else></div>
         </div>
@@ -202,7 +202,7 @@ export default class VisionSettings extends Vue {
                 @click="reset('visionMaxRange')"
                 :title="$t('game.ui.settings.common.reset_default')"
             >
-                <i aria-hidden="true" class="fas fa-times-circle"></i>
+                <font-awesome-icon icon="times-circle" />
             </div>
             <div v-else></div>
         </div>

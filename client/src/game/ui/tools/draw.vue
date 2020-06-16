@@ -581,7 +581,7 @@ export default class DrawTool extends Tool implements ToolBasics {
                 @click="shapeSelect = shape"
                 :title="getShapeWord(shape)"
             >
-                <i aria-hidden="true" class="fas" :class="'fa-' + shape"></i>
+                <font-awesome-icon :icon="shape" />
             </div>
         </div>
         <div v-t="'common.colors'"></div>

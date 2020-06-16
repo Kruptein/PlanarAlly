@@ -171,7 +171,7 @@ export default class LocationBar extends Vue {
                     <div class="drag-handle"></div>
                     <div class="location-name-label" @click.self="changeLocation(location.id)">{{ location.name }}</div>
                     <div class="location-settings-icon" @click="openLocationSettings(location.id)">
-                        <i aria-hidden="true" class="fas fa-cog"></i>
+                        <font-awesome-icon icon="cog" />
                     </div>
                 </div>
                 <draggable
@@ -190,10 +190,10 @@ export default class LocationBar extends Vue {
                             @click="toggleExpanded(location.id)"
                         >
                             <span v-show="expanded.includes(location.id)">
-                                <i aria-hidden="true" class="fas fa-chevron-up"></i>
+                                <font-awesome-icon icon="chevron-up" />
                             </span>
                             <span v-show="!expanded.includes(location.id)">
-                                <i aria-hidden="true" class="fas fa-chevron-down"></i>
+                                <font-awesome-icon icon="chevron-down" />
                             </span>
                         </div>
                     </div>

@@ -467,7 +467,7 @@ export default class EditDialog extends Vue {
 
 .modal-body {
     padding: 10px;
-    max-width: 450px;
+    max-width: 800px;
 }
 
 .grid {

@@ -197,7 +197,7 @@ export default class UI extends Vue {
             </div>
         </div>
         <MenuBar></MenuBar>
-        <LocationBar :active="visible.locations"></LocationBar>
+        <LocationBar :active="visible.locations" :menuActive="visible.settings"></LocationBar>
         <Tools ref="tools"></Tools>
         <FloorSelect></FloorSelect>
         <SelectionInfo></SelectionInfo>

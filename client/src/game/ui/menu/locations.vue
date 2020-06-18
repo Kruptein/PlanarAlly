@@ -20,6 +20,7 @@ import { EventBus } from "../../event-bus";
 })
 export default class LocationBar extends Vue {
     @Prop() active!: boolean;
+    @Prop() menuActive!: boolean;
 
     @Watch("active")
     toggleActive(active: boolean): void {
@@ -165,6 +166,7 @@ export default class LocationBar extends Vue {
             @wheel.native="doHorizontalScroll"
             @scroll.native="doHorizontalScrollA"
             ref="locations"
+            :style="{ maxWidth: 'calc(100vw - 105px - ' + (menuActive ? '200px' : '0px') + ')' }"
         >
             <div class="location" v-for="location in locations" :key="location.id">
                 <div class="location-name" :class="{ 'active-location': activeLocation === location.id }">

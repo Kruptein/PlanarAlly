@@ -15,6 +15,8 @@ All notable changes to this project will be documented in this file.
 ### Fixed
 
  - Aura not displaying when token is outside the visible canvas
+ - Dialog background was cut on the right side in some browsers because max-width was set to unreasonably low value
+
 
 ## [0.21.0] - 2020-06-13
 

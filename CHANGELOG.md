@@ -15,6 +15,8 @@ All notable changes to this project will be documented in this file.
 ### Fixed
 
  - Aura not displaying when token is outside the visible canvas
+ - Entire page some times became scrollable in some browsers because body overflow was not set to hidden
+
 
 ## [0.21.0] - 2020-06-13
 

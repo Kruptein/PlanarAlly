@@ -90,7 +90,6 @@ export function copyShapes(): void {
     const clipboard: ServerShape[] = [];
     for (const shape of layer.getSelection()) {
         if (!shape.ownedBy({ editAccess: true })) continue;
-        if (gameStore.selectionHelperID === shape.uuid) continue;
         clipboard.push(shape.asDict());
     }
     gameStore.setClipboard(clipboard);
@@ -174,12 +173,9 @@ export function deleteShapes(): void {
     for (let i = l.getSelection().length - 1; i >= 0; i--) {
         const sel = l.getSelection()[i];
         if (!sel.ownedBy({ editAccess: true })) continue;
-        if (gameStore.selectionHelperID === sel.uuid) {
-            l.setSelection(...[...l.getSelection()].splice(i, 1));
-            continue;
-        }
         if (l.removeShape(sel, SyncMode.FULL_SYNC)) EventBus.$emit("SelectionInfo.Shape.Set", null);
     }
+    l.setSelection();
 }
 
 export function cutShapes(): void {

@@ -52,7 +52,7 @@ export default class SelectTool extends Tool implements ToolBasics {
     // we keep track of the actual offset within the asset.
     dragRay = new Ray<LocalPoint>(new LocalPoint(0, 0), new Vector(0, 0));
     selectionStartPoint = start;
-    selectionHelper = new Rect(start, 0, 0);
+    selectionHelper: Rect | null = null;
 
     created(): void {
         this.selectionHelper.globalCompositeOperation = "source-over";
@@ -67,47 +67,44 @@ export default class SelectTool extends Tool implements ToolBasics {
             return;
         }
 
-        if (!this.selectionHelper.hasOwner(gameStore.username)) {
-            this.selectionHelper.addOwner({ user: gameStore.username, access: { edit: true } }, false);
-        }
-
         let hit = false;
 
         // The selectionStack allows for lower positioned objects that are selected to have precedence during overlap.
         let selectionStack;
-        if (!this.hasFeature(SelectFeatures.ChangeSelection, features)) selectionStack = layer.selection;
-        else if (!layer.selection.length) selectionStack = layer.shapes;
-        else selectionStack = layer.shapes.concat(layer.selection);
+        if (!this.hasFeature(SelectFeatures.ChangeSelection, features)) selectionStack = layer.getSelection();
+        else if (!layer.getSelection().length) selectionStack = layer.getShapes();
+        else selectionStack = layer.getShapes().concat(layer.getSelection());
 
         for (let i = selectionStack.length - 1; i >= 0; i--) {
             const shape = selectionStack[i];
             if (shape.isInvisible && !shape.ownedBy({ movementAccess: true })) continue;
 
+            if (this.hasFeature(SelectFeatures.Resize, features)) {
             this.resizePoint = shape.getPointIndex(gp, l2gz(5));
-
-            if (this.resizePoint >= 0 && this.hasFeature(SelectFeatures.Resize, features)) {
+                if (this.resizePoint >= 0) {
                 // Resize case, a corner is selected
-                layer.selection = [shape];
+                    layer.setSelection(shape);
                 this.originalResizePoints = shape.points;
                 EventBus.$emit("SelectionInfo.Shape.Set", shape);
                 this.mode = SelectOperations.Resize;
                 layer.invalidate(true);
                 hit = true;
                 break;
-            } else if (shape.contains(gp)) {
-                const selection = shape;
-                if (layer.selection.indexOf(selection) === -1) {
+                }
+            }
+            if (shape.contains(gp)) {
+                if (layer.getSelection().indexOf(shape) === -1) {
                     if (event.ctrlKey) {
-                        layer.selection.push(selection);
+                        layer.pushSelection(shape);
                     } else {
-                        layer.selection = [selection];
+                        layer.setSelection(shape);
                     }
-                    EventBus.$emit("SelectionInfo.Shape.Set", selection);
+                    EventBus.$emit("SelectionInfo.Shape.Set", shape);
                 }
                 // Drag case, a shape is selected
                 if (this.hasFeature(SelectFeatures.Drag, features)) {
                     this.mode = SelectOperations.Drag;
-                    const localRefPoint = g2l(selection.refPoint);
+                    const localRefPoint = g2l(shape.refPoint);
                     this.dragRay = Ray.fromPoints(localRefPoint, lp);
                 }
                 layer.invalidate(true);
@@ -121,18 +118,23 @@ export default class SelectTool extends Tool implements ToolBasics {
             if (!this.hasFeature(SelectFeatures.ChangeSelection, features)) return;
             if (!this.hasFeature(SelectFeatures.GroupSelect, features)) return;
             this.mode = SelectOperations.GroupSelect;
-            for (const selection of layer.selection) EventBus.$emit("SelectionInfo.Shape.Set", selection);
+            for (const selection of layer.getSelection()) EventBus.$emit("SelectionInfo.Shape.Set", selection);
 
             this.selectionStartPoint = gp;
 
+            if (this.selectionHelper === null) {
+                this.selectionHelper = new Rect(this.selectionStartPoint, 0, 0, "rgba(0, 0, 0, 0)", "maroon");
+                this.selectionHelper.options.set("UiHelper", "true");
+            } else {
             this.selectionHelper.refPoint = this.selectionStartPoint;
             this.selectionHelper.w = 0;
             this.selectionHelper.h = 0;
+            }
 
             if (event.ctrlKey) {
-                layer.selection.push(this.selectionHelper);
+                layer.pushSelection(this.selectionHelper);
             } else {
-                layer.selection = [this.selectionHelper];
+                layer.setSelection(this.selectionHelper);
             }
             layer.invalidate(true);
         }
@@ -149,7 +151,7 @@ export default class SelectTool extends Tool implements ToolBasics {
             console.log("No active layer!");
             return;
         }
-        if (layer.selection.some(s => s.isLocked)) return;
+        if (layer.getSelection().some(s => s.isLocked)) return;
 
         this.deltaChanged = false;
 
@@ -157,14 +159,14 @@ export default class SelectTool extends Tool implements ToolBasics {
             // Currently draw on active layer
             const endPoint = gp;
 
-            this.selectionHelper.w = Math.abs(endPoint.x - this.selectionStartPoint.x);
-            this.selectionHelper.h = Math.abs(endPoint.y - this.selectionStartPoint.y);
-            this.selectionHelper.refPoint = new GlobalPoint(
+            this.selectionHelper!.w = Math.abs(endPoint.x - this.selectionStartPoint.x);
+            this.selectionHelper!.h = Math.abs(endPoint.y - this.selectionStartPoint.y);
+            this.selectionHelper!.refPoint = new GlobalPoint(
                 Math.min(this.selectionStartPoint.x, endPoint.x),
                 Math.min(this.selectionStartPoint.y, endPoint.y),
             );
             layer.invalidate(true);
-        } else if (layer.selection.length) {
+        } else if (layer.getSelection().length) {
             let delta = Ray.fromPoints(this.dragRay.get(this.dragRay.tMax), lp).direction.multiply(
                 1 / gameStore.zoomFactor,
             );
@@ -173,15 +175,14 @@ export default class SelectTool extends Tool implements ToolBasics {
                 if (ogDelta.length() === 0) return;
                 // If we are on the tokens layer do a movement block check.
                 if (layer.name === "tokens" && !(event.shiftKey && gameStore.IS_DM)) {
-                    for (const sel of layer.selection) {
+                    for (const sel of layer.getSelection()) {
                         if (!sel.ownedBy({ movementAccess: true })) continue;
-                        if (sel.uuid === this.selectionHelper.uuid) continue; // the selection helper should not be treated as a real shape.
                         delta = calculateDelta(delta, sel, true);
                         if (delta !== ogDelta) this.deltaChanged = true;
                     }
                 }
                 // Actually apply the delta on all shapes
-                for (const sel of layer.selection) {
+                for (const sel of layer.getSelection()) {
                     if (!sel.ownedBy({ movementAccess: true })) continue;
                     if (sel.visionObstruction)
                         visibilityStore.deleteFromTriag({
@@ -193,16 +194,14 @@ export default class SelectTool extends Tool implements ToolBasics {
                         visibilityStore.addToTriag({ target: TriangulationTarget.VISION, shape: sel });
                         visibilityStore.recalculateVision(sel.floor);
                     }
-                    if (sel !== this.selectionHelper) {
                         if (sel.visionObstruction) visibilityStore.recalculateVision(sel.floor);
                         if (!sel.preventSync)
                             socket.emit("Shape.Update", { shape: sel.asDict(), redraw: true, temporary: true });
                     }
-                }
                 this.dragRay = Ray.fromPoints(this.dragRay.origin, lp);
                 layer.invalidate(false);
             } else if (this.mode === SelectOperations.Resize) {
-                for (const sel of layer.selection) {
+                for (const sel of layer.getSelection()) {
                     if (!sel.ownedBy({ movementAccess: true })) continue;
                     if (sel.visionObstruction)
                         visibilityStore.deleteFromTriag({
@@ -216,7 +215,6 @@ export default class SelectTool extends Tool implements ToolBasics {
                     if (useSnapping(event) && this.hasFeature(SelectFeatures.Snapping, features))
                         targetPoint = snapToPoint(layerManager.getLayer(layerManager.floor!.name)!, gp, ignorePoint);
                     this.resizePoint = sel.resize(this.resizePoint, targetPoint, event.ctrlKey);
-                    if (sel !== this.selectionHelper) {
                         // todo: think about calling deleteIntersectVertex directly on the corner point
                         if (sel.visionObstruction) {
                             visibilityStore.addToTriag({ target: TriangulationTarget.VISION, shape: sel });
@@ -243,7 +241,7 @@ export default class SelectTool extends Tool implements ToolBasics {
             return;
         }
         const layer = layerManager.getLayer(layerManager.floor!.name)!;
-        if (layer.selection.some(s => s.isLocked)) return;
+        if (layer.getSelection().some(s => s.isLocked)) return;
 
         if (this.mode === SelectOperations.GroupSelect) {
             if (event.ctrlKey) {
@@ -251,9 +249,8 @@ export default class SelectTool extends Tool implements ToolBasics {
             } else {
                 layer.clearSelection();
             }
-            for (const shape of layer.shapes) {
+            for (const shape of layer.getShapes()) {
                 if (!shape.ownedBy({ movementAccess: true })) continue;
-                if (shape === this.selectionHelper) continue;
                 const bbox = shape.getBoundingBox();
                 if (!shape.ownedBy({ movementAccess: true })) continue;
                 if (
@@ -262,16 +259,21 @@ export default class SelectTool extends Tool implements ToolBasics {
                     this.selectionHelper!.refPoint.y <= bbox.botLeft.y &&
                     this.selectionHelper!.refPoint.y + this.selectionHelper!.h >= bbox.topLeft.y
                 ) {
-                    if (layer.selection.find(it => it === shape) === undefined) {
-                        layer.selection.push(shape);
+                    if (layer.getSelection().find(it => it === shape) === undefined) {
+                        layer.pushSelection(shape);
                     }
                 }
+                    }
+            layer.removeShape(this.selectionHelper!, SyncMode.NO_SYNC);
+            if (layer.getSelection().some(s => !s.isLocked))
+                layer.setSelection(...layer.getSelection().filter(s => !s.isLocked));
+
+                }
             }
-            layer.selection = layer.selection.filter(it => it !== this.selectionHelper);
-            if (layer.selection.some(s => !s.isLocked)) layer.selection = layer.selection.filter(s => !s.isLocked);
+
             layer.invalidate(true);
-        } else if (layer.selection.length) {
-            for (const sel of layer.selection) {
+        } else if (layer.getSelection().length) {
+            for (const sel of layer.getSelection()) {
                 if (!sel.ownedBy({ movementAccess: true })) continue;
                 if (this.mode === SelectOperations.Drag) {
                     if (
@@ -307,7 +309,6 @@ export default class SelectTool extends Tool implements ToolBasics {
                         }
                     }
 
-                    if (sel !== this.selectionHelper) {
                         if (sel.visionObstruction) visibilityStore.recalculateVision(sel.floor);
                         if (sel.movementObstruction) visibilityStore.recalculateMovement(sel.floor);
                         if (!sel.preventSync)
@@ -341,7 +342,7 @@ export default class SelectTool extends Tool implements ToolBasics {
                             visibilityStore.recalculateMovement(sel.floor);
                         }
                     }
-                    if (sel !== this.selectionHelper && !sel.preventSync) {
+                    if (!sel.preventSync) {
                         socket.emit("Shape.Update", { shape: sel.asDict(), redraw: true, temporary: false });
                     }
                     layer.invalidate(false);
@@ -362,7 +363,7 @@ export default class SelectTool extends Tool implements ToolBasics {
         const layer = layerManager.getLayer(layerManager.floor!.name)!;
         const mouse = getLocalPointFromEvent(event);
         const globalMouse = l2g(mouse);
-        for (const shape of layer.selection) {
+        for (const shape of layer.getSelection()) {
             if (shape.contains(globalMouse)) {
                 EventBus.$emit("SelectionInfo.Shape.Set", shape);
                 layer.invalidate(true);
@@ -372,10 +373,10 @@ export default class SelectTool extends Tool implements ToolBasics {
         }
 
         // Check if any other shapes are under the mouse
-        for (let i = layer.shapes.length - 1; i >= 0; i--) {
-            const shape = layer.shapes[i];
+        for (let i = layer.getShapes().length - 1; i >= 0; i--) {
+            const shape = layer.getShapes()[i];
             if (shape.contains(globalMouse)) {
-                layer.selection = [shape];
+                layer.setSelection(shape);
                 EventBus.$emit("SelectionInfo.Shape.Set", shape);
                 layer.invalidate(true);
                 (<ShapeContext>this.$parent.$refs.shapecontext).open(event);
@@ -387,7 +388,7 @@ export default class SelectTool extends Tool implements ToolBasics {
     }
     updateCursor(layer: Layer, globalMouse: GlobalPoint): void {
         let cursorStyle = "default";
-        for (const sel of layer.selection) {
+        for (const sel of layer.getSelection()) {
             const resizePoint = sel.getPointIndex(globalMouse, l2gz(3));
             if (resizePoint < 0) continue;
             else {

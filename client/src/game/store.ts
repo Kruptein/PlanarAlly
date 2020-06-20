@@ -85,8 +85,6 @@ class GameStore extends VuexModule implements GameState {
 
     showUI = true;
 
-    selectionHelperID: string | null = null;
-
     invertAlt = false;
 
     get selectedLayer(): string {
@@ -127,11 +125,6 @@ class GameStore extends VuexModule implements GameState {
     setToolsMode(toolMode: "Build" | "Play"): void {
         this.toolsMode = toolMode;
         layerManager.getLayer(layerManager.floor!.name)?.invalidate(true);
-    }
-
-    @Mutation
-    setSelectionHelperId(id: string): void {
-        this.selectionHelperID = id;
     }
 
     @Mutation

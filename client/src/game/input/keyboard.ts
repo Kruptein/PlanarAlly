@@ -48,7 +48,6 @@ export function onKeyDown(event: KeyboardEvent): void {
                 if (!event.shiftKey || !gameStore.IS_DM) {
                     // First check for collisions.  Using the smooth wall slide collision check used on mouse move is overkill here.
                     for (const sel of selection) {
-                        if (gameStore.selectionHelperID === sel.uuid) continue;
                         delta = calculateDelta(delta, sel, true);
                     }
                 }
@@ -57,7 +56,6 @@ export function onKeyDown(event: KeyboardEvent): void {
                 let recalculateMovement = false;
                 for (const sel of selection) {
                     if (!sel.ownedBy({ movementAccess: true })) continue;
-                    if (gameStore.selectionHelperID === sel.uuid) continue;
                     if (sel.movementObstruction) {
                         recalculateMovement = true;
                         visibilityStore.deleteFromTriag({

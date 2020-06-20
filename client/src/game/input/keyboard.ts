@@ -143,7 +143,7 @@ export function onKeyDown(event: KeyboardEvent): void {
             if (!event.ctrlKey || event.shiftKey) {
                 gameStore.selectFloor({ targetFloor: gameStore.selectedFloorIndex + 1, sync: true });
             }
-            if (event.shiftKey) for (const shape of selection) newLayer.selection.push(shape);
+            if (event.shiftKey) for (const shape of selection) newLayer.pushSelection(shape);
         } else if (event.key === "PageDown" && gameStore.selectedFloorIndex > 0) {
             // Page Down - Move floor down
             // Ctrl + Page Down - Move selected shape floor down
@@ -163,7 +163,7 @@ export function onKeyDown(event: KeyboardEvent): void {
             if (!event.ctrlKey || event.shiftKey) {
                 gameStore.selectFloor({ targetFloor: gameStore.selectedFloorIndex - 1, sync: true });
             }
-            if (event.shiftKey) for (const shape of selection) newLayer.selection.push(shape);
+            if (event.shiftKey) for (const shape of selection) newLayer.pushSelection(shape);
         } else if (event.key === "Tab") {
             event.preventDefault();
             EventBus.$emit("ToolMode.Toggle");

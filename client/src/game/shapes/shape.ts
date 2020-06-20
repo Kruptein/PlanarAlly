@@ -378,8 +378,8 @@ export abstract class Shape {
         if (oldLayer === undefined || newLayer === undefined) return;
         visibilityStore.moveShape({ shape: this, oldFloor: this.floor, newFloor: floor });
         this.floor = floor;
-        oldLayer.shapes.splice(oldLayer.shapes.indexOf(this), 1);
-        newLayer.shapes.push(this);
+        oldLayer.setShapes(...[...oldLayer.getShapes()].splice(oldLayer.getShapes().indexOf(this), 1));
+        newLayer.pushShapes(this);
         oldLayer.invalidate(false);
         newLayer.invalidate(false);
         if (sync) socket.emit("Shape.Floor.Change", { uuid: this.uuid, floor });
@@ -391,8 +391,8 @@ export abstract class Shape {
         if (oldLayer === undefined || newLayer === undefined) return;
         this.layer = layer;
         // Update layer shapes
-        oldLayer.shapes.splice(oldLayer.shapes.indexOf(this), 1);
-        newLayer.shapes.push(this);
+        oldLayer.setShapes(...[...oldLayer.getShapes()].splice(oldLayer.getShapes().indexOf(this), 1));
+        newLayer.pushShapes(this);
         // Revalidate layers  (light should at most be redone once)
         oldLayer.invalidate(true);
         newLayer.invalidate(false);

@@ -26,10 +26,10 @@ export class Layer {
     valid = false;
     // The collection of shapes that this layer contains.
     // These are ordered on a depth basis.
-    shapes: Shape[] = [];
+    protected shapes: Shape[] = [];
 
     // Collection of shapes that are currently selected
-    selection: Shape[] = [];
+    protected selection: Shape[] = [];
 
     // Extra selection highlighting settings
     selectionColor = "#CC0000";
@@ -50,6 +50,40 @@ export class Layer {
         if (!skipLightUpdate) {
             layerManager.invalidateLight(this.floor);
         }
+    }
+
+    // UI helpers are objects that are created for UI reaons but that are not pertinent to the actual state
+    // They are often not desired unless in specific circumstances
+    getShapes(skipUiHelpers = true): readonly Shape[] {
+        if (!skipUiHelpers) return this.shapes;
+        return this.shapes.filter(s => !s.options.has("UiHelper"));
+    }
+
+    setShapes(...shapes: Shape[]): void {
+        this.shapes = shapes;
+    }
+
+    pushShapes(...shapes: Shape[]): void {
+        this.shapes.push(...shapes);
+    }
+
+    hasSelection(skipUiHelpers = true): boolean {
+        return this.getSelection(skipUiHelpers).length > 0;
+    }
+
+    // UI helpers are objects that are created for UI reaons but that are not pertinent to the actual state
+    // They are often not desired unless in specific circumstances
+    getSelection(skipUiHelpers = true): readonly Shape[] {
+        if (!skipUiHelpers) return this.selection;
+        return this.selection.filter(s => !s.options.has("UiHelper"));
+    }
+
+    setSelection(...selection: Shape[]): void {
+        this.selection = selection;
+    }
+
+    pushSelection(...selection: Shape[]): void {
+        this.selection.push(...selection);
     }
 
     get width(): number {
@@ -88,7 +122,7 @@ export class Layer {
         if (invalidate) this.invalidate(invalidate === InvalidationMode.WITH_LIGHT);
     }
 
-    setShapes(shapes: ServerShape[]): void {
+    setServerShapes(shapes: ServerShape[]): void {
         for (const serverShape of shapes) {
             const shape = createShapeFromDict(serverShape);
             if (shape === undefined) {

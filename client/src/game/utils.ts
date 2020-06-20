@@ -45,8 +45,8 @@ export function equalPoint(a: number, b: number, delta = 0.0001): boolean {
     return a - delta < b && a + delta > b;
 }
 
-export function equalPoints(a: number[], b: number[]): boolean {
-    return equalPoint(a[0], b[0]) && equalPoint(a[1], b[1]);
+export function equalPoints(a: number[], b: number[], delta = 0.0001): boolean {
+    return equalPoint(a[0], b[0], delta) && equalPoint(a[1], b[1], delta);
 }
 
 export function useSnapping(event: MouseEvent | TouchEvent): boolean {

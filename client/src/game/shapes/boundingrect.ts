@@ -41,6 +41,14 @@ export class BoundingRect {
         return new BoundingRect(this.topLeft.add(vector), this.w, this.h);
     }
 
+    expand(vector: Vector): BoundingRect {
+        return new BoundingRect(
+            this.topLeft.add(vector),
+            this.w + 2 * Math.abs(vector.x),
+            this.h + 2 * Math.abs(vector.y),
+        );
+    }
+
     union(other: BoundingRect): BoundingRect {
         const xmin = Math.min(this.topLeft.x, other.topLeft.x);
         const xmax = Math.max(this.topRight.x, other.topRight.x);

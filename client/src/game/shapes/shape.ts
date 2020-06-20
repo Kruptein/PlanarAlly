@@ -30,10 +30,12 @@ export abstract class Shape {
 
     // A reference point regarding that specific shape's structure
     protected _refPoint: GlobalPoint;
+    angle = 0;
 
     // Fill colour of the shape
     fillColour = "#000";
     strokeColour = "rgba(0,0,0,0)";
+    strokeWidth = 5;
     // The optional name associated with the shape
     name = "Unknown shape";
     nameVisible = true;
@@ -310,46 +312,60 @@ export abstract class Shape {
     }
 
     drawSelection(ctx: CanvasRenderingContext2D): void {
+        const center = g2l(this.center());
+
         ctx.globalCompositeOperation = this.globalCompositeOperation;
+        ctx.setTransform(1, 0, 0, 1, center.x, center.y);
+        ctx.rotate(this.angle);
+
         const z = gameStore.zoomFactor;
         const bb = this.getBoundingBox();
-        ctx.strokeRect(g2lx(bb.topLeft.x), g2ly(bb.topLeft.y), bb.w * z, bb.h * z);
+        ctx.strokeRect(g2lx(bb.topLeft.x) - center.x, g2ly(bb.topLeft.y) - center.y, bb.w * z, bb.h * z);
 
         // Draw vertices
         for (const p of this.points) {
             ctx.beginPath();
-            ctx.arc(g2lx(p[0]), g2ly(p[1]), 3, 0, 2 * Math.PI);
+            ctx.arc(g2lx(p[0]) - center.x, g2ly(p[1]) - center.y, 3, 0, 2 * Math.PI);
             ctx.fill();
         }
 
         // Draw rotation anchor
-        if (gameStore.toolsMode === "Build" && this.uuid !== gameStore.selectionHelperID) {
-            const center = g2l(this.center());
-            const anchor = this.getAnchorLocation();
+        // if (
+        //     gameStore.toolsMode === "Build" &&
+        //     this.uuid !== gameStore.selectionHelperID &&
+        //     layerManager.getLayer(this.floor, this.layer)!.selection.length === 1
+        // ) {
+        //     const anchor = this.getAnchorLocation();
 
-            ctx.beginPath();
-            ctx.moveTo(center.x, center.y - 5);
-            ctx.lineTo(anchor.x, anchor.y);
-            ctx.stroke();
+        //     ctx.beginPath();
+        //     ctx.moveTo(0, -5);
+        //     ctx.lineTo(anchor.x - center.x, anchor.y - center.y);
+        //     ctx.stroke();
 
-            ctx.beginPath();
-            ctx.arc(center.x, center.y, 5, 0, 2 * Math.PI);
-            ctx.stroke();
+        //     ctx.beginPath();
+        //     ctx.arc(0, 0, 5, 0, 2 * Math.PI);
+        //     ctx.stroke();
 
-            ctx.beginPath();
-            ctx.arc(anchor.x, anchor.y, 5, 0, 2 * Math.PI);
-            ctx.fill();
+        //     ctx.beginPath();
+        //     ctx.arc(anchor.x - center.x, anchor.y - center.y, 5, 0, 2 * Math.PI);
+        //     ctx.fill();
 
-            // Draw edges
-            ctx.beginPath();
-            ctx.moveTo(g2lx(this.points[0][0]), g2ly(this.points[0][1]));
-            const j = this.isClosed ? 0 : 1;
-            for (let i = 1; i <= this.points.length - j; i++) {
-                const vertex = this.points[i % this.points.length];
-                ctx.lineTo(g2lx(vertex[0]), g2ly(vertex[1]));
-            }
-            ctx.stroke();
+        //     // ctx.beginPath();
+        //     // ctx.arc(0, 0, Math.abs(anchor.y - anchor.x) / 2, 0, Math.PI * 2);
+        //     // ctx.stroke();
+        // }
+
+        // Draw edges
+        ctx.beginPath();
+        ctx.moveTo(g2lx(this.points[0][0]) - center.x, g2ly(this.points[0][1]) - center.y);
+        const j = this.isClosed ? 0 : 1;
+        for (let i = 1; i <= this.points.length - j; i++) {
+            const vertex = this.points[i % this.points.length];
+            ctx.lineTo(g2lx(vertex[0]) - center.x, g2ly(vertex[1]) - center.y);
         }
+        ctx.stroke();
+
+        ctx.setTransform(1, 0, 0, 1, 0, 0);
     }
 
     getAnchorLocation(): LocalPoint {

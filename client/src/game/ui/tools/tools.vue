@@ -60,6 +60,8 @@ export default class Tools extends Vue {
         visionTool: InstanceType<typeof PanTool>;
     };
 
+    mode: "Build" | "Play" = "Play";
+
     private componentmap_: { [key in ToolName]: InstanceType<typeof Tool> } = <any>{};
 
     mounted(): void {
@@ -93,7 +95,7 @@ export default class Tools extends Vue {
         [ToolName.Vision, {}],
     ];
     playTools: [ToolName, ToolFeatures][] = [
-        [ToolName.Select, { disabled: [SelectFeatures.Resize] }],
+        [ToolName.Select, { disabled: [SelectFeatures.Resize, SelectFeatures.Rotate] }],
         [ToolName.Pan, {}],
         [ToolName.Ruler, {}],
         [ToolName.Ping, {}],
@@ -114,7 +116,7 @@ export default class Tools extends Vue {
     }
 
     get tools(): [ToolName, ToolFeatures][] {
-        return gameStore.toolsMode === "Build" ? this.buildTools : this.playTools;
+        return this.mode === "Build" ? this.buildTools : this.playTools;
     }
 
     get visibleTools(): string[] {
@@ -286,11 +288,15 @@ export default class Tools extends Vue {
     }
 
     toggleMode(): void {
-        gameStore.setToolsMode(gameStore.toolsMode === "Build" ? "Play" : "Build");
+        this.mode = this.mode === "Build" ? "Play" : "Build";
+        const tool = this.componentMap[this.currentTool];
+        tool.onToolsModeChange(this.mode, this.getFeatures(this.currentTool));
+        for (const permitted of tool.permittedTools)
+            this.componentMap[permitted.name].onToolsModeChange(this.mode, permitted.features);
     }
 
     getModeWord(): string {
-        return gameStore.toolsMode === "Build" ? this.$t("tool.Build").toString() : this.$t("tool.Play").toString();
+        return this.mode === "Build" ? this.$t("tool.Build").toString() : this.$t("tool.Play").toString();
     }
 
     getToolWord(tool: string): string {

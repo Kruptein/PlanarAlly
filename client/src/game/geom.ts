@@ -24,14 +24,21 @@ export function getDistanceToSegment(p: Point, line: [Point, Point]): number {
 export class Point {
     readonly x: number;
     readonly y: number;
+
     constructor(x: number, y: number) {
         this.x = x;
         this.y = y;
     }
+
+    *[Symbol.iterator](): Generator<number> {
+        yield this.x;
+        yield this.y;
+    }
+
     static fromArray(point: number[]): Point {
         return new Point(point[0], point[1]);
     }
-    add(vec: Vector): this {
+    add(vec: Vector | this): this {
         return new (<any>this).constructor(this.x + vec.x, this.y + vec.y);
     }
     subtract(other: this): Vector {

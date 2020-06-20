@@ -3,7 +3,7 @@ import { socket } from "@/game/api/socket";
 import { aurasFromServer, aurasToServer } from "@/game/comm/conversion/aura";
 import { InitiativeData } from "@/game/comm/types/general";
 import { accessToServer, ownerToClient, ownerToServer, ServerShape } from "@/game/comm/types/shapes";
-import { GlobalPoint, Vector } from "@/game/geom";
+import { GlobalPoint, Vector, LocalPoint } from "@/game/geom";
 import { layerManager } from "@/game/layers/manager";
 import { gameStore } from "@/game/store";
 import { g2l, g2lx, g2ly, g2lz, getUnitDistance } from "@/game/units";
@@ -322,15 +322,41 @@ export abstract class Shape {
             ctx.fill();
         }
 
-        // Draw edges
-        ctx.beginPath();
-        ctx.moveTo(g2lx(this.points[0][0]), g2ly(this.points[0][1]));
-        const j = this.isClosed ? 0 : 1;
-        for (let i = 1; i <= this.points.length - j; i++) {
-            const vertex = this.points[i % this.points.length];
-            ctx.lineTo(g2lx(vertex[0]), g2ly(vertex[1]));
+        // Draw rotation anchor
+        if (gameStore.toolsMode === "Build" && this.uuid !== gameStore.selectionHelperID) {
+            const center = g2l(this.center());
+            const anchor = this.getAnchorLocation();
+
+            ctx.beginPath();
+            ctx.moveTo(center.x, center.y - 5);
+            ctx.lineTo(anchor.x, anchor.y);
+            ctx.stroke();
+
+            ctx.beginPath();
+            ctx.arc(center.x, center.y, 5, 0, 2 * Math.PI);
+            ctx.stroke();
+
+            ctx.beginPath();
+            ctx.arc(anchor.x, anchor.y, 5, 0, 2 * Math.PI);
+            ctx.fill();
+
+            // Draw edges
+            ctx.beginPath();
+            ctx.moveTo(g2lx(this.points[0][0]), g2ly(this.points[0][1]));
+            const j = this.isClosed ? 0 : 1;
+            for (let i = 1; i <= this.points.length - j; i++) {
+                const vertex = this.points[i % this.points.length];
+                ctx.lineTo(g2lx(vertex[0]), g2ly(vertex[1]));
+            }
+            ctx.stroke();
         }
-        ctx.stroke();
+    }
+
+    getAnchorLocation(): LocalPoint {
+        const center = g2l(this.center());
+        const bb = this.getBoundingBox();
+        const z = gameStore.zoomFactor;
+        return new LocalPoint(center.x, center.y - 100 * z - (bb.h * z) / 2);
     }
 
     getInitiativeRepr(): InitiativeData {

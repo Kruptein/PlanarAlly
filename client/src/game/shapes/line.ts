@@ -61,8 +61,10 @@ export class Line extends Shape {
 
     center(): GlobalPoint;
     center(centerPoint: GlobalPoint): void;
-    // eslint-disable-next-line @typescript-eslint/no-empty-function
-    center(_centerPoint?: GlobalPoint): GlobalPoint | void {} // TODO
+    center(centerPoint?: GlobalPoint): GlobalPoint | void {
+        if (centerPoint === undefined) return this.refPoint.add(this.endPoint.subtract(this.refPoint).multiply(1 / 2));
+        // todo: set center
+    }
     visibleInCanvas(canvas: HTMLCanvasElement): boolean {
         if (super.visibleInCanvas(canvas)) return true;
         return this.getBoundingBox().visibleInCanvas(canvas);

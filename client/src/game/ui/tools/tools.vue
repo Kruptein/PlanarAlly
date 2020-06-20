@@ -100,7 +100,6 @@ export default class Tools extends Vue {
         [ToolName.Filter, {}],
         [ToolName.Vision, {}],
     ];
-    mode: "Build" | "Play" = "Play";
 
     get componentMap(): { [key in ToolName]: InstanceType<typeof Tool> } {
         return this.componentmap_;
@@ -115,7 +114,7 @@ export default class Tools extends Vue {
     }
 
     get tools(): [ToolName, ToolFeatures][] {
-        return this.mode === "Build" ? this.buildTools : this.playTools;
+        return gameStore.toolsMode === "Build" ? this.buildTools : this.playTools;
     }
 
     get visibleTools(): string[] {
@@ -287,11 +286,11 @@ export default class Tools extends Vue {
     }
 
     toggleMode(): void {
-        this.mode = this.mode === "Build" ? "Play" : "Build";
+        gameStore.setToolsMode(gameStore.toolsMode === "Build" ? "Play" : "Build");
     }
 
     getModeWord(): string {
-        return this.mode === "Build" ? this.$t("tool.Build").toString() : this.$t("tool.Play").toString();
+        return gameStore.toolsMode === "Build" ? this.$t("tool.Build").toString() : this.$t("tool.Play").toString();
     }
 
     getToolWord(tool: string): string {

@@ -38,6 +38,8 @@ class GameStore extends VuexModule implements GameState {
     selectedLayerIndex = -1;
     boardInitialized = false;
 
+    toolsMode: "Build" | "Play" = "Play";
+
     locations: { id: number; name: string }[] = [];
     floors: string[] = [];
     selectedFloorIndex = -1;
@@ -119,6 +121,12 @@ class GameStore extends VuexModule implements GameState {
     get screenCenter(): GlobalPoint {
         const halfScreen = new Vector(window.innerWidth / 2, window.innerHeight / 2);
         return l2g(g2l(this.screenTopLeft).add(halfScreen));
+    }
+
+    @Mutation
+    setToolsMode(toolMode: "Build" | "Play"): void {
+        this.toolsMode = toolMode;
+        layerManager.getLayer(layerManager.floor!.name)?.invalidate(true);
     }
 
     @Mutation

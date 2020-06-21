@@ -38,8 +38,8 @@ export default class ShapeContext extends Vue {
     x = 0;
     y = 0;
 
-    getSelection(): Shape[] {
-        return this.getActiveLayer()!.selection;
+    getSelection(): readonly Shape[] {
+        return this.getActiveLayer()!.getSelection();
     }
 
     hasSpawnToken(): boolean {
@@ -57,8 +57,8 @@ export default class ShapeContext extends Vue {
     }
     getMarker(): string | undefined {
         const layer = this.getActiveLayer()!;
-        if (layer.selection.length !== 1) return;
-        return layer.selection[0].uuid;
+        if (layer.getSelection().length !== 1) return;
+        return layer.getSelection()[0].uuid;
     }
     getFloors(): Floor[] {
         if (gameStore.IS_DM) return layerManager.floors;
@@ -77,33 +77,33 @@ export default class ShapeContext extends Vue {
     }
     getInitiativeWord(): string {
         const layer = this.getActiveLayer()!;
-        if (layer.selection.length === 1) {
-            return inInitiative(layer.selection[0].uuid)
+        if (layer.getSelection().length === 1) {
+            return inInitiative(layer.getSelection()[0].uuid)
                 ? this.$t("game.ui.selection.shapecontext.show_initiative").toString()
                 : this.$t("game.ui.selection.shapecontext.add_initiative").toString();
         } else {
-            return layer.selection.every(shape => inInitiative(shape.uuid))
+            return layer.getSelection().every(shape => inInitiative(shape.uuid))
                 ? this.$t("game.ui.selection.shapecontext.show_initiative").toString()
                 : this.$t("game.ui.selection.shapecontext.add_all_initiative").toString();
         }
     }
     hasSingleShape(): boolean {
         const layer = this.getActiveLayer()!;
-        return layer.selection.length === 1;
+        return layer.getSelection().length === 1;
     }
     setFloor(floor: Floor): void {
         const layer = this.getActiveLayer()!;
-        layer.selection.forEach(shape => shape.moveFloor(floor.name, true));
+        layer.getSelection().forEach(shape => shape.moveFloor(floor.name, true));
         this.close();
     }
     setLayer(newLayer: string): void {
         const layer = this.getActiveLayer()!;
-        layer.selection.forEach(shape => shape.moveLayer(newLayer, true));
+        layer.getSelection().forEach(shape => shape.moveLayer(newLayer, true));
         layer.clearSelection();
         this.close();
     }
     async setLocation(newLocation: number): Promise<void> {
-        const selection = this.getActiveLayer()!.selection;
+        const selection = this.getActiveLayer()!.getSelection();
 
         const spawnLocations = (gameSettingsStore.locationOptions[newLocation]?.spawnLocations ?? []).length;
         if (spawnLocations === 0) {
@@ -145,17 +145,17 @@ export default class ShapeContext extends Vue {
     }
     moveToBack(): void {
         const layer = this.getActiveLayer()!;
-        layer.selection.forEach(shape => layer.moveShapeOrder(shape, 0, true));
+        layer.getSelection().forEach(shape => layer.moveShapeOrder(shape, 0, true));
         this.close();
     }
     moveToFront(): void {
         const layer = this.getActiveLayer()!;
-        layer.selection.forEach(shape => layer.moveShapeOrder(shape, layer.shapes.length - 1, true));
+        layer.getSelection().forEach(shape => layer.moveShapeOrder(shape, layer.getShapes().length - 1, true));
         this.close();
     }
     addInitiative(): void {
         const layer = this.getActiveLayer()!;
-        layer.selection.forEach(shape => initiativeStore.addInitiative(shape.getInitiativeRepr()));
+        layer.getSelection().forEach(shape => initiativeStore.addInitiative(shape.getInitiativeRepr()));
         EventBus.$emit("Initiative.Show");
         this.close();
     }
@@ -165,21 +165,21 @@ export default class ShapeContext extends Vue {
     }
     openEditDialog(): void {
         const layer = this.getActiveLayer()!;
-        if (layer.selection.length !== 1) return;
-        EventBus.$emit("EditDialog.Open", layer.selection[0]);
+        if (layer.getSelection().length !== 1) return;
+        EventBus.$emit("EditDialog.Open", layer.getSelection()[0]);
         this.close();
     }
     setMarker(): void {
         const layer = this.getActiveLayer()!;
-        if (layer.selection.length !== 1) return;
-        const marker = layer.selection[0].uuid;
+        if (layer.getSelection().length !== 1) return;
+        const marker = layer.getSelection()[0].uuid;
         gameStore.newMarker({ marker, sync: true });
         this.close();
     }
     deleteMarker(): void {
         const layer = this.getActiveLayer()!;
-        if (layer.selection.length !== 1) return;
-        const marker = layer.selection[0].uuid;
+        if (layer.getSelection().length !== 1) return;
+        const marker = layer.getSelection()[0].uuid;
         gameStore.removeMarker({ marker, sync: true });
         this.close();
     }

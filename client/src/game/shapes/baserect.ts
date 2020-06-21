@@ -5,6 +5,7 @@ import { calculateDelta } from "@/game/ui/tools/utils";
 import { clampGridLine, g2lx, g2ly } from "@/game/units";
 import { ServerShape } from "../comm/types/shapes";
 import { gameSettingsStore } from "../settings";
+import { rotateAroundPoint } from "../utils";
 
 export abstract class BaseRect extends Shape {
     w: number;
@@ -21,20 +22,25 @@ export abstract class BaseRect extends Shape {
         });
     }
     getBoundingBox(): BoundingRect {
-        return new BoundingRect(this.refPoint, this.w, this.h);
+        const bbox = new BoundingRect(this.refPoint, this.w, this.h);
+        bbox.angle = this.angle;
+        return bbox;
     }
 
     get points(): number[][] {
         if (this.w === 0 || this.h === 0) return [[this.refPoint.x, this.refPoint.y]];
-        // note to self: topright and botleft are swapped because I'm retarded.
-        const topright = this.refPoint.add(new Vector(0, this.h));
-        const botright = this.refPoint.add(new Vector(this.w, this.h));
-        const botleft = this.refPoint.add(new Vector(this.w, 0));
+
+        const center = this.center();
+
+        const topleft = rotateAroundPoint(this.refPoint, center, this.angle);
+        const botleft = rotateAroundPoint(this.refPoint.add(new Vector(0, this.h)), center, this.angle);
+        const botright = rotateAroundPoint(this.refPoint.add(new Vector(this.w, this.h)), center, this.angle);
+        const topright = rotateAroundPoint(this.refPoint.add(new Vector(this.w, 0)), center, this.angle);
         return [
-            [this.refPoint.x, this.refPoint.y],
-            [topright.x, topright.y],
-            [botright.x, botright.y],
+            [topleft.x, topleft.y],
             [botleft.x, botleft.y],
+            [botright.x, botright.y],
+            [topright.x, topright.y],
         ];
     }
 

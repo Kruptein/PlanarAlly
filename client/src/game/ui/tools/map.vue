@@ -104,8 +104,8 @@ export default class MapTool extends Tool implements ToolBasics {
         this.rect = new Rect(this.startPoint.clone(), 0, 0, "rgba(0,0,0,0)", "black");
         this.rect.preventSync = true;
         layer.addShape(this.rect, SyncMode.NO_SYNC, InvalidationMode.NORMAL);
-        this.shape = layer.selection[0];
-        layer.selection = [this.rect];
+        this.shape = layer.getSelection()[0];
+        layer.setSelection(this.rect);
     }
 
     onMove(lp: LocalPoint): void {
@@ -137,7 +137,7 @@ export default class MapTool extends Tool implements ToolBasics {
         }
         this.active = false;
 
-        if (layer.selection.length !== 1) {
+        if (layer.getSelection().length !== 1) {
             this.removeRect();
             return;
         }

@@ -1,8 +1,9 @@
 import { GlobalPoint } from "@/game/geom";
 import { BoundingRect } from "@/game/shapes/boundingrect";
 import { Shape } from "@/game/shapes/shape";
-import { g2lx, g2ly, g2lz } from "@/game/units";
+import { g2lx, g2ly, g2lz, g2l } from "@/game/units";
 import { ServerLine } from "../comm/types/shapes";
+import { rotateAroundPoint } from "../utils";
 
 export class Line extends Shape {
     type = "line";
@@ -34,8 +35,8 @@ export class Line extends Shape {
     }
     get points(): number[][] {
         return [
-            [this.refPoint.x, this.refPoint.y],
-            [this.endPoint.x, this.endPoint.y],
+            [...rotateAroundPoint(this.refPoint, this.center(), this.angle)],
+            [...rotateAroundPoint(this.endPoint, this.center(), this.angle)],
         ];
     }
     getBoundingBox(): BoundingRect {
@@ -47,10 +48,13 @@ export class Line extends Shape {
     }
     draw(ctx: CanvasRenderingContext2D): void {
         super.draw(ctx);
+
+        const center = g2l(this.center());
+
         ctx.strokeStyle = this.strokeColour;
         ctx.beginPath();
-        ctx.moveTo(g2lx(this.refPoint.x), g2ly(this.refPoint.y));
-        ctx.lineTo(g2lx(this.endPoint.x), g2ly(this.endPoint.y));
+        ctx.moveTo(g2lx(this.refPoint.x) - center.x, g2ly(this.refPoint.y) - center.y);
+        ctx.lineTo(g2lx(this.endPoint.x) - center.x, g2ly(this.endPoint.y) - center.y);
         ctx.lineWidth = g2lz(this.lineWidth);
         ctx.stroke();
         super.drawPost(ctx);
@@ -61,8 +65,12 @@ export class Line extends Shape {
 
     center(): GlobalPoint;
     center(centerPoint: GlobalPoint): void;
-    // eslint-disable-next-line @typescript-eslint/no-empty-function
-    center(_centerPoint?: GlobalPoint): GlobalPoint | void {} // TODO
+    center(centerPoint?: GlobalPoint): GlobalPoint | void {
+        if (centerPoint === undefined) return this.refPoint.add(this.endPoint.subtract(this.refPoint).multiply(1 / 2));
+        const oldCenter = this.center();
+        this.refPoint = GlobalPoint.fromArray([...centerPoint.subtract(oldCenter.subtract(this.refPoint))]);
+        this.endPoint = GlobalPoint.fromArray([...centerPoint.subtract(oldCenter.subtract(this.endPoint))]);
+    }
     visibleInCanvas(canvas: HTMLCanvasElement): boolean {
         if (super.visibleInCanvas(canvas)) return true;
         return this.getBoundingBox().visibleInCanvas(canvas);

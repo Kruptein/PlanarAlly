@@ -128,11 +128,10 @@ class LayerManager {
         return selection !== undefined && selection.length > 0;
     }
 
-    // THIS INCLUDES POTENTIALLY THE SelectTool.SelectionHelper !!!
-    getSelection(): Shape[] | undefined {
+    getSelection(skipUiHelpers = true): readonly Shape[] | undefined {
         const layer = this.getLayer(this.floor!.name);
         if (layer === undefined) return undefined;
-        return layer.selection;
+        return layer.getSelection(skipUiHelpers);
     }
 
     clearSelection(): void {

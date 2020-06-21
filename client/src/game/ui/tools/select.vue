@@ -295,6 +295,8 @@ export default class SelectTool extends Tool implements ToolBasics {
                         visibilityStore.addToTriag({ target: TriangulationTarget.VISION, shape: sel });
                         recalc = true;
                     }
+                    if (!sel.preventSync)
+                        socket.emit("Shape.Update", { shape: sel.asDict(), redraw: true, temporary: true });
                 }
                 if (recalc) visibilityStore.recalculateVision(selection[0].floor);
                 this.rotationEnd!.rotateAround(center, dA);
@@ -426,6 +428,10 @@ export default class SelectTool extends Tool implements ToolBasics {
                     if (!sel.preventSync) {
                         socket.emit("Shape.Update", { shape: sel.asDict(), redraw: true, temporary: false });
                     }
+                }
+                if (this.mode === SelectOperations.Rotate) {
+                    if (!sel.preventSync)
+                        socket.emit("Shape.Update", { shape: sel.asDict(), redraw: true, temporary: false });
                 }
                 sel.updatePoints();
             }

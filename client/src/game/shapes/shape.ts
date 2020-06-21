@@ -263,6 +263,7 @@ export abstract class Shape {
             uuid: this.uuid,
             x: this.refPoint.x,
             y: this.refPoint.y,
+            angle: this.angle,
             floor: this.floor,
             layer: this.layer,
             draw_operator: this.globalCompositeOperation,
@@ -274,6 +275,7 @@ export abstract class Shape {
             owners: this._owners.map(owner => ownerToServer(owner)),
             fill_colour: this.fillColour,
             stroke_colour: this.strokeColour,
+            stroke_width: this.strokeWidth,
             name: this.name,
             name_visible: this.nameVisible,
             annotation: this.annotation,
@@ -291,6 +293,7 @@ export abstract class Shape {
     fromDict(data: ServerShape): void {
         this.layer = data.layer;
         this.floor = data.floor;
+        this.angle = data.angle;
         this.globalCompositeOperation = data.draw_operator;
         this.movementObstruction = data.movement_obstruction;
         this.visionObstruction = data.vision_obstruction;

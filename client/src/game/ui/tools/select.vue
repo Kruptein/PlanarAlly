@@ -71,7 +71,7 @@ export default class SelectTool extends Tool implements ToolBasics {
             document.body.style.cursor = "default";
             this.removeRotationUi();
         } else {
-            if (this.hasFeature(SelectFeatures.Rotate, features)) this.createRotationUi();
+            if (this.hasFeature(SelectFeatures.Rotate, features)) this.createRotationUi(features);
         }
     }
 
@@ -110,6 +110,8 @@ export default class SelectTool extends Tool implements ToolBasics {
                 if (this.resizePoint >= 0) {
                     // Resize case, a corner is selected
                     layer.setSelection(shape);
+                    this.removeRotationUi();
+                    this.createRotationUi(features);
                     this.originalResizePoints = shape.points;
                     EventBus.$emit("SelectionInfo.Shape.Set", shape);
                     this.mode = SelectOperations.Resize;
@@ -125,6 +127,8 @@ export default class SelectTool extends Tool implements ToolBasics {
                     } else {
                         layer.setSelection(shape);
                     }
+                    this.removeRotationUi();
+                    this.createRotationUi(features);
                     EventBus.$emit("SelectionInfo.Shape.Set", shape);
                 }
                 // Drag case, a shape is selected
@@ -340,7 +344,7 @@ export default class SelectTool extends Tool implements ToolBasics {
                 !this.rotationUiActive &&
                 this.hasFeature(SelectFeatures.Rotate, features)
             ) {
-                this.createRotationUi();
+                this.createRotationUi(features);
             }
 
             layer.invalidate(true);
@@ -490,11 +494,12 @@ export default class SelectTool extends Tool implements ToolBasics {
         document.body.style.cursor = cursorStyle;
     }
 
-    createRotationUi(): void {
+    createRotationUi(features: ToolFeatures<SelectFeatures>): void {
         const layer = layerManager.getLayer(layerManager.floor!.name)!;
         const selection = layer.getSelection();
 
-        if (selection.length === 0) return;
+        if (selection.length === 0 || this.rotationUiActive || !this.hasFeature(SelectFeatures.Rotate, features))
+            return;
 
         let bbox: BoundingRect;
         if (selection.length === 1) {
@@ -553,7 +558,7 @@ export default class SelectTool extends Tool implements ToolBasics {
             !this.rotationUiActive &&
             this.hasFeature(SelectFeatures.Rotate, features)
         ) {
-            this.createRotationUi();
+            this.createRotationUi(features);
         } else if (this.rotationUiActive) {
             const selection = layer.getSelection();
 

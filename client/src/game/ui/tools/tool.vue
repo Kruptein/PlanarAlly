@@ -70,6 +70,7 @@ export default class Tool extends Vue implements ToolBasics {
     onDown(_lp: LocalPoint, _event: MouseEvent | TouchEvent, _features: ToolFeatures): void {}
     onUp(_lp: LocalPoint, _event: MouseEvent | TouchEvent, _features: ToolFeatures): void {}
     onMove(_lp: LocalPoint, _event: MouseEvent | TouchEvent, _features: ToolFeatures): void {}
+    onToolsModeChange(_mode: "Build" | "Play", _features: ToolFeatures): void {}
 }
 </script>
 

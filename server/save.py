@@ -20,7 +20,7 @@ from models import ALL_MODELS, Constants
 from models.db import db
 from utils import OldVersionException, UnknownVersionException
 
-SAVE_VERSION = 32
+SAVE_VERSION = 33
 
 logger: logging.Logger = logging.getLogger("PlanarAllyServer")
 logger.setLevel(logging.INFO)
@@ -520,6 +520,19 @@ def upgrade(version):
         with db.atomic():
             db.execute_sql(
                 "ALTER TABLE shape ADD COLUMN is_locked INTEGER NOT NULL DEFAULT 0"
+            )
+
+        db.foreign_keys = True
+        Constants.get().update(save_version=Constants.save_version + 1).execute()
+    elif version == 32:
+        # Add Shape.angle and Shape.stroke_width
+        db.foreign_keys = False
+        with db.atomic():
+            db.execute_sql(
+                "ALTER TABLE shape ADD COLUMN angle INTEGER NOT NULL DEFAULT 0"
+            )
+            db.execute_sql(
+                "ALTER TABLE shape ADD COLUMN stroke_width INTEGER NOT NULL DEFAULT 2"
             )
 
         db.foreign_keys = True

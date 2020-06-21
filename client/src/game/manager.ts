@@ -13,8 +13,6 @@ import { TriangulationTarget } from "@/game/visibility/te/pa";
 import { Shape } from "./shapes/shape";
 
 export class GameManager {
-    selectedTool = 0;
-
     annotationManager = new AnnotationManager();
 
     addShape(shape: ServerShape): Shape | undefined {

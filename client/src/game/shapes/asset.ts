@@ -3,7 +3,7 @@ import { ServerAsset } from "@/game/comm/types/shapes";
 import { GlobalPoint } from "@/game/geom";
 import { BaseRect } from "@/game/shapes/baserect";
 import { gameStore } from "@/game/store";
-import { g2lx, g2ly, g2lz } from "@/game/units";
+import { g2lx, g2ly, g2lz, g2l } from "@/game/units";
 
 export class Asset extends BaseRect {
     type = "assetrect";
@@ -26,8 +26,15 @@ export class Asset extends BaseRect {
     }
     draw(ctx: CanvasRenderingContext2D): void {
         super.draw(ctx);
+        const center = g2l(this.center());
         try {
-            ctx.drawImage(this.img, g2lx(this.refPoint.x), g2ly(this.refPoint.y), g2lz(this.w), g2lz(this.h));
+            ctx.drawImage(
+                this.img,
+                g2lx(this.refPoint.x) - center.x,
+                g2ly(this.refPoint.y) - center.y,
+                g2lz(this.w),
+                g2lz(this.h),
+            );
         } catch (error) {
             console.warn(`Shape ${this.uuid} could not load the image ${this.src}`);
         }

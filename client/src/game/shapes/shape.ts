@@ -3,7 +3,7 @@ import { socket } from "@/game/api/socket";
 import { aurasFromServer, aurasToServer } from "@/game/comm/conversion/aura";
 import { InitiativeData } from "@/game/comm/types/general";
 import { accessToServer, ownerToClient, ownerToServer, ServerShape } from "@/game/comm/types/shapes";
-import { GlobalPoint, Vector } from "@/game/geom";
+import { GlobalPoint, Vector, LocalPoint } from "@/game/geom";
 import { layerManager } from "@/game/layers/manager";
 import { gameStore } from "@/game/store";
 import { g2l, g2lx, g2ly, g2lz, getUnitDistance } from "@/game/units";
@@ -15,6 +15,7 @@ import { PartialBy } from "../../core/types";
 import { gameSettingsStore } from "../settings";
 import { BoundingRect } from "./boundingrect";
 import { PartialShapeOwner, ShapeAccess, ShapeOwner } from "./owners";
+import { rotateAroundPoint } from "../utils";
 
 export abstract class Shape {
     // Used to create class instance from server shape data
@@ -30,10 +31,12 @@ export abstract class Shape {
 
     // A reference point regarding that specific shape's structure
     protected _refPoint: GlobalPoint;
+    protected _angle = 0;
 
     // Fill colour of the shape
     fillColour = "#000";
     strokeColour = "rgba(0,0,0,0)";
+    strokeWidth = 5;
     // The optional name associated with the shape
     name = "Unknown shape";
     nameVisible = true;
@@ -88,7 +91,36 @@ export abstract class Shape {
         this._refPoint = point;
     }
 
-    abstract getBoundingBox(): BoundingRect;
+    get angle(): number {
+        return this._angle;
+    }
+
+    set angle(angle: number) {
+        this._angle = angle;
+        this.updatePoints();
+    }
+
+    getAABB(delta = 0): BoundingRect {
+        let minx = this.points[0][0];
+        let maxx = this.points[0][0];
+        let miny = this.points[0][1];
+        let maxy = this.points[0][1];
+        for (const p of this.points.slice(1)) {
+            if (p[0] < minx) minx = p[0];
+            if (p[0] > maxx) maxx = p[0];
+            if (p[1] < miny) miny = p[1];
+            if (p[1] > maxy) maxy = p[1];
+        }
+        return new BoundingRect(
+            new GlobalPoint(minx - delta, miny - delta),
+            maxx - minx + 2 * delta,
+            maxy - miny + 2 * delta,
+        );
+    }
+
+    getBoundingBox(delta = 0): BoundingRect {
+        return this.getAABB(delta);
+    }
 
     abstract contains(point: GlobalPoint, nearbyThreshold?: number): boolean;
 
@@ -111,6 +143,17 @@ export abstract class Shape {
     abstract snapToGrid(): void;
     abstract resizeToGrid(resizePoint: number, retainAspectRatio: boolean): void;
     abstract resize(resizePoint: number, point: GlobalPoint, retainAspectRatio: boolean): number;
+
+    // abstract rotateAround(point: GlobalPoint, angle: number): void;
+    rotateAround(point: GlobalPoint, angle: number): void {
+        const center = this.center();
+        this.center(rotateAroundPoint(center, point, angle));
+        this.angle += angle;
+        this.updatePoints();
+    }
+    rotateAroundAbsolute(point: GlobalPoint, angle: number): void {
+        this.rotateAround(point, angle - this.angle);
+    }
 
     abstract get points(): number[][];
 
@@ -220,6 +263,7 @@ export abstract class Shape {
             uuid: this.uuid,
             x: this.refPoint.x,
             y: this.refPoint.y,
+            angle: this.angle,
             floor: this.floor,
             layer: this.layer,
             draw_operator: this.globalCompositeOperation,
@@ -231,6 +275,7 @@ export abstract class Shape {
             owners: this._owners.map(owner => ownerToServer(owner)),
             fill_colour: this.fillColour,
             stroke_colour: this.strokeColour,
+            stroke_width: this.strokeWidth,
             name: this.name,
             name_visible: this.nameVisible,
             annotation: this.annotation,
@@ -248,6 +293,7 @@ export abstract class Shape {
     fromDict(data: ServerShape): void {
         this.layer = data.layer;
         this.floor = data.floor;
+        this.angle = data.angle;
         this.globalCompositeOperation = data.draw_operator;
         this.movementObstruction = data.movement_obstruction;
         this.visionObstruction = data.vision_obstruction;
@@ -280,6 +326,11 @@ export abstract class Shape {
     draw(ctx: CanvasRenderingContext2D): void {
         if (this.globalCompositeOperation !== undefined) ctx.globalCompositeOperation = this.globalCompositeOperation;
         else ctx.globalCompositeOperation = "source-over";
+
+        const center = g2l(this.center());
+
+        ctx.setTransform(1, 0, 0, 1, center.x, center.y);
+        ctx.rotate(this.angle);
     }
 
     drawPost(ctx: CanvasRenderingContext2D): void {
@@ -307,13 +358,19 @@ export abstract class Shape {
             ctx.strokeStyle = "red";
             ctx.strokeRect(g2lx(bbox.topLeft.x) - 5, g2ly(bbox.topLeft.y) - 5, g2lz(bbox.w) + 10, g2lz(bbox.h) + 10);
         }
+
+        ctx.setTransform(1, 0, 0, 1, 0, 0);
     }
 
     drawSelection(ctx: CanvasRenderingContext2D): void {
-        ctx.globalCompositeOperation = this.globalCompositeOperation;
-        const z = gameStore.zoomFactor;
         const bb = this.getBoundingBox();
-        ctx.strokeRect(g2lx(bb.topLeft.x), g2ly(bb.topLeft.y), bb.w * z, bb.h * z);
+        ctx.beginPath();
+        ctx.moveTo(g2lx(bb.points[0][0]), g2ly(bb.points[0][1]));
+        for (let i = 1; i <= bb.points.length; i++) {
+            const vertex = bb.points[i % bb.points.length];
+            ctx.lineTo(g2lx(vertex[0]), g2ly(vertex[1]));
+        }
+        ctx.stroke();
 
         // Draw vertices
         for (const p of this.points) {
@@ -331,6 +388,13 @@ export abstract class Shape {
             ctx.lineTo(g2lx(vertex[0]), g2ly(vertex[1]));
         }
         ctx.stroke();
+    }
+
+    getAnchorLocation(): LocalPoint {
+        const center = g2l(this.center());
+        const bb = this.getBoundingBox();
+        const z = gameStore.zoomFactor;
+        return new LocalPoint(center.x, center.y - 100 * z - (bb.h * z) / 2);
     }
 
     getInitiativeRepr(): InitiativeData {
@@ -352,8 +416,8 @@ export abstract class Shape {
         if (oldLayer === undefined || newLayer === undefined) return;
         visibilityStore.moveShape({ shape: this, oldFloor: this.floor, newFloor: floor });
         this.floor = floor;
-        oldLayer.shapes.splice(oldLayer.shapes.indexOf(this), 1);
-        newLayer.shapes.push(this);
+        oldLayer.setShapes(...[...oldLayer.getShapes()].splice(oldLayer.getShapes().indexOf(this), 1));
+        newLayer.pushShapes(this);
         oldLayer.invalidate(false);
         newLayer.invalidate(false);
         if (sync) socket.emit("Shape.Floor.Change", { uuid: this.uuid, floor });
@@ -365,8 +429,8 @@ export abstract class Shape {
         if (oldLayer === undefined || newLayer === undefined) return;
         this.layer = layer;
         // Update layer shapes
-        oldLayer.shapes.splice(oldLayer.shapes.indexOf(this), 1);
-        newLayer.shapes.push(this);
+        oldLayer.setShapes(...[...oldLayer.getShapes()].splice(oldLayer.getShapes().indexOf(this), 1));
+        newLayer.pushShapes(this);
         // Revalidate layers  (light should at most be redone once)
         oldLayer.invalidate(true);
         newLayer.invalidate(false);

@@ -48,7 +48,6 @@ export function onKeyDown(event: KeyboardEvent): void {
                 if (!event.shiftKey || !gameStore.IS_DM) {
                     // First check for collisions.  Using the smooth wall slide collision check used on mouse move is overkill here.
                     for (const sel of selection) {
-                        if (gameStore.selectionHelperID === sel.uuid) continue;
                         delta = calculateDelta(delta, sel, true);
                     }
                 }
@@ -57,7 +56,6 @@ export function onKeyDown(event: KeyboardEvent): void {
                 let recalculateMovement = false;
                 for (const sel of selection) {
                     if (!sel.ownedBy({ movementAccess: true })) continue;
-                    if (gameStore.selectionHelperID === sel.uuid) continue;
                     if (sel.movementObstruction) {
                         recalculateMovement = true;
                         visibilityStore.deleteFromTriag({
@@ -143,7 +141,7 @@ export function onKeyDown(event: KeyboardEvent): void {
             if (!event.ctrlKey || event.shiftKey) {
                 gameStore.selectFloor({ targetFloor: gameStore.selectedFloorIndex + 1, sync: true });
             }
-            if (event.shiftKey) for (const shape of selection) newLayer.selection.push(shape);
+            if (event.shiftKey) for (const shape of selection) newLayer.pushSelection(shape);
         } else if (event.key === "PageDown" && gameStore.selectedFloorIndex > 0) {
             // Page Down - Move floor down
             // Ctrl + Page Down - Move selected shape floor down
@@ -163,7 +161,7 @@ export function onKeyDown(event: KeyboardEvent): void {
             if (!event.ctrlKey || event.shiftKey) {
                 gameStore.selectFloor({ targetFloor: gameStore.selectedFloorIndex - 1, sync: true });
             }
-            if (event.shiftKey) for (const shape of selection) newLayer.selection.push(shape);
+            if (event.shiftKey) for (const shape of selection) newLayer.pushSelection(shape);
         } else if (event.key === "Tab") {
             event.preventDefault();
             EventBus.$emit("ToolMode.Toggle");

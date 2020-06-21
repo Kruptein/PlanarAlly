@@ -60,6 +60,8 @@ export default class Tools extends Vue {
         visionTool: InstanceType<typeof PanTool>;
     };
 
+    mode: "Build" | "Play" = "Play";
+
     private componentmap_: { [key in ToolName]: InstanceType<typeof Tool> } = <any>{};
 
     mounted(): void {
@@ -93,14 +95,13 @@ export default class Tools extends Vue {
         [ToolName.Vision, {}],
     ];
     playTools: [ToolName, ToolFeatures][] = [
-        [ToolName.Select, { disabled: [SelectFeatures.Resize] }],
+        [ToolName.Select, { disabled: [SelectFeatures.Resize, SelectFeatures.Rotate] }],
         [ToolName.Pan, {}],
         [ToolName.Ruler, {}],
         [ToolName.Ping, {}],
         [ToolName.Filter, {}],
         [ToolName.Vision, {}],
     ];
-    mode: "Build" | "Play" = "Play";
 
     get componentMap(): { [key in ToolName]: InstanceType<typeof Tool> } {
         return this.componentmap_;
@@ -288,6 +289,10 @@ export default class Tools extends Vue {
 
     toggleMode(): void {
         this.mode = this.mode === "Build" ? "Play" : "Build";
+        const tool = this.componentMap[this.currentTool];
+        tool.onToolsModeChange(this.mode, this.getFeatures(this.currentTool));
+        for (const permitted of tool.permittedTools)
+            this.componentMap[permitted.name].onToolsModeChange(this.mode, permitted.features);
     }
 
     getModeWord(): string {

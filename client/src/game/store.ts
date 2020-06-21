@@ -83,8 +83,6 @@ class GameStore extends VuexModule implements GameState {
 
     showUI = true;
 
-    selectionHelperID: string | null = null;
-
     invertAlt = false;
 
     get selectedLayer(): string {
@@ -119,11 +117,6 @@ class GameStore extends VuexModule implements GameState {
     get screenCenter(): GlobalPoint {
         const halfScreen = new Vector(window.innerWidth / 2, window.innerHeight / 2);
         return l2g(g2l(this.screenTopLeft).add(halfScreen));
-    }
-
-    @Mutation
-    setSelectionHelperId(id: string): void {
-        this.selectionHelperID = id;
     }
 
     @Mutation

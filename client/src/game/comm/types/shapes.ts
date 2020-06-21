@@ -5,6 +5,7 @@ export interface ServerShape {
     type_: string;
     x: number;
     y: number;
+    angle: number;
     floor: string;
     layer: string;
     movement_obstruction: boolean;
@@ -16,6 +17,7 @@ export interface ServerShape {
     owners: ServerShapeOwner[];
     fill_colour: string;
     stroke_colour: string;
+    stroke_width: number;
     name: string;
     name_visible: boolean;
     annotation: string;

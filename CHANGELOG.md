@@ -9,14 +9,17 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
--   Danish localization
--   Spanish localization
+-   localization updates
+    -   Danish
+    -   Spanish
+-   Rotation in Select tool with build mode
 
 ### Fixed
 
 -   Aura not displaying when token is outside the visible canvas
 -   Firefox location scrollbar when left menu is open
--   Server now quits, referring to docs/tutorial, if client was not built
+-   Some significant performance bottlenecks
+-   Server now quits, referring to docs/tutorial, if client was not built before start
 
 ## [0.21.0] - 2020-06-13
 

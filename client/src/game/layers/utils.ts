@@ -67,7 +67,7 @@ export function createLayer(layerInfo: ServerLayer, floor: string): void {
     }
     if (layerInfo.name !== "fow-players") layers.appendChild(canvas);
     // Load layer shapes
-    layer.setShapes(layerInfo.shapes);
+    layer.setServerShapes(layerInfo.shapes);
 }
 
 export function dropAsset(event: DragEvent): void {

@@ -93,7 +93,7 @@ export class FOWLayer extends Layer {
                 layerManager.hasLayer(this.floor, "tokens") &&
                 this.floor === gameStore.floors[gameStore.selectedFloorIndex]
             ) {
-                for (const sh of layerManager.getLayer(this.floor, "tokens")!.shapes) {
+                for (const sh of layerManager.getLayer(this.floor, "tokens")!.getShapes()) {
                     if (!sh.ownedBy({ visionAccess: true }) || !sh.isToken) continue;
                     const bb = sh.getBoundingBox();
                     const lcenter = g2l(sh.center());

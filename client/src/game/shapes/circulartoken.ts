@@ -41,16 +41,19 @@ export class CircularToken extends Circle {
     }
     draw(ctx: CanvasRenderingContext2D): void {
         super.draw(ctx);
+
+        const center = g2l(this.center());
+
         ctx.font = this.font;
-        ctx.save();
-        const dest = g2l(this.center());
+
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
         const fontScale = calcFontScale(ctx, this.text, g2lz(this.r - 5));
-        ctx.setTransform(fontScale, 0, 0, fontScale, dest.x, dest.y);
+        ctx.setTransform(fontScale, 0, 0, fontScale, center.x, center.y);
+        ctx.rotate(this.angle);
         ctx.fillStyle = tinycolor.mostReadable(this.fillColour, ["#000", "#fff"]).toHexString();
         ctx.fillText(this.text, 0, 0);
-        ctx.restore();
+
         super.drawPost(ctx);
     }
     getInitiativeRepr(): InitiativeData {

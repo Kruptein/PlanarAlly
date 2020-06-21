@@ -4,10 +4,10 @@ This is the code responsible for starting the backend and reacting to socket IO 
 """
 
 # Check for existence of './templates/' as it is not present if client was not built before
-import os
 import sys
+from utils import FILE_DIR
 
-if(os.path.isdir( os.path.dirname( os.path.realpath(__file__) ) + '/templates') is False):
+if( (FILE_DIR / "templates").exists() is False):
     print('You need to build the client, before running the server.\nSee https://www.planarally.io/tutorial/setup/self-hosting/ on how to build the client or import a pre-built client.')
     sys.exit(1)
 

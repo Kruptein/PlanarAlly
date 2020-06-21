@@ -66,7 +66,7 @@ export function createShapeFromDict(shape: ServerShape): Shape | undefined {
         );
     } else if (shape.type_ === "text") {
         const text = <ServerText>shape;
-        sh = new Text(refPoint, text.text, text.font, text.angle, text.fill_colour, text.stroke_colour, text.uuid);
+        sh = new Text(refPoint, text.text, text.font, text.fill_colour, text.stroke_colour, text.uuid);
     } else if (shape.type_ === "assetrect") {
         const asset = <ServerAsset>shape;
         const img = new Image(asset.width, asset.height);

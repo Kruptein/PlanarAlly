@@ -246,4 +246,3 @@ class Text(ShapeType):
     abstract = False
     text = TextField()
     font = TextField()
-    angle = FloatField()

@@ -1,19 +1,17 @@
 import { GlobalPoint } from "@/game/geom";
 import { BoundingRect } from "@/game/shapes/boundingrect";
 import { Shape } from "@/game/shapes/shape";
-import { g2l } from "@/game/units";
 import { ServerText } from "../comm/types/shapes";
+import { rotateAroundPoint } from "../utils";
 
 export class Text extends Shape {
     type = "text";
     text: string;
     font: string;
-    angle: number;
     constructor(
         position: GlobalPoint,
         text: string,
         font: string,
-        angle?: number,
         fillColour?: string,
         strokeColour?: string,
         uuid?: string,
@@ -21,7 +19,6 @@ export class Text extends Shape {
         super(position, fillColour, strokeColour, uuid);
         this.text = text;
         this.font = font;
-        this.angle = angle || 0;
     }
     asDict(): ServerText {
         return Object.assign(this.getBaseDict(), {
@@ -31,7 +28,7 @@ export class Text extends Shape {
         });
     }
     get points(): number[][] {
-        return [[this.refPoint.x, this.refPoint.y]];
+        return [[...rotateAroundPoint(this.refPoint, this.center(), this.angle)]];
     }
     getBoundingBox(): BoundingRect {
         return new BoundingRect(this.refPoint, 5, 5); // TODO: fix this bounding box
@@ -40,13 +37,12 @@ export class Text extends Shape {
         super.draw(ctx);
         ctx.font = this.font;
         ctx.fillStyle = this.fillColour;
-        ctx.save();
-        const dest = g2l(this.refPoint);
-        ctx.translate(dest.x, dest.y);
-        ctx.rotate(this.angle);
+
         ctx.textAlign = "center";
-        for (const line of this.getLines(ctx)) ctx.fillText(line.text, line.x, line.y);
-        ctx.restore();
+        for (const line of this.getLines(ctx)) {
+            ctx.fillText(line.text, line.x, line.y);
+        }
+        // ctx.restore();
         super.drawPost(ctx);
     }
     contains(_point: GlobalPoint): boolean {
@@ -55,8 +51,11 @@ export class Text extends Shape {
 
     center(): GlobalPoint;
     center(centerPoint: GlobalPoint): void;
-    // eslint-disable-next-line @typescript-eslint/no-empty-function
-    center(_centerPoint?: GlobalPoint): GlobalPoint | void {} // TODO
+    center(centerPoint?: GlobalPoint): GlobalPoint | void {
+        if (centerPoint === undefined) return this.refPoint;
+        this.refPoint = centerPoint;
+    }
+
     visibleInCanvas(canvas: HTMLCanvasElement): boolean {
         if (super.visibleInCanvas(canvas)) return true;
         return this.getBoundingBox().visibleInCanvas(canvas);

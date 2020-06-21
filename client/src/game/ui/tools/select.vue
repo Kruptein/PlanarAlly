@@ -213,16 +213,18 @@ export default class SelectTool extends Tool implements ToolBasics {
             const ogDelta = delta;
             if (this.mode === SelectOperations.Drag) {
                 if (ogDelta.length() === 0) return;
+                const selection = layer.getSelection();
                 // If we are on the tokens layer do a movement block check.
                 if (layer.name === "tokens" && !(event.shiftKey && gameStore.IS_DM)) {
-                    for (const sel of layer.getSelection()) {
+                    for (const sel of selection) {
                         if (!sel.ownedBy({ movementAccess: true })) continue;
                         delta = calculateDelta(delta, sel, true);
                         if (delta !== ogDelta) this.deltaChanged = true;
                     }
                 }
+                let recalc = false;
                 // Actually apply the delta on all shapes
-                for (const sel of layer.getSelection()) {
+                for (const sel of selection) {
                     if (!sel.ownedBy({ movementAccess: true })) continue;
                     if (sel.visionObstruction)
                         visibilityStore.deleteFromTriag({
@@ -232,12 +234,12 @@ export default class SelectTool extends Tool implements ToolBasics {
                     sel.refPoint = sel.refPoint.add(delta);
                     if (sel.visionObstruction) {
                         visibilityStore.addToTriag({ target: TriangulationTarget.VISION, shape: sel });
-                        visibilityStore.recalculateVision(sel.floor);
+                        recalc = true;
                     }
-                    if (sel.visionObstruction) visibilityStore.recalculateVision(sel.floor);
                     if (!sel.preventSync)
                         socket.emit("Shape.Update", { shape: sel.asDict(), redraw: true, temporary: true });
                 }
+                if (recalc) visibilityStore.recalculateVision(selection[0].floor);
                 this.dragRay = Ray.fromPoints(this.dragRay.origin, lp);
 
                 if (this.rotationUiActive) {
@@ -246,7 +248,9 @@ export default class SelectTool extends Tool implements ToolBasics {
 
                 layer.invalidate(false);
             } else if (this.mode === SelectOperations.Resize) {
-                for (const sel of layer.getSelection()) {
+                let recalc = false;
+                const selection = layer.getSelection();
+                for (const sel of selection) {
                     if (!sel.ownedBy({ movementAccess: true })) continue;
                     if (sel.visionObstruction)
                         visibilityStore.deleteFromTriag({
@@ -263,19 +267,22 @@ export default class SelectTool extends Tool implements ToolBasics {
                     // todo: think about calling deleteIntersectVertex directly on the corner point
                     if (sel.visionObstruction) {
                         visibilityStore.addToTriag({ target: TriangulationTarget.VISION, shape: sel });
-                        visibilityStore.recalculateVision(sel.floor);
+                        recalc = true;
                     }
                     if (!sel.preventSync)
                         socket.emit("Shape.Update", { shape: sel.asDict(), redraw: true, temporary: true });
-                    layer.invalidate(false);
-                    this.updateCursor(layer, gp);
                 }
+                if (recalc) visibilityStore.recalculateVision(selection[0].floor);
+                layer.invalidate(false);
+                this.updateCursor(layer, gp);
             } else if (this.mode === SelectOperations.Rotate) {
                 const center = this.rotationBox!.center();
                 const newAngle = -Math.atan2(center.y - gp.y, gp.x - center.x) + Math.PI / 2;
                 const dA = newAngle - this.angle;
                 this.angle = newAngle;
-                for (const sel of layer.getSelection()) {
+                let recalc = false;
+                const selection = layer.getSelection();
+                for (const sel of selection) {
                     if (sel.visionObstruction)
                         visibilityStore.deleteFromTriag({
                             target: TriangulationTarget.VISION,
@@ -286,10 +293,10 @@ export default class SelectTool extends Tool implements ToolBasics {
 
                     if (sel.visionObstruction) {
                         visibilityStore.addToTriag({ target: TriangulationTarget.VISION, shape: sel });
-                        visibilityStore.recalculateVision(sel.floor);
+                        recalc = true;
                     }
-                    if (sel.visionObstruction) visibilityStore.recalculateVision(sel.floor);
                 }
+                if (recalc) visibilityStore.recalculateVision(selection[0].floor);
                 this.rotationEnd!.rotateAround(center, dA);
                 this.rotationAnchor!.rotateAround(center, dA);
                 this.rotationBox!.angle = this.angle;
@@ -309,7 +316,9 @@ export default class SelectTool extends Tool implements ToolBasics {
             return;
         }
         const layer = layerManager.getLayer(layerManager.floor!.name)!;
-        if (layer.getSelection().some(s => s.isLocked)) return;
+        const selection = layer.getSelection();
+
+        if (selection.some(s => s.isLocked)) return;
 
         if (this.mode === SelectOperations.GroupSelect) {
             if (event.ctrlKey) {
@@ -327,7 +336,7 @@ export default class SelectTool extends Tool implements ToolBasics {
                     this.selectionHelper!.refPoint.y <= bbox.botLeft.y &&
                     this.selectionHelper!.refPoint.y + this.selectionHelper!.h >= bbox.topLeft.y
                 ) {
-                    if (layer.getSelection().find(it => it === shape) === undefined) {
+                    if (selection.find(it => it === shape) === undefined) {
                         layer.pushSelection(shape);
                     }
                 }
@@ -336,20 +345,18 @@ export default class SelectTool extends Tool implements ToolBasics {
             layer.removeShape(this.selectionHelper!, SyncMode.NO_SYNC);
             this.selectionHelper = null;
 
-            if (layer.getSelection().some(s => !s.isLocked))
-                layer.setSelection(...layer.getSelection().filter(s => !s.isLocked));
+            if (selection.some(s => !s.isLocked)) layer.setSelection(...selection.filter(s => !s.isLocked));
 
-            if (
-                layer.getSelection().length > 0 &&
-                !this.rotationUiActive &&
-                this.hasFeature(SelectFeatures.Rotate, features)
-            ) {
+            if (selection.length > 0 && !this.rotationUiActive && this.hasFeature(SelectFeatures.Rotate, features)) {
                 this.createRotationUi(features);
             }
 
             layer.invalidate(true);
-        } else if (layer.getSelection().length) {
-            for (const sel of layer.getSelection()) {
+        } else if (selection.length) {
+            let recalcVision = false;
+            let recalcMovement = false;
+
+            for (const sel of selection) {
                 if (!sel.ownedBy({ movementAccess: true })) continue;
                 if (this.mode === SelectOperations.Drag) {
                     if (
@@ -377,20 +384,18 @@ export default class SelectTool extends Tool implements ToolBasics {
                         sel.snapToGrid();
                         if (sel.visionObstruction) {
                             visibilityStore.addToTriag({ target: TriangulationTarget.VISION, shape: sel });
-                            visibilityStore.recalculateVision(sel.floor);
+                            recalcVision = true;
                         }
                         if (sel.movementObstruction) {
                             visibilityStore.addToTriag({ target: TriangulationTarget.MOVEMENT, shape: sel });
-                            visibilityStore.recalculateMovement(sel.floor);
+                            recalcMovement = true;
                         }
                     }
 
-                    if (sel.visionObstruction) visibilityStore.recalculateVision(sel.floor);
-                    if (sel.movementObstruction) visibilityStore.recalculateMovement(sel.floor);
+                    if (sel.visionObstruction) recalcVision = true;
+                    if (sel.movementObstruction) recalcMovement = true;
                     if (!sel.preventSync)
                         socket.emit("Shape.Update", { shape: sel.asDict(), redraw: true, temporary: false });
-
-                    layer.invalidate(false);
                 }
                 if (this.mode === SelectOperations.Resize) {
                     if (
@@ -411,21 +416,23 @@ export default class SelectTool extends Tool implements ToolBasics {
                         sel.resizeToGrid(this.resizePoint, event.ctrlKey);
                         if (sel.visionObstruction) {
                             visibilityStore.addToTriag({ target: TriangulationTarget.VISION, shape: sel });
-                            visibilityStore.recalculateVision(sel.floor);
+                            recalcVision = true;
                         }
                         if (sel.movementObstruction) {
                             visibilityStore.addToTriag({ target: TriangulationTarget.MOVEMENT, shape: sel });
-                            visibilityStore.recalculateMovement(sel.floor);
+                            recalcMovement = true;
                         }
                     }
                     if (!sel.preventSync) {
                         socket.emit("Shape.Update", { shape: sel.asDict(), redraw: true, temporary: false });
                     }
-
-                    layer.invalidate(false);
                 }
                 sel.updatePoints();
             }
+
+            if (recalcVision) visibilityStore.recalculateVision(selection[0].floor);
+            if (recalcMovement) visibilityStore.recalculateMovement(selection[0].floor);
+            layer.invalidate(false);
 
             this.updateRotationUi(false, features);
         }

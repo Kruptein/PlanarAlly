@@ -15,6 +15,7 @@ import { PartialBy } from "../../core/types";
 import { gameSettingsStore } from "../settings";
 import { BoundingRect } from "./boundingrect";
 import { PartialShapeOwner, ShapeAccess, ShapeOwner } from "./owners";
+import { rotateAroundPoint } from "../utils";
 
 export abstract class Shape {
     // Used to create class instance from server shape data
@@ -30,7 +31,7 @@ export abstract class Shape {
 
     // A reference point regarding that specific shape's structure
     protected _refPoint: GlobalPoint;
-    angle = 0;
+    protected _angle = 0;
 
     // Fill colour of the shape
     fillColour = "#000";
@@ -90,7 +91,36 @@ export abstract class Shape {
         this._refPoint = point;
     }
 
-    abstract getBoundingBox(): BoundingRect;
+    get angle(): number {
+        return this._angle;
+    }
+
+    set angle(angle: number) {
+        this._angle = angle;
+        this.updatePoints();
+    }
+
+    getAABB(delta = 0): BoundingRect {
+        let minx = this.points[0][0];
+        let maxx = this.points[0][0];
+        let miny = this.points[0][1];
+        let maxy = this.points[0][1];
+        for (const p of this.points.slice(1)) {
+            if (p[0] < minx) minx = p[0];
+            if (p[0] > maxx) maxx = p[0];
+            if (p[1] < miny) miny = p[1];
+            if (p[1] > maxy) maxy = p[1];
+        }
+        return new BoundingRect(
+            new GlobalPoint(minx - delta, miny - delta),
+            maxx - minx + 2 * delta,
+            maxy - miny + 2 * delta,
+        );
+    }
+
+    getBoundingBox(delta = 0): BoundingRect {
+        return this.getAABB(delta);
+    }
 
     abstract contains(point: GlobalPoint, nearbyThreshold?: number): boolean;
 
@@ -113,6 +143,17 @@ export abstract class Shape {
     abstract snapToGrid(): void;
     abstract resizeToGrid(resizePoint: number, retainAspectRatio: boolean): void;
     abstract resize(resizePoint: number, point: GlobalPoint, retainAspectRatio: boolean): number;
+
+    // abstract rotateAround(point: GlobalPoint, angle: number): void;
+    rotateAround(point: GlobalPoint, angle: number): void {
+        const center = this.center();
+        this.center(rotateAroundPoint(center, point, angle));
+        this.angle += angle;
+        this.updatePoints();
+    }
+    rotateAroundAbsolute(point: GlobalPoint, angle: number): void {
+        this.rotateAround(point, angle - this.angle);
+    }
 
     abstract get points(): number[][];
 
@@ -282,6 +323,11 @@ export abstract class Shape {
     draw(ctx: CanvasRenderingContext2D): void {
         if (this.globalCompositeOperation !== undefined) ctx.globalCompositeOperation = this.globalCompositeOperation;
         else ctx.globalCompositeOperation = "source-over";
+
+        const center = g2l(this.center());
+
+        ctx.setTransform(1, 0, 0, 1, center.x, center.y);
+        ctx.rotate(this.angle);
     }
 
     drawPost(ctx: CanvasRenderingContext2D): void {
@@ -309,63 +355,36 @@ export abstract class Shape {
             ctx.strokeStyle = "red";
             ctx.strokeRect(g2lx(bbox.topLeft.x) - 5, g2ly(bbox.topLeft.y) - 5, g2lz(bbox.w) + 10, g2lz(bbox.h) + 10);
         }
+
+        ctx.setTransform(1, 0, 0, 1, 0, 0);
     }
 
     drawSelection(ctx: CanvasRenderingContext2D): void {
-        const center = g2l(this.center());
-
-        ctx.globalCompositeOperation = this.globalCompositeOperation;
-        ctx.setTransform(1, 0, 0, 1, center.x, center.y);
-        ctx.rotate(this.angle);
-
-        const z = gameStore.zoomFactor;
         const bb = this.getBoundingBox();
-        ctx.strokeRect(g2lx(bb.topLeft.x) - center.x, g2ly(bb.topLeft.y) - center.y, bb.w * z, bb.h * z);
+        ctx.beginPath();
+        ctx.moveTo(g2lx(bb.points[0][0]), g2ly(bb.points[0][1]));
+        for (let i = 1; i <= bb.points.length; i++) {
+            const vertex = bb.points[i % bb.points.length];
+            ctx.lineTo(g2lx(vertex[0]), g2ly(vertex[1]));
+        }
+        ctx.stroke();
 
         // Draw vertices
         for (const p of this.points) {
             ctx.beginPath();
-            ctx.arc(g2lx(p[0]) - center.x, g2ly(p[1]) - center.y, 3, 0, 2 * Math.PI);
+            ctx.arc(g2lx(p[0]), g2ly(p[1]), 3, 0, 2 * Math.PI);
             ctx.fill();
         }
 
-        // Draw rotation anchor
-        // if (
-        //     gameStore.toolsMode === "Build" &&
-        //     this.uuid !== gameStore.selectionHelperID &&
-        //     layerManager.getLayer(this.floor, this.layer)!.selection.length === 1
-        // ) {
-        //     const anchor = this.getAnchorLocation();
-
-        //     ctx.beginPath();
-        //     ctx.moveTo(0, -5);
-        //     ctx.lineTo(anchor.x - center.x, anchor.y - center.y);
-        //     ctx.stroke();
-
-        //     ctx.beginPath();
-        //     ctx.arc(0, 0, 5, 0, 2 * Math.PI);
-        //     ctx.stroke();
-
-        //     ctx.beginPath();
-        //     ctx.arc(anchor.x - center.x, anchor.y - center.y, 5, 0, 2 * Math.PI);
-        //     ctx.fill();
-
-        //     // ctx.beginPath();
-        //     // ctx.arc(0, 0, Math.abs(anchor.y - anchor.x) / 2, 0, Math.PI * 2);
-        //     // ctx.stroke();
-        // }
-
         // Draw edges
         ctx.beginPath();
-        ctx.moveTo(g2lx(this.points[0][0]) - center.x, g2ly(this.points[0][1]) - center.y);
+        ctx.moveTo(g2lx(this.points[0][0]), g2ly(this.points[0][1]));
         const j = this.isClosed ? 0 : 1;
         for (let i = 1; i <= this.points.length - j; i++) {
             const vertex = this.points[i % this.points.length];
-            ctx.lineTo(g2lx(vertex[0]) - center.x, g2ly(vertex[1]) - center.y);
+            ctx.lineTo(g2lx(vertex[0]), g2ly(vertex[1]));
         }
         ctx.stroke();
-
-        ctx.setTransform(1, 0, 0, 1, 0, 0);
     }
 
     getAnchorLocation(): LocalPoint {

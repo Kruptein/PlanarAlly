@@ -14,7 +14,7 @@ import { Rect } from "@/game/shapes/rect";
 import { gameStore } from "@/game/store";
 import { calculateDelta, ToolName, ToolFeatures } from "@/game/ui/tools/utils";
 import { g2l, g2lx, g2ly, l2g, l2gz } from "@/game/units";
-import { getLocalPointFromEvent, useSnapping, equalPoints } from "@/game/utils";
+import { getLocalPointFromEvent, useSnapping, equalPoints, rotateAroundPoint } from "@/game/utils";
 import { visibilityStore } from "@/game/visibility/store";
 import { TriangulationTarget } from "@/game/visibility/te/pa";
 import { gameSettingsStore } from "../../settings";
@@ -97,13 +97,13 @@ export default class SelectTool extends Tool implements ToolBasics {
                 continue;
             if (shape.isInvisible && !shape.ownedBy({ movementAccess: true })) continue;
 
-            if (this.hasFeature(SelectFeatures.Rotate, features)) {
-                // const anchor = shape.getAnchorLocation();
-                // if (equalPoints(anchor.asArray(), lp.asArray(), 5)) {
-                //     this.mode = SelectOperations.Rotate;
-                //     hit = true;
-                //     break;
-                // }
+            if (this.rotationUiActive && this.hasFeature(SelectFeatures.Rotate, features)) {
+                const anchor = this.rotationAnchor!.points[1];
+                if (equalPoints(anchor, gp.asArray(), 10)) {
+                    this.mode = SelectOperations.Rotate;
+                    hit = true;
+                    break;
+                }
             }
             if (this.hasFeature(SelectFeatures.Resize, features)) {
                 this.resizePoint = shape.getPointIndex(gp, l2gz(5));
@@ -237,7 +237,7 @@ export default class SelectTool extends Tool implements ToolBasics {
                 this.dragRay = Ray.fromPoints(this.dragRay.origin, lp);
 
                 if (this.rotationUiActive) {
-                    this.updateRotationUi(features);
+                    this.updateRotationUi(true, features);
                 }
 
                 layer.invalidate(false);
@@ -267,10 +267,28 @@ export default class SelectTool extends Tool implements ToolBasics {
                     this.updateCursor(layer, gp);
                 }
             } else if (this.mode === SelectOperations.Rotate) {
+                const center = this.rotationBox!.center();
+                const newAngle = -Math.atan2(center.y - gp.y, gp.x - center.x) + Math.PI / 2;
+                const dA = newAngle - this.angle;
+                this.angle = newAngle;
                 for (const sel of layer.getSelection()) {
-                    const center = sel.center();
-                    sel.angle = -Math.atan2(center.y - gp.y, gp.x - center.x) + Math.PI / 2;
+                    if (sel.visionObstruction)
+                        visibilityStore.deleteFromTriag({
+                            target: TriangulationTarget.VISION,
+                            shape: sel,
+                        });
+
+                    sel.rotateAround(center, dA);
+
+                    if (sel.visionObstruction) {
+                        visibilityStore.addToTriag({ target: TriangulationTarget.VISION, shape: sel });
+                        visibilityStore.recalculateVision(sel.floor);
+                    }
+                    if (sel.visionObstruction) visibilityStore.recalculateVision(sel.floor);
                 }
+                this.rotationEnd!.rotateAround(center, dA);
+                this.rotationAnchor!.rotateAround(center, dA);
+                this.rotationBox!.angle = this.angle;
                 layer.invalidate(false);
             } else {
                 this.updateCursor(layer, gp);
@@ -405,7 +423,7 @@ export default class SelectTool extends Tool implements ToolBasics {
                 sel.updatePoints();
             }
 
-            this.updateRotationUi(features);
+            this.updateRotationUi(false, features);
         }
         this.mode = SelectOperations.Noop;
         this.active = false;
@@ -450,8 +468,8 @@ export default class SelectTool extends Tool implements ToolBasics {
             if (resizePoint < 0) {
                 // test rotate case
                 if (this.rotationUiActive) {
-                    const anchor = this.rotationAnchor!.endPoint;
-                    if (equalPoints(anchor.asArray(), globalMouse.asArray(), 5)) {
+                    const anchor = this.rotationAnchor!.points[1];
+                    if (equalPoints(anchor, globalMouse.asArray(), 10)) {
                         cursorStyle = "ew-resize";
                         break;
                     }
@@ -474,23 +492,36 @@ export default class SelectTool extends Tool implements ToolBasics {
 
     createRotationUi(): void {
         const layer = layerManager.getLayer(layerManager.floor!.name)!;
+        const selection = layer.getSelection();
 
-        if (layer.getSelection().length === 0) return;
+        if (selection.length === 0) return;
 
-        let bbox = layer
-            .getSelection()
-            .map(s => s.getBoundingBox())
-            .reduce((acc: BoundingRect, val: BoundingRect) => acc.union(val));
-
-        if (layer.getSelection().length > 1) bbox = bbox.expand(new Vector(-50, -50));
+        let bbox: BoundingRect;
+        if (selection.length === 1) {
+            bbox = selection[0].getBoundingBox();
+        } else {
+            bbox = selection
+                .map(s => s.getAABB())
+                .reduce((acc: BoundingRect, val: BoundingRect) => acc.union(val))
+                .expand(new Vector(-50, -50));
+        }
 
         const topCenter = new GlobalPoint((bbox.topRight.x + bbox.topLeft.x) / 2, bbox.topLeft.y);
         const topCenterPlus = topCenter.add(new Vector(0, -150));
 
+        this.angle = 0;
         this.rotationAnchor = new Line(topCenter, topCenterPlus, l2gz(1.5), "#7c253e");
         this.rotationBox = new Rect(bbox.topLeft, bbox.w, bbox.h, "rgba(0,0,0,0)", "#7c253e");
         this.rotationBox.strokeWidth = 1.5;
         this.rotationEnd = new Circle(topCenterPlus, l2gz(4), "#7c253e", "rgba(0,0,0,0)");
+
+        if (selection.length === 1) {
+            const angle = selection[0].angle;
+            this.angle = angle;
+            this.rotationBox.angle = angle;
+            this.rotationAnchor.rotateAround(bbox.center(), angle);
+            this.rotationEnd.rotateAround(bbox.center(), angle);
+        }
 
         for (const rotationShape of [this.rotationAnchor, this.rotationBox, this.rotationEnd]) {
             rotationShape.addOwner({ user: gameStore.username, access: { edit: true } }, false);
@@ -498,7 +529,6 @@ export default class SelectTool extends Tool implements ToolBasics {
         }
 
         this.rotationUiActive = true;
-
         layer.invalidate(true);
     }
 
@@ -515,7 +545,7 @@ export default class SelectTool extends Tool implements ToolBasics {
         }
     }
 
-    updateRotationUi(features: ToolFeatures<SelectFeatures>): void {
+    updateRotationUi(dragUpdate: boolean, features: ToolFeatures<SelectFeatures>): void {
         const layer = layerManager.getLayer(layerManager.floor!.name)!;
 
         if (
@@ -525,22 +555,37 @@ export default class SelectTool extends Tool implements ToolBasics {
         ) {
             this.createRotationUi();
         } else if (this.rotationUiActive) {
-            let bbox = layer
-                .getSelection()
-                .map(s => s.getBoundingBox())
-                .reduce((acc: BoundingRect, val: BoundingRect) => acc.union(val));
+            const selection = layer.getSelection();
 
-            if (layer.getSelection().length > 1) bbox = bbox.expand(new Vector(-50, -50));
+            let bbox: BoundingRect;
+            if (selection.length === 1) {
+                bbox = selection[0].getBoundingBox();
+            } else {
+                bbox = selection
+                    .map(s => s.getBoundingBox().rotateAroundAbsolute(this.rotationBox!.center(), 0))
+                    .reduce((acc: BoundingRect, val: BoundingRect) => acc.union(val))
+                    .expand(new Vector(-50, -50))
+                    .rotateAroundAbsolute(this.rotationBox!.center(), this.angle);
+            }
 
             const topCenter = new GlobalPoint((bbox.topRight.x + bbox.topLeft.x) / 2, bbox.topLeft.y);
             const topCenterPlus = topCenter.add(new Vector(0, -150));
 
-            this.rotationAnchor!.refPoint = topCenter;
-            this.rotationAnchor!.endPoint = topCenterPlus;
-            this.rotationBox!.refPoint = bbox.topLeft;
-            this.rotationBox!.w = bbox.w;
-            this.rotationBox!.h = bbox.h;
-            this.rotationEnd!.refPoint = topCenterPlus;
+            if (dragUpdate) {
+                this.rotationAnchor!.center(
+                    rotateAroundPoint(topCenter.add(new Vector(0, -75)), bbox.center(), this.angle),
+                );
+                this.rotationBox!.refPoint = bbox.topLeft;
+                this.rotationEnd!.refPoint = rotateAroundPoint(topCenterPlus, bbox.center(), this.angle);
+            }
+
+            this.rotationBox!.angle = this.angle;
+            this.rotationAnchor!.rotateAroundAbsolute(bbox.center(), this.angle);
+            this.rotationEnd!.rotateAroundAbsolute(bbox.center(), this.angle);
+
+            for (const rotationShape of [this.rotationAnchor, this.rotationBox, this.rotationEnd]) {
+                rotationShape!.updatePoints();
+            }
 
             layer.invalidate(true);
         }

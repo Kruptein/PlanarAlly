@@ -1,5 +1,6 @@
 import { GlobalPoint, Point, Ray, Vector } from "@/game/geom";
 import { g2lx, g2ly } from "../units";
+import { rotateAroundPoint } from "../utils";
 
 export class BoundingRect {
     readonly w: number;
@@ -9,13 +10,24 @@ export class BoundingRect {
     readonly botRight: GlobalPoint;
     readonly botLeft: GlobalPoint;
 
+    private _angle: number;
+
     constructor(topleft: GlobalPoint, w: number, h: number) {
+        this._angle = 0;
         this.w = w;
         this.h = h;
         this.topLeft = topleft;
         this.topRight = new GlobalPoint(topleft.x + w, topleft.y);
         this.botRight = new GlobalPoint(topleft.x + w, topleft.y + h);
         this.botLeft = new GlobalPoint(topleft.x, topleft.y + h);
+    }
+
+    get angle(): number {
+        return this._angle;
+    }
+
+    set angle(angle: number) {
+        this._angle = angle;
     }
 
     contains(point: GlobalPoint): boolean {
@@ -29,11 +41,18 @@ export class BoundingRect {
 
     get points(): number[][] {
         if (this.w === 0 || this.h === 0) return [[this.topLeft.x, this.topLeft.y]];
+
+        const center = this.center();
+
+        const topleft = rotateAroundPoint(this.topLeft, center, this.angle);
+        const botleft = rotateAroundPoint(this.botLeft, center, this.angle);
+        const botright = rotateAroundPoint(this.botRight, center, this.angle);
+        const topright = rotateAroundPoint(this.topRight, center, this.angle);
         return [
-            [this.topLeft.x, this.topLeft.y],
-            [this.botLeft.x, this.botLeft.y],
-            [this.botRight.x, this.botRight.y],
-            [this.topRight.x, this.topRight.y],
+            [topleft.x, topleft.y],
+            [botleft.x, botleft.y],
+            [botright.x, botright.y],
+            [topright.x, topright.y],
         ];
     }
 
@@ -106,5 +125,22 @@ export class BoundingRect {
         );
         if (coreVisible) return true;
         return false;
+    }
+
+    rotateAround(point: GlobalPoint, angle: number): BoundingRect {
+        const center = this.center();
+        const newCenter = rotateAroundPoint(center, point, angle);
+
+        const bb = new BoundingRect(
+            this.topLeft.add(new Vector(newCenter.x - center.x, newCenter.y - center.y)),
+            this.w,
+            this.h,
+        );
+        bb.angle = this.angle + angle;
+        return bb;
+    }
+
+    rotateAroundAbsolute(point: GlobalPoint, angle: number): BoundingRect {
+        return this.rotateAround(point, angle - this.angle);
     }
 }

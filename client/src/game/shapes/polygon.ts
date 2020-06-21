@@ -1,8 +1,7 @@
 import { ServerPolygon } from "../comm/types/shapes";
-import { GlobalPoint, getDistanceToSegment } from "../geom";
-import { g2lx, g2ly, g2lz } from "../units";
-import { getFogColour } from "../utils";
-import { BoundingRect } from "./boundingrect";
+import { GlobalPoint, getDistanceToSegment, Vector } from "../geom";
+import { g2lx, g2ly, g2lz, g2l } from "../units";
+import { getFogColour, rotateAroundPoint } from "../utils";
 import { Shape } from "./shape";
 
 export class Polygon extends Shape {
@@ -61,11 +60,15 @@ export class Polygon extends Shape {
     }
 
     get points(): number[][] {
-        return this.vertices.map(point => [point.x, point.y]);
+        const center = this.center();
+        return this.vertices.map(point => [...rotateAroundPoint(point, center, this.angle)]);
     }
 
     draw(ctx: CanvasRenderingContext2D): void {
         super.draw(ctx);
+
+        const center = g2l(this.center());
+
         ctx.lineCap = "round";
         ctx.lineJoin = "round";
         ctx.lineWidth = g2lz(this.lineWidth);
@@ -76,10 +79,10 @@ export class Polygon extends Shape {
         else ctx.fillStyle = this.fillColour;
 
         ctx.beginPath();
-        ctx.moveTo(g2lx(this.vertices[0].x), g2ly(this.vertices[0].y));
+        ctx.moveTo(g2lx(this.vertices[0].x) - center.x, g2ly(this.vertices[0].y) - center.y);
         for (let i = 1; i <= this.vertices.length - (this.openPolygon ? 1 : 0); i++) {
             const vertex = this.vertices[i % this.vertices.length];
-            ctx.lineTo(g2lx(vertex.x), g2ly(vertex.y));
+            ctx.lineTo(g2lx(vertex.x) - center.x, g2ly(vertex.y) - center.y);
         }
         if (!this.openPolygon) ctx.fill();
         ctx.stroke();
@@ -102,8 +105,15 @@ export class Polygon extends Shape {
 
     center(): GlobalPoint;
     center(centerPoint: GlobalPoint): void;
-    center(_centerPoint?: GlobalPoint): GlobalPoint | void {
-        return this.getBoundingBox().center();
+    center(centerPoint?: GlobalPoint): GlobalPoint | void {
+        if (centerPoint === undefined) {
+            const vertexAvg = this.vertices
+                .reduce((acc: Vector, val: GlobalPoint) => acc.add(new Vector(val.x, val.y)), new Vector(0, 0))
+                .multiply(1 / this.vertices.length);
+            return GlobalPoint.fromArray([...vertexAvg]);
+        }
+        const oldCenter = this.center();
+        this.refPoint = GlobalPoint.fromArray([...centerPoint.subtract(oldCenter.subtract(this.refPoint))]);
     }
     visibleInCanvas(canvas: HTMLCanvasElement): boolean {
         if (super.visibleInCanvas(canvas)) return true;
@@ -117,22 +127,5 @@ export class Polygon extends Shape {
         if (resizePoint === 0) this._refPoint = point;
         else this._vertices[resizePoint - 1] = point;
         return resizePoint;
-    }
-    getBoundingBox(delta = 0): BoundingRect {
-        let minx: number = this.refPoint.x;
-        let maxx: number = this.refPoint.x;
-        let miny: number = this.refPoint.y;
-        let maxy: number = this.refPoint.y;
-        for (const p of this._vertices) {
-            if (p.x < minx) minx = p.x;
-            if (p.x > maxx) maxx = p.x;
-            if (p.y < miny) miny = p.y;
-            if (p.y > maxy) maxy = p.y;
-        }
-        return new BoundingRect(
-            new GlobalPoint(minx - delta, miny - delta),
-            maxx - minx + 2 * delta,
-            maxy - miny + 2 * delta,
-        );
     }
 }

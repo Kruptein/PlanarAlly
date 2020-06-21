@@ -1,4 +1,4 @@
-import { LocalPoint } from "@/game/geom";
+import { LocalPoint, GlobalPoint } from "@/game/geom";
 import tinycolor from "tinycolor2";
 import { gameSettingsStore } from "./settings";
 import { gameStore } from "./store";
@@ -51,4 +51,15 @@ export function equalPoints(a: number[], b: number[], delta = 0.0001): boolean {
 
 export function useSnapping(event: MouseEvent | TouchEvent): boolean {
     return gameStore.invertAlt === event.altKey;
+}
+
+export function rotateAroundPoint(point: GlobalPoint, center: GlobalPoint, angle: number): GlobalPoint {
+    if (equalPoints([...center], [...point])) return point;
+
+    const c = Math.cos(angle);
+    const s = Math.sin(angle);
+    return new GlobalPoint(
+        c * (point.x - center.x) - s * (point.y - center.y) + center.x,
+        s * (point.x - center.x) + c * (point.y - center.y) + center.y,
+    );
 }

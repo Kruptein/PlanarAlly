@@ -44,6 +44,8 @@ export enum SelectFeatures {
 
 const start = new GlobalPoint(-1000, -1000);
 
+const ANGLE_SNAP = (45 * Math.PI) / 180; // Calculate 45 degrees in radians just once
+
 @Component
 export default class SelectTool extends Tool implements ToolBasics {
     name = ToolName.Select;
@@ -278,31 +280,7 @@ export default class SelectTool extends Tool implements ToolBasics {
             } else if (this.mode === SelectOperations.Rotate) {
                 const center = this.rotationBox!.center();
                 const newAngle = -Math.atan2(center.y - gp.y, gp.x - center.x) + Math.PI / 2;
-                const dA = newAngle - this.angle;
-                this.angle = newAngle;
-                let recalc = false;
-                const selection = layer.getSelection();
-                for (const sel of selection) {
-                    if (sel.visionObstruction)
-                        visibilityStore.deleteFromTriag({
-                            target: TriangulationTarget.VISION,
-                            shape: sel,
-                        });
-
-                    sel.rotateAround(center, dA);
-
-                    if (sel.visionObstruction) {
-                        visibilityStore.addToTriag({ target: TriangulationTarget.VISION, shape: sel });
-                        recalc = true;
-                    }
-                    if (!sel.preventSync)
-                        socket.emit("Shape.Update", { shape: sel.asDict(), redraw: true, temporary: true });
-                }
-                if (recalc) visibilityStore.recalculateVision(selection[0].floor);
-                this.rotationEnd!.rotateAround(center, dA);
-                this.rotationAnchor!.rotateAround(center, dA);
-                this.rotationBox!.angle = this.angle;
-                layer.invalidate(false);
+                this.rotateSelection(newAngle, center);
             } else {
                 this.updateCursor(layer, gp);
             }
@@ -318,7 +296,7 @@ export default class SelectTool extends Tool implements ToolBasics {
             return;
         }
         const layer = layerManager.getLayer(layerManager.floor!.name)!;
-        const selection = layer.getSelection();
+        let selection = layer.getSelection();
 
         if (selection.some(s => s.isLocked)) return;
 
@@ -343,6 +321,8 @@ export default class SelectTool extends Tool implements ToolBasics {
                     }
                 }
             }
+
+            selection = layer.getSelection();
 
             layer.removeShape(this.selectionHelper!, SyncMode.NO_SYNC);
             this.selectionHelper = null;
@@ -430,6 +410,15 @@ export default class SelectTool extends Tool implements ToolBasics {
                     }
                 }
                 if (this.mode === SelectOperations.Rotate) {
+                    const newAngle = Math.round(this.angle / ANGLE_SNAP) * ANGLE_SNAP;
+                    if (
+                        newAngle !== this.angle &&
+                        useSnapping(event) &&
+                        this.hasFeature(SelectFeatures.Snapping, features)
+                    ) {
+                        const center = this.rotationBox!.center();
+                        this.rotateSelection(newAngle, center);
+                    }
                     if (!sel.preventSync)
                         socket.emit("Shape.Update", { shape: sel.asDict(), redraw: true, temporary: false });
                 }
@@ -607,6 +596,34 @@ export default class SelectTool extends Tool implements ToolBasics {
 
             layer.invalidate(true);
         }
+    }
+
+    rotateSelection(newAngle: number, center: GlobalPoint): void {
+        const layer = layerManager.getLayer(layerManager.floor!.name)!;
+        const dA = newAngle - this.angle;
+        this.angle = newAngle;
+        let recalc = false;
+        const selection = layer.getSelection();
+        for (const sel of selection) {
+            if (sel.visionObstruction)
+                visibilityStore.deleteFromTriag({
+                    target: TriangulationTarget.VISION,
+                    shape: sel,
+                });
+
+            sel.rotateAround(center, dA);
+
+            if (sel.visionObstruction) {
+                visibilityStore.addToTriag({ target: TriangulationTarget.VISION, shape: sel });
+                recalc = true;
+            }
+            if (!sel.preventSync) socket.emit("Shape.Update", { shape: sel.asDict(), redraw: true, temporary: true });
+        }
+        if (recalc) visibilityStore.recalculateVision(selection[0].floor);
+        this.rotationEnd!.rotateAround(center, dA);
+        this.rotationAnchor!.rotateAround(center, dA);
+        this.rotationBox!.angle = this.angle;
+        layer.invalidate(false);
     }
 }
 </script>

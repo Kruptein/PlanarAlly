@@ -296,7 +296,7 @@ export default class SelectTool extends Tool implements ToolBasics {
             return;
         }
         const layer = layerManager.getLayer(layerManager.floor!.name)!;
-        const selection = layer.getSelection();
+        let selection = layer.getSelection();
 
         if (selection.some(s => s.isLocked)) return;
 
@@ -321,6 +321,8 @@ export default class SelectTool extends Tool implements ToolBasics {
                     }
                 }
             }
+
+            selection = layer.getSelection();
 
             layer.removeShape(this.selectionHelper!, SyncMode.NO_SYNC);
             this.selectionHelper = null;

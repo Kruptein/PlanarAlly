@@ -25,12 +25,12 @@ export type ToolFeatures<T = number> = { enabled?: T[]; disabled?: T[] };
 export function calculateDelta(delta: Vector, sel: Shape, shrink = false): Vector {
     if (delta.x === 0 && delta.y === 0) return delta;
     const center = sel.center().asArray();
-    const centerTriangle = getCDT(TriangulationTarget.MOVEMENT, sel.floor).locate(center, null).loc;
+    const centerTriangle = getCDT(TriangulationTarget.MOVEMENT, sel.floor.name).locate(center, null).loc;
     for (let point of sel.points) {
         if (shrink) {
             point = [point[0] - (point[0] - center[0]) * 0.75, point[1] - (point[1] - center[1]) * 0.75];
         }
-        const lt = getCDT(TriangulationTarget.MOVEMENT, sel.floor).locate(point, centerTriangle);
+        const lt = getCDT(TriangulationTarget.MOVEMENT, sel.floor.name).locate(point, centerTriangle);
         const triangle = lt.loc;
         if (triangle === null) continue;
         delta = checkTriangle(point, triangle, delta);

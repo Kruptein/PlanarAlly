@@ -187,6 +187,7 @@ class Floor(BaseModel):
     location = ForeignKeyField(Location, backref="floors", on_delete="CASCADE")
     index = IntegerField()
     name = TextField()
+    player_visible = BooleanField(default=False)
 
     def __repr__(self):
         return f"<Floor {self.name} {[self.index]}>"

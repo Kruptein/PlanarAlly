@@ -9,6 +9,7 @@ import { l2g } from "@/game/units";
 import Component from "vue-class-component";
 import { ToolBasics } from "./ToolBasics";
 import { ToolName } from "./utils";
+import { floorStore } from "../../layers/store";
 
 @Component
 export class PingTool extends Tool implements ToolBasics {
@@ -20,7 +21,7 @@ export class PingTool extends Tool implements ToolBasics {
 
     onDown(lp: LocalPoint): void {
         this.startPoint = l2g(lp);
-        const layer = layerManager.getLayer(layerManager.floor!.name, "draw");
+        const layer = layerManager.getLayer(floorStore.currentFloor, "draw");
 
         if (layer === undefined) {
             console.log("No draw layer!");
@@ -39,7 +40,7 @@ export class PingTool extends Tool implements ToolBasics {
     onUp(): void {
         if (!this.active || this.ping === null || this.border === null || this.startPoint === null) return;
 
-        const layer = layerManager.getLayer(layerManager.floor!.name, "draw");
+        const layer = layerManager.getLayer(floorStore.currentFloor, "draw");
         if (layer === undefined) {
             console.log("No active layer!");
             return;
@@ -57,7 +58,7 @@ export class PingTool extends Tool implements ToolBasics {
 
         const gp = l2g(lp);
 
-        const layer = layerManager.getLayer(layerManager.floor!.name, "draw");
+        const layer = layerManager.getLayer(floorStore.currentFloor, "draw");
         if (layer === undefined) {
             console.log("No draw layer!");
             return;

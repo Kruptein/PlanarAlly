@@ -3,13 +3,13 @@ import { Layer } from "@/game/layers/layer";
 import { layerManager } from "@/game/layers/manager";
 import { Circle } from "@/game/shapes/circle";
 import { Shape } from "@/game/shapes/shape";
-import { gameStore } from "@/game/store";
 import { g2l, g2lr, g2lx, g2ly, g2lz, getUnitDistance } from "@/game/units";
 import { getFogColour } from "@/game/utils";
 import { getVisionSources } from "@/game/visibility/utils";
 import { gameSettingsStore } from "../settings";
 import { TriangulationTarget } from "../visibility/te/pa";
 import { computeVisibility } from "../visibility/te/te";
+import { floorStore } from "./store";
 
 export class FOWLayer extends Layer {
     isVisionLayer = true;
@@ -61,23 +61,23 @@ export class FOWLayer extends Layer {
 
             ctx.fillStyle = "rgba(0, 0, 0, 1)";
 
-            const activeFloorName = gameStore.floors[gameStore.selectedFloorIndex];
+            const activeFloorName = floorStore.floors[floorStore.currentFloorindex].name;
 
             if (this.floor === activeFloorName && this.canvas.style.display === "none")
                 this.canvas.style.removeProperty("display");
             else if (this.floor !== activeFloorName && this.canvas.style.display !== "none")
                 this.canvas.style.display = "none";
 
-            if (this.floor === activeFloorName && layerManager.floors.length > 1) {
-                for (const floor of layerManager.floors) {
-                    if (floor.name !== gameStore.floors[0]) {
-                        const mapl = layerManager.getLayer(floor.name, "map");
+            if (this.floor === activeFloorName && floorStore.floors.length > 1) {
+                for (const floor of floorStore.floors) {
+                    if (floor.name !== floorStore.floors[0].name) {
+                        const mapl = layerManager.getLayer(floor, "map");
                         if (mapl === undefined) continue;
                         ctx.globalCompositeOperation = "destination-out";
                         ctx.drawImage(mapl.canvas, 0, 0);
                     }
                     if (floor.name !== activeFloorName) {
-                        const fowl = layerManager.getLayer(floor.name, this.name);
+                        const fowl = layerManager.getLayer(floor, this.name);
                         if (fowl === undefined) continue;
                         ctx.globalCompositeOperation = "source-over";
                         ctx.drawImage(fowl.canvas, 0, 0);
@@ -90,10 +90,10 @@ export class FOWLayer extends Layer {
             // At all times provide a minimal vision range to prevent losing your tokens in fog.
             if (
                 gameSettingsStore.fullFow &&
-                layerManager.hasLayer(this.floor, "tokens") &&
-                this.floor === gameStore.floors[gameStore.selectedFloorIndex]
+                layerManager.hasLayer(floorStore.currentFloor, "tokens") &&
+                floorStore.currentFloor === floorStore.floors[floorStore.currentFloorindex]
             ) {
-                for (const sh of layerManager.getLayer(this.floor, "tokens")!.getShapes()) {
+                for (const sh of layerManager.getLayer(floorStore.currentFloor, "tokens")!.getShapes()) {
                     if (!sh.ownedBy({ visionAccess: true }) || !sh.isToken) continue;
                     const bb = sh.getBoundingBox();
                     const lcenter = g2l(sh.center());
@@ -128,7 +128,7 @@ export class FOWLayer extends Layer {
 
                 this.vCtx.globalCompositeOperation = "source-over";
                 this.vCtx.fillStyle = "rgba(0, 0, 0, 1)";
-                const polygon = computeVisibility(center, TriangulationTarget.VISION, shape.floor);
+                const polygon = computeVisibility(center, TriangulationTarget.VISION, shape.floor.name);
                 this.vCtx.beginPath();
                 this.vCtx.moveTo(g2lx(polygon[0][0]), g2ly(polygon[0][1]));
                 for (const point of polygon) this.vCtx.lineTo(g2lx(point[0]), g2ly(point[1]));
@@ -161,7 +161,7 @@ export class FOWLayer extends Layer {
 
             if (gameSettingsStore.fowLos && this.floor === activeFloorName) {
                 ctx.globalCompositeOperation = "source-in";
-                ctx.drawImage(layerManager.getLayer(this.floor, "fow-players")!.canvas, 0, 0);
+                ctx.drawImage(layerManager.getLayer(floorStore.currentFloor, "fow-players")!.canvas, 0, 0);
             }
 
             for (const preShape of this.preFogShapes) {

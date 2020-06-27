@@ -1,6 +1,6 @@
 from copy import deepcopy
 from datetime import datetime
-from typing import Any, Dict
+from typing import Any, Dict, List
 
 from peewee import Case
 from playhouse.shortcuts import update_model_from_dict
@@ -226,67 +226,50 @@ async def update_shape(sid: int, data: Dict[str, Any]):
     await sync_shape_update(layer, pr, data, sid, shape)
 
 
-@sio.on("Shape.Remove", namespace=GAME_NS)
+@sio.on("Shapes.Remove", namespace=GAME_NS)
 @auth.login_required(app, sio)
-async def remove_shape(sid: int, data: Dict[str, Any]):
+async def remove_shapes(sid: int, data: Dict[str, Any]):
     pr: PlayerRoom = game_state.get(sid)
 
-    # We're first gonna retrieve the existing server side shape for some validation checks
     if data["temporary"]:
-        if not has_ownership_temp(data["shape"], pr):
-            logger.warning(
-                f"User {pr.player.name} tried to update a shape it does not own."
-            )
-            return
-
         # This stuff is not stored so we cannot do any server side validation /shrug
-        shape = data["shape"]
-        floor = pr.active_location.floors.select().where(
-            Floor.name == data["shape"]["floor"]
-        )[0]
-        layer = floor.layers.where(Layer.name == data["shape"]["layer"])[0]
+        for shape in data["uuids"]:
+            game_state.remove_temp(sid, shape)
     else:
-        # Use the server version of the shape.
+        # Use the server version of the shapes.
         try:
-            shape = Shape.get(uuid=data["shape"]["uuid"])
+            shapes: List[Shape] = [
+                s for s in Shape.select().where(Shape.uuid << data["uuids"])
+            ]
         except Shape.DoesNotExist:
             logger.warning(f"Attempt to update unknown shape by {pr.player.name}")
             return
-        layer = shape.layer
 
-        if not has_ownership(shape, pr):
-            logger.warning(
-                f"User {pr.player.name} tried to update a shape it does not own."
-            )
-            return
+        layer = shapes[0].layer
 
-    if data["temporary"]:
-        game_state.remove_temp(sid, data["shape"]["uuid"])
-    else:
-        old_index = shape.index
-        shape.delete_instance(True)
-        Shape.update(index=Shape.index - 1).where(
-            (Shape.layer == layer) & (Shape.index >= old_index)
-        ).execute()
+        for shape in shapes:
+            if not has_ownership(shape, pr):
+                logger.warning(
+                    f"User {pr.player.name} tried to update a shape it does not own."
+                )
+                return
 
-    if layer.player_visible:
-        await sio.emit(
-            "Shape.Remove",
-            data["shape"],
-            room=pr.active_location.get_path(),
-            skip_sid=sid,
-            namespace=GAME_NS,
-        )
-    else:
-        for csid in game_state.get_sids(
-            player=pr.room.creator, active_location=pr.active_location
-        ):
-            if csid == sid:
-                continue
-            await sio.emit("Shape.Remove", data["shape"], room=csid, namespace=GAME_NS)
+            old_index = shape.index
+            shape.delete_instance(True)
+            Shape.update(index=Shape.index - 1).where(
+                (Shape.layer == layer) & (Shape.index >= old_index)
+            ).execute()
+
+    await sio.emit(
+        "Shapes.Remove",
+        data["uuids"],
+        room=pr.active_location.get_path(),
+        skip_sid=sid,
+        namespace=GAME_NS,
+    )
 
 
-@sio.on("Shape.Floor.Change", namespace=GAME_NS)
+@sio.on("Shapes.Floor.Change", namespace=GAME_NS)
 @auth.login_required(app, sio)
 async def change_shape_floor(sid: int, data: Dict[str, Any]):
     pr: PlayerRoom = game_state.get(sid)
@@ -296,21 +279,22 @@ async def change_shape_floor(sid: int, data: Dict[str, Any]):
         return
 
     floor: Floor = Floor.get(location=pr.active_location, name=data["floor"])
-    shape: Shape = Shape.get(uuid=data["uuid"])
-    layer: Layer = Layer.get(floor=floor, name=shape.layer.name)
-    old_layer = shape.layer
-    old_index = shape.index
+    shapes: List[Shape] = [s for s in Shape.select().where(Shape.uuid << data["uuids"])]
+    layer: Layer = Layer.get(floor=floor, name=shapes[0].layer.name)
+    old_layer = shapes[0].layer
 
-    shape.layer = layer
-    shape.index = layer.shapes.count()
-    shape.save()
+    for shape in shapes:
+        old_index = shape.index
+        shape.layer = layer
+        shape.index = layer.shapes.count()
+        shape.save()
 
-    Shape.update(index=Shape.index - 1).where(
-        (Shape.layer == old_layer) & (Shape.index >= old_index)
-    ).execute()
+        Shape.update(index=Shape.index - 1).where(
+            (Shape.layer == old_layer) & (Shape.index >= old_index)
+        ).execute()
 
     await sio.emit(
-        "Shape.Floor.Change",
+        "Shapes.Floor.Change",
         data,
         room=pr.active_location.get_path(),
         skip_sid=sid,
@@ -318,7 +302,7 @@ async def change_shape_floor(sid: int, data: Dict[str, Any]):
     )
 
 
-@sio.on("Shape.Layer.Change", namespace=GAME_NS)
+@sio.on("Shapes.Layer.Change", namespace=GAME_NS)
 @auth.login_required(app, sio)
 async def change_shape_layer(sid: int, data: Dict[str, Any]):
     pr: PlayerRoom = game_state.get(sid)
@@ -328,10 +312,9 @@ async def change_shape_layer(sid: int, data: Dict[str, Any]):
         return
 
     floor = Floor.get(location=pr.active_location, name=data["floor"])
+    shapes: List[Shape] = [s for s in Shape.select().where(Shape.uuid << data["uuids"])]
     layer = Layer.get(floor=floor, name=data["layer"])
-    shape = Shape.get(uuid=data["uuid"])
-    old_layer = shape.layer
-    old_index = shape.index
+    old_layer = shapes[0].layer
 
     if old_layer.player_visible and not layer.player_visible:
         for room_player in pr.room.players:
@@ -343,22 +326,22 @@ async def change_shape_layer(sid: int, data: Dict[str, Any]):
                 if psid == sid:
                     continue
                 await sio.emit(
-                    "Shape.Remove",
-                    shape.as_dict(room_player.player, False),
-                    room=psid,
-                    namespace=GAME_NS,
+                    "Shapes.Remove", data["uuids"], room=psid, namespace=GAME_NS,
                 )
 
-    shape.layer = layer
-    shape.index = layer.shapes.count()
-    shape.save()
-    Shape.update(index=Shape.index - 1).where(
-        (Shape.layer == old_layer) & (Shape.index >= old_index)
-    ).execute()
+    for shape in shapes:
+        old_index = shape.index
+
+        shape.layer = layer
+        shape.index = layer.shapes.count()
+        shape.save()
+        Shape.update(index=Shape.index - 1).where(
+            (Shape.layer == old_layer) & (Shape.index >= old_index)
+        ).execute()
 
     if old_layer.player_visible and layer.player_visible:
         await sio.emit(
-            "Shape.Layer.Change",
+            "Shapes.Layer.Change",
             data,
             room=pr.active_location.get_path(),
             skip_sid=sid,
@@ -368,13 +351,13 @@ async def change_shape_layer(sid: int, data: Dict[str, Any]):
         for room_player in pr.room.players:
             is_dm = room_player.role == Role.DM
             for psid in game_state.get_sids(
-                player=room_player.player, active_location=pr.active_location
+                player=room_player.player,
+                active_location=pr.active_location,
+                skip_sid=sid,
             ):
-                if psid == sid:
-                    continue
                 if is_dm:
                     await sio.emit(
-                        "Shape.Layer.Change",
+                        "Shapes.Layer.Change",
                         data,
                         room=pr.active_location.get_path(),
                         skip_sid=sid,
@@ -382,8 +365,8 @@ async def change_shape_layer(sid: int, data: Dict[str, Any]):
                     )
                 elif layer.player_visible:
                     await sio.emit(
-                        "Shape.Add",
-                        shape.as_dict(room_player.player, False),
+                        "Shapes.Add",
+                        [shape.as_dict(room_player.player, False) for shape in shapes],
                         room=psid,
                         namespace=GAME_NS,
                     )

@@ -10,6 +10,8 @@ import { TriangulationTarget } from "@/game/visibility/te/pa";
 import { EventBus } from "../event-bus";
 import { gameManager } from "../manager";
 import { gameSettingsStore } from "../settings";
+import { floorStore } from "../layers/store";
+import { moveFloor } from "../layers/utils";
 
 export function onKeyUp(event: KeyboardEvent): void {
     if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement) {
@@ -24,7 +26,7 @@ export function onKeyUp(event: KeyboardEvent): void {
             const i = tokens.findIndex(o => o.center().equals(gameStore.screenCenter));
             const token = tokens[(i + 1) % tokens.length];
             gameManager.setCenterPosition(token.center());
-            gameStore.selectFloor({ targetFloor: token.floor, sync: true });
+            floorStore.selectFloor({ targetFloor: token.floor.name, sync: true });
         }
     }
 }
@@ -84,10 +86,10 @@ export function onKeyDown(event: KeyboardEvent): void {
                             temporary: false,
                         });
                 }
-                const floorName = layerManager.floor!.name;
+                const floorName = floorStore.currentFloor.name;
                 if (recalculateVision) visibilityStore.recalculateVision(floorName);
                 if (recalculateMovement) visibilityStore.recalculateMovement(floorName);
-                layerManager.getLayer(layerManager.floor!.name)!.invalidate(false);
+                layerManager.getLayer(floorStore.currentFloor)!.invalidate(false);
             } else {
                 // The pan offsets should be in the opposite direction to give the correct feel.
                 gameStore.increasePanX(offsetX * (event.keyCode <= 38 ? 1 : -1));
@@ -122,44 +124,52 @@ export function onKeyDown(event: KeyboardEvent): void {
         } else if (event.key === "v" && event.ctrlKey) {
             // Ctrl-v - Paste
             pasteShapes();
-        } else if (event.key === "PageUp" && gameStore.selectedFloorIndex < gameStore.floors.length - 1) {
+        } else if (event.key === "PageUp" && floorStore.currentFloorindex < floorStore.floors.length - 1) {
             // Page Up - Move floor up
             // Ctrl + Page Up - Move selected shapes floor up
             // Ctrl + Shift + Page Up - Move selected shapes floor up AND move floor up
             event.preventDefault();
-            if (gameStore.selectedFloorIndex + 1 >= gameStore.floors.length) return;
+            const targetFloor = floorStore.floors.findIndex(
+                (f, i) => i > floorStore.currentFloorindex && (gameStore.IS_DM || f.playerVisible),
+            );
+            if (targetFloor > floorStore.floors.length - 1) return;
+
             const selection = layerManager.getSelection() ?? [];
-            const newFloor = gameStore.floors[gameStore.selectedFloorIndex + 1];
+            const newFloor = floorStore.floors[targetFloor];
             const newLayer = layerManager.getLayer(newFloor)!;
 
             if (event.ctrlKey) {
-                for (const shape of selection) {
-                    shape.moveFloor(newFloor, true);
-                }
+                moveFloor([...selection], newFloor, true);
             }
             layerManager.clearSelection();
             if (!event.ctrlKey || event.shiftKey) {
-                gameStore.selectFloor({ targetFloor: gameStore.selectedFloorIndex + 1, sync: true });
+                floorStore.selectFloor({ targetFloor, sync: true });
             }
             if (event.shiftKey) for (const shape of selection) newLayer.pushSelection(shape);
-        } else if (event.key === "PageDown" && gameStore.selectedFloorIndex > 0) {
+        } else if (event.key === "PageDown" && floorStore.currentFloorindex > 0) {
             // Page Down - Move floor down
             // Ctrl + Page Down - Move selected shape floor down
             // Ctrl + Shift + Page Down - Move selected shapes floor down AND move floor down
             event.preventDefault();
-            if (gameStore.selectedFloorIndex - 1 < 0) return;
+            const maxLength = floorStore.floors.length - 1;
+            let targetFloor = [...floorStore.floors]
+                .reverse()
+                .findIndex(
+                    (f, i) => maxLength - i < floorStore.currentFloorindex && (gameStore.IS_DM || f.playerVisible),
+                );
+            targetFloor = maxLength - targetFloor;
+            if (targetFloor < 0) return;
+
             const selection = layerManager.getSelection() ?? [];
-            const newFloor = gameStore.floors[gameStore.selectedFloorIndex - 1];
+            const newFloor = floorStore.floors[targetFloor];
             const newLayer = layerManager.getLayer(newFloor)!;
 
             if (event.ctrlKey) {
-                for (const shape of selection) {
-                    shape.moveFloor(newFloor, true);
-                }
+                moveFloor([...selection], newFloor, true);
             }
             if (!event.shiftKey) layerManager.clearSelection();
             if (!event.ctrlKey || event.shiftKey) {
-                gameStore.selectFloor({ targetFloor: gameStore.selectedFloorIndex - 1, sync: true });
+                floorStore.selectFloor({ targetFloor, sync: true });
             }
             if (event.shiftKey) for (const shape of selection) newLayer.pushSelection(shape);
         } else if (event.key === "Tab") {

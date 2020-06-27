@@ -15,6 +15,7 @@ import { EventBus } from "@/game/event-bus";
 import { Shape } from "@/game/shapes/shape";
 import { gameSettingsStore } from "../../settings";
 import { ToolBasics } from "./ToolBasics";
+import { floorStore } from "@/game/layers/store";
 
 @Component
 export default class MapTool extends Tool implements ToolBasics {
@@ -52,7 +53,7 @@ export default class MapTool extends Tool implements ToolBasics {
 
     removeRect(): void {
         if (this.rect) {
-            const layer = layerManager.getLayer(layerManager.floor!.name)!;
+            const layer = layerManager.getLayer(floorStore.currentFloor)!;
             layer.removeShape(this.rect, SyncMode.NO_SYNC);
             this.rect = null;
         }
@@ -94,7 +95,7 @@ export default class MapTool extends Tool implements ToolBasics {
         const startPoint = l2g(lp);
 
         this.startPoint = startPoint;
-        const layer = layerManager.getLayer(layerManager.floor!.name);
+        const layer = layerManager.getLayer(floorStore.currentFloor);
         if (layer === undefined) {
             console.log("No active layer!");
             return;
@@ -113,7 +114,7 @@ export default class MapTool extends Tool implements ToolBasics {
 
         const endPoint = l2g(lp);
 
-        const layer = layerManager.getLayer(layerManager.floor!.name);
+        const layer = layerManager.getLayer(floorStore.currentFloor);
         if (layer === undefined) {
             console.log("No active layer!");
             return;
@@ -130,7 +131,7 @@ export default class MapTool extends Tool implements ToolBasics {
 
     onUp(): void {
         if (!this.active || this.rect === null) return;
-        const layer = layerManager.getLayer(layerManager.floor!.name);
+        const layer = layerManager.getLayer(floorStore.currentFloor);
         if (layer === undefined) {
             console.log("No active layer!");
             return;

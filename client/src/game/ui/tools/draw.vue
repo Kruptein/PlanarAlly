@@ -29,13 +29,15 @@ import { ToolName } from "./utils";
 import { gameSettingsStore } from "../../settings";
 import { EventBus } from "../../event-bus";
 import { ToolBasics } from "./ToolBasics";
+import { floorStore } from "@/game/layers/store";
+import { Floor } from "@/game/layers/floor";
 
 @Component({
     components: {
         "color-picker": ColorPicker,
     },
     computed: {
-        ...mapGetters("game", ["selectedFloor", "selectedLayer"]),
+        ...mapGetters("floor", ["currentFloor"]),
     },
 })
 export default class DrawTool extends Tool implements ToolBasics {
@@ -125,8 +127,8 @@ export default class DrawTool extends Tool implements ToolBasics {
         this.onModeChange(newValue, oldValue);
     }
 
-    @Watch("selectedFloor")
-    onFloorChange(newValue: string, oldValue: string): void {
+    @Watch("currentFloor")
+    onFloorChange(newValue: Floor, oldValue: Floor): void {
         if ((<Tools>this.$parent).currentTool === this.name) {
             let mouse: { x: number; y: number } | undefined = undefined;
             if (this.brushHelper !== null) {
@@ -169,8 +171,8 @@ export default class DrawTool extends Tool implements ToolBasics {
     onModeChange(newValue: string, oldValue: string): void {
         if (this.brushHelper === null) return;
 
-        const fowLayer = layerManager.getLayer(layerManager.floor!.name, "fow");
-        const normalLayer = layerManager.getLayer(layerManager.floor!.name);
+        const fowLayer = layerManager.getLayer(floorStore.currentFloor, "fow");
+        const normalLayer = layerManager.getLayer(floorStore.currentFloor);
         if (fowLayer === undefined || normalLayer === undefined) return;
 
         this.setupBrush();
@@ -183,10 +185,10 @@ export default class DrawTool extends Tool implements ToolBasics {
             fowLayer.removeShape(this.brushHelper, SyncMode.NO_SYNC);
         }
     }
-    getLayer(data?: { floor?: string; layer?: string }): Layer | undefined {
+    getLayer(data?: { floor?: Floor; layer?: string }): Layer | undefined {
         if (this.modeSelect === "normal")
-            return layerManager.getLayer(data?.floor ?? layerManager.floor!.name, data?.layer);
-        return layerManager.getLayer(layerManager.floor!.name, "fow");
+            return layerManager.getLayer(data?.floor ?? floorStore.currentFloor, data?.layer);
+        return layerManager.getLayer(floorStore.currentFloor, "fow");
     }
 
     onDown(lp: LocalPoint, event: MouseEvent | TouchEvent): void {
@@ -348,15 +350,15 @@ export default class DrawTool extends Tool implements ToolBasics {
                 socket.emit("Shape.Update", { shape: this.shape!.asDict(), redraw: true, temporary: true });
             if (this.shape.visionObstruction) {
                 if (
-                    getCDT(TriangulationTarget.VISION, this.shape.floor).tds.getTriagVertices(this.shape.uuid).length >
-                    1
+                    getCDT(TriangulationTarget.VISION, this.shape.floor.name).tds.getTriagVertices(this.shape.uuid)
+                        .length > 1
                 )
                     visibilityStore.deleteFromTriag({
                         target: TriangulationTarget.VISION,
                         shape: this.shape,
                     });
                 visibilityStore.addToTriag({ target: TriangulationTarget.VISION, shape: this.shape });
-                visibilityStore.recalculateVision(this.shape.floor);
+                visibilityStore.recalculateVision(this.shape.floor.name);
             }
         }
         layer.invalidate(false);
@@ -383,11 +385,11 @@ export default class DrawTool extends Tool implements ToolBasics {
             this.shape.resizeToGrid(this.shape.getPointIndex(endPoint, l2gz(5)), event.ctrlKey);
             if (this.shape.visionObstruction) {
                 visibilityStore.addToTriag({ target: TriangulationTarget.VISION, shape: this.shape });
-                visibilityStore.recalculateVision(this.shape.floor);
+                visibilityStore.recalculateVision(this.shape.floor.name);
             }
             if (this.shape.movementObstruction) {
                 visibilityStore.addToTriag({ target: TriangulationTarget.MOVEMENT, shape: this.shape });
-                visibilityStore.recalculateMovement(this.shape.floor);
+                visibilityStore.recalculateMovement(this.shape.floor.name);
             }
         }
         this.finaliseShape();
@@ -440,8 +442,8 @@ export default class DrawTool extends Tool implements ToolBasics {
             this.onDeselect();
             this.onSelect(mouse);
         } else {
-            if (this.shape.visionObstruction) visibilityStore.recalculateVision(this.shape.floor);
-            if (this.shape.movementObstruction) visibilityStore.recalculateMovement(this.shape.floor);
+            if (this.shape.visionObstruction) visibilityStore.recalculateVision(this.shape.floor.name);
+            if (this.shape.movementObstruction) visibilityStore.recalculateMovement(this.shape.floor.name);
             if (!this.shape!.preventSync)
                 socket.emit("Shape.Update", { shape: this.shape!.asDict(), redraw: true, temporary: false });
         }
@@ -466,7 +468,7 @@ export default class DrawTool extends Tool implements ToolBasics {
         layer.addShape(this.brushHelper, SyncMode.NO_SYNC, InvalidationMode.NORMAL, false); // during mode change the shape is already added
         if (gameStore.IS_DM) this.showLayerPoints();
     }
-    onDeselect(data?: { floor?: string; layer?: string }): void {
+    onDeselect(data?: { floor?: Floor; layer?: string }): void {
         this.activeTool = false;
         const layer = this.getLayer(data);
         if (layer === undefined) return;
@@ -507,7 +509,7 @@ export default class DrawTool extends Tool implements ToolBasics {
         const layer = this.getLayer()!;
         await layer.waitValid();
         if (!this.activeTool) return;
-        const dL = layerManager.getLayer(layerManager.floor!.name, "draw")!;
+        const dL = layerManager.getLayer(floorStore.currentFloor, "draw")!;
         for (const point of layer.points.keys()) {
             const parsedPoint = JSON.parse(point);
             dL.ctx.beginPath();
@@ -517,7 +519,7 @@ export default class DrawTool extends Tool implements ToolBasics {
     }
 
     private hideLayerPoints(): void {
-        layerManager.getLayer(layerManager.floor!.name, "draw")?.invalidate(true);
+        layerManager.getLayer(floorStore.currentFloor, "draw")?.invalidate(true);
     }
 
     getShapeWord(shape: string): string {

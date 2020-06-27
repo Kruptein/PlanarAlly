@@ -8,6 +8,7 @@ import { LocationOptions } from "./comm/types/settings";
 import { layerManager } from "./layers/manager";
 import { Asset } from "./shapes/asset";
 import { gameStore } from "./store";
+import { floorStore } from "./layers/store";
 
 export interface GameSettingsState {
     activeLocation: number;
@@ -148,8 +149,8 @@ class GameSettingsStore extends VuexModule implements GameSettingsState {
     @Mutation
     setUseGrid(data: { useGrid: boolean; location: number | null; sync: boolean }): void {
         if (mutateLocationOption("useGrid", data.useGrid, data.location)) {
-            for (const floor of layerManager.floors) {
-                const gridLayer = layerManager.getGridLayer(floor.name)!;
+            for (const floor of floorStore.floors) {
+                const gridLayer = layerManager.getGridLayer(floor)!;
                 if (data.useGrid) gridLayer.canvas.style.display = "block";
                 else gridLayer.canvas.style.display = "none";
                 gridLayer.invalidate();
@@ -164,8 +165,8 @@ class GameSettingsStore extends VuexModule implements GameSettingsState {
     @Mutation
     setGridSize(data: { gridSize: number; location: number | null; sync: boolean }): void {
         if (mutateLocationOption("gridSize", data.gridSize, data.location)) {
-            for (const floor of layerManager.floors) {
-                const gridLayer = layerManager.getGridLayer(floor.name);
+            for (const floor of floorStore.floors) {
+                const gridLayer = layerManager.getGridLayer(floor);
                 if (gridLayer !== undefined) gridLayer.invalidate();
             }
 
@@ -264,11 +265,9 @@ class GameSettingsStore extends VuexModule implements GameSettingsState {
             shape.src = img.src;
 
             layerManager
-                .getLayer(layerManager.getFloor()!.name, "dm")!
+                .getLayer(floorStore.currentFloor, "dm")!
                 .addShape(shape, SyncMode.FULL_SYNC, InvalidationMode.NO, false);
-            img.onload = () => {
-                layerManager.getLayer(shape.floor, shape.layer)!.invalidate(true);
-            };
+            img.onload = () => shape.layer.invalidate(true);
 
             gameSettingsStore.setSpawnLocations({
                 spawnLocations: [uuid],

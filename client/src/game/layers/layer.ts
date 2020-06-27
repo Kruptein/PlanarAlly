@@ -11,6 +11,7 @@ import { TriangulationTarget } from "@/game/visibility/te/pa";
 import { getBlockers, getVisionSources, sliceBlockers, sliceVisionSources } from "@/game/visibility/utils";
 import { drawAuras } from "../shapes/aura";
 import { gameSettingsStore } from "../settings";
+import { floorStore } from "./store";
 
 export class Layer {
     name: string;
@@ -48,7 +49,7 @@ export class Layer {
     invalidate(skipLightUpdate: boolean): void {
         this.valid = false;
         if (!skipLightUpdate) {
-            layerManager.invalidateLight(this.floor);
+            layerManager.invalidateLight(layerManager.getFloor(this.floor)!);
         }
     }
 
@@ -103,8 +104,7 @@ export class Layer {
     }
 
     addShape(shape: Shape, sync: SyncMode, invalidate: InvalidationMode, snappable = true): void {
-        shape.layer = this.name;
-        shape.floor = this.floor;
+        shape.setLayer(this.floor, this.name);
         this.shapes.push(shape);
         layerManager.UUIDMap.set(shape.uuid, shape);
         shape.checkVisionSources(invalidate !== InvalidationMode.NO);
@@ -166,7 +166,7 @@ export class Layer {
         }
 
         if (sync !== SyncMode.NO_SYNC && !shape.preventSync)
-            socket.emit("Shape.Remove", { shape: shape.asDict(), temporary: sync === SyncMode.TEMP_SYNC });
+            socket.emit("Shapes.Remove", { uuids: [shape.uuid], temporary: sync === SyncMode.TEMP_SYNC });
 
         const visionSources = getVisionSources(this.floor);
         const visionBlockers = getBlockers(TriangulationTarget.VISION, this.floor);
@@ -250,9 +250,13 @@ export class Layer {
 
             for (const shape of this.shapes) {
                 if (shape.options.has("skipDraw") && shape.options.get("skipDraw")) continue;
-                if (layerManager.getLayer(this.floor) === undefined) continue;
+                if (layerManager.getLayer(layerManager.getFloor(this.floor)!) === undefined) continue;
                 if (!shape.visibleInCanvas(this.canvas)) continue;
-                if (this.name === "fow" && layerManager.getLayer(this.floor)!.name !== this.name) continue;
+                if (
+                    this.name === "fow" &&
+                    layerManager.getLayer(layerManager.getFloor(this.floor)!)!.name !== this.name
+                )
+                    continue;
                 drawAuras(shape, ctx);
             }
             for (const shape of this.shapes) {
@@ -265,9 +269,13 @@ export class Layer {
                     !shape.labels.some(l => gameStore.labelFilters.includes(l.uuid))
                 )
                     continue;
-                if (layerManager.getLayer(this.floor) === undefined) continue;
+                if (layerManager.getLayer(layerManager.getFloor(this.floor)!) === undefined) continue;
                 if (!shape.visibleInCanvas(this.canvas)) continue;
-                if (this.name === "fow" && layerManager.getLayer(this.floor)!.name !== this.name) continue;
+                if (
+                    this.name === "fow" &&
+                    layerManager.getLayer(layerManager.getFloor(this.floor)!)!.name !== this.name
+                )
+                    continue;
                 shape.draw(ctx);
             }
 
@@ -281,10 +289,11 @@ export class Layer {
             }
 
             // If this is the last layer of the floor below, render some shadow
-            if (gameStore.selectedFloorIndex > 0) {
-                const lowerFloor = layerManager.floors[gameStore.selectedFloorIndex - 1];
+            if (floorStore.currentFloorindex > 0) {
+                const lowerFloor = floorStore.floors[floorStore.currentFloorindex - 1];
                 if (lowerFloor.name === this.floor) {
-                    if (lowerFloor.layers[lowerFloor.layers.length - 1].name === this.name) {
+                    const layers = layerManager.getLayers(lowerFloor);
+                    if (layers[layers.length - 1].name === this.name) {
                         ctx.fillStyle = "rgba(0, 0, 0, 0.3)";
                         ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
                     }

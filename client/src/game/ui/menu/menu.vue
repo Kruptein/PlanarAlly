@@ -5,7 +5,7 @@ import Component from "vue-class-component";
 import { mapState } from "vuex";
 
 import ColorPicker from "@/core/components/colorpicker.vue";
-import Game from "@/game/game.vue";
+import Game from "@/game/Game.vue";
 import AssetNode from "@/game/ui/menu/asset_node.vue";
 import LanguageDropdown from "@/core/components/languageDropdown.vue";
 

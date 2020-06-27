@@ -5,7 +5,7 @@ import Component from "vue-class-component";
 import { mapState } from "vuex";
 import { Prop, Watch } from "vue-property-decorator";
 
-import Game from "@/game/game.vue";
+import Game from "@/game/Game.vue";
 
 import { gameStore } from "@/game/store";
 import { socket } from "@/game/api/socket";

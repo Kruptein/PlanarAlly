@@ -8,7 +8,7 @@ import { socket } from "@/game/api/socket";
 import { EventBus } from "@/game/event-bus";
 import { gameStore } from "@/game/store";
 import { l2gx, l2gy } from "@/game/units";
-import { layerManager } from "../../layers/manager";
+import { floorStore } from "@/game/layers/store";
 
 @Component({
     components: {
@@ -36,7 +36,7 @@ export default class DefaultContext extends Vue {
     bringPlayers(): void {
         if (!gameStore.IS_DM) return;
         socket.emit("Players.Bring", {
-            floor: layerManager.floor!.name,
+            floor: floorStore.currentFloor.name,
             x: l2gx(this.x),
             y: l2gy(this.y),
             zoom: gameStore.zoomDisplay,

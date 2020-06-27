@@ -2,12 +2,14 @@
 import Vue from "vue";
 import Component from "vue-class-component";
 
-import Game from "@/game/game.vue";
+import Game from "@/game/Game.vue";
 
 import { socket } from "@/game/api/socket";
 import { layerManager } from "@/game/layers/manager";
 import { removeFloor } from "@/game/layers/utils";
 import { gameStore } from "@/game/store";
+import { Floor } from "../layers/floor";
+import { floorStore } from "../layers/store";
 
 @Component
 export default class FloorSelect extends Vue {
@@ -17,20 +19,26 @@ export default class FloorSelect extends Vue {
         return gameStore.IS_DM || gameStore.FAKE_PLAYER;
     }
 
-    get floors(): string[] {
-        return gameStore.floors;
+    get floors(): readonly [number, Floor][] {
+        return floorStore.floors
+            .filter(f => f.playerVisible || gameStore.IS_DM)
+            .map(f => [floorStore.floors.indexOf(f), f]);
     }
 
     get selectedFloorIndex(): number {
-        return gameStore.selectedFloorIndex;
+        return floorStore.currentFloorindex;
     }
 
     get layers(): string[] {
-        return gameStore.layers;
+        if (!gameStore.boardInitialized) return [];
+        return layerManager
+            .getLayers(floorStore.currentFloor)
+            .filter(l => l.selectable && (gameStore.IS_DM || l.playerEditable))
+            .map(l => l.name);
     }
 
     get selectedLayer(): string {
-        return gameStore.selectedLayer;
+        return layerManager.getLayers(floorStore.currentFloor)[floorStore.currentLayerIndex].name;
     }
 
     get showFloorSelector(): boolean {
@@ -50,22 +58,27 @@ export default class FloorSelect extends Vue {
         socket.emit("Floor.Create", value);
     }
 
-    selectFloor(index: number): void {
-        gameStore.selectFloor({ targetFloor: index, sync: true });
+    selectFloor(floor: Floor): void {
+        floorStore.selectFloor({ targetFloor: floor, sync: true });
     }
 
     async removeFloor(index: number): Promise<void> {
         if (this.floors.length <= 1) return;
-        const floor = gameStore.floors[index];
+        const floor = this.floors[index][1];
         if (
             !(await (<Game>this.$parent.$parent).$refs.confirm.open(
                 this.$t("common.warning").toString(),
-                this.$t("game.ui.floors.warning_msg_Z", { z: floor }).toString(),
+                this.$t("game.ui.floors.warning_msg_Z", { z: floor.name }).toString(),
             ))
         )
             return;
-        socket.emit("Floor.Remove", floor);
-        removeFloor(floor);
+        socket.emit("Floor.Remove", floor.name);
+        removeFloor(floor.name);
+    }
+
+    toggleVisible(floor: Floor): void {
+        floor.playerVisible = !floor.playerVisible;
+        socket.emit("Floor.Visible.Set", { name: floor.name, visible: floor.playerVisible });
     }
 
     getLayerWord(layer: string): string {
@@ -95,15 +108,26 @@ export default class FloorSelect extends Vue {
             <a href="#">{{ selectedFloorIndex }}</a>
         </div>
         <div id="floor-detail" v-if="selected">
-            <template v-for="[index, floor] of floors.entries()">
-                <div class="floor-row" :key="floor" @click="selectFloor(index)">
+            <template v-for="[index, floor] of floors">
+                <div class="floor-row" :key="floor.name" @click="selectFloor(floor)">
                     <div class="floor-index">
                         <template v-if="index == selectedFloorIndex">></template>
                         {{ index }}
                     </div>
-                    <div class="floor-name">{{ floor }}</div>
-                    <div class="floor-actions" v-show="floors.length > 1 && IS_DM">
-                        <div @click.stop="removeFloor(index)" :title="$t('game.ui.floors.delete_floor')">
+                    <div class="floor-name">{{ floor.name }}</div>
+                    <div class="floor-actions" v-show="IS_DM">
+                        <div
+                            @click.stop="toggleVisible(floor)"
+                            :style="{ opacity: floor.playerVisible ? 1.0 : 0.3, marginRight: '5px' }"
+                            :title="$t('game.ui.floors.toggle_visibility')"
+                        >
+                            <font-awesome-icon icon="eye" />
+                        </div>
+                        <div
+                            @click.stop="removeFloor(index)"
+                            v-show="floors.length > 1"
+                            :title="$t('game.ui.floors.delete_floor')"
+                        >
                             <font-awesome-icon icon="trash-alt" />
                         </div>
                     </div>

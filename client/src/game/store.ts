@@ -10,7 +10,7 @@ import { zoomValue } from "@/game/utils";
 import { rootStore } from "@/store";
 import Vue from "vue";
 import { getModule, Module, Mutation, VuexModule } from "vuex-module-decorators";
-import { Layer } from "./layers/layer";
+import { floorStore } from "./layers/store";
 import { gameSettingsStore } from "./settings";
 
 export interface LocationUserOptions {
@@ -32,15 +32,9 @@ export interface GameState {
 
 @Module({ dynamic: true, store: rootStore, name: "game", namespaced: true })
 class GameStore extends VuexModule implements GameState {
-    // This is a limited view of selectable layers that is used to generate the layer selection UI and ability to switch layers
-    // See the layerManager for proper layer management tools
-    layers: string[] = [];
-    selectedLayerIndex = -1;
     boardInitialized = false;
 
     locations: { id: number; name: string }[] = [];
-    floors: string[] = [];
-    selectedFloorIndex = -1;
 
     assets: AssetList = {};
 
@@ -84,14 +78,6 @@ class GameStore extends VuexModule implements GameState {
     showUI = true;
 
     invertAlt = false;
-
-    get selectedLayer(): string {
-        return this.layers[this.selectedLayerIndex];
-    }
-
-    get selectedFloor(): string {
-        return this.floors[this.selectedFloorIndex];
-    }
 
     get zoomFactor(): number {
         return zoomValue(this.zoomDisplay);
@@ -169,7 +155,7 @@ class GameStore extends VuexModule implements GameState {
             const i = shape.labels.indexOf(label);
             if (i >= 0) {
                 shape.labels.splice(i, 1);
-                layerManager.getLayer(shape.floor, shape.layer)!.invalidate(false);
+                shape.layer.invalidate(false);
             }
         }
         Vue.delete(this.labels, data.uuid);
@@ -198,49 +184,6 @@ class GameStore extends VuexModule implements GameState {
     @Mutation
     setInvitationCode(code: string): void {
         this.invitationCode = code;
-    }
-
-    @Mutation
-    addLayer(name: string): void {
-        this.layers.push(name);
-        if (this.selectedLayerIndex === -1) this.selectedLayerIndex = this.layers.indexOf(name);
-    }
-
-    @Mutation
-    selectLayer(data: { layer: Layer; sync: boolean }): void {
-        let index = this.layers.indexOf(data.layer.name);
-        if (index < 0) index = 0;
-        // else if (index >= this.layers.reduce((acc: number, val: Layer) => val.floor === data.layer.floor))
-        this.selectedLayerIndex = index;
-        if (data.sync) socket.emit("Client.ActiveLayer.Set", { floor: data.layer.floor, layer: data.layer.name });
-    }
-
-    @Mutation
-    selectFloor(data: { targetFloor: number | string; sync: boolean }): void {
-        let targetFloorIndex: number;
-        if (typeof data.targetFloor === "string") {
-            targetFloorIndex = layerManager.floors.findIndex(f => f.name === data.targetFloor);
-        } else {
-            targetFloorIndex = data.targetFloor;
-        }
-        if (targetFloorIndex === this.selectedFloorIndex) return;
-
-        this.selectedFloorIndex = targetFloorIndex;
-        this.layers = layerManager.floor!.layers.reduce(
-            (acc: string[], val: Layer) =>
-                val.selectable && (val.playerEditable || this.IS_DM) ? [...acc, val.name] : acc,
-            [],
-        );
-        if (this.selectedLayerIndex < 0) this.selectedLayerIndex = 0;
-
-        for (const [f, floor] of layerManager.floors.entries()) {
-            for (const layer of floor.layers) {
-                if (f > targetFloorIndex) layer.canvas.style.display = "none";
-                else layer.canvas.style.removeProperty("display");
-            }
-        }
-        layerManager.selectLayer(layerManager.getLayer(layerManager.floor!.name)!.name, data.sync, false);
-        layerManager.invalidateAllFloors();
     }
 
     @Mutation
@@ -298,14 +241,6 @@ class GameStore extends VuexModule implements GameState {
     }
 
     @Mutation
-    resetLayerInfo(): void {
-        this.floors = [];
-        this.selectedFloorIndex = -1;
-        this.layers = [];
-        this.selectedLayerIndex = -1;
-    }
-
-    @Mutation
     updateZoom(data: { newZoomDisplay: number; zoomLocation: GlobalPoint }): void {
         if (data.newZoomDisplay === this.zoomDisplay) return;
         if (data.newZoomDisplay < 0) data.newZoomDisplay = 0;
@@ -324,8 +259,8 @@ class GameStore extends VuexModule implements GameState {
     @Mutation
     setGridColour(data: { colour: string; sync: boolean }): void {
         this.gridColour = data.colour;
-        for (const floor of layerManager.floors) {
-            layerManager.getGridLayer(floor.name)!.invalidate();
+        for (const floor of floorStore.floors) {
+            layerManager.getGridLayer(floor)!.invalidate();
         }
         if (data.sync) socket.emit("Client.Options.Set", { gridColour: data.colour });
     }

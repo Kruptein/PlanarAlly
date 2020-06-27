@@ -2,7 +2,7 @@ import { coreStore } from "../../../core/store";
 import { ServerLocation } from "../../comm/types/general";
 import { ServerLocationOptions } from "../../comm/types/settings";
 import { EventBus } from "../../event-bus";
-import { layerManager } from "../../layers/manager";
+import { floorStore } from "../../layers/store";
 import { gameSettingsStore } from "../../settings";
 import { gameStore } from "../../store";
 import { VisibilityMode, visibilityStore } from "../../visibility/store";
@@ -11,7 +11,6 @@ import { socket } from "../socket";
 // Bootup Sequence
 
 socket.on("Location.Set", (data: ServerLocation) => {
-    coreStore.setLoading(false);
     gameSettingsStore.setActiveLocation(data.id);
     gameStore.updatePlayer({ player: gameStore.username, location: data.id });
     setLocationOptions(data.id, data.options);
@@ -64,7 +63,7 @@ export function setLocationOptions(id: number | null, options: Partial<ServerLoc
             mode: VisibilityMode[<keyof typeof VisibilityMode>options.vision_mode],
             sync: false,
         });
-        for (const floor of layerManager.floors) {
+        for (const floor of floorStore.floors) {
             visibilityStore.recalculateVision(floor.name);
             visibilityStore.recalculateMovement(floor.name);
         }

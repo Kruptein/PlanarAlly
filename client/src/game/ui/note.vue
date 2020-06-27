@@ -3,7 +3,7 @@ import Vue from "vue";
 import Component from "vue-class-component";
 
 import Modal from "@/core/components/modals/modal.vue";
-import Game from "@/game/game.vue";
+import Game from "@/game/Game.vue";
 
 import { Note } from "@/game/comm/types/general";
 import { gameStore } from "@/game/store";

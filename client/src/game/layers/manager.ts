@@ -1,17 +1,13 @@
 import { GridLayer } from "@/game/layers/grid";
 import { Layer } from "@/game/layers/layer";
 import { Shape } from "@/game/shapes/shape";
-import { gameStore } from "@/game/store";
-
-export interface Floor {
-    name: string;
-    layers: Layer[];
-}
+import { Floor } from "./floor";
+import { floorStore } from "./store";
+import { socket } from "../api/socket";
 
 class LayerManager {
-    floors: Floor[] = [];
-
     UUIDMap: Map<string, Shape> = new Map();
+    private layerMap: Map<string, Layer[]> = new Map();
 
     // Refresh interval and redraw setter.
     interval = 30;
@@ -21,13 +17,21 @@ class LayerManager {
     }
 
     reset(): void {
-        this.floors = [];
+        this.layerMap = new Map();
         this.UUIDMap = new Map();
+    }
+
+    addFloor(name: string): void {
+        this.layerMap.set(name, []);
+    }
+
+    removeFloor(name: string): void {
+        this.layerMap.delete(name);
     }
 
     private drawFloor(floor: Floor): void {
         let fowLayer: Layer | undefined;
-        for (const layer of floor.layers) {
+        for (const layer of this.getLayers(floor)) {
             layer.hide();
             // we need to draw fow later because it depends on fow-players
             // and historically we did the draw loop in the other direction
@@ -42,76 +46,80 @@ class LayerManager {
 
     drawLoop = (): void => {
         // First process all other floors
-        for (const [f, floor] of this.floors.entries()) {
-            if (f === gameStore.selectedFloorIndex) continue;
+        for (const [f, floor] of floorStore.floors.entries()) {
+            if (f === floorStore.currentFloorindex) continue;
             this.drawFloor(floor);
         }
         // Then process the current floor
-        if (this.floor !== undefined) {
-            this.drawFloor(this.floor);
+        if (floorStore.currentFloor !== undefined) {
+            this.drawFloor(floorStore.currentFloor);
         }
-        for (let i = gameStore.selectedFloorIndex; i >= 0; i--) {
-            for (const layer of this.floors[i].layers) {
-                if (i === gameStore.selectedFloorIndex || !layer.isVisionLayer) layer.show();
+        for (let i = floorStore.currentFloorindex; i >= 0; i--) {
+            const floor = floorStore.floors[i];
+            for (const layer of this.getLayers(floor)) {
+                if (i === floorStore.currentFloorindex || !layer.isVisionLayer) layer.show();
             }
         }
         requestAnimationFrame(this.drawLoop);
     };
 
-    get floor(): Floor | undefined {
-        return this.floors[gameStore.selectedFloorIndex];
-    }
-
     setWidth(width: number): void {
-        for (const layer of this.floors.flatMap(f => f.layers)) {
+        for (const layer of [...this.layerMap.values()].flat()) {
             layer.width = width;
         }
     }
 
     setHeight(height: number): void {
-        for (const layer of this.floors.flatMap(f => f.layers)) {
+        for (const layer of [...this.layerMap.values()].flat()) {
             layer.height = height;
         }
     }
 
     addLayer(layer: Layer, floorName: string): void {
-        for (const floor of this.floors) {
+        for (const floor of floorStore.floors) {
             if (floor.name === floorName) {
-                floor.layers.push(layer);
-                if (!gameStore.IS_DM && !layer.playerEditable) return;
-                if (layer.selectable && floorName === this.floor?.name) gameStore.addLayer(layer.name);
+                this.getLayers(floor).push(layer);
+                if (floorStore.currentLayerIndex < 0) {
+                    floorStore.setLayerIndex(0);
+                }
                 return;
             }
         }
         console.error(`Attempt to add layer to unknown floor ${floorName}`);
     }
 
-    hasLayer(floor: string, name: string): boolean {
-        return this.getFloor(floor)!.layers.some(l => l.name === name);
+    getLayers(floor: Floor): Layer[] {
+        return this.layerMap.get(floor.name)!;
     }
 
-    getLayer(floor: string, name?: string): Layer | undefined {
-        name = name === undefined ? gameStore.selectedLayer : name;
-        for (const layer of this.getFloor(floor)?.layers || []) {
+    hasLayer(floor: Floor, name: string): boolean {
+        return this.getLayers(floor).some(l => l.name === name);
+    }
+
+    getLayer(floor: Floor, name?: string): Layer | undefined {
+        const layers = this.getLayers(floor);
+        if (name === undefined) return layers[floorStore.currentLayerIndex];
+        for (const layer of layers) {
             if (layer.name === name) return layer;
         }
     }
 
     getFloor(name?: string): Floor | undefined {
-        if (name === undefined) return this.floor;
-        for (const floor of this.floors) if (floor.name === name) return floor;
+        if (name === undefined) return floorStore.currentFloor;
+        return floorStore.floors.find(f => f.name === name);
     }
 
     selectLayer(name: string, sync = true, invalidate = true): void {
         let found = false;
-        for (const layer of this.floor!.layers) {
+        for (const [index, layer] of this.getLayers(floorStore.currentFloor).entries()) {
             if (!layer.selectable) continue;
             if (found && layer.name !== "fow") layer.ctx.globalAlpha = 0.3;
             else layer.ctx.globalAlpha = 1.0;
 
             if (name === layer.name) {
-                gameStore.selectLayer({ layer, sync });
+                floorStore.setLayerIndex(index);
                 found = true;
+                if (sync) socket.emit("Client.ActiveLayer.Set", { floor: layer.floor, layer: layer.name });
             }
 
             layer.clearSelection();
@@ -119,7 +127,7 @@ class LayerManager {
         }
     }
 
-    getGridLayer(floor: string): GridLayer | undefined {
+    getGridLayer(floor: Floor): GridLayer | undefined {
         return <GridLayer>this.getLayer(floor, "grid");
     }
 
@@ -129,49 +137,44 @@ class LayerManager {
     }
 
     getSelection(skipUiHelpers = true): readonly Shape[] | undefined {
-        const layer = this.getLayer(this.floor!.name);
+        const layer = this.getLayer(floorStore.currentFloor);
         if (layer === undefined) return undefined;
         return layer.getSelection(skipUiHelpers);
     }
 
     clearSelection(): void {
-        const layer = this.getLayer(layerManager.floor!.name);
+        const layer = this.getLayer(floorStore.currentFloor);
         if (layer) {
             layer.clearSelection();
             layer.invalidate(true);
         }
     }
 
-    invalidate(floorName: string): void {
-        const floor = this.getFloor(floorName)!;
-        for (let i = floor.layers.length - 1; i >= 0; i--) {
-            floor.layers[i].invalidate(true);
+    invalidate(floor: Floor): void {
+        const layers = this.getLayers(floor);
+        for (let i = layers.length - 1; i >= 0; i--) {
+            layers[i].invalidate(true);
         }
     }
 
     invalidateAllFloors(): void {
-        for (const floor of this.floors) {
-            this.invalidate(floor.name);
+        for (const floor of floorStore.floors) {
+            this.invalidate(floor);
         }
     }
 
     // Lighting of multiple floors is heavily dependent on eachother
     // This method only updates a single floor and should thus only be used for very specific cases
     // as you typically require the allFloor variant
-    invalidateLight(floorName: string): void {
-        const floor = this.getFloor(floorName);
-        if (floor === undefined) {
-            console.error(`Unknown floor ${floorName} requested light invalidation`);
-            return;
-        }
-        for (let i = floor.layers.length - 1; i >= 0; i--)
-            if (floor.layers[i].isVisionLayer) floor.layers[i].invalidate(true);
+    invalidateLight(floor: Floor): void {
+        const layers = this.getLayers(floor);
+        for (let i = layers.length - 1; i >= 0; i--) if (layers[i].isVisionLayer) layers[i].invalidate(true);
     }
 
     invalidateLightAllFloors(): void {
-        for (const [f, floor] of this.floors.entries()) {
-            if (f > gameStore.selectedFloorIndex) return;
-            this.invalidateLight(floor.name);
+        for (const [f, floor] of floorStore.floors.entries()) {
+            if (f > floorStore.currentFloorindex) return;
+            this.invalidateLight(floor);
         }
     }
 }

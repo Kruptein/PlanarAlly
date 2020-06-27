@@ -13,6 +13,8 @@ import { addCDT, removeCDT } from "@/game/visibility/te/pa";
 import { gameSettingsStore } from "../settings";
 import { floorStore } from "./store";
 import { Floor } from "./floor";
+import { Shape } from "../shapes/shape";
+import { socket } from "../api/socket";
 
 export function addFloor(serverFloor: ServerFloor): void {
     const floor = { name: serverFloor.name, playerVisible: serverFloor.player_visible };
@@ -103,4 +105,22 @@ export function snapToPoint(layer: Layer, endPoint: GlobalPoint, ignore?: Global
     }
     if (smallestPoint !== undefined) endPoint = smallestPoint[1];
     return endPoint;
+}
+
+export function moveFloor(shapes: Shape[], newFloor: Floor, sync: boolean): void {
+    const oldLayer = shapes[0].layer;
+    const oldFloor = shapes[0].floor;
+    if (shapes.some(s => s.layer !== oldLayer)) {
+        throw new Error("Mixing shapes from different floors in shape move");
+    }
+    const newLayer = layerManager.getLayer(newFloor, oldLayer.name)!;
+    for (const shape of shapes) {
+        visibilityStore.moveShape({ shape, oldFloor: oldFloor.name, newFloor: newFloor.name });
+        shape.setLayer(newFloor.name, oldLayer.name);
+    }
+    oldLayer.setShapes(...oldLayer.getShapes().filter(s => !shapes.includes(s)));
+    newLayer.pushShapes(...shapes);
+    oldLayer.invalidate(false);
+    newLayer.invalidate(false);
+    if (sync) socket.emit("Shapes.Floor.Change", { uuids: shapes.map(s => s.uuid), floor: newFloor.name });
 }

@@ -424,19 +424,6 @@ export abstract class Shape {
         };
     }
 
-    moveFloor(floor: string, sync: boolean): void {
-        const oldLayer = this.layer;
-        const newLayer = layerManager.getLayer(layerManager.getFloor(floor)!, this._layer);
-        if (oldLayer === undefined || newLayer === undefined) return;
-        visibilityStore.moveShape({ shape: this, oldFloor: this._floor, newFloor: floor });
-        this._floor = floor;
-        oldLayer.setShapes(...[...oldLayer.getShapes()].splice(oldLayer.getShapes().indexOf(this), 1));
-        newLayer.pushShapes(this);
-        oldLayer.invalidate(false);
-        newLayer.invalidate(false);
-        if (sync) socket.emit("Shape.Floor.Change", { uuid: this.uuid, floor });
-    }
-
     moveLayer(layer: string, sync: boolean): void {
         const oldLayer = this.layer;
         const newLayer = layerManager.getLayer(layerManager.getFloor(this._floor)!, layer);

@@ -3,7 +3,9 @@ import { ServerShape } from "../../comm/types/shapes";
 import { EventBus } from "../../event-bus";
 import { layerManager } from "../../layers/manager";
 import { floorStore } from "../../layers/store";
+import { moveFloor } from "../../layers/utils";
 import { gameManager } from "../../manager";
+import { Shape } from "../../shapes/shape";
 import { socket } from "../socket";
 
 // todo: why full shape and not just uuid?
@@ -69,11 +71,12 @@ socket.on("Shape.Order.Set", (data: { shape: ServerShape; index: number }) => {
     shape.layer.moveShapeOrder(shape, data.index, false);
 });
 
-socket.on("Shape.Floor.Change", (data: { uuid: string; floor: string }) => {
-    const shape = layerManager.UUIDMap.get(data.uuid);
-    if (shape === undefined) return;
-    shape.moveFloor(data.floor, false);
-    if (shape.ownedBy({ editAccess: true })) floorStore.selectFloor({ targetFloor: data.floor, sync: false });
+socket.on("Shapes.Floor.Change", (data: { uuids: string[]; floor: string }) => {
+    const shapes = <Shape[]>data.uuids.map(u => layerManager.UUIDMap.get(u) ?? undefined).filter(s => s !== undefined);
+    if (shapes.length === 0) return;
+    moveFloor(shapes, layerManager.getFloor(data.floor)!, false);
+    if (shapes.some(s => s.ownedBy({ editAccess: true })))
+        floorStore.selectFloor({ targetFloor: data.floor, sync: false });
 });
 
 socket.on("Shape.Layer.Change", (data: { uuid: string; layer: string }) => {

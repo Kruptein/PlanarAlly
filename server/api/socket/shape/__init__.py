@@ -1,6 +1,6 @@
 from copy import deepcopy
 from datetime import datetime
-from typing import Any, Dict
+from typing import Any, Dict, List
 
 from peewee import Case
 from playhouse.shortcuts import update_model_from_dict
@@ -286,7 +286,7 @@ async def remove_shape(sid: int, data: Dict[str, Any]):
             await sio.emit("Shape.Remove", data["shape"], room=csid, namespace=GAME_NS)
 
 
-@sio.on("Shape.Floor.Change", namespace=GAME_NS)
+@sio.on("Shapes.Floor.Change", namespace=GAME_NS)
 @auth.login_required(app, sio)
 async def change_shape_floor(sid: int, data: Dict[str, Any]):
     pr: PlayerRoom = game_state.get(sid)
@@ -296,21 +296,22 @@ async def change_shape_floor(sid: int, data: Dict[str, Any]):
         return
 
     floor: Floor = Floor.get(location=pr.active_location, name=data["floor"])
-    shape: Shape = Shape.get(uuid=data["uuid"])
-    layer: Layer = Layer.get(floor=floor, name=shape.layer.name)
-    old_layer = shape.layer
-    old_index = shape.index
+    shapes: List[Shape] = [s for s in Shape.select().where(Shape.uuid << data["uuids"])]
+    layer: Layer = Layer.get(floor=floor, name=shapes[0].layer.name)
+    old_layer = shapes[0].layer
 
-    shape.layer = layer
-    shape.index = layer.shapes.count()
-    shape.save()
+    for shape in shapes:
+        old_index = shape.index
+        shape.layer = layer
+        shape.index = layer.shapes.count()
+        shape.save()
 
-    Shape.update(index=Shape.index - 1).where(
-        (Shape.layer == old_layer) & (Shape.index >= old_index)
-    ).execute()
+        Shape.update(index=Shape.index - 1).where(
+            (Shape.layer == old_layer) & (Shape.index >= old_index)
+        ).execute()
 
     await sio.emit(
-        "Shape.Floor.Change",
+        "Shapes.Floor.Change",
         data,
         room=pr.active_location.get_path(),
         skip_sid=sid,

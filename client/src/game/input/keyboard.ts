@@ -11,6 +11,7 @@ import { EventBus } from "../event-bus";
 import { gameManager } from "../manager";
 import { gameSettingsStore } from "../settings";
 import { floorStore } from "../layers/store";
+import { moveFloor } from "../layers/utils";
 
 export function onKeyUp(event: KeyboardEvent): void {
     if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement) {
@@ -138,9 +139,7 @@ export function onKeyDown(event: KeyboardEvent): void {
             const newLayer = layerManager.getLayer(newFloor)!;
 
             if (event.ctrlKey) {
-                for (const shape of selection) {
-                    shape.moveFloor(newFloor.name, true);
-                }
+                moveFloor([...selection], newFloor, true);
             }
             layerManager.clearSelection();
             if (!event.ctrlKey || event.shiftKey) {
@@ -166,9 +165,7 @@ export function onKeyDown(event: KeyboardEvent): void {
             const newLayer = layerManager.getLayer(newFloor)!;
 
             if (event.ctrlKey) {
-                for (const shape of selection) {
-                    shape.moveFloor(newFloor.name, true);
-                }
+                moveFloor([...selection], newFloor, true);
             }
             if (!event.shiftKey) layerManager.clearSelection();
             if (!event.ctrlKey || event.shiftKey) {

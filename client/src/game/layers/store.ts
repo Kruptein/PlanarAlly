@@ -1,6 +1,5 @@
 import { Action, getModule, Module, Mutation, VuexModule } from "vuex-module-decorators";
 import { rootStore } from "../../store";
-import { gameStore } from "../store";
 import { Floor } from "./floor";
 import { layerManager } from "./manager";
 

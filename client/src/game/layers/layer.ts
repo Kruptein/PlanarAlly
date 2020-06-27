@@ -166,7 +166,7 @@ export class Layer {
         }
 
         if (sync !== SyncMode.NO_SYNC && !shape.preventSync)
-            socket.emit("Shape.Remove", { shape: shape.asDict(), temporary: sync === SyncMode.TEMP_SYNC });
+            socket.emit("Shapes.Remove", { uuids: [shape.uuid], temporary: sync === SyncMode.TEMP_SYNC });
 
         const visionSources = getVisionSources(this.floor);
         const visionBlockers = getBlockers(TriangulationTarget.VISION, this.floor);

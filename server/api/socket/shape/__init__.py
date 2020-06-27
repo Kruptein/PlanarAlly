@@ -319,7 +319,7 @@ async def change_shape_floor(sid: int, data: Dict[str, Any]):
     )
 
 
-@sio.on("Shape.Layer.Change", namespace=GAME_NS)
+@sio.on("Shapes.Layer.Change", namespace=GAME_NS)
 @auth.login_required(app, sio)
 async def change_shape_layer(sid: int, data: Dict[str, Any]):
     pr: PlayerRoom = game_state.get(sid)
@@ -349,16 +349,16 @@ async def change_shape_layer(sid: int, data: Dict[str, Any]):
     for shape in shapes:
         old_index = shape.index
 
-    shape.layer = layer
-    shape.index = layer.shapes.count()
-    shape.save()
-    Shape.update(index=Shape.index - 1).where(
-        (Shape.layer == old_layer) & (Shape.index >= old_index)
-    ).execute()
+        shape.layer = layer
+        shape.index = layer.shapes.count()
+        shape.save()
+        Shape.update(index=Shape.index - 1).where(
+            (Shape.layer == old_layer) & (Shape.index >= old_index)
+        ).execute()
 
     if old_layer.player_visible and layer.player_visible:
         await sio.emit(
-            "Shape.Layer.Change",
+            "Shapes.Layer.Change",
             data,
             room=pr.active_location.get_path(),
             skip_sid=sid,
@@ -374,7 +374,7 @@ async def change_shape_layer(sid: int, data: Dict[str, Any]):
             ):
                 if is_dm:
                     await sio.emit(
-                        "Shape.Layer.Change",
+                        "Shapes.Layer.Change",
                         data,
                         room=pr.active_location.get_path(),
                         skip_sid=sid,

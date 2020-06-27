@@ -19,8 +19,10 @@ export default class FloorSelect extends Vue {
         return gameStore.IS_DM || gameStore.FAKE_PLAYER;
     }
 
-    get floors(): readonly Floor[] {
-        return floorStore.visibleFloors;
+    get floors(): readonly [number, Floor][] {
+        return floorStore.floors
+            .filter(f => f.playerVisible || gameStore.IS_DM)
+            .map(f => [floorStore.floors.indexOf(f), f]);
     }
 
     get selectedFloorIndex(): number {
@@ -56,13 +58,13 @@ export default class FloorSelect extends Vue {
         socket.emit("Floor.Create", value);
     }
 
-    selectFloor(index: number): void {
-        floorStore.selectFloor({ targetFloor: index, sync: true });
+    selectFloor(floor: Floor): void {
+        floorStore.selectFloor({ targetFloor: floor, sync: true });
     }
 
     async removeFloor(index: number): Promise<void> {
         if (this.floors.length <= 1) return;
-        const floor = this.floors[index];
+        const floor = this.floors[index][1];
         if (
             !(await (<Game>this.$parent.$parent).$refs.confirm.open(
                 this.$t("common.warning").toString(),
@@ -106,8 +108,8 @@ export default class FloorSelect extends Vue {
             <a href="#">{{ selectedFloorIndex }}</a>
         </div>
         <div id="floor-detail" v-if="selected">
-            <template v-for="[index, floor] of floors.entries()">
-                <div class="floor-row" :key="floor.name" @click="selectFloor(index)">
+            <template v-for="[index, floor] of floors">
+                <div class="floor-row" :key="floor.name" @click="selectFloor(floor)">
                     <div class="floor-index">
                         <template v-if="index == selectedFloorIndex">></template>
                         {{ index }}

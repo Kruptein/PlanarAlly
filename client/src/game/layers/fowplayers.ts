@@ -49,7 +49,7 @@ export class FOWPlayersLayer extends Layer {
 
             ctx.fillStyle = "rgba(0, 0, 0, 1)";
 
-            const activeFloorName = floorStore.visibleFloors[floorStore.currentFloorindex].name;
+            const activeFloorName = floorStore.floors[floorStore.currentFloorindex].name;
 
             if (this.floor === activeFloorName && this.canvas.style.display === "none")
                 this.canvas.style.removeProperty("display");

@@ -18,11 +18,6 @@ class FloorStore extends VuexModule implements FloorState {
         return this._floors;
     }
 
-    get visibleFloors(): readonly Floor[] {
-        if (gameStore.IS_DM) return this.floors;
-        return this.floors.filter(f => f.playerVisible);
-    }
-
     get currentFloor(): Floor {
         return this.floors[this.floorIndex];
     }

@@ -61,7 +61,7 @@ export class FOWLayer extends Layer {
 
             ctx.fillStyle = "rgba(0, 0, 0, 1)";
 
-            const activeFloorName = floorStore.visibleFloors[floorStore.currentFloorindex].name;
+            const activeFloorName = floorStore.floors[floorStore.currentFloorindex].name;
 
             if (this.floor === activeFloorName && this.canvas.style.display === "none")
                 this.canvas.style.removeProperty("display");
@@ -70,7 +70,7 @@ export class FOWLayer extends Layer {
 
             if (this.floor === activeFloorName && floorStore.floors.length > 1) {
                 for (const floor of floorStore.floors) {
-                    if (floor.name !== floorStore.visibleFloors[0].name) {
+                    if (floor.name !== floorStore.floors[0].name) {
                         const mapl = layerManager.getLayer(floor, "map");
                         if (mapl === undefined) continue;
                         ctx.globalCompositeOperation = "destination-out";
@@ -91,7 +91,7 @@ export class FOWLayer extends Layer {
             if (
                 gameSettingsStore.fullFow &&
                 layerManager.hasLayer(floorStore.currentFloor, "tokens") &&
-                floorStore.currentFloor === floorStore.visibleFloors[floorStore.currentFloorindex]
+                floorStore.currentFloor === floorStore.floors[floorStore.currentFloorindex]
             ) {
                 for (const sh of layerManager.getLayer(floorStore.currentFloor, "tokens")!.getShapes()) {
                     if (!sh.ownedBy({ visionAccess: true }) || !sh.isToken) continue;

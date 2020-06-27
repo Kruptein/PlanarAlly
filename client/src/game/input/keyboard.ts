@@ -123,14 +123,18 @@ export function onKeyDown(event: KeyboardEvent): void {
         } else if (event.key === "v" && event.ctrlKey) {
             // Ctrl-v - Paste
             pasteShapes();
-        } else if (event.key === "PageUp" && floorStore.currentFloorindex < floorStore.visibleFloors.length - 1) {
+        } else if (event.key === "PageUp" && floorStore.currentFloorindex < floorStore.floors.length - 1) {
             // Page Up - Move floor up
             // Ctrl + Page Up - Move selected shapes floor up
             // Ctrl + Shift + Page Up - Move selected shapes floor up AND move floor up
             event.preventDefault();
-            if (floorStore.currentFloorindex + 1 >= floorStore.visibleFloors.length) return;
+            const targetFloor = floorStore.floors.findIndex(
+                (f, i) => i > floorStore.currentFloorindex && (gameStore.IS_DM || f.playerVisible),
+            );
+            if (targetFloor > floorStore.floors.length - 1) return;
+
             const selection = layerManager.getSelection() ?? [];
-            const newFloor = floorStore.visibleFloors[floorStore.currentFloorindex + 1];
+            const newFloor = floorStore.floors[targetFloor];
             const newLayer = layerManager.getLayer(newFloor)!;
 
             if (event.ctrlKey) {
@@ -140,7 +144,7 @@ export function onKeyDown(event: KeyboardEvent): void {
             }
             layerManager.clearSelection();
             if (!event.ctrlKey || event.shiftKey) {
-                floorStore.selectFloor({ targetFloor: floorStore.currentFloorindex + 1, sync: true });
+                floorStore.selectFloor({ targetFloor, sync: true });
             }
             if (event.shiftKey) for (const shape of selection) newLayer.pushSelection(shape);
         } else if (event.key === "PageDown" && floorStore.currentFloorindex > 0) {
@@ -148,9 +152,17 @@ export function onKeyDown(event: KeyboardEvent): void {
             // Ctrl + Page Down - Move selected shape floor down
             // Ctrl + Shift + Page Down - Move selected shapes floor down AND move floor down
             event.preventDefault();
-            if (floorStore.currentFloorindex - 1 < 0) return;
+            const maxLength = floorStore.floors.length - 1;
+            let targetFloor = [...floorStore.floors]
+                .reverse()
+                .findIndex(
+                    (f, i) => maxLength - i < floorStore.currentFloorindex && (gameStore.IS_DM || f.playerVisible),
+                );
+            targetFloor = maxLength - targetFloor;
+            if (targetFloor < 0) return;
+
             const selection = layerManager.getSelection() ?? [];
-            const newFloor = floorStore.visibleFloors[floorStore.currentFloorindex - 1];
+            const newFloor = floorStore.floors[targetFloor];
             const newLayer = layerManager.getLayer(newFloor)!;
 
             if (event.ctrlKey) {
@@ -160,7 +172,7 @@ export function onKeyDown(event: KeyboardEvent): void {
             }
             if (!event.shiftKey) layerManager.clearSelection();
             if (!event.ctrlKey || event.shiftKey) {
-                floorStore.selectFloor({ targetFloor: floorStore.currentFloorindex - 1, sync: true });
+                floorStore.selectFloor({ targetFloor, sync: true });
             }
             if (event.shiftKey) for (const shape of selection) newLayer.pushSelection(shape);
         } else if (event.key === "Tab") {

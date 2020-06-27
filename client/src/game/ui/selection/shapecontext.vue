@@ -9,15 +9,17 @@ import Prompt from "@/core/components/modals/prompt.vue";
 
 import { socket } from "@/game/api/socket";
 import { EventBus } from "@/game/event-bus";
-import { layerManager, Floor } from "@/game/layers/manager";
+import { layerManager } from "@/game/layers/manager";
 import { gameStore } from "@/game/store";
 import { deleteShapes } from "../../shapes/utils";
 import { initiativeStore, inInitiative } from "../initiative/store";
 import { Layer } from "../../layers/layer";
 import { gameSettingsStore } from "../../settings";
-import Game from "@/game/game.vue";
+import Game from "@/game/Game.vue";
 import { ServerAsset } from "../../comm/types/shapes";
 import { Shape } from "@/game/shapes/shape";
+import { floorStore } from "../../layers/store";
+import { Floor } from "@/game/layers/floor";
 
 @Component({
     components: {
@@ -60,8 +62,8 @@ export default class ShapeContext extends Vue {
         if (layer.getSelection().length !== 1) return;
         return layer.getSelection()[0].uuid;
     }
-    getFloors(): Floor[] {
-        if (gameStore.IS_DM) return layerManager.floors;
+    getFloors(): readonly Floor[] {
+        if (gameStore.IS_DM) return floorStore.floors;
         return [];
     }
     getLocations(): { id: number; name: string }[] {
@@ -70,10 +72,10 @@ export default class ShapeContext extends Vue {
     }
     getLayers(): Layer[] {
         if (!gameStore.IS_DM || this.hasSpawnToken()) return [];
-        return layerManager.floor?.layers.filter(l => l.selectable) || [];
+        return layerManager.getLayers(floorStore.currentFloor).filter(l => l.selectable) || [];
     }
     getActiveLayer(): Layer | undefined {
-        if (layerManager.floor !== undefined) return layerManager.getLayer(layerManager.floor.name);
+        return gameStore.boardInitialized ? layerManager.getLayer(floorStore.currentFloor) : undefined;
     }
     getInitiativeWord(): string {
         const layer = this.getActiveLayer()!;

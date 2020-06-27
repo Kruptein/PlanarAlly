@@ -7,57 +7,55 @@ import { GridLayer } from "@/game/layers/grid";
 import { Layer } from "@/game/layers/layer";
 import { layerManager } from "@/game/layers/manager";
 import { Asset } from "@/game/shapes/asset";
-import { gameStore } from "@/game/store";
 import { clampGridLine, l2gx, l2gy, l2gz } from "@/game/units";
 import { visibilityStore } from "@/game/visibility/store";
 import { addCDT, removeCDT } from "@/game/visibility/te/pa";
 import { gameSettingsStore } from "../settings";
+import { floorStore } from "./store";
+import { Floor } from "./floor";
 
-export function addFloor(floor: ServerFloor): void {
-    gameStore.addFloor(floor.name);
-    addCDT(floor.name);
-    layerManager.floors.push({ name: floor.name, layers: [], playerVisible: floor.player_visible });
-    for (const layer of floor.layers) createLayer(layer, floor.name);
+export function addFloor(serverFloor: ServerFloor): void {
+    const floor = { name: serverFloor.name, playerVisible: serverFloor.player_visible };
+    floorStore.addFloor(floor);
+    addCDT(serverFloor.name);
+    for (const layer of serverFloor.layers) createLayer(layer, floor);
 }
 
-export function removeFloor(floor: string): void {
-    removeCDT(floor);
+export function removeFloor(floorName: string): void {
+    removeCDT(floorName);
     visibilityStore.movementBlockers.splice(
-        visibilityStore.movementBlockers.findIndex(mb => mb.floor === floor),
+        visibilityStore.movementBlockers.findIndex(mb => mb.floor === floorName),
         1,
     );
     visibilityStore.visionBlockers.splice(
-        visibilityStore.visionBlockers.findIndex(vb => vb.floor === floor),
+        visibilityStore.visionBlockers.findIndex(vb => vb.floor === floorName),
         1,
     );
     visibilityStore.visionSources.splice(
-        visibilityStore.visionSources.findIndex(vs => vs.floor === floor),
+        visibilityStore.visionSources.findIndex(vs => vs.floor === floorName),
         1,
     );
-    const index = gameStore.visibleFloors.findIndex(f => f === floor);
-    for (const layer of layerManager.floors[index].layers) layer.canvas.remove();
-    // todo: once vue 3 hits, fix this split up
-    gameStore.visibleFloors.splice(index, 1);
-    layerManager.floors.splice(index, 1);
-    if (gameStore.selectedFloorIndex === index) gameStore.selectFloor({ targetFloor: index - 1, sync: true });
+    const floor = floorStore.floors.find(f => f.name === floorName)!;
+    for (const layer of layerManager.getLayers(floor)) layer.canvas.remove();
+    floorStore.removeFloor(floor);
 }
 
-export function createLayer(layerInfo: ServerLayer, floor: string): void {
+function createLayer(layerInfo: ServerLayer, floor: Floor): void {
     // Create canvas element
     const canvas = document.createElement("canvas");
-    canvas.style.zIndex = layerManager.floors.flatMap(f => f.layers).length.toString();
+    canvas.style.zIndex = layerManager.getLayers(floor).length.toString();
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
 
     // Create the Layer instance
     let layer: Layer;
-    if (layerInfo.type_ === "grid") layer = new GridLayer(canvas, layerInfo.name, floor);
-    else if (layerInfo.type_ === "fow") layer = new FOWLayer(canvas, layerInfo.name, floor);
-    else if (layerInfo.type_ === "fow-players") layer = new FOWPlayersLayer(canvas, layerInfo.name, floor);
-    else layer = new Layer(canvas, layerInfo.name, floor);
+    if (layerInfo.type_ === "grid") layer = new GridLayer(canvas, layerInfo.name, floor.name);
+    else if (layerInfo.type_ === "fow") layer = new FOWLayer(canvas, layerInfo.name, floor.name);
+    else if (layerInfo.type_ === "fow-players") layer = new FOWPlayersLayer(canvas, layerInfo.name, floor.name);
+    else layer = new Layer(canvas, layerInfo.name, floor.name);
     layer.selectable = layerInfo.selectable;
     layer.playerEditable = layerInfo.player_editable;
-    layerManager.addLayer(layer, floor);
+    layerManager.addLayer(layer, floor.name);
 
     // Add the element to the DOM
     const layers = document.getElementById("layers");
@@ -71,7 +69,7 @@ export function createLayer(layerInfo: ServerLayer, floor: string): void {
 }
 
 export function dropAsset(event: DragEvent): void {
-    const layer = layerManager.getLayer(layerManager.floor!.name);
+    const layer = layerManager.getLayer(floorStore.currentFloor);
     if (layer === undefined || event === null || event.dataTransfer === null) return;
     const image = document.createElement("img");
     image.src = event.dataTransfer.getData("text/plain");

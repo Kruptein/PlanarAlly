@@ -22,6 +22,7 @@ import { l2g } from "@/game/units";
 import { getLocalPointFromEvent } from "@/game/utils";
 import { ToolName, ToolFeatures } from "./utils";
 import { EventBus } from "@/game/event-bus";
+import { floorStore } from "@/game/layers/store";
 
 @Component({
     components: {
@@ -185,7 +186,7 @@ export default class Tools extends Vue {
         // Annotation hover
         let found = false;
         for (const uuid of gameStore.annotations) {
-            if (layerManager.UUIDMap.has(uuid) && layerManager.hasLayer(layerManager.floor!.name, "draw")) {
+            if (layerManager.UUIDMap.has(uuid) && layerManager.hasLayer(floorStore.currentFloor, "draw")) {
                 const shape = layerManager.UUIDMap.get(uuid)!;
                 if (shape.contains(l2g(getLocalPointFromEvent(event)))) {
                     found = true;
@@ -274,7 +275,7 @@ export default class Tools extends Vue {
         // Annotation hover
         let found = false;
         for (const uuid of gameStore.annotations) {
-            if (layerManager.UUIDMap.has(uuid) && layerManager.hasLayer(layerManager.floor!.name, "draw")) {
+            if (layerManager.UUIDMap.has(uuid) && layerManager.hasLayer(floorStore.currentFloor, "draw")) {
                 const shape = layerManager.UUIDMap.get(uuid)!;
                 if (shape.contains(l2g(getLocalPointFromEvent(event)))) {
                     found = true;

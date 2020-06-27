@@ -1,28 +1,28 @@
-import { layerManager } from "@/game/layers/manager";
+import { floorStore } from "../layers/store";
 import { visibilityStore } from "./store";
 import { TriangulationTarget } from "./te/pa";
 
 export function getBlockers(target: TriangulationTarget, floor?: string): readonly string[] {
-    if (floor === undefined) floor = layerManager.floor!.name;
+    if (floor === undefined) floor = floorStore.currentFloor.name;
     const blockers =
         target === TriangulationTarget.VISION ? visibilityStore.visionBlockers : visibilityStore.movementBlockers;
     return blockers.find(vb => vb.floor === floor)?.blockers || [];
 }
 
 export function getVisionSources(floor?: string): readonly { shape: string; aura: string }[] {
-    if (floor === undefined) floor = layerManager.floor!.name;
+    if (floor === undefined) floor = floorStore.currentFloor.name;
     return visibilityStore.visionSources.find(vs => vs.floor === floor)?.sources || [];
 }
 
 export function setVisionSources(sources: { shape: string; aura: string }[], floor?: string): void {
-    if (floor === undefined) floor = layerManager.floor!.name;
+    if (floor === undefined) floor = floorStore.currentFloor.name;
     const obj = visibilityStore.visionSources.find(vs => vs.floor === floor);
     if (obj === undefined) throw new Error("setVisionSources got an unknown floor");
     obj.sources = sources;
 }
 
 function setBlockers(target: TriangulationTarget, blockers: string[], floor?: string): void {
-    if (floor === undefined) floor = layerManager.floor!.name;
+    if (floor === undefined) floor = floorStore.currentFloor.name;
     const targetBlockers =
         target === TriangulationTarget.VISION ? visibilityStore.visionBlockers : visibilityStore.movementBlockers;
     const obj = targetBlockers.find(b => b.floor === floor);

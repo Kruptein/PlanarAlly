@@ -146,7 +146,7 @@ export default class Game extends Vue {
 
 <template>
     <div id="main" @mouseleave="mouseleave" @wheel="zoom">
-        <ui ref="ui" v-if="ready.manager"></ui>
+        <ui ref="ui"></ui>
         <div id="board">
             <div
                 id="layers"

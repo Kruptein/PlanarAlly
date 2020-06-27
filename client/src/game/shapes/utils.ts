@@ -24,6 +24,7 @@ import { EventBus } from "../event-bus";
 import { gameStore } from "../store";
 import { Polygon } from "./polygon";
 import { socket } from "../api/socket";
+import { floorStore } from "../layers/store";
 
 export function createShapeFromDict(shape: ServerShape): Shape | undefined {
     let sh: Shape;
@@ -74,7 +75,7 @@ export function createShapeFromDict(shape: ServerShape): Shape | undefined {
         else img.src = asset.src;
         sh = new Asset(img, refPoint, asset.width, asset.height, asset.uuid);
         img.onload = () => {
-            layerManager.getLayer(shape.floor, shape.layer)!.invalidate(true);
+            layerManager.getLayer(layerManager.getFloor(shape.floor)!, shape.layer)!.invalidate(true);
         };
     } else {
         return undefined;
@@ -84,7 +85,7 @@ export function createShapeFromDict(shape: ServerShape): Shape | undefined {
 }
 
 export function copyShapes(): void {
-    const layer = layerManager.getLayer(layerManager.floor!.name);
+    const layer = layerManager.getLayer(floorStore.currentFloor);
     if (!layer) return;
     if (!layer.hasSelection()) return;
     const clipboard: ServerShape[] = [];
@@ -97,7 +98,7 @@ export function copyShapes(): void {
 }
 
 export function pasteShapes(targetLayer?: string): readonly Shape[] {
-    const layer = layerManager.getLayer(layerManager.floor!.name, targetLayer);
+    const layer = layerManager.getLayer(floorStore.currentFloor, targetLayer);
     if (!layer) return [];
     if (!gameStore.clipboard) return [];
     layer.setSelection();
@@ -165,11 +166,11 @@ export function pasteShapes(targetLayer?: string): readonly Shape[] {
 
 // todo: refactor with removeShape in api/events/shape
 export function deleteShapes(): void {
-    if (layerManager.getLayer(layerManager.floor!.name) === undefined) {
+    if (layerManager.getLayer(floorStore.currentFloor) === undefined) {
         console.log("No active layer selected for delete operation");
         return;
     }
-    const l = layerManager.getLayer(layerManager.floor!.name)!;
+    const l = layerManager.getLayer(floorStore.currentFloor)!;
     for (let i = l.getSelection().length - 1; i >= 0; i--) {
         const sel = l.getSelection()[i];
         if (!sel.ownedBy({ editAccess: true })) continue;

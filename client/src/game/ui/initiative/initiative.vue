@@ -89,7 +89,7 @@ export default class Initiative extends Vue {
         if (shape === undefined) return;
         if (shape.showHighlight) {
             shape.showHighlight = false;
-            layerManager.getLayer(shape.floor, shape.layer)!.invalidate(true);
+            shape.layer.invalidate(true);
         }
     }
     updateOrder(): void {
@@ -143,7 +143,7 @@ export default class Initiative extends Vue {
         const shape = layerManager.UUIDMap.get(actor.uuid);
         if (shape === undefined) return;
         shape.showHighlight = show;
-        layerManager.getLayer(shape.floor, shape.layer)!.invalidate(true);
+        shape.layer.invalidate(true);
     }
     toggleOption(actor: InitiativeData, option: "visible" | "group"): void {
         if (!this.owns(actor)) return;

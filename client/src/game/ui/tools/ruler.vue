@@ -14,6 +14,7 @@ import { Line } from "@/game/shapes/line";
 import { gameStore } from "@/game/store";
 import { Text } from "../../shapes/text";
 import { socket } from "@/game/api/socket";
+import { floorStore } from "@/game/layers/store";
 
 @Component
 export default class RulerTool extends Tool implements ToolBasics {
@@ -33,7 +34,7 @@ export default class RulerTool extends Tool implements ToolBasics {
     onDown(lp: LocalPoint): void {
         this.startPoint = l2g(lp);
 
-        const layer = layerManager.getLayer(layerManager.floor!.name, "draw");
+        const layer = layerManager.getLayer(floorStore.currentFloor, "draw");
         if (layer === undefined) {
             console.log("No draw layer!");
             return;
@@ -51,7 +52,7 @@ export default class RulerTool extends Tool implements ToolBasics {
         const endPoint = l2g(lp);
         if (!this.active || this.ruler === null || this.startPoint === null || this.text === null) return;
 
-        const layer = layerManager.getLayer(layerManager.floor!.name, "draw");
+        const layer = layerManager.getLayer(floorStore.currentFloor, "draw");
         if (layer === undefined) {
             console.log("No draw layer!");
             return;
@@ -80,7 +81,7 @@ export default class RulerTool extends Tool implements ToolBasics {
     onUp(): void {
         if (!this.active || this.ruler === null || this.startPoint === null || this.text === null) return;
 
-        const layer = layerManager.getLayer(layerManager.floor!.name, "draw");
+        const layer = layerManager.getLayer(floorStore.currentFloor, "draw");
         if (layer === undefined) {
             console.log("No active layer!");
             return;

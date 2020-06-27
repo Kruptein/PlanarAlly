@@ -9,7 +9,7 @@ import Login from "@/auth/login.vue";
 import Logout from "@/auth/logout";
 import Dashboard from "@/dashboard/main.vue";
 import Settings from "@/settings/settings.vue";
-import Game from "@/game/game.vue";
+import Game from "@/game/Game.vue";
 import Invitation from "@/invitation/invitation";
 
 import { coreStore } from "@/core/store";
@@ -65,6 +65,7 @@ export const router = new Router({
         {
             path: "/game/:creator/:room",
             component: Game,
+            name: "game",
             meta: {
                 auth: true,
             },

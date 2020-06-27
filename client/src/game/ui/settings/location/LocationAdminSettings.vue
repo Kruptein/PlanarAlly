@@ -4,7 +4,7 @@ import Component from "vue-class-component";
 import { Prop } from "vue-property-decorator";
 
 import InputCopyElement from "@/core/components/inputCopy.vue";
-import Game from "@/game/game.vue";
+import Game from "@/game/Game.vue";
 import { socket } from "@/game/api/socket";
 import { gameStore } from "@/game/store";
 import { renameLocation } from "../../../api/events/location";

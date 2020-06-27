@@ -1,20 +1,20 @@
 import { Layer } from "@/game/layers/layer";
 import { gameStore } from "@/game/store";
 import { gameSettingsStore } from "../settings";
-import { layerManager } from "./manager";
+import { floorStore } from "./store";
 
 export class GridLayer extends Layer {
     invalidate(): void {
         this.valid = false;
     }
     show(): void {
-        if (gameSettingsStore.useGrid && this.floor === layerManager.floor?.name)
+        if (gameSettingsStore.useGrid && this.floor === floorStore.currentFloor.name)
             this.canvas.style.removeProperty("display");
     }
     draw(_doClear?: boolean): void {
         if (!this.valid) {
             if (gameSettingsStore.useGrid) {
-                const activeFowFloorName = layerManager.floor?.name;
+                const activeFowFloorName = floorStore.currentFloor.name;
 
                 if (this.floor === activeFowFloorName && this.canvas.style.display === "none")
                     this.canvas.style.removeProperty("display");

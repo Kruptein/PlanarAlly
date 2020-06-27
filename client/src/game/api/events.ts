@@ -17,6 +17,7 @@ import { router } from "@/router";
 import { ServerClient } from "../comm/types/settings";
 import { zoomDisplay } from "../utils";
 import { visibilityStore } from "../visibility/store";
+import { floorStore } from "../layers/store";
 
 // Core WS events
 
@@ -57,7 +58,7 @@ socket.on("Client.Options.Set", (options: ServerClient) => {
         const floor = options.active_floor;
         const layer = options.active_layer;
         socket.once("Board.Set", () => {
-            gameStore.selectFloor({ targetFloor: floor, sync: false });
+            floorStore.selectFloor({ targetFloor: floor, sync: false });
             layerManager.selectLayer(layer, false);
         });
     }
@@ -68,22 +69,22 @@ socket.on("Board.Set", (locationInfo: BoardInfo) => {
     visibilityStore.clear();
     gameStore.setLocations({ locations: locationInfo.locations, sync: false });
     document.getElementById("layers")!.innerHTML = "";
-    gameStore.resetLayerInfo();
+    floorStore.reset();
     layerManager.reset();
     for (const floor of locationInfo.floors) addFloor(floor);
     EventBus.$emit("Initiative.Clear");
-    for (const floor of layerManager.floors) {
+    for (const floor of floorStore.floors) {
         visibilityStore.recalculateVision(floor.name);
         visibilityStore.recalculateMovement(floor.name);
     }
-    gameStore.selectFloor({ targetFloor: 0, sync: false });
+    floorStore.selectFloor({ targetFloor: 0, sync: false });
     gameStore.setBoardInitialized(true);
 });
 
 // Varia
 
 socket.on("Position.Set", (data: { floor: string; x: number; y: number; zoom: number }) => {
-    gameStore.selectFloor({ targetFloor: data.floor, sync: false });
+    floorStore.selectFloor({ targetFloor: data.floor, sync: false });
     gameStore.setZoomDisplay(data.zoom);
     gameManager.setCenterPosition(new GlobalPoint(data.x, data.y));
 });
@@ -107,11 +108,11 @@ socket.on("Temp.Clear", (shapeIds: string[]) => {
             continue;
         }
         const shape = layerManager.UUIDMap.get(shapeId)!;
-        if (!layerManager.hasLayer(shape.floor, shape.layer)) {
-            console.log(`Attempted to remove shape from an unknown layer ${shape.layer}`);
+        if (!layerManager.hasLayer(shape.floor, shape.layer.name)) {
+            console.log(`Attempted to remove shape from an unknown layer ${shape.layer.name}`);
             continue;
         }
         const realShape = layerManager.UUIDMap.get(shape.uuid)!;
-        layerManager.getLayer(shape.floor, shape.layer)!.removeShape(realShape, SyncMode.NO_SYNC);
+        shape.layer.removeShape(realShape, SyncMode.NO_SYNC);
     }
 });

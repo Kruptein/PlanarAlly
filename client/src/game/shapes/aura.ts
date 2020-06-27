@@ -35,7 +35,7 @@ export function drawAuras(shape: Shape, ctx: CanvasRenderingContext2D): void {
             ctx.arc(loc.x, loc.y, innerRange, 0, 2 * Math.PI);
             ctx.fill();
         } else {
-            const polygon = computeVisibility(shape.center(), TriangulationTarget.VISION, shape.floor);
+            const polygon = computeVisibility(shape.center(), TriangulationTarget.VISION, shape.floor.name);
             aura.lastPath = updateAuraPath(polygon, shape.center(), getUnitDistance(aura.value + aura.dim));
             try {
                 ctx.fill(aura.lastPath);

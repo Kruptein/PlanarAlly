@@ -2,8 +2,8 @@ import { SyncMode } from "../../../core/comm/types";
 import { ServerShape } from "../../comm/types/shapes";
 import { EventBus } from "../../event-bus";
 import { layerManager } from "../../layers/manager";
+import { floorStore } from "../../layers/store";
 import { gameManager } from "../../manager";
-import { gameStore } from "../../store";
 import { socket } from "../socket";
 
 // todo: why full shape and not just uuid?
@@ -12,18 +12,18 @@ function removeShape(shape: ServerShape): void {
         console.log(`Attempted to remove an unknown shape`);
         return;
     }
-    if (!layerManager.hasLayer(shape.floor, shape.layer)) {
+    if (!layerManager.hasLayer(layerManager.getFloor(shape.floor)!, shape.layer)) {
         console.log(`Attempted to remove shape from an unknown layer ${shape.layer}`);
         return;
     }
-    const layer = layerManager.getLayer(shape.floor, shape.layer)!;
+    const layer = layerManager.getLayer(layerManager.getFloor(shape.floor)!, shape.layer)!;
     layer.removeShape(layerManager.UUIDMap.get(shape.uuid)!, SyncMode.NO_SYNC);
 }
 
 socket.on("Shape.Set", (data: ServerShape) => {
     // hard reset a shape
     const old = layerManager.UUIDMap.get(data.uuid);
-    if (old) layerManager.getLayer(old.floor, old.layer)?.removeShape(old, SyncMode.NO_SYNC);
+    if (old) old.layer.removeShape(old, SyncMode.NO_SYNC);
     const shape = gameManager.addShape(data);
     if (shape) EventBus.$emit("Shape.Set", shape);
 });
@@ -61,20 +61,19 @@ socket.on("Shape.Order.Set", (data: { shape: ServerShape; index: number }) => {
         console.log(`Attempted to move the shape order of an unknown shape`);
         return;
     }
-    if (!layerManager.hasLayer(data.shape.floor, data.shape.layer)) {
+    if (!layerManager.hasLayer(layerManager.getFloor(data.shape.floor)!, data.shape.layer)) {
         console.log(`Attempted to remove shape from an unknown layer ${data.shape.layer}`);
         return;
     }
     const shape = layerManager.UUIDMap.get(data.shape.uuid)!;
-    const layer = layerManager.getLayer(shape.floor, shape.layer)!;
-    layer.moveShapeOrder(shape, data.index, false);
+    shape.layer.moveShapeOrder(shape, data.index, false);
 });
 
 socket.on("Shape.Floor.Change", (data: { uuid: string; floor: string }) => {
     const shape = layerManager.UUIDMap.get(data.uuid);
     if (shape === undefined) return;
     shape.moveFloor(data.floor, false);
-    if (shape.ownedBy({ editAccess: true })) gameStore.selectFloor({ targetFloor: data.floor, sync: false });
+    if (shape.ownedBy({ editAccess: true })) floorStore.selectFloor({ targetFloor: data.floor, sync: false });
 });
 
 socket.on("Shape.Layer.Change", (data: { uuid: string; layer: string }) => {

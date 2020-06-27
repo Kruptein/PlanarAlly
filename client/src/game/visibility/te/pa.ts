@@ -32,7 +32,7 @@ export function removeCDT(floor: string): void {
 }
 
 export function insertConstraint(target: TriangulationTarget, shape: Shape, pa: number[], pb: number[]): void {
-    const cdt = getCDT(target, shape.floor);
+    const cdt = getCDT(target, shape.floor.name);
     const { va, vb } = cdt.insertConstraint(pa, pb);
     va.shapes.add(shape);
     vb.shapes.add(shape);
@@ -46,7 +46,7 @@ export function triangulate(target: TriangulationTarget, floor: string): void {
 
     for (const sh of shapes) {
         const shape = layerManager.UUIDMap.get(sh)!;
-        if (shape.floor !== floor) continue;
+        if (shape.floor.name !== floor) continue;
         const j = shape.isClosed ? 0 : 1;
         for (let i = 0; i < shape.points.length - j; i++) {
             const pa = shape.points[i];

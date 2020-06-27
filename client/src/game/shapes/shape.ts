@@ -3,7 +3,7 @@ import { socket } from "@/game/api/socket";
 import { aurasFromServer, aurasToServer } from "@/game/comm/conversion/aura";
 import { InitiativeData } from "@/game/comm/types/general";
 import { accessToServer, ownerToClient, ownerToServer, ServerShape } from "@/game/comm/types/shapes";
-import { GlobalPoint, Vector, LocalPoint } from "@/game/geom";
+import { GlobalPoint, LocalPoint, Vector } from "@/game/geom";
 import { layerManager } from "@/game/layers/manager";
 import { gameStore } from "@/game/store";
 import { g2l, g2lx, g2ly, g2lz, getUnitDistance } from "@/game/units";
@@ -12,10 +12,12 @@ import { TriangulationTarget } from "@/game/visibility/te/pa";
 import { addBlocker, getBlockers, getVisionSources, setVisionSources, sliceBlockers } from "@/game/visibility/utils";
 import tinycolor from "tinycolor2";
 import { PartialBy } from "../../core/types";
+import { Floor } from "../layers/floor";
+import { Layer } from "../layers/layer";
 import { gameSettingsStore } from "../settings";
+import { rotateAroundPoint } from "../utils";
 import { BoundingRect } from "./boundingrect";
 import { PartialShapeOwner, ShapeAccess, ShapeOwner } from "./owners";
-import { rotateAroundPoint } from "../utils";
 
 export abstract class Shape {
     // Used to create class instance from server shape data
@@ -23,8 +25,8 @@ export abstract class Shape {
     // The unique ID of this shape
     readonly uuid: string;
     // The layer the shape is currently on
-    floor!: string;
-    layer!: string;
+    private _floor!: string;
+    private _layer!: string;
 
     // Explicitly prevent any sync to the server
     preventSync = false;
@@ -98,6 +100,19 @@ export abstract class Shape {
     set angle(angle: number) {
         this._angle = angle;
         this.updatePoints();
+    }
+
+    get floor(): Floor {
+        return layerManager.getFloor(this._floor)!;
+    }
+
+    get layer(): Layer {
+        return layerManager.getLayer(this.floor, this._layer)!;
+    }
+
+    setLayer(floor: string, layer: string): void {
+        this._floor = floor;
+        this._layer = layer;
     }
 
     getAABB(delta = 0): BoundingRect {
@@ -174,27 +189,26 @@ export abstract class Shape {
     }
 
     invalidate(skipLightUpdate: boolean): void {
-        const l = layerManager.getLayer(this.floor, this.layer);
-        if (l) l.invalidate(skipLightUpdate);
+        this.layer.invalidate(skipLightUpdate);
     }
 
     checkVisionSources(recalculate = true): boolean {
         let alteredVision = false;
-        const visionBlockers = getBlockers(TriangulationTarget.VISION, this.floor);
+        const visionBlockers = getBlockers(TriangulationTarget.VISION, this._floor);
         const obstructionIndex = visionBlockers.indexOf(this.uuid);
         if (this.visionObstruction && obstructionIndex === -1) {
-            addBlocker(TriangulationTarget.VISION, this.uuid, this.floor);
+            addBlocker(TriangulationTarget.VISION, this.uuid, this._floor);
             if (recalculate) visibilityStore.addToTriag({ target: TriangulationTarget.VISION, shape: this });
             alteredVision = true;
         } else if (!this.visionObstruction && obstructionIndex >= 0) {
-            sliceBlockers(TriangulationTarget.VISION, obstructionIndex, this.floor);
+            sliceBlockers(TriangulationTarget.VISION, obstructionIndex, this._floor);
             if (recalculate) visibilityStore.deleteFromTriag({ target: TriangulationTarget.VISION, shape: this });
             alteredVision = true;
         }
-        if (alteredVision && recalculate) visibilityStore.recalculateVision(this.floor);
+        if (alteredVision && recalculate) visibilityStore.recalculateVision(this._floor);
 
         // Check if the visionsource auras are in the gameManager
-        const visionSources: { shape: string; aura: string }[] = [...getVisionSources(this.floor)];
+        const visionSources: { shape: string; aura: string }[] = [...getVisionSources(this._floor)];
         for (const au of this.auras) {
             const i = visionSources.findIndex(o => o.aura === au.uuid);
             if (au.visionSource && i === -1) {
@@ -210,25 +224,25 @@ export abstract class Shape {
                 if (!this.auras.some(a => a.uuid === ls.aura && a.visionSource)) visionSources.splice(i, 1);
             }
         }
-        setVisionSources(visionSources, this.floor);
+        setVisionSources(visionSources, this._floor);
         return alteredVision;
     }
 
     setMovementBlock(blocksMovement: boolean, recalculate = true): boolean {
         let alteredMovement = false;
         this.movementObstruction = blocksMovement || false;
-        const movementBlockers = getBlockers(TriangulationTarget.MOVEMENT, this.floor);
+        const movementBlockers = getBlockers(TriangulationTarget.MOVEMENT, this._floor);
         const obstructionIndex = movementBlockers.indexOf(this.uuid);
         if (this.movementObstruction && obstructionIndex === -1) {
-            addBlocker(TriangulationTarget.MOVEMENT, this.uuid, this.floor);
+            addBlocker(TriangulationTarget.MOVEMENT, this.uuid, this._floor);
             if (recalculate) visibilityStore.addToTriag({ target: TriangulationTarget.MOVEMENT, shape: this });
             alteredMovement = true;
         } else if (!this.movementObstruction && obstructionIndex >= 0) {
-            sliceBlockers(TriangulationTarget.MOVEMENT, obstructionIndex, this.floor);
+            sliceBlockers(TriangulationTarget.MOVEMENT, obstructionIndex, this._floor);
             if (recalculate) visibilityStore.deleteFromTriag({ target: TriangulationTarget.MOVEMENT, shape: this });
             alteredMovement = true;
         }
-        if (alteredMovement && recalculate) visibilityStore.recalculateMovement(this.floor);
+        if (alteredMovement && recalculate) visibilityStore.recalculateMovement(this._floor);
         return alteredMovement;
     }
 
@@ -264,8 +278,8 @@ export abstract class Shape {
             x: this.refPoint.x,
             y: this.refPoint.y,
             angle: this.angle,
-            floor: this.floor,
-            layer: this.layer,
+            floor: this._floor,
+            layer: this._layer,
             draw_operator: this.globalCompositeOperation,
             movement_obstruction: this.movementObstruction,
             vision_obstruction: this.visionObstruction,
@@ -291,8 +305,8 @@ export abstract class Shape {
         };
     }
     fromDict(data: ServerShape): void {
-        this.layer = data.layer;
-        this.floor = data.floor;
+        this._layer = data.layer;
+        this._floor = data.floor;
         this.angle = data.angle;
         this.globalCompositeOperation = data.draw_operator;
         this.movementObstruction = data.movement_obstruction;
@@ -411,11 +425,11 @@ export abstract class Shape {
     }
 
     moveFloor(floor: string, sync: boolean): void {
-        const oldLayer = layerManager.getLayer(this.floor, this.layer);
-        const newLayer = layerManager.getLayer(floor, this.layer);
+        const oldLayer = this.layer;
+        const newLayer = layerManager.getLayer(layerManager.getFloor(floor)!, this._layer);
         if (oldLayer === undefined || newLayer === undefined) return;
-        visibilityStore.moveShape({ shape: this, oldFloor: this.floor, newFloor: floor });
-        this.floor = floor;
+        visibilityStore.moveShape({ shape: this, oldFloor: this._floor, newFloor: floor });
+        this._floor = floor;
         oldLayer.setShapes(...[...oldLayer.getShapes()].splice(oldLayer.getShapes().indexOf(this), 1));
         newLayer.pushShapes(this);
         oldLayer.invalidate(false);
@@ -424,10 +438,10 @@ export abstract class Shape {
     }
 
     moveLayer(layer: string, sync: boolean): void {
-        const oldLayer = layerManager.getLayer(this.floor, this.layer);
-        const newLayer = layerManager.getLayer(this.floor, layer);
+        const oldLayer = this.layer;
+        const newLayer = layerManager.getLayer(layerManager.getFloor(this._floor)!, layer);
         if (oldLayer === undefined || newLayer === undefined) return;
-        this.layer = layer;
+        this._layer = layer;
         // Update layer shapes
         oldLayer.setShapes(...[...oldLayer.getShapes()].splice(oldLayer.getShapes().indexOf(this), 1));
         newLayer.pushShapes(this);
@@ -551,7 +565,7 @@ export abstract class Shape {
     }
 
     updatePoints(): void {
-        layerManager.getLayer(this.floor, this.layer)?.updateShapePoints(this);
+        this.layer.updateShapePoints(this);
     }
 
     getGroupMembers(): Shape[] {

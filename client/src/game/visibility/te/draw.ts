@@ -1,10 +1,11 @@
 import { layerManager } from "@/game/layers/manager";
 import { g2lx, g2ly } from "@/game/units";
-import { EdgeIterator, TDS, Edge } from "./tds";
+import { floorStore } from "../../layers/store";
+import { Edge, EdgeIterator, TDS } from "./tds";
 import { ccw, cw } from "./triag";
 
 export function drawPoint(point: number[], r: number, colour?: string): void {
-    const dl = layerManager.getLayer(layerManager.floor!.name, "draw");
+    const dl = layerManager.getLayer(floorStore.currentFloor, "draw");
     if (dl === undefined) return;
     const ctx = dl.ctx;
     ctx.lineJoin = "round";
@@ -18,7 +19,7 @@ export function drawPoint(point: number[], r: number, colour?: string): void {
 }
 
 export function drawPointL(point: number[], r: number, colour?: string): void {
-    const dl = layerManager.getLayer(layerManager.floor!.name, "draw");
+    const dl = layerManager.getLayer(floorStore.currentFloor, "draw");
     if (dl === undefined) return;
     const ctx = dl.ctx;
     ctx.lineJoin = "round";
@@ -32,7 +33,7 @@ export function drawPointL(point: number[], r: number, colour?: string): void {
 }
 
 export function drawPolygon(polygon: number[][], colour?: string): void {
-    const dl = layerManager.getLayer(layerManager.floor!.name, "draw");
+    const dl = layerManager.getLayer(floorStore.currentFloor, "draw");
     if (dl === undefined) return;
     const ctx = dl.ctx;
     ctx.lineJoin = "round";
@@ -50,7 +51,7 @@ export function drawPolygon(polygon: number[][], colour?: string): void {
 }
 
 export function drawPolygonL(polygon: number[][], colour?: string): void {
-    const dl = layerManager.getLayer(layerManager.floor!.name, "draw");
+    const dl = layerManager.getLayer(floorStore.currentFloor, "draw");
     if (dl === undefined) return;
     const ctx = dl.ctx;
     ctx.lineJoin = "round";
@@ -88,7 +89,7 @@ function drl(from: number[], to: number[], constrained: boolean, local: boolean)
     // } else {
     //     console.log(" ", from, to);
     // }
-    const dl = layerManager.getLayer(layerManager.floor!.name, "draw");
+    const dl = layerManager.getLayer(floorStore.currentFloor, "draw");
     if (dl === undefined) return;
     const ctx = dl.ctx;
     ctx.beginPath();
@@ -102,7 +103,7 @@ function drl(from: number[], to: number[], constrained: boolean, local: boolean)
 export function drawEdge(edge: Edge, colour: string, local = false): void {
     const from = edge.first!.vertices[edge.second === 0 ? 1 : 0]!.point!;
     const to = edge.first!.vertices[edge.second === 2 ? 1 : 2]!.point!;
-    const dl = layerManager.getLayer(layerManager.floor!.name, "draw");
+    const dl = layerManager.getLayer(floorStore.currentFloor, "draw");
     if (dl === undefined) return;
     const ctx = dl.ctx;
     ctx.beginPath();
@@ -117,7 +118,7 @@ export function drawPolygonT(tds: TDS, local = true, clear = true, logs: 0 | 1 |
     I = 0;
     J = 0;
     let T = 0;
-    const dl = layerManager.getLayer(layerManager.floor!.name, "draw");
+    const dl = layerManager.getLayer(floorStore.currentFloor, "draw");
     if (dl === undefined) return;
     const ctx = dl.ctx;
     if (clear) ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
@@ -195,7 +196,7 @@ export function drawPolygonT(tds: TDS, local = true, clear = true, logs: 0 | 1 |
 //     const POINTS = 	[[[2204.40109629713,1502.9370921248671],[2194.4969483467376,1501.8032381745284],[2182.960505429924,849.4588854915166],[2195.2603028653853,848.4339023718949],[2195.2603028653853,1094.4298510811182],[2221.909863975551,1099.554766679227],[2220.8848808559296,1105.7046653969574],[2190.135387267276,1107.7546316362009],[2197.310269104629,1306.6013568428232],[2254.7093238034477,1302.5014243643361],[2255.734306923069,1306.6013568428232],[2193.2103366261417,1314.8012217997973]],
 //         [[200,-1350],[200,4350],[750,4350],[750,-1350]],
 //         [[3556.1308949025706,368.2067431718624],[3556.1308949025706,4099.326575833981],[4125.828761825174,4099.326575833981],[4125.828761825174,368.2067431718624]]];
-//     for (const [i, shape] of (<Polygon[]>layerManager.getLayer(layerManager.floor!.name, )!.shapes).entries()) {
+//     for (const [i, shape] of (<Polygon[]>layerManager.getLayer(floorStore.currentFloor.name, )!.shapes).entries()) {
 //         shape.refPoint = GlobalPoint.fromArray(POINTS[i][0]);
 //         shape._vertices = POINTS[i].slice(1).map(p => GlobalPoint.fromArray(p));
 //         socket.emit("Shape.Position.Update", { shape: shape.asDict(), redraw: true, temporary: false });
@@ -208,5 +209,5 @@ export function drawPolygonT(tds: TDS, local = true, clear = true, logs: 0 | 1 |
 //         s += `${triag.uid}\t${triag.vertices.map(v => v === null ? '0,0' : v.point!.join(",")).join("\t")}\t${triag.neighbours.map(n=>n!.uid).join("\t")}\n`;
 //     }
 //     console.log(s);
-//     deleteShapeFromTriag(TriangulationTarget.VISION, layerManager.getLayer(layerManager.floor!.name, )!.shapes[2]);
+//     deleteShapeFromTriag(TriangulationTarget.VISION, layerManager.getLayer(floorStore.currentFloor.name, )!.shapes[2]);
 // }

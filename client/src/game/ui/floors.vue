@@ -8,20 +8,12 @@ import { socket } from "@/game/api/socket";
 import { layerManager } from "@/game/layers/manager";
 import { removeFloor } from "@/game/layers/utils";
 import { gameStore } from "@/game/store";
-import { EventBus } from "../event-bus";
 import { Floor } from "../layers/floor";
 import { floorStore } from "../layers/store";
-import { layer } from "@fortawesome/fontawesome-svg-core";
 
 @Component
 export default class FloorSelect extends Vue {
     selected = false;
-
-    mounted(): void {
-        EventBus.$on("Floor.Visible.Set", () => {
-            this.$forceUpdate();
-        });
-    }
 
     get IS_DM(): boolean {
         return gameStore.IS_DM || gameStore.FAKE_PLAYER;
@@ -85,7 +77,6 @@ export default class FloorSelect extends Vue {
     toggleVisible(floor: Floor): void {
         floor.playerVisible = !floor.playerVisible;
         socket.emit("Floor.Visible.Set", { name: floor.name, visible: floor.playerVisible });
-        this.$forceUpdate();
     }
 
     getLayerWord(layer: string): string {
@@ -125,8 +116,8 @@ export default class FloorSelect extends Vue {
                     <div class="floor-actions" v-show="IS_DM">
                         <div
                             @click.stop="toggleVisible(floor)"
-                            :style="{ opacity: floor.playerVisible ? 1.0 : 0.3 }"
-                            :title="$t('game.ui.floors.delete_floor')"
+                            :style="{ opacity: floor.playerVisible ? 1.0 : 0.3, marginRight: '5px' }"
+                            :title="$t('game.ui.floors.toggle_visibility')"
                         >
                             <font-awesome-icon icon="eye" />
                         </div>

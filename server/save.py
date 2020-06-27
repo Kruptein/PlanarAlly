@@ -15,7 +15,7 @@ from peewee import (
 )
 from playhouse.migrate import SqliteMigrator, fn, migrate
 
-from config import SAVE_FILE
+from config import SAVE_FILE, DB_TYPE
 from models import ALL_MODELS, Constants
 from models.db import db
 from utils import OldVersionException, UnknownVersionException
@@ -531,8 +531,13 @@ def upgrade(version):
 
 
 def check_save():
-    if not os.path.isfile(SAVE_FILE):
-        logger.warning("Provided save file does not exist.  Creating a new one.")
+    if DB_TYPE == "sqlite":
+        db_exists = os.path.isfile(SAVE_FILE)
+    elif DB_TYPE == "mysql":
+        db_exists = db.table_exists("constants")
+
+    if not db_exists:
+        logger.warning("Provided database does not exist.  Creating a new one.")
         db.create_tables(ALL_MODELS)
         Constants.create(
             save_version=SAVE_VERSION, secret_token=secrets.token_bytes(32)

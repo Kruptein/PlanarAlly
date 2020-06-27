@@ -3,6 +3,7 @@ from peewee import BooleanField, FloatField, ForeignKeyField, IntegerField, Text
 from playhouse.shortcuts import model_to_dict, update_model_from_dict
 from typing import Tuple
 
+from ..custom_fields import UUIDTextField
 from ..base import BaseModel
 from ..campaign import Layer
 from ..label import Label
@@ -27,7 +28,7 @@ __all__ = [
 
 
 class Shape(BaseModel):
-    uuid = TextField(primary_key=True)
+    uuid = UUIDTextField(primary_key=True)
     layer = ForeignKeyField(Layer, backref="shapes", on_delete="CASCADE")
     type_ = TextField()
     x = FloatField()
@@ -111,7 +112,7 @@ class ShapeLabel(BaseModel):
 
 
 class Tracker(BaseModel):
-    uuid = TextField(primary_key=True)
+    uuid = UUIDTextField(primary_key=True)
     shape = ForeignKeyField(Shape, backref="trackers", on_delete="CASCADE")
     visible = BooleanField()
     name = TextField()
@@ -126,7 +127,7 @@ class Tracker(BaseModel):
 
 
 class Aura(BaseModel):
-    uuid = TextField(primary_key=True)
+    uuid = UUIDTextField(primary_key=True)
     shape = ForeignKeyField(Shape, backref="auras", on_delete="CASCADE")
     vision_source = BooleanField()
     visible = BooleanField()

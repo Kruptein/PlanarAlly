@@ -14,9 +14,9 @@ import { addCDT, removeCDT } from "@/game/visibility/te/pa";
 import { gameSettingsStore } from "../settings";
 
 export function addFloor(floor: ServerFloor): void {
-    gameStore.floors.push(floor.name);
+    gameStore.addFloor(floor.name);
     addCDT(floor.name);
-    layerManager.floors.push({ name: floor.name, layers: [] });
+    layerManager.floors.push({ name: floor.name, layers: [], playerVisible: floor.player_visible });
     for (const layer of floor.layers) createLayer(layer, floor.name);
 }
 
@@ -34,10 +34,10 @@ export function removeFloor(floor: string): void {
         visibilityStore.visionSources.findIndex(vs => vs.floor === floor),
         1,
     );
-    const index = gameStore.floors.findIndex(f => f === floor);
+    const index = gameStore.visibleFloors.findIndex(f => f === floor);
     for (const layer of layerManager.floors[index].layers) layer.canvas.remove();
     // todo: once vue 3 hits, fix this split up
-    gameStore.floors.splice(index, 1);
+    gameStore.visibleFloors.splice(index, 1);
     layerManager.floors.splice(index, 1);
     if (gameStore.selectedFloorIndex === index) gameStore.selectFloor({ targetFloor: index - 1, sync: true });
 }

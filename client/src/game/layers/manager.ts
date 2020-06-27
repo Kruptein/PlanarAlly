@@ -6,6 +6,7 @@ import { gameStore } from "@/game/store";
 export interface Floor {
     name: string;
     layers: Layer[];
+    playerVisible: boolean;
 }
 
 class LayerManager {

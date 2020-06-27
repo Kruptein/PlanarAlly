@@ -48,7 +48,7 @@ export class FOWPlayersLayer extends Layer {
 
             ctx.fillStyle = "rgba(0, 0, 0, 1)";
 
-            const activeFloorName = gameStore.floors[gameStore.selectedFloorIndex];
+            const activeFloorName = gameStore.visibleFloors[gameStore.selectedFloorIndex];
 
             if (this.floor === activeFloorName && this.canvas.style.display === "none")
                 this.canvas.style.removeProperty("display");
@@ -57,7 +57,7 @@ export class FOWPlayersLayer extends Layer {
 
             if (this.floor === activeFloorName && layerManager.floors.length > 1) {
                 for (const floor of layerManager.floors) {
-                    if (floor.name !== gameStore.floors[0]) {
+                    if (floor.name !== gameStore.visibleFloors[0]) {
                         const mapl = layerManager.getLayer(floor.name, "map");
                         if (mapl === undefined) continue;
                         ctx.globalCompositeOperation = "destination-out";

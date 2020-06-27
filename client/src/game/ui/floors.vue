@@ -18,7 +18,7 @@ export default class FloorSelect extends Vue {
     }
 
     get floors(): string[] {
-        return gameStore.floors;
+        return gameStore.visibleFloors;
     }
 
     get selectedFloorIndex(): number {
@@ -56,7 +56,7 @@ export default class FloorSelect extends Vue {
 
     async removeFloor(index: number): Promise<void> {
         if (this.floors.length <= 1) return;
-        const floor = gameStore.floors[index];
+        const floor = this.floors[index];
         if (
             !(await (<Game>this.$parent.$parent).$refs.confirm.open(
                 this.$t("common.warning").toString(),

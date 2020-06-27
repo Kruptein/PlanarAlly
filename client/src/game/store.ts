@@ -39,7 +39,7 @@ class GameStore extends VuexModule implements GameState {
     boardInitialized = false;
 
     locations: { id: number; name: string }[] = [];
-    floors: string[] = [];
+    private floors: string[] = [];
     selectedFloorIndex = -1;
 
     assets: AssetList = {};
@@ -117,6 +117,16 @@ class GameStore extends VuexModule implements GameState {
     get screenCenter(): GlobalPoint {
         const halfScreen = new Vector(window.innerWidth / 2, window.innerHeight / 2);
         return l2g(g2l(this.screenTopLeft).add(halfScreen));
+    }
+
+    get visibleFloors(): string[] {
+        if (this.IS_DM) return this.floors;
+        return this.floors.filter(f => layerManager.getFloor(f)?.playerVisible ?? false);
+    }
+
+    @Mutation
+    addFloor(name: string): void {
+        this.floors.push(name);
     }
 
     @Mutation

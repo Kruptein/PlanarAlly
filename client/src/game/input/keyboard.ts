@@ -122,14 +122,14 @@ export function onKeyDown(event: KeyboardEvent): void {
         } else if (event.key === "v" && event.ctrlKey) {
             // Ctrl-v - Paste
             pasteShapes();
-        } else if (event.key === "PageUp" && gameStore.selectedFloorIndex < gameStore.floors.length - 1) {
+        } else if (event.key === "PageUp" && gameStore.selectedFloorIndex < gameStore.visibleFloors.length - 1) {
             // Page Up - Move floor up
             // Ctrl + Page Up - Move selected shapes floor up
             // Ctrl + Shift + Page Up - Move selected shapes floor up AND move floor up
             event.preventDefault();
-            if (gameStore.selectedFloorIndex + 1 >= gameStore.floors.length) return;
+            if (gameStore.selectedFloorIndex + 1 >= gameStore.visibleFloors.length) return;
             const selection = layerManager.getSelection() ?? [];
-            const newFloor = gameStore.floors[gameStore.selectedFloorIndex + 1];
+            const newFloor = gameStore.visibleFloors[gameStore.selectedFloorIndex + 1];
             const newLayer = layerManager.getLayer(newFloor)!;
 
             if (event.ctrlKey) {
@@ -149,7 +149,7 @@ export function onKeyDown(event: KeyboardEvent): void {
             event.preventDefault();
             if (gameStore.selectedFloorIndex - 1 < 0) return;
             const selection = layerManager.getSelection() ?? [];
-            const newFloor = gameStore.floors[gameStore.selectedFloorIndex - 1];
+            const newFloor = gameStore.visibleFloors[gameStore.selectedFloorIndex - 1];
             const newLayer = layerManager.getLayer(newFloor)!;
 
             if (event.ctrlKey) {

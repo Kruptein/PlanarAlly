@@ -27,6 +27,7 @@ export interface InitiativeEffect {
 export interface ServerFloor {
     name: string;
     layers: ServerLayer[];
+    player_visible: boolean;
 }
 
 export interface ServerLayer {

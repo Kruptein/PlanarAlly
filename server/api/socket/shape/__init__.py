@@ -329,10 +329,9 @@ async def change_shape_layer(sid: int, data: Dict[str, Any]):
         return
 
     floor = Floor.get(location=pr.active_location, name=data["floor"])
+    shapes: List[Shape] = [s for s in Shape.select().where(Shape.uuid << data["uuids"])]
     layer = Layer.get(floor=floor, name=data["layer"])
-    shape = Shape.get(uuid=data["uuid"])
-    old_layer = shape.layer
-    old_index = shape.index
+    old_layer = shapes[0].layer
 
     if old_layer.player_visible and not layer.player_visible:
         for room_player in pr.room.players:
@@ -344,11 +343,11 @@ async def change_shape_layer(sid: int, data: Dict[str, Any]):
                 if psid == sid:
                     continue
                 await sio.emit(
-                    "Shape.Remove",
-                    shape.as_dict(room_player.player, False),
-                    room=psid,
-                    namespace=GAME_NS,
+                    "Shapes.Remove", data["uuids"], room=psid, namespace=GAME_NS,
                 )
+
+    for shape in shapes:
+        old_index = shape.index
 
     shape.layer = layer
     shape.index = layer.shapes.count()
@@ -369,10 +368,10 @@ async def change_shape_layer(sid: int, data: Dict[str, Any]):
         for room_player in pr.room.players:
             is_dm = room_player.role == Role.DM
             for psid in game_state.get_sids(
-                player=room_player.player, active_location=pr.active_location
+                player=room_player.player,
+                active_location=pr.active_location,
+                skip_sid=sid,
             ):
-                if psid == sid:
-                    continue
                 if is_dm:
                     await sio.emit(
                         "Shape.Layer.Change",
@@ -383,8 +382,8 @@ async def change_shape_layer(sid: int, data: Dict[str, Any]):
                     )
                 elif layer.player_visible:
                     await sio.emit(
-                        "Shape.Add",
-                        shape.as_dict(room_player.player, False),
+                        "Shapes.Add",
+                        [shape.as_dict(room_player.player, False) for shape in shapes],
                         room=psid,
                         namespace=GAME_NS,
                     )

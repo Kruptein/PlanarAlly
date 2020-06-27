@@ -20,7 +20,7 @@ import { ServerAsset } from "../../comm/types/shapes";
 import { Shape } from "@/game/shapes/shape";
 import { floorStore } from "../../layers/store";
 import { Floor } from "@/game/layers/floor";
-import { moveFloor } from "../../layers/utils";
+import { moveFloor, moveLayer } from "../../layers/utils";
 
 @Component({
     components: {
@@ -101,7 +101,7 @@ export default class ShapeContext extends Vue {
     }
     setLayer(newLayer: string): void {
         const layer = this.getActiveLayer()!;
-        layer.getSelection().forEach(shape => shape.moveLayer(newLayer, true));
+        moveLayer([...layer.getSelection()], layerManager.getLayer(floorStore.currentFloor, newLayer)!, true);
         layer.clearSelection();
         this.close();
     }

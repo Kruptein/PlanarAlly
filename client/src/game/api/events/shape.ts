@@ -3,24 +3,10 @@ import { ServerShape } from "../../comm/types/shapes";
 import { EventBus } from "../../event-bus";
 import { layerManager } from "../../layers/manager";
 import { floorStore } from "../../layers/store";
-import { moveFloor } from "../../layers/utils";
+import { moveFloor, moveLayer } from "../../layers/utils";
 import { gameManager } from "../../manager";
 import { Shape } from "../../shapes/shape";
 import { socket } from "../socket";
-
-// todo: why full shape and not just uuid?
-function removeShape(shape: ServerShape): void {
-    if (!layerManager.UUIDMap.has(shape.uuid)) {
-        console.log(`Attempted to remove an unknown shape`);
-        return;
-    }
-    if (!layerManager.hasLayer(layerManager.getFloor(shape.floor)!, shape.layer)) {
-        console.log(`Attempted to remove shape from an unknown layer ${shape.layer}`);
-        return;
-    }
-    const layer = layerManager.getLayer(layerManager.getFloor(shape.floor)!, shape.layer)!;
-    layer.removeShape(layerManager.UUIDMap.get(shape.uuid)!, SyncMode.NO_SYNC);
-}
 
 socket.on("Shape.Set", (data: ServerShape) => {
     // hard reset a shape
@@ -50,12 +36,11 @@ socket.on("Shapes.Add", (shapes: ServerShape[]) => {
     shapes.forEach(shape => gameManager.addShape(shape));
 });
 
-socket.on("Shape.Remove", (shape: ServerShape) => {
-    removeShape(shape);
-});
-
-socket.on("Shapes.Remove", (shapes: ServerShape[]) => {
-    shapes.forEach(shape => removeShape(shape));
+socket.on("Shapes.Remove", (shapes: string[]) => {
+    for (const uid of shapes) {
+        const shape = layerManager.UUIDMap.get(uid);
+        if (shape !== undefined) shape.layer.removeShape(shape, SyncMode.NO_SYNC);
+    }
 });
 
 socket.on("Shape.Order.Set", (data: { shape: ServerShape; index: number }) => {
@@ -79,10 +64,10 @@ socket.on("Shapes.Floor.Change", (data: { uuids: string[]; floor: string }) => {
         floorStore.selectFloor({ targetFloor: data.floor, sync: false });
 });
 
-socket.on("Shape.Layer.Change", (data: { uuid: string; layer: string }) => {
-    const shape = layerManager.UUIDMap.get(data.uuid);
-    if (shape === undefined) return;
-    shape.moveLayer(data.layer, false);
+socket.on("Shapes.Layer.Change", (data: { uuids: string[]; floor: string; layer: string }) => {
+    const shapes = <Shape[]>data.uuids.map(u => layerManager.UUIDMap.get(u) ?? undefined).filter(s => s !== undefined);
+    if (shapes.length === 0) return;
+    moveLayer(shapes, layerManager.getLayer(layerManager.getFloor(data.floor)!, data.layer)!, false);
 });
 
 socket.on("Shape.Update", (data: { shape: ServerShape; redraw: boolean }) => {

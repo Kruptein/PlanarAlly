@@ -124,3 +124,25 @@ export function moveFloor(shapes: Shape[], newFloor: Floor, sync: boolean): void
     newLayer.invalidate(false);
     if (sync) socket.emit("Shapes.Floor.Change", { uuids: shapes.map(s => s.uuid), floor: newFloor.name });
 }
+
+export function moveLayer(shapes: Shape[], newLayer: Layer, sync: boolean): void {
+    const oldLayer = shapes[0].layer;
+    // const newLayer = layerManager.getLayer(layerManager.getFloor(this._floor)!, layer);
+    if (shapes.some(s => s.layer !== oldLayer)) {
+        throw new Error("Mixing shapes from different floors in shape move");
+    }
+    for (const shape of shapes) shape.setLayer(newLayer.floor, newLayer.name);
+    // Update layer shapes
+    oldLayer.setShapes(...oldLayer.getShapes().filter(s => !shapes.includes(s)));
+    newLayer.pushShapes(...shapes);
+    // Revalidate layers  (light should at most be redone once)
+    oldLayer.invalidate(true);
+    newLayer.invalidate(false);
+    // Sync!
+    if (sync)
+        socket.emit("Shapes.Layer.Change", {
+            uuids: shapes.map(s => s.uuid),
+            layer: newLayer.name,
+            floor: newLayer.floor,
+        });
+}

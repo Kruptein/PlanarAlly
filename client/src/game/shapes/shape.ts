@@ -424,21 +424,6 @@ export abstract class Shape {
         };
     }
 
-    moveLayer(layer: string, sync: boolean): void {
-        const oldLayer = this.layer;
-        const newLayer = layerManager.getLayer(layerManager.getFloor(this._floor)!, layer);
-        if (oldLayer === undefined || newLayer === undefined) return;
-        this._layer = layer;
-        // Update layer shapes
-        oldLayer.setShapes(...[...oldLayer.getShapes()].splice(oldLayer.getShapes().indexOf(this), 1));
-        newLayer.pushShapes(this);
-        // Revalidate layers  (light should at most be redone once)
-        oldLayer.invalidate(true);
-        newLayer.invalidate(false);
-        // Sync!
-        if (sync) socket.emit("Shape.Layer.Change", { uuid: this.uuid, layer, floor: newLayer.floor });
-    }
-
     // This screws up vetur if typed as `readonly string[]`
     // eslint-disable-next-line @typescript-eslint/array-type
     get owners(): ReadonlyArray<ShapeOwner> {

@@ -5,6 +5,7 @@ import { Rect } from "@/game/shapes/rect";
 import { CDT } from "@/game/visibility/te/cdt";
 import { addShapesToTriag, deleteShapeFromTriag, TriangulationTarget, setCDT } from "@/game/visibility/te/pa";
 import { rotateAroundOrigin, xySmaller } from "@/game/visibility/te/triag";
+import { BaseRect } from "../../../../../src/game/shapes/baserect";
 
 jest.mock("@/game/api/socket", () => ({
     get socket() {
@@ -59,6 +60,11 @@ function _rotateShape(shape: Shape): void {
 
 describe("PA test suite.", () => {
     describe("deleteShapeFromTriag", () => {
+        beforeAll(() => {
+            // Spying on Shape directly didn't work so we do both shapes used here.
+            jest.spyOn(BaseRect.prototype, "floor", "get").mockReturnValue({ name: "testfloor", playerVisible: true });
+            jest.spyOn(Polygon.prototype, "floor", "get").mockReturnValue({ name: "testfloor", playerVisible: true });
+        });
         it("0,0", () => {
             const shape = new Rect(new GlobalPoint(0, 0), 10, 10);
             const shape2 = new Rect(new GlobalPoint(15, 0), 10, 10);

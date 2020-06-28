@@ -108,6 +108,7 @@ export function snapToPoint(layer: Layer, endPoint: GlobalPoint, ignore?: Global
 }
 
 export function moveFloor(shapes: Shape[], newFloor: Floor, sync: boolean): void {
+    if (shapes.length === 0) return;
     const oldLayer = shapes[0].layer;
     const oldFloor = shapes[0].floor;
     if (shapes.some(s => s.layer !== oldLayer)) {
@@ -126,6 +127,7 @@ export function moveFloor(shapes: Shape[], newFloor: Floor, sync: boolean): void
 }
 
 export function moveLayer(shapes: Shape[], newLayer: Layer, sync: boolean): void {
+    if (shapes.length === 0) return;
     const oldLayer = shapes[0].layer;
     // const newLayer = layerManager.getLayer(layerManager.getFloor(this._floor)!, layer);
     if (shapes.some(s => s.layer !== oldLayer)) {

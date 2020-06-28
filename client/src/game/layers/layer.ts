@@ -246,34 +246,26 @@ export class Layer {
 
             // We iterate twice over all shapes
             // First to draw the auras and a second time to draw the shapes themselves
-            // Otherwise auras from one shape could be overlapping another shape itself.
+            // Otherwise auras from one shape could overlap another shape.
+
+            const currentLayer = layerManager.getLayer(floorStore.currentFloor);
+            // To optimize things slightly, we keep track of the shapes that passed the first round
+            const visibleShapes: Shape[] = [];
 
             for (const shape of this.shapes) {
                 if (shape.options.has("skipDraw") && shape.options.get("skipDraw")) continue;
-                if (layerManager.getLayer(layerManager.getFloor(this.floor)!) === undefined) continue;
                 if (!shape.visibleInCanvas(this.canvas)) continue;
-                if (
-                    this.name === "fow" &&
-                    layerManager.getLayer(layerManager.getFloor(this.floor)!)!.name !== this.name
-                )
-                    continue;
+                if (this.name === "fow" && currentLayer !== this) continue;
                 drawAuras(shape, ctx);
+                visibleShapes.push(shape);
             }
-            for (const shape of this.shapes) {
-                if (shape.options.has("skipDraw") && shape.options.get("skipDraw")) continue;
+            for (const shape of visibleShapes) {
                 if (shape.isInvisible && !shape.ownedBy({ visionAccess: true })) continue;
                 if (shape.labels.length === 0 && gameStore.filterNoLabel) continue;
                 if (
                     shape.labels.length &&
                     gameStore.labelFilters.length &&
                     !shape.labels.some(l => gameStore.labelFilters.includes(l.uuid))
-                )
-                    continue;
-                if (layerManager.getLayer(layerManager.getFloor(this.floor)!) === undefined) continue;
-                if (!shape.visibleInCanvas(this.canvas)) continue;
-                if (
-                    this.name === "fow" &&
-                    layerManager.getLayer(layerManager.getFloor(this.floor)!)!.name !== this.name
                 )
                     continue;
                 shape.draw(ctx);

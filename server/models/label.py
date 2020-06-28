@@ -1,6 +1,7 @@
 from peewee import BooleanField, ForeignKeyField, TextField
 from playhouse.shortcuts import model_to_dict
 
+from .custom_fields import UUIDTextField
 from .base import BaseModel
 from .campaign import Room
 from .user import User
@@ -10,7 +11,7 @@ __all__ = ["Label", "LabelSelection"]
 
 
 class Label(BaseModel):
-    uuid = TextField(primary_key=True)
+    uuid = UUIDTextField(primary_key=True)
     user = ForeignKeyField(User, backref="labels", on_delete="CASCADE")
     category = TextField(null=True)
     name = TextField()

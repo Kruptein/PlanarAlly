@@ -7,6 +7,7 @@ from peewee import (
     IntegerField,
     TextField,
 )
+from .custom_fields import UUIDTextField
 from playhouse.shortcuts import model_to_dict
 
 from .base import BaseModel
@@ -52,7 +53,7 @@ class LocationOptions(BaseModel):
 class Room(BaseModel):
     name = TextField()
     creator = ForeignKeyField(User, backref="rooms_created", on_delete="CASCADE")
-    invitation_code = TextField(default=uuid.uuid4, unique=True)
+    invitation_code = UUIDTextField(default=uuid.uuid4, unique=True)
     is_locked = BooleanField(default=False)
     default_options = ForeignKeyField(LocationOptions, on_delete="CASCADE")
 
@@ -165,7 +166,7 @@ class PlayerRoom(BaseModel):
 
 
 class Note(BaseModel):
-    uuid = TextField(primary_key=True)
+    uuid = UUIDTextField(primary_key=True)
     room = ForeignKeyField(Room, backref="notes", on_delete="CASCADE")
     location = ForeignKeyField(
         Location, null=True, backref="notes", on_delete="CASCADE"

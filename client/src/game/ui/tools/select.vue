@@ -248,7 +248,8 @@ export default class SelectTool extends Tool implements ToolBasics {
                 this.dragRay = Ray.fromPoints(this.dragRay.origin, lp);
 
                 if (this.rotationUiActive) {
-                    this.updateRotationUi(true, features);
+                    this.removeRotationUi();
+                    this.createRotationUi(features);
                 }
 
                 layer.invalidate(false);
@@ -437,7 +438,11 @@ export default class SelectTool extends Tool implements ToolBasics {
             if (recalcMovement) visibilityStore.recalculateMovement(selection[0].floor.name);
             layer.invalidate(false);
 
-            this.updateRotationUi(false, features);
+            if (this.mode === SelectOperations.Rotate) this.updateRotationUi(features);
+            else {
+                this.removeRotationUi();
+                this.createRotationUi(features);
+            }
         }
         this.mode = SelectOperations.Noop;
         this.active = false;
@@ -560,7 +565,7 @@ export default class SelectTool extends Tool implements ToolBasics {
         }
     }
 
-    updateRotationUi(dragUpdate: boolean, features: ToolFeatures<SelectFeatures>): void {
+    updateRotationUi(features: ToolFeatures<SelectFeatures>): void {
         const layer = layerManager.getLayer(floorStore.currentFloor)!;
 
         if (
@@ -585,14 +590,6 @@ export default class SelectTool extends Tool implements ToolBasics {
 
             const topCenter = new GlobalPoint((bbox.topRight.x + bbox.topLeft.x) / 2, bbox.topLeft.y);
             const topCenterPlus = topCenter.add(new Vector(0, -150));
-
-            if (dragUpdate) {
-                this.rotationAnchor!.center(
-                    rotateAroundPoint(topCenter.add(new Vector(0, -75)), bbox.center(), this.angle),
-                );
-                this.rotationBox!.refPoint = bbox.topLeft;
-                this.rotationEnd!.refPoint = rotateAroundPoint(topCenterPlus, bbox.center(), this.angle);
-            }
 
             this.rotationBox!.angle = this.angle;
             this.rotationAnchor!.rotateAroundAbsolute(bbox.center(), this.angle);

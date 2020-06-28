@@ -54,14 +54,11 @@ socket.on("Client.Options.Set", (options: ServerClient) => {
     gameStore.setPanY(options.pan_y);
     gameStore.setZoomDisplay(zoomDisplay(options.zoom_factor));
 
-    if (options.active_layer && options.active_floor) {
-        const floor = options.active_floor;
-        const layer = options.active_layer;
-        socket.once("Board.Set", () => {
-            floorStore.selectFloor({ targetFloor: floor, sync: false });
-            layerManager.selectLayer(layer, false);
-        });
-    }
+    const floor = options.active_floor ?? 0;
+    socket.once("Board.Set", () => {
+        floorStore.selectFloor({ targetFloor: floor, sync: false });
+        if (options.active_layer) layerManager.selectLayer(options.active_layer, false);
+    });
 });
 
 socket.on("Board.Set", (locationInfo: BoardInfo) => {
@@ -77,7 +74,6 @@ socket.on("Board.Set", (locationInfo: BoardInfo) => {
         visibilityStore.recalculateVision(floor.name);
         visibilityStore.recalculateMovement(floor.name);
     }
-    floorStore.selectFloor({ targetFloor: 0, sync: false });
     gameStore.setBoardInitialized(true);
 });
 

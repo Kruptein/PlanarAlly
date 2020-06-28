@@ -22,6 +22,7 @@ All notable changes to this project will be documented in this file.
 -   Firefox location scrollbar when left menu is open
 -   Some significant performance bottlenecks
 -   Server now quits, referring to docs/tutorial, if client was not built before start
+-   Initial state adding unnecessary fog on lower floors
 
 ## [0.21.0] - 2020-06-13
 

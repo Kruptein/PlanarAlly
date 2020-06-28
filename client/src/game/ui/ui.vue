@@ -191,9 +191,7 @@ export default class UI extends Vue {
                         </li>
                     </ul>
                 </div>
-                <span class="rm-topper">
-                    <font-awesome-icon icon="share-alt" />
-                </span>
+                <span class="rm-topper"></span>
             </div>
         </div>
         <MenuBar></MenuBar>

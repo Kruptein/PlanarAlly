@@ -45,7 +45,7 @@ export function removeFloor(floorName: string): void {
 function createLayer(layerInfo: ServerLayer, floor: Floor): void {
     // Create canvas element
     const canvas = document.createElement("canvas");
-    canvas.style.zIndex = layerManager.getLayers(floor).length.toString();
+    canvas.style.zIndex = layerManager.layerLength.toString();
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
 

@@ -88,6 +88,10 @@ class LayerManager {
         console.error(`Attempt to add layer to unknown floor ${floorName}`);
     }
 
+    get layerLength(): number {
+        return this.layerMap.values.length;
+    }
+
     getLayers(floor: Floor): Layer[] {
         return this.layerMap.get(floor.name)!;
     }

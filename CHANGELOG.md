@@ -23,6 +23,7 @@ All notable changes to this project will be documented in this file.
 -   Some significant performance bottlenecks
 -   Server now quits, referring to docs/tutorial, if client was not built before start
 -   Initial state adding unnecessary fog on lower floors
+-   Prefer snapped points over grid snapping
 
 ## [0.21.0] - 2020-06-13
 

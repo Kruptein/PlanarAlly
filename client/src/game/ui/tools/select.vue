@@ -69,6 +69,8 @@ export default class SelectTool extends Tool implements ToolBasics {
     rotationBox: Rect | null = null;
     rotationEnd: Circle | null = null;
 
+    snappedToPoint = false;
+
     onToolsModeChange(mode: "Build" | "Play", features: ToolFeatures<SelectFeatures>): void {
         if (mode === "Play") {
             document.body.style.cursor = "default";
@@ -265,7 +267,12 @@ export default class SelectTool extends Tool implements ToolBasics {
                         ignorePoint = GlobalPoint.fromArray(this.originalResizePoints[this.resizePoint]);
                     let targetPoint = gp;
                     if (useSnapping(event) && this.hasFeature(SelectFeatures.Snapping, features))
-                        targetPoint = snapToPoint(layerManager.getLayer(floorStore.currentFloor)!, gp, ignorePoint);
+                        [targetPoint, this.snappedToPoint] = snapToPoint(
+                            layerManager.getLayer(floorStore.currentFloor)!,
+                            gp,
+                            ignorePoint,
+                        );
+                    else this.snappedToPoint = false;
                     this.resizePoint = sel.resize(this.resizePoint, targetPoint, event.ctrlKey);
                     // todo: think about calling deleteIntersectVertex directly on the corner point
                     if (sel.visionObstruction) {

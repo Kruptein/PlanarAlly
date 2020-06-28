@@ -93,7 +93,7 @@ export function dropAsset(event: DragEvent): void {
     layer.addShape(asset, SyncMode.FULL_SYNC, InvalidationMode.WITH_LIGHT);
 }
 
-export function snapToPoint(layer: Layer, endPoint: GlobalPoint, ignore?: GlobalPoint): GlobalPoint {
+export function snapToPoint(layer: Layer, endPoint: GlobalPoint, ignore?: GlobalPoint): [GlobalPoint, boolean] {
     const snapDistance = l2gz(20);
     let smallestPoint: [number, GlobalPoint] | undefined;
     for (const point of layer.points.keys()) {
@@ -104,7 +104,7 @@ export function snapToPoint(layer: Layer, endPoint: GlobalPoint, ignore?: Global
         if (l < (smallestPoint?.[0] ?? snapDistance)) smallestPoint = [l, gp];
     }
     if (smallestPoint !== undefined) endPoint = smallestPoint[1];
-    return endPoint;
+    return [endPoint, smallestPoint !== undefined];
 }
 
 export function moveFloor(shapes: Shape[], newFloor: Floor, sync: boolean): void {

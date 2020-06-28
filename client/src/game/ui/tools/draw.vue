@@ -64,6 +64,8 @@ export default class DrawTool extends Tool implements ToolBasics {
     closedPolygon = false;
     activeTool = false;
 
+    snappedToPoint = false;
+
     mounted(): void {
         EventBus.$on("Location.Options.Set", () => {
             if (this.brushSize === 0) this.brushSize = getUnitDistance(gameSettingsStore.unitSize) / 10;
@@ -219,7 +221,7 @@ export default class DrawTool extends Tool implements ToolBasics {
                 case "draw-polygon": {
                     const fill = this.closedPolygon ? this.fillColour : undefined;
                     const stroke = this.closedPolygon ? this.borderColour : this.fillColour;
-                    if (useSnapping(event)) {
+                    if (useSnapping(event) && !this.snappedToPoint) {
                         this.brushHelper.refPoint = new GlobalPoint(
                             clampGridLine(startPoint.x),
                             clampGridLine(startPoint.y),
@@ -258,7 +260,7 @@ export default class DrawTool extends Tool implements ToolBasics {
             this.pushBrushBack();
         } else if (this.shape !== null && this.shapeSelect === "draw-polygon" && this.shape instanceof Polygon) {
             // For polygon draw
-            if (useSnapping(event))
+            if (useSnapping(event) && !this.snappedToPoint)
                 this.brushHelper.refPoint = new GlobalPoint(clampGridLine(startPoint.x), clampGridLine(startPoint.y));
             this.shape._vertices.push(this.brushHelper.refPoint.clone());
             this.shape.updatePoints();
@@ -300,7 +302,9 @@ export default class DrawTool extends Tool implements ToolBasics {
             return;
         }
 
-        if (useSnapping(event)) endPoint = snapToPoint(this.getLayer()!, endPoint, this.ruler?.refPoint);
+        if (useSnapping(event))
+            [endPoint, this.snappedToPoint] = snapToPoint(this.getLayer()!, endPoint, this.ruler?.refPoint);
+        else this.snappedToPoint = false;
 
         if (this.brushHelper !== null) {
             this.brushHelper.r = this.helperSize;
@@ -373,10 +377,12 @@ export default class DrawTool extends Tool implements ToolBasics {
             return;
         }
         let endPoint = l2g(lp);
-        if (useSnapping(event)) endPoint = snapToPoint(this.getLayer()!, endPoint, this.ruler?.refPoint);
+        if (useSnapping(event))
+            [endPoint, this.snappedToPoint] = snapToPoint(this.getLayer()!, endPoint, this.ruler?.refPoint);
+        else this.snappedToPoint = false;
 
         // TODO: handle touch event different than altKey, long press
-        if (useSnapping(event) && this.useGrid) {
+        if (useSnapping(event) && this.useGrid && !this.snappedToPoint) {
             if (this.shape.visionObstruction)
                 visibilityStore.deleteFromTriag({
                     target: TriangulationTarget.VISION,

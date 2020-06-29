@@ -97,7 +97,8 @@
                 "creation": "楼层创建",
                 "warning_msg_Z": "你确定要移除楼层 {z} 吗？",
                 "delete_floor": "移除楼层",
-                "add_new_floor": "添加新楼层"
+                "add_new_floor": "添加新楼层",
+                "toggle_visibility": "切换玩家可见/不可见"
             },
             "initiative": {
                 "initiative": {

@@ -25,6 +25,7 @@ All notable changes to this project will be documented in this file.
 -   Initial state adding unnecessary fog on lower floors
 -   Prefer snapped points over grid snapping
 -   Remove white icon in topleft menu UI
+-   Moving polygons with keyboard woul only move origin point
 
 ## [0.21.0] - 2020-06-13
 

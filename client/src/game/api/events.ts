@@ -74,6 +74,7 @@ socket.on("Board.Set", (locationInfo: BoardInfo) => {
         visibilityStore.recalculateVision(floor.name);
         visibilityStore.recalculateMovement(floor.name);
     }
+    requestAnimationFrame(layerManager.drawLoop);
     gameStore.setBoardInitialized(true);
 });
 

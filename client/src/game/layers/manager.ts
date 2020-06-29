@@ -12,10 +12,6 @@ class LayerManager {
     // Refresh interval and redraw setter.
     interval = 30;
 
-    constructor() {
-        requestAnimationFrame(this.drawLoop);
-    }
-
     reset(): void {
         this.layerMap = new Map();
         this.UUIDMap = new Map();

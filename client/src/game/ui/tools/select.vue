@@ -24,6 +24,7 @@ import { Line } from "../../shapes/line";
 import { SyncMode, InvalidationMode } from "../../../core/comm/types";
 import { BoundingRect } from "../../shapes/boundingrect";
 import { floorStore } from "@/game/layers/store";
+import { sendShapePositionUpdate } from "../../api/events/shape";
 
 enum SelectOperations {
     Noop,
@@ -228,6 +229,7 @@ export default class SelectTool extends Tool implements ToolBasics {
                     }
                 }
                 let recalc = false;
+                const updateList = [];
                 // Actually apply the delta on all shapes
                 for (const sel of selection) {
                     if (!sel.ownedBy({ movementAccess: true })) continue;
@@ -241,9 +243,9 @@ export default class SelectTool extends Tool implements ToolBasics {
                         visibilityStore.addToTriag({ target: TriangulationTarget.VISION, shape: sel });
                         recalc = true;
                     }
-                    if (!sel.preventSync)
-                        socket.emit("Shape.Update", { shape: sel.asDict(), redraw: true, temporary: true });
+                    if (!sel.preventSync) updateList.push(sel);
                 }
+                sendShapePositionUpdate(updateList, true);
                 if (recalc) visibilityStore.recalculateVision(selection[0].floor.name);
                 this.dragRay = Ray.fromPoints(this.dragRay.origin, lp);
 
@@ -347,9 +349,11 @@ export default class SelectTool extends Tool implements ToolBasics {
             let recalcVision = false;
             let recalcMovement = false;
 
-            for (const sel of selection) {
-                if (!sel.ownedBy({ movementAccess: true })) continue;
-                if (this.mode === SelectOperations.Drag) {
+            if (this.mode === SelectOperations.Drag) {
+                const updateList = [];
+                for (const sel of selection) {
+                    if (!sel.ownedBy({ movementAccess: true })) continue;
+
                     if (
                         this.dragRay.origin!.x === g2lx(sel.refPoint.x) &&
                         this.dragRay.origin!.y === g2ly(sel.refPoint.y)
@@ -385,10 +389,14 @@ export default class SelectTool extends Tool implements ToolBasics {
 
                     if (sel.visionObstruction) recalcVision = true;
                     if (sel.movementObstruction) recalcMovement = true;
-                    if (!sel.preventSync)
-                        socket.emit("Shape.Update", { shape: sel.asDict(), redraw: true, temporary: false });
+                    if (!sel.preventSync) updateList.push(sel);
+                    sel.updatePoints();
                 }
-                if (this.mode === SelectOperations.Resize) {
+                sendShapePositionUpdate(updateList, false);
+            }
+            if (this.mode === SelectOperations.Resize) {
+                for (const sel of selection) {
+                    if (!sel.ownedBy({ movementAccess: true })) continue;
                     if (
                         gameSettingsStore.useGrid &&
                         useSnapping(event) &&
@@ -417,8 +425,13 @@ export default class SelectTool extends Tool implements ToolBasics {
                     if (!sel.preventSync) {
                         socket.emit("Shape.Update", { shape: sel.asDict(), redraw: true, temporary: false });
                     }
+                    sel.updatePoints();
                 }
-                if (this.mode === SelectOperations.Rotate) {
+            }
+            if (this.mode === SelectOperations.Rotate) {
+                for (const sel of selection) {
+                    if (!sel.ownedBy({ movementAccess: true })) continue;
+
                     const newAngle = Math.round(this.angle / ANGLE_SNAP) * ANGLE_SNAP;
                     if (
                         newAngle !== this.angle &&
@@ -430,8 +443,8 @@ export default class SelectTool extends Tool implements ToolBasics {
                     }
                     if (!sel.preventSync)
                         socket.emit("Shape.Update", { shape: sel.asDict(), redraw: true, temporary: false });
+                    sel.updatePoints();
                 }
-                sel.updatePoints();
             }
 
             if (recalcVision) visibilityStore.recalculateVision(selection[0].floor.name);

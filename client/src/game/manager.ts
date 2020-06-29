@@ -52,24 +52,7 @@ export class GameManager {
         const alteredMovement = shape.setMovementBlock(shape.movementObstruction);
         shape.setIsToken(shape.isToken);
         if (data.redraw) {
-            if (shape.visionObstruction && !alteredVision) {
-                visibilityStore.deleteFromTriag({
-                    target: TriangulationTarget.VISION,
-                    shape,
-                });
-                visibilityStore.addToTriag({ target: TriangulationTarget.VISION, shape });
-                visibilityStore.recalculateVision(shape.floor.name);
-            }
-            shape.invalidate(false);
-            layerManager.invalidateLightAllFloors();
-            if (shape.movementObstruction && !alteredMovement) {
-                visibilityStore.deleteFromTriag({
-                    target: TriangulationTarget.MOVEMENT,
-                    shape,
-                });
-                visibilityStore.addToTriag({ target: TriangulationTarget.MOVEMENT, shape });
-                visibilityStore.recalculateMovement(shape.floor.name);
-            }
+            shape.updateShapeVision(alteredMovement, alteredVision);
         }
         if (redrawInitiative) EventBus.$emit("Initiative.ForceUpdate");
     }

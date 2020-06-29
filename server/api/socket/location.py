@@ -29,7 +29,7 @@ from models.asset import Asset
 
 
 @auth.login_required(app, sio)
-async def load_location(sid: int, location: Location, *, complete=False):
+async def load_location(sid: str, location: Location, *, complete=False):
     pr: PlayerRoom = game_state.get(sid)
     if pr.active_location != location:
         pr.active_location = location
@@ -171,7 +171,7 @@ async def load_location(sid: int, location: Location, *, complete=False):
 
 @sio.on("Location.Change", namespace=GAME_NS)
 @auth.login_required(app, sio)
-async def change_location(sid: int, data: Dict[str, str]):
+async def change_location(sid: str, data: Dict[str, str]):
     pr: PlayerRoom = game_state.get(sid)
 
     if pr.role != Role.DM:
@@ -204,7 +204,7 @@ async def change_location(sid: int, data: Dict[str, str]):
 
 @sio.on("Location.Options.Set", namespace=GAME_NS)
 @auth.login_required(app, sio)
-async def set_location_options(sid: int, data: Dict[str, Any]):
+async def set_location_options(sid: str, data: Dict[str, Any]):
     pr: PlayerRoom = game_state.get(sid)
 
     if pr.role != Role.DM:
@@ -249,7 +249,7 @@ async def set_location_options(sid: int, data: Dict[str, Any]):
 
 @sio.on("Location.New", namespace=GAME_NS)
 @auth.login_required(app, sio)
-async def add_new_location(sid: int, location: str):
+async def add_new_location(sid: str, location: str):
     pr: PlayerRoom = game_state.get(sid)
 
     if pr.role != Role.DM:
@@ -273,7 +273,7 @@ async def add_new_location(sid: int, location: str):
 
 @sio.on("Locations.Order.Set", namespace=GAME_NS)
 @auth.login_required(app, sio)
-async def set_locations_order(sid: int, locations: List[int]):
+async def set_locations_order(sid: str, locations: List[int]):
     pr: PlayerRoom = game_state.get(sid)
 
     if pr.role != Role.DM:
@@ -296,7 +296,7 @@ async def set_locations_order(sid: int, locations: List[int]):
 
 @sio.on("Location.Rename", namespace=GAME_NS)
 @auth.login_required(app, sio)
-async def rename_location(sid: int, data: Dict[str, str]):
+async def rename_location(sid: str, data: Dict[str, str]):
     pr: PlayerRoom = game_state.get(sid)
 
     if pr.role != Role.DM:
@@ -314,7 +314,7 @@ async def rename_location(sid: int, data: Dict[str, str]):
 
 @sio.on("Location.Delete", namespace=GAME_NS)
 @auth.login_required(app, sio)
-async def delete_location(sid: int, location_id: int):
+async def delete_location(sid: str, location_id: int):
     pr: PlayerRoom = game_state.get(sid)
 
     if pr.role != Role.DM:
@@ -334,7 +334,7 @@ async def delete_location(sid: int, location_id: int):
 
 @sio.on("Location.Spawn.Info.Get", namespace=GAME_NS)
 @auth.login_required(app, sio)
-async def get_location_spawn_info(sid: int, location_id: int):
+async def get_location_spawn_info(sid: str, location_id: int):
     pr: PlayerRoom = game_state.get(sid)
 
     if pr.role != Role.DM:

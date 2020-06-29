@@ -10,25 +10,25 @@ T = TypeVar("T")
 
 class State(ABC, Generic[T]):
     def __init__(self) -> None:
-        self._sid_map: Dict[int, T] = {}
+        self._sid_map: Dict[str, T] = {}
 
-    async def add_sid(self, sid: int, value: T) -> None:
+    async def add_sid(self, sid: str, value: T) -> None:
         self._sid_map[sid] = value
 
-    async def remove_sid(self, sid: int) -> None:
+    async def remove_sid(self, sid: str) -> None:
         del self._sid_map[sid]
 
-    def has_sid(self, sid: int) -> bool:
+    def has_sid(self, sid: str) -> bool:
         return sid in self._sid_map
 
-    def get(self, sid: int) -> T:
+    def get(self, sid: str) -> T:
         return self._sid_map[sid]
 
     @abstractmethod
-    def get_user(self, sid: int) -> User:
+    def get_user(self, sid: str) -> User:
         pass
 
-    def get_sids(self, skip_sid=None, **options) -> Generator[int, None, None]:
+    def get_sids(self, skip_sid=None, **options) -> Generator[str, None, None]:
         for sid, value in dict(self._sid_map).items():
             if skip_sid == sid:
                 continue
@@ -39,6 +39,6 @@ class State(ABC, Generic[T]):
             ):
                 yield sid
 
-    def get_users(self, **options) -> Generator[Tuple[int, User], None, None]:
+    def get_users(self, **options) -> Generator[Tuple[str, User], None, None]:
         for sid in self.get_sids(**options):
             yield sid, self.get_user(sid)

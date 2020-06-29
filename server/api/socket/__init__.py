@@ -24,7 +24,7 @@ from . import (
 
 @sio.on("Client.Options.Set", namespace=GAME_NS)
 @auth.login_required(app, sio)
-async def set_client(sid: int, data: Dict[str, Any]):
+async def set_client(sid: str, data: Dict[str, Any]):
     pr: PlayerRoom = game_state.get(sid)
 
     with db.atomic():
@@ -50,7 +50,7 @@ async def set_client(sid: int, data: Dict[str, Any]):
 
 @sio.on("Client.ActiveLayer.Set", namespace=GAME_NS)
 @auth.login_required(app, sio)
-async def set_layer(sid: int, data: Dict[str, Any]):
+async def set_layer(sid: str, data: Dict[str, Any]):
     pr: PlayerRoom = game_state.get(sid)
 
     try:
@@ -66,7 +66,7 @@ async def set_layer(sid: int, data: Dict[str, Any]):
 
 @sio.on("Players.Bring", namespace=GAME_NS)
 @auth.login_required(app, sio)
-async def bring_players(sid: int, data: Dict[str, Any]):
+async def bring_players(sid: str, data: Dict[str, Any]):
     pr: PlayerRoom = game_state.get(sid)
 
     await sio.emit(

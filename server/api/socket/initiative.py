@@ -28,7 +28,7 @@ from state.game import game_state
 
 @sio.on("Initiative.Update", namespace=GAME_NS)
 @auth.login_required(app, sio)
-async def update_initiative(sid: int, data: Dict[str, Any]):
+async def update_initiative(sid: str, data: Dict[str, Any]):
     pr: PlayerRoom = game_state.get(sid)
 
     shape = Shape.get_or_none(uuid=data["uuid"])
@@ -113,7 +113,7 @@ async def update_initiative(sid: int, data: Dict[str, Any]):
 
 @sio.on("Initiative.Remove", namespace=GAME_NS)
 @auth.login_required(app, sio)
-async def remove_initiative(sid: int, data: Dict[str, Any]):
+async def remove_initiative(sid: str, data: Dict[str, Any]):
     pr: PlayerRoom = game_state.get(sid)
 
     shape = Shape.get_or_none(uuid=data)
@@ -140,7 +140,7 @@ async def remove_initiative(sid: int, data: Dict[str, Any]):
 
 @sio.on("Initiative.Set", namespace=GAME_NS)
 @auth.login_required(app, sio)
-async def update_initiative_order(sid: int, data: Dict[str, Any]):
+async def update_initiative_order(sid: str, data: Dict[str, Any]):
     pr: PlayerRoom = game_state.get(sid)
 
     if pr.role != Role.DM:
@@ -158,7 +158,7 @@ async def update_initiative_order(sid: int, data: Dict[str, Any]):
 
 @sio.on("Initiative.Turn.Update", namespace=GAME_NS)
 @auth.login_required(app, sio)
-async def update_initiative_turn(sid: int, data: Dict[str, Any]):
+async def update_initiative_turn(sid: str, data: Dict[str, Any]):
     pr: PlayerRoom = game_state.get(sid)
 
     if pr.role != Role.DM:
@@ -191,7 +191,7 @@ async def update_initiative_turn(sid: int, data: Dict[str, Any]):
 
 @sio.on("Initiative.Round.Update", namespace=GAME_NS)
 @auth.login_required(app, sio)
-async def update_initiative_round(sid: int, data: Dict[str, Any]):
+async def update_initiative_round(sid: str, data: Dict[str, Any]):
     pr: PlayerRoom = game_state.get(sid)
 
     if pr.role != Role.DM:
@@ -214,7 +214,7 @@ async def update_initiative_round(sid: int, data: Dict[str, Any]):
 
 @sio.on("Initiative.Effect.New", namespace=GAME_NS)
 @auth.login_required(app, sio)
-async def new_initiative_effect(sid: int, data: Dict[str, Any]):
+async def new_initiative_effect(sid: str, data: Dict[str, Any]):
     pr: PlayerRoom = game_state.get(sid)
 
     if not has_ownership(Shape.get_or_none(uuid=data["actor"]), pr):
@@ -239,7 +239,7 @@ async def new_initiative_effect(sid: int, data: Dict[str, Any]):
 
 @sio.on("Initiative.Effect.Update", namespace=GAME_NS)
 @auth.login_required(app, sio)
-async def update_initiative_effect(sid: int, data: Dict[str, Any]):
+async def update_initiative_effect(sid: str, data: Dict[str, Any]):
     pr: PlayerRoom = game_state.get(sid)
 
     if not has_ownership(Shape.get_or_none(uuid=data["actor"]), pr):

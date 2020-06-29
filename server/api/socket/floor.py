@@ -10,7 +10,7 @@ from state.game import game_state
 
 @sio.on("Floor.Create", namespace=GAME_NS)
 @auth.login_required(app, sio)
-async def create_floor(sid: int, data: Dict[str, Any]):
+async def create_floor(sid: str, data: Dict[str, Any]):
     pr: PlayerRoom = game_state.get(sid)
 
     if pr.role != Role.DM:

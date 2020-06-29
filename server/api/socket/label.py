@@ -11,7 +11,7 @@ from state.game import game_state
 
 @sio.on("Label.Add", namespace=GAME_NS)
 @auth.login_required(app, sio)
-async def add(sid: int, data: Dict[str, Any]):
+async def add(sid: str, data: Dict[str, Any]):
     pr: PlayerRoom = game_state.get(sid)
 
     label = Label.get_or_none(uuid=data)
@@ -36,7 +36,7 @@ async def add(sid: int, data: Dict[str, Any]):
 
 @sio.on("Label.Delete", namespace=GAME_NS)
 @auth.login_required(app, sio)
-async def delete(sid: int, data: Dict[str, Any]):
+async def delete(sid: str, data: Dict[str, Any]):
     pr: PlayerRoom = game_state.get(sid)
 
     label = Label.get_or_none(uuid=data)
@@ -61,7 +61,7 @@ async def delete(sid: int, data: Dict[str, Any]):
 
 @sio.on("Label.Visibility.Set", namespace=GAME_NS)
 @auth.login_required(app, sio)
-async def set_visibility(sid: int, data: Dict[str, Any]):
+async def set_visibility(sid: str, data: Dict[str, Any]):
     pr: PlayerRoom = game_state.get(sid)
 
     label = Label.get_or_none(uuid=data["uuid"])
@@ -101,7 +101,7 @@ async def set_visibility(sid: int, data: Dict[str, Any]):
 
 @sio.on("Labels.Filter.Add", namespace=GAME_NS)
 @auth.login_required(app, sio)
-async def add_filter(sid: int, uuid: str):
+async def add_filter(sid: str, uuid: str):
     pr: PlayerRoom = game_state.get(sid)
 
     label = Label.get_or_none(uuid=uuid)
@@ -115,7 +115,7 @@ async def add_filter(sid: int, uuid: str):
 
 @sio.on("Labels.Filter.Remove", namespace=GAME_NS)
 @auth.login_required(app, sio)
-async def remove_filter(sid: int, uuid: str):
+async def remove_filter(sid: str, uuid: str):
     pr: PlayerRoom = game_state.get(sid)
 
     label = Label.get_or_none(uuid=uuid)

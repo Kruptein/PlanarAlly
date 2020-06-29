@@ -33,7 +33,7 @@ from . import access, options
 
 @sio.on("Shape.Add", namespace=GAME_NS)
 @auth.login_required(app, sio)
-async def add_shape(sid: int, data: Dict[str, Any]):
+async def add_shape(sid: str, data: Dict[str, Any]):
     pr: PlayerRoom = game_state.get(sid)
 
     if "temporary" not in data:
@@ -130,7 +130,7 @@ async def update_shape_position(sid: str, data: Dict[str, Any]):
 
 @sio.on("Shape.Update", namespace=GAME_NS)
 @auth.login_required(app, sio)
-async def update_shape(sid: int, data: Dict[str, Any]):
+async def update_shape(sid: str, data: Dict[str, Any]):
     pr: PlayerRoom = game_state.get(sid)
 
     if data["temporary"] and not has_ownership_temp(data["shape"], pr):
@@ -228,7 +228,7 @@ async def update_shape(sid: int, data: Dict[str, Any]):
 
 @sio.on("Shapes.Remove", namespace=GAME_NS)
 @auth.login_required(app, sio)
-async def remove_shapes(sid: int, data: Dict[str, Any]):
+async def remove_shapes(sid: str, data: Dict[str, Any]):
     pr: PlayerRoom = game_state.get(sid)
 
     if data["temporary"]:
@@ -271,7 +271,7 @@ async def remove_shapes(sid: int, data: Dict[str, Any]):
 
 @sio.on("Shapes.Floor.Change", namespace=GAME_NS)
 @auth.login_required(app, sio)
-async def change_shape_floor(sid: int, data: Dict[str, Any]):
+async def change_shape_floor(sid: str, data: Dict[str, Any]):
     pr: PlayerRoom = game_state.get(sid)
 
     if pr.role != Role.DM:
@@ -304,7 +304,7 @@ async def change_shape_floor(sid: int, data: Dict[str, Any]):
 
 @sio.on("Shapes.Layer.Change", namespace=GAME_NS)
 @auth.login_required(app, sio)
-async def change_shape_layer(sid: int, data: Dict[str, Any]):
+async def change_shape_layer(sid: str, data: Dict[str, Any]):
     pr: PlayerRoom = game_state.get(sid)
 
     if pr.role != Role.DM:
@@ -374,7 +374,7 @@ async def change_shape_layer(sid: int, data: Dict[str, Any]):
 
 @sio.on("Shape.Order.Set", namespace=GAME_NS)
 @auth.login_required(app, sio)
-async def move_shape_order(sid: int, data: Dict[str, Any]):
+async def move_shape_order(sid: str, data: Dict[str, Any]):
     pr: PlayerRoom = game_state.get(sid)
 
     shape = Shape.get(uuid=data["shape"]["uuid"])
@@ -470,7 +470,7 @@ async def _get_shape(data: Dict[str, Any], pr: PlayerRoom):
 
 @sio.on("Shapes.Location.Move", namespace=GAME_NS)
 @auth.login_required(app, sio)
-async def move_shapes(sid: int, data: Dict[str, Any]):
+async def move_shapes(sid: str, data: Dict[str, Any]):
     pr: PlayerRoom = game_state.get(sid)
 
     if pr.role != Role.DM:

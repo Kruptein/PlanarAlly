@@ -12,7 +12,7 @@ from state.game import game_state
 
 @sio.on("Shape.Owner.Add", namespace=GAME_NS)
 @auth.login_required(app, sio)
-async def add_shape_owner(sid: int, data: Dict[str, Any]):
+async def add_shape_owner(sid: str, data: Dict[str, Any]):
     pr: PlayerRoom = game_state.get(sid)
 
     try:
@@ -70,7 +70,7 @@ async def add_shape_owner(sid: int, data: Dict[str, Any]):
 
 @sio.on("Shape.Owner.Update", namespace=GAME_NS)
 @auth.login_required(app, sio)
-async def update_shape_owner(sid: int, data: Dict[str, Any]):
+async def update_shape_owner(sid: str, data: Dict[str, Any]):
     pr: PlayerRoom = game_state.get(sid)
 
     try:
@@ -119,7 +119,7 @@ async def update_shape_owner(sid: int, data: Dict[str, Any]):
 
 @sio.on("Shape.Owner.Delete", namespace=GAME_NS)
 @auth.login_required(app, sio)
-async def delete_shape_owner(sid: int, data: Dict[str, Any]):
+async def delete_shape_owner(sid: str, data: Dict[str, Any]):
     pr: PlayerRoom = game_state.get(sid)
 
     try:
@@ -161,7 +161,7 @@ async def delete_shape_owner(sid: int, data: Dict[str, Any]):
 
 @sio.on("Shape.Owner.Default.Update", namespace=GAME_NS)
 @auth.login_required(app, sio)
-async def update_default_shape_owner(sid: int, data: Dict[str, Any]):
+async def update_default_shape_owner(sid: str, data: Dict[str, Any]):
     pr: PlayerRoom = game_state.get(sid)
 
     try:

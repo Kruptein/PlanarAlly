@@ -3,7 +3,7 @@ from typing import Any, Dict, List
 
 import auth
 from api.socket.constants import GAME_NS
-from app import app, logger, sio
+from app import app, sio
 from models import (
     Floor,
     Initiative,
@@ -23,6 +23,7 @@ from models.role import Role
 from peewee import JOIN
 from playhouse.shortcuts import update_model_from_dict
 from state.game import game_state
+from utils import logger
 
 from .initiative import send_client_initiatives
 from models.asset import Asset

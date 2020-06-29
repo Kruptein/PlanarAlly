@@ -3,11 +3,12 @@ from typing import Any, Dict
 import auth
 from api.socket.constants import GAME_NS
 from api.socket.initiative import send_client_initiatives
-from app import app, logger, sio
+from app import app, sio
 from models import Floor, Layer, Location, PlayerRoom, Room, Shape, ShapeOwner, User
 from models.role import Role
 from models.shape.access import has_ownership
 from state.game import game_state
+from utils import logger
 
 
 @sio.on("Shape.Owner.Add", namespace=GAME_NS)

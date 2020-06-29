@@ -5,11 +5,11 @@ from aiohttp import web
 from aiohttp_security import authorized_userid
 
 import auth
-from app import app, logger, sio
+from app import app, sio
 from .constants import ASSET_NS
 from models import Asset
 from state.asset import asset_state
-from utils import FILE_DIR
+from utils import FILE_DIR, logger
 
 ASSETS_DIR = FILE_DIR / "static" / "assets"
 if not ASSETS_DIR.exists():

@@ -2,10 +2,11 @@ import uuid
 
 import auth
 from api.socket.constants import GAME_NS
-from app import app, logger, sio
+from app import app, sio
 from models import PlayerRoom
 from models.role import Role
 from state.game import game_state
+from utils import logger
 
 
 @sio.on("Room.Info.InviteCode.Refresh", namespace=GAME_NS)

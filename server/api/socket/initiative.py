@@ -6,7 +6,7 @@ from playhouse.shortcuts import dict_to_model, update_model_from_dict
 
 import auth
 from api.socket.constants import GAME_NS
-from app import app, logger, sio
+from app import app, sio
 from models import (
     Initiative,
     InitiativeEffect,
@@ -24,6 +24,7 @@ from models.role import Role
 from models.shape.access import has_ownership, has_ownership_temp
 from models.utils import reduce_data_to_model
 from state.game import game_state
+from utils import logger
 
 
 @sio.on("Initiative.Update", namespace=GAME_NS)

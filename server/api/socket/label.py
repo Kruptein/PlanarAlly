@@ -2,11 +2,12 @@ from typing import Any, Dict
 
 import auth
 from api.socket.constants import GAME_NS
-from app import app, logger, sio
+from app import app, sio
 from models import Label, LabelSelection, PlayerRoom, User
 from models.db import db
 from models.role import Role
 from state.game import game_state
+from utils import logger
 
 
 @sio.on("Label.Add", namespace=GAME_NS)

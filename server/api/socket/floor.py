@@ -2,10 +2,11 @@ from typing import Any, Dict
 
 import auth
 from api.socket.constants import GAME_NS
-from app import app, logger, sio
+from app import app, sio
 from models import Floor, Room, PlayerRoom
 from models.role import Role
 from state.game import game_state
+from utils import logger
 
 
 @sio.on("Floor.Create", namespace=GAME_NS)

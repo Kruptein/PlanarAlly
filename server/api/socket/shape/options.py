@@ -2,10 +2,11 @@ from typing import Any, Dict
 
 import auth
 from api.socket.constants import GAME_NS
-from app import app, logger, sio
+from app import app, sio
 from models import PlayerRoom, Shape
 from models.shape.access import has_ownership
 from state.game import game_state
+from utils import logger
 
 
 @sio.on("Shape.Options.Invisible.Set", namespace=GAME_NS)

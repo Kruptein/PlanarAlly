@@ -1,13 +1,15 @@
 from copy import deepcopy
+from dataclasses import dataclass
 from datetime import datetime
-from typing import Any, Dict, List
+from typing import Any, Dict, Generic, List, Tuple
+from typing_extensions import TypedDict
 
 from peewee import Case
 from playhouse.shortcuts import update_model_from_dict
 
 import auth
 from api.socket.constants import GAME_NS
-from app import app, logger, sio
+from app import app, sio
 from models import (
     Aura,
     Floor,
@@ -27,8 +29,23 @@ from models.role import Role
 from models.shape.access import has_ownership, has_ownership_temp
 from models.utils import get_table, reduce_data_to_model
 from state.game import game_state
+from utils import logger
 
 from . import access, options
+
+
+# DATA CLASSES FOR TYPE CHECKING
+class PositionUpdate(TypedDict):
+    uuid: str
+    points: List[List[float]]
+
+
+class PositionUpdateList(TypedDict):
+    shapes: List[PositionUpdate]
+    temporary: bool
+
+
+# EVENTS
 
 
 @sio.on("Shape.Add", namespace=GAME_NS)
@@ -93,39 +110,48 @@ async def add_shape(sid: str, data: Dict[str, Any]):
             await sio.emit("Shape.Add", data["shape"], room=psid, namespace=GAME_NS)
 
 
-@sio.on("Shape.Position.Update", namespace=GAME_NS)
+@sio.on("Shapes.Position.Update", namespace=GAME_NS)
 @auth.login_required(app, sio)
-async def update_shape_position(sid: str, data: Dict[str, Any]):
+async def update_shape_positions(sid: str, data: PositionUpdateList):
     pr: PlayerRoom = game_state.get(sid)
 
-    if data["temporary"] and not has_ownership_temp(data["shape"], pr):
+    shapes: List[Tuple[Shape, PositionUpdate]] = [
+        (Shape.get_by_id(shape["uuid"]), shape) for shape in data["shapes"]
+    ]
+
+    if data["temporary"] and not all(
+        has_ownership_temp(shape, pr) for shape, _ in shapes
+    ):
         logger.warning(
             f"User {pr.player.name} attempted to move a shape it does not own."
         )
         return
-
-    shape, layer = await _get_shape(data, pr)
-
-    # Overwrite the old data with the new data
-    if not data["temporary"]:
-        if not has_ownership(shape, pr):
+    else:
+        if not all(has_ownership(shape, pr) for shape, _ in shapes):
             logger.warning(
                 f"User {pr.player.name} attempted to move a shape it does not own."
             )
             return
 
         with db.atomic():
-            # Shape
-            update_model_from_dict(shape, reduce_data_to_model(Shape, data["shape"]))
-            shape.save()
-            if shape.type_ == "polygon":
-                # Subshape
-                type_instance = shape.subtype
-                # no backrefs on these tables
-                type_instance.update_from_dict(data["shape"], ignore_unknown=True)
-                type_instance.save()
+            for db_shape, data_shape in shapes:
+                points = data_shape["points"]
+                db_shape.x = points[0][0]
+                db_shape.y = points[0][1]
+                db_shape.save()
 
-    await sync_shape_update(layer, pr, data, sid, shape)
+                if len(points) > 1:
+                    # Subshape
+                    type_instance = db_shape.subtype
+                    type_instance.set_location(points[1:])
+
+    await sio.emit(
+        "Shapes.Position.Update",
+        data["shapes"],
+        room=pr.active_location.get_path(),
+        skip_sid=sid,
+        namespace=GAME_NS,
+    )
 
 
 @sio.on("Shape.Update", namespace=GAME_NS)
@@ -477,12 +503,12 @@ async def move_shapes(sid: str, data: Dict[str, Any]):
         logger.warning(f"{pr.player.name} attempted to move shape locations")
         return
 
-    location = Location[data["target"]["location"]]
+    location = Location.get_by_id(data["target"]["location"])
     floor = location.floors.select().where(Floor.name == data["target"]["floor"])[0]
     x = data["target"]["x"]
     y = data["target"]["y"]
 
-    shapes = [Shape[sh] for sh in data["shapes"]]
+    shapes = [Shape.get_by_id(sh) for sh in data["shapes"]]
 
     for psid, player in game_state.get_users(active_location=pr.active_location):
         await sio.emit(

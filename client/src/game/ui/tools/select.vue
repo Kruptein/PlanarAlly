@@ -14,7 +14,7 @@ import { Rect } from "@/game/shapes/rect";
 import { gameStore } from "@/game/store";
 import { calculateDelta, ToolName, ToolFeatures } from "@/game/ui/tools/utils";
 import { g2l, g2lx, g2ly, l2g, l2gz } from "@/game/units";
-import { getLocalPointFromEvent, useSnapping, equalPoints, rotateAroundPoint } from "@/game/utils";
+import { getLocalPointFromEvent, useSnapping, equalPoints } from "@/game/utils";
 import { visibilityStore } from "@/game/visibility/store";
 import { TriangulationTarget } from "@/game/visibility/te/pa";
 import { gameSettingsStore } from "../../settings";
@@ -587,9 +587,6 @@ export default class SelectTool extends Tool implements ToolBasics {
                     .expand(new Vector(-50, -50))
                     .rotateAroundAbsolute(this.rotationBox!.center(), this.angle);
             }
-
-            const topCenter = new GlobalPoint((bbox.topRight.x + bbox.topLeft.x) / 2, bbox.topLeft.y);
-            const topCenterPlus = topCenter.add(new Vector(0, -150));
 
             this.rotationBox!.angle = this.angle;
             this.rotationAnchor!.rotateAroundAbsolute(bbox.center(), this.angle);

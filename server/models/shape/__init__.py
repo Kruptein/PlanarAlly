@@ -1,8 +1,9 @@
 import json
 from peewee import BooleanField, FloatField, ForeignKeyField, IntegerField, TextField
 from playhouse.shortcuts import model_to_dict, update_model_from_dict
-from typing import Tuple
+from typing import List, Tuple
 
+from utils import logger
 from ..base import BaseModel
 from ..campaign import Layer
 from ..label import Label
@@ -181,6 +182,9 @@ class ShapeType(BaseModel):
     def get_center_offset(self, x: int, y: int) -> Tuple[int, int]:
         return 0, 0
 
+    def set_location(self, points: List[List[int]]) -> None:
+        logger.error("Attempt to set location on shape without location info")
+
 
 class BaseRect(ShapeType):
     abstract = False
@@ -236,6 +240,10 @@ class Polygon(ShapeType):
     def update_from_dict(self, data, *args, **kwargs):
         data["vertices"] = json.dumps(data["vertices"])
         return update_model_from_dict(self, data, *args, **kwargs)
+
+    def set_location(self, points: List[List[int]]) -> None:
+        self.vertices = json.dumps(points)
+        self.save()
 
 
 class Rect(BaseRect):

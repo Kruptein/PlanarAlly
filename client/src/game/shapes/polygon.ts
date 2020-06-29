@@ -59,6 +59,15 @@ export class Polygon extends Shape {
         this.lineWidth = data.line_width;
     }
 
+    getPositionRepresentation(): number[][] {
+        return this.vertices.map(v => v.asArray());
+    }
+
+    setPositionRepresentation(points: number[][]): void {
+        this._vertices = points.slice(1).map(p => GlobalPoint.fromArray(p));
+        super.setPositionRepresentation(points);
+    }
+
     get points(): number[][] {
         const center = this.center();
         return this.vertices.map(point => [...rotateAroundPoint(point, center, this.angle)]);

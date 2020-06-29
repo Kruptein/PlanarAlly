@@ -12,6 +12,7 @@ import { gameManager } from "../manager";
 import { gameSettingsStore } from "../settings";
 import { floorStore } from "../layers/store";
 import { moveFloor } from "../layers/utils";
+import { sendShapePositionUpdate } from "../api/events/shape";
 
 export function onKeyUp(event: KeyboardEvent): void {
     if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement) {
@@ -79,13 +80,9 @@ export function onKeyDown(event: KeyboardEvent): void {
                         visibilityStore.addToTriag({ target: TriangulationTarget.VISION, shape: sel });
                     // todo: Fix again
                     // if (sel.refPoint.x % gridSize !== 0 || sel.refPoint.y % gridSize !== 0) sel.snapToGrid();
-                    if (!sel.preventSync)
-                        socket.emit("Shape.Position.Update", {
-                            shape: sel.asDict(),
-                            redraw: true,
-                            temporary: false,
-                        });
                 }
+                sendShapePositionUpdate(selection, false);
+
                 const floorName = floorStore.currentFloor.name;
                 if (recalculateVision) visibilityStore.recalculateVision(floorName);
                 if (recalculateMovement) visibilityStore.recalculateMovement(floorName);

@@ -337,6 +337,15 @@ export abstract class Shape {
         );
     }
 
+    getPositionRepresentation(): number[][] {
+        return [this.refPoint.asArray()];
+    }
+
+    setPositionRepresentation(points: number[][]): void {
+        this.refPoint = GlobalPoint.fromArray(points[0]);
+        this.invalidate(true);
+    }
+
     draw(ctx: CanvasRenderingContext2D): void {
         if (this.globalCompositeOperation !== undefined) ctx.globalCompositeOperation = this.globalCompositeOperation;
         else ctx.globalCompositeOperation = "source-over";

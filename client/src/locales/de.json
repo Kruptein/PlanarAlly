@@ -97,7 +97,8 @@
                 "creation": "Stockwerkerstellung",
                 "warning_msg_Z": "Bist Du sicher, dass Du das Stockwerk {z} löschen willst?",
                 "delete_floor": "Stockwerk löschen",
-                "add_new_floor": "Neues Stockwerk hinzufügen"
+                "add_new_floor": "Neues Stockwerk hinzufügen",
+		"toggle_visibility": "Sichtbarkeit des Stockwerks für Spieler umschalten"
             },
             "initiative": {
                 "initiative": {

@@ -14,10 +14,8 @@ import { gameSettingsStore } from "../settings";
 import { floorStore } from "./store";
 
 export class Layer {
-    name: string;
     canvas: HTMLCanvasElement;
     ctx: CanvasRenderingContext2D;
-    floor: string;
 
     selectable = false;
     playerEditable = false;
@@ -39,11 +37,9 @@ export class Layer {
     points: Map<string, Set<string>> = new Map();
     postDrawCallbacks: (() => void)[] = [];
 
-    constructor(canvas: HTMLCanvasElement, name: string, floor: string) {
+    constructor(canvas: HTMLCanvasElement, public name: string, public floor: string, public index: number) {
         this.canvas = canvas;
-        this.name = name;
         this.ctx = canvas.getContext("2d")!;
-        this.floor = floor;
     }
 
     invalidate(skipLightUpdate: boolean): void {

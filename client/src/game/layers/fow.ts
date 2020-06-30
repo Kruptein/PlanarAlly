@@ -17,8 +17,8 @@ export class FOWLayer extends Layer {
     virtualCanvas: HTMLCanvasElement;
     vCtx: CanvasRenderingContext2D;
 
-    constructor(canvas: HTMLCanvasElement, name: string, floor: string) {
-        super(canvas, name, floor);
+    constructor(canvas: HTMLCanvasElement, public name: string, public floor: string, public index: number) {
+        super(canvas, name, floor, index);
         this.virtualCanvas = document.createElement("canvas");
         this.virtualCanvas.width = window.innerWidth;
         this.virtualCanvas.height = window.innerHeight;
@@ -61,7 +61,7 @@ export class FOWLayer extends Layer {
 
             ctx.fillStyle = "rgba(0, 0, 0, 1)";
 
-            const activeFloorName = floorStore.floors[floorStore.currentFloorindex].name;
+            const activeFloorName = floorStore.currentFloor.name;
 
             if (this.floor === activeFloorName && this.canvas.style.display === "none")
                 this.canvas.style.removeProperty("display");

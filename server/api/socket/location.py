@@ -29,6 +29,14 @@ from .initiative import send_client_initiatives
 from models.asset import Asset
 
 
+@sio.on("Location.Load", namespace=GAME_NS)
+@auth.login_required(app, sio)
+async def change_locatdion(sid: str):
+    pr: PlayerRoom = game_state.get(sid)
+
+    await load_location(sid, pr.active_location, complete=True)
+
+
 @auth.login_required(app, sio)
 async def load_location(sid: str, location: Location, *, complete=False):
     pr: PlayerRoom = game_state.get(sid)
@@ -42,6 +50,7 @@ async def load_location(sid: str, location: Location, *, complete=False):
     client_options.update(
         **LocationUserOption.get(user=pr.player, location=location).as_dict()
     )
+
     await sio.emit("Client.Options.Set", client_options, room=sid, namespace=GAME_NS)
 
     # 2. Load room info
@@ -88,15 +97,28 @@ async def load_location(sid: str, location: Location, *, complete=False):
 
     # 5. Load Board
 
-    data = {}
-    data["locations"] = [
+    locations = [
         {"id": l.id, "name": l.name} for l in pr.room.locations.order_by(Location.index)
     ]
-    data["floors"] = [
-        f.as_dict(pr.player, pr.player == pr.room.creator)
-        for f in location.floors.order_by(Floor.index)
-    ]
-    await sio.emit("Board.Set", data, room=sid, namespace=GAME_NS)
+    await sio.emit("Board.Locations.Set", locations, room=sid, namespace=GAME_NS)
+
+    floors = [floor for floor in location.floors.order_by(Floor.index)]
+
+    if "active_floor" in client_options:
+        index = next(
+            i for i, f in enumerate(floors) if f.name == client_options["active_floor"]
+        )
+        lower_floors = floors[index - 1 :: -1] if index > 0 else []
+        higher_floors = floors[index + 1 :] if index < len(floors) else []
+        floors = [floors[index], *lower_floors, *higher_floors]
+
+    for floor in floors:
+        await sio.emit(
+            "Board.Floor.Set",
+            floor.as_dict(pr.player, pr.player == pr.room.creator),
+            room=sid,
+            namespace=GAME_NS,
+        )
 
     # 6. Load Initiative
 

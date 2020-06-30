@@ -18,9 +18,18 @@ import { socket } from "../api/socket";
 
 export function addFloor(serverFloor: ServerFloor): void {
     const floor = { name: serverFloor.name, playerVisible: serverFloor.player_visible };
-    floorStore.addFloor(floor);
+    floorStore.addFloor({ floor, targetIndex: serverFloor.index });
     addCDT(serverFloor.name);
     for (const layer of serverFloor.layers) createLayer(layer, floor);
+
+    // Recalculate zIndices
+    let i = 0;
+    for (const floor of floorStore.floors) {
+        for (const layer of layerManager.getLayers(floor)) {
+            layer.canvas.style.zIndex = `${i}`;
+            i += 1;
+        }
+    }
 }
 
 export function removeFloor(floorName: string): void {
@@ -45,16 +54,16 @@ export function removeFloor(floorName: string): void {
 function createLayer(layerInfo: ServerLayer, floor: Floor): void {
     // Create canvas element
     const canvas = document.createElement("canvas");
-    canvas.style.zIndex = layerManager.layerLength.toString();
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
 
     // Create the Layer instance
     let layer: Layer;
-    if (layerInfo.type_ === "grid") layer = new GridLayer(canvas, layerInfo.name, floor.name);
-    else if (layerInfo.type_ === "fow") layer = new FOWLayer(canvas, layerInfo.name, floor.name);
-    else if (layerInfo.type_ === "fow-players") layer = new FOWPlayersLayer(canvas, layerInfo.name, floor.name);
-    else layer = new Layer(canvas, layerInfo.name, floor.name);
+    if (layerInfo.type_ === "grid") layer = new GridLayer(canvas, layerInfo.name, floor.name, layerInfo.index);
+    else if (layerInfo.type_ === "fow") layer = new FOWLayer(canvas, layerInfo.name, floor.name, layerInfo.index);
+    else if (layerInfo.type_ === "fow-players")
+        layer = new FOWPlayersLayer(canvas, layerInfo.name, floor.name, layerInfo.index);
+    else layer = new Layer(canvas, layerInfo.name, floor.name, layerInfo.index);
     layer.selectable = layerInfo.selectable;
     layer.playerEditable = layerInfo.player_editable;
     layerManager.addLayer(layer, floor.name);

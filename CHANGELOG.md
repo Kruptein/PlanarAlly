@@ -16,6 +16,13 @@ All notable changes to this project will be documented in this file.
 -   Floor visibility toggle
     -   "Hidden" floors are not selectable by players, BUT will still render in between other selectable layers
 
+### Changed
+
+-   Floors are now loaded separately on startup this greatly impacts startup time
+    -   The floor the user was last active on is loaded first if possible
+    -   Next all floors under the active floor in descending order are loaded
+    -   Lastly the floors above in ascending order are loaded
+
 ### Fixed
 
 -   Aura not displaying when token is outside the visible canvas

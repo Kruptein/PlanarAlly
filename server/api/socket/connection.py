@@ -46,7 +46,6 @@ async def connect(sid, environ):
     logger.info(f"User {user.name} connected with identifier {sid}")
 
     sio.enter_room(sid, pr.active_location.get_path(), namespace=GAME_NS)
-    await load_location(sid, pr.active_location, complete=True)
 
 
 @sio.on("disconnect", namespace=GAME_NS)

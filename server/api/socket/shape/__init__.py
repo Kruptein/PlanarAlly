@@ -1,5 +1,4 @@
 from copy import deepcopy
-from dataclasses import dataclass
 from datetime import datetime
 from typing import Any, Dict, Generic, List, Tuple
 from typing_extensions import TypedDict

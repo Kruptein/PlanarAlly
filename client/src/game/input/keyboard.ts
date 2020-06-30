@@ -1,4 +1,3 @@
-import { socket } from "@/game/api/socket";
 import { sendClientOptions } from "@/game/api/utils";
 import { Vector } from "@/game/geom";
 import { layerManager } from "@/game/layers/manager";

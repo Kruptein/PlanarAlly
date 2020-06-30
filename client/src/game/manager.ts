@@ -8,8 +8,6 @@ import { createShapeFromDict } from "@/game/shapes/utils";
 import { gameStore } from "@/game/store";
 import { AnnotationManager } from "@/game/ui/annotation";
 import { g2l } from "@/game/units";
-import { visibilityStore } from "@/game/visibility/store";
-import { TriangulationTarget } from "@/game/visibility/te/pa";
 import { Shape } from "./shapes/shape";
 
 export class GameManager {

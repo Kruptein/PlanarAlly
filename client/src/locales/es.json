@@ -97,7 +97,8 @@
                 "creation": "Crear piso",
                 "warning_msg_Z": "¿Estás seguro de que quieres remover el piso {z}?",
                 "delete_floor": "Borrar piso",
-                "add_new_floor": "Añadir nuevo piso."
+                "add_new_floor": "Añadir nuevo piso.",
+                "toggle_visibility": "Activar/Desactivar visibilidad del piso para los jugadores."
             },
             "initiative": {
                 "initiative": {

@@ -33,6 +33,7 @@ socket.on("Locations.Order.Set", (locations: { id: number; name: string }[]) => 
 
 socket.on("Location.Change.Start", () => {
     coreStore.setLoading(true);
+    gameStore.setBoardInitialized(false);
 });
 
 socket.on("Location.Rename", (data: { id: number; name: string }) => {

@@ -34,6 +34,7 @@ class FloorStore extends VuexModule implements FloorState {
     @Mutation
     reset(): void {
         this._floors = [];
+        this._indices = [];
         this.floorIndex = -1;
     }
 

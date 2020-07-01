@@ -6,7 +6,7 @@ import "@/game/api/events/location";
 import "@/game/api/events/room";
 import "@/game/api/events/shape";
 import { socket } from "@/game/api/socket";
-import { BoardInfo, Note, ServerFloor } from "@/game/comm/types/general";
+import { Note, ServerFloor } from "@/game/comm/types/general";
 import { EventBus } from "@/game/event-bus";
 import { GlobalPoint } from "@/game/geom";
 import { layerManager } from "@/game/layers/manager";
@@ -14,10 +14,11 @@ import { addFloor } from "@/game/layers/utils";
 import { gameManager } from "@/game/manager";
 import { gameStore } from "@/game/store";
 import { router } from "@/router";
+import { coreStore } from "../../core/store";
 import { ServerClient } from "../comm/types/settings";
+import { floorStore } from "../layers/store";
 import { zoomDisplay } from "../utils";
 import { visibilityStore } from "../visibility/store";
-import { floorStore } from "../layers/store";
 
 // Core WS events
 
@@ -60,23 +61,6 @@ socket.on("Client.Options.Set", (options: ServerClient) => {
     });
 });
 
-socket.on("Board.Set", (locationInfo: BoardInfo) => {
-    gameStore.clear();
-    visibilityStore.clear();
-    gameStore.setLocations({ locations: locationInfo.locations, sync: false });
-    document.getElementById("layers")!.innerHTML = "";
-    floorStore.reset();
-    layerManager.reset();
-    for (const floor of locationInfo.floors) addFloor(floor);
-    EventBus.$emit("Initiative.Clear");
-    for (const floor of floorStore.floors) {
-        visibilityStore.recalculateVision(floor.name);
-        visibilityStore.recalculateMovement(floor.name);
-    }
-    requestAnimationFrame(layerManager.drawLoop);
-    gameStore.setBoardInitialized(true);
-});
-
 socket.on("Board.Locations.Set", (locationInfo: { id: number; name: string }[]) => {
     gameStore.clear();
     visibilityStore.clear();
@@ -94,6 +78,7 @@ socket.on("Board.Floor.Set", (floor: ServerFloor) => {
     if (floorStore.floors.length === 1) {
         floorStore.selectFloor({ targetFloor: floor.name, sync: false });
         requestAnimationFrame(layerManager.drawLoop);
+        coreStore.setLoading(false);
         gameStore.setBoardInitialized(true);
     }
 });

@@ -55,10 +55,13 @@ async def add_shape(sid: str, data: Dict[str, Any]):
     if "temporary" not in data:
         data["temporary"] = False
 
-    floor = pr.active_location.floors.select().where(
-        Floor.name == data["shape"]["floor"]
-    )[0]
-    layer = floor.layers.where(Layer.name == data["shape"]["layer"])[0]
+    try:
+        floor = pr.active_location.floors.select().where(
+            Floor.name == data["shape"]["floor"]
+        )[0]
+        layer = floor.layers.where(Layer.name == data["shape"]["layer"])[0]
+    except IndexError:
+        return
 
     if pr.role != Role.DM and not layer.player_editable:
         logger.warning(f"{pr.player.name} attempted to add a shape to a dm layer")

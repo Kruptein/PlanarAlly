@@ -18,6 +18,8 @@ import { scrollZoom } from "@/game/input/mouse";
 import { layerManager } from "@/game/layers/manager";
 import { dropAsset } from "./layers/utils";
 import { coreStore } from "@/core/store";
+import { mapGetters } from "vuex";
+import { Watch } from "vue-property-decorator";
 
 @Component({
     components: {
@@ -36,6 +38,9 @@ import { coreStore } from "@/core/store";
     beforeRouteLeave(to, from, next) {
         socket.disconnect();
         next();
+    },
+    computed: {
+        ...mapGetters("game", ["isBoardInitialized"]),
     },
 })
 export default class Game extends Vue {
@@ -68,6 +73,12 @@ export default class Game extends Vue {
         window.removeEventListener("keyup", onKeyUp);
         window.removeEventListener("keydown", onKeyDown);
         this.ready.manager = false;
+    }
+
+    @Watch("isBoardInitialized")
+    onBoardInitialized(newValue: boolean): void {
+        this.throttledmoveSet = false;
+        this.throttledtouchmoveSet = false;
     }
 
     // Window events

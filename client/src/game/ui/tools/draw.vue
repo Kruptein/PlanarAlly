@@ -37,13 +37,10 @@ import { Floor } from "@/game/layers/floor";
         "color-picker": ColorPicker,
     },
     computed: {
-        ...mapGetters("floor", ["currentFloor"]),
+        ...mapGetters("floor", ["currentFloor", "currentLayer"]),
     },
 })
 export default class DrawTool extends Tool implements ToolBasics {
-    selectedFloor!: number;
-    selectedLayer!: string;
-
     name = ToolName.Draw;
     active = false;
 
@@ -141,14 +138,14 @@ export default class DrawTool extends Tool implements ToolBasics {
         }
     }
 
-    @Watch("selectedLayer")
-    onLayerChange(newValue: string, oldValue: string): void {
+    @Watch("currentLayer")
+    onLayerChange(newValue: Layer, oldValue: Layer): void {
         if ((<Tools>this.$parent).currentTool === this.name) {
             let mouse: { x: number; y: number } | undefined = undefined;
             if (this.brushHelper !== null) {
                 mouse = { x: this.brushHelper.refPoint.x, y: this.brushHelper.refPoint.y };
             }
-            this.onDeselect({ layer: oldValue });
+            this.onDeselect({ layer: oldValue.name });
             this.onSelect(mouse);
         }
     }

@@ -1,6 +1,7 @@
 import { Action, getModule, Module, Mutation, VuexModule } from "vuex-module-decorators";
 import { rootStore } from "../../store";
 import { Floor } from "./floor";
+import { Layer } from "./layer";
 import { layerManager } from "./manager";
 
 export interface FloorState {
@@ -29,6 +30,10 @@ class FloorStore extends VuexModule implements FloorState {
 
     get currentLayerIndex(): number {
         return this.layerIndex;
+    }
+
+    get currentLayer(): Layer {
+        return layerManager.getLayer(this.currentFloor)!;
     }
 
     @Mutation

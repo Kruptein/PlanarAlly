@@ -80,7 +80,7 @@ function createLayer(layerInfo: ServerLayer, floor: Floor): void {
 }
 
 export function dropAsset(event: DragEvent): void {
-    const layer = layerManager.getLayer(floorStore.currentFloor);
+    const layer = floorStore.currentLayer;
     if (layer === undefined || event === null || event.dataTransfer === null) return;
     const image = document.createElement("img");
     image.src = event.dataTransfer.getData("text/plain");

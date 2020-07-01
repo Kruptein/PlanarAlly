@@ -94,7 +94,7 @@ class FloorStore extends VuexModule implements FloorState {
                 else layer.canvas.style.removeProperty("display");
             }
         }
-        layerManager.selectLayer(layerManager.getLayer(floorStore.currentFloor)!.name, data.sync, false);
+        layerManager.selectLayer(floorStore.currentLayer!.name, data.sync, false);
         layerManager.invalidateAllFloors();
     }
 }

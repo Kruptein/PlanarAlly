@@ -87,7 +87,7 @@ export function onKeyDown(event: KeyboardEvent): void {
                 const floorName = floorStore.currentFloor.name;
                 if (recalculateVision) visibilityStore.recalculateVision(floorName);
                 if (recalculateMovement) visibilityStore.recalculateMovement(floorName);
-                layerManager.getLayer(floorStore.currentFloor)!.invalidate(false);
+                floorStore.currentLayer!.invalidate(false);
             } else {
                 // The pan offsets should be in the opposite direction to give the correct feel.
                 gameStore.increasePanX(offsetX * (event.keyCode <= 38 ? 1 : -1));

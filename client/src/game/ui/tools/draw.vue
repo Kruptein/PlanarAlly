@@ -171,7 +171,7 @@ export default class DrawTool extends Tool implements ToolBasics {
         if (this.brushHelper === null) return;
 
         const fowLayer = layerManager.getLayer(floorStore.currentFloor, "fow");
-        const normalLayer = layerManager.getLayer(floorStore.currentFloor);
+        const normalLayer = floorStore.currentLayer;
         if (fowLayer === undefined || normalLayer === undefined) return;
 
         this.setupBrush();

@@ -244,7 +244,7 @@ export class Layer {
             // First to draw the auras and a second time to draw the shapes themselves
             // Otherwise auras from one shape could overlap another shape.
 
-            const currentLayer = layerManager.getLayer(floorStore.currentFloor);
+            const currentLayer = floorStore.currentLayer;
             // To optimize things slightly, we keep track of the shapes that passed the first round
             const visibleShapes: Shape[] = [];
 

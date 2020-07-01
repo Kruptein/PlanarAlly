@@ -18,7 +18,7 @@ export default class LocationAdminSettings extends Vue {
     @Prop() location!: number;
 
     get name(): string {
-        return gameStore.locations.find(l => l.id === this.location)!.name;
+        return gameStore.locations.find(l => l.id === this.location)?.name ?? "";
     }
 
     set name(name: string) {

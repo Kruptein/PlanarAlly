@@ -43,6 +43,17 @@ socket.on("Shapes.Remove", (shapes: string[]) => {
     }
 });
 
+socket.on("Shapes.Position.Update", (data: { uuid: string; points: number[][] }[]) => {
+    for (const sh of data) {
+        const shape = layerManager.UUIDMap.get(sh.uuid);
+        if (shape === undefined) {
+            console.log(`Attempted to move unknown shape ${sh.uuid}`);
+            continue;
+        }
+        shape.setPositionRepresentation(sh.points);
+    }
+});
+
 socket.on("Shape.Order.Set", (data: { shape: ServerShape; index: number }) => {
     if (!layerManager.UUIDMap.has(data.shape.uuid)) {
         console.log(`Attempted to move the shape order of an unknown shape`);
@@ -73,3 +84,18 @@ socket.on("Shapes.Layer.Change", (data: { uuids: string[]; floor: string; layer:
 socket.on("Shape.Update", (data: { shape: ServerShape; redraw: boolean }) => {
     gameManager.updateShape(data);
 });
+
+export function sendShapePositionUpdate(shapes: readonly Shape[], temporary: boolean): void {
+    _sendShapePositionUpdate(
+        shapes.filter(s => !s.preventSync).map(s => ({ uuid: s.uuid, points: s.getPositionRepresentation() })),
+        temporary,
+    );
+}
+
+function _sendShapePositionUpdate(shapes: { uuid: string; points: number[][] }[], temporary: boolean): void {
+    socket.emit("Shapes.Position.Update", {
+        shapes,
+        redraw: true,
+        temporary,
+    });
+}

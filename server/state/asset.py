@@ -10,7 +10,7 @@ class AssetState(State[User]):
         super().__init__()
         self.pending_file_upload_cache: Dict[str, Any] = {}
 
-    def get_user(self, sid: int) -> User:
+    def get_user(self, sid: str) -> User:
         return self._sid_map[sid]
 
 

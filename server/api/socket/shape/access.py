@@ -3,16 +3,17 @@ from typing import Any, Dict
 import auth
 from api.socket.constants import GAME_NS
 from api.socket.initiative import send_client_initiatives
-from app import app, logger, sio
+from app import app, sio
 from models import Floor, Layer, Location, PlayerRoom, Room, Shape, ShapeOwner, User
 from models.role import Role
 from models.shape.access import has_ownership
 from state.game import game_state
+from utils import logger
 
 
 @sio.on("Shape.Owner.Add", namespace=GAME_NS)
 @auth.login_required(app, sio)
-async def add_shape_owner(sid: int, data: Dict[str, Any]):
+async def add_shape_owner(sid: str, data: Dict[str, Any]):
     pr: PlayerRoom = game_state.get(sid)
 
     try:
@@ -70,7 +71,7 @@ async def add_shape_owner(sid: int, data: Dict[str, Any]):
 
 @sio.on("Shape.Owner.Update", namespace=GAME_NS)
 @auth.login_required(app, sio)
-async def update_shape_owner(sid: int, data: Dict[str, Any]):
+async def update_shape_owner(sid: str, data: Dict[str, Any]):
     pr: PlayerRoom = game_state.get(sid)
 
     try:
@@ -119,7 +120,7 @@ async def update_shape_owner(sid: int, data: Dict[str, Any]):
 
 @sio.on("Shape.Owner.Delete", namespace=GAME_NS)
 @auth.login_required(app, sio)
-async def delete_shape_owner(sid: int, data: Dict[str, Any]):
+async def delete_shape_owner(sid: str, data: Dict[str, Any]):
     pr: PlayerRoom = game_state.get(sid)
 
     try:
@@ -161,7 +162,7 @@ async def delete_shape_owner(sid: int, data: Dict[str, Any]):
 
 @sio.on("Shape.Owner.Default.Update", namespace=GAME_NS)
 @auth.login_required(app, sio)
-async def update_default_shape_owner(sid: int, data: Dict[str, Any]):
+async def update_default_shape_owner(sid: str, data: Dict[str, Any]):
     pr: PlayerRoom = game_state.get(sid)
 
     try:

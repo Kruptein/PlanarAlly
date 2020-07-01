@@ -337,6 +337,15 @@ export abstract class Shape {
         );
     }
 
+    getPositionRepresentation(): number[][] {
+        return [this.refPoint.asArray()];
+    }
+
+    setPositionRepresentation(points: number[][]): void {
+        this.refPoint = GlobalPoint.fromArray(points[0]);
+        this.updateShapeVision(false, false);
+    }
+
     draw(ctx: CanvasRenderingContext2D): void {
         if (this.globalCompositeOperation !== undefined) ctx.globalCompositeOperation = this.globalCompositeOperation;
         else ctx.globalCompositeOperation = "source-over";
@@ -554,5 +563,26 @@ export abstract class Shape {
                 [],
             ),
         ];
+    }
+
+    updateShapeVision(alteredMovement: boolean, alteredVision: boolean): void {
+        if (this.visionObstruction && !alteredVision) {
+            visibilityStore.deleteFromTriag({
+                target: TriangulationTarget.VISION,
+                shape: this,
+            });
+            visibilityStore.addToTriag({ target: TriangulationTarget.VISION, shape: this });
+            visibilityStore.recalculateVision(this.floor.name);
+        }
+        this.invalidate(false);
+        layerManager.invalidateLightAllFloors();
+        if (this.movementObstruction && !alteredMovement) {
+            visibilityStore.deleteFromTriag({
+                target: TriangulationTarget.MOVEMENT,
+                shape: this,
+            });
+            visibilityStore.addToTriag({ target: TriangulationTarget.MOVEMENT, shape: this });
+            visibilityStore.recalculateMovement(this.floor.name);
+        }
     }
 }

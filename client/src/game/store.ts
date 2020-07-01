@@ -105,6 +105,10 @@ class GameStore extends VuexModule implements GameState {
         return l2g(g2l(this.screenTopLeft).add(halfScreen));
     }
 
+    get isBoardInitialized(): boolean {
+        return this.boardInitialized;
+    }
+
     @Mutation
     setFakePlayer(value: boolean): void {
         this.FAKE_PLAYER = value;
@@ -393,6 +397,7 @@ class GameStore extends VuexModule implements GameState {
         this.annotations = [];
         this.notes = [];
         this.markers = [];
+        this.boardInitialized = false;
     }
 }
 

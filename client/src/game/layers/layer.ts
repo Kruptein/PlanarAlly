@@ -14,10 +14,8 @@ import { gameSettingsStore } from "../settings";
 import { floorStore } from "./store";
 
 export class Layer {
-    name: string;
     canvas: HTMLCanvasElement;
     ctx: CanvasRenderingContext2D;
-    floor: string;
 
     selectable = false;
     playerEditable = false;
@@ -39,11 +37,9 @@ export class Layer {
     points: Map<string, Set<string>> = new Map();
     postDrawCallbacks: (() => void)[] = [];
 
-    constructor(canvas: HTMLCanvasElement, name: string, floor: string) {
+    constructor(canvas: HTMLCanvasElement, public name: string, public floor: string, public index: number) {
         this.canvas = canvas;
-        this.name = name;
         this.ctx = canvas.getContext("2d")!;
-        this.floor = floor;
     }
 
     invalidate(skipLightUpdate: boolean): void {
@@ -248,7 +244,7 @@ export class Layer {
             // First to draw the auras and a second time to draw the shapes themselves
             // Otherwise auras from one shape could overlap another shape.
 
-            const currentLayer = layerManager.getLayer(floorStore.currentFloor);
+            const currentLayer = floorStore.currentLayer;
             // To optimize things slightly, we keep track of the shapes that passed the first round
             const visibleShapes: Shape[] = [];
 

@@ -267,7 +267,7 @@ class GameSettingsStore extends VuexModule implements GameSettingsState {
             layerManager
                 .getLayer(floorStore.currentFloor, "dm")!
                 .addShape(shape, SyncMode.FULL_SYNC, InvalidationMode.NO, false);
-            img.onload = () => shape.layer.invalidate(true);
+            img.onload = () => (gameStore.boardInitialized ? shape.layer.invalidate(true) : undefined);
 
             gameSettingsStore.setSpawnLocations({
                 spawnLocations: [uuid],

@@ -8,8 +8,6 @@ import { createShapeFromDict } from "@/game/shapes/utils";
 import { gameStore } from "@/game/store";
 import { AnnotationManager } from "@/game/ui/annotation";
 import { g2l } from "@/game/units";
-import { visibilityStore } from "@/game/visibility/store";
-import { TriangulationTarget } from "@/game/visibility/te/pa";
 import { Shape } from "./shapes/shape";
 
 export class GameManager {
@@ -52,24 +50,7 @@ export class GameManager {
         const alteredMovement = shape.setMovementBlock(shape.movementObstruction);
         shape.setIsToken(shape.isToken);
         if (data.redraw) {
-            if (shape.visionObstruction && !alteredVision) {
-                visibilityStore.deleteFromTriag({
-                    target: TriangulationTarget.VISION,
-                    shape,
-                });
-                visibilityStore.addToTriag({ target: TriangulationTarget.VISION, shape });
-                visibilityStore.recalculateVision(shape.floor.name);
-            }
-            shape.invalidate(false);
-            layerManager.invalidateLightAllFloors();
-            if (shape.movementObstruction && !alteredMovement) {
-                visibilityStore.deleteFromTriag({
-                    target: TriangulationTarget.MOVEMENT,
-                    shape,
-                });
-                visibilityStore.addToTriag({ target: TriangulationTarget.MOVEMENT, shape });
-                visibilityStore.recalculateMovement(shape.floor.name);
-            }
+            shape.updateShapeVision(alteredMovement, alteredVision);
         }
         if (redrawInitiative) EventBus.$emit("Initiative.ForceUpdate");
     }

@@ -53,7 +53,7 @@ export default class MapTool extends Tool implements ToolBasics {
 
     removeRect(): void {
         if (this.rect) {
-            const layer = layerManager.getLayer(floorStore.currentFloor)!;
+            const layer = floorStore.currentLayer!;
             layer.removeShape(this.rect, SyncMode.NO_SYNC);
             this.rect = null;
         }
@@ -95,7 +95,7 @@ export default class MapTool extends Tool implements ToolBasics {
         const startPoint = l2g(lp);
 
         this.startPoint = startPoint;
-        const layer = layerManager.getLayer(floorStore.currentFloor);
+        const layer = floorStore.currentLayer;
         if (layer === undefined) {
             console.log("No active layer!");
             return;
@@ -114,7 +114,7 @@ export default class MapTool extends Tool implements ToolBasics {
 
         const endPoint = l2g(lp);
 
-        const layer = layerManager.getLayer(floorStore.currentFloor);
+        const layer = floorStore.currentLayer;
         if (layer === undefined) {
             console.log("No active layer!");
             return;
@@ -131,7 +131,7 @@ export default class MapTool extends Tool implements ToolBasics {
 
     onUp(): void {
         if (!this.active || this.rect === null) return;
-        const layer = layerManager.getLayer(floorStore.currentFloor);
+        const layer = floorStore.currentLayer;
         if (layer === undefined) {
             console.log("No active layer!");
             return;

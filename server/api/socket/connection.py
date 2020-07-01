@@ -4,10 +4,11 @@ from aiohttp_security import authorized_userid
 
 from .location import load_location
 from api.socket.constants import GAME_NS
-from app import logger, sio
+from app import sio
 from models import Asset, Label, LabelSelection, Location, PlayerRoom, Room, User
 from models.role import Role
 from state.game import game_state
+from utils import logger
 
 
 @sio.on("connect", namespace=GAME_NS)
@@ -45,7 +46,6 @@ async def connect(sid, environ):
     logger.info(f"User {user.name} connected with identifier {sid}")
 
     sio.enter_room(sid, pr.active_location.get_path(), namespace=GAME_NS)
-    await load_location(sid, pr.active_location, complete=True)
 
 
 @sio.on("disconnect", namespace=GAME_NS)

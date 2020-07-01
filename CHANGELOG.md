@@ -16,6 +16,18 @@ All notable changes to this project will be documented in this file.
 -   Floor visibility toggle
     -   "Hidden" floors are not selectable by players, BUT will still render in between other selectable layers
 
+### Changed
+
+-   Floors are now loaded separately on startup this greatly impacts startup time
+    -   The floor the user was last active on is loaded first if possible
+    -   Next all floors under the active floor in descending order are loaded
+    -   Lastly the floors above in ascending order are loaded
+-   Other performance improvements
+    -   Delay drawloop start until first floor data arrives
+    -   Better handling of multi group moves
+    -   Shape movement now sends less data to server
+    -   Pan now only updates the visible floors on move and full recalculate on release
+
 ### Fixed
 
 -   Aura not displaying when token is outside the visible canvas
@@ -25,6 +37,7 @@ All notable changes to this project will be documented in this file.
 -   Initial state adding unnecessary fog on lower floors
 -   Prefer snapped points over grid snapping
 -   Remove white icon in topleft menu UI
+-   Moving polygons with keyboard woul only move origin point
 
 ## [0.21.0] - 2020-06-13
 

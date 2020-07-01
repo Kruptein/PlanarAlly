@@ -163,6 +163,14 @@ class LayerManager {
         }
     }
 
+    invalidateVisibleFloors(): void {
+        const current = floorStore.currentFloor;
+        for (const floor of floorStore.floors) {
+            this.invalidate(floor);
+            if (floor === current) break;
+        }
+    }
+
     // Lighting of multiple floors is heavily dependent on eachother
     // This method only updates a single floor and should thus only be used for very specific cases
     // as you typically require the allFloor variant

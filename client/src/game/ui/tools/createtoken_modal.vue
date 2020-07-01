@@ -10,7 +10,6 @@ import Modal from "@/core/components/modals/modal.vue";
 
 import { calcFontScale } from "@/core/utils";
 import { LocalPoint } from "@/game/geom";
-import { layerManager } from "@/game/layers/manager";
 import { CircularToken } from "@/game/shapes/circulartoken";
 import { gameStore } from "@/game/store";
 import { getUnitDistance, l2g } from "@/game/units";

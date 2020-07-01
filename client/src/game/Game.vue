@@ -77,8 +77,10 @@ export default class Game extends Vue {
 
     @Watch("isBoardInitialized")
     onBoardInitialized(newValue: boolean): void {
-        this.throttledmoveSet = false;
-        this.throttledtouchmoveSet = false;
+        if (!newValue) {
+            this.throttledmoveSet = false;
+            this.throttledtouchmoveSet = false;
+        }
     }
 
     // Window events

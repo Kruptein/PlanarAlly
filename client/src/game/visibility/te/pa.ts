@@ -4,6 +4,7 @@ import { visibilityStore } from "../store";
 import { getBlockers } from "../utils";
 import { CDT } from "./cdt";
 import { IterativeDelete } from "./iterative";
+import { Point } from "./tds";
 
 export enum TriangulationTarget {
     VISION = "vision",
@@ -96,4 +97,22 @@ export function addShapesToTriag(target: TriangulationTarget, ...shapes: Shape[]
 export function deleteShapeFromTriag(target: TriangulationTarget, shape: Shape): void {
     if (shape.points.length <= 1) return;
     new IterativeDelete(target, shape);
+}
+
+function logTriags(cdt: CDT): void {
+    console.log(`${cdt.tds.getEdges(true).length}/${cdt.tds.getEdges(false).length}`);
+    let a = "";
+    for (const triangle of cdt.tds.triangles) {
+        if (triangle.vertices.length !== 3) continue;
+        a += `${triangle.uid}\t${logPoint(triangle.vertices[0]!.point ?? [0, 0])}\t${logPoint(
+            triangle.vertices[1]!.point ?? [0, 0],
+        )}\t${logPoint(triangle.vertices[2]!.point ?? [0, 0])}\t${triangle.neighbours[0]?.uid}\t${
+            triangle.neighbours[1]?.uid
+        }\t${triangle.neighbours[2]?.uid}\n`;
+    }
+    console.log(a);
+}
+
+function logPoint(point: Point): string {
+    return `${+point[0].toFixed(3)},${+point[1].toFixed(3)}`;
 }

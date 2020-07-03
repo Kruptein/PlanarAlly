@@ -38,6 +38,9 @@ All notable changes to this project will be documented in this file.
 -   Prefer snapped points over grid snapping
 -   Remove white icon in topleft menu UI
 -   Moving polygons with keyboard woul only move origin point
+-   Degenerate cases in triangulation
+    -   Triangulation code could hit a degenerate case when dealing with slight number differences in the order of 1e-15
+    -   Now the triangulation code will only take the first 10 digits after the dot into consideration to prevent numerical instability.
 
 ## [0.21.0] - 2020-06-13
 

@@ -50,8 +50,8 @@ export function triangulate(target: TriangulationTarget, floor: string): void {
         if (shape.floor.name !== floor) continue;
         const j = shape.isClosed ? 0 : 1;
         for (let i = 0; i < shape.points.length - j; i++) {
-            const pa = shape.points[i];
-            const pb = shape.points[(i + 1) % shape.points.length];
+            const pa = shape.points[i].map(n => parseFloat(n.toFixed(10)));
+            const pb = shape.points[(i + 1) % shape.points.length].map(n => parseFloat(n.toFixed(10)));
             insertConstraint(target, shape, pa, pb);
         }
     }

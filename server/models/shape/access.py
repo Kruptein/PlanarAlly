@@ -1,3 +1,5 @@
+from typing import Any, Dict
+
 from models.campaign import Floor, Layer, Location, PlayerRoom, Room, User
 from models.role import Role
 from models.shape import Shape, ShapeOwner
@@ -19,7 +21,7 @@ def has_ownership(shape: Shape, pr: PlayerRoom) -> bool:
     return ShapeOwner.get_or_none(shape=shape, user=pr.player) is not None
 
 
-def has_ownership_temp(shape: Shape, pr: PlayerRoom) -> bool:
+def has_ownership_temp(shape: Dict[str, Any], pr: PlayerRoom) -> bool:
     if shape is None:
         return False
 

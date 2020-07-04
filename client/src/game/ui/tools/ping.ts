@@ -1,5 +1,4 @@
 import { InvalidationMode, SyncMode } from "@/core/comm/types";
-import { socket } from "@/game/api/socket";
 import { GlobalPoint, LocalPoint } from "@/game/geom";
 import { layerManager } from "@/game/layers/manager";
 import { Circle } from "@/game/shapes/circle";
@@ -10,6 +9,7 @@ import Component from "vue-class-component";
 import { ToolBasics } from "./ToolBasics";
 import { ToolName } from "./utils";
 import { floorStore } from "../../layers/store";
+import { sendShapePositionUpdate } from "../../api/events/shape";
 
 @Component
 export class PingTool extends Tool implements ToolBasics {
@@ -67,8 +67,7 @@ export class PingTool extends Tool implements ToolBasics {
         this.ping.center(gp);
         this.border.center(gp);
 
-        socket.emit("Shape.Update", { shape: this.ping.asDict(), redraw: true, temporary: true });
-        socket.emit("Shape.Update", { shape: this.border.asDict(), redraw: true, temporary: true });
+        sendShapePositionUpdate([this.ping, this.border], true);
 
         layer.invalidate(true);
     }

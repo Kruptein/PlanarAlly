@@ -76,7 +76,7 @@ class LayerManager {
             if (floor.name === floorName) {
                 this.getLayers(floor).push(layer);
                 if (floorStore.currentLayerIndex < 0) {
-                    floorStore.setLayerIndex(0);
+                    floorStore.setLayerIndex(2);
                 }
                 return;
             }

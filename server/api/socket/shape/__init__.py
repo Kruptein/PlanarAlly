@@ -117,24 +117,17 @@ async def add_shape(sid: str, data: Dict[str, Any]):
 async def update_shape_positions(sid: str, data: PositionUpdateList):
     pr: PlayerRoom = game_state.get(sid)
 
-    shapes: List[Tuple[Shape, PositionUpdate]] = [
-        (Shape.get_by_id(shape["uuid"]), shape) for shape in data["shapes"]
-    ]
+    shapes: List[Tuple[Shape, PositionUpdate]] = []
 
-    if data["temporary"] and not all(
-        has_ownership_temp(shape, pr) for shape, _ in shapes
-    ):
-        logger.warning(
-            f"User {pr.player.name} attempted to move a shape it does not own."
-        )
-        return
-    else:
-        if not all(has_ownership(shape, pr) for shape, _ in shapes):
+    for sh in data["shapes"]:
+        shape = Shape.get_or_none(Shape.uuid == sh["uuid"])
+        if shape is not None and not has_ownership(shape, pr):
             logger.warning(
                 f"User {pr.player.name} attempted to move a shape it does not own."
             )
             return
 
+    if not data["temporary"]:
         with db.atomic():
             for db_shape, data_shape in shapes:
                 points = data_shape["points"]

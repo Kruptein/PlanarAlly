@@ -199,13 +199,10 @@ export default class Tools extends Vue {
         }
     }
     mouseleave(event: MouseEvent): void {
-        // When leaving the window while a mouse is pressed down, act as if it was released
-        if ((event.buttons & 1) !== 0) {
-            const tool = this.componentMap[this.currentTool];
-            tool.onMouseUp(event, this.getFeatures(this.currentTool));
-            for (const permitted of tool.permittedTools)
-                this.componentMap[permitted.name].onMouseUp(event, permitted.features);
-        }
+        const tool = this.componentMap[this.currentTool];
+        tool.onMouseUp(event, this.getFeatures(this.currentTool));
+        for (const permitted of tool.permittedTools)
+            this.componentMap[permitted.name].onMouseUp(event, permitted.features);
     }
     contextmenu(event: MouseEvent): void {
         if ((<HTMLElement>event.target).tagName !== "CANVAS") return;

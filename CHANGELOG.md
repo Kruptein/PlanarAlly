@@ -42,6 +42,7 @@ All notable changes to this project will be documented in this file.
 -   Degenerate cases in triangulation
     -   Triangulation code could hit a degenerate case when dealing with slight number differences in the order of 1e-15
     -   Now the triangulation code will only take the first 10 digits after the dot into consideration to prevent numerical instability.
+-   Mouseleave events where not triggered in some cases (e.g. alt tab), this could cause some shapes (e.g. rulers) to remain on the screen
 
 ## [0.21.0] - 2020-06-13
 

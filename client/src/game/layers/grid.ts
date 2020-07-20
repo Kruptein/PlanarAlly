@@ -1,5 +1,5 @@
 import { Layer } from "@/game/layers/layer";
-import { gameStore } from "@/game/store";
+import { DEFAULT_GRID_SIZE, gameStore } from "@/game/store";
 import { gameSettingsStore } from "../settings";
 import { floorStore } from "./store";
 
@@ -25,16 +25,11 @@ export class GridLayer extends Layer {
                 this.clear();
                 ctx.beginPath();
 
-                const gs = gameStore.gridSize;
-                if (gs <= 0 || gs === undefined) {
-                    throw new Error("Grid size is not set, while grid is enabled.");
-                }
-
-                for (let i = 0; i < this.width; i += gs * gameStore.zoomFactor) {
-                    ctx.moveTo(i + (gameStore.panX % gs) * gameStore.zoomFactor, 0);
-                    ctx.lineTo(i + (gameStore.panX % gs) * gameStore.zoomFactor, this.height);
-                    ctx.moveTo(0, i + (gameStore.panY % gs) * gameStore.zoomFactor);
-                    ctx.lineTo(this.width, i + (gameStore.panY % gs) * gameStore.zoomFactor);
+                for (let i = 0; i < this.width; i += DEFAULT_GRID_SIZE * gameStore.zoomFactor) {
+                    ctx.moveTo(i + (gameStore.panX % DEFAULT_GRID_SIZE) * gameStore.zoomFactor, 0);
+                    ctx.lineTo(i + (gameStore.panX % DEFAULT_GRID_SIZE) * gameStore.zoomFactor, this.height);
+                    ctx.moveTo(0, i + (gameStore.panY % DEFAULT_GRID_SIZE) * gameStore.zoomFactor);
+                    ctx.lineTo(this.width, i + (gameStore.panY % DEFAULT_GRID_SIZE) * gameStore.zoomFactor);
                 }
 
                 ctx.strokeStyle = gameStore.gridColour;

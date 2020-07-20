@@ -12,6 +12,8 @@ import Vue from "vue";
 import { getModule, Module, Mutation, VuexModule } from "vuex-module-decorators";
 import { floorStore } from "./layers/store";
 
+export const DEFAULT_GRID_SIZE = 50;
+
 export interface LocationUserOptions {
     panX: number;
     panY: number;
@@ -55,7 +57,7 @@ class GameStore extends VuexModule implements GameState {
     rulerColour = "rgba(255, 0, 0, 1)";
     panX = 0;
     panY = 0;
-    gridSize = 50;
+    gridSize = DEFAULT_GRID_SIZE;
 
     zoomDisplay = 0.5;
     // zoomFactor = 1;
@@ -80,7 +82,8 @@ class GameStore extends VuexModule implements GameState {
     invertAlt = false;
 
     get zoomFactor(): number {
-        return zoomValue(this.zoomDisplay);
+        const gf = gameStore.gridSize / DEFAULT_GRID_SIZE;
+        return zoomValue(this.zoomDisplay) * gf;
     }
 
     get locationUserOptions(): LocationUserOptions {

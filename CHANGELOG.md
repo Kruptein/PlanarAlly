@@ -27,6 +27,7 @@ All notable changes to this project will be documented in this file.
     -   Better handling of multi group moves
     -   Shape movement now sends less data to server
     -   Pan now only updates the visible floors on move and full recalculate on release
+-   Grid pixel size is now a client setting instead of a DM setting
 
 ### Fixed
 

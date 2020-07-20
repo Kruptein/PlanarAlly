@@ -126,6 +126,7 @@ async def update_shape_positions(sid: str, data: PositionUpdateList):
                 f"User {pr.player.name} attempted to move a shape it does not own."
             )
             return
+        shapes.append((shape, sh))
 
     if not data["temporary"]:
         with db.atomic():

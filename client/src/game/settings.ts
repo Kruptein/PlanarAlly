@@ -16,7 +16,6 @@ export interface GameSettingsState {
     defaultLocationOptions: LocationOptions | null;
     locationOptions: Partial<LocationOptions>;
 
-    gridSize: number;
     unitSize: number;
     unitSizeUnit: string;
     useGrid: boolean;
@@ -70,10 +69,6 @@ class GameSettingsStore extends VuexModule implements GameSettingsState {
 
     get currentLocationOptions(): Partial<LocationOptions> {
         return this.locationOptions[this.activeLocation];
-    }
-
-    get gridSize(): number {
-        return this.currentLocationOptions?.gridSize ?? this.defaultLocationOptions?.gridSize ?? 0;
     }
 
     get unitSize(): number {
@@ -159,20 +154,6 @@ class GameSettingsStore extends VuexModule implements GameSettingsState {
             if (data.sync)
                 // eslint-disable-next-line @typescript-eslint/camelcase
                 socket.emit("Location.Options.Set", { options: { use_grid: data.useGrid }, location: data.location });
-        }
-    }
-
-    @Mutation
-    setGridSize(data: { gridSize: number; location: number | null; sync: boolean }): void {
-        if (mutateLocationOption("gridSize", data.gridSize, data.location)) {
-            for (const floor of floorStore.floors) {
-                const gridLayer = layerManager.getGridLayer(floor);
-                if (gridLayer !== undefined) gridLayer.invalidate();
-            }
-
-            if (data.sync)
-                // eslint-disable-next-line @typescript-eslint/camelcase
-                socket.emit("Location.Options.Set", { options: { grid_size: data.gridSize }, location: data.location });
         }
     }
 

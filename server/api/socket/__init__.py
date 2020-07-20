@@ -34,6 +34,7 @@ async def set_client(sid: str, data: Dict[str, Any]):
             ("fowColour", "fow_colour"),
             ("rulerColour", "ruler_colour"),
             ("invertAlt", "invert_alt"),
+            ("gridSize", "grid_size"),
         ]:
             if option[0] in data:
                 setattr(pr.player, option[1], data[option[0]])

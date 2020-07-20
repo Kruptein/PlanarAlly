@@ -25,7 +25,7 @@ export class GridLayer extends Layer {
                 this.clear();
                 ctx.beginPath();
 
-                const gs = gameSettingsStore.gridSize;
+                const gs = gameStore.gridSize;
                 if (gs <= 0 || gs === undefined) {
                     throw new Error("Grid size is not set, while grid is enabled.");
                 }

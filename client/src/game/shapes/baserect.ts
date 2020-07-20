@@ -4,7 +4,7 @@ import { Shape } from "@/game/shapes/shape";
 import { calculateDelta } from "@/game/ui/tools/utils";
 import { clampGridLine, g2lx, g2ly } from "@/game/units";
 import { ServerShape } from "../comm/types/shapes";
-import { gameSettingsStore } from "../settings";
+import { gameStore } from "../store";
 import { rotateAroundPoint } from "../utils";
 
 export abstract class BaseRect extends Shape {
@@ -71,7 +71,7 @@ export abstract class BaseRect extends Shape {
         return false;
     }
     snapToGrid(): void {
-        const gs = gameSettingsStore.gridSize;
+        const gs = gameStore.gridSize;
         const center = this.center();
         const mx = center.x;
         const my = center.y;

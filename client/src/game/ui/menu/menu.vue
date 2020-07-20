@@ -55,6 +55,13 @@ export default class MenuBar extends Vue {
     set invertAlt(value: boolean) {
         gameStore.setInvertAlt({ invertAlt: value, sync: true });
     }
+    get gridSize(): number {
+        return gameStore.gridSize;
+    }
+    set gridSize(gridSize: number) {
+        if (gridSize < 1) return;
+        gameStore.setGridSize({ gridSize, sync: true });
+    }
     settingsClick(event: { target: HTMLElement }): void {
         if (
             event.target.classList.contains("menu-accordion") &&
@@ -154,6 +161,8 @@ export default class MenuBar extends Vue {
             <button class="menu-accordion" v-t="'game.ui.menu.menu.client_options'"></button>
             <div class="menu-accordion-panel">
                 <div class="menu-accordion-subpanel">
+                    <label for="gridSize" v-t="'game.ui.menu.menu.grid_color_set'"></label>
+                    <div><input id="gridSize" type="number" v-model="gridSize" /></div>
                     <label for="gridColour" v-t="'game.ui.menu.menu.grid_color_set'"></label>
                     <color-picker id="gridColour" :color.sync="gridColour" />
                     <label for="fowColour" v-t="'game.ui.menu.menu.fow_color_set'"></label>

@@ -357,6 +357,8 @@ export abstract class Shape {
     }
 
     drawPost(ctx: CanvasRenderingContext2D): void {
+        ctx.setTransform(1, 0, 0, 1, 0, 0);
+
         let bbox: BoundingRect | undefined;
         if (this.showBadge) {
             bbox = this.getBoundingBox();
@@ -381,8 +383,6 @@ export abstract class Shape {
             ctx.strokeStyle = "red";
             ctx.strokeRect(g2lx(bbox.topLeft.x) - 5, g2ly(bbox.topLeft.y) - 5, g2lz(bbox.w) + 10, g2lz(bbox.h) + 10);
         }
-
-        ctx.setTransform(1, 0, 0, 1, 0, 0);
     }
 
     drawSelection(ctx: CanvasRenderingContext2D): void {

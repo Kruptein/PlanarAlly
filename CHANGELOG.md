@@ -28,6 +28,7 @@ All notable changes to this project will be documented in this file.
     -   Shape movement now sends less data to server
     -   Pan now only updates the visible floors on move and full recalculate on release
 -   Grid pixel size is now a client setting instead of a DM setting
+-   Show floor selector in the more logical order from upper to lower floors
 
 ### Fixed
 

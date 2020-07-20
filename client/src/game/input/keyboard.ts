@@ -6,12 +6,11 @@ import { gameStore } from "@/game/store";
 import { calculateDelta } from "@/game/ui/tools/utils";
 import { visibilityStore } from "@/game/visibility/store";
 import { TriangulationTarget } from "@/game/visibility/te/pa";
+import { sendShapePositionUpdate } from "../api/events/shape";
 import { EventBus } from "../event-bus";
-import { gameManager } from "../manager";
-import { gameSettingsStore } from "../settings";
 import { floorStore } from "../layers/store";
 import { moveFloor } from "../layers/utils";
-import { sendShapePositionUpdate } from "../api/events/shape";
+import { gameManager } from "../manager";
 
 export function onKeyUp(event: KeyboardEvent): void {
     if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement) {
@@ -39,7 +38,7 @@ export function onKeyDown(event: KeyboardEvent): void {
         if (event.keyCode >= 37 && event.keyCode <= 40) {
             // Arrow keys - move the selection or the camera
             // todo: this should already be rounded
-            const gridSize = Math.round(gameSettingsStore.gridSize);
+            const gridSize = Math.round(gameStore.gridSize);
             let offsetX = gridSize * (event.keyCode % 2);
             let offsetY = gridSize * (event.keyCode % 2 ? 0 : 1);
             if (layerManager.hasSelection()) {

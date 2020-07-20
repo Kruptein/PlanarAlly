@@ -13,9 +13,9 @@ import { SelectFeatures } from "./select.vue";
 import { ToolName, ToolPermission } from "./utils";
 import { EventBus } from "@/game/event-bus";
 import { Shape } from "@/game/shapes/shape";
-import { gameSettingsStore } from "../../settings";
 import { ToolBasics } from "./ToolBasics";
 import { floorStore } from "@/game/layers/store";
+import { gameStore } from "../../store";
 
 @Component
 export default class MapTool extends Tool implements ToolBasics {
@@ -68,8 +68,8 @@ export default class MapTool extends Tool implements ToolBasics {
         const oldCenter = this.rect.center();
 
         if (this.shape instanceof BaseRect) {
-            const xFactor = (this.xCount * gameSettingsStore.gridSize) / this.rect.w;
-            const yFactor = (this.yCount * gameSettingsStore.gridSize) / this.rect.h;
+            const xFactor = (this.xCount * gameStore.gridSize) / this.rect.w;
+            const yFactor = (this.yCount * gameStore.gridSize) / this.rect.h;
 
             this.shape.w *= xFactor;
             this.shape.h *= yFactor;

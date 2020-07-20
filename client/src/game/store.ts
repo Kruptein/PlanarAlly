@@ -11,7 +11,8 @@ import { rootStore } from "@/store";
 import Vue from "vue";
 import { getModule, Module, Mutation, VuexModule } from "vuex-module-decorators";
 import { floorStore } from "./layers/store";
-import { gameSettingsStore } from "./settings";
+
+export const DEFAULT_GRID_SIZE = 50;
 
 export interface LocationUserOptions {
     panX: number;
@@ -56,6 +57,7 @@ class GameStore extends VuexModule implements GameState {
     rulerColour = "rgba(255, 0, 0, 1)";
     panX = 0;
     panY = 0;
+    gridSize = DEFAULT_GRID_SIZE;
 
     zoomDisplay = 0.5;
     // zoomFactor = 1;
@@ -80,7 +82,8 @@ class GameStore extends VuexModule implements GameState {
     invertAlt = false;
 
     get zoomFactor(): number {
-        return zoomValue(this.zoomDisplay);
+        const gf = gameStore.gridSize / DEFAULT_GRID_SIZE;
+        return zoomValue(this.zoomDisplay) * gf;
     }
 
     get locationUserOptions(): LocationUserOptions {
@@ -215,10 +218,10 @@ class GameStore extends VuexModule implements GameState {
     jumpToMarker(marker: string): void {
         const shape = layerManager.UUIDMap.get(marker);
         if (shape == undefined) return;
-        const nh = window.innerWidth / gameSettingsStore.gridSize / zoomValue(this.zoomDisplay) / 2;
-        const nv = window.innerHeight / gameSettingsStore.gridSize / zoomValue(this.zoomDisplay) / 2;
-        this.panX = -shape.refPoint.x + nh * gameSettingsStore.gridSize;
-        this.panY = -shape.refPoint.y + nv * gameSettingsStore.gridSize;
+        const nh = window.innerWidth / this.gridSize / zoomValue(this.zoomDisplay) / 2;
+        const nv = window.innerHeight / this.gridSize / zoomValue(this.zoomDisplay) / 2;
+        this.panX = -shape.refPoint.x + nh * this.gridSize;
+        this.panY = -shape.refPoint.y + nv * this.gridSize;
         sendClientOptions(this.locationUserOptions);
         layerManager.invalidateAllFloors();
     }
@@ -300,6 +303,13 @@ class GameStore extends VuexModule implements GameState {
     @Mutation
     increasePanY(increase: number): void {
         this.panY += increase;
+    }
+
+    @Mutation
+    setGridSize(data: { gridSize: number; sync: boolean }): void {
+        this.gridSize = data.gridSize;
+        layerManager.invalidateAllFloors();
+        if (data.sync) socket.emit("Client.Options.Set", { gridSize: data.gridSize });
     }
 
     @Mutation

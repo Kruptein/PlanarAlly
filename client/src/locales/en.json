@@ -141,6 +141,7 @@
                     "dm_options": "DM Options",
                     "no_markers": "No markers",
                     "client_options": "Client Options",
+                    "grid_size_in_pixels": "Grid Size (in pixels):",
                     "grid_color_set": "Grid Colour:",
                     "fow_color_set": "FOW Colour:",
                     "ruler_color_set": "Ruler Colour:",
@@ -227,7 +228,6 @@
                 "GridSettings": {
                     "unit_size_in_UNIT": "Unit Size (in {unit})",
                     "use_grid": "Use grid",
-                    "grid_size_in_pixels": "Grid Size (in pixels):",
                     "size_unit": "Size Unit"
                 },
                 "location": {

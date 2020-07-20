@@ -209,7 +209,7 @@ async def change_location(sid: str, data: Dict[str, str]):
         for psid in game_state.get_sids(player=room_player.player, room=pr.room):
             await sio.emit("Location.Change.Start", room=psid, namespace=GAME_NS)
 
-    new_location = Location[data["location"]]
+    new_location = Location.get_by_id(data["location"])
 
     for room_player in pr.room.players:
         if not room_player.player.name in data["users"]:
@@ -237,7 +237,7 @@ async def set_location_options(sid: str, data: Dict[str, Any]):
     if data.get("location", None) is None:
         options = pr.room.default_options
     else:
-        loc = Location[data["location"]]
+        loc = Location.get_by_id(data["location"])
         if loc.options is None:
             loc.options = LocationOptions.create(
                 unit_size=None,
@@ -247,7 +247,6 @@ async def set_location_options(sid: str, data: Dict[str, Any]):
                 fow_opacity=None,
                 fow_los=None,
                 vision_mode=None,
-                grid_size=None,
                 vision_min_range=None,
                 vision_max_range=None,
             )
@@ -304,7 +303,7 @@ async def set_locations_order(sid: str, locations: List[int]):
         return
 
     for i, idx in enumerate(locations):
-        l: Location = Location[idx]
+        l: Location = Location.get_by_id(idx)
         l.index = i + 1
         l.save()
 
@@ -326,7 +325,7 @@ async def rename_location(sid: str, data: Dict[str, str]):
         logger.warning(f"{pr.player.name} attempted to rename a location.")
         return
 
-    location = Location[data["id"]]
+    location = Location.get_by_id(data["id"])
     location.name = data["new"]
     location.save()
 
@@ -344,7 +343,7 @@ async def delete_location(sid: str, location_id: int):
         logger.warning(f"{pr.player.name} attempted to rename a location.")
         return
 
-    location = Location[location_id]
+    location = Location.get_by_id(location_id)
 
     if location.players.count() > 0:
         logger.error(
@@ -364,12 +363,12 @@ async def get_location_spawn_info(sid: str, location_id: int):
         logger.warning(f"{pr.player.name} attempted to retrieve spawn locations.")
         return
 
-    location = Location[location_id]
+    location = Location.get_by_id(location_id)
 
     data = []
 
     for spawn in json.loads(location.options.spawn_locations):
-        shape = Shape[spawn]
+        shape = Shape.get_by_id(spawn)
         data.append(shape.as_dict(pr.player, True))
 
     await sio.emit("Location.Spawn.Info", data=data, room=sid, namespace=GAME_NS)

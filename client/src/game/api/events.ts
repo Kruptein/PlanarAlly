@@ -48,6 +48,7 @@ socket.on("Client.Options.Set", (options: ServerClient) => {
     gameStore.setUsername(options.name);
     gameStore.setDM(options.name === decodeURIComponent(window.location.pathname.split("/")[2]));
 
+    gameStore.setGridSize({ gridSize: options.grid_size, sync: false });
     gameStore.setGridColour({ colour: options.grid_colour, sync: false });
     gameStore.setFOWColour({ colour: options.fow_colour, sync: false });
     gameStore.setRulerColour({ colour: options.ruler_colour, sync: false });

@@ -161,7 +161,7 @@ export default class MenuBar extends Vue {
             <button class="menu-accordion" v-t="'game.ui.menu.menu.client_options'"></button>
             <div class="menu-accordion-panel">
                 <div class="menu-accordion-subpanel">
-                    <label for="gridSize" v-t="'game.ui.menu.menu.grid_color_set'"></label>
+                    <label for="gridSize" v-t="'game.ui.menu.menu.grid_size_in_pixels'"></label>
                     <div><input id="gridSize" type="number" v-model="gridSize" /></div>
                     <label for="gridColour" v-t="'game.ui.menu.menu.grid_color_set'"></label>
                     <color-picker id="gridColour" :color.sync="gridColour" />

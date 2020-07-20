@@ -141,6 +141,7 @@
                     "dm_options": "SL Optionen",
                     "no_markers": "Keine Markierungen",
                     "client_options": "Client Optionen",
+                    "grid_size_in_pixels": "Gittergröße (in Pixel):",
                     "grid_color_set": "Gitterfarbe:",
                     "fow_color_set": "Farbe „Nebel des Krieges“:",
                     "ruler_color_set": "Linealfarbe:",
@@ -227,7 +228,6 @@
                 "GridSettings": {
                     "unit_size_in_UNIT": "Feldgröße (in {unit})",
                     "use_grid": "Gitter benutzen",
-                    "grid_size_in_pixels": "Gittergröße (in Pixel):",
                     "size_unit": "Längeneinheit"
                 },
                 "location": {

@@ -108,7 +108,7 @@ export default class FloorSelect extends Vue {
             <a href="#">{{ selectedFloorIndex }}</a>
         </div>
         <div id="floor-detail" v-if="selected">
-            <template v-for="[index, floor] of floors">
+            <template v-for="[index, floor] of [...floors].reverse()">
                 <div class="floor-row" :key="floor.name" @click="selectFloor(floor)">
                     <div class="floor-index">
                         <template v-if="index == selectedFloorIndex">></template>

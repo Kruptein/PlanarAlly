@@ -20,7 +20,7 @@ from models import ALL_MODELS, Constants
 from models.db import db
 from utils import OldVersionException, UnknownVersionException
 
-SAVE_VERSION = 34
+SAVE_VERSION = 36
 
 logger: logging.Logger = logging.getLogger("PlanarAllyServer")
 logger.setLevel(logging.INFO)
@@ -543,6 +543,41 @@ def upgrade(version):
         with db.atomic():
             db.execute_sql(
                 "ALTER TABLE floor ADD COLUMN player_visible INTEGER NOT NULL DEFAULT 1"
+            )
+
+        db.foreign_keys = True
+        Constants.get().update(save_version=Constants.save_version + 1).execute()
+    elif version == 34:
+        # Fix Floor.index
+        db.foreign_keys = False
+        with db.atomic():
+            data = db.execute_sql("SELECT id FROM location")
+            for location_id in data.fetchall():
+                db.execute_sql(
+                    f"UPDATE floor SET 'index' = (SELECT COUNT(*)-1 FROM floor f WHERE f.location_id = {location_id[0]} AND f.id <= floor.id ) WHERE location_id = {location_id[0]}"
+                )
+
+        db.foreign_keys = True
+        Constants.get().update(save_version=Constants.save_version + 1).execute()
+    elif version == 35:
+        # Move grid size to client options
+        db.foreign_keys = False
+        with db.atomic():
+            db.execute_sql(
+                "CREATE TEMPORARY TABLE _location_options AS SELECT * FROM location_options"
+            )
+            db.execute_sql("DROP TABLE location_options")
+            db.execute_sql(
+                'CREATE TABLE "location_options" ("id" INTEGER NOT NULL PRIMARY KEY, "unit_size" REAL, "unit_size_unit" TEXT, "use_grid" INTEGER, "full_fow" INTEGER, "fow_opacity" REAL, "fow_los" INTEGER, "vision_mode" TEXT, "vision_min_range" REAL, "vision_max_range" REAL, "spawn_locations" TEXT NOT NULL DEFAULT "[]")'
+            )
+            db.execute_sql(
+                'CREATE INDEX IF NOT EXISTS "location_options_id" ON "location" ("options_id")'
+            )
+            db.execute_sql(
+                "INSERT INTO location_options (id, unit_size, unit_size_unit, use_grid, full_fow, fow_opacity, fow_los, vision_mode, vision_min_range, vision_max_range, spawn_locations) SELECT id, unit_size, unit_size_unit, use_grid, full_fow, fow_opacity, fow_los, vision_mode, vision_min_range, vision_max_range, spawn_locations FROM _location_options"
+            )
+            db.execute_sql(
+                "ALTER TABLE user ADD COLUMN grid_size INTEGER NOT NULL DEFAULT 50"
             )
 
         db.foreign_keys = True

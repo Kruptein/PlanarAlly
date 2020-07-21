@@ -85,7 +85,7 @@ export function createShapeFromDict(shape: ServerShape): Shape | undefined {
 }
 
 export function copyShapes(): void {
-    const layer = layerManager.getLayer(floorStore.currentFloor);
+    const layer = floorStore.currentLayer;
     if (!layer) return;
     if (!layer.hasSelection()) return;
     const clipboard: ServerShape[] = [];
@@ -166,11 +166,11 @@ export function pasteShapes(targetLayer?: string): readonly Shape[] {
 
 // todo: refactor with removeShape in api/events/shape
 export function deleteShapes(): void {
-    if (layerManager.getLayer(floorStore.currentFloor) === undefined) {
+    if (floorStore.currentLayer === undefined) {
         console.log("No active layer selected for delete operation");
         return;
     }
-    const l = layerManager.getLayer(floorStore.currentFloor)!;
+    const l = floorStore.currentLayer!;
     for (let i = l.getSelection().length - 1; i >= 0; i--) {
         const sel = l.getSelection()[i];
         if (!sel.ownedBy({ editAccess: true })) continue;

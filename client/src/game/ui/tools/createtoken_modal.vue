@@ -10,7 +10,6 @@ import Modal from "@/core/components/modals/modal.vue";
 
 import { calcFontScale } from "@/core/utils";
 import { LocalPoint } from "@/game/geom";
-import { layerManager } from "@/game/layers/manager";
 import { CircularToken } from "@/game/shapes/circulartoken";
 import { gameStore } from "@/game/store";
 import { getUnitDistance, l2g } from "@/game/units";
@@ -59,7 +58,7 @@ export default class CreateTokenModal extends Vue {
         this.y = y;
     }
     submit(): void {
-        const layer = layerManager.getLayer(floorStore.currentFloor);
+        const layer = floorStore.currentLayer;
         if (layer === undefined) return;
         const token = new CircularToken(
             l2g(new LocalPoint(this.x, this.y)),

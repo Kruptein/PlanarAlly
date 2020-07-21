@@ -2,15 +2,16 @@ import uuid
 
 import auth
 from api.socket.constants import GAME_NS
-from app import app, logger, sio
+from app import app, sio
 from models import PlayerRoom
 from models.role import Role
 from state.game import game_state
+from utils import logger
 
 
 @sio.on("Room.Info.InviteCode.Refresh", namespace=GAME_NS)
 @auth.login_required(app, sio)
-async def refresh_invite_code(sid: int):
+async def refresh_invite_code(sid: str):
     pr: PlayerRoom = game_state.get(sid)
 
     if pr.role != Role.DM:
@@ -30,7 +31,7 @@ async def refresh_invite_code(sid: int):
 
 @sio.on("Room.Info.Players.Kick", namespace=GAME_NS)
 @auth.login_required(app, sio)
-async def kick_player(sid: int, player_id: int):
+async def kick_player(sid: str, player_id: int):
     pr: PlayerRoom = game_state.get(sid)
 
     if pr.role != Role.DM:
@@ -46,7 +47,7 @@ async def kick_player(sid: int, player_id: int):
 
 @sio.on("Room.Delete", namespace=GAME_NS)
 @auth.login_required(app, sio)
-async def delete_session(sid: int):
+async def delete_session(sid: str):
     pr: PlayerRoom = game_state.get(sid)
 
     if pr.role != Role.DM:
@@ -58,7 +59,7 @@ async def delete_session(sid: int):
 
 @sio.on("Room.Info.Set.Locked", namespace=GAME_NS)
 @auth.login_required(app, sio)
-async def set_locked_game_state(sid: int, is_locked: bool):
+async def set_locked_game_state(sid: str, is_locked: bool):
     pr: PlayerRoom = game_state.get(sid)
 
     if pr.role != Role.DM:

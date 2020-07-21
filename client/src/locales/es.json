@@ -97,7 +97,8 @@
                 "creation": "Crear piso",
                 "warning_msg_Z": "¿Estás seguro de que quieres remover el piso {z}?",
                 "delete_floor": "Borrar piso",
-                "add_new_floor": "Añadir nuevo piso."
+                "add_new_floor": "Añadir nuevo piso.",
+                "toggle_visibility": "Activar/Desactivar visibilidad del piso para los jugadores."
             },
             "initiative": {
                 "initiative": {
@@ -140,6 +141,7 @@
                     "dm_options": "Opciones de DM",
                     "no_markers": "No hay etiquetas",
                     "client_options": "Opciones de cliente",
+                    "grid_size_in_pixels": "Tamaño de la Grilla (en pixeles):",
                     "grid_color_set": "Color de la grilla:",
                     "fow_color_set": "Color de la niebla de guerra:",
                     "ruler_color_set": "Color de la regla:",
@@ -226,7 +228,6 @@
                 "GridSettings": {
                     "unit_size_in_UNIT": "Tamaño de Unidad (en {unit})",
                     "use_grid": "Usar Grilla",
-                    "grid_size_in_pixels": "Tamaño de la Grilla (en pixeles):",
                     "size_unit": "Unidad de longitud"
                 },
                 "location": {

@@ -1,4 +1,3 @@
-import { socket } from "@/game/api/socket";
 import { sendClientOptions } from "@/game/api/utils";
 import { Vector } from "@/game/geom";
 import { layerManager } from "@/game/layers/manager";
@@ -7,11 +6,11 @@ import { gameStore } from "@/game/store";
 import { calculateDelta } from "@/game/ui/tools/utils";
 import { visibilityStore } from "@/game/visibility/store";
 import { TriangulationTarget } from "@/game/visibility/te/pa";
+import { sendShapePositionUpdate } from "../api/events/shape";
 import { EventBus } from "../event-bus";
-import { gameManager } from "../manager";
-import { gameSettingsStore } from "../settings";
 import { floorStore } from "../layers/store";
 import { moveFloor } from "../layers/utils";
+import { gameManager } from "../manager";
 
 export function onKeyUp(event: KeyboardEvent): void {
     if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement) {
@@ -39,7 +38,7 @@ export function onKeyDown(event: KeyboardEvent): void {
         if (event.keyCode >= 37 && event.keyCode <= 40) {
             // Arrow keys - move the selection or the camera
             // todo: this should already be rounded
-            const gridSize = Math.round(gameSettingsStore.gridSize);
+            const gridSize = Math.round(gameStore.gridSize);
             let offsetX = gridSize * (event.keyCode % 2);
             let offsetY = gridSize * (event.keyCode % 2 ? 0 : 1);
             if (layerManager.hasSelection()) {
@@ -56,6 +55,7 @@ export function onKeyDown(event: KeyboardEvent): void {
                 if (delta.length() === 0) return;
                 let recalculateVision = false;
                 let recalculateMovement = false;
+                const updateList = [];
                 for (const sel of selection) {
                     if (!sel.ownedBy({ movementAccess: true })) continue;
                     if (sel.movementObstruction) {
@@ -79,17 +79,14 @@ export function onKeyDown(event: KeyboardEvent): void {
                         visibilityStore.addToTriag({ target: TriangulationTarget.VISION, shape: sel });
                     // todo: Fix again
                     // if (sel.refPoint.x % gridSize !== 0 || sel.refPoint.y % gridSize !== 0) sel.snapToGrid();
-                    if (!sel.preventSync)
-                        socket.emit("Shape.Position.Update", {
-                            shape: sel.asDict(),
-                            redraw: true,
-                            temporary: false,
-                        });
+                    if (!sel.preventSync) updateList.push(sel);
                 }
+                sendShapePositionUpdate(updateList, false);
+
                 const floorName = floorStore.currentFloor.name;
                 if (recalculateVision) visibilityStore.recalculateVision(floorName);
                 if (recalculateMovement) visibilityStore.recalculateMovement(floorName);
-                layerManager.getLayer(floorStore.currentFloor)!.invalidate(false);
+                floorStore.currentLayer!.invalidate(false);
             } else {
                 // The pan offsets should be in the opposite direction to give the correct feel.
                 gameStore.increasePanX(offsetX * (event.keyCode <= 38 ? 1 : -1));

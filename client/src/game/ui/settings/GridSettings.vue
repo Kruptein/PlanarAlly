@@ -38,13 +38,6 @@ export default class GridSettings extends Vue {
     set unitSizeUnit(value: string) {
         gameSettingsStore.setUnitSizeUnit({ unitSizeUnit: value, location: this.location, sync: true });
     }
-    get gridSize(): number {
-        return getLocationOption("gridSize", this.location)!;
-    }
-    set gridSize(value: number) {
-        if (typeof value !== "number") return;
-        gameSettingsStore.setGridSize({ gridSize: value, location: this.location, sync: true });
-    }
 
     reset(key: keyof LocationOptions): void {
         if (this.location === null) return;
@@ -75,20 +68,6 @@ export default class GridSettings extends Vue {
             <div
                 v-if="location !== null && options.useGrid !== undefined"
                 @click="reset('useGrid')"
-                :title="$t('game.ui.settings.common.reset_default')"
-            >
-                <font-awesome-icon icon="times-circle" />
-            </div>
-            <div v-else></div>
-        </div>
-        <div class="row" :class="{ overwritten: location !== null && options.gridSize !== undefined }">
-            <label :for="'gridSizeInput-' + location" v-t="'game.ui.settings.GridSettings.grid_size_in_pixels'"></label>
-            <div>
-                <input :id="'gridSizeInput-' + location" type="number" min="0" v-model.number="gridSize" />
-            </div>
-            <div
-                v-if="location !== null && options.gridSize !== undefined"
-                @click="reset('gridSize')"
                 :title="$t('game.ui.settings.common.reset_default')"
             >
                 <font-awesome-icon icon="times-circle" />

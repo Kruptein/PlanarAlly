@@ -13,9 +13,9 @@ import { SelectFeatures } from "./select.vue";
 import { ToolName, ToolPermission } from "./utils";
 import { EventBus } from "@/game/event-bus";
 import { Shape } from "@/game/shapes/shape";
-import { gameSettingsStore } from "../../settings";
 import { ToolBasics } from "./ToolBasics";
 import { floorStore } from "@/game/layers/store";
+import { gameStore } from "../../store";
 
 @Component
 export default class MapTool extends Tool implements ToolBasics {
@@ -53,7 +53,7 @@ export default class MapTool extends Tool implements ToolBasics {
 
     removeRect(): void {
         if (this.rect) {
-            const layer = layerManager.getLayer(floorStore.currentFloor)!;
+            const layer = floorStore.currentLayer!;
             layer.removeShape(this.rect, SyncMode.NO_SYNC);
             this.rect = null;
         }
@@ -68,8 +68,8 @@ export default class MapTool extends Tool implements ToolBasics {
         const oldCenter = this.rect.center();
 
         if (this.shape instanceof BaseRect) {
-            const xFactor = (this.xCount * gameSettingsStore.gridSize) / this.rect.w;
-            const yFactor = (this.yCount * gameSettingsStore.gridSize) / this.rect.h;
+            const xFactor = (this.xCount * gameStore.gridSize) / this.rect.w;
+            const yFactor = (this.yCount * gameStore.gridSize) / this.rect.h;
 
             this.shape.w *= xFactor;
             this.shape.h *= yFactor;
@@ -95,7 +95,7 @@ export default class MapTool extends Tool implements ToolBasics {
         const startPoint = l2g(lp);
 
         this.startPoint = startPoint;
-        const layer = layerManager.getLayer(floorStore.currentFloor);
+        const layer = floorStore.currentLayer;
         if (layer === undefined) {
             console.log("No active layer!");
             return;
@@ -114,7 +114,7 @@ export default class MapTool extends Tool implements ToolBasics {
 
         const endPoint = l2g(lp);
 
-        const layer = layerManager.getLayer(floorStore.currentFloor);
+        const layer = floorStore.currentLayer;
         if (layer === undefined) {
             console.log("No active layer!");
             return;
@@ -131,7 +131,7 @@ export default class MapTool extends Tool implements ToolBasics {
 
     onUp(): void {
         if (!this.active || this.rect === null) return;
-        const layer = layerManager.getLayer(floorStore.currentFloor);
+        const layer = floorStore.currentLayer;
         if (layer === undefined) {
             console.log("No active layer!");
             return;

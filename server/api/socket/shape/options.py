@@ -2,15 +2,16 @@ from typing import Any, Dict
 
 import auth
 from api.socket.constants import GAME_NS
-from app import app, logger, sio
+from app import app, sio
 from models import PlayerRoom, Shape
 from models.shape.access import has_ownership
 from state.game import game_state
+from utils import logger
 
 
 @sio.on("Shape.Options.Invisible.Set", namespace=GAME_NS)
 @auth.login_required(app, sio)
-async def set_invisible(sid: int, data: Dict[str, Any]):
+async def set_invisible(sid: str, data: Dict[str, Any]):
     pr: PlayerRoom = game_state.get(sid)
 
     try:
@@ -41,7 +42,7 @@ async def set_invisible(sid: int, data: Dict[str, Any]):
 
 @sio.on("Shape.Options.Locked.Set", namespace=GAME_NS)
 @auth.login_required(app, sio)
-async def set_locked(sid: int, data: Dict[str, Any]):
+async def set_locked(sid: str, data: Dict[str, Any]):
     pr: PlayerRoom = game_state.get(sid)
 
     try:

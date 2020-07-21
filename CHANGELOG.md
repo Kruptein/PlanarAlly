@@ -12,9 +12,27 @@ All notable changes to this project will be documented in this file.
 -   localization updates
     -   Danish
     -   Spanish
+    -   Chinese
 -   Rotation in Select tool with build mode
 -   Floor visibility toggle
     -   "Hidden" floors are not selectable by players, BUT will still render in between other selectable layers
+-   Shape lock/unlock toggle
+    -   Show lock/unlock icon on the selection_info component for quick edit
+    -   Only players with edit access can toggle
+
+### Changed
+
+-   Floors are now loaded separately on startup this greatly impacts startup time
+    -   The floor the user was last active on is loaded first if possible
+    -   Next all floors under the active floor in descending order are loaded
+    -   Lastly the floors above in ascending order are loaded
+-   Other performance improvements
+    -   Delay drawloop start until first floor data arrives
+    -   Better handling of multi group moves
+    -   Shape movement now sends less data to server
+    -   Pan now only updates the visible floors on move and full recalculate on release
+-   Grid pixel size is now a client setting instead of a DM setting
+-   Show floor selector in the more logical order from upper to lower floors
 
 ### Fixed
 
@@ -25,6 +43,11 @@ All notable changes to this project will be documented in this file.
 -   Initial state adding unnecessary fog on lower floors
 -   Prefer snapped points over grid snapping
 -   Remove white icon in topleft menu UI
+-   Moving polygons with keyboard woul only move origin point
+-   Degenerate cases in triangulation
+    -   Triangulation code could hit a degenerate case when dealing with slight number differences in the order of 1e-15
+    -   Now the triangulation code will only take the first 10 digits after the dot into consideration to prevent numerical instability.
+-   Mouseleave events where not triggered in some cases (e.g. alt tab), this could cause some shapes (e.g. rulers) to remain on the screen
 
 ## [0.21.0] - 2020-06-13
 

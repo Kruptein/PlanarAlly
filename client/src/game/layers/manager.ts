@@ -12,10 +12,6 @@ class LayerManager {
     // Refresh interval and redraw setter.
     interval = 30;
 
-    constructor() {
-        requestAnimationFrame(this.drawLoop);
-    }
-
     reset(): void {
         this.layerMap = new Map();
         this.UUIDMap = new Map();
@@ -80,7 +76,7 @@ class LayerManager {
             if (floor.name === floorName) {
                 this.getLayers(floor).push(layer);
                 if (floorStore.currentLayerIndex < 0) {
-                    floorStore.setLayerIndex(0);
+                    floorStore.setLayerIndex(2);
                 }
                 return;
             }
@@ -164,6 +160,14 @@ class LayerManager {
     invalidateAllFloors(): void {
         for (const floor of floorStore.floors) {
             this.invalidate(floor);
+        }
+    }
+
+    invalidateVisibleFloors(): void {
+        const current = floorStore.currentFloor;
+        for (const floor of floorStore.floors) {
+            this.invalidate(floor);
+            if (floor === current) break;
         }
     }
 

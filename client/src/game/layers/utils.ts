@@ -15,12 +15,22 @@ import { floorStore } from "./store";
 import { Floor } from "./floor";
 import { Shape } from "../shapes/shape";
 import { socket } from "../api/socket";
+import { gameStore } from "../store";
 
 export function addFloor(serverFloor: ServerFloor): void {
     const floor = { name: serverFloor.name, playerVisible: serverFloor.player_visible };
-    floorStore.addFloor(floor);
+    floorStore.addFloor({ floor, targetIndex: serverFloor.index });
     addCDT(serverFloor.name);
     for (const layer of serverFloor.layers) createLayer(layer, floor);
+
+    // Recalculate zIndices
+    let i = 0;
+    for (const floor of floorStore.floors) {
+        for (const layer of layerManager.getLayers(floor)) {
+            layer.canvas.style.zIndex = `${i}`;
+            i += 1;
+        }
+    }
 }
 
 export function removeFloor(floorName: string): void {
@@ -45,16 +55,16 @@ export function removeFloor(floorName: string): void {
 function createLayer(layerInfo: ServerLayer, floor: Floor): void {
     // Create canvas element
     const canvas = document.createElement("canvas");
-    canvas.style.zIndex = layerManager.layerLength.toString();
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
 
     // Create the Layer instance
     let layer: Layer;
-    if (layerInfo.type_ === "grid") layer = new GridLayer(canvas, layerInfo.name, floor.name);
-    else if (layerInfo.type_ === "fow") layer = new FOWLayer(canvas, layerInfo.name, floor.name);
-    else if (layerInfo.type_ === "fow-players") layer = new FOWPlayersLayer(canvas, layerInfo.name, floor.name);
-    else layer = new Layer(canvas, layerInfo.name, floor.name);
+    if (layerInfo.type_ === "grid") layer = new GridLayer(canvas, layerInfo.name, floor.name, layerInfo.index);
+    else if (layerInfo.type_ === "fow") layer = new FOWLayer(canvas, layerInfo.name, floor.name, layerInfo.index);
+    else if (layerInfo.type_ === "fow-players")
+        layer = new FOWPlayersLayer(canvas, layerInfo.name, floor.name, layerInfo.index);
+    else layer = new Layer(canvas, layerInfo.name, floor.name, layerInfo.index);
     layer.selectable = layerInfo.selectable;
     layer.playerEditable = layerInfo.player_editable;
     layerManager.addLayer(layer, floor.name);
@@ -71,7 +81,7 @@ function createLayer(layerInfo: ServerLayer, floor: Floor): void {
 }
 
 export function dropAsset(event: DragEvent): void {
-    const layer = layerManager.getLayer(floorStore.currentFloor);
+    const layer = floorStore.currentLayer;
     if (layer === undefined || event === null || event.dataTransfer === null) return;
     const image = document.createElement("img");
     image.src = event.dataTransfer.getData("text/plain");
@@ -84,7 +94,7 @@ export function dropAsset(event: DragEvent): void {
     asset.src = new URL(image.src).pathname;
 
     if (gameSettingsStore.useGrid) {
-        const gs = gameSettingsStore.gridSize;
+        const gs = gameStore.gridSize;
         asset.refPoint = new GlobalPoint(clampGridLine(asset.refPoint.x), clampGridLine(asset.refPoint.y));
         asset.w = Math.max(clampGridLine(asset.w), gs);
         asset.h = Math.max(clampGridLine(asset.h), gs);

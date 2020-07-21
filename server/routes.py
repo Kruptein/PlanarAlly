@@ -4,10 +4,11 @@ import aiohttp_jinja2
 from aiohttp import web
 from aiohttp_security import authorized_userid, check_authorized, forget, remember
 
-from app import app, logger
+from app import app
 from models import Location, PlayerRoom, Room, User
 from models.db import db
 from models.role import Role
+from utils import logger
 
 
 async def root(request):

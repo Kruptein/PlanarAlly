@@ -182,7 +182,8 @@
                 "select_info": {
                     "open_shape_props": "Open shape properties",
                     "quick_edit_tracker": "Quick edit tracker",
-                    "quick_edit_aura": "Quick edit aura"
+                    "quick_edit_aura": "Quick edit aura",
+                    "lock": "Toggle lock/unlock"
                 },
                 "shapecontext": {
                     "show_initiative": "Show initiative",

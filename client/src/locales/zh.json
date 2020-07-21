@@ -182,7 +182,10 @@
                 "select_info": {
                     "open_shape_props": "打开图形属性",
                     "quick_edit_tracker": "快速编辑追踪值",
-                    "quick_edit_aura": "快速编辑光晕"
+                    "quick_edit_aura": "快速编辑光晕",
+                    "new_value_NAME": "赋值 {name}：",
+                    "updating_NAME": "更新 {name}",
+                    "lock": "切换锁定状态"
                 },
                 "shapecontext": {
                     "show_initiative": "显示先攻",

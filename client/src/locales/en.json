@@ -182,7 +182,9 @@
                 "select_info": {
                     "open_shape_props": "Open shape properties",
                     "quick_edit_tracker": "Quick edit tracker",
-                    "quick_edit_aura": "Quick edit aura"
+                    "quick_edit_aura": "Quick edit aura",
+                    "new_value_NAME": "New {name} value:",
+                    "updating_NAME": "Updating {name}"
                 },
                 "shapecontext": {
                     "show_initiative": "Show initiative",

@@ -79,7 +79,7 @@ export default class SelectionInfo extends Vue {
                     :title="$t('game.ui.selection.select_info.lock')"
                 >
                     <font-awesome-icon v-if="shape.isLocked" icon="lock" />
-                    <font-awesome-icon v-if="!shape.isLocked" icon="unlock" />
+                    <font-awesome-icon v-else icon="unlock" />
                 </div>
                 <div
                     id="selection-edit-button"

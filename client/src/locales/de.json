@@ -182,7 +182,10 @@
                 "select_info": {
                     "open_shape_props": "Eigenschaften der Form öffnen",
                     "quick_edit_tracker": "Tracker schnell ändern",
-                    "quick_edit_aura": "Aura schnell ändern"
+                    "quick_edit_aura": "Aura schnell ändern",
+                    "lock": "Feststellen ein/ausschalten",
+                    "new_value_NAME": "Neuer Wert von {name}:",
+                    "updating_NAME": "{name} aktualisieren"
                 },
                 "shapecontext": {
                     "show_initiative": "Initiative anzeigen",

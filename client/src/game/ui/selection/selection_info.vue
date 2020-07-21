@@ -74,6 +74,14 @@ export default class SelectionInfo extends Vue {
         <div v-for="shape in shapes" :key="shape.uuid">
             <div id="selection-menu">
                 <div
+                    id="selection-lock-button"
+                    @click="!!shape.ownedBy({ editAccess: true }) && shape.setLocked(!shape.isLocked, true)"
+                    :title="$t('game.ui.selection.select_info.lock')"
+                >
+                    <font-awesome-icon v-if="shape.isLocked" icon="lock" />
+                    <font-awesome-icon v-else icon="unlock" />
+                </div>
+                <div
                     id="selection-edit-button"
                     @click="openEditDialog"
                     :title="$t('game.ui.selection.select_info.open_shape_props')"
@@ -140,6 +148,13 @@ export default class SelectionInfo extends Vue {
 #selection-menu:hover {
     background-color: #82c8a0;
     opacity: 1;
+}
+
+#selection-lock-button {
+    position: absolute;
+    right: 13px;
+    top: 30px;
+    cursor: pointer;
 }
 
 #selection-edit-button {

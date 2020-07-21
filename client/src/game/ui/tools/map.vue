@@ -16,6 +16,7 @@ import { Shape } from "@/game/shapes/shape";
 import { ToolBasics } from "./ToolBasics";
 import { floorStore } from "@/game/layers/store";
 import { gameStore } from "../../store";
+import { socket } from "@/game/api/socket";
 
 @Component
 export default class MapTool extends Tool implements ToolBasics {
@@ -77,6 +78,8 @@ export default class MapTool extends Tool implements ToolBasics {
             const delta = oldCenter.subtract(oldRefpoint);
             const newCenter = oldRefpoint.add(new Vector(xFactor * delta.x, yFactor * delta.y));
             this.shape.refPoint = this.shape.refPoint.add(oldCenter.subtract(newCenter));
+
+            socket.emit("Shape.Update", { shape: this.shape.asDict(), redraw: false, temporary: false });
         }
         this.removeRect();
     }

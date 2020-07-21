@@ -12,6 +12,7 @@ All notable changes to this project will be documented in this file.
 -   localization updates
     -   Danish
     -   Spanish
+    -   Chinese
 -   Rotation in Select tool with build mode
 -   Floor visibility toggle
     -   "Hidden" floors are not selectable by players, BUT will still render in between other selectable layers

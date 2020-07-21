@@ -2,7 +2,7 @@ import { sendClientOptions } from "@/game/api/utils";
 import { Vector } from "@/game/geom";
 import { layerManager } from "@/game/layers/manager";
 import { copyShapes, deleteShapes, pasteShapes } from "@/game/shapes/utils";
-import { gameStore } from "@/game/store";
+import { gameStore, DEFAULT_GRID_SIZE } from "@/game/store";
 import { calculateDelta } from "@/game/ui/tools/utils";
 import { visibilityStore } from "@/game/visibility/store";
 import { TriangulationTarget } from "@/game/visibility/te/pa";
@@ -38,7 +38,7 @@ export function onKeyDown(event: KeyboardEvent): void {
         if (event.keyCode >= 37 && event.keyCode <= 40) {
             // Arrow keys - move the selection or the camera
             // todo: this should already be rounded
-            const gridSize = Math.round(gameStore.gridSize);
+            const gridSize = DEFAULT_GRID_SIZE;
             let offsetX = gridSize * (event.keyCode % 2);
             let offsetY = gridSize * (event.keyCode % 2 ? 0 : 1);
             if (layerManager.hasSelection()) {

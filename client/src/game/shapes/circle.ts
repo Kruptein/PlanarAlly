@@ -5,7 +5,7 @@ import { Shape } from "@/game/shapes/shape";
 import { calculateDelta } from "@/game/ui/tools/utils";
 import { clampGridLine, g2lz } from "@/game/units";
 import { getFogColour } from "@/game/utils";
-import { gameStore } from "../store";
+import { DEFAULT_GRID_SIZE } from "../store";
 
 export class Circle extends Shape {
     type = "circle";
@@ -71,7 +71,7 @@ export class Circle extends Shape {
         return this.getBoundingBox().visibleInCanvas(canvas);
     }
     snapToGrid(): void {
-        const gs = gameStore.gridSize;
+        const gs = DEFAULT_GRID_SIZE;
         let targetX;
         let targetY;
         if (((2 * this.r) / gs) % 2 === 0) {
@@ -89,7 +89,7 @@ export class Circle extends Shape {
         this.invalidate(false);
     }
     resizeToGrid(): void {
-        const gs = gameStore.gridSize;
+        const gs = DEFAULT_GRID_SIZE;
         this.r = Math.max(clampGridLine(this.r), gs / 2);
         this.invalidate(false);
     }

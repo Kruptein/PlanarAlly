@@ -14,6 +14,7 @@
   },
   "dependencies": {
     "core-js": "^3.6.5",
+    "invert-color": "^2.0.0",
     "socket.io-client": "^2.3.0",
     "tinycolor2": "^1.4.1",
     "vue": "^2.6.11",

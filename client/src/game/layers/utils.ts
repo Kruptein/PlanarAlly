@@ -15,7 +15,7 @@ import { floorStore } from "./store";
 import { Floor } from "./floor";
 import { Shape } from "../shapes/shape";
 import { socket } from "../api/socket";
-import { gameStore } from "../store";
+import { DEFAULT_GRID_SIZE } from "../store";
 
 export function addFloor(serverFloor: ServerFloor): void {
     const floor = { name: serverFloor.name, playerVisible: serverFloor.player_visible };
@@ -94,10 +94,17 @@ export function dropAsset(event: DragEvent): void {
     asset.src = new URL(image.src).pathname;
 
     if (gameSettingsStore.useGrid) {
-        const gs = gameStore.gridSize;
+        const gs = DEFAULT_GRID_SIZE;
         asset.refPoint = new GlobalPoint(clampGridLine(asset.refPoint.x), clampGridLine(asset.refPoint.y));
-        asset.w = Math.max(clampGridLine(asset.w), gs);
-        asset.h = Math.max(clampGridLine(asset.h), gs);
+
+        if (event.shiftKey) {
+            const ratio = DEFAULT_GRID_SIZE / Math.max(asset.w, asset.h);
+            asset.w *= ratio;
+            asset.h *= ratio;
+        } else {
+            asset.w = Math.max(clampGridLine(asset.w), gs);
+            asset.h = Math.max(clampGridLine(asset.h), gs);
+        }
     }
 
     layer.addShape(asset, SyncMode.FULL_SYNC, InvalidationMode.WITH_LIGHT);

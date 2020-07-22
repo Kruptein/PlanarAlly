@@ -19,6 +19,7 @@ All notable changes to this project will be documented in this file.
 -   Shape lock/unlock toggle
     -   Show lock/unlock icon on the selection_info component for quick edit
     -   Only players with edit access can toggle
+-   Dragging asset while pressing 'shift' now scales the shape to fit inside one grid
 
 ### Changed
 

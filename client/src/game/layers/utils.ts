@@ -97,7 +97,7 @@ export function dropAsset(event: DragEvent): void {
         const gs = DEFAULT_GRID_SIZE;
         asset.refPoint = new GlobalPoint(clampGridLine(asset.refPoint.x), clampGridLine(asset.refPoint.y));
 
-        if (event.shiftKey) {
+        if (event.ctrlKey) {
             const ratio = DEFAULT_GRID_SIZE / Math.max(asset.w, asset.h);
             asset.w *= ratio;
             asset.h *= ratio;

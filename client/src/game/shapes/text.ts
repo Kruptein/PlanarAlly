@@ -40,7 +40,7 @@ export class Text extends Shape {
         ctx.textAlign = "center";
 
         for (const line of this.getLines(ctx)) {
-            if (this.strokeColour) {
+            if (this.strokeColour !== "rgba(0,0,0,0)") {
                 ctx.strokeStyle = this.strokeColour;
                 ctx.strokeText(line.text, line.x, line.y);
             }

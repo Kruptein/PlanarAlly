@@ -3,13 +3,11 @@ import { BoundingRect } from "@/game/shapes/boundingrect";
 import { Shape } from "@/game/shapes/shape";
 import { ServerText } from "../comm/types/shapes";
 import { rotateAroundPoint } from "../utils";
-import invert from "invert-color";
 
 export class Text extends Shape {
     type = "text";
     text: string;
     font: string;
-    readable = false;
     constructor(
         position: GlobalPoint,
         text: string,
@@ -17,12 +15,10 @@ export class Text extends Shape {
         fillColour?: string,
         strokeColour?: string,
         uuid?: string,
-        readable?: boolean,
     ) {
         super(position, fillColour, strokeColour, uuid);
         this.text = text;
         this.font = font;
-        if (readable !== undefined) this.readable = readable;
     }
     asDict(): ServerText {
         return Object.assign(this.getBaseDict(), {
@@ -41,20 +37,11 @@ export class Text extends Shape {
         super.draw(ctx);
         ctx.font = this.font;
         ctx.fillStyle = this.fillColour;
-
-        if (this.readable) {
-            const invertColour = invert(this.fillColour);
-            ctx.strokeStyle = invertColour;
-            ctx.lineWidth = 1;
-            ctx.shadowColor = invertColour;
-            ctx.shadowBlur = 2;
-            ctx.shadowOffsetX = 0;
-            ctx.shadowOffsetY = 0;
-        }
-
         ctx.textAlign = "center";
+
         for (const line of this.getLines(ctx)) {
-            if (this.readable) {
+            if (this.strokeColour) {
+                ctx.strokeStyle = this.strokeColour;
                 ctx.strokeText(line.text, line.x, line.y);
             }
             ctx.fillText(line.text, line.x, line.y);

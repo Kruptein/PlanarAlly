@@ -58,7 +58,7 @@ export function createShapeFromDict(shape: ServerShape): Shape | undefined {
         const polygon = <ServerPolygon>shape;
         sh = new Polygon(
             refPoint,
-            polygon.vertices.map(v => new GlobalPoint(v.x, v.y)),
+            polygon.vertices.map(v => GlobalPoint.fromArray(v)),
             polygon.fill_colour,
             polygon.stroke_colour,
             polygon.line_width,

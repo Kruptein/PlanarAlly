@@ -44,7 +44,7 @@ export class Polygon extends Shape {
 
     asDict(): ServerPolygon {
         return Object.assign(this.getBaseDict(), {
-            vertices: this._vertices.map(p => ({ x: p.x, y: p.y })),
+            vertices: this._vertices.map(v => v.asArray()),
             // eslint-disable-next-line @typescript-eslint/camelcase
             open_polygon: this.openPolygon,
             // eslint-disable-next-line @typescript-eslint/camelcase
@@ -54,7 +54,7 @@ export class Polygon extends Shape {
 
     fromDict(data: ServerPolygon): void {
         super.fromDict(data);
-        this._vertices = data.vertices.map(v => new GlobalPoint(v.x, v.y));
+        this._vertices = data.vertices.map(v => GlobalPoint.fromArray(v));
         this.openPolygon = data.open_polygon;
         this.lineWidth = data.line_width;
     }

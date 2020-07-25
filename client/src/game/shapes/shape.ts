@@ -162,7 +162,7 @@ export abstract class Shape {
     // abstract rotateAround(point: GlobalPoint, angle: number): void;
     rotateAround(point: GlobalPoint, angle: number): void {
         const center = this.center();
-        this.center(rotateAroundPoint(center, point, angle));
+        if (!point.equals(center)) this.center(rotateAroundPoint(center, point, angle));
         this.angle += angle;
         this.updatePoints();
     }

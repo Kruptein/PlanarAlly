@@ -446,8 +446,7 @@ export default class SelectTool extends Tool implements ToolBasics {
             if (recalcMovement) visibilityStore.recalculateMovement(selection[0].floor.name);
             layer.invalidate(false);
 
-            if (this.mode === SelectOperations.Rotate) this.updateRotationUi(features);
-            else {
+            if (this.mode !== SelectOperations.Rotate) {
                 this.removeRotationUi();
                 this.createRotationUi(features);
             }
@@ -568,41 +567,6 @@ export default class SelectTool extends Tool implements ToolBasics {
             layer.removeShape(this.rotationEnd!, SyncMode.NO_SYNC);
             this.rotationAnchor = this.rotationBox = this.rotationEnd = null;
             this.rotationUiActive = false;
-
-            layer.invalidate(true);
-        }
-    }
-
-    updateRotationUi(features: ToolFeatures<SelectFeatures>): void {
-        const layer = floorStore.currentLayer!;
-
-        if (
-            layer.getSelection().length > 0 &&
-            !this.rotationUiActive &&
-            this.hasFeature(SelectFeatures.Rotate, features)
-        ) {
-            this.createRotationUi(features);
-        } else if (this.rotationUiActive) {
-            const selection = layer.getSelection();
-
-            let bbox: BoundingRect;
-            if (selection.length === 1) {
-                bbox = selection[0].getBoundingBox();
-            } else {
-                bbox = selection
-                    .map(s => s.getBoundingBox().rotateAroundAbsolute(this.rotationBox!.center(), 0))
-                    .reduce((acc: BoundingRect, val: BoundingRect) => acc.union(val))
-                    .expand(new Vector(-50, -50))
-                    .rotateAroundAbsolute(this.rotationBox!.center(), this.angle);
-            }
-
-            this.rotationBox!.angle = this.angle;
-            this.rotationAnchor!.rotateAroundAbsolute(bbox.center(), this.angle);
-            this.rotationEnd!.rotateAroundAbsolute(bbox.center(), this.angle);
-
-            for (const rotationShape of [this.rotationAnchor, this.rotationBox, this.rotationEnd]) {
-                rotationShape!.updatePoints();
-            }
 
             layer.invalidate(true);
         }

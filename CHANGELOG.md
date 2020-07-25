@@ -49,6 +49,7 @@ All notable changes to this project will be documented in this file.
     -   Now the triangulation code will only take the first 10 digits after the dot into consideration to prevent numerical instability.
 -   Mouseleave events where not triggered in some cases (e.g. alt tab), this could cause some shapes (e.g. rulers) to remain on the screen
 -   Map tool resize does not replicate
+-   Center calculation polygons with repeated points
 
 ## [0.21.0] - 2020-06-13
 

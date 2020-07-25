@@ -42,6 +42,10 @@ export class Polygon extends Shape {
         return [this._refPoint, ...this._vertices];
     }
 
+    get uniqueVertices(): GlobalPoint[] {
+        return this.vertices.filter((val, i, arr) => arr.findIndex(t => t.equals(val)) === i);
+    }
+
     asDict(): ServerPolygon {
         return Object.assign(this.getBaseDict(), {
             vertices: this._vertices.map(v => v.asArray()),
@@ -116,9 +120,10 @@ export class Polygon extends Shape {
     center(centerPoint: GlobalPoint): void;
     center(centerPoint?: GlobalPoint): GlobalPoint | void {
         if (centerPoint === undefined) {
-            const vertexAvg = this.vertices
+            const unique = this.uniqueVertices;
+            const vertexAvg = unique
                 .reduce((acc: Vector, val: GlobalPoint) => acc.add(new Vector(val.x, val.y)), new Vector(0, 0))
-                .multiply(1 / this.vertices.length);
+                .multiply(1 / unique.length);
             return GlobalPoint.fromArray([...vertexAvg]);
         }
         const oldCenter = this.center();

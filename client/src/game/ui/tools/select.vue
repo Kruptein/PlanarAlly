@@ -125,7 +125,7 @@ export default class SelectTool extends Tool implements ToolBasics {
                     break;
                 }
             }
-            if (shape.contains(gp)) {
+            if (shape.contains(rotateAroundPoint(gp, shape.center(), -shape.angle))) {
                 if (layer.getSelection().indexOf(shape) === -1) {
                     if (event.ctrlKey) {
                         layer.pushSelection(shape);

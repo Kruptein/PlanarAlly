@@ -3,6 +3,7 @@ import { GlobalPoint, getDistanceToSegment, Vector } from "../geom";
 import { g2lx, g2ly, g2lz, g2l } from "../units";
 import { getFogColour, rotateAroundPoint } from "../utils";
 import { Shape } from "./shape";
+import { BoundingRect } from "./boundingrect";
 
 export class Polygon extends Shape {
     type = "polygon";
@@ -63,6 +64,27 @@ export class Polygon extends Shape {
         this.lineWidth = data.line_width;
     }
 
+    getBoundingBox(delta = 0): BoundingRect {
+        let minx = this.vertices[0].x;
+        let maxx = this.vertices[0].x;
+        let miny = this.vertices[0].y;
+        let maxy = this.vertices[0].y;
+        for (const p of this.vertices.slice(1)) {
+            if (p.x < minx) minx = p.x;
+            if (p.x > maxx) maxx = p.x;
+            if (p.y < miny) miny = p.y;
+            if (p.y > maxy) maxy = p.y;
+        }
+        let bbox = new BoundingRect(
+            new GlobalPoint(minx - delta, miny - delta),
+            maxx - minx + 2 * delta,
+            maxy - miny + 2 * delta,
+        );
+        bbox = bbox.center(rotateAroundPoint(bbox.center(), this.center(), this.angle));
+        bbox.angle = this.angle;
+        return bbox;
+    }
+
     getPositionRepresentation(): number[][] {
         return this.vertices.map(v => v.asArray());
     }
@@ -103,11 +125,12 @@ export class Polygon extends Shape {
     }
 
     contains(point: GlobalPoint, nearbyThreshold?: number): boolean {
-        if (nearbyThreshold === undefined) nearbyThreshold = this.lineWidth / 2;
+        if (nearbyThreshold === undefined) nearbyThreshold = this.lineWidth;
         const bbox = this.getBoundingBox(nearbyThreshold);
         if (!bbox.contains(point)) return false;
         if (this.isClosed) return true;
-        const vertices = this.vertices;
+        if (this.angle !== 0) point = rotateAroundPoint(point, this.center(), -this.angle);
+        const vertices = this.uniqueVertices;
         for (const [i, v] of vertices.entries()) {
             const nv = vertices[(i + 1) % vertices.length];
             const distance = getDistanceToSegment(point, [v, nv]);

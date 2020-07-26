@@ -125,7 +125,7 @@ export default class SelectTool extends Tool implements ToolBasics {
                     break;
                 }
             }
-            if (shape.contains(rotateAroundPoint(gp, shape.center(), -shape.angle))) {
+            if (shape.contains(gp)) {
                 if (layer.getSelection().indexOf(shape) === -1) {
                     if (event.ctrlKey) {
                         layer.pushSelection(shape);
@@ -320,11 +320,12 @@ export default class SelectTool extends Tool implements ToolBasics {
                 if (!shape.ownedBy({ movementAccess: true })) continue;
                 const bbox = shape.getBoundingBox();
                 if (!shape.ownedBy({ movementAccess: true })) continue;
+                const topLeft = rotateAroundPoint(this.selectionHelper!.refPoint, bbox.center(), -bbox.angle);
                 if (
-                    this.selectionHelper!.refPoint.x <= bbox.topRight.x &&
-                    this.selectionHelper!.refPoint.x + this.selectionHelper!.w >= bbox.topLeft.x &&
-                    this.selectionHelper!.refPoint.y <= bbox.botLeft.y &&
-                    this.selectionHelper!.refPoint.y + this.selectionHelper!.h >= bbox.topLeft.y
+                    topLeft.x <= bbox.topRight.x &&
+                    topLeft.x + this.selectionHelper!.w >= bbox.topLeft.x &&
+                    topLeft.y <= bbox.botLeft.y &&
+                    topLeft.y + this.selectionHelper!.h >= bbox.topLeft.y
                 ) {
                     if (selection.find(it => it === shape) === undefined) {
                         layer.pushSelection(shape);

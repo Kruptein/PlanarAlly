@@ -51,7 +51,7 @@ class Shape(BaseModel):
     is_invisible = BooleanField(default=False)
     default_movement_access = BooleanField(default=False)
     is_locked = BooleanField(default=False)
-    angle = IntegerField(default=0)
+    angle = FloatField(default=0)
     stroke_width = IntegerField(default=2)
 
     def __repr__(self):

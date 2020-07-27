@@ -20,7 +20,7 @@ from models import ALL_MODELS, Constants
 from models.db import db
 from utils import OldVersionException, UnknownVersionException
 
-SAVE_VERSION = 38
+SAVE_VERSION = 39
 
 logger: logging.Logger = logging.getLogger("PlanarAllyServer")
 logger.setLevel(logging.INFO)
@@ -622,6 +622,25 @@ def upgrade(version):
             db.execute_sql(
                 "INSERT INTO text (shape_id, text, font) SELECT shape_id, text, font FROM _text"
             )
+
+        db.foreign_keys = True
+        Constants.get().update(save_version=Constants.save_version + 1).execute()
+    elif version == 38:
+        # Change polygon vertices format from { x: number, y: number } to number[]
+        db.foreign_keys = False
+        with db.atomic():
+            data = db.execute_sql("SELECT shape_id, vertices FROM polygon")
+            for row in data.fetchall():
+                try:
+                    vertices = json.loads(row[1])
+                    if len(vertices) == 0 or isinstance(vertices[0], list):
+                        continue
+                    vertices = json.dumps([[v["x"], v["y"]] for v in vertices])
+                    db.execute_sql(
+                        f"UPDATE polygon SET vertices = '{vertices}' WHERE shape_id = '{row[0]}'"
+                    )
+                except json.decoder.JSONDecodeError:
+                    print(f"Failed to update polygon vertices! {row}")
 
         db.foreign_keys = True
         Constants.get().update(save_version=Constants.save_version + 1).execute()

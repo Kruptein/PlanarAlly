@@ -31,6 +31,7 @@ export class BoundingRect {
     }
 
     contains(point: GlobalPoint): boolean {
+        if (this.angle !== 0) point = rotateAroundPoint(point, this.center(), -this.angle);
         return (
             this.topLeft.x <= point.x &&
             this.topRight.x >= point.x &&
@@ -109,8 +110,15 @@ export class BoundingRect {
         return { hit: txmin < ray.tMax && txmax > 0, min: txmin, max: txmax };
     }
 
-    center(): GlobalPoint {
-        return this.topLeft.add(new Vector(this.w / 2, this.h / 2));
+    center(): GlobalPoint;
+    center(centerPoint: GlobalPoint): BoundingRect;
+    center(centerPoint?: GlobalPoint): GlobalPoint | BoundingRect {
+        if (centerPoint === undefined) return this.topLeft.add(new Vector(this.w / 2, this.h / 2));
+        return new BoundingRect(
+            new GlobalPoint(centerPoint.x - this.w / 2, centerPoint.y - this.h / 2),
+            this.w,
+            this.h,
+        );
     }
 
     getMaxExtent(): 0 | 1 {

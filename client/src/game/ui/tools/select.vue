@@ -13,7 +13,7 @@ import { Rect } from "@/game/shapes/rect";
 import { gameStore } from "@/game/store";
 import { calculateDelta, ToolName, ToolFeatures } from "@/game/ui/tools/utils";
 import { g2l, g2lx, g2ly, l2g, l2gz } from "@/game/units";
-import { getLocalPointFromEvent, useSnapping, equalPoints } from "@/game/utils";
+import { getLocalPointFromEvent, useSnapping, equalPoints, rotateAroundPoint } from "@/game/utils";
 import { visibilityStore } from "@/game/visibility/store";
 import { TriangulationTarget } from "@/game/visibility/te/pa";
 import { gameSettingsStore } from "../../settings";
@@ -271,7 +271,12 @@ export default class SelectTool extends Tool implements ToolBasics {
                     if (useSnapping(event) && this.hasFeature(SelectFeatures.Snapping, features))
                         [targetPoint, this.snappedToPoint] = snapToPoint(floorStore.currentLayer!, gp, ignorePoint);
                     else this.snappedToPoint = false;
-                    this.resizePoint = sel.resize(this.resizePoint, targetPoint, event.ctrlKey);
+                    this.resizePoint = sel.resize(
+                        this.resizePoint,
+                        targetPoint,
+                        // rotateAroundPoint(targetPoint, this.rotationBox!.center(), -this.angle),
+                        event.ctrlKey,
+                    );
                     // todo: think about calling deleteIntersectVertex directly on the corner point
                     if (sel.visionObstruction) {
                         visibilityStore.addToTriag({ target: TriangulationTarget.VISION, shape: sel });
@@ -316,11 +321,12 @@ export default class SelectTool extends Tool implements ToolBasics {
                 if (!shape.ownedBy({ movementAccess: true })) continue;
                 const bbox = shape.getBoundingBox();
                 if (!shape.ownedBy({ movementAccess: true })) continue;
+                const topLeft = rotateAroundPoint(this.selectionHelper!.refPoint, bbox.center(), -bbox.angle);
                 if (
-                    this.selectionHelper!.refPoint.x <= bbox.topRight.x &&
-                    this.selectionHelper!.refPoint.x + this.selectionHelper!.w >= bbox.topLeft.x &&
-                    this.selectionHelper!.refPoint.y <= bbox.botLeft.y &&
-                    this.selectionHelper!.refPoint.y + this.selectionHelper!.h >= bbox.topLeft.y
+                    topLeft.x <= bbox.topRight.x &&
+                    topLeft.x + this.selectionHelper!.w >= bbox.topLeft.x &&
+                    topLeft.y <= bbox.botLeft.y &&
+                    topLeft.y + this.selectionHelper!.h >= bbox.topLeft.y
                 ) {
                     if (selection.find(it => it === shape) === undefined) {
                         layer.pushSelection(shape);
@@ -446,8 +452,7 @@ export default class SelectTool extends Tool implements ToolBasics {
             if (recalcMovement) visibilityStore.recalculateMovement(selection[0].floor.name);
             layer.invalidate(false);
 
-            if (this.mode === SelectOperations.Rotate) this.updateRotationUi(features);
-            else {
+            if (this.mode !== SelectOperations.Rotate) {
                 this.removeRotationUi();
                 this.createRotationUi(features);
             }
@@ -568,41 +573,6 @@ export default class SelectTool extends Tool implements ToolBasics {
             layer.removeShape(this.rotationEnd!, SyncMode.NO_SYNC);
             this.rotationAnchor = this.rotationBox = this.rotationEnd = null;
             this.rotationUiActive = false;
-
-            layer.invalidate(true);
-        }
-    }
-
-    updateRotationUi(features: ToolFeatures<SelectFeatures>): void {
-        const layer = floorStore.currentLayer!;
-
-        if (
-            layer.getSelection().length > 0 &&
-            !this.rotationUiActive &&
-            this.hasFeature(SelectFeatures.Rotate, features)
-        ) {
-            this.createRotationUi(features);
-        } else if (this.rotationUiActive) {
-            const selection = layer.getSelection();
-
-            let bbox: BoundingRect;
-            if (selection.length === 1) {
-                bbox = selection[0].getBoundingBox();
-            } else {
-                bbox = selection
-                    .map(s => s.getBoundingBox().rotateAroundAbsolute(this.rotationBox!.center(), 0))
-                    .reduce((acc: BoundingRect, val: BoundingRect) => acc.union(val))
-                    .expand(new Vector(-50, -50))
-                    .rotateAroundAbsolute(this.rotationBox!.center(), this.angle);
-            }
-
-            this.rotationBox!.angle = this.angle;
-            this.rotationAnchor!.rotateAroundAbsolute(bbox.center(), this.angle);
-            this.rotationEnd!.rotateAroundAbsolute(bbox.center(), this.angle);
-
-            for (const rotationShape of [this.rotationAnchor, this.rotationBox, this.rotationEnd]) {
-                rotationShape!.updatePoints();
-            }
 
             layer.invalidate(true);
         }

@@ -273,7 +273,8 @@ export default class SelectTool extends Tool implements ToolBasics {
                     else this.snappedToPoint = false;
                     this.resizePoint = sel.resize(
                         this.resizePoint,
-                        rotateAroundPoint(targetPoint, this.rotationBox!.center(), -this.angle),
+                        targetPoint,
+                        // rotateAroundPoint(targetPoint, this.rotationBox!.center(), -this.angle),
                         event.ctrlKey,
                     );
                     // todo: think about calling deleteIntersectVertex directly on the corner point

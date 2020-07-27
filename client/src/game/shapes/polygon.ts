@@ -1,9 +1,9 @@
 import { ServerPolygon } from "../comm/types/shapes";
-import { GlobalPoint, getDistanceToSegment, Vector } from "../geom";
-import { g2lx, g2ly, g2lz, g2l } from "../units";
-import { getFogColour, rotateAroundPoint } from "../utils";
-import { Shape } from "./shape";
+import { getDistanceToSegment, GlobalPoint } from "../geom";
+import { g2l, g2lx, g2ly, g2lz } from "../units";
+import { filterEqualPoints, getFogColour, getPointsCenter, rotateAroundPoint } from "../utils";
 import { BoundingRect } from "./boundingrect";
+import { Shape } from "./shape";
 
 export class Polygon extends Shape {
     type = "polygon";
@@ -44,7 +44,7 @@ export class Polygon extends Shape {
     }
 
     get uniqueVertices(): GlobalPoint[] {
-        return this.vertices.filter((val, i, arr) => arr.findIndex(t => t.equals(val)) === i);
+        return filterEqualPoints(this.vertices);
     }
 
     asDict(): ServerPolygon {
@@ -143,15 +143,12 @@ export class Polygon extends Shape {
     center(centerPoint: GlobalPoint): void;
     center(centerPoint?: GlobalPoint): GlobalPoint | void {
         if (centerPoint === undefined) {
-            const unique = this.uniqueVertices;
-            const vertexAvg = unique
-                .reduce((acc: Vector, val: GlobalPoint) => acc.add(new Vector(val.x, val.y)), new Vector(0, 0))
-                .multiply(1 / unique.length);
-            return GlobalPoint.fromArray([...vertexAvg]);
+            return getPointsCenter(this.uniqueVertices);
         }
         const oldCenter = this.center();
         this.refPoint = GlobalPoint.fromArray([...centerPoint.subtract(oldCenter.subtract(this.refPoint))]);
     }
+
     visibleInCanvas(canvas: HTMLCanvasElement): boolean {
         if (super.visibleInCanvas(canvas)) return true;
         return this.getBoundingBox().visibleInCanvas(canvas);
@@ -161,8 +158,21 @@ export class Polygon extends Shape {
     // eslint-disable-next-line @typescript-eslint/no-empty-function
     resizeToGrid(): void {}
     resize(resizePoint: number, point: GlobalPoint): number {
-        if (resizePoint === 0) this._refPoint = point;
-        else this._vertices[resizePoint - 1] = point;
+        if (this.angle === 0) {
+            if (resizePoint === 0) this._refPoint = point;
+            else this._vertices[resizePoint - 1] = point;
+        } else {
+            const newPoints = this.points.map(p => GlobalPoint.fromArray(p));
+
+            newPoints[resizePoint] = point;
+
+            const newCenter = getPointsCenter(filterEqualPoints(newPoints));
+
+            this._refPoint = rotateAroundPoint(newPoints[0], newCenter, -this.angle);
+            for (let i = 0; i < this._vertices.length; i++) {
+                this._vertices[i] = rotateAroundPoint(newPoints[i + 1], newCenter, -this.angle);
+            }
+        }
         return resizePoint;
     }
 }

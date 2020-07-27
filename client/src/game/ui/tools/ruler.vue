@@ -67,7 +67,7 @@ export default class RulerTool extends Tool implements ToolBasics {
         const distance = (Math.sqrt(xdiff ** 2 + ydiff ** 2) * gameSettingsStore.unitSize) / DEFAULT_GRID_SIZE;
 
         // round to 1 decimal
-        const label = Math.round(10 * distance) / 10 + " " + gameSettingsStore.unitSizeUnit;
+        const label = this.$n(Math.round(10 * distance) / 10) + " " + gameSettingsStore.unitSizeUnit;
         const angle = Math.atan2(diffsign * ydiff, xdiff);
         const xmid = Math.min(this.startPoint.x, endPoint.x) + xdiff / 2;
         const ymid = Math.min(this.startPoint.y, endPoint.y) + ydiff / 2;

@@ -54,6 +54,7 @@ export function useSnapping(event: MouseEvent | TouchEvent): boolean {
 }
 
 export function rotateAroundPoint(point: GlobalPoint, center: GlobalPoint, angle: number): GlobalPoint {
+    if (angle === 0) return point;
     if (equalPoints([...center], [...point])) return point;
 
     const c = Math.cos(angle);

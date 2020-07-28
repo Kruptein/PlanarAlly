@@ -37,9 +37,13 @@ export class Text extends Shape {
         super.draw(ctx);
         ctx.font = this.font;
         ctx.fillStyle = this.fillColour;
-
         ctx.textAlign = "center";
+
         for (const line of this.getLines(ctx)) {
+            if (this.strokeColour !== "rgba(0,0,0,0)") {
+                ctx.strokeStyle = this.strokeColour;
+                ctx.strokeText(line.text, line.x, line.y);
+            }
             ctx.fillText(line.text, line.x, line.y);
         }
         // ctx.restore();

@@ -116,6 +116,9 @@ export default class FloorSelect extends Vue {
                     </div>
                     <div class="floor-name">{{ floor.name }}</div>
                     <div class="floor-actions" v-show="IS_DM">
+                        <div @click.stop="renameFloor(index)" :title="$t('game.ui.floors.rename_icon_hover')">
+                            <font-awesome-icon icon="pencil-alt" />
+                        </div>
                         <div
                             @click.stop="toggleVisible(floor)"
                             :style="{ opacity: floor.playerVisible ? 1.0 : 0.3, marginRight: '5px' }"

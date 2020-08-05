@@ -14,8 +14,10 @@ All notable changes to this project will be documented in this file.
     -   Spanish
     -   Chinese
 -   Rotation in Select tool with build mode
--   Floor visibility toggle
-    -   "Hidden" floors are not selectable by players, BUT will still render in between other selectable layers
+-   Floor UI updates
+    -   visibility toggle
+        -   "Hidden" floors are not selectable by players, BUT will still render in between other selectable layers
+    -   rename floor option
 -   Shape lock/unlock toggle
     -   Show lock/unlock icon on the selection_info component for quick edit
     -   Only players with edit access can toggle

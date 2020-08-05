@@ -68,6 +68,11 @@ class FloorStore extends VuexModule implements FloorState {
         layerManager.addFloor(data.floor.name);
     }
 
+    @Mutation
+    renameFloor(data: { index: number; name: string }): void {
+        this._floors[data.index].name = data.name;
+    }
+
     @Action
     removeFloor(floor: Floor): void {
         const index = this._floors.findIndex(f => f === floor);

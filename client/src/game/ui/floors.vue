@@ -10,6 +10,7 @@ import { removeFloor } from "@/game/layers/utils";
 import { gameStore } from "@/game/store";
 import { Floor } from "../layers/floor";
 import { floorStore } from "../layers/store";
+import { sendRenameFloor } from "../api/events/floor";
 
 @Component
 export default class FloorSelect extends Vue {
@@ -60,6 +61,15 @@ export default class FloorSelect extends Vue {
 
     selectFloor(floor: Floor): void {
         floorStore.selectFloor({ targetFloor: floor, sync: true });
+    }
+
+    async renameFloor(index: number): Promise<void> {
+        const value = await (<Game>this.$parent.$parent).$refs.prompt.prompt(
+            this.$t("game.ui.floors.new_name").toString(),
+            this.$t("game.ui.floors.rename_header_title").toString(),
+        );
+        if (value === undefined) return;
+        sendRenameFloor(index, value);
     }
 
     async removeFloor(index: number): Promise<void> {

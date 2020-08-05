@@ -98,7 +98,9 @@
                 "warning_msg_Z": "Are you sure you wish to remove the {z} floor?",
                 "delete_floor": "Delete floor",
                 "add_new_floor": "Add new floor",
-                "toggle_visibility": "Toggle floor visibility for players"
+                "toggle_visibility": "Toggle floor visibility for players",
+                "rename_icon_hover": "Rename this floor",
+                "rename_header_title": "Renaming Floor"
             },
             "initiative": {
                 "initiative": {

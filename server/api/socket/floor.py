@@ -1,4 +1,5 @@
 from typing import Any, Dict
+from typing_extensions import TypedDict
 
 import auth
 from api.socket.constants import GAME_NS
@@ -7,6 +8,11 @@ from models import Floor, Room, PlayerRoom
 from models.role import Role
 from state.game import game_state
 from utils import logger
+
+# DATA CLASSES FOR TYPE CHECKING
+class FloorRename(TypedDict):
+    index: int
+    name: str
 
 
 @sio.on("Floor.Create", namespace=GAME_NS)
@@ -69,4 +75,23 @@ async def set_floor_visibility(sid, data):
     for psid in game_state.get_sids(room=pr.room, skip_sid=sid):
         await sio.emit(
             "Floor.Visible.Set", data, room=psid, namespace=GAME_NS,
+        )
+
+
+@sio.on("Floor.Rename", namespace=GAME_NS)
+@auth.login_required(app, sio)
+async def rename_floor(sid: str, data: FloorRename):
+    pr: PlayerRoom = game_state.get(sid)
+
+    if pr.role != Role.DM:
+        logger.warning(f"{pr.player.name} attempted to rename a floor")
+        return
+
+    floor: Floor = Floor.get(location=pr.active_location, index=data["index"])
+    floor.name = data["name"]
+    floor.save()
+
+    for psid in game_state.get_sids(room=pr.room, skip_sid=sid):
+        await sio.emit(
+            "Floor.Rename", data, room=psid, namespace=GAME_NS,
         )

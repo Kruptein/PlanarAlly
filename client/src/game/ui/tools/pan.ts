@@ -33,6 +33,7 @@ export default class PanTool extends Tool implements ToolBasics {
     }
 
     onUp(lp: LocalPoint): void {
+        if (!this.active) return;
         this.active = false;
         this.panScreen(lp, true);
         sendClientOptions(gameStore.locationUserOptions);

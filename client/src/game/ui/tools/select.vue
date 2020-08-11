@@ -567,7 +567,7 @@ export default class SelectTool extends Tool implements ToolBasics {
 
     removeRotationUi(): void {
         if (this.rotationUiActive) {
-            const layer = floorStore.currentLayer!;
+            const layer = this.rotationAnchor!.layer;
             layer.removeShape(this.rotationAnchor!, SyncMode.NO_SYNC);
             layer.removeShape(this.rotationBox!, SyncMode.NO_SYNC);
             layer.removeShape(this.rotationEnd!, SyncMode.NO_SYNC);

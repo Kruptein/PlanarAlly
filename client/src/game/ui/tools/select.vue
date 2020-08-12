@@ -25,6 +25,7 @@ import { BoundingRect } from "../../shapes/boundingrect";
 import { floorStore } from "@/game/layers/store";
 import { sendShapePositionUpdate } from "../../api/events/shape";
 import { Shape } from "@/game/shapes/shape";
+import Tools from "./tools.vue";
 
 enum SelectOperations {
     Noop,
@@ -79,7 +80,7 @@ export default class SelectTool extends Tool implements ToolBasics {
             this.removeRotationUi();
             // We don't have feature information, might want to store this as a property instead ?
             console.log(shapes.length);
-            if (shapes.length > 0) this.createRotationUi({});
+            if ((<Tools>this.$parent).mode === "Build" && shapes.length > 0) this.createRotationUi({});
         });
     }
 

@@ -41,13 +41,13 @@ export default class MapTool extends Tool implements ToolBasics {
     // Life cycle
 
     mounted(): void {
-        EventBus.$on("SelectionInfo.Shape.Set", (shape: Shape | null) => {
-            this.shapeSelected = shape !== null;
+        EventBus.$on("SelectionInfo.Shapes.Set", (shape: Shape[]) => {
+            this.shapeSelected = shape.length === 1;
         });
     }
 
     beforeDestroy(): void {
-        EventBus.$off("SelectionInfo.Shape.Set");
+        EventBus.$off("SelectionInfo.Shapes.Set");
     }
 
     // End life cycle

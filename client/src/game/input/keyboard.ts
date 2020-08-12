@@ -164,7 +164,7 @@ export function onKeyDown(event: KeyboardEvent): void {
             if (event.ctrlKey) {
                 moveFloor([...selection], newFloor, true);
             }
-            if (!event.shiftKey) layerManager.clearSelection();
+            layerManager.clearSelection();
             if (!event.ctrlKey || event.shiftKey) {
                 floorStore.selectFloor({ targetFloor, sync: true });
             }

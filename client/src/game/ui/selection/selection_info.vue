@@ -24,9 +24,15 @@ export default class SelectionInfo extends Vue {
                 this.shape = shape;
             }
         });
-        EventBus.$on("SelectionInfo.Shape.Set", (shape: Shape | null) => {
-            this.shape = shape;
+        EventBus.$on("SelectionInfo.Shapes.Set", (shapes: Shape[]) => {
+            // todo: multiple selected shapes
+            if (shapes.length === 1) this.shape = shapes[0];
+            else this.shape = null;
         });
+    }
+
+    beforeDestroy(): void {
+        EventBus.$off("SelectionInfo.Shapes.Set");
     }
 
     get shapes(): Shape[] {
@@ -42,10 +48,6 @@ export default class SelectionInfo extends Vue {
     get visibleAuras(): Aura[] {
         if (this.shape === null) return [];
         return this.shape.auras.filter(au => au.name !== "" || au.value !== 0);
-    }
-
-    beforeDestroy(): void {
-        EventBus.$off("SelectionInfo.Shape.Set");
     }
 
     openEditDialog(): void {

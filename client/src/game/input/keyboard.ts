@@ -131,18 +131,7 @@ export function onKeyDown(event: KeyboardEvent): void {
             );
             if (targetFloor > floorStore.floors.length - 1) return;
 
-            const selection = layerManager.getSelection() ?? [];
-            const newFloor = floorStore.floors[targetFloor];
-            const newLayer = layerManager.getLayer(newFloor)!;
-
-            if (event.ctrlKey) {
-                moveFloor([...selection], newFloor, true);
-            }
-            layerManager.clearSelection();
-            if (!event.ctrlKey || event.shiftKey) {
-                floorStore.selectFloor({ targetFloor, sync: true });
-            }
-            if (event.shiftKey) for (const shape of selection) newLayer.pushSelection(shape);
+            changeFloor(event, targetFloor);
         } else if (event.key === "PageDown" && floorStore.currentFloorindex > 0) {
             // Page Down - Move floor down
             // Ctrl + Page Down - Move selected shape floor down
@@ -157,21 +146,25 @@ export function onKeyDown(event: KeyboardEvent): void {
             targetFloor = maxLength - targetFloor;
             if (targetFloor < 0) return;
 
-            const selection = layerManager.getSelection() ?? [];
-            const newFloor = floorStore.floors[targetFloor];
-            const newLayer = layerManager.getLayer(newFloor)!;
-
-            if (event.ctrlKey) {
-                moveFloor([...selection], newFloor, true);
-            }
-            if (!event.shiftKey) layerManager.clearSelection();
-            if (!event.ctrlKey || event.shiftKey) {
-                floorStore.selectFloor({ targetFloor, sync: true });
-            }
-            if (event.shiftKey) for (const shape of selection) newLayer.pushSelection(shape);
+            changeFloor(event, targetFloor);
         } else if (event.key === "Tab") {
             event.preventDefault();
             EventBus.$emit("ToolMode.Toggle");
         }
     }
+}
+
+function changeFloor(event: KeyboardEvent, targetFloor: number): void {
+    const selection = layerManager.getSelection() ?? [];
+    const newFloor = floorStore.floors[targetFloor];
+    const newLayer = layerManager.getLayer(newFloor)!;
+
+    if (event.ctrlKey) {
+        moveFloor([...selection], newFloor, true);
+    }
+    layerManager.clearSelection();
+    if (!event.ctrlKey || event.shiftKey) {
+        floorStore.selectFloor({ targetFloor, sync: true });
+    }
+    if (event.shiftKey) for (const shape of selection) newLayer.pushSelection(shape);
 }

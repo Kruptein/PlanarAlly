@@ -77,10 +77,12 @@ export class Layer {
 
     setSelection(...selection: Shape[]): void {
         this.selection = selection;
+        EventBus.$emit("SelectionInfo.Shapes.Set", this.getSelection());
     }
 
     pushSelection(...selection: Shape[]): void {
         this.selection.push(...selection);
+        EventBus.$emit("SelectionInfo.Shapes.Set", this.getSelection());
     }
 
     get width(): number {
@@ -222,7 +224,7 @@ export class Layer {
 
     clearSelection(): void {
         this.selection = [];
-        EventBus.$emit("SelectionInfo.Shape.Set", null);
+        EventBus.$emit("SelectionInfo.Shapes.Set", []);
     }
 
     hide(): void {

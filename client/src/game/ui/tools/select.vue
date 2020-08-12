@@ -24,6 +24,7 @@ import { SyncMode, InvalidationMode } from "../../../core/comm/types";
 import { BoundingRect } from "../../shapes/boundingrect";
 import { floorStore } from "@/game/layers/store";
 import { sendShapePositionUpdate } from "../../api/events/shape";
+import { Shape } from "@/game/shapes/shape";
 
 enum SelectOperations {
     Noop,
@@ -70,6 +71,21 @@ export default class SelectTool extends Tool implements ToolBasics {
     rotationEnd: Circle | null = null;
 
     snappedToPoint = false;
+
+    // Life cycle
+
+    mounted(): void {
+        EventBus.$on("SelectionInfo.Shapes.Set", (shapes: Shape[]) => {
+            this.removeRotationUi();
+            // We don't have feature information, might want to store this as a property instead ?
+            console.log(shapes.length);
+            if (shapes.length > 0) this.createRotationUi({});
+        });
+    }
+
+    beforeDestroy(): void {
+        EventBus.$off("SelectionInfo.Shapes.Set");
+    }
 
     onToolsModeChange(mode: "Build" | "Play", features: ToolFeatures<SelectFeatures>): void {
         if (mode === "Play") {
@@ -118,7 +134,6 @@ export default class SelectTool extends Tool implements ToolBasics {
                     this.removeRotationUi();
                     this.createRotationUi(features);
                     this.originalResizePoints = shape.points;
-                    EventBus.$emit("SelectionInfo.Shape.Set", shape);
                     this.mode = SelectOperations.Resize;
                     layer.invalidate(true);
                     hit = true;
@@ -134,7 +149,6 @@ export default class SelectTool extends Tool implements ToolBasics {
                     }
                     this.removeRotationUi();
                     this.createRotationUi(features);
-                    EventBus.$emit("SelectionInfo.Shape.Set", shape);
                 }
                 // Drag case, a shape is selected
                 if (this.hasFeature(SelectFeatures.Drag, features)) {
@@ -153,7 +167,6 @@ export default class SelectTool extends Tool implements ToolBasics {
             if (!this.hasFeature(SelectFeatures.ChangeSelection, features)) return;
             if (!this.hasFeature(SelectFeatures.GroupSelect, features)) return;
             this.mode = SelectOperations.GroupSelect;
-            for (const selection of layer.getSelection()) EventBus.$emit("SelectionInfo.Shape.Set", selection);
 
             this.selectionStartPoint = gp;
 
@@ -472,7 +485,6 @@ export default class SelectTool extends Tool implements ToolBasics {
         const globalMouse = l2g(mouse);
         for (const shape of layer.getSelection()) {
             if (shape.contains(globalMouse)) {
-                EventBus.$emit("SelectionInfo.Shape.Set", shape);
                 layer.invalidate(true);
                 (<ShapeContext>this.$parent.$refs.shapecontext).open(event);
                 return;
@@ -484,7 +496,6 @@ export default class SelectTool extends Tool implements ToolBasics {
             const shape = layer.getShapes()[i];
             if (shape.contains(globalMouse)) {
                 layer.setSelection(shape);
-                EventBus.$emit("SelectionInfo.Shape.Set", shape);
                 layer.invalidate(true);
                 (<ShapeContext>this.$parent.$refs.shapecontext).open(event);
                 return;

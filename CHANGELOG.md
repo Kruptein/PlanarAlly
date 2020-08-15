@@ -53,6 +53,8 @@ All notable changes to this project will be documented in this file.
 -   Mouseleave events where not triggered in some cases (e.g. alt tab), this could cause some shapes (e.g. rulers) to remain on the screen
 -   Map tool resize does not replicate
 -   Center calculation polygons with repeated points
+-   Several bugs related to moving a shape to a different location
+    -   The shape now properly disappears on the old location
 
 ## [0.21.0] - 2020-06-13
 

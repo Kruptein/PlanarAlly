@@ -69,7 +69,7 @@ describe("PA test suite.", () => {
                 playerVisible: true,
             });
             jest.spyOn(Polygon.prototype, "floor", "get").mockReturnValue({
-                id: 1,
+                id: 0,
                 name: "testfloor",
                 playerVisible: true,
             });

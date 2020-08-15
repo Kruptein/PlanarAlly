@@ -1,6 +1,7 @@
 <script lang="ts">
 import Vue from "vue";
 import Component from "vue-class-component";
+import draggable from "vuedraggable";
 
 import Game from "@/game/Game.vue";
 
@@ -12,7 +13,11 @@ import { Floor } from "../layers/floor";
 import { floorStore } from "../layers/store";
 import { sendRenameFloor } from "../api/events/floor";
 
-@Component
+@Component({
+    components: {
+        draggable,
+    },
+})
 export default class FloorSelect extends Vue {
     selected = false;
 
@@ -21,9 +26,14 @@ export default class FloorSelect extends Vue {
     }
 
     get floors(): readonly [number, Floor][] {
-        return floorStore.floors
+        return [...floorStore.floors]
+            .reverse()
             .filter(f => f.playerVisible || gameStore.IS_DM)
             .map(f => [floorStore.floors.indexOf(f), f]);
+    }
+
+    set floors(floors: readonly [number, Floor][]) {
+        floorStore.reorderFloors({ floors: floors.map(f => f[1].name).reverse(), sync: true });
     }
 
     get selectedFloorIndex(): number {
@@ -72,9 +82,8 @@ export default class FloorSelect extends Vue {
         sendRenameFloor(index, value);
     }
 
-    async removeFloor(index: number): Promise<void> {
+    async removeFloor(floor: Floor): Promise<void> {
         if (this.floors.length <= 1) return;
-        const floor = this.floors[index][1];
         if (
             !(await (<Game>this.$parent.$parent).$refs.confirm.open(
                 this.$t("common.warning").toString(),
@@ -117,16 +126,18 @@ export default class FloorSelect extends Vue {
         <div id="floor-selector" @click="selected = !selected" v-if="showFloorSelector">
             <a href="#">{{ selectedFloorIndex }}</a>
         </div>
-        <div id="floor-detail" v-if="selected">
-            <template v-for="[index, floor] of [...floors].reverse()">
+        <draggable id="floor-detail" v-if="selected" v-model="floors" :disabled="!$store.state.game.IS_DM">
+            <template v-for="[revIndex, floor] of floors">
                 <div class="floor-row" :key="floor.name" @click="selectFloor(floor)">
-                    <div class="floor-index">
-                        <template v-if="index == selectedFloorIndex">></template>
-                        {{ index }}
+                    <div
+                        class="floor-index"
+                        :class="revIndex == selectedFloorIndex ? 'floor-index-selected' : 'floor-index-not-selected'"
+                    >
+                        {{ revIndex }}
                     </div>
                     <div class="floor-name">{{ floor.name }}</div>
                     <div class="floor-actions" v-show="IS_DM">
-                        <div @click.stop="renameFloor(index)" :title="$t('game.ui.floors.rename_icon_hover')">
+                        <div @click.stop="renameFloor(revIndex)" :title="$t('game.ui.floors.rename_icon_hover')">
                             <font-awesome-icon icon="pencil-alt" />
                         </div>
                         <div
@@ -137,7 +148,7 @@ export default class FloorSelect extends Vue {
                             <font-awesome-icon icon="eye" />
                         </div>
                         <div
-                            @click.stop="removeFloor(index)"
+                            @click.stop="removeFloor(floor)"
                             v-show="floors.length > 1"
                             :title="$t('game.ui.floors.delete_floor')"
                         >
@@ -147,7 +158,7 @@ export default class FloorSelect extends Vue {
                 </div>
             </template>
             <div class="floor-add" @click="addFloor" v-if="IS_DM" v-t="'game.ui.floors.add_new_floor'"></div>
-        </div>
+        </draggable>
         <div style="display:contents" v-show="layers.length > 1">
             <div
                 v-for="layer in layers"
@@ -169,11 +180,11 @@ export default class FloorSelect extends Vue {
     list-style: none;
     margin-left: 25px;
     margin-bottom: 25px;
+    -webkit-user-drag: none !important;
 }
 
 #floor-layer * {
     user-select: none !important;
-    -webkit-user-drag: none !important;
 }
 
 #floor-selector {
@@ -221,10 +232,7 @@ a {
     z-index: 11;
     border: solid 1px #2b2b2b;
     background-color: white;
-    display: grid;
     padding: 10px;
-    grid-template-columns: auto auto auto;
-    grid-row-gap: 2px;
 }
 #floor-detail:after {
     content: "";
@@ -246,7 +254,7 @@ a {
 }
 
 .floor-row {
-    display: contents;
+    display: flex;
 }
 
 .floor-row > * {
@@ -267,10 +275,23 @@ a {
     padding-right: 5px;
     border-right: 1px solid black;
     justify-self: end;
+    /* width: 25px; */
+    text-align: right;
+}
+
+.floor-index-selected:before {
+    content: ">";
+    white-space: pre;
+}
+
+.floor-index-not-selected:before {
+    content: ">";
+    visibility: hidden;
 }
 
 .floor-name {
     padding: 0 10px;
+    flex-grow: 2;
 }
 
 .floor-actions {

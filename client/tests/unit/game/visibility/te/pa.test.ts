@@ -6,7 +6,6 @@ import { CDT } from "@/game/visibility/te/cdt";
 import { addShapesToTriag, deleteShapeFromTriag, TriangulationTarget, setCDT } from "@/game/visibility/te/pa";
 import { rotateAroundOrigin, xySmaller } from "@/game/visibility/te/triag";
 import { BaseRect } from "../../../../../src/game/shapes/baserect";
-import { uuidv4 } from "../../../../../src/core/utils";
 
 jest.mock("@/game/api/socket", () => ({
     socket: {

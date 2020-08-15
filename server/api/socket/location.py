@@ -31,7 +31,7 @@ from models.asset import Asset
 
 @sio.on("Location.Load", namespace=GAME_NS)
 @auth.login_required(app, sio)
-async def change_locatdion(sid: str):
+async def _load_location(sid: str):
     pr: PlayerRoom = game_state.get(sid)
 
     await load_location(sid, pr.active_location, complete=True)

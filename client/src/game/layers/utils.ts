@@ -1,8 +1,8 @@
 import { InvalidationMode, SyncMode } from "@/core/comm/types";
 import { ServerFloor, ServerLayer } from "@/game/comm/types/general";
 import { GlobalPoint } from "@/game/geom";
-import { FOWLayer } from "@/game/layers/fow";
-import { FOWPlayersLayer } from "@/game/layers/fowplayers";
+import { FowLightingLayer } from "@/game/layers/fowlighting";
+import { FowVisionLayer } from "@/game/layers/fowvision";
 import { GridLayer } from "@/game/layers/grid";
 import { Layer } from "@/game/layers/layer";
 import { layerManager } from "@/game/layers/manager";
@@ -15,7 +15,7 @@ import { gameSettingsStore } from "../settings";
 import { Shape } from "../shapes/shape";
 import { gameStore } from "../store";
 import { Floor } from "./floor";
-import { floorStore, newFloorId, getFloorId } from "./store";
+import { floorStore, getFloorId, newFloorId } from "./store";
 
 export function addFloor(serverFloor: ServerFloor): void {
     const floor: Floor = {
@@ -65,9 +65,9 @@ function createLayer(layerInfo: ServerLayer, floor: Floor): void {
     // Create the Layer instance
     let layer: Layer;
     if (layerInfo.type_ === "grid") layer = new GridLayer(canvas, layerInfo.name, floor.id, layerInfo.index);
-    else if (layerInfo.type_ === "fow") layer = new FOWLayer(canvas, layerInfo.name, floor.id, layerInfo.index);
+    else if (layerInfo.type_ === "fow") layer = new FowLightingLayer(canvas, layerInfo.name, floor.id, layerInfo.index);
     else if (layerInfo.type_ === "fow-players")
-        layer = new FOWPlayersLayer(canvas, layerInfo.name, floor.id, layerInfo.index);
+        layer = new FowVisionLayer(canvas, layerInfo.name, floor.id, layerInfo.index);
     else layer = new Layer(canvas, layerInfo.name, floor.id, layerInfo.index);
     layer.selectable = layerInfo.selectable;
     layer.playerEditable = layerInfo.player_editable;

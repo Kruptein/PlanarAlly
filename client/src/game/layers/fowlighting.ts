@@ -31,38 +31,8 @@ export class FowLightingLayer extends FowLayer {
 
     draw(): void {
         if (!this.valid) {
-            const ctx = this.ctx;
-
-            const originalOperation = ctx.globalCompositeOperation;
-            ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-
-            ctx.fillStyle = "rgba(0, 0, 0, 1)";
-
-            const activeFloor = floorStore.currentFloor.id;
-
-            if (this.floor === activeFloor && this.canvas.style.display === "none")
-                this.canvas.style.removeProperty("display");
-            else if (this.floor !== activeFloor && this.canvas.style.display !== "none")
-                this.canvas.style.display = "none";
-
-            if (this.floor === activeFloor && floorStore.floors.length > 1) {
-                for (const floor of floorStore.floors) {
-                    if (floor.id !== floorStore.floors[0].id) {
-                        const mapl = layerManager.getLayer(floor, "map");
-                        if (mapl === undefined) continue;
-                        ctx.globalCompositeOperation = "destination-out";
-                        ctx.drawImage(mapl.canvas, 0, 0);
-                    }
-                    if (floor.id !== activeFloor) {
-                        const fowl = layerManager.getLayer(floor, this.name);
-                        if (fowl === undefined) continue;
-                        ctx.globalCompositeOperation = "source-over";
-                        ctx.drawImage(fowl.canvas, 0, 0);
-                    }
-                    if (floor.id === activeFloor) break;
-                }
-            }
-            ctx.globalCompositeOperation = "source-over";
+            const originalOperation = this.ctx.globalCompositeOperation;
+            super._draw();
 
             // At all times provide a minimal vision range to prevent losing your tokens in fog.
             if (
@@ -75,17 +45,22 @@ export class FowLightingLayer extends FowLayer {
                     const bb = sh.getBoundingBox();
                     const lcenter = g2l(sh.center());
                     const alm = 0.8 * g2lz(bb.w);
-                    ctx.beginPath();
-                    ctx.arc(lcenter.x, lcenter.y, alm, 0, 2 * Math.PI);
-                    const gradient = ctx.createRadialGradient(lcenter.x, lcenter.y, alm / 2, lcenter.x, lcenter.y, alm);
+                    this.ctx.beginPath();
+                    this.ctx.arc(lcenter.x, lcenter.y, alm, 0, 2 * Math.PI);
+                    const gradient = this.ctx.createRadialGradient(
+                        lcenter.x,
+                        lcenter.y,
+                        alm / 2,
+                        lcenter.x,
+                        lcenter.y,
+                        alm,
+                    );
                     gradient.addColorStop(0, "rgba(0, 0, 0, 1)");
                     gradient.addColorStop(1, "rgba(0, 0, 0, 0)");
-                    ctx.fillStyle = gradient;
-                    ctx.fill();
+                    this.ctx.fillStyle = gradient;
+                    this.ctx.fill();
                 }
             }
-
-            this.vCtx.clearRect(0, 0, window.innerWidth, window.innerHeight);
 
             // First cut out all the light sources
             for (const light of getVisionSources(this.floor)) {
@@ -101,7 +76,7 @@ export class FowLightingLayer extends FowLayer {
                 const lcenter = g2l(center);
 
                 const auraCircle = new Circle(center, auraLength);
-                if (!auraCircle.visibleInCanvas(ctx.canvas)) continue;
+                if (!auraCircle.visibleInCanvas(this.ctx.canvas)) continue;
 
                 this.vCtx.globalCompositeOperation = "source-over";
                 this.vCtx.fillStyle = "rgba(0, 0, 0, 1)";
@@ -131,14 +106,15 @@ export class FowLightingLayer extends FowLayer {
                 this.vCtx.beginPath();
                 this.vCtx.arc(lcenter.x, lcenter.y, g2lr(aura.value + aura.dim), 0, 2 * Math.PI);
                 this.vCtx.fill();
-                ctx.drawImage(this.virtualCanvas, 0, 0);
+                this.ctx.drawImage(this.virtualCanvas, 0, 0);
                 // aura.lastPath = this.updateAuraPath(polygon, auraCircle);
                 // shape.invalidate(true);
             }
 
+            const activeFloor = floorStore.currentFloor.id;
             if (gameSettingsStore.fowLos && this.floor === activeFloor) {
-                ctx.globalCompositeOperation = "source-in";
-                ctx.drawImage(layerManager.getLayer(floorStore.currentFloor, "fow-players")!.canvas, 0, 0);
+                this.ctx.globalCompositeOperation = "source-in";
+                this.ctx.drawImage(layerManager.getLayer(floorStore.currentFloor, "fow-players")!.canvas, 0, 0);
             }
 
             for (const preShape of this.preFogShapes) {
@@ -150,19 +126,19 @@ export class FowLightingLayer extends FowLayer {
                     else if (preShape.globalCompositeOperation === "destination-out")
                         preShape.globalCompositeOperation = "source-over";
                 }
-                preShape.draw(ctx);
+                preShape.draw(this.ctx);
                 preShape.globalCompositeOperation = ogComposite;
             }
 
             if (gameSettingsStore.fullFow && this.floor === activeFloor) {
-                ctx.globalCompositeOperation = "source-out";
-                ctx.fillStyle = getFogColour();
-                ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+                this.ctx.globalCompositeOperation = "source-out";
+                this.ctx.fillStyle = getFogColour();
+                this.ctx.fillRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
             }
 
             super.draw(false);
 
-            ctx.globalCompositeOperation = originalOperation;
+            this.ctx.globalCompositeOperation = originalOperation;
         }
     }
 }

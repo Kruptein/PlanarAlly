@@ -18,6 +18,7 @@ All notable changes to this project will be documented in this file.
     -   visibility toggle
         -   "Hidden" floors are not selectable by players, BUT will still render in between other selectable layers
     -   rename floor option
+    -   reorder floors by dragging them
 -   Shape lock/unlock toggle
     -   Show lock/unlock icon on the selection_info component for quick edit
     -   Only players with edit access can toggle

@@ -508,10 +508,7 @@ async def move_shapes(sid: str, data: Dict[str, Any]):
 
     for psid, player in game_state.get_users(active_location=pr.active_location):
         await sio.emit(
-            "Shapes.Remove",
-            [sh.as_dict(player, player == pr.room.creator) for sh in shapes],
-            room=psid,
-            namespace=GAME_NS,
+            "Shapes.Remove", [sh.uuid for sh in shapes], room=psid, namespace=GAME_NS,
         )
 
     for shape in shapes:

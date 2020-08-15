@@ -49,8 +49,8 @@ export function triangulate(target: TriangulationTarget, floor: string): void {
         if (shape.floor.name !== floor) continue;
         const j = shape.isClosed ? 0 : 1;
         for (let i = 0; i < shape.points.length - j; i++) {
-            const pa = shape.points[i];
-            const pb = shape.points[(i + 1) % shape.points.length];
+            const pa = shape.points[i].map(n => parseFloat(n.toFixed(10)));
+            const pb = shape.points[(i + 1) % shape.points.length].map(n => parseFloat(n.toFixed(10)));
             insertConstraint(target, shape, pa, pb);
         }
     }
@@ -97,3 +97,21 @@ export function deleteShapeFromTriag(target: TriangulationTarget, shape: Shape):
     if (shape.points.length <= 1) return;
     new IterativeDelete(target, shape);
 }
+
+// function logTriags(cdt: CDT): void {
+//     console.log(`${cdt.tds.getEdges(true).length}/${cdt.tds.getEdges(false).length}`);
+//     let a = "";
+//     for (const triangle of cdt.tds.triangles) {
+//         if (triangle.vertices.length !== 3) continue;
+//         a += `${triangle.uid}\t${logPoint(triangle.vertices[0]!.point ?? [0, 0])}\t${logPoint(
+//             triangle.vertices[1]!.point ?? [0, 0],
+//         )}\t${logPoint(triangle.vertices[2]!.point ?? [0, 0])}\t${triangle.neighbours[0]?.uid}\t${
+//             triangle.neighbours[1]?.uid
+//         }\t${triangle.neighbours[2]?.uid}\n`;
+//     }
+//     console.log(a);
+// }
+
+// function logPoint(point: Point): string {
+//     return `${+point[0].toFixed(3)},${+point[1].toFixed(3)}`;
+// }

@@ -140,6 +140,7 @@
                     "dm_options": "Опции для мастера",
                     "no_markers": "Нет маркеров",
                     "client_options": "Опции клиента",
+                    "grid_size_in_pixels": "Размер сетки (в пикселях):",
                     "grid_color_set": "Цвет сетки:",
                     "fow_color_set": "Цвет тумана войны:",
                     "ruler_color_set": "Цвет линейки:",
@@ -226,7 +227,6 @@
                 "GridSettings": {
                     "unit_size_in_UNIT": "Размер клетки (в {unit})",
                     "use_grid": "Использовать сетку",
-                    "grid_size_in_pixels": "Размер сетки (в пикселях):",
                     "size_unit": "Единица измерения"
                 },
                 "location": {

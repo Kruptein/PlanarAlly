@@ -1,5 +1,5 @@
 import bcrypt
-from peewee import fn, BooleanField, ForeignKeyField, TextField
+from peewee import fn, BooleanField, ForeignKeyField, IntegerField, TextField
 from playhouse.shortcuts import model_to_dict
 
 from .base import BaseModel
@@ -16,6 +16,7 @@ class User(BaseModel):
     grid_colour = TextField(default="#000")
     ruler_colour = TextField(default="#F00")
     invert_alt = BooleanField(default=False)
+    grid_size = IntegerField(default=50)
 
     def __repr__(self):
         return f"<User {self.name}>"

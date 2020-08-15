@@ -3,7 +3,7 @@ from typing import Any, Dict, List
 
 import auth
 from api.socket.constants import GAME_NS
-from app import app, logger, sio
+from app import app, sio
 from models import (
     Floor,
     Initiative,
@@ -23,13 +23,22 @@ from models.role import Role
 from peewee import JOIN
 from playhouse.shortcuts import update_model_from_dict
 from state.game import game_state
+from utils import logger
 
 from .initiative import send_client_initiatives
 from models.asset import Asset
 
 
+@sio.on("Location.Load", namespace=GAME_NS)
 @auth.login_required(app, sio)
-async def load_location(sid: int, location: Location, *, complete=False):
+async def change_locatdion(sid: str):
+    pr: PlayerRoom = game_state.get(sid)
+
+    await load_location(sid, pr.active_location, complete=True)
+
+
+@auth.login_required(app, sio)
+async def load_location(sid: str, location: Location, *, complete=False):
     pr: PlayerRoom = game_state.get(sid)
     if pr.active_location != location:
         pr.active_location = location
@@ -41,6 +50,7 @@ async def load_location(sid: int, location: Location, *, complete=False):
     client_options.update(
         **LocationUserOption.get(user=pr.player, location=location).as_dict()
     )
+
     await sio.emit("Client.Options.Set", client_options, room=sid, namespace=GAME_NS)
 
     # 2. Load room info
@@ -87,15 +97,28 @@ async def load_location(sid: int, location: Location, *, complete=False):
 
     # 5. Load Board
 
-    data = {}
-    data["locations"] = [
+    locations = [
         {"id": l.id, "name": l.name} for l in pr.room.locations.order_by(Location.index)
     ]
-    data["floors"] = [
-        f.as_dict(pr.player, pr.player == pr.room.creator)
-        for f in location.floors.order_by(Floor.index)
-    ]
-    await sio.emit("Board.Set", data, room=sid, namespace=GAME_NS)
+    await sio.emit("Board.Locations.Set", locations, room=sid, namespace=GAME_NS)
+
+    floors = [floor for floor in location.floors.order_by(Floor.index)]
+
+    if "active_floor" in client_options:
+        index = next(
+            i for i, f in enumerate(floors) if f.name == client_options["active_floor"]
+        )
+        lower_floors = floors[index - 1 :: -1] if index > 0 else []
+        higher_floors = floors[index + 1 :] if index < len(floors) else []
+        floors = [floors[index], *lower_floors, *higher_floors]
+
+    for floor in floors:
+        await sio.emit(
+            "Board.Floor.Set",
+            floor.as_dict(pr.player, pr.player == pr.room.creator),
+            room=sid,
+            namespace=GAME_NS,
+        )
 
     # 6. Load Initiative
 
@@ -171,7 +194,7 @@ async def load_location(sid: int, location: Location, *, complete=False):
 
 @sio.on("Location.Change", namespace=GAME_NS)
 @auth.login_required(app, sio)
-async def change_location(sid: int, data: Dict[str, str]):
+async def change_location(sid: str, data: Dict[str, str]):
     pr: PlayerRoom = game_state.get(sid)
 
     if pr.role != Role.DM:
@@ -186,7 +209,7 @@ async def change_location(sid: int, data: Dict[str, str]):
         for psid in game_state.get_sids(player=room_player.player, room=pr.room):
             await sio.emit("Location.Change.Start", room=psid, namespace=GAME_NS)
 
-    new_location = Location[data["location"]]
+    new_location = Location.get_by_id(data["location"])
 
     for room_player in pr.room.players:
         if not room_player.player.name in data["users"]:
@@ -204,7 +227,7 @@ async def change_location(sid: int, data: Dict[str, str]):
 
 @sio.on("Location.Options.Set", namespace=GAME_NS)
 @auth.login_required(app, sio)
-async def set_location_options(sid: int, data: Dict[str, Any]):
+async def set_location_options(sid: str, data: Dict[str, Any]):
     pr: PlayerRoom = game_state.get(sid)
 
     if pr.role != Role.DM:
@@ -214,7 +237,7 @@ async def set_location_options(sid: int, data: Dict[str, Any]):
     if data.get("location", None) is None:
         options = pr.room.default_options
     else:
-        loc = Location[data["location"]]
+        loc = Location.get_by_id(data["location"])
         if loc.options is None:
             loc.options = LocationOptions.create(
                 unit_size=None,
@@ -224,7 +247,6 @@ async def set_location_options(sid: int, data: Dict[str, Any]):
                 fow_opacity=None,
                 fow_los=None,
                 vision_mode=None,
-                grid_size=None,
                 vision_min_range=None,
                 vision_max_range=None,
             )
@@ -249,7 +271,7 @@ async def set_location_options(sid: int, data: Dict[str, Any]):
 
 @sio.on("Location.New", namespace=GAME_NS)
 @auth.login_required(app, sio)
-async def add_new_location(sid: int, location: str):
+async def add_new_location(sid: str, location: str):
     pr: PlayerRoom = game_state.get(sid)
 
     if pr.role != Role.DM:
@@ -273,7 +295,7 @@ async def add_new_location(sid: int, location: str):
 
 @sio.on("Locations.Order.Set", namespace=GAME_NS)
 @auth.login_required(app, sio)
-async def set_locations_order(sid: int, locations: List[int]):
+async def set_locations_order(sid: str, locations: List[int]):
     pr: PlayerRoom = game_state.get(sid)
 
     if pr.role != Role.DM:
@@ -281,7 +303,7 @@ async def set_locations_order(sid: int, locations: List[int]):
         return
 
     for i, idx in enumerate(locations):
-        l: Location = Location[idx]
+        l: Location = Location.get_by_id(idx)
         l.index = i + 1
         l.save()
 
@@ -296,14 +318,14 @@ async def set_locations_order(sid: int, locations: List[int]):
 
 @sio.on("Location.Rename", namespace=GAME_NS)
 @auth.login_required(app, sio)
-async def rename_location(sid: int, data: Dict[str, str]):
+async def rename_location(sid: str, data: Dict[str, str]):
     pr: PlayerRoom = game_state.get(sid)
 
     if pr.role != Role.DM:
         logger.warning(f"{pr.player.name} attempted to rename a location.")
         return
 
-    location = Location[data["id"]]
+    location = Location.get_by_id(data["id"])
     location.name = data["new"]
     location.save()
 
@@ -314,14 +336,14 @@ async def rename_location(sid: int, data: Dict[str, str]):
 
 @sio.on("Location.Delete", namespace=GAME_NS)
 @auth.login_required(app, sio)
-async def delete_location(sid: int, location_id: int):
+async def delete_location(sid: str, location_id: int):
     pr: PlayerRoom = game_state.get(sid)
 
     if pr.role != Role.DM:
         logger.warning(f"{pr.player.name} attempted to rename a location.")
         return
 
-    location = Location[location_id]
+    location = Location.get_by_id(location_id)
 
     if location.players.count() > 0:
         logger.error(
@@ -334,19 +356,19 @@ async def delete_location(sid: int, location_id: int):
 
 @sio.on("Location.Spawn.Info.Get", namespace=GAME_NS)
 @auth.login_required(app, sio)
-async def get_location_spawn_info(sid: int, location_id: int):
+async def get_location_spawn_info(sid: str, location_id: int):
     pr: PlayerRoom = game_state.get(sid)
 
     if pr.role != Role.DM:
         logger.warning(f"{pr.player.name} attempted to retrieve spawn locations.")
         return
 
-    location = Location[location_id]
+    location = Location.get_by_id(location_id)
 
     data = []
 
     for spawn in json.loads(location.options.spawn_locations):
-        shape = Shape[spawn]
+        shape = Shape.get_by_id(spawn)
         data.append(shape.as_dict(pr.player, True))
 
     await sio.emit("Location.Spawn.Info", data=data, room=sid, namespace=GAME_NS)

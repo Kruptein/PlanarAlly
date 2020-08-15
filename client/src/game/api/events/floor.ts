@@ -19,3 +19,12 @@ socket.on("Floor.Visible.Set", (data: { name: string; visible: boolean }) => {
     floor.playerVisible = data.visible;
     EventBus.$emit("Floor.Visible.Set");
 });
+
+socket.on("Floor.Rename", (data: { index: number; name: string }) => {
+    floorStore.renameFloor(data);
+});
+
+export function sendRenameFloor(index: number, name: string): void {
+    socket.emit("Floor.Rename", { index, name });
+    floorStore.renameFloor({ index, name });
+}

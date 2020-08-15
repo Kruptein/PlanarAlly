@@ -1,4 +1,4 @@
-import { LocalPoint, GlobalPoint } from "@/game/geom";
+import { GlobalPoint, LocalPoint, Vector } from "@/game/geom";
 import tinycolor from "tinycolor2";
 import { gameSettingsStore } from "./settings";
 import { gameStore } from "./store";
@@ -54,6 +54,7 @@ export function useSnapping(event: MouseEvent | TouchEvent): boolean {
 }
 
 export function rotateAroundPoint(point: GlobalPoint, center: GlobalPoint, angle: number): GlobalPoint {
+    if (angle === 0) return point;
     if (equalPoints([...center], [...point])) return point;
 
     const c = Math.cos(angle);
@@ -62,4 +63,15 @@ export function rotateAroundPoint(point: GlobalPoint, center: GlobalPoint, angle
         c * (point.x - center.x) - s * (point.y - center.y) + center.x,
         s * (point.x - center.x) + c * (point.y - center.y) + center.y,
     );
+}
+
+export function filterEqualPoints(points: GlobalPoint[]): GlobalPoint[] {
+    return points.filter((val, i, arr) => arr.findIndex(t => t.equals(val)) === i);
+}
+
+export function getPointsCenter(points: GlobalPoint[]): GlobalPoint {
+    const vertexAvg = points
+        .reduce((acc: Vector, val: GlobalPoint) => acc.add(new Vector(val.x, val.y)), new Vector(0, 0))
+        .multiply(1 / points.length);
+    return GlobalPoint.fromArray([...vertexAvg]);
 }

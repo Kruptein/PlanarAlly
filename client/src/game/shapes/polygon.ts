@@ -1,7 +1,8 @@
 import { ServerPolygon } from "../comm/types/shapes";
-import { GlobalPoint, getDistanceToSegment, Vector } from "../geom";
-import { g2lx, g2ly, g2lz, g2l } from "../units";
-import { getFogColour, rotateAroundPoint } from "../utils";
+import { getDistanceToSegment, GlobalPoint } from "../geom";
+import { g2l, g2lx, g2ly, g2lz } from "../units";
+import { filterEqualPoints, getFogColour, getPointsCenter, rotateAroundPoint } from "../utils";
+import { BoundingRect } from "./boundingrect";
 import { Shape } from "./shape";
 
 export class Polygon extends Shape {
@@ -42,9 +43,13 @@ export class Polygon extends Shape {
         return [this._refPoint, ...this._vertices];
     }
 
+    get uniqueVertices(): GlobalPoint[] {
+        return filterEqualPoints(this.vertices);
+    }
+
     asDict(): ServerPolygon {
         return Object.assign(this.getBaseDict(), {
-            vertices: this._vertices.map(p => ({ x: p.x, y: p.y })),
+            vertices: this._vertices.map(v => v.asArray()),
             // eslint-disable-next-line @typescript-eslint/camelcase
             open_polygon: this.openPolygon,
             // eslint-disable-next-line @typescript-eslint/camelcase
@@ -54,9 +59,39 @@ export class Polygon extends Shape {
 
     fromDict(data: ServerPolygon): void {
         super.fromDict(data);
-        this._vertices = data.vertices.map(v => new GlobalPoint(v.x, v.y));
+        this._vertices = data.vertices.map(v => GlobalPoint.fromArray(v));
         this.openPolygon = data.open_polygon;
         this.lineWidth = data.line_width;
+    }
+
+    getBoundingBox(delta = 0): BoundingRect {
+        let minx = this.vertices[0].x;
+        let maxx = this.vertices[0].x;
+        let miny = this.vertices[0].y;
+        let maxy = this.vertices[0].y;
+        for (const p of this.vertices.slice(1)) {
+            if (p.x < minx) minx = p.x;
+            if (p.x > maxx) maxx = p.x;
+            if (p.y < miny) miny = p.y;
+            if (p.y > maxy) maxy = p.y;
+        }
+        let bbox = new BoundingRect(
+            new GlobalPoint(minx - delta, miny - delta),
+            maxx - minx + 2 * delta,
+            maxy - miny + 2 * delta,
+        );
+        bbox = bbox.center(rotateAroundPoint(bbox.center(), this.center(), this.angle));
+        bbox.angle = this.angle;
+        return bbox;
+    }
+
+    getPositionRepresentation(): number[][] {
+        return this.vertices.map(v => v.asArray());
+    }
+
+    setPositionRepresentation(points: number[][]): void {
+        this._vertices = points.slice(1).map(p => GlobalPoint.fromArray(p));
+        super.setPositionRepresentation(points);
     }
 
     get points(): number[][] {
@@ -90,11 +125,12 @@ export class Polygon extends Shape {
     }
 
     contains(point: GlobalPoint, nearbyThreshold?: number): boolean {
-        if (nearbyThreshold === undefined) nearbyThreshold = this.lineWidth / 2;
+        if (nearbyThreshold === undefined) nearbyThreshold = this.lineWidth;
         const bbox = this.getBoundingBox(nearbyThreshold);
         if (!bbox.contains(point)) return false;
         if (this.isClosed) return true;
-        const vertices = this.vertices;
+        if (this.angle !== 0) point = rotateAroundPoint(point, this.center(), -this.angle);
+        const vertices = this.uniqueVertices;
         for (const [i, v] of vertices.entries()) {
             const nv = vertices[(i + 1) % vertices.length];
             const distance = getDistanceToSegment(point, [v, nv]);
@@ -107,14 +143,12 @@ export class Polygon extends Shape {
     center(centerPoint: GlobalPoint): void;
     center(centerPoint?: GlobalPoint): GlobalPoint | void {
         if (centerPoint === undefined) {
-            const vertexAvg = this.vertices
-                .reduce((acc: Vector, val: GlobalPoint) => acc.add(new Vector(val.x, val.y)), new Vector(0, 0))
-                .multiply(1 / this.vertices.length);
-            return GlobalPoint.fromArray([...vertexAvg]);
+            return getPointsCenter(this.uniqueVertices);
         }
         const oldCenter = this.center();
         this.refPoint = GlobalPoint.fromArray([...centerPoint.subtract(oldCenter.subtract(this.refPoint))]);
     }
+
     visibleInCanvas(canvas: HTMLCanvasElement): boolean {
         if (super.visibleInCanvas(canvas)) return true;
         return this.getBoundingBox().visibleInCanvas(canvas);
@@ -124,8 +158,21 @@ export class Polygon extends Shape {
     // eslint-disable-next-line @typescript-eslint/no-empty-function
     resizeToGrid(): void {}
     resize(resizePoint: number, point: GlobalPoint): number {
-        if (resizePoint === 0) this._refPoint = point;
-        else this._vertices[resizePoint - 1] = point;
+        if (this.angle === 0) {
+            if (resizePoint === 0) this._refPoint = point;
+            else this._vertices[resizePoint - 1] = point;
+        } else {
+            const newPoints = this.points.map(p => GlobalPoint.fromArray(p));
+
+            newPoints[resizePoint] = point;
+
+            const newCenter = getPointsCenter(filterEqualPoints(newPoints));
+
+            this._refPoint = rotateAroundPoint(newPoints[0], newCenter, -this.angle);
+            for (let i = 0; i < this._vertices.length; i++) {
+                this._vertices[i] = rotateAroundPoint(newPoints[i + 1], newCenter, -this.angle);
+            }
+        }
         return resizePoint;
     }
 }

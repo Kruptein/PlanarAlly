@@ -33,6 +33,7 @@ socket.on("Locations.Order.Set", (locations: { id: number; name: string }[]) => 
 
 socket.on("Location.Change.Start", () => {
     coreStore.setLoading(true);
+    gameStore.setBoardInitialized(false);
 });
 
 socket.on("Location.Rename", (data: { id: number; name: string }) => {
@@ -40,8 +41,6 @@ socket.on("Location.Rename", (data: { id: number; name: string }) => {
 });
 
 export function setLocationOptions(id: number | null, options: Partial<ServerLocationOptions>): void {
-    if (options?.grid_size !== undefined)
-        gameSettingsStore.setGridSize({ gridSize: options.grid_size, location: id, sync: false });
     if (options?.unit_size !== undefined)
         gameSettingsStore.setUnitSize({ unitSize: options.unit_size, location: id, sync: false });
     if (options?.unit_size_unit !== undefined)

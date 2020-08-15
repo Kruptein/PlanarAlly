@@ -18,6 +18,8 @@ import { scrollZoom } from "@/game/input/mouse";
 import { layerManager } from "@/game/layers/manager";
 import { dropAsset } from "./layers/utils";
 import { coreStore } from "@/core/store";
+import { mapGetters } from "vuex";
+import { Watch } from "vue-property-decorator";
 
 @Component({
     components: {
@@ -36,6 +38,9 @@ import { coreStore } from "@/core/store";
     beforeRouteLeave(to, from, next) {
         socket.disconnect();
         next();
+    },
+    computed: {
+        ...mapGetters("game", ["isBoardInitialized"]),
     },
 })
 export default class Game extends Vue {
@@ -70,6 +75,14 @@ export default class Game extends Vue {
         this.ready.manager = false;
     }
 
+    @Watch("isBoardInitialized")
+    onBoardInitialized(newValue: boolean): void {
+        if (!newValue) {
+            this.throttledmoveSet = false;
+            this.throttledtouchmoveSet = false;
+        }
+    }
+
     // Window events
 
     zoom(event: WheelEvent): void {
@@ -85,14 +98,17 @@ export default class Game extends Vue {
     // Touch events
 
     touchend(event: TouchEvent): void {
+        if (this.$refs.ui === undefined) return;
         this.$refs.ui.$refs.tools.touchend(event);
     }
 
     touchstart(event: TouchEvent): void {
+        if (this.$refs.ui === undefined) return;
         this.$refs.ui.$refs.tools.touchstart(event);
     }
 
     touchmove(event: TouchEvent): void {
+        if (this.$refs.ui === undefined) return;
         // limit the number of touch moves to ease server load
         if (!this.throttledtouchmoveSet) {
             this.throttledtouchmoveSet = true;
@@ -105,14 +121,17 @@ export default class Game extends Vue {
     // Mouse events
 
     mousedown(event: MouseEvent): void {
+        if (this.$refs.ui === undefined) return;
         this.$refs.ui.$refs.tools.mousedown(event);
     }
 
     mouseup(event: MouseEvent): void {
+        if (this.$refs.ui === undefined) return;
         this.$refs.ui.$refs.tools.mouseup(event);
     }
 
     mousemove(event: MouseEvent): void {
+        if (this.$refs.ui === undefined) return;
         if (!this.throttledmoveSet) {
             this.throttledmoveSet = true;
             this.throttledmove = throttle(this.$refs.ui.$refs.tools.mousemove, 15);
@@ -121,10 +140,12 @@ export default class Game extends Vue {
     }
 
     mouseleave(event: MouseEvent): void {
+        if (this.$refs.ui === undefined) return;
         this.$refs.ui.$refs.tools.mouseleave(event);
     }
 
     contextmenu(event: MouseEvent): void {
+        if (this.$refs.ui === undefined) return;
         this.$refs.ui.$refs.tools.contextmenu(event);
     }
 
@@ -146,7 +167,7 @@ export default class Game extends Vue {
 
 <template>
     <div id="main" @mouseleave="mouseleave" @wheel="zoom">
-        <ui ref="ui"></ui>
+        <ui v-if="$store.state.game.boardInitialized" ref="ui"></ui>
         <div id="board">
             <div
                 id="layers"

@@ -10,6 +10,7 @@ import { removeFloor } from "@/game/layers/utils";
 import { gameStore } from "@/game/store";
 import { Floor } from "../layers/floor";
 import { floorStore } from "../layers/store";
+import { sendRenameFloor } from "../api/events/floor";
 
 @Component
 export default class FloorSelect extends Vue {
@@ -62,6 +63,15 @@ export default class FloorSelect extends Vue {
         floorStore.selectFloor({ targetFloor: floor, sync: true });
     }
 
+    async renameFloor(index: number): Promise<void> {
+        const value = await (<Game>this.$parent.$parent).$refs.prompt.prompt(
+            this.$t("game.ui.floors.new_name").toString(),
+            this.$t("game.ui.floors.rename_header_title").toString(),
+        );
+        if (value === undefined) return;
+        sendRenameFloor(index, value);
+    }
+
     async removeFloor(index: number): Promise<void> {
         if (this.floors.length <= 1) return;
         const floor = this.floors[index][1];
@@ -108,7 +118,7 @@ export default class FloorSelect extends Vue {
             <a href="#">{{ selectedFloorIndex }}</a>
         </div>
         <div id="floor-detail" v-if="selected">
-            <template v-for="[index, floor] of floors">
+            <template v-for="[index, floor] of [...floors].reverse()">
                 <div class="floor-row" :key="floor.name" @click="selectFloor(floor)">
                     <div class="floor-index">
                         <template v-if="index == selectedFloorIndex">></template>
@@ -116,6 +126,9 @@ export default class FloorSelect extends Vue {
                     </div>
                     <div class="floor-name">{{ floor.name }}</div>
                     <div class="floor-actions" v-show="IS_DM">
+                        <div @click.stop="renameFloor(index)" :title="$t('game.ui.floors.rename_icon_hover')">
+                            <font-awesome-icon icon="pencil-alt" />
+                        </div>
                         <div
                             @click.stop="toggleVisible(floor)"
                             :style="{ opacity: floor.playerVisible ? 1.0 : 0.3, marginRight: '5px' }"

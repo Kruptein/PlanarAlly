@@ -8,7 +8,6 @@ export interface ServerLocationOptions {
     vision_mode: string;
     vision_min_range: number;
     vision_max_range: number;
-    grid_size: number;
     spawn_locations: string;
 }
 
@@ -22,7 +21,6 @@ export interface LocationOptions {
     visionMode: string;
     visionMinRange: number;
     visionMaxRange: number;
-    gridSize: number;
     spawnLocations: string[];
 }
 
@@ -35,6 +33,7 @@ export interface ServerClient {
     pan_x: number;
     pan_y: number;
     zoom_factor: number;
+    grid_size: number;
     active_floor?: string;
     active_layer?: string;
 }
@@ -59,8 +58,6 @@ export const optionsToServer = (options: LocationOptions): ServerLocationOptions
     // eslint-disable-next-line @typescript-eslint/camelcase
     vision_max_range: options.visionMaxRange,
     // eslint-disable-next-line @typescript-eslint/camelcase
-    grid_size: options.gridSize,
-    // eslint-disable-next-line @typescript-eslint/camelcase
     spawn_locations: JSON.stringify(options.spawnLocations),
 });
 
@@ -74,6 +71,5 @@ export const optionsToClient = (options: ServerLocationOptions): LocationOptions
     fowLos: options.fow_los,
     visionMinRange: options.vision_min_range,
     visionMaxRange: options.vision_max_range,
-    gridSize: options.grid_size,
     spawnLocations: JSON.parse(options.spawn_locations),
 });

@@ -1,6 +1,7 @@
 import { Action, getModule, Module, Mutation, VuexModule } from "vuex-module-decorators";
 import { rootStore } from "../../store";
 import { Floor } from "./floor";
+import { Layer } from "./layer";
 import { layerManager } from "./manager";
 
 export interface FloorState {
@@ -12,6 +13,8 @@ class FloorStore extends VuexModule implements FloorState {
     private floorIndex = -1;
     private layerIndex = -1;
     private _floors: Floor[] = [];
+    // the following should only be used during startup when loading floors in a different order
+    private _indices: number[] = [];
 
     get floors(): readonly Floor[] {
         return this._floors;
@@ -29,9 +32,14 @@ class FloorStore extends VuexModule implements FloorState {
         return this.layerIndex;
     }
 
+    get currentLayer(): Layer {
+        return layerManager.getLayer(this.currentFloor)!;
+    }
+
     @Mutation
     reset(): void {
         this._floors = [];
+        this._indices = [];
         this.floorIndex = -1;
     }
 
@@ -41,9 +49,28 @@ class FloorStore extends VuexModule implements FloorState {
     }
 
     @Mutation
-    addFloor(floor: Floor): void {
-        this._floors.push(floor);
-        layerManager.addFloor(floor.name);
+    addFloor(data: { floor: Floor; targetIndex?: number }): void {
+        // We do some special magic here to allow out of order loading of floors on startup
+        if (data.targetIndex !== undefined) {
+            const index = data.targetIndex;
+            const I = this._indices.findIndex(i => i > index);
+            if (I >= 0) {
+                this._indices.splice(I, 0, data.targetIndex);
+                this._floors.splice(I, 0, data.floor);
+                if (I <= this.floorIndex) this.floorIndex += 1;
+            } else {
+                this._indices.push(data.targetIndex);
+                this._floors.push(data.floor);
+            }
+        } else {
+            this._floors.push(data.floor);
+        }
+        layerManager.addFloor(data.floor.name);
+    }
+
+    @Mutation
+    renameFloor(data: { index: number; name: string }): void {
+        this._floors[data.index].name = data.name;
     }
 
     @Action
@@ -72,30 +99,9 @@ class FloorStore extends VuexModule implements FloorState {
                 else layer.canvas.style.removeProperty("display");
             }
         }
-        layerManager.selectLayer(layerManager.getLayer(floorStore.currentFloor)!.name, data.sync, false);
+        layerManager.selectLayer(floorStore.currentLayer!.name, data.sync, false);
         layerManager.invalidateAllFloors();
     }
 }
 
 export const floorStore = getModule(FloorStore);
-
-/*
-
-reset(){this.layers = [];
-        this.selectedLayerIndex = -1;}
-
-@Mutation
-    addLayer(name: string): void {
-        this.layers.push(name);
-        if (this.selectedLayerIndex === -1) this.selectedLayerIndex = this.layers.indexOf(name);
-    }
-
-    @Mutation
-    selectLayer(data: { layer: Layer; sync: boolean }): void {
-        let index = this.layers.indexOf(data.layer.name);
-        if (index < 0) index = 0;
-        // else if (index >= this.layers.reduce((acc: number, val: Layer) => val.floor === data.layer.floor))
-        this.selectedLayerIndex = index;
-        if (data.sync) socket.emit("Client.ActiveLayer.Set", { floor: data.layer.floor, layer: data.layer.name });
-    }
-    */

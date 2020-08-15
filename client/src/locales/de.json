@@ -97,7 +97,10 @@
                 "creation": "Stockwerkerstellung",
                 "warning_msg_Z": "Bist Du sicher, dass Du das Stockwerk {z} löschen willst?",
                 "delete_floor": "Stockwerk löschen",
-                "add_new_floor": "Neues Stockwerk hinzufügen"
+                "add_new_floor": "Neues Stockwerk hinzufügen",
+                "toggle_visibility": "Sichtbarkeit des Stockwerks für Spieler umschalten",
+                "rename_icon_hover": "Dieses Stockwerk umbenennen",
+                "rename_header_title": "Stockwerk umbenennen"
             },
             "initiative": {
                 "initiative": {
@@ -140,6 +143,7 @@
                     "dm_options": "SL Optionen",
                     "no_markers": "Keine Markierungen",
                     "client_options": "Client Optionen",
+                    "grid_size_in_pixels": "Gittergröße (in Pixel):",
                     "grid_color_set": "Gitterfarbe:",
                     "fow_color_set": "Farbe „Nebel des Krieges“:",
                     "ruler_color_set": "Linealfarbe:",
@@ -180,7 +184,10 @@
                 "select_info": {
                     "open_shape_props": "Eigenschaften der Form öffnen",
                     "quick_edit_tracker": "Tracker schnell ändern",
-                    "quick_edit_aura": "Aura schnell ändern"
+                    "quick_edit_aura": "Aura schnell ändern",
+                    "lock": "Feststellen ein/ausschalten",
+                    "new_value_NAME": "Neuer Wert von {name}:",
+                    "updating_NAME": "{name} aktualisieren"
                 },
                 "shapecontext": {
                     "show_initiative": "Initiative anzeigen",
@@ -226,7 +233,6 @@
                 "GridSettings": {
                     "unit_size_in_UNIT": "Feldgröße (in {unit})",
                     "use_grid": "Gitter benutzen",
-                    "grid_size_in_pixels": "Gittergröße (in Pixel):",
                     "size_unit": "Längeneinheit"
                 },
                 "location": {

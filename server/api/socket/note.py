@@ -2,15 +2,16 @@ from typing import Any, Dict
 
 import auth
 from api.socket.constants import GAME_NS
-from app import app, logger, sio
+from app import app, sio
 from models import Note, PlayerRoom
 from models.db import db
 from state.game import game_state
+from utils import logger
 
 
 @sio.on("Note.New", namespace=GAME_NS)
 @auth.login_required(app, sio)
-async def new_note(sid: int, data: Dict[str, Any]):
+async def new_note(sid: str, data: Dict[str, Any]):
     pr: PlayerRoom = game_state.get(sid)
 
     if Note.get_or_none(uuid=data["uuid"]):
@@ -31,7 +32,7 @@ async def new_note(sid: int, data: Dict[str, Any]):
 
 @sio.on("Note.Update", namespace=GAME_NS)
 @auth.login_required(app, sio)
-async def update_note(sid: int, data: Dict[str, Any]):
+async def update_note(sid: str, data: Dict[str, Any]):
     pr: PlayerRoom = game_state.get(sid)
 
     note = Note.get_or_none(uuid=data["uuid"])

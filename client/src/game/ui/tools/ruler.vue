@@ -11,7 +11,7 @@ import { ToolName } from "./utils";
 import { gameSettingsStore } from "../../settings";
 import { ToolBasics } from "./ToolBasics";
 import { Line } from "@/game/shapes/line";
-import { gameStore } from "@/game/store";
+import { gameStore, DEFAULT_GRID_SIZE } from "@/game/store";
 import { Text } from "../../shapes/text";
 import { socket } from "@/game/api/socket";
 import { floorStore } from "@/game/layers/store";
@@ -41,7 +41,7 @@ export default class RulerTool extends Tool implements ToolBasics {
         }
         this.active = true;
         this.ruler = new Line(this.startPoint, this.startPoint, l2gz(3), gameStore.rulerColour);
-        this.text = new Text(this.startPoint.clone(), "", "bold 20px serif");
+        this.text = new Text(this.startPoint.clone(), "", "bold 20px serif", "#000", "#fff");
         this.ruler.addOwner({ user: gameStore.username, access: { edit: true } }, false);
         this.text.addOwner({ user: gameStore.username, access: { edit: true } }, false);
         layer.addShape(this.ruler, this.syncMode, InvalidationMode.NORMAL);
@@ -64,10 +64,10 @@ export default class RulerTool extends Tool implements ToolBasics {
         const diffsign = Math.sign(endPoint.x - this.startPoint.x) * Math.sign(endPoint.y - this.startPoint.y);
         const xdiff = Math.abs(endPoint.x - this.startPoint.x);
         const ydiff = Math.abs(endPoint.y - this.startPoint.y);
-        const distance = (Math.sqrt(xdiff ** 2 + ydiff ** 2) * gameSettingsStore.unitSize) / gameSettingsStore.gridSize;
+        const distance = (Math.sqrt(xdiff ** 2 + ydiff ** 2) * gameSettingsStore.unitSize) / DEFAULT_GRID_SIZE;
 
         // round to 1 decimal
-        const label = Math.round(10 * distance) / 10 + " " + gameSettingsStore.unitSizeUnit;
+        const label = this.$n(Math.round(10 * distance) / 10) + " " + gameSettingsStore.unitSizeUnit;
         const angle = Math.atan2(diffsign * ydiff, xdiff);
         const xmid = Math.min(this.startPoint.x, endPoint.x) + xdiff / 2;
         const ymid = Math.min(this.startPoint.y, endPoint.y) + ydiff / 2;

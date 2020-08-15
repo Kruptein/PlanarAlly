@@ -162,7 +162,7 @@ export abstract class Shape {
     // abstract rotateAround(point: GlobalPoint, angle: number): void;
     rotateAround(point: GlobalPoint, angle: number): void {
         const center = this.center();
-        this.center(rotateAroundPoint(center, point, angle));
+        if (!point.equals(center)) this.center(rotateAroundPoint(center, point, angle));
         this.angle += angle;
         this.updatePoints();
     }
@@ -337,6 +337,15 @@ export abstract class Shape {
         );
     }
 
+    getPositionRepresentation(): number[][] {
+        return [this.refPoint.asArray()];
+    }
+
+    setPositionRepresentation(points: number[][]): void {
+        this.refPoint = GlobalPoint.fromArray(points[0]);
+        this.updateShapeVision(false, false);
+    }
+
     draw(ctx: CanvasRenderingContext2D): void {
         if (this.globalCompositeOperation !== undefined) ctx.globalCompositeOperation = this.globalCompositeOperation;
         else ctx.globalCompositeOperation = "source-over";
@@ -348,6 +357,8 @@ export abstract class Shape {
     }
 
     drawPost(ctx: CanvasRenderingContext2D): void {
+        ctx.setTransform(1, 0, 0, 1, 0, 0);
+
         let bbox: BoundingRect | undefined;
         if (this.showBadge) {
             bbox = this.getBoundingBox();
@@ -372,8 +383,6 @@ export abstract class Shape {
             ctx.strokeStyle = "red";
             ctx.strokeRect(g2lx(bbox.topLeft.x) - 5, g2ly(bbox.topLeft.y) - 5, g2lz(bbox.w) + 10, g2lz(bbox.h) + 10);
         }
-
-        ctx.setTransform(1, 0, 0, 1, 0, 0);
     }
 
     drawSelection(ctx: CanvasRenderingContext2D): void {
@@ -554,5 +563,26 @@ export abstract class Shape {
                 [],
             ),
         ];
+    }
+
+    updateShapeVision(alteredMovement: boolean, alteredVision: boolean): void {
+        if (this.visionObstruction && !alteredVision) {
+            visibilityStore.deleteFromTriag({
+                target: TriangulationTarget.VISION,
+                shape: this,
+            });
+            visibilityStore.addToTriag({ target: TriangulationTarget.VISION, shape: this });
+            visibilityStore.recalculateVision(this.floor.name);
+        }
+        this.invalidate(false);
+        layerManager.invalidateLightAllFloors();
+        if (this.movementObstruction && !alteredMovement) {
+            visibilityStore.deleteFromTriag({
+                target: TriangulationTarget.MOVEMENT,
+                shape: this,
+            });
+            visibilityStore.addToTriag({ target: TriangulationTarget.MOVEMENT, shape: this });
+            visibilityStore.recalculateMovement(this.floor.name);
+        }
     }
 }

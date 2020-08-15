@@ -4,7 +4,7 @@ import { Shape } from "@/game/shapes/shape";
 import { calculateDelta } from "@/game/ui/tools/utils";
 import { clampGridLine, g2lx, g2ly } from "@/game/units";
 import { ServerShape } from "../comm/types/shapes";
-import { gameSettingsStore } from "../settings";
+import { DEFAULT_GRID_SIZE } from "../store";
 import { rotateAroundPoint } from "../utils";
 
 export abstract class BaseRect extends Shape {
@@ -71,7 +71,7 @@ export abstract class BaseRect extends Shape {
         return false;
     }
     snapToGrid(): void {
-        const gs = gameSettingsStore.gridSize;
+        const gs = DEFAULT_GRID_SIZE;
         const center = this.center();
         const mx = center.x;
         const my = center.y;
@@ -106,9 +106,12 @@ export abstract class BaseRect extends Shape {
         );
     }
     resize(resizePoint: number, point: GlobalPoint, retainAspectRatio: boolean): number {
+        point = rotateAroundPoint(point, this.center(), -this.angle);
+
         const aspectRatio = this.w / this.h;
         const oldW = this.w;
         const oldH = this.h;
+        const oldPoints = this.points;
 
         switch (resizePoint) {
             case 0: {
@@ -164,6 +167,15 @@ export abstract class BaseRect extends Shape {
             }
         }
 
-        return (resizePoint + 4) % 4;
+        const newResizePoint = (resizePoint + 4) % 4;
+        const oppositeNRP = (newResizePoint + 2) % 4;
+
+        const vec = Vector.fromPoints(
+            GlobalPoint.fromArray(this.points[oppositeNRP]),
+            GlobalPoint.fromArray(oldPoints[oppositeNRP]),
+        );
+        this.refPoint = this.refPoint.add(vec);
+
+        return newResizePoint;
     }
 }

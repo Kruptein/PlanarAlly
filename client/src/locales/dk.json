@@ -5,7 +5,7 @@
         "zh": "中文",
         "de": "Deutsch",
         "ru": "Русский",
-		"dk": "Dansk",
+        "dk": "Dansk",
         "es": "Español"
     },
     "assetManager": {
@@ -42,7 +42,7 @@
         "name": "Navn",
         "add": "Tilføj",
         "players": "Spiller",
-        "exit": "Forlad", 
+        "exit": "Forlad",
         "assets": "Materialer",
         "notes": "Noter",
         "markers": "Markører",
@@ -140,6 +140,7 @@
                     "dm_options": "DM Instillinger",
                     "no_markers": "Ingen markører",
                     "client_options": "Klient instillinger",
+                    "grid_size_in_pixels": "Gitterstørrelse (i pixels):",
                     "grid_color_set": "Gitter Farve:",
                     "fow_color_set": "FOW Farve:",
                     "ruler_color_set": "Lineal farve:",
@@ -226,7 +227,6 @@
                 "GridSettings": {
                     "unit_size_in_UNIT": "Feltstørelse (i {unit})",
                     "use_grid": "Brug gitter",
-                    "grid_size_in_pixels": "Gitterstørrelse (i pixels):",
                     "size_unit": "Længdeenhed"
                 },
                 "location": {

@@ -105,6 +105,7 @@ export default class ConfirmDialog extends Vue {
 
 .buttons {
     align-self: flex-end;
+    margin-top: 15px;
 }
 
 button:first-of-type {

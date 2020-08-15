@@ -13,9 +13,10 @@ import { SelectFeatures } from "./select.vue";
 import { ToolName, ToolPermission } from "./utils";
 import { EventBus } from "@/game/event-bus";
 import { Shape } from "@/game/shapes/shape";
-import { gameSettingsStore } from "../../settings";
 import { ToolBasics } from "./ToolBasics";
 import { floorStore } from "@/game/layers/store";
+import { gameStore } from "../../store";
+import { socket } from "@/game/api/socket";
 
 @Component
 export default class MapTool extends Tool implements ToolBasics {
@@ -40,20 +41,20 @@ export default class MapTool extends Tool implements ToolBasics {
     // Life cycle
 
     mounted(): void {
-        EventBus.$on("SelectionInfo.Shape.Set", (shape: Shape | null) => {
-            this.shapeSelected = shape !== null;
+        EventBus.$on("SelectionInfo.Shapes.Set", (shape: Shape[]) => {
+            this.shapeSelected = shape.length === 1;
         });
     }
 
     beforeDestroy(): void {
-        EventBus.$off("SelectionInfo.Shape.Set");
+        EventBus.$off("SelectionInfo.Shapes.Set");
     }
 
     // End life cycle
 
     removeRect(): void {
         if (this.rect) {
-            const layer = layerManager.getLayer(floorStore.currentFloor)!;
+            const layer = floorStore.currentLayer!;
             layer.removeShape(this.rect, SyncMode.NO_SYNC);
             this.rect = null;
         }
@@ -68,8 +69,8 @@ export default class MapTool extends Tool implements ToolBasics {
         const oldCenter = this.rect.center();
 
         if (this.shape instanceof BaseRect) {
-            const xFactor = (this.xCount * gameSettingsStore.gridSize) / this.rect.w;
-            const yFactor = (this.yCount * gameSettingsStore.gridSize) / this.rect.h;
+            const xFactor = (this.xCount * gameStore.gridSize) / this.rect.w;
+            const yFactor = (this.yCount * gameStore.gridSize) / this.rect.h;
 
             this.shape.w *= xFactor;
             this.shape.h *= yFactor;
@@ -77,6 +78,8 @@ export default class MapTool extends Tool implements ToolBasics {
             const delta = oldCenter.subtract(oldRefpoint);
             const newCenter = oldRefpoint.add(new Vector(xFactor * delta.x, yFactor * delta.y));
             this.shape.refPoint = this.shape.refPoint.add(oldCenter.subtract(newCenter));
+
+            socket.emit("Shape.Update", { shape: this.shape.asDict(), redraw: false, temporary: false });
         }
         this.removeRect();
     }
@@ -95,7 +98,7 @@ export default class MapTool extends Tool implements ToolBasics {
         const startPoint = l2g(lp);
 
         this.startPoint = startPoint;
-        const layer = layerManager.getLayer(floorStore.currentFloor);
+        const layer = floorStore.currentLayer;
         if (layer === undefined) {
             console.log("No active layer!");
             return;
@@ -114,7 +117,7 @@ export default class MapTool extends Tool implements ToolBasics {
 
         const endPoint = l2g(lp);
 
-        const layer = layerManager.getLayer(floorStore.currentFloor);
+        const layer = floorStore.currentLayer;
         if (layer === undefined) {
             console.log("No active layer!");
             return;
@@ -131,7 +134,7 @@ export default class MapTool extends Tool implements ToolBasics {
 
     onUp(): void {
         if (!this.active || this.rect === null) return;
-        const layer = layerManager.getLayer(floorStore.currentFloor);
+        const layer = floorStore.currentLayer;
         if (layer === undefined) {
             console.log("No active layer!");
             return;

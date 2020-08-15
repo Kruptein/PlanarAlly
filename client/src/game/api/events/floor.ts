@@ -24,7 +24,13 @@ socket.on("Floor.Rename", (data: { index: number; name: string }) => {
     floorStore.renameFloor(data);
 });
 
+socket.on("Floors.Reorder", (floors: string[]) => floorStore.reorderFloors({ floors, sync: false }));
+
 export function sendRenameFloor(index: number, name: string): void {
     socket.emit("Floor.Rename", { index, name });
     floorStore.renameFloor({ index, name });
+}
+
+export function sendFloorReorder(floors: string[]): void {
+    socket.emit("Floors.Reorder", floors);
 }

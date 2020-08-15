@@ -8,8 +8,9 @@ import { rotateAroundOrigin, xySmaller } from "@/game/visibility/te/triag";
 import { BaseRect } from "../../../../../src/game/shapes/baserect";
 
 jest.mock("@/game/api/socket", () => ({
-    get socket() {
-        return jest.fn();
+    socket: {
+        emit: jest.fn(),
+        on: jest.fn(),
     },
 }));
 

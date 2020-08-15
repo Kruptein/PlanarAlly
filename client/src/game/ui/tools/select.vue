@@ -79,7 +79,6 @@ export default class SelectTool extends Tool implements ToolBasics {
         EventBus.$on("SelectionInfo.Shapes.Set", (shapes: Shape[]) => {
             this.removeRotationUi();
             // We don't have feature information, might want to store this as a property instead ?
-            console.log(shapes.length);
             if ((<Tools>this.$parent).mode === "Build" && shapes.length > 0) this.createRotationUi({});
         });
     }

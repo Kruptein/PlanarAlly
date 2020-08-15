@@ -1,5 +1,6 @@
 import { Action, getModule, Module, Mutation, VuexModule } from "vuex-module-decorators";
 import { rootStore } from "../../store";
+import { sendFloorReorder } from "../api/events/floor";
 import { Floor } from "./floor";
 import { Layer } from "./layer";
 import { layerManager } from "./manager";
@@ -101,6 +102,14 @@ class FloorStore extends VuexModule implements FloorState {
         }
         layerManager.selectLayer(floorStore.currentLayer!.name, data.sync, false);
         layerManager.invalidateAllFloors();
+    }
+
+    @Mutation
+    reorderFloors(data: { floors: string[]; sync: boolean }): void {
+        const activeFloorName = this._floors[this.floorIndex].name;
+        this._floors = data.floors.map(name => this._floors.find(f => f.name === name)!);
+        this.floorIndex = this._floors.findIndex(f => f.name === activeFloorName);
+        if (data.sync) sendFloorReorder(data.floors);
     }
 }
 

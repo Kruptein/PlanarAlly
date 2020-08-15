@@ -106,7 +106,9 @@ class FloorStore extends VuexModule implements FloorState {
 
     @Mutation
     reorderFloors(data: { floors: string[]; sync: boolean }): void {
+        const activeFloorName = this._floors[this.floorIndex].name;
         this._floors = data.floors.map(name => this._floors.find(f => f.name === name)!);
+        this.floorIndex = this._floors.findIndex(f => f.name === activeFloorName);
         if (data.sync) sendFloorReorder(data.floors);
     }
 }

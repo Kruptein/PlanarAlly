@@ -8,17 +8,18 @@ import { createShapeFromDict } from "@/game/shapes/utils";
 import { gameStore } from "@/game/store";
 import { AnnotationManager } from "@/game/ui/annotation";
 import { g2l } from "@/game/units";
+import { getFloorId } from "./layers/store";
 import { Shape } from "./shapes/shape";
 
 export class GameManager {
     annotationManager = new AnnotationManager();
 
     addShape(shape: ServerShape): Shape | undefined {
-        if (!layerManager.hasLayer(layerManager.getFloor(shape.floor)!, shape.layer)) {
+        if (!layerManager.hasLayer(layerManager.getFloor(getFloorId(shape.floor))!, shape.layer)) {
             console.log(`Shape with unknown layer ${shape.layer} could not be added`);
             return;
         }
-        const layer = layerManager.getLayer(layerManager.getFloor(shape.floor)!, shape.layer)!;
+        const layer = layerManager.getLayer(layerManager.getFloor(getFloorId(shape.floor))!, shape.layer)!;
         const sh = createShapeFromDict(shape);
         if (sh === undefined) {
             console.log(`Shape with unknown type ${shape.type_} could not be added`);
@@ -30,7 +31,7 @@ export class GameManager {
     }
 
     updateShape(data: { shape: ServerShape; redraw: boolean }): void {
-        if (!layerManager.hasLayer(layerManager.getFloor(data.shape.floor)!, data.shape.layer)) {
+        if (!layerManager.hasLayer(layerManager.getFloor(getFloorId(data.shape.floor))!, data.shape.layer)) {
             console.log(`Shape with unknown layer ${data.shape.layer} could not be added`);
             return;
         }

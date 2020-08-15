@@ -37,7 +37,7 @@ export class Layer {
     points: Map<string, Set<string>> = new Map();
     postDrawCallbacks: (() => void)[] = [];
 
-    constructor(canvas: HTMLCanvasElement, public name: string, public floor: string, public index: number) {
+    constructor(canvas: HTMLCanvasElement, public name: string, public floor: number, public index: number) {
         this.canvas = canvas;
         this.ctx = canvas.getContext("2d")!;
     }
@@ -281,7 +281,7 @@ export class Layer {
             // If this is the last layer of the floor below, render some shadow
             if (floorStore.currentFloorindex > 0) {
                 const lowerFloor = floorStore.floors[floorStore.currentFloorindex - 1];
-                if (lowerFloor.name === this.floor) {
+                if (lowerFloor.id === this.floor) {
                     const layers = layerManager.getLayers(lowerFloor);
                     if (layers[layers.length - 1].name === this.name) {
                         ctx.fillStyle = "rgba(0, 0, 0, 0.3)";

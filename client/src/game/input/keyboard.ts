@@ -83,9 +83,9 @@ export function onKeyDown(event: KeyboardEvent): void {
                 }
                 sendShapePositionUpdate(updateList, false);
 
-                const floorName = floorStore.currentFloor.name;
-                if (recalculateVision) visibilityStore.recalculateVision(floorName);
-                if (recalculateMovement) visibilityStore.recalculateMovement(floorName);
+                const floorId = floorStore.currentFloor.id;
+                if (recalculateVision) visibilityStore.recalculateVision(floorId);
+                if (recalculateMovement) visibilityStore.recalculateMovement(floorId);
                 floorStore.currentLayer!.invalidate(false);
             } else {
                 // The pan offsets should be in the opposite direction to give the correct feel.

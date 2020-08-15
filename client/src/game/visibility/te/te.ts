@@ -9,7 +9,7 @@ import { ccw, cw, orientation } from "./triag";
 export function computeVisibility(
     q: GlobalPoint,
     target: TriangulationTarget,
-    floor: string,
+    floor: number,
     drawt?: boolean,
 ): number[][] {
     if (drawt === undefined) drawt = gameStore.drawTEContour;

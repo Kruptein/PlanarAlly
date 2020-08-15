@@ -14,6 +14,7 @@ import tinycolor from "tinycolor2";
 import { PartialBy } from "../../core/types";
 import { Floor } from "../layers/floor";
 import { Layer } from "../layers/layer";
+import { getFloorId } from "../layers/store";
 import { gameSettingsStore } from "../settings";
 import { rotateAroundPoint } from "../utils";
 import { BoundingRect } from "./boundingrect";
@@ -25,7 +26,7 @@ export abstract class Shape {
     // The unique ID of this shape
     readonly uuid: string;
     // The layer the shape is currently on
-    private _floor!: string;
+    private _floor!: number;
     private _layer!: string;
 
     // Explicitly prevent any sync to the server
@@ -110,7 +111,7 @@ export abstract class Shape {
         return layerManager.getLayer(this.floor, this._layer)!;
     }
 
-    setLayer(floor: string, layer: string): void {
+    setLayer(floor: number, layer: string): void {
         this._floor = floor;
         this._layer = layer;
     }
@@ -278,7 +279,7 @@ export abstract class Shape {
             x: this.refPoint.x,
             y: this.refPoint.y,
             angle: this.angle,
-            floor: this._floor,
+            floor: layerManager.getFloor(this._floor)!.name,
             layer: this._layer,
             draw_operator: this.globalCompositeOperation,
             movement_obstruction: this.movementObstruction,
@@ -306,7 +307,7 @@ export abstract class Shape {
     }
     fromDict(data: ServerShape): void {
         this._layer = data.layer;
-        this._floor = data.floor;
+        this._floor = getFloorId(data.floor);
         this.angle = data.angle;
         this.globalCompositeOperation = data.draw_operator;
         this.movementObstruction = data.movement_obstruction;
@@ -572,7 +573,7 @@ export abstract class Shape {
                 shape: this,
             });
             visibilityStore.addToTriag({ target: TriangulationTarget.VISION, shape: this });
-            visibilityStore.recalculateVision(this.floor.name);
+            visibilityStore.recalculateVision(this.floor.id);
         }
         this.invalidate(false);
         layerManager.invalidateLightAllFloors();
@@ -582,7 +583,7 @@ export abstract class Shape {
                 shape: this,
             });
             visibilityStore.addToTriag({ target: TriangulationTarget.MOVEMENT, shape: this });
-            visibilityStore.recalculateMovement(this.floor.name);
+            visibilityStore.recalculateMovement(this.floor.id);
         }
     }
 }

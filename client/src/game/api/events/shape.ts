@@ -2,7 +2,7 @@ import { SyncMode } from "../../../core/comm/types";
 import { ServerShape } from "../../comm/types/shapes";
 import { EventBus } from "../../event-bus";
 import { layerManager } from "../../layers/manager";
-import { floorStore } from "../../layers/store";
+import { floorStore, getFloorId } from "../../layers/store";
 import { moveFloor, moveLayer } from "../../layers/utils";
 import { gameManager } from "../../manager";
 import { Shape } from "../../shapes/shape";
@@ -59,7 +59,7 @@ socket.on("Shape.Order.Set", (data: { shape: ServerShape; index: number }) => {
         console.log(`Attempted to move the shape order of an unknown shape`);
         return;
     }
-    if (!layerManager.hasLayer(layerManager.getFloor(data.shape.floor)!, data.shape.layer)) {
+    if (!layerManager.hasLayer(layerManager.getFloor(getFloorId(data.shape.floor))!, data.shape.layer)) {
         console.log(`Attempted to remove shape from an unknown layer ${data.shape.layer}`);
         return;
     }
@@ -70,7 +70,7 @@ socket.on("Shape.Order.Set", (data: { shape: ServerShape; index: number }) => {
 socket.on("Shapes.Floor.Change", (data: { uuids: string[]; floor: string }) => {
     const shapes = <Shape[]>data.uuids.map(u => layerManager.UUIDMap.get(u) ?? undefined).filter(s => s !== undefined);
     if (shapes.length === 0) return;
-    moveFloor(shapes, layerManager.getFloor(data.floor)!, false);
+    moveFloor(shapes, layerManager.getFloor(getFloorId(data.floor))!, false);
     if (shapes.some(s => s.ownedBy({ editAccess: true })))
         floorStore.selectFloor({ targetFloor: data.floor, sync: false });
 });
@@ -78,7 +78,7 @@ socket.on("Shapes.Floor.Change", (data: { uuids: string[]; floor: string }) => {
 socket.on("Shapes.Layer.Change", (data: { uuids: string[]; floor: string; layer: string }) => {
     const shapes = <Shape[]>data.uuids.map(u => layerManager.UUIDMap.get(u) ?? undefined).filter(s => s !== undefined);
     if (shapes.length === 0) return;
-    moveLayer(shapes, layerManager.getLayer(layerManager.getFloor(data.floor)!, data.layer)!, false);
+    moveLayer(shapes, layerManager.getLayer(layerManager.getFloor(getFloorId(data.floor))!, data.layer)!, false);
 });
 
 socket.on("Shape.Update", (data: { shape: ServerShape; redraw: boolean }) => {

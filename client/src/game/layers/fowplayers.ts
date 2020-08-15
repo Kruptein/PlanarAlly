@@ -13,7 +13,7 @@ export class FOWPlayersLayer extends Layer {
     virtualCanvas: HTMLCanvasElement;
     vCtx: CanvasRenderingContext2D;
 
-    constructor(canvas: HTMLCanvasElement, public name: string, public floor: string, public index: number) {
+    constructor(canvas: HTMLCanvasElement, public name: string, public floor: number, public index: number) {
         super(canvas, name, floor, index);
         this.virtualCanvas = document.createElement("canvas");
         this.virtualCanvas.width = window.innerWidth;
@@ -49,14 +49,14 @@ export class FOWPlayersLayer extends Layer {
 
             ctx.fillStyle = "rgba(0, 0, 0, 1)";
 
-            const activeFloorName = floorStore.currentFloor.name;
+            const activeFloor = floorStore.currentFloor.id;
 
-            if (this.floor === activeFloorName && this.canvas.style.display === "none")
+            if (this.floor === activeFloor && this.canvas.style.display === "none")
                 this.canvas.style.removeProperty("display");
-            else if (this.floor !== activeFloorName && this.canvas.style.display !== "none")
+            else if (this.floor !== activeFloor && this.canvas.style.display !== "none")
                 this.canvas.style.display = "none";
 
-            if (this.floor === activeFloorName && floorStore.floors.length > 1) {
+            if (this.floor === activeFloor && floorStore.floors.length > 1) {
                 for (const floor of floorStore.floors) {
                     if (floor.name !== floorStore.floors[0].name) {
                         const mapl = layerManager.getLayer(floor, "map");
@@ -64,13 +64,13 @@ export class FOWPlayersLayer extends Layer {
                         ctx.globalCompositeOperation = "destination-out";
                         ctx.drawImage(mapl.canvas, 0, 0);
                     }
-                    if (floor.name !== activeFloorName) {
+                    if (floor.id !== activeFloor) {
                         const fowl = layerManager.getLayer(floor, this.name);
                         if (fowl === undefined) continue;
                         ctx.globalCompositeOperation = "source-over";
                         ctx.drawImage(fowl.canvas, 0, 0);
                     }
-                    if (floor.name === activeFloorName) break;
+                    if (floor.id === activeFloor) break;
                 }
             }
 
@@ -82,7 +82,7 @@ export class FOWPlayersLayer extends Layer {
 
             for (const tokenId of gameStore.activeTokens) {
                 const token = layerManager.UUIDMap.get(tokenId);
-                if (token === undefined || token.floor.name !== this.floor) continue;
+                if (token === undefined || token.floor.id !== this.floor) continue;
                 const center = token.center();
                 const lcenter = g2l(center);
 
@@ -103,7 +103,7 @@ export class FOWPlayersLayer extends Layer {
                     ctx.fillStyle = "rgba(0, 0, 0, 1)";
                 }
                 try {
-                    const polygon = computeVisibility(token.center(), TriangulationTarget.VISION, token.floor.name);
+                    const polygon = computeVisibility(token.center(), TriangulationTarget.VISION, token.floor.id);
                     ctx.beginPath();
                     ctx.moveTo(g2lx(polygon[0][0]), g2ly(polygon[0][1]));
                     for (const point of polygon) ctx.lineTo(g2lx(point[0]), g2ly(point[1]));
@@ -114,10 +114,10 @@ export class FOWPlayersLayer extends Layer {
                 }
             }
 
-            if (this.floor === activeFloorName && floorStore.floors.length > 1) {
+            if (this.floor === activeFloor && floorStore.floors.length > 1) {
                 for (let f = floorStore.floors.length - 1; f > floorStore.currentFloorindex; f--) {
                     const floor = floorStore.floors[f];
-                    if (floor.name === activeFloorName) break;
+                    if (floor.id === activeFloor) break;
                     const fowl = layerManager.getLayer(floor, this.name);
                     if (fowl === undefined) continue;
                     this.vCtx.globalCompositeOperation = "destination-over";

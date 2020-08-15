@@ -150,11 +150,11 @@ export default class EditDialog extends Vue {
     updateAuraVisionSource(aura: Aura): void {
         if (!this.owned) return;
         aura.visionSource = !aura.visionSource;
-        const visionSources = getVisionSources(this.shape.floor.name);
+        const visionSources = getVisionSources(this.shape.floor.id);
         const i = visionSources.findIndex(ls => ls.aura === aura.uuid);
         if (aura.visionSource && i === -1)
-            addVisionSource({ shape: this.shape.uuid, aura: aura.uuid }, this.shape.floor.name);
-        else if (!aura.visionSource && i >= 0) sliceVisionSources(i, this.shape.floor.name);
+            addVisionSource({ shape: this.shape.uuid, aura: aura.uuid }, this.shape.floor.id);
+        else if (!aura.visionSource && i >= 0) sliceVisionSources(i, this.shape.floor.id);
         this.updateShape(true);
     }
     updateAuraColour(aura: Aura, _colour: string): void {

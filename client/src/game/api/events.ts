@@ -16,7 +16,7 @@ import { gameStore } from "@/game/store";
 import { router } from "@/router";
 import { coreStore } from "../../core/store";
 import { ServerClient } from "../comm/types/settings";
-import { floorStore } from "../layers/store";
+import { floorStore, getFloorId } from "../layers/store";
 import { zoomDisplay } from "../utils";
 import { visibilityStore } from "../visibility/store";
 
@@ -74,8 +74,8 @@ socket.on("Board.Locations.Set", (locationInfo: { id: number; name: string }[]) 
 
 socket.on("Board.Floor.Set", (floor: ServerFloor) => {
     addFloor(floor);
-    visibilityStore.recalculateVision(floor.name);
-    visibilityStore.recalculateMovement(floor.name);
+    visibilityStore.recalculateVision(getFloorId(floor.name));
+    visibilityStore.recalculateMovement(getFloorId(floor.name));
     if (floorStore.floors.length === 1) {
         floorStore.selectFloor({ targetFloor: floor.name, sync: false });
         requestAnimationFrame(layerManager.drawLoop);

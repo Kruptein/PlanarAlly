@@ -6,6 +6,7 @@ import { CDT } from "@/game/visibility/te/cdt";
 import { addShapesToTriag, deleteShapeFromTriag, TriangulationTarget, setCDT } from "@/game/visibility/te/pa";
 import { rotateAroundOrigin, xySmaller } from "@/game/visibility/te/triag";
 import { BaseRect } from "../../../../../src/game/shapes/baserect";
+import { uuidv4 } from "../../../../../src/core/utils";
 
 jest.mock("@/game/api/socket", () => ({
     socket: {
@@ -29,7 +30,7 @@ function _expectRemoveSuccess(shape1: Shape, shape2: Shape): void {
 }
 function _expectRemoveSuccessRotation(shape1: Shape, shape2: Shape, rotate: boolean): void {
     cdt = new CDT();
-    setCDT(TriangulationTarget.VISION, shape1.floor.name, cdt);
+    setCDT(TriangulationTarget.VISION, shape1.floor.id, cdt);
     cdt.tds.clearTriagVertices(shape1.uuid);
     cdt.tds.clearTriagVertices(shape2.uuid);
     if (rotate) {
@@ -63,8 +64,16 @@ describe("PA test suite.", () => {
     describe("deleteShapeFromTriag", () => {
         beforeAll(() => {
             // Spying on Shape directly didn't work so we do both shapes used here.
-            jest.spyOn(BaseRect.prototype, "floor", "get").mockReturnValue({ name: "testfloor", playerVisible: true });
-            jest.spyOn(Polygon.prototype, "floor", "get").mockReturnValue({ name: "testfloor", playerVisible: true });
+            jest.spyOn(BaseRect.prototype, "floor", "get").mockReturnValue({
+                id: 0,
+                name: "testfloor",
+                playerVisible: true,
+            });
+            jest.spyOn(Polygon.prototype, "floor", "get").mockReturnValue({
+                id: 1,
+                name: "testfloor",
+                playerVisible: true,
+            });
         });
         it("0,0", () => {
             const shape = new Rect(new GlobalPoint(0, 0), 10, 10);
@@ -174,7 +183,7 @@ describe("PA test suite.", () => {
                 new GlobalPoint(10, 10),
             ]);
             cdt = new CDT();
-            setCDT(TriangulationTarget.VISION, shape.floor.name, cdt);
+            setCDT(TriangulationTarget.VISION, shape.floor.id, cdt);
             addShapesToTriag(TriangulationTarget.VISION, shape, shape2);
             deleteShapeFromTriag(TriangulationTarget.VISION, shape2);
             expect(cdt.tds.numberOfVertices(false)).toBe(4);

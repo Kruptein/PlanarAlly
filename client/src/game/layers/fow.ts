@@ -17,7 +17,7 @@ export class FOWLayer extends Layer {
     virtualCanvas: HTMLCanvasElement;
     vCtx: CanvasRenderingContext2D;
 
-    constructor(canvas: HTMLCanvasElement, public name: string, public floor: string, public index: number) {
+    constructor(canvas: HTMLCanvasElement, public name: string, public floor: number, public index: number) {
         super(canvas, name, floor, index);
         this.virtualCanvas = document.createElement("canvas");
         this.virtualCanvas.width = window.innerWidth;
@@ -61,28 +61,28 @@ export class FOWLayer extends Layer {
 
             ctx.fillStyle = "rgba(0, 0, 0, 1)";
 
-            const activeFloorName = floorStore.currentFloor.name;
+            const activeFloor = floorStore.currentFloor.id;
 
-            if (this.floor === activeFloorName && this.canvas.style.display === "none")
+            if (this.floor === activeFloor && this.canvas.style.display === "none")
                 this.canvas.style.removeProperty("display");
-            else if (this.floor !== activeFloorName && this.canvas.style.display !== "none")
+            else if (this.floor !== activeFloor && this.canvas.style.display !== "none")
                 this.canvas.style.display = "none";
 
-            if (this.floor === activeFloorName && floorStore.floors.length > 1) {
+            if (this.floor === activeFloor && floorStore.floors.length > 1) {
                 for (const floor of floorStore.floors) {
-                    if (floor.name !== floorStore.floors[0].name) {
+                    if (floor.id !== floorStore.floors[0].id) {
                         const mapl = layerManager.getLayer(floor, "map");
                         if (mapl === undefined) continue;
                         ctx.globalCompositeOperation = "destination-out";
                         ctx.drawImage(mapl.canvas, 0, 0);
                     }
-                    if (floor.name !== activeFloorName) {
+                    if (floor.id !== activeFloor) {
                         const fowl = layerManager.getLayer(floor, this.name);
                         if (fowl === undefined) continue;
                         ctx.globalCompositeOperation = "source-over";
                         ctx.drawImage(fowl.canvas, 0, 0);
                     }
-                    if (floor.name === activeFloorName) break;
+                    if (floor.id === activeFloor) break;
                 }
             }
             ctx.globalCompositeOperation = "source-over";
@@ -128,7 +128,7 @@ export class FOWLayer extends Layer {
 
                 this.vCtx.globalCompositeOperation = "source-over";
                 this.vCtx.fillStyle = "rgba(0, 0, 0, 1)";
-                const polygon = computeVisibility(center, TriangulationTarget.VISION, shape.floor.name);
+                const polygon = computeVisibility(center, TriangulationTarget.VISION, shape.floor.id);
                 this.vCtx.beginPath();
                 this.vCtx.moveTo(g2lx(polygon[0][0]), g2ly(polygon[0][1]));
                 for (const point of polygon) this.vCtx.lineTo(g2lx(point[0]), g2ly(point[1]));
@@ -159,7 +159,7 @@ export class FOWLayer extends Layer {
                 // shape.invalidate(true);
             }
 
-            if (gameSettingsStore.fowLos && this.floor === activeFloorName) {
+            if (gameSettingsStore.fowLos && this.floor === activeFloor) {
                 ctx.globalCompositeOperation = "source-in";
                 ctx.drawImage(layerManager.getLayer(floorStore.currentFloor, "fow-players")!.canvas, 0, 0);
             }
@@ -177,7 +177,7 @@ export class FOWLayer extends Layer {
                 preShape.globalCompositeOperation = ogComposite;
             }
 
-            if (gameSettingsStore.fullFow && this.floor === activeFloorName) {
+            if (gameSettingsStore.fullFow && this.floor === activeFloor) {
                 ctx.globalCompositeOperation = "source-out";
                 ctx.fillStyle = getFogColour();
                 ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);

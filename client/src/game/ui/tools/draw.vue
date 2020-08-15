@@ -351,7 +351,7 @@ export default class DrawTool extends Tool implements ToolBasics {
                 socket.emit("Shape.Update", { shape: this.shape!.asDict(), redraw: true, temporary: true });
             if (this.shape.visionObstruction) {
                 if (
-                    getCDT(TriangulationTarget.VISION, this.shape.floor.name).tds.getTriagVertices(this.shape.uuid)
+                    getCDT(TriangulationTarget.VISION, this.shape.floor.id).tds.getTriagVertices(this.shape.uuid)
                         .length > 1
                 )
                     visibilityStore.deleteFromTriag({
@@ -359,7 +359,7 @@ export default class DrawTool extends Tool implements ToolBasics {
                         shape: this.shape,
                     });
                 visibilityStore.addToTriag({ target: TriangulationTarget.VISION, shape: this.shape });
-                visibilityStore.recalculateVision(this.shape.floor.name);
+                visibilityStore.recalculateVision(this.shape.floor.id);
             }
         }
         layer.invalidate(false);
@@ -388,11 +388,11 @@ export default class DrawTool extends Tool implements ToolBasics {
             this.shape.resizeToGrid(this.shape.getPointIndex(endPoint, l2gz(5)), event.ctrlKey);
             if (this.shape.visionObstruction) {
                 visibilityStore.addToTriag({ target: TriangulationTarget.VISION, shape: this.shape });
-                visibilityStore.recalculateVision(this.shape.floor.name);
+                visibilityStore.recalculateVision(this.shape.floor.id);
             }
             if (this.shape.movementObstruction) {
                 visibilityStore.addToTriag({ target: TriangulationTarget.MOVEMENT, shape: this.shape });
-                visibilityStore.recalculateMovement(this.shape.floor.name);
+                visibilityStore.recalculateMovement(this.shape.floor.id);
             }
         }
         this.finaliseShape();
@@ -445,8 +445,8 @@ export default class DrawTool extends Tool implements ToolBasics {
             this.onDeselect();
             this.onSelect(mouse);
         } else {
-            if (this.shape.visionObstruction) visibilityStore.recalculateVision(this.shape.floor.name);
-            if (this.shape.movementObstruction) visibilityStore.recalculateMovement(this.shape.floor.name);
+            if (this.shape.visionObstruction) visibilityStore.recalculateVision(this.shape.floor.id);
+            if (this.shape.movementObstruction) visibilityStore.recalculateMovement(this.shape.floor.id);
             if (!this.shape!.preventSync)
                 socket.emit("Shape.Update", { shape: this.shape!.asDict(), redraw: true, temporary: false });
         }

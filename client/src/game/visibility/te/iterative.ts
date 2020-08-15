@@ -64,7 +64,7 @@ export class IterativeDelete {
         this.handledPoints = [];
         this.finalConstraints = [];
 
-        this.cdt = getCDT(target, shape.floor.name);
+        this.cdt = getCDT(target, shape.floor.id);
         this.shape = shape;
 
         this.deleteVertices();

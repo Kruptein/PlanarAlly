@@ -1,8 +1,8 @@
 import { InvalidationMode, SyncMode } from "@/core/comm/types";
 import { ServerFloor, ServerLayer } from "@/game/comm/types/general";
 import { GlobalPoint } from "@/game/geom";
-import { FOWLayer } from "@/game/layers/fow";
-import { FOWPlayersLayer } from "@/game/layers/fowplayers";
+import { FowLightingLayer } from "@/game/layers/fowlighting";
+import { FowVisionLayer } from "@/game/layers/fowvision";
 import { GridLayer } from "@/game/layers/grid";
 import { Layer } from "@/game/layers/layer";
 import { layerManager } from "@/game/layers/manager";
@@ -10,17 +10,21 @@ import { Asset } from "@/game/shapes/asset";
 import { clampGridLine, l2gx, l2gy, l2gz } from "@/game/units";
 import { visibilityStore } from "@/game/visibility/store";
 import { addCDT, removeCDT } from "@/game/visibility/te/pa";
-import { gameSettingsStore } from "../settings";
-import { floorStore } from "./store";
-import { Floor } from "./floor";
-import { Shape } from "../shapes/shape";
 import { socket } from "../api/socket";
+import { gameSettingsStore } from "../settings";
+import { Shape } from "../shapes/shape";
 import { gameStore } from "../store";
+import { Floor } from "./floor";
+import { floorStore, getFloorId, newFloorId } from "./store";
 
 export function addFloor(serverFloor: ServerFloor): void {
-    const floor = { name: serverFloor.name, playerVisible: serverFloor.player_visible };
+    const floor: Floor = {
+        id: newFloorId(),
+        name: serverFloor.name,
+        playerVisible: serverFloor.player_visible,
+    };
     floorStore.addFloor({ floor, targetIndex: serverFloor.index });
-    addCDT(serverFloor.name);
+    addCDT(getFloorId(serverFloor.name));
     for (const layer of serverFloor.layers) createLayer(layer, floor);
 
     // Recalculate zIndices
@@ -33,21 +37,21 @@ export function addFloor(serverFloor: ServerFloor): void {
     }
 }
 
-export function removeFloor(floorName: string): void {
-    removeCDT(floorName);
+export function removeFloor(floorId: number): void {
+    removeCDT(floorId);
     visibilityStore.movementBlockers.splice(
-        visibilityStore.movementBlockers.findIndex(mb => mb.floor === floorName),
+        visibilityStore.movementBlockers.findIndex(mb => mb.floor === floorId),
         1,
     );
     visibilityStore.visionBlockers.splice(
-        visibilityStore.visionBlockers.findIndex(vb => vb.floor === floorName),
+        visibilityStore.visionBlockers.findIndex(vb => vb.floor === floorId),
         1,
     );
     visibilityStore.visionSources.splice(
-        visibilityStore.visionSources.findIndex(vs => vs.floor === floorName),
+        visibilityStore.visionSources.findIndex(vs => vs.floor === floorId),
         1,
     );
-    const floor = floorStore.floors.find(f => f.name === floorName)!;
+    const floor = floorStore.floors.find(f => f.id === floorId)!;
     for (const layer of layerManager.getLayers(floor)) layer.canvas.remove();
     floorStore.removeFloor(floor);
 }
@@ -60,14 +64,14 @@ function createLayer(layerInfo: ServerLayer, floor: Floor): void {
 
     // Create the Layer instance
     let layer: Layer;
-    if (layerInfo.type_ === "grid") layer = new GridLayer(canvas, layerInfo.name, floor.name, layerInfo.index);
-    else if (layerInfo.type_ === "fow") layer = new FOWLayer(canvas, layerInfo.name, floor.name, layerInfo.index);
+    if (layerInfo.type_ === "grid") layer = new GridLayer(canvas, layerInfo.name, floor.id, layerInfo.index);
+    else if (layerInfo.type_ === "fow") layer = new FowLightingLayer(canvas, layerInfo.name, floor.id, layerInfo.index);
     else if (layerInfo.type_ === "fow-players")
-        layer = new FOWPlayersLayer(canvas, layerInfo.name, floor.name, layerInfo.index);
-    else layer = new Layer(canvas, layerInfo.name, floor.name, layerInfo.index);
+        layer = new FowVisionLayer(canvas, layerInfo.name, floor.id, layerInfo.index);
+    else layer = new Layer(canvas, layerInfo.name, floor.id, layerInfo.index);
     layer.selectable = layerInfo.selectable;
     layer.playerEditable = layerInfo.player_editable;
-    layerManager.addLayer(layer, floor.name);
+    layerManager.addLayer(layer, floor.id);
 
     // Add the element to the DOM
     const layers = document.getElementById("layers");
@@ -126,8 +130,8 @@ export function moveFloor(shapes: Shape[], newFloor: Floor, sync: boolean): void
     }
     const newLayer = layerManager.getLayer(newFloor, oldLayer.name)!;
     for (const shape of shapes) {
-        visibilityStore.moveShape({ shape, oldFloor: oldFloor.name, newFloor: newFloor.name });
-        shape.setLayer(newFloor.name, oldLayer.name);
+        visibilityStore.moveShape({ shape, oldFloor: oldFloor.id, newFloor: newFloor.id });
+        shape.setLayer(newFloor.id, oldLayer.name);
     }
     oldLayer.setShapes(...oldLayer.getShapes().filter(s => !shapes.includes(s)));
     newLayer.pushShapes(...shapes);

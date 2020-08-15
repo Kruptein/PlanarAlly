@@ -258,7 +258,7 @@ export default class SelectTool extends Tool implements ToolBasics {
                     if (!sel.preventSync) updateList.push(sel);
                 }
                 sendShapePositionUpdate(updateList, true);
-                if (recalc) visibilityStore.recalculateVision(selection[0].floor.name);
+                if (recalc) visibilityStore.recalculateVision(selection[0].floor.id);
                 this.dragRay = Ray.fromPoints(this.dragRay.origin, lp);
 
                 if (this.rotationUiActive) {
@@ -298,7 +298,7 @@ export default class SelectTool extends Tool implements ToolBasics {
                     if (!sel.preventSync)
                         socket.emit("Shape.Update", { shape: sel.asDict(), redraw: true, temporary: true });
                 }
-                if (recalc) visibilityStore.recalculateVision(selection[0].floor.name);
+                if (recalc) visibilityStore.recalculateVision(selection[0].floor.id);
                 layer.invalidate(false);
                 this.updateCursor(layer, gp);
             } else if (this.mode === SelectOperations.Rotate) {
@@ -461,8 +461,8 @@ export default class SelectTool extends Tool implements ToolBasics {
                 }
             }
 
-            if (recalcVision) visibilityStore.recalculateVision(selection[0].floor.name);
-            if (recalcMovement) visibilityStore.recalculateMovement(selection[0].floor.name);
+            if (recalcVision) visibilityStore.recalculateVision(selection[0].floor.id);
+            if (recalcMovement) visibilityStore.recalculateMovement(selection[0].floor.id);
             layer.invalidate(false);
 
             if (this.mode !== SelectOperations.Rotate) {
@@ -610,7 +610,7 @@ export default class SelectTool extends Tool implements ToolBasics {
             }
             if (!sel.preventSync) socket.emit("Shape.Update", { shape: sel.asDict(), redraw: true, temporary: true });
         }
-        if (recalc) visibilityStore.recalculateVision(selection[0].floor.name);
+        if (recalc) visibilityStore.recalculateVision(selection[0].floor.id);
         this.rotationEnd!.rotateAround(center, dA);
         this.rotationAnchor!.rotateAround(center, dA);
         this.rotationBox!.angle = this.angle;

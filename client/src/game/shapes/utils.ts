@@ -20,11 +20,11 @@ import { Line } from "@/game/shapes/line";
 import { Rect } from "@/game/shapes/rect";
 import { Shape } from "@/game/shapes/shape";
 import { Text } from "@/game/shapes/text";
+import { socket } from "../api/socket";
 import { EventBus } from "../event-bus";
+import { floorStore, getFloorId } from "../layers/store";
 import { gameStore } from "../store";
 import { Polygon } from "./polygon";
-import { socket } from "../api/socket";
-import { floorStore } from "../layers/store";
 
 export function createShapeFromDict(shape: ServerShape): Shape | undefined {
     let sh: Shape;
@@ -75,7 +75,7 @@ export function createShapeFromDict(shape: ServerShape): Shape | undefined {
         else img.src = asset.src;
         sh = new Asset(img, refPoint, asset.width, asset.height, asset.uuid);
         img.onload = () => {
-            layerManager.getLayer(layerManager.getFloor(shape.floor)!, shape.layer)!.invalidate(true);
+            layerManager.getLayer(layerManager.getFloor(getFloorId(shape.floor))!, shape.layer)!.invalidate(true);
         };
     } else {
         return undefined;

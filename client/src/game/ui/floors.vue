@@ -10,7 +10,7 @@ import { layerManager } from "@/game/layers/manager";
 import { removeFloor } from "@/game/layers/utils";
 import { gameStore } from "@/game/store";
 import { Floor } from "../layers/floor";
-import { floorStore } from "../layers/store";
+import { floorStore, getFloorId } from "../layers/store";
 import { sendRenameFloor } from "../api/events/floor";
 
 @Component({
@@ -78,7 +78,7 @@ export default class FloorSelect extends Vue {
             this.$t("game.ui.floors.new_name").toString(),
             this.$t("game.ui.floors.rename_header_title").toString(),
         );
-        if (value === undefined) return;
+        if (value === undefined || getFloorId(value) !== -1) return;
         sendRenameFloor(index, value);
     }
 
@@ -92,7 +92,7 @@ export default class FloorSelect extends Vue {
         )
             return;
         socket.emit("Floor.Remove", floor.name);
-        removeFloor(floor.name);
+        removeFloor(floor.id);
     }
 
     toggleVisible(floor: Floor): void {
@@ -128,7 +128,7 @@ export default class FloorSelect extends Vue {
         </div>
         <draggable id="floor-detail" v-if="selected" v-model="floors" :disabled="!$store.state.game.IS_DM">
             <template v-for="[revIndex, floor] of floors">
-                <div class="floor-row" :key="floor.name" @click="selectFloor(floor)">
+                <div class="floor-row" :key="floor.id" @click="selectFloor(floor)">
                     <div
                         class="floor-index"
                         :class="revIndex == selectedFloorIndex ? 'floor-index-selected' : 'floor-index-not-selected'"

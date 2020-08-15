@@ -2,7 +2,7 @@ import { coreStore } from "../../../core/store";
 import { ServerFloor } from "../../comm/types/general";
 import { EventBus } from "../../event-bus";
 import { layerManager } from "../../layers/manager";
-import { floorStore } from "../../layers/store";
+import { floorStore, getFloorId } from "../../layers/store";
 import { addFloor, removeFloor } from "../../layers/utils";
 import { socket } from "../socket";
 
@@ -14,7 +14,7 @@ socket.on("Floor.Create", (data: { floor: ServerFloor; creator: string }) => {
 socket.on("Floor.Remove", removeFloor);
 
 socket.on("Floor.Visible.Set", (data: { name: string; visible: boolean }) => {
-    const floor = layerManager.getFloor(data.name);
+    const floor = layerManager.getFloor(getFloorId(data.name));
     if (floor === undefined) return;
     floor.playerVisible = data.visible;
     EventBus.$emit("Floor.Visible.Set");
@@ -33,4 +33,8 @@ export function sendRenameFloor(index: number, name: string): void {
 
 export function sendFloorReorder(floors: string[]): void {
     socket.emit("Floors.Reorder", floors);
+}
+
+export function sendActiveLayer(data: { floor: string; layer: string }): void {
+    socket.emit("Client.ActiveLayer.Set", data);
 }

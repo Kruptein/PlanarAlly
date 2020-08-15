@@ -63,8 +63,8 @@ export function setLocationOptions(id: number | null, options: Partial<ServerLoc
             sync: false,
         });
         for (const floor of floorStore.floors) {
-            visibilityStore.recalculateVision(floor.name);
-            visibilityStore.recalculateMovement(floor.name);
+            visibilityStore.recalculateVision(floor.id);
+            visibilityStore.recalculateMovement(floor.id);
         }
     }
     gameSettingsStore.setSpawnLocations({

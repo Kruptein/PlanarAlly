@@ -74,8 +74,8 @@ export default class VisionSettings extends Vue {
         else return;
         visibilityStore.setVisionMode({ mode, sync: true });
         for (const floor of floorStore.floors) {
-            visibilityStore.recalculateVision(floor.name);
-            visibilityStore.recalculateMovement(floor.name);
+            visibilityStore.recalculateVision(floor.id);
+            visibilityStore.recalculateMovement(floor.id);
         }
         layerManager.invalidateAllFloors();
     }

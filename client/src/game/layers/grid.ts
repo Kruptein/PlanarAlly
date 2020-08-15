@@ -8,17 +8,17 @@ export class GridLayer extends Layer {
         this.valid = false;
     }
     show(): void {
-        if (gameSettingsStore.useGrid && this.floor === floorStore.currentFloor.name)
+        if (gameSettingsStore.useGrid && this.floor === floorStore.currentFloor.id)
             this.canvas.style.removeProperty("display");
     }
     draw(_doClear?: boolean): void {
         if (!this.valid) {
             if (gameSettingsStore.useGrid) {
-                const activeFowFloorName = floorStore.currentFloor.name;
+                const activeFowFloor = floorStore.currentFloor.id;
 
-                if (this.floor === activeFowFloorName && this.canvas.style.display === "none")
+                if (this.floor === activeFowFloor && this.canvas.style.display === "none")
                     this.canvas.style.removeProperty("display");
-                else if (this.floor !== activeFowFloorName && this.canvas.style.display !== "none")
+                else if (this.floor !== activeFowFloor && this.canvas.style.display !== "none")
                     this.canvas.style.display = "none";
 
                 const ctx = this.ctx;

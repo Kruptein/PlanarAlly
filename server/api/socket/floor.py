@@ -1,10 +1,11 @@
-from typing import Any, Dict
+from typing import Any, Dict, List
 from typing_extensions import TypedDict
 
 import auth
 from api.socket.constants import GAME_NS
 from app import app, sio
 from models import Floor, Room, PlayerRoom
+from models.db import db
 from models.role import Role
 from state.game import game_state
 from utils import logger
@@ -94,4 +95,25 @@ async def rename_floor(sid: str, data: FloorRename):
     for psid in game_state.get_sids(room=pr.room, skip_sid=sid):
         await sio.emit(
             "Floor.Rename", data, room=psid, namespace=GAME_NS,
+        )
+
+
+@sio.on("Floors.Reorder", namespace=GAME_NS)
+@auth.login_required(app, sio)
+async def reorder_floors(sid: str, data: List[str]):
+    pr: PlayerRoom = game_state.get(sid)
+
+    if pr.role != Role.DM:
+        logger.warning(f"{pr.player.name} attempted to reorder floors")
+        return
+
+    with db.atomic():
+        for i, name in enumerate(data):
+            init = Floor.get(location=pr.active_location, name=name)
+            init.index = i
+            init.save()
+
+    for psid in game_state.get_sids(active_location=pr.active_location, skip_sid=sid):
+        await sio.emit(
+            "Floors.Reorder", data, room=psid, namespace=GAME_NS,
         )

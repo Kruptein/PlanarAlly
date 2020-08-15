@@ -34,3 +34,7 @@ export function sendRenameFloor(index: number, name: string): void {
 export function sendFloorReorder(floors: string[]): void {
     socket.emit("Floors.Reorder", floors);
 }
+
+export function sendActiveLayer(data: { floor: string; layer: string }): void {
+    socket.emit("Client.ActiveLayer.Set", data);
+}

@@ -1,9 +1,9 @@
 import { GridLayer } from "@/game/layers/grid";
 import { Layer } from "@/game/layers/layer";
 import { Shape } from "@/game/shapes/shape";
+import { sendActiveLayer } from "../api/events/floor";
 import { Floor } from "./floor";
 import { floorStore } from "./store";
-import { socket } from "../api/socket";
 
 class LayerManager {
     UUIDMap: Map<string, Shape> = new Map();
@@ -119,7 +119,7 @@ class LayerManager {
             if (name === layer.name) {
                 floorStore.setLayerIndex(index);
                 found = true;
-                if (sync) socket.emit("Client.ActiveLayer.Set", { floor: layer.floor, layer: layer.name });
+                if (sync) sendActiveLayer({ layer: layer.name, floor: this.getFloor(layer.floor)!.name });
             }
 
             layer.clearSelection();

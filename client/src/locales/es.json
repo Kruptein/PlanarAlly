@@ -98,7 +98,9 @@
                 "warning_msg_Z": "¿Estás seguro de que quieres remover el piso {z}?",
                 "delete_floor": "Borrar piso",
                 "add_new_floor": "Añadir nuevo piso.",
-                "toggle_visibility": "Activar/Desactivar visibilidad del piso para los jugadores."
+                "toggle_visibility": "Activar/Desactivar visibilidad del piso para los jugadores.",
+                "rename_icon_hover": "Renombrar este piso",
+                "rename_header_title": "Renombrando Piso"
             },
             "initiative": {
                 "initiative": {
@@ -182,7 +184,10 @@
                 "select_info": {
                     "open_shape_props": "Abrir propiedades de la figura",
                     "quick_edit_tracker": "Editar rápido tracker",
-                    "quick_edit_aura": "Editar rápido aura"
+                    "quick_edit_aura": "Editar rápido aura",
+                    "lock": "Bloquear/Desbloquear",
+                    "new_value_NAME": "Nuevo valor de {name}:",
+                    "updating_NAME": "Actualizando {name}"
                 },
                 "shapecontext": {
                     "show_initiative": "Mostrar Iniciativa",

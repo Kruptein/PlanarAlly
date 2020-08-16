@@ -1,7 +1,7 @@
 import json
 from peewee import BooleanField, FloatField, ForeignKeyField, IntegerField, TextField
 from playhouse.shortcuts import model_to_dict, update_model_from_dict
-from typing import List, Tuple
+from typing import Any, Dict, List, Tuple
 
 from utils import logger
 from ..base import BaseModel
@@ -62,6 +62,12 @@ class Shape(BaseModel):
             return f"{self.name}@{self.layer.get_path()}"
         except:
             return self.name
+
+    def get_options(self) -> Dict[str, Any]:
+        return dict(json.loads(self.options))
+
+    def set_options(self, options: Dict[str, Any]) -> None:
+        self.options = json.dumps([[k, v] for k, v in options.items()])
 
     # todo: Change this API to accept a PlayerRoom instead
     def as_dict(self, user: User, dm: bool):

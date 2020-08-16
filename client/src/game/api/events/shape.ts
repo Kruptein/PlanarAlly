@@ -5,6 +5,7 @@ import { layerManager } from "../../layers/manager";
 import { floorStore, getFloorId } from "../../layers/store";
 import { moveFloor, moveLayer } from "../../layers/utils";
 import { gameManager } from "../../manager";
+import { changeGroupLeader, addGroupMember } from "../../shapes/group";
 import { Shape } from "../../shapes/shape";
 import { socket } from "../socket";
 
@@ -79,4 +80,12 @@ socket.on("Shapes.Layer.Change", (data: { uuids: string[]; floor: string; layer:
 
 socket.on("Shape.Update", (data: { shape: ServerShape; redraw: boolean }) => {
     gameManager.updateShape(data);
+});
+
+socket.on("Shapes.Group.Leader.Set", (data: { leader: string; members: string[] }) => {
+    changeGroupLeader({ ...data, sync: false });
+});
+
+socket.on("Shapes.Group.Member.Add", (data: { leader: string; member: string }) => {
+    addGroupMember({ ...data, sync: false });
 });

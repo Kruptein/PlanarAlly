@@ -44,6 +44,14 @@ export function sendShapesMove(data: {
     socket.emit("Shapes.Location.Move", data);
 }
 
+export function sendGroupLeaderUpdate(data: { leader: string; members: string[] }): void {
+    socket.emit("Shapes.Group.Leader.Set", data);
+}
+
+export function sendGroupMemberAdd(data: { leader: string; member: string }): void {
+    socket.emit("Shapes.Group.Member.Add", data);
+}
+
 // helpers
 
 function _sendShapePositionUpdate(shapes: { uuid: string; points: number[][] }[], temporary: boolean): void {

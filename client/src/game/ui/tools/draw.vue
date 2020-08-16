@@ -30,7 +30,7 @@ import { EventBus } from "../../event-bus";
 import { ToolBasics } from "./ToolBasics";
 import { floorStore } from "@/game/layers/store";
 import { Floor } from "@/game/layers/floor";
-import { sendShapeSizeUpdate, sendShapePositionUpdate } from "@/game/api/emits/shape";
+import { sendShapeSizeUpdate } from "@/game/api/emits/shape";
 
 @Component({
     components: {

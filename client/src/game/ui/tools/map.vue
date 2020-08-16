@@ -16,7 +16,6 @@ import { Shape } from "@/game/shapes/shape";
 import { ToolBasics } from "./ToolBasics";
 import { floorStore } from "@/game/layers/store";
 import { gameStore } from "../../store";
-import { socket } from "@/game/api/socket";
 import { sendShapePositionUpdate, sendShapeSizeUpdate } from "@/game/api/emits/shape";
 
 @Component

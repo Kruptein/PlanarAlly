@@ -4,7 +4,6 @@ import Component from "vue-class-component";
 import ShapeContext from "@/game/ui/selection/shapecontext.vue";
 import Tool from "@/game/ui/tools/tool.vue";
 
-import { socket } from "@/game/api/socket";
 import { EventBus } from "@/game/event-bus";
 import { GlobalPoint, LocalPoint, Ray, Vector } from "@/game/geom";
 import { Layer } from "@/game/layers/layer";

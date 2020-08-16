@@ -12,6 +12,7 @@ import { getBlockers, getVisionSources, sliceBlockers, sliceVisionSources } from
 import { drawAuras } from "../shapes/aura";
 import { gameSettingsStore } from "../settings";
 import { floorStore } from "./store";
+import { sendShapeAdd, sendRemoveShapes, sendShapeOrder } from "../api/emits/shape";
 
 export class Layer {
     canvas: HTMLCanvasElement;
@@ -116,7 +117,7 @@ export class Layer {
         if (shape.ownedBy({ visionAccess: true }) && shape.isToken) gameStore.ownedtokens.push(shape.uuid);
         if (shape.annotation.length) gameStore.annotations.push(shape.uuid);
         if (sync !== SyncMode.NO_SYNC && !shape.preventSync)
-            socket.emit("Shape.Add", { shape: shape.asDict(), temporary: sync === SyncMode.TEMP_SYNC });
+            sendShapeAdd({ shape: shape.asDict(), temporary: sync === SyncMode.TEMP_SYNC });
         if (invalidate) this.invalidate(invalidate === InvalidationMode.WITH_LIGHT);
     }
 
@@ -164,7 +165,7 @@ export class Layer {
         }
 
         if (sync !== SyncMode.NO_SYNC && !shape.preventSync)
-            socket.emit("Shapes.Remove", { uuids: [shape.uuid], temporary: sync === SyncMode.TEMP_SYNC });
+            sendRemoveShapes({ uuids: [shape.uuid], temporary: sync === SyncMode.TEMP_SYNC });
 
         const visionSources = getVisionSources(this.floor);
         const visionBlockers = getBlockers(TriangulationTarget.VISION, this.floor);
@@ -312,8 +313,7 @@ export class Layer {
         if (oldIdx === destinationIndex) return;
         this.shapes.splice(oldIdx, 1);
         this.shapes.splice(destinationIndex, 0, shape);
-        if (sync && !shape.preventSync)
-            socket.emit("Shape.Order.Set", { shape: shape.asDict(), index: destinationIndex });
+        if (sync && !shape.preventSync) sendShapeOrder({ uuid: shape.uuid, index: destinationIndex });
         this.invalidate(true);
     }
 

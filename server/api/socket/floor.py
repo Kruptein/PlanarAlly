@@ -16,9 +16,14 @@ class FloorRename(TypedDict):
     name: str
 
 
+class FloorVisibleData(TypedDict):
+    name: str
+    visible: bool
+
+
 @sio.on("Floor.Create", namespace=GAME_NS)
 @auth.login_required(app, sio)
-async def create_floor(sid: str, data: Dict[str, Any]):
+async def create_floor(sid: str, data: str):
     pr: PlayerRoom = game_state.get(sid)
 
     if pr.role != Role.DM:
@@ -41,7 +46,7 @@ async def create_floor(sid: str, data: Dict[str, Any]):
 
 @sio.on("Floor.Remove", namespace=GAME_NS)
 @auth.login_required(app, sio)
-async def remove_floor(sid, data):
+async def remove_floor(sid: str, data: str):
     pr: PlayerRoom = game_state.get(sid)
 
     if pr.role != Role.DM:
@@ -62,7 +67,7 @@ async def remove_floor(sid, data):
 
 @sio.on("Floor.Visible.Set", namespace=GAME_NS)
 @auth.login_required(app, sio)
-async def set_floor_visibility(sid, data):
+async def set_floor_visibility(sid: str, data: FloorVisibleData):
     pr: PlayerRoom = game_state.get(sid)
 
     if pr.role != Role.DM:

@@ -1,5 +1,4 @@
 import { uuidv4 } from "@/core/utils";
-import { socket } from "@/game/api/socket";
 import { aurasFromServer, aurasToServer } from "@/game/comm/conversion/aura";
 import { InitiativeData } from "@/game/comm/types/general";
 import { accessToServer, ownerToClient, ownerToServer, ServerShape } from "@/game/comm/types/shapes";
@@ -12,6 +11,13 @@ import { TriangulationTarget } from "@/game/visibility/te/pa";
 import { addBlocker, getBlockers, getVisionSources, setVisionSources, sliceBlockers } from "@/game/visibility/utils";
 import tinycolor from "tinycolor2";
 import { PartialBy } from "../../core/types";
+import {
+    sendShapeAddOwner,
+    sendShapeDeleteOwner,
+    sendShapeUpdateDefaultOwner,
+    sendShapeUpdateOwner,
+} from "../api/emits/access";
+import { sendShapeSetInvisible, sendShapeSetLocked } from "../api/emits/shape";
 import { Floor } from "../layers/floor";
 import { Layer } from "../layers/layer";
 import { getFloorId } from "../layers/store";
@@ -259,14 +265,14 @@ export abstract class Shape {
     setInvisible(isInvisible: boolean, sync: boolean): void {
         this.isInvisible = isInvisible;
         // eslint-disable-next-line @typescript-eslint/camelcase
-        if (sync) socket.emit("Shape.Options.Invisible.Set", { shape: this.uuid, is_invisible: isInvisible });
+        if (sync) sendShapeSetInvisible({ shape: this.uuid, is_invisible: isInvisible });
         this.invalidate(true);
     }
 
     setLocked(isLocked: boolean, sync: boolean): void {
         this.isLocked = isLocked;
         // eslint-disable-next-line @typescript-eslint/camelcase
-        if (sync) socket.emit("Shape.Options.Locked.Set", { shape: this.uuid, is_locked: isLocked });
+        if (sync) sendShapeSetLocked({ shape: this.uuid, is_locked: isLocked });
         this.invalidate(true);
     }
 
@@ -477,7 +483,7 @@ export abstract class Shape {
             this._owners.push(fullOwner);
             if (owner.access.vision && this.isToken && owner.user === gameStore.username)
                 gameStore.ownedtokens.push(this.uuid);
-            if (sync) socket.emit("Shape.Owner.Add", ownerToServer(fullOwner));
+            if (sync) sendShapeAddOwner(ownerToServer(fullOwner));
             if (gameSettingsStore.fowLos) layerManager.invalidateLightAllFloors();
         }
     }
@@ -507,7 +513,7 @@ export abstract class Shape {
             }
         }
         targetOwner.access = fullOwner.access;
-        if (sync) socket.emit("Shape.Owner.Update", ownerToServer(fullOwner));
+        if (sync) sendShapeUpdateOwner(ownerToServer(fullOwner));
         if (gameSettingsStore.fowLos) layerManager.invalidateLightAllFloors();
     }
 
@@ -519,7 +525,7 @@ export abstract class Shape {
             const ownedIndex = gameStore.ownedtokens.indexOf(this.uuid);
             if (ownedIndex >= 0) gameStore.ownedtokens.splice(ownedIndex, 1);
         }
-        if (sync) socket.emit("Shape.Owner.Delete", ownerToServer(removed));
+        if (sync) sendShapeDeleteOwner(ownerToServer(removed));
         if (gameSettingsStore.fowLos) layerManager.invalidateLightAllFloors();
     }
 
@@ -542,8 +548,7 @@ export abstract class Shape {
             if (!this.ownedBy({ visionAccess: true }) && ownedIndex >= 0) gameStore.ownedtokens.splice(ownedIndex, 1);
         }
         if (gameSettingsStore.fowLos) layerManager.invalidateLightAllFloors();
-        if (sync)
-            socket.emit("Shape.Owner.Default.Update", { ...accessToServer(this.defaultAccess), shape: this.uuid });
+        if (sync) sendShapeUpdateDefaultOwner({ ...accessToServer(this.defaultAccess), shape: this.uuid });
     }
 
     updatePoints(): void {

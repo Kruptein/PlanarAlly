@@ -1,5 +1,4 @@
 import { InvalidationMode, SyncMode } from "@/core/comm/types";
-import { sendClientOptions } from "@/game/api/utils";
 import { ServerShape } from "@/game/comm/types/shapes";
 import { EventBus } from "@/game/event-bus";
 import { GlobalPoint } from "@/game/geom";
@@ -8,6 +7,7 @@ import { createShapeFromDict } from "@/game/shapes/utils";
 import { gameStore } from "@/game/store";
 import { AnnotationManager } from "@/game/ui/annotation";
 import { g2l } from "@/game/units";
+import { sendClientLocationOptions } from "./api/emits/client";
 import { getFloorId } from "./layers/store";
 import { Shape } from "./shapes/shape";
 
@@ -61,7 +61,7 @@ export class GameManager {
         gameStore.increasePanX((window.innerWidth / 2 - localPos.x) / gameStore.zoomFactor);
         gameStore.increasePanY((window.innerHeight / 2 - localPos.y) / gameStore.zoomFactor);
         layerManager.invalidateAllFloors();
-        sendClientOptions(gameStore.locationUserOptions);
+        sendClientLocationOptions();
     }
 }
 

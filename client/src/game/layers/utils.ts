@@ -10,7 +10,7 @@ import { Asset } from "@/game/shapes/asset";
 import { clampGridLine, l2gx, l2gy, l2gz } from "@/game/units";
 import { visibilityStore } from "@/game/visibility/store";
 import { addCDT, removeCDT } from "@/game/visibility/te/pa";
-import { socket } from "../api/socket";
+import { sendFloorChange, sendLayerChange } from "../api/emits/shape";
 import { gameSettingsStore } from "../settings";
 import { Shape } from "../shapes/shape";
 import { gameStore } from "../store";
@@ -137,7 +137,7 @@ export function moveFloor(shapes: Shape[], newFloor: Floor, sync: boolean): void
     newLayer.pushShapes(...shapes);
     oldLayer.invalidate(false);
     newLayer.invalidate(false);
-    if (sync) socket.emit("Shapes.Floor.Change", { uuids: shapes.map(s => s.uuid), floor: newFloor.name });
+    if (sync) sendFloorChange({ uuids: shapes.map(s => s.uuid), floor: newFloor.name });
 }
 
 export function moveLayer(shapes: Shape[], newLayer: Layer, sync: boolean): void {
@@ -156,9 +156,9 @@ export function moveLayer(shapes: Shape[], newLayer: Layer, sync: boolean): void
     newLayer.invalidate(false);
     // Sync!
     if (sync)
-        socket.emit("Shapes.Layer.Change", {
+        sendLayerChange({
             uuids: shapes.map(s => s.uuid),
             layer: newLayer.name,
-            floor: newLayer.floor,
+            floor: layerManager.getFloor(newLayer.floor)!.name,
         });
 }

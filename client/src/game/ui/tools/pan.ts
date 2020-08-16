@@ -1,9 +1,9 @@
-import { sendClientOptions } from "@/game/api/utils";
 import { LocalPoint } from "@/game/geom";
 import { layerManager } from "@/game/layers/manager";
 import { gameStore } from "@/game/store";
 import Tool from "@/game/ui/tools/tool.vue";
 import Component from "vue-class-component";
+import { sendClientLocationOptions } from "../../api/emits/client";
 import { ToolBasics } from "./ToolBasics";
 import { ToolName } from "./utils";
 
@@ -36,6 +36,6 @@ export default class PanTool extends Tool implements ToolBasics {
         if (!this.active) return;
         this.active = false;
         this.panScreen(lp, true);
-        sendClientOptions(gameStore.locationUserOptions);
+        sendClientLocationOptions();
     }
 }

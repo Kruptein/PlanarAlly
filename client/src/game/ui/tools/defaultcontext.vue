@@ -4,7 +4,7 @@ import Component from "vue-class-component";
 
 import ContextMenu from "@/core/components/contextmenu.vue";
 
-import { socket } from "@/game/api/socket";
+import { sendBringPlayers } from "@/game/api/emits/players";
 import { EventBus } from "@/game/event-bus";
 import { gameStore } from "@/game/store";
 import { l2gx, l2gy } from "@/game/units";
@@ -35,7 +35,7 @@ export default class DefaultContext extends Vue {
     }
     bringPlayers(): void {
         if (!gameStore.IS_DM) return;
-        socket.emit("Players.Bring", {
+        sendBringPlayers({
             floor: floorStore.currentFloor.name,
             x: l2gx(this.x),
             y: l2gy(this.y),

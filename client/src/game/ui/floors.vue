@@ -5,13 +5,12 @@ import draggable from "vuedraggable";
 
 import Game from "@/game/Game.vue";
 
-import { socket } from "@/game/api/socket";
 import { layerManager } from "@/game/layers/manager";
 import { removeFloor } from "@/game/layers/utils";
 import { gameStore } from "@/game/store";
 import { Floor } from "../layers/floor";
 import { floorStore, getFloorId } from "../layers/store";
-import { sendRenameFloor } from "../api/events/floor";
+import { sendRenameFloor, sendCreateFloor, sendRemoveFloor, sendFloorSetVisible } from "../api/emits/floor";
 
 @Component({
     components: {
@@ -66,7 +65,7 @@ export default class FloorSelect extends Vue {
             this.$t("game.ui.floors.creation").toString(),
         );
         if (value === undefined) return;
-        socket.emit("Floor.Create", value);
+        sendCreateFloor(value);
     }
 
     selectFloor(floor: Floor): void {
@@ -91,13 +90,13 @@ export default class FloorSelect extends Vue {
             ))
         )
             return;
-        socket.emit("Floor.Remove", floor.name);
+        sendRemoveFloor(floor.name);
         removeFloor(floor.id);
     }
 
     toggleVisible(floor: Floor): void {
         floor.playerVisible = !floor.playerVisible;
-        socket.emit("Floor.Visible.Set", { name: floor.name, visible: floor.playerVisible });
+        sendFloorSetVisible({ name: floor.name, visible: floor.playerVisible });
     }
 
     getLayerWord(layer: string): string {

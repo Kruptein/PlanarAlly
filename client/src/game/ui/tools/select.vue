@@ -23,7 +23,7 @@ import { Line } from "../../shapes/line";
 import { SyncMode, InvalidationMode } from "../../../core/comm/types";
 import { BoundingRect } from "../../shapes/boundingrect";
 import { floorStore } from "@/game/layers/store";
-import { sendShapePositionUpdate } from "../../api/events/shape";
+import { sendShapePositionUpdate } from "../../api/emits/shape";
 import { Shape } from "@/game/shapes/shape";
 import Tools from "./tools.vue";
 

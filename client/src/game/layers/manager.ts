@@ -1,7 +1,7 @@
 import { GridLayer } from "@/game/layers/grid";
 import { Layer } from "@/game/layers/layer";
 import { Shape } from "@/game/shapes/shape";
-import { sendActiveLayer } from "../api/events/floor";
+import { sendActiveLayer } from "../api/emits/floor";
 import { Floor } from "./floor";
 import { floorStore } from "./store";
 

@@ -1,0 +1,114 @@
+from typing import List, Optional
+from typing_extensions import TypedDict
+
+# DATA CLASSES FOR TYPE CHECKING
+class PositionUpdate(TypedDict):
+    uuid: str
+    points: List[List[float]]
+
+
+class PositionUpdateList(TypedDict):
+    shapes: List[PositionUpdate]
+    temporary: bool
+
+
+class ServerTracker(TypedDict):
+    uuid: str
+    visible: bool
+    name: str
+    value: int
+    maxvalue: int
+
+
+class ServerLabel(TypedDict):
+    uuid: str
+    category: str
+    name: str
+    visible: bool
+    user: str
+
+
+class ServerAura(TypedDict):
+    uuid: str
+    vision_source: bool
+    visible: bool
+    name: str
+    value: int
+    dim: int
+    colour: str
+
+
+class ServerShapeDefaultOwner(TypedDict):
+    edit_access: bool
+    movement_access: bool
+    vision_access: bool
+    shape: str
+
+
+class ServerShapeOwner(ServerShapeDefaultOwner):
+    user: str
+
+
+class ShapeKeys(TypedDict):
+    uuid: str
+    type_: str
+    x: int
+    y: int
+    index: int
+    angle: int
+    floor: str
+    layer: str
+    movement_obstruction: bool
+    vision_obstruction: bool
+    draw_operator: str
+    trackers: List[ServerTracker]
+    auras: List[ServerAura]
+    labels: List[ServerLabel]
+    owners: List[ServerShapeOwner]
+    fill_colour: str
+    stroke_colour: str
+    stroke_width: int
+    name: str
+    name_visible: bool
+    annotation: str
+    is_token: bool
+    is_invisible: bool
+    options: Optional[str]
+    badge: int
+    show_badge: bool
+    is_locked: bool
+    default_edit_access: bool
+    default_movement_access: bool
+    default_vision_access: bool
+
+
+class ShapeAdd(TypedDict):
+    shape: ShapeKeys
+    temporary: bool
+
+
+class TemporaryShapesList(TypedDict):
+    uuids: List[str]
+    temporary: bool
+
+
+class ShapeOrder(TypedDict):
+    uuid: str
+    index: int
+
+
+class ShapeFloorChange(TypedDict):
+    uuids: List[str]
+    floor: str
+
+
+class ServerShapeLocationMoveTarget(TypedDict):
+    location: int
+    floor: str
+    x: int
+    y: int
+
+
+class ServerShapeLocationMove(TypedDict):
+    shapes: List[str]
+    target: ServerShapeLocationMoveTarget

@@ -5,7 +5,6 @@ import { Prop } from "vue-property-decorator";
 
 import InputCopyElement from "@/core/components/inputCopy.vue";
 import Game from "@/game/Game.vue";
-import { socket } from "@/game/api/socket";
 import { gameStore } from "@/game/store";
 import { renameLocation } from "../../../api/events/location";
 
@@ -23,7 +22,6 @@ export default class LocationAdminSettings extends Vue {
 
     set name(name: string) {
         renameLocation(this.location, name);
-        socket.emit("Location.Rename", { id: this.location, new: name });
     }
 
     get hasPlayers(): boolean {
@@ -42,7 +40,6 @@ export default class LocationAdminSettings extends Vue {
             },
         );
         if (!remove) return;
-        socket.emit("Location.Delete", this.location);
         this.$emit("update:location", gameStore.locations.find(l => l.id !== this.location)!.id);
         gameStore.removeLocation(this.location);
         this.$emit("close");

@@ -8,9 +8,9 @@ import { Prop, Watch } from "vue-property-decorator";
 import Game from "@/game/Game.vue";
 
 import { gameStore } from "@/game/store";
-import { socket } from "@/game/api/socket";
 import { coreStore } from "../../../core/store";
 import { EventBus } from "../../event-bus";
+import { sendLocationChange, sendNewLocation } from "@/game/api/emits/location";
 
 @Component({
     computed: {
@@ -40,7 +40,7 @@ export default class LocationBar extends Vue {
     horizontalOffset = 0;
 
     changeLocation(id: number): void {
-        socket.emit("Location.Change", { location: id, users: [gameStore.username] });
+        sendLocationChange({ location: id, users: [gameStore.username] });
         coreStore.setLoading(true);
     }
 
@@ -67,7 +67,7 @@ export default class LocationBar extends Vue {
             this.$t("game.ui.menu.locations.new_location_name").toString(),
             this.$t("game.ui.menu.locations.create_new_location").toString(),
         );
-        socket.emit("Location.New", value);
+        sendNewLocation(value);
     }
 
     openLocationSettings(location: string): void {
@@ -101,9 +101,7 @@ export default class LocationBar extends Vue {
             this.expanded.slice(idx, 1);
             this.expanded.push(toLocation);
         }
-        // e.item.remove();
-        // e.clone.remove();
-        socket.emit("Location.Change", { location: toLocation, users: players });
+        sendLocationChange({ location: toLocation, users: players });
     }
 
     endPlayerDrag(e: { item: HTMLDivElement; from: HTMLDivElement; to: HTMLDivElement }): void {
@@ -115,7 +113,7 @@ export default class LocationBar extends Vue {
         for (const player of gameStore.players) {
             if (player.name === targetPlayer) {
                 player.location = toLocation;
-                socket.emit("Location.Change", { location: toLocation, users: [targetPlayer] });
+                sendLocationChange({ location: toLocation, users: [targetPlayer] });
                 break;
             }
         }

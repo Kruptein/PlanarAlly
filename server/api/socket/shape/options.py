@@ -1,4 +1,5 @@
 from typing import Any, Dict
+from typing_extensions import TypedDict
 
 import auth
 from api.socket.constants import GAME_NS
@@ -9,9 +10,19 @@ from state.game import game_state
 from utils import logger
 
 
+class ShapeSetInvisible(TypedDict):
+    shape: str
+    is_invisible: bool
+
+
+class ShapeSetLocked(TypedDict):
+    shape: str
+    is_locked: bool
+
+
 @sio.on("Shape.Options.Invisible.Set", namespace=GAME_NS)
 @auth.login_required(app, sio)
-async def set_invisible(sid: str, data: Dict[str, Any]):
+async def set_invisible(sid: str, data: ShapeSetInvisible):
     pr: PlayerRoom = game_state.get(sid)
 
     try:
@@ -42,7 +53,7 @@ async def set_invisible(sid: str, data: Dict[str, Any]):
 
 @sio.on("Shape.Options.Locked.Set", namespace=GAME_NS)
 @auth.login_required(app, sio)
-async def set_locked(sid: str, data: Dict[str, Any]):
+async def set_locked(sid: str, data: ShapeSetLocked):
     pr: PlayerRoom = game_state.get(sid)
 
     try:

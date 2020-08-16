@@ -1,6 +1,6 @@
-import { socket } from "@/game/api/socket";
 import { rootStore } from "@/store";
 import { Action, getModule, Module, Mutation, VuexModule } from "vuex-module-decorators";
+import { sendLocationOptions } from "../api/emits/location";
 import { Shape } from "../shapes/shape";
 import { addShapesToTriag, deleteShapeFromTriag, triangulate, TriangulationTarget } from "./te/pa";
 import { moveBlocker, moveVisionSource } from "./utils";
@@ -24,8 +24,12 @@ class VisibilityStore extends VuexModule implements VisibilityState {
     @Mutation
     setVisionMode(data: { mode: VisibilityMode; sync: boolean }): void {
         this.visionMode = data.mode;
-        // eslint-disable-next-line @typescript-eslint/camelcase
-        if (data.sync) socket.emit("Location.Options.Set", { vision_mode: VisibilityMode[data.mode] });
+        if (data.sync)
+            sendLocationOptions({
+                // eslint-disable-next-line @typescript-eslint/camelcase
+                options: { vision_mode: VisibilityMode[data.mode] },
+                location: null,
+            });
     }
 
     @Mutation

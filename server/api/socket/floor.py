@@ -16,9 +16,14 @@ class FloorRename(TypedDict):
     name: str
 
 
+class FloorVisibleData(TypedDict):
+    name: str
+    visible: bool
+
+
 @sio.on("Floor.Create", namespace=GAME_NS)
 @auth.login_required(app, sio)
-async def create_floor(sid: str, data: Dict[str, Any]):
+async def create_floor(sid: str, data: str):
     pr: PlayerRoom = game_state.get(sid)
 
     if pr.role != Role.DM:
@@ -41,7 +46,7 @@ async def create_floor(sid: str, data: Dict[str, Any]):
 
 @sio.on("Floor.Remove", namespace=GAME_NS)
 @auth.login_required(app, sio)
-async def remove_floor(sid, data):
+async def remove_floor(sid: str, data: str):
     pr: PlayerRoom = game_state.get(sid)
 
     if pr.role != Role.DM:
@@ -62,7 +67,7 @@ async def remove_floor(sid, data):
 
 @sio.on("Floor.Visible.Set", namespace=GAME_NS)
 @auth.login_required(app, sio)
-async def set_floor_visibility(sid, data):
+async def set_floor_visibility(sid: str, data: FloorVisibleData):
     pr: PlayerRoom = game_state.get(sid)
 
     if pr.role != Role.DM:
@@ -73,10 +78,12 @@ async def set_floor_visibility(sid, data):
     floor.player_visible = data["visible"]
     floor.save()
 
-    for psid in game_state.get_sids(room=pr.room, skip_sid=sid):
-        await sio.emit(
-            "Floor.Visible.Set", data, room=psid, namespace=GAME_NS,
-        )
+    await sio.emit(
+        "Floor.Visible.Set",
+        data,
+        room=pr.active_location.get_path(),
+        namespace=GAME_NS,
+    )
 
 
 @sio.on("Floor.Rename", namespace=GAME_NS)
@@ -92,10 +99,13 @@ async def rename_floor(sid: str, data: FloorRename):
     floor.name = data["name"]
     floor.save()
 
-    for psid in game_state.get_sids(room=pr.room, skip_sid=sid):
-        await sio.emit(
-            "Floor.Rename", data, room=psid, namespace=GAME_NS,
-        )
+    await sio.emit(
+        "Floor.Rename",
+        data,
+        room=pr.active_location.get_path(),
+        skip_sid=sid,
+        namespace=GAME_NS,
+    )
 
 
 @sio.on("Floors.Reorder", namespace=GAME_NS)
@@ -113,7 +123,10 @@ async def reorder_floors(sid: str, data: List[str]):
             init.index = i
             init.save()
 
-    for psid in game_state.get_sids(active_location=pr.active_location, skip_sid=sid):
-        await sio.emit(
-            "Floors.Reorder", data, room=psid, namespace=GAME_NS,
-        )
+    await sio.emit(
+        "Floors.Reorder",
+        data,
+        room=pr.active_location.get_path(),
+        skip_sid=sid,
+        namespace=GAME_NS,
+    )

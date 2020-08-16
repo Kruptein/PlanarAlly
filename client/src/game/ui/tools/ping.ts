@@ -9,7 +9,7 @@ import Component from "vue-class-component";
 import { ToolBasics } from "./ToolBasics";
 import { ToolName } from "./utils";
 import { floorStore } from "../../layers/store";
-import { sendShapePositionUpdate } from "../../api/events/shape";
+import { sendShapePositionUpdate } from "../../api/emits/shape";
 
 @Component
 export class PingTool extends Tool implements ToolBasics {

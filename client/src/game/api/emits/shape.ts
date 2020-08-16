@@ -61,6 +61,10 @@ export function sendTrackerUpdate(data: {
     socket.emit("Shapes.Trackers.Update", data);
 }
 
+export function sendTextUpdate(data: { uuid: string; text: string; temporary: boolean }): void {
+    socket.emit("Shape.Text.Value.Set", data);
+}
+
 // helpers
 
 function _sendShapePositionUpdate(shapes: { uuid: string; points: number[][] }[], temporary: boolean): void {

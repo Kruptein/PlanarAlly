@@ -8,6 +8,7 @@ import { gameManager } from "../../manager";
 import { changeGroupLeader, addGroupMember } from "../../shapes/group";
 import { Shape } from "../../shapes/shape";
 import { socket } from "../socket";
+import { Text } from "../../shapes/text";
 
 socket.on("Shape.Set", (data: ServerShape) => {
     // hard reset a shape
@@ -105,3 +106,11 @@ socket.on(
         }
     },
 );
+
+socket.on("Shape.Text.Value.Set", (data: { uuid: string; text: string }) => {
+    const shape = <Text | undefined>layerManager.UUIDMap.get(data.uuid);
+    if (shape === undefined) return;
+
+    shape.text = data.text;
+    shape.layer.invalidate(true);
+});

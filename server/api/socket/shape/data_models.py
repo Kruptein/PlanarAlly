@@ -129,3 +129,9 @@ class TrackerUpdateData(TypedDict):
     shape: str
     value: str
     _type: Literal["aura", "tracker"]
+
+
+class TextUpdateData(TypedDict):
+    uuid: str
+    text: str
+    temporary: bool

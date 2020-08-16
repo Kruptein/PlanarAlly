@@ -343,10 +343,10 @@ async def change_shape_layer(sid: str, data: Dict[str, Any]):
             if room_player.role == Role.DM:
                 continue
             for psid in game_state.get_sids(
-                player=room_player.player, active_location=pr.active_location
+                player=room_player.player,
+                active_location=pr.active_location,
+                skip_sid=sid,
             ):
-                if psid == sid:
-                    continue
                 await sio.emit(
                     "Shapes.Remove", data["uuids"], room=psid, namespace=GAME_NS,
                 )
@@ -381,7 +381,7 @@ async def change_shape_layer(sid: str, data: Dict[str, Any]):
                     await sio.emit(
                         "Shapes.Layer.Change",
                         data,
-                        room=pr.active_location.get_path(),
+                        room=psid,
                         skip_sid=sid,
                         namespace=GAME_NS,
                     )
@@ -506,10 +506,12 @@ async def move_shapes(sid: str, data: Dict[str, Any]):
 
     shapes = [Shape.get_by_id(sh) for sh in data["shapes"]]
 
-    for psid, player in game_state.get_users(active_location=pr.active_location):
-        await sio.emit(
-            "Shapes.Remove", [sh.uuid for sh in shapes], room=psid, namespace=GAME_NS,
-        )
+    await sio.emit(
+        "Shapes.Remove",
+        [sh.uuid for sh in shapes],
+        room=pr.active_location.get_path(),
+        namespace=GAME_NS,
+    )
 
     for shape in shapes:
         shape.layer = floor.layers.where(Layer.name == shape.layer.name)[0]

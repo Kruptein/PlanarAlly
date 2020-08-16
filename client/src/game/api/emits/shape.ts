@@ -20,7 +20,7 @@ export function sendRemoveShapes(data: { uuids: string[]; temporary: boolean }):
 
 export function sendShapePositionUpdate(shapes: readonly Shape[], temporary: boolean): void {
     _sendShapePositionUpdate(
-        shapes.filter(s => !s.preventSync).map(s => ({ uuid: s.uuid, points: s.getPositionRepresentation() })),
+        shapes.filter(s => !s.preventSync).map(s => ({ uuid: s.uuid, position: s.getPositionRepresentation() })),
         temporary,
     );
 }
@@ -67,7 +67,10 @@ export function sendTextUpdate(data: { uuid: string; text: string; temporary: bo
 
 // helpers
 
-function _sendShapePositionUpdate(shapes: { uuid: string; points: number[][] }[], temporary: boolean): void {
+function _sendShapePositionUpdate(
+    shapes: { uuid: string; position: { angle: number; points: number[][] } }[],
+    temporary: boolean,
+): void {
     socket.emit("Shapes.Position.Update", {
         shapes,
         redraw: true,

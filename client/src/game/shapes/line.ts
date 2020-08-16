@@ -25,6 +25,15 @@ export class Line extends Shape {
         return false;
     }
 
+    getPositionRepresentation(): { angle: number; points: number[][] } {
+        return { angle: this.angle, points: [this.refPoint.asArray(), this.endPoint.asArray()] };
+    }
+
+    setPositionRepresentation(position: { angle: number; points: number[][] }): void {
+        this.endPoint = GlobalPoint.fromArray(position.points[1]);
+        super.setPositionRepresentation(position);
+    }
+
     asDict(): ServerLine {
         return Object.assign(this.getBaseDict(), {
             x2: this.endPoint.x,

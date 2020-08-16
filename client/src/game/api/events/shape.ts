@@ -45,14 +45,14 @@ socket.on("Shapes.Remove", (shapes: string[]) => {
     }
 });
 
-socket.on("Shapes.Position.Update", (data: { uuid: string; points: number[][] }[]) => {
+socket.on("Shapes.Position.Update", (data: { uuid: string; position: { angle: number; points: number[][] } }[]) => {
     for (const sh of data) {
         const shape = layerManager.UUIDMap.get(sh.uuid);
         if (shape === undefined) {
             console.log(`Attempted to move unknown shape ${sh.uuid}`);
             continue;
         }
-        shape.setPositionRepresentation(sh.points);
+        shape.setPositionRepresentation(sh.position);
     }
 });
 

@@ -121,6 +121,7 @@ async def update_shape_positions(sid: str, data: PositionUpdateList):
                 points = data_shape["points"]
                 db_shape.x = points[0][0]
                 db_shape.y = points[0][1]
+                db_shape.angle = data_shape["angle"]
                 db_shape.save()
 
                 if len(points) > 1:

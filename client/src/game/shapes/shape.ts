@@ -344,12 +344,13 @@ export abstract class Shape {
         );
     }
 
-    getPositionRepresentation(): number[][] {
-        return [this.refPoint.asArray()];
+    getPositionRepresentation(): { angle: number; points: number[][] } {
+        return { angle: this.angle, points: [this.refPoint.asArray()] };
     }
 
-    setPositionRepresentation(points: number[][]): void {
-        this.refPoint = GlobalPoint.fromArray(points[0]);
+    setPositionRepresentation(position: { angle: number; points: number[][] }): void {
+        this.refPoint = GlobalPoint.fromArray(position.points[0]);
+        this.angle = position.angle;
         this.updateShapeVision(false, false);
     }
 

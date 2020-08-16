@@ -4,6 +4,7 @@ from typing_extensions import Literal, TypedDict
 # DATA CLASSES FOR TYPE CHECKING
 class PositionUpdate(TypedDict):
     uuid: str
+    angle: int
     points: List[List[float]]
 
 

@@ -85,13 +85,13 @@ export class Polygon extends Shape {
         return bbox;
     }
 
-    getPositionRepresentation(): number[][] {
-        return this.vertices.map(v => v.asArray());
+    getPositionRepresentation(): { angle: number; points: number[][] } {
+        return { angle: this.angle, points: this.vertices.map(v => v.asArray()) };
     }
 
-    setPositionRepresentation(points: number[][]): void {
-        this._vertices = points.slice(1).map(p => GlobalPoint.fromArray(p));
-        super.setPositionRepresentation(points);
+    setPositionRepresentation(position: { angle: number; points: number[][] }): void {
+        this._vertices = position.points.slice(1).map(p => GlobalPoint.fromArray(p));
+        super.setPositionRepresentation(position);
     }
 
     get points(): number[][] {

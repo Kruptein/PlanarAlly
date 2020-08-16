@@ -1,5 +1,5 @@
 from typing import List, Optional
-from typing_extensions import TypedDict
+from typing_extensions import Literal, TypedDict
 
 # DATA CLASSES FOR TYPE CHECKING
 class PositionUpdate(TypedDict):
@@ -122,3 +122,10 @@ class GroupLeaderData(TypedDict):
 class GroupMemberAddData(TypedDict):
     leader: str
     member: str
+
+
+class TrackerUpdateData(TypedDict):
+    uuid: str
+    shape: str
+    value: str
+    _type: Literal["aura", "tracker"]

@@ -52,6 +52,15 @@ export function sendGroupMemberAdd(data: { leader: string; member: string }): vo
     socket.emit("Shapes.Group.Member.Add", data);
 }
 
+export function sendTrackerUpdate(data: {
+    uuid: string;
+    value: number;
+    shape: string;
+    _type: "tracker" | "aura";
+}): void {
+    socket.emit("Shapes.Trackers.Update", data);
+}
+
 // helpers
 
 function _sendShapePositionUpdate(shapes: { uuid: string; points: number[][] }[], temporary: boolean): void {

@@ -89,3 +89,19 @@ socket.on("Shapes.Group.Leader.Set", (data: { leader: string; members: string[] 
 socket.on("Shapes.Group.Member.Add", (data: { leader: string; member: string }) => {
     addGroupMember({ ...data, sync: false });
 });
+
+socket.on(
+    "Shapes.Trackers.Update",
+    (data: { uuid: string; value: number; shape: string; _type: "tracker" | "aura" }) => {
+        const shape = layerManager.UUIDMap.get(data.shape);
+        if (shape === undefined) return;
+
+        let tracker: Tracker | Aura | undefined;
+        if (data._type === "tracker") tracker = shape.trackers.find(t => t.uuid === data.uuid);
+        else tracker = shape.auras.find(a => a.uuid === data.uuid);
+        if (tracker !== undefined) {
+            tracker.value = data.value;
+            if (data._type === "aura") shape.layer.invalidate(!(<Aura>tracker).visionSource);
+        }
+    },
+);

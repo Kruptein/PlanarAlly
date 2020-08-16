@@ -560,3 +560,27 @@ async def add_group_member(sid: str, data: GroupMemberAddData):
         skip_sid=sid,
         namespace=GAME_NS,
     )
+
+
+@sio.on("Shapes.Trackers.Update", namespace=GAME_NS)
+@auth.login_required(app, sio)
+async def update_shape_tracker(sid: str, data: TrackerUpdateData):
+    pr: PlayerRoom = game_state.get(sid)
+
+    x = data["_type"]
+
+    if data["_type"] == "tracker":
+        tracker = Tracker.get_by_id(data["uuid"])
+    else:
+        tracker = Aura.get_by_id(data["uuid"])
+
+    tracker.value = data["value"]
+    tracker.save()
+
+    await sio.emit(
+        "Shapes.Trackers.Update",
+        data,
+        room=pr.active_location.get_path(),
+        skip_sid=sid,
+        namespace=GAME_NS,
+    )

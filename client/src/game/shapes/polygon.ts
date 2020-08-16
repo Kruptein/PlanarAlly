@@ -4,9 +4,10 @@ import { g2l, g2lx, g2ly, g2lz } from "../units";
 import { filterEqualPoints, getFogColour, getPointsCenter, rotateAroundPoint } from "../utils";
 import { BoundingRect } from "./boundingrect";
 import { Shape } from "./shape";
+import { SHAPE_TYPE } from "./types";
 
 export class Polygon extends Shape {
-    type = "polygon";
+    type: SHAPE_TYPE = "polygon";
     _vertices: GlobalPoint[] = [];
     openPolygon = false;
     lineWidth: number;

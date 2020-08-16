@@ -20,7 +20,6 @@ import { Line } from "@/game/shapes/line";
 import { Rect } from "@/game/shapes/rect";
 import { Shape } from "@/game/shapes/shape";
 import { Text } from "@/game/shapes/text";
-import { socket } from "../api/socket";
 import { EventBus } from "../event-bus";
 import { floorStore, getFloorId } from "../layers/store";
 import { gameStore } from "../store";

@@ -25,10 +25,11 @@ import { gameSettingsStore } from "../settings";
 import { rotateAroundPoint } from "../utils";
 import { BoundingRect } from "./boundingrect";
 import { PartialShapeOwner, ShapeAccess, ShapeOwner } from "./owners";
+import { SHAPE_TYPE } from "./types";
 
 export abstract class Shape {
     // Used to create class instance from server shape data
-    abstract readonly type: string;
+    abstract readonly type: SHAPE_TYPE;
     // The unique ID of this shape
     readonly uuid: string;
     // The layer the shape is currently on

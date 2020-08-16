@@ -1,6 +1,6 @@
 from copy import deepcopy
 from datetime import datetime
-from typing import Any, Dict, Generic, List, Tuple
+from typing import Any, Dict, Generic, List, Tuple, Union
 
 from peewee import Case
 from playhouse.shortcuts import update_model_from_dict
@@ -10,11 +10,15 @@ from api.socket.constants import GAME_NS
 from api.socket.shape.data_models import *
 from app import app, sio
 from models import (
+    AssetRect,
     Aura,
+    Circle,
+    CircularToken,
     Floor,
     Label,
     Layer,
     PlayerRoom,
+    Rect,
     Room,
     Shape,
     ShapeLabel,
@@ -118,10 +122,10 @@ async def update_shape_positions(sid: str, data: PositionUpdateList):
     if not data["temporary"]:
         with db.atomic():
             for db_shape, data_shape in shapes:
-                points = data_shape["points"]
+                points = data_shape["position"]["points"]
                 db_shape.x = points[0][0]
                 db_shape.y = points[0][1]
-                db_shape.angle = data_shape["angle"]
+                db_shape.angle = data_shape["position"]["angle"]
                 db_shape.save()
 
                 if len(points) > 1:
@@ -598,6 +602,53 @@ async def set_text_value(sid: str, data: TextUpdateData):
 
     await sio.emit(
         "Shape.Text.Value.Set",
+        data,
+        room=pr.active_location.get_path(),
+        skip_sid=sid,
+        namespace=GAME_NS,
+    )
+
+
+@sio.on("Shape.Rect.Size.Update", namespace=GAME_NS)
+@auth.login_required(app, sio)
+async def update_rect_size(sid: str, data: RectSizeData):
+    pr: PlayerRoom = game_state.get(sid)
+
+    if not data["temporary"]:
+        shape: Union[AssetRect, Rect]
+        try:
+            shape: AssetRect = AssetRect.get_by_id(data["uuid"])
+        except AssetRect.DoesNotExist:
+            shape: Rect = Rect.get_by_id(data["uuid"])
+        shape.width = data["w"]
+        shape.height = data["h"]
+        shape.save()
+
+    await sio.emit(
+        "Shape.Rect.Size.Update",
+        data,
+        room=pr.active_location.get_path(),
+        skip_sid=sid,
+        namespace=GAME_NS,
+    )
+
+
+@sio.on("Shape.Circle.Size.Update", namespace=GAME_NS)
+@auth.login_required(app, sio)
+async def update_circle_size(sid: str, data: CircleSizeData):
+    pr: PlayerRoom = game_state.get(sid)
+
+    if not data["temporary"]:
+        shape: Union[Circle, CircularToken]
+        try:
+            shape = CircularToken.get_by_id(data["uuid"])
+        except CircularToken.DoesNotExist:
+            shape = Circle.get_by_id(data["uuid"])
+        shape.radius = data["r"]
+        shape.save()
+
+    await sio.emit(
+        "Shape.Circle.Size.Update",
         data,
         room=pr.active_location.get_path(),
         skip_sid=sid,

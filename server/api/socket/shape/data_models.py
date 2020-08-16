@@ -2,10 +2,14 @@ from typing import List, Optional
 from typing_extensions import Literal, TypedDict
 
 # DATA CLASSES FOR TYPE CHECKING
-class PositionUpdate(TypedDict):
-    uuid: str
+class PositionTuple(TypedDict):
     angle: int
     points: List[List[float]]
+
+
+class PositionUpdate(TypedDict):
+    uuid: str
+    position: PositionTuple
 
 
 class PositionUpdateList(TypedDict):
@@ -135,4 +139,17 @@ class TrackerUpdateData(TypedDict):
 class TextUpdateData(TypedDict):
     uuid: str
     text: str
+    temporary: bool
+
+
+class RectSizeData(TypedDict):
+    uuid: str
+    w: int
+    h: int
+    temporary: bool
+
+
+class CircleSizeData(TypedDict):
+    uuid: str
+    r: int
     temporary: bool

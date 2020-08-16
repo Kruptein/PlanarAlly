@@ -4,9 +4,10 @@ import { gameStore } from "@/game/store";
 import { g2l } from "@/game/units";
 import { getFogColour } from "@/game/utils";
 import { ServerShape } from "../comm/types/shapes";
+import { SHAPE_TYPE } from "./types";
 
 export class Rect extends BaseRect {
-    type = "rect";
+    type: SHAPE_TYPE = "rect";
     constructor(topleft: GlobalPoint, w: number, h: number, fillColour?: string, strokeColour?: string, uuid?: string) {
         super(topleft, w, h, fillColour, strokeColour, uuid);
     }

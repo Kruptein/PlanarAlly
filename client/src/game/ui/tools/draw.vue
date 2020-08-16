@@ -10,7 +10,6 @@ import Tool from "./tool.vue";
 import Tools from "./tools.vue";
 
 import { SyncMode, InvalidationMode } from "@/core/comm/types";
-import { socket } from "@/game/api/socket";
 import { GlobalPoint, LocalPoint } from "@/game/geom";
 import { Layer } from "@/game/layers/layer";
 import { snapToPoint } from "@/game/layers/utils";
@@ -31,6 +30,7 @@ import { EventBus } from "../../event-bus";
 import { ToolBasics } from "./ToolBasics";
 import { floorStore } from "@/game/layers/store";
 import { Floor } from "@/game/layers/floor";
+import { sendShapeSizeUpdate, sendShapePositionUpdate } from "@/game/api/emits/shape";
 
 @Component({
     components: {
@@ -286,8 +286,7 @@ export default class DrawTool extends Tool implements ToolBasics {
                     this.shape.points[this.shape.points.length - 1],
                 );
             layer.invalidate(false);
-            if (!this.shape!.preventSync)
-                socket.emit("Shape.Update", { shape: this.shape!.asDict(), redraw: true, temporary: true });
+            if (!this.shape!.preventSync) sendShapeSizeUpdate({ shape: this.shape!, temporary: true });
         }
     }
 
@@ -347,8 +346,7 @@ export default class DrawTool extends Tool implements ToolBasics {
         }
 
         if (!(this.shapeSelect === "draw-polygon" && this.shape instanceof Polygon)) {
-            if (!this.shape!.preventSync)
-                socket.emit("Shape.Update", { shape: this.shape!.asDict(), redraw: true, temporary: true });
+            if (!this.shape!.preventSync) sendShapeSizeUpdate({ shape: this.shape!, temporary: true });
             if (this.shape.visionObstruction) {
                 if (
                     getCDT(TriangulationTarget.VISION, this.shape.floor.id).tds.getTriagVertices(this.shape.uuid)
@@ -447,8 +445,7 @@ export default class DrawTool extends Tool implements ToolBasics {
         } else {
             if (this.shape.visionObstruction) visibilityStore.recalculateVision(this.shape.floor.id);
             if (this.shape.movementObstruction) visibilityStore.recalculateMovement(this.shape.floor.id);
-            if (!this.shape!.preventSync)
-                socket.emit("Shape.Update", { shape: this.shape!.asDict(), redraw: true, temporary: false });
+            if (!this.shape!.preventSync) sendShapeSizeUpdate({ shape: this.shape!, temporary: false });
         }
         this.active = false;
         const layer = this.getLayer();

@@ -9,6 +9,8 @@ import { changeGroupLeader, addGroupMember } from "../../shapes/group";
 import { Shape } from "../../shapes/shape";
 import { socket } from "../socket";
 import { Text } from "../../shapes/text";
+import { Rect } from "../../shapes/rect";
+import { Circle } from "../../shapes/circle";
 
 socket.on("Shape.Set", (data: ServerShape) => {
     // hard reset a shape
@@ -113,4 +115,21 @@ socket.on("Shape.Text.Value.Set", (data: { uuid: string; text: string }) => {
 
     shape.text = data.text;
     shape.layer.invalidate(true);
+});
+
+socket.on("Shape.Rect.Size.Update", (data: { uuid: string; w: number; h: number }) => {
+    const shape = <Rect | undefined>layerManager.UUIDMap.get(data.uuid);
+    if (shape === undefined) return;
+
+    shape.w = data.w;
+    shape.h = data.h;
+    shape.layer.invalidate(!shape.auras.some(a => a.visionSource));
+});
+
+socket.on("Shape.Circle.Size.Update", (data: { uuid: string; r: number }) => {
+    const shape = <Circle | undefined>layerManager.UUIDMap.get(data.uuid);
+    if (shape === undefined) return;
+
+    shape.r = data.r;
+    shape.layer.invalidate(!shape.auras.some(a => a.visionSource));
 });

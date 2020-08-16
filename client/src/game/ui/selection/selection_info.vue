@@ -5,7 +5,6 @@ import Component from "vue-class-component";
 import Game from "@/game/Game.vue";
 import EditDialog from "@/game/ui/selection/edit_dialog/dialog.vue";
 
-import { socket } from "@/game/api/socket";
 import { EventBus } from "@/game/event-bus";
 import { layerManager } from "@/game/layers/manager";
 import { Shape } from "@/game/shapes/shape";

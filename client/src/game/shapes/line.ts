@@ -1,12 +1,13 @@
 import { GlobalPoint } from "@/game/geom";
 import { BoundingRect } from "@/game/shapes/boundingrect";
 import { Shape } from "@/game/shapes/shape";
-import { g2lx, g2ly, g2lz, g2l } from "@/game/units";
+import { g2l, g2lx, g2ly, g2lz } from "@/game/units";
 import { ServerLine } from "../comm/types/shapes";
 import { rotateAroundPoint } from "../utils";
+import { SHAPE_TYPE } from "./types";
 
 export class Line extends Shape {
-    type = "line";
+    type: SHAPE_TYPE = "line";
     endPoint: GlobalPoint;
     lineWidth: number;
     constructor(

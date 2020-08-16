@@ -1,6 +1,8 @@
 import { ServerShape } from "../../comm/types/shapes";
 import { Shape } from "../../shapes/shape";
 import { socket } from "../socket";
+import { Rect } from "../../shapes/rect";
+import { Circle } from "../../shapes/circle";
 
 export function sendShapeSetInvisible(data: { shape: string; is_invisible: boolean }): void {
     socket.emit("Shape.Options.Invisible.Set", data);
@@ -23,6 +25,27 @@ export function sendShapePositionUpdate(shapes: readonly Shape[], temporary: boo
         shapes.filter(s => !s.preventSync).map(s => ({ uuid: s.uuid, position: s.getPositionRepresentation() })),
         temporary,
     );
+}
+
+export function sendShapeSizeUpdate(data: { shape: Shape; temporary: boolean }): void {
+    switch (data.shape.type) {
+        case "assetrect":
+        case "rect": {
+            const shape = <Rect>data.shape;
+            _sendRectSizeUpdate({ uuid: shape.uuid, w: shape.w, h: shape.h, temporary: data.temporary });
+            break;
+        }
+        case "circulartoken":
+        case "circle": {
+            const shape = <Circle>data.shape;
+            _sendCircleSizeUpdate({ uuid: shape.uuid, r: shape.r, temporary: data.temporary });
+            break;
+        }
+        case "polygon": {
+            sendShapePositionUpdate([data.shape], data.temporary);
+            break;
+        }
+    }
 }
 
 export function sendShapeOrder(data: { uuid: string; index: number }): void {
@@ -76,4 +99,12 @@ function _sendShapePositionUpdate(
         redraw: true,
         temporary,
     });
+}
+
+function _sendRectSizeUpdate(data: { uuid: string; w: number; h: number; temporary: boolean }): void {
+    socket.emit("Shape.Rect.Size.Update", data);
+}
+
+function _sendCircleSizeUpdate(data: { uuid: string; r: number; temporary: boolean }): void {
+    socket.emit("Shape.Circle.Size.Update", data);
 }

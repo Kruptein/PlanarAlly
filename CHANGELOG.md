@@ -55,6 +55,9 @@ All notable changes to this project will be documented in this file.
 -   Map tool resize does not replicate
 -   Center calculation polygons with repeated points
 -   Location moved shape now properly disappears on the old location
+-   Asset drops on the game board that are not images located in /static are no longer accepted
+    -   This fixes the possible spam of "could not load image /game/..." in your console for future cases
+    -   A script has been added in the server/scripts folder to remove existing assets
 
 ## [0.21.0] - 2020-06-13
 

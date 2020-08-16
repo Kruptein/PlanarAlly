@@ -87,8 +87,10 @@ function createLayer(layerInfo: ServerLayer, floor: Floor): void {
 export function dropAsset(event: DragEvent): void {
     const layer = floorStore.currentLayer;
     if (layer === undefined || event === null || event.dataTransfer === null) return;
+    const src = event.dataTransfer.getData("text/plain");
+    if (!src.startsWith("/static")) return;
     const image = document.createElement("img");
-    image.src = event.dataTransfer.getData("text/plain");
+    image.src = src;
     const asset = new Asset(
         image,
         new GlobalPoint(l2gx(event.clientX), l2gy(event.clientY)),

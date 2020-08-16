@@ -4,7 +4,7 @@ These should not trigger shape creation, but did in the past and would spam warn
 
 This script should in principle only be ran once after upgrading to 0.22.0. (or regularly if you are on an earlier version and annoyed by the messages).
 
-Usage: 
+Usage: `python remove_faulty_images.py` or `python scripts/remove_faulty_images.py` from the server folder
 """
 import sys
 from pathlib import Path

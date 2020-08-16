@@ -559,17 +559,17 @@ export default class SelectTool extends Tool implements ToolBasics {
         this.rotationBox.strokeWidth = 1.5;
         this.rotationEnd = new Circle(topCenterPlus, l2gz(4), "#7c253e", "rgba(0,0,0,0)");
 
+        for (const rotationShape of [this.rotationAnchor, this.rotationBox, this.rotationEnd]) {
+            rotationShape.addOwner({ user: gameStore.username, access: { edit: true } }, false);
+            layer.addShape(rotationShape, SyncMode.NO_SYNC, InvalidationMode.NO);
+        }
+
         if (selection.length === 1) {
             const angle = selection[0].angle;
             this.angle = angle;
             this.rotationBox.angle = angle;
             this.rotationAnchor.rotateAround(bbox.center(), angle);
             this.rotationEnd.rotateAround(bbox.center(), angle);
-        }
-
-        for (const rotationShape of [this.rotationAnchor, this.rotationBox, this.rotationEnd]) {
-            rotationShape.addOwner({ user: gameStore.username, access: { edit: true } }, false);
-            layer.addShape(rotationShape, SyncMode.NO_SYNC, InvalidationMode.NO);
         }
 
         this.rotationUiActive = true;

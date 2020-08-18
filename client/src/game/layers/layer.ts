@@ -8,7 +8,7 @@ import { gameStore } from "@/game/store";
 import { visibilityStore } from "@/game/visibility/store";
 import { TriangulationTarget } from "@/game/visibility/te/pa";
 import { getBlockers, getVisionSources, sliceBlockers, sliceVisionSources } from "@/game/visibility/utils";
-import { sendRemoveShapes, sendShapeAdd, sendShapeOrder } from "../api/emits/shape";
+import { sendRemoveShapes, sendShapeAdd, sendShapeOrder } from "../api/emits/shape/core";
 import { gameSettingsStore } from "../settings";
 import { drawAuras } from "../shapes/aura";
 import { changeGroupLeader } from "../shapes/group";

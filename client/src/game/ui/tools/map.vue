@@ -16,7 +16,7 @@ import { Shape } from "@/game/shapes/shape";
 import { ToolBasics } from "./ToolBasics";
 import { floorStore } from "@/game/layers/store";
 import { gameStore } from "../../store";
-import { sendShapePositionUpdate, sendShapeSizeUpdate } from "@/game/api/emits/shape";
+import { sendShapePositionUpdate, sendShapeSizeUpdate } from "@/game/api/emits/shape/core";
 
 @Component
 export default class MapTool extends Tool implements ToolBasics {

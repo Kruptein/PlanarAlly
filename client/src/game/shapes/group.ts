@@ -1,4 +1,4 @@
-import { sendGroupLeaderUpdate, sendGroupMemberAdd } from "../api/emits/shape";
+import { sendGroupLeaderUpdate, sendGroupMemberAdd } from "../api/emits/shape/core";
 import { layerManager } from "../layers/manager";
 import { Shape } from "./shape";
 

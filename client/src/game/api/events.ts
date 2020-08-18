@@ -6,7 +6,7 @@ import "@/game/api/events/initiative";
 import "@/game/api/events/labels";
 import "@/game/api/events/location";
 import "@/game/api/events/room";
-import "@/game/api/events/shape";
+import "@/game/api/events/shape/core";
 import { socket } from "@/game/api/socket";
 import { Note, ServerFloor } from "@/game/comm/types/general";
 import { EventBus } from "@/game/event-bus";

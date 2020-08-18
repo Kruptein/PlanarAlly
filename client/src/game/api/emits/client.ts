@@ -1,6 +1,7 @@
 import { EditableServerClient, LocationServerClient } from "../../comm/types/settings";
 import { gameStore } from "../../store";
 import { socket } from "../socket";
+import { wrapSocket } from "../helpers";
 
 export function sendClientLocationOptions(): void {
     // eslint-disable-next-line @typescript-eslint/camelcase
@@ -12,6 +13,4 @@ function _sendClientLocationOptions(locationOptions: LocationServerClient): void
     socket.emit("Client.Options.Set", { location_options: locationOptions });
 }
 
-export function sendClientOptions(data: Partial<EditableServerClient>): void {
-    socket.emit("Client.Options.Set", data);
-}
+export const sendClientOptions = wrapSocket<Partial<EditableServerClient>>("Client.Options.Set");

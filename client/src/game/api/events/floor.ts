@@ -21,7 +21,7 @@ socket.on("Floor.Visible.Set", (data: { name: string; visible: boolean }) => {
 });
 
 socket.on("Floor.Rename", (data: { index: number; name: string }) => {
-    floorStore.renameFloor(data);
+    floorStore.renameFloor({ ...data, sync: false });
 });
 
 socket.on("Floors.Reorder", (floors: string[]) => floorStore.reorderFloors({ floors, sync: false }));

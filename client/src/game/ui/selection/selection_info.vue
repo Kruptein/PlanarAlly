@@ -8,7 +8,7 @@ import EditDialog from "@/game/ui/selection/edit_dialog/dialog.vue";
 import { EventBus } from "@/game/event-bus";
 import { layerManager } from "@/game/layers/manager";
 import { Shape } from "@/game/shapes/shape";
-import { sendTrackerUpdate } from "@/game/api/emits/shape";
+import { sendTrackerUpdate } from "@/game/api/emits/shape/core";
 
 @Component({
     components: {

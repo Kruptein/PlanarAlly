@@ -78,7 +78,7 @@ export default class FloorSelect extends Vue {
             this.$t("game.ui.floors.rename_header_title").toString(),
         );
         if (value === undefined || getFloorId(value) !== -1) return;
-        sendRenameFloor(index, value);
+        floorStore.renameFloor({ index, name, sync: true });
     }
 
     async removeFloor(floor: Floor): Promise<void> {

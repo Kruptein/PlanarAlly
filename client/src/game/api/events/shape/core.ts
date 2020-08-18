@@ -1,16 +1,16 @@
-import { SyncMode } from "../../../core/comm/types";
-import { ServerShape } from "../../comm/types/shapes";
-import { EventBus } from "../../event-bus";
-import { layerManager } from "../../layers/manager";
-import { floorStore, getFloorId } from "../../layers/store";
-import { moveFloor, moveLayer } from "../../layers/utils";
-import { gameManager } from "../../manager";
-import { changeGroupLeader, addGroupMember } from "../../shapes/group";
-import { Shape } from "../../shapes/shape";
-import { socket } from "../socket";
-import { Text } from "../../shapes/text";
-import { Rect } from "../../shapes/rect";
-import { Circle } from "../../shapes/circle";
+import { SyncMode } from "../../../../core/comm/types";
+import { ServerShape } from "../../../comm/types/shapes";
+import { EventBus } from "../../../event-bus";
+import { layerManager } from "../../../layers/manager";
+import { floorStore, getFloorId } from "../../../layers/store";
+import { moveFloor, moveLayer } from "../../../layers/utils";
+import { gameManager } from "../../../manager";
+import { changeGroupLeader, addGroupMember } from "../../../shapes/group";
+import { Shape } from "../../../shapes/shape";
+import { socket } from "../../socket";
+import { Text } from "../../../shapes/text";
+import { Rect } from "../../../shapes/rect";
+import { Circle } from "../../../shapes/circle";
 
 socket.on("Shape.Set", (data: ServerShape) => {
     // hard reset a shape
@@ -18,18 +18,6 @@ socket.on("Shape.Set", (data: ServerShape) => {
     if (old) old.layer.removeShape(old, SyncMode.NO_SYNC);
     const shape = gameManager.addShape(data);
     if (shape) EventBus.$emit("Shape.Set", shape);
-});
-
-socket.on("Shape.Options.Invisible.Set", (data: { shape: string; is_invisible: boolean }) => {
-    const shape = layerManager.UUIDMap.get(data.shape);
-    if (shape === undefined) return;
-    shape.setInvisible(data.is_invisible, false);
-});
-
-socket.on("Shape.Options.Locked.Set", (data: { shape: string; is_locked: boolean }) => {
-    const shape = layerManager.UUIDMap.get(data.shape);
-    if (shape === undefined) return;
-    shape.setLocked(data.is_locked, false);
 });
 
 socket.on("Shape.Add", (shape: ServerShape) => {
@@ -123,7 +111,7 @@ socket.on("Shape.Rect.Size.Update", (data: { uuid: string; w: number; h: number 
 
     shape.w = data.w;
     shape.h = data.h;
-    shape.layer.invalidate(!shape.auras.some(a => a.visionSource));
+    shape.layer.invalidate(!shape.triggersVisionRecalc);
 });
 
 socket.on("Shape.Circle.Size.Update", (data: { uuid: string; r: number }) => {
@@ -131,5 +119,5 @@ socket.on("Shape.Circle.Size.Update", (data: { uuid: string; r: number }) => {
     if (shape === undefined) return;
 
     shape.r = data.r;
-    shape.layer.invalidate(!shape.auras.some(a => a.visionSource));
+    shape.layer.invalidate(!shape.triggersVisionRecalc);
 });

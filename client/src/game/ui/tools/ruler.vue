@@ -14,7 +14,7 @@ import { Line } from "@/game/shapes/line";
 import { gameStore, DEFAULT_GRID_SIZE } from "@/game/store";
 import { Text } from "../../shapes/text";
 import { floorStore } from "@/game/layers/store";
-import { sendShapePositionUpdate, sendTextUpdate } from "@/game/api/emits/shape";
+import { sendShapePositionUpdate, sendTextUpdate } from "@/game/api/emits/shape/core";
 
 @Component
 export default class RulerTool extends Tool implements ToolBasics {

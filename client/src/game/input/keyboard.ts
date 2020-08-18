@@ -6,7 +6,7 @@ import { calculateDelta } from "@/game/ui/tools/utils";
 import { visibilityStore } from "@/game/visibility/store";
 import { TriangulationTarget } from "@/game/visibility/te/pa";
 import { sendClientLocationOptions } from "../api/emits/client";
-import { sendShapePositionUpdate } from "../api/emits/shape";
+import { sendShapePositionUpdate } from "../api/emits/shape/core";
 import { EventBus } from "../event-bus";
 import { floorStore } from "../layers/store";
 import { moveFloor } from "../layers/utils";

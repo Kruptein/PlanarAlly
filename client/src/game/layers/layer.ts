@@ -206,7 +206,7 @@ export class Layer {
         }
 
         EventBus.$emit("Initiative.Remove", shape.uuid);
-        this.invalidate(!sync);
+        this.invalidate(!shape.triggersVisionRecalc);
         return true;
     }
 

@@ -31,7 +31,6 @@ import {
     sendShapeRemoveLabel,
     sendShapeRemoveTracker,
     sendShapeSetAnnotation,
-    sendShapeSetAuraVision,
     sendShapeSetBlocksMovement,
     sendShapeSetBlocksVision,
     sendShapeSetFillColour,

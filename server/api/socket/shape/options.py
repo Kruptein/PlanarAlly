@@ -30,10 +30,13 @@ class ShapeAuraSetBooleanValue(TypedDict):
     value: bool
 
 
-class TrackerData(TypedDict, total=False):
+class TrackerData(TypedDict):
     uuid: str
+    shape: str
+
+
+class TrackerDelta(TrackerData, total=False):
     visible: bool
-    shape_id: str
     name: str
     value: int
     maxvalue: int
@@ -173,25 +176,6 @@ async def remove_tracker(sid: str, data: ShapeSetStringValue):
 
     tracker: Tracker = Tracker.get_by_id(data["value"])
     tracker.delete_instance(True)
-    # old_trackers = {tracker.uuid for tracker in shape.trackers}
-    # new_trackers = {tracker["uuid"] for tracker in data["shape"]["trackers"]}
-    # for tracker_id in old_trackers | new_trackers:
-    #     remove = tracker_id in old_trackers - new_trackers
-    #     if not remove:
-    #         tracker = next(
-    #             tr for tr in data["shape"]["trackers"] if tr["uuid"] == tracker_id
-    #         )
-    #         reduced = reduce_data_to_model(Tracker, tracker)
-    #         reduced["shape"] = shape
-    #     if tracker_id in new_trackers - old_trackers:
-    #         Tracker.create(**reduced)
-    #         continue
-    #     tracker_db = Tracker.get(uuid=tracker_id)
-    #     if remove:
-    #         tracker_db.delete_instance(True)
-    #     else:
-    #         update_model_from_dict(tracker_db, reduced)
-    #         tracker_db.save()
 
     await sio.emit(
         "Shape.Options.Tracker.Remove",
@@ -350,29 +334,39 @@ async def set_fill_colour(sid: str, data: ShapeSetStringValue):
     )
 
 
-@sio.on("Shape.Options.Tracker.UpdateOrCreate", namespace=GAME_NS)
+@sio.on("Shape.Options.Tracker.Create", namespace=GAME_NS)
 @auth.login_required(app, sio)
-async def update_or_create_tracker(sid: str, data: TrackerData):
+async def create_tracker(sid: str, data: TrackerData):
     pr: PlayerRoom = game_state.get(sid)
 
-    shape = get_shape_or_none(pr, data["shape_id"], "Tracker.UpdateOrCreate")
+    shape = get_shape_or_none(pr, data["shape"], "Tracker.Create")
     if shape is None:
         return
 
-    tracker: Tracker
-    try:
-        tracker = Tracker.get_by_id(data["value"])
-    except Tracker.DoesNotExist:
-        model = reduce_data_to_model(Tracker, data)
-        tracker = Tracker.create(**model)
-    else:
-        update_model_from_dict(tracker, data)
+    model = reduce_data_to_model(Tracker, data)
+    tracker = Tracker.create(**model)
     tracker.save()
 
-    await sio.emit(
-        "Shape.Options.Tracker.UpdateOrCreate",
-        data,
-        skip_sid=sid,
-        room=pr.active_location.get_path(),
-        namespace=GAME_NS,
-    )
+    for sid in get_owner_sids(pr, shape, skip_sid=sid):
+        await sio.emit(
+            "Shape.Options.Tracker.Create", data, room=sid, namespace=GAME_NS,
+        )
+
+
+@sio.on("Shape.Options.Tracker.Update", namespace=GAME_NS)
+@auth.login_required(app, sio)
+async def update_tracker(sid: str, data: TrackerData):
+    pr: PlayerRoom = game_state.get(sid)
+
+    shape = get_shape_or_none(pr, data["shape"], "Tracker.Update")
+    if shape is None:
+        return
+
+    tracker = Tracker.get_by_id(data["uuid"])
+    update_model_from_dict(tracker, data)
+    tracker.save()
+
+    for sid in get_owner_sids(pr, shape, skip_sid=sid):
+        await sio.emit(
+            "Shape.Options.Tracker.Update", data, room=sid, namespace=GAME_NS,
+        )

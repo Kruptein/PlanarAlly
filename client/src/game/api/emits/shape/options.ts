@@ -1,6 +1,6 @@
 import { wrapSocket } from "../../helpers";
 import { socket } from "../../socket";
-import { ServerAura } from "../../../comm/types/shapes";
+import { ServerAura, ServerTracker } from "../../../comm/types/shapes";
 
 function sendShapeOption<T>(event: string): (data: { shape: string } & T) => void {
     return wrapSocket<{ shape: string } & T>(event);
@@ -26,11 +26,15 @@ export const sendShapeRemoveLabel = sendSimpleShapeOption<string>("Shape.Options
 export const sendShapeRemoveAura = sendSimpleShapeOption<string>("Shape.Options.Aura.Remove");
 export const sendShapeRemoveTracker = sendSimpleShapeOption<string>("Shape.Options.Tracker.Remove");
 
-export const sendShapeUpdateTracker = (data: { shape_id: string; uuid: string; delta: Partial<Tracker> }): void => {
-    socket.emit("Shape.Options.Tracker.UpdateOrCreate", data);
+export const sendShapeCreateTracker = (data: ServerTracker): void => {
+    socket.emit("Shape.Options.Tracker.Create", data);
 };
 
-export const sendShapeUpdateAura = (data: { shape_id: string; uuid: string; delta: Partial<ServerAura> }): void => {
+export const sendShapeUpdateTracker = (data: { shape: string; uuid: string } & Partial<ServerTracker>): void => {
+    socket.emit("Shape.Options.Tracker.Update", data);
+};
+
+export const sendShapeUpdateAura = (data: { shape: string; uuid: string; delta: Partial<ServerAura> }): void => {
     socket.emit("Shape.Options.Aura.UpdateOrCreate", data);
 };
 

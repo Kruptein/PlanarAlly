@@ -54,12 +54,18 @@ export default class EditDialog extends Vue {
     }
 
     addEmpty(): void {
-        if (
-            !this.shape.trackers.length ||
-            this.shape.trackers[this.shape.trackers.length - 1].name !== "" ||
-            this.shape.trackers[this.shape.trackers.length - 1].value !== 0
-        )
-            this.shape.trackers.push({ uuid: uuidv4(), name: "", value: 0, maxvalue: 0, visible: false });
+        if (this.shape.trackers.length === 0 || !this.shape.trackers[this.shape.trackers.length - 1].temporary)
+            this.shape.createTracker(
+                {
+                    uuid: uuidv4(),
+                    name: "",
+                    value: 0,
+                    maxvalue: 0,
+                    visible: false,
+                    temporary: true,
+                },
+                false,
+            );
         if (
             !this.shape.auras.length ||
             this.shape.auras[this.shape.auras.length - 1].name !== "" ||
@@ -150,8 +156,15 @@ export default class EditDialog extends Vue {
         this.shape.setFillColour(event, !temporary);
     }
 
-    updateTracker<T extends keyof Tracker>(tracker: string, key: T, value: Tracker[T], sync = true): void {
-        this.shape.updateOrCreateTracker(tracker, { [key]: value }, sync);
+    updateTracker<T extends keyof Tracker>(tracker: Tracker, key: T, value: Tracker[T], sync = true): void {
+        if (tracker.temporary) {
+            // update client side version with new key, but don't sync it
+            this.shape.updateTracker(tracker.uuid, { [key]: value }, false);
+            // do a full sync, creating the tracker server side
+            this.shape.syncTracker(tracker);
+        } else {
+            this.shape.updateTracker(tracker.uuid, { [key]: value }, sync);
+        }
     }
 
     updateAura<T extends keyof Aura>(aura: string, key: T, value: Aura[T], sync = true): void {
@@ -292,7 +305,7 @@ export default class EditDialog extends Vue {
                     <input
                         :key="'name-' + tracker.uuid"
                         :value="tracker.name"
-                        @change="updateTracker(tracker.uuid, 'name', $event.target.value)"
+                        @change="updateTracker(tracker, 'name', $event.target.value)"
                         type="text"
                         :placeholder="$t('common.name')"
                         style="grid-column-start: name"
@@ -301,7 +314,7 @@ export default class EditDialog extends Vue {
                     <input
                         :key="'value-' + tracker.uuid"
                         :value="tracker.value"
-                        @change="updateTracker(tracker.uuid, 'value', $event.target.value)"
+                        @change="updateTracker(tracker, 'value', $event.target.value)"
                         type="text"
                         :title="$t('game.ui.selection.edit_dialog.dialog.current_value')"
                         :disabled="!owned"
@@ -310,7 +323,7 @@ export default class EditDialog extends Vue {
                     <input
                         :key="'maxvalue-' + tracker.uuid"
                         :value="tracker.maxvalue"
-                        @change="updateTracker(tracker.uuid, 'maxvalue', $event.target.value)"
+                        @change="updateTracker(tracker, 'maxvalue', $event.target.value)"
                         type="text"
                         :title="$t('game.ui.selection.edit_dialog.dialog.current_value')"
                         :disabled="!owned"
@@ -319,7 +332,7 @@ export default class EditDialog extends Vue {
                     <div
                         :key="'visibility-' + tracker.uuid"
                         :style="{ opacity: tracker.visible ? 1.0 : 0.3, textAlign: 'center' }"
-                        @change="updateTracker(tracker.uuid, 'visibility', !tracker.visibility)"
+                        @click="updateTracker(tracker, 'visible', !tracker.visible)"
                         :disabled="!owned"
                         :title="$t('common.toggle_public_private')"
                     >
@@ -327,7 +340,7 @@ export default class EditDialog extends Vue {
                     </div>
                     <span :key="'tspan-' + tracker.uuid"></span>
                     <div
-                        v-if="tracker.name !== '' || tracker.value !== 0"
+                        v-if="!tracker.temporary"
                         :key="'remove-' + tracker.uuid"
                         @click="removeTracker(tracker.uuid)"
                         :disabled="!owned"

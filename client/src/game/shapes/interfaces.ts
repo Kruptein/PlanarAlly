@@ -4,6 +4,7 @@ interface Tracker {
     name: string;
     value: number;
     maxvalue: number;
+    temporary: boolean; // this is for trackers unknown to the server
 }
 
 interface Aura {

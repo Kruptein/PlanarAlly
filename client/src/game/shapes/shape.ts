@@ -26,6 +26,7 @@ import {
     sendShapeUpdateOwner,
 } from "../api/emits/access";
 import {
+    sendShapeCreateTracker,
     sendShapeRemoveAura,
     sendShapeRemoveLabel,
     sendShapeRemoveTracker,
@@ -698,18 +699,32 @@ export abstract class Shape {
         this.invalidate(true);
     }
 
-    updateOrCreateTracker(trackerId: string, delta: Partial<Tracker>, sync: boolean): void {
+    createTracker(tracker: Tracker, sync: boolean): void {
+        this.trackers.push(tracker);
+        if (sync) this.syncTracker(tracker);
+    }
+
+    syncTracker(tracker: Tracker): void {
+        if (tracker.temporary === false) {
+            console.log("Illegal use of syncTracker");
+            return;
+        }
+        sendShapeCreateTracker({ shape: this.uuid, ...tracker });
+        tracker.temporary = false;
+    }
+
+    updateTracker(trackerId: string, delta: Partial<Tracker>, sync: boolean): void {
+        console.log(delta);
         const tracker = this.trackers.find(t => t.uuid === trackerId);
         if (tracker === undefined) return;
         Object.assign(tracker, delta);
-        if (sync) sendShapeUpdateTracker({ shape_id: this.uuid, uuid: trackerId, delta });
-        this.updateOrCreateAura("sdf", { visionSource: true }, true);
+        if (sync) sendShapeUpdateTracker({ shape: this.uuid, uuid: trackerId, ...delta });
     }
 
     updateOrCreateAura(auraId: string, delta: Partial<Aura>, sync: boolean): void {
         const aura = this.auras.find(t => t.uuid === auraId);
         if (aura === undefined) return;
         Object.assign(aura, delta);
-        if (sync) sendShapeUpdateAura({ shape_id: this.uuid, uuid: auraId, delta });
+        if (sync) sendShapeUpdateAura({ shape: this.uuid, uuid: auraId, delta });
     }
 }

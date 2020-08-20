@@ -1,6 +1,7 @@
 import { socket } from "../../socket";
 import { layerManager } from "../../../layers/manager";
 import { Shape } from "../../../shapes/shape";
+import { ServerTracker } from "../../../comm/types/shapes";
 
 function wrapCall<T>(func: (value: T, sync: boolean) => void): (data: { shape: string; value: T }) => void {
     return data => {
@@ -25,14 +26,18 @@ socket.on("Shape.Options.Tracker.Remove", wrapCall(Shape.prototype.removeTracker
 socket.on("Shape.Options.Aura.Remove", wrapCall(Shape.prototype.removeAura));
 socket.on("Shape.Options.Label.Remove", wrapCall(Shape.prototype.removeLabel));
 
-socket.on(
-    "Shape.Options.Tracker.UpdateOrCreate",
-    (data: { shape_id: string; uuid: string; delta: Partial<Tracker> }): void => {
-        const shape = layerManager.UUIDMap.get(data.shape_id);
-        if (shape === undefined) return;
-        shape.updateOrCreateTracker(data.uuid, data.delta, false);
-    },
-);
+socket.on("Shape.Options.Tracker.Create", (data: ServerTracker): void => {
+    const shape = layerManager.UUIDMap.get(data.shape);
+    if (shape === undefined) return;
+    shape.createTracker({ temporary: false, ...data }, false);
+});
+
+socket.on("Shape.Options.Tracker.Update", (data: { uuid: string; shape: string } & Partial<Tracker>): void => {
+    const shape = layerManager.UUIDMap.get(data.shape);
+    if (shape === undefined) return;
+    console.log(data);
+    shape.updateTracker(data.uuid, data, false);
+});
 
 socket.on("Shape.Options.Aura.Vision.Set", (data: { shape: string; aura: string; value: boolean }) => {
     const shape = layerManager.UUIDMap.get(data.shape);

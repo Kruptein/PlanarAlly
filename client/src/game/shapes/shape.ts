@@ -8,7 +8,15 @@ import { gameStore } from "@/game/store";
 import { g2l, g2lx, g2ly, g2lz, getUnitDistance } from "@/game/units";
 import { visibilityStore } from "@/game/visibility/store";
 import { TriangulationTarget } from "@/game/visibility/te/pa";
-import { addBlocker, getBlockers, getVisionSources, setVisionSources, sliceBlockers } from "@/game/visibility/utils";
+import {
+    addBlocker,
+    addVisionSource,
+    getBlockers,
+    getVisionSources,
+    setVisionSources,
+    sliceBlockers,
+    sliceVisionSources,
+} from "@/game/visibility/utils";
 import tinycolor from "tinycolor2";
 import { PartialBy } from "../../core/types";
 import {
@@ -17,7 +25,24 @@ import {
     sendShapeUpdateDefaultOwner,
     sendShapeUpdateOwner,
 } from "../api/emits/access";
-import { sendShapeSetInvisible, sendShapeSetLocked } from "../api/emits/shape";
+import {
+    sendShapeRemoveAura,
+    sendShapeRemoveLabel,
+    sendShapeRemoveTracker,
+    sendShapeSetAnnotation,
+    sendShapeSetAuraVision,
+    sendShapeSetBlocksMovement,
+    sendShapeSetBlocksVision,
+    sendShapeSetFillColour,
+    sendShapeSetInvisible,
+    sendShapeSetIsToken,
+    sendShapeSetLocked,
+    sendShapeSetName,
+    sendShapeSetNameVisible,
+    sendShapeSetStrokeColour,
+    sendShapeUpdateAura,
+    sendShapeUpdateTracker,
+} from "../api/emits/shape/options";
 import { Floor } from "../layers/floor";
 import { Layer } from "../layers/layer";
 import { getFloorId } from "../layers/store";
@@ -116,6 +141,14 @@ export abstract class Shape {
 
     get layer(): Layer {
         return layerManager.getLayer(this.floor, this._layer)!;
+    }
+
+    /**
+     * Returns true if this shape should trigger a vision recalculation when it moves or otherwise mutates.
+     * This is the case when it is a token, has an aura that is a vision source or if it blocks vision.
+     */
+    get triggersVisionRecalc(): boolean {
+        return this.isToken || this.auras.some(a => a.visionSource) || this.movementObstruction;
     }
 
     setLayer(floor: number, layer: string): void {
@@ -234,47 +267,6 @@ export abstract class Shape {
         }
         setVisionSources(visionSources, this._floor);
         return alteredVision;
-    }
-
-    setMovementBlock(blocksMovement: boolean, recalculate = true): boolean {
-        let alteredMovement = false;
-        this.movementObstruction = blocksMovement || false;
-        const movementBlockers = getBlockers(TriangulationTarget.MOVEMENT, this._floor);
-        const obstructionIndex = movementBlockers.indexOf(this.uuid);
-        if (this.movementObstruction && obstructionIndex === -1) {
-            addBlocker(TriangulationTarget.MOVEMENT, this.uuid, this._floor);
-            if (recalculate) visibilityStore.addToTriag({ target: TriangulationTarget.MOVEMENT, shape: this });
-            alteredMovement = true;
-        } else if (!this.movementObstruction && obstructionIndex >= 0) {
-            sliceBlockers(TriangulationTarget.MOVEMENT, obstructionIndex, this._floor);
-            if (recalculate) visibilityStore.deleteFromTriag({ target: TriangulationTarget.MOVEMENT, shape: this });
-            alteredMovement = true;
-        }
-        if (alteredMovement && recalculate) visibilityStore.recalculateMovement(this._floor);
-        return alteredMovement;
-    }
-
-    setIsToken(isToken: boolean): void {
-        this.isToken = isToken;
-        if (this.ownedBy({ visionAccess: true })) {
-            const i = gameStore.ownedtokens.indexOf(this.uuid);
-            if (this.isToken && i === -1) gameStore.ownedtokens.push(this.uuid);
-            else if (!this.isToken && i >= 0) gameStore.ownedtokens.splice(i, 1);
-        }
-    }
-
-    setInvisible(isInvisible: boolean, sync: boolean): void {
-        this.isInvisible = isInvisible;
-        // eslint-disable-next-line @typescript-eslint/camelcase
-        if (sync) sendShapeSetInvisible({ shape: this.uuid, is_invisible: isInvisible });
-        this.invalidate(true);
-    }
-
-    setLocked(isLocked: boolean, sync: boolean): void {
-        this.isLocked = isLocked;
-        // eslint-disable-next-line @typescript-eslint/camelcase
-        if (sync) sendShapeSetLocked({ shape: this.uuid, is_locked: isLocked });
-        this.invalidate(true);
     }
 
     abstract asDict(): ServerShape;
@@ -592,5 +584,130 @@ export abstract class Shape {
             visibilityStore.addToTriag({ target: TriangulationTarget.MOVEMENT, shape: this });
             visibilityStore.recalculateMovement(this.floor.id);
         }
+    }
+
+    // SETTERS
+
+    setVisionBlock(blocksVision: boolean, sync: boolean, recalculate = true): void {
+        if (sync) sendShapeSetBlocksVision({ shape: this.uuid, value: blocksVision });
+        this.visionObstruction = blocksVision;
+        this.invalidate(!this.checkVisionSources(recalculate));
+    }
+
+    setMovementBlock(blocksMovement: boolean, sync: boolean, recalculate = true): boolean {
+        if (sync) sendShapeSetBlocksMovement({ shape: this.uuid, value: blocksMovement });
+        let alteredMovement = false;
+        this.movementObstruction = blocksMovement;
+        const movementBlockers = getBlockers(TriangulationTarget.MOVEMENT, this._floor);
+        const obstructionIndex = movementBlockers.indexOf(this.uuid);
+        if (this.movementObstruction && obstructionIndex === -1) {
+            addBlocker(TriangulationTarget.MOVEMENT, this.uuid, this._floor);
+            if (recalculate) visibilityStore.addToTriag({ target: TriangulationTarget.MOVEMENT, shape: this });
+            alteredMovement = true;
+        } else if (!this.movementObstruction && obstructionIndex >= 0) {
+            sliceBlockers(TriangulationTarget.MOVEMENT, obstructionIndex, this._floor);
+            if (recalculate) visibilityStore.deleteFromTriag({ target: TriangulationTarget.MOVEMENT, shape: this });
+            alteredMovement = true;
+        }
+        if (alteredMovement && recalculate) visibilityStore.recalculateMovement(this._floor);
+        return alteredMovement;
+    }
+
+    setIsToken(isToken: boolean, sync: boolean): void {
+        if (sync) sendShapeSetIsToken({ shape: this.uuid, value: isToken });
+        this.isToken = isToken;
+        if (this.ownedBy({ visionAccess: true })) {
+            const i = gameStore.ownedtokens.indexOf(this.uuid);
+            if (this.isToken && i === -1) gameStore.ownedtokens.push(this.uuid);
+            else if (!this.isToken && i >= 0) gameStore.ownedtokens.splice(i, 1);
+        }
+        console.log(this.triggersVisionRecalc);
+        this.invalidate(false);
+    }
+
+    setInvisible(isInvisible: boolean, sync: boolean): void {
+        this.isInvisible = isInvisible;
+        if (sync) sendShapeSetInvisible({ shape: this.uuid, value: isInvisible });
+        this.invalidate(!this.triggersVisionRecalc);
+    }
+
+    setLocked(isLocked: boolean, sync: boolean): void {
+        this.isLocked = isLocked;
+        if (sync) sendShapeSetLocked({ shape: this.uuid, value: isLocked });
+    }
+
+    setAnnotation(text: string, sync: boolean): void {
+        if (sync) sendShapeSetAnnotation({ shape: this.uuid, value: text });
+        const hadAnnotation = this.annotation !== "";
+        this.annotation = text;
+        if (this.annotation !== "" && !hadAnnotation) {
+            gameStore.annotations.push(this.uuid);
+        } else if (this.annotation === "" && hadAnnotation) {
+            gameStore.annotations.splice(gameStore.annotations.findIndex(an => an === this.uuid));
+        }
+    }
+
+    removeTracker(tracker: string, sync: boolean): void {
+        if (sync) sendShapeRemoveTracker({ shape: this.uuid, value: tracker });
+        this.trackers = this.trackers.filter(tr => tr.uuid !== tracker);
+    }
+
+    removeAura(aura: string, sync: boolean): void {
+        if (sync) sendShapeRemoveAura({ shape: this.uuid, value: aura });
+        this.auras = this.auras.filter(au => au.uuid !== aura);
+        this.checkVisionSources();
+        this.invalidate(false);
+    }
+
+    setAuraVisionSource(auraId: string, isVisionSource: boolean, sync: boolean): void {
+        const aura = this.auras.find(a => a.uuid === auraId);
+        if (aura === undefined) return;
+        aura.visionSource = isVisionSource;
+        const visionSources = getVisionSources(this.floor.id);
+        const i = visionSources.findIndex(ls => ls.aura === aura.uuid);
+        if (aura.visionSource && i === -1) addVisionSource({ shape: this.uuid, aura: aura.uuid }, this.floor.id);
+        else if (!aura.visionSource && i >= 0) sliceVisionSources(i, this.floor.id);
+        if (sync) sendShapeSetAuraVision({ shape: this.uuid, aura: auraId, value: aura.visionSource });
+        this.invalidate(false);
+    }
+
+    removeLabel(label: string, sync: boolean): void {
+        if (sync) sendShapeRemoveLabel({ shape: this.uuid, value: label });
+        this.labels = this.labels.filter(l => l.uuid !== label);
+    }
+
+    setName(name: string, sync: boolean): void {
+        if (sync) sendShapeSetName({ shape: this.uuid, value: name });
+        this.name = name;
+    }
+
+    setNameVisible(visible: boolean, sync: boolean): void {
+        if (sync) sendShapeSetNameVisible({ shape: this.uuid, value: name });
+        this.nameVisible = visible;
+    }
+
+    setStrokeColour(colour: string, sync: boolean): void {
+        if (sync) sendShapeSetStrokeColour({ shape: this.uuid, value: colour });
+        this.strokeColour = colour;
+    }
+
+    setFillColour(colour: string, sync: boolean): void {
+        if (sync) sendShapeSetFillColour({ shape: this.uuid, value: colour });
+        this.fillColour = colour;
+    }
+
+    updateOrCreateTracker(trackerId: string, delta: Partial<Tracker>, sync: boolean): void {
+        const tracker = this.trackers.find(t => t.uuid === trackerId);
+        if (tracker === undefined) return;
+        Object.assign(tracker, delta);
+        if (sync) sendShapeUpdateTracker({ shape_id: this.uuid, uuid: trackerId, delta });
+        this.updateOrCreateAura("sdf", { visionSource: true }, true);
+    }
+
+    updateOrCreateAura(auraId: string, delta: Partial<Aura>, sync: boolean): void {
+        const aura = this.auras.find(t => t.uuid === auraId);
+        if (aura === undefined) return;
+        Object.assign(aura, delta);
+        if (sync) sendShapeUpdateAura({ shape_id: this.uuid, uuid: auraId, delta });
     }
 }

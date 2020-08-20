@@ -10,7 +10,7 @@ import { removeFloor } from "@/game/layers/utils";
 import { gameStore } from "@/game/store";
 import { Floor } from "../layers/floor";
 import { floorStore, getFloorId } from "../layers/store";
-import { sendRenameFloor, sendCreateFloor, sendRemoveFloor, sendFloorSetVisible } from "../api/emits/floor";
+import { sendCreateFloor, sendRemoveFloor, sendFloorSetVisible } from "../api/emits/floor";
 
 @Component({
     components: {

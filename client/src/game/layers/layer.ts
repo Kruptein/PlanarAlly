@@ -107,7 +107,7 @@ export class Layer {
         this.shapes.push(shape);
         layerManager.UUIDMap.set(shape.uuid, shape);
         shape.checkVisionSources(invalidate !== InvalidationMode.NO);
-        shape.setMovementBlock(shape.movementObstruction, invalidate !== InvalidationMode.NO);
+        shape.setMovementBlock(shape.movementObstruction, false, invalidate !== InvalidationMode.NO);
         if (snappable) {
             for (const point of shape.points) {
                 const strp = JSON.stringify(point);

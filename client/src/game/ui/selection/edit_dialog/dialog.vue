@@ -14,8 +14,6 @@ import { EventBus } from "@/game/event-bus";
 import { layerManager } from "@/game/layers/manager";
 import { Shape } from "@/game/shapes/shape";
 import { gameStore } from "@/game/store";
-import { getVisionSources, addVisionSource, sliceVisionSources } from "@/game/visibility/utils";
-import { floorStore } from "@/game/layers/store";
 
 @Component({
     components: {
@@ -41,7 +39,7 @@ export default class EditDialog extends Vue {
         EventBus.$on("EditDialog.AddLabel", (label: string) => {
             if (this.visible) {
                 this.shape.labels.push(gameStore.labels[label]);
-                this.updateShape(true);
+                console.log("Label refresh");
             }
         });
     }
@@ -56,7 +54,6 @@ export default class EditDialog extends Vue {
     }
 
     addEmpty(): void {
-        // if (this.shape.owners[this.shape.owners.length - 1] !== "") this.shape.addOwner("");
         if (
             !this.shape.trackers.length ||
             this.shape.trackers[this.shape.trackers.length - 1].name !== "" ||
@@ -78,16 +75,9 @@ export default class EditDialog extends Vue {
                 visible: false,
             });
     }
-    updateShape(redraw: boolean, temporary = false): void {
-        if (!this.owned) return;
-        if (!this.shape.preventSync) socket.emit("Shape.Update", { shape: this.shape.asDict(), redraw, temporary });
-        if (redraw) layerManager.invalidate(this.shape.floor);
-        this.addEmpty();
-    }
     setToken(event: { target: HTMLInputElement }): void {
         if (!this.owned) return;
-        this.shape.setIsToken(event.target.checked);
-        this.updateShape(true);
+        this.shape.setIsToken(event.target.checked, true);
     }
     setInvisible(event: { target: HTMLInputElement }): void {
         if (!this.owned) return;
@@ -111,51 +101,29 @@ export default class EditDialog extends Vue {
         }
         layerManager.invalidate(this.shape.floor);
     }
-    setVisionBlocker(_event: { target: HTMLInputElement }): void {
+    setVisionBlocker(event: { target: HTMLInputElement }): void {
         if (!this.owned) return;
-        this.shape.checkVisionSources();
-        this.updateShape(true);
+        this.shape.setVisionBlock(event.target.checked, true);
     }
     setMovementBlocker(event: { target: HTMLInputElement }): void {
         if (!this.owned) return;
-        this.shape.setMovementBlock(event.target.checked);
-        this.updateShape(false);
+        this.shape.setMovementBlock(event.target.checked, true);
     }
     updateAnnotation(event: { target: HTMLInputElement }): void {
         if (!this.owned) return;
-        const hadAnnotation = this.shape.annotation !== "";
-        this.shape.annotation = event.target.value;
-        if (this.shape.annotation !== "" && !hadAnnotation) {
-            gameStore.annotations.push(this.shape.uuid);
-            if (layerManager.hasLayer(floorStore.currentFloor, "draw"))
-                layerManager.getLayer(floorStore.currentFloor, "draw")!.invalidate(true);
-        } else if (this.shape.annotation === "" && hadAnnotation) {
-            gameStore.annotations.splice(gameStore.annotations.findIndex(an => an === this.shape.uuid));
-            if (layerManager.hasLayer(floorStore.currentFloor, "draw"))
-                layerManager.getLayer(floorStore.currentFloor, "draw")!.invalidate(true);
-        }
-        this.updateShape(false);
+        this.shape.setAnnotation(event.target.value, true);
     }
     removeTracker(uuid: string): void {
         if (!this.owned) return;
-        this.shape.trackers = this.shape.trackers.filter(tr => tr.uuid !== uuid);
-        this.updateShape(false);
+        this.shape.removeTracker(uuid, true);
     }
     removeAura(uuid: string): void {
         if (!this.owned) return;
-        this.shape.auras = this.shape.auras.filter(au => au.uuid !== uuid);
-        this.shape.checkVisionSources();
-        this.updateShape(true);
+        this.shape.removeAura(uuid, true);
     }
     updateAuraVisionSource(aura: Aura): void {
         if (!this.owned) return;
-        aura.visionSource = !aura.visionSource;
-        const visionSources = getVisionSources(this.shape.floor.id);
-        const i = visionSources.findIndex(ls => ls.aura === aura.uuid);
-        if (aura.visionSource && i === -1)
-            addVisionSource({ shape: this.shape.uuid, aura: aura.uuid }, this.shape.floor.id);
-        else if (!aura.visionSource && i >= 0) sliceVisionSources(i, this.shape.floor.id);
-        this.updateShape(true);
+        this.shape.setAuraVisionSource(aura.uuid, !aura.visionSource, true);
     }
     updateAuraColour(aura: Aura, _colour: string): void {
         if (!this.owned) return;
@@ -166,8 +134,28 @@ export default class EditDialog extends Vue {
     }
     removeLabel(uuid: string): void {
         if (!this.owned) return;
-        this.shape.labels = this.shape.labels.filter(l => l.uuid !== uuid);
-        this.updateShape(true);
+        this.shape.removeLabel(uuid, true);
+    }
+    updateName(event: { target: HTMLInputElement }): void {
+        if (!this.owned) return;
+        this.shape.setName(event.target.value, true);
+    }
+    toggleNameVisible(): void {
+        this.shape.setNameVisible(!this.shape.nameVisible, true);
+    }
+    setStrokeColour(event: string, temporary: boolean): void {
+        this.shape.setStrokeColour(event, !temporary);
+    }
+    setFillColour(event: string, temporary: boolean): void {
+        this.shape.setFillColour(event, !temporary);
+    }
+
+    updateTracker<T extends keyof Tracker>(tracker: string, key: T, value: Tracker[T], sync = true): void {
+        this.shape.updateOrCreateTracker(tracker, { [key]: value }, sync);
+    }
+
+    updateAura<T extends keyof Aura>(aura: string, key: T, value: Aura[T], sync = true): void {
+        this.shape.updateOrCreateAura(aura, { [key]: value }, sync);
     }
 }
 </script>
@@ -193,17 +181,14 @@ export default class EditDialog extends Vue {
                 <input
                     type="text"
                     id="shapeselectiondialog-name"
-                    v-model="shape.name"
-                    @change="updateShape(false)"
+                    :value="shape.name"
+                    @change="updateName"
                     :disabled="!owned"
                     style="grid-column: numerator / remove"
                 />
                 <div
                     :style="{ opacity: shape.nameVisible ? 1.0 : 0.3, textAlign: 'center' }"
-                    @click="
-                        shape.nameVisible = !shape.nameVisible;
-                        updateShape(false);
-                    "
+                    @click="toggleNameVisible"
                     :disabled="!owned"
                     :title="$t('common.toggle_public_private')"
                 >
@@ -287,17 +272,17 @@ export default class EditDialog extends Vue {
                 />
                 <label for="shapeselectiondialog-strokecolour" v-t="'common.border_color'"></label>
                 <color-picker
-                    :color.sync="shape.strokeColour"
-                    @input="updateShape(true, true)"
-                    @change="updateShape(true)"
+                    :color="shape.strokeColour"
+                    @input="setStrokeColour($event, true)"
+                    @change="setStrokeColour($event)"
                     style="grid-column-start: remove;"
                     :disabled="!owned"
                 />
                 <label for="shapeselectiondialog-fillcolour" v-t="'common.fill_color'"></label>
                 <color-picker
-                    :color.sync="shape.fillColour"
-                    @input="updateShape(true, true)"
-                    @change="updateShape(true)"
+                    :color="shape.fillColour"
+                    @input="setFillColour($event, true)"
+                    @change="setFillColour($event)"
                     style="grid-column-start: remove;"
                     :disabled="!owned"
                 />
@@ -306,8 +291,8 @@ export default class EditDialog extends Vue {
                 <template v-for="tracker in shape.trackers">
                     <input
                         :key="'name-' + tracker.uuid"
-                        v-model="tracker.name"
-                        @change="updateShape(false)"
+                        :value="tracker.name"
+                        @change="updateTracker(tracker.uuid, 'name', $event.target.value)"
                         type="text"
                         :placeholder="$t('common.name')"
                         style="grid-column-start: name"
@@ -315,8 +300,8 @@ export default class EditDialog extends Vue {
                     />
                     <input
                         :key="'value-' + tracker.uuid"
-                        v-model.number="tracker.value"
-                        @change="updateShape(false)"
+                        :value="tracker.value"
+                        @change="updateTracker(tracker.uuid, 'value', $event.target.value)"
                         type="text"
                         :title="$t('game.ui.selection.edit_dialog.dialog.current_value')"
                         :disabled="!owned"
@@ -324,8 +309,8 @@ export default class EditDialog extends Vue {
                     <span :key="'fspan-' + tracker.uuid">/</span>
                     <input
                         :key="'maxvalue-' + tracker.uuid"
-                        v-model.number="tracker.maxvalue"
-                        @change="updateShape(false)"
+                        :value="tracker.maxvalue"
+                        @change="updateTracker(tracker.uuid, 'maxvalue', $event.target.value)"
                         type="text"
                         :title="$t('game.ui.selection.edit_dialog.dialog.current_value')"
                         :disabled="!owned"
@@ -334,10 +319,7 @@ export default class EditDialog extends Vue {
                     <div
                         :key="'visibility-' + tracker.uuid"
                         :style="{ opacity: tracker.visible ? 1.0 : 0.3, textAlign: 'center' }"
-                        @click="
-                            tracker.visible = !tracker.visible;
-                            updateShape(false);
-                        "
+                        @change="updateTracker(tracker.uuid, 'visibility', !tracker.visibility)"
                         :disabled="!owned"
                         :title="$t('common.toggle_public_private')"
                     >
@@ -359,8 +341,8 @@ export default class EditDialog extends Vue {
                 <template v-for="aura in shape.auras">
                     <input
                         :key="'name-' + aura.uuid"
-                        v-model="aura.name"
-                        @change="updateShape(false)"
+                        :value="aura.name"
+                        @change="updateAura(aura.uuid, 'name', $event.target.value)"
                         type="text"
                         :placeholder="$t('common.name')"
                         style="grid-column-start: name"
@@ -368,8 +350,8 @@ export default class EditDialog extends Vue {
                     />
                     <input
                         :key="'value-' + aura.uuid"
-                        v-model.number="aura.value"
-                        @change="updateShape(true)"
+                        :value="aura.value"
+                        @change="updateAura(aura.uuid, 'value', $event.target.value)"
                         type="text"
                         :title="$t('game.ui.selection.edit_dialog.dialog.current_value')"
                         :disabled="!owned"
@@ -377,26 +359,23 @@ export default class EditDialog extends Vue {
                     <span :key="'fspan-' + aura.uuid">/</span>
                     <input
                         :key="'dimvalue-' + aura.uuid"
-                        v-model.number="aura.dim"
-                        @change="updateShape(true)"
+                        :value="aura.dim"
+                        @change="updateAura(aura.uuid, 'dim', $event.target.value)"
                         type="text"
                         :title="$t('game.ui.selection.edit_dialog.dialog.dim_value')"
                         :disabled="!owned"
                     />
                     <color-picker
                         :key="'colour-' + aura.uuid"
-                        :color.sync="aura.colour"
-                        @input="updateAuraColour(aura, $event)"
-                        @change="updateShape(true)"
+                        :color="aura.colour"
+                        @input="updateAura(aura.uuid, 'colour', $event, false)"
+                        @change="updateAura(aura.uuid, 'colour', $event)"
                         :disabled="!owned"
                     />
                     <div
                         :key="'visibility-' + aura.uuid"
                         :style="{ opacity: aura.visible ? 1.0 : 0.3, textAlign: 'center' }"
-                        @click="
-                            aura.visible = !aura.visible;
-                            updateShape(true);
-                        "
+                        @click="updateAura(aura.uuid, 'visible', !aura.visible)"
                         :disabled="!owned"
                         :title="$t('common.toggle_public_private')"
                     >
@@ -405,7 +384,7 @@ export default class EditDialog extends Vue {
                     <div
                         :key="'visionsource-' + aura.uuid"
                         :style="{ opacity: aura.visionSource ? 1.0 : 0.3, textAlign: 'center' }"
-                        @click="updateAuraVisionSource(aura)"
+                        @click="updateAura(aura.uuid, 'visionSource', !aura.visionSource)"
                         :disabled="!owned"
                         :title="$t('game.ui.selection.edit_dialog.dialog.toggle_light_source')"
                     >

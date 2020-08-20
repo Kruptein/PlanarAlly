@@ -248,7 +248,7 @@ export default class DrawTool extends Tool implements ToolBasics {
 
             this.shape.addOwner({ user: gameStore.username, access: { edit: true } }, false);
             if (layer.name === "fow" && this.modeSelect === "normal") {
-                this.shape.visionObstruction = true;
+                this.shape.setVisionBlock(true, false);
                 this.shape.movementObstruction = true;
             }
             layer.addShape(this.shape, SyncMode.FULL_SYNC, InvalidationMode.NO);

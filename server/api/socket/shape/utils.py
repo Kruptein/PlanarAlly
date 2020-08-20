@@ -10,13 +10,13 @@ def get_shape_or_none(pr: PlayerRoom, shape_id: str, action: str) -> Union[Shape
         shape: Shape = Shape.get(uuid=shape_id)
     except Shape.DoesNotExist as exc:
         logger.warning(
-            f"Attempt on unknown shape. {{method: {action}, shape id: {shape_id}}}"
+            f"Attempt by {pr.player.name} on unknown shape. {{method: {action}, shape id: {shape_id}}}"
         )
         raise exc
 
     if not has_ownership(shape, pr):
         logger.warning(
-            f"{pr.player.name} attempted to remove tracker of a shape it does not own"
+            f"Attempt by {pr.player.name} on shape they do not own. {{method: {action}, shape id: {shape_id}}}"
         )
         return None
 

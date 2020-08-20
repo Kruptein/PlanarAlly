@@ -682,7 +682,7 @@ export abstract class Shape {
     }
 
     setNameVisible(visible: boolean, sync: boolean): void {
-        if (sync) sendShapeSetNameVisible({ shape: this.uuid, value: name });
+        if (sync) sendShapeSetNameVisible({ shape: this.uuid, value: visible });
         this.nameVisible = visible;
     }
 

@@ -1,7 +1,8 @@
-from typing import Union
+from typing import Generator, Union
 
 from models import PlayerRoom, Shape
 from models.shape.access import has_ownership
+from state.game import game_state
 from utils import logger
 
 
@@ -21,3 +22,13 @@ def get_shape_or_none(pr: PlayerRoom, shape_id: str, action: str) -> Union[Shape
         return None
 
     return shape
+
+
+def get_owner_sids(
+    pr: PlayerRoom, shape: Shape, skip_sid=None
+) -> Generator[str, None, None]:
+    for psid in game_state.get_sids(
+        active_location=pr.active_location, skip_sid=skip_sid
+    ):
+        if has_ownership(shape, game_state.get(psid)):
+            yield psid

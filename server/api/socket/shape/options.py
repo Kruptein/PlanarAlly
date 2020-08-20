@@ -5,7 +5,7 @@ from playhouse.shortcuts import update_model_from_dict
 
 import auth
 from api.socket.constants import GAME_NS
-from api.socket.shape.utils import get_shape_or_none
+from api.socket.shape.utils import get_owner_sids, get_shape_or_none
 from app import app, sio
 from models import Aura, PlayerRoom, Shape, ShapeLabel, Tracker
 from models.shape.access import has_ownership
@@ -156,13 +156,10 @@ async def set_annotation(sid: str, data: ShapeSetStringValue):
     shape.annotation = data["value"]
     shape.save()
 
-    await sio.emit(
-        "Shape.Options.Annotation.Set",
-        data,
-        skip_sid=sid,
-        room=pr.active_location.get_path(),
-        namespace=GAME_NS,
-    )
+    for sid in get_owner_sids(pr, shape, skip_sid=sid):
+        await sio.emit(
+            "Shape.Options.Annotation.Set", data, room=sid, namespace=GAME_NS,
+        )
 
 
 @sio.on("Shape.Options.Tracker.Remove", namespace=GAME_NS)

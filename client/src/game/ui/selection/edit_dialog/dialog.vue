@@ -55,23 +55,16 @@ export default class EditDialog extends Vue {
 
     addEmpty(): void {
         if (this.shape.trackers.length === 0 || !this.shape.trackers[this.shape.trackers.length - 1].temporary)
-            this.shape.createTracker(
-                {
-                    uuid: uuidv4(),
-                    name: "",
-                    value: 0,
-                    maxvalue: 0,
-                    visible: false,
-                    temporary: true,
-                },
-                false,
-            );
-        if (
-            !this.shape.auras.length ||
-            this.shape.auras[this.shape.auras.length - 1].name !== "" ||
-            this.shape.auras[this.shape.auras.length - 1].value !== 0
-        )
-            this.shape.auras.push({
+            this.shape.pushTracker({
+                uuid: uuidv4(),
+                name: "",
+                value: 0,
+                maxvalue: 0,
+                visible: false,
+                temporary: true,
+            });
+        if (this.shape.auras.length === 0 || !this.shape.auras[this.shape.auras.length - 1].temporary)
+            this.shape.pushAura({
                 uuid: uuidv4(),
                 name: "",
                 value: 0,
@@ -79,6 +72,7 @@ export default class EditDialog extends Vue {
                 visionSource: false,
                 colour: "rgba(0,0,0,0)",
                 visible: false,
+                temporary: true,
             });
     }
     setToken(event: { target: HTMLInputElement }): void {
@@ -127,14 +121,6 @@ export default class EditDialog extends Vue {
         if (!this.owned) return;
         this.shape.removeAura(uuid, true);
     }
-    updateAuraVisionSource(aura: Aura): void {
-        if (!this.owned) return;
-        this.shape.setAuraVisionSource(aura.uuid, !aura.visionSource, true);
-    }
-    updateAuraColour(aura: Aura, _colour: string): void {
-        if (!this.owned) return;
-        this.shape.layer.invalidate(!aura.visionSource);
-    }
     openLabelManager(): void {
         EventBus.$emit("LabelManager.Open");
     }
@@ -167,8 +153,15 @@ export default class EditDialog extends Vue {
         }
     }
 
-    updateAura<T extends keyof Aura>(aura: string, key: T, value: Aura[T], sync = true): void {
-        this.shape.updateOrCreateAura(aura, { [key]: value }, sync);
+    updateAura<T extends keyof Aura>(aura: Aura, key: T, value: Aura[T], sync = true): void {
+        if (aura.temporary) {
+            // update client side version with new key, but don't sync it
+            this.shape.updateAura(aura.uuid, { [key]: value }, false);
+            // do a full sync, creating the aura server side
+            this.shape.syncAura(aura);
+        } else {
+            this.shape.updateAura(aura.uuid, { [key]: value }, sync);
+        }
     }
 }
 </script>
@@ -314,7 +307,7 @@ export default class EditDialog extends Vue {
                     <input
                         :key="'value-' + tracker.uuid"
                         :value="tracker.value"
-                        @change="updateTracker(tracker, 'value', $event.target.value)"
+                        @change="updateTracker(tracker, 'value', parseFloat($event.target.value))"
                         type="text"
                         :title="$t('game.ui.selection.edit_dialog.dialog.current_value')"
                         :disabled="!owned"
@@ -355,7 +348,7 @@ export default class EditDialog extends Vue {
                     <input
                         :key="'name-' + aura.uuid"
                         :value="aura.name"
-                        @change="updateAura(aura.uuid, 'name', $event.target.value)"
+                        @change="updateAura(aura, 'name', $event.target.value)"
                         type="text"
                         :placeholder="$t('common.name')"
                         style="grid-column-start: name"
@@ -364,7 +357,7 @@ export default class EditDialog extends Vue {
                     <input
                         :key="'value-' + aura.uuid"
                         :value="aura.value"
-                        @change="updateAura(aura.uuid, 'value', $event.target.value)"
+                        @change="updateAura(aura, 'value', parseFloat($event.target.value))"
                         type="text"
                         :title="$t('game.ui.selection.edit_dialog.dialog.current_value')"
                         :disabled="!owned"
@@ -373,7 +366,7 @@ export default class EditDialog extends Vue {
                     <input
                         :key="'dimvalue-' + aura.uuid"
                         :value="aura.dim"
-                        @change="updateAura(aura.uuid, 'dim', $event.target.value)"
+                        @change="updateAura(aura, 'dim', parseFloat($event.target.value))"
                         type="text"
                         :title="$t('game.ui.selection.edit_dialog.dialog.dim_value')"
                         :disabled="!owned"
@@ -381,14 +374,14 @@ export default class EditDialog extends Vue {
                     <color-picker
                         :key="'colour-' + aura.uuid"
                         :color="aura.colour"
-                        @input="updateAura(aura.uuid, 'colour', $event, false)"
-                        @change="updateAura(aura.uuid, 'colour', $event)"
+                        @input="updateAura(aura, 'colour', $event, false)"
+                        @change="updateAura(aura, 'colour', $event)"
                         :disabled="!owned"
                     />
                     <div
                         :key="'visibility-' + aura.uuid"
                         :style="{ opacity: aura.visible ? 1.0 : 0.3, textAlign: 'center' }"
-                        @click="updateAura(aura.uuid, 'visible', !aura.visible)"
+                        @click="updateAura(aura, 'visible', !aura.visible)"
                         :disabled="!owned"
                         :title="$t('common.toggle_public_private')"
                     >
@@ -397,14 +390,14 @@ export default class EditDialog extends Vue {
                     <div
                         :key="'visionsource-' + aura.uuid"
                         :style="{ opacity: aura.visionSource ? 1.0 : 0.3, textAlign: 'center' }"
-                        @click="updateAura(aura.uuid, 'visionSource', !aura.visionSource)"
+                        @click="updateAura(aura, 'visionSource', !aura.visionSource)"
                         :disabled="!owned"
                         :title="$t('game.ui.selection.edit_dialog.dialog.toggle_light_source')"
                     >
                         <font-awesome-icon icon="lightbulb" />
                     </div>
                     <div
-                        v-if="aura.name !== '' || aura.value !== 0"
+                        v-if="!aura.temporary"
                         :key="'remove-' + aura.uuid"
                         @click="removeAura(aura.uuid)"
                         :disabled="!owned"

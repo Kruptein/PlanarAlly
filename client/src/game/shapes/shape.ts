@@ -1,5 +1,5 @@
 import { uuidv4 } from "@/core/utils";
-import { aurasFromServer, aurasToServer } from "@/game/comm/conversion/aura";
+import { aurasFromServer, aurasToServer, partialAuraToServer } from "@/game/comm/conversion/aura";
 import { InitiativeData } from "@/game/comm/types/general";
 import { accessToServer, ownerToClient, ownerToServer, ServerShape } from "@/game/comm/types/shapes";
 import { GlobalPoint, LocalPoint, Vector } from "@/game/geom";
@@ -43,6 +43,7 @@ import {
     sendShapeSetStrokeColour,
     sendShapeUpdateAura,
     sendShapeUpdateTracker,
+    sendShapeCreateAura,
 } from "../api/emits/shape/options";
 import { Floor } from "../layers/floor";
 import { Layer } from "../layers/layer";
@@ -284,7 +285,7 @@ export abstract class Shape {
             draw_operator: this.globalCompositeOperation,
             movement_obstruction: this.movementObstruction,
             vision_obstruction: this.visionObstruction,
-            auras: aurasToServer(this.auras),
+            auras: aurasToServer(this.uuid, this.auras),
             trackers: this.trackers,
             labels: this.labels,
             owners: this._owners.map(owner => ownerToServer(owner)),
@@ -622,7 +623,6 @@ export abstract class Shape {
             if (this.isToken && i === -1) gameStore.ownedtokens.push(this.uuid);
             else if (!this.isToken && i >= 0) gameStore.ownedtokens.splice(i, 1);
         }
-        console.log(this.triggersVisionRecalc);
         this.invalidate(false);
     }
 
@@ -660,18 +660,6 @@ export abstract class Shape {
         this.invalidate(false);
     }
 
-    setAuraVisionSource(auraId: string, isVisionSource: boolean, sync: boolean): void {
-        const aura = this.auras.find(a => a.uuid === auraId);
-        if (aura === undefined) return;
-        aura.visionSource = isVisionSource;
-        const visionSources = getVisionSources(this.floor.id);
-        const i = visionSources.findIndex(ls => ls.aura === aura.uuid);
-        if (aura.visionSource && i === -1) addVisionSource({ shape: this.uuid, aura: aura.uuid }, this.floor.id);
-        else if (!aura.visionSource && i >= 0) sliceVisionSources(i, this.floor.id);
-        if (sync) sendShapeSetAuraVision({ shape: this.uuid, aura: auraId, value: aura.visionSource });
-        this.invalidate(false);
-    }
-
     removeLabel(label: string, sync: boolean): void {
         if (sync) sendShapeRemoveLabel({ shape: this.uuid, value: label });
         this.labels = this.labels.filter(l => l.uuid !== label);
@@ -699,9 +687,8 @@ export abstract class Shape {
         this.invalidate(true);
     }
 
-    createTracker(tracker: Tracker, sync: boolean): void {
+    pushTracker(tracker: Tracker): void {
         this.trackers.push(tracker);
-        if (sync) this.syncTracker(tracker);
     }
 
     syncTracker(tracker: Tracker): void {
@@ -714,17 +701,48 @@ export abstract class Shape {
     }
 
     updateTracker(trackerId: string, delta: Partial<Tracker>, sync: boolean): void {
-        console.log(delta);
         const tracker = this.trackers.find(t => t.uuid === trackerId);
         if (tracker === undefined) return;
         Object.assign(tracker, delta);
         if (sync) sendShapeUpdateTracker({ shape: this.uuid, uuid: trackerId, ...delta });
     }
 
-    updateOrCreateAura(auraId: string, delta: Partial<Aura>, sync: boolean): void {
+    pushAura(aura: Aura): void {
+        this.auras.push(aura);
+        console.log(9320);
+        this.invalidate(false);
+    }
+
+    syncAura(aura: Aura): void {
+        if (aura.temporary === false) {
+            console.log("Illegal use of syncAura");
+            return;
+        }
+        sendShapeCreateAura(aurasToServer(this.uuid, [aura])[0]);
+        aura.temporary = false;
+    }
+
+    updateAura(auraId: string, delta: Partial<Aura>, sync: boolean): void {
         const aura = this.auras.find(t => t.uuid === auraId);
         if (aura === undefined) return;
+
+        const visionSources = getVisionSources(this.floor.id);
+        const i = visionSources.findIndex(ls => ls.aura === aura.uuid);
+
         Object.assign(aura, delta);
-        if (sync) sendShapeUpdateAura({ shape: this.uuid, uuid: auraId, delta });
+
+        if (aura.visionSource && i === -1) addVisionSource({ shape: this.uuid, aura: aura.uuid }, this.floor.id);
+        else if (!aura.visionSource && i >= 0) sliceVisionSources(i, this.floor.id);
+
+        if (sync)
+            sendShapeUpdateAura({
+                ...partialAuraToServer({
+                    ...delta,
+                }),
+                shape: this.uuid,
+                uuid: auraId,
+            });
+
+        this.invalidate(false);
     }
 }

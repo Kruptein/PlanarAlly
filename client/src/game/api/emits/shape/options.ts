@@ -34,8 +34,12 @@ export const sendShapeUpdateTracker = (data: { shape: string; uuid: string } & P
     socket.emit("Shape.Options.Tracker.Update", data);
 };
 
-export const sendShapeUpdateAura = (data: { shape: string; uuid: string; delta: Partial<ServerAura> }): void => {
-    socket.emit("Shape.Options.Aura.UpdateOrCreate", data);
+export const sendShapeCreateAura = (data: ServerAura): void => {
+    socket.emit("Shape.Options.Aura.Create", data);
+};
+
+export const sendShapeUpdateAura = (data: { shape: string; uuid: string } & Partial<ServerAura>): void => {
+    socket.emit("Shape.Options.Aura.Update", data);
 };
 
 export const sendShapeSetAuraVision = sendShapeOption<{ aura: string; value: boolean }>(

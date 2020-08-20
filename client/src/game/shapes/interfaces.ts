@@ -16,6 +16,7 @@ interface Aura {
     dim: number;
     colour: string;
     lastPath?: Path2D;
+    temporary: boolean; // this is for auras unknown to the server
 }
 
 interface Label {

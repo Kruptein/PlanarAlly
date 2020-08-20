@@ -42,6 +42,20 @@ class TrackerDelta(TrackerData, total=False):
     maxvalue: int
 
 
+class AuraData(TypedDict):
+    uuid: str
+    shape: str
+
+
+class AuraDelta(AuraData, total=False):
+    vision_source: bool
+    visible: bool
+    name: str
+    value: int
+    dim: int
+    colour: str
+
+
 @sio.on("Shape.Options.Invisible.Set", namespace=GAME_NS)
 @auth.login_required(app, sio)
 async def set_invisible(sid: str, data: ShapeSetBooleanValue):
@@ -207,28 +221,6 @@ async def remove_aura(sid: str, data: ShapeSetStringValue):
     )
 
 
-@sio.on("Shape.Options.Aura.Vision.Set", namespace=GAME_NS)
-@auth.login_required(app, sio)
-async def set_aura_vision(sid: str, data: ShapeAuraSetBooleanValue):
-    pr: PlayerRoom = game_state.get(sid)
-
-    shape = get_shape_or_none(pr, data["shape"], "Aura.Remove")
-    if shape is None:
-        return
-
-    aura = Aura.get_by_id(data["aura"])
-    aura.vision_source = data["value"]
-    aura.save()
-
-    await sio.emit(
-        "Shape.Options.Aura.Vision.Set",
-        data,
-        skip_sid=sid,
-        room=pr.active_location.get_path(),
-        namespace=GAME_NS,
-    )
-
-
 @sio.on("Shape.Options.Label.Remove", namespace=GAME_NS)
 @auth.login_required(app, sio)
 async def remove_label(sid: str, data: ShapeSetStringValue):
@@ -336,7 +328,7 @@ async def set_fill_colour(sid: str, data: ShapeSetStringValue):
 
 @sio.on("Shape.Options.Tracker.Create", namespace=GAME_NS)
 @auth.login_required(app, sio)
-async def create_tracker(sid: str, data: TrackerData):
+async def create_tracker(sid: str, data: TrackerDelta):
     pr: PlayerRoom = game_state.get(sid)
 
     shape = get_shape_or_none(pr, data["shape"], "Tracker.Create")
@@ -347,7 +339,14 @@ async def create_tracker(sid: str, data: TrackerData):
     tracker = Tracker.create(**model)
     tracker.save()
 
-    for sid in get_owner_sids(pr, shape, skip_sid=sid):
+    owners = [*get_owner_sids(pr, shape, skip_sid=sid)]
+    for psid in owners:
+        await sio.emit(
+            "Shape.Options.Tracker.Create", data, room=psid, namespace=GAME_NS,
+        )
+    for psid in game_state.get_sids(active_location=pr.active_location, skip_sid=sid):
+        if psid in owners:
+            continue
         await sio.emit(
             "Shape.Options.Tracker.Create", data, room=sid, namespace=GAME_NS,
         )
@@ -355,7 +354,7 @@ async def create_tracker(sid: str, data: TrackerData):
 
 @sio.on("Shape.Options.Tracker.Update", namespace=GAME_NS)
 @auth.login_required(app, sio)
-async def update_tracker(sid: str, data: TrackerData):
+async def update_tracker(sid: str, data: TrackerDelta):
     pr: PlayerRoom = game_state.get(sid)
 
     shape = get_shape_or_none(pr, data["shape"], "Tracker.Update")
@@ -363,10 +362,103 @@ async def update_tracker(sid: str, data: TrackerData):
         return
 
     tracker = Tracker.get_by_id(data["uuid"])
+    changed_visible = tracker.visible != data.get("visible", tracker.visible)
     update_model_from_dict(tracker, data)
     tracker.save()
 
-    for sid in get_owner_sids(pr, shape, skip_sid=sid):
+    owners = [*get_owner_sids(pr, shape, skip_sid=sid)]
+    for psid in owners:
         await sio.emit(
-            "Shape.Options.Tracker.Update", data, room=sid, namespace=GAME_NS,
+            "Shape.Options.Tracker.Update", data, room=psid, namespace=GAME_NS,
         )
+    for psid in game_state.get_sids(active_location=pr.active_location, skip_sid=sid):
+        if psid in owners:
+            continue
+        if changed_visible:
+            if tracker.visible:
+                await sio.emit(
+                    "Shape.Options.Tracker.Create",
+                    {"shape": shape.uuid, **tracker.as_dict()},
+                    room=psid,
+                    namespace=GAME_NS,
+                )
+            else:
+                await sio.emit(
+                    "Shape.Options.Tracker.Remove",
+                    {"shape": shape.uuid, "value": tracker.uuid},
+                    room=psid,
+                    namespace=GAME_NS,
+                )
+        else:
+            await sio.emit(
+                "Shape.Options.Tracker.Update", data, room=psid, namespace=GAME_NS,
+            )
+
+
+@sio.on("Shape.Options.Aura.Create", namespace=GAME_NS)
+@auth.login_required(app, sio)
+async def create_aura(sid: str, data: AuraDelta):
+    pr: PlayerRoom = game_state.get(sid)
+
+    shape = get_shape_or_none(pr, data["shape"], "Aura.Create")
+    if shape is None:
+        return
+
+    model = reduce_data_to_model(Aura, data)
+    aura = Aura.create(**model)
+    aura.save()
+
+    owners = [*get_owner_sids(pr, shape, skip_sid=sid)]
+    for psid in owners:
+        await sio.emit(
+            "Shape.Options.Aura.Create", data, room=psid, namespace=GAME_NS,
+        )
+    for psid in game_state.get_sids(active_location=pr.active_location, skip_sid=sid):
+        if psid in owners:
+            continue
+        await sio.emit(
+            "Shape.Options.Aura.Create", data, room=sid, namespace=GAME_NS,
+        )
+
+
+@sio.on("Shape.Options.Aura.Update", namespace=GAME_NS)
+@auth.login_required(app, sio)
+async def update_aura(sid: str, data: AuraDelta):
+    pr: PlayerRoom = game_state.get(sid)
+
+    shape = get_shape_or_none(pr, data["shape"], "Aura.Update")
+    if shape is None:
+        return
+
+    aura = Aura.get_by_id(data["uuid"])
+    changed_visible = aura.visible != data.get("visible", aura.visible)
+    update_model_from_dict(aura, data)
+    aura.save()
+
+    owners = [*get_owner_sids(pr, shape, skip_sid=sid)]
+    for psid in owners:
+        await sio.emit(
+            "Shape.Options.Aura.Update", data, room=psid, namespace=GAME_NS,
+        )
+    for psid in game_state.get_sids(active_location=pr.active_location, skip_sid=sid):
+        if psid in owners:
+            continue
+        if changed_visible:
+            if aura.visible:
+                await sio.emit(
+                    "Shape.Options.Aura.Create",
+                    {"shape": shape.uuid, **aura.as_dict()},
+                    room=psid,
+                    namespace=GAME_NS,
+                )
+            else:
+                await sio.emit(
+                    "Shape.Options.Aura.Remove",
+                    {"shape": shape.uuid, "value": aura.uuid},
+                    room=psid,
+                    namespace=GAME_NS,
+                )
+        else:
+            await sio.emit(
+                "Shape.Options.Aura.Update", data, room=psid, namespace=GAME_NS,
+            )

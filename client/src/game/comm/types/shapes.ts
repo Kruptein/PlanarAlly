@@ -86,6 +86,7 @@ export interface ServerTracker {
 }
 
 export interface ServerAura {
+    shape: string;
     uuid: string;
     vision_source: boolean;
     visible: boolean;

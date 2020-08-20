@@ -689,11 +689,13 @@ export abstract class Shape {
     setStrokeColour(colour: string, sync: boolean): void {
         if (sync) sendShapeSetStrokeColour({ shape: this.uuid, value: colour });
         this.strokeColour = colour;
+        this.invalidate(true);
     }
 
     setFillColour(colour: string, sync: boolean): void {
         if (sync) sendShapeSetFillColour({ shape: this.uuid, value: colour });
         this.fillColour = colour;
+        this.invalidate(true);
     }
 
     updateOrCreateTracker(trackerId: string, delta: Partial<Tracker>, sync: boolean): void {

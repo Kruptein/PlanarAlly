@@ -708,7 +708,6 @@ export abstract class Shape {
 
     pushAura(aura: Aura): void {
         this.auras.push(aura);
-        console.log(9320);
         this.invalidate(false);
     }
 

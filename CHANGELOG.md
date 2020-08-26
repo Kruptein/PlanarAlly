@@ -7,6 +7,8 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+## [0.22.0] - 2020-08-26
+
 ### Added
 
 -   localization updates

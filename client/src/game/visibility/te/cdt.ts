@@ -595,7 +595,6 @@ export class CDT {
                 return this.insertInFace(p, loc!);
             }
         }
-        throw new Error("qwe");
     }
 
     insertInEdge(p: Point, loc: Triangle, li: number): Vertex {
@@ -637,10 +636,16 @@ export class CDT {
     insertOutsideConvexHull(p: Point, t: Triangle): Vertex {
         let v: Vertex;
         if (this.tds.dimension === 1) {
-            throw new Error("sdfasdasd");
+            v = this.insertOutsideConvexHull1(p, t);
         } else {
             v = this.insertOutsideConvexHull2(p, t);
         }
+        v.point = p;
+        return v;
+    }
+
+    insertOutsideConvexHull1(p: Point, t: Triangle): Vertex {
+        const v = this.tds.insertInEdge(t, 2);
         v.point = p;
         return v;
     }
@@ -741,7 +746,7 @@ export class CDT {
         if (collinearBetween(p, t.vertices[1 - i]!.point!, t.vertices[i]!.point!))
             return { loc: ff, lt: LocateType.OUTSIDE_CONVEX_HULL, li: iv };
         if (xyEqual(p, t.vertices[1 - i]!.point!)) return { loc: t, lt: LocateType.VERTEX, li: 1 - i };
-        throw new Error("sdfsdf");
+        throw new Error("Vision Error (marchLocate1D)");
     }
 
     marchLocate2D(c: Triangle, p: Point): { loc: Triangle; lt: LocateType; li: number } {

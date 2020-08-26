@@ -595,7 +595,6 @@ export class CDT {
                 return this.insertInFace(p, loc!);
             }
         }
-        throw new Error("qwe");
     }
 
     insertInEdge(p: Point, loc: Triangle, li: number): Vertex {
@@ -747,7 +746,7 @@ export class CDT {
         if (collinearBetween(p, t.vertices[1 - i]!.point!, t.vertices[i]!.point!))
             return { loc: ff, lt: LocateType.OUTSIDE_CONVEX_HULL, li: iv };
         if (xyEqual(p, t.vertices[1 - i]!.point!)) return { loc: t, lt: LocateType.VERTEX, li: 1 - i };
-        throw new Error("sdfsdf");
+        throw new Error("Vision Error (marchLocate1D)");
     }
 
     marchLocate2D(c: Triangle, p: Point): { loc: Triangle; lt: LocateType; li: number } {

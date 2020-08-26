@@ -4,9 +4,10 @@ import { g2l, g2lx, g2ly, g2lz } from "../units";
 import { filterEqualPoints, getFogColour, getPointsCenter, rotateAroundPoint } from "../utils";
 import { BoundingRect } from "./boundingrect";
 import { Shape } from "./shape";
+import { SHAPE_TYPE } from "./types";
 
 export class Polygon extends Shape {
-    type = "polygon";
+    type: SHAPE_TYPE = "polygon";
     _vertices: GlobalPoint[] = [];
     openPolygon = false;
     lineWidth: number;
@@ -85,13 +86,13 @@ export class Polygon extends Shape {
         return bbox;
     }
 
-    getPositionRepresentation(): number[][] {
-        return this.vertices.map(v => v.asArray());
+    getPositionRepresentation(): { angle: number; points: number[][] } {
+        return { angle: this.angle, points: this.vertices.map(v => v.asArray()) };
     }
 
-    setPositionRepresentation(points: number[][]): void {
-        this._vertices = points.slice(1).map(p => GlobalPoint.fromArray(p));
-        super.setPositionRepresentation(points);
+    setPositionRepresentation(position: { angle: number; points: number[][] }): void {
+        this._vertices = position.points.slice(1).map(p => GlobalPoint.fromArray(p));
+        super.setPositionRepresentation(position);
     }
 
     get points(): number[][] {

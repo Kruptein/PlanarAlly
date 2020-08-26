@@ -1,10 +1,15 @@
 from typing import List, Optional
-from typing_extensions import TypedDict
+from typing_extensions import Literal, TypedDict
 
 # DATA CLASSES FOR TYPE CHECKING
+class PositionTuple(TypedDict):
+    angle: int
+    points: List[List[float]]
+
+
 class PositionUpdate(TypedDict):
     uuid: str
-    points: List[List[float]]
+    position: PositionTuple
 
 
 class PositionUpdateList(TypedDict):
@@ -112,3 +117,39 @@ class ServerShapeLocationMoveTarget(TypedDict):
 class ServerShapeLocationMove(TypedDict):
     shapes: List[str]
     target: ServerShapeLocationMoveTarget
+
+
+class GroupLeaderData(TypedDict):
+    leader: str
+    members: List[str]
+
+
+class GroupMemberAddData(TypedDict):
+    leader: str
+    member: str
+
+
+class TrackerUpdateData(TypedDict):
+    uuid: str
+    shape: str
+    value: str
+    _type: Literal["aura", "tracker"]
+
+
+class TextUpdateData(TypedDict):
+    uuid: str
+    text: str
+    temporary: bool
+
+
+class RectSizeData(TypedDict):
+    uuid: str
+    w: int
+    h: int
+    temporary: bool
+
+
+class CircleSizeData(TypedDict):
+    uuid: str
+    r: int
+    temporary: bool

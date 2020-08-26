@@ -10,7 +10,7 @@ import { Asset } from "@/game/shapes/asset";
 import { clampGridLine, l2gx, l2gy, l2gz } from "@/game/units";
 import { visibilityStore } from "@/game/visibility/store";
 import { addCDT, removeCDT } from "@/game/visibility/te/pa";
-import { sendFloorChange, sendLayerChange } from "../api/emits/shape";
+import { sendFloorChange, sendLayerChange } from "../api/emits/shape/core";
 import { gameSettingsStore } from "../settings";
 import { Shape } from "../shapes/shape";
 import { gameStore } from "../store";

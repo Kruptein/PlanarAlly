@@ -4,7 +4,6 @@ import Component from "vue-class-component";
 import ShapeContext from "@/game/ui/selection/shapecontext.vue";
 import Tool from "@/game/ui/tools/tool.vue";
 
-import { socket } from "@/game/api/socket";
 import { EventBus } from "@/game/event-bus";
 import { GlobalPoint, LocalPoint, Ray, Vector } from "@/game/geom";
 import { Layer } from "@/game/layers/layer";
@@ -23,7 +22,7 @@ import { Line } from "../../shapes/line";
 import { SyncMode, InvalidationMode } from "../../../core/comm/types";
 import { BoundingRect } from "../../shapes/boundingrect";
 import { floorStore } from "@/game/layers/store";
-import { sendShapePositionUpdate } from "../../api/emits/shape";
+import { sendShapePositionUpdate, sendShapeSizeUpdate } from "../../api/emits/shape/core";
 import { Shape } from "@/game/shapes/shape";
 import Tools from "./tools.vue";
 
@@ -284,19 +283,13 @@ export default class SelectTool extends Tool implements ToolBasics {
                     if (useSnapping(event) && this.hasFeature(SelectFeatures.Snapping, features))
                         [targetPoint, this.snappedToPoint] = snapToPoint(floorStore.currentLayer!, gp, ignorePoint);
                     else this.snappedToPoint = false;
-                    this.resizePoint = sel.resize(
-                        this.resizePoint,
-                        targetPoint,
-                        // rotateAroundPoint(targetPoint, this.rotationBox!.center(), -this.angle),
-                        event.ctrlKey,
-                    );
+                    this.resizePoint = sel.resize(this.resizePoint, targetPoint, event.ctrlKey);
                     // todo: think about calling deleteIntersectVertex directly on the corner point
                     if (sel.visionObstruction) {
                         visibilityStore.addToTriag({ target: TriangulationTarget.VISION, shape: sel });
                         recalc = true;
                     }
-                    if (!sel.preventSync)
-                        socket.emit("Shape.Update", { shape: sel.asDict(), redraw: true, temporary: true });
+                    if (!sel.preventSync) sendShapeSizeUpdate({ shape: sel, temporary: true });
                 }
                 if (recalc) visibilityStore.recalculateVision(selection[0].floor.id);
                 layer.invalidate(false);
@@ -437,7 +430,7 @@ export default class SelectTool extends Tool implements ToolBasics {
                         }
                     }
                     if (!sel.preventSync) {
-                        socket.emit("Shape.Update", { shape: sel.asDict(), redraw: true, temporary: false });
+                        sendShapeSizeUpdate({ shape: sel, temporary: false });
                     }
                     sel.updatePoints();
                 }
@@ -455,8 +448,7 @@ export default class SelectTool extends Tool implements ToolBasics {
                         const center = this.rotationBox!.center();
                         this.rotateSelection(newAngle, center);
                     }
-                    if (!sel.preventSync)
-                        socket.emit("Shape.Update", { shape: sel.asDict(), redraw: true, temporary: false });
+                    if (!sel.preventSync) sendShapePositionUpdate([sel], false);
                     sel.updatePoints();
                 }
             }
@@ -608,7 +600,7 @@ export default class SelectTool extends Tool implements ToolBasics {
                 visibilityStore.addToTriag({ target: TriangulationTarget.VISION, shape: sel });
                 recalc = true;
             }
-            if (!sel.preventSync) socket.emit("Shape.Update", { shape: sel.asDict(), redraw: true, temporary: true });
+            if (!sel.preventSync) sendShapePositionUpdate([sel], true);
         }
         if (recalc) visibilityStore.recalculateVision(selection[0].floor.id);
         this.rotationEnd!.rotateAround(center, dA);

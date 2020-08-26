@@ -13,8 +13,8 @@ import { ToolBasics } from "./ToolBasics";
 import { Line } from "@/game/shapes/line";
 import { gameStore, DEFAULT_GRID_SIZE } from "@/game/store";
 import { Text } from "../../shapes/text";
-import { socket } from "@/game/api/socket";
 import { floorStore } from "@/game/layers/store";
+import { sendShapePositionUpdate, sendTextUpdate } from "@/game/api/emits/shape/core";
 
 @Component
 export default class RulerTool extends Tool implements ToolBasics {
@@ -59,7 +59,7 @@ export default class RulerTool extends Tool implements ToolBasics {
         }
 
         this.ruler.endPoint = endPoint;
-        socket.emit("Shape.Update", { shape: this.ruler.asDict(), redraw: true, temporary: true });
+        sendShapePositionUpdate([this.ruler], true);
 
         const diffsign = Math.sign(endPoint.x - this.startPoint.x) * Math.sign(endPoint.y - this.startPoint.y);
         const xdiff = Math.abs(endPoint.x - this.startPoint.x);
@@ -74,7 +74,8 @@ export default class RulerTool extends Tool implements ToolBasics {
         this.text.refPoint = new GlobalPoint(xmid, ymid);
         this.text.text = label;
         this.text.angle = angle;
-        socket.emit("Shape.Update", { shape: this.text.asDict(), redraw: true, temporary: true });
+        sendTextUpdate({ uuid: this.text.uuid, text: this.text.text, temporary: true });
+        sendShapePositionUpdate([this.text], true);
         layer.invalidate(true);
     }
 

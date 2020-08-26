@@ -1,32 +1,18 @@
 import { ServerLocationOptions } from "../../comm/types/settings";
 import { socket } from "../socket";
 import { ServerAsset } from "../../comm/types/shapes";
+import { wrapSocket } from "../helpers";
 
-export function sendLocationOptions(data: { options: Partial<ServerLocationOptions>; location: number | null }): void {
-    socket.emit("Location.Options.Set", data);
-}
-
-export function sendLocationOrder(data: number[]): void {
-    socket.emit("Locations.Order.Set", data);
-}
-
-export function sendLocationChange(data: { location: number; users: string[] }): void {
-    socket.emit("Location.Change", data);
-}
-
-export function sendNewLocation(data: string): void {
-    socket.emit("Location.New", data);
-}
+export const sendLocationOptions = wrapSocket<{ options: Partial<ServerLocationOptions>; location: number | null }>(
+    "Location.Options.Set",
+);
+export const sendLocationOrder = wrapSocket<number[]>("Locations.Order.Set");
+export const sendLocationChange = wrapSocket<{ location: number; users: string[] }>("Location.Change");
+export const sendNewLocation = wrapSocket<string>("Location.New");
+export const sendLocationRename = wrapSocket<{ location: number; name: string }>("Location.Rename");
+export const sendLocationRemove = wrapSocket<number>("Location.Delete");
 
 export async function requestSpawnInfo(location: number): Promise<ServerAsset[]> {
     socket.emit("Location.Spawn.Info.Get", location);
     return await new Promise((resolve: (value: ServerAsset[]) => void) => socket.once("Location.Spawn.Info", resolve));
-}
-
-export function sendLocationRename(data: { location: number; name: string }): void {
-    socket.emit("Location.Rename", data);
-}
-
-export function sendLocationRemove(data: number): void {
-    socket.emit("Location.Delete", data);
 }

@@ -1,5 +1,3 @@
-import * as tinycolor from "tinycolor2";
-
 import { calcFontScale } from "@/core/utils";
 import { InitiativeData } from "@/game/comm/types/general";
 import { ServerCircularToken } from "@/game/comm/types/shapes";
@@ -7,9 +5,11 @@ import { GlobalPoint } from "@/game/geom";
 import { Circle } from "@/game/shapes/circle";
 import { gameStore } from "@/game/store";
 import { g2l, g2lz } from "@/game/units";
+import * as tinycolor from "tinycolor2";
+import { SHAPE_TYPE } from "./types";
 
 export class CircularToken extends Circle {
-    type = "circulartoken";
+    type: SHAPE_TYPE = "circulartoken";
     text: string;
     font: string;
     constructor(

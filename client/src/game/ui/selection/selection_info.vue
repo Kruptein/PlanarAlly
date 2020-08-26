@@ -5,10 +5,10 @@ import Component from "vue-class-component";
 import Game from "@/game/Game.vue";
 import EditDialog from "@/game/ui/selection/edit_dialog/dialog.vue";
 
-import { socket } from "@/game/api/socket";
 import { EventBus } from "@/game/event-bus";
 import { layerManager } from "@/game/layers/manager";
 import { Shape } from "@/game/shapes/shape";
+import { sendTrackerUpdate } from "@/game/api/emits/shape/core";
 
 @Component({
     components: {
@@ -53,7 +53,7 @@ export default class SelectionInfo extends Vue {
     openEditDialog(): void {
         (<any>this.$refs.editDialog)[0].visible = true;
     }
-    async changeValue(object: Tracker | Aura, redraw: boolean): Promise<void> {
+    async changeValue(object: Tracker | Aura, isAura: boolean): Promise<void> {
         if (this.shape === null) return;
         const value = await (<Game>this.$parent.$parent).$refs.prompt.prompt(
             this.$t("game.ui.selection.select_info.new_value_NAME", { name: object.name }).toString(),
@@ -61,12 +61,15 @@ export default class SelectionInfo extends Vue {
         );
         if (this.shape === null) return;
         const ogValue = object.value;
+
         if (value[0] === "+" || value[0] === "-") object.value += parseInt(value, 10);
         else object.value = parseInt(value, 10);
+
+        const _type = isAura ? "aura" : "tracker";
+
         if (isNaN(object.value)) object.value = ogValue;
-        if (!this.shape.preventSync)
-            socket.emit("Shape.Update", { shape: this.shape.asDict(), redraw, temporary: false });
-        if (redraw) layerManager.invalidate(this.shape.floor);
+        else sendTrackerUpdate({ uuid: object.uuid, value: object.value, shape: this.shape.uuid, _type });
+        if (isAura) layerManager.invalidate(this.shape.floor);
     }
 }
 </script>

@@ -3,10 +3,11 @@ import { ServerAsset } from "@/game/comm/types/shapes";
 import { GlobalPoint } from "@/game/geom";
 import { BaseRect } from "@/game/shapes/baserect";
 import { gameStore } from "@/game/store";
-import { g2lx, g2ly, g2lz, g2l } from "@/game/units";
+import { g2l, g2lx, g2ly, g2lz } from "@/game/units";
+import { SHAPE_TYPE } from "./types";
 
 export class Asset extends BaseRect {
-    type = "assetrect";
+    type: SHAPE_TYPE = "assetrect";
     img: HTMLImageElement;
     src = "";
     strokeColour = "white";

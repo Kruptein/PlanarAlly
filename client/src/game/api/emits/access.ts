@@ -1,18 +1,7 @@
 import { ServerShapeOwner } from "../../comm/types/shapes";
-import { socket } from "../socket";
+import { wrapSocket } from "../helpers";
 
-export function sendShapeAddOwner(data: ServerShapeOwner): void {
-    socket.emit("Shape.Owner.Add", data);
-}
-
-export function sendShapeUpdateOwner(data: ServerShapeOwner): void {
-    socket.emit("Shape.Owner.Update", data);
-}
-
-export function sendShapeDeleteOwner(data: ServerShapeOwner): void {
-    socket.emit("Shape.Owner.Delete", data);
-}
-
-export function sendShapeUpdateDefaultOwner(data: Omit<ServerShapeOwner, "user">): void {
-    socket.emit("Shape.Owner.Default.Update", data);
-}
+export const sendShapeAddOwner = wrapSocket<ServerShapeOwner>("Shape.Owner.Add");
+export const sendShapeUpdateOwner = wrapSocket<ServerShapeOwner>("Shape.Owner.Update");
+export const sendShapeDeleteOwner = wrapSocket<ServerShapeOwner>("Shape.Owner.Delete");
+export const sendShapeUpdateDefaultOwner = wrapSocket<Omit<ServerShapeOwner, "user">>("Shape.Owner.Default.Update");

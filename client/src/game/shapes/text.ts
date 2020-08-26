@@ -3,9 +3,10 @@ import { BoundingRect } from "@/game/shapes/boundingrect";
 import { Shape } from "@/game/shapes/shape";
 import { ServerText } from "../comm/types/shapes";
 import { rotateAroundPoint } from "../utils";
+import { SHAPE_TYPE } from "./types";
 
 export class Text extends Shape {
-    type = "text";
+    type: SHAPE_TYPE = "text";
     text: string;
     font: string;
     constructor(

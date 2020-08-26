@@ -10,7 +10,7 @@ import { removeFloor } from "@/game/layers/utils";
 import { gameStore } from "@/game/store";
 import { Floor } from "../layers/floor";
 import { floorStore, getFloorId } from "../layers/store";
-import { sendRenameFloor, sendCreateFloor, sendRemoveFloor, sendFloorSetVisible } from "../api/emits/floor";
+import { sendCreateFloor, sendRemoveFloor, sendFloorSetVisible } from "../api/emits/floor";
 
 @Component({
     components: {
@@ -78,7 +78,7 @@ export default class FloorSelect extends Vue {
             this.$t("game.ui.floors.rename_header_title").toString(),
         );
         if (value === undefined || getFloorId(value) !== -1) return;
-        sendRenameFloor(index, value);
+        floorStore.renameFloor({ index, name, sync: true });
     }
 
     async removeFloor(floor: Floor): Promise<void> {

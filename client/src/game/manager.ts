@@ -48,8 +48,8 @@ export class GameManager {
         const redrawInitiative = sh.owners !== oldShape.owners;
         const shape = Object.assign(oldShape, sh);
         const alteredVision = shape.checkVisionSources();
-        const alteredMovement = shape.setMovementBlock(shape.movementObstruction);
-        shape.setIsToken(shape.isToken);
+        const alteredMovement = shape.setMovementBlock(shape.movementObstruction, false);
+        shape.setIsToken(shape.isToken, false);
         if (data.redraw) {
             shape.updateShapeVision(alteredMovement, alteredVision);
         }

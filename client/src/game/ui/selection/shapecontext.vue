@@ -20,7 +20,7 @@ import { floorStore } from "../../layers/store";
 import { Floor } from "@/game/layers/floor";
 import { moveFloor, moveLayer } from "../../layers/utils";
 import { requestSpawnInfo } from "@/game/api/emits/location";
-import { sendShapesMove } from "@/game/api/emits/shape";
+import { sendShapesMove } from "@/game/api/emits/shape/core";
 
 @Component({
     components: {

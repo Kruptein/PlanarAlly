@@ -1,5 +1,4 @@
 import { InvalidationMode, SyncMode } from "@/core/comm/types";
-import { socket } from "@/game/api/socket";
 import { ServerShape } from "@/game/comm/types/shapes";
 import { EventBus } from "@/game/event-bus";
 import { layerManager } from "@/game/layers/manager";
@@ -9,10 +8,11 @@ import { gameStore } from "@/game/store";
 import { visibilityStore } from "@/game/visibility/store";
 import { TriangulationTarget } from "@/game/visibility/te/pa";
 import { getBlockers, getVisionSources, sliceBlockers, sliceVisionSources } from "@/game/visibility/utils";
-import { drawAuras } from "../shapes/aura";
+import { sendRemoveShapes, sendShapeAdd, sendShapeOrder } from "../api/emits/shape/core";
 import { gameSettingsStore } from "../settings";
+import { drawAuras } from "../shapes/aura";
+import { changeGroupLeader } from "../shapes/group";
 import { floorStore } from "./store";
-import { sendShapeAdd, sendRemoveShapes, sendShapeOrder } from "../api/emits/shape";
 
 export class Layer {
     canvas: HTMLCanvasElement;
@@ -107,7 +107,7 @@ export class Layer {
         this.shapes.push(shape);
         layerManager.UUIDMap.set(shape.uuid, shape);
         shape.checkVisionSources(invalidate !== InvalidationMode.NO);
-        shape.setMovementBlock(shape.movementObstruction, invalidate !== InvalidationMode.NO);
+        shape.setMovementBlock(shape.movementObstruction, false, invalidate !== InvalidationMode.NO);
         if (snappable) {
             for (const point of shape.points) {
                 const strp = JSON.stringify(point);
@@ -147,21 +147,12 @@ export class Layer {
 
         if (shape.options.has("groupInfo")) {
             const groupMembers = shape.getGroupMembers();
-            if (groupMembers.length > 1) {
-                const groupLeader = groupMembers[1];
-                for (const member of groupMembers.slice(2)) {
-                    member.options.set("groupId", groupLeader.uuid);
-                    if (!member.preventSync)
-                        socket.emit("Shape.Update", { shape: member.asDict(), redraw: false, temporary: false });
-                }
-                groupLeader.options.set(
-                    "groupInfo",
-                    groupMembers.slice(2).map(s => s.uuid),
-                );
-                groupLeader.options.delete("groupId");
-                if (!groupLeader.preventSync)
-                    socket.emit("Shape.Update", { shape: groupLeader.asDict(), redraw: false, temporary: false });
-            }
+            if (groupMembers.length > 1)
+                changeGroupLeader({
+                    leader: groupMembers[1].uuid,
+                    members: groupMembers.slice(2).map(s => s.uuid),
+                    sync: true,
+                });
         }
 
         if (sync !== SyncMode.NO_SYNC && !shape.preventSync)
@@ -215,7 +206,7 @@ export class Layer {
         }
 
         EventBus.$emit("Initiative.Remove", shape.uuid);
-        this.invalidate(!sync);
+        this.invalidate(!shape.triggersVisionRecalc);
         return true;
     }
 

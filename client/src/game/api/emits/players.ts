@@ -1,5 +1,3 @@
-import { socket } from "../socket";
+import { wrapSocket } from "../helpers";
 
-export function sendBringPlayers(data: { floor: string; x: number; y: number; zoom: number }): void {
-    socket.emit("Players.Bring", data);
-}
+export const sendBringPlayers = wrapSocket<{ floor: string; x: number; y: number; zoom: number }>("Players.Bring");

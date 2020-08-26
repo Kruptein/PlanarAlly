@@ -20,11 +20,11 @@ import { Line } from "@/game/shapes/line";
 import { Rect } from "@/game/shapes/rect";
 import { Shape } from "@/game/shapes/shape";
 import { Text } from "@/game/shapes/text";
-import { socket } from "../api/socket";
 import { EventBus } from "../event-bus";
 import { floorStore, getFloorId } from "../layers/store";
 import { gameStore } from "../store";
 import { Polygon } from "./polygon";
+import { addGroupMember } from "./group";
 
 export function createShapeFromDict(shape: ServerShape): Shape | undefined {
     let sh: Shape;
@@ -146,11 +146,9 @@ export function pasteShapes(targetLayer?: string): readonly Shape[] {
             if (!groupLeader.options.has("groupInfo")) groupLeader.options.set("groupInfo", []);
             const groupMembers = groupLeader.getGroupMembers();
             clip.badge = groupMembers.reduce((acc: number, sh: Shape) => Math.max(acc, sh.badge ?? 1), 0) + 1;
-            groupLeader.options.set("groupInfo", [...groupLeader.options.get("groupInfo"), clip.uuid]);
             options.set("groupId", groupLeader.uuid);
             clip.options = JSON.stringify([...options]);
-            if (!groupLeader.preventSync)
-                socket.emit("Shape.Update", { shape: groupLeader.asDict(), redraw: false, temporary: false });
+            addGroupMember({ leader: groupLeader.uuid, member: clip.uuid, sync: true });
         }
         // Finalize
         const shape = createShapeFromDict(clip);

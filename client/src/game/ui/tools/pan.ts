@@ -1,9 +1,9 @@
-import { sendClientOptions } from "@/game/api/utils";
 import { LocalPoint } from "@/game/geom";
 import { layerManager } from "@/game/layers/manager";
 import { gameStore } from "@/game/store";
 import Tool from "@/game/ui/tools/tool.vue";
 import Component from "vue-class-component";
+import { sendClientLocationOptions } from "../../api/emits/client";
 import { ToolBasics } from "./ToolBasics";
 import { ToolName } from "./utils";
 
@@ -13,17 +13,18 @@ export default class PanTool extends Tool implements ToolBasics {
     panStart = new LocalPoint(0, 0);
     active = false;
 
-    panScreen(target: LocalPoint): void {
+    panScreen(target: LocalPoint, full: boolean): void {
         const distance = target.subtract(this.panStart).multiply(1 / gameStore.zoomFactor);
         gameStore.increasePanX(Math.round(distance.x));
         gameStore.increasePanY(Math.round(distance.y));
         this.panStart = target;
-        layerManager.invalidateAllFloors();
+        if (full) layerManager.invalidateAllFloors();
+        else layerManager.invalidateVisibleFloors();
     }
 
     onMove(lp: LocalPoint): void {
         if (!this.active) return;
-        this.panScreen(lp);
+        this.panScreen(lp, false);
     }
 
     onDown(lp: LocalPoint): void {
@@ -31,8 +32,10 @@ export default class PanTool extends Tool implements ToolBasics {
         this.active = true;
     }
 
-    onUp(): void {
+    onUp(lp: LocalPoint): void {
+        if (!this.active) return;
         this.active = false;
-        sendClientOptions(gameStore.locationUserOptions);
+        this.panScreen(lp, true);
+        sendClientLocationOptions();
     }
 }

@@ -3,7 +3,7 @@ import Vue from "vue";
 import Component from "vue-class-component";
 
 import Modal from "@/core/components/modals/modal.vue";
-import Game from "@/game/game.vue";
+import Game from "@/game/Game.vue";
 
 import { Note } from "@/game/comm/types/general";
 import { gameStore } from "@/game/store";
@@ -55,11 +55,11 @@ export default class NoteDialog extends Vue {
             @dragend="m.dragEnd"
         >
             <span @click="$refs.title.select()" :title="$t('game.ui.note.edit_title')">
-                <i aria-hidden="true" class="fas fa-pencil-alt" style="font-size: 15px"></i>
+                <font-awesome-icon icon="pencil-alt" />
             </span>
             <input v-model="note.title" ref="title" @change="updateNote" />
             <div class="header-close" @click="visible = false" :title="$t('common.close')">
-                <i aria-hidden="true" class="far fa-window-close"></i>
+                <font-awesome-icon :icon="['far', 'window-close']" />
             </div>
         </div>
         <div class="modal-body">
@@ -72,7 +72,7 @@ export default class NoteDialog extends Vue {
         </div>
         <div class="modal-footer">
             <button @click="removeNote" :title="$t('game.ui.note.remove_note')">
-                <i aria-hidden="true" class="far fa-trash-alt"></i>
+                <font-awesome-icon icon="trash-alt" />
                 {{ $t("game.ui.note.remove_note") }}
             </button>
         </div>

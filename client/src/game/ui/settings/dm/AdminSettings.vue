@@ -3,7 +3,7 @@ import Vue from "vue";
 import Component from "vue-class-component";
 
 import InputCopyElement from "@/core/components/inputCopy.vue";
-import Game from "../../../game.vue";
+import Game from "../../../Game.vue";
 import { socket } from "@/game/api/socket";
 import { EventBus } from "@/game/event-bus";
 import { gameStore, Player } from "@/game/store";
@@ -44,7 +44,6 @@ export default class AdminSettings extends Vue {
         this.showRefreshState = true;
     }
     kickPlayer(id: number): void {
-        socket.emit("Room.Info.Players.Kick", id);
         gameStore.kickPlayer(id);
     }
     toggleSessionLock(): void {

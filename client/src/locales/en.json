@@ -4,7 +4,9 @@
         "en": "English",
         "zh": "中文",
         "de": "Deutsch",
-        "ru": "Русский"
+        "ru": "Русский",
+        "dk": "Dansk",
+        "es": "Español"
     },
     "assetManager": {
         "contextMenu": {
@@ -95,7 +97,10 @@
                 "creation": "Floor Creation",
                 "warning_msg_Z": "Are you sure you wish to remove the {z} floor?",
                 "delete_floor": "Delete floor",
-                "add_new_floor": "Add new floor"
+                "add_new_floor": "Add new floor",
+                "toggle_visibility": "Toggle floor visibility for players",
+                "rename_icon_hover": "Rename this floor",
+                "rename_header_title": "Renaming Floor"
             },
             "initiative": {
                 "initiative": {
@@ -138,6 +143,7 @@
                     "dm_options": "DM Options",
                     "no_markers": "No markers",
                     "client_options": "Client Options",
+                    "grid_size_in_pixels": "Grid Size (in pixels):",
                     "grid_color_set": "Grid Colour:",
                     "fow_color_set": "FOW Colour:",
                     "ruler_color_set": "Ruler Colour:",
@@ -178,7 +184,10 @@
                 "select_info": {
                     "open_shape_props": "Open shape properties",
                     "quick_edit_tracker": "Quick edit tracker",
-                    "quick_edit_aura": "Quick edit aura"
+                    "quick_edit_aura": "Quick edit aura",
+                    "lock": "Toggle lock/unlock",
+                    "new_value_NAME": "New {name} value:",
+                    "updating_NAME": "Updating {name}"
                 },
                 "shapecontext": {
                     "show_initiative": "Show initiative",
@@ -224,7 +233,6 @@
                 "GridSettings": {
                     "unit_size_in_UNIT": "Unit Size (in {unit})",
                     "use_grid": "Use grid",
-                    "grid_size_in_pixels": "Grid Size (in pixels):",
                     "size_unit": "Size Unit"
                 },
                 "location": {

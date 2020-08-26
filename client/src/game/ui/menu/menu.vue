@@ -5,7 +5,7 @@ import Component from "vue-class-component";
 import { mapState } from "vuex";
 
 import ColorPicker from "@/core/components/colorpicker.vue";
-import Game from "@/game/game.vue";
+import Game from "@/game/Game.vue";
 import AssetNode from "@/game/ui/menu/asset_node.vue";
 import LanguageDropdown from "@/core/components/languageDropdown.vue";
 
@@ -54,6 +54,13 @@ export default class MenuBar extends Vue {
     }
     set invertAlt(value: boolean) {
         gameStore.setInvertAlt({ invertAlt: value, sync: true });
+    }
+    get gridSize(): number {
+        return gameStore.gridSize;
+    }
+    set gridSize(gridSize: number) {
+        if (gridSize < 1) return;
+        gameStore.setGridSize({ gridSize, sync: true });
     }
     settingsClick(event: { target: HTMLElement }): void {
         if (
@@ -110,7 +117,7 @@ export default class MenuBar extends Vue {
                         target="blank"
                         :title="$t('game.ui.menu.menu.open_asset_manager')"
                     >
-                        <i aria-hidden="true" class="fas fa-external-link-alt"></i>
+                        <font-awesome-icon icon="external-link-alt" />
                     </a>
                     <div class="directory" id="menu-tokens">
                         <asset-node :asset="assets" :search="assetSearch"></asset-node>
@@ -124,7 +131,7 @@ export default class MenuBar extends Vue {
                 <div class="menu-accordion-panel">
                     <div class="menu-accordion-subpanel" id="menu-notes">
                         <a class="actionButton" @click="createNote" :title="$t('game.ui.menu.menu.create_note')">
-                            <i aria-hidden="true" class="far fa-plus-square"></i>
+                            <font-awesome-icon icon="plus-square" />
                         </a>
                         <div v-for="note in notes" :key="note.uuid" @click="openNote(note)" style="cursor:pointer">
                             {{ note.title || "[?]" }}
@@ -144,7 +151,7 @@ export default class MenuBar extends Vue {
                             {{ nameMarker(marker) || "[?]" }}
                         </div>
                         <div @click="delMarker(marker)" :title="$t('game.ui.menu.menu.delete_marker')">
-                            <i aria-hidden="true" class="far fa-minus-square"></i>
+                            <font-awesome-icon icon="minus-square" />
                         </div>
                     </div>
                     <div v-if="!markers.length" v-t="'game.ui.menu.menu.no_markers'"></div>
@@ -154,6 +161,8 @@ export default class MenuBar extends Vue {
             <button class="menu-accordion" v-t="'game.ui.menu.menu.client_options'"></button>
             <div class="menu-accordion-panel">
                 <div class="menu-accordion-subpanel">
+                    <label for="gridSize" v-t="'game.ui.menu.menu.grid_size_in_pixels'"></label>
+                    <div><input id="gridSize" type="number" v-model="gridSize" /></div>
                     <label for="gridColour" v-t="'game.ui.menu.menu.grid_color_set'"></label>
                     <color-picker id="gridColour" :color.sync="gridColour" />
                     <label for="fowColour" v-t="'game.ui.menu.menu.fow_color_set'"></label>

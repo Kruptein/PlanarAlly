@@ -3,6 +3,16 @@ PlanarAlly backend server code.
 This is the code responsible for starting the backend and reacting to socket IO events.
 """
 
+# Check for existence of './templates/' as it is not present if client was not built before
+import sys
+from utils import FILE_DIR
+
+if not (FILE_DIR / "templates").exists():
+    print(
+        "You must gather your par— you must build the client, before starting the server.\nSee https://www.planarally.io/tutorial/setup/self-hosting/ on how to build the client or import a pre-built client."
+    )
+    sys.exit(1)
+
 # Mimetype recognition for js files apparently is not always properly setup out of the box for some users out there.
 import mimetypes
 
@@ -15,7 +25,6 @@ save.check_save()
 
 import asyncio
 import configparser
-import sys
 
 from aiohttp import web
 
@@ -27,8 +36,9 @@ from state.game import game_state
 # Force loading of socketio routes
 from api.socket import *
 from api.socket.constants import GAME_NS
-from app import app, logger, sio
+from app import app, sio
 from config import config
+from utils import logger
 
 # This is a fix for asyncio problems on windows that make it impossible to do ctrl+c
 if sys.platform.startswith("win"):

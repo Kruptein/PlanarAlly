@@ -3,6 +3,7 @@ import { CoreState } from "@/core/store";
 import { GameState } from "@/game/store";
 import Vue from "vue";
 import Vuex from "vuex";
+import { FloorState } from "./game/layers/store";
 import { GameSettingsState } from "./game/settings";
 import { InitiativeState } from "./game/ui/initiative/store";
 import { VisibilityState } from "./game/visibility/store";
@@ -12,6 +13,7 @@ Vue.use(Vuex);
 export interface RootState {
     assets: AssetState;
     core: CoreState;
+    floor: FloorState;
     game: GameState;
     gameSettings: GameSettingsState;
     initiative: InitiativeState;

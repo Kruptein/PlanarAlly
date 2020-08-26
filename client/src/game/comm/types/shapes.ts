@@ -5,6 +5,7 @@ export interface ServerShape {
     type_: string;
     x: number;
     y: number;
+    angle: number;
     floor: string;
     layer: string;
     movement_obstruction: boolean;
@@ -16,6 +17,7 @@ export interface ServerShape {
     owners: ServerShapeOwner[];
     fill_colour: string;
     stroke_colour: string;
+    stroke_width: number;
     name: string;
     name_visible: boolean;
     annotation: string;
@@ -61,7 +63,7 @@ export interface ServerLine extends ServerShape {
     line_width: number;
 }
 export interface ServerPolygon extends ServerShape {
-    vertices: { x: number; y: number }[];
+    vertices: number[][];
     open_polygon: boolean;
     line_width: number;
 }
@@ -74,7 +76,17 @@ export interface ServerAsset extends ServerRect {
     src: string;
 }
 
+export interface ServerTracker {
+    shape: string;
+    uuid: string;
+    visible: boolean;
+    name: string;
+    value: number;
+    maxvalue: number;
+}
+
 export interface ServerAura {
+    shape: string;
     uuid: string;
     vision_source: boolean;
     visible: boolean;

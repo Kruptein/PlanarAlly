@@ -8,6 +8,7 @@ import { VisibilityMode, visibilityStore } from "@/game/visibility/store";
 import { layerManager } from "@/game/layers/manager";
 import { gameSettingsStore, getLocationOption } from "../../settings";
 import { LocationOptions } from "@/game/comm/types/settings";
+import { floorStore } from "../../layers/store";
 
 @Component
 export default class VisionSettings extends Vue {
@@ -72,9 +73,9 @@ export default class VisionSettings extends Vue {
             mode = VisibilityMode.TRIANGLE_ITERATIVE;
         else return;
         visibilityStore.setVisionMode({ mode, sync: true });
-        for (const floor of layerManager.floors) {
-            visibilityStore.recalculateVision(floor.name);
-            visibilityStore.recalculateMovement(floor.name);
+        for (const floor of floorStore.floors) {
+            visibilityStore.recalculateVision(floor.id);
+            visibilityStore.recalculateMovement(floor.id);
         }
         layerManager.invalidateAllFloors();
     }
@@ -118,7 +119,7 @@ export default class VisionSettings extends Vue {
                 @click="reset('fullFow')"
                 :title="$t('game.ui.settings.common.reset_default')"
             >
-                <i aria-hidden="true" class="fas fa-times-circle"></i>
+                <font-awesome-icon icon="times-circle" />
             </div>
             <div v-else></div>
         </div>
@@ -132,7 +133,7 @@ export default class VisionSettings extends Vue {
                 @click="reset('fowLos')"
                 :title="$t('game.ui.settings.common.reset_default')"
             >
-                <i aria-hidden="true" class="fas fa-times-circle"></i>
+                <font-awesome-icon icon="times-circle" />
             </div>
             <div v-else></div>
         </div>
@@ -153,7 +154,7 @@ export default class VisionSettings extends Vue {
                 @click="reset('fowOpacity')"
                 :title="$t('game.ui.settings.common.reset_default')"
             >
-                <i aria-hidden="true" class="fas fa-times-circle"></i>
+                <font-awesome-icon icon="times-circle" />
             </div>
             <div v-else></div>
         </div>
@@ -186,7 +187,7 @@ export default class VisionSettings extends Vue {
                 @click="reset('visionMinRange')"
                 :title="$t('game.ui.settings.common.reset_default')"
             >
-                <i aria-hidden="true" class="fas fa-times-circle"></i>
+                <font-awesome-icon icon="times-circle" />
             </div>
             <div v-else></div>
         </div>
@@ -202,7 +203,7 @@ export default class VisionSettings extends Vue {
                 @click="reset('visionMaxRange')"
                 :title="$t('game.ui.settings.common.reset_default')"
             >
-                <i aria-hidden="true" class="fas fa-times-circle"></i>
+                <font-awesome-icon icon="times-circle" />
             </div>
             <div v-else></div>
         </div>

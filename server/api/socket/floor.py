@@ -1,16 +1,29 @@
-from typing import Any, Dict
+from typing import Any, Dict, List
+from typing_extensions import TypedDict
 
 import auth
 from api.socket.constants import GAME_NS
-from app import app, logger, sio
+from app import app, sio
 from models import Floor, Room, PlayerRoom
+from models.db import db
 from models.role import Role
 from state.game import game_state
+from utils import logger
+
+# DATA CLASSES FOR TYPE CHECKING
+class FloorRename(TypedDict):
+    index: int
+    name: str
+
+
+class FloorVisibleData(TypedDict):
+    name: str
+    visible: bool
 
 
 @sio.on("Floor.Create", namespace=GAME_NS)
 @auth.login_required(app, sio)
-async def create_floor(sid: int, data: Dict[str, Any]):
+async def create_floor(sid: str, data: str):
     pr: PlayerRoom = game_state.get(sid)
 
     if pr.role != Role.DM:
@@ -33,7 +46,7 @@ async def create_floor(sid: int, data: Dict[str, Any]):
 
 @sio.on("Floor.Remove", namespace=GAME_NS)
 @auth.login_required(app, sio)
-async def remove_floor(sid, data):
+async def remove_floor(sid: str, data: str):
     pr: PlayerRoom = game_state.get(sid)
 
     if pr.role != Role.DM:
@@ -45,6 +58,73 @@ async def remove_floor(sid, data):
 
     await sio.emit(
         "Floor.Remove",
+        data,
+        room=pr.active_location.get_path(),
+        skip_sid=sid,
+        namespace=GAME_NS,
+    )
+
+
+@sio.on("Floor.Visible.Set", namespace=GAME_NS)
+@auth.login_required(app, sio)
+async def set_floor_visibility(sid: str, data: FloorVisibleData):
+    pr: PlayerRoom = game_state.get(sid)
+
+    if pr.role != Role.DM:
+        logger.warning(f"{pr.player.name} attempted to toggle floor visibility")
+        return
+
+    floor: Floor = Floor.get(location=pr.active_location, name=data["name"])
+    floor.player_visible = data["visible"]
+    floor.save()
+
+    await sio.emit(
+        "Floor.Visible.Set",
+        data,
+        room=pr.active_location.get_path(),
+        namespace=GAME_NS,
+    )
+
+
+@sio.on("Floor.Rename", namespace=GAME_NS)
+@auth.login_required(app, sio)
+async def rename_floor(sid: str, data: FloorRename):
+    pr: PlayerRoom = game_state.get(sid)
+
+    if pr.role != Role.DM:
+        logger.warning(f"{pr.player.name} attempted to rename a floor")
+        return
+
+    floor: Floor = Floor.get(location=pr.active_location, index=data["index"])
+    floor.name = data["name"]
+    floor.save()
+
+    await sio.emit(
+        "Floor.Rename",
+        data,
+        room=pr.active_location.get_path(),
+        skip_sid=sid,
+        namespace=GAME_NS,
+    )
+
+
+@sio.on("Floors.Reorder", namespace=GAME_NS)
+@auth.login_required(app, sio)
+async def reorder_floors(sid: str, data: List[str]):
+    pr: PlayerRoom = game_state.get(sid)
+
+    if pr.role != Role.DM:
+        logger.warning(f"{pr.player.name} attempted to reorder floors")
+        return
+
+    with db.atomic():
+        for i, name in enumerate(data):
+            init = Floor.get(location=pr.active_location, name=name)
+            init.index = i
+            init.save()
+
+    await sio.emit(
+        "Floors.Reorder",
         data,
         room=pr.active_location.get_path(),
         skip_sid=sid,

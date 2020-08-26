@@ -2,13 +2,13 @@
 import Vue from "vue";
 import Component from "vue-class-component";
 
-import Game from "@/game/game.vue";
+import Game from "@/game/Game.vue";
 import EditDialog from "@/game/ui/selection/edit_dialog/dialog.vue";
 
-import { socket } from "@/game/api/socket";
 import { EventBus } from "@/game/event-bus";
 import { layerManager } from "@/game/layers/manager";
 import { Shape } from "@/game/shapes/shape";
+import { sendTrackerUpdate } from "@/game/api/emits/shape/core";
 
 @Component({
     components: {
@@ -24,9 +24,15 @@ export default class SelectionInfo extends Vue {
                 this.shape = shape;
             }
         });
-        EventBus.$on("SelectionInfo.Shape.Set", (shape: Shape | null) => {
-            this.shape = shape;
+        EventBus.$on("SelectionInfo.Shapes.Set", (shapes: Shape[]) => {
+            // todo: multiple selected shapes
+            if (shapes.length === 1) this.shape = shapes[0];
+            else this.shape = null;
         });
+    }
+
+    beforeDestroy(): void {
+        EventBus.$off("SelectionInfo.Shapes.Set");
     }
 
     get shapes(): Shape[] {
@@ -44,27 +50,26 @@ export default class SelectionInfo extends Vue {
         return this.shape.auras.filter(au => au.name !== "" || au.value !== 0);
     }
 
-    beforeDestroy(): void {
-        EventBus.$off("SelectionInfo.Shape.Set");
-    }
-
     openEditDialog(): void {
         (<any>this.$refs.editDialog)[0].visible = true;
     }
-    async changeValue(object: Tracker | Aura, redraw: boolean): Promise<void> {
+    async changeValue(object: Tracker | Aura, isAura: boolean): Promise<void> {
         if (this.shape === null) return;
         const value = await (<Game>this.$parent.$parent).$refs.prompt.prompt(
-            `New  ${object.name} value:`,
-            `Updating ${object.name}`,
+            this.$t("game.ui.selection.select_info.new_value_NAME", { name: object.name }).toString(),
+            this.$t("game.ui.selection.select_info.updating_NAME", { name: object.name }).toString(),
         );
         if (this.shape === null) return;
         const ogValue = object.value;
+
         if (value[0] === "+" || value[0] === "-") object.value += parseInt(value, 10);
         else object.value = parseInt(value, 10);
+
+        const _type = isAura ? "aura" : "tracker";
+
         if (isNaN(object.value)) object.value = ogValue;
-        if (!this.shape.preventSync)
-            socket.emit("Shape.Update", { shape: this.shape.asDict(), redraw, temporary: false });
-        if (redraw) layerManager.invalidate(this.shape.floor);
+        else sendTrackerUpdate({ uuid: object.uuid, value: object.value, shape: this.shape.uuid, _type });
+        if (isAura) layerManager.invalidate(this.shape.floor);
     }
 }
 </script>
@@ -74,11 +79,19 @@ export default class SelectionInfo extends Vue {
         <div v-for="shape in shapes" :key="shape.uuid">
             <div id="selection-menu">
                 <div
+                    id="selection-lock-button"
+                    @click="!!shape.ownedBy({ editAccess: true }) && shape.setLocked(!shape.isLocked, true)"
+                    :title="$t('game.ui.selection.select_info.lock')"
+                >
+                    <font-awesome-icon v-if="shape.isLocked" icon="lock" />
+                    <font-awesome-icon v-else icon="unlock" />
+                </div>
+                <div
                     id="selection-edit-button"
                     @click="openEditDialog"
                     :title="$t('game.ui.selection.select_info.open_shape_props')"
                 >
-                    <i aria-hidden="true" class="fas fa-edit"></i>
+                    <font-awesome-icon icon="edit" />
                 </div>
                 <div id="selection-name">{{ shape.name }}</div>
                 <div id="selection-trackers">
@@ -140,6 +153,13 @@ export default class SelectionInfo extends Vue {
 #selection-menu:hover {
     background-color: #82c8a0;
     opacity: 1;
+}
+
+#selection-lock-button {
+    position: absolute;
+    right: 13px;
+    top: 30px;
+    cursor: pointer;
 }
 
 #selection-edit-button {

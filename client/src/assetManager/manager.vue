@@ -185,10 +185,10 @@ export default class AssetManager extends Vue {
             <div id="actionbar">
                 <input id="files" type="file" multiple hidden @change="upload()" />
                 <div @click="createDirectory" :title="$t('assetManager.manager.create_folder')">
-                    <i aria-hidden="true" class="fas fa-plus-square"></i>
+                    <font-awesome-icon icon="plus-square" />
                 </div>
                 <div @click="prepareUpload" :title="$t('assetManager.manager.upload_files')">
-                    <i aria-hidden="true" class="fas fa-upload"></i>
+                    <font-awesome-icon icon="upload" />
                 </div>
             </div>
             <div id="explorer">
@@ -200,7 +200,7 @@ export default class AssetManager extends Vue {
                     @dragleave.prevent="leaveDrag"
                     @drop.prevent.stop="stopDrag($event, parentFolder)"
                 >
-                    <i aria-hidden="true" class="fas fa-folder" style="font-size: 50px;"></i>
+                    <font-awesome-icon icon="folder" style="font-size: 50px;" />
                     <div class="title">..</div>
                 </div>
                 <div
@@ -217,7 +217,7 @@ export default class AssetManager extends Vue {
                     @dragleave.prevent="leaveDrag"
                     @drop.prevent.stop="stopDrag($event, key)"
                 >
-                    <i aria-hidden="true" class="fas fa-folder" style="font-size: 50px;"></i>
+                    <font-awesome-icon icon="folder" style="font-size: 50px;" />
                     <div class="title">{{ idMap.get(key).name }}</div>
                 </div>
                 <div

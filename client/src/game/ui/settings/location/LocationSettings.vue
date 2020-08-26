@@ -21,11 +21,11 @@ import { gameStore } from "@/game/store";
     },
 })
 export default class LocationSettings extends Vue {
-    location = gameStore.locations[0].id;
+    location = 0;
     visible = false;
 
     get locationName(): string {
-        return gameStore.locations.find(l => l.id === this.location)!.name;
+        return gameStore.locations.find(l => l.id === this.location)?.name ?? "";
     }
 
     mounted(): void {

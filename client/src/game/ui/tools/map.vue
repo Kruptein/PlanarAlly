@@ -13,8 +13,10 @@ import { SelectFeatures } from "./select.vue";
 import { ToolName, ToolPermission } from "./utils";
 import { EventBus } from "@/game/event-bus";
 import { Shape } from "@/game/shapes/shape";
-import { gameSettingsStore } from "../../settings";
 import { ToolBasics } from "./ToolBasics";
+import { floorStore } from "@/game/layers/store";
+import { gameStore } from "../../store";
+import { sendShapePositionUpdate, sendShapeSizeUpdate } from "@/game/api/emits/shape/core";
 
 @Component
 export default class MapTool extends Tool implements ToolBasics {
@@ -39,20 +41,20 @@ export default class MapTool extends Tool implements ToolBasics {
     // Life cycle
 
     mounted(): void {
-        EventBus.$on("SelectionInfo.Shape.Set", (shape: Shape | null) => {
-            this.shapeSelected = shape !== null;
+        EventBus.$on("SelectionInfo.Shapes.Set", (shape: Shape[]) => {
+            this.shapeSelected = shape.length === 1;
         });
     }
 
     beforeDestroy(): void {
-        EventBus.$off("SelectionInfo.Shape.Set");
+        EventBus.$off("SelectionInfo.Shapes.Set");
     }
 
     // End life cycle
 
     removeRect(): void {
         if (this.rect) {
-            const layer = layerManager.getLayer(layerManager.floor!.name)!;
+            const layer = floorStore.currentLayer!;
             layer.removeShape(this.rect, SyncMode.NO_SYNC);
             this.rect = null;
         }
@@ -67,8 +69,8 @@ export default class MapTool extends Tool implements ToolBasics {
         const oldCenter = this.rect.center();
 
         if (this.shape instanceof BaseRect) {
-            const xFactor = (this.xCount * gameSettingsStore.gridSize) / this.rect.w;
-            const yFactor = (this.yCount * gameSettingsStore.gridSize) / this.rect.h;
+            const xFactor = (this.xCount * gameStore.gridSize) / this.rect.w;
+            const yFactor = (this.yCount * gameStore.gridSize) / this.rect.h;
 
             this.shape.w *= xFactor;
             this.shape.h *= yFactor;
@@ -76,6 +78,9 @@ export default class MapTool extends Tool implements ToolBasics {
             const delta = oldCenter.subtract(oldRefpoint);
             const newCenter = oldRefpoint.add(new Vector(xFactor * delta.x, yFactor * delta.y));
             this.shape.refPoint = this.shape.refPoint.add(oldCenter.subtract(newCenter));
+
+            sendShapePositionUpdate([this.shape], false);
+            sendShapeSizeUpdate({ shape: this.shape, temporary: false });
         }
         this.removeRect();
     }
@@ -94,7 +99,7 @@ export default class MapTool extends Tool implements ToolBasics {
         const startPoint = l2g(lp);
 
         this.startPoint = startPoint;
-        const layer = layerManager.getLayer(layerManager.floor!.name);
+        const layer = floorStore.currentLayer;
         if (layer === undefined) {
             console.log("No active layer!");
             return;
@@ -104,8 +109,8 @@ export default class MapTool extends Tool implements ToolBasics {
         this.rect = new Rect(this.startPoint.clone(), 0, 0, "rgba(0,0,0,0)", "black");
         this.rect.preventSync = true;
         layer.addShape(this.rect, SyncMode.NO_SYNC, InvalidationMode.NORMAL);
-        this.shape = layer.selection[0];
-        layer.selection = [this.rect];
+        this.shape = layer.getSelection()[0];
+        layer.setSelection(this.rect);
     }
 
     onMove(lp: LocalPoint): void {
@@ -113,7 +118,7 @@ export default class MapTool extends Tool implements ToolBasics {
 
         const endPoint = l2g(lp);
 
-        const layer = layerManager.getLayer(layerManager.floor!.name);
+        const layer = floorStore.currentLayer;
         if (layer === undefined) {
             console.log("No active layer!");
             return;
@@ -130,14 +135,14 @@ export default class MapTool extends Tool implements ToolBasics {
 
     onUp(): void {
         if (!this.active || this.rect === null) return;
-        const layer = layerManager.getLayer(layerManager.floor!.name);
+        const layer = floorStore.currentLayer;
         if (layer === undefined) {
             console.log("No active layer!");
             return;
         }
         this.active = false;
 
-        if (layer.selection.length !== 1) {
+        if (layer.getSelection().length !== 1) {
             this.removeRect();
             return;
         }

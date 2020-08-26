@@ -9,7 +9,7 @@ import { ccw, cw, orientation } from "./triag";
 export function computeVisibility(
     q: GlobalPoint,
     target: TriangulationTarget,
-    floor: string,
+    floor: number,
     drawt?: boolean,
 ): number[][] {
     if (drawt === undefined) drawt = gameStore.drawTEContour;
@@ -62,7 +62,7 @@ function expandEdge(
     const ro = orientation(q, right, nvh.point!);
     const lo = orientation(q, left, nvh.point!);
 
-    // const ctx = layerManager.getLayer(layerManager.floor!.name, "draw")!.ctx;
+    // const ctx = layerManager.getLayer(floorStore.currentFloor.name, "draw")!.ctx;
     // ctx.beginPath();
     // ctx.strokeStyle = "red";
     // ctx.lineJoin = "round";

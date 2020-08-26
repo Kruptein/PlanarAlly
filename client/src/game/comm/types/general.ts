@@ -25,12 +25,15 @@ export interface InitiativeEffect {
 }
 
 export interface ServerFloor {
+    index: number;
     name: string;
     layers: ServerLayer[];
+    player_visible: boolean;
 }
 
 export interface ServerLayer {
     type_: string;
+    index: number;
     name: string;
     layer: string;
     shapes: ServerShape[];

@@ -1,8 +1,9 @@
 import json
 from peewee import BooleanField, FloatField, ForeignKeyField, IntegerField, TextField
 from playhouse.shortcuts import model_to_dict, update_model_from_dict
-from typing import Tuple
+from typing import Any, Dict, List, Tuple
 
+from utils import logger
 from ..base import BaseModel
 from ..campaign import Layer
 from ..label import Label
@@ -50,6 +51,8 @@ class Shape(BaseModel):
     is_invisible = BooleanField(default=False)
     default_movement_access = BooleanField(default=False)
     is_locked = BooleanField(default=False)
+    angle = FloatField(default=0)
+    stroke_width = IntegerField(default=2)
 
     def __repr__(self):
         return f"<Shape {self.get_path()}>"
@@ -59,6 +62,12 @@ class Shape(BaseModel):
             return f"{self.name}@{self.layer.get_path()}"
         except:
             return self.name
+
+    def get_options(self) -> Dict[str, Any]:
+        return dict(json.loads(self.options))
+
+    def set_options(self, options: Dict[str, Any]) -> None:
+        self.options = json.dumps([[k, v] for k, v in options.items()])
 
     # todo: Change this API to accept a PlayerRoom instead
     def as_dict(self, user: User, dm: bool):
@@ -179,6 +188,9 @@ class ShapeType(BaseModel):
     def get_center_offset(self, x: int, y: int) -> Tuple[int, int]:
         return 0, 0
 
+    def set_location(self, points: List[List[int]]) -> None:
+        logger.error("Attempt to set location on shape without location info")
+
 
 class BaseRect(ShapeType):
     abstract = False
@@ -235,6 +247,10 @@ class Polygon(ShapeType):
         data["vertices"] = json.dumps(data["vertices"])
         return update_model_from_dict(self, data, *args, **kwargs)
 
+    def set_location(self, points: List[List[int]]) -> None:
+        self.vertices = json.dumps(points)
+        self.save()
+
 
 class Rect(BaseRect):
     abstract = False
@@ -244,4 +260,3 @@ class Text(ShapeType):
     abstract = False
     text = TextField()
     font = TextField()
-    angle = FloatField()

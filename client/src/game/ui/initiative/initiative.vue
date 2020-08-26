@@ -9,6 +9,15 @@ import Modal from "@/core/components/modals/modal.vue";
 import { uuidv4 } from "@/core/utils";
 import { socket } from "@/game/api/socket";
 import { InitiativeData, InitiativeEffect } from "@/game/comm/types/general";
+import {
+    sendInitiativeUpdate,
+    sendInitiativeRemove,
+    sendInitiativeSet,
+    sendInitiativeTurnUpdate,
+    sendInitiativeRoundUpdate,
+    sendInitiativeNewEffect,
+    sendInitiativeUpdateEffect,
+} from "@/game/api/emits/initiative";
 import { EventBus } from "@/game/event-bus";
 import { layerManager } from "@/game/layers/manager";
 import { gameStore } from "@/game/store";
@@ -33,7 +42,6 @@ export default class Initiative extends Vue {
         EventBus.$on("Initiative.Show", () => (this.visible = true));
         EventBus.$on("Initiative.ForceUpdate", () => this.$forceUpdate());
 
-        socket.on("Initiative.Set", initiativeStore.setData);
         socket.on("Initiative.Turn.Set", (data: string) => this.setTurn(data));
         socket.on("Initiative.Turn.Update", (data: string) => this.updateTurn(data, false));
         socket.on("Initiative.Round.Update", (data: number) => this.setRound(data, false));
@@ -51,7 +59,6 @@ export default class Initiative extends Vue {
         EventBus.$off("Initiative.Clear");
         EventBus.$off("Initiative.Remove");
         EventBus.$off("Initiative.Show");
-        socket.off("Initiative.Set");
         socket.off("Initiative.Turn.Set");
         socket.off("Initiative.Turn.Update");
         socket.off("Initiative.Round.Update");
@@ -77,29 +84,26 @@ export default class Initiative extends Vue {
         dataTransfer.setData("Hack", "");
     }
     syncInitiative(data: InitiativeData): void {
-        socket.emit("Initiative.Update", data);
+        sendInitiativeUpdate(data);
     }
     // Events
     removeInitiative(uuid: string): void {
         const d = initiativeStore.data.findIndex(a => a.uuid === uuid);
         if (d < 0 || initiativeStore.data[d].group) return;
-        socket.emit("Initiative.Remove", uuid);
+        sendInitiativeRemove(uuid);
         // Remove highlight
         const shape = layerManager.UUIDMap.get(uuid);
         if (shape === undefined) return;
         if (shape.showHighlight) {
             shape.showHighlight = false;
-            layerManager.getLayer(shape.floor, shape.layer)!.invalidate(true);
+            shape.layer.invalidate(true);
         }
     }
     updateOrder(): void {
         if (!gameStore.IS_DM) return;
-        socket.emit(
-            "Initiative.Set",
-            initiativeStore.data.map(d => d.uuid),
-        );
+        sendInitiativeSet(initiativeStore.data.map(d => d.uuid));
     }
-    updateTurn(actorId: string | null, sync: boolean): void {
+    updateTurn(actorId: string, sync: boolean): void {
         if (!gameStore.IS_DM && sync) return;
         initiativeStore.setCurrentActor(actorId);
         const actor = initiativeStore.data.find(a => a.uuid === actorId);
@@ -122,12 +126,12 @@ export default class Initiative extends Vue {
                 }
             }
         }
-        if (sync) socket.emit("Initiative.Turn.Update", actorId);
+        if (sync) sendInitiativeTurnUpdate(actorId);
     }
     setRound(round: number, sync: boolean): void {
         if (!gameStore.IS_DM && sync) return;
         initiativeStore.setRoundCounter(round);
-        if (sync) socket.emit("Initiative.Round.Update", round);
+        if (sync) sendInitiativeRoundUpdate(round);
     }
     setTurn(actorId: string | null): void {
         initiativeStore.setTurn(actorId);
@@ -143,7 +147,7 @@ export default class Initiative extends Vue {
         const shape = layerManager.UUIDMap.get(actor.uuid);
         if (shape === undefined) return;
         shape.showHighlight = show;
-        layerManager.getLayer(shape.floor, shape.layer)!.invalidate(true);
+        shape.layer.invalidate(true);
     }
     toggleOption(actor: InitiativeData, option: "visible" | "group"): void {
         if (!this.owns(actor)) return;
@@ -153,11 +157,11 @@ export default class Initiative extends Vue {
     createEffect(actor: InitiativeData, effect: InitiativeEffect, sync: boolean): void {
         if (!this.owns(actor)) return;
         actor.effects.push(effect);
-        if (sync) socket.emit("Initiative.Effect.New", { actor: actor.uuid, effect });
+        if (sync) sendInitiativeNewEffect({ actor: actor.uuid, effect });
     }
     syncEffect(actor: InitiativeData, effect: InitiativeEffect): void {
         if (!this.owns(actor)) return;
-        socket.emit("Initiative.Effect.Update", { actor: actor.uuid, effect });
+        sendInitiativeUpdateEffect({ actor: actor.uuid, effect });
     }
     updateEffect(actorId: string, effect: InitiativeEffect, sync: boolean): void {
         const actor = initiativeStore.data.find(a => a.uuid === actorId);
@@ -204,7 +208,7 @@ export default class Initiative extends Vue {
         >
             <div v-t="'common.initiative'"></div>
             <div class="header-close" @click="visible = false" :title="$t('common.close')">
-                <i aria-hidden="true" class="far fa-window-close"></i>
+                <font-awesome-icon :icon="['far', 'window-close']" />
             </div>
         </div>
         <div class="modal-body">
@@ -247,7 +251,7 @@ export default class Initiative extends Vue {
                                 @click="createEffect(actor, getDefaultEffect(), true)"
                                 :title="$t('game.ui.initiative.initiative.add_timed_effect')"
                             >
-                                <i aria-hidden="true" class="fas fa-stopwatch"></i>
+                                <font-awesome-icon icon="stopwatch" />
                                 <template v-if="actor.effects">
                                     {{ actor.effects.length }}
                                 </template>
@@ -261,7 +265,7 @@ export default class Initiative extends Vue {
                                 @click="toggleOption(actor, 'visible')"
                                 :title="$t('common.toggle_public_private')"
                             >
-                                <i aria-hidden="true" class="fas fa-eye"></i>
+                                <font-awesome-icon icon="eye" />
                             </div>
                             <div
                                 :style="{ opacity: actor.group ? '1.0' : '0.3' }"
@@ -269,7 +273,7 @@ export default class Initiative extends Vue {
                                 @click="toggleOption(actor, 'group')"
                                 :title="$t('game.ui.initiative.initiative.toggle_group')"
                             >
-                                <i aria-hidden="true" class="fas fa-users"></i>
+                                <font-awesome-icon icon="users" />
                             </div>
                             <div
                                 :style="{ opacity: owns(actor) ? '1.0' : '0.3' }"
@@ -277,7 +281,7 @@ export default class Initiative extends Vue {
                                 @click="removeInitiative(actor.uuid, true, true)"
                                 :title="$t('game.ui.initiative.initiative.delete_init')"
                             >
-                                <i aria-hidden="true" class="fas fa-trash-alt"></i>
+                                <font-awesome-icon icon="trash-alt" />
                             </div>
                         </div>
                         <div class="initiative-effect" v-if="actor.effects">
@@ -310,7 +314,7 @@ export default class Initiative extends Vue {
                     @click="toggleVisionLock"
                     :title="$t('game.ui.initiative.initiative.vision_log_msg')"
                 >
-                    <i aria-hidden="true" class="fas fa-eye"></i>
+                    <font-awesome-icon icon="eye" />
                 </div>
                 <div
                     class="initiative-bar-button"
@@ -318,7 +322,7 @@ export default class Initiative extends Vue {
                     @click="cameraLock = !cameraLock"
                     :title="$t('game.ui.initiative.initiative.camera_log_msg')"
                 >
-                    <i aria-hidden="true" class="fas fa-video"></i>
+                    <font-awesome-icon icon="video" />
                 </div>
                 <div
                     class="initiative-bar-button"
@@ -329,7 +333,7 @@ export default class Initiative extends Vue {
                     "
                     :title="$t('game.ui.initiative.initiative.reset_round')"
                 >
-                    <i aria-hidden="true" class="fas fa-sync-alt"></i>
+                    <font-awesome-icon icon="sync-alt" />
                 </div>
                 <div
                     class="initiative-bar-button"
@@ -337,7 +341,7 @@ export default class Initiative extends Vue {
                     @click="nextTurn"
                     :title="$t('game.ui.initiative.initiative.next')"
                 >
-                    <i aria-hidden="true" class="fas fa-chevron-right"></i>
+                    <font-awesome-icon icon="chevron-right" />
                 </div>
             </div>
         </div>

@@ -4,7 +4,8 @@ import { Shape } from "@/game/shapes/shape";
 import { calculateDelta } from "@/game/ui/tools/utils";
 import { clampGridLine, g2lx, g2ly } from "@/game/units";
 import { ServerShape } from "../comm/types/shapes";
-import { gameSettingsStore } from "../settings";
+import { DEFAULT_GRID_SIZE } from "../store";
+import { rotateAroundPoint } from "../utils";
 
 export abstract class BaseRect extends Shape {
     w: number;
@@ -21,20 +22,25 @@ export abstract class BaseRect extends Shape {
         });
     }
     getBoundingBox(): BoundingRect {
-        return new BoundingRect(this.refPoint, this.w, this.h);
+        const bbox = new BoundingRect(this.refPoint, this.w, this.h);
+        bbox.angle = this.angle;
+        return bbox;
     }
 
     get points(): number[][] {
         if (this.w === 0 || this.h === 0) return [[this.refPoint.x, this.refPoint.y]];
-        // note to self: topright and botleft are swapped because I'm retarded.
-        const topright = this.refPoint.add(new Vector(0, this.h));
-        const botright = this.refPoint.add(new Vector(this.w, this.h));
-        const botleft = this.refPoint.add(new Vector(this.w, 0));
+
+        const center = this.center();
+
+        const topleft = rotateAroundPoint(this.refPoint, center, this.angle);
+        const botleft = rotateAroundPoint(this.refPoint.add(new Vector(0, this.h)), center, this.angle);
+        const botright = rotateAroundPoint(this.refPoint.add(new Vector(this.w, this.h)), center, this.angle);
+        const topright = rotateAroundPoint(this.refPoint.add(new Vector(this.w, 0)), center, this.angle);
         return [
-            [this.refPoint.x, this.refPoint.y],
-            [topright.x, topright.y],
-            [botright.x, botright.y],
+            [topleft.x, topleft.y],
             [botleft.x, botleft.y],
+            [botright.x, botright.y],
+            [topright.x, topright.y],
         ];
     }
 
@@ -65,7 +71,7 @@ export abstract class BaseRect extends Shape {
         return false;
     }
     snapToGrid(): void {
-        const gs = gameSettingsStore.gridSize;
+        const gs = DEFAULT_GRID_SIZE;
         const center = this.center();
         const mx = center.x;
         const my = center.y;
@@ -100,9 +106,12 @@ export abstract class BaseRect extends Shape {
         );
     }
     resize(resizePoint: number, point: GlobalPoint, retainAspectRatio: boolean): number {
+        point = rotateAroundPoint(point, this.center(), -this.angle);
+
         const aspectRatio = this.w / this.h;
         const oldW = this.w;
         const oldH = this.h;
+        const oldPoints = this.points;
 
         switch (resizePoint) {
             case 0: {
@@ -158,6 +167,15 @@ export abstract class BaseRect extends Shape {
             }
         }
 
-        return (resizePoint + 4) % 4;
+        const newResizePoint = (resizePoint + 4) % 4;
+        const oppositeNRP = (newResizePoint + 2) % 4;
+
+        const vec = Vector.fromPoints(
+            GlobalPoint.fromArray(this.points[oppositeNRP]),
+            GlobalPoint.fromArray(oldPoints[oppositeNRP]),
+        );
+        this.refPoint = this.refPoint.add(vec);
+
+        return newResizePoint;
     }
 }

@@ -1,15 +1,22 @@
 <script lang="ts">
 import Vue from "vue";
 import Component from "vue-class-component";
+import draggable from "vuedraggable";
 
-import Game from "@/game/game.vue";
+import Game from "@/game/Game.vue";
 
-import { socket } from "@/game/api/socket";
 import { layerManager } from "@/game/layers/manager";
 import { removeFloor } from "@/game/layers/utils";
 import { gameStore } from "@/game/store";
+import { Floor } from "../layers/floor";
+import { floorStore, getFloorId } from "../layers/store";
+import { sendCreateFloor, sendRemoveFloor, sendFloorSetVisible } from "../api/emits/floor";
 
-@Component
+@Component({
+    components: {
+        draggable,
+    },
+})
 export default class FloorSelect extends Vue {
     selected = false;
 
@@ -17,20 +24,31 @@ export default class FloorSelect extends Vue {
         return gameStore.IS_DM || gameStore.FAKE_PLAYER;
     }
 
-    get floors(): string[] {
-        return gameStore.floors;
+    get floors(): readonly [number, Floor][] {
+        return [...floorStore.floors]
+            .reverse()
+            .filter(f => f.playerVisible || gameStore.IS_DM)
+            .map(f => [floorStore.floors.indexOf(f), f]);
+    }
+
+    set floors(floors: readonly [number, Floor][]) {
+        floorStore.reorderFloors({ floors: floors.map(f => f[1].name).reverse(), sync: true });
     }
 
     get selectedFloorIndex(): number {
-        return gameStore.selectedFloorIndex;
+        return floorStore.currentFloorindex;
     }
 
     get layers(): string[] {
-        return gameStore.layers;
+        if (!gameStore.boardInitialized) return [];
+        return layerManager
+            .getLayers(floorStore.currentFloor)
+            .filter(l => l.selectable && (gameStore.IS_DM || l.playerEditable))
+            .map(l => l.name);
     }
 
     get selectedLayer(): string {
-        return gameStore.selectedLayer;
+        return layerManager.getLayers(floorStore.currentFloor)[floorStore.currentLayerIndex].name;
     }
 
     get showFloorSelector(): boolean {
@@ -47,25 +65,38 @@ export default class FloorSelect extends Vue {
             this.$t("game.ui.floors.creation").toString(),
         );
         if (value === undefined) return;
-        socket.emit("Floor.Create", value);
+        sendCreateFloor(value);
     }
 
-    selectFloor(index: number): void {
-        gameStore.selectFloor({ targetFloor: index, sync: true });
+    selectFloor(floor: Floor): void {
+        floorStore.selectFloor({ targetFloor: floor, sync: true });
     }
 
-    async removeFloor(index: number): Promise<void> {
+    async renameFloor(index: number): Promise<void> {
+        const value = await (<Game>this.$parent.$parent).$refs.prompt.prompt(
+            this.$t("game.ui.floors.new_name").toString(),
+            this.$t("game.ui.floors.rename_header_title").toString(),
+        );
+        if (value === undefined || getFloorId(value) !== -1) return;
+        floorStore.renameFloor({ index, name, sync: true });
+    }
+
+    async removeFloor(floor: Floor): Promise<void> {
         if (this.floors.length <= 1) return;
-        const floor = gameStore.floors[index];
         if (
             !(await (<Game>this.$parent.$parent).$refs.confirm.open(
                 this.$t("common.warning").toString(),
-                this.$t("game.ui.floors.warning_msg_Z", { z: floor }).toString(),
+                this.$t("game.ui.floors.warning_msg_Z", { z: floor.name }).toString(),
             ))
         )
             return;
-        socket.emit("Floor.Remove", floor);
-        removeFloor(floor);
+        sendRemoveFloor(floor.name);
+        removeFloor(floor.id);
+    }
+
+    toggleVisible(floor: Floor): void {
+        floor.playerVisible = !floor.playerVisible;
+        sendFloorSetVisible({ name: floor.name, visible: floor.playerVisible });
     }
 
     getLayerWord(layer: string): string {
@@ -94,23 +125,39 @@ export default class FloorSelect extends Vue {
         <div id="floor-selector" @click="selected = !selected" v-if="showFloorSelector">
             <a href="#">{{ selectedFloorIndex }}</a>
         </div>
-        <div id="floor-detail" v-if="selected">
-            <template v-for="[index, floor] of floors.entries()">
-                <div class="floor-row" :key="floor" @click="selectFloor(index)">
-                    <div class="floor-index">
-                        <template v-if="index == selectedFloorIndex">></template>
-                        {{ index }}
+        <draggable id="floor-detail" v-if="selected" v-model="floors" :disabled="!$store.state.game.IS_DM">
+            <template v-for="[revIndex, floor] of floors">
+                <div class="floor-row" :key="floor.id" @click="selectFloor(floor)">
+                    <div
+                        class="floor-index"
+                        :class="revIndex == selectedFloorIndex ? 'floor-index-selected' : 'floor-index-not-selected'"
+                    >
+                        {{ revIndex }}
                     </div>
-                    <div class="floor-name">{{ floor }}</div>
-                    <div class="floor-actions" v-show="floors.length > 1 && IS_DM">
-                        <div @click.stop="removeFloor(index)" :title="$t('game.ui.floors.delete_floor')">
-                            <i aria-hidden="true" class="fas fa-trash-alt"></i>
+                    <div class="floor-name">{{ floor.name }}</div>
+                    <div class="floor-actions" v-show="IS_DM">
+                        <div @click.stop="renameFloor(revIndex)" :title="$t('game.ui.floors.rename_icon_hover')">
+                            <font-awesome-icon icon="pencil-alt" />
+                        </div>
+                        <div
+                            @click.stop="toggleVisible(floor)"
+                            :style="{ opacity: floor.playerVisible ? 1.0 : 0.3, marginRight: '5px' }"
+                            :title="$t('game.ui.floors.toggle_visibility')"
+                        >
+                            <font-awesome-icon icon="eye" />
+                        </div>
+                        <div
+                            @click.stop="removeFloor(floor)"
+                            v-show="floors.length > 1"
+                            :title="$t('game.ui.floors.delete_floor')"
+                        >
+                            <font-awesome-icon icon="trash-alt" />
                         </div>
                     </div>
                 </div>
             </template>
             <div class="floor-add" @click="addFloor" v-if="IS_DM" v-t="'game.ui.floors.add_new_floor'"></div>
-        </div>
+        </draggable>
         <div style="display:contents" v-show="layers.length > 1">
             <div
                 v-for="layer in layers"
@@ -132,11 +179,11 @@ export default class FloorSelect extends Vue {
     list-style: none;
     margin-left: 25px;
     margin-bottom: 25px;
+    -webkit-user-drag: none !important;
 }
 
 #floor-layer * {
     user-select: none !important;
-    -webkit-user-drag: none !important;
 }
 
 #floor-selector {
@@ -184,10 +231,7 @@ a {
     z-index: 11;
     border: solid 1px #2b2b2b;
     background-color: white;
-    display: grid;
     padding: 10px;
-    grid-template-columns: auto auto auto;
-    grid-row-gap: 2px;
 }
 #floor-detail:after {
     content: "";
@@ -209,7 +253,7 @@ a {
 }
 
 .floor-row {
-    display: contents;
+    display: flex;
 }
 
 .floor-row > * {
@@ -230,10 +274,23 @@ a {
     padding-right: 5px;
     border-right: 1px solid black;
     justify-self: end;
+    /* width: 25px; */
+    text-align: right;
+}
+
+.floor-index-selected:before {
+    content: ">";
+    white-space: pre;
+}
+
+.floor-index-not-selected:before {
+    content: ">";
+    visibility: hidden;
 }
 
 .floor-name {
     padding: 0 10px;
+    flex-grow: 2;
 }
 
 .floor-actions {

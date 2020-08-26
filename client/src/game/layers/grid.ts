@@ -1,40 +1,35 @@
 import { Layer } from "@/game/layers/layer";
-import { gameStore } from "@/game/store";
+import { DEFAULT_GRID_SIZE, gameStore } from "@/game/store";
 import { gameSettingsStore } from "../settings";
-import { layerManager } from "./manager";
+import { floorStore } from "./store";
 
 export class GridLayer extends Layer {
     invalidate(): void {
         this.valid = false;
     }
     show(): void {
-        if (gameSettingsStore.useGrid && this.floor === layerManager.floor?.name)
+        if (gameSettingsStore.useGrid && this.floor === floorStore.currentFloor.id)
             this.canvas.style.removeProperty("display");
     }
     draw(_doClear?: boolean): void {
         if (!this.valid) {
             if (gameSettingsStore.useGrid) {
-                const activeFowFloorName = layerManager.floor?.name;
+                const activeFowFloor = floorStore.currentFloor.id;
 
-                if (this.floor === activeFowFloorName && this.canvas.style.display === "none")
+                if (this.floor === activeFowFloor && this.canvas.style.display === "none")
                     this.canvas.style.removeProperty("display");
-                else if (this.floor !== activeFowFloorName && this.canvas.style.display !== "none")
+                else if (this.floor !== activeFowFloor && this.canvas.style.display !== "none")
                     this.canvas.style.display = "none";
 
                 const ctx = this.ctx;
                 this.clear();
                 ctx.beginPath();
 
-                const gs = gameSettingsStore.gridSize;
-                if (gs <= 0 || gs === undefined) {
-                    throw new Error("Grid size is not set, while grid is enabled.");
-                }
-
-                for (let i = 0; i < this.width; i += gs * gameStore.zoomFactor) {
-                    ctx.moveTo(i + (gameStore.panX % gs) * gameStore.zoomFactor, 0);
-                    ctx.lineTo(i + (gameStore.panX % gs) * gameStore.zoomFactor, this.height);
-                    ctx.moveTo(0, i + (gameStore.panY % gs) * gameStore.zoomFactor);
-                    ctx.lineTo(this.width, i + (gameStore.panY % gs) * gameStore.zoomFactor);
+                for (let i = 0; i < this.width; i += DEFAULT_GRID_SIZE * gameStore.zoomFactor) {
+                    ctx.moveTo(i + (gameStore.panX % DEFAULT_GRID_SIZE) * gameStore.zoomFactor, 0);
+                    ctx.lineTo(i + (gameStore.panX % DEFAULT_GRID_SIZE) * gameStore.zoomFactor, this.height);
+                    ctx.moveTo(0, i + (gameStore.panY % DEFAULT_GRID_SIZE) * gameStore.zoomFactor);
+                    ctx.lineTo(this.width, i + (gameStore.panY % DEFAULT_GRID_SIZE) * gameStore.zoomFactor);
                 }
 
                 ctx.strokeStyle = gameStore.gridColour;

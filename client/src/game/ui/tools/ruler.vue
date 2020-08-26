@@ -11,9 +11,10 @@ import { ToolName } from "./utils";
 import { gameSettingsStore } from "../../settings";
 import { ToolBasics } from "./ToolBasics";
 import { Line } from "@/game/shapes/line";
-import { gameStore } from "@/game/store";
+import { gameStore, DEFAULT_GRID_SIZE } from "@/game/store";
 import { Text } from "../../shapes/text";
-import { socket } from "@/game/api/socket";
+import { floorStore } from "@/game/layers/store";
+import { sendShapePositionUpdate, sendTextUpdate } from "@/game/api/emits/shape/core";
 
 @Component
 export default class RulerTool extends Tool implements ToolBasics {
@@ -33,14 +34,14 @@ export default class RulerTool extends Tool implements ToolBasics {
     onDown(lp: LocalPoint): void {
         this.startPoint = l2g(lp);
 
-        const layer = layerManager.getLayer(layerManager.floor!.name, "draw");
+        const layer = layerManager.getLayer(floorStore.currentFloor, "draw");
         if (layer === undefined) {
             console.log("No draw layer!");
             return;
         }
         this.active = true;
         this.ruler = new Line(this.startPoint, this.startPoint, l2gz(3), gameStore.rulerColour);
-        this.text = new Text(this.startPoint.clone(), "", "bold 20px serif");
+        this.text = new Text(this.startPoint.clone(), "", "bold 20px serif", "#000", "#fff");
         this.ruler.addOwner({ user: gameStore.username, access: { edit: true } }, false);
         this.text.addOwner({ user: gameStore.username, access: { edit: true } }, false);
         layer.addShape(this.ruler, this.syncMode, InvalidationMode.NORMAL);
@@ -51,36 +52,37 @@ export default class RulerTool extends Tool implements ToolBasics {
         const endPoint = l2g(lp);
         if (!this.active || this.ruler === null || this.startPoint === null || this.text === null) return;
 
-        const layer = layerManager.getLayer(layerManager.floor!.name, "draw");
+        const layer = layerManager.getLayer(floorStore.currentFloor, "draw");
         if (layer === undefined) {
             console.log("No draw layer!");
             return;
         }
 
         this.ruler.endPoint = endPoint;
-        socket.emit("Shape.Update", { shape: this.ruler.asDict(), redraw: true, temporary: true });
+        sendShapePositionUpdate([this.ruler], true);
 
         const diffsign = Math.sign(endPoint.x - this.startPoint.x) * Math.sign(endPoint.y - this.startPoint.y);
         const xdiff = Math.abs(endPoint.x - this.startPoint.x);
         const ydiff = Math.abs(endPoint.y - this.startPoint.y);
-        const distance = (Math.sqrt(xdiff ** 2 + ydiff ** 2) * gameSettingsStore.unitSize) / gameSettingsStore.gridSize;
+        const distance = (Math.sqrt(xdiff ** 2 + ydiff ** 2) * gameSettingsStore.unitSize) / DEFAULT_GRID_SIZE;
 
         // round to 1 decimal
-        const label = Math.round(10 * distance) / 10 + " " + gameSettingsStore.unitSizeUnit;
+        const label = this.$n(Math.round(10 * distance) / 10) + " " + gameSettingsStore.unitSizeUnit;
         const angle = Math.atan2(diffsign * ydiff, xdiff);
         const xmid = Math.min(this.startPoint.x, endPoint.x) + xdiff / 2;
         const ymid = Math.min(this.startPoint.y, endPoint.y) + ydiff / 2;
         this.text.refPoint = new GlobalPoint(xmid, ymid);
         this.text.text = label;
         this.text.angle = angle;
-        socket.emit("Shape.Update", { shape: this.text.asDict(), redraw: true, temporary: true });
+        sendTextUpdate({ uuid: this.text.uuid, text: this.text.text, temporary: true });
+        sendShapePositionUpdate([this.text], true);
         layer.invalidate(true);
     }
 
     onUp(): void {
         if (!this.active || this.ruler === null || this.startPoint === null || this.text === null) return;
 
-        const layer = layerManager.getLayer(layerManager.floor!.name, "draw");
+        const layer = layerManager.getLayer(floorStore.currentFloor, "draw");
         if (layer === undefined) {
             console.log("No active layer!");
             return;

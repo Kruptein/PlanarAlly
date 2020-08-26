@@ -3,9 +3,10 @@ import { getModule, Module, Mutation, VuexModule } from "vuex-module-decorators"
 import { InvalidationMode, SyncMode } from "../core/comm/types";
 import { toSnakeCase, uuidv4 } from "../core/utils";
 import { rootStore } from "../store";
-import { socket } from "./api/socket";
+import { sendLocationOptions } from "./api/emits/location";
 import { LocationOptions } from "./comm/types/settings";
 import { layerManager } from "./layers/manager";
+import { floorStore } from "./layers/store";
 import { Asset } from "./shapes/asset";
 import { gameStore } from "./store";
 
@@ -15,7 +16,6 @@ export interface GameSettingsState {
     defaultLocationOptions: LocationOptions | null;
     locationOptions: Partial<LocationOptions>;
 
-    gridSize: number;
     unitSize: number;
     unitSizeUnit: string;
     useGrid: boolean;
@@ -71,10 +71,6 @@ class GameSettingsStore extends VuexModule implements GameSettingsState {
         return this.locationOptions[this.activeLocation];
     }
 
-    get gridSize(): number {
-        return this.currentLocationOptions?.gridSize ?? this.defaultLocationOptions?.gridSize ?? 0;
-    }
-
     get unitSize(): number {
         return this.currentLocationOptions?.unitSize ?? this.defaultLocationOptions?.unitSize ?? 0;
     }
@@ -105,7 +101,7 @@ class GameSettingsStore extends VuexModule implements GameSettingsState {
     reset(data: { key: keyof LocationOptions; location: number }): void {
         if (data.key in this.locationOptions[data.location]) {
             Vue.delete(this.locationOptions[data.location], data.key);
-            socket.emit("Location.Options.Set", {
+            sendLocationOptions({
                 options: { [toSnakeCase(data.key)]: null },
                 location: data.location,
             });
@@ -128,7 +124,7 @@ class GameSettingsStore extends VuexModule implements GameSettingsState {
             layerManager.invalidateAllFloors();
             if (data.sync)
                 // eslint-disable-next-line @typescript-eslint/camelcase
-                socket.emit("Location.Options.Set", { options: { unit_size: data.unitSize }, location: data.location });
+                sendLocationOptions({ options: { unit_size: data.unitSize }, location: data.location });
         }
     }
 
@@ -137,7 +133,7 @@ class GameSettingsStore extends VuexModule implements GameSettingsState {
         if (mutateLocationOption("unitSizeUnit", data.unitSizeUnit, data.location)) {
             layerManager.invalidateAllFloors();
             if (data.sync)
-                socket.emit("Location.Options.Set", {
+                sendLocationOptions({
                     // eslint-disable-next-line @typescript-eslint/camelcase
                     options: { unit_size_unit: data.unitSizeUnit },
                     location: data.location,
@@ -148,8 +144,8 @@ class GameSettingsStore extends VuexModule implements GameSettingsState {
     @Mutation
     setUseGrid(data: { useGrid: boolean; location: number | null; sync: boolean }): void {
         if (mutateLocationOption("useGrid", data.useGrid, data.location)) {
-            for (const floor of layerManager.floors) {
-                const gridLayer = layerManager.getGridLayer(floor.name)!;
+            for (const floor of floorStore.floors) {
+                const gridLayer = layerManager.getGridLayer(floor)!;
                 if (data.useGrid) gridLayer.canvas.style.display = "block";
                 else gridLayer.canvas.style.display = "none";
                 gridLayer.invalidate();
@@ -157,21 +153,7 @@ class GameSettingsStore extends VuexModule implements GameSettingsState {
 
             if (data.sync)
                 // eslint-disable-next-line @typescript-eslint/camelcase
-                socket.emit("Location.Options.Set", { options: { use_grid: data.useGrid }, location: data.location });
-        }
-    }
-
-    @Mutation
-    setGridSize(data: { gridSize: number; location: number | null; sync: boolean }): void {
-        if (mutateLocationOption("gridSize", data.gridSize, data.location)) {
-            for (const floor of layerManager.floors) {
-                const gridLayer = layerManager.getGridLayer(floor.name);
-                if (gridLayer !== undefined) gridLayer.invalidate();
-            }
-
-            if (data.sync)
-                // eslint-disable-next-line @typescript-eslint/camelcase
-                socket.emit("Location.Options.Set", { options: { grid_size: data.gridSize }, location: data.location });
+                sendLocationOptions({ options: { use_grid: data.useGrid }, location: data.location });
         }
     }
 
@@ -180,7 +162,7 @@ class GameSettingsStore extends VuexModule implements GameSettingsState {
         if (mutateLocationOption("visionMinRange", data.visionMinRange, data.location)) {
             layerManager.invalidateLightAllFloors();
             if (data.sync)
-                socket.emit("Location.Options.Set", {
+                sendLocationOptions({
                     // eslint-disable-next-line @typescript-eslint/camelcase
                     options: { vision_min_range: data.visionMinRange },
                     location: data.location,
@@ -193,7 +175,7 @@ class GameSettingsStore extends VuexModule implements GameSettingsState {
         if (mutateLocationOption("visionMaxRange", data.visionMaxRange, data.location)) {
             layerManager.invalidateLightAllFloors();
             if (data.sync)
-                socket.emit("Location.Options.Set", {
+                sendLocationOptions({
                     // eslint-disable-next-line @typescript-eslint/camelcase
                     options: { vision_max_range: data.visionMaxRange },
                     location: data.location,
@@ -207,7 +189,7 @@ class GameSettingsStore extends VuexModule implements GameSettingsState {
             layerManager.invalidateLightAllFloors();
             if (data.sync)
                 // eslint-disable-next-line @typescript-eslint/camelcase
-                socket.emit("Location.Options.Set", { options: { full_fow: data.fullFow }, location: data.location });
+                sendLocationOptions({ options: { full_fow: data.fullFow }, location: data.location });
         }
     }
 
@@ -216,7 +198,7 @@ class GameSettingsStore extends VuexModule implements GameSettingsState {
         if (mutateLocationOption("fowOpacity", data.fowOpacity, data.location)) {
             layerManager.invalidateLightAllFloors();
             if (data.sync)
-                socket.emit("Location.Options.Set", {
+                sendLocationOptions({
                     // eslint-disable-next-line @typescript-eslint/camelcase
                     options: { fow_opacity: data.fowOpacity },
                     location: data.location,
@@ -230,7 +212,7 @@ class GameSettingsStore extends VuexModule implements GameSettingsState {
             layerManager.invalidateAllFloors();
             if (data.sync)
                 // eslint-disable-next-line @typescript-eslint/camelcase
-                socket.emit("Location.Options.Set", { options: { fow_los: data.fowLos }, location: data.location });
+                sendLocationOptions({ options: { fow_los: data.fowLos }, location: data.location });
         }
     }
 
@@ -244,7 +226,7 @@ class GameSettingsStore extends VuexModule implements GameSettingsState {
         if (mutateLocationOption("spawnLocations", data.spawnLocations, data.location)) {
             layerManager.invalidateAllFloors();
             if (data.sync)
-                socket.emit("Location.Options.Set", {
+                sendLocationOptions({
                     // eslint-disable-next-line @typescript-eslint/camelcase
                     options: { spawn_locations: JSON.stringify(data.spawnLocations) },
                     location: data.location,
@@ -252,9 +234,6 @@ class GameSettingsStore extends VuexModule implements GameSettingsState {
         }
 
         if ((this.locationOptions[data.location].spawnLocations?.length ?? 0) === 0) {
-            if (gameSettingsStore.activeLocation === 0) {
-                await new Promise(resolve => socket.once("Client.Options.Set", resolve));
-            }
             if (gameSettingsStore.activeLocation !== data.location) return;
 
             const uuid = uuidv4();
@@ -267,11 +246,9 @@ class GameSettingsStore extends VuexModule implements GameSettingsState {
             shape.src = img.src;
 
             layerManager
-                .getLayer(layerManager.getFloor()!.name, "dm")!
+                .getLayer(floorStore.currentFloor, "dm")!
                 .addShape(shape, SyncMode.FULL_SYNC, InvalidationMode.NO, false);
-            img.onload = () => {
-                layerManager.getLayer(shape.floor, shape.layer)!.invalidate(true);
-            };
+            img.onload = () => (gameStore.boardInitialized ? shape.layer.invalidate(true) : undefined);
 
             gameSettingsStore.setSpawnLocations({
                 spawnLocations: [uuid],

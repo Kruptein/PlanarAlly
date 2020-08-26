@@ -7,17 +7,20 @@ import { mapState } from "vuex";
 import ContextMenu from "@/core/components/contextmenu.vue";
 import Prompt from "@/core/components/modals/prompt.vue";
 
-import { socket } from "@/game/api/socket";
 import { EventBus } from "@/game/event-bus";
-import { layerManager, Floor } from "@/game/layers/manager";
+import { layerManager } from "@/game/layers/manager";
 import { gameStore } from "@/game/store";
 import { deleteShapes } from "../../shapes/utils";
 import { initiativeStore, inInitiative } from "../initiative/store";
 import { Layer } from "../../layers/layer";
 import { gameSettingsStore } from "../../settings";
-import Game from "@/game/game.vue";
-import { ServerAsset } from "../../comm/types/shapes";
+import Game from "@/game/Game.vue";
 import { Shape } from "@/game/shapes/shape";
+import { floorStore } from "../../layers/store";
+import { Floor } from "@/game/layers/floor";
+import { moveFloor, moveLayer } from "../../layers/utils";
+import { requestSpawnInfo } from "@/game/api/emits/location";
+import { sendShapesMove } from "@/game/api/emits/shape/core";
 
 @Component({
     components: {
@@ -38,8 +41,8 @@ export default class ShapeContext extends Vue {
     x = 0;
     y = 0;
 
-    getSelection(): Shape[] {
-        return this.getActiveLayer()!.selection;
+    getSelection(): readonly Shape[] {
+        return this.getActiveLayer()!.getSelection();
     }
 
     hasSpawnToken(): boolean {
@@ -57,11 +60,11 @@ export default class ShapeContext extends Vue {
     }
     getMarker(): string | undefined {
         const layer = this.getActiveLayer()!;
-        if (layer.selection.length !== 1) return;
-        return layer.selection[0].uuid;
+        if (layer.getSelection().length !== 1) return;
+        return layer.getSelection()[0].uuid;
     }
-    getFloors(): Floor[] {
-        if (gameStore.IS_DM) return layerManager.floors;
+    getFloors(): readonly Floor[] {
+        if (gameStore.IS_DM) return floorStore.floors;
         return [];
     }
     getLocations(): { id: number; name: string }[] {
@@ -70,40 +73,40 @@ export default class ShapeContext extends Vue {
     }
     getLayers(): Layer[] {
         if (!gameStore.IS_DM || this.hasSpawnToken()) return [];
-        return layerManager.floor?.layers.filter(l => l.selectable) || [];
+        return layerManager.getLayers(floorStore.currentFloor).filter(l => l.selectable) || [];
     }
     getActiveLayer(): Layer | undefined {
-        if (layerManager.floor !== undefined) return layerManager.getLayer(layerManager.floor.name);
+        return gameStore.boardInitialized ? floorStore.currentLayer : undefined;
     }
     getInitiativeWord(): string {
         const layer = this.getActiveLayer()!;
-        if (layer.selection.length === 1) {
-            return inInitiative(layer.selection[0].uuid)
+        if (layer.getSelection().length === 1) {
+            return inInitiative(layer.getSelection()[0].uuid)
                 ? this.$t("game.ui.selection.shapecontext.show_initiative").toString()
                 : this.$t("game.ui.selection.shapecontext.add_initiative").toString();
         } else {
-            return layer.selection.every(shape => inInitiative(shape.uuid))
+            return layer.getSelection().every(shape => inInitiative(shape.uuid))
                 ? this.$t("game.ui.selection.shapecontext.show_initiative").toString()
                 : this.$t("game.ui.selection.shapecontext.add_all_initiative").toString();
         }
     }
     hasSingleShape(): boolean {
         const layer = this.getActiveLayer()!;
-        return layer.selection.length === 1;
+        return layer.getSelection().length === 1;
     }
     setFloor(floor: Floor): void {
         const layer = this.getActiveLayer()!;
-        layer.selection.forEach(shape => shape.moveFloor(floor.name, true));
+        moveFloor([...layer.getSelection()], floor, true);
         this.close();
     }
     setLayer(newLayer: string): void {
         const layer = this.getActiveLayer()!;
-        layer.selection.forEach(shape => shape.moveLayer(newLayer, true));
+        moveLayer([...layer.getSelection()], layerManager.getLayer(floorStore.currentFloor, newLayer)!, true);
         layer.clearSelection();
         this.close();
     }
     async setLocation(newLocation: number): Promise<void> {
-        const selection = this.getActiveLayer()!.selection;
+        const selection = this.getActiveLayer()!.getSelection();
 
         const spawnLocations = (gameSettingsStore.locationOptions[newLocation]?.spawnLocations ?? []).length;
         if (spawnLocations === 0) {
@@ -118,10 +121,7 @@ export default class ShapeContext extends Vue {
             return;
         }
 
-        socket.emit("Location.Spawn.Info.Get", newLocation);
-        const spawnInfo = await new Promise((resolve: (value: ServerAsset[]) => void) =>
-            socket.once("Location.Spawn.Info", resolve),
-        );
+        const spawnInfo = await requestSpawnInfo(newLocation);
         if (spawnInfo.length !== spawnLocations) {
             console.error("Spawn location info mismatch.");
             this.close();
@@ -136,7 +136,7 @@ export default class ShapeContext extends Vue {
         //     // todo
         // }
 
-        socket.emit("Shapes.Location.Move", {
+        sendShapesMove({
             shapes: selection.map(s => s.uuid),
             target: { location: newLocation, ...targetLocation },
         });
@@ -145,17 +145,17 @@ export default class ShapeContext extends Vue {
     }
     moveToBack(): void {
         const layer = this.getActiveLayer()!;
-        layer.selection.forEach(shape => layer.moveShapeOrder(shape, 0, true));
+        layer.getSelection().forEach(shape => layer.moveShapeOrder(shape, 0, true));
         this.close();
     }
     moveToFront(): void {
         const layer = this.getActiveLayer()!;
-        layer.selection.forEach(shape => layer.moveShapeOrder(shape, layer.shapes.length - 1, true));
+        layer.getSelection().forEach(shape => layer.moveShapeOrder(shape, layer.getShapes().length - 1, true));
         this.close();
     }
     addInitiative(): void {
         const layer = this.getActiveLayer()!;
-        layer.selection.forEach(shape => initiativeStore.addInitiative(shape.getInitiativeRepr()));
+        layer.getSelection().forEach(shape => initiativeStore.addInitiative(shape.getInitiativeRepr()));
         EventBus.$emit("Initiative.Show");
         this.close();
     }
@@ -165,21 +165,21 @@ export default class ShapeContext extends Vue {
     }
     openEditDialog(): void {
         const layer = this.getActiveLayer()!;
-        if (layer.selection.length !== 1) return;
-        EventBus.$emit("EditDialog.Open", layer.selection[0]);
+        if (layer.getSelection().length !== 1) return;
+        EventBus.$emit("EditDialog.Open", layer.getSelection()[0]);
         this.close();
     }
     setMarker(): void {
         const layer = this.getActiveLayer()!;
-        if (layer.selection.length !== 1) return;
-        const marker = layer.selection[0].uuid;
+        if (layer.getSelection().length !== 1) return;
+        const marker = layer.getSelection()[0].uuid;
         gameStore.newMarker({ marker, sync: true });
         this.close();
     }
     deleteMarker(): void {
         const layer = this.getActiveLayer()!;
-        if (layer.selection.length !== 1) return;
-        const marker = layer.selection[0].uuid;
+        if (layer.getSelection().length !== 1) return;
+        const marker = layer.getSelection()[0].uuid;
         gameStore.removeMarker({ marker, sync: true });
         this.close();
     }

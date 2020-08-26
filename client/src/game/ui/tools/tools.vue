@@ -22,6 +22,7 @@ import { l2g } from "@/game/units";
 import { getLocalPointFromEvent } from "@/game/utils";
 import { ToolName, ToolFeatures } from "./utils";
 import { EventBus } from "@/game/event-bus";
+import { floorStore } from "@/game/layers/store";
 
 @Component({
     components: {
@@ -60,6 +61,8 @@ export default class Tools extends Vue {
         visionTool: InstanceType<typeof PanTool>;
     };
 
+    mode: "Build" | "Play" = "Play";
+
     private componentmap_: { [key in ToolName]: InstanceType<typeof Tool> } = <any>{};
 
     mounted(): void {
@@ -93,14 +96,13 @@ export default class Tools extends Vue {
         [ToolName.Vision, {}],
     ];
     playTools: [ToolName, ToolFeatures][] = [
-        [ToolName.Select, { disabled: [SelectFeatures.Resize] }],
+        [ToolName.Select, { disabled: [SelectFeatures.Resize, SelectFeatures.Rotate] }],
         [ToolName.Pan, {}],
         [ToolName.Ruler, {}],
         [ToolName.Ping, {}],
         [ToolName.Filter, {}],
         [ToolName.Vision, {}],
     ];
-    mode: "Build" | "Play" = "Play";
 
     get componentMap(): { [key in ToolName]: InstanceType<typeof Tool> } {
         return this.componentmap_;
@@ -184,7 +186,7 @@ export default class Tools extends Vue {
         // Annotation hover
         let found = false;
         for (const uuid of gameStore.annotations) {
-            if (layerManager.UUIDMap.has(uuid) && layerManager.hasLayer(layerManager.floor!.name, "draw")) {
+            if (layerManager.UUIDMap.has(uuid) && layerManager.hasLayer(floorStore.currentFloor, "draw")) {
                 const shape = layerManager.UUIDMap.get(uuid)!;
                 if (shape.contains(l2g(getLocalPointFromEvent(event)))) {
                     found = true;
@@ -197,13 +199,10 @@ export default class Tools extends Vue {
         }
     }
     mouseleave(event: MouseEvent): void {
-        // When leaving the window while a mouse is pressed down, act as if it was released
-        if ((event.buttons & 1) !== 0) {
-            const tool = this.componentMap[this.currentTool];
-            tool.onMouseUp(event, this.getFeatures(this.currentTool));
-            for (const permitted of tool.permittedTools)
-                this.componentMap[permitted.name].onMouseUp(event, permitted.features);
-        }
+        const tool = this.componentMap[this.currentTool];
+        tool.onMouseUp(event, this.getFeatures(this.currentTool));
+        for (const permitted of tool.permittedTools)
+            this.componentMap[permitted.name].onMouseUp(event, permitted.features);
     }
     contextmenu(event: MouseEvent): void {
         if ((<HTMLElement>event.target).tagName !== "CANVAS") return;
@@ -273,7 +272,7 @@ export default class Tools extends Vue {
         // Annotation hover
         let found = false;
         for (const uuid of gameStore.annotations) {
-            if (layerManager.UUIDMap.has(uuid) && layerManager.hasLayer(layerManager.floor!.name, "draw")) {
+            if (layerManager.UUIDMap.has(uuid) && layerManager.hasLayer(floorStore.currentFloor, "draw")) {
                 const shape = layerManager.UUIDMap.get(uuid)!;
                 if (shape.contains(l2g(getLocalPointFromEvent(event)))) {
                     found = true;
@@ -288,6 +287,10 @@ export default class Tools extends Vue {
 
     toggleMode(): void {
         this.mode = this.mode === "Build" ? "Play" : "Build";
+        const tool = this.componentMap[this.currentTool];
+        tool.onToolsModeChange(this.mode, this.getFeatures(this.currentTool));
+        for (const permitted of tool.permittedTools)
+            this.componentMap[permitted.name].onToolsModeChange(this.mode, permitted.features);
     }
 
     getModeWord(): string {

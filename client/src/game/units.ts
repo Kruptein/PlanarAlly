@@ -1,5 +1,5 @@
 import { GlobalPoint, LocalPoint, Ray } from "@/game/geom";
-import { gameStore } from "@/game/store";
+import { gameStore, DEFAULT_GRID_SIZE } from "@/game/store";
 import { gameSettingsStore } from "./settings";
 
 export function g2l(obj: GlobalPoint): LocalPoint {
@@ -22,7 +22,7 @@ export function g2lz(z: number): number {
 }
 
 export function getUnitDistance(r: number): number {
-    return (r / gameSettingsStore.unitSize) * gameSettingsStore.gridSize;
+    return (r / gameSettingsStore.unitSize) * gameStore.gridSize;
 }
 
 export function g2lr(r: number): number {
@@ -59,7 +59,7 @@ export function l2gr(r: number): number {
 }
 
 export function clampGridLine(point: number): number {
-    return Math.round(point / gameSettingsStore.gridSize) * gameSettingsStore.gridSize;
+    return Math.round(point / DEFAULT_GRID_SIZE) * DEFAULT_GRID_SIZE;
 }
 
 (<any>window).g2lx = g2lx;

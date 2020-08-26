@@ -1,39 +1,78 @@
 import { uuidv4 } from "@/core/utils";
-import { socket } from "@/game/api/socket";
-import { aurasFromServer, aurasToServer } from "@/game/comm/conversion/aura";
+import { aurasFromServer, aurasToServer, partialAuraToServer } from "@/game/comm/conversion/aura";
 import { InitiativeData } from "@/game/comm/types/general";
 import { accessToServer, ownerToClient, ownerToServer, ServerShape } from "@/game/comm/types/shapes";
-import { GlobalPoint, Vector } from "@/game/geom";
+import { GlobalPoint, LocalPoint, Vector } from "@/game/geom";
 import { layerManager } from "@/game/layers/manager";
 import { gameStore } from "@/game/store";
-import { g2l, g2lx, g2ly, g2lz } from "@/game/units";
+import { g2l, g2lx, g2ly, g2lz, getUnitDistance } from "@/game/units";
 import { visibilityStore } from "@/game/visibility/store";
 import { TriangulationTarget } from "@/game/visibility/te/pa";
-import { addBlocker, getBlockers, getVisionSources, setVisionSources, sliceBlockers } from "@/game/visibility/utils";
+import {
+    addBlocker,
+    addVisionSource,
+    getBlockers,
+    getVisionSources,
+    setVisionSources,
+    sliceBlockers,
+    sliceVisionSources,
+} from "@/game/visibility/utils";
 import tinycolor from "tinycolor2";
 import { PartialBy } from "../../core/types";
+import {
+    sendShapeAddOwner,
+    sendShapeDeleteOwner,
+    sendShapeUpdateDefaultOwner,
+    sendShapeUpdateOwner,
+} from "../api/emits/access";
+import {
+    sendShapeCreateTracker,
+    sendShapeRemoveAura,
+    sendShapeRemoveLabel,
+    sendShapeRemoveTracker,
+    sendShapeSetAnnotation,
+    sendShapeSetBlocksMovement,
+    sendShapeSetBlocksVision,
+    sendShapeSetFillColour,
+    sendShapeSetInvisible,
+    sendShapeSetIsToken,
+    sendShapeSetLocked,
+    sendShapeSetName,
+    sendShapeSetNameVisible,
+    sendShapeSetStrokeColour,
+    sendShapeUpdateAura,
+    sendShapeUpdateTracker,
+    sendShapeCreateAura,
+} from "../api/emits/shape/options";
+import { Floor } from "../layers/floor";
+import { Layer } from "../layers/layer";
+import { getFloorId } from "../layers/store";
 import { gameSettingsStore } from "../settings";
+import { rotateAroundPoint } from "../utils";
 import { BoundingRect } from "./boundingrect";
 import { PartialShapeOwner, ShapeAccess, ShapeOwner } from "./owners";
+import { SHAPE_TYPE } from "./types";
 
 export abstract class Shape {
     // Used to create class instance from server shape data
-    abstract readonly type: string;
+    abstract readonly type: SHAPE_TYPE;
     // The unique ID of this shape
     readonly uuid: string;
     // The layer the shape is currently on
-    floor!: string;
-    layer!: string;
+    private _floor!: number;
+    private _layer!: string;
 
     // Explicitly prevent any sync to the server
     preventSync = false;
 
     // A reference point regarding that specific shape's structure
     protected _refPoint: GlobalPoint;
+    protected _angle = 0;
 
     // Fill colour of the shape
     fillColour = "#000";
     strokeColour = "rgba(0,0,0,0)";
+    strokeWidth = 5;
     // The optional name associated with the shape
     name = "Unknown shape";
     nameVisible = true;
@@ -88,19 +127,71 @@ export abstract class Shape {
         this._refPoint = point;
     }
 
-    abstract getBoundingBox(): BoundingRect;
+    get angle(): number {
+        return this._angle;
+    }
+
+    set angle(angle: number) {
+        this._angle = angle;
+        this.updatePoints();
+    }
+
+    get floor(): Floor {
+        return layerManager.getFloor(this._floor)!;
+    }
+
+    get layer(): Layer {
+        return layerManager.getLayer(this.floor, this._layer)!;
+    }
+
+    /**
+     * Returns true if this shape should trigger a vision recalculation when it moves or otherwise mutates.
+     * This is the case when it is a token, has an aura that is a vision source or if it blocks vision.
+     */
+    get triggersVisionRecalc(): boolean {
+        return this.isToken || this.auras.some(a => a.visionSource) || this.movementObstruction;
+    }
+
+    setLayer(floor: number, layer: string): void {
+        this._floor = floor;
+        this._layer = layer;
+    }
+
+    getAABB(delta = 0): BoundingRect {
+        let minx = this.points[0][0];
+        let maxx = this.points[0][0];
+        let miny = this.points[0][1];
+        let maxy = this.points[0][1];
+        for (const p of this.points.slice(1)) {
+            if (p[0] < minx) minx = p[0];
+            if (p[0] > maxx) maxx = p[0];
+            if (p[1] < miny) miny = p[1];
+            if (p[1] > maxy) maxy = p[1];
+        }
+        return new BoundingRect(
+            new GlobalPoint(minx - delta, miny - delta),
+            maxx - minx + 2 * delta,
+            maxy - miny + 2 * delta,
+        );
+    }
+
+    getBoundingBox(delta = 0): BoundingRect {
+        return this.getAABB(delta);
+    }
 
     abstract contains(point: GlobalPoint, nearbyThreshold?: number): boolean;
 
     abstract center(): GlobalPoint;
     abstract center(centerPoint: GlobalPoint): void;
-    visibleInCanvas(_canvas: HTMLCanvasElement): boolean {
-        // for (const aura of this.auras) {
-        //     if (aura.value > 0) {
-        //         const auraCircle = new Circle(this.center(), aura.value);
-        //         if (auraCircle.visibleInCanvas(canvas)) return true;
-        //     }
-        // }
+    visibleInCanvas(canvas: HTMLCanvasElement): boolean {
+        for (const aura of this.auras) {
+            if (aura.value > 0 || aura.dim > 0) {
+                const r = getUnitDistance(aura.value + aura.dim);
+                const center = this.center();
+                const auraArea = new BoundingRect(new GlobalPoint(center.x - r, center.y - r), r * 2, r * 2);
+                if (auraArea.visibleInCanvas(canvas)) return true;
+            }
+        }
         return false;
     }
 
@@ -109,6 +200,17 @@ export abstract class Shape {
     abstract snapToGrid(): void;
     abstract resizeToGrid(resizePoint: number, retainAspectRatio: boolean): void;
     abstract resize(resizePoint: number, point: GlobalPoint, retainAspectRatio: boolean): number;
+
+    // abstract rotateAround(point: GlobalPoint, angle: number): void;
+    rotateAround(point: GlobalPoint, angle: number): void {
+        const center = this.center();
+        if (!point.equals(center)) this.center(rotateAroundPoint(center, point, angle));
+        this.angle += angle;
+        this.updatePoints();
+    }
+    rotateAroundAbsolute(point: GlobalPoint, angle: number): void {
+        this.rotateAround(point, angle - this.angle);
+    }
 
     abstract get points(): number[][];
 
@@ -129,27 +231,26 @@ export abstract class Shape {
     }
 
     invalidate(skipLightUpdate: boolean): void {
-        const l = layerManager.getLayer(this.floor, this.layer);
-        if (l) l.invalidate(skipLightUpdate);
+        this.layer.invalidate(skipLightUpdate);
     }
 
     checkVisionSources(recalculate = true): boolean {
         let alteredVision = false;
-        const visionBlockers = getBlockers(TriangulationTarget.VISION, this.floor);
+        const visionBlockers = getBlockers(TriangulationTarget.VISION, this._floor);
         const obstructionIndex = visionBlockers.indexOf(this.uuid);
         if (this.visionObstruction && obstructionIndex === -1) {
-            addBlocker(TriangulationTarget.VISION, this.uuid, this.floor);
+            addBlocker(TriangulationTarget.VISION, this.uuid, this._floor);
             if (recalculate) visibilityStore.addToTriag({ target: TriangulationTarget.VISION, shape: this });
             alteredVision = true;
         } else if (!this.visionObstruction && obstructionIndex >= 0) {
-            sliceBlockers(TriangulationTarget.VISION, obstructionIndex, this.floor);
+            sliceBlockers(TriangulationTarget.VISION, obstructionIndex, this._floor);
             if (recalculate) visibilityStore.deleteFromTriag({ target: TriangulationTarget.VISION, shape: this });
             alteredVision = true;
         }
-        if (alteredVision && recalculate) visibilityStore.recalculateVision(this.floor);
+        if (alteredVision && recalculate) visibilityStore.recalculateVision(this._floor);
 
         // Check if the visionsource auras are in the gameManager
-        const visionSources: { shape: string; aura: string }[] = [...getVisionSources(this.floor)];
+        const visionSources: { shape: string; aura: string }[] = [...getVisionSources(this._floor)];
         for (const au of this.auras) {
             const i = visionSources.findIndex(o => o.aura === au.uuid);
             if (au.visionSource && i === -1) {
@@ -165,49 +266,8 @@ export abstract class Shape {
                 if (!this.auras.some(a => a.uuid === ls.aura && a.visionSource)) visionSources.splice(i, 1);
             }
         }
-        setVisionSources(visionSources, this.floor);
+        setVisionSources(visionSources, this._floor);
         return alteredVision;
-    }
-
-    setMovementBlock(blocksMovement: boolean, recalculate = true): boolean {
-        let alteredMovement = false;
-        this.movementObstruction = blocksMovement || false;
-        const movementBlockers = getBlockers(TriangulationTarget.MOVEMENT, this.floor);
-        const obstructionIndex = movementBlockers.indexOf(this.uuid);
-        if (this.movementObstruction && obstructionIndex === -1) {
-            addBlocker(TriangulationTarget.MOVEMENT, this.uuid, this.floor);
-            if (recalculate) visibilityStore.addToTriag({ target: TriangulationTarget.MOVEMENT, shape: this });
-            alteredMovement = true;
-        } else if (!this.movementObstruction && obstructionIndex >= 0) {
-            sliceBlockers(TriangulationTarget.MOVEMENT, obstructionIndex, this.floor);
-            if (recalculate) visibilityStore.deleteFromTriag({ target: TriangulationTarget.MOVEMENT, shape: this });
-            alteredMovement = true;
-        }
-        if (alteredMovement && recalculate) visibilityStore.recalculateMovement(this.floor);
-        return alteredMovement;
-    }
-
-    setIsToken(isToken: boolean): void {
-        this.isToken = isToken;
-        if (this.ownedBy({ visionAccess: true })) {
-            const i = gameStore.ownedtokens.indexOf(this.uuid);
-            if (this.isToken && i === -1) gameStore.ownedtokens.push(this.uuid);
-            else if (!this.isToken && i >= 0) gameStore.ownedtokens.splice(i, 1);
-        }
-    }
-
-    setInvisible(isInvisible: boolean, sync: boolean): void {
-        this.isInvisible = isInvisible;
-        // eslint-disable-next-line @typescript-eslint/camelcase
-        if (sync) socket.emit("Shape.Options.Invisible.Set", { shape: this.uuid, is_invisible: isInvisible });
-        this.invalidate(true);
-    }
-
-    setLocked(isLocked: boolean, sync: boolean): void {
-        this.isLocked = isLocked;
-        // eslint-disable-next-line @typescript-eslint/camelcase
-        if (sync) socket.emit("Shape.Options.Locked.Set", { shape: this.uuid, is_locked: isLocked });
-        this.invalidate(true);
     }
 
     abstract asDict(): ServerShape;
@@ -218,17 +278,19 @@ export abstract class Shape {
             uuid: this.uuid,
             x: this.refPoint.x,
             y: this.refPoint.y,
-            floor: this.floor,
-            layer: this.layer,
+            angle: this.angle,
+            floor: layerManager.getFloor(this._floor)!.name,
+            layer: this._layer,
             draw_operator: this.globalCompositeOperation,
             movement_obstruction: this.movementObstruction,
             vision_obstruction: this.visionObstruction,
-            auras: aurasToServer(this.auras),
+            auras: aurasToServer(this.uuid, this.auras),
             trackers: this.trackers,
             labels: this.labels,
             owners: this._owners.map(owner => ownerToServer(owner)),
             fill_colour: this.fillColour,
             stroke_colour: this.strokeColour,
+            stroke_width: this.strokeWidth,
             name: this.name,
             name_visible: this.nameVisible,
             annotation: this.annotation,
@@ -244,8 +306,9 @@ export abstract class Shape {
         };
     }
     fromDict(data: ServerShape): void {
-        this.layer = data.layer;
-        this.floor = data.floor;
+        this._layer = data.layer;
+        this._floor = getFloorId(data.floor);
+        this.angle = data.angle;
         this.globalCompositeOperation = data.draw_operator;
         this.movementObstruction = data.movement_obstruction;
         this.visionObstruction = data.vision_obstruction;
@@ -275,12 +338,29 @@ export abstract class Shape {
         );
     }
 
+    getPositionRepresentation(): { angle: number; points: number[][] } {
+        return { angle: this.angle, points: [this.refPoint.asArray()] };
+    }
+
+    setPositionRepresentation(position: { angle: number; points: number[][] }): void {
+        this.refPoint = GlobalPoint.fromArray(position.points[0]);
+        this.angle = position.angle;
+        this.updateShapeVision(false, false);
+    }
+
     draw(ctx: CanvasRenderingContext2D): void {
         if (this.globalCompositeOperation !== undefined) ctx.globalCompositeOperation = this.globalCompositeOperation;
         else ctx.globalCompositeOperation = "source-over";
+
+        const center = g2l(this.center());
+
+        ctx.setTransform(1, 0, 0, 1, center.x, center.y);
+        ctx.rotate(this.angle);
     }
 
     drawPost(ctx: CanvasRenderingContext2D): void {
+        ctx.setTransform(1, 0, 0, 1, 0, 0);
+
         let bbox: BoundingRect | undefined;
         if (this.showBadge) {
             bbox = this.getBoundingBox();
@@ -308,10 +388,14 @@ export abstract class Shape {
     }
 
     drawSelection(ctx: CanvasRenderingContext2D): void {
-        ctx.globalCompositeOperation = this.globalCompositeOperation;
-        const z = gameStore.zoomFactor;
         const bb = this.getBoundingBox();
-        ctx.strokeRect(g2lx(bb.topLeft.x), g2ly(bb.topLeft.y), bb.w * z, bb.h * z);
+        ctx.beginPath();
+        ctx.moveTo(g2lx(bb.points[0][0]), g2ly(bb.points[0][1]));
+        for (let i = 1; i <= bb.points.length; i++) {
+            const vertex = bb.points[i % bb.points.length];
+            ctx.lineTo(g2lx(vertex[0]), g2ly(vertex[1]));
+        }
+        ctx.stroke();
 
         // Draw vertices
         for (const p of this.points) {
@@ -331,6 +415,13 @@ export abstract class Shape {
         ctx.stroke();
     }
 
+    getAnchorLocation(): LocalPoint {
+        const center = g2l(this.center());
+        const bb = this.getBoundingBox();
+        const z = gameStore.zoomFactor;
+        return new LocalPoint(center.x, center.y - 100 * z - (bb.h * z) / 2);
+    }
+
     getInitiativeRepr(): InitiativeData {
         return {
             uuid: this.uuid,
@@ -342,34 +433,6 @@ export abstract class Shape {
             effects: [],
             index: Infinity,
         };
-    }
-
-    moveFloor(floor: string, sync: boolean): void {
-        const oldLayer = layerManager.getLayer(this.floor, this.layer);
-        const newLayer = layerManager.getLayer(floor, this.layer);
-        if (oldLayer === undefined || newLayer === undefined) return;
-        visibilityStore.moveShape({ shape: this, oldFloor: this.floor, newFloor: floor });
-        this.floor = floor;
-        oldLayer.shapes.splice(oldLayer.shapes.indexOf(this), 1);
-        newLayer.shapes.push(this);
-        oldLayer.invalidate(false);
-        newLayer.invalidate(false);
-        if (sync) socket.emit("Shape.Floor.Change", { uuid: this.uuid, floor });
-    }
-
-    moveLayer(layer: string, sync: boolean): void {
-        const oldLayer = layerManager.getLayer(this.floor, this.layer);
-        const newLayer = layerManager.getLayer(this.floor, layer);
-        if (oldLayer === undefined || newLayer === undefined) return;
-        this.layer = layer;
-        // Update layer shapes
-        oldLayer.shapes.splice(oldLayer.shapes.indexOf(this), 1);
-        newLayer.shapes.push(this);
-        // Revalidate layers  (light should at most be redone once)
-        oldLayer.invalidate(true);
-        newLayer.invalidate(false);
-        // Sync!
-        if (sync) socket.emit("Shape.Layer.Change", { uuid: this.uuid, layer, floor: newLayer.floor });
     }
 
     // This screws up vetur if typed as `readonly string[]`
@@ -415,7 +478,7 @@ export abstract class Shape {
             this._owners.push(fullOwner);
             if (owner.access.vision && this.isToken && owner.user === gameStore.username)
                 gameStore.ownedtokens.push(this.uuid);
-            if (sync) socket.emit("Shape.Owner.Add", ownerToServer(fullOwner));
+            if (sync) sendShapeAddOwner(ownerToServer(fullOwner));
             if (gameSettingsStore.fowLos) layerManager.invalidateLightAllFloors();
         }
     }
@@ -445,7 +508,7 @@ export abstract class Shape {
             }
         }
         targetOwner.access = fullOwner.access;
-        if (sync) socket.emit("Shape.Owner.Update", ownerToServer(fullOwner));
+        if (sync) sendShapeUpdateOwner(ownerToServer(fullOwner));
         if (gameSettingsStore.fowLos) layerManager.invalidateLightAllFloors();
     }
 
@@ -457,7 +520,7 @@ export abstract class Shape {
             const ownedIndex = gameStore.ownedtokens.indexOf(this.uuid);
             if (ownedIndex >= 0) gameStore.ownedtokens.splice(ownedIndex, 1);
         }
-        if (sync) socket.emit("Shape.Owner.Delete", ownerToServer(removed));
+        if (sync) sendShapeDeleteOwner(ownerToServer(removed));
         if (gameSettingsStore.fowLos) layerManager.invalidateLightAllFloors();
     }
 
@@ -480,12 +543,11 @@ export abstract class Shape {
             if (!this.ownedBy({ visionAccess: true }) && ownedIndex >= 0) gameStore.ownedtokens.splice(ownedIndex, 1);
         }
         if (gameSettingsStore.fowLos) layerManager.invalidateLightAllFloors();
-        if (sync)
-            socket.emit("Shape.Owner.Default.Update", { ...accessToServer(this.defaultAccess), shape: this.uuid });
+        if (sync) sendShapeUpdateDefaultOwner({ ...accessToServer(this.defaultAccess), shape: this.uuid });
     }
 
     updatePoints(): void {
-        layerManager.getLayer(this.floor, this.layer)?.updateShapePoints(this);
+        this.layer.updateShapePoints(this);
     }
 
     getGroupMembers(): Shape[] {
@@ -502,5 +564,183 @@ export abstract class Shape {
                 [],
             ),
         ];
+    }
+
+    updateShapeVision(alteredMovement: boolean, alteredVision: boolean): void {
+        if (this.visionObstruction && !alteredVision) {
+            visibilityStore.deleteFromTriag({
+                target: TriangulationTarget.VISION,
+                shape: this,
+            });
+            visibilityStore.addToTriag({ target: TriangulationTarget.VISION, shape: this });
+            visibilityStore.recalculateVision(this.floor.id);
+        }
+        this.invalidate(false);
+        layerManager.invalidateLightAllFloors();
+        if (this.movementObstruction && !alteredMovement) {
+            visibilityStore.deleteFromTriag({
+                target: TriangulationTarget.MOVEMENT,
+                shape: this,
+            });
+            visibilityStore.addToTriag({ target: TriangulationTarget.MOVEMENT, shape: this });
+            visibilityStore.recalculateMovement(this.floor.id);
+        }
+    }
+
+    // SETTERS
+
+    setVisionBlock(blocksVision: boolean, sync: boolean, recalculate = true): void {
+        if (sync) sendShapeSetBlocksVision({ shape: this.uuid, value: blocksVision });
+        this.visionObstruction = blocksVision;
+        this.invalidate(!this.checkVisionSources(recalculate));
+    }
+
+    setMovementBlock(blocksMovement: boolean, sync: boolean, recalculate = true): boolean {
+        if (sync) sendShapeSetBlocksMovement({ shape: this.uuid, value: blocksMovement });
+        let alteredMovement = false;
+        this.movementObstruction = blocksMovement;
+        const movementBlockers = getBlockers(TriangulationTarget.MOVEMENT, this._floor);
+        const obstructionIndex = movementBlockers.indexOf(this.uuid);
+        if (this.movementObstruction && obstructionIndex === -1) {
+            addBlocker(TriangulationTarget.MOVEMENT, this.uuid, this._floor);
+            if (recalculate) visibilityStore.addToTriag({ target: TriangulationTarget.MOVEMENT, shape: this });
+            alteredMovement = true;
+        } else if (!this.movementObstruction && obstructionIndex >= 0) {
+            sliceBlockers(TriangulationTarget.MOVEMENT, obstructionIndex, this._floor);
+            if (recalculate) visibilityStore.deleteFromTriag({ target: TriangulationTarget.MOVEMENT, shape: this });
+            alteredMovement = true;
+        }
+        if (alteredMovement && recalculate) visibilityStore.recalculateMovement(this._floor);
+        return alteredMovement;
+    }
+
+    setIsToken(isToken: boolean, sync: boolean): void {
+        if (sync) sendShapeSetIsToken({ shape: this.uuid, value: isToken });
+        this.isToken = isToken;
+        if (this.ownedBy({ visionAccess: true })) {
+            const i = gameStore.ownedtokens.indexOf(this.uuid);
+            if (this.isToken && i === -1) gameStore.ownedtokens.push(this.uuid);
+            else if (!this.isToken && i >= 0) gameStore.ownedtokens.splice(i, 1);
+        }
+        this.invalidate(false);
+    }
+
+    setInvisible(isInvisible: boolean, sync: boolean): void {
+        this.isInvisible = isInvisible;
+        if (sync) sendShapeSetInvisible({ shape: this.uuid, value: isInvisible });
+        this.invalidate(!this.triggersVisionRecalc);
+    }
+
+    setLocked(isLocked: boolean, sync: boolean): void {
+        this.isLocked = isLocked;
+        if (sync) sendShapeSetLocked({ shape: this.uuid, value: isLocked });
+    }
+
+    setAnnotation(text: string, sync: boolean): void {
+        if (sync) sendShapeSetAnnotation({ shape: this.uuid, value: text });
+        const hadAnnotation = this.annotation !== "";
+        this.annotation = text;
+        if (this.annotation !== "" && !hadAnnotation) {
+            gameStore.annotations.push(this.uuid);
+        } else if (this.annotation === "" && hadAnnotation) {
+            gameStore.annotations.splice(gameStore.annotations.findIndex(an => an === this.uuid));
+        }
+    }
+
+    removeTracker(tracker: string, sync: boolean): void {
+        if (sync) sendShapeRemoveTracker({ shape: this.uuid, value: tracker });
+        this.trackers = this.trackers.filter(tr => tr.uuid !== tracker);
+    }
+
+    removeAura(aura: string, sync: boolean): void {
+        if (sync) sendShapeRemoveAura({ shape: this.uuid, value: aura });
+        this.auras = this.auras.filter(au => au.uuid !== aura);
+        this.checkVisionSources();
+        this.invalidate(false);
+    }
+
+    removeLabel(label: string, sync: boolean): void {
+        if (sync) sendShapeRemoveLabel({ shape: this.uuid, value: label });
+        this.labels = this.labels.filter(l => l.uuid !== label);
+    }
+
+    setName(name: string, sync: boolean): void {
+        if (sync) sendShapeSetName({ shape: this.uuid, value: name });
+        this.name = name;
+    }
+
+    setNameVisible(visible: boolean, sync: boolean): void {
+        if (sync) sendShapeSetNameVisible({ shape: this.uuid, value: visible });
+        this.nameVisible = visible;
+    }
+
+    setStrokeColour(colour: string, sync: boolean): void {
+        if (sync) sendShapeSetStrokeColour({ shape: this.uuid, value: colour });
+        this.strokeColour = colour;
+        this.invalidate(true);
+    }
+
+    setFillColour(colour: string, sync: boolean): void {
+        if (sync) sendShapeSetFillColour({ shape: this.uuid, value: colour });
+        this.fillColour = colour;
+        this.invalidate(true);
+    }
+
+    pushTracker(tracker: Tracker): void {
+        this.trackers.push(tracker);
+    }
+
+    syncTracker(tracker: Tracker): void {
+        if (tracker.temporary === false) {
+            console.log("Illegal use of syncTracker");
+            return;
+        }
+        sendShapeCreateTracker({ shape: this.uuid, ...tracker });
+        tracker.temporary = false;
+    }
+
+    updateTracker(trackerId: string, delta: Partial<Tracker>, sync: boolean): void {
+        const tracker = this.trackers.find(t => t.uuid === trackerId);
+        if (tracker === undefined) return;
+        Object.assign(tracker, delta);
+        if (sync) sendShapeUpdateTracker({ shape: this.uuid, uuid: trackerId, ...delta });
+    }
+
+    pushAura(aura: Aura): void {
+        this.auras.push(aura);
+        this.invalidate(false);
+    }
+
+    syncAura(aura: Aura): void {
+        if (aura.temporary === false) {
+            console.log("Illegal use of syncAura");
+            return;
+        }
+        sendShapeCreateAura(aurasToServer(this.uuid, [aura])[0]);
+        aura.temporary = false;
+    }
+
+    updateAura(auraId: string, delta: Partial<Aura>, sync: boolean): void {
+        const aura = this.auras.find(t => t.uuid === auraId);
+        if (aura === undefined) return;
+
+        const visionSources = getVisionSources(this.floor.id);
+        const i = visionSources.findIndex(ls => ls.aura === aura.uuid);
+
+        Object.assign(aura, delta);
+
+        if (aura.visionSource && i === -1) addVisionSource({ shape: this.uuid, aura: aura.uuid }, this.floor.id);
+        else if (!aura.visionSource && i >= 0) sliceVisionSources(i, this.floor.id);
+
+        if (sync)
+            sendShapeUpdateAura({
+                ...partialAuraToServer({
+                    ...delta,
+                }),
+                shape: this.uuid,
+                uuid: auraId,
+            });
+
+        this.invalidate(false);
     }
 }

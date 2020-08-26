@@ -2,19 +2,27 @@ import { coreStore } from "../../../core/store";
 import { ServerLocation } from "../../comm/types/general";
 import { ServerLocationOptions } from "../../comm/types/settings";
 import { EventBus } from "../../event-bus";
-import { layerManager } from "../../layers/manager";
+import { floorStore } from "../../layers/store";
 import { gameSettingsStore } from "../../settings";
 import { gameStore } from "../../store";
 import { VisibilityMode, visibilityStore } from "../../visibility/store";
+import { sendLocationRename } from "../emits/location";
 import { socket } from "../socket";
 
+// Bootup Sequence
+
 socket.on("Location.Set", (data: ServerLocation) => {
-    coreStore.setLoading(false);
     gameSettingsStore.setActiveLocation(data.id);
     gameStore.updatePlayer({ player: gameStore.username, location: data.id });
     setLocationOptions(data.id, data.options);
     EventBus.$emit("Location.Options.Set");
 });
+
+socket.on("Locations.Settings.Set", (data: { [key: number]: Partial<ServerLocationOptions> }) => {
+    for (const key in data) setLocationOptions(Number.parseInt(key), data[key]);
+});
+
+// Varia
 
 socket.on("Location.Options.Set", (data: { options: Partial<ServerLocationOptions>; location: number | null }) => {
     setLocationOptions(data.location, data.options);
@@ -26,19 +34,14 @@ socket.on("Locations.Order.Set", (locations: { id: number; name: string }[]) => 
 
 socket.on("Location.Change.Start", () => {
     coreStore.setLoading(true);
+    gameStore.setBoardInitialized(false);
 });
 
-socket.on("Locations.Settings.Set", (data: { [key: number]: Partial<ServerLocationOptions> }) => {
-    for (const key in data) setLocationOptions(Number.parseInt(key), data[key]);
-});
-
-socket.on("Location.Rename", (data: { id: number; name: string }) => {
-    renameLocation(data.id, data.name);
+socket.on("Location.Rename", (data: { location: number; name: string }) => {
+    renameLocation(data.location, data.name);
 });
 
 export function setLocationOptions(id: number | null, options: Partial<ServerLocationOptions>): void {
-    if (options?.grid_size !== undefined)
-        gameSettingsStore.setGridSize({ gridSize: options.grid_size, location: id, sync: false });
     if (options?.unit_size !== undefined)
         gameSettingsStore.setUnitSize({ unitSize: options.unit_size, location: id, sync: false });
     if (options?.unit_size_unit !== undefined)
@@ -60,9 +63,9 @@ export function setLocationOptions(id: number | null, options: Partial<ServerLoc
             mode: VisibilityMode[<keyof typeof VisibilityMode>options.vision_mode],
             sync: false,
         });
-        for (const floor of layerManager.floors) {
-            visibilityStore.recalculateVision(floor.name);
-            visibilityStore.recalculateMovement(floor.name);
+        for (const floor of floorStore.floors) {
+            visibilityStore.recalculateVision(floor.id);
+            visibilityStore.recalculateMovement(floor.id);
         }
     }
     gameSettingsStore.setSpawnLocations({
@@ -79,4 +82,5 @@ export function renameLocation(id: number, name: string): void {
     }
     if (gameSettingsStore.activeLocation === id) gameSettingsStore.setActiveLocation(id);
     gameStore.locations.splice(idx, 1, { id, name });
+    sendLocationRename({ location: id, name });
 }

@@ -21,9 +21,10 @@ import { Rect } from "@/game/shapes/rect";
 import { Shape } from "@/game/shapes/shape";
 import { Text } from "@/game/shapes/text";
 import { EventBus } from "../event-bus";
+import { floorStore, getFloorId } from "../layers/store";
 import { gameStore } from "../store";
 import { Polygon } from "./polygon";
-import { socket } from "../api/socket";
+import { addGroupMember } from "./group";
 
 export function createShapeFromDict(shape: ServerShape): Shape | undefined {
     let sh: Shape;
@@ -57,7 +58,7 @@ export function createShapeFromDict(shape: ServerShape): Shape | undefined {
         const polygon = <ServerPolygon>shape;
         sh = new Polygon(
             refPoint,
-            polygon.vertices.map(v => new GlobalPoint(v.x, v.y)),
+            polygon.vertices.map(v => GlobalPoint.fromArray(v)),
             polygon.fill_colour,
             polygon.stroke_colour,
             polygon.line_width,
@@ -66,7 +67,7 @@ export function createShapeFromDict(shape: ServerShape): Shape | undefined {
         );
     } else if (shape.type_ === "text") {
         const text = <ServerText>shape;
-        sh = new Text(refPoint, text.text, text.font, text.angle, text.fill_colour, text.stroke_colour, text.uuid);
+        sh = new Text(refPoint, text.text, text.font, text.fill_colour, text.stroke_colour, text.uuid);
     } else if (shape.type_ === "assetrect") {
         const asset = <ServerAsset>shape;
         const img = new Image(asset.width, asset.height);
@@ -74,7 +75,7 @@ export function createShapeFromDict(shape: ServerShape): Shape | undefined {
         else img.src = asset.src;
         sh = new Asset(img, refPoint, asset.width, asset.height, asset.uuid);
         img.onload = () => {
-            layerManager.getLayer(shape.floor, shape.layer)!.invalidate(true);
+            layerManager.getLayer(layerManager.getFloor(getFloorId(shape.floor))!, shape.layer)!.invalidate(true);
         };
     } else {
         return undefined;
@@ -84,24 +85,23 @@ export function createShapeFromDict(shape: ServerShape): Shape | undefined {
 }
 
 export function copyShapes(): void {
-    const layer = layerManager.getLayer(layerManager.floor!.name);
+    const layer = floorStore.currentLayer;
     if (!layer) return;
-    if (!layer.selection) return;
+    if (!layer.hasSelection()) return;
     const clipboard: ServerShape[] = [];
-    for (const shape of layer.selection) {
+    for (const shape of layer.getSelection()) {
         if (!shape.ownedBy({ editAccess: true })) continue;
-        if (gameStore.selectionHelperID === shape.uuid) continue;
         clipboard.push(shape.asDict());
     }
     gameStore.setClipboard(clipboard);
     gameStore.setClipboardPosition(gameStore.screenCenter);
 }
 
-export function pasteShapes(targetLayer?: string): Shape[] {
-    const layer = layerManager.getLayer(layerManager.floor!.name, targetLayer);
+export function pasteShapes(targetLayer?: string): readonly Shape[] {
+    const layer = layerManager.getLayer(floorStore.currentFloor, targetLayer);
     if (!layer) return [];
     if (!gameStore.clipboard) return [];
-    layer.selection = [];
+    layer.setSelection();
     let offset = gameStore.screenCenter.subtract(gameStore.clipboardPosition);
     gameStore.setClipboardPosition(gameStore.screenCenter);
     // Check against 200 as that is the squared length of a vector with size 10, 10
@@ -146,40 +146,33 @@ export function pasteShapes(targetLayer?: string): Shape[] {
             if (!groupLeader.options.has("groupInfo")) groupLeader.options.set("groupInfo", []);
             const groupMembers = groupLeader.getGroupMembers();
             clip.badge = groupMembers.reduce((acc: number, sh: Shape) => Math.max(acc, sh.badge ?? 1), 0) + 1;
-            groupLeader.options.set("groupInfo", [...groupLeader.options.get("groupInfo"), clip.uuid]);
             options.set("groupId", groupLeader.uuid);
             clip.options = JSON.stringify([...options]);
-            if (!groupLeader.preventSync)
-                socket.emit("Shape.Update", { shape: groupLeader.asDict(), redraw: false, temporary: false });
+            addGroupMember({ leader: groupLeader.uuid, member: clip.uuid, sync: true });
         }
         // Finalize
         const shape = createShapeFromDict(clip);
         if (shape === undefined) continue;
         layer.addShape(shape, SyncMode.FULL_SYNC, InvalidationMode.WITH_LIGHT);
-        layer.selection.push(shape);
+        layer.pushSelection(shape);
     }
-    if (layer.selection.length === 1) EventBus.$emit("SelectionInfo.Shape.Set", layer.selection[0]);
-    else EventBus.$emit("SelectionInfo.Shape.Set", null);
     layer.invalidate(false);
-    return layer.selection;
+    return layer.getSelection();
 }
 
 // todo: refactor with removeShape in api/events/shape
 export function deleteShapes(): void {
-    if (layerManager.getLayer(layerManager.floor!.name) === undefined) {
+    if (floorStore.currentLayer === undefined) {
         console.log("No active layer selected for delete operation");
         return;
     }
-    const l = layerManager.getLayer(layerManager.floor!.name)!;
-    for (let i = l.selection.length - 1; i >= 0; i--) {
-        const sel = l.selection[i];
+    const l = floorStore.currentLayer!;
+    for (let i = l.getSelection().length - 1; i >= 0; i--) {
+        const sel = l.getSelection()[i];
         if (!sel.ownedBy({ editAccess: true })) continue;
-        if (gameStore.selectionHelperID === sel.uuid) {
-            l.selection.splice(i, 1);
-            continue;
-        }
-        if (l.removeShape(sel, SyncMode.FULL_SYNC)) EventBus.$emit("SelectionInfo.Shape.Set", null);
+        if (l.removeShape(sel, SyncMode.FULL_SYNC)) EventBus.$emit("SelectionInfo.Shapes.Set", []);
     }
+    l.setSelection();
 }
 
 export function cutShapes(): void {

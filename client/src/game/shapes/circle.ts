@@ -3,12 +3,13 @@ import { GlobalPoint, Vector } from "@/game/geom";
 import { BoundingRect } from "@/game/shapes/boundingrect";
 import { Shape } from "@/game/shapes/shape";
 import { calculateDelta } from "@/game/ui/tools/utils";
-import { clampGridLine, g2l, g2lz } from "@/game/units";
+import { clampGridLine, g2lz } from "@/game/units";
 import { getFogColour } from "@/game/utils";
-import { gameSettingsStore } from "../settings";
+import { DEFAULT_GRID_SIZE } from "../store";
+import { SHAPE_TYPE } from "./types";
 
 export class Circle extends Shape {
-    type = "circle";
+    type: SHAPE_TYPE = "circle";
     r: number;
     constructor(center: GlobalPoint, r: number, fillColour?: string, strokeColour?: string, uuid?: string) {
         super(center, fillColour, strokeColour, uuid);
@@ -44,8 +45,7 @@ export class Circle extends Shape {
         ctx.beginPath();
         if (this.fillColour === "fog") ctx.fillStyle = getFogColour();
         else ctx.fillStyle = this.fillColour;
-        const loc = g2l(this.refPoint);
-        ctx.arc(loc.x, loc.y, g2lz(this.r), 0, 2 * Math.PI);
+        ctx.arc(0, 0, g2lz(this.r), 0, 2 * Math.PI);
         ctx.fill();
         if (this.strokeColour !== "rgba(0, 0, 0, 0)") {
             const borderWidth = 5;
@@ -53,7 +53,7 @@ export class Circle extends Shape {
             ctx.lineWidth = g2lz(borderWidth);
             ctx.strokeStyle = this.strokeColour;
             // Inset the border with - borderWidth / 2
-            ctx.arc(loc.x, loc.y, Math.max(borderWidth / 2, g2lz(this.r - borderWidth / 2)), 0, 2 * Math.PI);
+            ctx.arc(0, 0, Math.max(borderWidth / 2, g2lz(this.r - borderWidth / 2)), 0, 2 * Math.PI);
             ctx.stroke();
         }
         super.drawPost(ctx);
@@ -68,10 +68,11 @@ export class Circle extends Shape {
         this.refPoint = centerPoint;
     }
     visibleInCanvas(canvas: HTMLCanvasElement): boolean {
+        if (super.visibleInCanvas(canvas)) return true;
         return this.getBoundingBox().visibleInCanvas(canvas);
-    } // TODO
+    }
     snapToGrid(): void {
-        const gs = gameSettingsStore.gridSize;
+        const gs = DEFAULT_GRID_SIZE;
         let targetX;
         let targetY;
         if (((2 * this.r) / gs) % 2 === 0) {
@@ -89,7 +90,7 @@ export class Circle extends Shape {
         this.invalidate(false);
     }
     resizeToGrid(): void {
-        const gs = gameSettingsStore.gridSize;
+        const gs = DEFAULT_GRID_SIZE;
         this.r = Math.max(clampGridLine(this.r), gs / 2);
         this.invalidate(false);
     }

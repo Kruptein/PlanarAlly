@@ -1,3 +1,4 @@
+import { InvalidationMode, SyncMode } from "@/core/comm/types";
 import { GlobalPoint, LocalPoint } from "@/game/geom";
 import { Layer } from "@/game/layers/layer";
 import { layerManager } from "@/game/layers/manager";
@@ -5,7 +6,7 @@ import { Rect } from "@/game/shapes/rect";
 import { Text } from "@/game/shapes/text";
 import { gameStore } from "@/game/store";
 import { l2g } from "@/game/units";
-import { SyncMode, InvalidationMode } from "@/core/comm/types";
+import { floorStore } from "../layers/store";
 
 export class AnnotationManager {
     annotationText: Text;
@@ -15,13 +16,13 @@ export class AnnotationManager {
 
     constructor() {
         const origin = new GlobalPoint(0, 0);
-        this.annotationText = new Text(origin, "", "bold 20px serif", 0, "rgba(230, 230, 230, 1)");
+        this.annotationText = new Text(origin, "", "bold 20px serif", "rgba(230, 230, 230, 1)");
         this.annotationRect = new Rect(origin, 0, 0, "rgba(0, 0, 0, 0.6)");
     }
 
     setActiveText(text: string): void {
-        if (layerManager.hasLayer(layerManager.floor!.name, "draw")) {
-            this.layer = layerManager.getLayer(layerManager.floor!.name, "draw")!;
+        if (layerManager.hasLayer(floorStore.currentFloor, "draw")) {
+            this.layer = layerManager.getLayer(floorStore.currentFloor, "draw")!;
             this.layer.addShape(this.annotationRect, SyncMode.NO_SYNC, InvalidationMode.NORMAL);
             this.layer.addShape(this.annotationText, SyncMode.NO_SYNC, InvalidationMode.NORMAL);
         } else {

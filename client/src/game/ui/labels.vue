@@ -101,7 +101,7 @@ export default class LabelManager extends Vue {
         >
             <div v-t="'game.ui.labels.title'"></div>
             <div class="header-close" @click="visible = false" :title="$t('common.close')">
-                <i aria-hidden="true" class="far fa-window-close"></i>
+                <font-awesome-icon :icon="['far', 'window-close']" />
             </div>
         </div>
         <div class="modal-body">
@@ -138,14 +138,14 @@ export default class LabelManager extends Vue {
                                 @click.stop="toggleVisibility(label)"
                                 :title="$t('common.toggle_public_private')"
                             >
-                                <i aria-hidden="true" class="fas fa-eye"></i>
+                                <font-awesome-icon icon="eye" />
                             </div>
                             <div
                                 :key="'delete-' + label.uuid"
                                 @click.stop="deleteLabel(label.uuid)"
                                 :title="$t('game.ui.labels.delete_label')"
                             >
-                                <i aria-hidden="true" class="fas fa-trash-alt"></i>
+                                <font-awesome-icon icon="trash-alt" />
                             </div>
                         </div>
                     </template>

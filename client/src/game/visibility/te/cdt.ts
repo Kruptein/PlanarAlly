@@ -637,10 +637,16 @@ export class CDT {
     insertOutsideConvexHull(p: Point, t: Triangle): Vertex {
         let v: Vertex;
         if (this.tds.dimension === 1) {
-            throw new Error("sdfasdasd");
+            v = this.insertOutsideConvexHull1(p, t);
         } else {
             v = this.insertOutsideConvexHull2(p, t);
         }
+        v.point = p;
+        return v;
+    }
+
+    insertOutsideConvexHull1(p: Point, t: Triangle): Vertex {
+        const v = this.tds.insertInEdge(t, 2);
         v.point = p;
         return v;
     }

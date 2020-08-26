@@ -1,56 +1,54 @@
-0.21.0
+0.22.0
 
 ### Added
 
--   Shape invisible toggle
-    -   Only players with vision access can see and interact with the shape
-    -   Public auras are still visible to all players (e.g. invisible creature with a torch would still shed light)
--   Build/Play mode
-    -   Show different set of tools dependening on the active mode
--   Movement access permission
--   Changelog modal if a new version comes out
--   Spawn locations
-    -   Define where shapes you move to other locations are spawned
--   Public toggle to ruler tool
--   Shape locked toggle
-    -   When locked, a shape cannot be moved/resized
-    -   Locked shapes can only be selected if no non-locked shapes are included in the selection area
-    -   Ctrl+l is a keybinding to toggle lock state of a selection group
--   Internationalization base
-    -   English as default and fallback locale
-    -   Chinese localization
-    -   German localization (some terminology like "Asset" or "Tracker" still english, until appropriate German term found)
-    -   Russian localization
-    -   A dropdown selection component to switch languages in both login page and the Client Options of main menu
+-   localization updates
+    -   Danish
+    -   Spanish
+    -   Chinese
+-   Rotation in Select tool with build mode
+-   Floor UI updates
+    -   visibility toggle
+        -   "Hidden" floors are not selectable by players, BUT will still render in between other selectable layers
+    -   rename floor option
+    -   reorder floors by dragging them
+-   Shape lock/unlock toggle
+    -   Show lock/unlock icon on the selection_info component for quick edit
+    -   Only players with edit access can toggle
 
 ### Changed
 
--   During shape drag/move use a smaller version to do hitbox tests
-    -   This improves behaviour when going through a very tight hallway or a door
--   Delayed initiative updating during edit
--   In Play mode (see #added) the select tool will no longer allow resizing
--   Creating a new floor will no longer automatically move everyone to that floor
--   The version shown in the topleft area in-game will now be limited to the latest release version
--   Basic tokens will now have their default name set to their label instead of 'Unknown shape'
--   Mobile device users are now unable to trigger overscroll refresh by simply moving around
--   Polygon points now also respect grid snapping as all other shapes do during draw
+-   Floors are now loaded separately on startup this greatly impacts startup time
+    -   The floor the user was last active on is loaded first if possible
+    -   Next all floors under the active floor in descending order are loaded
+    -   Lastly the floors above in ascending order are loaded
+-   Other performance improvements
+    -   Delay drawloop start until first floor data arrives
+    -   Better handling of multi group moves
+    -   Shape movement now sends less data to server
+    -   Pan now only updates the visible floors on move and full recalculate on release
+-   Grid pixel size is now a client setting instead of a DM setting
+-   Show floor selector in the more logical order from upper to lower floors
+-   Improve ruler distance text readability
 
 ### Fixed
 
--   Polygon server creation with initial vertices list breaks session
--   Player floor location not being remembered
--   Ruler not showing decimal points
--   DM settings/grid unit size showing invalid input on firefox for floating point numbers
--   Server showing JSON decode errors
--   Players not being able to update initiative effects
--   Active layer sometimes resetting on reload
--   DMs no longer being able to kick themselves
--   Some UI components not properly updating on shape reset
--   Area right of layer selector preventing draw/select
--   Keyboard center throwing error when no tokens are defined
--   Multiple bugs with initiative syncing
--   Three bugs with location specific options not properly loading/saving
--   Scrollbar on bottom of page in firefox when location bar does not fit the screen
--   Players can no longer remove or add floors
--   Players can no longer move their shape to other layers/floors/locations themselves
--   Bug where a light source with 0/0 radii would block all lights of that shape
+-   Aura not displaying when token is outside the visible canvas
+-   Firefox location scrollbar when left menu is open
+-   Some significant performance bottlenecks
+-   Server now quits, referring to docs/tutorial, if client was not built before start
+-   Initial state adding unnecessary fog on lower floors
+-   Prefer snapped points over grid snapping
+-   Remove white icon in topleft menu UI
+-   Moving polygons with keyboard would only move origin point
+-   Degenerate cases in triangulation
+    -   Triangulation code could hit a degenerate case when dealing with slight number differences in the order of 1e-15
+    -   Now the triangulation code will only take the first 10 digits after the dot into consideration to prevent numerical instability.
+-   Mouseleave events where not triggered in some cases (e.g. alt tab), this could cause some shapes (e.g. rulers) to remain on the screen
+-   Map tool resize does not replicate
+-   Center calculation polygons with repeated points
+-   Location moved shape now properly disappears on the old location
+-   Asset drops on the game board that are not images located in /static are no longer accepted
+    -   This fixes the possible spam of "could not load image /game/..." in your console for future cases
+    -   A script has been added in the server/scripts folder to remove existing assets
+-   Missing case in vision calculation script

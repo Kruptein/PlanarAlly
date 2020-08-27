@@ -108,33 +108,38 @@ export default class ShapeContext extends Vue {
     async setLocation(newLocation: number): Promise<void> {
         const selection = this.getActiveLayer()!.getSelection();
 
-        const spawnLocations = (gameSettingsStore.locationOptions[newLocation]?.spawnLocations ?? []).length;
-        if (spawnLocations === 0) {
-            await (<Game>(
-                this.$parent.$parent.$parent
-            )).$refs.confirm.open(
-                "game.ui.selection.shapecontext.spawn_location_info",
-                "game.ui.selection.shapecontext.spawn_location_info_msg",
-                { showNo: false, yes: "Ok" },
-            );
-            this.close();
-            return;
+        const spawnInfo = await requestSpawnInfo(newLocation);
+
+        let x: number;
+        let y: number;
+
+        switch (spawnInfo.length) {
+            case 0:
+                await (<Game>(
+                    this.$parent.$parent.$parent
+                )).$refs.confirm.open(
+                    "game.ui.selection.shapecontext.no_spawn_set_title",
+                    "game.ui.selection.shapecontext.no_spawn_set_text",
+                    { showNo: false, yes: "Ok" },
+                );
+                this.close();
+                return;
+            case 1:
+                x = spawnInfo[0].x + spawnInfo[0].width / 2;
+                y = spawnInfo[0].y + spawnInfo[0].height / 2;
+                break;
+            default:
+                // todo: selection choice
+                x = spawnInfo[0].x + spawnInfo[0].width / 2;
+                y = spawnInfo[0].y + spawnInfo[0].height / 2;
+                break;
         }
 
-        const spawnInfo = await requestSpawnInfo(newLocation);
-        if (spawnInfo.length !== spawnLocations) {
-            console.error("Spawn location info mismatch.");
-            this.close();
-            return;
-        }
         const targetLocation = {
             floor: spawnInfo[0].floor,
-            x: spawnInfo[0].x + spawnInfo[0].width / 2,
-            y: spawnInfo[0].y + spawnInfo[0].height / 2,
+            x,
+            y,
         };
-        // if (spawnLocations > 1) {
-        //     // todo
-        // }
 
         sendShapesMove({
             shapes: selection.map(s => s.uuid),

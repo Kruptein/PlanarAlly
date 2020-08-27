@@ -1,10 +1,13 @@
 import { AssetList, SyncMode } from "@/core/comm/types";
 import "@/game/api/events/access";
+import "@/game/api/events/client";
 import "@/game/api/events/floor";
+import "@/game/api/events/initiative";
 import "@/game/api/events/labels";
 import "@/game/api/events/location";
 import "@/game/api/events/room";
-import "@/game/api/events/shape";
+import "@/game/api/events/shape/core";
+import "@/game/api/events/shape/options";
 import { socket } from "@/game/api/socket";
 import { Note, ServerFloor } from "@/game/comm/types/general";
 import { EventBus } from "@/game/event-bus";
@@ -15,9 +18,7 @@ import { gameManager } from "@/game/manager";
 import { gameStore } from "@/game/store";
 import { router } from "@/router";
 import { coreStore } from "../../core/store";
-import { ServerClient } from "../comm/types/settings";
-import { floorStore } from "../layers/store";
-import { zoomDisplay } from "../utils";
+import { floorStore, getFloorId } from "../layers/store";
 import { visibilityStore } from "../visibility/store";
 
 // Core WS events
@@ -44,24 +45,6 @@ socket.on("redirect", (destination: string) => {
 
 // Bootup events
 
-socket.on("Client.Options.Set", (options: ServerClient) => {
-    gameStore.setUsername(options.name);
-    gameStore.setDM(options.name === decodeURIComponent(window.location.pathname.split("/")[2]));
-
-    gameStore.setGridSize({ gridSize: options.grid_size, sync: false });
-    gameStore.setGridColour({ colour: options.grid_colour, sync: false });
-    gameStore.setFOWColour({ colour: options.fow_colour, sync: false });
-    gameStore.setRulerColour({ colour: options.ruler_colour, sync: false });
-    gameStore.setInvertAlt({ invertAlt: options.invert_alt, sync: false });
-    gameStore.setPanX(options.pan_x);
-    gameStore.setPanY(options.pan_y);
-    gameStore.setZoomDisplay(zoomDisplay(options.zoom_factor));
-
-    socket.once("Board.Floor.Set", () => {
-        if (options.active_layer) layerManager.selectLayer(options.active_layer, false);
-    });
-});
-
 socket.on("Board.Locations.Set", (locationInfo: { id: number; name: string }[]) => {
     gameStore.clear();
     visibilityStore.clear();
@@ -74,8 +57,8 @@ socket.on("Board.Locations.Set", (locationInfo: { id: number; name: string }[]) 
 
 socket.on("Board.Floor.Set", (floor: ServerFloor) => {
     addFloor(floor);
-    visibilityStore.recalculateVision(floor.name);
-    visibilityStore.recalculateMovement(floor.name);
+    visibilityStore.recalculateVision(getFloorId(floor.name));
+    visibilityStore.recalculateMovement(getFloorId(floor.name));
     if (floorStore.floors.length === 1) {
         floorStore.selectFloor({ targetFloor: floor.name, sync: false });
         requestAnimationFrame(layerManager.drawLoop);

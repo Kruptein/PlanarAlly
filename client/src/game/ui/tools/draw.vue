@@ -10,7 +10,6 @@ import Tool from "./tool.vue";
 import Tools from "./tools.vue";
 
 import { SyncMode, InvalidationMode } from "@/core/comm/types";
-import { socket } from "@/game/api/socket";
 import { GlobalPoint, LocalPoint } from "@/game/geom";
 import { Layer } from "@/game/layers/layer";
 import { snapToPoint } from "@/game/layers/utils";
@@ -31,6 +30,7 @@ import { EventBus } from "../../event-bus";
 import { ToolBasics } from "./ToolBasics";
 import { floorStore } from "@/game/layers/store";
 import { Floor } from "@/game/layers/floor";
+import { sendShapeSizeUpdate } from "@/game/api/emits/shape/core";
 
 @Component({
     components: {
@@ -248,7 +248,7 @@ export default class DrawTool extends Tool implements ToolBasics {
 
             this.shape.addOwner({ user: gameStore.username, access: { edit: true } }, false);
             if (layer.name === "fow" && this.modeSelect === "normal") {
-                this.shape.visionObstruction = true;
+                this.shape.setVisionBlock(true, false);
                 this.shape.movementObstruction = true;
             }
             layer.addShape(this.shape, SyncMode.FULL_SYNC, InvalidationMode.NO);
@@ -286,8 +286,7 @@ export default class DrawTool extends Tool implements ToolBasics {
                     this.shape.points[this.shape.points.length - 1],
                 );
             layer.invalidate(false);
-            if (!this.shape!.preventSync)
-                socket.emit("Shape.Update", { shape: this.shape!.asDict(), redraw: true, temporary: true });
+            if (!this.shape!.preventSync) sendShapeSizeUpdate({ shape: this.shape!, temporary: true });
         }
     }
 
@@ -347,11 +346,10 @@ export default class DrawTool extends Tool implements ToolBasics {
         }
 
         if (!(this.shapeSelect === "draw-polygon" && this.shape instanceof Polygon)) {
-            if (!this.shape!.preventSync)
-                socket.emit("Shape.Update", { shape: this.shape!.asDict(), redraw: true, temporary: true });
+            if (!this.shape!.preventSync) sendShapeSizeUpdate({ shape: this.shape!, temporary: true });
             if (this.shape.visionObstruction) {
                 if (
-                    getCDT(TriangulationTarget.VISION, this.shape.floor.name).tds.getTriagVertices(this.shape.uuid)
+                    getCDT(TriangulationTarget.VISION, this.shape.floor.id).tds.getTriagVertices(this.shape.uuid)
                         .length > 1
                 )
                     visibilityStore.deleteFromTriag({
@@ -359,7 +357,7 @@ export default class DrawTool extends Tool implements ToolBasics {
                         shape: this.shape,
                     });
                 visibilityStore.addToTriag({ target: TriangulationTarget.VISION, shape: this.shape });
-                visibilityStore.recalculateVision(this.shape.floor.name);
+                visibilityStore.recalculateVision(this.shape.floor.id);
             }
         }
         layer.invalidate(false);
@@ -388,11 +386,11 @@ export default class DrawTool extends Tool implements ToolBasics {
             this.shape.resizeToGrid(this.shape.getPointIndex(endPoint, l2gz(5)), event.ctrlKey);
             if (this.shape.visionObstruction) {
                 visibilityStore.addToTriag({ target: TriangulationTarget.VISION, shape: this.shape });
-                visibilityStore.recalculateVision(this.shape.floor.name);
+                visibilityStore.recalculateVision(this.shape.floor.id);
             }
             if (this.shape.movementObstruction) {
                 visibilityStore.addToTriag({ target: TriangulationTarget.MOVEMENT, shape: this.shape });
-                visibilityStore.recalculateMovement(this.shape.floor.name);
+                visibilityStore.recalculateMovement(this.shape.floor.id);
             }
         }
         this.finaliseShape();
@@ -445,10 +443,9 @@ export default class DrawTool extends Tool implements ToolBasics {
             this.onDeselect();
             this.onSelect(mouse);
         } else {
-            if (this.shape.visionObstruction) visibilityStore.recalculateVision(this.shape.floor.name);
-            if (this.shape.movementObstruction) visibilityStore.recalculateMovement(this.shape.floor.name);
-            if (!this.shape!.preventSync)
-                socket.emit("Shape.Update", { shape: this.shape!.asDict(), redraw: true, temporary: false });
+            if (this.shape.visionObstruction) visibilityStore.recalculateVision(this.shape.floor.id);
+            if (this.shape.movementObstruction) visibilityStore.recalculateMovement(this.shape.floor.id);
+            if (!this.shape!.preventSync) sendShapeSizeUpdate({ shape: this.shape!, temporary: false });
         }
         this.active = false;
         const layer = this.getLayer();

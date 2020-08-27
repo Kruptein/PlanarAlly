@@ -6,9 +6,10 @@ import { calculateDelta } from "@/game/ui/tools/utils";
 import { clampGridLine, g2lz } from "@/game/units";
 import { getFogColour } from "@/game/utils";
 import { DEFAULT_GRID_SIZE } from "../store";
+import { SHAPE_TYPE } from "./types";
 
 export class Circle extends Shape {
-    type = "circle";
+    type: SHAPE_TYPE = "circle";
     r: number;
     constructor(center: GlobalPoint, r: number, fillColour?: string, strokeColour?: string, uuid?: string) {
         super(center, fillColour, strokeColour, uuid);

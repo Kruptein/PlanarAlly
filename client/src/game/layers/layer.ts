@@ -1,5 +1,4 @@
 import { InvalidationMode, SyncMode } from "@/core/comm/types";
-import { socket } from "@/game/api/socket";
 import { ServerShape } from "@/game/comm/types/shapes";
 import { EventBus } from "@/game/event-bus";
 import { layerManager } from "@/game/layers/manager";
@@ -9,8 +8,10 @@ import { gameStore } from "@/game/store";
 import { visibilityStore } from "@/game/visibility/store";
 import { TriangulationTarget } from "@/game/visibility/te/pa";
 import { getBlockers, getVisionSources, sliceBlockers, sliceVisionSources } from "@/game/visibility/utils";
-import { drawAuras } from "../shapes/aura";
+import { sendRemoveShapes, sendShapeAdd, sendShapeOrder } from "../api/emits/shape/core";
 import { gameSettingsStore } from "../settings";
+import { drawAuras } from "../shapes/aura";
+import { changeGroupLeader } from "../shapes/group";
 import { floorStore } from "./store";
 
 export class Layer {
@@ -37,7 +38,7 @@ export class Layer {
     points: Map<string, Set<string>> = new Map();
     postDrawCallbacks: (() => void)[] = [];
 
-    constructor(canvas: HTMLCanvasElement, public name: string, public floor: string, public index: number) {
+    constructor(canvas: HTMLCanvasElement, public name: string, public floor: number, public index: number) {
         this.canvas = canvas;
         this.ctx = canvas.getContext("2d")!;
     }
@@ -106,7 +107,7 @@ export class Layer {
         this.shapes.push(shape);
         layerManager.UUIDMap.set(shape.uuid, shape);
         shape.checkVisionSources(invalidate !== InvalidationMode.NO);
-        shape.setMovementBlock(shape.movementObstruction, invalidate !== InvalidationMode.NO);
+        shape.setMovementBlock(shape.movementObstruction, false, invalidate !== InvalidationMode.NO);
         if (snappable) {
             for (const point of shape.points) {
                 const strp = JSON.stringify(point);
@@ -116,7 +117,7 @@ export class Layer {
         if (shape.ownedBy({ visionAccess: true }) && shape.isToken) gameStore.ownedtokens.push(shape.uuid);
         if (shape.annotation.length) gameStore.annotations.push(shape.uuid);
         if (sync !== SyncMode.NO_SYNC && !shape.preventSync)
-            socket.emit("Shape.Add", { shape: shape.asDict(), temporary: sync === SyncMode.TEMP_SYNC });
+            sendShapeAdd({ shape: shape.asDict(), temporary: sync === SyncMode.TEMP_SYNC });
         if (invalidate) this.invalidate(invalidate === InvalidationMode.WITH_LIGHT);
     }
 
@@ -146,25 +147,16 @@ export class Layer {
 
         if (shape.options.has("groupInfo")) {
             const groupMembers = shape.getGroupMembers();
-            if (groupMembers.length > 1) {
-                const groupLeader = groupMembers[1];
-                for (const member of groupMembers.slice(2)) {
-                    member.options.set("groupId", groupLeader.uuid);
-                    if (!member.preventSync)
-                        socket.emit("Shape.Update", { shape: member.asDict(), redraw: false, temporary: false });
-                }
-                groupLeader.options.set(
-                    "groupInfo",
-                    groupMembers.slice(2).map(s => s.uuid),
-                );
-                groupLeader.options.delete("groupId");
-                if (!groupLeader.preventSync)
-                    socket.emit("Shape.Update", { shape: groupLeader.asDict(), redraw: false, temporary: false });
-            }
+            if (groupMembers.length > 1)
+                changeGroupLeader({
+                    leader: groupMembers[1].uuid,
+                    members: groupMembers.slice(2).map(s => s.uuid),
+                    sync: true,
+                });
         }
 
         if (sync !== SyncMode.NO_SYNC && !shape.preventSync)
-            socket.emit("Shapes.Remove", { uuids: [shape.uuid], temporary: sync === SyncMode.TEMP_SYNC });
+            sendRemoveShapes({ uuids: [shape.uuid], temporary: sync === SyncMode.TEMP_SYNC });
 
         const visionSources = getVisionSources(this.floor);
         const visionBlockers = getBlockers(TriangulationTarget.VISION, this.floor);
@@ -214,7 +206,7 @@ export class Layer {
         }
 
         EventBus.$emit("Initiative.Remove", shape.uuid);
-        this.invalidate(!sync);
+        this.invalidate(!shape.triggersVisionRecalc);
         return true;
     }
 
@@ -281,7 +273,7 @@ export class Layer {
             // If this is the last layer of the floor below, render some shadow
             if (floorStore.currentFloorindex > 0) {
                 const lowerFloor = floorStore.floors[floorStore.currentFloorindex - 1];
-                if (lowerFloor.name === this.floor) {
+                if (lowerFloor.id === this.floor) {
                     const layers = layerManager.getLayers(lowerFloor);
                     if (layers[layers.length - 1].name === this.name) {
                         ctx.fillStyle = "rgba(0, 0, 0, 0.3)";
@@ -312,8 +304,7 @@ export class Layer {
         if (oldIdx === destinationIndex) return;
         this.shapes.splice(oldIdx, 1);
         this.shapes.splice(destinationIndex, 0, shape);
-        if (sync && !shape.preventSync)
-            socket.emit("Shape.Order.Set", { shape: shape.asDict(), index: destinationIndex });
+        if (sync && !shape.preventSync) sendShapeOrder({ uuid: shape.uuid, index: destinationIndex });
         this.invalidate(true);
     }
 

@@ -4,7 +4,6 @@ import Component from "vue-class-component";
 import ShapeContext from "@/game/ui/selection/shapecontext.vue";
 import Tool from "@/game/ui/tools/tool.vue";
 
-import { socket } from "@/game/api/socket";
 import { EventBus } from "@/game/event-bus";
 import { GlobalPoint, LocalPoint, Ray, Vector } from "@/game/geom";
 import { Layer } from "@/game/layers/layer";
@@ -23,7 +22,7 @@ import { Line } from "../../shapes/line";
 import { SyncMode, InvalidationMode } from "../../../core/comm/types";
 import { BoundingRect } from "../../shapes/boundingrect";
 import { floorStore } from "@/game/layers/store";
-import { sendShapePositionUpdate } from "../../api/events/shape";
+import { sendShapePositionUpdate, sendShapeSizeUpdate } from "../../api/emits/shape/core";
 import { Shape } from "@/game/shapes/shape";
 import Tools from "./tools.vue";
 
@@ -79,7 +78,6 @@ export default class SelectTool extends Tool implements ToolBasics {
         EventBus.$on("SelectionInfo.Shapes.Set", (shapes: Shape[]) => {
             this.removeRotationUi();
             // We don't have feature information, might want to store this as a property instead ?
-            console.log(shapes.length);
             if ((<Tools>this.$parent).mode === "Build" && shapes.length > 0) this.createRotationUi({});
         });
     }
@@ -259,7 +257,7 @@ export default class SelectTool extends Tool implements ToolBasics {
                     if (!sel.preventSync) updateList.push(sel);
                 }
                 sendShapePositionUpdate(updateList, true);
-                if (recalc) visibilityStore.recalculateVision(selection[0].floor.name);
+                if (recalc) visibilityStore.recalculateVision(selection[0].floor.id);
                 this.dragRay = Ray.fromPoints(this.dragRay.origin, lp);
 
                 if (this.rotationUiActive) {
@@ -285,21 +283,15 @@ export default class SelectTool extends Tool implements ToolBasics {
                     if (useSnapping(event) && this.hasFeature(SelectFeatures.Snapping, features))
                         [targetPoint, this.snappedToPoint] = snapToPoint(floorStore.currentLayer!, gp, ignorePoint);
                     else this.snappedToPoint = false;
-                    this.resizePoint = sel.resize(
-                        this.resizePoint,
-                        targetPoint,
-                        // rotateAroundPoint(targetPoint, this.rotationBox!.center(), -this.angle),
-                        event.ctrlKey,
-                    );
+                    this.resizePoint = sel.resize(this.resizePoint, targetPoint, event.ctrlKey);
                     // todo: think about calling deleteIntersectVertex directly on the corner point
                     if (sel.visionObstruction) {
                         visibilityStore.addToTriag({ target: TriangulationTarget.VISION, shape: sel });
                         recalc = true;
                     }
-                    if (!sel.preventSync)
-                        socket.emit("Shape.Update", { shape: sel.asDict(), redraw: true, temporary: true });
+                    if (!sel.preventSync) sendShapeSizeUpdate({ shape: sel, temporary: true });
                 }
-                if (recalc) visibilityStore.recalculateVision(selection[0].floor.name);
+                if (recalc) visibilityStore.recalculateVision(selection[0].floor.id);
                 layer.invalidate(false);
                 this.updateCursor(layer, gp);
             } else if (this.mode === SelectOperations.Rotate) {
@@ -438,7 +430,7 @@ export default class SelectTool extends Tool implements ToolBasics {
                         }
                     }
                     if (!sel.preventSync) {
-                        socket.emit("Shape.Update", { shape: sel.asDict(), redraw: true, temporary: false });
+                        sendShapeSizeUpdate({ shape: sel, temporary: false });
                     }
                     sel.updatePoints();
                 }
@@ -456,14 +448,13 @@ export default class SelectTool extends Tool implements ToolBasics {
                         const center = this.rotationBox!.center();
                         this.rotateSelection(newAngle, center);
                     }
-                    if (!sel.preventSync)
-                        socket.emit("Shape.Update", { shape: sel.asDict(), redraw: true, temporary: false });
+                    if (!sel.preventSync) sendShapePositionUpdate([sel], false);
                     sel.updatePoints();
                 }
             }
 
-            if (recalcVision) visibilityStore.recalculateVision(selection[0].floor.name);
-            if (recalcMovement) visibilityStore.recalculateMovement(selection[0].floor.name);
+            if (recalcVision) visibilityStore.recalculateVision(selection[0].floor.id);
+            if (recalcMovement) visibilityStore.recalculateMovement(selection[0].floor.id);
             layer.invalidate(false);
 
             if (this.mode !== SelectOperations.Rotate) {
@@ -560,17 +551,17 @@ export default class SelectTool extends Tool implements ToolBasics {
         this.rotationBox.strokeWidth = 1.5;
         this.rotationEnd = new Circle(topCenterPlus, l2gz(4), "#7c253e", "rgba(0,0,0,0)");
 
+        for (const rotationShape of [this.rotationAnchor, this.rotationBox, this.rotationEnd]) {
+            rotationShape.addOwner({ user: gameStore.username, access: { edit: true } }, false);
+            layer.addShape(rotationShape, SyncMode.NO_SYNC, InvalidationMode.NO);
+        }
+
         if (selection.length === 1) {
             const angle = selection[0].angle;
             this.angle = angle;
             this.rotationBox.angle = angle;
             this.rotationAnchor.rotateAround(bbox.center(), angle);
             this.rotationEnd.rotateAround(bbox.center(), angle);
-        }
-
-        for (const rotationShape of [this.rotationAnchor, this.rotationBox, this.rotationEnd]) {
-            rotationShape.addOwner({ user: gameStore.username, access: { edit: true } }, false);
-            layer.addShape(rotationShape, SyncMode.NO_SYNC, InvalidationMode.NO);
         }
 
         this.rotationUiActive = true;
@@ -609,9 +600,9 @@ export default class SelectTool extends Tool implements ToolBasics {
                 visibilityStore.addToTriag({ target: TriangulationTarget.VISION, shape: sel });
                 recalc = true;
             }
-            if (!sel.preventSync) socket.emit("Shape.Update", { shape: sel.asDict(), redraw: true, temporary: true });
+            if (!sel.preventSync) sendShapePositionUpdate([sel], true);
         }
-        if (recalc) visibilityStore.recalculateVision(selection[0].floor.name);
+        if (recalc) visibilityStore.recalculateVision(selection[0].floor.id);
         this.rotationEnd!.rotateAround(center, dA);
         this.rotationAnchor!.rotateAround(center, dA);
         this.rotationBox!.angle = this.angle;

@@ -24,18 +24,24 @@ export interface LocationOptions {
     spawnLocations: string[];
 }
 
-export interface ServerClient {
+export interface ServerClient extends EditableServerClient, LocationServerClient {
     name: string;
+    active_floor?: string;
+    active_layer?: string;
+}
+
+export interface LocationServerClient {
+    pan_x: number;
+    pan_y: number;
+    zoom_factor: number;
+}
+
+export interface EditableServerClient {
     grid_colour: string;
     fow_colour: string;
     ruler_colour: string;
     invert_alt: boolean;
-    pan_x: number;
-    pan_y: number;
-    zoom_factor: number;
     grid_size: number;
-    active_floor?: string;
-    active_layer?: string;
 }
 
 export const optionsToServer = (options: LocationOptions): ServerLocationOptions => ({

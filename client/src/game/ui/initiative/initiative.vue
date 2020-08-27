@@ -9,6 +9,15 @@ import Modal from "@/core/components/modals/modal.vue";
 import { uuidv4 } from "@/core/utils";
 import { socket } from "@/game/api/socket";
 import { InitiativeData, InitiativeEffect } from "@/game/comm/types/general";
+import {
+    sendInitiativeUpdate,
+    sendInitiativeRemove,
+    sendInitiativeSet,
+    sendInitiativeTurnUpdate,
+    sendInitiativeRoundUpdate,
+    sendInitiativeNewEffect,
+    sendInitiativeUpdateEffect,
+} from "@/game/api/emits/initiative";
 import { EventBus } from "@/game/event-bus";
 import { layerManager } from "@/game/layers/manager";
 import { gameStore } from "@/game/store";
@@ -33,7 +42,6 @@ export default class Initiative extends Vue {
         EventBus.$on("Initiative.Show", () => (this.visible = true));
         EventBus.$on("Initiative.ForceUpdate", () => this.$forceUpdate());
 
-        socket.on("Initiative.Set", initiativeStore.setData);
         socket.on("Initiative.Turn.Set", (data: string) => this.setTurn(data));
         socket.on("Initiative.Turn.Update", (data: string) => this.updateTurn(data, false));
         socket.on("Initiative.Round.Update", (data: number) => this.setRound(data, false));
@@ -51,7 +59,6 @@ export default class Initiative extends Vue {
         EventBus.$off("Initiative.Clear");
         EventBus.$off("Initiative.Remove");
         EventBus.$off("Initiative.Show");
-        socket.off("Initiative.Set");
         socket.off("Initiative.Turn.Set");
         socket.off("Initiative.Turn.Update");
         socket.off("Initiative.Round.Update");
@@ -77,13 +84,13 @@ export default class Initiative extends Vue {
         dataTransfer.setData("Hack", "");
     }
     syncInitiative(data: InitiativeData): void {
-        socket.emit("Initiative.Update", data);
+        sendInitiativeUpdate(data);
     }
     // Events
     removeInitiative(uuid: string): void {
         const d = initiativeStore.data.findIndex(a => a.uuid === uuid);
         if (d < 0 || initiativeStore.data[d].group) return;
-        socket.emit("Initiative.Remove", uuid);
+        sendInitiativeRemove(uuid);
         // Remove highlight
         const shape = layerManager.UUIDMap.get(uuid);
         if (shape === undefined) return;
@@ -94,12 +101,9 @@ export default class Initiative extends Vue {
     }
     updateOrder(): void {
         if (!gameStore.IS_DM) return;
-        socket.emit(
-            "Initiative.Set",
-            initiativeStore.data.map(d => d.uuid),
-        );
+        sendInitiativeSet(initiativeStore.data.map(d => d.uuid));
     }
-    updateTurn(actorId: string | null, sync: boolean): void {
+    updateTurn(actorId: string, sync: boolean): void {
         if (!gameStore.IS_DM && sync) return;
         initiativeStore.setCurrentActor(actorId);
         const actor = initiativeStore.data.find(a => a.uuid === actorId);
@@ -122,12 +126,12 @@ export default class Initiative extends Vue {
                 }
             }
         }
-        if (sync) socket.emit("Initiative.Turn.Update", actorId);
+        if (sync) sendInitiativeTurnUpdate(actorId);
     }
     setRound(round: number, sync: boolean): void {
         if (!gameStore.IS_DM && sync) return;
         initiativeStore.setRoundCounter(round);
-        if (sync) socket.emit("Initiative.Round.Update", round);
+        if (sync) sendInitiativeRoundUpdate(round);
     }
     setTurn(actorId: string | null): void {
         initiativeStore.setTurn(actorId);
@@ -153,11 +157,11 @@ export default class Initiative extends Vue {
     createEffect(actor: InitiativeData, effect: InitiativeEffect, sync: boolean): void {
         if (!this.owns(actor)) return;
         actor.effects.push(effect);
-        if (sync) socket.emit("Initiative.Effect.New", { actor: actor.uuid, effect });
+        if (sync) sendInitiativeNewEffect({ actor: actor.uuid, effect });
     }
     syncEffect(actor: InitiativeData, effect: InitiativeEffect): void {
         if (!this.owns(actor)) return;
-        socket.emit("Initiative.Effect.Update", { actor: actor.uuid, effect });
+        sendInitiativeUpdateEffect({ actor: actor.uuid, effect });
     }
     updateEffect(actorId: string, effect: InitiativeEffect, sync: boolean): void {
         const actor = initiativeStore.data.find(a => a.uuid === actorId);

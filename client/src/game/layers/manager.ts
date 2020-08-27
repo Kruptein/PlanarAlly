@@ -1,13 +1,13 @@
 import { GridLayer } from "@/game/layers/grid";
 import { Layer } from "@/game/layers/layer";
 import { Shape } from "@/game/shapes/shape";
+import { sendActiveLayer } from "../api/emits/floor";
 import { Floor } from "./floor";
 import { floorStore } from "./store";
-import { socket } from "../api/socket";
 
 class LayerManager {
     UUIDMap: Map<string, Shape> = new Map();
-    private layerMap: Map<string, Layer[]> = new Map();
+    private layerMap: Map<number, Layer[]> = new Map();
 
     // Refresh interval and redraw setter.
     interval = 30;
@@ -17,12 +17,12 @@ class LayerManager {
         this.UUIDMap = new Map();
     }
 
-    addFloor(name: string): void {
-        this.layerMap.set(name, []);
+    addFloor(id: number): void {
+        this.layerMap.set(id, []);
     }
 
-    removeFloor(name: string): void {
-        this.layerMap.delete(name);
+    removeFloor(id: number): void {
+        this.layerMap.delete(id);
     }
 
     private drawFloor(floor: Floor): void {
@@ -71,9 +71,9 @@ class LayerManager {
         }
     }
 
-    addLayer(layer: Layer, floorName: string): void {
+    addLayer(layer: Layer, floorId: number): void {
         for (const floor of floorStore.floors) {
-            if (floor.name === floorName) {
+            if (floor.id === floorId) {
                 this.getLayers(floor).push(layer);
                 if (floorStore.currentLayerIndex < 0) {
                     floorStore.setLayerIndex(2);
@@ -81,7 +81,7 @@ class LayerManager {
                 return;
             }
         }
-        console.error(`Attempt to add layer to unknown floor ${floorName}`);
+        console.error(`Attempt to add layer to unknown floor ${floorId}`);
     }
 
     get layerLength(): number {
@@ -89,7 +89,7 @@ class LayerManager {
     }
 
     getLayers(floor: Floor): Layer[] {
-        return this.layerMap.get(floor.name)!;
+        return this.layerMap.get(floor.id)!;
     }
 
     hasLayer(floor: Floor, name: string): boolean {
@@ -104,9 +104,9 @@ class LayerManager {
         }
     }
 
-    getFloor(name?: string): Floor | undefined {
+    getFloor(id?: number): Floor | undefined {
         if (name === undefined) return floorStore.currentFloor;
-        return floorStore.floors.find(f => f.name === name);
+        return floorStore.floors.find(f => f.id === id);
     }
 
     selectLayer(name: string, sync = true, invalidate = true): void {
@@ -119,7 +119,7 @@ class LayerManager {
             if (name === layer.name) {
                 floorStore.setLayerIndex(index);
                 found = true;
-                if (sync) socket.emit("Client.ActiveLayer.Set", { floor: layer.floor, layer: layer.name });
+                if (sync) sendActiveLayer({ layer: layer.name, floor: this.getFloor(layer.floor)!.name });
             }
 
             layer.clearSelection();

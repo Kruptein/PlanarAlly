@@ -7,7 +7,6 @@ import { mapState } from "vuex";
 import ContextMenu from "@/core/components/contextmenu.vue";
 import Prompt from "@/core/components/modals/prompt.vue";
 
-import { socket } from "@/game/api/socket";
 import { EventBus } from "@/game/event-bus";
 import { layerManager } from "@/game/layers/manager";
 import { gameStore } from "@/game/store";
@@ -16,11 +15,12 @@ import { initiativeStore, inInitiative } from "../initiative/store";
 import { Layer } from "../../layers/layer";
 import { gameSettingsStore } from "../../settings";
 import Game from "@/game/Game.vue";
-import { ServerAsset } from "../../comm/types/shapes";
 import { Shape } from "@/game/shapes/shape";
 import { floorStore } from "../../layers/store";
 import { Floor } from "@/game/layers/floor";
 import { moveFloor, moveLayer } from "../../layers/utils";
+import { requestSpawnInfo } from "@/game/api/emits/location";
+import { sendShapesMove } from "@/game/api/emits/shape/core";
 
 @Component({
     components: {
@@ -121,10 +121,7 @@ export default class ShapeContext extends Vue {
             return;
         }
 
-        socket.emit("Location.Spawn.Info.Get", newLocation);
-        const spawnInfo = await new Promise((resolve: (value: ServerAsset[]) => void) =>
-            socket.once("Location.Spawn.Info", resolve),
-        );
+        const spawnInfo = await requestSpawnInfo(newLocation);
         if (spawnInfo.length !== spawnLocations) {
             console.error("Spawn location info mismatch.");
             this.close();
@@ -139,7 +136,7 @@ export default class ShapeContext extends Vue {
         //     // todo
         // }
 
-        socket.emit("Shapes.Location.Move", {
+        sendShapesMove({
             shapes: selection.map(s => s.uuid),
             target: { location: newLocation, ...targetLocation },
         });

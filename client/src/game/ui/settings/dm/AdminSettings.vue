@@ -44,7 +44,6 @@ export default class AdminSettings extends Vue {
         this.showRefreshState = true;
     }
     kickPlayer(id: number): void {
-        socket.emit("Room.Info.Players.Kick", id);
         gameStore.kickPlayer(id);
     }
     toggleSessionLock(): void {

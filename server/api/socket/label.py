@@ -55,6 +55,7 @@ async def delete(sid: str, data: Dict[str, Any]):
     await sio.emit(
         "Label.Delete",
         {"user": pr.player.name, "uuid": data},
+        room=sid,
         skip_sid=sid,
         namespace=GAME_NS,
     )

@@ -6,6 +6,7 @@ import { floorStore } from "../../layers/store";
 import { gameSettingsStore } from "../../settings";
 import { gameStore } from "../../store";
 import { VisibilityMode, visibilityStore } from "../../visibility/store";
+import { sendLocationRename } from "../emits/location";
 import { socket } from "../socket";
 
 // Bootup Sequence
@@ -36,8 +37,8 @@ socket.on("Location.Change.Start", () => {
     gameStore.setBoardInitialized(false);
 });
 
-socket.on("Location.Rename", (data: { id: number; name: string }) => {
-    renameLocation(data.id, data.name);
+socket.on("Location.Rename", (data: { location: number; name: string }) => {
+    renameLocation(data.location, data.name);
 });
 
 export function setLocationOptions(id: number | null, options: Partial<ServerLocationOptions>): void {
@@ -63,8 +64,8 @@ export function setLocationOptions(id: number | null, options: Partial<ServerLoc
             sync: false,
         });
         for (const floor of floorStore.floors) {
-            visibilityStore.recalculateVision(floor.name);
-            visibilityStore.recalculateMovement(floor.name);
+            visibilityStore.recalculateVision(floor.id);
+            visibilityStore.recalculateMovement(floor.id);
         }
     }
     gameSettingsStore.setSpawnLocations({
@@ -81,4 +82,5 @@ export function renameLocation(id: number, name: string): void {
     }
     if (gameSettingsStore.activeLocation === id) gameSettingsStore.setActiveLocation(id);
     gameStore.locations.splice(idx, 1, { id, name });
+    sendLocationRename({ location: id, name });
 }

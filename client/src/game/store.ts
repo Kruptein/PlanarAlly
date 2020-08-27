@@ -1,6 +1,5 @@
 import { AssetList } from "@/core/comm/types";
 import { socket } from "@/game/api/socket";
-import { sendClientOptions } from "@/game/api/utils";
 import { Note } from "@/game/comm/types/general";
 import { ServerShape } from "@/game/comm/types/shapes";
 import { GlobalPoint, Vector } from "@/game/geom";
@@ -10,6 +9,9 @@ import { zoomValue } from "@/game/utils";
 import { rootStore } from "@/store";
 import Vue from "vue";
 import { getModule, Module, Mutation, VuexModule } from "vuex-module-decorators";
+import { sendClientLocationOptions, sendClientOptions } from "./api/emits/client";
+import { sendLocationOrder, sendLocationRemove } from "./api/emits/location";
+import { sendRoomLock, sendRoomKickPlayer } from "./api/emits/room";
 import { floorStore } from "./layers/store";
 
 export const DEFAULT_GRID_SIZE = 50;
@@ -27,7 +29,15 @@ export interface Player {
     role: number;
 }
 
-export interface GameState {
+export interface ClientOptions {
+    gridColour: string;
+    fowColour: string;
+    rulerColour: string;
+    invertAlt: boolean;
+    gridSize: number;
+}
+
+export interface GameState extends ClientOptions {
     boardInitialized: boolean;
 }
 
@@ -84,14 +94,6 @@ class GameStore extends VuexModule implements GameState {
     get zoomFactor(): number {
         const gf = gameStore.gridSize / DEFAULT_GRID_SIZE;
         return zoomValue(this.zoomDisplay) * gf;
-    }
-
-    get locationUserOptions(): LocationUserOptions {
-        return {
-            panX: gameStore.panX,
-            panY: gameStore.panY,
-            zoomFactor: gameStore.zoomFactor,
-        };
     }
 
     get activeTokens(): string[] {
@@ -222,7 +224,7 @@ class GameStore extends VuexModule implements GameState {
         const nv = window.innerHeight / this.gridSize / zoomValue(this.zoomDisplay) / 2;
         this.panX = -shape.refPoint.x + nh * this.gridSize;
         this.panY = -shape.refPoint.y + nv * this.gridSize;
-        sendClientOptions(this.locationUserOptions);
+        sendClientLocationOptions();
         layerManager.invalidateAllFloors();
     }
 
@@ -234,17 +236,14 @@ class GameStore extends VuexModule implements GameState {
     @Mutation
     setLocations(data: { locations: { id: number; name: string }[]; sync: boolean }): void {
         this.locations = data.locations;
-        if (data.sync)
-            socket.emit(
-                "Locations.Order.Set",
-                this.locations.map(l => l.id),
-            );
+        if (data.sync) sendLocationOrder(this.locations.map(l => l.id));
     }
 
     @Mutation
     removeLocation(id: number): void {
         const idx = this.locations.findIndex(l => l.id === id);
         if (idx >= 0) this.locations.splice(idx, 1);
+        sendLocationRemove(id);
     }
 
     @Mutation
@@ -260,7 +259,7 @@ class GameStore extends VuexModule implements GameState {
         this.panX += diff.x;
         this.panY += diff.y;
         layerManager.invalidateAllFloors();
-        sendClientOptions(gameStore.locationUserOptions);
+        sendClientLocationOptions();
     }
 
     @Mutation
@@ -269,20 +268,23 @@ class GameStore extends VuexModule implements GameState {
         for (const floor of floorStore.floors) {
             layerManager.getGridLayer(floor)!.invalidate();
         }
-        if (data.sync) socket.emit("Client.Options.Set", { gridColour: data.colour });
+        // eslint-disable-next-line @typescript-eslint/camelcase
+        if (data.sync) sendClientOptions({ grid_colour: data.colour });
     }
 
     @Mutation
     setFOWColour(data: { colour: string; sync: boolean }): void {
         this.fowColour = data.colour;
         layerManager.invalidateAllFloors();
-        if (data.sync) socket.emit("Client.Options.Set", { fowColour: data.colour });
+        // eslint-disable-next-line @typescript-eslint/camelcase
+        if (data.sync) sendClientOptions({ fow_colour: data.colour });
     }
 
     @Mutation
     setRulerColour(data: { colour: string; sync: boolean }): void {
         this.rulerColour = data.colour;
-        if (data.sync) socket.emit("Client.Options.Set", { rulerColour: data.colour });
+        // eslint-disable-next-line @typescript-eslint/camelcase
+        if (data.sync) sendClientOptions({ ruler_colour: data.colour });
     }
 
     @Mutation
@@ -309,7 +311,8 @@ class GameStore extends VuexModule implements GameState {
     setGridSize(data: { gridSize: number; sync: boolean }): void {
         this.gridSize = data.gridSize;
         layerManager.invalidateAllFloors();
-        if (data.sync) socket.emit("Client.Options.Set", { gridSize: data.gridSize });
+        // eslint-disable-next-line @typescript-eslint/camelcase
+        if (data.sync) sendClientOptions({ grid_size: data.gridSize });
     }
 
     @Mutation
@@ -384,6 +387,7 @@ class GameStore extends VuexModule implements GameState {
 
     @Mutation
     kickPlayer(playerId: number): void {
+        sendRoomKickPlayer(playerId);
         this.players = this.players.filter(p => p.id !== playerId);
     }
 
@@ -391,14 +395,15 @@ class GameStore extends VuexModule implements GameState {
     setIsLocked(data: { isLocked: boolean; sync: boolean }): void {
         this.isLocked = data.isLocked;
         if (data.sync) {
-            socket.emit("Room.Info.Set.Locked", this.isLocked);
+            sendRoomLock(this.isLocked);
         }
     }
 
     @Mutation
     setInvertAlt(data: { invertAlt: boolean; sync: boolean }): void {
         this.invertAlt = data.invertAlt;
-        if (data.sync) socket.emit("Client.Options.Set", { invertAlt: data.invertAlt });
+        // eslint-disable-next-line @typescript-eslint/camelcase
+        if (data.sync) sendClientOptions({ invert_alt: data.invertAlt });
     }
 
     @Mutation

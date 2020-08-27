@@ -1,5 +1,7 @@
 from typing import Any, Dict
 
+from typing_extensions import TypedDict
+
 import auth
 from api.socket.constants import GAME_NS
 from app import app, sio
@@ -23,27 +25,45 @@ from . import (
 )
 
 
+# DATA CLASSES FOR TYPE CHECKING
+class LocationOptions(TypedDict):
+    pan_x: int
+    pan_y: int
+    zoom_factor: int
+
+
+class ClientOptions(TypedDict, total=False):
+    grid_colour: str
+    fow_colour: str
+    ruler_colour: str
+    invert_alt: bool
+    grid_size: int
+    location_options: LocationOptions
+
+
+class BringPlayersData(TypedDict):
+    floor: str
+    x: int
+    y: int
+    zoom: int
+
+
 @sio.on("Client.Options.Set", namespace=GAME_NS)
 @auth.login_required(app, sio)
-async def set_client(sid: str, data: Dict[str, Any]):
+async def set_client(sid: str, data: ClientOptions):
     pr: PlayerRoom = game_state.get(sid)
 
     with db.atomic():
-        for option in [
-            ("gridColour", "grid_colour"),
-            ("fowColour", "fow_colour"),
-            ("rulerColour", "ruler_colour"),
-            ("invertAlt", "invert_alt"),
-            ("gridSize", "grid_size"),
-        ]:
-            if option[0] in data:
-                setattr(pr.player, option[1], data[option[0]])
+        for option, value in data.items():
+            if option != "location_options":
+                setattr(pr.player, option, value)
         pr.player.save()
-    if "locationOptions" in data:
+
+    if "location_options" in data:
         LocationUserOption.update(
-            pan_x=data["locationOptions"]["panX"],
-            pan_y=data["locationOptions"]["panY"],
-            zoom_factor=data["locationOptions"]["zoomFactor"],
+            pan_x=data["location_options"]["pan_x"],
+            pan_y=data["location_options"]["pan_y"],
+            zoom_factor=data["location_options"]["zoom_factor"],
         ).where(
             (LocationUserOption.location == pr.active_location)
             & (LocationUserOption.user == pr.player)
@@ -68,7 +88,7 @@ async def set_layer(sid: str, data: Dict[str, Any]):
 
 @sio.on("Players.Bring", namespace=GAME_NS)
 @auth.login_required(app, sio)
-async def bring_players(sid: str, data: Dict[str, Any]):
+async def bring_players(sid: str, data: BringPlayersData):
     pr: PlayerRoom = game_state.get(sid)
 
     await sio.emit(

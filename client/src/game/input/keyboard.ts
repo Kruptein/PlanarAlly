@@ -1,12 +1,12 @@
-import { sendClientOptions } from "@/game/api/utils";
 import { Vector } from "@/game/geom";
 import { layerManager } from "@/game/layers/manager";
 import { copyShapes, deleteShapes, pasteShapes } from "@/game/shapes/utils";
-import { gameStore, DEFAULT_GRID_SIZE } from "@/game/store";
+import { DEFAULT_GRID_SIZE, gameStore } from "@/game/store";
 import { calculateDelta } from "@/game/ui/tools/utils";
 import { visibilityStore } from "@/game/visibility/store";
 import { TriangulationTarget } from "@/game/visibility/te/pa";
-import { sendShapePositionUpdate } from "../api/events/shape";
+import { sendClientLocationOptions } from "../api/emits/client";
+import { sendShapePositionUpdate } from "../api/emits/shape/core";
 import { EventBus } from "../event-bus";
 import { floorStore } from "../layers/store";
 import { moveFloor } from "../layers/utils";
@@ -83,16 +83,16 @@ export function onKeyDown(event: KeyboardEvent): void {
                 }
                 sendShapePositionUpdate(updateList, false);
 
-                const floorName = floorStore.currentFloor.name;
-                if (recalculateVision) visibilityStore.recalculateVision(floorName);
-                if (recalculateMovement) visibilityStore.recalculateMovement(floorName);
+                const floorId = floorStore.currentFloor.id;
+                if (recalculateVision) visibilityStore.recalculateVision(floorId);
+                if (recalculateMovement) visibilityStore.recalculateMovement(floorId);
                 floorStore.currentLayer!.invalidate(false);
             } else {
                 // The pan offsets should be in the opposite direction to give the correct feel.
                 gameStore.increasePanX(offsetX * (event.keyCode <= 38 ? 1 : -1));
                 gameStore.increasePanY(offsetY * (event.keyCode <= 38 ? 1 : -1));
                 layerManager.invalidateAllFloors();
-                sendClientOptions(gameStore.locationUserOptions);
+                sendClientLocationOptions();
             }
         } else if (event.key === "d") {
             // d - Deselect all
@@ -113,7 +113,7 @@ export function onKeyDown(event: KeyboardEvent): void {
             // Ctrl-0 - Re-center/reset the viewport
             gameStore.setPanX(0);
             gameStore.setPanY(0);
-            sendClientOptions(gameStore.locationUserOptions);
+            sendClientLocationOptions();
             layerManager.invalidateAllFloors();
         } else if (event.key === "c" && event.ctrlKey) {
             // Ctrl-c - Copy

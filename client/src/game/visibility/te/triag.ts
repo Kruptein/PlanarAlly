@@ -98,7 +98,7 @@ export function hasInexactNegativeOrientation(p: Point, q: Point, r: Point): boo
 export function sideOfOrientedCircle(t: Triangle, p: Point, perturb: boolean): Sign {
     if (!t.isInfinite())
         return sideOfOrientedCircleP(t.vertices[0]!.point!, t.vertices[1]!.point!, t.vertices[2]!.point!, p, perturb);
-    throw new Error("SSS");
+    throw new Error("Vision Error: t is infinite (sideOfOrientedCircle)");
 }
 
 export function sideOfOrientedCircleP(p0: Point, p1: Point, p2: Point, p: Point, perturb: boolean): Sign {
@@ -209,7 +209,7 @@ export function intersection(pa: Point, pb: Point, pc: Point, pd: Point): Point 
         case IntersectionType.NO_INTERSECTION:
             return null;
     }
-    throw new Error("sdfgighowen");
+    throw new Error("Vision Error: Uknown intersection point (intersection)");
 }
 
 enum IntersectionType {
@@ -241,7 +241,7 @@ function getIntersectionType(
             return info;
         }
     }
-    throw new Error("gzseuihgpib");
+    throw new Error("Vision Error: Unknown intersection type (getIntersectinType)");
 }
 
 function getIntersectionTypeLine(la: Line, lb: Line): { intersectionType: IntersectionType; point: Point } {

@@ -254,7 +254,7 @@ export class EdgeIterator {
         this.pos = tds.triangles[0];
         if (tds.dimension === 1) this.es = 2;
         if (this.pos !== null && !this.associatedEdge()) {
-            throw new Error("[poi");
+            throw new Error("Vision Error (EdgeIterator)");
         }
 
         if (tds.dimension === 1) this._es = 2;
@@ -585,7 +585,7 @@ export class TDS {
     }
 
     get finiteEdge(): Edge {
-        if (this.dimension < 1) throw new Error("aspo");
+        if (this.dimension < 1) throw new Error("Vision Error: 0 dimension (finiteEdge)");
         const ei = new EdgeIterator(this, true);
         while (!ei.valid) ei.next();
         return ei.edge;

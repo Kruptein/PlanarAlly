@@ -1,12 +1,13 @@
 import { GlobalPoint } from "@/game/geom";
 import { BoundingRect } from "@/game/shapes/boundingrect";
 import { Shape } from "@/game/shapes/shape";
-import { g2lx, g2ly, g2lz, g2l } from "@/game/units";
+import { g2l, g2lx, g2ly, g2lz } from "@/game/units";
 import { ServerLine } from "../comm/types/shapes";
 import { rotateAroundPoint } from "../utils";
+import { SHAPE_TYPE } from "./types";
 
 export class Line extends Shape {
-    type = "line";
+    type: SHAPE_TYPE = "line";
     endPoint: GlobalPoint;
     lineWidth: number;
     constructor(
@@ -23,6 +24,15 @@ export class Line extends Shape {
 
     get isClosed(): boolean {
         return false;
+    }
+
+    getPositionRepresentation(): { angle: number; points: number[][] } {
+        return { angle: this.angle, points: [this.refPoint.asArray(), this.endPoint.asArray()] };
+    }
+
+    setPositionRepresentation(position: { angle: number; points: number[][] }): void {
+        this.endPoint = GlobalPoint.fromArray(position.points[1]);
+        super.setPositionRepresentation(position);
     }
 
     asDict(): ServerLine {

@@ -1,8 +1,19 @@
 import { Action, getModule, Module, Mutation, VuexModule } from "vuex-module-decorators";
 import { rootStore } from "../../store";
+import { sendFloorReorder, sendRenameFloor } from "../api/emits/floor";
 import { Floor } from "./floor";
 import { Layer } from "./layer";
 import { layerManager } from "./manager";
+
+let FLOOR_ID = 0;
+
+export function newFloorId(): number {
+    return FLOOR_ID++;
+}
+
+export function getFloorId(name: string): number {
+    return floorStore.floors.find(f => f.name === name)?.id ?? -1;
+}
 
 export interface FloorState {
     currentFloorindex: number;
@@ -65,19 +76,21 @@ class FloorStore extends VuexModule implements FloorState {
         } else {
             this._floors.push(data.floor);
         }
-        layerManager.addFloor(data.floor.name);
+        layerManager.addFloor(data.floor.id);
     }
 
     @Mutation
-    renameFloor(data: { index: number; name: string }): void {
+    renameFloor(data: { index: number; name: string; sync: boolean }): void {
         this._floors[data.index].name = data.name;
+        if (data.index === this.floorIndex) layerManager.invalidateAllFloors();
+        if (data.sync) sendRenameFloor({ ...data });
     }
 
     @Action
     removeFloor(floor: Floor): void {
         const index = this._floors.findIndex(f => f === floor);
         this._floors.splice(index, 1);
-        layerManager.removeFloor(floor.name);
+        layerManager.removeFloor(floor.id);
         if (this.floorIndex === index) this.context.commit("selectFloor", { targetFloor: index - 1, sync: true });
     }
 
@@ -101,6 +114,14 @@ class FloorStore extends VuexModule implements FloorState {
         }
         layerManager.selectLayer(floorStore.currentLayer!.name, data.sync, false);
         layerManager.invalidateAllFloors();
+    }
+
+    @Mutation
+    reorderFloors(data: { floors: string[]; sync: boolean }): void {
+        const activeFloorName = this._floors[this.floorIndex].name;
+        this._floors = data.floors.map(name => this._floors.find(f => f.name === name)!);
+        this.floorIndex = this._floors.findIndex(f => f.name === activeFloorName);
+        if (data.sync) sendFloorReorder(data.floors);
     }
 }
 

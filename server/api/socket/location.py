@@ -1,5 +1,9 @@
 import json
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Union
+
+from peewee import JOIN
+from playhouse.shortcuts import update_model_from_dict
+from typing_extensions import TypedDict
 
 import auth
 from api.socket.constants import GAME_NS
@@ -18,20 +22,47 @@ from models import (
     Room,
     Shape,
 )
+from models.asset import Asset
 from models.label import Label, LabelSelection
 from models.role import Role
-from peewee import JOIN
-from playhouse.shortcuts import update_model_from_dict
 from state.game import game_state
 from utils import logger
 
 from .initiative import send_client_initiatives
-from models.asset import Asset
+
+
+# DATA CLASSES FOR TYPE CHECKING
+class LocationOptionKeys(TypedDict, total=False):
+    unit_size: float
+    unit_size_unit: str
+    use_grid: bool
+    full_fow: bool
+    fow_opacity: float
+    fow_los: bool
+    vision_mode: str
+    vision_min_range: float
+    vision_max_range: float
+    spawn_locations: str
+
+
+class LocationOptionsData(TypedDict):
+    options: LocationOptionKeys
+    location: Union[int, None]
+
+
+class LocationChangeData(TypedDict):
+    location: int
+    users: List[str]
+
+
+class LocationRenameData(TypedDict):
+    location: int
+    name: str
 
 
 @sio.on("Location.Load", namespace=GAME_NS)
 @auth.login_required(app, sio)
-async def change_locatdion(sid: str):
+async def _load_location(sid: str):
     pr: PlayerRoom = game_state.get(sid)
 
     await load_location(sid, pr.active_location, complete=True)
@@ -194,7 +225,7 @@ async def load_location(sid: str, location: Location, *, complete=False):
 
 @sio.on("Location.Change", namespace=GAME_NS)
 @auth.login_required(app, sio)
-async def change_location(sid: str, data: Dict[str, str]):
+async def change_location(sid: str, data: LocationChangeData):
     pr: PlayerRoom = game_state.get(sid)
 
     if pr.role != Role.DM:
@@ -227,7 +258,7 @@ async def change_location(sid: str, data: Dict[str, str]):
 
 @sio.on("Location.Options.Set", namespace=GAME_NS)
 @auth.login_required(app, sio)
-async def set_location_options(sid: str, data: Dict[str, Any]):
+async def set_location_options(sid: str, data: LocationOptionsData):
     pr: PlayerRoom = game_state.get(sid)
 
     if pr.role != Role.DM:
@@ -318,15 +349,15 @@ async def set_locations_order(sid: str, locations: List[int]):
 
 @sio.on("Location.Rename", namespace=GAME_NS)
 @auth.login_required(app, sio)
-async def rename_location(sid: str, data: Dict[str, str]):
+async def rename_location(sid: str, data: LocationRenameData):
     pr: PlayerRoom = game_state.get(sid)
 
     if pr.role != Role.DM:
         logger.warning(f"{pr.player.name} attempted to rename a location.")
         return
 
-    location = Location.get_by_id(data["id"])
-    location.name = data["new"]
+    location = Location.get_by_id(data["location"])
+    location.name = data["name"]
     location.save()
 
     for player_room in pr.room.players:

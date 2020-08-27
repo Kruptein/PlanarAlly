@@ -7,6 +7,8 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+## [0.22.0] - 2020-08-26
+
 ### Added
 
 -   localization updates
@@ -18,6 +20,7 @@ All notable changes to this project will be documented in this file.
     -   visibility toggle
         -   "Hidden" floors are not selectable by players, BUT will still render in between other selectable layers
     -   rename floor option
+    -   reorder floors by dragging them
 -   Shape lock/unlock toggle
     -   Show lock/unlock icon on the selection_info component for quick edit
     -   Only players with edit access can toggle
@@ -46,13 +49,18 @@ All notable changes to this project will be documented in this file.
 -   Initial state adding unnecessary fog on lower floors
 -   Prefer snapped points over grid snapping
 -   Remove white icon in topleft menu UI
--   Moving polygons with keyboard woul only move origin point
+-   Moving polygons with keyboard would only move origin point
 -   Degenerate cases in triangulation
     -   Triangulation code could hit a degenerate case when dealing with slight number differences in the order of 1e-15
     -   Now the triangulation code will only take the first 10 digits after the dot into consideration to prevent numerical instability.
 -   Mouseleave events where not triggered in some cases (e.g. alt tab), this could cause some shapes (e.g. rulers) to remain on the screen
 -   Map tool resize does not replicate
 -   Center calculation polygons with repeated points
+-   Location moved shape now properly disappears on the old location
+-   Asset drops on the game board that are not images located in /static are no longer accepted
+    -   This fixes the possible spam of "could not load image /game/..." in your console for future cases
+    -   A script has been added in the server/scripts folder to remove existing assets
+-   Missing case in vision calculation script
 
 ## [0.21.0] - 2020-06-13
 

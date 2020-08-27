@@ -1,7 +1,7 @@
-import { socket } from "@/game/api/socket";
 import { InitiativeData } from "@/game/comm/types/general";
 import { rootStore } from "@/store";
 import { getModule, Module, Mutation, VuexModule } from "vuex-module-decorators";
+import { sendInitiativeUpdate } from "../../api/emits/initiative";
 
 export function inInitiative(uuid: string): boolean {
     return initiativeStore.data.some(d => d.uuid === uuid);
@@ -45,7 +45,7 @@ class InitiativeStore extends VuexModule implements InitiativeState {
         const d = this.data.findIndex(a => a.uuid === data.uuid);
         if (d >= 0) return;
         if (data.initiative === undefined) data.initiative = 0;
-        socket.emit("Initiative.Update", data);
+        sendInitiativeUpdate(data);
     }
 
     @Mutation

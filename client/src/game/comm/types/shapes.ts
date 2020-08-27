@@ -76,7 +76,17 @@ export interface ServerAsset extends ServerRect {
     src: string;
 }
 
+export interface ServerTracker {
+    shape: string;
+    uuid: string;
+    visible: boolean;
+    name: string;
+    value: number;
+    maxvalue: number;
+}
+
 export interface ServerAura {
+    shape: string;
     uuid: string;
     vision_source: boolean;
     visible: boolean;

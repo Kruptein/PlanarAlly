@@ -20,7 +20,7 @@ export default class Prompt extends Vue {
     title = "";
     error = "";
 
-    validation: (value: string) => { valid: true } | { valid: false; reason: string } = value => ({
+    validation: (value: string) => { valid: true } | { valid: false; reason: string } = _value => ({
         valid: true,
     });
     resolve: (value: string) => void = (_value: string) => {};

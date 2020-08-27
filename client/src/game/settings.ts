@@ -1,14 +1,11 @@
 import Vue from "vue";
 import { getModule, Module, Mutation, VuexModule } from "vuex-module-decorators";
-import { InvalidationMode, SyncMode } from "../core/comm/types";
-import { toSnakeCase, uuidv4 } from "../core/utils";
+import { toSnakeCase } from "../core/utils";
 import { rootStore } from "../store";
 import { sendLocationOptions } from "./api/emits/location";
 import { LocationOptions } from "./comm/types/settings";
 import { layerManager } from "./layers/manager";
 import { floorStore } from "./layers/store";
-import { Asset } from "./shapes/asset";
-import { gameStore } from "./store";
 
 export interface GameSettingsState {
     activeLocation: number;

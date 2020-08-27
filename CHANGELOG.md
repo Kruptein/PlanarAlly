@@ -7,6 +7,18 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+## [0.22.1] - 2020-08-27
+
+### Changed
+
+-   Spawn locations are no longer magically created
+    -   You can now (as a DM) explicitly create spawn tokens with the right click context menu
+    -   You can already create multiple spawn locations, but UI to choose between them will be for the next proper release
+
+### Fixed
+
+-   Server error when encountering broken spawn locations
+
 ## [0.22.0] - 2020-08-26
 
 ### Added

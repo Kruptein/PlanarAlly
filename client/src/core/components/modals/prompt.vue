@@ -18,23 +18,40 @@ export default class Prompt extends Vue {
     question = "";
     answer = "";
     title = "";
+    error = "";
 
+    validation: (value: string) => { valid: true } | { valid: false; reason: string } = _value => ({
+        valid: true,
+    });
     resolve: (value: string) => void = (_value: string) => {};
     reject: () => void = () => {};
 
     submit(): void {
-        this.resolve(this.answer);
-        this.close();
+        const validation = this.validation(this.answer);
+        if (validation.valid) {
+            this.resolve(this.answer);
+            this.close();
+        } else {
+            this.error = validation.reason;
+        }
     }
+
     close(): void {
         this.reject();
         this.visible = false;
     }
-    prompt(question: string, title: string): Promise<string> {
+
+    prompt(
+        question: string,
+        title: string,
+        validation?: (value: string) => { valid: true } | { valid: false; reason: string },
+    ): Promise<string> {
         this.answer = "";
         this.question = question;
         this.title = title;
         this.visible = true;
+        this.error = "";
+        if (validation) this.validation = validation;
         this.$nextTick(() => {
             this.$refs.answer.focus();
         });
@@ -59,8 +76,9 @@ export default class Prompt extends Vue {
             {{ title }}
         </div>
         <div class="modal-body">
-            {{ question }}
-            <input type="text" ref="answer" v-model="answer" @keyup.enter="submit" />
+            <div id="question">{{ question }}</div>
+            <div id="error" v-if="error">{{ error }}</div>
+            <input id="answer" type="text" ref="answer" v-model="answer" @keyup.enter="submit" />
         </div>
         <div class="modal-footer">
             <button @click="submit" v-t="'common.submit'"></button>
@@ -81,7 +99,16 @@ export default class Prompt extends Vue {
     padding: 10px;
     padding-bottom: 0;
     display: flex;
-    justify-content: space-between;
+    flex-direction: column;
+}
+
+#question {
+    margin-bottom: 20px;
+}
+
+#error {
+    color: red;
+    margin-bottom: 5px;
 }
 
 .modal-footer {

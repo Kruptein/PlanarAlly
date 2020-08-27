@@ -399,7 +399,11 @@ async def get_location_spawn_info(sid: str, location_id: int):
     data = []
 
     for spawn in json.loads(location.options.spawn_locations):
-        shape = Shape.get_by_id(spawn)
-        data.append(shape.as_dict(pr.player, True))
+        try:
+            shape = Shape.get_by_id(spawn)
+        except Shape.DoesNotExist:
+            pass
+        else:
+            data.append(shape.as_dict(pr.player, True))
 
     await sio.emit("Location.Spawn.Info", data=data, room=sid, namespace=GAME_NS)

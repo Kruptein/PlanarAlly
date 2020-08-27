@@ -110,16 +110,16 @@ export default class ShapeContext extends Vue {
 
         const spawnInfo = await requestSpawnInfo(newLocation);
 
+        console.log(spawnInfo);
+
         let x: number;
         let y: number;
 
         switch (spawnInfo.length) {
             case 0:
-                await (<Game>(
-                    this.$parent.$parent.$parent
-                )).$refs.confirm.open(
-                    "game.ui.selection.shapecontext.no_spawn_set_title",
-                    "game.ui.selection.shapecontext.no_spawn_set_text",
+                await (<Game>this.$parent.$parent.$parent).$refs.confirm.open(
+                    this.$t("game.ui.selection.shapecontext.no_spawn_set_title").toString(),
+                    this.$t("game.ui.selection.shapecontext.no_spawn_set_text").toString(),
                     { showNo: false, yes: "Ok" },
                 );
                 this.close();

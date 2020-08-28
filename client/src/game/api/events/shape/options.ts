@@ -22,6 +22,7 @@ socket.on("Shape.Options.Name.Set", wrapCall(Shape.prototype.setName));
 socket.on("Shape.Options.NameVisible.Set", wrapCall(Shape.prototype.setNameVisible));
 socket.on("Shape.Options.StrokeColour.Set", wrapCall(Shape.prototype.setStrokeColour));
 socket.on("Shape.Options.FillColour.Set", wrapCall(Shape.prototype.setFillColour));
+socket.on("Shape.Options.ShowBadge.Set", wrapCall(Shape.prototype.setShowBadge));
 
 socket.on("Shape.Options.Tracker.Remove", wrapCall(Shape.prototype.removeTracker));
 socket.on("Shape.Options.Aura.Remove", wrapCall(Shape.prototype.removeAura));

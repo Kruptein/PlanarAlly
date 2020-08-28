@@ -69,10 +69,6 @@ socket.on("Shapes.Layer.Change", (data: { uuids: string[]; floor: string; layer:
     moveLayer(shapes, layerManager.getLayer(layerManager.getFloor(getFloorId(data.floor))!, data.layer)!, false);
 });
 
-socket.on("Shape.Update", (data: { shape: ServerShape; redraw: boolean }) => {
-    gameManager.updateShape(data);
-});
-
 socket.on("Shapes.Group.Leader.Set", (data: { leader: string; members: string[] }) => {
     changeGroupLeader({ ...data, sync: false });
 });

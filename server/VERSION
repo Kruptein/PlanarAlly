@@ -1,4 +1,4 @@
-0.22.1
+0.22.2
 
 ### Added
 
@@ -56,3 +56,7 @@
     -   A script has been added in the server/scripts folder to remove existing assets
 -   Missing case in vision calculation script
 -   [0.22.1] Server error when encountering broken spawn locations
+-   [0.22.2] Drawing on FOW layer blocking UI
+-   [0.22.2] Badge toggle not working properly
+-   [0.22.2] Group leader not properly set serverside on paste
+-   [0.22.2] Server error on shape paste due to aura type change

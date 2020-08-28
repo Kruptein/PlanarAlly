@@ -9,9 +9,7 @@ import Modal from "@/core/components/modals/modal.vue";
 import EditDialogAccess from "./access.vue";
 
 import { uuidv4 } from "@/core/utils";
-import { socket } from "@/game/api/socket";
 import { EventBus } from "@/game/event-bus";
-import { layerManager } from "@/game/layers/manager";
 import { Shape } from "@/game/shapes/shape";
 import { gameStore } from "@/game/store";
 
@@ -90,16 +88,7 @@ export default class EditDialog extends Vue {
     toggleBadge(_event: { target: HTMLInputElement }): void {
         if (!this.owned) return;
         const groupMembers = this.shape.getGroupMembers();
-        for (const [i, shape] of groupMembers.entries()) {
-            shape.showBadge = !shape.showBadge;
-            if (!shape.preventSync)
-                socket.emit("Shape.Update", {
-                    shape: shape.asDict(),
-                    redraw: groupMembers.length === i + 1,
-                    temporary: false,
-                });
-        }
-        layerManager.invalidate(this.shape.floor);
+        for (const shape of groupMembers) this.shape.setShowBadge(!shape.showBadge, true);
     }
     setVisionBlocker(event: { target: HTMLInputElement }): void {
         if (!this.owned) return;

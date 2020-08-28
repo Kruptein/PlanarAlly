@@ -106,7 +106,7 @@ export class Layer {
         shape.setLayer(this.floor, this.name);
         this.shapes.push(shape);
         layerManager.UUIDMap.set(shape.uuid, shape);
-        shape.checkVisionSources(invalidate !== InvalidationMode.NO);
+        shape.setVisionBlock(shape.visionObstruction, false, invalidate !== InvalidationMode.NO);
         shape.setMovementBlock(shape.movementObstruction, false, invalidate !== InvalidationMode.NO);
         if (snappable) {
             for (const point of shape.points) {

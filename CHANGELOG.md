@@ -7,6 +7,15 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+# [0.22.2] - 2020-08-28
+
+### Fixed
+
+-   Drawing on FOW layer blocking UI
+-   Badge toggle not working properly
+-   Group leader not properly set serverside on paste
+-   Server error on shape paste due to aura type change
+
 ## [0.22.1] - 2020-08-27
 
 ### Changed

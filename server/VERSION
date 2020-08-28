@@ -1,4 +1,4 @@
-0.22.0
+0.22.1
 
 ### Added
 
@@ -30,6 +30,9 @@
 -   Grid pixel size is now a client setting instead of a DM setting
 -   Show floor selector in the more logical order from upper to lower floors
 -   Improve ruler distance text readability
+-   [0.22.1] Spawn locations are no longer magically created
+    -   You can now (as a DM) explicitly create spawn tokens with the right click context menu
+    -   You can already create multiple spawn locations, but UI to choose between them will be for the next proper release
 
 ### Fixed
 
@@ -52,3 +55,4 @@
     -   This fixes the possible spam of "could not load image /game/..." in your console for future cases
     -   A script has been added in the server/scripts folder to remove existing assets
 -   Missing case in vision calculation script
+-   [0.22.1] Server error when encountering broken spawn locations

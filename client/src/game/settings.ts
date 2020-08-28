@@ -1,14 +1,11 @@
 import Vue from "vue";
 import { getModule, Module, Mutation, VuexModule } from "vuex-module-decorators";
-import { InvalidationMode, SyncMode } from "../core/comm/types";
-import { toSnakeCase, uuidv4 } from "../core/utils";
+import { toSnakeCase } from "../core/utils";
 import { rootStore } from "../store";
 import { sendLocationOptions } from "./api/emits/location";
 import { LocationOptions } from "./comm/types/settings";
 import { layerManager } from "./layers/manager";
 import { floorStore } from "./layers/store";
-import { Asset } from "./shapes/asset";
-import { gameStore } from "./store";
 
 export interface GameSettingsState {
     activeLocation: number;
@@ -72,29 +69,33 @@ class GameSettingsStore extends VuexModule implements GameSettingsState {
     }
 
     get unitSize(): number {
-        return this.currentLocationOptions?.unitSize ?? this.defaultLocationOptions?.unitSize ?? 0;
+        return this.currentLocationOptions.unitSize ?? this.defaultLocationOptions?.unitSize ?? 0;
     }
 
     get unitSizeUnit(): string {
-        return this.currentLocationOptions?.unitSizeUnit ?? this.defaultLocationOptions?.unitSizeUnit ?? "";
+        return this.currentLocationOptions.unitSizeUnit ?? this.defaultLocationOptions?.unitSizeUnit ?? "";
     }
     get useGrid(): boolean {
-        return this.currentLocationOptions?.useGrid ?? this.defaultLocationOptions?.useGrid ?? false;
+        return this.currentLocationOptions.useGrid ?? this.defaultLocationOptions?.useGrid ?? false;
     }
     get fullFow(): boolean {
-        return this.currentLocationOptions?.fullFow ?? this.defaultLocationOptions?.fullFow ?? false;
+        return this.currentLocationOptions.fullFow ?? this.defaultLocationOptions?.fullFow ?? false;
     }
     get fowOpacity(): number {
-        return this.currentLocationOptions?.fowOpacity ?? this.defaultLocationOptions?.fowOpacity ?? 0;
+        return this.currentLocationOptions.fowOpacity ?? this.defaultLocationOptions?.fowOpacity ?? 0;
     }
     get fowLos(): boolean {
-        return this.currentLocationOptions?.fowLos ?? this.defaultLocationOptions?.fowLos ?? false;
+        return this.currentLocationOptions.fowLos ?? this.defaultLocationOptions?.fowLos ?? false;
     }
     get visionMinRange(): number {
-        return this.currentLocationOptions?.visionMinRange ?? this.defaultLocationOptions?.visionMinRange ?? 0;
+        return this.currentLocationOptions.visionMinRange ?? this.defaultLocationOptions?.visionMinRange ?? 0;
     }
     get visionMaxRange(): number {
-        return this.currentLocationOptions?.visionMaxRange ?? this.defaultLocationOptions?.visionMaxRange ?? 0;
+        return this.currentLocationOptions.visionMaxRange ?? this.defaultLocationOptions?.visionMaxRange ?? 0;
+    }
+
+    get spawnLocations(): string[] {
+        return this.currentLocationOptions.spawnLocations ?? [];
     }
 
     @Mutation
@@ -218,11 +219,7 @@ class GameSettingsStore extends VuexModule implements GameSettingsState {
 
     @Mutation
     async setSpawnLocations(data: { spawnLocations: string[]; location: number | null; sync: boolean }): Promise<void> {
-        if (
-            data.location === null ||
-            (data.spawnLocations.length === 0 && (this.locationOptions[data.location]?.spawnLocations?.length ?? 0) > 1)
-        )
-            return;
+        if (data.location === null) return;
         if (mutateLocationOption("spawnLocations", data.spawnLocations, data.location)) {
             layerManager.invalidateAllFloors();
             if (data.sync)
@@ -231,30 +228,6 @@ class GameSettingsStore extends VuexModule implements GameSettingsState {
                     options: { spawn_locations: JSON.stringify(data.spawnLocations) },
                     location: data.location,
                 });
-        }
-
-        if ((this.locationOptions[data.location].spawnLocations?.length ?? 0) === 0) {
-            if (gameSettingsStore.activeLocation !== data.location) return;
-
-            const uuid = uuidv4();
-
-            const img = new Image(64, 64);
-            img.src = "/static/img/spawn.png";
-
-            const shape = new Asset(img, gameStore.screenCenter, 50, 50, uuid);
-            shape.name = "Default";
-            shape.src = img.src;
-
-            layerManager
-                .getLayer(floorStore.currentFloor, "dm")!
-                .addShape(shape, SyncMode.FULL_SYNC, InvalidationMode.NO, false);
-            img.onload = () => (gameStore.boardInitialized ? shape.layer.invalidate(true) : undefined);
-
-            gameSettingsStore.setSpawnLocations({
-                spawnLocations: [uuid],
-                location: data.location,
-                sync: true,
-            });
         }
     }
 }

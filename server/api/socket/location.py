@@ -394,12 +394,19 @@ async def get_location_spawn_info(sid: str, location_id: int):
         logger.warning(f"{pr.player.name} attempted to retrieve spawn locations.")
         return
 
-    location = Location.get_by_id(location_id)
-
     data = []
 
-    for spawn in json.loads(location.options.spawn_locations):
-        shape = Shape.get_by_id(spawn)
-        data.append(shape.as_dict(pr.player, True))
+    try:
+        location = Location.get_by_id(location_id)
+        if location.options is not None:
+            for spawn in json.loads(location.options.spawn_locations):
+                try:
+                    shape = Shape.get_by_id(spawn)
+                except Shape.DoesNotExist:
+                    pass
+                else:
+                    data.append(shape.as_dict(pr.player, True))
+    except:
+        logger.exception("Could not load spawn locations")
 
     await sio.emit("Location.Spawn.Info", data=data, room=sid, namespace=GAME_NS)

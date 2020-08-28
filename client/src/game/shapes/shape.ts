@@ -234,7 +234,7 @@ export abstract class Shape {
         this.layer.invalidate(skipLightUpdate);
     }
 
-    checkVisionSources(recalculate = true): boolean {
+    private checkVisionSources(recalculate = true): boolean {
         let alteredVision = false;
         const visionBlockers = getBlockers(TriangulationTarget.VISION, this._floor);
         const obstructionIndex = visionBlockers.indexOf(this.uuid);
@@ -592,7 +592,8 @@ export abstract class Shape {
     setVisionBlock(blocksVision: boolean, sync: boolean, recalculate = true): void {
         if (sync) sendShapeSetBlocksVision({ shape: this.uuid, value: blocksVision });
         this.visionObstruction = blocksVision;
-        this.invalidate(!this.checkVisionSources(recalculate));
+        const alteredVision = this.checkVisionSources(recalculate);
+        if (alteredVision && recalculate) this.invalidate(false);
     }
 
     setMovementBlock(blocksMovement: boolean, sync: boolean, recalculate = true): boolean {

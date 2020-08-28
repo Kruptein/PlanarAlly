@@ -9,9 +9,7 @@ import Modal from "@/core/components/modals/modal.vue";
 import EditDialogAccess from "./access.vue";
 
 import { uuidv4 } from "@/core/utils";
-import { socket } from "@/game/api/socket";
 import { EventBus } from "@/game/event-bus";
-import { layerManager } from "@/game/layers/manager";
 import { Shape } from "@/game/shapes/shape";
 import { gameStore } from "@/game/store";
 

@@ -1,6 +1,5 @@
 import { InvalidationMode, SyncMode } from "@/core/comm/types";
 import { ServerShape } from "@/game/comm/types/shapes";
-import { EventBus } from "@/game/event-bus";
 import { GlobalPoint } from "@/game/geom";
 import { layerManager } from "@/game/layers/manager";
 import { createShapeFromDict } from "@/game/shapes/utils";

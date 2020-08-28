@@ -90,16 +90,7 @@ export default class EditDialog extends Vue {
     toggleBadge(_event: { target: HTMLInputElement }): void {
         if (!this.owned) return;
         const groupMembers = this.shape.getGroupMembers();
-        for (const [i, shape] of groupMembers.entries()) {
-            shape.showBadge = !shape.showBadge;
-            if (!shape.preventSync)
-                socket.emit("Shape.Update", {
-                    shape: shape.asDict(),
-                    redraw: groupMembers.length === i + 1,
-                    temporary: false,
-                });
-        }
-        layerManager.invalidate(this.shape.floor);
+        for (const shape of groupMembers) this.shape.setShowBadge(!shape.showBadge, true);
     }
     setVisionBlocker(event: { target: HTMLInputElement }): void {
         if (!this.owned) return;

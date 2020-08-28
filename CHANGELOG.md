@@ -12,6 +12,7 @@ All notable changes to this project will be documented in this file.
 ### Fixed
 
 -   Drawing on FOW layer blocking UI
+-   Badge toggle not working properly
 
 ## [0.22.1] - 2020-08-27
 

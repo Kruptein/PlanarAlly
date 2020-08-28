@@ -43,6 +43,7 @@ import {
     sendShapeUpdateAura,
     sendShapeUpdateTracker,
     sendShapeCreateAura,
+    sendShapeSetShowBadge,
 } from "../api/emits/shape/options";
 import { Floor } from "../layers/floor";
 import { Layer } from "../layers/layer";
@@ -635,6 +636,12 @@ export abstract class Shape {
     setLocked(isLocked: boolean, sync: boolean): void {
         this.isLocked = isLocked;
         if (sync) sendShapeSetLocked({ shape: this.uuid, value: isLocked });
+    }
+
+    setShowBadge(showBadge: boolean, sync: boolean): void {
+        this.showBadge = showBadge;
+        if (sync) sendShapeSetShowBadge({ shape: this.uuid, value: this.showBadge });
+        this.invalidate(!this.triggersVisionRecalc);
     }
 
     setAnnotation(text: string, sync: boolean): void {

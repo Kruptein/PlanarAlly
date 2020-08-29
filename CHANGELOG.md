@@ -13,6 +13,11 @@ All notable changes to this project will be documented in this file.
     -   a refresh of the page is most likely necessary for all normal functionality to update
     -   e.g. if you used to have a DM grid size setting that was 70px and want to retrofit your maps to the new baseline of 50, you can use `rescale(50/70);`
 
+### Fixed
+
+-   moving shapes to front/back not syncing on the server
+    -   sadly I messed something up so you may have to fix the order of some shapes on some maps
+
 # [0.22.2] - 2020-08-28
 
 ### Fixed

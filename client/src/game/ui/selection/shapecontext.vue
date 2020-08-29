@@ -21,11 +21,14 @@ import { Floor } from "@/game/layers/floor";
 import { moveFloor, moveLayer } from "../../layers/utils";
 import { requestSpawnInfo } from "@/game/api/emits/location";
 import { sendShapesMove } from "@/game/api/emits/shape/core";
+import SelectionBox from "@/core/components/modals/SelectionBox.vue";
+import { ServerAsset } from "@/game/comm/types/shapes";
 
 @Component({
     components: {
         ContextMenu,
         Prompt,
+        SelectionBox,
     },
     computed: {
         ...mapState("game", ["activeFloorIndex", "markers"]),
@@ -35,6 +38,7 @@ import { sendShapesMove } from "@/game/api/emits/shape/core";
 export default class ShapeContext extends Vue {
     $refs!: {
         prompt: InstanceType<typeof Prompt>;
+        selectionbox: InstanceType<typeof SelectionBox>;
     };
 
     visible = false;
@@ -107,13 +111,8 @@ export default class ShapeContext extends Vue {
     }
     async setLocation(newLocation: number): Promise<void> {
         const selection = this.getActiveLayer()!.getSelection();
-
         const spawnInfo = await requestSpawnInfo(newLocation);
-
-        console.log(spawnInfo);
-
-        let x: number;
-        let y: number;
+        let spawnLocation: ServerAsset;
 
         switch (spawnInfo.length) {
             case 0:
@@ -125,20 +124,24 @@ export default class ShapeContext extends Vue {
                 this.close();
                 return;
             case 1:
-                x = spawnInfo[0].x + spawnInfo[0].width / 2;
-                y = spawnInfo[0].y + spawnInfo[0].height / 2;
+                spawnLocation = spawnInfo[0];
                 break;
-            default:
-                // todo: selection choice
-                x = spawnInfo[0].x + spawnInfo[0].width / 2;
-                y = spawnInfo[0].y + spawnInfo[0].height / 2;
+            default: {
+                const choice = await this.$refs.selectionbox.open(
+                    "Choose the desired spawn location",
+                    spawnInfo.map(s => s.name),
+                );
+                const choiceShape = spawnInfo.find(s => s.name === choice);
+                if (choiceShape === undefined) return;
+                spawnLocation = choiceShape;
                 break;
+            }
         }
 
         const targetLocation = {
-            floor: spawnInfo[0].floor,
-            x,
-            y,
+            floor: spawnLocation.floor,
+            x: spawnLocation.x + spawnLocation.width / 2,
+            y: spawnLocation.y + spawnLocation.height / 2,
         };
 
         sendShapesMove({
@@ -226,6 +229,7 @@ export default class ShapeContext extends Vue {
         @close="close"
     >
         <Prompt ref="prompt"></Prompt>
+        <SelectionBox ref="selectionbox"></SelectionBox>
         <li v-if="getFloors().length > 1">
             {{ $t("common.floor") }}
             <ul>

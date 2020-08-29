@@ -19,7 +19,7 @@ import { Shape } from "@/game/shapes/shape";
 import { floorStore } from "../../layers/store";
 import { Floor } from "@/game/layers/floor";
 import { moveFloor, moveLayer } from "../../layers/utils";
-import { requestSpawnInfo } from "@/game/api/emits/location";
+import { requestSpawnInfo, sendLocationChange } from "@/game/api/emits/location";
 import { sendShapesMove } from "@/game/api/emits/shape/core";
 import SelectionBox from "@/core/components/modals/SelectionBox.vue";
 import { ServerAsset } from "@/game/comm/types/shapes";
@@ -148,6 +148,13 @@ export default class ShapeContext extends Vue {
             shapes: selection.map(s => s.uuid),
             target: { location: newLocation, ...targetLocation },
         });
+        if (gameSettingsStore.movePlayerOnTokenChange) {
+            const users: Set<string> = new Set();
+            for (const shape of selection) {
+                for (const owner of shape.owners) users.add(owner.user);
+            }
+            sendLocationChange({ location: newLocation, users: [...users] });
+        }
 
         this.close();
     }

@@ -1,4 +1,5 @@
 import App from "@/App.vue";
+import { registerScripts } from "./scripts";
 import { router } from "@/router";
 import { rootStore } from "@/store";
 import { library } from "@fortawesome/fontawesome-svg-core";
@@ -86,6 +87,8 @@ Vue.component("font-awesome-icon", FontAwesomeIcon);
 Vue.config.productionTip = false;
 Vue.config.devtools = true;
 Vue.config.performance = true;
+
+registerScripts();
 
 export const app = new Vue({
     router,

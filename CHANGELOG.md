@@ -7,6 +7,12 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+### Added
+
+-   `rescale(factor)` webconsole function as a convenience method for DMs to rescale all their shapes
+    -   a refresh of the page is most likely necessary for all normal functionality to update
+    -   e.g. if you used to have a DM grid size setting that was 70px and want to retrofit your maps to the new baseline of 50, you can use `rescale(50/70);`
+
 # [0.22.2] - 2020-08-28
 
 ### Fixed

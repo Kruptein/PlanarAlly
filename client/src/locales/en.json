@@ -65,7 +65,8 @@
         "confirm": "Confirm",
         "cancel": "Cancel",
         "insert_one_character": "Please insert at least one character",
-        "name_already_in_use": "This name is already in use!"
+        "name_already_in_use": "This name is already in use!",
+        "varia": "Varia"
     },
     "auth": {
         "login": {
@@ -238,6 +239,9 @@
                     "unit_size_in_UNIT": "Unit Size (in {unit})",
                     "use_grid": "Use grid",
                     "size_unit": "Size Unit"
+                },
+                "VariaSettings": {
+                    "movePlayerOnTokenChange": "Move player(s) when a token they own changes location"
                 },
                 "location": {
                     "LocationAdminSettings": {

@@ -10,6 +10,7 @@ import VisionSettings from "../VisionSettings.vue";
 import PanelModal from "../../../../core/components/modals/PanelModal.vue";
 import { EventBus } from "@/game/event-bus";
 import { gameStore } from "@/game/store";
+import VariaSettings from "../VariaSettings.vue";
 
 @Component({
     components: {
@@ -17,6 +18,7 @@ import { gameStore } from "@/game/store";
         // PermissionsDmSettings,
         LocationAdminSettings,
         PanelModal,
+        VariaSettings,
         VisionSettings,
     },
 })
@@ -44,6 +46,7 @@ export default class LocationSettings extends Vue {
             this.$t("common.admin").toString(),
             this.$t("common.grid").toString(),
             this.$t("common.vision").toString(),
+            this.$t("common.varia").toString(),
         ];
     }
 }
@@ -62,6 +65,7 @@ export default class LocationSettings extends Vue {
             ></LocationAdminSettings>
             <GridSettings :location="location" v-show="selection === 1"></GridSettings>
             <VisionSettings :location="location" v-show="selection === 2"></VisionSettings>
+            <VariaSettings :location="location" v-show="selection === 3"></VariaSettings>
         </template>
     </PanelModal>
 </template>

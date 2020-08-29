@@ -20,7 +20,7 @@ from models import ALL_MODELS, Constants
 from models.db import db
 from utils import OldVersionException, UnknownVersionException
 
-SAVE_VERSION = 39
+SAVE_VERSION = 40
 
 logger: logging.Logger = logging.getLogger("PlanarAllyServer")
 logger.setLevel(logging.INFO)
@@ -641,6 +641,16 @@ def upgrade(version):
                     )
                 except json.decoder.JSONDecodeError:
                     print(f"Failed to update polygon vertices! {row}")
+
+        db.foreign_keys = True
+        Constants.get().update(save_version=Constants.save_version + 1).execute()
+    elif version == 39:
+        # Add spawn locations
+        db.foreign_keys = False
+        with db.atomic():
+            db.execute_sql(
+                "ALTER TABLE location_options ADD COLUMN move_player_on_token_change INTEGER DEFAULT 1"
+            )
 
         db.foreign_keys = True
         Constants.get().update(save_version=Constants.save_version + 1).execute()

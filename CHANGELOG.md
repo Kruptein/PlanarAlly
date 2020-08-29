@@ -9,8 +9,10 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
--   Multi spawn locations
-    -   When moving a shape to a new location that has multiple spawn locations, a box will appear to choose the desired spawn zone
+-   spawn location tweaks
+    -   Multi spawn locations
+        -   When moving a shape to a new location that has multiple spawn locations, a box will appear to choose the desired spawn zone
+    -   Removal of spawn locations is now possible
 
 # [0.22.2] - 2020-08-28
 

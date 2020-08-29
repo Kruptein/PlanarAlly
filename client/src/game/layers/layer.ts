@@ -140,8 +140,11 @@ export class Layer {
             return false;
         }
         if (gameSettingsStore.currentLocationOptions.spawnLocations!.includes(shape.uuid)) {
-            console.error("attempted to remove spawn location");
-            return false;
+            gameSettingsStore.setSpawnLocations({
+                spawnLocations: gameSettingsStore.currentLocationOptions.spawnLocations!.filter(s => s !== shape.uuid),
+                location: gameSettingsStore.activeLocation,
+                sync: true,
+            });
         }
         this.shapes.splice(idx, 1);
 

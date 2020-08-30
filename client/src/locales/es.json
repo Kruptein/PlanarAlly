@@ -63,7 +63,10 @@
         "colors": "Colores",
         "version": "versión",
         "confirm": "Confirmar",
-        "cancel": "Cancelar"
+        "cancel": "Cancelar",
+        "insert_one_character": "Se debe insertar al menos un caracter",
+        "name_already_in_use": "¡Este nombre ya esta en uso!",
+        "varia": "Varia"
     },
     "auth": {
         "login": {
@@ -198,7 +201,9 @@
                     "delete_shapes": "Borrar figuras",
                     "show_props": "Mostrar Propiedades",
                     "remove_marker": "Remover etiqueta",
-                    "set_marker": "Poner Etiqueta"
+                    "set_marker": "Poner Etiqueta",
+                    "no_spawn_set_title": "No se pudieron mover las figuras",
+                    "no_spawn_set_text": "El destino no tiene ubicaciones iniciales configuradas, asegurese de crear al menos una."
                 }
             },
             "settings": {
@@ -234,6 +239,9 @@
                     "unit_size_in_UNIT": "Tamaño de Unidad (en {unit})",
                     "use_grid": "Usar Grilla",
                     "size_unit": "Unidad de longitud"
+                },
+                "VariaSettings": {
+                    "movePlayerOnTokenChange": "Mover a los jugadores cuando un token suyo cambia de ubicación."
                 },
                 "location": {
                     "LocationAdminSettings": {
@@ -277,7 +285,10 @@
                 "defaultcontext": {
                     "bring_pl": "Traer Jugadores",
                     "create_basic_token": "Crear token básico",
-                    "show_initiative": "Mostrar iniciativa"
+                    "show_initiative": "Mostrar iniciativa",
+                    "create_spawn_location": "Crear ubicación inicial",
+                    "new_spawn_question": "¿Cómo se debería llamar esta ubicación inicial?",
+                    "new_spawn_title": "Creando nueva ubicación inicial"
                 },
                 "draw": {
                     "foreground_color": "Color del primer plano",

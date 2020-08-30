@@ -98,6 +98,14 @@ class GameSettingsStore extends VuexModule implements GameSettingsState {
         return this.currentLocationOptions.spawnLocations ?? [];
     }
 
+    get movePlayerOnTokenChange(): boolean {
+        return (
+            this.currentLocationOptions.movePlayerOnTokenChange ??
+            this.defaultLocationOptions?.movePlayerOnTokenChange ??
+            false
+        );
+    }
+
     @Mutation
     reset(data: { key: keyof LocationOptions; location: number }): void {
         if (data.key in this.locationOptions[data.location]) {
@@ -226,6 +234,22 @@ class GameSettingsStore extends VuexModule implements GameSettingsState {
                 sendLocationOptions({
                     // eslint-disable-next-line @typescript-eslint/camelcase
                     options: { spawn_locations: JSON.stringify(data.spawnLocations) },
+                    location: data.location,
+                });
+        }
+    }
+
+    @Mutation
+    setMovePlayerOnTokenChange(data: {
+        movePlayerOnTokenChange: boolean;
+        location: number | null;
+        sync: boolean;
+    }): void {
+        if (mutateLocationOption("movePlayerOnTokenChange", data.movePlayerOnTokenChange, data.location)) {
+            if (data.sync)
+                sendLocationOptions({
+                    // eslint-disable-next-line @typescript-eslint/camelcase
+                    options: { move_player_on_token_change: data.movePlayerOnTokenChange },
                     location: data.location,
                 });
         }

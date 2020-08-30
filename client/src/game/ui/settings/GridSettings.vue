@@ -114,7 +114,7 @@ export default class GridSettings extends Vue {
 <style scoped>
 /* Force higher specificity without !important abuse */
 .panel.restore-panel {
-    grid-template-columns: [setting] 1fr [value] 1fr [restore] 30px [end];
+    grid-template-columns: [setting] 1fr [value] auto [restore] 30px [end];
 }
 
 .overwritten,

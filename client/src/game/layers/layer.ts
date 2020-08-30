@@ -106,7 +106,7 @@ export class Layer {
         shape.setLayer(this.floor, this.name);
         this.shapes.push(shape);
         layerManager.UUIDMap.set(shape.uuid, shape);
-        shape.checkVisionSources(invalidate !== InvalidationMode.NO);
+        shape.setVisionBlock(shape.visionObstruction, false, invalidate !== InvalidationMode.NO);
         shape.setMovementBlock(shape.movementObstruction, false, invalidate !== InvalidationMode.NO);
         if (snappable) {
             for (const point of shape.points) {
@@ -140,8 +140,11 @@ export class Layer {
             return false;
         }
         if (gameSettingsStore.currentLocationOptions.spawnLocations!.includes(shape.uuid)) {
-            console.error("attempted to remove spawn location");
-            return false;
+            gameSettingsStore.setSpawnLocations({
+                spawnLocations: gameSettingsStore.currentLocationOptions.spawnLocations!.filter(s => s !== shape.uuid),
+                location: gameSettingsStore.activeLocation,
+                sync: true,
+            });
         }
         this.shapes.splice(idx, 1);
 

@@ -25,6 +25,7 @@ import { floorStore, getFloorId } from "../layers/store";
 import { gameStore } from "../store";
 import { Polygon } from "./polygon";
 import { addGroupMember } from "./group";
+import { sendGroupLeaderUpdate } from "../api/emits/shape/core";
 
 export function createShapeFromDict(shape: ServerShape): Shape | undefined {
     let sh: Shape;
@@ -143,7 +144,10 @@ export function pasteShapes(targetLayer?: string): readonly Shape[] {
         }
         if (groupLeader === undefined) console.error("Missing group leader on paste");
         else {
-            if (!groupLeader.options.has("groupInfo")) groupLeader.options.set("groupInfo", []);
+            if (!groupLeader.options.has("groupInfo")) {
+                groupLeader.options.set("groupInfo", []);
+                sendGroupLeaderUpdate({ leader: groupLeader.uuid, members: [] });
+            }
             const groupMembers = groupLeader.getGroupMembers();
             clip.badge = groupMembers.reduce((acc: number, sh: Shape) => Math.max(acc, sh.badge ?? 1), 0) + 1;
             options.set("groupId", groupLeader.uuid);

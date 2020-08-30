@@ -87,7 +87,7 @@ async def add_shape(sid: str, data: ShapeAdd):
                 Tracker.create(**reduce_data_to_model(Tracker, tracker), shape=shape)
             # Auras
             for aura in data["shape"]["auras"]:
-                Aura.create(**reduce_data_to_model(Aura, aura), shape=shape)
+                Aura.create(**reduce_data_to_model(Aura, aura))
 
     for room_player in pr.room.players:
         is_dm = room_player.role == Role.DM

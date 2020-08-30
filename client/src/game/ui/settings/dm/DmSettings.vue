@@ -9,6 +9,7 @@ import VisionSettings from "../VisionSettings.vue";
 
 import PanelModal from "../../../../core/components/modals/PanelModal.vue";
 import { EventBus } from "@/game/event-bus";
+import VariaSettings from "../VariaSettings.vue";
 
 @Component({
     components: {
@@ -16,6 +17,7 @@ import { EventBus } from "@/game/event-bus";
         GridSettings,
         // PermissionsDmSettings,
         PanelModal,
+        VariaSettings,
         VisionSettings,
     },
 })
@@ -37,6 +39,7 @@ export default class DmSettings extends Vue {
             this.$t("common.admin").toString(),
             this.$t("common.grid").toString(),
             this.$t("common.vision").toString(),
+            this.$t("common.varia").toString(),
         ];
     }
 }
@@ -49,6 +52,7 @@ export default class DmSettings extends Vue {
             <AdminSettings v-show="selection === 0"></AdminSettings>
             <GridSettings :location="null" v-show="selection === 1"></GridSettings>
             <VisionSettings :location="null" v-show="selection === 2"></VisionSettings>
+            <VariaSettings :location="null" v-show="selection === 3"></VariaSettings>
         </template>
     </PanelModal>
 </template>

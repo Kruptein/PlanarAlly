@@ -284,6 +284,27 @@ async def set_name_visible(sid: str, data: ShapeSetBooleanValue):
     )
 
 
+@sio.on("Shape.Options.ShowBadge.Set", namespace=GAME_NS)
+@auth.login_required(app, sio)
+async def set_show_badge(sid: str, data: ShapeSetBooleanValue):
+    pr: PlayerRoom = game_state.get(sid)
+
+    shape = get_shape_or_none(pr, data["shape"], "ShowBadge.Set")
+    if shape is None:
+        return
+
+    shape.show_badge = data["value"]
+    shape.save()
+
+    await sio.emit(
+        "Shape.Options.ShowBadge.Set",
+        data,
+        skip_sid=sid,
+        room=pr.active_location.get_path(),
+        namespace=GAME_NS,
+    )
+
+
 @sio.on("Shape.Options.StrokeColour.Set", namespace=GAME_NS)
 @auth.login_required(app, sio)
 async def set_stroke_colour(sid: str, data: ShapeSetStringValue):

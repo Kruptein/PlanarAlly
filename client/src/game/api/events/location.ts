@@ -68,6 +68,13 @@ export function setLocationOptions(id: number | null, options: Partial<ServerLoc
             visibilityStore.recalculateMovement(floor.id);
         }
     }
+    if (options.move_player_on_token_change !== undefined) {
+        gameSettingsStore.setMovePlayerOnTokenChange({
+            movePlayerOnTokenChange: options.move_player_on_token_change,
+            location: id,
+            sync: false,
+        });
+    }
     gameSettingsStore.setSpawnLocations({
         spawnLocations: JSON.parse(options.spawn_locations ?? "[]"),
         location: id,

@@ -7,6 +7,8 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+## [0.22.3] - 2020-08-30
+
 ### Added
 
 -   `rescale(factor)` webconsole function as a convenience method for DMs to rescale all their shapes

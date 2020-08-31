@@ -17,6 +17,10 @@ All notable changes to this project will be documented in this file.
 
 ### Fixed
 
+-   When adding trackers or auras, duplicate entries could appear clientside until a refresh
+
+### Fixed
+
 -   moving shapes to front/back not syncing on the server
     -   sadly I messed something up so you may have to fix the order of some shapes on some maps
 

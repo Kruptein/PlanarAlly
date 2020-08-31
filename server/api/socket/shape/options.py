@@ -365,12 +365,15 @@ async def create_tracker(sid: str, data: TrackerDelta):
         await sio.emit(
             "Shape.Options.Tracker.Create", data, room=psid, namespace=GAME_NS,
         )
-    for psid in game_state.get_sids(active_location=pr.active_location, skip_sid=sid):
-        if psid in owners:
-            continue
-        await sio.emit(
-            "Shape.Options.Tracker.Create", data, room=sid, namespace=GAME_NS,
-        )
+    if tracker.visible:
+        for psid in game_state.get_sids(
+            active_location=pr.active_location, skip_sid=sid
+        ):
+            if psid in owners:
+                continue
+            await sio.emit(
+                "Shape.Options.Tracker.Create", data, room=psid, namespace=GAME_NS,
+            )
 
 
 @sio.on("Shape.Options.Tracker.Update", namespace=GAME_NS)
@@ -434,12 +437,15 @@ async def create_aura(sid: str, data: AuraDelta):
         await sio.emit(
             "Shape.Options.Aura.Create", data, room=psid, namespace=GAME_NS,
         )
-    for psid in game_state.get_sids(active_location=pr.active_location, skip_sid=sid):
-        if psid in owners:
-            continue
-        await sio.emit(
-            "Shape.Options.Aura.Create", data, room=sid, namespace=GAME_NS,
-        )
+    if aura.visible:
+        for psid in game_state.get_sids(
+            active_location=pr.active_location, skip_sid=sid
+        ):
+            if psid in owners:
+                continue
+            await sio.emit(
+                "Shape.Options.Aura.Create", data, room=psid, namespace=GAME_NS,
+            )
 
 
 @sio.on("Shape.Options.Aura.Update", namespace=GAME_NS)

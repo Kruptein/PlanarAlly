@@ -25,10 +25,10 @@ export const sendTrackerUpdate = wrapSocket<{
 export const sendTextUpdate = wrapSocket<{ uuid: string; text: string; temporary: boolean }>("Shape.Text.Value.Set");
 
 export function sendShapePositionUpdate(shapes: readonly Shape[], temporary: boolean): void {
-    _sendShapePositionUpdate(
-        shapes.filter(s => !s.preventSync).map(s => ({ uuid: s.uuid, position: s.getPositionRepresentation() })),
-        temporary,
-    );
+    const positions = shapes
+        .filter(s => !s.preventSync)
+        .map(s => ({ uuid: s.uuid, position: s.getPositionRepresentation() }));
+    if (positions.length > 0) _sendShapePositionUpdate(positions, temporary);
 }
 
 export function sendShapeSizeUpdate(data: { shape: Shape; temporary: boolean }): void {

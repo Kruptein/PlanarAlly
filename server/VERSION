@@ -1,4 +1,4 @@
-0.22.2
+0.22.3
 
 ### Added
 
@@ -28,6 +28,9 @@
     -   Shape movement now sends less data to server
     -   Pan now only updates the visible floors on move and full recalculate on release
 -   Grid pixel size is now a client setting instead of a DM setting
+	-   [0.22.3] `rescale(factor)` webconsole function has been added as a convenience method for DMs to rescale all their shapes on maps that might now be wrongly sized.
+	   -   a refresh of the page is most likely necessary for all normal functionality to update
+	   -   e.g. if you used to have a DM grid size setting that was 70px and want to retrofit your maps to the new baseline of 50, you can use `rescale(50/70);`
 -   Show floor selector in the more logical order from upper to lower floors
 -   Improve ruler distance text readability
 -   [0.22.1] Spawn locations are no longer magically created
@@ -60,3 +63,5 @@
 -   [0.22.2] Badge toggle not working properly
 -   [0.22.2] Group leader not properly set serverside on paste
 -   [0.22.2] Server error on shape paste due to aura type change
+-   [0.22.3] moving shapes to front/back not syncing on the server
+   -   sadly I messed something up so you may have to fix the order of some shapes on some maps

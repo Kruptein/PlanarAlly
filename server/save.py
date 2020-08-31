@@ -3,6 +3,7 @@ import logging
 import os
 import secrets
 import shutil
+import sqlite3
 import sys
 
 from peewee import (
@@ -20,7 +21,7 @@ from models import ALL_MODELS, Constants
 from models.db import db
 from utils import OldVersionException, UnknownVersionException
 
-SAVE_VERSION = 40
+SAVE_VERSION = 41
 
 logger: logging.Logger = logging.getLogger("PlanarAllyServer")
 logger.setLevel(logging.INFO)
@@ -645,12 +646,35 @@ def upgrade(version):
         db.foreign_keys = True
         Constants.get().update(save_version=Constants.save_version + 1).execute()
     elif version == 39:
-        # Add spawn locations
+        # Fix Shape.index being set to 'index'
+        from models import Layer
+
         db.foreign_keys = False
         with db.atomic():
-            db.execute_sql(
-                "ALTER TABLE location_options ADD COLUMN move_player_on_token_change INTEGER DEFAULT 1"
-            )
+            with db.atomic():
+                for layer in Layer.select():
+                    shapes = layer.shapes.select()
+                    for i, shape in enumerate(shapes):
+                        shape.index = i
+                        shape.save()
+
+        db.foreign_keys = True
+        Constants.get().update(save_version=Constants.save_version + 1).execute()
+    elif version == 40:
+        # Add move_player_on_token_change to location_options
+        db.foreign_keys = False
+        with db.atomic():
+            try:
+                db.execute_sql(
+                    "ALTER TABLE location_options ADD COLUMN move_player_on_token_change INTEGER DEFAULT 1"
+                )
+            except Exception as e:
+                if e.args[0] == "duplicate column name: move_player_on_token_change":
+                    # This addresses a save increase in a hotfix branch and a dev branch with the same version
+                    upgrade(39)
+                    return
+                else:
+                    raise e
 
         db.foreign_keys = True
         Constants.get().update(save_version=Constants.save_version + 1).execute()

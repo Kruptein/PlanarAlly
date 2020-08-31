@@ -18,6 +18,28 @@ All notable changes to this project will be documented in this file.
 
 -   Run docker container as non-root
 
+## [0.22.3] - 2020-08-30
+
+### Added
+
+-   `rescale(factor)` webconsole function as a convenience method for DMs to rescale all their shapes
+    -   a refresh of the page is most likely necessary for all normal functionality to update
+    -   e.g. if you used to have a DM grid size setting that was 70px and want to retrofit your maps to the new baseline of 50, you can use `rescale(50/70);`
+
+### Changed
+
+-   Changed floor keybindings to use alt instead of ctrl, due to chrome and firefox not allowing these keybindings to be overriden
+    -   As a reminder (similar for Page Down):
+        -   Page Up - Move floor up
+        -   Alt + Page Up - Move selected shapes floor up
+        -   Alt + Shift + Page Up - Move selected shapes floor up AND move floor up
+
+### Fixed
+
+-   moving shapes to front/back not syncing on the server
+    -   sadly I messed something up so you may have to fix the order of some shapes on some maps
+-   When adding trackers or auras, duplicate entries could appear clientside until a refresh
+
 # [0.22.2] - 2020-08-28
 
 ### Fixed

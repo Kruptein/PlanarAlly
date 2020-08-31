@@ -123,9 +123,10 @@ export function onKeyDown(event: KeyboardEvent): void {
             pasteShapes();
         } else if (event.key === "PageUp" && floorStore.currentFloorindex < floorStore.floors.length - 1) {
             // Page Up - Move floor up
-            // Ctrl + Page Up - Move selected shapes floor up
-            // Ctrl + Shift + Page Up - Move selected shapes floor up AND move floor up
+            // Alt + Page Up - Move selected shapes floor up
+            // Alt + Shift + Page Up - Move selected shapes floor up AND move floor up
             event.preventDefault();
+            event.stopPropagation();
             const targetFloor = floorStore.floors.findIndex(
                 (f, i) => i > floorStore.currentFloorindex && (gameStore.IS_DM || f.playerVisible),
             );
@@ -134,9 +135,10 @@ export function onKeyDown(event: KeyboardEvent): void {
             changeFloor(event, targetFloor);
         } else if (event.key === "PageDown" && floorStore.currentFloorindex > 0) {
             // Page Down - Move floor down
-            // Ctrl + Page Down - Move selected shape floor down
-            // Ctrl + Shift + Page Down - Move selected shapes floor down AND move floor down
+            // Alt + Page Down - Move selected shape floor down
+            // Alt + Shift + Page Down - Move selected shapes floor down AND move floor down
             event.preventDefault();
+            event.stopPropagation();
             const maxLength = floorStore.floors.length - 1;
             let targetFloor = [...floorStore.floors]
                 .reverse()
@@ -159,11 +161,11 @@ function changeFloor(event: KeyboardEvent, targetFloor: number): void {
     const newFloor = floorStore.floors[targetFloor];
     const newLayer = layerManager.getLayer(newFloor)!;
 
-    if (event.ctrlKey) {
+    if (event.altKey) {
         moveFloor([...selection], newFloor, true);
     }
     layerManager.clearSelection();
-    if (!event.ctrlKey || event.shiftKey) {
+    if (!event.altKey || event.shiftKey) {
         floorStore.selectFloor({ targetFloor, sync: true });
     }
     if (event.shiftKey) for (const shape of selection) newLayer.pushSelection(shape);

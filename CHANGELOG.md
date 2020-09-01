@@ -8,7 +8,7 @@ All notable changes to this project will be documented in this file.
 ## Unreleased
 
 ### Added
-
+-   traditional chinese location added
 -   spawn location tweaks
     -   Multi spawn locations
         -   When moving a shape to a new location that has multiple spawn locations, a box will appear to choose the desired spawn zone

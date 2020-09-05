@@ -13,13 +13,15 @@ export class Line extends Shape {
     constructor(
         startPoint: GlobalPoint,
         endPoint: GlobalPoint,
-        lineWidth?: number,
-        strokeColour?: string,
-        uuid?: string,
+        options?: {
+            lineWidth?: number;
+            strokeColour?: string;
+            uuid?: string;
+        },
     ) {
-        super(startPoint, "rgba(0, 0, 0, 0)", strokeColour || "#000", uuid);
+        super(startPoint, { fillColour: "rgba(0, 0, 0, 0)", strokeColour: "#000", ...options });
         this.endPoint = endPoint;
-        this.lineWidth = lineWidth === undefined ? 1 : lineWidth;
+        this.lineWidth = options?.lineWidth ?? 1;
     }
 
     get isClosed(): boolean {

@@ -11,8 +11,12 @@ import { SHAPE_TYPE } from "./types";
 export class Circle extends Shape {
     type: SHAPE_TYPE = "circle";
     r: number;
-    constructor(center: GlobalPoint, r: number, fillColour?: string, strokeColour?: string, uuid?: string) {
-        super(center, fillColour, strokeColour, uuid);
+    constructor(
+        center: GlobalPoint,
+        r: number,
+        options?: { fillColour?: string; strokeColour?: string; uuid?: string },
+    ) {
+        super(center, options);
         this.r = r || 1;
     }
     asDict(): ServerCircle {

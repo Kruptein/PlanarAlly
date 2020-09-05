@@ -17,11 +17,13 @@ export class CircularToken extends Circle {
         r: number,
         text: string,
         font: string,
-        fillColour?: string,
-        strokeColour?: string,
-        uuid?: string,
+        options?: {
+            fillColour?: string;
+            strokeColour?: string;
+            uuid?: string;
+        },
     ) {
-        super(center, r, fillColour, strokeColour, uuid);
+        super(center, r, options);
         this.text = text;
         this.font = font;
         this.name = this.text;

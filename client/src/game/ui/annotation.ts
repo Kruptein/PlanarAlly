@@ -16,8 +16,8 @@ export class AnnotationManager {
 
     constructor() {
         const origin = new GlobalPoint(0, 0);
-        this.annotationText = new Text(origin, "", "bold 20px serif", "rgba(230, 230, 230, 1)");
-        this.annotationRect = new Rect(origin, 0, 0, "rgba(0, 0, 0, 0.6)");
+        this.annotationText = new Text(origin, "", "bold 20px serif", { fillColour: "rgba(230, 230, 230, 1)" });
+        this.annotationRect = new Rect(origin, 0, 0, { fillColour: "rgba(0, 0, 0, 0.6)" });
     }
 
     setActiveText(text: string): void {

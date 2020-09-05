@@ -10,8 +10,13 @@ import { rotateAroundPoint } from "../utils";
 export abstract class BaseRect extends Shape {
     w: number;
     h: number;
-    constructor(topleft: GlobalPoint, w: number, h: number, fillColour?: string, strokeColour?: string, uuid?: string) {
-        super(topleft, fillColour, strokeColour, uuid);
+    constructor(
+        topleft: GlobalPoint,
+        w: number,
+        h: number,
+        options?: { fillColour?: string; strokeColour?: string; uuid?: string },
+    ) {
+        super(topleft, options);
         this.w = w;
         this.h = h;
     }

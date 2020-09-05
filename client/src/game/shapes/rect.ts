@@ -8,8 +8,13 @@ import { SHAPE_TYPE } from "./types";
 
 export class Rect extends BaseRect {
     type: SHAPE_TYPE = "rect";
-    constructor(topleft: GlobalPoint, w: number, h: number, fillColour?: string, strokeColour?: string, uuid?: string) {
-        super(topleft, w, h, fillColour, strokeColour, uuid);
+    constructor(
+        topleft: GlobalPoint,
+        w: number,
+        h: number,
+        options?: { fillColour?: string; strokeColour?: string; uuid?: string },
+    ) {
+        super(topleft, w, h, options);
     }
     asDict(): ServerShape {
         return super.getBaseDict();

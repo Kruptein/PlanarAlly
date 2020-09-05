@@ -15,16 +15,18 @@ export class Polygon extends Shape {
     constructor(
         startPoint: GlobalPoint,
         vertices?: GlobalPoint[],
-        fillColour?: string,
-        strokeColour?: string,
-        lineWidth?: number,
-        openPolygon = false,
-        uuid?: string,
+        options?: {
+            fillColour?: string;
+            strokeColour?: string;
+            lineWidth?: number;
+            openPolygon?: boolean;
+            uuid?: string;
+        },
     ) {
-        super(startPoint, fillColour, strokeColour, uuid);
+        super(startPoint, options);
         this._vertices = vertices || [];
-        this.openPolygon = openPolygon;
-        this.lineWidth = lineWidth || 2;
+        this.openPolygon = options?.openPolygon ?? false;
+        this.lineWidth = options?.lineWidth ?? 2;
     }
 
     get isClosed(): boolean {

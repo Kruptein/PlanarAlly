@@ -72,8 +72,8 @@ export abstract class Shape {
     protected _angle = 0;
 
     // Fill colour of the shape
-    fillColour = "#000";
-    strokeColour = "rgba(0,0,0,0)";
+    fillColour: string;
+    strokeColour: string;
     strokeWidth = 5;
     // The optional name associated with the shape
     name = "Unknown shape";
@@ -110,11 +110,11 @@ export abstract class Shape {
     isLocked = false;
     defaultAccess: ShapeAccess = { vision: false, movement: false, edit: false };
 
-    constructor(refPoint: GlobalPoint, fillColour?: string, strokeColour?: string, uuid?: string) {
+    constructor(refPoint: GlobalPoint, options?: { fillColour?: string; strokeColour?: string; uuid?: string }) {
         this._refPoint = refPoint;
-        this.uuid = uuid || uuidv4();
-        if (fillColour !== undefined) this.fillColour = fillColour;
-        if (strokeColour !== undefined) this.strokeColour = strokeColour;
+        this.uuid = options?.uuid ?? uuidv4();
+        this.fillColour = options?.fillColour ?? "#000";
+        this.strokeColour = options?.strokeColour ?? "rgba(0,0,0,0)";
     }
 
     // Are the last and first point connected

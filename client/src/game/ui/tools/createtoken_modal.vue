@@ -65,8 +65,7 @@ export default class CreateTokenModal extends Vue {
             getUnitDistance(gameSettingsStore.unitSize / 2),
             this.text,
             "10px serif",
-            this.fillColour,
-            this.borderColour,
+            { fillColour: this.fillColour, strokeColour: this.borderColour },
         );
         token.addOwner({ user: gameStore.username, access: { edit: true } }, false);
         layer.addShape(token, SyncMode.FULL_SYNC, InvalidationMode.WITH_LIGHT);

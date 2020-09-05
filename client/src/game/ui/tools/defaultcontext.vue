@@ -81,7 +81,7 @@ export default class DefaultContext extends Vue {
 
         const loc = new LocalPoint(this.x, this.y);
 
-        const shape = new Asset(img, l2g(loc), 50, 50, uuid);
+        const shape = new Asset(img, l2g(loc), 50, 50, { uuid });
         shape.name = spawnName;
         shape.src = img.src;
 

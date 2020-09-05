@@ -170,7 +170,10 @@ export default class SelectTool extends Tool implements ToolBasics {
             this.selectionStartPoint = gp;
 
             if (this.selectionHelper === null) {
-                this.selectionHelper = new Rect(this.selectionStartPoint, 0, 0, "rgba(0, 0, 0, 0)", "#7c253e");
+                this.selectionHelper = new Rect(this.selectionStartPoint, 0, 0, {
+                    fillColour: "rgba(0, 0, 0, 0)",
+                    strokeColour: "#7c253e",
+                });
                 this.selectionHelper.strokeWidth = 2;
                 this.selectionHelper.options.set("UiHelper", "true");
                 this.selectionHelper.addOwner({ user: gameStore.username, access: { edit: true } }, false);
@@ -546,10 +549,13 @@ export default class SelectTool extends Tool implements ToolBasics {
         const topCenterPlus = topCenter.add(new Vector(0, -150));
 
         this.angle = 0;
-        this.rotationAnchor = new Line(topCenter, topCenterPlus, l2gz(1.5), "#7c253e");
-        this.rotationBox = new Rect(bbox.topLeft, bbox.w, bbox.h, "rgba(0,0,0,0)", "#7c253e");
+        this.rotationAnchor = new Line(topCenter, topCenterPlus, { lineWidth: l2gz(1.5), strokeColour: "#7c253e" });
+        this.rotationBox = new Rect(bbox.topLeft, bbox.w, bbox.h, {
+            fillColour: "rgba(0,0,0,0)",
+            strokeColour: "#7c253e",
+        });
         this.rotationBox.strokeWidth = 1.5;
-        this.rotationEnd = new Circle(topCenterPlus, l2gz(4), "#7c253e", "rgba(0,0,0,0)");
+        this.rotationEnd = new Circle(topCenterPlus, l2gz(4), { fillColour: "#7c253e", strokeColour: "rgba(0,0,0,0)" });
 
         for (const rotationShape of [this.rotationAnchor, this.rotationBox, this.rotationEnd]) {
             rotationShape.addOwner({ user: gameStore.username, access: { edit: true } }, false);

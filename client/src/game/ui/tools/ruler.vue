@@ -40,8 +40,14 @@ export default class RulerTool extends Tool implements ToolBasics {
             return;
         }
         this.active = true;
-        this.ruler = new Line(this.startPoint, this.startPoint, l2gz(3), gameStore.rulerColour);
-        this.text = new Text(this.startPoint.clone(), "", "bold 20px serif", "#000", "#fff");
+        this.ruler = new Line(this.startPoint, this.startPoint, {
+            lineWidth: l2gz(3),
+            strokeColour: gameStore.rulerColour,
+        });
+        this.text = new Text(this.startPoint.clone(), "", "bold 20px serif", {
+            fillColour: "#000",
+            strokeColour: "#fff",
+        });
         this.ruler.addOwner({ user: gameStore.username, access: { edit: true } }, false);
         this.text.addOwner({ user: gameStore.username, access: { edit: true } }, false);
         layer.addShape(this.ruler, this.syncMode, InvalidationMode.NORMAL);

@@ -13,11 +13,13 @@ export class Text extends Shape {
         position: GlobalPoint,
         text: string,
         font: string,
-        fillColour?: string,
-        strokeColour?: string,
-        uuid?: string,
+        options?: {
+            fillColour?: string;
+            strokeColour?: string;
+            uuid?: string;
+        },
     ) {
-        super(position, fillColour, strokeColour, uuid);
+        super(position, options);
         this.text = text;
         this.font = font;
     }

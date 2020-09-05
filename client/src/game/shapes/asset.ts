@@ -12,8 +12,8 @@ export class Asset extends BaseRect {
     src = "";
     strokeColour = "white";
 
-    constructor(img: HTMLImageElement, topleft: GlobalPoint, w: number, h: number, uuid?: string) {
-        super(topleft, w, h, undefined, undefined, uuid);
+    constructor(img: HTMLImageElement, topleft: GlobalPoint, w: number, h: number, options?: { uuid?: string }) {
+        super(topleft, w, h, options);
         this.img = img;
     }
     asDict(): ServerAsset {

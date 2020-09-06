@@ -31,6 +31,7 @@ export interface ServerShape {
     default_edit_access: boolean;
     default_movement_access: boolean;
     default_vision_access: boolean;
+    asset?: number;
 }
 
 export interface ServerShapeAccess {

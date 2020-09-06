@@ -12,7 +12,13 @@ export class Asset extends BaseRect {
     src = "";
     strokeColour = "white";
 
-    constructor(img: HTMLImageElement, topleft: GlobalPoint, w: number, h: number, options?: { uuid?: string }) {
+    constructor(
+        img: HTMLImageElement,
+        topleft: GlobalPoint,
+        w: number,
+        h: number,
+        options?: { uuid?: string; assetId?: number },
+    ) {
         super(topleft, w, h, options);
         this.img = img;
     }

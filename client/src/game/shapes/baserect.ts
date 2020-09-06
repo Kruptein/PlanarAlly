@@ -14,7 +14,7 @@ export abstract class BaseRect extends Shape {
         topleft: GlobalPoint,
         w: number,
         h: number,
-        options?: { fillColour?: string; strokeColour?: string; uuid?: string },
+        options?: { fillColour?: string; strokeColour?: string; uuid?: string; assetId?: number },
     ) {
         super(topleft, options);
         this.w = w;

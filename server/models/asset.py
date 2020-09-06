@@ -1,3 +1,6 @@
+import json
+from typing import Any, Dict
+
 from peewee import ForeignKeyField, TextField
 from playhouse.shortcuts import model_to_dict
 
@@ -12,9 +15,16 @@ class Asset(BaseModel):
     parent = ForeignKeyField("self", backref="children", null=True, on_delete="CASCADE")
     name = TextField()
     file_hash = TextField(null=True)
+    options = TextField(null=True)
 
     def __repr__(self):
         return f"<Asset {self.owner.name} - {self.name}>"
+
+    def get_options(self) -> Dict[str, Any]:
+        return dict(json.loads(self.options))
+
+    def set_options(self, options: Dict[str, Any]) -> None:
+        self.options = json.dumps([[k, v] for k, v in options.items()])
 
     def as_dict(self, children=False):
         asset = model_to_dict(self, exclude=[Asset.owner, Asset.parent])
@@ -50,7 +60,9 @@ class Asset(BaseModel):
             (Asset.owner == user) & (Asset.parent == parent)
         ):
             if asset.file_hash:
-                data["__files"].append({"name": asset.name, "hash": asset.file_hash})
+                data["__files"].append(
+                    {"id": asset.id, "name": asset.name, "hash": asset.file_hash}
+                )
             else:
                 data[asset.name] = cls.get_user_structure(user, asset)
         return data

@@ -1,6 +1,7 @@
 import { aurasFromServer, partialAuraFromServer } from "../../../comm/conversion/aura";
 import { ServerAura, ServerTracker } from "../../../comm/types/shapes";
 import { layerManager } from "../../../layers/manager";
+import { Aura, Tracker } from "../../../shapes/interfaces";
 import { Shape } from "../../../shapes/shape";
 import { socket } from "../../socket";
 

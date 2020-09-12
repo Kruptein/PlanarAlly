@@ -50,7 +50,7 @@ export default class AdminSettings extends Vue {
         gameStore.setIsLocked({ isLocked: !gameStore.isLocked, sync: true });
     }
     async deleteSession(): Promise<void> {
-        const value = await (<Game>this.$parent.$parent.$parent.$parent.$parent).$refs.prompt.prompt(
+        const value = await (this.$parent.$parent.$parent.$parent.$parent as Game).$refs.prompt.prompt(
             this.$t("game.ui.settings.dm.AdminSettings.delete_session_msg_CREATOR_ROOM", {
                 creator: gameStore.roomCreator,
                 room: gameStore.roomName,

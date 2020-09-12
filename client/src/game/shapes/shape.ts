@@ -26,6 +26,7 @@ import {
     sendShapeUpdateOwner,
 } from "../api/emits/access";
 import {
+    sendShapeCreateAura,
     sendShapeCreateTracker,
     sendShapeRemoveAura,
     sendShapeRemoveLabel,
@@ -39,11 +40,10 @@ import {
     sendShapeSetLocked,
     sendShapeSetName,
     sendShapeSetNameVisible,
+    sendShapeSetShowBadge,
     sendShapeSetStrokeColour,
     sendShapeUpdateAura,
     sendShapeUpdateTracker,
-    sendShapeCreateAura,
-    sendShapeSetShowBadge,
 } from "../api/emits/shape/options";
 import { Floor } from "../layers/floor";
 import { Layer } from "../layers/layer";
@@ -51,6 +51,7 @@ import { getFloorId } from "../layers/store";
 import { gameSettingsStore } from "../settings";
 import { rotateAroundPoint } from "../utils";
 import { BoundingRect } from "./boundingrect";
+import { Aura, Label, Tracker } from "./interfaces";
 import { PartialShapeOwner, ShapeAccess, ShapeOwner } from "./owners";
 import { SHAPE_TYPE } from "./types";
 
@@ -273,7 +274,6 @@ export abstract class Shape {
 
     abstract asDict(): ServerShape;
     getBaseDict(): ServerShape {
-        /* eslint-disable @typescript-eslint/camelcase */
         return {
             type_: this.type,
             uuid: this.uuid,
@@ -429,7 +429,6 @@ export abstract class Shape {
             visible: !gameStore.IS_DM,
             group: false,
             source: this.name,
-            // eslint-disable-next-line @typescript-eslint/camelcase
             has_img: false,
             effects: [],
             index: Infinity,
@@ -556,7 +555,7 @@ export abstract class Shape {
         const groupId = this.options.get("groupId") ?? this.uuid;
         const groupLeader = groupId === this.uuid ? this : layerManager.UUIDMap.get(groupId);
         if (groupLeader === undefined || !groupLeader.options.has("groupInfo")) return [this];
-        const groupIds = <string[]>groupLeader.options.get("groupInfo");
+        const groupIds = groupLeader.options.get("groupInfo") as string[];
         return [
             groupLeader,
             ...groupIds.reduce(

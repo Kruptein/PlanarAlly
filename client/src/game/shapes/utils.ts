@@ -20,12 +20,13 @@ import { Line } from "@/game/shapes/line";
 import { Rect } from "@/game/shapes/rect";
 import { Shape } from "@/game/shapes/shape";
 import { Text } from "@/game/shapes/text";
+import { sendGroupLeaderUpdate } from "../api/emits/shape/core";
 import { EventBus } from "../event-bus";
 import { floorStore, getFloorId } from "../layers/store";
 import { gameStore } from "../store";
-import { Polygon } from "./polygon";
 import { addGroupMember } from "./group";
-import { sendGroupLeaderUpdate } from "../api/emits/shape/core";
+import { Tracker } from "./interfaces";
+import { Polygon } from "./polygon";
 
 export function createShapeFromDict(shape: ServerShape): Shape | undefined {
     let sh: Shape;
@@ -36,13 +37,13 @@ export function createShapeFromDict(shape: ServerShape): Shape | undefined {
 
     const refPoint = new GlobalPoint(shape.x, shape.y);
     if (shape.type_ === "rect") {
-        const rect = <ServerRect>shape;
+        const rect = shape as ServerRect;
         sh = new Rect(refPoint, rect.width, rect.height, rect.fill_colour, rect.stroke_colour, rect.uuid);
     } else if (shape.type_ === "circle") {
-        const circ = <ServerCircle>shape;
+        const circ = shape as ServerCircle;
         sh = new Circle(refPoint, circ.radius, circ.fill_colour, circ.stroke_colour, circ.uuid);
     } else if (shape.type_ === "circulartoken") {
-        const token = <ServerCircularToken>shape;
+        const token = shape as ServerCircularToken;
         sh = new CircularToken(
             refPoint,
             token.radius,
@@ -53,10 +54,10 @@ export function createShapeFromDict(shape: ServerShape): Shape | undefined {
             token.uuid,
         );
     } else if (shape.type_ === "line") {
-        const line = <ServerLine>shape;
+        const line = shape as ServerLine;
         sh = new Line(refPoint, new GlobalPoint(line.x2, line.y2), line.line_width, line.stroke_colour, line.uuid);
     } else if (shape.type_ === "polygon") {
-        const polygon = <ServerPolygon>shape;
+        const polygon = shape as ServerPolygon;
         sh = new Polygon(
             refPoint,
             polygon.vertices.map(v => GlobalPoint.fromArray(v)),
@@ -67,10 +68,10 @@ export function createShapeFromDict(shape: ServerShape): Shape | undefined {
             polygon.uuid,
         );
     } else if (shape.type_ === "text") {
-        const text = <ServerText>shape;
+        const text = shape as ServerText;
         sh = new Text(refPoint, text.text, text.font, text.fill_colour, text.stroke_colour, text.uuid);
     } else if (shape.type_ === "assetrect") {
-        const asset = <ServerAsset>shape;
+        const asset = shape as ServerAsset;
         const img = new Image(asset.width, asset.height);
         if (asset.src.startsWith("http")) img.src = new URL(asset.src).pathname;
         else img.src = asset.src;
@@ -138,7 +139,7 @@ export function pasteShapes(targetLayer?: string): readonly Shape[] {
         const options = clip.options ? new Map(JSON.parse(clip.options)) : new Map();
         let groupLeader: Shape | undefined;
         if (options.has("groupId")) {
-            groupLeader = layerManager.UUIDMap.get(<string>options.get("groupId"));
+            groupLeader = layerManager.UUIDMap.get(options.get("groupId") as string);
         } else {
             groupLeader = layerManager.UUIDMap.get(ogUuid)!;
         }

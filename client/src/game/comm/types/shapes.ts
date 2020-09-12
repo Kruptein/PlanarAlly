@@ -1,3 +1,4 @@
+import { Tracker, Label } from "../../shapes/interfaces";
 import { ShapeOwner, ShapeAccess } from "../../shapes/owners";
 
 export interface ServerShape {
@@ -97,11 +98,8 @@ export interface ServerAura {
 }
 
 export const accessToServer = (access: ShapeAccess): ServerShapeAccess => ({
-    // eslint-disable-next-line @typescript-eslint/camelcase
     edit_access: access.edit || false,
-    // eslint-disable-next-line @typescript-eslint/camelcase
     movement_access: access.movement || false,
-    // eslint-disable-next-line @typescript-eslint/camelcase
     vision_access: access.vision || false,
 });
 

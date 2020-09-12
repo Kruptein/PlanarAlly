@@ -87,10 +87,11 @@ export default class UI extends Vue {
         return false;
     }
 
+    // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
     toggleMenu(_el: any): void {
         this.visible.settings = !this.visible.settings;
         if (this.visible.locations && this.visible.settings) this.visible.topleft = true;
-        const uiEl = <HTMLDivElement>this.$el;
+        const uiEl = this.$el as HTMLDivElement;
         let i = 0;
         const interval = setInterval(() => {
             i += 10;
@@ -102,11 +103,12 @@ export default class UI extends Vue {
         }, 20);
     }
 
+    // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
     toggleLocations(_el: any): void {
         const oldState = this.visible.locations;
         // Split up visible.locations setting to smooth in/out overflow fix
         if (oldState) this.visible.locations = false;
-        const uiEl = <HTMLDivElement>this.$el;
+        const uiEl = this.$el as HTMLDivElement;
         let i = 0;
         const interval = setInterval(() => {
             i += 10;

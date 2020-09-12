@@ -47,7 +47,6 @@ export class Asset extends BaseRect {
             visible: !gameStore.IS_DM,
             group: false,
             source: this.src,
-            // eslint-disable-next-line @typescript-eslint/camelcase
             has_img: true,
             effects: [],
             index: Infinity,

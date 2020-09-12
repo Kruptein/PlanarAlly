@@ -24,8 +24,8 @@ export default class LocationBar extends Vue {
 
     @Watch("active")
     toggleActive(active: boolean): void {
-        for (const expandEl of (<any>this.$refs.locations).$el.querySelectorAll(".player-collapse-content")) {
-            const hEl = <HTMLElement>expandEl;
+        for (const expandEl of (this.$refs.locations as any).$el.querySelectorAll(".player-collapse-content")) {
+            const hEl = expandEl as HTMLElement;
             if (this.expanded.includes(Number.parseInt(hEl.dataset.loc || "-1"))) {
                 if (active) {
                     expandEl.style.removeProperty("display");
@@ -63,7 +63,7 @@ export default class LocationBar extends Vue {
     }
 
     async createLocation(): Promise<void> {
-        const value = await (<Game>this.$parent.$parent).$refs.prompt.prompt(
+        const value = await (this.$parent.$parent as Game).$refs.prompt.prompt(
             this.$t("game.ui.menu.locations.new_location_name").toString(),
             this.$t("game.ui.menu.locations.create_new_location").toString(),
         );
@@ -124,7 +124,7 @@ export default class LocationBar extends Vue {
     }
 
     doHorizontalScroll(e: WheelEvent): void {
-        const el: HTMLElement = (<any>this.$refs.locations).$el;
+        const el: HTMLElement = (this.$refs.locations as any).$el;
         if (e.deltaY > 0) el.scrollLeft += 100;
         else el.scrollLeft -= 100;
         this.horizontalOffset = el.scrollLeft;
@@ -132,13 +132,13 @@ export default class LocationBar extends Vue {
     }
 
     doHorizontalScrollA(_e: WheelEvent): void {
-        const el: HTMLElement = (<any>this.$refs.locations).$el;
+        const el: HTMLElement = (this.$refs.locations as any).$el;
         this.fixDisplays(el);
     }
 
     private fixDisplays(el: HTMLElement): void {
         for (const expandEl of el.querySelectorAll(".player-collapse-content")) {
-            const hEl = <HTMLElement>expandEl;
+            const hEl = expandEl as HTMLElement;
             hEl.style.marginLeft = `-${el.scrollLeft}px`;
             if (this.expanded.includes(Number.parseInt(hEl.dataset.loc || "-1"))) {
                 if (hEl.style.display === "none") hEl.style.removeProperty("display");

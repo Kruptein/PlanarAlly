@@ -57,7 +57,7 @@ export default class ShapeContext extends Vue {
         this.visible = true;
         this.x = event.pageX;
         this.y = event.pageY;
-        this.$nextTick(() => (<HTMLElement>this.$children[0].$el).focus());
+        this.$nextTick(() => (this.$children[0].$el as HTMLElement).focus());
     }
     close(): void {
         this.visible = false;
@@ -116,7 +116,7 @@ export default class ShapeContext extends Vue {
 
         switch (spawnInfo.length) {
             case 0:
-                await (<Game>this.$parent.$parent.$parent).$refs.confirm.open(
+                await (this.$parent.$parent.$parent as Game).$refs.confirm.open(
                     this.$t("game.ui.selection.shapecontext.no_spawn_set_title").toString(),
                     this.$t("game.ui.selection.shapecontext.no_spawn_set_text").toString(),
                     { showNo: false, yes: "Ok" },

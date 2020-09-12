@@ -27,7 +27,7 @@ export default class ColorPicker extends Vue {
     transparent = false;
 
     mounted(): void {
-        this.transparent = (<any>this.$refs.chromePicker).val.rgba.a === 0;
+        this.transparent = (this.$refs.chromePicker as any).val.rgba.a === 0;
         this.setPosition();
     }
 
@@ -35,7 +35,7 @@ export default class ColorPicker extends Vue {
         if (this.display || this.disabled) return; // click on the picker itself
         this.setPosition();
         this.display = true;
-        this.$nextTick(() => (<HTMLElement>this.$children[0].$el).focus());
+        this.$nextTick(() => (this.$children[0].$el as HTMLElement).focus());
     }
     updateColor(value: { rgba: { r: number; g: number; b: number; a: number } }): void {
         this.transparent = value.rgba.a === 0;

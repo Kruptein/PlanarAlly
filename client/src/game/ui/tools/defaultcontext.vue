@@ -36,7 +36,7 @@ export default class DefaultContext extends Vue {
         this.visible = true;
         this.x = event.pageX;
         this.y = event.pageY;
-        this.$nextTick(() => (<HTMLElement>this.$children[0].$el).focus());
+        this.$nextTick(() => (this.$children[0].$el as HTMLElement).focus());
     }
 
     close(): void {
@@ -55,14 +55,14 @@ export default class DefaultContext extends Vue {
     }
 
     createToken(): void {
-        (<CreateTokenModal>this.$parent.$refs.createtokendialog).open(this.x, this.y);
+        (this.$parent.$refs.createtokendialog as CreateTokenModal).open(this.x, this.y);
         this.close();
     }
 
     async createSpawnLocation(): Promise<void> {
         if (!gameStore.IS_DM) return;
         const spawnLocations = gameSettingsStore.spawnLocations;
-        const spawnName = await (<Prompt>this.$parent.$parent.$parent.$refs.prompt).prompt(
+        const spawnName = await (this.$parent.$parent.$parent.$refs.prompt as Prompt).prompt(
             this.$t("game.ui.tools.defaultcontext.new_spawn_question").toString(),
             this.$t("game.ui.tools.defaultcontext.new_spawn_title").toString(),
             (value: string) => {

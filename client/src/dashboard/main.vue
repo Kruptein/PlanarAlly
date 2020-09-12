@@ -21,10 +21,10 @@ export default class Dashboard extends Vue {
         next(async (vm: Vue) => {
             if (response.ok) {
                 const data = await response.json();
-                (<this>vm).owned = data.owned;
-                (<this>vm).joined = data.joined;
+                (vm as this).owned = data.owned;
+                (vm as this).joined = data.joined;
             } else {
-                (<this>vm).error = response.statusText;
+                (vm as this).error = response.statusText;
             }
         });
     }

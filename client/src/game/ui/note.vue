@@ -23,7 +23,7 @@ export default class NoteDialog extends Vue {
     }
     calcHeight(): string {
         if (this.$refs.textarea) {
-            const el = <HTMLElement>this.$refs.textarea;
+            const el = this.$refs.textarea as HTMLElement;
             el.style.height = "auto";
             el.style.height = el.scrollHeight + "px";
             // Using the return value without the above did not achieve what I want, so hey /shrug
@@ -35,7 +35,7 @@ export default class NoteDialog extends Vue {
         if (this.note) gameStore.updateNote({ note: this.note, sync: true });
     }
     async removeNote(): Promise<void> {
-        const result = await (<Game>this.$parent).$refs.confirm.open(this.$t("game.ui.note.warning_msg").toString());
+        const result = await (this.$parent as Game).$refs.confirm.open(this.$t("game.ui.note.warning_msg").toString());
         if (result && this.note) {
             gameStore.removeNote({ note: this.note, sync: true });
             this.visible = false;

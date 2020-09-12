@@ -5,7 +5,7 @@ module.exports = {
     },
     extends: ["plugin:@typescript-eslint/recommended", "plugin:vue/essential", "@vue/typescript", "@vue/prettier"],
     rules: {
-        "@typescript-eslint/consistent-type-assertions": [2, { assertionStyle: "angle-bracket" }],
+        "@typescript-eslint/consistent-type-assertions": [2, { assertionStyle: "as" }],
         "@typescript-eslint/explicit-function-return-type": [2, { allowExpressions: true }],
         "@typescript-eslint/explicit-member-accessibility": [2, { accessibility: "no-public" }],
         "@typescript-eslint/no-angle-bracket-type-assertion": "off",

@@ -55,8 +55,8 @@ function _rotateShape(shape: Shape): void {
         .map(p => rotateAroundOrigin(p, Math.PI / 2).map(v => Math.round(v)))
         .sort((a: number[], b: number[]) => (xySmaller(a, b) ? -1 : 1));
     shape.refPoint = new GlobalPoint(points[0][0], points[0][1]);
-    (<Rect>shape).w = points[3][0] - points[0][0];
-    (<Rect>shape).h = points[3][1] - points[0][1];
+    (shape as Rect).w = points[3][0] - points[0][0];
+    (shape as Rect).h = points[3][1] - points[0][1];
 }
 
 describe("PA test suite.", () => {

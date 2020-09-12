@@ -35,7 +35,7 @@ export function getHTMLFont(element: HTMLElement): string {
 }
 
 export function getHTMLTextWidth(text: string, font: string): number {
-    let fakeElement = <HTMLCanvasElement>document.getElementById("emptycanvas");
+    let fakeElement = document.getElementById("emptycanvas") as HTMLCanvasElement;
     if (fakeElement === null) {
         fakeElement = document.createElement("canvas");
         fakeElement.id = "emptycanvas";

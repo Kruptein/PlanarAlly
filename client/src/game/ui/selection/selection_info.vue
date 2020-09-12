@@ -51,11 +51,11 @@ export default class SelectionInfo extends Vue {
     }
 
     openEditDialog(): void {
-        (<any>this.$refs.editDialog)[0].visible = true;
+        (this.$refs.editDialog as any)[0].visible = true;
     }
     async changeValue(object: Tracker | Aura, isAura: boolean): Promise<void> {
         if (this.shape === null) return;
-        const value = await (<Game>this.$parent.$parent).$refs.prompt.prompt(
+        const value = await (this.$parent.$parent as Game).$refs.prompt.prompt(
             this.$t("game.ui.selection.select_info.new_value_NAME", { name: object.name }).toString(),
             this.$t("game.ui.selection.select_info.updating_NAME", { name: object.name }).toString(),
         );

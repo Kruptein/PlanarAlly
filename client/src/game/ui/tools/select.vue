@@ -78,7 +78,7 @@ export default class SelectTool extends Tool implements ToolBasics {
         EventBus.$on("SelectionInfo.Shapes.Set", (shapes: Shape[]) => {
             this.removeRotationUi();
             // We don't have feature information, might want to store this as a property instead ?
-            if ((<Tools>this.$parent).mode === "Build" && shapes.length > 0) this.createRotationUi({});
+            if ((this.$parent as Tools).mode === "Build" && shapes.length > 0) this.createRotationUi({});
         });
     }
 
@@ -478,7 +478,7 @@ export default class SelectTool extends Tool implements ToolBasics {
         for (const shape of layer.getSelection()) {
             if (shape.contains(globalMouse)) {
                 layer.invalidate(true);
-                (<ShapeContext>this.$parent.$refs.shapecontext).open(event);
+                (this.$parent.$refs.shapecontext as ShapeContext).open(event);
                 return;
             }
         }
@@ -489,12 +489,12 @@ export default class SelectTool extends Tool implements ToolBasics {
             if (shape.contains(globalMouse)) {
                 layer.setSelection(shape);
                 layer.invalidate(true);
-                (<ShapeContext>this.$parent.$refs.shapecontext).open(event);
+                (this.$parent.$refs.shapecontext as ShapeContext).open(event);
                 return;
             }
         }
         // super call
-        (<any>Tool).options.methods.onContextMenu.call(this, event, features);
+        (Tool as any).options.methods.onContextMenu.call(this, event, features);
     }
     updateCursor(layer: Layer, globalMouse: GlobalPoint): void {
         let cursorStyle = "default";

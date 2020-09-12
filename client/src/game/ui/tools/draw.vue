@@ -113,7 +113,7 @@ export default class DrawTool extends Tool implements ToolBasics {
 
     @Watch("closedPolygon")
     onChangePolygonCloseBehaviour(closedPolygon: boolean): void {
-        if (this.shape !== null && this.active) (<Polygon>this.shape).openPolygon = !closedPolygon;
+        if (this.shape !== null && this.active) (this.shape as Polygon).openPolygon = !closedPolygon;
     }
 
     @Watch("fillColour")
@@ -128,7 +128,7 @@ export default class DrawTool extends Tool implements ToolBasics {
 
     @Watch("currentFloor")
     onFloorChange(newValue: Floor, oldValue: Floor): void {
-        if ((<Tools>this.$parent).currentTool === this.name) {
+        if ((this.$parent as Tools).currentTool === this.name) {
             let mouse: { x: number; y: number } | undefined = undefined;
             if (this.brushHelper !== null) {
                 mouse = { x: this.brushHelper.refPoint.x, y: this.brushHelper.refPoint.y };
@@ -140,7 +140,7 @@ export default class DrawTool extends Tool implements ToolBasics {
 
     @Watch("currentLayer")
     onLayerChange(newValue: Layer, oldValue: Layer): void {
-        if ((<Tools>this.$parent).currentTool === this.name) {
+        if ((this.$parent as Tools).currentTool === this.name) {
             let mouse: { x: number; y: number } | undefined = undefined;
             if (this.brushHelper !== null) {
                 mouse = { x: this.brushHelper.refPoint.x, y: this.brushHelper.refPoint.y };
@@ -312,7 +312,7 @@ export default class DrawTool extends Tool implements ToolBasics {
 
         switch (this.shapeSelect) {
             case "square": {
-                const rect = <Rect>this.shape;
+                const rect = this.shape as Rect;
                 const newW = Math.abs(endPoint.x - this.startPoint.x);
                 const newH = Math.abs(endPoint.y - this.startPoint.y);
                 if (newW === rect.w && newH === rect.h) return;
@@ -327,14 +327,14 @@ export default class DrawTool extends Tool implements ToolBasics {
                 break;
             }
             case "circle": {
-                const circ = <Circle>this.shape;
+                const circ = this.shape as Circle;
                 const newR = Math.abs(endPoint.subtract(this.startPoint).length());
                 if (circ.r === newR) return;
                 circ.r = newR;
                 break;
             }
             case "paint-brush": {
-                const br = <Polygon>this.shape;
+                const br = this.shape as Polygon;
                 if (equalPoints(br.points[br.points.length - 1], [endPoint.x, endPoint.y])) return;
                 br._vertices.push(endPoint);
                 break;
@@ -428,7 +428,7 @@ export default class DrawTool extends Tool implements ToolBasics {
             }
             this.finaliseShape();
         } else if (!this.active) {
-            (<DefaultContext>this.$parent.$refs.defaultcontext).open(event);
+            (this.$parent.$refs.defaultcontext as DefaultContext).open(event);
         }
     }
 

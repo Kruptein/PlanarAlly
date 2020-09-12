@@ -25,7 +25,7 @@ export default class LabelManager extends Vue {
             this.visible = true;
             this.newCategory = "";
             this.newName = "";
-            this.$nextTick(() => (<HTMLInputElement>this.$refs.search).focus());
+            this.$nextTick(() => (this.$refs.search as HTMLInputElement).focus());
         });
     }
 

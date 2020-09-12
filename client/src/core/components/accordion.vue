@@ -25,14 +25,14 @@ export default class Accordion extends Vue {
     }
 
     toggleCategory(): void {
-        const overall = <HTMLInputElement>this.$refs.overall;
+        const overall = this.$refs.overall as HTMLInputElement;
         if (overall.checked) this.selected = this.items.map(i => i[0]);
         else this.selected = [];
         this.$emit("selectionupdate", { title: this.title, selection: this.selected });
     }
 
     updateCategory(): void {
-        const overall = <HTMLInputElement>this.$refs.overall;
+        const overall = this.$refs.overall as HTMLInputElement;
         if (this.selected.length === 0) {
             overall.checked = false;
             overall.indeterminate = false;

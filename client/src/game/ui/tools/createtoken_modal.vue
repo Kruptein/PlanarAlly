@@ -73,7 +73,7 @@ export default class CreateTokenModal extends Vue {
         this.visible = false;
     }
     updatePreview(): void {
-        const ctx = (<HTMLCanvasElement>this.$refs.canvas).getContext("2d")!;
+        const ctx = (this.$refs.canvas as HTMLCanvasElement).getContext("2d")!;
         ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
         ctx.beginPath();
         const dest = { x: ctx.canvas.width / 2, y: ctx.canvas.height / 2 };

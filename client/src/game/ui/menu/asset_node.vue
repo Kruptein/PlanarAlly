@@ -42,7 +42,7 @@ export default class AssetNode extends Vue {
 
     get files(): AssetFile[] {
         if (this.asset.__files)
-            return (<AssetFile[]>this.asset.__files)
+            return (this.asset.__files as AssetFile[])
                 .concat()
                 .filter(f => f.name.toLowerCase().includes(this.search.toLowerCase()))
                 .sort((a, b) => (a.name.toLowerCase() > b.name.toLowerCase() ? 1 : -1));
@@ -64,7 +64,7 @@ export default class AssetNode extends Vue {
 
     toggle(event: { target: HTMLElement }): void {
         for (let i = 0; i < event.target.children.length; i++) {
-            const el = <HTMLElement>event.target.children[i];
+            const el = event.target.children[i] as HTMLElement;
             el.style.display = el.style.display === "" ? "block" : "";
         }
     }
@@ -72,7 +72,7 @@ export default class AssetNode extends Vue {
     dragStart(event: DragEvent, imageSource: string): void {
         this.showImage = null;
         if (event === null || event.dataTransfer === null) return;
-        const img = (<HTMLElement>event.target).querySelector(".preview")!;
+        const img = (event.target as HTMLElement).querySelector(".preview")!;
         event.dataTransfer.setDragImage(img, 0, 0);
         event.dataTransfer.setData("text/plain", imageSource);
     }

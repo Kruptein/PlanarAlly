@@ -95,7 +95,7 @@ export default class RulerTool extends Tool implements ToolBasics {
     }
 
     toggle(event: MouseEvent): void {
-        const button = <HTMLButtonElement>event.target;
+        const button = event.target as HTMLButtonElement;
         const state = button.getAttribute("aria-pressed") ?? "false";
         this.showPublic = state === "false";
         if (state == "false") button.setAttribute("aria-pressed", "true");

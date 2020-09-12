@@ -76,7 +76,7 @@ export default class MenuBar extends Vue {
         this.openNote(note);
     }
     openNote(note: Note): void {
-        (<Game>this.$parent.$parent).$refs.note.open(note);
+        (this.$parent.$parent as Game).$refs.note.open(note);
     }
 
     openDmSettings(): void {

@@ -35,13 +35,13 @@ export function sendShapeSizeUpdate(data: { shape: Shape; temporary: boolean }):
     switch (data.shape.type) {
         case "assetrect":
         case "rect": {
-            const shape = <Rect>data.shape;
+            const shape = data.shape as Rect;
             _sendRectSizeUpdate({ uuid: shape.uuid, w: shape.w, h: shape.h, temporary: data.temporary });
             break;
         }
         case "circulartoken":
         case "circle": {
-            const shape = <Circle>data.shape;
+            const shape = data.shape as Circle;
             _sendCircleSizeUpdate({ uuid: shape.uuid, r: shape.r, temporary: data.temporary });
             break;
         }

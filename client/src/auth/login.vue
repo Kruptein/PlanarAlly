@@ -24,7 +24,7 @@ export default class Login extends Vue {
             coreStore.setAuthenticated(true);
             const data = await response.json();
             if (data.email) coreStore.setEmail(data.email);
-            this.$router.push(<string>this.$route.query.redirect || "/");
+            this.$router.push((this.$route.query.redirect as string) || "/");
         } else {
             this.error = response.statusText;
         }
@@ -35,7 +35,7 @@ export default class Login extends Vue {
         if (response.ok) {
             coreStore.setUsername(this.username);
             coreStore.setAuthenticated(true);
-            this.$router.push(<string>this.$route.query.redirect || "/");
+            this.$router.push((this.$route.query.redirect as string) || "/");
         } else {
             this.error = response.statusText;
         }

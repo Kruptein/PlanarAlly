@@ -128,7 +128,7 @@ class LayerManager {
     }
 
     getGridLayer(floor: Floor): GridLayer | undefined {
-        return <GridLayer>this.getLayer(floor, "grid");
+        return this.getLayer(floor, "grid") as GridLayer;
     }
 
     hasSelection(): boolean {
@@ -188,4 +188,4 @@ class LayerManager {
 }
 
 export const layerManager = new LayerManager();
-(<any>window).lm = layerManager;
+(window as any).lm = layerManager;

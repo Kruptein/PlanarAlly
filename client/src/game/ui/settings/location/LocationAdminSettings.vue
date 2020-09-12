@@ -29,7 +29,7 @@ export default class LocationAdminSettings extends Vue {
     }
 
     async deleteLocation(): Promise<void> {
-        const remove = await (<Game>this.$parent.$parent.$parent.$parent.$parent).$refs.confirm.open(
+        const remove = await (this.$parent.$parent.$parent.$parent.$parent as Game).$refs.confirm.open(
             this.$t("common.warning").toString(),
             this.$t("game.ui.settings.location.LocationAdminSettings.remove_location_msg_NAME", {
                 name: this.name,

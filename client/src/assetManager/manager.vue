@@ -102,15 +102,15 @@ export default class AssetManager extends Vue {
         this.draggingSelection = true;
     }
     moveDrag(event: DragEvent): void {
-        if ((<HTMLElement>event.target).classList.contains("folder"))
-            (<HTMLElement>event.target).classList.add("inode-selected");
+        if ((event.target as HTMLElement).classList.contains("folder"))
+            (event.target as HTMLElement).classList.add("inode-selected");
     }
     leaveDrag(event: DragEvent): void {
-        if ((<HTMLElement>event.target).classList.contains("folder"))
-            (<HTMLElement>event.target).classList.remove("inode-selected");
+        if ((event.target as HTMLElement).classList.contains("folder"))
+            (event.target as HTMLElement).classList.remove("inode-selected");
     }
     stopDrag(event: DragEvent, target: number): void {
-        (<HTMLElement>event.target).classList.remove("inode-selected");
+        (event.target as HTMLElement).classList.remove("inode-selected");
         if (this.draggingSelection) {
             if (
                 (target === assetStore.root || assetStore.folders.includes(target)) &&
@@ -130,7 +130,7 @@ export default class AssetManager extends Vue {
         document.getElementById("files")!.click();
     }
     upload(fls?: FileList, target?: number): void {
-        const files = (<HTMLInputElement>document.getElementById("files")!).files;
+        const files = (document.getElementById("files")! as HTMLInputElement).files;
         if (fls === undefined) {
             if (files) fls = files;
             else return;

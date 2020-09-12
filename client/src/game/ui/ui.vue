@@ -90,7 +90,7 @@ export default class UI extends Vue {
     toggleMenu(_el: any): void {
         this.visible.settings = !this.visible.settings;
         if (this.visible.locations && this.visible.settings) this.visible.topleft = true;
-        const uiEl = <HTMLDivElement>this.$el;
+        const uiEl = this.$el as HTMLDivElement;
         let i = 0;
         const interval = setInterval(() => {
             i += 10;
@@ -106,7 +106,7 @@ export default class UI extends Vue {
         const oldState = this.visible.locations;
         // Split up visible.locations setting to smooth in/out overflow fix
         if (oldState) this.visible.locations = false;
-        const uiEl = <HTMLDivElement>this.$el;
+        const uiEl = this.$el as HTMLDivElement;
         let i = 0;
         const interval = setInterval(() => {
             i += 10;

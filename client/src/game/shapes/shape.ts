@@ -556,7 +556,7 @@ export abstract class Shape {
         const groupId = this.options.get("groupId") ?? this.uuid;
         const groupLeader = groupId === this.uuid ? this : layerManager.UUIDMap.get(groupId);
         if (groupLeader === undefined || !groupLeader.options.has("groupInfo")) return [this];
-        const groupIds = <string[]>groupLeader.options.get("groupInfo");
+        const groupIds = groupLeader.options.get("groupInfo") as string[];
         return [
             groupLeader,
             ...groupIds.reduce(

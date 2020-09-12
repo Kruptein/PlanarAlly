@@ -39,4 +39,4 @@ export class GameManager {
 }
 
 export const gameManager = new GameManager();
-(<any>window).gameManager = gameManager;
+(window as any).gameManager = gameManager;

@@ -62,7 +62,6 @@ export class CircularToken extends Circle {
             visible: !gameStore.IS_DM,
             group: false,
             source: this.name === "" || this.name === "Unknown shape" ? this.text : this.name,
-            // eslint-disable-next-line @typescript-eslint/camelcase
             has_img: false,
             effects: [],
             index: Infinity,

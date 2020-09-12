@@ -87,6 +87,7 @@ export default class UI extends Vue {
         return false;
     }
 
+    // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
     toggleMenu(_el: any): void {
         this.visible.settings = !this.visible.settings;
         if (this.visible.locations && this.visible.settings) this.visible.topleft = true;
@@ -102,6 +103,7 @@ export default class UI extends Vue {
         }, 20);
     }
 
+    // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
     toggleLocations(_el: any): void {
         const oldState = this.visible.locations;
         // Split up visible.locations setting to smooth in/out overflow fix

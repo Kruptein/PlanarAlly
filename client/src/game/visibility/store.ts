@@ -26,7 +26,6 @@ class VisibilityStore extends VuexModule implements VisibilityState {
         this.visionMode = data.mode;
         if (data.sync)
             sendLocationOptions({
-                // eslint-disable-next-line @typescript-eslint/camelcase
                 options: { vision_mode: VisibilityMode[data.mode] },
                 location: null,
             });

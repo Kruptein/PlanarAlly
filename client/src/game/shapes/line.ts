@@ -39,7 +39,6 @@ export class Line extends Shape {
         return Object.assign(this.getBaseDict(), {
             x2: this.endPoint.x,
             y2: this.endPoint.y,
-            // eslint-disable-next-line @typescript-eslint/camelcase
             line_width: this.lineWidth,
         });
     }

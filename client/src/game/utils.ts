@@ -3,6 +3,7 @@ import tinycolor from "tinycolor2";
 import { gameSettingsStore } from "./settings";
 import { gameStore } from "./store";
 
+// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export function getLocalPointFromEvent(e: any): LocalPoint {
     if (e instanceof MouseEvent) {
         return getMouse(e);

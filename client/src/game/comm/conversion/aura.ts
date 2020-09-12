@@ -1,4 +1,5 @@
 import { ServerAura } from "@/game/comm/types/shapes";
+import { Aura } from "../../shapes/interfaces";
 
 export const aurasFromServer = (auras: ServerAura[]): Aura[] => {
     const result = [];
@@ -22,7 +23,6 @@ export const aurasToServer = (shape: string, auras: Aura[]): ServerAura[] => {
     for (const aura of auras) {
         result.push({
             uuid: aura.uuid,
-            // eslint-disable-next-line @typescript-eslint/camelcase
             vision_source: aura.visionSource,
             visible: aura.visible,
             name: aura.name,
@@ -38,7 +38,6 @@ export const aurasToServer = (shape: string, auras: Aura[]): ServerAura[] => {
 export const partialAuraToServer = (aura: Partial<Aura>): Partial<ServerAura> => {
     return {
         uuid: aura.uuid,
-        // eslint-disable-next-line @typescript-eslint/camelcase
         vision_source: aura.visionSource,
         visible: aura.visible,
         name: aura.name,

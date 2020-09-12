@@ -99,6 +99,7 @@ export class OrderedMap<K, V> {
     }
 }
 
+// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export async function postFetch(url: string, data?: any): Promise<Response> {
     return await fetch(url, {
         method: "POST",

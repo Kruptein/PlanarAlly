@@ -11,6 +11,7 @@ import { socket } from "../../socket";
 import { Text } from "../../../shapes/text";
 import { Rect } from "../../../shapes/rect";
 import { Circle } from "../../../shapes/circle";
+import { Tracker, Aura } from "../../../shapes/interfaces";
 
 socket.on("Shape.Set", (data: ServerShape) => {
     // hard reset a shape

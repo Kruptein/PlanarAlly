@@ -51,9 +51,7 @@ export class Polygon extends Shape {
     asDict(): ServerPolygon {
         return Object.assign(this.getBaseDict(), {
             vertices: this._vertices.map(v => v.asArray()),
-            // eslint-disable-next-line @typescript-eslint/camelcase
             open_polygon: this.openPolygon,
-            // eslint-disable-next-line @typescript-eslint/camelcase
             line_width: this.lineWidth,
         });
     }

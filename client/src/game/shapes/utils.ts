@@ -20,12 +20,13 @@ import { Line } from "@/game/shapes/line";
 import { Rect } from "@/game/shapes/rect";
 import { Shape } from "@/game/shapes/shape";
 import { Text } from "@/game/shapes/text";
+import { sendGroupLeaderUpdate } from "../api/emits/shape/core";
 import { EventBus } from "../event-bus";
 import { floorStore, getFloorId } from "../layers/store";
 import { gameStore } from "../store";
-import { Polygon } from "./polygon";
 import { addGroupMember } from "./group";
-import { sendGroupLeaderUpdate } from "../api/emits/shape/core";
+import { Tracker } from "./interfaces";
+import { Polygon } from "./polygon";
 
 export function createShapeFromDict(shape: ServerShape): Shape | undefined {
     let sh: Shape;

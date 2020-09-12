@@ -8,6 +8,7 @@ import { uuidv4 } from "@/core/utils";
 import { socket } from "@/game/api/socket";
 import { EventBus } from "@/game/event-bus";
 import { gameStore } from "@/game/store";
+import { Label } from "../shapes/interfaces";
 
 @Component({
     components: {

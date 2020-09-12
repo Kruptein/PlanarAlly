@@ -12,6 +12,7 @@ import { uuidv4 } from "@/core/utils";
 import { EventBus } from "@/game/event-bus";
 import { Shape } from "@/game/shapes/shape";
 import { gameStore } from "@/game/store";
+import { Aura, Tracker } from "@/game/shapes/interfaces";
 
 @Component({
     components: {

@@ -30,7 +30,9 @@ export function g2lr(r: number): number {
 }
 
 export function l2g(obj: LocalPoint): GlobalPoint;
+// eslint-disable-next-line no-redeclare
 export function l2g(obj: Ray<LocalPoint>): Ray<GlobalPoint>;
+// eslint-disable-next-line no-redeclare
 export function l2g(obj: LocalPoint | Ray<LocalPoint>): GlobalPoint | Ray<GlobalPoint> {
     const z = gameStore.zoomFactor;
     const panX = gameStore.panX;

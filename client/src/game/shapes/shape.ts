@@ -320,7 +320,7 @@ export abstract class Shape {
         this.globalCompositeOperation = data.draw_operator;
         this.movementObstruction = data.movement_obstruction;
         this.visionObstruction = data.vision_obstruction;
-        this.auras = aurasFromServer(data.auras);
+        this.auras = aurasFromServer(...data.auras);
         this.trackers = data.trackers;
         this.labels = data.labels;
         this._owners = data.owners.map(owner => ownerToClient(owner));

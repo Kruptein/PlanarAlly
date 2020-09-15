@@ -1,7 +1,7 @@
 import { ServerAura } from "@/game/comm/types/shapes";
 import { Aura } from "../../shapes/interfaces";
 
-export const aurasFromServer = (auras: ServerAura[]): Aura[] => {
+export const aurasFromServer = (...auras: ServerAura[]): Aura[] => {
     const result = [];
     for (const aura of auras) {
         result.push({

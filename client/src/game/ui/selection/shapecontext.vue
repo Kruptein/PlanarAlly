@@ -5,7 +5,9 @@ import Component from "vue-class-component";
 import { mapState } from "vuex";
 
 import ContextMenu from "@/core/components/contextmenu.vue";
+import Game from "@/game/Game.vue";
 import Prompt from "@/core/components/modals/prompt.vue";
+import SelectionBox from "@/core/components/modals/SelectionBox.vue";
 
 import { EventBus } from "@/game/event-bus";
 import { layerManager } from "@/game/layers/manager";
@@ -14,15 +16,16 @@ import { deleteShapes } from "../../shapes/utils";
 import { initiativeStore, inInitiative } from "../initiative/store";
 import { Layer } from "../../layers/layer";
 import { gameSettingsStore } from "../../settings";
-import Game from "@/game/Game.vue";
 import { Shape } from "@/game/shapes/shape";
 import { floorStore } from "../../layers/store";
 import { Floor } from "@/game/layers/floor";
 import { moveFloor, moveLayer } from "../../layers/utils";
+import { requestAssetOptions, sendAssetOptions } from "@/game/api/emits/asset";
 import { requestSpawnInfo, sendLocationChange } from "@/game/api/emits/location";
 import { sendShapesMove } from "@/game/api/emits/shape/core";
-import SelectionBox from "@/core/components/modals/SelectionBox.vue";
 import { ServerAsset } from "@/game/comm/types/shapes";
+import { AssetOptions } from "@/game/comm/types/asset";
+import { toTemplate } from "@/game/shapes/template";
 
 @Component({
     components: {
@@ -60,6 +63,7 @@ export default class ShapeContext extends Vue {
         this.$nextTick(() => (this.$children[0].$el as HTMLElement).focus());
     }
     close(): void {
+        if (this.$refs.prompt.visible || this.$refs.selectionbox.visible) return;
         this.visible = false;
     }
     getMarker(): string | undefined {
@@ -206,6 +210,38 @@ export default class ShapeContext extends Vue {
         if (gameStore.IS_DM) return true;
         return this.getSelection().every(s => s.ownedBy({ editAccess: true }));
     }
+    showDmNonSpawnItem(): boolean {
+        if (this.hasSpawnToken()) return false;
+        return gameStore.IS_DM;
+    }
+
+    async saveTemplate(): Promise<void> {
+        const shape = this.getSelection()[0];
+        let assetOptions: AssetOptions = {
+            version: "0",
+            shape: shape.type,
+            variants: { default: { properties: {} } },
+        };
+        if (shape.assetId) {
+            const response = await requestAssetOptions(shape.assetId);
+            console.log(response);
+            if (response.success && response.options) assetOptions = response.options;
+        }
+        const choices = Object.keys(assetOptions.variants);
+        // const templateText =
+        //     "You can choose to overwrite the default shape template or one of its existing variants.\nYou can also create a new variant by filling in a desired variant name.";
+        try {
+            const choice = await this.$refs.selectionbox.open("Save Template", choices, {
+                defaultButton: "Overwrite",
+                customButton: "Create new",
+            });
+            assetOptions.variants[choice] = { properties: toTemplate(shape.asDict()) };
+            sendAssetOptions(shape.assetId, assetOptions);
+        } catch {
+            // no-op ; action cancelled
+        }
+    }
+
     getLayerWord(layer: string): string {
         switch (layer) {
             case "map":
@@ -289,6 +325,11 @@ export default class ShapeContext extends Vue {
             ></li>
             <li v-else @click="setMarker" v-t="'game.ui.selection.shapecontext.set_marker'"></li>
         </template>
+        <li
+            @click="saveTemplate"
+            v-if="hasSingleShape() && showDmNonSpawnItem()"
+            v-t="'game.ui.selection.shapecontext.save_template'"
+        ></li>
     </ContextMenu>
 </template>
 

@@ -50,7 +50,7 @@ import { Layer } from "../layers/layer";
 import { getFloorId } from "../layers/store";
 import { gameSettingsStore } from "../settings";
 import { rotateAroundPoint } from "../utils";
-import { BoundingRect } from "./boundingrect";
+import { BoundingRect } from "./variants/boundingrect";
 import { Aura, Label, Tracker } from "./interfaces";
 import { PartialShapeOwner, ShapeAccess, ShapeOwner } from "./owners";
 import { SHAPE_TYPE } from "./types";

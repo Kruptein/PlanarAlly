@@ -6,7 +6,7 @@ import { FowVisionLayer } from "@/game/layers/fowvision";
 import { GridLayer } from "@/game/layers/grid";
 import { Layer } from "@/game/layers/layer";
 import { layerManager } from "@/game/layers/manager";
-import { Asset } from "@/game/shapes/asset";
+import { Asset } from "@/game/shapes/variants/asset";
 import { clampGridLine, l2gx, l2gy, l2gz } from "@/game/units";
 import { visibilityStore } from "@/game/visibility/store";
 import { addCDT, removeCDT } from "@/game/visibility/te/pa";

@@ -13,20 +13,20 @@ import {
 } from "@/game/comm/types/shapes";
 import { GlobalPoint, Vector } from "@/game/geom";
 import { layerManager } from "@/game/layers/manager";
-import { Asset } from "@/game/shapes/asset";
-import { Circle } from "@/game/shapes/circle";
-import { CircularToken } from "@/game/shapes/circulartoken";
-import { Line } from "@/game/shapes/line";
-import { Rect } from "@/game/shapes/rect";
+import { Asset } from "@/game/shapes/variants/asset";
+import { Circle } from "@/game/shapes/variants/circle";
+import { CircularToken } from "@/game/shapes/variants/circulartoken";
+import { Line } from "@/game/shapes/variants/line";
+import { Rect } from "@/game/shapes/variants/rect";
 import { Shape } from "@/game/shapes/shape";
-import { Text } from "@/game/shapes/text";
+import { Text } from "@/game/shapes/variants/text";
 import { sendGroupLeaderUpdate } from "../api/emits/shape/core";
 import { EventBus } from "../event-bus";
 import { floorStore, getFloorId } from "../layers/store";
 import { gameStore } from "../store";
 import { addGroupMember } from "./group";
 import { Tracker } from "./interfaces";
-import { Polygon } from "./polygon";
+import { Polygon } from "./variants/polygon";
 
 export function createShapeFromDict(shape: ServerShape): Shape | undefined {
     let sh: Shape;

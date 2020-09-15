@@ -10,9 +10,9 @@ import { SyncMode, InvalidationMode } from "../../../core/comm/types";
 import { ToolName } from "./utils";
 import { gameSettingsStore } from "../../settings";
 import { ToolBasics } from "./ToolBasics";
-import { Line } from "@/game/shapes/line";
+import { Line } from "@/game/shapes/variants/line";
 import { gameStore, DEFAULT_GRID_SIZE } from "@/game/store";
-import { Text } from "../../shapes/text";
+import { Text } from "../../shapes/variants/text";
 import { floorStore } from "@/game/layers/store";
 import { sendShapePositionUpdate, sendTextUpdate } from "@/game/api/emits/shape/core";
 

@@ -1,10 +1,10 @@
 import { InitiativeData } from "@/game/comm/types/general";
 import { ServerAsset } from "@/game/comm/types/shapes";
 import { GlobalPoint } from "@/game/geom";
-import { BaseRect } from "@/game/shapes/baserect";
+import { BaseRect } from "@/game/shapes/variants/baserect";
 import { gameStore } from "@/game/store";
 import { g2l, g2lx, g2ly, g2lz } from "@/game/units";
-import { SHAPE_TYPE } from "./types";
+import { SHAPE_TYPE } from "../types";
 
 export class Asset extends BaseRect {
     type: SHAPE_TYPE = "assetrect";
@@ -22,15 +22,18 @@ export class Asset extends BaseRect {
         super(topleft, w, h, options);
         this.img = img;
     }
+
     asDict(): ServerAsset {
         return Object.assign(this.getBaseDict(), {
             src: this.src,
         });
     }
+
     fromDict(data: ServerAsset): void {
         super.fromDict(data);
         this.src = data.src;
     }
+
     draw(ctx: CanvasRenderingContext2D): void {
         super.draw(ctx);
         const center = g2l(this.center());

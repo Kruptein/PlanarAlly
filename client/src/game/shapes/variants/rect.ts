@@ -1,10 +1,10 @@
 import { GlobalPoint } from "@/game/geom";
-import { BaseRect } from "@/game/shapes/baserect";
+import { BaseRect } from "@/game/shapes/variants/baserect";
 import { gameStore } from "@/game/store";
 import { g2l } from "@/game/units";
 import { getFogColour } from "@/game/utils";
-import { ServerShape } from "../comm/types/shapes";
-import { SHAPE_TYPE } from "./types";
+import { ServerRect } from "../../comm/types/shapes";
+import { SHAPE_TYPE } from "../types";
 
 export class Rect extends BaseRect {
     type: SHAPE_TYPE = "rect";
@@ -16,9 +16,11 @@ export class Rect extends BaseRect {
     ) {
         super(topleft, w, h, options);
     }
-    asDict(): ServerShape {
+
+    asDict(): ServerRect {
         return super.getBaseDict();
     }
+
     draw(ctx: CanvasRenderingContext2D): void {
         super.draw(ctx);
         if (this.fillColour === "fog") ctx.fillStyle = getFogColour();

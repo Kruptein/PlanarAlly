@@ -5,8 +5,8 @@ import Tool from "@/game/ui/tools/tool.vue";
 
 import { GlobalPoint, Vector, LocalPoint } from "@/game/geom";
 import { layerManager } from "@/game/layers/manager";
-import { BaseRect } from "@/game/shapes/baserect";
-import { Rect } from "@/game/shapes/rect";
+import { BaseRect } from "@/game/shapes/variants/baserect";
+import { Rect } from "@/game/shapes/variants/rect";
 import { l2g } from "@/game/units";
 import { SyncMode, InvalidationMode } from "../../../core/comm/types";
 import { SelectFeatures } from "./select.vue";

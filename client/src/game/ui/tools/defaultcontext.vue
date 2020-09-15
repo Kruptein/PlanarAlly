@@ -14,7 +14,7 @@ import Prompt from "@/core/components/modals/prompt.vue";
 import { gameSettingsStore } from "@/game/settings";
 import { layerManager } from "@/game/layers/manager";
 import { uuidv4 } from "@/core/utils";
-import { Asset } from "@/game/shapes/asset";
+import { Asset } from "@/game/shapes/variants/asset";
 import { SyncMode, InvalidationMode } from "@/core/comm/types";
 import { LocalPoint } from "@/game/geom";
 

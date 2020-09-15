@@ -18,9 +18,10 @@ export const aurasFromServer = (...auras: ServerAura[]): Aura[] => {
     return result;
 };
 
-export const aurasToServer = (shape: string, auras: Aura[]): ServerAura[] => {
+export const aurasToServer = (shape: string, auras: Aura[], skipTemporary = true): ServerAura[] => {
     const result = [];
     for (const aura of auras) {
+        if (aura.temporary && skipTemporary) continue;
         result.push({
             uuid: aura.uuid,
             vision_source: aura.visionSource,

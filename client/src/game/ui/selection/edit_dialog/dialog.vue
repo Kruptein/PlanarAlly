@@ -8,11 +8,12 @@ import ColorPicker from "@/core/components/colorpicker.vue";
 import Modal from "@/core/components/modals/modal.vue";
 import EditDialogAccess from "./access.vue";
 
-import { uuidv4 } from "@/core/utils";
 import { EventBus } from "@/game/event-bus";
 import { Shape } from "@/game/shapes/shape";
 import { gameStore } from "@/game/store";
 import { Aura, Tracker } from "@/game/shapes/interfaces";
+import { createEmptyAura } from "@/game/shapes/aura";
+import { createEmptyTracker } from "@/game/shapes/tracker";
 
 @Component({
     components: {
@@ -54,25 +55,9 @@ export default class EditDialog extends Vue {
 
     addEmpty(): void {
         if (this.shape.trackers.length === 0 || !this.shape.trackers[this.shape.trackers.length - 1].temporary)
-            this.shape.pushTracker({
-                uuid: uuidv4(),
-                name: "",
-                value: 0,
-                maxvalue: 0,
-                visible: false,
-                temporary: true,
-            });
+            this.shape.pushTracker(createEmptyTracker());
         if (this.shape.auras.length === 0 || !this.shape.auras[this.shape.auras.length - 1].temporary)
-            this.shape.pushAura({
-                uuid: uuidv4(),
-                name: "",
-                value: 0,
-                dim: 0,
-                visionSource: false,
-                colour: "rgba(0,0,0,0)",
-                visible: false,
-                temporary: true,
-            });
+            this.shape.pushAura(createEmptyAura());
     }
     setToken(event: { target: HTMLInputElement }): void {
         if (!this.owned) return;

@@ -1,12 +1,26 @@
-import tinycolor from "tinycolor2";
-
 import { TriangulationTarget } from "@/game/visibility/te/pa";
 import { computeVisibility } from "@/game/visibility/te/te";
 import { circleLineIntersection, xyEqual } from "@/game/visibility/te/triag";
+import tinycolor from "tinycolor2";
+import { uuidv4 } from "../../core/utils";
 import { GlobalPoint, LocalPoint } from "../geom";
 import { g2l, g2lr, g2lz, getUnitDistance } from "../units";
 import { Circle } from "./variants/circle";
+import { Aura } from "./interfaces";
 import { Shape } from "./shape";
+
+export function createEmptyAura(): Aura {
+    return {
+        uuid: uuidv4(),
+        name: "",
+        value: 0,
+        dim: 0,
+        visionSource: false,
+        colour: "rgba(0,0,0,0)",
+        visible: false,
+        temporary: true,
+    };
+}
 
 export function drawAuras(shape: Shape, ctx: CanvasRenderingContext2D): void {
     for (const aura of shape.auras) {

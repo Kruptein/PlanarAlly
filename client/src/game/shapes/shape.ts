@@ -702,8 +702,8 @@ export abstract class Shape {
             console.log("Illegal use of syncTracker");
             return;
         }
-        sendShapeCreateTracker({ shape: this.uuid, ...tracker });
         tracker.temporary = false;
+        sendShapeCreateTracker({ shape: this.uuid, ...tracker });
     }
 
     updateTracker(trackerId: string, delta: Partial<Tracker>, sync: boolean): void {
@@ -723,8 +723,8 @@ export abstract class Shape {
             console.log("Illegal use of syncAura");
             return;
         }
-        sendShapeCreateAura(aurasToServer(this.uuid, [aura])[0]);
         aura.temporary = false;
+        sendShapeCreateAura(aurasToServer(this.uuid, [aura])[0]);
     }
 
     updateAura(auraId: string, delta: Partial<Aura>, sync: boolean): void {

@@ -236,12 +236,10 @@ export default class ShapeContext extends Vue {
             return;
         }
         const choices = Object.keys(assetOptions.variants);
-        // const templateText =
-        //     "You can choose to overwrite the default shape template or one of its existing variants.\nYou can also create a new variant by filling in a desired variant name.";
         try {
-            const choice = await this.$refs.selectionbox.open("Save Template", choices, {
-                defaultButton: "Overwrite",
-                customButton: "Create new",
+            const choice = await this.$refs.selectionbox.open(this.$t("game.ui.templates.save").toString(), choices, {
+                defaultButton: this.$t("game.ui.templates.overwrite").toString(),
+                customButton: this.$t("game.ui.templates.create_new").toString(),
             });
             assetOptions.variants[choice] = { properties: toTemplate(shape.asDict()) };
             sendAssetOptions(shape.assetId, assetOptions);
@@ -324,7 +322,6 @@ export default class ShapeContext extends Vue {
         <li @click="moveToFront" v-t="'game.ui.selection.shapecontext.move_front'"></li>
         <li @click="addInitiative" v-if="showInitiative()">{{ getInitiativeWord() }}</li>
         <li @click="deleteSelection" v-if="showDelete()" v-t="'game.ui.selection.shapecontext.delete_shapes'"></li>
-        <li v-if="hasSingleShape()" @click="openEditDialog" v-t="'game.ui.selection.shapecontext.show_props'"></li>
         <template v-if="hasSingleShape()">
             <li
                 v-if="markers.includes(getMarker())"
@@ -336,8 +333,9 @@ export default class ShapeContext extends Vue {
         <li
             @click="saveTemplate"
             v-if="hasSingleShape() && showDmNonSpawnItem() && hasAsset()"
-            v-t="'game.ui.selection.shapecontext.save_template'"
+            v-t="'game.ui.templates.save'"
         ></li>
+        <li v-if="hasSingleShape()" @click="openEditDialog" v-t="'game.ui.selection.shapecontext.show_props'"></li>
     </ContextMenu>
 </template>
 

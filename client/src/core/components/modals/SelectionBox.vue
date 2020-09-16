@@ -32,9 +32,9 @@ export default class SelectionBox extends Vue {
 
     create(): void {
         if (this.customName === "") {
-            this.error = "Fill in a new name!";
+            this.error = this.$t("core.components.selectionbox.non_empty_warning").toString();
         } else if (this.choices.includes(this.customName)) {
-            this.error = "That choice already exists!";
+            this.error = this.$t("core.components.selectionbox.already_exists_warning").toString();
         } else {
             this.resolve(this.customName);
             this.close();
@@ -60,7 +60,7 @@ export default class SelectionBox extends Vue {
         this.visible = true;
         this.choices = choices;
         this.text = options?.text ?? "";
-        this.defaultButton = options?.defaultButton ?? "Select";
+        this.defaultButton = options?.defaultButton ?? this.$t("common.select").toString();
         this.customButton = options?.customButton ?? "";
         this.error = "";
         return new Promise((resolve, reject) => {
@@ -96,7 +96,13 @@ export default class SelectionBox extends Vue {
             <div class="button" @click="submit()">{{ defaultButton }}</div>
             <template v-if="customButton.length > 0">
                 <h4>
-                    <span>OR</span>
+                    <span>
+                        {{
+                            $t("common.or")
+                                .toLocaleUpperCase()
+                                .toString()
+                        }}
+                    </span>
                 </h4>
                 <input type="text" class="input" v-model="customName" />
                 <div class="button" @click="create()">{{ customButton }}</div>

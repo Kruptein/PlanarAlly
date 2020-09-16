@@ -170,12 +170,14 @@ export default class Game extends Vue {
             let options: BaseTemplate | undefined;
             if (assetId) {
                 const response = await requestAssetOptions(assetId);
-                console.log(response);
                 if (response.success) {
                     const choices = Object.keys(response.options?.variants ?? {});
                     if (choices.length > 0) {
                         try {
-                            const choice = await this.$refs.selectionbox.open("Choose Template", choices);
+                            const choice = await this.$refs.selectionbox.open(
+                                this.$t("game.ui.templates.choose").toString(),
+                                choices,
+                            );
                             options = response.options!.variants[choice].properties;
                         } catch {
                             // no-op ; action cancelled

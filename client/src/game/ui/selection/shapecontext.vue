@@ -215,6 +215,12 @@ export default class ShapeContext extends Vue {
         return gameStore.IS_DM;
     }
 
+    hasAsset(): boolean {
+        return this.getActiveLayer()!
+            .getSelection()
+            .every(s => s.assetId !== undefined);
+    }
+
     async saveTemplate(): Promise<void> {
         const shape = this.getSelection()[0];
         let assetOptions: AssetOptions = {
@@ -224,8 +230,10 @@ export default class ShapeContext extends Vue {
         };
         if (shape.assetId) {
             const response = await requestAssetOptions(shape.assetId);
-            console.log(response);
             if (response.success && response.options) assetOptions = response.options;
+        } else {
+            console.warn("Templates are currently only supported for shapes with existing asset relations.");
+            return;
         }
         const choices = Object.keys(assetOptions.variants);
         // const templateText =
@@ -327,7 +335,7 @@ export default class ShapeContext extends Vue {
         </template>
         <li
             @click="saveTemplate"
-            v-if="hasSingleShape() && showDmNonSpawnItem()"
+            v-if="hasSingleShape() && showDmNonSpawnItem() && hasAsset()"
             v-t="'game.ui.selection.shapecontext.save_template'"
         ></li>
     </ContextMenu>

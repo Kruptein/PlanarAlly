@@ -226,7 +226,7 @@ export default class ShapeContext extends Vue {
         let assetOptions: AssetOptions = {
             version: "0",
             shape: shape.type,
-            variants: { default: { properties: {} } },
+            templates: { default: {} },
         };
         if (shape.assetId) {
             const response = await requestAssetOptions(shape.assetId);
@@ -235,13 +235,13 @@ export default class ShapeContext extends Vue {
             console.warn("Templates are currently only supported for shapes with existing asset relations.");
             return;
         }
-        const choices = Object.keys(assetOptions.variants);
+        const choices = Object.keys(assetOptions.templates);
         try {
             const choice = await this.$refs.selectionbox.open(this.$t("game.ui.templates.save").toString(), choices, {
                 defaultButton: this.$t("game.ui.templates.overwrite").toString(),
                 customButton: this.$t("game.ui.templates.create_new").toString(),
             });
-            assetOptions.variants[choice] = { properties: toTemplate(shape.asDict()) };
+            assetOptions.templates[choice] = toTemplate(shape.asDict());
             sendAssetOptions(shape.assetId, assetOptions);
         } catch {
             // no-op ; action cancelled

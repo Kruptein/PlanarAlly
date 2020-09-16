@@ -171,14 +171,14 @@ export default class Game extends Vue {
             if (assetId) {
                 const response = await requestAssetOptions(assetId);
                 if (response.success) {
-                    const choices = Object.keys(response.options?.variants ?? {});
+                    const choices = Object.keys(response.options?.templates ?? {});
                     if (choices.length > 0) {
                         try {
                             const choice = await this.$refs.selectionbox.open(
                                 this.$t("game.ui.templates.choose").toString(),
                                 choices,
                             );
-                            options = response.options!.variants[choice].properties;
+                            options = response.options!.templates[choice];
                         } catch {
                             // no-op ; action cancelled
                         }

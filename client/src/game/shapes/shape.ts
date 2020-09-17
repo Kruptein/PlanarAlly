@@ -50,7 +50,7 @@ import { Layer } from "../layers/layer";
 import { getFloorId } from "../layers/store";
 import { gameSettingsStore } from "../settings";
 import { rotateAroundPoint } from "../utils";
-import { BoundingRect } from "./boundingrect";
+import { BoundingRect } from "./variants/boundingrect";
 import { Aura, Label, Tracker } from "./interfaces";
 import { PartialShapeOwner, ShapeAccess, ShapeOwner } from "./owners";
 import { SHAPE_TYPE } from "./types";
@@ -72,12 +72,14 @@ export abstract class Shape {
     protected _angle = 0;
 
     // Fill colour of the shape
-    fillColour = "#000";
-    strokeColour = "rgba(0,0,0,0)";
+    fillColour: string;
+    strokeColour: string;
     strokeWidth = 5;
     // The optional name associated with the shape
     name = "Unknown shape";
     nameVisible = true;
+
+    assetId?: number;
 
     // Associated trackers/auras/owners
     trackers: Tracker[] = [];
@@ -110,11 +112,15 @@ export abstract class Shape {
     isLocked = false;
     defaultAccess: ShapeAccess = { vision: false, movement: false, edit: false };
 
-    constructor(refPoint: GlobalPoint, fillColour?: string, strokeColour?: string, uuid?: string) {
+    constructor(
+        refPoint: GlobalPoint,
+        options?: { fillColour?: string; strokeColour?: string; uuid?: string; assetId?: number },
+    ) {
         this._refPoint = refPoint;
-        this.uuid = uuid || uuidv4();
-        if (fillColour !== undefined) this.fillColour = fillColour;
-        if (strokeColour !== undefined) this.strokeColour = strokeColour;
+        this.uuid = options?.uuid ?? uuidv4();
+        this.fillColour = options?.fillColour ?? "#000";
+        this.strokeColour = options?.strokeColour ?? "rgba(0,0,0,0)";
+        this.assetId = options?.assetId;
     }
 
     // Are the last and first point connected
@@ -304,6 +310,7 @@ export abstract class Shape {
             default_edit_access: this.defaultAccess.edit,
             default_movement_access: this.defaultAccess.movement,
             default_vision_access: this.defaultAccess.vision,
+            asset: this.assetId,
         };
     }
     fromDict(data: ServerShape): void {
@@ -313,7 +320,7 @@ export abstract class Shape {
         this.globalCompositeOperation = data.draw_operator;
         this.movementObstruction = data.movement_obstruction;
         this.visionObstruction = data.vision_obstruction;
-        this.auras = aurasFromServer(data.auras);
+        this.auras = aurasFromServer(...data.auras);
         this.trackers = data.trackers;
         this.labels = data.labels;
         this._owners = data.owners.map(owner => ownerToClient(owner));
@@ -328,6 +335,7 @@ export abstract class Shape {
         if (data.annotation) this.annotation = data.annotation;
         if (data.name) this.name = data.name;
         if (data.options) this.options = new Map(JSON.parse(data.options));
+        if (data.asset) this.assetId = data.asset;
         // retain reactivity
         this.updateDefaultOwner(
             {

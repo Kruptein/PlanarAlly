@@ -12,6 +12,7 @@ from state.game import game_state
 from utils import logger
 
 from . import (
+    asset,
     asset_manager,
     connection,
     floor,

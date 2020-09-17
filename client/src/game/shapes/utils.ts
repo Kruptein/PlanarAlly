@@ -13,20 +13,20 @@ import {
 } from "@/game/comm/types/shapes";
 import { GlobalPoint, Vector } from "@/game/geom";
 import { layerManager } from "@/game/layers/manager";
-import { Asset } from "@/game/shapes/asset";
-import { Circle } from "@/game/shapes/circle";
-import { CircularToken } from "@/game/shapes/circulartoken";
-import { Line } from "@/game/shapes/line";
-import { Rect } from "@/game/shapes/rect";
+import { Asset } from "@/game/shapes/variants/asset";
+import { Circle } from "@/game/shapes/variants/circle";
+import { CircularToken } from "@/game/shapes/variants/circulartoken";
+import { Line } from "@/game/shapes/variants/line";
+import { Rect } from "@/game/shapes/variants/rect";
 import { Shape } from "@/game/shapes/shape";
-import { Text } from "@/game/shapes/text";
+import { Text } from "@/game/shapes/variants/text";
 import { sendGroupLeaderUpdate } from "../api/emits/shape/core";
 import { EventBus } from "../event-bus";
 import { floorStore, getFloorId } from "../layers/store";
 import { gameStore } from "../store";
 import { addGroupMember } from "./group";
 import { Tracker } from "./interfaces";
-import { Polygon } from "./polygon";
+import { Polygon } from "./variants/polygon";
 
 export function createShapeFromDict(shape: ServerShape): Shape | undefined {
     let sh: Shape;
@@ -38,44 +38,58 @@ export function createShapeFromDict(shape: ServerShape): Shape | undefined {
     const refPoint = new GlobalPoint(shape.x, shape.y);
     if (shape.type_ === "rect") {
         const rect = shape as ServerRect;
-        sh = new Rect(refPoint, rect.width, rect.height, rect.fill_colour, rect.stroke_colour, rect.uuid);
+        sh = new Rect(refPoint, rect.width, rect.height, {
+            fillColour: rect.fill_colour,
+            strokeColour: rect.stroke_colour,
+            uuid: rect.uuid,
+        });
     } else if (shape.type_ === "circle") {
         const circ = shape as ServerCircle;
-        sh = new Circle(refPoint, circ.radius, circ.fill_colour, circ.stroke_colour, circ.uuid);
+        sh = new Circle(refPoint, circ.radius, {
+            fillColour: circ.fill_colour,
+            strokeColour: circ.stroke_colour,
+            uuid: circ.uuid,
+        });
     } else if (shape.type_ === "circulartoken") {
         const token = shape as ServerCircularToken;
-        sh = new CircularToken(
-            refPoint,
-            token.radius,
-            token.text,
-            token.font,
-            token.fill_colour,
-            token.stroke_colour,
-            token.uuid,
-        );
+        sh = new CircularToken(refPoint, token.radius, token.text, token.font, {
+            fillColour: token.fill_colour,
+            strokeColour: token.stroke_colour,
+            uuid: token.uuid,
+        });
     } else if (shape.type_ === "line") {
         const line = shape as ServerLine;
-        sh = new Line(refPoint, new GlobalPoint(line.x2, line.y2), line.line_width, line.stroke_colour, line.uuid);
+        sh = new Line(refPoint, new GlobalPoint(line.x2, line.y2), {
+            lineWidth: line.line_width,
+            strokeColour: line.stroke_colour,
+            uuid: line.uuid,
+        });
     } else if (shape.type_ === "polygon") {
         const polygon = shape as ServerPolygon;
         sh = new Polygon(
             refPoint,
             polygon.vertices.map(v => GlobalPoint.fromArray(v)),
-            polygon.fill_colour,
-            polygon.stroke_colour,
-            polygon.line_width,
-            polygon.open_polygon,
-            polygon.uuid,
+            {
+                fillColour: polygon.fill_colour,
+                strokeColour: polygon.stroke_colour,
+                lineWidth: polygon.line_width,
+                openPolygon: polygon.open_polygon,
+                uuid: polygon.uuid,
+            },
         );
     } else if (shape.type_ === "text") {
         const text = shape as ServerText;
-        sh = new Text(refPoint, text.text, text.font, text.fill_colour, text.stroke_colour, text.uuid);
+        sh = new Text(refPoint, text.text, text.font, {
+            fillColour: text.fill_colour,
+            strokeColour: text.stroke_colour,
+            uuid: text.uuid,
+        });
     } else if (shape.type_ === "assetrect") {
         const asset = shape as ServerAsset;
         const img = new Image(asset.width, asset.height);
         if (asset.src.startsWith("http")) img.src = new URL(asset.src).pathname;
         else img.src = asset.src;
-        sh = new Asset(img, refPoint, asset.width, asset.height, asset.uuid);
+        sh = new Asset(img, refPoint, asset.width, asset.height, { uuid: asset.uuid });
         img.onload = () => {
             layerManager.getLayer(layerManager.getFloor(getFloorId(shape.floor))!, shape.layer)!.invalidate(true);
         };

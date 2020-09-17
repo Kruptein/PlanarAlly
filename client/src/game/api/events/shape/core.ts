@@ -8,9 +8,9 @@ import { gameManager } from "../../../manager";
 import { changeGroupLeader, addGroupMember } from "../../../shapes/group";
 import { Shape } from "../../../shapes/shape";
 import { socket } from "../../socket";
-import { Text } from "../../../shapes/text";
-import { Rect } from "../../../shapes/rect";
-import { Circle } from "../../../shapes/circle";
+import { Text } from "../../../shapes/variants/text";
+import { Rect } from "../../../shapes/variants/rect";
+import { Circle } from "../../../shapes/variants/circle";
 import { Tracker, Aura } from "../../../shapes/interfaces";
 
 socket.on("Shape.Set", (data: ServerShape) => {

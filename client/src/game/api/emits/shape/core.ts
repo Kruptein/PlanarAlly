@@ -1,8 +1,8 @@
 import { ServerShape } from "../../../comm/types/shapes";
 import { Shape } from "../../../shapes/shape";
 import { socket } from "../../socket";
-import { Rect } from "../../../shapes/rect";
-import { Circle } from "../../../shapes/circle";
+import { Rect } from "../../../shapes/variants/rect";
+import { Circle } from "../../../shapes/variants/circle";
 import { wrapSocket } from "../../helpers";
 
 export const sendShapeAdd = wrapSocket<{ shape: ServerShape; temporary: boolean }>("Shape.Add");

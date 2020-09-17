@@ -6,13 +6,15 @@ import { FowVisionLayer } from "@/game/layers/fowvision";
 import { GridLayer } from "@/game/layers/grid";
 import { Layer } from "@/game/layers/layer";
 import { layerManager } from "@/game/layers/manager";
-import { Asset } from "@/game/shapes/asset";
+import { Asset } from "@/game/shapes/variants/asset";
 import { clampGridLine, l2gx, l2gy, l2gz } from "@/game/units";
 import { visibilityStore } from "@/game/visibility/store";
 import { addCDT, removeCDT } from "@/game/visibility/te/pa";
 import { sendFloorChange, sendLayerChange } from "../api/emits/shape/core";
+import { BaseTemplate } from "../comm/types/templates";
 import { gameSettingsStore } from "../settings";
 import { Shape } from "../shapes/shape";
+import { applyTemplate } from "../shapes/template";
 import { gameStore } from "../store";
 import { Floor } from "./floor";
 import { floorStore, getFloorId, newFloorId } from "./store";
@@ -84,20 +86,29 @@ function createLayer(layerInfo: ServerLayer, floor: Floor): void {
     layer.setServerShapes(layerInfo.shapes);
 }
 
-export function dropAsset(event: DragEvent): void {
+export async function dropAsset(
+    data: { imageSource: string; assetId: number },
+    position: { x: number; y: number },
+    options?: BaseTemplate,
+): Promise<void> {
     const layer = floorStore.currentLayer;
-    if (layer === undefined || event === null || event.dataTransfer === null) return;
-    const src = event.dataTransfer.getData("text/plain");
-    if (!src.startsWith("/static")) return;
+
+    if (!data.imageSource.startsWith("/static")) return;
     const image = document.createElement("img");
-    image.src = src;
+    image.src = data.imageSource;
     const asset = new Asset(
         image,
-        new GlobalPoint(l2gx(event.clientX), l2gy(event.clientY)),
+        new GlobalPoint(l2gx(position.x), l2gy(position.y)),
         l2gz(image.width),
         l2gz(image.height),
+        { assetId: data.assetId },
     );
     asset.src = new URL(image.src).pathname;
+
+    if (options) {
+        asset.setLayer(layer.floor, layer.name); // if we don't set this the asDict will fail
+        asset.fromDict(applyTemplate(asset.asDict(), options));
+    }
 
     if (gameSettingsStore.useGrid) {
         const gs = gameStore.gridSize;

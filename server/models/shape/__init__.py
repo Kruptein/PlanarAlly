@@ -4,6 +4,7 @@ from playhouse.shortcuts import model_to_dict, update_model_from_dict
 from typing import Any, Dict, List, Tuple
 
 from utils import logger
+from ..asset import Asset
 from ..base import BaseModel
 from ..campaign import Layer
 from ..label import Label
@@ -53,6 +54,7 @@ class Shape(BaseModel):
     is_locked = BooleanField(default=False)
     angle = FloatField(default=0)
     stroke_width = IntegerField(default=2)
+    asset = ForeignKeyField(Asset, backref="shapes", null=True, default=None)
 
     def __repr__(self):
         return f"<Shape {self.get_path()}>"

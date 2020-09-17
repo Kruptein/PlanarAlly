@@ -69,12 +69,12 @@ export default class AssetNode extends Vue {
         }
     }
 
-    dragStart(event: DragEvent, imageSource: string): void {
+    dragStart(event: DragEvent, imageSource: string, assetId: number): void {
         this.showImage = null;
         if (event === null || event.dataTransfer === null) return;
         const img = (event.target as HTMLElement).querySelector(".preview")!;
         event.dataTransfer.setDragImage(img, 0, 0);
-        event.dataTransfer.setData("text/plain", imageSource);
+        event.dataTransfer.setData("text/plain", JSON.stringify({ imageSource, assetId }));
     }
 }
 </script>
@@ -99,12 +99,12 @@ export default class AssetNode extends Vue {
         </li>
         <li
             v-for="file in files"
-            :key="file.uuid"
+            :key="file.id"
             class="file draggable token"
             draggable="true"
             @mouseover="showImage = file.hash"
             @mouseout="showImage = null"
-            @dragstart="dragStart($event, '/static/assets/' + file.hash)"
+            @dragstart="dragStart($event, '/static/assets/' + file.hash, file.id)"
         >
             {{ file.name }}
             <div v-if="showImage == file.hash" class="preview">

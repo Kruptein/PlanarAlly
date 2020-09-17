@@ -4,10 +4,10 @@
 
 import { layerManager } from "./game/layers/manager";
 import { GlobalPoint } from "./game/geom";
-import { BaseRect } from "./game/shapes/baserect";
-import { Circle } from "./game/shapes/circle";
-import { Line } from "./game/shapes/line";
-import { Polygon } from "./game/shapes/polygon";
+import { BaseRect } from "./game/shapes/variants/baserect";
+import { Circle } from "./game/shapes/variants/circle";
+import { Line } from "./game/shapes/variants/line";
+import { Polygon } from "./game/shapes/variants/polygon";
 import { sendShapeSizeUpdate, sendShapePositionUpdate } from "./game/api/emits/shape/core";
 import { gameStore } from "./game/store";
 import { visibilityStore } from "./game/visibility/store";

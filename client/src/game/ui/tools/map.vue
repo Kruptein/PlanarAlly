@@ -5,8 +5,8 @@ import Tool from "@/game/ui/tools/tool.vue";
 
 import { GlobalPoint, Vector, LocalPoint } from "@/game/geom";
 import { layerManager } from "@/game/layers/manager";
-import { BaseRect } from "@/game/shapes/baserect";
-import { Rect } from "@/game/shapes/rect";
+import { BaseRect } from "@/game/shapes/variants/baserect";
+import { Rect } from "@/game/shapes/variants/rect";
 import { l2g } from "@/game/units";
 import { SyncMode, InvalidationMode } from "../../../core/comm/types";
 import { SelectFeatures } from "./select.vue";
@@ -106,7 +106,7 @@ export default class MapTool extends Tool implements ToolBasics {
         }
         this.active = true;
 
-        this.rect = new Rect(this.startPoint.clone(), 0, 0, "rgba(0,0,0,0)", "black");
+        this.rect = new Rect(this.startPoint.clone(), 0, 0, { fillColour: "rgba(0,0,0,0)", strokeColour: "black" });
         this.rect.preventSync = true;
         layer.addShape(this.rect, SyncMode.NO_SYNC, InvalidationMode.NORMAL);
         this.shape = layer.getSelection()[0];

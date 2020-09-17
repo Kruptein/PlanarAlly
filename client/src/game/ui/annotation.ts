@@ -2,8 +2,8 @@ import { InvalidationMode, SyncMode } from "@/core/comm/types";
 import { GlobalPoint, LocalPoint } from "@/game/geom";
 import { Layer } from "@/game/layers/layer";
 import { layerManager } from "@/game/layers/manager";
-import { Rect } from "@/game/shapes/rect";
-import { Text } from "@/game/shapes/text";
+import { Rect } from "@/game/shapes/variants/rect";
+import { Text } from "@/game/shapes/variants/text";
 import { gameStore } from "@/game/store";
 import { l2g } from "@/game/units";
 import { floorStore } from "../layers/store";
@@ -16,8 +16,8 @@ export class AnnotationManager {
 
     constructor() {
         const origin = new GlobalPoint(0, 0);
-        this.annotationText = new Text(origin, "", "bold 20px serif", "rgba(230, 230, 230, 1)");
-        this.annotationRect = new Rect(origin, 0, 0, "rgba(0, 0, 0, 0.6)");
+        this.annotationText = new Text(origin, "", "bold 20px serif", { fillColour: "rgba(230, 230, 230, 1)" });
+        this.annotationRect = new Rect(origin, 0, 0, { fillColour: "rgba(0, 0, 0, 0.6)" });
     }
 
     setActiveText(text: string): void {

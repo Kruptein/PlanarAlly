@@ -1,9 +1,10 @@
 import { Tracker, Label } from "../../shapes/interfaces";
 import { ShapeOwner, ShapeAccess } from "../../shapes/owners";
+import { SHAPE_TYPE } from "../../shapes/types";
 
 export interface ServerShape {
     uuid: string;
-    type_: string;
+    type_: SHAPE_TYPE;
     x: number;
     y: number;
     angle: number;
@@ -31,6 +32,7 @@ export interface ServerShape {
     default_edit_access: boolean;
     default_movement_access: boolean;
     default_vision_access: boolean;
+    asset?: number;
 }
 
 export interface ServerShapeAccess {

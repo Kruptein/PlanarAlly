@@ -3,7 +3,7 @@
         "select": "Select Language:",
         "en": "English",
         "zh": "简体中文",
-        "tw":"繁體中文",
+        "tw": "繁體中文",
         "de": "Deutsch",
         "ru": "Русский",
         "dk": "Dansk",
@@ -67,7 +67,9 @@
         "cancel": "Cancel",
         "insert_one_character": "Please insert at least one character",
         "name_already_in_use": "This name is already in use!",
-        "varia": "Varia"
+        "varia": "Varia",
+        "select": "Select",
+        "or": "or"
     },
     "auth": {
         "login": {
@@ -80,6 +82,10 @@
             "inputCopy": {
                 "copied": "Copied!",
                 "copy": "Copy"
+            },
+            "selectionbox": {
+                "non_empty_warning": "Enter a non-empty custom value!",
+                "already_exists_warning": "That choice already exists!"
             }
         }
     },
@@ -275,6 +281,12 @@
                     "default": "Default",
                     "experimental": "Experimental"
                 }
+            },
+            "templates": {
+                "choose": "Choose Template",
+                "save": "Save Template",
+                "overwrite": "Overwrite",
+                "create_new": "Create new"
             },
             "tools": {
                 "createtoken_modal": {

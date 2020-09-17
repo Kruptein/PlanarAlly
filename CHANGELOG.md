@@ -8,11 +8,15 @@ All notable changes to this project will be documented in this file.
 ## Unreleased
 
 ### Added
+
 -   traditional chinese localization added
 -   spawn location tweaks
     -   Multi spawn locations
         -   When moving a shape to a new location that has multiple spawn locations, a box will appear to choose the desired spawn zone
     -   Removal of spawn locations is now possible
+-   template system for assets
+    -   Save shape state to its linked asset
+    -   On asset drop, choose from the saved templates to prepopulate some fields
 
 ### Fixed
 

@@ -311,6 +311,8 @@ export default class SelectTool extends Tool implements ToolBasics {
 
     onUp(_lp: LocalPoint, event: MouseEvent | TouchEvent, features: ToolFeatures<SelectFeatures>): void {
         if (!this.active) return;
+        this.active = false;
+
         if (floorStore.currentLayer === undefined) {
             console.log("No active layer!");
             return;
@@ -466,7 +468,6 @@ export default class SelectTool extends Tool implements ToolBasics {
             }
         }
         this.mode = SelectOperations.Noop;
-        this.active = false;
     }
 
     onContextMenu(event: MouseEvent, features: ToolFeatures<SelectFeatures>): void {

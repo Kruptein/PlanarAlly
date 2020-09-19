@@ -27,6 +27,7 @@ export default class MapTool extends Tool implements ToolBasics {
     startPoint: GlobalPoint | null = null;
     rect: Rect | null = null;
     shape: Shape | null = null;
+    error = "";
 
     shapeSelected = false;
 
@@ -61,10 +62,16 @@ export default class MapTool extends Tool implements ToolBasics {
         this.permittedTools_ = [{ name: ToolName.Select, features: { enabled: [SelectFeatures.ChangeSelection] } }];
         this.shapeSelected = false;
         this.shape = null;
+        this.error = "";
     }
 
     apply(): void {
         if (this.shape === null || this.rect === null) return;
+        if (!Number.isFinite(this.xCount) || !Number.isFinite(this.yCount) || this.xCount <= 0 || this.yCount <= 0) {
+            this.error = "Input should be a positive number";
+            return;
+        }
+
         const oldRefpoint = this.shape.refPoint;
         const oldCenter = this.rect.center();
 
@@ -161,6 +168,7 @@ export default class MapTool extends Tool implements ToolBasics {
         :style="{ '--detailRight': detailRight, '--detailArrow': detailArrow }"
     >
         <template v-if="shapeSelected">
+            <div class="row">{{ error }}</div>
             <template v-if="rect === null">{{ $t("game.ui.tools.map.drag_to_resize") }}</template>
             <template v-else>
                 <div class="explanation" v-t="'game.ui.tools.map.set_target_grid_cells'"></div>
@@ -181,6 +189,7 @@ export default class MapTool extends Tool implements ToolBasics {
     display: grid;
     grid-template-areas:
         "text text"
+        "error error"
         "horiz hinput"
         "verti vinput"
         "submit cancel";
@@ -188,6 +197,10 @@ export default class MapTool extends Tool implements ToolBasics {
 
 .map > * {
     text-align: right;
+}
+
+.row {
+    grid-column: 1 / span 2;
 }
 
 .explanation {

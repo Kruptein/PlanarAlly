@@ -15,6 +15,8 @@ import { gameStore, DEFAULT_GRID_SIZE } from "@/game/store";
 import { Text } from "../../shapes/variants/text";
 import { floorStore } from "@/game/layers/store";
 import { sendShapePositionUpdate, sendTextUpdate } from "@/game/api/emits/shape/core";
+import { useSnapping } from "@/game/utils";
+import { snapToGridPoint } from "@/game/layers/utils";
 
 @Component
 export default class RulerTool extends Tool implements ToolBasics {
@@ -31,8 +33,10 @@ export default class RulerTool extends Tool implements ToolBasics {
         return SyncMode.NO_SYNC;
     }
 
-    onDown(lp: LocalPoint): void {
+    onDown(lp: LocalPoint, event: MouseEvent | TouchEvent): void {
         this.startPoint = l2g(lp);
+
+        if (useSnapping(event)) [this.startPoint] = snapToGridPoint(this.startPoint);
 
         const layer = layerManager.getLayer(floorStore.currentFloor, "draw");
         if (layer === undefined) {
@@ -54,8 +58,8 @@ export default class RulerTool extends Tool implements ToolBasics {
         layer.addShape(this.text, this.syncMode, InvalidationMode.NORMAL);
     }
 
-    onMove(lp: LocalPoint): void {
-        const endPoint = l2g(lp);
+    onMove(lp: LocalPoint, event: MouseEvent | TouchEvent): void {
+        let endPoint = l2g(lp);
         if (!this.active || this.ruler === null || this.startPoint === null || this.text === null) return;
 
         const layer = layerManager.getLayer(floorStore.currentFloor, "draw");
@@ -63,6 +67,8 @@ export default class RulerTool extends Tool implements ToolBasics {
             console.log("No draw layer!");
             return;
         }
+
+        if (useSnapping(event)) [endPoint] = snapToGridPoint(endPoint);
 
         this.ruler.endPoint = endPoint;
         sendShapePositionUpdate([this.ruler], true);

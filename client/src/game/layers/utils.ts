@@ -1,6 +1,6 @@
 import { InvalidationMode, SyncMode } from "@/core/comm/types";
 import { ServerFloor, ServerLayer } from "@/game/comm/types/general";
-import { GlobalPoint } from "@/game/geom";
+import { GlobalPoint, Vector } from "@/game/geom";
 import { FowLightingLayer } from "@/game/layers/fowlighting";
 import { FowVisionLayer } from "@/game/layers/fowvision";
 import { GridLayer } from "@/game/layers/grid";
@@ -15,7 +15,7 @@ import { BaseTemplate } from "../comm/types/templates";
 import { gameSettingsStore } from "../settings";
 import { Shape } from "../shapes/shape";
 import { applyTemplate } from "../shapes/template";
-import { gameStore } from "../store";
+import { DEFAULT_GRID_SIZE, gameStore } from "../store";
 import { Floor } from "./floor";
 import { floorStore, getFloorId, newFloorId } from "./store";
 
@@ -132,6 +132,36 @@ export function snapToPoint(layer: Layer, endPoint: GlobalPoint, ignore?: Global
     }
     if (smallestPoint !== undefined) endPoint = smallestPoint[1];
     return [endPoint, smallestPoint !== undefined];
+}
+
+export function snapToGridPoint(point: GlobalPoint): [GlobalPoint, boolean] {
+    let smallestPoint: [number, GlobalPoint] | undefined;
+    const reverseOriginVector = new Vector(
+        Math.floor(point.x / DEFAULT_GRID_SIZE) * DEFAULT_GRID_SIZE,
+        Math.floor(point.y / DEFAULT_GRID_SIZE) * DEFAULT_GRID_SIZE,
+    );
+    let originShifted = new GlobalPoint(point.x % DEFAULT_GRID_SIZE, point.y % DEFAULT_GRID_SIZE);
+    if (originShifted.x < 0) originShifted = originShifted.add(new Vector(DEFAULT_GRID_SIZE, 0));
+    if (originShifted.y < 0) originShifted = originShifted.add(new Vector(0, DEFAULT_GRID_SIZE));
+    console.log(originShifted.asArray());
+    const targets = [
+        new GlobalPoint(0, 0),
+        new GlobalPoint(0, DEFAULT_GRID_SIZE),
+        new GlobalPoint(DEFAULT_GRID_SIZE, 0),
+        new GlobalPoint(DEFAULT_GRID_SIZE, DEFAULT_GRID_SIZE),
+        new GlobalPoint(0, DEFAULT_GRID_SIZE / 2),
+        new GlobalPoint(DEFAULT_GRID_SIZE / 2, 0),
+        new GlobalPoint(DEFAULT_GRID_SIZE, DEFAULT_GRID_SIZE / 2),
+        new GlobalPoint(DEFAULT_GRID_SIZE / 2, DEFAULT_GRID_SIZE),
+        new GlobalPoint(DEFAULT_GRID_SIZE / 2, DEFAULT_GRID_SIZE / 2),
+    ];
+    for (const target of targets) {
+        const l = originShifted.subtract(target).length();
+
+        if (l < (smallestPoint?.[0] ?? Number.MAX_VALUE)) smallestPoint = [l, target];
+    }
+    if (smallestPoint !== undefined) return [smallestPoint[1].add(reverseOriginVector), true];
+    return [point, false];
 }
 
 export function moveFloor(shapes: Shape[], newFloor: Floor, sync: boolean): void {

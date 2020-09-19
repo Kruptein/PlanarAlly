@@ -21,6 +21,7 @@ All notable changes to this project will be documented in this file.
 ### Fixed
 
 -   Run docker container as non-root
+-   Unlocking shape via quick menu no longer puts shape in drag mode
 
 ## [0.22.3] - 2020-08-30
 

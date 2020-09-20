@@ -4,15 +4,12 @@ import { GlobalPoint } from "@/game/geom";
 import { layerManager } from "@/game/layers/manager";
 import { createShapeFromDict } from "@/game/shapes/utils";
 import { gameStore } from "@/game/store";
-import { AnnotationManager } from "@/game/ui/annotation";
 import { g2l } from "@/game/units";
 import { sendClientLocationOptions } from "./api/emits/client";
 import { getFloorId } from "./layers/store";
 import { Shape } from "./shapes/shape";
 
 export class GameManager {
-    annotationManager = new AnnotationManager();
-
     addShape(shape: ServerShape): Shape | undefined {
         if (!layerManager.hasLayer(layerManager.getFloor(getFloorId(shape.floor))!, shape.layer)) {
             console.log(`Shape with unknown layer ${shape.layer} could not be added`);

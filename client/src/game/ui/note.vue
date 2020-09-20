@@ -20,16 +20,17 @@ export default class NoteDialog extends Vue {
     open(note: Note): void {
         this.visible = true;
         this.note = note;
+        this.$nextTick(() => {
+            this.calcHeight();
+        });
     }
-    calcHeight(): string {
+    calcHeight(): void {
+        console.log(this.$refs.textarea);
         if (this.$refs.textarea) {
             const el = this.$refs.textarea as HTMLElement;
             el.style.height = "auto";
             el.style.height = el.scrollHeight + "px";
-            // Using the return value without the above did not achieve what I want, so hey /shrug
-            return el.scrollHeight + "px";
         }
-        return "100px";
     }
     updateNote(): void {
         if (this.note) gameStore.updateNote({ note: this.note, sync: true });
@@ -63,12 +64,7 @@ export default class NoteDialog extends Vue {
             </div>
         </div>
         <div class="modal-body">
-            <textarea
-                ref="textarea"
-                v-model="note.text"
-                :style="{ height: calcHeight() }"
-                @change="updateNote"
-            ></textarea>
+            <textarea ref="textarea" v-model="note.text" @input="calcHeight" @change="updateNote"></textarea>
         </div>
         <div class="modal-footer">
             <button @click="removeNote" :title="$t('game.ui.note.remove_note')">

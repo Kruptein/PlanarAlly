@@ -75,7 +75,12 @@ export default class ShapeSettings extends Vue {
             <PropertySettings v-show="selection === 0" :shape="shape" :owned="owned"></PropertySettings>
             <TrackerSettings v-show="selection === 1" :shape="shape" :owned="owned"></TrackerSettings>
             <AccessSettings v-show="selection === 2" :shape="shape" :owned="owned"></AccessSettings>
-            <ExtraSettings v-show="selection === 3" :shape="shape" :owned="owned"></ExtraSettings>
+            <ExtraSettings
+                v-show="selection === 3"
+                :shape="shape"
+                :owned="owned"
+                :active="selection === 3"
+            ></ExtraSettings>
         </template>
     </PanelModal>
 </template>

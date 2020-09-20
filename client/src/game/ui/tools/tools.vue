@@ -15,7 +15,6 @@ import Tool from "./tool.vue";
 import VisionTool from "@/game/ui/tools/vision.vue";
 
 import { layerManager } from "@/game/layers/manager";
-import { gameManager } from "@/game/manager";
 import { gameStore } from "@/game/store";
 import { PingTool } from "@/game/ui/tools/ping";
 import { l2g } from "@/game/units";
@@ -23,6 +22,7 @@ import { getLocalPointFromEvent } from "@/game/utils";
 import { ToolName, ToolFeatures } from "./utils";
 import { EventBus } from "@/game/event-bus";
 import { floorStore } from "@/game/layers/store";
+import UI from "../ui.vue";
 
 @Component({
     components: {
@@ -190,12 +190,12 @@ export default class Tools extends Vue {
                 const shape = layerManager.UUIDMap.get(uuid)!;
                 if (shape.contains(l2g(getLocalPointFromEvent(event)))) {
                     found = true;
-                    gameManager.annotationManager.setActiveText(shape.annotation);
+                    (this.$parent as UI).$refs.annotation.setActiveText(shape.annotation);
                 }
             }
         }
-        if (!found && gameManager.annotationManager.shown) {
-            gameManager.annotationManager.setActiveText("");
+        if (!found) {
+            (this.$parent as UI).$refs.annotation.setActiveText("");
         }
     }
     mouseleave(event: MouseEvent): void {
@@ -276,12 +276,12 @@ export default class Tools extends Vue {
                 const shape = layerManager.UUIDMap.get(uuid)!;
                 if (shape.contains(l2g(getLocalPointFromEvent(event)))) {
                     found = true;
-                    gameManager.annotationManager.setActiveText(shape.annotation);
+                    (this.$parent as UI).$refs.annotation.setActiveText(shape.annotation);
                 }
             }
         }
-        if (!found && gameManager.annotationManager.shown) {
-            gameManager.annotationManager.setActiveText("");
+        if (!found) {
+            (this.$parent as UI).$refs.annotation.setActiveText("");
         }
     }
 

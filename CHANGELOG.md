@@ -19,16 +19,19 @@ All notable changes to this project will be documented in this file.
     -   On asset drop, choose from the saved templates to prepopulate some fields
 -   Snapping support to the ruler
     -   Snapping points are the grid corner points, center between two grid points and the complete center of a grid cell
+-   Markdown support for shape annotations
 
 ### Changed
 
 -   Shape edit dialog now uses a panel layout (similar to dm settings)
+-   Annotation UI got a small change to better accomodate the new markdown support
 
 ### Fixed
 
 -   Run docker container as non-root
 -   Unlocking shape via quick menu no longer puts shape in drag mode
 -   Map allowing some invalid inputs (negative numbers, 0, everything that isn't a number)
+-   Note and annotation textareas not having the correct height initially
 
 ## [0.22.3] - 2020-08-30
 

@@ -2,7 +2,7 @@
 import Vue from "vue";
 import Component from "vue-class-component";
 
-import { Prop } from "vue-property-decorator";
+import { Prop, Watch } from "vue-property-decorator";
 
 import { Shape } from "@/game/shapes/shape";
 import { EventBus } from "@/game/event-bus";
@@ -11,10 +11,21 @@ import { EventBus } from "@/game/event-bus";
 export default class AccessSettings extends Vue {
     @Prop() owned!: boolean;
     @Prop() shape!: Shape;
+    @Prop() active!: boolean;
 
-    updateAnnotation(event: { target: HTMLInputElement }): void {
+    $refs!: {
+        textarea: HTMLTextAreaElement;
+    };
+
+    @Watch("active")
+    panelActivated(active: boolean): void {
+        if (active) this.calcHeight();
+    }
+
+    updateAnnotation(event: { target: HTMLInputElement }, sync = true): void {
+        this.calcHeight();
         if (!this.owned) return;
-        this.shape.setAnnotation(event.target.value, true);
+        this.shape.setAnnotation(event.target.value, sync);
     }
 
     openLabelManager(): void {
@@ -24,6 +35,14 @@ export default class AccessSettings extends Vue {
     removeLabel(uuid: string): void {
         if (!this.owned) return;
         this.shape.removeLabel(uuid, true);
+    }
+
+    calcHeight(): void {
+        if (this.$refs.textarea) {
+            const el = this.$refs.textarea;
+            el.style.height = "auto";
+            el.style.height = el.scrollHeight + "px";
+        }
     }
 }
 </script>
@@ -46,7 +65,14 @@ export default class AccessSettings extends Vue {
             </div>
         </div>
         <div class="spanrow header" v-t="'common.annotation'"></div>
-        <textarea class="spanrow" :value="shape.annotation" @change="updateAnnotation" :disabled="!owned"></textarea>
+        <textarea
+            class="spanrow"
+            ref="textarea"
+            :value="shape.annotation"
+            @input="updateAnnotation($event, false)"
+            @change="updateAnnotation"
+            :disabled="!owned"
+        ></textarea>
     </div>
 </template>
 
@@ -69,8 +95,10 @@ export default class AccessSettings extends Vue {
 }
 
 textarea {
-    min-width: 15vh;
-    min-height: 5vh;
+    padding: 5px;
+    min-height: 100px;
+    width: 300px;
+    max-height: 30vh;
 }
 
 .label:hover > .label-main::before {

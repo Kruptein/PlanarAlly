@@ -3,7 +3,7 @@
         "select": "选择语言：",
         "en": "English",
         "zh": "简体中文",
-        "tw":"繁體中文",
+        "tw": "繁體中文",
         "de": "Deutsch",
         "ru": "Русский",
         "dk": "Dansk",
@@ -66,7 +66,10 @@
         "confirm": "确认",
         "cancel": "取消",
         "insert_one_character": "请输入至少一个字符",
-        "name_already_in_use": "该名称已被占用！"
+        "name_already_in_use": "该名称已被占用！",
+        "varia": "杂项",
+        "select": "选择",
+        "or": "或"
     },
     "auth": {
         "login": {
@@ -79,6 +82,10 @@
             "inputCopy": {
                 "copied": "已复制！",
                 "copy": "复制"
+            },
+            "selectionbox": {
+                "non_empty_warning": "请输入一个非空的自定义的值！",
+                "already_exists_warning": "选项已存在！"
             }
         }
     },
@@ -271,6 +278,12 @@
                     "default": "默认",
                     "experimental": "实验性"
                 }
+            },
+            "templates": {
+                "choose": "选择模板",
+                "save": "保存模板",
+                "overwrite": "覆盖",
+                "create_new": "创建新模板"
             },
             "tools": {
                 "createtoken_modal": {

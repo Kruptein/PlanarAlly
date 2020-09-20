@@ -20,6 +20,10 @@ All notable changes to this project will be documented in this file.
 -   Snapping support to the ruler
     -   Snapping points are the grid corner points, center between two grid points and the complete center of a grid cell
 
+### Changed
+
+-   Shape edit dialog now uses a panel layout (similar to dm settings)
+
 ### Fixed
 
 -   Run docker container as non-root

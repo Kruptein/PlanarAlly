@@ -59,7 +59,7 @@ export default class ColorPicker extends Vue {
 </script>
 
 <template>
-    <div class="outer" @click.self="open">
+    <div class="color-picker outer" @click.self="open">
         <div
             class="current-color"
             @click.self="open"

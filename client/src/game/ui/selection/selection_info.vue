@@ -3,7 +3,7 @@ import Vue from "vue";
 import Component from "vue-class-component";
 
 import Game from "@/game/Game.vue";
-import EditDialog from "@/game/ui/selection/edit_dialog/dialog.vue";
+import ShapeSettings from "@/game/ui/selection/edit_dialog/ShapeSettings.vue";
 
 import { EventBus } from "@/game/event-bus";
 import { layerManager } from "@/game/layers/manager";
@@ -13,7 +13,7 @@ import { Aura, Tracker } from "@/game/shapes/interfaces";
 
 @Component({
     components: {
-        "edit-dialog": EditDialog,
+        ShapeSettings,
     },
 })
 export default class SelectionInfo extends Vue {
@@ -52,7 +52,7 @@ export default class SelectionInfo extends Vue {
     }
 
     openEditDialog(): void {
-        (this.$refs.editDialog as any)[0].visible = true;
+        (this.$refs.shapeSettings as any)[0].visible = true;
     }
     async changeValue(object: Tracker | Aura, isAura: boolean): Promise<void> {
         if (this.shape === null) return;
@@ -128,7 +128,7 @@ export default class SelectionInfo extends Vue {
                     </template>
                 </div>
             </div>
-            <edit-dialog ref="editDialog" :shape="shape"></edit-dialog>
+            <ShapeSettings ref="shapeSettings" :shape="shape"></ShapeSettings>
         </div>
     </div>
 </template>

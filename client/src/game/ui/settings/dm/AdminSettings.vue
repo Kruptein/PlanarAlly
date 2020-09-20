@@ -94,7 +94,7 @@ export default class AdminSettings extends Vue {
         </div>
         <div class="spanrow header" v-t="'game.ui.settings.dm.AdminSettings.danger_NBSP_zone'"></div>
         <div class="row">
-            <div>
+            <div style="margin-right: 0.5em">
                 <template v-if="locked">
                     {{ $t("game.ui.settings.dm.AdminSettings.unlock_NBSP_Session_NBSP") }}
                 </template>

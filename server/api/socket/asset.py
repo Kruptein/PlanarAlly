@@ -1,5 +1,5 @@
 import json
-from typing import TypedDict
+from typing_extensions import TypedDict
 
 import auth
 from api.socket.constants import GAME_NS

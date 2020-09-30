@@ -13,11 +13,15 @@ export default class App extends Vue {
     get loading(): boolean {
         return coreStore.loading;
     }
+
+    get backgroundImage(): string {
+        return `url('${process.env.BASE_URL}static/img/login_background.png')`;
+    }
 }
 </script>
 
 <template>
-    <div id="app">
+    <div id="app" :style="{ backgroundImage }">
         <loading :active.sync="loading" :is-full-page="true"></loading>
         <router-view ref="activeComponent"></router-view>
     </div>
@@ -44,6 +48,7 @@ body,
 
 #app {
     display: flex;
-    background: url("/static/img/login_background.png") repeat fixed;
+    background-repeat: repeat;
+    background-attachment: fixed;
 }
 </style>

@@ -4,6 +4,7 @@ This is the code responsible for starting the backend and reacting to socket IO 
 """
 
 # Check for existence of './templates/' as it is not present if client was not built before
+import os
 import sys
 from utils import FILE_DIR
 
@@ -54,19 +55,22 @@ async def on_shutdown(_):
         await sio.disconnect(sid, namespace=GAME_NS)
 
 
-app.router.add_static("/static", "static")
-app.router.add_get("/api/auth", api.http.auth.is_authed)
-app.router.add_post("/api/users/email", api.http.users.set_email)
-app.router.add_post("/api/users/password", api.http.users.set_password)
-app.router.add_post("/api/users/delete", api.http.users.delete_account)
-app.router.add_post("/api/login", api.http.auth.login)
-app.router.add_post("/api/register", api.http.auth.register)
-app.router.add_post("/api/logout", api.http.auth.logout)
-app.router.add_get("/api/rooms", api.http.rooms.get_list)
-app.router.add_post("/api/rooms", api.http.rooms.create)
-app.router.add_post("/api/invite", api.http.claim_invite)
-app.router.add_get("/api/version", api.http.version.get_version)
-app.router.add_get("/api/changelog", api.http.version.get_changelog)
+subpath = os.environ.get("PA_BASEPATH", "/")
+if subpath[-1] != "/":
+    subpath = subpath + "/"
+app.router.add_static(f"{subpath}static", "static")
+app.router.add_get(f"{subpath}api/auth", api.http.auth.is_authed)
+app.router.add_post(f"{subpath}api/users/email", api.http.users.set_email)
+app.router.add_post(f"{subpath}api/users/password", api.http.users.set_password)
+app.router.add_post(f"{subpath}api/users/delete", api.http.users.delete_account)
+app.router.add_post(f"{subpath}api/login", api.http.auth.login)
+app.router.add_post(f"{subpath}api/register", api.http.auth.register)
+app.router.add_post(f"{subpath}api/logout", api.http.auth.logout)
+app.router.add_get(f"{subpath}api/rooms", api.http.rooms.get_list)
+app.router.add_post(f"{subpath}api/rooms", api.http.rooms.create)
+app.router.add_post(f"{subpath}api/invite", api.http.claim_invite)
+app.router.add_get(f"{subpath}api/version", api.http.version.get_version)
+app.router.add_get(f"{subpath}api/changelog", api.http.version.get_changelog)
 
 if "dev" in sys.argv:
     app.router.add_route("*", "/{tail:.*}", routes.root_dev)

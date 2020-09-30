@@ -4,7 +4,7 @@ import Component from "vue-class-component";
 import { Route, NavigationGuard } from "vue-router";
 
 import { coreStore } from "@/core/store";
-import { postFetch } from "../core/utils";
+import { baseAdjustedFetch, postFetch } from "../core/utils";
 
 Component.registerHooks(["beforeRouteEnter"]);
 
@@ -17,7 +17,7 @@ export default class Dashboard extends Vue {
     newSessionName = "";
 
     async beforeRouteEnter(to: Route, from: Route, next: Parameters<NavigationGuard>[2]): Promise<void> {
-        const response = await fetch("/api/rooms");
+        const response = await baseAdjustedFetch("/api/rooms");
         next(async (vm: Vue) => {
             if (response.ok) {
                 const data = await response.json();

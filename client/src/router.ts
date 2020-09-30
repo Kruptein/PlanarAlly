@@ -13,6 +13,7 @@ import Game from "@/game/Game.vue";
 import Invitation from "@/invitation/invitation";
 
 import { coreStore } from "@/core/store";
+import { baseAdjustedFetch } from "./core/utils";
 // import { AssetManager } from "./assetManager/assets";
 // const AssetManager = () => import("./assetManager/assets").then(m => m.AssetManager);
 
@@ -76,7 +77,11 @@ export const router = new Router({
 router.beforeEach(async (to, _from, next) => {
     coreStore.setLoading(true);
     if (!coreStore.initialized) {
-        const promiseArray = [fetch("/api/auth"), fetch("/api/version"), fetch("/api/changelog")];
+        const promiseArray = [
+            baseAdjustedFetch("/api/auth"),
+            baseAdjustedFetch("/api/version"),
+            baseAdjustedFetch("/api/changelog"),
+        ];
         const [authResponse, versionResponse, changelogResponse] = await Promise.all(promiseArray);
         if (authResponse.ok && versionResponse.ok) {
             const authData = await authResponse.json();

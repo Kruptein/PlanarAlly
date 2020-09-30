@@ -6,7 +6,8 @@ import { socket } from "../socket";
 
 socket.on("Client.Options.Set", (options: ServerClient) => {
     gameStore.setUsername(options.name);
-    gameStore.setDM(options.name === decodeURIComponent(window.location.pathname.split("/")[2]));
+    const path = window.location.pathname.split("/");
+    gameStore.setDM(options.name === decodeURIComponent(path[path.length - 2]));
 
     gameStore.setGridSize({ gridSize: options.grid_size, sync: false });
     gameStore.setGridColour({ colour: options.grid_colour, sync: false });

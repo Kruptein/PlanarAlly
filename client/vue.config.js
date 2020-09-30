@@ -4,7 +4,7 @@
 // const BundleAnalyzerPlugin = require("webpack-bundle-analyzer").BundleAnalyzerPlugin;
 
 module.exports = {
-    assetsDir: process.env.PA_BASEPATH + "/" + process.env.NODE_ENV === "production" ? "static" : "dev-static",
+    assetsDir: process.env.NODE_ENV === "production" ? "static" : "dev-static",
     outputDir: "../server",
     indexPath: "./templates/index.html",
     publicPath: process.env.PA_BASEPATH,

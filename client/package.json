@@ -15,8 +15,10 @@
     "dependencies": {
         "core-js": "^3.6.5",
         "socket.io-client": "^2.3.0",
+        "swiper": "^5.4.5",
         "tinycolor2": "^1.4.1",
         "vue": "^2.6.11",
+        "vue-awesome-swiper": "^4.1.1",
         "vue-class-component": "^7.2.3",
         "vue-color": "^2.7.1",
         "vue-i18n": "^8.18.2",
@@ -39,6 +41,7 @@
         "@types/jest": "^24.9.1",
         "@types/lodash": "^4.14.161",
         "@types/socket.io-client": "^1.4.33",
+        "@types/swiper": "^5.4.0",
         "@types/tinycolor2": "^1.4.2",
         "@types/vue-color": "^2.4.2",
         "@types/vue-markdown": "^2.2.1",

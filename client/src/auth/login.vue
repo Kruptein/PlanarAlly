@@ -20,7 +20,9 @@ import { SwiperOptions } from "swiper";
 export default class Login extends Vue {
     username = "";
     password = "";
+    email = "";
     error = "";
+    registerMode = false;
 
     swiperOptions: SwiperOptions = {
         slidesPerView: 1,
@@ -31,8 +33,16 @@ export default class Login extends Vue {
         },
     };
 
+    async submit(): Promise<void> {
+        if (this.registerMode) await this.register();
+        else await this.login();
+    }
+
     async login(): Promise<void> {
-        const response = await postFetch("/api/login", { username: this.username, password: this.password });
+        const response = await postFetch("/api/login", {
+            username: this.username,
+            password: this.password,
+        });
         console.log(response);
         if (response.ok) {
             coreStore.setUsername(this.username);
@@ -46,7 +56,11 @@ export default class Login extends Vue {
     }
 
     async register(): Promise<void> {
-        const response = await postFetch("/api/register", { username: this.username, password: this.password });
+        const response = await postFetch("/api/register", {
+            username: this.username,
+            password: this.password,
+            email: this.email,
+        });
         if (response.ok) {
             coreStore.setUsername(this.username);
             coreStore.setAuthenticated(true);
@@ -129,7 +143,7 @@ export default class Login extends Vue {
             <div id="logo">
                 <img src="/static/favicon.png" id="logo" />
             </div>
-            <form @focusin="focusin" @focusout="focusout" @submit.prevent="login">
+            <form @focusin="focusin" @focusout="focusout" @submit.prevent="submit">
                 <label>Username</label>
                 <div class="input">
                     <input
@@ -161,14 +175,31 @@ export default class Login extends Vue {
                         <font-awesome-icon icon="lock" />
                     </span>
                 </div>
+                <template v-if="registerMode">
+                    <label>Email (optional)</label>
+                    <div class="input">
+                        <input
+                            id="email"
+                            type="email"
+                            name="email"
+                            v-model="email"
+                            :placeholder="$t('common.email')"
+                            autocomplete="email"
+                        />
+                        <span>
+                            <font-awesome-icon icon="at" />
+                        </span>
+                    </div>
+                </template>
                 <button id="login" type="submit" name="login" class="submit" :title="$t('auth.login.login')">
-                    <span>enter</span>
-                    <font-awesome-icon icon="arrow-right" />
+                    <span v-if="registerMode">sign up</span>
+                    <span v-else>enter</span>
                 </button>
             </form>
             <h4><span>OR</span></h4>
-            <button class="submit" :title="$t('auth.login.register')">
-                <span>register</span>
+            <button class="submit" @click="registerMode = !registerMode" :title="$t('auth.login.register')">
+                <span v-if="registerMode">return</span>
+                <span v-else>register</span>
             </button>
             <div id="empty"></div>
         </div>
@@ -347,9 +378,8 @@ label {
     margin-top: 15px;
     /* width: 12vw; */
     /* height: 30px; */
-    width: 5vw;
-    height: 3vh;
-    min-width: 5vw;
+    width: 120px;
+    height: 40px;
     display: flex;
     justify-content: space-evenly;
     align-items: center;
@@ -361,19 +391,9 @@ label {
     transition: 0.2s ease-out;
 }
 
-.submit > span {
-    display: inline-block;
-    /* visibility: hidden; */
-}
-
-.submit:hover > span {
-    display: none;
-    /* visibility: visible; */
-}
-
 .submit:hover,
 .submit:focus {
-    background: var(--primaryBG);
+    background: var(--primary);
     color: #fff;
     border: 2px solid white;
     outline: 0;

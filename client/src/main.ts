@@ -1,5 +1,4 @@
 import App from "@/App.vue";
-import { registerScripts } from "./scripts";
 import { router } from "@/router";
 import { rootStore } from "@/store";
 import { library } from "@fortawesome/fontawesome-svg-core";
@@ -8,6 +7,7 @@ import { faCompass, faCopy, faWindowClose } from "@fortawesome/free-regular-svg-
 import {
     faArrowRight,
     faArrowsAlt,
+    faAt,
     faChevronDown,
     faChevronRight,
     faChevronUp,
@@ -20,7 +20,6 @@ import {
     faFolder,
     faLightbulb,
     faLock,
-    faUnlock,
     faMinusSquare,
     faPaintBrush,
     faPencilAlt,
@@ -33,6 +32,7 @@ import {
     faSyncAlt,
     faTimesCircle,
     faTrashAlt,
+    faUnlock,
     faUpload,
     faUserCircle,
     faUsers,
@@ -41,10 +41,12 @@ import {
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 import Vue from "vue";
 import i18n from "./i18n";
+import { registerScripts } from "./scripts";
 
 library.add(
     faArrowRight,
     faArrowsAlt,
+    faAt,
     faChevronDown,
     faChevronRight,
     faChevronUp,

@@ -368,7 +368,12 @@ label {
 .input input:focus {
     padding: 10px 5px 10px 10px;
     outline: 0;
-    border-color: var(--primaryBG);
+    background-color: var(--primary);
+    color: white;
+}
+
+input:focus::placeholder {
+    color: white;
 }
 
 .submit {

@@ -201,7 +201,6 @@ export default class Login extends Vue {
                 <span v-if="registerMode">return</span>
                 <span v-else>register</span>
             </button>
-            <div id="empty"></div>
         </div>
     </div>
 </template>
@@ -219,7 +218,7 @@ export default class Login extends Vue {
         "footer   login";
     --primary: #7c253e;
     --secondary: #9c455e;
-    --primaryBG: rgb(43, 43, 43); /*#7c253e;*/
+    --primaryBG: rgb(43, 43, 43);
     --secondaryBG: #c4c4c4;
     background-color: var(--secondaryBG);
     grid-template-columns: minmax(0, 1fr) 30vw;
@@ -297,15 +296,13 @@ footer {
 
 #login-panel {
     grid-area: login;
-    /* background-color: var(--secondary); */
     background-color: rgb(43, 43, 43);
 
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
+    padding-top: 5em;
 
-    /* box-shadow: -10px 0 50px var(--primaryBG); */
     box-shadow: -10px 0 50px rgb(43, 43, 43);
 }
 
@@ -416,10 +413,6 @@ h4 {
 h4 span {
     padding: 0 10px;
     background-color: var(--secondary);
-}
-
-#empty {
-    margin-top: 25vh;
 }
 
 a {

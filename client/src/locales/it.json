@@ -1,0 +1,394 @@
+{
+    "locale": {
+        "select": "Seleziona la lingua:",
+        "en": "English",
+        "zh": "简体中文",
+        "tw": "繁體中文",
+        "de": "Deutsch",
+        "ru": "Русский",
+        "dk": "Dansk",
+        "es": "Español",
+        "it": "Italiano"
+    },
+    "assetManager": {
+        "contextMenu": {
+            "new_name": "Nuovo nome:",
+            "renaming_NAME": "Rinomina {name}",
+            "ask_remove": "Sei sicuro di volerlo rinominare?"
+        },
+        "manager": {
+            "new_folder_name": "Nome della nuova cartella",
+            "uploading": "Sto caricando i file",
+            "create_folder": "Crea cartella",
+            "upload_files": "Carica file",
+            "title": "Gestore degli asset"
+        }
+    },
+    "common": {
+        "rename": "Rinomina",
+        "remove": "Rimuovi",
+        "username": "Nome utente",
+        "password": "Password",
+        "server_ver_prefix": "Versione server:",
+        "PlanarAlly": "PlanarAlly",
+        "error_prefix": "Errore:",
+        "error_msg": "Errore!",
+        "close": "Chiudi",
+        "submit": "Invia",
+        "create": "Crea",
+        "warning": "Avviso",
+        "value": "Valore",
+        "toggle_public_private": "Cambia tra pubblico / privato",
+        "initiative": "Iniziativa",
+        "search": "Cerca",
+        "name": "Nome",
+        "add": "Aggiungi",
+        "players": "Giocatori",
+        "exit": "Uscita",
+        "assets": "Asset",
+        "notes": "Note",
+        "markers": "Indicatori",
+        "border_color": "Colore del bordo",
+        "fill_color": "Colore di riempimento",
+        "trackers": "Tracker",
+        "auras": "Aure",
+        "labels": "Etichette",
+        "annotation": "Annotazione",
+        "floor": "Piano",
+        "layer": "Livello",
+        "location": "Location",
+        "admin": "Admin",
+        "grid": "Griglia",
+        "vision": "Visione",
+        "tokens": "Segnalino",
+        "shape": "Forma",
+        "colors": "Colori",
+        "version": "versione",
+        "confirm": "Conferma",
+        "cancel": "Annulla",
+        "insert_one_character": "Per favore inserisci almeno un carattere",
+        "name_already_in_use": "Questo nome è già in uso!",
+        "varia": "Varia",
+        "select": "Seleziona",
+        "or": "o"
+    },
+    "auth": {
+        "login": {
+            "register": "Registrati",
+            "login": "Login"
+        }
+    },
+    "core": {
+        "components": {
+            "inputCopy": {
+                "copied": "Copiato!",
+                "copy": "Copia"
+            },
+            "selectionbox": {
+                "non_empty_warning": "Inserisci un valore personalizzato non vuoto!",
+                "already_exists_warning": "Questa scelta esiste già!"
+            }
+        }
+    },
+    "dashboard": {
+        "main": {
+            "session_name": "Nome della campagna",
+            "account_settings": "Impostazioni account",
+            "logout": "Logout",
+            "your_sessions": "Le tue campagne",
+            "no_sessions": "Nessuna campagna attiva",
+            "create_session": "Crea una campagna",
+            "create_new_session": "Crea una nuova campagna"
+        }
+    },
+    "game": {
+        "ui": {
+            "floors": {
+                "new_name": "Nuovo nome del piano",
+                "creation": "Creazione del piano",
+                "warning_msg_Z": "Sei sicuro di voler rimuovere il piano {z}?",
+                "delete_floor": "Rimuovi piano",
+                "add_new_floor": "Aggiungi nuovo piano",
+                "toggle_visibility": "Cambia la visibilità per i giocatori",
+                "rename_icon_hover": "Rinomina piano",
+                "rename_header_title": "Rinominado il piano"
+            },
+            "initiative": {
+                "initiative": {
+                    "new_effect": "Nuovo effetto",
+                    "add_timed_effect": "Aggiungi un effetto temporale",
+                    "toggle_group": "Cambia iniziativa individuale / gruppo",
+                    "delete_init": "Elimina iniziativa",
+                    "round_N": "Round {n}",
+                    "vision_log_msg": "Blocca visuale automaticamente (mostra solo la visuale del segnalino attivo)",
+                    "camera_log_msg": "Blocca la camera sul segnalino attivo",
+                    "reset_round": "Azzera round/turni",
+                    "next": "Prossimo"
+                }
+            },
+            "labels": {
+                "category": "Categoria",
+                "visible": "Visibile",
+                "delete": "Elimina",
+                "delete_label": "Elimina etichetta",
+                "title": "Gestore etichette",
+                "cat_abbr": "Cat.",
+                "vis_abbr": "Vis.",
+                "del_abbr": "Canc.",
+                "no_exist_msg": "Non esiste alcuna etichetta"
+            },
+            "menu": {
+                "locations": {
+                    "new_location_name": "Nuova location:",
+                    "create_new_location": "Crea una nuova location",
+                    "add_new_location": "Aggiungi location",
+                    "show_specific_pl": "Mostra giocatore specifico"
+                },
+                "menu": {
+                    "new_note": "Nuova nota",
+                    "open_asset_manager": "Apri il gestore degli asset",
+                    "no_assets": "Nessun asset",
+                    "create_note": "Crea nota",
+                    "delete_marker": "Elimina indicatore",
+                    "no_notes": "Nessuna nota",
+                    "dm_options": "Opzioni DM",
+                    "no_markers": "Nessun indicatore",
+                    "client_options": "Opzioni client",
+                    "grid_size_in_pixels": "Dimensioni della griglia (in pixel):",
+                    "grid_color_set": "Colore della griglia:",
+                    "fow_color_set": "Colore della FOW:",
+                    "ruler_color_set": "Colore del righello:",
+                    "invert_alt_set": "Inverti il comportamento del tasto ALT"
+                }
+            },
+            "note": {
+                "warning_msg": "Sicuro di volerlo eliminare?",
+                "edit_title": "Modifica titolo",
+                "remove_note": "Rimuovi nota"
+            },
+            "selection": {
+                "edit_dialog": {
+                    "access": {
+                        "toggle_edit_access": "Attiva/disattiva l'accesso alla modifica",
+                        "toggle_movement_access": "Attiva/disattiva l'accesso al movimento",
+                        "toggle_vision_access": "Attiva/disattiva l'accesso alla visione",
+                        "remove_owner_access": "Attiva/disattiva l'accesso alla proprietà",
+                        "access": "Access",
+                        "default": "Default",
+                        "add_access": "Aggiungi accesso"
+                    },
+                    "dialog": {
+                        "current_value": "Valore attuale",
+                        "remove_tracker": "Rimuovi tracker",
+                        "dim_value": "Valore di diminuzione",
+                        "toggle_light_source": "Attiva/disattiva la sorgente di luce",
+                        "delete_aura": "Elimina aura",
+                        "edit_asset": "Modifica asset",
+                        "is_a_token": "È un segnalino",
+                        "is_invisible": "È invisibile",
+                        "is_locked": "È bloccato",
+                        "show_badge": "Mostra medaglia",
+                        "block_vision_light": "Blocca visione/luce",
+                        "block_movement": "Blocca movimento"
+                    }
+                },
+                "select_info": {
+                    "open_shape_props": "Apri le proprietà della forma",
+                    "quick_edit_tracker": "Modifica velocemente il tracker",
+                    "quick_edit_aura": "Modifica velocemente l'aura",
+                    "lock": "Attiva/disattiva blocco",
+                    "new_value_NAME": "Nuovo valore {name}:",
+                    "updating_NAME": "Sto aggiornando {name}"
+                },
+                "shapecontext": {
+                    "show_initiative": "Mostra iniziativa",
+                    "add_initiative": "Aggiungi iniziativa",
+                    "add_all_initiative": "Aggiungi tutti all'iniziativa",
+                    "move_back": "Sposta dietro",
+                    "move_front": "Sposta davanti",
+                    "delete_shapes": "Elimina forme",
+                    "show_props": "Mostra proprietà",
+                    "remove_marker": "Rimuovi indicatore",
+                    "set_marker": "Imposta indicatore",
+                    "no_spawn_set_title": "Non puoi spostare la forma",
+                    "no_spawn_set_text": "La destinazione non ha punti di spawn configurati, assicurati di crearne almeno uno."
+                }
+            },
+            "settings": {
+                "dm": {
+                    "AdminSettings": {
+                        "delete_session_msg_CREATOR_ROOM": "ENTRA {creator}/{room} PER CONFERMARE LA RIMOZIONE DELLA CAMPAGNA.",
+                        "deleting_session": "STO CANCELLANDO LA CAMPAGNA",
+                        "unlock_NBSP_Session_NBSP": "Sblocca\u00a0Campagna\u00a0",
+                        "lock_NBSP_Session_NBSP": "Blocca\u00a0Campagna\u00a0",
+                        "unlock_this_session": "Sblocca questa campagna",
+                        "lock_this_session": "Blocca questa campagna",
+                        "kick": "Caccia",
+                        "no_players_invite_msg": "Non ci sono ancora giocatori, invitali con questo link!",
+                        "invite_code": "Codice invito",
+                        "invitation_url": "URL invito:",
+                        "refresh_invitation_code": "Ricarica codice invito",
+                        "danger_NBSP_zone": "Danger\u00a0Zone",
+                        "dm_access_only": "(Accesso solo per DM)",
+                        "remove_session": "Rimuovi campagna",
+                        "delete_session": "Cancellare questa campagna"
+                    },
+                    "DmSettings": {
+                        "dm_settings": "Impostazioni DM"
+                    }
+                },
+                "common": {
+                    "overridden_msg": "Alcune di queste impostazioni possono essere sovrascritte dalle location",
+                    "overridden_highlight": "evidenziato",
+                    "reset_default": "Riporta questa campagna alle impostazioni iniziali",
+                    "overridden_highlight_path": "Le impostazioni che sovrascrivono quelle di default sono {0}"
+                },
+                "GridSettings": {
+                    "unit_size_in_UNIT": "Dimensione unità (in {unit})",
+                    "use_grid": "Usa griglia",
+                    "size_unit": "Dimensione unità"
+                },
+                "VariaSettings": {
+                    "movePlayerOnTokenChange": "Sposta i giocatori quando un loro token viene spostato in un'altra location"
+                },
+                "location": {
+                    "LocationAdminSettings": {
+                        "remove_location_msg_NAME": "Sei sicuro di voler rimuovere la location {name}",
+                        "remove_location_yes": "Sì, rimuovi questa location",
+                        "remove_location_no": "No, per favore!",
+                        "move_existing_pl": "Sposta i giocatori in questa location",
+                        "delete_this_location": "Elimina questa location",
+                        "remove_location": "Rimuovi Location"
+                    },
+                    "LocationSettings": {
+                        "location_settings": "Impostazioni Location:"
+                    }
+                },
+                "permissions": {
+                    "edit_owned_tokens": "Modifica i token che controlli:",
+                    "move_owned_tokens": "Muovi i token che controlli:",
+                    "resize_owned_tokens": "Ridimensiona i token che controlli:"
+                },
+                "VisionSettings": {
+                    "min_full_vision_UNIT": "Minimo visione completa ({unit}):",
+                    "max_vision_UNIT": "Visione massima ({unit}):",
+                    "core": "Core",
+                    "fake_player": "Giocatore finto:",
+                    "fill_fow": "Riempi tutta la mappa con FOW:",
+                    "only_show_lights_los": "Mostra solo le luci:",
+                    "fow_opacity": "Opacità FOW:",
+                    "advanced": "Avanzate",
+                    "vision_mode": "Modalità di visibilità:",
+                    "default": "Default",
+                    "experimental": "Sperimentale"
+                }
+            },
+            "templates": {
+                "choose": "Scegli un Template",
+                "save": "Salva Template",
+                "overwrite": "Sovrascrivi",
+                "create_new": "Crea nuovo"
+            },
+            "tools": {
+                "createtoken_modal": {
+                    "create_basic_token": "Crea un segnalino base",
+                    "text": "Testo",
+                    "fill": "Riempimento:",
+                    "border": "Bordo:"
+                },
+                "defaultcontext": {
+                    "bring_pl": "Porta giocatori",
+                    "create_basic_token": "Crea un segnalino base",
+                    "show_initiative": "Mostra iniziativa",
+                    "create_spawn_location": "Crea spawn location",
+                    "new_spawn_question": "Come si chiama questa spawn location?",
+                    "new_spawn_title": "Sto creando una nuova spawn location"
+                },
+                "draw": {
+                    "foreground_color": "Colore in primo piano",
+                    "background_color": "Colore di sfondo",
+                    "mode": "Modalità",
+                    "closed_polygon": "Poligono chiuso?",
+                    "brush_size": "Dimensione del pennello"
+                },
+                "filter": {
+                    "no_category": "nessuna categoria"
+                },
+                "map": {
+                    "drag_to_resize": "Trascina l'area che vuoi ridimensionare",
+                    "select_shape_msg": "Scegli prima la forma, per favore.",
+                    "set_target_grid_cells": "Imposta le celle del bersaglio sulla griglia",
+                    "horizontal": "Orizzontale",
+                    "vertical": "Verticale",
+                    "apply": "APPLICA",
+                    "cancel": "CANCELLA"
+                },
+                "ruler": {
+                    "share": "Condividi con gli altri"
+                },
+                "tools": {
+                    "change_mode": "Cambia modalità"
+                }
+            },
+            "ui": {
+                "github_msg": "Scopri il codice su GitHub!",
+                "discord_msg": "Unisciti alla community su Discord!",
+                "patreon_msg": "Contribuisci usando Patreon!",
+                "open_loc_menu": "Apri il menu delle location",
+                "new_ver_msg": "È disponibile una nuova versione!!",
+                "open_settings": "Apri impostazioni",
+                "changelog_RELEASE_LOG": "# Release {release}\n*Per maggiori dettagli visita https://www.planarally.io/blog/*\n{log}"
+            }
+        }
+    },
+    "layer": {
+        "map": "mappa",
+        "tokens": "segnalini",
+        "dm": "dm",
+        "fow": "fow"
+    },
+    "draw": {
+        "square": "quadrato",
+        "circle": "cerchio",
+        "draw-polygon": "disegna-poligono",
+        "paint-brush": "pennello",
+        "normal": "normale",
+        "reveal": "rivela",
+        "hide": "nascondi"
+    },
+    "tool": {
+        "Build": "Costruisci",
+        "Play": "Gioca",
+        "Select": "Seleziona",
+        "Pan": "Sposta",
+        "Draw": "Disegna",
+        "Ruler": "Righello",
+        "Ping": "Ping",
+        "Map": "Mappa",
+        "Filter": "Filtra",
+        "Vision": "Visione"
+    },
+    "settings": {
+        "account": {
+            "no_pwd_msg": "Nessuna password fornita!",
+            "pwd_not_match": "I campi password non coincidono!",
+            "server_request_error": "Qualcosa è andato storto con la richiesta al server",
+            "change_pwd": "Cambia password",
+            "remove_account_msg": "Sei sicuro di voler rimuovere il tuo account?",
+            "delete_request_error": "Qualcosa è andato storto con la cancellazione.",
+            "no_email_set": "nessuna email impostata",
+            "general": "Generale",
+            "username": "Nome utente:",
+            "email": "Email:",
+            "danger_zone": "Danger Zone",
+            "new_pwd": "Nuova Password:",
+            "repeat_pwd": "Ripeti password:",
+            "delete_account": "Elimina account",
+            "delete_confirm_msg": "Questa azione è irreversibile!"
+        },
+        "settings": {
+            "account_settings": "Impostazioni Account",
+            "account": "Account"
+        }
+    }
+}

@@ -40,6 +40,7 @@ async def register(request):
     data = await request.json()
     username = data["username"]
     password = data["password"]
+    email = data.get("email", None)
     if User.by_name(username):
         return web.HTTPConflict(reason="Username already taken")
     elif not username:
@@ -47,10 +48,17 @@ async def register(request):
     elif not password:
         return web.HTTPBadRequest(reason="Please provide a password")
     else:
-        with db.atomic():
-            u = User(name=username)
-            u.set_password(password)
-            u.save()
+        try:
+            with db.atomic():
+                u = User(name=username)
+                u.set_password(password)
+                if email:
+                    u.email = email
+                u.save()
+        except:
+            return web.HTTPServerError(
+                reason="An unexpected error occured on the server during account creation.  Operation reverted."
+            )
         response = web.HTTPOk()
         await remember(request, response, username)
         return response

@@ -27,6 +27,8 @@ All notable changes to this project will be documented in this file.
 
 -   Shape edit dialog now uses a panel layout (similar to dm settings)
 -   Annotation UI got a small change to better accomodate the new markdown support
+-   Landing page redesign
+    -   register phase is now a seperate step with an optional email field
 
 ### Fixed
 

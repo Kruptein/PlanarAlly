@@ -113,3 +113,8 @@ export async function postFetch(url: string, data?: any): Promise<Response> {
         body: JSON.stringify(data ?? {}),
     });
 }
+
+export function baseAdjust(url: string): string {
+    if (url.startsWith("/")) url = url.slice(1);
+    return process.env.BASE_URL + url;
+}

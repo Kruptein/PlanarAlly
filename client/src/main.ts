@@ -42,6 +42,7 @@ import {
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 import Vue from "vue";
 import Toasted from "vue-toasted";
+import { baseAdjust } from "./core/utils";
 import i18n from "./i18n";
 import { registerScripts } from "./scripts";
 
@@ -98,6 +99,12 @@ Vue.use(Toasted, {
 Vue.config.productionTip = false;
 Vue.config.devtools = true;
 Vue.config.performance = true;
+
+Vue.mixin({
+    methods: {
+        baseAdjust: (url: string) => baseAdjust(url),
+    },
+});
 
 registerScripts();
 

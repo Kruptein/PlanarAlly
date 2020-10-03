@@ -140,7 +140,12 @@ export default class Login extends Vue {
             </div>
             <swiper class="swiper" ref="swiper" :options="swiperOptions">
                 <swiper-slide>
-                    <video autoplay="autoplay" loop="loop" muted="muted">
+                    <video
+                        autoplay="autoplay"
+                        loop="loop"
+                        muted="muted"
+                        :poster="baseAdjust('/static/img/carousel_vision.png')"
+                    >
                         <source src="https://planarally.io/assets/media/vision.8eab5657.webm" type="video/webm" />
                         <source src="https://planarally.io/assets/media/vision.06d14f50.mp4" type="video/mp4" />
                     </video>
@@ -149,7 +154,12 @@ export default class Login extends Vue {
                     </div>
                 </swiper-slide>
                 <swiper-slide>
-                    <video autoplay="autoplay" loop="loop" muted="muted">
+                    <video
+                        autoplay="autoplay"
+                        loop="loop"
+                        muted="muted"
+                        :poster="baseAdjust('/static/img/carousel_floors.png')"
+                    >
                         <source src="https://www.planarally.io/assets/0.19.0/floors.webm" type="video/webm" />
                         <source src="https://www.planarally.io/assets/0.19.0/floors.mp4" type="video/mp4" />
                     </video>

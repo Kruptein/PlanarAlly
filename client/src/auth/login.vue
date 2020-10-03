@@ -9,6 +9,7 @@ import LanguageDropdown from "@/core/components/languageDropdown.vue";
 import { coreStore } from "@/core/store";
 import { postFetch } from "../core/utils";
 import { SwiperOptions } from "swiper";
+import { ToastObject } from "vue-toasted";
 
 @Component({
     components: {
@@ -21,7 +22,6 @@ export default class Login extends Vue {
     username = "";
     password = "";
     email = "";
-    error = "";
     registerMode = false;
 
     swiperOptions: SwiperOptions = {
@@ -33,6 +33,25 @@ export default class Login extends Vue {
         },
     };
 
+    showToast(
+        status: string,
+        position?: "bottom-right" | "top-right" | "top-center" | "top-left" | "bottom-center" | "bottom-left",
+    ): void {
+        this.$toasted.error(status, {
+            position: position ?? "bottom-right",
+            icon: "exclamation",
+            action: [
+                {
+                    text: "close",
+                    class: "black",
+                    onClick: (e: HTMLElement, t: ToastObject) => {
+                        t.goAway(0);
+                    },
+                },
+            ],
+        });
+    }
+
     async submit(): Promise<void> {
         if (this.registerMode) await this.register();
         else await this.login();
@@ -43,7 +62,6 @@ export default class Login extends Vue {
             username: this.username,
             password: this.password,
         });
-        console.log(response);
         if (response.ok) {
             coreStore.setUsername(this.username);
             coreStore.setAuthenticated(true);
@@ -51,7 +69,7 @@ export default class Login extends Vue {
             if (data.email) coreStore.setEmail(data.email);
             this.$router.push((this.$route.query.redirect as string) || "/");
         } else {
-            this.error = response.statusText;
+            this.showToast(response.statusText);
         }
     }
 
@@ -66,7 +84,7 @@ export default class Login extends Vue {
             coreStore.setAuthenticated(true);
             this.$router.push((this.$route.query.redirect as string) || "/");
         } else {
-            this.error = response.statusText;
+            this.showToast(response.statusText);
         }
     }
 
@@ -141,7 +159,7 @@ export default class Login extends Vue {
         </footer>
         <div id="login-panel">
             <div id="logo">
-                <img src="/static/favicon.png" id="logo" />
+                <img src="/static/favicon.png" id="logo" alt="PA logo" />
             </div>
             <form @focusin="focusin" @focusout="focusout" @submit.prevent="submit">
                 <label>Username</label>
@@ -183,7 +201,7 @@ export default class Login extends Vue {
                             type="email"
                             name="email"
                             v-model="email"
-                            :placeholder="$t('common.email')"
+                            :placeholder="$t('settings.account.email')"
                             autocomplete="email"
                         />
                         <span>
@@ -422,5 +440,9 @@ h4 span {
 
 a {
     margin: 0 5px;
+}
+
+.black {
+    color: rgb(43, 43, 43);
 }
 </style>

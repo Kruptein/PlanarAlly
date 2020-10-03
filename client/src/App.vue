@@ -51,4 +51,8 @@ body,
     background-repeat: repeat;
     background-attachment: fixed;
 }
+
+.toasted > svg:first-child {
+    margin-right: 0.7rem;
+}
 </style>

@@ -134,7 +134,7 @@ export default class UI extends Vue {
         <div id="logo" v-show="visible.topleft">
             <div id="logo-icons">
                 <a href="https://www.planarally.io" target="_blank" rel="noopener noreferrer">
-                    <img src="/static/favicon.png" alt="" />
+                    <img :src="baseAdjust('/static/favicon.png')" alt="" />
                 </a>
                 <div id="logo-links">
                     <a

@@ -230,7 +230,7 @@ export default class AssetManager extends Vue {
                     @contextmenu.prevent="$refs.cm.open($event, file)"
                     @dragstart="startDrag($event, file)"
                 >
-                    <img :src="'/static/assets/' + idMap.get(file).file_hash" width="50" alt="" />
+                    <img :src="baseAdjust('/static/assets/' + idMap.get(file).file_hash)" width="50" alt="" />
                     <div class="title">{{ idMap.get(file).name }}</div>
                 </div>
             </div>

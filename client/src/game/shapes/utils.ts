@@ -1,5 +1,5 @@
 import { InvalidationMode, SyncMode } from "@/core/comm/types";
-import { uuidv4 } from "@/core/utils";
+import { baseAdjust, uuidv4 } from "@/core/utils";
 import {
     ServerAsset,
     ServerAura,
@@ -13,12 +13,12 @@ import {
 } from "@/game/comm/types/shapes";
 import { GlobalPoint, Vector } from "@/game/geom";
 import { layerManager } from "@/game/layers/manager";
+import { Shape } from "@/game/shapes/shape";
 import { Asset } from "@/game/shapes/variants/asset";
 import { Circle } from "@/game/shapes/variants/circle";
 import { CircularToken } from "@/game/shapes/variants/circulartoken";
 import { Line } from "@/game/shapes/variants/line";
 import { Rect } from "@/game/shapes/variants/rect";
-import { Shape } from "@/game/shapes/shape";
 import { Text } from "@/game/shapes/variants/text";
 import { sendGroupLeaderUpdate } from "../api/emits/shape/core";
 import { EventBus } from "../event-bus";
@@ -87,8 +87,8 @@ export function createShapeFromDict(shape: ServerShape): Shape | undefined {
     } else if (shape.type_ === "assetrect") {
         const asset = shape as ServerAsset;
         const img = new Image(asset.width, asset.height);
-        if (asset.src.startsWith("http")) img.src = new URL(asset.src).pathname;
-        else img.src = asset.src;
+        if (asset.src.startsWith("http")) img.src = baseAdjust(new URL(asset.src).pathname);
+        else img.src = baseAdjust(asset.src);
         sh = new Asset(img, refPoint, asset.width, asset.height, { uuid: asset.uuid });
         img.onload = () => {
             layerManager.getLayer(layerManager.getFloor(getFloorId(shape.floor))!, shape.layer)!.invalidate(true);

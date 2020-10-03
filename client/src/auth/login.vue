@@ -19,6 +19,10 @@ import { ToastObject } from "vue-toasted";
     },
 })
 export default class Login extends Vue {
+    $refs!: {
+        swiper: InstanceType<typeof Swiper>;
+    };
+
     username = "";
     password = "";
     email = "";
@@ -30,6 +34,11 @@ export default class Login extends Vue {
         pagination: {
             el: ".swiper-pagination",
             clickable: true,
+        },
+        on: {
+            click: (): void => {
+                this.$refs.swiper.$swiper!.slideNext();
+            },
         },
     };
 
@@ -129,7 +138,7 @@ export default class Login extends Vue {
                 PlanarAlly is an opensource virtual tabletop that aims to help you and your players discover the various
                 fictive worlds out there.
             </div>
-            <swiper class="swiper" :options="swiperOptions">
+            <swiper class="swiper" ref="swiper" :options="swiperOptions">
                 <swiper-slide>
                     <video autoplay="autoplay" loop="loop" muted="muted">
                         <source src="https://planarally.io/assets/media/vision.8eab5657.webm" type="video/webm" />

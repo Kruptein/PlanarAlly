@@ -108,7 +108,7 @@ export default class AssetNode extends Vue {
         >
             {{ file.name }}
             <div v-if="showImage == file.hash" class="preview">
-                <img class="asset-preview-image" :src="'/static/assets/' + file.hash" alt="" />
+                <img class="asset-preview-image" :src="baseAdjust('/static/assets/' + file.hash)" alt="" />
             </div>
         </li>
     </ul>

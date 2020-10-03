@@ -10,6 +10,7 @@ import { Asset } from "@/game/shapes/variants/asset";
 import { clampGridLine, l2gx, l2gy, l2gz } from "@/game/units";
 import { visibilityStore } from "@/game/visibility/store";
 import { addCDT, removeCDT } from "@/game/visibility/te/pa";
+import { baseAdjust } from "../../core/utils";
 import { sendFloorChange, sendLayerChange } from "../api/emits/shape/core";
 import { BaseTemplate } from "../comm/types/templates";
 import { gameSettingsStore } from "../settings";
@@ -95,7 +96,7 @@ export async function dropAsset(
 
     if (!data.imageSource.startsWith("/static")) return;
     const image = document.createElement("img");
-    image.src = data.imageSource;
+    image.src = baseAdjust(data.imageSource);
     const asset = new Asset(
         image,
         new GlobalPoint(l2gx(position.x), l2gy(position.y)),

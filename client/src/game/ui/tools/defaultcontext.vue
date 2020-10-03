@@ -13,7 +13,7 @@ import CreateTokenModal from "./createtoken_modal.vue";
 import Prompt from "@/core/components/modals/prompt.vue";
 import { gameSettingsStore } from "@/game/settings";
 import { layerManager } from "@/game/layers/manager";
-import { uuidv4 } from "@/core/utils";
+import { baseAdjust, uuidv4 } from "@/core/utils";
 import { Asset } from "@/game/shapes/variants/asset";
 import { SyncMode, InvalidationMode } from "@/core/comm/types";
 import { LocalPoint } from "@/game/geom";
@@ -76,14 +76,15 @@ export default class DefaultContext extends Vue {
         if (spawnName === "") return;
         const uuid = uuidv4();
 
+        const src = "/static/img/spawn.png";
         const img = new Image(64, 64);
-        img.src = "/static/img/spawn.png";
+        img.src = baseAdjust(src);
 
         const loc = new LocalPoint(this.x, this.y);
 
         const shape = new Asset(img, l2g(loc), 50, 50, { uuid });
         shape.name = spawnName;
-        shape.src = img.src;
+        shape.src = src;
 
         layerManager
             .getLayer(floorStore.currentFloor, "dm")!

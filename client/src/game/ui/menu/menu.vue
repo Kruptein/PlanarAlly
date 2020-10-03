@@ -113,7 +113,7 @@ export default class MenuBar extends Vue {
                     <input id="asset-search" v-if="assets" v-model="assetSearch" :placeholder="$t('common.search')" />
                     <a
                         class="actionButton"
-                        href="/assets"
+                        :href="baseAdjust('/assets')"
                         target="blank"
                         :title="$t('game.ui.menu.menu.open_asset_manager')"
                     >

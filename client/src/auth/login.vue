@@ -178,7 +178,7 @@ export default class Login extends Vue {
         </footer>
         <div id="login-panel">
             <div id="logo">
-                <img src="/static/favicon.png" id="logo" alt="PA logo" />
+                <img :src="baseAdjust('/static/favicon.png')" id="logo" alt="PA logo" />
             </div>
             <form @focusin="focusin" @focusout="focusout" @submit.prevent="submit">
                 <label>Username</label>

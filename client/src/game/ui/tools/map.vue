@@ -173,9 +173,9 @@ export default class MapTool extends Tool implements ToolBasics {
             <template v-else>
                 <div class="explanation" v-t="'game.ui.tools.map.set_target_grid_cells'"></div>
                 <div v-t="'game.ui.tools.map.horizontal'"></div>
-                <input type="text" v-model="xCount" class="hinput" />
+                <input type="number" v-model.number="xCount" class="hinput" />
                 <div v-t="'game.ui.tools.map.vertical'"></div>
-                <input type="text" v-model="yCount" class="vinput" />
+                <input type="number" v-model.number="yCount" class="vinput" />
                 <div class="button apply" @click="apply" v-t="'game.ui.tools.map.apply'"></div>
                 <div class="button cancel" @click="removeRect" v-t="'game.ui.tools.map.cancel'"></div>
             </template>

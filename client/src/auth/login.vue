@@ -7,7 +7,7 @@ import "swiper/css/swiper.css";
 import LanguageDropdown from "@/core/components/languageDropdown.vue";
 
 import { coreStore } from "@/core/store";
-import { postFetch } from "../core/utils";
+import { postFetch, getErrorReason } from "../core/utils";
 import { SwiperOptions } from "swiper";
 import { ToastObject } from "vue-toasted";
 
@@ -78,7 +78,7 @@ export default class Login extends Vue {
             if (data.email) coreStore.setEmail(data.email);
             this.$router.push((this.$route.query.redirect as string) || "/");
         } else {
-            this.showToast(response.statusText);
+            this.showToast(await getErrorReason(response));
         }
     }
 
@@ -93,7 +93,7 @@ export default class Login extends Vue {
             coreStore.setAuthenticated(true);
             this.$router.push((this.$route.query.redirect as string) || "/");
         } else {
-            this.showToast(response.statusText);
+            this.showToast(await getErrorReason(response));
         }
     }
 

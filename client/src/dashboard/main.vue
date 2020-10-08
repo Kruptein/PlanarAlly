@@ -4,7 +4,7 @@ import Component from "vue-class-component";
 import { Route, NavigationGuard } from "vue-router";
 
 import { coreStore } from "@/core/store";
-import { baseAdjustedFetch, postFetch } from "../core/utils";
+import { baseAdjustedFetch, getErrorReason, postFetch } from "../core/utils";
 
 Component.registerHooks(["beforeRouteEnter"]);
 
@@ -24,7 +24,7 @@ export default class Dashboard extends Vue {
                 (vm as this).owned = data.owned;
                 (vm as this).joined = data.joined;
             } else {
-                (vm as this).error = response.statusText;
+                (vm as this).error = await getErrorReason(response);
             }
         });
     }
@@ -38,7 +38,7 @@ export default class Dashboard extends Vue {
                 `/game/${encodeURIComponent(coreStore.username)}/${encodeURIComponent(this.newSessionName)}`,
             );
         } else {
-            this.error = response.statusText;
+            this.error = await getErrorReason(response);
         }
     }
 

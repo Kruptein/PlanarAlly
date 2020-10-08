@@ -5,7 +5,7 @@ import Component from "vue-class-component";
 import ConfirmDialog from "@/core/components/modals/confirm.vue";
 
 import { coreStore } from "../core/store";
-import { postFetch } from "../core/utils";
+import { postFetch, getErrorReason } from "../core/utils";
 
 @Component({
     components: {
@@ -51,7 +51,7 @@ export default class AccountSettings extends Vue {
             if (response.ok) {
                 this.hidePasswordChange();
             } else {
-                this.errorMessage = response.statusText ?? this.$t("settings.account.server_request_error").toString();
+                this.errorMessage = (await getErrorReason(response)) ?? this.$t("settings.account.server_request_error").toString();
             }
         } else {
             this.showPasswordFields = true;

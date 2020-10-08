@@ -118,3 +118,12 @@ export function baseAdjust(url: string): string {
     if (url.startsWith("/")) url = url.slice(1);
     return process.env.BASE_URL + url;
 }
+
+export async function getErrorReason(response: Response): Promise<string> {
+    const responseText: string = await response.text();
+    const parts: string[] = responseText.split(":");
+    if (parts.length > 1) {
+        return parts[1].trim();
+    }
+    return responseText;
+}

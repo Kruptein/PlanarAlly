@@ -123,9 +123,9 @@ export async function getErrorReason(response: Response): Promise<string> {
     const responseText: string = await response.text();
     // responseText will be "<statusCode>: <error message>"
     // trim that down, to just return the error message
-    const parts: string[] = responseText.split(":");
-    if (parts.length > 1) {
-        return parts[1].trim();
+    const index = responseText.indexOf(":");
+    if (index >= 0) {
+        return responseText.substring(index + 1).trim();
     }
     return responseText;
 }

@@ -51,7 +51,8 @@ export default class AccountSettings extends Vue {
             if (response.ok) {
                 this.hidePasswordChange();
             } else {
-                this.errorMessage = (await getErrorReason(response)) ?? this.$t("settings.account.server_request_error").toString();
+                this.errorMessage =
+                    (await getErrorReason(response)) ?? this.$t("settings.account.server_request_error").toString();
             }
         } else {
             this.showPasswordFields = true;

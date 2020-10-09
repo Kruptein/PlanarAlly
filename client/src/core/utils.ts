@@ -121,6 +121,8 @@ export function baseAdjust(url: string): string {
 
 export async function getErrorReason(response: Response): Promise<string> {
     const responseText: string = await response.text();
+    // responseText will be "<statusCode>: <error message>"
+    // trim that down, to just return the error message
     const parts: string[] = responseText.split(":");
     if (parts.length > 1) {
         return parts[1].trim();

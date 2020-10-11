@@ -10,4 +10,4 @@ class Notification(BaseModel):
     message = TextField()
 
     def __repr__(self):
-        return f"<Notification {self.uuid} {self.message[:15]}"
+        return f"<Notification {self.uuid} {self.message[:15]}>"

@@ -3,7 +3,8 @@
 All notable changes to this project will be documented in this file.
 
 [DM] denotes changes only useful for the dungeon master
-[tech] denotes technical changes
+[tech] denotes technical changes or changes specifically for the server owner.
+These usually have no immediately visible impact on regular users
 
 ## Unreleased
 
@@ -22,7 +23,8 @@ All notable changes to this project will be documented in this file.
 -   Markdown support for shape annotations
 -   Italian localization added
 -   [tech] Server can now be hosted on a subpath e.g. somedomain.com/planarally-subpath
--   [tech] Server now also starts an extra admin api server that can be configured separately.
+-   [tech] Server now also starts an extra admin api server that can be configured separately
+-   [tech] API endpoint to create system notifications now exists
 
 ### Changed
 

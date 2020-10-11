@@ -2,6 +2,8 @@ import uuid
 
 from aiohttp import web
 
+from app import sio
+from api.socket.constants import GAME_NS
 from models import Notification
 
 
@@ -12,6 +14,11 @@ async def create(request: web.Request) -> web.Response:
         try:
             notification = Notification.create(uuid=uuid.uuid4(), message=message)
             notification.save()
+            await sio.emit(
+                "Notification.Show",
+                {"uuid": str(notification.uuid), "message": notification.message},
+                namespace=GAME_NS,
+            )
         except:
             return web.HTTPServerError(reason="Failed to create new notification.")
         return web.HTTPOk(text=f"Created new notification with id {notification.uuid}")
@@ -21,7 +28,7 @@ async def create(request: web.Request) -> web.Response:
 
 async def collect(request: web.Request) -> web.Response:
     notifications = [
-        {"uuid": n.uuid, "message": n.message} for n in Notification.select()
+        {"uuid": str(n.uuid), "message": n.message} for n in Notification.select()
     ]
     return web.json_response(notifications)
 

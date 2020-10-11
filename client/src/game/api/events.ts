@@ -5,6 +5,7 @@ import "@/game/api/events/floor";
 import "@/game/api/events/initiative";
 import "@/game/api/events/labels";
 import "@/game/api/events/location";
+import "@/game/api/events/notification";
 import "@/game/api/events/room";
 import "@/game/api/events/shape/core";
 import "@/game/api/events/shape/options";

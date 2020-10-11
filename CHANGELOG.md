@@ -22,9 +22,14 @@ These usually have no immediately visible impact on regular users
     -   Snapping points are the grid corner points, center between two grid points and the complete center of a grid cell
 -   Markdown support for shape annotations
 -   Italian localization added
+-   System notifications
+
+    -   These are custom notifications server owners can send out and will appear in a toast
+    -   By closing a notification you mark it as read and it will not show up any longer
+    -   [tech] Server now also starts an extra admin api server that can be configured separately
+    -   [tech] API endpoint to create system notifications now exists
+
 -   [tech] Server can now be hosted on a subpath e.g. somedomain.com/planarally-subpath
--   [tech] Server now also starts an extra admin api server that can be configured separately
--   [tech] API endpoint to create system notifications now exists
 
 ### Changed
 

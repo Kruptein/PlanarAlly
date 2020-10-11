@@ -22,7 +22,7 @@ from models import ALL_MODELS, Constants
 from models.db import db
 from utils import OldVersionException, UnknownVersionException
 
-SAVE_VERSION = 42
+SAVE_VERSION = 43
 
 logger: logging.Logger = logging.getLogger("PlanarAllyServer")
 logger.setLevel(logging.INFO)
@@ -614,8 +614,23 @@ def upgrade(version):
                 "INSERT INTO shape (uuid, layer_id, type_, x, y, name, name_visible, fill_colour, stroke_colour, vision_obstruction, movement_obstruction, is_token, annotation, draw_operator, 'index', options, badge, show_badge, default_edit_access, default_vision_access, is_invisible, default_movement_access, is_locked, angle, stroke_width) SELECT uuid, layer_id, type_, x, y, name, name_visible, fill_colour, stroke_colour, vision_obstruction, movement_obstruction, is_token, annotation, draw_operator, 'index', options, badge, show_badge, default_edit_access, default_vision_access, is_invisible, default_movement_access, is_locked, angle, stroke_width FROM _shape_41"
             )
 
-        db.foreign_keys = True
-        Constants.get().update(save_version=Constants.save_version + 1).execute()
+    elif version == 42:
+        # Add Notification and Constants.api_token
+        with db.atomic():
+            db.execute_sql(
+                'CREATE TABLE IF NOT EXISTS "notification" ("uuid" TEXT NOT NULL PRIMARY KEY, "message" TEXT NOT NULL)'
+            )
+            db.execute_sql(
+                "CREATE TEMPORARY TABLE _constants_42 AS SELECT * FROM constants"
+            )
+            db.execute_sql("DROP TABLE constants")
+            db.execute_sql(
+                'CREATE TABLE IF NOT EXISTS "constants" ("id" INTEGER NOT NULL PRIMARY KEY, "save_version" INTEGER NOT NULL, "secret_token" BLOB NOT NULL, "api_token" BLOB NOT NULL)'
+            )
+            api_token = secrets.token_hex(32)
+            db.execute_sql(
+                f"INSERT INTO constants (id, save_version, secret_token, api_token) SELECT id, save_version, secret_token, '{api_token}' FROM _constants_42"
+            )
     else:
         raise UnknownVersionException(
             f"No upgrade code for save format {version} was found."
@@ -629,7 +644,9 @@ def check_save():
         logger.warning("Provided save file does not exist.  Creating a new one.")
         db.create_tables(ALL_MODELS)
         Constants.create(
-            save_version=SAVE_VERSION, secret_token=secrets.token_bytes(32)
+            save_version=SAVE_VERSION,
+            secret_token=secrets.token_bytes(32),
+            api_token=secrets.token_hex(32),
         )
     else:
         try:

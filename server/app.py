@@ -45,4 +45,4 @@ sio.attach(app)
 app["state"] = {}
 
 # API APP
-api_app = setup_app([JWTMiddleware(auth.get_api_token())])
+api_app = setup_app([auth.token_middleware])

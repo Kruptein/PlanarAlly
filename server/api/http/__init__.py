@@ -2,6 +2,7 @@ from aiohttp import web
 from aiohttp_security import check_authorized
 
 import api.http.auth
+import api.http.notifications
 import api.http.rooms
 import api.http.users
 import api.http.version

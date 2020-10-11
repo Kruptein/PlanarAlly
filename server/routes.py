@@ -79,3 +79,11 @@ if "dev" in sys.argv:
     main_app.router.add_route("*", "/{tail:.*}", root_dev)
 else:
     main_app.router.add_route("*", "/{tail:.*}", root)
+
+# ADMIN ROUTES
+
+api_app.router.add_post(f"{subpath}api/notifications", api.http.notifications.create)
+api_app.router.add_get(f"{subpath}api/notifications", api.http.notifications.collect)
+api_app.router.add_delete(
+    f"{subpath}api/notifications/{{uuid}}", api.http.notifications.delete
+)

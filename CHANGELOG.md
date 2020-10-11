@@ -29,6 +29,7 @@ All notable changes to this project will be documented in this file.
 -   Annotation UI got a small change to better accomodate the new markdown support
 -   Landing page redesign
     -   register phase is now a seperate step with an optional email field
+-   [tech] During save upgrades, backups will now be stored in the saves_backup folder
 
 ### Fixed
 

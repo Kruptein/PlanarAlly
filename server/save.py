@@ -5,6 +5,7 @@ import secrets
 import shutil
 import sqlite3
 import sys
+from pathlib import Path
 
 from peewee import (
     BooleanField,
@@ -647,11 +648,15 @@ def check_save():
         updated = False
         while save_version != SAVE_VERSION:
             updated = True
-            logger.warning(
-                f"Backing up old save as {SAVE_FILE}.{constants.save_version}"
+            save_backups = Path("save_backups")
+            if not save_backups.is_dir():
+                save_backups.mkdir()
+            backup_path = (
+                save_backups.resolve() / f"{Path(SAVE_FILE).name}.{save_version}"
             )
-            shutil.copyfile(SAVE_FILE, f"{SAVE_FILE}.{constants.save_version}")
-            logger.warning(f"Starting upgrade to {constants.save_version + 1}")
+            logger.warning(f"Backing up old save as {backup_path}")
+            shutil.copyfile(SAVE_FILE, backup_path)
+            logger.warning(f"Starting upgrade to {save_version + 1}")
             try:
                 upgrade(save_version)
             except Exception as e:

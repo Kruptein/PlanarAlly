@@ -55,4 +55,9 @@ body,
 .toasted > svg:first-child {
     margin-right: 0.7rem;
 }
+
+body .toasted-container.top-left {
+    top: 1%;
+    left: 3%;
+}
 </style>

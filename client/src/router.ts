@@ -1,19 +1,20 @@
 // import "./class-component-hooks";
 
-import Vue from "vue";
-import Router from "vue-router";
-
-Vue.use(Router);
 import AssetManager from "@/assetManager/manager.vue";
 import Login from "@/auth/login.vue";
 import Logout from "@/auth/logout";
+import { coreStore } from "@/core/store";
 import Dashboard from "@/dashboard/main.vue";
-import Settings from "@/settings/settings.vue";
 import Game from "@/game/Game.vue";
 import Invitation from "@/invitation/invitation";
-
-import { coreStore } from "@/core/store";
+import Settings from "@/settings/settings.vue";
+import Vue from "vue";
+import Router from "vue-router";
 import { baseAdjustedFetch } from "./core/utils";
+import { handleNotifications } from "./notifications";
+
+Vue.use(Router);
+
 // import { AssetManager } from "./assetManager/assets";
 // const AssetManager = () => import("./assetManager/assets").then(m => m.AssetManager);
 
@@ -77,23 +78,30 @@ export const router = new Router({
 router.beforeEach(async (to, _from, next) => {
     coreStore.setLoading(true);
     if (!coreStore.initialized) {
-        const promiseArray = [
-            baseAdjustedFetch("/api/auth"),
-            baseAdjustedFetch("/api/version"),
-            baseAdjustedFetch("/api/changelog"),
-        ];
-        const [authResponse, versionResponse, changelogResponse] = await Promise.all(promiseArray);
+        // Launch core requests
+        const promiseArray = [baseAdjustedFetch("/api/auth"), baseAdjustedFetch("/api/version")];
+
+        // Launch extra requests (changelog & notifications)
+        baseAdjustedFetch("/api/changelog").then(async response => {
+            const data = await response.json();
+            coreStore.setChangelog(data.changelog);
+        });
+        baseAdjustedFetch("/api/notifications").then(async response => {
+            const data = await response.json();
+            handleNotifications(data);
+        });
+
+        // Handle core requests
+        const [authResponse, versionResponse] = await Promise.all(promiseArray);
         if (authResponse.ok && versionResponse.ok) {
             const authData = await authResponse.json();
             const versionData = await versionResponse.json();
-            const changelogData = await changelogResponse.json();
             if (authData.auth) {
                 coreStore.setAuthenticated(true);
                 coreStore.setUsername(authData.username);
                 coreStore.setEmail(authData.email);
             }
             coreStore.setVersion(versionData);
-            coreStore.setChangelog(changelogData.changelog);
             coreStore.setInitialized(true);
             router.push(to.path);
         } else {

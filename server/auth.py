@@ -52,3 +52,7 @@ def login_required(app, sio):
 
 def get_secret_token():
     return Constants.get().secret_token
+
+
+def get_api_token():
+    return Constants.get().api_token

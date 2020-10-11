@@ -20,8 +20,9 @@ All notable changes to this project will be documented in this file.
 -   Snapping support to the ruler
     -   Snapping points are the grid corner points, center between two grid points and the complete center of a grid cell
 -   Markdown support for shape annotations
--   [tech] Server can now be hosted on a subpath e.g. somedomain.com/planarally-subpath
 -   Italian localization added
+-   [tech] Server can now be hosted on a subpath e.g. somedomain.com/planarally-subpath
+-   [tech] Server now also starts an extra admin api server that can be configured separately.
 
 ### Changed
 

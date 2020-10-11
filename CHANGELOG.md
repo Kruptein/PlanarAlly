@@ -3,7 +3,8 @@
 All notable changes to this project will be documented in this file.
 
 [DM] denotes changes only useful for the dungeon master
-[tech] denotes technical changes
+[tech] denotes technical changes or changes specifically for the server owner.
+These usually have no immediately visible impact on regular users
 
 ## Unreleased
 
@@ -20,8 +21,15 @@ All notable changes to this project will be documented in this file.
 -   Snapping support to the ruler
     -   Snapping points are the grid corner points, center between two grid points and the complete center of a grid cell
 -   Markdown support for shape annotations
--   [tech] Server can now be hosted on a subpath e.g. somedomain.com/planarally-subpath
 -   Italian localization added
+-   System notifications
+
+    -   These are custom notifications server owners can send out and will appear in a toast
+    -   By closing a notification you mark it as read and it will not show up any longer
+    -   [tech] Server now also starts an extra admin api server that can be configured separately
+    -   [tech] API endpoint to create system notifications now exists
+
+-   [tech] Server can now be hosted on a subpath e.g. somedomain.com/planarally-subpath
 
 ### Changed
 
@@ -29,6 +37,7 @@ All notable changes to this project will be documented in this file.
 -   Annotation UI got a small change to better accomodate the new markdown support
 -   Landing page redesign
     -   register phase is now a seperate step with an optional email field
+-   [tech] During save upgrades, backups will now be stored in the saves_backup folder
 
 ### Fixed
 

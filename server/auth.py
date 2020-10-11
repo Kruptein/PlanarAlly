@@ -1,6 +1,9 @@
 import logging
-from aiohttp_security.abc import AbstractAuthorizationPolicy
 from functools import wraps
+from typing import Coroutine
+
+from aiohttp import web
+from aiohttp_security.abc import AbstractAuthorizationPolicy
 
 from models import Constants, User
 
@@ -52,3 +55,20 @@ def login_required(app, sio):
 
 def get_secret_token():
     return Constants.get().secret_token
+
+
+def get_api_token():
+    return Constants.get().api_token
+
+
+@web.middleware
+async def token_middleware(request: web.Request, handler):
+    try:
+        authorization = request.headers["Authorization"]
+    except KeyError:
+        raise web.HTTPUnauthorized(reason="Missing authorization header")
+
+    if authorization != f"Bearer {get_api_token()}":
+        raise web.HTTPForbidden(reason="Invalid authorization header.")
+
+    return await handler(request)

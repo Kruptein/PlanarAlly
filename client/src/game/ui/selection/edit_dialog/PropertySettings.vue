@@ -19,6 +19,7 @@ export default class PropertySettings extends Vue {
     }
 
     toggleNameVisible(): void {
+        if (!this.owned) return;
         this.shape.setNameVisible(!this.shape.nameVisible, true);
     }
 

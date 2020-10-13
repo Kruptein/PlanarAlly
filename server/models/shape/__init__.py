@@ -94,8 +94,8 @@ class Shape(BaseModel):
             tracker_query = tracker_query.where(Tracker.visible)
             aura_query = aura_query.where(Aura.visible)
             label_query = label_query.where(Label.visible)
-        if not self.name_visible:
-            data["name"] = "?"
+            if not self.name_visible:
+                data["name"] = "?"
         data["trackers"] = [t.as_dict() for t in tracker_query]
         data["auras"] = [a.as_dict() for a in aura_query]
         data["labels"] = [l.as_dict() for l in label_query]

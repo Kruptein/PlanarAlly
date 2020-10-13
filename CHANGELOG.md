@@ -46,6 +46,7 @@ These usually have no immediately visible impact on regular users
 -   Map allowing some invalid inputs (negative numbers, 0, everything that isn't a number)
 -   Note and annotation textareas not having the correct height initially
 -   Console errors when attempting to move floors that you cannot access
+-   Private shape names showing up as ? for users with access
 -   [tech] Display error messages based on response body
 
 ## [0.22.3] - 2020-08-30

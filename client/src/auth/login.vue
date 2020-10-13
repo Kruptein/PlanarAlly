@@ -13,7 +13,7 @@ import { ToastObject } from "vue-toasted";
 
 @Component({
     components: {
-        languageDropdown: LanguageDropdown,
+        LanguageDropdown,
         Swiper,
         SwiperSlide,
     },
@@ -27,6 +27,8 @@ export default class Login extends Vue {
     password = "";
     email = "";
     registerMode = false;
+
+    showLanguageDropdown = false;
 
     swiperOptions: SwiperOptions = {
         slidesPerView: 1,
@@ -177,6 +179,10 @@ export default class Login extends Vue {
             <a href="https://discord.gg/mubGnTe" target="blank">discord!</a>
         </footer>
         <div id="login-panel">
+            <div id="language-selector">
+                <font-awesome-icon icon="language" @click="showLanguageDropdown = !showLanguageDropdown" />
+            </div>
+            <LanguageDropdown id="language-dropdown" v-if="showLanguageDropdown" />
             <div id="logo">
                 <img :src="baseAdjust('/static/favicon.png')" id="logo" alt="PA logo" />
             </div>
@@ -341,6 +347,21 @@ footer {
     padding-top: 5em;
 
     box-shadow: -10px 0 50px rgb(43, 43, 43);
+}
+
+#language-selector {
+    position: absolute;
+    top: 0;
+    right: calc(29vw - 45px);
+    font-size: 40px;
+    color: white;
+}
+
+#language-dropdown {
+    position: absolute;
+    top: 50px;
+    right: calc(29vw - 40px);
+    margin-right: -20px;
 }
 
 #logo {

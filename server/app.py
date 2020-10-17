@@ -6,7 +6,6 @@ import aiohttp_session
 import jinja2
 import socketio
 from aiohttp import web
-from aiohttp_jwt import JWTMiddleware
 from aiohttp_security import SessionIdentityPolicy
 from aiohttp_session.cookie_storage import EncryptedCookieStorage
 

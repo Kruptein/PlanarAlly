@@ -26,7 +26,6 @@ class VisibilityStore extends VuexModule implements VisibilityState {
         this.visionMode = data.mode;
         if (data.sync)
             sendLocationOptions({
-                // eslint-disable-next-line @typescript-eslint/camelcase
                 options: { vision_mode: VisibilityMode[data.mode] },
                 location: null,
             });
@@ -65,9 +64,9 @@ class VisibilityStore extends VuexModule implements VisibilityState {
 
     @Action
     clear(): void {
-        (<any>this.context.state).visionBlockers = [];
-        (<any>this.context.state).visionSources = [];
-        (<any>this.context.state).movementBlockers = [];
+        (this.context.state as any).visionBlockers = [];
+        (this.context.state as any).visionSources = [];
+        (this.context.state as any).movementBlockers = [];
     }
 }
 

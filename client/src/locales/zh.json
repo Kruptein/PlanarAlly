@@ -2,11 +2,13 @@
     "locale": {
         "select": "选择语言：",
         "en": "English",
-        "zh": "中文",
+        "zh": "简体中文",
+        "tw": "繁體中文",
         "de": "Deutsch",
         "ru": "Русский",
         "dk": "Dansk",
-        "es": "Español"
+        "es": "Español",
+        "it": "Italiano"
     },
     "assetManager": {
         "contextMenu": {
@@ -63,7 +65,12 @@
         "colors": "颜色",
         "version": "版本号",
         "confirm": "确认",
-        "cancel": "取消"
+        "cancel": "取消",
+        "insert_one_character": "请输入至少一个字符",
+        "name_already_in_use": "该名称已被占用！",
+        "varia": "杂项",
+        "select": "选择",
+        "or": "或"
     },
     "auth": {
         "login": {
@@ -76,6 +83,10 @@
             "inputCopy": {
                 "copied": "已复制！",
                 "copy": "复制"
+            },
+            "selectionbox": {
+                "non_empty_warning": "请输入一个非空的自定义的值！",
+                "already_exists_warning": "选项已存在！"
             }
         }
     },
@@ -198,7 +209,9 @@
                     "delete_shapes": "移除图形",
                     "show_props": "显示属性",
                     "remove_marker": "移除记号",
-                    "set_marker": "设置记号"
+                    "set_marker": "设置记号",
+                    "no_spawn_set_title": "无法移动图形",
+                    "no_spawn_set_text": "目的地暂无刷新点，请先至少创建一个。"
                 }
             },
             "settings": {
@@ -267,6 +280,12 @@
                     "experimental": "实验性"
                 }
             },
+            "templates": {
+                "choose": "选择模板",
+                "save": "保存模板",
+                "overwrite": "覆盖",
+                "create_new": "创建新模板"
+            },
             "tools": {
                 "createtoken_modal": {
                     "create_basic_token": "创建基础指示物",
@@ -277,7 +296,10 @@
                 "defaultcontext": {
                     "bring_pl": "玩家视角至此",
                     "create_basic_token": "创建基础指示物",
-                    "show_initiative": "显示先攻"
+                    "show_initiative": "显示先攻",
+                    "create_spawn_location": "创建刷新点",
+                    "new_spawn_question": "该刷新点的名称是?",
+                    "new_spawn_title": "创建新的刷新点"
                 },
                 "draw": {
                     "foreground_color": "前景色",

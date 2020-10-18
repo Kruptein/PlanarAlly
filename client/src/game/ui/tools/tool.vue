@@ -27,13 +27,13 @@ export default class Tool extends Vue implements ToolBasics {
     }
 
     get detailRight(): string {
-        const rect = (<any>this.$parent.$refs[this.name + "-selector"])[0].getBoundingClientRect();
+        const rect = (this.$parent.$refs[this.name + "-selector"] as any)[0].getBoundingClientRect();
         const mid = rect.left + rect.width / 2;
 
         return `${window.innerWidth - Math.min(window.innerWidth - 25, mid + 75)}px`;
     }
     get detailArrow(): string {
-        const rect = (<any>this.$parent.$refs[this.name + "-selector"])[0].getBoundingClientRect();
+        const rect = (this.$parent.$refs[this.name + "-selector"] as any)[0].getBoundingClientRect();
         const mid = rect.left + rect.width / 2;
         const right = Math.min(window.innerWidth - 25, mid + 75);
         return `${right - mid - 14}px`; // border width
@@ -62,7 +62,7 @@ export default class Tool extends Vue implements ToolBasics {
     onPinchMove(_event: TouchEvent, _features: ToolFeatures): void {}
     onPinchEnd(_event: TouchEvent, _features: ToolFeatures): void {}
     onContextMenu(event: MouseEvent, _features: ToolFeatures): void {
-        (<DefaultContext>this.$parent.$refs.defaultcontext).open(event);
+        (this.$parent.$refs.defaultcontext as DefaultContext).open(event);
     }
 
     onSelect(): void {}

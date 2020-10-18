@@ -22,7 +22,7 @@ export default class AssetContextMenu extends Vue {
     top = 0;
 
     get parent(): AssetManager {
-        return <AssetManager>this.$parent;
+        return this.$parent as AssetManager;
     }
 
     open(event: MouseEvent, inode: number): void {
@@ -32,7 +32,7 @@ export default class AssetContextMenu extends Vue {
         this.left = event.clientX;
         this.top = event.clientY;
         this.$nextTick(() => {
-            (<HTMLElement>this.$children[0].$el).focus();
+            (this.$children[0].$el as HTMLElement).focus();
         });
     }
     close(): void {
@@ -42,7 +42,7 @@ export default class AssetContextMenu extends Vue {
         if (assetStore.selected.length !== 1) return;
         const asset = assetStore.idMap.get(assetStore.selected[0])!;
 
-        const name = await (<Prompt>this.parent.$refs.prompt).prompt(
+        const name = await (this.parent.$refs.prompt as Prompt).prompt(
             this.$t("assetManager.contextMenu.new_name").toString(),
             this.$t("assetManager.contextMenu.renaming_NAME", { name: asset.name }).toString(),
         );
@@ -56,7 +56,7 @@ export default class AssetContextMenu extends Vue {
     }
     async remove(): Promise<void> {
         if (assetStore.selected.length === 0) return;
-        const result = await (<ConfirmDialog>this.parent.$refs.confirm).open(
+        const result = await (this.parent.$refs.confirm as ConfirmDialog).open(
             this.$t("assetManager.contextMenu.ask_remove").toString(),
         );
         if (result) {

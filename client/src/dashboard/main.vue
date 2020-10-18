@@ -4,7 +4,7 @@ import Component from "vue-class-component";
 import { Route, NavigationGuard } from "vue-router";
 
 import { coreStore } from "@/core/store";
-import { postFetch } from "../core/utils";
+import { baseAdjustedFetch, getErrorReason, postFetch } from "../core/utils";
 
 Component.registerHooks(["beforeRouteEnter"]);
 
@@ -17,14 +17,14 @@ export default class Dashboard extends Vue {
     newSessionName = "";
 
     async beforeRouteEnter(to: Route, from: Route, next: Parameters<NavigationGuard>[2]): Promise<void> {
-        const response = await fetch("/api/rooms");
+        const response = await baseAdjustedFetch("/api/rooms");
         next(async (vm: Vue) => {
             if (response.ok) {
                 const data = await response.json();
-                (<this>vm).owned = data.owned;
-                (<this>vm).joined = data.joined;
+                (vm as this).owned = data.owned;
+                (vm as this).joined = data.joined;
             } else {
-                (<this>vm).error = response.statusText;
+                (vm as this).error = await getErrorReason(response);
             }
         });
     }
@@ -38,7 +38,7 @@ export default class Dashboard extends Vue {
                 `/game/${encodeURIComponent(coreStore.username)}/${encodeURIComponent(this.newSessionName)}`,
             );
         } else {
-            this.error = response.statusText;
+            this.error = await getErrorReason(response);
         }
     }
 

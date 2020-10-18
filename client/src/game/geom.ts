@@ -39,13 +39,13 @@ export class Point {
         return new Point(point[0], point[1]);
     }
     add(vec: Vector | this): this {
-        return new (<any>this).constructor(this.x + vec.x, this.y + vec.y);
+        return new (this as any).constructor(this.x + vec.x, this.y + vec.y);
     }
     subtract(other: Vector | this): Vector {
         return new Vector(this.x - other.x, this.y - other.y);
     }
     clone(): this {
-        return new (<any>this).constructor(this.x, this.y);
+        return new (this as any).constructor(this.x, this.y);
     }
     get(dimension: 0 | 1): number {
         if (dimension === 0) return this.x;
@@ -139,7 +139,7 @@ export class Ray<T extends Point> {
         return new Ray(p1, vec, maxT);
     }
     get(t: number): T {
-        return <T>new Point(this.origin.x + t * this.direction.x, this.origin.y + t * this.direction.y);
+        return new Point(this.origin.x + t * this.direction.x, this.origin.y + t * this.direction.y) as T;
     }
     getDistance(t1: number, t2: number): number {
         return Math.sqrt(Math.pow(t2 - t1, 2) * (Math.pow(this.direction.x, 2) + Math.pow(this.direction.y, 2)));

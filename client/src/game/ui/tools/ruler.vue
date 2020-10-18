@@ -10,11 +10,13 @@ import { SyncMode, InvalidationMode } from "../../../core/comm/types";
 import { ToolName } from "./utils";
 import { gameSettingsStore } from "../../settings";
 import { ToolBasics } from "./ToolBasics";
-import { Line } from "@/game/shapes/line";
+import { Line } from "@/game/shapes/variants/line";
 import { gameStore, DEFAULT_GRID_SIZE } from "@/game/store";
-import { Text } from "../../shapes/text";
+import { Text } from "../../shapes/variants/text";
 import { floorStore } from "@/game/layers/store";
 import { sendShapePositionUpdate, sendTextUpdate } from "@/game/api/emits/shape/core";
+import { useSnapping } from "@/game/utils";
+import { snapToGridPoint } from "@/game/layers/utils";
 
 @Component
 export default class RulerTool extends Tool implements ToolBasics {
@@ -31,8 +33,10 @@ export default class RulerTool extends Tool implements ToolBasics {
         return SyncMode.NO_SYNC;
     }
 
-    onDown(lp: LocalPoint): void {
+    onDown(lp: LocalPoint, event: MouseEvent | TouchEvent): void {
         this.startPoint = l2g(lp);
+
+        if (useSnapping(event)) [this.startPoint] = snapToGridPoint(this.startPoint);
 
         const layer = layerManager.getLayer(floorStore.currentFloor, "draw");
         if (layer === undefined) {
@@ -40,16 +44,22 @@ export default class RulerTool extends Tool implements ToolBasics {
             return;
         }
         this.active = true;
-        this.ruler = new Line(this.startPoint, this.startPoint, l2gz(3), gameStore.rulerColour);
-        this.text = new Text(this.startPoint.clone(), "", "bold 20px serif", "#000", "#fff");
+        this.ruler = new Line(this.startPoint, this.startPoint, {
+            lineWidth: l2gz(3),
+            strokeColour: gameStore.rulerColour,
+        });
+        this.text = new Text(this.startPoint.clone(), "", "bold 20px serif", {
+            fillColour: "#000",
+            strokeColour: "#fff",
+        });
         this.ruler.addOwner({ user: gameStore.username, access: { edit: true } }, false);
         this.text.addOwner({ user: gameStore.username, access: { edit: true } }, false);
         layer.addShape(this.ruler, this.syncMode, InvalidationMode.NORMAL);
         layer.addShape(this.text, this.syncMode, InvalidationMode.NORMAL);
     }
 
-    onMove(lp: LocalPoint): void {
-        const endPoint = l2g(lp);
+    onMove(lp: LocalPoint, event: MouseEvent | TouchEvent): void {
+        let endPoint = l2g(lp);
         if (!this.active || this.ruler === null || this.startPoint === null || this.text === null) return;
 
         const layer = layerManager.getLayer(floorStore.currentFloor, "draw");
@@ -57,6 +67,8 @@ export default class RulerTool extends Tool implements ToolBasics {
             console.log("No draw layer!");
             return;
         }
+
+        if (useSnapping(event)) [endPoint] = snapToGridPoint(endPoint);
 
         this.ruler.endPoint = endPoint;
         sendShapePositionUpdate([this.ruler], true);
@@ -95,7 +107,7 @@ export default class RulerTool extends Tool implements ToolBasics {
     }
 
     toggle(event: MouseEvent): void {
-        const button = <HTMLButtonElement>event.target;
+        const button = event.target as HTMLButtonElement;
         const state = button.getAttribute("aria-pressed") ?? "false";
         this.showPublic = state === "false";
         if (state == "false") button.setAttribute("aria-pressed", "true");

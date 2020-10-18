@@ -75,9 +75,9 @@ export function triangulate(target: TriangulationTarget, floor: number): void {
     cdt.insertConstraint([1e8, 1e8], [1e8, 1e11]);
     cdt.insertConstraint([1e8, 1e11], [-1e8, 1e11]);
     cdt.insertConstraint([-1e8, 1e11], [-1e8, 1e8]);
-    (<any>window).CDT = PA_CDT;
+    (window as any).CDT = PA_CDT;
 }
-(<any>window).TRIAG = triangulate;
+(window as any).TRIAG = triangulate;
 
 export function addShapesToTriag(target: TriangulationTarget, ...shapes: Shape[]): void {
     // console.time("AS");

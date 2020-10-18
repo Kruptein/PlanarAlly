@@ -5,6 +5,7 @@ import secrets
 import shutil
 import sqlite3
 import sys
+from pathlib import Path
 
 from peewee import (
     BooleanField,
@@ -21,56 +22,33 @@ from models import ALL_MODELS, Constants
 from models.db import db
 from utils import OldVersionException, UnknownVersionException
 
-SAVE_VERSION = 41
+SAVE_VERSION = 43
 
 logger: logging.Logger = logging.getLogger("PlanarAllyServer")
 logger.setLevel(logging.INFO)
 
 
+def get_save_version():
+    return db.execute_sql("SELECT save_version FROM constants").fetchone()[0]
+
+
+def inc_save_version():
+    db.execute_sql("UPDATE constants SET save_version = save_version + 1")
+
+
 def upgrade(version):
-    if version < 16:
+    if version < 18:
         raise OldVersionException(
             f"Upgrade code for this version is >1 year old and is no longer in the active codebase to reduce clutter. You can still find this code on github, contact me for more info."
         )
-    elif version == 16:
+
+    db.foreign_keys = False
+
+    if version == 18:
         migrator = SqliteMigrator(db)
-        db.foreign_keys = False
-        with db.atomic():
-            migrate(
-                migrator.add_column(
-                    "location", "unit_size_unit", TextField(default="ft")
-                )
-            )
-        db.foreign_keys = True
-        Constants.get().update(save_version=Constants.save_version + 1).execute()
-    elif version == 17:
-        migrator = SqliteMigrator(db)
-        db.foreign_keys = False
-        with db.atomic():
-            migrate(
-                migrator.add_column(
-                    "polygon", "open_polygon", BooleanField(default=False)
-                ),
-                migrator.add_column("polygon", "line_width", IntegerField(default=2)),
-            )
-            db.execute_sql(
-                "INSERT INTO polygon (shape_id, line_width, vertices, open_polygon) SELECT shape_id, line_width, points, 1 FROM multi_line"
-            )
-            db.execute_sql("DROP TABLE multi_line")
-            db.execute_sql(
-                "UPDATE shape SET type_ = 'polygon' WHERE type_ = 'multiline'"
-            )
-        db.foreign_keys = True
-        Constants.get().update(save_version=Constants.save_version + 1).execute()
-    elif version == 18:
-        migrator = SqliteMigrator(db)
-        db.foreign_keys = False
         with db.atomic():
             migrate(migrator.add_column("user", "email", TextField(null=True)))
-        db.foreign_keys = True
-        Constants.get().update(save_version=Constants.save_version + 1).execute()
     elif version == 19:
-        db.foreign_keys = False
 
         db.execute_sql(
             'CREATE TABLE IF NOT EXISTS "floor" ("id" INTEGER NOT NULL PRIMARY KEY, "location_id" INTEGER NOT NULL, "name" TEXT, "index" INTEGER NOT NULL, FOREIGN KEY ("location_id") REFERENCES "location" ("id") ON DELETE CASCADE)'
@@ -80,47 +58,35 @@ def upgrade(version):
         )
 
         with db.atomic():
-            db.execute_sql("CREATE TEMPORARY TABLE _layer AS SELECT * FROM layer")
+            db.execute_sql("CREATE TEMPORARY TABLE _layer_19 AS SELECT * FROM layer")
             db.execute_sql("DROP TABLE layer")
             db.execute_sql(
                 'CREATE TABLE IF NOT EXISTS "layer" ("id" INTEGER NOT NULL PRIMARY KEY, "floor_id" INTEGER NOT NULL, "name" TEXT NOT NULL, "type_" TEXT NOT NULL, "player_visible" INTEGER NOT NULL, "player_editable" INTEGER NOT NULL, "selectable" INTEGER NOT NULL, "index" INTEGER NOT NULL, FOREIGN KEY ("floor_id") REFERENCES "floor" ("id") ON DELETE CASCADE)'
             )
             db.execute_sql(
-                'INSERT INTO layer (id, floor_id, name, type_, player_visible, player_editable, selectable, "index") SELECT _layer.id, floor.id, _layer.name, type_, player_visible, player_editable, selectable, _layer."index" FROM _layer INNER JOIN floor ON floor.location_id = _layer.location_id'
+                'INSERT INTO layer (id, floor_id, name, type_, player_visible, player_editable, selectable, "index") SELECT _layer_19.id, floor.id, _layer_19.name, type_, player_visible, player_editable, selectable, _layer_19."index" FROM _layer_19 INNER JOIN floor ON floor.location_id = _layer_19.location_id'
             )
 
-        db.foreign_keys = True
-        Constants.get().update(save_version=Constants.save_version + 1).execute()
     elif version == 20:
         migrator = SqliteMigrator(db)
-        db.foreign_keys = False
         with db.atomic():
             migrate(
                 migrator.add_column("shape", "badge", IntegerField(default=1)),
                 migrator.add_column("shape", "show_badge", BooleanField(default=False)),
             )
-        db.foreign_keys = True
-        Constants.get().update(save_version=Constants.save_version + 1).execute()
     elif version == 21:
         migrator = SqliteMigrator(db)
-        db.foreign_keys = False
         with db.atomic():
             migrate(
                 migrator.add_column("user", "invert_alt", BooleanField(default=False))
             )
-        db.foreign_keys = True
-        Constants.get().update(save_version=Constants.save_version + 1).execute()
     elif version == 22:
-        db.foreign_keys = False
         with db.atomic():
             db.execute_sql(
                 'CREATE TABLE IF NOT EXISTS "marker" ("id" INTEGER NOT NULL PRIMARY KEY, "shape_id" TEXT NOT NULL, "user_id" INTEGER NOT NULL, "location_id" INTEGER NOT NULL, FOREIGN KEY ("shape_id") REFERENCES "shape"("uuid") ON DELETE CASCADE, FOREIGN KEY ("location_id") REFERENCES "location" ("id") ON DELETE CASCADE, FOREIGN KEY ("user_id") REFERENCES "user"("id") ON DELETE CASCADE)'
             )
-        db.foreign_keys = True
-        Constants.get().update(save_version=Constants.save_version + 1).execute()
     elif version == 23:
         migrator = SqliteMigrator(db)
-        db.foreign_keys = False
         with db.atomic():
             migrate(
                 migrator.add_column(
@@ -136,16 +102,11 @@ def upgrade(version):
                     "shape", "default_vision_access", BooleanField(default=False)
                 ),
             )
-        db.foreign_keys = True
-        Constants.get().update(save_version=Constants.save_version + 1).execute()
     elif version == 24:
-        db.foreign_keys = False
         with db.atomic():
             db.execute_sql(
                 'DELETE FROM "player_room" WHERE id IN (SELECT pr.id FROM "player_room" pr INNER JOIN "room" r ON r.id = pr.room_id WHERE r.creator_id = pr.player_id )'
             )
-        db.foreign_keys = True
-        Constants.get().update(save_version=Constants.save_version + 1).execute()
     elif version == 25:
         # Move Room.dm_location and Room.player_location to PlayerRoom.active_location
         # Add PlayerRoom.role
@@ -153,7 +114,6 @@ def upgrade(version):
         from models import Location
 
         migrator = SqliteMigrator(db)
-        db.foreign_keys = False
         with db.atomic():
             migrate(
                 migrator.add_column(
@@ -185,8 +145,6 @@ def upgrade(version):
                 migrator.add_not_null("player_room", "active_location_id"),
             )
 
-        db.foreign_keys = True
-        Constants.get().update(save_version=Constants.save_version + 1).execute()
     elif version == 26:
         # Move Location settings to a separate LocationSettings table
         # Add a default_settings field to Room that refers to such a LocationSettings row
@@ -194,7 +152,6 @@ def upgrade(version):
 
         migrator = SqliteMigrator(db)
 
-        db.foreign_keys = False
         with db.atomic():
             db.execute_sql(
                 'CREATE TABLE IF NOT EXISTS "location_options" ("id" INTEGER NOT NULL PRIMARY KEY, "unit_size" REAL DEFAULT 5, "unit_size_unit" TEXT DEFAULT "ft", "use_grid" INTEGER DEFAULT 1, "full_fow" INTEGER DEFAULT 0, "fow_opacity" REAL DEFAULT 0.3, "fow_los" INTEGER DEFAULT 0, "vision_mode" TEXT DEFAULT "triangle", "vision_min_range" REAL DEFAULT 1640, "vision_max_range" REAL DEFAULT 3281, "grid_size" INTEGER DEFAULT 50)'
@@ -286,13 +243,10 @@ def upgrade(version):
             )
             db.execute_sql("DROP TABLE 'grid_layer'")
 
-        db.foreign_keys = True
-        Constants.get().update(save_version=Constants.save_version + 1).execute()
     elif version == 27:
         # Fix broken schemas from older save upgrades
-        db.foreign_keys = False
         with db.atomic():
-            db.execute_sql("CREATE TEMPORARY TABLE _floor AS SELECT * FROM floor")
+            db.execute_sql("CREATE TEMPORARY TABLE _floor_27 AS SELECT * FROM floor")
             db.execute_sql("DROP TABLE floor")
             db.execute_sql(
                 'CREATE TABLE "floor" ("id" INTEGER NOT NULL PRIMARY KEY, "location_id" INTEGER NOT NULL, "index" INTEGER NOT NULL, "name" TEXT NOT NULL, FOREIGN KEY ("location_id") REFERENCES "location" ("id") ON DELETE CASCADE)'
@@ -301,10 +255,10 @@ def upgrade(version):
                 'CREATE INDEX IF NOT EXISTS "floor_location_id" ON "floor" ("location_id")'
             )
             db.execute_sql(
-                'INSERT INTO floor (id, location_id, "index", name) SELECT id, location_id, "index", name FROM _floor'
+                'INSERT INTO floor (id, location_id, "index", name) SELECT id, location_id, "index", name FROM _floor_27'
             )
 
-            db.execute_sql("CREATE TEMPORARY TABLE _label AS SELECT * FROM label")
+            db.execute_sql("CREATE TEMPORARY TABLE _label_27 AS SELECT * FROM label")
             db.execute_sql("DROP TABLE label")
             db.execute_sql(
                 'CREATE TABLE "label" ("uuid" TEXT NOT NULL PRIMARY KEY, "user_id" INTEGER NOT NULL, "category" TEXT, "name" TEXT NOT NULL, "visible" INTEGER NOT NULL, FOREIGN KEY ("user_id") REFERENCES "user" ("id") ON DELETE CASCADE)'
@@ -313,10 +267,10 @@ def upgrade(version):
                 'CREATE INDEX IF NOT EXISTS "label_user_id" ON "label" ("user_id")'
             )
             db.execute_sql(
-                "INSERT INTO label (uuid, user_id, category, name, visible) SELECT uuid, user_id, category, name, visible FROM _label"
+                "INSERT INTO label (uuid, user_id, category, name, visible) SELECT uuid, user_id, category, name, visible FROM _label_27"
             )
 
-            db.execute_sql("CREATE TEMPORARY TABLE _layer AS SELECT * FROM layer")
+            db.execute_sql("CREATE TEMPORARY TABLE _layer_27 AS SELECT * FROM layer")
             db.execute_sql("DROP TABLE layer")
             db.execute_sql(
                 'CREATE TABLE "layer" ("id" INTEGER NOT NULL PRIMARY KEY, "floor_id" INTEGER NOT NULL, "name" TEXT NOT NULL, "type_" TEXT NOT NULL, "player_visible" INTEGER NOT NULL, "player_editable" INTEGER NOT NULL, "selectable" INTEGER NOT NULL, "index" INTEGER NOT NULL, FOREIGN KEY ("floor_id") REFERENCES "floor" ("id") ON DELETE CASCADE)'
@@ -331,10 +285,12 @@ def upgrade(version):
                 'CREATE UNIQUE INDEX "layer_floor_id_name" ON "layer" ("floor_id", "name")'
             )
             db.execute_sql(
-                'INSERT INTO layer (id, floor_id, name, type_, player_visible, player_editable, selectable, "index") SELECT id, floor_id, name, type_, player_visible, player_editable, selectable, "index" FROM _layer'
+                'INSERT INTO layer (id, floor_id, name, type_, player_visible, player_editable, selectable, "index") SELECT id, floor_id, name, type_, player_visible, player_editable, selectable, "index" FROM _layer_27'
             )
 
-            db.execute_sql("CREATE TEMPORARY TABLE _location AS SELECT * FROM location")
+            db.execute_sql(
+                "CREATE TEMPORARY TABLE _location_27 AS SELECT * FROM location"
+            )
             db.execute_sql("DROP TABLE location")
             db.execute_sql(
                 'CREATE TABLE "location" ("id" INTEGER NOT NULL PRIMARY KEY, "room_id" INTEGER NOT NULL, "name" TEXT NOT NULL, "options_id" INTEGER, "index" INTEGER NOT NULL, FOREIGN KEY ("room_id") REFERENCES "room" ("id") ON DELETE CASCADE, FOREIGN KEY ("options_id") REFERENCES "location_options" ("id") ON DELETE CASCADE)'
@@ -343,11 +299,11 @@ def upgrade(version):
                 'CREATE INDEX IF NOT EXISTS "location_room_id" ON "location" ("room_id")'
             )
             db.execute_sql(
-                'INSERT INTO location (id, room_id, name, options_id, "index") SELECT id, room_id, name, options_id, "index" FROM _location'
+                'INSERT INTO location (id, room_id, name, options_id, "index") SELECT id, room_id, name, options_id, "index" FROM _location_27'
             )
 
             db.execute_sql(
-                "CREATE TEMPORARY TABLE _location_options AS SELECT * FROM location_options"
+                "CREATE TEMPORARY TABLE _location_options_27 AS SELECT * FROM location_options"
             )
             db.execute_sql("DROP TABLE location_options")
             db.execute_sql(
@@ -357,11 +313,11 @@ def upgrade(version):
                 'CREATE INDEX IF NOT EXISTS "location_options_id" ON "location" ("options_id")'
             )
             db.execute_sql(
-                "INSERT INTO location_options (id, unit_size, unit_size_unit, use_grid, full_fow, fow_opacity, fow_los, vision_mode, grid_size, vision_min_range, vision_max_range) SELECT id, unit_size, unit_size_unit, use_grid, full_fow, fow_opacity, fow_los, vision_mode, grid_size, vision_min_range, vision_max_range FROM _location_options"
+                "INSERT INTO location_options (id, unit_size, unit_size_unit, use_grid, full_fow, fow_opacity, fow_los, vision_mode, grid_size, vision_min_range, vision_max_range) SELECT id, unit_size, unit_size_unit, use_grid, full_fow, fow_opacity, fow_los, vision_mode, grid_size, vision_min_range, vision_max_range FROM _location_options_27"
             )
 
             db.execute_sql(
-                "CREATE TEMPORARY TABLE _location_user_option AS SELECT * FROM location_user_option"
+                "CREATE TEMPORARY TABLE _location_user_option_27 AS SELECT * FROM location_user_option"
             )
             db.execute_sql("DROP TABLE location_user_option")
             db.execute_sql(
@@ -380,10 +336,10 @@ def upgrade(version):
                 'CREATE UNIQUE INDEX "location_user_option_location_id_user_id" ON "location_user_option" ("location_id", "user_id")'
             )
             db.execute_sql(
-                "INSERT INTO location_user_option (id, location_id, user_id, pan_x, pan_y, zoom_factor, active_layer_id) SELECT id, location_id, user_id, pan_x, pan_y, zoom_factor, active_layer_id FROM _location_user_option"
+                "INSERT INTO location_user_option (id, location_id, user_id, pan_x, pan_y, zoom_factor, active_layer_id) SELECT id, location_id, user_id, pan_x, pan_y, zoom_factor, active_layer_id FROM _location_user_option_27"
             )
 
-            db.execute_sql("CREATE TEMPORARY TABLE _marker AS SELECT * FROM marker")
+            db.execute_sql("CREATE TEMPORARY TABLE _marker_27 AS SELECT * FROM marker")
             db.execute_sql("DROP TABLE marker")
             db.execute_sql(
                 'CREATE TABLE "marker" ("id" INTEGER NOT NULL PRIMARY KEY, "shape_id" TEXT NOT NULL, "user_id" INTEGER NOT NULL, "location_id" INTEGER NOT NULL, FOREIGN KEY ("shape_id") REFERENCES "shape" ("uuid") ON DELETE CASCADE, FOREIGN KEY ("user_id") REFERENCES "user" ("id") ON DELETE CASCADE, FOREIGN KEY ("location_id") REFERENCES "location" ("id") ON DELETE CASCADE)'
@@ -401,11 +357,11 @@ def upgrade(version):
                 'CREATE INDEX IF NOT EXISTS "marker_location_id" ON "marker" ("location_id")'
             )
             db.execute_sql(
-                "INSERT INTO marker (id, shape_id, user_id, location_id) SELECT id, shape_id, user_id, location_id FROM _marker"
+                "INSERT INTO marker (id, shape_id, user_id, location_id) SELECT id, shape_id, user_id, location_id FROM _marker_27"
             )
 
             db.execute_sql(
-                "CREATE TEMPORARY TABLE _player_room AS SELECT * FROM player_room"
+                "CREATE TEMPORARY TABLE _player_room_27 AS SELECT * FROM player_room"
             )
             db.execute_sql("DROP TABLE player_room")
             db.execute_sql(
@@ -421,19 +377,21 @@ def upgrade(version):
                 'CREATE INDEX IF NOT EXISTS "player_room_room_id" ON "player_room" ("room_id")'
             )
             db.execute_sql(
-                "INSERT INTO player_room (id, role, player_id, room_id, active_location_id) SELECT id, role, player_id, room_id, active_location_id FROM _player_room"
+                "INSERT INTO player_room (id, role, player_id, room_id, active_location_id) SELECT id, role, player_id, room_id, active_location_id FROM _player_room_27"
             )
 
-            db.execute_sql("CREATE TEMPORARY TABLE _polygon AS SELECT * FROM polygon")
+            db.execute_sql(
+                "CREATE TEMPORARY TABLE _polygon_27 AS SELECT * FROM polygon"
+            )
             db.execute_sql("DROP TABLE polygon")
             db.execute_sql(
                 'CREATE TABLE "polygon" ("shape_id" TEXT NOT NULL PRIMARY KEY, "vertices" TEXT NOT NULL, "line_width" INTEGER NOT NULL, "open_polygon" INTEGER NOT NULL, FOREIGN KEY ("shape_id") REFERENCES "shape" ("uuid") ON DELETE CASCADE)'
             )
             db.execute_sql(
-                "INSERT INTO polygon (shape_id,vertices, line_width, open_polygon) SELECT shape_id,vertices, line_width, open_polygon FROM _polygon"
+                "INSERT INTO polygon (shape_id,vertices, line_width, open_polygon) SELECT shape_id,vertices, line_width, open_polygon FROM _polygon_27"
             )
 
-            db.execute_sql("CREATE TEMPORARY TABLE _room AS SELECT * FROM room")
+            db.execute_sql("CREATE TEMPORARY TABLE _room_27 AS SELECT * FROM room")
             db.execute_sql("DROP TABLE room")
             db.execute_sql(
                 'CREATE TABLE "room" ("id" INTEGER NOT NULL PRIMARY KEY, "name" TEXT NOT NULL, "creator_id" INTEGER NOT NULL, "invitation_code" TEXT NOT NULL, "is_locked" INTEGER NOT NULL, "default_options_id" INTEGER NOT NULL, FOREIGN KEY ("creator_id") REFERENCES "user" ("id") ON DELETE CASCADE, FOREIGN KEY ("default_options_id") REFERENCES "location_options" ("id") ON DELETE CASCADE)'
@@ -451,10 +409,10 @@ def upgrade(version):
                 'CREATE UNIQUE INDEX "room_name_creator_id" ON "room" ("name", "creator_id")'
             )
             db.execute_sql(
-                "INSERT INTO room (id, name, creator_id, invitation_code, is_locked, default_options_id) SELECT id, name, creator_id, invitation_code, is_locked, default_options_id FROM _room"
+                "INSERT INTO room (id, name, creator_id, invitation_code, is_locked, default_options_id) SELECT id, name, creator_id, invitation_code, is_locked, default_options_id FROM _room_27"
             )
 
-            db.execute_sql("CREATE TEMPORARY TABLE _shape AS SELECT * FROM shape")
+            db.execute_sql("CREATE TEMPORARY TABLE _shape_27 AS SELECT * FROM shape")
             db.execute_sql("DROP TABLE shape")
             db.execute_sql(
                 'CREATE TABLE "shape" ("uuid" TEXT NOT NULL PRIMARY KEY, "layer_id" INTEGER NOT NULL, "type_" TEXT NOT NULL, "x" REAL NOT NULL, "y" REAL NOT NULL, "name" TEXT, "name_visible" INTEGER NOT NULL, "fill_colour" TEXT NOT NULL, "stroke_colour" TEXT NOT NULL, "vision_obstruction" INTEGER NOT NULL, "movement_obstruction" INTEGER NOT NULL, "is_token" INTEGER NOT NULL, "annotation" TEXT NOT NULL, "draw_operator" TEXT NOT NULL, "index" INTEGER NOT NULL, "options" TEXT, "badge" INTEGER NOT NULL, "show_badge" INTEGER NOT NULL, "default_edit_access" INTEGER NOT NULL, "default_vision_access" INTEGER NOT NULL, FOREIGN KEY ("layer_id") REFERENCES "layer" ("id") ON DELETE CASCADE)'
@@ -463,35 +421,29 @@ def upgrade(version):
                 'CREATE INDEX IF NOT EXISTS "shape_layer_id" ON "shape" ("layer_id")'
             )
             db.execute_sql(
-                'INSERT INTO shape (uuid, layer_id, type_, x, y, name, name_visible, fill_colour, stroke_colour, vision_obstruction, movement_obstruction, is_token, annotation, draw_operator, "index", options, badge, show_badge, default_edit_access, default_vision_access) SELECT uuid, layer_id, type_, x, y, name, name_visible, fill_colour, stroke_colour, vision_obstruction, movement_obstruction, is_token, annotation, draw_operator, "index", options, badge, show_badge, default_edit_access, default_vision_access FROM _shape'
+                'INSERT INTO shape (uuid, layer_id, type_, x, y, name, name_visible, fill_colour, stroke_colour, vision_obstruction, movement_obstruction, is_token, annotation, draw_operator, "index", options, badge, show_badge, default_edit_access, default_vision_access) SELECT uuid, layer_id, type_, x, y, name, name_visible, fill_colour, stroke_colour, vision_obstruction, movement_obstruction, is_token, annotation, draw_operator, "index", options, badge, show_badge, default_edit_access, default_vision_access FROM _shape_27'
             )
 
-            db.execute_sql("CREATE TEMPORARY TABLE _user AS SELECT * FROM user")
+            db.execute_sql("CREATE TEMPORARY TABLE _user_27 AS SELECT * FROM user")
             db.execute_sql("DROP TABLE user")
             db.execute_sql(
                 'CREATE TABLE "user" ("id" INTEGER NOT NULL PRIMARY KEY, "name" TEXT NOT NULL, "email" TEXT, "password_hash" TEXT NOT NULL, "fow_colour" TEXT NOT NULL, "grid_colour" TEXT NOT NULL, "ruler_colour" TEXT NOT NULL, "invert_alt" INTEGER NOT NULL)'
             )
             db.execute_sql(
-                "INSERT INTO user (id, name, email, password_hash, fow_colour, grid_colour, ruler_colour, invert_alt) SELECT id, name, email, password_hash, fow_colour, grid_colour, ruler_colour, invert_alt FROM _user"
+                "INSERT INTO user (id, name, email, password_hash, fow_colour, grid_colour, ruler_colour, invert_alt) SELECT id, name, email, password_hash, fow_colour, grid_colour, ruler_colour, invert_alt FROM _user_27"
             )
 
-        db.foreign_keys = True
-        Constants.get().update(save_version=Constants.save_version + 1).execute()
     elif version == 28:
         # Add invisibility toggle to shapes
-        db.foreign_keys = False
         with db.atomic():
             db.execute_sql(
                 "ALTER TABLE shape ADD COLUMN is_invisible INTEGER NOT NULL DEFAULT 0"
             )
 
-        db.foreign_keys = True
-        Constants.get().update(save_version=Constants.save_version + 1).execute()
     elif version == 29:
         # Add movement access permission
         migrator = SqliteMigrator(db)
 
-        db.foreign_keys = False
         with db.atomic():
             db.execute_sql(
                 "ALTER TABLE shape ADD COLUMN default_movement_access INTEGER NOT NULL DEFAULT 0"
@@ -503,31 +455,22 @@ def upgrade(version):
 
             migrate(migrator.add_not_null("shape_owner", "movement_access"),)
 
-        db.foreign_keys = True
-        Constants.get().update(save_version=Constants.save_version + 1).execute()
     elif version == 30:
         # Add spawn locations
-        db.foreign_keys = False
         with db.atomic():
             db.execute_sql(
                 'ALTER TABLE location_options ADD COLUMN spawn_locations TEXT NOT NULL DEFAULT "[]"'
             )
 
-        db.foreign_keys = True
-        Constants.get().update(save_version=Constants.save_version + 1).execute()
     elif version == 31:
         # Add shape movement lock
-        db.foreign_keys = False
         with db.atomic():
             db.execute_sql(
                 "ALTER TABLE shape ADD COLUMN is_locked INTEGER NOT NULL DEFAULT 0"
             )
 
-        db.foreign_keys = True
-        Constants.get().update(save_version=Constants.save_version + 1).execute()
     elif version == 32:
         # Add Shape.angle and Shape.stroke_width
-        db.foreign_keys = False
         with db.atomic():
             db.execute_sql(
                 "ALTER TABLE shape ADD COLUMN angle INTEGER NOT NULL DEFAULT 0"
@@ -536,21 +479,15 @@ def upgrade(version):
                 "ALTER TABLE shape ADD COLUMN stroke_width INTEGER NOT NULL DEFAULT 2"
             )
 
-        db.foreign_keys = True
-        Constants.get().update(save_version=Constants.save_version + 1).execute()
     elif version == 33:
         # Add Floor.player_visible
-        db.foreign_keys = False
         with db.atomic():
             db.execute_sql(
                 "ALTER TABLE floor ADD COLUMN player_visible INTEGER NOT NULL DEFAULT 1"
             )
 
-        db.foreign_keys = True
-        Constants.get().update(save_version=Constants.save_version + 1).execute()
     elif version == 34:
         # Fix Floor.index
-        db.foreign_keys = False
         with db.atomic():
             data = db.execute_sql("SELECT id FROM location")
             for location_id in data.fetchall():
@@ -558,14 +495,11 @@ def upgrade(version):
                     f"UPDATE floor SET 'index' = (SELECT COUNT(*)-1 FROM floor f WHERE f.location_id = {location_id[0]} AND f.id <= floor.id ) WHERE location_id = {location_id[0]}"
                 )
 
-        db.foreign_keys = True
-        Constants.get().update(save_version=Constants.save_version + 1).execute()
     elif version == 35:
         # Move grid size to client options
-        db.foreign_keys = False
         with db.atomic():
             db.execute_sql(
-                "CREATE TEMPORARY TABLE _location_options AS SELECT * FROM location_options"
+                "CREATE TEMPORARY TABLE _location_options_35 AS SELECT * FROM location_options"
             )
             db.execute_sql("DROP TABLE location_options")
             db.execute_sql(
@@ -575,17 +509,14 @@ def upgrade(version):
                 'CREATE INDEX IF NOT EXISTS "location_options_id" ON "location" ("options_id")'
             )
             db.execute_sql(
-                "INSERT INTO location_options (id, unit_size, unit_size_unit, use_grid, full_fow, fow_opacity, fow_los, vision_mode, vision_min_range, vision_max_range, spawn_locations) SELECT id, unit_size, unit_size_unit, use_grid, full_fow, fow_opacity, fow_los, vision_mode, vision_min_range, vision_max_range, spawn_locations FROM _location_options"
+                "INSERT INTO location_options (id, unit_size, unit_size_unit, use_grid, full_fow, fow_opacity, fow_los, vision_mode, vision_min_range, vision_max_range, spawn_locations) SELECT id, unit_size, unit_size_unit, use_grid, full_fow, fow_opacity, fow_los, vision_mode, vision_min_range, vision_max_range, spawn_locations FROM _location_options_35"
             )
             db.execute_sql(
                 "ALTER TABLE user ADD COLUMN grid_size INTEGER NOT NULL DEFAULT 50"
             )
 
-        db.foreign_keys = True
-        Constants.get().update(save_version=Constants.save_version + 1).execute()
     elif version == 36:
         # Change polygon vertices format from { x: number, y: number } to number[]
-        db.foreign_keys = False
         with db.atomic():
             data = db.execute_sql("SELECT shape_id, vertices FROM polygon")
             for row in data.fetchall():
@@ -600,35 +531,29 @@ def upgrade(version):
                 except json.decoder.JSONDecodeError:
                     print(f"Failed to update polygon vertices! {row}")
 
-        db.foreign_keys = True
-        Constants.get().update(save_version=Constants.save_version + 1).execute()
     elif version == 37:
         # Change shape.angle from integer field to float field
-        db.foreign_keys = False
         with db.atomic():
-            db.execute_sql("CREATE TEMPORARY TABLE _shape AS SELECT * FROM shape")
+            db.execute_sql("CREATE TEMPORARY TABLE _shape_37 AS SELECT * FROM shape")
             db.execute_sql("DROP TABLE shape")
             db.execute_sql(
                 'CREATE TABLE IF NOT EXISTS "shape" ("uuid" TEXT NOT NULL PRIMARY KEY, "layer_id" INTEGER NOT NULL, "type_" TEXT NOT NULL, "x" REAL NOT NULL, "y" REAL NOT NULL, "name" TEXT, "name_visible" INTEGER NOT NULL, "fill_colour" TEXT NOT NULL, "stroke_colour" TEXT NOT NULL, "vision_obstruction" INTEGER NOT NULL, "movement_obstruction" INTEGER NOT NULL, "is_token" INTEGER NOT NULL, "annotation" TEXT NOT NULL, "draw_operator" TEXT NOT NULL, "index" INTEGER NOT NULL, "options" TEXT, "badge" INTEGER NOT NULL, "show_badge" INTEGER NOT NULL, "default_edit_access" INTEGER NOT NULL, "default_vision_access" INTEGER NOT NULL, is_invisible INTEGER NOT NULL DEFAULT 0, default_movement_access INTEGER NOT NULL DEFAULT 0, is_locked INTEGER NOT NULL DEFAULT 0, angle REAL NOT NULL DEFAULT 0, stroke_width INTEGER NOT NULL DEFAULT 2, FOREIGN KEY ("layer_id") REFERENCES "layer" ("id") ON DELETE CASCADE)'
             )
             db.execute_sql('CREATE INDEX "shape_layer_id" ON "shape" ("layer_id")')
             db.execute_sql(
-                "INSERT INTO shape (uuid, layer_id, type_, x, y, name, name_visible, fill_colour, stroke_colour, vision_obstruction, movement_obstruction, is_token, annotation, draw_operator, 'index', options, badge, show_badge, default_edit_access, default_vision_access, is_invisible, default_movement_access, is_locked, angle, stroke_width) SELECT uuid, layer_id, type_, x, y, name, name_visible, fill_colour, stroke_colour, vision_obstruction, movement_obstruction, is_token, annotation, draw_operator, 'index', options, badge, show_badge, default_edit_access, default_vision_access, is_invisible, default_movement_access, is_locked, angle, stroke_width FROM _shape"
+                "INSERT INTO shape (uuid, layer_id, type_, x, y, name, name_visible, fill_colour, stroke_colour, vision_obstruction, movement_obstruction, is_token, annotation, draw_operator, 'index', options, badge, show_badge, default_edit_access, default_vision_access, is_invisible, default_movement_access, is_locked, angle, stroke_width) SELECT uuid, layer_id, type_, x, y, name, name_visible, fill_colour, stroke_colour, vision_obstruction, movement_obstruction, is_token, annotation, draw_operator, 'index', options, badge, show_badge, default_edit_access, default_vision_access, is_invisible, default_movement_access, is_locked, angle, stroke_width FROM _shape_37"
             )
-            db.execute_sql("CREATE TEMPORARY TABLE _text AS SELECT * FROM text")
+            db.execute_sql("CREATE TEMPORARY TABLE _text_37 AS SELECT * FROM text")
             db.execute_sql("DROP TABLE text")
             db.execute_sql(
                 'CREATE TABLE IF NOT EXISTS "text" ("shape_id" TEXT NOT NULL PRIMARY KEY, "text" TEXT NOT NULL, "font" TEXT NOT NULL, FOREIGN KEY ("shape_id") REFERENCES "shape" ("uuid") ON DELETE CASCADE);'
             )
             db.execute_sql(
-                "INSERT INTO text (shape_id, text, font) SELECT shape_id, text, font FROM _text"
+                "INSERT INTO text (shape_id, text, font) SELECT shape_id, text, font FROM _text_37"
             )
 
-        db.foreign_keys = True
-        Constants.get().update(save_version=Constants.save_version + 1).execute()
     elif version == 38:
         # Change polygon vertices format from { x: number, y: number } to number[]
-        db.foreign_keys = False
         with db.atomic():
             data = db.execute_sql("SELECT shape_id, vertices FROM polygon")
             for row in data.fetchall():
@@ -643,26 +568,23 @@ def upgrade(version):
                 except json.decoder.JSONDecodeError:
                     print(f"Failed to update polygon vertices! {row}")
 
-        db.foreign_keys = True
-        Constants.get().update(save_version=Constants.save_version + 1).execute()
     elif version == 39:
         # Fix Shape.index being set to 'index'
         from models import Layer
 
-        db.foreign_keys = False
         with db.atomic():
-            with db.atomic():
-                for layer in Layer.select():
-                    shapes = layer.shapes.select()
-                    for i, shape in enumerate(shapes):
-                        shape.index = i
-                        shape.save()
+            data = db.execute_sql("SELECT id FROM layer")
+            for row in data.fetchall():
+                shape_query = db.execute_sql(
+                    f"SELECT uuid FROM shape WHERE layer_id = '{row[0]}'"
+                )
+                for i, shape_row in enumerate(shape_query.fetchall()):
+                    db.execute_sql(
+                        f"UPDATE shape SET 'index' = {i} WHERE uuid = '{shape_row[0]}'"
+                    )
 
-        db.foreign_keys = True
-        Constants.get().update(save_version=Constants.save_version + 1).execute()
     elif version == 40:
         # Add move_player_on_token_change to location_options
-        db.foreign_keys = False
         with db.atomic():
             try:
                 db.execute_sql(
@@ -676,12 +598,45 @@ def upgrade(version):
                 else:
                     raise e
 
-        db.foreign_keys = True
-        Constants.get().update(save_version=Constants.save_version + 1).execute()
+    elif version == 41:
+        # Add Asset.options and Shape.asset
+        with db.atomic():
+            db.execute_sql("ALTER TABLE asset ADD COLUMN options TEXT")
+
+            db.execute_sql("CREATE TEMPORARY TABLE _shape_41 AS SELECT * FROM shape")
+            db.execute_sql("DROP TABLE shape")
+            db.execute_sql(
+                'CREATE TABLE IF NOT EXISTS "shape" ("uuid" TEXT NOT NULL PRIMARY KEY, "layer_id" INTEGER NOT NULL, "type_" TEXT NOT NULL, "x" REAL NOT NULL, "y" REAL NOT NULL, "name" TEXT, "name_visible" INTEGER NOT NULL, "fill_colour" TEXT NOT NULL, "stroke_colour" TEXT NOT NULL, "vision_obstruction" INTEGER NOT NULL, "movement_obstruction" INTEGER NOT NULL, "is_token" INTEGER NOT NULL, "annotation" TEXT NOT NULL, "draw_operator" TEXT NOT NULL, "index" INTEGER NOT NULL, "options" TEXT, "badge" INTEGER NOT NULL, "show_badge" INTEGER NOT NULL, "default_edit_access" INTEGER NOT NULL, "default_vision_access" INTEGER NOT NULL, is_invisible INTEGER NOT NULL DEFAULT 0, default_movement_access INTEGER NOT NULL DEFAULT 0, is_locked INTEGER NOT NULL DEFAULT 0, angle REAL NOT NULL DEFAULT 0, stroke_width INTEGER NOT NULL DEFAULT 2, asset_id INTEGER, FOREIGN KEY ("layer_id") REFERENCES "layer" ("id") ON DELETE CASCADE, FOREIGN KEY ("asset_id") REFERENCES "asset" ("id"))'
+            )
+            db.execute_sql('CREATE INDEX "shape_layer_id" ON "shape" ("layer_id")')
+            db.execute_sql('CREATE INDEX "shape_asset_id" ON "shape" ("asset_id")')
+            db.execute_sql(
+                "INSERT INTO shape (uuid, layer_id, type_, x, y, name, name_visible, fill_colour, stroke_colour, vision_obstruction, movement_obstruction, is_token, annotation, draw_operator, 'index', options, badge, show_badge, default_edit_access, default_vision_access, is_invisible, default_movement_access, is_locked, angle, stroke_width) SELECT uuid, layer_id, type_, x, y, name, name_visible, fill_colour, stroke_colour, vision_obstruction, movement_obstruction, is_token, annotation, draw_operator, 'index', options, badge, show_badge, default_edit_access, default_vision_access, is_invisible, default_movement_access, is_locked, angle, stroke_width FROM _shape_41"
+            )
+
+    elif version == 42:
+        # Add Notification and Constants.api_token
+        with db.atomic():
+            db.execute_sql(
+                'CREATE TABLE IF NOT EXISTS "notification" ("uuid" TEXT NOT NULL PRIMARY KEY, "message" TEXT NOT NULL)'
+            )
+            db.execute_sql(
+                "CREATE TEMPORARY TABLE _constants_42 AS SELECT * FROM constants"
+            )
+            db.execute_sql("DROP TABLE constants")
+            db.execute_sql(
+                'CREATE TABLE IF NOT EXISTS "constants" ("id" INTEGER NOT NULL PRIMARY KEY, "save_version" INTEGER NOT NULL, "secret_token" BLOB NOT NULL, "api_token" BLOB NOT NULL)'
+            )
+            api_token = secrets.token_hex(32)
+            db.execute_sql(
+                f"INSERT INTO constants (id, save_version, secret_token, api_token) SELECT id, save_version, secret_token, '{api_token}' FROM _constants_42"
+            )
     else:
         raise UnknownVersionException(
             f"No upgrade code for save format {version} was found."
         )
+    inc_save_version()
+    db.foreign_keys = True
 
 
 def check_save():
@@ -689,39 +644,46 @@ def check_save():
         logger.warning("Provided save file does not exist.  Creating a new one.")
         db.create_tables(ALL_MODELS)
         Constants.create(
-            save_version=SAVE_VERSION, secret_token=secrets.token_bytes(32)
+            save_version=SAVE_VERSION,
+            secret_token=secrets.token_bytes(32),
+            api_token=secrets.token_hex(32),
         )
     else:
-        constants = Constants.get_or_none()
-        if constants is None:
+        try:
+            save_version = get_save_version()
+        except:
             logger.error(
                 "Database does not conform to expected format. Failed to start."
             )
             sys.exit(2)
-        if constants.save_version != SAVE_VERSION:
+        if save_version != SAVE_VERSION:
             logger.warning(
-                f"Save format {constants.save_version} does not match the required version {SAVE_VERSION}!"
+                f"Save format {save_version} does not match the required version {SAVE_VERSION}!"
             )
             logger.warning("Attempting upgrade")
 
         updated = False
-        while constants.save_version != SAVE_VERSION:
+        while save_version != SAVE_VERSION:
             updated = True
-            logger.warning(
-                f"Backing up old save as {SAVE_FILE}.{constants.save_version}"
+            save_backups = Path("save_backups")
+            if not save_backups.is_dir():
+                save_backups.mkdir()
+            backup_path = (
+                save_backups.resolve() / f"{Path(SAVE_FILE).name}.{save_version}"
             )
-            shutil.copyfile(SAVE_FILE, f"{SAVE_FILE}.{constants.save_version}")
-            logger.warning(f"Starting upgrade to {constants.save_version + 1}")
+            logger.warning(f"Backing up old save as {backup_path}")
+            shutil.copyfile(SAVE_FILE, backup_path)
+            logger.warning(f"Starting upgrade to {save_version + 1}")
             try:
-                upgrade(constants.save_version)
+                upgrade(save_version)
             except Exception as e:
                 logger.exception(e)
                 logger.error("ERROR: Could not start server")
                 sys.exit(2)
                 break
             else:
-                logger.warning(f"Upgrade to {constants.save_version + 1} done.")
-                constants = Constants.get()
+                logger.warning(f"Upgrade to {save_version + 1} done.")
+                save_version = get_save_version()
         else:
             if updated:
                 logger.warning("Upgrade process completed successfully.")

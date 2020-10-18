@@ -1,11 +1,11 @@
 import { GlobalPoint } from "@/game/geom";
 import { Shape } from "@/game/shapes/shape";
-import { Polygon } from "@/game/shapes/polygon";
-import { Rect } from "@/game/shapes/rect";
+import { Polygon } from "@/game/shapes/variants/polygon";
+import { Rect } from "@/game/shapes/variants/rect";
 import { CDT } from "@/game/visibility/te/cdt";
 import { addShapesToTriag, deleteShapeFromTriag, TriangulationTarget, setCDT } from "@/game/visibility/te/pa";
 import { rotateAroundOrigin, xySmaller } from "@/game/visibility/te/triag";
-import { BaseRect } from "../../../../../src/game/shapes/baserect";
+import { BaseRect } from "../../../../../src/game/shapes/variants/baserect";
 
 jest.mock("@/game/api/socket", () => ({
     socket: {
@@ -55,8 +55,8 @@ function _rotateShape(shape: Shape): void {
         .map(p => rotateAroundOrigin(p, Math.PI / 2).map(v => Math.round(v)))
         .sort((a: number[], b: number[]) => (xySmaller(a, b) ? -1 : 1));
     shape.refPoint = new GlobalPoint(points[0][0], points[0][1]);
-    (<Rect>shape).w = points[3][0] - points[0][0];
-    (<Rect>shape).h = points[3][1] - points[0][1];
+    (shape as Rect).w = points[3][0] - points[0][0];
+    (shape as Rect).h = points[3][1] - points[0][1];
 }
 
 describe("PA test suite.", () => {

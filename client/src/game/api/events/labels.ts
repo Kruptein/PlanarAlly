@@ -1,4 +1,5 @@
 import { layerManager } from "../../layers/manager";
+import { Label } from "../../shapes/interfaces";
 import { gameStore } from "../../store";
 import { socket } from "../socket";
 

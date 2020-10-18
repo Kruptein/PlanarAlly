@@ -130,7 +130,6 @@ export function onKeyDown(event: KeyboardEvent): void {
             const targetFloor = floorStore.floors.findIndex(
                 (f, i) => i > floorStore.currentFloorindex && (gameStore.IS_DM || f.playerVisible),
             );
-            if (targetFloor > floorStore.floors.length - 1) return;
 
             changeFloor(event, targetFloor);
         } else if (event.key === "PageDown" && floorStore.currentFloorindex > 0) {
@@ -146,7 +145,6 @@ export function onKeyDown(event: KeyboardEvent): void {
                     (f, i) => maxLength - i < floorStore.currentFloorindex && (gameStore.IS_DM || f.playerVisible),
                 );
             targetFloor = maxLength - targetFloor;
-            if (targetFloor < 0) return;
 
             changeFloor(event, targetFloor);
         } else if (event.key === "Tab") {
@@ -157,6 +155,7 @@ export function onKeyDown(event: KeyboardEvent): void {
 }
 
 function changeFloor(event: KeyboardEvent, targetFloor: number): void {
+    if (targetFloor < 0 || targetFloor > floorStore.floors.length - 1) return;
     const selection = layerManager.getSelection() ?? [];
     const newFloor = floorStore.floors[targetFloor];
     const newLayer = layerManager.getLayer(newFloor)!;

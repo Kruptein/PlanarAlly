@@ -20,22 +20,23 @@ export default class NoteDialog extends Vue {
     open(note: Note): void {
         this.visible = true;
         this.note = note;
+        this.$nextTick(() => {
+            this.calcHeight();
+        });
     }
-    calcHeight(): string {
+    calcHeight(): void {
+        console.log(this.$refs.textarea);
         if (this.$refs.textarea) {
-            const el = <HTMLElement>this.$refs.textarea;
+            const el = this.$refs.textarea as HTMLElement;
             el.style.height = "auto";
             el.style.height = el.scrollHeight + "px";
-            // Using the return value without the above did not achieve what I want, so hey /shrug
-            return el.scrollHeight + "px";
         }
-        return "100px";
     }
     updateNote(): void {
         if (this.note) gameStore.updateNote({ note: this.note, sync: true });
     }
     async removeNote(): Promise<void> {
-        const result = await (<Game>this.$parent).$refs.confirm.open(this.$t("game.ui.note.warning_msg").toString());
+        const result = await (this.$parent as Game).$refs.confirm.open(this.$t("game.ui.note.warning_msg").toString());
         if (result && this.note) {
             gameStore.removeNote({ note: this.note, sync: true });
             this.visible = false;
@@ -63,12 +64,7 @@ export default class NoteDialog extends Vue {
             </div>
         </div>
         <div class="modal-body">
-            <textarea
-                ref="textarea"
-                v-model="note.text"
-                :style="{ height: calcHeight() }"
-                @change="updateNote"
-            ></textarea>
+            <textarea ref="textarea" v-model="note.text" @input="calcHeight" @change="updateNote"></textarea>
         </div>
         <div class="modal-footer">
             <button @click="removeNote" :title="$t('game.ui.note.remove_note')">

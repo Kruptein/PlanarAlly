@@ -47,27 +47,16 @@ export interface EditableServerClient {
 }
 
 export const optionsToServer = (options: LocationOptions): ServerLocationOptions => ({
-    // eslint-disable-next-line @typescript-eslint/camelcase
     use_grid: options.useGrid,
-    // eslint-disable-next-line @typescript-eslint/camelcase
     unit_size: options.unitSize,
-    // eslint-disable-next-line @typescript-eslint/camelcase
     unit_size_unit: options.unitSizeUnit,
-    // eslint-disable-next-line @typescript-eslint/camelcase
     full_fow: options.fullFow,
-    // eslint-disable-next-line @typescript-eslint/camelcase
     vision_mode: options.visionMode,
-    // eslint-disable-next-line @typescript-eslint/camelcase
     fow_opacity: options.fowOpacity,
-    // eslint-disable-next-line @typescript-eslint/camelcase
     fow_los: options.fowLos,
-    // eslint-disable-next-line @typescript-eslint/camelcase
     vision_min_range: options.visionMinRange,
-    // eslint-disable-next-line @typescript-eslint/camelcase
     vision_max_range: options.visionMaxRange,
-    // eslint-disable-next-line @typescript-eslint/camelcase
     spawn_locations: JSON.stringify(options.spawnLocations),
-    // eslint-disable-next-line @typescript-eslint/camelcase
     move_player_on_token_change: options.movePlayerOnTokenChange,
 });
 

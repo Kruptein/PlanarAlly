@@ -60,7 +60,7 @@ export function setLocationOptions(id: number | null, options: Partial<ServerLoc
         gameSettingsStore.setVisionRangeMax({ visionMaxRange: options.vision_max_range, location: id, sync: false });
     if (options?.vision_mode && options.vision_mode in VisibilityMode) {
         visibilityStore.setVisionMode({
-            mode: VisibilityMode[<keyof typeof VisibilityMode>options.vision_mode],
+            mode: VisibilityMode[options.vision_mode as keyof typeof VisibilityMode],
             sync: false,
         });
         for (const floor of floorStore.floors) {

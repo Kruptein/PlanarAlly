@@ -11,8 +11,9 @@ import Vue from "vue";
 import { getModule, Module, Mutation, VuexModule } from "vuex-module-decorators";
 import { sendClientLocationOptions, sendClientOptions } from "./api/emits/client";
 import { sendLocationOrder, sendLocationRemove } from "./api/emits/location";
-import { sendRoomLock, sendRoomKickPlayer } from "./api/emits/room";
+import { sendRoomKickPlayer, sendRoomLock } from "./api/emits/room";
 import { floorStore } from "./layers/store";
+import { Label } from "./shapes/interfaces";
 
 export const DEFAULT_GRID_SIZE = 50;
 
@@ -268,7 +269,6 @@ class GameStore extends VuexModule implements GameState {
         for (const floor of floorStore.floors) {
             layerManager.getGridLayer(floor)!.invalidate();
         }
-        // eslint-disable-next-line @typescript-eslint/camelcase
         if (data.sync) sendClientOptions({ grid_colour: data.colour });
     }
 
@@ -276,14 +276,12 @@ class GameStore extends VuexModule implements GameState {
     setFOWColour(data: { colour: string; sync: boolean }): void {
         this.fowColour = data.colour;
         layerManager.invalidateAllFloors();
-        // eslint-disable-next-line @typescript-eslint/camelcase
         if (data.sync) sendClientOptions({ fow_colour: data.colour });
     }
 
     @Mutation
     setRulerColour(data: { colour: string; sync: boolean }): void {
         this.rulerColour = data.colour;
-        // eslint-disable-next-line @typescript-eslint/camelcase
         if (data.sync) sendClientOptions({ ruler_colour: data.colour });
     }
 
@@ -311,7 +309,6 @@ class GameStore extends VuexModule implements GameState {
     setGridSize(data: { gridSize: number; sync: boolean }): void {
         this.gridSize = data.gridSize;
         layerManager.invalidateAllFloors();
-        // eslint-disable-next-line @typescript-eslint/camelcase
         if (data.sync) sendClientOptions({ grid_size: data.gridSize });
     }
 
@@ -402,7 +399,6 @@ class GameStore extends VuexModule implements GameState {
     @Mutation
     setInvertAlt(data: { invertAlt: boolean; sync: boolean }): void {
         this.invertAlt = data.invertAlt;
-        // eslint-disable-next-line @typescript-eslint/camelcase
         if (data.sync) sendClientOptions({ invert_alt: data.invertAlt });
     }
 

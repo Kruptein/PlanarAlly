@@ -1,7 +1,7 @@
 import { InvalidationMode, SyncMode } from "@/core/comm/types";
 import { GlobalPoint, LocalPoint } from "@/game/geom";
 import { layerManager } from "@/game/layers/manager";
-import { Circle } from "@/game/shapes/circle";
+import { Circle } from "@/game/shapes/variants/circle";
 import { gameStore } from "@/game/store";
 import Tool from "@/game/ui/tools/tool.vue";
 import { l2g } from "@/game/units";
@@ -29,8 +29,8 @@ export class PingTool extends Tool implements ToolBasics {
         }
 
         this.active = true;
-        this.ping = new Circle(this.startPoint, 20, gameStore.rulerColour);
-        this.border = new Circle(this.startPoint, 40, "#0000", gameStore.rulerColour);
+        this.ping = new Circle(this.startPoint, 20, { fillColour: gameStore.rulerColour });
+        this.border = new Circle(this.startPoint, 40, { fillColour: "#0000", strokeColour: gameStore.rulerColour });
         this.ping.addOwner({ user: gameStore.username, access: { edit: true } }, false);
         this.border.addOwner({ user: gameStore.username, access: { edit: true } }, false);
         layer.addShape(this.ping, SyncMode.TEMP_SYNC, InvalidationMode.NORMAL);

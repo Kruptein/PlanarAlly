@@ -110,8 +110,7 @@ export default class PanelModal extends Vue {
 
 ::v-deep .panel {
     background-color: white;
-    padding-left: 1em;
-    padding-right: 1em;
+    padding: 1em;
     display: grid;
     grid-template-columns: [setting] 1fr [value] 1fr [end];
     /* align-items: center; */
@@ -128,7 +127,7 @@ export default class PanelModal extends Vue {
     display: flex;
     /* justify-content: center; */
     align-items: center;
-    padding: 0.5em;
+    margin: 0.4em 0;
 }
 
 ::v-deep .row:first-of-type > * {
@@ -153,6 +152,7 @@ export default class PanelModal extends Vue {
     margin: 20px 0 15px;
     font-style: italic;
     overflow: hidden;
+    padding: 0.5em;
 }
 ::v-deep .header:after {
     position: relative;
@@ -174,6 +174,8 @@ export default class PanelModal extends Vue {
 
 ::v-deep .spanrow {
     grid-column: 1 / end;
+    justify-self: normal;
+    font-weight: bold;
 }
 
 ::v-deep input[type="checkbox"] {
@@ -193,5 +195,9 @@ export default class PanelModal extends Vue {
     border: 1px solid lightgray;
     border-radius: 0.25em;
     background-color: rgb(235, 235, 228);
+}
+
+::v-deep .color-picker {
+    margin: 0.5em 0 !important;
 }
 </style>

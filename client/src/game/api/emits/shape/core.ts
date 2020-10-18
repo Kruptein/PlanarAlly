@@ -1,8 +1,8 @@
 import { ServerShape } from "../../../comm/types/shapes";
 import { Shape } from "../../../shapes/shape";
 import { socket } from "../../socket";
-import { Rect } from "../../../shapes/rect";
-import { Circle } from "../../../shapes/circle";
+import { Rect } from "../../../shapes/variants/rect";
+import { Circle } from "../../../shapes/variants/circle";
 import { wrapSocket } from "../../helpers";
 
 export const sendShapeAdd = wrapSocket<{ shape: ServerShape; temporary: boolean }>("Shape.Add");
@@ -35,13 +35,13 @@ export function sendShapeSizeUpdate(data: { shape: Shape; temporary: boolean }):
     switch (data.shape.type) {
         case "assetrect":
         case "rect": {
-            const shape = <Rect>data.shape;
+            const shape = data.shape as Rect;
             _sendRectSizeUpdate({ uuid: shape.uuid, w: shape.w, h: shape.h, temporary: data.temporary });
             break;
         }
         case "circulartoken":
         case "circle": {
-            const shape = <Circle>data.shape;
+            const shape = data.shape as Circle;
             _sendCircleSizeUpdate({ uuid: shape.uuid, r: shape.r, temporary: data.temporary });
             break;
         }

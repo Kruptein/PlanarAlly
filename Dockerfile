@@ -28,18 +28,23 @@ EXPOSE 8000
 
 WORKDIR /planarally
 
+RUN mkdir -p /planarally/data /planarally/static/assets && chown -R 9000:9000 /planarally
 VOLUME /planarally/data
 VOLUME /planarally/static/assets
 
 ENV PA_GIT_INFO docker:${DOCKER_TAG}-${SOURCE_COMMIT}
 
-ENTRYPOINT ["/usr/bin/dumb-init", "--"]
-# Copy first requirements.txt so changes in code dont require to reinstall python requirements
-COPY --from=BUILDER /usr/src/server/requirements.txt .
 RUN apt-get update && apt-get install dumb-init curl build-essential libffi-dev libssl-dev -y && \
     rm -rf /var/lib/apt/lists/*
-RUN pip install --no-cache-dir -r requirements.txt
-# Copy the final server files
-COPY --from=BUILDER /usr/src/server/ .
 
+# Copy first requirements.txt so changes in code dont require to reinstall python requirements
+COPY --from=BUILDER --chown=9000:9000 /usr/src/server/requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy the final server files
+COPY --from=BUILDER --chown=9000:9000 /usr/src/server/ .
+
+USER 9000
+
+ENTRYPOINT ["/usr/bin/dumb-init", "--"]
 CMD [ "python", "-u", "planarserver.py"]

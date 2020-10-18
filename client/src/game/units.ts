@@ -30,7 +30,9 @@ export function g2lr(r: number): number {
 }
 
 export function l2g(obj: LocalPoint): GlobalPoint;
+// eslint-disable-next-line no-redeclare
 export function l2g(obj: Ray<LocalPoint>): Ray<GlobalPoint>;
+// eslint-disable-next-line no-redeclare
 export function l2g(obj: LocalPoint | Ray<LocalPoint>): GlobalPoint | Ray<GlobalPoint> {
     const z = gameStore.zoomFactor;
     const panX = gameStore.panX;
@@ -62,5 +64,5 @@ export function clampGridLine(point: number): number {
     return Math.round(point / DEFAULT_GRID_SIZE) * DEFAULT_GRID_SIZE;
 }
 
-(<any>window).g2lx = g2lx;
-(<any>window).g2ly = g2ly;
+(window as any).g2lx = g2lx;
+(window as any).g2ly = g2ly;

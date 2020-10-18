@@ -8,9 +8,10 @@ import { gameManager } from "../../../manager";
 import { changeGroupLeader, addGroupMember } from "../../../shapes/group";
 import { Shape } from "../../../shapes/shape";
 import { socket } from "../../socket";
-import { Text } from "../../../shapes/text";
-import { Rect } from "../../../shapes/rect";
-import { Circle } from "../../../shapes/circle";
+import { Text } from "../../../shapes/variants/text";
+import { Rect } from "../../../shapes/variants/rect";
+import { Circle } from "../../../shapes/variants/circle";
+import { Tracker, Aura } from "../../../shapes/interfaces";
 
 socket.on("Shape.Set", (data: ServerShape) => {
     // hard reset a shape
@@ -56,7 +57,9 @@ socket.on("Shape.Order.Set", (data: { uuid: string; index: number }) => {
 });
 
 socket.on("Shapes.Floor.Change", (data: { uuids: string[]; floor: string }) => {
-    const shapes = <Shape[]>data.uuids.map(u => layerManager.UUIDMap.get(u) ?? undefined).filter(s => s !== undefined);
+    const shapes = data.uuids
+        .map(u => layerManager.UUIDMap.get(u) ?? undefined)
+        .filter(s => s !== undefined) as Shape[];
     if (shapes.length === 0) return;
     moveFloor(shapes, layerManager.getFloor(getFloorId(data.floor))!, false);
     if (shapes.some(s => s.ownedBy({ editAccess: true })))
@@ -64,7 +67,9 @@ socket.on("Shapes.Floor.Change", (data: { uuids: string[]; floor: string }) => {
 });
 
 socket.on("Shapes.Layer.Change", (data: { uuids: string[]; floor: string; layer: string }) => {
-    const shapes = <Shape[]>data.uuids.map(u => layerManager.UUIDMap.get(u) ?? undefined).filter(s => s !== undefined);
+    const shapes = data.uuids
+        .map(u => layerManager.UUIDMap.get(u) ?? undefined)
+        .filter(s => s !== undefined) as Shape[];
     if (shapes.length === 0) return;
     moveLayer(shapes, layerManager.getLayer(layerManager.getFloor(getFloorId(data.floor))!, data.layer)!, false);
 });
@@ -88,13 +93,13 @@ socket.on(
         else tracker = shape.auras.find(a => a.uuid === data.uuid);
         if (tracker !== undefined) {
             tracker.value = data.value;
-            if (data._type === "aura") shape.layer.invalidate(!(<Aura>tracker).visionSource);
+            if (data._type === "aura") shape.layer.invalidate(!(tracker as Aura).visionSource);
         }
     },
 );
 
 socket.on("Shape.Text.Value.Set", (data: { uuid: string; text: string }) => {
-    const shape = <Text | undefined>layerManager.UUIDMap.get(data.uuid);
+    const shape = layerManager.UUIDMap.get(data.uuid) as Text | undefined;
     if (shape === undefined) return;
 
     shape.text = data.text;
@@ -102,7 +107,7 @@ socket.on("Shape.Text.Value.Set", (data: { uuid: string; text: string }) => {
 });
 
 socket.on("Shape.Rect.Size.Update", (data: { uuid: string; w: number; h: number }) => {
-    const shape = <Rect | undefined>layerManager.UUIDMap.get(data.uuid);
+    const shape = layerManager.UUIDMap.get(data.uuid) as Rect | undefined;
     if (shape === undefined) return;
 
     shape.w = data.w;
@@ -111,7 +116,7 @@ socket.on("Shape.Rect.Size.Update", (data: { uuid: string; w: number; h: number 
 });
 
 socket.on("Shape.Circle.Size.Update", (data: { uuid: string; r: number }) => {
-    const shape = <Circle | undefined>layerManager.UUIDMap.get(data.uuid);
+    const shape = layerManager.UUIDMap.get(data.uuid) as Circle | undefined;
     if (shape === undefined) return;
 
     shape.r = data.r;

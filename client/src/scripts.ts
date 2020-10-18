@@ -4,10 +4,10 @@
 
 import { layerManager } from "./game/layers/manager";
 import { GlobalPoint } from "./game/geom";
-import { BaseRect } from "./game/shapes/baserect";
-import { Circle } from "./game/shapes/circle";
-import { Line } from "./game/shapes/line";
-import { Polygon } from "./game/shapes/polygon";
+import { BaseRect } from "./game/shapes/variants/baserect";
+import { Circle } from "./game/shapes/variants/circle";
+import { Line } from "./game/shapes/variants/line";
+import { Polygon } from "./game/shapes/variants/polygon";
 import { sendShapeSizeUpdate, sendShapePositionUpdate } from "./game/api/emits/shape/core";
 import { gameStore } from "./game/store";
 import { visibilityStore } from "./game/visibility/store";
@@ -31,20 +31,20 @@ function rescale(factor: number, sync: boolean): void {
     const shapes = [...layerManager.UUIDMap.values()];
     for (const shape of shapes) {
         if (shape.preventSync) continue;
-        (<any>shape)._refPoint = new GlobalPoint(shape.refPoint.x * factor, shape.refPoint.y * factor);
+        (shape as any)._refPoint = new GlobalPoint(shape.refPoint.x * factor, shape.refPoint.y * factor);
 
         if (shape.type === "rect" || shape.type === "assetrect") {
-            (<BaseRect>shape).w *= factor;
-            (<BaseRect>shape).h *= factor;
+            (shape as BaseRect).w *= factor;
+            (shape as BaseRect).h *= factor;
         } else if (shape.type === "circle" || shape.type === "circulartoken") {
-            (<Circle>shape).r *= factor;
+            (shape as Circle).r *= factor;
         } else if (shape.type === "line") {
-            (<Line>shape).endPoint = new GlobalPoint(
-                (<Line>shape).endPoint.x * factor,
-                (<Line>shape).endPoint.y * factor,
+            (shape as Line).endPoint = new GlobalPoint(
+                (shape as Line).endPoint.x * factor,
+                (shape as Line).endPoint.y * factor,
             );
         } else if (shape.type === "polygon") {
-            (<Polygon>shape)._vertices = (<Polygon>shape)._vertices.map(
+            (shape as Polygon)._vertices = (shape as Polygon)._vertices.map(
                 v => new GlobalPoint(v.x * factor, v.y * factor),
             );
         }
@@ -66,5 +66,5 @@ function rescale(factor: number, sync: boolean): void {
 }
 
 export function registerScripts(): void {
-    (<any>window).rescale = rescale;
+    (window as any).rescale = rescale;
 }

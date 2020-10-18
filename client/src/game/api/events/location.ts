@@ -60,13 +60,20 @@ export function setLocationOptions(id: number | null, options: Partial<ServerLoc
         gameSettingsStore.setVisionRangeMax({ visionMaxRange: options.vision_max_range, location: id, sync: false });
     if (options?.vision_mode && options.vision_mode in VisibilityMode) {
         visibilityStore.setVisionMode({
-            mode: VisibilityMode[<keyof typeof VisibilityMode>options.vision_mode],
+            mode: VisibilityMode[options.vision_mode as keyof typeof VisibilityMode],
             sync: false,
         });
         for (const floor of floorStore.floors) {
             visibilityStore.recalculateVision(floor.id);
             visibilityStore.recalculateMovement(floor.id);
         }
+    }
+    if (options.move_player_on_token_change !== undefined) {
+        gameSettingsStore.setMovePlayerOnTokenChange({
+            movePlayerOnTokenChange: options.move_player_on_token_change,
+            location: id,
+            sync: false,
+        });
     }
     gameSettingsStore.setSpawnLocations({
         spawnLocations: JSON.parse(options.spawn_locations ?? "[]"),

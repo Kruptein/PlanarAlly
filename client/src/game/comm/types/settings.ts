@@ -9,6 +9,7 @@ export interface ServerLocationOptions {
     vision_min_range: number;
     vision_max_range: number;
     spawn_locations: string;
+    move_player_on_token_change: boolean;
 }
 
 export interface LocationOptions {
@@ -22,6 +23,7 @@ export interface LocationOptions {
     visionMinRange: number;
     visionMaxRange: number;
     spawnLocations: string[];
+    movePlayerOnTokenChange: boolean;
 }
 
 export interface ServerClient extends EditableServerClient, LocationServerClient {
@@ -45,26 +47,17 @@ export interface EditableServerClient {
 }
 
 export const optionsToServer = (options: LocationOptions): ServerLocationOptions => ({
-    // eslint-disable-next-line @typescript-eslint/camelcase
     use_grid: options.useGrid,
-    // eslint-disable-next-line @typescript-eslint/camelcase
     unit_size: options.unitSize,
-    // eslint-disable-next-line @typescript-eslint/camelcase
     unit_size_unit: options.unitSizeUnit,
-    // eslint-disable-next-line @typescript-eslint/camelcase
     full_fow: options.fullFow,
-    // eslint-disable-next-line @typescript-eslint/camelcase
     vision_mode: options.visionMode,
-    // eslint-disable-next-line @typescript-eslint/camelcase
     fow_opacity: options.fowOpacity,
-    // eslint-disable-next-line @typescript-eslint/camelcase
     fow_los: options.fowLos,
-    // eslint-disable-next-line @typescript-eslint/camelcase
     vision_min_range: options.visionMinRange,
-    // eslint-disable-next-line @typescript-eslint/camelcase
     vision_max_range: options.visionMaxRange,
-    // eslint-disable-next-line @typescript-eslint/camelcase
     spawn_locations: JSON.stringify(options.spawnLocations),
+    move_player_on_token_change: options.movePlayerOnTokenChange,
 });
 
 export const optionsToClient = (options: ServerLocationOptions): LocationOptions => ({
@@ -78,4 +71,5 @@ export const optionsToClient = (options: ServerLocationOptions): LocationOptions
     visionMinRange: options.vision_min_range,
     visionMaxRange: options.vision_max_range,
     spawnLocations: JSON.parse(options.spawn_locations),
+    movePlayerOnTokenChange: options.move_player_on_token_change,
 });

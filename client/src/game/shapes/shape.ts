@@ -26,6 +26,7 @@ import {
     sendShapeUpdateOwner,
 } from "../api/emits/access";
 import {
+    sendShapeCreateAura,
     sendShapeCreateTracker,
     sendShapeRemoveAura,
     sendShapeRemoveLabel,
@@ -39,18 +40,18 @@ import {
     sendShapeSetLocked,
     sendShapeSetName,
     sendShapeSetNameVisible,
+    sendShapeSetShowBadge,
     sendShapeSetStrokeColour,
     sendShapeUpdateAura,
     sendShapeUpdateTracker,
-    sendShapeCreateAura,
-    sendShapeSetShowBadge,
 } from "../api/emits/shape/options";
 import { Floor } from "../layers/floor";
 import { Layer } from "../layers/layer";
 import { getFloorId } from "../layers/store";
 import { gameSettingsStore } from "../settings";
 import { rotateAroundPoint } from "../utils";
-import { BoundingRect } from "./boundingrect";
+import { BoundingRect } from "./variants/boundingrect";
+import { Aura, Label, Tracker } from "./interfaces";
 import { PartialShapeOwner, ShapeAccess, ShapeOwner } from "./owners";
 import { SHAPE_TYPE } from "./types";
 
@@ -71,12 +72,14 @@ export abstract class Shape {
     protected _angle = 0;
 
     // Fill colour of the shape
-    fillColour = "#000";
-    strokeColour = "rgba(0,0,0,0)";
+    fillColour: string;
+    strokeColour: string;
     strokeWidth = 5;
     // The optional name associated with the shape
     name = "Unknown shape";
     nameVisible = true;
+
+    assetId?: number;
 
     // Associated trackers/auras/owners
     trackers: Tracker[] = [];
@@ -109,11 +112,15 @@ export abstract class Shape {
     isLocked = false;
     defaultAccess: ShapeAccess = { vision: false, movement: false, edit: false };
 
-    constructor(refPoint: GlobalPoint, fillColour?: string, strokeColour?: string, uuid?: string) {
+    constructor(
+        refPoint: GlobalPoint,
+        options?: { fillColour?: string; strokeColour?: string; uuid?: string; assetId?: number },
+    ) {
         this._refPoint = refPoint;
-        this.uuid = uuid || uuidv4();
-        if (fillColour !== undefined) this.fillColour = fillColour;
-        if (strokeColour !== undefined) this.strokeColour = strokeColour;
+        this.uuid = options?.uuid ?? uuidv4();
+        this.fillColour = options?.fillColour ?? "#000";
+        this.strokeColour = options?.strokeColour ?? "rgba(0,0,0,0)";
+        this.assetId = options?.assetId;
     }
 
     // Are the last and first point connected
@@ -273,7 +280,6 @@ export abstract class Shape {
 
     abstract asDict(): ServerShape;
     getBaseDict(): ServerShape {
-        /* eslint-disable @typescript-eslint/camelcase */
         return {
             type_: this.type,
             uuid: this.uuid,
@@ -304,6 +310,7 @@ export abstract class Shape {
             default_edit_access: this.defaultAccess.edit,
             default_movement_access: this.defaultAccess.movement,
             default_vision_access: this.defaultAccess.vision,
+            asset: this.assetId,
         };
     }
     fromDict(data: ServerShape): void {
@@ -313,7 +320,7 @@ export abstract class Shape {
         this.globalCompositeOperation = data.draw_operator;
         this.movementObstruction = data.movement_obstruction;
         this.visionObstruction = data.vision_obstruction;
-        this.auras = aurasFromServer(data.auras);
+        this.auras = aurasFromServer(...data.auras);
         this.trackers = data.trackers;
         this.labels = data.labels;
         this._owners = data.owners.map(owner => ownerToClient(owner));
@@ -328,6 +335,7 @@ export abstract class Shape {
         if (data.annotation) this.annotation = data.annotation;
         if (data.name) this.name = data.name;
         if (data.options) this.options = new Map(JSON.parse(data.options));
+        if (data.asset) this.assetId = data.asset;
         // retain reactivity
         this.updateDefaultOwner(
             {
@@ -429,7 +437,6 @@ export abstract class Shape {
             visible: !gameStore.IS_DM,
             group: false,
             source: this.name,
-            // eslint-disable-next-line @typescript-eslint/camelcase
             has_img: false,
             effects: [],
             index: Infinity,
@@ -556,7 +563,7 @@ export abstract class Shape {
         const groupId = this.options.get("groupId") ?? this.uuid;
         const groupLeader = groupId === this.uuid ? this : layerManager.UUIDMap.get(groupId);
         if (groupLeader === undefined || !groupLeader.options.has("groupInfo")) return [this];
-        const groupIds = <string[]>groupLeader.options.get("groupInfo");
+        const groupIds = groupLeader.options.get("groupInfo") as string[];
         return [
             groupLeader,
             ...groupIds.reduce(
@@ -703,8 +710,8 @@ export abstract class Shape {
             console.log("Illegal use of syncTracker");
             return;
         }
-        sendShapeCreateTracker({ shape: this.uuid, ...tracker });
         tracker.temporary = false;
+        sendShapeCreateTracker({ shape: this.uuid, ...tracker });
     }
 
     updateTracker(trackerId: string, delta: Partial<Tracker>, sync: boolean): void {
@@ -724,8 +731,8 @@ export abstract class Shape {
             console.log("Illegal use of syncAura");
             return;
         }
-        sendShapeCreateAura(aurasToServer(this.uuid, [aura])[0]);
         aura.temporary = false;
+        sendShapeCreateAura(aurasToServer(this.uuid, [aura])[0]);
     }
 
     updateAura(auraId: string, delta: Partial<Aura>, sync: boolean): void {

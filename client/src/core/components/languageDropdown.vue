@@ -4,27 +4,55 @@ import Component from "vue-class-component";
 
 @Component
 export default class LanguageDropdown extends Vue {
-    locales = ["en", "zh", "de", "ru", "dk", "es"];
+    locales = ["en", "zh", "de", "ru", "dk", "es", "tw", "it"];
 
-    changeLocale(event: { target: HTMLSelectElement }): void {
-        const value = event.target.value;
-
-        if (this.locales.includes(value)) {
-            this.$i18n.locale = value;
-            localStorage.setItem("locale", value);
+    changeLocale(locale: string): void {
+        if (this.locales.includes(locale)) {
+            this.$i18n.locale = locale;
+            localStorage.setItem("locale", locale);
         }
     }
 }
 </script>
 
 <template>
-    <select @change="changeLocale">
-        <option
+    <div class="box">
+        <div
+            class="element"
+            :class="{ selected: $i18n.locale === locale }"
             v-for="locale in locales"
             :key="locale"
             :value="locale"
-            :label="$t('locale.' + locale)"
-            :selected="$i18n.locale === locale"
-        ></option>
-    </select>
+            v-t="'locale.' + locale"
+            @click="changeLocale(locale)"
+        ></div>
+    </div>
 </template>
+
+<style scoped>
+.box {
+    display: flex;
+    flex-direction: column;
+}
+
+.element {
+    padding: 5px;
+    background-color: white;
+}
+
+.element:first-of-type {
+    border-top-left-radius: 5px;
+    border-top-right-radius: 5px;
+}
+
+.element:last-of-type {
+    border-bottom-left-radius: 5px;
+    border-bottom-right-radius: 5px;
+}
+
+.selected,
+.element:hover {
+    background-color: #9c455e;
+    cursor: pointer;
+}
+</style>

@@ -3,9 +3,53 @@
 All notable changes to this project will be documented in this file.
 
 [DM] denotes changes only useful for the dungeon master
-[tech] denotes technical changes
+[tech] denotes technical changes or changes specifically for the server owner.
+These usually have no immediately visible impact on regular users
 
 ## Unreleased
+
+## [0.23.0] - 2020-10-18
+
+### Added
+
+-   Traditional chinese localization added
+-   Spawn location tweaks
+    -   Multi spawn locations
+        -   When moving a shape to a new location that has multiple spawn locations, a box will appear to choose the desired spawn zone
+    -   Removal of spawn locations is now possible
+-   Template system for assets
+    -   Save shape state to its linked asset
+    -   On asset drop, choose from the saved templates to prepopulate some fields
+-   Snapping support to the ruler
+    -   Snapping points are the grid corner points, center between two grid points and the complete center of a grid cell
+-   Markdown support for shape annotations
+-   Italian localization added
+-   System notifications
+
+    -   These are custom notifications server owners can send out and will appear in a toast
+    -   By closing a notification you mark it as read and it will not show up any longer
+    -   [tech] Server now also starts an extra admin api server that can be configured separately
+    -   [tech] API endpoint to create system notifications now exists
+
+-   [tech] Server can now be hosted on a subpath e.g. somedomain.com/planarally-subpath
+
+### Changed
+
+-   Shape edit dialog now uses a panel layout (similar to dm settings)
+-   Annotation UI got a small change to better accomodate the new markdown support
+-   Landing page redesign
+    -   register phase is now a seperate step with an optional email field
+-   [tech] During save upgrades, backups will now be stored in the saves_backup folder
+
+### Fixed
+
+-   Run docker container as non-root
+-   Unlocking shape via quick menu no longer puts shape in drag mode
+-   Map allowing some invalid inputs (negative numbers, 0, everything that isn't a number)
+-   Note and annotation textareas not having the correct height initially
+-   Console errors when attempting to move floors that you cannot access
+-   Private shape names showing up as ? for users with access
+-   [tech] Display error messages based on response body
 
 ## [0.22.3] - 2020-08-30
 

@@ -1,10 +1,13 @@
+import os
+import sys
+
 import aiohttp
 import aiohttp_jinja2
-
 from aiohttp import web
 from aiohttp_security import authorized_userid, check_authorized, forget, remember
 
-from app import app
+import api.http
+from app import api_app, app as main_app
 from models import Location, PlayerRoom, Room, User
 from models.db import db
 from models.role import Role
@@ -51,3 +54,37 @@ async def show_room(request):
 @aiohttp_jinja2.template("assets.jinja2")
 async def show_assets(request):
     await check_authorized(request)
+
+
+# MAIN ROUTES
+
+subpath = os.environ.get("PA_BASEPATH", "/")
+if subpath[-1] != "/":
+    subpath = subpath + "/"
+main_app.router.add_static(f"{subpath}static", "static")
+main_app.router.add_get(f"{subpath}api/auth", api.http.auth.is_authed)
+main_app.router.add_post(f"{subpath}api/users/email", api.http.users.set_email)
+main_app.router.add_post(f"{subpath}api/users/password", api.http.users.set_password)
+main_app.router.add_post(f"{subpath}api/users/delete", api.http.users.delete_account)
+main_app.router.add_post(f"{subpath}api/login", api.http.auth.login)
+main_app.router.add_post(f"{subpath}api/register", api.http.auth.register)
+main_app.router.add_post(f"{subpath}api/logout", api.http.auth.logout)
+main_app.router.add_get(f"{subpath}api/rooms", api.http.rooms.get_list)
+main_app.router.add_post(f"{subpath}api/rooms", api.http.rooms.create)
+main_app.router.add_post(f"{subpath}api/invite", api.http.claim_invite)
+main_app.router.add_get(f"{subpath}api/version", api.http.version.get_version)
+main_app.router.add_get(f"{subpath}api/changelog", api.http.version.get_changelog)
+main_app.router.add_get(f"{subpath}api/notifications", api.http.notifications.collect)
+
+if "dev" in sys.argv:
+    main_app.router.add_route("*", "/{tail:.*}", root_dev)
+else:
+    main_app.router.add_route("*", "/{tail:.*}", root)
+
+# ADMIN ROUTES
+
+api_app.router.add_post(f"{subpath}api/notifications", api.http.notifications.create)
+api_app.router.add_get(f"{subpath}api/notifications", api.http.notifications.collect)
+api_app.router.add_delete(
+    f"{subpath}api/notifications/{{uuid}}", api.http.notifications.delete
+)

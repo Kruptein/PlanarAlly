@@ -1,6 +1,7 @@
 import { aurasFromServer, partialAuraFromServer } from "../../../comm/conversion/aura";
 import { ServerAura, ServerTracker } from "../../../comm/types/shapes";
 import { layerManager } from "../../../layers/manager";
+import { Aura, Tracker } from "../../../shapes/interfaces";
 import { Shape } from "../../../shapes/shape";
 import { socket } from "../../socket";
 
@@ -44,7 +45,7 @@ socket.on("Shape.Options.Aura.Create", (data: ServerAura): void => {
     console.log(data);
     const shape = layerManager.UUIDMap.get(data.shape);
     if (shape === undefined) return;
-    shape.pushAura(aurasFromServer([data])[0]);
+    shape.pushAura(aurasFromServer(data)[0]);
 });
 
 socket.on("Shape.Options.Aura.Update", (data: { uuid: string; shape: string } & Partial<Aura>): void => {

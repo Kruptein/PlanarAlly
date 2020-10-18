@@ -3,6 +3,7 @@ import { Route } from "vue-router";
 
 export const socket = io(location.protocol + "//" + location.host + "/planarally", {
     autoConnect: false,
+    path: process.env.BASE_URL + "socket.io",
     transports: ["websocket", "polling"],
 });
 

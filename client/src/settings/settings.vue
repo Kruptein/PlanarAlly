@@ -35,9 +35,9 @@ export default class Settings extends Vue {
     beforeRouteEnter(to: Route, _from: Route, next: Parameters<NavigationGuard>[2]): void {
         next(vm => {
             if ("page" in to.params && to.params.page !== undefined) {
-                for (const component of (<Settings>vm).components) {
+                for (const component of (vm as Settings).components) {
                     if (component.nav.toLowerCase() === to.params.page.toLowerCase()) {
-                        (<Settings>vm).activeComponent = component;
+                        (vm as Settings).activeComponent = component;
                     }
                 }
             }

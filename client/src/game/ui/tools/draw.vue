@@ -14,10 +14,10 @@ import { GlobalPoint, LocalPoint } from "@/game/geom";
 import { Layer } from "@/game/layers/layer";
 import { snapToPoint } from "@/game/layers/utils";
 import { layerManager } from "@/game/layers/manager";
-import { Circle } from "@/game/shapes/circle";
-import { Line } from "@/game/shapes/line";
-import { Polygon } from "@/game/shapes/polygon";
-import { Rect } from "@/game/shapes/rect";
+import { Circle } from "@/game/shapes/variants/circle";
+import { Line } from "@/game/shapes/variants/line";
+import { Polygon } from "@/game/shapes/variants/polygon";
+import { Rect } from "@/game/shapes/variants/rect";
 import { Shape } from "@/game/shapes/shape";
 import { gameStore } from "@/game/store";
 import { getUnitDistance, l2g, g2lx, g2ly, l2gz, clampGridLine } from "@/game/units";
@@ -113,7 +113,7 @@ export default class DrawTool extends Tool implements ToolBasics {
 
     @Watch("closedPolygon")
     onChangePolygonCloseBehaviour(closedPolygon: boolean): void {
-        if (this.shape !== null && this.active) (<Polygon>this.shape).openPolygon = !closedPolygon;
+        if (this.shape !== null && this.active) (this.shape as Polygon).openPolygon = !closedPolygon;
     }
 
     @Watch("fillColour")
@@ -128,7 +128,7 @@ export default class DrawTool extends Tool implements ToolBasics {
 
     @Watch("currentFloor")
     onFloorChange(newValue: Floor, oldValue: Floor): void {
-        if ((<Tools>this.$parent).currentTool === this.name) {
+        if ((this.$parent as Tools).currentTool === this.name) {
             let mouse: { x: number; y: number } | undefined = undefined;
             if (this.brushHelper !== null) {
                 mouse = { x: this.brushHelper.refPoint.x, y: this.brushHelper.refPoint.y };
@@ -140,7 +140,7 @@ export default class DrawTool extends Tool implements ToolBasics {
 
     @Watch("currentLayer")
     onLayerChange(newValue: Layer, oldValue: Layer): void {
-        if ((<Tools>this.$parent).currentTool === this.name) {
+        if ((this.$parent as Tools).currentTool === this.name) {
             let mouse: { x: number; y: number } | undefined = undefined;
             if (this.brushHelper !== null) {
                 mouse = { x: this.brushHelper.refPoint.x, y: this.brushHelper.refPoint.y };
@@ -203,15 +203,25 @@ export default class DrawTool extends Tool implements ToolBasics {
             this.active = true;
             switch (this.shapeSelect) {
                 case "square": {
-                    this.shape = new Rect(startPoint.clone(), 0, 0, this.fillColour, this.borderColour);
+                    this.shape = new Rect(startPoint.clone(), 0, 0, {
+                        fillColour: this.fillColour,
+                        strokeColour: this.borderColour,
+                    });
                     break;
                 }
                 case "circle": {
-                    this.shape = new Circle(startPoint.clone(), this.helperSize, this.fillColour, this.borderColour);
+                    this.shape = new Circle(startPoint.clone(), this.helperSize, {
+                        fillColour: this.fillColour,
+                        strokeColour: this.borderColour,
+                    });
                     break;
                 }
                 case "paint-brush": {
-                    this.shape = new Polygon(startPoint.clone(), [], undefined, this.fillColour, this.brushSize, true);
+                    this.shape = new Polygon(startPoint.clone(), [], {
+                        strokeColour: this.fillColour,
+                        lineWidth: this.brushSize,
+                        openPolygon: true,
+                    });
                     this.shape.fillColour = this.fillColour;
                     break;
                 }
@@ -224,14 +234,12 @@ export default class DrawTool extends Tool implements ToolBasics {
                             clampGridLine(startPoint.y),
                         );
                     }
-                    this.shape = new Polygon(
-                        this.brushHelper.refPoint.clone(),
-                        [],
-                        fill,
-                        stroke,
-                        this.brushSize,
-                        !this.closedPolygon,
-                    );
+                    this.shape = new Polygon(this.brushHelper.refPoint.clone(), [], {
+                        fillColour: fill,
+                        strokeColour: stroke,
+                        lineWidth: this.brushSize,
+                        openPolygon: !this.closedPolygon,
+                    });
                     break;
                 }
                 default:
@@ -265,7 +273,10 @@ export default class DrawTool extends Tool implements ToolBasics {
         if (this.shape !== null && this.shapeSelect === "draw-polygon" && this.shape instanceof Polygon) {
             const lastPoint = this.brushHelper.refPoint;
             if (this.ruler === null) {
-                this.ruler = new Line(lastPoint, lastPoint, this.brushSize, this.fillColour);
+                this.ruler = new Line(lastPoint, lastPoint, {
+                    lineWidth: this.brushSize,
+                    strokeColour: this.fillColour,
+                });
                 layer.addShape(this.ruler, SyncMode.NO_SYNC, InvalidationMode.NORMAL, false);
             } else {
                 this.ruler.refPoint = lastPoint;
@@ -312,7 +323,7 @@ export default class DrawTool extends Tool implements ToolBasics {
 
         switch (this.shapeSelect) {
             case "square": {
-                const rect = <Rect>this.shape;
+                const rect = this.shape as Rect;
                 const newW = Math.abs(endPoint.x - this.startPoint.x);
                 const newH = Math.abs(endPoint.y - this.startPoint.y);
                 if (newW === rect.w && newH === rect.h) return;
@@ -327,14 +338,14 @@ export default class DrawTool extends Tool implements ToolBasics {
                 break;
             }
             case "circle": {
-                const circ = <Circle>this.shape;
+                const circ = this.shape as Circle;
                 const newR = Math.abs(endPoint.subtract(this.startPoint).length());
                 if (circ.r === newR) return;
                 circ.r = newR;
                 break;
             }
             case "paint-brush": {
-                const br = <Polygon>this.shape;
+                const br = this.shape as Polygon;
                 if (equalPoints(br.points[br.points.length - 1], [endPoint.x, endPoint.y])) return;
                 br._vertices.push(endPoint);
                 break;
@@ -428,7 +439,7 @@ export default class DrawTool extends Tool implements ToolBasics {
             }
             this.finaliseShape();
         } else if (!this.active) {
-            (<DefaultContext>this.$parent.$refs.defaultcontext).open(event);
+            (this.$parent.$refs.defaultcontext as DefaultContext).open(event);
         }
     }
 
@@ -459,11 +470,9 @@ export default class DrawTool extends Tool implements ToolBasics {
         const layer = this.getLayer();
         if (layer === undefined) return;
         layer.canvas.parentElement!.style.cursor = "none";
-        this.brushHelper = new Circle(
-            new GlobalPoint(mouse?.x ?? -1000, mouse?.y ?? -1000),
-            this.brushSize / 2,
-            this.fillColour,
-        );
+        this.brushHelper = new Circle(new GlobalPoint(mouse?.x ?? -1000, mouse?.y ?? -1000), this.brushSize / 2, {
+            fillColour: this.fillColour,
+        });
         this.setupBrush();
         layer.addShape(this.brushHelper, SyncMode.NO_SYNC, InvalidationMode.NORMAL, false); // during mode change the shape is already added
         if (gameStore.IS_DM) this.showLayerPoints();
@@ -499,7 +508,9 @@ export default class DrawTool extends Tool implements ToolBasics {
         const refPoint = this.brushHelper?.refPoint;
         const bs = this.brushHelper?.r;
         if (this.brushHelper !== null) layer.removeShape(this.brushHelper, SyncMode.NO_SYNC);
-        this.brushHelper = new Circle(new GlobalPoint(-1000, -1000), bs ?? this.brushSize / 2, this.fillColour);
+        this.brushHelper = new Circle(new GlobalPoint(-1000, -1000), bs ?? this.brushSize / 2, {
+            fillColour: this.fillColour,
+        });
         this.setupBrush();
         layer.addShape(this.brushHelper, SyncMode.NO_SYNC, InvalidationMode.NORMAL, false); // during mode change the shape is already added
         if (refPoint) this.brushHelper.refPoint = refPoint;

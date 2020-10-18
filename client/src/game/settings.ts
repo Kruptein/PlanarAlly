@@ -98,6 +98,14 @@ class GameSettingsStore extends VuexModule implements GameSettingsState {
         return this.currentLocationOptions.spawnLocations ?? [];
     }
 
+    get movePlayerOnTokenChange(): boolean {
+        return (
+            this.currentLocationOptions.movePlayerOnTokenChange ??
+            this.defaultLocationOptions?.movePlayerOnTokenChange ??
+            false
+        );
+    }
+
     @Mutation
     reset(data: { key: keyof LocationOptions; location: number }): void {
         if (data.key in this.locationOptions[data.location]) {
@@ -123,9 +131,7 @@ class GameSettingsStore extends VuexModule implements GameSettingsState {
     setUnitSize(data: { unitSize: number; location: number | null; sync: boolean }): void {
         if (mutateLocationOption("unitSize", data.unitSize, data.location)) {
             layerManager.invalidateAllFloors();
-            if (data.sync)
-                // eslint-disable-next-line @typescript-eslint/camelcase
-                sendLocationOptions({ options: { unit_size: data.unitSize }, location: data.location });
+            if (data.sync) sendLocationOptions({ options: { unit_size: data.unitSize }, location: data.location });
         }
     }
 
@@ -135,7 +141,6 @@ class GameSettingsStore extends VuexModule implements GameSettingsState {
             layerManager.invalidateAllFloors();
             if (data.sync)
                 sendLocationOptions({
-                    // eslint-disable-next-line @typescript-eslint/camelcase
                     options: { unit_size_unit: data.unitSizeUnit },
                     location: data.location,
                 });
@@ -152,9 +157,7 @@ class GameSettingsStore extends VuexModule implements GameSettingsState {
                 gridLayer.invalidate();
             }
 
-            if (data.sync)
-                // eslint-disable-next-line @typescript-eslint/camelcase
-                sendLocationOptions({ options: { use_grid: data.useGrid }, location: data.location });
+            if (data.sync) sendLocationOptions({ options: { use_grid: data.useGrid }, location: data.location });
         }
     }
 
@@ -164,7 +167,6 @@ class GameSettingsStore extends VuexModule implements GameSettingsState {
             layerManager.invalidateLightAllFloors();
             if (data.sync)
                 sendLocationOptions({
-                    // eslint-disable-next-line @typescript-eslint/camelcase
                     options: { vision_min_range: data.visionMinRange },
                     location: data.location,
                 });
@@ -177,7 +179,6 @@ class GameSettingsStore extends VuexModule implements GameSettingsState {
             layerManager.invalidateLightAllFloors();
             if (data.sync)
                 sendLocationOptions({
-                    // eslint-disable-next-line @typescript-eslint/camelcase
                     options: { vision_max_range: data.visionMaxRange },
                     location: data.location,
                 });
@@ -188,9 +189,7 @@ class GameSettingsStore extends VuexModule implements GameSettingsState {
     setFullFow(data: { fullFow: boolean; location: number | null; sync: boolean }): void {
         if (mutateLocationOption("fullFow", data.fullFow, data.location)) {
             layerManager.invalidateLightAllFloors();
-            if (data.sync)
-                // eslint-disable-next-line @typescript-eslint/camelcase
-                sendLocationOptions({ options: { full_fow: data.fullFow }, location: data.location });
+            if (data.sync) sendLocationOptions({ options: { full_fow: data.fullFow }, location: data.location });
         }
     }
 
@@ -200,7 +199,6 @@ class GameSettingsStore extends VuexModule implements GameSettingsState {
             layerManager.invalidateLightAllFloors();
             if (data.sync)
                 sendLocationOptions({
-                    // eslint-disable-next-line @typescript-eslint/camelcase
                     options: { fow_opacity: data.fowOpacity },
                     location: data.location,
                 });
@@ -211,9 +209,7 @@ class GameSettingsStore extends VuexModule implements GameSettingsState {
     setLineOfSight(data: { fowLos: boolean; location: number | null; sync: boolean }): void {
         if (mutateLocationOption("fowLos", data.fowLos, data.location)) {
             layerManager.invalidateAllFloors();
-            if (data.sync)
-                // eslint-disable-next-line @typescript-eslint/camelcase
-                sendLocationOptions({ options: { fow_los: data.fowLos }, location: data.location });
+            if (data.sync) sendLocationOptions({ options: { fow_los: data.fowLos }, location: data.location });
         }
     }
 
@@ -224,8 +220,22 @@ class GameSettingsStore extends VuexModule implements GameSettingsState {
             layerManager.invalidateAllFloors();
             if (data.sync)
                 sendLocationOptions({
-                    // eslint-disable-next-line @typescript-eslint/camelcase
                     options: { spawn_locations: JSON.stringify(data.spawnLocations) },
+                    location: data.location,
+                });
+        }
+    }
+
+    @Mutation
+    setMovePlayerOnTokenChange(data: {
+        movePlayerOnTokenChange: boolean;
+        location: number | null;
+        sync: boolean;
+    }): void {
+        if (mutateLocationOption("movePlayerOnTokenChange", data.movePlayerOnTokenChange, data.location)) {
+            if (data.sync)
+                sendLocationOptions({
+                    options: { move_player_on_token_change: data.movePlayerOnTokenChange },
                     location: data.location,
                 });
         }

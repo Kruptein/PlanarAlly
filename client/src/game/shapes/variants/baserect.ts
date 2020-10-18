@@ -1,26 +1,41 @@
 import { GlobalPoint, Vector } from "@/game/geom";
-import { BoundingRect } from "@/game/shapes/boundingrect";
+import { BoundingRect } from "@/game/shapes/variants/boundingrect";
 import { Shape } from "@/game/shapes/shape";
 import { calculateDelta } from "@/game/ui/tools/utils";
 import { clampGridLine, g2lx, g2ly } from "@/game/units";
-import { ServerShape } from "../comm/types/shapes";
-import { DEFAULT_GRID_SIZE } from "../store";
-import { rotateAroundPoint } from "../utils";
+import { ServerShape } from "../../comm/types/shapes";
+import { DEFAULT_GRID_SIZE } from "../../store";
+import { rotateAroundPoint } from "../../utils";
+
+type ServerBaseRect = ServerShape & { width: number; height: number };
 
 export abstract class BaseRect extends Shape {
     w: number;
     h: number;
-    constructor(topleft: GlobalPoint, w: number, h: number, fillColour?: string, strokeColour?: string, uuid?: string) {
-        super(topleft, fillColour, strokeColour, uuid);
+    constructor(
+        topleft: GlobalPoint,
+        w: number,
+        h: number,
+        options?: { fillColour?: string; strokeColour?: string; uuid?: string; assetId?: number },
+    ) {
+        super(topleft, options);
         this.w = w;
         this.h = h;
     }
-    getBaseDict(): ServerShape & { width: number; height: number } {
+
+    getBaseDict(): ServerBaseRect {
         return Object.assign(super.getBaseDict(), {
             width: this.w,
             height: this.h,
         });
     }
+
+    fromDict(data: ServerBaseRect): void {
+        super.fromDict(data);
+        this.w = data.width;
+        this.h = data.height;
+    }
+
     getBoundingBox(): BoundingRect {
         const bbox = new BoundingRect(this.refPoint, this.w, this.h);
         bbox.angle = this.angle;

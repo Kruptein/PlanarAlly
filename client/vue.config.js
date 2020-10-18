@@ -7,6 +7,7 @@ module.exports = {
     assetsDir: process.env.NODE_ENV === "production" ? "static" : "dev-static",
     outputDir: "../server",
     indexPath: "./templates/index.html",
+    publicPath: process.env.PA_BASEPATH,
 
     configureWebpack: {
         devtool: "source-map",

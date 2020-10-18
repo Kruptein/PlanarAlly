@@ -2,11 +2,13 @@
     "locale": {
         "select": "Sprache auswählen:",
         "en": "English",
-        "zh": "中文",
+        "zh": "简体中文",
+        "tw":"繁體中文",
         "de": "Deutsch",
         "ru": "Русский",
         "dk": "Dansk",
-        "es": "Español"
+        "es": "Español",
+        "it": "Italiano"
     },
     "assetManager": {
         "contextMenu": {
@@ -63,7 +65,10 @@
         "colors": "Farben",
         "version": "Version",
         "confirm": "Bestätigen",
-        "cancel": "Abbrechen"
+        "cancel": "Abbrechen",
+        "insert_one_character": "Bitte mindestens einen Buchstaben eingeben",
+        "name_already_in_use": "Dieser Name wird bereits verwendet!",
+        "varia": "Verschiedenes"
     },
     "auth": {
         "login": {
@@ -198,7 +203,9 @@
                     "delete_shapes": "Formen löschen",
                     "show_props": "Eigenschaften anzeigen",
                     "remove_marker": "Markierung löschen",
-                    "set_marker": "Markierung setzen"
+                    "set_marker": "Markierung setzen",
+                    "no_spawn_set_title": "Form konnte nicht bewegt werden",
+                    "no_spawn_set_text": "Der Zielort hat keine Spawn-Punkte. Stelle mindestens einen Punkt ein."
                 }
             },
             "settings": {
@@ -277,7 +284,10 @@
                 "defaultcontext": {
                     "bring_pl": "Spieler herbringen",
                     "create_basic_token": "Einfachen Spielstein erstellen",
-                    "show_initiative": "Initiative anzeigen"
+                    "show_initiative": "Initiative anzeigen",
+                    "create_spawn_location": "Spawn-Punkt erstellen",
+                    "new_spawn_question": "Wie soll dieser Spawn-Punkt genannt werden?",
+                    "new_spawn_title": "Erstelle neuen Spawn-Punkt"
                 },
                 "draw": {
                     "foreground_color": "Vordergrundfarbe",

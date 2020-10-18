@@ -1,9 +1,13 @@
 import io from "socket.io-client";
 
 import { Asset } from "@/core/comm/types";
+import { baseAdjust } from "../core/utils";
 import { assetStore } from "./store";
 
-export const socket = io(location.protocol + "//" + location.host + "/pa_assetmgmt", { autoConnect: false });
+export const socket = io(location.protocol + "//" + location.host + "/pa_assetmgmt", {
+    autoConnect: false,
+    path: process.env.BASE_URL + "socket.io",
+});
 
 let disConnected = false;
 
@@ -38,7 +42,7 @@ socket.on("Folder.Set", (data: { folder: Asset; path?: number[] }) => {
         }
     }
     if (data.path) assetStore.setPath(data.path);
-    window.history.pushState(null, "Asset Manager", `/assets${assetStore.currentFilePath}`);
+    window.history.pushState(null, "Asset Manager", baseAdjust(`/assets${assetStore.currentFilePath}`));
 });
 socket.on("Folder.Create", (folder: Asset) => {
     assetStore.folders.push(folder.id);

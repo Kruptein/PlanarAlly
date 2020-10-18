@@ -7,7 +7,7 @@ import { mapState } from "vuex";
 import ColorPicker from "@/core/components/colorpicker.vue";
 import Game from "@/game/Game.vue";
 import AssetNode from "@/game/ui/menu/asset_node.vue";
-import LanguageDropdown from "@/core/components/languageDropdown.vue";
+import LanguageSelect from "@/core/components/languageSelect.vue";
 
 import { uuidv4 } from "@/core/utils";
 import { Note } from "@/game/comm/types/general";
@@ -19,7 +19,7 @@ import { EventBus } from "../../event-bus";
     components: {
         "color-picker": ColorPicker,
         "asset-node": AssetNode,
-        languageDropdown: LanguageDropdown,
+        LanguageSelect,
     },
     computed: {
         ...mapState("game", ["assets", "notes", "markers"]),
@@ -76,7 +76,7 @@ export default class MenuBar extends Vue {
         this.openNote(note);
     }
     openNote(note: Note): void {
-        (<Game>this.$parent.$parent).$refs.note.open(note);
+        (this.$parent.$parent as Game).$refs.note.open(note);
     }
 
     openDmSettings(): void {
@@ -113,7 +113,7 @@ export default class MenuBar extends Vue {
                     <input id="asset-search" v-if="assets" v-model="assetSearch" :placeholder="$t('common.search')" />
                     <a
                         class="actionButton"
-                        href="/assets"
+                        :href="baseAdjust('/assets')"
                         target="blank"
                         :title="$t('game.ui.menu.menu.open_asset_manager')"
                     >
@@ -172,7 +172,7 @@ export default class MenuBar extends Vue {
                     <label for="invertAlt" v-t="'game.ui.menu.menu.invert_alt_set'"></label>
                     <div><input id="invertAlt" type="checkbox" v-model="invertAlt" /></div>
                     <label for="languageSelect" v-t="'locale.select'"></label>
-                    <div><languageDropdown id="languageSelect" /></div>
+                    <div><LanguageSelect id="languageSelect" /></div>
                 </div>
             </div>
         </div>

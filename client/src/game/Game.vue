@@ -7,6 +7,7 @@ import "@/game/api/events";
 
 import ConfirmDialog from "@/core/components/modals/confirm.vue";
 import Prompt from "@/core/components/modals/prompt.vue";
+import SelectionBox from "@/core/components/modals/SelectionBox.vue";
 import Initiative from "@/game/ui/initiative/initiative.vue";
 import LabelManager from "@/game/ui/labels.vue";
 import NoteDialog from "@/game/ui/note.vue";
@@ -20,6 +21,8 @@ import { dropAsset } from "./layers/utils";
 import { coreStore } from "@/core/store";
 import { mapGetters } from "vuex";
 import { Watch } from "vue-property-decorator";
+import { requestAssetOptions } from "./api/emits/asset";
+import { BaseTemplate } from "./comm/types/templates";
 
 @Component({
     components: {
@@ -28,6 +31,7 @@ import { Watch } from "vue-property-decorator";
         "initiative-dialog": Initiative,
         "note-dialog": NoteDialog,
         "label-dialog": LabelManager,
+        "selection-box": SelectionBox,
         ui: UI,
     },
     beforeRouteEnter(to, from, next) {
@@ -48,6 +52,7 @@ export default class Game extends Vue {
         confirm: InstanceType<typeof ConfirmDialog>;
         note: InstanceType<typeof NoteDialog>;
         prompt: InstanceType<typeof Prompt>;
+        selectionbox: InstanceType<typeof SelectionBox>;
         ui: InstanceType<typeof UI>;
     };
 
@@ -156,10 +161,31 @@ export default class Game extends Vue {
                 yes: "Ok",
                 showNo: false,
             });
-        } else if (event.dataTransfer.getData("text/plain") === "") {
+        } else if (event.dataTransfer.getData("text/plain") === "" || event === null || event.dataTransfer === null) {
             return;
         } else {
-            dropAsset(event);
+            const { imageSource, assetId }: { imageSource: string; assetId: number } = JSON.parse(
+                event.dataTransfer.getData("text/plain"),
+            );
+            let options: BaseTemplate | undefined;
+            if (assetId) {
+                const response = await requestAssetOptions(assetId);
+                if (response.success) {
+                    const choices = Object.keys(response.options?.templates ?? {});
+                    if (choices.length > 0) {
+                        try {
+                            const choice = await this.$refs.selectionbox.open(
+                                this.$t("game.ui.templates.choose").toString(),
+                                choices,
+                            );
+                            options = response.options!.templates[choice];
+                        } catch {
+                            // no-op ; action cancelled
+                        }
+                    }
+                }
+            }
+            await dropAsset({ imageSource, assetId }, { x: event.clientX, y: event.clientY }, options);
         }
     }
 }
@@ -187,6 +213,7 @@ export default class Game extends Vue {
         <label-dialog ref="labels"></label-dialog>
         <prompt-dialog ref="prompt"></prompt-dialog>
         <confirm-dialog ref="confirm"></confirm-dialog>
+        <selection-box ref="selectionbox"></selection-box>
     </div>
 </template>
 

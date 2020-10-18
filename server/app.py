@@ -1,3 +1,5 @@
+from typing import Callable, Iterable, List, Type
+
 import aiohttp_jinja2
 import aiohttp_security
 import aiohttp_session
@@ -10,18 +12,36 @@ from aiohttp_session.cookie_storage import EncryptedCookieStorage
 import auth
 from config import config
 
-# SETUP SERVER
+runners: List[web.AppRunner] = []
+
+
+def setup_app(middlewares: Iterable[Callable] = ()) -> web.Application:
+    app = web.Application(middlewares=middlewares)
+    app["AuthzPolicy"] = auth.AuthPolicy()
+    aiohttp_security.setup(app, SessionIdentityPolicy(), app["AuthzPolicy"])
+    aiohttp_session.setup(app, EncryptedCookieStorage(auth.get_secret_token()))
+    return app
+
+
+async def setup_runner(app: web.Application, site: Type[web.BaseSite], **kwargs):
+    runner = web.AppRunner(app)
+    runners.append(runner)
+    await runner.setup()
+    s = site(runner, **kwargs)
+    await s.start()
+
+
+# MAIN APP
 
 sio = socketio.AsyncServer(
     async_mode="aiohttp",
     engineio_logger=False,
     cors_allowed_origins=config.get("Webserver", "cors_allowed_origins", fallback=None),
 )
-app = web.Application()
-app["AuthzPolicy"] = auth.AuthPolicy()
-aiohttp_security.setup(app, SessionIdentityPolicy(), app["AuthzPolicy"])
-aiohttp_session.setup(app, EncryptedCookieStorage(auth.get_secret_token()))
+app = setup_app()
 aiohttp_jinja2.setup(app, loader=jinja2.FileSystemLoader("templates"))
 sio.attach(app)
-
 app["state"] = {}
+
+# API APP
+api_app = setup_app([auth.token_middleware])

@@ -3,6 +3,7 @@ export interface AssetList {
 }
 
 export interface AssetFile {
+    id: number;
     name: string;
     hash: string;
 }

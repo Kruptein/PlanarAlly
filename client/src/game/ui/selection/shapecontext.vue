@@ -5,7 +5,9 @@ import Component from "vue-class-component";
 import { mapState } from "vuex";
 
 import ContextMenu from "@/core/components/contextmenu.vue";
+import Game from "@/game/Game.vue";
 import Prompt from "@/core/components/modals/prompt.vue";
+import SelectionBox from "@/core/components/modals/SelectionBox.vue";
 
 import { EventBus } from "@/game/event-bus";
 import { layerManager } from "@/game/layers/manager";
@@ -14,18 +16,22 @@ import { deleteShapes } from "../../shapes/utils";
 import { initiativeStore, inInitiative } from "../initiative/store";
 import { Layer } from "../../layers/layer";
 import { gameSettingsStore } from "../../settings";
-import Game from "@/game/Game.vue";
 import { Shape } from "@/game/shapes/shape";
 import { floorStore } from "../../layers/store";
 import { Floor } from "@/game/layers/floor";
 import { moveFloor, moveLayer } from "../../layers/utils";
-import { requestSpawnInfo } from "@/game/api/emits/location";
+import { requestAssetOptions, sendAssetOptions } from "@/game/api/emits/asset";
+import { requestSpawnInfo, sendLocationChange } from "@/game/api/emits/location";
 import { sendShapesMove } from "@/game/api/emits/shape/core";
+import { ServerAsset } from "@/game/comm/types/shapes";
+import { AssetOptions } from "@/game/comm/types/asset";
+import { toTemplate } from "@/game/shapes/template";
 
 @Component({
     components: {
         ContextMenu,
         Prompt,
+        SelectionBox,
     },
     computed: {
         ...mapState("game", ["activeFloorIndex", "markers"]),
@@ -35,6 +41,7 @@ import { sendShapesMove } from "@/game/api/emits/shape/core";
 export default class ShapeContext extends Vue {
     $refs!: {
         prompt: InstanceType<typeof Prompt>;
+        selectionbox: InstanceType<typeof SelectionBox>;
     };
 
     visible = false;
@@ -53,9 +60,10 @@ export default class ShapeContext extends Vue {
         this.visible = true;
         this.x = event.pageX;
         this.y = event.pageY;
-        this.$nextTick(() => (<HTMLElement>this.$children[0].$el).focus());
+        this.$nextTick(() => (this.$children[0].$el as HTMLElement).focus());
     }
     close(): void {
+        if (this.$refs.prompt.visible || this.$refs.selectionbox.visible) return;
         this.visible = false;
     }
     getMarker(): string | undefined {
@@ -107,17 +115,12 @@ export default class ShapeContext extends Vue {
     }
     async setLocation(newLocation: number): Promise<void> {
         const selection = this.getActiveLayer()!.getSelection();
-
         const spawnInfo = await requestSpawnInfo(newLocation);
-
-        console.log(spawnInfo);
-
-        let x: number;
-        let y: number;
+        let spawnLocation: ServerAsset;
 
         switch (spawnInfo.length) {
             case 0:
-                await (<Game>this.$parent.$parent.$parent).$refs.confirm.open(
+                await (this.$parent.$parent.$parent as Game).$refs.confirm.open(
                     this.$t("game.ui.selection.shapecontext.no_spawn_set_title").toString(),
                     this.$t("game.ui.selection.shapecontext.no_spawn_set_text").toString(),
                     { showNo: false, yes: "Ok" },
@@ -125,26 +128,37 @@ export default class ShapeContext extends Vue {
                 this.close();
                 return;
             case 1:
-                x = spawnInfo[0].x + spawnInfo[0].width / 2;
-                y = spawnInfo[0].y + spawnInfo[0].height / 2;
+                spawnLocation = spawnInfo[0];
                 break;
-            default:
-                // todo: selection choice
-                x = spawnInfo[0].x + spawnInfo[0].width / 2;
-                y = spawnInfo[0].y + spawnInfo[0].height / 2;
+            default: {
+                const choice = await this.$refs.selectionbox.open(
+                    "Choose the desired spawn location",
+                    spawnInfo.map(s => s.name),
+                );
+                const choiceShape = spawnInfo.find(s => s.name === choice);
+                if (choiceShape === undefined) return;
+                spawnLocation = choiceShape;
                 break;
+            }
         }
 
         const targetLocation = {
-            floor: spawnInfo[0].floor,
-            x,
-            y,
+            floor: spawnLocation.floor,
+            x: spawnLocation.x + spawnLocation.width / 2,
+            y: spawnLocation.y + spawnLocation.height / 2,
         };
 
         sendShapesMove({
             shapes: selection.map(s => s.uuid),
             target: { location: newLocation, ...targetLocation },
         });
+        if (gameSettingsStore.movePlayerOnTokenChange) {
+            const users: Set<string> = new Set();
+            for (const shape of selection) {
+                for (const owner of shape.owners) users.add(owner.user);
+            }
+            sendLocationChange({ location: newLocation, users: [...users] });
+        }
 
         this.close();
     }
@@ -196,6 +210,44 @@ export default class ShapeContext extends Vue {
         if (gameStore.IS_DM) return true;
         return this.getSelection().every(s => s.ownedBy({ editAccess: true }));
     }
+    showDmNonSpawnItem(): boolean {
+        if (this.hasSpawnToken()) return false;
+        return gameStore.IS_DM;
+    }
+
+    hasAsset(): boolean {
+        return this.getActiveLayer()!
+            .getSelection()
+            .every(s => s.assetId !== undefined);
+    }
+
+    async saveTemplate(): Promise<void> {
+        const shape = this.getSelection()[0];
+        let assetOptions: AssetOptions = {
+            version: "0",
+            shape: shape.type,
+            templates: { default: {} },
+        };
+        if (shape.assetId) {
+            const response = await requestAssetOptions(shape.assetId);
+            if (response.success && response.options) assetOptions = response.options;
+        } else {
+            console.warn("Templates are currently only supported for shapes with existing asset relations.");
+            return;
+        }
+        const choices = Object.keys(assetOptions.templates);
+        try {
+            const choice = await this.$refs.selectionbox.open(this.$t("game.ui.templates.save").toString(), choices, {
+                defaultButton: this.$t("game.ui.templates.overwrite").toString(),
+                customButton: this.$t("game.ui.templates.create_new").toString(),
+            });
+            assetOptions.templates[choice] = toTemplate(shape.asDict());
+            sendAssetOptions(shape.assetId, assetOptions);
+        } catch {
+            // no-op ; action cancelled
+        }
+    }
+
     getLayerWord(layer: string): string {
         switch (layer) {
             case "map":
@@ -226,6 +278,7 @@ export default class ShapeContext extends Vue {
         @close="close"
     >
         <Prompt ref="prompt"></Prompt>
+        <SelectionBox ref="selectionbox"></SelectionBox>
         <li v-if="getFloors().length > 1">
             {{ $t("common.floor") }}
             <ul>
@@ -269,7 +322,6 @@ export default class ShapeContext extends Vue {
         <li @click="moveToFront" v-t="'game.ui.selection.shapecontext.move_front'"></li>
         <li @click="addInitiative" v-if="showInitiative()">{{ getInitiativeWord() }}</li>
         <li @click="deleteSelection" v-if="showDelete()" v-t="'game.ui.selection.shapecontext.delete_shapes'"></li>
-        <li v-if="hasSingleShape()" @click="openEditDialog" v-t="'game.ui.selection.shapecontext.show_props'"></li>
         <template v-if="hasSingleShape()">
             <li
                 v-if="markers.includes(getMarker())"
@@ -278,6 +330,12 @@ export default class ShapeContext extends Vue {
             ></li>
             <li v-else @click="setMarker" v-t="'game.ui.selection.shapecontext.set_marker'"></li>
         </template>
+        <li
+            @click="saveTemplate"
+            v-if="hasSingleShape() && showDmNonSpawnItem() && hasAsset()"
+            v-t="'game.ui.templates.save'"
+        ></li>
+        <li v-if="hasSingleShape()" @click="openEditDialog" v-t="'game.ui.selection.shapecontext.show_props'"></li>
     </ContextMenu>
 </template>
 

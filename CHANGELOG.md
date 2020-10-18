@@ -8,6 +8,8 @@ These usually have no immediately visible impact on regular users
 
 ## Unreleased
 
+## [0.23.0] - 2020-10-18
+
 ### Added
 
 -   Traditional chinese localization added

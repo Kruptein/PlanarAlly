@@ -14,7 +14,9 @@ import { createEmptyTracker } from "./tracker";
 
 export function applyTemplate<T extends ServerShape>(shape: T, template: BaseTemplate): T {
     // should be shape[key], but this is something that TS cannot correctly infer (issue #31445)
-    for (const key of BaseTemplateStrings) (shape as any)[key] = template[key];
+    for (const key of BaseTemplateStrings) {
+        if (key in template) (shape as any)[key] = template[key];
+    }
 
     for (const trackerTemplate of template.trackers ?? []) {
         const defaultTracker = createEmptyTracker();
@@ -28,7 +30,9 @@ export function applyTemplate<T extends ServerShape>(shape: T, template: BaseTem
     }
 
     // Shape specific keys
-    for (const key of getTemplateKeys(shape.type_)) (shape as any)[key] = (template as any)[key];
+    for (const key of getTemplateKeys(shape.type_)) {
+        if (key in template) (shape as any)[key] = (template as any)[key];
+    }
 
     return shape;
 }

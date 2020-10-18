@@ -1,67 +1,42 @@
-0.22.3
+0.23.0
 
 ### Added
 
--   localization updates
-    -   Danish
-    -   Spanish
-    -   Chinese
--   Rotation in Select tool with build mode
--   Floor UI updates
-    -   visibility toggle
-        -   "Hidden" floors are not selectable by players, BUT will still render in between other selectable layers
-    -   rename floor option
-    -   reorder floors by dragging them
--   Shape lock/unlock toggle
-    -   Show lock/unlock icon on the selection_info component for quick edit
-    -   Only players with edit access can toggle
+-   Traditional chinese localization added
+-   Spawn location tweaks
+    -   Multi spawn locations
+        -   When moving a shape to a new location that has multiple spawn locations, a box will appear to choose the desired spawn zone
+    -   Removal of spawn locations is now possible
+-   Template system for assets
+    -   Save shape state to its linked asset
+    -   On asset drop, choose from the saved templates to prepopulate some fields
+-   Snapping support to the ruler
+    -   Snapping points are the grid corner points, center between two grid points and the complete center of a grid cell
+-   Markdown support for shape annotations
+-   Italian localization added
+-   System notifications
+
+    -   These are custom notifications server owners can send out and will appear in a toast
+    -   By closing a notification you mark it as read and it will not show up any longer
+    -   [tech] Server now also starts an extra admin api server that can be configured separately
+    -   [tech] API endpoint to create system notifications now exists
+
+-   [tech] Server can now be hosted on a subpath e.g. somedomain.com/planarally-subpath
 
 ### Changed
 
--   Floors are now loaded separately on startup this greatly impacts startup time
-    -   The floor the user was last active on is loaded first if possible
-    -   Next all floors under the active floor in descending order are loaded
-    -   Lastly the floors above in ascending order are loaded
--   Other performance improvements
-    -   Delay drawloop start until first floor data arrives
-    -   Better handling of multi group moves
-    -   Shape movement now sends less data to server
-    -   Pan now only updates the visible floors on move and full recalculate on release
--   Grid pixel size is now a client setting instead of a DM setting
-	-   [0.22.3] `rescale(factor)` webconsole function has been added as a convenience method for DMs to rescale all their shapes on maps that might now be wrongly sized.
-	   -   a refresh of the page is most likely necessary for all normal functionality to update
-	   -   e.g. if you used to have a DM grid size setting that was 70px and want to retrofit your maps to the new baseline of 50, you can use `rescale(50/70);`
--   Show floor selector in the more logical order from upper to lower floors
--   Improve ruler distance text readability
--   [0.22.1] Spawn locations are no longer magically created
-    -   You can now (as a DM) explicitly create spawn tokens with the right click context menu
-    -   You can already create multiple spawn locations, but UI to choose between them will be for the next proper release
+-   Shape edit dialog now uses a panel layout (similar to dm settings)
+-   Annotation UI got a small change to better accomodate the new markdown support
+-   Landing page redesign
+    -   register phase is now a seperate step with an optional email field
+-   [tech] During save upgrades, backups will now be stored in the saves_backup folder
 
 ### Fixed
 
--   Aura not displaying when token is outside the visible canvas
--   Firefox location scrollbar when left menu is open
--   Some significant performance bottlenecks
--   Server now quits, referring to docs/tutorial, if client was not built before start
--   Initial state adding unnecessary fog on lower floors
--   Prefer snapped points over grid snapping
--   Remove white icon in topleft menu UI
--   Moving polygons with keyboard would only move origin point
--   Degenerate cases in triangulation
-    -   Triangulation code could hit a degenerate case when dealing with slight number differences in the order of 1e-15
-    -   Now the triangulation code will only take the first 10 digits after the dot into consideration to prevent numerical instability.
--   Mouseleave events where not triggered in some cases (e.g. alt tab), this could cause some shapes (e.g. rulers) to remain on the screen
--   Map tool resize does not replicate
--   Center calculation polygons with repeated points
--   Location moved shape now properly disappears on the old location
--   Asset drops on the game board that are not images located in /static are no longer accepted
-    -   This fixes the possible spam of "could not load image /game/..." in your console for future cases
-    -   A script has been added in the server/scripts folder to remove existing assets
--   Missing case in vision calculation script
--   [0.22.1] Server error when encountering broken spawn locations
--   [0.22.2] Drawing on FOW layer blocking UI
--   [0.22.2] Badge toggle not working properly
--   [0.22.2] Group leader not properly set serverside on paste
--   [0.22.2] Server error on shape paste due to aura type change
--   [0.22.3] moving shapes to front/back not syncing on the server
-   -   sadly I messed something up so you may have to fix the order of some shapes on some maps
+-   Run docker container as non-root
+-   Unlocking shape via quick menu no longer puts shape in drag mode
+-   Map allowing some invalid inputs (negative numbers, 0, everything that isn't a number)
+-   Note and annotation textareas not having the correct height initially
+-   Console errors when attempting to move floors that you cannot access
+-   Private shape names showing up as ? for users with access
+-   [tech] Display error messages based on response body

@@ -11,6 +11,7 @@ import Settings from "@/settings/settings.vue";
 import Vue from "vue";
 import Router from "vue-router";
 import { baseAdjustedFetch } from "./core/utils";
+import { BASE_PATH } from "./utils";
 import { handleNotifications } from "./notifications";
 
 Vue.use(Router);
@@ -20,7 +21,7 @@ Vue.use(Router);
 
 export const router = new Router({
     mode: "history",
-    base: process.env.BASE_URL,
+    base: BASE_PATH,
     routes: [
         {
             path: "/",

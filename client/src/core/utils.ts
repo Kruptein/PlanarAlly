@@ -1,3 +1,5 @@
+import { BASE_PATH } from "../utils";
+
 // Reference: https://stackoverflow.com/questions/105034/create-guid-uuid-in-javascript
 export function uuidv4(): string {
     return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, c => {
@@ -101,13 +103,13 @@ export class OrderedMap<K, V> {
 
 export async function baseAdjustedFetch(url: string): Promise<Response> {
     if (url.startsWith("/")) url = url.slice(1);
-    return await fetch(process.env.BASE_URL + url);
+    return await fetch(BASE_PATH + url);
 }
 
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export async function postFetch(url: string, data?: any): Promise<Response> {
     if (url.startsWith("/")) url = url.slice(1);
-    return await fetch(process.env.BASE_URL + url, {
+    return await fetch(BASE_PATH + url, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data ?? {}),
@@ -116,7 +118,7 @@ export async function postFetch(url: string, data?: any): Promise<Response> {
 
 export function baseAdjust(url: string): string {
     if (url.startsWith("/")) url = url.slice(1);
-    return process.env.BASE_URL + url;
+    return BASE_PATH + url;
 }
 
 export async function getErrorReason(response: Response): Promise<string> {

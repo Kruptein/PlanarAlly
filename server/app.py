@@ -1,3 +1,4 @@
+import os
 from typing import Callable, Iterable, List, Type
 
 import aiohttp_jinja2
@@ -40,7 +41,9 @@ sio = socketio.AsyncServer(
 )
 app = setup_app()
 aiohttp_jinja2.setup(app, loader=jinja2.FileSystemLoader("templates"))
-sio.attach(app)
+basepath = os.environ.get("PA_BASEPATH", "/")[1:]
+socketio_path = basepath + ("/" if len(basepath) > 0 else "") + "socket.io"
+sio.attach(app, socketio_path=socketio_path)
 app["state"] = {}
 
 # API APP

@@ -13,6 +13,13 @@ These usually have no immediately visible impact on regular users
 -   Locking shapes via keyboard shortcut did not sync to the server
 -   Annotations from other floors being shown
 
+## [0.23.1] - 2020-10-25
+
+### Fixed
+
+-   Server socketio attaching on correct basepath
+-   Client subpath working in docker context
+
 ## [0.23.0] - 2020-10-18
 
 ### Added

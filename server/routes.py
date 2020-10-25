@@ -14,8 +14,16 @@ from models.role import Role
 from utils import logger
 
 
+subpath = os.environ.get("PA_BASEPATH", "/")
+if subpath[-1] != "/":
+    subpath = subpath + "/"
+
+
 async def root(request):
-    return web.FileResponse("./templates/index.html")
+    with open("./templates/index.html", "rb") as f:
+        data = f.read()
+        data = data.replace(b"/static", bytes(subpath, "utf-8")[:-1] + b"/static")
+        return web.Response(body=data, content_type="text/html")
 
 
 async def root_dev(request):
@@ -25,9 +33,9 @@ async def root_dev(request):
     async with aiohttp.ClientSession() as session:
         async with session.request(
             "get", target_url, headers=request.headers, params=get_data, data=data
-        ) as resp:
-            response = resp
+        ) as response:
             raw = await response.read()
+            raw = raw.replace(b"$BASE_PATH$", bytes(subpath, "utf-8")[:-1])
 
     return web.Response(body=raw, status=response.status, headers=response.headers)
 
@@ -58,9 +66,6 @@ async def show_assets(request):
 
 # MAIN ROUTES
 
-subpath = os.environ.get("PA_BASEPATH", "/")
-if subpath[-1] != "/":
-    subpath = subpath + "/"
 main_app.router.add_static(f"{subpath}static", "static")
 main_app.router.add_get(f"{subpath}api/auth", api.http.auth.is_authed)
 main_app.router.add_post(f"{subpath}api/users/email", api.http.users.set_email)

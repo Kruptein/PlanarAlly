@@ -11,6 +11,7 @@ These usually have no immediately visible impact on regular users
 ### Fixed
 
 -   Locking shapes via keyboard shortcut did not sync to the server
+-   Annotations from other floors being shown
 
 ## [0.23.0] - 2020-10-18
 

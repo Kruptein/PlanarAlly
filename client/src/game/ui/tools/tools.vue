@@ -188,7 +188,10 @@ export default class Tools extends Vue {
         for (const uuid of gameStore.annotations) {
             if (layerManager.UUIDMap.has(uuid) && layerManager.hasLayer(floorStore.currentFloor, "draw")) {
                 const shape = layerManager.UUIDMap.get(uuid)!;
-                if (shape.contains(l2g(getLocalPointFromEvent(event)))) {
+                if (
+                    shape.floor.id === floorStore.currentFloor.id &&
+                    shape.contains(l2g(getLocalPointFromEvent(event)))
+                ) {
                     found = true;
                     (this.$parent as UI).$refs.annotation.setActiveText(shape.annotation);
                 }

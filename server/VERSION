@@ -1,4 +1,4 @@
-0.23.0
+0.23.1
 
 ### Added
 
@@ -40,3 +40,5 @@
 -   Console errors when attempting to move floors that you cannot access
 -   Private shape names showing up as ? for users with access
 -   [tech] Display error messages based on response body
+-   [0.23.1] Server socketio attaching on correct basepath
+-   [0.23.1] Dockerfile PA_BASEPATH ARG added to build client side correctly

@@ -100,7 +100,7 @@ export function onKeyDown(event: KeyboardEvent): void {
         } else if (event.key === "l" && event.ctrlKey) {
             const selection = layerManager.getSelection() ?? [];
             for (const shape of selection) {
-                shape.isLocked = !shape.isLocked;
+                shape.setLocked(!shape.isLocked, true);
             }
             event.preventDefault();
             event.stopPropagation();

@@ -13,6 +13,7 @@ These usually have no immediately visible impact on regular users
 ### Fixed
 
 -   Server socketio attaching on correct basepath
+-   Dockerfile PA_BASEPATH ARG added to build client side correctly
 
 ## [0.23.0] - 2020-10-18
 

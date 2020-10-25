@@ -3,6 +3,8 @@
 ################################
 FROM node:12-alpine as BUILDER
 
+ARG PA_BASEPATH=/
+
 WORKDIR /usr/src/client
 # Copy first package.json so changes in code dont require to reinstall all npm modules
 COPY client/package.json client/package-lock.json ./

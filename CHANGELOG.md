@@ -8,6 +8,10 @@ These usually have no immediately visible impact on regular users
 
 ## Unreleased
 
+### Fixed
+
+-   Locking shapes via keyboard shortcut did not sync to the server
+
 ## [0.23.0] - 2020-10-18
 
 ### Added

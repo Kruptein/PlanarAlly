@@ -3,10 +3,11 @@ import io from "socket.io-client";
 import { Asset } from "@/core/comm/types";
 import { baseAdjust } from "../core/utils";
 import { assetStore } from "./store";
+import { BASE_PATH } from "../utils";
 
 export const socket = io(location.protocol + "//" + location.host + "/pa_assetmgmt", {
     autoConnect: false,
-    path: process.env.BASE_URL + "socket.io",
+    path: BASE_PATH + "socket.io",
 });
 
 let disConnected = false;

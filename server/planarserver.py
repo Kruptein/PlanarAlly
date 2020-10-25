@@ -95,6 +95,8 @@ async def start_server(server_section: str):
         host = config.get(server_section, "host")
         port = config.getint(server_section, "port")
 
+        environ = os.environ.get("PA_BASEPATH", "/")
+
         if config.getboolean(server_section, "ssl"):
             try:
                 chain = config.get(server_section, "ssl_fullchain")
@@ -106,10 +108,10 @@ async def start_server(server_section: str):
                 sys.exit(2)
 
             await start_https(app, host, port, chain, key)
-            method = f"https://{host}:{port}"
+            method = f"https://{host}:{port}{environ}"
         else:
             await start_http(app, host, port)
-            method = f"http://{host}:{port}"
+            method = f"http://{host}:{port}{environ}"
 
     print(f"======== Starting {server_section} on {method} ========")
 

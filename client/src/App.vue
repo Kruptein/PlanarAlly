@@ -3,6 +3,7 @@ import { Component, Vue } from "vue-property-decorator";
 import Loading from "vue-loading-overlay";
 import "vue-loading-overlay/dist/vue-loading.css";
 import { coreStore } from "@/core/store";
+import { BASE_PATH } from "./utils";
 
 @Component({
     components: {
@@ -15,7 +16,7 @@ export default class App extends Vue {
     }
 
     get backgroundImage(): string {
-        return `url('${process.env.BASE_URL}static/img/login_background.png')`;
+        return `url('${BASE_PATH}static/img/login_background.png')`;
     }
 }
 </script>

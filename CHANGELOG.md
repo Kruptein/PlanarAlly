@@ -8,6 +8,13 @@ These usually have no immediately visible impact on regular users
 
 ## Unreleased
 
+## [0.23.1] - 2020-10-25
+
+### Fixed
+
+-   Server socketio attaching on correct basepath
+-   Client subpath working in docker context
+
 ## [0.23.0] - 2020-10-18
 
 ### Added

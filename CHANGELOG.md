@@ -17,6 +17,7 @@ These usually have no immediately visible impact on regular users
 -   Locking shapes via keyboard shortcut did not sync to the server
 -   Annotations from other floors being shown
 -   Floor rename always setting a blank name
+-   Remember ruler visibility on tool change
 
 ## [0.23.1] - 2020-10-25
 

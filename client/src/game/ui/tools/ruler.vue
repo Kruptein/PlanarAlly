@@ -110,8 +110,6 @@ export default class RulerTool extends Tool implements ToolBasics {
         const button = event.target as HTMLButtonElement;
         const state = button.getAttribute("aria-pressed") ?? "false";
         this.showPublic = state === "false";
-        if (state == "false") button.setAttribute("aria-pressed", "true");
-        else button.setAttribute("aria-pressed", "false");
     }
 }
 </script>
@@ -123,7 +121,7 @@ export default class RulerTool extends Tool implements ToolBasics {
         v-if="selected"
         :style="{ '--detailRight': detailRight, '--detailArrow': detailArrow }"
     >
-        <button @click="toggle" aria-pressed="true" v-t="'game.ui.tools.ruler.share'"></button>
+        <button @click="toggle" :aria-pressed="showPublic" v-t="'game.ui.tools.ruler.share'"></button>
     </div>
 </template>
 

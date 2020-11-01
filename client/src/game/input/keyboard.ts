@@ -27,6 +27,12 @@ export function onKeyUp(event: KeyboardEvent): void {
             gameManager.setCenterPosition(token.center());
             floorStore.selectFloor({ targetFloor: token.floor.name, sync: true });
         }
+        if (event.key === "Enter") {
+            const selection = layerManager.getSelection();
+            if (selection.length === 1) {
+                EventBus.$emit("EditDialog.Open", selection[0]);
+            }
+        }
     }
 }
 

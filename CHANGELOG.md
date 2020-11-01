@@ -8,6 +8,10 @@ These usually have no immediately visible impact on regular users
 
 ## Unreleased
 
+### Added
+
+-   Pressing the Enter button on a single selection will open the edit dialog for that shape
+
 ### Fixed
 
 -   Locking shapes via keyboard shortcut did not sync to the server

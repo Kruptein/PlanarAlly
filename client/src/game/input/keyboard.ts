@@ -42,7 +42,7 @@ export function onKeyDown(event: KeyboardEvent): void {
             let offsetX = gridSize * (event.keyCode % 2);
             let offsetY = gridSize * (event.keyCode % 2 ? 0 : 1);
             if (layerManager.hasSelection()) {
-                const selection = layerManager.getSelection()!;
+                const selection = layerManager.getSelection();
                 offsetX *= event.keyCode <= 38 ? -1 : 1;
                 offsetY *= event.keyCode <= 38 ? -1 : 1;
                 let delta = new Vector(offsetX, offsetY);
@@ -98,7 +98,7 @@ export function onKeyDown(event: KeyboardEvent): void {
             // d - Deselect all
             layerManager.clearSelection();
         } else if (event.key === "l" && event.ctrlKey) {
-            const selection = layerManager.getSelection() ?? [];
+            const selection = layerManager.getSelection();
             for (const shape of selection) {
                 shape.setLocked(!shape.isLocked, true);
             }
@@ -156,7 +156,7 @@ export function onKeyDown(event: KeyboardEvent): void {
 
 function changeFloor(event: KeyboardEvent, targetFloor: number): void {
     if (targetFloor < 0 || targetFloor > floorStore.floors.length - 1) return;
-    const selection = layerManager.getSelection() ?? [];
+    const selection = layerManager.getSelection();
     const newFloor = floorStore.floors[targetFloor];
     const newLayer = layerManager.getLayer(newFloor)!;
 

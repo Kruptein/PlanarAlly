@@ -93,7 +93,7 @@ export default class MapTool extends Tool implements ToolBasics {
     }
 
     onSelect(): void {
-        this.shapeSelected = (layerManager.getSelection()?.length || 0) === 1;
+        this.shapeSelected = layerManager.getSelection().length === 1;
     }
 
     onDeselect(): void {

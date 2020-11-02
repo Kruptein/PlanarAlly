@@ -22,7 +22,7 @@ from models import ALL_MODELS, Constants
 from models.db import db
 from utils import OldVersionException, UnknownVersionException
 
-SAVE_VERSION = 43
+SAVE_VERSION = 44
 
 logger: logging.Logger = logging.getLogger("PlanarAllyServer")
 logger.setLevel(logging.INFO)
@@ -630,6 +630,11 @@ def upgrade(version):
             api_token = secrets.token_hex(32)
             db.execute_sql(
                 f"INSERT INTO constants (id, save_version, secret_token, api_token) SELECT id, save_version, secret_token, '{api_token}' FROM _constants_42"
+            )
+    elif version == 43:
+        with db.atomic():
+            db.execute_sql(
+                "ALTER TABLE location_options ADD COLUMN grid_type TEXT DEFAULT 'SQUARE'"
             )
     else:
         raise UnknownVersionException(

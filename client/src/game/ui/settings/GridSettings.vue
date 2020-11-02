@@ -22,19 +22,32 @@ export default class GridSettings extends Vue {
     get useGrid(): boolean {
         return getLocationOption("useGrid", this.location)!;
     }
+
     set useGrid(value: boolean) {
         gameSettingsStore.setUseGrid({ useGrid: value, location: this.location, sync: true });
     }
+
+    get gridType(): string {
+        return getLocationOption("gridType", this.location)!;
+    }
+
+    set gridType(gridType: string) {
+        gameSettingsStore.setGridType({ gridType, location: this.location, sync: true });
+    }
+
     get unitSize(): number {
         return getLocationOption("unitSize", this.location)!;
     }
+
     set unitSize(value: number) {
         if (typeof value !== "number") return;
         gameSettingsStore.setUnitSize({ unitSize: value, location: this.location, sync: true });
     }
+
     get unitSizeUnit(): string {
         return getLocationOption("unitSizeUnit", this.location)!;
     }
+
     set unitSizeUnit(value: string) {
         gameSettingsStore.setUnitSizeUnit({ unitSizeUnit: value, location: this.location, sync: true });
     }
@@ -64,6 +77,24 @@ export default class GridSettings extends Vue {
             <label :for="'useGridInput-' + location" v-t="'game.ui.settings.GridSettings.use_grid'"></label>
             <div>
                 <input :id="'useGridInput-' + location" type="checkbox" v-model="useGrid" />
+            </div>
+            <div
+                v-if="location !== null && options.useGrid !== undefined"
+                @click="reset('useGrid')"
+                :title="$t('game.ui.settings.common.reset_default')"
+            >
+                <font-awesome-icon icon="times-circle" />
+            </div>
+            <div v-else></div>
+        </div>
+        <div class="row" :class="{ overwritten: location !== null && options.useGrid !== undefined }">
+            <label :for="'gridType-' + location" v-t="'game.ui.settings.GridSettings.use_grid'"></label>
+            <div>
+                <select :id="'gridType-' + location" v-model="gridType">
+                    <option value="SQUARE" v-t="'game.ui.settings.GridSettings.SQUARE'"></option>
+                    <option value="POINTY_HEX" v-t="'game.ui.settings.GridSettings.POINTY_HEX'"></option>
+                    <option value="FLAT_HEX" v-t="'game.ui.settings.GridSettings.FLAT_HEX'"></option>
+                </select>
             </div>
             <div
                 v-if="location !== null && options.useGrid !== undefined"

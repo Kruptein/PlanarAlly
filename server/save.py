@@ -634,8 +634,14 @@ def upgrade(version):
     elif version == 43:
         with db.atomic():
             db.execute_sql(
-                "ALTER TABLE location_options ADD COLUMN grid_type TEXT DEFAULT 'SQUARE'"
+                "ALTER TABLE location_options ADD COLUMN grid_type TEXT DEFAULT NULL"
             )
+            data = db.execute_sql("SELECT default_options_id FROM room")
+            for row in data.fetchall():
+                db.execute_sql(
+                    f"UPDATE location_options SET 'grid_type' = 'SQUARE' WHERE id = '{row[0]}'"
+                )
+
     else:
         raise UnknownVersionException(
             f"No upgrade code for save format {version} was found."

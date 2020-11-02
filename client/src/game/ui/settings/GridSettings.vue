@@ -87,8 +87,8 @@ export default class GridSettings extends Vue {
             </div>
             <div v-else></div>
         </div>
-        <div class="row" :class="{ overwritten: location !== null && options.useGrid !== undefined }">
-            <label :for="'gridType-' + location" v-t="'game.ui.settings.GridSettings.use_grid'"></label>
+        <div class="row" :class="{ overwritten: location !== null && options.gridType !== undefined }">
+            <label :for="'gridType-' + location" v-t="'game.ui.settings.GridSettings.grid_type'"></label>
             <div>
                 <select :id="'gridType-' + location" v-model="gridType">
                     <option value="SQUARE" v-t="'game.ui.settings.GridSettings.SQUARE'"></option>
@@ -97,8 +97,8 @@ export default class GridSettings extends Vue {
                 </select>
             </div>
             <div
-                v-if="location !== null && options.useGrid !== undefined"
-                @click="reset('useGrid')"
+                v-if="location !== null && options.gridType !== undefined"
+                @click="reset('gridType')"
                 :title="$t('game.ui.settings.common.reset_default')"
             >
                 <font-awesome-icon icon="times-circle" />

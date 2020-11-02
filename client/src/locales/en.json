@@ -247,6 +247,7 @@
                     "unit_size_in_UNIT": "Unit Size (in {unit})",
                     "use_grid": "Use grid",
                     "size_unit": "Size Unit",
+                    "grid_type": "Grid Type",
                     "SQUARE": "Squares",
                     "POINTY_HEX": "Pointy Hexagons",
                     "FLAT_HEX": "Flat Hexagons"

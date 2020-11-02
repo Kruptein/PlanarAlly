@@ -38,6 +38,7 @@ class LocationOptions(BaseModel):
     vision_max_range = FloatField(default=3281, null=True)
     spawn_locations = TextField(default="[]")
     move_player_on_token_change = BooleanField(default=True, null=True)
+    grid_type = TextField(default="SQUARE", null=True)
 
     def as_dict(self):
         return {

@@ -1,5 +1,6 @@
 export interface ServerLocationOptions {
     use_grid: boolean;
+    grid_type: string;
     unit_size: number;
     unit_size_unit: string;
     full_fow: boolean;
@@ -14,6 +15,7 @@ export interface ServerLocationOptions {
 
 export interface LocationOptions {
     useGrid: boolean;
+    gridType: string;
     unitSize: number;
     unitSizeUnit: string;
     fullFow: boolean;
@@ -48,6 +50,7 @@ export interface EditableServerClient {
 
 export const optionsToServer = (options: LocationOptions): ServerLocationOptions => ({
     use_grid: options.useGrid,
+    grid_type: options.gridType,
     unit_size: options.unitSize,
     unit_size_unit: options.unitSizeUnit,
     full_fow: options.fullFow,
@@ -62,6 +65,7 @@ export const optionsToServer = (options: LocationOptions): ServerLocationOptions
 
 export const optionsToClient = (options: ServerLocationOptions): LocationOptions => ({
     useGrid: options.use_grid,
+    gridType: options.grid_type ?? "SQUARE",
     unitSize: options.unit_size,
     unitSizeUnit: options.unit_size_unit,
     fullFow: options.full_fow,

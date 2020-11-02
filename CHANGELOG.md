@@ -11,6 +11,7 @@ These usually have no immediately visible impact on regular users
 ### Added
 
 -   Pressing the Enter button on a single selection will open the edit dialog for that shape
+-   Hexagon support (flat and pointy topped)
 
 ### Fixed
 

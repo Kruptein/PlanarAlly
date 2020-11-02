@@ -16,6 +16,7 @@ export interface GameSettingsState {
     unitSize: number;
     unitSizeUnit: string;
     useGrid: boolean;
+    gridType: string;
     fullFow: boolean;
     fowOpacity: number;
     fowLos: boolean;
@@ -75,21 +76,31 @@ class GameSettingsStore extends VuexModule implements GameSettingsState {
     get unitSizeUnit(): string {
         return this.currentLocationOptions.unitSizeUnit ?? this.defaultLocationOptions?.unitSizeUnit ?? "";
     }
+
     get useGrid(): boolean {
         return this.currentLocationOptions.useGrid ?? this.defaultLocationOptions?.useGrid ?? false;
     }
+
+    get gridType(): string {
+        return this.currentLocationOptions.gridType ?? this.defaultLocationOptions?.gridType ?? "SQUARE";
+    }
+
     get fullFow(): boolean {
         return this.currentLocationOptions.fullFow ?? this.defaultLocationOptions?.fullFow ?? false;
     }
+
     get fowOpacity(): number {
         return this.currentLocationOptions.fowOpacity ?? this.defaultLocationOptions?.fowOpacity ?? 0;
     }
+
     get fowLos(): boolean {
         return this.currentLocationOptions.fowLos ?? this.defaultLocationOptions?.fowLos ?? false;
     }
+
     get visionMinRange(): number {
         return this.currentLocationOptions.visionMinRange ?? this.defaultLocationOptions?.visionMinRange ?? 0;
     }
+
     get visionMaxRange(): number {
         return this.currentLocationOptions.visionMaxRange ?? this.defaultLocationOptions?.visionMaxRange ?? 0;
     }
@@ -158,6 +169,21 @@ class GameSettingsStore extends VuexModule implements GameSettingsState {
             }
 
             if (data.sync) sendLocationOptions({ options: { use_grid: data.useGrid }, location: data.location });
+        }
+    }
+
+    @Mutation
+    setGridType(data: { gridType: string; location: number | null; sync: boolean }): void {
+        if (!["SQUARE", "POINTY_HEX", "FLAT_HEX"].includes(data.gridType)) {
+            throw new Error("Unknown grid type set");
+        }
+        if (mutateLocationOption("gridType", data.gridType, data.location)) {
+            for (const floor of floorStore.floors) {
+                const gridLayer = layerManager.getGridLayer(floor)!;
+                gridLayer.invalidate();
+            }
+
+            if (data.sync) sendLocationOptions({ options: { grid_type: data.gridType }, location: data.location });
         }
     }
 

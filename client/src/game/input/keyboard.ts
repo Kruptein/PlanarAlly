@@ -20,7 +20,7 @@ export function onKeyUp(event: KeyboardEvent): void {
         if (event.key === "Delete" || event.key === "Del" || event.key === "Backspace") {
             deleteShapes();
         }
-        if (event.key === " " || (event.keyCode == 96 && event.ctrlKey === false)) {
+        if (event.key === " " || (event.keyCode == 96 && !event.ctrlKey)) {
             // Spacebar or numpad-zero: cycle through own tokens
             // numpad-zero only if Ctrl is not pressed, as this would otherwise conflict with Ctrl + 0
             const tokens = gameStore.ownedtokens.map(o => layerManager.UUIDMap.get(o)!);

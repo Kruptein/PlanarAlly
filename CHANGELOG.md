@@ -12,6 +12,7 @@ These usually have no immediately visible impact on regular users
 
 -   Pressing the Enter button on a single selection will open the edit dialog for that shape
 -   Hexagon support (flat and pointy topped)
+-   Navigate viewport with numpad, 5 will center viewport on origin; tokens can be moved (behaviour depending whether grid is square, flat-top-hex or pointy-topped-hex) with numpad
 
 ### Fixed
 
@@ -19,6 +20,7 @@ These usually have no immediately visible impact on regular users
 -   Annotations from other floors being shown
 -   Floor rename always setting a blank name
 -   Remember ruler visibility on tool change
+-   `Ctrl 0` now centers viewport on origin (before, it would show origin on the top-left of the viewport)
 
 ## [0.23.1] - 2020-10-25
 

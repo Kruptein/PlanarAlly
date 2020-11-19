@@ -20,7 +20,7 @@ export function onKeyUp(event: KeyboardEvent): void {
         if (event.key === "Delete" || event.key === "Del" || event.key === "Backspace") {
             deleteShapes();
         }
-        if (event.key === " " || (event.keyCode == 96 && !event.ctrlKey)) {
+        if (event.key === " " || (event.code === "Numpad0" && !event.ctrlKey)) {
             // Spacebar or numpad-zero: cycle through own tokens
             // numpad-zero only if Ctrl is not pressed, as this would otherwise conflict with Ctrl + 0
             const tokens = gameStore.ownedtokens.map(o => layerManager.UUIDMap.get(o)!);
@@ -44,33 +44,40 @@ export function onKeyDown(event: KeyboardEvent): void {
         // Ctrl-a with a HTMLInputElement or a HTMLTextAreaElement selected - select all the text
         if (event.key === "a" && event.ctrlKey) event.target.select();
     } else {
-        if (
-            // Arrow-Keys
-            (event.keyCode >= 37 && event.keyCode <= 40) ||
-            // Numpad 1-4
-            (event.keyCode >= 97 && event.keyCode <= 100) ||
-            //Numpad 6-9
-            (event.keyCode >= 102 && event.keyCode <= 105)
-        ) {
+        const navKeys = [
+            "ArrowLeft",
+            "ArrowRight",
+            "ArrowUp",
+            "ArrowDown",
+            "Numpad1",
+            "Numpad2",
+            "Numpad3",
+            "Numpad4",
+            "Numpad6",
+            "Numpad7",
+            "Numpad8",
+            "Numpad9",
+        ];
+        if (navKeys.includes(event.code)) {
             // Arrow keys & Numpad 1-4/6-9 - move the selection or the camera
             // todo: this should already be rounded
             const gridSize = DEFAULT_GRID_SIZE;
             let offsetX = 0;
             let offsetY = 0;
-            // movement is left-up, left, or left-down
-            if (event.keyCode == 37 || event.keyCode == 97 || event.keyCode == 100 || event.keyCode == 103) {
-                offsetX += gridSize * -1;
+            const left = ["ArrowLeft", "Numpad1", "Numpad4", "Numpad7"];
+            const right = ["ArrowRight", "Numpad3", "Numpad6", "Numpad9"];
+            const up = ["ArrowUp", "Numpad7", "Numpad8", "Numpad9"];
+            const down = ["ArrowDown", "Numpad1", "Numpad2", "Numpad3"];
+            if (left.includes(event.code)) {
+                offsetX -= gridSize;
             }
-            // movement is right-up, right, or right-down
-            if (event.keyCode == 39 || event.keyCode == 99 || event.keyCode == 102 || event.keyCode == 105) {
+            if (right.includes(event.code)) {
                 offsetX += gridSize;
             }
-            // movement is left-up, up, or right-up
-            if (event.keyCode == 38 || event.keyCode == 103 || event.keyCode == 104 || event.keyCode == 105) {
-                offsetY += gridSize * -1;
+            if (up.includes(event.code)) {
+                offsetY -= gridSize;
             }
-            // movement is left-down, down, or right-down
-            if (event.keyCode == 40 || event.keyCode == 97 || event.keyCode == 98 || event.keyCode == 99) {
+            if (down.includes(event.code)) {
                 offsetY += gridSize;
             }
             // in hex mode, if movement is diagonal, offsets have to be modified
@@ -83,15 +90,11 @@ export function onKeyDown(event: KeyboardEvent): void {
             }
             if (layerManager.hasSelection()) {
                 // if in hex-mode, first invalidate invalid axis
-                if (
-                    gameSettingsStore.gridType === "FLAT_HEX" &&
-                    (event.keyCode == 37 || event.keyCode == 39 || event.keyCode == 100 || event.keyCode == 102)
-                ) {
+                const flatHexInvalid = ["ArrowLeft", "ArrowRight", "Numpad4", "Numpad6"];
+                const pointyHexInvalid = ["ArrowUp", "ArrowDown", "Numpad2", "Numpad8"];
+                if (gameSettingsStore.gridType === "FLAT_HEX" && flatHexInvalid.includes(event.code)) {
                     offsetX = 0;
-                } else if (
-                    gameSettingsStore.gridType === "POINTY_HEX" &&
-                    (event.keyCode == 38 || event.keyCode == 40 || event.keyCode == 98 || event.keyCode == 104)
-                ) {
+                } else if (gameSettingsStore.gridType === "POINTY_HEX" && pointyHexInvalid.includes(event.code)) {
                     offsetY = 0;
                 }
                 const selection = layerManager.getSelection();
@@ -164,7 +167,7 @@ export function onKeyDown(event: KeyboardEvent): void {
             gameManager.setCenterPosition(new GlobalPoint(0, 0));
             sendClientLocationOptions();
             layerManager.invalidateAllFloors();
-        } else if (event.keyCode == 101) {
+        } else if (event.code === "Numpad5") {
             // numpad 5 will center on selected shape(s) or on origin
             let targetX = 0;
             let targetY = 0;
@@ -174,8 +177,8 @@ export function onKeyDown(event: KeyboardEvent): void {
                     targetX += sel.refPoint.x;
                     targetY += sel.refPoint.y;
                 }
-                targetX *= 1 / selection.length;
-                targetY *= 1 / selection.length;
+                targetX /= selection.length;
+                targetY /= selection.length;
             }
             gameManager.setCenterPosition(new GlobalPoint(targetX, targetY));
             sendClientLocationOptions();

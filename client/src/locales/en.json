@@ -119,6 +119,7 @@
                     "add_timed_effect": "Add timed effect",
                     "toggle_group": "Toggle individual / group initiative",
                     "delete_init": "Delete initiative",
+                    "delete_effect": "Delete effect",
                     "round_N": "Round {n}",
                     "vision_log_msg": "Auto lock vision (only show vision active token)",
                     "camera_log_msg": "Auto camera lock on active token",

@@ -291,6 +291,28 @@ async def update_initiative_effect(sid: str, data: ServerInitiativeEffectActor):
     )
 
 
+@sio.on("Initiative.Effect.Remove", namespace=GAME_NS)
+@auth.login_required(app, sio)
+async def remove_initiative_effect(sid: str, data: ServerInitiativeEffectActor):
+    pr: PlayerRoom = game_state.get(sid)
+
+    if not has_ownership(Shape.get_or_none(uuid=data["actor"]), pr):
+        logger.warning(f"{pr.player.name} attempted to remove an initiative effect")
+        return
+
+    with db.atomic():
+        effect = InitiativeEffect.get(uuid=data["effect"]["uuid"])
+        effect.delete_instance()
+
+    await sio.emit(
+        "Initiative.Effect.Remove",
+        data,
+        room=pr.active_location.get_path(),
+        skip_sid=sid,
+        namespace=GAME_NS,
+    )
+
+
 def get_client_initiatives(user: User, location: Location):
     location_data = InitiativeLocationData.get_or_none(location=location)
     if location_data is None:

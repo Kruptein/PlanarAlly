@@ -162,7 +162,6 @@ export default class Initiative extends Vue {
         this.syncInitiative(actor);
     }
     createEffect(actor: InitiativeData, effect: InitiativeEffect, sync: boolean): void {
-        if (!this.owns(actor)) return;
         actor.effects.push(effect);
         if (sync) sendInitiativeNewEffect({ actor: actor.uuid, effect });
     }

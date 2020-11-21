@@ -23,6 +23,7 @@ These usually have no immediately visible impact on regular users
 -   Remember ruler visibility on tool change
 -   `Ctrl 0` now centers viewport on origin (before, it would show origin on the top-left of the viewport)
 -   Initiative effects becoming NaN for non-numeric inputs
+-   New initiative effects not immediately synchronizing until a full client refresh
 
 ## [0.23.1] - 2020-10-25
 

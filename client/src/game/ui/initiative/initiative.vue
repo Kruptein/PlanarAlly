@@ -17,6 +17,7 @@ import {
     sendInitiativeRoundUpdate,
     sendInitiativeNewEffect,
     sendInitiativeUpdateEffect,
+    sendInitiativeRemoveEffect,
 } from "@/game/api/emits/initiative";
 import { EventBus } from "@/game/event-bus";
 import { layerManager } from "@/game/layers/manager";
@@ -53,6 +54,9 @@ export default class Initiative extends Vue {
         socket.on("Initiative.Effect.Update", (data: { actor: string; effect: InitiativeEffect }) =>
             this.updateEffect(data.actor, data.effect, false),
         );
+        socket.on("Initiative.Effect.Remove", (data: { actor: string; effect: InitiativeEffect }) =>
+            this.removeEffect(data.actor, data.effect, false),
+        );
     }
 
     beforeDestroy(): void {
@@ -64,6 +68,7 @@ export default class Initiative extends Vue {
         socket.off("Initiative.Round.Update");
         socket.off("Initiative.Effect.New");
         socket.off("Initiative.Effect.Update");
+        socket.off("Initiative.Effect.Remove");
     }
 
     // Utilities
@@ -172,6 +177,15 @@ export default class Initiative extends Vue {
         if (effectIndex === undefined) return;
         actor.effects[effectIndex] = effect;
         if (sync) this.syncEffect(actor, effect);
+        else this.$forceUpdate();
+    }
+    removeEffect(actorId: string, effect: InitiativeEffect, sync: boolean): void {
+        const actor = initiativeStore.data.find(a => a.uuid === actorId);
+        if (actor === undefined) return;
+        const effectIndex = actor.effects.findIndex(e => e.uuid === effect.uuid);
+        if (effectIndex === undefined) return;
+        actor.effects.splice(effectIndex, 1);
+        if (sync) sendInitiativeRemoveEffect({ actor: actorId, effect });
         else this.$forceUpdate();
     }
     toggleVisionLock(): void {
@@ -298,6 +312,14 @@ export default class Initiative extends Vue {
                                     :size="effect.turns.toString().length || 1"
                                     @change="updateEffect(actor.uuid, effect, true)"
                                 />
+                                <div
+                                    :style="{ opacity: owns(actor) ? '1.0' : '0.3' }"
+                                    :class="{ notAllowed: !owns(actor) }"
+                                    @click="removeEffect(actor.uuid, effect, true)"
+                                    :title="$t('game.ui.initiative.initiative.delete_effect')"
+                                >
+                                    <font-awesome-icon icon="trash-alt" />
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -432,7 +454,6 @@ export default class Initiative extends Vue {
     border: none;
     background-color: inherit;
     text-align: right;
-    margin-left: 20px;
     min-width: 10px;
 }
 .initiative-effect > * > *:first-child {

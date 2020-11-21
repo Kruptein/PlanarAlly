@@ -13,6 +13,7 @@ These usually have no immediately visible impact on regular users
 -   Pressing the Enter button on a single selection will open the edit dialog for that shape
 -   Hexagon support (flat and pointy topped)
 -   Navigate viewport with numpad, 5 will center viewport on origin; tokens can be moved (behaviour depending whether grid is square, flat-top-hex or pointy-topped-hex) with numpad
+-   Remove button to initiative effects
 
 ### Fixed
 

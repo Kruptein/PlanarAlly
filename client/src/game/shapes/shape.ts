@@ -54,6 +54,7 @@ import { BoundingRect } from "./variants/boundingrect";
 import { Aura, Label, Tracker } from "./interfaces";
 import { PartialShapeOwner, ShapeAccess, ShapeOwner } from "./owners";
 import { SHAPE_TYPE } from "./types";
+import { EventBus } from "../event-bus";
 
 export abstract class Shape {
     // Used to create class instance from server shape data
@@ -682,6 +683,9 @@ export abstract class Shape {
     setName(name: string, sync: boolean): void {
         if (sync) sendShapeSetName({ shape: this.uuid, value: name });
         this.name = name;
+        // Initiative names are not always updated when renaming shapes
+        // This is due to these shapes not yet being reactive
+        EventBus.$emit("Initiative.ForceUpdate");
     }
 
     setNameVisible(visible: boolean, sync: boolean): void {

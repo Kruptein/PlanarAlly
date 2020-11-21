@@ -22,7 +22,7 @@ from models import ALL_MODELS, Constants
 from models.db import db
 from utils import OldVersionException, UnknownVersionException
 
-SAVE_VERSION = 44
+SAVE_VERSION = 45
 
 logger: logging.Logger = logging.getLogger("PlanarAllyServer")
 logger.setLevel(logging.INFO)
@@ -632,6 +632,7 @@ def upgrade(version):
                 f"INSERT INTO constants (id, save_version, secret_token, api_token) SELECT id, save_version, secret_token, '{api_token}' FROM _constants_42"
             )
     elif version == 43:
+        # Add grid_type
         with db.atomic():
             db.execute_sql(
                 "ALTER TABLE location_options ADD COLUMN grid_type TEXT DEFAULT NULL"
@@ -641,7 +642,19 @@ def upgrade(version):
                 db.execute_sql(
                     f"UPDATE location_options SET 'grid_type' = 'SQUARE' WHERE id = '{row[0]}'"
                 )
-
+    elif version == 44:
+        # Change initiative effect turns to textfield
+        with db.atomic():
+            db.execute_sql(
+                "CREATE TEMPORARY TABLE _initiative_effect_44 AS SELECT * FROM initiative_effect"
+            )
+            db.execute_sql("DROP TABLE initiative_effect")
+            db.execute_sql(
+                'CREATE TABLE IF NOT EXISTS "initiative_effect" ("uuid" TEXT NOT NULL PRIMARY KEY, "initiative_id" TEXT NOT NULL, "name" TEXT NOT NULL, "turns" TEXT NOT NULL, FOREIGN KEY ("initiative_id") REFERENCES "initiative" ("uuid") ON DELETE CASCADE)'
+            )
+            db.execute_sql(
+                "INSERT INTO initiative_effect (uuid, initiative_id, name, turns) SELECT uuid, initiative_id, name, turns FROM _initiative_effect_44"
+            )
     else:
         raise UnknownVersionException(
             f"No upgrade code for save format {version} was found."

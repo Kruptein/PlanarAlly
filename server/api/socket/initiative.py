@@ -198,10 +198,15 @@ async def update_initiative_turn(sid: str, data: str):
             InitiativeEffect.select().join(Initiative).where(Initiative.uuid == data)
         )
         for effect in effects:
-            if effect.turns <= 0:
-                effect.delete_instance()
-            else:
-                effect.turns -= 1
+            try:
+                turns = int(effect.turns)
+                if turns <= 0:
+                    effect.delete_instance()
+                else:
+                    effect.turns = str(turns - 1)
+            except ValueError:
+                # For non-number inputs do not update the effect
+                pass
             effect.save()
 
     await sio.emit(

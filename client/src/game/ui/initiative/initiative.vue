@@ -110,8 +110,10 @@ export default class Initiative extends Vue {
         if (actor === undefined) return;
         if (actor.effects) {
             for (let e = actor.effects.length - 1; e >= 0; e--) {
-                if (actor.effects[e].turns <= 0) actor.effects.splice(e, 1);
-                else actor.effects[e].turns--;
+                if (!isNaN(+actor.effects[e].turns)) {
+                    if (actor.effects[e].turns <= 0) actor.effects.splice(e, 1);
+                    else actor.effects[e].turns--;
+                }
             }
         }
         if (this.visionLock) {
@@ -220,7 +222,7 @@ export default class Initiative extends Vue {
                 :disabled="!$store.state.game.IS_DM"
             >
                 <template v-for="actor in $store.state.initiative.data">
-                    <div :key="actor.uuid" style="display:flex;flex-direction:column;align-items:flex-end;">
+                    <div :key="actor.uuid" style="display: flex; flex-direction: column; align-items: flex-end">
                         <div
                             class="initiative-actor"
                             :class="{ 'initiative-selected': $store.state.initiative.currentActor === actor.uuid }"
@@ -232,7 +234,7 @@ export default class Initiative extends Vue {
                                 <img :src="actor.source" width="30px" height="30px" :title="getName(actor)" alt="" />
                             </template>
                             <template v-else>
-                                <span style="width: auto;">{{ getName(actor) }}</span>
+                                <span style="width: auto">{{ getName(actor) }}</span>
                             </template>
                             <input
                                 type="text"
@@ -255,9 +257,7 @@ export default class Initiative extends Vue {
                                 <template v-if="actor.effects">
                                     {{ actor.effects.length }}
                                 </template>
-                                <template v-else>
-                                    0
-                                </template>
+                                <template v-else>0</template>
                             </div>
                             <div
                                 :style="{ opacity: actor.visible ? '1.0' : '0.3' }"
@@ -307,7 +307,7 @@ export default class Initiative extends Vue {
                 <div id="initiative-round">
                     {{ $tc("game.ui.initiative.initiative.round_N", $store.state.initiative.roundCounter) }}
                 </div>
-                <div style="display:flex;"></div>
+                <div style="display: flex"></div>
                 <div
                     class="initiative-bar-button"
                     :style="visionLock ? 'background-color: #82c8a0' : ''"

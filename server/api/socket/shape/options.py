@@ -254,10 +254,19 @@ async def set_name(sid: str, data: ShapeSetStringValue):
     shape.name = data["value"]
     shape.save()
 
-    for sid in get_owner_sids(pr, shape, skip_sid=sid):
+    if shape.name_visible:
         await sio.emit(
-            "Shape.Options.Name.Set", data, room=sid, namespace=GAME_NS,
+            "Shape.Options.Name.Set",
+            data,
+            skip_sid=sid,
+            room=pr.active_location.get_path(),
+            namespace=GAME_NS,
         )
+    else:
+        for sid in get_owner_sids(pr, shape, skip_sid=sid):
+            await sio.emit(
+                "Shape.Options.Name.Set", data, room=sid, namespace=GAME_NS,
+            )
 
 
 @sio.on("Shape.Options.NameVisible.Set", namespace=GAME_NS)

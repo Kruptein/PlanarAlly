@@ -24,6 +24,8 @@ These usually have no immediately visible impact on regular users
 -   `Ctrl 0` now centers viewport on origin (before, it would show origin on the top-left of the viewport)
 -   Initiative effects becoming NaN for non-numeric inputs
 -   New initiative effects not immediately synchronizing until a full client refresh
+-   Shape name updates not syncing for public names to users that do not own the shape
+-   Shape name updates not always updating on the initiative list
 
 ## [0.23.1] - 2020-10-25
 

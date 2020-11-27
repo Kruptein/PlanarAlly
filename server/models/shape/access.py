@@ -5,7 +5,7 @@ from models.role import Role
 from models.shape import Shape, ShapeOwner
 
 
-def has_ownership(shape: Shape, pr: PlayerRoom) -> bool:
+def has_ownership(shape: Shape, pr: PlayerRoom, movement=False) -> bool:
     if shape is None:
         return False
 
@@ -16,6 +16,9 @@ def has_ownership(shape: Shape, pr: PlayerRoom) -> bool:
         return False
 
     if shape.default_edit_access:
+        return True
+
+    if movement and shape.default_movement_access:
         return True
 
     return ShapeOwner.get_or_none(shape=shape, user=pr.player) is not None

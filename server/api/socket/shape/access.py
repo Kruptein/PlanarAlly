@@ -200,3 +200,4 @@ async def update_default_shape_owner(sid: str, data: ServerShapeDefaultOwner):
             room=sid,
             namespace=GAME_NS,
         )
+        await send_client_initiatives(pr, player)

@@ -27,6 +27,7 @@ These usually have no immediately visible impact on regular users
 -   Shape name updates not syncing for public names to users that do not own the shape
 -   Shape name updates not always updating on the initiative list
 -   Moving shapes with default movement permissions not working
+-   Various bugs with initiative permission updates
 
 ## [0.23.1] - 2020-10-25
 

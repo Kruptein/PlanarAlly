@@ -5,7 +5,7 @@ from models.role import Role
 from models.shape import Shape, ShapeOwner
 
 
-def has_ownership(shape: Shape, pr: PlayerRoom) -> bool:
+def has_ownership(shape: Shape, pr: PlayerRoom, movement=False) -> bool:
     if shape is None:
         return False
 
@@ -18,25 +18,7 @@ def has_ownership(shape: Shape, pr: PlayerRoom) -> bool:
     if shape.default_edit_access:
         return True
 
+    if movement and shape.default_movement_access:
+        return True
+
     return ShapeOwner.get_or_none(shape=shape, user=pr.player) is not None
-
-
-def has_ownership_temp(shape: Dict[str, Any], pr: PlayerRoom) -> bool:
-    if shape is None:
-        return False
-
-    if pr.role == Role.DM:
-        return True
-
-    floor: Floor = pr.active_location.floors.select().where(
-        Floor.name == shape["floor"]
-    )[0]
-    layer: Layer = floor.layers.where(Layer.name == shape["layer"])[0]
-
-    if not layer.player_editable:
-        return False
-
-    if shape["default_edit_access"]:
-        return True
-
-    return any(pr.player.name == o["user"] for o in shape["owners"])

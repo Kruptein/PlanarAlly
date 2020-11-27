@@ -30,7 +30,7 @@ from models import (
 from models.campaign import Location
 from models.db import db
 from models.role import Role
-from models.shape.access import has_ownership, has_ownership_temp
+from models.shape.access import has_ownership
 from models.utils import get_table, reduce_data_to_model
 from state.game import game_state
 from utils import logger
@@ -112,7 +112,7 @@ async def update_shape_positions(sid: str, data: PositionUpdateList):
 
     for sh in data["shapes"]:
         shape = Shape.get_or_none(Shape.uuid == sh["uuid"])
-        if shape is not None and not has_ownership(shape, pr):
+        if shape is not None and not has_ownership(shape, pr, movement=True):
             logger.warning(
                 f"User {pr.player.name} attempted to move a shape it does not own."
             )

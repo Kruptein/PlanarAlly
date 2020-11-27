@@ -39,7 +39,7 @@ export default class Initiative extends Vue {
 
     mounted(): void {
         EventBus.$on("Initiative.Clear", initiativeStore.clear);
-        EventBus.$on("Initiative.Remove", (data: string) => this.removeInitiative(data));
+        EventBus.$on("Initiative.Remove", (data: string) => this.removeInitiative(data, false));
         EventBus.$on("Initiative.Show", () => (this.visible = true));
         EventBus.$on("Initiative.ForceUpdate", () => this.$forceUpdate());
 
@@ -80,7 +80,7 @@ export default class Initiative extends Vue {
         const shape = layerManager.UUIDMap.get(actor.uuid);
         // Shapes that are unknown to this client are hidden from this client but owned by other clients
         if (shape === undefined) return false;
-        return shape.hasOwner(gameStore.username);
+        return shape.ownedBy({ editAccess: true });
     }
     getDefaultEffect(): { uuid: string; name: string; turns: number } {
         return { uuid: uuidv4(), name: this.$t("game.ui.initiative.initiative.new_effect").toString(), turns: 10 };
@@ -92,10 +92,11 @@ export default class Initiative extends Vue {
         sendInitiativeUpdate(data);
     }
     // Events
-    removeInitiative(uuid: string): void {
+    removeInitiative(uuid: string, sync: boolean): void {
         const d = initiativeStore.data.findIndex(a => a.uuid === uuid);
         if (d < 0 || initiativeStore.data[d].group) return;
-        sendInitiativeRemove(uuid);
+        initiativeStore.data.splice(d, 1);
+        if (sync) sendInitiativeRemove(uuid);
         // Remove highlight
         const shape = layerManager.UUIDMap.get(uuid);
         if (shape === undefined) return;
@@ -291,7 +292,7 @@ export default class Initiative extends Vue {
                             <div
                                 :style="{ opacity: owns(actor) ? '1.0' : '0.3' }"
                                 :class="{ notAllowed: !owns(actor) }"
-                                @click="removeInitiative(actor.uuid, true, true)"
+                                @click="removeInitiative(actor.uuid, true)"
                                 :title="$t('game.ui.initiative.initiative.delete_init')"
                             >
                                 <font-awesome-icon icon="trash-alt" />

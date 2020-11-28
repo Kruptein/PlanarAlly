@@ -1,9 +1,9 @@
 import { GlobalPoint } from "@/game/geom";
-import { BoundingRect } from "@/game/shapes/boundingrect";
 import { Shape } from "@/game/shapes/shape";
-import { ServerText } from "../comm/types/shapes";
-import { rotateAroundPoint } from "../utils";
-import { SHAPE_TYPE } from "./types";
+import { BoundingRect } from "@/game/shapes/variants/boundingrect";
+import { ServerText } from "../../comm/types/shapes";
+import { rotateAroundPoint } from "../../utils";
+import { SHAPE_TYPE } from "../types";
 
 export class Text extends Shape {
     type: SHAPE_TYPE = "text";
@@ -13,14 +13,17 @@ export class Text extends Shape {
         position: GlobalPoint,
         text: string,
         font: string,
-        fillColour?: string,
-        strokeColour?: string,
-        uuid?: string,
+        options?: {
+            fillColour?: string;
+            strokeColour?: string;
+            uuid?: string;
+        },
     ) {
-        super(position, fillColour, strokeColour, uuid);
+        super(position, options);
         this.text = text;
         this.font = font;
     }
+
     asDict(): ServerText {
         return Object.assign(this.getBaseDict(), {
             text: this.text,
@@ -28,12 +31,15 @@ export class Text extends Shape {
             angle: this.angle,
         });
     }
+
     get points(): number[][] {
         return [[...rotateAroundPoint(this.refPoint, this.center(), this.angle)]];
     }
+
     getBoundingBox(): BoundingRect {
         return new BoundingRect(this.refPoint, 5, 5); // TODO: fix this bounding box
     }
+
     draw(ctx: CanvasRenderingContext2D): void {
         super.draw(ctx);
         ctx.font = this.font;
@@ -50,6 +56,7 @@ export class Text extends Shape {
         // ctx.restore();
         super.drawPost(ctx);
     }
+
     contains(_point: GlobalPoint): boolean {
         return false; // TODO
     }

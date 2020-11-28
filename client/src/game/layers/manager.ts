@@ -128,17 +128,17 @@ class LayerManager {
     }
 
     getGridLayer(floor: Floor): GridLayer | undefined {
-        return <GridLayer>this.getLayer(floor, "grid");
+        return this.getLayer(floor, "grid") as GridLayer;
     }
 
     hasSelection(): boolean {
         const selection = this.getSelection();
-        return selection !== undefined && selection.length > 0;
+        return selection.length > 0;
     }
 
-    getSelection(skipUiHelpers = true): readonly Shape[] | undefined {
+    getSelection(skipUiHelpers = true): readonly Shape[] {
         const layer = this.getLayer(floorStore.currentFloor);
-        if (layer === undefined) return undefined;
+        if (layer === undefined) return [];
         return layer.getSelection(skipUiHelpers);
     }
 
@@ -188,4 +188,4 @@ class LayerManager {
 }
 
 export const layerManager = new LayerManager();
-(<any>window).lm = layerManager;
+(window as any).lm = layerManager;

@@ -15,7 +15,6 @@ import Tool from "./tool.vue";
 import VisionTool from "@/game/ui/tools/vision.vue";
 
 import { layerManager } from "@/game/layers/manager";
-import { gameManager } from "@/game/manager";
 import { gameStore } from "@/game/store";
 import { PingTool } from "@/game/ui/tools/ping";
 import { l2g } from "@/game/units";
@@ -23,6 +22,7 @@ import { getLocalPointFromEvent } from "@/game/utils";
 import { ToolName, ToolFeatures } from "./utils";
 import { EventBus } from "@/game/event-bus";
 import { floorStore } from "@/game/layers/store";
+import UI from "../ui.vue";
 
 @Component({
     components: {
@@ -40,10 +40,10 @@ import { floorStore } from "@/game/layers/store";
     },
     watch: {
         currentTool(newValue: ToolName, oldValue: ToolName) {
-            const old = (<Tools>this).componentMap[oldValue];
+            const old = (this as Tools).componentMap[oldValue];
             old.selected = false;
             old.onDeselect();
-            const new_ = (<Tools>this).componentMap[newValue];
+            const new_ = (this as Tools).componentMap[newValue];
             new_.selected = true;
             new_.onSelect();
         },
@@ -63,7 +63,7 @@ export default class Tools extends Vue {
 
     mode: "Build" | "Play" = "Play";
 
-    private componentmap_: { [key in ToolName]: InstanceType<typeof Tool> } = <any>{};
+    private componentmap_: { [key in ToolName]: InstanceType<typeof Tool> } = {} as any;
 
     mounted(): void {
         this.componentmap_ = {
@@ -138,7 +138,7 @@ export default class Tools extends Vue {
     }
 
     mousedown(event: MouseEvent): void {
-        if ((<HTMLElement>event.target).tagName !== "CANVAS") return;
+        if ((event.target as HTMLElement).tagName !== "CANVAS") return;
 
         let targetTool = this.currentTool;
         if (event.button === 1) {
@@ -153,7 +153,7 @@ export default class Tools extends Vue {
             this.componentMap[permitted.name].onMouseDown(event, permitted.features);
     }
     mouseup(event: MouseEvent): void {
-        if ((<HTMLElement>event.target).tagName !== "CANVAS") return;
+        if ((event.target as HTMLElement).tagName !== "CANVAS") return;
 
         let targetTool = this.currentTool;
         if (event.button === 1) {
@@ -168,7 +168,7 @@ export default class Tools extends Vue {
             this.componentMap[permitted.name].onMouseUp(event, permitted.features);
     }
     mousemove(event: MouseEvent): void {
-        if ((<HTMLElement>event.target).tagName !== "CANVAS") return;
+        if ((event.target as HTMLElement).tagName !== "CANVAS") return;
 
         let targetTool = this.currentTool;
         // force targetTool to pan if hitting mouse wheel
@@ -188,14 +188,17 @@ export default class Tools extends Vue {
         for (const uuid of gameStore.annotations) {
             if (layerManager.UUIDMap.has(uuid) && layerManager.hasLayer(floorStore.currentFloor, "draw")) {
                 const shape = layerManager.UUIDMap.get(uuid)!;
-                if (shape.contains(l2g(getLocalPointFromEvent(event)))) {
+                if (
+                    shape.floor.id === floorStore.currentFloor.id &&
+                    shape.contains(l2g(getLocalPointFromEvent(event)))
+                ) {
                     found = true;
-                    gameManager.annotationManager.setActiveText(shape.annotation);
+                    (this.$parent as UI).$refs.annotation.setActiveText(shape.annotation);
                 }
             }
         }
-        if (!found && gameManager.annotationManager.shown) {
-            gameManager.annotationManager.setActiveText("");
+        if (!found) {
+            (this.$parent as UI).$refs.annotation.setActiveText("");
         }
     }
     mouseleave(event: MouseEvent): void {
@@ -205,8 +208,8 @@ export default class Tools extends Vue {
             this.componentMap[permitted.name].onMouseUp(event, permitted.features);
     }
     contextmenu(event: MouseEvent): void {
-        if ((<HTMLElement>event.target).tagName !== "CANVAS") return;
-        if (event.button !== 2 || (<HTMLElement>event.target).tagName !== "CANVAS") return;
+        if ((event.target as HTMLElement).tagName !== "CANVAS") return;
+        if (event.button !== 2 || (event.target as HTMLElement).tagName !== "CANVAS") return;
         const tool = this.componentMap[this.currentTool];
         tool.onContextMenu(event, this.getFeatures(this.currentTool));
         for (const permitted of tool.permittedTools)
@@ -214,7 +217,7 @@ export default class Tools extends Vue {
     }
 
     touchstart(event: TouchEvent): void {
-        if ((<HTMLElement>event.target).tagName !== "CANVAS") return;
+        if ((event.target as HTMLElement).tagName !== "CANVAS") return;
 
         const tool = this.componentMap[this.currentTool];
 
@@ -233,7 +236,7 @@ export default class Tools extends Vue {
     }
 
     touchend(event: TouchEvent): void {
-        if ((<HTMLElement>event.target).tagName !== "CANVAS") return;
+        if ((event.target as HTMLElement).tagName !== "CANVAS") return;
 
         const tool = this.componentMap[this.currentTool];
 
@@ -249,7 +252,7 @@ export default class Tools extends Vue {
     }
 
     touchmove(event: TouchEvent): void {
-        if ((<HTMLElement>event.target).tagName !== "CANVAS") return;
+        if ((event.target as HTMLElement).tagName !== "CANVAS") return;
 
         const tool = this.componentMap[this.currentTool];
 
@@ -276,12 +279,12 @@ export default class Tools extends Vue {
                 const shape = layerManager.UUIDMap.get(uuid)!;
                 if (shape.contains(l2g(getLocalPointFromEvent(event)))) {
                     found = true;
-                    gameManager.annotationManager.setActiveText(shape.annotation);
+                    (this.$parent as UI).$refs.annotation.setActiveText(shape.annotation);
                 }
             }
         }
-        if (!found && gameManager.annotationManager.shown) {
-            gameManager.annotationManager.setActiveText("");
+        if (!found) {
+            (this.$parent as UI).$refs.annotation.setActiveText("");
         }
     }
 

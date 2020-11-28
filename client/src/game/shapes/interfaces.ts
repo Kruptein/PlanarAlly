@@ -1,4 +1,4 @@
-interface Tracker {
+export interface Tracker {
     uuid: string;
     visible: boolean;
     name: string;
@@ -7,7 +7,7 @@ interface Tracker {
     temporary: boolean; // this is for trackers unknown to the server
 }
 
-interface Aura {
+export interface Aura {
     uuid: string;
     visionSource: boolean;
     visible: boolean;
@@ -19,7 +19,7 @@ interface Aura {
     temporary: boolean; // this is for auras unknown to the server
 }
 
-interface Label {
+export interface Label {
     uuid: string;
     category: string;
     name: string;

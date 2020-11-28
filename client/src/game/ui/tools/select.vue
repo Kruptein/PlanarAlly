@@ -8,7 +8,7 @@ import { EventBus } from "@/game/event-bus";
 import { GlobalPoint, LocalPoint, Ray, Vector } from "@/game/geom";
 import { Layer } from "@/game/layers/layer";
 import { snapToPoint } from "@/game/layers/utils";
-import { Rect } from "@/game/shapes/rect";
+import { Rect } from "@/game/shapes/variants/rect";
 import { gameStore } from "@/game/store";
 import { calculateDelta, ToolName, ToolFeatures } from "@/game/ui/tools/utils";
 import { g2l, g2lx, g2ly, l2g, l2gz } from "@/game/units";
@@ -17,10 +17,10 @@ import { visibilityStore } from "@/game/visibility/store";
 import { TriangulationTarget } from "@/game/visibility/te/pa";
 import { gameSettingsStore } from "../../settings";
 import { ToolBasics } from "./ToolBasics";
-import { Circle } from "../../shapes/circle";
-import { Line } from "../../shapes/line";
+import { Circle } from "../../shapes/variants/circle";
+import { Line } from "../../shapes/variants/line";
 import { SyncMode, InvalidationMode } from "../../../core/comm/types";
-import { BoundingRect } from "../../shapes/boundingrect";
+import { BoundingRect } from "../../shapes/variants/boundingrect";
 import { floorStore } from "@/game/layers/store";
 import { sendShapePositionUpdate, sendShapeSizeUpdate } from "../../api/emits/shape/core";
 import { Shape } from "@/game/shapes/shape";
@@ -78,7 +78,7 @@ export default class SelectTool extends Tool implements ToolBasics {
         EventBus.$on("SelectionInfo.Shapes.Set", (shapes: Shape[]) => {
             this.removeRotationUi();
             // We don't have feature information, might want to store this as a property instead ?
-            if ((<Tools>this.$parent).mode === "Build" && shapes.length > 0) this.createRotationUi({});
+            if ((this.$parent as Tools).mode === "Build" && shapes.length > 0) this.createRotationUi({});
         });
     }
 
@@ -170,7 +170,10 @@ export default class SelectTool extends Tool implements ToolBasics {
             this.selectionStartPoint = gp;
 
             if (this.selectionHelper === null) {
-                this.selectionHelper = new Rect(this.selectionStartPoint, 0, 0, "rgba(0, 0, 0, 0)", "#7c253e");
+                this.selectionHelper = new Rect(this.selectionStartPoint, 0, 0, {
+                    fillColour: "rgba(0, 0, 0, 0)",
+                    strokeColour: "#7c253e",
+                });
                 this.selectionHelper.strokeWidth = 2;
                 this.selectionHelper.options.set("UiHelper", "true");
                 this.selectionHelper.addOwner({ user: gameStore.username, access: { edit: true } }, false);
@@ -308,6 +311,8 @@ export default class SelectTool extends Tool implements ToolBasics {
 
     onUp(_lp: LocalPoint, event: MouseEvent | TouchEvent, features: ToolFeatures<SelectFeatures>): void {
         if (!this.active) return;
+        this.active = false;
+
         if (floorStore.currentLayer === undefined) {
             console.log("No active layer!");
             return;
@@ -463,7 +468,6 @@ export default class SelectTool extends Tool implements ToolBasics {
             }
         }
         this.mode = SelectOperations.Noop;
-        this.active = false;
     }
 
     onContextMenu(event: MouseEvent, features: ToolFeatures<SelectFeatures>): void {
@@ -478,7 +482,7 @@ export default class SelectTool extends Tool implements ToolBasics {
         for (const shape of layer.getSelection()) {
             if (shape.contains(globalMouse)) {
                 layer.invalidate(true);
-                (<ShapeContext>this.$parent.$refs.shapecontext).open(event);
+                (this.$parent.$refs.shapecontext as ShapeContext).open(event);
                 return;
             }
         }
@@ -489,12 +493,12 @@ export default class SelectTool extends Tool implements ToolBasics {
             if (shape.contains(globalMouse)) {
                 layer.setSelection(shape);
                 layer.invalidate(true);
-                (<ShapeContext>this.$parent.$refs.shapecontext).open(event);
+                (this.$parent.$refs.shapecontext as ShapeContext).open(event);
                 return;
             }
         }
         // super call
-        (<any>Tool).options.methods.onContextMenu.call(this, event, features);
+        (Tool as any).options.methods.onContextMenu.call(this, event, features);
     }
     updateCursor(layer: Layer, globalMouse: GlobalPoint): void {
         let cursorStyle = "default";
@@ -546,10 +550,13 @@ export default class SelectTool extends Tool implements ToolBasics {
         const topCenterPlus = topCenter.add(new Vector(0, -150));
 
         this.angle = 0;
-        this.rotationAnchor = new Line(topCenter, topCenterPlus, l2gz(1.5), "#7c253e");
-        this.rotationBox = new Rect(bbox.topLeft, bbox.w, bbox.h, "rgba(0,0,0,0)", "#7c253e");
+        this.rotationAnchor = new Line(topCenter, topCenterPlus, { lineWidth: l2gz(1.5), strokeColour: "#7c253e" });
+        this.rotationBox = new Rect(bbox.topLeft, bbox.w, bbox.h, {
+            fillColour: "rgba(0,0,0,0)",
+            strokeColour: "#7c253e",
+        });
         this.rotationBox.strokeWidth = 1.5;
-        this.rotationEnd = new Circle(topCenterPlus, l2gz(4), "#7c253e", "rgba(0,0,0,0)");
+        this.rotationEnd = new Circle(topCenterPlus, l2gz(4), { fillColour: "#7c253e", strokeColour: "rgba(0,0,0,0)" });
 
         for (const rotationShape of [this.rotationAnchor, this.rotationBox, this.rotationEnd]) {
             rotationShape.addOwner({ user: gameStore.username, access: { edit: true } }, false);

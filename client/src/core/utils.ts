@@ -1,3 +1,5 @@
+import { BASE_PATH } from "../utils";
+
 // Reference: https://stackoverflow.com/questions/105034/create-guid-uuid-in-javascript
 export function uuidv4(): string {
     return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, c => {
@@ -35,7 +37,7 @@ export function getHTMLFont(element: HTMLElement): string {
 }
 
 export function getHTMLTextWidth(text: string, font: string): number {
-    let fakeElement = <HTMLCanvasElement>document.getElementById("emptycanvas");
+    let fakeElement = document.getElementById("emptycanvas") as HTMLCanvasElement;
     if (fakeElement === null) {
         fakeElement = document.createElement("canvas");
         fakeElement.id = "emptycanvas";
@@ -99,10 +101,33 @@ export class OrderedMap<K, V> {
     }
 }
 
+export async function baseAdjustedFetch(url: string): Promise<Response> {
+    if (url.startsWith("/")) url = url.slice(1);
+    return await fetch(BASE_PATH + url);
+}
+
+// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export async function postFetch(url: string, data?: any): Promise<Response> {
-    return await fetch(url, {
+    if (url.startsWith("/")) url = url.slice(1);
+    return await fetch(BASE_PATH + url, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data ?? {}),
     });
+}
+
+export function baseAdjust(url: string): string {
+    if (url.startsWith("/")) url = url.slice(1);
+    return BASE_PATH + url;
+}
+
+export async function getErrorReason(response: Response): Promise<string> {
+    const responseText: string = await response.text();
+    // responseText will be "<statusCode>: <error message>"
+    // trim that down, to just return the error message
+    const index = responseText.indexOf(":");
+    if (index >= 0) {
+        return responseText.substring(index + 1).trim();
+    }
+    return responseText;
 }

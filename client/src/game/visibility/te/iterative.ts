@@ -172,7 +172,7 @@ export class IterativeDelete {
             } else if (pointHandled) {
                 continue;
             }
-            const ev = (<[Vertex, Vertex]>edge.vertices()).sort((a: Vertex, b: Vertex) =>
+            const ev = (edge.vertices() as [Vertex, Vertex]).sort((a: Vertex, b: Vertex) =>
                 xySmaller(a.point!, b.point!) ? -1 : 1,
             );
             const constraint: Constraint = {
@@ -190,11 +190,11 @@ export class IterativeDelete {
     }
 
     private addEdge(edge: Edge): void {
-        const ev = (<[Vertex, Vertex]>edge.vertices()).sort((a: Vertex, b: Vertex) =>
+        const ev = (edge.vertices() as [Vertex, Vertex]).sort((a: Vertex, b: Vertex) =>
             xySmaller(a.point!, b.point!) ? -1 : 1,
         );
         for (const e of this.edges) {
-            const evO = (<[Vertex, Vertex]>e.vertices()).sort((a: Vertex, b: Vertex) =>
+            const evO = (e.vertices() as [Vertex, Vertex]).sort((a: Vertex, b: Vertex) =>
                 xySmaller(a.point!, b.point!) ? -1 : 1,
             );
             if (equalPoints(ev[0].point!, evO[0].point!) && equalPoints(ev[1].point!, evO[1].point!)) return;

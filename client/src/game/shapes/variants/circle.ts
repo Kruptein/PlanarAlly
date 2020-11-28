@@ -1,20 +1,25 @@
 import { ServerCircle } from "@/game/comm/types/shapes";
 import { GlobalPoint, Vector } from "@/game/geom";
-import { BoundingRect } from "@/game/shapes/boundingrect";
 import { Shape } from "@/game/shapes/shape";
+import { BoundingRect } from "@/game/shapes/variants/boundingrect";
 import { calculateDelta } from "@/game/ui/tools/utils";
 import { clampGridLine, g2lz } from "@/game/units";
 import { getFogColour } from "@/game/utils";
-import { DEFAULT_GRID_SIZE } from "../store";
-import { SHAPE_TYPE } from "./types";
+import { DEFAULT_GRID_SIZE } from "../../store";
+import { SHAPE_TYPE } from "../types";
 
 export class Circle extends Shape {
     type: SHAPE_TYPE = "circle";
     r: number;
-    constructor(center: GlobalPoint, r: number, fillColour?: string, strokeColour?: string, uuid?: string) {
-        super(center, fillColour, strokeColour, uuid);
+    constructor(
+        center: GlobalPoint,
+        r: number,
+        options?: { fillColour?: string; strokeColour?: string; uuid?: string },
+    ) {
+        super(center, options);
         this.r = r || 1;
     }
+
     asDict(): ServerCircle {
         // const base = <ServerCircle>this.getBaseDict();
         // base.r = this.r;
@@ -24,10 +29,12 @@ export class Circle extends Shape {
             radius: this.r,
         });
     }
+
     fromDict(data: ServerCircle): void {
         super.fromDict(data);
         this.r = data.radius;
     }
+
     getBoundingBox(): BoundingRect {
         return new BoundingRect(
             new GlobalPoint(this.refPoint.x - this.r, this.refPoint.y - this.r),

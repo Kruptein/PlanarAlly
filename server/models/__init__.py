@@ -5,6 +5,7 @@ from .campaign import *
 from .general import *
 from .initiative import *
 from .label import *
+from .notifications import *
 from .shape import *
 from .signals import *
 from .user import *

@@ -10,7 +10,7 @@ import Modal from "@/core/components/modals/modal.vue";
 
 import { calcFontScale } from "@/core/utils";
 import { LocalPoint } from "@/game/geom";
-import { CircularToken } from "@/game/shapes/circulartoken";
+import { CircularToken } from "@/game/shapes/variants/circulartoken";
 import { gameStore } from "@/game/store";
 import { getUnitDistance, l2g } from "@/game/units";
 import { Watch } from "vue-property-decorator";
@@ -65,15 +65,14 @@ export default class CreateTokenModal extends Vue {
             getUnitDistance(gameSettingsStore.unitSize / 2),
             this.text,
             "10px serif",
-            this.fillColour,
-            this.borderColour,
+            { fillColour: this.fillColour, strokeColour: this.borderColour },
         );
         token.addOwner({ user: gameStore.username, access: { edit: true } }, false);
         layer.addShape(token, SyncMode.FULL_SYNC, InvalidationMode.WITH_LIGHT);
         this.visible = false;
     }
     updatePreview(): void {
-        const ctx = (<HTMLCanvasElement>this.$refs.canvas).getContext("2d")!;
+        const ctx = (this.$refs.canvas as HTMLCanvasElement).getContext("2d")!;
         ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
         ctx.beginPath();
         const dest = { x: ctx.canvas.width / 2, y: ctx.canvas.height / 2 };

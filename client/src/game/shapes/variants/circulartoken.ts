@@ -2,11 +2,11 @@ import { calcFontScale } from "@/core/utils";
 import { InitiativeData } from "@/game/comm/types/general";
 import { ServerCircularToken } from "@/game/comm/types/shapes";
 import { GlobalPoint } from "@/game/geom";
-import { Circle } from "@/game/shapes/circle";
+import { Circle } from "@/game/shapes/variants/circle";
 import { gameStore } from "@/game/store";
 import { g2l, g2lz } from "@/game/units";
 import * as tinycolor from "tinycolor2";
-import { SHAPE_TYPE } from "./types";
+import { SHAPE_TYPE } from "../types";
 
 export class CircularToken extends Circle {
     type: SHAPE_TYPE = "circulartoken";
@@ -17,11 +17,13 @@ export class CircularToken extends Circle {
         r: number,
         text: string,
         font: string,
-        fillColour?: string,
-        strokeColour?: string,
-        uuid?: string,
+        options?: {
+            fillColour?: string;
+            strokeColour?: string;
+            uuid?: string;
+        },
     ) {
-        super(center, r, fillColour, strokeColour, uuid);
+        super(center, r, options);
         this.text = text;
         this.font = font;
         this.name = this.text;
@@ -62,7 +64,6 @@ export class CircularToken extends Circle {
             visible: !gameStore.IS_DM,
             group: false,
             source: this.name === "" || this.name === "Unknown shape" ? this.text : this.name,
-            // eslint-disable-next-line @typescript-eslint/camelcase
             has_img: false,
             effects: [],
             index: Infinity,

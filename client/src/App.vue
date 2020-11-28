@@ -3,6 +3,7 @@ import { Component, Vue } from "vue-property-decorator";
 import Loading from "vue-loading-overlay";
 import "vue-loading-overlay/dist/vue-loading.css";
 import { coreStore } from "@/core/store";
+import { BASE_PATH } from "./utils";
 
 @Component({
     components: {
@@ -13,11 +14,15 @@ export default class App extends Vue {
     get loading(): boolean {
         return coreStore.loading;
     }
+
+    get backgroundImage(): string {
+        return `url('${BASE_PATH}static/img/login_background.png')`;
+    }
 }
 </script>
 
 <template>
-    <div id="app">
+    <div id="app" :style="{ backgroundImage }">
         <loading :active.sync="loading" :is-full-page="true"></loading>
         <router-view ref="activeComponent"></router-view>
     </div>
@@ -44,6 +49,16 @@ body,
 
 #app {
     display: flex;
-    background: url("/static/img/login_background.png") repeat fixed;
+    background-repeat: repeat;
+    background-attachment: fixed;
+}
+
+.toasted > svg:first-child {
+    margin-right: 0.7rem;
+}
+
+body .toasted-container.top-left {
+    top: 1%;
+    left: 3%;
 }
 </style>

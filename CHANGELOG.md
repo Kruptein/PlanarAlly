@@ -3,20 +3,103 @@
 All notable changes to this project will be documented in this file.
 
 [DM] denotes changes only useful for the dungeon master
-[tech] denotes technical changes
+[tech] denotes technical changes or changes specifically for the server owner.
+These usually have no immediately visible impact on regular users
 
 ## Unreleased
 
 ### Added
 
--   spawn location tweaks
+-   Pressing the Enter button on a single selection will open the edit dialog for that shape
+-   Hexagon support (flat and pointy topped)
+-   Navigate viewport with numpad, 5 will center viewport on origin; tokens can be moved (behaviour depending whether grid is square, flat-top-hex or pointy-topped-hex) with numpad
+-   Remove button to initiative effects
+
+### Fixed
+
+-   Locking shapes via keyboard shortcut did not sync to the server
+-   Annotations from other floors being shown
+-   Floor rename always setting a blank name
+-   Remember ruler visibility on tool change
+-   `Ctrl 0` now centers viewport on origin (before, it would show origin on the top-left of the viewport)
+-   Initiative effects becoming NaN for non-numeric inputs
+-   New initiative effects not immediately synchronizing until a full client refresh
+-   Shape name updates not syncing for public names to users that do not own the shape
+-   Shape name updates not always updating on the initiative list
+-   Moving shapes with default movement permissions not working
+-   Various bugs with initiative permission updates
+
+## [0.23.1] - 2020-10-25
+
+### Fixed
+
+-   Server socketio attaching on correct basepath
+-   Client subpath working in docker context
+
+## [0.23.0] - 2020-10-18
+
+### Added
+
+-   Traditional chinese localization added
+-   Spawn location tweaks
     -   Multi spawn locations
         -   When moving a shape to a new location that has multiple spawn locations, a box will appear to choose the desired spawn zone
     -   Removal of spawn locations is now possible
+-   Template system for assets
+    -   Save shape state to its linked asset
+    -   On asset drop, choose from the saved templates to prepopulate some fields
+-   Snapping support to the ruler
+    -   Snapping points are the grid corner points, center between two grid points and the complete center of a grid cell
+-   Markdown support for shape annotations
+-   Italian localization added
+-   System notifications
+
+    -   These are custom notifications server owners can send out and will appear in a toast
+    -   By closing a notification you mark it as read and it will not show up any longer
+    -   [tech] Server now also starts an extra admin api server that can be configured separately
+    -   [tech] API endpoint to create system notifications now exists
+
+-   [tech] Server can now be hosted on a subpath e.g. somedomain.com/planarally-subpath
+
+### Changed
+
+-   Shape edit dialog now uses a panel layout (similar to dm settings)
+-   Annotation UI got a small change to better accomodate the new markdown support
+-   Landing page redesign
+    -   register phase is now a seperate step with an optional email field
+-   [tech] During save upgrades, backups will now be stored in the saves_backup folder
 
 ### Fixed
 
 -   Run docker container as non-root
+-   Unlocking shape via quick menu no longer puts shape in drag mode
+-   Map allowing some invalid inputs (negative numbers, 0, everything that isn't a number)
+-   Note and annotation textareas not having the correct height initially
+-   Console errors when attempting to move floors that you cannot access
+-   Private shape names showing up as ? for users with access
+-   [tech] Display error messages based on response body
+
+## [0.22.3] - 2020-08-30
+
+### Added
+
+-   `rescale(factor)` webconsole function as a convenience method for DMs to rescale all their shapes
+    -   a refresh of the page is most likely necessary for all normal functionality to update
+    -   e.g. if you used to have a DM grid size setting that was 70px and want to retrofit your maps to the new baseline of 50, you can use `rescale(50/70);`
+
+### Changed
+
+-   Changed floor keybindings to use alt instead of ctrl, due to chrome and firefox not allowing these keybindings to be overriden
+    -   As a reminder (similar for Page Down):
+        -   Page Up - Move floor up
+        -   Alt + Page Up - Move selected shapes floor up
+        -   Alt + Shift + Page Up - Move selected shapes floor up AND move floor up
+
+### Fixed
+
+-   moving shapes to front/back not syncing on the server
+    -   sadly I messed something up so you may have to fix the order of some shapes on some maps
+-   When adding trackers or auras, duplicate entries could appear clientside until a refresh
 
 # [0.22.2] - 2020-08-28
 

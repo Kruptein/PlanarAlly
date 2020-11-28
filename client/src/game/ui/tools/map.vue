@@ -5,8 +5,8 @@ import Tool from "@/game/ui/tools/tool.vue";
 
 import { GlobalPoint, Vector, LocalPoint } from "@/game/geom";
 import { layerManager } from "@/game/layers/manager";
-import { BaseRect } from "@/game/shapes/baserect";
-import { Rect } from "@/game/shapes/rect";
+import { BaseRect } from "@/game/shapes/variants/baserect";
+import { Rect } from "@/game/shapes/variants/rect";
 import { l2g } from "@/game/units";
 import { SyncMode, InvalidationMode } from "../../../core/comm/types";
 import { SelectFeatures } from "./select.vue";
@@ -27,6 +27,7 @@ export default class MapTool extends Tool implements ToolBasics {
     startPoint: GlobalPoint | null = null;
     rect: Rect | null = null;
     shape: Shape | null = null;
+    error = "";
 
     shapeSelected = false;
 
@@ -61,10 +62,16 @@ export default class MapTool extends Tool implements ToolBasics {
         this.permittedTools_ = [{ name: ToolName.Select, features: { enabled: [SelectFeatures.ChangeSelection] } }];
         this.shapeSelected = false;
         this.shape = null;
+        this.error = "";
     }
 
     apply(): void {
         if (this.shape === null || this.rect === null) return;
+        if (!Number.isFinite(this.xCount) || !Number.isFinite(this.yCount) || this.xCount <= 0 || this.yCount <= 0) {
+            this.error = "Input should be a positive number";
+            return;
+        }
+
         const oldRefpoint = this.shape.refPoint;
         const oldCenter = this.rect.center();
 
@@ -86,7 +93,7 @@ export default class MapTool extends Tool implements ToolBasics {
     }
 
     onSelect(): void {
-        this.shapeSelected = (layerManager.getSelection()?.length || 0) === 1;
+        this.shapeSelected = layerManager.getSelection().length === 1;
     }
 
     onDeselect(): void {
@@ -106,7 +113,7 @@ export default class MapTool extends Tool implements ToolBasics {
         }
         this.active = true;
 
-        this.rect = new Rect(this.startPoint.clone(), 0, 0, "rgba(0,0,0,0)", "black");
+        this.rect = new Rect(this.startPoint.clone(), 0, 0, { fillColour: "rgba(0,0,0,0)", strokeColour: "black" });
         this.rect.preventSync = true;
         layer.addShape(this.rect, SyncMode.NO_SYNC, InvalidationMode.NORMAL);
         this.shape = layer.getSelection()[0];
@@ -161,13 +168,14 @@ export default class MapTool extends Tool implements ToolBasics {
         :style="{ '--detailRight': detailRight, '--detailArrow': detailArrow }"
     >
         <template v-if="shapeSelected">
+            <div class="row">{{ error }}</div>
             <template v-if="rect === null">{{ $t("game.ui.tools.map.drag_to_resize") }}</template>
             <template v-else>
                 <div class="explanation" v-t="'game.ui.tools.map.set_target_grid_cells'"></div>
                 <div v-t="'game.ui.tools.map.horizontal'"></div>
-                <input type="text" v-model="xCount" class="hinput" />
+                <input type="number" v-model.number="xCount" class="hinput" />
                 <div v-t="'game.ui.tools.map.vertical'"></div>
-                <input type="text" v-model="yCount" class="vinput" />
+                <input type="number" v-model.number="yCount" class="vinput" />
                 <div class="button apply" @click="apply" v-t="'game.ui.tools.map.apply'"></div>
                 <div class="button cancel" @click="removeRect" v-t="'game.ui.tools.map.cancel'"></div>
             </template>
@@ -181,6 +189,7 @@ export default class MapTool extends Tool implements ToolBasics {
     display: grid;
     grid-template-areas:
         "text text"
+        "error error"
         "horiz hinput"
         "verti vinput"
         "submit cancel";
@@ -188,6 +197,10 @@ export default class MapTool extends Tool implements ToolBasics {
 
 .map > * {
     text-align: right;
+}
+
+.row {
+    grid-column: 1 / span 2;
 }
 
 .explanation {

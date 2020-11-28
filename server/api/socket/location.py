@@ -36,6 +36,7 @@ class LocationOptionKeys(TypedDict, total=False):
     unit_size: float
     unit_size_unit: str
     use_grid: bool
+    grid_type: str
     full_fow: bool
     fow_opacity: float
     fow_los: bool
@@ -273,6 +274,7 @@ async def set_location_options(sid: str, data: LocationOptionsData):
             loc.options = LocationOptions.create(
                 unit_size=None,
                 unit_size_unit=None,
+                grid_type=None,
                 use_grid=None,
                 full_fow=None,
                 fow_opacity=None,

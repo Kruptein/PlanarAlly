@@ -6,6 +6,7 @@ import Component from "vue-class-component";
 
 import { mapState } from "vuex";
 
+import Annotation from "./Annotation.vue";
 import DmSettings from "@/game/ui/settings/dm/DmSettings.vue";
 import FloorSelect from "@/game/ui/floors.vue";
 import LocationBar from "./menu/locations.vue";
@@ -22,6 +23,7 @@ import { coreStore } from "../../core/store";
 
 @Component({
     components: {
+        Annotation,
         DmSettings,
         FloorSelect,
         LocationBar,
@@ -38,6 +40,7 @@ import { coreStore } from "../../core/store";
 })
 export default class UI extends Vue {
     $refs!: {
+        annotation: InstanceType<typeof Annotation>;
         tools: InstanceType<typeof Tools>;
     };
 
@@ -87,10 +90,11 @@ export default class UI extends Vue {
         return false;
     }
 
+    // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
     toggleMenu(_el: any): void {
         this.visible.settings = !this.visible.settings;
         if (this.visible.locations && this.visible.settings) this.visible.topleft = true;
-        const uiEl = <HTMLDivElement>this.$el;
+        const uiEl = this.$el as HTMLDivElement;
         let i = 0;
         const interval = setInterval(() => {
             i += 10;
@@ -102,11 +106,12 @@ export default class UI extends Vue {
         }, 20);
     }
 
+    // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
     toggleLocations(_el: any): void {
         const oldState = this.visible.locations;
         // Split up visible.locations setting to smooth in/out overflow fix
         if (oldState) this.visible.locations = false;
-        const uiEl = <HTMLDivElement>this.$el;
+        const uiEl = this.$el as HTMLDivElement;
         let i = 0;
         const interval = setInterval(() => {
             i += 10;
@@ -129,7 +134,7 @@ export default class UI extends Vue {
         <div id="logo" v-show="visible.topleft">
             <div id="logo-icons">
                 <a href="https://www.planarally.io" target="_blank" rel="noopener noreferrer">
-                    <img src="/static/favicon.png" alt="" />
+                    <img :src="baseAdjust('/static/favicon.png')" alt="" />
                 </a>
                 <div id="logo-links">
                     <a
@@ -204,6 +209,7 @@ export default class UI extends Vue {
         <MarkdownModal v-if="showChangelog" :title="$t('game.ui.ui.new_ver_msg')">
             {{ $t("game.ui.ui.changelog_RELEASE_LOG", { release: version.release, log: changelog }) }}
         </MarkdownModal>
+        <Annotation ref="annotation"></Annotation>
         <!-- When updating zoom boundaries, also update store updateZoom function;
             should probably do this using a store variable-->
         <vueSlider
@@ -232,9 +238,9 @@ export default class UI extends Vue {
     display: grid;
     grid-template-areas:
         "topleft locations locations locations"
-        "menu    menutoggle  .       zoom     "
-        "menu        .       .         .      "
-        "menu      layer     .       tools    ";
+        "menu    menutoggle  annotation   zoom     "
+        "menu        .       .              .      "
+        "menu      layer     .            tools    ";
     grid-template-rows: 0 auto 1fr auto;
     grid-template-columns: 0 repeat(3, 1fr);
     width: 100%;

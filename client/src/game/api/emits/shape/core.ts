@@ -1,8 +1,8 @@
 import { ServerShape } from "../../../comm/types/shapes";
 import { Shape } from "../../../shapes/shape";
 import { socket } from "../../socket";
-import { Rect } from "../../../shapes/rect";
-import { Circle } from "../../../shapes/circle";
+import { Rect } from "../../../shapes/variants/rect";
+import { Circle } from "../../../shapes/variants/circle";
 import { wrapSocket } from "../../helpers";
 
 export const sendShapeAdd = wrapSocket<{ shape: ServerShape; temporary: boolean }>("Shape.Add");
@@ -25,23 +25,23 @@ export const sendTrackerUpdate = wrapSocket<{
 export const sendTextUpdate = wrapSocket<{ uuid: string; text: string; temporary: boolean }>("Shape.Text.Value.Set");
 
 export function sendShapePositionUpdate(shapes: readonly Shape[], temporary: boolean): void {
-    _sendShapePositionUpdate(
-        shapes.filter(s => !s.preventSync).map(s => ({ uuid: s.uuid, position: s.getPositionRepresentation() })),
-        temporary,
-    );
+    const positions = shapes
+        .filter(s => !s.preventSync)
+        .map(s => ({ uuid: s.uuid, position: s.getPositionRepresentation() }));
+    if (positions.length > 0) _sendShapePositionUpdate(positions, temporary);
 }
 
 export function sendShapeSizeUpdate(data: { shape: Shape; temporary: boolean }): void {
     switch (data.shape.type) {
         case "assetrect":
         case "rect": {
-            const shape = <Rect>data.shape;
+            const shape = data.shape as Rect;
             _sendRectSizeUpdate({ uuid: shape.uuid, w: shape.w, h: shape.h, temporary: data.temporary });
             break;
         }
         case "circulartoken":
         case "circle": {
-            const shape = <Circle>data.shape;
+            const shape = data.shape as Circle;
             _sendCircleSizeUpdate({ uuid: shape.uuid, r: shape.r, temporary: data.temporary });
             break;
         }

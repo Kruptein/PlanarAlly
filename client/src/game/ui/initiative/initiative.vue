@@ -17,6 +17,7 @@ import {
     sendInitiativeRoundUpdate,
     sendInitiativeNewEffect,
     sendInitiativeUpdateEffect,
+    sendInitiativeRemoveEffect,
 } from "@/game/api/emits/initiative";
 import { EventBus } from "@/game/event-bus";
 import { layerManager } from "@/game/layers/manager";
@@ -38,7 +39,7 @@ export default class Initiative extends Vue {
 
     mounted(): void {
         EventBus.$on("Initiative.Clear", initiativeStore.clear);
-        EventBus.$on("Initiative.Remove", (data: string) => this.removeInitiative(data));
+        EventBus.$on("Initiative.Remove", (data: string) => this.removeInitiative(data, false));
         EventBus.$on("Initiative.Show", () => (this.visible = true));
         EventBus.$on("Initiative.ForceUpdate", () => this.$forceUpdate());
 
@@ -53,6 +54,9 @@ export default class Initiative extends Vue {
         socket.on("Initiative.Effect.Update", (data: { actor: string; effect: InitiativeEffect }) =>
             this.updateEffect(data.actor, data.effect, false),
         );
+        socket.on("Initiative.Effect.Remove", (data: { actor: string; effect: InitiativeEffect }) =>
+            this.removeEffect(data.actor, data.effect, false),
+        );
     }
 
     beforeDestroy(): void {
@@ -64,6 +68,7 @@ export default class Initiative extends Vue {
         socket.off("Initiative.Round.Update");
         socket.off("Initiative.Effect.New");
         socket.off("Initiative.Effect.Update");
+        socket.off("Initiative.Effect.Remove");
     }
 
     // Utilities
@@ -75,7 +80,7 @@ export default class Initiative extends Vue {
         const shape = layerManager.UUIDMap.get(actor.uuid);
         // Shapes that are unknown to this client are hidden from this client but owned by other clients
         if (shape === undefined) return false;
-        return shape.hasOwner(gameStore.username);
+        return shape.ownedBy({ editAccess: true });
     }
     getDefaultEffect(): { uuid: string; name: string; turns: number } {
         return { uuid: uuidv4(), name: this.$t("game.ui.initiative.initiative.new_effect").toString(), turns: 10 };
@@ -87,10 +92,11 @@ export default class Initiative extends Vue {
         sendInitiativeUpdate(data);
     }
     // Events
-    removeInitiative(uuid: string): void {
+    removeInitiative(uuid: string, sync: boolean): void {
         const d = initiativeStore.data.findIndex(a => a.uuid === uuid);
         if (d < 0 || initiativeStore.data[d].group) return;
-        sendInitiativeRemove(uuid);
+        initiativeStore.data.splice(d, 1);
+        if (sync) sendInitiativeRemove(uuid);
         // Remove highlight
         const shape = layerManager.UUIDMap.get(uuid);
         if (shape === undefined) return;
@@ -110,8 +116,10 @@ export default class Initiative extends Vue {
         if (actor === undefined) return;
         if (actor.effects) {
             for (let e = actor.effects.length - 1; e >= 0; e--) {
-                if (actor.effects[e].turns <= 0) actor.effects.splice(e, 1);
-                else actor.effects[e].turns--;
+                if (!isNaN(+actor.effects[e].turns)) {
+                    if (actor.effects[e].turns <= 0) actor.effects.splice(e, 1);
+                    else actor.effects[e].turns--;
+                }
             }
         }
         if (this.visionLock) {
@@ -155,7 +163,6 @@ export default class Initiative extends Vue {
         this.syncInitiative(actor);
     }
     createEffect(actor: InitiativeData, effect: InitiativeEffect, sync: boolean): void {
-        if (!this.owns(actor)) return;
         actor.effects.push(effect);
         if (sync) sendInitiativeNewEffect({ actor: actor.uuid, effect });
     }
@@ -170,6 +177,15 @@ export default class Initiative extends Vue {
         if (effectIndex === undefined) return;
         actor.effects[effectIndex] = effect;
         if (sync) this.syncEffect(actor, effect);
+        else this.$forceUpdate();
+    }
+    removeEffect(actorId: string, effect: InitiativeEffect, sync: boolean): void {
+        const actor = initiativeStore.data.find(a => a.uuid === actorId);
+        if (actor === undefined) return;
+        const effectIndex = actor.effects.findIndex(e => e.uuid === effect.uuid);
+        if (effectIndex === undefined) return;
+        actor.effects.splice(effectIndex, 1);
+        if (sync) sendInitiativeRemoveEffect({ actor: actorId, effect });
         else this.$forceUpdate();
     }
     toggleVisionLock(): void {
@@ -220,7 +236,7 @@ export default class Initiative extends Vue {
                 :disabled="!$store.state.game.IS_DM"
             >
                 <template v-for="actor in $store.state.initiative.data">
-                    <div :key="actor.uuid" style="display:flex;flex-direction:column;align-items:flex-end;">
+                    <div :key="actor.uuid" style="display: flex; flex-direction: column; align-items: flex-end">
                         <div
                             class="initiative-actor"
                             :class="{ 'initiative-selected': $store.state.initiative.currentActor === actor.uuid }"
@@ -232,7 +248,7 @@ export default class Initiative extends Vue {
                                 <img :src="actor.source" width="30px" height="30px" :title="getName(actor)" alt="" />
                             </template>
                             <template v-else>
-                                <span style="width: auto;">{{ getName(actor) }}</span>
+                                <span style="width: auto">{{ getName(actor) }}</span>
                             </template>
                             <input
                                 type="text"
@@ -255,9 +271,7 @@ export default class Initiative extends Vue {
                                 <template v-if="actor.effects">
                                     {{ actor.effects.length }}
                                 </template>
-                                <template v-else>
-                                    0
-                                </template>
+                                <template v-else>0</template>
                             </div>
                             <div
                                 :style="{ opacity: actor.visible ? '1.0' : '0.3' }"
@@ -278,7 +292,7 @@ export default class Initiative extends Vue {
                             <div
                                 :style="{ opacity: owns(actor) ? '1.0' : '0.3' }"
                                 :class="{ notAllowed: !owns(actor) }"
-                                @click="removeInitiative(actor.uuid, true, true)"
+                                @click="removeInitiative(actor.uuid, true)"
                                 :title="$t('game.ui.initiative.initiative.delete_init')"
                             >
                                 <font-awesome-icon icon="trash-alt" />
@@ -298,6 +312,14 @@ export default class Initiative extends Vue {
                                     :size="effect.turns.toString().length || 1"
                                     @change="updateEffect(actor.uuid, effect, true)"
                                 />
+                                <div
+                                    :style="{ opacity: owns(actor) ? '1.0' : '0.3' }"
+                                    :class="{ notAllowed: !owns(actor) }"
+                                    @click="removeEffect(actor.uuid, effect, true)"
+                                    :title="$t('game.ui.initiative.initiative.delete_effect')"
+                                >
+                                    <font-awesome-icon icon="trash-alt" />
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -307,7 +329,7 @@ export default class Initiative extends Vue {
                 <div id="initiative-round">
                     {{ $tc("game.ui.initiative.initiative.round_N", $store.state.initiative.roundCounter) }}
                 </div>
-                <div style="display:flex;"></div>
+                <div style="display: flex"></div>
                 <div
                     class="initiative-bar-button"
                     :style="visionLock ? 'background-color: #82c8a0' : ''"
@@ -432,7 +454,6 @@ export default class Initiative extends Vue {
     border: none;
     background-color: inherit;
     text-align: right;
-    margin-left: 20px;
     min-width: 10px;
 }
 .initiative-effect > * > *:first-child {

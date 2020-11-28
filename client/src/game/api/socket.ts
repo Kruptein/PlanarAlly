@@ -1,8 +1,10 @@
 import io from "socket.io-client";
 import { Route } from "vue-router";
+import { BASE_PATH } from "../../utils";
 
 export const socket = io(location.protocol + "//" + location.host + "/planarally", {
     autoConnect: false,
+    path: BASE_PATH + "socket.io",
     transports: ["websocket", "polling"],
 });
 

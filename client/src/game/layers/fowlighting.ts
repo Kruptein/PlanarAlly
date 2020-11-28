@@ -1,6 +1,6 @@
 import { InvalidationMode, SyncMode } from "@/core/comm/types";
 import { layerManager } from "@/game/layers/manager";
-import { Circle } from "@/game/shapes/circle";
+import { Circle } from "@/game/shapes/variants/circle";
 import { Shape } from "@/game/shapes/shape";
 import { g2l, g2lr, g2lx, g2ly, g2lz, getUnitDistance } from "@/game/units";
 import { getFogColour } from "@/game/utils";

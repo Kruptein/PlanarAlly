@@ -254,13 +254,19 @@ async def set_name(sid: str, data: ShapeSetStringValue):
     shape.name = data["value"]
     shape.save()
 
-    await sio.emit(
-        "Shape.Options.Name.Set",
-        data,
-        skip_sid=sid,
-        room=pr.active_location.get_path(),
-        namespace=GAME_NS,
-    )
+    if shape.name_visible:
+        await sio.emit(
+            "Shape.Options.Name.Set",
+            data,
+            skip_sid=sid,
+            room=pr.active_location.get_path(),
+            namespace=GAME_NS,
+        )
+    else:
+        for sid in get_owner_sids(pr, shape, skip_sid=sid):
+            await sio.emit(
+                "Shape.Options.Name.Set", data, room=sid, namespace=GAME_NS,
+            )
 
 
 @sio.on("Shape.Options.NameVisible.Set", namespace=GAME_NS)
@@ -365,12 +371,15 @@ async def create_tracker(sid: str, data: TrackerDelta):
         await sio.emit(
             "Shape.Options.Tracker.Create", data, room=psid, namespace=GAME_NS,
         )
-    for psid in game_state.get_sids(active_location=pr.active_location, skip_sid=sid):
-        if psid in owners:
-            continue
-        await sio.emit(
-            "Shape.Options.Tracker.Create", data, room=sid, namespace=GAME_NS,
-        )
+    if tracker.visible:
+        for psid in game_state.get_sids(
+            active_location=pr.active_location, skip_sid=sid
+        ):
+            if psid in owners:
+                continue
+            await sio.emit(
+                "Shape.Options.Tracker.Create", data, room=psid, namespace=GAME_NS,
+            )
 
 
 @sio.on("Shape.Options.Tracker.Update", namespace=GAME_NS)
@@ -434,12 +443,15 @@ async def create_aura(sid: str, data: AuraDelta):
         await sio.emit(
             "Shape.Options.Aura.Create", data, room=psid, namespace=GAME_NS,
         )
-    for psid in game_state.get_sids(active_location=pr.active_location, skip_sid=sid):
-        if psid in owners:
-            continue
-        await sio.emit(
-            "Shape.Options.Aura.Create", data, room=sid, namespace=GAME_NS,
-        )
+    if aura.visible:
+        for psid in game_state.get_sids(
+            active_location=pr.active_location, skip_sid=sid
+        ):
+            if psid in owners:
+                continue
+            await sio.emit(
+                "Shape.Options.Aura.Create", data, room=psid, namespace=GAME_NS,
+            )
 
 
 @sio.on("Shape.Options.Aura.Update", namespace=GAME_NS)

@@ -8,6 +8,7 @@ import { uuidv4 } from "@/core/utils";
 import { socket } from "@/game/api/socket";
 import { EventBus } from "@/game/event-bus";
 import { gameStore } from "@/game/store";
+import { Label } from "../shapes/interfaces";
 
 @Component({
     components: {
@@ -25,7 +26,7 @@ export default class LabelManager extends Vue {
             this.visible = true;
             this.newCategory = "";
             this.newName = "";
-            this.$nextTick(() => (<HTMLInputElement>this.$refs.search).focus());
+            this.$nextTick(() => (this.$refs.search as HTMLInputElement).focus());
         });
     }
 

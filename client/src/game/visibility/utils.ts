@@ -1,4 +1,5 @@
 import { floorStore } from "../layers/store";
+import { Aura } from "../shapes/interfaces";
 import { visibilityStore } from "./store";
 import { TriangulationTarget } from "./te/pa";
 

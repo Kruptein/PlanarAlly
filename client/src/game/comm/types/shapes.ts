@@ -1,8 +1,10 @@
+import { Tracker, Label } from "../../shapes/interfaces";
 import { ShapeOwner, ShapeAccess } from "../../shapes/owners";
+import { SHAPE_TYPE } from "../../shapes/types";
 
 export interface ServerShape {
     uuid: string;
-    type_: string;
+    type_: SHAPE_TYPE;
     x: number;
     y: number;
     angle: number;
@@ -30,6 +32,7 @@ export interface ServerShape {
     default_edit_access: boolean;
     default_movement_access: boolean;
     default_vision_access: boolean;
+    asset?: number;
 }
 
 export interface ServerShapeAccess {
@@ -97,11 +100,8 @@ export interface ServerAura {
 }
 
 export const accessToServer = (access: ShapeAccess): ServerShapeAccess => ({
-    // eslint-disable-next-line @typescript-eslint/camelcase
     edit_access: access.edit || false,
-    // eslint-disable-next-line @typescript-eslint/camelcase
     movement_access: access.movement || false,
-    // eslint-disable-next-line @typescript-eslint/camelcase
     vision_access: access.vision || false,
 });
 

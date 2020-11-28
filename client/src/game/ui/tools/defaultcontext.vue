@@ -13,8 +13,8 @@ import CreateTokenModal from "./createtoken_modal.vue";
 import Prompt from "@/core/components/modals/prompt.vue";
 import { gameSettingsStore } from "@/game/settings";
 import { layerManager } from "@/game/layers/manager";
-import { uuidv4 } from "@/core/utils";
-import { Asset } from "@/game/shapes/asset";
+import { baseAdjust, uuidv4 } from "@/core/utils";
+import { Asset } from "@/game/shapes/variants/asset";
 import { SyncMode, InvalidationMode } from "@/core/comm/types";
 import { LocalPoint } from "@/game/geom";
 
@@ -36,7 +36,7 @@ export default class DefaultContext extends Vue {
         this.visible = true;
         this.x = event.pageX;
         this.y = event.pageY;
-        this.$nextTick(() => (<HTMLElement>this.$children[0].$el).focus());
+        this.$nextTick(() => (this.$children[0].$el as HTMLElement).focus());
     }
 
     close(): void {
@@ -55,14 +55,14 @@ export default class DefaultContext extends Vue {
     }
 
     createToken(): void {
-        (<CreateTokenModal>this.$parent.$refs.createtokendialog).open(this.x, this.y);
+        (this.$parent.$refs.createtokendialog as CreateTokenModal).open(this.x, this.y);
         this.close();
     }
 
     async createSpawnLocation(): Promise<void> {
         if (!gameStore.IS_DM) return;
         const spawnLocations = gameSettingsStore.spawnLocations;
-        const spawnName = await (<Prompt>this.$parent.$parent.$parent.$refs.prompt).prompt(
+        const spawnName = await (this.$parent.$parent.$parent.$refs.prompt as Prompt).prompt(
             this.$t("game.ui.tools.defaultcontext.new_spawn_question").toString(),
             this.$t("game.ui.tools.defaultcontext.new_spawn_title").toString(),
             (value: string) => {
@@ -76,14 +76,15 @@ export default class DefaultContext extends Vue {
         if (spawnName === "") return;
         const uuid = uuidv4();
 
+        const src = "/static/img/spawn.png";
         const img = new Image(64, 64);
-        img.src = "/static/img/spawn.png";
+        img.src = baseAdjust(src);
 
         const loc = new LocalPoint(this.x, this.y);
 
-        const shape = new Asset(img, l2g(loc), 50, 50, uuid);
+        const shape = new Asset(img, l2g(loc), 50, 50, { uuid });
         shape.name = spawnName;
-        shape.src = img.src;
+        shape.src = src;
 
         layerManager
             .getLayer(floorStore.currentFloor, "dm")!

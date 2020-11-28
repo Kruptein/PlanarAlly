@@ -9,7 +9,7 @@ import { gameStore } from "@/game/store";
 import { ShapeOwner } from "../../../shapes/owners";
 
 @Component
-export default class EditDialogAccess extends Vue {
+export default class AccessSettings extends Vue {
     @Prop() owned!: boolean;
     @Prop() shape!: Shape;
 
@@ -32,10 +32,12 @@ export default class EditDialogAccess extends Vue {
         if (selectedUser === "") return;
         this.shape.addOwner({ user: selectedUser, access: { edit: true, movement: true, vision: true } }, true);
     }
+
     removeOwner(value: string): void {
         if (!this.owned) return;
         this.shape.removeOwner(value, true);
     }
+
     toggleOwnerEditAccess(owner: ShapeOwner): void {
         if (!this.owned) return;
         this.shape.updateOwner({ ...owner, access: { ...owner.access, edit: !owner.access.edit } }, true);
@@ -44,14 +46,17 @@ export default class EditDialogAccess extends Vue {
         if (!this.owned) return;
         this.shape.updateOwner({ ...owner, access: { ...owner.access, movement: !owner.access.movement } }, true);
     }
+
     toggleOwnerVisionAccess(owner: ShapeOwner): void {
         if (!this.owned) return;
         this.shape.updateOwner({ ...owner, access: { ...owner.access, vision: !owner.access.vision } }, true);
     }
+
     toggleDefaultEditAccess(): void {
         if (!this.owned) return;
         this.shape.updateDefaultOwner({ ...this.shape.defaultAccess, edit: !this.shape.defaultAccess.edit }, true);
     }
+
     toggleDefaultMovementAccess(): void {
         if (!this.owned) return;
         this.shape.updateDefaultOwner(
@@ -59,6 +64,7 @@ export default class EditDialogAccess extends Vue {
             true,
         );
     }
+
     toggleDefaultVisionAccess(): void {
         if (!this.owned) return;
         this.shape.updateDefaultOwner({ ...this.shape.defaultAccess, vision: !this.shape.defaultAccess.vision }, true);
@@ -67,14 +73,13 @@ export default class EditDialogAccess extends Vue {
 </script>
 
 <template>
-    <div style="display:contents">
+    <div class="panel restore-panel">
         <div class="spanrow header" v-t="'game.ui.selection.edit_dialog.access.access'"></div>
         <div class="owner"><em v-t="'game.ui.selection.edit_dialog.access.default'"></em></div>
         <div
             :style="{
                 opacity: shape.defaultAccess.edit ? 1.0 : 0.3,
                 textAlign: 'center',
-                gridColumnStart: 'colour',
             }"
             :disabled="!owned"
             @click="toggleDefaultEditAccess"
@@ -107,7 +112,6 @@ export default class EditDialogAccess extends Vue {
                 :style="{
                     opacity: owner.access.edit ? 1.0 : 0.3,
                     textAlign: 'center',
-                    gridColumnStart: 'colour',
                 }"
                 :disabled="!owned"
                 @click="toggleOwnerEditAccess(owner)"
@@ -143,17 +147,13 @@ export default class EditDialogAccess extends Vue {
                 <font-awesome-icon icon="trash-alt" />
             </div>
         </template>
-        <select
-            style="grid-column: name/colour;margin-top:5px;"
-            ref="accessDropdown"
-            v-show="playersWithoutAccess.length > 0 && owned"
-        >
+        <select id="dropdown" ref="accessDropdown" v-show="playersWithoutAccess.length > 0 && owned">
             <option v-for="player in playersWithoutAccess" :key="player.uuid" :disabled="!owned">
                 {{ player.name }}
             </option>
         </select>
         <button
-            style="grid-column: visible/end;margin-top:5px;"
+            id="button"
             @click="addOwner"
             v-show="playersWithoutAccess.length > 0 && owned"
             v-t="'game.ui.selection.edit_dialog.access.add_access'"
@@ -166,5 +166,24 @@ export default class EditDialogAccess extends Vue {
     grid-column-start: name;
     margin-bottom: 5px;
     margin-left: 5px;
+}
+
+.panel {
+    grid-template-columns: [name] 1fr [edit] 30px [move] 30px [vision] 30px [remove] 30px [end];
+    grid-column-gap: 5px;
+    align-items: center;
+    padding-bottom: 1em;
+}
+
+#button {
+    grid-column: edit/end;
+    margin-top: 5px;
+    /* min-width: 4vw; */
+}
+
+#dropdown {
+    grid-column: name/edit;
+    margin-top: 5px;
+    min-width: 7vw;
 }
 </style>

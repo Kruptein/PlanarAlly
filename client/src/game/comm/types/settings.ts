@@ -1,5 +1,6 @@
 export interface ServerLocationOptions {
     use_grid: boolean;
+    grid_type: string;
     unit_size: number;
     unit_size_unit: string;
     full_fow: boolean;
@@ -14,6 +15,7 @@ export interface ServerLocationOptions {
 
 export interface LocationOptions {
     useGrid: boolean;
+    gridType: string;
     unitSize: number;
     unitSizeUnit: string;
     fullFow: boolean;
@@ -47,32 +49,23 @@ export interface EditableServerClient {
 }
 
 export const optionsToServer = (options: LocationOptions): ServerLocationOptions => ({
-    // eslint-disable-next-line @typescript-eslint/camelcase
     use_grid: options.useGrid,
-    // eslint-disable-next-line @typescript-eslint/camelcase
+    grid_type: options.gridType,
     unit_size: options.unitSize,
-    // eslint-disable-next-line @typescript-eslint/camelcase
     unit_size_unit: options.unitSizeUnit,
-    // eslint-disable-next-line @typescript-eslint/camelcase
     full_fow: options.fullFow,
-    // eslint-disable-next-line @typescript-eslint/camelcase
     vision_mode: options.visionMode,
-    // eslint-disable-next-line @typescript-eslint/camelcase
     fow_opacity: options.fowOpacity,
-    // eslint-disable-next-line @typescript-eslint/camelcase
     fow_los: options.fowLos,
-    // eslint-disable-next-line @typescript-eslint/camelcase
     vision_min_range: options.visionMinRange,
-    // eslint-disable-next-line @typescript-eslint/camelcase
     vision_max_range: options.visionMaxRange,
-    // eslint-disable-next-line @typescript-eslint/camelcase
     spawn_locations: JSON.stringify(options.spawnLocations),
-    // eslint-disable-next-line @typescript-eslint/camelcase
     move_player_on_token_change: options.movePlayerOnTokenChange,
 });
 
 export const optionsToClient = (options: ServerLocationOptions): LocationOptions => ({
     useGrid: options.use_grid,
+    gridType: options.grid_type ?? "SQUARE",
     unitSize: options.unit_size,
     unitSizeUnit: options.unit_size_unit,
     fullFow: options.full_fow,

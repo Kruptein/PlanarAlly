@@ -28,6 +28,7 @@ These usually have no immediately visible impact on regular users
 -   Shape name updates not always updating on the initiative list
 -   Moving shapes with default movement permissions not working
 -   Various bugs with initiative permission updates
+-   Negative values for Auras no longer causes drawing issues.
 
 ## [0.23.1] - 2020-10-25
 

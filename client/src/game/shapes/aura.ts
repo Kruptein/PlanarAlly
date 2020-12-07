@@ -24,22 +24,17 @@ export function createEmptyAura(): Aura {
 
 export function drawAuras(shape: Shape, ctx: CanvasRenderingContext2D): void {
     for (const aura of shape.auras) {
-        if (aura.value === 0 && aura.dim === 0) continue;
+        const value = aura.value > 0 ? aura.value : 0;
+        const dim = aura.value > 0 ? aura.value : 0;
+        if (value === 0 && dim === 0) continue;
         ctx.beginPath();
 
         const loc = g2l(shape.center());
-        const innerRange = g2lr(aura.value + aura.dim);
+        const innerRange = g2lr(value + dim);
 
-        if (aura.dim === 0) ctx.fillStyle = aura.colour;
+        if (dim === 0) ctx.fillStyle = aura.colour;
         else {
-            const gradient = ctx.createRadialGradient(
-                loc.x,
-                loc.y,
-                g2lr(aura.value),
-                loc.x,
-                loc.y,
-                g2lr(aura.value + aura.dim),
-            );
+            const gradient = ctx.createRadialGradient(loc.x, loc.y, g2lr(value), loc.x, loc.y, g2lr(value + dim));
             const tc = tinycolor(aura.colour);
             ctx.fillStyle = gradient;
             gradient.addColorStop(0, aura.colour);
@@ -50,7 +45,7 @@ export function drawAuras(shape: Shape, ctx: CanvasRenderingContext2D): void {
             ctx.fill();
         } else {
             const polygon = computeVisibility(shape.center(), TriangulationTarget.VISION, shape.floor.id);
-            aura.lastPath = updateAuraPath(polygon, shape.center(), getUnitDistance(aura.value + aura.dim));
+            aura.lastPath = updateAuraPath(polygon, shape.center(), getUnitDistance(value + dim));
             try {
                 ctx.fill(aura.lastPath);
             } catch (e) {

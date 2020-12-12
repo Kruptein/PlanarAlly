@@ -293,7 +293,7 @@ export abstract class Shape {
             movement_obstruction: this.movementObstruction,
             vision_obstruction: this.visionObstruction,
             auras: aurasToServer(this.uuid, this.auras),
-            trackers: this.trackers,
+            trackers: this.trackers.filter(t => !t.temporary),
             labels: this.labels,
             owners: this._owners.map(owner => ownerToServer(owner)),
             fill_colour: this.fillColour,

@@ -35,6 +35,7 @@ These usually have no immediately visible impact on regular users
 -   Negative values for Auras no longer causes drawing issues.
 -   Trackers not providing empty rows until re-opening dialog.
 -   Pasting shapes resulting in extra empty tracker rows.
+-   Rectangle resizing causing position shift.
 
 ## [0.23.1] - 2020-10-25
 

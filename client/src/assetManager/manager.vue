@@ -200,7 +200,7 @@ export default class AssetManager extends Vue {
                     @dragleave.prevent="leaveDrag"
                     @drop.prevent.stop="stopDrag($event, parentFolder)"
                 >
-                    <font-awesome-icon icon="folder" style="font-size: 50px;" />
+                    <font-awesome-icon icon="folder" style="font-size: 50px" />
                     <div class="title">..</div>
                 </div>
                 <div
@@ -217,7 +217,7 @@ export default class AssetManager extends Vue {
                     @dragleave.prevent="leaveDrag"
                     @drop.prevent.stop="stopDrag($event, key)"
                 >
-                    <font-awesome-icon icon="folder" style="font-size: 50px;" />
+                    <font-awesome-icon icon="folder" style="font-size: 50px" />
                     <div class="title">{{ idMap.get(key).name }}</div>
                 </div>
                 <div

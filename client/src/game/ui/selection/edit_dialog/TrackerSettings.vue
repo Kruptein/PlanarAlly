@@ -8,6 +8,8 @@ import ColorPicker from "@/core/components/colorpicker.vue";
 
 import { Shape } from "@/game/shapes/shape";
 import { Aura, Tracker } from "@/game/shapes/interfaces";
+import { createEmptyTracker } from "../../../shapes/tracker";
+import { createEmptyAura } from "../../../shapes/aura";
 
 @Component({ components: { ColorPicker } })
 export default class TrackerSettings extends Vue {
@@ -44,6 +46,21 @@ export default class TrackerSettings extends Vue {
     removeAura(uuid: string): void {
         if (!this.owned) return;
         this.shape.removeAura(uuid, true);
+    }
+
+    mounted(): void {
+        this.addEmpty();
+    }
+
+    updated(): void {
+        this.addEmpty();
+    }
+
+    addEmpty(): void {
+        if (this.shape.trackers.length === 0 || !this.shape.trackers[this.shape.trackers.length - 1].temporary)
+            this.shape.pushTracker(createEmptyTracker());
+        if (this.shape.auras.length === 0 || !this.shape.auras[this.shape.auras.length - 1].temporary)
+            this.shape.pushAura(createEmptyAura());
     }
 }
 </script>

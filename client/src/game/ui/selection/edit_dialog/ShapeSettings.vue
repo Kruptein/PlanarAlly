@@ -12,8 +12,6 @@ import { EventBus } from "@/game/event-bus";
 import { Shape } from "@/game/shapes/shape";
 import { Prop } from "vue-property-decorator";
 import { gameStore } from "@/game/store";
-import { createEmptyTracker } from "@/game/shapes/tracker";
-import { createEmptyAura } from "@/game/shapes/aura";
 
 @Component({
     components: {
@@ -53,17 +51,6 @@ export default class ShapeSettings extends Vue {
 
     get categoryNames(): string[] {
         return ["Properties", "Trackers", "Access", "Extra"];
-    }
-
-    updated(): void {
-        this.addEmpty();
-    }
-
-    addEmpty(): void {
-        if (this.shape.trackers.length === 0 || !this.shape.trackers[this.shape.trackers.length - 1].temporary)
-            this.shape.pushTracker(createEmptyTracker());
-        if (this.shape.auras.length === 0 || !this.shape.auras[this.shape.auras.length - 1].temporary)
-            this.shape.pushAura(createEmptyAura());
     }
 }
 </script>

@@ -33,6 +33,7 @@ These usually have no immediately visible impact on regular users
 -   Moving shapes with default movement permissions not working
 -   Various bugs with initiative permission updates
 -   Negative values for Auras no longer causes drawing issues.
+-   Trackers not providing empty rows until re-opening dialog.
 
 ## [0.23.1] - 2020-10-25
 

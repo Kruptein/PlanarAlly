@@ -1,14 +1,17 @@
-import io from "socket.io-client";
+import { Manager } from "socket.io-client";
 
 import { Asset } from "@/core/comm/types";
 import { baseAdjust } from "../core/utils";
 import { assetStore } from "./store";
 import { BASE_PATH } from "../utils";
 
-export const socket = io(location.protocol + "//" + location.host + "/pa_assetmgmt", {
+const manager = new Manager(location.protocol + "//" + location.host, {
     autoConnect: false,
     path: BASE_PATH + "socket.io",
+    transports: ["websocket", "polling"],
 });
+
+export const socket = manager.socket("/pa_assetmgmt");
 
 let disConnected = false;
 

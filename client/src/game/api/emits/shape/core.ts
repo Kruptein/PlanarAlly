@@ -36,6 +36,8 @@ export function sendShapeSizeUpdate(data: { shape: Shape; temporary: boolean }):
         case "assetrect":
         case "rect": {
             const shape = data.shape as Rect;
+            // a shape resize can move the refpoint!
+            sendShapePositionUpdate([data.shape], data.temporary);
             _sendRectSizeUpdate({ uuid: shape.uuid, w: shape.w, h: shape.h, temporary: data.temporary });
             break;
         }

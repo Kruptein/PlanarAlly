@@ -15,6 +15,10 @@ These usually have no immediately visible impact on regular users
 -   Navigate viewport with numpad, 5 will center viewport on origin; tokens can be moved (behaviour depending whether grid is square, flat-top-hex or pointy-topped-hex) with numpad
 -   Remove button to initiative effects
 
+### Changed
+
+-   [tech] Upgraded to socket.io v3
+
 ### Fixed
 
 -   Locking shapes via keyboard shortcut did not sync to the server

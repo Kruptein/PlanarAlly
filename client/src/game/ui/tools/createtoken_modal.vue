@@ -28,10 +28,14 @@ import { floorStore } from "@/game/layers/store";
     },
 })
 export default class CreateTokenModal extends Vue {
+    $refs!: {
+        canvas: HTMLCanvasElement;
+        name: HTMLInputElement;
+    };
     x = 0;
     y = 0;
     visible = false;
-    text = "X";
+    text = "";
     fillColour = "rgba(255, 255, 255, 1)";
     borderColour = "rgba(0, 0, 0, 1)";
 
@@ -56,6 +60,10 @@ export default class CreateTokenModal extends Vue {
         this.visible = true;
         this.x = x;
         this.y = y;
+
+        this.$nextTick(() => {
+            this.$refs.name.focus();
+        });
     }
     submit(): void {
         const layer = floorStore.currentLayer;
@@ -63,7 +71,7 @@ export default class CreateTokenModal extends Vue {
         const token = new CircularToken(
             l2g(new LocalPoint(this.x, this.y)),
             getUnitDistance(gameSettingsStore.unitSize / 2),
-            this.text,
+            this.text || "X",
             "10px serif",
             { fillColour: this.fillColour, strokeColour: this.borderColour },
         );
@@ -72,7 +80,7 @@ export default class CreateTokenModal extends Vue {
         this.visible = false;
     }
     updatePreview(): void {
-        const ctx = (this.$refs.canvas as HTMLCanvasElement).getContext("2d")!;
+        const ctx = this.$refs.canvas.getContext("2d")!;
         ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
         ctx.beginPath();
         const dest = { x: ctx.canvas.width / 2, y: ctx.canvas.height / 2 };
@@ -92,10 +100,10 @@ export default class CreateTokenModal extends Vue {
         ctx.save();
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
-        const fontScale = calcFontScale(ctx, this.text, r - 2.5);
+        const fontScale = calcFontScale(ctx, this.text || "X", r - 2.5);
         ctx.setTransform(fontScale, 0, 0, fontScale, dest.x, dest.y);
         ctx.fillStyle = tinycolor.mostReadable(this.fillColour, ["#000", "#fff"]).toHexString();
-        ctx.fillText(this.text, 0, 0);
+        ctx.fillText(this.text || "X", 0, 0);
         ctx.restore();
     }
 }
@@ -114,7 +122,14 @@ export default class CreateTokenModal extends Vue {
         ></div>
         <div class="modal-body">
             <label for="createtokendialog-text" v-t="'game.ui.tools.createtoken_modal.text'"></label>
-            <input type="text" id="createtokendialog-name" v-model="text" />
+            <input
+                type="text"
+                id="createtokendialog-name"
+                v-model="text"
+                ref="name"
+                placeholder="X"
+                @keyup.enter="submit"
+            />
             <label v-t="'common.colors'"></label>
             <div class="colours">
                 <span v-t="'game.ui.tools.createtoken_modal.fill'"></span>

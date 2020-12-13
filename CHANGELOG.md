@@ -18,6 +18,8 @@ These usually have no immediately visible impact on regular users
 ### Changed
 
 -   Round counter now starts at 1 instead of 0
+-   Create token modal now auto focuses no the input field
+-   Create token modal now submits when pressing enter in the input field
 -   [tech] Upgraded to socket.io v3
 
 ### Fixed

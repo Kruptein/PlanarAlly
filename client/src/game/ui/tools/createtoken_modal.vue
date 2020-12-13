@@ -122,7 +122,14 @@ export default class CreateTokenModal extends Vue {
         ></div>
         <div class="modal-body">
             <label for="createtokendialog-text" v-t="'game.ui.tools.createtoken_modal.text'"></label>
-            <input type="text" id="createtokendialog-name" v-model="text" ref="name" placeholder="X" />
+            <input
+                type="text"
+                id="createtokendialog-name"
+                v-model="text"
+                ref="name"
+                placeholder="X"
+                @keyup.enter="submit"
+            />
             <label v-t="'common.colors'"></label>
             <div class="colours">
                 <span v-t="'game.ui.tools.createtoken_modal.fill'"></span>

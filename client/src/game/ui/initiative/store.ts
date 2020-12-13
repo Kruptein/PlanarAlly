@@ -19,7 +19,7 @@ class InitiativeStore extends VuexModule implements InitiativeState {
     data: InitiativeData[] = [];
     dataNew: InitiativeData[] = [];
     currentActor: string | null = null;
-    roundCounter = 0;
+    roundCounter = 1;
     editLock = false;
 
     @Mutation

@@ -17,13 +17,13 @@ These usually have no immediately visible impact on regular users
 
 ### Changed
 
+-   Round counter now starts at 1 instead of 0
 -   [tech] Upgraded to socket.io v3
 
 ### Fixed
 
 -   Locking shapes via keyboard shortcut did not sync to the server
 -   Annotations from other floors being shown
--   Floor rename always setting a blank name
 -   Remember ruler visibility on tool change
 -   `Ctrl 0` now centers viewport on origin (before, it would show origin on the top-left of the viewport)
 -   Initiative effects becoming NaN for non-numeric inputs
@@ -32,11 +32,12 @@ These usually have no immediately visible impact on regular users
 -   Shape name updates not always updating on the initiative list
 -   Moving shapes with default movement permissions not working
 -   Various bugs with initiative permission updates
--   Negative values for Auras no longer causes drawing issues.
--   Trackers not providing empty rows until re-opening dialog.
--   Pasting shapes resulting in extra empty tracker rows.
--   Rectangle resizing causing position shift.
--   Location changes sometimes not going through for everyone.
+-   Negative values for Auras no longer causes drawing issues
+-   Trackers not providing empty rows until re-opening dialog
+-   Pasting shapes resulting in extra empty tracker rows
+-   Rectangle resizing causing position shift
+-   Location changes sometimes not going through for everyone
+-   [DM] Floor rename always setting a blank name
 
 ## [0.23.1] - 2020-10-25
 

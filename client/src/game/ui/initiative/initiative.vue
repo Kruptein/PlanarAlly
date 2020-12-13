@@ -350,7 +350,7 @@ export default class Initiative extends Vue {
                     class="initiative-bar-button"
                     :class="{ notAllowed: !$store.state.game.IS_DM }"
                     @click="
-                        setRound(0, true);
+                        setRound(1, true);
                         updateTurn($store.state.initiative.data[0].uuid, true);
                     "
                     :title="$t('game.ui.initiative.initiative.reset_round')"

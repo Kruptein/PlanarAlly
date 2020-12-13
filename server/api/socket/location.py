@@ -248,10 +248,14 @@ async def change_location(sid: str, data: LocationChangeData):
             continue
 
         for psid in game_state.get_sids(player=room_player.player, room=pr.room):
-            sio.leave_room(
-                psid, room_player.active_location.get_path(), namespace=GAME_NS
-            )
-            sio.enter_room(psid, new_location.get_path(), namespace=GAME_NS)
+            try:
+                sio.leave_room(
+                    psid, room_player.active_location.get_path(), namespace=GAME_NS
+                )
+                sio.enter_room(psid, new_location.get_path(), namespace=GAME_NS)
+            except KeyError:
+                game_state.remove_sid(psid)
+                continue
             await load_location(psid, new_location)
         room_player.active_location = new_location
         room_player.save()

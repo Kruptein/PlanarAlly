@@ -64,5 +64,9 @@ export function clampGridLine(point: number): number {
     return Math.round(point / DEFAULT_GRID_SIZE) * DEFAULT_GRID_SIZE;
 }
 
+export function clampToGrid(point: GlobalPoint): GlobalPoint {
+    return new GlobalPoint(clampGridLine(point.x), clampGridLine(point.y));
+}
+
 (window as any).g2lx = g2lx;
 (window as any).g2ly = g2ly;

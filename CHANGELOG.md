@@ -39,6 +39,7 @@ These usually have no immediately visible impact on regular users
 -   Pasting shapes resulting in extra empty tracker rows
 -   Rectangle resizing causing position shift
 -   Location changes sometimes not going through for everyone
+-   Resizing rotating shapes with snapping now correctly snaps to grid points
 -   [DM] Floor rename always setting a blank name
 
 ## [0.23.1] - 2020-10-25

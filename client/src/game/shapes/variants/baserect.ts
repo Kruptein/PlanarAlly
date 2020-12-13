@@ -2,7 +2,7 @@ import { GlobalPoint, Vector } from "@/game/geom";
 import { BoundingRect } from "@/game/shapes/variants/boundingrect";
 import { Shape } from "@/game/shapes/shape";
 import { calculateDelta } from "@/game/ui/tools/utils";
-import { clampGridLine, g2lx, g2ly } from "@/game/units";
+import { clampGridLine, clampToGrid, g2lx, g2ly } from "@/game/units";
 import { ServerShape } from "../../comm/types/shapes";
 import { DEFAULT_GRID_SIZE } from "../../store";
 import { rotateAroundPoint } from "../../utils";
@@ -111,15 +111,18 @@ export abstract class BaseRect extends Shape {
         this.invalidate(false);
     }
     resizeToGrid(resizePoint: number, retainAspectRatio: boolean): void {
+        const targetPoint = new GlobalPoint(
+            this.refPoint.x + (resizePoint > 1 ? this.w : 0),
+            this.refPoint.y + ([1, 2].includes(resizePoint) ? this.h : 0),
+        );
         this.resize(
             resizePoint,
-            new GlobalPoint(
-                clampGridLine(this.refPoint.x + (resizePoint > 1 ? this.w : 0)),
-                clampGridLine(this.refPoint.y + ([1, 2].includes(resizePoint) ? this.h : 0)),
-            ),
+            clampToGrid(rotateAroundPoint(targetPoint, this.center(), this.angle)),
             retainAspectRatio,
         );
     }
+
+    // point is expected to be the point as on the map, irregardless of rotation
     resize(resizePoint: number, point: GlobalPoint, retainAspectRatio: boolean): number {
         point = rotateAroundPoint(point, this.center(), -this.angle);
 

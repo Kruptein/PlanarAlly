@@ -38,7 +38,7 @@ export function removeGroup(groupId: string, sync: boolean): void {
     groupMap.delete(groupId);
 }
 
-export function createNewGroupForShapes(shapes: string[]): void {
+export function createNewGroupForShapes(shapes: string[], keepBadges = false): void {
     const group: Group = {
         uuid: uuidv4(),
         characterSet: numberCharacterSet,
@@ -47,7 +47,7 @@ export function createNewGroupForShapes(shapes: string[]): void {
     addNewGroup(group, true);
     addGroupMembers(
         group.uuid,
-        shapes.map(s => ({ uuid: s })),
+        shapes.map(s => ({ uuid: s, badge: keepBadges ? layerManager.UUIDMap.get(s)!.badge : undefined })),
         true,
     );
 }
@@ -94,6 +94,7 @@ export function addGroupMembers(groupId: string, members: { uuid: string; badge?
             }
             shape.groupId = groupId;
             shape.badge = member.badge;
+            shape.invalidate(true);
         }
         memberMap.get(groupId)?.add(member.uuid);
     }

@@ -310,14 +310,36 @@ export default class ShapeContext extends Vue {
         return this.getSelection().some(s => s.groupId === undefined);
     }
 
-    createOrSplitGroup(): void {
+    createGroup(): void {
         createNewGroupForShapes(this.getSelection().map(s => s.uuid));
         this.close();
     }
 
-    mergeGroups(): void {
+    async splitGroup(): Promise<void> {
+        const keepBadges = await this.$refs.confirmDialog.open(
+            "Splitting group",
+            "Do you wish to keep the original badges?",
+            {
+                no: "No, reset them",
+            },
+        );
+        createNewGroupForShapes(
+            this.getSelection().map(s => s.uuid),
+            keepBadges,
+        );
+        this.close();
+    }
+
+    async mergeGroups(): Promise<void> {
+        const keepBadges = await this.$refs.confirmDialog.open(
+            "Merging group",
+            "Do you wish to keep the original badges? This can lead to duplicate badges!",
+            {
+                no: "No, reset them",
+            },
+        );
         let targetGroup: string | undefined;
-        const membersToMove: string[] = [];
+        const membersToMove: { uuid: string; badge?: number }[] = [];
         for (const shape of this.getSelection()) {
             if (shape.groupId !== undefined) {
                 if (targetGroup === undefined) {
@@ -325,15 +347,11 @@ export default class ShapeContext extends Vue {
                 } else if (targetGroup === shape.groupId) {
                     continue;
                 } else {
-                    membersToMove.push(shape.uuid);
+                    membersToMove.push({ uuid: shape.uuid, badge: keepBadges ? shape.badge : undefined });
                 }
             }
         }
-        addGroupMembers(
-            targetGroup!,
-            membersToMove.map(m => ({ uuid: m })),
-            true,
-        );
+        addGroupMembers(targetGroup!, membersToMove, true);
         this.close();
     }
 
@@ -422,11 +440,8 @@ export default class ShapeContext extends Vue {
             <li>
                 Group
                 <ul>
-                    <li v-if="getGroups().length === 0" @click="createOrSplitGroup">Create group</li>
-                    <li
-                        v-if="getGroups().length === 1 && !hasUngrouped() && !hasEntireGroup()"
-                        @click="createOrSplitGroup"
-                    >
+                    <li v-if="getGroups().length === 0" @click="createGroup">Create group</li>
+                    <li v-if="getGroups().length === 1 && !hasUngrouped() && !hasEntireGroup()" @click="splitGroup">
                         Split from group
                     </li>
                     <li v-if="getGroups().length === 1 && !hasUngrouped() && hasEntireGroup()" @click="removeGroup">

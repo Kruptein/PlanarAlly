@@ -87,16 +87,19 @@ async function createLayer(layerInfo: ServerLayer, floor: Floor): Promise<void> 
     await layer.setServerShapes(layerInfo.shapes);
 }
 
-export async function dropAsset(
+export function dropAsset(
     data: { imageSource: string; assetId: number },
     position: { x: number; y: number },
     options?: BaseTemplate,
-): Promise<void> {
+): void {
     const layer = floorStore.currentLayer;
 
     if (!data.imageSource.startsWith("/static")) return;
     const image = document.createElement("img");
     image.src = baseAdjust(data.imageSource);
+    image.onload = () => {
+        layer.invalidate(true);
+    };
     const asset = new Asset(
         image,
         new GlobalPoint(l2gx(position.x), l2gy(position.y)),

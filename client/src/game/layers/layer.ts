@@ -9,9 +9,9 @@ import { visibilityStore } from "@/game/visibility/store";
 import { TriangulationTarget } from "@/game/visibility/te/pa";
 import { getBlockers, getVisionSources, sliceBlockers, sliceVisionSources } from "@/game/visibility/utils";
 import { sendRemoveShapes, sendShapeAdd, sendShapeOrder } from "../api/emits/shape/core";
+import { removeGroupMember } from "../groups";
 import { gameSettingsStore } from "../settings";
 import { drawAuras } from "../shapes/aura";
-import { changeGroupLeader } from "../shapes/group";
 import { floorStore } from "./store";
 
 export class Layer {
@@ -121,9 +121,9 @@ export class Layer {
         if (invalidate) this.invalidate(invalidate === InvalidationMode.WITH_LIGHT);
     }
 
-    setServerShapes(shapes: ServerShape[]): void {
+    async setServerShapes(shapes: ServerShape[]): Promise<void> {
         for (const serverShape of shapes) {
-            const shape = createShapeFromDict(serverShape);
+            const shape = await createShapeFromDict(serverShape);
             if (shape === undefined) {
                 console.log(`Shape with unknown type ${serverShape.type_} could not be added`);
                 return;
@@ -148,14 +148,8 @@ export class Layer {
         }
         this.shapes.splice(idx, 1);
 
-        if (shape.options.has("groupInfo")) {
-            const groupMembers = shape.getGroupMembers();
-            if (groupMembers.length > 1)
-                changeGroupLeader({
-                    leader: groupMembers[1].uuid,
-                    members: groupMembers.slice(2).map(s => s.uuid),
-                    sync: true,
-                });
+        if (shape.groupId !== undefined) {
+            removeGroupMember(shape.groupId, shape.uuid, false);
         }
 
         if (sync !== SyncMode.NO_SYNC && !shape.preventSync)

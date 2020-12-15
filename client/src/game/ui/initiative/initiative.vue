@@ -4,6 +4,7 @@ import Component from "vue-class-component";
 import draggable from "vuedraggable";
 Vue.component("draggable", draggable);
 
+import ConfirmDialog from "@/core/components/modals/confirm.vue";
 import Modal from "@/core/components/modals/modal.vue";
 
 import { uuidv4 } from "@/core/utils";
@@ -24,14 +25,21 @@ import { layerManager } from "@/game/layers/manager";
 import { gameStore } from "@/game/store";
 import { initiativeStore } from "./store";
 import { gameManager } from "../../manager";
+import { getGroupMembers } from "../../groups";
+import { Shape } from "../../shapes/shape";
 
 @Component({
     components: {
+        ConfirmDialog,
         Modal,
         draggable,
     },
 })
 export default class Initiative extends Vue {
+    $refs!: {
+        confirmDialog: ConfirmDialog;
+    };
+
     visible = false;
     visionLock = false;
     cameraLock = false;
@@ -92,9 +100,18 @@ export default class Initiative extends Vue {
         sendInitiativeUpdate(data);
     }
     // Events
-    removeInitiative(uuid: string, sync: boolean): void {
+    async removeInitiative(uuid: string, sync: boolean): Promise<void> {
         const d = initiativeStore.data.findIndex(a => a.uuid === uuid);
-        if (d < 0 || initiativeStore.data[d].group) return;
+        if (d < 0) return;
+        if (initiativeStore.data[d].group) {
+            const continueRemoval = await this.$refs.confirmDialog.open(
+                "Removing initiative",
+                "Are you sure you wish to remove this group from the initiative order?",
+            );
+            if (!continueRemoval) {
+                return;
+            }
+        }
         initiativeStore.data.splice(d, 1);
         if (sync) sendInitiativeRemove(uuid);
         // Remove highlight
@@ -154,8 +171,16 @@ export default class Initiative extends Vue {
     toggleHighlight(actor: InitiativeData, show: boolean): void {
         const shape = layerManager.UUIDMap.get(actor.uuid);
         if (shape === undefined) return;
-        shape.showHighlight = show;
-        shape.layer.invalidate(true);
+        let shapeArray: Shape[];
+        if (shape.groupId === undefined) {
+            shapeArray = [shape];
+        } else {
+            shapeArray = getGroupMembers(shape.groupId);
+        }
+        for (const sh of shapeArray) {
+            sh.showHighlight = show;
+            sh.layer.invalidate(true);
+        }
     }
     toggleOption(actor: InitiativeData, option: "visible" | "group"): void {
         if (!this.owns(actor)) return;
@@ -214,6 +239,7 @@ export default class Initiative extends Vue {
 
 <template>
     <modal :visible="visible" @close="visible = false" :mask="false">
+        <ConfirmDialog ref="confirmDialog"></ConfirmDialog>
         <div
             class="modal-header"
             slot="header"

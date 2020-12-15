@@ -3,6 +3,7 @@ from .asset import *
 from .base import BaseModel as _BaseModel
 from .campaign import *
 from .general import *
+from .groups import Group
 from .initiative import *
 from .label import *
 from .notifications import *

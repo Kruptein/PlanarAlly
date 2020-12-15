@@ -10,8 +10,7 @@ export const sendRemoveShapes = wrapSocket<{ uuids: string[]; temporary: boolean
 export const sendShapeOrder = wrapSocket<{ uuid: string; index: number }>("Shape.Order.Set");
 export const sendFloorChange = wrapSocket<{ uuids: string[]; floor: string }>("Shapes.Floor.Change");
 export const sendLayerChange = wrapSocket<{ uuids: string[]; layer: string; floor: string }>("Shapes.Layer.Change");
-export const sendGroupLeaderUpdate = wrapSocket<{ leader: string; members: string[] }>("Shapes.Group.Leader.Set");
-export const sendGroupMemberAdd = wrapSocket<{ leader: string; member: string }>("Shapes.Group.Member.Add");
+
 export const sendShapesMove = wrapSocket<{
     shapes: string[];
     target: { location: number; floor: string; x: number; y: number };

@@ -119,11 +119,6 @@ class ServerShapeLocationMove(TypedDict):
     target: ServerShapeLocationMoveTarget
 
 
-class GroupLeaderData(TypedDict):
-    leader: str
-    members: List[str]
-
-
 class GroupMemberAddData(TypedDict):
     leader: str
     member: str

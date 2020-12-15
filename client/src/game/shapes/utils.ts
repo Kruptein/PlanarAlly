@@ -20,18 +20,26 @@ import { CircularToken } from "@/game/shapes/variants/circulartoken";
 import { Line } from "@/game/shapes/variants/line";
 import { Rect } from "@/game/shapes/variants/rect";
 import { Text } from "@/game/shapes/variants/text";
-import { sendGroupLeaderUpdate } from "../api/emits/shape/core";
 import { EventBus } from "../event-bus";
+import { addGroupMembers, createNewGroupForShapes, fetchGroup, generateNewBadge, getGroup } from "../groups";
 import { floorStore, getFloorId } from "../layers/store";
 import { gameStore } from "../store";
-import { addGroupMember } from "./group";
 import { Tracker } from "./interfaces";
 import { Polygon } from "./variants/polygon";
 
-export function createShapeFromDict(shape: ServerShape): Shape | undefined {
+export async function createShapeFromDict(shape: ServerShape): Promise<Shape | undefined> {
     let sh: Shape;
 
     // A fromJSON and toJSON on Shape would be cleaner but ts does not allow for static abstracts so yeah.
+
+    // Fetch group info if required
+    if (shape.group) {
+        let group = getGroup(shape.group);
+        if (group === undefined) {
+            group = await fetchGroup(shape.group);
+        }
+        addGroupMembers(group.uuid, [{ uuid: shape.uuid, badge: shape.badge }], false);
+    }
 
     // Shape Type specifics
 
@@ -107,13 +115,16 @@ export function copyShapes(): void {
     const clipboard: ServerShape[] = [];
     for (const shape of layer.getSelection()) {
         if (!shape.ownedBy({ editAccess: true })) continue;
+        if (!shape.groupId) {
+            createNewGroupForShapes([shape.uuid]);
+        }
         clipboard.push(shape.asDict());
     }
     gameStore.setClipboard(clipboard);
     gameStore.setClipboardPosition(gameStore.screenCenter);
 }
 
-export function pasteShapes(targetLayer?: string): readonly Shape[] {
+export async function pasteShapes(targetLayer?: string): Promise<readonly Shape[]> {
     const layer = layerManager.getLayer(floorStore.currentFloor, targetLayer);
     if (!layer) return [];
     if (!gameStore.clipboard) return [];
@@ -127,7 +138,6 @@ export function pasteShapes(targetLayer?: string): readonly Shape[] {
     for (const clip of gameStore.clipboard) {
         clip.x += offset.x;
         clip.y += offset.y;
-        const ogUuid = clip.uuid;
         clip.uuid = uuidv4();
         // Trackers
         const oldTrackers = clip.trackers;
@@ -150,27 +160,13 @@ export function pasteShapes(targetLayer?: string): readonly Shape[] {
             clip.auras.push(newAura);
         }
         // Badge
-        const options = clip.options ? new Map(JSON.parse(clip.options)) : new Map();
-        let groupLeader: Shape | undefined;
-        if (options.has("groupId")) {
-            groupLeader = layerManager.UUIDMap.get(options.get("groupId") as string);
-        } else {
-            groupLeader = layerManager.UUIDMap.get(ogUuid)!;
-        }
-        if (groupLeader === undefined) console.error("Missing group leader on paste");
-        else {
-            if (!groupLeader.options.has("groupInfo")) {
-                groupLeader.options.set("groupInfo", []);
-                sendGroupLeaderUpdate({ leader: groupLeader.uuid, members: [] });
-            }
-            const groupMembers = groupLeader.getGroupMembers();
-            clip.badge = groupMembers.reduce((acc: number, sh: Shape) => Math.max(acc, sh.badge ?? 1), 0) + 1;
-            options.set("groupId", groupLeader.uuid);
-            clip.options = JSON.stringify([...options]);
-            addGroupMember({ leader: groupLeader.uuid, member: clip.uuid, sync: true });
+        if (clip.group) {
+            // We do not need to explicitly join the group as that will be done by createShape below
+            // The shape is not yet added to the layerManager at this point anyway
+            clip.badge = generateNewBadge(clip.group);
         }
         // Finalize
-        const shape = createShapeFromDict(clip);
+        const shape = await createShapeFromDict(clip);
         if (shape === undefined) continue;
         layer.addShape(shape, SyncMode.FULL_SYNC, InvalidationMode.WITH_LIGHT);
         layer.pushSelection(shape);

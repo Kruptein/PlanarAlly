@@ -1,4 +1,5 @@
 import { ServerClient } from "../../comm/types/settings";
+import { EventBus } from "../../event-bus";
 import { layerManager } from "../../layers/manager";
 import { gameStore } from "../../store";
 import { zoomDisplay } from "../../utils";
@@ -18,7 +19,7 @@ socket.on("Client.Options.Set", (options: ServerClient) => {
     gameStore.setPanY(options.pan_y);
     gameStore.setZoomDisplay(zoomDisplay(options.zoom_factor));
 
-    socket.once("Board.Floor.Set", () => {
+    EventBus.$once("Board.Floor.Set", () => {
         if (options.active_layer) layerManager.selectLayer(options.active_layer, false);
     });
 });

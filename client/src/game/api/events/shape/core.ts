@@ -5,7 +5,6 @@ import { layerManager } from "../../../layers/manager";
 import { floorStore, getFloorId } from "../../../layers/store";
 import { moveFloor, moveLayer } from "../../../layers/utils";
 import { gameManager } from "../../../manager";
-import { changeGroupLeader, addGroupMember } from "../../../shapes/group";
 import { Shape } from "../../../shapes/shape";
 import { socket } from "../../socket";
 import { Text } from "../../../shapes/variants/text";
@@ -13,20 +12,22 @@ import { Rect } from "../../../shapes/variants/rect";
 import { Circle } from "../../../shapes/variants/circle";
 import { Tracker, Aura } from "../../../shapes/interfaces";
 
-socket.on("Shape.Set", (data: ServerShape) => {
+socket.on("Shape.Set", async (data: ServerShape) => {
     // hard reset a shape
     const old = layerManager.UUIDMap.get(data.uuid);
     if (old) old.layer.removeShape(old, SyncMode.NO_SYNC);
-    const shape = gameManager.addShape(data);
+    const shape = await gameManager.addShape(data);
     if (shape) EventBus.$emit("Shape.Set", shape);
 });
 
-socket.on("Shape.Add", (shape: ServerShape) => {
-    gameManager.addShape(shape);
+socket.on("Shape.Add", async (shape: ServerShape) => {
+    await gameManager.addShape(shape);
 });
 
-socket.on("Shapes.Add", (shapes: ServerShape[]) => {
-    shapes.forEach(shape => gameManager.addShape(shape));
+socket.on("Shapes.Add", async (shapes: ServerShape[]) => {
+    for (const shape of shapes) {
+        await gameManager.addShape(shape);
+    }
 });
 
 socket.on("Shapes.Remove", (shapes: string[]) => {
@@ -72,14 +73,6 @@ socket.on("Shapes.Layer.Change", (data: { uuids: string[]; floor: string; layer:
         .filter(s => s !== undefined) as Shape[];
     if (shapes.length === 0) return;
     moveLayer(shapes, layerManager.getLayer(layerManager.getFloor(getFloorId(data.floor))!, data.layer)!, false);
-});
-
-socket.on("Shapes.Group.Leader.Set", (data: { leader: string; members: string[] }) => {
-    changeGroupLeader({ ...data, sync: false });
-});
-
-socket.on("Shapes.Group.Member.Add", (data: { leader: string; member: string }) => {
-    addGroupMember({ ...data, sync: false });
 });
 
 socket.on(

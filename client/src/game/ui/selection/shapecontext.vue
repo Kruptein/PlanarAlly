@@ -4,6 +4,7 @@ import Component from "vue-class-component";
 
 import { mapState } from "vuex";
 
+import ConfirmDialog from "@/core/components/modals/confirm.vue";
 import ContextMenu from "@/core/components/contextmenu.vue";
 import Game from "@/game/Game.vue";
 import Prompt from "@/core/components/modals/prompt.vue";
@@ -26,9 +27,11 @@ import { sendShapesMove } from "@/game/api/emits/shape/core";
 import { ServerAsset } from "@/game/comm/types/shapes";
 import { AssetOptions } from "@/game/comm/types/asset";
 import { toTemplate } from "@/game/shapes/template";
+import { addGroupMembers, createNewGroupForShapes, getGroupSize, removeGroup } from "../../groups";
 
 @Component({
     components: {
+        ConfirmDialog,
         ContextMenu,
         Prompt,
         SelectionBox,
@@ -40,8 +43,9 @@ import { toTemplate } from "@/game/shapes/template";
 })
 export default class ShapeContext extends Vue {
     $refs!: {
-        prompt: InstanceType<typeof Prompt>;
-        selectionbox: InstanceType<typeof SelectionBox>;
+        confirmDialog: ConfirmDialog;
+        prompt: Prompt;
+        selectionbox: SelectionBox;
     };
 
     visible = false;
@@ -63,7 +67,7 @@ export default class ShapeContext extends Vue {
         this.$nextTick(() => (this.$children[0].$el as HTMLElement).focus());
     }
     close(): void {
-        if (this.$refs.prompt.visible || this.$refs.selectionbox.visible) return;
+        if (this.$refs.prompt.visible || this.$refs.selectionbox.visible || this.$refs.confirmDialog.visible) return;
         this.visible = false;
     }
     getMarker(): string | undefined {
@@ -172,9 +176,29 @@ export default class ShapeContext extends Vue {
         layer.getSelection().forEach(shape => layer.moveShapeOrder(shape, layer.getShapes().length - 1, true));
         this.close();
     }
-    addInitiative(): void {
+    async addInitiative(): Promise<void> {
         const layer = this.getActiveLayer()!;
-        layer.getSelection().forEach(shape => initiativeStore.addInitiative(shape.getInitiativeRepr()));
+        const selection = layer.getSelection();
+        let groupInitiatives = false;
+        if (new Set(selection.map(s => s.groupId)).size < selection.length) {
+            console.log(6);
+            groupInitiatives = await this.$refs.confirmDialog.open(
+                "Adding initiative",
+                "Some of the selected shapes belong to the same group. Do you wish to add 1 entry for these?",
+                { no: "no, create a separate entry for each", focus: "confirm" },
+            );
+        }
+        console.log(groupInitiatives, selection);
+        const groupsProcessed = new Set();
+        for (const shape of selection) {
+            if (!groupInitiatives || shape.groupId === undefined || !groupsProcessed.has(shape.groupId)) {
+                initiativeStore.addInitiative({
+                    ...shape.getInitiativeRepr(),
+                    group: groupInitiatives && shape.groupId !== undefined,
+                });
+                groupsProcessed.add(shape.groupId);
+            }
+        }
         EventBus.$emit("Initiative.Show");
         this.close();
     }
@@ -266,6 +290,86 @@ export default class ShapeContext extends Vue {
                 return "";
         }
     }
+
+    getGroups(): string[] {
+        return [
+            ...new Set(
+                this.getSelection()
+                    .map(s => s.groupId)
+                    .filter(g => g !== undefined),
+            ),
+        ] as string[];
+    }
+
+    hasEntireGroup(): boolean {
+        const selection = this.getSelection();
+        return selection.length === getGroupSize(selection[0].groupId!);
+    }
+
+    hasUngrouped(): boolean {
+        return this.getSelection().some(s => s.groupId === undefined);
+    }
+
+    createGroup(): void {
+        createNewGroupForShapes(this.getSelection().map(s => s.uuid));
+        this.close();
+    }
+
+    async splitGroup(): Promise<void> {
+        const keepBadges = await this.$refs.confirmDialog.open(
+            "Splitting group",
+            "Do you wish to keep the original badges?",
+            {
+                no: "No, reset them",
+            },
+        );
+        createNewGroupForShapes(
+            this.getSelection().map(s => s.uuid),
+            keepBadges,
+        );
+        this.close();
+    }
+
+    async mergeGroups(): Promise<void> {
+        const keepBadges = await this.$refs.confirmDialog.open(
+            "Merging group",
+            "Do you wish to keep the original badges? This can lead to duplicate badges!",
+            {
+                no: "No, reset them",
+            },
+        );
+        let targetGroup: string | undefined;
+        const membersToMove: { uuid: string; badge?: number }[] = [];
+        for (const shape of this.getSelection()) {
+            if (shape.groupId !== undefined) {
+                if (targetGroup === undefined) {
+                    targetGroup = shape.groupId;
+                } else if (targetGroup === shape.groupId) {
+                    continue;
+                } else {
+                    membersToMove.push({ uuid: shape.uuid, badge: keepBadges ? shape.badge : undefined });
+                }
+            }
+        }
+        addGroupMembers(targetGroup!, membersToMove, true);
+        this.close();
+    }
+
+    removeGroup(): void {
+        removeGroup(this.getSelection()[0].groupId!, true);
+        this.close();
+    }
+
+    enlargeGroup(): void {
+        const selection = this.getSelection();
+        const groupId = selection.find(s => s.groupId !== undefined)!.groupId!;
+        addGroupMembers(
+            groupId,
+            selection.filter(s => s.groupId === undefined).map(s => ({ uuid: s.uuid })),
+            true,
+        );
+        this.close();
+    }
 }
 </script>
 
@@ -277,6 +381,7 @@ export default class ShapeContext extends Vue {
         :top="y + 'px'"
         @close="close"
     >
+        <ConfirmDialog ref="confirmDialog"></ConfirmDialog>
         <Prompt ref="prompt"></Prompt>
         <SelectionBox ref="selectionbox"></SelectionBox>
         <li v-if="getFloors().length > 1">
@@ -329,12 +434,24 @@ export default class ShapeContext extends Vue {
                 v-t="'game.ui.selection.shapecontext.remove_marker'"
             ></li>
             <li v-else @click="setMarker" v-t="'game.ui.selection.shapecontext.set_marker'"></li>
+            <li @click="saveTemplate" v-if="showDmNonSpawnItem() && hasAsset()" v-t="'game.ui.templates.save'"></li>
         </template>
-        <li
-            @click="saveTemplate"
-            v-if="hasSingleShape() && showDmNonSpawnItem() && hasAsset()"
-            v-t="'game.ui.templates.save'"
-        ></li>
+        <template v-else>
+            <li>
+                Group
+                <ul>
+                    <li v-if="getGroups().length === 0" @click="createGroup">Create group</li>
+                    <li v-if="getGroups().length === 1 && !hasUngrouped() && !hasEntireGroup()" @click="splitGroup">
+                        Split from group
+                    </li>
+                    <li v-if="getGroups().length === 1 && !hasUngrouped() && hasEntireGroup()" @click="removeGroup">
+                        Remove group
+                    </li>
+                    <li v-if="getGroups().length > 1" @click="mergeGroups">Merge groups</li>
+                    <li v-if="getGroups().length === 1 && hasUngrouped()" @click="enlargeGroup">Enlarge group</li>
+                </ul>
+            </li>
+        </template>
         <li v-if="hasSingleShape()" @click="openEditDialog" v-t="'game.ui.selection.shapecontext.show_props'"></li>
     </ContextMenu>
 </template>
@@ -342,6 +459,7 @@ export default class ShapeContext extends Vue {
 <style scoped>
 .ContextMenu ul {
     border: 1px solid #82c8a0;
+    width: fit-content;
 }
 .ContextMenu ul li {
     border-bottom: 1px solid #82c8a0;

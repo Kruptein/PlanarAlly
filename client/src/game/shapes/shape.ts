@@ -55,6 +55,7 @@ import { Aura, Label, Tracker } from "./interfaces";
 import { PartialShapeOwner, ShapeAccess, ShapeOwner } from "./owners";
 import { SHAPE_TYPE } from "./types";
 import { EventBus } from "../event-bus";
+import { getBadgeCharacters } from "../groups";
 
 export abstract class Shape {
     // Used to create class instance from server shape data
@@ -81,6 +82,7 @@ export abstract class Shape {
     nameVisible = true;
 
     assetId?: number;
+    groupId?: string;
 
     // Associated trackers/auras/owners
     trackers: Tracker[] = [];
@@ -107,7 +109,7 @@ export abstract class Shape {
     // Additional options for specialized uses
     options: Map<string, any> = new Map();
 
-    badge = 1;
+    badge = 0;
     showBadge = false;
 
     isLocked = false;
@@ -312,6 +314,7 @@ export abstract class Shape {
             default_movement_access: this.defaultAccess.movement,
             default_vision_access: this.defaultAccess.vision,
             asset: this.assetId,
+            group: this.groupId,
         };
     }
     fromDict(data: ServerShape): void {
@@ -337,6 +340,7 @@ export abstract class Shape {
         if (data.name) this.name = data.name;
         if (data.options) this.options = new Map(JSON.parse(data.options));
         if (data.asset) this.assetId = data.asset;
+        if (data.group) this.groupId = data.group;
         // retain reactivity
         this.updateDefaultOwner(
             {
@@ -385,10 +389,12 @@ export abstract class Shape {
             ctx.fill();
             ctx.fillStyle = tinycolor.mostReadable(this.strokeColour, ["#000", "#fff"]).toHexString();
 
-            ctx.font = `${1.8 * r}px bold Calibri, sans-serif`;
+            const badgeChars = getBadgeCharacters(this);
+            const scalingFactor = 2.3 - 0.5 * badgeChars.length;
+            ctx.font = `${scalingFactor * r}px bold Calibri, sans-serif`;
             ctx.textAlign = "center";
             ctx.textBaseline = "middle";
-            ctx.fillText(`${this.badge}`, location.x - r, location.y - r + g2lz(1));
+            ctx.fillText(badgeChars, location.x - r, location.y - r + g2lz(1));
         }
         if (this.showHighlight) {
             if (bbox === undefined) bbox = this.getBoundingBox();
@@ -559,22 +565,6 @@ export abstract class Shape {
         this.layer.updateShapePoints(this);
     }
 
-    getGroupMembers(): Shape[] {
-        if (!(this.options.has("groupId") || this.options.has("groupInfo"))) return [this];
-        const groupId = this.options.get("groupId") ?? this.uuid;
-        const groupLeader = groupId === this.uuid ? this : layerManager.UUIDMap.get(groupId);
-        if (groupLeader === undefined || !groupLeader.options.has("groupInfo")) return [this];
-        const groupIds = groupLeader.options.get("groupInfo") as string[];
-        return [
-            groupLeader,
-            ...groupIds.reduce(
-                (acc: Shape[], u: string) =>
-                    layerManager.UUIDMap.has(u) ? [...acc, layerManager.UUIDMap.get(u)!] : acc,
-                [],
-            ),
-        ];
-    }
-
     updateShapeVision(alteredMovement: boolean, alteredVision: boolean): void {
         if (this.visionObstruction && !alteredVision) {
             visibilityStore.deleteFromTriag({
@@ -650,6 +640,7 @@ export abstract class Shape {
         this.showBadge = showBadge;
         if (sync) sendShapeSetShowBadge({ shape: this.uuid, value: this.showBadge });
         this.invalidate(!this.triggersVisionRecalc);
+        EventBus.$emit("EditDialog.Group.Update");
     }
 
     setAnnotation(text: string, sync: boolean): void {

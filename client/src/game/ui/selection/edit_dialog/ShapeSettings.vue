@@ -5,6 +5,7 @@ import Component from "vue-class-component";
 import PanelModal from "../../../../core/components/modals/PanelModal.vue";
 import AccessSettings from "./AccessSettings.vue";
 import ExtraSettings from "./ExtraSettings.vue";
+import GroupSettings from "./GroupSettings.vue";
 import PropertySettings from "./PropertySettings.vue";
 import TrackerSettings from "./TrackerSettings.vue";
 
@@ -17,6 +18,7 @@ import { gameStore } from "@/game/store";
     components: {
         AccessSettings,
         ExtraSettings,
+        GroupSettings,
         PanelModal,
         PropertySettings,
         TrackerSettings,
@@ -50,7 +52,15 @@ export default class ShapeSettings extends Vue {
     }
 
     get categoryNames(): string[] {
-        return ["Properties", "Trackers", "Access", "Extra"];
+        if (this.owned) return ["Properties", "Trackers", "Access", "Group", "Extra"];
+        else return ["Properties", "Trackers", "Access", "Extra"];
+    }
+
+    // the Group panel is not always shown and thus changes the selection order
+    // this is a bit more wieldy than a simple selection === check,
+    // so should only be used for panels that appear after potentially disappearing panels
+    is(selection: number, category: string): boolean {
+        return this.categoryNames[selection].toLowerCase() === category.toLowerCase();
     }
 }
 </script>
@@ -62,11 +72,12 @@ export default class ShapeSettings extends Vue {
             <PropertySettings v-show="selection === 0" :shape="shape" :owned="owned"></PropertySettings>
             <TrackerSettings v-show="selection === 1" :shape="shape" :owned="owned"></TrackerSettings>
             <AccessSettings v-show="selection === 2" :shape="shape" :owned="owned"></AccessSettings>
+            <GroupSettings v-show="owned && selection === 3" :shape="shape" :owned="owned"></GroupSettings>
             <ExtraSettings
-                v-show="selection === 3"
+                v-show="is(selection, 'extra')"
                 :shape="shape"
                 :owned="owned"
-                :active="selection === 3"
+                :active="is(selection, 'extra')"
             ></ExtraSettings>
         </template>
     </PanelModal>

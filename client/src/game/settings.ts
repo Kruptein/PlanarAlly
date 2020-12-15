@@ -240,7 +240,7 @@ class GameSettingsStore extends VuexModule implements GameSettingsState {
     }
 
     @Mutation
-    async setSpawnLocations(data: { spawnLocations: string[]; location: number | null; sync: boolean }): Promise<void> {
+    setSpawnLocations(data: { spawnLocations: string[]; location: number | null; sync: boolean }): void {
         if (data.location === null) return;
         if (mutateLocationOption("spawnLocations", data.spawnLocations, data.location)) {
             layerManager.invalidateAllFloors();

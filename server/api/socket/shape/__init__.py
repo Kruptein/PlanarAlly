@@ -7,6 +7,7 @@ from playhouse.shortcuts import update_model_from_dict
 
 import auth
 from api.socket.constants import GAME_NS
+from api.socket.groups import remove_group_if_empty
 from api.socket.shape.data_models import *
 from app import app, sio
 from models import (
@@ -163,6 +164,8 @@ async def remove_shapes(sid: str, data: TemporaryShapesList):
 
         layer = shapes[0].layer
 
+        group_ids = set()
+
         for shape in shapes:
             if not has_ownership(shape, pr):
                 logger.warning(
@@ -170,11 +173,17 @@ async def remove_shapes(sid: str, data: TemporaryShapesList):
                 )
                 return
 
+            if shape.group:
+                group_ids.add(shape.group)
+
             old_index = shape.index
             shape.delete_instance(True)
             Shape.update(index=Shape.index - 1).where(
                 (Shape.layer == layer) & (Shape.index >= old_index)
             ).execute()
+
+    for group_id in group_ids:
+        await remove_group_if_empty(group_id)
 
     await sio.emit(
         "Shapes.Remove",
@@ -363,57 +372,6 @@ async def move_shapes(sid: str, data: ServerShapeLocationMove):
             room=psid,
             namespace=GAME_NS,
         )
-
-
-@sio.on("Shapes.Group.Leader.Set", namespace=GAME_NS)
-@auth.login_required(app, sio)
-async def set_group_leader(sid: str, data: GroupLeaderData):
-    pr: PlayerRoom = game_state.get(sid)
-
-    leader_shape = Shape.get_by_id(data["leader"])
-    leader_options = leader_shape.get_options()
-
-    if "groupId" in leader_options:
-        del leader_options["groupId"]
-    leader_options["groupInfo"] = data["members"]
-    leader_shape.set_options(leader_options)
-    leader_shape.save()
-
-    for member in data["members"]:
-        shape = Shape.get_by_id(member)
-        options = shape.get_options()
-        options["groupId"] = data["leader"]
-        shape.set_options(options)
-        shape.save()
-
-    await sio.emit(
-        "Shapes.Group.Leader.Set",
-        data,
-        room=pr.active_location.get_path(),
-        skip_sid=sid,
-        namespace=GAME_NS,
-    )
-
-
-@sio.on("Shapes.Group.Member.Add", namespace=GAME_NS)
-@auth.login_required(app, sio)
-async def add_group_member(sid: str, data: GroupMemberAddData):
-    pr: PlayerRoom = game_state.get(sid)
-
-    leader_shape = Shape.get_by_id(data["leader"])
-    leader_options = leader_shape.get_options()
-
-    leader_options["groupInfo"].append(data["member"])
-    leader_shape.set_options(leader_options)
-    leader_shape.save()
-
-    await sio.emit(
-        "Shapes.Group.Member.Add",
-        data,
-        room=pr.active_location.get_path(),
-        skip_sid=sid,
-        namespace=GAME_NS,
-    )
 
 
 @sio.on("Shapes.Trackers.Update", namespace=GAME_NS)

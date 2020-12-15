@@ -209,7 +209,7 @@ export default class GroupSettings extends Vue {
         </div>
         <template v-if="getCharacterSetSelected() === 2">
             <div class="rule">Custom charset</div>
-            <div>
+            <div style="grid-column: fill/end">
                 <input type="text" :value="getCustomCharset()" @change="setCustomCharset" />
             </div>
         </template>

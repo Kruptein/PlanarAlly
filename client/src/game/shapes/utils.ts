@@ -21,15 +21,24 @@ import { Line } from "@/game/shapes/variants/line";
 import { Rect } from "@/game/shapes/variants/rect";
 import { Text } from "@/game/shapes/variants/text";
 import { EventBus } from "../event-bus";
+import { fetchGroup, getGroup } from "../groups";
 import { floorStore, getFloorId } from "../layers/store";
 import { gameStore } from "../store";
 import { Tracker } from "./interfaces";
 import { Polygon } from "./variants/polygon";
 
-export function createShapeFromDict(shape: ServerShape): Shape | undefined {
+export async function createShapeFromDict(shape: ServerShape): Promise<Shape | undefined> {
     let sh: Shape;
 
     // A fromJSON and toJSON on Shape would be cleaner but ts does not allow for static abstracts so yeah.
+
+    // Fetch group info if required
+    if (shape.group) {
+        let group = getGroup(shape.group);
+        if (group === undefined) {
+            group = await fetchGroup(shape.group);
+        }
+    }
 
     // Shape Type specifics
 
@@ -111,7 +120,7 @@ export function copyShapes(): void {
     gameStore.setClipboardPosition(gameStore.screenCenter);
 }
 
-export function pasteShapes(targetLayer?: string): readonly Shape[] {
+export async function pasteShapes(targetLayer?: string): Promise<readonly Shape[]> {
     const layer = layerManager.getLayer(floorStore.currentFloor, targetLayer);
     if (!layer) return [];
     if (!gameStore.clipboard) return [];
@@ -148,7 +157,7 @@ export function pasteShapes(targetLayer?: string): readonly Shape[] {
         }
         // Badge
         // Finalize
-        const shape = createShapeFromDict(clip);
+        const shape = await createShapeFromDict(clip);
         if (shape === undefined) continue;
         layer.addShape(shape, SyncMode.FULL_SYNC, InvalidationMode.WITH_LIGHT);
         layer.pushSelection(shape);

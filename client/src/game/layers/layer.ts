@@ -120,9 +120,9 @@ export class Layer {
         if (invalidate) this.invalidate(invalidate === InvalidationMode.WITH_LIGHT);
     }
 
-    setServerShapes(shapes: ServerShape[]): void {
+    async setServerShapes(shapes: ServerShape[]): Promise<void> {
         for (const serverShape of shapes) {
-            const shape = createShapeFromDict(serverShape);
+            const shape = await createShapeFromDict(serverShape);
             if (shape === undefined) {
                 console.log(`Shape with unknown type ${serverShape.type_} could not be added`);
                 return;

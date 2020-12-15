@@ -39,7 +39,7 @@ export function onKeyUp(event: KeyboardEvent): void {
     }
 }
 
-export function onKeyDown(event: KeyboardEvent): void {
+export async function onKeyDown(event: KeyboardEvent): Promise<void> {
     if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement) {
         // Ctrl-a with a HTMLInputElement or a HTMLTextAreaElement selected - select all the text
         if (event.key === "a" && event.ctrlKey) event.target.select();
@@ -188,7 +188,7 @@ export function onKeyDown(event: KeyboardEvent): void {
             copyShapes();
         } else if (event.key === "v" && event.ctrlKey) {
             // Ctrl-v - Paste
-            pasteShapes();
+            await pasteShapes();
         } else if (event.key === "PageUp" && floorStore.currentFloorindex < floorStore.floors.length - 1) {
             // Page Up - Move floor up
             // Alt + Page Up - Move selected shapes floor up

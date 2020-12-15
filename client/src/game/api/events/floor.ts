@@ -5,8 +5,8 @@ import { floorStore, getFloorId } from "../../layers/store";
 import { addFloor, removeFloor } from "../../layers/utils";
 import { socket } from "../socket";
 
-socket.on("Floor.Create", (data: { floor: ServerFloor; creator: string }) => {
-    addFloor(data.floor);
+socket.on("Floor.Create", async (data: { floor: ServerFloor; creator: string }) => {
+    await addFloor(data.floor);
     if (data.creator === coreStore.username) floorStore.selectFloor({ targetFloor: data.floor.name, sync: true });
 });
 

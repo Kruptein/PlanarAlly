@@ -12,20 +12,22 @@ import { Rect } from "../../../shapes/variants/rect";
 import { Circle } from "../../../shapes/variants/circle";
 import { Tracker, Aura } from "../../../shapes/interfaces";
 
-socket.on("Shape.Set", (data: ServerShape) => {
+socket.on("Shape.Set", async (data: ServerShape) => {
     // hard reset a shape
     const old = layerManager.UUIDMap.get(data.uuid);
     if (old) old.layer.removeShape(old, SyncMode.NO_SYNC);
-    const shape = gameManager.addShape(data);
+    const shape = await gameManager.addShape(data);
     if (shape) EventBus.$emit("Shape.Set", shape);
 });
 
-socket.on("Shape.Add", (shape: ServerShape) => {
-    gameManager.addShape(shape);
+socket.on("Shape.Add", async (shape: ServerShape) => {
+    await gameManager.addShape(shape);
 });
 
-socket.on("Shapes.Add", (shapes: ServerShape[]) => {
-    shapes.forEach(shape => gameManager.addShape(shape));
+socket.on("Shapes.Add", async (shapes: ServerShape[]) => {
+    for (const shape of shapes) {
+        await gameManager.addShape(shape);
+    }
 });
 
 socket.on("Shapes.Remove", (shapes: string[]) => {

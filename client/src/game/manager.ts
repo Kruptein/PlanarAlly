@@ -10,13 +10,13 @@ import { getFloorId } from "./layers/store";
 import { Shape } from "./shapes/shape";
 
 export class GameManager {
-    addShape(shape: ServerShape): Shape | undefined {
+    async addShape(shape: ServerShape): Promise<Shape | undefined> {
         if (!layerManager.hasLayer(layerManager.getFloor(getFloorId(shape.floor))!, shape.layer)) {
             console.log(`Shape with unknown layer ${shape.layer} could not be added`);
             return;
         }
         const layer = layerManager.getLayer(layerManager.getFloor(getFloorId(shape.floor))!, shape.layer)!;
-        const sh = createShapeFromDict(shape);
+        const sh = await createShapeFromDict(shape);
         if (sh === undefined) {
             console.log(`Shape with unknown type ${shape.type_} could not be added`);
             return;

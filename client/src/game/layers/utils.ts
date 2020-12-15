@@ -20,7 +20,7 @@ import { DEFAULT_GRID_SIZE, gameStore } from "../store";
 import { Floor } from "./floor";
 import { floorStore, getFloorId, newFloorId } from "./store";
 
-export function addFloor(serverFloor: ServerFloor): void {
+export async function addFloor(serverFloor: ServerFloor): Promise<void> {
     const floor: Floor = {
         id: newFloorId(),
         name: serverFloor.name,
@@ -28,7 +28,7 @@ export function addFloor(serverFloor: ServerFloor): void {
     };
     floorStore.addFloor({ floor, targetIndex: serverFloor.index });
     addCDT(getFloorId(serverFloor.name));
-    for (const layer of serverFloor.layers) createLayer(layer, floor);
+    for (const layer of serverFloor.layers) await createLayer(layer, floor);
 
     // Recalculate zIndices
     let i = 0;
@@ -59,7 +59,7 @@ export function removeFloor(floorId: number): void {
     floorStore.removeFloor(floor);
 }
 
-function createLayer(layerInfo: ServerLayer, floor: Floor): void {
+async function createLayer(layerInfo: ServerLayer, floor: Floor): Promise<void> {
     // Create canvas element
     const canvas = document.createElement("canvas");
     canvas.width = window.innerWidth;
@@ -84,7 +84,7 @@ function createLayer(layerInfo: ServerLayer, floor: Floor): void {
     }
     if (layerInfo.name !== "fow-players") layers.appendChild(canvas);
     // Load layer shapes
-    layer.setServerShapes(layerInfo.shapes);
+    await layer.setServerShapes(layerInfo.shapes);
 }
 
 export async function dropAsset(

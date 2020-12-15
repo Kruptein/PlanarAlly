@@ -4,6 +4,7 @@ import Component from "vue-class-component";
 import draggable from "vuedraggable";
 Vue.component("draggable", draggable);
 
+import ConfirmDialog from "@/core/components/modals/confirm.vue";
 import Modal from "@/core/components/modals/modal.vue";
 
 import { uuidv4 } from "@/core/utils";
@@ -27,11 +28,16 @@ import { gameManager } from "../../manager";
 
 @Component({
     components: {
+        ConfirmDialog,
         Modal,
         draggable,
     },
 })
 export default class Initiative extends Vue {
+    $refs!: {
+        confirmDialog: ConfirmDialog;
+    };
+
     visible = false;
     visionLock = false;
     cameraLock = false;
@@ -92,9 +98,18 @@ export default class Initiative extends Vue {
         sendInitiativeUpdate(data);
     }
     // Events
-    removeInitiative(uuid: string, sync: boolean): void {
+    async removeInitiative(uuid: string, sync: boolean): Promise<void> {
         const d = initiativeStore.data.findIndex(a => a.uuid === uuid);
-        if (d < 0 || initiativeStore.data[d].group) return;
+        if (d < 0) return;
+        if (initiativeStore.data[d].group) {
+            const continueRemoval = await this.$refs.confirmDialog.open(
+                "Removing initiative",
+                "Are you sure you wish to remove this group from the initiative order?",
+            );
+            if (!continueRemoval) {
+                return;
+            }
+        }
         initiativeStore.data.splice(d, 1);
         if (sync) sendInitiativeRemove(uuid);
         // Remove highlight
@@ -214,6 +229,7 @@ export default class Initiative extends Vue {
 
 <template>
     <modal :visible="visible" @close="visible = false" :mask="false">
+        <ConfirmDialog ref="confirmDialog"></ConfirmDialog>
         <div
             class="modal-header"
             slot="header"

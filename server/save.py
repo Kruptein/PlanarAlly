@@ -689,8 +689,8 @@ def upgrade(version):
             )
 
             data = db.execute_sql("SELECT uuid, badge, options FROM shape")
-            pendingGroups = {}
-            createdGroups = {}
+            pending_groups = {}
+            created_groups = {}
             for row in data.fetchall():
                 uuid, badge, options = row
                 group_id = None
@@ -709,25 +709,25 @@ def upgrade(version):
                             "INSERT INTO 'group' (uuid, character_set, creation_order) VALUES (?, ?, ?)",
                             (group_id, "0,1,2,3,4,5,6,7,8,9", "incrementing"),
                         )
-                        createdGroups[uuid] = group_id
-                        # process everything in pendingGroups
-                        if uuid in pendingGroups:
-                            for member in pendingGroups[uuid]:
+                        created_groups[uuid] = group_id
+                        # process everything in pending_groups
+                        if uuid in pending_groups:
+                            for member in pending_groups[uuid]:
                                 db.execute_sql(
                                     "UPDATE shape SET group_id = ? WHERE uuid = ?",
                                     (group_id, member),
                                 )
-                            del pendingGroups[uuid]
+                            del pending_groups[uuid]
                         del options["groupInfo"]
                     if "groupId" in options:
-                        if options["groupId"] in createdGroups:
+                        if options["groupId"] in created_groups:
                             # add to existing group
-                            group_id = createdGroups[options["groupId"]]
+                            group_id = created_groups[options["groupId"]]
                         else:
                             # remember this shape as something to add later
-                            if options["groupId"] not in pendingGroups:
-                                pendingGroups[options["groupId"]] = []
-                            pendingGroups[options["groupId"]].append(uuid)
+                            if options["groupId"] not in pending_groups:
+                                pending_groups[options["groupId"]] = []
+                            pending_groups[options["groupId"]].append(uuid)
                         del options["groupId"]
                     options = json.dumps([[k, v] for k, v in options.items()])
                 if badge:

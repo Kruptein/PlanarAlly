@@ -36,8 +36,6 @@ class LeaveGroup(TypedDict):
 @sio.on("Group.Info.Get", namespace=GAME_NS)
 @auth.login_required(app, sio)
 async def get_group_info(sid: str, group_id: str):
-    pr: PlayerRoom = game_state.get(sid)
-
     try:
         group = Group.get_by_id(group_id)
     except Group.DoesNotExist:
@@ -114,12 +112,12 @@ async def create_group(sid: str, group_info: ServerGroup):
 
 @sio.on("Group.Join", namespace=GAME_NS)
 @auth.login_required(app, sio)
-async def join_group(sid: str, groupJoin: GroupJoin):
+async def join_group(sid: str, group_join: GroupJoin):
     pr: PlayerRoom = game_state.get(sid)
 
     group_ids = set()
 
-    for member in groupJoin["members"]:
+    for member in group_join["members"]:
         try:
             shape = Shape.get_by_id(member["uuid"])
         except Shape.DoesNotExist:
@@ -127,9 +125,9 @@ async def join_group(sid: str, groupJoin: GroupJoin):
                 f"Could not update shape group for unknown shape {member['uuid']}"
             )
         else:
-            if shape.group is not None and shape.group != groupJoin["group_id"]:
+            if shape.group is not None and shape.group != group_join["group_id"]:
                 group_ids.add(shape.group)
-            shape.group = groupJoin["group_id"]
+            shape.group = group_join["group_id"]
             shape.badge = member["badge"]
             shape.save()
 
@@ -139,26 +137,26 @@ async def join_group(sid: str, groupJoin: GroupJoin):
 
     for psid, player in game_state.get_users(room=pr.room):
         await sio.emit(
-            "Group.Join", groupJoin, room=psid, skip_sid=sid, namespace=GAME_NS,
+            "Group.Join", group_join, room=psid, skip_sid=sid, namespace=GAME_NS,
         )
 
 
 @sio.on("Group.Leave", namespace=GAME_NS)
 @auth.login_required(app, sio)
-async def leave_group(sid: str, clientShapes: List[LeaveGroup]):
+async def leave_group(sid: str, client_shapes: List[LeaveGroup]):
     pr: PlayerRoom = game_state.get(sid)
 
     group_ids = set()
 
-    for clientShape in clientShapes:
+    for client_shape in client_shapes:
         try:
-            shape = Shape.get_by_id(clientShape["uuid"])
+            shape = Shape.get_by_id(client_shape["uuid"])
         except Shape.DoesNotExist:
             logger.exception(
-                f"Could not remove shape group for unknown shape {clientShape['uuid']}"
+                f"Could not remove shape group for unknown shape {client_shape['uuid']}"
             )
         else:
-            group_ids.add(clientShape["group_id"])
+            group_ids.add(client_shape["group_id"])
             shape.group = None
             shape.show_badge = False
             shape.save()
@@ -168,7 +166,7 @@ async def leave_group(sid: str, clientShapes: List[LeaveGroup]):
 
     for psid, player in game_state.get_users(room=pr.room):
         await sio.emit(
-            "Group.Leave", clientShapes, room=psid, skip_sid=sid, namespace=GAME_NS,
+            "Group.Leave", client_shapes, room=psid, skip_sid=sid, namespace=GAME_NS,
         )
 
 

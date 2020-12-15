@@ -182,6 +182,7 @@ export default class GroupSettings extends Vue {
         );
         if (remove) {
             removeGroup(this.shape.groupId, true);
+            this.$forceUpdate();
         }
     }
 

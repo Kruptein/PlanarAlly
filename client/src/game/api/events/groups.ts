@@ -1,4 +1,5 @@
 import { GroupJoinPayload, groupToClient, ServerGroup } from "../../comm/types/groups";
+import { EventBus } from "../../event-bus";
 import { addGroupMembers, addNewGroup, removeGroup, removeGroupMember, updateGroupFromServer } from "../../groups";
 import { layerManager } from "../../layers/manager";
 import { socket } from "../socket";
@@ -13,6 +14,7 @@ socket.on("Group.Create", (data: ServerGroup) => {
 
 socket.on("Group.Join", (data: GroupJoinPayload) => {
     addGroupMembers(data.group_id, data.members, false);
+    EventBus.$emit("EditDialog.Group.Update");
 });
 
 socket.on("Group.Leave", (data: { uuid: string; group_id: string }[]) => {
@@ -32,4 +34,5 @@ socket.on("Group.Members.Update", (data: { uuid: string; badge: number }[]) => {
         shape.badge = badge;
         shape.invalidate(true);
     }
+    EventBus.$emit("EditDialog.Group.Update");
 });

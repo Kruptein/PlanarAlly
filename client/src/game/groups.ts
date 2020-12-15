@@ -114,7 +114,7 @@ export function setCreationOrder(groupId: string, creationOrder: CREATION_ORDER_
 
     const members = getGroupMembers(groupId);
 
-    const alphabet = Array.from({ length: members.length * 2 }, (_, i) => i);
+    const alphabet = Array.from({ length: Math.max(10, members.length * 2) }, (_, i) => i);
 
     for (const [i, member] of members.entries()) {
         if (creationOrder === "incrementing") {

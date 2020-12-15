@@ -107,7 +107,7 @@ async def create_group(sid: str, group_info: ServerGroup):
 
     for psid, player in game_state.get_users(room=pr.room):
         await sio.emit(
-            "Group.Info", group_info, room=psid, skip_sid=sid, namespace=GAME_NS,
+            "Group.Create", group_info, room=psid, skip_sid=sid, namespace=GAME_NS,
         )
 
 

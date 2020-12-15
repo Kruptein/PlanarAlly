@@ -27,6 +27,7 @@ import { sendShapesMove } from "@/game/api/emits/shape/core";
 import { ServerAsset } from "@/game/comm/types/shapes";
 import { AssetOptions } from "@/game/comm/types/asset";
 import { toTemplate } from "@/game/shapes/template";
+import { addGroupMembers, createNewGroupForShapes, getGroupSize, removeGroup } from "../../groups";
 
 @Component({
     components: {
@@ -289,6 +290,68 @@ export default class ShapeContext extends Vue {
                 return "";
         }
     }
+
+    getGroups(): string[] {
+        return [
+            ...new Set(
+                this.getSelection()
+                    .map(s => s.groupId)
+                    .filter(g => g !== undefined),
+            ),
+        ] as string[];
+    }
+
+    hasEntireGroup(): boolean {
+        const selection = this.getSelection();
+        return selection.length === getGroupSize(selection[0].groupId!);
+    }
+
+    hasUngrouped(): boolean {
+        return this.getSelection().some(s => s.groupId === undefined);
+    }
+
+    createOrSplitGroup(): void {
+        createNewGroupForShapes(this.getSelection().map(s => s.uuid));
+        this.close();
+    }
+
+    mergeGroups(): void {
+        let targetGroup: string | undefined;
+        const membersToMove: string[] = [];
+        for (const shape of this.getSelection()) {
+            if (shape.groupId !== undefined) {
+                if (targetGroup === undefined) {
+                    targetGroup = shape.groupId;
+                } else if (targetGroup === shape.groupId) {
+                    continue;
+                } else {
+                    membersToMove.push(shape.uuid);
+                }
+            }
+        }
+        addGroupMembers(
+            targetGroup!,
+            membersToMove.map(m => ({ uuid: m })),
+            true,
+        );
+        this.close();
+    }
+
+    removeGroup(): void {
+        removeGroup(this.getSelection()[0].groupId!, true);
+        this.close();
+    }
+
+    enlargeGroup(): void {
+        const selection = this.getSelection();
+        const groupId = selection.find(s => s.groupId !== undefined)!.groupId!;
+        addGroupMembers(
+            groupId,
+            selection.filter(s => s.groupId === undefined).map(s => ({ uuid: s.uuid })),
+            true,
+        );
+        this.close();
+    }
 }
 </script>
 
@@ -353,12 +416,27 @@ export default class ShapeContext extends Vue {
                 v-t="'game.ui.selection.shapecontext.remove_marker'"
             ></li>
             <li v-else @click="setMarker" v-t="'game.ui.selection.shapecontext.set_marker'"></li>
+            <li @click="saveTemplate" v-if="showDmNonSpawnItem() && hasAsset()" v-t="'game.ui.templates.save'"></li>
         </template>
-        <li
-            @click="saveTemplate"
-            v-if="hasSingleShape() && showDmNonSpawnItem() && hasAsset()"
-            v-t="'game.ui.templates.save'"
-        ></li>
+        <template v-else>
+            <li>
+                Group
+                <ul>
+                    <li v-if="getGroups().length === 0" @click="createOrSplitGroup">Create group</li>
+                    <li
+                        v-if="getGroups().length === 1 && !hasUngrouped() && !hasEntireGroup()"
+                        @click="createOrSplitGroup"
+                    >
+                        Split from group
+                    </li>
+                    <li v-if="getGroups().length === 1 && !hasUngrouped() && hasEntireGroup()" @click="removeGroup">
+                        Remove group
+                    </li>
+                    <li v-if="getGroups().length > 1" @click="mergeGroups">Merge groups</li>
+                    <li v-if="getGroups().length === 1 && hasUngrouped()" @click="enlargeGroup">Enlarge group</li>
+                </ul>
+            </li>
+        </template>
         <li v-if="hasSingleShape()" @click="openEditDialog" v-t="'game.ui.selection.shapecontext.show_props'"></li>
     </ContextMenu>
 </template>

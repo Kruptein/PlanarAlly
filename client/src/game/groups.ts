@@ -70,6 +70,10 @@ export async function fetchGroup(groupId: string): Promise<Group> {
     return groupInfo;
 }
 
+export function getGroupSize(groupId: string): number {
+    return memberMap.get(groupId)?.size ?? 0;
+}
+
 export function getGroupMembers(groupId: string): Shape[] {
     const members = memberMap.get(groupId);
     if (members === undefined) return [];

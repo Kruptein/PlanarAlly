@@ -225,19 +225,12 @@ export default class GroupSettings extends Vue {
                 </div>
             </template>
         </div>
-        <div class="spanrow header">Actions</div>
-        <template v-if="shape.groupId === undefined">
-            <div></div>
-            <div></div>
-            <div></div>
-            <div style="grid-column: toggle/end">
-                <button class="danger" @click="createGroup">Create new group</button>
-            </div>
-        </template>
-        <template v-else>
-            <label class="rule" for="toggleCheckbox">Toggle all</label>
-            <div></div>
-            <div style="grid-column: toggle/end">
+        <template v-if="shape.groupId !== undefined">
+            <div class="spanrow header">Members</div>
+            <label class="rule" style="grid-column: badge/toggle" for="toggleCheckbox">
+                Show badge on all members:
+            </label>
+            <div>
                 <input
                     id="toggleCheckbox"
                     type="checkbox"
@@ -246,11 +239,6 @@ export default class GroupSettings extends Vue {
                 />
             </div>
             <div></div>
-            <div></div>
-            <div style="grid-column: toggle/end"><button class="danger" @click="deleteGroup">Delete group</button></div>
-        </template>
-        <template v-if="shape.groupId !== undefined">
-            <div class="spanrow header">Members</div>
             <div class="subheader">Badge</div>
             <div></div>
             <div class="subheader">Show Badge</div>
@@ -281,6 +269,21 @@ export default class GroupSettings extends Vue {
                     <font-awesome-icon icon="trash-alt" @click="removeMember(member)" />
                 </div>
             </template>
+        </template>
+        <template v-if="shape.groupId === undefined">
+            <div class="spanrow header">Actions</div>
+            <div></div>
+            <div></div>
+            <div></div>
+            <div style="grid-column: toggle/end">
+                <button class="danger" @click="createGroup">Create new group</button>
+            </div>
+        </template>
+        <template v-else>
+            <div class="spanrow header">Danger Zone</div>
+            <div></div>
+            <div></div>
+            <div style="grid-column: toggle/end"><button class="danger" @click="deleteGroup">Delete group</button></div>
         </template>
     </div>
 </template>

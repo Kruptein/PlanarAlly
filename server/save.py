@@ -670,8 +670,9 @@ def upgrade(version):
                 "INSERT INTO initiative_effect (uuid, initiative_id, name, turns) SELECT uuid, initiative_id, name, turns FROM _initiative_effect_44"
             )
     elif version == 45:
-        # Promote group to a dedicated DB structure
+        # Promote group to a dedicated DB structure AND fix 'index' values in Shape.index
         with db.atomic():
+            db.execute_sql('UPDATE shape set "index" = 0 WHERE "index" = ?', ("index",))
             db.execute_sql(
                 'CREATE TABLE IF NOT EXISTS "group" ("uuid" TEXT NOT NULL PRIMARY KEY, "character_set" TEXT NOT NULL, "creation_order" TEXT DEFAULT "incrementing")'
             )

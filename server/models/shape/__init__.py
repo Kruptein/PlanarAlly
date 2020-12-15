@@ -7,6 +7,7 @@ from utils import logger
 from ..asset import Asset
 from ..base import BaseModel
 from ..campaign import Layer
+from ..groups import Group
 from ..label import Label
 from ..user import User
 from ..utils import get_table
@@ -55,6 +56,7 @@ class Shape(BaseModel):
     angle = FloatField(default=0)
     stroke_width = IntegerField(default=2)
     asset = ForeignKeyField(Asset, backref="shapes", null=True, default=None)
+    group = ForeignKeyField(Group, backref="members", null=True, default=None)
 
     def __repr__(self):
         return f"<Shape {self.get_path()}>"

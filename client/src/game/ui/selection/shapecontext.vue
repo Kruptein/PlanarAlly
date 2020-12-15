@@ -4,6 +4,7 @@ import Component from "vue-class-component";
 
 import { mapState } from "vuex";
 
+import ConfirmDialog from "@/core/components/modals/confirm.vue";
 import ContextMenu from "@/core/components/contextmenu.vue";
 import Game from "@/game/Game.vue";
 import Prompt from "@/core/components/modals/prompt.vue";
@@ -29,6 +30,7 @@ import { toTemplate } from "@/game/shapes/template";
 
 @Component({
     components: {
+        ConfirmDialog,
         ContextMenu,
         Prompt,
         SelectionBox,
@@ -40,8 +42,9 @@ import { toTemplate } from "@/game/shapes/template";
 })
 export default class ShapeContext extends Vue {
     $refs!: {
-        prompt: InstanceType<typeof Prompt>;
-        selectionbox: InstanceType<typeof SelectionBox>;
+        confirmDialog: ConfirmDialog;
+        prompt: Prompt;
+        selectionbox: SelectionBox;
     };
 
     visible = false;
@@ -63,7 +66,7 @@ export default class ShapeContext extends Vue {
         this.$nextTick(() => (this.$children[0].$el as HTMLElement).focus());
     }
     close(): void {
-        if (this.$refs.prompt.visible || this.$refs.selectionbox.visible) return;
+        if (this.$refs.prompt.visible || this.$refs.selectionbox.visible || this.$refs.confirmDialog.visible) return;
         this.visible = false;
     }
     getMarker(): string | undefined {
@@ -172,9 +175,29 @@ export default class ShapeContext extends Vue {
         layer.getSelection().forEach(shape => layer.moveShapeOrder(shape, layer.getShapes().length - 1, true));
         this.close();
     }
-    addInitiative(): void {
+    async addInitiative(): Promise<void> {
         const layer = this.getActiveLayer()!;
-        layer.getSelection().forEach(shape => initiativeStore.addInitiative(shape.getInitiativeRepr()));
+        const selection = layer.getSelection();
+        let groupInitiatives = false;
+        if (new Set(selection.map(s => s.groupId)).size < selection.length) {
+            console.log(6);
+            groupInitiatives = await this.$refs.confirmDialog.open(
+                "Adding initiative",
+                "Some of the selected shapes belong to the same group. Do you wish to add 1 entry for these?",
+                { no: "no, create a separate entry for each", focus: "confirm" },
+            );
+        }
+        console.log(groupInitiatives, selection);
+        const groupsProcessed = new Set();
+        for (const shape of selection) {
+            if (!groupInitiatives || shape.groupId === undefined || !groupsProcessed.has(shape.groupId)) {
+                initiativeStore.addInitiative({
+                    ...shape.getInitiativeRepr(),
+                    group: groupInitiatives && shape.groupId !== undefined,
+                });
+                groupsProcessed.add(shape.groupId);
+            }
+        }
         EventBus.$emit("Initiative.Show");
         this.close();
     }
@@ -277,6 +300,7 @@ export default class ShapeContext extends Vue {
         :top="y + 'px'"
         @close="close"
     >
+        <ConfirmDialog ref="confirmDialog"></ConfirmDialog>
         <Prompt ref="prompt"></Prompt>
         <SelectionBox ref="selectionbox"></SelectionBox>
         <li v-if="getFloors().length > 1">

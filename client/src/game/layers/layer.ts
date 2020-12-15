@@ -9,6 +9,7 @@ import { visibilityStore } from "@/game/visibility/store";
 import { TriangulationTarget } from "@/game/visibility/te/pa";
 import { getBlockers, getVisionSources, sliceBlockers, sliceVisionSources } from "@/game/visibility/utils";
 import { sendRemoveShapes, sendShapeAdd, sendShapeOrder } from "../api/emits/shape/core";
+import { removeGroupMember } from "../groups";
 import { gameSettingsStore } from "../settings";
 import { drawAuras } from "../shapes/aura";
 import { floorStore } from "./store";
@@ -146,6 +147,10 @@ export class Layer {
             });
         }
         this.shapes.splice(idx, 1);
+
+        if (shape.groupId !== undefined) {
+            removeGroupMember(shape.groupId, shape.uuid, false);
+        }
 
         if (sync !== SyncMode.NO_SYNC && !shape.preventSync)
             sendRemoveShapes({ uuids: [shape.uuid], temporary: sync === SyncMode.TEMP_SYNC });

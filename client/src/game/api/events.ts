@@ -2,6 +2,7 @@ import { AssetList, SyncMode } from "@/core/comm/types";
 import "@/game/api/events/access";
 import "@/game/api/events/client";
 import "@/game/api/events/floor";
+import "@/game/api/events/groups";
 import "@/game/api/events/initiative";
 import "@/game/api/events/labels";
 import "@/game/api/events/location";
@@ -56,8 +57,8 @@ socket.on("Board.Locations.Set", (locationInfo: { id: number; name: string }[]) 
     EventBus.$emit("Initiative.Clear");
 });
 
-socket.on("Board.Floor.Set", (floor: ServerFloor) => {
-    addFloor(floor);
+socket.on("Board.Floor.Set", async (floor: ServerFloor) => {
+    await addFloor(floor);
     visibilityStore.recalculateVision(getFloorId(floor.name));
     visibilityStore.recalculateMovement(getFloorId(floor.name));
     if (floorStore.floors.length === 1) {
@@ -66,6 +67,7 @@ socket.on("Board.Floor.Set", (floor: ServerFloor) => {
         coreStore.setLoading(false);
         gameStore.setBoardInitialized(true);
     }
+    EventBus.$emit("Board.Floor.Set");
 });
 
 // Varia

@@ -21,7 +21,7 @@ import { Line } from "@/game/shapes/variants/line";
 import { Rect } from "@/game/shapes/variants/rect";
 import { Text } from "@/game/shapes/variants/text";
 import { EventBus } from "../event-bus";
-import { fetchGroup, getGroup } from "../groups";
+import { addGroupMember, createNewGroupForShape, fetchGroup, generateNewBadge, getGroup } from "../groups";
 import { floorStore, getFloorId } from "../layers/store";
 import { gameStore } from "../store";
 import { Tracker } from "./interfaces";
@@ -38,6 +38,7 @@ export async function createShapeFromDict(shape: ServerShape): Promise<Shape | u
         if (group === undefined) {
             group = await fetchGroup(shape.group);
         }
+        addGroupMember(group.uuid, shape.uuid, false, shape.badge);
     }
 
     // Shape Type specifics
@@ -114,6 +115,9 @@ export function copyShapes(): void {
     const clipboard: ServerShape[] = [];
     for (const shape of layer.getSelection()) {
         if (!shape.ownedBy({ editAccess: true })) continue;
+        if (!shape.groupId) {
+            createNewGroupForShape(shape);
+        }
         clipboard.push(shape.asDict());
     }
     gameStore.setClipboard(clipboard);
@@ -156,6 +160,11 @@ export async function pasteShapes(targetLayer?: string): Promise<readonly Shape[
             clip.auras.push(newAura);
         }
         // Badge
+        if (clip.group) {
+            // We do not need to explicitly join the group as that will be done by createShape below
+            // The shape is not yet added to the layerManager at this point anyway
+            clip.badge = generateNewBadge(clip.group);
+        }
         // Finalize
         const shape = await createShapeFromDict(clip);
         if (shape === undefined) continue;

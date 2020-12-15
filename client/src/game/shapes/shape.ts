@@ -55,6 +55,7 @@ import { Aura, Label, Tracker } from "./interfaces";
 import { PartialShapeOwner, ShapeAccess, ShapeOwner } from "./owners";
 import { SHAPE_TYPE } from "./types";
 import { EventBus } from "../event-bus";
+import { getBadgeCharacters } from "../groups";
 
 export abstract class Shape {
     // Used to create class instance from server shape data
@@ -108,7 +109,7 @@ export abstract class Shape {
     // Additional options for specialized uses
     options: Map<string, any> = new Map();
 
-    badge = 1;
+    badge = 0;
     showBadge = false;
 
     isLocked = false;
@@ -388,10 +389,12 @@ export abstract class Shape {
             ctx.fill();
             ctx.fillStyle = tinycolor.mostReadable(this.strokeColour, ["#000", "#fff"]).toHexString();
 
-            ctx.font = `${1.8 * r}px bold Calibri, sans-serif`;
+            const badgeChars = getBadgeCharacters(this);
+            const scalingFactor = 2.3 - 0.5 * badgeChars.length;
+            ctx.font = `${scalingFactor * r}px bold Calibri, sans-serif`;
             ctx.textAlign = "center";
             ctx.textBaseline = "middle";
-            ctx.fillText(`${this.badge}`, location.x - r, location.y - r + g2lz(1));
+            ctx.fillText(badgeChars, location.x - r, location.y - r + g2lz(1));
         }
         if (this.showHighlight) {
             if (bbox === undefined) bbox = this.getBoundingBox();

@@ -7,6 +7,7 @@ from playhouse.shortcuts import update_model_from_dict
 
 import auth
 from api.socket.constants import GAME_NS
+from api.socket.groups import remove_group_if_empty
 from api.socket.shape.data_models import *
 from app import app, sio
 from models import (
@@ -163,6 +164,8 @@ async def remove_shapes(sid: str, data: TemporaryShapesList):
 
         layer = shapes[0].layer
 
+        group_ids = set()
+
         for shape in shapes:
             if not has_ownership(shape, pr):
                 logger.warning(
@@ -170,11 +173,17 @@ async def remove_shapes(sid: str, data: TemporaryShapesList):
                 )
                 return
 
+            if shape.group:
+                group_ids.add(shape.group)
+
             old_index = shape.index
             shape.delete_instance(True)
             Shape.update(index=Shape.index - 1).where(
                 (Shape.layer == layer) & (Shape.index >= old_index)
             ).execute()
+
+    for group_id in group_ids:
+        await remove_group_if_empty(group_id)
 
     await sio.emit(
         "Shapes.Remove",

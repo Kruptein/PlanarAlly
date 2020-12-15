@@ -366,6 +366,7 @@ export default class ShapeContext extends Vue {
 <style scoped>
 .ContextMenu ul {
     border: 1px solid #82c8a0;
+    width: fit-content;
 }
 .ContextMenu ul li {
     border-bottom: 1px solid #82c8a0;

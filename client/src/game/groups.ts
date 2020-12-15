@@ -153,8 +153,6 @@ export function getBadgeCharacters(shape: Shape): string {
     return message.join("");
 }
 
-(window as any).GBC = getBadgeCharacters;
-
 export function generateNewBadge(groupId: string): number {
     const group = getGroup(groupId)!;
     const members = getGroupMembers(groupId);

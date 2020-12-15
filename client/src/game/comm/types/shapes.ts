@@ -33,6 +33,7 @@ export interface ServerShape {
     default_movement_access: boolean;
     default_vision_access: boolean;
     asset?: number;
+    group?: string;
 }
 
 export interface ServerShapeAccess {

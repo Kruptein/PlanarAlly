@@ -81,6 +81,7 @@ export abstract class Shape {
     nameVisible = true;
 
     assetId?: number;
+    groupId?: string;
 
     // Associated trackers/auras/owners
     trackers: Tracker[] = [];
@@ -312,6 +313,7 @@ export abstract class Shape {
             default_movement_access: this.defaultAccess.movement,
             default_vision_access: this.defaultAccess.vision,
             asset: this.assetId,
+            group: this.groupId,
         };
     }
     fromDict(data: ServerShape): void {
@@ -337,6 +339,7 @@ export abstract class Shape {
         if (data.name) this.name = data.name;
         if (data.options) this.options = new Map(JSON.parse(data.options));
         if (data.asset) this.assetId = data.asset;
+        if (data.group) this.groupId = data.group;
         // retain reactivity
         this.updateDefaultOwner(
             {

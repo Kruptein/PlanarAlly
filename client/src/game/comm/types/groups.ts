@@ -26,3 +26,5 @@ export const groupToClient = (group: ServerGroup): Group => ({
         ? (group.creation_order as CREATION_ORDER_TYPES)
         : "incrementing",
 });
+
+export type GroupJoinPayload = { group_id: string; members: { uuid: string; badge: number }[] };

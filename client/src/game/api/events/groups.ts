@@ -1,5 +1,5 @@
-import { groupToClient, ServerGroup } from "../../comm/types/groups";
-import { addGroupMember, addNewGroup, removeGroup, removeGroupMember, updateGroupFromServer } from "../../groups";
+import { GroupJoinPayload, groupToClient, ServerGroup } from "../../comm/types/groups";
+import { addGroupMembers, addNewGroup, removeGroup, removeGroupMember, updateGroupFromServer } from "../../groups";
 import { layerManager } from "../../layers/manager";
 import { socket } from "../socket";
 
@@ -11,10 +11,8 @@ socket.on("Group.Create", (data: ServerGroup) => {
     addNewGroup(groupToClient(data), false);
 });
 
-socket.on("Group.Join", (data: { uuid: string; badge: number; group_id: string }[]) => {
-    for (const member of data) {
-        addGroupMember(member.group_id, member.uuid, false, member.badge);
-    }
+socket.on("Group.Join", (data: GroupJoinPayload) => {
+    addGroupMembers(data.group_id, data.members, false);
 });
 
 socket.on("Group.Leave", (data: { uuid: string; group_id: string }[]) => {

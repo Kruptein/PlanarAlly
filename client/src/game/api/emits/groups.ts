@@ -1,5 +1,5 @@
 import { socket } from "../socket";
-import { ServerGroup } from "../../comm/types/groups";
+import { GroupJoinPayload, ServerGroup } from "../../comm/types/groups";
 import { wrapSocket } from "../helpers";
 
 export async function requestGroupInfo(groupId: string): Promise<ServerGroup> {
@@ -9,6 +9,6 @@ export async function requestGroupInfo(groupId: string): Promise<ServerGroup> {
 export const sendGroupUpdate = wrapSocket<ServerGroup>("Group.Update");
 export const sendMemberBadgeUpdate = wrapSocket<{ uuid: string; badge: number }[]>("Group.Members.Update");
 export const sendCreateGroup = wrapSocket<ServerGroup>("Group.Create");
-export const sendGroupJoin = wrapSocket<{ uuid: string; badge: number; group_id: string }[]>("Group.Join");
+export const sendGroupJoin = wrapSocket<GroupJoinPayload>("Group.Join");
 export const sendGroupLeave = wrapSocket<{ uuid: string; group_id: string }[]>("Group.Leave");
 export const sendRemoveGroup = wrapSocket<string>("Group.Remove");

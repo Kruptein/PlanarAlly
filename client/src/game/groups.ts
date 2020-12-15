@@ -38,14 +38,18 @@ export function removeGroup(groupId: string, sync: boolean): void {
     groupMap.delete(groupId);
 }
 
-export function createNewGroupForShape(shape: Shape): void {
+export function createNewGroupForShapes(shapes: string[]): void {
     const group: Group = {
         uuid: uuidv4(),
         characterSet: numberCharacterSet,
         creationOrder: "incrementing",
     };
     addNewGroup(group, true);
-    addGroupMember(group.uuid, shape.uuid, true);
+    addGroupMembers(
+        group.uuid,
+        shapes.map(s => ({ uuid: s })),
+        true,
+    );
 }
 
 export function updateGroupFromServer(serverGroup: ServerGroup): void {
@@ -72,18 +76,25 @@ export function getGroupMembers(groupId: string): Shape[] {
     return [...members].map(m => layerManager.UUIDMap.get(m)!);
 }
 
-export function addGroupMember(groupId: string, member: string, sync: boolean, badge?: number): void {
-    if (badge === undefined) {
-        badge = generateNewBadge(groupId);
+export function addGroupMembers(groupId: string, members: { uuid: string; badge?: number }[], sync: boolean): void {
+    const newMembers: { uuid: string; badge: number }[] = [];
+    for (const member of members) {
+        if (member.badge === undefined) {
+            member.badge = generateNewBadge(groupId);
+        }
+        newMembers.push(member as { uuid: string; badge: number });
+        const shape = layerManager.UUIDMap.get(member.uuid);
+        if (shape && shape.groupId !== groupId) {
+            if (shape.groupId !== undefined) {
+                memberMap.get(shape.groupId)?.delete(shape.uuid);
+            }
+            shape.groupId = groupId;
+            shape.badge = member.badge;
+        }
+        memberMap.get(groupId)?.add(member.uuid);
     }
-    const shape = layerManager.UUIDMap.get(member);
-    if (shape && shape.groupId !== groupId) {
-        shape.groupId = groupId;
-        shape.badge = badge;
-    }
-    memberMap.get(groupId)?.add(member);
     if (sync) {
-        sendGroupJoin([{ uuid: member, group_id: groupId, badge }]);
+        sendGroupJoin({ group_id: groupId, members: newMembers });
     }
 }
 

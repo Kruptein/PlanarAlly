@@ -10,7 +10,7 @@ import { Shape } from "@/game/shapes/shape";
 import { gameManager } from "../../../manager";
 import {
     CHARACTER_SETS,
-    createNewGroupForShape,
+    createNewGroupForShapes,
     getBadgeCharacters,
     getGroup,
     getGroupMembers,
@@ -170,7 +170,7 @@ export default class GroupSettings extends Vue {
 
     createGroup(): void {
         if (this.shape.groupId !== undefined) return;
-        createNewGroupForShape(this.shape);
+        createNewGroupForShapes([this.shape.uuid]);
         this.$forceUpdate();
     }
 

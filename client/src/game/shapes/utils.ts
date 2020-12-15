@@ -21,7 +21,7 @@ import { Line } from "@/game/shapes/variants/line";
 import { Rect } from "@/game/shapes/variants/rect";
 import { Text } from "@/game/shapes/variants/text";
 import { EventBus } from "../event-bus";
-import { addGroupMember, createNewGroupForShape, fetchGroup, generateNewBadge, getGroup } from "../groups";
+import { addGroupMembers, createNewGroupForShapes, fetchGroup, generateNewBadge, getGroup } from "../groups";
 import { floorStore, getFloorId } from "../layers/store";
 import { gameStore } from "../store";
 import { Tracker } from "./interfaces";
@@ -38,7 +38,7 @@ export async function createShapeFromDict(shape: ServerShape): Promise<Shape | u
         if (group === undefined) {
             group = await fetchGroup(shape.group);
         }
-        addGroupMember(group.uuid, shape.uuid, false, shape.badge);
+        addGroupMembers(group.uuid, [{ uuid: shape.uuid, badge: shape.badge }], false);
     }
 
     // Shape Type specifics
@@ -116,7 +116,7 @@ export function copyShapes(): void {
     for (const shape of layer.getSelection()) {
         if (!shape.ownedBy({ editAccess: true })) continue;
         if (!shape.groupId) {
-            createNewGroupForShape(shape);
+            createNewGroupForShapes([shape.uuid]);
         }
         clipboard.push(shape.asDict());
     }

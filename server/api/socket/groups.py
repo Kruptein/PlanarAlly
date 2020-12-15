@@ -23,8 +23,9 @@ class MemberBadge(TypedDict):
     badge: int
 
 
-class JoinGroup(MemberBadge):
+class GroupJoin(TypedDict):
     group_id: str
+    members: List[MemberBadge]
 
 
 class LeaveGroup(TypedDict):
@@ -113,24 +114,32 @@ async def create_group(sid: str, group_info: ServerGroup):
 
 @sio.on("Group.Join", namespace=GAME_NS)
 @auth.login_required(app, sio)
-async def join_group(sid: str, clientShapes: List[JoinGroup]):
+async def join_group(sid: str, groupJoin: GroupJoin):
     pr: PlayerRoom = game_state.get(sid)
 
-    for clientShape in clientShapes:
+    group_ids = set()
+
+    for member in groupJoin["members"]:
         try:
-            shape = Shape.get_by_id(clientShape["uuid"])
+            shape = Shape.get_by_id(member["uuid"])
         except Shape.DoesNotExist:
             logger.exception(
-                f"Could not update shape group for unknown shape {clientShape['uuid']}"
+                f"Could not update shape group for unknown shape {member['uuid']}"
             )
         else:
-            shape.group = clientShape["group_id"]
-            shape.badge = clientShape["badge"]
+            if shape.group is not None and shape.group != groupJoin["group_id"]:
+                group_ids.add(shape.group)
+            shape.group = groupJoin["group_id"]
+            shape.badge = member["badge"]
             shape.save()
+
+    # Group joining can be the result of a merge or a split and thus other groups might be empty now
+    for group_id in group_ids:
+        await remove_group_if_empty(group_id)
 
     for psid, player in game_state.get_users(room=pr.room):
         await sio.emit(
-            "Group.Join", clientShapes, room=psid, skip_sid=sid, namespace=GAME_NS,
+            "Group.Join", groupJoin, room=psid, skip_sid=sid, namespace=GAME_NS,
         )
 
 
@@ -155,7 +164,6 @@ async def leave_group(sid: str, clientShapes: List[LeaveGroup]):
             shape.save()
 
     for group_id in group_ids:
-        # check if group still has members
         await remove_group_if_empty(group_id)
 
     for psid, player in game_state.get_users(room=pr.room):

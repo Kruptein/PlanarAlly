@@ -25,6 +25,8 @@ import { layerManager } from "@/game/layers/manager";
 import { gameStore } from "@/game/store";
 import { initiativeStore } from "./store";
 import { gameManager } from "../../manager";
+import { getGroupMembers } from "../../groups";
+import { Shape } from "../../shapes/shape";
 
 @Component({
     components: {
@@ -169,8 +171,16 @@ export default class Initiative extends Vue {
     toggleHighlight(actor: InitiativeData, show: boolean): void {
         const shape = layerManager.UUIDMap.get(actor.uuid);
         if (shape === undefined) return;
-        shape.showHighlight = show;
-        shape.layer.invalidate(true);
+        let shapeArray: Shape[];
+        if (shape.groupId === undefined) {
+            shapeArray = [shape];
+        } else {
+            shapeArray = getGroupMembers(shape.groupId);
+        }
+        for (const sh of shapeArray) {
+            sh.showHighlight = show;
+            sh.layer.invalidate(true);
+        }
     }
     toggleOption(actor: InitiativeData, option: "visible" | "group"): void {
         if (!this.owns(actor)) return;

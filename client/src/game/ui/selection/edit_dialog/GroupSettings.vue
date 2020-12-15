@@ -141,13 +141,19 @@ export default class GroupSettings extends Vue {
         }
     }
 
-    setCreationOrder(creationOrder: CREATION_ORDER_TYPES): void {
+    async setCreationOrder(creationOrder: CREATION_ORDER_TYPES): Promise<void> {
         const group = this.getGroup();
         if (group === undefined) {
             this.creationOrder = creationOrder;
         } else {
-            setCreationOrder(group.uuid, creationOrder);
-            this.shape.invalidate(true);
+            const doChange = await this.$refs.confirmDialog.open(
+                "Changing creation order",
+                "Are you sure you wish to change the creation order? This will change all badges in this group.",
+            );
+            if (doChange) {
+                setCreationOrder(group.uuid, creationOrder);
+                this.shape.invalidate(true);
+            }
         }
 
         this.$forceUpdate();

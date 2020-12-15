@@ -185,7 +185,7 @@ export default class Game extends Vue {
                     }
                 }
             }
-            await dropAsset({ imageSource, assetId }, { x: event.clientX, y: event.clientY }, options);
+            dropAsset({ imageSource, assetId }, { x: event.clientX, y: event.clientY }, options);
         }
     }
 }

@@ -217,7 +217,7 @@ export default class GroupSettings extends Vue {
         <template v-if="getCharacterSetSelected() === 2">
             <div class="rule">Custom charset</div>
             <div style="grid-column: fill/end">
-                <input type="text" :value="getCustomCharset()" @change="setCustomCharset" />
+                <input type="text" :value="getCustomCharset()" @change="setCustomCharset" placeholder="α,β,γ,δ,ε" />
             </div>
         </template>
         <div class="rule">Creation order</div>

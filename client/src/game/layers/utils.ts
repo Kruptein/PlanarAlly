@@ -97,6 +97,9 @@ export function dropAsset(
     if (!data.imageSource.startsWith("/static")) return;
     const image = document.createElement("img");
     image.src = baseAdjust(data.imageSource);
+    image.onload = () => {
+        layer.invalidate(true);
+    };
     const asset = new Asset(
         image,
         new GlobalPoint(l2gx(position.x), l2gy(position.y)),

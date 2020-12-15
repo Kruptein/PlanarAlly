@@ -5,7 +5,6 @@ import { layerManager } from "../../../layers/manager";
 import { floorStore, getFloorId } from "../../../layers/store";
 import { moveFloor, moveLayer } from "../../../layers/utils";
 import { gameManager } from "../../../manager";
-import { changeGroupLeader, addGroupMember } from "../../../shapes/group";
 import { Shape } from "../../../shapes/shape";
 import { socket } from "../../socket";
 import { Text } from "../../../shapes/variants/text";
@@ -72,14 +71,6 @@ socket.on("Shapes.Layer.Change", (data: { uuids: string[]; floor: string; layer:
         .filter(s => s !== undefined) as Shape[];
     if (shapes.length === 0) return;
     moveLayer(shapes, layerManager.getLayer(layerManager.getFloor(getFloorId(data.floor))!, data.layer)!, false);
-});
-
-socket.on("Shapes.Group.Leader.Set", (data: { leader: string; members: string[] }) => {
-    changeGroupLeader({ ...data, sync: false });
-});
-
-socket.on("Shapes.Group.Member.Add", (data: { leader: string; member: string }) => {
-    addGroupMember({ ...data, sync: false });
 });
 
 socket.on(

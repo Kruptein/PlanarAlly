@@ -365,57 +365,6 @@ async def move_shapes(sid: str, data: ServerShapeLocationMove):
         )
 
 
-@sio.on("Shapes.Group.Leader.Set", namespace=GAME_NS)
-@auth.login_required(app, sio)
-async def set_group_leader(sid: str, data: GroupLeaderData):
-    pr: PlayerRoom = game_state.get(sid)
-
-    leader_shape = Shape.get_by_id(data["leader"])
-    leader_options = leader_shape.get_options()
-
-    if "groupId" in leader_options:
-        del leader_options["groupId"]
-    leader_options["groupInfo"] = data["members"]
-    leader_shape.set_options(leader_options)
-    leader_shape.save()
-
-    for member in data["members"]:
-        shape = Shape.get_by_id(member)
-        options = shape.get_options()
-        options["groupId"] = data["leader"]
-        shape.set_options(options)
-        shape.save()
-
-    await sio.emit(
-        "Shapes.Group.Leader.Set",
-        data,
-        room=pr.active_location.get_path(),
-        skip_sid=sid,
-        namespace=GAME_NS,
-    )
-
-
-@sio.on("Shapes.Group.Member.Add", namespace=GAME_NS)
-@auth.login_required(app, sio)
-async def add_group_member(sid: str, data: GroupMemberAddData):
-    pr: PlayerRoom = game_state.get(sid)
-
-    leader_shape = Shape.get_by_id(data["leader"])
-    leader_options = leader_shape.get_options()
-
-    leader_options["groupInfo"].append(data["member"])
-    leader_shape.set_options(leader_options)
-    leader_shape.save()
-
-    await sio.emit(
-        "Shapes.Group.Member.Add",
-        data,
-        room=pr.active_location.get_path(),
-        skip_sid=sid,
-        namespace=GAME_NS,
-    )
-
-
 @sio.on("Shapes.Trackers.Update", namespace=GAME_NS)
 @auth.login_required(app, sio)
 async def update_shape_tracker(sid: str, data: TrackerUpdateData):

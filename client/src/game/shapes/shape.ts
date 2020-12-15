@@ -562,22 +562,6 @@ export abstract class Shape {
         this.layer.updateShapePoints(this);
     }
 
-    getGroupMembers(): Shape[] {
-        if (!(this.options.has("groupId") || this.options.has("groupInfo"))) return [this];
-        const groupId = this.options.get("groupId") ?? this.uuid;
-        const groupLeader = groupId === this.uuid ? this : layerManager.UUIDMap.get(groupId);
-        if (groupLeader === undefined || !groupLeader.options.has("groupInfo")) return [this];
-        const groupIds = groupLeader.options.get("groupInfo") as string[];
-        return [
-            groupLeader,
-            ...groupIds.reduce(
-                (acc: Shape[], u: string) =>
-                    layerManager.UUIDMap.has(u) ? [...acc, layerManager.UUIDMap.get(u)!] : acc,
-                [],
-            ),
-        ];
-    }
-
     updateShapeVision(alteredMovement: boolean, alteredVision: boolean): void {
         if (this.visionObstruction && !alteredVision) {
             visibilityStore.deleteFromTriag({

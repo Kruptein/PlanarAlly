@@ -640,6 +640,7 @@ export abstract class Shape {
         this.showBadge = showBadge;
         if (sync) sendShapeSetShowBadge({ shape: this.uuid, value: this.showBadge });
         this.invalidate(!this.triggersVisionRecalc);
+        EventBus.$emit("EditDialog.Group.Update");
     }
 
     setAnnotation(text: string, sync: boolean): void {

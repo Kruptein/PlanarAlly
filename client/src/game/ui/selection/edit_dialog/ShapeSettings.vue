@@ -5,6 +5,7 @@ import Component from "vue-class-component";
 import PanelModal from "../../../../core/components/modals/PanelModal.vue";
 import AccessSettings from "./AccessSettings.vue";
 import ExtraSettings from "./ExtraSettings.vue";
+import GroupSettings from "./GroupSettings.vue";
 import PropertySettings from "./PropertySettings.vue";
 import TrackerSettings from "./TrackerSettings.vue";
 
@@ -17,6 +18,7 @@ import { gameStore } from "@/game/store";
     components: {
         AccessSettings,
         ExtraSettings,
+        GroupSettings,
         PanelModal,
         PropertySettings,
         TrackerSettings,
@@ -50,7 +52,7 @@ export default class ShapeSettings extends Vue {
     }
 
     get categoryNames(): string[] {
-        return ["Properties", "Trackers", "Access", "Extra"];
+        return ["Properties", "Trackers", "Access", "Group", "Extra"];
     }
 }
 </script>
@@ -62,11 +64,12 @@ export default class ShapeSettings extends Vue {
             <PropertySettings v-show="selection === 0" :shape="shape" :owned="owned"></PropertySettings>
             <TrackerSettings v-show="selection === 1" :shape="shape" :owned="owned"></TrackerSettings>
             <AccessSettings v-show="selection === 2" :shape="shape" :owned="owned"></AccessSettings>
+            <GroupSettings v-show="selection === 3" :shape="shape" :owned="owned"></GroupSettings>
             <ExtraSettings
-                v-show="selection === 3"
+                v-show="selection === 4"
                 :shape="shape"
                 :owned="owned"
-                :active="selection === 3"
+                :active="selection === 4"
             ></ExtraSettings>
         </template>
     </PanelModal>

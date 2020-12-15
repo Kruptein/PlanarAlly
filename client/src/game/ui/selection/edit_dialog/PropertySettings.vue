@@ -40,8 +40,7 @@ export default class PropertySettings extends Vue {
 
     toggleBadge(_event: { target: HTMLInputElement }): void {
         if (!this.owned) return;
-        const groupMembers = this.shape.getGroupMembers();
-        for (const shape of groupMembers) this.shape.setShowBadge(!shape.showBadge, true);
+        this.shape.setShowBadge(!this.shape.showBadge, true);
     }
 
     setVisionBlocker(event: { target: HTMLInputElement }): void {
@@ -92,7 +91,7 @@ export default class PropertySettings extends Vue {
                 id="shapeselectiondialog-istoken"
                 :checked="shape.isToken"
                 @click="setToken"
-                style="grid-column-start: toggle;"
+                style="grid-column-start: toggle"
                 class="styled-checkbox"
                 :disabled="!owned"
             />
@@ -107,7 +106,7 @@ export default class PropertySettings extends Vue {
                 id="shapeselectiondialog-is-invisible"
                 :checked="shape.isInvisible"
                 @click="setInvisible"
-                style="grid-column-start: toggle;"
+                style="grid-column-start: toggle"
                 class="styled-checkbox"
                 :disabled="!owned"
             />
@@ -118,7 +117,7 @@ export default class PropertySettings extends Vue {
                 :color="shape.strokeColour"
                 @input="setStrokeColour($event, true)"
                 @change="setStrokeColour($event)"
-                style="grid-column-start: toggle;"
+                style="grid-column-start: toggle"
                 :disabled="!owned"
             />
         </div>
@@ -128,7 +127,7 @@ export default class PropertySettings extends Vue {
                 :color="shape.fillColour"
                 @input="setFillColour($event, true)"
                 @change="setFillColour($event)"
-                style="grid-column-start: toggle;"
+                style="grid-column-start: toggle"
                 :disabled="!owned"
             />
         </div>
@@ -143,7 +142,7 @@ export default class PropertySettings extends Vue {
                 id="shapeselectiondialog-visionblocker"
                 v-model="shape.visionObstruction"
                 @change="setVisionBlocker"
-                style="grid-column-start: toggle;"
+                style="grid-column-start: toggle"
                 :disabled="!owned"
             />
         </div>
@@ -157,7 +156,7 @@ export default class PropertySettings extends Vue {
                 id="shapeselectiondialog-moveblocker"
                 :checked="shape.movementObstruction"
                 @click="setMovementBlocker"
-                style="grid-column-start: toggle;"
+                style="grid-column-start: toggle"
                 :disabled="!owned"
             />
         </div>
@@ -168,7 +167,7 @@ export default class PropertySettings extends Vue {
                 id="shapeselectiondialog-is-locked"
                 :checked="shape.isLocked"
                 @click="setLocked"
-                style="grid-column-start: toggle;"
+                style="grid-column-start: toggle"
                 class="styled-checkbox"
                 :disabled="!owned"
             />
@@ -180,7 +179,7 @@ export default class PropertySettings extends Vue {
                 id="shapeselectiondialog-showBadge"
                 :checked="shape.showBadge"
                 @click="toggleBadge"
-                style="grid-column-start: toggle;"
+                style="grid-column-start: toggle"
                 class="styled-checkbox"
                 :disabled="!owned"
             />

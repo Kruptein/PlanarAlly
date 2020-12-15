@@ -1,3 +1,18 @@
+"""
+This file is responsible for migrating old save files to new versions.
+
+The `SAVE_VERSION` listed below lists the active save file format.
+
+IMPORTANT:
+When writing migrations make sure that these things are respected:
+- Prefer raw sql over orm methods as these can lead to issues when you're multiple versions behind.
+- Some column names clash with some sql keywords (e.g. 'index', 'group'), make sure that these are handled correctly
+    - i.e. surround them at all times with quotes.
+    - WHEN USING THIS IN A SELECT STATEMENT MAKE SURE YOU USE " AND NOT ' OR YOU WILL HAVE A STRING LITERAL
+"""
+
+SAVE_VERSION = 46
+
 import json
 import logging
 import os
@@ -22,8 +37,6 @@ from config import SAVE_FILE
 from models import ALL_MODELS, Constants
 from models.db import db
 from utils import OldVersionException, UnknownVersionException
-
-SAVE_VERSION = 46
 
 logger: logging.Logger = logging.getLogger("PlanarAllyServer")
 logger.setLevel(logging.INFO)
@@ -542,7 +555,7 @@ def upgrade(version):
             )
             db.execute_sql('CREATE INDEX "shape_layer_id" ON "shape" ("layer_id")')
             db.execute_sql(
-                "INSERT INTO shape (uuid, layer_id, type_, x, y, name, name_visible, fill_colour, stroke_colour, vision_obstruction, movement_obstruction, is_token, annotation, draw_operator, 'index', options, badge, show_badge, default_edit_access, default_vision_access, is_invisible, default_movement_access, is_locked, angle, stroke_width) SELECT uuid, layer_id, type_, x, y, name, name_visible, fill_colour, stroke_colour, vision_obstruction, movement_obstruction, is_token, annotation, draw_operator, 'index', options, badge, show_badge, default_edit_access, default_vision_access, is_invisible, default_movement_access, is_locked, angle, stroke_width FROM _shape_37"
+                'INSERT INTO shape (uuid, layer_id, type_, x, y, name, name_visible, fill_colour, stroke_colour, vision_obstruction, movement_obstruction, is_token, annotation, draw_operator, "index", options, badge, show_badge, default_edit_access, default_vision_access, is_invisible, default_movement_access, is_locked, angle, stroke_width) SELECT uuid, layer_id, type_, x, y, name, name_visible, fill_colour, stroke_colour, vision_obstruction, movement_obstruction, is_token, annotation, draw_operator, "index", options, badge, show_badge, default_edit_access, default_vision_access, is_invisible, default_movement_access, is_locked, angle, stroke_width FROM _shape_37'
             )
             db.execute_sql("CREATE TEMPORARY TABLE _text_37 AS SELECT * FROM text")
             db.execute_sql("DROP TABLE text")
@@ -612,7 +625,7 @@ def upgrade(version):
             db.execute_sql('CREATE INDEX "shape_layer_id" ON "shape" ("layer_id")')
             db.execute_sql('CREATE INDEX "shape_asset_id" ON "shape" ("asset_id")')
             db.execute_sql(
-                "INSERT INTO shape (uuid, layer_id, type_, x, y, name, name_visible, fill_colour, stroke_colour, vision_obstruction, movement_obstruction, is_token, annotation, draw_operator, 'index', options, badge, show_badge, default_edit_access, default_vision_access, is_invisible, default_movement_access, is_locked, angle, stroke_width) SELECT uuid, layer_id, type_, x, y, name, name_visible, fill_colour, stroke_colour, vision_obstruction, movement_obstruction, is_token, annotation, draw_operator, 'index', options, badge, show_badge, default_edit_access, default_vision_access, is_invisible, default_movement_access, is_locked, angle, stroke_width FROM _shape_41"
+                'INSERT INTO shape (uuid, layer_id, type_, x, y, name, name_visible, fill_colour, stroke_colour, vision_obstruction, movement_obstruction, is_token, annotation, draw_operator, "index", options, badge, show_badge, default_edit_access, default_vision_access, is_invisible, default_movement_access, is_locked, angle, stroke_width) SELECT uuid, layer_id, type_, x, y, name, name_visible, fill_colour, stroke_colour, vision_obstruction, movement_obstruction, is_token, annotation, draw_operator, "index", options, badge, show_badge, default_edit_access, default_vision_access, is_invisible, default_movement_access, is_locked, angle, stroke_width FROM _shape_41'
             )
 
     elif version == 42:
@@ -671,7 +684,7 @@ def upgrade(version):
             db.execute_sql('CREATE INDEX "shape_asset_id" ON "shape" ("asset_id")')
             db.execute_sql('CREATE INDEX "shape_group_id" ON "shape" ("group_id")')
             db.execute_sql(
-                "INSERT INTO shape (uuid, layer_id, type_, x, y, name, name_visible, fill_colour, stroke_colour, vision_obstruction, movement_obstruction, is_token, annotation, draw_operator, 'index', options, badge, show_badge, default_edit_access, default_vision_access, is_invisible, default_movement_access, is_locked, angle, stroke_width, asset_id) SELECT uuid, layer_id, type_, x, y, name, name_visible, fill_colour, stroke_colour, vision_obstruction, movement_obstruction, is_token, annotation, draw_operator, 'index', options, badge, show_badge, default_edit_access, default_vision_access, is_invisible, default_movement_access, is_locked, angle, stroke_width, asset_id FROM _shape_45"
+                'INSERT INTO shape (uuid, layer_id, type_, x, y, name, name_visible, fill_colour, stroke_colour, vision_obstruction, movement_obstruction, is_token, annotation, draw_operator, "index", options, badge, show_badge, default_edit_access, default_vision_access, is_invisible, default_movement_access, is_locked, angle, stroke_width, asset_id) SELECT uuid, layer_id, type_, x, y, name, name_visible, fill_colour, stroke_colour, vision_obstruction, movement_obstruction, is_token, annotation, draw_operator, "index", options, badge, show_badge, default_edit_access, default_vision_access, is_invisible, default_movement_access, is_locked, angle, stroke_width, asset_id FROM _shape_45'
             )
 
             data = db.execute_sql("SELECT uuid, badge, options FROM shape")

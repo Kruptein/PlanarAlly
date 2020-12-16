@@ -114,7 +114,7 @@ export default class AssetNode extends Vue {
     </ul>
 </template>
 
-<style scoped>
+<style scoped lang="scss">
 .preview {
     position: fixed;
     z-index: 50;
@@ -140,14 +140,14 @@ export default class AssetNode extends Vue {
     display: flex;
     align-items: center;
     justify-content: flex-start;
-}
 
-.token img {
-    margin-right: 5px;
-}
+    img {
+        margin-right: 5px;
+    }
 
-.token svg {
-    margin-left: auto;
+    svg {
+        margin-left: auto;
+    }
 }
 
 /*
@@ -158,21 +158,25 @@ DIRECTORY.CSS changes
 * On hover over file show the image
 
 */
-.folder > * {
-    display: none;
+.folder {
+    > * {
+        display: none;
+    }
+
+    &:hover {
+        font-weight: bold;
+        cursor: pointer;
+
+        > * {
+            font-weight: normal;
+        }
+    }
 }
 
-.directory > .folder,
-.directory > .file {
-    display: block;
-}
-
-.folder:hover {
-    font-weight: bold;
-    cursor: pointer;
-}
-
-.folder:hover > * {
-    font-weight: normal;
+.directory {
+    > .folder,
+    > .file {
+        display: block;
+    }
 }
 </style>

@@ -232,7 +232,7 @@ export default class LocationBar extends Vue {
     </div>
 </template>
 
-<style scoped>
+<style scoped lang="scss">
 #location-bar {
     --primary: #7c253e;
     --secondary: #9c455e;
@@ -254,18 +254,20 @@ export default class LocationBar extends Vue {
 
     scrollbar-width: thin;
     scrollbar-color: var(--secondary) var(--primary);
-}
 
-#locations::-webkit-scrollbar {
-    height: 11px;
-}
-#locations::-webkit-scrollbar-track {
-    background: var(--secondary);
-    border-radius: 6px;
-}
-#locations::-webkit-scrollbar-thumb {
-    background-color: var(--primary);
-    border-radius: 6px;
+    &::-webkit-scrollbar {
+        height: 11px;
+    }
+
+    &::-webkit-scrollbar-track {
+        background: var(--secondary);
+        border-radius: 6px;
+    }
+
+    &::-webkit-scrollbar-thumb {
+        background-color: var(--primary);
+        border-radius: 6px;
+    }
 }
 
 #create-location {
@@ -278,12 +280,12 @@ export default class LocationBar extends Vue {
     font-size: 30px;
     place-items: center center;
     margin: 10px;
-}
 
-#create-location:hover {
-    font-weight: bold;
-    cursor: pointer;
-    text-shadow: 0 0 20px rgba(0, 0, 0, 1);
+    &:hover {
+        font-weight: bold;
+        cursor: pointer;
+        text-shadow: 0 0 20px rgba(0, 0, 0, 1);
+    }
 }
 
 .location {
@@ -308,36 +310,36 @@ export default class LocationBar extends Vue {
 
 .location-settings-icon {
     padding-left: 10px;
-}
 
-.location-settings-icon svg {
-    transition: transform 0.8s ease-in-out;
-}
+    svg {
+        transition: transform 0.8s ease-in-out;
+    }
 
-.location-settings-icon:hover svg {
-    transform: rotate(180deg);
-    transform-origin: center center;
+    &:hover svg {
+        transform: rotate(180deg);
+        transform-origin: center center;
+    }
 }
 
 .drag-handle {
     width: 25px;
     height: 20px;
-}
 
-.drag-handle::before {
-    position: absolute;
-    top: 8px;
-    content: ".";
-    color: white;
-    font-size: 20px;
-    line-height: 20px;
-    text-shadow: 0 5px white, 0 10px white, 5px 0 white, 5px 5px white, 5px 10px white, 10px 0 white, 10px 5px white,
-        10px 10px white;
-}
+    &::before {
+        position: absolute;
+        top: 8px;
+        content: ".";
+        color: white;
+        font-size: 20px;
+        line-height: 20px;
+        text-shadow: 0 5px white, 0 10px white, 5px 0 white, 5px 5px white, 5px 10px white, 10px 0 white, 10px 5px white,
+            10px 10px white;
+    }
 
-.drag-handle:hover,
-.drag-handle *:hover {
-    cursor: grab;
+    &:hover,
+    *:hover {
+        cursor: grab;
+    }
 }
 
 .location-players {

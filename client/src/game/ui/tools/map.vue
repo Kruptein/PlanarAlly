@@ -184,7 +184,7 @@ export default class MapTool extends Tool implements ToolBasics {
     </div>
 </template>
 
-<style scoped>
+<style scoped lang="scss">
 .map {
     display: grid;
     grid-template-areas:
@@ -193,10 +193,10 @@ export default class MapTool extends Tool implements ToolBasics {
         "horiz hinput"
         "verti vinput"
         "submit cancel";
-}
 
-.map > * {
-    text-align: right;
+    > * {
+        text-align: right;
+    }
 }
 
 .row {
@@ -244,13 +244,14 @@ export default class MapTool extends Tool implements ToolBasics {
     text-align: center;
     font-style: italic;
     border: solid 1px black;
-}
-.button:hover {
-    font-style: normal;
-    cursor: pointer;
-    margin-top: 8px;
-    margin-bottom: 7px;
-    box-shadow: 1px 3px;
+
+    &:hover {
+        font-style: normal;
+        cursor: pointer;
+        margin-top: 8px;
+        margin-bottom: 7px;
+        box-shadow: 1px 3px;
+    }
 }
 
 .apply {

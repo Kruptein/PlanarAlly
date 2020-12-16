@@ -612,18 +612,23 @@ export default class DrawTool extends Tool implements ToolBasics {
                 :title="$t('game.ui.tools.draw.background_color')"
             />
         </div>
-        <div v-show="shapeSelect === 'draw-polygon'" style="display:flex">
-            <label for="polygon-close" style="flex:5" v-t="'game.ui.tools.draw.closed_polygon'"></label>
-            <input type="checkbox" id="polygon-close" style="flex:1;align-self:center;" v-model="closedPolygon" />
+        <div v-show="shapeSelect === 'draw-polygon'" style="display: flex">
+            <label for="polygon-close" style="flex: 5" v-t="'game.ui.tools.draw.closed_polygon'"></label>
+            <input type="checkbox" id="polygon-close" style="flex: 1; align-self: center" v-model="closedPolygon" />
         </div>
-        <div v-show="hasBrushSize()" style="display:flex">
-            <label for="brush-size" style="flex:5" v-t="'game.ui.tools.draw.brush_size'"></label>
-            <input type="input" id="brush-size" v-model="brushSize" style="flex:4;align-self:center;max-width:100px;" />
+        <div v-show="hasBrushSize()" style="display: flex">
+            <label for="brush-size" style="flex: 5" v-t="'game.ui.tools.draw.brush_size'"></label>
+            <input
+                type="input"
+                id="brush-size"
+                v-model="brushSize"
+                style="flex: 4; align-self: center; max-width: 100px"
+            />
         </div>
     </div>
 </template>
 
-<style scoped>
+<style scoped lang="scss">
 .option {
     padding: 6px;
     border: solid 1px #82c8a0;
@@ -635,18 +640,26 @@ export default class DrawTool extends Tool implements ToolBasics {
     font-size: 13px;
     min-width: 25px;
 }
+
 .option-selected,
 .option:hover {
     background-color: #82c8a0;
 }
+
 .selectgroup {
     display: flex;
+
+    > .option:first-of-type {
+        border-top-left-radius: 10px;
+        border-bottom-left-radius: 10px;
+    }
+
+    > .option:last-of-type {
+        border-top-right-radius: 10px;
+        border-bottom-right-radius: 10px;
+    }
 }
-.selectgroup > .option:first-of-type {
-    border-top-left-radius: 10px;
-    border-bottom-left-radius: 10px;
-}
-.selectgroup > .option:last-of-type,
+
 .radius-right {
     border-top-right-radius: 10px;
     border-bottom-right-radius: 10px;

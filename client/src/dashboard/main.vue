@@ -58,7 +58,7 @@ export default class Dashboard extends Vue {
 </script>
 
 <template>
-    <div style="display:contents">
+    <div style="display: contents">
         <div id="formcontainer">
             <form>
                 <fieldset>
@@ -134,7 +134,7 @@ export default class Dashboard extends Vue {
     </div>
 </template>
 
-<style scoped>
+<style scoped lang="scss">
 * {
     -ms-box-sizing: border-box;
     -moz-box-sizing: border-box;
@@ -145,34 +145,34 @@ export default class Dashboard extends Vue {
     border: 0;
 }
 
-#formcontainer a {
-    text-decoration: inherit;
-    color: inherit;
-    width: 100%;
-    display: block;
-    text-align: center;
-    border: 1px solid #ff7052;
-}
-
-#formcontainer a:hover {
-    background-color: #ff7052;
-    color: white;
-}
-
-#formcontainer a:first-child {
-    border-radius: 10px 10px 0 0;
-}
-
-#formcontainer a:last-child {
-    border-radius: 0 0 10px 10px;
-}
-
-#formcontainer a:only-child {
-    border-radius: 10px;
-}
-
 #formcontainer {
     margin: auto;
+
+    a {
+        text-decoration: inherit;
+        color: inherit;
+        width: 100%;
+        display: block;
+        text-align: center;
+        border: 1px solid #ff7052;
+
+        &:hover {
+            background-color: #ff7052;
+            color: white;
+        }
+
+        &:first-child {
+            border-radius: 10px 10px 0 0;
+        }
+
+        &:last-child {
+            border-radius: 0 0 10px 10px;
+        }
+
+        &:only-child {
+            border-radius: 10px;
+        }
+    }
 }
 
 form {
@@ -189,16 +189,16 @@ form {
     padding: 15px;
     color: #fff;
     font-size: 20px;
-}
 
-.legend:after {
-    content: "";
-    opacity: 0.06;
-    top: 0;
-    left: 0;
-    bottom: 0;
-    right: 0;
-    position: absolute;
+    &:after {
+        content: "";
+        opacity: 0.06;
+        top: 0;
+        left: 0;
+        bottom: 0;
+        right: 0;
+        position: absolute;
+    }
 }
 
 #account-options {
@@ -207,43 +207,43 @@ form {
     border-radius: 4px;
     margin-top: 50px;
     height: 45px;
-}
 
-#account-options form {
-    background: none;
-    border-radius: 0px;
-    width: 50%;
+    form {
+        background: none;
+        border-radius: 0px;
+        width: 50%;
+    }
 }
 
 .input {
     position: relative;
     width: 90%;
     margin: 15px auto;
-}
 
-.input span {
-    position: absolute;
-    display: block;
-    color: #d4d4d4;
-    left: 10px;
-    top: 8px;
-    font-size: 20px;
-}
+    span {
+        position: absolute;
+        display: block;
+        color: #d4d4d4;
+        left: 10px;
+        top: 8px;
+        font-size: 20px;
+    }
 
-.input input {
-    width: 100%;
-    padding: 10px 5px 10px 40px;
-    display: block;
-    border: 1px solid #ededed;
-    border-radius: 4px;
-    transition: 0.2s ease-out;
-    color: #a1a1a1;
-}
+    input {
+        width: 100%;
+        padding: 10px 5px 10px 40px;
+        display: block;
+        border: 1px solid #ededed;
+        border-radius: 4px;
+        transition: 0.2s ease-out;
+        color: #a1a1a1;
 
-.input input:focus {
-    /* padding: 10px 5px 10px 10px; */
-    outline: 0;
-    border-color: #ff7052;
+        &:focus {
+            /* padding: 10px 5px 10px 10px; */
+            outline: 0;
+            border-color: #ff7052;
+        }
+    }
 }
 
 .submit {
@@ -259,13 +259,13 @@ form {
     cursor: pointer;
     box-shadow: 0px 0px 0px 7px #fff;
     transition: 0.2s ease-out;
-}
 
-.submit:hover,
-.submit:focus {
-    background: #ff7052;
-    color: #fff;
-    outline: 0;
+    &:hover,
+    &:focus {
+        background: #ff7052;
+        color: #fff;
+        outline: 0;
+    }
 }
 
 .feedback {
@@ -279,21 +279,21 @@ form {
     font-size: 12px;
     /*display: none;*/
     /*opacity: 0;*/
-}
 
-.feedback:before {
-    bottom: 100%;
-    left: 50%;
-    border: solid transparent;
-    content: "";
-    height: 0;
-    width: 0;
-    position: absolute;
-    pointer-events: none;
-    border-color: rgba(46, 204, 113, 0);
-    border-bottom-color: mediumvioletred;
-    border-width: 10px;
-    margin-left: -10px;
+    &:before {
+        bottom: 100%;
+        left: 50%;
+        border: solid transparent;
+        content: "";
+        height: 0;
+        width: 0;
+        position: absolute;
+        pointer-events: none;
+        border-color: rgba(46, 204, 113, 0);
+        border-bottom-color: mediumvioletred;
+        border-width: 10px;
+        margin-left: -10px;
+    }
 }
 
 h4 {
@@ -302,11 +302,11 @@ h4 {
     text-align: center;
     border-bottom: 1px solid #000;
     line-height: 0.1em;
-}
 
-h4 span {
-    background: #fff;
-    padding: 0 10px;
+    span {
+        background: #fff;
+        padding: 0 10px;
+    }
 }
 
 #version {
@@ -316,9 +316,9 @@ h4 span {
     display: flex;
     justify-content: center;
     width: 100%;
-}
 
-#version > a {
-    margin-left: 10px;
+    > a {
+        margin-left: 10px;
+    }
 }
 </style>

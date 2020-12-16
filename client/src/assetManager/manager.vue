@@ -241,7 +241,7 @@ export default class AssetManager extends Vue {
     </div>
 </template>
 
-<style>
+<style lang="scss">
 [v-cloak],
 [v-cloak] * {
     display: none;
@@ -293,41 +293,41 @@ body {
     background-color: white;
     padding: 5px;
     flex-grow: 2;
-}
 
-#progressbar-meter > span {
-    display: block;
-    height: 100%;
-    position: relative;
-    overflow: hidden;
-    /* background-color: #ff7052;
+    > span {
+        display: block;
+        height: 100%;
+        position: relative;
+        overflow: hidden;
+        /* background-color: #ff7052;
     background-image: linear-gradient(center bottom, #ff7052 37%, white 69%); */
-    background-color: #ff7052;
-    background-image: linear-gradient(to bottom, #ff7052 37%, #ff7052 69%);
-    box-shadow: inset 0 2px 9px rgba(255, 255, 255, 0.3), inset 0 -2px 6px rgba(0, 0, 0, 0.4);
-}
+        background-color: #ff7052;
+        background-image: linear-gradient(to bottom, #ff7052 37%, #ff7052 69%);
+        box-shadow: inset 0 2px 9px rgba(255, 255, 255, 0.3), inset 0 -2px 6px rgba(0, 0, 0, 0.4);
 
-#progressbar-meter > span:after {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: 0;
-    bottom: 0;
-    right: 0;
-    background-image: linear-gradient(
-        -45deg,
-        rgba(255, 255, 255, 0.2) 25%,
-        transparent 25%,
-        transparent 50%,
-        rgba(255, 255, 255, 0.2) 50%,
-        rgba(255, 255, 255, 0.2) 75%,
-        transparent 75%,
-        transparent
-    );
-    z-index: 1;
-    background-size: 50px 50px;
-    overflow: hidden;
-    animation: move 2s linear infinite;
+        &:after {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            right: 0;
+            background-image: linear-gradient(
+                -45deg,
+                rgba(255, 255, 255, 0.2) 25%,
+                transparent 25%,
+                transparent 50%,
+                rgba(255, 255, 255, 0.2) 50%,
+                rgba(255, 255, 255, 0.2) 75%,
+                transparent 75%,
+                transparent
+            );
+            z-index: 1;
+            background-size: 50px 50px;
+            overflow: hidden;
+            animation: move 2s linear infinite;
+        }
+    }
 }
 
 @keyframes move {
@@ -360,10 +360,10 @@ body {
     padding: 15px;
     max-width: 50%;
     overflow: scroll;
-}
 
-#asset-details img {
-    width: 100%;
+    img {
+        width: 100%;
+    }
 }
 
 #breadcrumbs {
@@ -378,37 +378,39 @@ body {
     align-items: center;
     padding: 5px;
     border-bottom-right-radius: 10px;
-}
 
-#breadcrumbs > div {
-    position: relative;
-    padding: 10px;
-    padding-left: 20px;
-    text-align: center;
-}
+    > div {
+        position: relative;
+        padding: 10px;
+        padding-left: 20px;
+        text-align: center;
 
-#breadcrumbs > div:first-child {
-    padding-left: 10px;
-}
+        &:first-child {
+            padding-left: 10px;
+        }
+    }
 
-#breadcrumbs div:last-child::after {
-    content: none;
-}
+    div {
+        &:last-child::after {
+            content: none;
+        }
 
-#breadcrumbs div::after {
-    content: "";
-    position: absolute;
-    display: inline-block;
-    width: 30px;
-    height: 30px;
-    top: 3px;
-    right: -10px;
-    background-color: transparent;
-    border-top-right-radius: 5px;
-    -webkit-transform: scale(0.707) rotate(45deg);
-    transform: scale(0.707) rotate(45deg);
-    box-shadow: 1px -1px rgba(0, 0, 0, 0.25);
-    z-index: 1;
+        &::after {
+            content: "";
+            position: absolute;
+            display: inline-block;
+            width: 30px;
+            height: 30px;
+            top: 3px;
+            right: -10px;
+            background-color: transparent;
+            border-top-right-radius: 5px;
+            -webkit-transform: scale(0.707) rotate(45deg);
+            transform: scale(0.707) rotate(45deg);
+            box-shadow: 1px -1px rgba(0, 0, 0, 0.25);
+            z-index: 1;
+        }
+    }
 }
 
 #actionbar {
@@ -422,14 +424,14 @@ body {
     justify-content: center;
     align-items: center;
     color: white;
-}
 
-#actionbar > div {
-    margin: 5px;
-}
+    > div {
+        margin: 5px;
 
-#actionbar > div:hover {
-    cursor: pointer;
+        &:hover {
+            cursor: pointer;
+        }
+    }
 }
 
 #explorer {
@@ -449,14 +451,16 @@ body {
     justify-content: center;
     align-items: center;
     padding: 15px;
+
+    * {
+        pointer-events: none;
+    }
 }
+
 .inode:hover,
 .inode-selected {
     cursor: pointer;
     background-color: #ff7052;
-}
-.inode * {
-    pointer-events: none;
 }
 .title {
     word-break: break-all;

@@ -295,7 +295,7 @@ export default class GroupSettings extends Vue {
     </div>
 </template>
 
-<style scoped>
+<style scoped lang="scss">
 .panel {
     grid-template-columns: [badge] 1fr [fill] auto [toggle] 100px [remove] 50px [end];
     grid-column-gap: 10px;
@@ -326,28 +326,28 @@ input[type="text"] {
     display: flex;
     flex-direction: row;
     grid-column: fill / end;
-}
 
-.selection-box > div {
-    border: solid 1px;
-    border-left: 0;
-    padding: 7px;
+    > div {
+        border: solid 1px;
+        border-left: 0;
+        padding: 7px;
+
+        &:first-child {
+            border: solid 1px;
+            border-top-left-radius: 8px;
+            border-bottom-left-radius: 8px;
+        }
+
+        &:last-child {
+            border-top-right-radius: 8px;
+            border-bottom-right-radius: 8px;
+        }
+    }
 }
 
 .selection-box > div:hover,
 .selection-box-active {
     background-color: #82c8a0;
     cursor: pointer;
-}
-
-.selection-box > div:first-child {
-    border: solid 1px;
-    border-top-left-radius: 8px;
-    border-bottom-left-radius: 8px;
-}
-
-.selection-box > div:last-child {
-    border-top-right-radius: 8px;
-    border-bottom-right-radius: 8px;
 }
 </style>

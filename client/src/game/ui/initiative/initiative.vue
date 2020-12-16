@@ -396,7 +396,7 @@ export default class Initiative extends Vue {
     </modal>
 </template>
 
-<style scoped>
+<style scoped lang="scss">
 .modal-header {
     background-color: #ff7052;
     padding: 10px;
@@ -431,6 +431,15 @@ export default class Initiative extends Vue {
     margin-bottom: 2px;
     border-radius: 5px;
     border: solid 2px rgba(0, 0, 0, 0);
+
+    &:hover {
+        border: solid 2px #82c8a0;
+    }
+
+    > * {
+        width: 30px;
+        margin-left: 2px;
+    }
 }
 
 .initiative-selected {
@@ -446,15 +455,6 @@ export default class Initiative extends Vue {
     background-color: rgba(130, 200, 160, 0.6);
 }
 
-.initiative-actor:hover {
-    border: solid 2px #82c8a0;
-}
-
-.initiative-actor > * {
-    width: 30px;
-    margin-left: 2px;
-}
-
 .initiative-effect {
     display: none;
     flex-direction: column;
@@ -468,22 +468,23 @@ export default class Initiative extends Vue {
     border-bottom-left-radius: 5px;
     border-bottom-right-radius: 5px;
     border-top: none;
-}
 
-.initiative-effect > * {
-    display: flex;
-    flex-direction: row;
-    justify-content: flex-end;
-}
+    > * {
+        display: flex;
+        flex-direction: row;
+        justify-content: flex-end;
 
-.initiative-effect > * > * {
-    border: none;
-    background-color: inherit;
-    text-align: right;
-    min-width: 10px;
-}
-.initiative-effect > * > *:first-child {
-    margin-left: 0;
+        > * {
+            border: none;
+            background-color: inherit;
+            text-align: right;
+            min-width: 10px;
+
+            &:first-child {
+                margin-left: 0;
+            }
+        }
+    }
 }
 
 #initiative-bar {

@@ -133,7 +133,7 @@ export default class SelectionInfo extends Vue {
     </div>
 </template>
 
-<style scoped>
+<style scoped lang="scss">
 #selection-menu {
     position: absolute;
     pointer-events: auto;
@@ -149,11 +149,11 @@ export default class SelectionInfo extends Vue {
     border-right: none;
     padding: 10px 35px 10px 10px;
     background-color: #eee;
-}
 
-#selection-menu:hover {
-    background-color: #82c8a0;
-    opacity: 1;
+    &:hover {
+        background-color: #82c8a0;
+        opacity: 1;
+    }
 }
 
 #selection-lock-button {
@@ -180,12 +180,11 @@ export default class SelectionInfo extends Vue {
 .selection-aura-value {
     justify-self: center;
     padding: 2px;
-}
 
-.selection-tracker-value:hover,
-.selection-aura-value:hover {
-    cursor: pointer;
-    background-color: rgba(20, 20, 20, 0.2);
+    &:hover {
+        cursor: pointer;
+        background-color: rgba(20, 20, 20, 0.2);
+    }
 }
 
 #selection-name {

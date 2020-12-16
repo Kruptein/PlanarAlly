@@ -111,7 +111,7 @@ export default class SelectionBox extends Vue {
     </Modal>
 </template>
 
-<style scoped>
+<style scoped lang="scss">
 .modal-header {
     background-color: #7c253e;
     color: white;
@@ -136,24 +136,24 @@ export default class SelectionBox extends Vue {
 #selectionbox {
     display: flex;
     flex-direction: column;
-}
 
-#selectionbox div {
-    padding: 10px 25px;
-    padding-left: 15px;
-    border: solid 1px black;
-    border-top: none;
-}
+    div {
+        padding: 10px 25px;
+        padding-left: 15px;
+        border: solid 1px black;
+        border-top: none;
 
-#selectionbox div:first-child {
-    border-top: solid 1px black;
-    border-top-left-radius: 15px;
-    border-top-right-radius: 15px;
-}
+        &:first-child {
+            border-top: solid 1px black;
+            border-top-left-radius: 15px;
+            border-top-right-radius: 15px;
+        }
 
-#selectionbox div:last-child {
-    border-bottom-left-radius: 15px;
-    border-bottom-right-radius: 15px;
+        &:last-child {
+            border-bottom-left-radius: 15px;
+            border-bottom-right-radius: 15px;
+        }
+    }
 }
 
 .selected,
@@ -185,10 +185,10 @@ h4 {
     text-align: center;
     border-bottom: 1px solid #000;
     line-height: 0.1em;
-}
 
-h4 span {
-    background: #fff;
-    padding: 0 10px;
+    span {
+        background: #fff;
+        padding: 0 10px;
+    }
 }
 </style>

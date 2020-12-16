@@ -334,7 +334,7 @@ export default class Tools extends Vue {
 </script>
 
 <template>
-    <div style="pointer-events: auto;">
+    <div style="pointer-events: auto">
         <div id="toolselect">
             <ul>
                 <li
@@ -372,7 +372,7 @@ export default class Tools extends Vue {
     </div>
 </template>
 
-<style scoped>
+<style scoped lang="scss">
 #toolselect {
     position: absolute;
     bottom: 25px;
@@ -380,21 +380,37 @@ export default class Tools extends Vue {
     z-index: 10;
     display: flex;
     align-items: center;
-}
 
-#toolselect * {
-    user-select: none !important;
-    -webkit-user-drag: none !important;
-}
+    * {
+        user-select: none !important;
+        -webkit-user-drag: none !important;
+    }
 
-#toolselect > ul {
-    display: flex;
-    list-style: none;
-    padding: 0;
-    margin: 0;
-    border: solid 1px #82c8a0;
-    background-color: cadetblue;
-    border-radius: 10px;
+    .tool-selected {
+        background-color: #82c8a0;
+    }
+
+    > ul {
+        display: flex;
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        border: solid 1px #82c8a0;
+        background-color: cadetblue;
+        border-radius: 10px;
+
+        > li {
+            &:first-child {
+                border-left: solid 1px #82c8a0;
+                border-radius: 10px 0px 0px 10px;
+            }
+
+            &:nth-last-child(2) {
+                border-right: solid 1px #82c8a0;
+                border-radius: 0px 10px 10px 0px; /* Border radius needs to be two less than the actual border, otherwise there will be a gap */
+            }
+        }
+    }
 }
 
 #tool-mode {
@@ -402,43 +418,29 @@ export default class Tools extends Vue {
     border-right: 0;
     padding: 5px;
     font-size: 0;
-}
 
-#tool-mode::first-letter {
-    font-size: 1rem;
-}
+    &::first-letter {
+        font-size: 1rem;
+    }
 
-#tool-mode:hover {
-    cursor: pointer;
-    font-size: 1em;
+    &:hover {
+        cursor: pointer;
+        font-size: 1em;
+    }
 }
 
 .tool {
     background-color: #eee;
     border-right: solid 1px #82c8a0;
-}
 
-#toolselect > ul > li:nth-last-child(2) {
-    border-right: solid 1px #82c8a0;
-    border-radius: 0px 10px 10px 0px; /* Border radius needs to be two less than the actual border, otherwise there will be a gap */
-}
+    &:hover {
+        background-color: #82c8a0;
+    }
 
-#toolselect > ul > li:first-child {
-    border-left: solid 1px #82c8a0;
-    border-radius: 10px 0px 0px 10px;
-}
-
-.tool:hover {
-    background-color: #82c8a0;
-}
-
-.tool a {
-    display: block;
-    padding: 10px;
-    text-decoration: none;
-}
-
-#toolselect .tool-selected {
-    background-color: #82c8a0;
+    a {
+        display: block;
+        padding: 10px;
+        text-decoration: none;
+    }
 }
 </style>

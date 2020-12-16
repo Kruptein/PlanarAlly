@@ -58,16 +58,21 @@ socket.on("Board.Locations.Set", (locationInfo: { id: number; name: string }[]) 
 });
 
 socket.on("Board.Floor.Set", async (floor: ServerFloor) => {
+    // It is important that this condition is evaluated before the async addFloor call.
+    // The very first floor that arrives is the one we want to select
+    // When this condition is evaluated after the await, we are at the mercy of the async scheduler
+    const selectFloor = floorStore.floors.length === 0;
     await addFloor(floor);
     visibilityStore.recalculateVision(getFloorId(floor.name));
     visibilityStore.recalculateMovement(getFloorId(floor.name));
-    if (floorStore.floors.length === 1) {
+    console.log(floor.name);
+    if (selectFloor) {
         floorStore.selectFloor({ targetFloor: floor.name, sync: false });
         requestAnimationFrame(layerManager.drawLoop);
         coreStore.setLoading(false);
         gameStore.setBoardInitialized(true);
+        EventBus.$emit(`Board.Floor.Set`);
     }
-    EventBus.$emit("Board.Floor.Set");
 });
 
 // Varia

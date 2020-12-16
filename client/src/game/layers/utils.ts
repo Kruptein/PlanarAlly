@@ -147,7 +147,7 @@ export function snapToGridPoint(point: GlobalPoint): [GlobalPoint, boolean] {
     let originShifted = new GlobalPoint(point.x % DEFAULT_GRID_SIZE, point.y % DEFAULT_GRID_SIZE);
     if (originShifted.x < 0) originShifted = originShifted.add(new Vector(DEFAULT_GRID_SIZE, 0));
     if (originShifted.y < 0) originShifted = originShifted.add(new Vector(0, DEFAULT_GRID_SIZE));
-    console.log(originShifted.asArray());
+
     const targets = [
         new GlobalPoint(0, 0),
         new GlobalPoint(0, DEFAULT_GRID_SIZE),

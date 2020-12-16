@@ -42,7 +42,6 @@ socket.on("Shape.Options.Tracker.Update", (data: { uuid: string; shape: string }
 });
 
 socket.on("Shape.Options.Aura.Create", (data: ServerAura): void => {
-    console.log(data);
     const shape = layerManager.UUIDMap.get(data.shape);
     if (shape === undefined) return;
     shape.pushAura(aurasFromServer(data)[0]);

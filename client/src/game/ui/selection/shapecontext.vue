@@ -181,14 +181,12 @@ export default class ShapeContext extends Vue {
         const selection = layer.getSelection();
         let groupInitiatives = false;
         if (new Set(selection.map(s => s.groupId)).size < selection.length) {
-            console.log(6);
             groupInitiatives = await this.$refs.confirmDialog.open(
                 "Adding initiative",
                 "Some of the selected shapes belong to the same group. Do you wish to add 1 entry for these?",
                 { no: "no, create a separate entry for each", focus: "confirm" },
             );
         }
-        console.log(groupInitiatives, selection);
         const groupsProcessed = new Set();
         for (const shape of selection) {
             if (!groupInitiatives || shape.groupId === undefined || !groupsProcessed.has(shape.groupId)) {

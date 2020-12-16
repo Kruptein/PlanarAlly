@@ -25,7 +25,6 @@ export default class NoteDialog extends Vue {
         });
     }
     calcHeight(): void {
-        console.log(this.$refs.textarea);
         if (this.$refs.textarea) {
             const el = this.$refs.textarea as HTMLElement;
             el.style.height = "auto";

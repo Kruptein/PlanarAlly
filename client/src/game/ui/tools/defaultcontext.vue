@@ -114,14 +114,16 @@ export default class DefaultContext extends Vue {
     </ContextMenu>
 </template>
 
-<style scoped>
+<style scoped lang="scss">
 .ContextMenu ul {
     border: 1px solid #82c8a0;
-}
-.ContextMenu ul li {
-    border-bottom: 1px solid #82c8a0;
-}
-.ContextMenu ul li:hover {
-    background-color: #82c8a0;
+
+    li {
+        border-bottom: 1px solid #82c8a0;
+
+        &:hover {
+            background-color: #82c8a0;
+        }
+    }
 }
 </style>

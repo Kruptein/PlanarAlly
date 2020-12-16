@@ -231,7 +231,7 @@ export default class UI extends Vue {
     </div>
 </template>
 
-<style scoped>
+<style scoped lang="scss">
 #ui {
     pointer-events: none;
     position: absolute;
@@ -263,24 +263,24 @@ export default class UI extends Vue {
     flex-direction: column;
     align-items: center;
     justify-content: space-evenly;
-}
 
-#logo-icons > a {
-    display: contents;
-}
+    > a {
+        display: contents;
 
-#logo-icons > a > img {
-    display: block;
-    max-width: 45%;
+        > img {
+            display: block;
+            max-width: 45%;
+        }
+    }
 }
 
 #logo-links {
     display: flex;
     justify-content: space-evenly;
-}
 
-#logo-links > a {
-    padding: 0 3px;
+    > a {
+        padding: 0 3px;
+    }
 }
 
 #logo-version {
@@ -325,85 +325,79 @@ export default class UI extends Vue {
     height: 200px;
     top: -100px;
     left: -100px;
-}
 
-.rm-wrapper .rm-topper {
-    pointer-events: none;
-    text-align: center;
-    line-height: 50px;
-    font-size: 25px;
-}
+    .rm-topper {
+        pointer-events: none;
+        text-align: center;
+        line-height: 50px;
+        font-size: 25px;
+    }
 
-.rm-wrapper .rm-toggler,
-.rm-wrapper .rm-topper {
-    display: block;
-    position: absolute;
-    width: 50px;
-    height: 50px;
-    left: 50%;
-    top: 50%;
-    margin-left: -25px;
-    margin-top: -25px;
-    background: #fa5a5a;
-    color: white;
-    border-radius: 50%;
-}
+    .rm-toggler,
+    .rm-topper {
+        display: block;
+        position: absolute;
+        width: 50px;
+        height: 50px;
+        left: 50%;
+        top: 50%;
+        margin-left: -25px;
+        margin-top: -25px;
+        background: #fa5a5a;
+        color: white;
+        border-radius: 50%;
 
-.rm-wrapper .rm-toggler .rm-list,
-.rm-wrapper .rm-topper .rm-list {
-    opacity: 0.5;
-    list-style: none;
-    padding: 0;
-    width: 200px;
-    height: 200px;
-    overflow: hidden;
-    display: block;
-    border-radius: 50%;
-    transform: rotate(180deg);
-    box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.2);
-    margin: -75px 0 0 -75px;
+        .rm-list {
+            opacity: 0.5;
+            list-style: none;
+            padding: 0;
+            width: 200px;
+            height: 200px;
+            overflow: hidden;
+            display: block;
+            border-radius: 50%;
+            transform: rotate(180deg);
+            box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.2);
+            margin: -75px 0 0 -75px;
+
+            .rm-item {
+                display: table;
+                width: 50%;
+                height: 50%;
+                float: left;
+                text-align: center;
+                box-shadow: inset 0 0 2px 0 rgba(0, 0, 0, 0.2);
+                background-color: white;
+
+                &:hover {
+                    background-color: #82c8a0;
+
+                    a {
+                        color: white;
+                    }
+                }
+
+                a {
+                    display: table-cell;
+                    vertical-align: middle;
+                    transform: rotate(-45deg);
+                    text-decoration: none;
+                    font-size: 25px;
+                    color: #82c8a0;
+                    border: none;
+                    outline: none;
+                }
+            }
+        }
+
+        &:hover .rm-list {
+            opacity: 1;
+        }
+    }
 }
 
 .rm-list-dm {
     transform: rotate(135deg) !important; /* total deg: 135 */
-}
-
-.rm-wrapper .rm-toggler:hover .rm-list,
-.rm-wrapper .rm-topper:hover .rm-list {
-    opacity: 1;
-}
-
-.rm-wrapper .rm-toggler .rm-list .rm-item,
-.rm-wrapper .rm-topper .rm-list .rm-item {
-    display: table;
-    width: 50%;
-    height: 50%;
-    float: left;
-    text-align: center;
-    box-shadow: inset 0 0 2px 0 rgba(0, 0, 0, 0.2);
-    background-color: white;
-}
-
-.rm-wrapper .rm-toggler .rm-list .rm-item:hover,
-.rm-wrapper .rm-topper .rm-list .rm-item:hover {
-    background-color: #82c8a0;
-}
-
-.rm-wrapper .rm-toggler .rm-list .rm-item:hover a,
-.rm-wrapper .rm-topper .rm-list .rm-item:hover a {
-    color: white;
-}
-
-.rm-wrapper .rm-toggler .rm-list .rm-item a,
-.rm-wrapper .rm-topper .rm-list .rm-item a {
-    display: table-cell;
-    vertical-align: middle;
-    transform: rotate(-45deg);
-    text-decoration: none;
-    font-size: 25px;
-    color: #82c8a0;
-    border: none;
-    outline: none;
 }
 
 .settingsfade-enter-active,

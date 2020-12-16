@@ -158,7 +158,7 @@ export default class FloorSelect extends Vue {
             </template>
             <div class="floor-add" @click="addFloor" v-if="IS_DM" v-t="'game.ui.floors.add_new_floor'"></div>
         </draggable>
-        <div style="display:contents" v-show="layers.length > 1">
+        <div style="display: contents" v-show="layers.length > 1">
             <div
                 v-for="layer in layers"
                 class="layer"
@@ -172,7 +172,7 @@ export default class FloorSelect extends Vue {
     </div>
 </template>
 
-<style scoped>
+<style scoped lang="scss">
 #floor-layer {
     grid-area: layer;
     display: flex;
@@ -180,10 +180,10 @@ export default class FloorSelect extends Vue {
     margin-left: 25px;
     margin-bottom: 25px;
     -webkit-user-drag: none !important;
-}
 
-#floor-layer * {
-    user-select: none !important;
+    * {
+        user-select: none !important;
+    }
 }
 
 #floor-selector {
@@ -213,14 +213,14 @@ a {
 .layer {
     border: solid 1px #82c8a0;
     border-left: none;
-}
 
-.layer:first-of-type {
-    border-radius: 4px 0 0 4px;
-}
+    &:first-of-type {
+        border-radius: 4px 0 0 4px;
+    }
 
-.layer:last-of-type {
-    border-radius: 0 4px 4px 0;
+    &:last-of-type {
+        border-radius: 0 4px 4px 0;
+    }
 }
 
 #floor-detail {
@@ -232,41 +232,42 @@ a {
     border: solid 1px #2b2b2b;
     background-color: white;
     padding: 10px;
-}
-#floor-detail:after {
-    content: "";
-    position: absolute;
-    left: 15px;
-    bottom: 0;
-    width: 0;
-    height: 0;
-    border: 14px solid transparent;
-    border-top-color: black;
-    border-bottom: 0;
-    margin-left: -14px;
-    margin-bottom: -14px;
-}
 
-#floor-detail input {
-    width: 100%;
-    box-sizing: border-box;
+    &:after {
+        content: "";
+        position: absolute;
+        left: 15px;
+        bottom: 0;
+        width: 0;
+        height: 0;
+        border: 14px solid transparent;
+        border-top-color: black;
+        border-bottom: 0;
+        margin-left: -14px;
+        margin-bottom: -14px;
+    }
+
+    input {
+        width: 100%;
+        box-sizing: border-box;
+    }
 }
 
 .floor-row {
     display: flex;
-}
 
-.floor-row > * {
-    border: solid 1px rgba(0, 0, 0, 0);
-    border-left: 0;
-    border-right: 0;
-}
+    > * {
+        border: solid 1px rgba(0, 0, 0, 0);
+        border-left: 0;
+        border-right: 0;
+    }
 
-.floor-row:hover > * {
-    cursor: pointer;
-    border: solid 1px #82c8a0;
-    border-left: 0;
-    border-right: 0;
+    &:hover > * {
+        cursor: pointer;
+        border: solid 1px #82c8a0;
+        border-left: 0;
+        border-right: 0;
+    }
 }
 
 .floor-index {
@@ -301,12 +302,12 @@ a {
 .floor-add {
     grid-column: 1 / span 3;
     margin-top: 1em;
-}
 
-.floor-add:hover {
-    cursor: pointer;
-    border: solid 1px #82c8a0;
-    border-left: 0;
-    border-right: 0;
+    &:hover {
+        cursor: pointer;
+        border: solid 1px #82c8a0;
+        border-left: 0;
+        border-right: 0;
+    }
 }
 </style>

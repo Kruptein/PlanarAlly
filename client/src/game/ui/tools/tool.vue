@@ -78,7 +78,7 @@ export default class Tool extends Vue implements ToolBasics {
     <div></div>
 </template>
 
-<style>
+<style lang="scss">
 .tool-detail {
     position: absolute;
     right: var(--detailRight);
@@ -93,23 +93,24 @@ export default class Tool extends Vue implements ToolBasics {
     grid-template-columns: auto auto;
     grid-column-gap: 5px;
     grid-row-gap: 2px;
-}
-.tool-detail:after {
-    content: "";
-    position: absolute;
-    right: var(--detailArrow);
-    bottom: 0;
-    width: 0;
-    height: 0;
-    border: 14px solid transparent;
-    border-top-color: black;
-    border-bottom: 0;
-    margin-left: -14px;
-    margin-bottom: -14px;
-}
 
-.tool-detail input {
-    width: 100%;
-    box-sizing: border-box;
+    &:after {
+        content: "";
+        position: absolute;
+        right: var(--detailArrow);
+        bottom: 0;
+        width: 0;
+        height: 0;
+        border: 14px solid transparent;
+        border-top-color: black;
+        border-bottom: 0;
+        margin-left: -14px;
+        margin-bottom: -14px;
+    }
+
+    input {
+        width: 100%;
+        box-sizing: border-box;
+    }
 }
 </style>

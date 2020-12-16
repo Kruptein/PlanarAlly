@@ -29,7 +29,7 @@ export default class LanguageDropdown extends Vue {
     </div>
 </template>
 
-<style scoped>
+<style scoped lang="scss">
 .box {
     display: flex;
     flex-direction: column;
@@ -38,16 +38,16 @@ export default class LanguageDropdown extends Vue {
 .element {
     padding: 5px;
     background-color: white;
-}
 
-.element:first-of-type {
-    border-top-left-radius: 5px;
-    border-top-right-radius: 5px;
-}
+    &:first-of-type {
+        border-top-left-radius: 5px;
+        border-top-right-radius: 5px;
+    }
 
-.element:last-of-type {
-    border-bottom-left-radius: 5px;
-    border-bottom-right-radius: 5px;
+    &:last-of-type {
+        border-bottom-left-radius: 5px;
+        border-bottom-right-radius: 5px;
+    }
 }
 
 .selected,

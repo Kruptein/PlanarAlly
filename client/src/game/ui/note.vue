@@ -75,21 +75,21 @@ export default class NoteDialog extends Vue {
     </modal>
 </template>
 
-<style scoped>
+<style scoped lang="scss">
 .modal-header {
     background-color: #ff7052;
     padding: 10px;
     font-size: 20px;
     font-weight: bold;
     cursor: move;
-}
 
-.modal-header > input {
-    background-color: inherit;
-    border: none;
-    font-weight: bold;
-    font-size: large;
-    margin-left: 5px;
+    > input {
+        background-color: inherit;
+        border: none;
+        font-weight: bold;
+        font-size: large;
+        margin-left: 5px;
+    }
 }
 
 .header-close {
@@ -100,12 +100,12 @@ export default class NoteDialog extends Vue {
 
 .modal-body {
     padding: 10px;
-}
 
-.modal-body > textarea {
-    width: 100%;
-    min-height: 100px;
-    max-height: 500px;
+    > textarea {
+        width: 100%;
+        min-height: 100px;
+        max-height: 500px;
+    }
 }
 
 .modal-footer {

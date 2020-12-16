@@ -43,7 +43,7 @@ export default class VisionTool extends Tool {
     </div>
 </template>
 
-<style scoped>
+<style scoped lang="scss">
 .token {
     margin-bottom: 0.5em;
     padding: 0.3em;
@@ -52,23 +52,28 @@ export default class VisionTool extends Tool {
     border-radius: 1em;
     display: flex;
     align-items: center;
+
+    &:last-child {
+        margin-bottom: 0;
+    }
+
+    &:not(.selected):hover {
+        background-color: rgba(255, 112, 82, 0.7);
+        cursor: pointer;
+    }
+
+    > img {
+        margin-right: 0.5em;
+    }
 }
-.token > img {
-    margin-right: 0.5em;
-}
-.token:last-child {
-    margin-bottom: 0;
-}
+
 .selected {
     background-color: #ff7052;
     background-color: rgba(255, 112, 82, 0.7);
-}
-.selected:hover {
-    cursor: pointer;
-    background-color: rgba(255, 112, 82, 0.2);
-}
-.token:not(.selected):hover {
-    background-color: rgba(255, 112, 82, 0.7);
-    cursor: pointer;
+
+    &:hover {
+        cursor: pointer;
+        background-color: rgba(255, 112, 82, 0.2);
+    }
 }
 </style>

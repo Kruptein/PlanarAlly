@@ -76,7 +76,7 @@ export default class AccessSettings extends Vue {
     </div>
 </template>
 
-<style scoped>
+<style scoped lang="scss">
 .panel {
     grid-template-columns: [name] 1fr [edit] 30px [move] 30px [vision] 30px [remove] 30px [end];
     grid-column-gap: 5px;
@@ -113,16 +113,18 @@ textarea {
     pointer-events: auto;
 }
 
-#label-add:hover > .label-main {
-    pointer-events: auto;
-    cursor: pointer;
-    color: white;
-    font-weight: bold;
-    background-color: #ff7052;
-}
+#label-add:hover {
+    > .label-main {
+        pointer-events: auto;
+        cursor: pointer;
+        color: white;
+        font-weight: bold;
+        background-color: #ff7052;
+    }
 
-#label-add:hover > .label-main::before {
-    content: "";
+    > .label-main::before {
+        content: "";
+    }
 }
 
 .label-user {
@@ -131,6 +133,11 @@ textarea {
     background-color: #ff7052;
     border: solid 1px #ff7052;
     padding: 5px;
+
+    + .label-main {
+        border-top-left-radius: 0;
+        border-bottom-left-radius: 0;
+    }
 }
 
 .label-main {
@@ -138,10 +145,5 @@ textarea {
     border-radius: 10px;
     padding: 5px;
     pointer-events: none;
-}
-
-.label-user + .label-main {
-    border-top-left-radius: 0;
-    border-bottom-left-radius: 0;
 }
 </style>

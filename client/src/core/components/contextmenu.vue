@@ -38,7 +38,7 @@ export default class ContextMenu extends Vue {}
                 background-color: #ff7052;
             }
 
-            &::last-child {
+            &:last-child {
                 border-bottom: none;
             }
         }

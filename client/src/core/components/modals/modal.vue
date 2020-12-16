@@ -111,6 +111,7 @@ export default class Modal extends Vue {
 }
 
 .modal-mask {
+    pointer-events: all;
     background-color: rgba(0, 0, 0, 0.5);
     transition: opacity 0.3s ease;
 }

@@ -43,6 +43,7 @@ These usually have no immediately visible impact on regular users
 -   Dropped assets not immediately rendering
 -   Shapes with a broken index value (used for move to back/move to front)
 -   Area in the topcenter of the screen where the mouse could sometimes not be used
+-   Auras that become public are not properly configured as a vision source on other clients
 -   [DM] Floor rename always setting a blank name
 
 ## [0.23.1] - 2020-10-25

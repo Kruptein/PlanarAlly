@@ -718,6 +718,7 @@ export abstract class Shape {
 
     pushAura(aura: Aura): void {
         this.auras.push(aura);
+        this.checkVisionSources();
         this.invalidate(false);
     }
 

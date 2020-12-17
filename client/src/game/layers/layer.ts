@@ -114,7 +114,7 @@ export class Layer {
                 this.points.set(strp, (this.points.get(strp) || new Set()).add(shape.uuid));
             }
         }
-        if (shape.ownedBy({ visionAccess: true }) && shape.isToken) gameStore.ownedtokens.push(shape.uuid);
+        if (shape.ownedBy({ visionAccess: true }) && shape.isToken) gameStore.addOwnedToken(shape.uuid);
         if (shape.annotation.length) gameStore.annotations.push(shape.uuid);
         if (sync !== SyncMode.NO_SYNC && !shape.preventSync)
             sendShapeAdd({ shape: shape.asDict(), temporary: sync === SyncMode.TEMP_SYNC });
@@ -172,8 +172,7 @@ export class Layer {
         const annotationIndex = gameStore.annotations.indexOf(shape.uuid);
         if (annotationIndex >= 0) gameStore.annotations.splice(annotationIndex, 1);
 
-        const ownedIndex = gameStore.ownedtokens.indexOf(shape.uuid);
-        if (ownedIndex >= 0) gameStore.ownedtokens.splice(ownedIndex, 1);
+        gameStore.removeOwnedToken(shape.uuid);
 
         layerManager.UUIDMap.delete(shape.uuid);
         gameStore.removeMarker({ marker: shape.uuid, sync: true });

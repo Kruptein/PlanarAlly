@@ -74,7 +74,7 @@ class GameStore extends VuexModule implements GameState {
     // zoomFactor = 1;
 
     annotations: string[] = [];
-    ownedtokens: string[] = [];
+    private _ownedtokens: string[] = [];
     _activeTokens: string[] = [];
 
     drawTEContour = false;
@@ -97,9 +97,13 @@ class GameStore extends VuexModule implements GameState {
         return zoomValue(this.zoomDisplay) * gf;
     }
 
-    get activeTokens(): string[] {
+    get activeTokens(): readonly string[] {
         if (this._activeTokens.length === 0) return this.ownedtokens;
         return this._activeTokens;
+    }
+
+    get ownedtokens(): readonly string[] {
+        return this._ownedtokens;
     }
 
     get screenTopLeft(): GlobalPoint {
@@ -359,10 +363,21 @@ class GameStore extends VuexModule implements GameState {
     @Mutation
     removeActiveToken(token: string): void {
         if (this._activeTokens.length === 0) {
-            this._activeTokens = [...this.ownedtokens];
+            this._activeTokens = [...this._ownedtokens];
         }
         this._activeTokens.splice(this._activeTokens.indexOf(token), 1);
         layerManager.invalidateLightAllFloors();
+    }
+
+    @Mutation
+    addOwnedToken(token: string): void {
+        if (!this._ownedtokens.includes(token)) this._ownedtokens.push(token);
+    }
+
+    @Mutation
+    removeOwnedToken(token: string): void {
+        const index = this._ownedtokens.indexOf(token);
+        if (index >= 0) this._ownedtokens.splice(index, 1);
     }
 
     @Mutation
@@ -406,7 +421,7 @@ class GameStore extends VuexModule implements GameState {
 
     @Mutation
     clear(): void {
-        this.ownedtokens = [];
+        this._ownedtokens = [];
         this.annotations = [];
         this.notes = [];
         this.markers = [];

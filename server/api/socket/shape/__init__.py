@@ -182,8 +182,8 @@ async def remove_shapes(sid: str, data: TemporaryShapesList):
                 (Shape.layer == layer) & (Shape.index >= old_index)
             ).execute()
 
-    for group_id in group_ids:
-        await remove_group_if_empty(group_id)
+        for group_id in group_ids:
+            await remove_group_if_empty(group_id)
 
     await sio.emit(
         "Shapes.Remove",

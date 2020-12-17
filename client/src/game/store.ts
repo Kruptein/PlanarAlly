@@ -75,7 +75,7 @@ class GameStore extends VuexModule implements GameState {
 
     annotations: string[] = [];
     private _ownedtokens: string[] = [];
-    _activeTokens: string[] = [];
+    private _activeTokens: string[] | undefined = undefined;
 
     drawTEContour = false;
 
@@ -98,7 +98,7 @@ class GameStore extends VuexModule implements GameState {
     }
 
     get activeTokens(): readonly string[] {
-        if (this._activeTokens.length === 0) return this.ownedtokens;
+        if (this._activeTokens === undefined) return this.ownedtokens;
         return this._activeTokens;
     }
 
@@ -356,13 +356,15 @@ class GameStore extends VuexModule implements GameState {
 
     @Mutation
     addActiveToken(token: string): void {
+        if (this._activeTokens === undefined) return;
         this._activeTokens.push(token);
+        if (this._activeTokens.length === this._ownedtokens.length) this._activeTokens = undefined;
         layerManager.invalidateLightAllFloors();
     }
 
     @Mutation
     removeActiveToken(token: string): void {
-        if (this._activeTokens.length === 0) {
+        if (this._activeTokens === undefined) {
             this._activeTokens = [...this._ownedtokens];
         }
         this._activeTokens.splice(this._activeTokens.indexOf(token), 1);

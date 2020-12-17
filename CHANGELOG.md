@@ -26,6 +26,7 @@ These usually have no immediately visible impact on regular users
         -   only resize/rotate are not allowed at the moment
 -   Use exact shape detection on shape select
     -   When performing a selection close to a non axis-aligned shape it will no longer select those as well
+-   Do not toggle all tokens when deselecting the last one in the vision tool
 -   [tech] Upgraded to socket.io v3
 
 ### Fixed

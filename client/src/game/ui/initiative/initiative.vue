@@ -216,8 +216,7 @@ export default class Initiative extends Vue {
     toggleVisionLock(): void {
         this.visionLock = !this.visionLock;
         if (this.visionLock) {
-            this._activeTokens = [...gameStore._activeTokens];
-            if (initiativeStore.currentActor !== null && gameStore.ownedtokens.includes(initiativeStore.currentActor))
+            this._activeTokens = [...gameStore.activeTokens];
                 gameStore.setActiveTokens([initiativeStore.currentActor]);
         } else {
             gameStore.setActiveTokens(this._activeTokens);

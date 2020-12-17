@@ -4,16 +4,18 @@ import Component from "vue-class-component";
 
 import { Prop, Watch } from "vue-property-decorator";
 
-import { Shape } from "@/game/shapes/shape";
-import { EventBus } from "@/game/event-bus";
+import LabelManager from "@/game/ui/labels.vue";
 
-@Component
+import { Shape } from "@/game/shapes/shape";
+
+@Component({ components: { LabelManager } })
 export default class AccessSettings extends Vue {
     @Prop() owned!: boolean;
     @Prop() shape!: Shape;
     @Prop() active!: boolean;
 
     $refs!: {
+        labels: LabelManager;
         textarea: HTMLTextAreaElement;
     };
 
@@ -29,7 +31,7 @@ export default class AccessSettings extends Vue {
     }
 
     openLabelManager(): void {
-        EventBus.$emit("LabelManager.Open");
+        this.$refs.labels.open();
     }
 
     removeLabel(uuid: string): void {
@@ -49,6 +51,7 @@ export default class AccessSettings extends Vue {
 
 <template>
     <div class="panel restore-panel">
+        <LabelManager ref="labels"></LabelManager>
         <div class="spanrow header" v-t="'common.labels'"></div>
         <div id="labels" class="spanrow">
             <div v-for="label in shape.labels" class="label" :key="label.uuid">

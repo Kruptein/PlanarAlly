@@ -14,7 +14,7 @@ import { postFetch, getErrorReason } from "../core/utils";
 })
 export default class AccountSettings extends Vue {
     $refs!: {
-        confirm: InstanceType<typeof ConfirmDialog>;
+        confirm: ConfirmDialog;
         changePasswordButton: HTMLButtonElement;
         passwordResetField: HTMLInputElement;
         passwordRepeatField: HTMLInputElement;

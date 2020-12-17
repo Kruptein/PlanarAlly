@@ -5,9 +5,9 @@ import Component from "vue-class-component";
 import { mapState } from "vuex";
 
 import ColorPicker from "@/core/components/colorpicker.vue";
-import Game from "@/game/Game.vue";
 import AssetNode from "@/game/ui/menu/asset_node.vue";
 import LanguageSelect from "@/core/components/languageSelect.vue";
+import NoteDialog from "@/game/ui/note.vue";
 
 import { uuidv4 } from "@/core/utils";
 import { Note } from "@/game/comm/types/general";
@@ -20,12 +20,17 @@ import { EventBus } from "../../event-bus";
         "color-picker": ColorPicker,
         "asset-node": AssetNode,
         LanguageSelect,
+        NoteDialog,
     },
     computed: {
         ...mapState("game", ["assets", "notes", "markers"]),
     },
 })
 export default class MenuBar extends Vue {
+    $refs!: {
+        note: NoteDialog;
+    };
+
     assetSearch = "";
 
     get IS_DM(): boolean {
@@ -76,7 +81,7 @@ export default class MenuBar extends Vue {
         this.openNote(note);
     }
     openNote(note: Note): void {
-        (this.$parent.$parent as Game).$refs.note.open(note);
+        this.$refs.note.open(note);
     }
 
     openDmSettings(): void {
@@ -105,6 +110,7 @@ export default class MenuBar extends Vue {
 <template>
     <!-- SETTINGS -->
     <div id="menu" @click="settingsClick" ref="settings">
+        <NoteDialog ref="note"></NoteDialog>
         <div style="width: 200px; overflow-y: auto; overflow-x: hidden">
             <!-- ASSETS -->
             <template v-if="IS_DM">

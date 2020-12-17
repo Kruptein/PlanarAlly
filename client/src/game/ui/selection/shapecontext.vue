@@ -6,7 +6,6 @@ import { mapState } from "vuex";
 
 import ConfirmDialog from "@/core/components/modals/confirm.vue";
 import ContextMenu from "@/core/components/contextmenu.vue";
-import Game from "@/game/Game.vue";
 import Prompt from "@/core/components/modals/prompt.vue";
 import SelectionBox from "@/core/components/modals/SelectionBox.vue";
 
@@ -124,7 +123,7 @@ export default class ShapeContext extends Vue {
 
         switch (spawnInfo.length) {
             case 0:
-                await (this.$parent.$parent.$parent as Game).$refs.confirm.open(
+                await this.$refs.confirmDialog.open(
                     this.$t("game.ui.selection.shapecontext.no_spawn_set_title").toString(),
                     this.$t("game.ui.selection.shapecontext.no_spawn_set_text").toString(),
                     { showNo: false, yes: "Ok" },
@@ -139,6 +138,7 @@ export default class ShapeContext extends Vue {
                     "Choose the desired spawn location",
                     spawnInfo.map(s => s.name),
                 );
+                if (choice === undefined) return;
                 const choiceShape = spawnInfo.find(s => s.name === choice);
                 if (choiceShape === undefined) return;
                 spawnLocation = choiceShape;
@@ -181,11 +181,13 @@ export default class ShapeContext extends Vue {
         const selection = layer.getSelection();
         let groupInitiatives = false;
         if (new Set(selection.map(s => s.groupId)).size < selection.length) {
-            groupInitiatives = await this.$refs.confirmDialog.open(
+            const answer = await this.$refs.confirmDialog.open(
                 "Adding initiative",
                 "Some of the selected shapes belong to the same group. Do you wish to add 1 entry for these?",
                 { no: "no, create a separate entry for each", focus: "confirm" },
             );
+            if (answer === undefined) return;
+            groupInitiatives = answer;
         }
         const groupsProcessed = new Set();
         for (const shape of selection) {
@@ -263,6 +265,7 @@ export default class ShapeContext extends Vue {
                 defaultButton: this.$t("game.ui.templates.overwrite").toString(),
                 customButton: this.$t("game.ui.templates.create_new").toString(),
             });
+            if (choice === undefined) return;
             assetOptions.templates[choice] = toTemplate(shape.asDict());
             sendAssetOptions(shape.assetId, assetOptions);
         } catch {
@@ -321,6 +324,7 @@ export default class ShapeContext extends Vue {
                 no: "No, reset them",
             },
         );
+        if (keepBadges === undefined) return;
         createNewGroupForShapes(
             this.getSelection().map(s => s.uuid),
             keepBadges,
@@ -336,6 +340,7 @@ export default class ShapeContext extends Vue {
                 no: "No, reset them",
             },
         );
+        if (keepBadges === undefined) return;
         let targetGroup: string | undefined;
         const membersToMove: { uuid: string; badge?: number }[] = [];
         for (const shape of this.getSelection()) {

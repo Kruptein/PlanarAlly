@@ -2,7 +2,7 @@
 import Vue from "vue";
 import Component from "vue-class-component";
 
-import Game from "@/game/Game.vue";
+import Prompt from "@/core/components/modals/prompt.vue";
 import ShapeSettings from "@/game/ui/selection/edit_dialog/ShapeSettings.vue";
 
 import { EventBus } from "@/game/event-bus";
@@ -13,10 +13,16 @@ import { Aura, Tracker } from "@/game/shapes/interfaces";
 
 @Component({
     components: {
+        Prompt,
         ShapeSettings,
     },
 })
 export default class SelectionInfo extends Vue {
+    $refs!: {
+        prompt: Prompt;
+        shapeSettings: ShapeSettings;
+    };
+
     shape: Shape | null = null;
 
     mounted(): void {
@@ -52,15 +58,16 @@ export default class SelectionInfo extends Vue {
     }
 
     openEditDialog(): void {
-        (this.$refs.shapeSettings as any)[0].visible = true;
+        this.$refs.shapeSettings.visible = true;
     }
     async changeValue(object: Tracker | Aura, isAura: boolean): Promise<void> {
         if (this.shape === null) return;
-        const value = await (this.$parent.$parent as Game).$refs.prompt.prompt(
+        const value = await this.$refs.prompt.prompt(
             this.$t("game.ui.selection.select_info.new_value_NAME", { name: object.name }).toString(),
             this.$t("game.ui.selection.select_info.updating_NAME", { name: object.name }).toString(),
         );
-        if (this.shape === null) return;
+        if (value === undefined || this.shape === null) return;
+
         const ogValue = object.value;
 
         if (value[0] === "+" || value[0] === "-") object.value += parseInt(value, 10);
@@ -77,6 +84,7 @@ export default class SelectionInfo extends Vue {
 
 <template>
     <div v-show="shapes.length > 0">
+        <Prompt ref="prompt"></Prompt>
         <div v-for="shape in shapes" :key="shape.uuid">
             <div id="selection-menu">
                 <div

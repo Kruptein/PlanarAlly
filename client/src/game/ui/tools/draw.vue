@@ -5,7 +5,6 @@ import { Watch } from "vue-property-decorator";
 import { mapGetters } from "vuex";
 
 import ColorPicker from "@/core/components/colorpicker.vue";
-import DefaultContext from "./defaultcontext.vue";
 import Tool from "./tool.vue";
 import Tools from "./tools.vue";
 
@@ -41,6 +40,8 @@ import { sendShapeSizeUpdate } from "@/game/api/emits/shape/core";
     },
 })
 export default class DrawTool extends Tool implements ToolBasics {
+    $parent!: Tools;
+
     name = ToolName.Draw;
     active = false;
 
@@ -128,7 +129,7 @@ export default class DrawTool extends Tool implements ToolBasics {
 
     @Watch("currentFloor")
     onFloorChange(newValue: Floor, oldValue: Floor): void {
-        if ((this.$parent as Tools).currentTool === this.name) {
+        if (this.$parent.currentTool === this.name) {
             let mouse: { x: number; y: number } | undefined = undefined;
             if (this.brushHelper !== null) {
                 mouse = { x: this.brushHelper.refPoint.x, y: this.brushHelper.refPoint.y };
@@ -140,7 +141,7 @@ export default class DrawTool extends Tool implements ToolBasics {
 
     @Watch("currentLayer")
     onLayerChange(newValue: Layer, oldValue: Layer): void {
-        if ((this.$parent as Tools).currentTool === this.name) {
+        if (this.$parent.currentTool === this.name) {
             let mouse: { x: number; y: number } | undefined = undefined;
             if (this.brushHelper !== null) {
                 mouse = { x: this.brushHelper.refPoint.x, y: this.brushHelper.refPoint.y };
@@ -439,7 +440,7 @@ export default class DrawTool extends Tool implements ToolBasics {
             }
             this.finaliseShape();
         } else if (!this.active) {
-            (this.$parent.$refs.defaultcontext as DefaultContext).open(event);
+            this.$parent.$refs.defaultcontext.open(event);
         }
     }
 

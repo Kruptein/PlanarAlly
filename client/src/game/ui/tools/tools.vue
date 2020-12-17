@@ -336,6 +336,11 @@ export default class Tools extends Vue {
                 return "";
         }
     }
+
+    hasAlert(tool: ToolName): boolean {
+        if (this.componentMap[tool]) return this.componentMap[tool].alert;
+        return false;
+    }
 }
 </script>
 
@@ -350,7 +355,7 @@ export default class Tools extends Vue {
                     v-for="tool in visibleTools"
                     :key="tool"
                     class="tool"
-                    :class="{ 'tool-selected': currentTool === tool }"
+                    :class="{ 'tool-selected': currentTool === tool, 'tool-alert': hasAlert(tool) }"
                     :ref="tool + '-selector'"
                     @mousedown="currentTool = tool"
                 >
@@ -398,6 +403,10 @@ export default class Tools extends Vue {
 
     .tool-selected {
         background-color: #82c8a0;
+    }
+
+    .tool-alert {
+        background-color: #ff7052;
     }
 
     > ul {

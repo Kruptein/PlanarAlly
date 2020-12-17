@@ -17,6 +17,8 @@ export default class Tool extends Vue implements ToolBasics {
     active = false;
     scaling = false;
 
+    alert = false;
+
     get permittedTools(): ToolPermission[] {
         return [];
     }

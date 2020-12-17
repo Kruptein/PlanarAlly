@@ -29,6 +29,12 @@ export default class VisionTool extends Tool {
     toggle(uuid: string): void {
         if (this.selection.includes(uuid)) gameStore.removeActiveToken(uuid);
         else gameStore.addActiveToken(uuid);
+
+        if (gameStore.activeTokens.length !== gameStore.ownedtokens.length) {
+            this.alert = true;
+        } else {
+            this.alert = false;
+        }
     }
 }
 </script>

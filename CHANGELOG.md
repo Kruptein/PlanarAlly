@@ -27,6 +27,7 @@ These usually have no immediately visible impact on regular users
 -   Use exact shape detection on shape select
     -   When performing a selection close to a non axis-aligned shape it will no longer select those as well
 -   Do not toggle all tokens when deselecting the last one in the vision tool
+-   Highlight the vision tool in a special colour to signal modified vision state at all times
 -   [tech] Upgraded to socket.io v3
 
 ### Fixed

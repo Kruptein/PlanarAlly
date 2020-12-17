@@ -1,3 +1,4 @@
+<script lang="ts">
 import { InvalidationMode, SyncMode } from "@/core/comm/types";
 import { GlobalPoint, LocalPoint } from "@/game/geom";
 import { layerManager } from "@/game/layers/manager";
@@ -7,17 +8,22 @@ import Tool from "@/game/ui/tools/tool.vue";
 import { l2g } from "@/game/units";
 import Component from "vue-class-component";
 import { ToolBasics } from "./ToolBasics";
-import { ToolName } from "./utils";
+import { ToolName, ToolPermission } from "./utils";
 import { floorStore } from "../../layers/store";
 import { sendShapePositionUpdate } from "../../api/emits/shape/core";
+import { SelectFeatures } from "./select.vue";
 
 @Component
-export class PingTool extends Tool implements ToolBasics {
+export default class PingTool extends Tool implements ToolBasics {
     name = ToolName.Ping;
     active = false;
     startPoint: GlobalPoint | null = null;
     ping: Circle | null = null;
     border: Circle | null = null;
+
+    get permittedTools(): ToolPermission[] {
+        return [{ name: ToolName.Select, features: { enabled: [SelectFeatures.Context] } }];
+    }
 
     onDown(lp: LocalPoint): void {
         this.startPoint = l2g(lp);
@@ -72,3 +78,4 @@ export class PingTool extends Tool implements ToolBasics {
         layer.invalidate(true);
     }
 }
+</script>

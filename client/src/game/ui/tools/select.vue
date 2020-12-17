@@ -1,7 +1,6 @@
 <script lang="ts">
 import Component from "vue-class-component";
 
-import ShapeContext from "@/game/ui/selection/shapecontext.vue";
 import Tool from "@/game/ui/tools/tool.vue";
 
 import { EventBus } from "@/game/event-bus";
@@ -48,12 +47,9 @@ const start = new GlobalPoint(-1000, -1000);
 
 const ANGLE_SNAP = (45 * Math.PI) / 180; // Calculate 45 degrees in radians just once
 
-@Component({ components: { ShapeContext } })
+@Component
 export default class SelectTool extends Tool implements ToolBasics {
     $parent!: Tools;
-    $refs!: {
-        shapecontext: ShapeContext;
-    };
 
     name = ToolName.Select;
     showContextMenu = false;
@@ -101,6 +97,9 @@ export default class SelectTool extends Tool implements ToolBasics {
     }
 
     onDown(lp: LocalPoint, event: MouseEvent | TouchEvent, features: ToolFeatures<SelectFeatures>): void {
+        // if we only have context capabilities, immediately skip
+        if (features === [SelectFeatures.Context]) return;
+
         const gp = l2g(lp);
         const layer = floorStore.currentLayer;
         if (layer === undefined) {
@@ -203,6 +202,9 @@ export default class SelectTool extends Tool implements ToolBasics {
     }
 
     onMove(lp: LocalPoint, event: MouseEvent | TouchEvent, features: ToolFeatures<SelectFeatures>): void {
+        // if we only have context capabilities, immediately skip
+        if (features === [SelectFeatures.Context]) return;
+
         const gp = l2g(lp);
         // We require move for the resize and rotate cursors
         if (
@@ -315,6 +317,9 @@ export default class SelectTool extends Tool implements ToolBasics {
     }
 
     onUp(_lp: LocalPoint, event: MouseEvent | TouchEvent, features: ToolFeatures<SelectFeatures>): void {
+        // if we only have context capabilities, immediately skip
+        if (features === [SelectFeatures.Context]) return;
+
         if (!this.active) return;
         this.active = false;
 
@@ -487,7 +492,7 @@ export default class SelectTool extends Tool implements ToolBasics {
         for (const shape of layer.getSelection()) {
             if (shape.contains(globalMouse)) {
                 layer.invalidate(true);
-                this.$refs.shapecontext.open(event);
+                this.$parent.$refs.shapecontext.open(event);
                 return;
             }
         }
@@ -498,12 +503,12 @@ export default class SelectTool extends Tool implements ToolBasics {
             if (shape.contains(globalMouse)) {
                 layer.setSelection(shape);
                 layer.invalidate(true);
-                this.$refs.shapecontext.open(event);
+                this.$parent.$refs.shapecontext.open(event);
                 return;
             }
         }
-        // super call
-        (Tool as any).options.methods.onContextMenu.call(this, event, features);
+        // Fallback to default context menu
+        this.$parent.$refs.defaultcontext.open(event);
     }
     updateCursor(layer: Layer, globalMouse: GlobalPoint): void {
         let cursorStyle = "default";
@@ -622,7 +627,3 @@ export default class SelectTool extends Tool implements ToolBasics {
     }
 }
 </script>
-
-<template>
-    <ShapeContext ref="shapecontext"></ShapeContext>
-</template>

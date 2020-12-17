@@ -7,7 +7,7 @@ import { GlobalPoint, LocalPoint } from "@/game/geom";
 import { layerManager } from "@/game/layers/manager";
 import { l2g, l2gz } from "@/game/units";
 import { SyncMode, InvalidationMode } from "../../../core/comm/types";
-import { ToolName } from "./utils";
+import { ToolName, ToolPermission } from "./utils";
 import { gameSettingsStore } from "../../settings";
 import { ToolBasics } from "./ToolBasics";
 import { Line } from "@/game/shapes/variants/line";
@@ -17,6 +17,7 @@ import { floorStore } from "@/game/layers/store";
 import { sendShapePositionUpdate, sendTextUpdate } from "@/game/api/emits/shape/core";
 import { useSnapping } from "@/game/utils";
 import { snapToGridPoint } from "@/game/layers/utils";
+import { SelectFeatures } from "./select.vue";
 
 @Component
 export default class RulerTool extends Tool implements ToolBasics {
@@ -27,6 +28,10 @@ export default class RulerTool extends Tool implements ToolBasics {
     text: Text | null = null;
 
     showPublic = true;
+
+    get permittedTools(): ToolPermission[] {
+        return [{ name: ToolName.Select, features: { enabled: [SelectFeatures.Context] } }];
+    }
 
     get syncMode(): SyncMode {
         if (this.showPublic) return SyncMode.TEMP_SYNC;

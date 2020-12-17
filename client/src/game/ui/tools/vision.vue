@@ -6,12 +6,17 @@ import Tool from "@/game/ui/tools/tool.vue";
 import { layerManager } from "@/game/layers/manager";
 import { gameStore } from "@/game/store";
 import { Shape } from "../../shapes/shape";
-import { ToolName } from "./utils";
+import { ToolName, ToolPermission } from "./utils";
+import { SelectFeatures } from "./select.vue";
 
 @Component
 export default class VisionTool extends Tool {
     name = ToolName.Vision;
     active = false;
+
+    get permittedTools(): ToolPermission[] {
+        return [{ name: ToolName.Select, features: { disabled: [SelectFeatures.Resize, SelectFeatures.Rotate] } }];
+    }
 
     get selection(): string[] {
         return gameStore.activeTokens;

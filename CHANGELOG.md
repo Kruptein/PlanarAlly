@@ -42,6 +42,7 @@ These usually have no immediately visible impact on regular users
 -   Resizing rotating shapes with snapping now correctly snaps to grid points
 -   Dropped assets not immediately rendering
 -   Shapes with a broken index value (used for move to back/move to front)
+-   Area in the topcenter of the screen where the mouse could sometimes not be used
 -   [DM] Floor rename always setting a blank name
 
 ## [0.23.1] - 2020-10-25

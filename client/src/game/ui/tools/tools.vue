@@ -336,7 +336,7 @@ export default class Tools extends Vue {
 </script>
 
 <template>
-    <div style="pointer-events: auto">
+    <div id="tools">
         <Annotation ref="annotation"></Annotation>
         <div id="toolselect">
             <ul>
@@ -374,6 +374,10 @@ export default class Tools extends Vue {
 </template>
 
 <style scoped lang="scss">
+#tools > * {
+    pointer-events: auto;
+}
+
 #toolselect {
     position: absolute;
     bottom: 25px;

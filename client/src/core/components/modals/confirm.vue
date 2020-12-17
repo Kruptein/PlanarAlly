@@ -23,7 +23,7 @@ export default class ConfirmDialog extends Vue {
     text = "";
     focus: "confirm" | "deny" = "deny";
 
-    resolve: (ok: boolean) => void = (_ok: boolean) => {};
+    resolve: (ok: boolean | undefined) => void = (_ok: boolean | undefined) => {};
     reject: () => void = () => {};
 
     confirm(): void {
@@ -35,14 +35,14 @@ export default class ConfirmDialog extends Vue {
         this.close();
     }
     close(): void {
-        this.reject();
+        this.resolve(undefined);
         this.visible = false;
     }
     open(
         title: string,
         text = "",
         buttons?: { yes?: string; no?: string; focus?: "confirm" | "deny"; showNo?: boolean },
-    ): Promise<boolean> {
+    ): Promise<boolean | undefined> {
         this.yes = buttons?.yes ?? "yes";
         this.no = buttons?.no ?? "no";
         this.showNo = buttons?.showNo ?? true;

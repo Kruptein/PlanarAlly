@@ -33,11 +33,11 @@ export default class Modal extends Vue {
         this.$emit("close");
     }
     updatePosition(): void {
+        if (this.$refs.container === undefined) return;
         if (!this.positioned) {
-            const container = this.$refs.container as any;
-            if (container.offsetWidth === 0 && container.offsetHeight === 0) return;
-            this.$refs.container.style.left = (window.innerWidth - container.offsetWidth) / 2 + "px";
-            this.$refs.container.style.top = (window.innerHeight - container.offsetHeight) / 2 + "px";
+            if (this.$refs.container.offsetWidth === 0 && this.$refs.container.offsetHeight === 0) return;
+            this.$refs.container.style.left = (window.innerWidth - this.$refs.container.offsetWidth) / 2 + "px";
+            this.$refs.container.style.top = (window.innerHeight - this.$refs.container.offsetHeight) / 2 + "px";
             this.positioned = true;
         }
     }
@@ -46,7 +46,7 @@ export default class Modal extends Vue {
         event.dataTransfer.setData("Hack", "");
         // Because the drag event is happening on the header, we have to change the drag image
         // in order to give the impression that the entire modal is dragged.
-        event.dataTransfer.setDragImage(this.$refs.container as Element, event.offsetX, event.offsetY);
+        event.dataTransfer.setDragImage(this.$refs.container, event.offsetX, event.offsetY);
         this.offsetX = event.offsetX;
         this.offsetY = event.offsetY;
         this.screenX = event.screenX;
@@ -111,6 +111,7 @@ export default class Modal extends Vue {
 }
 
 .modal-mask {
+    pointer-events: all;
     background-color: rgba(0, 0, 0, 0.5);
     transition: opacity 0.3s ease;
 }

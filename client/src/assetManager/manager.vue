@@ -6,7 +6,6 @@ import { Route, NavigationGuard } from "vue-router";
 import { mapGetters } from "vuex";
 
 import AssetContextMenu from "@/assetManager/contextMenu.vue";
-import ConfirmDialog from "@/core/components/modals/confirm.vue";
 import Prompt from "@/core/components/modals/prompt.vue";
 
 import { socket } from "@/assetManager/socket";
@@ -19,7 +18,6 @@ Component.registerHooks(["beforeRouteEnter"]);
 @Component({
     components: {
         Prompt,
-        ConfirmDialog,
         AssetContextMenu,
     },
     computed: {
@@ -42,6 +40,10 @@ Component.registerHooks(["beforeRouteEnter"]);
     },
 })
 export default class AssetManager extends Vue {
+    $refs!: {
+        prompt: Prompt;
+    };
+
     currentFolder!: number;
     fildes!: number[];
     firstSelectedFile!: Asset | null;
@@ -65,9 +67,9 @@ export default class AssetManager extends Vue {
         assetStore.clearSelected();
         socket.emit("Folder.Get", this.currentFolder);
     }
-    createDirectory(): void {
-        const name = window.prompt(this.$t("assetManager.manager.new_folder_name").toString());
-        if (name !== null) {
+    async createDirectory(): Promise<void> {
+        const name = await this.$refs.prompt.prompt(this.$t("assetManager.manager.new_folder_name").toString(), "?");
+        if (name !== undefined) {
             socket.emit("Folder.Create", { name, parent: this.currentFolder });
         }
     }
@@ -237,7 +239,6 @@ export default class AssetManager extends Vue {
         </div>
         <AssetContextMenu ref="cm"></AssetContextMenu>
         <Prompt ref="prompt"></Prompt>
-        <ConfirmDialog ref="confirm"></ConfirmDialog>
     </div>
 </template>
 

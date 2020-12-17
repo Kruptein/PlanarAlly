@@ -6,7 +6,6 @@ import Component from "vue-class-component";
 
 import { mapState } from "vuex";
 
-import Annotation from "./Annotation.vue";
 import DmSettings from "@/game/ui/settings/dm/DmSettings.vue";
 import FloorSelect from "@/game/ui/floors.vue";
 import LocationBar from "./menu/locations.vue";
@@ -23,7 +22,6 @@ import { coreStore } from "../../core/store";
 
 @Component({
     components: {
-        Annotation,
         DmSettings,
         FloorSelect,
         LocationBar,
@@ -40,8 +38,7 @@ import { coreStore } from "../../core/store";
 })
 export default class UI extends Vue {
     $refs!: {
-        annotation: InstanceType<typeof Annotation>;
-        tools: InstanceType<typeof Tools>;
+        tools: Tools;
     };
 
     visible = {
@@ -209,7 +206,6 @@ export default class UI extends Vue {
         <MarkdownModal v-if="showChangelog" :title="$t('game.ui.ui.new_ver_msg')">
             {{ $t("game.ui.ui.changelog_RELEASE_LOG", { release: version.release, log: changelog }) }}
         </MarkdownModal>
-        <Annotation ref="annotation"></Annotation>
         <!-- When updating zoom boundaries, also update store updateZoom function;
             should probably do this using a store variable-->
         <vueSlider

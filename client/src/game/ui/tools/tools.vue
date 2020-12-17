@@ -2,8 +2,7 @@
 import Vue from "vue";
 import Component from "vue-class-component";
 
-import ShapeContext from "@/game/ui/selection/shapecontext.vue";
-import CreateTokenModal from "@/game/ui/tools/createtoken_modal.vue";
+import Annotation from "../Annotation.vue";
 import DefaultContext from "@/game/ui/tools/defaultcontext.vue";
 import DrawTool from "@/game/ui/tools/draw.vue";
 import FilterTool from "@/game/ui/tools/filter.vue";
@@ -12,6 +11,7 @@ import PanTool from "@/game/ui/tools/pan";
 import RulerTool from "@/game/ui/tools/ruler.vue";
 import SelectTool, { SelectFeatures } from "@/game/ui/tools/select.vue";
 import Tool from "./tool.vue";
+import UI from "../ui.vue";
 import VisionTool from "@/game/ui/tools/vision.vue";
 
 import { layerManager } from "@/game/layers/manager";
@@ -22,21 +22,19 @@ import { getLocalPointFromEvent } from "@/game/utils";
 import { ToolName, ToolFeatures } from "./utils";
 import { EventBus } from "@/game/event-bus";
 import { floorStore } from "@/game/layers/store";
-import UI from "../ui.vue";
 
 @Component({
     components: {
-        SelectTool,
-        PanTool,
-        DrawTool,
-        RulerTool,
-        PingTool,
-        MapTool,
-        FilterTool,
-        VisionTool,
-        ShapeContext,
+        Annotation,
         DefaultContext,
-        CreateTokenModal,
+        DrawTool,
+        FilterTool,
+        MapTool,
+        PanTool,
+        PingTool,
+        RulerTool,
+        SelectTool,
+        VisionTool,
     },
     watch: {
         currentTool(newValue: ToolName, oldValue: ToolName) {
@@ -50,20 +48,24 @@ import UI from "../ui.vue";
     },
 })
 export default class Tools extends Vue {
+    $parent!: UI;
     $refs!: {
-        selectTool: InstanceType<typeof SelectTool>;
-        panTool: InstanceType<typeof PanTool>;
-        drawTool: InstanceType<typeof PanTool>;
-        rulerTool: InstanceType<typeof PanTool>;
-        pingTool: InstanceType<typeof PanTool>;
-        mapTool: InstanceType<typeof PanTool>;
-        filterTool: InstanceType<typeof PanTool>;
-        visionTool: InstanceType<typeof PanTool>;
+        selectTool: SelectTool;
+        panTool: PanTool;
+        drawTool: PanTool;
+        rulerTool: PanTool;
+        pingTool: PanTool;
+        mapTool: PanTool;
+        filterTool: PanTool;
+        visionTool: PanTool;
+
+        annotation: Annotation;
+        defaultcontext: DefaultContext;
     };
 
     mode: "Build" | "Play" = "Play";
 
-    private componentmap_: { [key in ToolName]: InstanceType<typeof Tool> } = {} as any;
+    private componentmap_: { [key in ToolName]: Tool } = {} as any;
 
     mounted(): void {
         this.componentmap_ = {
@@ -104,7 +106,7 @@ export default class Tools extends Vue {
         [ToolName.Vision, {}],
     ];
 
-    get componentMap(): { [key in ToolName]: InstanceType<typeof Tool> } {
+    get componentMap(): { [key in ToolName]: Tool } {
         return this.componentmap_;
     }
 
@@ -193,12 +195,12 @@ export default class Tools extends Vue {
                     shape.contains(l2g(getLocalPointFromEvent(event)))
                 ) {
                     found = true;
-                    (this.$parent as UI).$refs.annotation.setActiveText(shape.annotation);
+                    this.$refs.annotation.setActiveText(shape.annotation);
                 }
             }
         }
         if (!found) {
-            (this.$parent as UI).$refs.annotation.setActiveText("");
+            this.$refs.annotation.setActiveText("");
         }
     }
     mouseleave(event: MouseEvent): void {
@@ -279,12 +281,12 @@ export default class Tools extends Vue {
                 const shape = layerManager.UUIDMap.get(uuid)!;
                 if (shape.contains(l2g(getLocalPointFromEvent(event)))) {
                     found = true;
-                    (this.$parent as UI).$refs.annotation.setActiveText(shape.annotation);
+                    this.$refs.annotation.setActiveText(shape.annotation);
                 }
             }
         }
         if (!found) {
-            (this.$parent as UI).$refs.annotation.setActiveText("");
+            this.$refs.annotation.setActiveText("");
         }
     }
 
@@ -335,6 +337,7 @@ export default class Tools extends Vue {
 
 <template>
     <div style="pointer-events: auto">
+        <Annotation ref="annotation"></Annotation>
         <div id="toolselect">
             <ul>
                 <li
@@ -364,9 +367,7 @@ export default class Tools extends Vue {
                 <MapTool v-show="currentTool === 'Map'" ref="mapTool"></MapTool>
                 <FilterTool v-show="currentTool === 'Filter'" ref="filterTool"></FilterTool>
                 <VisionTool v-show="currentTool === 'Vision'" ref="visionTool"></VisionTool>
-                <ShapeContext ref="shapecontext"></ShapeContext>
                 <DefaultContext ref="defaultcontext"></DefaultContext>
-                <CreateTokenModal ref="createtokendialog"></CreateTokenModal>
             </template>
         </div>
     </div>

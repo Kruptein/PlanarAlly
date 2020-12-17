@@ -23,7 +23,7 @@ export default class Prompt extends Vue {
     validation: (value: string) => { valid: true } | { valid: false; reason: string } = _value => ({
         valid: true,
     });
-    resolve: (value: string) => void = (_value: string) => {};
+    resolve: (value: string | undefined) => void = (_value: string | undefined) => {};
     reject: () => void = () => {};
 
     submit(): void {
@@ -37,7 +37,7 @@ export default class Prompt extends Vue {
     }
 
     close(): void {
-        this.reject();
+        this.resolve(undefined);
         this.visible = false;
     }
 
@@ -45,7 +45,7 @@ export default class Prompt extends Vue {
         question: string,
         title: string,
         validation?: (value: string) => { valid: true } | { valid: false; reason: string },
-    ): Promise<string> {
+    ): Promise<string | undefined> {
         this.answer = "";
         this.question = question;
         this.title = title;
@@ -78,7 +78,7 @@ export default class Prompt extends Vue {
         <div class="modal-body">
             <div id="question">{{ question }}</div>
             <div id="error" v-if="error">{{ error }}</div>
-            <input id="answer" type="text" ref="answer" v-model="answer" @keyup.enter="submit" />
+            <input type="text" ref="answer" v-model="answer" @keyup.enter="submit" />
         </div>
         <div class="modal-footer">
             <button @click="submit" v-t="'common.submit'"></button>

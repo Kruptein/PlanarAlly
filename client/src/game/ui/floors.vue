@@ -3,7 +3,8 @@ import Vue from "vue";
 import Component from "vue-class-component";
 import draggable from "vuedraggable";
 
-import Game from "@/game/Game.vue";
+import ConfirmDialog from "@/core/components/modals/confirm.vue";
+import Prompt from "@/core/components/modals/prompt.vue";
 
 import { layerManager } from "@/game/layers/manager";
 import { removeFloor } from "@/game/layers/utils";
@@ -14,10 +15,17 @@ import { sendCreateFloor, sendRemoveFloor, sendFloorSetVisible } from "../api/em
 
 @Component({
     components: {
+        ConfirmDialog,
         draggable,
+        Prompt,
     },
 })
 export default class FloorSelect extends Vue {
+    $refs!: {
+        confirm: ConfirmDialog;
+        prompt: Prompt;
+    };
+
     selected = false;
 
     get IS_DM(): boolean {
@@ -60,7 +68,7 @@ export default class FloorSelect extends Vue {
     }
 
     async addFloor(): Promise<void> {
-        const value = await (this.$parent.$parent as Game).$refs.prompt.prompt(
+        const value = await this.$refs.prompt.prompt(
             this.$t("game.ui.floors.new_name").toString(),
             this.$t("game.ui.floors.creation").toString(),
         );
@@ -73,7 +81,7 @@ export default class FloorSelect extends Vue {
     }
 
     async renameFloor(index: number): Promise<void> {
-        const value = await (this.$parent.$parent as Game).$refs.prompt.prompt(
+        const value = await this.$refs.prompt.prompt(
             this.$t("game.ui.floors.new_name").toString(),
             this.$t("game.ui.floors.rename_header_title").toString(),
         );
@@ -84,7 +92,7 @@ export default class FloorSelect extends Vue {
     async removeFloor(floor: Floor): Promise<void> {
         if (this.floors.length <= 1) return;
         if (
-            !(await (this.$parent.$parent as Game).$refs.confirm.open(
+            !(await this.$refs.confirm.open(
                 this.$t("common.warning").toString(),
                 this.$t("game.ui.floors.warning_msg_Z", { z: floor.name }).toString(),
             ))
@@ -122,6 +130,8 @@ export default class FloorSelect extends Vue {
 
 <template>
     <div id="floor-layer">
+        <ConfirmDialog ref="confirm"></ConfirmDialog>
+        <Prompt ref="prompt"></Prompt>
         <div id="floor-selector" @click="selected = !selected" v-if="showFloorSelector">
             <a href="#">{{ selectedFloorIndex }}</a>
         </div>

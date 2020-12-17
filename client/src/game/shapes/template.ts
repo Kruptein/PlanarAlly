@@ -26,7 +26,6 @@ export function applyTemplate<T extends ServerShape>(shape: T, template: BaseTem
     for (const auraTemplate of template.auras ?? []) {
         const defaultAura = aurasToServer(shape.uuid, [createEmptyAura()], false)[0];
         shape.auras.push({ ...defaultAura, ...auraTemplate });
-        console.log(shape.auras[shape.auras.length - 1]);
     }
 
     // Shape specific keys

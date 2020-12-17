@@ -21,17 +21,11 @@ export default class LabelManager extends Vue {
     newName = "";
     search = "";
 
-    mounted(): void {
-        EventBus.$on("LabelManager.Open", () => {
-            this.visible = true;
-            this.newCategory = "";
-            this.newName = "";
-            this.$nextTick(() => (this.$refs.search as HTMLInputElement).focus());
-        });
-    }
-
-    beforeDestroy(): void {
-        EventBus.$off("LabelManager.Open");
+    open(): void {
+        this.visible = true;
+        this.newCategory = "";
+        this.newName = "";
+        this.$nextTick(() => (this.$refs.search as HTMLInputElement).focus());
     }
 
     get labels(): { [category: string]: Label[] } {
@@ -107,14 +101,14 @@ export default class LabelManager extends Vue {
         </div>
         <div class="modal-body">
             <div class="grid">
-                <div class="header">
+                <div>
                     <abbr :title="$t('game.ui.labels.category')" v-t="'game.ui.labels.cat_abbr'"></abbr>
                 </div>
-                <div class="header name" v-t="'common.name'"></div>
-                <div class="header">
+                <div class="name" v-t="'common.name'"></div>
+                <div>
                     <abbr :title="$t('game.ui.labels.visible')" v-t="'game.ui.labels.vis_abbr'"></abbr>
                 </div>
-                <div class="header">
+                <div>
                     <abbr :title="$t('game.ui.labels.delete')" v-t="'game.ui.labels.del_abbr'"></abbr>
                 </div>
                 <div class="separator spanrow" style="margin: 0 0 7px"></div>

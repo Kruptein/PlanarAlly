@@ -13,20 +13,24 @@ import { assetStore } from "@/assetManager/store";
 
 @Component({
     components: {
+        ConfirmDialog,
         ContextMenu,
+        Prompt,
     },
 })
 export default class AssetContextMenu extends Vue {
+    $refs!: {
+        confirm: ConfirmDialog;
+        prompt: Prompt;
+    };
+    $parent!: AssetManager;
+
     visible = false;
     left = 0;
     top = 0;
 
-    get parent(): AssetManager {
-        return this.$parent as AssetManager;
-    }
-
     open(event: MouseEvent, inode: number): void {
-        if (!assetStore.selected.includes(inode)) this.parent.select(event, inode);
+        if (!assetStore.selected.includes(inode)) this.$parent.select(event, inode);
 
         this.visible = true;
         this.left = event.clientX;
@@ -36,29 +40,30 @@ export default class AssetContextMenu extends Vue {
         });
     }
     close(): void {
+        if (this.$refs.confirm.visible || this.$refs.prompt.visible) return;
         this.visible = false;
     }
     async rename(): Promise<void> {
         if (assetStore.selected.length !== 1) return;
         const asset = assetStore.idMap.get(assetStore.selected[0])!;
 
-        const name = await (this.parent.$refs.prompt as Prompt).prompt(
+        const name = await this.$refs.prompt.prompt(
             this.$t("assetManager.contextMenu.new_name").toString(),
             this.$t("assetManager.contextMenu.renaming_NAME", { name: asset.name }).toString(),
         );
-        socket.emit("Asset.Rename", {
-            asset: asset.id,
-            name,
-        });
-        asset.name = name;
-        this.parent.$forceUpdate();
+        if (name !== undefined) {
+            socket.emit("Asset.Rename", {
+                asset: asset.id,
+                name,
+            });
+            asset.name = name;
+            this.$parent.$forceUpdate();
+        }
         this.close();
     }
     async remove(): Promise<void> {
         if (assetStore.selected.length === 0) return;
-        const result = await (this.parent.$refs.confirm as ConfirmDialog).open(
-            this.$t("assetManager.contextMenu.ask_remove").toString(),
-        );
+        const result = await this.$refs.confirm.open(this.$t("assetManager.contextMenu.ask_remove").toString());
         if (result) {
             for (const sel of assetStore.selected) {
                 socket.emit("Asset.Remove", sel);
@@ -74,6 +79,8 @@ export default class AssetContextMenu extends Vue {
 
 <template>
     <ContextMenu :visible="visible" :left="left + 'px'" :top="top + 'px'" @close="close">
+        <ConfirmDialog ref="confirm"></ConfirmDialog>
+        <Prompt ref="prompt"></Prompt>
         <li @click="rename" v-t="'common.rename'"></li>
         <li @click="remove" v-t="'common.remove'"></li>
     </ContextMenu>

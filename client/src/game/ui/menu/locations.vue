@@ -1,11 +1,12 @@
 <script lang="ts">
 import Vue from "vue";
 import Component from "vue-class-component";
+import draggable from "vuedraggable";
 
 import { mapState } from "vuex";
 import { Prop, Watch } from "vue-property-decorator";
 
-import Game from "@/game/Game.vue";
+import Prompt from "@/core/components/modals/prompt.vue";
 
 import { gameStore } from "@/game/store";
 import { coreStore } from "../../../core/store";
@@ -17,20 +18,26 @@ import { sendLocationChange, sendNewLocation } from "@/game/api/emits/location";
         ...mapState("game", ["IS_DM"]),
         ...mapState("gameSettings", ["activeLocation"]),
     },
+    components: { Prompt },
 })
 export default class LocationBar extends Vue {
+    $refs!: {
+        locations: InstanceType<typeof draggable>;
+        prompt: Prompt;
+    };
+
     @Prop() active!: boolean;
     @Prop() menuActive!: boolean;
 
     @Watch("active")
     toggleActive(active: boolean): void {
-        for (const expandEl of (this.$refs.locations as any).$el.querySelectorAll(".player-collapse-content")) {
+        for (const expandEl of this.$refs.locations.$el.querySelectorAll(".player-collapse-content")) {
             const hEl = expandEl as HTMLElement;
             if (this.expanded.includes(Number.parseInt(hEl.dataset.loc || "-1"))) {
                 if (active) {
-                    expandEl.style.removeProperty("display");
+                    hEl.style.removeProperty("display");
                 } else {
-                    expandEl.style.display = "none";
+                    hEl.style.display = "none";
                 }
             }
         }
@@ -63,11 +70,11 @@ export default class LocationBar extends Vue {
     }
 
     async createLocation(): Promise<void> {
-        const value = await (this.$parent.$parent as Game).$refs.prompt.prompt(
+        const value = await this.$refs.prompt.prompt(
             this.$t("game.ui.menu.locations.new_location_name").toString(),
             this.$t("game.ui.menu.locations.create_new_location").toString(),
         );
-        sendNewLocation(value);
+        if (value !== undefined) sendNewLocation(value);
     }
 
     openLocationSettings(location: string): void {
@@ -124,7 +131,7 @@ export default class LocationBar extends Vue {
     }
 
     doHorizontalScroll(e: WheelEvent): void {
-        const el: HTMLElement = (this.$refs.locations as any).$el;
+        const el: HTMLElement = this.$refs.locations.$el as HTMLElement;
         if (e.deltaY > 0) el.scrollLeft += 100;
         else el.scrollLeft -= 100;
         this.horizontalOffset = el.scrollLeft;
@@ -132,7 +139,7 @@ export default class LocationBar extends Vue {
     }
 
     doHorizontalScrollA(_e: WheelEvent): void {
-        const el: HTMLElement = (this.$refs.locations as any).$el;
+        const el: HTMLElement = this.$refs.locations.$el as HTMLElement;
         this.fixDisplays(el);
     }
 
@@ -155,6 +162,7 @@ export default class LocationBar extends Vue {
 
 <template>
     <div id="location-bar" v-if="IS_DM">
+        <Prompt ref="prompt"></Prompt>
         <div id="create-location" :title="$t('game.ui.menu.locations.add_new_location')" @click="createLocation">+</div>
         <draggable
             id="locations"

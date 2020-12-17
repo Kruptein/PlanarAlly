@@ -48,8 +48,13 @@ const start = new GlobalPoint(-1000, -1000);
 
 const ANGLE_SNAP = (45 * Math.PI) / 180; // Calculate 45 degrees in radians just once
 
-@Component
+@Component({ components: { ShapeContext } })
 export default class SelectTool extends Tool implements ToolBasics {
+    $parent!: Tools;
+    $refs!: {
+        shapecontext: ShapeContext;
+    };
+
     name = ToolName.Select;
     showContextMenu = false;
     active = false;
@@ -78,7 +83,7 @@ export default class SelectTool extends Tool implements ToolBasics {
         EventBus.$on("SelectionInfo.Shapes.Set", (shapes: Shape[]) => {
             this.removeRotationUi();
             // We don't have feature information, might want to store this as a property instead ?
-            if ((this.$parent as Tools).mode === "Build" && shapes.length > 0) this.createRotationUi({});
+            if (this.$parent.mode === "Build" && shapes.length > 0) this.createRotationUi({});
         });
     }
 
@@ -482,7 +487,7 @@ export default class SelectTool extends Tool implements ToolBasics {
         for (const shape of layer.getSelection()) {
             if (shape.contains(globalMouse)) {
                 layer.invalidate(true);
-                (this.$parent.$refs.shapecontext as ShapeContext).open(event);
+                this.$refs.shapecontext.open(event);
                 return;
             }
         }
@@ -493,7 +498,7 @@ export default class SelectTool extends Tool implements ToolBasics {
             if (shape.contains(globalMouse)) {
                 layer.setSelection(shape);
                 layer.invalidate(true);
-                (this.$parent.$refs.shapecontext as ShapeContext).open(event);
+                this.$refs.shapecontext.open(event);
                 return;
             }
         }
@@ -617,3 +622,7 @@ export default class SelectTool extends Tool implements ToolBasics {
     }
 }
 </script>
+
+<template>
+    <ShapeContext ref="shapecontext"></ShapeContext>
+</template>

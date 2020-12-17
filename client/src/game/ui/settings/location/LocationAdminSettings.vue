@@ -3,18 +3,23 @@ import Vue from "vue";
 import Component from "vue-class-component";
 import { Prop } from "vue-property-decorator";
 
+import ConfirmDialog from "@/core/components/modals/confirm.vue";
 import InputCopyElement from "@/core/components/inputCopy.vue";
-import Game from "@/game/Game.vue";
+
 import { gameStore } from "@/game/store";
 import { renameLocation } from "../../../api/events/location";
 
 @Component({
     components: {
+        ConfirmDialog,
         InputCopyElement,
     },
 })
 export default class LocationAdminSettings extends Vue {
     @Prop() location!: number;
+    $refs!: {
+        confirm: ConfirmDialog;
+    };
 
     get name(): string {
         return gameStore.locations.find(l => l.id === this.location)?.name ?? "";
@@ -29,7 +34,7 @@ export default class LocationAdminSettings extends Vue {
     }
 
     async deleteLocation(): Promise<void> {
-        const remove = await (this.$parent.$parent.$parent.$parent.$parent as Game).$refs.confirm.open(
+        const remove = await this.$refs.confirm.open(
             this.$t("common.warning").toString(),
             this.$t("game.ui.settings.location.LocationAdminSettings.remove_location_msg_NAME", {
                 name: this.name,
@@ -49,6 +54,7 @@ export default class LocationAdminSettings extends Vue {
 
 <template>
     <div class="panel">
+        <ConfirmDialog ref="confirm"></ConfirmDialog>
         <div class="row">
             <div>
                 <label :for="'rename-' + location" v-t="'common.name'"></label>

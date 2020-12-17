@@ -63,9 +63,7 @@ export default class Tool extends Vue implements ToolBasics {
     onPinchStart(_event: TouchEvent, _features: ToolFeatures): void {}
     onPinchMove(_event: TouchEvent, _features: ToolFeatures): void {}
     onPinchEnd(_event: TouchEvent, _features: ToolFeatures): void {}
-    onContextMenu(event: MouseEvent, _features: ToolFeatures): void {
-        this.$parent.$refs.defaultcontext.open(event);
-    }
+    onContextMenu(_event: MouseEvent, _features: ToolFeatures): void {}
 
     onSelect(): void {}
     onDeselect(): void {}

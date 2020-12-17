@@ -7,16 +7,17 @@ import DefaultContext from "@/game/ui/tools/defaultcontext.vue";
 import DrawTool from "@/game/ui/tools/draw.vue";
 import FilterTool from "@/game/ui/tools/filter.vue";
 import MapTool from "@/game/ui/tools/map.vue";
-import PanTool from "@/game/ui/tools/pan";
+import PanTool from "@/game/ui/tools/pan.vue";
+import PingTool from "@/game/ui/tools/ping.vue";
 import RulerTool from "@/game/ui/tools/ruler.vue";
 import SelectTool, { SelectFeatures } from "@/game/ui/tools/select.vue";
+import ShapeContext from "@/game/ui/selection/shapecontext.vue";
 import Tool from "./tool.vue";
 import UI from "../ui.vue";
 import VisionTool from "@/game/ui/tools/vision.vue";
 
 import { layerManager } from "@/game/layers/manager";
 import { gameStore } from "@/game/store";
-import { PingTool } from "@/game/ui/tools/ping";
 import { l2g } from "@/game/units";
 import { getLocalPointFromEvent } from "@/game/utils";
 import { ToolName, ToolFeatures } from "./utils";
@@ -34,6 +35,7 @@ import { floorStore } from "@/game/layers/store";
         PingTool,
         RulerTool,
         SelectTool,
+        ShapeContext,
         VisionTool,
     },
     watch: {
@@ -61,6 +63,8 @@ export default class Tools extends Vue {
 
         annotation: Annotation;
         defaultcontext: DefaultContext;
+        // Only used by Select directly, however Select needs to be loaded for other tools to allow Select.Context
+        shapecontext: ShapeContext;
     };
 
     mode: "Build" | "Play" = "Play";
@@ -338,6 +342,8 @@ export default class Tools extends Vue {
 <template>
     <div id="tools">
         <Annotation ref="annotation"></Annotation>
+        <ShapeContext ref="shapecontext"></ShapeContext>
+        <DefaultContext ref="defaultcontext"></DefaultContext>
         <div id="toolselect">
             <ul>
                 <li
@@ -367,7 +373,6 @@ export default class Tools extends Vue {
                 <MapTool v-show="currentTool === 'Map'" ref="mapTool"></MapTool>
                 <FilterTool v-show="currentTool === 'Filter'" ref="filterTool"></FilterTool>
                 <VisionTool v-show="currentTool === 'Vision'" ref="visionTool"></VisionTool>
-                <DefaultContext ref="defaultcontext"></DefaultContext>
             </template>
         </div>
     </div>

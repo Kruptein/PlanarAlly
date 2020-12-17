@@ -20,6 +20,10 @@ These usually have no immediately visible impact on regular users
 -   Round counter now starts at 1 instead of 0
 -   Create token modal now auto focuses no the input field
 -   Create token modal now submits when pressing enter in the input field
+-   Most tools now support the right click context menu on selected shapes without having to swap to select
+    -   the two exceptions are draw and map tools
+    -   filter and vision additionally allow a wider set of features from the select tool to be used
+        -   only resize/rotate are not allowed at the moment
 -   [tech] Upgraded to socket.io v3
 
 ### Fixed

@@ -349,7 +349,7 @@ class GameStore extends VuexModule implements GameState {
     }
 
     @Mutation
-    setActiveTokens(tokens: string[]): void {
+    setActiveTokens(tokens: string[] | undefined): void {
         this._activeTokens = tokens;
         layerManager.invalidateLightAllFloors();
     }

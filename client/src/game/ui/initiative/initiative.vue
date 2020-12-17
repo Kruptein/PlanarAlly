@@ -141,7 +141,7 @@ export default class Initiative extends Vue {
         }
         if (this.visionLock) {
             if (actorId !== null && gameStore.ownedtokens.includes(actorId)) gameStore.setActiveTokens([actorId]);
-            else gameStore.setActiveTokens([]);
+            else gameStore.setActiveTokens(undefined);
         }
         if (this.cameraLock) {
             if (actorId !== null) {
@@ -217,6 +217,7 @@ export default class Initiative extends Vue {
         this.visionLock = !this.visionLock;
         if (this.visionLock) {
             this._activeTokens = [...gameStore.activeTokens];
+            if (initiativeStore.currentActor && gameStore.ownedtokens.includes(initiativeStore.currentActor))
                 gameStore.setActiveTokens([initiativeStore.currentActor]);
         } else {
             gameStore.setActiveTokens(this._activeTokens);

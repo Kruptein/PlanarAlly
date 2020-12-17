@@ -492,7 +492,7 @@ export abstract class Shape {
         if (!this.hasOwner(owner.user)) {
             this._owners.push(fullOwner);
             if (owner.access.vision && this.isToken && owner.user === gameStore.username)
-                gameStore.ownedtokens.push(this.uuid);
+                gameStore.addOwnedToken(this.uuid);
             if (sync) sendShapeAddOwner(ownerToServer(fullOwner));
             if (gameSettingsStore.fowLos) layerManager.invalidateLightAllFloors();
         }
@@ -514,11 +514,10 @@ export abstract class Shape {
         }
         if (targetOwner.access.vision !== fullOwner.access.vision) {
             if (targetOwner.user === gameStore.username) {
-                const ownedIndex = gameStore.ownedtokens.indexOf(this.uuid);
                 if (fullOwner.access.vision) {
-                    if (ownedIndex === -1) gameStore.ownedtokens.push(this.uuid);
+                    gameStore.addOwnedToken(this.uuid);
                 } else {
-                    if (ownedIndex >= 0) gameStore.ownedtokens.splice(ownedIndex, 1);
+                    gameStore.removeOwnedToken(this.uuid);
                 }
             }
         }
@@ -532,8 +531,7 @@ export abstract class Shape {
         if (ownerIndex < 0) return;
         const removed = this._owners.splice(ownerIndex, 1)[0];
         if (owner === gameStore.username) {
-            const ownedIndex = gameStore.ownedtokens.indexOf(this.uuid);
-            if (ownedIndex >= 0) gameStore.ownedtokens.splice(ownedIndex, 1);
+            gameStore.removeOwnedToken(owner);
         }
         if (sync) sendShapeDeleteOwner(ownerToServer(removed));
         if (gameSettingsStore.fowLos) layerManager.invalidateLightAllFloors();
@@ -551,11 +549,10 @@ export abstract class Shape {
         }
         this.defaultAccess = access;
 
-        const ownedIndex = gameStore.ownedtokens.indexOf(this.uuid);
         if (this.defaultAccess.vision) {
-            if (this.ownedBy({ visionAccess: true }) && ownedIndex === -1) gameStore.ownedtokens.push(this.uuid);
+            if (this.ownedBy({ visionAccess: true })) gameStore.addOwnedToken(this.uuid);
         } else {
-            if (!this.ownedBy({ visionAccess: true }) && ownedIndex >= 0) gameStore.ownedtokens.splice(ownedIndex, 1);
+            if (!this.ownedBy({ visionAccess: true })) gameStore.removeOwnedToken(this.uuid);
         }
         if (gameSettingsStore.fowLos) layerManager.invalidateLightAllFloors();
         if (sync) sendShapeUpdateDefaultOwner({ ...accessToServer(this.defaultAccess), shape: this.uuid });
@@ -618,9 +615,8 @@ export abstract class Shape {
         if (sync) sendShapeSetIsToken({ shape: this.uuid, value: isToken });
         this.isToken = isToken;
         if (this.ownedBy({ visionAccess: true })) {
-            const i = gameStore.ownedtokens.indexOf(this.uuid);
-            if (this.isToken && i === -1) gameStore.ownedtokens.push(this.uuid);
-            else if (!this.isToken && i >= 0) gameStore.ownedtokens.splice(i, 1);
+            if (this.isToken) gameStore.addOwnedToken(this.uuid);
+            else gameStore.removeOwnedToken(this.uuid);
         }
         this.invalidate(false);
     }

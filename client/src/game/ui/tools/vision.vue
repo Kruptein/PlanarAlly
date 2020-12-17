@@ -18,7 +18,7 @@ export default class VisionTool extends Tool {
         return [{ name: ToolName.Select, features: { disabled: [SelectFeatures.Resize, SelectFeatures.Rotate] } }];
     }
 
-    get selection(): string[] {
+    get selection(): readonly string[] {
         return gameStore.activeTokens;
     }
 

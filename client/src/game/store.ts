@@ -213,8 +213,10 @@ class GameStore extends VuexModule implements GameState {
 
     @Mutation
     removeMarker(data: { marker: string; sync: boolean }): void {
-        this.markers = this.markers.filter(m => m !== data.marker);
-        if (data.sync) socket.emit("Marker.Remove", data.marker);
+        if (this.markers.some(m => m === data.marker)) {
+            this.markers = this.markers.filter(m => m !== data.marker);
+            if (data.sync) socket.emit("Marker.Remove", data.marker);
+        }
     }
 
     @Mutation

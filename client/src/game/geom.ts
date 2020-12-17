@@ -94,8 +94,12 @@ export class Vector {
     dot(other: Vector): number {
         return this.x * other.x + this.y * other.y;
     }
+    /**
+     * This will return (+/-)Infinity for x/y if they are 0.
+     * This is intended behaviour! (otherwise BoundingRect.containsRay will not work properly)
+     */
     inverse(): Vector {
-        return new Vector(this.x === 0 ? 0 : 1 / this.x, this.y === 0 ? 0 : 1 / this.y);
+        return new Vector(1 / this.x, 1 / this.y);
     }
     squaredLength(): number {
         return Math.pow(this.x, 2) + Math.pow(this.y, 2);

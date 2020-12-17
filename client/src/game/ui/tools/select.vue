@@ -11,7 +11,7 @@ import { Rect } from "@/game/shapes/variants/rect";
 import { gameStore } from "@/game/store";
 import { calculateDelta, ToolName, ToolFeatures } from "@/game/ui/tools/utils";
 import { g2l, g2lx, g2ly, l2g, l2gz } from "@/game/units";
-import { getLocalPointFromEvent, useSnapping, equalPoints, rotateAroundPoint } from "@/game/utils";
+import { getLocalPointFromEvent, useSnapping, equalPoints } from "@/game/utils";
 import { visibilityStore } from "@/game/visibility/store";
 import { TriangulationTarget } from "@/game/visibility/te/pa";
 import { gameSettingsStore } from "../../settings";
@@ -338,19 +338,20 @@ export default class SelectTool extends Tool implements ToolBasics {
             } else {
                 layer.clearSelection();
             }
+            const cbbox = this.selectionHelper!.getBoundingBox();
             for (const shape of layer.getShapes()) {
                 if (!shape.ownedBy({ movementAccess: true })) continue;
-                const bbox = shape.getBoundingBox();
-                if (!shape.ownedBy({ movementAccess: true })) continue;
-                const topLeft = rotateAroundPoint(this.selectionHelper!.refPoint, bbox.center(), -bbox.angle);
-                if (
-                    topLeft.x <= bbox.topRight.x &&
-                    topLeft.x + this.selectionHelper!.w >= bbox.topLeft.x &&
-                    topLeft.y <= bbox.botLeft.y &&
-                    topLeft.y + this.selectionHelper!.h >= bbox.topLeft.y
-                ) {
-                    if (selection.find(it => it === shape) === undefined) {
+                if (!shape.visibleInCanvas(layer.canvas)) continue;
+                if (selection.some(s => s.uuid === shape.uuid)) continue;
+
+                for (let i = 0; i < shape.points.length; i++) {
+                    const ray = Ray.fromPoints(
+                        GlobalPoint.fromArray(shape.points[i]),
+                        GlobalPoint.fromArray(shape.points[(i + 1) % shape.points.length]),
+                    );
+                    if (cbbox.containsRay(ray).hit) {
                         layer.pushSelection(shape);
+                        i = shape.points.length; // break out of the inner loop
                     }
                 }
             }

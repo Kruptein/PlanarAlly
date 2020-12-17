@@ -24,6 +24,8 @@ These usually have no immediately visible impact on regular users
     -   the two exceptions are draw and map tools
     -   filter and vision additionally allow a wider set of features from the select tool to be used
         -   only resize/rotate are not allowed at the moment
+-   Use exact shape detection on shape select
+    -   When performing a selection close to a non axis-aligned shape it will no longer select those as well
 -   [tech] Upgraded to socket.io v3
 
 ### Fixed

@@ -98,30 +98,30 @@ export function dropAsset(
     const image = document.createElement("img");
     image.src = baseAdjust(data.imageSource);
     image.onload = () => {
+        const asset = new Asset(
+            image,
+            new GlobalPoint(l2gx(position.x), l2gy(position.y)),
+            l2gz(image.width),
+            l2gz(image.height),
+            { assetId: data.assetId },
+        );
+        asset.src = new URL(image.src).pathname;
+
+        if (options) {
+            asset.setLayer(layer.floor, layer.name); // if we don't set this the asDict will fail
+            asset.fromDict(applyTemplate(asset.asDict(), options));
+        }
+
+        if (gameSettingsStore.useGrid) {
+            const gs = gameStore.gridSize;
+            asset.refPoint = new GlobalPoint(clampGridLine(asset.refPoint.x), clampGridLine(asset.refPoint.y));
+            asset.w = Math.max(clampGridLine(asset.w), gs);
+            asset.h = Math.max(clampGridLine(asset.h), gs);
+        }
+
+        layer.addShape(asset, SyncMode.FULL_SYNC, InvalidationMode.WITH_LIGHT);
         layer.invalidate(true);
     };
-    const asset = new Asset(
-        image,
-        new GlobalPoint(l2gx(position.x), l2gy(position.y)),
-        l2gz(image.width),
-        l2gz(image.height),
-        { assetId: data.assetId },
-    );
-    asset.src = new URL(image.src).pathname;
-
-    if (options) {
-        asset.setLayer(layer.floor, layer.name); // if we don't set this the asDict will fail
-        asset.fromDict(applyTemplate(asset.asDict(), options));
-    }
-
-    if (gameSettingsStore.useGrid) {
-        const gs = gameStore.gridSize;
-        asset.refPoint = new GlobalPoint(clampGridLine(asset.refPoint.x), clampGridLine(asset.refPoint.y));
-        asset.w = Math.max(clampGridLine(asset.w), gs);
-        asset.h = Math.max(clampGridLine(asset.h), gs);
-    }
-
-    layer.addShape(asset, SyncMode.FULL_SYNC, InvalidationMode.WITH_LIGHT);
 }
 
 export function snapToPoint(layer: Layer, endPoint: GlobalPoint, ignore?: GlobalPoint): [GlobalPoint, boolean] {

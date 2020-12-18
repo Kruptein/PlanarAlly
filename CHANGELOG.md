@@ -14,6 +14,8 @@ These usually have no immediately visible impact on regular users
 -   Hexagon support (flat and pointy topped)
 -   Navigate viewport with numpad, 5 will center viewport on origin; tokens can be moved (behaviour depending whether grid is square, flat-top-hex or pointy-topped-hex) with numpad
 -   Remove button to initiative effects
+-   Map tool now has a (un)lock aspect ratio system
+-   Map tool can now skip selection to resize the entire map at once (both in terms of gridd cells and in terms of pixels)
 
 ### Changed
 

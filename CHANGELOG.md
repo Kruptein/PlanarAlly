@@ -54,6 +54,8 @@ These usually have no immediately visible impact on regular users
 -   Auras that become public are not properly configured as a vision source on other clients
 -   Groupselection of rotated shapes
 -   Double entries in the vision tool
+-   Most assets automatically resizing to fit 1 grid cell
+    -   they now retain their original size on drop (unless using templates)
 -   [DM] Floor rename always setting a blank name
 
 ## [0.23.1] - 2020-10-25

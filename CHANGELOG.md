@@ -16,6 +16,7 @@ These usually have no immediately visible impact on regular users
 -   Remove button to initiative effects
 -   Map tool now has a (un)lock aspect ratio system
 -   Map tool can now skip selection to resize the entire map at once (both in terms of gridd cells and in terms of pixels)
+-   Import/Export capabilities to the asset manager
 
 ### Changed
 

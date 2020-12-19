@@ -57,3 +57,12 @@ socket.on("Asset.Upload.Finish", (asset: Asset) => {
     assetStore.files.push(asset.id);
     assetStore.resolveUpload(asset.name);
 });
+
+socket.on("Asset.Export.Finish", (uuid: string) => {
+    window.open(baseAdjust(`/static/temp/${uuid}.paa`));
+});
+
+socket.on("Asset.Import.Finish", (name: string) => {
+    assetStore.resolveUpload(name);
+    socket.emit("Folder.Get", assetStore.currentFolder);
+});

@@ -304,12 +304,13 @@ export class Layer {
         this.postDrawCallbacks = [];
     }
 
-    moveShapeOrder(shape: Shape, destinationIndex: number, sync: boolean): void {
+    moveShapeOrder(shape: Shape, destinationIndex: number, sync: SyncMode): void {
         const oldIdx = this.shapes.indexOf(shape);
         if (oldIdx === destinationIndex) return;
         this.shapes.splice(oldIdx, 1);
         this.shapes.splice(destinationIndex, 0, shape);
-        if (sync && !shape.preventSync) sendShapeOrder({ uuid: shape.uuid, index: destinationIndex });
+        if (sync !== SyncMode.NO_SYNC && !shape.preventSync)
+            sendShapeOrder({ uuid: shape.uuid, index: destinationIndex, temporary: sync === SyncMode.TEMP_SYNC });
         this.invalidate(true);
     }
 

@@ -302,39 +302,38 @@ async def change_shape_layer(sid: str, data: Dict[str, Any]):
 async def move_shape_order(sid: str, data: ShapeOrder):
     pr: PlayerRoom = game_state.get(sid)
 
-    shape = Shape.get(uuid=data["uuid"])
-    layer = shape.layer
+    if not data["temporary"]:
+        shape = Shape.get(uuid=data["uuid"])
+        layer = shape.layer
 
-    if pr.role != Role.DM and not layer.player_editable:
-        logger.warning(
-            f"{pr.player.name} attempted to move a shape order on a dm layer"
+        if pr.role != Role.DM and not layer.player_editable:
+            logger.warning(
+                f"{pr.player.name} attempted to move a shape order on a dm layer"
+            )
+            return
+
+        target = data["index"]
+        sign = 1 if target < shape.index else -1
+        case = Case(
+            None,
+            (
+                (Shape.index == shape.index, target),
+                (
+                    (sign * Shape.index) < (sign * shape.index),
+                    (Shape.index + (sign * 1)),
+                ),
+            ),
+            Shape.index,
         )
-        return
+        Shape.update(index=case).where(Shape.layer == layer).execute()
 
-    target = data["index"]
-    sign = 1 if target < shape.index else -1
-    case = Case(
-        None,
-        (
-            (Shape.index == shape.index, target),
-            ((sign * Shape.index) < (sign * shape.index), (Shape.index + (sign * 1))),
-        ),
-        Shape.index,
+    await sio.emit(
+        "Shape.Order.Set",
+        data,
+        room=pr.active_location.get_path(),
+        skip_sid=sid,
+        namespace=GAME_NS,
     )
-    Shape.update(index=case).where(Shape.layer == layer).execute()
-    if layer.player_visible:
-        await sio.emit(
-            "Shape.Order.Set",
-            data,
-            room=pr.active_location.get_path(),
-            skip_sid=sid,
-            namespace=GAME_NS,
-        )
-    else:
-        for csid in game_state.get_sids(player=pr.room.creator, room=pr.room):
-            if csid == sid:
-                continue
-            await sio.emit("Shape.Order.Set", data, room=csid, namespace=GAME_NS)
 
 
 @sio.on("Shapes.Location.Move", namespace=GAME_NS)

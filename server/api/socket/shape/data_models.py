@@ -100,6 +100,7 @@ class TemporaryShapesList(TypedDict):
 class ShapeOrder(TypedDict):
     uuid: str
     index: int
+    temporary: bool
 
 
 class ShapeFloorChange(TypedDict):

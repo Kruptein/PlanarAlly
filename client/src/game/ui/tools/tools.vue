@@ -143,6 +143,15 @@ export default class Tools extends Vue {
         return true;
     }
 
+    keyup(event: KeyboardEvent): void {
+        let targetTool = this.currentTool;
+
+        const tool = this.componentMap[targetTool];
+        tool.onKeyUp(event, this.getFeatures(targetTool));
+        for (const permitted of tool.permittedTools)
+            this.componentMap[permitted.name].onKeyUp(event, permitted.features);
+    }
+
     mousedown(event: MouseEvent): void {
         if ((event.target as HTMLElement).tagName !== "CANVAS") return;
 

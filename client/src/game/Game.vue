@@ -60,7 +60,10 @@ export default class Game extends Vue {
 
     mounted(): void {
         window.addEventListener("resize", this.resizeWindow);
-        window.addEventListener("keyup", onKeyUp);
+        window.addEventListener("keyup", (event: KeyboardEvent) => {
+            if (this.$refs.ui === undefined) return;
+            this.$refs.ui.$refs.tools.keyup(event);
+        });
         window.addEventListener("keydown", onKeyDown);
         this.ready.manager = true;
     }

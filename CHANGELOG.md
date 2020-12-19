@@ -61,6 +61,7 @@ These usually have no immediately visible impact on regular users
     -   they now retain their original size on drop (unless using templates)
 -   Incorrect state in asset manager on reconnect
 -   Sorting order in asset manager
+-   Asset manager shift selection acting strange when mixing files and folders
 -   [DM] Floor rename always setting a blank name
 
 ## [0.23.1] - 2020-10-25

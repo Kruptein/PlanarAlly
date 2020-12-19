@@ -98,7 +98,7 @@ class AssetStore extends VuexModule {
         let target = this._folders;
         if (this._files.includes(asset)) target = this._files;
         target.splice(target.indexOf(asset), 1);
-        this.idMap.delete(asset);
+        this._idMap.delete(asset);
     }
 
     get path(): number[] {

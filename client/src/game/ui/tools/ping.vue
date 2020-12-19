@@ -25,7 +25,27 @@ export default class PingTool extends Tool implements ToolBasics {
         return [{ name: ToolName.Select, features: { enabled: [SelectFeatures.Context] } }];
     }
 
+    cleanup(): void {
+        if (!this.active || this.ping === null || this.border === null || this.startPoint === null) return;
+        const layer = layerManager.getLayer(floorStore.currentFloor, "draw");
+        if (layer === undefined) {
+            console.log("No active layer!");
+            return;
+        }
+
+        this.active = false;
+        layer.removeShape(this.ping, SyncMode.TEMP_SYNC);
+        layer.removeShape(this.border, SyncMode.TEMP_SYNC);
+        this.ping = null;
+        this.startPoint = null;
+    }
+
+    onDeselect(): void {
+        this.cleanup();
+    }
+
     onDown(lp: LocalPoint): void {
+        this.cleanup();
         this.startPoint = l2g(lp);
         const layer = layerManager.getLayer(floorStore.currentFloor, "draw");
 
@@ -44,19 +64,7 @@ export default class PingTool extends Tool implements ToolBasics {
     }
 
     onUp(): void {
-        if (!this.active || this.ping === null || this.border === null || this.startPoint === null) return;
-
-        const layer = layerManager.getLayer(floorStore.currentFloor, "draw");
-        if (layer === undefined) {
-            console.log("No active layer!");
-            return;
-        }
-
-        this.active = false;
-        layer.removeShape(this.ping, SyncMode.TEMP_SYNC);
-        layer.removeShape(this.border, SyncMode.TEMP_SYNC);
-        this.ping = null;
-        this.startPoint = null;
+        this.cleanup();
     }
 
     onMove(lp: LocalPoint): void {

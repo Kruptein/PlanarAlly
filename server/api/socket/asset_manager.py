@@ -163,6 +163,22 @@ async def assetmgmt_rm(sid: str, data):
             (ASSETS_DIR / asset.file_hash).unlink()
 
 
+def get_safe_members(
+    members: List[tarfile.TarInfo], directory: str
+) -> List[tarfile.TarInfo]:
+    safe_members: List[tarfile.TarInfo] = []
+    for member in members:
+        if member.islnk() or member.issym():
+            continue
+        if member.name.startswith("/") or ".." in member.name:
+            continue
+        # there is no real harm in extracting other files, but doesn't hurt to be a bit more strict
+        if member.name != "data" and not member.name.startswith("files"):
+            continue
+        safe_members.append(member)
+    return safe_members
+
+
 async def handle_paa_file(upload_data: UploadData, data: bytes, sid: str):
     with tempfile.TemporaryDirectory() as tmpdir:
         with tarfile.open(fileobj=io.BytesIO(data), mode="r:bz2") as tar:
@@ -170,8 +186,9 @@ async def handle_paa_file(upload_data: UploadData, data: bytes, sid: str):
             files.type = tarfile.DIRTYPE
             # We need to explicitly list our members for security reasons
             # this is upload data so people could upload malicious stuff that breaks out of the path etc
-            tar.extractall(path=tmpdir)  # , members=[tarfile.TarInfo("data"), files])
-            # tar.extractall(path=(tmpdir / "files"))
+            tar.extractall(
+                path=tmpdir, members=get_safe_members(tar.getmembers(), tmpdir)
+            )
 
         tmp_path = Path(tmpdir)
         for asset in os.listdir(tmp_path / "files"):

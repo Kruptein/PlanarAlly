@@ -58,6 +58,7 @@ These usually have no immediately visible impact on regular users
 -   Double entries in the vision tool
 -   Most assets automatically resizing to fit 1 grid cell
     -   they now retain their original size on drop (unless using templates)
+-   Incorrect state in asset manager on reconnect
 -   [DM] Floor rename always setting a blank name
 
 ## [0.23.1] - 2020-10-25

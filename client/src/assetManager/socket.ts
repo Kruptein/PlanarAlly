@@ -18,7 +18,7 @@ let disConnected = false;
 // export const socket = io.connect(location.protocol + "//" + location.host + "/pa_assetmgmt");
 socket.on("connect", () => {
     console.log("Connected");
-    if (disConnected) socket.emit("Folder.Get", assetStore.folderPath);
+    if (disConnected) socket.emit("Folder.Get", assetStore.currentFolder);
 });
 socket.on("disconnect", () => {
     console.log("Disconnected");

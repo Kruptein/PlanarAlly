@@ -19,6 +19,10 @@ import { useSnapping } from "@/game/utils";
 import { snapToGridPoint } from "@/game/layers/utils";
 import { SelectFeatures } from "./select.vue";
 
+export enum RulerFeatures {
+    All,
+}
+
 @Component
 export default class RulerTool extends Tool implements ToolBasics {
     name = ToolName.Ruler;
@@ -93,7 +97,7 @@ export default class RulerTool extends Tool implements ToolBasics {
             return;
         }
         this.active = true;
-        this.createNewRuler(this.startPoint, this.startPoint);
+        this.createNewRuler(this.startPoint.clone(), this.startPoint.clone());
         this.text = new Text(this.startPoint.clone(), "", "bold 20px serif", {
             fillColour: "#000",
             strokeColour: "#fff",

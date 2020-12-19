@@ -27,6 +27,9 @@ export default class RulerTool extends Tool implements ToolBasics {
     rulers: Line[] = [];
     text: Text | null = null;
 
+    currentLength = 0;
+    previousLength = 0;
+
     showPublic = true;
 
     get permittedTools(): ToolPermission[] {
@@ -43,6 +46,7 @@ export default class RulerTool extends Tool implements ToolBasics {
         if (event.key === " " && this.active) {
             const lastRuler = this.rulers[this.rulers.length - 1];
             this.createNewRuler(lastRuler.endPoint, lastRuler.endPoint);
+            this.previousLength += this.currentLength;
 
             const layer = layerManager.getLayer(floorStore.currentFloor, "draw");
             if (layer === undefined) {
@@ -70,6 +74,7 @@ export default class RulerTool extends Tool implements ToolBasics {
         layer.removeShape(this.text, this.syncMode);
         this.startPoint = this.text = null;
         this.rulers = [];
+        this.previousLength = 0;
     }
 
     onDeselect(): void {
@@ -119,7 +124,9 @@ export default class RulerTool extends Tool implements ToolBasics {
         const diffsign = Math.sign(end.x - start.x) * Math.sign(end.y - start.y);
         const xdiff = Math.abs(end.x - start.x);
         const ydiff = Math.abs(end.y - start.y);
-        const distance = (Math.sqrt(xdiff ** 2 + ydiff ** 2) * gameSettingsStore.unitSize) / DEFAULT_GRID_SIZE;
+        let distance = (Math.sqrt(xdiff ** 2 + ydiff ** 2) * gameSettingsStore.unitSize) / DEFAULT_GRID_SIZE;
+        this.currentLength = distance;
+        distance += this.previousLength;
 
         // round to 1 decimal
         const label = this.$n(Math.round(10 * distance) / 10) + " " + gameSettingsStore.unitSizeUnit;

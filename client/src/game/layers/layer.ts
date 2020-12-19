@@ -50,6 +50,14 @@ export class Layer {
         }
     }
 
+    /**
+     * Returns the number of shapes on this layer
+     */
+    size(skipUiHelpers = true): number {
+        if (!skipUiHelpers) return this.shapes.length;
+        else return this.getShapes(skipUiHelpers).length;
+    }
+
     // UI helpers are objects that are created for UI reaons but that are not pertinent to the actual state
     // They are often not desired unless in specific circumstances
     getShapes(skipUiHelpers = true): readonly Shape[] {

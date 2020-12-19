@@ -499,7 +499,7 @@ export default class SelectTool extends Tool implements ToolBasics {
         }
 
         // Check if any other shapes are under the mouse
-        for (let i = layer.getShapes().length - 1; i >= 0; i--) {
+        for (let i = layer.size() - 1; i >= 0; i--) {
             const shape = layer.getShapes()[i];
             if (shape.contains(globalMouse)) {
                 layer.setSelection(shape);

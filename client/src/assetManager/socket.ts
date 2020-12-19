@@ -36,25 +36,18 @@ socket.on("Folder.Set", (data: { folder: Asset; path?: number[] }) => {
     assetStore.idMap.set(data.folder.id, data.folder);
     if (data.folder.children) {
         for (const child of data.folder.children) {
-            assetStore.idMap.set(child.id, child);
-            if (child.file_hash) {
-                assetStore.resolveUpload(child.name);
-                assetStore.files.push(child.id);
-            } else {
-                assetStore.folders.push(child.id);
-            }
+            assetStore.resolveUpload(child.name);
+            assetStore.addAsset(child);
         }
     }
     if (data.path) assetStore.setPath(data.path);
     window.history.pushState(null, "Asset Manager", baseAdjust(`/assets${assetStore.currentFilePath}`));
 });
 socket.on("Folder.Create", (folder: Asset) => {
-    assetStore.folders.push(folder.id);
-    assetStore.idMap.set(folder.id, folder);
+    assetStore.addAsset(folder);
 });
 socket.on("Asset.Upload.Finish", (asset: Asset) => {
-    assetStore.idMap.set(asset.id, asset);
-    assetStore.files.push(asset.id);
+    assetStore.addAsset(asset);
     assetStore.resolveUpload(asset.name);
 });
 

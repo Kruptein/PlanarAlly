@@ -72,6 +72,35 @@ class AssetStore extends VuexModule {
         }
     }
 
+    @Mutation
+    addAsset(asset: Asset): void {
+        this._idMap.set(asset.id, asset);
+        let target = this._folders;
+        if (asset.file_hash) {
+            target = this._files;
+        }
+        target.push(asset.id);
+
+        const sorted_target = target
+            .map(i => this._idMap.get(i))
+            .filter(a => a !== undefined)
+            .sort((a, b) => a!.name.localeCompare(b!.name))
+            .map(a => a!.id);
+        if (asset.file_hash) {
+            this._files = sorted_target;
+        } else {
+            this._folders = sorted_target;
+        }
+    }
+
+    @Mutation
+    removeAsset(asset: number): void {
+        let target = this._folders;
+        if (this._files.includes(asset)) target = this._files;
+        target.splice(target.indexOf(asset), 1);
+        this._idMap.delete(asset);
+    }
+
     get path(): number[] {
         return this.folderPath;
     }
@@ -80,11 +109,11 @@ class AssetStore extends VuexModule {
         return this._expectedUploads;
     }
 
-    get files(): number[] {
+    get files(): readonly number[] {
         return this._files;
     }
 
-    get folders(): number[] {
+    get folders(): readonly number[] {
         return this._folders;
     }
 

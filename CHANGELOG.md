@@ -60,6 +60,7 @@ These usually have no immediately visible impact on regular users
 -   Most assets automatically resizing to fit 1 grid cell
     -   they now retain their original size on drop (unless using templates)
 -   Incorrect state in asset manager on reconnect
+-   Sorting order in asset manager
 -   Asset manager shift selection acting strange when mixing files and folders
 -   [DM] Floor rename always setting a blank name
 

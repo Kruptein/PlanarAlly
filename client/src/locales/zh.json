@@ -117,6 +117,7 @@
                 "initiative": {
                     "new_effect": "新的效果",
                     "add_timed_effect": "添加倒计时效果",
+                    "delete_effect": "删除效果",
                     "toggle_group": "切换个体/群体先攻",
                     "delete_init": "移除先攻",
                     "round_N": "第{n}轮",
@@ -246,7 +247,11 @@
                 "GridSettings": {
                     "unit_size_in_UNIT": "单位尺寸（{unit}）",
                     "use_grid": "启用网格",
-                    "size_unit": "尺寸单位"
+                    "size_unit": "尺寸单位",
+                    "grid_type": "网格类型",
+                    "SQUARE": "方格",
+                    "POINTY_HEX": "水平六边形",
+                    "FLAT_HEX": "垂直六边形"
                 },
                 "location": {
                     "LocationAdminSettings": {
@@ -265,6 +270,9 @@
                     "edit_owned_tokens": "编辑拥有的指示物：",
                     "move_owned_tokens": "移动拥有的指示物：",
                     "resize_owned_tokens": "缩放拥有的指示物："
+                },
+                "VariaSettings": {
+                    "movePlayerOnTokenChange": "在玩家拥有的指示物改变位置时移动玩家"
                 },
                 "VisionSettings": {
                     "min_full_vision_UNIT": "最短完全视距（{unit}）：",

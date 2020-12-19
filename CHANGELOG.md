@@ -62,6 +62,7 @@ These usually have no immediately visible impact on regular users
 -   Incorrect state in asset manager on reconnect
 -   Sorting order in asset manager
 -   Asset manager shift selection acting strange when mixing files and folders
+-   More cases where the ruler and ping tool could get stuck
 -   [DM] Floor rename always setting a blank name
 
 ## [0.23.1] - 2020-10-25

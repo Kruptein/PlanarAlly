@@ -38,7 +38,27 @@ export default class RulerTool extends Tool implements ToolBasics {
         return SyncMode.NO_SYNC;
     }
 
+    cleanup(): void {
+        if (!this.active || this.ruler === null || this.startPoint === null || this.text === null) return;
+
+        const layer = layerManager.getLayer(floorStore.currentFloor, "draw");
+        if (layer === undefined) {
+            console.log("No active layer!");
+            return;
+        }
+        this.active = false;
+
+        layer.removeShape(this.ruler, this.syncMode);
+        layer.removeShape(this.text, this.syncMode);
+        this.ruler = this.startPoint = this.text = null;
+    }
+
+    onDeselect(): void {
+        this.cleanup();
+    }
+
     onDown(lp: LocalPoint, event: MouseEvent | TouchEvent): void {
+        this.cleanup();
         this.startPoint = l2g(lp);
 
         if (useSnapping(event)) [this.startPoint] = snapToGridPoint(this.startPoint);
@@ -97,18 +117,7 @@ export default class RulerTool extends Tool implements ToolBasics {
     }
 
     onUp(): void {
-        if (!this.active || this.ruler === null || this.startPoint === null || this.text === null) return;
-
-        const layer = layerManager.getLayer(floorStore.currentFloor, "draw");
-        if (layer === undefined) {
-            console.log("No active layer!");
-            return;
-        }
-        this.active = false;
-
-        layer.removeShape(this.ruler, this.syncMode);
-        layer.removeShape(this.text, this.syncMode);
-        this.ruler = this.startPoint = this.text = null;
+        this.cleanup();
     }
 
     toggle(event: MouseEvent): void {

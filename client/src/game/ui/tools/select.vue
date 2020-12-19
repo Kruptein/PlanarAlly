@@ -79,7 +79,7 @@ export default class SelectTool extends Tool implements ToolBasics {
     hasSelection = false;
     showRuler = false;
 
-    permittedTools_: ToolPermission[] = rulerPermission;
+    permittedTools_: ToolPermission[] = [];
 
     get permittedTools(): ToolPermission[] {
         return this.permittedTools_;

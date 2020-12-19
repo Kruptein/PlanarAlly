@@ -67,8 +67,7 @@ export default class AssetContextMenu extends Vue {
         if (result) {
             for (const sel of assetStore.selected) {
                 socket.emit("Asset.Remove", sel);
-                if (assetStore.files.includes(sel)) assetStore.files.splice(assetStore.files.indexOf(sel), 1);
-                else assetStore.folders.splice(assetStore.folders.indexOf(sel), 1);
+                assetStore.removeAsset(sel);
             }
             assetStore.clearSelected();
         }

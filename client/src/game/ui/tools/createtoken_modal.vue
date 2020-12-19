@@ -56,6 +56,11 @@ export default class CreateTokenModal extends Vue {
         this.updatePreview();
     }
 
+    close(): void {
+        this.visible = false;
+        this.$emit("close");
+    }
+
     open(x: number, y: number): void {
         this.visible = true;
         this.x = x;
@@ -77,7 +82,7 @@ export default class CreateTokenModal extends Vue {
         );
         token.addOwner({ user: gameStore.username, access: { edit: true } }, false);
         layer.addShape(token, SyncMode.FULL_SYNC, InvalidationMode.WITH_LIGHT);
-        this.visible = false;
+        this.close();
     }
     updatePreview(): void {
         const ctx = this.$refs.canvas.getContext("2d")!;
@@ -110,7 +115,7 @@ export default class CreateTokenModal extends Vue {
 </script>
 
 <template>
-    <modal :visible="visible" @close="visible = false">
+    <modal :visible="visible" @close="close">
         <div
             class="modal-header"
             slot="header"

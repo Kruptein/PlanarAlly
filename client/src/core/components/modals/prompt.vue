@@ -39,6 +39,7 @@ export default class Prompt extends Vue {
     close(): void {
         this.resolve(undefined);
         this.visible = false;
+        this.$emit("close");
     }
 
     prompt(

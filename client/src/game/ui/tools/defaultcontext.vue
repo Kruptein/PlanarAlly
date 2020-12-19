@@ -47,6 +47,7 @@ export default class DefaultContext extends Vue {
     }
 
     close(): void {
+        if (this.$refs.createtokendialog.visible || this.$refs.prompt.visible) return;
         this.visible = false;
     }
 
@@ -63,7 +64,6 @@ export default class DefaultContext extends Vue {
 
     createToken(): void {
         this.$refs.createtokendialog.open(this.x, this.y);
-        this.close();
     }
 
     async createSpawnLocation(): Promise<void> {
@@ -114,8 +114,8 @@ export default class DefaultContext extends Vue {
 
 <template>
     <ContextMenu :visible="visible" :left="x + 'px'" :top="y + 'px'" @close="close">
-        <CreateTokenModal ref="createtokendialog"></CreateTokenModal>
-        <Prompt ref="prompt"></Prompt>
+        <CreateTokenModal ref="createtokendialog" @close="close"></CreateTokenModal>
+        <Prompt ref="prompt" @close="close"></Prompt>
 
         <li @click="bringPlayers" v-if="IS_DM" v-t="'game.ui.tools.defaultcontext.bring_pl'"></li>
         <li @click="createToken" v-t="'game.ui.tools.defaultcontext.create_basic_token'"></li>

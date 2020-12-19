@@ -275,7 +275,6 @@ async def assetmgmt_export(sid: str, selection: List[int]):
         Asset.get_by_id(asset).as_dict(True) for asset in selection
     ]
 
-    hashes_to_include: List[Tuple[int, int]] = []
     asset_data = export_asset(full_selection)
     json_data = json.dumps(asset_data["data"])
 

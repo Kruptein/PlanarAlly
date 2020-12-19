@@ -31,13 +31,15 @@ export default class Tool extends Vue implements ToolBasics {
         );
     }
 
-    get detailRight(): string {
+    detailRight(): string {
+        console.log(0);
         const rect = (this.$parent as any).$refs[this.name + "-selector"][0].getBoundingClientRect();
         const mid = rect.left + rect.width / 2;
 
         return `${window.innerWidth - Math.min(window.innerWidth - 25, mid + 75)}px`;
     }
     get detailArrow(): string {
+        console.log(0);
         const rect = (this.$parent as any).$refs[this.name + "-selector"][0].getBoundingClientRect();
         const mid = rect.left + rect.width / 2;
         const right = Math.min(window.innerWidth - 25, mid + 75);
@@ -82,7 +84,17 @@ export default class Tool extends Vue implements ToolBasics {
     onDown(_lp: LocalPoint, _event: MouseEvent | TouchEvent, _features: ToolFeatures): void {}
     onUp(_lp: LocalPoint, _event: MouseEvent | TouchEvent, _features: ToolFeatures): void {}
     onMove(_lp: LocalPoint, _event: MouseEvent | TouchEvent, _features: ToolFeatures): void {}
-    onToolsModeChange(_mode: "Build" | "Play", _features: ToolFeatures): void {}
+    onToolsModeChange(mode: "Build" | "Play", _features: ToolFeatures): void {
+        if (mode === "Build") {
+            if (!this.$parent.buildTools.map(t => t[0]).includes(this.$parent.currentTool)) {
+                this.$parent.currentTool = ToolName.Select;
+            }
+        } else {
+            if (!this.$parent.playTools.map(t => t[0]).includes(this.$parent.currentTool)) {
+                this.$parent.currentTool = ToolName.Select;
+            }
+        }
+    }
 }
 </script>
 

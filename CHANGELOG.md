@@ -35,6 +35,7 @@ These usually have no immediately visible impact on regular users
     -   When performing a selection close to a non axis-aligned shape it will no longer select those as well
 -   Do not toggle all tokens when deselecting the last one in the vision tool
 -   Highlight the vision tool in a special colour to signal modified vision state at all times
+-   When changing to a tool mode that the current tool does not support, change to the Select tool
 -   [tech] Upgraded to socket.io v3
 
 ### Fixed
@@ -67,6 +68,7 @@ These usually have no immediately visible impact on regular users
 -   Sorting order in asset manager
 -   Asset manager shift selection acting strange when mixing files and folders
 -   More cases where the ruler and ping tool could get stuck
+-   Tool dialogs now move correctly when changing mode
 -   [DM] Floor rename always setting a blank name
 
 ## [0.23.1] - 2020-10-25

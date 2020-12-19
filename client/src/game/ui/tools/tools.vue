@@ -179,7 +179,6 @@ export default class Tools extends Vue {
             this.componentMap[permitted.name].onMouseDown(event, permitted.features);
         }
 
-        console.log(1);
         tool.onMouseDown(event, this.getFeatures(targetTool));
 
         for (const permitted of tool.permittedTools) {

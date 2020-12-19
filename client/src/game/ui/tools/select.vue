@@ -128,6 +128,7 @@ export default class SelectTool extends Tool implements ToolBasics {
         } else {
             if (this.hasFeature(SelectFeatures.Rotate, features)) this.createRotationUi(features);
         }
+        this.$forceUpdate();
     }
 
     onDown(lp: LocalPoint, event: MouseEvent | TouchEvent, features: ToolFeatures<SelectFeatures>): void {
@@ -672,7 +673,7 @@ export default class SelectTool extends Tool implements ToolBasics {
         id="ruler"
         class="tool-detail"
         v-if="selected && hasSelection"
-        :style="{ '--detailRight': detailRight, '--detailArrow': detailArrow }"
+        :style="{ '--detailRight': detailRight(), '--detailArrow': detailArrow }"
     >
         <button @click="toggleShowRuler" :aria-pressed="showRuler">Show ruler</button>
     </div>

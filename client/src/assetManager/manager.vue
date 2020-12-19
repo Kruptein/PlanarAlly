@@ -81,7 +81,7 @@ export default class AssetManager extends Vue {
     }
     select(event: MouseEvent, inode: number): void {
         if (event.shiftKey && assetStore.selected.length > 0) {
-            const inodes = [...assetStore.files, ...assetStore.folders];
+            const inodes = [...assetStore.folders, ...assetStore.files];
             const start = inodes.indexOf(assetStore.selected[assetStore.selected.length - 1]);
             const end = inodes.indexOf(inode);
             for (let i = start; i !== end; start < end ? i++ : i--) {

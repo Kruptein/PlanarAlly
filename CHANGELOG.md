@@ -17,6 +17,8 @@ These usually have no immediately visible impact on regular users
 -   Map tool now has a (un)lock aspect ratio system
 -   Map tool can now skip selection to resize the entire map at once (both in terms of gridd cells and in terms of pixels)
 -   Import/Export capabilities to the asset manager
+-   Multiruler support
+    -   Pressing space while in the ruler tool will start a new ruler from your lastpoint
 
 ### Changed
 

@@ -74,9 +74,7 @@ export default class AssetManager extends Vue {
         }
     }
     moveInode(inode: number, target: number): void {
-        if (assetStore.files.includes(inode)) assetStore.files.splice(assetStore.files.indexOf(inode), 1);
-        else assetStore.folders.splice(assetStore.folders.indexOf(inode), 1);
-        assetStore.idMap.delete(inode);
+        assetStore.removeAsset(inode);
         socket.emit("Inode.Move", { inode, target });
     }
     select(event: MouseEvent, inode: number): void {

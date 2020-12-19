@@ -18,7 +18,7 @@ let disConnected = false;
 // export const socket = io.connect(location.protocol + "//" + location.host + "/pa_assetmgmt");
 socket.on("connect", () => {
     console.log("Connected");
-    if (disConnected) socket.emit("Folder.Get", assetStore.folderPath);
+    if (disConnected) socket.emit("Folder.Get", assetStore.currentFolder);
 });
 socket.on("disconnect", () => {
     console.log("Disconnected");
@@ -56,4 +56,13 @@ socket.on("Asset.Upload.Finish", (asset: Asset) => {
     assetStore.idMap.set(asset.id, asset);
     assetStore.files.push(asset.id);
     assetStore.resolveUpload(asset.name);
+});
+
+socket.on("Asset.Export.Finish", (uuid: string) => {
+    window.open(baseAdjust(`/static/temp/${uuid}.paa`));
+});
+
+socket.on("Asset.Import.Finish", (name: string) => {
+    assetStore.resolveUpload(name);
+    socket.emit("Folder.Get", assetStore.currentFolder);
 });

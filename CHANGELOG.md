@@ -16,6 +16,7 @@ These usually have no immediately visible impact on regular users
 -   Remove button to initiative effects
 -   Map tool now has a (un)lock aspect ratio system
 -   Map tool can now skip selection to resize the entire map at once (both in terms of gridd cells and in terms of pixels)
+-   Import/Export capabilities to the asset manager
 
 ### Changed
 
@@ -58,6 +59,7 @@ These usually have no immediately visible impact on regular users
 -   Double entries in the vision tool
 -   Most assets automatically resizing to fit 1 grid cell
     -   they now retain their original size on drop (unless using templates)
+-   Incorrect state in asset manager on reconnect
 -   [DM] Floor rename always setting a blank name
 
 ## [0.23.1] - 2020-10-25

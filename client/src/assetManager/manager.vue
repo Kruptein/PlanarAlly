@@ -165,6 +165,10 @@ export default class AssetManager extends Vue {
             }
         }
     }
+
+    exportData(): void {
+        if (this.selected.length > 0) socket.emit("Asset.Export", this.selected);
+    }
 }
 </script>
 
@@ -191,6 +195,9 @@ export default class AssetManager extends Vue {
                 </div>
                 <div @click="prepareUpload" :title="$t('assetManager.manager.upload_files')">
                     <font-awesome-icon icon="upload" />
+                </div>
+                <div @click="exportData" :title="$t('assetManager.manager.upload_files')">
+                    <font-awesome-icon icon="download" />
                 </div>
             </div>
             <div id="explorer">

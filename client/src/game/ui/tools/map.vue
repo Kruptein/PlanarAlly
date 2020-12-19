@@ -66,6 +66,8 @@ export default class MapTool extends Tool implements ToolBasics {
     // End life cycle
 
     setSelection(shapes: readonly Shape[]): void {
+        if (!this.active) return;
+
         if (shapes.length === 1 && this.shape === null && ["assetrect", "rect"].includes(shapes[0].type)) {
             this.shape = shapes[0] as Rect;
             this.ogRP = this.shape.refPoint;

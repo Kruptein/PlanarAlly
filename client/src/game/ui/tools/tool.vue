@@ -7,6 +7,7 @@ import { LocalPoint } from "../../geom";
 import { getLocalPointFromEvent } from "@/game/utils";
 import { ToolBasics } from "./ToolBasics";
 import Tools from "./tools.vue";
+import { onKeyUp } from "../../input/keyboard";
 
 @Component
 export default class Tool extends Vue implements ToolBasics {
@@ -41,6 +42,15 @@ export default class Tool extends Vue implements ToolBasics {
         const mid = rect.left + rect.width / 2;
         const right = Math.min(window.innerWidth - 25, mid + 75);
         return `${right - mid - 14}px`; // border width
+    }
+
+    defaultKeyUp(event: KeyboardEvent, _features: ToolFeatures): void {
+        if (event.defaultPrevented) return;
+        onKeyUp(event);
+    }
+
+    onKeyUp(event: KeyboardEvent, features: ToolFeatures): void {
+        this.defaultKeyUp(event, features);
     }
 
     onMouseDown(event: MouseEvent | TouchEvent, features: ToolFeatures): void {

@@ -27,6 +27,7 @@ import { ServerAsset } from "@/game/comm/types/shapes";
 import { AssetOptions } from "@/game/comm/types/asset";
 import { toTemplate } from "@/game/shapes/template";
 import { addGroupMembers, createNewGroupForShapes, getGroupSize, removeGroup } from "../../groups";
+import { SyncMode } from "../../../core/comm/types";
 
 @Component({
     components: {
@@ -168,12 +169,12 @@ export default class ShapeContext extends Vue {
     }
     moveToBack(): void {
         const layer = this.getActiveLayer()!;
-        layer.getSelection().forEach(shape => layer.moveShapeOrder(shape, 0, true));
+        layer.getSelection().forEach(shape => layer.moveShapeOrder(shape, 0, SyncMode.FULL_SYNC));
         this.close();
     }
     moveToFront(): void {
         const layer = this.getActiveLayer()!;
-        layer.getSelection().forEach(shape => layer.moveShapeOrder(shape, layer.getShapes().length - 1, true));
+        layer.getSelection().forEach(shape => layer.moveShapeOrder(shape, layer.size() - 1, SyncMode.FULL_SYNC));
         this.close();
     }
     async addInitiative(): Promise<void> {

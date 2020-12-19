@@ -24,7 +24,7 @@ export default class RulerTool extends Tool implements ToolBasics {
     name = ToolName.Ruler;
     active = false;
     startPoint: GlobalPoint | null = null;
-    ruler: Line | null = null;
+    rulers: Line[] = [];
     text: Text | null = null;
 
     showPublic = true;
@@ -38,8 +38,26 @@ export default class RulerTool extends Tool implements ToolBasics {
         return SyncMode.NO_SYNC;
     }
 
+    onKeyUp(event: KeyboardEvent): void {
+        if (event.defaultPrevented) return;
+        if (event.key === " " && this.active) {
+            const lastRuler = this.rulers[this.rulers.length - 1];
+            this.createNewRuler(lastRuler.endPoint, lastRuler.endPoint);
+
+            const layer = layerManager.getLayer(floorStore.currentFloor, "draw");
+            if (layer === undefined) {
+                console.log("No draw layer!");
+                return;
+            }
+
+            layer.moveShapeOrder(this.text!, layer.size() - 1, SyncMode.TEMP_SYNC);
+
+            event.preventDefault();
+        }
+    }
+
     cleanup(): void {
-        if (!this.active || this.ruler === null || this.startPoint === null || this.text === null) return;
+        if (!this.active || this.rulers.length === 0 || this.startPoint === null || this.text === null) return;
 
         const layer = layerManager.getLayer(floorStore.currentFloor, "draw");
         if (layer === undefined) {
@@ -48,9 +66,10 @@ export default class RulerTool extends Tool implements ToolBasics {
         }
         this.active = false;
 
-        layer.removeShape(this.ruler, this.syncMode);
+        for (const ruler of this.rulers) layer.removeShape(ruler, this.syncMode);
         layer.removeShape(this.text, this.syncMode);
-        this.ruler = this.startPoint = this.text = null;
+        this.startPoint = this.text = null;
+        this.rulers = [];
     }
 
     onDeselect(): void {
@@ -69,23 +88,18 @@ export default class RulerTool extends Tool implements ToolBasics {
             return;
         }
         this.active = true;
-        this.ruler = new Line(this.startPoint, this.startPoint, {
-            lineWidth: l2gz(3),
-            strokeColour: gameStore.rulerColour,
-        });
+        this.createNewRuler(this.startPoint, this.startPoint);
         this.text = new Text(this.startPoint.clone(), "", "bold 20px serif", {
             fillColour: "#000",
             strokeColour: "#fff",
         });
-        this.ruler.addOwner({ user: gameStore.username, access: { edit: true } }, false);
         this.text.addOwner({ user: gameStore.username, access: { edit: true } }, false);
-        layer.addShape(this.ruler, this.syncMode, InvalidationMode.NORMAL);
         layer.addShape(this.text, this.syncMode, InvalidationMode.NORMAL);
     }
 
     onMove(lp: LocalPoint, event: MouseEvent | TouchEvent): void {
         let endPoint = l2g(lp);
-        if (!this.active || this.ruler === null || this.startPoint === null || this.text === null) return;
+        if (!this.active || this.rulers.length === 0 || this.startPoint === null || this.text === null) return;
 
         const layer = layerManager.getLayer(floorStore.currentFloor, "draw");
         if (layer === undefined) {
@@ -95,19 +109,23 @@ export default class RulerTool extends Tool implements ToolBasics {
 
         if (useSnapping(event)) [endPoint] = snapToGridPoint(endPoint);
 
-        this.ruler.endPoint = endPoint;
-        sendShapePositionUpdate([this.ruler], true);
+        const ruler = this.rulers[this.rulers.length - 1];
+        ruler.endPoint = endPoint;
+        sendShapePositionUpdate([ruler], true);
 
-        const diffsign = Math.sign(endPoint.x - this.startPoint.x) * Math.sign(endPoint.y - this.startPoint.y);
-        const xdiff = Math.abs(endPoint.x - this.startPoint.x);
-        const ydiff = Math.abs(endPoint.y - this.startPoint.y);
+        const start = ruler.refPoint;
+        const end = ruler.endPoint;
+
+        const diffsign = Math.sign(end.x - start.x) * Math.sign(end.y - start.y);
+        const xdiff = Math.abs(end.x - start.x);
+        const ydiff = Math.abs(end.y - start.y);
         const distance = (Math.sqrt(xdiff ** 2 + ydiff ** 2) * gameSettingsStore.unitSize) / DEFAULT_GRID_SIZE;
 
         // round to 1 decimal
         const label = this.$n(Math.round(10 * distance) / 10) + " " + gameSettingsStore.unitSizeUnit;
         const angle = Math.atan2(diffsign * ydiff, xdiff);
-        const xmid = Math.min(this.startPoint.x, endPoint.x) + xdiff / 2;
-        const ymid = Math.min(this.startPoint.y, endPoint.y) + ydiff / 2;
+        const xmid = Math.min(start.x, end.x) + xdiff / 2;
+        const ymid = Math.min(start.y, end.y) + ydiff / 2;
         this.text.refPoint = new GlobalPoint(xmid, ymid);
         this.text.text = label;
         this.text.angle = angle;
@@ -124,6 +142,23 @@ export default class RulerTool extends Tool implements ToolBasics {
         const button = event.target as HTMLButtonElement;
         const state = button.getAttribute("aria-pressed") ?? "false";
         this.showPublic = state === "false";
+    }
+
+    createNewRuler(start: GlobalPoint, end: GlobalPoint): void {
+        const ruler = new Line(start, end, {
+            lineWidth: l2gz(3),
+            strokeColour: gameStore.rulerColour,
+        });
+
+        const layer = layerManager.getLayer(floorStore.currentFloor, "draw");
+        if (layer === undefined) {
+            console.log("No draw layer!");
+            return;
+        }
+
+        ruler.addOwner({ user: gameStore.username, access: { edit: true } }, false);
+        layer.addShape(ruler, this.syncMode, InvalidationMode.NORMAL);
+        this.rulers.push(ruler);
     }
 }
 </script>

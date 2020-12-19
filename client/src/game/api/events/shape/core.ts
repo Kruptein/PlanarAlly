@@ -54,7 +54,7 @@ socket.on("Shape.Order.Set", (data: { uuid: string; index: number }) => {
         return;
     }
     const shape = layerManager.UUIDMap.get(data.uuid)!;
-    shape.layer.moveShapeOrder(shape, data.index, false);
+    shape.layer.moveShapeOrder(shape, data.index, SyncMode.NO_SYNC);
 });
 
 socket.on("Shapes.Floor.Change", (data: { uuids: string[]; floor: string }) => {

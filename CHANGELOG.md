@@ -19,6 +19,8 @@ These usually have no immediately visible impact on regular users
 -   Import/Export capabilities to the asset manager
 -   Multiruler support
     -   Pressing space while in the ruler tool will start a new ruler from your lastpoint
+-   Add multiruler option to select
+    -   When moving shapes it's handy when you don't need to swap between tools
 
 ### Changed
 

@@ -9,7 +9,7 @@ import { Layer } from "@/game/layers/layer";
 import { snapToPoint } from "@/game/layers/utils";
 import { Rect } from "@/game/shapes/variants/rect";
 import { gameStore } from "@/game/store";
-import { calculateDelta, ToolName, ToolFeatures } from "@/game/ui/tools/utils";
+import { calculateDelta, ToolName, ToolFeatures, ToolPermission } from "@/game/ui/tools/utils";
 import { g2l, g2lx, g2ly, l2g, l2gz } from "@/game/units";
 import { getLocalPointFromEvent, useSnapping, equalPoints } from "@/game/utils";
 import { visibilityStore } from "@/game/visibility/store";
@@ -24,6 +24,7 @@ import { floorStore } from "@/game/layers/store";
 import { sendShapePositionUpdate, sendShapeSizeUpdate } from "../../api/emits/shape/core";
 import { Shape } from "@/game/shapes/shape";
 import Tools from "./tools.vue";
+import { RulerFeatures } from "./ruler.vue";
 
 enum SelectOperations {
     Noop,
@@ -46,6 +47,8 @@ export enum SelectFeatures {
 const start = new GlobalPoint(-1000, -1000);
 
 const ANGLE_SNAP = (45 * Math.PI) / 180; // Calculate 45 degrees in radians just once
+
+const rulerPermission = [{ name: ToolName.Ruler, features: { enabled: [RulerFeatures.All] }, early: true }];
 
 @Component
 export default class SelectTool extends Tool implements ToolBasics {
@@ -73,6 +76,36 @@ export default class SelectTool extends Tool implements ToolBasics {
 
     snappedToPoint = false;
 
+    hasSelection = false;
+    showRuler = false;
+
+    permittedTools_: ToolPermission[] = rulerPermission;
+
+    get permittedTools(): ToolPermission[] {
+        return this.permittedTools_;
+    }
+
+    toggleShowRuler(event: MouseEvent): void {
+        const button = event.target as HTMLButtonElement;
+        const state = button.getAttribute("aria-pressed") ?? "false";
+        this.showRuler = state === "false";
+        this.setToolPermissions();
+    }
+
+    setToolPermissions(permissions?: ToolPermission[]): void {
+        const hasRuler = this.permittedTools_.length > 0;
+        if (permissions) {
+            this.permittedTools_ = permissions;
+        } else if (this.showRuler) {
+            this.permittedTools_ = rulerPermission;
+        } else {
+            this.permittedTools_ = [];
+        }
+        if (this.permittedTools_.length === 0 && hasRuler) {
+            this.$parent.componentMap["Ruler"].onDeselect();
+        }
+    }
+
     // Life cycle
 
     mounted(): void {
@@ -81,6 +114,7 @@ export default class SelectTool extends Tool implements ToolBasics {
             // We don't have feature information, might want to store this as a property instead ?
             if (this.$parent.mode === "Build" && shapes.length > 0) this.createRotationUi({});
         });
+        this.setToolPermissions();
     }
 
     beforeDestroy(): void {
@@ -167,6 +201,7 @@ export default class SelectTool extends Tool implements ToolBasics {
 
         // GroupSelect case, draw a selection box to select multiple shapes
         if (!hit) {
+            this.setToolPermissions([]);
             if (!this.hasFeature(SelectFeatures.ChangeSelection, features)) return;
             if (!this.hasFeature(SelectFeatures.GroupSelect, features)) return;
             this.mode = SelectOperations.GroupSelect;
@@ -478,6 +513,9 @@ export default class SelectTool extends Tool implements ToolBasics {
                 this.createRotationUi(features);
             }
         }
+        this.hasSelection = layer.getSelection().length > 0;
+        this.setToolPermissions();
+
         this.mode = SelectOperations.Noop;
     }
 
@@ -628,3 +666,87 @@ export default class SelectTool extends Tool implements ToolBasics {
     }
 }
 </script>
+
+<template>
+    <div
+        id="ruler"
+        class="tool-detail"
+        v-if="selected && hasSelection"
+        :style="{ '--detailRight': detailRight, '--detailArrow': detailArrow }"
+    >
+        <button @click="toggleShowRuler" :aria-pressed="showRuler">Show ruler</button>
+    </div>
+</template>
+
+<style scoped lang="scss">
+#ruler {
+    display: flex;
+}
+
+button {
+    display: block;
+    box-sizing: border-box;
+    border: none;
+    color: inherit;
+    background: none;
+    font: inherit;
+    line-height: inherit;
+    text-align: left;
+    padding: 0.4em 0 0.4em 4em;
+    position: relative;
+    outline: none;
+
+    &:hover {
+        &::before {
+            box-shadow: 0 0 0.5em #333;
+        }
+
+        &::after {
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='50' cy='50' r='50' fill='rgba(0,0,0,.25)'/%3E%3C/svg%3E");
+            background-size: 30%;
+            background-repeat: no-repeat;
+            background-position: center center;
+        }
+    }
+
+    &::before,
+    &::after {
+        content: "";
+        position: absolute;
+        height: 1.1em;
+        transition: all 0.25s ease;
+    }
+
+    &::before {
+        left: 0;
+        top: 0.4em;
+        width: 2.6em;
+        border: 0.2em solid #767676;
+        background: #767676;
+        border-radius: 1.1em;
+    }
+
+    &::after {
+        left: 0;
+        top: 0.45em;
+        background-color: #fff;
+        background-position: center center;
+        border-radius: 50%;
+        width: 1.1em;
+        border: 0.15em solid #767676;
+    }
+
+    &[aria-pressed="true"] {
+        &::after {
+            left: 1.6em;
+            border-color: #36a829;
+            color: #36a829;
+        }
+
+        &::before {
+            background-color: #36a829;
+            border-color: #36a829;
+        }
+    }
+}
+</style>

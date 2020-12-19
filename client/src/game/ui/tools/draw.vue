@@ -568,7 +568,7 @@ export default class DrawTool extends Tool implements ToolBasics {
 </script>
 
 <template>
-    <div class="tool-detail" v-if="selected" :style="{ '--detailRight': detailRight, '--detailArrow': detailArrow }">
+    <div class="tool-detail" v-if="selected" :style="{ '--detailRight': detailRight(), '--detailArrow': detailArrow }">
         <div v-show="IS_DM" v-t="'game.ui.tools.draw.mode'"></div>
         <div v-show="IS_DM" class="selectgroup">
             <div

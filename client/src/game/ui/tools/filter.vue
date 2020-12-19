@@ -85,7 +85,7 @@ export default class FilterTool extends Tool implements ToolBasics {
 </script>
 
 <template>
-    <div class="tool-detail" v-if="selected" :style="{ '--detailRight': detailRight, '--detailArrow': detailArrow }">
+    <div class="tool-detail" v-if="selected" :style="{ '--detailRight': detailRight(), '--detailArrow': detailArrow }">
         <div id="accordion-container">
             <accordion
                 v-for="category in categories"

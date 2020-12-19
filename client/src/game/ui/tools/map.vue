@@ -265,7 +265,7 @@ export default class MapTool extends Tool implements ToolBasics {
     <div
         class="tool-detail map"
         v-if="selected"
-        :style="{ '--detailRight': detailRight, '--detailArrow': detailArrow }"
+        :style="{ '--detailRight': detailRight(), '--detailArrow': detailArrow }"
     >
         <template v-if="shape !== null">
             <div class="row">{{ error }}</div>

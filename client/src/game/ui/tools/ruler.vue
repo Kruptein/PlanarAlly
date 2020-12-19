@@ -179,7 +179,7 @@ export default class RulerTool extends Tool implements ToolBasics {
         id="ruler"
         class="tool-detail"
         v-if="selected"
-        :style="{ '--detailRight': detailRight, '--detailArrow': detailArrow }"
+        :style="{ '--detailRight': detailRight(), '--detailArrow': detailArrow }"
     >
         <button @click="toggle" :aria-pressed="showPublic" v-t="'game.ui.tools.ruler.share'"></button>
     </div>

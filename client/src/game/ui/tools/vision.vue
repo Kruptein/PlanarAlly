@@ -40,7 +40,7 @@ export default class VisionTool extends Tool {
 </script>
 
 <template>
-    <div class="tool-detail" v-if="selected" :style="{ '--detailRight': detailRight, '--detailArrow': detailArrow }">
+    <div class="tool-detail" v-if="selected" :style="{ '--detailRight': detailRight(), '--detailArrow': detailArrow }">
         <div
             v-for="token in tokens"
             :key="token.uuid"

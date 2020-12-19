@@ -66,8 +66,6 @@ export default class MapTool extends Tool implements ToolBasics {
     // End life cycle
 
     setSelection(shapes: readonly Shape[]): void {
-        if (!this.active) return;
-
         if (shapes.length === 1 && this.shape === null && ["assetrect", "rect"].includes(shapes[0].type)) {
             this.shape = shapes[0] as Rect;
             this.ogRP = this.shape.refPoint;
@@ -90,7 +88,7 @@ export default class MapTool extends Tool implements ToolBasics {
     }
 
     removeRect(reset = true): void {
-        if (this.shape && reset) {
+        if (this.shape && reset && this.active) {
             this.shape.refPoint = this.ogRP!;
             this.shape.w = this.ogW!;
             this.shape.h = this.ogH!;

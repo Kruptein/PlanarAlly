@@ -20,7 +20,7 @@ import { Aura, Tracker } from "@/game/shapes/interfaces";
 export default class SelectionInfo extends Vue {
     $refs!: {
         prompt: Prompt;
-        shapeSettings: ShapeSettings;
+        shapeSettings: ShapeSettings[];
     };
 
     shape: Shape | null = null;
@@ -58,7 +58,7 @@ export default class SelectionInfo extends Vue {
     }
 
     openEditDialog(): void {
-        this.$refs.shapeSettings.visible = true;
+        this.$refs.shapeSettings[0].visible = true;
     }
     async changeValue(object: Tracker | Aura, isAura: boolean): Promise<void> {
         if (this.shape === null) return;

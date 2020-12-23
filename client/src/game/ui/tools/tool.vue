@@ -32,14 +32,12 @@ export default class Tool extends Vue implements ToolBasics {
     }
 
     detailRight(): string {
-        console.log(0);
         const rect = (this.$parent as any).$refs[this.name + "-selector"][0].getBoundingClientRect();
         const mid = rect.left + rect.width / 2;
 
         return `${window.innerWidth - Math.min(window.innerWidth - 25, mid + 75)}px`;
     }
     get detailArrow(): string {
-        console.log(0);
         const rect = (this.$parent as any).$refs[this.name + "-selector"][0].getBoundingClientRect();
         const mid = rect.left + rect.width / 2;
         const right = Math.min(window.innerWidth - 25, mid + 75);

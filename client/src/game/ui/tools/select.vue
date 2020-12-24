@@ -145,13 +145,14 @@ export default class SelectTool extends Tool implements ToolBasics {
         let hit = false;
 
         // The selectionStack allows for lower positioned objects that are selected to have precedence during overlap.
-        let selectionStack;
+        let selectionStack: readonly Shape[];
         if (!this.hasFeature(SelectFeatures.ChangeSelection, features)) selectionStack = layer.getSelection();
         else if (!layer.getSelection().length) selectionStack = layer.getShapes();
         else selectionStack = layer.getShapes().concat(layer.getSelection());
 
         for (let i = selectionStack.length - 1; i >= 0; i--) {
             const shape = selectionStack[i];
+            if (shape.options.get("skipDraw") ?? false) continue;
             if ([this.rotationAnchor?.uuid, this.rotationBox?.uuid, this.rotationEnd?.uuid].includes(shape.uuid))
                 continue;
             if (shape.isInvisible && !shape.ownedBy({ movementAccess: true })) continue;

@@ -459,3 +459,34 @@ async def update_circle_size(sid: str, data: CircleSizeData):
         skip_sid=sid,
         namespace=GAME_NS,
     )
+
+
+@sio.on("Shapes.Options.Update", namespace=GAME_NS)
+@auth.login_required(app, sio)
+async def update_shape_options(sid: str, data: OptionUpdateList):
+    pr: PlayerRoom = game_state.get(sid)
+
+    shapes: List[Tuple[Shape, OptionUpdate]] = []
+
+    for sh in data["options"]:
+        shape = Shape.get_or_none(Shape.uuid == sh["uuid"])
+        if shape is not None and not has_ownership(shape, pr, movement=True):
+            logger.warning(
+                f"User {pr.player.name} attempted to change options for a shape it does not own."
+            )
+            return
+        shapes.append((shape, sh))
+
+    if not data["temporary"]:
+        with db.atomic():
+            for db_shape, data_shape in shapes:
+                db_shape.options = data_shape["option"]
+                db_shape.save()
+
+    await sio.emit(
+        "Shapes.Options.Update",
+        data["options"],
+        room=pr.active_location.get_path(),
+        skip_sid=sid,
+        namespace=GAME_NS,
+    )

@@ -306,7 +306,7 @@ export abstract class Shape {
             annotation: this.annotation,
             is_token: this.isToken,
             is_invisible: this.isInvisible,
-            options: JSON.stringify([...this.options]),
+            options: this.getOptions(),
             badge: this.badge,
             show_badge: this.showBadge,
             is_locked: this.isLocked,
@@ -338,7 +338,7 @@ export abstract class Shape {
         this.isLocked = data.is_locked;
         if (data.annotation) this.annotation = data.annotation;
         if (data.name) this.name = data.name;
-        if (data.options) this.options = new Map(JSON.parse(data.options));
+        if (data.options) this.setOptions(data.options);
         if (data.asset) this.assetId = data.asset;
         if (data.group) this.groupId = data.group;
         // retain reactivity
@@ -350,6 +350,14 @@ export abstract class Shape {
             },
             false,
         );
+    }
+
+    getOptions(): string {
+        return JSON.stringify([...this.options]);
+    }
+
+    setOptions(options: string): void {
+        this.options = new Map(JSON.parse(options));
     }
 
     getPositionRepresentation(): { angle: number; points: number[][] } {

@@ -23,6 +23,16 @@ export const sendTrackerUpdate = wrapSocket<{
 }>("Shapes.Trackers.Update");
 export const sendTextUpdate = wrapSocket<{ uuid: string; text: string; temporary: boolean }>("Shape.Text.Value.Set");
 
+export function sendShapeOptionsUpdate(shapes: readonly Shape[], temporary: boolean): void {
+    const options = shapes.filter(s => !s.preventSync).map(s => ({ uuid: s.uuid, option: s.getOptions() }));
+    if (options.length > 0) {
+        socket.emit("Shapes.Options.Update", {
+            options,
+            temporary,
+        });
+    }
+}
+
 export function sendShapePositionUpdate(shapes: readonly Shape[], temporary: boolean): void {
     const positions = shapes
         .filter(s => !s.preventSync)

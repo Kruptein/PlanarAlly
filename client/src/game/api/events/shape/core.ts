@@ -41,10 +41,19 @@ socket.on("Shapes.Position.Update", (data: { uuid: string; position: { angle: nu
     for (const sh of data) {
         const shape = layerManager.UUIDMap.get(sh.uuid);
         if (shape === undefined) {
-            console.log(`Attempted to move unknown shape ${sh.uuid}`);
             continue;
         }
         shape.setPositionRepresentation(sh.position);
+    }
+});
+
+socket.on("Shapes.Options.Update", (data: { uuid: string; option: string }[]) => {
+    for (const sh of data) {
+        const shape = layerManager.UUIDMap.get(sh.uuid);
+        if (shape === undefined) {
+            continue;
+        }
+        shape.setOptions(sh.option);
     }
 });
 

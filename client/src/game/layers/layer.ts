@@ -126,7 +126,7 @@ export class Layer {
         if (shape.annotation.length) gameStore.annotations.push(shape.uuid);
         if (sync !== SyncMode.NO_SYNC && !shape.preventSync)
             sendShapeAdd({ shape: shape.asDict(), temporary: sync === SyncMode.TEMP_SYNC });
-        if (invalidate) this.invalidate(invalidate === InvalidationMode.WITH_LIGHT);
+        if (invalidate) this.invalidate(invalidate !== InvalidationMode.WITH_LIGHT);
     }
 
     async setServerShapes(shapes: ServerShape[]): Promise<void> {

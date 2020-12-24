@@ -20,14 +20,14 @@ import { Aura, Tracker } from "@/game/shapes/interfaces";
 export default class SelectionInfo extends Vue {
     $refs!: {
         prompt: Prompt;
-        shapeSettings: ShapeSettings[];
+        shapeSettings: ShapeSettings;
     };
 
     shape: Shape | null = null;
 
     mounted(): void {
         EventBus.$on("Shape.Set", (shape: Shape) => {
-            if (this.shape && shape.uuid === this.shape.uuid) {
+            if (this.shape && shape.uuid !== this.shape.uuid) {
                 this.shape = shape;
             }
         });
@@ -42,11 +42,6 @@ export default class SelectionInfo extends Vue {
         EventBus.$off("SelectionInfo.Shapes.Set");
     }
 
-    get shapes(): Shape[] {
-        if (this.shape === null) return [];
-        return [this.shape];
-    }
-
     get visibleTrackers(): Tracker[] {
         if (this.shape === null) return [];
         return this.shape.trackers.filter(tr => tr.name !== "" || tr.value !== 0);
@@ -58,7 +53,7 @@ export default class SelectionInfo extends Vue {
     }
 
     openEditDialog(): void {
-        this.$refs.shapeSettings[0].visible = true;
+        this.$refs.shapeSettings.visible = true;
     }
     async changeValue(object: Tracker | Aura, isAura: boolean): Promise<void> {
         if (this.shape === null) return;
@@ -83,61 +78,59 @@ export default class SelectionInfo extends Vue {
 </script>
 
 <template>
-    <div v-show="shapes.length > 0">
+    <div v-if="shape !== null">
         <Prompt ref="prompt"></Prompt>
-        <div v-for="shape in shapes" :key="shape.uuid">
-            <div id="selection-menu">
-                <div
-                    id="selection-lock-button"
-                    @click="!!shape.ownedBy({ editAccess: true }) && shape.setLocked(!shape.isLocked, true)"
-                    :title="$t('game.ui.selection.select_info.lock')"
-                >
-                    <font-awesome-icon v-if="shape.isLocked" icon="lock" />
-                    <font-awesome-icon v-else icon="unlock" />
-                </div>
-                <div
-                    id="selection-edit-button"
-                    @click="openEditDialog"
-                    :title="$t('game.ui.selection.select_info.open_shape_props')"
-                >
-                    <font-awesome-icon icon="edit" />
-                </div>
-                <div id="selection-name">{{ shape.name }}</div>
-                <div id="selection-trackers">
-                    <template v-for="tracker in visibleTrackers">
-                        <div :key="'name-' + tracker.uuid">{{ tracker.name }}</div>
-                        <div
-                            class="selection-tracker-value"
-                            :key="'value-' + tracker.uuid"
-                            @click="changeValue(tracker, false)"
-                            :title="$t('game.ui.selection.select_info.quick_edit_tracker')"
-                        >
-                            <template v-if="tracker.maxvalue === 0">
-                                {{ tracker.value }}
-                            </template>
-                            <template v-else>{{ tracker.value }} / {{ tracker.maxvalue }}</template>
-                        </div>
-                    </template>
-                </div>
-                <div id="selection-auras">
-                    <template v-for="aura in visibleAuras">
-                        <div :key="'name-' + aura.uuid">{{ aura.name }}</div>
-                        <div
-                            class="selection-tracker-value"
-                            :key="'value-' + aura.uuid"
-                            @click="changeValue(aura, true)"
-                            :title="$t('game.ui.selection.select_info.quick_edit_aura')"
-                        >
-                            <template v-if="aura.dim === 0">
-                                {{ aura.value }}
-                            </template>
-                            <template v-else>{{ aura.value }} / {{ aura.dim }}</template>
-                        </div>
-                    </template>
-                </div>
+        <div id="selection-menu">
+            <div
+                id="selection-lock-button"
+                @click="!!shape.ownedBy({ editAccess: true }) && shape.setLocked(!shape.isLocked, true)"
+                :title="$t('game.ui.selection.select_info.lock')"
+            >
+                <font-awesome-icon v-if="shape.isLocked" icon="lock" />
+                <font-awesome-icon v-else icon="unlock" />
             </div>
-            <ShapeSettings ref="shapeSettings" :shape="shape"></ShapeSettings>
+            <div
+                id="selection-edit-button"
+                @click="openEditDialog"
+                :title="$t('game.ui.selection.select_info.open_shape_props')"
+            >
+                <font-awesome-icon icon="edit" />
+            </div>
+            <div id="selection-name">{{ shape.name }}</div>
+            <div id="selection-trackers">
+                <template v-for="tracker in visibleTrackers">
+                    <div :key="'name-' + tracker.uuid">{{ tracker.name }}</div>
+                    <div
+                        class="selection-tracker-value"
+                        :key="'value-' + tracker.uuid"
+                        @click="changeValue(tracker, false)"
+                        :title="$t('game.ui.selection.select_info.quick_edit_tracker')"
+                    >
+                        <template v-if="tracker.maxvalue === 0">
+                            {{ tracker.value }}
+                        </template>
+                        <template v-else>{{ tracker.value }} / {{ tracker.maxvalue }}</template>
+                    </div>
+                </template>
+            </div>
+            <div id="selection-auras">
+                <template v-for="aura in visibleAuras">
+                    <div :key="'name-' + aura.uuid">{{ aura.name }}</div>
+                    <div
+                        class="selection-tracker-value"
+                        :key="'value-' + aura.uuid"
+                        @click="changeValue(aura, true)"
+                        :title="$t('game.ui.selection.select_info.quick_edit_aura')"
+                    >
+                        <template v-if="aura.dim === 0">
+                            {{ aura.value }}
+                        </template>
+                        <template v-else>{{ aura.value }} / {{ aura.dim }}</template>
+                    </div>
+                </template>
+            </div>
         </div>
+        <ShapeSettings ref="shapeSettings" :shape="shape" />
     </div>
 </template>
 

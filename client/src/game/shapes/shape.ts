@@ -250,6 +250,7 @@ export abstract class Shape {
     }
 
     private checkVisionSources(recalculate = true): boolean {
+        if (this.options.get("skipDraw")) return false;
         let alteredVision = false;
         const visionBlockers = getBlockers(TriangulationTarget.VISION, this._floor ?? floorStore.currentFloor.id);
         const obstructionIndex = visionBlockers.indexOf(this.uuid);

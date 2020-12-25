@@ -9,6 +9,8 @@ import {
 } from "../../api/emits/shape/togglecomposite";
 import { ServerToggleComposite } from "../../comm/types/shapes";
 import { layerManager } from "../../layers/manager";
+import { TriangulationTarget } from "../../visibility/te/pa";
+import { addBlocker, addVisionSource, removeBlocker, removeVisionSources } from "../../visibility/utils";
 import { SHAPE_TYPE } from "../types";
 
 export class ToggleComposite extends Shape {
@@ -73,6 +75,22 @@ export class ToggleComposite extends Shape {
         const newVariant = layerManager.UUIDMap.get(this.active_variant)!;
         newVariant.options.delete("skipDraw");
         newVariant.center(oldCenter);
+
+        if (oldVariant.movementObstruction)
+            removeBlocker(TriangulationTarget.MOVEMENT, oldVariant.floor.id, oldVariant, true);
+        if (oldVariant.visionObstruction)
+            removeBlocker(TriangulationTarget.VISION, oldVariant.floor.id, oldVariant, true);
+        if (oldVariant.auras.length > 0) removeVisionSources(oldVariant.floor.id, oldVariant.uuid);
+        if (newVariant.movementObstruction)
+            addBlocker(TriangulationTarget.MOVEMENT, newVariant.uuid, newVariant.floor.id, true);
+        if (newVariant.visionObstruction)
+            addBlocker(TriangulationTarget.VISION, newVariant.uuid, newVariant.floor.id, true);
+        for (const au of newVariant.auras) {
+            if (au.visionSource) {
+                addVisionSource({ shape: newVariant.uuid, aura: au.uuid }, newVariant.floor.id);
+            }
+        }
+
         newVariant.invalidate(false);
         if (sync) {
             sendShapePositionUpdate([newVariant], false);

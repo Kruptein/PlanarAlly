@@ -34,7 +34,6 @@ class AssetStore extends VuexModule {
 
     @Mutation
     clearSelected(): void {
-        console.log("Cleared");
         this._selected = [];
     }
 

@@ -23,7 +23,7 @@ export default class SelectionBox extends Vue {
 
     error = "";
 
-    resolve: (value: string) => void = (_value: string) => {};
+    resolve: (value: string | undefined) => void = (_value: string | undefined) => {};
     reject: () => void = () => {};
 
     select(choice: number): void {
@@ -47,7 +47,7 @@ export default class SelectionBox extends Vue {
     }
 
     close(): void {
-        this.reject();
+        this.resolve(undefined);
         this.visible = false;
     }
 
@@ -55,7 +55,7 @@ export default class SelectionBox extends Vue {
         title: string,
         choices: string[],
         options?: { text?: string; defaultButton?: string; customButton?: string },
-    ): Promise<string> {
+    ): Promise<string | undefined> {
         this.title = title;
         this.visible = true;
         this.choices = choices;
@@ -97,11 +97,7 @@ export default class SelectionBox extends Vue {
             <template v-if="customButton.length > 0">
                 <h4>
                     <span>
-                        {{
-                            $t("common.or")
-                                .toLocaleUpperCase()
-                                .toString()
-                        }}
+                        {{ $t("common.or").toLocaleUpperCase().toString() }}
                     </span>
                 </h4>
                 <input type="text" class="input" v-model="customName" />

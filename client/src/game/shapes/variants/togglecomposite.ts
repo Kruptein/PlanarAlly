@@ -27,6 +27,7 @@ export class ToggleComposite extends Shape {
         },
     ) {
         super(position, options);
+        this.options.set("skipDraw", "true");
         for (const variant of _variants) {
             layerManager.addComposite(this.uuid, variant, false);
         }

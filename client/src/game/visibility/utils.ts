@@ -86,7 +86,7 @@ export function moveVisionSource(source: string, auras: Aura[], oldFloor: number
     }
 }
 
-export function removeBlockers(target: TriangulationTarget, floor: number, shape: Shape, recalculate: boolean): void {
+export function removeBlocker(target: TriangulationTarget, floor: number, shape: Shape, recalculate: boolean): void {
     const blockers = getBlockers(target, floor);
     const index = blockers.findIndex(ls => ls === shape.uuid);
     if (index >= 0) {

@@ -6,7 +6,7 @@ import { Shape } from "@/game/shapes/shape";
 import { createShapeFromDict } from "@/game/shapes/utils";
 import { gameStore } from "@/game/store";
 import { TriangulationTarget } from "@/game/visibility/te/pa";
-import { removeBlockers, removeVisionSources } from "@/game/visibility/utils";
+import { removeBlocker, removeVisionSources } from "@/game/visibility/utils";
 import { sendRemoveShapes, sendShapeAdd, sendShapeOrder } from "../api/emits/shape/core";
 import { removeGroupMember } from "../groups";
 import { gameSettingsStore } from "../settings";
@@ -169,8 +169,8 @@ export class Layer {
         if (sync !== SyncMode.NO_SYNC && !shape.preventSync)
             sendRemoveShapes({ uuids: [shape.uuid], temporary: sync === SyncMode.TEMP_SYNC });
 
-        removeBlockers(TriangulationTarget.VISION, this.floor, shape, true);
-        removeBlockers(TriangulationTarget.MOVEMENT, this.floor, shape, true);
+        removeBlocker(TriangulationTarget.VISION, this.floor, shape, true);
+        removeBlocker(TriangulationTarget.MOVEMENT, this.floor, shape, true);
         removeVisionSources(this.floor, shape.uuid);
 
         const annotationIndex = gameStore.annotations.indexOf(shape.uuid);

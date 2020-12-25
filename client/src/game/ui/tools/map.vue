@@ -144,7 +144,7 @@ export default class MapTool extends Tool implements ToolBasics {
     }
 
     onSelect(): void {
-        this.setSelection(layerManager.getSelection());
+        this.setSelection(layerManager.getSelection({ includeComposites: false }));
     }
 
     onDeselect(): void {
@@ -200,7 +200,7 @@ export default class MapTool extends Tool implements ToolBasics {
         }
         this.active = false;
 
-        if (layer.getSelection().length !== 1) {
+        if (layer.getSelection({ includeComposites: false }).length !== 1) {
             this.removeRect();
             return;
         }

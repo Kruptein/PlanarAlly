@@ -13,6 +13,7 @@ import { removeGroupMember } from "../groups";
 import { gameSettingsStore } from "../settings";
 import { drawAuras } from "../shapes/aura";
 import { floorStore } from "./store";
+import { addAllCompositeShapes } from "./utils";
 
 export class Layer {
     canvas: HTMLCanvasElement;
@@ -74,24 +75,25 @@ export class Layer {
     }
 
     hasSelection(skipUiHelpers = true): boolean {
-        return this.getSelection(skipUiHelpers).length > 0;
+        return this.getSelection({ skipUiHelpers, includeComposites: false }).length > 0;
     }
 
     // UI helpers are objects that are created for UI reaons but that are not pertinent to the actual state
     // They are often not desired unless in specific circumstances
-    getSelection(skipUiHelpers = true): readonly Shape[] {
-        if (!skipUiHelpers) return this.selection;
-        return this.selection.filter(s => !s.options.has("UiHelper"));
+    getSelection(options: { skipUiHelpers?: boolean; includeComposites: boolean }): readonly Shape[] {
+        const skipUiHelpers = options.skipUiHelpers ?? true;
+        const selection = skipUiHelpers ? this.selection.filter(s => !s.options.has("UiHelper")) : this.selection;
+        return options.includeComposites ? addAllCompositeShapes(selection) : selection;
     }
 
     setSelection(...selection: Shape[]): void {
         this.selection = selection;
-        EventBus.$emit("SelectionInfo.Shapes.Set", this.getSelection());
+        EventBus.$emit("SelectionInfo.Shapes.Set", this.getSelection({ includeComposites: false }));
     }
 
     pushSelection(...selection: Shape[]): void {
         this.selection.push(...selection);
-        EventBus.$emit("SelectionInfo.Shapes.Set", this.getSelection());
+        EventBus.$emit("SelectionInfo.Shapes.Set", this.getSelection({ includeComposites: false }));
     }
 
     get width(): number {

@@ -8,6 +8,7 @@ import ExtraSettings from "./ExtraSettings.vue";
 import GroupSettings from "./GroupSettings.vue";
 import PropertySettings from "./PropertySettings.vue";
 import TrackerSettings from "./TrackerSettings.vue";
+import VariantSwitcher from "./VariantSwitcher.vue";
 
 import { EventBus } from "@/game/event-bus";
 import { Shape } from "@/game/shapes/shape";
@@ -22,6 +23,7 @@ import { gameStore } from "@/game/store";
         PanelModal,
         PropertySettings,
         TrackerSettings,
+        VariantSwitcher,
     },
 })
 export default class ShapeSettings extends Vue {
@@ -69,16 +71,19 @@ export default class ShapeSettings extends Vue {
     <PanelModal :visible.sync="visible" :categories="categoryNames">
         <template v-slot:title>{{ $t("game.ui.selection.edit_dialog.dialog.edit_asset") }}</template>
         <template v-slot:default="{ selection }">
-            <PropertySettings v-show="selection === 0" :shape="shape" :owned="owned"></PropertySettings>
-            <TrackerSettings v-show="selection === 1" :shape="shape" :owned="owned"></TrackerSettings>
-            <AccessSettings v-show="selection === 2" :shape="shape" :owned="owned"></AccessSettings>
-            <GroupSettings v-show="owned && selection === 3" :shape="shape" :owned="owned"></GroupSettings>
-            <ExtraSettings
-                v-show="is(selection, 'extra')"
-                :shape="shape"
-                :owned="owned"
-                :active="is(selection, 'extra')"
-            ></ExtraSettings>
+            <div style="display: flex; flex-direction: column">
+                <PropertySettings v-show="selection === 0" :shape="shape" :owned="owned" />
+                <TrackerSettings v-show="selection === 1" :shape="shape" :owned="owned" />
+                <AccessSettings v-show="selection === 2" :shape="shape" :owned="owned" />
+                <GroupSettings v-show="owned && selection === 3" :shape="shape" :owned="owned" />
+                <ExtraSettings
+                    v-show="is(selection, 'extra')"
+                    :shape="shape"
+                    :owned="owned"
+                    :active="is(selection, 'extra')"
+                ></ExtraSettings>
+                <VariantSwitcher :shape="shape" />
+            </div>
         </template>
     </PanelModal>
 </template>

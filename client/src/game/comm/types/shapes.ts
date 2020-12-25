@@ -76,6 +76,11 @@ export interface ServerText extends ServerShape {
     font: string;
     angle: number;
 }
+
+export interface ServerToggleComposite extends ServerShape {
+    active_variant: string;
+    variants: { uuid: string; name: string }[];
+}
 export interface ServerAsset extends ServerRect {
     src: string;
 }

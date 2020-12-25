@@ -101,6 +101,7 @@ const TEMPLATE_TYPES: Record<SHAPE_TYPE, SpecifcShapeTemplateStrings> = {
     polygon: PolygonTemplateStrings,
     line: TextTemplateStrings,
     rect: TextTemplateStrings,
+    togglecomposite: TextTemplateStrings,
 };
 
 export function getTemplateKeys(shapeType: SHAPE_TYPE): SpecifcShapeTemplateStrings {

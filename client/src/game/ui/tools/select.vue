@@ -145,10 +145,11 @@ export default class SelectTool extends Tool implements ToolBasics {
         let hit = false;
 
         // The selectionStack allows for lower positioned objects that are selected to have precedence during overlap.
+        const layerSelection = layer.getSelection({ includeComposites: false });
         let selectionStack: readonly Shape[];
-        if (!this.hasFeature(SelectFeatures.ChangeSelection, features)) selectionStack = layer.getSelection();
-        else if (!layer.getSelection().length) selectionStack = layer.getShapes();
-        else selectionStack = layer.getShapes().concat(layer.getSelection());
+        if (!this.hasFeature(SelectFeatures.ChangeSelection, features)) selectionStack = layerSelection;
+        else if (!layerSelection.length) selectionStack = layer.getShapes();
+        else selectionStack = layer.getShapes().concat(layerSelection);
 
         for (let i = selectionStack.length - 1; i >= 0; i--) {
             const shape = selectionStack[i];
@@ -180,7 +181,7 @@ export default class SelectTool extends Tool implements ToolBasics {
                 }
             }
             if (shape.contains(gp)) {
-                if (layer.getSelection().indexOf(shape) === -1) {
+                if (layerSelection.indexOf(shape) === -1) {
                     if (event.ctrlKey) {
                         layer.pushSelection(shape);
                     } else {
@@ -255,7 +256,9 @@ export default class SelectTool extends Tool implements ToolBasics {
             console.log("No active layer!");
             return;
         }
-        if (layer.getSelection().some(s => s.isLocked)) return;
+
+        const layerSelection = layer.getSelection({ includeComposites: false });
+        if (layerSelection.some(s => s.isLocked)) return;
 
         this.deltaChanged = false;
 
@@ -270,17 +273,16 @@ export default class SelectTool extends Tool implements ToolBasics {
                 Math.min(this.selectionStartPoint.y, endPoint.y),
             );
             layer.invalidate(true);
-        } else if (layer.getSelection().length) {
+        } else if (layerSelection.length) {
             let delta = Ray.fromPoints(this.dragRay.get(this.dragRay.tMax), lp).direction.multiply(
                 1 / gameStore.zoomFactor,
             );
             const ogDelta = delta;
             if (this.mode === SelectOperations.Drag) {
                 if (ogDelta.length() === 0) return;
-                const selection = layer.getSelection();
                 // If we are on the tokens layer do a movement block check.
                 if (layer.name === "tokens" && !(event.shiftKey && gameStore.IS_DM)) {
-                    for (const sel of selection) {
+                    for (const sel of layerSelection) {
                         if (!sel.ownedBy({ movementAccess: true })) continue;
                         delta = calculateDelta(delta, sel, true);
                         if (delta !== ogDelta) this.deltaChanged = true;
@@ -289,7 +291,7 @@ export default class SelectTool extends Tool implements ToolBasics {
                 let recalc = false;
                 const updateList = [];
                 // Actually apply the delta on all shapes
-                for (const sel of selection) {
+                for (const sel of layerSelection) {
                     if (!sel.ownedBy({ movementAccess: true })) continue;
                     if (sel.visionObstruction)
                         visibilityStore.deleteFromTriag({
@@ -304,7 +306,7 @@ export default class SelectTool extends Tool implements ToolBasics {
                     if (!sel.preventSync) updateList.push(sel);
                 }
                 sendShapePositionUpdate(updateList, true);
-                if (recalc) visibilityStore.recalculateVision(selection[0].floor.id);
+                if (recalc) visibilityStore.recalculateVision(layerSelection[0].floor.id);
                 this.dragRay = Ray.fromPoints(this.dragRay.origin, lp);
 
                 if (this.rotationUiActive) {
@@ -315,8 +317,7 @@ export default class SelectTool extends Tool implements ToolBasics {
                 layer.invalidate(false);
             } else if (this.mode === SelectOperations.Resize) {
                 let recalc = false;
-                const selection = layer.getSelection();
-                for (const sel of selection) {
+                for (const sel of layerSelection) {
                     if (!sel.ownedBy({ movementAccess: true })) continue;
                     if (sel.visionObstruction)
                         visibilityStore.deleteFromTriag({
@@ -338,7 +339,7 @@ export default class SelectTool extends Tool implements ToolBasics {
                     }
                     if (!sel.preventSync) sendShapeSizeUpdate({ shape: sel, temporary: true });
                 }
-                if (recalc) visibilityStore.recalculateVision(selection[0].floor.id);
+                if (recalc) visibilityStore.recalculateVision(layerSelection[0].floor.id);
                 layer.invalidate(false);
                 this.updateCursor(layer, gp);
             } else if (this.mode === SelectOperations.Rotate) {
@@ -365,9 +366,10 @@ export default class SelectTool extends Tool implements ToolBasics {
             return;
         }
         const layer = floorStore.currentLayer!;
-        let selection = layer.getSelection();
 
-        if (selection.some(s => s.isLocked)) return;
+        let layerSelection = layer.getSelection({ includeComposites: false });
+
+        if (layerSelection.some(s => s.isLocked)) return;
 
         if (this.mode === SelectOperations.GroupSelect) {
             if (event.ctrlKey) {
@@ -379,7 +381,7 @@ export default class SelectTool extends Tool implements ToolBasics {
             for (const shape of layer.getShapes()) {
                 if (!shape.ownedBy({ movementAccess: true })) continue;
                 if (!shape.visibleInCanvas(layer.canvas)) continue;
-                if (selection.some(s => s.uuid === shape.uuid)) continue;
+                if (layerSelection.some(s => s.uuid === shape.uuid)) continue;
 
                 for (let i = 0; i < shape.points.length; i++) {
                     const ray = Ray.fromPoints(
@@ -393,25 +395,29 @@ export default class SelectTool extends Tool implements ToolBasics {
                 }
             }
 
-            selection = layer.getSelection();
+            layerSelection = layer.getSelection({ includeComposites: false });
 
             layer.removeShape(this.selectionHelper!, SyncMode.NO_SYNC);
             this.selectionHelper = null;
 
-            if (selection.some(s => !s.isLocked)) layer.setSelection(...selection.filter(s => !s.isLocked));
+            if (layerSelection.some(s => !s.isLocked)) layer.setSelection(...layerSelection.filter(s => !s.isLocked));
 
-            if (selection.length > 0 && !this.rotationUiActive && this.hasFeature(SelectFeatures.Rotate, features)) {
+            if (
+                layerSelection.length > 0 &&
+                !this.rotationUiActive &&
+                this.hasFeature(SelectFeatures.Rotate, features)
+            ) {
                 this.createRotationUi(features);
             }
 
             layer.invalidate(true);
-        } else if (selection.length) {
+        } else if (layerSelection.length) {
             let recalcVision = false;
             let recalcMovement = false;
 
             if (this.mode === SelectOperations.Drag) {
                 const updateList = [];
-                for (const sel of selection) {
+                for (const sel of layerSelection) {
                     if (!sel.ownedBy({ movementAccess: true })) continue;
 
                     if (
@@ -455,7 +461,7 @@ export default class SelectTool extends Tool implements ToolBasics {
                 sendShapePositionUpdate(updateList, false);
             }
             if (this.mode === SelectOperations.Resize) {
-                for (const sel of selection) {
+                for (const sel of layerSelection) {
                     if (!sel.ownedBy({ movementAccess: true })) continue;
                     if (
                         gameSettingsStore.useGrid &&
@@ -489,7 +495,7 @@ export default class SelectTool extends Tool implements ToolBasics {
                 }
             }
             if (this.mode === SelectOperations.Rotate) {
-                for (const sel of selection) {
+                for (const sel of layerSelection) {
                     if (!sel.ownedBy({ movementAccess: true })) continue;
 
                     const newAngle = Math.round(this.angle / ANGLE_SNAP) * ANGLE_SNAP;
@@ -506,8 +512,8 @@ export default class SelectTool extends Tool implements ToolBasics {
                 }
             }
 
-            if (recalcVision) visibilityStore.recalculateVision(selection[0].floor.id);
-            if (recalcMovement) visibilityStore.recalculateMovement(selection[0].floor.id);
+            if (recalcVision) visibilityStore.recalculateVision(layerSelection[0].floor.id);
+            if (recalcMovement) visibilityStore.recalculateMovement(layerSelection[0].floor.id);
             layer.invalidate(false);
 
             if (this.mode !== SelectOperations.Rotate) {
@@ -515,7 +521,7 @@ export default class SelectTool extends Tool implements ToolBasics {
                 this.createRotationUi(features);
             }
         }
-        this.hasSelection = layer.getSelection().length > 0;
+        this.hasSelection = layerSelection.length > 0;
         this.setToolPermissions();
 
         this.mode = SelectOperations.Noop;
@@ -528,9 +534,10 @@ export default class SelectTool extends Tool implements ToolBasics {
             return;
         }
         const layer = floorStore.currentLayer!;
+        const layerSelection = layer.getSelection({ includeComposites: false });
         const mouse = getLocalPointFromEvent(event);
         const globalMouse = l2g(mouse);
-        for (const shape of layer.getSelection()) {
+        for (const shape of layerSelection) {
             if (shape.contains(globalMouse)) {
                 layer.invalidate(true);
                 this.$parent.$refs.shapecontext.open(event);
@@ -553,7 +560,8 @@ export default class SelectTool extends Tool implements ToolBasics {
     }
     updateCursor(layer: Layer, globalMouse: GlobalPoint): void {
         let cursorStyle = "default";
-        for (const sel of layer.getSelection()) {
+        const layerSelection = layer.getSelection({ includeComposites: false });
+        for (const sel of layerSelection) {
             const resizePoint = sel.getPointIndex(globalMouse, l2gz(3));
             if (resizePoint < 0) {
                 // test rotate case
@@ -582,16 +590,17 @@ export default class SelectTool extends Tool implements ToolBasics {
 
     createRotationUi(features: ToolFeatures<SelectFeatures>): void {
         const layer = floorStore.currentLayer!;
-        const selection = layer.getSelection();
 
-        if (selection.length === 0 || this.rotationUiActive || !this.hasFeature(SelectFeatures.Rotate, features))
+        const layerSelection = layer.getSelection({ includeComposites: false });
+
+        if (layerSelection.length === 0 || this.rotationUiActive || !this.hasFeature(SelectFeatures.Rotate, features))
             return;
 
         let bbox: BoundingRect;
-        if (selection.length === 1) {
-            bbox = selection[0].getBoundingBox();
+        if (layerSelection.length === 1) {
+            bbox = layerSelection[0].getBoundingBox();
         } else {
-            bbox = selection
+            bbox = layerSelection
                 .map(s => s.getAABB())
                 .reduce((acc: BoundingRect, val: BoundingRect) => acc.union(val))
                 .expand(new Vector(-50, -50));
@@ -614,8 +623,8 @@ export default class SelectTool extends Tool implements ToolBasics {
             layer.addShape(rotationShape, SyncMode.NO_SYNC, InvalidationMode.NO);
         }
 
-        if (selection.length === 1) {
-            const angle = selection[0].angle;
+        if (layerSelection.length === 1) {
+            const angle = layerSelection[0].angle;
             this.angle = angle;
             this.rotationBox.angle = angle;
             this.rotationAnchor.rotateAround(bbox.center(), angle);
@@ -644,8 +653,8 @@ export default class SelectTool extends Tool implements ToolBasics {
         const dA = newAngle - this.angle;
         this.angle = newAngle;
         let recalc = false;
-        const selection = layer.getSelection();
-        for (const sel of selection) {
+        const layerSelection = layer.getSelection({ includeComposites: false });
+        for (const sel of layerSelection) {
             if (sel.visionObstruction)
                 visibilityStore.deleteFromTriag({
                     target: TriangulationTarget.VISION,
@@ -660,7 +669,7 @@ export default class SelectTool extends Tool implements ToolBasics {
             }
             if (!sel.preventSync) sendShapePositionUpdate([sel], true);
         }
-        if (recalc) visibilityStore.recalculateVision(selection[0].floor.id);
+        if (recalc) visibilityStore.recalculateVision(layerSelection[0].floor.id);
         this.rotationEnd!.rotateAround(center, dA);
         this.rotationAnchor!.rotateAround(center, dA);
         this.rotationBox!.angle = this.angle;

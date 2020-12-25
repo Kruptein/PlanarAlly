@@ -36,7 +36,7 @@ from models.utils import get_table, reduce_data_to_model
 from state.game import game_state
 from utils import logger
 
-from . import access, options
+from . import access, options, toggle_composite
 
 
 @sio.on("Shape.Add", namespace=GAME_NS)
@@ -68,12 +68,13 @@ async def add_shape(sid: str, data: ShapeAdd):
             shape = Shape.create(**reduce_data_to_model(Shape, data["shape"]))
             # Subshape
             type_table = get_table(shape.type_)
-            type_table.create(
+            subshape = type_table.create(
                 shape=shape,
                 **type_table.pre_create(
                     **reduce_data_to_model(type_table, data["shape"])
                 ),
             )
+            type_table.post_create(subshape, **data["shape"])
             # Owners
             for owner in data["shape"]["owners"]:
                 ShapeOwner.create(

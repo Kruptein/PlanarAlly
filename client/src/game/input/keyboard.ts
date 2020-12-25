@@ -31,7 +31,7 @@ export function onKeyUp(event: KeyboardEvent): void {
             floorStore.selectFloor({ targetFloor: token.floor.name, sync: true });
         }
         if (event.key === "Enter") {
-            const selection = layerManager.getSelection();
+            const selection = layerManager.getSelection({ includeComposites: false });
             if (selection.length === 1) {
                 EventBus.$emit("EditDialog.Open", selection[0]);
             }
@@ -97,7 +97,7 @@ export async function onKeyDown(event: KeyboardEvent): Promise<void> {
                 } else if (gameSettingsStore.gridType === "POINTY_HEX" && pointyHexInvalid.includes(event.code)) {
                     offsetY = 0;
                 }
-                const selection = layerManager.getSelection();
+                const selection = layerManager.getSelection({ includeComposites: false });
                 let delta = new Vector(offsetX, offsetY);
                 if (!event.shiftKey || !gameStore.IS_DM) {
                     // First check for collisions.  Using the smooth wall slide collision check used on mouse move is overkill here.
@@ -151,7 +151,7 @@ export async function onKeyDown(event: KeyboardEvent): Promise<void> {
             // d - Deselect all
             layerManager.clearSelection();
         } else if (event.key === "l" && event.ctrlKey) {
-            const selection = layerManager.getSelection();
+            const selection = layerManager.getSelection({ includeComposites: true });
             for (const shape of selection) {
                 shape.setLocked(!shape.isLocked, true);
             }
@@ -172,7 +172,7 @@ export async function onKeyDown(event: KeyboardEvent): Promise<void> {
             let targetX = 0;
             let targetY = 0;
             if (layerManager.hasSelection()) {
-                const selection = layerManager.getSelection();
+                const selection = layerManager.getSelection({ includeComposites: false });
                 for (const sel of selection) {
                     targetX += sel.refPoint.x;
                     targetY += sel.refPoint.y;
@@ -224,7 +224,7 @@ export async function onKeyDown(event: KeyboardEvent): Promise<void> {
 
 function changeFloor(event: KeyboardEvent, targetFloor: number): void {
     if (targetFloor < 0 || targetFloor > floorStore.floors.length - 1) return;
-    const selection = layerManager.getSelection();
+    const selection = layerManager.getSelection({ includeComposites: true });
     const newFloor = floorStore.floors[targetFloor];
     const newLayer = layerManager.getLayer(newFloor)!;
 

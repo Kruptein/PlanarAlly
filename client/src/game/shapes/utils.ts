@@ -10,6 +10,7 @@ import {
     ServerRect,
     ServerShape,
     ServerText,
+    ServerToggleComposite,
 } from "@/game/comm/types/shapes";
 import { GlobalPoint, Vector } from "@/game/geom";
 import { layerManager } from "@/game/layers/manager";
@@ -26,6 +27,7 @@ import { floorStore, getFloorId } from "../layers/store";
 import { gameStore } from "../store";
 import { Tracker } from "./interfaces";
 import { Polygon } from "./variants/polygon";
+import { ToggleComposite } from "./variants/togglecomposite";
 
 export async function createShapeFromDict(shape: ServerShape): Promise<Shape | undefined> {
     let sh: Shape;
@@ -101,6 +103,12 @@ export async function createShapeFromDict(shape: ServerShape): Promise<Shape | u
         img.onload = () => {
             layerManager.getLayer(layerManager.getFloor(getFloorId(shape.floor))!, shape.layer)!.invalidate(true);
         };
+    } else if (shape.type_ === "togglecomposite") {
+        const toggleComposite = shape as ServerToggleComposite;
+
+        sh = new ToggleComposite(refPoint, toggleComposite.active_variant, toggleComposite.variants, {
+            uuid: toggleComposite.uuid,
+        });
     } else {
         return undefined;
     }
@@ -113,7 +121,7 @@ export function copyShapes(): void {
     if (!layer) return;
     if (!layer.hasSelection()) return;
     const clipboard: ServerShape[] = [];
-    for (const shape of layer.getSelection()) {
+    for (const shape of layer.getSelection({ includeComposites: false })) {
         if (!shape.ownedBy({ editAccess: true })) continue;
         if (!shape.groupId) {
             createNewGroupForShapes([shape.uuid]);
@@ -172,7 +180,7 @@ export async function pasteShapes(targetLayer?: string): Promise<readonly Shape[
         layer.pushSelection(shape);
     }
     layer.invalidate(false);
-    return layer.getSelection();
+    return layer.getSelection({ includeComposites: false });
 }
 
 // todo: refactor with removeShape in api/events/shape
@@ -182,8 +190,9 @@ export function deleteShapes(): void {
         return;
     }
     const l = floorStore.currentLayer!;
-    for (let i = l.getSelection().length - 1; i >= 0; i--) {
-        const sel = l.getSelection()[i];
+    const selection = l.getSelection({ includeComposites: true });
+    for (let i = selection.length - 1; i >= 0; i--) {
+        const sel = selection[i];
         if (!sel.ownedBy({ editAccess: true })) continue;
         if (l.removeShape(sel, SyncMode.FULL_SYNC)) EventBus.$emit("SelectionInfo.Shapes.Set", []);
     }

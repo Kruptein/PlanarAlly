@@ -18,8 +18,6 @@ import { dropAsset } from "./layers/utils";
 import { coreStore } from "@/core/store";
 import { mapGetters } from "vuex";
 import { Watch } from "vue-property-decorator";
-import { requestAssetOptions } from "./api/emits/asset";
-import { BaseTemplate } from "./comm/types/templates";
 
 @Component({
     components: {
@@ -159,29 +157,8 @@ export default class Game extends Vue {
         } else if (event.dataTransfer.getData("text/plain") === "" || event === null || event.dataTransfer === null) {
             return;
         } else {
-            const { imageSource, assetId }: { imageSource: string; assetId: number } = JSON.parse(
-                event.dataTransfer.getData("text/plain"),
-            );
-            let options: BaseTemplate | undefined;
-            if (assetId) {
-                const response = await requestAssetOptions(assetId);
-                if (response.success) {
-                    const choices = Object.keys(response.options?.templates ?? {});
-                    if (choices.length > 0) {
-                        try {
-                            const choice = await this.$refs.selectionbox.open(
-                                this.$t("game.ui.templates.choose").toString(),
-                                choices,
-                            );
-                            if (choice === undefined) return;
-                            options = response.options!.templates[choice];
-                        } catch {
-                            // no-op ; action cancelled
-                        }
-                    }
-                }
-            }
-            dropAsset({ imageSource, assetId }, { x: event.clientX, y: event.clientY }, options);
+            const data: { imageSource: string; assetId: number } = JSON.parse(event.dataTransfer.getData("text/plain"));
+            await dropAsset(data, { x: event.clientX, y: event.clientY }, this.$refs.selectionbox);
         }
     }
 }

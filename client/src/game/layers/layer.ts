@@ -231,7 +231,7 @@ export class Layer {
 
             for (const shape of this.shapes) {
                 if (shape.options.has("skipDraw") && shape.options.get("skipDraw")) continue;
-                if (!shape.visibleInCanvas(this.canvas)) continue;
+                if (!shape.visibleInCanvas(this.canvas, { includeAuras: true })) continue;
                 if (this.name === "fow" && currentLayer !== this) continue;
                 drawAuras(shape, ctx);
                 visibleShapes.push(shape);

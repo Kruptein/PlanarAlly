@@ -78,7 +78,7 @@ export class FowLightingLayer extends FowLayer {
                 const lcenter = g2l(center);
 
                 const auraCircle = new Circle(center, auraLength);
-                if (!auraCircle.visibleInCanvas(this.ctx.canvas)) continue;
+                if (!auraCircle.visibleInCanvas(this.ctx.canvas, { includeAuras: true })) continue;
 
                 this.vCtx.globalCompositeOperation = "source-over";
                 this.vCtx.fillStyle = "rgba(0, 0, 0, 1)";
@@ -120,7 +120,7 @@ export class FowLightingLayer extends FowLayer {
             }
 
             for (const preShape of this.preFogShapes) {
-                if (!preShape.visibleInCanvas(this.canvas)) continue;
+                if (!preShape.visibleInCanvas(this.canvas, { includeAuras: true })) continue;
                 const ogComposite = preShape.globalCompositeOperation;
                 if (!gameSettingsStore.fullFow) {
                     if (preShape.globalCompositeOperation === "source-over")

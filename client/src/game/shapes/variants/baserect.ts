@@ -74,8 +74,8 @@ export abstract class BaseRect extends Shape {
         this.refPoint = new GlobalPoint(centerPoint.x - this.w / 2, centerPoint.y - this.h / 2);
     }
 
-    visibleInCanvas(canvas: HTMLCanvasElement): boolean {
-        if (super.visibleInCanvas(canvas)) return true;
+    visibleInCanvas(canvas: HTMLCanvasElement, options: { includeAuras: boolean }): boolean {
+        if (super.visibleInCanvas(canvas, options)) return true;
         const coreVisible = !(
             g2lx(this.refPoint.x) > canvas.width ||
             g2ly(this.refPoint.y) > canvas.height ||

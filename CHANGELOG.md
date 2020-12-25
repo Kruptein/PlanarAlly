@@ -70,6 +70,8 @@ These usually have no immediately visible impact on regular users
 -   More cases where the ruler and ping tool could get stuck
 -   Tool dialogs now move correctly when changing mode
 -   Edit dialog stays open when selecting another shape
+-   Floor movement not recalculting vision/movement triangulation
+-   Selection including shapes out of vision
 -   [DM] Floor rename always setting a blank name
 
 ## [0.23.1] - 2020-10-25

@@ -385,7 +385,7 @@ export default class SelectTool extends Tool implements ToolBasics {
             for (const shape of layer.getShapes({ includeComposites: false })) {
                 if (shape.options.has("skipDraw")) continue;
                 if (!shape.ownedBy({ movementAccess: true })) continue;
-                if (!shape.visibleInCanvas(layer.canvas)) continue;
+                if (!shape.visibleInCanvas(layer.canvas, { includeAuras: false })) continue;
                 if (layerSelection.some(s => s.uuid === shape.uuid)) continue;
 
                 for (let i = 0; i < shape.points.length; i++) {

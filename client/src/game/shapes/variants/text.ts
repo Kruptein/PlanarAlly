@@ -68,8 +68,8 @@ export class Text extends Shape {
         this.refPoint = centerPoint;
     }
 
-    visibleInCanvas(canvas: HTMLCanvasElement): boolean {
-        if (super.visibleInCanvas(canvas)) return true;
+    visibleInCanvas(canvas: HTMLCanvasElement, options: { includeAuras: boolean }): boolean {
+        if (super.visibleInCanvas(canvas, options)) return true;
         return this.getBoundingBox().visibleInCanvas(canvas);
     }
     // eslint-disable-next-line @typescript-eslint/no-empty-function

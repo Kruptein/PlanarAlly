@@ -296,11 +296,11 @@ export default class SelectTool extends Tool implements ToolBasics {
                     if (sel.visionObstruction)
                         visibilityStore.deleteFromTriag({
                             target: TriangulationTarget.VISION,
-                            shape: sel,
+                            shape: sel.uuid,
                         });
                     sel.refPoint = sel.refPoint.add(delta);
                     if (sel.visionObstruction) {
-                        visibilityStore.addToTriag({ target: TriangulationTarget.VISION, shape: sel });
+                        visibilityStore.addToTriag({ target: TriangulationTarget.VISION, shape: sel.uuid });
                         recalc = true;
                     }
                     if (!sel.preventSync) updateList.push(sel);
@@ -322,7 +322,7 @@ export default class SelectTool extends Tool implements ToolBasics {
                     if (sel.visionObstruction)
                         visibilityStore.deleteFromTriag({
                             target: TriangulationTarget.VISION,
-                            shape: sel,
+                            shape: sel.uuid,
                         });
                     let ignorePoint: GlobalPoint | undefined;
                     if (this.resizePoint >= 0)
@@ -334,7 +334,7 @@ export default class SelectTool extends Tool implements ToolBasics {
                     this.resizePoint = sel.resize(this.resizePoint, targetPoint, event.ctrlKey);
                     // todo: think about calling deleteIntersectVertex directly on the corner point
                     if (sel.visionObstruction) {
-                        visibilityStore.addToTriag({ target: TriangulationTarget.VISION, shape: sel });
+                        visibilityStore.addToTriag({ target: TriangulationTarget.VISION, shape: sel.uuid });
                         recalc = true;
                     }
                     if (!sel.preventSync) sendShapeSizeUpdate({ shape: sel, temporary: true });
@@ -435,20 +435,20 @@ export default class SelectTool extends Tool implements ToolBasics {
                         if (sel.visionObstruction)
                             visibilityStore.deleteFromTriag({
                                 target: TriangulationTarget.VISION,
-                                shape: sel,
+                                shape: sel.uuid,
                             });
                         if (sel.movementObstruction)
                             visibilityStore.deleteFromTriag({
                                 target: TriangulationTarget.MOVEMENT,
-                                shape: sel,
+                                shape: sel.uuid,
                             });
                         sel.snapToGrid();
                         if (sel.visionObstruction) {
-                            visibilityStore.addToTriag({ target: TriangulationTarget.VISION, shape: sel });
+                            visibilityStore.addToTriag({ target: TriangulationTarget.VISION, shape: sel.uuid });
                             recalcVision = true;
                         }
                         if (sel.movementObstruction) {
-                            visibilityStore.addToTriag({ target: TriangulationTarget.MOVEMENT, shape: sel });
+                            visibilityStore.addToTriag({ target: TriangulationTarget.MOVEMENT, shape: sel.uuid });
                             recalcMovement = true;
                         }
                     }
@@ -471,20 +471,20 @@ export default class SelectTool extends Tool implements ToolBasics {
                         if (sel.visionObstruction)
                             visibilityStore.deleteFromTriag({
                                 target: TriangulationTarget.VISION,
-                                shape: sel,
+                                shape: sel.uuid,
                             });
                         if (sel.movementObstruction)
                             visibilityStore.deleteFromTriag({
                                 target: TriangulationTarget.MOVEMENT,
-                                shape: sel,
+                                shape: sel.uuid,
                             });
                         sel.resizeToGrid(this.resizePoint, event.ctrlKey);
                         if (sel.visionObstruction) {
-                            visibilityStore.addToTriag({ target: TriangulationTarget.VISION, shape: sel });
+                            visibilityStore.addToTriag({ target: TriangulationTarget.VISION, shape: sel.uuid });
                             recalcVision = true;
                         }
                         if (sel.movementObstruction) {
-                            visibilityStore.addToTriag({ target: TriangulationTarget.MOVEMENT, shape: sel });
+                            visibilityStore.addToTriag({ target: TriangulationTarget.MOVEMENT, shape: sel.uuid });
                             recalcMovement = true;
                         }
                     }
@@ -658,13 +658,13 @@ export default class SelectTool extends Tool implements ToolBasics {
             if (sel.visionObstruction)
                 visibilityStore.deleteFromTriag({
                     target: TriangulationTarget.VISION,
-                    shape: sel,
+                    shape: sel.uuid,
                 });
 
             sel.rotateAround(center, dA);
 
             if (sel.visionObstruction) {
-                visibilityStore.addToTriag({ target: TriangulationTarget.VISION, shape: sel });
+                visibilityStore.addToTriag({ target: TriangulationTarget.VISION, shape: sel.uuid });
                 recalc = true;
             }
             if (!sel.preventSync) sendShapePositionUpdate([sel], true);

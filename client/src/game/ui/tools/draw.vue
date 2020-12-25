@@ -362,9 +362,9 @@ export default class DrawTool extends Tool implements ToolBasics {
                 )
                     visibilityStore.deleteFromTriag({
                         target: TriangulationTarget.VISION,
-                        shape: this.shape,
+                        shape: this.shape.uuid,
                     });
-                visibilityStore.addToTriag({ target: TriangulationTarget.VISION, shape: this.shape });
+                visibilityStore.addToTriag({ target: TriangulationTarget.VISION, shape: this.shape.uuid });
                 visibilityStore.recalculateVision(this.shape.floor.id);
             }
         }
@@ -389,15 +389,15 @@ export default class DrawTool extends Tool implements ToolBasics {
             if (this.shape.visionObstruction)
                 visibilityStore.deleteFromTriag({
                     target: TriangulationTarget.VISION,
-                    shape: this.shape,
+                    shape: this.shape.uuid,
                 });
             this.shape.resizeToGrid(this.shape.getPointIndex(endPoint, l2gz(5)), event.ctrlKey);
             if (this.shape.visionObstruction) {
-                visibilityStore.addToTriag({ target: TriangulationTarget.VISION, shape: this.shape });
+                visibilityStore.addToTriag({ target: TriangulationTarget.VISION, shape: this.shape.uuid });
                 visibilityStore.recalculateVision(this.shape.floor.id);
             }
             if (this.shape.movementObstruction) {
-                visibilityStore.addToTriag({ target: TriangulationTarget.MOVEMENT, shape: this.shape });
+                visibilityStore.addToTriag({ target: TriangulationTarget.MOVEMENT, shape: this.shape.uuid });
                 visibilityStore.recalculateMovement(this.shape.floor.id);
             }
         }

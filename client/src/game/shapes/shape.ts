@@ -47,7 +47,7 @@ import {
 } from "../api/emits/shape/options";
 import { Floor } from "../layers/floor";
 import { Layer } from "../layers/layer";
-import { getFloorId } from "../layers/store";
+import { floorStore, getFloorId } from "../layers/store";
 import { gameSettingsStore } from "../settings";
 import { rotateAroundPoint } from "../utils";
 import { BoundingRect } from "./variants/boundingrect";
@@ -63,7 +63,7 @@ export abstract class Shape {
     // The unique ID of this shape
     readonly uuid: string;
     // The layer the shape is currently on
-    private _floor!: number;
+    private _floor!: number | undefined;
     private _layer!: string;
 
     // Explicitly prevent any sync to the server
@@ -247,21 +247,25 @@ export abstract class Shape {
 
     private checkVisionSources(recalculate = true): boolean {
         let alteredVision = false;
-        const visionBlockers = getBlockers(TriangulationTarget.VISION, this._floor);
+        const visionBlockers = getBlockers(TriangulationTarget.VISION, this._floor ?? floorStore.currentFloor.id);
         const obstructionIndex = visionBlockers.indexOf(this.uuid);
         if (this.visionObstruction && obstructionIndex === -1) {
-            addBlocker(TriangulationTarget.VISION, this.uuid, this._floor);
-            if (recalculate) visibilityStore.addToTriag({ target: TriangulationTarget.VISION, shape: this });
+            addBlocker(TriangulationTarget.VISION, this.uuid, this._floor ?? floorStore.currentFloor.id, recalculate);
             alteredVision = true;
         } else if (!this.visionObstruction && obstructionIndex >= 0) {
-            sliceBlockers(TriangulationTarget.VISION, obstructionIndex, this._floor);
-            if (recalculate) visibilityStore.deleteFromTriag({ target: TriangulationTarget.VISION, shape: this });
+            sliceBlockers(
+                TriangulationTarget.VISION,
+                obstructionIndex,
+                this._floor ?? floorStore.currentFloor.id,
+                recalculate,
+            );
             alteredVision = true;
         }
-        if (alteredVision && recalculate) visibilityStore.recalculateVision(this._floor);
 
         // Check if the visionsource auras are in the gameManager
-        const visionSources: { shape: string; aura: string }[] = [...getVisionSources(this._floor)];
+        const visionSources: { shape: string; aura: string }[] = [
+            ...getVisionSources(this._floor ?? floorStore.currentFloor.id),
+        ];
         for (const au of this.auras) {
             const i = visionSources.findIndex(o => o.aura === au.uuid);
             if (au.visionSource && i === -1) {
@@ -277,7 +281,7 @@ export abstract class Shape {
                 if (!this.auras.some(a => a.uuid === ls.aura && a.visionSource)) visionSources.splice(i, 1);
             }
         }
-        setVisionSources(visionSources, this._floor);
+        setVisionSources(visionSources, this._floor ?? floorStore.currentFloor.id);
         return alteredVision;
     }
 
@@ -574,9 +578,9 @@ export abstract class Shape {
         if (this.visionObstruction && !alteredVision) {
             visibilityStore.deleteFromTriag({
                 target: TriangulationTarget.VISION,
-                shape: this,
+                shape: this.uuid,
             });
-            visibilityStore.addToTriag({ target: TriangulationTarget.VISION, shape: this });
+            visibilityStore.addToTriag({ target: TriangulationTarget.VISION, shape: this.uuid });
             visibilityStore.recalculateVision(this.floor.id);
         }
         this.invalidate(false);
@@ -584,9 +588,9 @@ export abstract class Shape {
         if (this.movementObstruction && !alteredMovement) {
             visibilityStore.deleteFromTriag({
                 target: TriangulationTarget.MOVEMENT,
-                shape: this,
+                shape: this.uuid,
             });
-            visibilityStore.addToTriag({ target: TriangulationTarget.MOVEMENT, shape: this });
+            visibilityStore.addToTriag({ target: TriangulationTarget.MOVEMENT, shape: this.uuid });
             visibilityStore.recalculateMovement(this.floor.id);
         }
     }
@@ -604,18 +608,20 @@ export abstract class Shape {
         if (sync) sendShapeSetBlocksMovement({ shape: this.uuid, value: blocksMovement });
         let alteredMovement = false;
         this.movementObstruction = blocksMovement;
-        const movementBlockers = getBlockers(TriangulationTarget.MOVEMENT, this._floor);
+        const movementBlockers = getBlockers(TriangulationTarget.MOVEMENT, this._floor ?? floorStore.currentFloor.id);
         const obstructionIndex = movementBlockers.indexOf(this.uuid);
         if (this.movementObstruction && obstructionIndex === -1) {
-            addBlocker(TriangulationTarget.MOVEMENT, this.uuid, this._floor);
-            if (recalculate) visibilityStore.addToTriag({ target: TriangulationTarget.MOVEMENT, shape: this });
+            addBlocker(TriangulationTarget.MOVEMENT, this.uuid, this._floor ?? floorStore.currentFloor.id, recalculate);
             alteredMovement = true;
         } else if (!this.movementObstruction && obstructionIndex >= 0) {
-            sliceBlockers(TriangulationTarget.MOVEMENT, obstructionIndex, this._floor);
-            if (recalculate) visibilityStore.deleteFromTriag({ target: TriangulationTarget.MOVEMENT, shape: this });
+            sliceBlockers(
+                TriangulationTarget.MOVEMENT,
+                obstructionIndex,
+                this._floor ?? floorStore.currentFloor.id,
+                recalculate,
+            );
             alteredMovement = true;
         }
-        if (alteredMovement && recalculate) visibilityStore.recalculateMovement(this._floor);
         return alteredMovement;
     }
 

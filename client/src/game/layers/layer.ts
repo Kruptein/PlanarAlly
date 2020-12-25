@@ -5,9 +5,8 @@ import { layerManager } from "@/game/layers/manager";
 import { Shape } from "@/game/shapes/shape";
 import { createShapeFromDict } from "@/game/shapes/utils";
 import { gameStore } from "@/game/store";
-import { visibilityStore } from "@/game/visibility/store";
 import { TriangulationTarget } from "@/game/visibility/te/pa";
-import { getBlockers, getVisionSources, sliceBlockers, sliceVisionSources } from "@/game/visibility/utils";
+import { removeBlockers, removeVisionSources } from "@/game/visibility/utils";
 import { sendRemoveShapes, sendShapeAdd, sendShapeOrder } from "../api/emits/shape/core";
 import { removeGroupMember } from "../groups";
 import { gameSettingsStore } from "../settings";
@@ -165,19 +164,9 @@ export class Layer {
         if (sync !== SyncMode.NO_SYNC && !shape.preventSync)
             sendRemoveShapes({ uuids: [shape.uuid], temporary: sync === SyncMode.TEMP_SYNC });
 
-        const visionSources = getVisionSources(this.floor);
-        const visionBlockers = getBlockers(TriangulationTarget.VISION, this.floor);
-        const movementBlockers = getBlockers(TriangulationTarget.MOVEMENT, this.floor);
-
-        const lsI = visionSources.findIndex(ls => ls.shape === shape.uuid);
-        const lbI = visionBlockers.findIndex(ls => ls === shape.uuid);
-        const mbI = movementBlockers.findIndex(ls => ls === shape.uuid);
-        const anI = gameStore.annotations.findIndex(ls => ls === shape.uuid);
-
-        if (lsI >= 0) sliceVisionSources(lsI, this.floor);
-        if (lbI >= 0) sliceBlockers(TriangulationTarget.VISION, lbI, this.floor);
-        if (mbI >= 0) sliceBlockers(TriangulationTarget.MOVEMENT, mbI, this.floor);
-        if (anI >= 0) gameStore.annotations.splice(anI, 1);
+        removeBlockers(TriangulationTarget.VISION, this.floor, shape, true);
+        removeBlockers(TriangulationTarget.MOVEMENT, this.floor, shape, true);
+        removeVisionSources(this.floor, shape.uuid);
 
         const annotationIndex = gameStore.annotations.indexOf(shape.uuid);
         if (annotationIndex >= 0) gameStore.annotations.splice(annotationIndex, 1);
@@ -196,20 +185,6 @@ export class Layer {
 
         const index = this.selection.indexOf(shape);
         if (index >= 0) this.selection.splice(index, 1);
-        if (lbI >= 0) {
-            visibilityStore.deleteFromTriag({
-                target: TriangulationTarget.VISION,
-                shape,
-            });
-            visibilityStore.recalculateVision(this.floor);
-        }
-        if (mbI >= 0) {
-            visibilityStore.deleteFromTriag({
-                target: TriangulationTarget.MOVEMENT,
-                shape,
-            });
-            visibilityStore.recalculateMovement(this.floor);
-        }
 
         EventBus.$emit("Initiative.Remove", shape.uuid);
         EventBus.$emit("Initiative.ForceUpdate");

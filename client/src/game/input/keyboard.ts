@@ -115,21 +115,21 @@ export async function onKeyDown(event: KeyboardEvent): Promise<void> {
                         recalculateMovement = true;
                         visibilityStore.deleteFromTriag({
                             target: TriangulationTarget.MOVEMENT,
-                            shape: sel,
+                            shape: sel.uuid,
                         });
                     }
                     if (sel.visionObstruction) {
                         recalculateVision = true;
                         visibilityStore.deleteFromTriag({
                             target: TriangulationTarget.VISION,
-                            shape: sel,
+                            shape: sel.uuid,
                         });
                     }
                     sel.refPoint = sel.refPoint.add(delta);
                     if (sel.movementObstruction)
-                        visibilityStore.addToTriag({ target: TriangulationTarget.MOVEMENT, shape: sel });
+                        visibilityStore.addToTriag({ target: TriangulationTarget.MOVEMENT, shape: sel.uuid });
                     if (sel.visionObstruction)
-                        visibilityStore.addToTriag({ target: TriangulationTarget.VISION, shape: sel });
+                        visibilityStore.addToTriag({ target: TriangulationTarget.VISION, shape: sel.uuid });
                     // todo: Fix again
                     // if (sel.refPoint.x % gridSize !== 0 || sel.refPoint.y % gridSize !== 0) sel.snapToGrid();
                     if (!sel.preventSync) updateList.push(sel);

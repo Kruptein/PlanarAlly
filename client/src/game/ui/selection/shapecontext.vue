@@ -180,7 +180,9 @@ export default class ShapeContext extends Vue {
     }
     moveToFront(): void {
         const layer = this.getActiveLayer()!;
-        this.getSelection().forEach(shape => layer.moveShapeOrder(shape, layer.size() - 1, SyncMode.FULL_SYNC));
+        this.getSelection().forEach(shape =>
+            layer.moveShapeOrder(shape, layer.size({ includeComposites: true }) - 1, SyncMode.FULL_SYNC),
+        );
         this.close();
     }
     async addInitiative(): Promise<void> {

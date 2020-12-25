@@ -40,7 +40,9 @@ export class FowLightingLayer extends FowLayer {
                 layerManager.hasLayer(floorStore.currentFloor, "tokens") &&
                 floorStore.currentFloor === floorStore.floors[floorStore.currentFloorindex]
             ) {
-                for (const sh of layerManager.getLayer(floorStore.currentFloor, "tokens")!.getShapes()) {
+                for (const sh of layerManager
+                    .getLayer(floorStore.currentFloor, "tokens")!
+                    .getShapes({ includeComposites: false })) {
                     if (!sh.ownedBy({ visionAccess: true }) || !sh.isToken) continue;
                     const bb = sh.getBoundingBox();
                     const lcenter = g2l(sh.center());

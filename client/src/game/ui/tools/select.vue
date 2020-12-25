@@ -147,9 +147,13 @@ export default class SelectTool extends Tool implements ToolBasics {
         // The selectionStack allows for lower positioned objects that are selected to have precedence during overlap.
         const layerSelection = layer.getSelection({ includeComposites: false });
         let selectionStack: readonly Shape[];
-        if (!this.hasFeature(SelectFeatures.ChangeSelection, features)) selectionStack = layerSelection;
-        else if (!layerSelection.length) selectionStack = layer.getShapes();
-        else selectionStack = layer.getShapes().concat(layerSelection);
+        if (this.hasFeature(SelectFeatures.ChangeSelection, features)) {
+            const shapes = layer.getShapes({ includeComposites: false });
+            if (!layerSelection.length) selectionStack = shapes;
+            else selectionStack = shapes.concat(layerSelection);
+        } else {
+            selectionStack = layerSelection;
+        }
 
         for (let i = selectionStack.length - 1; i >= 0; i--) {
             const shape = selectionStack[i];
@@ -378,7 +382,8 @@ export default class SelectTool extends Tool implements ToolBasics {
                 layer.clearSelection();
             }
             const cbbox = this.selectionHelper!.getBoundingBox();
-            for (const shape of layer.getShapes()) {
+            for (const shape of layer.getShapes({ includeComposites: false })) {
+                if (shape.options.has("skipDraw")) continue;
                 if (!shape.ownedBy({ movementAccess: true })) continue;
                 if (!shape.visibleInCanvas(layer.canvas)) continue;
                 if (layerSelection.some(s => s.uuid === shape.uuid)) continue;
@@ -546,8 +551,8 @@ export default class SelectTool extends Tool implements ToolBasics {
         }
 
         // Check if any other shapes are under the mouse
-        for (let i = layer.size() - 1; i >= 0; i--) {
-            const shape = layer.getShapes()[i];
+        for (let i = layer.size({ includeComposites: false }) - 1; i >= 0; i--) {
+            const shape = layer.getShapes({ includeComposites: false })[i];
             if (shape.contains(globalMouse)) {
                 layer.setSelection(shape);
                 layer.invalidate(true);

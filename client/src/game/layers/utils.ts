@@ -204,7 +204,7 @@ export function moveFloor(shapes: Shape[], newFloor: Floor, sync: boolean): void
         visibilityStore.moveShape({ shape, oldFloor: oldFloor.id, newFloor: newFloor.id });
         shape.setLayer(newFloor.id, oldLayer.name);
     }
-    oldLayer.setShapes(...oldLayer.getShapes().filter(s => !shapes.includes(s)));
+    oldLayer.setShapes(...oldLayer.getShapes({ includeComposites: true }).filter(s => !shapes.includes(s)));
     newLayer.pushShapes(...shapes);
     oldLayer.invalidate(false);
     newLayer.invalidate(false);
@@ -221,7 +221,7 @@ export function moveLayer(shapes: readonly Shape[], newLayer: Layer, sync: boole
 
     for (const shape of shapes) shape.setLayer(newLayer.floor, newLayer.name);
     // Update layer shapes
-    oldLayer.setShapes(...oldLayer.getShapes().filter(s => !shapes.includes(s)));
+    oldLayer.setShapes(...oldLayer.getShapes({ includeComposites: true }).filter(s => !shapes.includes(s)));
     newLayer.pushShapes(...shapes);
     // Revalidate layers  (light should at most be redone once)
     oldLayer.invalidate(true);

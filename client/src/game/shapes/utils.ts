@@ -119,7 +119,7 @@ export async function createShapeFromDict(shape: ServerShape): Promise<Shape | u
 export function copyShapes(): void {
     const layer = floorStore.currentLayer;
     if (!layer) return;
-    if (!layer.hasSelection()) return;
+    if (!layer.hasSelection({ includeComposites: false })) return;
     const clipboard: ServerShape[] = [];
     for (const shape of layer.getSelection({ includeComposites: false })) {
         if (!shape.ownedBy({ editAccess: true })) continue;

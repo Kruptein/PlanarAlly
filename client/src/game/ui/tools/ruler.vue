@@ -58,7 +58,7 @@ export default class RulerTool extends Tool implements ToolBasics {
                 return;
             }
 
-            layer.moveShapeOrder(this.text!, layer.size() - 1, SyncMode.TEMP_SYNC);
+            layer.moveShapeOrder(this.text!, layer.size({ includeComposites: true }) - 1, SyncMode.TEMP_SYNC);
 
             event.preventDefault();
         }

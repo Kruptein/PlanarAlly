@@ -53,16 +53,21 @@ export class Layer {
     /**
      * Returns the number of shapes on this layer
      */
-    size(skipUiHelpers = true): number {
-        if (!skipUiHelpers) return this.shapes.length;
-        else return this.getShapes(skipUiHelpers).length;
+    size(options: { skipUiHelpers?: boolean; includeComposites: boolean }): number {
+        return this.getShapes(options).length;
     }
 
     // UI helpers are objects that are created for UI reaons but that are not pertinent to the actual state
     // They are often not desired unless in specific circumstances
-    getShapes(skipUiHelpers = true): readonly Shape[] {
-        if (!skipUiHelpers) return this.shapes;
-        return this.shapes.filter(s => !s.options.has("UiHelper"));
+    getShapes(options: { skipUiHelpers?: boolean; includeComposites: boolean }): readonly Shape[] {
+        const skipUiHelpers = options.skipUiHelpers ?? true;
+        let shapes: readonly Shape[] = skipUiHelpers
+            ? this.shapes.filter(s => !s.options.has("UiHelper"))
+            : this.shapes;
+        if (options.includeComposites) {
+            shapes = addAllCompositeShapes(shapes);
+        }
+        return shapes;
     }
 
     setShapes(...shapes: Shape[]): void {
@@ -73,8 +78,8 @@ export class Layer {
         this.shapes.push(...shapes);
     }
 
-    hasSelection(skipUiHelpers = true): boolean {
-        return this.getSelection({ skipUiHelpers, includeComposites: false }).length > 0;
+    hasSelection(options: { skipUiHelpers?: boolean; includeComposites: boolean }): boolean {
+        return this.getSelection(options).length > 0;
     }
 
     // UI helpers are objects that are created for UI reaons but that are not pertinent to the actual state

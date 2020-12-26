@@ -33,7 +33,7 @@ async def set_toggle_composite_active_variant(sid: str, data: VariantMessage):
     composite.save()
 
     await sio.emit(
-        "ToggleComposite.Active.Set",
+        "ToggleComposite.Variants.Active.Set",
         data,
         skip_sid=sid,
         room=pr.active_location.get_path(),

@@ -70,12 +70,8 @@ export class ToggleComposite extends Shape {
 
     setActiveVariant(variant: string, sync: boolean): void {
         const oldVariant = layerManager.UUIDMap.get(this.active_variant)!;
-        oldVariant.options.set("skipDraw", true);
-        const oldCenter = oldVariant.center();
         this.active_variant = variant;
         const newVariant = layerManager.UUIDMap.get(this.active_variant)!;
-        newVariant.options.delete("skipDraw");
-        newVariant.center(oldCenter);
 
         if (oldVariant.movementObstruction)
             removeBlocker(TriangulationTarget.MOVEMENT, oldVariant.floor.id, oldVariant, true);
@@ -92,8 +88,12 @@ export class ToggleComposite extends Shape {
             }
         }
 
-        newVariant.invalidate(false);
         if (sync) {
+            oldVariant.options.set("skipDraw", true);
+            const oldCenter = oldVariant.center();
+            newVariant.options.delete("skipDraw");
+            newVariant.center(oldCenter);
+
             sendShapePositionUpdate([newVariant], false);
             sendShapeOptionsUpdate([oldVariant, newVariant], false);
             sendToggleCompositeActiveVariant({ shape: this.uuid, variant });
@@ -105,6 +105,8 @@ export class ToggleComposite extends Shape {
             selection.splice(index, 1, newVariant);
             newVariant.layer.setSelection(...selection);
         }
+
+        newVariant.invalidate(false);
     }
 
     asDict(): ServerToggleComposite {

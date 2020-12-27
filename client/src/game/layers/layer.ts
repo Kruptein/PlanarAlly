@@ -10,6 +10,7 @@ import { removeBlocker, removeVisionSources } from "@/game/visibility/utils";
 import { sendRemoveShapes, sendShapeAdd, sendShapeOrder } from "../api/emits/shape/core";
 import { removeGroupMember } from "../groups";
 import { gameSettingsStore } from "../settings";
+import { activeShapeStore } from "../ui/ActiveShapeStore";
 import { floorStore } from "./store";
 import { addAllCompositeShapes } from "./utils";
 
@@ -90,11 +91,21 @@ export class Layer {
     }
 
     setSelection(...selection: Shape[]): void {
+        if (selection.length === 0) {
+            activeShapeStore.clear();
+        } else {
+            if (this.selection.length === 0) activeShapeStore.setActiveShape(selection[0]);
+            else if (this.selection[0] !== selection[0]) activeShapeStore.setActiveShape(selection[0]);
+        }
         this.selection = selection;
         EventBus.$emit("SelectionInfo.Shapes.Set", this.getSelection({ includeComposites: false }));
     }
 
     pushSelection(...selection: Shape[]): void {
+        if (selection.length > 0) {
+            if (this.selection.length === 0) activeShapeStore.setActiveShape(selection[0]);
+            else if (this.selection[0] !== selection[0]) activeShapeStore.setActiveShape(selection[0]);
+        }
         this.selection.push(...selection);
         EventBus.$emit("SelectionInfo.Shapes.Set", this.getSelection({ includeComposites: false }));
     }

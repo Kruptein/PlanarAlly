@@ -11,10 +11,8 @@ import { sendShapeMoveAura, sendShapeMoveTracker } from "../../../api/emits/shap
 
 @Component({ components: { ColorPicker } })
 export default class TrackerSettings extends Vue {
-    // @Prop() owned!: boolean;
-
     get owned(): boolean {
-        return true;
+        return activeShapeStore.hasEditAccess;
     }
 
     get shape(): ActiveShapeState {

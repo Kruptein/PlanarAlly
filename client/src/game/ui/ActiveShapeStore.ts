@@ -10,13 +10,16 @@
  */
 
 import { Module, VuexModule, getModule, Mutation } from "vuex-module-decorators";
+
 import { SyncTo } from "../../core/comm/types";
 import { rootStore } from "../../store";
 import { layerManager } from "../layers/manager";
 import { createEmptyAura } from "../shapes/aura";
 import { Aura, Tracker } from "../shapes/interfaces";
+import { ShapeAccess, ShapeOwner } from "../shapes/owners";
 import { Shape } from "../shapes/shape";
 import { createEmptyTracker } from "../shapes/tracker";
+import { gameStore } from "../store";
 
 export type UiTracker = { shape: string; temporary: boolean } & Tracker;
 export type UiAura = { shape: string; temporary: boolean } & Aura;
@@ -26,6 +29,18 @@ export interface ActiveShapeState {
     uuid: string | undefined;
     parentUuid: string | undefined;
     isComposite: boolean;
+
+    owners: readonly ShapeOwner[];
+    hasEditAccess: boolean;
+    hasDefaultEditAccess: boolean;
+    hasDefaultMovementAccess: boolean;
+    hasDefaultVisionAccess: boolean;
+    setDefaultEditAccess(data: { editAccess: boolean; syncTo: SyncTo }): void;
+    setDefaultMovementAccess(data: { movementAccess: boolean; syncTo: SyncTo }): void;
+    setDefaultVisionAccess(data: { visionAccess: boolean; syncTo: SyncTo }): void;
+    addOwner(data: { owner: ShapeOwner; syncTo: SyncTo }): void;
+    updateOwner(data: { owner: ShapeOwner; syncTo: SyncTo }): void;
+    removeOwner(data: { owner: string; syncTo: SyncTo }): void;
 
     trackers: readonly UiTracker[];
     pushTracker(data: { tracker: Tracker; shape: string; syncTo: SyncTo }): void;
@@ -56,8 +71,13 @@ function toUiAuras(auras: readonly Aura[], shape: string): UiAura[] {
 
 @Module({ dynamic: true, store: rootStore, name: "activeShape", namespaced: true })
 class ActiveShapeStore extends VuexModule implements ActiveShapeState {
-    private _uuid: string | undefined;
-    private _parentUuid: string | undefined;
+    private _uuid: string | null = null;
+    private _parentUuid: string | null = null;
+    // The last Uuid is used to make sure that the UI remains open when a shape is removed and re-added
+    private _lastUuid: string | null = null;
+
+    private _access: ShapeAccess | null = null;
+    private _owners: ShapeOwner[] = [];
 
     private _trackers: UiTracker[] = [];
     private firstRealTrackerIndex = 0;
@@ -66,15 +86,147 @@ class ActiveShapeStore extends VuexModule implements ActiveShapeState {
     private firstRealAuraIndex = 0;
 
     get uuid(): string | undefined {
-        return this._uuid;
+        return this._uuid ?? undefined;
     }
 
     get parentUuid(): string | undefined {
-        return this._parentUuid;
+        return this._parentUuid ?? undefined;
+    }
+
+    get lastUuid(): string | undefined {
+        return this._lastUuid ?? undefined;
     }
 
     get isComposite(): boolean {
         return this._parentUuid !== undefined;
+    }
+
+    // ACCESS
+
+    get owners(): readonly ShapeOwner[] {
+        return this._owners;
+    }
+
+    get hasEditAccess(): boolean {
+        if (this._uuid === null) return false;
+        return (
+            gameStore.IS_DM ||
+            (gameStore.FAKE_PLAYER && gameStore.activeTokens.includes(this._uuid)) ||
+            this._access!.edit ||
+            this._owners.some(u => u.user === gameStore.username && u.access.edit === true)
+        );
+    }
+
+    get hasDefaultEditAccess(): boolean {
+        if (this._uuid === null) return false;
+        return this._access!.edit;
+    }
+
+    get hasDefaultMovementAccess(): boolean {
+        if (this._uuid === null) return false;
+        return this._access!.movement;
+    }
+
+    get hasDefaultVisionAccess(): boolean {
+        if (this._uuid === null) return false;
+        return this._access!.vision;
+    }
+
+    @Mutation
+    setDefaultAccess(data: { access: ShapeAccess; syncTo: SyncTo }): void {
+        if (this._uuid === null || !activeShapeStore.hasEditAccess) return;
+
+        this._access = { ...data.access };
+
+        if (data.syncTo !== SyncTo.UI) {
+            const shape = layerManager.UUIDMap.get(this._uuid)!;
+            shape.updateDefaultOwner(this._access, data.syncTo);
+        }
+    }
+
+    @Mutation
+    setDefaultEditAccess(data: { editAccess: boolean; syncTo: SyncTo }): void {
+        if (this._uuid === null || !activeShapeStore.hasEditAccess) return;
+
+        this._access!.edit = data.editAccess;
+        if (data.editAccess) {
+            this._access!.movement = true;
+            this._access!.vision = true;
+        }
+
+        if (data.syncTo !== SyncTo.UI) {
+            const shape = layerManager.UUIDMap.get(this._uuid)!;
+            shape.updateDefaultOwner(this._access!, data.syncTo);
+        }
+    }
+
+    @Mutation
+    setDefaultMovementAccess(data: { movementAccess: boolean; syncTo: SyncTo }): void {
+        if (this._uuid === null || !activeShapeStore.hasEditAccess) return;
+
+        this._access!.movement = data.movementAccess;
+        if (data.movementAccess) this._access!.vision = true;
+        else this._access!.edit = false;
+
+        if (data.syncTo !== SyncTo.UI) {
+            const shape = layerManager.UUIDMap.get(this._uuid)!;
+            shape.updateDefaultOwner(this._access!, data.syncTo);
+        }
+    }
+
+    @Mutation
+    setDefaultVisionAccess(data: { visionAccess: boolean; syncTo: SyncTo }): void {
+        if (this._uuid === null || !activeShapeStore.hasEditAccess) return;
+
+        this._access!.vision = data.visionAccess;
+        if (!data.visionAccess) {
+            this._access!.movement = false;
+            this._access!.edit = false;
+        }
+
+        if (data.syncTo !== SyncTo.UI) {
+            const shape = layerManager.UUIDMap.get(this._uuid)!;
+            shape.updateDefaultOwner(this._access!, data.syncTo);
+        }
+    }
+
+    @Mutation
+    addOwner(data: { owner: ShapeOwner; syncTo: SyncTo }): void {
+        if (this._uuid === null || !activeShapeStore.hasEditAccess) return;
+
+        this._owners.push(data.owner);
+
+        if (data.syncTo !== SyncTo.UI) {
+            const shape = layerManager.UUIDMap.get(this._uuid)!;
+            shape.addOwner(data.owner, data.syncTo);
+        }
+    }
+
+    @Mutation
+    updateOwner(data: { owner: ShapeOwner; syncTo: SyncTo }): void {
+        if (this._uuid === null || !activeShapeStore.hasEditAccess) return;
+
+        const index = this._owners.findIndex(o => o.user === data.owner.user);
+        if (index < 0) return;
+
+        Object.assign(this._owners[index], data.owner);
+
+        if (data.syncTo !== SyncTo.UI) {
+            const shape = layerManager.UUIDMap.get(this._uuid)!;
+            shape.updateOwner({ ...data.owner, access: { ...data.owner.access } }, data.syncTo);
+        }
+    }
+
+    @Mutation
+    removeOwner(data: { owner: string; syncTo: SyncTo }): void {
+        if (this._uuid === null || !activeShapeStore.hasEditAccess) return;
+
+        this._owners = this._owners.filter(o => o.user !== data.owner);
+
+        if (data.syncTo !== SyncTo.UI) {
+            const shape = layerManager.UUIDMap.get(this._uuid)!;
+            shape.removeOwner(data.owner, data.syncTo);
+        }
     }
 
     // TRACKERS
@@ -85,6 +237,8 @@ class ActiveShapeStore extends VuexModule implements ActiveShapeState {
 
     @Mutation
     pushTracker(data: { tracker: Tracker; shape: string; syncTo: SyncTo }): void {
+        if (!activeShapeStore.hasEditAccess) return;
+
         const tracker = toUiTrackers([data.tracker], data.shape)[0];
         if (this._uuid === data.shape) {
             this._trackers.splice(this._trackers.length - 1, 0, tracker);
@@ -102,6 +256,8 @@ class ActiveShapeStore extends VuexModule implements ActiveShapeState {
 
     @Mutation
     updateTracker(data: { tracker: string; delta: Partial<Tracker>; syncTo: SyncTo }): void {
+        if (!activeShapeStore.hasEditAccess) return;
+
         const tracker = this._trackers.find(t => t.uuid === data.tracker);
         if (tracker === undefined) return;
 
@@ -123,6 +279,8 @@ class ActiveShapeStore extends VuexModule implements ActiveShapeState {
 
     @Mutation
     removeTracker(data: { tracker: string; syncTo: SyncTo }): void {
+        if (!activeShapeStore.hasEditAccess) return;
+
         const trackerIndex = this._trackers.findIndex(t => t.uuid === data.tracker);
         if (trackerIndex < 0) return;
 
@@ -145,6 +303,8 @@ class ActiveShapeStore extends VuexModule implements ActiveShapeState {
 
     @Mutation
     pushAura(data: { aura: Aura; shape: string; syncTo: SyncTo }): void {
+        if (!activeShapeStore.hasEditAccess) return;
+
         const aura = toUiAuras([data.aura], data.shape)[0];
         if (this._uuid === data.shape) {
             this._auras.splice(this._auras.length - 1, 0, aura);
@@ -162,6 +322,8 @@ class ActiveShapeStore extends VuexModule implements ActiveShapeState {
 
     @Mutation
     updateAura(data: { aura: string; delta: Partial<Aura>; syncTo: SyncTo }): void {
+        if (!activeShapeStore.hasEditAccess) return;
+
         const aura = this._auras.find(a => a.uuid === data.aura);
         if (aura === undefined) return;
 
@@ -183,6 +345,8 @@ class ActiveShapeStore extends VuexModule implements ActiveShapeState {
 
     @Mutation
     removeAura(data: { aura: string; syncTo: SyncTo }): void {
+        if (!activeShapeStore.hasEditAccess) return;
+
         const auraIndex = this._auras.findIndex(t => t.uuid === data.aura);
         if (auraIndex < 0) return;
 
@@ -199,11 +363,16 @@ class ActiveShapeStore extends VuexModule implements ActiveShapeState {
 
     // STARTUP / CLEANUP
 
+    // It is crucial that this method does not make the original Shape properties observable
     @Mutation
     setActiveShape(shape: Shape): void {
         this._uuid = shape.uuid;
         const parent = layerManager.getCompositeParent(shape.uuid);
-        this._parentUuid = parent?.uuid;
+        this._parentUuid = parent?.uuid ?? null;
+
+        this._access = { ...shape.defaultAccess };
+        this._owners = shape.owners.map(o => ({ ...o, access: { ...o.access } }));
+
         this._trackers = [];
         this._auras = [];
         if (parent !== undefined) {
@@ -220,10 +389,17 @@ class ActiveShapeStore extends VuexModule implements ActiveShapeState {
 
     @Mutation
     clear(): void {
-        this._uuid = undefined;
-        this._parentUuid = undefined;
+        this._lastUuid = this._uuid;
+        this._uuid = null;
+        this._parentUuid = null;
+
+        this._access = null;
+        this._owners = [];
+
         this.firstRealTrackerIndex = 0;
         this._trackers = [];
+
+        this.firstRealAuraIndex = 0;
         this._auras = [];
     }
 }

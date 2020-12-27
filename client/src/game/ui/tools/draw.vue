@@ -8,7 +8,7 @@ import ColorPicker from "@/core/components/colorpicker.vue";
 import Tool from "./tool.vue";
 import Tools from "./tools.vue";
 
-import { SyncMode, InvalidationMode } from "@/core/comm/types";
+import { SyncMode, InvalidationMode, SyncTo } from "@/core/comm/types";
 import { GlobalPoint, LocalPoint } from "@/game/geom";
 import { Layer } from "@/game/layers/layer";
 import { snapToPoint } from "@/game/layers/utils";
@@ -251,7 +251,7 @@ export default class DrawTool extends Tool implements ToolBasics {
             if (this.modeSelect === "reveal") this.shape.globalCompositeOperation = "source-over";
             else if (this.modeSelect === "hide") this.shape.globalCompositeOperation = "destination-out";
 
-            this.shape.addOwner({ user: gameStore.username, access: { edit: true } }, false);
+            this.shape.addOwner({ user: gameStore.username, access: { edit: true } }, SyncTo.UI);
             if (layer.name === "fow" && this.modeSelect === "normal") {
                 this.shape.setVisionBlock(true, false, false);
                 this.shape.setMovementBlock(true, false, false);

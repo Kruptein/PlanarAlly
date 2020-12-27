@@ -6,7 +6,7 @@ import Tool from "@/game/ui/tools/tool.vue";
 import { GlobalPoint, LocalPoint } from "@/game/geom";
 import { layerManager } from "@/game/layers/manager";
 import { l2g, l2gz } from "@/game/units";
-import { SyncMode, InvalidationMode } from "../../../core/comm/types";
+import { SyncMode, InvalidationMode, SyncTo } from "../../../core/comm/types";
 import { ToolName, ToolPermission } from "./utils";
 import { gameSettingsStore } from "../../settings";
 import { ToolBasics } from "./ToolBasics";
@@ -102,7 +102,7 @@ export default class RulerTool extends Tool implements ToolBasics {
             fillColour: "#000",
             strokeColour: "#fff",
         });
-        this.text.addOwner({ user: gameStore.username, access: { edit: true } }, false);
+        this.text.addOwner({ user: gameStore.username, access: { edit: true } }, SyncTo.SHAPE);
         layer.addShape(this.text, this.syncMode, InvalidationMode.NORMAL);
     }
 
@@ -167,7 +167,7 @@ export default class RulerTool extends Tool implements ToolBasics {
             return;
         }
 
-        ruler.addOwner({ user: gameStore.username, access: { edit: true } }, false);
+        ruler.addOwner({ user: gameStore.username, access: { edit: true } }, SyncTo.SHAPE);
         layer.addShape(ruler, this.syncMode, InvalidationMode.NORMAL);
         this.rulers.push(ruler);
     }

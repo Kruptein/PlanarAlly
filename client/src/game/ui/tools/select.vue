@@ -18,7 +18,7 @@ import { gameSettingsStore } from "../../settings";
 import { ToolBasics } from "./ToolBasics";
 import { Circle } from "../../shapes/variants/circle";
 import { Line } from "../../shapes/variants/line";
-import { SyncMode, InvalidationMode } from "../../../core/comm/types";
+import { SyncMode, InvalidationMode, SyncTo } from "../../../core/comm/types";
 import { BoundingRect } from "../../shapes/variants/boundingrect";
 import { floorStore } from "@/game/layers/store";
 import { sendShapePositionUpdate, sendShapeSizeUpdate } from "../../api/emits/shape/core";
@@ -222,7 +222,7 @@ export default class SelectTool extends Tool implements ToolBasics {
                 });
                 this.selectionHelper.strokeWidth = 2;
                 this.selectionHelper.options.set("UiHelper", "true");
-                this.selectionHelper.addOwner({ user: gameStore.username, access: { edit: true } }, false);
+                this.selectionHelper.addOwner({ user: gameStore.username, access: { edit: true } }, SyncTo.SHAPE);
                 layer.addShape(this.selectionHelper, SyncMode.NO_SYNC, InvalidationMode.NO);
             } else {
                 this.selectionHelper.refPoint = this.selectionStartPoint;
@@ -624,7 +624,7 @@ export default class SelectTool extends Tool implements ToolBasics {
         this.rotationEnd = new Circle(topCenterPlus, l2gz(4), { fillColour: "#7c253e", strokeColour: "rgba(0,0,0,0)" });
 
         for (const rotationShape of [this.rotationAnchor, this.rotationBox, this.rotationEnd]) {
-            rotationShape.addOwner({ user: gameStore.username, access: { edit: true } }, false);
+            rotationShape.addOwner({ user: gameStore.username, access: { edit: true } }, SyncTo.SHAPE);
             layer.addShape(rotationShape, SyncMode.NO_SYNC, InvalidationMode.NO);
         }
 

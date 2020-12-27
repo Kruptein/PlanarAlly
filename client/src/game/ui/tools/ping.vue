@@ -1,5 +1,5 @@
 <script lang="ts">
-import { InvalidationMode, SyncMode } from "@/core/comm/types";
+import { InvalidationMode, SyncMode, SyncTo } from "@/core/comm/types";
 import { GlobalPoint, LocalPoint } from "@/game/geom";
 import { layerManager } from "@/game/layers/manager";
 import { Circle } from "@/game/shapes/variants/circle";
@@ -57,8 +57,8 @@ export default class PingTool extends Tool implements ToolBasics {
         this.active = true;
         this.ping = new Circle(this.startPoint, 20, { fillColour: gameStore.rulerColour });
         this.border = new Circle(this.startPoint, 40, { fillColour: "#0000", strokeColour: gameStore.rulerColour });
-        this.ping.addOwner({ user: gameStore.username, access: { edit: true } }, false);
-        this.border.addOwner({ user: gameStore.username, access: { edit: true } }, false);
+        this.ping.addOwner({ user: gameStore.username, access: { edit: true } }, SyncTo.SHAPE);
+        this.border.addOwner({ user: gameStore.username, access: { edit: true } }, SyncTo.SHAPE);
         layer.addShape(this.ping, SyncMode.TEMP_SYNC, InvalidationMode.NORMAL);
         layer.addShape(this.border, SyncMode.TEMP_SYNC, InvalidationMode.NORMAL);
     }

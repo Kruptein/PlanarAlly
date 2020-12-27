@@ -2,72 +2,105 @@
 import Vue from "vue";
 import Component from "vue-class-component";
 
-import { Prop } from "vue-property-decorator";
-
-import { Shape } from "@/game/shapes/shape";
 import { gameStore } from "@/game/store";
 import { ShapeOwner } from "../../../shapes/owners";
+import { ActiveShapeState, activeShapeStore } from "../../ActiveShapeStore";
+import { SyncTo } from "../../../../core/comm/types";
 
 @Component
 export default class AccessSettings extends Vue {
-    @Prop() owned!: boolean;
-    @Prop() shape!: Shape;
-
     $refs!: {
         accessDropdown: HTMLSelectElement;
     };
+
+    get owned(): boolean {
+        return activeShapeStore.hasEditAccess;
+    }
+
+    get shape(): ActiveShapeState {
+        return activeShapeStore;
+    }
 
     get players(): { id: number; name: string }[] {
         return gameStore.players;
     }
 
     get playersWithoutAccess(): { id: number; name: string }[] {
-        return gameStore.players.filter(p => !this.shape.hasOwner(p.name));
-    }
-
-    addOwner(): void {
-        if (!this.owned) return;
-        const dropdown = this.$refs.accessDropdown;
-        const selectedUser = dropdown.options[dropdown.selectedIndex].value;
-        if (selectedUser === "") return;
-        this.shape.addOwner({ user: selectedUser, access: { edit: true, movement: true, vision: true } }, true);
-    }
-
-    removeOwner(value: string): void {
-        if (!this.owned) return;
-        this.shape.removeOwner(value, true);
-    }
-
-    toggleOwnerEditAccess(owner: ShapeOwner): void {
-        if (!this.owned) return;
-        this.shape.updateOwner({ ...owner, access: { ...owner.access, edit: !owner.access.edit } }, true);
-    }
-    toggleOwnerMovementAccess(owner: ShapeOwner): void {
-        if (!this.owned) return;
-        this.shape.updateOwner({ ...owner, access: { ...owner.access, movement: !owner.access.movement } }, true);
-    }
-
-    toggleOwnerVisionAccess(owner: ShapeOwner): void {
-        if (!this.owned) return;
-        this.shape.updateOwner({ ...owner, access: { ...owner.access, vision: !owner.access.vision } }, true);
+        return gameStore.players.filter(p => !this.shape.owners.some(o => o.user === p.name));
     }
 
     toggleDefaultEditAccess(): void {
-        if (!this.owned) return;
-        this.shape.updateDefaultOwner({ ...this.shape.defaultAccess, edit: !this.shape.defaultAccess.edit }, true);
+        this.shape.setDefaultEditAccess({ editAccess: !this.shape.hasDefaultEditAccess, syncTo: SyncTo.SERVER });
     }
 
     toggleDefaultMovementAccess(): void {
-        if (!this.owned) return;
-        this.shape.updateDefaultOwner(
-            { ...this.shape.defaultAccess, movement: !this.shape.defaultAccess.movement },
-            true,
-        );
+        this.shape.setDefaultMovementAccess({
+            movementAccess: !this.shape.hasDefaultMovementAccess,
+            syncTo: SyncTo.SERVER,
+        });
     }
 
     toggleDefaultVisionAccess(): void {
-        if (!this.owned) return;
-        this.shape.updateDefaultOwner({ ...this.shape.defaultAccess, vision: !this.shape.defaultAccess.vision }, true);
+        this.shape.setDefaultVisionAccess({ visionAccess: !this.shape.hasDefaultVisionAccess, syncTo: SyncTo.SERVER });
+    }
+
+    addOwner(): void {
+        const dropdown = this.$refs.accessDropdown;
+        const selectedUser = dropdown.options[dropdown.selectedIndex].value;
+        if (selectedUser === "") return;
+        this.shape.addOwner({
+            owner: {
+                shape: this.shape.uuid!,
+                user: selectedUser,
+                access: { edit: true, movement: true, vision: true },
+            },
+            syncTo: SyncTo.SERVER,
+        });
+    }
+
+    removeOwner(owner: string): void {
+        this.shape.removeOwner({ owner, syncTo: SyncTo.SERVER });
+    }
+
+    toggleOwnerEditAccess(owner: ShapeOwner): void {
+        // un-reactify it, because we want to check on access permissions in updateOwner
+        // otherwise one would never be able to remove their edit access rights
+        const copy = { ...owner, access: { ...owner.access } };
+        copy.access.edit = !copy.access.edit;
+        if (copy.access.edit) {
+            copy.access.movement = true;
+            copy.access.vision = true;
+        }
+        this.shape.updateOwner({
+            owner: copy,
+            syncTo: SyncTo.SERVER,
+        });
+    }
+    toggleOwnerMovementAccess(owner: ShapeOwner): void {
+        const copy = { ...owner, access: { ...owner.access } };
+        copy.access.movement = !copy.access.movement;
+        if (copy.access.movement) {
+            copy.access.vision = true;
+        } else {
+            copy.access.edit = false;
+        }
+        this.shape.updateOwner({
+            owner: copy,
+            syncTo: SyncTo.SERVER,
+        });
+    }
+
+    toggleOwnerVisionAccess(owner: ShapeOwner): void {
+        const copy = { ...owner, access: { ...owner.access } };
+        copy.access.vision = !copy.access.vision;
+        if (!copy.access.vision) {
+            copy.access.edit = false;
+            copy.access.movement = false;
+        }
+        this.shape.updateOwner({
+            owner: copy,
+            syncTo: SyncTo.SERVER,
+        });
     }
 }
 </script>
@@ -78,7 +111,7 @@ export default class AccessSettings extends Vue {
         <div class="owner"><em v-t="'game.ui.selection.edit_dialog.access.default'"></em></div>
         <div
             :style="{
-                opacity: shape.defaultAccess.edit ? 1.0 : 0.3,
+                opacity: shape.hasDefaultEditAccess ? 1.0 : 0.3,
                 textAlign: 'center',
             }"
             :disabled="!owned"
@@ -88,7 +121,7 @@ export default class AccessSettings extends Vue {
             <font-awesome-icon icon="pencil-alt" />
         </div>
         <div
-            :style="{ opacity: shape.defaultAccess.movement ? 1.0 : 0.3, textAlign: 'center' }"
+            :style="{ opacity: shape.hasDefaultMovementAccess ? 1.0 : 0.3, textAlign: 'center' }"
             :disabled="!owned"
             @click="toggleDefaultMovementAccess"
             :title="$t('game.ui.selection.edit_dialog.access.toggle_movement_access')"
@@ -96,7 +129,7 @@ export default class AccessSettings extends Vue {
             <font-awesome-icon icon="arrows-alt" />
         </div>
         <div
-            :style="{ opacity: shape.defaultAccess.vision ? 1.0 : 0.3, textAlign: 'center' }"
+            :style="{ opacity: shape.hasDefaultVisionAccess ? 1.0 : 0.3, textAlign: 'center' }"
             :disabled="!owned"
             @click="toggleDefaultVisionAccess"
             :title="$t('game.ui.selection.edit_dialog.access.toggle_vision_access')"
@@ -148,7 +181,7 @@ export default class AccessSettings extends Vue {
             </div>
         </template>
         <select id="dropdown" ref="accessDropdown" v-show="playersWithoutAccess.length > 0 && owned">
-            <option v-for="player in playersWithoutAccess" :key="player.uuid" :disabled="!owned">
+            <option v-for="player in playersWithoutAccess" :key="player.id" :disabled="!owned">
                 {{ player.name }}
             </option>
         </select>

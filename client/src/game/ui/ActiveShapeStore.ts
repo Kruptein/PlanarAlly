@@ -15,7 +15,7 @@ import { SyncTo } from "../../core/comm/types";
 import { rootStore } from "../../store";
 import { layerManager } from "../layers/manager";
 import { createEmptyAura } from "../shapes/aura";
-import { Aura, Tracker } from "../shapes/interfaces";
+import { Aura, Label, Tracker } from "../shapes/interfaces";
 import { ShapeAccess, ShapeOwner } from "../shapes/owners";
 import { Shape } from "../shapes/shape";
 import { createEmptyTracker } from "../shapes/tracker";
@@ -74,6 +74,12 @@ export interface ActiveShapeState {
     removeAura(data: { aura: string; syncTo: SyncTo }): void;
 
     groupId: string | undefined;
+
+    annotation: string | undefined;
+    setAnnotation(data: { annotation: string; syncTo: SyncTo }): void;
+    labels: readonly Label[];
+    addLabel(data: { label: string; syncTo: SyncTo }): void;
+    removeLabel(data: { label: string; syncTo: SyncTo }): void;
 }
 
 function toUiTrackers(trackers: readonly Tracker[], shape: string): UiTracker[] {
@@ -120,6 +126,11 @@ class ActiveShapeStore extends VuexModule implements ActiveShapeState {
     private firstRealAuraIndex = 0;
 
     private _groupId: string | null = null;
+
+    private _annotation: string | null = null;
+    private _labels: Label[] = [];
+
+    // CORE
 
     get uuid(): string | undefined {
         return this._uuid ?? undefined;
@@ -563,6 +574,52 @@ class ActiveShapeStore extends VuexModule implements ActiveShapeState {
         return this._groupId ?? undefined;
     }
 
+    // EXTRA
+
+    get annotation(): string | undefined {
+        return this._annotation ?? undefined;
+    }
+
+    @Mutation
+    setAnnotation(data: { annotation: string; syncTo: SyncTo }): void {
+        if (this._uuid === null || !activeShapeStore.hasEditAccess) return;
+
+        this._annotation = data.annotation;
+
+        if (data.syncTo !== SyncTo.UI) {
+            const shape = layerManager.UUIDMap.get(this._uuid)!;
+            shape.setAnnotation(data.annotation, data.syncTo);
+        }
+    }
+
+    get labels(): readonly Label[] {
+        return this._labels;
+    }
+
+    @Mutation
+    addLabel(data: { label: string; syncTo: SyncTo }): void {
+        if (this._uuid === null || !activeShapeStore.hasEditAccess) return;
+
+        this._labels.push({ ...gameStore.labels[data.label] });
+
+        if (data.syncTo !== SyncTo.UI) {
+            const shape = layerManager.UUIDMap.get(this._uuid)!;
+            shape.addLabel(data.label, data.syncTo);
+        }
+    }
+
+    @Mutation
+    removeLabel(data: { label: string; syncTo: SyncTo }): void {
+        if (this._uuid === null || !activeShapeStore.hasEditAccess) return;
+
+        this._labels = this._labels.filter(l => l.uuid !== data.label);
+
+        if (data.syncTo !== SyncTo.UI) {
+            const shape = layerManager.UUIDMap.get(this._uuid)!;
+            shape.removeLabel(data.label, data.syncTo);
+        }
+    }
+
     // STARTUP / CLEANUP
 
     // It is crucial that this method does not make the original Shape properties observable
@@ -600,6 +657,9 @@ class ActiveShapeStore extends VuexModule implements ActiveShapeState {
         this._auras.push(createEmptyAura(this._uuid));
 
         this._groupId = shape.groupId ?? null;
+
+        this._annotation = shape.annotation;
+        this._labels = [...shape.labels];
     }
 
     @Mutation
@@ -629,6 +689,9 @@ class ActiveShapeStore extends VuexModule implements ActiveShapeState {
         this._auras = [];
 
         this._groupId = null;
+
+        this._annotation = null;
+        this._labels = [];
     }
 }
 

@@ -5,19 +5,25 @@ import Component from "vue-class-component";
 import { Prop, Watch } from "vue-property-decorator";
 
 import LabelManager from "@/game/ui/labels.vue";
-
-import { Shape } from "@/game/shapes/shape";
+import { ActiveShapeState, activeShapeStore } from "../../ActiveShapeStore";
+import { SyncTo } from "../../../../core/comm/types";
 
 @Component({ components: { LabelManager } })
 export default class AccessSettings extends Vue {
-    @Prop() owned!: boolean;
-    @Prop() shape!: Shape;
     @Prop() active!: boolean;
 
     $refs!: {
         labels: LabelManager;
         textarea: HTMLTextAreaElement;
     };
+
+    get owned(): boolean {
+        return activeShapeStore.hasEditAccess;
+    }
+
+    get shape(): ActiveShapeState {
+        return activeShapeStore;
+    }
 
     @Watch("active")
     panelActivated(active: boolean): void {
@@ -26,17 +32,19 @@ export default class AccessSettings extends Vue {
 
     updateAnnotation(event: { target: HTMLInputElement }, sync = true): void {
         this.calcHeight();
-        if (!this.owned) return;
-        this.shape.setAnnotation(event.target.value, sync);
+        this.shape.setAnnotation({ annotation: event.target.value, syncTo: sync ? SyncTo.SERVER : SyncTo.SHAPE });
     }
 
     openLabelManager(): void {
         this.$refs.labels.open();
     }
 
+    addLabel(label: string): void {
+        this.shape.addLabel({ label, syncTo: SyncTo.SERVER });
+    }
+
     removeLabel(uuid: string): void {
-        if (!this.owned) return;
-        this.shape.removeLabel(uuid, true);
+        this.shape.removeLabel({ label: uuid, syncTo: SyncTo.SERVER });
     }
 
     calcHeight(): void {
@@ -51,7 +59,7 @@ export default class AccessSettings extends Vue {
 
 <template>
     <div class="panel restore-panel">
-        <LabelManager ref="labels"></LabelManager>
+        <LabelManager ref="labels" @addLabel="addLabel"></LabelManager>
         <div class="spanrow header" v-t="'common.labels'"></div>
         <div id="labels" class="spanrow">
             <div v-for="label in shape.labels" class="label" :key="label.uuid">

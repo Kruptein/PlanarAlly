@@ -22,6 +22,7 @@ export const sendShapeSetAnnotation = sendSimpleShapeOption<string>("Shape.Optio
 export const sendShapeSetName = sendSimpleShapeOption<string>("Shape.Options.Name.Set");
 export const sendShapeSetStrokeColour = sendSimpleShapeOption<string>("Shape.Options.StrokeColour.Set");
 export const sendShapeSetFillColour = sendSimpleShapeOption<string>("Shape.Options.FillColour.Set");
+export const sendShapeAddLabel = sendSimpleShapeOption<string>("Shape.Options.Label.Add");
 
 export const sendShapeRemoveLabel = sendSimpleShapeOption<string>("Shape.Options.Label.Remove");
 export const sendShapeRemoveAura = sendSimpleShapeOption<string>("Shape.Options.Aura.Remove");

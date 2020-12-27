@@ -6,14 +6,6 @@ import { Aura, Tracker } from "../../../shapes/interfaces";
 import { Shape } from "../../../shapes/shape";
 import { socket } from "../../socket";
 
-function wrapCallOld<T>(func: (value: T, sync: boolean) => void): (data: { shape: string; value: T }) => void {
-    return data => {
-        const shape = layerManager.UUIDMap.get(data.shape);
-        if (shape === undefined) return;
-        func.bind(shape)(data.value, false);
-    };
-}
-
 function wrapCall<T>(func: (value: T, syncTo: SyncTo) => void): (data: { shape: string; value: T }) => void {
     return data => {
         const shape = layerManager.UUIDMap.get(data.shape);
@@ -34,11 +26,12 @@ socket.on("Shape.Options.Locked.Set", wrapCall(Shape.prototype.setLocked));
 socket.on("Shape.Options.ShowBadge.Set", wrapCall(Shape.prototype.setShowBadge));
 socket.on("Shape.Options.Invisible.Set", wrapCall(Shape.prototype.setInvisible));
 
-socket.on("Shape.Options.Annotation.Set", wrapCallOld(Shape.prototype.setAnnotation));
+socket.on("Shape.Options.Annotation.Set", wrapCall(Shape.prototype.setAnnotation));
+socket.on("Shape.Options.Label.Add", wrapCall(Shape.prototype.addLabel));
 
 socket.on("Shape.Options.Tracker.Remove", wrapCall(Shape.prototype.removeTracker));
 socket.on("Shape.Options.Aura.Remove", wrapCall(Shape.prototype.removeAura));
-socket.on("Shape.Options.Label.Remove", wrapCallOld(Shape.prototype.removeLabel));
+socket.on("Shape.Options.Label.Remove", wrapCall(Shape.prototype.removeLabel));
 
 socket.on("Shape.Options.Tracker.Create", (data: ServerTracker): void => {
     const shape = layerManager.UUIDMap.get(data.shape);

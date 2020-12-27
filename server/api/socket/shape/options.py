@@ -233,16 +233,32 @@ async def remove_aura(sid: str, data: ShapeSetStringValue):
     )
 
 
+@sio.on("Shape.Options.Label.Add", namespace=GAME_NS)
+@auth.login_required(app, sio)
+async def add_label(sid: str, data: ShapeSetStringValue):
+    pr: PlayerRoom = game_state.get(sid)
+
+    shape = get_shape_or_none(pr, data["shape"], "Label.Add")
+    if shape is None:
+        return
+
+    ShapeLabel.create(shape=shape, label=data["value"])
+
+    await sio.emit(
+        "Shape.Options.Label.Add",
+        data,
+        skip_sid=sid,
+        room=pr.active_location.get_path(),
+        namespace=GAME_NS,
+    )
+
+
 @sio.on("Shape.Options.Label.Remove", namespace=GAME_NS)
 @auth.login_required(app, sio)
 async def remove_label(sid: str, data: ShapeSetStringValue):
     pr: PlayerRoom = game_state.get(sid)
 
-    shape = get_shape_or_none(pr, data["shape"], "Label.Remove")
-    if shape is None:
-        return
-
-    label = ShapeLabel.get_by_id(data["value"])
+    label = ShapeLabel.get(shape=data["shape"], label=data["value"])
     label.delete_instance(True)
 
     await sio.emit(

@@ -26,6 +26,7 @@ import {
     sendShapeUpdateOwner,
 } from "../api/emits/access";
 import {
+    sendShapeAddLabel,
     sendShapeCreateAura,
     sendShapeCreateTracker,
     sendShapeRemoveAura,
@@ -505,24 +506,6 @@ export abstract class Shape {
         }
     }
 
-    // SETTERS
-
-    setAnnotation(text: string, sync: boolean): void {
-        if (sync) sendShapeSetAnnotation({ shape: this.uuid, value: text });
-        const hadAnnotation = this.annotation !== "";
-        this.annotation = text;
-        if (this.annotation !== "" && !hadAnnotation) {
-            gameStore.annotations.push(this.uuid);
-        } else if (this.annotation === "" && hadAnnotation) {
-            gameStore.annotations.splice(gameStore.annotations.findIndex(an => an === this.uuid));
-        }
-    }
-
-    removeLabel(label: string, sync: boolean): void {
-        if (sync) sendShapeRemoveLabel({ shape: this.uuid, value: label });
-        this.labels = this.labels.filter(l => l.uuid !== label);
-    }
-
     // UTILITY
 
     /**
@@ -857,5 +840,35 @@ export abstract class Shape {
         this._auras = this._auras.filter(au => au.uuid !== aura);
         this.checkVisionSources();
         this.invalidate(false);
+    }
+
+    // EXTRA
+
+    setAnnotation(text: string, syncTo: SyncTo): void {
+        if (syncTo === SyncTo.SERVER) sendShapeSetAnnotation({ shape: this.uuid, value: text });
+        if (syncTo === SyncTo.UI) this._(activeShapeStore.setAnnotation, { annotation: text, syncTo });
+
+        const hadAnnotation = this.annotation !== "";
+        this.annotation = text;
+        if (this.annotation !== "" && !hadAnnotation) {
+            gameStore.annotations.push(this.uuid);
+        } else if (this.annotation === "" && hadAnnotation) {
+            gameStore.annotations.splice(gameStore.annotations.findIndex(an => an === this.uuid));
+        }
+    }
+
+    addLabel(label: string, syncTo: SyncTo): void {
+        const l = gameStore.labels[label];
+        if (syncTo === SyncTo.SERVER) sendShapeAddLabel({ shape: this.uuid, value: label });
+        if (syncTo === SyncTo.UI) this._(activeShapeStore.addLabel, { label, syncTo });
+
+        this.labels.push(l);
+    }
+
+    removeLabel(label: string, syncTo: SyncTo): void {
+        if (syncTo === SyncTo.SERVER) sendShapeRemoveLabel({ shape: this.uuid, value: label });
+        if (syncTo === SyncTo.UI) this._(activeShapeStore.removeLabel, { label, syncTo });
+
+        this.labels = this.labels.filter(l => l.uuid !== label);
     }
 }

@@ -10,7 +10,6 @@ import PropertySettings from "./PropertySettings.vue";
 import TrackerSettings from "./TrackerSettings.vue";
 import VariantSwitcher from "./VariantSwitcher.vue";
 
-import { EventBus } from "@/game/event-bus";
 import { activeShapeStore } from "../../ActiveShapeStore";
 
 @Component({
@@ -25,7 +24,15 @@ import { activeShapeStore } from "../../ActiveShapeStore";
     },
 })
 export default class ShapeSettings extends Vue {
-    visible = false;
+    private _visible = false;
+
+    get visible(): boolean {
+        return activeShapeStore.showEditDialog;
+    }
+
+    setVisible(visible: boolean): void {
+        activeShapeStore.setShowEditDialog(visible);
+    }
 
     get hasShape(): boolean {
         return activeShapeStore.uuid !== undefined;
@@ -33,20 +40,6 @@ export default class ShapeSettings extends Vue {
 
     get owned(): boolean {
         return activeShapeStore.hasEditAccess;
-    }
-
-    mounted(): void {
-        EventBus.$on("EditDialog.Open", () => {
-            this.visible = true;
-        });
-
-        EventBus.$on("EditDialog.Close", () => {
-            this.visible = false;
-        });
-    }
-
-    beforeDestroy(): void {
-        EventBus.$off("EditDialog.Open");
     }
 
     get categoryNames(): string[] {
@@ -57,7 +50,7 @@ export default class ShapeSettings extends Vue {
 </script>
 
 <template>
-    <PanelModal :visible.sync="visible" :categories="categoryNames">
+    <PanelModal :visible="visible" @update:visible="setVisible" :categories="categoryNames">
         <template v-slot:title>{{ $t("game.ui.selection.edit_dialog.dialog.edit_asset") }}</template>
         <template v-slot:default="{ selection }">
             <div v-if="hasShape" style="display: flex; flex-direction: column">

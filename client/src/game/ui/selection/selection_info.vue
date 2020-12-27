@@ -27,7 +27,7 @@ export default class SelectionInfo extends Vue {
     }
 
     openEditDialog(): void {
-        this.$refs.shapeSettings.visible = true;
+        this.$refs.shapeSettings.setVisible(true);
     }
 
     setLocked(): void {

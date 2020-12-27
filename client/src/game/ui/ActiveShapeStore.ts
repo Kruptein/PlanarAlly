@@ -13,7 +13,6 @@ import { Module, VuexModule, getModule, Mutation } from "vuex-module-decorators"
 
 import { SyncTo } from "../../core/comm/types";
 import { rootStore } from "../../store";
-import { EventBus } from "../event-bus";
 import { layerManager } from "../layers/manager";
 import { createEmptyAura } from "../shapes/aura";
 import { Aura, Label, Tracker } from "../shapes/interfaces";
@@ -30,6 +29,7 @@ export interface ActiveShapeState {
     uuid: string | undefined;
     parentUuid: string | undefined;
     isComposite: boolean;
+    showEditDialog: boolean;
 
     name: string | undefined;
     setName(data: { name: string; syncTo: SyncTo }): void;
@@ -105,6 +105,7 @@ class ActiveShapeStore extends VuexModule implements ActiveShapeState {
     private _parentUuid: string | null = null;
     // The last Uuid is used to make sure that the UI remains open when a shape is removed and re-added
     private _lastUuid: string | null = null;
+    private _showEditDialog = false;
 
     private _name: string | null = null;
     private _nameVisible = false;
@@ -147,6 +148,15 @@ class ActiveShapeStore extends VuexModule implements ActiveShapeState {
 
     get isComposite(): boolean {
         return this._parentUuid !== undefined;
+    }
+
+    get showEditDialog(): boolean {
+        return this._showEditDialog;
+    }
+
+    @Mutation
+    setShowEditDialog(visible: boolean): void {
+        this._showEditDialog = visible;
     }
 
     // PROPERTIES
@@ -626,7 +636,8 @@ class ActiveShapeStore extends VuexModule implements ActiveShapeState {
     // It is crucial that this method does not make the original Shape properties observable
     @Mutation
     setActiveShape(shape: Shape): void {
-        if (this._lastUuid === shape.uuid) EventBus.$emit("EditDialog.Open");
+        console.log(this._lastUuid, shape.uuid);
+        if (this._lastUuid === shape.uuid) this._showEditDialog = true;
 
         this._uuid = shape.uuid;
         const parent = layerManager.getCompositeParent(shape.uuid);
@@ -667,7 +678,9 @@ class ActiveShapeStore extends VuexModule implements ActiveShapeState {
 
     @Mutation
     clear(): void {
-        this._lastUuid = this._uuid;
+        if (this._showEditDialog) this._lastUuid = this._uuid;
+        else this._lastUuid = null;
+
         this._uuid = null;
         this._parentUuid = null;
 
@@ -696,7 +709,7 @@ class ActiveShapeStore extends VuexModule implements ActiveShapeState {
         this._annotation = null;
         this._labels = [];
 
-        EventBus.$emit("EditDialog.Close");
+        this._showEditDialog = false;
     }
 }
 

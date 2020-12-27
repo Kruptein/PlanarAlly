@@ -35,7 +35,7 @@ export function onKeyUp(event: KeyboardEvent): void {
         if (event.key === "Enter") {
             const selection = layerManager.getSelection({ includeComposites: false });
             if (selection.length === 1) {
-                EventBus.$emit("EditDialog.Open", selection[0]);
+                activeShapeStore.setShowEditDialog(true);
             }
         }
     }

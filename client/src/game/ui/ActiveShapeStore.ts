@@ -30,6 +30,27 @@ export interface ActiveShapeState {
     parentUuid: string | undefined;
     isComposite: boolean;
 
+    name: string | undefined;
+    setName(data: { name: string; syncTo: SyncTo }): void;
+    nameVisible: boolean;
+    setNameVisible(data: { visible: boolean; syncTo: SyncTo }): void;
+    isToken: boolean;
+    setIsToken(data: { isToken: boolean; syncTo: SyncTo }): void;
+    isInvisible: boolean;
+    setIsInvisible(data: { isInvisible: boolean; syncTo: SyncTo }): void;
+    strokeColour: string | undefined;
+    setStrokeColour(data: { colour: string; syncTo: SyncTo }): void;
+    fillColour: string | undefined;
+    setFillColour(data: { colour: string; syncTo: SyncTo }): void;
+    visionObstruction: boolean;
+    setVisionObstruction(data: { blocksVision: boolean; syncTo: SyncTo }): void;
+    movementObstruction: boolean;
+    setMovementObstruction(data: { blocksMovement: boolean; syncTo: SyncTo }): void;
+    isLocked: boolean;
+    setLocked(data: { isLocked: boolean; syncTo: SyncTo }): void;
+    showBadge: boolean;
+    setShowBadge(data: { showBadge: boolean; syncTo: SyncTo }): void;
+
     owners: readonly ShapeOwner[];
     hasEditAccess: boolean;
     hasDefaultEditAccess: boolean;
@@ -76,6 +97,17 @@ class ActiveShapeStore extends VuexModule implements ActiveShapeState {
     // The last Uuid is used to make sure that the UI remains open when a shape is removed and re-added
     private _lastUuid: string | null = null;
 
+    private _name: string | null = null;
+    private _nameVisible = false;
+    private _isToken = false;
+    private _isInvisible = false;
+    private _strokeColour: string | null = null;
+    private _fillColour: string | null = null;
+    private _visionObstruction = false;
+    private _movementObstruction = false;
+    private _isLocked = false;
+    private _showBadge = false;
+
     private _access: ShapeAccess | null = null;
     private _owners: ShapeOwner[] = [];
 
@@ -99,6 +131,166 @@ class ActiveShapeStore extends VuexModule implements ActiveShapeState {
 
     get isComposite(): boolean {
         return this._parentUuid !== undefined;
+    }
+
+    // PROPERTIES
+
+    get name(): string | undefined {
+        return this._name ?? undefined;
+    }
+
+    @Mutation
+    setName(data: { name: string; syncTo: SyncTo }): void {
+        if (this._uuid === null || !activeShapeStore.hasEditAccess) return;
+
+        this._name = data.name;
+
+        if (data.syncTo !== SyncTo.UI) {
+            const shape = layerManager.UUIDMap.get(this._uuid)!;
+            shape.setName(data.name, data.syncTo);
+        }
+    }
+
+    get nameVisible(): boolean {
+        return this._nameVisible;
+    }
+
+    @Mutation
+    setNameVisible(data: { visible: boolean; syncTo: SyncTo }): void {
+        if (this._uuid === null || !activeShapeStore.hasEditAccess) return;
+
+        this._nameVisible = data.visible;
+
+        if (data.syncTo !== SyncTo.UI) {
+            const shape = layerManager.UUIDMap.get(this._uuid)!;
+            shape.setNameVisible(data.visible, data.syncTo);
+        }
+    }
+
+    get isToken(): boolean {
+        return this._isToken;
+    }
+
+    @Mutation
+    setIsToken(data: { isToken: boolean; syncTo: SyncTo }): void {
+        if (this._uuid === null || !activeShapeStore.hasEditAccess) return;
+
+        this._isToken = data.isToken;
+
+        if (data.syncTo !== SyncTo.UI) {
+            const shape = layerManager.UUIDMap.get(this._uuid)!;
+            shape.setIsToken(data.isToken, data.syncTo);
+        }
+    }
+
+    get isInvisible(): boolean {
+        return this._isInvisible;
+    }
+
+    @Mutation
+    setIsInvisible(data: { isInvisible: boolean; syncTo: SyncTo }): void {
+        if (this._uuid === null || !activeShapeStore.hasEditAccess) return;
+
+        this._isInvisible = data.isInvisible;
+
+        if (data.syncTo !== SyncTo.UI) {
+            const shape = layerManager.UUIDMap.get(this._uuid)!;
+            shape.setInvisible(data.isInvisible, data.syncTo);
+        }
+    }
+
+    get strokeColour(): string | undefined {
+        return this._strokeColour ?? undefined;
+    }
+
+    @Mutation
+    setStrokeColour(data: { colour: string; syncTo: SyncTo }): void {
+        if (this._uuid === null || !activeShapeStore.hasEditAccess) return;
+
+        this._strokeColour = data.colour;
+
+        if (data.syncTo !== SyncTo.UI) {
+            const shape = layerManager.UUIDMap.get(this._uuid)!;
+            shape.setStrokeColour(data.colour, data.syncTo);
+        }
+    }
+
+    get fillColour(): string | undefined {
+        return this._fillColour ?? undefined;
+    }
+
+    @Mutation
+    setFillColour(data: { colour: string; syncTo: SyncTo }): void {
+        if (this._uuid === null || !activeShapeStore.hasEditAccess) return;
+
+        this._fillColour = data.colour;
+
+        if (data.syncTo !== SyncTo.UI) {
+            const shape = layerManager.UUIDMap.get(this._uuid)!;
+            shape.setFillColour(data.colour, data.syncTo);
+        }
+    }
+
+    get visionObstruction(): boolean {
+        return this._visionObstruction;
+    }
+
+    @Mutation
+    setVisionObstruction(data: { blocksVision: boolean; syncTo: SyncTo }): void {
+        if (this._uuid === null || !activeShapeStore.hasEditAccess) return;
+        this._visionObstruction = data.blocksVision;
+        if (data.syncTo !== SyncTo.UI) {
+            const shape = layerManager.UUIDMap.get(this._uuid)!;
+            shape.setVisionBlock(data.blocksVision, data.syncTo);
+        }
+    }
+
+    get movementObstruction(): boolean {
+        return this._movementObstruction;
+    }
+
+    @Mutation
+    setMovementObstruction(data: { blocksMovement: boolean; syncTo: SyncTo }): void {
+        if (this._uuid === null || !activeShapeStore.hasEditAccess) return;
+
+        this._movementObstruction = data.blocksMovement;
+
+        if (data.syncTo !== SyncTo.UI) {
+            const shape = layerManager.UUIDMap.get(this._uuid)!;
+            shape.setMovementBlock(data.blocksMovement, data.syncTo);
+        }
+    }
+
+    get isLocked(): boolean {
+        return this._isLocked;
+    }
+
+    @Mutation
+    setLocked(data: { isLocked: boolean; syncTo: SyncTo }): void {
+        if (this._uuid === null || !activeShapeStore.hasEditAccess) return;
+
+        this._isLocked = data.isLocked;
+
+        if (data.syncTo !== SyncTo.UI) {
+            const shape = layerManager.UUIDMap.get(this._uuid)!;
+            shape.setLocked(data.isLocked, data.syncTo);
+        }
+    }
+
+    get showBadge(): boolean {
+        return this._showBadge;
+    }
+
+    @Mutation
+    setShowBadge(data: { showBadge: boolean; syncTo: SyncTo }): void {
+        if (this._uuid === null || !activeShapeStore.hasEditAccess) return;
+
+        this._showBadge = data.showBadge;
+
+        if (data.syncTo !== SyncTo.UI) {
+            const shape = layerManager.UUIDMap.get(this._uuid)!;
+            shape.setShowBadge(data.showBadge, data.syncTo);
+        }
     }
 
     // ACCESS
@@ -370,6 +562,17 @@ class ActiveShapeStore extends VuexModule implements ActiveShapeState {
         const parent = layerManager.getCompositeParent(shape.uuid);
         this._parentUuid = parent?.uuid ?? null;
 
+        this._name = shape.name;
+        this._nameVisible = shape.nameVisible;
+        this._isToken = shape.isToken;
+        this._isInvisible = shape.isInvisible;
+        this._strokeColour = shape.strokeColour;
+        this._fillColour = shape.fillColour;
+        this._visionObstruction = shape.visionObstruction;
+        this._movementObstruction = shape.movementObstruction;
+        this._isLocked = shape.isLocked;
+        this._showBadge = shape.showBadge;
+
         this._access = { ...shape.defaultAccess };
         this._owners = shape.owners.map(o => ({ ...o, access: { ...o.access } }));
 
@@ -392,6 +595,17 @@ class ActiveShapeStore extends VuexModule implements ActiveShapeState {
         this._lastUuid = this._uuid;
         this._uuid = null;
         this._parentUuid = null;
+
+        this._name = null;
+        this._nameVisible = false;
+        this._isToken = false;
+        this._isInvisible = false;
+        this._strokeColour = null;
+        this._fillColour = null;
+        this._visionObstruction = false;
+        this._movementObstruction = false;
+        this._isLocked = false;
+        this._showBadge = false;
 
         this._access = null;
         this._owners = [];

@@ -1,4 +1,4 @@
-import { InvalidationMode, SyncMode } from "@/core/comm/types";
+import { InvalidationMode, SyncMode, SyncTo } from "@/core/comm/types";
 import { ServerShape } from "@/game/comm/types/shapes";
 import { EventBus } from "@/game/event-bus";
 import { layerManager } from "@/game/layers/manager";
@@ -130,8 +130,8 @@ export class Layer {
         shape.setLayer(this.floor, this.name);
         this.shapes.push(shape);
         layerManager.UUIDMap.set(shape.uuid, shape);
-        shape.setVisionBlock(shape.visionObstruction, false, invalidate !== InvalidationMode.NO);
-        shape.setMovementBlock(shape.movementObstruction, false, invalidate !== InvalidationMode.NO);
+        shape.setVisionBlock(shape.visionObstruction, SyncTo.UI, invalidate !== InvalidationMode.NO);
+        shape.setMovementBlock(shape.movementObstruction, SyncTo.UI, invalidate !== InvalidationMode.NO);
         if (snappable) {
             for (const point of shape.points) {
                 const strp = JSON.stringify(point);

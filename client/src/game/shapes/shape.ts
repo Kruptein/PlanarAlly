@@ -507,62 +507,6 @@ export abstract class Shape {
 
     // SETTERS
 
-    setVisionBlock(blocksVision: boolean, sync: boolean, recalculate = true): void {
-        if (sync) sendShapeSetBlocksVision({ shape: this.uuid, value: blocksVision });
-        this.visionObstruction = blocksVision;
-        const alteredVision = this.checkVisionSources(recalculate);
-        if (alteredVision && recalculate) this.invalidate(false);
-    }
-
-    setMovementBlock(blocksMovement: boolean, sync: boolean, recalculate = true): boolean {
-        if (sync) sendShapeSetBlocksMovement({ shape: this.uuid, value: blocksMovement });
-        let alteredMovement = false;
-        this.movementObstruction = blocksMovement;
-        const movementBlockers = getBlockers(TriangulationTarget.MOVEMENT, this._floor ?? floorStore.currentFloor.id);
-        const obstructionIndex = movementBlockers.indexOf(this.uuid);
-        if (this.movementObstruction && obstructionIndex === -1) {
-            addBlocker(TriangulationTarget.MOVEMENT, this.uuid, this._floor ?? floorStore.currentFloor.id, recalculate);
-            alteredMovement = true;
-        } else if (!this.movementObstruction && obstructionIndex >= 0) {
-            sliceBlockers(
-                TriangulationTarget.MOVEMENT,
-                obstructionIndex,
-                this._floor ?? floorStore.currentFloor.id,
-                recalculate,
-            );
-            alteredMovement = true;
-        }
-        return alteredMovement;
-    }
-
-    setIsToken(isToken: boolean, sync: boolean): void {
-        if (sync) sendShapeSetIsToken({ shape: this.uuid, value: isToken });
-        this.isToken = isToken;
-        if (this.ownedBy({ visionAccess: true })) {
-            if (this.isToken) gameStore.addOwnedToken(this.uuid);
-            else gameStore.removeOwnedToken(this.uuid);
-        }
-        this.invalidate(false);
-    }
-
-    setInvisible(isInvisible: boolean, sync: boolean): void {
-        this.isInvisible = isInvisible;
-        if (sync) sendShapeSetInvisible({ shape: this.uuid, value: isInvisible });
-        this.invalidate(!this.triggersVisionRecalc);
-    }
-
-    setLocked(isLocked: boolean, sync: boolean): void {
-        this.isLocked = isLocked;
-        if (sync) sendShapeSetLocked({ shape: this.uuid, value: isLocked });
-    }
-
-    setShowBadge(showBadge: boolean, sync: boolean): void {
-        this.showBadge = showBadge;
-        if (sync) sendShapeSetShowBadge({ shape: this.uuid, value: this.showBadge });
-        this.invalidate(!this.triggersVisionRecalc);
-        EventBus.$emit("EditDialog.Group.Update");
-    }
-
     setAnnotation(text: string, sync: boolean): void {
         if (sync) sendShapeSetAnnotation({ shape: this.uuid, value: text });
         const hadAnnotation = this.annotation !== "";
@@ -579,31 +523,6 @@ export abstract class Shape {
         this.labels = this.labels.filter(l => l.uuid !== label);
     }
 
-    setName(name: string, sync: boolean): void {
-        if (sync) sendShapeSetName({ shape: this.uuid, value: name });
-        this.name = name;
-        // Initiative names are not always updated when renaming shapes
-        // This is due to these shapes not yet being reactive
-        EventBus.$emit("Initiative.ForceUpdate");
-    }
-
-    setNameVisible(visible: boolean, sync: boolean): void {
-        if (sync) sendShapeSetNameVisible({ shape: this.uuid, value: visible });
-        this.nameVisible = visible;
-    }
-
-    setStrokeColour(colour: string, sync: boolean): void {
-        if (sync) sendShapeSetStrokeColour({ shape: this.uuid, value: colour });
-        this.strokeColour = colour;
-        this.invalidate(true);
-    }
-
-    setFillColour(colour: string, sync: boolean): void {
-        if (sync) sendShapeSetFillColour({ shape: this.uuid, value: colour });
-        this.fillColour = colour;
-        this.invalidate(true);
-    }
-
     // UTILITY
 
     /**
@@ -617,6 +536,110 @@ export abstract class Shape {
      */
     private _<T extends unknown[], R = unknown>(f: (...args: T) => R, ...args: T): void {
         if (this.uuid === activeShapeStore.uuid) f(...args);
+    }
+
+    // PROPERTIES
+
+    setName(name: string, syncTo: SyncTo): void {
+        if (syncTo === SyncTo.SERVER) sendShapeSetName({ shape: this.uuid, value: name });
+        if (syncTo === SyncTo.UI) this._(activeShapeStore.setName, { name, syncTo });
+
+        this.name = name;
+        // Initiative names are not always updated when renaming shapes
+        // This is due to these shapes not yet being reactive
+        EventBus.$emit("Initiative.ForceUpdate");
+    }
+
+    setNameVisible(visible: boolean, syncTo: SyncTo): void {
+        if (syncTo === SyncTo.SERVER) sendShapeSetNameVisible({ shape: this.uuid, value: visible });
+        if (syncTo === SyncTo.UI) this._(activeShapeStore.setNameVisible, { visible, syncTo });
+
+        this.nameVisible = visible;
+    }
+
+    setIsToken(isToken: boolean, syncTo: SyncTo): void {
+        if (syncTo === SyncTo.SERVER) sendShapeSetIsToken({ shape: this.uuid, value: isToken });
+        if (syncTo === SyncTo.UI) this._(activeShapeStore.setIsToken, { isToken, syncTo });
+
+        this.isToken = isToken;
+        if (this.ownedBy({ visionAccess: true })) {
+            if (this.isToken) gameStore.addOwnedToken(this.uuid);
+            else gameStore.removeOwnedToken(this.uuid);
+        }
+        this.invalidate(false);
+    }
+
+    setInvisible(isInvisible: boolean, syncTo: SyncTo): void {
+        if (syncTo === SyncTo.SERVER) sendShapeSetInvisible({ shape: this.uuid, value: isInvisible });
+        if (syncTo === SyncTo.UI) this._(activeShapeStore.setIsInvisible, { isInvisible, syncTo });
+
+        this.isInvisible = isInvisible;
+        this.invalidate(!this.triggersVisionRecalc);
+    }
+
+    setStrokeColour(colour: string, syncTo: SyncTo): void {
+        if (syncTo === SyncTo.SERVER) sendShapeSetStrokeColour({ shape: this.uuid, value: colour });
+        if (syncTo === SyncTo.UI) this._(activeShapeStore.setStrokeColour, { colour, syncTo });
+
+        this.strokeColour = colour;
+        this.invalidate(true);
+    }
+
+    setFillColour(colour: string, syncTo: SyncTo): void {
+        if (syncTo === SyncTo.SERVER) sendShapeSetFillColour({ shape: this.uuid, value: colour });
+        if (syncTo === SyncTo.UI) this._(activeShapeStore.setFillColour, { colour, syncTo });
+
+        this.fillColour = colour;
+        this.invalidate(true);
+    }
+
+    setVisionBlock(blocksVision: boolean, syncTo: SyncTo, recalculate = true): void {
+        if (syncTo === SyncTo.SERVER) sendShapeSetBlocksVision({ shape: this.uuid, value: blocksVision });
+        if (syncTo === SyncTo.UI) this._(activeShapeStore.setVisionObstruction, { blocksVision, syncTo });
+
+        this.visionObstruction = blocksVision;
+        const alteredVision = this.checkVisionSources(recalculate);
+        if (alteredVision && recalculate) this.invalidate(false);
+    }
+
+    setMovementBlock(blocksMovement: boolean, syncTo: SyncTo, recalculate = true): boolean {
+        if (syncTo === SyncTo.SERVER) sendShapeSetBlocksMovement({ shape: this.uuid, value: blocksMovement });
+        if (syncTo === SyncTo.UI) this._(activeShapeStore.setMovementObstruction, { blocksMovement, syncTo });
+
+        let alteredMovement = false;
+        this.movementObstruction = blocksMovement;
+        const movementBlockers = getBlockers(TriangulationTarget.MOVEMENT, this._floor ?? floorStore.currentFloor.id);
+        const obstructionIndex = movementBlockers.indexOf(this.uuid);
+        if (this.movementObstruction && obstructionIndex === -1) {
+            addBlocker(TriangulationTarget.MOVEMENT, this.uuid, this._floor ?? floorStore.currentFloor.id, recalculate);
+            alteredMovement = true;
+        } else if (!this.movementObstruction && obstructionIndex >= 0) {
+            sliceBlockers(
+                TriangulationTarget.MOVEMENT,
+                obstructionIndex,
+                this._floor ?? floorStore.currentFloor.id,
+                recalculate,
+            );
+            alteredMovement = true;
+        }
+
+        return alteredMovement;
+    }
+
+    setLocked(isLocked: boolean, syncTo: SyncTo): void {
+        if (syncTo === SyncTo.SERVER) sendShapeSetLocked({ shape: this.uuid, value: isLocked });
+        if (syncTo === SyncTo.UI) this._(activeShapeStore.setLocked, { isLocked, syncTo });
+
+        this.isLocked = isLocked;
+    }
+
+    setShowBadge(showBadge: boolean, syncTo: SyncTo): void {
+        if (syncTo === SyncTo.SERVER) sendShapeSetShowBadge({ shape: this.uuid, value: showBadge });
+        if (syncTo === SyncTo.UI) this._(activeShapeStore.setShowBadge, { showBadge, syncTo });
+
+        this.showBadge = showBadge;
+        this.invalidate(!this.triggersVisionRecalc);
+        EventBus.$emit("EditDialog.Group.Update");
     }
 
     // ACCESS
@@ -654,15 +677,16 @@ export abstract class Shape {
         }
         this.defaultAccess = access;
 
+        if (syncTo === SyncTo.SERVER)
+            sendShapeUpdateDefaultOwner({ ...accessToServer(this.defaultAccess), shape: this.uuid });
+        if (syncTo === SyncTo.UI) this._(activeShapeStore.setDefaultAccess, { access: this.defaultAccess, syncTo });
+
         if (this.defaultAccess.vision) {
             if (this.ownedBy({ visionAccess: true })) gameStore.addOwnedToken(this.uuid);
         } else {
             if (!this.ownedBy({ visionAccess: true })) gameStore.removeOwnedToken(this.uuid);
         }
         if (gameSettingsStore.fowLos) layerManager.invalidateLightAllFloors();
-        if (syncTo === SyncTo.SERVER)
-            sendShapeUpdateDefaultOwner({ ...accessToServer(this.defaultAccess), shape: this.uuid });
-        if (syncTo === SyncTo.UI) this._(activeShapeStore.setDefaultAccess, { access: this.defaultAccess, syncTo });
     }
 
     hasOwner(username: string): boolean {
@@ -682,13 +706,13 @@ export abstract class Shape {
         };
         if (fullOwner.shape !== this.uuid) return;
         if (!this.hasOwner(owner.user)) {
+            if (syncTo === SyncTo.SERVER) sendShapeAddOwner(ownerToServer(fullOwner));
+            if (syncTo === SyncTo.UI) this._(activeShapeStore.addOwner, { owner: fullOwner, syncTo });
+
             this._owners.push(fullOwner);
             if (owner.access.vision && this.isToken && owner.user === gameStore.username)
                 gameStore.addOwnedToken(this.uuid);
             if (gameSettingsStore.fowLos) layerManager.invalidateLightAllFloors();
-
-            if (syncTo === SyncTo.SERVER) sendShapeAddOwner(ownerToServer(fullOwner));
-            if (syncTo === SyncTo.UI) this._(activeShapeStore.addOwner, { owner: fullOwner, syncTo });
         }
     }
 
@@ -707,6 +731,10 @@ export abstract class Shape {
             // Force remove edit permission if a specific permission is toggled off
             fullOwner.access.edit = false;
         }
+
+        if (syncTo === SyncTo.SERVER) sendShapeUpdateOwner(ownerToServer(fullOwner));
+        if (syncTo === SyncTo.UI) this._(activeShapeStore.updateOwner, { owner: fullOwner, syncTo });
+
         if (targetOwner.access.vision !== fullOwner.access.vision) {
             if (targetOwner.user === gameStore.username) {
                 if (fullOwner.access.vision) {
@@ -718,22 +746,20 @@ export abstract class Shape {
         }
         targetOwner.access = fullOwner.access;
         if (gameSettingsStore.fowLos) layerManager.invalidateLightAllFloors();
-
-        if (syncTo === SyncTo.SERVER) sendShapeUpdateOwner(ownerToServer(fullOwner));
-        if (syncTo === SyncTo.UI) this._(activeShapeStore.updateOwner, { owner: fullOwner, syncTo });
     }
 
     removeOwner(owner: string, syncTo: SyncTo): void {
         const ownerIndex = this._owners.findIndex(o => o.user === owner);
         if (ownerIndex < 0) return;
         const removed = this._owners.splice(ownerIndex, 1)[0];
+
+        if (syncTo === SyncTo.SERVER) sendShapeDeleteOwner(ownerToServer(removed));
+        if (syncTo === SyncTo.UI) this._(activeShapeStore.removeOwner, { owner, syncTo });
+
         if (owner === gameStore.username) {
             gameStore.removeOwnedToken(owner);
         }
         if (gameSettingsStore.fowLos) layerManager.invalidateLightAllFloors();
-
-        if (syncTo === SyncTo.SERVER) sendShapeDeleteOwner(ownerToServer(removed));
-        if (syncTo === SyncTo.UI) this._(activeShapeStore.removeOwner, { owner, syncTo });
     }
 
     // TRACKERS
@@ -751,25 +777,27 @@ export abstract class Shape {
     }
 
     pushTracker(tracker: Tracker, syncTo: SyncTo): void {
-        this._trackers.push(tracker);
         if (syncTo === SyncTo.SERVER) sendShapeCreateTracker({ shape: this.uuid, ...tracker });
         else if (syncTo === SyncTo.UI) this._(activeShapeStore.pushTracker, { tracker, shape: this.uuid, syncTo });
+
+        this._trackers.push(tracker);
     }
 
     updateTracker(trackerId: string, delta: Partial<Tracker>, syncTo: SyncTo): void {
         const tracker = this._trackers.find(t => t.uuid === trackerId);
         if (tracker === undefined) return;
 
-        Object.assign(tracker, delta);
-
         if (syncTo === SyncTo.SERVER) sendShapeUpdateTracker({ shape: this.uuid, uuid: trackerId, ...delta });
         else if (syncTo === SyncTo.UI) this._(activeShapeStore.updateTracker, { tracker: trackerId, delta, syncTo });
+
+        Object.assign(tracker, delta);
     }
 
     removeTracker(tracker: string, syncTo: SyncTo): void {
-        this._trackers = this._trackers.filter(tr => tr.uuid !== tracker);
         if (syncTo === SyncTo.SERVER) sendShapeRemoveTracker({ shape: this.uuid, value: tracker });
         else if (syncTo === SyncTo.UI) this._(activeShapeStore.removeTracker, { tracker, syncTo });
+
+        this._trackers = this._trackers.filter(tr => tr.uuid !== tracker);
     }
 
     // AURAS
@@ -787,24 +815,17 @@ export abstract class Shape {
     }
 
     pushAura(aura: Aura, syncTo: SyncTo): void {
+        if (syncTo === SyncTo.SERVER) sendShapeCreateAura(aurasToServer(this.uuid, [aura])[0]);
+        else if (syncTo === SyncTo.UI) this._(activeShapeStore.pushAura, { aura, shape: this.uuid, syncTo });
+
         this._auras.push(aura);
         this.checkVisionSources();
         this.invalidate(false);
-        if (syncTo === SyncTo.SERVER) sendShapeCreateAura(aurasToServer(this.uuid, [aura])[0]);
-        else if (syncTo === SyncTo.UI) this._(activeShapeStore.pushAura, { aura, shape: this.uuid, syncTo });
     }
 
     updateAura(auraId: string, delta: Partial<Aura>, syncTo: SyncTo): void {
         const aura = this._auras.find(t => t.uuid === auraId);
         if (aura === undefined) return;
-
-        const visionSources = getVisionSources(this.floor.id);
-        const i = visionSources.findIndex(ls => ls.aura === aura.uuid);
-
-        Object.assign(aura, delta);
-
-        if (aura.visionSource && i === -1) addVisionSource({ shape: this.uuid, aura: aura.uuid }, this.floor.id);
-        else if (!aura.visionSource && i >= 0) sliceVisionSources(i, this.floor.id);
 
         if (syncTo === SyncTo.SERVER) {
             sendShapeUpdateAura({
@@ -818,14 +839,23 @@ export abstract class Shape {
             this._(activeShapeStore.updateAura, { aura: auraId, delta, syncTo });
         }
 
+        const visionSources = getVisionSources(this.floor.id);
+        const i = visionSources.findIndex(ls => ls.aura === aura.uuid);
+
+        Object.assign(aura, delta);
+
+        if (aura.visionSource && i === -1) addVisionSource({ shape: this.uuid, aura: aura.uuid }, this.floor.id);
+        else if (!aura.visionSource && i >= 0) sliceVisionSources(i, this.floor.id);
+
         this.invalidate(false);
     }
 
     removeAura(aura: string, syncTo: SyncTo): void {
+        if (syncTo === SyncTo.SERVER) sendShapeRemoveAura({ shape: this.uuid, value: aura });
+        else if (syncTo === SyncTo.UI) this._(activeShapeStore.removeAura, { aura, syncTo });
+
         this._auras = this._auras.filter(au => au.uuid !== aura);
         this.checkVisionSources();
         this.invalidate(false);
-        if (syncTo === SyncTo.SERVER) sendShapeRemoveAura({ shape: this.uuid, value: aura });
-        else if (syncTo === SyncTo.UI) this._(activeShapeStore.removeAura, { aura, syncTo });
     }
 }

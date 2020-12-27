@@ -5,6 +5,7 @@ import { DEFAULT_GRID_SIZE, gameStore } from "@/game/store";
 import { calculateDelta } from "@/game/ui/tools/utils";
 import { visibilityStore } from "@/game/visibility/store";
 import { TriangulationTarget } from "@/game/visibility/te/pa";
+import { SyncTo } from "../../core/comm/types";
 import { sendClientLocationOptions } from "../api/emits/client";
 import { sendShapePositionUpdate } from "../api/emits/shape/core";
 import { EventBus } from "../event-bus";
@@ -12,6 +13,7 @@ import { floorStore } from "../layers/store";
 import { moveFloor } from "../layers/utils";
 import { gameManager } from "../manager";
 import { gameSettingsStore } from "../settings";
+import { activeShapeStore } from "../ui/ActiveShapeStore";
 
 export function onKeyUp(event: KeyboardEvent): void {
     if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement) {
@@ -153,7 +155,12 @@ export async function onKeyDown(event: KeyboardEvent): Promise<void> {
         } else if (event.key === "l" && event.ctrlKey) {
             const selection = layerManager.getSelection({ includeComposites: true });
             for (const shape of selection) {
-                shape.setLocked(!shape.isLocked, true);
+                // This is the only place currently where we would need to update both UI and Server.
+                // Might need to introduce a SyncTo.BOTH
+                shape.setLocked(!shape.isLocked, SyncTo.SERVER);
+                if (activeShapeStore.uuid === shape.uuid) {
+                    activeShapeStore.setLocked({ isLocked: !shape.isLocked, syncTo: SyncTo.UI });
+                }
             }
             event.preventDefault();
             event.stopPropagation();

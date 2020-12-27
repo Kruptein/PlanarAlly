@@ -1,3 +1,4 @@
+import { SyncTo } from "../core/comm/types";
 import { uuidv4 } from "../core/utils";
 import {
     requestGroupInfo,
@@ -31,7 +32,7 @@ export function removeGroup(groupId: string, sync: boolean): void {
     const members = getGroupMembers(groupId);
     for (const member of members) {
         member.groupId = undefined;
-        member.setShowBadge(false, false);
+        member.setShowBadge(false, SyncTo.UI);
     }
     if (sync) sendRemoveGroup(groupId);
     memberMap.delete(groupId);
@@ -107,7 +108,7 @@ export function removeGroupMember(groupId: string, member: string, sync: boolean
     const members = memberMap.get(groupId);
     members?.delete(member);
     const shape = layerManager.UUIDMap.get(member);
-    if (shape !== undefined) shape.setShowBadge(false, false);
+    if (shape !== undefined) shape.setShowBadge(false, SyncTo.UI);
     if (sync) {
         sendGroupLeave([{ uuid: member, group_id: groupId }]);
     }

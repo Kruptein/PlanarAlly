@@ -155,11 +155,12 @@ export async function onKeyDown(event: KeyboardEvent): Promise<void> {
         } else if (event.key === "l" && event.ctrlKey) {
             const selection = layerManager.getSelection({ includeComposites: true });
             for (const shape of selection) {
-                // This is the only place currently where we would need to update both UI and Server.
+                // This and GroupSettings are the only places currently where we would need to update both UI and Server.
                 // Might need to introduce a SyncTo.BOTH
-                shape.setLocked(!shape.isLocked, SyncTo.SERVER);
+                const isLocked = !shape.isLocked;
+                shape.setLocked(isLocked, SyncTo.SERVER);
                 if (activeShapeStore.uuid === shape.uuid) {
-                    activeShapeStore.setLocked({ isLocked: !shape.isLocked, syncTo: SyncTo.UI });
+                    activeShapeStore.setLocked({ isLocked, syncTo: SyncTo.UI });
                 }
             }
             event.preventDefault();

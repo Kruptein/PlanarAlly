@@ -60,6 +60,7 @@ export default class GroupSettings extends Vue {
     }
 
     updateGroupToggleState(): void {
+        if (!this.owned) return;
         if (this.shape.groupId === undefined) return;
 
         const members = this.getGroupMembers();
@@ -109,6 +110,7 @@ export default class GroupSettings extends Vue {
     }
 
     setCharacterSetSelected(characterSetSelected: number): void {
+        if (!this.owned) return;
         const group = this.getGroup();
         if (group === undefined) {
             this.characterSetSelected = characterSetSelected;
@@ -133,6 +135,7 @@ export default class GroupSettings extends Vue {
     }
 
     setCustomCharset(characterSet: { target: HTMLInputElement }): void {
+        if (!this.owned) return;
         const group = this.getGroup();
         const value = characterSet.target.value.split(",");
         if (group === undefined) {
@@ -153,6 +156,7 @@ export default class GroupSettings extends Vue {
     }
 
     async setCreationOrder(creationOrder: CREATION_ORDER_TYPES): Promise<void> {
+        if (!this.owned) return;
         const group = this.getGroup();
         if (group === undefined) {
             this.creationOrder = creationOrder;
@@ -171,21 +175,25 @@ export default class GroupSettings extends Vue {
     }
 
     centerMember(member: Shape): void {
+        if (!this.owned) return;
         gameManager.setCenterPosition(member.center());
     }
 
     toggleHighlight(member: Shape, show: boolean): void {
+        if (!this.owned) return;
         member.showHighlight = show;
         member.layer.invalidate(true);
     }
 
     createGroup(): void {
+        if (!this.owned) return;
         if (this.shape.groupId !== undefined) return;
         createNewGroupForShapes([this.shape.uuid!]);
         this.$forceUpdate();
     }
 
     async deleteGroup(): Promise<void> {
+        if (!this.owned) return;
         if (this.shape.groupId === undefined) return;
         const remove = await this.$refs.confirmDialog.open(
             "Removing group",
@@ -198,16 +206,19 @@ export default class GroupSettings extends Vue {
     }
 
     updateToggles(checked: boolean): void {
+        if (!this.owned) return;
         for (const member of this.getGroupMembers()) {
             if (member.showBadge !== checked) member.setShowBadge(checked, SyncTo.SERVER);
         }
     }
 
     removeMember(member: Shape): void {
+        if (!this.owned) return;
         removeGroupMember(member.groupId!, member.uuid, true);
     }
 
     showBadge(member: Shape, checked: boolean): void {
+        if (!this.owned) return;
         // This and Keyboard are the only places currently where we would need to update both UI and Server.
         // Might need to introduce a SyncTo.BOTH
         member.setShowBadge(checked, SyncTo.SERVER);

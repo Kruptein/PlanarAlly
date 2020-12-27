@@ -22,14 +22,17 @@ export default class TrackerSettings extends Vue {
     // Tracker
 
     updateTracker(tracker: string, delta: Partial<Tracker>): void {
+        if (!this.owned) return;
         if (this.shape.uuid) this.shape.updateTracker({ tracker, delta, syncTo: SyncTo.SERVER });
     }
 
     removeTracker(tracker: string): void {
+        if (!this.owned) return;
         this.shape.removeTracker({ tracker, syncTo: SyncTo.SERVER });
     }
 
     toggleCompositeTracker(trackerId: string): void {
+        if (!this.owned) return;
         if (!this.shape.isComposite) return;
 
         const trackerIndex = this.shape.trackers.findIndex(t => t.uuid === trackerId);
@@ -50,15 +53,18 @@ export default class TrackerSettings extends Vue {
     // Aura
 
     updateAura(aura: string, delta: Partial<Aura>, syncTo = true): void {
+        if (!this.owned) return;
         if (this.shape.uuid)
             this.shape.updateAura({ aura, delta, syncTo: syncTo === true ? SyncTo.SERVER : SyncTo.SHAPE });
     }
 
     removeAura(aura: string): void {
+        if (!this.owned) return;
         this.shape.removeAura({ aura, syncTo: SyncTo.SERVER });
     }
 
     toggleCompositeAura(auraId: string): void {
+        if (!this.owned) return;
         if (!this.shape.isComposite) return;
 
         const auraIndex = this.shape.auras.findIndex(t => t.uuid === auraId);

@@ -31,6 +31,7 @@ export default class AccessSettings extends Vue {
     }
 
     updateAnnotation(event: { target: HTMLInputElement }, sync = true): void {
+        if (!this.owned) return;
         this.calcHeight();
         this.shape.setAnnotation({ annotation: event.target.value, syncTo: sync ? SyncTo.SERVER : SyncTo.SHAPE });
     }
@@ -40,10 +41,12 @@ export default class AccessSettings extends Vue {
     }
 
     addLabel(label: string): void {
+        if (!this.owned) return;
         this.shape.addLabel({ label, syncTo: SyncTo.SERVER });
     }
 
     removeLabel(uuid: string): void {
+        if (!this.owned) return;
         this.shape.removeLabel({ label: uuid, syncTo: SyncTo.SERVER });
     }
 

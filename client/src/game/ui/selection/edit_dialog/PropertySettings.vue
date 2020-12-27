@@ -18,42 +18,52 @@ export default class PropertySettings extends Vue {
     }
 
     updateName(event: { target: HTMLInputElement }): void {
+        if (!this.owned) return;
         this.shape.setName({ name: event.target.value, syncTo: SyncTo.SERVER });
     }
 
     toggleNameVisible(): void {
+        if (!this.owned) return;
         this.shape.setNameVisible({ visible: !this.shape.nameVisible, syncTo: SyncTo.SERVER });
     }
 
     setToken(event: { target: HTMLInputElement }): void {
+        if (!this.owned) return;
         this.shape.setIsToken({ isToken: event.target.checked, syncTo: SyncTo.SERVER });
     }
 
     setInvisible(event: { target: HTMLInputElement }): void {
+        if (!this.owned) return;
         this.shape.setIsInvisible({ isInvisible: event.target.checked, syncTo: SyncTo.SERVER });
     }
 
     setLocked(event: { target: HTMLInputElement }): void {
+        if (!this.owned) return;
         this.shape.setLocked({ isLocked: event.target.checked, syncTo: SyncTo.SERVER });
     }
 
     toggleBadge(event: { target: HTMLInputElement }): void {
+        if (!this.owned) return;
         this.shape.setShowBadge({ showBadge: event.target.checked, syncTo: SyncTo.SERVER });
     }
 
     setVisionBlocker(event: { target: HTMLInputElement }): void {
+        if (!this.owned) return;
         this.shape.setVisionObstruction({ blocksVision: event.target.checked, syncTo: SyncTo.SERVER });
     }
 
     setMovementBlocker(event: { target: HTMLInputElement }): void {
+        if (!this.owned) return;
         this.shape.setMovementObstruction({ blocksMovement: event.target.checked, syncTo: SyncTo.SERVER });
     }
 
     setStrokeColour(event: string, temporary = false): void {
+        if (!this.owned) return;
         this.shape.setStrokeColour({ colour: event, syncTo: temporary ? SyncTo.SHAPE : SyncTo.SERVER });
     }
 
     setFillColour(event: string, temporary = false): void {
+        if (!this.owned) return;
         this.shape.setFillColour({ colour: event, syncTo: temporary ? SyncTo.SHAPE : SyncTo.SERVER });
     }
 }

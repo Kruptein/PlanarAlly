@@ -157,7 +157,7 @@ class ActiveShapeStore extends VuexModule implements ActiveShapeState {
 
     @Mutation
     setName(data: { name: string; syncTo: SyncTo }): void {
-        if (this._uuid === null || !activeShapeStore.hasEditAccess) return;
+        if (this._uuid === null) return;
 
         this._name = data.name;
 
@@ -173,7 +173,7 @@ class ActiveShapeStore extends VuexModule implements ActiveShapeState {
 
     @Mutation
     setNameVisible(data: { visible: boolean; syncTo: SyncTo }): void {
-        if (this._uuid === null || !activeShapeStore.hasEditAccess) return;
+        if (this._uuid === null) return;
 
         this._nameVisible = data.visible;
 
@@ -189,7 +189,7 @@ class ActiveShapeStore extends VuexModule implements ActiveShapeState {
 
     @Mutation
     setIsToken(data: { isToken: boolean; syncTo: SyncTo }): void {
-        if (this._uuid === null || !activeShapeStore.hasEditAccess) return;
+        if (this._uuid === null) return;
 
         this._isToken = data.isToken;
 
@@ -205,7 +205,7 @@ class ActiveShapeStore extends VuexModule implements ActiveShapeState {
 
     @Mutation
     setIsInvisible(data: { isInvisible: boolean; syncTo: SyncTo }): void {
-        if (this._uuid === null || !activeShapeStore.hasEditAccess) return;
+        if (this._uuid === null) return;
 
         this._isInvisible = data.isInvisible;
 
@@ -221,7 +221,7 @@ class ActiveShapeStore extends VuexModule implements ActiveShapeState {
 
     @Mutation
     setStrokeColour(data: { colour: string; syncTo: SyncTo }): void {
-        if (this._uuid === null || !activeShapeStore.hasEditAccess) return;
+        if (this._uuid === null) return;
 
         this._strokeColour = data.colour;
 
@@ -237,7 +237,7 @@ class ActiveShapeStore extends VuexModule implements ActiveShapeState {
 
     @Mutation
     setFillColour(data: { colour: string; syncTo: SyncTo }): void {
-        if (this._uuid === null || !activeShapeStore.hasEditAccess) return;
+        if (this._uuid === null) return;
 
         this._fillColour = data.colour;
 
@@ -253,7 +253,7 @@ class ActiveShapeStore extends VuexModule implements ActiveShapeState {
 
     @Mutation
     setVisionObstruction(data: { blocksVision: boolean; syncTo: SyncTo }): void {
-        if (this._uuid === null || !activeShapeStore.hasEditAccess) return;
+        if (this._uuid === null) return;
         this._visionObstruction = data.blocksVision;
         if (data.syncTo !== SyncTo.UI) {
             const shape = layerManager.UUIDMap.get(this._uuid)!;
@@ -267,7 +267,7 @@ class ActiveShapeStore extends VuexModule implements ActiveShapeState {
 
     @Mutation
     setMovementObstruction(data: { blocksMovement: boolean; syncTo: SyncTo }): void {
-        if (this._uuid === null || !activeShapeStore.hasEditAccess) return;
+        if (this._uuid === null) return;
 
         this._movementObstruction = data.blocksMovement;
 
@@ -283,7 +283,7 @@ class ActiveShapeStore extends VuexModule implements ActiveShapeState {
 
     @Mutation
     setLocked(data: { isLocked: boolean; syncTo: SyncTo }): void {
-        if (this._uuid === null || !activeShapeStore.hasEditAccess) return;
+        if (this._uuid === null) return;
 
         this._isLocked = data.isLocked;
 
@@ -299,7 +299,7 @@ class ActiveShapeStore extends VuexModule implements ActiveShapeState {
 
     @Mutation
     setShowBadge(data: { showBadge: boolean; syncTo: SyncTo }): void {
-        if (this._uuid === null || !activeShapeStore.hasEditAccess) return;
+        if (this._uuid === null) return;
 
         this._showBadge = data.showBadge;
 
@@ -342,7 +342,7 @@ class ActiveShapeStore extends VuexModule implements ActiveShapeState {
 
     @Mutation
     setDefaultAccess(data: { access: ShapeAccess; syncTo: SyncTo }): void {
-        if (this._uuid === null || !activeShapeStore.hasEditAccess) return;
+        if (this._uuid === null) return;
 
         this._access = { ...data.access };
 
@@ -354,7 +354,7 @@ class ActiveShapeStore extends VuexModule implements ActiveShapeState {
 
     @Mutation
     setDefaultEditAccess(data: { editAccess: boolean; syncTo: SyncTo }): void {
-        if (this._uuid === null || !activeShapeStore.hasEditAccess) return;
+        if (this._uuid === null) return;
 
         this._access!.edit = data.editAccess;
         if (data.editAccess) {
@@ -370,7 +370,7 @@ class ActiveShapeStore extends VuexModule implements ActiveShapeState {
 
     @Mutation
     setDefaultMovementAccess(data: { movementAccess: boolean; syncTo: SyncTo }): void {
-        if (this._uuid === null || !activeShapeStore.hasEditAccess) return;
+        if (this._uuid === null) return;
 
         this._access!.movement = data.movementAccess;
         if (data.movementAccess) this._access!.vision = true;
@@ -384,7 +384,7 @@ class ActiveShapeStore extends VuexModule implements ActiveShapeState {
 
     @Mutation
     setDefaultVisionAccess(data: { visionAccess: boolean; syncTo: SyncTo }): void {
-        if (this._uuid === null || !activeShapeStore.hasEditAccess) return;
+        if (this._uuid === null) return;
 
         this._access!.vision = data.visionAccess;
         if (!data.visionAccess) {
@@ -400,7 +400,7 @@ class ActiveShapeStore extends VuexModule implements ActiveShapeState {
 
     @Mutation
     addOwner(data: { owner: ShapeOwner; syncTo: SyncTo }): void {
-        if (this._uuid === null || !activeShapeStore.hasEditAccess) return;
+        if (this._uuid === null) return;
 
         this._owners.push(data.owner);
 
@@ -412,7 +412,7 @@ class ActiveShapeStore extends VuexModule implements ActiveShapeState {
 
     @Mutation
     updateOwner(data: { owner: ShapeOwner; syncTo: SyncTo }): void {
-        if (this._uuid === null || !activeShapeStore.hasEditAccess) return;
+        if (this._uuid === null) return;
 
         const index = this._owners.findIndex(o => o.user === data.owner.user);
         if (index < 0) return;
@@ -427,7 +427,7 @@ class ActiveShapeStore extends VuexModule implements ActiveShapeState {
 
     @Mutation
     removeOwner(data: { owner: string; syncTo: SyncTo }): void {
-        if (this._uuid === null || !activeShapeStore.hasEditAccess) return;
+        if (this._uuid === null) return;
 
         this._owners = this._owners.filter(o => o.user !== data.owner);
 
@@ -445,7 +445,7 @@ class ActiveShapeStore extends VuexModule implements ActiveShapeState {
 
     @Mutation
     pushTracker(data: { tracker: Tracker; shape: string; syncTo: SyncTo }): void {
-        if (!activeShapeStore.hasEditAccess) return;
+        if (this._uuid === undefined) return;
 
         const tracker = toUiTrackers([data.tracker], data.shape)[0];
         if (this._uuid === data.shape) {
@@ -464,7 +464,7 @@ class ActiveShapeStore extends VuexModule implements ActiveShapeState {
 
     @Mutation
     updateTracker(data: { tracker: string; delta: Partial<Tracker>; syncTo: SyncTo }): void {
-        if (!activeShapeStore.hasEditAccess) return;
+        if (this._uuid === undefined) return;
 
         const tracker = this._trackers.find(t => t.uuid === data.tracker);
         if (tracker === undefined) return;
@@ -487,7 +487,7 @@ class ActiveShapeStore extends VuexModule implements ActiveShapeState {
 
     @Mutation
     removeTracker(data: { tracker: string; syncTo: SyncTo }): void {
-        if (!activeShapeStore.hasEditAccess) return;
+        if (this._uuid === undefined) return;
 
         const trackerIndex = this._trackers.findIndex(t => t.uuid === data.tracker);
         if (trackerIndex < 0) return;
@@ -511,7 +511,7 @@ class ActiveShapeStore extends VuexModule implements ActiveShapeState {
 
     @Mutation
     pushAura(data: { aura: Aura; shape: string; syncTo: SyncTo }): void {
-        if (!activeShapeStore.hasEditAccess) return;
+        if (this._uuid === undefined) return;
 
         const aura = toUiAuras([data.aura], data.shape)[0];
         if (this._uuid === data.shape) {
@@ -530,7 +530,7 @@ class ActiveShapeStore extends VuexModule implements ActiveShapeState {
 
     @Mutation
     updateAura(data: { aura: string; delta: Partial<Aura>; syncTo: SyncTo }): void {
-        if (!activeShapeStore.hasEditAccess) return;
+        if (this._uuid === undefined) return;
 
         const aura = this._auras.find(a => a.uuid === data.aura);
         if (aura === undefined) return;
@@ -553,7 +553,7 @@ class ActiveShapeStore extends VuexModule implements ActiveShapeState {
 
     @Mutation
     removeAura(data: { aura: string; syncTo: SyncTo }): void {
-        if (!activeShapeStore.hasEditAccess) return;
+        if (this._uuid === undefined) return;
 
         const auraIndex = this._auras.findIndex(t => t.uuid === data.aura);
         if (auraIndex < 0) return;
@@ -583,7 +583,7 @@ class ActiveShapeStore extends VuexModule implements ActiveShapeState {
 
     @Mutation
     setAnnotation(data: { annotation: string; syncTo: SyncTo }): void {
-        if (this._uuid === null || !activeShapeStore.hasEditAccess) return;
+        if (this._uuid === null) return;
 
         this._annotation = data.annotation;
 
@@ -599,7 +599,7 @@ class ActiveShapeStore extends VuexModule implements ActiveShapeState {
 
     @Mutation
     addLabel(data: { label: string; syncTo: SyncTo }): void {
-        if (this._uuid === null || !activeShapeStore.hasEditAccess) return;
+        if (this._uuid === null) return;
 
         this._labels.push({ ...gameStore.labels[data.label] });
 
@@ -611,7 +611,7 @@ class ActiveShapeStore extends VuexModule implements ActiveShapeState {
 
     @Mutation
     removeLabel(data: { label: string; syncTo: SyncTo }): void {
-        if (this._uuid === null || !activeShapeStore.hasEditAccess) return;
+        if (this._uuid === null) return;
 
         this._labels = this._labels.filter(l => l.uuid !== data.label);
 

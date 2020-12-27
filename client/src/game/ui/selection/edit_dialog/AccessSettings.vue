@@ -30,10 +30,12 @@ export default class AccessSettings extends Vue {
     }
 
     toggleDefaultEditAccess(): void {
+        if (!this.owned) return;
         this.shape.setDefaultEditAccess({ editAccess: !this.shape.hasDefaultEditAccess, syncTo: SyncTo.SERVER });
     }
 
     toggleDefaultMovementAccess(): void {
+        if (!this.owned) return;
         this.shape.setDefaultMovementAccess({
             movementAccess: !this.shape.hasDefaultMovementAccess,
             syncTo: SyncTo.SERVER,
@@ -41,10 +43,12 @@ export default class AccessSettings extends Vue {
     }
 
     toggleDefaultVisionAccess(): void {
+        if (!this.owned) return;
         this.shape.setDefaultVisionAccess({ visionAccess: !this.shape.hasDefaultVisionAccess, syncTo: SyncTo.SERVER });
     }
 
     addOwner(): void {
+        if (!this.owned) return;
         const dropdown = this.$refs.accessDropdown;
         const selectedUser = dropdown.options[dropdown.selectedIndex].value;
         if (selectedUser === "") return;
@@ -59,10 +63,12 @@ export default class AccessSettings extends Vue {
     }
 
     removeOwner(owner: string): void {
+        if (!this.owned) return;
         this.shape.removeOwner({ owner, syncTo: SyncTo.SERVER });
     }
 
     toggleOwnerEditAccess(owner: ShapeOwner): void {
+        if (!this.owned) return;
         // un-reactify it, because we want to check on access permissions in updateOwner
         // otherwise one would never be able to remove their edit access rights
         const copy = { ...owner, access: { ...owner.access } };
@@ -77,6 +83,7 @@ export default class AccessSettings extends Vue {
         });
     }
     toggleOwnerMovementAccess(owner: ShapeOwner): void {
+        if (!this.owned) return;
         const copy = { ...owner, access: { ...owner.access } };
         copy.access.movement = !copy.access.movement;
         if (copy.access.movement) {
@@ -91,6 +98,7 @@ export default class AccessSettings extends Vue {
     }
 
     toggleOwnerVisionAccess(owner: ShapeOwner): void {
+        if (!this.owned) return;
         const copy = { ...owner, access: { ...owner.access } };
         copy.access.vision = !copy.access.vision;
         if (!copy.access.vision) {

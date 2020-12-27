@@ -30,18 +30,21 @@ export default class MapTool extends Tool implements ToolBasics {
     factorX = 1;
     factorY = 1;
 
-    startPoint: GlobalPoint | null = null;
-    rect: Rect | null = null;
-    shape: Rect | null = null;
+    startPoint: GlobalPoint | undefined = undefined;
+    rect: Rect | undefined = undefined;
+    shape: Rect | undefined = undefined; // FrozenOptionalShape<Rect> = { _: undefined };
     error = "";
 
-    ogRP: GlobalPoint | null = null;
+    ogRP: GlobalPoint | undefined = undefined;
     ogW: number | null = null;
     ogH: number | null = null;
 
     manualDrag = true;
     lock = true;
     aspectRatio = 1;
+
+    hasShape = false;
+    hasRect = false;
 
     permittedTools_: ToolPermission[] = [
         { name: ToolName.Select, features: { enabled: [SelectFeatures.ChangeSelection] } },
@@ -50,7 +53,6 @@ export default class MapTool extends Tool implements ToolBasics {
     get permittedTools(): ToolPermission[] {
         return this.permittedTools_;
     }
-
     // Life cycle
 
     mounted(): void {
@@ -66,9 +68,10 @@ export default class MapTool extends Tool implements ToolBasics {
     // End life cycle
 
     setSelection(shapes: readonly Shape[]): void {
-        if (shapes.length === 1 && this.shape === null && ["assetrect", "rect"].includes(shapes[0].type)) {
-            this.shape = shapes[0] as Rect;
-            this.ogRP = this.shape.refPoint;
+        if (shapes.length === 1 && this.shape === undefined && ["assetrect", "rect"].includes(shapes[0].type)) {
+            this.shape = shapes[0] as Rect; // Object.freeze({ _: shapes[0] }) as FrozenShape<Rect>;
+            this.hasShape = true;
+            this.ogRP = this.shape.refPoint; // Object.freeze({ _: this.shape.refPoint });
             this.ogW = this.shape.w;
             this.ogH = this.shape.h;
             this.aspectRatio = this.shape.w / this.shape.h;
@@ -78,7 +81,7 @@ export default class MapTool extends Tool implements ToolBasics {
     }
 
     skipManualDrag(): void {
-        if (this.shape === null) return;
+        if (this.shape === undefined) return;
 
         this.manualDrag = false;
         this.gridX = this.shape.w / DEFAULT_GRID_SIZE;
@@ -100,22 +103,24 @@ export default class MapTool extends Tool implements ToolBasics {
         if (this.rect) {
             const layer = floorStore.currentLayer!;
             layer.removeShape(this.rect, SyncMode.NO_SYNC);
-            this.rect = null;
+            this.rect = undefined;
+            this.hasRect = false;
         }
         this.permittedTools_ = [{ name: ToolName.Select, features: { enabled: [SelectFeatures.ChangeSelection] } }];
-        this.shape = null;
+        this.shape = undefined;
+        this.hasShape = false;
         this.error = "";
         this.manualDrag = true;
     }
 
     preview(temporary: boolean): void {
-        if (this.shape === null || (this.rect === null && this.manualDrag)) return;
+        if (this.shape === undefined || (this.rect === undefined && this.manualDrag)) return;
         if (!Number.isFinite(this.gridX) || !Number.isFinite(this.gridY) || this.gridX <= 0 || this.gridY <= 0) {
             this.error = "Input should be a positive number";
             return;
         }
 
-        if (this.rect !== null) {
+        if (this.rect !== undefined) {
             const xFactor = (this.gridX * gameStore.gridSize) / this.rect.w;
             const yFactor = (this.gridY * gameStore.gridSize) / this.rect.h;
 
@@ -153,7 +158,7 @@ export default class MapTool extends Tool implements ToolBasics {
 
     onDown(lp: LocalPoint): void {
         if (!this.manualDrag) return;
-        if (this.rect !== null || !layerManager.hasSelection()) return;
+        if (this.rect !== undefined || !layerManager.hasSelection()) return;
 
         const startPoint = l2g(lp);
 
@@ -166,13 +171,15 @@ export default class MapTool extends Tool implements ToolBasics {
         this.active = true;
 
         this.rect = new Rect(this.startPoint.clone(), 0, 0, { fillColour: "rgba(0,0,0,0)", strokeColour: "black" });
+        this.hasRect = true;
         this.rect.preventSync = true;
         layer.addShape(this.rect, SyncMode.NO_SYNC, InvalidationMode.NORMAL);
         layer.setSelection(this.rect);
+        console.log(this.rect);
     }
 
     onMove(lp: LocalPoint): void {
-        if (!this.active || this.rect === null || this.startPoint === null) return;
+        if (!this.active || this.rect === undefined || this.startPoint === undefined) return;
 
         const endPoint = l2g(lp);
 
@@ -192,7 +199,7 @@ export default class MapTool extends Tool implements ToolBasics {
     }
 
     onUp(): void {
-        if (!this.active || this.rect === null) return;
+        if (!this.active || this.rect === undefined) return;
         const layer = floorStore.currentLayer;
         if (layer === undefined) {
             console.log("No active layer!");
@@ -267,9 +274,9 @@ export default class MapTool extends Tool implements ToolBasics {
         v-if="selected"
         :style="{ '--detailRight': detailRight(), '--detailArrow': detailArrow }"
     >
-        <template v-if="shape !== null">
+        <template v-if="hasShape">
             <div class="row">{{ error }}</div>
-            <template v-if="rect === null && manualDrag === true">
+            <template v-if="!hasRect && manualDrag === true">
                 <div id="map-selection-choice">
                     <div>{{ $t("game.ui.tools.map.drag_to_resize") }}</div>
                     <div id="next" @click="skipManualDrag">

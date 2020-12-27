@@ -27,9 +27,9 @@ export enum RulerFeatures {
 export default class RulerTool extends Tool implements ToolBasics {
     name = ToolName.Ruler;
     active = false;
-    startPoint: GlobalPoint | null = null;
-    rulers: Line[] = [];
-    text: Text | null = null;
+    startPoint: GlobalPoint | undefined = undefined;
+    rulers: Line[] = []; // These become reactive, but it's not the worst thing I suppose
+    text: Text | undefined = undefined;
 
     currentLength = 0;
     previousLength = 0;
@@ -65,7 +65,8 @@ export default class RulerTool extends Tool implements ToolBasics {
     }
 
     cleanup(): void {
-        if (!this.active || this.rulers.length === 0 || this.startPoint === null || this.text === null) return;
+        if (!this.active || this.rulers.length === 0 || this.startPoint === undefined || this.text === undefined)
+            return;
 
         const layer = layerManager.getLayer(floorStore.currentFloor, "draw");
         if (layer === undefined) {
@@ -76,7 +77,7 @@ export default class RulerTool extends Tool implements ToolBasics {
 
         for (const ruler of this.rulers) layer.removeShape(ruler, this.syncMode);
         layer.removeShape(this.text, this.syncMode);
-        this.startPoint = this.text = null;
+        this.startPoint = this.text = undefined;
         this.rulers = [];
         this.previousLength = 0;
     }
@@ -108,7 +109,8 @@ export default class RulerTool extends Tool implements ToolBasics {
 
     onMove(lp: LocalPoint, event: MouseEvent | TouchEvent): void {
         let endPoint = l2g(lp);
-        if (!this.active || this.rulers.length === 0 || this.startPoint === null || this.text === null) return;
+        if (!this.active || this.rulers.length === 0 || this.startPoint === undefined || this.text === undefined)
+            return;
 
         const layer = layerManager.getLayer(floorStore.currentFloor, "draw");
         if (layer === undefined) {

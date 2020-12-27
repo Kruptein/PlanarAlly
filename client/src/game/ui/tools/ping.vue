@@ -17,16 +17,17 @@ import { SelectFeatures } from "./select.vue";
 export default class PingTool extends Tool implements ToolBasics {
     name = ToolName.Ping;
     active = false;
-    startPoint: GlobalPoint | null = null;
-    ping: Circle | null = null;
-    border: Circle | null = null;
+    startPoint: GlobalPoint | undefined = undefined;
+    ping: Circle | undefined = undefined;
+    border: Circle | undefined = undefined;
 
     get permittedTools(): ToolPermission[] {
         return [{ name: ToolName.Select, features: { enabled: [SelectFeatures.Context] } }];
     }
 
     cleanup(): void {
-        if (!this.active || this.ping === null || this.border === null || this.startPoint === null) return;
+        if (!this.active || this.ping === undefined || this.border === undefined || this.startPoint === undefined)
+            return;
         const layer = layerManager.getLayer(floorStore.currentFloor, "draw");
         if (layer === undefined) {
             console.log("No active layer!");
@@ -36,8 +37,8 @@ export default class PingTool extends Tool implements ToolBasics {
         this.active = false;
         layer.removeShape(this.ping, SyncMode.TEMP_SYNC);
         layer.removeShape(this.border, SyncMode.TEMP_SYNC);
-        this.ping = null;
-        this.startPoint = null;
+        this.ping = undefined;
+        this.startPoint = undefined;
     }
 
     onDeselect(): void {
@@ -68,7 +69,8 @@ export default class PingTool extends Tool implements ToolBasics {
     }
 
     onMove(lp: LocalPoint): void {
-        if (!this.active || this.ping === null || this.border === null || this.startPoint === null) return;
+        if (!this.active || this.ping === undefined || this.border === undefined || this.startPoint === undefined)
+            return;
 
         const gp = l2g(lp);
 

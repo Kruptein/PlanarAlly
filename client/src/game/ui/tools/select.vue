@@ -66,13 +66,13 @@ export default class SelectTool extends Tool implements ToolBasics {
     // we keep track of the actual offset within the asset.
     dragRay = new Ray<LocalPoint>(new LocalPoint(0, 0), new Vector(0, 0));
     selectionStartPoint = start;
-    selectionHelper: Rect | null = null;
+    selectionHelper: Rect | undefined = undefined;
 
     angle = 0;
     rotationUiActive = false;
-    rotationAnchor: Line | null = null;
-    rotationBox: Rect | null = null;
-    rotationEnd: Circle | null = null;
+    rotationAnchor: Line | undefined = undefined;
+    rotationBox: Rect | undefined = undefined;
+    rotationEnd: Circle | undefined = undefined;
 
     snappedToPoint = false;
 
@@ -215,7 +215,7 @@ export default class SelectTool extends Tool implements ToolBasics {
 
             this.selectionStartPoint = gp;
 
-            if (this.selectionHelper === null) {
+            if (this.selectionHelper === undefined) {
                 this.selectionHelper = new Rect(this.selectionStartPoint, 0, 0, {
                     fillColour: "rgba(0, 0, 0, 0)",
                     strokeColour: "#7c253e",
@@ -403,7 +403,7 @@ export default class SelectTool extends Tool implements ToolBasics {
             layerSelection = layer.getSelection({ includeComposites: false });
 
             layer.removeShape(this.selectionHelper!, SyncMode.NO_SYNC);
-            this.selectionHelper = null;
+            this.selectionHelper = undefined;
 
             if (layerSelection.some(s => !s.isLocked)) layer.setSelection(...layerSelection.filter(s => !s.isLocked));
 
@@ -646,7 +646,7 @@ export default class SelectTool extends Tool implements ToolBasics {
             layer.removeShape(this.rotationAnchor!, SyncMode.NO_SYNC);
             layer.removeShape(this.rotationBox!, SyncMode.NO_SYNC);
             layer.removeShape(this.rotationEnd!, SyncMode.NO_SYNC);
-            this.rotationAnchor = this.rotationBox = this.rotationEnd = null;
+            this.rotationAnchor = this.rotationBox = this.rotationEnd = undefined;
             this.rotationUiActive = false;
 
             layer.invalidate(true);

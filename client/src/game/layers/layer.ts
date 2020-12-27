@@ -143,6 +143,11 @@ export class Layer {
         if (sync !== SyncMode.NO_SYNC && !shape.preventSync)
             sendShapeAdd({ shape: shape.asDict(), temporary: sync === SyncMode.TEMP_SYNC });
         if (invalidate) this.invalidate(invalidate !== InvalidationMode.WITH_LIGHT);
+
+        if (activeShapeStore.uuid === undefined && activeShapeStore.lastUuid === shape.uuid) {
+            const selection = this.getSelection({ skipUiHelpers: false, includeComposites: false });
+            this.setSelection(shape, ...selection);
+        }
     }
 
     async setServerShapes(shapes: ServerShape[]): Promise<void> {
@@ -200,6 +205,10 @@ export class Layer {
 
         const index = this.selection.indexOf(shape);
         if (index >= 0) this.selection.splice(index, 1);
+
+        if ([activeShapeStore.uuid, activeShapeStore.parentUuid].includes(shape.uuid)) {
+            activeShapeStore.clear();
+        }
 
         EventBus.$emit("Initiative.Remove", shape.uuid);
         EventBus.$emit("Initiative.ForceUpdate");

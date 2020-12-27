@@ -72,6 +72,8 @@ These usually have no immediately visible impact on regular users
 -   Edit dialog stays open when selecting another shape
 -   Floor movement not recalculting vision/movement triangulation
 -   Selection including shapes out of vision
+-   Adding/Removing labels no longer being synced by the server
+-   Current floor no longer being highlighted in context menu
 -   [DM] Floor rename always setting a blank name
 
 ## [0.23.1] - 2020-10-25

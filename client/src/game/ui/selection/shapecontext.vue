@@ -2,8 +2,6 @@
 import Vue from "vue";
 import Component from "vue-class-component";
 
-import { mapState } from "vuex";
-
 import ConfirmDialog from "@/core/components/modals/confirm.vue";
 import ContextMenu from "@/core/components/contextmenu.vue";
 import Prompt from "@/core/components/modals/prompt.vue";
@@ -36,10 +34,6 @@ import { SyncMode } from "../../../core/comm/types";
         Prompt,
         SelectionBox,
     },
-    computed: {
-        ...mapState("game", ["activeFloorIndex", "markers"]),
-        ...mapState("gameSettings", ["activeLocation"]),
-    },
 })
 export default class ShapeContext extends Vue {
     $refs!: {
@@ -51,6 +45,28 @@ export default class ShapeContext extends Vue {
     visible = false;
     x = 0;
     y = 0;
+
+    get currentFloorIndex(): number {
+        return floorStore.currentFloorindex;
+    }
+
+    get markers(): string[] {
+        return gameStore.markers;
+    }
+
+    get isMarker(): boolean {
+        const selection = this.getSelection();
+        if (selection.length !== 1) return false;
+        return this.markers.includes(selection[0].uuid);
+    }
+
+    get activeLocation(): number {
+        return gameSettingsStore.activeLocation;
+    }
+
+    isActiveLayer(layer: string): boolean {
+        return this.getActiveLayer()?.name === layer;
+    }
 
     getSelection(): readonly Shape[] {
         return this.getActiveLayer()!.getSelection({ includeComposites: false });
@@ -69,11 +85,6 @@ export default class ShapeContext extends Vue {
     close(): void {
         if (this.$refs.prompt.visible || this.$refs.selectionbox.visible || this.$refs.confirmDialog.visible) return;
         this.visible = false;
-    }
-    getMarker(): string | undefined {
-        const selection = this.getSelection();
-        if (selection.length !== 1) return;
-        return selection[0].uuid;
     }
     getFloors(): readonly Floor[] {
         if (gameStore.IS_DM) return floorStore.floors;
@@ -217,7 +228,7 @@ export default class ShapeContext extends Vue {
     openEditDialog(): void {
         const selection = this.getSelection();
         if (selection.length !== 1) return;
-        EventBus.$emit("EditDialog.Open", selection[0]);
+        EventBus.$emit("EditDialog.Open");
         this.close();
     }
     setMarker(): void {
@@ -399,7 +410,7 @@ export default class ShapeContext extends Vue {
                 <li
                     v-for="(floor, idx) in getFloors()"
                     :key="floor.name"
-                    :style="[idx === activeFloorIndex ? { 'background-color': '#82c8a0' } : {}]"
+                    :style="[idx === currentFloorIndex ? { 'background-color': '#82c8a0' } : {}]"
                     @click="setFloor(floor)"
                 >
                     {{ floor.name }}
@@ -412,7 +423,7 @@ export default class ShapeContext extends Vue {
                 <li
                     v-for="layer in getLayers()"
                     :key="layer.name"
-                    :style="[getActiveLayer().name === layer.name ? { 'background-color': '#82c8a0' } : {}]"
+                    :style="[isActiveLayer(layer.name) ? { 'background-color': '#82c8a0' } : {}]"
                     @click="setLayer(layer.name)"
                 >
                     {{ getLayerWord(layer.name) }}
@@ -437,11 +448,7 @@ export default class ShapeContext extends Vue {
         <li @click="addInitiative" v-if="showInitiative()">{{ getInitiativeWord() }}</li>
         <li @click="deleteSelection" v-if="showDelete()" v-t="'game.ui.selection.shapecontext.delete_shapes'"></li>
         <template v-if="hasSingleShape()">
-            <li
-                v-if="markers.includes(getMarker())"
-                @click="deleteMarker"
-                v-t="'game.ui.selection.shapecontext.remove_marker'"
-            ></li>
+            <li v-if="isMarker" @click="deleteMarker" v-t="'game.ui.selection.shapecontext.remove_marker'"></li>
             <li v-else @click="setMarker" v-t="'game.ui.selection.shapecontext.set_marker'"></li>
             <li @click="saveTemplate" v-if="showDmNonSpawnItem() && hasAsset()" v-t="'game.ui.templates.save'"></li>
         </template>

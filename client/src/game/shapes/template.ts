@@ -19,12 +19,12 @@ export function applyTemplate<T extends ServerShape>(shape: T, template: BaseTem
     }
 
     for (const trackerTemplate of template.trackers ?? []) {
-        const defaultTracker = createEmptyTracker();
+        const defaultTracker = createEmptyTracker(shape.uuid);
         shape.trackers.push({ ...defaultTracker, ...trackerTemplate });
     }
 
     for (const auraTemplate of template.auras ?? []) {
-        const defaultAura = aurasToServer(shape.uuid, [createEmptyAura()], false)[0];
+        const defaultAura = aurasToServer(shape.uuid, [createEmptyAura(shape.uuid)])[0];
         shape.auras.push({ ...defaultAura, ...auraTemplate });
     }
 

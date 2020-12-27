@@ -68,7 +68,7 @@ export class FowLightingLayer extends FowLayer {
             for (const light of getVisionSources(this.floor)) {
                 const shape = layerManager.UUIDMap.get(light.shape);
                 if (shape === undefined) continue;
-                const aura = shape.auras.find(a => a.uuid === light.aura);
+                const aura = shape.getAuras(true).find(a => a.uuid === light.aura);
                 if (aura === undefined) continue;
 
                 if (!shape.ownedBy({ visionAccess: true }) && !aura.visible) continue;

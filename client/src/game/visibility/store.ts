@@ -55,7 +55,7 @@ class VisibilityStore extends VuexModule implements VisibilityState {
         if (data.shape.visionObstruction) {
             moveBlocker(TriangulationTarget.VISION, data.shape.uuid, data.oldFloor, data.newFloor, true);
         }
-        moveVisionSource(data.shape.uuid, data.shape.auras, data.oldFloor, data.newFloor);
+        moveVisionSource(data.shape.uuid, data.shape.getAuras(true), data.oldFloor, data.newFloor);
     }
 
     @Mutation

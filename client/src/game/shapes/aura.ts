@@ -7,10 +7,11 @@ import { GlobalPoint, LocalPoint } from "../geom";
 import { g2l, g2lr, g2lz, getUnitDistance } from "../units";
 import { Circle } from "./variants/circle";
 import { Aura } from "./interfaces";
-import { Shape } from "./shape";
+import { UiAura } from "../ui/ActiveShapeStore";
 
-export function createEmptyAura(): Aura {
+export function createEmptyAura(shape: string): UiAura {
     return {
+        shape,
         uuid: uuidv4(),
         name: "",
         value: 0,
@@ -22,37 +23,35 @@ export function createEmptyAura(): Aura {
     };
 }
 
-export function drawAuras(shape: Shape, ctx: CanvasRenderingContext2D): void {
-    for (const aura of shape.auras) {
-        const value = aura.value > 0 ? aura.value : 0;
-        const dim = aura.value > 0 ? aura.value : 0;
-        if (value === 0 && dim === 0) continue;
-        ctx.beginPath();
+export function drawAura(aura: Aura, location: GlobalPoint, floor: number, ctx: CanvasRenderingContext2D): void {
+    const value = aura.value > 0 ? aura.value : 0;
+    const dim = aura.value > 0 ? aura.value : 0;
+    if (value === 0 && dim === 0) return;
+    ctx.beginPath();
 
-        const loc = g2l(shape.center());
-        const innerRange = g2lr(value + dim);
+    const loc = g2l(location);
+    const innerRange = g2lr(value + dim);
 
-        if (dim === 0) ctx.fillStyle = aura.colour;
-        else {
-            const gradient = ctx.createRadialGradient(loc.x, loc.y, g2lr(value), loc.x, loc.y, g2lr(value + dim));
-            const tc = tinycolor(aura.colour);
-            ctx.fillStyle = gradient;
-            gradient.addColorStop(0, aura.colour);
-            gradient.addColorStop(1, tc.setAlpha(0).toRgbString());
-        }
-        if (!aura.visionSource) {
+    if (dim === 0) ctx.fillStyle = aura.colour;
+    else {
+        const gradient = ctx.createRadialGradient(loc.x, loc.y, g2lr(value), loc.x, loc.y, g2lr(value + dim));
+        const tc = tinycolor(aura.colour);
+        ctx.fillStyle = gradient;
+        gradient.addColorStop(0, aura.colour);
+        gradient.addColorStop(1, tc.setAlpha(0).toRgbString());
+    }
+    if (!aura.visionSource) {
+        ctx.arc(loc.x, loc.y, innerRange, 0, 2 * Math.PI);
+        ctx.fill();
+    } else {
+        const polygon = computeVisibility(location, TriangulationTarget.VISION, floor);
+        aura.lastPath = updateAuraPath(polygon, location, getUnitDistance(value + dim));
+        try {
+            ctx.fill(aura.lastPath);
+        } catch (e) {
             ctx.arc(loc.x, loc.y, innerRange, 0, 2 * Math.PI);
             ctx.fill();
-        } else {
-            const polygon = computeVisibility(shape.center(), TriangulationTarget.VISION, shape.floor.id);
-            aura.lastPath = updateAuraPath(polygon, shape.center(), getUnitDistance(value + dim));
-            try {
-                ctx.fill(aura.lastPath);
-            } catch (e) {
-                ctx.arc(loc.x, loc.y, innerRange, 0, 2 * Math.PI);
-                ctx.fill();
-                console.warn(e);
-            }
+            console.warn(e);
         }
     }
 }

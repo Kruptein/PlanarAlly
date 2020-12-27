@@ -56,6 +56,9 @@ import { PartialShapeOwner, ShapeAccess, ShapeOwner } from "./owners";
 import { SHAPE_TYPE } from "./types";
 import { EventBus } from "../event-bus";
 import { getBadgeCharacters } from "../groups";
+import { drawAura } from "./aura";
+import { SyncTo } from "../../core/comm/types";
+import { activeShapeStore } from "../ui/ActiveShapeStore";
 
 export abstract class Shape {
     // Used to create class instance from server shape data
@@ -85,8 +88,8 @@ export abstract class Shape {
     groupId?: string;
 
     // Associated trackers/auras/owners
-    trackers: Tracker[] = [];
-    auras: Aura[] = [];
+    private _trackers: Tracker[] = [];
+    private _auras: Aura[] = [];
     labels: Label[] = [];
     protected _owners: ShapeOwner[] = [];
 
@@ -160,7 +163,7 @@ export abstract class Shape {
      * This is the case when it is a token, has an aura that is a vision source or if it blocks vision.
      */
     get triggersVisionRecalc(): boolean {
-        return this.isToken || this.auras.some(a => a.visionSource) || this.movementObstruction;
+        return this.isToken || this.getAuras(true).some(a => a.visionSource) || this.movementObstruction;
     }
 
     setLayer(floor: number, layer: string): void {
@@ -196,7 +199,7 @@ export abstract class Shape {
     abstract center(centerPoint: GlobalPoint): void;
     visibleInCanvas(canvas: HTMLCanvasElement, options: { includeAuras: boolean }): boolean {
         if (options.includeAuras) {
-            for (const aura of this.auras) {
+            for (const aura of this.getAuras(true)) {
                 if (aura.value > 0 || aura.dim > 0) {
                     const r = getUnitDistance(aura.value + aura.dim);
                     const center = this.center();
@@ -271,7 +274,7 @@ export abstract class Shape {
         const visionSources: { shape: string; aura: string }[] = [
             ...getVisionSources(this._floor ?? floorStore.currentFloor.id),
         ];
-        for (const au of this.auras) {
+        for (const au of this.getAuras(true)) {
             const i = visionSources.findIndex(o => o.aura === au.uuid);
             if (au.visionSource && i === -1) {
                 visionSources.push({ shape: this.uuid, aura: au.uuid });
@@ -283,7 +286,7 @@ export abstract class Shape {
         for (let i = visionSources.length - 1; i >= 0; i--) {
             const ls = visionSources[i];
             if (ls.shape === this.uuid) {
-                if (!this.auras.some(a => a.uuid === ls.aura && a.visionSource)) visionSources.splice(i, 1);
+                if (!this.getAuras(true).some(a => a.uuid === ls.aura && a.visionSource)) visionSources.splice(i, 1);
             }
         }
         setVisionSources(visionSources, this._floor ?? floorStore.currentFloor.id);
@@ -303,8 +306,8 @@ export abstract class Shape {
             draw_operator: this.globalCompositeOperation,
             movement_obstruction: this.movementObstruction,
             vision_obstruction: this.visionObstruction,
-            auras: aurasToServer(this.uuid, this.auras),
-            trackers: this.trackers.filter(t => !t.temporary),
+            auras: aurasToServer(this.uuid, this._auras),
+            trackers: this._trackers,
             labels: this.labels,
             owners: this._owners.map(owner => ownerToServer(owner)),
             fill_colour: this.fillColour,
@@ -333,8 +336,8 @@ export abstract class Shape {
         this.globalCompositeOperation = data.draw_operator;
         this.movementObstruction = data.movement_obstruction;
         this.visionObstruction = data.vision_obstruction;
-        this.auras = aurasFromServer(...data.auras);
-        this.trackers = data.trackers;
+        this._auras = aurasFromServer(...data.auras);
+        this._trackers = data.trackers;
         this.labels = data.labels;
         this._owners = data.owners.map(owner => ownerToClient(owner));
         this.fillColour = data.fill_colour;
@@ -446,6 +449,14 @@ export abstract class Shape {
             ctx.lineTo(g2lx(vertex[0]), g2ly(vertex[1]));
         }
         ctx.stroke();
+    }
+
+    drawAuras(ctx: CanvasRenderingContext2D): void {
+        const center = this.center();
+
+        for (const aura of this.getAuras(true)) {
+            drawAura(aura, center, this.floor.id, ctx);
+        }
     }
 
     getAnchorLocation(): LocalPoint {
@@ -669,18 +680,6 @@ export abstract class Shape {
         }
     }
 
-    removeTracker(tracker: string, sync: boolean): void {
-        if (sync) sendShapeRemoveTracker({ shape: this.uuid, value: tracker });
-        this.trackers = this.trackers.filter(tr => tr.uuid !== tracker);
-    }
-
-    removeAura(aura: string, sync: boolean): void {
-        if (sync) sendShapeRemoveAura({ shape: this.uuid, value: aura });
-        this.auras = this.auras.filter(au => au.uuid !== aura);
-        this.checkVisionSources();
-        this.invalidate(false);
-    }
-
     removeLabel(label: string, sync: boolean): void {
         if (sync) sendShapeRemoveLabel({ shape: this.uuid, value: label });
         this.labels = this.labels.filter(l => l.uuid !== label);
@@ -711,43 +710,66 @@ export abstract class Shape {
         this.invalidate(true);
     }
 
-    pushTracker(tracker: Tracker): void {
-        this.trackers.push(tracker);
-    }
+    // TRACKERS
 
-    syncTracker(tracker: Tracker): void {
-        if (tracker.temporary === false) {
-            console.log("Illegal use of syncTracker");
-            return;
+    getTrackers(includeParent: boolean): readonly Tracker[] {
+        const tr: Tracker[] = [];
+        if (includeParent) {
+            const parent = layerManager.getCompositeParent(this.uuid);
+            if (parent !== undefined) {
+                tr.push(...parent.getTrackers(false));
+            }
         }
-        tracker.temporary = false;
-        sendShapeCreateTracker({ shape: this.uuid, ...tracker });
+        tr.push(...this._trackers);
+        return tr;
     }
 
-    updateTracker(trackerId: string, delta: Partial<Tracker>, sync: boolean): void {
-        const tracker = this.trackers.find(t => t.uuid === trackerId);
+    pushTracker(tracker: Tracker, syncTo: SyncTo): void {
+        this._trackers.push(tracker);
+        if (syncTo === SyncTo.SERVER) sendShapeCreateTracker({ shape: this.uuid, ...tracker });
+        else if (syncTo === SyncTo.UI) activeShapeStore.pushTracker({ tracker, shape: this.uuid, syncTo });
+    }
+
+    updateTracker(trackerId: string, delta: Partial<Tracker>, syncTo: SyncTo): void {
+        const tracker = this._trackers.find(t => t.uuid === trackerId);
         if (tracker === undefined) return;
+
         Object.assign(tracker, delta);
-        if (sync) sendShapeUpdateTracker({ shape: this.uuid, uuid: trackerId, ...delta });
+
+        if (syncTo === SyncTo.SERVER) sendShapeUpdateTracker({ shape: this.uuid, uuid: trackerId, ...delta });
+        else if (syncTo === SyncTo.UI) activeShapeStore.updateTracker({ tracker: trackerId, delta, syncTo });
     }
 
-    pushAura(aura: Aura): void {
-        this.auras.push(aura);
+    removeTracker(tracker: string, syncTo: SyncTo): void {
+        this._trackers = this._trackers.filter(tr => tr.uuid !== tracker);
+        if (syncTo === SyncTo.SERVER) sendShapeRemoveTracker({ shape: this.uuid, value: tracker });
+        else if (syncTo === SyncTo.UI) activeShapeStore.removeTracker({ tracker, syncTo });
+    }
+
+    // AURAS
+
+    getAuras(includeParent: boolean): readonly Aura[] {
+        const au: Aura[] = [];
+        if (includeParent) {
+            const parent = layerManager.getCompositeParent(this.uuid);
+            if (parent !== undefined) {
+                au.push(...parent.getAuras(false));
+            }
+        }
+        au.push(...this._auras);
+        return au;
+    }
+
+    pushAura(aura: Aura, syncTo: SyncTo): void {
+        this._auras.push(aura);
         this.checkVisionSources();
         this.invalidate(false);
+        if (syncTo === SyncTo.SERVER) sendShapeCreateAura(aurasToServer(this.uuid, [aura])[0]);
+        else if (syncTo === SyncTo.UI) activeShapeStore.pushAura({ aura, shape: this.uuid, syncTo });
     }
 
-    syncAura(aura: Aura): void {
-        if (aura.temporary === false) {
-            console.log("Illegal use of syncAura");
-            return;
-        }
-        aura.temporary = false;
-        sendShapeCreateAura(aurasToServer(this.uuid, [aura])[0]);
-    }
-
-    updateAura(auraId: string, delta: Partial<Aura>, sync: boolean): void {
-        const aura = this.auras.find(t => t.uuid === auraId);
+    updateAura(auraId: string, delta: Partial<Aura>, syncTo: SyncTo): void {
+        const aura = this._auras.find(t => t.uuid === auraId);
         if (aura === undefined) return;
 
         const visionSources = getVisionSources(this.floor.id);
@@ -758,7 +780,7 @@ export abstract class Shape {
         if (aura.visionSource && i === -1) addVisionSource({ shape: this.uuid, aura: aura.uuid }, this.floor.id);
         else if (!aura.visionSource && i >= 0) sliceVisionSources(i, this.floor.id);
 
-        if (sync)
+        if (syncTo === SyncTo.SERVER) {
             sendShapeUpdateAura({
                 ...partialAuraToServer({
                     ...delta,
@@ -766,7 +788,18 @@ export abstract class Shape {
                 shape: this.uuid,
                 uuid: auraId,
             });
+        } else if (syncTo === SyncTo.UI) {
+            activeShapeStore.updateAura({ aura: auraId, delta, syncTo });
+        }
 
         this.invalidate(false);
+    }
+
+    removeAura(aura: string, syncTo: SyncTo): void {
+        this._auras = this._auras.filter(au => au.uuid !== aura);
+        this.checkVisionSources();
+        this.invalidate(false);
+        if (syncTo === SyncTo.SERVER) sendShapeRemoveAura({ shape: this.uuid, value: aura });
+        else if (syncTo === SyncTo.UI) activeShapeStore.removeAura({ aura, syncTo });
     }
 }

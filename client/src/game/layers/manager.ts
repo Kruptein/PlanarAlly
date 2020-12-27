@@ -74,6 +74,10 @@ class LayerManager {
         }
     }
 
+    isComposite(shape: string): boolean {
+        return this.compositeMap.has(shape);
+    }
+
     addComposite(parent: string, variant: { uuid: string; name: string }, sync: boolean): void {
         this.compositeMap.set(variant.uuid, parent);
         if (sync) {

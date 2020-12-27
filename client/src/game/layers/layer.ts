@@ -10,7 +10,6 @@ import { removeBlocker, removeVisionSources } from "@/game/visibility/utils";
 import { sendRemoveShapes, sendShapeAdd, sendShapeOrder } from "../api/emits/shape/core";
 import { removeGroupMember } from "../groups";
 import { gameSettingsStore } from "../settings";
-import { drawAuras } from "../shapes/aura";
 import { floorStore } from "./store";
 import { addAllCompositeShapes } from "./utils";
 
@@ -233,7 +232,7 @@ export class Layer {
                 if (shape.options.has("skipDraw") && shape.options.get("skipDraw")) continue;
                 if (!shape.visibleInCanvas(this.canvas, { includeAuras: true })) continue;
                 if (this.name === "fow" && currentLayer !== this) continue;
-                drawAuras(shape, ctx);
+                shape.drawAuras(ctx);
                 visibleShapes.push(shape);
             }
             for (const shape of visibleShapes) {

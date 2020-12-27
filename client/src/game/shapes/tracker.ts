@@ -1,8 +1,9 @@
 import { uuidv4 } from "../../core/utils";
-import { Tracker } from "./interfaces";
+import { UiTracker } from "../ui/ActiveShapeStore";
 
-export function createEmptyTracker(): Tracker {
+export function createEmptyTracker(shape: string): UiTracker {
     return {
+        shape,
         uuid: uuidv4(),
         name: "",
         value: 0,

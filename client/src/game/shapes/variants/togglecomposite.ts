@@ -77,12 +77,12 @@ export class ToggleComposite extends Shape {
             removeBlocker(TriangulationTarget.MOVEMENT, oldVariant.floor.id, oldVariant, true);
         if (oldVariant.visionObstruction)
             removeBlocker(TriangulationTarget.VISION, oldVariant.floor.id, oldVariant, true);
-        if (oldVariant.auras.length > 0) removeVisionSources(oldVariant.floor.id, oldVariant.uuid);
+        if (oldVariant.getAuras(false).length > 0) removeVisionSources(oldVariant.floor.id, oldVariant.uuid);
         if (newVariant.movementObstruction)
             addBlocker(TriangulationTarget.MOVEMENT, newVariant.uuid, newVariant.floor.id, true);
         if (newVariant.visionObstruction)
             addBlocker(TriangulationTarget.VISION, newVariant.uuid, newVariant.floor.id, true);
-        for (const au of newVariant.auras) {
+        for (const au of newVariant.getAuras(false)) {
             if (au.visionSource) {
                 addVisionSource({ shape: newVariant.uuid, aura: au.uuid }, newVariant.floor.id);
             }

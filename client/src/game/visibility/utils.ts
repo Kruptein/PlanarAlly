@@ -75,7 +75,7 @@ export function moveBlocker(
     addBlocker(target, blocker, newFloor, recalculate);
 }
 
-export function moveVisionSource(source: string, auras: Aura[], oldFloor: number, newFloor: number): void {
+export function moveVisionSource(source: string, auras: readonly Aura[], oldFloor: number, newFloor: number): void {
     for (const aura of auras) {
         if (!aura.visionSource) continue;
         sliceVisionSources(

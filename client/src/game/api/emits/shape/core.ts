@@ -15,12 +15,6 @@ export const sendShapesMove = wrapSocket<{
     shapes: string[];
     target: { location: number; floor: string; x: number; y: number };
 }>("Shapes.Location.Move");
-export const sendTrackerUpdate = wrapSocket<{
-    uuid: string;
-    value: number;
-    shape: string;
-    _type: "tracker" | "aura";
-}>("Shapes.Trackers.Update");
 export const sendTextUpdate = wrapSocket<{ uuid: string; text: string; temporary: boolean }>("Shape.Text.Value.Set");
 
 export function sendShapeOptionsUpdate(shapes: readonly Shape[], temporary: boolean): void {

@@ -13,6 +13,7 @@ import { Module, VuexModule, getModule, Mutation } from "vuex-module-decorators"
 
 import { SyncTo } from "../../core/comm/types";
 import { rootStore } from "../../store";
+import { EventBus } from "../event-bus";
 import { layerManager } from "../layers/manager";
 import { createEmptyAura } from "../shapes/aura";
 import { Aura, Label, Tracker } from "../shapes/interfaces";
@@ -625,6 +626,8 @@ class ActiveShapeStore extends VuexModule implements ActiveShapeState {
     // It is crucial that this method does not make the original Shape properties observable
     @Mutation
     setActiveShape(shape: Shape): void {
+        if (this._lastUuid === shape.uuid) EventBus.$emit("EditDialog.Open");
+
         this._uuid = shape.uuid;
         const parent = layerManager.getCompositeParent(shape.uuid);
         this._parentUuid = parent?.uuid ?? null;
@@ -692,6 +695,8 @@ class ActiveShapeStore extends VuexModule implements ActiveShapeState {
 
         this._annotation = null;
         this._labels = [];
+
+        EventBus.$emit("EditDialog.Close");
     }
 }
 

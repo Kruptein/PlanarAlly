@@ -2,8 +2,6 @@
 import Vue from "vue";
 import Component from "vue-class-component";
 
-import { Prop } from "vue-property-decorator";
-
 import ConfirmDialog from "@/core/components/modals/confirm.vue";
 
 import { Shape } from "@/game/shapes/shape";
@@ -21,16 +19,24 @@ import {
 } from "../../../groups";
 import { CREATION_ORDER_OPTIONS, CREATION_ORDER_TYPES, Group } from "../../../comm/types/groups";
 import { EventBus } from "../../../event-bus";
+import { ActiveShapeState, activeShapeStore } from "../../ActiveShapeStore";
+import { layerManager } from "../../../layers/manager";
+import { SyncTo } from "../../../../core/comm/types";
 
 @Component({ components: { ConfirmDialog } })
 export default class GroupSettings extends Vue {
-    @Prop() shape!: Shape;
-    @Prop() owned!: boolean;
-
     $refs!: {
         confirmDialog: ConfirmDialog;
         toggleCheckbox: HTMLInputElement;
     };
+
+    get owned(): boolean {
+        return activeShapeStore.hasEditAccess;
+    }
+
+    get shape(): ActiveShapeState {
+        return activeShapeStore;
+    }
 
     mounted(): void {
         EventBus.$on("EditDialog.Group.Update", () => this.updateGroupToggleState());
@@ -47,6 +53,11 @@ export default class GroupSettings extends Vue {
     characterSetSelected = 0;
     customText: string[] = [];
     creationOrder: CREATION_ORDER_TYPES = "incrementing";
+
+    invalidate(): void {
+        const shape = layerManager.UUIDMap.get(activeShapeStore.uuid!)!;
+        shape.invalidate(true);
+    }
 
     updateGroupToggleState(): void {
         if (this.shape.groupId === undefined) return;
@@ -106,7 +117,7 @@ export default class GroupSettings extends Vue {
                 setCharacterSet(group.uuid, []);
             } else {
                 setCharacterSet(group.uuid, CHARACTER_SETS[characterSetSelected]);
-                this.shape.invalidate(true);
+                this.invalidate();
             }
         }
         this.$forceUpdate();
@@ -128,7 +139,7 @@ export default class GroupSettings extends Vue {
             this.customText = value;
         } else {
             setCharacterSet(group.uuid, value);
-            this.shape.invalidate(true);
+            this.invalidate();
         }
     }
 
@@ -152,7 +163,7 @@ export default class GroupSettings extends Vue {
             );
             if (doChange) {
                 setCreationOrder(group.uuid, creationOrder);
-                this.shape.invalidate(true);
+                this.invalidate();
             }
         }
 
@@ -170,7 +181,7 @@ export default class GroupSettings extends Vue {
 
     createGroup(): void {
         if (this.shape.groupId !== undefined) return;
-        createNewGroupForShapes([this.shape.uuid]);
+        createNewGroupForShapes([this.shape.uuid!]);
         this.$forceUpdate();
     }
 
@@ -188,12 +199,20 @@ export default class GroupSettings extends Vue {
 
     updateToggles(checked: boolean): void {
         for (const member of this.getGroupMembers()) {
-            if (member.showBadge !== checked) member.setShowBadge(checked, true);
+            if (member.showBadge !== checked) member.setShowBadge(checked, SyncTo.SERVER);
         }
     }
 
     removeMember(member: Shape): void {
         removeGroupMember(member.groupId!, member.uuid, true);
+    }
+
+    showBadge(member: Shape, checked: boolean): void {
+        // This and Keyboard are the only places currently where we would need to update both UI and Server.
+        // Might need to introduce a SyncTo.BOTH
+        member.setShowBadge(checked, SyncTo.SERVER);
+        if (member.uuid === activeShapeStore.uuid)
+            activeShapeStore.setShowBadge({ showBadge: checked, syncTo: SyncTo.UI });
     }
 }
 </script>
@@ -269,7 +288,7 @@ export default class GroupSettings extends Vue {
                     <input
                         type="checkbox"
                         :checked="member.showBadge"
-                        @click="member.setShowBadge($event.target.checked, true)"
+                        @click="showBadge(member, $event.target.checked)"
                     />
                 </div>
                 <div :key="'remove-' + member.uuid" :style="{ textAlign: 'center' }">

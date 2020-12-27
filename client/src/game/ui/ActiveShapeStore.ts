@@ -72,6 +72,8 @@ export interface ActiveShapeState {
     pushAura(data: { aura: Aura; shape: string; syncTo: SyncTo }): void;
     updateAura(data: { aura: string; delta: Partial<Aura>; syncTo: SyncTo }): void;
     removeAura(data: { aura: string; syncTo: SyncTo }): void;
+
+    groupId: string | undefined;
 }
 
 function toUiTrackers(trackers: readonly Tracker[], shape: string): UiTracker[] {
@@ -116,6 +118,8 @@ class ActiveShapeStore extends VuexModule implements ActiveShapeState {
 
     private _auras: UiAura[] = [];
     private firstRealAuraIndex = 0;
+
+    private _groupId: string | null = null;
 
     get uuid(): string | undefined {
         return this._uuid ?? undefined;
@@ -553,6 +557,12 @@ class ActiveShapeStore extends VuexModule implements ActiveShapeState {
         if (data.syncTo !== SyncTo.UI) shape.removeAura(data.aura, data.syncTo);
     }
 
+    // GROUP
+
+    get groupId(): string | undefined {
+        return this._groupId ?? undefined;
+    }
+
     // STARTUP / CLEANUP
 
     // It is crucial that this method does not make the original Shape properties observable
@@ -588,6 +598,8 @@ class ActiveShapeStore extends VuexModule implements ActiveShapeState {
         this._trackers.push(createEmptyTracker(this._uuid));
         this._auras.push(...toUiAuras(shape.getAuras(false), shape.uuid));
         this._auras.push(createEmptyAura(this._uuid));
+
+        this._groupId = shape.groupId ?? null;
     }
 
     @Mutation
@@ -615,6 +627,8 @@ class ActiveShapeStore extends VuexModule implements ActiveShapeState {
 
         this.firstRealAuraIndex = 0;
         this._auras = [];
+
+        this._groupId = null;
     }
 }
 

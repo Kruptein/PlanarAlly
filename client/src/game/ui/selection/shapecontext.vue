@@ -179,7 +179,7 @@ export default class ShapeContext extends Vue {
             for (const shape of selection) {
                 for (const owner of shape.owners) users.add(owner.user);
             }
-            sendLocationChange({ location: newLocation, users: [...users] });
+            sendLocationChange({ location: newLocation, users: [...users], position: { ...targetLocation } });
         }
 
         this.close();

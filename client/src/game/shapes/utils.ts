@@ -121,7 +121,7 @@ export function copyShapes(): void {
     if (!layer) return;
     if (!layer.hasSelection({ includeComposites: false })) return;
     const clipboard: ServerShape[] = [];
-    for (const shape of layer.getSelection({ includeComposites: false })) {
+    for (const shape of layer.getSelection({ includeComposites: true })) {
         if (!shape.ownedBy({ editAccess: true })) continue;
         if (!shape.groupId) {
             createNewGroupForShapes([shape.uuid]);
@@ -136,17 +136,26 @@ export async function pasteShapes(targetLayer?: string): Promise<readonly Shape[
     const layer = layerManager.getLayer(floorStore.currentFloor, targetLayer);
     if (!layer) return [];
     if (!gameStore.clipboard) return [];
+
     layer.setSelection();
-    let offset = gameStore.screenCenter.subtract(gameStore.clipboardPosition);
+
     gameStore.setClipboardPosition(gameStore.screenCenter);
+    let offset = gameStore.screenCenter.subtract(gameStore.clipboardPosition);
     // Check against 200 as that is the squared length of a vector with size 10, 10
     if (offset.squaredLength() < 200) {
         offset = new Vector(10, 10);
     }
+
+    const shapeMap: Map<string, string> = new Map();
+    const composites: ServerToggleComposite[] = [];
+    const serverShapes: ServerShape[] = [];
+
     for (const clip of gameStore.clipboard) {
         clip.x += offset.x;
         clip.y += offset.y;
+        const ogUuid = clip.uuid;
         clip.uuid = uuidv4();
+        shapeMap.set(ogUuid, clip.uuid);
         // Trackers
         const oldTrackers = clip.trackers;
         clip.trackers = [];
@@ -173,12 +182,28 @@ export async function pasteShapes(targetLayer?: string): Promise<readonly Shape[
             // The shape is not yet added to the layerManager at this point anyway
             clip.badge = generateNewBadge(clip.group);
         }
-        // Finalize
-        const shape = await createShapeFromDict(clip);
-        if (shape === undefined) continue;
-        layer.addShape(shape, SyncMode.FULL_SYNC, InvalidationMode.WITH_LIGHT);
-        layer.pushSelection(shape);
+        if (clip.type_ === "togglecomposite") {
+            composites.push(clip as ServerToggleComposite);
+        } else {
+            serverShapes.push(clip);
+        }
     }
+
+    for (const composite of composites) {
+        composite.active_variant = shapeMap.get(composite.active_variant)!;
+        composite.variants = composite.variants.map(v => ({ ...v, uuid: shapeMap.get(v.uuid)! }));
+        serverShapes.push(composite); // make sure it's added after the regular shapes
+    }
+
+    // Finalize
+    for (const serverShape of serverShapes) {
+        const shape = await createShapeFromDict(serverShape);
+        if (shape === undefined) continue;
+
+        layer.addShape(shape, SyncMode.FULL_SYNC, InvalidationMode.WITH_LIGHT);
+        if (!shape.options.has("skipDraw")) layer.pushSelection(shape);
+    }
+
     layer.invalidate(false);
     return layer.getSelection({ includeComposites: false });
 }

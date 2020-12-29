@@ -78,9 +78,9 @@ socket.on("Board.Floor.Set", async (floor: ServerFloor) => {
 
 // Varia
 
-socket.on("Position.Set", (data: { floor: string; x: number; y: number; zoom: number }) => {
-    floorStore.selectFloor({ targetFloor: data.floor, sync: false });
-    gameStore.setZoomDisplay(data.zoom);
+socket.on("Position.Set", (data: { floor?: string; x: number; y: number; zoom?: number }) => {
+    if (data.floor) floorStore.selectFloor({ targetFloor: data.floor, sync: false });
+    if (data.zoom) gameStore.setZoomDisplay(data.zoom);
     gameManager.setCenterPosition(new GlobalPoint(data.x, data.y));
 });
 

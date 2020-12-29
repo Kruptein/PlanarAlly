@@ -80,8 +80,9 @@ If you still have issues contact me and I can give you some console code.
 -   Selection including shapes out of vision
 -   Adding/Removing labels no longer being synced by the server
 -   Current floor no longer being highlighted in context menu
--   Fix multiple issues when having a modified client gridsize
+-   Multiple issues when having a modified client gridsize
     -   auras/zoom/map would all use wrong math(s)
+-   Teleporting to a spawn location, only changing location not setting the position
 -   [DM] Floor rename always setting a blank name
 
 ## [0.23.1] - 2020-10-25

@@ -32,7 +32,7 @@ export default class MapTool extends Tool implements ToolBasics {
 
     startPoint: GlobalPoint | undefined = undefined;
     rect: Rect | undefined = undefined;
-    shape: Rect | undefined = undefined; // FrozenOptionalShape<Rect> = { _: undefined };
+    shape: Rect | undefined = undefined;
     error = "";
 
     ogRP: GlobalPoint | undefined = undefined;
@@ -69,9 +69,9 @@ export default class MapTool extends Tool implements ToolBasics {
 
     setSelection(shapes: readonly Shape[]): void {
         if (shapes.length === 1 && this.shape === undefined && ["assetrect", "rect"].includes(shapes[0].type)) {
-            this.shape = shapes[0] as Rect; // Object.freeze({ _: shapes[0] }) as FrozenShape<Rect>;
+            this.shape = shapes[0] as Rect;
             this.hasShape = true;
-            this.ogRP = this.shape.refPoint; // Object.freeze({ _: this.shape.refPoint });
+            this.ogRP = this.shape.refPoint;
             this.ogW = this.shape.w;
             this.ogH = this.shape.h;
             this.aspectRatio = this.shape.w / this.shape.h;

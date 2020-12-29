@@ -8,6 +8,11 @@ These usually have no immediately visible impact on regular users
 
 ## Unreleased
 
+Due to a bugfix with zoom for non-default gridsizes, you will likely encounter your first load on a map to be slightly off centered
+from where you had your camera last time. This should normally not be far off from the original location.
+If you have issues finding your stuff back try the space bar to center on your tokens or ctrl+0 to go to the world center.
+If you still have issues contact me and I can give you some console code.
+
 ### Added
 
 -   Pressing the Enter button on a single selection will open the edit dialog for that shape
@@ -75,6 +80,8 @@ These usually have no immediately visible impact on regular users
 -   Selection including shapes out of vision
 -   Adding/Removing labels no longer being synced by the server
 -   Current floor no longer being highlighted in context menu
+-   Fix multiple issues when having a modified client gridsize
+    -   auras/zoom/map would all use wrong math(s)
 -   [DM] Floor rename always setting a blank name
 
 ## [0.23.1] - 2020-10-25

@@ -14,7 +14,7 @@ import { EventBus } from "@/game/event-bus";
 import { Shape } from "@/game/shapes/shape";
 import { ToolBasics } from "./ToolBasics";
 import { floorStore } from "@/game/layers/store";
-import { DEFAULT_GRID_SIZE, gameStore } from "../../store";
+import { DEFAULT_GRID_SIZE } from "../../store";
 import { sendShapePositionUpdate, sendShapeSizeUpdate } from "@/game/api/emits/shape/core";
 
 @Component
@@ -121,8 +121,8 @@ export default class MapTool extends Tool implements ToolBasics {
         }
 
         if (this.rect !== undefined) {
-            const xFactor = (this.gridX * gameStore.gridSize) / this.rect.w;
-            const yFactor = (this.gridY * gameStore.gridSize) / this.rect.h;
+            const xFactor = (this.gridX * DEFAULT_GRID_SIZE) / this.rect.w;
+            const yFactor = (this.gridY * DEFAULT_GRID_SIZE) / this.rect.h;
 
             this.shape.w *= xFactor;
             this.shape.h *= yFactor;
@@ -229,9 +229,9 @@ export default class MapTool extends Tool implements ToolBasics {
             } else {
                 this.gridY = this.gridX / this.aspectRatio;
             }
-            this.sizeY = this.gridY * gameStore.gridSize;
+            this.sizeY = this.gridY * DEFAULT_GRID_SIZE;
         }
-        this.sizeX = this.gridX * gameStore.gridSize;
+        this.sizeX = this.gridX * DEFAULT_GRID_SIZE;
         if (!this.manualDrag && this.gridX > 0) this.preview(true);
     }
 
@@ -242,27 +242,27 @@ export default class MapTool extends Tool implements ToolBasics {
             } else {
                 this.gridX = this.gridY * this.aspectRatio;
             }
-            this.sizeX = this.gridX * gameStore.gridSize;
+            this.sizeX = this.gridX * DEFAULT_GRID_SIZE;
         }
-        this.sizeY = this.gridY * gameStore.gridSize;
+        this.sizeY = this.gridY * DEFAULT_GRID_SIZE;
         if (!this.manualDrag && this.gridY > 0) this.preview(true);
     }
 
     updateSizeX(): void {
         if (this.lock) {
             this.sizeY = this.sizeX / this.aspectRatio;
-            this.gridY = this.sizeY / gameStore.gridSize;
+            this.gridY = this.sizeY / DEFAULT_GRID_SIZE;
         }
-        this.gridX = this.sizeX / gameStore.gridSize;
+        this.gridX = this.sizeX / DEFAULT_GRID_SIZE;
         if (this.sizeX > 0) this.preview(true);
     }
 
     updateSizeY(): void {
         if (this.lock) {
             this.sizeX = this.sizeY * this.aspectRatio;
-            this.gridX = this.sizeX / gameStore.gridSize;
+            this.gridX = this.sizeX / DEFAULT_GRID_SIZE;
         }
-        this.gridY = this.sizeY / gameStore.gridSize;
+        this.gridY = this.sizeY / DEFAULT_GRID_SIZE;
         if (this.sizeY > 0) this.preview(true);
     }
 }

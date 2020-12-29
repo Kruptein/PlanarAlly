@@ -22,7 +22,7 @@ export function g2lz(z: number): number {
 }
 
 export function getUnitDistance(r: number): number {
-    return (r / gameSettingsStore.unitSize) * gameStore.gridSize;
+    return (r / gameSettingsStore.unitSize) * DEFAULT_GRID_SIZE;
 }
 
 export function g2lr(r: number): number {

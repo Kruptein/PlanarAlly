@@ -32,16 +32,6 @@ export function getFogColour(opposite = false): string {
     return tc.toRgbString();
 }
 
-export function zoomValue(display: number): number {
-    // Powercurve 0.2/3/10
-    // Based on https://stackoverflow.com/a/17102320
-    return 1 / (-5 / 3 + (28 / 15) * Math.exp(1.83 * display));
-}
-
-export function zoomDisplay(value: number): number {
-    return Math.log((1 / value + 5 / 3) * (15 / 28)) / 1.83;
-}
-
 export function equalPoint(a: number, b: number, delta = 0.0001): boolean {
     return a - delta < b && a + delta > b;
 }

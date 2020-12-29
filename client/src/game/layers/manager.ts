@@ -131,7 +131,7 @@ class LayerManager {
     }
 
     getFloor(id?: number): Floor | undefined {
-        if (name === undefined) return floorStore.currentFloor;
+        if (id === undefined) return floorStore.currentFloor;
         return floorStore.floors.find(f => f.id === id);
     }
 

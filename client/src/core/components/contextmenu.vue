@@ -1,11 +1,16 @@
 <script lang="ts">
 import Vue from "vue";
 import Component from "vue-class-component";
+import { Prop } from "vue-property-decorator";
 
 @Component({
     props: ["visible", "left", "top"],
 })
-export default class ContextMenu extends Vue {}
+export default class ContextMenu extends Vue {
+    @Prop() visible!: boolean;
+    @Prop() left!: string;
+    @Prop() top!: string;
+}
 </script>
 
 <template>

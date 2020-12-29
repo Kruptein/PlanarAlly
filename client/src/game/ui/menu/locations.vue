@@ -21,6 +21,9 @@ import { sendLocationChange, sendNewLocation } from "@/game/api/emits/location";
     components: { Prompt },
 })
 export default class LocationBar extends Vue {
+    activeLocation!: number;
+    IS_DM!: boolean;
+
     $refs!: {
         locations: InstanceType<typeof draggable>;
         prompt: Prompt;
@@ -77,7 +80,7 @@ export default class LocationBar extends Vue {
         if (value !== undefined) sendNewLocation(value);
     }
 
-    openLocationSettings(location: string): void {
+    openLocationSettings(location: number): void {
         EventBus.$emit("LocationSettings.Open", location);
     }
 
@@ -157,6 +160,10 @@ export default class LocationBar extends Vue {
             }
         }
     }
+
+    getLocationPlayers(location: number): string[] {
+        return this.playerLocations.get(location) ?? [];
+    }
 }
 </script>
 
@@ -214,7 +221,7 @@ export default class LocationBar extends Vue {
                     >
                         <div
                             class="player-collapse-item"
-                            v-for="player in playerLocations.get(location.id)"
+                            v-for="player in getLocationPlayers(location.id)"
                             :key="player"
                             :data-loc="location.id"
                         >

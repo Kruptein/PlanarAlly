@@ -7,7 +7,7 @@ import "swiper/css/swiper.css";
 import LanguageDropdown from "@/core/components/languageDropdown.vue";
 
 import { coreStore } from "@/core/store";
-import { postFetch, getErrorReason } from "../core/utils";
+import { postFetch, getErrorReason, baseAdjust } from "../core/utils";
 import { SwiperOptions } from "swiper";
 import { ToastObject } from "vue-toasted";
 
@@ -43,6 +43,10 @@ export default class Login extends Vue {
             },
         },
     };
+
+    baseAdjust(src: string): string {
+        return baseAdjust(src);
+    }
 
     showToast(
         status: string,

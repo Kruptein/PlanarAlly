@@ -4,7 +4,7 @@ import Component from "vue-class-component";
 import { Prop, Watch } from "vue-property-decorator";
 
 import { AssetFile, AssetList } from "@/core/comm/types";
-import { alphSort } from "@/core/utils";
+import { alphSort, baseAdjust } from "@/core/utils";
 
 @Component({
     name: "asset-node",
@@ -75,6 +75,10 @@ export default class AssetNode extends Vue {
         const img = (event.target as HTMLElement).querySelector(".preview")!;
         event.dataTransfer.setDragImage(img, 0, 0);
         event.dataTransfer.setData("text/plain", JSON.stringify({ imageSource, assetId }));
+    }
+
+    baseAdjust(path: string): string {
+        return baseAdjust(path);
     }
 }
 </script>

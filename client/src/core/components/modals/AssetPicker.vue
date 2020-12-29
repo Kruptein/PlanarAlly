@@ -10,6 +10,7 @@ import Modal from "@/core/components/modals/modal.vue";
 import { createNewManager } from "../../socket";
 import { assetStore } from "../../../assetManager/store";
 import { Asset } from "../../comm/types";
+import { baseAdjust } from "../../utils";
 
 @Component({
     components: {
@@ -30,6 +31,11 @@ import { Asset } from "../../comm/types";
 })
 export default class AssetPicker extends Vue {
     currentFolder!: number;
+    files!: number[];
+    folders!: number[];
+    idMap!: Map<number, Asset>;
+    path!: number[];
+    selected!: number[];
 
     visible = false;
     socket!: Socket;
@@ -99,6 +105,14 @@ export default class AssetPicker extends Vue {
             this.reject = reject;
         });
     }
+
+    showIdName(dir: number): string {
+        return this.idMap.has(dir) ? this.idMap.get(dir)!.name : "";
+    }
+
+    getIdImageSrc(file: number): string {
+        return baseAdjust("/static/assets/" + this.idMap.get(file)!.file_hash);
+    }
 }
 </script>
 
@@ -121,17 +135,10 @@ export default class AssetPicker extends Vue {
             <div id="assets">
                 <div id="breadcrumbs">
                     <div>/</div>
-                    <div v-for="dir in path" :key="dir">{{ idMap.has(dir) ? idMap.get(dir).name : "" }}</div>
+                    <div v-for="dir in path" :key="dir">{{ showIdName(dir) }}</div>
                 </div>
                 <div id="explorer">
-                    <div
-                        class="inode folder"
-                        v-if="path.length"
-                        @dblclick="changeDirectory(-1)"
-                        @dragover.prevent="moveDrag"
-                        @dragleave.prevent="leaveDrag"
-                        @drop.prevent.stop="stopDrag($event, parentFolder)"
-                    >
+                    <div class="inode folder" v-if="path.length" @dblclick="changeDirectory(-1)">
                         <font-awesome-icon icon="folder" style="font-size: 50px" />
                         <div class="title">..</div>
                     </div>
@@ -143,14 +150,9 @@ export default class AssetPicker extends Vue {
                         :class="{ 'inode-selected': selected.includes(key) }"
                         @click="select($event, key)"
                         @dblclick="changeDirectory(key)"
-                        @contextmenu.prevent="$refs.cm.open($event, key)"
-                        @dragstart="startDrag($event, key)"
-                        @dragover.prevent="moveDrag"
-                        @dragleave.prevent="leaveDrag"
-                        @drop.prevent.stop="stopDrag($event, key)"
                     >
                         <font-awesome-icon icon="folder" style="font-size: 50px" />
-                        <div class="title">{{ idMap.get(key).name }}</div>
+                        <div class="title">{{ showIdName(key) }}</div>
                     </div>
                     <div
                         class="inode file"
@@ -159,11 +161,9 @@ export default class AssetPicker extends Vue {
                         :key="file"
                         :class="{ 'inode-selected': selected.includes(file) }"
                         @click="select($event, file)"
-                        @contextmenu.prevent="$refs.cm.open($event, file)"
-                        @dragstart="startDrag($event, file)"
                     >
-                        <img :src="baseAdjust('/static/assets/' + idMap.get(file).file_hash)" width="50" alt="" />
-                        <div class="title">{{ idMap.get(file).name }}</div>
+                        <img :src="getIdImageSrc(file)" width="50" alt="" />
+                        <div class="title">{{ showIdName(file) }}</div>
                     </div>
                 </div>
             </div>

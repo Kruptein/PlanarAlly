@@ -11,7 +11,7 @@ import Prompt from "@/core/components/modals/prompt.vue";
 import { socket } from "@/assetManager/socket";
 import { assetStore } from "@/assetManager/store";
 import { Asset } from "@/core/comm/types";
-import { uuidv4 } from "@/core/utils";
+import { baseAdjust, uuidv4 } from "@/core/utils";
 
 Component.registerHooks(["beforeRouteEnter"]);
 
@@ -41,16 +41,19 @@ Component.registerHooks(["beforeRouteEnter"]);
 })
 export default class AssetManager extends Vue {
     $refs!: {
+        cm: AssetContextMenu;
         prompt: Prompt;
     };
 
     currentFolder!: number;
+    expectedUploads!: number;
     files!: number[];
     firstSelectedFile!: Asset | null;
     folders!: number[];
     idMap!: Map<number, Asset>;
     parentFolder!: number;
     path!: number[];
+    resolvedUploads!: number;
     selected!: number[];
 
     draggingSelection = false;
@@ -167,6 +170,14 @@ export default class AssetManager extends Vue {
     exportData(): void {
         if (this.selected.length > 0) socket.emit("Asset.Export", this.selected);
     }
+
+    showIdName(dir: number): string {
+        return this.idMap.has(dir) ? this.idMap.get(dir)!.name : "";
+    }
+
+    getIdImageSrc(file: number): string {
+        return baseAdjust("/static/assets/" + this.idMap.get(file)!.file_hash);
+    }
 }
 </script>
 
@@ -184,7 +195,7 @@ export default class AssetManager extends Vue {
         <div id="assets" @dragover.prevent="moveDrag" @drop.prevent.stop="stopDrag($event, currentFolder)">
             <div id="breadcrumbs">
                 <div>/</div>
-                <div v-for="dir in path" :key="dir">{{ idMap.has(dir) ? idMap.get(dir).name : "" }}</div>
+                <div v-for="dir in path" :key="dir">{{ showIdName(dir) }}</div>
             </div>
             <div id="actionbar">
                 <input id="files" type="file" multiple hidden @change="upload()" />
@@ -225,7 +236,7 @@ export default class AssetManager extends Vue {
                     @drop.prevent.stop="stopDrag($event, key)"
                 >
                     <font-awesome-icon icon="folder" style="font-size: 50px" />
-                    <div class="title">{{ idMap.get(key).name }}</div>
+                    <div class="title">{{ showIdName(key) }}</div>
                 </div>
                 <div
                     class="inode file"
@@ -237,8 +248,8 @@ export default class AssetManager extends Vue {
                     @contextmenu.prevent="$refs.cm.open($event, file)"
                     @dragstart="startDrag($event, file)"
                 >
-                    <img :src="baseAdjust('/static/assets/' + idMap.get(file).file_hash)" width="50" alt="" />
-                    <div class="title">{{ idMap.get(file).name }}</div>
+                    <img :src="getIdImageSrc(file)" width="50" alt="" />
+                    <div class="title">{{ showIdName(file) }}</div>
                 </div>
             </div>
         </div>

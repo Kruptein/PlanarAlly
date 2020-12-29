@@ -8,6 +8,7 @@ import { gameStore } from "@/game/store";
 import { Shape } from "../../shapes/shape";
 import { ToolName, ToolPermission } from "./utils";
 import { SelectFeatures } from "./select.vue";
+import { Asset } from "../../shapes/variants/asset";
 
 @Component
 export default class VisionTool extends Tool {
@@ -36,6 +37,13 @@ export default class VisionTool extends Tool {
             this.alert = false;
         }
     }
+
+    getImageSrc(token: Shape): string {
+        if (token.type === "assetrect") {
+            return (token as Asset).src;
+        }
+        return "";
+    }
 }
 </script>
 
@@ -48,7 +56,7 @@ export default class VisionTool extends Tool {
             :class="{ selected: selection.includes(token.uuid) }"
             @click="toggle(token.uuid)"
         >
-            <img :src="token.src" width="30px" height="30px" v-if="token.src" alt="" />
+            <img :src="getImageSrc(token)" width="30px" height="30px" v-if="getImageSrc(token) !== ''" alt="" />
             <div>{{ token.name }}</div>
         </div>
     </div>

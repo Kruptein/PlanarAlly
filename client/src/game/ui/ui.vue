@@ -19,6 +19,7 @@ import { LocalPoint } from "../geom";
 import { gameStore } from "../store";
 import { l2g } from "../units";
 import { coreStore } from "../../core/store";
+import { baseAdjust } from "../../core/utils";
 
 @Component({
     components: {
@@ -46,6 +47,10 @@ export default class UI extends Vue {
         settings: false,
         topleft: false,
     };
+
+    baseAdjust(path: string): string {
+        return baseAdjust(path);
+    }
 
     get version(): { release: string; env: string } {
         return coreStore.version;

@@ -9,11 +9,12 @@ import AssetNode from "@/game/ui/menu/asset_node.vue";
 import LanguageSelect from "@/core/components/languageSelect.vue";
 import NoteDialog from "@/game/ui/note.vue";
 
-import { uuidv4 } from "@/core/utils";
+import { baseAdjust, uuidv4 } from "@/core/utils";
 import { Note } from "@/game/comm/types/general";
 import { layerManager } from "@/game/layers/manager";
 import { gameStore } from "@/game/store";
 import { EventBus } from "../../event-bus";
+import { AssetList } from "../../../core/comm/types";
 
 @Component({
     components: {
@@ -27,11 +28,19 @@ import { EventBus } from "../../event-bus";
     },
 })
 export default class MenuBar extends Vue {
+    assets!: AssetList;
+    markers!: string[];
+    notes!: Note[];
+
     $refs!: {
         note: NoteDialog;
     };
 
     assetSearch = "";
+
+    baseAdjust(path: string): string {
+        return baseAdjust(path);
+    }
 
     get IS_DM(): boolean {
         return gameStore.IS_DM || gameStore.FAKE_PLAYER;
@@ -116,7 +125,7 @@ export default class MenuBar extends Vue {
             <template v-if="IS_DM">
                 <button class="menu-accordion" v-t="'common.assets'"></button>
                 <div id="menu-assets" class="menu-accordion-panel">
-                    <input id="asset-search" v-if="assets" v-model="assetSearch" :placeholder="$t('common.search')" />
+                    <input id="asset-search" v-model="assetSearch" :placeholder="$t('common.search')" />
                     <a
                         class="actionButton"
                         :href="baseAdjust('/assets')"

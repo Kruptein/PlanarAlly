@@ -127,7 +127,7 @@ export default class Tools extends Vue {
         return this.mode === "Build" ? this.buildTools : this.playTools;
     }
 
-    get visibleTools(): string[] {
+    get visibleTools(): ToolName[] {
         return this.tools.map(t => t[0]).filter(t => (!this.dmTools.includes(t) || this.IS_DM) && this.toolVisible(t));
     }
 

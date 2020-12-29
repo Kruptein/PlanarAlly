@@ -18,6 +18,7 @@ export default class NoteDialog extends Vue {
     $refs!: {
         confirm: ConfirmDialog;
         textarea: HTMLTextAreaElement;
+        title: HTMLInputElement;
     };
 
     visible = false;

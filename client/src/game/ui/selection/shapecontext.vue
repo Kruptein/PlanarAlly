@@ -26,6 +26,7 @@ import { AssetOptions } from "@/game/comm/types/asset";
 import { toTemplate } from "@/game/shapes/template";
 import { addGroupMembers, createNewGroupForShapes, getGroupSize, removeGroup } from "../../groups";
 import { SyncMode } from "../../../core/comm/types";
+import { activeShapeStore } from "../ActiveShapeStore";
 
 @Component({
     components: {
@@ -228,7 +229,7 @@ export default class ShapeContext extends Vue {
     openEditDialog(): void {
         const selection = this.getSelection();
         if (selection.length !== 1) return;
-        EventBus.$emit("EditDialog.Open");
+        activeShapeStore.setShowEditDialog(true);
         this.close();
     }
     setMarker(): void {

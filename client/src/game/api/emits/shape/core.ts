@@ -15,13 +15,17 @@ export const sendShapesMove = wrapSocket<{
     shapes: string[];
     target: { location: number; floor: string; x: number; y: number };
 }>("Shapes.Location.Move");
-export const sendTrackerUpdate = wrapSocket<{
-    uuid: string;
-    value: number;
-    shape: string;
-    _type: "tracker" | "aura";
-}>("Shapes.Trackers.Update");
 export const sendTextUpdate = wrapSocket<{ uuid: string; text: string; temporary: boolean }>("Shape.Text.Value.Set");
+
+export function sendShapeOptionsUpdate(shapes: readonly Shape[], temporary: boolean): void {
+    const options = shapes.filter(s => !s.preventSync).map(s => ({ uuid: s.uuid, option: s.getOptions() }));
+    if (options.length > 0) {
+        socket.emit("Shapes.Options.Update", {
+            options,
+            temporary,
+        });
+    }
+}
 
 export function sendShapePositionUpdate(shapes: readonly Shape[], temporary: boolean): void {
     const positions = shapes

@@ -5,11 +5,10 @@ import Component from "vue-class-component";
 import Prompt from "@/core/components/modals/prompt.vue";
 import ShapeSettings from "@/game/ui/selection/edit_dialog/ShapeSettings.vue";
 
-import { EventBus } from "@/game/event-bus";
 import { layerManager } from "@/game/layers/manager";
-import { Shape } from "@/game/shapes/shape";
-import { sendTrackerUpdate } from "@/game/api/emits/shape/core";
 import { Aura, Tracker } from "@/game/shapes/interfaces";
+import { ActiveShapeState, activeShapeStore } from "../ActiveShapeStore";
+import { SyncTo } from "../../../core/comm/types";
 
 @Component({
     components: {
@@ -23,114 +22,103 @@ export default class SelectionInfo extends Vue {
         shapeSettings: ShapeSettings;
     };
 
-    shape: Shape | null = null;
-
-    mounted(): void {
-        EventBus.$on("Shape.Set", (shape: Shape) => {
-            if (this.shape && shape.uuid !== this.shape.uuid) {
-                this.shape = shape;
-            }
-        });
-        EventBus.$on("SelectionInfo.Shapes.Set", (shapes: Shape[]) => {
-            // todo: multiple selected shapes
-            if (shapes.length === 1) this.shape = shapes[0];
-            else this.shape = null;
-        });
-    }
-
-    beforeDestroy(): void {
-        EventBus.$off("SelectionInfo.Shapes.Set");
-    }
-
-    get visibleTrackers(): Tracker[] {
-        if (this.shape === null) return [];
-        return this.shape.trackers.filter(tr => tr.name !== "" || tr.value !== 0);
-    }
-
-    get visibleAuras(): Aura[] {
-        if (this.shape === null) return [];
-        return this.shape.auras.filter(au => au.name !== "" || au.value !== 0);
+    get shape(): ActiveShapeState {
+        return activeShapeStore;
     }
 
     openEditDialog(): void {
-        this.$refs.shapeSettings.visible = true;
+        this.$refs.shapeSettings.setVisible(true);
     }
-    async changeValue(object: Tracker | Aura, isAura: boolean): Promise<void> {
-        if (this.shape === null) return;
-        const value = await this.$refs.prompt.prompt(
-            this.$t("game.ui.selection.select_info.new_value_NAME", { name: object.name }).toString(),
-            this.$t("game.ui.selection.select_info.updating_NAME", { name: object.name }).toString(),
+
+    setLocked(): void {
+        if (this.shape.hasEditAccess) {
+            this.shape.setLocked({ isLocked: !this.shape.isLocked, syncTo: SyncTo.SERVER });
+        }
+    }
+
+    async changeValue(tracker: Tracker | Aura, isAura: boolean): Promise<void> {
+        if (this.shape.uuid === undefined) return;
+
+        const input = await this.$refs.prompt.prompt(
+            this.$t("game.ui.selection.select_info.new_value_NAME", { name: tracker.name }).toString(),
+            this.$t("game.ui.selection.select_info.updating_NAME", { name: tracker.name }).toString(),
         );
-        if (value === undefined || this.shape === null) return;
 
-        const ogValue = object.value;
-
-        if (value[0] === "+" || value[0] === "-") object.value += parseInt(value, 10);
-        else object.value = parseInt(value, 10);
-
+        if (input === undefined || this.shape.uuid === undefined) return;
         const _type = isAura ? "aura" : "tracker";
 
-        if (isNaN(object.value)) object.value = ogValue;
-        else sendTrackerUpdate({ uuid: object.uuid, value: object.value, shape: this.shape.uuid, _type });
-        if (isAura) layerManager.invalidate(this.shape.floor);
+        let value = parseInt(input, 10);
+        if (isNaN(value)) {
+            return;
+        }
+
+        if (input[0] === "+" || input[0] === "-") {
+            value += tracker.value;
+        }
+
+        if (isAura) {
+            activeShapeStore.updateAura({ aura: tracker.uuid, delta: { value }, syncTo: SyncTo.SERVER });
+            const shape = layerManager.UUIDMap.get(this.shape.uuid!)!;
+            shape.invalidate(false);
+        } else {
+            activeShapeStore.updateTracker({ tracker: tracker.uuid, delta: { value }, syncTo: SyncTo.SERVER });
+        }
     }
 }
 </script>
 
 <template>
-    <div v-if="shape !== null">
+    <div>
+        <ShapeSettings ref="shapeSettings" />
         <Prompt ref="prompt"></Prompt>
-        <div id="selection-menu">
-            <div
-                id="selection-lock-button"
-                @click="!!shape.ownedBy({ editAccess: true }) && shape.setLocked(!shape.isLocked, true)"
-                :title="$t('game.ui.selection.select_info.lock')"
-            >
-                <font-awesome-icon v-if="shape.isLocked" icon="lock" />
-                <font-awesome-icon v-else icon="unlock" />
+        <template v-if="shape.uuid !== undefined">
+            <div id="selection-menu">
+                <div id="selection-lock-button" @click="setLocked" :title="$t('game.ui.selection.select_info.lock')">
+                    <font-awesome-icon v-if="shape.isLocked" icon="lock" />
+                    <font-awesome-icon v-else icon="unlock" />
+                </div>
+                <div
+                    id="selection-edit-button"
+                    @click="openEditDialog"
+                    :title="$t('game.ui.selection.select_info.open_shape_props')"
+                >
+                    <font-awesome-icon icon="edit" />
+                </div>
+                <div id="selection-name">{{ shape.name }}</div>
+                <div id="selection-trackers">
+                    <template v-for="tracker in shape.trackers.slice(0, shape.trackers.length - 1)">
+                        <div :key="'name-' + tracker.uuid">{{ tracker.name }}</div>
+                        <div
+                            class="selection-tracker-value"
+                            :key="'value-' + tracker.uuid"
+                            @click="changeValue(tracker, false)"
+                            :title="$t('game.ui.selection.select_info.quick_edit_tracker')"
+                        >
+                            <template v-if="tracker.maxvalue === 0">
+                                {{ tracker.value }}
+                            </template>
+                            <template v-else>{{ tracker.value }} / {{ tracker.maxvalue }}</template>
+                        </div>
+                    </template>
+                </div>
+                <div id="selection-auras">
+                    <template v-for="aura in shape.auras.slice(0, shape.auras.length - 1)">
+                        <div :key="'name-' + aura.uuid">{{ aura.name }}</div>
+                        <div
+                            class="selection-tracker-value"
+                            :key="'value-' + aura.uuid"
+                            @click="changeValue(aura, true)"
+                            :title="$t('game.ui.selection.select_info.quick_edit_aura')"
+                        >
+                            <template v-if="aura.dim === 0">
+                                {{ aura.value }}
+                            </template>
+                            <template v-else>{{ aura.value }} / {{ aura.dim }}</template>
+                        </div>
+                    </template>
+                </div>
             </div>
-            <div
-                id="selection-edit-button"
-                @click="openEditDialog"
-                :title="$t('game.ui.selection.select_info.open_shape_props')"
-            >
-                <font-awesome-icon icon="edit" />
-            </div>
-            <div id="selection-name">{{ shape.name }}</div>
-            <div id="selection-trackers">
-                <template v-for="tracker in visibleTrackers">
-                    <div :key="'name-' + tracker.uuid">{{ tracker.name }}</div>
-                    <div
-                        class="selection-tracker-value"
-                        :key="'value-' + tracker.uuid"
-                        @click="changeValue(tracker, false)"
-                        :title="$t('game.ui.selection.select_info.quick_edit_tracker')"
-                    >
-                        <template v-if="tracker.maxvalue === 0">
-                            {{ tracker.value }}
-                        </template>
-                        <template v-else>{{ tracker.value }} / {{ tracker.maxvalue }}</template>
-                    </div>
-                </template>
-            </div>
-            <div id="selection-auras">
-                <template v-for="aura in visibleAuras">
-                    <div :key="'name-' + aura.uuid">{{ aura.name }}</div>
-                    <div
-                        class="selection-tracker-value"
-                        :key="'value-' + aura.uuid"
-                        @click="changeValue(aura, true)"
-                        :title="$t('game.ui.selection.select_info.quick_edit_aura')"
-                    >
-                        <template v-if="aura.dim === 0">
-                            {{ aura.value }}
-                        </template>
-                        <template v-else>{{ aura.value }} / {{ aura.dim }}</template>
-                    </div>
-                </template>
-            </div>
-        </div>
-        <ShapeSettings ref="shapeSettings" :shape="shape" />
+        </template>
     </div>
 </template>
 

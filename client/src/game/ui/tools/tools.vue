@@ -248,7 +248,7 @@ export default class Tools extends Vue {
                 }
             }
         }
-        if (!found) {
+        if (!found && this.$refs.annotation.hasText) {
             this.$refs.annotation.setActiveText("");
         }
     }
@@ -381,7 +381,7 @@ export default class Tools extends Vue {
                 }
             }
         }
-        if (!found) {
+        if (!found && this.$refs.annotation.hasText) {
             this.$refs.annotation.setActiveText("");
         }
     }

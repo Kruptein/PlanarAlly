@@ -1,18 +1,19 @@
-import { InvalidationMode, SyncMode } from "@/core/comm/types";
+import { InvalidationMode, SyncMode, SyncTo } from "@/core/comm/types";
 import { ServerShape } from "@/game/comm/types/shapes";
 import { EventBus } from "@/game/event-bus";
 import { layerManager } from "@/game/layers/manager";
 import { Shape } from "@/game/shapes/shape";
 import { createShapeFromDict } from "@/game/shapes/utils";
 import { gameStore } from "@/game/store";
-import { visibilityStore } from "@/game/visibility/store";
 import { TriangulationTarget } from "@/game/visibility/te/pa";
-import { getBlockers, getVisionSources, sliceBlockers, sliceVisionSources } from "@/game/visibility/utils";
+import { removeBlocker, removeVisionSources } from "@/game/visibility/utils";
 import { sendRemoveShapes, sendShapeAdd, sendShapeOrder } from "../api/emits/shape/core";
 import { removeGroupMember } from "../groups";
 import { gameSettingsStore } from "../settings";
-import { drawAuras } from "../shapes/aura";
+import { drawAuras } from "../shapes/trackers/draw";
+import { activeShapeStore } from "../ui/ActiveShapeStore";
 import { floorStore } from "./store";
+import { addAllCompositeShapes } from "./utils";
 
 export class Layer {
     canvas: HTMLCanvasElement;
@@ -53,16 +54,21 @@ export class Layer {
     /**
      * Returns the number of shapes on this layer
      */
-    size(skipUiHelpers = true): number {
-        if (!skipUiHelpers) return this.shapes.length;
-        else return this.getShapes(skipUiHelpers).length;
+    size(options: { skipUiHelpers?: boolean; includeComposites: boolean }): number {
+        return this.getShapes(options).length;
     }
 
     // UI helpers are objects that are created for UI reaons but that are not pertinent to the actual state
     // They are often not desired unless in specific circumstances
-    getShapes(skipUiHelpers = true): readonly Shape[] {
-        if (!skipUiHelpers) return this.shapes;
-        return this.shapes.filter(s => !s.options.has("UiHelper"));
+    getShapes(options: { skipUiHelpers?: boolean; includeComposites: boolean }): readonly Shape[] {
+        const skipUiHelpers = options.skipUiHelpers ?? true;
+        let shapes: readonly Shape[] = skipUiHelpers
+            ? this.shapes.filter(s => !s.options.has("UiHelper"))
+            : this.shapes;
+        if (options.includeComposites) {
+            shapes = addAllCompositeShapes(shapes);
+        }
+        return shapes;
     }
 
     setShapes(...shapes: Shape[]): void {
@@ -73,25 +79,36 @@ export class Layer {
         this.shapes.push(...shapes);
     }
 
-    hasSelection(skipUiHelpers = true): boolean {
-        return this.getSelection(skipUiHelpers).length > 0;
+    hasSelection(options: { skipUiHelpers?: boolean; includeComposites: boolean }): boolean {
+        return this.getSelection(options).length > 0;
     }
 
     // UI helpers are objects that are created for UI reaons but that are not pertinent to the actual state
     // They are often not desired unless in specific circumstances
-    getSelection(skipUiHelpers = true): readonly Shape[] {
-        if (!skipUiHelpers) return this.selection;
-        return this.selection.filter(s => !s.options.has("UiHelper"));
+    getSelection(options: { skipUiHelpers?: boolean; includeComposites: boolean }): readonly Shape[] {
+        const skipUiHelpers = options.skipUiHelpers ?? true;
+        const selection = skipUiHelpers ? this.selection.filter(s => !s.options.has("UiHelper")) : this.selection;
+        return options.includeComposites ? addAllCompositeShapes(selection) : selection;
     }
 
     setSelection(...selection: Shape[]): void {
+        if (selection.length === 0) {
+            activeShapeStore.clear();
+        } else {
+            if (this.selection.length === 0) activeShapeStore.setActiveShape(selection[0]);
+            else if (this.selection[0] !== selection[0]) activeShapeStore.setActiveShape(selection[0]);
+        }
         this.selection = selection;
-        EventBus.$emit("SelectionInfo.Shapes.Set", this.getSelection());
+        EventBus.$emit("SelectionInfo.Shapes.Set", this.getSelection({ includeComposites: false }));
     }
 
     pushSelection(...selection: Shape[]): void {
+        if (selection.length > 0) {
+            if (this.selection.length === 0) activeShapeStore.setActiveShape(selection[0]);
+            else if (this.selection[0] !== selection[0]) activeShapeStore.setActiveShape(selection[0]);
+        }
         this.selection.push(...selection);
-        EventBus.$emit("SelectionInfo.Shapes.Set", this.getSelection());
+        EventBus.$emit("SelectionInfo.Shapes.Set", this.getSelection({ includeComposites: false }));
     }
 
     get width(): number {
@@ -114,8 +131,8 @@ export class Layer {
         shape.setLayer(this.floor, this.name);
         this.shapes.push(shape);
         layerManager.UUIDMap.set(shape.uuid, shape);
-        shape.setVisionBlock(shape.visionObstruction, false, invalidate !== InvalidationMode.NO);
-        shape.setMovementBlock(shape.movementObstruction, false, invalidate !== InvalidationMode.NO);
+        shape.setVisionBlock(shape.visionObstruction, SyncTo.UI, invalidate !== InvalidationMode.NO);
+        shape.setMovementBlock(shape.movementObstruction, SyncTo.UI, invalidate !== InvalidationMode.NO);
         if (snappable) {
             for (const point of shape.points) {
                 const strp = JSON.stringify(point);
@@ -127,6 +144,11 @@ export class Layer {
         if (sync !== SyncMode.NO_SYNC && !shape.preventSync)
             sendShapeAdd({ shape: shape.asDict(), temporary: sync === SyncMode.TEMP_SYNC });
         if (invalidate) this.invalidate(invalidate !== InvalidationMode.WITH_LIGHT);
+
+        if (activeShapeStore.uuid === undefined && activeShapeStore.lastUuid === shape.uuid) {
+            const selection = this.getSelection({ skipUiHelpers: false, includeComposites: false });
+            this.setSelection(shape, ...selection);
+        }
     }
 
     async setServerShapes(shapes: ServerShape[]): Promise<void> {
@@ -163,19 +185,9 @@ export class Layer {
         if (sync !== SyncMode.NO_SYNC && !shape.preventSync)
             sendRemoveShapes({ uuids: [shape.uuid], temporary: sync === SyncMode.TEMP_SYNC });
 
-        const visionSources = getVisionSources(this.floor);
-        const visionBlockers = getBlockers(TriangulationTarget.VISION, this.floor);
-        const movementBlockers = getBlockers(TriangulationTarget.MOVEMENT, this.floor);
-
-        const lsI = visionSources.findIndex(ls => ls.shape === shape.uuid);
-        const lbI = visionBlockers.findIndex(ls => ls === shape.uuid);
-        const mbI = movementBlockers.findIndex(ls => ls === shape.uuid);
-        const anI = gameStore.annotations.findIndex(ls => ls === shape.uuid);
-
-        if (lsI >= 0) sliceVisionSources(lsI, this.floor);
-        if (lbI >= 0) sliceBlockers(TriangulationTarget.VISION, lbI, this.floor);
-        if (mbI >= 0) sliceBlockers(TriangulationTarget.MOVEMENT, mbI, this.floor);
-        if (anI >= 0) gameStore.annotations.splice(anI, 1);
+        removeBlocker(TriangulationTarget.VISION, this.floor, shape, true);
+        removeBlocker(TriangulationTarget.MOVEMENT, this.floor, shape, true);
+        removeVisionSources(this.floor, shape.uuid);
 
         const annotationIndex = gameStore.annotations.indexOf(shape.uuid);
         if (annotationIndex >= 0) gameStore.annotations.splice(annotationIndex, 1);
@@ -194,19 +206,9 @@ export class Layer {
 
         const index = this.selection.indexOf(shape);
         if (index >= 0) this.selection.splice(index, 1);
-        if (lbI >= 0) {
-            visibilityStore.deleteFromTriag({
-                target: TriangulationTarget.VISION,
-                shape,
-            });
-            visibilityStore.recalculateVision(this.floor);
-        }
-        if (mbI >= 0) {
-            visibilityStore.deleteFromTriag({
-                target: TriangulationTarget.MOVEMENT,
-                shape,
-            });
-            visibilityStore.recalculateMovement(this.floor);
+
+        if ([activeShapeStore.uuid, activeShapeStore.parentUuid].includes(shape.uuid)) {
+            activeShapeStore.clear();
         }
 
         EventBus.$emit("Initiative.Remove", shape.uuid);
@@ -249,7 +251,7 @@ export class Layer {
 
             for (const shape of this.shapes) {
                 if (shape.options.has("skipDraw") && shape.options.get("skipDraw")) continue;
-                if (!shape.visibleInCanvas(this.canvas)) continue;
+                if (!shape.visibleInCanvas(this.canvas, { includeAuras: true })) continue;
                 if (this.name === "fow" && currentLayer !== this) continue;
                 drawAuras(shape, ctx);
                 visibleShapes.push(shape);

@@ -5,6 +5,7 @@ import { DEFAULT_GRID_SIZE, gameStore } from "@/game/store";
 import { calculateDelta } from "@/game/ui/tools/utils";
 import { visibilityStore } from "@/game/visibility/store";
 import { TriangulationTarget } from "@/game/visibility/te/pa";
+import { SyncTo } from "../../core/comm/types";
 import { sendClientLocationOptions } from "../api/emits/client";
 import { sendShapePositionUpdate } from "../api/emits/shape/core";
 import { EventBus } from "../event-bus";
@@ -12,6 +13,7 @@ import { floorStore } from "../layers/store";
 import { moveFloor } from "../layers/utils";
 import { gameManager } from "../manager";
 import { gameSettingsStore } from "../settings";
+import { activeShapeStore } from "../ui/ActiveShapeStore";
 
 export function onKeyUp(event: KeyboardEvent): void {
     if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement) {
@@ -31,9 +33,9 @@ export function onKeyUp(event: KeyboardEvent): void {
             floorStore.selectFloor({ targetFloor: token.floor.name, sync: true });
         }
         if (event.key === "Enter") {
-            const selection = layerManager.getSelection();
+            const selection = layerManager.getSelection({ includeComposites: false });
             if (selection.length === 1) {
-                EventBus.$emit("EditDialog.Open", selection[0]);
+                activeShapeStore.setShowEditDialog(true);
             }
         }
     }
@@ -97,7 +99,7 @@ export async function onKeyDown(event: KeyboardEvent): Promise<void> {
                 } else if (gameSettingsStore.gridType === "POINTY_HEX" && pointyHexInvalid.includes(event.code)) {
                     offsetY = 0;
                 }
-                const selection = layerManager.getSelection();
+                const selection = layerManager.getSelection({ includeComposites: false });
                 let delta = new Vector(offsetX, offsetY);
                 if (!event.shiftKey || !gameStore.IS_DM) {
                     // First check for collisions.  Using the smooth wall slide collision check used on mouse move is overkill here.
@@ -115,21 +117,21 @@ export async function onKeyDown(event: KeyboardEvent): Promise<void> {
                         recalculateMovement = true;
                         visibilityStore.deleteFromTriag({
                             target: TriangulationTarget.MOVEMENT,
-                            shape: sel,
+                            shape: sel.uuid,
                         });
                     }
                     if (sel.visionObstruction) {
                         recalculateVision = true;
                         visibilityStore.deleteFromTriag({
                             target: TriangulationTarget.VISION,
-                            shape: sel,
+                            shape: sel.uuid,
                         });
                     }
                     sel.refPoint = sel.refPoint.add(delta);
                     if (sel.movementObstruction)
-                        visibilityStore.addToTriag({ target: TriangulationTarget.MOVEMENT, shape: sel });
+                        visibilityStore.addToTriag({ target: TriangulationTarget.MOVEMENT, shape: sel.uuid });
                     if (sel.visionObstruction)
-                        visibilityStore.addToTriag({ target: TriangulationTarget.VISION, shape: sel });
+                        visibilityStore.addToTriag({ target: TriangulationTarget.VISION, shape: sel.uuid });
                     // todo: Fix again
                     // if (sel.refPoint.x % gridSize !== 0 || sel.refPoint.y % gridSize !== 0) sel.snapToGrid();
                     if (!sel.preventSync) updateList.push(sel);
@@ -151,9 +153,15 @@ export async function onKeyDown(event: KeyboardEvent): Promise<void> {
             // d - Deselect all
             layerManager.clearSelection();
         } else if (event.key === "l" && event.ctrlKey) {
-            const selection = layerManager.getSelection();
+            const selection = layerManager.getSelection({ includeComposites: true });
             for (const shape of selection) {
-                shape.setLocked(!shape.isLocked, true);
+                // This and GroupSettings are the only places currently where we would need to update both UI and Server.
+                // Might need to introduce a SyncTo.BOTH
+                const isLocked = !shape.isLocked;
+                shape.setLocked(isLocked, SyncTo.SERVER);
+                if (activeShapeStore.uuid === shape.uuid) {
+                    activeShapeStore.setLocked({ isLocked, syncTo: SyncTo.UI });
+                }
             }
             event.preventDefault();
             event.stopPropagation();
@@ -172,7 +180,7 @@ export async function onKeyDown(event: KeyboardEvent): Promise<void> {
             let targetX = 0;
             let targetY = 0;
             if (layerManager.hasSelection()) {
-                const selection = layerManager.getSelection();
+                const selection = layerManager.getSelection({ includeComposites: false });
                 for (const sel of selection) {
                     targetX += sel.refPoint.x;
                     targetY += sel.refPoint.y;
@@ -224,7 +232,7 @@ export async function onKeyDown(event: KeyboardEvent): Promise<void> {
 
 function changeFloor(event: KeyboardEvent, targetFloor: number): void {
     if (targetFloor < 0 || targetFloor > floorStore.floors.length - 1) return;
-    const selection = layerManager.getSelection();
+    const selection = layerManager.getSelection({ includeComposites: true });
     const newFloor = floorStore.floors[targetFloor];
     const newLayer = layerManager.getLayer(newFloor)!;
 

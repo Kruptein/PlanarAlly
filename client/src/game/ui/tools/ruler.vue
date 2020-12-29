@@ -6,7 +6,7 @@ import Tool from "@/game/ui/tools/tool.vue";
 import { GlobalPoint, LocalPoint } from "@/game/geom";
 import { layerManager } from "@/game/layers/manager";
 import { l2g, l2gz } from "@/game/units";
-import { SyncMode, InvalidationMode } from "../../../core/comm/types";
+import { SyncMode, InvalidationMode, SyncTo } from "../../../core/comm/types";
 import { ToolName, ToolPermission } from "./utils";
 import { gameSettingsStore } from "../../settings";
 import { ToolBasics } from "./ToolBasics";
@@ -27,9 +27,9 @@ export enum RulerFeatures {
 export default class RulerTool extends Tool implements ToolBasics {
     name = ToolName.Ruler;
     active = false;
-    startPoint: GlobalPoint | null = null;
-    rulers: Line[] = [];
-    text: Text | null = null;
+    startPoint: GlobalPoint | undefined = undefined;
+    rulers: Line[] = []; // These become reactive, but it's not the worst thing I suppose
+    text: Text | undefined = undefined;
 
     currentLength = 0;
     previousLength = 0;
@@ -58,14 +58,15 @@ export default class RulerTool extends Tool implements ToolBasics {
                 return;
             }
 
-            layer.moveShapeOrder(this.text!, layer.size() - 1, SyncMode.TEMP_SYNC);
+            layer.moveShapeOrder(this.text!, layer.size({ includeComposites: true }) - 1, SyncMode.TEMP_SYNC);
 
             event.preventDefault();
         }
     }
 
     cleanup(): void {
-        if (!this.active || this.rulers.length === 0 || this.startPoint === null || this.text === null) return;
+        if (!this.active || this.rulers.length === 0 || this.startPoint === undefined || this.text === undefined)
+            return;
 
         const layer = layerManager.getLayer(floorStore.currentFloor, "draw");
         if (layer === undefined) {
@@ -76,7 +77,7 @@ export default class RulerTool extends Tool implements ToolBasics {
 
         for (const ruler of this.rulers) layer.removeShape(ruler, this.syncMode);
         layer.removeShape(this.text, this.syncMode);
-        this.startPoint = this.text = null;
+        this.startPoint = this.text = undefined;
         this.rulers = [];
         this.previousLength = 0;
     }
@@ -102,13 +103,14 @@ export default class RulerTool extends Tool implements ToolBasics {
             fillColour: "#000",
             strokeColour: "#fff",
         });
-        this.text.addOwner({ user: gameStore.username, access: { edit: true } }, false);
+        this.text.addOwner({ user: gameStore.username, access: { edit: true } }, SyncTo.SHAPE);
         layer.addShape(this.text, this.syncMode, InvalidationMode.NORMAL);
     }
 
     onMove(lp: LocalPoint, event: MouseEvent | TouchEvent): void {
         let endPoint = l2g(lp);
-        if (!this.active || this.rulers.length === 0 || this.startPoint === null || this.text === null) return;
+        if (!this.active || this.rulers.length === 0 || this.startPoint === undefined || this.text === undefined)
+            return;
 
         const layer = layerManager.getLayer(floorStore.currentFloor, "draw");
         if (layer === undefined) {
@@ -167,7 +169,7 @@ export default class RulerTool extends Tool implements ToolBasics {
             return;
         }
 
-        ruler.addOwner({ user: gameStore.username, access: { edit: true } }, false);
+        ruler.addOwner({ user: gameStore.username, access: { edit: true } }, SyncTo.SHAPE);
         layer.addShape(ruler, this.syncMode, InvalidationMode.NORMAL);
         this.rulers.push(ruler);
     }

@@ -2,12 +2,15 @@ import { GridLayer } from "@/game/layers/grid";
 import { Layer } from "@/game/layers/layer";
 import { Shape } from "@/game/shapes/shape";
 import { sendActiveLayer } from "../api/emits/floor";
+import { sendToggleCompositeAddVariant } from "../api/emits/shape/togglecomposite";
+import { ToggleComposite } from "../shapes/variants/togglecomposite";
 import { Floor } from "./floor";
 import { floorStore } from "./store";
 
 class LayerManager {
     UUIDMap: Map<string, Shape> = new Map();
     private layerMap: Map<number, Layer[]> = new Map();
+    private compositeMap: Map<string, string> = new Map();
 
     // Refresh interval and redraw setter.
     interval = 30;
@@ -71,6 +74,29 @@ class LayerManager {
         }
     }
 
+    isComposite(shape: string): boolean {
+        return this.compositeMap.has(shape);
+    }
+
+    addComposite(parent: string, variant: { uuid: string; name: string }, sync: boolean): void {
+        this.compositeMap.set(variant.uuid, parent);
+        if (sync) {
+            sendToggleCompositeAddVariant({ shape: parent, variant: variant.uuid, name: variant.name });
+        }
+    }
+
+    getCompositeParent(variant: string): ToggleComposite | undefined {
+        const shape_uuid = this.compositeMap.get(variant);
+        if (shape_uuid) {
+            return this.UUIDMap.get(shape_uuid) as ToggleComposite;
+        }
+        return undefined;
+    }
+
+    getComposites(): readonly string[] {
+        return [...this.compositeMap.keys()];
+    }
+
     addLayer(layer: Layer, floorId: number): void {
         for (const floor of floorStore.floors) {
             if (floor.id === floorId) {
@@ -105,7 +131,7 @@ class LayerManager {
     }
 
     getFloor(id?: number): Floor | undefined {
-        if (name === undefined) return floorStore.currentFloor;
+        if (id === undefined) return floorStore.currentFloor;
         return floorStore.floors.find(f => f.id === id);
     }
 
@@ -132,14 +158,14 @@ class LayerManager {
     }
 
     hasSelection(): boolean {
-        const selection = this.getSelection();
+        const selection = this.getSelection({ includeComposites: false });
         return selection.length > 0;
     }
 
-    getSelection(skipUiHelpers = true): readonly Shape[] {
+    getSelection(options: { includeComposites: boolean; skipUiHelpers?: boolean }): readonly Shape[] {
         const layer = this.getLayer(floorStore.currentFloor);
         if (layer === undefined) return [];
-        return layer.getSelection(skipUiHelpers);
+        return layer.getSelection(options);
     }
 
     clearSelection(): void {

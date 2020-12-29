@@ -1,3 +1,5 @@
+import i18n from "../../i18n";
+
 import { InvalidationMode, SyncMode } from "@/core/comm/types";
 import { ServerFloor, ServerLayer } from "@/game/comm/types/general";
 import { GlobalPoint, Vector } from "@/game/geom";
@@ -10,7 +12,8 @@ import { Asset } from "@/game/shapes/variants/asset";
 import { clampGridLine, l2gx, l2gy, l2gz } from "@/game/units";
 import { visibilityStore } from "@/game/visibility/store";
 import { addCDT, removeCDT } from "@/game/visibility/te/pa";
-import { baseAdjust } from "../../core/utils";
+import { baseAdjust, uuidv4 } from "../../core/utils";
+import { requestAssetOptions } from "../api/emits/asset";
 import { sendFloorChange, sendLayerChange } from "../api/emits/shape/core";
 import { BaseTemplate } from "../comm/types/templates";
 import { gameSettingsStore } from "../settings";
@@ -87,41 +90,61 @@ async function createLayer(layerInfo: ServerLayer, floor: Floor): Promise<void> 
     await layer.setServerShapes(layerInfo.shapes);
 }
 
-export function dropAsset(
+export async function dropAsset(
     data: { imageSource: string; assetId: number },
     position: { x: number; y: number },
-    options?: BaseTemplate,
-): void {
+    selectionBox: { open: (title: string, choices: string[]) => Promise<string | undefined> },
+): Promise<Asset | undefined> {
     const layer = floorStore.currentLayer;
+
+    let options: BaseTemplate | undefined;
+    if (data.assetId) {
+        const response = await requestAssetOptions(data.assetId);
+        if (response.success) {
+            const choices = Object.keys(response.options?.templates ?? {});
+            if (choices.length > 0) {
+                try {
+                    const choice = await selectionBox.open(i18n.t("game.ui.templates.choose").toString(), choices);
+                    if (choice === undefined) return;
+                    options = response.options!.templates[choice];
+                } catch {
+                    // no-op ; action cancelled
+                }
+            }
+        }
+    }
 
     if (!data.imageSource.startsWith("/static")) return;
     const image = document.createElement("img");
+    const uuid = uuidv4();
     image.src = baseAdjust(data.imageSource);
-    image.onload = () => {
-        const asset = new Asset(
-            image,
-            new GlobalPoint(l2gx(position.x), l2gy(position.y)),
-            l2gz(image.width),
-            l2gz(image.height),
-            { assetId: data.assetId },
-        );
-        asset.src = new URL(image.src).pathname;
 
-        if (options) {
-            asset.setLayer(layer.floor, layer.name); // if we don't set this the asDict will fail
-            asset.fromDict(applyTemplate(asset.asDict(), options));
-        }
+    return new Promise(resolve => {
+        image.onload = () => {
+            const refPoint = new GlobalPoint(l2gx(position.x), l2gy(position.y));
+            const asset = new Asset(image, refPoint, l2gz(image.width), l2gz(image.height), {
+                assetId: data.assetId,
+                uuid,
+            });
+            asset.src = new URL(image.src).pathname;
 
-        if (gameSettingsStore.useGrid) {
-            const gs = gameStore.gridSize;
-            asset.refPoint = new GlobalPoint(clampGridLine(asset.refPoint.x), clampGridLine(asset.refPoint.y));
-            asset.w = Math.max(clampGridLine(asset.w), gs);
-            asset.h = Math.max(clampGridLine(asset.h), gs);
-        }
+            if (options) {
+                asset.setLayer(layer.floor, layer.name); // if we don't set this the asDict will fail
+                asset.fromDict(applyTemplate(asset.asDict(), options));
+            }
 
-        layer.addShape(asset, SyncMode.FULL_SYNC, InvalidationMode.WITH_LIGHT);
-        layer.invalidate(true);
-    };
+            if (gameSettingsStore.useGrid) {
+                const gs = gameStore.gridSize;
+                asset.refPoint = new GlobalPoint(clampGridLine(asset.refPoint.x), clampGridLine(asset.refPoint.y));
+                asset.w = Math.max(clampGridLine(asset.w), gs);
+                asset.h = Math.max(clampGridLine(asset.h), gs);
+            }
+
+            layer.addShape(asset, SyncMode.FULL_SYNC, InvalidationMode.WITH_LIGHT);
+
+            resolve(asset);
+        };
+    });
 }
 
 export function snapToPoint(layer: Layer, endPoint: GlobalPoint, ignore?: GlobalPoint): [GlobalPoint, boolean] {
@@ -175,28 +198,30 @@ export function moveFloor(shapes: Shape[], newFloor: Floor, sync: boolean): void
     if (shapes.some(s => s.layer !== oldLayer)) {
         throw new Error("Mixing shapes from different floors in shape move");
     }
+
     const newLayer = layerManager.getLayer(newFloor, oldLayer.name)!;
     for (const shape of shapes) {
         visibilityStore.moveShape({ shape, oldFloor: oldFloor.id, newFloor: newFloor.id });
         shape.setLayer(newFloor.id, oldLayer.name);
     }
-    oldLayer.setShapes(...oldLayer.getShapes().filter(s => !shapes.includes(s)));
+    oldLayer.setShapes(...oldLayer.getShapes({ includeComposites: true }).filter(s => !shapes.includes(s)));
     newLayer.pushShapes(...shapes);
     oldLayer.invalidate(false);
     newLayer.invalidate(false);
     if (sync) sendFloorChange({ uuids: shapes.map(s => s.uuid), floor: newFloor.name });
 }
 
-export function moveLayer(shapes: Shape[], newLayer: Layer, sync: boolean): void {
+export function moveLayer(shapes: readonly Shape[], newLayer: Layer, sync: boolean): void {
     if (shapes.length === 0) return;
     const oldLayer = shapes[0].layer;
-    // const newLayer = layerManager.getLayer(layerManager.getFloor(this._floor)!, layer);
+
     if (shapes.some(s => s.layer !== oldLayer)) {
         throw new Error("Mixing shapes from different floors in shape move");
     }
+
     for (const shape of shapes) shape.setLayer(newLayer.floor, newLayer.name);
     // Update layer shapes
-    oldLayer.setShapes(...oldLayer.getShapes().filter(s => !shapes.includes(s)));
+    oldLayer.setShapes(...oldLayer.getShapes({ includeComposites: true }).filter(s => !shapes.includes(s)));
     newLayer.pushShapes(...shapes);
     // Revalidate layers  (light should at most be redone once)
     oldLayer.invalidate(true);
@@ -208,4 +233,26 @@ export function moveLayer(shapes: Shape[], newLayer: Layer, sync: boolean): void
             layer: newLayer.name,
             floor: layerManager.getFloor(newLayer.floor)!.name,
         });
+}
+
+export function addAllCompositeShapes(shapes: readonly Shape[]): readonly Shape[] {
+    const shapeUuids: Set<string> = new Set(shapes.map(s => s.uuid));
+    const allShapes = [...shapes];
+    for (const shape of layerManager.getComposites()) {
+        if (shapes.some(s => s.uuid === shape)) {
+            const parent = layerManager.getCompositeParent(shape)!;
+            if (shapeUuids.has(parent.uuid)) continue;
+            shapeUuids.add(parent.uuid);
+            allShapes.push(parent);
+            for (const variant of parent.variants) {
+                if (shapeUuids.has(variant.uuid)) {
+                    continue;
+                } else {
+                    shapeUuids.add(variant.uuid);
+                    allShapes.push(layerManager.UUIDMap.get(variant.uuid)!);
+                }
+            }
+        }
+    }
+    return allShapes;
 }

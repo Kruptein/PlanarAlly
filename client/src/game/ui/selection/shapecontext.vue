@@ -2,8 +2,6 @@
 import Vue from "vue";
 import Component from "vue-class-component";
 
-import { mapState } from "vuex";
-
 import ConfirmDialog from "@/core/components/modals/confirm.vue";
 import ContextMenu from "@/core/components/contextmenu.vue";
 import Prompt from "@/core/components/modals/prompt.vue";
@@ -36,10 +34,6 @@ import { SyncMode } from "../../../core/comm/types";
         Prompt,
         SelectionBox,
     },
-    computed: {
-        ...mapState("game", ["activeFloorIndex", "markers"]),
-        ...mapState("gameSettings", ["activeLocation"]),
-    },
 })
 export default class ShapeContext extends Vue {
     $refs!: {
@@ -52,8 +46,30 @@ export default class ShapeContext extends Vue {
     x = 0;
     y = 0;
 
+    get currentFloorIndex(): number {
+        return floorStore.currentFloorindex;
+    }
+
+    get markers(): string[] {
+        return gameStore.markers;
+    }
+
+    get isMarker(): boolean {
+        const selection = this.getSelection();
+        if (selection.length !== 1) return false;
+        return this.markers.includes(selection[0].uuid);
+    }
+
+    get activeLocation(): number {
+        return gameSettingsStore.activeLocation;
+    }
+
+    isActiveLayer(layer: string): boolean {
+        return this.getActiveLayer()?.name === layer;
+    }
+
     getSelection(): readonly Shape[] {
-        return this.getActiveLayer()!.getSelection();
+        return this.getActiveLayer()!.getSelection({ includeComposites: false });
     }
 
     hasSpawnToken(): boolean {
@@ -69,11 +85,6 @@ export default class ShapeContext extends Vue {
     close(): void {
         if (this.$refs.prompt.visible || this.$refs.selectionbox.visible || this.$refs.confirmDialog.visible) return;
         this.visible = false;
-    }
-    getMarker(): string | undefined {
-        const layer = this.getActiveLayer()!;
-        if (layer.getSelection().length !== 1) return;
-        return layer.getSelection()[0].uuid;
     }
     getFloors(): readonly Floor[] {
         if (gameStore.IS_DM) return floorStore.floors;
@@ -91,34 +102,40 @@ export default class ShapeContext extends Vue {
         return gameStore.boardInitialized ? floorStore.currentLayer : undefined;
     }
     getInitiativeWord(): string {
-        const layer = this.getActiveLayer()!;
-        if (layer.getSelection().length === 1) {
-            return inInitiative(layer.getSelection()[0].uuid)
+        const selection = this.getSelection();
+        if (selection.length === 1) {
+            return inInitiative(selection[0].uuid)
                 ? this.$t("game.ui.selection.shapecontext.show_initiative").toString()
                 : this.$t("game.ui.selection.shapecontext.add_initiative").toString();
         } else {
-            return layer.getSelection().every(shape => inInitiative(shape.uuid))
+            return selection.every(shape => inInitiative(shape.uuid))
                 ? this.$t("game.ui.selection.shapecontext.show_initiative").toString()
                 : this.$t("game.ui.selection.shapecontext.add_all_initiative").toString();
         }
     }
     hasSingleShape(): boolean {
-        const layer = this.getActiveLayer()!;
-        return layer.getSelection().length === 1;
+        return this.getSelection().length === 1;
     }
     setFloor(floor: Floor): void {
         const layer = this.getActiveLayer()!;
-        moveFloor([...layer.getSelection()], floor, true);
+        // DO NOT USE this.getSelection here, we want to move the composites as well!
+        moveFloor([...layer.getSelection({ includeComposites: true })], floor, true);
         this.close();
     }
     setLayer(newLayer: string): void {
         const layer = this.getActiveLayer()!;
-        moveLayer([...layer.getSelection()], layerManager.getLayer(floorStore.currentFloor, newLayer)!, true);
+        // DO NOT USE this.getSelection here, we want to move the composites as well!
+        moveLayer(
+            [...layer.getSelection({ includeComposites: true })],
+            layerManager.getLayer(floorStore.currentFloor, newLayer)!,
+            true,
+        );
         layer.clearSelection();
         this.close();
     }
     async setLocation(newLocation: number): Promise<void> {
-        const selection = this.getActiveLayer()!.getSelection();
+        // DO NOT USE this.getSelection here, we want to move the composites as well!
+        const selection = this.getActiveLayer()!.getSelection({ includeComposites: true });
         const spawnInfo = await requestSpawnInfo(newLocation);
         let spawnLocation: ServerAsset;
 
@@ -169,17 +186,18 @@ export default class ShapeContext extends Vue {
     }
     moveToBack(): void {
         const layer = this.getActiveLayer()!;
-        layer.getSelection().forEach(shape => layer.moveShapeOrder(shape, 0, SyncMode.FULL_SYNC));
+        this.getSelection().forEach(shape => layer.moveShapeOrder(shape, 0, SyncMode.FULL_SYNC));
         this.close();
     }
     moveToFront(): void {
         const layer = this.getActiveLayer()!;
-        layer.getSelection().forEach(shape => layer.moveShapeOrder(shape, layer.size() - 1, SyncMode.FULL_SYNC));
+        this.getSelection().forEach(shape =>
+            layer.moveShapeOrder(shape, layer.size({ includeComposites: true }) - 1, SyncMode.FULL_SYNC),
+        );
         this.close();
     }
     async addInitiative(): Promise<void> {
-        const layer = this.getActiveLayer()!;
-        const selection = layer.getSelection();
+        const selection = this.getSelection();
         let groupInitiatives = false;
         if (new Set(selection.map(s => s.groupId)).size < selection.length) {
             const answer = await this.$refs.confirmDialog.open(
@@ -208,22 +226,22 @@ export default class ShapeContext extends Vue {
         this.close();
     }
     openEditDialog(): void {
-        const layer = this.getActiveLayer()!;
-        if (layer.getSelection().length !== 1) return;
-        EventBus.$emit("EditDialog.Open", layer.getSelection()[0]);
+        const selection = this.getSelection();
+        if (selection.length !== 1) return;
+        EventBus.$emit("EditDialog.Open");
         this.close();
     }
     setMarker(): void {
-        const layer = this.getActiveLayer()!;
-        if (layer.getSelection().length !== 1) return;
-        const marker = layer.getSelection()[0].uuid;
+        const selection = this.getSelection();
+        if (selection.length !== 1) return;
+        const marker = selection[0].uuid;
         gameStore.newMarker({ marker, sync: true });
         this.close();
     }
     deleteMarker(): void {
-        const layer = this.getActiveLayer()!;
-        if (layer.getSelection().length !== 1) return;
-        const marker = layer.getSelection()[0].uuid;
+        const selection = this.getSelection();
+        if (selection.length !== 1) return;
+        const marker = selection[0].uuid;
         gameStore.removeMarker({ marker, sync: true });
         this.close();
     }
@@ -240,10 +258,10 @@ export default class ShapeContext extends Vue {
         return gameStore.IS_DM;
     }
 
-    hasAsset(): boolean {
-        return this.getActiveLayer()!
-            .getSelection()
-            .every(s => s.assetId !== undefined);
+    canBeSaved(): boolean {
+        return this.getSelection().every(
+            s => s.assetId !== undefined && layerManager.getCompositeParent(s.uuid) === undefined,
+        );
     }
 
     async saveTemplate(): Promise<void> {
@@ -394,7 +412,7 @@ export default class ShapeContext extends Vue {
                 <li
                     v-for="(floor, idx) in getFloors()"
                     :key="floor.name"
-                    :style="[idx === activeFloorIndex ? { 'background-color': '#82c8a0' } : {}]"
+                    :style="[idx === currentFloorIndex ? { 'background-color': '#82c8a0' } : {}]"
                     @click="setFloor(floor)"
                 >
                     {{ floor.name }}
@@ -407,7 +425,7 @@ export default class ShapeContext extends Vue {
                 <li
                     v-for="layer in getLayers()"
                     :key="layer.name"
-                    :style="[getActiveLayer().name === layer.name ? { 'background-color': '#82c8a0' } : {}]"
+                    :style="[isActiveLayer(layer.name) ? { 'background-color': '#82c8a0' } : {}]"
                     @click="setLayer(layer.name)"
                 >
                     {{ getLayerWord(layer.name) }}
@@ -432,13 +450,9 @@ export default class ShapeContext extends Vue {
         <li @click="addInitiative" v-if="showInitiative()">{{ getInitiativeWord() }}</li>
         <li @click="deleteSelection" v-if="showDelete()" v-t="'game.ui.selection.shapecontext.delete_shapes'"></li>
         <template v-if="hasSingleShape()">
-            <li
-                v-if="markers.includes(getMarker())"
-                @click="deleteMarker"
-                v-t="'game.ui.selection.shapecontext.remove_marker'"
-            ></li>
+            <li v-if="isMarker" @click="deleteMarker" v-t="'game.ui.selection.shapecontext.remove_marker'"></li>
             <li v-else @click="setMarker" v-t="'game.ui.selection.shapecontext.set_marker'"></li>
-            <li @click="saveTemplate" v-if="showDmNonSpawnItem() && hasAsset()" v-t="'game.ui.templates.save'"></li>
+            <li @click="saveTemplate" v-if="showDmNonSpawnItem() && canBeSaved()" v-t="'game.ui.templates.save'"></li>
         </template>
         <template v-else>
             <li>

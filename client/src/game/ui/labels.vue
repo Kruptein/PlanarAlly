@@ -6,7 +6,6 @@ import Modal from "@/core/components/modals/modal.vue";
 
 import { uuidv4 } from "@/core/utils";
 import { socket } from "@/game/api/socket";
-import { EventBus } from "@/game/event-bus";
 import { gameStore } from "@/game/store";
 import { Label } from "../shapes/interfaces";
 
@@ -53,7 +52,7 @@ export default class LabelManager extends Vue {
     }
 
     selectLabel(label: string): void {
-        EventBus.$emit("EditDialog.AddLabel", label);
+        this.$emit("addLabel", label);
         this.visible = false;
     }
 
@@ -145,7 +144,7 @@ export default class LabelManager extends Vue {
                         </div>
                     </template>
                 </template>
-                <template v-if="labels.length === 0">
+                <template v-if="Object.keys(labels).length === 0">
                     <div id="no-labels" v-t="'game.ui.labels.no_exist_msg'"></div>
                 </template>
             </div>

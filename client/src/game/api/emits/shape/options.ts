@@ -22,10 +22,15 @@ export const sendShapeSetAnnotation = sendSimpleShapeOption<string>("Shape.Optio
 export const sendShapeSetName = sendSimpleShapeOption<string>("Shape.Options.Name.Set");
 export const sendShapeSetStrokeColour = sendSimpleShapeOption<string>("Shape.Options.StrokeColour.Set");
 export const sendShapeSetFillColour = sendSimpleShapeOption<string>("Shape.Options.FillColour.Set");
+export const sendShapeAddLabel = sendSimpleShapeOption<string>("Shape.Options.Label.Add");
 
 export const sendShapeRemoveLabel = sendSimpleShapeOption<string>("Shape.Options.Label.Remove");
 export const sendShapeRemoveAura = sendSimpleShapeOption<string>("Shape.Options.Aura.Remove");
 export const sendShapeRemoveTracker = sendSimpleShapeOption<string>("Shape.Options.Tracker.Remove");
+export const sendShapeMoveTracker = sendShapeOption<{ tracker: string; new_shape: string }>(
+    "Shape.Options.Tracker.Move",
+);
+export const sendShapeMoveAura = sendShapeOption<{ aura: string; new_shape: string }>("Shape.Options.Aura.Move");
 
 export const sendShapeCreateTracker = (data: ServerTracker): void => {
     socket.emit("Shape.Options.Tracker.Create", data);

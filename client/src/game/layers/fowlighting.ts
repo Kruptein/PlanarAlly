@@ -40,7 +40,9 @@ export class FowLightingLayer extends FowLayer {
                 layerManager.hasLayer(floorStore.currentFloor, "tokens") &&
                 floorStore.currentFloor === floorStore.floors[floorStore.currentFloorindex]
             ) {
-                for (const sh of layerManager.getLayer(floorStore.currentFloor, "tokens")!.getShapes()) {
+                for (const sh of layerManager
+                    .getLayer(floorStore.currentFloor, "tokens")!
+                    .getShapes({ includeComposites: false })) {
                     if (!sh.ownedBy({ visionAccess: true }) || !sh.isToken) continue;
                     const bb = sh.getBoundingBox();
                     const lcenter = g2l(sh.center());
@@ -66,7 +68,7 @@ export class FowLightingLayer extends FowLayer {
             for (const light of getVisionSources(this.floor)) {
                 const shape = layerManager.UUIDMap.get(light.shape);
                 if (shape === undefined) continue;
-                const aura = shape.auras.find(a => a.uuid === light.aura);
+                const aura = shape.getAuras(true).find(a => a.uuid === light.aura);
                 if (aura === undefined) continue;
 
                 if (!shape.ownedBy({ visionAccess: true }) && !aura.visible) continue;
@@ -76,7 +78,7 @@ export class FowLightingLayer extends FowLayer {
                 const lcenter = g2l(center);
 
                 const auraCircle = new Circle(center, auraLength);
-                if (!auraCircle.visibleInCanvas(this.ctx.canvas)) continue;
+                if (!auraCircle.visibleInCanvas(this.ctx.canvas, { includeAuras: true })) continue;
 
                 this.vCtx.globalCompositeOperation = "source-over";
                 this.vCtx.fillStyle = "rgba(0, 0, 0, 1)";
@@ -118,7 +120,7 @@ export class FowLightingLayer extends FowLayer {
             }
 
             for (const preShape of this.preFogShapes) {
-                if (!preShape.visibleInCanvas(this.canvas)) continue;
+                if (!preShape.visibleInCanvas(this.canvas, { includeAuras: true })) continue;
                 const ogComposite = preShape.globalCompositeOperation;
                 if (!gameSettingsStore.fullFow) {
                     if (preShape.globalCompositeOperation === "source-over")

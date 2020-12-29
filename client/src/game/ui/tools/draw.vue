@@ -8,7 +8,7 @@ import ColorPicker from "@/core/components/colorpicker.vue";
 import Tool from "./tool.vue";
 import Tools from "./tools.vue";
 
-import { SyncMode, InvalidationMode } from "@/core/comm/types";
+import { SyncMode, InvalidationMode, SyncTo } from "@/core/comm/types";
 import { GlobalPoint, LocalPoint } from "@/game/geom";
 import { Layer } from "@/game/layers/layer";
 import { snapToPoint } from "@/game/layers/utils";
@@ -45,10 +45,10 @@ export default class DrawTool extends Tool implements ToolBasics {
     name = ToolName.Draw;
     active = false;
 
-    startPoint: GlobalPoint | null = null;
-    shape: Shape | null = null;
-    brushHelper: Circle | null = null;
-    ruler: Line | null = null;
+    startPoint: GlobalPoint | undefined = undefined;
+    shape: Shape | undefined = undefined;
+    brushHelper: Circle | undefined = undefined;
+    ruler: Line | undefined = undefined;
 
     fillColour = "rgba(0, 0, 0, 1)";
     borderColour = "rgba(255, 255, 255, 0)";
@@ -88,7 +88,7 @@ export default class DrawTool extends Tool implements ToolBasics {
         if (event.defaultPrevented) return;
         if (event.key === "Escape" && this.active) {
             let mouse: { x: number; y: number } | undefined = undefined;
-            if (this.brushHelper !== null) {
+            if (this.brushHelper !== undefined) {
                 mouse = { x: this.brushHelper.refPoint.x, y: this.brushHelper.refPoint.y };
             }
             this.onDeselect();
@@ -110,7 +110,7 @@ export default class DrawTool extends Tool implements ToolBasics {
 
     @Watch("closedPolygon")
     onChangePolygonCloseBehaviour(closedPolygon: boolean): void {
-        if (this.shape !== null && this.active) (this.shape as Polygon).openPolygon = !closedPolygon;
+        if (this.shape !== undefined && this.active) (this.shape as Polygon).openPolygon = !closedPolygon;
     }
 
     @Watch("fillColour")
@@ -127,7 +127,7 @@ export default class DrawTool extends Tool implements ToolBasics {
     onFloorChange(newValue: Floor, oldValue: Floor): void {
         if (this.$parent.currentTool === this.name) {
             let mouse: { x: number; y: number } | undefined = undefined;
-            if (this.brushHelper !== null) {
+            if (this.brushHelper !== undefined) {
                 mouse = { x: this.brushHelper.refPoint.x, y: this.brushHelper.refPoint.y };
             }
             this.onDeselect({ floor: oldValue });
@@ -139,7 +139,7 @@ export default class DrawTool extends Tool implements ToolBasics {
     onLayerChange(newValue: Layer, oldValue: Layer): void {
         if (this.$parent.currentTool === this.name) {
             let mouse: { x: number; y: number } | undefined = undefined;
-            if (this.brushHelper !== null) {
+            if (this.brushHelper !== undefined) {
                 mouse = { x: this.brushHelper.refPoint.x, y: this.brushHelper.refPoint.y };
             }
             this.onDeselect({ layer: oldValue.name });
@@ -148,7 +148,7 @@ export default class DrawTool extends Tool implements ToolBasics {
     }
 
     setupBrush(): void {
-        if (this.brushHelper === null) return;
+        if (this.brushHelper === undefined) return;
         if (this.modeSelect === "reveal" || this.modeSelect === "hide") {
             this.brushHelper.options.set("preFogShape", true);
             this.brushHelper.options.set("skipDraw", true);
@@ -165,7 +165,7 @@ export default class DrawTool extends Tool implements ToolBasics {
         this.brushHelper.r = this.helperSize;
     }
     onModeChange(newValue: string, oldValue: string): void {
-        if (this.brushHelper === null) return;
+        if (this.brushHelper === undefined) return;
 
         const fowLayer = layerManager.getLayer(floorStore.currentFloor, "fow");
         const normalLayer = floorStore.currentLayer;
@@ -194,7 +194,7 @@ export default class DrawTool extends Tool implements ToolBasics {
             console.log("No active layer!");
             return;
         }
-        if (this.brushHelper === null) return;
+        if (this.brushHelper === undefined) return;
         if (!this.active) {
             this.startPoint = startPoint;
             this.active = true;
@@ -251,25 +251,25 @@ export default class DrawTool extends Tool implements ToolBasics {
             if (this.modeSelect === "reveal") this.shape.globalCompositeOperation = "source-over";
             else if (this.modeSelect === "hide") this.shape.globalCompositeOperation = "destination-out";
 
-            this.shape.addOwner({ user: gameStore.username, access: { edit: true } }, false);
+            this.shape.addOwner({ user: gameStore.username, access: { edit: true } }, SyncTo.UI);
             if (layer.name === "fow" && this.modeSelect === "normal") {
-                this.shape.setVisionBlock(true, false, false);
-                this.shape.setMovementBlock(true, false, false);
+                this.shape.setVisionBlock(true, SyncTo.UI, false);
+                this.shape.setMovementBlock(true, SyncTo.UI, false);
             }
             layer.addShape(this.shape, SyncMode.FULL_SYNC, InvalidationMode.NO);
 
             // Push brushhelper to back
             this.pushBrushBack();
-        } else if (this.shape !== null && this.shapeSelect === "draw-polygon" && this.shape instanceof Polygon) {
+        } else if (this.shape !== undefined && this.shapeSelect === "draw-polygon" && this.shape instanceof Polygon) {
             // For polygon draw
             if (useSnapping(event) && !this.snappedToPoint)
                 this.brushHelper.refPoint = new GlobalPoint(clampGridLine(startPoint.x), clampGridLine(startPoint.y));
             this.shape._vertices.push(this.brushHelper.refPoint.clone());
             this.shape.updatePoints();
         }
-        if (this.shape !== null && this.shapeSelect === "draw-polygon" && this.shape instanceof Polygon) {
+        if (this.shape !== undefined && this.shapeSelect === "draw-polygon" && this.shape instanceof Polygon) {
             const lastPoint = this.brushHelper.refPoint;
-            if (this.ruler === null) {
+            if (this.ruler === undefined) {
                 this.ruler = new Line(lastPoint, lastPoint, {
                     lineWidth: this.brushSize,
                     strokeColour: this.fillColour,
@@ -310,13 +310,13 @@ export default class DrawTool extends Tool implements ToolBasics {
             [endPoint, this.snappedToPoint] = snapToPoint(this.getLayer()!, endPoint, this.ruler?.refPoint);
         else this.snappedToPoint = false;
 
-        if (this.brushHelper !== null) {
+        if (this.brushHelper !== undefined) {
             this.brushHelper.r = this.helperSize;
             this.brushHelper.refPoint = endPoint;
             if (!this.active) layer.invalidate(false);
         }
 
-        if (!this.active || this.startPoint === null || this.shape === null) return;
+        if (!this.active || this.startPoint === undefined || this.shape === undefined) return;
 
         switch (this.shapeSelect) {
             case "square": {
@@ -362,9 +362,9 @@ export default class DrawTool extends Tool implements ToolBasics {
                 )
                     visibilityStore.deleteFromTriag({
                         target: TriangulationTarget.VISION,
-                        shape: this.shape,
+                        shape: this.shape.uuid,
                     });
-                visibilityStore.addToTriag({ target: TriangulationTarget.VISION, shape: this.shape });
+                visibilityStore.addToTriag({ target: TriangulationTarget.VISION, shape: this.shape.uuid });
                 visibilityStore.recalculateVision(this.shape.floor.id);
             }
         }
@@ -374,7 +374,7 @@ export default class DrawTool extends Tool implements ToolBasics {
     onUp(lp: LocalPoint, event: MouseEvent | TouchEvent): void {
         if (
             !this.active ||
-            this.shape === null ||
+            this.shape === undefined ||
             (this.shape instanceof Polygon && this.shapeSelect === "draw-polygon")
         ) {
             return;
@@ -389,15 +389,15 @@ export default class DrawTool extends Tool implements ToolBasics {
             if (this.shape.visionObstruction)
                 visibilityStore.deleteFromTriag({
                     target: TriangulationTarget.VISION,
-                    shape: this.shape,
+                    shape: this.shape.uuid,
                 });
             this.shape.resizeToGrid(this.shape.getPointIndex(endPoint, l2gz(5)), event.ctrlKey);
             if (this.shape.visionObstruction) {
-                visibilityStore.addToTriag({ target: TriangulationTarget.VISION, shape: this.shape });
+                visibilityStore.addToTriag({ target: TriangulationTarget.VISION, shape: this.shape.uuid });
                 visibilityStore.recalculateVision(this.shape.floor.id);
             }
             if (this.shape.movementObstruction) {
-                visibilityStore.addToTriag({ target: TriangulationTarget.MOVEMENT, shape: this.shape });
+                visibilityStore.addToTriag({ target: TriangulationTarget.MOVEMENT, shape: this.shape.uuid });
                 visibilityStore.recalculateMovement(this.shape.floor.id);
             }
         }
@@ -407,7 +407,7 @@ export default class DrawTool extends Tool implements ToolBasics {
     onContextMenu(event: MouseEvent): void {
         if (
             this.active &&
-            this.shape !== null &&
+            this.shape !== undefined &&
             this.shapeSelect === "draw-polygon" &&
             this.shape instanceof Polygon
         ) {
@@ -417,7 +417,7 @@ export default class DrawTool extends Tool implements ToolBasics {
                 return;
             }
             layer.removeShape(this.ruler!, SyncMode.NO_SYNC);
-            this.ruler = null;
+            this.ruler = undefined;
             if (this.closedPolygon) {
                 if (this.shape.visionObstruction && this.shape.points.length > 1)
                     insertConstraint(
@@ -441,11 +441,11 @@ export default class DrawTool extends Tool implements ToolBasics {
     }
 
     private finaliseShape(): void {
-        if (this.shape === null) return;
+        if (this.shape === undefined) return;
         this.shape.updatePoints();
         if (this.shape.points.length <= 1) {
             let mouse: { x: number; y: number } | undefined = undefined;
-            if (this.brushHelper !== null) {
+            if (this.brushHelper !== undefined) {
                 mouse = { x: this.brushHelper.refPoint.x, y: this.brushHelper.refPoint.y };
             }
             this.onDeselect();
@@ -478,17 +478,17 @@ export default class DrawTool extends Tool implements ToolBasics {
         this.activeTool = false;
         const layer = this.getLayer(data);
         if (layer === undefined) return;
-        if (this.brushHelper !== null) {
+        if (this.brushHelper !== undefined) {
             layer.removeShape(this.brushHelper, SyncMode.NO_SYNC);
-            this.brushHelper = null;
+            this.brushHelper = undefined;
         }
-        if (this.ruler !== null) {
+        if (this.ruler !== undefined) {
             layer.removeShape(this.ruler, SyncMode.NO_SYNC);
-            this.ruler = null;
+            this.ruler = undefined;
         }
-        if (this.active && this.shape !== null) {
+        if (this.active && this.shape !== undefined) {
             layer.removeShape(this.shape, SyncMode.FULL_SYNC);
-            this.shape = null;
+            this.shape = undefined;
             this.active = false;
             layer.invalidate(false);
         }
@@ -504,7 +504,7 @@ export default class DrawTool extends Tool implements ToolBasics {
         }
         const refPoint = this.brushHelper?.refPoint;
         const bs = this.brushHelper?.r;
-        if (this.brushHelper !== null) layer.removeShape(this.brushHelper, SyncMode.NO_SYNC);
+        if (this.brushHelper !== undefined) layer.removeShape(this.brushHelper, SyncMode.NO_SYNC);
         this.brushHelper = new Circle(new GlobalPoint(-1000, -1000), bs ?? this.brushSize / 2, {
             fillColour: this.fillColour,
         });

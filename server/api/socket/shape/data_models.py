@@ -149,3 +149,13 @@ class CircleSizeData(TypedDict):
     uuid: str
     r: int
     temporary: bool
+
+
+class OptionUpdate(TypedDict):
+    uuid: str
+    option: str
+
+
+class OptionUpdateList(TypedDict):
+    options: List[OptionUpdate]
+    temporary: bool

@@ -10,6 +10,7 @@ import "@/game/api/events/notification";
 import "@/game/api/events/room";
 import "@/game/api/events/shape/core";
 import "@/game/api/events/shape/options";
+import "@/game/api/events/shape/togglecomposite";
 import { socket } from "@/game/api/socket";
 import { Note, ServerFloor } from "@/game/comm/types/general";
 import { EventBus } from "@/game/event-bus";

@@ -10,7 +10,6 @@ import { socket } from "../../socket";
 import { Text } from "../../../shapes/variants/text";
 import { Rect } from "../../../shapes/variants/rect";
 import { Circle } from "../../../shapes/variants/circle";
-import { Tracker, Aura } from "../../../shapes/interfaces";
 
 socket.on("Shape.Set", async (data: ServerShape) => {
     // hard reset a shape
@@ -41,10 +40,19 @@ socket.on("Shapes.Position.Update", (data: { uuid: string; position: { angle: nu
     for (const sh of data) {
         const shape = layerManager.UUIDMap.get(sh.uuid);
         if (shape === undefined) {
-            console.log(`Attempted to move unknown shape ${sh.uuid}`);
             continue;
         }
         shape.setPositionRepresentation(sh.position);
+    }
+});
+
+socket.on("Shapes.Options.Update", (data: { uuid: string; option: string }[]) => {
+    for (const sh of data) {
+        const shape = layerManager.UUIDMap.get(sh.uuid);
+        if (shape === undefined) {
+            continue;
+        }
+        shape.setOptions(sh.option);
     }
 });
 
@@ -74,22 +82,6 @@ socket.on("Shapes.Layer.Change", (data: { uuids: string[]; floor: string; layer:
     if (shapes.length === 0) return;
     moveLayer(shapes, layerManager.getLayer(layerManager.getFloor(getFloorId(data.floor))!, data.layer)!, false);
 });
-
-socket.on(
-    "Shapes.Trackers.Update",
-    (data: { uuid: string; value: number; shape: string; _type: "tracker" | "aura" }) => {
-        const shape = layerManager.UUIDMap.get(data.shape);
-        if (shape === undefined) return;
-
-        let tracker: Tracker | Aura | undefined;
-        if (data._type === "tracker") tracker = shape.trackers.find(t => t.uuid === data.uuid);
-        else tracker = shape.auras.find(a => a.uuid === data.uuid);
-        if (tracker !== undefined) {
-            tracker.value = data.value;
-            if (data._type === "aura") shape.layer.invalidate(!(tracker as Aura).visionSource);
-        }
-    },
-);
 
 socket.on("Shape.Text.Value.Set", (data: { uuid: string; text: string }) => {
     const shape = layerManager.UUIDMap.get(data.uuid) as Text | undefined;

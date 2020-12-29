@@ -176,12 +176,15 @@ class ShapeOwner(BaseModel):
 
 
 class ShapeType(BaseModel):
-    abstract = False
     shape = ForeignKeyField(Shape, primary_key=True, on_delete="CASCADE")
 
     @staticmethod
     def pre_create(**kwargs):
         return kwargs
+
+    @staticmethod
+    def post_create(subshape, **kwargs):
+        pass
 
     def as_dict(self, *args, **kwargs):
         return model_to_dict(self, *args, **kwargs)
@@ -197,7 +200,6 @@ class ShapeType(BaseModel):
 
 
 class BaseRect(ShapeType):
-    abstract = False
     width = FloatField()
     height = FloatField()
 
@@ -206,23 +208,19 @@ class BaseRect(ShapeType):
 
 
 class AssetRect(BaseRect):
-    abstract = False
     src = TextField()
 
 
 class Circle(ShapeType):
-    abstract = False
     radius = FloatField()
 
 
 class CircularToken(Circle):
-    abstract = False
     text = TextField()
     font = TextField()
 
 
 class Line(ShapeType):
-    abstract = False
     x2 = FloatField()
     y2 = FloatField()
     line_width = IntegerField()
@@ -232,7 +230,6 @@ class Line(ShapeType):
 
 
 class Polygon(ShapeType):
-    abstract = False
     vertices = TextField()
     line_width = IntegerField()
     open_polygon = BooleanField()
@@ -257,10 +254,46 @@ class Polygon(ShapeType):
 
 
 class Rect(BaseRect):
-    abstract = False
+    pass
 
 
 class Text(ShapeType):
-    abstract = False
     text = TextField()
     font = TextField()
+
+
+class ToggleComposite(ShapeType):
+    """
+    Toggle shapes are composites that have multiple variants but only show one at a time.
+    """
+
+    active_variant = TextField(null=True)
+
+    @staticmethod
+    def post_create(subshape, **kwargs):
+        for variant in kwargs.get("variants", []):
+            CompositeShapeAssociation.create(
+                parent=subshape, variant=variant["uuid"], name=variant["name"]
+            )
+
+    def as_dict(self, *args, **kwargs):
+        model = model_to_dict(self, *args, **kwargs)
+        model["variants"] = [
+            {"uuid": sv.variant.uuid, "name": sv.name}
+            for sv in self.shape.shape_variants
+        ]
+        return model
+
+
+class CompositeShapeAssociation(BaseModel):
+    variant = ForeignKeyField(Shape, backref="composite_parent", on_delete="CASCADE")
+    parent = ForeignKeyField(Shape, backref="shape_variants", on_delete="CASCADE")
+    name = TextField()
+
+
+# TODO
+# class MultiShape(CompositeShape):
+#     """
+#     Multi shapes are composites that consist of multiple smaller shapes that together form one bigger structure.
+#     """
+

@@ -14,7 +14,7 @@ import { CircularToken } from "@/game/shapes/variants/circulartoken";
 import { gameStore } from "@/game/store";
 import { getUnitDistance, l2g } from "@/game/units";
 import { Watch } from "vue-property-decorator";
-import { SyncMode, InvalidationMode } from "../../../core/comm/types";
+import { SyncMode, InvalidationMode, SyncTo } from "../../../core/comm/types";
 import { gameSettingsStore } from "../../settings";
 import { floorStore } from "@/game/layers/store";
 
@@ -80,7 +80,7 @@ export default class CreateTokenModal extends Vue {
             "10px serif",
             { fillColour: this.fillColour, strokeColour: this.borderColour },
         );
-        token.addOwner({ user: gameStore.username, access: { edit: true } }, false);
+        token.addOwner({ user: gameStore.username, access: { edit: true } }, SyncTo.UI);
         layer.addShape(token, SyncMode.FULL_SYNC, InvalidationMode.WITH_LIGHT);
         this.close();
     }

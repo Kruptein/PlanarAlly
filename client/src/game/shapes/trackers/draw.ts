@@ -2,34 +2,21 @@ import { TriangulationTarget } from "@/game/visibility/te/pa";
 import { computeVisibility } from "@/game/visibility/te/te";
 import { circleLineIntersection, xyEqual } from "@/game/visibility/te/triag";
 import tinycolor from "tinycolor2";
-import { uuidv4 } from "../../core/utils";
-import { GlobalPoint, LocalPoint } from "../geom";
-import { g2l, g2lr, g2lz, getUnitDistance } from "../units";
-import { Circle } from "./variants/circle";
-import { Aura } from "./interfaces";
-import { Shape } from "./shape";
-
-export function createEmptyAura(): Aura {
-    return {
-        uuid: uuidv4(),
-        name: "",
-        value: 0,
-        dim: 0,
-        visionSource: false,
-        colour: "rgba(0,0,0,0)",
-        visible: false,
-        temporary: true,
-    };
-}
+import { GlobalPoint, LocalPoint } from "../../geom";
+import { g2l, g2lr, g2lz, getUnitDistance } from "../../units";
+import { Shape } from "../shape";
+import { Circle } from "../variants/circle";
 
 export function drawAuras(shape: Shape, ctx: CanvasRenderingContext2D): void {
-    for (const aura of shape.auras) {
+    for (const aura of shape.getAuras(true)) {
         const value = aura.value > 0 ? aura.value : 0;
         const dim = aura.value > 0 ? aura.value : 0;
-        if (value === 0 && dim === 0) continue;
+        if (value === 0 && dim === 0) return;
         ctx.beginPath();
 
-        const loc = g2l(shape.center());
+        const location = shape.center();
+
+        const loc = g2l(location);
         const innerRange = g2lr(value + dim);
 
         if (dim === 0) ctx.fillStyle = aura.colour;
@@ -44,8 +31,8 @@ export function drawAuras(shape: Shape, ctx: CanvasRenderingContext2D): void {
             ctx.arc(loc.x, loc.y, innerRange, 0, 2 * Math.PI);
             ctx.fill();
         } else {
-            const polygon = computeVisibility(shape.center(), TriangulationTarget.VISION, shape.floor.id);
-            aura.lastPath = updateAuraPath(polygon, shape.center(), getUnitDistance(value + dim));
+            const polygon = computeVisibility(location, TriangulationTarget.VISION, shape.floor.id);
+            aura.lastPath = updateAuraPath(polygon, location, getUnitDistance(value + dim));
             try {
                 ctx.fill(aura.lastPath);
             } catch (e) {

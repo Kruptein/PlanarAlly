@@ -11,6 +11,10 @@ import VueMarkdown from "vue-markdown";
 export default class Annotation extends Vue {
     private text = "";
 
+    get hasText(): boolean {
+        return this.text !== "";
+    }
+
     setActiveText(text: string): void {
         this.text = text;
     }

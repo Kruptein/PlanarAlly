@@ -45,7 +45,7 @@ export default class AssetManager extends Vue {
     };
 
     currentFolder!: number;
-    fildes!: number[];
+    files!: number[];
     firstSelectedFile!: Asset | null;
     folders!: number[];
     idMap!: Map<number, Asset>;

@@ -14,11 +14,10 @@ import { Module, VuexModule, getModule, Mutation } from "vuex-module-decorators"
 import { SyncTo } from "../../core/comm/types";
 import { rootStore } from "../../store";
 import { layerManager } from "../layers/manager";
-import { createEmptyAura } from "../shapes/aura";
+import { createEmptyAura, createEmptyTracker } from "../shapes/trackers/empty";
 import { Aura, Label, Tracker } from "../shapes/interfaces";
 import { ShapeAccess, ShapeOwner } from "../shapes/owners";
 import { Shape } from "../shapes/shape";
-import { createEmptyTracker } from "../shapes/tracker";
 import { ToggleComposite } from "../shapes/variants/togglecomposite";
 import { gameStore } from "../store";
 

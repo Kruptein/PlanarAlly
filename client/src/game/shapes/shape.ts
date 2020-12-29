@@ -57,7 +57,6 @@ import { PartialShapeOwner, ShapeAccess, ShapeOwner } from "./owners";
 import { SHAPE_TYPE } from "./types";
 import { EventBus } from "../event-bus";
 import { getBadgeCharacters } from "../groups";
-import { drawAura } from "./aura";
 import { SyncTo } from "../../core/comm/types";
 import { activeShapeStore } from "../ui/ActiveShapeStore";
 
@@ -452,14 +451,6 @@ export abstract class Shape {
             ctx.lineTo(g2lx(vertex[0]), g2ly(vertex[1]));
         }
         ctx.stroke();
-    }
-
-    drawAuras(ctx: CanvasRenderingContext2D): void {
-        const center = this.center();
-
-        for (const aura of this.getAuras(true)) {
-            drawAura(aura, center, this.floor.id, ctx);
-        }
     }
 
     getAnchorLocation(): LocalPoint {

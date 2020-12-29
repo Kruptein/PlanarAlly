@@ -9,8 +9,7 @@ import {
     BaseTrackerTemplate,
     getTemplateKeys,
 } from "../comm/types/templates";
-import { createEmptyAura } from "./aura";
-import { createEmptyTracker } from "./tracker";
+import { createEmptyAura, createEmptyTracker } from "./trackers/empty";
 
 export function applyTemplate<T extends ServerShape>(shape: T, template: BaseTemplate): T {
     // should be shape[key], but this is something that TS cannot correctly infer (issue #31445)

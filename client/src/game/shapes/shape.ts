@@ -517,7 +517,7 @@ export abstract class Shape {
      * @param f A function that should be called if the current shape is the active shape
      * @param args the args of the above function
      */
-    private _<T extends unknown[], R = unknown>(f: (...args: T) => R, ...args: T): void {
+    protected _<T extends unknown[], R = unknown>(f: (...args: T) => R, ...args: T): void {
         if (this.uuid === activeShapeStore.uuid) f(...args);
     }
 

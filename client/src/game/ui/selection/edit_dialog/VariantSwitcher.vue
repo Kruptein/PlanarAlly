@@ -2,22 +2,19 @@
 import Vue from "vue";
 import Component from "vue-class-component";
 
-import { Prop } from "vue-property-decorator";
-
 import AssetPicker from "@/core/components/modals/AssetPicker.vue";
 import ConfirmDialog from "@/core/components/modals/confirm.vue";
 import Prompt from "@/core/components/modals/prompt.vue";
 import SelectionBox from "@/core/components/modals/SelectionBox.vue";
 
-import { Shape } from "@/game/shapes/shape";
 import { layerManager } from "../../../layers/manager";
 import { dropAsset } from "../../../layers/utils";
 import { ToggleComposite } from "../../../shapes/variants/togglecomposite";
-import { InvalidationMode, SyncMode } from "../../../../core/comm/types";
+import { InvalidationMode, SyncMode, SyncTo } from "../../../../core/comm/types";
+import { ActiveShapeState, activeShapeStore } from "../../ActiveShapeStore";
 
 @Component({ components: { AssetPicker, ConfirmDialog, Prompt, SelectionBox } })
 export default class VariantSwitcher extends Vue {
-    @Prop() shape!: Shape;
     $refs!: {
         assetPicker: AssetPicker;
         confirmDialog: ConfirmDialog;
@@ -25,14 +22,21 @@ export default class VariantSwitcher extends Vue {
         selectionBox: SelectionBox;
     };
 
-    private recompute = false;
+    get owned(): boolean {
+        return activeShapeStore.hasEditAccess;
+    }
+
+    get shape(): ActiveShapeState {
+        return activeShapeStore;
+    }
 
     get compositeParent(): ToggleComposite | undefined {
+        if (this.shape.uuid === undefined) return undefined;
         return layerManager.getCompositeParent(this.shape.uuid);
     }
 
     get variants(): readonly { uuid: string; name: string }[] {
-        return this.compositeParent?.variants ?? [];
+        return this.shape.variants;
     }
 
     get currentIndex(): number {
@@ -48,7 +52,6 @@ export default class VariantSwitcher extends Vue {
 
     get currentVariant(): string {
         const index = this.currentIndex;
-        if (this.recompute) this.recompute = false;
         if (index < 0) return "No variant";
         return this.variants[index].name;
     }
@@ -77,50 +80,44 @@ export default class VariantSwitcher extends Vue {
         parent.setActiveVariant(variant, true);
     }
 
-    createToggleComposite(): ToggleComposite {
-        const composite = new ToggleComposite(this.shape.refPoint.clone(), this.shape.uuid, [
-            { uuid: this.shape.uuid, name: "base variant" },
-        ]);
-        this.shape.layer.addShape(composite, SyncMode.FULL_SYNC, InvalidationMode.NO);
-        return composite;
-    }
-
     async addVariant(): Promise<void> {
         const asset = await this.$refs.assetPicker.open();
         if (asset === undefined) return;
 
-        const shape = await dropAsset(
+        const shape = layerManager.UUIDMap.get(this.shape.uuid!)!;
+
+        const newShape = await dropAsset(
             { imageSource: `/static/assets/${asset.file_hash}`, assetId: asset.id },
-            { x: this.shape.refPoint.x, y: this.shape.refPoint.y },
+            { x: shape.refPoint.x, y: shape.refPoint.y },
             this.$refs.selectionBox,
         );
-        if (shape === undefined) return;
+        if (newShape === undefined) return;
 
         const name = await this.$refs.promptDialog.prompt("What name should this variant have?", "Name variant");
         if (name === undefined) return;
 
         let parent = this.compositeParent;
         if (parent === undefined) {
-            parent = this.createToggleComposite();
+            parent = new ToggleComposite(shape.refPoint.clone(), shape.uuid, [
+                { uuid: shape.uuid, name: "base variant" },
+            ]);
+            shape.layer.addShape(parent, SyncMode.FULL_SYNC, InvalidationMode.NO);
         }
-        parent.addVariant(shape.uuid, name, true);
-        parent.setActiveVariant(shape.uuid, true);
+        parent.addVariant(newShape.uuid, name, true);
+        parent.setActiveVariant(newShape.uuid, true);
     }
 
     async renameVariant(): Promise<void> {
-        const parent = this.compositeParent;
-        if (parent === undefined) return;
+        if (this.shape.parentUuid === undefined) return;
 
         const name = await this.$refs.promptDialog.prompt("What name should this variant have?", "Name variant");
         if (name === undefined) return;
 
-        parent.renameVariant(this.shape.uuid, name, true);
-        this.recompute = true;
+        this.shape.renameVariant({ uuid: this.shape.uuid!, name, syncTo: SyncTo.SERVER });
     }
 
     async removeVariant(): Promise<void> {
-        const parent = this.compositeParent;
-        if (parent === undefined) return;
+        if (this.shape.parentUuid === undefined) return;
 
         const remove = await this.$refs.confirmDialog.open(
             `Remove ${this.currentVariant}`,
@@ -128,7 +125,7 @@ export default class VariantSwitcher extends Vue {
         );
         if ((remove ?? false) === false) return;
 
-        parent.removeVariant(this.shape.uuid, true);
+        this.shape.removeVariant({ uuid: this.shape.uuid!, syncTo: SyncTo.SERVER });
     }
 }
 </script>

@@ -1,6 +1,7 @@
 import { GlobalPoint } from "@/game/geom";
 import { Shape } from "@/game/shapes/shape";
 import { BoundingRect } from "@/game/shapes/variants/boundingrect";
+import { SyncTo } from "../../../core/comm/types";
 import { sendShapeOptionsUpdate, sendShapePositionUpdate } from "../../api/emits/shape/core";
 import {
     sendToggleCompositeActiveVariant,
@@ -9,6 +10,7 @@ import {
 } from "../../api/emits/shape/togglecomposite";
 import { ServerToggleComposite } from "../../comm/types/shapes";
 import { layerManager } from "../../layers/manager";
+import { activeShapeStore } from "../../ui/ActiveShapeStore";
 import { TriangulationTarget } from "../../visibility/te/pa";
 import { addBlocker, addVisionSource, removeBlocker, removeVisionSources } from "../../visibility/utils";
 import { SHAPE_TYPE } from "../types";
@@ -43,19 +45,19 @@ export class ToggleComposite extends Shape {
         layerManager.addComposite(this.uuid, variant, sync);
     }
 
-    renameVariant(uuid: string, name: string, sync: boolean): void {
-        const v = this._variants.find(v => v.uuid === uuid);
-        if (v === undefined) {
-            console.error("Variant not found during variant rename");
-            return;
-        }
-        v.name = name;
-        if (sync) {
-            sendToggleCompositeRenameVariant({ shape: this.uuid, variant: uuid, name });
-        }
+    renameVariant(uuid: string, name: string, syncTo: SyncTo): void {
+        if (syncTo === SyncTo.SERVER) sendToggleCompositeRenameVariant({ shape: this.uuid, variant: uuid, name });
+        if (syncTo === SyncTo.UI) this._(activeShapeStore.renameVariant, { uuid, name, syncTo });
+
+        const variant = this._variants.find(v => v.uuid === uuid);
+        if (variant === undefined) return;
+        variant.name = name;
     }
 
-    removeVariant(uuid: string, sync: boolean): void {
+    removeVariant(uuid: string, syncTo: SyncTo): void {
+        if (syncTo === SyncTo.SERVER) sendToggleCompositeRemoveVariant({ shape: this.uuid, variant: uuid });
+        if (syncTo === SyncTo.UI) this._(activeShapeStore.removeVariant, { uuid, syncTo });
+
         const v = this._variants.findIndex(v => v.uuid === uuid);
         if (v === undefined) {
             console.error("Variant not found during variant removal");
@@ -63,9 +65,6 @@ export class ToggleComposite extends Shape {
         }
         this.setActiveVariant(this._variants[(v + 1) % this._variants.length].uuid, true);
         this._variants.splice(v, 1);
-        if (sync) {
-            sendToggleCompositeRemoveVariant({ shape: this.uuid, variant: uuid });
-        }
     }
 
     setActiveVariant(variant: string, sync: boolean): void {

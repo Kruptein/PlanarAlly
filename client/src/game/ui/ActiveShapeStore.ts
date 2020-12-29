@@ -19,6 +19,7 @@ import { Aura, Label, Tracker } from "../shapes/interfaces";
 import { ShapeAccess, ShapeOwner } from "../shapes/owners";
 import { Shape } from "../shapes/shape";
 import { createEmptyTracker } from "../shapes/tracker";
+import { ToggleComposite } from "../shapes/variants/togglecomposite";
 import { gameStore } from "../store";
 
 export type UiTracker = { shape: string; temporary: boolean } & Tracker;
@@ -81,6 +82,10 @@ export interface ActiveShapeState {
     labels: readonly Label[];
     addLabel(data: { label: string; syncTo: SyncTo }): void;
     removeLabel(data: { label: string; syncTo: SyncTo }): void;
+
+    variants: readonly { uuid: string; name: string }[];
+    renameVariant(data: { uuid: string; name: string; syncTo: SyncTo }): void;
+    removeVariant(data: { uuid: string; syncTo: SyncTo }): void;
 }
 
 function toUiTrackers(trackers: readonly Tracker[], shape: string): UiTracker[] {
@@ -131,6 +136,8 @@ class ActiveShapeStore extends VuexModule implements ActiveShapeState {
 
     private _annotation: string | null = null;
     private _labels: Label[] = [];
+
+    private _variants: { uuid: string; name: string }[] = [];
 
     // CORE
 
@@ -631,12 +638,47 @@ class ActiveShapeStore extends VuexModule implements ActiveShapeState {
         }
     }
 
+    // VARIANTS
+
+    get variants(): readonly { uuid: string; name: string }[] {
+        return this._variants;
+    }
+
+    @Mutation
+    renameVariant(data: { uuid: string; name: string; syncTo: SyncTo }): void {
+        if (this._uuid === null || this._parentUuid === null) return;
+
+        const variant = this._variants.find(v => v.uuid === data.uuid);
+        if (variant === undefined) return;
+
+        variant.name = data.name;
+
+        if (data.syncTo !== SyncTo.UI) {
+            const parent = layerManager.UUIDMap.get(this._parentUuid) as ToggleComposite;
+            parent.renameVariant(data.uuid, data.name, data.syncTo);
+        }
+    }
+
+    @Mutation
+    removeVariant(data: { uuid: string; syncTo: SyncTo }): void {
+        if (this._uuid === null || this._parentUuid === null) return;
+
+        const index = this._variants.findIndex(v => v.uuid === data.uuid);
+        if (index < 0) return;
+
+        this._variants.splice(index, 1);
+
+        if (data.syncTo !== SyncTo.UI) {
+            const parent = layerManager.UUIDMap.get(this._parentUuid) as ToggleComposite;
+            parent.removeVariant(data.uuid, data.syncTo);
+        }
+    }
+
     // STARTUP / CLEANUP
 
     // It is crucial that this method does not make the original Shape properties observable
     @Mutation
     setActiveShape(shape: Shape): void {
-        console.log(this._lastUuid, shape.uuid);
         if (this._lastUuid === shape.uuid) this._showEditDialog = true;
 
         this._uuid = shape.uuid;
@@ -674,6 +716,11 @@ class ActiveShapeStore extends VuexModule implements ActiveShapeState {
 
         this._annotation = shape.annotation;
         this._labels = [...shape.labels];
+
+        if (this._parentUuid) {
+            const composite = layerManager.UUIDMap.get(this._parentUuid) as ToggleComposite;
+            this._variants = composite.variants.map(v => ({ ...v }));
+        }
     }
 
     @Mutation
@@ -708,6 +755,8 @@ class ActiveShapeStore extends VuexModule implements ActiveShapeState {
 
         this._annotation = null;
         this._labels = [];
+
+        this._variants = [];
 
         this._showEditDialog = false;
     }

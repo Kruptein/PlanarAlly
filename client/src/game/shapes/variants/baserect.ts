@@ -60,6 +60,7 @@ export abstract class BaseRect extends Shape {
     }
 
     contains(point: GlobalPoint): boolean {
+        if (this.angle !== 0) point = rotateAroundPoint(point, this.center(), -this.angle);
         return (
             this.refPoint.x <= point.x &&
             this.refPoint.x + this.w >= point.x &&

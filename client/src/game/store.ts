@@ -5,7 +5,6 @@ import { ServerShape } from "@/game/comm/types/shapes";
 import { GlobalPoint, Vector } from "@/game/geom";
 import { layerManager } from "@/game/layers/manager";
 import { g2l, l2g } from "@/game/units";
-import { zoomValue } from "@/game/utils";
 import { rootStore } from "@/store";
 import Vue from "vue";
 import { getModule, Module, Mutation, VuexModule } from "vuex-module-decorators";
@@ -13,6 +12,7 @@ import { sendClientLocationOptions, sendClientOptions } from "./api/emits/client
 import { sendLocationOrder, sendLocationRemove } from "./api/emits/location";
 import { sendRoomKickPlayer, sendRoomLock } from "./api/emits/room";
 import { floorStore } from "./layers/store";
+import { gameManager } from "./manager";
 import { Label } from "./shapes/interfaces";
 
 export const DEFAULT_GRID_SIZE = 50;
@@ -68,6 +68,14 @@ class GameStore extends VuexModule implements GameState {
     rulerColour = "rgba(255, 0, 0, 1)";
     panX = 0;
     panY = 0;
+
+    /**
+     *  The desired size of a grid cell in pixels
+     
+     *  !! This variable must only be used for UI purposes !!
+     *  For core distance logic use DEFAULT_GRID_SIZE
+     *  The zoom code will take care of proper conversions.
+     */
     gridSize = DEFAULT_GRID_SIZE;
 
     zoomDisplay = 0.5;
@@ -94,7 +102,10 @@ class GameStore extends VuexModule implements GameState {
 
     get zoomFactor(): number {
         const gf = gameStore.gridSize / DEFAULT_GRID_SIZE;
-        return zoomValue(this.zoomDisplay) * gf;
+        // Powercurve 0.2/3/10
+        // Based on https://stackoverflow.com/a/17102320
+        const zoomValue = 1 / (-5 / 3 + (28 / 15) * Math.exp(1.83 * this.zoomDisplay));
+        return zoomValue * gf;
     }
 
     get activeTokens(): readonly string[] {
@@ -131,6 +142,7 @@ class GameStore extends VuexModule implements GameState {
         if (zoom === this.zoomDisplay) return;
         if (zoom < 0) zoom = 0;
         if (zoom > 1) zoom = 1;
+        // const gf = this.gridSize / DEFAULT_GRID_SIZE;
         this.zoomDisplay = zoom;
         layerManager.invalidateAllFloors();
     }
@@ -227,10 +239,7 @@ class GameStore extends VuexModule implements GameState {
     jumpToMarker(marker: string): void {
         const shape = layerManager.UUIDMap.get(marker);
         if (shape == undefined) return;
-        const nh = window.innerWidth / this.gridSize / zoomValue(this.zoomDisplay) / 2;
-        const nv = window.innerHeight / this.gridSize / zoomValue(this.zoomDisplay) / 2;
-        this.panX = -shape.refPoint.x + nh * this.gridSize;
-        this.panY = -shape.refPoint.y + nv * this.gridSize;
+        gameManager.setCenterPosition(shape.center());
         sendClientLocationOptions();
         layerManager.invalidateAllFloors();
     }

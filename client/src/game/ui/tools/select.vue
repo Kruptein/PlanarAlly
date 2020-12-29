@@ -157,7 +157,7 @@ export default class SelectTool extends Tool implements ToolBasics {
 
         for (let i = selectionStack.length - 1; i >= 0; i--) {
             const shape = selectionStack[i];
-            if (shape.options.get("skipDraw") ?? false) continue;
+            if (!shape.options.has("preFogShape") && (shape.options.get("skipDraw") ?? false)) continue;
             if ([this.rotationAnchor?.uuid, this.rotationBox?.uuid, this.rotationEnd?.uuid].includes(shape.uuid))
                 continue;
             if (shape.isInvisible && !shape.ownedBy({ movementAccess: true })) continue;
@@ -383,7 +383,7 @@ export default class SelectTool extends Tool implements ToolBasics {
             }
             const cbbox = this.selectionHelper!.getBoundingBox();
             for (const shape of layer.getShapes({ includeComposites: false })) {
-                if (shape.options.has("skipDraw")) continue;
+                if (!shape.options.has("preFogShape") && (shape.options.get("skipDraw") ?? false)) continue;
                 if (!shape.ownedBy({ movementAccess: true })) continue;
                 if (!shape.visibleInCanvas(layer.canvas, { includeAuras: false })) continue;
                 if (layerSelection.some(s => s.uuid === shape.uuid)) continue;

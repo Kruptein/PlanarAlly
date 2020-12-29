@@ -258,8 +258,10 @@ export default class ShapeContext extends Vue {
         return gameStore.IS_DM;
     }
 
-    hasAsset(): boolean {
-        return this.getSelection().every(s => s.assetId !== undefined);
+    canBeSaved(): boolean {
+        return this.getSelection().every(
+            s => s.assetId !== undefined && layerManager.getCompositeParent(s.uuid) === undefined,
+        );
     }
 
     async saveTemplate(): Promise<void> {
@@ -450,7 +452,7 @@ export default class ShapeContext extends Vue {
         <template v-if="hasSingleShape()">
             <li v-if="isMarker" @click="deleteMarker" v-t="'game.ui.selection.shapecontext.remove_marker'"></li>
             <li v-else @click="setMarker" v-t="'game.ui.selection.shapecontext.set_marker'"></li>
-            <li @click="saveTemplate" v-if="showDmNonSpawnItem() && hasAsset()" v-t="'game.ui.templates.save'"></li>
+            <li @click="saveTemplate" v-if="showDmNonSpawnItem() && canBeSaved()" v-t="'game.ui.templates.save'"></li>
         </template>
         <template v-else>
             <li>

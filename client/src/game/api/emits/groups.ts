@@ -4,7 +4,14 @@ import { wrapSocket } from "../helpers";
 
 export async function requestGroupInfo(groupId: string): Promise<ServerGroup> {
     socket.emit("Group.Info.Get", groupId);
-    return await new Promise((resolve: (value: ServerGroup) => void) => socket.once("Group.Info", resolve));
+    return await new Promise((resolve: (value: ServerGroup) => void) =>
+        socket.on("Group.Info", (value: ServerGroup) => {
+            if (value.uuid === groupId) {
+                socket.off("Group.Id");
+                resolve(value);
+            }
+        }),
+    );
 }
 export const sendGroupUpdate = wrapSocket<ServerGroup>("Group.Update");
 export const sendMemberBadgeUpdate = wrapSocket<{ uuid: string; badge: number }[]>("Group.Members.Update");

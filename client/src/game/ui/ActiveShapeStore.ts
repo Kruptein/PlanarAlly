@@ -9,15 +9,14 @@
  * a SyncTo enum is used to signal direction of events. (i.e. if a change came from the UI or from the core)
  */
 
-import { Module, VuexModule, getModule, Mutation } from "vuex-module-decorators";
-
+import { getModule, Module, Mutation, VuexModule } from "vuex-module-decorators";
 import { SyncTo } from "../../core/comm/types";
 import { rootStore } from "../../store";
 import { layerManager } from "../layers/manager";
-import { createEmptyAura, createEmptyTracker } from "../shapes/trackers/empty";
 import { Aura, Label, Tracker } from "../shapes/interfaces";
 import { ShapeAccess, ShapeOwner } from "../shapes/owners";
 import { Shape } from "../shapes/shape";
+import { createEmptyUiAura, createEmptyUiTracker } from "../shapes/trackers/empty";
 import { ToggleComposite } from "../shapes/variants/togglecomposite";
 import { gameStore } from "../store";
 
@@ -494,7 +493,7 @@ class ActiveShapeStore extends VuexModule implements ActiveShapeState {
             if (tracker.temporary) {
                 tracker.temporary = false;
                 shape.pushTracker(tracker, SyncTo.SERVER);
-                this._trackers.push(createEmptyTracker(this._uuid!));
+                this._trackers.push(createEmptyUiTracker(this._uuid!));
             } else {
                 shape.updateTracker(data.tracker, data.delta, data.syncTo);
             }
@@ -560,7 +559,7 @@ class ActiveShapeStore extends VuexModule implements ActiveShapeState {
             if (aura.temporary) {
                 aura.temporary = false;
                 shape.pushAura(aura, SyncTo.SERVER);
-                this._auras.push(createEmptyAura(this._uuid!));
+                this._auras.push(createEmptyUiAura(this._uuid!));
             } else {
                 shape.updateAura(data.aura, data.delta, data.syncTo);
             }
@@ -707,9 +706,9 @@ class ActiveShapeStore extends VuexModule implements ActiveShapeState {
             this.firstRealAuraIndex = this._auras.length;
         }
         this._trackers.push(...toUiTrackers(shape.getTrackers(false), shape.uuid));
-        this._trackers.push(createEmptyTracker(this._uuid));
+        this._trackers.push(createEmptyUiTracker(this._uuid));
         this._auras.push(...toUiAuras(shape.getAuras(false), shape.uuid));
-        this._auras.push(createEmptyAura(this._uuid));
+        this._auras.push(createEmptyUiAura(this._uuid));
 
         this._groupId = shape.groupId ?? null;
 

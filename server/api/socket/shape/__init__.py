@@ -86,7 +86,11 @@ async def add_shape(sid: str, data: ShapeAdd):
                 )
             # Trackers
             for tracker in data["shape"]["trackers"]:
-                Tracker.create(**reduce_data_to_model(Tracker, tracker), shape=shape)
+                # do not shortline this to **reduce_data_to_model(...), shape=shape
+                # if shape exists in the model it crashes
+                tracker_model = reduce_data_to_model(Tracker, tracker)
+                tracker_model.update(shape=shape)
+                Tracker.create(**tracker_model)
             # Auras
             for aura in data["shape"]["auras"]:
                 Aura.create(**reduce_data_to_model(Aura, aura))

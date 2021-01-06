@@ -133,7 +133,7 @@ export default class SelectTool extends Tool implements ToolBasics {
 
     onDown(lp: LocalPoint, event: MouseEvent | TouchEvent, features: ToolFeatures<SelectFeatures>): void {
         // if we only have context capabilities, immediately skip
-        if (features === [SelectFeatures.Context]) return;
+        if (features.enabled?.length === 1 && features.enabled[0] === SelectFeatures.Context) return;
 
         const gp = l2g(lp);
         const layer = floorStore.currentLayer;
@@ -247,15 +247,11 @@ export default class SelectTool extends Tool implements ToolBasics {
 
     onMove(lp: LocalPoint, event: MouseEvent | TouchEvent, features: ToolFeatures<SelectFeatures>): void {
         // if we only have context capabilities, immediately skip
-        if (features === [SelectFeatures.Context]) return;
+        if (features.enabled?.length === 1 && features.enabled[0] === SelectFeatures.Context) return;
 
         const gp = l2g(lp);
         // We require move for the resize and rotate cursors
-        if (
-            !this.active &&
-            !(this.hasFeature(SelectFeatures.Resize, features) || this.hasFeature(SelectFeatures.Rotate, features))
-        )
-            return;
+        if (!this.active && !(this.mode === SelectOperations.Resize || this.mode === SelectOperations.Rotate)) return;
 
         const layer = floorStore.currentLayer;
         if (layer === undefined) {
@@ -360,9 +356,14 @@ export default class SelectTool extends Tool implements ToolBasics {
         }
     }
 
-    onUp(_lp: LocalPoint, event: MouseEvent | TouchEvent, features: ToolFeatures<SelectFeatures>): void {
+    onUp(lp: LocalPoint, event: MouseEvent | TouchEvent, features: ToolFeatures<SelectFeatures>): void {
         // if we only have context capabilities, immediately skip
-        if (features === [SelectFeatures.Context]) return;
+        if (features.enabled?.length === 1 && features.enabled[0] === SelectFeatures.Context) {
+            // When using pan during select, the dragray will use a wrong lp to to the drag calculation in move
+            // Maybe consider using a gp for the ray instead to avoid this in the future ?
+            this.dragRay = Ray.fromPoints(this.dragRay.origin, lp);
+            return;
+        }
 
         if (!this.active) return;
         this.active = false;

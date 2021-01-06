@@ -19,7 +19,7 @@ import { BaseTemplate } from "../comm/types/templates";
 import { gameSettingsStore } from "../settings";
 import { Shape } from "../shapes/shape";
 import { applyTemplate } from "../shapes/template";
-import { DEFAULT_GRID_SIZE, gameStore } from "../store";
+import { DEFAULT_GRID_SIZE } from "../store";
 import { Floor } from "./floor";
 import { floorStore, getFloorId, newFloorId } from "./store";
 
@@ -134,10 +134,7 @@ export async function dropAsset(
             }
 
             if (gameSettingsStore.useGrid) {
-                const gs = gameStore.gridSize;
                 asset.refPoint = new GlobalPoint(clampGridLine(asset.refPoint.x), clampGridLine(asset.refPoint.y));
-                asset.w = Math.max(clampGridLine(asset.w), gs);
-                asset.h = Math.max(clampGridLine(asset.h), gs);
             }
 
             layer.addShape(asset, SyncMode.FULL_SYNC, InvalidationMode.WITH_LIGHT);

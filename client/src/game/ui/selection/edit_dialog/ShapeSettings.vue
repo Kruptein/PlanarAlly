@@ -59,7 +59,7 @@ export default class ShapeSettings extends Vue {
                 <AccessSettings v-show="selection === 2" />
                 <GroupSettings v-show="owned && selection === 3" />
                 <ExtraSettings v-show="owned && selection === 4" />
-                <VariantSwitcher />
+                <VariantSwitcher v-show="owned" />
             </div>
         </template>
     </PanelModal>

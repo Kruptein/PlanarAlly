@@ -251,7 +251,11 @@ export default class SelectTool extends Tool implements ToolBasics {
 
         const gp = l2g(lp);
         // We require move for the resize and rotate cursors
-        if (!this.active && !(this.mode === SelectOperations.Resize || this.mode === SelectOperations.Rotate)) return;
+        if (
+            !this.active &&
+            !(this.hasFeature(SelectFeatures.Resize, features) || this.hasFeature(SelectFeatures.Rotate, features))
+        )
+            return;
 
         const layer = floorStore.currentLayer;
         if (layer === undefined) {

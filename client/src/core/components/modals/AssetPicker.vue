@@ -175,7 +175,7 @@ export default class AssetPicker extends Vue {
     </modal>
 </template>
 
-<style scoped>
+<style scoped lang="scss">
 .modal-header {
     background-color: #ff7052;
     padding: 10px;
@@ -201,6 +201,10 @@ export default class AssetPicker extends Vue {
 #assets {
     max-height: 50vh;
     width: 30vw;
+
+    #explorer {
+        max-height: 54vh;
+    }
 }
 
 .buttons {

@@ -165,6 +165,7 @@ export default class SelectTool extends Tool implements ToolBasics {
             if (this.rotationUiActive && this.hasFeature(SelectFeatures.Rotate, features)) {
                 const anchor = this.rotationAnchor!.points[1];
                 if (equalPoints(anchor, gp.asArray(), 10)) {
+                    this.setToolPermissions([]);
                     this.mode = SelectOperations.Rotate;
                     hit = true;
                     break;
@@ -173,6 +174,7 @@ export default class SelectTool extends Tool implements ToolBasics {
             if (this.hasFeature(SelectFeatures.Resize, features)) {
                 this.resizePoint = shape.getPointIndex(gp, l2gz(5));
                 if (this.resizePoint >= 0) {
+                    this.setToolPermissions([]);
                     // Resize case, a corner is selected
                     layer.setSelection(shape);
                     this.removeRotationUi();

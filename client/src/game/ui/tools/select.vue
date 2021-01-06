@@ -8,7 +8,7 @@ import { GlobalPoint, LocalPoint, Ray, Vector } from "@/game/geom";
 import { Layer } from "@/game/layers/layer";
 import { snapToPoint } from "@/game/layers/utils";
 import { Rect } from "@/game/shapes/variants/rect";
-import { gameStore } from "@/game/store";
+import { DEFAULT_GRID_SIZE, gameStore } from "@/game/store";
 import { calculateDelta, ToolName, ToolFeatures, ToolPermission } from "@/game/ui/tools/utils";
 import { g2l, g2lx, g2ly, l2g, l2gz } from "@/game/units";
 import { getLocalPointFromEvent, useSnapping, equalPoints } from "@/game/utils";
@@ -614,7 +614,7 @@ export default class SelectTool extends Tool implements ToolBasics {
         }
 
         const topCenter = new GlobalPoint((bbox.topRight.x + bbox.topLeft.x) / 2, bbox.topLeft.y);
-        const topCenterPlus = topCenter.add(new Vector(0, -150));
+        const topCenterPlus = topCenter.add(new Vector(0, -DEFAULT_GRID_SIZE));
 
         this.angle = 0;
         this.rotationAnchor = new Line(topCenter, topCenterPlus, { lineWidth: l2gz(1.5), strokeColour: "#7c253e" });

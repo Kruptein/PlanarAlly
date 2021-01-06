@@ -395,14 +395,20 @@ export default class SelectTool extends Tool implements ToolBasics {
                 if (!shape.visibleInCanvas(layer.canvas, { includeAuras: false })) continue;
                 if (layerSelection.some(s => s.uuid === shape.uuid)) continue;
 
-                for (let i = 0; i < shape.points.length; i++) {
-                    const ray = Ray.fromPoints(
-                        GlobalPoint.fromArray(shape.points[i]),
-                        GlobalPoint.fromArray(shape.points[(i + 1) % shape.points.length]),
-                    );
-                    if (cbbox.containsRay(ray).hit) {
+                if (shape.points.length > 1) {
+                    for (let i = 0; i < shape.points.length; i++) {
+                        const ray = Ray.fromPoints(
+                            GlobalPoint.fromArray(shape.points[i]),
+                            GlobalPoint.fromArray(shape.points[(i + 1) % shape.points.length]),
+                        );
+                        if (cbbox.containsRay(ray).hit) {
+                            layer.pushSelection(shape);
+                            i = shape.points.length; // break out of the inner loop
+                        }
+                    }
+                } else {
+                    if (cbbox.contains(GlobalPoint.fromArray(shape.points[0]))) {
                         layer.pushSelection(shape);
-                        i = shape.points.length; // break out of the inner loop
                     }
                 }
             }

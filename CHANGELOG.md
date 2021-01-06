@@ -41,6 +41,7 @@ If you still have issues contact me and I can give you some console code.
 -   Do not toggle all tokens when deselecting the last one in the vision tool
 -   Highlight the vision tool in a special colour to signal modified vision state at all times
 -   When changing to a tool mode that the current tool does not support, change to the Select tool
+-   Removed initiative and move to back/front from contextmenu for shapes that the player does not own
 -   [tech] Upgraded to socket.io v3
 
 ### Fixed

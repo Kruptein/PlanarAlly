@@ -65,6 +65,10 @@ export default class ShapeContext extends Vue {
         return gameSettingsStore.activeLocation;
     }
 
+    isOwned(): boolean {
+        return this.getSelection().every(s => s.ownedBy({ editAccess: true }));
+    }
+
     isActiveLayer(layer: string): boolean {
         return this.getActiveLayer()?.name === layer;
     }
@@ -247,12 +251,12 @@ export default class ShapeContext extends Vue {
         this.close();
     }
     showInitiative(): boolean {
-        return !this.hasSpawnToken();
+        return this.isOwned() && !this.hasSpawnToken();
     }
     showDelete(): boolean {
         if (this.hasSpawnToken()) return false;
         if (gameStore.IS_DM) return true;
-        return this.getSelection().every(s => s.ownedBy({ editAccess: true }));
+        return this.isOwned();
     }
     showDmNonSpawnItem(): boolean {
         if (this.hasSpawnToken()) return false;
@@ -446,8 +450,8 @@ export default class ShapeContext extends Vue {
                 </li>
             </ul>
         </li>
-        <li @click="moveToBack" v-t="'game.ui.selection.shapecontext.move_back'"></li>
-        <li @click="moveToFront" v-t="'game.ui.selection.shapecontext.move_front'"></li>
+        <li @click="moveToBack" v-if="isOwned()" v-t="'game.ui.selection.shapecontext.move_back'"></li>
+        <li @click="moveToFront" v-if="isOwned()" v-t="'game.ui.selection.shapecontext.move_front'"></li>
         <li @click="addInitiative" v-if="showInitiative()">{{ getInitiativeWord() }}</li>
         <li @click="deleteSelection" v-if="showDelete()" v-t="'game.ui.selection.shapecontext.delete_shapes'"></li>
         <template v-if="hasSingleShape()">

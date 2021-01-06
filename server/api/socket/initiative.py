@@ -126,6 +126,10 @@ async def update_initiative(sid: str, data: ServerInitiativeData):
                     )
                     update.execute()
                 data["index"] = new_index
+            elif data.get("index", None) is None:
+                data["index"] = 0
+            if initiative.location_data != location_data:
+                initiative.location_data = location_data
             # Update model instance
             update_model_from_dict(initiative, reduce_data_to_model(Initiative, data))
             initiative.save()

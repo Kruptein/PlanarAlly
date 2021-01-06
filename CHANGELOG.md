@@ -84,6 +84,7 @@ If you still have issues contact me and I can give you some console code.
     -   auras/zoom/map would all use wrong math(s)
 -   Teleporting to a spawn location, only changing location not setting the position
 -   Synchronization of Label visibility
+-   Initiative possibly not working when changing locations
 -   [DM] Floor rename always setting a blank name
 
 ## [0.23.1] - 2020-10-25

@@ -43,6 +43,7 @@ If you still have issues contact me and I can give you some console code.
 -   When changing to a tool mode that the current tool does not support, change to the Select tool
 -   Removed initiative and move to back/front from contextmenu for shapes that the player does not own
 -   Reduce the length of the rotation line
+-   Prevent usage of space to center during shape movement
 -   [tech] Upgraded to socket.io v3
 
 ### Fixed

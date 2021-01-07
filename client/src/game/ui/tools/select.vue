@@ -576,6 +576,15 @@ export default class SelectTool extends Tool implements ToolBasics {
         // Fallback to default context menu
         this.$parent.$refs.defaultcontext.open(event);
     }
+
+    onKeyUp(event: KeyboardEvent): void {
+        if (event.defaultPrevented) return;
+        if (event.key === " " && this.active) {
+            event.preventDefault();
+        }
+        this.defaultKeyUp(event);
+    }
+
     updateCursor(layer: Layer, globalMouse: GlobalPoint): void {
         let cursorStyle = "default";
         const layerSelection = layer.getSelection({ includeComposites: false });

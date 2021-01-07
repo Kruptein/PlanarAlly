@@ -23,7 +23,7 @@ import { getUnitDistance, l2g, g2lx, g2ly, l2gz, clampGridLine } from "@/game/un
 import { equalPoints, useSnapping } from "@/game/utils";
 import { visibilityStore } from "@/game/visibility/store";
 import { TriangulationTarget, insertConstraint, getCDT } from "@/game/visibility/te/pa";
-import { ToolFeatures, ToolName } from "./utils";
+import { ToolName } from "./utils";
 import { gameSettingsStore } from "../../settings";
 import { EventBus } from "../../event-bus";
 import { ToolBasics } from "./ToolBasics";
@@ -84,7 +84,7 @@ export default class DrawTool extends Tool implements ToolBasics {
         return gameSettingsStore.useGrid;
     }
 
-    onKeyUp(event: KeyboardEvent, features: ToolFeatures): void {
+    onKeyUp(event: KeyboardEvent): void {
         if (event.defaultPrevented) return;
         if (event.key === "Escape" && this.active) {
             let mouse: { x: number; y: number } | undefined = undefined;
@@ -95,7 +95,7 @@ export default class DrawTool extends Tool implements ToolBasics {
             this.onSelect(mouse);
             event.preventDefault();
         }
-        this.defaultKeyUp(event, features);
+        this.defaultKeyUp(event);
     }
 
     hasBrushSize(): boolean {

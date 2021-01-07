@@ -44,13 +44,13 @@ export default class Tool extends Vue implements ToolBasics {
         return `${right - mid - 14}px`; // border width
     }
 
-    defaultKeyUp(event: KeyboardEvent, _features: ToolFeatures): void {
+    defaultKeyUp(event: KeyboardEvent): void {
         if (event.defaultPrevented) return;
         onKeyUp(event);
     }
 
-    onKeyUp(event: KeyboardEvent, features: ToolFeatures): void {
-        this.defaultKeyUp(event, features);
+    onKeyUp(event: KeyboardEvent, _features: ToolFeatures): void {
+        this.defaultKeyUp(event);
     }
 
     onMouseDown(event: MouseEvent | TouchEvent, features: ToolFeatures): void {

@@ -62,6 +62,7 @@ export default class RulerTool extends Tool implements ToolBasics {
 
             event.preventDefault();
         }
+        this.defaultKeyUp(event);
     }
 
     cleanup(): void {

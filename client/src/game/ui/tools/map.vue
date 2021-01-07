@@ -102,7 +102,7 @@ export default class MapTool extends Tool implements ToolBasics {
         }
         if (this.rect) {
             const layer = floorStore.currentLayer!;
-            layer.removeShape(this.rect, SyncMode.NO_SYNC);
+            layer.removeShape(this.rect, SyncMode.NO_SYNC, true);
             this.rect = undefined;
             this.hasRect = false;
         }

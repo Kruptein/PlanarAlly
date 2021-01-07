@@ -76,8 +76,8 @@ export default class RulerTool extends Tool implements ToolBasics {
         }
         this.active = false;
 
-        for (const ruler of this.rulers) layer.removeShape(ruler, this.syncMode);
-        layer.removeShape(this.text, this.syncMode);
+        for (const ruler of this.rulers) layer.removeShape(ruler, this.syncMode, true);
+        layer.removeShape(this.text, this.syncMode, true);
         this.startPoint = this.text = undefined;
         this.rulers = [];
         this.previousLength = 0;

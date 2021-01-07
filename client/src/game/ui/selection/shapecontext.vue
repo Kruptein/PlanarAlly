@@ -56,7 +56,7 @@ export default class ShapeContext extends Vue {
     }
 
     get isMarker(): boolean {
-        const selection = this.getSelection();
+        const selection = this.getSelection(false);
         if (selection.length !== 1) return false;
         return this.markers.includes(selection[0].uuid);
     }
@@ -66,19 +66,21 @@ export default class ShapeContext extends Vue {
     }
 
     isOwned(): boolean {
-        return this.getSelection().every(s => s.ownedBy({ editAccess: true }));
+        return this.getSelection(false).every(s => s.ownedBy({ editAccess: true }));
     }
 
     isActiveLayer(layer: string): boolean {
         return this.getActiveLayer()?.name === layer;
     }
 
-    getSelection(): readonly Shape[] {
-        return this.getActiveLayer()!.getSelection({ includeComposites: false });
+    getSelection(includeComposites: boolean): readonly Shape[] {
+        return this.getActiveLayer()!.getSelection({ includeComposites });
     }
 
     hasSpawnToken(): boolean {
-        return this.getSelection().some(s => gameSettingsStore.currentLocationOptions.spawnLocations!.includes(s.uuid));
+        return this.getSelection(false).some(s =>
+            gameSettingsStore.currentLocationOptions.spawnLocations!.includes(s.uuid),
+        );
     }
 
     open(event: MouseEvent): void {
@@ -107,7 +109,7 @@ export default class ShapeContext extends Vue {
         return gameStore.boardInitialized ? floorStore.currentLayer : undefined;
     }
     getInitiativeWord(): string {
-        const selection = this.getSelection();
+        const selection = this.getSelection(false);
         if (selection.length === 1) {
             return inInitiative(selection[0].uuid)
                 ? this.$t("game.ui.selection.shapecontext.show_initiative").toString()
@@ -119,7 +121,7 @@ export default class ShapeContext extends Vue {
         }
     }
     hasSingleShape(): boolean {
-        return this.getSelection().length === 1;
+        return this.getSelection(false).length === 1;
     }
     setFloor(floor: Floor): void {
         const layer = this.getActiveLayer()!;
@@ -191,18 +193,18 @@ export default class ShapeContext extends Vue {
     }
     moveToBack(): void {
         const layer = this.getActiveLayer()!;
-        this.getSelection().forEach(shape => layer.moveShapeOrder(shape, 0, SyncMode.FULL_SYNC));
+        this.getSelection(false).forEach(shape => layer.moveShapeOrder(shape, 0, SyncMode.FULL_SYNC));
         this.close();
     }
     moveToFront(): void {
         const layer = this.getActiveLayer()!;
-        this.getSelection().forEach(shape =>
+        this.getSelection(false).forEach(shape =>
             layer.moveShapeOrder(shape, layer.size({ includeComposites: true }) - 1, SyncMode.FULL_SYNC),
         );
         this.close();
     }
     async addInitiative(): Promise<void> {
-        const selection = this.getSelection();
+        const selection = this.getSelection(false);
         let groupInitiatives = false;
         if (new Set(selection.map(s => s.groupId)).size < selection.length) {
             const answer = await this.$refs.confirmDialog.open(
@@ -227,24 +229,24 @@ export default class ShapeContext extends Vue {
         this.close();
     }
     deleteSelection(): void {
-        deleteShapes();
+        deleteShapes(this.getSelection(true), SyncMode.FULL_SYNC);
         this.close();
     }
     openEditDialog(): void {
-        const selection = this.getSelection();
+        const selection = this.getSelection(false);
         if (selection.length !== 1) return;
         activeShapeStore.setShowEditDialog(true);
         this.close();
     }
     setMarker(): void {
-        const selection = this.getSelection();
+        const selection = this.getSelection(false);
         if (selection.length !== 1) return;
         const marker = selection[0].uuid;
         gameStore.newMarker({ marker, sync: true });
         this.close();
     }
     deleteMarker(): void {
-        const selection = this.getSelection();
+        const selection = this.getSelection(false);
         if (selection.length !== 1) return;
         const marker = selection[0].uuid;
         gameStore.removeMarker({ marker, sync: true });
@@ -264,13 +266,13 @@ export default class ShapeContext extends Vue {
     }
 
     canBeSaved(): boolean {
-        return this.getSelection().every(
+        return this.getSelection(false).every(
             s => s.assetId !== undefined && layerManager.getCompositeParent(s.uuid) === undefined,
         );
     }
 
     async saveTemplate(): Promise<void> {
-        const shape = this.getSelection()[0];
+        const shape = this.getSelection(false)[0];
         let assetOptions: AssetOptions = {
             version: "0",
             shape: shape.type,
@@ -319,7 +321,7 @@ export default class ShapeContext extends Vue {
     getGroups(): string[] {
         return [
             ...new Set(
-                this.getSelection()
+                this.getSelection(false)
                     .map(s => s.groupId)
                     .filter(g => g !== undefined),
             ),
@@ -327,16 +329,16 @@ export default class ShapeContext extends Vue {
     }
 
     hasEntireGroup(): boolean {
-        const selection = this.getSelection();
+        const selection = this.getSelection(false);
         return selection.length === getGroupSize(selection[0].groupId!);
     }
 
     hasUngrouped(): boolean {
-        return this.getSelection().some(s => s.groupId === undefined);
+        return this.getSelection(false).some(s => s.groupId === undefined);
     }
 
     createGroup(): void {
-        createNewGroupForShapes(this.getSelection().map(s => s.uuid));
+        createNewGroupForShapes(this.getSelection(false).map(s => s.uuid));
         this.close();
     }
 
@@ -350,7 +352,7 @@ export default class ShapeContext extends Vue {
         );
         if (keepBadges === undefined) return;
         createNewGroupForShapes(
-            this.getSelection().map(s => s.uuid),
+            this.getSelection(false).map(s => s.uuid),
             keepBadges,
         );
         this.close();
@@ -367,7 +369,7 @@ export default class ShapeContext extends Vue {
         if (keepBadges === undefined) return;
         let targetGroup: string | undefined;
         const membersToMove: { uuid: string; badge?: number }[] = [];
-        for (const shape of this.getSelection()) {
+        for (const shape of this.getSelection(false)) {
             if (shape.groupId !== undefined) {
                 if (targetGroup === undefined) {
                     targetGroup = shape.groupId;
@@ -383,12 +385,12 @@ export default class ShapeContext extends Vue {
     }
 
     removeGroup(): void {
-        removeGroup(this.getSelection()[0].groupId!, true);
+        removeGroup(this.getSelection(false)[0].groupId!, true);
         this.close();
     }
 
     enlargeGroup(): void {
-        const selection = this.getSelection();
+        const selection = this.getSelection(false);
         const groupId = selection.find(s => s.groupId !== undefined)!.groupId!;
         addGroupMembers(
             groupId,

@@ -174,11 +174,11 @@ export default class DrawTool extends Tool implements ToolBasics {
         this.setupBrush();
 
         if (newValue !== "normal" && oldValue === "normal") {
-            normalLayer.removeShape(this.brushHelper, SyncMode.NO_SYNC);
+            normalLayer.removeShape(this.brushHelper, SyncMode.NO_SYNC, true);
             fowLayer.addShape(this.brushHelper, SyncMode.NO_SYNC, InvalidationMode.NORMAL, false);
         } else if (newValue === "normal" && oldValue !== "normal") {
             normalLayer.addShape(this.brushHelper, SyncMode.NO_SYNC, InvalidationMode.NORMAL, false);
-            fowLayer.removeShape(this.brushHelper, SyncMode.NO_SYNC);
+            fowLayer.removeShape(this.brushHelper, SyncMode.NO_SYNC, true);
         }
     }
     getLayer(data?: { floor?: Floor; layer?: string }): Layer | undefined {
@@ -416,7 +416,7 @@ export default class DrawTool extends Tool implements ToolBasics {
                 console.log("No active layer!");
                 return;
             }
-            layer.removeShape(this.ruler!, SyncMode.NO_SYNC);
+            layer.removeShape(this.ruler!, SyncMode.NO_SYNC, true);
             this.ruler = undefined;
             if (this.closedPolygon) {
                 if (this.shape.visionObstruction && this.shape.points.length > 1)
@@ -479,15 +479,15 @@ export default class DrawTool extends Tool implements ToolBasics {
         const layer = this.getLayer(data);
         if (layer === undefined) return;
         if (this.brushHelper !== undefined) {
-            layer.removeShape(this.brushHelper, SyncMode.NO_SYNC);
+            layer.removeShape(this.brushHelper, SyncMode.NO_SYNC, true);
             this.brushHelper = undefined;
         }
         if (this.ruler !== undefined) {
-            layer.removeShape(this.ruler, SyncMode.NO_SYNC);
+            layer.removeShape(this.ruler, SyncMode.NO_SYNC, true);
             this.ruler = undefined;
         }
         if (this.active && this.shape !== undefined) {
-            layer.removeShape(this.shape, SyncMode.FULL_SYNC);
+            layer.removeShape(this.shape, SyncMode.FULL_SYNC, true);
             this.shape = undefined;
             this.active = false;
             layer.invalidate(false);
@@ -504,7 +504,7 @@ export default class DrawTool extends Tool implements ToolBasics {
         }
         const refPoint = this.brushHelper?.refPoint;
         const bs = this.brushHelper?.r;
-        if (this.brushHelper !== undefined) layer.removeShape(this.brushHelper, SyncMode.NO_SYNC);
+        if (this.brushHelper !== undefined) layer.removeShape(this.brushHelper, SyncMode.NO_SYNC, true);
         this.brushHelper = new Circle(new GlobalPoint(-1000, -1000), bs ?? this.brushSize / 2, {
             fillColour: this.fillColour,
         });

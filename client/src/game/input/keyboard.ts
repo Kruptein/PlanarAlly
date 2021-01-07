@@ -5,7 +5,7 @@ import { DEFAULT_GRID_SIZE, gameStore } from "@/game/store";
 import { calculateDelta } from "@/game/ui/tools/utils";
 import { visibilityStore } from "@/game/visibility/store";
 import { TriangulationTarget } from "@/game/visibility/te/pa";
-import { SyncTo } from "../../core/comm/types";
+import { SyncMode, SyncTo } from "../../core/comm/types";
 import { sendClientLocationOptions } from "../api/emits/client";
 import { sendShapePositionUpdate } from "../api/emits/shape/core";
 import { EventBus } from "../event-bus";
@@ -20,7 +20,9 @@ export function onKeyUp(event: KeyboardEvent): void {
         // no-op (condition is cleaner this way)
     } else {
         if (event.key === "Delete" || event.key === "Del" || event.key === "Backspace") {
-            deleteShapes();
+            const l = floorStore.currentLayer!;
+            const selection = l.getSelection({ includeComposites: true });
+            deleteShapes(selection, SyncMode.FULL_SYNC);
         }
         if (event.key === " " || (event.code === "Numpad0" && !event.ctrlKey)) {
             // Spacebar or numpad-zero: cycle through own tokens

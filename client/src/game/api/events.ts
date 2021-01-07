@@ -22,6 +22,7 @@ import { gameStore } from "@/game/store";
 import { router } from "@/router";
 import { coreStore } from "../../core/store";
 import { floorStore, getFloorId } from "../layers/store";
+import { deleteShapes } from "../shapes/utils";
 import { visibilityStore } from "../visibility/store";
 
 // Core WS events
@@ -97,17 +98,7 @@ socket.on("Asset.List.Set", (assets: AssetList) => {
 });
 
 socket.on("Temp.Clear", (shapeIds: string[]) => {
-    for (const shapeId of shapeIds) {
-        if (!layerManager.UUIDMap.has(shapeId)) {
-            console.log("Attempted to remove an unknown temporary shape");
-            continue;
-        }
-        const shape = layerManager.UUIDMap.get(shapeId)!;
-        if (!layerManager.hasLayer(shape.floor, shape.layer.name)) {
-            console.log(`Attempted to remove shape from an unknown layer ${shape.layer.name}`);
-            continue;
-        }
-        const realShape = layerManager.UUIDMap.get(shape.uuid)!;
-        shape.layer.removeShape(realShape, SyncMode.NO_SYNC);
-    }
+    // We use ! on the get here even though to silence the typechecker as we filter undefineds later.
+    const shapes = shapeIds.map(s => layerManager.UUIDMap.get(s)!).filter(s => s !== undefined);
+    deleteShapes(shapes, SyncMode.NO_SYNC);
 });

@@ -12,6 +12,7 @@ import { ToolName, ToolPermission } from "./utils";
 import { floorStore } from "../../layers/store";
 import { sendShapePositionUpdate } from "../../api/emits/shape/core";
 import { SelectFeatures } from "./select.vue";
+import { deleteShapes } from "../../shapes/utils";
 
 @Component
 export default class PingTool extends Tool implements ToolBasics {
@@ -35,8 +36,7 @@ export default class PingTool extends Tool implements ToolBasics {
         }
 
         this.active = false;
-        layer.removeShape(this.ping, SyncMode.TEMP_SYNC);
-        layer.removeShape(this.border, SyncMode.TEMP_SYNC);
+        deleteShapes([this.ping, this.border], SyncMode.TEMP_SYNC);
         this.ping = undefined;
         this.startPoint = undefined;
     }

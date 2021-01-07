@@ -415,7 +415,7 @@ export default class SelectTool extends Tool implements ToolBasics {
 
             layerSelection = layer.getSelection({ includeComposites: false });
 
-            layer.removeShape(this.selectionHelper!, SyncMode.NO_SYNC);
+            layer.removeShape(this.selectionHelper!, SyncMode.NO_SYNC, true);
             this.selectionHelper = undefined;
 
             if (layerSelection.some(s => !s.isLocked)) layer.setSelection(...layerSelection.filter(s => !s.isLocked));
@@ -665,9 +665,9 @@ export default class SelectTool extends Tool implements ToolBasics {
     removeRotationUi(): void {
         if (this.rotationUiActive) {
             const layer = this.rotationAnchor!.layer;
-            layer.removeShape(this.rotationAnchor!, SyncMode.NO_SYNC);
-            layer.removeShape(this.rotationBox!, SyncMode.NO_SYNC);
-            layer.removeShape(this.rotationEnd!, SyncMode.NO_SYNC);
+            layer.removeShape(this.rotationAnchor!, SyncMode.NO_SYNC, true);
+            layer.removeShape(this.rotationBox!, SyncMode.NO_SYNC, true);
+            layer.removeShape(this.rotationEnd!, SyncMode.NO_SYNC, true);
             this.rotationAnchor = this.rotationBox = this.rotationEnd = undefined;
             this.rotationUiActive = false;
 

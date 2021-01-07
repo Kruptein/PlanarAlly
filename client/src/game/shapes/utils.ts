@@ -21,10 +21,13 @@ import { CircularToken } from "@/game/shapes/variants/circulartoken";
 import { Line } from "@/game/shapes/variants/line";
 import { Rect } from "@/game/shapes/variants/rect";
 import { Text } from "@/game/shapes/variants/text";
+import { sendRemoveShapes } from "../api/emits/shape/core";
 import { EventBus } from "../event-bus";
 import { addGroupMembers, createNewGroupForShapes, fetchGroup, generateNewBadge, getGroup } from "../groups";
 import { floorStore, getFloorId } from "../layers/store";
 import { gameStore } from "../store";
+import { VisibilityMode, visibilityStore } from "../visibility/store";
+import { TriangulationTarget } from "../visibility/te/pa";
 import { Tracker } from "./interfaces";
 import { Polygon } from "./variants/polygon";
 import { ToggleComposite } from "./variants/togglecomposite";
@@ -208,23 +211,35 @@ export async function pasteShapes(targetLayer?: string): Promise<readonly Shape[
     return layer.getSelection({ includeComposites: false });
 }
 
-// todo: refactor with removeShape in api/events/shape
-export function deleteShapes(): void {
-    if (floorStore.currentLayer === undefined) {
-        console.log("No active layer selected for delete operation");
-        return;
+export function deleteShapes(shapes: readonly Shape[], sync: SyncMode): void {
+    const removed: string[] = [];
+    const recalculateIterative = visibilityStore.visionMode === VisibilityMode.TRIANGLE_ITERATIVE;
+    let recalculateVision = false;
+    let recalculateMovement = false;
+    for (let i = shapes.length - 1; i >= 0; i--) {
+        const sel = shapes[i];
+        if (sync !== SyncMode.NO_SYNC && !sel.ownedBy({ editAccess: true })) continue;
+        removed.push(sel.uuid);
+        if (sel.visionObstruction) recalculateVision = true;
+        if (sel.movementObstruction) recalculateMovement = true;
+        if (sel.layer.removeShape(sel, SyncMode.NO_SYNC, recalculateIterative))
+            EventBus.$emit("SelectionInfo.Shapes.Set", []);
     }
-    const l = floorStore.currentLayer!;
-    const selection = l.getSelection({ includeComposites: true });
-    for (let i = selection.length - 1; i >= 0; i--) {
-        const sel = selection[i];
-        if (!sel.ownedBy({ editAccess: true })) continue;
-        if (l.removeShape(sel, SyncMode.FULL_SYNC)) EventBus.$emit("SelectionInfo.Shapes.Set", []);
+    if (sync !== SyncMode.NO_SYNC) sendRemoveShapes({ uuids: removed, temporary: sync === SyncMode.TEMP_SYNC });
+    if (!recalculateIterative) {
+        if (recalculateMovement)
+            visibilityStore.recalculate({ target: TriangulationTarget.MOVEMENT, floor: floorStore.currentFloorindex });
+        if (recalculateVision)
+            visibilityStore.recalculate({ target: TriangulationTarget.VISION, floor: floorStore.currentFloorindex });
+        layerManager.invalidateVisibleFloors();
     }
-    l.setSelection();
 }
 
 export function cutShapes(): void {
     copyShapes();
-    deleteShapes();
+
+    const l = floorStore.currentLayer!;
+    const selection = l.getSelection({ includeComposites: true });
+
+    deleteShapes(selection, SyncMode.FULL_SYNC);
 }

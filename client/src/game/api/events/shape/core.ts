@@ -10,11 +10,12 @@ import { socket } from "../../socket";
 import { Text } from "../../../shapes/variants/text";
 import { Rect } from "../../../shapes/variants/rect";
 import { Circle } from "../../../shapes/variants/circle";
+import { deleteShapes } from "../../../shapes/utils";
 
 socket.on("Shape.Set", async (data: ServerShape) => {
     // hard reset a shape
     const old = layerManager.UUIDMap.get(data.uuid);
-    if (old) old.layer.removeShape(old, SyncMode.NO_SYNC);
+    if (old) old.layer.removeShape(old, SyncMode.NO_SYNC, true);
     const shape = await gameManager.addShape(data);
     if (shape) EventBus.$emit("Shape.Set", shape);
 });
@@ -29,11 +30,10 @@ socket.on("Shapes.Add", async (shapes: ServerShape[]) => {
     }
 });
 
-socket.on("Shapes.Remove", (shapes: string[]) => {
-    for (const uid of shapes) {
-        const shape = layerManager.UUIDMap.get(uid);
-        if (shape !== undefined) shape.layer.removeShape(shape, SyncMode.NO_SYNC);
-    }
+socket.on("Shapes.Remove", (shapeIds: string[]) => {
+    // We use ! on the get here even though to silence the typechecker as we filter undefineds later.
+    const shapes = shapeIds.map(s => layerManager.UUIDMap.get(s)!).filter(s => s !== undefined);
+    deleteShapes(shapes, SyncMode.NO_SYNC);
 });
 
 socket.on("Shapes.Position.Update", (data: { uuid: string; position: { angle: number; points: number[][] } }[]) => {

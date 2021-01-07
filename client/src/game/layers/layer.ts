@@ -163,7 +163,7 @@ export class Layer {
         this.clearSelection(); // TODO: Fix keeping selection on those items that are not moved.
     }
 
-    removeShape(shape: Shape, sync: SyncMode): boolean {
+    removeShape(shape: Shape, sync: SyncMode, recalculate: boolean): boolean {
         const idx = this.shapes.indexOf(shape);
         if (idx < 0) {
             console.error("attempted to remove shape not in layer.");
@@ -185,8 +185,8 @@ export class Layer {
         if (sync !== SyncMode.NO_SYNC && !shape.preventSync)
             sendRemoveShapes({ uuids: [shape.uuid], temporary: sync === SyncMode.TEMP_SYNC });
 
-        removeBlocker(TriangulationTarget.VISION, this.floor, shape, true);
-        removeBlocker(TriangulationTarget.MOVEMENT, this.floor, shape, true);
+        removeBlocker(TriangulationTarget.VISION, this.floor, shape, recalculate);
+        removeBlocker(TriangulationTarget.MOVEMENT, this.floor, shape, recalculate);
         removeVisionSources(this.floor, shape.uuid);
 
         const annotationIndex = gameStore.annotations.indexOf(shape.uuid);

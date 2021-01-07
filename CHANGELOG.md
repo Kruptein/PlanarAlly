@@ -45,6 +45,7 @@ If you still have issues contact me and I can give you some console code.
 -   Reduce the length of the rotation line
 -   Prevent usage of space to center during shape movement
 -   [tech] Upgraded to socket.io v3
+-   [tech] Improved group delete performance (especially for vision/movement blocking shapes)
 
 ### Fixed
 

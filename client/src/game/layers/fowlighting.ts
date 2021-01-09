@@ -10,6 +10,7 @@ import { TriangulationTarget } from "../visibility/te/pa";
 import { computeVisibility } from "../visibility/te/te";
 import { FowLayer } from "./fow";
 import { floorStore } from "./store";
+import { gameStore } from "../store";
 
 export class FowLightingLayer extends FowLayer {
     addShape(shape: Shape, sync: SyncMode, invalidate: InvalidationMode, snappable = true): void {
@@ -40,12 +41,10 @@ export class FowLightingLayer extends FowLayer {
                 layerManager.hasLayer(floorStore.currentFloor, "tokens") &&
                 floorStore.currentFloor === floorStore.floors[floorStore.currentFloorindex]
             ) {
-                for (const sh of layerManager
-                    .getLayer(floorStore.currentFloor, "tokens")!
-                    .getShapes({ includeComposites: false })) {
-                    if (!sh.ownedBy({ visionAccess: true }) || !sh.isToken) continue;
-                    const bb = sh.getBoundingBox();
-                    const lcenter = g2l(sh.center());
+                for (const sh of gameStore.activeTokens) {
+                    const shape = layerManager.UUIDMap.get(sh)!;
+                    const bb = shape.getBoundingBox();
+                    const lcenter = g2l(shape.center());
                     const alm = 0.8 * g2lz(bb.w);
                     this.ctx.beginPath();
                     this.ctx.arc(lcenter.x, lcenter.y, alm, 0, 2 * Math.PI);

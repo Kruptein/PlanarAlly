@@ -44,8 +44,13 @@ If you still have issues contact me and I can give you some console code.
 -   Removed initiative and move to back/front from contextmenu for shapes that the player does not own
 -   Reduce the length of the rotation line
 -   Prevent usage of space to center during shape movement
+-   Group logic has been greatly increased and now has a dedicated tab
+    -   Options to change the alphabet used
+    -   Options to randomize the badge assignment
+    -   Options to merge/split/create/remove groups
 -   [tech] Upgraded to socket.io v3
 -   [tech] Improved group delete performance (especially for vision/movement blocking shapes)
+-   [tech] Reduced number of calculations used for determining the minimal vision range for tokens
 
 ### Fixed
 

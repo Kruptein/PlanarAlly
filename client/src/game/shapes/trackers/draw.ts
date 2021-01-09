@@ -10,7 +10,7 @@ import { Circle } from "../variants/circle";
 export function drawAuras(shape: Shape, ctx: CanvasRenderingContext2D): void {
     for (const aura of shape.getAuras(true)) {
         const value = aura.value > 0 ? aura.value : 0;
-        const dim = aura.value > 0 ? aura.value : 0;
+        const dim = aura.dim > 0 ? aura.dim : 0;
         if (value === 0 && dim === 0) return;
         ctx.beginPath();
 

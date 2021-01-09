@@ -112,6 +112,11 @@ export async function createShapeFromDict(shape: ServerShape): Promise<Shape | u
         sh = new ToggleComposite(refPoint, toggleComposite.active_variant, toggleComposite.variants, {
             uuid: toggleComposite.uuid,
         });
+        gameStore.addOwnedToken(sh.uuid);
+        for (const variant of toggleComposite.variants) {
+            if (variant.uuid === toggleComposite.active_variant) continue;
+            gameStore.removeOwnedToken(variant.uuid);
+        }
     } else {
         return undefined;
     }

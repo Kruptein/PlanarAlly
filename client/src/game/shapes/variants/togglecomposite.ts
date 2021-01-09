@@ -10,6 +10,7 @@ import {
 } from "../../api/emits/shape/togglecomposite";
 import { ServerToggleComposite } from "../../comm/types/shapes";
 import { layerManager } from "../../layers/manager";
+import { gameStore } from "../../store";
 import { activeShapeStore } from "../../ui/ActiveShapeStore";
 import { TriangulationTarget } from "../../visibility/te/pa";
 import { addBlocker, addVisionSource, removeBlocker, removeVisionSources } from "../../visibility/utils";
@@ -71,6 +72,9 @@ export class ToggleComposite extends Shape {
         const oldVariant = layerManager.UUIDMap.get(this.active_variant)!;
         this.active_variant = variant;
         const newVariant = layerManager.UUIDMap.get(this.active_variant)!;
+
+        gameStore.removeOwnedToken(oldVariant.uuid);
+        gameStore.addOwnedToken(newVariant.uuid);
 
         if (oldVariant.movementObstruction)
             removeBlocker(TriangulationTarget.MOVEMENT, oldVariant.floor.id, oldVariant, true);
@@ -134,7 +138,7 @@ export class ToggleComposite extends Shape {
     center(): GlobalPoint;
     center(centerPoint: GlobalPoint): void;
     center(centerPoint?: GlobalPoint): GlobalPoint | void {
-        if (centerPoint === undefined) return this.refPoint;
+        if (centerPoint === undefined) return layerManager.UUIDMap.get(this.active_variant)!.center();
         this.refPoint = centerPoint;
     }
 

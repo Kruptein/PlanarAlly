@@ -35,17 +35,18 @@ export default class TrackerSettings extends Vue {
         if (!this.owned) return;
         if (!this.shape.isComposite) return;
 
-        const trackerIndex = this.shape.trackers.findIndex(t => t.uuid === trackerId);
-        if (trackerIndex < 0) return;
+        const tracker = this.shape.trackers.find(t => t.uuid === trackerId);
+        if (tracker === undefined) return;
 
-        const tracker = this.shape.trackers[trackerIndex];
+        this.shape.removeTracker({ tracker: trackerId, syncTo: SyncTo.SHAPE });
+
         const oldShape = tracker.shape;
         if (oldShape === this.shape.uuid) {
             tracker.shape = this.shape.parentUuid!;
         } else {
             tracker.shape = this.shape.uuid!;
         }
-        this.shape.removeTracker({ tracker: trackerId, syncTo: SyncTo.SHAPE });
+
         this.shape.pushTracker({ tracker, shape: tracker.shape, syncTo: SyncTo.SHAPE });
         sendShapeMoveTracker({ shape: oldShape, new_shape: tracker.shape, tracker: tracker.uuid });
     }
@@ -67,17 +68,18 @@ export default class TrackerSettings extends Vue {
         if (!this.owned) return;
         if (!this.shape.isComposite) return;
 
-        const auraIndex = this.shape.auras.findIndex(t => t.uuid === auraId);
-        if (auraIndex < 0) return;
+        const aura = this.shape.auras.find(t => t.uuid === auraId);
+        if (aura === undefined) return;
 
-        const aura = this.shape.auras[auraIndex];
+        this.shape.removeAura({ aura: auraId, syncTo: SyncTo.SHAPE });
+
         const oldShape = aura.shape;
         if (oldShape === this.shape.uuid) {
             aura.shape = this.shape.parentUuid!;
         } else {
             aura.shape = this.shape.uuid!;
         }
-        this.shape.removeAura({ aura: auraId, syncTo: SyncTo.SHAPE });
+
         this.shape.pushAura({ aura, shape: aura.shape, syncTo: SyncTo.SHAPE });
         sendShapeMoveAura({ shape: oldShape, new_shape: aura.shape, aura: aura.uuid });
     }

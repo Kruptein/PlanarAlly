@@ -43,6 +43,7 @@ export class FowLightingLayer extends FowLayer {
             ) {
                 for (const sh of gameStore.activeTokens) {
                     const shape = layerManager.UUIDMap.get(sh)!;
+                    if (shape.options.get("skipDraw") ?? false === false) continue;
                     const bb = shape.getBoundingBox();
                     const lcenter = g2l(shape.center());
                     const alm = 0.8 * g2lz(bb.w);

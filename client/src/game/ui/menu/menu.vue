@@ -5,28 +5,42 @@ import Component from "vue-class-component";
 import { mapState } from "vuex";
 
 import ColorPicker from "@/core/components/colorpicker.vue";
-import Game from "@/game/Game.vue";
 import AssetNode from "@/game/ui/menu/asset_node.vue";
 import LanguageSelect from "@/core/components/languageSelect.vue";
+import NoteDialog from "@/game/ui/note.vue";
 
-import { uuidv4 } from "@/core/utils";
+import { baseAdjust, uuidv4 } from "@/core/utils";
 import { Note } from "@/game/comm/types/general";
 import { layerManager } from "@/game/layers/manager";
 import { gameStore } from "@/game/store";
 import { EventBus } from "../../event-bus";
+import { AssetList } from "../../../core/comm/types";
 
 @Component({
     components: {
         "color-picker": ColorPicker,
         "asset-node": AssetNode,
         LanguageSelect,
+        NoteDialog,
     },
     computed: {
         ...mapState("game", ["assets", "notes", "markers"]),
     },
 })
 export default class MenuBar extends Vue {
+    assets!: AssetList;
+    markers!: string[];
+    notes!: Note[];
+
+    $refs!: {
+        note: NoteDialog;
+    };
+
     assetSearch = "";
+
+    baseAdjust(path: string): string {
+        return baseAdjust(path);
+    }
 
     get IS_DM(): boolean {
         return gameStore.IS_DM || gameStore.FAKE_PLAYER;
@@ -76,7 +90,7 @@ export default class MenuBar extends Vue {
         this.openNote(note);
     }
     openNote(note: Note): void {
-        (this.$parent.$parent as Game).$refs.note.open(note);
+        this.$refs.note.open(note);
     }
 
     openDmSettings(): void {
@@ -105,12 +119,13 @@ export default class MenuBar extends Vue {
 <template>
     <!-- SETTINGS -->
     <div id="menu" @click="settingsClick" ref="settings">
-        <div style="width:200px;overflow-y:auto;overflow-x:hidden;">
+        <NoteDialog ref="note"></NoteDialog>
+        <div style="width: 200px; overflow-y: auto; overflow-x: hidden">
             <!-- ASSETS -->
             <template v-if="IS_DM">
                 <button class="menu-accordion" v-t="'common.assets'"></button>
                 <div id="menu-assets" class="menu-accordion-panel">
-                    <input id="asset-search" v-if="assets" v-model="assetSearch" :placeholder="$t('common.search')" />
+                    <input id="asset-search" v-model="assetSearch" :placeholder="$t('common.search')" />
                     <a
                         class="actionButton"
                         :href="baseAdjust('/assets')"
@@ -133,7 +148,7 @@ export default class MenuBar extends Vue {
                         <a class="actionButton" @click="createNote" :title="$t('game.ui.menu.menu.create_note')">
                             <font-awesome-icon icon="plus-square" />
                         </a>
-                        <div v-for="note in notes" :key="note.uuid" @click="openNote(note)" style="cursor:pointer">
+                        <div v-for="note in notes" :key="note.uuid" @click="openNote(note)" style="cursor: pointer">
                             {{ note.title || "[?]" }}
                         </div>
                         <div v-if="!notes.length" v-t="'game.ui.menu.menu.no_notes'"></div>
@@ -146,7 +161,7 @@ export default class MenuBar extends Vue {
             <button class="menu-accordion" v-t="'common.markers'"></button>
             <div class="menu-accordion-panel">
                 <div class="menu-accordion-subpanel" id="menu-markers">
-                    <div v-for="marker in markers" :key="marker" style="cursor:pointer">
+                    <div v-for="marker in markers" :key="marker" style="cursor: pointer">
                         <div @click="jumpToMarker(marker)" class="menu-accordion-subpanel-text">
                             {{ nameMarker(marker) || "[?]" }}
                         </div>
@@ -179,14 +194,14 @@ export default class MenuBar extends Vue {
         <router-link
             to="/dashboard"
             class="menu-accordion"
-            style="width:200px;box-sizing:border-box;text-decoration:none;display:inline-block;"
+            style="width: 200px; box-sizing: border-box; text-decoration: none; display: inline-block"
         >
             {{ $t("common.exit") }}
         </router-link>
     </div>
 </template>
 
-<style scoped>
+<style scoped lang="scss">
 .menu-accordion-active + #menu-assets {
     display: flex;
     flex-direction: column;
@@ -194,10 +209,10 @@ export default class MenuBar extends Vue {
 
 #asset-search {
     text-align: center;
-}
 
-#asset-search::placeholder {
-    text-align: center;
+    &::placeholder {
+        text-align: center;
+    }
 }
 
 /*
@@ -208,22 +223,24 @@ DIRECTORY.CSS changes
 * On hover over file show the image
 
 */
-.folder > * {
-    display: none;
+.folder {
+    > * {
+        display: none;
+    }
+
+    &:hover {
+        font-weight: bold;
+        cursor: pointer;
+    }
+
+    &:hover > * {
+        font-weight: normal;
+    }
 }
 
 .directory > .folder,
 .directory > .file {
     display: block;
-}
-
-.folder:hover {
-    font-weight: bold;
-    cursor: pointer;
-}
-
-.folder:hover > * {
-    font-weight: normal;
 }
 
 #menuContainer {
@@ -290,17 +307,17 @@ DIRECTORY.CSS changes
     display: flex;
     flex-direction: column;
     width: 100%;
-}
 
-.menu-accordion-subpanel > * {
-    padding: 5px;
-    display: flex;
-    justify-content: space-evenly;
-    align-items: center;
-}
+    > * {
+        padding: 5px;
+        display: flex;
+        justify-content: space-evenly;
+        align-items: center;
 
-.menu-accordion-subpanel > *:hover {
-    background-color: #82c8a0;
+        &:hover {
+            background-color: #82c8a0;
+        }
+    }
 }
 
 .menu-accordion-subpanel-text {

@@ -100,6 +100,7 @@ class TemporaryShapesList(TypedDict):
 class ShapeOrder(TypedDict):
     uuid: str
     index: int
+    temporary: bool
 
 
 class ShapeFloorChange(TypedDict):
@@ -117,11 +118,6 @@ class ServerShapeLocationMoveTarget(TypedDict):
 class ServerShapeLocationMove(TypedDict):
     shapes: List[str]
     target: ServerShapeLocationMoveTarget
-
-
-class GroupLeaderData(TypedDict):
-    leader: str
-    members: List[str]
 
 
 class GroupMemberAddData(TypedDict):
@@ -152,4 +148,14 @@ class RectSizeData(TypedDict):
 class CircleSizeData(TypedDict):
     uuid: str
     r: int
+    temporary: bool
+
+
+class OptionUpdate(TypedDict):
+    uuid: str
+    option: str
+
+
+class OptionUpdateList(TypedDict):
+    options: List[OptionUpdate]
     temporary: bool

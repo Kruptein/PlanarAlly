@@ -7,7 +7,7 @@ import "swiper/css/swiper.css";
 import LanguageDropdown from "@/core/components/languageDropdown.vue";
 
 import { coreStore } from "@/core/store";
-import { postFetch, getErrorReason } from "../core/utils";
+import { postFetch, getErrorReason, baseAdjust } from "../core/utils";
 import { SwiperOptions } from "swiper";
 import { ToastObject } from "vue-toasted";
 
@@ -43,6 +43,10 @@ export default class Login extends Vue {
             },
         },
     };
+
+    baseAdjust(src: string): string {
+        return baseAdjust(src);
+    }
 
     showToast(
         status: string,
@@ -133,7 +137,7 @@ export default class Login extends Vue {
         <main>
             <div id="intro">
                 <span>Welcome to Planar</span>
-                <span style="color: #7c253e;">Ally</span>
+                <span style="color: #7c253e">Ally</span>
                 !
             </div>
             <div id="description">
@@ -151,9 +155,7 @@ export default class Login extends Vue {
                         <source src="https://planarally.io/assets/media/vision.8eab5657.webm" type="video/webm" />
                         <source src="https://planarally.io/assets/media/vision.06d14f50.mp4" type="video/mp4" />
                     </video>
-                    <div class="carousel-details">
-                        Immersive lighting & vision system
-                    </div>
+                    <div class="carousel-details">Immersive lighting & vision system</div>
                 </swiper-slide>
                 <swiper-slide>
                     <video
@@ -165,9 +167,7 @@ export default class Login extends Vue {
                         <source src="https://www.planarally.io/assets/0.19.0/floors.webm" type="video/webm" />
                         <source src="https://www.planarally.io/assets/0.19.0/floors.mp4" type="video/mp4" />
                     </video>
-                    <div class="carousel-details">
-                        Use floors to enhance immersion
-                    </div>
+                    <div class="carousel-details">Use floors to enhance immersion</div>
                 </swiper-slide>
                 <div class="swiper-pagination" slot="pagination"></div>
             </swiper>
@@ -248,7 +248,7 @@ export default class Login extends Vue {
     </div>
 </template>
 
-<style scoped>
+<style scoped lang="scss">
 * {
     box-sizing: border-box;
 }
@@ -285,29 +285,29 @@ main {
     margin-top: 60px;
     width: calc(70vw - 10em);
     min-width: 0;
-}
 
-.swiper video {
-    height: 50vh;
+    video {
+        height: 50vh;
+    }
+
+    .swiper-slide {
+        min-width: 0;
+        width: calc(70vw - 10em);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .carousel-details {
+        font-weight: bold;
+        font-size: 30px;
+        margin-top: 10px;
+        margin-bottom: 30px;
+    }
 }
 
 .swiper-pagination >>> .swiper-pagination-bullet-active {
     background-color: var(--primary);
-}
-
-.swiper .swiper-slide {
-    min-width: 0;
-    width: calc(70vw - 10em);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-}
-
-.carousel-details {
-    font-weight: bold;
-    font-size: 30px;
-    margin-top: 10px;
-    margin-bottom: 30px;
 }
 
 .carousel-details em {
@@ -367,21 +367,21 @@ footer {
 #logo {
     height: 12vw;
     position: relative;
-}
 
-#logo img {
-    height: 10vw;
-}
+    img {
+        height: 10vw;
+    }
 
-#logo::before {
-    content: "";
-    background-color: white;
-    position: absolute;
-    left: calc(50% - 6.1vw);
-    top: calc(50% - 7vw);
-    width: 12vw;
-    height: 12vw;
-    border-radius: 6vw;
+    &::before {
+        content: "";
+        background-color: white;
+        position: absolute;
+        left: calc(50% - 6.1vw);
+        top: calc(50% - 7vw);
+        width: 12vw;
+        height: 12vw;
+        border-radius: 6vw;
+    }
 }
 
 form {
@@ -403,35 +403,31 @@ label {
     display: flex;
     justify-content: center;
     align-items: center;
-}
 
-.input span {
-    position: absolute;
-    display: block;
-    color: #d4d4d4;
-    left: 10px;
-    font-size: 20px;
-}
+    span {
+        position: absolute;
+        display: block;
+        color: #d4d4d4;
+        left: 10px;
+        font-size: 20px;
+    }
 
-.input input {
-    width: 100%;
-    padding: 10px 5px 10px 40px;
-    display: block;
-    border: 1px solid #ededed;
-    border-radius: 4px;
-    transition: 0.2s ease-out;
-    color: #a1a1a1;
-}
+    input {
+        width: 100%;
+        padding: 10px 5px 10px 40px;
+        display: block;
+        border: 1px solid #ededed;
+        border-radius: 4px;
+        transition: 0.2s ease-out;
+        color: #a1a1a1;
 
-.input input:focus {
-    padding: 10px 5px 10px 10px;
-    outline: 0;
-    background-color: var(--primary);
-    color: white;
-}
-
-input:focus::placeholder {
-    color: white;
+        &:focus {
+            padding: 10px 5px 10px 10px;
+            outline: 0;
+            background-color: var(--primary);
+            color: white;
+        }
+    }
 }
 
 .submit {
@@ -449,14 +445,14 @@ input:focus::placeholder {
     font-size: 24px;
     cursor: pointer;
     transition: 0.2s ease-out;
-}
 
-.submit:hover,
-.submit:focus {
-    background: var(--primary);
-    color: #fff;
-    border: 2px solid white;
-    outline: 0;
+    &:hover,
+    &:focus {
+        background: var(--primary);
+        color: #fff;
+        border: 2px solid white;
+        outline: 0;
+    }
 }
 
 #login {
@@ -471,11 +467,11 @@ h4 {
     line-height: 0.1em;
     width: 12vw;
     margin-top: 30px;
-}
 
-h4 span {
-    padding: 0 10px;
-    background-color: var(--secondary);
+    span {
+        padding: 0 10px;
+        background-color: var(--secondary);
+    }
 }
 
 a {

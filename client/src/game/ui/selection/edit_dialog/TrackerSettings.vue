@@ -2,48 +2,86 @@
 import Vue from "vue";
 import Component from "vue-class-component";
 
-import { Prop } from "vue-property-decorator";
-
 import ColorPicker from "@/core/components/colorpicker.vue";
 
-import { Shape } from "@/game/shapes/shape";
-import { Aura, Tracker } from "@/game/shapes/interfaces";
+import { ActiveShapeState, activeShapeStore } from "../../ActiveShapeStore";
+import { Aura, Tracker } from "../../../shapes/interfaces";
+import { SyncTo } from "../../../../core/comm/types";
+import { sendShapeMoveAura, sendShapeMoveTracker } from "../../../api/emits/shape/options";
 
 @Component({ components: { ColorPicker } })
 export default class TrackerSettings extends Vue {
-    @Prop() shape!: Shape;
-    @Prop() owned!: boolean;
-
-    updateTracker<T extends keyof Tracker>(tracker: Tracker, key: T, value: Tracker[T], sync = true): void {
-        if (tracker.temporary) {
-            // update client side version with new key, but don't sync it
-            this.shape.updateTracker(tracker.uuid, { [key]: value }, false);
-            // do a full sync, creating the tracker server side
-            this.shape.syncTracker(tracker);
-        } else {
-            this.shape.updateTracker(tracker.uuid, { [key]: value }, sync);
-        }
+    get owned(): boolean {
+        return activeShapeStore.hasEditAccess;
     }
 
-    updateAura<T extends keyof Aura>(aura: Aura, key: T, value: Aura[T], sync = true): void {
-        if (aura.temporary) {
-            // update client side version with new key, but don't sync it
-            this.shape.updateAura(aura.uuid, { [key]: value }, false);
-            // do a full sync, creating the aura server side
-            this.shape.syncAura(aura);
-        } else {
-            this.shape.updateAura(aura.uuid, { [key]: value }, sync);
-        }
+    get shape(): ActiveShapeState {
+        return activeShapeStore;
     }
 
-    removeTracker(uuid: string): void {
+    // Tracker
+
+    updateTracker(tracker: string, delta: Partial<Tracker>): void {
         if (!this.owned) return;
-        this.shape.removeTracker(uuid, true);
+        if (this.shape.uuid) this.shape.updateTracker({ tracker, delta, syncTo: SyncTo.SERVER });
     }
 
-    removeAura(uuid: string): void {
+    removeTracker(tracker: string): void {
         if (!this.owned) return;
-        this.shape.removeAura(uuid, true);
+        this.shape.removeTracker({ tracker, syncTo: SyncTo.SERVER });
+    }
+
+    toggleCompositeTracker(trackerId: string): void {
+        if (!this.owned) return;
+        if (!this.shape.isComposite) return;
+
+        const tracker = this.shape.trackers.find(t => t.uuid === trackerId);
+        if (tracker === undefined) return;
+
+        this.shape.removeTracker({ tracker: trackerId, syncTo: SyncTo.SHAPE });
+
+        const oldShape = tracker.shape;
+        if (oldShape === this.shape.uuid) {
+            tracker.shape = this.shape.parentUuid!;
+        } else {
+            tracker.shape = this.shape.uuid!;
+        }
+
+        this.shape.pushTracker({ tracker, shape: tracker.shape, syncTo: SyncTo.SHAPE });
+        sendShapeMoveTracker({ shape: oldShape, new_shape: tracker.shape, tracker: tracker.uuid });
+    }
+
+    // Aura
+
+    updateAura(aura: string, delta: Partial<Aura>, syncTo = true): void {
+        if (!this.owned) return;
+        if (this.shape.uuid)
+            this.shape.updateAura({ aura, delta, syncTo: syncTo === true ? SyncTo.SERVER : SyncTo.SHAPE });
+    }
+
+    removeAura(aura: string): void {
+        if (!this.owned) return;
+        this.shape.removeAura({ aura, syncTo: SyncTo.SERVER });
+    }
+
+    toggleCompositeAura(auraId: string): void {
+        if (!this.owned) return;
+        if (!this.shape.isComposite) return;
+
+        const aura = this.shape.auras.find(t => t.uuid === auraId);
+        if (aura === undefined) return;
+
+        this.shape.removeAura({ aura: auraId, syncTo: SyncTo.SHAPE });
+
+        const oldShape = aura.shape;
+        if (oldShape === this.shape.uuid) {
+            aura.shape = this.shape.parentUuid!;
+        } else {
+            aura.shape = this.shape.uuid!;
+        }
+
+        this.shape.pushAura({ aura, shape: aura.shape, syncTo: SyncTo.SHAPE });
+        sendShapeMoveAura({ shape: oldShape, new_shape: aura.shape, aura: aura.uuid });
     }
 }
 </script>
@@ -55,7 +93,7 @@ export default class TrackerSettings extends Vue {
             <input
                 :key="'name-' + tracker.uuid"
                 :value="tracker.name"
-                @change="updateTracker(tracker, 'name', $event.target.value)"
+                @change="updateTracker(tracker.uuid, { name: $event.target.value })"
                 type="text"
                 :placeholder="$t('common.name')"
                 style="grid-column-start: name"
@@ -64,7 +102,7 @@ export default class TrackerSettings extends Vue {
             <input
                 :key="'value-' + tracker.uuid"
                 :value="tracker.value"
-                @change="updateTracker(tracker, 'value', parseFloat($event.target.value))"
+                @change="updateTracker(tracker.uuid, { value: parseFloat($event.target.value) })"
                 type="text"
                 :title="$t('game.ui.selection.edit_dialog.dialog.current_value')"
                 :disabled="!owned"
@@ -73,16 +111,26 @@ export default class TrackerSettings extends Vue {
             <input
                 :key="'maxvalue-' + tracker.uuid"
                 :value="tracker.maxvalue"
-                @change="updateTracker(tracker, 'maxvalue', $event.target.value)"
+                @change="updateTracker(tracker.uuid, { maxvalue: $event.target.value })"
                 type="text"
                 :title="$t('game.ui.selection.edit_dialog.dialog.current_value')"
                 :disabled="!owned"
             />
             <span :key="'sspan-' + tracker.uuid"></span>
             <div
+                v-show="shape.isComposite"
+                :key="'lock-' + tracker.uuid"
+                :style="{ opacity: tracker.shape !== shape.uuid ? 1.0 : 0.3, textAlign: 'center' }"
+                @click="toggleCompositeTracker(tracker.uuid)"
+                :disabled="!owned"
+                :title="$t('common.toggle_public_private')"
+            >
+                <font-awesome-icon icon="lock" />
+            </div>
+            <div
                 :key="'visibility-' + tracker.uuid"
                 :style="{ opacity: tracker.visible ? 1.0 : 0.3, textAlign: 'center' }"
-                @click="updateTracker(tracker, 'visible', !tracker.visible)"
+                @click="updateTracker(tracker.uuid, { visible: !tracker.visible })"
                 :disabled="!owned"
                 :title="$t('common.toggle_public_private')"
             >
@@ -105,7 +153,7 @@ export default class TrackerSettings extends Vue {
             <input
                 :key="'name-' + aura.uuid"
                 :value="aura.name"
-                @change="updateAura(aura, 'name', $event.target.value)"
+                @change="updateAura(aura.uuid, { name: $event.target.value })"
                 type="text"
                 :placeholder="$t('common.name')"
                 style="grid-column-start: name"
@@ -114,7 +162,7 @@ export default class TrackerSettings extends Vue {
             <input
                 :key="'value-' + aura.uuid"
                 :value="aura.value"
-                @change="updateAura(aura, 'value', parseFloat($event.target.value))"
+                @change="updateAura(aura.uuid, { value: parseFloat($event.target.value) })"
                 type="text"
                 :title="$t('game.ui.selection.edit_dialog.dialog.current_value')"
                 :disabled="!owned"
@@ -123,7 +171,7 @@ export default class TrackerSettings extends Vue {
             <input
                 :key="'dimvalue-' + aura.uuid"
                 :value="aura.dim"
-                @change="updateAura(aura, 'dim', parseFloat($event.target.value))"
+                @change="updateAura(aura.uuid, { dim: parseFloat($event.target.value) })"
                 type="text"
                 :title="$t('game.ui.selection.edit_dialog.dialog.dim_value')"
                 :disabled="!owned"
@@ -131,14 +179,24 @@ export default class TrackerSettings extends Vue {
             <color-picker
                 :key="'colour-' + aura.uuid"
                 :color="aura.colour"
-                @input="updateAura(aura, 'colour', $event, false)"
-                @change="updateAura(aura, 'colour', $event)"
+                @input="updateAura(aura.uuid, { colour: $event }, false)"
+                @change="updateAura(aura.uuid, { colour: $event })"
                 :disabled="!owned"
             />
             <div
+                v-show="shape.isComposite"
+                :key="'lock-' + aura.uuid"
+                :style="{ opacity: aura.shape !== shape.uuid ? 1.0 : 0.3, textAlign: 'center' }"
+                @click="toggleCompositeAura(aura.uuid)"
+                :disabled="!owned"
+                :title="$t('common.toggle_public_private')"
+            >
+                <font-awesome-icon icon="lock" />
+            </div>
+            <div
                 :key="'visibility-' + aura.uuid"
                 :style="{ opacity: aura.visible ? 1.0 : 0.3, textAlign: 'center' }"
-                @click="updateAura(aura, 'visible', !aura.visible)"
+                @click="updateAura(aura.uuid, { visible: !aura.visible })"
                 :disabled="!owned"
                 :title="$t('common.toggle_public_private')"
             >
@@ -147,7 +205,7 @@ export default class TrackerSettings extends Vue {
             <div
                 :key="'visionsource-' + aura.uuid"
                 :style="{ opacity: aura.visionSource ? 1.0 : 0.3, textAlign: 'center' }"
-                @click="updateAura(aura, 'visionSource', !aura.visionSource)"
+                @click="updateAura(aura.uuid, { visionSource: !aura.visionSource })"
                 :disabled="!owned"
                 :title="$t('game.ui.selection.edit_dialog.dialog.toggle_light_source')"
             >
@@ -169,7 +227,7 @@ export default class TrackerSettings extends Vue {
 
 <style scoped>
 .panel {
-    grid-template-columns: [name] 1fr [numerator] 25px [slash] 5px [denominator] 25px [colour] auto [visible] auto [light] auto [remove] auto [end];
+    grid-template-columns: [name] 1fr [numerator] 25px [slash] 5px [denominator] 25px [colour] auto [lock] auto [visible] auto [light] auto [remove] auto [end];
     grid-column-gap: 10px;
     align-items: center;
     padding-bottom: 1em;

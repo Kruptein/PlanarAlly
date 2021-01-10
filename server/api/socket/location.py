@@ -36,6 +36,7 @@ class LocationOptionKeys(TypedDict, total=False):
     unit_size: float
     unit_size_unit: str
     use_grid: bool
+    grid_type: str
     full_fow: bool
     fow_opacity: float
     fow_los: bool
@@ -50,9 +51,15 @@ class LocationOptionsData(TypedDict):
     location: Union[int, None]
 
 
+class PositionTuple(TypedDict):
+    x: int
+    y: int
+
+
 class LocationChangeData(TypedDict):
     location: int
     users: List[str]
+    position: PositionTuple
 
 
 class LocationRenameData(TypedDict):
@@ -247,11 +254,22 @@ async def change_location(sid: str, data: LocationChangeData):
             continue
 
         for psid in game_state.get_sids(player=room_player.player, room=pr.room):
-            sio.leave_room(
-                psid, room_player.active_location.get_path(), namespace=GAME_NS
-            )
-            sio.enter_room(psid, new_location.get_path(), namespace=GAME_NS)
+            try:
+                sio.leave_room(
+                    psid, room_player.active_location.get_path(), namespace=GAME_NS
+                )
+                sio.enter_room(psid, new_location.get_path(), namespace=GAME_NS)
+            except KeyError:
+                await game_state.remove_sid(psid)
+                continue
             await load_location(psid, new_location)
+            # We could send this to all users in the new location, BUT
+            # loading times might vary and we don't want to snap people back when they already move around
+            # And it's possible that there are already users on the new location that don't want to be moved to this new position
+            if "position" in data:
+                await sio.emit(
+                    "Position.Set", data=data["position"], room=psid, namespace=GAME_NS,
+                )
         room_player.active_location = new_location
         room_player.save()
 
@@ -273,6 +291,7 @@ async def set_location_options(sid: str, data: LocationOptionsData):
             loc.options = LocationOptions.create(
                 unit_size=None,
                 unit_size_unit=None,
+                grid_type=None,
                 use_grid=None,
                 full_fow=None,
                 fow_opacity=None,

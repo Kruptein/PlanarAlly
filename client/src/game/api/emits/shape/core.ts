@@ -7,22 +7,25 @@ import { wrapSocket } from "../../helpers";
 
 export const sendShapeAdd = wrapSocket<{ shape: ServerShape; temporary: boolean }>("Shape.Add");
 export const sendRemoveShapes = wrapSocket<{ uuids: string[]; temporary: boolean }>("Shapes.Remove");
-export const sendShapeOrder = wrapSocket<{ uuid: string; index: number }>("Shape.Order.Set");
+export const sendShapeOrder = wrapSocket<{ uuid: string; index: number; temporary: boolean }>("Shape.Order.Set");
 export const sendFloorChange = wrapSocket<{ uuids: string[]; floor: string }>("Shapes.Floor.Change");
 export const sendLayerChange = wrapSocket<{ uuids: string[]; layer: string; floor: string }>("Shapes.Layer.Change");
-export const sendGroupLeaderUpdate = wrapSocket<{ leader: string; members: string[] }>("Shapes.Group.Leader.Set");
-export const sendGroupMemberAdd = wrapSocket<{ leader: string; member: string }>("Shapes.Group.Member.Add");
+
 export const sendShapesMove = wrapSocket<{
     shapes: string[];
     target: { location: number; floor: string; x: number; y: number };
 }>("Shapes.Location.Move");
-export const sendTrackerUpdate = wrapSocket<{
-    uuid: string;
-    value: number;
-    shape: string;
-    _type: "tracker" | "aura";
-}>("Shapes.Trackers.Update");
 export const sendTextUpdate = wrapSocket<{ uuid: string; text: string; temporary: boolean }>("Shape.Text.Value.Set");
+
+export function sendShapeOptionsUpdate(shapes: readonly Shape[], temporary: boolean): void {
+    const options = shapes.filter(s => !s.preventSync).map(s => ({ uuid: s.uuid, option: s.getOptions() }));
+    if (options.length > 0) {
+        socket.emit("Shapes.Options.Update", {
+            options,
+            temporary,
+        });
+    }
+}
 
 export function sendShapePositionUpdate(shapes: readonly Shape[], temporary: boolean): void {
     const positions = shapes
@@ -36,6 +39,8 @@ export function sendShapeSizeUpdate(data: { shape: Shape; temporary: boolean }):
         case "assetrect":
         case "rect": {
             const shape = data.shape as Rect;
+            // a shape resize can move the refpoint!
+            sendShapePositionUpdate([data.shape], data.temporary);
             _sendRectSizeUpdate({ uuid: shape.uuid, w: shape.w, h: shape.h, temporary: data.temporary });
             break;
         }

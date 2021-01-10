@@ -2,64 +2,69 @@
 import Vue from "vue";
 import Component from "vue-class-component";
 
-import { Prop } from "vue-property-decorator";
-
 import ColorPicker from "@/core/components/colorpicker.vue";
 
-import { Shape } from "@/game/shapes/shape";
+import { ActiveShapeState, activeShapeStore } from "../../ActiveShapeStore";
+import { SyncTo } from "../../../../core/comm/types";
 
 @Component({ components: { ColorPicker } })
 export default class PropertySettings extends Vue {
-    @Prop() shape!: Shape;
-    @Prop() owned!: boolean;
+    get owned(): boolean {
+        return activeShapeStore.hasEditAccess;
+    }
+
+    get shape(): ActiveShapeState {
+        return activeShapeStore;
+    }
 
     updateName(event: { target: HTMLInputElement }): void {
         if (!this.owned) return;
-        this.shape.setName(event.target.value, true);
+        this.shape.setName({ name: event.target.value, syncTo: SyncTo.SERVER });
     }
 
     toggleNameVisible(): void {
         if (!this.owned) return;
-        this.shape.setNameVisible(!this.shape.nameVisible, true);
+        this.shape.setNameVisible({ visible: !this.shape.nameVisible, syncTo: SyncTo.SERVER });
     }
 
     setToken(event: { target: HTMLInputElement }): void {
         if (!this.owned) return;
-        this.shape.setIsToken(event.target.checked, true);
+        this.shape.setIsToken({ isToken: event.target.checked, syncTo: SyncTo.SERVER });
     }
 
     setInvisible(event: { target: HTMLInputElement }): void {
         if (!this.owned) return;
-        this.shape.setInvisible(event.target.checked, true);
+        this.shape.setIsInvisible({ isInvisible: event.target.checked, syncTo: SyncTo.SERVER });
     }
 
     setLocked(event: { target: HTMLInputElement }): void {
         if (!this.owned) return;
-        this.shape.setLocked(event.target.checked, true);
+        this.shape.setLocked({ isLocked: event.target.checked, syncTo: SyncTo.SERVER });
     }
 
-    toggleBadge(_event: { target: HTMLInputElement }): void {
+    toggleBadge(event: { target: HTMLInputElement }): void {
         if (!this.owned) return;
-        const groupMembers = this.shape.getGroupMembers();
-        for (const shape of groupMembers) this.shape.setShowBadge(!shape.showBadge, true);
+        this.shape.setShowBadge({ showBadge: event.target.checked, syncTo: SyncTo.SERVER });
     }
 
     setVisionBlocker(event: { target: HTMLInputElement }): void {
         if (!this.owned) return;
-        this.shape.setVisionBlock(event.target.checked, true);
+        this.shape.setVisionObstruction({ blocksVision: event.target.checked, syncTo: SyncTo.SERVER });
     }
 
     setMovementBlocker(event: { target: HTMLInputElement }): void {
         if (!this.owned) return;
-        this.shape.setMovementBlock(event.target.checked, true);
+        this.shape.setMovementObstruction({ blocksMovement: event.target.checked, syncTo: SyncTo.SERVER });
     }
 
-    setStrokeColour(event: string, temporary: boolean): void {
-        this.shape.setStrokeColour(event, !temporary);
+    setStrokeColour(event: string, temporary = false): void {
+        if (!this.owned) return;
+        this.shape.setStrokeColour({ colour: event, syncTo: temporary ? SyncTo.SHAPE : SyncTo.SERVER });
     }
 
-    setFillColour(event: string, temporary: boolean): void {
-        this.shape.setFillColour(event, !temporary);
+    setFillColour(event: string, temporary = false): void {
+        if (!this.owned) return;
+        this.shape.setFillColour({ colour: event, syncTo: temporary ? SyncTo.SHAPE : SyncTo.SERVER });
     }
 }
 </script>
@@ -92,7 +97,7 @@ export default class PropertySettings extends Vue {
                 id="shapeselectiondialog-istoken"
                 :checked="shape.isToken"
                 @click="setToken"
-                style="grid-column-start: toggle;"
+                style="grid-column-start: toggle"
                 class="styled-checkbox"
                 :disabled="!owned"
             />
@@ -107,7 +112,7 @@ export default class PropertySettings extends Vue {
                 id="shapeselectiondialog-is-invisible"
                 :checked="shape.isInvisible"
                 @click="setInvisible"
-                style="grid-column-start: toggle;"
+                style="grid-column-start: toggle"
                 class="styled-checkbox"
                 :disabled="!owned"
             />
@@ -118,7 +123,7 @@ export default class PropertySettings extends Vue {
                 :color="shape.strokeColour"
                 @input="setStrokeColour($event, true)"
                 @change="setStrokeColour($event)"
-                style="grid-column-start: toggle;"
+                style="grid-column-start: toggle"
                 :disabled="!owned"
             />
         </div>
@@ -128,7 +133,7 @@ export default class PropertySettings extends Vue {
                 :color="shape.fillColour"
                 @input="setFillColour($event, true)"
                 @change="setFillColour($event)"
-                style="grid-column-start: toggle;"
+                style="grid-column-start: toggle"
                 :disabled="!owned"
             />
         </div>
@@ -141,9 +146,9 @@ export default class PropertySettings extends Vue {
             <input
                 type="checkbox"
                 id="shapeselectiondialog-visionblocker"
-                v-model="shape.visionObstruction"
-                @change="setVisionBlocker"
-                style="grid-column-start: toggle;"
+                :checked="shape.visionObstruction"
+                @click="setVisionBlocker"
+                style="grid-column-start: toggle"
                 :disabled="!owned"
             />
         </div>
@@ -157,7 +162,7 @@ export default class PropertySettings extends Vue {
                 id="shapeselectiondialog-moveblocker"
                 :checked="shape.movementObstruction"
                 @click="setMovementBlocker"
-                style="grid-column-start: toggle;"
+                style="grid-column-start: toggle"
                 :disabled="!owned"
             />
         </div>
@@ -168,7 +173,7 @@ export default class PropertySettings extends Vue {
                 id="shapeselectiondialog-is-locked"
                 :checked="shape.isLocked"
                 @click="setLocked"
-                style="grid-column-start: toggle;"
+                style="grid-column-start: toggle"
                 class="styled-checkbox"
                 :disabled="!owned"
             />
@@ -180,7 +185,7 @@ export default class PropertySettings extends Vue {
                 id="shapeselectiondialog-showBadge"
                 :checked="shape.showBadge"
                 @click="toggleBadge"
-                style="grid-column-start: toggle;"
+                style="grid-column-start: toggle"
                 class="styled-checkbox"
                 :disabled="!owned"
             />

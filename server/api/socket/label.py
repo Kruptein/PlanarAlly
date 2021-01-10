@@ -1,4 +1,5 @@
 from typing import Any, Dict
+from typing_extensions import TypedDict
 
 import auth
 from api.socket.constants import GAME_NS
@@ -8,6 +9,11 @@ from models.db import db
 from models.role import Role
 from state.game import game_state
 from utils import logger
+
+
+class LabelVisibilityMessage(TypedDict):
+    uuid: str
+    visible: bool
 
 
 @sio.on("Label.Add", namespace=GAME_NS)
@@ -63,7 +69,7 @@ async def delete(sid: str, data: Dict[str, Any]):
 
 @sio.on("Label.Visibility.Set", namespace=GAME_NS)
 @auth.login_required(app, sio)
-async def set_visibility(sid: str, data: Dict[str, Any]):
+async def set_visibility(sid: str, data: LabelVisibilityMessage):
     pr: PlayerRoom = game_state.get(sid)
 
     label = Label.get_or_none(uuid=data["uuid"])
@@ -95,7 +101,7 @@ async def set_visibility(sid: str, data: Dict[str, Any]):
             else:
                 await sio.emit(
                     "Label.Delete",
-                    {"uuid": label.uuid, "user": label.pr.player.name},
+                    {"uuid": label.uuid, "user": label.user.name},
                     room=psid,
                     namespace=GAME_NS,
                 )

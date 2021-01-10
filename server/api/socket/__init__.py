@@ -16,6 +16,7 @@ from . import (
     asset_manager,
     connection,
     floor,
+    groups,
     initiative,
     label,
     location,

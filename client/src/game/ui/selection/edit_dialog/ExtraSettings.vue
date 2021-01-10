@@ -4,18 +4,26 @@ import Component from "vue-class-component";
 
 import { Prop, Watch } from "vue-property-decorator";
 
-import { Shape } from "@/game/shapes/shape";
-import { EventBus } from "@/game/event-bus";
+import LabelManager from "@/game/ui/labels.vue";
+import { ActiveShapeState, activeShapeStore } from "../../ActiveShapeStore";
+import { SyncTo } from "../../../../core/comm/types";
 
-@Component
+@Component({ components: { LabelManager } })
 export default class AccessSettings extends Vue {
-    @Prop() owned!: boolean;
-    @Prop() shape!: Shape;
     @Prop() active!: boolean;
 
     $refs!: {
+        labels: LabelManager;
         textarea: HTMLTextAreaElement;
     };
+
+    get owned(): boolean {
+        return activeShapeStore.hasEditAccess;
+    }
+
+    get shape(): ActiveShapeState {
+        return activeShapeStore;
+    }
 
     @Watch("active")
     panelActivated(active: boolean): void {
@@ -23,18 +31,23 @@ export default class AccessSettings extends Vue {
     }
 
     updateAnnotation(event: { target: HTMLInputElement }, sync = true): void {
-        this.calcHeight();
         if (!this.owned) return;
-        this.shape.setAnnotation(event.target.value, sync);
+        this.calcHeight();
+        this.shape.setAnnotation({ annotation: event.target.value, syncTo: sync ? SyncTo.SERVER : SyncTo.SHAPE });
     }
 
     openLabelManager(): void {
-        EventBus.$emit("LabelManager.Open");
+        this.$refs.labels.open();
+    }
+
+    addLabel(label: string): void {
+        if (!this.owned) return;
+        this.shape.addLabel({ label, syncTo: SyncTo.SERVER });
     }
 
     removeLabel(uuid: string): void {
         if (!this.owned) return;
-        this.shape.removeLabel(uuid, true);
+        this.shape.removeLabel({ label: uuid, syncTo: SyncTo.SERVER });
     }
 
     calcHeight(): void {
@@ -49,6 +62,7 @@ export default class AccessSettings extends Vue {
 
 <template>
     <div class="panel restore-panel">
+        <LabelManager ref="labels" @addLabel="addLabel"></LabelManager>
         <div class="spanrow header" v-t="'common.labels'"></div>
         <div id="labels" class="spanrow">
             <div v-for="label in shape.labels" class="label" :key="label.uuid">
@@ -76,7 +90,7 @@ export default class AccessSettings extends Vue {
     </div>
 </template>
 
-<style scoped>
+<style scoped lang="scss">
 .panel {
     grid-template-columns: [name] 1fr [edit] 30px [move] 30px [vision] 30px [remove] 30px [end];
     grid-column-gap: 5px;
@@ -113,16 +127,18 @@ textarea {
     pointer-events: auto;
 }
 
-#label-add:hover > .label-main {
-    pointer-events: auto;
-    cursor: pointer;
-    color: white;
-    font-weight: bold;
-    background-color: #ff7052;
-}
+#label-add:hover {
+    > .label-main {
+        pointer-events: auto;
+        cursor: pointer;
+        color: white;
+        font-weight: bold;
+        background-color: #ff7052;
+    }
 
-#label-add:hover > .label-main::before {
-    content: "";
+    > .label-main::before {
+        content: "";
+    }
 }
 
 .label-user {
@@ -131,6 +147,11 @@ textarea {
     background-color: #ff7052;
     border: solid 1px #ff7052;
     padding: 5px;
+
+    + .label-main {
+        border-top-left-radius: 0;
+        border-bottom-left-radius: 0;
+    }
 }
 
 .label-main {
@@ -138,10 +159,5 @@ textarea {
     border-radius: 10px;
     padding: 5px;
     pointer-events: none;
-}
-
-.label-user + .label-main {
-    border-top-left-radius: 0;
-    border-bottom-left-radius: 0;
 }
 </style>

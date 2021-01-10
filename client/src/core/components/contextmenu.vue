@@ -1,11 +1,16 @@
 <script lang="ts">
 import Vue from "vue";
 import Component from "vue-class-component";
+import { Prop } from "vue-property-decorator";
 
 @Component({
     props: ["visible", "left", "top"],
 })
-export default class ContextMenu extends Vue {}
+export default class ContextMenu extends Vue {
+    @Prop() visible!: boolean;
+    @Prop() left!: string;
+    @Prop() top!: string;
+}
 </script>
 
 <template>
@@ -16,49 +21,49 @@ export default class ContextMenu extends Vue {}
     </div>
 </template>
 
-<style>
+<style lang="scss">
 .ContextMenu {
     position: fixed;
     z-index: 11;
-}
 
-.ContextMenu ul {
-    border: 1px solid #ff7052;
-    border-radius: 5px;
-    background: white;
-    padding: 0;
-    list-style: none;
-    margin: 0;
-}
+    ul {
+        border: 1px solid #ff7052;
+        border-radius: 5px;
+        background: white;
+        padding: 0;
+        list-style: none;
+        margin: 0;
 
-.ContextMenu ul li {
-    border-bottom: 1px solid #ff7052;
-    padding: 5px;
-    cursor: pointer;
-}
+        li {
+            border-bottom: 1px solid #ff7052;
+            padding: 5px;
+            cursor: pointer;
 
-.ContextMenu ul li:hover {
-    background-color: #ff7052;
-}
+            &:hover {
+                background-color: #ff7052;
+            }
 
-.ContextMenu ul li:last-child {
-    border-bottom: none;
-}
+            &:last-child {
+                border-bottom: none;
+            }
+        }
+    }
 
-.ContextMenu > ul > li {
-    clear: left;
-    position: relative;
-}
+    > ul > li {
+        clear: left;
+        position: relative;
 
-.ContextMenu > ul > li ul {
-    display: none;
-    position: absolute;
-    left: 100%;
-    top: -1px;
-}
+        ul {
+            display: none;
+            position: absolute;
+            left: 100%;
+            top: -1px;
+        }
 
-.ContextMenu > ul > li:hover ul {
-    display: flex;
-    flex-direction: column;
+        &:hover ul {
+            display: flex;
+            flex-direction: column;
+        }
+    }
 }
 </style>

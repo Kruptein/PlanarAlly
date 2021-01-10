@@ -9,8 +9,7 @@ import {
     BaseTrackerTemplate,
     getTemplateKeys,
 } from "../comm/types/templates";
-import { createEmptyAura } from "./aura";
-import { createEmptyTracker } from "./tracker";
+import { createEmptyAura, createEmptyTracker } from "./trackers/empty";
 
 export function applyTemplate<T extends ServerShape>(shape: T, template: BaseTemplate): T {
     // should be shape[key], but this is something that TS cannot correctly infer (issue #31445)
@@ -24,9 +23,8 @@ export function applyTemplate<T extends ServerShape>(shape: T, template: BaseTem
     }
 
     for (const auraTemplate of template.auras ?? []) {
-        const defaultAura = aurasToServer(shape.uuid, [createEmptyAura()], false)[0];
+        const defaultAura = aurasToServer(shape.uuid, [createEmptyAura()])[0];
         shape.auras.push({ ...defaultAura, ...auraTemplate });
-        console.log(shape.auras[shape.auras.length - 1]);
     }
 
     // Shape specific keys

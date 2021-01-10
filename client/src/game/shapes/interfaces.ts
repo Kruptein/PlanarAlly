@@ -4,7 +4,6 @@ export interface Tracker {
     name: string;
     value: number;
     maxvalue: number;
-    temporary: boolean; // this is for trackers unknown to the server
 }
 
 export interface Aura {
@@ -16,7 +15,6 @@ export interface Aura {
     dim: number;
     colour: string;
     lastPath?: Path2D;
-    temporary: boolean; // this is for auras unknown to the server
 }
 
 export interface Label {

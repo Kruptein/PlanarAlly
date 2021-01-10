@@ -6,7 +6,6 @@ import Modal from "@/core/components/modals/modal.vue";
 
 import { uuidv4 } from "@/core/utils";
 import { socket } from "@/game/api/socket";
-import { EventBus } from "@/game/event-bus";
 import { gameStore } from "@/game/store";
 import { Label } from "../shapes/interfaces";
 
@@ -21,17 +20,11 @@ export default class LabelManager extends Vue {
     newName = "";
     search = "";
 
-    mounted(): void {
-        EventBus.$on("LabelManager.Open", () => {
-            this.visible = true;
-            this.newCategory = "";
-            this.newName = "";
-            this.$nextTick(() => (this.$refs.search as HTMLInputElement).focus());
-        });
-    }
-
-    beforeDestroy(): void {
-        EventBus.$off("LabelManager.Open");
+    open(): void {
+        this.visible = true;
+        this.newCategory = "";
+        this.newName = "";
+        this.$nextTick(() => (this.$refs.search as HTMLInputElement).focus());
     }
 
     get labels(): { [category: string]: Label[] } {
@@ -59,7 +52,7 @@ export default class LabelManager extends Vue {
     }
 
     selectLabel(label: string): void {
-        EventBus.$emit("EditDialog.AddLabel", label);
+        this.$emit("addLabel", label);
         this.visible = false;
     }
 
@@ -107,17 +100,17 @@ export default class LabelManager extends Vue {
         </div>
         <div class="modal-body">
             <div class="grid">
-                <div class="header">
+                <div>
                     <abbr :title="$t('game.ui.labels.category')" v-t="'game.ui.labels.cat_abbr'"></abbr>
                 </div>
-                <div class="header name" v-t="'common.name'"></div>
-                <div class="header">
+                <div class="name" v-t="'common.name'"></div>
+                <div>
                     <abbr :title="$t('game.ui.labels.visible')" v-t="'game.ui.labels.vis_abbr'"></abbr>
                 </div>
-                <div class="header">
+                <div>
                     <abbr :title="$t('game.ui.labels.delete')" v-t="'game.ui.labels.del_abbr'"></abbr>
                 </div>
-                <div class="separator spanrow" style="margin: 0 0 7px;"></div>
+                <div class="separator spanrow" style="margin: 0 0 7px"></div>
                 <input class="spanrow" type="text" :placeholder="$t('common.search')" v-model="search" ref="search" />
             </div>
             <div class="grid scroll">
@@ -151,7 +144,7 @@ export default class LabelManager extends Vue {
                         </div>
                     </template>
                 </template>
-                <template v-if="labels.length === 0">
+                <template v-if="Object.keys(labels).length === 0">
                     <div id="no-labels" v-t="'game.ui.labels.no_exist_msg'"></div>
                 </template>
             </div>
@@ -165,7 +158,7 @@ export default class LabelManager extends Vue {
     </Modal>
 </template>
 
-<style scoped>
+<style scoped lang="scss">
 abbr {
     text-decoration: none;
 }
@@ -197,14 +190,14 @@ abbr {
 .separator {
     line-height: 0.1em;
     margin: 7px 0;
-}
 
-.separator:after {
-    position: absolute;
-    left: 10px;
-    right: 10px;
-    border-bottom: 1px solid #000;
-    content: "";
+    &:after {
+        position: absolute;
+        left: 10px;
+        right: 10px;
+        border-bottom: 1px solid #000;
+        content: "";
+    }
 }
 
 .spanrow {
@@ -220,10 +213,10 @@ abbr {
     grid-template-columns: [start] 50px [name] 1fr [visible] 30px [remove] 30px [end];
     grid-row-gap: 5px;
     align-items: center;
-}
 
-.grid > * {
-    text-align: center;
+    > * {
+        text-align: center;
+    }
 }
 
 .name {
@@ -232,31 +225,31 @@ abbr {
 
 .row {
     display: contents;
-}
 
-.row > * {
-    padding: 5px;
-    height: 20px;
-    border: solid 1px rgba(0, 0, 0, 0);
-}
+    > * {
+        padding: 5px;
+        height: 20px;
+        border: solid 1px rgba(0, 0, 0, 0);
+    }
 
-.row:hover > * {
-    cursor: pointer;
-    border-top: solid 1px #ff7052;
-    border-bottom: solid 1px #ff7052;
-    background-color: rgba(0, 0, 0, 0.2);
-}
+    &:hover > * {
+        cursor: pointer;
+        border-top: solid 1px #ff7052;
+        border-bottom: solid 1px #ff7052;
+        background-color: rgba(0, 0, 0, 0.2);
 
-.row:hover > *:first-child {
-    border-left: solid 1px #ff7052;
-    border-top-left-radius: 10px;
-    border-bottom-left-radius: 10px;
-}
+        &:first-child {
+            border-left: solid 1px #ff7052;
+            border-top-left-radius: 10px;
+            border-bottom-left-radius: 10px;
+        }
 
-.row:hover > *:last-child {
-    border-right: solid 1px #ff7052;
-    border-top-right-radius: 10px;
-    border-bottom-right-radius: 10px;
+        &:last-child {
+            border-right: solid 1px #ff7052;
+            border-top-right-radius: 10px;
+            border-bottom-right-radius: 10px;
+        }
+    }
 }
 
 #no-labels {

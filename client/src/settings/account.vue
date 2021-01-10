@@ -14,7 +14,7 @@ import { postFetch, getErrorReason } from "../core/utils";
 })
 export default class AccountSettings extends Vue {
     $refs!: {
-        confirm: InstanceType<typeof ConfirmDialog>;
+        confirm: ConfirmDialog;
         changePasswordButton: HTMLButtonElement;
         passwordResetField: HTMLInputElement;
         passwordRepeatField: HTMLInputElement;
@@ -124,8 +124,8 @@ export default class AccountSettings extends Vue {
                 <input ref="passwordRepeatField" type="password" id="password-repeat" autocomplete="new-password" />
             </div>
         </div>
-        <div class="spanrow" v-show="errorMessage" style="display:flex;justify-content:center;">
-            <span v-show="errorMessage" class="danger" style="font-weight:bold;">{{ errorMessage }}</span>
+        <div class="spanrow" v-show="errorMessage" style="display: flex; justify-content: center">
+            <span v-show="errorMessage" class="danger" style="font-weight: bold">{{ errorMessage }}</span>
         </div>
         <div class="row">
             <div>
@@ -154,7 +154,7 @@ export default class AccountSettings extends Vue {
     </form>
 </template>
 
-<style scoped>
+<style scoped lang="scss">
 * {
     -ms-box-sizing: border-box;
     -moz-box-sizing: border-box;
@@ -191,10 +191,10 @@ main {
 nav {
     grid-area: nav;
     background-color: lightblue;
-}
 
-nav > div {
-    padding: 0.5em;
+    > div {
+        padding: 0.5em;
+    }
 }
 
 .main {
@@ -211,6 +211,19 @@ nav > div {
 
 .row {
     display: contents;
+
+    &:first-of-type > * {
+        margin-top: 0.5em;
+    }
+
+    &:last-of-type > * {
+        margin-bottom: 0.5em;
+    }
+
+    &:hover > * {
+        cursor: pointer;
+        text-shadow: 0px 0px 1px black;
+    }
 }
 
 .row > *,
@@ -221,19 +234,6 @@ nav > div {
     padding: 0.5em;
 }
 
-.row:first-of-type > * {
-    margin-top: 0.5em;
-}
-
-.row:last-of-type > * {
-    margin-bottom: 0.5em;
-}
-
-.row:hover > * {
-    cursor: pointer;
-    text-shadow: 0px 0px 1px black;
-}
-
 .smallrow > * {
     padding: 0.2em;
 }
@@ -242,13 +242,14 @@ nav > div {
     line-height: 0.1em;
     margin: 20px 0 15px;
     font-style: italic;
-}
-.header:after {
-    position: relative;
-    left: 5px;
-    width: 100%;
-    border-bottom: 1px solid #000;
-    content: "";
+
+    &:after {
+        position: relative;
+        left: 5px;
+        width: 100%;
+        border-bottom: 1px solid #000;
+        content: "";
+    }
 }
 
 .spanrow {
@@ -257,11 +258,11 @@ nav > div {
 
 .danger {
     color: #ff7052;
-}
 
-.danger:hover {
-    text-shadow: 0px 0px 1px #ff7052;
-    cursor: pointer;
+    &:hover {
+        text-shadow: 0px 0px 1px #ff7052;
+        cursor: pointer;
+    }
 }
 
 input[type="checkbox"] {
@@ -279,6 +280,7 @@ input[type="password"] {
     width: 100%;
     padding: 5px;
 }
+
 button {
     padding: 6px 12px;
     border: 1px solid lightgray;

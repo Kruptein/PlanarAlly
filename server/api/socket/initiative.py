@@ -22,7 +22,7 @@ from models import (
 )
 from models.db import db
 from models.role import Role
-from models.shape.access import has_ownership, has_ownership_temp
+from models.shape.access import has_ownership
 from models.utils import reduce_data_to_model
 from state.game import game_state
 from utils import logger
@@ -126,6 +126,10 @@ async def update_initiative(sid: str, data: ServerInitiativeData):
                     )
                     update.execute()
                 data["index"] = new_index
+            elif data.get("index", None) is None:
+                data["index"] = 0
+            if initiative.location_data != location_data:
+                initiative.location_data = location_data
             # Update model instance
             update_model_from_dict(initiative, reduce_data_to_model(Initiative, data))
             initiative.save()
@@ -198,10 +202,15 @@ async def update_initiative_turn(sid: str, data: str):
             InitiativeEffect.select().join(Initiative).where(Initiative.uuid == data)
         )
         for effect in effects:
-            if effect.turns <= 0:
-                effect.delete_instance()
-            else:
-                effect.turns -= 1
+            try:
+                turns = int(effect.turns)
+                if turns <= 0:
+                    effect.delete_instance()
+                else:
+                    effect.turns = str(turns - 1)
+            except ValueError:
+                # For non-number inputs do not update the effect
+                pass
             effect.save()
 
     await sio.emit(
@@ -279,6 +288,28 @@ async def update_initiative_effect(sid: str, data: ServerInitiativeEffectActor):
 
     await sio.emit(
         "Initiative.Effect.Update",
+        data,
+        room=pr.active_location.get_path(),
+        skip_sid=sid,
+        namespace=GAME_NS,
+    )
+
+
+@sio.on("Initiative.Effect.Remove", namespace=GAME_NS)
+@auth.login_required(app, sio)
+async def remove_initiative_effect(sid: str, data: ServerInitiativeEffectActor):
+    pr: PlayerRoom = game_state.get(sid)
+
+    if not has_ownership(Shape.get_or_none(uuid=data["actor"]), pr):
+        logger.warning(f"{pr.player.name} attempted to remove an initiative effect")
+        return
+
+    with db.atomic():
+        effect = InitiativeEffect.get(uuid=data["effect"]["uuid"])
+        effect.delete_instance()
+
+    await sio.emit(
+        "Initiative.Effect.Remove",
         data,
         room=pr.active_location.get_path(),
         skip_sid=sid,

@@ -10,6 +10,7 @@ import { TriangulationTarget } from "../visibility/te/pa";
 import { computeVisibility } from "../visibility/te/te";
 import { FowLayer } from "./fow";
 import { floorStore } from "./store";
+import { gameStore } from "../store";
 
 export class FowLightingLayer extends FowLayer {
     addShape(shape: Shape, sync: SyncMode, invalidate: InvalidationMode, snappable = true): void {
@@ -19,12 +20,12 @@ export class FowLightingLayer extends FowLayer {
         }
     }
 
-    removeShape(shape: Shape, sync: SyncMode): boolean {
+    removeShape(shape: Shape, sync: SyncMode, recalculate: boolean): boolean {
         let idx = -1;
         if (shape.options.has("preFogShape") && shape.options.get("preFogShape")) {
             idx = this.preFogShapes.findIndex(s => s.uuid === shape.uuid);
         }
-        const remove = super.removeShape(shape, sync);
+        const remove = super.removeShape(shape, sync, recalculate);
         if (remove && idx >= 0) this.preFogShapes.splice(idx, 1);
         return remove;
     }
@@ -40,10 +41,11 @@ export class FowLightingLayer extends FowLayer {
                 layerManager.hasLayer(floorStore.currentFloor, "tokens") &&
                 floorStore.currentFloor === floorStore.floors[floorStore.currentFloorindex]
             ) {
-                for (const sh of layerManager.getLayer(floorStore.currentFloor, "tokens")!.getShapes()) {
-                    if (!sh.ownedBy({ visionAccess: true }) || !sh.isToken) continue;
-                    const bb = sh.getBoundingBox();
-                    const lcenter = g2l(sh.center());
+                for (const sh of gameStore.activeTokens) {
+                    const shape = layerManager.UUIDMap.get(sh)!;
+                    if (shape.options.get("skipDraw") ?? false === false) continue;
+                    const bb = shape.getBoundingBox();
+                    const lcenter = g2l(shape.center());
                     const alm = 0.8 * g2lz(bb.w);
                     this.ctx.beginPath();
                     this.ctx.arc(lcenter.x, lcenter.y, alm, 0, 2 * Math.PI);
@@ -66,7 +68,7 @@ export class FowLightingLayer extends FowLayer {
             for (const light of getVisionSources(this.floor)) {
                 const shape = layerManager.UUIDMap.get(light.shape);
                 if (shape === undefined) continue;
-                const aura = shape.auras.find(a => a.uuid === light.aura);
+                const aura = shape.getAuras(true).find(a => a.uuid === light.aura);
                 if (aura === undefined) continue;
 
                 if (!shape.ownedBy({ visionAccess: true }) && !aura.visible) continue;
@@ -76,7 +78,7 @@ export class FowLightingLayer extends FowLayer {
                 const lcenter = g2l(center);
 
                 const auraCircle = new Circle(center, auraLength);
-                if (!auraCircle.visibleInCanvas(this.ctx.canvas)) continue;
+                if (!auraCircle.visibleInCanvas(this.ctx.canvas, { includeAuras: true })) continue;
 
                 this.vCtx.globalCompositeOperation = "source-over";
                 this.vCtx.fillStyle = "rgba(0, 0, 0, 1)";
@@ -118,7 +120,7 @@ export class FowLightingLayer extends FowLayer {
             }
 
             for (const preShape of this.preFogShapes) {
-                if (!preShape.visibleInCanvas(this.canvas)) continue;
+                if (!preShape.visibleInCanvas(this.canvas, { includeAuras: true })) continue;
                 const ogComposite = preShape.globalCompositeOperation;
                 if (!gameSettingsStore.fullFow) {
                     if (preShape.globalCompositeOperation === "source-over")

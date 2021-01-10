@@ -33,6 +33,7 @@ export interface ServerShape {
     default_movement_access: boolean;
     default_vision_access: boolean;
     asset?: number;
+    group?: string;
 }
 
 export interface ServerShapeAccess {
@@ -74,6 +75,11 @@ export interface ServerText extends ServerShape {
     text: string;
     font: string;
     angle: number;
+}
+
+export interface ServerToggleComposite extends ServerShape {
+    active_variant: string;
+    variants: { uuid: string; name: string }[];
 }
 export interface ServerAsset extends ServerRect {
     src: string;

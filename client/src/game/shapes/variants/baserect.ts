@@ -2,7 +2,7 @@ import { GlobalPoint, Vector } from "@/game/geom";
 import { BoundingRect } from "@/game/shapes/variants/boundingrect";
 import { Shape } from "@/game/shapes/shape";
 import { calculateDelta } from "@/game/ui/tools/utils";
-import { clampGridLine, g2lx, g2ly } from "@/game/units";
+import { clampGridLine, clampToGrid, g2lx, g2ly } from "@/game/units";
 import { ServerShape } from "../../comm/types/shapes";
 import { DEFAULT_GRID_SIZE } from "../../store";
 import { rotateAroundPoint } from "../../utils";
@@ -10,8 +10,9 @@ import { rotateAroundPoint } from "../../utils";
 type ServerBaseRect = ServerShape & { width: number; height: number };
 
 export abstract class BaseRect extends Shape {
-    w: number;
-    h: number;
+    private _w: number;
+    private _h: number;
+
     constructor(
         topleft: GlobalPoint,
         w: number,
@@ -19,8 +20,24 @@ export abstract class BaseRect extends Shape {
         options?: { fillColour?: string; strokeColour?: string; uuid?: string; assetId?: number },
     ) {
         super(topleft, options);
-        this.w = w;
-        this.h = h;
+        this._w = w;
+        this._h = h;
+    }
+
+    get w(): number {
+        return this._w;
+    }
+
+    set w(width: number) {
+        if (width > 0) this._w = width;
+    }
+
+    get h(): number {
+        return this._h;
+    }
+
+    set h(height: number) {
+        if (height > 0) this._h = height;
     }
 
     getBaseDict(): ServerBaseRect {
@@ -60,6 +77,7 @@ export abstract class BaseRect extends Shape {
     }
 
     contains(point: GlobalPoint): boolean {
+        if (this.angle !== 0) point = rotateAroundPoint(point, this.center(), -this.angle);
         return (
             this.refPoint.x <= point.x &&
             this.refPoint.x + this.w >= point.x &&
@@ -74,8 +92,8 @@ export abstract class BaseRect extends Shape {
         this.refPoint = new GlobalPoint(centerPoint.x - this.w / 2, centerPoint.y - this.h / 2);
     }
 
-    visibleInCanvas(canvas: HTMLCanvasElement): boolean {
-        if (super.visibleInCanvas(canvas)) return true;
+    visibleInCanvas(canvas: HTMLCanvasElement, options: { includeAuras: boolean }): boolean {
+        if (super.visibleInCanvas(canvas, options)) return true;
         const coreVisible = !(
             g2lx(this.refPoint.x) > canvas.width ||
             g2ly(this.refPoint.y) > canvas.height ||
@@ -111,15 +129,18 @@ export abstract class BaseRect extends Shape {
         this.invalidate(false);
     }
     resizeToGrid(resizePoint: number, retainAspectRatio: boolean): void {
+        const targetPoint = new GlobalPoint(
+            this.refPoint.x + (resizePoint > 1 ? this.w : 0),
+            this.refPoint.y + ([1, 2].includes(resizePoint) ? this.h : 0),
+        );
         this.resize(
             resizePoint,
-            new GlobalPoint(
-                clampGridLine(this.refPoint.x + (resizePoint > 1 ? this.w : 0)),
-                clampGridLine(this.refPoint.y + ([1, 2].includes(resizePoint) ? this.h : 0)),
-            ),
+            clampToGrid(rotateAroundPoint(targetPoint, this.center(), this.angle)),
             retainAspectRatio,
         );
     }
+
+    // point is expected to be the point as on the map, irregardless of rotation
     resize(resizePoint: number, point: GlobalPoint, retainAspectRatio: boolean): number {
         point = rotateAroundPoint(point, this.center(), -this.angle);
 

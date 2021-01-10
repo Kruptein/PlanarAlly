@@ -6,20 +6,18 @@ import { Route, NavigationGuard } from "vue-router";
 import { mapGetters } from "vuex";
 
 import AssetContextMenu from "@/assetManager/contextMenu.vue";
-import ConfirmDialog from "@/core/components/modals/confirm.vue";
 import Prompt from "@/core/components/modals/prompt.vue";
 
 import { socket } from "@/assetManager/socket";
 import { assetStore } from "@/assetManager/store";
 import { Asset } from "@/core/comm/types";
-import { uuidv4 } from "@/core/utils";
+import { baseAdjust, uuidv4 } from "@/core/utils";
 
 Component.registerHooks(["beforeRouteEnter"]);
 
 @Component({
     components: {
         Prompt,
-        ConfirmDialog,
         AssetContextMenu,
     },
     computed: {
@@ -42,13 +40,20 @@ Component.registerHooks(["beforeRouteEnter"]);
     },
 })
 export default class AssetManager extends Vue {
+    $refs!: {
+        cm: AssetContextMenu;
+        prompt: Prompt;
+    };
+
     currentFolder!: number;
-    fildes!: number[];
+    expectedUploads!: number;
+    files!: number[];
     firstSelectedFile!: Asset | null;
     folders!: number[];
     idMap!: Map<number, Asset>;
     parentFolder!: number;
     path!: number[];
+    resolvedUploads!: number;
     selected!: number[];
 
     draggingSelection = false;
@@ -65,21 +70,19 @@ export default class AssetManager extends Vue {
         assetStore.clearSelected();
         socket.emit("Folder.Get", this.currentFolder);
     }
-    createDirectory(): void {
-        const name = window.prompt(this.$t("assetManager.manager.new_folder_name").toString());
-        if (name !== null) {
+    async createDirectory(): Promise<void> {
+        const name = await this.$refs.prompt.prompt(this.$t("assetManager.manager.new_folder_name").toString(), "?");
+        if (name !== undefined) {
             socket.emit("Folder.Create", { name, parent: this.currentFolder });
         }
     }
     moveInode(inode: number, target: number): void {
-        if (assetStore.files.includes(inode)) assetStore.files.splice(assetStore.files.indexOf(inode), 1);
-        else assetStore.folders.splice(assetStore.folders.indexOf(inode), 1);
-        assetStore.idMap.delete(inode);
+        assetStore.removeAsset(inode);
         socket.emit("Inode.Move", { inode, target });
     }
     select(event: MouseEvent, inode: number): void {
         if (event.shiftKey && assetStore.selected.length > 0) {
-            const inodes = [...assetStore.files, ...assetStore.folders];
+            const inodes = [...assetStore.folders, ...assetStore.files];
             const start = inodes.indexOf(assetStore.selected[assetStore.selected.length - 1]);
             const end = inodes.indexOf(inode);
             for (let i = start; i !== end; start < end ? i++ : i--) {
@@ -163,6 +166,18 @@ export default class AssetManager extends Vue {
             }
         }
     }
+
+    exportData(): void {
+        if (this.selected.length > 0) socket.emit("Asset.Export", this.selected);
+    }
+
+    showIdName(dir: number): string {
+        return this.idMap.has(dir) ? this.idMap.get(dir)!.name : "";
+    }
+
+    getIdImageSrc(file: number): string {
+        return baseAdjust("/static/assets/" + this.idMap.get(file)!.file_hash);
+    }
 }
 </script>
 
@@ -180,7 +195,7 @@ export default class AssetManager extends Vue {
         <div id="assets" @dragover.prevent="moveDrag" @drop.prevent.stop="stopDrag($event, currentFolder)">
             <div id="breadcrumbs">
                 <div>/</div>
-                <div v-for="dir in path" :key="dir">{{ idMap.has(dir) ? idMap.get(dir).name : "" }}</div>
+                <div v-for="dir in path" :key="dir">{{ showIdName(dir) }}</div>
             </div>
             <div id="actionbar">
                 <input id="files" type="file" multiple hidden @change="upload()" />
@@ -189,6 +204,9 @@ export default class AssetManager extends Vue {
                 </div>
                 <div @click="prepareUpload" :title="$t('assetManager.manager.upload_files')">
                     <font-awesome-icon icon="upload" />
+                </div>
+                <div @click="exportData" :title="$t('assetManager.manager.upload_files')">
+                    <font-awesome-icon icon="download" />
                 </div>
             </div>
             <div id="explorer">
@@ -200,7 +218,7 @@ export default class AssetManager extends Vue {
                     @dragleave.prevent="leaveDrag"
                     @drop.prevent.stop="stopDrag($event, parentFolder)"
                 >
-                    <font-awesome-icon icon="folder" style="font-size: 50px;" />
+                    <font-awesome-icon icon="folder" style="font-size: 50px" />
                     <div class="title">..</div>
                 </div>
                 <div
@@ -217,8 +235,8 @@ export default class AssetManager extends Vue {
                     @dragleave.prevent="leaveDrag"
                     @drop.prevent.stop="stopDrag($event, key)"
                 >
-                    <font-awesome-icon icon="folder" style="font-size: 50px;" />
-                    <div class="title">{{ idMap.get(key).name }}</div>
+                    <font-awesome-icon icon="folder" style="font-size: 50px" />
+                    <div class="title">{{ showIdName(key) }}</div>
                 </div>
                 <div
                     class="inode file"
@@ -230,18 +248,17 @@ export default class AssetManager extends Vue {
                     @contextmenu.prevent="$refs.cm.open($event, file)"
                     @dragstart="startDrag($event, file)"
                 >
-                    <img :src="baseAdjust('/static/assets/' + idMap.get(file).file_hash)" width="50" alt="" />
-                    <div class="title">{{ idMap.get(file).name }}</div>
+                    <img :src="getIdImageSrc(file)" width="50" alt="" />
+                    <div class="title">{{ showIdName(file) }}</div>
                 </div>
             </div>
         </div>
         <AssetContextMenu ref="cm"></AssetContextMenu>
         <Prompt ref="prompt"></Prompt>
-        <ConfirmDialog ref="confirm"></ConfirmDialog>
     </div>
 </template>
 
-<style>
+<style lang="scss">
 [v-cloak],
 [v-cloak] * {
     display: none;
@@ -293,41 +310,41 @@ body {
     background-color: white;
     padding: 5px;
     flex-grow: 2;
-}
 
-#progressbar-meter > span {
-    display: block;
-    height: 100%;
-    position: relative;
-    overflow: hidden;
-    /* background-color: #ff7052;
+    > span {
+        display: block;
+        height: 100%;
+        position: relative;
+        overflow: hidden;
+        /* background-color: #ff7052;
     background-image: linear-gradient(center bottom, #ff7052 37%, white 69%); */
-    background-color: #ff7052;
-    background-image: linear-gradient(to bottom, #ff7052 37%, #ff7052 69%);
-    box-shadow: inset 0 2px 9px rgba(255, 255, 255, 0.3), inset 0 -2px 6px rgba(0, 0, 0, 0.4);
-}
+        background-color: #ff7052;
+        background-image: linear-gradient(to bottom, #ff7052 37%, #ff7052 69%);
+        box-shadow: inset 0 2px 9px rgba(255, 255, 255, 0.3), inset 0 -2px 6px rgba(0, 0, 0, 0.4);
 
-#progressbar-meter > span:after {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: 0;
-    bottom: 0;
-    right: 0;
-    background-image: linear-gradient(
-        -45deg,
-        rgba(255, 255, 255, 0.2) 25%,
-        transparent 25%,
-        transparent 50%,
-        rgba(255, 255, 255, 0.2) 50%,
-        rgba(255, 255, 255, 0.2) 75%,
-        transparent 75%,
-        transparent
-    );
-    z-index: 1;
-    background-size: 50px 50px;
-    overflow: hidden;
-    animation: move 2s linear infinite;
+        &:after {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            right: 0;
+            background-image: linear-gradient(
+                -45deg,
+                rgba(255, 255, 255, 0.2) 25%,
+                transparent 25%,
+                transparent 50%,
+                rgba(255, 255, 255, 0.2) 50%,
+                rgba(255, 255, 255, 0.2) 75%,
+                transparent 75%,
+                transparent
+            );
+            z-index: 1;
+            background-size: 50px 50px;
+            overflow: hidden;
+            animation: move 2s linear infinite;
+        }
+    }
 }
 
 @keyframes move {
@@ -360,10 +377,10 @@ body {
     padding: 15px;
     max-width: 50%;
     overflow: scroll;
-}
 
-#asset-details img {
-    width: 100%;
+    img {
+        width: 100%;
+    }
 }
 
 #breadcrumbs {
@@ -378,37 +395,39 @@ body {
     align-items: center;
     padding: 5px;
     border-bottom-right-radius: 10px;
-}
 
-#breadcrumbs > div {
-    position: relative;
-    padding: 10px;
-    padding-left: 20px;
-    text-align: center;
-}
+    > div {
+        position: relative;
+        padding: 10px;
+        padding-left: 20px;
+        text-align: center;
 
-#breadcrumbs > div:first-child {
-    padding-left: 10px;
-}
+        &:first-child {
+            padding-left: 10px;
+        }
+    }
 
-#breadcrumbs div:last-child::after {
-    content: none;
-}
+    div {
+        &:last-child::after {
+            content: none;
+        }
 
-#breadcrumbs div::after {
-    content: "";
-    position: absolute;
-    display: inline-block;
-    width: 30px;
-    height: 30px;
-    top: 3px;
-    right: -10px;
-    background-color: transparent;
-    border-top-right-radius: 5px;
-    -webkit-transform: scale(0.707) rotate(45deg);
-    transform: scale(0.707) rotate(45deg);
-    box-shadow: 1px -1px rgba(0, 0, 0, 0.25);
-    z-index: 1;
+        &::after {
+            content: "";
+            position: absolute;
+            display: inline-block;
+            width: 30px;
+            height: 30px;
+            top: 3px;
+            right: -10px;
+            background-color: transparent;
+            border-top-right-radius: 5px;
+            -webkit-transform: scale(0.707) rotate(45deg);
+            transform: scale(0.707) rotate(45deg);
+            box-shadow: 1px -1px rgba(0, 0, 0, 0.25);
+            z-index: 1;
+        }
+    }
 }
 
 #actionbar {
@@ -422,14 +441,14 @@ body {
     justify-content: center;
     align-items: center;
     color: white;
-}
 
-#actionbar > div {
-    margin: 5px;
-}
+    > div {
+        margin: 5px;
 
-#actionbar > div:hover {
-    cursor: pointer;
+        &:hover {
+            cursor: pointer;
+        }
+    }
 }
 
 #explorer {
@@ -449,14 +468,16 @@ body {
     justify-content: center;
     align-items: center;
     padding: 15px;
+
+    * {
+        pointer-events: none;
+    }
 }
+
 .inode:hover,
 .inode-selected {
     cursor: pointer;
     background-color: #ff7052;
-}
-.inode * {
-    pointer-events: none;
 }
 .title {
     word-break: break-all;

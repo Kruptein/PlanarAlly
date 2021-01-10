@@ -5,12 +5,14 @@ import Vue from "vue";
 import Vuex from "vuex";
 import { FloorState } from "./game/layers/store";
 import { GameSettingsState } from "./game/settings";
+import { ActiveShapeState } from "./game/ui/ActiveShapeStore";
 import { InitiativeState } from "./game/ui/initiative/store";
 import { VisibilityState } from "./game/visibility/store";
 
 Vue.use(Vuex);
 
 export interface RootState {
+    activeShape: ActiveShapeState;
     assets: AssetState;
     core: CoreState;
     floor: FloorState;

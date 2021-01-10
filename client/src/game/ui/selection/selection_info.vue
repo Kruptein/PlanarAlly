@@ -2,88 +2,78 @@
 import Vue from "vue";
 import Component from "vue-class-component";
 
-import Game from "@/game/Game.vue";
+import Prompt from "@/core/components/modals/prompt.vue";
 import ShapeSettings from "@/game/ui/selection/edit_dialog/ShapeSettings.vue";
 
-import { EventBus } from "@/game/event-bus";
 import { layerManager } from "@/game/layers/manager";
-import { Shape } from "@/game/shapes/shape";
-import { sendTrackerUpdate } from "@/game/api/emits/shape/core";
 import { Aura, Tracker } from "@/game/shapes/interfaces";
+import { ActiveShapeState, activeShapeStore } from "../ActiveShapeStore";
+import { SyncTo } from "../../../core/comm/types";
 
 @Component({
     components: {
+        Prompt,
         ShapeSettings,
     },
 })
 export default class SelectionInfo extends Vue {
-    shape: Shape | null = null;
+    $refs!: {
+        prompt: Prompt;
+        shapeSettings: ShapeSettings;
+    };
 
-    mounted(): void {
-        EventBus.$on("Shape.Set", (shape: Shape) => {
-            if (this.shape && shape.uuid === this.shape.uuid) {
-                this.shape = shape;
-            }
-        });
-        EventBus.$on("SelectionInfo.Shapes.Set", (shapes: Shape[]) => {
-            // todo: multiple selected shapes
-            if (shapes.length === 1) this.shape = shapes[0];
-            else this.shape = null;
-        });
-    }
-
-    beforeDestroy(): void {
-        EventBus.$off("SelectionInfo.Shapes.Set");
-    }
-
-    get shapes(): Shape[] {
-        if (this.shape === null) return [];
-        return [this.shape];
-    }
-
-    get visibleTrackers(): Tracker[] {
-        if (this.shape === null) return [];
-        return this.shape.trackers.filter(tr => tr.name !== "" || tr.value !== 0);
-    }
-
-    get visibleAuras(): Aura[] {
-        if (this.shape === null) return [];
-        return this.shape.auras.filter(au => au.name !== "" || au.value !== 0);
+    get shape(): ActiveShapeState {
+        return activeShapeStore;
     }
 
     openEditDialog(): void {
-        (this.$refs.shapeSettings as any)[0].visible = true;
+        this.$refs.shapeSettings.setVisible(true);
     }
-    async changeValue(object: Tracker | Aura, isAura: boolean): Promise<void> {
-        if (this.shape === null) return;
-        const value = await (this.$parent.$parent as Game).$refs.prompt.prompt(
-            this.$t("game.ui.selection.select_info.new_value_NAME", { name: object.name }).toString(),
-            this.$t("game.ui.selection.select_info.updating_NAME", { name: object.name }).toString(),
+
+    setLocked(): void {
+        if (this.shape.hasEditAccess) {
+            this.shape.setLocked({ isLocked: !this.shape.isLocked, syncTo: SyncTo.SERVER });
+        }
+    }
+
+    async changeValue(tracker: Tracker | Aura, isAura: boolean): Promise<void> {
+        if (this.shape.uuid === undefined) return;
+
+        const input = await this.$refs.prompt.prompt(
+            this.$t("game.ui.selection.select_info.new_value_NAME", { name: tracker.name }).toString(),
+            this.$t("game.ui.selection.select_info.updating_NAME", { name: tracker.name }).toString(),
         );
-        if (this.shape === null) return;
-        const ogValue = object.value;
 
-        if (value[0] === "+" || value[0] === "-") object.value += parseInt(value, 10);
-        else object.value = parseInt(value, 10);
-
+        if (input === undefined || this.shape.uuid === undefined) return;
         const _type = isAura ? "aura" : "tracker";
 
-        if (isNaN(object.value)) object.value = ogValue;
-        else sendTrackerUpdate({ uuid: object.uuid, value: object.value, shape: this.shape.uuid, _type });
-        if (isAura) layerManager.invalidate(this.shape.floor);
+        let value = parseInt(input, 10);
+        if (isNaN(value)) {
+            return;
+        }
+
+        if (input[0] === "+" || input[0] === "-") {
+            value += tracker.value;
+        }
+
+        if (isAura) {
+            activeShapeStore.updateAura({ aura: tracker.uuid, delta: { value }, syncTo: SyncTo.SERVER });
+            const shape = layerManager.UUIDMap.get(this.shape.uuid!)!;
+            shape.invalidate(false);
+        } else {
+            activeShapeStore.updateTracker({ tracker: tracker.uuid, delta: { value }, syncTo: SyncTo.SERVER });
+        }
     }
 }
 </script>
 
 <template>
-    <div v-show="shapes.length > 0">
-        <div v-for="shape in shapes" :key="shape.uuid">
+    <div>
+        <ShapeSettings ref="shapeSettings" />
+        <Prompt ref="prompt"></Prompt>
+        <template v-if="shape.uuid !== undefined">
             <div id="selection-menu">
-                <div
-                    id="selection-lock-button"
-                    @click="!!shape.ownedBy({ editAccess: true }) && shape.setLocked(!shape.isLocked, true)"
-                    :title="$t('game.ui.selection.select_info.lock')"
-                >
+                <div id="selection-lock-button" @click="setLocked" :title="$t('game.ui.selection.select_info.lock')">
                     <font-awesome-icon v-if="shape.isLocked" icon="lock" />
                     <font-awesome-icon v-else icon="unlock" />
                 </div>
@@ -96,7 +86,7 @@ export default class SelectionInfo extends Vue {
                 </div>
                 <div id="selection-name">{{ shape.name }}</div>
                 <div id="selection-trackers">
-                    <template v-for="tracker in visibleTrackers">
+                    <template v-for="tracker in shape.trackers.slice(0, shape.trackers.length - 1)">
                         <div :key="'name-' + tracker.uuid">{{ tracker.name }}</div>
                         <div
                             class="selection-tracker-value"
@@ -112,7 +102,7 @@ export default class SelectionInfo extends Vue {
                     </template>
                 </div>
                 <div id="selection-auras">
-                    <template v-for="aura in visibleAuras">
+                    <template v-for="aura in shape.auras.slice(0, shape.auras.length - 1)">
                         <div :key="'name-' + aura.uuid">{{ aura.name }}</div>
                         <div
                             class="selection-tracker-value"
@@ -128,12 +118,11 @@ export default class SelectionInfo extends Vue {
                     </template>
                 </div>
             </div>
-            <ShapeSettings ref="shapeSettings" :shape="shape"></ShapeSettings>
-        </div>
+        </template>
     </div>
 </template>
 
-<style scoped>
+<style scoped lang="scss">
 #selection-menu {
     position: absolute;
     pointer-events: auto;
@@ -149,11 +138,11 @@ export default class SelectionInfo extends Vue {
     border-right: none;
     padding: 10px 35px 10px 10px;
     background-color: #eee;
-}
 
-#selection-menu:hover {
-    background-color: #82c8a0;
-    opacity: 1;
+    &:hover {
+        background-color: #82c8a0;
+        opacity: 1;
+    }
 }
 
 #selection-lock-button {
@@ -180,12 +169,11 @@ export default class SelectionInfo extends Vue {
 .selection-aura-value {
     justify-self: center;
     padding: 2px;
-}
 
-.selection-tracker-value:hover,
-.selection-aura-value:hover {
-    cursor: pointer;
-    background-color: rgba(20, 20, 20, 0.2);
+    &:hover {
+        cursor: pointer;
+        background-color: rgba(20, 20, 20, 0.2);
+    }
 }
 
 #selection-name {

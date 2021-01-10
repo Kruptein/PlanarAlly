@@ -62,7 +62,7 @@ export default class PanelModal extends Vue {
     </Modal>
 </template>
 
-<style scoped>
+<style scoped lang="scss">
 .modal-header {
     background-color: #ff7052;
     padding: 10px;
@@ -108,96 +108,101 @@ export default class PanelModal extends Vue {
     padding-right: 5px;
 }
 
-::v-deep .panel {
-    background-color: white;
-    padding: 1em;
-    display: grid;
-    grid-template-columns: [setting] 1fr [value] 1fr [end];
-    /* align-items: center; */
-    align-content: start;
-    min-height: 10em;
-}
+::v-deep {
+    .panel {
+        background-color: white;
+        padding: 1em;
+        display: grid;
+        grid-template-columns: [setting] 1fr [value] 1fr [end];
+        /* align-items: center; */
+        align-content: start;
+        min-height: 10em;
+    }
 
-::v-deep .row {
-    display: contents;
-}
+    .row {
+        display: contents;
 
-::v-deep .row > *,
-::v-deep .panel > *:not(.row) {
-    display: flex;
-    /* justify-content: center; */
-    align-items: center;
-    margin: 0.4em 0;
-}
+        &:first-of-type > * {
+            margin-top: 0.5em;
+        }
 
-::v-deep .row:first-of-type > * {
-    margin-top: 0.5em;
-}
+        &:last-of-type > * {
+            margin-bottom: 0.5em;
+        }
 
-::v-deep .row:last-of-type > * {
-    margin-bottom: 0.5em;
-}
+        &:hover > * {
+            cursor: pointer;
+            text-shadow: 0px 0px 1px black;
+        }
+    }
 
-::v-deep .row:hover > * {
-    cursor: pointer;
-    text-shadow: 0px 0px 1px black;
-}
+    .row > *,
+    .panel > *:not(.row) {
+        display: flex;
+        /* justify-content: center; */
+        align-items: center;
+        margin: 0.4em 0;
+    }
 
-::v-deep .smallrow > * {
-    padding: 0.2em;
-}
+    .smallrow > * {
+        padding: 0.2em;
+    }
 
-::v-deep .header {
-    line-height: 0.1em;
-    margin: 20px 0 15px;
-    font-style: italic;
-    overflow: hidden;
-    padding: 0.5em;
-}
-::v-deep .header:after {
-    position: relative;
-    width: 100%;
-    border-bottom: 1px solid #000;
-    content: "";
-    margin-right: -100%;
-    margin-left: 10px;
-    display: inline-block;
-}
+    .header {
+        line-height: 0.1em;
+        margin: 20px 0 15px;
+        font-style: italic;
+        overflow: hidden;
+        padding: 0.5em;
 
-::v-deep .danger {
-    color: #ff7052;
-}
-::v-deep .danger:hover {
-    text-shadow: 0px 0px 1px #ff7052;
-    cursor: pointer;
-}
+        &:after {
+            position: relative;
+            width: 100%;
+            border-bottom: 1px solid #000;
+            content: "";
+            margin-right: -100%;
+            margin-left: 10px;
+            display: inline-block;
+        }
+    }
 
-::v-deep .spanrow {
-    grid-column: 1 / end;
-    justify-self: normal;
-    font-weight: bold;
-}
+    .danger {
+        color: #ff7052;
 
-::v-deep input[type="checkbox"] {
-    width: 16px;
-    height: 23px;
-    margin: 0;
-    white-space: nowrap;
-    display: inline-block;
-}
+        &:hover {
+            text-shadow: 0px 0px 1px #ff7052;
+            cursor: pointer;
+        }
+    }
 
-::v-deep input[type="number"],
-::v-deep input[type="text"] {
-    width: 100%;
-}
-::v-deep button {
-    padding: 6px 12px;
-    border: 1px solid lightgray;
-    border-radius: 0.25em;
-    background-color: rgb(235, 235, 228);
-}
+    .spanrow {
+        grid-column: 1 / end;
+        justify-self: normal;
+        font-weight: bold;
+    }
 
-::v-deep .color-picker {
-    margin: 0.5em 0 !important;
+    input[type="checkbox"] {
+        width: 16px;
+        height: 23px;
+        margin: 0;
+        white-space: nowrap;
+        display: inline-block;
+    }
+
+    input[type="number"],
+    input[type="text"] {
+        width: 100%;
+    }
+
+    button {
+        padding: 6px 12px;
+        border: 1px solid lightgray;
+        border-radius: 0.25em;
+        background-color: rgb(235, 235, 228);
+    }
+
+    .color-picker {
+        margin: 0.5em 0 !important;
+    }
 }
 </style>

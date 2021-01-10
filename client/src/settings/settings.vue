@@ -83,7 +83,7 @@ export default class Settings extends Vue {
     </main>
 </template>
 
-<style scoped>
+<style scoped lang="scss">
 * {
     -ms-box-sizing: border-box;
     -moz-box-sizing: border-box;
@@ -116,23 +116,23 @@ main {
 nav {
     grid-area: nav;
     background-color: lightblue;
-}
 
-nav > div {
-    padding: 0.5em;
-}
+    > div {
+        padding: 0.5em;
 
-nav > div:hover {
-    cursor: pointer;
-    background-color: white;
-}
+        &:hover {
+            cursor: pointer;
+            background-color: white;
+        }
+    }
 
-nav > .active {
-    background-color: white;
-}
+    > .active {
+        background-color: white;
 
-nav > .active:hover {
-    cursor: default;
+        &:hover {
+            cursor: default;
+        }
+    }
 }
 
 .main {
@@ -149,6 +149,19 @@ nav > .active:hover {
 
 .row {
     display: contents;
+
+    &:first-of-type > * {
+        margin-top: 0.5em;
+    }
+
+    &:last-of-type > * {
+        margin-bottom: 0.5em;
+    }
+
+    &:hover > * {
+        cursor: pointer;
+        text-shadow: 0px 0px 1px black;
+    }
 }
 
 .row > *,
@@ -159,19 +172,6 @@ nav > .active:hover {
     padding: 0.5em;
 }
 
-.row:first-of-type > * {
-    margin-top: 0.5em;
-}
-
-.row:last-of-type > * {
-    margin-bottom: 0.5em;
-}
-
-.row:hover > * {
-    cursor: pointer;
-    text-shadow: 0px 0px 1px black;
-}
-
 .smallrow > * {
     padding: 0.2em;
 }
@@ -180,13 +180,14 @@ nav > .active:hover {
     line-height: 0.1em;
     margin: 20px 0 15px;
     font-style: italic;
-}
-.header:after {
-    position: relative;
-    left: 5px;
-    width: 100%;
-    border-bottom: 1px solid #000;
-    content: "";
+
+    &:after {
+        position: relative;
+        left: 5px;
+        width: 100%;
+        border-bottom: 1px solid #000;
+        content: "";
+    }
 }
 
 .spanrow {
@@ -195,11 +196,11 @@ nav > .active:hover {
 
 .danger {
     color: #ff7052;
-}
 
-.danger:hover {
-    text-shadow: 0px 0px 1px #ff7052;
-    cursor: pointer;
+    &:hover {
+        text-shadow: 0px 0px 1px #ff7052;
+        cursor: pointer;
+    }
 }
 
 input[type="checkbox"] {
@@ -216,6 +217,7 @@ input[type="email"] {
     width: 100%;
     padding: 5px;
 }
+
 button {
     padding: 6px 12px;
     border: 1px solid lightgray;

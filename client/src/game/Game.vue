@@ -6,11 +6,8 @@ import Component from "vue-class-component";
 import "@/game/api/events";
 
 import ConfirmDialog from "@/core/components/modals/confirm.vue";
-import Prompt from "@/core/components/modals/prompt.vue";
 import SelectionBox from "@/core/components/modals/SelectionBox.vue";
 import Initiative from "@/game/ui/initiative/initiative.vue";
-import LabelManager from "@/game/ui/labels.vue";
-import NoteDialog from "@/game/ui/note.vue";
 import UI from "./ui/ui.vue";
 
 import { createConnection, socket } from "@/game/api/socket";
@@ -21,18 +18,13 @@ import { dropAsset } from "./layers/utils";
 import { coreStore } from "@/core/store";
 import { mapGetters } from "vuex";
 import { Watch } from "vue-property-decorator";
-import { requestAssetOptions } from "./api/emits/asset";
-import { BaseTemplate } from "./comm/types/templates";
 
 @Component({
     components: {
-        "prompt-dialog": Prompt,
-        "confirm-dialog": ConfirmDialog,
-        "initiative-dialog": Initiative,
-        "note-dialog": NoteDialog,
-        "label-dialog": LabelManager,
-        "selection-box": SelectionBox,
-        ui: UI,
+        ConfirmDialog,
+        Initiative,
+        SelectionBox,
+        UI,
     },
     beforeRouteEnter(to, from, next) {
         coreStore.setLoading(true);
@@ -49,11 +41,9 @@ import { BaseTemplate } from "./comm/types/templates";
 })
 export default class Game extends Vue {
     $refs!: {
-        confirm: InstanceType<typeof ConfirmDialog>;
-        note: InstanceType<typeof NoteDialog>;
-        prompt: InstanceType<typeof Prompt>;
-        selectionbox: InstanceType<typeof SelectionBox>;
-        ui: InstanceType<typeof UI>;
+        confirm: ConfirmDialog;
+        selectionbox: SelectionBox;
+        ui: UI;
     };
 
     ready = {
@@ -68,7 +58,10 @@ export default class Game extends Vue {
 
     mounted(): void {
         window.addEventListener("resize", this.resizeWindow);
-        window.addEventListener("keyup", onKeyUp);
+        window.addEventListener("keyup", (event: KeyboardEvent) => {
+            if (this.$refs.ui === undefined) return;
+            this.$refs.ui.$refs.tools.keyup(event);
+        });
         window.addEventListener("keydown", onKeyDown);
         this.ready.manager = true;
     }
@@ -164,28 +157,8 @@ export default class Game extends Vue {
         } else if (event.dataTransfer.getData("text/plain") === "" || event === null || event.dataTransfer === null) {
             return;
         } else {
-            const { imageSource, assetId }: { imageSource: string; assetId: number } = JSON.parse(
-                event.dataTransfer.getData("text/plain"),
-            );
-            let options: BaseTemplate | undefined;
-            if (assetId) {
-                const response = await requestAssetOptions(assetId);
-                if (response.success) {
-                    const choices = Object.keys(response.options?.templates ?? {});
-                    if (choices.length > 0) {
-                        try {
-                            const choice = await this.$refs.selectionbox.open(
-                                this.$t("game.ui.templates.choose").toString(),
-                                choices,
-                            );
-                            options = response.options!.templates[choice];
-                        } catch {
-                            // no-op ; action cancelled
-                        }
-                    }
-                }
-            }
-            await dropAsset({ imageSource, assetId }, { x: event.clientX, y: event.clientY }, options);
+            const data: { imageSource: string; assetId: number } = JSON.parse(event.dataTransfer.getData("text/plain"));
+            await dropAsset(data, { x: event.clientX, y: event.clientY }, this.$refs.selectionbox);
         }
     }
 }
@@ -193,7 +166,7 @@ export default class Game extends Vue {
 
 <template>
     <div id="main" @mouseleave="mouseleave" @wheel="zoom">
-        <ui v-if="$store.state.game.boardInitialized" ref="ui"></ui>
+        <UI v-if="$store.state.game.boardInitialized" ref="ui"></UI>
         <div id="board">
             <div
                 id="layers"
@@ -208,12 +181,9 @@ export default class Game extends Vue {
                 @touchend="touchend"
             ></div>
         </div>
-        <initiative-dialog ref="initiative" id="initiativedialog"></initiative-dialog>
-        <note-dialog ref="note"></note-dialog>
-        <label-dialog ref="labels"></label-dialog>
-        <prompt-dialog ref="prompt"></prompt-dialog>
-        <confirm-dialog ref="confirm"></confirm-dialog>
-        <selection-box ref="selectionbox"></selection-box>
+        <Initiative ref="initiative" id="initiativedialog"></Initiative>
+        <ConfirmDialog ref="confirm"></ConfirmDialog>
+        <SelectionBox ref="selectionbox"></SelectionBox>
     </div>
 </template>
 

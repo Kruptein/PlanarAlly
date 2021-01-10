@@ -7,6 +7,7 @@ from playhouse.shortcuts import update_model_from_dict
 
 import auth
 from api.socket.constants import GAME_NS
+from api.socket.groups import remove_group_if_empty
 from api.socket.shape.data_models import *
 from app import app, sio
 from models import (
@@ -30,12 +31,12 @@ from models import (
 from models.campaign import Location
 from models.db import db
 from models.role import Role
-from models.shape.access import has_ownership, has_ownership_temp
+from models.shape.access import has_ownership
 from models.utils import get_table, reduce_data_to_model
 from state.game import game_state
 from utils import logger
 
-from . import access, options
+from . import access, options, toggle_composite
 
 
 @sio.on("Shape.Add", namespace=GAME_NS)
@@ -67,12 +68,13 @@ async def add_shape(sid: str, data: ShapeAdd):
             shape = Shape.create(**reduce_data_to_model(Shape, data["shape"]))
             # Subshape
             type_table = get_table(shape.type_)
-            type_table.create(
+            subshape = type_table.create(
                 shape=shape,
                 **type_table.pre_create(
                     **reduce_data_to_model(type_table, data["shape"])
                 ),
             )
+            type_table.post_create(subshape, **data["shape"])
             # Owners
             for owner in data["shape"]["owners"]:
                 ShapeOwner.create(
@@ -84,7 +86,11 @@ async def add_shape(sid: str, data: ShapeAdd):
                 )
             # Trackers
             for tracker in data["shape"]["trackers"]:
-                Tracker.create(**reduce_data_to_model(Tracker, tracker), shape=shape)
+                # do not shortline this to **reduce_data_to_model(...), shape=shape
+                # if shape exists in the model it crashes
+                tracker_model = reduce_data_to_model(Tracker, tracker)
+                tracker_model.update(shape=shape)
+                Tracker.create(**tracker_model)
             # Auras
             for aura in data["shape"]["auras"]:
                 Aura.create(**reduce_data_to_model(Aura, aura))
@@ -112,7 +118,7 @@ async def update_shape_positions(sid: str, data: PositionUpdateList):
 
     for sh in data["shapes"]:
         shape = Shape.get_or_none(Shape.uuid == sh["uuid"])
-        if shape is not None and not has_ownership(shape, pr):
+        if shape is not None and not has_ownership(shape, pr, movement=True):
             logger.warning(
                 f"User {pr.player.name} attempted to move a shape it does not own."
             )
@@ -163,6 +169,8 @@ async def remove_shapes(sid: str, data: TemporaryShapesList):
 
         layer = shapes[0].layer
 
+        group_ids = set()
+
         for shape in shapes:
             if not has_ownership(shape, pr):
                 logger.warning(
@@ -170,11 +178,17 @@ async def remove_shapes(sid: str, data: TemporaryShapesList):
                 )
                 return
 
+            if shape.group:
+                group_ids.add(shape.group)
+
             old_index = shape.index
             shape.delete_instance(True)
             Shape.update(index=Shape.index - 1).where(
                 (Shape.layer == layer) & (Shape.index >= old_index)
             ).execute()
+
+        for group_id in group_ids:
+            await remove_group_if_empty(group_id)
 
     await sio.emit(
         "Shapes.Remove",
@@ -293,39 +307,38 @@ async def change_shape_layer(sid: str, data: Dict[str, Any]):
 async def move_shape_order(sid: str, data: ShapeOrder):
     pr: PlayerRoom = game_state.get(sid)
 
-    shape = Shape.get(uuid=data["uuid"])
-    layer = shape.layer
+    if not data["temporary"]:
+        shape = Shape.get(uuid=data["uuid"])
+        layer = shape.layer
 
-    if pr.role != Role.DM and not layer.player_editable:
-        logger.warning(
-            f"{pr.player.name} attempted to move a shape order on a dm layer"
+        if pr.role != Role.DM and not layer.player_editable:
+            logger.warning(
+                f"{pr.player.name} attempted to move a shape order on a dm layer"
+            )
+            return
+
+        target = data["index"]
+        sign = 1 if target < shape.index else -1
+        case = Case(
+            None,
+            (
+                (Shape.index == shape.index, target),
+                (
+                    (sign * Shape.index) < (sign * shape.index),
+                    (Shape.index + (sign * 1)),
+                ),
+            ),
+            Shape.index,
         )
-        return
+        Shape.update(index=case).where(Shape.layer == layer).execute()
 
-    target = data["index"]
-    sign = 1 if target < shape.index else -1
-    case = Case(
-        None,
-        (
-            (Shape.index == shape.index, target),
-            ((sign * Shape.index) < (sign * shape.index), (Shape.index + (sign * 1))),
-        ),
-        Shape.index,
+    await sio.emit(
+        "Shape.Order.Set",
+        data,
+        room=pr.active_location.get_path(),
+        skip_sid=sid,
+        namespace=GAME_NS,
     )
-    Shape.update(index=case).where(Shape.layer == layer).execute()
-    if layer.player_visible:
-        await sio.emit(
-            "Shape.Order.Set",
-            data,
-            room=pr.active_location.get_path(),
-            skip_sid=sid,
-            namespace=GAME_NS,
-        )
-    else:
-        for csid in game_state.get_sids(player=pr.room.creator, room=pr.room):
-            if csid == sid:
-                continue
-            await sio.emit("Shape.Order.Set", data, room=csid, namespace=GAME_NS)
 
 
 @sio.on("Shapes.Location.Move", namespace=GAME_NS)
@@ -363,79 +376,6 @@ async def move_shapes(sid: str, data: ServerShapeLocationMove):
             room=psid,
             namespace=GAME_NS,
         )
-
-
-@sio.on("Shapes.Group.Leader.Set", namespace=GAME_NS)
-@auth.login_required(app, sio)
-async def set_group_leader(sid: str, data: GroupLeaderData):
-    pr: PlayerRoom = game_state.get(sid)
-
-    leader_shape = Shape.get_by_id(data["leader"])
-    leader_options = leader_shape.get_options()
-
-    if "groupId" in leader_options:
-        del leader_options["groupId"]
-    leader_options["groupInfo"] = data["members"]
-    leader_shape.set_options(leader_options)
-    leader_shape.save()
-
-    for member in data["members"]:
-        shape = Shape.get_by_id(member)
-        options = shape.get_options()
-        options["groupId"] = data["leader"]
-        shape.set_options(options)
-        shape.save()
-
-    await sio.emit(
-        "Shapes.Group.Leader.Set",
-        data,
-        room=pr.active_location.get_path(),
-        skip_sid=sid,
-        namespace=GAME_NS,
-    )
-
-
-@sio.on("Shapes.Group.Member.Add", namespace=GAME_NS)
-@auth.login_required(app, sio)
-async def add_group_member(sid: str, data: GroupMemberAddData):
-    pr: PlayerRoom = game_state.get(sid)
-
-    leader_shape = Shape.get_by_id(data["leader"])
-    leader_options = leader_shape.get_options()
-
-    leader_options["groupInfo"].append(data["member"])
-    leader_shape.set_options(leader_options)
-    leader_shape.save()
-
-    await sio.emit(
-        "Shapes.Group.Member.Add",
-        data,
-        room=pr.active_location.get_path(),
-        skip_sid=sid,
-        namespace=GAME_NS,
-    )
-
-
-@sio.on("Shapes.Trackers.Update", namespace=GAME_NS)
-@auth.login_required(app, sio)
-async def update_shape_tracker(sid: str, data: TrackerUpdateData):
-    pr: PlayerRoom = game_state.get(sid)
-
-    if data["_type"] == "tracker":
-        tracker = Tracker.get_by_id(data["uuid"])
-    else:
-        tracker = Aura.get_by_id(data["uuid"])
-
-    tracker.value = data["value"]
-    tracker.save()
-
-    await sio.emit(
-        "Shapes.Trackers.Update",
-        data,
-        room=pr.active_location.get_path(),
-        skip_sid=sid,
-        namespace=GAME_NS,
-    )
 
 
 @sio.on("Shape.Text.Value.Set", namespace=GAME_NS)
@@ -498,6 +438,37 @@ async def update_circle_size(sid: str, data: CircleSizeData):
     await sio.emit(
         "Shape.Circle.Size.Update",
         data,
+        room=pr.active_location.get_path(),
+        skip_sid=sid,
+        namespace=GAME_NS,
+    )
+
+
+@sio.on("Shapes.Options.Update", namespace=GAME_NS)
+@auth.login_required(app, sio)
+async def update_shape_options(sid: str, data: OptionUpdateList):
+    pr: PlayerRoom = game_state.get(sid)
+
+    shapes: List[Tuple[Shape, OptionUpdate]] = []
+
+    for sh in data["options"]:
+        shape = Shape.get_or_none(Shape.uuid == sh["uuid"])
+        if shape is not None and not has_ownership(shape, pr, movement=True):
+            logger.warning(
+                f"User {pr.player.name} attempted to change options for a shape it does not own."
+            )
+            return
+        shapes.append((shape, sh))
+
+    if not data["temporary"]:
+        with db.atomic():
+            for db_shape, data_shape in shapes:
+                db_shape.options = data_shape["option"]
+                db_shape.save()
+
+    await sio.emit(
+        "Shapes.Options.Update",
+        data["options"],
         room=pr.active_location.get_path(),
         skip_sid=sid,
         namespace=GAME_NS,

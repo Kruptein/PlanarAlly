@@ -68,7 +68,9 @@
         "cancel": "Cancelar",
         "insert_one_character": "Se debe insertar al menos un caracter",
         "name_already_in_use": "¡Este nombre ya esta en uso!",
-        "varia": "Varia"
+        "varia": "Varia",
+        "select": "Seleccionar",
+        "or": "o"
     },
     "auth": {
         "login": {
@@ -81,6 +83,10 @@
             "inputCopy": {
                 "copied": "Copiado!",
                 "copy": "Copiar"
+            },
+            "selectionbox": {
+                "non_empty_warning": "¡Ingrese un valor personalizado que no este vacío!",
+                "already_exists_warning": "¡Esa elección ya existe!"
             }
         }
     },
@@ -113,6 +119,7 @@
                     "add_timed_effect": "Añadir efecto temporal",
                     "toggle_group": "Activar/Desactivar iniciativa individual / grupal",
                     "delete_init": "Borrar iniciativa",
+                    "delete_effect": "Borrar efecto",
                     "round_N": "Ronda {n}",
                     "vision_log_msg": "Trabar vision automáticamente (Solo mostrar visión del token activo)",
                     "camera_log_msg": "Trabar la cámara en el token activo",
@@ -240,7 +247,11 @@
                 "GridSettings": {
                     "unit_size_in_UNIT": "Tamaño de Unidad (en {unit})",
                     "use_grid": "Usar Grilla",
-                    "size_unit": "Unidad de longitud"
+                    "size_unit": "Unidad de longitud",       
+                    "grid_type": "Tipo de Grilla",
+                    "SQUARE": "Cuadrados",
+                    "POINTY_HEX": "Hexágonos Puntiagúdos",
+                    "FLAT_HEX": "Hexágonos Planos"
                 },
                 "VariaSettings": {
                     "movePlayerOnTokenChange": "Mover a los jugadores cuando un token suyo cambia de ubicación."
@@ -276,6 +287,12 @@
                     "default": "Por Defecto",
                     "experimental": "Experimental"
                 }
+            },
+            "templates": {
+                "choose": "Elegir plantilla",
+                "save": "Guardar plantilla",
+                "overwrite": "Sobreescribir",
+                "create_new": "Crear nueva"
             },
             "tools": {
                 "createtoken_modal": {

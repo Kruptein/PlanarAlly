@@ -119,6 +119,7 @@
                     "add_timed_effect": "Add timed effect",
                     "toggle_group": "Toggle individual / group initiative",
                     "delete_init": "Delete initiative",
+                    "delete_effect": "Delete effect",
                     "round_N": "Round {n}",
                     "vision_log_msg": "Auto lock vision (only show vision active token)",
                     "camera_log_msg": "Auto camera lock on active token",
@@ -246,7 +247,11 @@
                 "GridSettings": {
                     "unit_size_in_UNIT": "Unit Size (in {unit})",
                     "use_grid": "Use grid",
-                    "size_unit": "Size Unit"
+                    "size_unit": "Size Unit",
+                    "grid_type": "Grid Type",
+                    "SQUARE": "Squares",
+                    "POINTY_HEX": "Pointy Hexagons",
+                    "FLAT_HEX": "Flat Hexagons"
                 },
                 "VariaSettings": {
                     "movePlayerOnTokenChange": "Move player(s) when a token they own changes location"

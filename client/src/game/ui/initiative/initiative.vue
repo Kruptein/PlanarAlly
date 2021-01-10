@@ -4,6 +4,7 @@ import Component from "vue-class-component";
 import draggable from "vuedraggable";
 Vue.component("draggable", draggable);
 
+import ConfirmDialog from "@/core/components/modals/confirm.vue";
 import Modal from "@/core/components/modals/modal.vue";
 
 import { uuidv4 } from "@/core/utils";
@@ -17,20 +18,28 @@ import {
     sendInitiativeRoundUpdate,
     sendInitiativeNewEffect,
     sendInitiativeUpdateEffect,
+    sendInitiativeRemoveEffect,
 } from "@/game/api/emits/initiative";
 import { EventBus } from "@/game/event-bus";
 import { layerManager } from "@/game/layers/manager";
 import { gameStore } from "@/game/store";
 import { initiativeStore } from "./store";
 import { gameManager } from "../../manager";
+import { getGroupMembers } from "../../groups";
+import { Shape } from "../../shapes/shape";
 
 @Component({
     components: {
+        ConfirmDialog,
         Modal,
         draggable,
     },
 })
 export default class Initiative extends Vue {
+    $refs!: {
+        confirmDialog: ConfirmDialog;
+    };
+
     visible = false;
     visionLock = false;
     cameraLock = false;
@@ -38,7 +47,7 @@ export default class Initiative extends Vue {
 
     mounted(): void {
         EventBus.$on("Initiative.Clear", initiativeStore.clear);
-        EventBus.$on("Initiative.Remove", (data: string) => this.removeInitiative(data));
+        EventBus.$on("Initiative.Remove", (data: string) => this.removeInitiative(data, false));
         EventBus.$on("Initiative.Show", () => (this.visible = true));
         EventBus.$on("Initiative.ForceUpdate", () => this.$forceUpdate());
 
@@ -53,6 +62,9 @@ export default class Initiative extends Vue {
         socket.on("Initiative.Effect.Update", (data: { actor: string; effect: InitiativeEffect }) =>
             this.updateEffect(data.actor, data.effect, false),
         );
+        socket.on("Initiative.Effect.Remove", (data: { actor: string; effect: InitiativeEffect }) =>
+            this.removeEffect(data.actor, data.effect, false),
+        );
     }
 
     beforeDestroy(): void {
@@ -64,6 +76,7 @@ export default class Initiative extends Vue {
         socket.off("Initiative.Round.Update");
         socket.off("Initiative.Effect.New");
         socket.off("Initiative.Effect.Update");
+        socket.off("Initiative.Effect.Remove");
     }
 
     // Utilities
@@ -75,7 +88,7 @@ export default class Initiative extends Vue {
         const shape = layerManager.UUIDMap.get(actor.uuid);
         // Shapes that are unknown to this client are hidden from this client but owned by other clients
         if (shape === undefined) return false;
-        return shape.hasOwner(gameStore.username);
+        return shape.ownedBy({ editAccess: true });
     }
     getDefaultEffect(): { uuid: string; name: string; turns: number } {
         return { uuid: uuidv4(), name: this.$t("game.ui.initiative.initiative.new_effect").toString(), turns: 10 };
@@ -87,10 +100,20 @@ export default class Initiative extends Vue {
         sendInitiativeUpdate(data);
     }
     // Events
-    removeInitiative(uuid: string): void {
+    async removeInitiative(uuid: string, sync: boolean): Promise<void> {
         const d = initiativeStore.data.findIndex(a => a.uuid === uuid);
-        if (d < 0 || initiativeStore.data[d].group) return;
-        sendInitiativeRemove(uuid);
+        if (d < 0) return;
+        if (initiativeStore.data[d].group) {
+            const continueRemoval = await this.$refs.confirmDialog.open(
+                "Removing initiative",
+                "Are you sure you wish to remove this group from the initiative order?",
+            );
+            if (!continueRemoval) {
+                return;
+            }
+        }
+        initiativeStore.data.splice(d, 1);
+        if (sync) sendInitiativeRemove(uuid);
         // Remove highlight
         const shape = layerManager.UUIDMap.get(uuid);
         if (shape === undefined) return;
@@ -110,13 +133,15 @@ export default class Initiative extends Vue {
         if (actor === undefined) return;
         if (actor.effects) {
             for (let e = actor.effects.length - 1; e >= 0; e--) {
-                if (actor.effects[e].turns <= 0) actor.effects.splice(e, 1);
-                else actor.effects[e].turns--;
+                if (!isNaN(+actor.effects[e].turns)) {
+                    if (actor.effects[e].turns <= 0) actor.effects.splice(e, 1);
+                    else actor.effects[e].turns--;
+                }
             }
         }
         if (this.visionLock) {
             if (actorId !== null && gameStore.ownedtokens.includes(actorId)) gameStore.setActiveTokens([actorId]);
-            else gameStore.setActiveTokens([]);
+            else gameStore.setActiveTokens(undefined);
         }
         if (this.cameraLock) {
             if (actorId !== null) {
@@ -146,8 +171,16 @@ export default class Initiative extends Vue {
     toggleHighlight(actor: InitiativeData, show: boolean): void {
         const shape = layerManager.UUIDMap.get(actor.uuid);
         if (shape === undefined) return;
-        shape.showHighlight = show;
-        shape.layer.invalidate(true);
+        let shapeArray: Shape[];
+        if (shape.groupId === undefined) {
+            shapeArray = [shape];
+        } else {
+            shapeArray = getGroupMembers(shape.groupId);
+        }
+        for (const sh of shapeArray) {
+            sh.showHighlight = show;
+            sh.layer.invalidate(true);
+        }
     }
     toggleOption(actor: InitiativeData, option: "visible" | "group"): void {
         if (!this.owns(actor)) return;
@@ -155,7 +188,6 @@ export default class Initiative extends Vue {
         this.syncInitiative(actor);
     }
     createEffect(actor: InitiativeData, effect: InitiativeEffect, sync: boolean): void {
-        if (!this.owns(actor)) return;
         actor.effects.push(effect);
         if (sync) sendInitiativeNewEffect({ actor: actor.uuid, effect });
     }
@@ -172,11 +204,20 @@ export default class Initiative extends Vue {
         if (sync) this.syncEffect(actor, effect);
         else this.$forceUpdate();
     }
+    removeEffect(actorId: string, effect: InitiativeEffect, sync: boolean): void {
+        const actor = initiativeStore.data.find(a => a.uuid === actorId);
+        if (actor === undefined) return;
+        const effectIndex = actor.effects.findIndex(e => e.uuid === effect.uuid);
+        if (effectIndex === undefined) return;
+        actor.effects.splice(effectIndex, 1);
+        if (sync) sendInitiativeRemoveEffect({ actor: actorId, effect });
+        else this.$forceUpdate();
+    }
     toggleVisionLock(): void {
         this.visionLock = !this.visionLock;
         if (this.visionLock) {
-            this._activeTokens = [...gameStore._activeTokens];
-            if (initiativeStore.currentActor !== null && gameStore.ownedtokens.includes(initiativeStore.currentActor))
+            this._activeTokens = [...gameStore.activeTokens];
+            if (initiativeStore.currentActor && gameStore.ownedtokens.includes(initiativeStore.currentActor))
                 gameStore.setActiveTokens([initiativeStore.currentActor]);
         } else {
             gameStore.setActiveTokens(this._activeTokens);
@@ -198,6 +239,7 @@ export default class Initiative extends Vue {
 
 <template>
     <modal :visible="visible" @close="visible = false" :mask="false">
+        <ConfirmDialog ref="confirmDialog"></ConfirmDialog>
         <div
             class="modal-header"
             slot="header"
@@ -220,7 +262,7 @@ export default class Initiative extends Vue {
                 :disabled="!$store.state.game.IS_DM"
             >
                 <template v-for="actor in $store.state.initiative.data">
-                    <div :key="actor.uuid" style="display:flex;flex-direction:column;align-items:flex-end;">
+                    <div :key="actor.uuid" style="display: flex; flex-direction: column; align-items: flex-end">
                         <div
                             class="initiative-actor"
                             :class="{ 'initiative-selected': $store.state.initiative.currentActor === actor.uuid }"
@@ -232,7 +274,7 @@ export default class Initiative extends Vue {
                                 <img :src="actor.source" width="30px" height="30px" :title="getName(actor)" alt="" />
                             </template>
                             <template v-else>
-                                <span style="width: auto;">{{ getName(actor) }}</span>
+                                <span style="width: auto">{{ getName(actor) }}</span>
                             </template>
                             <input
                                 type="text"
@@ -255,9 +297,7 @@ export default class Initiative extends Vue {
                                 <template v-if="actor.effects">
                                     {{ actor.effects.length }}
                                 </template>
-                                <template v-else>
-                                    0
-                                </template>
+                                <template v-else>0</template>
                             </div>
                             <div
                                 :style="{ opacity: actor.visible ? '1.0' : '0.3' }"
@@ -278,7 +318,7 @@ export default class Initiative extends Vue {
                             <div
                                 :style="{ opacity: owns(actor) ? '1.0' : '0.3' }"
                                 :class="{ notAllowed: !owns(actor) }"
-                                @click="removeInitiative(actor.uuid, true, true)"
+                                @click="removeInitiative(actor.uuid, true)"
                                 :title="$t('game.ui.initiative.initiative.delete_init')"
                             >
                                 <font-awesome-icon icon="trash-alt" />
@@ -298,6 +338,14 @@ export default class Initiative extends Vue {
                                     :size="effect.turns.toString().length || 1"
                                     @change="updateEffect(actor.uuid, effect, true)"
                                 />
+                                <div
+                                    :style="{ opacity: owns(actor) ? '1.0' : '0.3' }"
+                                    :class="{ notAllowed: !owns(actor) }"
+                                    @click="removeEffect(actor.uuid, effect, true)"
+                                    :title="$t('game.ui.initiative.initiative.delete_effect')"
+                                >
+                                    <font-awesome-icon icon="trash-alt" />
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -307,7 +355,7 @@ export default class Initiative extends Vue {
                 <div id="initiative-round">
                     {{ $tc("game.ui.initiative.initiative.round_N", $store.state.initiative.roundCounter) }}
                 </div>
-                <div style="display:flex;"></div>
+                <div style="display: flex"></div>
                 <div
                     class="initiative-bar-button"
                     :style="visionLock ? 'background-color: #82c8a0' : ''"
@@ -328,7 +376,7 @@ export default class Initiative extends Vue {
                     class="initiative-bar-button"
                     :class="{ notAllowed: !$store.state.game.IS_DM }"
                     @click="
-                        setRound(0, true);
+                        setRound(1, true);
                         updateTurn($store.state.initiative.data[0].uuid, true);
                     "
                     :title="$t('game.ui.initiative.initiative.reset_round')"
@@ -348,7 +396,7 @@ export default class Initiative extends Vue {
     </modal>
 </template>
 
-<style scoped>
+<style scoped lang="scss">
 .modal-header {
     background-color: #ff7052;
     padding: 10px;
@@ -383,6 +431,15 @@ export default class Initiative extends Vue {
     margin-bottom: 2px;
     border-radius: 5px;
     border: solid 2px rgba(0, 0, 0, 0);
+
+    &:hover {
+        border: solid 2px #82c8a0;
+    }
+
+    > * {
+        width: 30px;
+        margin-left: 2px;
+    }
 }
 
 .initiative-selected {
@@ -398,15 +455,6 @@ export default class Initiative extends Vue {
     background-color: rgba(130, 200, 160, 0.6);
 }
 
-.initiative-actor:hover {
-    border: solid 2px #82c8a0;
-}
-
-.initiative-actor > * {
-    width: 30px;
-    margin-left: 2px;
-}
-
 .initiative-effect {
     display: none;
     flex-direction: column;
@@ -420,23 +468,23 @@ export default class Initiative extends Vue {
     border-bottom-left-radius: 5px;
     border-bottom-right-radius: 5px;
     border-top: none;
-}
 
-.initiative-effect > * {
-    display: flex;
-    flex-direction: row;
-    justify-content: flex-end;
-}
+    > * {
+        display: flex;
+        flex-direction: row;
+        justify-content: flex-end;
 
-.initiative-effect > * > * {
-    border: none;
-    background-color: inherit;
-    text-align: right;
-    margin-left: 20px;
-    min-width: 10px;
-}
-.initiative-effect > * > *:first-child {
-    margin-left: 0;
+        > * {
+            border: none;
+            background-color: inherit;
+            text-align: right;
+            min-width: 10px;
+
+            &:first-child {
+                margin-left: 0;
+            }
+        }
+    }
 }
 
 #initiative-bar {

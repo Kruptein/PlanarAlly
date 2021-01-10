@@ -22,7 +22,7 @@ export function g2lz(z: number): number {
 }
 
 export function getUnitDistance(r: number): number {
-    return (r / gameSettingsStore.unitSize) * gameStore.gridSize;
+    return (r / gameSettingsStore.unitSize) * DEFAULT_GRID_SIZE;
 }
 
 export function g2lr(r: number): number {
@@ -62,6 +62,10 @@ export function l2gr(r: number): number {
 
 export function clampGridLine(point: number): number {
     return Math.round(point / DEFAULT_GRID_SIZE) * DEFAULT_GRID_SIZE;
+}
+
+export function clampToGrid(point: GlobalPoint): GlobalPoint {
+    return new GlobalPoint(clampGridLine(point.x), clampGridLine(point.y));
 }
 
 (window as any).g2lx = g2lx;

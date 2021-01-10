@@ -2,41 +2,41 @@
 import Vue from "vue";
 import Component from "vue-class-component";
 
-import ShapeContext from "@/game/ui/selection/shapecontext.vue";
-import CreateTokenModal from "@/game/ui/tools/createtoken_modal.vue";
+import Annotation from "../Annotation.vue";
 import DefaultContext from "@/game/ui/tools/defaultcontext.vue";
 import DrawTool from "@/game/ui/tools/draw.vue";
 import FilterTool from "@/game/ui/tools/filter.vue";
 import MapTool from "@/game/ui/tools/map.vue";
-import PanTool from "@/game/ui/tools/pan";
+import PanTool from "@/game/ui/tools/pan.vue";
+import PingTool from "@/game/ui/tools/ping.vue";
 import RulerTool from "@/game/ui/tools/ruler.vue";
 import SelectTool, { SelectFeatures } from "@/game/ui/tools/select.vue";
+import ShapeContext from "@/game/ui/selection/shapecontext.vue";
 import Tool from "./tool.vue";
+import UI from "../ui.vue";
 import VisionTool from "@/game/ui/tools/vision.vue";
 
 import { layerManager } from "@/game/layers/manager";
 import { gameStore } from "@/game/store";
-import { PingTool } from "@/game/ui/tools/ping";
 import { l2g } from "@/game/units";
 import { getLocalPointFromEvent } from "@/game/utils";
 import { ToolName, ToolFeatures } from "./utils";
 import { EventBus } from "@/game/event-bus";
 import { floorStore } from "@/game/layers/store";
-import UI from "../ui.vue";
 
 @Component({
     components: {
-        SelectTool,
-        PanTool,
-        DrawTool,
-        RulerTool,
-        PingTool,
-        MapTool,
-        FilterTool,
-        VisionTool,
-        ShapeContext,
+        Annotation,
         DefaultContext,
-        CreateTokenModal,
+        DrawTool,
+        FilterTool,
+        MapTool,
+        PanTool,
+        PingTool,
+        RulerTool,
+        SelectTool,
+        ShapeContext,
+        VisionTool,
     },
     watch: {
         currentTool(newValue: ToolName, oldValue: ToolName) {
@@ -50,20 +50,26 @@ import UI from "../ui.vue";
     },
 })
 export default class Tools extends Vue {
+    $parent!: UI;
     $refs!: {
-        selectTool: InstanceType<typeof SelectTool>;
-        panTool: InstanceType<typeof PanTool>;
-        drawTool: InstanceType<typeof PanTool>;
-        rulerTool: InstanceType<typeof PanTool>;
-        pingTool: InstanceType<typeof PanTool>;
-        mapTool: InstanceType<typeof PanTool>;
-        filterTool: InstanceType<typeof PanTool>;
-        visionTool: InstanceType<typeof PanTool>;
+        selectTool: SelectTool;
+        panTool: PanTool;
+        drawTool: PanTool;
+        rulerTool: PanTool;
+        pingTool: PanTool;
+        mapTool: PanTool;
+        filterTool: PanTool;
+        visionTool: PanTool;
+
+        annotation: Annotation;
+        defaultcontext: DefaultContext;
+        // Only used by Select directly, however Select needs to be loaded for other tools to allow Select.Context
+        shapecontext: ShapeContext;
     };
 
     mode: "Build" | "Play" = "Play";
 
-    private componentmap_: { [key in ToolName]: InstanceType<typeof Tool> } = {} as any;
+    private componentmap_: { [key in ToolName]: Tool } = {} as any;
 
     mounted(): void {
         this.componentmap_ = {
@@ -76,6 +82,7 @@ export default class Tools extends Vue {
             [ToolName.Filter]: this.$refs.filterTool,
             [ToolName.Vision]: this.$refs.visionTool,
         };
+        this.$refs.selectTool.selected = true;
         EventBus.$on("ToolMode.Toggle", this.toggleMode);
     }
 
@@ -104,7 +111,7 @@ export default class Tools extends Vue {
         [ToolName.Vision, {}],
     ];
 
-    get componentMap(): { [key in ToolName]: InstanceType<typeof Tool> } {
+    get componentMap(): { [key in ToolName]: Tool } {
         return this.componentmap_;
     }
 
@@ -120,7 +127,7 @@ export default class Tools extends Vue {
         return this.mode === "Build" ? this.buildTools : this.playTools;
     }
 
-    get visibleTools(): string[] {
+    get visibleTools(): ToolName[] {
         return this.tools.map(t => t[0]).filter(t => (!this.dmTools.includes(t) || this.IS_DM) && this.toolVisible(t));
     }
 
@@ -137,6 +144,23 @@ export default class Tools extends Vue {
         return true;
     }
 
+    keyup(event: KeyboardEvent): void {
+        let targetTool = this.currentTool;
+
+        const tool = this.componentMap[targetTool];
+        for (const permitted of tool.permittedTools) {
+            if (!(permitted.early ?? false)) continue;
+            this.componentMap[permitted.name].onKeyUp(event, permitted.features);
+        }
+
+        tool.onKeyUp(event, this.getFeatures(targetTool));
+
+        for (const permitted of tool.permittedTools) {
+            if (permitted.early ?? false) continue;
+            this.componentMap[permitted.name].onKeyUp(event, permitted.features);
+        }
+    }
+
     mousedown(event: MouseEvent): void {
         if ((event.target as HTMLElement).tagName !== "CANVAS") return;
 
@@ -148,9 +172,18 @@ export default class Tools extends Vue {
         }
 
         const tool = this.componentMap[targetTool];
-        tool.onMouseDown(event, this.getFeatures(targetTool));
-        for (const permitted of tool.permittedTools)
+
+        for (const permitted of tool.permittedTools) {
+            if (!(permitted.early ?? false)) continue;
             this.componentMap[permitted.name].onMouseDown(event, permitted.features);
+        }
+
+        tool.onMouseDown(event, this.getFeatures(targetTool));
+
+        for (const permitted of tool.permittedTools) {
+            if (permitted.early ?? false) continue;
+            this.componentMap[permitted.name].onMouseDown(event, permitted.features);
+        }
     }
     mouseup(event: MouseEvent): void {
         if ((event.target as HTMLElement).tagName !== "CANVAS") return;
@@ -163,9 +196,18 @@ export default class Tools extends Vue {
         }
 
         const tool = this.componentMap[targetTool];
-        tool.onMouseUp(event, this.getFeatures(targetTool));
-        for (const permitted of tool.permittedTools)
+
+        for (const permitted of tool.permittedTools) {
+            if (!(permitted.early ?? false)) continue;
             this.componentMap[permitted.name].onMouseUp(event, permitted.features);
+        }
+
+        tool.onMouseUp(event, this.getFeatures(targetTool));
+
+        for (const permitted of tool.permittedTools) {
+            if (permitted.early ?? false) continue;
+            this.componentMap[permitted.name].onMouseUp(event, permitted.features);
+        }
     }
     mousemove(event: MouseEvent): void {
         if ((event.target as HTMLElement).tagName !== "CANVAS") return;
@@ -179,38 +221,68 @@ export default class Tools extends Vue {
         }
 
         const tool = this.componentMap[targetTool];
-        tool.onMouseMove(event, this.getFeatures(targetTool));
-        for (const permitted of tool.permittedTools)
+
+        for (const permitted of tool.permittedTools) {
+            if (!(permitted.early ?? false)) continue;
             this.componentMap[permitted.name].onMouseMove(event, permitted.features);
+        }
+
+        tool.onMouseMove(event, this.getFeatures(targetTool));
+
+        for (const permitted of tool.permittedTools) {
+            if (permitted.early ?? false) continue;
+            this.componentMap[permitted.name].onMouseMove(event, permitted.features);
+        }
 
         // Annotation hover
         let found = false;
         for (const uuid of gameStore.annotations) {
             if (layerManager.UUIDMap.has(uuid) && layerManager.hasLayer(floorStore.currentFloor, "draw")) {
                 const shape = layerManager.UUIDMap.get(uuid)!;
-                if (shape.contains(l2g(getLocalPointFromEvent(event)))) {
+                if (
+                    shape.floor.id === floorStore.currentFloor.id &&
+                    shape.contains(l2g(getLocalPointFromEvent(event)))
+                ) {
                     found = true;
-                    (this.$parent as UI).$refs.annotation.setActiveText(shape.annotation);
+                    this.$refs.annotation.setActiveText(shape.annotation);
                 }
             }
         }
-        if (!found) {
-            (this.$parent as UI).$refs.annotation.setActiveText("");
+        if (!found && this.$refs.annotation.hasText) {
+            this.$refs.annotation.setActiveText("");
         }
     }
     mouseleave(event: MouseEvent): void {
         const tool = this.componentMap[this.currentTool];
-        tool.onMouseUp(event, this.getFeatures(this.currentTool));
-        for (const permitted of tool.permittedTools)
+
+        for (const permitted of tool.permittedTools) {
+            if (!(permitted.early ?? false)) continue;
             this.componentMap[permitted.name].onMouseUp(event, permitted.features);
+        }
+
+        tool.onMouseUp(event, this.getFeatures(this.currentTool));
+
+        for (const permitted of tool.permittedTools) {
+            if (permitted.early ?? false) continue;
+            this.componentMap[permitted.name].onMouseUp(event, permitted.features);
+        }
     }
     contextmenu(event: MouseEvent): void {
         if ((event.target as HTMLElement).tagName !== "CANVAS") return;
         if (event.button !== 2 || (event.target as HTMLElement).tagName !== "CANVAS") return;
         const tool = this.componentMap[this.currentTool];
-        tool.onContextMenu(event, this.getFeatures(this.currentTool));
-        for (const permitted of tool.permittedTools)
+
+        for (const permitted of tool.permittedTools) {
+            if (!(permitted.early ?? false)) continue;
             this.componentMap[permitted.name].onContextMenu(event, permitted.features);
+        }
+
+        tool.onContextMenu(event, this.getFeatures(this.currentTool));
+
+        for (const permitted of tool.permittedTools) {
+            if (permitted.early ?? false) continue;
+            this.componentMap[permitted.name].onContextMenu(event, permitted.features);
+        }
     }
 
     touchstart(event: TouchEvent): void {
@@ -222,9 +294,19 @@ export default class Tools extends Vue {
             tool.scaling = true;
         }
 
+        for (const permitted of tool.permittedTools) {
+            if (!(permitted.early ?? false)) continue;
+            const otherTool = this.componentMap[permitted.name];
+            otherTool.scaling = tool.scaling;
+            if (otherTool.scaling) otherTool.onPinchStart(event, permitted.features);
+            else otherTool.onTouchStart(event, permitted.features);
+        }
+
         if (tool.scaling) tool.onPinchStart(event, this.getFeatures(this.currentTool));
         else tool.onTouchStart(event, this.getFeatures(this.currentTool));
+
         for (const permitted of tool.permittedTools) {
+            if (permitted.early ?? false) continue;
             const otherTool = this.componentMap[permitted.name];
             otherTool.scaling = tool.scaling;
             if (otherTool.scaling) otherTool.onPinchStart(event, permitted.features);
@@ -237,10 +319,20 @@ export default class Tools extends Vue {
 
         const tool = this.componentMap[this.currentTool];
 
+        for (const permitted of tool.permittedTools) {
+            if (!(permitted.early ?? false)) continue;
+            const otherTool = this.componentMap[permitted.name];
+            if (otherTool.scaling) otherTool.onPinchEnd(event, permitted.features);
+            else otherTool.onTouchEnd(event, permitted.features);
+            otherTool.scaling = false;
+        }
+
         if (tool.scaling) tool.onPinchEnd(event, this.getFeatures(this.currentTool));
         else tool.onTouchEnd(event, this.getFeatures(this.currentTool));
         tool.scaling = false;
+
         for (const permitted of tool.permittedTools) {
+            if (permitted.early ?? false) continue;
             const otherTool = this.componentMap[permitted.name];
             if (otherTool.scaling) otherTool.onPinchEnd(event, permitted.features);
             else otherTool.onTouchEnd(event, permitted.features);
@@ -253,6 +345,14 @@ export default class Tools extends Vue {
 
         const tool = this.componentMap[this.currentTool];
 
+        for (const permitted of tool.permittedTools) {
+            if (!(permitted.early ?? false)) continue;
+            const otherTool = this.componentMap[permitted.name];
+            if (otherTool.scaling) otherTool.onPinchMove(event, permitted.features);
+            else if (event.touches.length >= 3) otherTool.onThreeTouchMove(event, permitted.features);
+            else otherTool.onTouchMove(event, permitted.features);
+        }
+
         if (tool.scaling) {
             event.preventDefault();
             tool.onPinchMove(event, this.getFeatures(this.currentTool));
@@ -263,6 +363,7 @@ export default class Tools extends Vue {
         }
 
         for (const permitted of tool.permittedTools) {
+            if (permitted.early ?? false) continue;
             const otherTool = this.componentMap[permitted.name];
             if (otherTool.scaling) otherTool.onPinchMove(event, permitted.features);
             else if (event.touches.length >= 3) otherTool.onThreeTouchMove(event, permitted.features);
@@ -276,21 +377,27 @@ export default class Tools extends Vue {
                 const shape = layerManager.UUIDMap.get(uuid)!;
                 if (shape.contains(l2g(getLocalPointFromEvent(event)))) {
                     found = true;
-                    (this.$parent as UI).$refs.annotation.setActiveText(shape.annotation);
+                    this.$refs.annotation.setActiveText(shape.annotation);
                 }
             }
         }
-        if (!found) {
-            (this.$parent as UI).$refs.annotation.setActiveText("");
+        if (!found && this.$refs.annotation.hasText) {
+            this.$refs.annotation.setActiveText("");
         }
     }
 
     toggleMode(): void {
         this.mode = this.mode === "Build" ? "Play" : "Build";
         const tool = this.componentMap[this.currentTool];
-        tool.onToolsModeChange(this.mode, this.getFeatures(this.currentTool));
-        for (const permitted of tool.permittedTools)
+        for (const permitted of tool.permittedTools) {
+            if (!(permitted.early ?? false)) continue;
             this.componentMap[permitted.name].onToolsModeChange(this.mode, permitted.features);
+        }
+        tool.onToolsModeChange(this.mode, this.getFeatures(this.currentTool));
+        for (const permitted of tool.permittedTools) {
+            if (permitted.early ?? false) continue;
+            this.componentMap[permitted.name].onToolsModeChange(this.mode, permitted.features);
+        }
     }
 
     getModeWord(): string {
@@ -327,18 +434,26 @@ export default class Tools extends Vue {
                 return "";
         }
     }
+
+    hasAlert(tool: ToolName): boolean {
+        if (this.componentMap[tool]) return this.componentMap[tool].alert;
+        return false;
+    }
 }
 </script>
 
 <template>
-    <div style="pointer-events: auto;">
+    <div id="tools">
+        <Annotation ref="annotation"></Annotation>
+        <ShapeContext ref="shapecontext"></ShapeContext>
+        <DefaultContext ref="defaultcontext"></DefaultContext>
         <div id="toolselect">
             <ul>
                 <li
                     v-for="tool in visibleTools"
                     :key="tool"
                     class="tool"
-                    :class="{ 'tool-selected': currentTool === tool }"
+                    :class="{ 'tool-selected': currentTool === tool, 'tool-alert': hasAlert(tool) }"
                     :ref="tool + '-selector'"
                     @mousedown="currentTool = tool"
                 >
@@ -361,15 +476,16 @@ export default class Tools extends Vue {
                 <MapTool v-show="currentTool === 'Map'" ref="mapTool"></MapTool>
                 <FilterTool v-show="currentTool === 'Filter'" ref="filterTool"></FilterTool>
                 <VisionTool v-show="currentTool === 'Vision'" ref="visionTool"></VisionTool>
-                <ShapeContext ref="shapecontext"></ShapeContext>
-                <DefaultContext ref="defaultcontext"></DefaultContext>
-                <CreateTokenModal ref="createtokendialog"></CreateTokenModal>
             </template>
         </div>
     </div>
 </template>
 
-<style scoped>
+<style scoped lang="scss">
+#tools > * {
+    pointer-events: auto;
+}
+
 #toolselect {
     position: absolute;
     bottom: 25px;
@@ -377,21 +493,41 @@ export default class Tools extends Vue {
     z-index: 10;
     display: flex;
     align-items: center;
-}
 
-#toolselect * {
-    user-select: none !important;
-    -webkit-user-drag: none !important;
-}
+    * {
+        user-select: none !important;
+        -webkit-user-drag: none !important;
+    }
 
-#toolselect > ul {
-    display: flex;
-    list-style: none;
-    padding: 0;
-    margin: 0;
-    border: solid 1px #82c8a0;
-    background-color: cadetblue;
-    border-radius: 10px;
+    .tool-selected {
+        background-color: #82c8a0;
+    }
+
+    .tool-alert {
+        background-color: #ff7052;
+    }
+
+    > ul {
+        display: flex;
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        border: solid 1px #82c8a0;
+        background-color: cadetblue;
+        border-radius: 10px;
+
+        > li {
+            &:first-child {
+                border-left: solid 1px #82c8a0;
+                border-radius: 10px 0px 0px 10px;
+            }
+
+            &:nth-last-child(2) {
+                border-right: solid 1px #82c8a0;
+                border-radius: 0px 10px 10px 0px; /* Border radius needs to be two less than the actual border, otherwise there will be a gap */
+            }
+        }
+    }
 }
 
 #tool-mode {
@@ -399,43 +535,29 @@ export default class Tools extends Vue {
     border-right: 0;
     padding: 5px;
     font-size: 0;
-}
 
-#tool-mode::first-letter {
-    font-size: 1rem;
-}
+    &::first-letter {
+        font-size: 1rem;
+    }
 
-#tool-mode:hover {
-    cursor: pointer;
-    font-size: 1em;
+    &:hover {
+        cursor: pointer;
+        font-size: 1em;
+    }
 }
 
 .tool {
     background-color: #eee;
     border-right: solid 1px #82c8a0;
-}
 
-#toolselect > ul > li:nth-last-child(2) {
-    border-right: solid 1px #82c8a0;
-    border-radius: 0px 10px 10px 0px; /* Border radius needs to be two less than the actual border, otherwise there will be a gap */
-}
+    &:hover {
+        background-color: #82c8a0;
+    }
 
-#toolselect > ul > li:first-child {
-    border-left: solid 1px #82c8a0;
-    border-radius: 10px 0px 0px 10px;
-}
-
-.tool:hover {
-    background-color: #82c8a0;
-}
-
-.tool a {
-    display: block;
-    padding: 10px;
-    text-decoration: none;
-}
-
-#toolselect .tool-selected {
-    background-color: #82c8a0;
+    a {
+        display: block;
+        padding: 10px;
+        text-decoration: none;
+    }
 }
 </style>

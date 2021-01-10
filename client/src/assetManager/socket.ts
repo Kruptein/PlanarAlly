@@ -1,21 +1,16 @@
-import io from "socket.io-client";
-
 import { Asset } from "@/core/comm/types";
+import { socketManager } from "../core/socket";
 import { baseAdjust } from "../core/utils";
 import { assetStore } from "./store";
-import { BASE_PATH } from "../utils";
 
-export const socket = io(location.protocol + "//" + location.host + "/pa_assetmgmt", {
-    autoConnect: false,
-    path: BASE_PATH + "socket.io",
-});
+export const socket = socketManager.socket("/pa_assetmgmt");
 
 let disConnected = false;
 
 // export const socket = io.connect(location.protocol + "//" + location.host + "/pa_assetmgmt");
 socket.on("connect", () => {
     console.log("Connected");
-    if (disConnected) socket.emit("Folder.Get", assetStore.folderPath);
+    if (disConnected) socket.emit("Folder.Get", assetStore.currentFolder);
 });
 socket.on("disconnect", () => {
     console.log("Disconnected");
@@ -33,24 +28,26 @@ socket.on("Folder.Set", (data: { folder: Asset; path?: number[] }) => {
     assetStore.idMap.set(data.folder.id, data.folder);
     if (data.folder.children) {
         for (const child of data.folder.children) {
-            assetStore.idMap.set(child.id, child);
-            if (child.file_hash) {
-                assetStore.resolveUpload(child.name);
-                assetStore.files.push(child.id);
-            } else {
-                assetStore.folders.push(child.id);
-            }
+            assetStore.resolveUpload(child.name);
+            assetStore.addAsset(child);
         }
     }
     if (data.path) assetStore.setPath(data.path);
     window.history.pushState(null, "Asset Manager", baseAdjust(`/assets${assetStore.currentFilePath}`));
 });
 socket.on("Folder.Create", (folder: Asset) => {
-    assetStore.folders.push(folder.id);
-    assetStore.idMap.set(folder.id, folder);
+    assetStore.addAsset(folder);
 });
 socket.on("Asset.Upload.Finish", (asset: Asset) => {
-    assetStore.idMap.set(asset.id, asset);
-    assetStore.files.push(asset.id);
+    assetStore.addAsset(asset);
     assetStore.resolveUpload(asset.name);
+});
+
+socket.on("Asset.Export.Finish", (uuid: string) => {
+    window.open(baseAdjust(`/static/temp/${uuid}.paa`));
+});
+
+socket.on("Asset.Import.Finish", (name: string) => {
+    assetStore.resolveUpload(name);
+    socket.emit("Folder.Get", assetStore.currentFolder);
 });

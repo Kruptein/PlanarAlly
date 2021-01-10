@@ -2,18 +2,25 @@
 import Vue from "vue";
 import Component from "vue-class-component";
 
+import ConfirmDialog from "@/core/components/modals/confirm.vue";
 import Modal from "@/core/components/modals/modal.vue";
-import Game from "@/game/Game.vue";
 
 import { Note } from "@/game/comm/types/general";
 import { gameStore } from "@/game/store";
 
 @Component({
     components: {
+        ConfirmDialog,
         Modal,
     },
 })
 export default class NoteDialog extends Vue {
+    $refs!: {
+        confirm: ConfirmDialog;
+        textarea: HTMLTextAreaElement;
+        title: HTMLInputElement;
+    };
+
     visible = false;
     note: Note | null = null;
 
@@ -25,9 +32,8 @@ export default class NoteDialog extends Vue {
         });
     }
     calcHeight(): void {
-        console.log(this.$refs.textarea);
         if (this.$refs.textarea) {
-            const el = this.$refs.textarea as HTMLElement;
+            const el = this.$refs.textarea;
             el.style.height = "auto";
             el.style.height = el.scrollHeight + "px";
         }
@@ -36,7 +42,7 @@ export default class NoteDialog extends Vue {
         if (this.note) gameStore.updateNote({ note: this.note, sync: true });
     }
     async removeNote(): Promise<void> {
-        const result = await (this.$parent as Game).$refs.confirm.open(this.$t("game.ui.note.warning_msg").toString());
+        const result = await this.$refs.confirm.open(this.$t("game.ui.note.warning_msg").toString());
         if (result && this.note) {
             gameStore.removeNote({ note: this.note, sync: true });
             this.visible = false;
@@ -47,6 +53,7 @@ export default class NoteDialog extends Vue {
 
 <template>
     <modal v-if="note !== null" :visible="visible" @close="visible = false" :mask="false">
+        <ConfirmDialog ref="confirm"></ConfirmDialog>
         <div
             class="modal-header"
             slot="header"
@@ -75,21 +82,21 @@ export default class NoteDialog extends Vue {
     </modal>
 </template>
 
-<style scoped>
+<style scoped lang="scss">
 .modal-header {
     background-color: #ff7052;
     padding: 10px;
     font-size: 20px;
     font-weight: bold;
     cursor: move;
-}
 
-.modal-header > input {
-    background-color: inherit;
-    border: none;
-    font-weight: bold;
-    font-size: large;
-    margin-left: 5px;
+    > input {
+        background-color: inherit;
+        border: none;
+        font-weight: bold;
+        font-size: large;
+        margin-left: 5px;
+    }
 }
 
 .header-close {
@@ -100,12 +107,12 @@ export default class NoteDialog extends Vue {
 
 .modal-body {
     padding: 10px;
-}
 
-.modal-body > textarea {
-    width: 100%;
-    min-height: 100px;
-    max-height: 500px;
+    > textarea {
+        width: 100%;
+        min-height: 100px;
+        max-height: 500px;
+    }
 }
 
 .modal-footer {

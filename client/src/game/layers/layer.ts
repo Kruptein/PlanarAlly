@@ -152,15 +152,26 @@ export class Layer {
     }
 
     async setServerShapes(shapes: ServerShape[]): Promise<void> {
+        // We need to ensure composites are added after all their variants have been added
+        const composites = [];
         for (const serverShape of shapes) {
-            const shape = await createShapeFromDict(serverShape);
-            if (shape === undefined) {
-                console.log(`Shape with unknown type ${serverShape.type_} could not be added`);
-                return;
+            if (serverShape.type_ === "togglecomposite") {
+                composites.push(serverShape);
+            } else {
+                await this.setServerShape(serverShape);
             }
-            this.addShape(shape, SyncMode.NO_SYNC, InvalidationMode.NO);
         }
+        for (const composite of composites) await this.setServerShape(composite);
         this.clearSelection(); // TODO: Fix keeping selection on those items that are not moved.
+    }
+
+    private async setServerShape(serverShape: ServerShape): Promise<void> {
+        const shape = await createShapeFromDict(serverShape);
+        if (shape === undefined) {
+            console.log(`Shape with unknown type ${serverShape.type_} could not be added`);
+            return;
+        }
+        this.addShape(shape, SyncMode.NO_SYNC, InvalidationMode.NO);
     }
 
     removeShape(shape: Shape, sync: SyncMode, recalculate: boolean): boolean {

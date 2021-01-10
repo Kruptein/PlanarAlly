@@ -1,7 +1,7 @@
 import { GlobalPoint } from "@/game/geom";
 import { Shape } from "@/game/shapes/shape";
 import { BoundingRect } from "@/game/shapes/variants/boundingrect";
-import { SyncTo } from "../../../core/comm/types";
+import { SyncMode, SyncTo } from "../../../core/comm/types";
 import { sendShapeOptionsUpdate, sendShapePositionUpdate } from "../../api/emits/shape/core";
 import {
     sendToggleCompositeActiveVariant,
@@ -34,6 +34,8 @@ export class ToggleComposite extends Shape {
         for (const variant of _variants) {
             layerManager.addComposite(this.uuid, variant, false);
         }
+        this.resetVariants(...this._variants.map(v => v.uuid));
+        this.setActiveVariant(this.active_variant, false);
     }
 
     get variants(): readonly { uuid: string; name: string }[] {
@@ -64,27 +66,39 @@ export class ToggleComposite extends Shape {
             console.error("Variant not found during variant removal");
             return;
         }
-        this.setActiveVariant(this._variants[(v + 1) % this._variants.length].uuid, true);
+        const newVariant = this._variants[(v + 1) % this._variants.length].uuid;
         this._variants.splice(v, 1);
+        this.setActiveVariant(newVariant, true);
+
+        const oldVariant = layerManager.UUIDMap.get(uuid)!;
+        oldVariant.layer.removeShape(oldVariant, SyncMode.FULL_SYNC, true);
+    }
+
+    private resetVariants(...variants: string[]): void {
+        for (const variantId of variants) {
+            const variant = layerManager.UUIDMap.get(variantId);
+            if (variant === undefined) continue;
+
+            if (variant.isToken) gameStore.removeOwnedToken(variant.uuid);
+            if (variant.movementObstruction)
+                removeBlocker(TriangulationTarget.MOVEMENT, variant.floor.id, variant, true);
+            if (variant.visionObstruction) removeBlocker(TriangulationTarget.VISION, variant.floor.id, variant, true);
+            if (variant.getAuras(false).length > 0) removeVisionSources(variant.floor.id, variant.uuid);
+        }
     }
 
     setActiveVariant(variant: string, sync: boolean): void {
         const oldVariant = layerManager.UUIDMap.get(this.active_variant)!;
+        this.resetVariants(this.active_variant);
         this.active_variant = variant;
         const newVariant = layerManager.UUIDMap.get(this.active_variant)!;
 
-        gameStore.removeOwnedToken(oldVariant.uuid);
-        gameStore.addOwnedToken(newVariant.uuid);
-
-        if (oldVariant.movementObstruction)
-            removeBlocker(TriangulationTarget.MOVEMENT, oldVariant.floor.id, oldVariant, true);
-        if (oldVariant.visionObstruction)
-            removeBlocker(TriangulationTarget.VISION, oldVariant.floor.id, oldVariant, true);
-        if (oldVariant.getAuras(false).length > 0) removeVisionSources(oldVariant.floor.id, oldVariant.uuid);
+        if (newVariant.isToken) gameStore.addOwnedToken(newVariant.uuid);
         if (newVariant.movementObstruction)
             addBlocker(TriangulationTarget.MOVEMENT, newVariant.uuid, newVariant.floor.id, true);
         if (newVariant.visionObstruction)
             addBlocker(TriangulationTarget.VISION, newVariant.uuid, newVariant.floor.id, true);
+
         for (const au of newVariant.getAuras(false)) {
             if (au.visionSource) {
                 addVisionSource({ shape: newVariant.uuid, aura: au.uuid }, newVariant.floor.id);

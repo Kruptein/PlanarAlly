@@ -273,10 +273,12 @@ def export_asset(asset: Union[AssetDict, List[AssetDict]], parent=-1) -> AssetEx
         asset_info.append(asset_dict)
         if asset["file_hash"] is not None:
             file_hashes.append(asset["file_hash"])
+
         children = asset.get("children", [])  # type: ignore
         parent = asset_dict["id"]
     else:
         children = asset
+
     for child in children:
         child_data = export_asset(child, parent)
         file_hashes.extend(child_data["file_hashes"])
@@ -289,7 +291,7 @@ def export_asset(asset: Union[AssetDict, List[AssetDict]], parent=-1) -> AssetEx
 async def assetmgmt_export(sid: str, selection: List[int]):
 
     full_selection: List[AssetDict] = [
-        Asset.get_by_id(asset).as_dict(True) for asset in selection
+        Asset.get_by_id(asset).as_dict(True, True) for asset in selection
     ]
 
     asset_data = export_asset(full_selection)

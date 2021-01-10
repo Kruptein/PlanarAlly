@@ -26,11 +26,11 @@ class Asset(BaseModel):
     def set_options(self, options: Dict[str, Any]) -> None:
         self.options = json.dumps([[k, v] for k, v in options.items()])
 
-    def as_dict(self, children=False):
+    def as_dict(self, children=False, recursive=False):
         asset = model_to_dict(self, exclude=[Asset.owner, Asset.parent])
         if children:
             asset["children"] = [
-                child.as_dict()
+                child.as_dict(children=children and recursive, recursive=recursive)
                 for child in Asset.select().where(
                     (Asset.owner == self.owner) & (Asset.parent == self)
                 )

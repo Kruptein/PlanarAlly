@@ -8,6 +8,8 @@ These usually have no immediately visible impact on regular users
 
 ## Unreleased
 
+## [0.24.0] - 2021-01-10
+
 Due to a bugfix with zoom for non-default gridsizes, you will likely encounter your first load on a map to be slightly off centered
 from where you had your camera last time. This should normally not be far off from the original location.
 If you have issues finding your stuff back try the space bar to center on your tokens or ctrl+0 to go to the world center.

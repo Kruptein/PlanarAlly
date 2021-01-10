@@ -96,6 +96,7 @@ export default class AssetPicker extends Vue {
 
         assetStore.clear();
         assetStore.clearSelected();
+        assetStore.clearFolderPath();
 
         if (!this.socket.connected) {
             this.socket.connect();

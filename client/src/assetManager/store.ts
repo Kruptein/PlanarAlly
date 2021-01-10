@@ -28,8 +28,6 @@ class AssetStore extends VuexModule {
 
     @Mutation
     clear(): void {
-        this.folderPath = [];
-        this._idMap.clear();
         this._folders = [];
         this._files = [];
     }
@@ -37,6 +35,11 @@ class AssetStore extends VuexModule {
     @Mutation
     clearSelected(): void {
         this._selected = [];
+    }
+
+    @Mutation
+    clearFolderPath(): void {
+        this.folderPath = [];
     }
 
     @Mutation

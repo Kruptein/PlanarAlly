@@ -94,6 +94,9 @@ export default class AssetPicker extends Vue {
     open(): Promise<Asset | undefined> {
         this.visible = true;
 
+        assetStore.clear();
+        assetStore.clearSelected();
+
         if (!this.socket.connected) {
             this.socket.connect();
         }

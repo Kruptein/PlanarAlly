@@ -95,8 +95,8 @@ export class Layer {
         if (selection.length === 0) {
             activeShapeStore.clear();
         } else {
-            if (this.selection.length === 0) activeShapeStore.setActiveShape(selection[0]);
-            else if (this.selection[0] !== selection[0]) activeShapeStore.setActiveShape(selection[0]);
+            if (this.selection.length === 0 || this.selection[0] !== selection[0])
+                activeShapeStore.setActiveShape(selection[0]);
         }
         this.selection = selection;
         EventBus.$emit("SelectionInfo.Shapes.Set", this.getSelection({ includeComposites: false }));

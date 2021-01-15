@@ -11,7 +11,7 @@ When writing migrations make sure that these things are respected:
     - WHEN USING THIS IN A SELECT STATEMENT MAKE SURE YOU USE " AND NOT ' OR YOU WILL HAVE A STRING LITERAL
 """
 
-SAVE_VERSION = 47
+SAVE_VERSION = 48
 
 import json
 import logging
@@ -749,28 +749,33 @@ def upgrade(version):
                 'CREATE INDEX IF NOT EXISTS "composite_shape_association_parent_id" ON "composite_shape_association" ("parent_id")'
             )
 
-            # db.execute_sql(
-            #     'INSERT INTO "shape_associated_assets" (shape_id, asset_id, active) SELECT uuid, asset_id, "true" FROM shape WHERE asset_id IS NOT NULL'
-            # )
-
             db.execute_sql(
                 'CREATE TABLE IF NOT EXISTS "toggle_composite" ("shape_id" TEXT NOT NULL PRIMARY KEY, "active_variant" TEXT, FOREIGN KEY ("shape_id") REFERENCES "shape" ("uuid"))'
             )
             db.execute_sql(
                 'CREATE INDEX IF NOT EXISTS "toggle_composite_shape_id" ON "toggle_composite" ("shape_id")'
             )
-
-            # db.execute_sql("CREATE TEMPORARY TABLE _shape_46 AS SELECT * FROM shape")
-            # db.execute_sql("DROP TABLE shape")
-            # db.execute_sql(
-            #     'CREATE TABLE IF NOT EXISTS "shape" ("uuid" TEXT NOT NULL PRIMARY KEY, "layer_id" INTEGER NOT NULL, "type_" TEXT NOT NULL, "x" REAL NOT NULL, "y" REAL NOT NULL, "name" TEXT, "name_visible" INTEGER NOT NULL, "fill_colour" TEXT NOT NULL, "stroke_colour" TEXT NOT NULL, "vision_obstruction" INTEGER NOT NULL, "movement_obstruction" INTEGER NOT NULL, "is_token" INTEGER NOT NULL, "annotation" TEXT NOT NULL, "draw_operator" TEXT NOT NULL, "index" INTEGER NOT NULL, "options" TEXT, "badge" INTEGER NOT NULL, "show_badge" INTEGER NOT NULL, "default_edit_access" INTEGER NOT NULL, "default_vision_access" INTEGER NOT NULL, is_invisible INTEGER NOT NULL DEFAULT 0, default_movement_access INTEGER NOT NULL DEFAULT 0, is_locked INTEGER NOT NULL DEFAULT 0, angle REAL NOT NULL DEFAULT 0, stroke_width INTEGER NOT NULL DEFAULT 2, group_id TEXT, FOREIGN KEY ("layer_id") REFERENCES "layer" ("id") ON DELETE CASCADE, FOREIGN KEY ("group_id") REFERENCES "group" ("uuid"))'
-            # )
-            # db.execute_sql('CREATE INDEX "shape_layer_id" ON "shape" ("layer_id")')
-            # db.execute_sql('CREATE INDEX "shape_group_id" ON "shape" ("group_id")')
-            # db.execute_sql(
-            #     'INSERT INTO shape (uuid, layer_id, type_, x, y, name, name_visible, fill_colour, stroke_colour, vision_obstruction, movement_obstruction, is_token, annotation, draw_operator, "index", options, badge, show_badge, default_edit_access, default_vision_access, is_invisible, default_movement_access, is_locked, angle, stroke_width, group_id) SELECT uuid, layer_id, type_, x, y, name, name_visible, fill_colour, stroke_colour, vision_obstruction, movement_obstruction, is_token, annotation, draw_operator, "index", options, badge, show_badge, default_edit_access, default_vision_access, is_invisible, default_movement_access, is_locked, angle, stroke_width, group_id FROM _shape_46'
-            # )
-
+    elif version == 47:
+        # Fix ToggleComposite skipDraw type (from string to boolean)
+        with db.atomic():
+            data = db.execute_sql("SELECT uuid, options FROM shape")
+            for row in data.fetchall():
+                uuid, options = row
+                if options:
+                    try:
+                        options = dict(json.loads(options))
+                    except:
+                        logger.error(
+                            f"Could not read options for {uuid}, skipping this shape"
+                        )
+                        continue
+                    if options.get("skipDraw", False) == "true":
+                        options["skipDraw"] = True
+                        options = json.dumps([[k, v] for k, v in options.items()])
+                        db.execute_sql(
+                            "UPDATE shape SET options = ? WHERE uuid = ?",
+                            (options, uuid),
+                        )
     else:
         raise UnknownVersionException(
             f"No upgrade code for save format {version} was found."

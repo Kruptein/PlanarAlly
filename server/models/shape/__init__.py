@@ -184,6 +184,9 @@ class ShapeType(BaseModel):
 
     @staticmethod
     def post_create(subshape, **kwargs):
+        """
+        Used for special shapes that need extra behaviour after being created.
+        """
         pass
 
     def as_dict(self, *args, **kwargs):
@@ -289,11 +292,3 @@ class CompositeShapeAssociation(BaseModel):
     variant = ForeignKeyField(Shape, backref="composite_parent", on_delete="CASCADE")
     parent = ForeignKeyField(Shape, backref="shape_variants", on_delete="CASCADE")
     name = TextField()
-
-
-# TODO
-# class MultiShape(CompositeShape):
-#     """
-#     Multi shapes are composites that consist of multiple smaller shapes that together form one bigger structure.
-#     """
-

@@ -13,6 +13,7 @@ These usually have no immediately visible impact on regular users
 ### Fixes
 
 -   minimal token vision being broken
+-   pasting polygons would change the angle on the first segment
 
 ## [0.24.0] - 2021-01-10
 

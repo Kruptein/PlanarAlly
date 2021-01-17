@@ -1,6 +1,6 @@
 {
     "name": "planarally-client",
-    "version": "0.24.0",
+    "version": "0.24.1",
     "description": "A companion tool for when you travel into the planes.",
     "scripts": {
         "serve": "vue-cli-service serve",

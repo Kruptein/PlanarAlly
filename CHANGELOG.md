@@ -8,6 +8,13 @@ These usually have no immediately visible impact on regular users
 
 ## Unreleased
 
+## [0.24.1] - 2021-01-17
+
+### Fixes
+
+-   minimal token vision being broken
+-   pasting polygons would change the angle on the first segment
+
 ## [0.24.0] - 2021-01-10
 
 Due to a bugfix with zoom for non-default gridsizes, you will likely encounter your first load on a map to be slightly off centered

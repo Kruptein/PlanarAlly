@@ -33,7 +33,10 @@ export async function addFloor(serverFloor: ServerFloor): Promise<void> {
     addCDT(getFloorId(serverFloor.name));
     for (const layer of serverFloor.layers) await createLayer(layer, floor);
 
-    // Recalculate zIndices
+    recalculateZIndices();
+}
+
+function recalculateZIndices(): void {
     let i = 0;
     for (const floor of floorStore.floors) {
         for (const layer of layerManager.getLayers(floor)) {

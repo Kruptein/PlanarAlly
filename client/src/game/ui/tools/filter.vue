@@ -68,7 +68,7 @@ export default class FilterTool extends Tool implements ToolBasics {
 
     updateSelection(data: { title: string; selection: string[] }): void {
         if (!(data.title in this.labels)) return;
-        for (const [uuid, _] of this.labels[data.title]) {
+        for (const [uuid] of this.labels[data.title]) {
             const idx = gameStore.labelFilters.indexOf(uuid);
             const selected = data.selection.includes(uuid);
             if (idx >= 0 && !selected) {

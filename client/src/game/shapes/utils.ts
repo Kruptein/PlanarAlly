@@ -160,6 +160,14 @@ export async function pasteShapes(targetLayer?: string): Promise<readonly Shape[
         const ogUuid = clip.uuid;
         clip.uuid = uuidv4();
         shapeMap.set(ogUuid, clip.uuid);
+
+        if (clip.type_ === "polygon") {
+            (clip as ServerPolygon).vertices = (clip as ServerPolygon).vertices.map(p => [
+                p[0] + offset.x,
+                p[1] + offset.y,
+            ]);
+        }
+
         // Trackers
         const oldTrackers = clip.trackers;
         clip.trackers = [];

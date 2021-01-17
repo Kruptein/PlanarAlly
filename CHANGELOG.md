@@ -8,7 +8,7 @@ These usually have no immediately visible impact on regular users
 
 ## Unreleased
 
-## [0.24.1] - TBA
+## [0.24.1] - 2021-01-17
 
 ### Fixes
 

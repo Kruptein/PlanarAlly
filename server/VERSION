@@ -1,4 +1,4 @@
-0.24.0
+0.24.1
 
 Due to a bugfix with zoom for non-default gridsizes, you will likely encounter your first load on a map to be slightly off centered
 from where you had your camera last time. This should normally not be far off from the original location.
@@ -87,3 +87,5 @@ If you still have issues contact me and I can give you some console code.
 -   Synchronization of Label visibility
 -   Initiative possibly not working when changing locations
 -   [DM] Floor rename always setting a blank name
+-   [0.24.1] minimal token vision being broken
+-   [0.24.1] pasting polygons would change the angle on the first segment

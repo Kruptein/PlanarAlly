@@ -93,7 +93,8 @@ class Shape(BaseModel):
         aura_query = self.auras
         label_query = self.labels.join(Label)
         if not owned:
-            data["annotation"] = ""
+            if not self.annotation_visible:
+                data["annotation"] = ""
             tracker_query = tracker_query.where(Tracker.visible)
             aura_query = aura_query.where(Aura.visible)
             label_query = label_query.where(Label.visible)

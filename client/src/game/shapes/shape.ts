@@ -33,6 +33,7 @@ import {
     sendShapeRemoveLabel,
     sendShapeRemoveTracker,
     sendShapeSetAnnotation,
+    sendShapeSetAnnotationVisible,
     sendShapeSetBlocksMovement,
     sendShapeSetBlocksVision,
     sendShapeSetFillColour,
@@ -850,6 +851,13 @@ export abstract class Shape {
         } else if (this.annotation === "" && hadAnnotation) {
             gameStore.annotations.splice(gameStore.annotations.findIndex(an => an === this.uuid));
         }
+    }
+
+    setAnnotationVisible(visible: boolean, syncTo: SyncTo): void {
+        if (syncTo === SyncTo.SERVER) sendShapeSetAnnotationVisible({ shape: this.uuid, value: visible });
+        if (syncTo === SyncTo.UI) this._(activeShapeStore.setAnnotationVisible, { visible, syncTo });
+
+        this.annotationVisible = visible;
     }
 
     addLabel(label: string, syncTo: SyncTo): void {

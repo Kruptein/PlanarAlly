@@ -36,6 +36,11 @@ export default class AccessSettings extends Vue {
         this.shape.setAnnotation({ annotation: event.target.value, syncTo: sync ? SyncTo.SERVER : SyncTo.SHAPE });
     }
 
+    setAnnotationVisible(event: { target: HTMLInputElement }): void {
+        if (!this.owned) return;
+        this.shape.setAnnotationVisible({ visible: event.target.checked, syncTo: SyncTo.SERVER });
+    }
+
     openLabelManager(): void {
         this.$refs.labels.open();
     }
@@ -79,6 +84,18 @@ export default class AccessSettings extends Vue {
             </div>
         </div>
         <div class="spanrow header" v-t="'common.annotation'"></div>
+        <label
+            for="edit_dialog-extra-show_annotation"
+            v-t="'game.ui.selection.edit_dialog.dialog.show_annotation'"
+        ></label>
+        <input
+            id="edit_dialog-extra-show_annotation"
+            type="checkbox"
+            :checked="shape.annotationVisible"
+            @click="setAnnotationVisible"
+            class="styled-checkbox"
+            :disabled="!owned"
+        />
         <textarea
             class="spanrow"
             ref="textarea"
@@ -92,7 +109,7 @@ export default class AccessSettings extends Vue {
 
 <style scoped lang="scss">
 .panel {
-    grid-template-columns: [name] 1fr [edit] 30px [move] 30px [vision] 30px [remove] 30px [end];
+    grid-template-columns: [name] 1fr [toggle] 30px [end];
     grid-column-gap: 5px;
     align-items: center;
     padding-bottom: 1em;
@@ -109,6 +126,7 @@ export default class AccessSettings extends Vue {
 }
 
 textarea {
+    grid-column-start: name;
     padding: 5px;
     min-height: 100px;
     width: 300px;

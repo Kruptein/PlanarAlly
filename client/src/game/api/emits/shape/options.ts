@@ -19,6 +19,7 @@ export const sendShapeSetNameVisible = sendSimpleShapeOption<boolean>("Shape.Opt
 export const sendShapeSetShowBadge = sendSimpleShapeOption<boolean>("Shape.Options.ShowBadge.Set");
 
 export const sendShapeSetAnnotation = sendSimpleShapeOption<string>("Shape.Options.Annotation.Set");
+export const sendShapeSetAnnotationVisible = sendSimpleShapeOption<boolean>("Shape.Options.AnnotationVisible.Set");
 export const sendShapeSetName = sendSimpleShapeOption<string>("Shape.Options.Name.Set");
 export const sendShapeSetStrokeColour = sendSimpleShapeOption<string>("Shape.Options.StrokeColour.Set");
 export const sendShapeSetFillColour = sendSimpleShapeOption<string>("Shape.Options.FillColour.Set");

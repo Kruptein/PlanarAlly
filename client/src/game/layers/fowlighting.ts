@@ -71,7 +71,7 @@ export class FowLightingLayer extends FowLayer {
                 const aura = shape.getAuras(true).find(a => a.uuid === light.aura);
                 if (aura === undefined) continue;
 
-                if (!shape.ownedBy({ visionAccess: true }) && !aura.visible) continue;
+                if (!shape.ownedBy(true, { visionAccess: true }) && !aura.visible) continue;
 
                 const auraLength = getUnitDistance(aura.value + aura.dim);
                 const center = shape.center();

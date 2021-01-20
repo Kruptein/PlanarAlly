@@ -160,7 +160,7 @@ export default class SelectTool extends Tool implements ToolBasics {
             if (!shape.options.has("preFogShape") && (shape.options.get("skipDraw") ?? false)) continue;
             if ([this.rotationAnchor?.uuid, this.rotationBox?.uuid, this.rotationEnd?.uuid].includes(shape.uuid))
                 continue;
-            if (shape.isInvisible && !shape.ownedBy({ movementAccess: true })) continue;
+            if (shape.isInvisible && !shape.ownedBy(false, { movementAccess: true })) continue;
 
             if (this.rotationUiActive && this.hasFeature(SelectFeatures.Rotate, features)) {
                 const anchor = this.rotationAnchor!.points[1];
@@ -289,7 +289,7 @@ export default class SelectTool extends Tool implements ToolBasics {
                 // If we are on the tokens layer do a movement block check.
                 if (layer.name === "tokens" && !(event.shiftKey && gameStore.IS_DM)) {
                     for (const sel of layerSelection) {
-                        if (!sel.ownedBy({ movementAccess: true })) continue;
+                        if (!sel.ownedBy(false, { movementAccess: true })) continue;
                         delta = calculateDelta(delta, sel, true);
                         if (delta !== ogDelta) this.deltaChanged = true;
                     }
@@ -298,7 +298,7 @@ export default class SelectTool extends Tool implements ToolBasics {
                 const updateList = [];
                 // Actually apply the delta on all shapes
                 for (const sel of layerSelection) {
-                    if (!sel.ownedBy({ movementAccess: true })) continue;
+                    if (!sel.ownedBy(false, { movementAccess: true })) continue;
                     if (sel.visionObstruction)
                         visibilityStore.deleteFromTriag({
                             target: TriangulationTarget.VISION,
@@ -324,7 +324,7 @@ export default class SelectTool extends Tool implements ToolBasics {
             } else if (this.mode === SelectOperations.Resize) {
                 let recalc = false;
                 for (const sel of layerSelection) {
-                    if (!sel.ownedBy({ movementAccess: true })) continue;
+                    if (!sel.ownedBy(false, { movementAccess: true })) continue;
                     if (sel.visionObstruction)
                         visibilityStore.deleteFromTriag({
                             target: TriangulationTarget.VISION,
@@ -391,7 +391,7 @@ export default class SelectTool extends Tool implements ToolBasics {
             const cbbox = this.selectionHelper!.getBoundingBox();
             for (const shape of layer.getShapes({ includeComposites: false })) {
                 if (!shape.options.has("preFogShape") && (shape.options.get("skipDraw") ?? false)) continue;
-                if (!shape.ownedBy({ movementAccess: true })) continue;
+                if (!shape.ownedBy(false, { movementAccess: true })) continue;
                 if (!shape.visibleInCanvas(layer.canvas, { includeAuras: false })) continue;
                 if (layerSelection.some(s => s.uuid === shape.uuid)) continue;
 
@@ -436,7 +436,7 @@ export default class SelectTool extends Tool implements ToolBasics {
             if (this.mode === SelectOperations.Drag) {
                 const updateList = [];
                 for (const sel of layerSelection) {
-                    if (!sel.ownedBy({ movementAccess: true })) continue;
+                    if (!sel.ownedBy(false, { movementAccess: true })) continue;
 
                     if (
                         this.dragRay.origin!.x === g2lx(sel.refPoint.x) &&
@@ -480,7 +480,7 @@ export default class SelectTool extends Tool implements ToolBasics {
             }
             if (this.mode === SelectOperations.Resize) {
                 for (const sel of layerSelection) {
-                    if (!sel.ownedBy({ movementAccess: true })) continue;
+                    if (!sel.ownedBy(false, { movementAccess: true })) continue;
                     if (
                         gameSettingsStore.useGrid &&
                         useSnapping(event) &&
@@ -514,7 +514,7 @@ export default class SelectTool extends Tool implements ToolBasics {
             }
             if (this.mode === SelectOperations.Rotate) {
                 for (const sel of layerSelection) {
-                    if (!sel.ownedBy({ movementAccess: true })) continue;
+                    if (!sel.ownedBy(false, { movementAccess: true })) continue;
 
                     const newAngle = Math.round(this.angle / ANGLE_SNAP) * ANGLE_SNAP;
                     if (

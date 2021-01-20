@@ -126,7 +126,7 @@ export function copyShapes(): void {
     if (!layer.hasSelection({ includeComposites: false })) return;
     const clipboard: ServerShape[] = [];
     for (const shape of layer.getSelection({ includeComposites: true })) {
-        if (!shape.ownedBy({ editAccess: true })) continue;
+        if (!shape.ownedBy(false, { editAccess: true })) continue;
         if (!shape.groupId) {
             createNewGroupForShapes([shape.uuid]);
         }
@@ -227,7 +227,7 @@ export function deleteShapes(shapes: readonly Shape[], sync: SyncMode): void {
     let recalculateMovement = false;
     for (let i = shapes.length - 1; i >= 0; i--) {
         const sel = shapes[i];
-        if (sync !== SyncMode.NO_SYNC && !sel.ownedBy({ editAccess: true })) continue;
+        if (sync !== SyncMode.NO_SYNC && !sel.ownedBy(false, { editAccess: true })) continue;
         removed.push(sel.uuid);
         if (sel.visionObstruction) recalculateVision = true;
         if (sel.movementObstruction) recalculateMovement = true;

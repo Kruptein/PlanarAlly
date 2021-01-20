@@ -35,7 +35,7 @@ export default class TrackerSettings extends Vue {
         if (!this.owned) return;
         if (!this.shape.isComposite) return;
 
-        const tracker = this.shape.trackers.find(t => t.uuid === trackerId);
+        const tracker = this.shape.trackers.find((t) => t.uuid === trackerId);
         if (tracker === undefined) return;
 
         this.shape.removeTracker({ tracker: trackerId, syncTo: SyncTo.SHAPE });
@@ -68,7 +68,7 @@ export default class TrackerSettings extends Vue {
         if (!this.owned) return;
         if (!this.shape.isComposite) return;
 
-        const aura = this.shape.auras.find(t => t.uuid === auraId);
+        const aura = this.shape.auras.find((t) => t.uuid === auraId);
         if (aura === undefined) return;
 
         this.shape.removeAura({ aura: auraId, syncTo: SyncTo.SHAPE });

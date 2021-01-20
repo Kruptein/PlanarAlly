@@ -81,7 +81,7 @@ export default class Initiative extends Vue {
 
     // Utilities
     getActor(actorId: string): InitiativeData | undefined {
-        return initiativeStore.data.find(a => a.uuid === actorId);
+        return initiativeStore.data.find((a) => a.uuid === actorId);
     }
     owns(actor: InitiativeData): boolean {
         if (gameStore.IS_DM) return true;
@@ -101,7 +101,7 @@ export default class Initiative extends Vue {
     }
     // Events
     async removeInitiative(uuid: string, sync: boolean): Promise<void> {
-        const d = initiativeStore.data.findIndex(a => a.uuid === uuid);
+        const d = initiativeStore.data.findIndex((a) => a.uuid === uuid);
         if (d < 0) return;
         if (initiativeStore.data[d].group) {
             const continueRemoval = await this.$refs.confirmDialog.open(
@@ -124,12 +124,12 @@ export default class Initiative extends Vue {
     }
     updateOrder(): void {
         if (!gameStore.IS_DM) return;
-        sendInitiativeSet(initiativeStore.data.map(d => d.uuid));
+        sendInitiativeSet(initiativeStore.data.map((d) => d.uuid));
     }
     updateTurn(actorId: string, sync: boolean): void {
         if (!gameStore.IS_DM && sync) return;
         initiativeStore.setCurrentActor(actorId);
-        const actor = initiativeStore.data.find(a => a.uuid === actorId);
+        const actor = initiativeStore.data.find((a) => a.uuid === actorId);
         if (actor === undefined) return;
         if (actor.effects) {
             for (let e = actor.effects.length - 1; e >= 0; e--) {
@@ -164,7 +164,7 @@ export default class Initiative extends Vue {
     nextTurn(): void {
         if (!gameStore.IS_DM) return;
         const order = initiativeStore.data;
-        const next = order[(order.findIndex(a => a.uuid === initiativeStore.currentActor) + 1) % order.length];
+        const next = order[(order.findIndex((a) => a.uuid === initiativeStore.currentActor) + 1) % order.length];
         if (initiativeStore.data[0].uuid === next.uuid) this.setRound(initiativeStore.roundCounter + 1, true);
         this.updateTurn(next.uuid, true);
     }
@@ -196,18 +196,18 @@ export default class Initiative extends Vue {
         sendInitiativeUpdateEffect({ actor: actor.uuid, effect });
     }
     updateEffect(actorId: string, effect: InitiativeEffect, sync: boolean): void {
-        const actor = initiativeStore.data.find(a => a.uuid === actorId);
+        const actor = initiativeStore.data.find((a) => a.uuid === actorId);
         if (actor === undefined) return;
-        const effectIndex = actor.effects.findIndex(e => e.uuid === effect.uuid);
+        const effectIndex = actor.effects.findIndex((e) => e.uuid === effect.uuid);
         if (effectIndex === undefined) return;
         actor.effects[effectIndex] = effect;
         if (sync) this.syncEffect(actor, effect);
         else this.$forceUpdate();
     }
     removeEffect(actorId: string, effect: InitiativeEffect, sync: boolean): void {
-        const actor = initiativeStore.data.find(a => a.uuid === actorId);
+        const actor = initiativeStore.data.find((a) => a.uuid === actorId);
         if (actor === undefined) return;
-        const effectIndex = actor.effects.findIndex(e => e.uuid === effect.uuid);
+        const effectIndex = actor.effects.findIndex((e) => e.uuid === effect.uuid);
         if (effectIndex === undefined) return;
         actor.effects.splice(effectIndex, 1);
         if (sync) sendInitiativeRemoveEffect({ actor: actorId, effect });

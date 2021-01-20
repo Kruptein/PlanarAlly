@@ -89,7 +89,7 @@ export class Text extends Shape {
 
     getMaxWidth(ctx: CanvasRenderingContext2D): number {
         const lines = this.getLines(ctx);
-        const widths = lines.map(line => ctx.measureText(line.text).width);
+        const widths = lines.map((line) => ctx.measureText(line.text).width);
         return Math.max(...widths);
     }
 

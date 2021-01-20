@@ -1,10 +1,10 @@
 jinja2==2.11.2
-aiohttp==3.6.2
-aiohttp_jinja2==1.2.0
+aiohttp==3.7.3
+aiohttp_jinja2==1.4.2
 aiohttp_security==0.4.0
 aiohttp_session==2.9.0
-bcrypt==3.1.7
-cryptography==3.2
+bcrypt==3.2.0
+cryptography==3.3.1
 python-socketio==5.0.4
-peewee==3.13.3
-typing_extensions==3.7.4.2
+peewee==3.14.0
+typing_extensions==3.7.4.3

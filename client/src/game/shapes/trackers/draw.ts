@@ -55,11 +55,11 @@ export function updateAuraPath(visibilityPolygon: number[][], center: GlobalPoin
     const ixs: LocalPoint[][] = [];
 
     // First find all polygon segments that are actually relevant
-    for (const [i, p] of visibilityPolygon.map(vp => GlobalPoint.fromArray(vp)).entries()) {
+    for (const [i, p] of visibilityPolygon.map((vp) => GlobalPoint.fromArray(vp)).entries()) {
         const np = GlobalPoint.fromArray(visibilityPolygon[(i + 1) % visibilityPolygon.length]);
         const pLoc = g2l(p);
         const npLoc = g2l(np);
-        const ix = circleLineIntersection(auraCircle.center(), auraCircle.r, p, np).map(x => g2l(x));
+        const ix = circleLineIntersection(auraCircle.center(), auraCircle.r, p, np).map((x) => g2l(x));
         if (ix.length === 0) {
             // segment lies completely outside circle
             if (!auraCircle.contains(p)) continue;

@@ -63,7 +63,7 @@ export class Layer {
     getShapes(options: { skipUiHelpers?: boolean; includeComposites: boolean }): readonly Shape[] {
         const skipUiHelpers = options.skipUiHelpers ?? true;
         let shapes: readonly Shape[] = skipUiHelpers
-            ? this.shapes.filter(s => !s.options.has("UiHelper"))
+            ? this.shapes.filter((s) => !s.options.has("UiHelper"))
             : this.shapes;
         if (options.includeComposites) {
             shapes = addAllCompositeShapes(shapes);
@@ -87,7 +87,7 @@ export class Layer {
     // They are often not desired unless in specific circumstances
     getSelection(options: { skipUiHelpers?: boolean; includeComposites: boolean }): readonly Shape[] {
         const skipUiHelpers = options.skipUiHelpers ?? true;
-        const selection = skipUiHelpers ? this.selection.filter(s => !s.options.has("UiHelper")) : this.selection;
+        const selection = skipUiHelpers ? this.selection.filter((s) => !s.options.has("UiHelper")) : this.selection;
         return options.includeComposites ? addAllCompositeShapes(selection) : selection;
     }
 
@@ -182,7 +182,9 @@ export class Layer {
         }
         if (gameSettingsStore.currentLocationOptions.spawnLocations!.includes(shape.uuid)) {
             gameSettingsStore.setSpawnLocations({
-                spawnLocations: gameSettingsStore.currentLocationOptions.spawnLocations!.filter(s => s !== shape.uuid),
+                spawnLocations: gameSettingsStore.currentLocationOptions.spawnLocations!.filter(
+                    (s) => s !== shape.uuid,
+                ),
                 location: gameSettingsStore.activeLocation,
                 sync: true,
             });
@@ -273,7 +275,7 @@ export class Layer {
                 if (
                     shape.labels.length &&
                     gameStore.labelFilters.length &&
-                    !shape.labels.some(l => gameStore.labelFilters.includes(l.uuid))
+                    !shape.labels.some((l) => gameStore.labelFilters.includes(l.uuid))
                 )
                     continue;
                 shape.draw(ctx);

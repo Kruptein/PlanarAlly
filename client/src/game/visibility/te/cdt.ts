@@ -447,7 +447,7 @@ export class CDT {
             indn = this.tds.mirrorIndex(t, indf);
             ei = [t, indf];
             edgeSet.splice(
-                edgeSet.findIndex(ed => ed[0] === ei[0] && ed[1] === ei[1]),
+                edgeSet.findIndex((ed) => ed[0] === ei[0] && ed[1] === ei[1]),
                 1,
             );
             e[0] = [t, cw(indf)];
@@ -461,12 +461,12 @@ export class CDT {
                 eni = [tt.neighbours[ii]!, this.tds.mirrorIndex(tt, ii)];
                 if (this.lessEdge(edge!, eni))
                     edgeSet.splice(
-                        edgeSet.findIndex(ed => ed[0] === edge![0] && ed[1] === edge![1]),
+                        edgeSet.findIndex((ed) => ed[0] === edge![0] && ed[1] === edge![1]),
                         1,
                     );
                 else
                     edgeSet.splice(
-                        edgeSet.findIndex(ed => ed[0] === eni[0] && ed[1] === eni[1]),
+                        edgeSet.findIndex((ed) => ed[0] === eni[0] && ed[1] === eni[1]),
                         1,
                     );
             }

@@ -52,7 +52,7 @@ export class Polygon extends Shape {
 
     asDict(): ServerPolygon {
         return Object.assign(this.getBaseDict(), {
-            vertices: this._vertices.map(v => v.asArray()),
+            vertices: this._vertices.map((v) => v.asArray()),
             open_polygon: this.openPolygon,
             line_width: this.lineWidth,
         });
@@ -60,7 +60,7 @@ export class Polygon extends Shape {
 
     fromDict(data: ServerPolygon): void {
         super.fromDict(data);
-        this._vertices = data.vertices.map(v => GlobalPoint.fromArray(v));
+        this._vertices = data.vertices.map((v) => GlobalPoint.fromArray(v));
         this.openPolygon = data.open_polygon;
         this.lineWidth = data.line_width;
     }
@@ -87,17 +87,17 @@ export class Polygon extends Shape {
     }
 
     getPositionRepresentation(): { angle: number; points: number[][] } {
-        return { angle: this.angle, points: this.vertices.map(v => v.asArray()) };
+        return { angle: this.angle, points: this.vertices.map((v) => v.asArray()) };
     }
 
     setPositionRepresentation(position: { angle: number; points: number[][] }): void {
-        this._vertices = position.points.slice(1).map(p => GlobalPoint.fromArray(p));
+        this._vertices = position.points.slice(1).map((p) => GlobalPoint.fromArray(p));
         super.setPositionRepresentation(position);
     }
 
     get points(): number[][] {
         const center = this.center();
-        return this.vertices.map(point => [...rotateAroundPoint(point, center, this.angle)]);
+        return this.vertices.map((point) => [...rotateAroundPoint(point, center, this.angle)]);
     }
 
     draw(ctx: CanvasRenderingContext2D): void {
@@ -163,7 +163,7 @@ export class Polygon extends Shape {
             if (resizePoint === 0) this._refPoint = point;
             else this._vertices[resizePoint - 1] = point;
         } else {
-            const newPoints = this.points.map(p => GlobalPoint.fromArray(p));
+            const newPoints = this.points.map((p) => GlobalPoint.fromArray(p));
 
             newPoints[resizePoint] = point;
 

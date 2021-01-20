@@ -7,7 +7,7 @@ import { Shape } from "../../../shapes/shape";
 import { socket } from "../../socket";
 
 function wrapCall<T>(func: (value: T, syncTo: SyncTo) => void): (data: { shape: string; value: T }) => void {
-    return data => {
+    return (data) => {
         const shape = layerManager.UUIDMap.get(data.shape);
         if (shape === undefined) return;
         func.bind(shape)(data.value, SyncTo.UI);
@@ -49,7 +49,7 @@ socket.on("Shape.Options.Tracker.Move", (data: { shape: string; tracker: string;
     const shape = layerManager.UUIDMap.get(data.shape);
     const newShape = layerManager.UUIDMap.get(data.new_shape);
     if (shape === undefined || newShape === undefined) return;
-    const tracker = shape.getTrackers(false).find(t => t.uuid === data.tracker);
+    const tracker = shape.getTrackers(false).find((t) => t.uuid === data.tracker);
     if (tracker === undefined) return;
 
     shape.removeTracker(tracker.uuid, SyncTo.UI);
@@ -60,7 +60,7 @@ socket.on("Shape.Options.Aura.Move", (data: { shape: string; aura: string; new_s
     const shape = layerManager.UUIDMap.get(data.shape);
     const newShape = layerManager.UUIDMap.get(data.new_shape);
     if (shape === undefined || newShape === undefined) return;
-    const aura = shape.getAuras(false).find(a => a.uuid === data.aura);
+    const aura = shape.getAuras(false).find((a) => a.uuid === data.aura);
     if (aura === undefined) return;
 
     shape.removeAura(aura.uuid, SyncTo.UI);

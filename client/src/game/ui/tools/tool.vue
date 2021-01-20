@@ -84,11 +84,11 @@ export default class Tool extends Vue implements ToolBasics {
     onMove(_lp: LocalPoint, _event: MouseEvent | TouchEvent, _features: ToolFeatures): void {}
     onToolsModeChange(mode: "Build" | "Play", _features: ToolFeatures): void {
         if (mode === "Build") {
-            if (!this.$parent.buildTools.map(t => t[0]).includes(this.$parent.currentTool)) {
+            if (!this.$parent.buildTools.map((t) => t[0]).includes(this.$parent.currentTool)) {
                 this.$parent.currentTool = ToolName.Select;
             }
         } else {
-            if (!this.$parent.playTools.map(t => t[0]).includes(this.$parent.currentTool)) {
+            if (!this.$parent.playTools.map((t) => t[0]).includes(this.$parent.currentTool)) {
                 this.$parent.currentTool = ToolName.Select;
             }
         }

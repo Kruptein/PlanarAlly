@@ -23,7 +23,7 @@ export class FowLightingLayer extends FowLayer {
     removeShape(shape: Shape, sync: SyncMode, recalculate: boolean): boolean {
         let idx = -1;
         if (shape.options.has("preFogShape") && shape.options.get("preFogShape")) {
-            idx = this.preFogShapes.findIndex(s => s.uuid === shape.uuid);
+            idx = this.preFogShapes.findIndex((s) => s.uuid === shape.uuid);
         }
         const remove = super.removeShape(shape, sync, recalculate);
         if (remove && idx >= 0) this.preFogShapes.splice(idx, 1);
@@ -68,7 +68,7 @@ export class FowLightingLayer extends FowLayer {
             for (const light of getVisionSources(this.floor)) {
                 const shape = layerManager.UUIDMap.get(light.shape);
                 if (shape === undefined) continue;
-                const aura = shape.getAuras(true).find(a => a.uuid === light.aura);
+                const aura = shape.getAuras(true).find((a) => a.uuid === light.aura);
                 if (aura === undefined) continue;
 
                 if (!shape.ownedBy(true, { visionAccess: true }) && !aura.visible) continue;

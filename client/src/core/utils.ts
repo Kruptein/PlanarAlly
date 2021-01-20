@@ -2,7 +2,7 @@ import { BASE_PATH } from "../utils";
 
 // Reference: https://stackoverflow.com/questions/105034/create-guid-uuid-in-javascript
 export function uuidv4(): string {
-    return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, c => {
+    return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => {
         const r = (Math.random() * 16) | 0;
         const v = c === "x" ? r : (r & 0x3) | 0x8;
         return v.toString(16);
@@ -20,7 +20,7 @@ export function alphSort(a: string, b: string): number {
 
 export function toSnakeCase(s: string): string {
     return s
-        .replace(/\.?([A-Z]+)/g, function(x, y) {
+        .replace(/\.?([A-Z]+)/g, function (x, y) {
             return "_" + y.toLowerCase();
         })
         .replace(/^_/, "");
@@ -51,7 +51,7 @@ export function getHTMLTextWidth(text: string, font: string): number {
 
 export function partition<T>(arr: T[], predicate: (n: T) => boolean): T[][] {
     const ret: T[][] = [[], []];
-    arr.forEach(n => (predicate(n) ? ret[1].push(n) : ret[0].push(n)));
+    arr.forEach((n) => (predicate(n) ? ret[1].push(n) : ret[0].push(n)));
     return ret;
 }
 
@@ -62,7 +62,7 @@ export function calcFontScale(ctx: CanvasRenderingContext2D, text: string, r: nu
 }
 
 export function fixedEncodeURIComponent(str: string): string {
-    return encodeURIComponent(str).replace(/[!'()*]/g, c => {
+    return encodeURIComponent(str).replace(/[!'()*]/g, (c) => {
         return "%" + c.charCodeAt(0).toString(16);
     });
 }

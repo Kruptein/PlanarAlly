@@ -128,11 +128,13 @@ export default class Tools extends Vue {
     }
 
     get visibleTools(): ToolName[] {
-        return this.tools.map(t => t[0]).filter(t => (!this.dmTools.includes(t) || this.IS_DM) && this.toolVisible(t));
+        return this.tools
+            .map((t) => t[0])
+            .filter((t) => (!this.dmTools.includes(t) || this.IS_DM) && this.toolVisible(t));
     }
 
     private getFeatures(tool: ToolName): ToolFeatures {
-        return this.tools.find(t => t[0] === tool)?.[1] ?? {};
+        return this.tools.find((t) => t[0] === tool)?.[1] ?? {};
     }
 
     toolVisible(tool: string): boolean {

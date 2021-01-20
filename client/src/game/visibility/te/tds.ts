@@ -71,7 +71,7 @@ export class Triangle {
     }
 
     get dimension(): number {
-        return this.vertices.filter(v => v !== null).length - 1;
+        return this.vertices.filter((v) => v !== null).length - 1;
     }
 
     addVertex(vertex: Vertex): void {
@@ -108,7 +108,7 @@ export class Triangle {
     isInfinite(index?: number): boolean {
         if (index === undefined) {
             // return this.vertices.includes(_INFINITE_VERTEX);
-            return this.vertices.some(v => v!.infinite);
+            return this.vertices.some((v) => v!.infinite);
         } else {
             return this.vertices[ccw(index)]!.infinite || this.vertices[cw(index)]!.infinite;
         }
@@ -523,7 +523,7 @@ export class TDS {
     }
 
     deleteVertex(vertex: Vertex): void {
-        this.vertices = this.vertices.filter(v => v !== vertex);
+        this.vertices = this.vertices.filter((v) => v !== vertex);
     }
 
     createTriangle(
@@ -572,7 +572,7 @@ export class TDS {
     }
 
     deleteTriangle(trig: Triangle): void {
-        this.triangles = this.triangles.filter(t => t !== trig);
+        this.triangles = this.triangles.filter((t) => t !== trig);
     }
 
     setAdjacency(t0: Triangle, i0: number, t1: Triangle, i1: number): void {
@@ -957,7 +957,7 @@ export class TDS {
     addTriagVertices(shape: string, ...vertices: Vertex[]): void {
         const tv = this.triagVertices.get(shape) || this.triagVertices.set(shape, []).get(shape)!;
         for (const vertex of vertices) {
-            if (tv.some(v => equalPoints(vertex.point!, v.point!))) continue;
+            if (tv.some((v) => equalPoints(vertex.point!, v.point!))) continue;
             tv.push(vertex);
         }
     }

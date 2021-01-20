@@ -85,7 +85,7 @@ export function setLocationOptions(id: number | null, options: Partial<ServerLoc
 }
 
 export function renameLocation(id: number, name: string): void {
-    const idx = gameStore.locations.findIndex(l => l.id === id);
+    const idx = gameStore.locations.findIndex((l) => l.id === id);
     if (idx < 0) {
         throw new Error("unknown location rename attempt");
     }

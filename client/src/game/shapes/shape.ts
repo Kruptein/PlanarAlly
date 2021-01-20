@@ -167,7 +167,7 @@ export abstract class Shape {
      * This is the case when it is a token, has an aura that is a vision source or if it blocks vision.
      */
     get triggersVisionRecalc(): boolean {
-        return this.isToken || this.getAuras(true).some(a => a.visionSource) || this.movementObstruction;
+        return this.isToken || this.getAuras(true).some((a) => a.visionSource) || this.movementObstruction;
     }
 
     setLayer(floor: number, layer: string): void {
@@ -278,7 +278,7 @@ export abstract class Shape {
             ...getVisionSources(this._floor ?? floorStore.currentFloor.id),
         ];
         for (const au of this.getAuras(true)) {
-            const i = visionSources.findIndex(o => o.aura === au.uuid);
+            const i = visionSources.findIndex((o) => o.aura === au.uuid);
             if (au.visionSource && i === -1) {
                 visionSources.push({ shape: this.uuid, aura: au.uuid });
             } else if (!au.visionSource && i >= 0) {
@@ -289,7 +289,7 @@ export abstract class Shape {
         for (let i = visionSources.length - 1; i >= 0; i--) {
             const ls = visionSources[i];
             if (ls.shape === this.uuid) {
-                if (!this.getAuras(true).some(a => a.uuid === ls.aura && a.visionSource)) visionSources.splice(i, 1);
+                if (!this.getAuras(true).some((a) => a.uuid === ls.aura && a.visionSource)) visionSources.splice(i, 1);
             }
         }
         setVisionSources(visionSources, this._floor ?? floorStore.currentFloor.id);
@@ -312,7 +312,7 @@ export abstract class Shape {
             auras: aurasToServer(this.uuid, this._auras),
             trackers: this._trackers,
             labels: this.labels,
-            owners: this._owners.map(owner => ownerToServer(owner)),
+            owners: this._owners.map((owner) => ownerToServer(owner)),
             fill_colour: this.fillColour,
             stroke_colour: this.strokeColour,
             stroke_width: this.strokeWidth,
@@ -343,7 +343,7 @@ export abstract class Shape {
         this._auras = aurasFromServer(...data.auras);
         this._trackers = data.trackers;
         this.labels = data.labels;
-        this._owners = data.owners.map(owner => ownerToClient(owner));
+        this._owners = data.owners.map((owner) => ownerToClient(owner));
         this.fillColour = data.fill_colour;
         this.strokeColour = data.stroke_colour;
         this.isToken = data.is_token;
@@ -648,7 +648,7 @@ export abstract class Shape {
             (options.visionAccess && this.defaultAccess.vision) ||
             ((!limitToActiveTokens || isActiveToken) &&
                 this._owners.some(
-                    u =>
+                    (u) =>
                         u.user === gameStore.username &&
                         (options.editAccess ? u.access.edit === true : true) &&
                         (options.movementAccess ? u.access.movement === true : true) &&
@@ -682,7 +682,7 @@ export abstract class Shape {
     }
 
     hasOwner(username: string): boolean {
-        return this._owners.some(u => u.user === username);
+        return this._owners.some((u) => u.user === username);
     }
 
     addOwner(owner: PartialBy<PartialShapeOwner, "shape">, syncTo: SyncTo): void {
@@ -713,13 +713,13 @@ export abstract class Shape {
         if (fullOwner.shape !== this.uuid) return;
         if (!this.hasOwner(owner.user)) return;
 
-        const targetOwner = this._owners.find(o => o.user === owner.user)!;
+        const targetOwner = this._owners.find((o) => o.user === owner.user)!;
         if (!targetOwner.access.edit && fullOwner.access.edit) {
             // Force other permissions to true if edit access is granted
             fullOwner.access.movement = true;
             fullOwner.access.vision = true;
         }
-        if (targetOwner.access.edit && Object.values(fullOwner.access).some(a => !a)) {
+        if (targetOwner.access.edit && Object.values(fullOwner.access).some((a) => !a)) {
             // Force remove edit permission if a specific permission is toggled off
             fullOwner.access.edit = false;
         }
@@ -741,7 +741,7 @@ export abstract class Shape {
     }
 
     removeOwner(owner: string, syncTo: SyncTo): void {
-        const ownerIndex = this._owners.findIndex(o => o.user === owner);
+        const ownerIndex = this._owners.findIndex((o) => o.user === owner);
         if (ownerIndex < 0) return;
         const removed = this._owners.splice(ownerIndex, 1)[0];
 
@@ -776,7 +776,7 @@ export abstract class Shape {
     }
 
     updateTracker(trackerId: string, delta: Partial<Tracker>, syncTo: SyncTo): void {
-        const tracker = this._trackers.find(t => t.uuid === trackerId);
+        const tracker = this._trackers.find((t) => t.uuid === trackerId);
         if (tracker === undefined) return;
 
         if (syncTo === SyncTo.SERVER) sendShapeUpdateTracker({ shape: this.uuid, uuid: trackerId, ...delta });
@@ -789,7 +789,7 @@ export abstract class Shape {
         if (syncTo === SyncTo.SERVER) sendShapeRemoveTracker({ shape: this.uuid, value: tracker });
         else if (syncTo === SyncTo.UI) this._(activeShapeStore.removeTracker, { tracker, syncTo });
 
-        this._trackers = this._trackers.filter(tr => tr.uuid !== tracker);
+        this._trackers = this._trackers.filter((tr) => tr.uuid !== tracker);
     }
 
     // AURAS
@@ -816,7 +816,7 @@ export abstract class Shape {
     }
 
     updateAura(auraId: string, delta: Partial<Aura>, syncTo: SyncTo): void {
-        const aura = this._auras.find(t => t.uuid === auraId);
+        const aura = this._auras.find((t) => t.uuid === auraId);
         if (aura === undefined) return;
 
         if (syncTo === SyncTo.SERVER) {
@@ -832,7 +832,7 @@ export abstract class Shape {
         }
 
         const visionSources = getVisionSources(this.floor.id);
-        const i = visionSources.findIndex(ls => ls.aura === aura.uuid);
+        const i = visionSources.findIndex((ls) => ls.aura === aura.uuid);
 
         Object.assign(aura, delta);
 
@@ -846,7 +846,7 @@ export abstract class Shape {
         if (syncTo === SyncTo.SERVER) sendShapeRemoveAura({ shape: this.uuid, value: aura });
         else if (syncTo === SyncTo.UI) this._(activeShapeStore.removeAura, { aura, syncTo });
 
-        this._auras = this._auras.filter(au => au.uuid !== aura);
+        this._auras = this._auras.filter((au) => au.uuid !== aura);
         this.checkVisionSources();
         this.invalidate(false);
     }
@@ -862,7 +862,7 @@ export abstract class Shape {
         if (this.annotation !== "" && !hadAnnotation) {
             gameStore.annotations.push(this.uuid);
         } else if (this.annotation === "" && hadAnnotation) {
-            gameStore.annotations.splice(gameStore.annotations.findIndex(an => an === this.uuid));
+            gameStore.annotations.splice(gameStore.annotations.findIndex((an) => an === this.uuid));
         }
     }
 
@@ -885,6 +885,6 @@ export abstract class Shape {
         if (syncTo === SyncTo.SERVER) sendShapeRemoveLabel({ shape: this.uuid, value: label });
         if (syncTo === SyncTo.UI) this._(activeShapeStore.removeLabel, { label, syncTo });
 
-        this.labels = this.labels.filter(l => l.uuid !== label);
+        this.labels = this.labels.filter((l) => l.uuid !== label);
     }
 }

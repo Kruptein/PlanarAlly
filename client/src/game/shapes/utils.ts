@@ -81,7 +81,7 @@ export async function createShapeFromDict(shape: ServerShape): Promise<Shape | u
         const polygon = shape as ServerPolygon;
         sh = new Polygon(
             refPoint,
-            polygon.vertices.map(v => GlobalPoint.fromArray(v)),
+            polygon.vertices.map((v) => GlobalPoint.fromArray(v)),
             {
                 fillColour: polygon.fill_colour,
                 strokeColour: polygon.stroke_colour,
@@ -162,7 +162,7 @@ export async function pasteShapes(targetLayer?: string): Promise<readonly Shape[
         shapeMap.set(ogUuid, clip.uuid);
 
         if (clip.type_ === "polygon") {
-            (clip as ServerPolygon).vertices = (clip as ServerPolygon).vertices.map(p => [
+            (clip as ServerPolygon).vertices = (clip as ServerPolygon).vertices.map((p) => [
                 p[0] + offset.x,
                 p[1] + offset.y,
             ]);
@@ -203,7 +203,7 @@ export async function pasteShapes(targetLayer?: string): Promise<readonly Shape[
 
     for (const composite of composites) {
         composite.active_variant = shapeMap.get(composite.active_variant)!;
-        composite.variants = composite.variants.map(v => ({ ...v, uuid: shapeMap.get(v.uuid)! }));
+        composite.variants = composite.variants.map((v) => ({ ...v, uuid: shapeMap.get(v.uuid)! }));
         serverShapes.push(composite); // make sure it's added after the regular shapes
     }
 

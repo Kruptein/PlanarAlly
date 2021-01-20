@@ -34,7 +34,7 @@ export class ToggleComposite extends Shape {
         for (const variant of _variants) {
             layerManager.addComposite(this.uuid, variant, false);
         }
-        this.resetVariants(...this._variants.map(v => v.uuid));
+        this.resetVariants(...this._variants.map((v) => v.uuid));
         this.setActiveVariant(this.active_variant, false);
     }
 
@@ -52,7 +52,7 @@ export class ToggleComposite extends Shape {
         if (syncTo === SyncTo.SERVER) sendToggleCompositeRenameVariant({ shape: this.uuid, variant: uuid, name });
         if (syncTo === SyncTo.UI) this._(activeShapeStore.renameVariant, { uuid, name, syncTo });
 
-        const variant = this._variants.find(v => v.uuid === uuid);
+        const variant = this._variants.find((v) => v.uuid === uuid);
         if (variant === undefined) return;
         variant.name = name;
     }
@@ -61,7 +61,7 @@ export class ToggleComposite extends Shape {
         if (syncTo === SyncTo.SERVER) sendToggleCompositeRemoveVariant({ shape: this.uuid, variant: uuid });
         if (syncTo === SyncTo.UI) this._(activeShapeStore.removeVariant, { uuid, syncTo });
 
-        const v = this._variants.findIndex(v => v.uuid === uuid);
+        const v = this._variants.findIndex((v) => v.uuid === uuid);
         if (v === undefined) {
             console.error("Variant not found during variant removal");
             return;
@@ -117,7 +117,7 @@ export class ToggleComposite extends Shape {
         }
 
         const selection = [...newVariant.layer.getSelection({ includeComposites: false })];
-        const index = selection.findIndex(s => s.uuid === oldVariant.uuid);
+        const index = selection.findIndex((s) => s.uuid === oldVariant.uuid);
         if (index >= 0) {
             selection.splice(index, 1, newVariant);
             newVariant.layer.setSelection(...selection);

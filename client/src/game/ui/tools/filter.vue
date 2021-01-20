@@ -41,7 +41,7 @@ export default class FilterTool extends Tool implements ToolBasics {
     get initalValues(): { [category: string]: string[] } {
         const values: { [category: string]: string[] } = {};
         for (const cat of Object.keys(this.labels)) {
-            values[cat] = gameStore.labelFilters.filter(f => this.labels[cat].map(l => l[0]).includes(f));
+            values[cat] = gameStore.labelFilters.filter((f) => this.labels[cat].map((l) => l[0]).includes(f));
         }
         return values;
     }

@@ -8,6 +8,10 @@ These usually have no immediately visible impact on regular users
 
 ## Unreleased
 
+### Added
+
+-   Is public toggle for annotations
+
 ## [0.24.1] - 2021-01-17
 
 ### Fixes

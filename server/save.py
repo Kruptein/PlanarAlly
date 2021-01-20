@@ -11,7 +11,7 @@ When writing migrations make sure that these things are respected:
     - WHEN USING THIS IN A SELECT STATEMENT MAKE SURE YOU USE " AND NOT ' OR YOU WILL HAVE A STRING LITERAL
 """
 
-SAVE_VERSION = 48
+SAVE_VERSION = 49
 
 import json
 import logging
@@ -51,37 +51,14 @@ def inc_save_version():
 
 
 def upgrade(version):
-    if version < 18:
+    if version < 20:
         raise OldVersionException(
             f"Upgrade code for this version is >1 year old and is no longer in the active codebase to reduce clutter. You can still find this code on github, contact me for more info."
         )
 
     db.foreign_keys = False
 
-    if version == 18:
-        migrator = SqliteMigrator(db)
-        with db.atomic():
-            migrate(migrator.add_column("user", "email", TextField(null=True)))
-    elif version == 19:
-
-        db.execute_sql(
-            'CREATE TABLE IF NOT EXISTS "floor" ("id" INTEGER NOT NULL PRIMARY KEY, "location_id" INTEGER NOT NULL, "name" TEXT, "index" INTEGER NOT NULL, FOREIGN KEY ("location_id") REFERENCES "location" ("id") ON DELETE CASCADE)'
-        )
-        db.execute_sql(
-            'INSERT INTO floor (location_id, name, "index") SELECT id, "ground", 0 FROM location'
-        )
-
-        with db.atomic():
-            db.execute_sql("CREATE TEMPORARY TABLE _layer_19 AS SELECT * FROM layer")
-            db.execute_sql("DROP TABLE layer")
-            db.execute_sql(
-                'CREATE TABLE IF NOT EXISTS "layer" ("id" INTEGER NOT NULL PRIMARY KEY, "floor_id" INTEGER NOT NULL, "name" TEXT NOT NULL, "type_" TEXT NOT NULL, "player_visible" INTEGER NOT NULL, "player_editable" INTEGER NOT NULL, "selectable" INTEGER NOT NULL, "index" INTEGER NOT NULL, FOREIGN KEY ("floor_id") REFERENCES "floor" ("id") ON DELETE CASCADE)'
-            )
-            db.execute_sql(
-                'INSERT INTO layer (id, floor_id, name, type_, player_visible, player_editable, selectable, "index") SELECT _layer_19.id, floor.id, _layer_19.name, type_, player_visible, player_editable, selectable, _layer_19."index" FROM _layer_19 INNER JOIN floor ON floor.location_id = _layer_19.location_id'
-            )
-
-    elif version == 20:
+    if version == 20:
         migrator = SqliteMigrator(db)
         with db.atomic():
             migrate(
@@ -776,6 +753,12 @@ def upgrade(version):
                             "UPDATE shape SET options = ? WHERE uuid = ?",
                             (options, uuid),
                         )
+    elif version == 48:
+        # Add Shape.annotation_visible
+        with db.atomic():
+            db.execute_sql(
+                "ALTER TABLE shape ADD COLUMN annotation_visible INTEGER NOT NULL DEFAULT 0"
+            )
     else:
         raise UnknownVersionException(
             f"No upgrade code for save format {version} was found."

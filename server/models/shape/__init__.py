@@ -57,6 +57,7 @@ class Shape(BaseModel):
     stroke_width = IntegerField(default=2)
     asset = ForeignKeyField(Asset, backref="shapes", null=True, default=None)
     group = ForeignKeyField(Group, backref="members", null=True, default=None)
+    annotation_visible = BooleanField(default=False)
 
     def __repr__(self):
         return f"<Shape {self.get_path()}>"

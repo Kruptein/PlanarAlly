@@ -104,6 +104,7 @@ export abstract class Shape {
 
     // Mouseover annotation
     annotation = "";
+    annotationVisible = false;
 
     // Draw modus to use
     globalCompositeOperation = "source-over";
@@ -317,6 +318,7 @@ export abstract class Shape {
             name: this.name,
             name_visible: this.nameVisible,
             annotation: this.annotation,
+            annotation_visible: this.annotationVisible,
             is_token: this.isToken,
             is_invisible: this.isInvisible,
             options: this.getOptions(),
@@ -349,7 +351,10 @@ export abstract class Shape {
         this.badge = data.badge;
         this.showBadge = data.show_badge;
         this.isLocked = data.is_locked;
-        if (data.annotation) this.annotation = data.annotation;
+        this.annotationVisible = data.annotation_visible;
+        if (data.annotation) {
+            this.annotation = data.annotation;
+        }
         if (data.name) this.name = data.name;
         if (data.options) this.setOptions(data.options);
         if (data.asset) this.assetId = data.asset;

@@ -114,7 +114,7 @@ export async function onKeyDown(event: KeyboardEvent): Promise<void> {
                 let recalculateMovement = false;
                 const updateList = [];
                 for (const sel of selection) {
-                    if (!sel.ownedBy({ movementAccess: true })) continue;
+                    if (!sel.ownedBy(false, { movementAccess: true })) continue;
                     if (sel.movementObstruction) {
                         recalculateMovement = true;
                         visibilityStore.deleteFromTriag({

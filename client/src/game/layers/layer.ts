@@ -139,7 +139,7 @@ export class Layer {
                 this.points.set(strp, (this.points.get(strp) || new Set()).add(shape.uuid));
             }
         }
-        if (shape.ownedBy({ visionAccess: true }) && shape.isToken) gameStore.addOwnedToken(shape.uuid);
+        if (shape.ownedBy(false, { visionAccess: true }) && shape.isToken) gameStore.addOwnedToken(shape.uuid);
         if (shape.annotation.length) gameStore.annotations.push(shape.uuid);
         if (sync !== SyncMode.NO_SYNC && !shape.preventSync)
             sendShapeAdd({ shape: shape.asDict(), temporary: sync === SyncMode.TEMP_SYNC });
@@ -268,7 +268,7 @@ export class Layer {
                 visibleShapes.push(shape);
             }
             for (const shape of visibleShapes) {
-                if (shape.isInvisible && !shape.ownedBy({ visionAccess: true })) continue;
+                if (shape.isInvisible && !shape.ownedBy(true, { visionAccess: true })) continue;
                 if (shape.labels.length === 0 && gameStore.filterNoLabel) continue;
                 if (
                     shape.labels.length &&

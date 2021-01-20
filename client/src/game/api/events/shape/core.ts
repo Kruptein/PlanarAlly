@@ -71,7 +71,7 @@ socket.on("Shapes.Floor.Change", (data: { uuids: string[]; floor: string }) => {
         .filter(s => s !== undefined) as Shape[];
     if (shapes.length === 0) return;
     moveFloor(shapes, layerManager.getFloor(getFloorId(data.floor))!, false);
-    if (shapes.some(s => s.ownedBy({ editAccess: true })))
+    if (shapes.some(s => s.ownedBy(false, { editAccess: true })))
         floorStore.selectFloor({ targetFloor: data.floor, sync: false });
 });
 

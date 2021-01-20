@@ -15,6 +15,7 @@ These usually have no immediately visible impact on regular users
 ### Fixes
 
 -   Shape name not immediately syncing on visibility toggle
+-   Vision tool disabled tokens private auras no longer being visible
 
 ## [0.24.1] - 2021-01-17
 

@@ -66,7 +66,7 @@ export default class ShapeContext extends Vue {
     }
 
     isOwned(): boolean {
-        return this.getSelection(false).every(s => s.ownedBy({ editAccess: true }));
+        return this.getSelection(false).every(s => s.ownedBy(false, { editAccess: true }));
     }
 
     isActiveLayer(layer: string): boolean {

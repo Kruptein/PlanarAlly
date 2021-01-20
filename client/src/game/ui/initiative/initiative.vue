@@ -88,7 +88,7 @@ export default class Initiative extends Vue {
         const shape = layerManager.UUIDMap.get(actor.uuid);
         // Shapes that are unknown to this client are hidden from this client but owned by other clients
         if (shape === undefined) return false;
-        return shape.ownedBy({ editAccess: true });
+        return shape.ownedBy(false, { editAccess: true });
     }
     getDefaultEffect(): { uuid: string; name: string; turns: number } {
         return { uuid: uuidv4(), name: this.$t("game.ui.initiative.initiative.new_effect").toString(), turns: 10 };
@@ -146,7 +146,7 @@ export default class Initiative extends Vue {
         if (this.cameraLock) {
             if (actorId !== null) {
                 const shape = layerManager.UUIDMap.get(actorId);
-                if (shape?.ownedBy({ visionAccess: true })) {
+                if (shape?.ownedBy(false, { visionAccess: true })) {
                     gameManager.setCenterPosition(shape.center());
                 }
             }
@@ -230,7 +230,7 @@ export default class Initiative extends Vue {
         const shape = layerManager.UUIDMap.get(actor.uuid);
         if (shape !== undefined) {
             if (shape.nameVisible) return shape.name;
-            if (shape.ownedBy({ editAccess: true })) return shape.name;
+            if (shape.ownedBy(false, { editAccess: true })) return shape.name;
         }
         return actor.source;
     }

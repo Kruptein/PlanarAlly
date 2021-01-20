@@ -541,7 +541,7 @@ export abstract class Shape {
         if (syncTo === SyncTo.UI) this._(activeShapeStore.setIsToken, { isToken, syncTo });
 
         this.isToken = isToken;
-        if (this.ownedBy({ visionAccess: true })) {
+        if (this.ownedBy(false, { visionAccess: true })) {
             if (this.isToken) gameStore.addOwnedToken(this.uuid);
             else gameStore.removeOwnedToken(this.uuid);
         }
@@ -627,20 +627,33 @@ export abstract class Shape {
         return this._owners;
     }
 
-    ownedBy(options: Partial<{ editAccess: boolean; visionAccess: boolean; movementAccess: boolean }>): boolean {
+    /**
+     * This function returns true if the active user owns the given shape in the provided settings.
+     * This always returns true for the DM, or for the DM faking the specific token.
+     * For regular players the default rights and the personal rights are checked.
+     *
+     * @param limitToActiveTokens If this is set to true, everything not in the activeTokens store will always return false
+     * @param options The requested rights to be checked
+     */
+    ownedBy(
+        limitToActiveTokens: boolean,
+        options: Partial<{ editAccess: boolean; visionAccess: boolean; movementAccess: boolean }>,
+    ): boolean {
+        const isActiveToken = gameStore.activeTokens.includes(this.uuid);
         return (
             gameStore.IS_DM ||
-            (gameStore.FAKE_PLAYER && gameStore.activeTokens.includes(this.uuid)) ||
+            (gameStore.FAKE_PLAYER && isActiveToken) ||
             (options.editAccess && this.defaultAccess.edit) ||
             (options.movementAccess && this.defaultAccess.movement) ||
             (options.visionAccess && this.defaultAccess.vision) ||
-            this._owners.some(
-                u =>
-                    u.user === gameStore.username &&
-                    (options.editAccess ? u.access.edit === true : true) &&
-                    (options.movementAccess ? u.access.movement === true : true) &&
-                    (options.visionAccess ? u.access.vision === true : true),
-            )
+            ((!limitToActiveTokens || isActiveToken) &&
+                this._owners.some(
+                    u =>
+                        u.user === gameStore.username &&
+                        (options.editAccess ? u.access.edit === true : true) &&
+                        (options.movementAccess ? u.access.movement === true : true) &&
+                        (options.visionAccess ? u.access.vision === true : true),
+                ))
         );
     }
 
@@ -661,9 +674,9 @@ export abstract class Shape {
         if (syncTo === SyncTo.UI) this._(activeShapeStore.setDefaultAccess, { access: this.defaultAccess, syncTo });
 
         if (this.defaultAccess.vision) {
-            if (this.ownedBy({ visionAccess: true })) gameStore.addOwnedToken(this.uuid);
+            if (this.ownedBy(false, { visionAccess: true })) gameStore.addOwnedToken(this.uuid);
         } else {
-            if (!this.ownedBy({ visionAccess: true })) gameStore.removeOwnedToken(this.uuid);
+            if (!this.ownedBy(false, { visionAccess: true })) gameStore.removeOwnedToken(this.uuid);
         }
         if (gameSettingsStore.fowLos) layerManager.invalidateLightAllFloors();
     }

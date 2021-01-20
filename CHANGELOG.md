@@ -12,6 +12,10 @@ These usually have no immediately visible impact on regular users
 
 -   Is public toggle for annotations
 
+### Fixes
+
+-   Shape name not immediately syncing on visibility toggle
+
 ## [0.24.1] - 2021-01-17
 
 ### Fixes

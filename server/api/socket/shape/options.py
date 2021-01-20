@@ -351,6 +351,8 @@ async def set_name_visible(sid: str, data: ShapeSetBooleanValue):
     shape.name_visible = data["value"]
     shape.save()
 
+    owners = [*get_owner_sids(pr, shape, skip_sid=sid)]
+
     await sio.emit(
         "Shape.Options.NameVisible.Set",
         data,
@@ -358,6 +360,16 @@ async def set_name_visible(sid: str, data: ShapeSetBooleanValue):
         room=pr.active_location.get_path(),
         namespace=GAME_NS,
     )
+
+    for psid in game_state.get_sids(active_location=pr.active_location, skip_sid=sid):
+        if psid in owners:
+            continue
+        await sio.emit(
+            "Shape.Options.Name.Set",
+            {"shape": shape.uuid, "value": shape.name if data["value"] else "?"},
+            room=psid,
+            namespace=GAME_NS,
+        )
 
 
 @sio.on("Shape.Options.ShowBadge.Set", namespace=GAME_NS)

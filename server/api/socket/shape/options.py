@@ -185,9 +185,51 @@ async def set_annotation(sid: str, data: ShapeSetStringValue):
     shape.annotation = data["value"]
     shape.save()
 
-    for sid in get_owner_sids(pr, shape, skip_sid=sid):
+    if shape.annotation_visible:
         await sio.emit(
-            "Shape.Options.Annotation.Set", data, room=sid, namespace=GAME_NS,
+            "Shape.Options.Annotation.Set",
+            data,
+            skip_sid=sid,
+            room=pr.active_location.get_path(),
+            namespace=GAME_NS,
+        )
+    else:
+        for sid in get_owner_sids(pr, shape, skip_sid=sid):
+            await sio.emit(
+                "Shape.Options.Annotation.Set", data, room=sid, namespace=GAME_NS,
+            )
+
+
+@sio.on("Shape.Options.AnnotationVisible.Set", namespace=GAME_NS)
+@auth.login_required(app, sio)
+async def set_annotation_visible(sid: str, data: ShapeSetBooleanValue):
+    pr: PlayerRoom = game_state.get(sid)
+
+    shape = get_shape_or_none(pr, data["shape"], "AnnotationVisible.Set")
+    if shape is None:
+        return
+
+    shape.annotation_visible = data["value"]
+    shape.save()
+
+    owners = [*get_owner_sids(pr, shape, skip_sid=sid)]
+
+    await sio.emit(
+        "Shape.Options.AnnotationVisible.Set",
+        data,
+        room=pr.active_location.get_path(),
+        skip_sid=sid,
+        namespace=GAME_NS,
+    )
+
+    for psid in game_state.get_sids(active_location=pr.active_location, skip_sid=sid):
+        if psid in owners:
+            continue
+        await sio.emit(
+            "Shape.Options.Annotation.Set",
+            {"shape": shape.uuid, "value": shape.annotation if data["value"] else ""},
+            room=psid,
+            namespace=GAME_NS,
         )
 
 

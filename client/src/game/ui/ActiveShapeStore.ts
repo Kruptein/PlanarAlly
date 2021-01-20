@@ -77,6 +77,8 @@ export interface ActiveShapeState {
 
     annotation: string | undefined;
     setAnnotation(data: { annotation: string; syncTo: SyncTo }): void;
+    annotationVisible: boolean;
+    setAnnotationVisible(data: { visible: boolean; syncTo: SyncTo }): void;
     labels: readonly Label[];
     addLabel(data: { label: string; syncTo: SyncTo }): void;
     removeLabel(data: { label: string; syncTo: SyncTo }): void;
@@ -133,6 +135,7 @@ class ActiveShapeStore extends VuexModule implements ActiveShapeState {
     private _groupId: string | null = null;
 
     private _annotation: string | null = null;
+    private _annotationVisible = false;
     private _labels: Label[] = [];
 
     private _variants: { uuid: string; name: string }[] = [];
@@ -608,6 +611,22 @@ class ActiveShapeStore extends VuexModule implements ActiveShapeState {
         }
     }
 
+    get annotationVisible(): boolean {
+        return this._annotationVisible;
+    }
+
+    @Mutation
+    setAnnotationVisible(data: { visible: boolean; syncTo: SyncTo }): void {
+        if (this._uuid === null) return;
+
+        this._annotationVisible = data.visible;
+
+        if (data.syncTo !== SyncTo.UI) {
+            const shape = layerManager.UUIDMap.get(this._uuid)!;
+            shape.setAnnotationVisible(data.visible, data.syncTo);
+        }
+    }
+
     get labels(): readonly Label[] {
         return this._labels;
     }
@@ -713,6 +732,7 @@ class ActiveShapeStore extends VuexModule implements ActiveShapeState {
         this._groupId = shape.groupId ?? null;
 
         this._annotation = shape.annotation;
+        this._annotationVisible = shape.annotationVisible;
         this._labels = [...shape.labels];
 
         if (this._parentUuid) {
@@ -752,6 +772,7 @@ class ActiveShapeStore extends VuexModule implements ActiveShapeState {
         this._groupId = null;
 
         this._annotation = null;
+        this._annotationVisible = false;
         this._labels = [];
 
         this._variants = [];

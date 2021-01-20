@@ -23,6 +23,7 @@ export interface ServerShape {
     name: string;
     name_visible: boolean;
     annotation: string;
+    annotation_visible: boolean;
     is_token: boolean;
     is_invisible: boolean;
     options?: string;

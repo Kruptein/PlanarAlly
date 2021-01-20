@@ -57,6 +57,7 @@ class Shape(BaseModel):
     stroke_width = IntegerField(default=2)
     asset = ForeignKeyField(Asset, backref="shapes", null=True, default=None)
     group = ForeignKeyField(Group, backref="members", null=True, default=None)
+    annotation_visible = BooleanField(default=False)
 
     def __repr__(self):
         return f"<Shape {self.get_path()}>"
@@ -92,7 +93,8 @@ class Shape(BaseModel):
         aura_query = self.auras
         label_query = self.labels.join(Label)
         if not owned:
-            data["annotation"] = ""
+            if not self.annotation_visible:
+                data["annotation"] = ""
             tracker_query = tracker_query.where(Tracker.visible)
             aura_query = aura_query.where(Aura.visible)
             label_query = label_query.where(Label.visible)

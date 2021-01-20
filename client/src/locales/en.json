@@ -189,6 +189,7 @@
                         "is_invisible": "Is invisible",
                         "is_locked": "Is locked",
                         "show_badge": "Show badge",
+                        "show_annotation": "Is public",
                         "block_vision_light": "Blocks vision/light",
                         "block_movement": "Blocks movement"
                     }

@@ -57,7 +57,7 @@ export function rotateAroundPoint(point: GlobalPoint, center: GlobalPoint, angle
 }
 
 export function filterEqualPoints(points: GlobalPoint[]): GlobalPoint[] {
-    return points.filter((val, i, arr) => arr.findIndex(t => t.equals(val)) === i);
+    return points.filter((val, i, arr) => arr.findIndex((t) => t.equals(val)) === i);
 }
 
 export function getPointsCenter(points: GlobalPoint[]): GlobalPoint {

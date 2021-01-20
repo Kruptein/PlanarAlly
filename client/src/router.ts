@@ -83,11 +83,11 @@ router.beforeEach(async (to, _from, next) => {
         const promiseArray = [baseAdjustedFetch("/api/auth"), baseAdjustedFetch("/api/version")];
 
         // Launch extra requests (changelog & notifications)
-        baseAdjustedFetch("/api/changelog").then(async response => {
+        baseAdjustedFetch("/api/changelog").then(async (response) => {
             const data = await response.json();
             coreStore.setChangelog(data.changelog);
         });
-        baseAdjustedFetch("/api/notifications").then(async response => {
+        baseAdjustedFetch("/api/notifications").then(async (response) => {
             const data = await response.json();
             handleNotifications(data);
         });
@@ -108,7 +108,7 @@ router.beforeEach(async (to, _from, next) => {
         } else {
             console.error("Authentication check could not be fulfilled.");
         }
-    } else if (to.matched.some(record => record.meta.auth) && !coreStore.authenticated) {
+    } else if (to.matched.some((record) => record.meta.auth) && !coreStore.authenticated) {
         next({ path: "/auth/login", query: { redirect: to.path } });
     } else {
         next();

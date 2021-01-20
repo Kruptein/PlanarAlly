@@ -64,7 +64,7 @@ export default class GroupSettings extends Vue {
         if (this.shape.groupId === undefined) return;
 
         const members = this.getGroupMembers();
-        if (members.length === 0 || new Set(members.map(m => m.showBadge)).size > 1) {
+        if (members.length === 0 || new Set(members.map((m) => m.showBadge)).size > 1) {
             this.$refs.toggleCheckbox.indeterminate = true;
         } else {
             this.$refs.toggleCheckbox.indeterminate = false;
@@ -104,7 +104,7 @@ export default class GroupSettings extends Vue {
             return this.characterSetSelected;
         } else {
             const charset = group.characterSet;
-            const index = CHARACTER_SETS.findIndex(cs => cs.join(",") === charset.join(","));
+            const index = CHARACTER_SETS.findIndex((cs) => cs.join(",") === charset.join(","));
             return index >= 0 ? index : 2;
         }
     }

@@ -22,7 +22,7 @@ export default class LocationAdminSettings extends Vue {
     };
 
     get name(): string {
-        return gameStore.locations.find(l => l.id === this.location)?.name ?? "";
+        return gameStore.locations.find((l) => l.id === this.location)?.name ?? "";
     }
 
     set name(name: string) {
@@ -30,7 +30,7 @@ export default class LocationAdminSettings extends Vue {
     }
 
     get hasPlayers(): boolean {
-        return gameStore.players.some(p => p.location === this.location);
+        return gameStore.players.some((p) => p.location === this.location);
     }
 
     async deleteLocation(): Promise<void> {
@@ -45,7 +45,7 @@ export default class LocationAdminSettings extends Vue {
             },
         );
         if (!remove) return;
-        this.$emit("update:location", gameStore.locations.find(l => l.id !== this.location)!.id);
+        this.$emit("update:location", gameStore.locations.find((l) => l.id !== this.location)!.id);
         gameStore.removeLocation(this.location);
         this.$emit("close");
     }

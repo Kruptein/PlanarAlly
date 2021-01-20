@@ -18,7 +18,7 @@ export const sendShapesMove = wrapSocket<{
 export const sendTextUpdate = wrapSocket<{ uuid: string; text: string; temporary: boolean }>("Shape.Text.Value.Set");
 
 export function sendShapeOptionsUpdate(shapes: readonly Shape[], temporary: boolean): void {
-    const options = shapes.filter(s => !s.preventSync).map(s => ({ uuid: s.uuid, option: s.getOptions() }));
+    const options = shapes.filter((s) => !s.preventSync).map((s) => ({ uuid: s.uuid, option: s.getOptions() }));
     if (options.length > 0) {
         socket.emit("Shapes.Options.Update", {
             options,
@@ -29,8 +29,8 @@ export function sendShapeOptionsUpdate(shapes: readonly Shape[], temporary: bool
 
 export function sendShapePositionUpdate(shapes: readonly Shape[], temporary: boolean): void {
     const positions = shapes
-        .filter(s => !s.preventSync)
-        .map(s => ({ uuid: s.uuid, position: s.getPositionRepresentation() }));
+        .filter((s) => !s.preventSync)
+        .map((s) => ({ uuid: s.uuid, position: s.getPositionRepresentation() }));
     if (positions.length > 0) _sendShapePositionUpdate(positions, temporary);
 }
 

@@ -122,7 +122,7 @@ export const app = new Vue({
     router,
     store: rootStore,
     i18n,
-    render: h => h(App),
+    render: (h) => h(App),
 }).$mount("#app");
 
 (window as any).app = app;

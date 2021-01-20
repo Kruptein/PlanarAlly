@@ -32,7 +32,7 @@ socket.on("Shapes.Add", async (shapes: ServerShape[]) => {
 
 socket.on("Shapes.Remove", (shapeIds: string[]) => {
     // We use ! on the get here even though to silence the typechecker as we filter undefineds later.
-    const shapes = shapeIds.map(s => layerManager.UUIDMap.get(s)!).filter(s => s !== undefined);
+    const shapes = shapeIds.map((s) => layerManager.UUIDMap.get(s)!).filter((s) => s !== undefined);
     deleteShapes(shapes, SyncMode.NO_SYNC);
 });
 
@@ -67,18 +67,18 @@ socket.on("Shape.Order.Set", (data: { uuid: string; index: number }) => {
 
 socket.on("Shapes.Floor.Change", (data: { uuids: string[]; floor: string }) => {
     const shapes = data.uuids
-        .map(u => layerManager.UUIDMap.get(u) ?? undefined)
-        .filter(s => s !== undefined) as Shape[];
+        .map((u) => layerManager.UUIDMap.get(u) ?? undefined)
+        .filter((s) => s !== undefined) as Shape[];
     if (shapes.length === 0) return;
     moveFloor(shapes, layerManager.getFloor(getFloorId(data.floor))!, false);
-    if (shapes.some(s => s.ownedBy(false, { editAccess: true })))
+    if (shapes.some((s) => s.ownedBy(false, { editAccess: true })))
         floorStore.selectFloor({ targetFloor: data.floor, sync: false });
 });
 
 socket.on("Shapes.Layer.Change", (data: { uuids: string[]; floor: string; layer: string }) => {
     const shapes = data.uuids
-        .map(u => layerManager.UUIDMap.get(u) ?? undefined)
-        .filter(s => s !== undefined) as Shape[];
+        .map((u) => layerManager.UUIDMap.get(u) ?? undefined)
+        .filter((s) => s !== undefined) as Shape[];
     if (shapes.length === 0) return;
     moveLayer(shapes, layerManager.getLayer(layerManager.getFloor(getFloorId(data.floor))!, data.layer)!, false);
 });

@@ -99,6 +99,6 @@ socket.on("Asset.List.Set", (assets: AssetList) => {
 
 socket.on("Temp.Clear", (shapeIds: string[]) => {
     // We use ! on the get here even though to silence the typechecker as we filter undefineds later.
-    const shapes = shapeIds.map(s => layerManager.UUIDMap.get(s)!).filter(s => s !== undefined);
+    const shapes = shapeIds.map((s) => layerManager.UUIDMap.get(s)!).filter((s) => s !== undefined);
     deleteShapes(shapes, SyncMode.NO_SYNC);
 });

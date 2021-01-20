@@ -66,7 +66,7 @@ export default class ShapeContext extends Vue {
     }
 
     isOwned(): boolean {
-        return this.getSelection(false).every(s => s.ownedBy(false, { editAccess: true }));
+        return this.getSelection(false).every((s) => s.ownedBy(false, { editAccess: true }));
     }
 
     isActiveLayer(layer: string): boolean {
@@ -78,7 +78,7 @@ export default class ShapeContext extends Vue {
     }
 
     hasSpawnToken(): boolean {
-        return this.getSelection(false).some(s =>
+        return this.getSelection(false).some((s) =>
             gameSettingsStore.currentLocationOptions.spawnLocations!.includes(s.uuid),
         );
     }
@@ -103,7 +103,7 @@ export default class ShapeContext extends Vue {
     }
     getLayers(): Layer[] {
         if (!gameStore.IS_DM || this.hasSpawnToken()) return [];
-        return layerManager.getLayers(floorStore.currentFloor).filter(l => l.selectable) || [];
+        return layerManager.getLayers(floorStore.currentFloor).filter((l) => l.selectable) || [];
     }
     getActiveLayer(): Layer | undefined {
         return gameStore.boardInitialized ? floorStore.currentLayer : undefined;
@@ -115,7 +115,7 @@ export default class ShapeContext extends Vue {
                 ? this.$t("game.ui.selection.shapecontext.show_initiative").toString()
                 : this.$t("game.ui.selection.shapecontext.add_initiative").toString();
         } else {
-            return selection.every(shape => inInitiative(shape.uuid))
+            return selection.every((shape) => inInitiative(shape.uuid))
                 ? this.$t("game.ui.selection.shapecontext.show_initiative").toString()
                 : this.$t("game.ui.selection.shapecontext.add_all_initiative").toString();
         }
@@ -161,10 +161,10 @@ export default class ShapeContext extends Vue {
             default: {
                 const choice = await this.$refs.selectionbox.open(
                     "Choose the desired spawn location",
-                    spawnInfo.map(s => s.name),
+                    spawnInfo.map((s) => s.name),
                 );
                 if (choice === undefined) return;
-                const choiceShape = spawnInfo.find(s => s.name === choice);
+                const choiceShape = spawnInfo.find((s) => s.name === choice);
                 if (choiceShape === undefined) return;
                 spawnLocation = choiceShape;
                 break;
@@ -178,7 +178,7 @@ export default class ShapeContext extends Vue {
         };
 
         sendShapesMove({
-            shapes: selection.map(s => s.uuid),
+            shapes: selection.map((s) => s.uuid),
             target: { location: newLocation, ...targetLocation },
         });
         if (gameSettingsStore.movePlayerOnTokenChange) {
@@ -193,12 +193,12 @@ export default class ShapeContext extends Vue {
     }
     moveToBack(): void {
         const layer = this.getActiveLayer()!;
-        this.getSelection(false).forEach(shape => layer.moveShapeOrder(shape, 0, SyncMode.FULL_SYNC));
+        this.getSelection(false).forEach((shape) => layer.moveShapeOrder(shape, 0, SyncMode.FULL_SYNC));
         this.close();
     }
     moveToFront(): void {
         const layer = this.getActiveLayer()!;
-        this.getSelection(false).forEach(shape =>
+        this.getSelection(false).forEach((shape) =>
             layer.moveShapeOrder(shape, layer.size({ includeComposites: true }) - 1, SyncMode.FULL_SYNC),
         );
         this.close();
@@ -206,7 +206,7 @@ export default class ShapeContext extends Vue {
     async addInitiative(): Promise<void> {
         const selection = this.getSelection(false);
         let groupInitiatives = false;
-        if (new Set(selection.map(s => s.groupId)).size < selection.length) {
+        if (new Set(selection.map((s) => s.groupId)).size < selection.length) {
             const answer = await this.$refs.confirmDialog.open(
                 "Adding initiative",
                 "Some of the selected shapes belong to the same group. Do you wish to add 1 entry for these?",
@@ -267,7 +267,7 @@ export default class ShapeContext extends Vue {
 
     canBeSaved(): boolean {
         return this.getSelection(false).every(
-            s => s.assetId !== undefined && layerManager.getCompositeParent(s.uuid) === undefined,
+            (s) => s.assetId !== undefined && layerManager.getCompositeParent(s.uuid) === undefined,
         );
     }
 
@@ -322,8 +322,8 @@ export default class ShapeContext extends Vue {
         return [
             ...new Set(
                 this.getSelection(false)
-                    .map(s => s.groupId)
-                    .filter(g => g !== undefined),
+                    .map((s) => s.groupId)
+                    .filter((g) => g !== undefined),
             ),
         ] as string[];
     }
@@ -334,11 +334,11 @@ export default class ShapeContext extends Vue {
     }
 
     hasUngrouped(): boolean {
-        return this.getSelection(false).some(s => s.groupId === undefined);
+        return this.getSelection(false).some((s) => s.groupId === undefined);
     }
 
     createGroup(): void {
-        createNewGroupForShapes(this.getSelection(false).map(s => s.uuid));
+        createNewGroupForShapes(this.getSelection(false).map((s) => s.uuid));
         this.close();
     }
 
@@ -352,7 +352,7 @@ export default class ShapeContext extends Vue {
         );
         if (keepBadges === undefined) return;
         createNewGroupForShapes(
-            this.getSelection(false).map(s => s.uuid),
+            this.getSelection(false).map((s) => s.uuid),
             keepBadges,
         );
         this.close();
@@ -391,10 +391,10 @@ export default class ShapeContext extends Vue {
 
     enlargeGroup(): void {
         const selection = this.getSelection(false);
-        const groupId = selection.find(s => s.groupId !== undefined)!.groupId!;
+        const groupId = selection.find((s) => s.groupId !== undefined)!.groupId!;
         addGroupMembers(
             groupId,
-            selection.filter(s => s.groupId === undefined).map(s => ({ uuid: s.uuid })),
+            selection.filter((s) => s.groupId === undefined).map((s) => ({ uuid: s.uuid })),
             true,
         );
         this.close();

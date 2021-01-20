@@ -40,7 +40,7 @@ export default class VariantSwitcher extends Vue {
     }
 
     get currentIndex(): number {
-        return this.variants.findIndex(v => v.uuid === this.shape.uuid);
+        return this.variants.findIndex((v) => v.uuid === this.shape.uuid);
     }
 
     get previousVariant(): { uuid?: string; name: string } {

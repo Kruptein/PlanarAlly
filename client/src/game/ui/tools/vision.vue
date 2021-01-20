@@ -24,7 +24,7 @@ export default class VisionTool extends Tool {
     }
 
     get tokens(): Shape[] {
-        return gameStore.ownedtokens.map(t => layerManager.UUIDMap.get(t)!);
+        return gameStore.ownedtokens.map((t) => layerManager.UUIDMap.get(t)!);
     }
 
     toggle(uuid: string): void {

@@ -264,7 +264,7 @@ export default class SelectTool extends Tool implements ToolBasics {
         }
 
         const layerSelection = layer.getSelection({ includeComposites: false });
-        if (layerSelection.some(s => s.isLocked)) return;
+        if (layerSelection.some((s) => s.isLocked)) return;
 
         this.deltaChanged = false;
 
@@ -380,7 +380,7 @@ export default class SelectTool extends Tool implements ToolBasics {
 
         let layerSelection = layer.getSelection({ includeComposites: false });
 
-        if (layerSelection.some(s => s.isLocked)) return;
+        if (layerSelection.some((s) => s.isLocked)) return;
 
         if (this.mode === SelectOperations.GroupSelect) {
             if (event.ctrlKey) {
@@ -393,7 +393,7 @@ export default class SelectTool extends Tool implements ToolBasics {
                 if (!shape.options.has("preFogShape") && (shape.options.get("skipDraw") ?? false)) continue;
                 if (!shape.ownedBy(false, { movementAccess: true })) continue;
                 if (!shape.visibleInCanvas(layer.canvas, { includeAuras: false })) continue;
-                if (layerSelection.some(s => s.uuid === shape.uuid)) continue;
+                if (layerSelection.some((s) => s.uuid === shape.uuid)) continue;
 
                 if (shape.points.length > 1) {
                     for (let i = 0; i < shape.points.length; i++) {
@@ -418,7 +418,8 @@ export default class SelectTool extends Tool implements ToolBasics {
             layer.removeShape(this.selectionHelper!, SyncMode.NO_SYNC, true);
             this.selectionHelper = undefined;
 
-            if (layerSelection.some(s => !s.isLocked)) layer.setSelection(...layerSelection.filter(s => !s.isLocked));
+            if (layerSelection.some((s) => !s.isLocked))
+                layer.setSelection(...layerSelection.filter((s) => !s.isLocked));
 
             if (
                 layerSelection.length > 0 &&
@@ -628,7 +629,7 @@ export default class SelectTool extends Tool implements ToolBasics {
             bbox = layerSelection[0].getBoundingBox();
         } else {
             bbox = layerSelection
-                .map(s => s.getAABB())
+                .map((s) => s.getAABB())
                 .reduce((acc: BoundingRect, val: BoundingRect) => acc.union(val))
                 .expand(new Vector(-50, -50));
         }

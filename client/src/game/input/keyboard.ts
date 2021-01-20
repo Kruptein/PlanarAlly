@@ -27,9 +27,9 @@ export function onKeyUp(event: KeyboardEvent): void {
         if (event.key === " " || (event.code === "Numpad0" && !event.ctrlKey)) {
             // Spacebar or numpad-zero: cycle through own tokens
             // numpad-zero only if Ctrl is not pressed, as this would otherwise conflict with Ctrl + 0
-            const tokens = gameStore.ownedtokens.map(o => layerManager.UUIDMap.get(o)!);
+            const tokens = gameStore.ownedtokens.map((o) => layerManager.UUIDMap.get(o)!);
             if (tokens.length === 0) return;
-            const i = tokens.findIndex(o => o.center().equals(gameStore.screenCenter));
+            const i = tokens.findIndex((o) => o.center().equals(gameStore.screenCenter));
             const token = tokens[(i + 1) % tokens.length];
             gameManager.setCenterPosition(token.center());
             floorStore.selectFloor({ targetFloor: token.floor.name, sync: true });

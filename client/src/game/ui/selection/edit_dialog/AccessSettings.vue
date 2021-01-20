@@ -26,7 +26,7 @@ export default class AccessSettings extends Vue {
     }
 
     get playersWithoutAccess(): { id: number; name: string }[] {
-        return gameStore.players.filter(p => !this.shape.owners.some(o => o.user === p.name));
+        return gameStore.players.filter((p) => !this.shape.owners.some((o) => o.user === p.name));
     }
 
     toggleDefaultEditAccess(): void {

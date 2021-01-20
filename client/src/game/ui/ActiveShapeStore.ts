@@ -89,7 +89,7 @@ export interface ActiveShapeState {
 }
 
 function toUiTrackers(trackers: readonly Tracker[], shape: string): UiTracker[] {
-    return trackers.map(tracker => ({
+    return trackers.map((tracker) => ({
         shape,
         temporary: false,
         ...tracker,
@@ -97,7 +97,7 @@ function toUiTrackers(trackers: readonly Tracker[], shape: string): UiTracker[] 
 }
 
 function toUiAuras(auras: readonly Aura[], shape: string): UiAura[] {
-    return auras.map(aura => ({
+    return auras.map((aura) => ({
         shape,
         temporary: false,
         ...aura,
@@ -339,7 +339,7 @@ class ActiveShapeStore extends VuexModule implements ActiveShapeState {
             gameStore.IS_DM ||
             (gameStore.FAKE_PLAYER && gameStore.activeTokens.includes(this._uuid)) ||
             this._access!.edit ||
-            this._owners.some(u => u.user === gameStore.username && u.access.edit === true)
+            this._owners.some((u) => u.user === gameStore.username && u.access.edit === true)
         );
     }
 
@@ -432,7 +432,7 @@ class ActiveShapeStore extends VuexModule implements ActiveShapeState {
     updateOwner(data: { owner: ShapeOwner; syncTo: SyncTo }): void {
         if (this._uuid === null) return;
 
-        const index = this._owners.findIndex(o => o.user === data.owner.user);
+        const index = this._owners.findIndex((o) => o.user === data.owner.user);
         if (index < 0) return;
 
         Object.assign(this._owners[index], data.owner);
@@ -447,7 +447,7 @@ class ActiveShapeStore extends VuexModule implements ActiveShapeState {
     removeOwner(data: { owner: string; syncTo: SyncTo }): void {
         if (this._uuid === null) return;
 
-        this._owners = this._owners.filter(o => o.user !== data.owner);
+        this._owners = this._owners.filter((o) => o.user !== data.owner);
 
         if (data.syncTo !== SyncTo.UI) {
             const shape = layerManager.UUIDMap.get(this._uuid)!;
@@ -484,7 +484,7 @@ class ActiveShapeStore extends VuexModule implements ActiveShapeState {
     updateTracker(data: { tracker: string; delta: Partial<Tracker>; syncTo: SyncTo }): void {
         if (this._uuid === undefined) return;
 
-        const tracker = this._trackers.find(t => t.uuid === data.tracker);
+        const tracker = this._trackers.find((t) => t.uuid === data.tracker);
         if (tracker === undefined) return;
 
         Object.assign(tracker, data.delta);
@@ -507,7 +507,7 @@ class ActiveShapeStore extends VuexModule implements ActiveShapeState {
     removeTracker(data: { tracker: string; syncTo: SyncTo }): void {
         if (this._uuid === undefined) return;
 
-        const trackerIndex = this._trackers.findIndex(t => t.uuid === data.tracker);
+        const trackerIndex = this._trackers.findIndex((t) => t.uuid === data.tracker);
         if (trackerIndex < 0) return;
 
         const tracker = this._trackers.splice(trackerIndex, 1)[0];
@@ -550,7 +550,7 @@ class ActiveShapeStore extends VuexModule implements ActiveShapeState {
     updateAura(data: { aura: string; delta: Partial<Aura>; syncTo: SyncTo }): void {
         if (this._uuid === undefined) return;
 
-        const aura = this._auras.find(a => a.uuid === data.aura);
+        const aura = this._auras.find((a) => a.uuid === data.aura);
         if (aura === undefined) return;
 
         Object.assign(aura, data.delta);
@@ -573,7 +573,7 @@ class ActiveShapeStore extends VuexModule implements ActiveShapeState {
     removeAura(data: { aura: string; syncTo: SyncTo }): void {
         if (this._uuid === undefined) return;
 
-        const auraIndex = this._auras.findIndex(t => t.uuid === data.aura);
+        const auraIndex = this._auras.findIndex((t) => t.uuid === data.aura);
         if (auraIndex < 0) return;
 
         const aura = this._auras.splice(auraIndex, 1)[0];
@@ -647,7 +647,7 @@ class ActiveShapeStore extends VuexModule implements ActiveShapeState {
     removeLabel(data: { label: string; syncTo: SyncTo }): void {
         if (this._uuid === null) return;
 
-        this._labels = this._labels.filter(l => l.uuid !== data.label);
+        this._labels = this._labels.filter((l) => l.uuid !== data.label);
 
         if (data.syncTo !== SyncTo.UI) {
             const shape = layerManager.UUIDMap.get(this._uuid)!;
@@ -665,7 +665,7 @@ class ActiveShapeStore extends VuexModule implements ActiveShapeState {
     renameVariant(data: { uuid: string; name: string; syncTo: SyncTo }): void {
         if (this._uuid === null || this._parentUuid === null) return;
 
-        const variant = this._variants.find(v => v.uuid === data.uuid);
+        const variant = this._variants.find((v) => v.uuid === data.uuid);
         if (variant === undefined) return;
 
         variant.name = data.name;
@@ -680,7 +680,7 @@ class ActiveShapeStore extends VuexModule implements ActiveShapeState {
     removeVariant(data: { uuid: string; syncTo: SyncTo }): void {
         if (this._uuid === null || this._parentUuid === null) return;
 
-        const index = this._variants.findIndex(v => v.uuid === data.uuid);
+        const index = this._variants.findIndex((v) => v.uuid === data.uuid);
         if (index < 0) return;
 
         this._variants.splice(index, 1);
@@ -714,7 +714,7 @@ class ActiveShapeStore extends VuexModule implements ActiveShapeState {
         this._showBadge = shape.showBadge;
 
         this._access = { ...shape.defaultAccess };
-        this._owners = shape.owners.map(o => ({ ...o, access: { ...o.access } }));
+        this._owners = shape.owners.map((o) => ({ ...o, access: { ...o.access } }));
 
         this._trackers = [];
         this._auras = [];
@@ -737,7 +737,7 @@ class ActiveShapeStore extends VuexModule implements ActiveShapeState {
 
         if (this._parentUuid) {
             const composite = layerManager.UUIDMap.get(this._parentUuid) as ToggleComposite;
-            this._variants = composite.variants.map(v => ({ ...v }));
+            this._variants = composite.variants.map((v) => ({ ...v }));
         }
     }
 

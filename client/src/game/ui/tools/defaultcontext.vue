@@ -74,8 +74,8 @@ export default class DefaultContext extends Vue {
             this.$t("game.ui.tools.defaultcontext.new_spawn_title").toString(),
             (value: string) => {
                 if (value === "") return { valid: false, reason: this.$t("common.insert_one_character").toString() };
-                const spawnNames = spawnLocations.map(uuid => layerManager.UUIDMap.get(uuid)?.name ?? "");
-                if (spawnNames.some(name => name === value))
+                const spawnNames = spawnLocations.map((uuid) => layerManager.UUIDMap.get(uuid)?.name ?? "");
+                if (spawnNames.some((name) => name === value))
                     return { valid: false, reason: this.$t("common.name_already_in_use").toString() };
                 return { valid: true };
             },

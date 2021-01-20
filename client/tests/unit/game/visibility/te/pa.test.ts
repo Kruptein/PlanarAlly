@@ -52,7 +52,7 @@ function _expectRemoveSuccessRotation(shape1: Shape, shape2: Shape, rotate: bool
 
 function _rotateShape(shape: Shape): void {
     const points = shape.points
-        .map(p => rotateAroundOrigin(p, Math.PI / 2).map(v => Math.round(v)))
+        .map((p) => rotateAroundOrigin(p, Math.PI / 2).map((v) => Math.round(v)))
         .sort((a: number[], b: number[]) => (xySmaller(a, b) ? -1 : 1));
     shape.refPoint = new GlobalPoint(points[0][0], points[0][1]);
     (shape as Rect).w = points[3][0] - points[0][0];

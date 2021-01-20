@@ -220,7 +220,7 @@ class GameStore extends VuexModule implements GameState {
 
     @Mutation
     newMarker(data: { marker: string; sync: boolean }): void {
-        const exists = this.markers.some(m => m === data.marker);
+        const exists = this.markers.some((m) => m === data.marker);
         if (!exists) {
             this.markers.push(data.marker);
             if (data.sync) socket.emit("Marker.New", data.marker);
@@ -229,8 +229,8 @@ class GameStore extends VuexModule implements GameState {
 
     @Mutation
     removeMarker(data: { marker: string; sync: boolean }): void {
-        if (this.markers.some(m => m === data.marker)) {
-            this.markers = this.markers.filter(m => m !== data.marker);
+        if (this.markers.some((m) => m === data.marker)) {
+            this.markers = this.markers.filter((m) => m !== data.marker);
             if (data.sync) socket.emit("Marker.Remove", data.marker);
         }
     }
@@ -252,12 +252,12 @@ class GameStore extends VuexModule implements GameState {
     @Mutation
     setLocations(data: { locations: { id: number; name: string }[]; sync: boolean }): void {
         this.locations = data.locations;
-        if (data.sync) sendLocationOrder(this.locations.map(l => l.id));
+        if (data.sync) sendLocationOrder(this.locations.map((l) => l.id));
     }
 
     @Mutation
     removeLocation(id: number): void {
-        const idx = this.locations.findIndex(l => l.id === id);
+        const idx = this.locations.findIndex((l) => l.id === id);
         if (idx >= 0) this.locations.splice(idx, 1);
         sendLocationRemove(id);
     }
@@ -329,7 +329,7 @@ class GameStore extends VuexModule implements GameState {
 
     @Mutation
     updateNote(data: { note: Note; sync: boolean }): void {
-        const actualNote = this.notes.find(n => n.uuid === data.note.uuid);
+        const actualNote = this.notes.find((n) => n.uuid === data.note.uuid);
         if (actualNote === undefined) return;
         actualNote.title = data.note.title;
         actualNote.text = data.note.text;
@@ -338,7 +338,7 @@ class GameStore extends VuexModule implements GameState {
 
     @Mutation
     removeNote(data: { note: Note; sync: boolean }): void {
-        this.notes = this.notes.filter(n => n.uuid !== data.note.uuid);
+        this.notes = this.notes.filter((n) => n.uuid !== data.note.uuid);
         if (data.sync) socket.emit("Note.Remove", data.note.uuid);
     }
 
@@ -413,7 +413,7 @@ class GameStore extends VuexModule implements GameState {
     @Mutation
     kickPlayer(playerId: number): void {
         sendRoomKickPlayer(playerId);
-        this.players = this.players.filter(p => p.id !== playerId);
+        this.players = this.players.filter((p) => p.id !== playerId);
     }
 
     @Mutation

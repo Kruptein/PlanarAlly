@@ -45,7 +45,7 @@ function rescale(factor: number, sync: boolean): void {
             );
         } else if (shape.type === "polygon") {
             (shape as Polygon)._vertices = (shape as Polygon)._vertices.map(
-                v => new GlobalPoint(v.x * factor, v.y * factor),
+                (v) => new GlobalPoint(v.x * factor, v.y * factor),
             );
         }
         if (sync && shape.type !== "polygon") sendShapeSizeUpdate({ shape, temporary: false });

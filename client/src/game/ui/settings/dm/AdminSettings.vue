@@ -41,7 +41,7 @@ export default class AdminSettings extends Vue {
     }
 
     get players(): Player[] {
-        return gameStore.players.filter(p => p.role !== 1);
+        return gameStore.players.filter((p) => p.role !== 1);
     }
 
     refreshInviteCode(): void {

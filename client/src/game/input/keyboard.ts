@@ -10,6 +10,7 @@ import { floorStore } from "../layers/store";
 import { moveFloor } from "../layers/utils";
 import { gameManager } from "../manager";
 import { moveShapes } from "../operations/movement";
+import { redoOperation, undoOperation } from "../operations/operations";
 import { gameSettingsStore } from "../settings";
 import { activeShapeStore } from "../ui/ActiveShapeStore";
 
@@ -165,6 +166,14 @@ export async function onKeyDown(event: KeyboardEvent): Promise<void> {
         } else if (event.key === "v" && event.ctrlKey) {
             // Ctrl-v - Paste
             await pasteShapes();
+        } else if (event.key === "z" && event.ctrlKey) {
+            undoOperation();
+            event.preventDefault();
+            event.stopPropagation();
+        } else if (event.key === "r" && event.ctrlKey) {
+            redoOperation();
+            event.preventDefault();
+            event.stopPropagation();
         } else if (event.key === "PageUp" && floorStore.currentFloorindex < floorStore.floors.length - 1) {
             // Page Up - Move floor up
             // Alt + Page Up - Move selected shapes floor up

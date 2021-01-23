@@ -3,10 +3,14 @@ import { Vector } from "../geom";
 import { Shape } from "../shapes/shape";
 import { visibilityStore } from "../visibility/store";
 import { TriangulationTarget } from "../visibility/te/pa";
+import { addOperation, MovementOperation, ShapeMovementOperation } from "./operations";
+
 export function moveShapes(shapes: readonly Shape[], delta: Vector, temporary: boolean): void {
     let recalculateMovement = false;
     let recalculateVision = false;
 
+    const updateList = [];
+    const operationList: MovementOperation = { type: "movement", shapes: [] };
 
     for (const shape of shapes) {
         if (!shape.ownedBy(false, { movementAccess: true })) continue;
@@ -26,7 +30,12 @@ export function moveShapes(shapes: readonly Shape[], delta: Vector, temporary: b
             });
         }
 
+        const operation: ShapeMovementOperation = { uuid: shape.uuid, from: shape.refPoint.asArray(), to: [] };
+
         shape.refPoint = shape.refPoint.add(delta);
+
+        operation.to = shape.refPoint.asArray();
+        operationList.shapes.push(operation);
 
         if (shape.movementObstruction && !temporary)
             visibilityStore.addToTriag({ target: TriangulationTarget.MOVEMENT, shape: shape.uuid });
@@ -37,8 +46,10 @@ export function moveShapes(shapes: readonly Shape[], delta: Vector, temporary: b
         if (!shape.preventSync) updateList.push(shape);
     }
     sendShapePositionUpdate(updateList, temporary);
+    if (!temporary) addOperation(operationList);
 
     const floorId = shapes[0].floor.id;
     if (recalculateVision) visibilityStore.recalculateVision(floorId);
     if (recalculateMovement) visibilityStore.recalculateMovement(floorId);
     shapes[0].layer.invalidate(false);
+}

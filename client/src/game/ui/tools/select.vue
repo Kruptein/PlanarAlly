@@ -26,6 +26,7 @@ import { Shape } from "@/game/shapes/shape";
 import Tools from "./tools.vue";
 import { RulerFeatures } from "./ruler.vue";
 import { moveShapes } from "../../operations/movement";
+import { addOperation, Operation } from "../../operations/operations";
 
 enum SelectOperations {
     Noop,
@@ -79,6 +80,8 @@ export default class SelectTool extends Tool implements ToolBasics {
 
     hasSelection = false;
     showRuler = false;
+
+    operationList: Operation | undefined = undefined;
 
     permittedTools_: ToolPermission[] = [];
 
@@ -202,6 +205,11 @@ export default class SelectTool extends Tool implements ToolBasics {
                     this.mode = SelectOperations.Drag;
                     const localRefPoint = g2l(shape.refPoint);
                     this.dragRay = Ray.fromPoints(localRefPoint, lp);
+
+                    // don't use layerSelection here as it can be outdated by the pushSelection setSelection above
+                    this.operationList = { type: "movement", shapes: [] };
+                    for (const shape of layer.getSelection({ includeComposites: false }))
+                        this.operationList.shapes.push({ uuid: shape.uuid, from: shape.refPoint.asArray(), to: [] });
                 }
                 layer.invalidate(true);
                 hit = true;
@@ -421,7 +429,7 @@ export default class SelectTool extends Tool implements ToolBasics {
 
             if (this.mode === SelectOperations.Drag) {
                 const updateList = [];
-                for (const sel of layerSelection) {
+                for (const [s, sel] of layerSelection.entries()) {
                     if (!sel.ownedBy(false, { movementAccess: true })) continue;
 
                     if (
@@ -446,7 +454,11 @@ export default class SelectTool extends Tool implements ToolBasics {
                                 target: TriangulationTarget.MOVEMENT,
                                 shape: sel.uuid,
                             });
+
                         sel.snapToGrid();
+
+                        this.operationList!.shapes[s].to = sel.refPoint.asArray();
+
                         if (sel.visionObstruction) {
                             visibilityStore.addToTriag({ target: TriangulationTarget.VISION, shape: sel.uuid });
                             recalcVision = true;
@@ -455,6 +467,8 @@ export default class SelectTool extends Tool implements ToolBasics {
                             visibilityStore.addToTriag({ target: TriangulationTarget.MOVEMENT, shape: sel.uuid });
                             recalcMovement = true;
                         }
+                    } else {
+                        this.operationList!.shapes[s].to = sel.refPoint.asArray();
                     }
 
                     if (sel.visionObstruction) recalcVision = true;
@@ -463,6 +477,7 @@ export default class SelectTool extends Tool implements ToolBasics {
                     sel.updatePoints();
                 }
                 sendShapePositionUpdate(updateList, false);
+                if ((this.operationList?.shapes.length ?? 0) > 0) addOperation(this.operationList!);
             }
             if (this.mode === SelectOperations.Resize) {
                 for (const sel of layerSelection) {

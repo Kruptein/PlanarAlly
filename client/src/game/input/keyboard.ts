@@ -170,7 +170,7 @@ export async function onKeyDown(event: KeyboardEvent): Promise<void> {
             undoOperation();
             event.preventDefault();
             event.stopPropagation();
-        } else if (event.key === "r" && event.ctrlKey) {
+        } else if (event.key === "Z") {
             redoOperation();
             event.preventDefault();
             event.stopPropagation();

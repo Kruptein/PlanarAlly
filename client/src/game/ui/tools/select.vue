@@ -27,6 +27,7 @@ import Tools from "./tools.vue";
 import { RulerFeatures } from "./ruler.vue";
 import { moveShapes } from "../../operations/movement";
 import { Operation } from "../../operations/model";
+import { resizeShape } from "../../operations/resize";
 import { rotateShapes } from "../../operations/rotation";
 import { addOperation } from "../../operations/undo";
 
@@ -332,31 +333,19 @@ export default class SelectTool extends Tool implements ToolBasics {
 
                 layer.invalidate(false);
             } else if (this.mode === SelectOperations.Resize) {
-                let recalc = false;
-                for (const sel of layerSelection) {
-                    if (!sel.ownedBy(false, { movementAccess: true })) continue;
-                    if (sel.visionObstruction)
-                        visibilityStore.deleteFromTriag({
-                            target: TriangulationTarget.VISION,
-                            shape: sel.uuid,
-                        });
-                    let ignorePoint: GlobalPoint | undefined;
-                    if (this.resizePoint >= 0)
-                        ignorePoint = GlobalPoint.fromArray(this.originalResizePoints[this.resizePoint]);
-                    let targetPoint = gp;
-                    if (useSnapping(event) && this.hasFeature(SelectFeatures.Snapping, features))
-                        [targetPoint, this.snappedToPoint] = snapToPoint(floorStore.currentLayer!, gp, ignorePoint);
-                    else this.snappedToPoint = false;
-                    this.resizePoint = sel.resize(this.resizePoint, targetPoint, event.ctrlKey);
-                    // todo: think about calling deleteIntersectVertex directly on the corner point
-                    if (sel.visionObstruction) {
-                        visibilityStore.addToTriag({ target: TriangulationTarget.VISION, shape: sel.uuid });
-                        recalc = true;
-                    }
-                    if (!sel.preventSync) sendShapeSizeUpdate({ shape: sel, temporary: true });
-                }
-                if (recalc) visibilityStore.recalculateVision(layerSelection[0].floor.id);
-                layer.invalidate(false);
+                const shape = layerSelection[0];
+
+                if (!shape.ownedBy(false, { movementAccess: true })) return;
+
+                let ignorePoint: GlobalPoint | undefined;
+                if (this.resizePoint >= 0)
+                    ignorePoint = GlobalPoint.fromArray(this.originalResizePoints[this.resizePoint]);
+                let targetPoint = gp;
+                if (useSnapping(event) && this.hasFeature(SelectFeatures.Snapping, features))
+                    [targetPoint, this.snappedToPoint] = snapToPoint(floorStore.currentLayer!, gp, ignorePoint);
+                else this.snappedToPoint = false;
+
+                this.resizePoint = resizeShape(shape, targetPoint, this.resizePoint, event.ctrlKey, true);
                 this.updateCursor(layer, gp);
             } else if (this.mode === SelectOperations.Rotate) {
                 const center = this.rotationBox!.center();

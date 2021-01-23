@@ -3,7 +3,8 @@ import { Vector } from "../geom";
 import { Shape } from "../shapes/shape";
 import { visibilityStore } from "../visibility/store";
 import { TriangulationTarget } from "../visibility/te/pa";
-import { addOperation, MovementOperation, ShapeMovementOperation } from "./operations";
+import { MovementOperation, ShapeMovementOperation } from "./model";
+import { addOperation } from "./undo";
 
 export function moveShapes(shapes: readonly Shape[], delta: Vector, temporary: boolean): void {
     let recalculateMovement = false;

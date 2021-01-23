@@ -1,19 +1,7 @@
 import { GlobalPoint, Vector } from "../geom";
 import { layerManager } from "../layers/manager";
+import { Operation, ShapeMovementOperation } from "./model";
 import { moveShapes } from "./movement";
-
-export interface ShapeMovementOperation {
-    uuid: string;
-    from: number[];
-    to: number[];
-}
-
-export interface MovementOperation {
-    type: "movement";
-    shapes: ShapeMovementOperation[];
-}
-
-export type Operation = MovementOperation;
 
 const undoStack: Operation[] = [];
 let redoStack: Operation[] = [];

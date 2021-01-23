@@ -26,7 +26,8 @@ import { Shape } from "@/game/shapes/shape";
 import Tools from "./tools.vue";
 import { RulerFeatures } from "./ruler.vue";
 import { moveShapes } from "../../operations/movement";
-import { addOperation, Operation } from "../../operations/operations";
+import { Operation } from "../../operations/model";
+import { addOperation } from "../../operations/undo";
 
 enum SelectOperations {
     Noop,

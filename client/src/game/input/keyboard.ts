@@ -10,7 +10,7 @@ import { floorStore } from "../layers/store";
 import { moveFloor } from "../layers/utils";
 import { gameManager } from "../manager";
 import { moveShapes } from "../operations/movement";
-import { redoOperation, undoOperation } from "../operations/operations";
+import { redoOperation, undoOperation } from "../operations/undo";
 import { gameSettingsStore } from "../settings";
 import { activeShapeStore } from "../ui/ActiveShapeStore";
 

@@ -27,6 +27,7 @@ import Tools from "./tools.vue";
 import { RulerFeatures } from "./ruler.vue";
 import { moveShapes } from "../../operations/movement";
 import { Operation } from "../../operations/model";
+import { rotateShapes } from "../../operations/rotation";
 import { addOperation } from "../../operations/undo";
 
 enum SelectOperations {
@@ -345,7 +346,7 @@ export default class SelectTool extends Tool implements ToolBasics {
             } else if (this.mode === SelectOperations.Rotate) {
                 const center = this.rotationBox!.center();
                 const newAngle = -Math.atan2(center.y - gp.y, gp.x - center.x) + Math.PI / 2;
-                this.rotateSelection(newAngle, center);
+                this.rotateSelection(newAngle, center, true);
             } else {
                 this.updateCursor(layer, gp);
             }
@@ -525,9 +526,8 @@ export default class SelectTool extends Tool implements ToolBasics {
                         this.hasFeature(SelectFeatures.Snapping, features)
                     ) {
                         const center = this.rotationBox!.center();
-                        this.rotateSelection(newAngle, center);
-                    }
-                    if (!sel.preventSync) sendShapePositionUpdate([sel], false);
+                        this.rotateSelection(newAngle, center, false);
+                    } else if (!sel.preventSync) sendShapePositionUpdate([sel], false);
                     sel.updatePoints();
                 }
             }
@@ -677,28 +677,14 @@ export default class SelectTool extends Tool implements ToolBasics {
         }
     }
 
-    rotateSelection(newAngle: number, center: GlobalPoint): void {
+    rotateSelection(newAngle: number, center: GlobalPoint, temporary: boolean): void {
         const layer = floorStore.currentLayer!;
         const dA = newAngle - this.angle;
         this.angle = newAngle;
-        let recalc = false;
         const layerSelection = layer.getSelection({ includeComposites: false });
-        for (const sel of layerSelection) {
-            if (sel.visionObstruction)
-                visibilityStore.deleteFromTriag({
-                    target: TriangulationTarget.VISION,
-                    shape: sel.uuid,
-                });
 
-            sel.rotateAround(center, dA);
+        rotateShapes(layerSelection, dA, center, temporary);
 
-            if (sel.visionObstruction) {
-                visibilityStore.addToTriag({ target: TriangulationTarget.VISION, shape: sel.uuid });
-                recalc = true;
-            }
-            if (!sel.preventSync) sendShapePositionUpdate([sel], true);
-        }
-        if (recalc) visibilityStore.recalculateVision(layerSelection[0].floor.id);
         this.rotationEnd!.rotateAround(center, dA);
         this.rotationAnchor!.rotateAround(center, dA);
         this.rotationBox!.angle = this.angle;

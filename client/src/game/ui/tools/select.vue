@@ -25,6 +25,7 @@ import { sendShapePositionUpdate, sendShapeSizeUpdate } from "../../api/emits/sh
 import { Shape } from "@/game/shapes/shape";
 import Tools from "./tools.vue";
 import { RulerFeatures } from "./ruler.vue";
+import { moveShapes } from "../../operations/movement";
 
 enum SelectOperations {
     Noop,
@@ -294,25 +295,9 @@ export default class SelectTool extends Tool implements ToolBasics {
                         if (delta !== ogDelta) this.deltaChanged = true;
                     }
                 }
-                let recalc = false;
-                const updateList = [];
-                // Actually apply the delta on all shapes
-                for (const sel of layerSelection) {
-                    if (!sel.ownedBy(false, { movementAccess: true })) continue;
-                    if (sel.visionObstruction)
-                        visibilityStore.deleteFromTriag({
-                            target: TriangulationTarget.VISION,
-                            shape: sel.uuid,
-                        });
-                    sel.refPoint = sel.refPoint.add(delta);
-                    if (sel.visionObstruction) {
-                        visibilityStore.addToTriag({ target: TriangulationTarget.VISION, shape: sel.uuid });
-                        recalc = true;
-                    }
-                    if (!sel.preventSync) updateList.push(sel);
-                }
-                sendShapePositionUpdate(updateList, true);
-                if (recalc) visibilityStore.recalculateVision(layerSelection[0].floor.id);
+
+                moveShapes(layerSelection, delta, true);
+
                 this.dragRay = Ray.fromPoints(this.dragRay.origin, lp);
 
                 if (this.rotationUiActive) {

@@ -3,15 +3,13 @@ import { layerManager } from "@/game/layers/manager";
 import { copyShapes, deleteShapes, pasteShapes } from "@/game/shapes/utils";
 import { DEFAULT_GRID_SIZE, gameStore } from "@/game/store";
 import { calculateDelta } from "@/game/ui/tools/utils";
-import { visibilityStore } from "@/game/visibility/store";
-import { TriangulationTarget } from "@/game/visibility/te/pa";
 import { SyncMode, SyncTo } from "../../core/comm/types";
 import { sendClientLocationOptions } from "../api/emits/client";
-import { sendShapePositionUpdate } from "../api/emits/shape/core";
 import { EventBus } from "../event-bus";
 import { floorStore } from "../layers/store";
 import { moveFloor } from "../layers/utils";
 import { gameManager } from "../manager";
+import { moveShapes } from "../operations/movement";
 import { gameSettingsStore } from "../settings";
 import { activeShapeStore } from "../ui/ActiveShapeStore";
 
@@ -110,40 +108,8 @@ export async function onKeyDown(event: KeyboardEvent): Promise<void> {
                     }
                 }
                 if (delta.length() === 0) return;
-                let recalculateVision = false;
-                let recalculateMovement = false;
-                const updateList = [];
-                for (const sel of selection) {
-                    if (!sel.ownedBy(false, { movementAccess: true })) continue;
-                    if (sel.movementObstruction) {
-                        recalculateMovement = true;
-                        visibilityStore.deleteFromTriag({
-                            target: TriangulationTarget.MOVEMENT,
-                            shape: sel.uuid,
-                        });
-                    }
-                    if (sel.visionObstruction) {
-                        recalculateVision = true;
-                        visibilityStore.deleteFromTriag({
-                            target: TriangulationTarget.VISION,
-                            shape: sel.uuid,
-                        });
-                    }
-                    sel.refPoint = sel.refPoint.add(delta);
-                    if (sel.movementObstruction)
-                        visibilityStore.addToTriag({ target: TriangulationTarget.MOVEMENT, shape: sel.uuid });
-                    if (sel.visionObstruction)
-                        visibilityStore.addToTriag({ target: TriangulationTarget.VISION, shape: sel.uuid });
-                    // todo: Fix again
-                    // if (sel.refPoint.x % gridSize !== 0 || sel.refPoint.y % gridSize !== 0) sel.snapToGrid();
-                    if (!sel.preventSync) updateList.push(sel);
-                }
-                sendShapePositionUpdate(updateList, false);
 
-                const floorId = floorStore.currentFloor.id;
-                if (recalculateVision) visibilityStore.recalculateVision(floorId);
-                if (recalculateMovement) visibilityStore.recalculateMovement(floorId);
-                floorStore.currentLayer!.invalidate(false);
+                moveShapes(selection, delta, false);
             } else {
                 // The pan offsets should be in the opposite direction to give the correct feel.
                 gameStore.increasePanX(offsetX * -1);

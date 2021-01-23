@@ -205,6 +205,16 @@ export default class SelectTool extends Tool implements ToolBasics {
                     this.mode = SelectOperations.Resize;
                     layer.invalidate(true);
                     hit = true;
+
+                    this.operationList = {
+                        type: "resize",
+                        uuid: shape.uuid,
+                        fromPoint: shape.points[this.resizePoint],
+                        toPoint: [],
+                        resizePoint: this.resizePoint,
+                        retainAspectRatio: false,
+                    };
+
                     break;
                 }
             }
@@ -472,8 +482,10 @@ export default class SelectTool extends Tool implements ToolBasics {
                             recalcMovement = true;
                         }
                     }
-                    this.operationList!.shapes[s].to = sel.refPoint.asArray();
-                    this.operationReady = true;
+                    if (this.operationList?.type === "movement") {
+                        this.operationList.shapes[s].to = sel.refPoint.asArray();
+                        this.operationReady = true;
+                    }
 
                     if (sel.visionObstruction) recalcVision = true;
                     if (sel.movementObstruction) recalcMovement = true;
@@ -513,6 +525,14 @@ export default class SelectTool extends Tool implements ToolBasics {
                     if (!sel.preventSync) {
                         sendShapeSizeUpdate({ shape: sel, temporary: false });
                     }
+
+                    if (this.operationList?.type === "resize") {
+                        this.operationList.toPoint = l2g(lp).asArray();
+                        this.operationList.resizePoint = this.resizePoint;
+                        this.operationList.retainAspectRatio = event.ctrlKey;
+                        this.operationReady = true;
+                    }
+
                     sel.updatePoints();
                 }
             }
@@ -531,8 +551,10 @@ export default class SelectTool extends Tool implements ToolBasics {
                         this.rotateSelection(newAngle, rotationCenter, false);
                     } else if (!sel.preventSync) sendShapePositionUpdate([sel], false);
 
-                    this.operationList!.shapes[s].to = sel.angle;
-                    this.operationReady = true;
+                    if (this.operationList?.type === "rotation") {
+                        this.operationList.shapes[s].to = sel.angle;
+                        this.operationReady = true;
+                    }
 
                     sel.updatePoints();
                 }

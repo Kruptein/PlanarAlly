@@ -14,6 +14,7 @@ These usually have no immediately visible impact on regular users
 -   Undo/Redo
     -   shape movement
     -   shape rotation
+    -   shape resize
 
 ### Fixes
 

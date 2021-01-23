@@ -3,6 +3,7 @@ import { GlobalPoint, Vector } from "../geom";
 import { layerManager } from "../layers/manager";
 import { Operation, ShapeMovementOperation, ShapeRotationOperation } from "./model";
 import { moveShapes } from "./movement";
+import { resizeShape } from "./resize";
 import { rotateShapes } from "./rotation";
 
 const undoStack: Operation[] = [];
@@ -35,6 +36,8 @@ function handleOperation(direction: "undo" | "redo"): void {
             handleMovement(op.shapes, direction);
         } else if (op.type === "rotation") {
             handleRotation(op.shapes, op.center, direction);
+        } else if (op.type === "resize") {
+            handleResize(op.uuid, op.fromPoint, op.toPoint, op.resizePoint, op.retainAspectRatio, direction);
         }
     }
     operationInProgress = false;
@@ -53,4 +56,17 @@ function handleRotation(shapes: ShapeRotationOperation[], center: GlobalPoint, d
     if (direction === "redo") angle *= -1;
     rotateShapes(fullShapes, angle, center, true);
     EventBus.$emit("Select.RotationHelper.Reset");
+}
+
+function handleResize(
+    uuid: string,
+    fromPoint: number[],
+    toPoint: number[],
+    resizePoint: number,
+    retainAspectRatio: boolean,
+    direction: "undo" | "redo",
+): void {
+    const shape = layerManager.UUIDMap.get(uuid)!;
+    const targetPoint = direction === "undo" ? fromPoint : toPoint;
+    resizeShape(shape, GlobalPoint.fromArray(targetPoint), resizePoint, retainAspectRatio, false);
 }

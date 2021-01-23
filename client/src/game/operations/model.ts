@@ -1,7 +1,15 @@
+import { GlobalPoint } from "../geom";
+
 export interface ShapeMovementOperation {
     uuid: string;
     from: number[];
     to: number[];
+}
+
+export interface ShapeRotationOperation {
+    uuid: string;
+    from: number;
+    to: number;
 }
 
 export interface MovementOperation {
@@ -9,4 +17,10 @@ export interface MovementOperation {
     shapes: ShapeMovementOperation[];
 }
 
-export type Operation = MovementOperation;
+export interface RotationOperation {
+    type: "rotation";
+    shapes: ShapeRotationOperation[];
+    center: GlobalPoint;
+}
+
+export type Operation = MovementOperation | RotationOperation;

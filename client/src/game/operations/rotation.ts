@@ -27,6 +27,7 @@ export function rotateShapes(
         }
         if (!shape.preventSync) sendShapePositionUpdate([shape], temporary);
     }
+
     if (recalculateVision) visibilityStore.recalculateVision(shapes[0].floor.id);
     shapes[0].layer.invalidate(false);
 }

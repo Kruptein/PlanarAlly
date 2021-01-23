@@ -13,6 +13,7 @@ These usually have no immediately visible impact on regular users
 -   Is public toggle for annotations
 -   Undo/Redo
     -   shape movement
+    -   shape rotation
 
 ### Fixes
 

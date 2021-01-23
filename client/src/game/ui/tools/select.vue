@@ -83,6 +83,7 @@ export default class SelectTool extends Tool implements ToolBasics {
     hasSelection = false;
     showRuler = false;
 
+    operationReady = false;
     operationList: Operation | undefined = undefined;
 
     permittedTools_: ToolPermission[] = [];
@@ -120,11 +121,17 @@ export default class SelectTool extends Tool implements ToolBasics {
             // We don't have feature information, might want to store this as a property instead ?
             if (this.$parent.mode === "Build" && shapes.length > 0) this.createRotationUi({});
         });
+        EventBus.$on("Select.RotationHelper.Reset", () => {
+            this.removeRotationUi();
+            // We don't have feature information, might want to store this as a property instead ?
+            if (this.$parent.mode === "Build") this.createRotationUi({});
+        });
         this.setToolPermissions();
     }
 
     beforeDestroy(): void {
         EventBus.$off("SelectionInfo.Shapes.Set");
+        EventBus.$off("Select.RotationHelper.Reset");
     }
 
     onToolsModeChange(mode: "Build" | "Play", features: ToolFeatures<SelectFeatures>): void {
@@ -147,6 +154,9 @@ export default class SelectTool extends Tool implements ToolBasics {
             console.log("No active layer!");
             return;
         }
+
+        this.operationReady = false;
+        this.operationList = undefined;
 
         let hit = false;
 
@@ -174,6 +184,11 @@ export default class SelectTool extends Tool implements ToolBasics {
                     this.setToolPermissions([]);
                     this.mode = SelectOperations.Rotate;
                     hit = true;
+
+                    this.operationList = { type: "rotation", center: new GlobalPoint(0, 0), shapes: [] };
+                    for (const shape of layer.getSelection({ includeComposites: false }))
+                        this.operationList.shapes.push({ uuid: shape.uuid, from: shape.angle, to: 0 });
+
                     break;
                 }
             }
@@ -459,8 +474,6 @@ export default class SelectTool extends Tool implements ToolBasics {
 
                         sel.snapToGrid();
 
-                        this.operationList!.shapes[s].to = sel.refPoint.asArray();
-
                         if (sel.visionObstruction) {
                             visibilityStore.addToTriag({ target: TriangulationTarget.VISION, shape: sel.uuid });
                             recalcVision = true;
@@ -469,9 +482,9 @@ export default class SelectTool extends Tool implements ToolBasics {
                             visibilityStore.addToTriag({ target: TriangulationTarget.MOVEMENT, shape: sel.uuid });
                             recalcMovement = true;
                         }
-                    } else {
-                        this.operationList!.shapes[s].to = sel.refPoint.asArray();
                     }
+                    this.operationList!.shapes[s].to = sel.refPoint.asArray();
+                    this.operationReady = true;
 
                     if (sel.visionObstruction) recalcVision = true;
                     if (sel.movementObstruction) recalcMovement = true;
@@ -479,7 +492,6 @@ export default class SelectTool extends Tool implements ToolBasics {
                     sel.updatePoints();
                 }
                 sendShapePositionUpdate(updateList, false);
-                if ((this.operationList?.shapes.length ?? 0) > 0) addOperation(this.operationList!);
             }
             if (this.mode === SelectOperations.Resize) {
                 for (const sel of layerSelection) {
@@ -516,7 +528,9 @@ export default class SelectTool extends Tool implements ToolBasics {
                 }
             }
             if (this.mode === SelectOperations.Rotate) {
-                for (const sel of layerSelection) {
+                const rotationCenter = this.rotationBox!.center();
+
+                for (const [s, sel] of layerSelection.entries()) {
                     if (!sel.ownedBy(false, { movementAccess: true })) continue;
 
                     const newAngle = Math.round(this.angle / ANGLE_SNAP) * ANGLE_SNAP;
@@ -525,10 +539,17 @@ export default class SelectTool extends Tool implements ToolBasics {
                         useSnapping(event) &&
                         this.hasFeature(SelectFeatures.Snapping, features)
                     ) {
-                        const center = this.rotationBox!.center();
-                        this.rotateSelection(newAngle, center, false);
+                        this.rotateSelection(newAngle, rotationCenter, false);
                     } else if (!sel.preventSync) sendShapePositionUpdate([sel], false);
+
+                    this.operationList!.shapes[s].to = sel.angle;
+                    this.operationReady = true;
+
                     sel.updatePoints();
+                }
+
+                if (this.operationList?.type === "rotation") {
+                    this.operationList.center = rotationCenter;
                 }
             }
 
@@ -541,6 +562,9 @@ export default class SelectTool extends Tool implements ToolBasics {
                 this.createRotationUi(features);
             }
         }
+
+        if (this.operationReady) addOperation(this.operationList!);
+
         this.hasSelection = layerSelection.length > 0;
         this.setToolPermissions();
 

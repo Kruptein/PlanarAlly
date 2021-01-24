@@ -1,6 +1,11 @@
 import { GlobalPoint } from "../geom";
 
-export type Operation = FloorMoveOperation | MovementOperation | ResizeOperation | RotationOperation;
+export type Operation =
+    | FloorMoveOperation
+    | LayerMoveOperation
+    | MovementOperation
+    | ResizeOperation
+    | RotationOperation;
 
 // MOVEMENT
 export interface ShapeMovementOperation {
@@ -45,5 +50,14 @@ export interface FloorMoveOperation {
     type: "floormovement";
     from: number;
     to: number;
+    shapes: string[];
+}
+
+// LAYER CHANGE
+
+export interface LayerMoveOperation {
+    type: "layermovement";
+    from: string;
+    to: string;
     shapes: string[];
 }

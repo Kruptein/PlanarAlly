@@ -232,12 +232,15 @@ export function moveLayer(shapes: readonly Shape[], newLayer: Layer, sync: boole
     oldLayer.invalidate(true);
     newLayer.invalidate(false);
     // Sync!
-    if (sync)
+    if (sync) {
+        const uuids = shapes.map((s) => s.uuid);
         sendLayerChange({
-            uuids: shapes.map((s) => s.uuid),
+            uuids,
             layer: newLayer.name,
             floor: layerManager.getFloor(newLayer.floor)!.name,
         });
+        addOperation({ type: "layermovement", shapes: uuids, from: oldLayer.name, to: newLayer.name });
+    }
 }
 
 export function addAllCompositeShapes(shapes: readonly Shape[]): readonly Shape[] {

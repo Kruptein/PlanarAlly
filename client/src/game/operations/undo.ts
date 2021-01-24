@@ -1,7 +1,6 @@
 import { EventBus } from "../event-bus";
 import { GlobalPoint, Vector } from "../geom";
 import { layerManager } from "../layers/manager";
-import { floorStore } from "../layers/store";
 import { moveFloor, moveLayer } from "../layers/utils";
 import { Operation, ShapeMovementOperation, ShapeRotationOperation } from "./model";
 import { moveShapes } from "./movement";

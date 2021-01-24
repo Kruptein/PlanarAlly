@@ -27,6 +27,8 @@ export function addCDT(floor: number): void {
     visibilityStore.movementBlockers.push({ floor, blockers: [] });
     visibilityStore.visionBlockers.push({ floor, blockers: [] });
     visibilityStore.visionSources.push({ floor, sources: [] });
+    triangulate(TriangulationTarget.VISION, floor);
+    triangulate(TriangulationTarget.MOVEMENT, floor);
 }
 
 export function removeCDT(floor: number): void {

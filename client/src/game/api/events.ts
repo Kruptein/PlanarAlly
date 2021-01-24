@@ -22,7 +22,7 @@ import { gameStore } from "@/game/store";
 import { router } from "@/router";
 
 import { coreStore } from "../../core/store";
-import { floorStore, getFloorId } from "../layers/store";
+import { floorStore } from "../layers/store";
 import { deleteShapes } from "../shapes/utils";
 import { visibilityStore } from "../visibility/store";
 
@@ -66,8 +66,6 @@ socket.on("Board.Floor.Set", async (floor: ServerFloor) => {
     // When this condition is evaluated after the await, we are at the mercy of the async scheduler
     const selectFloor = floorStore.floors.length === 0;
     await addFloor(floor);
-    visibilityStore.recalculateVision(getFloorId(floor.name));
-    visibilityStore.recalculateMovement(getFloorId(floor.name));
 
     if (selectFloor) {
         floorStore.selectFloor({ targetFloor: floor.name, sync: false });

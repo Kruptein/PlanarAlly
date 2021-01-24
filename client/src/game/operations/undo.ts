@@ -61,6 +61,7 @@ function handleMovement(shapes: ShapeMovementOperation[], direction: "undo" | "r
     let delta = Vector.fromPoints(GlobalPoint.fromArray(shapes[0].to), GlobalPoint.fromArray(shapes[0].from));
     if (direction === "redo") delta = delta.reverse();
     moveShapes(fullShapes, delta, true);
+    EventBus.$emit("Select.RotationHelper.Reset");
 }
 
 function handleRotation(shapes: ShapeRotationOperation[], center: GlobalPoint, direction: "undo" | "redo"): void {

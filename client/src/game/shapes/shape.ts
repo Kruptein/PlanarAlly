@@ -639,21 +639,24 @@ export abstract class Shape {
         limitToActiveTokens: boolean,
         options: Partial<{ editAccess: boolean; visionAccess: boolean; movementAccess: boolean }>,
     ): boolean {
+        if (gameStore.IS_DM) return true;
+
         const isActiveToken = gameStore.activeTokens.includes(this.uuid);
+
+        if (limitToActiveTokens && !isActiveToken) return false;
+
         return (
-            gameStore.IS_DM ||
-            (gameStore.FAKE_PLAYER && isActiveToken) ||
+            gameStore.FAKE_PLAYER ||
             (options.editAccess && this.defaultAccess.edit) ||
             (options.movementAccess && this.defaultAccess.movement) ||
             (options.visionAccess && this.defaultAccess.vision) ||
-            ((!limitToActiveTokens || isActiveToken) &&
-                this._owners.some(
-                    (u) =>
-                        u.user === gameStore.username &&
-                        (options.editAccess ? u.access.edit === true : true) &&
-                        (options.movementAccess ? u.access.movement === true : true) &&
-                        (options.visionAccess ? u.access.vision === true : true),
-                ))
+            this._owners.some(
+                (u) =>
+                    u.user === gameStore.username &&
+                    (options.editAccess ? u.access.edit === true : true) &&
+                    (options.movementAccess ? u.access.movement === true : true) &&
+                    (options.visionAccess ? u.access.vision === true : true),
+            )
         );
     }
 

@@ -1,7 +1,11 @@
+import { SyncMode } from "../../core/comm/types";
+import { ServerShape } from "../comm/types/shapes";
 import { EventBus } from "../event-bus";
 import { GlobalPoint, Vector } from "../geom";
 import { layerManager } from "../layers/manager";
 import { moveFloor, moveLayer } from "../layers/utils";
+import { gameManager } from "../manager";
+import { deleteShapes } from "../shapes/utils";
 import { Operation, ShapeMovementOperation, ShapeRotationOperation } from "./model";
 import { moveShapes } from "./movement";
 import { resizeShape } from "./resize";
@@ -18,15 +22,15 @@ export function addOperation(operation: Operation): void {
     redoStack = [];
 }
 
-export function undoOperation(): void {
-    handleOperation("undo");
+export async function undoOperation(): Promise<void> {
+    await handleOperation("undo");
 }
 
-export function redoOperation(): void {
-    handleOperation("redo");
+export async function redoOperation(): Promise<void> {
+    await handleOperation("redo");
 }
 
-function handleOperation(direction: "undo" | "redo"): void {
+async function handleOperation(direction: "undo" | "redo"): Promise<void> {
     operationInProgress = true;
     const op = direction === "undo" ? undoStack.pop() : redoStack.pop();
     if (op !== undefined) {
@@ -43,6 +47,10 @@ function handleOperation(direction: "undo" | "redo"): void {
             handleFloorMove(op.shapes, op.from, op.to, direction);
         } else if (op.type === "layermovement") {
             handleLayerMove(op.shapes, op.from, op.to, direction);
+        } else if (op.type === "shaperemove") {
+            await handleShapeRemove(op.shapes, direction);
+        } else if (op.type === "shapeadd") {
+            await handleShapeRemove(op.shapes, direction === "redo" ? "undo" : "redo");
         }
     }
     operationInProgress = false;
@@ -91,4 +99,15 @@ function handleLayerMove(shapes: string[], from: string, to: string, direction: 
     const floor = layerManager.getFloor(fullShapes[0].floor.id)!;
     const layer = layerManager.getLayer(floor, layerName)!;
     moveLayer(fullShapes, layer, true);
+}
+
+async function handleShapeRemove(shapes: ServerShape[], direction: "undo" | "redo"): Promise<void> {
+    if (direction === "undo") {
+        for (const shape of shapes) await gameManager.addShape(shape);
+    } else {
+        deleteShapes(
+            shapes.map((s) => layerManager.UUIDMap.get(s.uuid)!),
+            SyncMode.FULL_SYNC,
+        );
+    }
 }

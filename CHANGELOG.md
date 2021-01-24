@@ -17,6 +17,7 @@ These usually have no immediately visible impact on regular users
     -   shape resize
     -   floor change
     -   layer change
+    -   shape creation/removal
 
 ### Fixes
 

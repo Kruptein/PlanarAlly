@@ -1,3 +1,4 @@
+import { ServerShape } from "../comm/types/shapes";
 import { GlobalPoint } from "../geom";
 
 export type Operation =
@@ -5,7 +6,9 @@ export type Operation =
     | LayerMoveOperation
     | MovementOperation
     | ResizeOperation
-    | RotationOperation;
+    | RotationOperation
+    | ShapeAddOperation
+    | ShapeRemoveOperation;
 
 // MOVEMENT
 export interface ShapeMovementOperation {
@@ -60,4 +63,18 @@ export interface LayerMoveOperation {
     from: string;
     to: string;
     shapes: string[];
+}
+
+// SHAPE REMOVE
+
+export interface ShapeRemoveOperation {
+    type: "shaperemove";
+    shapes: ServerShape[];
+}
+
+// SHAPE ADD
+
+export interface ShapeAddOperation {
+    type: "shapeadd";
+    shapes: ServerShape[];
 }

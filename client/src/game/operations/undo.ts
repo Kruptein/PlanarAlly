@@ -11,7 +11,7 @@ import { moveShapes } from "./movement";
 import { resizeShape } from "./resize";
 import { rotateShapes } from "./rotation";
 
-const undoStack: Operation[] = [];
+let undoStack: Operation[] = [];
 let redoStack: Operation[] = [];
 let operationInProgress = false;
 
@@ -36,6 +36,14 @@ export function overrideLastOperation(operation: Operation): void {
     if (lastOp === undefined || lastOp.type !== operation.type)
         throw new Error("Wrong usage of overrideLastOperation.");
     undoStack.push(operation);
+}
+
+/**
+ * Clear the undo and redo stacks.
+ */
+export function clearUndoStacks(): void {
+    undoStack = [];
+    redoStack = [];
 }
 
 export async function undoOperation(): Promise<void> {

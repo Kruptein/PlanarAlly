@@ -18,6 +18,7 @@ import { dropAsset } from "./layers/utils";
 import { coreStore } from "@/core/store";
 import { mapGetters } from "vuex";
 import { Watch } from "vue-property-decorator";
+import { clearUndoStacks } from "./operations/undo";
 
 @Component({
     components: {
@@ -63,6 +64,7 @@ export default class Game extends Vue {
             this.$refs.ui.$refs.tools.keyup(event);
         });
         window.addEventListener("keydown", onKeyDown);
+        clearUndoStacks();
         this.ready.manager = true;
     }
 

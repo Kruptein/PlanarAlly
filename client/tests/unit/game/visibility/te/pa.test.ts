@@ -13,6 +13,9 @@ jest.mock("@/game/api/socket", () => ({
         on: jest.fn(),
     },
 }));
+jest.mock("@/i18n.ts", () => ({
+    t: jest.fn(),
+}));
 
 let cdt: CDT;
 

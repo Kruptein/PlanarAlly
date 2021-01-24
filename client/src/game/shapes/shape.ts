@@ -384,7 +384,7 @@ export abstract class Shape {
     }
 
     setPositionRepresentation(position: { angle: number; points: number[][] }): void {
-        this.refPoint = GlobalPoint.fromArray(position.points[0]);
+        this._refPoint = GlobalPoint.fromArray(position.points[0]);
         this.angle = position.angle;
         this.updateShapeVision(false, false);
     }

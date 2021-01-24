@@ -25,6 +25,7 @@ import { sendRemoveShapes } from "../api/emits/shape/core";
 import { EventBus } from "../event-bus";
 import { addGroupMembers, createNewGroupForShapes, fetchGroup, generateNewBadge, getGroup } from "../groups";
 import { floorStore, getFloorId } from "../layers/store";
+import { addOperation } from "../operations/undo";
 import { gameStore } from "../store";
 import { VisibilityMode, visibilityStore } from "../visibility/store";
 import { TriangulationTarget } from "../visibility/te/pa";
@@ -241,6 +242,10 @@ export function deleteShapes(shapes: readonly Shape[], sync: SyncMode): void {
         if (recalculateVision)
             visibilityStore.recalculate({ target: TriangulationTarget.VISION, floor: floorStore.currentFloorindex });
         layerManager.invalidateVisibleFloors();
+    }
+
+    if (sync === SyncMode.FULL_SYNC) {
+        addOperation({ type: "shaperemove", shapes: shapes.map((s) => s.asDict()) });
     }
 }
 

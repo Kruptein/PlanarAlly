@@ -9,6 +9,7 @@ import { TriangulationTarget } from "@/game/visibility/te/pa";
 import { removeBlocker, removeVisionSources } from "@/game/visibility/utils";
 import { sendRemoveShapes, sendShapeAdd, sendShapeOrder } from "../api/emits/shape/core";
 import { removeGroupMember } from "../groups";
+import { addOperation } from "../operations/undo";
 import { gameSettingsStore } from "../settings";
 import { drawAuras } from "../shapes/trackers/draw";
 import { activeShapeStore } from "../ui/ActiveShapeStore";
@@ -148,6 +149,10 @@ export class Layer {
         if (activeShapeStore.uuid === undefined && activeShapeStore.lastUuid === shape.uuid) {
             const selection = this.getSelection({ skipUiHelpers: false, includeComposites: false });
             this.setSelection(shape, ...selection);
+        }
+
+        if (sync === SyncMode.FULL_SYNC) {
+            addOperation({ type: "shapeadd", shapes: [shape.asDict()] });
         }
     }
 

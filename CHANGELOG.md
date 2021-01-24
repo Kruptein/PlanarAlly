@@ -19,14 +19,15 @@ These usually have no immediately visible impact on regular users
     -   layer change
     -   shape creation/removal
 
-### Fixes
+### Fixed
 
 -   Shape name not immediately syncing on visibility toggle
 -   Vision tool disabled tokens private auras no longer being visible
+-   Tokens giving minimal vision on other floors
 
 ## [0.24.1] - 2021-01-17
 
-### Fixes
+### Fixed
 
 -   minimal token vision being broken
 -   pasting polygons would change the angle on the first segment

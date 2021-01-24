@@ -10,24 +10,36 @@ export function rotateShapes(
     center: GlobalPoint,
     temporary: boolean,
 ): void {
+    let recalculateMovement = false;
     let recalculateVision = false;
 
     for (const shape of shapes) {
-        if (shape.visionObstruction)
+        if (shape.movementObstruction && !temporary) {
+            recalculateMovement = true;
+            visibilityStore.deleteFromTriag({
+                target: TriangulationTarget.MOVEMENT,
+                shape: shape.uuid,
+            });
+        }
+        if (shape.visionObstruction) {
+            recalculateVision = true;
             visibilityStore.deleteFromTriag({
                 target: TriangulationTarget.VISION,
                 shape: shape.uuid,
             });
+        }
 
         shape.rotateAround(center, deltaAngle);
 
-        if (shape.visionObstruction) {
+        if (shape.movementObstruction && !temporary)
+            visibilityStore.addToTriag({ target: TriangulationTarget.MOVEMENT, shape: shape.uuid });
+        if (shape.visionObstruction)
             visibilityStore.addToTriag({ target: TriangulationTarget.VISION, shape: shape.uuid });
-            recalculateVision = true;
-        }
+
         if (!shape.preventSync) sendShapePositionUpdate([shape], temporary);
     }
 
+    if (recalculateMovement) visibilityStore.recalculateMovement(shapes[0].floor.id);
     if (recalculateVision) visibilityStore.recalculateVision(shapes[0].floor.id);
     shapes[0].layer.invalidate(false);
 }

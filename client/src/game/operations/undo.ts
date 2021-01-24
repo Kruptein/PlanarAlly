@@ -19,10 +19,10 @@ let operationInProgress = false;
  * Add a new operation to the undo stack.
  */
 export function addOperation(operation: Operation): void {
-    console.log(operationInProgress, operation);
     if (operationInProgress) return;
     undoStack.push(operation);
     redoStack = [];
+    if (undoStack.length > 50) undoStack.shift();
 }
 
 /**

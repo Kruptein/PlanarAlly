@@ -11,7 +11,7 @@ These usually have no immediately visible impact on regular users
 ### Added
 
 -   Is public toggle for annotations
--   Undo/Redo
+-   Undo/Redo (50 action memory)
     -   shape movement
     -   shape rotation
     -   shape resize

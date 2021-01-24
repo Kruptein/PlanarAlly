@@ -16,17 +16,17 @@ socket.on("Shape.Set", async (data: ServerShape) => {
     // hard reset a shape
     const old = layerManager.UUIDMap.get(data.uuid);
     if (old) old.layer.removeShape(old, SyncMode.NO_SYNC, true);
-    const shape = await gameManager.addShape(data);
+    const shape = await gameManager.addShape(data, SyncMode.NO_SYNC);
     if (shape) EventBus.$emit("Shape.Set", shape);
 });
 
 socket.on("Shape.Add", async (shape: ServerShape) => {
-    await gameManager.addShape(shape);
+    await gameManager.addShape(shape, SyncMode.NO_SYNC);
 });
 
 socket.on("Shapes.Add", async (shapes: ServerShape[]) => {
     for (const shape of shapes) {
-        await gameManager.addShape(shape);
+        await gameManager.addShape(shape, SyncMode.NO_SYNC);
     }
 });
 

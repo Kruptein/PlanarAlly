@@ -15,11 +15,27 @@ const undoStack: Operation[] = [];
 let redoStack: Operation[] = [];
 let operationInProgress = false;
 
+/**
+ * Add a new operation to the undo stack.
+ */
 export function addOperation(operation: Operation): void {
     console.log(operationInProgress, operation);
     if (operationInProgress) return;
     undoStack.push(operation);
     redoStack = [];
+}
+
+/**
+ * Override the last operation.
+ * This is an advanced function that should only be used for special cases.
+ * e.g. addShape is sometimes called pre-emptively with later updates to size during draw
+ * whereas we want to have the final w/h to be part of the undo operation info
+ */
+export function overrideLastOperation(operation: Operation): void {
+    const lastOp = undoStack.pop();
+    if (lastOp === undefined || lastOp.type !== operation.type)
+        throw new Error("Wrong usage of overrideLastOperation.");
+    undoStack.push(operation);
 }
 
 export async function undoOperation(): Promise<void> {
@@ -104,7 +120,7 @@ function handleLayerMove(shapes: string[], from: string, to: string, direction: 
 
 async function handleShapeRemove(shapes: ServerShape[], direction: "undo" | "redo"): Promise<void> {
     if (direction === "undo") {
-        for (const shape of shapes) await gameManager.addShape(shape);
+        for (const shape of shapes) await gameManager.addShape(shape, SyncMode.FULL_SYNC);
     } else {
         deleteShapes(
             shapes.map((s) => layerManager.UUIDMap.get(s.uuid)!),

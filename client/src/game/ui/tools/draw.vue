@@ -30,6 +30,7 @@ import { ToolBasics } from "./ToolBasics";
 import { floorStore } from "@/game/layers/store";
 import { Floor } from "@/game/layers/floor";
 import { sendShapeSizeUpdate } from "@/game/api/emits/shape/core";
+import { overrideLastOperation } from "../../operations/undo";
 
 @Component({
     components: {
@@ -460,6 +461,8 @@ export default class DrawTool extends Tool implements ToolBasics {
         if (layer !== undefined) {
             layer.invalidate(false);
         }
+
+        overrideLastOperation({ type: "shapeadd", shapes: [this.shape.asDict()] });
     }
 
     onSelect(mouse?: { x: number; y: number }): void {

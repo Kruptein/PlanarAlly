@@ -3,6 +3,7 @@ import { Vector } from "../geom";
 import { Shape } from "../shapes/shape";
 import { visibilityStore } from "../visibility/store";
 import { TriangulationTarget } from "../visibility/te/pa";
+
 import { MovementOperation, ShapeMovementOperation } from "./model";
 import { addOperation } from "./undo";
 

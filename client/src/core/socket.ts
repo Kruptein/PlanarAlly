@@ -1,4 +1,5 @@
 import { Manager } from "socket.io-client";
+
 import { BASE_PATH } from "../utils";
 
 export function createNewManager(): Manager {

@@ -1,6 +1,8 @@
 import { Layer } from "@/game/layers/layer";
 import { DEFAULT_GRID_SIZE, gameStore } from "@/game/store";
+
 import { gameSettingsStore } from "../settings";
+
 import { floorStore } from "./store";
 
 export class GridLayer extends Layer {

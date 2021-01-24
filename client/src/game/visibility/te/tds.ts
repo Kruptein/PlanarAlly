@@ -1,5 +1,6 @@
 import { Shape } from "@/game/shapes/shape";
 import { equalPoints } from "@/game/utils";
+
 import { CDT } from "./cdt";
 import { ccw, cw, orientation, sideOfOrientedCircleP, ulp } from "./triag";
 

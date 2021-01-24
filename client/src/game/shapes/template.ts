@@ -9,6 +9,7 @@ import {
     BaseTrackerTemplate,
     getTemplateKeys,
 } from "../comm/types/templates";
+
 import { createEmptyAura, createEmptyTracker } from "./trackers/empty";
 
 export function applyTemplate<T extends ServerShape>(shape: T, template: BaseTemplate): T {

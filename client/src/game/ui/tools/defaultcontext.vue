@@ -2,21 +2,21 @@
 import Vue from "vue";
 import Component from "vue-class-component";
 
+import { SyncMode, InvalidationMode } from "@/core/comm/types";
 import ContextMenu from "@/core/components/contextmenu.vue";
-import CreateTokenModal from "./createtoken_modal.vue";
 import Prompt from "@/core/components/modals/prompt.vue";
-
+import { baseAdjust, uuidv4 } from "@/core/utils";
 import { sendBringPlayers } from "@/game/api/emits/players";
 import { EventBus } from "@/game/event-bus";
-import { gameStore } from "@/game/store";
-import { l2gx, l2gy, l2g } from "@/game/units";
+import { LocalPoint } from "@/game/geom";
+import { layerManager } from "@/game/layers/manager";
 import { floorStore } from "@/game/layers/store";
 import { gameSettingsStore } from "@/game/settings";
-import { layerManager } from "@/game/layers/manager";
-import { baseAdjust, uuidv4 } from "@/core/utils";
 import { Asset } from "@/game/shapes/variants/asset";
-import { SyncMode, InvalidationMode } from "@/core/comm/types";
-import { LocalPoint } from "@/game/geom";
+import { gameStore } from "@/game/store";
+import { l2gx, l2gy, l2g } from "@/game/units";
+
+import CreateTokenModal from "./createtoken_modal.vue";
 
 @Component({
     components: {

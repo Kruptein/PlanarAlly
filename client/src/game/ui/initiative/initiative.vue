@@ -6,10 +6,7 @@ Vue.component("draggable", draggable);
 
 import ConfirmDialog from "@/core/components/modals/confirm.vue";
 import Modal from "@/core/components/modals/modal.vue";
-
 import { uuidv4 } from "@/core/utils";
-import { socket } from "@/game/api/socket";
-import { InitiativeData, InitiativeEffect } from "@/game/comm/types/general";
 import {
     sendInitiativeUpdate,
     sendInitiativeRemove,
@@ -20,13 +17,17 @@ import {
     sendInitiativeUpdateEffect,
     sendInitiativeRemoveEffect,
 } from "@/game/api/emits/initiative";
+import { socket } from "@/game/api/socket";
+import { InitiativeData, InitiativeEffect } from "@/game/comm/types/general";
 import { EventBus } from "@/game/event-bus";
 import { layerManager } from "@/game/layers/manager";
 import { gameStore } from "@/game/store";
-import { initiativeStore } from "./store";
-import { gameManager } from "../../manager";
+
 import { getGroupMembers } from "../../groups";
+import { gameManager } from "../../manager";
 import { Shape } from "../../shapes/shape";
+
+import { initiativeStore } from "./store";
 
 @Component({
     components: {

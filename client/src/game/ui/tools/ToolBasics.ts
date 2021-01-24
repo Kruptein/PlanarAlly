@@ -1,4 +1,5 @@
 import { LocalPoint } from "../../geom";
+
 import { ToolFeatures, ToolName } from "./utils";
 
 export interface ToolBasics {

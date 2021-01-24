@@ -2,31 +2,31 @@
 import Vue from "vue";
 import Component from "vue-class-component";
 
-import ConfirmDialog from "@/core/components/modals/confirm.vue";
 import ContextMenu from "@/core/components/contextmenu.vue";
+import ConfirmDialog from "@/core/components/modals/confirm.vue";
 import Prompt from "@/core/components/modals/prompt.vue";
 import SelectionBox from "@/core/components/modals/SelectionBox.vue";
-
-import { EventBus } from "@/game/event-bus";
-import { layerManager } from "@/game/layers/manager";
-import { gameStore } from "@/game/store";
-import { deleteShapes } from "../../shapes/utils";
-import { initiativeStore, inInitiative } from "../initiative/store";
-import { Layer } from "../../layers/layer";
-import { gameSettingsStore } from "../../settings";
-import { Shape } from "@/game/shapes/shape";
-import { floorStore } from "../../layers/store";
-import { Floor } from "@/game/layers/floor";
-import { moveFloor, moveLayer } from "../../layers/utils";
 import { requestAssetOptions, sendAssetOptions } from "@/game/api/emits/asset";
 import { requestSpawnInfo, sendLocationChange } from "@/game/api/emits/location";
 import { sendShapesMove } from "@/game/api/emits/shape/core";
-import { ServerAsset } from "@/game/comm/types/shapes";
 import { AssetOptions } from "@/game/comm/types/asset";
+import { ServerAsset } from "@/game/comm/types/shapes";
+import { EventBus } from "@/game/event-bus";
+import { Floor } from "@/game/layers/floor";
+import { layerManager } from "@/game/layers/manager";
+import { Shape } from "@/game/shapes/shape";
 import { toTemplate } from "@/game/shapes/template";
-import { addGroupMembers, createNewGroupForShapes, getGroupSize, removeGroup } from "../../groups";
+import { gameStore } from "@/game/store";
+
 import { SyncMode } from "../../../core/comm/types";
+import { addGroupMembers, createNewGroupForShapes, getGroupSize, removeGroup } from "../../groups";
+import { Layer } from "../../layers/layer";
+import { floorStore } from "../../layers/store";
+import { moveFloor, moveLayer } from "../../layers/utils";
+import { gameSettingsStore } from "../../settings";
+import { deleteShapes } from "../../shapes/utils";
 import { activeShapeStore } from "../ActiveShapeStore";
+import { initiativeStore, inInitiative } from "../initiative/store";
 
 @Component({
     components: {

@@ -4,8 +4,8 @@ import Component from "vue-class-component";
 
 import ColorPicker from "@/core/components/colorpicker.vue";
 
-import { ActiveShapeState, activeShapeStore } from "../../ActiveShapeStore";
 import { SyncTo } from "../../../../core/comm/types";
+import { ActiveShapeState, activeShapeStore } from "../../ActiveShapeStore";
 
 @Component({ components: { ColorPicker } })
 export default class PropertySettings extends Vue {

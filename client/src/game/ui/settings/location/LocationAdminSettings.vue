@@ -3,10 +3,10 @@ import Vue from "vue";
 import Component from "vue-class-component";
 import { Prop } from "vue-property-decorator";
 
-import ConfirmDialog from "@/core/components/modals/confirm.vue";
 import InputCopyElement from "@/core/components/inputCopy.vue";
-
+import ConfirmDialog from "@/core/components/modals/confirm.vue";
 import { gameStore } from "@/game/store";
+
 import { renameLocation } from "../../../api/events/location";
 
 @Component({

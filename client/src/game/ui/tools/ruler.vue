@@ -1,23 +1,24 @@
 <script lang="ts">
 import Component from "vue-class-component";
 
-import Tool from "@/game/ui/tools/tool.vue";
-
+import { sendShapePositionUpdate, sendTextUpdate } from "@/game/api/emits/shape/core";
 import { GlobalPoint, LocalPoint } from "@/game/geom";
 import { layerManager } from "@/game/layers/manager";
-import { l2g, l2gz } from "@/game/units";
-import { SyncMode, InvalidationMode, SyncTo } from "../../../core/comm/types";
-import { ToolName, ToolPermission } from "./utils";
-import { gameSettingsStore } from "../../settings";
-import { ToolBasics } from "./ToolBasics";
+import { floorStore } from "@/game/layers/store";
+import { snapToGridPoint } from "@/game/layers/utils";
 import { Line } from "@/game/shapes/variants/line";
 import { gameStore, DEFAULT_GRID_SIZE } from "@/game/store";
-import { Text } from "../../shapes/variants/text";
-import { floorStore } from "@/game/layers/store";
-import { sendShapePositionUpdate, sendTextUpdate } from "@/game/api/emits/shape/core";
+import Tool from "@/game/ui/tools/tool.vue";
+import { l2g, l2gz } from "@/game/units";
 import { useSnapping } from "@/game/utils";
-import { snapToGridPoint } from "@/game/layers/utils";
+
+import { SyncMode, InvalidationMode, SyncTo } from "../../../core/comm/types";
+import { gameSettingsStore } from "../../settings";
+import { Text } from "../../shapes/variants/text";
+
 import { SelectFeatures } from "./select.vue";
+import { ToolBasics } from "./ToolBasics";
+import { ToolName, ToolPermission } from "./utils";
 
 export enum RulerFeatures {
     All,

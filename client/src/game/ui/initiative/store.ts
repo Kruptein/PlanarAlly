@@ -1,6 +1,8 @@
+import { getModule, Module, Mutation, VuexModule } from "vuex-module-decorators";
+
 import { InitiativeData } from "@/game/comm/types/general";
 import { rootStore } from "@/store";
-import { getModule, Module, Mutation, VuexModule } from "vuex-module-decorators";
+
 import { sendInitiativeUpdate } from "../../api/emits/initiative";
 
 export function inInitiative(uuid: string): boolean {

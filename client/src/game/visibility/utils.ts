@@ -1,5 +1,6 @@
 import { Aura } from "../shapes/interfaces";
 import { Shape } from "../shapes/shape";
+
 import { visibilityStore } from "./store";
 import { TriangulationTarget } from "./te/pa";
 

@@ -1,4 +1,5 @@
 import { ServerShape } from "@/game/comm/types/shapes";
+
 import { ServerLocationOptions } from "./settings";
 
 export interface ServerLocation {

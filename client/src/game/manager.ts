@@ -5,6 +5,7 @@ import { layerManager } from "@/game/layers/manager";
 import { createShapeFromDict } from "@/game/shapes/utils";
 import { gameStore } from "@/game/store";
 import { g2l } from "@/game/units";
+
 import { sendClientLocationOptions } from "./api/emits/client";
 import { getFloorId } from "./layers/store";
 import { Shape } from "./shapes/shape";

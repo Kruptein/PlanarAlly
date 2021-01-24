@@ -1,6 +1,7 @@
 import { GlobalPoint } from "@/game/geom";
 import { Shape } from "@/game/shapes/shape";
 import { BoundingRect } from "@/game/shapes/variants/boundingrect";
+
 import { SyncMode, SyncTo } from "../../../core/comm/types";
 import { sendShapeOptionsUpdate, sendShapePositionUpdate } from "../../api/emits/shape/core";
 import {

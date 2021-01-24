@@ -1,35 +1,36 @@
 <script lang="ts">
 import Component from "vue-class-component";
 
-import Tool from "@/game/ui/tools/tool.vue";
-
 import { EventBus } from "@/game/event-bus";
 import { GlobalPoint, LocalPoint, Ray, Vector } from "@/game/geom";
 import { Layer } from "@/game/layers/layer";
+import { floorStore } from "@/game/layers/store";
 import { snapToPoint } from "@/game/layers/utils";
+import { Shape } from "@/game/shapes/shape";
 import { Rect } from "@/game/shapes/variants/rect";
 import { DEFAULT_GRID_SIZE, gameStore } from "@/game/store";
-import { calculateDelta, ToolName, ToolFeatures, ToolPermission } from "@/game/ui/tools/utils";
+import Tool from "@/game/ui/tools/tool.vue";
+import { calculateDelta, ToolFeatures, ToolName, ToolPermission } from "@/game/ui/tools/utils";
 import { g2l, g2lx, g2ly, l2g, l2gz } from "@/game/units";
-import { getLocalPointFromEvent, useSnapping, equalPoints } from "@/game/utils";
+import { equalPoints, getLocalPointFromEvent, useSnapping } from "@/game/utils";
 import { visibilityStore } from "@/game/visibility/store";
 import { TriangulationTarget } from "@/game/visibility/te/pa";
-import { gameSettingsStore } from "../../settings";
-import { ToolBasics } from "./ToolBasics";
-import { Circle } from "../../shapes/variants/circle";
-import { Line } from "../../shapes/variants/line";
-import { SyncMode, InvalidationMode, SyncTo } from "../../../core/comm/types";
-import { BoundingRect } from "../../shapes/variants/boundingrect";
-import { floorStore } from "@/game/layers/store";
+
+import { InvalidationMode, SyncMode, SyncTo } from "../../../core/comm/types";
 import { sendShapePositionUpdate, sendShapeSizeUpdate } from "../../api/emits/shape/core";
-import { Shape } from "@/game/shapes/shape";
-import Tools from "./tools.vue";
-import { RulerFeatures } from "./ruler.vue";
-import { moveShapes } from "../../operations/movement";
 import { Operation } from "../../operations/model";
+import { moveShapes } from "../../operations/movement";
 import { resizeShape } from "../../operations/resize";
 import { rotateShapes } from "../../operations/rotation";
 import { addOperation } from "../../operations/undo";
+import { gameSettingsStore } from "../../settings";
+import { BoundingRect } from "../../shapes/variants/boundingrect";
+import { Circle } from "../../shapes/variants/circle";
+import { Line } from "../../shapes/variants/line";
+
+import { RulerFeatures } from "./ruler.vue";
+import { ToolBasics } from "./ToolBasics";
+import Tools from "./tools.vue";
 
 enum SelectOperations {
     Noop,

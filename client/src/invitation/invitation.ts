@@ -1,6 +1,7 @@
 import Vue from "vue";
 import Component from "vue-class-component";
 import { Route } from "vue-router";
+
 import { postFetch } from "@/core/utils";
 
 @Component({ template: "" })

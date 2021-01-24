@@ -3,6 +3,7 @@ import { EventBus } from "../../event-bus";
 import { gameSettingsStore } from "../../settings";
 import { gameStore } from "../../store";
 import { socket } from "../socket";
+
 import { setLocationOptions } from "./location";
 
 socket.on(

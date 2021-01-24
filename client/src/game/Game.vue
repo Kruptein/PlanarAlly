@@ -1,24 +1,24 @@
 <script lang="ts">
+import "@/game/api/events";
+
 import throttle from "lodash/throttle";
 import Vue from "vue";
 import Component from "vue-class-component";
-
-import "@/game/api/events";
+import { Watch } from "vue-property-decorator";
+import { mapGetters } from "vuex";
 
 import ConfirmDialog from "@/core/components/modals/confirm.vue";
 import SelectionBox from "@/core/components/modals/SelectionBox.vue";
-import Initiative from "@/game/ui/initiative/initiative.vue";
-import UI from "./ui/ui.vue";
-
+import { coreStore } from "@/core/store";
 import { createConnection, socket } from "@/game/api/socket";
 import { onKeyDown, onKeyUp } from "@/game/input/keyboard";
 import { scrollZoom } from "@/game/input/mouse";
 import { layerManager } from "@/game/layers/manager";
+import Initiative from "@/game/ui/initiative/initiative.vue";
+
 import { dropAsset } from "./layers/utils";
-import { coreStore } from "@/core/store";
-import { mapGetters } from "vuex";
-import { Watch } from "vue-property-decorator";
 import { clearUndoStacks } from "./operations/undo";
+import UI from "./ui/ui.vue";
 
 @Component({
     components: {

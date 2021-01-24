@@ -1,3 +1,6 @@
+import Vue from "vue";
+import { getModule, Module, Mutation, VuexModule } from "vuex-module-decorators";
+
 import { AssetList } from "@/core/comm/types";
 import { socket } from "@/game/api/socket";
 import { Note } from "@/game/comm/types/general";
@@ -6,8 +9,7 @@ import { GlobalPoint, Vector } from "@/game/geom";
 import { layerManager } from "@/game/layers/manager";
 import { g2l, l2g } from "@/game/units";
 import { rootStore } from "@/store";
-import Vue from "vue";
-import { getModule, Module, Mutation, VuexModule } from "vuex-module-decorators";
+
 import { sendClientLocationOptions, sendClientOptions } from "./api/emits/client";
 import { sendLocationOrder, sendLocationRemove } from "./api/emits/location";
 import { sendRoomKickPlayer, sendRoomLock } from "./api/emits/room";

@@ -1,16 +1,14 @@
 <script lang="ts">
 import Vue from "vue";
 import Component from "vue-class-component";
-
 import { Route, NavigationGuard } from "vue-router";
 import { mapGetters } from "vuex";
 
 import AssetContextMenu from "@/assetManager/contextMenu.vue";
-import Prompt from "@/core/components/modals/prompt.vue";
-
 import { socket } from "@/assetManager/socket";
 import { assetStore } from "@/assetManager/store";
 import { Asset } from "@/core/comm/types";
+import Prompt from "@/core/components/modals/prompt.vue";
 import { baseAdjust, uuidv4 } from "@/core/utils";
 
 Component.registerHooks(["beforeRouteEnter"]);

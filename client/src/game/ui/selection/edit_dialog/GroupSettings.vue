@@ -3,9 +3,11 @@ import Vue from "vue";
 import Component from "vue-class-component";
 
 import ConfirmDialog from "@/core/components/modals/confirm.vue";
-
 import { Shape } from "@/game/shapes/shape";
-import { gameManager } from "../../../manager";
+
+import { SyncTo } from "../../../../core/comm/types";
+import { CREATION_ORDER_OPTIONS, CREATION_ORDER_TYPES, Group } from "../../../comm/types/groups";
+import { EventBus } from "../../../event-bus";
 import {
     CHARACTER_SETS,
     createNewGroupForShapes,
@@ -17,11 +19,9 @@ import {
     setCharacterSet,
     setCreationOrder,
 } from "../../../groups";
-import { CREATION_ORDER_OPTIONS, CREATION_ORDER_TYPES, Group } from "../../../comm/types/groups";
-import { EventBus } from "../../../event-bus";
-import { ActiveShapeState, activeShapeStore } from "../../ActiveShapeStore";
 import { layerManager } from "../../../layers/manager";
-import { SyncTo } from "../../../../core/comm/types";
+import { gameManager } from "../../../manager";
+import { ActiveShapeState, activeShapeStore } from "../../ActiveShapeStore";
 
 @Component({ components: { ConfirmDialog } })
 export default class GroupSettings extends Vue {

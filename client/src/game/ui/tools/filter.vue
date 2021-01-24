@@ -2,14 +2,14 @@
 import Component from "vue-class-component";
 
 import Accordion from "@/core/components/accordion.vue";
-import Tool from "@/game/ui/tools/tool.vue";
-
 import { socket } from "@/game/api/socket";
 import { layerManager } from "@/game/layers/manager";
 import { gameStore } from "@/game/store";
-import { ToolName, ToolPermission } from "./utils";
-import { ToolBasics } from "./ToolBasics";
+import Tool from "@/game/ui/tools/tool.vue";
+
 import { SelectFeatures } from "./select.vue";
+import { ToolBasics } from "./ToolBasics";
+import { ToolName, ToolPermission } from "./utils";
 
 @Component({
     components: {

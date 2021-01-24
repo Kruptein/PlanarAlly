@@ -1,5 +1,3 @@
-import i18n from "../../i18n";
-
 import { InvalidationMode, SyncMode } from "@/core/comm/types";
 import { ServerFloor, ServerLayer } from "@/game/comm/types/general";
 import { GlobalPoint, Vector } from "@/game/geom";
@@ -12,17 +10,20 @@ import { Asset } from "@/game/shapes/variants/asset";
 import { clampGridLine, l2gx, l2gy, l2gz } from "@/game/units";
 import { visibilityStore } from "@/game/visibility/store";
 import { addCDT, removeCDT } from "@/game/visibility/te/pa";
+
 import { baseAdjust, uuidv4 } from "../../core/utils";
+import i18n from "../../i18n";
 import { requestAssetOptions } from "../api/emits/asset";
 import { sendFloorChange, sendLayerChange } from "../api/emits/shape/core";
 import { BaseTemplate } from "../comm/types/templates";
+import { addOperation } from "../operations/undo";
 import { gameSettingsStore } from "../settings";
 import { Shape } from "../shapes/shape";
 import { applyTemplate } from "../shapes/template";
 import { DEFAULT_GRID_SIZE } from "../store";
+
 import { Floor } from "./floor";
 import { floorStore, getFloorId, newFloorId } from "./store";
-import { addOperation } from "../operations/undo";
 
 export async function addFloor(serverFloor: ServerFloor): Promise<void> {
     const floor: Floor = {

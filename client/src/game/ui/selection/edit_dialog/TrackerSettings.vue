@@ -4,10 +4,10 @@ import Component from "vue-class-component";
 
 import ColorPicker from "@/core/components/colorpicker.vue";
 
-import { ActiveShapeState, activeShapeStore } from "../../ActiveShapeStore";
-import { Aura, Tracker } from "../../../shapes/interfaces";
 import { SyncTo } from "../../../../core/comm/types";
 import { sendShapeMoveAura, sendShapeMoveTracker } from "../../../api/emits/shape/options";
+import { Aura, Tracker } from "../../../shapes/interfaces";
+import { ActiveShapeState, activeShapeStore } from "../../ActiveShapeStore";
 
 @Component({ components: { ColorPicker } })
 export default class TrackerSettings extends Vue {

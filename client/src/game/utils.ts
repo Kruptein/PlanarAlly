@@ -1,5 +1,7 @@
-import { GlobalPoint, LocalPoint, Vector } from "@/game/geom";
 import tinycolor from "tinycolor2";
+
+import { GlobalPoint, LocalPoint, Vector } from "@/game/geom";
+
 import { gameSettingsStore } from "./settings";
 import { gameStore } from "./store";
 

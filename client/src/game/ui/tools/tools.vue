@@ -2,7 +2,11 @@
 import Vue from "vue";
 import Component from "vue-class-component";
 
-import Annotation from "../Annotation.vue";
+import { EventBus } from "@/game/event-bus";
+import { layerManager } from "@/game/layers/manager";
+import { floorStore } from "@/game/layers/store";
+import { gameStore } from "@/game/store";
+import ShapeContext from "@/game/ui/selection/shapecontext.vue";
 import DefaultContext from "@/game/ui/tools/defaultcontext.vue";
 import DrawTool from "@/game/ui/tools/draw.vue";
 import FilterTool from "@/game/ui/tools/filter.vue";
@@ -11,18 +15,15 @@ import PanTool from "@/game/ui/tools/pan.vue";
 import PingTool from "@/game/ui/tools/ping.vue";
 import RulerTool from "@/game/ui/tools/ruler.vue";
 import SelectTool, { SelectFeatures } from "@/game/ui/tools/select.vue";
-import ShapeContext from "@/game/ui/selection/shapecontext.vue";
-import Tool from "./tool.vue";
-import UI from "../ui.vue";
 import VisionTool from "@/game/ui/tools/vision.vue";
-
-import { layerManager } from "@/game/layers/manager";
-import { gameStore } from "@/game/store";
 import { l2g } from "@/game/units";
 import { getLocalPointFromEvent } from "@/game/utils";
+
+import Annotation from "../Annotation.vue";
+import UI from "../ui.vue";
+
+import Tool from "./tool.vue";
 import { ToolName, ToolFeatures } from "./utils";
-import { EventBus } from "@/game/event-bus";
-import { floorStore } from "@/game/layers/store";
 
 @Component({
     components: {

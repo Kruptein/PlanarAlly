@@ -1,5 +1,6 @@
 import { GlobalPoint } from "@/game/geom";
 import { gameStore } from "@/game/store";
+
 import { Edge } from "./cdt";
 import { drawPolygon } from "./draw";
 import { getCDT, TriangulationTarget } from "./pa";

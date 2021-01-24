@@ -1,4 +1,6 @@
 <script lang="ts">
+import Component from "vue-class-component";
+
 import { InvalidationMode, SyncMode, SyncTo } from "@/core/comm/types";
 import { GlobalPoint, LocalPoint } from "@/game/geom";
 import { layerManager } from "@/game/layers/manager";
@@ -6,13 +8,14 @@ import { Circle } from "@/game/shapes/variants/circle";
 import { gameStore } from "@/game/store";
 import Tool from "@/game/ui/tools/tool.vue";
 import { l2g } from "@/game/units";
-import Component from "vue-class-component";
+
+import { sendShapePositionUpdate } from "../../api/emits/shape/core";
+import { floorStore } from "../../layers/store";
+import { deleteShapes } from "../../shapes/utils";
+
+import { SelectFeatures } from "./select.vue";
 import { ToolBasics } from "./ToolBasics";
 import { ToolName, ToolPermission } from "./utils";
-import { floorStore } from "../../layers/store";
-import { sendShapePositionUpdate } from "../../api/emits/shape/core";
-import { SelectFeatures } from "./select.vue";
-import { deleteShapes } from "../../shapes/utils";
 
 @Component
 export default class PingTool extends Tool implements ToolBasics {

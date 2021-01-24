@@ -1,8 +1,11 @@
-import { rootStore } from "@/store";
 import { Action, getModule, Module, Mutation, VuexModule } from "vuex-module-decorators";
+
+import { rootStore } from "@/store";
+
 import { sendLocationOptions } from "../api/emits/location";
 import { layerManager } from "../layers/manager";
 import { Shape } from "../shapes/shape";
+
 import { addShapesToTriag, deleteShapeFromTriag, triangulate, TriangulationTarget } from "./te/pa";
 import { moveBlocker, moveVisionSource } from "./utils";
 

@@ -1,6 +1,8 @@
 import { EventBus } from "../event-bus";
 import { GlobalPoint, Vector } from "../geom";
 import { layerManager } from "../layers/manager";
+import { floorStore } from "../layers/store";
+import { moveFloor } from "../layers/utils";
 import { Operation, ShapeMovementOperation, ShapeRotationOperation } from "./model";
 import { moveShapes } from "./movement";
 import { resizeShape } from "./resize";
@@ -38,6 +40,8 @@ function handleOperation(direction: "undo" | "redo"): void {
             handleRotation(op.shapes, op.center, direction);
         } else if (op.type === "resize") {
             handleResize(op.uuid, op.fromPoint, op.toPoint, op.resizePoint, op.retainAspectRatio, direction);
+        } else if (op.type === "floormovement") {
+            handleFloorMove(op.shapes, op.from, op.to, direction);
         }
     }
     operationInProgress = false;
@@ -69,4 +73,12 @@ function handleResize(
     const shape = layerManager.UUIDMap.get(uuid)!;
     const targetPoint = direction === "undo" ? fromPoint : toPoint;
     resizeShape(shape, GlobalPoint.fromArray(targetPoint), resizePoint, retainAspectRatio, false);
+}
+
+function handleFloorMove(shapes: string[], from: number, to: number, direction: "undo" | "redo"): void {
+    const fullShapes = shapes.map((s) => layerManager.UUIDMap.get(s)!);
+    let floorId = from;
+    if (direction === "redo") floorId = to;
+    const floor = floorStore.floors.find((f) => f.id === floorId)!;
+    moveFloor(fullShapes, floor, true);
 }

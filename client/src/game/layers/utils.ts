@@ -22,6 +22,7 @@ import { applyTemplate } from "../shapes/template";
 import { DEFAULT_GRID_SIZE } from "../store";
 import { Floor } from "./floor";
 import { floorStore, getFloorId, newFloorId } from "./store";
+import { addOperation } from "../operations/undo";
 
 export async function addFloor(serverFloor: ServerFloor): Promise<void> {
     const floor: Floor = {
@@ -208,7 +209,11 @@ export function moveFloor(shapes: Shape[], newFloor: Floor, sync: boolean): void
     newLayer.pushShapes(...shapes);
     oldLayer.invalidate(false);
     newLayer.invalidate(false);
-    if (sync) sendFloorChange({ uuids: shapes.map((s) => s.uuid), floor: newFloor.name });
+    if (sync) {
+        const uuids = shapes.map((s) => s.uuid);
+        sendFloorChange({ uuids, floor: newFloor.name });
+        addOperation({ type: "floormovement", shapes: uuids, from: oldFloor.id, to: newFloor.id });
+    }
 }
 
 export function moveLayer(shapes: readonly Shape[], newLayer: Layer, sync: boolean): void {

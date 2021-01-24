@@ -15,6 +15,7 @@ These usually have no immediately visible impact on regular users
     -   shape movement
     -   shape rotation
     -   shape resize
+    -   floor movement
 
 ### Fixes
 

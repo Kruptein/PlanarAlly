@@ -646,8 +646,7 @@ export abstract class Shape {
         if (limitToActiveTokens && !isActiveToken) return false;
 
         return (
-            gameStore.IS_DM ||
-            (gameStore.FAKE_PLAYER && isActiveToken) ||
+            gameStore.FAKE_PLAYER ||
             (options.editAccess && this.defaultAccess.edit) ||
             (options.movementAccess && this.defaultAccess.movement) ||
             (options.visionAccess && this.defaultAccess.vision) ||

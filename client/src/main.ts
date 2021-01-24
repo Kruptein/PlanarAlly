@@ -1,6 +1,3 @@
-import App from "@/App.vue";
-import { router } from "@/router";
-import { rootStore } from "@/store";
 import { dom, library } from "@fortawesome/fontawesome-svg-core";
 import { faDAndD, faDiscord, faGithub, faPatreon } from "@fortawesome/free-brands-svg-icons";
 import { faCompass, faCopy, faWindowClose } from "@fortawesome/free-regular-svg-icons";
@@ -47,6 +44,11 @@ import {
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 import Vue from "vue";
 import Toasted from "vue-toasted";
+
+import App from "@/App.vue";
+import { router } from "@/router";
+import { rootStore } from "@/store";
+
 import { baseAdjust } from "./core/utils";
 import i18n from "./i18n";
 import { registerScripts } from "./scripts";

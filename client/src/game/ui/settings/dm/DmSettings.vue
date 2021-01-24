@@ -2,14 +2,15 @@
 import Vue from "vue";
 import Component from "vue-class-component";
 
-import AdminSettings from "./AdminSettings.vue";
-import GridSettings from "../GridSettings.vue";
-// import PermissionsDmSettings from "./permissions.vue";
-import VisionSettings from "../VisionSettings.vue";
+import { EventBus } from "@/game/event-bus";
 
 import PanelModal from "../../../../core/components/modals/PanelModal.vue";
-import { EventBus } from "@/game/event-bus";
+import GridSettings from "../GridSettings.vue";
+// import PermissionsDmSettings from "./permissions.vue";
 import VariaSettings from "../VariaSettings.vue";
+import VisionSettings from "../VisionSettings.vue";
+
+import AdminSettings from "./AdminSettings.vue";
 
 @Component({
     components: {

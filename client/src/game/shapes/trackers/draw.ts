@@ -1,7 +1,9 @@
+import tinycolor from "tinycolor2";
+
 import { TriangulationTarget } from "@/game/visibility/te/pa";
 import { computeVisibility } from "@/game/visibility/te/te";
 import { circleLineIntersection, xyEqual } from "@/game/visibility/te/triag";
-import tinycolor from "tinycolor2";
+
 import { GlobalPoint, LocalPoint } from "../../geom";
 import { g2l, g2lr, g2lz, getUnitDistance } from "../../units";
 import { Shape } from "../shape";

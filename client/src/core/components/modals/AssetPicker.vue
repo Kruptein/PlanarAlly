@@ -1,15 +1,14 @@
 <script lang="ts">
+import { Socket } from "socket.io-client";
 import Vue from "vue";
 import Component from "vue-class-component";
-
-import { Socket } from "socket.io-client";
 import { mapGetters } from "vuex";
 
 import Modal from "@/core/components/modals/modal.vue";
 
-import { createNewManager } from "../../socket";
 import { assetStore } from "../../../assetManager/store";
 import { Asset } from "../../comm/types";
+import { createNewManager } from "../../socket";
 import { baseAdjust } from "../../utils";
 
 @Component({

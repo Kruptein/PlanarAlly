@@ -6,6 +6,7 @@ import { layerManager } from "../layers/manager";
 import { moveFloor, moveLayer } from "../layers/utils";
 import { gameManager } from "../manager";
 import { deleteShapes } from "../shapes/utils";
+
 import { Operation, ShapeMovementOperation, ShapeRotationOperation } from "./model";
 import { moveShapes } from "./movement";
 import { resizeShape } from "./resize";

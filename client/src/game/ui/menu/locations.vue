@@ -1,17 +1,16 @@
 <script lang="ts">
 import Vue from "vue";
 import Component from "vue-class-component";
-import draggable from "vuedraggable";
-
-import { mapState } from "vuex";
 import { Prop, Watch } from "vue-property-decorator";
+import draggable from "vuedraggable";
+import { mapState } from "vuex";
 
 import Prompt from "@/core/components/modals/prompt.vue";
-
+import { sendLocationChange, sendNewLocation } from "@/game/api/emits/location";
 import { gameStore } from "@/game/store";
+
 import { coreStore } from "../../../core/store";
 import { EventBus } from "../../event-bus";
-import { sendLocationChange, sendNewLocation } from "@/game/api/emits/location";
 
 @Component({
     computed: {

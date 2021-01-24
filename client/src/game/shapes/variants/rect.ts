@@ -3,6 +3,7 @@ import { BaseRect } from "@/game/shapes/variants/baserect";
 import { gameStore } from "@/game/store";
 import { g2l } from "@/game/units";
 import { getFogColour } from "@/game/utils";
+
 import { ServerRect } from "../../comm/types/shapes";
 import { SHAPE_TYPE } from "../types";
 

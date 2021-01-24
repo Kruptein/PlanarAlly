@@ -1,9 +1,9 @@
 <script lang="ts">
 import Vue from "vue";
 import Component from "vue-class-component";
+import { Route, NavigationGuard } from "vue-router";
 
 import AccountSettings from "./account.vue";
-import { Route, NavigationGuard } from "vue-router";
 
 interface ActiveComponent {
     title: string;

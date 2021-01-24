@@ -5,6 +5,7 @@ import { BoundingRect } from "@/game/shapes/variants/boundingrect";
 import { calculateDelta } from "@/game/ui/tools/utils";
 import { clampGridLine, g2lz } from "@/game/units";
 import { getFogColour } from "@/game/utils";
+
 import { DEFAULT_GRID_SIZE } from "../../store";
 import { SHAPE_TYPE } from "../types";
 

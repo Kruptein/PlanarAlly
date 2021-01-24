@@ -1,16 +1,18 @@
 import { InvalidationMode, SyncMode } from "@/core/comm/types";
 import { layerManager } from "@/game/layers/manager";
-import { Circle } from "@/game/shapes/variants/circle";
 import { Shape } from "@/game/shapes/shape";
+import { Circle } from "@/game/shapes/variants/circle";
 import { g2l, g2lr, g2lx, g2ly, g2lz, getUnitDistance } from "@/game/units";
 import { getFogColour } from "@/game/utils";
 import { getVisionSources } from "@/game/visibility/utils";
+
 import { gameSettingsStore } from "../settings";
+import { gameStore } from "../store";
 import { TriangulationTarget } from "../visibility/te/pa";
 import { computeVisibility } from "../visibility/te/te";
+
 import { FowLayer } from "./fow";
 import { floorStore } from "./store";
-import { gameStore } from "../store";
 
 export class FowLightingLayer extends FowLayer {
     addShape(shape: Shape, sync: SyncMode, invalidate: InvalidationMode, snappable = true): void {

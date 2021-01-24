@@ -1,6 +1,8 @@
 import { layerManager } from "@/game/layers/manager";
 import { g2lx, g2ly } from "@/game/units";
+
 import { floorStore } from "../../layers/store";
+
 import { Edge, EdgeIterator, TDS } from "./tds";
 import { ccw, cw } from "./triag";
 

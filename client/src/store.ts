@@ -1,8 +1,10 @@
+import Vue from "vue";
+import Vuex from "vuex";
+
 import { AssetState } from "@/assetManager/store";
 import { CoreState } from "@/core/store";
 import { GameState } from "@/game/store";
-import Vue from "vue";
-import Vuex from "vuex";
+
 import { FloorState } from "./game/layers/store";
 import { GameSettingsState } from "./game/settings";
 import { ActiveShapeState } from "./game/ui/ActiveShapeStore";

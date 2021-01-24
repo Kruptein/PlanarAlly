@@ -5,6 +5,7 @@ import { Rect } from "@/game/shapes/variants/rect";
 import { CDT } from "@/game/visibility/te/cdt";
 import { addShapesToTriag, deleteShapeFromTriag, TriangulationTarget, setCDT } from "@/game/visibility/te/pa";
 import { rotateAroundOrigin, xySmaller } from "@/game/visibility/te/triag";
+
 import { BaseRect } from "../../../../../src/game/shapes/variants/baserect";
 
 jest.mock("@/game/api/socket", () => ({

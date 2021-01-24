@@ -1,5 +1,6 @@
 import { GlobalPoint, LocalPoint, Ray } from "@/game/geom";
 import { gameStore, DEFAULT_GRID_SIZE } from "@/game/store";
+
 import { gameSettingsStore } from "./settings";
 
 export function g2l(obj: GlobalPoint): LocalPoint {

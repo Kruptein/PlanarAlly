@@ -1,12 +1,12 @@
 <script lang="ts">
 import Vue from "vue";
 import Component from "vue-class-component";
-
 import { Prop, Watch } from "vue-property-decorator";
 
 import LabelManager from "@/game/ui/labels.vue";
-import { ActiveShapeState, activeShapeStore } from "../../ActiveShapeStore";
+
 import { SyncTo } from "../../../../core/comm/types";
+import { ActiveShapeState, activeShapeStore } from "../../ActiveShapeStore";
 
 @Component({ components: { LabelManager } })
 export default class AccessSettings extends Vue {

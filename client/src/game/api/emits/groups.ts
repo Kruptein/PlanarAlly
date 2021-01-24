@@ -1,6 +1,6 @@
-import { socket } from "../socket";
 import { GroupJoinPayload, ServerGroup } from "../../comm/types/groups";
 import { wrapSocket } from "../helpers";
+import { socket } from "../socket";
 
 export async function requestGroupInfo(groupId: string): Promise<ServerGroup> {
     socket.emit("Group.Info.Get", groupId);

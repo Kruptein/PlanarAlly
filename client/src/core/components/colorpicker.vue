@@ -8,7 +8,6 @@ this due to the canvas elements requiring rgba strings for their colours and thu
 import tinycolor from "tinycolor2";
 import Vue from "vue";
 import Component from "vue-class-component";
-
 import { Chrome } from "vue-color";
 import { Prop } from "vue-property-decorator";
 

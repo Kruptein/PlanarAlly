@@ -3,10 +3,10 @@ import Vue from "vue";
 import Component from "vue-class-component";
 
 import Modal from "@/core/components/modals/modal.vue";
-
 import { uuidv4 } from "@/core/utils";
 import { socket } from "@/game/api/socket";
 import { gameStore } from "@/game/store";
+
 import { Label } from "../shapes/interfaces";
 
 @Component({

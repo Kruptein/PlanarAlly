@@ -3,8 +3,8 @@ import Vue from "vue";
 import Component from "vue-class-component";
 import { Prop } from "vue-property-decorator";
 
-import { gameSettingsStore, getLocationOption } from "../../settings";
 import { LocationOptions } from "../../comm/types/settings";
+import { gameSettingsStore, getLocationOption } from "../../settings";
 
 @Component
 export default class GridSettings extends Vue {

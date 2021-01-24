@@ -10,6 +10,7 @@
  */
 
 import { getModule, Module, Mutation, VuexModule } from "vuex-module-decorators";
+
 import { SyncTo } from "../../core/comm/types";
 import { rootStore } from "../../store";
 import { layerManager } from "../layers/manager";

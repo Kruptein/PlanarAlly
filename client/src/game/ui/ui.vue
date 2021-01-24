@@ -1,25 +1,25 @@
 <script lang="ts">
 import Vue from "vue";
-import vueSlider from "vue-slider-component";
 import "vue-slider-component/theme/default.css";
 import Component from "vue-class-component";
-
+import vueSlider from "vue-slider-component";
 import { mapState } from "vuex";
 
-import DmSettings from "@/game/ui/settings/dm/DmSettings.vue";
-import FloorSelect from "@/game/ui/floors.vue";
-import LocationBar from "./menu/locations.vue";
-import LocationSettings from "@/game/ui/settings/location/LocationSettings.vue";
 import MarkdownModal from "@/core/components/modals/MarkdownModal.vue";
+import FloorSelect from "@/game/ui/floors.vue";
 import MenuBar from "@/game/ui/menu/menu.vue";
 import SelectionInfo from "@/game/ui/selection/selection_info.vue";
+import DmSettings from "@/game/ui/settings/dm/DmSettings.vue";
+import LocationSettings from "@/game/ui/settings/location/LocationSettings.vue";
 import Tools from "@/game/ui/tools/tools.vue";
 
+import { coreStore } from "../../core/store";
+import { baseAdjust } from "../../core/utils";
 import { LocalPoint } from "../geom";
 import { gameStore } from "../store";
 import { l2g } from "../units";
-import { coreStore } from "../../core/store";
-import { baseAdjust } from "../../core/utils";
+
+import LocationBar from "./menu/locations.vue";
 
 @Component({
     components: {

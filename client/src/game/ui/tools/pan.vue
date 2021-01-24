@@ -1,15 +1,16 @@
 <script lang="ts">
 import Component from "vue-class-component";
 
-import Tool from "@/game/ui/tools/tool.vue";
-
 import { LocalPoint } from "@/game/geom";
 import { layerManager } from "@/game/layers/manager";
 import { gameStore } from "@/game/store";
+import Tool from "@/game/ui/tools/tool.vue";
+
 import { sendClientLocationOptions } from "../../api/emits/client";
+
+import { SelectFeatures } from "./select.vue";
 import { ToolBasics } from "./ToolBasics";
 import { ToolName, ToolPermission } from "./utils";
-import { SelectFeatures } from "./select.vue";
 
 @Component
 export default class PanTool extends Tool implements ToolBasics {

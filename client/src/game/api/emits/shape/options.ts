@@ -1,6 +1,6 @@
+import { ServerAura, ServerTracker } from "../../../comm/types/shapes";
 import { wrapSocket } from "../../helpers";
 import { socket } from "../../socket";
-import { ServerAura, ServerTracker } from "../../../comm/types/shapes";
 
 function sendShapeOption<T>(event: string): (data: { shape: string } & T) => void {
     return wrapSocket<{ shape: string } & T>(event);

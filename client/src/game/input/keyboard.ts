@@ -3,6 +3,7 @@ import { layerManager } from "@/game/layers/manager";
 import { copyShapes, deleteShapes, pasteShapes } from "@/game/shapes/utils";
 import { DEFAULT_GRID_SIZE, gameStore } from "@/game/store";
 import { calculateDelta } from "@/game/ui/tools/utils";
+
 import { SyncMode, SyncTo } from "../../core/comm/types";
 import { sendClientLocationOptions } from "../api/emits/client";
 import { EventBus } from "../event-bus";

@@ -20,6 +20,7 @@ import { addFloor } from "@/game/layers/utils";
 import { gameManager } from "@/game/manager";
 import { gameStore } from "@/game/store";
 import { router } from "@/router";
+
 import { coreStore } from "../../core/store";
 import { floorStore, getFloorId } from "../layers/store";
 import { deleteShapes } from "../shapes/utils";

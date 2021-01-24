@@ -1,6 +1,7 @@
 import { GlobalPoint, Ray } from "@/game/geom";
-import { EdgeCirculator, Point, Sign, Triangle, Vertex } from "./tds";
 import { equalPoint } from "@/game/utils";
+
+import { EdgeCirculator, Point, Sign, Triangle, Vertex } from "./tds";
 
 type Line = number[];
 

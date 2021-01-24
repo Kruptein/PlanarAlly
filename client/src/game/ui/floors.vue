@@ -5,13 +5,13 @@ import draggable from "vuedraggable";
 
 import ConfirmDialog from "@/core/components/modals/confirm.vue";
 import Prompt from "@/core/components/modals/prompt.vue";
-
 import { layerManager } from "@/game/layers/manager";
 import { removeFloor } from "@/game/layers/utils";
 import { gameStore } from "@/game/store";
+
+import { sendCreateFloor, sendRemoveFloor, sendFloorSetVisible } from "../api/emits/floor";
 import { Floor } from "../layers/floor";
 import { floorStore, getFloorId } from "../layers/store";
-import { sendCreateFloor, sendRemoveFloor, sendFloorSetVisible } from "../api/emits/floor";
 
 @Component({
     components: {

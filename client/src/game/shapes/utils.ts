@@ -21,6 +21,7 @@ import { CircularToken } from "@/game/shapes/variants/circulartoken";
 import { Line } from "@/game/shapes/variants/line";
 import { Rect } from "@/game/shapes/variants/rect";
 import { Text } from "@/game/shapes/variants/text";
+
 import { sendRemoveShapes } from "../api/emits/shape/core";
 import { EventBus } from "../event-bus";
 import { addGroupMembers, createNewGroupForShapes, fetchGroup, generateNewBadge, getGroup } from "../groups";
@@ -29,6 +30,7 @@ import { addOperation } from "../operations/undo";
 import { gameStore } from "../store";
 import { VisibilityMode, visibilityStore } from "../visibility/store";
 import { TriangulationTarget } from "../visibility/te/pa";
+
 import { Tracker } from "./interfaces";
 import { Polygon } from "./variants/polygon";
 import { ToggleComposite } from "./variants/togglecomposite";

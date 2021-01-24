@@ -6,11 +6,11 @@ import { floorStore, getFloorId } from "../../../layers/store";
 import { moveFloor, moveLayer } from "../../../layers/utils";
 import { gameManager } from "../../../manager";
 import { Shape } from "../../../shapes/shape";
-import { socket } from "../../socket";
-import { Text } from "../../../shapes/variants/text";
-import { Rect } from "../../../shapes/variants/rect";
-import { Circle } from "../../../shapes/variants/circle";
 import { deleteShapes } from "../../../shapes/utils";
+import { Circle } from "../../../shapes/variants/circle";
+import { Rect } from "../../../shapes/variants/rect";
+import { Text } from "../../../shapes/variants/text";
+import { socket } from "../../socket";
 
 socket.on("Shape.Set", async (data: ServerShape) => {
     // hard reset a shape

@@ -1,14 +1,15 @@
 <script lang="ts">
 import Component from "vue-class-component";
 
-import Tool from "@/game/ui/tools/tool.vue";
-
 import { layerManager } from "@/game/layers/manager";
 import { gameStore } from "@/game/store";
+import Tool from "@/game/ui/tools/tool.vue";
+
 import { Shape } from "../../shapes/shape";
-import { ToolName, ToolPermission } from "./utils";
-import { SelectFeatures } from "./select.vue";
 import { Asset } from "../../shapes/variants/asset";
+
+import { SelectFeatures } from "./select.vue";
+import { ToolName, ToolPermission } from "./utils";
 
 @Component
 export default class VisionTool extends Tool {

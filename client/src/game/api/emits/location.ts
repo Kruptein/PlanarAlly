@@ -1,7 +1,7 @@
 import { ServerLocationOptions } from "../../comm/types/settings";
-import { socket } from "../socket";
 import { ServerAsset } from "../../comm/types/shapes";
 import { wrapSocket } from "../helpers";
+import { socket } from "../socket";
 
 export const sendLocationOptions = wrapSocket<{ options: Partial<ServerLocationOptions>; location: number | null }>(
     "Location.Options.Set",

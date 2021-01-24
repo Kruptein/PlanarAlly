@@ -1,5 +1,6 @@
 import { Shape } from "@/game/shapes/shape";
 import { equalPoints } from "@/game/utils";
+
 import { CDT } from "./cdt";
 import { TriangulationTarget, getCDT } from "./pa";
 import { Edge, Sign, Triangle, Vertex } from "./tds";

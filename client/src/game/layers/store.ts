@@ -1,6 +1,8 @@
 import { Action, getModule, Module, Mutation, VuexModule } from "vuex-module-decorators";
+
 import { rootStore } from "../../store";
 import { sendFloorReorder, sendRenameFloor } from "../api/emits/floor";
+
 import { Floor } from "./floor";
 import { Layer } from "./layer";
 import { layerManager } from "./manager";

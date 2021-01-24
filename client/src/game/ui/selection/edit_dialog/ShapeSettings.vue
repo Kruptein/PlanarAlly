@@ -3,14 +3,14 @@ import Vue from "vue";
 import Component from "vue-class-component";
 
 import PanelModal from "../../../../core/components/modals/PanelModal.vue";
+import { activeShapeStore } from "../../ActiveShapeStore";
+
 import AccessSettings from "./AccessSettings.vue";
 import ExtraSettings from "./ExtraSettings.vue";
 import GroupSettings from "./GroupSettings.vue";
 import PropertySettings from "./PropertySettings.vue";
 import TrackerSettings from "./TrackerSettings.vue";
 import VariantSwitcher from "./VariantSwitcher.vue";
-
-import { activeShapeStore } from "../../ActiveShapeStore";
 
 @Component({
     components: {

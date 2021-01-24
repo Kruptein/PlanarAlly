@@ -1,3 +1,5 @@
+import tinycolor from "tinycolor2";
+
 import { uuidv4 } from "@/core/utils";
 import { aurasFromServer, aurasToServer, partialAuraToServer } from "@/game/comm/conversion/aura";
 import { InitiativeData } from "@/game/comm/types/general";
@@ -17,7 +19,8 @@ import {
     sliceBlockers,
     sliceVisionSources,
 } from "@/game/visibility/utils";
-import tinycolor from "tinycolor2";
+
+import { SyncTo } from "../../core/comm/types";
 import { PartialBy } from "../../core/types";
 import {
     sendShapeAddOwner,
@@ -47,19 +50,19 @@ import {
     sendShapeUpdateAura,
     sendShapeUpdateTracker,
 } from "../api/emits/shape/options";
+import { EventBus } from "../event-bus";
+import { getBadgeCharacters } from "../groups";
 import { Floor } from "../layers/floor";
 import { Layer } from "../layers/layer";
 import { floorStore, getFloorId } from "../layers/store";
 import { gameSettingsStore } from "../settings";
+import { activeShapeStore } from "../ui/ActiveShapeStore";
 import { rotateAroundPoint } from "../utils";
-import { BoundingRect } from "./variants/boundingrect";
+
 import { Aura, Label, Tracker } from "./interfaces";
 import { PartialShapeOwner, ShapeAccess, ShapeOwner } from "./owners";
 import { SHAPE_TYPE } from "./types";
-import { EventBus } from "../event-bus";
-import { getBadgeCharacters } from "../groups";
-import { SyncTo } from "../../core/comm/types";
-import { activeShapeStore } from "../ui/ActiveShapeStore";
+import { BoundingRect } from "./variants/boundingrect";
 
 export abstract class Shape {
     // Used to create class instance from server shape data

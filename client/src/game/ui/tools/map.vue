@@ -1,21 +1,22 @@
 <script lang="ts">
 import Component from "vue-class-component";
 
-import Tool from "@/game/ui/tools/tool.vue";
-
+import { sendShapePositionUpdate, sendShapeSizeUpdate } from "@/game/api/emits/shape/core";
+import { EventBus } from "@/game/event-bus";
 import { GlobalPoint, Vector, LocalPoint } from "@/game/geom";
 import { layerManager } from "@/game/layers/manager";
-import { Rect } from "@/game/shapes/variants/rect";
-import { l2g } from "@/game/units";
-import { SyncMode, InvalidationMode } from "../../../core/comm/types";
-import { SelectFeatures } from "./select.vue";
-import { ToolName, ToolPermission } from "./utils";
-import { EventBus } from "@/game/event-bus";
-import { Shape } from "@/game/shapes/shape";
-import { ToolBasics } from "./ToolBasics";
 import { floorStore } from "@/game/layers/store";
+import { Shape } from "@/game/shapes/shape";
+import { Rect } from "@/game/shapes/variants/rect";
+import Tool from "@/game/ui/tools/tool.vue";
+import { l2g } from "@/game/units";
+
+import { SyncMode, InvalidationMode } from "../../../core/comm/types";
 import { DEFAULT_GRID_SIZE } from "../../store";
-import { sendShapePositionUpdate, sendShapeSizeUpdate } from "@/game/api/emits/shape/core";
+
+import { SelectFeatures } from "./select.vue";
+import { ToolBasics } from "./ToolBasics";
+import { ToolName, ToolPermission } from "./utils";
 
 @Component
 export default class MapTool extends Tool implements ToolBasics {

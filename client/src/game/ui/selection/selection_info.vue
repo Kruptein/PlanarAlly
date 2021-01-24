@@ -3,12 +3,12 @@ import Vue from "vue";
 import Component from "vue-class-component";
 
 import Prompt from "@/core/components/modals/prompt.vue";
-import ShapeSettings from "@/game/ui/selection/edit_dialog/ShapeSettings.vue";
-
 import { layerManager } from "@/game/layers/manager";
 import { Aura, Tracker } from "@/game/shapes/interfaces";
-import { ActiveShapeState, activeShapeStore } from "../ActiveShapeStore";
+import ShapeSettings from "@/game/ui/selection/edit_dialog/ShapeSettings.vue";
+
 import { SyncTo } from "../../../core/comm/types";
+import { ActiveShapeState, activeShapeStore } from "../ActiveShapeStore";
 
 @Component({
     components: {

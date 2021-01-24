@@ -2,12 +2,14 @@
 import Vue from "vue";
 import Component from "vue-class-component";
 
-import { ToolName, ToolPermission, ToolFeatures } from "./utils";
-import { LocalPoint } from "../../geom";
 import { getLocalPointFromEvent } from "@/game/utils";
+
+import { LocalPoint } from "../../geom";
+import { onKeyUp } from "../../input/keyboard";
+
 import { ToolBasics } from "./ToolBasics";
 import Tools from "./tools.vue";
-import { onKeyUp } from "../../input/keyboard";
+import { ToolName, ToolPermission, ToolFeatures } from "./utils";
 
 @Component
 export default class Tool extends Vue implements ToolBasics {

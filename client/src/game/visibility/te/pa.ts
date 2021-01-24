@@ -1,7 +1,9 @@
 import { layerManager } from "@/game/layers/manager";
 import { Shape } from "@/game/shapes/shape";
+
 import { visibilityStore } from "../store";
 import { getBlockers } from "../utils";
+
 import { CDT } from "./cdt";
 import { IterativeDelete } from "./iterative";
 

@@ -3,6 +3,7 @@ import { getModule, Module, Mutation, VuexModule } from "vuex-module-decorators"
 
 import { Asset } from "@/core/comm/types";
 import { rootStore } from "@/store";
+
 import { router } from "../router";
 
 export interface AssetState {

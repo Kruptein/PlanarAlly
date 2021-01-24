@@ -7,12 +7,14 @@ import { createShapeFromDict } from "@/game/shapes/utils";
 import { gameStore } from "@/game/store";
 import { TriangulationTarget } from "@/game/visibility/te/pa";
 import { removeBlocker, removeVisionSources } from "@/game/visibility/utils";
+
 import { sendRemoveShapes, sendShapeAdd, sendShapeOrder } from "../api/emits/shape/core";
 import { removeGroupMember } from "../groups";
 import { addOperation } from "../operations/undo";
 import { gameSettingsStore } from "../settings";
 import { drawAuras } from "../shapes/trackers/draw";
 import { activeShapeStore } from "../ui/ActiveShapeStore";
+
 import { floorStore } from "./store";
 import { addAllCompositeShapes } from "./utils";
 

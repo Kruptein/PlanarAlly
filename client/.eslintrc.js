@@ -3,7 +3,13 @@ module.exports = {
     env: {
         node: true,
     },
-    extends: ["plugin:@typescript-eslint/recommended", "plugin:vue/essential", "@vue/typescript", "@vue/prettier"],
+    extends: [
+        "plugin:@typescript-eslint/recommended",
+        "plugin:vue/essential",
+        "@vue/typescript",
+        "@vue/prettier",
+        "plugin:import/typescript",
+    ],
     rules: {
         "@typescript-eslint/consistent-type-assertions": [2, { assertionStyle: "as" }],
         "@typescript-eslint/explicit-function-return-type": [2, { allowExpressions: true }],
@@ -17,6 +23,14 @@ module.exports = {
             { argsIgnorePattern: "^_", varsIgnorePattern: "^_" },
         ],
         "@typescript-eslint/no-use-before-define": 0,
+        "import/order": [
+            "error",
+            {
+                alphabetize: { order: "asc", caseInsensitive: true },
+                "newlines-between": "always",
+                pathGroups: [{ pattern: "@/**", group: "parent", position: "before" }],
+            },
+        ],
         // "no-console": process.env.NODE_ENV === "production" ? "error" : "off",
         "no-console": "off",
         "no-constant-condition": "off",
@@ -31,6 +45,14 @@ module.exports = {
         parser: "@typescript-eslint/parser",
         ecmaFeatures: {
             jsx: false,
+        },
+    },
+    plugins: ["import"],
+    settings: {
+        "import/resolver": {
+            typescript: {
+                extensions: [".js", ".ts", ".d.ts", ".vue"],
+            },
         },
     },
 };

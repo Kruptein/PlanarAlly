@@ -1,42 +1,61 @@
 <script lang="ts">
 import Vue from "vue";
 import Component from "vue-class-component";
+import { Prop } from "vue-property-decorator";
 
 @Component
 export default class RotationSlider extends Vue {
+    @Prop(Number) readonly angle!: number;
     $refs!: {
         circle: HTMLDivElement;
         slider: HTMLDivElement;
     };
 
+    private radianAngle = 0;
+    left = 0;
+    top = 0;
+
+    mounted(): void {
+        this.radianAngle = ((180 + this.angle) * Math.PI) / 180;
+        this.left = this.getLeft();
+        this.top = this.getTop();
+    }
+
+    private radius = 10;
     active = false;
-    left = 5;
-    top = -5;
-    angle = 0;
 
     mouseDown(): void {
         this.active = true;
     }
 
     mouseUp(): void {
+        if (this.active) this.$emit("change", (this.radianAngle * 180) / Math.PI - 180);
         this.active = false;
     }
 
     mouseMove(event: MouseEvent): void {
         if (this.active) {
-            const radius = 10;
-
             const circleRect = this.$refs.circle.getBoundingClientRect();
             const center = { x: circleRect.left + circleRect.width / 2, y: circleRect.top + circleRect.height / 2 };
 
             const mPos = { x: event.x - center.x, y: event.y - center.y };
-            this.angle = Math.atan2(radius * mPos.x, radius * mPos.y);
+            this.radianAngle = Math.atan2(this.radius * mPos.x, this.radius * mPos.y);
 
-            this.left = Math.round(radius * Math.sin(this.angle)) + radius / 2;
-            this.top = Math.round(radius * Math.cos(this.angle)) + radius / 2;
+            this.left = this.getLeft();
+            this.top = this.getTop();
 
-            console.log((this.angle * 180) / Math.PI);
+            this.$emit("input", (this.radianAngle * 180) / Math.PI - 180);
         }
+    }
+
+    private getLeft(): number {
+        console.log(this.radianAngle);
+        console.log(this.angle);
+        return Math.round(this.radius * Math.sin(this.radianAngle)) + this.radius / 2;
+    }
+
+    private getTop(): number {
+        return Math.round(this.radius * Math.cos(this.radianAngle)) + this.radius / 2;
     }
 }
 </script>

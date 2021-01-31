@@ -169,7 +169,11 @@ export default class TrackerSettings extends Vue {
                 >
                     <font-awesome-icon icon="trash-alt" />
                 </div>
-                <button class="slider-checkbox" @click="toggleAura" :aria-pressed="showAura"></button>
+                <button
+                    class="slider-checkbox"
+                    @click="updateAura(aura.uuid, { active: !aura.active })"
+                    :aria-pressed="aura.active"
+                ></button>
             </div>
             <input type="checkbox" :id="'check-' + aura.uuid" style="display: none" />
             <div class="details">
@@ -202,8 +206,26 @@ export default class TrackerSettings extends Vue {
                 </div>
                 <div>Angle</div>
                 <div class="angle">
-                    <input type="number" value="360" min="1" max="360" />
-                    <RotationSlider />
+                    <input
+                        type="number"
+                        :value="aura.angle"
+                        @change="updateAura(aura.uuid, { angle: parseFloat($event.target.value) })"
+                        min="1"
+                        max="360"
+                    />
+                    <RotationSlider
+                        :angle="aura.direction"
+                        @input="
+                            (direction) => {
+                                updateAura(aura.uuid, { direction }, false);
+                            }
+                        "
+                        @change="
+                            (direction) => {
+                                updateAura(aura.uuid, { direction });
+                            }
+                        "
+                    />
                 </div>
                 <div>Colour</div>
                 <div class="colour">
@@ -216,9 +238,9 @@ export default class TrackerSettings extends Vue {
                     />
                     Border:
                     <color-picker
-                        :color="aura.colour"
-                        @input="updateAura(aura.uuid, { colour: $event }, false)"
-                        @change="updateAura(aura.uuid, { colour: $event })"
+                        :color="aura.borderColour"
+                        @input="updateAura(aura.uuid, { borderColour: $event }, false)"
+                        @change="updateAura(aura.uuid, { borderColour: $event })"
                         :disabled="!owned"
                     />
                 </div>

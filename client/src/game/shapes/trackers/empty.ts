@@ -25,6 +25,7 @@ export function createEmptyUiAura(shape: string): UiAura {
         shape,
         temporary: true,
         ...createEmptyAura(),
+        name: "New aura",
     };
 }
 

@@ -98,12 +98,16 @@ export interface ServerTracker {
 export interface ServerAura {
     shape: string;
     uuid: string;
+    active: boolean;
     vision_source: boolean;
     visible: boolean;
     name: string;
     value: number;
     dim: number;
     colour: string;
+    border_colour: string;
+    angle: number;
+    direction: number;
 }
 
 export const accessToServer = (access: ShapeAccess): ServerShapeAccess => ({

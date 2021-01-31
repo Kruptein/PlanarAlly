@@ -7,12 +7,16 @@ export const aurasFromServer = (...auras: ServerAura[]): Aura[] => {
     for (const aura of auras) {
         result.push({
             uuid: aura.uuid,
+            active: aura.active,
             visionSource: aura.vision_source,
             visible: aura.visible,
             name: aura.name,
             value: aura.value,
             dim: aura.dim,
             colour: aura.colour,
+            borderColour: aura.border_colour,
+            angle: aura.angle,
+            direction: aura.direction,
             temporary: false,
         });
     }
@@ -24,12 +28,16 @@ export const aurasToServer = (shape: string, auras: Aura[]): ServerAura[] => {
     for (const aura of auras) {
         result.push({
             uuid: aura.uuid,
+            active: aura.active,
             vision_source: aura.visionSource,
             visible: aura.visible,
             name: aura.name,
             value: aura.value,
             dim: aura.dim,
             colour: aura.colour,
+            border_colour: aura.borderColour,
+            angle: aura.angle,
+            direction: aura.direction,
             shape,
         });
     }

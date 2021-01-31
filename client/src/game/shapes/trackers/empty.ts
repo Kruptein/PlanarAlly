@@ -32,11 +32,15 @@ export function createEmptyUiAura(shape: string): UiAura {
 export function createEmptyAura(): Aura {
     return {
         uuid: uuidv4(),
+        active: false,
         name: "",
         value: 0,
         dim: 0,
         visionSource: false,
         colour: "rgba(0,0,0,0)",
+        borderColour: "rgba(0,0,0,0)",
+        angle: 360,
+        direction: 0,
         visible: false,
     };
 }

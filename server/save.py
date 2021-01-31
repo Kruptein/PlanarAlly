@@ -11,7 +11,7 @@ When writing migrations make sure that these things are respected:
     - WHEN USING THIS IN A SELECT STATEMENT MAKE SURE YOU USE " AND NOT ' OR YOU WILL HAVE A STRING LITERAL
 """
 
-SAVE_VERSION = 49
+SAVE_VERSION = 50
 
 import json
 import logging
@@ -444,7 +444,9 @@ def upgrade(version):
                 "UPDATE shape_owner SET movement_access = CASE WHEN edit_access = 0 THEN 0 ELSE 1 END"
             )
 
-            migrate(migrator.add_not_null("shape_owner", "movement_access"),)
+            migrate(
+                migrator.add_not_null("shape_owner", "movement_access"),
+            )
 
     elif version == 30:
         # Add spawn locations
@@ -758,6 +760,21 @@ def upgrade(version):
         with db.atomic():
             db.execute_sql(
                 "ALTER TABLE shape ADD COLUMN annotation_visible INTEGER NOT NULL DEFAULT 0"
+            )
+    elif version == 49:
+        # Extend Aura
+        with db.atomic():
+            db.execute_sql(
+                "ALTER TABLE aura ADD COLUMN active INTEGER NOT NULL DEFAULT 1"
+            )
+            db.execute_sql(
+                "ALTER TABLE aura ADD COLUMN border_colour TEXT NOT NULL DEFAULT 'rgba(0,0,0,0)'"
+            )
+            db.execute_sql(
+                "ALTER TABLE aura ADD COLUMN angle INTEGER NOT NULL DEFAULT 360"
+            )
+            db.execute_sql(
+                "ALTER TABLE aura ADD COLUMN direction INTEGER NOT NULL DEFAULT 0"
             )
     else:
         raise UnknownVersionException(

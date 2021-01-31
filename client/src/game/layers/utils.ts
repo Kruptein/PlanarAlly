@@ -34,6 +34,8 @@ export async function addFloor(serverFloor: ServerFloor): Promise<void> {
     floorStore.addFloor({ floor, targetIndex: serverFloor.index });
     addCDT(getFloorId(serverFloor.name));
     for (const layer of serverFloor.layers) await createLayer(layer, floor);
+    visibilityStore.recalculateVision(getFloorId(floor.name));
+    visibilityStore.recalculateMovement(getFloorId(floor.name));
 
     recalculateZIndices();
 }

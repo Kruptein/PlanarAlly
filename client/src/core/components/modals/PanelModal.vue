@@ -117,6 +117,18 @@ export default class PanelModal extends Vue {
         /* align-items: center; */
         align-content: start;
         min-height: 10em;
+
+        button {
+            padding: 6px 12px;
+            border: 1px solid lightgray;
+            border-radius: 0.25em;
+            background-color: rgb(235, 235, 228);
+        }
+
+        input[type="number"],
+        input[type="text"] {
+            width: 100%;
+        }
     }
 
     .row {
@@ -187,18 +199,6 @@ export default class PanelModal extends Vue {
         margin: 0;
         white-space: nowrap;
         display: inline-block;
-    }
-
-    input[type="number"],
-    input[type="text"] {
-        width: 100%;
-    }
-
-    button {
-        padding: 6px 12px;
-        border: 1px solid lightgray;
-        border-radius: 0.25em;
-        background-color: rgb(235, 235, 228);
     }
 
     .color-picker {

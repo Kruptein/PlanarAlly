@@ -171,7 +171,7 @@ export default class ShapeContext extends Vue {
             }
         }
 
-        const targetLocation = {
+        const targetPosition = {
             floor: spawnLocation.floor,
             x: spawnLocation.x + spawnLocation.width / 2,
             y: spawnLocation.y + spawnLocation.height / 2,
@@ -179,14 +179,19 @@ export default class ShapeContext extends Vue {
 
         sendShapesMove({
             shapes: selection.map((s) => s.uuid),
-            target: { location: newLocation, ...targetLocation },
+            target: { location: newLocation, ...targetPosition },
         });
         if (gameSettingsStore.movePlayerOnTokenChange) {
             const users: Set<string> = new Set();
             for (const shape of selection) {
                 for (const owner of shape.owners) users.add(owner.user);
             }
-            sendLocationChange({ location: newLocation, users: [...users], position: { ...targetLocation } });
+            sendLocationChange({ location: newLocation, users: [...users], position: { ...targetPosition } });
+            for (const player of gameStore.players) {
+                if (users.has(player.name)) {
+                    player.location = newLocation;
+                }
+            }
         }
 
         this.close();

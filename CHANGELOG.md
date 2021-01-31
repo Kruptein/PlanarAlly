@@ -26,6 +26,7 @@ These usually have no immediately visible impact on regular users
 -   Tokens giving minimal vision on other floors
 -   Floor creation not triangulating
     -   This fixes newly created floors being broken in regards to vision until a refresh
+-   Update location bar user position when moving shape
 
 ## [0.24.1] - 2021-01-17
 

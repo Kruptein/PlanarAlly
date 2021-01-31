@@ -282,9 +282,10 @@ export abstract class Shape {
         ];
         for (const au of this.getAuras(true)) {
             const i = visionSources.findIndex((o) => o.aura === au.uuid);
-            if (au.visionSource && i === -1) {
+            const isVisionSource = au.visionSource && au.active;
+            if (isVisionSource && i === -1) {
                 visionSources.push({ shape: this.uuid, aura: au.uuid });
-            } else if (!au.visionSource && i >= 0) {
+            } else if (!isVisionSource && i >= 0) {
                 visionSources.splice(i, 1);
             }
         }
@@ -292,7 +293,8 @@ export abstract class Shape {
         for (let i = visionSources.length - 1; i >= 0; i--) {
             const ls = visionSources[i];
             if (ls.shape === this.uuid) {
-                if (!this.getAuras(true).some((a) => a.uuid === ls.aura && a.visionSource)) visionSources.splice(i, 1);
+                if (!this.getAuras(true).some((a) => a.uuid === ls.aura && a.visionSource && a.active))
+                    visionSources.splice(i, 1);
             }
         }
         setVisionSources(visionSources, this._floor ?? floorStore.currentFloor.id);
@@ -842,8 +844,10 @@ export abstract class Shape {
 
         Object.assign(aura, delta);
 
-        if (aura.visionSource && i === -1) addVisionSource({ shape: this.uuid, aura: aura.uuid }, this.floor.id);
-        else if (!aura.visionSource && i >= 0) sliceVisionSources(i, this.floor.id);
+        const showsVision = aura.active && aura.visionSource;
+
+        if (showsVision && i === -1) addVisionSource({ shape: this.uuid, aura: aura.uuid }, this.floor.id);
+        else if (!showsVision && i >= 0) sliceVisionSources(i, this.floor.id);
 
         this.invalidate(false);
     }

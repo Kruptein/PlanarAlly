@@ -18,6 +18,8 @@ These usually have no immediately visible impact on regular users
     -   floor change
     -   layer change
     -   shape creation/removal
+-   New aura options
+    -   enable/disable toggle
 
 ### Fixed
 

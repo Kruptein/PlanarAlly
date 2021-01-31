@@ -23,6 +23,9 @@ export function drawAuras(shape: Shape, ctx: CanvasRenderingContext2D): void {
         const loc = g2l(location);
         const innerRange = g2lr(value + dim);
 
+        ctx.strokeStyle = aura.borderColour;
+        ctx.lineWidth = 5;
+
         if (dim === 0) ctx.fillStyle = aura.colour;
         else {
             const gradient = ctx.createRadialGradient(loc.x, loc.y, g2lr(value), loc.x, loc.y, g2lr(value + dim));
@@ -34,14 +37,17 @@ export function drawAuras(shape: Shape, ctx: CanvasRenderingContext2D): void {
         if (!aura.visionSource) {
             ctx.arc(loc.x, loc.y, innerRange, 0, 2 * Math.PI);
             ctx.fill();
+            ctx.stroke();
         } else {
             const polygon = computeVisibility(location, TriangulationTarget.VISION, shape.floor.id);
             aura.lastPath = updateAuraPath(polygon, location, getUnitDistance(value + dim));
             try {
                 ctx.fill(aura.lastPath);
+                ctx.stroke(aura.lastPath);
             } catch (e) {
                 ctx.arc(loc.x, loc.y, innerRange, 0, 2 * Math.PI);
                 ctx.fill();
+                ctx.stroke();
                 console.warn(e);
             }
         }

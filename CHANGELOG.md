@@ -20,6 +20,7 @@ These usually have no immediately visible impact on regular users
     -   shape creation/removal
 -   New aura options
     -   enable/disable toggle
+    -   border
 
 ### Fixed
 

@@ -65,5 +65,13 @@ export function clampToGrid(point: GlobalPoint): GlobalPoint {
     return new GlobalPoint(clampGridLine(point.x), clampGridLine(point.y));
 }
 
+export function toRadians(degrees: number): number {
+    return (degrees * Math.PI) / 180;
+}
+
+export function toDegrees(radians: number): number {
+    return (radians * 180) / Math.PI;
+}
+
 (window as any).g2lx = g2lx;
 (window as any).g2ly = g2ly;

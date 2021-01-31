@@ -191,6 +191,7 @@ export default class TrackerSettings extends Vue {
                     <input
                         type="number"
                         :value="aura.value"
+                        @input="updateAura(aura.uuid, { value: parseFloat($event.target.value) }, false)"
                         @change="updateAura(aura.uuid, { value: parseFloat($event.target.value) })"
                         :title="$t('game.ui.selection.edit_dialog.dialog.current_value')"
                         :disabled="!owned"
@@ -199,6 +200,7 @@ export default class TrackerSettings extends Vue {
                     <input
                         type="number"
                         :value="aura.dim"
+                        @input="updateAura(aura.uuid, { dim: parseFloat($event.target.value) }, false)"
                         @change="updateAura(aura.uuid, { dim: parseFloat($event.target.value) })"
                         :title="$t('game.ui.selection.edit_dialog.dialog.dim_value')"
                         :disabled="!owned"

@@ -3,6 +3,8 @@ import Vue from "vue";
 import Component from "vue-class-component";
 import { Prop } from "vue-property-decorator";
 
+import { toDegrees, toRadians } from "../../game/units";
+
 @Component
 export default class RotationSlider extends Vue {
     @Prop(Number) readonly angle!: number;
@@ -16,7 +18,7 @@ export default class RotationSlider extends Vue {
     top = 0;
 
     mounted(): void {
-        this.radianAngle = ((180 + this.angle) * Math.PI) / 180;
+        this.radianAngle = toRadians(this.angle);
         this.left = this.getLeft();
         this.top = this.getTop();
     }
@@ -29,7 +31,7 @@ export default class RotationSlider extends Vue {
     }
 
     mouseUp(): void {
-        if (this.active) this.$emit("change", (this.radianAngle * 180) / Math.PI - 180);
+        if (this.active) this.$emit("change", toDegrees(this.radianAngle));
         this.active = false;
     }
 
@@ -39,23 +41,21 @@ export default class RotationSlider extends Vue {
             const center = { x: circleRect.left + circleRect.width / 2, y: circleRect.top + circleRect.height / 2 };
 
             const mPos = { x: event.x - center.x, y: event.y - center.y };
-            this.radianAngle = Math.atan2(this.radius * mPos.x, this.radius * mPos.y);
+            this.radianAngle = Math.PI / 2 - Math.atan2(this.radius * mPos.x, this.radius * mPos.y);
 
             this.left = this.getLeft();
             this.top = this.getTop();
 
-            this.$emit("input", (this.radianAngle * 180) / Math.PI - 180);
+            this.$emit("input", toDegrees(this.radianAngle));
         }
     }
 
     private getLeft(): number {
-        console.log(this.radianAngle);
-        console.log(this.angle);
-        return Math.round(this.radius * Math.sin(this.radianAngle)) + this.radius / 2;
+        return Math.round(this.radius * Math.cos(this.radianAngle)) + this.radius / 2;
     }
 
     private getTop(): number {
-        return Math.round(this.radius * Math.cos(this.radianAngle)) + this.radius / 2;
+        return Math.round(this.radius * Math.sin(this.radianAngle)) + this.radius / 2;
     }
 }
 </script>

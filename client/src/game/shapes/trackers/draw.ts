@@ -5,11 +5,14 @@ import { computeVisibility } from "@/game/visibility/te/te";
 import { circleLineIntersection, xyEqual } from "@/game/visibility/te/triag";
 
 import { GlobalPoint, LocalPoint } from "../../geom";
-import { g2l, g2lr, g2lz, getUnitDistance } from "../../units";
+import { g2l, g2lr, g2lz, getUnitDistance, toRadians } from "../../units";
 import { Shape } from "../shape";
 import { Circle } from "../variants/circle";
 
 export function drawAuras(shape: Shape, ctx: CanvasRenderingContext2D): void {
+    const center = shape.center();
+    const lCenter = g2l(center);
+
     for (const aura of shape.getAuras(true)) {
         if (!aura.active) continue;
 
@@ -18,9 +21,6 @@ export function drawAuras(shape: Shape, ctx: CanvasRenderingContext2D): void {
         if (value === 0 && dim === 0) return;
         ctx.beginPath();
 
-        const location = shape.center();
-
-        const loc = g2l(location);
         const innerRange = g2lr(value + dim);
 
         ctx.strokeStyle = aura.borderColour;
@@ -28,24 +28,41 @@ export function drawAuras(shape: Shape, ctx: CanvasRenderingContext2D): void {
 
         if (dim === 0) ctx.fillStyle = aura.colour;
         else {
-            const gradient = ctx.createRadialGradient(loc.x, loc.y, g2lr(value), loc.x, loc.y, g2lr(value + dim));
+            const gradient = ctx.createRadialGradient(
+                lCenter.x,
+                lCenter.y,
+                g2lr(value),
+                lCenter.x,
+                lCenter.y,
+                g2lr(value + dim),
+            );
             const tc = tinycolor(aura.colour);
             ctx.fillStyle = gradient;
             gradient.addColorStop(0, aura.colour);
             gradient.addColorStop(1, tc.setAlpha(0).toRgbString());
         }
         if (!aura.visionSource) {
-            ctx.arc(loc.x, loc.y, innerRange, 0, 2 * Math.PI);
+            const angleA = toRadians(aura.direction - aura.angle / 2);
+            const angleB = toRadians(aura.direction + aura.angle / 2);
+
+            if (aura.angle < 360) {
+                ctx.moveTo(lCenter.x, lCenter.y);
+                ctx.lineTo(lCenter.x + innerRange * Math.cos(angleA), lCenter.y + innerRange * Math.sin(angleA));
+            }
+            ctx.arc(lCenter.x, lCenter.y, innerRange, angleA, angleB);
+            if (aura.angle < 360) {
+                ctx.lineTo(lCenter.x, lCenter.y);
+            }
             ctx.fill();
             ctx.stroke();
         } else {
-            const polygon = computeVisibility(location, TriangulationTarget.VISION, shape.floor.id);
-            aura.lastPath = updateAuraPath(polygon, location, getUnitDistance(value + dim));
+            const polygon = computeVisibility(center, TriangulationTarget.VISION, shape.floor.id);
+            aura.lastPath = updateAuraPath(polygon, center, getUnitDistance(value + dim));
             try {
                 ctx.fill(aura.lastPath);
                 ctx.stroke(aura.lastPath);
             } catch (e) {
-                ctx.arc(loc.x, loc.y, innerRange, 0, 2 * Math.PI);
+                ctx.arc(lCenter.x, lCenter.y, innerRange, 0, 2 * Math.PI);
                 ctx.fill();
                 ctx.stroke();
                 console.warn(e);

@@ -46,7 +46,7 @@ export function drawAuras(shape: Shape, ctx: CanvasRenderingContext2D): void {
     }
 }
 
-export function updateAuraPath(visibilityPolygon: number[][], center: GlobalPoint, aura: number): Path2D {
+function updateAuraPath(visibilityPolygon: number[][], center: GlobalPoint, aura: number): Path2D {
     const auraCircle = new Circle(center, aura);
     const path = new Path2D();
     const lCenter = g2l(auraCircle.center());

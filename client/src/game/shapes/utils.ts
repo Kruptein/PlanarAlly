@@ -250,12 +250,3 @@ export function deleteShapes(shapes: readonly Shape[], sync: SyncMode): void {
         addOperation({ type: "shaperemove", shapes: shapes.map((s) => s.asDict()) });
     }
 }
-
-export function cutShapes(): void {
-    copyShapes();
-
-    const l = floorStore.currentLayer!;
-    const selection = l.getSelection({ includeComposites: true });
-
-    deleteShapes(selection, SyncMode.FULL_SYNC);
-}

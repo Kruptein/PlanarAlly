@@ -4,7 +4,7 @@ A strong focus is made to ensure that at no time a global and a local point are 
 At first glance this adds weird looking hacks as ts does not support nominal typing.
 */
 
-export function getPointDistance(p1: Point | Vector, p2: Point | Vector): number {
+function getPointDistance(p1: Point | Vector, p2: Point | Vector): number {
     const a = p1.x - p2.x;
     const b = p1.y - p2.y;
     return Math.sqrt(a * a + b * b);

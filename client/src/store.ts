@@ -13,7 +13,7 @@ import { VisibilityState } from "./game/visibility/store";
 
 Vue.use(Vuex);
 
-export interface RootState {
+interface RootState {
     activeShape: ActiveShapeState;
     assets: AssetState;
     core: CoreState;

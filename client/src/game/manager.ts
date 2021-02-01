@@ -10,7 +10,7 @@ import { sendClientLocationOptions } from "./api/emits/client";
 import { getFloorId } from "./layers/store";
 import { Shape } from "./shapes/shape";
 
-export class GameManager {
+class GameManager {
     async addShape(shape: ServerShape, sync: SyncMode): Promise<Shape | undefined> {
         if (!layerManager.hasLayer(layerManager.getFloor(getFloorId(shape.floor))!, shape.layer)) {
             console.log(`Shape with unknown layer ${shape.layer} could not be added`);

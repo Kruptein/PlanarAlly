@@ -62,10 +62,6 @@ export function updateGroupFromServer(serverGroup: ServerGroup): void {
     }
 }
 
-export function hasGroup(groupId: string): boolean {
-    return groupMap.has(groupId);
-}
-
 export async function fetchGroup(groupId: string): Promise<Group> {
     const groupInfo = groupToClient(await requestGroupInfo(groupId));
     addNewGroup(groupInfo, false);

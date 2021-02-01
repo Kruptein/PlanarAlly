@@ -37,7 +37,7 @@ export interface ServerShape {
     group?: string;
 }
 
-export interface ServerShapeAccess {
+interface ServerShapeAccess {
     edit_access: boolean;
     movement_access: boolean;
     vision_access: boolean;
@@ -118,7 +118,7 @@ export const ownerToServer = (owner: ShapeOwner): ServerShapeOwner => ({
     ...accessToServer(owner.access),
 });
 
-export const accessToClient = (access: ServerShapeAccess): ShapeAccess => ({
+const accessToClient = (access: ServerShapeAccess): ShapeAccess => ({
     edit: access.edit_access,
     movement: access.movement_access,
     vision: access.vision_access,

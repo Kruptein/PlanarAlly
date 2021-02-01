@@ -23,6 +23,7 @@ module.exports = {
             { argsIgnorePattern: "^_", varsIgnorePattern: "^_" },
         ],
         "@typescript-eslint/no-use-before-define": 0,
+        "import/no-unused-modules": [process.env.GITHUB_ACTION === undefined ? 1 : 2, { unusedExports: true }],
         "import/order": [
             "error",
             {
@@ -54,5 +55,6 @@ module.exports = {
                 extensions: [".js", ".ts", ".d.ts", ".vue"],
             },
         },
+        "import/extensions": [".ts", ".vue"],
     },
 };

@@ -44,12 +44,6 @@ export interface ServerLayer {
     size?: number;
 }
 
-export interface BoardInfo {
-    locations: { id: number; name: string }[];
-    floors: ServerFloor[];
-    options: ServerLocationOptions;
-}
-
 export interface Note {
     title: string;
     text: string;

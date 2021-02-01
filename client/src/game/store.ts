@@ -19,12 +19,6 @@ import { Label } from "./shapes/interfaces";
 
 export const DEFAULT_GRID_SIZE = 50;
 
-export interface LocationUserOptions {
-    panX: number;
-    panY: number;
-    zoomFactor: number;
-}
-
 export interface Player {
     id: number;
     name: string;
@@ -32,7 +26,7 @@ export interface Player {
     role: number;
 }
 
-export interface ClientOptions {
+interface ClientOptions {
     gridColour: string;
     fowColour: string;
     rulerColour: string;

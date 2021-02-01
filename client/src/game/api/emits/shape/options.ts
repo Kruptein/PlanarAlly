@@ -48,7 +48,3 @@ export const sendShapeCreateAura = (data: ServerAura): void => {
 export const sendShapeUpdateAura = (data: { shape: string; uuid: string } & Partial<ServerAura>): void => {
     socket.emit("Shape.Options.Aura.Update", data);
 };
-
-export const sendShapeSetAuraVision = sendShapeOption<{ aura: string; value: boolean }>(
-    "Shape.Options.Aura.Vision.Set",
-);

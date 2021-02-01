@@ -6,7 +6,7 @@ import { ccw, cw, orientation, sideOfOrientedCircleP, ulp } from "./triag";
 
 export type Point = number[];
 
-export const INFINITE = -7e310;
+const INFINITE = -7e310;
 
 let _INFINITE_VERTEX: Vertex;
 

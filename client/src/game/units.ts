@@ -57,10 +57,6 @@ export function l2gz(z: number): number {
     return z / gameStore.zoomFactor;
 }
 
-export function l2gr(r: number): number {
-    return l2gz(getUnitDistance(r));
-}
-
 export function clampGridLine(point: number): number {
     return Math.round(point / DEFAULT_GRID_SIZE) * DEFAULT_GRID_SIZE;
 }

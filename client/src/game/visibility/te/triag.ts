@@ -88,7 +88,7 @@ export function orientation(p: Point, q: Point, r: Point): Sign {
     return Sign.ZERO;
 }
 
-export function determinant(a00: number, a01: number, a10: number, a11: number): number {
+function determinant(a00: number, a01: number, a10: number, a11: number): number {
     return a00 * a11 - a01 * a10;
 }
 

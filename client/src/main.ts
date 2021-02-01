@@ -120,7 +120,7 @@ Vue.mixin({
 
 registerScripts();
 
-export const app = new Vue({
+const app = new Vue({
     router,
     store: rootStore,
     i18n,

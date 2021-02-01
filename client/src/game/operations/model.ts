@@ -23,7 +23,7 @@ export interface MovementOperation {
 }
 
 // RESIZE
-export interface ResizeOperation {
+interface ResizeOperation {
     type: "resize";
     // shapes: (RectResizeOperation | CircleResizeOperation | PolygonResizeOperation)[];
     uuid: string;
@@ -41,7 +41,7 @@ export interface ShapeRotationOperation {
     to: number;
 }
 
-export interface RotationOperation {
+interface RotationOperation {
     type: "rotation";
     shapes: ShapeRotationOperation[];
     center: GlobalPoint;
@@ -49,7 +49,7 @@ export interface RotationOperation {
 
 // FLOOR CHANGE
 
-export interface FloorMoveOperation {
+interface FloorMoveOperation {
     type: "floormovement";
     from: number;
     to: number;
@@ -58,7 +58,7 @@ export interface FloorMoveOperation {
 
 // LAYER CHANGE
 
-export interface LayerMoveOperation {
+interface LayerMoveOperation {
     type: "layermovement";
     from: string;
     to: string;
@@ -67,14 +67,14 @@ export interface LayerMoveOperation {
 
 // SHAPE REMOVE
 
-export interface ShapeRemoveOperation {
+interface ShapeRemoveOperation {
     type: "shaperemove";
     shapes: ServerShape[];
 }
 
 // SHAPE ADD
 
-export interface ShapeAddOperation {
+interface ShapeAddOperation {
     type: "shapeadd";
     shapes: ServerShape[];
 }

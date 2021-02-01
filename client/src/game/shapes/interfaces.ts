@@ -8,12 +8,16 @@ export interface Tracker {
 
 export interface Aura {
     uuid: string;
+    active: boolean;
     visionSource: boolean;
     visible: boolean;
     name: string;
     value: number;
     dim: number;
     colour: string;
+    borderColour: string;
+    angle: number;
+    direction: number;
     lastPath?: Path2D;
 }
 

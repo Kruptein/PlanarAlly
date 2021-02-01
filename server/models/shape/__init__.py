@@ -10,7 +10,6 @@ from ..campaign import Layer
 from ..groups import Group
 from ..label import Label
 from ..user import User
-from ..utils import get_table
 
 
 __all__ = [
@@ -149,6 +148,10 @@ class Aura(BaseModel):
     value = IntegerField()
     dim = IntegerField()
     colour = TextField()
+    active = BooleanField()
+    border_colour = TextField()
+    angle = IntegerField()
+    direction = IntegerField()
 
     def __repr__(self):
         return f"<Aura {self.name} {self.shape.get_path()}>"

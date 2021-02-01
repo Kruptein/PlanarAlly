@@ -101,7 +101,7 @@ export class ToggleComposite extends Shape {
             addBlocker(TriangulationTarget.VISION, newVariant.uuid, newVariant.floor.id, true);
 
         for (const au of newVariant.getAuras(false)) {
-            if (au.visionSource) {
+            if (au.visionSource && au.active) {
                 addVisionSource({ shape: newVariant.uuid, aura: au.uuid }, newVariant.floor.id);
             }
         }

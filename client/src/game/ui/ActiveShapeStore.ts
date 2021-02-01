@@ -156,7 +156,7 @@ class ActiveShapeStore extends VuexModule implements ActiveShapeState {
     }
 
     get isComposite(): boolean {
-        return this._parentUuid !== undefined;
+        return this._parentUuid !== null;
     }
 
     get showEditDialog(): boolean {

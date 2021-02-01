@@ -2,7 +2,7 @@ import { InvalidationMode, SyncMode } from "@/core/comm/types";
 import { layerManager } from "@/game/layers/manager";
 import { Shape } from "@/game/shapes/shape";
 import { Circle } from "@/game/shapes/variants/circle";
-import { g2l, g2lr, g2lx, g2ly, g2lz, getUnitDistance } from "@/game/units";
+import { g2l, g2lr, g2lx, g2ly, g2lz, getUnitDistance, toRadians } from "@/game/units";
 import { getFogColour } from "@/game/utils";
 import { getVisionSources } from "@/game/visibility/utils";
 
@@ -79,6 +79,7 @@ export class FowLightingLayer extends FowLayer {
                 const auraLength = getUnitDistance(aura.value + aura.dim);
                 const center = shape.center();
                 const lcenter = g2l(center);
+                const innerRange = g2lr(aura.value + aura.dim);
 
                 const auraCircle = new Circle(center, auraLength);
                 if (!auraCircle.visibleInCanvas(this.ctx.canvas, { includeAuras: true })) continue;
@@ -99,7 +100,7 @@ export class FowLightingLayer extends FowLayer {
                         g2lr(aura.value),
                         lcenter.x,
                         lcenter.y,
-                        g2lr(aura.value + aura.dim),
+                        innerRange,
                     );
                     gradient.addColorStop(0, "rgba(0, 0, 0, 1)");
                     gradient.addColorStop(1, "rgba(0, 0, 0, 0)");
@@ -109,11 +110,24 @@ export class FowLightingLayer extends FowLayer {
                 }
                 this.vCtx.globalCompositeOperation = "source-in";
                 this.vCtx.beginPath();
-                this.vCtx.arc(lcenter.x, lcenter.y, g2lr(aura.value + aura.dim), 0, 2 * Math.PI);
+
+                const angleA = toRadians(aura.direction - aura.angle / 2);
+                const angleB = toRadians(aura.direction + aura.angle / 2);
+
+                if (aura.angle < 360) {
+                    this.vCtx.moveTo(lcenter.x, lcenter.y);
+                    this.vCtx.lineTo(
+                        lcenter.x + innerRange * Math.cos(angleA),
+                        lcenter.y + innerRange * Math.sin(angleA),
+                    );
+                }
+                this.vCtx.arc(lcenter.x, lcenter.y, innerRange, angleA, angleB);
+                if (aura.angle < 360) {
+                    this.vCtx.lineTo(lcenter.x, lcenter.y);
+                }
+
                 this.vCtx.fill();
                 this.ctx.drawImage(this.virtualCanvas, 0, 0);
-                // aura.lastPath = this.updateAuraPath(polygon, auraCircle);
-                // shape.invalidate(true);
             }
 
             const activeFloor = floorStore.currentFloor.id;

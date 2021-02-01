@@ -22,12 +22,6 @@ export function toSnakeCase(s: string): string {
         .replace(/^_/, "");
 }
 
-export function partition<T>(arr: T[], predicate: (n: T) => boolean): T[][] {
-    const ret: T[][] = [[], []];
-    arr.forEach((n) => (predicate(n) ? ret[1].push(n) : ret[0].push(n)));
-    return ret;
-}
-
 export function calcFontScale(ctx: CanvasRenderingContext2D, text: string, r: number): number {
     const fontWidth = ctx.measureText(text).width;
     const fontSize = Number(ctx.font.split("px")[0]) * 1.5;

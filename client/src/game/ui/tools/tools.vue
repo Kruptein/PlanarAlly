@@ -148,7 +148,7 @@ export default class Tools extends Vue {
     }
 
     keyup(event: KeyboardEvent): void {
-        let targetTool = this.currentTool;
+        const targetTool = this.currentTool;
 
         const tool = this.componentMap[targetTool];
         for (const permitted of tool.permittedTools) {

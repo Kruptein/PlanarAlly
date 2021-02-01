@@ -21,6 +21,7 @@ These usually have no immediately visible impact on regular users
 -   New aura options
     -   enable/disable toggle
     -   border
+    -   viewing angle (width + direction)
 
 ### Fixed
 

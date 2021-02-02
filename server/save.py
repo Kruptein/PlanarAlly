@@ -11,7 +11,7 @@ When writing migrations make sure that these things are respected:
     - WHEN USING THIS IN A SELECT STATEMENT MAKE SURE YOU USE " AND NOT ' OR YOU WILL HAVE A STRING LITERAL
 """
 
-SAVE_VERSION = 50
+SAVE_VERSION = 51
 
 import json
 import logging
@@ -771,6 +771,12 @@ def upgrade(version):
             )
             db.execute_sql(
                 "ALTER TABLE aura ADD COLUMN direction INTEGER NOT NULL DEFAULT 0"
+            )
+    elif version == 50:
+        # Add Location.archived
+        with db.atomic():
+            db.execute_sql(
+                "ALTER TABLE location ADD COLUMN archived INTEGER NOT NULL DEFAULT 0"
             )
     else:
         raise UnknownVersionException(

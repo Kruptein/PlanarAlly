@@ -168,8 +168,13 @@ export default class LocationBar extends Vue {
         return this.playerLocations.get(location) ?? [];
     }
 
+    hasArchivedLocations(): boolean {
+        return gameStore.archivedLocations.length > 0;
+    }
+
     async showArchivedLocations(): Promise<void> {
         const locations = gameStore.archivedLocations;
+        if (locations.length === 0) return;
         const choice = await this.$refs.selectionbox.open(
             "Select a location to restore",
             locations.map((l) => l.name),
@@ -191,7 +196,12 @@ export default class LocationBar extends Vue {
             <div id="create-location" :title="$t('game.ui.menu.locations.add_new_location')" @click="createLocation">
                 +
             </div>
-            <div id="archive-locations" title="Show archived locations" @click="showArchivedLocations">
+            <div
+                id="archive-locations"
+                title="Show archived locations"
+                @click="showArchivedLocations"
+                :class="{ noArchived: !hasArchivedLocations() }"
+            >
                 <font-awesome-icon icon="archive" />
             </div>
         </div>
@@ -274,11 +284,11 @@ export default class LocationBar extends Vue {
 <style scoped lang="scss">
 #location-bar {
     --primary: #7c253e;
-    --secondary: #9c455e;
+    --secondary: 156, 69, 94;
     --primaryBG: #7c253e50;
     display: flex;
     grid-area: locations;
-    border-bottom: solid 1px var(--secondary);
+    border-bottom: solid 1px rgb(var(--secondary));
     background-color: var(--primaryBG);
     pointer-events: auto;
 }
@@ -295,7 +305,7 @@ export default class LocationBar extends Vue {
         display: inline-grid;
         width: 85px;
         color: white;
-        background-color: var(--secondary);
+        background-color: rgb(var(--secondary));
         font-size: 30px;
         place-items: center center;
         margin: 10px;
@@ -306,6 +316,10 @@ export default class LocationBar extends Vue {
             cursor: pointer;
             text-shadow: 0 0 20px rgba(0, 0, 0, 1);
             border: solid 2px white;
+        }
+
+        &.noArchived {
+            background-color: rgba(var(--secondary), 0.4);
         }
     }
 }
@@ -319,14 +333,14 @@ export default class LocationBar extends Vue {
     max-width: calc(100vw - 105px); /* 105 = width of the #create-location div */
 
     scrollbar-width: thin;
-    scrollbar-color: var(--secondary) var(--primary);
+    scrollbar-color: rgb(var(--secondary)) var(--primary);
 
     &::-webkit-scrollbar {
         height: 11px;
     }
 
     &::-webkit-scrollbar-track {
-        background: var(--secondary);
+        background: rgb(var(--secondary));
         border-radius: 6px;
     }
 
@@ -408,7 +422,7 @@ export default class LocationBar extends Vue {
     padding: 0.5em 1em;
     border-bottom-left-radius: 5px;
     border-bottom-right-radius: 5px;
-    background-color: var(--secondary);
+    background-color: rgb(var(--secondary));
 }
 
 .player-collapse-content {
@@ -421,7 +435,7 @@ export default class LocationBar extends Vue {
     margin-top: 10px;
     padding: 0.5em 1em;
     border-radius: 5px;
-    background-color: var(--secondary);
+    background-color: rgb(var(--secondary));
 }
 
 .active-location {

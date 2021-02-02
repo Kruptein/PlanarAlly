@@ -22,6 +22,7 @@ import { gameStore } from "@/game/store";
 import { router } from "@/router";
 
 import { coreStore } from "../../core/store";
+import { Location } from "../comm/types/settings";
 import { floorStore } from "../layers/store";
 import { deleteShapes } from "../shapes/utils";
 import { visibilityStore } from "../visibility/store";
@@ -50,7 +51,7 @@ socket.on("redirect", (destination: string) => {
 
 // Bootup events
 
-socket.on("Board.Locations.Set", (locationInfo: { id: number; name: string }[]) => {
+socket.on("Board.Locations.Set", (locationInfo: Location[]) => {
     gameStore.clear();
     visibilityStore.clear();
     gameStore.setLocations({ locations: locationInfo, sync: false });

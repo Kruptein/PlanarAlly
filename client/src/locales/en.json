@@ -264,7 +264,7 @@
                         "remove_location_no": "please no",
                         "move_existing_pl": "Move existing players on this location",
                         "delete_this_location": "Delete this location",
-                        "remove_location": "Remove Location"
+                        "archive_this_location": "Archive this location"
                     },
                     "LocationSettings": {
                         "location_settings": "Location Settings:"

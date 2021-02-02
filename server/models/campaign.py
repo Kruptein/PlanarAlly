@@ -72,6 +72,7 @@ class Location(BaseModel):
     name = TextField()
     options = ForeignKeyField(LocationOptions, on_delete="CASCADE", null=True)
     index = IntegerField()
+    archived = BooleanField(default=False)
 
     def __repr__(self):
         return f"<Location {self.get_path()}>"

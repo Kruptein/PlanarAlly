@@ -13,6 +13,12 @@ export interface ServerLocationOptions {
     move_player_on_token_change: boolean;
 }
 
+export interface Location {
+    id: number;
+    name: string;
+    archived: boolean;
+}
+
 export interface LocationOptions {
     useGrid: boolean;
     gridType: string;

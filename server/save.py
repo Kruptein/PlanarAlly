@@ -11,27 +11,23 @@ When writing migrations make sure that these things are respected:
     - WHEN USING THIS IN A SELECT STATEMENT MAKE SURE YOU USE " AND NOT ' OR YOU WILL HAVE A STRING LITERAL
 """
 
-SAVE_VERSION = 50
+SAVE_VERSION = 51
 
 import json
 import logging
 import os
 import secrets
 import shutil
-import sqlite3
 import sys
 from pathlib import Path
 from uuid import uuid4
 
 from peewee import (
     BooleanField,
-    FloatField,
     ForeignKeyField,
     IntegerField,
-    OperationalError,
-    TextField,
 )
-from playhouse.migrate import SqliteMigrator, fn, migrate
+from playhouse.migrate import SqliteMigrator, migrate
 
 from config import SAVE_FILE
 from models import ALL_MODELS, Constants
@@ -776,6 +772,12 @@ def upgrade(version):
             db.execute_sql(
                 "ALTER TABLE aura ADD COLUMN direction INTEGER NOT NULL DEFAULT 0"
             )
+    elif version == 50:
+        # Add Location.archived
+        with db.atomic():
+            db.execute_sql(
+                "ALTER TABLE location ADD COLUMN archived INTEGER NOT NULL DEFAULT 0"
+            )
     else:
         raise UnknownVersionException(
             f"No upgrade code for save format {version} was found."
@@ -825,7 +827,6 @@ def check_save():
                 logger.exception(e)
                 logger.error("ERROR: Could not start server")
                 sys.exit(2)
-                break
             else:
                 logger.warning(f"Upgrade to {save_version + 1} done.")
                 save_version = get_save_version()

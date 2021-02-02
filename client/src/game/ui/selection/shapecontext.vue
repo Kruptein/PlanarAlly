@@ -19,6 +19,7 @@ import { toTemplate } from "@/game/shapes/template";
 import { gameStore } from "@/game/store";
 
 import { SyncMode } from "../../../core/comm/types";
+import { Location } from "../../comm/types/settings";
 import { addGroupMembers, createNewGroupForShapes, getGroupSize, removeGroup } from "../../groups";
 import { Layer } from "../../layers/layer";
 import { floorStore } from "../../layers/store";
@@ -97,9 +98,9 @@ export default class ShapeContext extends Vue {
         if (gameStore.IS_DM) return floorStore.floors;
         return [];
     }
-    getLocations(): { id: number; name: string }[] {
+    getLocations(): readonly Location[] {
         if (!gameStore.IS_DM || this.hasSpawnToken()) return [];
-        return gameStore.locations;
+        return gameStore.activeLocations;
     }
     getLayers(): Layer[] {
         if (!gameStore.IS_DM || this.hasSpawnToken()) return [];

@@ -2,6 +2,7 @@ import { dom, library } from "@fortawesome/fontawesome-svg-core";
 import { faDAndD, faDiscord, faGithub, faPatreon } from "@fortawesome/free-brands-svg-icons";
 import { faCompass, faCopy, faWindowClose } from "@fortawesome/free-regular-svg-icons";
 import {
+    faArchive,
     faArrowRight,
     faArrowsAlt,
     faAt,
@@ -54,6 +55,7 @@ import i18n from "./i18n";
 import { registerScripts } from "./scripts";
 
 library.add(
+    faArchive,
     faArrowRight,
     faArrowsAlt,
     faAt,

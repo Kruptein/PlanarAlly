@@ -18,20 +18,16 @@ import logging
 import os
 import secrets
 import shutil
-import sqlite3
 import sys
 from pathlib import Path
 from uuid import uuid4
 
 from peewee import (
     BooleanField,
-    FloatField,
     ForeignKeyField,
     IntegerField,
-    OperationalError,
-    TextField,
 )
-from playhouse.migrate import SqliteMigrator, fn, migrate
+from playhouse.migrate import SqliteMigrator, migrate
 
 from config import SAVE_FILE
 from models import ALL_MODELS, Constants
@@ -825,7 +821,6 @@ def check_save():
                 logger.exception(e)
                 logger.error("ERROR: Could not start server")
                 sys.exit(2)
-                break
             else:
                 logger.warning(f"Upgrade to {save_version + 1} done.")
                 save_version = get_save_version()

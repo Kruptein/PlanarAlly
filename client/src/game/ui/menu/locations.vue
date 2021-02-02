@@ -174,8 +174,9 @@ export default class LocationBar extends Vue {
             "Select a location to restore",
             locations.map((l) => l.name),
         );
-        if (choice !== undefined) {
-            gameStore.unarchiveLocation({ id: locations.find((l) => l.name === choice)?.id, sync: true });
+        const location = locations.find((l) => l.name === choice);
+        if (choice !== undefined && location !== undefined) {
+            gameStore.unarchiveLocation({ id: location.id, sync: true });
         }
     }
 }

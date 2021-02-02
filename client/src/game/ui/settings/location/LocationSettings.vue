@@ -28,7 +28,7 @@ export default class LocationSettings extends Vue {
     visible = false;
 
     get locationName(): string {
-        return gameStore.locations.find((l) => l.id === this.location)?.name ?? "";
+        return gameStore.activeLocations.find((l) => l.id === this.location)?.name ?? "";
     }
 
     mounted(): void {

@@ -11,10 +11,18 @@ import { g2l, l2g } from "@/game/units";
 import { rootStore } from "@/store";
 
 import { sendClientLocationOptions, sendClientOptions } from "./api/emits/client";
-import { sendLocationOrder, sendLocationRemove } from "./api/emits/location";
+import {
+    sendLocationArchive,
+    sendLocationOrder,
+    sendLocationRemove,
+    sendLocationRename,
+    sendLocationUnarchive,
+} from "./api/emits/location";
 import { sendRoomKickPlayer, sendRoomLock } from "./api/emits/room";
+import { Location } from "./comm/types/settings";
 import { floorStore } from "./layers/store";
 import { gameManager } from "./manager";
+import { gameSettingsStore } from "./settings";
 import { Label } from "./shapes/interfaces";
 
 export const DEFAULT_GRID_SIZE = 50;
@@ -42,7 +50,7 @@ export interface GameState extends ClientOptions {
 class GameStore extends VuexModule implements GameState {
     boardInitialized = false;
 
-    locations: { id: number; name: string }[] = [];
+    private locations: Location[] = [];
 
     assets: AssetList = {};
 
@@ -124,6 +132,14 @@ class GameStore extends VuexModule implements GameState {
 
     get isBoardInitialized(): boolean {
         return this.boardInitialized;
+    }
+
+    get activeLocations(): readonly Location[] {
+        return this.locations.filter((l) => !l.archived);
+    }
+
+    get archivedLocations(): readonly Location[] {
+        return this.locations.filter((l) => l.archived);
     }
 
     @Mutation
@@ -246,16 +262,54 @@ class GameStore extends VuexModule implements GameState {
     }
 
     @Mutation
-    setLocations(data: { locations: { id: number; name: string }[]; sync: boolean }): void {
+    setActiveLocations(data: { locations: { id: number; name: string; archived: boolean }[]; sync: boolean }): void {
+        const archivedLocations = this.locations.filter((l) => l.archived);
+        this.locations = data.locations.concat(archivedLocations);
+        if (data.sync) sendLocationOrder(this.locations.map((l) => l.id));
+    }
+
+    @Mutation
+    setLocations(data: { locations: { id: number; name: string; archived: boolean }[]; sync: boolean }): void {
         this.locations = data.locations;
         if (data.sync) sendLocationOrder(this.locations.map((l) => l.id));
     }
 
     @Mutation
-    removeLocation(id: number): void {
-        const idx = this.locations.findIndex((l) => l.id === id);
+    removeLocation(data: { id: number; sync: boolean }): void {
+        const idx = this.locations.findIndex((l) => l.id === data.id);
         if (idx >= 0) this.locations.splice(idx, 1);
-        sendLocationRemove(id);
+        if (data.sync) sendLocationRemove(data.id);
+    }
+
+    @Mutation
+    renameLocation(data: { location: number; name: string; sync: boolean }): void {
+        const location = this.locations.find((l) => l.id === data.location);
+        if (location === undefined) {
+            throw new Error("unknown location rename attempt");
+        }
+        if (gameSettingsStore.activeLocation === data.location) gameSettingsStore.setActiveLocation(data.location);
+        location.name = data.name;
+        if (data.sync) sendLocationRename({ location: data.location, name: data.name });
+    }
+
+    @Mutation
+    archiveLocation(data: { id: number; sync: boolean }): void {
+        const location = this.locations.find((l) => l.id === data.id);
+        if (location === undefined) {
+            throw new Error("unknown location rename attempt");
+        }
+        location.archived = true;
+        if (data.sync) sendLocationArchive(data.id);
+    }
+
+    @Mutation
+    unarchiveLocation(data: { id: number; sync: boolean }): void {
+        const location = this.locations.find((l) => l.id === data.id);
+        if (location === undefined) {
+            throw new Error("unknown location rename attempt");
+        }
+        location.archived = false;
+        if (data.sync) sendLocationUnarchive(data.id);
     }
 
     @Mutation

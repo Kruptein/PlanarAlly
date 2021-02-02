@@ -7,8 +7,6 @@ import InputCopyElement from "@/core/components/inputCopy.vue";
 import ConfirmDialog from "@/core/components/modals/confirm.vue";
 import { gameStore } from "@/game/store";
 
-import { renameLocation } from "../../../api/events/location";
-
 @Component({
     components: {
         ConfirmDialog,
@@ -22,15 +20,21 @@ export default class LocationAdminSettings extends Vue {
     };
 
     get name(): string {
-        return gameStore.locations.find((l) => l.id === this.location)?.name ?? "";
+        return gameStore.activeLocations.find((l) => l.id === this.location)?.name ?? "";
     }
 
     set name(name: string) {
-        renameLocation(this.location, name);
+        gameStore.renameLocation({ location: this.location, name, sync: true });
     }
 
     get hasPlayers(): boolean {
         return gameStore.players.some((p) => p.location === this.location);
+    }
+
+    archiveLocation(): void {
+        this.$emit("update:location", gameStore.activeLocations.find((l) => l.id !== this.location)!.id);
+        gameStore.archiveLocation({ id: this.location, sync: true });
+        this.$emit("close");
     }
 
     async deleteLocation(): Promise<void> {
@@ -45,8 +49,8 @@ export default class LocationAdminSettings extends Vue {
             },
         );
         if (!remove) return;
-        this.$emit("update:location", gameStore.locations.find((l) => l.id !== this.location)!.id);
-        gameStore.removeLocation(this.location);
+        this.$emit("update:location", gameStore.activeLocations.find((l) => l.id !== this.location)!.id);
+        gameStore.removeLocation({ id: this.location, sync: true });
         this.$emit("close");
     }
 }
@@ -64,7 +68,19 @@ export default class LocationAdminSettings extends Vue {
             </div>
         </div>
         <div class="row">
-            <div v-t="'game.ui.settings.location.LocationAdminSettings.remove_location'"></div>
+            <div>
+                <button
+                    class="danger"
+                    @click="archiveLocation"
+                    :disabled="hasPlayers"
+                    :title="
+                        hasPlayers
+                            ? $t('game.ui.settings.location.LocationAdminSettings.move_existing_pl')
+                            : $t('game.ui.settings.location.LocationAdminSettings.archive_this_location')
+                    "
+                    v-t="'game.ui.settings.location.LocationAdminSettings.archive_this_location'"
+                ></button>
+            </div>
             <div>
                 <button
                     class="danger"

@@ -6,10 +6,12 @@ import draggable from "vuedraggable";
 import { mapState } from "vuex";
 
 import Prompt from "@/core/components/modals/prompt.vue";
+import SelectionBox from "@/core/components/modals/SelectionBox.vue";
 import { sendLocationChange, sendNewLocation } from "@/game/api/emits/location";
 import { gameStore } from "@/game/store";
 
 import { coreStore } from "../../../core/store";
+import { Location } from "../../comm/types/settings";
 import { EventBus } from "../../event-bus";
 
 @Component({
@@ -17,15 +19,17 @@ import { EventBus } from "../../event-bus";
         ...mapState("game", ["IS_DM"]),
         ...mapState("gameSettings", ["activeLocation"]),
     },
-    components: { Prompt },
+    components: { Prompt, SelectionBox },
 })
 export default class LocationBar extends Vue {
     activeLocation!: number;
     IS_DM!: boolean;
 
     $refs!: {
+        // archived: ArchivedLocations;
         locations: InstanceType<typeof draggable>;
         prompt: Prompt;
+        selectionbox: SelectionBox;
     };
 
     @Prop() active!: boolean;
@@ -53,12 +57,12 @@ export default class LocationBar extends Vue {
         coreStore.setLoading(true);
     }
 
-    get locations(): { id: number; name: string }[] {
-        return gameStore.locations;
+    get locations(): Location[] {
+        return [...gameStore.activeLocations];
     }
 
-    set locations(locations: { id: number; name: string }[]) {
-        gameStore.setLocations({ locations, sync: true });
+    set locations(locations: Location[]) {
+        gameStore.setActiveLocations({ locations, sync: true });
     }
 
     get playerLocations(): Map<number, string[]> {
@@ -163,13 +167,33 @@ export default class LocationBar extends Vue {
     getLocationPlayers(location: number): string[] {
         return this.playerLocations.get(location) ?? [];
     }
+
+    async showArchivedLocations(): Promise<void> {
+        const locations = gameStore.archivedLocations;
+        const choice = await this.$refs.selectionbox.open(
+            "Select a location to restore",
+            locations.map((l) => l.name),
+        );
+        if (choice !== undefined) {
+            gameStore.unarchiveLocation({ id: locations.find((l) => l.name === choice)?.id, sync: true });
+        }
+    }
 }
 </script>
 
 <template>
     <div id="location-bar" v-if="IS_DM">
-        <Prompt ref="prompt"></Prompt>
-        <div id="create-location" :title="$t('game.ui.menu.locations.add_new_location')" @click="createLocation">+</div>
+        <!-- <ArchivedLocations ref="archived" /> -->
+        <SelectionBox ref="selectionbox" />
+        <Prompt ref="prompt" />
+        <div id="location-actions">
+            <div id="create-location" :title="$t('game.ui.menu.locations.add_new_location')" @click="createLocation">
+                +
+            </div>
+            <div id="archive-locations" title="Show archived locations" @click="showArchivedLocations">
+                <font-awesome-icon icon="archive" />
+            </div>
+        </div>
         <draggable
             id="locations"
             v-model="locations"
@@ -258,6 +282,33 @@ export default class LocationBar extends Vue {
     pointer-events: auto;
 }
 
+#location-actions {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    flex-shrink: 0;
+
+    #create-location,
+    #archive-locations {
+        box-sizing: border-box;
+        display: inline-grid;
+        width: 85px;
+        color: white;
+        background-color: var(--secondary);
+        font-size: 30px;
+        place-items: center center;
+        margin: 10px;
+        padding: 10px 0;
+
+        &:hover {
+            font-weight: bold;
+            cursor: pointer;
+            text-shadow: 0 0 20px rgba(0, 0, 0, 1);
+            border: solid 2px white;
+        }
+    }
+}
+
 #locations {
     pointer-events: auto;
     display: grid;
@@ -281,24 +332,6 @@ export default class LocationBar extends Vue {
     &::-webkit-scrollbar-thumb {
         background-color: var(--primary);
         border-radius: 6px;
-    }
-}
-
-#create-location {
-    overflow: hidden;
-    flex-shrink: 0;
-    display: inline-grid;
-    width: 85px;
-    color: white;
-    background-color: var(--secondary);
-    font-size: 30px;
-    place-items: center center;
-    margin: 10px;
-
-    &:hover {
-        font-weight: bold;
-        cursor: pointer;
-        text-shadow: 0 0 20px rgba(0, 0, 0, 1);
     }
 }
 

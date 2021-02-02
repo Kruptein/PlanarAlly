@@ -22,6 +22,7 @@ These usually have no immediately visible impact on regular users
     -   enable/disable toggle
     -   border
     -   viewing angle (width + direction)
+-   Location (un)archiving
 
 ### Fixed
 

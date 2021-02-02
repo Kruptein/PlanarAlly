@@ -133,6 +133,9 @@ export default class SelectionBox extends Vue {
     display: flex;
     flex-direction: column;
 
+    max-height: 60vh;
+    overflow: auto;
+
     div {
         padding: 10px 25px;
         padding-left: 15px;

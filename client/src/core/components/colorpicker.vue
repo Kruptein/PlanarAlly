@@ -19,6 +19,7 @@ import { Prop } from "vue-property-decorator";
 export default class ColorPicker extends Vue {
     @Prop(String) color!: string;
     @Prop(Boolean) disabled!: boolean;
+    @Prop(Boolean) disableAlpha!: boolean;
 
     display = false;
     left = 0;
@@ -73,6 +74,7 @@ export default class ColorPicker extends Vue {
             :value="color"
             @input="updateColor"
             :style="{ position: 'fixed', left: left + 'px', top: top + 'px', 'z-index': 9999 }"
+            :disableAlpha="disableAlpha"
             tabindex="-1"
             v-show="display"
             ref="chromePicker"

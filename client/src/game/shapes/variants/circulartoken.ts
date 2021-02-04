@@ -33,6 +33,7 @@ export class CircularToken extends Circle {
     asDict(): ServerCircularToken {
         return Object.assign(this.getBaseDict(), {
             radius: this.r,
+            viewing_angle: this.viewingAngle,
             text: this.text,
             font: this.font,
         });
@@ -40,6 +41,7 @@ export class CircularToken extends Circle {
     fromDict(data: ServerCircularToken): void {
         super.fromDict(data);
         this.r = data.radius;
+        this.viewingAngle = data.viewing_angle;
         this.text = data.text;
         this.font = data.font;
     }

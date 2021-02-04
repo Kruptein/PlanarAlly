@@ -22,6 +22,7 @@ import { getLocalPointFromEvent } from "@/game/utils";
 import Annotation from "../Annotation.vue";
 import UI from "../ui.vue";
 
+import SpellTool from "./Spell.vue";
 import Tool from "./tool.vue";
 import { ToolName, ToolFeatures } from "./utils";
 
@@ -37,6 +38,7 @@ import { ToolName, ToolFeatures } from "./utils";
         RulerTool,
         SelectTool,
         ShapeContext,
+        SpellTool,
         VisionTool,
     },
     watch: {
@@ -55,12 +57,13 @@ export default class Tools extends Vue {
     $refs!: {
         selectTool: SelectTool;
         panTool: PanTool;
-        drawTool: PanTool;
-        rulerTool: PanTool;
-        pingTool: PanTool;
-        mapTool: PanTool;
-        filterTool: PanTool;
-        visionTool: PanTool;
+        drawTool: DrawTool;
+        rulerTool: RulerTool;
+        pingTool: PingTool;
+        mapTool: MapTool;
+        filterTool: FilterTool;
+        visionTool: VisionTool;
+        spellTool: SpellTool;
 
         annotation: Annotation;
         defaultcontext: DefaultContext;
@@ -82,6 +85,7 @@ export default class Tools extends Vue {
             [ToolName.Map]: this.$refs.mapTool,
             [ToolName.Filter]: this.$refs.filterTool,
             [ToolName.Vision]: this.$refs.visionTool,
+            [ToolName.Spell]: this.$refs.spellTool,
         };
         this.$refs.selectTool.selected = true;
         EventBus.$on("ToolMode.Toggle", this.toggleMode);
@@ -106,6 +110,7 @@ export default class Tools extends Vue {
     playTools: [ToolName, ToolFeatures][] = [
         [ToolName.Select, { disabled: [SelectFeatures.Resize, SelectFeatures.Rotate] }],
         [ToolName.Pan, {}],
+        [ToolName.Spell, {}],
         [ToolName.Ruler, {}],
         [ToolName.Ping, {}],
         [ToolName.Filter, {}],
@@ -415,6 +420,9 @@ export default class Tools extends Vue {
             case ToolName.Pan:
                 return this.$t("tool.Pan").toString();
 
+            case ToolName.Spell:
+                return this.$t("tool.Spell").toString();
+
             case ToolName.Draw:
                 return this.$t("tool.Draw").toString();
 
@@ -471,6 +479,7 @@ export default class Tools extends Vue {
             <template>
                 <SelectTool v-show="currentTool === 'Select'" ref="selectTool"></SelectTool>
                 <PanTool v-show="currentTool === 'Pan'" ref="panTool"></PanTool>
+                <SpellTool v-show="currentTool === 'Spell'" ref="spellTool"></SpellTool>
                 <keep-alive>
                     <DrawTool v-show="currentTool === 'Draw'" ref="drawTool"></DrawTool>
                 </keep-alive>

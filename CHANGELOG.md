@@ -23,6 +23,7 @@ These usually have no immediately visible impact on regular users
     -   border
     -   viewing angle (width + direction)
 -   Location (un)archiving
+-   Spell measuring system
 
 ### Fixed
 

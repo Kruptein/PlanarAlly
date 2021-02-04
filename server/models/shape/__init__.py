@@ -1,4 +1,5 @@
 import json
+import math
 from peewee import BooleanField, FloatField, ForeignKeyField, IntegerField, TextField
 from playhouse.shortcuts import model_to_dict, update_model_from_dict
 from typing import Any, Dict, List, Tuple
@@ -221,6 +222,7 @@ class AssetRect(BaseRect):
 
 class Circle(ShapeType):
     radius = FloatField()
+    viewing_angle = FloatField(null=True)
 
 
 class CircularToken(Circle):

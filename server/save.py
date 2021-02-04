@@ -9,12 +9,15 @@ When writing migrations make sure that these things are respected:
 - Some column names clash with some sql keywords (e.g. 'index', 'group'), make sure that these are handled correctly
     - i.e. surround them at all times with quotes.
     - WHEN USING THIS IN A SELECT STATEMENT MAKE SURE YOU USE " AND NOT ' OR YOU WILL HAVE A STRING LITERAL
+- When changing models that have inherited parents or children also update those with queries
+    - e.g. a column added to Circle also needs to be added to CircularToken
 """
 
-SAVE_VERSION = 51
+SAVE_VERSION = 52
 
 import json
 import logging
+import math
 import os
 import secrets
 import shutil
@@ -778,6 +781,11 @@ def upgrade(version):
             db.execute_sql(
                 "ALTER TABLE location ADD COLUMN archived INTEGER NOT NULL DEFAULT 0"
             )
+    elif version == 51:
+        # Add Circle.viewing_angle
+        with db.atomic():
+            db.execute_sql("ALTER TABLE circle ADD COLUMN viewing_angle REAL")
+            db.execute_sql("ALTER TABLE circular_token ADD COLUMN viewing_angle REAL")
     else:
         raise UnknownVersionException(
             f"No upgrade code for save format {version} was found."

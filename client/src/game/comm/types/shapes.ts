@@ -55,6 +55,7 @@ export interface ServerRect extends ServerShape {
 
 export interface ServerCircle extends ServerShape {
     radius: number;
+    viewing_angle: number | null;
 }
 
 export interface ServerCircularToken extends ServerCircle {

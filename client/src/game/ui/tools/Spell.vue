@@ -100,6 +100,7 @@ export default class SpellTool extends Tool implements ToolBasics {
         }
 
         layer.removeShape(this.shape, this.showPublic ? SyncMode.TEMP_SYNC : SyncMode.NO_SYNC, false);
+        this.shape.isInvisible = !this.showPublic;
         layer.addShape(this.shape, SyncMode.FULL_SYNC, InvalidationMode.NORMAL, false);
         this.shape = undefined;
         this.$parent.currentTool = ToolName.Select;

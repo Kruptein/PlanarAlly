@@ -78,15 +78,14 @@ export default class SpellTool extends Tool implements ToolBasics {
     }
 
     onDeselect(data?: { floor?: Floor; layer?: string }): void {
-        this.active = false;
         const layer = this.getLayer(data);
         if (layer === undefined) return;
         if (this.shape !== undefined) {
-            layer.removeShape(this.shape, SyncMode.NO_SYNC, false);
+            layer.removeShape(this.shape, this.showPublic ? SyncMode.TEMP_SYNC : SyncMode.NO_SYNC, false);
             this.shape = undefined;
         }
         if (this.rangeShape !== undefined) {
-            layer.removeShape(this.rangeShape, SyncMode.NO_SYNC, false);
+            layer.removeShape(this.rangeShape, this.showPublic ? SyncMode.TEMP_SYNC : SyncMode.NO_SYNC, false);
             this.rangeShape = undefined;
         }
     }

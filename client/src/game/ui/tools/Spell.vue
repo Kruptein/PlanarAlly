@@ -4,7 +4,7 @@ import { Watch } from "vue-property-decorator";
 
 import ColorPicker from "@/core/components/colorpicker.vue";
 
-import { InvalidationMode, SyncMode } from "../../../core/comm/types";
+import { InvalidationMode, SyncMode, SyncTo } from "../../../core/comm/types";
 import { sendShapePositionUpdate } from "../../api/emits/shape/core";
 import { GlobalPoint, LocalPoint } from "../../geom";
 import { Floor } from "../../layers/floor";
@@ -14,6 +14,7 @@ import { floorStore } from "../../layers/store";
 import { Shape } from "../../shapes/shape";
 import { Circle } from "../../shapes/variants/circle";
 import { Rect } from "../../shapes/variants/rect";
+import { gameStore } from "../../store";
 import { g2l, getUnitDistance, l2g, toRadians } from "../../units";
 
 import Tool from "./tool.vue";
@@ -194,6 +195,7 @@ export default class SpellTool extends Tool implements ToolBasics {
 
         this.shape.fillColour = this.colour.replace(")", ", 0.7)");
         this.shape.strokeColour = this.colour;
+        this.shape.addOwner({ user: gameStore.username, access: { edit: true } }, SyncTo.UI);
 
         if (selected !== undefined && (this.range === 0 || startPosition.equals(ogPoint)))
             this.shape.center(selected.center());

@@ -78,7 +78,6 @@ export class Circle extends Shape {
         const angleB = vAngle === 2 * Math.PI ? Math.PI * 2 : vAngle / 2;
 
         if (vAngle < 2 * Math.PI) {
-            console.log(vAngle, 2 * Math.PI);
             ctx.moveTo(0, 0);
             ctx.lineTo(r * Math.cos(angleA), r * Math.sin(angleA));
         }

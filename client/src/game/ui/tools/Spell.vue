@@ -52,6 +52,9 @@ export default class SpellTool extends Tool implements ToolBasics {
     @Watch("range")
     onRangeChange(): void {
         if (this.range < 0) this.range = 0;
+        if (this.range > 0 && this.shapeSelect === "chevron-down") {
+            this.shapeSelect = "circle";
+        }
         if (this.shape !== undefined) this.drawShape(this.shapeSelect);
         else if (this.rangeShape !== undefined) this.drawRangeShape();
     }
@@ -230,6 +233,10 @@ export default class SpellTool extends Tool implements ToolBasics {
     getSelectedShape(): Shape | undefined {
         return this.getLayer()?.getSelection({ includeComposites: false })[0];
     }
+
+    canConeBeCast(): boolean {
+        return this.getSelectedShape() !== undefined && this.range === 0;
+    }
 }
 </script>
 
@@ -242,7 +249,7 @@ export default class SpellTool extends Tool implements ToolBasics {
                 class="option"
                 :class="{
                     'option-selected': shapeSelect === shape,
-                    disabled: getSelectedShape() === undefined && shape === 'chevron-down',
+                    disabled: !canConeBeCast() && shape === 'chevron-down',
                 }"
                 @click="drawShape(shape)"
                 :title="getShapeWord(shape)"

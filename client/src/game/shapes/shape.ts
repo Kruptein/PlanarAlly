@@ -648,7 +648,7 @@ export abstract class Shape {
 
         const isActiveToken = gameStore.activeTokens.includes(this.uuid);
 
-        if (limitToActiveTokens && !isActiveToken) return false;
+        if (this.isToken && limitToActiveTokens && !isActiveToken) return false;
 
         return (
             gameStore.FAKE_PLAYER ||

@@ -163,7 +163,7 @@ export default class SpellTool extends Tool implements ToolBasics {
 
         switch (this.shapeSelect) {
             case "circle":
-                this.shape = new Circle(startPosition, getUnitDistance(this.size) / 2);
+                this.shape = new Circle(startPosition, getUnitDistance(this.size));
                 break;
             case "square":
                 this.shape = new Rect(startPosition, getUnitDistance(this.size), getUnitDistance(this.size));

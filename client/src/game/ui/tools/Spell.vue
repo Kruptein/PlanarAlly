@@ -99,7 +99,21 @@ export default class SpellTool extends Tool implements ToolBasics {
         layer.removeShape(this.shape, this.showPublic ? SyncMode.TEMP_SYNC : SyncMode.NO_SYNC, false);
         layer.addShape(this.shape, SyncMode.FULL_SYNC, InvalidationMode.NORMAL, false);
         this.shape = undefined;
-        this.drawShape(this.shapeSelect);
+        this.$parent.currentTool = ToolName.Select;
+    }
+
+    onContextMenu(): void {
+        if (this.shape !== undefined) {
+            const layer = this.getLayer();
+            if (layer === undefined) {
+                console.log("No active layer!");
+                return;
+            }
+
+            layer.removeShape(this.shape, this.showPublic ? SyncMode.TEMP_SYNC : SyncMode.NO_SYNC, false);
+            this.shape = undefined;
+        }
+        this.$parent.currentTool = ToolName.Select;
     }
 
     onMove(lp: LocalPoint): void {

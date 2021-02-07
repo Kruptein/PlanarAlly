@@ -25,7 +25,7 @@ module.exports = {
         "@typescript-eslint/no-use-before-define": 0,
         "import/no-unused-modules": [process.env.GITHUB_ACTION === undefined ? 1 : 2, { unusedExports: true }],
         "import/order": [
-            "error",
+            process.env.GITHUB_ACTION === undefined ? 1 : 2,
             {
                 alphabetize: { order: "asc", caseInsensitive: true },
                 "newlines-between": "always",

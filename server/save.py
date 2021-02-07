@@ -17,7 +17,6 @@ SAVE_VERSION = 52
 
 import json
 import logging
-import math
 import os
 import secrets
 import shutil

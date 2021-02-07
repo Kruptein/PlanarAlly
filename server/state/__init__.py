@@ -1,7 +1,6 @@
 from abc import ABC, abstractmethod
-from typing import Any, Dict, Generator, Generic, Set, Tuple, TypeVar
+from typing import Dict, Generator, Generic, Tuple, TypeVar
 
-from app import sio
 from models import User
 
 

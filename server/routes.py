@@ -8,8 +8,7 @@ from aiohttp_security import authorized_userid, check_authorized, forget, rememb
 
 import api.http
 from app import api_app, app as main_app
-from models import Location, PlayerRoom, Room, User
-from models.db import db
+from models import Room, User
 from models.role import Role
 from utils import logger
 

@@ -1,5 +1,4 @@
-from peewee import BlobField, BooleanField, ForeignKeyField, IntegerField, TextField
-from playhouse.shortcuts import model_to_dict
+from peewee import TextField
 
 from .base import BaseModel
 

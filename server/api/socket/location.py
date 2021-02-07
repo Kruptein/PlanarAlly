@@ -1,7 +1,6 @@
 import json
-from typing import Any, Dict, List, Union
+from typing import List, Union
 
-from peewee import JOIN
 from playhouse.shortcuts import update_model_from_dict
 from typing_extensions import TypedDict
 
@@ -10,16 +9,13 @@ from api.socket.constants import GAME_NS
 from app import app, sio
 from models import (
     Floor,
-    Initiative,
     InitiativeLocationData,
-    Layer,
     Location,
     LocationOptions,
     LocationUserOption,
     Marker,
     Note,
     PlayerRoom,
-    Room,
     Shape,
 )
 from models.asset import Asset

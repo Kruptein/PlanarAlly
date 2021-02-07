@@ -1,12 +1,9 @@
-from typing import Any, Dict
-
 import auth
 from api.socket.constants import GAME_NS
 from api.socket.initiative import send_client_initiatives
 from api.socket.shape.data_models import ServerShapeDefaultOwner, ServerShapeOwner
 from app import app, sio
-from models import Floor, Layer, Location, PlayerRoom, Room, Shape, ShapeOwner, User
-from models.role import Role
+from models import PlayerRoom, Shape, ShapeOwner, User
 from models.shape.access import has_ownership
 from state.game import game_state
 from utils import logger
@@ -102,6 +99,7 @@ async def update_shape_owner(sid: str, data: ServerShapeOwner):
         logger.warning(
             f"Attempt to update unknown shape-owner relation by {pr.player.name}"
         )
+        return
 
     so.shape = shape
     so.user = target_user

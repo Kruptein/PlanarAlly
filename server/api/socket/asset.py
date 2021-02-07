@@ -1,11 +1,9 @@
-import json
 from typing_extensions import TypedDict
 
 import auth
 from api.socket.constants import GAME_NS
 from app import app, sio
 from models import Asset, PlayerRoom
-from models.db import db
 from models.role import Role
 from state.game import game_state
 from utils import logger
@@ -46,6 +44,9 @@ async def set_asset_options(sid: str, asset_options: AssetOptions):
 
     asset = Asset.get_or_none(id=asset_options["asset"])
     if asset is None:
-        asset = Asset.create(name="T", owner=game_state.get_user(sid),)
+        asset = Asset.create(
+            name="T",
+            owner=game_state.get_user(sid),
+        )
     asset.options = asset_options["options"]
     asset.save()

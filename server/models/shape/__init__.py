@@ -1,5 +1,5 @@
 import json
-import math
+
 from peewee import BooleanField, FloatField, ForeignKeyField, IntegerField, TextField
 from playhouse.shortcuts import model_to_dict, update_model_from_dict
 from typing import Any, Dict, List, Tuple

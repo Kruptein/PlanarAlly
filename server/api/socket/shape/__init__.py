@@ -1,9 +1,6 @@
-from copy import deepcopy
-from datetime import datetime
-from typing import Any, Dict, Generic, List, Tuple, Union
+from typing import Any, Dict, List, Tuple, Union
 
 from peewee import Case
-from playhouse.shortcuts import update_model_from_dict
 
 import auth
 from api.socket.constants import GAME_NS
@@ -16,13 +13,10 @@ from models import (
     Circle,
     CircularToken,
     Floor,
-    Label,
     Layer,
     PlayerRoom,
     Rect,
-    Room,
     Shape,
-    ShapeLabel,
     ShapeOwner,
     Text,
     Tracker,
@@ -35,8 +29,6 @@ from models.shape.access import has_ownership
 from models.utils import get_table, reduce_data_to_model
 from state.game import game_state
 from utils import logger
-
-from . import access, options, toggle_composite
 
 
 @sio.on("Shape.Add", namespace=GAME_NS)
@@ -256,7 +248,10 @@ async def change_shape_layer(sid: str, data: Dict[str, Any]):
                 skip_sid=sid,
             ):
                 await sio.emit(
-                    "Shapes.Remove", data["uuids"], room=psid, namespace=GAME_NS,
+                    "Shapes.Remove",
+                    data["uuids"],
+                    room=psid,
+                    namespace=GAME_NS,
                 )
 
     for shape in shapes:

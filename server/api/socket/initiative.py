@@ -1,5 +1,4 @@
-from operator import itemgetter
-from typing import Any, Dict, List, Optional
+from typing import List, Optional
 from typing_extensions import TypedDict
 
 from peewee import JOIN
@@ -12,10 +11,8 @@ from models import (
     Initiative,
     InitiativeEffect,
     InitiativeLocationData,
-    Layer,
     Location,
     PlayerRoom,
-    Room,
     Shape,
     ShapeOwner,
     User,

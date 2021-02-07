@@ -1,13 +1,11 @@
 from playhouse.shortcuts import model_to_dict, update_model_from_dict
-from typing import Any, Dict, List
+from typing import List
 from typing_extensions import TypedDict
 
 import auth
 from api.socket.constants import GAME_NS
 from app import app, sio
-from models import Floor, Group, Room, PlayerRoom, Shape
-from models.db import db
-from models.role import Role
+from models import Group, PlayerRoom, Shape
 from state.game import game_state
 from utils import logger
 
@@ -55,14 +53,20 @@ async def update_group(sid: str, group_info: ServerGroup):
     try:
         group = Group.get_by_id(group_info["uuid"])
     except Group.DoesNotExist:
-        logger.exception(f"Could not retrieve group information for {group.uuid}")
+        logger.exception(
+            f"Could not retrieve group information for {group_info['uuid']}"
+        )
     else:
         update_model_from_dict(group, group_info)
         group.save()
 
-    for psid, player in game_state.get_users(room=pr.room):
+    for psid, _ in game_state.get_users(room=pr.room):
         await sio.emit(
-            "Group.Update", group_info, room=psid, skip_sid=sid, namespace=GAME_NS,
+            "Group.Update",
+            group_info,
+            room=psid,
+            skip_sid=sid,
+            namespace=GAME_NS,
         )
 
 
@@ -104,9 +108,13 @@ async def create_group(sid: str, group_info: ServerGroup):
     except Group.DoesNotExist:
         Group.create(**group_info)
 
-    for psid, player in game_state.get_users(room=pr.room):
+    for psid, _ in game_state.get_users(room=pr.room):
         await sio.emit(
-            "Group.Create", group_info, room=psid, skip_sid=sid, namespace=GAME_NS,
+            "Group.Create",
+            group_info,
+            room=psid,
+            skip_sid=sid,
+            namespace=GAME_NS,
         )
 
 
@@ -135,9 +143,13 @@ async def join_group(sid: str, group_join: GroupJoin):
     for group_id in group_ids:
         await remove_group_if_empty(group_id)
 
-    for psid, player in game_state.get_users(room=pr.room):
+    for psid, _ in game_state.get_users(room=pr.room):
         await sio.emit(
-            "Group.Join", group_join, room=psid, skip_sid=sid, namespace=GAME_NS,
+            "Group.Join",
+            group_join,
+            room=psid,
+            skip_sid=sid,
+            namespace=GAME_NS,
         )
 
 
@@ -164,9 +176,13 @@ async def leave_group(sid: str, client_shapes: List[LeaveGroup]):
     for group_id in group_ids:
         await remove_group_if_empty(group_id)
 
-    for psid, player in game_state.get_users(room=pr.room):
+    for psid, _ in game_state.get_users(room=pr.room):
         await sio.emit(
-            "Group.Leave", client_shapes, room=psid, skip_sid=sid, namespace=GAME_NS,
+            "Group.Leave",
+            client_shapes,
+            room=psid,
+            skip_sid=sid,
+            namespace=GAME_NS,
         )
 
 
@@ -183,9 +199,13 @@ async def remove_group(sid: str, group_id: str):
     # check if group still has members
     await remove_group_if_empty(group_id)
 
-    for psid, player in game_state.get_users(room=pr.room):
+    for psid, _ in game_state.get_users(room=pr.room):
         await sio.emit(
-            "Group.Remove", group_id, room=psid, skip_sid=sid, namespace=GAME_NS,
+            "Group.Remove",
+            group_id,
+            room=psid,
+            skip_sid=sid,
+            namespace=GAME_NS,
         )
 
 

@@ -1,4 +1,4 @@
-from typing import Any, Dict, Generator, Set, Tuple
+from typing import Dict, Set
 
 from . import State
 from api.socket.constants import GAME_NS
@@ -21,7 +21,9 @@ class GameState(State[PlayerRoom]):
     async def clear_temporaries(self, sid: str) -> None:
         if sid in self.client_temporaries:
             await sio.emit(
-                "Temp.Clear", list(self.client_temporaries[sid]), namespace=GAME_NS,
+                "Temp.Clear",
+                list(self.client_temporaries[sid]),
+                namespace=GAME_NS,
             )
             del self.client_temporaries[sid]
 

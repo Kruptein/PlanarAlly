@@ -1,4 +1,3 @@
-import functools
 import hashlib
 import io
 import json
@@ -9,7 +8,7 @@ import tempfile
 import time
 from collections import defaultdict
 from pathlib import Path
-from typing import cast, Dict, List, Optional, Tuple, Union
+from typing import cast, Dict, List, Optional, Union
 from typing_extensions import TypedDict
 
 from aiohttp import web
@@ -19,7 +18,7 @@ from uuid import uuid4
 import auth
 from app import app, sio
 from .constants import ASSET_NS
-from models import Asset, User
+from models import Asset
 from state.asset import asset_state
 from utils import FILE_DIR, logger
 
@@ -297,7 +296,9 @@ async def assetmgmt_export(sid: str, selection: List[int]):
     asset_data = export_asset(full_selection)
     json_data = json.dumps(asset_data["data"])
 
-    data_tar_info = tarfile.TarInfo("data",)
+    data_tar_info = tarfile.TarInfo(
+        "data",
+    )
     data_tar_info.size = len(json_data)
     data_tar_info.mode = 0o755
     data_tar_info.mtime = time.time()  # type: ignore

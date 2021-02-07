@@ -1,4 +1,4 @@
-from peewee import ForeignKeyField, TextField
+from peewee import TextField
 
 from .base import BaseModel
 

@@ -7,24 +7,7 @@ from api.socket.constants import GAME_NS
 from app import app, sio
 from models import Floor, Layer, LocationUserOption, PlayerRoom
 from models.db import db
-from models.role import Role
 from state.game import game_state
-from utils import logger
-
-from . import (
-    asset,
-    asset_manager,
-    connection,
-    floor,
-    groups,
-    initiative,
-    label,
-    location,
-    marker,
-    note,
-    room,
-    shape,
-)
 
 
 # DATA CLASSES FOR TYPE CHECKING

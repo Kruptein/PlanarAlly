@@ -1,5 +1,5 @@
 import bcrypt
-from peewee import fn, BooleanField, ForeignKeyField, IntegerField, TextField
+from peewee import fn, BooleanField, IntegerField, TextField
 from playhouse.shortcuts import model_to_dict
 
 from .base import BaseModel

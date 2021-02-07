@@ -11,7 +11,6 @@ from playhouse.shortcuts import model_to_dict
 
 from .base import BaseModel
 from .user import User
-from .utils import get_table
 
 __all__ = [
     "Floor",

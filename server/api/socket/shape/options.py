@@ -1,4 +1,3 @@
-from typing import Any, Dict
 from typing_extensions import TypedDict
 
 from playhouse.shortcuts import update_model_from_dict
@@ -7,11 +6,9 @@ import auth
 from api.socket.constants import GAME_NS
 from api.socket.shape.utils import get_owner_sids, get_shape_or_none
 from app import app, sio
-from models import Aura, PlayerRoom, Shape, ShapeLabel, Tracker
-from models.shape.access import has_ownership
+from models import Aura, PlayerRoom, ShapeLabel, Tracker
 from models.utils import reduce_data_to_model
 from state.game import game_state
-from utils import logger
 
 
 class ShapeSetBooleanValue(TypedDict):
@@ -196,7 +193,10 @@ async def set_annotation(sid: str, data: ShapeSetStringValue):
     else:
         for sid in get_owner_sids(pr, shape, skip_sid=sid):
             await sio.emit(
-                "Shape.Options.Annotation.Set", data, room=sid, namespace=GAME_NS,
+                "Shape.Options.Annotation.Set",
+                data,
+                room=sid,
+                namespace=GAME_NS,
             )
 
 
@@ -335,7 +335,10 @@ async def set_name(sid: str, data: ShapeSetStringValue):
     else:
         for sid in get_owner_sids(pr, shape, skip_sid=sid):
             await sio.emit(
-                "Shape.Options.Name.Set", data, room=sid, namespace=GAME_NS,
+                "Shape.Options.Name.Set",
+                data,
+                room=sid,
+                namespace=GAME_NS,
             )
 
 
@@ -451,7 +454,10 @@ async def create_tracker(sid: str, data: TrackerDelta):
     owners = [*get_owner_sids(pr, shape, skip_sid=sid)]
     for psid in owners:
         await sio.emit(
-            "Shape.Options.Tracker.Create", data, room=psid, namespace=GAME_NS,
+            "Shape.Options.Tracker.Create",
+            data,
+            room=psid,
+            namespace=GAME_NS,
         )
     if tracker.visible:
         for psid in game_state.get_sids(
@@ -460,7 +466,10 @@ async def create_tracker(sid: str, data: TrackerDelta):
             if psid in owners:
                 continue
             await sio.emit(
-                "Shape.Options.Tracker.Create", data, room=psid, namespace=GAME_NS,
+                "Shape.Options.Tracker.Create",
+                data,
+                room=psid,
+                namespace=GAME_NS,
             )
 
 
@@ -481,7 +490,10 @@ async def update_tracker(sid: str, data: TrackerDelta):
     owners = [*get_owner_sids(pr, shape, skip_sid=sid)]
     for psid in owners:
         await sio.emit(
-            "Shape.Options.Tracker.Update", data, room=psid, namespace=GAME_NS,
+            "Shape.Options.Tracker.Update",
+            data,
+            room=psid,
+            namespace=GAME_NS,
         )
     for psid in game_state.get_sids(active_location=pr.active_location, skip_sid=sid):
         if psid in owners:
@@ -503,7 +515,10 @@ async def update_tracker(sid: str, data: TrackerDelta):
                 )
         else:
             await sio.emit(
-                "Shape.Options.Tracker.Update", data, room=psid, namespace=GAME_NS,
+                "Shape.Options.Tracker.Update",
+                data,
+                room=psid,
+                namespace=GAME_NS,
             )
 
 
@@ -545,7 +560,10 @@ async def create_aura(sid: str, data: AuraDelta):
     owners = [*get_owner_sids(pr, shape, skip_sid=sid)]
     for psid in owners:
         await sio.emit(
-            "Shape.Options.Aura.Create", data, room=psid, namespace=GAME_NS,
+            "Shape.Options.Aura.Create",
+            data,
+            room=psid,
+            namespace=GAME_NS,
         )
     if aura.visible:
         for psid in game_state.get_sids(
@@ -554,7 +572,10 @@ async def create_aura(sid: str, data: AuraDelta):
             if psid in owners:
                 continue
             await sio.emit(
-                "Shape.Options.Aura.Create", data, room=psid, namespace=GAME_NS,
+                "Shape.Options.Aura.Create",
+                data,
+                room=psid,
+                namespace=GAME_NS,
             )
 
 
@@ -575,7 +596,10 @@ async def update_aura(sid: str, data: AuraDelta):
     owners = [*get_owner_sids(pr, shape, skip_sid=sid)]
     for psid in owners:
         await sio.emit(
-            "Shape.Options.Aura.Update", data, room=psid, namespace=GAME_NS,
+            "Shape.Options.Aura.Update",
+            data,
+            room=psid,
+            namespace=GAME_NS,
         )
     for psid in game_state.get_sids(active_location=pr.active_location, skip_sid=sid):
         if psid in owners:
@@ -597,7 +621,10 @@ async def update_aura(sid: str, data: AuraDelta):
                 )
         else:
             await sio.emit(
-                "Shape.Options.Aura.Update", data, room=psid, namespace=GAME_NS,
+                "Shape.Options.Aura.Update",
+                data,
+                room=psid,
+                namespace=GAME_NS,
             )
 
 

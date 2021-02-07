@@ -11,6 +11,7 @@ These usually have no immediately visible impact on regular users
 ### Fixed
 
 -   It's no longer possible to create a floor with a name that is already in use
+-   Token properly snaps to mouse when leaving wall
 
 ## [0.25.0] - 2021-02-07
 

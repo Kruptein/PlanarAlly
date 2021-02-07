@@ -335,7 +335,9 @@ export default class SelectTool extends Tool implements ToolBasics {
 
                 moveShapes(layerSelection, delta, true);
 
-                this.dragRay = Ray.fromPoints(this.dragRay.origin, lp);
+                if (!this.deltaChanged) {
+                    this.dragRay = Ray.fromPoints(this.dragRay.origin, lp);
+                }
 
                 if (this.rotationUiActive) {
                     this.removeRotationUi();

@@ -329,5 +329,12 @@ export default class SpellTool extends Tool implements ToolBasics {
 
 .disabled {
     color: rgba(0, 0, 0, 0.5);
+    cursor: not-allowed;
+
+    &:hover,
+    &:hover * {
+        cursor: not-allowed;
+        background-color: inherit;
+    }
 }
 </style>

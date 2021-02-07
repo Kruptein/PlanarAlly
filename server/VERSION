@@ -1,91 +1,27 @@
-0.24.1
-
-Due to a bugfix with zoom for non-default gridsizes, you will likely encounter your first load on a map to be slightly off centered
-from where you had your camera last time. This should normally not be far off from the original location.
-If you have issues finding your stuff back try the space bar to center on your tokens or ctrl+0 to go to the world center.
-If you still have issues contact me and I can give you some console code.
+0.25.0
 
 ### Added
 
--   Pressing the Enter button on a single selection will open the edit dialog for that shape
--   Hexagon support (flat and pointy topped)
--   Navigate viewport with numpad, 5 will center viewport on origin; tokens can be moved (behaviour depending whether grid is square, flat-top-hex or pointy-topped-hex) with numpad
--   Remove button to initiative effects
--   Map tool now has a (un)lock aspect ratio system
--   Map tool can now skip selection to resize the entire map at once (both in terms of gridd cells and in terms of pixels)
--   Import/Export capabilities to the asset manager
--   Multiruler support
-    -   Pressing space while in the ruler tool will start a new ruler from your lastpoint
--   Add multiruler option to select
-    -   When moving shapes it's handy when you don't need to swap between tools
-
-### Changed
-
--   Round counter now starts at 1 instead of 0
--   Create token modal now auto focuses no the input field
--   Create token modal now submits when pressing enter in the input field
--   Most tools now support the right click context menu on selected shapes without having to swap to select
-    -   the two exceptions are draw and map tools
-    -   filter and vision additionally allow a wider set of features from the select tool to be used
-        -   only resize/rotate are not allowed at the moment
--   Use exact shape detection on shape select
-    -   When performing a selection close to a non axis-aligned shape it will no longer select those as well
--   Do not toggle all tokens when deselecting the last one in the vision tool
--   Highlight the vision tool in a special colour to signal modified vision state at all times
--   When changing to a tool mode that the current tool does not support, change to the Select tool
--   Removed initiative and move to back/front from contextmenu for shapes that the player does not own
--   Reduce the length of the rotation line
--   Prevent usage of space to center during shape movement
--   Group logic has been greatly increased and now has a dedicated tab
-    -   Options to change the alphabet used
-    -   Options to randomize the badge assignment
-    -   Options to merge/split/create/remove groups
--   [tech] Upgraded to socket.io v3
--   [tech] Improved group delete performance (especially for vision/movement blocking shapes)
--   [tech] Reduced number of calculations used for determining the minimal vision range for tokens
+-   Is public toggle for annotations
+-   Undo/Redo (50 action memory)
+    -   shape movement
+    -   shape rotation
+    -   shape resize
+    -   floor change
+    -   layer change
+    -   shape creation/removal
+-   New aura options
+    -   enable/disable toggle
+    -   border
+    -   viewing angle (width + direction)
+-   Location (un)archiving
+-   Spell measuring system
 
 ### Fixed
 
--   Locking shapes via keyboard shortcut did not sync to the server
--   Annotations from other floors being shown
--   Remember ruler visibility on tool change
--   `Ctrl 0` now centers viewport on origin (before, it would show origin on the top-left of the viewport)
--   Initiative effects becoming NaN for non-numeric inputs
--   New initiative effects not immediately synchronizing until a full client refresh
--   Shape name updates not syncing for public names to users that do not own the shape
--   Shape name updates not always updating on the initiative list
--   Moving shapes with default movement permissions not working
--   Various bugs with initiative permission updates
--   Negative values for Auras no longer causes drawing issues
--   Trackers not providing empty rows until re-opening dialog
--   Pasting shapes resulting in extra empty tracker rows
--   Rectangle resizing causing position shift
--   Location changes sometimes not going through for everyone
--   Resizing rotating shapes with snapping now correctly snaps to grid points
--   Dropped assets not immediately rendering
--   Shapes with a broken index value (used for move to back/move to front)
--   Area in the topcenter of the screen where the mouse could sometimes not be used
--   Auras that become public are not properly configured as a vision source on other clients
--   Selection of rotated rectangles and assets
--   Groupselection of rotated shapes
--   Double entries in the vision tool
--   Most assets automatically resizing to fit 1 grid cell
-    -   they now retain their original size on drop (unless using templates)
--   Incorrect state in asset manager on reconnect
--   Sorting order in asset manager
--   Asset manager shift selection acting strange when mixing files and folders
--   More cases where the ruler and ping tool could get stuck
--   Tool dialogs now move correctly when changing mode
--   Edit dialog stays open when selecting another shape
--   Floor movement not recalculting vision/movement triangulation
--   Selection including shapes out of vision
--   Adding/Removing labels no longer being synced by the server
--   Current floor no longer being highlighted in context menu
--   Multiple issues when having a modified client gridsize
-    -   auras/zoom/map would all use wrong math(s)
--   Teleporting to a spawn location, only changing location not setting the position
--   Synchronization of Label visibility
--   Initiative possibly not working when changing locations
--   [DM] Floor rename always setting a blank name
--   [0.24.1] minimal token vision being broken
--   [0.24.1] pasting polygons would change the angle on the first segment
+-   Shape name not immediately syncing on visibility toggle
+-   Vision tool disabled tokens private auras no longer being visible
+-   Tokens giving minimal vision on other floors
+-   Floor creation not triangulating
+    -   This fixes newly created floors being broken in regards to vision until a refresh
+-   Update location bar user position when moving shape

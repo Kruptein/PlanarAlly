@@ -8,6 +8,10 @@ These usually have no immediately visible impact on regular users
 
 ## Unreleased
 
+### Fixed
+
+-   It's no longer possible to create a floor with a name that is already in use
+
 ## [0.25.0] - 2021-02-07
 
 ### Added

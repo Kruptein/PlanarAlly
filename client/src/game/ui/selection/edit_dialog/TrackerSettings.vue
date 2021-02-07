@@ -56,6 +56,8 @@ export default class TrackerSettings extends Vue {
 
     updateAura(aura: string, delta: Partial<Aura>, syncTo = true): void {
         if (!this.owned) return;
+        if (delta.value !== undefined && (isNaN(delta.value) || delta.value < 0)) delta.value = 0;
+        if (delta.dim !== undefined && (isNaN(delta.dim) || delta.dim < 0)) delta.dim = 0;
         if (this.shape.uuid)
             this.shape.updateAura({ aura, delta, syncTo: syncTo === true ? SyncTo.SERVER : SyncTo.SHAPE });
     }
@@ -200,6 +202,7 @@ export default class TrackerSettings extends Vue {
                     <input
                         type="number"
                         :value="aura.dim"
+                        min="0"
                         @input="updateAura(aura.uuid, { dim: parseFloat($event.target.value) }, false)"
                         @change="updateAura(aura.uuid, { dim: parseFloat($event.target.value) })"
                         :title="$t('game.ui.selection.edit_dialog.dialog.dim_value')"

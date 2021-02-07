@@ -76,10 +76,13 @@ export class FowLightingLayer extends FowLayer {
 
                 if (!shape.ownedBy(true, { visionAccess: true }) && !aura.visible) continue;
 
-                const auraLength = getUnitDistance(aura.value + aura.dim);
+                const auraValue = aura.value > 0 && !isNaN(aura.value) ? aura.value : 0;
+                const auraDim = aura.dim > 0 && !isNaN(aura.dim) ? aura.dim : 0;
+
+                const auraLength = getUnitDistance(auraValue + auraDim);
                 const center = shape.center();
                 const lcenter = g2l(center);
-                const innerRange = g2lr(aura.value + aura.dim);
+                const innerRange = g2lr(auraValue + auraDim);
 
                 const auraCircle = new Circle(center, auraLength);
                 if (!auraCircle.visibleInCanvas(this.ctx.canvas, { includeAuras: true })) continue;
@@ -92,12 +95,12 @@ export class FowLightingLayer extends FowLayer {
                 for (const point of polygon) this.vCtx.lineTo(g2lx(point[0]), g2ly(point[1]));
                 this.vCtx.closePath();
                 this.vCtx.fill();
-                if (aura.dim > 0) {
+                if (auraDim > 0) {
                     // Fill the light aura with a radial dropoff towards the outside.
                     const gradient = this.vCtx.createRadialGradient(
                         lcenter.x,
                         lcenter.y,
-                        g2lr(aura.value),
+                        g2lr(auraValue),
                         lcenter.x,
                         lcenter.y,
                         innerRange,

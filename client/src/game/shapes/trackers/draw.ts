@@ -13,8 +13,8 @@ export function drawAuras(shape: Shape, ctx: CanvasRenderingContext2D): void {
     for (const aura of shape.getAuras(true)) {
         if (!aura.active) continue;
 
-        const value = aura.value > 0 ? aura.value : 0;
-        const dim = aura.dim > 0 ? aura.dim : 0;
+        const value = aura.value > 0 && !isNaN(aura.value) ? aura.value : 0;
+        const dim = aura.dim > 0 && !isNaN(aura.dim) ? aura.dim : 0;
         if (value === 0 && dim === 0) return;
         ctx.beginPath();
 

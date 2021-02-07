@@ -1,10 +1,8 @@
-import App from "@/App.vue";
-import { router } from "@/router";
-import { rootStore } from "@/store";
 import { dom, library } from "@fortawesome/fontawesome-svg-core";
 import { faDAndD, faDiscord, faGithub, faPatreon } from "@fortawesome/free-brands-svg-icons";
 import { faCompass, faCopy, faWindowClose } from "@fortawesome/free-regular-svg-icons";
 import {
+    faArchive,
     faArrowRight,
     faArrowsAlt,
     faAt,
@@ -47,11 +45,17 @@ import {
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 import Vue from "vue";
 import Toasted from "vue-toasted";
+
+import App from "@/App.vue";
+import { router } from "@/router";
+import { rootStore } from "@/store";
+
 import { baseAdjust } from "./core/utils";
 import i18n from "./i18n";
 import { registerScripts } from "./scripts";
 
 library.add(
+    faArchive,
     faArrowRight,
     faArrowsAlt,
     faAt,
@@ -118,11 +122,11 @@ Vue.mixin({
 
 registerScripts();
 
-export const app = new Vue({
+const app = new Vue({
     router,
     store: rootStore,
     i18n,
-    render: h => h(App),
+    render: (h) => h(App),
 }).$mount("#app");
 
 (window as any).app = app;

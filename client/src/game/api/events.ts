@@ -20,8 +20,10 @@ import { addFloor } from "@/game/layers/utils";
 import { gameManager } from "@/game/manager";
 import { gameStore } from "@/game/store";
 import { router } from "@/router";
+
 import { coreStore } from "../../core/store";
-import { floorStore, getFloorId } from "../layers/store";
+import { Location } from "../comm/types/settings";
+import { floorStore } from "../layers/store";
 import { deleteShapes } from "../shapes/utils";
 import { visibilityStore } from "../visibility/store";
 
@@ -49,7 +51,7 @@ socket.on("redirect", (destination: string) => {
 
 // Bootup events
 
-socket.on("Board.Locations.Set", (locationInfo: { id: number; name: string }[]) => {
+socket.on("Board.Locations.Set", (locationInfo: Location[]) => {
     gameStore.clear();
     visibilityStore.clear();
     gameStore.setLocations({ locations: locationInfo, sync: false });
@@ -65,8 +67,6 @@ socket.on("Board.Floor.Set", async (floor: ServerFloor) => {
     // When this condition is evaluated after the await, we are at the mercy of the async scheduler
     const selectFloor = floorStore.floors.length === 0;
     await addFloor(floor);
-    visibilityStore.recalculateVision(getFloorId(floor.name));
-    visibilityStore.recalculateMovement(getFloorId(floor.name));
 
     if (selectFloor) {
         floorStore.selectFloor({ targetFloor: floor.name, sync: false });
@@ -99,6 +99,6 @@ socket.on("Asset.List.Set", (assets: AssetList) => {
 
 socket.on("Temp.Clear", (shapeIds: string[]) => {
     // We use ! on the get here even though to silence the typechecker as we filter undefineds later.
-    const shapes = shapeIds.map(s => layerManager.UUIDMap.get(s)!).filter(s => s !== undefined);
+    const shapes = shapeIds.map((s) => layerManager.UUIDMap.get(s)!).filter((s) => s !== undefined);
     deleteShapes(shapes, SyncMode.NO_SYNC);
 });

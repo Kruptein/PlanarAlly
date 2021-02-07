@@ -8,9 +8,37 @@ These usually have no immediately visible impact on regular users
 
 ## Unreleased
 
+## [0.25.0] - 2021-02-07
+
+### Added
+
+-   Is public toggle for annotations
+-   Undo/Redo (50 action memory)
+    -   shape movement
+    -   shape rotation
+    -   shape resize
+    -   floor change
+    -   layer change
+    -   shape creation/removal
+-   New aura options
+    -   enable/disable toggle
+    -   border
+    -   viewing angle (width + direction)
+-   Location (un)archiving
+-   Spell measuring system
+
+### Fixed
+
+-   Shape name not immediately syncing on visibility toggle
+-   Vision tool disabled tokens private auras no longer being visible
+-   Tokens giving minimal vision on other floors
+-   Floor creation not triangulating
+    -   This fixes newly created floors being broken in regards to vision until a refresh
+-   Update location bar user position when moving shape
+
 ## [0.24.1] - 2021-01-17
 
-### Fixes
+### Fixed
 
 -   minimal token vision being broken
 -   pasting polygons would change the angle on the first segment

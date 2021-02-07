@@ -1,3 +1,5 @@
+import * as tinycolor from "tinycolor2";
+
 import { calcFontScale } from "@/core/utils";
 import { InitiativeData } from "@/game/comm/types/general";
 import { ServerCircularToken } from "@/game/comm/types/shapes";
@@ -5,7 +7,7 @@ import { GlobalPoint } from "@/game/geom";
 import { Circle } from "@/game/shapes/variants/circle";
 import { gameStore } from "@/game/store";
 import { g2l, g2lz } from "@/game/units";
-import * as tinycolor from "tinycolor2";
+
 import { SHAPE_TYPE } from "../types";
 
 export class CircularToken extends Circle {
@@ -31,6 +33,7 @@ export class CircularToken extends Circle {
     asDict(): ServerCircularToken {
         return Object.assign(this.getBaseDict(), {
             radius: this.r,
+            viewing_angle: this.viewingAngle,
             text: this.text,
             font: this.font,
         });
@@ -38,6 +41,7 @@ export class CircularToken extends Circle {
     fromDict(data: ServerCircularToken): void {
         super.fromDict(data);
         this.r = data.radius;
+        this.viewingAngle = data.viewing_angle;
         this.text = data.text;
         this.font = data.font;
     }

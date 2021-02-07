@@ -3,9 +3,10 @@ import Vue from "vue";
 import Component from "vue-class-component";
 
 import { gameStore } from "@/game/store";
+
+import { SyncTo } from "../../../../core/comm/types";
 import { ShapeOwner } from "../../../shapes/owners";
 import { ActiveShapeState, activeShapeStore } from "../../ActiveShapeStore";
-import { SyncTo } from "../../../../core/comm/types";
 
 @Component
 export default class AccessSettings extends Vue {
@@ -26,7 +27,7 @@ export default class AccessSettings extends Vue {
     }
 
     get playersWithoutAccess(): { id: number; name: string }[] {
-        return gameStore.players.filter(p => !this.shape.owners.some(o => o.user === p.name));
+        return gameStore.players.filter((p) => !this.shape.owners.some((o) => o.user === p.name));
     }
 
     toggleDefaultEditAccess(): void {

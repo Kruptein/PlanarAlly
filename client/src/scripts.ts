@@ -2,16 +2,16 @@
  * This file is destined for utility functions / scripts that can be ran manually in the webconsole by for example the DM.
  */
 
-import { layerManager } from "./game/layers/manager";
+import { sendShapeSizeUpdate, sendShapePositionUpdate } from "./game/api/emits/shape/core";
 import { GlobalPoint } from "./game/geom";
+import { layerManager } from "./game/layers/manager";
+import { floorStore } from "./game/layers/store";
 import { BaseRect } from "./game/shapes/variants/baserect";
 import { Circle } from "./game/shapes/variants/circle";
 import { Line } from "./game/shapes/variants/line";
 import { Polygon } from "./game/shapes/variants/polygon";
-import { sendShapeSizeUpdate, sendShapePositionUpdate } from "./game/api/emits/shape/core";
 import { gameStore } from "./game/store";
 import { visibilityStore } from "./game/visibility/store";
-import { floorStore } from "./game/layers/store";
 
 /**
  * This function rescales all objects on the map
@@ -45,7 +45,7 @@ function rescale(factor: number, sync: boolean): void {
             );
         } else if (shape.type === "polygon") {
             (shape as Polygon)._vertices = (shape as Polygon)._vertices.map(
-                v => new GlobalPoint(v.x * factor, v.y * factor),
+                (v) => new GlobalPoint(v.x * factor, v.y * factor),
             );
         }
         if (sync && shape.type !== "polygon") sendShapeSizeUpdate({ shape, temporary: false });

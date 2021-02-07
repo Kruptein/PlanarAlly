@@ -21,13 +21,16 @@ import { CircularToken } from "@/game/shapes/variants/circulartoken";
 import { Line } from "@/game/shapes/variants/line";
 import { Rect } from "@/game/shapes/variants/rect";
 import { Text } from "@/game/shapes/variants/text";
+
 import { sendRemoveShapes } from "../api/emits/shape/core";
 import { EventBus } from "../event-bus";
 import { addGroupMembers, createNewGroupForShapes, fetchGroup, generateNewBadge, getGroup } from "../groups";
 import { floorStore, getFloorId } from "../layers/store";
+import { addOperation } from "../operations/undo";
 import { gameStore } from "../store";
 import { VisibilityMode, visibilityStore } from "../visibility/store";
 import { TriangulationTarget } from "../visibility/te/pa";
+
 import { Tracker } from "./interfaces";
 import { Polygon } from "./variants/polygon";
 import { ToggleComposite } from "./variants/togglecomposite";
@@ -81,7 +84,7 @@ export async function createShapeFromDict(shape: ServerShape): Promise<Shape | u
         const polygon = shape as ServerPolygon;
         sh = new Polygon(
             refPoint,
-            polygon.vertices.map(v => GlobalPoint.fromArray(v)),
+            polygon.vertices.map((v) => GlobalPoint.fromArray(v)),
             {
                 fillColour: polygon.fill_colour,
                 strokeColour: polygon.stroke_colour,
@@ -126,7 +129,7 @@ export function copyShapes(): void {
     if (!layer.hasSelection({ includeComposites: false })) return;
     const clipboard: ServerShape[] = [];
     for (const shape of layer.getSelection({ includeComposites: true })) {
-        if (!shape.ownedBy({ editAccess: true })) continue;
+        if (!shape.ownedBy(false, { editAccess: true })) continue;
         if (!shape.groupId) {
             createNewGroupForShapes([shape.uuid]);
         }
@@ -162,7 +165,7 @@ export async function pasteShapes(targetLayer?: string): Promise<readonly Shape[
         shapeMap.set(ogUuid, clip.uuid);
 
         if (clip.type_ === "polygon") {
-            (clip as ServerPolygon).vertices = (clip as ServerPolygon).vertices.map(p => [
+            (clip as ServerPolygon).vertices = (clip as ServerPolygon).vertices.map((p) => [
                 p[0] + offset.x,
                 p[1] + offset.y,
             ]);
@@ -203,7 +206,7 @@ export async function pasteShapes(targetLayer?: string): Promise<readonly Shape[
 
     for (const composite of composites) {
         composite.active_variant = shapeMap.get(composite.active_variant)!;
-        composite.variants = composite.variants.map(v => ({ ...v, uuid: shapeMap.get(v.uuid)! }));
+        composite.variants = composite.variants.map((v) => ({ ...v, uuid: shapeMap.get(v.uuid)! }));
         serverShapes.push(composite); // make sure it's added after the regular shapes
     }
 
@@ -227,7 +230,7 @@ export function deleteShapes(shapes: readonly Shape[], sync: SyncMode): void {
     let recalculateMovement = false;
     for (let i = shapes.length - 1; i >= 0; i--) {
         const sel = shapes[i];
-        if (sync !== SyncMode.NO_SYNC && !sel.ownedBy({ editAccess: true })) continue;
+        if (sync !== SyncMode.NO_SYNC && !sel.ownedBy(false, { editAccess: true })) continue;
         removed.push(sel.uuid);
         if (sel.visionObstruction) recalculateVision = true;
         if (sel.movementObstruction) recalculateMovement = true;
@@ -242,13 +245,8 @@ export function deleteShapes(shapes: readonly Shape[], sync: SyncMode): void {
             visibilityStore.recalculate({ target: TriangulationTarget.VISION, floor: floorStore.currentFloorindex });
         layerManager.invalidateVisibleFloors();
     }
-}
 
-export function cutShapes(): void {
-    copyShapes();
-
-    const l = floorStore.currentLayer!;
-    const selection = l.getSelection({ includeComposites: true });
-
-    deleteShapes(selection, SyncMode.FULL_SYNC);
+    if (sync === SyncMode.FULL_SYNC) {
+        addOperation({ type: "shaperemove", shapes: shapes.map((s) => s.asDict()) });
+    }
 }

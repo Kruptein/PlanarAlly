@@ -1,4 +1,5 @@
 import json
+import math
 from peewee import BooleanField, FloatField, ForeignKeyField, IntegerField, TextField
 from playhouse.shortcuts import model_to_dict, update_model_from_dict
 from typing import Any, Dict, List, Tuple
@@ -10,7 +11,6 @@ from ..campaign import Layer
 from ..groups import Group
 from ..label import Label
 from ..user import User
-from ..utils import get_table
 
 
 __all__ = [
@@ -57,6 +57,7 @@ class Shape(BaseModel):
     stroke_width = IntegerField(default=2)
     asset = ForeignKeyField(Asset, backref="shapes", null=True, default=None)
     group = ForeignKeyField(Group, backref="members", null=True, default=None)
+    annotation_visible = BooleanField(default=False)
 
     def __repr__(self):
         return f"<Shape {self.get_path()}>"
@@ -92,7 +93,8 @@ class Shape(BaseModel):
         aura_query = self.auras
         label_query = self.labels.join(Label)
         if not owned:
-            data["annotation"] = ""
+            if not self.annotation_visible:
+                data["annotation"] = ""
             tracker_query = tracker_query.where(Tracker.visible)
             aura_query = aura_query.where(Aura.visible)
             label_query = label_query.where(Label.visible)
@@ -147,6 +149,10 @@ class Aura(BaseModel):
     value = IntegerField()
     dim = IntegerField()
     colour = TextField()
+    active = BooleanField()
+    border_colour = TextField()
+    angle = IntegerField()
+    direction = IntegerField()
 
     def __repr__(self):
         return f"<Aura {self.name} {self.shape.get_path()}>"
@@ -216,6 +222,7 @@ class AssetRect(BaseRect):
 
 class Circle(ShapeType):
     radius = FloatField()
+    viewing_angle = FloatField(null=True)
 
 
 class CircularToken(Circle):

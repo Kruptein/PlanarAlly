@@ -3,12 +3,13 @@ import Vue from "vue";
 import Component from "vue-class-component";
 import { Prop } from "vue-property-decorator";
 
+import { LocationOptions } from "@/game/comm/types/settings";
+import { layerManager } from "@/game/layers/manager";
 import { gameStore } from "@/game/store";
 import { VisibilityMode, visibilityStore } from "@/game/visibility/store";
-import { layerManager } from "@/game/layers/manager";
-import { gameSettingsStore, getLocationOption } from "../../settings";
-import { LocationOptions } from "@/game/comm/types/settings";
+
 import { floorStore } from "../../layers/store";
+import { gameSettingsStore, getLocationOption } from "../../settings";
 
 @Component
 export default class VisionSettings extends Vue {

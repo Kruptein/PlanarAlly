@@ -189,6 +189,7 @@
                         "is_invisible": "Is invisible",
                         "is_locked": "Is locked",
                         "show_badge": "Show badge",
+                        "show_annotation": "Is public",
                         "block_vision_light": "Blocks vision/light",
                         "block_movement": "Blocks movement"
                     }
@@ -263,7 +264,7 @@
                         "remove_location_no": "please no",
                         "move_existing_pl": "Move existing players on this location",
                         "delete_this_location": "Delete this location",
-                        "remove_location": "Remove Location"
+                        "archive_this_location": "Archive this location"
                     },
                     "LocationSettings": {
                         "location_settings": "Location Settings:"
@@ -331,6 +332,10 @@
                 "ruler": {
                     "share": "Share with others"
                 },
+                "spell": {
+                    "size": "Size",
+                    "range": "Range (radius)"
+                },
                 "tools": {
                     "change_mode": "Change mode"
                 }
@@ -371,7 +376,8 @@
         "Ping": "Ping",
         "Map": "Map",
         "Filter": "Filter",
-        "Vision": "Vision"
+        "Vision": "Vision",
+        "Spell": "Spell"
     },
     "settings": {
         "account": {

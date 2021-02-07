@@ -23,6 +23,7 @@ export interface ServerShape {
     name: string;
     name_visible: boolean;
     annotation: string;
+    annotation_visible: boolean;
     is_token: boolean;
     is_invisible: boolean;
     options?: string;
@@ -36,7 +37,7 @@ export interface ServerShape {
     group?: string;
 }
 
-export interface ServerShapeAccess {
+interface ServerShapeAccess {
     edit_access: boolean;
     movement_access: boolean;
     vision_access: boolean;
@@ -54,6 +55,7 @@ export interface ServerRect extends ServerShape {
 
 export interface ServerCircle extends ServerShape {
     radius: number;
+    viewing_angle: number | null;
 }
 
 export interface ServerCircularToken extends ServerCircle {
@@ -97,12 +99,16 @@ export interface ServerTracker {
 export interface ServerAura {
     shape: string;
     uuid: string;
+    active: boolean;
     vision_source: boolean;
     visible: boolean;
     name: string;
     value: number;
     dim: number;
     colour: string;
+    border_colour: string;
+    angle: number;
+    direction: number;
 }
 
 export const accessToServer = (access: ShapeAccess): ServerShapeAccess => ({
@@ -117,7 +123,7 @@ export const ownerToServer = (owner: ShapeOwner): ServerShapeOwner => ({
     ...accessToServer(owner.access),
 });
 
-export const accessToClient = (access: ServerShapeAccess): ShapeAccess => ({
+const accessToClient = (access: ServerShapeAccess): ShapeAccess => ({
     edit: access.edit_access,
     movement: access.movement_access,
     vision: access.vision_access,

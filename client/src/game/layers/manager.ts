@@ -1,9 +1,11 @@
 import { GridLayer } from "@/game/layers/grid";
 import { Layer } from "@/game/layers/layer";
 import { Shape } from "@/game/shapes/shape";
+
 import { sendActiveLayer } from "../api/emits/floor";
 import { sendToggleCompositeAddVariant } from "../api/emits/shape/togglecomposite";
 import { ToggleComposite } from "../shapes/variants/togglecomposite";
+
 import { Floor } from "./floor";
 import { floorStore } from "./store";
 
@@ -119,7 +121,7 @@ class LayerManager {
     }
 
     hasLayer(floor: Floor, name: string): boolean {
-        return this.getLayers(floor).some(l => l.name === name);
+        return this.getLayers(floor).some((l) => l.name === name);
     }
 
     getLayer(floor: Floor, name?: string): Layer | undefined {
@@ -132,7 +134,7 @@ class LayerManager {
 
     getFloor(id?: number): Floor | undefined {
         if (id === undefined) return floorStore.currentFloor;
-        return floorStore.floors.find(f => f.id === id);
+        return floorStore.floors.find((f) => f.id === id);
     }
 
     selectLayer(name: string, sync = true, invalidate = true): void {

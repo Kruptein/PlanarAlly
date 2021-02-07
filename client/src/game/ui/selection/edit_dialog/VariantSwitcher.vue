@@ -7,10 +7,10 @@ import ConfirmDialog from "@/core/components/modals/confirm.vue";
 import Prompt from "@/core/components/modals/prompt.vue";
 import SelectionBox from "@/core/components/modals/SelectionBox.vue";
 
+import { InvalidationMode, SyncMode, SyncTo } from "../../../../core/comm/types";
 import { layerManager } from "../../../layers/manager";
 import { dropAsset } from "../../../layers/utils";
 import { ToggleComposite } from "../../../shapes/variants/togglecomposite";
-import { InvalidationMode, SyncMode, SyncTo } from "../../../../core/comm/types";
 import { ActiveShapeState, activeShapeStore } from "../../ActiveShapeStore";
 
 @Component({ components: { AssetPicker, ConfirmDialog, Prompt, SelectionBox } })
@@ -40,7 +40,7 @@ export default class VariantSwitcher extends Vue {
     }
 
     get currentIndex(): number {
-        return this.variants.findIndex(v => v.uuid === this.shape.uuid);
+        return this.variants.findIndex((v) => v.uuid === this.shape.uuid);
     }
 
     get previousVariant(): { uuid?: string; name: string } {

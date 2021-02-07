@@ -1,3 +1,5 @@
+import tinycolor from "tinycolor2";
+
 import { uuidv4 } from "@/core/utils";
 import { aurasFromServer, aurasToServer, partialAuraToServer } from "@/game/comm/conversion/aura";
 import { InitiativeData } from "@/game/comm/types/general";
@@ -17,7 +19,8 @@ import {
     sliceBlockers,
     sliceVisionSources,
 } from "@/game/visibility/utils";
-import tinycolor from "tinycolor2";
+
+import { SyncTo } from "../../core/comm/types";
 import { PartialBy } from "../../core/types";
 import {
     sendShapeAddOwner,
@@ -33,6 +36,7 @@ import {
     sendShapeRemoveLabel,
     sendShapeRemoveTracker,
     sendShapeSetAnnotation,
+    sendShapeSetAnnotationVisible,
     sendShapeSetBlocksMovement,
     sendShapeSetBlocksVision,
     sendShapeSetFillColour,
@@ -46,19 +50,19 @@ import {
     sendShapeUpdateAura,
     sendShapeUpdateTracker,
 } from "../api/emits/shape/options";
+import { EventBus } from "../event-bus";
+import { getBadgeCharacters } from "../groups";
 import { Floor } from "../layers/floor";
 import { Layer } from "../layers/layer";
 import { floorStore, getFloorId } from "../layers/store";
 import { gameSettingsStore } from "../settings";
+import { activeShapeStore } from "../ui/ActiveShapeStore";
 import { rotateAroundPoint } from "../utils";
-import { BoundingRect } from "./variants/boundingrect";
+
 import { Aura, Label, Tracker } from "./interfaces";
 import { PartialShapeOwner, ShapeAccess, ShapeOwner } from "./owners";
 import { SHAPE_TYPE } from "./types";
-import { EventBus } from "../event-bus";
-import { getBadgeCharacters } from "../groups";
-import { SyncTo } from "../../core/comm/types";
-import { activeShapeStore } from "../ui/ActiveShapeStore";
+import { BoundingRect } from "./variants/boundingrect";
 
 export abstract class Shape {
     // Used to create class instance from server shape data
@@ -104,6 +108,7 @@ export abstract class Shape {
 
     // Mouseover annotation
     annotation = "";
+    annotationVisible = false;
 
     // Draw modus to use
     globalCompositeOperation = "source-over";
@@ -165,7 +170,7 @@ export abstract class Shape {
      * This is the case when it is a token, has an aura that is a vision source or if it blocks vision.
      */
     get triggersVisionRecalc(): boolean {
-        return this.isToken || this.getAuras(true).some(a => a.visionSource) || this.movementObstruction;
+        return this.isToken || this.getAuras(true).some((a) => a.visionSource) || this.movementObstruction;
     }
 
     setLayer(floor: number, layer: string): void {
@@ -276,10 +281,11 @@ export abstract class Shape {
             ...getVisionSources(this._floor ?? floorStore.currentFloor.id),
         ];
         for (const au of this.getAuras(true)) {
-            const i = visionSources.findIndex(o => o.aura === au.uuid);
-            if (au.visionSource && i === -1) {
+            const i = visionSources.findIndex((o) => o.aura === au.uuid);
+            const isVisionSource = au.visionSource && au.active;
+            if (isVisionSource && i === -1) {
                 visionSources.push({ shape: this.uuid, aura: au.uuid });
-            } else if (!au.visionSource && i >= 0) {
+            } else if (!isVisionSource && i >= 0) {
                 visionSources.splice(i, 1);
             }
         }
@@ -287,7 +293,8 @@ export abstract class Shape {
         for (let i = visionSources.length - 1; i >= 0; i--) {
             const ls = visionSources[i];
             if (ls.shape === this.uuid) {
-                if (!this.getAuras(true).some(a => a.uuid === ls.aura && a.visionSource)) visionSources.splice(i, 1);
+                if (!this.getAuras(true).some((a) => a.uuid === ls.aura && a.visionSource && a.active))
+                    visionSources.splice(i, 1);
             }
         }
         setVisionSources(visionSources, this._floor ?? floorStore.currentFloor.id);
@@ -310,13 +317,14 @@ export abstract class Shape {
             auras: aurasToServer(this.uuid, this._auras),
             trackers: this._trackers,
             labels: this.labels,
-            owners: this._owners.map(owner => ownerToServer(owner)),
+            owners: this._owners.map((owner) => ownerToServer(owner)),
             fill_colour: this.fillColour,
             stroke_colour: this.strokeColour,
             stroke_width: this.strokeWidth,
             name: this.name,
             name_visible: this.nameVisible,
             annotation: this.annotation,
+            annotation_visible: this.annotationVisible,
             is_token: this.isToken,
             is_invisible: this.isInvisible,
             options: this.getOptions(),
@@ -340,7 +348,7 @@ export abstract class Shape {
         this._auras = aurasFromServer(...data.auras);
         this._trackers = data.trackers;
         this.labels = data.labels;
-        this._owners = data.owners.map(owner => ownerToClient(owner));
+        this._owners = data.owners.map((owner) => ownerToClient(owner));
         this.fillColour = data.fill_colour;
         this.strokeColour = data.stroke_colour;
         this.isToken = data.is_token;
@@ -349,7 +357,10 @@ export abstract class Shape {
         this.badge = data.badge;
         this.showBadge = data.show_badge;
         this.isLocked = data.is_locked;
-        if (data.annotation) this.annotation = data.annotation;
+        this.annotationVisible = data.annotation_visible;
+        if (data.annotation) {
+            this.annotation = data.annotation;
+        }
         if (data.name) this.name = data.name;
         if (data.options) this.setOptions(data.options);
         if (data.asset) this.assetId = data.asset;
@@ -378,7 +389,7 @@ export abstract class Shape {
     }
 
     setPositionRepresentation(position: { angle: number; points: number[][] }): void {
-        this.refPoint = GlobalPoint.fromArray(position.points[0]);
+        this._refPoint = GlobalPoint.fromArray(position.points[0]);
         this.angle = position.angle;
         this.updateShapeVision(false, false);
     }
@@ -535,7 +546,7 @@ export abstract class Shape {
         if (syncTo === SyncTo.UI) this._(activeShapeStore.setIsToken, { isToken, syncTo });
 
         this.isToken = isToken;
-        if (this.ownedBy({ visionAccess: true })) {
+        if (this.ownedBy(false, { visionAccess: true })) {
             if (this.isToken) gameStore.addOwnedToken(this.uuid);
             else gameStore.removeOwnedToken(this.uuid);
         }
@@ -621,15 +632,31 @@ export abstract class Shape {
         return this._owners;
     }
 
-    ownedBy(options: Partial<{ editAccess: boolean; visionAccess: boolean; movementAccess: boolean }>): boolean {
+    /**
+     * This function returns true if the active user owns the given shape in the provided settings.
+     * This always returns true for the DM, or for the DM faking the specific token.
+     * For regular players the default rights and the personal rights are checked.
+     *
+     * @param limitToActiveTokens If this is set to true, everything not in the activeTokens store will always return false
+     * @param options The requested rights to be checked
+     */
+    ownedBy(
+        limitToActiveTokens: boolean,
+        options: Partial<{ editAccess: boolean; visionAccess: boolean; movementAccess: boolean }>,
+    ): boolean {
+        if (gameStore.IS_DM) return true;
+
+        const isActiveToken = gameStore.activeTokens.includes(this.uuid);
+
+        if (this.isToken && limitToActiveTokens && !isActiveToken) return false;
+
         return (
-            gameStore.IS_DM ||
-            (gameStore.FAKE_PLAYER && gameStore.activeTokens.includes(this.uuid)) ||
+            gameStore.FAKE_PLAYER ||
             (options.editAccess && this.defaultAccess.edit) ||
             (options.movementAccess && this.defaultAccess.movement) ||
             (options.visionAccess && this.defaultAccess.vision) ||
             this._owners.some(
-                u =>
+                (u) =>
                     u.user === gameStore.username &&
                     (options.editAccess ? u.access.edit === true : true) &&
                     (options.movementAccess ? u.access.movement === true : true) &&
@@ -655,15 +682,15 @@ export abstract class Shape {
         if (syncTo === SyncTo.UI) this._(activeShapeStore.setDefaultAccess, { access: this.defaultAccess, syncTo });
 
         if (this.defaultAccess.vision) {
-            if (this.ownedBy({ visionAccess: true })) gameStore.addOwnedToken(this.uuid);
+            if (this.ownedBy(false, { visionAccess: true })) gameStore.addOwnedToken(this.uuid);
         } else {
-            if (!this.ownedBy({ visionAccess: true })) gameStore.removeOwnedToken(this.uuid);
+            if (!this.ownedBy(false, { visionAccess: true })) gameStore.removeOwnedToken(this.uuid);
         }
         if (gameSettingsStore.fowLos) layerManager.invalidateLightAllFloors();
     }
 
     hasOwner(username: string): boolean {
-        return this._owners.some(u => u.user === username);
+        return this._owners.some((u) => u.user === username);
     }
 
     addOwner(owner: PartialBy<PartialShapeOwner, "shape">, syncTo: SyncTo): void {
@@ -694,13 +721,13 @@ export abstract class Shape {
         if (fullOwner.shape !== this.uuid) return;
         if (!this.hasOwner(owner.user)) return;
 
-        const targetOwner = this._owners.find(o => o.user === owner.user)!;
+        const targetOwner = this._owners.find((o) => o.user === owner.user)!;
         if (!targetOwner.access.edit && fullOwner.access.edit) {
             // Force other permissions to true if edit access is granted
             fullOwner.access.movement = true;
             fullOwner.access.vision = true;
         }
-        if (targetOwner.access.edit && Object.values(fullOwner.access).some(a => !a)) {
+        if (targetOwner.access.edit && Object.values(fullOwner.access).some((a) => !a)) {
             // Force remove edit permission if a specific permission is toggled off
             fullOwner.access.edit = false;
         }
@@ -722,7 +749,7 @@ export abstract class Shape {
     }
 
     removeOwner(owner: string, syncTo: SyncTo): void {
-        const ownerIndex = this._owners.findIndex(o => o.user === owner);
+        const ownerIndex = this._owners.findIndex((o) => o.user === owner);
         if (ownerIndex < 0) return;
         const removed = this._owners.splice(ownerIndex, 1)[0];
 
@@ -757,7 +784,7 @@ export abstract class Shape {
     }
 
     updateTracker(trackerId: string, delta: Partial<Tracker>, syncTo: SyncTo): void {
-        const tracker = this._trackers.find(t => t.uuid === trackerId);
+        const tracker = this._trackers.find((t) => t.uuid === trackerId);
         if (tracker === undefined) return;
 
         if (syncTo === SyncTo.SERVER) sendShapeUpdateTracker({ shape: this.uuid, uuid: trackerId, ...delta });
@@ -770,7 +797,7 @@ export abstract class Shape {
         if (syncTo === SyncTo.SERVER) sendShapeRemoveTracker({ shape: this.uuid, value: tracker });
         else if (syncTo === SyncTo.UI) this._(activeShapeStore.removeTracker, { tracker, syncTo });
 
-        this._trackers = this._trackers.filter(tr => tr.uuid !== tracker);
+        this._trackers = this._trackers.filter((tr) => tr.uuid !== tracker);
     }
 
     // AURAS
@@ -797,7 +824,7 @@ export abstract class Shape {
     }
 
     updateAura(auraId: string, delta: Partial<Aura>, syncTo: SyncTo): void {
-        const aura = this._auras.find(t => t.uuid === auraId);
+        const aura = this._auras.find((t) => t.uuid === auraId);
         if (aura === undefined) return;
 
         if (syncTo === SyncTo.SERVER) {
@@ -813,12 +840,14 @@ export abstract class Shape {
         }
 
         const visionSources = getVisionSources(this.floor.id);
-        const i = visionSources.findIndex(ls => ls.aura === aura.uuid);
+        const i = visionSources.findIndex((ls) => ls.aura === aura.uuid);
 
         Object.assign(aura, delta);
 
-        if (aura.visionSource && i === -1) addVisionSource({ shape: this.uuid, aura: aura.uuid }, this.floor.id);
-        else if (!aura.visionSource && i >= 0) sliceVisionSources(i, this.floor.id);
+        const showsVision = aura.active && aura.visionSource;
+
+        if (showsVision && i === -1) addVisionSource({ shape: this.uuid, aura: aura.uuid }, this.floor.id);
+        else if (!showsVision && i >= 0) sliceVisionSources(i, this.floor.id);
 
         this.invalidate(false);
     }
@@ -827,7 +856,7 @@ export abstract class Shape {
         if (syncTo === SyncTo.SERVER) sendShapeRemoveAura({ shape: this.uuid, value: aura });
         else if (syncTo === SyncTo.UI) this._(activeShapeStore.removeAura, { aura, syncTo });
 
-        this._auras = this._auras.filter(au => au.uuid !== aura);
+        this._auras = this._auras.filter((au) => au.uuid !== aura);
         this.checkVisionSources();
         this.invalidate(false);
     }
@@ -843,8 +872,15 @@ export abstract class Shape {
         if (this.annotation !== "" && !hadAnnotation) {
             gameStore.annotations.push(this.uuid);
         } else if (this.annotation === "" && hadAnnotation) {
-            gameStore.annotations.splice(gameStore.annotations.findIndex(an => an === this.uuid));
+            gameStore.annotations.splice(gameStore.annotations.findIndex((an) => an === this.uuid));
         }
+    }
+
+    setAnnotationVisible(visible: boolean, syncTo: SyncTo): void {
+        if (syncTo === SyncTo.SERVER) sendShapeSetAnnotationVisible({ shape: this.uuid, value: visible });
+        if (syncTo === SyncTo.UI) this._(activeShapeStore.setAnnotationVisible, { visible, syncTo });
+
+        this.annotationVisible = visible;
     }
 
     addLabel(label: string, syncTo: SyncTo): void {
@@ -859,6 +895,6 @@ export abstract class Shape {
         if (syncTo === SyncTo.SERVER) sendShapeRemoveLabel({ shape: this.uuid, value: label });
         if (syncTo === SyncTo.UI) this._(activeShapeStore.removeLabel, { label, syncTo });
 
-        this.labels = this.labels.filter(l => l.uuid !== label);
+        this.labels = this.labels.filter((l) => l.uuid !== label);
     }
 }

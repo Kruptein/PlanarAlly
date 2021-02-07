@@ -1,20 +1,19 @@
 <script lang="ts">
 import Vue from "vue";
 import Component from "vue-class-component";
-
 import { mapState } from "vuex";
 
 import ColorPicker from "@/core/components/colorpicker.vue";
-import AssetNode from "@/game/ui/menu/asset_node.vue";
 import LanguageSelect from "@/core/components/languageSelect.vue";
-import NoteDialog from "@/game/ui/note.vue";
-
 import { baseAdjust, uuidv4 } from "@/core/utils";
 import { Note } from "@/game/comm/types/general";
 import { layerManager } from "@/game/layers/manager";
 import { gameStore } from "@/game/store";
-import { EventBus } from "../../event-bus";
+import AssetNode from "@/game/ui/menu/asset_node.vue";
+import NoteDialog from "@/game/ui/note.vue";
+
 import { AssetList } from "../../../core/comm/types";
+import { EventBus } from "../../event-bus";
 
 @Component({
     components: {

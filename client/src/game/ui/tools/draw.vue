@@ -1,35 +1,36 @@
 <script lang="ts">
 import Component from "vue-class-component";
-
 import { Watch } from "vue-property-decorator";
 import { mapGetters } from "vuex";
 
-import ColorPicker from "@/core/components/colorpicker.vue";
-import Tool from "./tool.vue";
-import Tools from "./tools.vue";
-
 import { SyncMode, InvalidationMode, SyncTo } from "@/core/comm/types";
+import ColorPicker from "@/core/components/colorpicker.vue";
+import { sendShapeSizeUpdate } from "@/game/api/emits/shape/core";
 import { GlobalPoint, LocalPoint } from "@/game/geom";
+import { Floor } from "@/game/layers/floor";
 import { Layer } from "@/game/layers/layer";
-import { snapToPoint } from "@/game/layers/utils";
 import { layerManager } from "@/game/layers/manager";
+import { floorStore } from "@/game/layers/store";
+import { snapToPoint } from "@/game/layers/utils";
+import { Shape } from "@/game/shapes/shape";
 import { Circle } from "@/game/shapes/variants/circle";
 import { Line } from "@/game/shapes/variants/line";
 import { Polygon } from "@/game/shapes/variants/polygon";
 import { Rect } from "@/game/shapes/variants/rect";
-import { Shape } from "@/game/shapes/shape";
 import { gameStore } from "@/game/store";
 import { getUnitDistance, l2g, g2lx, g2ly, l2gz, clampGridLine } from "@/game/units";
 import { equalPoints, useSnapping } from "@/game/utils";
 import { visibilityStore } from "@/game/visibility/store";
 import { TriangulationTarget, insertConstraint, getCDT } from "@/game/visibility/te/pa";
-import { ToolName } from "./utils";
-import { gameSettingsStore } from "../../settings";
+
 import { EventBus } from "../../event-bus";
+import { overrideLastOperation } from "../../operations/undo";
+import { gameSettingsStore } from "../../settings";
+
+import Tool from "./tool.vue";
 import { ToolBasics } from "./ToolBasics";
-import { floorStore } from "@/game/layers/store";
-import { Floor } from "@/game/layers/floor";
-import { sendShapeSizeUpdate } from "@/game/api/emits/shape/core";
+import Tools from "./tools.vue";
+import { ToolName } from "./utils";
 
 @Component({
     components: {
@@ -460,6 +461,8 @@ export default class DrawTool extends Tool implements ToolBasics {
         if (layer !== undefined) {
             layer.invalidate(false);
         }
+
+        overrideLastOperation({ type: "shapeadd", shapes: [this.shape.asDict()] });
     }
 
     onSelect(mouse?: { x: number; y: number }): void {

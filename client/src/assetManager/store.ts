@@ -3,6 +3,7 @@ import { getModule, Module, Mutation, VuexModule } from "vuex-module-decorators"
 
 import { Asset } from "@/core/comm/types";
 import { rootStore } from "@/store";
+
 import { router } from "../router";
 
 export interface AssetState {
@@ -55,17 +56,14 @@ class AssetStore extends VuexModule {
     @Mutation
     setPath(path: number[]): void {
         this.folderPath = path;
-        for (const [index, part] of router.currentRoute.path
-            .slice("/assets/".length)
-            .split("/")
-            .entries()) {
+        for (const [index, part] of router.currentRoute.path.slice("/assets/".length).split("/").entries()) {
             this._idMap.set(path[index], { id: path[index], name: part });
         }
     }
 
     @Mutation
     resolveUpload(file: string): void {
-        const idx = this._pendingUploads.findIndex(f => f === file);
+        const idx = this._pendingUploads.findIndex((f) => f === file);
         if (idx >= 0) {
             this._pendingUploads.splice(idx, 1);
             this._resolvedUploads++;
@@ -86,10 +84,10 @@ class AssetStore extends VuexModule {
         target.push(asset.id);
 
         const sorted_target = target
-            .map(i => this._idMap.get(i))
-            .filter(a => a !== undefined)
+            .map((i) => this._idMap.get(i))
+            .filter((a) => a !== undefined)
             .sort((a, b) => a!.name.localeCompare(b!.name))
-            .map(a => a!.id);
+            .map((a) => a!.id);
         if (asset.file_hash) {
             this._files = sorted_target;
         } else {

@@ -1,8 +1,10 @@
 <script lang="ts">
-import { Component, Vue } from "vue-property-decorator";
 import Loading from "vue-loading-overlay";
+import { Component, Vue } from "vue-property-decorator";
+
 import "vue-loading-overlay/dist/vue-loading.css";
 import { coreStore } from "@/core/store";
+
 import { BASE_PATH } from "./utils";
 
 @Component({

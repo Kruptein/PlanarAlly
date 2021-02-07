@@ -1,10 +1,12 @@
 import { layerManager } from "@/game/layers/manager";
 import { g2lx, g2ly } from "@/game/units";
+
 import { floorStore } from "../../layers/store";
+
 import { Edge, EdgeIterator, TDS } from "./tds";
 import { ccw, cw } from "./triag";
 
-export function drawPoint(point: number[], r: number, colour?: string): void {
+function drawPoint(point: number[], r: number, colour?: string): void {
     const dl = layerManager.getLayer(floorStore.currentFloor, "draw");
     if (dl === undefined) return;
     const ctx = dl.ctx;
@@ -18,7 +20,7 @@ export function drawPoint(point: number[], r: number, colour?: string): void {
     ctx.stroke();
 }
 
-export function drawPointL(point: number[], r: number, colour?: string): void {
+function drawPointL(point: number[], r: number, colour?: string): void {
     const dl = layerManager.getLayer(floorStore.currentFloor, "draw");
     if (dl === undefined) return;
     const ctx = dl.ctx;
@@ -50,7 +52,7 @@ export function drawPolygon(polygon: number[][], colour?: string): void {
     ctx.stroke();
 }
 
-export function drawPolygonL(polygon: number[][], colour?: string): void {
+function drawPolygonL(polygon: number[][], colour?: string): void {
     const dl = layerManager.getLayer(floorStore.currentFloor, "draw");
     if (dl === undefined) return;
     const ctx = dl.ctx;
@@ -100,7 +102,7 @@ function drl(from: number[], to: number[], constrained: boolean, local: boolean)
     ctx.stroke();
 }
 
-export function drawEdge(edge: Edge, colour: string, local = false): void {
+function drawEdge(edge: Edge, colour: string, local = false): void {
     const from = edge.first!.vertices[edge.second === 0 ? 1 : 0]!.point!;
     const to = edge.first!.vertices[edge.second === 2 ? 1 : 2]!.point!;
     const dl = layerManager.getLayer(floorStore.currentFloor, "draw");
@@ -114,7 +116,7 @@ export function drawEdge(edge: Edge, colour: string, local = false): void {
     ctx.stroke();
 }
 
-export function drawPolygonT(tds: TDS, local = true, clear = true, logs: 0 | 1 | 2 = 0): void {
+function drawPolygonT(tds: TDS, local = true, clear = true, logs: 0 | 1 | 2 = 0): void {
     I = 0;
     J = 0;
     let T = 0;

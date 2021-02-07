@@ -13,6 +13,12 @@ export interface ServerLocationOptions {
     move_player_on_token_change: boolean;
 }
 
+export interface Location {
+    id: number;
+    name: string;
+    archived: boolean;
+}
+
 export interface LocationOptions {
     useGrid: boolean;
     gridType: string;
@@ -47,21 +53,6 @@ export interface EditableServerClient {
     invert_alt: boolean;
     grid_size: number;
 }
-
-export const optionsToServer = (options: LocationOptions): ServerLocationOptions => ({
-    use_grid: options.useGrid,
-    grid_type: options.gridType,
-    unit_size: options.unitSize,
-    unit_size_unit: options.unitSizeUnit,
-    full_fow: options.fullFow,
-    vision_mode: options.visionMode,
-    fow_opacity: options.fowOpacity,
-    fow_los: options.fowLos,
-    vision_min_range: options.visionMinRange,
-    vision_max_range: options.visionMaxRange,
-    spawn_locations: JSON.stringify(options.spawnLocations),
-    move_player_on_token_change: options.movePlayerOnTokenChange,
-});
 
 export const optionsToClient = (options: ServerLocationOptions): LocationOptions => ({
     useGrid: options.use_grid,

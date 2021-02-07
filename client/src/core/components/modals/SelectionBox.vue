@@ -97,11 +97,7 @@ export default class SelectionBox extends Vue {
             <template v-if="customButton.length > 0">
                 <h4>
                     <span>
-                        {{
-                            $t("common.or")
-                                .toLocaleUpperCase()
-                                .toString()
-                        }}
+                        {{ $t("common.or").toLocaleUpperCase().toString() }}
                     </span>
                 </h4>
                 <input type="text" class="input" v-model="customName" />
@@ -136,6 +132,9 @@ export default class SelectionBox extends Vue {
 #selectionbox {
     display: flex;
     flex-direction: column;
+
+    max-height: 60vh;
+    overflow: auto;
 
     div {
         padding: 10px 25px;

@@ -1,6 +1,6 @@
-import { GlobalPoint, Ray } from "@/game/geom";
-import { EdgeCirculator, Point, Sign, Triangle, Vertex } from "./tds";
 import { equalPoint } from "@/game/utils";
+
+import { EdgeCirculator, Point, Sign, Triangle, Vertex } from "./tds";
 
 type Line = number[];
 
@@ -87,7 +87,7 @@ export function orientation(p: Point, q: Point, r: Point): Sign {
     return Sign.ZERO;
 }
 
-export function determinant(a00: number, a01: number, a10: number, a11: number): number {
+function determinant(a00: number, a01: number, a10: number, a11: number): number {
     return a00 * a11 - a01 * a10;
 }
 
@@ -485,28 +485,4 @@ export function rotateAroundOrigin(p: Point, angle: number): Point {
     const s = Math.sin(angle);
     const c = Math.cos(angle);
     return [p[0] * c - p[1] * s, p[0] * s + p[1] * c];
-}
-
-export function circleLineIntersection(
-    circleCenter: GlobalPoint,
-    circleRadius: number,
-    A: GlobalPoint,
-    B: GlobalPoint,
-): GlobalPoint[] {
-    const segmentRay = Ray.fromPoints(A, B); // d
-    const circleLineRay = Ray.fromPoints(circleCenter, A); // f
-    const a = segmentRay.direction.dot(segmentRay.direction);
-    const b = 2 * circleLineRay.direction.dot(segmentRay.direction);
-    const c = circleLineRay.direction.dot(circleLineRay.direction) - circleRadius ** 2;
-    let d = b ** 2 - 4 * a * c;
-    if (d < 0) return [];
-
-    const intersectionPoints: GlobalPoint[] = [];
-
-    d = Math.sqrt(d);
-    const t1 = (-b - d) / (2 * a);
-    const t2 = (-b + d) / (2 * a);
-    if (t1 >= 0 && t1 <= 1) intersectionPoints.push(segmentRay.get(t1));
-    if (t2 >= 0 && t2 <= 1) intersectionPoints.push(segmentRay.get(t2));
-    return intersectionPoints;
 }

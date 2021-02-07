@@ -6,10 +6,7 @@ Vue.component("draggable", draggable);
 
 import ConfirmDialog from "@/core/components/modals/confirm.vue";
 import Modal from "@/core/components/modals/modal.vue";
-
 import { uuidv4 } from "@/core/utils";
-import { socket } from "@/game/api/socket";
-import { InitiativeData, InitiativeEffect } from "@/game/comm/types/general";
 import {
     sendInitiativeUpdate,
     sendInitiativeRemove,
@@ -20,13 +17,17 @@ import {
     sendInitiativeUpdateEffect,
     sendInitiativeRemoveEffect,
 } from "@/game/api/emits/initiative";
+import { socket } from "@/game/api/socket";
+import { InitiativeData, InitiativeEffect } from "@/game/comm/types/general";
 import { EventBus } from "@/game/event-bus";
 import { layerManager } from "@/game/layers/manager";
 import { gameStore } from "@/game/store";
-import { initiativeStore } from "./store";
-import { gameManager } from "../../manager";
+
 import { getGroupMembers } from "../../groups";
+import { gameManager } from "../../manager";
 import { Shape } from "../../shapes/shape";
+
+import { initiativeStore } from "./store";
 
 @Component({
     components: {
@@ -81,14 +82,14 @@ export default class Initiative extends Vue {
 
     // Utilities
     getActor(actorId: string): InitiativeData | undefined {
-        return initiativeStore.data.find(a => a.uuid === actorId);
+        return initiativeStore.data.find((a) => a.uuid === actorId);
     }
     owns(actor: InitiativeData): boolean {
         if (gameStore.IS_DM) return true;
         const shape = layerManager.UUIDMap.get(actor.uuid);
         // Shapes that are unknown to this client are hidden from this client but owned by other clients
         if (shape === undefined) return false;
-        return shape.ownedBy({ editAccess: true });
+        return shape.ownedBy(false, { editAccess: true });
     }
     getDefaultEffect(): { uuid: string; name: string; turns: number } {
         return { uuid: uuidv4(), name: this.$t("game.ui.initiative.initiative.new_effect").toString(), turns: 10 };
@@ -101,7 +102,7 @@ export default class Initiative extends Vue {
     }
     // Events
     async removeInitiative(uuid: string, sync: boolean): Promise<void> {
-        const d = initiativeStore.data.findIndex(a => a.uuid === uuid);
+        const d = initiativeStore.data.findIndex((a) => a.uuid === uuid);
         if (d < 0) return;
         if (initiativeStore.data[d].group) {
             const continueRemoval = await this.$refs.confirmDialog.open(
@@ -124,12 +125,12 @@ export default class Initiative extends Vue {
     }
     updateOrder(): void {
         if (!gameStore.IS_DM) return;
-        sendInitiativeSet(initiativeStore.data.map(d => d.uuid));
+        sendInitiativeSet(initiativeStore.data.map((d) => d.uuid));
     }
     updateTurn(actorId: string, sync: boolean): void {
         if (!gameStore.IS_DM && sync) return;
         initiativeStore.setCurrentActor(actorId);
-        const actor = initiativeStore.data.find(a => a.uuid === actorId);
+        const actor = initiativeStore.data.find((a) => a.uuid === actorId);
         if (actor === undefined) return;
         if (actor.effects) {
             for (let e = actor.effects.length - 1; e >= 0; e--) {
@@ -146,7 +147,7 @@ export default class Initiative extends Vue {
         if (this.cameraLock) {
             if (actorId !== null) {
                 const shape = layerManager.UUIDMap.get(actorId);
-                if (shape?.ownedBy({ visionAccess: true })) {
+                if (shape?.ownedBy(false, { visionAccess: true })) {
                     gameManager.setCenterPosition(shape.center());
                 }
             }
@@ -164,7 +165,7 @@ export default class Initiative extends Vue {
     nextTurn(): void {
         if (!gameStore.IS_DM) return;
         const order = initiativeStore.data;
-        const next = order[(order.findIndex(a => a.uuid === initiativeStore.currentActor) + 1) % order.length];
+        const next = order[(order.findIndex((a) => a.uuid === initiativeStore.currentActor) + 1) % order.length];
         if (initiativeStore.data[0].uuid === next.uuid) this.setRound(initiativeStore.roundCounter + 1, true);
         this.updateTurn(next.uuid, true);
     }
@@ -196,18 +197,18 @@ export default class Initiative extends Vue {
         sendInitiativeUpdateEffect({ actor: actor.uuid, effect });
     }
     updateEffect(actorId: string, effect: InitiativeEffect, sync: boolean): void {
-        const actor = initiativeStore.data.find(a => a.uuid === actorId);
+        const actor = initiativeStore.data.find((a) => a.uuid === actorId);
         if (actor === undefined) return;
-        const effectIndex = actor.effects.findIndex(e => e.uuid === effect.uuid);
+        const effectIndex = actor.effects.findIndex((e) => e.uuid === effect.uuid);
         if (effectIndex === undefined) return;
         actor.effects[effectIndex] = effect;
         if (sync) this.syncEffect(actor, effect);
         else this.$forceUpdate();
     }
     removeEffect(actorId: string, effect: InitiativeEffect, sync: boolean): void {
-        const actor = initiativeStore.data.find(a => a.uuid === actorId);
+        const actor = initiativeStore.data.find((a) => a.uuid === actorId);
         if (actor === undefined) return;
-        const effectIndex = actor.effects.findIndex(e => e.uuid === effect.uuid);
+        const effectIndex = actor.effects.findIndex((e) => e.uuid === effect.uuid);
         if (effectIndex === undefined) return;
         actor.effects.splice(effectIndex, 1);
         if (sync) sendInitiativeRemoveEffect({ actor: actorId, effect });
@@ -230,7 +231,7 @@ export default class Initiative extends Vue {
         const shape = layerManager.UUIDMap.get(actor.uuid);
         if (shape !== undefined) {
             if (shape.nameVisible) return shape.name;
-            if (shape.ownedBy({ editAccess: true })) return shape.name;
+            if (shape.ownedBy(false, { editAccess: true })) return shape.name;
         }
         return actor.source;
     }

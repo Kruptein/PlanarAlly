@@ -6,33 +6,33 @@ import { floorStore, getFloorId } from "../../../layers/store";
 import { moveFloor, moveLayer } from "../../../layers/utils";
 import { gameManager } from "../../../manager";
 import { Shape } from "../../../shapes/shape";
-import { socket } from "../../socket";
-import { Text } from "../../../shapes/variants/text";
-import { Rect } from "../../../shapes/variants/rect";
-import { Circle } from "../../../shapes/variants/circle";
 import { deleteShapes } from "../../../shapes/utils";
+import { Circle } from "../../../shapes/variants/circle";
+import { Rect } from "../../../shapes/variants/rect";
+import { Text } from "../../../shapes/variants/text";
+import { socket } from "../../socket";
 
 socket.on("Shape.Set", async (data: ServerShape) => {
     // hard reset a shape
     const old = layerManager.UUIDMap.get(data.uuid);
     if (old) old.layer.removeShape(old, SyncMode.NO_SYNC, true);
-    const shape = await gameManager.addShape(data);
+    const shape = await gameManager.addShape(data, SyncMode.NO_SYNC);
     if (shape) EventBus.$emit("Shape.Set", shape);
 });
 
 socket.on("Shape.Add", async (shape: ServerShape) => {
-    await gameManager.addShape(shape);
+    await gameManager.addShape(shape, SyncMode.NO_SYNC);
 });
 
 socket.on("Shapes.Add", async (shapes: ServerShape[]) => {
     for (const shape of shapes) {
-        await gameManager.addShape(shape);
+        await gameManager.addShape(shape, SyncMode.NO_SYNC);
     }
 });
 
 socket.on("Shapes.Remove", (shapeIds: string[]) => {
     // We use ! on the get here even though to silence the typechecker as we filter undefineds later.
-    const shapes = shapeIds.map(s => layerManager.UUIDMap.get(s)!).filter(s => s !== undefined);
+    const shapes = shapeIds.map((s) => layerManager.UUIDMap.get(s)!).filter((s) => s !== undefined);
     deleteShapes(shapes, SyncMode.NO_SYNC);
 });
 
@@ -67,18 +67,18 @@ socket.on("Shape.Order.Set", (data: { uuid: string; index: number }) => {
 
 socket.on("Shapes.Floor.Change", (data: { uuids: string[]; floor: string }) => {
     const shapes = data.uuids
-        .map(u => layerManager.UUIDMap.get(u) ?? undefined)
-        .filter(s => s !== undefined) as Shape[];
+        .map((u) => layerManager.UUIDMap.get(u) ?? undefined)
+        .filter((s) => s !== undefined) as Shape[];
     if (shapes.length === 0) return;
     moveFloor(shapes, layerManager.getFloor(getFloorId(data.floor))!, false);
-    if (shapes.some(s => s.ownedBy({ editAccess: true })))
+    if (shapes.some((s) => s.ownedBy(false, { editAccess: true })))
         floorStore.selectFloor({ targetFloor: data.floor, sync: false });
 });
 
 socket.on("Shapes.Layer.Change", (data: { uuids: string[]; floor: string; layer: string }) => {
     const shapes = data.uuids
-        .map(u => layerManager.UUIDMap.get(u) ?? undefined)
-        .filter(s => s !== undefined) as Shape[];
+        .map((u) => layerManager.UUIDMap.get(u) ?? undefined)
+        .filter((s) => s !== undefined) as Shape[];
     if (shapes.length === 0) return;
     moveLayer(shapes, layerManager.getLayer(layerManager.getFloor(getFloorId(data.floor))!, data.layer)!, false);
 });

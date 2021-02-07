@@ -7,11 +7,14 @@ import { createShapeFromDict } from "@/game/shapes/utils";
 import { gameStore } from "@/game/store";
 import { TriangulationTarget } from "@/game/visibility/te/pa";
 import { removeBlocker, removeVisionSources } from "@/game/visibility/utils";
+
 import { sendRemoveShapes, sendShapeAdd, sendShapeOrder } from "../api/emits/shape/core";
 import { removeGroupMember } from "../groups";
+import { addOperation } from "../operations/undo";
 import { gameSettingsStore } from "../settings";
 import { drawAuras } from "../shapes/trackers/draw";
 import { activeShapeStore } from "../ui/ActiveShapeStore";
+
 import { floorStore } from "./store";
 import { addAllCompositeShapes } from "./utils";
 
@@ -63,7 +66,7 @@ export class Layer {
     getShapes(options: { skipUiHelpers?: boolean; includeComposites: boolean }): readonly Shape[] {
         const skipUiHelpers = options.skipUiHelpers ?? true;
         let shapes: readonly Shape[] = skipUiHelpers
-            ? this.shapes.filter(s => !s.options.has("UiHelper"))
+            ? this.shapes.filter((s) => !s.options.has("UiHelper"))
             : this.shapes;
         if (options.includeComposites) {
             shapes = addAllCompositeShapes(shapes);
@@ -87,7 +90,7 @@ export class Layer {
     // They are often not desired unless in specific circumstances
     getSelection(options: { skipUiHelpers?: boolean; includeComposites: boolean }): readonly Shape[] {
         const skipUiHelpers = options.skipUiHelpers ?? true;
-        const selection = skipUiHelpers ? this.selection.filter(s => !s.options.has("UiHelper")) : this.selection;
+        const selection = skipUiHelpers ? this.selection.filter((s) => !s.options.has("UiHelper")) : this.selection;
         return options.includeComposites ? addAllCompositeShapes(selection) : selection;
     }
 
@@ -139,7 +142,7 @@ export class Layer {
                 this.points.set(strp, (this.points.get(strp) || new Set()).add(shape.uuid));
             }
         }
-        if (shape.ownedBy({ visionAccess: true }) && shape.isToken) gameStore.addOwnedToken(shape.uuid);
+        if (shape.ownedBy(false, { visionAccess: true }) && shape.isToken) gameStore.addOwnedToken(shape.uuid);
         if (shape.annotation.length) gameStore.annotations.push(shape.uuid);
         if (sync !== SyncMode.NO_SYNC && !shape.preventSync)
             sendShapeAdd({ shape: shape.asDict(), temporary: sync === SyncMode.TEMP_SYNC });
@@ -148,6 +151,10 @@ export class Layer {
         if (activeShapeStore.uuid === undefined && activeShapeStore.lastUuid === shape.uuid) {
             const selection = this.getSelection({ skipUiHelpers: false, includeComposites: false });
             this.setSelection(shape, ...selection);
+        }
+
+        if (sync === SyncMode.FULL_SYNC) {
+            addOperation({ type: "shapeadd", shapes: [shape.asDict()] });
         }
     }
 
@@ -182,7 +189,9 @@ export class Layer {
         }
         if (gameSettingsStore.currentLocationOptions.spawnLocations!.includes(shape.uuid)) {
             gameSettingsStore.setSpawnLocations({
-                spawnLocations: gameSettingsStore.currentLocationOptions.spawnLocations!.filter(s => s !== shape.uuid),
+                spawnLocations: gameSettingsStore.currentLocationOptions.spawnLocations!.filter(
+                    (s) => s !== shape.uuid,
+                ),
                 location: gameSettingsStore.activeLocation,
                 sync: true,
             });
@@ -268,12 +277,12 @@ export class Layer {
                 visibleShapes.push(shape);
             }
             for (const shape of visibleShapes) {
-                if (shape.isInvisible && !shape.ownedBy({ visionAccess: true })) continue;
+                if (shape.isInvisible && !shape.ownedBy(true, { visionAccess: true })) continue;
                 if (shape.labels.length === 0 && gameStore.filterNoLabel) continue;
                 if (
                     shape.labels.length &&
                     gameStore.labelFilters.length &&
-                    !shape.labels.some(l => gameStore.labelFilters.includes(l.uuid))
+                    !shape.labels.some((l) => gameStore.labelFilters.includes(l.uuid))
                 )
                     continue;
                 shape.draw(ctx);

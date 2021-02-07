@@ -1,9 +1,9 @@
 <script lang="ts">
 import Vue from "vue";
 import Component from "vue-class-component";
+import { Route, NavigationGuard } from "vue-router";
 
 import AccountSettings from "./account.vue";
-import { Route, NavigationGuard } from "vue-router";
 
 interface ActiveComponent {
     title: string;
@@ -33,7 +33,7 @@ export default class Settings extends Vue {
     }
 
     beforeRouteEnter(to: Route, _from: Route, next: Parameters<NavigationGuard>[2]): void {
-        next(vm => {
+        next((vm) => {
             if ("page" in to.params && to.params.page !== undefined) {
                 for (const component of (vm as Settings).components) {
                     if (component.nav.toLowerCase() === to.params.page.toLowerCase()) {

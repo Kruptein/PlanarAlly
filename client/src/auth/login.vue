@@ -1,15 +1,15 @@
 <script lang="ts">
-import Vue from "vue";
-import Component from "vue-class-component";
-import { Swiper, SwiperSlide } from "vue-awesome-swiper";
 import "swiper/css/swiper.css";
+import { SwiperOptions } from "swiper";
+import Vue from "vue";
+import { Swiper, SwiperSlide } from "vue-awesome-swiper";
+import Component from "vue-class-component";
+import { ToastObject } from "vue-toasted";
 
 import LanguageDropdown from "@/core/components/languageDropdown.vue";
-
 import { coreStore } from "@/core/store";
+
 import { postFetch, getErrorReason, baseAdjust } from "../core/utils";
-import { SwiperOptions } from "swiper";
-import { ToastObject } from "vue-toasted";
 
 @Component({
     components: {

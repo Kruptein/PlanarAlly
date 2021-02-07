@@ -1,5 +1,6 @@
 import { GlobalPoint, LocalPoint, Ray } from "@/game/geom";
 import { gameStore, DEFAULT_GRID_SIZE } from "@/game/store";
+
 import { gameSettingsStore } from "./settings";
 
 export function g2l(obj: GlobalPoint): LocalPoint {
@@ -56,16 +57,21 @@ export function l2gz(z: number): number {
     return z / gameStore.zoomFactor;
 }
 
-export function l2gr(r: number): number {
-    return l2gz(getUnitDistance(r));
-}
-
 export function clampGridLine(point: number): number {
     return Math.round(point / DEFAULT_GRID_SIZE) * DEFAULT_GRID_SIZE;
 }
 
 export function clampToGrid(point: GlobalPoint): GlobalPoint {
     return new GlobalPoint(clampGridLine(point.x), clampGridLine(point.y));
+}
+
+export function toRadians(degrees: number): number {
+    return (degrees * Math.PI) / 180;
+}
+
+// eslint-disable-next-line import/no-unused-modules
+export function toDegrees(radians: number): number {
+    return (radians * 180) / Math.PI;
 }
 
 (window as any).g2lx = g2lx;

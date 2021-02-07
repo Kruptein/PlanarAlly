@@ -2,14 +2,14 @@
 import Component from "vue-class-component";
 
 import Accordion from "@/core/components/accordion.vue";
-import Tool from "@/game/ui/tools/tool.vue";
-
 import { socket } from "@/game/api/socket";
 import { layerManager } from "@/game/layers/manager";
 import { gameStore } from "@/game/store";
-import { ToolName, ToolPermission } from "./utils";
-import { ToolBasics } from "./ToolBasics";
+import Tool from "@/game/ui/tools/tool.vue";
+
 import { SelectFeatures } from "./select.vue";
+import { ToolBasics } from "./ToolBasics";
+import { ToolName, ToolPermission } from "./utils";
 
 @Component({
     components: {
@@ -41,7 +41,7 @@ export default class FilterTool extends Tool implements ToolBasics {
     get initalValues(): { [category: string]: string[] } {
         const values: { [category: string]: string[] } = {};
         for (const cat of Object.keys(this.labels)) {
-            values[cat] = gameStore.labelFilters.filter(f => this.labels[cat].map(l => l[0]).includes(f));
+            values[cat] = gameStore.labelFilters.filter((f) => this.labels[cat].map((l) => l[0]).includes(f));
         }
         return values;
     }

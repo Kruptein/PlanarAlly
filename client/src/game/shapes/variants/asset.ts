@@ -4,6 +4,7 @@ import { GlobalPoint } from "@/game/geom";
 import { BaseRect } from "@/game/shapes/variants/baserect";
 import { gameStore } from "@/game/store";
 import { g2l, g2lx, g2ly, g2lz } from "@/game/units";
+
 import { SHAPE_TYPE } from "../types";
 
 export class Asset extends BaseRect {

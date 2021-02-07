@@ -1,5 +1,3 @@
-import i18n from "../../i18n";
-
 import { InvalidationMode, SyncMode } from "@/core/comm/types";
 import { ServerFloor, ServerLayer } from "@/game/comm/types/general";
 import { GlobalPoint, Vector } from "@/game/geom";
@@ -12,14 +10,18 @@ import { Asset } from "@/game/shapes/variants/asset";
 import { clampGridLine, l2gx, l2gy, l2gz } from "@/game/units";
 import { visibilityStore } from "@/game/visibility/store";
 import { addCDT, removeCDT } from "@/game/visibility/te/pa";
+
 import { baseAdjust, uuidv4 } from "../../core/utils";
+import i18n from "../../i18n";
 import { requestAssetOptions } from "../api/emits/asset";
 import { sendFloorChange, sendLayerChange } from "../api/emits/shape/core";
 import { BaseTemplate } from "../comm/types/templates";
+import { addOperation } from "../operations/undo";
 import { gameSettingsStore } from "../settings";
 import { Shape } from "../shapes/shape";
 import { applyTemplate } from "../shapes/template";
 import { DEFAULT_GRID_SIZE } from "../store";
+
 import { Floor } from "./floor";
 import { floorStore, getFloorId, newFloorId } from "./store";
 
@@ -32,6 +34,8 @@ export async function addFloor(serverFloor: ServerFloor): Promise<void> {
     floorStore.addFloor({ floor, targetIndex: serverFloor.index });
     addCDT(getFloorId(serverFloor.name));
     for (const layer of serverFloor.layers) await createLayer(layer, floor);
+    visibilityStore.recalculateVision(getFloorId(floor.name));
+    visibilityStore.recalculateMovement(getFloorId(floor.name));
 
     recalculateZIndices();
 }
@@ -49,18 +53,18 @@ function recalculateZIndices(): void {
 export function removeFloor(floorId: number): void {
     removeCDT(floorId);
     visibilityStore.movementBlockers.splice(
-        visibilityStore.movementBlockers.findIndex(mb => mb.floor === floorId),
+        visibilityStore.movementBlockers.findIndex((mb) => mb.floor === floorId),
         1,
     );
     visibilityStore.visionBlockers.splice(
-        visibilityStore.visionBlockers.findIndex(vb => vb.floor === floorId),
+        visibilityStore.visionBlockers.findIndex((vb) => vb.floor === floorId),
         1,
     );
     visibilityStore.visionSources.splice(
-        visibilityStore.visionSources.findIndex(vs => vs.floor === floorId),
+        visibilityStore.visionSources.findIndex((vs) => vs.floor === floorId),
         1,
     );
-    const floor = floorStore.floors.find(f => f.id === floorId)!;
+    const floor = floorStore.floors.find((f) => f.id === floorId)!;
     for (const layer of layerManager.getLayers(floor)) layer.canvas.remove();
     floorStore.removeFloor(floor);
 }
@@ -122,7 +126,7 @@ export async function dropAsset(
     const uuid = uuidv4();
     image.src = baseAdjust(data.imageSource);
 
-    return new Promise(resolve => {
+    return new Promise((resolve) => {
         image.onload = () => {
             const refPoint = new GlobalPoint(l2gx(position.x), l2gy(position.y));
             const asset = new Asset(image, refPoint, l2gz(image.width), l2gz(image.height), {
@@ -195,7 +199,7 @@ export function moveFloor(shapes: Shape[], newFloor: Floor, sync: boolean): void
     if (shapes.length === 0) return;
     const oldLayer = shapes[0].layer;
     const oldFloor = shapes[0].floor;
-    if (shapes.some(s => s.layer !== oldLayer)) {
+    if (shapes.some((s) => s.layer !== oldLayer)) {
         throw new Error("Mixing shapes from different floors in shape move");
     }
 
@@ -204,42 +208,49 @@ export function moveFloor(shapes: Shape[], newFloor: Floor, sync: boolean): void
         visibilityStore.moveShape({ shape, oldFloor: oldFloor.id, newFloor: newFloor.id });
         shape.setLayer(newFloor.id, oldLayer.name);
     }
-    oldLayer.setShapes(...oldLayer.getShapes({ includeComposites: true }).filter(s => !shapes.includes(s)));
+    oldLayer.setShapes(...oldLayer.getShapes({ includeComposites: true }).filter((s) => !shapes.includes(s)));
     newLayer.pushShapes(...shapes);
     oldLayer.invalidate(false);
     newLayer.invalidate(false);
-    if (sync) sendFloorChange({ uuids: shapes.map(s => s.uuid), floor: newFloor.name });
+    if (sync) {
+        const uuids = shapes.map((s) => s.uuid);
+        sendFloorChange({ uuids, floor: newFloor.name });
+        addOperation({ type: "floormovement", shapes: uuids, from: oldFloor.id, to: newFloor.id });
+    }
 }
 
 export function moveLayer(shapes: readonly Shape[], newLayer: Layer, sync: boolean): void {
     if (shapes.length === 0) return;
     const oldLayer = shapes[0].layer;
 
-    if (shapes.some(s => s.layer !== oldLayer)) {
+    if (shapes.some((s) => s.layer !== oldLayer)) {
         throw new Error("Mixing shapes from different floors in shape move");
     }
 
     for (const shape of shapes) shape.setLayer(newLayer.floor, newLayer.name);
     // Update layer shapes
-    oldLayer.setShapes(...oldLayer.getShapes({ includeComposites: true }).filter(s => !shapes.includes(s)));
+    oldLayer.setShapes(...oldLayer.getShapes({ includeComposites: true }).filter((s) => !shapes.includes(s)));
     newLayer.pushShapes(...shapes);
     // Revalidate layers  (light should at most be redone once)
     oldLayer.invalidate(true);
     newLayer.invalidate(false);
     // Sync!
-    if (sync)
+    if (sync) {
+        const uuids = shapes.map((s) => s.uuid);
         sendLayerChange({
-            uuids: shapes.map(s => s.uuid),
+            uuids,
             layer: newLayer.name,
             floor: layerManager.getFloor(newLayer.floor)!.name,
         });
+        addOperation({ type: "layermovement", shapes: uuids, from: oldLayer.name, to: newLayer.name });
+    }
 }
 
 export function addAllCompositeShapes(shapes: readonly Shape[]): readonly Shape[] {
-    const shapeUuids: Set<string> = new Set(shapes.map(s => s.uuid));
+    const shapeUuids: Set<string> = new Set(shapes.map((s) => s.uuid));
     const allShapes = [...shapes];
     for (const shape of layerManager.getComposites()) {
-        if (shapes.some(s => s.uuid === shape)) {
+        if (shapes.some((s) => s.uuid === shape)) {
             const parent = layerManager.getCompositeParent(shape)!;
             if (shapeUuids.has(parent.uuid)) continue;
             shapeUuids.add(parent.uuid);

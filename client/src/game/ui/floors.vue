@@ -5,13 +5,13 @@ import draggable from "vuedraggable";
 
 import ConfirmDialog from "@/core/components/modals/confirm.vue";
 import Prompt from "@/core/components/modals/prompt.vue";
-
 import { layerManager } from "@/game/layers/manager";
 import { removeFloor } from "@/game/layers/utils";
 import { gameStore } from "@/game/store";
+
+import { sendCreateFloor, sendRemoveFloor, sendFloorSetVisible } from "../api/emits/floor";
 import { Floor } from "../layers/floor";
 import { floorStore, getFloorId } from "../layers/store";
-import { sendCreateFloor, sendRemoveFloor, sendFloorSetVisible } from "../api/emits/floor";
 
 @Component({
     components: {
@@ -35,12 +35,12 @@ export default class FloorSelect extends Vue {
     get floors(): readonly [number, Floor][] {
         return [...floorStore.floors]
             .reverse()
-            .filter(f => f.playerVisible || gameStore.IS_DM)
-            .map(f => [floorStore.floors.indexOf(f), f]);
+            .filter((f) => f.playerVisible || gameStore.IS_DM)
+            .map((f) => [floorStore.floors.indexOf(f), f]);
     }
 
     set floors(floors: readonly [number, Floor][]) {
-        floorStore.reorderFloors({ floors: floors.map(f => f[1].name).reverse(), sync: true });
+        floorStore.reorderFloors({ floors: floors.map((f) => f[1].name).reverse(), sync: true });
     }
 
     get selectedFloorIndex(): number {
@@ -51,8 +51,8 @@ export default class FloorSelect extends Vue {
         if (!gameStore.boardInitialized) return [];
         return layerManager
             .getLayers(floorStore.currentFloor)
-            .filter(l => l.selectable && (gameStore.IS_DM || l.playerEditable))
-            .map(l => l.name);
+            .filter((l) => l.selectable && (gameStore.IS_DM || l.playerEditable))
+            .map((l) => l.name);
     }
 
     get selectedLayer(): string {

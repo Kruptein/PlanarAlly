@@ -2,12 +2,14 @@
 import Vue from "vue";
 import Component from "vue-class-component";
 
-import { ToolName, ToolPermission, ToolFeatures } from "./utils";
-import { LocalPoint } from "../../geom";
 import { getLocalPointFromEvent } from "@/game/utils";
+
+import { LocalPoint } from "../../geom";
+import { onKeyUp } from "../../input/keyboard";
+
 import { ToolBasics } from "./ToolBasics";
 import Tools from "./tools.vue";
-import { onKeyUp } from "../../input/keyboard";
+import { ToolName, ToolPermission, ToolFeatures } from "./utils";
 
 @Component
 export default class Tool extends Vue implements ToolBasics {
@@ -84,11 +86,11 @@ export default class Tool extends Vue implements ToolBasics {
     onMove(_lp: LocalPoint, _event: MouseEvent | TouchEvent, _features: ToolFeatures): void {}
     onToolsModeChange(mode: "Build" | "Play", _features: ToolFeatures): void {
         if (mode === "Build") {
-            if (!this.$parent.buildTools.map(t => t[0]).includes(this.$parent.currentTool)) {
+            if (!this.$parent.buildTools.map((t) => t[0]).includes(this.$parent.currentTool)) {
                 this.$parent.currentTool = ToolName.Select;
             }
         } else {
-            if (!this.$parent.playTools.map(t => t[0]).includes(this.$parent.currentTool)) {
+            if (!this.$parent.playTools.map((t) => t[0]).includes(this.$parent.currentTool)) {
                 this.$parent.currentTool = ToolName.Select;
             }
         }

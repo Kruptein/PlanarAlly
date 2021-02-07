@@ -1,5 +1,6 @@
 import { SyncTo } from "../core/comm/types";
 import { uuidv4 } from "../core/utils";
+
 import {
     requestGroupInfo,
     sendCreateGroup,
@@ -48,7 +49,7 @@ export function createNewGroupForShapes(shapes: string[], keepBadges = false): v
     addNewGroup(group, true);
     addGroupMembers(
         group.uuid,
-        shapes.map(s => ({ uuid: s, badge: keepBadges ? layerManager.UUIDMap.get(s)!.badge : undefined })),
+        shapes.map((s) => ({ uuid: s, badge: keepBadges ? layerManager.UUIDMap.get(s)!.badge : undefined })),
         true,
     );
 }
@@ -56,13 +57,9 @@ export function createNewGroupForShapes(shapes: string[], keepBadges = false): v
 export function updateGroupFromServer(serverGroup: ServerGroup): void {
     const group = groupToClient(serverGroup);
     groupMap.set(group.uuid, group);
-    for (const layer of new Set(getGroupMembers(group.uuid).map(s => s.layer))) {
+    for (const layer of new Set(getGroupMembers(group.uuid).map((s) => s.layer))) {
         layer.invalidate(true);
     }
-}
-
-export function hasGroup(groupId: string): boolean {
-    return groupMap.has(groupId);
 }
 
 export async function fetchGroup(groupId: string): Promise<Group> {
@@ -78,7 +75,7 @@ export function getGroupSize(groupId: string): number {
 export function getGroupMembers(groupId: string): Shape[] {
     const members = memberMap.get(groupId);
     if (members === undefined) return [];
-    return [...members].map(m => layerManager.UUIDMap.get(m)!);
+    return [...members].map((m) => layerManager.UUIDMap.get(m)!);
 }
 
 export function addGroupMembers(groupId: string, members: { uuid: string; badge?: number }[], sync: boolean): void {
@@ -144,7 +141,7 @@ export function setCreationOrder(groupId: string, creationOrder: CREATION_ORDER_
     }
 
     sendMemberBadgeUpdate(
-        members.map(m => ({
+        members.map((m) => ({
             uuid: m.uuid,
             badge: m.badge,
         })),
@@ -173,7 +170,7 @@ export function getBadgeCharacters(shape: Shape): string {
 export function generateNewBadge(groupId: string): number {
     const group = getGroup(groupId)!;
     const members = getGroupMembers(groupId);
-    const badges = members.map(m => m.badge);
+    const badges = members.map((m) => m.badge);
     const membersLength = Math.max(2 * members.length + 1, 10);
 
     if (group.creationOrder === "incrementing") {

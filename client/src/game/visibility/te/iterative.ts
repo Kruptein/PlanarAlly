@@ -1,5 +1,6 @@
 import { Shape } from "@/game/shapes/shape";
 import { equalPoints } from "@/game/utils";
+
 import { CDT } from "./cdt";
 import { TriangulationTarget, getCDT } from "./pa";
 import { Edge, Sign, Triangle, Vertex } from "./tds";
@@ -152,7 +153,7 @@ export class IterativeDelete {
          * but we need to ensure that any interruption towards the new target
          * is handled properly and not skipped.
          */
-        const pointHandled = this.handledPoints.some(p => equalPoints(p, vertex.point!));
+        const pointHandled = this.handledPoints.some((p) => equalPoints(p, vertex.point!));
         const sharesVertex = vertex.shapes.size >= (isCorner ? 2 : 1);
         if (!sharesVertex && !pointHandled) this.vertices.push(vertex);
         let nextIntersect: Vertex | null = null;
@@ -181,7 +182,7 @@ export class IterativeDelete {
             };
             this.newConstraints.push({ edge: constraint, changed: false, onPath });
             if (edgeCovered) continue;
-            const edgeShapes = [...vertex.shapes].filter(sh => ccwv.shapes.has(sh) && sh !== this.shape);
+            const edgeShapes = [...vertex.shapes].filter((sh) => ccwv.shapes.has(sh) && sh !== this.shape);
             if (edgeShapes.length === 0) this.addEdge(edge);
         }
         this.handledPoints.push(vertex.point!);

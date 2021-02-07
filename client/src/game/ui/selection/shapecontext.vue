@@ -2,31 +2,32 @@
 import Vue from "vue";
 import Component from "vue-class-component";
 
-import ConfirmDialog from "@/core/components/modals/confirm.vue";
 import ContextMenu from "@/core/components/contextmenu.vue";
+import ConfirmDialog from "@/core/components/modals/confirm.vue";
 import Prompt from "@/core/components/modals/prompt.vue";
 import SelectionBox from "@/core/components/modals/SelectionBox.vue";
-
-import { EventBus } from "@/game/event-bus";
-import { layerManager } from "@/game/layers/manager";
-import { gameStore } from "@/game/store";
-import { deleteShapes } from "../../shapes/utils";
-import { initiativeStore, inInitiative } from "../initiative/store";
-import { Layer } from "../../layers/layer";
-import { gameSettingsStore } from "../../settings";
-import { Shape } from "@/game/shapes/shape";
-import { floorStore } from "../../layers/store";
-import { Floor } from "@/game/layers/floor";
-import { moveFloor, moveLayer } from "../../layers/utils";
 import { requestAssetOptions, sendAssetOptions } from "@/game/api/emits/asset";
 import { requestSpawnInfo, sendLocationChange } from "@/game/api/emits/location";
 import { sendShapesMove } from "@/game/api/emits/shape/core";
-import { ServerAsset } from "@/game/comm/types/shapes";
 import { AssetOptions } from "@/game/comm/types/asset";
+import { ServerAsset } from "@/game/comm/types/shapes";
+import { EventBus } from "@/game/event-bus";
+import { Floor } from "@/game/layers/floor";
+import { layerManager } from "@/game/layers/manager";
+import { Shape } from "@/game/shapes/shape";
 import { toTemplate } from "@/game/shapes/template";
-import { addGroupMembers, createNewGroupForShapes, getGroupSize, removeGroup } from "../../groups";
+import { gameStore } from "@/game/store";
+
 import { SyncMode } from "../../../core/comm/types";
+import { Location } from "../../comm/types/settings";
+import { addGroupMembers, createNewGroupForShapes, getGroupSize, removeGroup } from "../../groups";
+import { Layer } from "../../layers/layer";
+import { floorStore } from "../../layers/store";
+import { moveFloor, moveLayer } from "../../layers/utils";
+import { gameSettingsStore } from "../../settings";
+import { deleteShapes } from "../../shapes/utils";
 import { activeShapeStore } from "../ActiveShapeStore";
+import { initiativeStore, inInitiative } from "../initiative/store";
 
 @Component({
     components: {
@@ -66,7 +67,7 @@ export default class ShapeContext extends Vue {
     }
 
     isOwned(): boolean {
-        return this.getSelection(false).every(s => s.ownedBy({ editAccess: true }));
+        return this.getSelection(false).every((s) => s.ownedBy(false, { editAccess: true }));
     }
 
     isActiveLayer(layer: string): boolean {
@@ -78,7 +79,7 @@ export default class ShapeContext extends Vue {
     }
 
     hasSpawnToken(): boolean {
-        return this.getSelection(false).some(s =>
+        return this.getSelection(false).some((s) =>
             gameSettingsStore.currentLocationOptions.spawnLocations!.includes(s.uuid),
         );
     }
@@ -97,13 +98,13 @@ export default class ShapeContext extends Vue {
         if (gameStore.IS_DM) return floorStore.floors;
         return [];
     }
-    getLocations(): { id: number; name: string }[] {
+    getLocations(): readonly Location[] {
         if (!gameStore.IS_DM || this.hasSpawnToken()) return [];
-        return gameStore.locations;
+        return gameStore.activeLocations;
     }
     getLayers(): Layer[] {
         if (!gameStore.IS_DM || this.hasSpawnToken()) return [];
-        return layerManager.getLayers(floorStore.currentFloor).filter(l => l.selectable) || [];
+        return layerManager.getLayers(floorStore.currentFloor).filter((l) => l.selectable) || [];
     }
     getActiveLayer(): Layer | undefined {
         return gameStore.boardInitialized ? floorStore.currentLayer : undefined;
@@ -115,7 +116,7 @@ export default class ShapeContext extends Vue {
                 ? this.$t("game.ui.selection.shapecontext.show_initiative").toString()
                 : this.$t("game.ui.selection.shapecontext.add_initiative").toString();
         } else {
-            return selection.every(shape => inInitiative(shape.uuid))
+            return selection.every((shape) => inInitiative(shape.uuid))
                 ? this.$t("game.ui.selection.shapecontext.show_initiative").toString()
                 : this.$t("game.ui.selection.shapecontext.add_all_initiative").toString();
         }
@@ -161,44 +162,49 @@ export default class ShapeContext extends Vue {
             default: {
                 const choice = await this.$refs.selectionbox.open(
                     "Choose the desired spawn location",
-                    spawnInfo.map(s => s.name),
+                    spawnInfo.map((s) => s.name),
                 );
                 if (choice === undefined) return;
-                const choiceShape = spawnInfo.find(s => s.name === choice);
+                const choiceShape = spawnInfo.find((s) => s.name === choice);
                 if (choiceShape === undefined) return;
                 spawnLocation = choiceShape;
                 break;
             }
         }
 
-        const targetLocation = {
+        const targetPosition = {
             floor: spawnLocation.floor,
             x: spawnLocation.x + spawnLocation.width / 2,
             y: spawnLocation.y + spawnLocation.height / 2,
         };
 
         sendShapesMove({
-            shapes: selection.map(s => s.uuid),
-            target: { location: newLocation, ...targetLocation },
+            shapes: selection.map((s) => s.uuid),
+            target: { location: newLocation, ...targetPosition },
         });
         if (gameSettingsStore.movePlayerOnTokenChange) {
             const users: Set<string> = new Set();
             for (const shape of selection) {
                 for (const owner of shape.owners) users.add(owner.user);
             }
-            sendLocationChange({ location: newLocation, users: [...users], position: { ...targetLocation } });
+            sendLocationChange({ location: newLocation, users: [...users], position: { ...targetPosition } });
+            for (const player of gameStore.players) {
+                if (users.has(player.name)) {
+                    player.location = newLocation;
+                }
+            }
         }
 
         this.close();
     }
     moveToBack(): void {
         const layer = this.getActiveLayer()!;
-        this.getSelection(false).forEach(shape => layer.moveShapeOrder(shape, 0, SyncMode.FULL_SYNC));
+        this.getSelection(false).forEach((shape) => layer.moveShapeOrder(shape, 0, SyncMode.FULL_SYNC));
         this.close();
     }
     moveToFront(): void {
         const layer = this.getActiveLayer()!;
-        this.getSelection(false).forEach(shape =>
+        this.getSelection(false).forEach((shape) =>
             layer.moveShapeOrder(shape, layer.size({ includeComposites: true }) - 1, SyncMode.FULL_SYNC),
         );
         this.close();
@@ -206,7 +212,7 @@ export default class ShapeContext extends Vue {
     async addInitiative(): Promise<void> {
         const selection = this.getSelection(false);
         let groupInitiatives = false;
-        if (new Set(selection.map(s => s.groupId)).size < selection.length) {
+        if (new Set(selection.map((s) => s.groupId)).size < selection.length) {
             const answer = await this.$refs.confirmDialog.open(
                 "Adding initiative",
                 "Some of the selected shapes belong to the same group. Do you wish to add 1 entry for these?",
@@ -267,7 +273,7 @@ export default class ShapeContext extends Vue {
 
     canBeSaved(): boolean {
         return this.getSelection(false).every(
-            s => s.assetId !== undefined && layerManager.getCompositeParent(s.uuid) === undefined,
+            (s) => s.assetId !== undefined && layerManager.getCompositeParent(s.uuid) === undefined,
         );
     }
 
@@ -322,8 +328,8 @@ export default class ShapeContext extends Vue {
         return [
             ...new Set(
                 this.getSelection(false)
-                    .map(s => s.groupId)
-                    .filter(g => g !== undefined),
+                    .map((s) => s.groupId)
+                    .filter((g) => g !== undefined),
             ),
         ] as string[];
     }
@@ -334,11 +340,11 @@ export default class ShapeContext extends Vue {
     }
 
     hasUngrouped(): boolean {
-        return this.getSelection(false).some(s => s.groupId === undefined);
+        return this.getSelection(false).some((s) => s.groupId === undefined);
     }
 
     createGroup(): void {
-        createNewGroupForShapes(this.getSelection(false).map(s => s.uuid));
+        createNewGroupForShapes(this.getSelection(false).map((s) => s.uuid));
         this.close();
     }
 
@@ -352,7 +358,7 @@ export default class ShapeContext extends Vue {
         );
         if (keepBadges === undefined) return;
         createNewGroupForShapes(
-            this.getSelection(false).map(s => s.uuid),
+            this.getSelection(false).map((s) => s.uuid),
             keepBadges,
         );
         this.close();
@@ -391,10 +397,10 @@ export default class ShapeContext extends Vue {
 
     enlargeGroup(): void {
         const selection = this.getSelection(false);
-        const groupId = selection.find(s => s.groupId !== undefined)!.groupId!;
+        const groupId = selection.find((s) => s.groupId !== undefined)!.groupId!;
         addGroupMembers(
             groupId,
-            selection.filter(s => s.groupId === undefined).map(s => ({ uuid: s.uuid })),
+            selection.filter((s) => s.groupId === undefined).map((s) => ({ uuid: s.uuid })),
             true,
         );
         this.close();

@@ -1,15 +1,14 @@
 <script lang="ts">
 import Vue from "vue";
-
 import Component from "vue-class-component";
-
-import ContextMenu from "@/core/components/contextmenu.vue";
-import ConfirmDialog from "@/core/components/modals/confirm.vue";
-import Prompt from "@/core/components/modals/prompt.vue";
-import AssetManager from "./manager.vue";
 
 import { socket } from "@/assetManager/socket";
 import { assetStore } from "@/assetManager/store";
+import ContextMenu from "@/core/components/contextmenu.vue";
+import ConfirmDialog from "@/core/components/modals/confirm.vue";
+import Prompt from "@/core/components/modals/prompt.vue";
+
+import AssetManager from "./manager.vue";
 
 @Component({
     components: {

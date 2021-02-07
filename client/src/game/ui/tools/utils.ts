@@ -13,6 +13,7 @@ export enum ToolName {
     Map = "Map",
     Filter = "Filter",
     Vision = "Vision",
+    Spell = "Spell",
 }
 
 export type ToolPermission = { name: ToolName; features: ToolFeatures; early?: boolean };

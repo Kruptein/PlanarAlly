@@ -1,20 +1,21 @@
 import { Aura } from "../shapes/interfaces";
 import { Shape } from "../shapes/shape";
+
 import { visibilityStore } from "./store";
 import { TriangulationTarget } from "./te/pa";
 
 export function getBlockers(target: TriangulationTarget, floor: number): readonly string[] {
     const blockers =
         target === TriangulationTarget.VISION ? visibilityStore.visionBlockers : visibilityStore.movementBlockers;
-    return blockers.find(vb => vb.floor === floor)?.blockers || [];
+    return blockers.find((vb) => vb.floor === floor)?.blockers || [];
 }
 
 export function getVisionSources(floor: number): readonly { shape: string; aura: string }[] {
-    return visibilityStore.visionSources.find(vs => vs.floor === floor)?.sources || [];
+    return visibilityStore.visionSources.find((vs) => vs.floor === floor)?.sources || [];
 }
 
 export function setVisionSources(sources: { shape: string; aura: string }[], floor: number): void {
-    const obj = visibilityStore.visionSources.find(vs => vs.floor === floor);
+    const obj = visibilityStore.visionSources.find((vs) => vs.floor === floor);
     if (obj === undefined) throw new Error("setVisionSources got an unknown floor");
     obj.sources = sources;
 }
@@ -22,7 +23,7 @@ export function setVisionSources(sources: { shape: string; aura: string }[], flo
 function setBlockers(target: TriangulationTarget, blockers: string[], floor: number): void {
     const targetBlockers =
         target === TriangulationTarget.VISION ? visibilityStore.visionBlockers : visibilityStore.movementBlockers;
-    const obj = targetBlockers.find(b => b.floor === floor);
+    const obj = targetBlockers.find((b) => b.floor === floor);
     if (obj === undefined) throw new Error("setBlockers got an unknown floor");
     obj.blockers = blockers;
 }
@@ -68,7 +69,7 @@ export function moveBlocker(
 ): void {
     sliceBlockers(
         target,
-        getBlockers(target, oldFloor).findIndex(shape => shape === blocker),
+        getBlockers(target, oldFloor).findIndex((shape) => shape === blocker),
         oldFloor,
         recalculate,
     );
@@ -79,7 +80,7 @@ export function moveVisionSource(source: string, auras: readonly Aura[], oldFloo
     for (const aura of auras) {
         if (!aura.visionSource) continue;
         sliceVisionSources(
-            getVisionSources(oldFloor).findIndex(s => s.shape === source && s.aura === aura.uuid),
+            getVisionSources(oldFloor).findIndex((s) => s.shape === source && s.aura === aura.uuid),
             oldFloor,
         );
         addVisionSource({ shape: source, aura: aura.uuid }, newFloor);
@@ -88,7 +89,7 @@ export function moveVisionSource(source: string, auras: readonly Aura[], oldFloo
 
 export function removeBlocker(target: TriangulationTarget, floor: number, shape: Shape, recalculate: boolean): void {
     const blockers = getBlockers(target, floor);
-    const index = blockers.findIndex(ls => ls === shape.uuid);
+    const index = blockers.findIndex((ls) => ls === shape.uuid);
     if (index >= 0) {
         sliceBlockers(target, index, floor, recalculate);
     }
@@ -96,7 +97,7 @@ export function removeBlocker(target: TriangulationTarget, floor: number, shape:
 
 export function removeVisionSources(floor: number, shape: string): boolean {
     const sources = getVisionSources(floor);
-    const index = sources.findIndex(ls => ls.shape === shape);
+    const index = sources.findIndex((ls) => ls.shape === shape);
     if (index >= 0) sliceVisionSources(index, floor);
     return index >= 0;
 }

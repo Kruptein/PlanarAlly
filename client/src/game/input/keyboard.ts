@@ -3,15 +3,15 @@ import { layerManager } from "@/game/layers/manager";
 import { copyShapes, deleteShapes, pasteShapes } from "@/game/shapes/utils";
 import { DEFAULT_GRID_SIZE, gameStore } from "@/game/store";
 import { calculateDelta } from "@/game/ui/tools/utils";
-import { visibilityStore } from "@/game/visibility/store";
-import { TriangulationTarget } from "@/game/visibility/te/pa";
+
 import { SyncMode, SyncTo } from "../../core/comm/types";
 import { sendClientLocationOptions } from "../api/emits/client";
-import { sendShapePositionUpdate } from "../api/emits/shape/core";
 import { EventBus } from "../event-bus";
 import { floorStore } from "../layers/store";
 import { moveFloor } from "../layers/utils";
 import { gameManager } from "../manager";
+import { moveShapes } from "../operations/movement";
+import { redoOperation, undoOperation } from "../operations/undo";
 import { gameSettingsStore } from "../settings";
 import { activeShapeStore } from "../ui/ActiveShapeStore";
 
@@ -27,9 +27,9 @@ export function onKeyUp(event: KeyboardEvent): void {
         if (event.key === " " || (event.code === "Numpad0" && !event.ctrlKey)) {
             // Spacebar or numpad-zero: cycle through own tokens
             // numpad-zero only if Ctrl is not pressed, as this would otherwise conflict with Ctrl + 0
-            const tokens = gameStore.ownedtokens.map(o => layerManager.UUIDMap.get(o)!);
+            const tokens = gameStore.ownedtokens.map((o) => layerManager.UUIDMap.get(o)!);
             if (tokens.length === 0) return;
-            const i = tokens.findIndex(o => o.center().equals(gameStore.screenCenter));
+            const i = tokens.findIndex((o) => o.center().equals(gameStore.screenCenter));
             const token = tokens[(i + 1) % tokens.length];
             gameManager.setCenterPosition(token.center());
             floorStore.selectFloor({ targetFloor: token.floor.name, sync: true });
@@ -110,40 +110,8 @@ export async function onKeyDown(event: KeyboardEvent): Promise<void> {
                     }
                 }
                 if (delta.length() === 0) return;
-                let recalculateVision = false;
-                let recalculateMovement = false;
-                const updateList = [];
-                for (const sel of selection) {
-                    if (!sel.ownedBy({ movementAccess: true })) continue;
-                    if (sel.movementObstruction) {
-                        recalculateMovement = true;
-                        visibilityStore.deleteFromTriag({
-                            target: TriangulationTarget.MOVEMENT,
-                            shape: sel.uuid,
-                        });
-                    }
-                    if (sel.visionObstruction) {
-                        recalculateVision = true;
-                        visibilityStore.deleteFromTriag({
-                            target: TriangulationTarget.VISION,
-                            shape: sel.uuid,
-                        });
-                    }
-                    sel.refPoint = sel.refPoint.add(delta);
-                    if (sel.movementObstruction)
-                        visibilityStore.addToTriag({ target: TriangulationTarget.MOVEMENT, shape: sel.uuid });
-                    if (sel.visionObstruction)
-                        visibilityStore.addToTriag({ target: TriangulationTarget.VISION, shape: sel.uuid });
-                    // todo: Fix again
-                    // if (sel.refPoint.x % gridSize !== 0 || sel.refPoint.y % gridSize !== 0) sel.snapToGrid();
-                    if (!sel.preventSync) updateList.push(sel);
-                }
-                sendShapePositionUpdate(updateList, false);
 
-                const floorId = floorStore.currentFloor.id;
-                if (recalculateVision) visibilityStore.recalculateVision(floorId);
-                if (recalculateMovement) visibilityStore.recalculateMovement(floorId);
-                floorStore.currentLayer!.invalidate(false);
+                moveShapes(selection, delta, false);
             } else {
                 // The pan offsets should be in the opposite direction to give the correct feel.
                 gameStore.increasePanX(offsetX * -1);
@@ -199,6 +167,14 @@ export async function onKeyDown(event: KeyboardEvent): Promise<void> {
         } else if (event.key === "v" && event.ctrlKey) {
             // Ctrl-v - Paste
             await pasteShapes();
+        } else if (event.key === "z" && event.ctrlKey) {
+            await undoOperation();
+            event.preventDefault();
+            event.stopPropagation();
+        } else if (event.key === "Z" && event.ctrlKey) {
+            await redoOperation();
+            event.preventDefault();
+            event.stopPropagation();
         } else if (event.key === "PageUp" && floorStore.currentFloorindex < floorStore.floors.length - 1) {
             // Page Up - Move floor up
             // Alt + Page Up - Move selected shapes floor up

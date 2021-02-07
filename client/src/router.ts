@@ -1,5 +1,8 @@
 // import "./class-component-hooks";
 
+import Vue from "vue";
+import Router from "vue-router";
+
 import AssetManager from "@/assetManager/manager.vue";
 import Login from "@/auth/login.vue";
 import Logout from "@/auth/logout";
@@ -8,11 +11,10 @@ import Dashboard from "@/dashboard/main.vue";
 import Game from "@/game/Game.vue";
 import Invitation from "@/invitation/invitation";
 import Settings from "@/settings/settings.vue";
-import Vue from "vue";
-import Router from "vue-router";
+
 import { baseAdjustedFetch } from "./core/utils";
-import { BASE_PATH } from "./utils";
 import { handleNotifications } from "./notifications";
+import { BASE_PATH } from "./utils";
 
 Vue.use(Router);
 
@@ -83,11 +85,11 @@ router.beforeEach(async (to, _from, next) => {
         const promiseArray = [baseAdjustedFetch("/api/auth"), baseAdjustedFetch("/api/version")];
 
         // Launch extra requests (changelog & notifications)
-        baseAdjustedFetch("/api/changelog").then(async response => {
+        baseAdjustedFetch("/api/changelog").then(async (response) => {
             const data = await response.json();
             coreStore.setChangelog(data.changelog);
         });
-        baseAdjustedFetch("/api/notifications").then(async response => {
+        baseAdjustedFetch("/api/notifications").then(async (response) => {
             const data = await response.json();
             handleNotifications(data);
         });
@@ -108,7 +110,7 @@ router.beforeEach(async (to, _from, next) => {
         } else {
             console.error("Authentication check could not be fulfilled.");
         }
-    } else if (to.matched.some(record => record.meta.auth) && !coreStore.authenticated) {
+    } else if (to.matched.some((record) => record.meta.auth) && !coreStore.authenticated) {
         next({ path: "/auth/login", query: { redirect: to.path } });
     } else {
         next();

@@ -1,25 +1,25 @@
 <script lang="ts">
 import Vue from "vue";
-import vueSlider from "vue-slider-component";
 import "vue-slider-component/theme/default.css";
 import Component from "vue-class-component";
-
+import vueSlider from "vue-slider-component";
 import { mapState } from "vuex";
 
-import DmSettings from "@/game/ui/settings/dm/DmSettings.vue";
-import FloorSelect from "@/game/ui/floors.vue";
-import LocationBar from "./menu/locations.vue";
-import LocationSettings from "@/game/ui/settings/location/LocationSettings.vue";
 import MarkdownModal from "@/core/components/modals/MarkdownModal.vue";
+import FloorSelect from "@/game/ui/floors.vue";
 import MenuBar from "@/game/ui/menu/menu.vue";
 import SelectionInfo from "@/game/ui/selection/selection_info.vue";
+import DmSettings from "@/game/ui/settings/dm/DmSettings.vue";
+import LocationSettings from "@/game/ui/settings/location/LocationSettings.vue";
 import Tools from "@/game/ui/tools/tools.vue";
 
+import { coreStore } from "../../core/store";
+import { baseAdjust } from "../../core/utils";
 import { LocalPoint } from "../geom";
 import { gameStore } from "../store";
 import { l2g } from "../units";
-import { coreStore } from "../../core/store";
-import { baseAdjust } from "../../core/utils";
+
+import LocationBar from "./menu/locations.vue";
 
 @Component({
     components: {
@@ -412,5 +412,75 @@ export default class UI extends Vue {
 .settingsfade-enter-to,
 .settingsfade-leave {
     width: 200px;
+}
+</style>
+
+<style lang="scss">
+.slider-checkbox {
+    display: block;
+    box-sizing: border-box;
+    border: none;
+    color: inherit;
+    background: none;
+    font: inherit;
+    line-height: inherit;
+    text-align: left;
+    padding: 0.4em 0 0.4em 4em;
+    position: relative;
+    outline: none;
+
+    &:hover {
+        cursor: pointer;
+
+        &::before {
+            box-shadow: 0 0 0.5em #333;
+        }
+
+        &::after {
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='50' cy='50' r='50' fill='rgba(0,0,0,.25)'/%3E%3C/svg%3E");
+            background-size: 30%;
+            background-repeat: no-repeat;
+            background-position: center center;
+        }
+    }
+
+    &::before,
+    &::after {
+        content: "";
+        position: absolute;
+        height: 1.1em;
+        transition: all 0.25s ease;
+        left: 0;
+    }
+
+    &::before {
+        width: 2.6em;
+        border: 0.2em solid #767676;
+        top: -0.2em;
+        background: #767676;
+        border-radius: 1.1em;
+    }
+
+    &::after {
+        background-color: #fff;
+        background-position: center center;
+        border-radius: 50%;
+        width: 1.1em;
+        border: 0.15em solid #767676;
+        top: -0.15em;
+    }
+
+    &[aria-pressed="true"] {
+        &::after {
+            left: 1.6em;
+            border-color: #36a829;
+            color: #36a829;
+        }
+
+        &::before {
+            background-color: #36a829;
+            border-color: #36a829;
+        }
+    }
 }
 </style>

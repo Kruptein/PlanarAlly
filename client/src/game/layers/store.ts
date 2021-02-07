@@ -1,6 +1,8 @@
 import { Action, getModule, Module, Mutation, VuexModule } from "vuex-module-decorators";
+
 import { rootStore } from "../../store";
 import { sendFloorReorder, sendRenameFloor } from "../api/emits/floor";
+
 import { Floor } from "./floor";
 import { Layer } from "./layer";
 import { layerManager } from "./manager";
@@ -12,7 +14,7 @@ export function newFloorId(): number {
 }
 
 export function getFloorId(name: string): number {
-    return floorStore.floors.find(f => f.name === name)?.id ?? -1;
+    return floorStore.floors.find((f) => f.name === name)?.id ?? -1;
 }
 
 export interface FloorState {
@@ -64,7 +66,7 @@ class FloorStore extends VuexModule implements FloorState {
         // We do some special magic here to allow out of order loading of floors on startup
         if (data.targetIndex !== undefined) {
             const index = data.targetIndex;
-            const I = this._indices.findIndex(i => i > index);
+            const I = this._indices.findIndex((i) => i > index);
             if (I >= 0) {
                 this._indices.splice(I, 0, data.targetIndex);
                 this._floors.splice(I, 0, data.floor);
@@ -88,7 +90,7 @@ class FloorStore extends VuexModule implements FloorState {
 
     @Action
     removeFloor(floor: Floor): void {
-        const index = this._floors.findIndex(f => f === floor);
+        const index = this._floors.findIndex((f) => f === floor);
         this._floors.splice(index, 1);
         layerManager.removeFloor(floor.id);
         if (this.floorIndex === index) this.context.commit("selectFloor", { targetFloor: index - 1, sync: true });
@@ -98,11 +100,11 @@ class FloorStore extends VuexModule implements FloorState {
     selectFloor(data: { targetFloor: Floor | number | string; sync: boolean }): void {
         let targetFloorIndex: number;
         if (typeof data.targetFloor === "string") {
-            targetFloorIndex = floorStore.floors.findIndex(f => f.name === data.targetFloor);
+            targetFloorIndex = floorStore.floors.findIndex((f) => f.name === data.targetFloor);
         } else if (typeof data.targetFloor === "number") {
             targetFloorIndex = data.targetFloor;
         } else {
-            targetFloorIndex = floorStore.floors.findIndex(f => f === data.targetFloor);
+            targetFloorIndex = floorStore.floors.findIndex((f) => f === data.targetFloor);
         }
         if (targetFloorIndex === this.floorIndex) return;
         this.floorIndex = targetFloorIndex;
@@ -119,8 +121,8 @@ class FloorStore extends VuexModule implements FloorState {
     @Mutation
     reorderFloors(data: { floors: string[]; sync: boolean }): void {
         const activeFloorName = this._floors[this.floorIndex].name;
-        this._floors = data.floors.map(name => this._floors.find(f => f.name === name)!);
-        this.floorIndex = this._floors.findIndex(f => f.name === activeFloorName);
+        this._floors = data.floors.map((name) => this._floors.find((f) => f.name === name)!);
+        this.floorIndex = this._floors.findIndex((f) => f.name === activeFloorName);
         if (data.sync) sendFloorReorder(data.floors);
     }
 }

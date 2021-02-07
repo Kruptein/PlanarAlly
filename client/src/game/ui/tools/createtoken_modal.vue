@@ -2,21 +2,20 @@
 import * as tinycolor from "tinycolor2";
 import Vue from "vue";
 import Component from "vue-class-component";
-
+import { Watch } from "vue-property-decorator";
 import { mapState } from "vuex";
 
 import ColorPicker from "@/core/components/colorpicker.vue";
 import Modal from "@/core/components/modals/modal.vue";
-
 import { calcFontScale } from "@/core/utils";
 import { LocalPoint } from "@/game/geom";
+import { floorStore } from "@/game/layers/store";
 import { CircularToken } from "@/game/shapes/variants/circulartoken";
 import { gameStore } from "@/game/store";
 import { getUnitDistance, l2g } from "@/game/units";
-import { Watch } from "vue-property-decorator";
+
 import { SyncMode, InvalidationMode, SyncTo } from "../../../core/comm/types";
 import { gameSettingsStore } from "../../settings";
-import { floorStore } from "@/game/layers/store";
 
 @Component({
     components: {

@@ -3,9 +3,11 @@ import Vue from "vue";
 import Component from "vue-class-component";
 
 import ConfirmDialog from "@/core/components/modals/confirm.vue";
-
 import { Shape } from "@/game/shapes/shape";
-import { gameManager } from "../../../manager";
+
+import { SyncTo } from "../../../../core/comm/types";
+import { CREATION_ORDER_OPTIONS, CREATION_ORDER_TYPES, Group } from "../../../comm/types/groups";
+import { EventBus } from "../../../event-bus";
 import {
     CHARACTER_SETS,
     createNewGroupForShapes,
@@ -17,11 +19,9 @@ import {
     setCharacterSet,
     setCreationOrder,
 } from "../../../groups";
-import { CREATION_ORDER_OPTIONS, CREATION_ORDER_TYPES, Group } from "../../../comm/types/groups";
-import { EventBus } from "../../../event-bus";
-import { ActiveShapeState, activeShapeStore } from "../../ActiveShapeStore";
 import { layerManager } from "../../../layers/manager";
-import { SyncTo } from "../../../../core/comm/types";
+import { gameManager } from "../../../manager";
+import { ActiveShapeState, activeShapeStore } from "../../ActiveShapeStore";
 
 @Component({ components: { ConfirmDialog } })
 export default class GroupSettings extends Vue {
@@ -64,7 +64,7 @@ export default class GroupSettings extends Vue {
         if (this.shape.groupId === undefined) return;
 
         const members = this.getGroupMembers();
-        if (members.length === 0 || new Set(members.map(m => m.showBadge)).size > 1) {
+        if (members.length === 0 || new Set(members.map((m) => m.showBadge)).size > 1) {
             this.$refs.toggleCheckbox.indeterminate = true;
         } else {
             this.$refs.toggleCheckbox.indeterminate = false;
@@ -104,7 +104,7 @@ export default class GroupSettings extends Vue {
             return this.characterSetSelected;
         } else {
             const charset = group.characterSet;
-            const index = CHARACTER_SETS.findIndex(cs => cs.join(",") === charset.join(","));
+            const index = CHARACTER_SETS.findIndex((cs) => cs.join(",") === charset.join(","));
             return index >= 0 ? index : 2;
         }
     }

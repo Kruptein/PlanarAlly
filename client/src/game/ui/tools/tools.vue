@@ -2,7 +2,11 @@
 import Vue from "vue";
 import Component from "vue-class-component";
 
-import Annotation from "../Annotation.vue";
+import { EventBus } from "@/game/event-bus";
+import { layerManager } from "@/game/layers/manager";
+import { floorStore } from "@/game/layers/store";
+import { gameStore } from "@/game/store";
+import ShapeContext from "@/game/ui/selection/shapecontext.vue";
 import DefaultContext from "@/game/ui/tools/defaultcontext.vue";
 import DrawTool from "@/game/ui/tools/draw.vue";
 import FilterTool from "@/game/ui/tools/filter.vue";
@@ -11,18 +15,16 @@ import PanTool from "@/game/ui/tools/pan.vue";
 import PingTool from "@/game/ui/tools/ping.vue";
 import RulerTool from "@/game/ui/tools/ruler.vue";
 import SelectTool, { SelectFeatures } from "@/game/ui/tools/select.vue";
-import ShapeContext from "@/game/ui/selection/shapecontext.vue";
-import Tool from "./tool.vue";
-import UI from "../ui.vue";
 import VisionTool from "@/game/ui/tools/vision.vue";
-
-import { layerManager } from "@/game/layers/manager";
-import { gameStore } from "@/game/store";
 import { l2g } from "@/game/units";
 import { getLocalPointFromEvent } from "@/game/utils";
+
+import Annotation from "../Annotation.vue";
+import UI from "../ui.vue";
+
+import SpellTool from "./Spell.vue";
+import Tool from "./tool.vue";
 import { ToolName, ToolFeatures } from "./utils";
-import { EventBus } from "@/game/event-bus";
-import { floorStore } from "@/game/layers/store";
 
 @Component({
     components: {
@@ -36,6 +38,7 @@ import { floorStore } from "@/game/layers/store";
         RulerTool,
         SelectTool,
         ShapeContext,
+        SpellTool,
         VisionTool,
     },
     watch: {
@@ -54,12 +57,13 @@ export default class Tools extends Vue {
     $refs!: {
         selectTool: SelectTool;
         panTool: PanTool;
-        drawTool: PanTool;
-        rulerTool: PanTool;
-        pingTool: PanTool;
-        mapTool: PanTool;
-        filterTool: PanTool;
-        visionTool: PanTool;
+        drawTool: DrawTool;
+        rulerTool: RulerTool;
+        pingTool: PingTool;
+        mapTool: MapTool;
+        filterTool: FilterTool;
+        visionTool: VisionTool;
+        spellTool: SpellTool;
 
         annotation: Annotation;
         defaultcontext: DefaultContext;
@@ -81,6 +85,7 @@ export default class Tools extends Vue {
             [ToolName.Map]: this.$refs.mapTool,
             [ToolName.Filter]: this.$refs.filterTool,
             [ToolName.Vision]: this.$refs.visionTool,
+            [ToolName.Spell]: this.$refs.spellTool,
         };
         this.$refs.selectTool.selected = true;
         EventBus.$on("ToolMode.Toggle", this.toggleMode);
@@ -105,6 +110,7 @@ export default class Tools extends Vue {
     playTools: [ToolName, ToolFeatures][] = [
         [ToolName.Select, { disabled: [SelectFeatures.Resize, SelectFeatures.Rotate] }],
         [ToolName.Pan, {}],
+        [ToolName.Spell, {}],
         [ToolName.Ruler, {}],
         [ToolName.Ping, {}],
         [ToolName.Filter, {}],
@@ -128,11 +134,13 @@ export default class Tools extends Vue {
     }
 
     get visibleTools(): ToolName[] {
-        return this.tools.map(t => t[0]).filter(t => (!this.dmTools.includes(t) || this.IS_DM) && this.toolVisible(t));
+        return this.tools
+            .map((t) => t[0])
+            .filter((t) => (!this.dmTools.includes(t) || this.IS_DM) && this.toolVisible(t));
     }
 
     private getFeatures(tool: ToolName): ToolFeatures {
-        return this.tools.find(t => t[0] === tool)?.[1] ?? {};
+        return this.tools.find((t) => t[0] === tool)?.[1] ?? {};
     }
 
     toolVisible(tool: string): boolean {
@@ -145,7 +153,7 @@ export default class Tools extends Vue {
     }
 
     keyup(event: KeyboardEvent): void {
-        let targetTool = this.currentTool;
+        const targetTool = this.currentTool;
 
         const tool = this.componentMap[targetTool];
         for (const permitted of tool.permittedTools) {
@@ -412,6 +420,9 @@ export default class Tools extends Vue {
             case ToolName.Pan:
                 return this.$t("tool.Pan").toString();
 
+            case ToolName.Spell:
+                return this.$t("tool.Spell").toString();
+
             case ToolName.Draw:
                 return this.$t("tool.Draw").toString();
 
@@ -468,6 +479,7 @@ export default class Tools extends Vue {
             <template>
                 <SelectTool v-show="currentTool === 'Select'" ref="selectTool"></SelectTool>
                 <PanTool v-show="currentTool === 'Pan'" ref="panTool"></PanTool>
+                <SpellTool v-show="currentTool === 'Spell'" ref="spellTool"></SpellTool>
                 <keep-alive>
                     <DrawTool v-show="currentTool === 'Draw'" ref="drawTool"></DrawTool>
                 </keep-alive>

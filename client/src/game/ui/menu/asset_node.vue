@@ -36,7 +36,7 @@ export default class AssetNode extends Vue {
     showImage = null;
     get folders(): string[] {
         return Object.keys(this.asset)
-            .filter(el => "__files" !== el)
+            .filter((el) => "__files" !== el)
             .sort(alphSort);
     }
 
@@ -44,7 +44,7 @@ export default class AssetNode extends Vue {
         if (this.asset.__files)
             return (this.asset.__files as AssetFile[])
                 .concat()
-                .filter(f => f.name.toLowerCase().includes(this.search.toLowerCase()))
+                .filter((f) => f.name.toLowerCase().includes(this.search.toLowerCase()))
                 .sort((a, b) => (a.name.toLowerCase() > b.name.toLowerCase() ? 1 : -1));
         return [];
     }
@@ -56,7 +56,7 @@ export default class AssetNode extends Vue {
 
     folderShow(name: string): void {
         this.emptyFolders.splice(
-            this.emptyFolders.findIndex(x => x === name),
+            this.emptyFolders.findIndex((x) => x === name),
             1,
         );
         this.checkVisibility();

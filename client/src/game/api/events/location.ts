@@ -1,12 +1,11 @@
 import { coreStore } from "../../../core/store";
 import { ServerLocation } from "../../comm/types/general";
-import { ServerLocationOptions } from "../../comm/types/settings";
+import { Location, ServerLocationOptions } from "../../comm/types/settings";
 import { EventBus } from "../../event-bus";
 import { floorStore } from "../../layers/store";
 import { gameSettingsStore } from "../../settings";
 import { gameStore } from "../../store";
 import { VisibilityMode, visibilityStore } from "../../visibility/store";
-import { sendLocationRename } from "../emits/location";
 import { socket } from "../socket";
 
 // Bootup Sequence
@@ -28,7 +27,7 @@ socket.on("Location.Options.Set", (data: { options: Partial<ServerLocationOption
     setLocationOptions(data.location, data.options);
 });
 
-socket.on("Locations.Order.Set", (locations: { id: number; name: string }[]) => {
+socket.on("Locations.Order.Set", (locations: Location[]) => {
     gameStore.setLocations({ locations, sync: false });
 });
 
@@ -38,7 +37,7 @@ socket.on("Location.Change.Start", () => {
 });
 
 socket.on("Location.Rename", (data: { location: number; name: string }) => {
-    renameLocation(data.location, data.name);
+    gameStore.renameLocation({ ...data, sync: false });
 });
 
 export function setLocationOptions(id: number | null, options: Partial<ServerLocationOptions>): void {
@@ -82,14 +81,4 @@ export function setLocationOptions(id: number | null, options: Partial<ServerLoc
         location: id,
         sync: false,
     });
-}
-
-export function renameLocation(id: number, name: string): void {
-    const idx = gameStore.locations.findIndex(l => l.id === id);
-    if (idx < 0) {
-        throw new Error("unknown location rename attempt");
-    }
-    if (gameSettingsStore.activeLocation === id) gameSettingsStore.setActiveLocation(id);
-    gameStore.locations.splice(idx, 1, { id, name });
-    sendLocationRename({ location: id, name });
 }

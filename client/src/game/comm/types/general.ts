@@ -1,4 +1,5 @@
 import { ServerShape } from "@/game/comm/types/shapes";
+
 import { ServerLocationOptions } from "./settings";
 
 export interface ServerLocation {
@@ -41,12 +42,6 @@ export interface ServerLayer {
     player_editable: boolean;
     player_visible: boolean;
     size?: number;
-}
-
-export interface BoardInfo {
-    locations: { id: number; name: string }[];
-    floors: ServerFloor[];
-    options: ServerLocationOptions;
 }
 
 export interface Note {

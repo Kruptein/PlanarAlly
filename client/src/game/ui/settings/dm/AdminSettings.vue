@@ -4,7 +4,6 @@ import Component from "vue-class-component";
 
 import InputCopyElement from "@/core/components/inputCopy.vue";
 import Prompt from "@/core/components/modals/prompt.vue";
-
 import { socket } from "@/game/api/socket";
 import { EventBus } from "@/game/event-bus";
 import { gameStore, Player } from "@/game/store";
@@ -41,7 +40,7 @@ export default class AdminSettings extends Vue {
     }
 
     get players(): Player[] {
-        return gameStore.players.filter(p => p.role !== 1);
+        return gameStore.players.filter((p) => p.role !== 1);
     }
 
     refreshInviteCode(): void {

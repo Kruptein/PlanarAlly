@@ -1,16 +1,18 @@
 import { InvalidationMode, SyncMode } from "@/core/comm/types";
 import { layerManager } from "@/game/layers/manager";
-import { Circle } from "@/game/shapes/variants/circle";
 import { Shape } from "@/game/shapes/shape";
-import { g2l, g2lr, g2lx, g2ly, g2lz, getUnitDistance } from "@/game/units";
+import { Circle } from "@/game/shapes/variants/circle";
+import { g2l, g2lr, g2lx, g2ly, g2lz, getUnitDistance, toRadians } from "@/game/units";
 import { getFogColour } from "@/game/utils";
 import { getVisionSources } from "@/game/visibility/utils";
+
 import { gameSettingsStore } from "../settings";
+import { gameStore } from "../store";
 import { TriangulationTarget } from "../visibility/te/pa";
 import { computeVisibility } from "../visibility/te/te";
+
 import { FowLayer } from "./fow";
 import { floorStore } from "./store";
-import { gameStore } from "../store";
 
 export class FowLightingLayer extends FowLayer {
     addShape(shape: Shape, sync: SyncMode, invalidate: InvalidationMode, snappable = true): void {
@@ -23,7 +25,7 @@ export class FowLightingLayer extends FowLayer {
     removeShape(shape: Shape, sync: SyncMode, recalculate: boolean): boolean {
         let idx = -1;
         if (shape.options.has("preFogShape") && shape.options.get("preFogShape")) {
-            idx = this.preFogShapes.findIndex(s => s.uuid === shape.uuid);
+            idx = this.preFogShapes.findIndex((s) => s.uuid === shape.uuid);
         }
         const remove = super.removeShape(shape, sync, recalculate);
         if (remove && idx >= 0) this.preFogShapes.splice(idx, 1);
@@ -39,11 +41,12 @@ export class FowLightingLayer extends FowLayer {
             if (
                 gameSettingsStore.fullFow &&
                 layerManager.hasLayer(floorStore.currentFloor, "tokens") &&
-                floorStore.currentFloor === floorStore.floors[floorStore.currentFloorindex]
+                floorStore.currentFloor.id === this.floor
             ) {
                 for (const sh of gameStore.activeTokens) {
                     const shape = layerManager.UUIDMap.get(sh)!;
                     if ((shape.options.get("skipDraw") ?? false) === true) continue;
+                    if (shape.floor.id !== floorStore.currentFloor.id) continue;
                     const bb = shape.getBoundingBox();
                     const lcenter = g2l(shape.center());
                     const alm = 0.8 * g2lz(bb.w);
@@ -68,14 +71,18 @@ export class FowLightingLayer extends FowLayer {
             for (const light of getVisionSources(this.floor)) {
                 const shape = layerManager.UUIDMap.get(light.shape);
                 if (shape === undefined) continue;
-                const aura = shape.getAuras(true).find(a => a.uuid === light.aura);
+                const aura = shape.getAuras(true).find((a) => a.uuid === light.aura);
                 if (aura === undefined) continue;
 
-                if (!shape.ownedBy({ visionAccess: true }) && !aura.visible) continue;
+                if (!shape.ownedBy(true, { visionAccess: true }) && !aura.visible) continue;
 
-                const auraLength = getUnitDistance(aura.value + aura.dim);
+                const auraValue = aura.value > 0 && !isNaN(aura.value) ? aura.value : 0;
+                const auraDim = aura.dim > 0 && !isNaN(aura.dim) ? aura.dim : 0;
+
+                const auraLength = getUnitDistance(auraValue + auraDim);
                 const center = shape.center();
                 const lcenter = g2l(center);
+                const innerRange = g2lr(auraValue + auraDim);
 
                 const auraCircle = new Circle(center, auraLength);
                 if (!auraCircle.visibleInCanvas(this.ctx.canvas, { includeAuras: true })) continue;
@@ -88,15 +95,15 @@ export class FowLightingLayer extends FowLayer {
                 for (const point of polygon) this.vCtx.lineTo(g2lx(point[0]), g2ly(point[1]));
                 this.vCtx.closePath();
                 this.vCtx.fill();
-                if (aura.dim > 0) {
+                if (auraDim > 0) {
                     // Fill the light aura with a radial dropoff towards the outside.
                     const gradient = this.vCtx.createRadialGradient(
                         lcenter.x,
                         lcenter.y,
-                        g2lr(aura.value),
+                        g2lr(auraValue),
                         lcenter.x,
                         lcenter.y,
-                        g2lr(aura.value + aura.dim),
+                        innerRange,
                     );
                     gradient.addColorStop(0, "rgba(0, 0, 0, 1)");
                     gradient.addColorStop(1, "rgba(0, 0, 0, 0)");
@@ -106,11 +113,24 @@ export class FowLightingLayer extends FowLayer {
                 }
                 this.vCtx.globalCompositeOperation = "source-in";
                 this.vCtx.beginPath();
-                this.vCtx.arc(lcenter.x, lcenter.y, g2lr(aura.value + aura.dim), 0, 2 * Math.PI);
+
+                const angleA = toRadians(aura.direction - aura.angle / 2);
+                const angleB = toRadians(aura.direction + aura.angle / 2);
+
+                if (aura.angle < 360) {
+                    this.vCtx.moveTo(lcenter.x, lcenter.y);
+                    this.vCtx.lineTo(
+                        lcenter.x + innerRange * Math.cos(angleA),
+                        lcenter.y + innerRange * Math.sin(angleA),
+                    );
+                }
+                this.vCtx.arc(lcenter.x, lcenter.y, innerRange, angleA, angleB);
+                if (aura.angle < 360) {
+                    this.vCtx.lineTo(lcenter.x, lcenter.y);
+                }
+
                 this.vCtx.fill();
                 this.ctx.drawImage(this.virtualCanvas, 0, 0);
-                // aura.lastPath = this.updateAuraPath(polygon, auraCircle);
-                // shape.invalidate(true);
             }
 
             const activeFloor = floorStore.currentFloor.id;

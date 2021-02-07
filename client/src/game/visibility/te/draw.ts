@@ -83,7 +83,7 @@ function y(yy: number, local: boolean): number {
 let I = 0;
 let J = 0;
 
-function drl(from: number[], to: number[], constrained: boolean, local: boolean): void {
+function drawLine(from: number[], to: number[], constrained: boolean, local: boolean): void {
     // J++;
     // if (constrained) {
     //     I++;
@@ -173,11 +173,11 @@ function drawPolygonT(tds: TDS, local = true, clear = true, logs: 0 | 1 | 2 = 0)
 
         ctx.moveTo(x(t.vertices[0]!.point![0], local), y(t.vertices[0]!.point![1], local));
         if (t.vertices[0] !== undefined && t.vertices[1] !== undefined)
-            drl(t.vertices[0]!.point!, t.vertices[1]!.point!, t.constraints[2], local);
+            drawLine(t.vertices[0]!.point!, t.vertices[1]!.point!, t.constraints[2], local);
         if (t.vertices[1] !== undefined && t.vertices[2] !== undefined)
-            drl(t.vertices[1]!.point!, t.vertices[2]!.point!, t.constraints[0], local);
+            drawLine(t.vertices[1]!.point!, t.vertices[2]!.point!, t.constraints[0], local);
         if (t.vertices[2] !== undefined && t.vertices[0] !== undefined)
-            drl(t.vertices[2]!.point!, t.vertices[0]!.point!, t.constraints[1], local);
+            drawLine(t.vertices[2]!.point!, t.vertices[0]!.point!, t.constraints[1], local);
     }
     if (logs > 0) {
         console.log(`Edges: ${I}/${J}`);
@@ -187,7 +187,7 @@ function drawPolygonT(tds: TDS, local = true, clear = true, logs: 0 | 1 | 2 = 0)
 
 (window as any).drawPoint = drawPoint;
 (window as any).drawPointLocal = drawPointL;
-(window as any).DL = drl;
+(window as any).drawLine = drawLine;
 (window as any).DE = drawEdge;
 (window as any).DP = drawPolygon;
 (window as any).DPL = drawPolygonL;

@@ -311,6 +311,7 @@ input[type="text"] {
         align-content: center;
         justify-content: space-between;
 
+        color: white;
         background-color: brown;
         padding: 0.6em 1.2em;
         border-radius: 20px;

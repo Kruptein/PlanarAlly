@@ -305,6 +305,7 @@ export default class LocationBar extends Vue {
         display: inline-grid;
         width: 85px;
         color: white;
+        border: solid 2px transparent;
         background-color: rgb(var(--secondary));
         font-size: 30px;
         place-items: center center;
@@ -315,11 +316,17 @@ export default class LocationBar extends Vue {
             font-weight: bold;
             cursor: pointer;
             text-shadow: 0 0 20px rgba(0, 0, 0, 1);
-            border: solid 2px white;
+            border-color: white;
         }
 
         &.noArchived {
             background-color: rgba(var(--secondary), 0.4);
+
+            &:hover,
+            &:hover * {
+                cursor: not-allowed;
+                border-color: transparent;
+            }
         }
     }
 }

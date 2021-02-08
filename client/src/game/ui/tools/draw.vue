@@ -597,7 +597,7 @@ export default class DrawTool extends Tool implements ToolBasics {
                 <font-awesome-icon :icon="shape" />
             </div>
         </div>
-        <div v-t="'common.colors'"></div>
+        <div v-t="'common.colours'"></div>
         <div class="selectgroup">
             <color-picker
                 class="option"

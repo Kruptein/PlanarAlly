@@ -39,6 +39,7 @@ import LocationBar from "./menu/locations.vue";
 })
 export default class UI extends Vue {
     $refs!: {
+        dmsettings: DmSettings;
         tools: Tools;
     };
 

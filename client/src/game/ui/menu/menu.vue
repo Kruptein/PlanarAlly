@@ -13,7 +13,7 @@ import AssetNode from "@/game/ui/menu/asset_node.vue";
 import NoteDialog from "@/game/ui/note.vue";
 
 import { AssetList } from "../../../core/comm/types";
-import { EventBus } from "../../event-bus";
+import UI from "../ui.vue";
 
 @Component({
     components: {
@@ -34,6 +34,7 @@ export default class MenuBar extends Vue {
     $refs!: {
         note: NoteDialog;
     };
+    $parent!: UI;
 
     assetSearch = "";
 
@@ -93,6 +94,7 @@ export default class MenuBar extends Vue {
     }
 
     openDmSettings(): void {
+        this.$parent.$refs.dmsettings.open();
         EventBus.$emit("DmSettings.Open");
     }
 

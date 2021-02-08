@@ -13,7 +13,7 @@ When writing migrations make sure that these things are respected:
     - e.g. a column added to Circle also needs to be added to CircularToken
 """
 
-SAVE_VERSION = 52
+SAVE_VERSION = 53
 
 import json
 import logging
@@ -785,6 +785,58 @@ def upgrade(version):
         with db.atomic():
             db.execute_sql("ALTER TABLE circle ADD COLUMN viewing_angle REAL")
             db.execute_sql("ALTER TABLE circular_token ADD COLUMN viewing_angle REAL")
+    elif version == 52:
+        # Move user customisable settings to a separate UserOptions table
+        # Add a default_options field to User and user_options to PlayerRoom
+
+        with db.atomic():
+            db.execute_sql(
+                'CREATE TABLE IF NOT EXISTS "user_options" ("id" INTEGER NOT NULL PRIMARY KEY, "fow_colour" TEXT DEFAULT "#000", "grid_colour" TEXT DEFAULT "#000", "ruler_colour" TEXT DEFAULT "#F00", "invert_alt" INTEGER DEFAULT 0, "grid_size" INTEGER DEFAULT 50)'
+            )
+
+            # Add PlayerRoom.user_options
+            db.execute_sql(
+                "CREATE TEMPORARY TABLE _player_room_52 AS SELECT * FROM player_room"
+            )
+            db.execute_sql("DROP TABLE player_room")
+            db.execute_sql(
+                'CREATE TABLE IF NOT EXISTS "player_room" ("id" INTEGER NOT NULL PRIMARY KEY, "role" INTEGER DEFAULT 0, "player_id" INTEGER NOT NULL, "room_id" INTEGER NOT NULL, "active_location_id" INTEGER NOT NULL, "user_options_id" INTEGER, FOREIGN KEY ("player_id") REFERENCES "user" ("id") ON DELETE CASCADE, FOREIGN KEY ("room_id") REFERENCES "room" ("id") ON DELETE CASCADE, FOREIGN KEY ("active_location_id") REFERENCES "location" ("id") ON DELETE CASCADE, FOREIGN KEY ("user_options_id") REFERENCES "user_options" ("id") ON DELETE CASCADE)'
+            )
+            db.execute_sql(
+                "INSERT INTO player_room (id, role, player_id, room_id, active_location_id) SELECT id, role, player_id, room_id, active_location_id FROM _player_room_52"
+            )
+
+            # Add User.default_options
+            db.execute_sql("CREATE TEMPORARY TABLE _user_52 AS SELECT * FROM user")
+            db.execute_sql("DROP TABLE user")
+            db.execute_sql(
+                'CREATE TABLE IF NOT EXISTS "user" ("id" INTEGER NOT NULL PRIMARY KEY, "name" TEXT NOT NULL, "email" TEXT, "password_hash" TEXT NOT NULL, "default_options_id" INTEGER NOT NULL, FOREIGN KEY ("default_options_id") REFERENCES "user_options" ("id") ON DELETE CASCADE)'
+            )
+
+            data = db.execute_sql("SELECT * FROM _user_52")
+            for row in data.fetchall():
+                (
+                    id_,
+                    name,
+                    email,
+                    password_hash,
+                    fow_colour,
+                    grid_colour,
+                    ruler_colour,
+                    invert_alt,
+                    grid_size,
+                ) = row
+                default_id = db.execute_sql(
+                    "INSERT INTO user_options (fow_colour, grid_colour, ruler_colour, invert_alt, grid_size) VALUES (?, ?, ?, ?, ?)",
+                    (fow_colour, grid_colour, ruler_colour, invert_alt, grid_size),
+                ).lastrowid
+                db.execute_sql(
+                    "INSERT INTO user (id, name, email, password_hash, default_options_id) VALUES (?, ?, ?, ?, ?)",
+                    (id_, name, email, password_hash, default_id),
+                )
+
+            db.execute_sql("DROP TABLE _player_room_52")
+            db.execute_sql("DROP TABLE _user_52")
     else:
         raise UnknownVersionException(
             f"No upgrade code for save format {version} was found."

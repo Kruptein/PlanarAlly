@@ -3,6 +3,7 @@ from aiohttp_security import authorized_userid, forget, remember
 
 from models import User
 from models.db import db
+from models.user import UserOptions
 
 
 async def is_authed(request):
@@ -53,6 +54,9 @@ async def register(request):
                 u.set_password(password)
                 if email:
                     u.email = email
+                default_options = UserOptions()
+                default_options.save()
+                u.default_options = default_options
                 u.save()
         except:
             return web.HTTPServerError(

@@ -10,7 +10,7 @@ from peewee import (
 from playhouse.shortcuts import model_to_dict
 
 from .base import BaseModel
-from .user import User
+from .user import User, UserOptions
 
 __all__ = [
     "Floor",
@@ -163,6 +163,7 @@ class PlayerRoom(BaseModel):
     player = ForeignKeyField(User, backref="rooms_joined", on_delete="CASCADE")
     room = ForeignKeyField(Room, backref="players", on_delete="CASCADE")
     active_location = ForeignKeyField(Location, backref="players", on_delete="CASCADE")
+    user_options = ForeignKeyField(UserOptions, on_delete="CASCADE", null=True)
 
     def __repr__(self):
         return f"<PlayerRoom {self.room.get_path()} - {self.player.name}>"

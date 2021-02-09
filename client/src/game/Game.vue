@@ -5,7 +5,6 @@ import throttle from "lodash/throttle";
 import Vue from "vue";
 import Component from "vue-class-component";
 import { Watch } from "vue-property-decorator";
-import { mapGetters } from "vuex";
 
 import ConfirmDialog from "@/core/components/modals/confirm.vue";
 import SelectionBox from "@/core/components/modals/SelectionBox.vue";
@@ -36,9 +35,6 @@ import UI from "./ui/ui.vue";
     beforeRouteLeave(to, from, next) {
         socket.disconnect();
         next();
-    },
-    computed: {
-        ...mapGetters("game", ["isBoardInitialized"]),
     },
 })
 export default class Game extends Vue {
@@ -166,13 +162,21 @@ export default class Game extends Vue {
             await dropAsset(data, { x: event.clientX, y: event.clientY }, this.$refs.selectionbox);
         }
     }
+
+    get isBoardInitialized(): boolean {
+        return gameStore.isBoardInitialized;
+    }
+
+    get isConnected(): boolean {
+        return gameStore.isConnected;
+    }
 }
 </script>
 
 <template>
     <div id="main" @mouseleave="mouseleave" @wheel="zoom">
-        <UI v-if="$store.state.game.boardInitialized" ref="ui"></UI>
-        <div id="board">
+        <UI v-if="isBoardInitialized" ref="ui"></UI>
+        <div id="board" :class="{ disconnected: !isConnected }">
             <div
                 id="layers"
                 @mousedown="mousedown"
@@ -221,7 +225,7 @@ svg {
 }
 </style>
 
-<style scoped>
+<style scoped lang="scss">
 #main {
     display: flex;
     width: 100%;
@@ -232,5 +236,10 @@ svg {
     position: absolute;
     width: 100%;
     height: 100%;
+    box-sizing: border-box;
+
+    &.disconnected {
+        border: solid 5px red;
+    }
 }
 </style>

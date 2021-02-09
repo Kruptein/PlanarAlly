@@ -48,7 +48,7 @@ export default class FloorSelect extends Vue {
     }
 
     get layers(): string[] {
-        if (!gameStore.boardInitialized) return [];
+        if (!gameStore.isBoardInitialized) return [];
         return layerManager
             .getLayers(floorStore.currentFloor)
             .filter((l) => l.selectable && (gameStore.IS_DM || l.playerEditable))

@@ -96,7 +96,7 @@ export default class DefaultContext extends Vue {
         layerManager
             .getLayer(floorStore.currentFloor, "dm")!
             .addShape(shape, SyncMode.FULL_SYNC, InvalidationMode.NO, false);
-        img.onload = () => (gameStore.boardInitialized ? shape.layer.invalidate(true) : undefined);
+        img.onload = () => (gameStore.isBoardInitialized ? shape.layer.invalidate(true) : undefined);
 
         gameSettingsStore.setSpawnLocations({
             spawnLocations: [...spawnLocations, shape.uuid],

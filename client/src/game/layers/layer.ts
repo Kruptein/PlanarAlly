@@ -269,6 +269,7 @@ export class Layer {
             // To optimize things slightly, we keep track of the shapes that passed the first round
             const visibleShapes: Shape[] = [];
 
+            // Aura draw loop
             for (const shape of this.shapes) {
                 if (shape.options.has("skipDraw") && shape.options.get("skipDraw")) continue;
                 if (!shape.visibleInCanvas(this.canvas, { includeAuras: true })) continue;
@@ -276,6 +277,7 @@ export class Layer {
                 drawAuras(shape, ctx);
                 visibleShapes.push(shape);
             }
+            // Normal shape draw loop
             for (const shape of visibleShapes) {
                 if (shape.isInvisible && !shape.ownedBy(true, { visionAccess: true })) continue;
                 if (shape.labels.length === 0 && gameStore.filterNoLabel) continue;

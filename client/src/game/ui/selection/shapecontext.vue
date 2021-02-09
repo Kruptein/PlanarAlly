@@ -107,7 +107,7 @@ export default class ShapeContext extends Vue {
         return layerManager.getLayers(floorStore.currentFloor).filter((l) => l.selectable) || [];
     }
     getActiveLayer(): Layer | undefined {
-        return gameStore.boardInitialized ? floorStore.currentLayer : undefined;
+        return gameStore.isBoardInitialized ? floorStore.currentLayer : undefined;
     }
     getInitiativeWord(): string {
         const selection = this.getSelection(false);

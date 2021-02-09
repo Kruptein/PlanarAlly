@@ -37,12 +37,14 @@ export interface Player {
 }
 
 export interface GameState extends UserOptions {
-    boardInitialized: boolean;
+    isBoardInitialized: boolean;
+    isConnected: boolean;
 }
 
 @Module({ dynamic: true, store: rootStore, name: "game", namespaced: true })
 class GameStore extends VuexModule implements GameState {
-    boardInitialized = false;
+    private boardInitialized = false;
+    private connected = false;
 
     private locations: Location[] = [];
 
@@ -137,12 +139,22 @@ class GameStore extends VuexModule implements GameState {
         return this.boardInitialized;
     }
 
+    get isConnected(): boolean {
+        return this.connected;
+    }
+
     get activeLocations(): readonly Location[] {
         return this.locations.filter((l) => !l.archived);
     }
 
     get archivedLocations(): readonly Location[] {
         return this.locations.filter((l) => l.archived);
+    }
+
+    @Mutation
+    setConnected(connected: boolean): void {
+        console.log(connected);
+        this.connected = connected;
     }
 
     @Mutation

@@ -31,9 +31,11 @@ import { visibilityStore } from "../visibility/store";
 
 socket.on("connect", () => {
     console.log("Connected");
+    gameStore.setConnected(true);
     socket.emit("Location.Load");
 });
 socket.on("disconnect", () => {
+    gameStore.setConnected(false);
     console.log("Disconnected");
 });
 socket.on("connect_error", (_error: any) => {

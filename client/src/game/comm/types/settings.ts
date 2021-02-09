@@ -36,8 +36,6 @@ export interface LocationOptions {
 
 export interface ServerClient {
     name: string;
-    active_floor?: string;
-    active_layer?: string;
     location_user_options: ServerUserLocationOptions;
     default_user_options: ServerUserOptions;
     room_user_options?: ServerUserOptions;
@@ -47,6 +45,8 @@ export interface ServerUserLocationOptions {
     pan_x: number;
     pan_y: number;
     zoom_factor: number;
+    active_floor?: string;
+    active_layer?: string;
 }
 
 export interface ServerUserOptions {

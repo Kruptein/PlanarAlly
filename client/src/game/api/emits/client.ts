@@ -8,7 +8,7 @@ export function sendClientLocationOptions(): void {
 }
 
 function _sendClientLocationOptions(locationOptions: ServerUserLocationOptions): void {
-    socket.emit("Client.Options.Location.Set", { location_options: locationOptions });
+    socket.emit("Client.Options.Location.Set", locationOptions);
 }
 
 export const sendRoomClientOptions = wrapSocket<Partial<ServerUserOptions>>("Client.Options.Room.Set");

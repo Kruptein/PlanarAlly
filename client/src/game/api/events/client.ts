@@ -42,6 +42,7 @@ socket.on("Client.Options.Set", (options: ServerClient) => {
     gameStore.setZoomDisplay(options.location_user_options.zoom_factor);
 
     EventBus.$once("Board.Floor.Set", () => {
-        if (options.active_layer) layerManager.selectLayer(options.active_layer, false);
+        if (options.location_user_options.active_layer)
+            layerManager.selectLayer(options.location_user_options.active_layer, false);
     });
 });

@@ -57,7 +57,7 @@ export default class DrawTool extends Tool implements ToolBasics {
     shapeSelect = "square";
     shapes = ["square", "circle", "draw-polygon", "paint-brush"];
     modeSelect = "normal";
-    modes = ["normal", "reveal", "hide"];
+    modes = ["normal", "reveal", "hide", "erase"];
 
     brushSize = 5;
     closedPolygon = false;
@@ -170,21 +170,37 @@ export default class DrawTool extends Tool implements ToolBasics {
 
         const fowLayer = layerManager.getLayer(floorStore.currentFloor, "fow");
         const normalLayer = floorStore.currentLayer;
+        const mapLayer = layerManager.getLayer(floorStore.currentFloor, "map")!;
         if (fowLayer === undefined || normalLayer === undefined) return;
 
         this.setupBrush();
 
-        if (newValue !== "normal" && oldValue === "normal") {
+        // Removal
+
+        if (oldValue === "normal") {
             normalLayer.removeShape(this.brushHelper, SyncMode.NO_SYNC, true);
-            fowLayer.addShape(this.brushHelper, SyncMode.NO_SYNC, InvalidationMode.NORMAL, false);
-        } else if (newValue === "normal" && oldValue !== "normal") {
-            normalLayer.addShape(this.brushHelper, SyncMode.NO_SYNC, InvalidationMode.NORMAL, false);
+        } else if (oldValue === "erase") {
+            mapLayer.removeShape(this.brushHelper, SyncMode.NO_SYNC, true);
+        } else {
             fowLayer.removeShape(this.brushHelper, SyncMode.NO_SYNC, true);
+        }
+
+        // Adding
+
+        if (newValue === "normal") {
+            normalLayer.addShape(this.brushHelper, SyncMode.NO_SYNC, InvalidationMode.NORMAL, false);
+        } else if (newValue === "erase") {
+            mapLayer.addShape(this.brushHelper, SyncMode.NO_SYNC, InvalidationMode.NORMAL, false);
+        } else {
+            fowLayer.addShape(this.brushHelper, SyncMode.NO_SYNC, InvalidationMode.NORMAL, false);
         }
     }
     getLayer(data?: { floor?: Floor; layer?: string }): Layer | undefined {
         if (this.modeSelect === "normal")
             return layerManager.getLayer(data?.floor ?? floorStore.currentFloor, data?.layer);
+        else if (this.modeSelect === "erase") {
+            return layerManager.getLayer(floorStore.currentFloor, "map");
+        }
         return layerManager.getLayer(floorStore.currentFloor, "fow");
     }
 
@@ -244,13 +260,17 @@ export default class DrawTool extends Tool implements ToolBasics {
                     return;
             }
 
-            if (this.modeSelect !== "normal") {
+            if (this.modeSelect === "erase") {
+                this.shape.fillColour = "rgba(0, 0, 0, 1)";
+            }
+            if (this.modeSelect === "hide" || this.modeSelect === "reveal") {
                 this.shape.options.set("preFogShape", true);
                 this.shape.options.set("skipDraw", true);
                 this.shape.fillColour = "rgba(0, 0, 0, 1)";
             }
             if (this.modeSelect === "reveal") this.shape.globalCompositeOperation = "source-over";
             else if (this.modeSelect === "hide") this.shape.globalCompositeOperation = "destination-out";
+            else if (this.modeSelect === "erase") this.shape.globalCompositeOperation = "destination-out";
 
             this.shape.addOwner({ user: gameStore.username, access: { edit: true } }, SyncTo.UI);
             if (layer.name === "fow" && this.modeSelect === "normal") {
@@ -563,6 +583,9 @@ export default class DrawTool extends Tool implements ToolBasics {
             case "hide":
                 return this.$t("draw.hide").toString();
 
+            case "erase":
+                return this.$t("draw.erase").toString();
+
             default:
                 return "";
         }
@@ -644,6 +667,7 @@ export default class DrawTool extends Tool implements ToolBasics {
 .option-selected,
 .option:hover {
     background-color: #82c8a0;
+    cursor: pointer;
 }
 
 .selectgroup {

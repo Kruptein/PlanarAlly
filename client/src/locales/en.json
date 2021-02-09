@@ -21,7 +21,8 @@
             "uploading": "Uploading files",
             "create_folder": "Create folder",
             "upload_files": "Upload files",
-            "title": "Asset manager"
+            "title": "Asset manager",
+            "download_files": "Download files"
         }
     },
     "common": {

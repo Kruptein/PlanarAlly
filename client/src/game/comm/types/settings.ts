@@ -55,6 +55,7 @@ export interface ServerUserOptions {
     ruler_colour: string;
     invert_alt: boolean;
     grid_size: number;
+    disable_scroll_to_zoom: boolean;
 }
 
 export interface UserOptions {
@@ -63,6 +64,7 @@ export interface UserOptions {
     rulerColour: string;
     invertAlt: boolean;
     gridSize: number;
+    disableScrollToZoom: boolean;
 }
 
 export const optionsToClient = (options: ServerLocationOptions): LocationOptions => ({
@@ -86,4 +88,5 @@ export const userOptionsToClient = (options: ServerUserOptions): UserOptions => 
     gridSize: options.grid_size,
     invertAlt: options.invert_alt,
     rulerColour: options.ruler_colour,
+    disableScrollToZoom: options.disable_scroll_to_zoom,
 });

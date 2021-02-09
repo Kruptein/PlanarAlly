@@ -1,5 +1,5 @@
 import { aurasToServer } from "../comm/conversion/aura";
-import { ServerShape } from "../comm/types/shapes";
+import { ServerRect, ServerShape } from "../comm/types/shapes";
 import {
     BaseAuraStrings,
     BaseAuraTemplate,
@@ -9,6 +9,7 @@ import {
     BaseTrackerTemplate,
     getTemplateKeys,
 } from "../comm/types/templates";
+import { gameSettingsStore } from "../settings";
 
 import { createEmptyAura, createEmptyTracker } from "./trackers/empty";
 
@@ -28,9 +29,22 @@ export function applyTemplate<T extends ServerShape>(shape: T, template: BaseTem
         shape.auras.push({ ...defaultAura, ...auraTemplate });
     }
 
+    const gridRescale = 5 / gameSettingsStore.unitSize;
+
     // Shape specific keys
     for (const key of getTemplateKeys(shape.type_)) {
-        if (key in template) (shape as any)[key] = (template as any)[key];
+        if (["assetrect", "rect"].includes(shape.type_)) {
+            const rect = (shape as any) as ServerRect;
+            const rectTemplate = (template as any) as ServerRect;
+
+            if (key === "width") {
+                rect.width = rectTemplate.width * gridRescale;
+            } else if (key === "height") {
+                rect.height = rectTemplate.height * gridRescale;
+            }
+        } else {
+            if (key in template) (shape as any)[key] = (template as any)[key];
+        }
     }
 
     return shape;

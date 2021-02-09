@@ -34,24 +34,35 @@ export interface LocationOptions {
     movePlayerOnTokenChange: boolean;
 }
 
-export interface ServerClient extends EditableServerClient, LocationServerClient {
+export interface ServerClient {
     name: string;
     active_floor?: string;
     active_layer?: string;
+    location_user_options: ServerUserLocationOptions;
+    default_user_options: ServerUserOptions;
+    room_user_options?: ServerUserOptions;
 }
 
-export interface LocationServerClient {
+export interface ServerUserLocationOptions {
     pan_x: number;
     pan_y: number;
     zoom_factor: number;
 }
 
-export interface EditableServerClient {
+export interface ServerUserOptions {
     grid_colour: string;
     fow_colour: string;
     ruler_colour: string;
     invert_alt: boolean;
     grid_size: number;
+}
+
+export interface UserOptions {
+    gridColour: string;
+    fowColour: string;
+    rulerColour: string;
+    invertAlt: boolean;
+    gridSize: number;
 }
 
 export const optionsToClient = (options: ServerLocationOptions): LocationOptions => ({
@@ -67,4 +78,12 @@ export const optionsToClient = (options: ServerLocationOptions): LocationOptions
     visionMaxRange: options.vision_max_range,
     spawnLocations: JSON.parse(options.spawn_locations),
     movePlayerOnTokenChange: options.move_player_on_token_change,
+});
+
+export const userOptionsToClient = (options: ServerUserOptions): UserOptions => ({
+    fowColour: options.fow_colour,
+    gridColour: options.grid_colour,
+    gridSize: options.grid_size,
+    invertAlt: options.invert_alt,
+    rulerColour: options.ruler_colour,
 });

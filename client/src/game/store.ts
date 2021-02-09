@@ -10,7 +10,9 @@ import { layerManager } from "@/game/layers/manager";
 import { g2l, l2g } from "@/game/units";
 import { rootStore } from "@/store";
 
-import { sendClientLocationOptions, sendClientOptions } from "./api/emits/client";
+import { toSnakeCase } from "../core/utils";
+
+import { sendClientLocationOptions, sendDefaultClientOptions, sendRoomClientOptions } from "./api/emits/client";
 import {
     sendLocationArchive,
     sendLocationOrder,
@@ -19,7 +21,7 @@ import {
     sendLocationUnarchive,
 } from "./api/emits/location";
 import { sendRoomKickPlayer, sendRoomLock } from "./api/emits/room";
-import { Location } from "./comm/types/settings";
+import { UserOptions, Location } from "./comm/types/settings";
 import { floorStore } from "./layers/store";
 import { gameManager } from "./manager";
 import { gameSettingsStore } from "./settings";
@@ -34,15 +36,7 @@ export interface Player {
     role: number;
 }
 
-interface ClientOptions {
-    gridColour: string;
-    fowColour: string;
-    rulerColour: string;
-    invertAlt: boolean;
-    gridSize: number;
-}
-
-export interface GameState extends ClientOptions {
+export interface GameState extends UserOptions {
     boardInitialized: boolean;
 }
 
@@ -67,12 +61,18 @@ class GameStore extends VuexModule implements GameState {
     invitationCode = "";
     players: Player[] = [];
 
+    defaultClientOptions: UserOptions = {
+        gridColour: "rgba(0, 0, 0, 1)",
+        fowColour: "rgba(0, 0, 0, 1)",
+        rulerColour: "rgba(255, 0, 0, 1)",
+        invertAlt: false,
+        gridSize: DEFAULT_GRID_SIZE,
+    };
+
     gridColour = "rgba(0, 0, 0, 1)";
     fowColour = "rgba(0, 0, 0, 1)";
     rulerColour = "rgba(255, 0, 0, 1)";
-    panX = 0;
-    panY = 0;
-
+    invertAlt = false;
     /**
      *  The desired size of a grid cell in pixels
      
@@ -81,6 +81,9 @@ class GameStore extends VuexModule implements GameState {
      *  The zoom code will take care of proper conversions.
      */
     gridSize = DEFAULT_GRID_SIZE;
+
+    panX = 0;
+    panY = 0;
 
     zoomDisplay = 0.5;
     // zoomFactor = 1;
@@ -101,8 +104,6 @@ class GameStore extends VuexModule implements GameState {
     labelFilters: string[] = [];
 
     showUI = true;
-
-    invertAlt = false;
 
     get zoomFactor(): number {
         const gf = gameStore.gridSize / DEFAULT_GRID_SIZE;
@@ -334,20 +335,20 @@ class GameStore extends VuexModule implements GameState {
         for (const floor of floorStore.floors) {
             layerManager.getGridLayer(floor)!.invalidate();
         }
-        if (data.sync) sendClientOptions({ grid_colour: data.colour });
+        if (data.sync) sendRoomClientOptions({ grid_colour: data.colour });
     }
 
     @Mutation
     setFOWColour(data: { colour: string; sync: boolean }): void {
         this.fowColour = data.colour;
         layerManager.invalidateAllFloors();
-        if (data.sync) sendClientOptions({ fow_colour: data.colour });
+        if (data.sync) sendRoomClientOptions({ fow_colour: data.colour });
     }
 
     @Mutation
     setRulerColour(data: { colour: string; sync: boolean }): void {
         this.rulerColour = data.colour;
-        if (data.sync) sendClientOptions({ ruler_colour: data.colour });
+        if (data.sync) sendRoomClientOptions({ ruler_colour: data.colour });
     }
 
     @Mutation
@@ -374,7 +375,7 @@ class GameStore extends VuexModule implements GameState {
     setGridSize(data: { gridSize: number; sync: boolean }): void {
         this.gridSize = data.gridSize;
         layerManager.invalidateAllFloors();
-        if (data.sync) sendClientOptions({ grid_size: data.gridSize });
+        if (data.sync) sendRoomClientOptions({ grid_size: data.gridSize });
     }
 
     @Mutation
@@ -477,7 +478,18 @@ class GameStore extends VuexModule implements GameState {
     @Mutation
     setInvertAlt(data: { invertAlt: boolean; sync: boolean }): void {
         this.invertAlt = data.invertAlt;
-        if (data.sync) sendClientOptions({ invert_alt: data.invertAlt });
+        if (data.sync) sendRoomClientOptions({ invert_alt: data.invertAlt });
+    }
+
+    @Mutation
+    setDefaultClientOptions(options: UserOptions): void {
+        this.defaultClientOptions = options;
+    }
+
+    @Mutation
+    setDefaultClientOption<K extends keyof UserOptions>(data: { key: K; value: UserOptions[K]; sync: boolean }): void {
+        this.defaultClientOptions[data.key] = data.value;
+        if (data.sync) sendDefaultClientOptions({ [toSnakeCase(data.key)]: data.value });
     }
 
     @Mutation

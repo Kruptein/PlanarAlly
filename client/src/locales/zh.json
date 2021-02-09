@@ -62,7 +62,7 @@
         "vision": "视野",
         "tokens": "指示物",
         "shape": "图形",
-        "colors": "颜色",
+        "colours": "颜色",
         "version": "版本号",
         "confirm": "确认",
         "cancel": "取消",
@@ -154,12 +154,7 @@
                     "no_notes": "暂无便签",
                     "dm_options": "DM选项",
                     "no_markers": "暂无记号",
-                    "client_options": "客户端选项",
-                    "grid_size_in_pixels": "网格尺寸（像素）：",
-                    "grid_color_set": "网格颜色：",
-                    "fow_color_set": "迷雾颜色：",
-                    "ruler_color_set": "直尺颜色：",
-                    "invert_alt_set": "反转ALT使用"
+                    "client_options": "客户端选项"
                 }
             },
             "note": {
@@ -216,6 +211,17 @@
                 }
             },
             "settings": {
+                "client": {
+                    "ClientSettings": {
+                        "client_settings": "Client Settings"
+                    },
+                    "AppearanceSettings": {
+                        "grid_size_in_pixels": "网格尺寸（像素）："
+                    },
+                    "BehaviourSettings": {
+                        "invert_alt_set": "反转ALT使用"
+                    }
+                },
                 "dm": {
                     "AdminSettings": {
                         "delete_session_msg_CREATOR_ROOM": "输入 {creator}/{room} 以确认删除战局。",

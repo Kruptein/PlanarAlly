@@ -62,7 +62,7 @@
         "vision": "Visione",
         "tokens": "Segnalino",
         "shape": "Forma",
-        "colors": "Colori",
+        "colours": "Colori",
         "version": "versione",
         "confirm": "Conferma",
         "cancel": "Annulla",
@@ -153,12 +153,7 @@
                     "no_notes": "Nessuna nota",
                     "dm_options": "Opzioni DM",
                     "no_markers": "Nessun indicatore",
-                    "client_options": "Opzioni client",
-                    "grid_size_in_pixels": "Dimensioni della griglia (in pixel):",
-                    "grid_color_set": "Colore della griglia:",
-                    "fow_color_set": "Colore della FOW:",
-                    "ruler_color_set": "Colore del righello:",
-                    "invert_alt_set": "Inverti il comportamento del tasto ALT"
+                    "client_options": "Opzioni client"
                 }
             },
             "note": {
@@ -215,6 +210,17 @@
                 }
             },
             "settings": {
+                "client": {
+                    "ClientSettings": {
+                        "client_settings": "Client Settings"
+                    },
+                    "AppearanceSettings": {
+                        "grid_size_in_pixels": "Dimensioni della griglia (in pixel):"
+                    },
+                    "BehaviourSettings": {
+                        "invert_alt_set": "Inverti il comportamento del tasto ALT"
+                    }
+                },
                 "dm": {
                     "AdminSettings": {
                         "delete_session_msg_CREATOR_ROOM": "ENTRA {creator}/{room} PER CONFERMARE LA RIMOZIONE DELLA CAMPAGNA.",

@@ -3,7 +3,7 @@
         "select": "Vælg sprog:",
         "en": "English",
         "zh": "简体中文",
-        "tw":"繁體中文",
+        "tw": "繁體中文",
         "de": "Deutsch",
         "ru": "Русский",
         "dk": "Dansk",
@@ -62,7 +62,7 @@
         "vision": "Syn",
         "tokens": "Poletter",
         "shape": "Form",
-        "colors": "Farver",
+        "colours": "Farver",
         "version": "version",
         "confirm": "Bekræft",
         "cancel": "Annuller"
@@ -141,12 +141,7 @@
                     "no_notes": "Ingen noter",
                     "dm_options": "DM Instillinger",
                     "no_markers": "Ingen markører",
-                    "client_options": "Klient instillinger",
-                    "grid_size_in_pixels": "Gitterstørrelse (i pixels):",
-                    "grid_color_set": "Gitter Farve:",
-                    "fow_color_set": "FOW Farve:",
-                    "ruler_color_set": "Lineal farve:",
-                    "invert_alt_set": "Omvend ALT-tast adfærd"
+                    "client_options": "Klient instillinger"
                 }
             },
             "note": {
@@ -198,6 +193,17 @@
                 }
             },
             "settings": {
+                "client": {
+                    "ClientSettings": {
+                        "client_settings": "Client Settings"
+                    },
+                    "AppearanceSettings": {
+                        "grid_size_in_pixels": "Gitterstørrelse (i pixels):"
+                    },
+                    "BehaviourSettings": {
+                        "invert_alt_set": "Omvend ALT-tast adfærd"
+                    }
+                },
                 "dm": {
                     "AdminSettings": {
                         "delete_session_msg_CREATOR_ROOM": "INTAST {creator}/{room} FOR AT BEKRÆFTE FJERNELSE AF KAMPAGNEN.",

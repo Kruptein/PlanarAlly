@@ -62,7 +62,7 @@
         "vision": "Sicht",
         "tokens": "Spielstein",
         "shape": "Form",
-        "colors": "Farben",
+        "colours": "Farben",
         "version": "Version",
         "confirm": "Bestätigen",
         "cancel": "Abbrechen",
@@ -147,12 +147,7 @@
                     "no_notes": "Keine Notizen",
                     "dm_options": "SL Optionen",
                     "no_markers": "Keine Markierungen",
-                    "client_options": "Client Optionen",
-                    "grid_size_in_pixels": "Gittergröße (in Pixel):",
-                    "grid_color_set": "Gitterfarbe:",
-                    "fow_color_set": "Farbe „Nebel des Krieges“:",
-                    "ruler_color_set": "Linealfarbe:",
-                    "invert_alt_set": "ALT-Tasten Verhalten umkehren"
+                    "client_options": "Client Optionen"
                 }
             },
             "note": {
@@ -209,6 +204,17 @@
                 }
             },
             "settings": {
+                "client": {
+                    "ClientSettings": {
+                        "client_settings": "Client Settings"
+                    },
+                    "AppearanceSettings": {
+                        "grid_size_in_pixels": "Gittergröße (in Pixel):"
+                    },
+                    "BehaviourSettings": {
+                        "invert_alt_set": "ALT-Tasten Verhalten umkehren"
+                    }
+                },
                 "dm": {
                     "AdminSettings": {
                         "delete_session_msg_CREATOR_ROOM": "GIB {creator}/{room} EIN UM DIE LÖSCHUNG DER KAMPAGNE ZU BESTÄTIGEN.",

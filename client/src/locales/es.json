@@ -3,7 +3,7 @@
         "select": "Seleccionar Idioma:",
         "en": "English",
         "zh": "简体中文",
-        "tw":"繁體中文",
+        "tw": "繁體中文",
         "de": "Deutsch",
         "ru": "Русский",
         "dk": "Dansk",
@@ -62,7 +62,7 @@
         "vision": "Visión",
         "tokens": "Tokens",
         "shape": "Forma",
-        "colors": "Colores",
+        "colours": "Colores",
         "version": "versión",
         "confirm": "Confirmar",
         "cancel": "Cancelar",
@@ -154,12 +154,7 @@
                     "no_notes": "No hay notas",
                     "dm_options": "Opciones de DM",
                     "no_markers": "No hay etiquetas",
-                    "client_options": "Opciones de cliente",
-                    "grid_size_in_pixels": "Tamaño de la Grilla (en pixeles):",
-                    "grid_color_set": "Color de la grilla:",
-                    "fow_color_set": "Color de la niebla de guerra:",
-                    "ruler_color_set": "Color de la regla:",
-                    "invert_alt_set": "Invertir funcionalidad de ALT"
+                    "client_options": "Opciones de cliente"
                 }
             },
             "note": {
@@ -216,6 +211,17 @@
                 }
             },
             "settings": {
+                "client": {
+                    "ClientSettings": {
+                        "client_settings": "Client Settings"
+                    },
+                    "AppearanceSettings": {
+                        "grid_size_in_pixels": "Tamaño de la Grilla (en pixeles):"
+                    },
+                    "BehaviourSettings": {
+                        "invert_alt_set": "Invertir funcionalidad de ALT"
+                    }
+                },
                 "dm": {
                     "AdminSettings": {
                         "delete_session_msg_CREATOR_ROOM": "ESCRIBA {creator}/{room} PARA CONFIRMAR EL BORRADO DE LA CAMPAÑA.",
@@ -247,7 +253,7 @@
                 "GridSettings": {
                     "unit_size_in_UNIT": "Tamaño de Unidad (en {unit})",
                     "use_grid": "Usar Grilla",
-                    "size_unit": "Unidad de longitud",       
+                    "size_unit": "Unidad de longitud",
                     "grid_type": "Tipo de Grilla",
                     "SQUARE": "Cuadrados",
                     "POINTY_HEX": "Hexágonos Puntiagúdos",

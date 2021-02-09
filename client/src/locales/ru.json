@@ -3,7 +3,7 @@
         "select": "Выберите язык:",
         "en": "English",
         "zh": "简体中文",
-        "tw":"繁體中文",
+        "tw": "繁體中文",
         "de": "Deutsch",
         "ru": "Русский",
         "dk": "Dansk",
@@ -62,7 +62,7 @@
         "vision": "Видимость",
         "tokens": "Токены",
         "shape": "Фигура",
-        "colors": "Цвета",
+        "colours": "Цвета",
         "version": "версия",
         "confirm": "Подтвердить",
         "cancel": "Отменить"
@@ -141,12 +141,7 @@
                     "no_notes": "Нет заметок",
                     "dm_options": "Опции для мастера",
                     "no_markers": "Нет маркеров",
-                    "client_options": "Опции клиента",
-                    "grid_size_in_pixels": "Размер сетки (в пикселях):",
-                    "grid_color_set": "Цвет сетки:",
-                    "fow_color_set": "Цвет тумана войны:",
-                    "ruler_color_set": "Цвет линейки:",
-                    "invert_alt_set": "Инвертировать поведение по ALT"
+                    "client_options": "Опции клиента"
                 }
             },
             "note": {
@@ -198,6 +193,17 @@
                 }
             },
             "settings": {
+                "client": {
+                    "ClientSettings": {
+                        "client_settings": "Client Settings"
+                    },
+                    "AppearanceSettings": {
+                        "grid_size_in_pixels": "Размер сетки (в пикселях):"
+                    },
+                    "BehaviourSettings": {
+                        "invert_alt_set": "Инвертировать поведение по ALT"
+                    }
+                },
                 "dm": {
                     "AdminSettings": {
                         "delete_session_msg_CREATOR_ROOM": "ВВЕДИТЕ {creator}/{room} ЧТОБЫ ПОДТВЕРДИТЬ УДАЛЕНИЕ КОМПАНИИ.",

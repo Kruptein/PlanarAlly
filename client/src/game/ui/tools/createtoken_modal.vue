@@ -134,7 +134,7 @@ export default class CreateTokenModal extends Vue {
                 placeholder="X"
                 @keyup.enter="submit"
             />
-            <label v-t="'common.colors'"></label>
+            <label v-t="'common.colours'"></label>
             <div class="colours">
                 <span v-t="'game.ui.tools.createtoken_modal.fill'"></span>
                 <color-picker :color.sync="fillColour" />

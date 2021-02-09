@@ -9,6 +9,7 @@ import MarkdownModal from "@/core/components/modals/MarkdownModal.vue";
 import FloorSelect from "@/game/ui/floors.vue";
 import MenuBar from "@/game/ui/menu/menu.vue";
 import SelectionInfo from "@/game/ui/selection/selection_info.vue";
+import ClientSettings from "@/game/ui/settings/client/ClientSettings.vue";
 import DmSettings from "@/game/ui/settings/dm/DmSettings.vue";
 import LocationSettings from "@/game/ui/settings/location/LocationSettings.vue";
 import Tools from "@/game/ui/tools/tools.vue";
@@ -23,6 +24,7 @@ import LocationBar from "./menu/locations.vue";
 
 @Component({
     components: {
+        ClientSettings,
         DmSettings,
         FloorSelect,
         LocationBar,
@@ -39,6 +41,8 @@ import LocationBar from "./menu/locations.vue";
 })
 export default class UI extends Vue {
     $refs!: {
+        clientsettings: ClientSettings;
+        dmsettings: DmSettings;
         tools: Tools;
     };
 
@@ -207,6 +211,7 @@ export default class UI extends Vue {
         <FloorSelect></FloorSelect>
         <SelectionInfo></SelectionInfo>
         <DmSettings ref="dmsettings" v-if="IS_DM || FAKE_PLAYER"></DmSettings>
+        <ClientSettings ref="clientsettings" />
         <LocationSettings v-if="IS_DM || FAKE_PLAYER"></LocationSettings>
         <MarkdownModal v-if="showChangelog" :title="$t('game.ui.ui.new_ver_msg')">
             {{ $t("game.ui.ui.changelog_RELEASE_LOG", { release: version.release, log: changelog }) }}

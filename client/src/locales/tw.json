@@ -3,7 +3,7 @@
         "select": "選擇語言：",
         "en": "English",
         "zh": "简体中文",
-        "tw":"繁體中文",
+        "tw": "繁體中文",
         "de": "Deutsch",
         "ru": "Русский",
         "dk": "Dansk",
@@ -62,7 +62,7 @@
         "vision": "視野",
         "tokens": "指示物",
         "shape": "圖形",
-        "colors": "顏色",
+        "colours": "顏色",
         "version": "版本編號",
         "confirm": "確認",
         "cancel": "取消",
@@ -147,12 +147,7 @@
                     "no_notes": "暫無筆記",
                     "dm_options": "DM選項",
                     "no_markers": "暫無記號",
-                    "client_options": "客戶端選項",
-                    "grid_size_in_pixels": "網格尺寸（像素）：",
-                    "grid_color_set": "網格顏色：",
-                    "fow_color_set": "迷霧顏色：",
-                    "ruler_color_set": "直尺顏色：",
-                    "invert_alt_set": "反轉ALT使用"
+                    "client_options": "客戶端選項"
                 }
             },
             "note": {
@@ -207,6 +202,17 @@
                 }
             },
             "settings": {
+                "client": {
+                    "ClientSettings": {
+                        "client_settings": "Client Settings"
+                    },
+                    "AppearanceSettings": {
+                        "grid_size_in_pixels": "網格尺寸（像素）："
+                    },
+                    "BehaviourSettings": {
+                        "invert_alt_set": "反轉ALT使用"
+                    }
+                },
                 "dm": {
                     "AdminSettings": {
                         "delete_session_msg_CREATOR_ROOM": "輸入 {creator}/{room} 以確認刪除戰役。",

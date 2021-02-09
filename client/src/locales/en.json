@@ -374,7 +374,8 @@
         "paint-brush": "paint-brush",
         "normal": "normal",
         "reveal": "reveal",
-        "hide": "hide"
+        "hide": "hide",
+        "erase": "erase"
     },
     "tool": {
         "Build": "Build",

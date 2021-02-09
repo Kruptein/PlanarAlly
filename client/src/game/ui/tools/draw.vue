@@ -644,6 +644,7 @@ export default class DrawTool extends Tool implements ToolBasics {
 .option-selected,
 .option:hover {
     background-color: #82c8a0;
+    cursor: pointer;
 }
 
 .selectgroup {

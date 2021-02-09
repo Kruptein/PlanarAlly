@@ -47,6 +47,9 @@ export default class AppearanceSettings extends Vue {
         gameStore.setRulerColour({ colour: value, sync: true });
     }
 
+    setDefault(key: keyof UserOptions): void {
+        gameStore.setDefaultClientOption({ key, value: gameStore[key], sync: true });
+    }
 }
 </script>
 
@@ -68,10 +71,11 @@ export default class AppearanceSettings extends Vue {
             <template v-if="gridColour !== defaultOptions.gridColour">
                 <div
                     :title="$t('game.ui.settings.common.reset_default')"
+                    @click="gridColour = defaultOptions.gridColour"
                 >
                     <font-awesome-icon icon="times-circle" />
                 </div>
-                <div :title="$t('game.ui.settings.common.sync_default')">
+                <div :title="$t('game.ui.settings.common.sync_default')" @click="setDefault('gridColour')">
                     <font-awesome-icon icon="sync-alt" />
                 </div>
             </template>
@@ -82,10 +86,10 @@ export default class AppearanceSettings extends Vue {
                 <input id="gridSize" type="number" v-model="gridSize" />
             </div>
             <template v-if="gridSize !== defaultOptions.gridSize">
-                <div :title="$t('game.ui.settings.common.reset_default')">
+                <div :title="$t('game.ui.settings.common.reset_default')" @click="gridSize = defaultOptions.gridSize">
                     <font-awesome-icon icon="times-circle" />
                 </div>
-                <div :title="$t('game.ui.settings.common.sync_default')">
+                <div :title="$t('game.ui.settings.common.sync_default')" @click="setDefault('gridSize')">
                     <font-awesome-icon icon="sync-alt" />
                 </div>
             </template>
@@ -97,10 +101,13 @@ export default class AppearanceSettings extends Vue {
                 <ColorPicker id="rulerColour" :color.sync="rulerColour" />
             </div>
             <template v-if="rulerColour !== defaultOptions.rulerColour">
-                <div :title="$t('game.ui.settings.common.reset_default')">
+                <div
+                    :title="$t('game.ui.settings.common.reset_default')"
+                    @click="rulerColour = defaultOptions.rulerColour"
+                >
                     <font-awesome-icon icon="times-circle" />
                 </div>
-                <div :title="$t('game.ui.settings.common.sync_default')">
+                <div :title="$t('game.ui.settings.common.sync_default')" @click="setDefault('rulerColour')">
                     <font-awesome-icon icon="sync-alt" />
                 </div>
             </template>
@@ -112,10 +119,10 @@ export default class AppearanceSettings extends Vue {
                 <ColorPicker id="fowColour" :disableAlpha="true" :color.sync="fowColour" />
             </div>
             <template v-if="fowColour !== defaultOptions.fowColour">
-                <div :title="$t('game.ui.settings.common.reset_default')">
+                <div :title="$t('game.ui.settings.common.reset_default')" @click="fowColour = defaultOptions.fowColour">
                     <font-awesome-icon icon="times-circle" />
                 </div>
-                <div :title="$t('game.ui.settings.common.sync_default')">
+                <div :title="$t('game.ui.settings.common.sync_default')" @click="setDefault('fowColour')">
                     <font-awesome-icon icon="sync-alt" />
                 </div>
             </template>

@@ -10,7 +10,9 @@ import { layerManager } from "@/game/layers/manager";
 import { g2l, l2g } from "@/game/units";
 import { rootStore } from "@/store";
 
-import { sendClientLocationOptions, sendRoomClientOptions } from "./api/emits/client";
+import { toSnakeCase } from "../core/utils";
+
+import { sendClientLocationOptions, sendDefaultClientOptions, sendRoomClientOptions } from "./api/emits/client";
 import {
     sendLocationArchive,
     sendLocationOrder,
@@ -482,6 +484,12 @@ class GameStore extends VuexModule implements GameState {
     @Mutation
     setDefaultClientOptions(options: UserOptions): void {
         this.defaultClientOptions = options;
+    }
+
+    @Mutation
+    setDefaultClientOption<K extends keyof UserOptions>(data: { key: K; value: UserOptions[K]; sync: boolean }): void {
+        this.defaultClientOptions[data.key] = data.value;
+        if (data.sync) sendDefaultClientOptions({ [toSnakeCase(data.key)]: data.value });
     }
 
     @Mutation

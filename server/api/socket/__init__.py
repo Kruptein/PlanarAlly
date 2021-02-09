@@ -7,6 +7,7 @@ from api.socket.constants import GAME_NS
 from app import app, sio
 from models import Floor, Layer, LocationUserOption, PlayerRoom
 from models.db import db
+from models.user import UserOptions
 from state.game import game_state
 
 from . import (
@@ -37,7 +38,6 @@ class ClientOptions(TypedDict, total=False):
     ruler_colour: str
     invert_alt: bool
     grid_size: int
-    location_options: LocationOptions
 
 
 class BringPlayersData(TypedDict):
@@ -47,26 +47,42 @@ class BringPlayersData(TypedDict):
     zoom: int
 
 
-@sio.on("Client.Options.Set", namespace=GAME_NS)
+@sio.on("Client.Options.Default.Set", namespace=GAME_NS)
 @auth.login_required(app, sio)
-async def set_client(sid: str, data: ClientOptions):
+async def set_client_default_options(sid: str, data: ClientOptions):
+    pr: PlayerRoom = game_state.get(sid)
+
+    UserOptions.update(**data).where(
+        UserOptions.id == pr.player.default_options
+    ).execute()
+
+
+@sio.on("Client.Options.Room.Set", namespace=GAME_NS)
+@auth.login_required(app, sio)
+async def set_client_room_options(sid: str, data: ClientOptions):
     pr: PlayerRoom = game_state.get(sid)
 
     with db.atomic():
-        for option, value in data.items():
-            if option != "location_options":
-                setattr(pr.player, option, value)
-        pr.player.save()
+        if pr.user_options is None:
+            pr.user_options = UserOptions.create_empty()
+            pr.save()
 
-    if "location_options" in data:
-        LocationUserOption.update(
-            pan_x=data["location_options"]["pan_x"],
-            pan_y=data["location_options"]["pan_y"],
-            zoom_factor=data["location_options"]["zoom_factor"],
-        ).where(
-            (LocationUserOption.location == pr.active_location)
-            & (LocationUserOption.user == pr.player)
-        ).execute()
+        UserOptions.update(**data).where(UserOptions.id == pr.user_options).execute()
+
+
+@sio.on("Client.Options.Location.Set", namespace=GAME_NS)
+@auth.login_required(app, sio)
+async def set_client_location_options(sid: str, data: LocationOptions):
+    pr: PlayerRoom = game_state.get(sid)
+
+    LocationUserOption.update(
+        pan_x=data["pan_x"],
+        pan_y=data["pan_y"],
+        zoom_factor=data["zoom_factor"],
+    ).where(
+        (LocationUserOption.location == pr.active_location)
+        & (LocationUserOption.user == pr.player)
+    ).execute()
 
 
 @sio.on("Client.ActiveLayer.Set", namespace=GAME_NS)

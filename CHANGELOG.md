@@ -8,6 +8,10 @@ These usually have no immediately visible impact on regular users
 
 ## Unreleased
 
+### Added
+
+-   Client setting to disable zoom behaviour on scroll
+
 ### Changed
 
 -   Client settings

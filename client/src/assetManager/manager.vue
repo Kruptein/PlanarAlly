@@ -203,7 +203,7 @@ export default class AssetManager extends Vue {
                 <div @click="prepareUpload" :title="$t('assetManager.manager.upload_files')">
                     <font-awesome-icon icon="upload" />
                 </div>
-                <div @click="exportData" :title="$t('assetManager.manager.upload_files')">
+                <div @click="exportData" :title="$t('assetManager.manager.download_files')">
                     <font-awesome-icon icon="download" />
                 </div>
             </div>

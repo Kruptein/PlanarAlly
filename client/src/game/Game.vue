@@ -18,6 +18,7 @@ import Initiative from "@/game/ui/initiative/initiative.vue";
 
 import { dropAsset } from "./layers/utils";
 import { clearUndoStacks } from "./operations/undo";
+import { gameStore } from "./store";
 import UI from "./ui/ui.vue";
 
 @Component({
@@ -86,6 +87,8 @@ export default class Game extends Vue {
     // Window events
 
     zoom(event: WheelEvent): void {
+        if (gameStore.disableScrollToZoom) return;
+
         throttle(scrollZoom)(event);
     }
 

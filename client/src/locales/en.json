@@ -221,7 +221,8 @@
                         "grid_size_in_pixels": "Size (in pixels):"
                     },
                     "BehaviourSettings": {
-                        "invert_alt_set": "Invert ALT behaviour"
+                        "invert_alt_set": "Invert ALT behaviour",
+                        "disable_scroll_to_zoom": "Disable scroll to zoom"
                     }
                 },
                 "dm": {

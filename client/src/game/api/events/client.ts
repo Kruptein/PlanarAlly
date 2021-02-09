@@ -26,6 +26,16 @@ socket.on("Client.Options.Set", (options: ServerClient) => {
     if (options.room_user_options?.invert_alt)
         gameStore.setInvertAlt({ invertAlt: options.room_user_options.invert_alt, sync: false });
     else gameStore.setInvertAlt({ invertAlt: options.default_user_options.invert_alt, sync: false });
+    if (options.room_user_options?.disable_scroll_to_zoom)
+        gameStore.setDisableScrollToZoom({
+            disableScrollToZoom: options.room_user_options.disable_scroll_to_zoom,
+            sync: false,
+        });
+    else
+        gameStore.setDisableScrollToZoom({
+            disableScrollToZoom: options.default_user_options.disable_scroll_to_zoom,
+            sync: false,
+        });
 
     gameStore.setPanX(options.location_user_options.pan_x);
     gameStore.setPanY(options.location_user_options.pan_y);

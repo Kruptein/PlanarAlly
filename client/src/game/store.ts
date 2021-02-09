@@ -67,6 +67,7 @@ class GameStore extends VuexModule implements GameState {
         rulerColour: "rgba(255, 0, 0, 1)",
         invertAlt: false,
         gridSize: DEFAULT_GRID_SIZE,
+        disableScrollToZoom: false,
     };
 
     gridColour = "rgba(0, 0, 0, 1)";
@@ -81,6 +82,7 @@ class GameStore extends VuexModule implements GameState {
      *  The zoom code will take care of proper conversions.
      */
     gridSize = DEFAULT_GRID_SIZE;
+    disableScrollToZoom = false;
 
     panX = 0;
     panY = 0;
@@ -479,6 +481,12 @@ class GameStore extends VuexModule implements GameState {
     setInvertAlt(data: { invertAlt: boolean; sync: boolean }): void {
         this.invertAlt = data.invertAlt;
         if (data.sync) sendRoomClientOptions({ invert_alt: data.invertAlt });
+    }
+
+    @Mutation
+    setDisableScrollToZoom(data: { disableScrollToZoom: boolean; sync: boolean }): void {
+        this.disableScrollToZoom = data.disableScrollToZoom;
+        if (data.sync) sendRoomClientOptions({ disable_scroll_to_zoom: data.disableScrollToZoom });
     }
 
     @Mutation

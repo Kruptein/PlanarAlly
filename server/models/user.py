@@ -1,3 +1,4 @@
+from logging import disable
 import bcrypt
 from peewee import ForeignKeyField, fn, BooleanField, IntegerField, TextField
 from playhouse.shortcuts import model_to_dict
@@ -14,6 +15,7 @@ class UserOptions(BaseModel):
     ruler_colour = TextField(default="#F00", null=True)
     invert_alt = BooleanField(default=False, null=True)
     grid_size = IntegerField(default=50, null=True)
+    disable_scroll_to_zoom = BooleanField(default=False, null=True)
 
     @classmethod
     def create_empty(cls):
@@ -23,6 +25,7 @@ class UserOptions(BaseModel):
             ruler_colour=None,
             invert_alt=None,
             grid_size=None,
+            disable_scroll_to_zoom=None,
         )
 
     def as_dict(self):

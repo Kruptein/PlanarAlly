@@ -19,6 +19,14 @@ export default class BehaviourSettings extends Vue {
         gameStore.setInvertAlt({ invertAlt: value, sync: true });
     }
 
+    get disableScrollToZoom(): boolean {
+        return gameStore.disableScrollToZoom;
+    }
+
+    set disableScrollToZoom(value: boolean) {
+        gameStore.setDisableScrollToZoom({ disableScrollToZoom: value, sync: true });
+    }
+
     setDefault(key: keyof UserOptions): void {
         gameStore.setDefaultClientOption({ key, value: gameStore[key], sync: true });
     }
@@ -27,7 +35,7 @@ export default class BehaviourSettings extends Vue {
 
 <template>
     <div class="panel restore-panel">
-        <div class="spanrow header">Grid</div>
+        <div class="spanrow header">Snapping</div>
         <div class="row">
             <label for="invertAlt" v-t="'game.ui.settings.client.BehaviourSettings.invert_alt_set'"></label>
             <div><input id="invertAlt" type="checkbox" v-model="invertAlt" /></div>
@@ -36,6 +44,25 @@ export default class BehaviourSettings extends Vue {
                     <font-awesome-icon icon="times-circle" />
                 </div>
                 <div :title="$t('game.ui.settings.common.sync_default')" @click="setDefault('invertAlt')">
+                    <font-awesome-icon icon="sync-alt" />
+                </div>
+            </template>
+        </div>
+        <div class="spanrow header">Mouse & Gestures</div>
+        <div class="row">
+            <label
+                for="disableScrollToZoom"
+                v-t="'game.ui.settings.client.BehaviourSettings.disable_scroll_to_zoom'"
+            ></label>
+            <div><input id="disableScrollToZoom" type="checkbox" v-model="disableScrollToZoom" /></div>
+            <template v-if="disableScrollToZoom !== defaultOptions.disableScrollToZoom">
+                <div
+                    :title="$t('game.ui.settings.common.reset_default')"
+                    @click="disableScrollToZoom = defaultOptions.disableScrollToZoom"
+                >
+                    <font-awesome-icon icon="times-circle" />
+                </div>
+                <div :title="$t('game.ui.settings.common.sync_default')" @click="setDefault('disableScrollToZoom')">
                     <font-awesome-icon icon="sync-alt" />
                 </div>
             </template>

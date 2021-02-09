@@ -143,9 +143,11 @@ async def load_location(sid: str, location: Location, *, complete=False):
 
     floors = [floor for floor in location.floors.order_by(Floor.index)]
 
-    if "active_floor" in client_options:
+    if "active_floor" in client_options["location_user_options"]:
         index = next(
-            i for i, f in enumerate(floors) if f.name == client_options["active_floor"]
+            i
+            for i, f in enumerate(floors)
+            if f.name == client_options["location_user_options"]["active_floor"]
         )
         lower_floors = floors[index - 1 :: -1] if index > 0 else []
         higher_floors = floors[index + 1 :] if index < len(floors) else []

@@ -13,7 +13,7 @@ When writing migrations make sure that these things are respected:
     - e.g. a column added to Circle also needs to be added to CircularToken
 """
 
-SAVE_VERSION = 53
+SAVE_VERSION = 54
 
 import json
 import logging
@@ -837,6 +837,15 @@ def upgrade(version):
 
             db.execute_sql("DROP TABLE _player_room_52")
             db.execute_sql("DROP TABLE _user_52")
+    elif version == 53:
+        # Add UserOptions.disable_scroll_to_zoom
+        with db.atomic():
+            db.execute_sql(
+                "ALTER TABLE user_options ADD COLUMN disable_scroll_to_zoom INTEGER DEFAULT 0"
+            )
+            data = db.execute_sql(
+                "UPDATE user_options SET disable_scroll_to_zoom = NULL WHERE id NOT IN (SELECT default_options_id FROM user)"
+            )
     else:
         raise UnknownVersionException(
             f"No upgrade code for save format {version} was found."

@@ -38,6 +38,7 @@ class ClientOptions(TypedDict, total=False):
     ruler_colour: str
     invert_alt: bool
     grid_size: int
+    disable_scroll_to_zoom: bool
 
 
 class BringPlayersData(TypedDict):

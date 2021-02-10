@@ -5,5 +5,5 @@ export enum Role {
 }
 
 export function getRoles(): string[] {
-    return ["Player", "DM", "Spectator"];
+    return ["Player", "DM"];
 }

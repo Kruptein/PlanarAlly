@@ -4,7 +4,7 @@ aiohttp_jinja2==1.4.2
 aiohttp_security==0.4.0
 aiohttp_session==2.9.0
 bcrypt==3.2.0
-cryptography==3.3.1
+cryptography==3.3.2
 python-socketio==5.0.4
 peewee==3.14.0
 typing_extensions==3.7.4.3

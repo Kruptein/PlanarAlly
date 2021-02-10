@@ -29,27 +29,22 @@ import { deleteShapes } from "../shapes/utils";
 import { visibilityStore } from "../visibility/store";
 
 // Core WS events
-let reconnect = true;
-
-export function disableReconnect(): void {
-    reconnect = false;
-}
 
 socket.on("connect", () => {
     console.log("Connected");
     gameStore.setConnected(true);
     socket.emit("Location.Load");
-    reconnect = true;
 });
-socket.on("disconnect", () => {
+socket.on("disconnect", (reason: string) => {
     gameStore.setConnected(false);
     console.log("Disconnected");
-    if (reconnect) socket.open();
+    if (reason === "io server disconnect") socket.open();
 });
-socket.on("connect_error", (_error: any) => {
+socket.on("connect_error", (error: any) => {
     console.error("Could not connect to game session.");
-    // we don't want to push the router here, but just keep reconnect attempts
-    // as the server might be restarting
+    if (error.message === "Connection rejected by server") {
+        router.push("/dashboard");
+    }
 });
 socket.on("error", (_error: any) => {
     console.error("Game session does not exist.");

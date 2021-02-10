@@ -26,6 +26,7 @@ These usually have no immediately visible impact on regular users
 -   It's no longer possible to create a floor with a name that is already in use
 -   Token properly snaps to mouse when leaving wall
 -   Template drops on non-default grid scales where not resized accordingly
+-   Some cases where a disconnect would happen without reconnect attempts
 
 ## [0.25.0] - 2021-02-07
 

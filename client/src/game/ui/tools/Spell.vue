@@ -5,6 +5,7 @@ import { Watch } from "vue-property-decorator";
 import ColorPicker from "@/core/components/colorpicker.vue";
 
 import { InvalidationMode, SyncMode, SyncTo } from "../../../core/models/types";
+import { baseAdjust } from "../../../core/utils";
 import { sendShapePositionUpdate } from "../../api/emits/shape/core";
 import { GlobalPoint, LocalPoint } from "../../geom";
 import { Floor } from "../../layers/floor";
@@ -22,7 +23,7 @@ import { ToolBasics } from "./ToolBasics";
 import Tools from "./tools.vue";
 import { ToolName } from "./utils";
 
-type ShapeChoice = "square" | "circle" | "chevron-down";
+type ShapeChoice = "square" | "circle" | "cone";
 
 @Component({
     components: {
@@ -35,7 +36,7 @@ export default class SpellTool extends Tool implements ToolBasics {
     name = ToolName.Spell;
 
     shapeSelect: ShapeChoice = "square";
-    shapes: ShapeChoice[] = ["square", "circle", "chevron-down"];
+    shapes: ShapeChoice[] = ["square", "circle", "cone"];
     shape: Shape | undefined = undefined;
 
     size = 5;
@@ -53,7 +54,7 @@ export default class SpellTool extends Tool implements ToolBasics {
     @Watch("range")
     onRangeChange(): void {
         if (this.range < 0) this.range = 0;
-        if (this.range > 0 && this.shapeSelect === "chevron-down") {
+        if (this.range > 0 && this.shapeSelect === "cone") {
             this.shapeSelect = "circle";
         }
         if (this.shape !== undefined) this.drawShape(this.shapeSelect);
@@ -72,7 +73,7 @@ export default class SpellTool extends Tool implements ToolBasics {
 
     onSelect(): void {
         const selected = this.getSelectedShape();
-        if (selected === undefined && this.shapeSelect === "chevron-down") {
+        if (selected === undefined && this.shapeSelect === "cone") {
             this.shapeSelect = "circle";
         }
         this.drawShape(this.shapeSelect);
@@ -132,7 +133,7 @@ export default class SpellTool extends Tool implements ToolBasics {
         }
 
         if (selected !== undefined && this.range === 0) {
-            if (this.shapeSelect === "chevron-down") {
+            if (this.shapeSelect === "cone") {
                 const center = g2l(this.shape.center());
                 (this.shape as Circle).angle = -Math.atan2(lp.y - center.y, center.x - lp.x) + Math.PI;
                 if (this.showPublic) sendShapePositionUpdate([this.shape], true);
@@ -153,8 +154,8 @@ export default class SpellTool extends Tool implements ToolBasics {
             case "circle":
                 return this.$t("draw.circle").toString();
 
-            case "chevron-down":
-                return this.$t("draw.draw-polygon").toString();
+            case "cone":
+                return this.$t("draw.cone").toString();
 
             default:
                 return "";
@@ -163,7 +164,7 @@ export default class SpellTool extends Tool implements ToolBasics {
 
     drawShape(shape: ShapeChoice, syncChanged = false): void {
         const selected = this.getSelectedShape();
-        if (selected === undefined && shape === "chevron-down") return;
+        if (selected === undefined && shape === "cone") return;
 
         this.shapeSelect = shape;
 
@@ -186,7 +187,7 @@ export default class SpellTool extends Tool implements ToolBasics {
             case "square":
                 this.shape = new Rect(startPosition, getUnitDistance(this.size), getUnitDistance(this.size));
                 break;
-            case "chevron-down":
+            case "cone":
                 this.shape = new Circle(startPosition, getUnitDistance(this.size), { viewingAngle: toRadians(60) });
                 break;
         }
@@ -239,6 +240,10 @@ export default class SpellTool extends Tool implements ToolBasics {
     canConeBeCast(): boolean {
         return this.getSelectedShape() !== undefined && this.range === 0;
     }
+
+    getConeImage(): string {
+        return baseAdjust("static/img/cone.svg");
+    }
 }
 </script>
 
@@ -251,12 +256,13 @@ export default class SpellTool extends Tool implements ToolBasics {
                 class="option"
                 :class="{
                     'option-selected': shapeSelect === shape,
-                    disabled: !canConeBeCast() && shape === 'chevron-down',
+                    disabled: !canConeBeCast() && shape === 'cone',
                 }"
                 @click="drawShape(shape)"
                 :title="getShapeWord(shape)"
             >
-                <font-awesome-icon :icon="shape" />
+                <font-awesome-icon v-if="shape !== 'cone'" :icon="shape" />
+                <img v-else :src="getConeImage()" />
             </div>
         </div>
         <div id="grid">
@@ -297,6 +303,10 @@ export default class SpellTool extends Tool implements ToolBasics {
     align-items: center;
     font-size: 13px;
     min-width: 25px;
+
+    img {
+        width: 1.25em;
+    }
 }
 
 .option-selected,
@@ -328,7 +338,8 @@ export default class SpellTool extends Tool implements ToolBasics {
 }
 
 .disabled {
-    color: rgba(0, 0, 0, 0.5);
+    /* the cone svg is not inlined so just setting color does not work */
+    filter: invert(52%) sepia(18%) saturate(268%) hue-rotate(173deg) brightness(92%) contrast(87%);
     cursor: not-allowed;
 
     &:hover,

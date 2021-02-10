@@ -4,7 +4,7 @@ import { Watch } from "vue-property-decorator";
 
 import ColorPicker from "@/core/components/colorpicker.vue";
 
-import { InvalidationMode, SyncMode, SyncTo } from "../../../core/comm/types";
+import { InvalidationMode, SyncMode, SyncTo } from "../../../core/models/types";
 import { sendShapePositionUpdate } from "../../api/emits/shape/core";
 import { GlobalPoint, LocalPoint } from "../../geom";
 import { Floor } from "../../layers/floor";

@@ -1,4 +1,4 @@
-import { ServerShape } from "../../../comm/types/shapes";
+import { ServerShape } from "../../../models/shapes";
 import { Shape } from "../../../shapes/shape";
 import { Circle } from "../../../shapes/variants/circle";
 import { Rect } from "../../../shapes/variants/rect";

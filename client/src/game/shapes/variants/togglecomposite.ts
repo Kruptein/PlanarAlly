@@ -2,15 +2,15 @@ import { GlobalPoint } from "@/game/geom";
 import { Shape } from "@/game/shapes/shape";
 import { BoundingRect } from "@/game/shapes/variants/boundingrect";
 
-import { SyncMode, SyncTo } from "../../../core/comm/types";
+import { SyncMode, SyncTo } from "../../../core/models/types";
 import { sendShapeOptionsUpdate, sendShapePositionUpdate } from "../../api/emits/shape/core";
 import {
     sendToggleCompositeActiveVariant,
     sendToggleCompositeRemoveVariant,
     sendToggleCompositeRenameVariant,
 } from "../../api/emits/shape/togglecomposite";
-import { ServerToggleComposite } from "../../comm/types/shapes";
 import { layerManager } from "../../layers/manager";
+import { ServerToggleComposite } from "../../models/shapes";
 import { gameStore } from "../../store";
 import { activeShapeStore } from "../../ui/ActiveShapeStore";
 import { TriangulationTarget } from "../../visibility/te/pa";

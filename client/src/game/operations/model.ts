@@ -1,5 +1,5 @@
-import { ServerShape } from "../comm/types/shapes";
 import { GlobalPoint } from "../geom";
+import { ServerShape } from "../models/shapes";
 
 export type Operation =
     | FloorMoveOperation

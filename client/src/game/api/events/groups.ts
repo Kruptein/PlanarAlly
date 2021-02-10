@@ -1,7 +1,7 @@
-import { GroupJoinPayload, groupToClient, ServerGroup } from "../../comm/types/groups";
 import { EventBus } from "../../event-bus";
 import { addGroupMembers, addNewGroup, removeGroup, removeGroupMember, updateGroupFromServer } from "../../groups";
 import { layerManager } from "../../layers/manager";
+import { GroupJoinPayload, groupToClient, ServerGroup } from "../../models/groups";
 import { socket } from "../socket";
 
 socket.on("Group.Update", (data: ServerGroup) => {

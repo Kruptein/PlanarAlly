@@ -16,7 +16,7 @@ import { equalPoints, getLocalPointFromEvent, useSnapping } from "@/game/utils";
 import { visibilityStore } from "@/game/visibility/store";
 import { TriangulationTarget } from "@/game/visibility/te/pa";
 
-import { InvalidationMode, SyncMode, SyncTo } from "../../../core/comm/types";
+import { InvalidationMode, SyncMode, SyncTo } from "../../../core/models/types";
 import { sendShapePositionUpdate, sendShapeSizeUpdate } from "../../api/emits/shape/core";
 import { Operation } from "../../operations/model";
 import { moveShapes } from "../../operations/movement";

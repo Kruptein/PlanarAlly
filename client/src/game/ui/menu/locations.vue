@@ -11,8 +11,8 @@ import { sendLocationChange, sendNewLocation } from "@/game/api/emits/location";
 import { gameStore } from "@/game/store";
 
 import { coreStore } from "../../../core/store";
-import { Location } from "../../comm/types/settings";
 import { EventBus } from "../../event-bus";
+import { Location } from "../../models/settings";
 
 @Component({
     computed: {

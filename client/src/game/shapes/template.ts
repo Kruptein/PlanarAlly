@@ -1,5 +1,5 @@
-import { aurasToServer } from "../comm/conversion/aura";
-import { ServerRect, ServerShape } from "../comm/types/shapes";
+import { aurasToServer } from "../models/conversion/aura";
+import { ServerRect, ServerShape } from "../models/shapes";
 import {
     BaseAuraStrings,
     BaseAuraTemplate,
@@ -8,7 +8,7 @@ import {
     BaseTrackerStrings,
     BaseTrackerTemplate,
     getTemplateKeys,
-} from "../comm/types/templates";
+} from "../models/templates";
 import { gameSettingsStore } from "../settings";
 
 import { createEmptyAura, createEmptyTracker } from "./trackers/empty";

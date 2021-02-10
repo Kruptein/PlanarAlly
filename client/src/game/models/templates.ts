@@ -1,4 +1,4 @@
-import { SHAPE_TYPE } from "../../shapes/types";
+import { SHAPE_TYPE } from "../shapes/types";
 
 import { ServerAura, ServerShape, ServerTracker } from "./shapes";
 

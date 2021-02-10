@@ -1,10 +1,10 @@
-import { SyncMode } from "../../core/comm/types";
-import { ServerShape } from "../comm/types/shapes";
+import { SyncMode } from "../../core/models/types";
 import { EventBus } from "../event-bus";
 import { GlobalPoint, Vector } from "../geom";
 import { layerManager } from "../layers/manager";
 import { moveFloor, moveLayer } from "../layers/utils";
 import { gameManager } from "../manager";
+import { ServerShape } from "../models/shapes";
 import { deleteShapes } from "../shapes/utils";
 
 import { Operation, ShapeMovementOperation, ShapeRotationOperation } from "./model";

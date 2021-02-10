@@ -1,7 +1,7 @@
-import { InvalidationMode, SyncMode } from "@/core/comm/types";
-import { ServerShape } from "@/game/comm/types/shapes";
+import { InvalidationMode, SyncMode } from "@/core/models/types";
 import { GlobalPoint } from "@/game/geom";
 import { layerManager } from "@/game/layers/manager";
+import { ServerShape } from "@/game/models/shapes";
 import { createShapeFromDict } from "@/game/shapes/utils";
 import { gameStore } from "@/game/store";
 import { g2l } from "@/game/units";

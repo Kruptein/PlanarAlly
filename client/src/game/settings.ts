@@ -5,9 +5,9 @@ import { toSnakeCase } from "../core/utils";
 import { rootStore } from "../store";
 
 import { sendLocationOptions } from "./api/emits/location";
-import { LocationOptions } from "./comm/types/settings";
 import { layerManager } from "./layers/manager";
 import { floorStore } from "./layers/store";
+import { LocationOptions } from "./models/settings";
 
 export interface GameSettingsState {
     activeLocation: number;

@@ -1,4 +1,4 @@
-import { SyncTo } from "../../../../core/comm/types";
+import { SyncTo } from "../../../../core/models/types";
 import { layerManager } from "../../../layers/manager";
 import { ToggleComposite } from "../../../shapes/variants/togglecomposite";
 import { socket } from "../../socket";

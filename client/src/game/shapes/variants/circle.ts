@@ -1,5 +1,5 @@
-import { ServerCircle } from "@/game/comm/types/shapes";
 import { GlobalPoint, Vector } from "@/game/geom";
+import { ServerCircle } from "@/game/models/shapes";
 import { Shape } from "@/game/shapes/shape";
 import { BoundingRect } from "@/game/shapes/variants/boundingrect";
 import { calculateDelta } from "@/game/ui/tools/utils";

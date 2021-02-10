@@ -5,7 +5,7 @@ import { Prop, Watch } from "vue-property-decorator";
 
 import LabelManager from "@/game/ui/labels.vue";
 
-import { SyncTo } from "../../../../core/comm/types";
+import { SyncTo } from "../../../../core/models/types";
 import { ActiveShapeState, activeShapeStore } from "../../ActiveShapeStore";
 
 @Component({ components: { LabelManager } })

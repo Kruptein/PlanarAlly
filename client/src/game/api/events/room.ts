@@ -1,5 +1,5 @@
-import { optionsToClient, ServerLocationOptions } from "../../comm/types/settings";
 import { EventBus } from "../../event-bus";
+import { optionsToClient, ServerLocationOptions } from "../../models/settings";
 import { gameSettingsStore } from "../../settings";
 import { gameStore } from "../../store";
 import { socket } from "../socket";

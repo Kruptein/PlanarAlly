@@ -1,6 +1,6 @@
-import { ServerClient, userOptionsToClient } from "../../comm/types/settings";
 import { EventBus } from "../../event-bus";
 import { layerManager } from "../../layers/manager";
+import { ServerClient, userOptionsToClient } from "../../models/settings";
 import { gameStore } from "../../store";
 import { socket } from "../socket";
 

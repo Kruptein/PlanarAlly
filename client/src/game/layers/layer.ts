@@ -1,7 +1,7 @@
-import { InvalidationMode, SyncMode, SyncTo } from "@/core/comm/types";
-import { ServerShape } from "@/game/comm/types/shapes";
+import { InvalidationMode, SyncMode, SyncTo } from "@/core/models/types";
 import { EventBus } from "@/game/event-bus";
 import { layerManager } from "@/game/layers/manager";
+import { ServerShape } from "@/game/models/shapes";
 import { Shape } from "@/game/shapes/shape";
 import { createShapeFromDict } from "@/game/shapes/utils";
 import { gameStore } from "@/game/store";

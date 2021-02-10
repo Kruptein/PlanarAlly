@@ -2,7 +2,7 @@
 import Vue from "vue";
 import Component from "vue-class-component";
 
-import { UserOptions } from "../../../comm/types/settings";
+import { UserOptions } from "../../../models/settings";
 import { gameStore } from "../../../store";
 
 @Component

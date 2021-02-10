@@ -4,7 +4,7 @@ import { BoundingRect } from "@/game/shapes/variants/boundingrect";
 import { calculateDelta } from "@/game/ui/tools/utils";
 import { clampGridLine, clampToGrid, g2lx, g2ly } from "@/game/units";
 
-import { ServerShape } from "../../comm/types/shapes";
+import { ServerShape } from "../../models/shapes";
 import { DEFAULT_GRID_SIZE } from "../../store";
 import { rotateAroundPoint } from "../../utils";
 

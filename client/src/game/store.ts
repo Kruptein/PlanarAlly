@@ -1,12 +1,12 @@
 import Vue from "vue";
 import { getModule, Module, Mutation, VuexModule } from "vuex-module-decorators";
 
-import { AssetList } from "@/core/comm/types";
+import { AssetList } from "@/core/models/types";
 import { socket } from "@/game/api/socket";
-import { Note } from "@/game/comm/types/general";
-import { ServerShape } from "@/game/comm/types/shapes";
 import { GlobalPoint, Vector } from "@/game/geom";
 import { layerManager } from "@/game/layers/manager";
+import { Note } from "@/game/models/general";
+import { ServerShape } from "@/game/models/shapes";
 import { g2l, l2g } from "@/game/units";
 import { rootStore } from "@/store";
 
@@ -21,9 +21,9 @@ import {
     sendLocationUnarchive,
 } from "./api/emits/location";
 import { sendRoomKickPlayer, sendRoomLock } from "./api/emits/room";
-import { UserOptions, Location } from "./comm/types/settings";
 import { floorStore } from "./layers/store";
 import { gameManager } from "./manager";
+import { UserOptions, Location } from "./models/settings";
 import { gameSettingsStore } from "./settings";
 import { Label } from "./shapes/interfaces";
 

@@ -1,11 +1,11 @@
 import tinycolor from "tinycolor2";
 
 import { uuidv4 } from "@/core/utils";
-import { aurasFromServer, aurasToServer, partialAuraToServer } from "@/game/comm/conversion/aura";
-import { InitiativeData } from "@/game/comm/types/general";
-import { accessToServer, ownerToClient, ownerToServer, ServerShape } from "@/game/comm/types/shapes";
 import { GlobalPoint, LocalPoint, Vector } from "@/game/geom";
 import { layerManager } from "@/game/layers/manager";
+import { aurasFromServer, aurasToServer, partialAuraToServer } from "@/game/models/conversion/aura";
+import { InitiativeData } from "@/game/models/general";
+import { accessToServer, ownerToClient, ownerToServer, ServerShape } from "@/game/models/shapes";
 import { gameStore } from "@/game/store";
 import { g2l, g2lx, g2ly, g2lz, getUnitDistance } from "@/game/units";
 import { visibilityStore } from "@/game/visibility/store";
@@ -20,7 +20,7 @@ import {
     sliceVisionSources,
 } from "@/game/visibility/utils";
 
-import { SyncTo } from "../../core/comm/types";
+import { SyncTo } from "../../core/models/types";
 import { PartialBy } from "../../core/types";
 import {
     sendShapeAddOwner,

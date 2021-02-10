@@ -1,4 +1,4 @@
-import { AssetList, SyncMode } from "@/core/comm/types";
+import { AssetList, SyncMode } from "@/core/models/types";
 import "@/game/api/events/access";
 import "@/game/api/events/client";
 import "@/game/api/events/floor";
@@ -12,18 +12,18 @@ import "@/game/api/events/shape/core";
 import "@/game/api/events/shape/options";
 import "@/game/api/events/shape/togglecomposite";
 import { socket } from "@/game/api/socket";
-import { Note, ServerFloor } from "@/game/comm/types/general";
 import { EventBus } from "@/game/event-bus";
 import { GlobalPoint } from "@/game/geom";
 import { layerManager } from "@/game/layers/manager";
 import { addFloor } from "@/game/layers/utils";
 import { gameManager } from "@/game/manager";
+import { Note, ServerFloor } from "@/game/models/general";
 import { gameStore } from "@/game/store";
 import { router } from "@/router";
 
 import { coreStore } from "../../core/store";
-import { Location } from "../comm/types/settings";
 import { floorStore } from "../layers/store";
+import { Location } from "../models/settings";
 import { deleteShapes } from "../shapes/utils";
 import { visibilityStore } from "../visibility/store";
 

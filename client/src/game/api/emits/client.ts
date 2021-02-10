@@ -1,4 +1,4 @@
-import { ServerUserOptions, ServerUserLocationOptions } from "../../comm/types/settings";
+import { ServerUserOptions, ServerUserLocationOptions } from "../../models/settings";
 import { gameStore } from "../../store";
 import { wrapSocket } from "../helpers";
 import { socket } from "../socket";

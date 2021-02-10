@@ -1,4 +1,4 @@
-import { ServerAura } from "@/game/comm/types/shapes";
+import { ServerAura } from "@/game/models/shapes";
 
 import { Aura } from "../../shapes/interfaces";
 

@@ -4,7 +4,7 @@ import Component from "vue-class-component";
 
 import ConfirmDialog from "@/core/components/modals/confirm.vue";
 import Modal from "@/core/components/modals/modal.vue";
-import { Note } from "@/game/comm/types/general";
+import { Note } from "@/game/models/general";
 import { gameStore } from "@/game/store";
 
 @Component({

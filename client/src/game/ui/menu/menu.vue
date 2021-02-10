@@ -5,13 +5,13 @@ import { mapState } from "vuex";
 
 import ColorPicker from "@/core/components/colorpicker.vue";
 import { baseAdjust, uuidv4 } from "@/core/utils";
-import { Note } from "@/game/comm/types/general";
 import { layerManager } from "@/game/layers/manager";
+import { Note } from "@/game/models/general";
 import { gameStore } from "@/game/store";
 import AssetNode from "@/game/ui/menu/asset_node.vue";
 import NoteDialog from "@/game/ui/note.vue";
 
-import { AssetList } from "../../../core/comm/types";
+import { AssetList } from "../../../core/models/types";
 import UI from "../ui.vue";
 
 @Component({

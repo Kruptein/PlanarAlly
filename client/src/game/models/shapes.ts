@@ -1,6 +1,6 @@
-import { Tracker, Label } from "../../shapes/interfaces";
-import { ShapeOwner, ShapeAccess } from "../../shapes/owners";
-import { SHAPE_TYPE } from "../../shapes/types";
+import { Label, Tracker } from "../shapes/interfaces";
+import { ShapeAccess, ShapeOwner } from "../shapes/owners";
+import { SHAPE_TYPE } from "../shapes/types";
 
 export interface ServerShape {
     uuid: string;

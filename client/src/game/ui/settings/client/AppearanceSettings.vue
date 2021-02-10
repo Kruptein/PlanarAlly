@@ -5,7 +5,7 @@ import Component from "vue-class-component";
 import ColorPicker from "@/core/components/colorpicker.vue";
 import LanguageSelect from "@/core/components/languageSelect.vue";
 
-import { UserOptions } from "../../../comm/types/settings";
+import { UserOptions } from "../../../models/settings";
 import { gameStore } from "../../../store";
 
 @Component({ components: { ColorPicker, LanguageSelect } })

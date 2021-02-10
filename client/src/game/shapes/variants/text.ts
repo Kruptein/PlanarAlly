@@ -2,7 +2,7 @@ import { GlobalPoint } from "@/game/geom";
 import { Shape } from "@/game/shapes/shape";
 import { BoundingRect } from "@/game/shapes/variants/boundingrect";
 
-import { ServerText } from "../../comm/types/shapes";
+import { ServerText } from "../../models/shapes";
 import { rotateAroundPoint } from "../../utils";
 import { SHAPE_TYPE } from "../types";
 

@@ -1,6 +1,6 @@
 import { getModule, Module, Mutation, VuexModule } from "vuex-module-decorators";
 
-import { InitiativeData } from "@/game/comm/types/general";
+import { InitiativeData } from "@/game/models/general";
 import { rootStore } from "@/store";
 
 import { sendInitiativeUpdate } from "../../api/emits/initiative";

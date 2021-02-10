@@ -7,7 +7,7 @@ import { mapGetters } from "vuex";
 import Modal from "@/core/components/modals/modal.vue";
 
 import { assetStore } from "../../../assetManager/store";
-import { Asset } from "../../comm/types";
+import { Asset } from "../../models/types";
 import { createNewManager } from "../../socket";
 import { baseAdjust } from "../../utils";
 

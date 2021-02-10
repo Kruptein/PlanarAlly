@@ -3,7 +3,7 @@ import Vue from "vue";
 import Component from "vue-class-component";
 import { Prop, Watch } from "vue-property-decorator";
 
-import { AssetFile, AssetList } from "@/core/comm/types";
+import { AssetFile, AssetList } from "@/core/models/types";
 import { alphSort, baseAdjust } from "@/core/utils";
 
 @Component({

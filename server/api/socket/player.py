@@ -53,3 +53,6 @@ async def set_player_role(sid: str, data: PlayerRoleChange):
     player_pr: PlayerRoom = PlayerRoom.get(player=data["player"], room=pr.room)
     player_pr.role = new_role
     player_pr.save()
+
+    for sid in game_state.get_sids(player=player_pr.player, room=pr.room):
+        await sio.disconnect(sid, namespace=GAME_NS)

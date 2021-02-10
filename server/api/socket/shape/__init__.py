@@ -367,7 +367,7 @@ async def move_shapes(sid: str, data: ServerShapeLocationMove):
     for psid, player in game_state.get_users(active_location=location):
         await sio.emit(
             "Shapes.Add",
-            [sh.as_dict(player, player == pr.room.creator) for sh in shapes],
+            [sh.as_dict(player, game_state.get(psid).role == Role.DM) for sh in shapes],
             room=psid,
             namespace=GAME_NS,
         )

@@ -153,7 +153,6 @@ class GameStore extends VuexModule implements GameState {
 
     @Mutation
     setConnected(connected: boolean): void {
-        console.log(connected);
         this.connected = connected;
     }
 

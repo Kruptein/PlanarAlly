@@ -37,10 +37,12 @@ socket.on("connect", () => {
 socket.on("disconnect", () => {
     gameStore.setConnected(false);
     console.log("Disconnected");
+    socket.open();
 });
 socket.on("connect_error", (_error: any) => {
     console.error("Could not connect to game session.");
-    router.push("/dashboard");
+    // we don't want to push the router here, but just keep reconnect attempts
+    // as the server might be restarting
 });
 socket.on("error", (_error: any) => {
     console.error("Game session does not exist.");

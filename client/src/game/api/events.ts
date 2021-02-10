@@ -43,12 +43,12 @@ socket.on("disconnect", (reason: string) => {
 socket.on("connect_error", (error: any) => {
     console.error("Could not connect to game session.");
     if (error.message === "Connection rejected by server") {
-        router.push("/dashboard");
+        router.push({ name: "dashboard", params: { error: "join_game" } });
     }
 });
 socket.on("error", (_error: any) => {
     console.error("Game session does not exist.");
-    router.push("/dashboard");
+    router.push({ name: "dashboard", params: { error: "join_game" } });
 });
 socket.on("redirect", (destination: string) => {
     console.log("redirecting");

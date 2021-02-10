@@ -4,8 +4,9 @@ import Component from "vue-class-component";
 
 import InputCopyElement from "@/core/components/inputCopy.vue";
 import Prompt from "@/core/components/modals/prompt.vue";
-import { socket } from "@/game/api/socket";
+import { sendDeleteRoom, sendRefreshInviteCode } from "@/game/api/emits/room";
 import { EventBus } from "@/game/event-bus";
+import { getRoles } from "@/game/models/role";
 import { gameStore, Player } from "@/game/store";
 
 @Component({
@@ -40,11 +41,15 @@ export default class AdminSettings extends Vue {
     }
 
     get players(): Player[] {
-        return gameStore.players.filter((p) => p.role !== 1);
+        return gameStore.players.filter((p) => p.name !== gameStore.username);
+    }
+
+    get roles(): string[] {
+        return getRoles();
     }
 
     refreshInviteCode(): void {
-        socket.emit("Room.Info.InviteCode.Refresh");
+        sendRefreshInviteCode();
         this.refreshState = "pending";
         this.showRefreshState = true;
     }
@@ -63,8 +68,16 @@ export default class AdminSettings extends Vue {
             this.$t("game.ui.settings.dm.AdminSettings.deleting_session").toString(),
         );
         if (value !== `${gameStore.roomCreator}/${gameStore.roomName}`) return;
-        socket.emit("Room.Delete");
+        sendDeleteRoom();
         this.$router.push("/");
+    }
+
+    changePlayerRole(event: { target: HTMLSelectElement }, player: number): void {
+        const value = event.target.value;
+        const role = parseInt(value);
+        if (isNaN(role) || role < 0 || role >= this.roles.length) return;
+
+        gameStore.setPlayerRole({ player, role, sync: true });
     }
 }
 </script>
@@ -73,9 +86,19 @@ export default class AdminSettings extends Vue {
     <div class="panel">
         <Prompt ref="prompt"></Prompt>
         <div class="spanrow header" v-t="'common.players'"></div>
-        <div class="row smallrow" v-for="player in players" :key="player.id">
+        <div class="row smallrow" v-for="player of players" :key="player.id">
             <div>{{ player.name }}</div>
-            <div>
+            <div class="player-actions">
+                <select @change="changePlayerRole($event, player.id)">
+                    <option
+                        v-for="[i, role] of roles.entries()"
+                        :key="'role-' + i + '-' + player.id"
+                        :value="i"
+                        :selected="player.role === i"
+                    >
+                        {{ role }}
+                    </option>
+                </select>
                 <div @click="kickPlayer(player.id)" v-t="'game.ui.settings.dm.AdminSettings.kick'"></div>
             </div>
         </div>
@@ -126,3 +149,13 @@ export default class AdminSettings extends Vue {
         </div>
     </div>
 </template>
+
+<style lang="scss" scoped>
+.player-actions {
+    display: flex;
+
+    select {
+        margin-right: 20%;
+    }
+}
+</style>

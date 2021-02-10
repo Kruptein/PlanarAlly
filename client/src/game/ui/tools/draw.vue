@@ -3,8 +3,8 @@ import Component from "vue-class-component";
 import { Watch } from "vue-property-decorator";
 import { mapGetters } from "vuex";
 
-import { SyncMode, InvalidationMode, SyncTo } from "@/core/comm/types";
 import ColorPicker from "@/core/components/colorpicker.vue";
+import { SyncMode, InvalidationMode, SyncTo } from "@/core/models/types";
 import { sendShapeSizeUpdate } from "@/game/api/emits/shape/core";
 import { GlobalPoint, LocalPoint } from "@/game/geom";
 import { Floor } from "@/game/layers/floor";

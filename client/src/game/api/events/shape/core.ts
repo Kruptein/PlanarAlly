@@ -1,10 +1,10 @@
-import { SyncMode } from "../../../../core/comm/types";
-import { ServerShape } from "../../../comm/types/shapes";
+import { SyncMode } from "../../../../core/models/types";
 import { EventBus } from "../../../event-bus";
 import { layerManager } from "../../../layers/manager";
 import { floorStore, getFloorId } from "../../../layers/store";
 import { moveFloor, moveLayer } from "../../../layers/utils";
 import { gameManager } from "../../../manager";
+import { ServerShape } from "../../../models/shapes";
 import { Shape } from "../../../shapes/shape";
 import { deleteShapes } from "../../../shapes/utils";
 import { Circle } from "../../../shapes/variants/circle";

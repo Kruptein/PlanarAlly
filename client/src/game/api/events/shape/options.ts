@@ -1,7 +1,7 @@
-import { SyncTo } from "../../../../core/comm/types";
-import { aurasFromServer, partialAuraFromServer } from "../../../comm/conversion/aura";
-import { ServerAura, ServerTracker } from "../../../comm/types/shapes";
+import { SyncTo } from "../../../../core/models/types";
 import { layerManager } from "../../../layers/manager";
+import { aurasFromServer, partialAuraFromServer } from "../../../models/conversion/aura";
+import { ServerAura, ServerTracker } from "../../../models/shapes";
 import { Aura, Tracker } from "../../../shapes/interfaces";
 import { Shape } from "../../../shapes/shape";
 import { socket } from "../../socket";

@@ -65,5 +65,5 @@ class User(BaseModel):
         )
 
     @classmethod
-    def by_name(cls, name):
+    def by_name(cls, name) -> "User":
         return cls.get_or_none(fn.Lower(cls.name) == name.lower())

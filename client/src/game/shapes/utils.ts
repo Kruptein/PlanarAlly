@@ -1,5 +1,7 @@
-import { InvalidationMode, SyncMode } from "@/core/comm/types";
+import { InvalidationMode, SyncMode } from "@/core/models/types";
 import { baseAdjust, uuidv4 } from "@/core/utils";
+import { GlobalPoint, Vector } from "@/game/geom";
+import { layerManager } from "@/game/layers/manager";
 import {
     ServerAsset,
     ServerAura,
@@ -11,9 +13,7 @@ import {
     ServerShape,
     ServerText,
     ServerToggleComposite,
-} from "@/game/comm/types/shapes";
-import { GlobalPoint, Vector } from "@/game/geom";
-import { layerManager } from "@/game/layers/manager";
+} from "@/game/models/shapes";
 import { Shape } from "@/game/shapes/shape";
 import { Asset } from "@/game/shapes/variants/asset";
 import { Circle } from "@/game/shapes/variants/circle";

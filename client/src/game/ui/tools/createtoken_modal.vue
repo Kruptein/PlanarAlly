@@ -14,7 +14,7 @@ import { CircularToken } from "@/game/shapes/variants/circulartoken";
 import { gameStore } from "@/game/store";
 import { getUnitDistance, l2g } from "@/game/units";
 
-import { SyncMode, InvalidationMode, SyncTo } from "../../../core/comm/types";
+import { SyncMode, InvalidationMode, SyncTo } from "../../../core/models/types";
 import { gameSettingsStore } from "../../settings";
 
 @Component({

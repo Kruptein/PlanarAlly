@@ -1,5 +1,6 @@
-import { optionsToClient, ServerLocationOptions } from "../../comm/types/settings";
 import { EventBus } from "../../event-bus";
+import { Role } from "../../models/role";
+import { optionsToClient, ServerLocationOptions } from "../../models/settings";
 import { gameSettingsStore } from "../../settings";
 import { gameStore } from "../../store";
 import { socket } from "../socket";
@@ -16,6 +17,18 @@ socket.on(
         default_options: ServerLocationOptions;
         players: { id: number; name: string; location: number; role: number }[];
     }) => {
+        let found = false;
+        for (const player of data.players) {
+            if (player.name === gameStore.username) {
+                found = true;
+                gameStore.setDM(player.role === Role.DM);
+            }
+        }
+        if (!found) {
+            socket.disconnect();
+            return;
+        }
+
         gameStore.setRoomName(data.name);
         gameStore.setRoomCreator(data.creator);
         gameStore.setInvitationCode(data.invitationCode);

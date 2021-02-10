@@ -1,8 +1,8 @@
 import { coreStore } from "../../../core/store";
-import { ServerFloor } from "../../comm/types/general";
 import { layerManager } from "../../layers/manager";
 import { floorStore, getFloorId } from "../../layers/store";
 import { addFloor, removeFloor } from "../../layers/utils";
+import { ServerFloor } from "../../models/general";
 import { socket } from "../socket";
 
 socket.on("Floor.Create", async (data: { floor: ServerFloor; creator: string }) => {

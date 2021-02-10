@@ -1,7 +1,7 @@
 <script lang="ts">
 import Component from "vue-class-component";
 
-import { InvalidationMode, SyncMode, SyncTo } from "@/core/comm/types";
+import { InvalidationMode, SyncMode, SyncTo } from "@/core/models/types";
 import { GlobalPoint, LocalPoint } from "@/game/geom";
 import { layerManager } from "@/game/layers/manager";
 import { Circle } from "@/game/shapes/variants/circle";

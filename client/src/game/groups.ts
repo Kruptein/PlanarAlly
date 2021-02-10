@@ -1,4 +1,4 @@
-import { SyncTo } from "../core/comm/types";
+import { SyncTo } from "../core/models/types";
 import { uuidv4 } from "../core/utils";
 
 import {
@@ -10,8 +10,8 @@ import {
     sendMemberBadgeUpdate,
     sendRemoveGroup,
 } from "./api/emits/groups";
-import { CREATION_ORDER_TYPES, Group, groupToClient, groupToServer, ServerGroup } from "./comm/types/groups";
 import { layerManager } from "./layers/manager";
+import { CREATION_ORDER_TYPES, Group, groupToClient, groupToServer, ServerGroup } from "./models/groups";
 import { Shape } from "./shapes/shape";
 
 const numberCharacterSet = "0123456789".split("");

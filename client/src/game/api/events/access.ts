@@ -1,6 +1,6 @@
-import { SyncTo } from "../../../core/comm/types";
-import { ownerToClient, ServerShapeOwner } from "../../comm/types/shapes";
+import { SyncTo } from "../../../core/models/types";
 import { layerManager } from "../../layers/manager";
+import { ownerToClient, ServerShapeOwner } from "../../models/shapes";
 import { socket } from "../socket";
 
 socket.on("Shape.Owner.Add", (data: ServerShapeOwner) => {

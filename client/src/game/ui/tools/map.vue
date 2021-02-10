@@ -11,7 +11,7 @@ import { Rect } from "@/game/shapes/variants/rect";
 import Tool from "@/game/ui/tools/tool.vue";
 import { l2g } from "@/game/units";
 
-import { SyncMode, InvalidationMode } from "../../../core/comm/types";
+import { SyncMode, InvalidationMode } from "../../../core/models/types";
 import { DEFAULT_GRID_SIZE } from "../../store";
 
 import { SelectFeatures } from "./select.vue";

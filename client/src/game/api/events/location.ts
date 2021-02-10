@@ -1,8 +1,8 @@
 import { coreStore } from "../../../core/store";
-import { ServerLocation } from "../../comm/types/general";
-import { Location, ServerLocationOptions } from "../../comm/types/settings";
 import { EventBus } from "../../event-bus";
 import { floorStore } from "../../layers/store";
+import { ServerLocation } from "../../models/general";
+import { Location, ServerLocationOptions } from "../../models/settings";
 import { gameSettingsStore } from "../../settings";
 import { gameStore } from "../../store";
 import { VisibilityMode, visibilityStore } from "../../visibility/store";

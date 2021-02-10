@@ -1,4 +1,4 @@
-import { InvalidationMode, SyncMode } from "@/core/comm/types";
+import { InvalidationMode, SyncMode } from "@/core/models/types";
 import { layerManager } from "@/game/layers/manager";
 import { Shape } from "@/game/shapes/shape";
 import { Circle } from "@/game/shapes/variants/circle";

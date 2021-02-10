@@ -1,7 +1,7 @@
 // import Vuex from "vuex";
 import { getModule, Module, Mutation, VuexModule } from "vuex-module-decorators";
 
-import { Asset } from "@/core/comm/types";
+import { Asset } from "@/core/models/types";
 import { rootStore } from "@/store";
 
 import { router } from "../router";

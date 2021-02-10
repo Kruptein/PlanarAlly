@@ -4,7 +4,7 @@ import Component from "vue-class-component";
 
 import { gameStore } from "@/game/store";
 
-import { SyncTo } from "../../../../core/comm/types";
+import { SyncTo } from "../../../../core/models/types";
 import { ShapeOwner } from "../../../shapes/owners";
 import { ActiveShapeState, activeShapeStore } from "../../ActiveShapeStore";
 

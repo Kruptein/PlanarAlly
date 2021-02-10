@@ -5,7 +5,7 @@ import Component from "vue-class-component";
 import ColorPicker from "@/core/components/colorpicker.vue";
 import RotationSlider from "@/core/components/RotationSlider.vue";
 
-import { SyncTo } from "../../../../core/comm/types";
+import { SyncTo } from "../../../../core/models/types";
 import { sendShapeMoveAura, sendShapeMoveTracker } from "../../../api/emits/shape/options";
 import { Aura, Tracker } from "../../../shapes/interfaces";
 import { ActiveShapeState, activeShapeStore } from "../../ActiveShapeStore";

@@ -12,7 +12,7 @@ import Tool from "@/game/ui/tools/tool.vue";
 import { l2g, l2gz } from "@/game/units";
 import { useSnapping } from "@/game/utils";
 
-import { SyncMode, InvalidationMode, SyncTo } from "../../../core/comm/types";
+import { SyncMode, InvalidationMode, SyncTo } from "../../../core/models/types";
 import { gameSettingsStore } from "../../settings";
 import { Text } from "../../shapes/variants/text";
 

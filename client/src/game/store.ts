@@ -1,12 +1,12 @@
 import Vue from "vue";
 import { getModule, Module, Mutation, VuexModule } from "vuex-module-decorators";
 
-import { AssetList } from "@/core/comm/types";
+import { AssetList } from "@/core/models/types";
 import { socket } from "@/game/api/socket";
-import { Note } from "@/game/comm/types/general";
-import { ServerShape } from "@/game/comm/types/shapes";
 import { GlobalPoint, Vector } from "@/game/geom";
 import { layerManager } from "@/game/layers/manager";
+import { Note } from "@/game/models/general";
+import { ServerShape } from "@/game/models/shapes";
 import { g2l, l2g } from "@/game/units";
 import { rootStore } from "@/store";
 
@@ -20,10 +20,11 @@ import {
     sendLocationRename,
     sendLocationUnarchive,
 } from "./api/emits/location";
+import { sendChangePlayerRole } from "./api/emits/players";
 import { sendRoomKickPlayer, sendRoomLock } from "./api/emits/room";
-import { UserOptions, Location } from "./comm/types/settings";
 import { floorStore } from "./layers/store";
 import { gameManager } from "./manager";
+import { UserOptions, Location } from "./models/settings";
 import { gameSettingsStore } from "./settings";
 import { Label } from "./shapes/interfaces";
 
@@ -153,7 +154,6 @@ class GameStore extends VuexModule implements GameState {
 
     @Mutation
     setConnected(connected: boolean): void {
-        console.log(connected);
         this.connected = connected;
     }
 
@@ -162,6 +162,14 @@ class GameStore extends VuexModule implements GameState {
         this.FAKE_PLAYER = value;
         this.IS_DM = !value;
         layerManager.invalidateAllFloors();
+    }
+
+    @Mutation
+    setPlayerRole(data: { player: number; role: number; sync: boolean }): void {
+        const player = this.players.find((p) => p.id === data.player);
+        if (player === undefined) return;
+        player.role = data.role;
+        if (data.sync) sendChangePlayerRole({ player: data.player, role: data.role });
     }
 
     @Mutation

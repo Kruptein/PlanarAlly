@@ -1,4 +1,4 @@
-import { AssetList, SyncMode } from "@/core/comm/types";
+import { AssetList, SyncMode } from "@/core/models/types";
 import "@/game/api/events/access";
 import "@/game/api/events/client";
 import "@/game/api/events/floor";
@@ -7,23 +7,24 @@ import "@/game/api/events/initiative";
 import "@/game/api/events/labels";
 import "@/game/api/events/location";
 import "@/game/api/events/notification";
+import "@/game/api/events/player";
 import "@/game/api/events/room";
 import "@/game/api/events/shape/core";
 import "@/game/api/events/shape/options";
 import "@/game/api/events/shape/togglecomposite";
 import { socket } from "@/game/api/socket";
-import { Note, ServerFloor } from "@/game/comm/types/general";
 import { EventBus } from "@/game/event-bus";
 import { GlobalPoint } from "@/game/geom";
 import { layerManager } from "@/game/layers/manager";
 import { addFloor } from "@/game/layers/utils";
 import { gameManager } from "@/game/manager";
+import { Note, ServerFloor } from "@/game/models/general";
 import { gameStore } from "@/game/store";
 import { router } from "@/router";
 
 import { coreStore } from "../../core/store";
-import { Location } from "../comm/types/settings";
 import { floorStore } from "../layers/store";
+import { Location } from "../models/settings";
 import { deleteShapes } from "../shapes/utils";
 import { visibilityStore } from "../visibility/store";
 
@@ -37,10 +38,12 @@ socket.on("connect", () => {
 socket.on("disconnect", () => {
     gameStore.setConnected(false);
     console.log("Disconnected");
+    socket.open();
 });
 socket.on("connect_error", (_error: any) => {
     console.error("Could not connect to game session.");
-    router.push("/dashboard");
+    // we don't want to push the router here, but just keep reconnect attempts
+    // as the server might be restarting
 });
 socket.on("error", (_error: any) => {
     console.error("Game session does not exist.");

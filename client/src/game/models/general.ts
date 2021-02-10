@@ -1,4 +1,4 @@
-import { ServerShape } from "@/game/comm/types/shapes";
+import { ServerShape } from "@/game/models/shapes";
 
 import { ServerLocationOptions } from "./settings";
 

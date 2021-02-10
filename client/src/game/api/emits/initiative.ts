@@ -1,4 +1,4 @@
-import { InitiativeData, InitiativeEffect } from "../../comm/types/general";
+import { InitiativeData, InitiativeEffect } from "../../models/general";
 import { wrapSocket } from "../helpers";
 
 export const sendInitiativeUpdate = wrapSocket<InitiativeData>("Initiative.Update");

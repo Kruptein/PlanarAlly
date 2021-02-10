@@ -4,7 +4,7 @@ import Component from "vue-class-component";
 
 import ColorPicker from "@/core/components/colorpicker.vue";
 
-import { SyncTo } from "../../../../core/comm/types";
+import { SyncTo } from "../../../../core/models/types";
 import { ActiveShapeState, activeShapeStore } from "../../ActiveShapeStore";
 
 @Component({ components: { ColorPicker } })

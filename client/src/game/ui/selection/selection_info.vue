@@ -7,7 +7,7 @@ import { layerManager } from "@/game/layers/manager";
 import { Aura, Tracker } from "@/game/shapes/interfaces";
 import ShapeSettings from "@/game/ui/selection/edit_dialog/ShapeSettings.vue";
 
-import { SyncTo } from "../../../core/comm/types";
+import { SyncTo } from "../../../core/models/types";
 import { ActiveShapeState, activeShapeStore } from "../ActiveShapeStore";
 
 @Component({

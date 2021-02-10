@@ -21,6 +21,7 @@ from . import (
     location,
     marker,
     note,
+    player,
     room,
     shape,
 )
@@ -39,13 +40,6 @@ class ClientOptions(TypedDict, total=False):
     invert_alt: bool
     grid_size: int
     disable_scroll_to_zoom: bool
-
-
-class BringPlayersData(TypedDict):
-    floor: str
-    x: int
-    y: int
-    zoom: int
 
 
 @sio.on("Client.Options.Default.Set", namespace=GAME_NS)
@@ -100,17 +94,3 @@ async def set_layer(sid: str, data: Dict[str, Any]):
         luo = LocationUserOption.get(user=pr.player, location=pr.active_location)
         luo.active_layer = layer
         luo.save()
-
-
-@sio.on("Players.Bring", namespace=GAME_NS)
-@auth.login_required(app, sio)
-async def bring_players(sid: str, data: BringPlayersData):
-    pr: PlayerRoom = game_state.get(sid)
-
-    await sio.emit(
-        "Position.Set",
-        data,
-        room=pr.active_location.get_path(),
-        skip_sid=sid,
-        namespace=GAME_NS,
-    )

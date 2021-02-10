@@ -1,4 +1,4 @@
-import { GroupJoinPayload, ServerGroup } from "../../comm/types/groups";
+import { GroupJoinPayload, ServerGroup } from "../../models/groups";
 import { wrapSocket } from "../helpers";
 import { socket } from "../socket";
 

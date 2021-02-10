@@ -1,13 +1,11 @@
-import { ServerClient, userOptionsToClient } from "../../comm/types/settings";
 import { EventBus } from "../../event-bus";
 import { layerManager } from "../../layers/manager";
+import { ServerClient, userOptionsToClient } from "../../models/settings";
 import { gameStore } from "../../store";
 import { socket } from "../socket";
 
 socket.on("Client.Options.Set", (options: ServerClient) => {
     gameStore.setUsername(options.name);
-    const path = window.location.pathname.split("/");
-    gameStore.setDM(options.name === decodeURIComponent(path[path.length - 2]));
 
     gameStore.setDefaultClientOptions(userOptionsToClient(options.default_user_options));
 

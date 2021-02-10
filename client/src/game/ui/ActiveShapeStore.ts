@@ -11,7 +11,7 @@
 
 import { getModule, Module, Mutation, VuexModule } from "vuex-module-decorators";
 
-import { SyncTo } from "../../core/comm/types";
+import { SyncTo } from "../../core/models/types";
 import { rootStore } from "../../store";
 import { layerManager } from "../layers/manager";
 import { Aura, Label, Tracker } from "../shapes/interfaces";

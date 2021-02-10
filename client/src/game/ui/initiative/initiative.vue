@@ -18,9 +18,9 @@ import {
     sendInitiativeRemoveEffect,
 } from "@/game/api/emits/initiative";
 import { socket } from "@/game/api/socket";
-import { InitiativeData, InitiativeEffect } from "@/game/comm/types/general";
 import { EventBus } from "@/game/event-bus";
 import { layerManager } from "@/game/layers/manager";
+import { InitiativeData, InitiativeEffect } from "@/game/models/general";
 import { gameStore } from "@/game/store";
 
 import { getGroupMembers } from "../../groups";

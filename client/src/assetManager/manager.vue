@@ -7,8 +7,8 @@ import { mapGetters } from "vuex";
 import AssetContextMenu from "@/assetManager/contextMenu.vue";
 import { socket } from "@/assetManager/socket";
 import { assetStore } from "@/assetManager/store";
-import { Asset } from "@/core/comm/types";
 import Prompt from "@/core/components/modals/prompt.vue";
+import { Asset } from "@/core/models/types";
 import { baseAdjust, uuidv4 } from "@/core/utils";
 
 Component.registerHooks(["beforeRouteEnter"]);

@@ -29,16 +29,22 @@ import { deleteShapes } from "../shapes/utils";
 import { visibilityStore } from "../visibility/store";
 
 // Core WS events
+let reconnect = true;
+
+export function disableReconnect(): void {
+    reconnect = false;
+}
 
 socket.on("connect", () => {
     console.log("Connected");
     gameStore.setConnected(true);
     socket.emit("Location.Load");
+    reconnect = true;
 });
 socket.on("disconnect", () => {
     gameStore.setConnected(false);
     console.log("Disconnected");
-    socket.open();
+    if (reconnect) socket.open();
 });
 socket.on("connect_error", (_error: any) => {
     console.error("Could not connect to game session.");

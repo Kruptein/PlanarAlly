@@ -9,6 +9,7 @@ import { Watch } from "vue-property-decorator";
 import ConfirmDialog from "@/core/components/modals/confirm.vue";
 import SelectionBox from "@/core/components/modals/SelectionBox.vue";
 import { coreStore } from "@/core/store";
+import { disableReconnect } from "@/game/api/events";
 import { createConnection, socket } from "@/game/api/socket";
 import { onKeyDown, onKeyUp } from "@/game/input/keyboard";
 import { scrollZoom } from "@/game/input/mouse";
@@ -33,6 +34,7 @@ import UI from "./ui/ui.vue";
         next();
     },
     beforeRouteLeave(to, from, next) {
+        disableReconnect();
         socket.disconnect();
         next();
     },

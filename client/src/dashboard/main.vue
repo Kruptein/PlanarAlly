@@ -3,14 +3,19 @@ import Vue from "vue";
 import Component from "vue-class-component";
 import { Route, NavigationGuard } from "vue-router";
 
+import ConfirmDialog from "@/core/components/modals/confirm.vue";
 import { coreStore } from "@/core/store";
 
 import { baseAdjustedFetch, getErrorReason, postFetch } from "../core/utils";
 
 Component.registerHooks(["beforeRouteEnter"]);
 
-@Component
+@Component({ components: { ConfirmDialog } })
 export default class Dashboard extends Vue {
+    $refs!: {
+        confirm: ConfirmDialog;
+    };
+
     owned = [];
     joined = [];
     error = "";
@@ -28,6 +33,16 @@ export default class Dashboard extends Vue {
                 (vm as this).error = await getErrorReason(response);
             }
         });
+    }
+
+    async mounted(): Promise<void> {
+        if (this.$route.params?.error === "join_game") {
+            await this.$refs.confirm.open(
+                "Failed to join session",
+                "It was not possible to join the game session. This might be because the DM has locked the session.",
+                { showNo: false, yes: "Ok" },
+            );
+        }
     }
 
     async createRoom(_event: Event): Promise<void> {
@@ -60,6 +75,7 @@ export default class Dashboard extends Vue {
 
 <template>
     <div style="display: contents">
+        <ConfirmDialog ref="confirm"></ConfirmDialog>
         <div id="formcontainer">
             <form>
                 <fieldset>

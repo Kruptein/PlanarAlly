@@ -54,6 +54,7 @@ export const router = new Router({
         },
         {
             path: "/dashboard",
+            name: "dashboard",
             component: Dashboard,
             meta: {
                 auth: true,

@@ -15,6 +15,7 @@ These usually have no immediately visible impact on regular users
     -   This makes anything from the current floor below it in the draw stack in its region transparent
 -   Big red border when disconnected
 -   Option to make other players (co-)DM
+-   Show a small info popup when trying to join a locked session
 
 ### Changed
 

@@ -375,7 +375,8 @@
         "normal": "normal",
         "reveal": "reveal",
         "hide": "hide",
-        "erase": "erase"
+        "erase": "erase",
+        "cone": "cone"
     },
     "tool": {
         "Build": "Build",

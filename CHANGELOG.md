@@ -21,6 +21,7 @@ These usually have no immediately visible impact on regular users
 -   Client settings
     -   Now open in a modal just like the DM settings
     -   Now can be campaign-specific (with reset/make default options)
+-   Spell cone icon is now filled
 
 ### Fixed
 

@@ -14,6 +14,7 @@ These usually have no immediately visible impact on regular users
 -   Erase option to draw tool
     -   This makes anything from the current floor below it in the draw stack in its region transparent
 -   Big red border when disconnected
+-   Option to make other players (co-)DM
 
 ### Changed
 

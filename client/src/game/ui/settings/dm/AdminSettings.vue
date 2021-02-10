@@ -4,7 +4,6 @@ import Component from "vue-class-component";
 
 import InputCopyElement from "@/core/components/inputCopy.vue";
 import Prompt from "@/core/components/modals/prompt.vue";
-import { sendChangePlayerRole } from "@/game/api/emits/players";
 import { sendDeleteRoom, sendRefreshInviteCode } from "@/game/api/emits/room";
 import { EventBus } from "@/game/event-bus";
 import { getRoles } from "@/game/models/role";
@@ -78,7 +77,7 @@ export default class AdminSettings extends Vue {
         const role = parseInt(value);
         if (isNaN(role) || role < 0 || role >= this.roles.length) return;
 
-        sendChangePlayerRole({ player, role });
+        gameStore.setPlayerRole({ player, role, sync: true });
     }
 }
 </script>

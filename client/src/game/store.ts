@@ -20,6 +20,7 @@ import {
     sendLocationRename,
     sendLocationUnarchive,
 } from "./api/emits/location";
+import { sendChangePlayerRole } from "./api/emits/players";
 import { sendRoomKickPlayer, sendRoomLock } from "./api/emits/room";
 import { floorStore } from "./layers/store";
 import { gameManager } from "./manager";
@@ -161,6 +162,14 @@ class GameStore extends VuexModule implements GameState {
         this.FAKE_PLAYER = value;
         this.IS_DM = !value;
         layerManager.invalidateAllFloors();
+    }
+
+    @Mutation
+    setPlayerRole(data: { player: number; role: number; sync: boolean }): void {
+        const player = this.players.find((p) => p.id === data.player);
+        if (player === undefined) return;
+        player.role = data.role;
+        if (data.sync) sendChangePlayerRole({ player: data.player, role: data.role });
     }
 
     @Mutation

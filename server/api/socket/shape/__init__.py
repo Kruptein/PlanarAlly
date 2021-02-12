@@ -30,6 +30,8 @@ from models.utils import get_table, reduce_data_to_model
 from state.game import game_state
 from utils import logger
 
+from . import access, options, toggle_composite
+
 
 @sio.on("Shape.Add", namespace=GAME_NS)
 @auth.login_required(app, sio)

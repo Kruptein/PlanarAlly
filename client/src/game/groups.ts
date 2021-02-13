@@ -2,7 +2,6 @@ import { SyncTo } from "../core/models/types";
 import { uuidv4 } from "../core/utils";
 
 import {
-    requestGroupInfo,
     sendCreateGroup,
     sendGroupJoin,
     sendGroupLeave,
@@ -64,12 +63,6 @@ export function updateGroupFromServer(serverGroup: ServerGroup): void {
     for (const layer of new Set(getGroupMembers(group.uuid).map((s) => s.layer))) {
         layer.invalidate(true);
     }
-}
-
-export async function fetchGroup(groupId: string): Promise<Group> {
-    const groupInfo = groupToClient(await requestGroupInfo(groupId));
-    addNewGroup(groupInfo, false);
-    return groupInfo;
 }
 
 export function getGroupSize(groupId: string): number {

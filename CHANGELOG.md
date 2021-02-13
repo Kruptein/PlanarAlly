@@ -30,6 +30,8 @@ These usually have no immediately visible impact on regular users
 -   Token properly snaps to mouse when leaving wall
 -   Template drops on non-default grid scales where not resized accordingly
 -   Some cases where a disconnect would happen without reconnect attempts
+-   Cause of slow session loading times
+    -   shape group info is now sent along during initial load
 
 ## [0.25.0] - 2021-02-07
 

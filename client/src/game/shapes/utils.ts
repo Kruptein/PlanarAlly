@@ -24,7 +24,7 @@ import { Text } from "@/game/shapes/variants/text";
 
 import { sendRemoveShapes } from "../api/emits/shape/core";
 import { EventBus } from "../event-bus";
-import { addGroupMembers, createNewGroupForShapes, fetchGroup, generateNewBadge, getGroup } from "../groups";
+import { addGroupMembers, createNewGroupForShapes, generateNewBadge, getGroup } from "../groups";
 import { floorStore, getFloorId } from "../layers/store";
 import { addOperation } from "../operations/undo";
 import { gameStore } from "../store";
@@ -35,18 +35,19 @@ import { Tracker } from "./interfaces";
 import { Polygon } from "./variants/polygon";
 import { ToggleComposite } from "./variants/togglecomposite";
 
+// eslint-disable-next-line
 export async function createShapeFromDict(shape: ServerShape): Promise<Shape | undefined> {
     let sh: Shape;
 
     // A fromJSON and toJSON on Shape would be cleaner but ts does not allow for static abstracts so yeah.
 
-    // Fetch group info if required
     if (shape.group) {
-        let group = getGroup(shape.group);
+        const group = getGroup(shape.group);
         if (group === undefined) {
-            group = await fetchGroup(shape.group);
+            console.log("Missing group info detected");
+        } else {
+            addGroupMembers(group.uuid, [{ uuid: shape.uuid, badge: shape.badge }], false);
         }
-        addGroupMembers(group.uuid, [{ uuid: shape.uuid, badge: shape.badge }], false);
     }
 
     // Shape Type specifics

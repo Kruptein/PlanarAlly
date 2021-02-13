@@ -34,6 +34,7 @@ socket.on("connect", () => {
     console.log("Connected");
     gameStore.setConnected(true);
     socket.emit("Location.Load");
+    coreStore.setLoading(true);
 });
 socket.on("disconnect", (reason: string) => {
     gameStore.setConnected(false);

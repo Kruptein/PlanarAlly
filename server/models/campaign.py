@@ -8,8 +8,10 @@ from peewee import (
     TextField,
 )
 from playhouse.shortcuts import model_to_dict
+from typing import Set
 
 from .base import BaseModel
+from .groups import Group
 from .user import User, UserOptions
 
 __all__ = [
@@ -236,9 +238,13 @@ class Layer(BaseModel):
             backrefs=False,
             exclude=[Layer.id, Layer.player_visible],
         )
-        data["shapes"] = [
-            shape.as_dict(user, dm) for shape in self.shapes.order_by(Shape.index)
-        ]
+        groups_added: Set[Group] = set()
+        data["groups"] = []
+        data["shapes"] = []
+        for shape in self.shapes.order_by(Shape.index):
+            data["shapes"].append(shape.as_dict(user, dm))
+            if shape.group and not shape.group.uuid in groups_added:
+                data["groups"].append(model_to_dict(shape.group))
         return data
 
     class Meta:

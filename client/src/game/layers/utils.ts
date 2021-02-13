@@ -15,6 +15,8 @@ import { baseAdjust, uuidv4 } from "../../core/utils";
 import i18n from "../../i18n";
 import { requestAssetOptions } from "../api/emits/asset";
 import { sendFloorChange, sendLayerChange } from "../api/emits/shape/core";
+import { addNewGroup, hasGroup } from "../groups";
+import { groupToClient } from "../models/groups";
 import { BaseTemplate } from "../models/templates";
 import { addOperation } from "../operations/undo";
 import { gameSettingsStore } from "../settings";
@@ -93,6 +95,16 @@ async function createLayer(layerInfo: ServerLayer, floor: Floor): Promise<void> 
         return;
     }
     if (layerInfo.name !== "fow-players") layers.appendChild(canvas);
+
+    // Load layer groups
+
+    for (const serverGroup of layerInfo.groups) {
+        const group = groupToClient(serverGroup);
+        if (!hasGroup(group.uuid)) {
+            addNewGroup(group, false);
+        }
+    }
+
     // Load layer shapes
     await layer.setServerShapes(layerInfo.shapes);
 }

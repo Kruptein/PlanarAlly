@@ -1,5 +1,6 @@
 import { ServerShape } from "@/game/models/shapes";
 
+import { ServerGroup } from "./groups";
 import { ServerLocationOptions } from "./settings";
 
 export interface ServerLocation {
@@ -37,6 +38,7 @@ export interface ServerLayer {
     index: number;
     name: string;
     layer: string;
+    groups: ServerGroup[];
     shapes: ServerShape[];
     selectable: boolean;
     player_editable: boolean;

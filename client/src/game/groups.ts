@@ -29,6 +29,10 @@ export function addNewGroup(group: Group, sync: boolean): void {
     }
 }
 
+export function hasGroup(groupId: string): boolean {
+    return groupMap.has(groupId);
+}
+
 export function removeGroup(groupId: string, sync: boolean): void {
     const members = getGroupMembers(groupId);
     for (const member of members) {

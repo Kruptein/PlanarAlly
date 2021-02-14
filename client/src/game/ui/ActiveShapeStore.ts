@@ -18,6 +18,7 @@ import { Aura, Label, Tracker } from "../shapes/interfaces";
 import { ShapeAccess, ShapeOwner } from "../shapes/owners";
 import { Shape } from "../shapes/shape";
 import { createEmptyUiAura, createEmptyUiTracker } from "../shapes/trackers/empty";
+import { SHAPE_TYPE } from "../shapes/types";
 import { ToggleComposite } from "../shapes/variants/togglecomposite";
 import { gameStore } from "../store";
 
@@ -30,6 +31,9 @@ export interface ActiveShapeState {
     parentUuid: string | undefined;
     isComposite: boolean;
     showEditDialog: boolean;
+    type: SHAPE_TYPE | undefined;
+
+    floor: number | undefined;
     options: Record<string, any> | undefined;
     setOptions(data: { options: Record<string, any>; syncTo: SyncTo }): void;
 
@@ -114,6 +118,7 @@ class ActiveShapeStore extends VuexModule implements ActiveShapeState {
     // The last Uuid is used to make sure that the UI remains open when a shape is removed and re-added
     private _lastUuid: string | null = null;
     private _showEditDialog = false;
+    private _type: SHAPE_TYPE | null = null;
 
     private _options: Record<string, any> | null = null;
 
@@ -170,6 +175,16 @@ class ActiveShapeStore extends VuexModule implements ActiveShapeState {
     @Mutation
     setShowEditDialog(visible: boolean): void {
         this._showEditDialog = visible;
+    }
+
+    get type(): SHAPE_TYPE | undefined {
+        return this._type ?? undefined;
+    }
+
+    // OPTIONS
+
+    get floor(): number | undefined {
+        return this._uuid ? layerManager.UUIDMap.get(this._uuid)?.floor.id : undefined;
     }
 
     get options(): Record<string, any> | undefined {
@@ -722,6 +737,7 @@ class ActiveShapeStore extends VuexModule implements ActiveShapeState {
         this._uuid = shape.uuid;
         const parent = layerManager.getCompositeParent(shape.uuid);
         this._parentUuid = parent?.uuid ?? null;
+        this._type = shape.type;
 
         this._options = Object.fromEntries(shape.options);
 
@@ -771,6 +787,7 @@ class ActiveShapeStore extends VuexModule implements ActiveShapeState {
 
         this._uuid = null;
         this._parentUuid = null;
+        this._type = null;
 
         this._options = null;
 

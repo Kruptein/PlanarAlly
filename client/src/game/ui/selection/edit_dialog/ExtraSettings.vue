@@ -3,16 +3,22 @@ import Vue from "vue";
 import Component from "vue-class-component";
 import { Prop, Watch } from "vue-property-decorator";
 
+import AssetPicker from "@/core/components/modals/AssetPicker.vue";
 import LabelManager from "@/game/ui/labels.vue";
 
 import { SyncTo } from "../../../../core/models/types";
+import { baseAdjustedFetch } from "../../../../core/utils";
+import { gameStore } from "../../../store";
+import { visibilityStore } from "../../../visibility/store";
 import { ActiveShapeState, activeShapeStore } from "../../ActiveShapeStore";
 
-@Component({ components: { LabelManager } })
+@Component({ components: { AssetPicker, LabelManager } })
 export default class AccessSettings extends Vue {
     @Prop() active!: boolean;
+    hasPath = false;
 
     $refs!: {
+        assetPicker: AssetPicker;
         labels: LabelManager;
         textarea: HTMLTextAreaElement;
     };
@@ -22,7 +28,12 @@ export default class AccessSettings extends Vue {
     }
 
     get shape(): ActiveShapeState {
+        this.hasPath = activeShapeStore.options?.svgPaths !== undefined;
         return activeShapeStore;
+    }
+
+    get showSvgSection(): boolean {
+        return gameStore.IS_DM && this.shape.type === "assetrect";
     }
 
     @Watch("active")
@@ -62,11 +73,48 @@ export default class AccessSettings extends Vue {
             el.style.height = el.scrollHeight + "px";
         }
     }
+
+    async uploadSvg(): Promise<void> {
+        const asset = await this.$refs.assetPicker.open();
+        if (asset === undefined || asset.file_hash === undefined) return;
+
+        const data = await baseAdjustedFetch(`/static/assets/${asset.file_hash}`);
+        const svgText = await data.text();
+        const template = document.createElement("template");
+        template.innerHTML = svgText;
+        const svgEl = template.content.children[0] as SVGSVGElement;
+        const w = svgEl.width.baseVal.value;
+        const h = svgEl.height.baseVal.value;
+        const paths: string[] = [];
+
+        for (const pathChild of svgEl.getElementsByTagNameNS("http://www.w3.org/2000/svg", "path")) {
+            const path = pathChild.getAttribute("d");
+            if (path !== null) paths.push(path);
+        }
+        const options = this.shape.options!;
+        options.svgPaths = paths;
+        options.svgWidth = w;
+        options.svgHeight = h;
+        this.shape.setOptions({ options, syncTo: SyncTo.SERVER });
+        visibilityStore.recalculateVision(this.shape.floor!);
+        this.hasPath = true;
+    }
+
+    removeSvg(): void {
+        const options = this.shape.options!;
+        delete options.svgPaths;
+        delete options.svgWidth;
+        delete options.svgHeight;
+        this.shape.setOptions({ options, syncTo: SyncTo.SERVER });
+        visibilityStore.recalculateVision(this.shape.floor!);
+        this.hasPath = false;
+    }
 }
 </script>
 
 <template>
     <div class="panel restore-panel">
+        <AssetPicker ref="assetPicker" />
         <LabelManager ref="labels" @addLabel="addLabel"></LabelManager>
         <div class="spanrow header" v-t="'common.labels'"></div>
         <div id="labels" class="spanrow">
@@ -104,12 +152,23 @@ export default class AccessSettings extends Vue {
             @change="updateAnnotation"
             :disabled="!owned"
         ></textarea>
+        <template v-if="showSvgSection">
+            <div class="spanrow header">Lighting & Vision</div>
+            <template v-if="!hasPath">
+                <label for="edit_dialog-extra-upload_walls">Upload walls (svg)</label>
+                <button id="edit_dialog-extra-upload_walls" @click="uploadSvg">Upload</button>
+            </template>
+            <template v-else>
+                <label for="edit_dialog-extra-upload_walls">Remove walls (svg)</label>
+                <button id="edit_dialog-extra-upload_walls" @click="removeSvg">Remove</button>
+            </template>
+        </template>
     </div>
 </template>
 
 <style scoped lang="scss">
 .panel {
-    grid-template-columns: [name] 1fr [toggle] 30px [end];
+    grid-template-columns: [name] 1fr [toggle] auto [end];
     grid-column-gap: 5px;
     align-items: center;
     padding-bottom: 1em;

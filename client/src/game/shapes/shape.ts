@@ -28,6 +28,7 @@ import {
     sendShapeUpdateDefaultOwner,
     sendShapeUpdateOwner,
 } from "../api/emits/access";
+import { sendShapeOptionsUpdate } from "../api/emits/shape/core";
 import {
     sendShapeAddLabel,
     sendShapeCreateAura,
@@ -327,7 +328,7 @@ export abstract class Shape {
             annotation_visible: this.annotationVisible,
             is_token: this.isToken,
             is_invisible: this.isInvisible,
-            options: this.getOptions(),
+            options: JSON.stringify([...this.options]),
             badge: this.badge,
             show_badge: this.showBadge,
             is_locked: this.isLocked,
@@ -362,7 +363,7 @@ export abstract class Shape {
             this.annotation = data.annotation;
         }
         if (data.name) this.name = data.name;
-        if (data.options) this.setOptions(data.options);
+        if (data.options) this.options = new Map(JSON.parse(data.options));
         if (data.asset) this.assetId = data.asset;
         if (data.group) this.groupId = data.group;
         // retain reactivity
@@ -374,14 +375,6 @@ export abstract class Shape {
             },
             SyncTo.UI,
         );
-    }
-
-    getOptions(): string {
-        return JSON.stringify([...this.options]);
-    }
-
-    setOptions(options: string): void {
-        this.options = new Map(JSON.parse(options));
     }
 
     getPositionRepresentation(): { angle: number; points: number[][] } {
@@ -624,6 +617,16 @@ export abstract class Shape {
         this.showBadge = showBadge;
         this.invalidate(!this.triggersVisionRecalc);
         EventBus.$emit("EditDialog.Group.Update");
+    }
+
+    // OPTIONS
+
+    setOptions(options: Map<string, any>, syncTo: SyncTo): void {
+        this.options = options;
+
+        if (syncTo === SyncTo.SERVER) sendShapeOptionsUpdate([this], false);
+        if (syncTo === SyncTo.UI)
+            this._(activeShapeStore.setOptions, { options: Object.fromEntries(this.options), syncTo });
     }
 
     // ACCESS

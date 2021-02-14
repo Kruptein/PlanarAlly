@@ -1,6 +1,8 @@
 import { layerManager } from "@/game/layers/manager";
 import { Shape } from "@/game/shapes/shape";
 
+import { Asset } from "../../shapes/variants/asset";
+import { pathToArray } from "../../svg";
 import { visibilityStore } from "../store";
 import { getBlockers } from "../utils";
 
@@ -41,6 +43,15 @@ export function insertConstraint(target: TriangulationTarget, shape: Shape, pa: 
     cdt.tds.addTriagVertices(shape.uuid, va, vb);
 }
 
+function triangulatePath(target: TriangulationTarget, shape: Shape, path: number[][], closed: boolean): void {
+    const j = closed ? 0 : 1;
+    for (let i = 0; i < path.length - j; i++) {
+        const pa = path[i].map((n) => parseFloat(n.toFixed(10)));
+        const pb = path[(i + 1) % path.length].map((n) => parseFloat(n.toFixed(10)));
+        insertConstraint(target, shape, pa, pb);
+    }
+}
+
 export function triangulate(target: TriangulationTarget, floor: number): void {
     const cdt = new CDT();
     setCDT(target, floor, cdt);
@@ -49,11 +60,18 @@ export function triangulate(target: TriangulationTarget, floor: number): void {
     for (const sh of shapes) {
         const shape = layerManager.UUIDMap.get(sh)!;
         if (shape.floor.id !== floor) continue;
-        const j = shape.isClosed ? 0 : 1;
-        for (let i = 0; i < shape.points.length - j; i++) {
-            const pa = shape.points[i].map((n) => parseFloat(n.toFixed(10)));
-            const pb = shape.points[(i + 1) % shape.points.length].map((n) => parseFloat(n.toFixed(10)));
-            insertConstraint(target, shape, pa, pb);
+
+        if (shape.type === "assetrect" && shape.options.has("svgPaths")) {
+            for (const pathString of shape.options.get("svgPaths") as string[]) {
+                const pathElement = document.createElementNS("http://www.w3.org/2000/svg", "path");
+                pathElement.setAttribute("d", pathString);
+                const paths = pathToArray(shape as Asset, pathElement);
+                for (const path of paths) {
+                    triangulatePath(target, shape, path, false);
+                }
+            }
+        } else {
+            triangulatePath(target, shape, shape.points, shape.isClosed);
         }
     }
     // // console.log(s);

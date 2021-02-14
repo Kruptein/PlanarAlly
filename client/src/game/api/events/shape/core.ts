@@ -1,4 +1,4 @@
-import { SyncMode } from "../../../../core/models/types";
+import { SyncMode, SyncTo } from "../../../../core/models/types";
 import { EventBus } from "../../../event-bus";
 import { layerManager } from "../../../layers/manager";
 import { floorStore, getFloorId } from "../../../layers/store";
@@ -52,7 +52,7 @@ socket.on("Shapes.Options.Update", (data: { uuid: string; option: string }[]) =>
         if (shape === undefined) {
             continue;
         }
-        shape.setOptions(sh.option);
+        shape.setOptions(new Map(JSON.parse(sh.option)), SyncTo.UI);
     }
 });
 

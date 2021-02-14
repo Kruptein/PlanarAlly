@@ -17,6 +17,7 @@ jest.mock("@/game/api/socket", () => ({
 jest.mock("@/i18n.ts", () => ({
     t: jest.fn(),
 }));
+jest.mock("path-data-polyfill", () => {});
 
 let cdt: CDT;
 

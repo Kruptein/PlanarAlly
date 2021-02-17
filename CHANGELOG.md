@@ -16,6 +16,8 @@ These usually have no immediately visible impact on regular users
 -   Big red border when disconnected
 -   Option to make other players (co-)DM
 -   Show a small info popup when trying to join a locked session
+-   Support for dungeondraft dd2vtt files
+    -   When placed on the board, a special 'apply ddraft' button is available in the extra settings to load the walls/portals/lights
 
 ### Changed
 
@@ -23,6 +25,8 @@ These usually have no immediately visible impact on regular users
     -   Now open in a modal just like the DM settings
     -   Now can be campaign-specific (with reset/make default options)
 -   Spell cone icon is now filled
+-   Ctrl keybindings now use Cmd on mac
+-   OpenSans font is now loaded from the server itself instead of google fonts
 
 ### Fixed
 

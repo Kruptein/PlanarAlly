@@ -68,12 +68,12 @@ socket.on("Board.Locations.Set", (locationInfo: Location[]) => {
     EventBus.$emit("Initiative.Clear");
 });
 
-socket.on("Board.Floor.Set", async (floor: ServerFloor) => {
+socket.on("Board.Floor.Set", (floor: ServerFloor) => {
     // It is important that this condition is evaluated before the async addFloor call.
     // The very first floor that arrives is the one we want to select
     // When this condition is evaluated after the await, we are at the mercy of the async scheduler
     const selectFloor = floorStore.floors.length === 0;
-    await addFloor(floor);
+    addFloor(floor);
 
     if (selectFloor) {
         floorStore.selectFloor({ targetFloor: floor.name, sync: false });

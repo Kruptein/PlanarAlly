@@ -11,6 +11,7 @@ module.exports = {
         "plugin:import/typescript",
     ],
     rules: {
+        "@typescript-eslint/await-thenable": 2,
         "@typescript-eslint/consistent-type-assertions": [2, { assertionStyle: "as" }],
         "@typescript-eslint/explicit-function-return-type": [2, { allowExpressions: true }],
         "@typescript-eslint/explicit-member-accessibility": [2, { accessibility: "no-public" }],
@@ -23,6 +24,7 @@ module.exports = {
             { argsIgnorePattern: "^_", varsIgnorePattern: "^_" },
         ],
         "@typescript-eslint/no-use-before-define": 0,
+        "@typescript-eslint/require-await": "error",
         "import/no-unused-modules": [process.env.GITHUB_ACTION === undefined ? 1 : 2, { unusedExports: true }],
         "import/order": [
             process.env.GITHUB_ACTION === undefined ? 1 : 2,
@@ -39,7 +41,6 @@ module.exports = {
         "no-dupe-class-members": "off",
         "no-empty-function": "off",
         "no-unused-vars": "off",
-        "require-await": "error",
         "prettier/prettier": [process.env.GITHUB_ACTION === undefined ? 1 : 2],
     },
     parserOptions: {
@@ -47,6 +48,8 @@ module.exports = {
         ecmaFeatures: {
             jsx: false,
         },
+        project: "./tsconfig.json",
+        tsconfigRootDir: __dirname,
     },
     plugins: ["import"],
     settings: {

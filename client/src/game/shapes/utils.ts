@@ -36,7 +36,7 @@ import { Polygon } from "./variants/polygon";
 import { ToggleComposite } from "./variants/togglecomposite";
 
 // eslint-disable-next-line
-export async function createShapeFromDict(shape: ServerShape): Promise<Shape | undefined> {
+export function createShapeFromDict(shape: ServerShape): Shape | undefined {
     let sh: Shape;
 
     // A fromJSON and toJSON on Shape would be cleaner but ts does not allow for static abstracts so yeah.
@@ -140,7 +140,7 @@ export function copyShapes(): void {
     gameStore.setClipboardPosition(gameStore.screenCenter);
 }
 
-export async function pasteShapes(targetLayer?: string): Promise<readonly Shape[]> {
+export function pasteShapes(targetLayer?: string): readonly Shape[] {
     const layer = layerManager.getLayer(floorStore.currentFloor, targetLayer);
     if (!layer) return [];
     if (!gameStore.clipboard) return [];
@@ -213,7 +213,7 @@ export async function pasteShapes(targetLayer?: string): Promise<readonly Shape[
 
     // Finalize
     for (const serverShape of serverShapes) {
-        const shape = await createShapeFromDict(serverShape);
+        const shape = createShapeFromDict(serverShape);
         if (shape === undefined) continue;
 
         layer.addShape(shape, SyncMode.FULL_SYNC, InvalidationMode.WITH_LIGHT);

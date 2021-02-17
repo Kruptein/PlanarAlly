@@ -17,10 +17,12 @@ from uuid import uuid4
 
 import auth
 from app import app, sio
-from .constants import ASSET_NS
 from models import Asset
 from state.asset import asset_state
-from utils import FILE_DIR, logger
+from utils import logger
+from ..constants import ASSET_NS
+from .common import UploadData
+from .ddraft import ASSETS_DIR, handle_ddraft_file
 
 
 class AssetDict(TypedDict):
@@ -34,20 +36,6 @@ class AssetDict(TypedDict):
 class AssetExport(TypedDict):
     file_hashes: List[str]
     data: List[AssetDict]
-
-
-class UploadData(TypedDict):
-    uuid: str
-    name: str
-    directory: int
-    slice: int
-    totalSlices: int
-    data: bytes
-
-
-ASSETS_DIR = FILE_DIR / "static" / "assets"
-if not ASSETS_DIR.exists():
-    ASSETS_DIR.mkdir()
 
 
 @sio.on("connect", namespace=ASSET_NS)
@@ -254,8 +242,11 @@ async def assetmgmt_upload(sid: str, upload_data: UploadData):
 
     del asset_state.pending_file_upload_cache[upload_data["uuid"]]
 
-    if upload_data["name"].endswith(".paa"):
+    file_name = upload_data["name"]
+    if file_name.endswith(".paa"):
         await handle_paa_file(upload_data, data, sid)
+    elif file_name.endswith(".dd2vtt"):
+        await handle_ddraft_file(upload_data, data, sid)
     else:
         await handle_regular_file(upload_data, data, sid)
 

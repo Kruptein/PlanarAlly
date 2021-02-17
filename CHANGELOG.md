@@ -26,6 +26,7 @@ These usually have no immediately visible impact on regular users
     -   Now can be campaign-specific (with reset/make default options)
 -   Spell cone icon is now filled
 -   Ctrl keybindings now use Cmd on mac
+-   OpenSans font is now loaded from the server itself instead of google fonts
 
 ### Fixed
 

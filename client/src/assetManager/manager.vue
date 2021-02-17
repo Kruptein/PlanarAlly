@@ -11,6 +11,8 @@ import Prompt from "@/core/components/modals/prompt.vue";
 import { Asset } from "@/core/models/types";
 import { baseAdjust, uuidv4 } from "@/core/utils";
 
+import { ctrlOrCmdPressed } from "../game/input/keyboard";
+
 Component.registerHooks(["beforeRouteEnter"]);
 
 @Component({
@@ -89,7 +91,7 @@ export default class AssetManager extends Vue {
             }
             assetStore.selected.push(inodes[end]);
         } else {
-            if (!event.ctrlKey) {
+            if (!ctrlOrCmdPressed(event)) {
                 assetStore.clearSelected();
             }
             assetStore.selected.push(inode);

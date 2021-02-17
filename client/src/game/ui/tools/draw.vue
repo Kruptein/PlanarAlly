@@ -24,6 +24,7 @@ import { visibilityStore } from "@/game/visibility/store";
 import { TriangulationTarget, insertConstraint, getCDT } from "@/game/visibility/te/pa";
 
 import { EventBus } from "../../event-bus";
+import { ctrlOrCmdPressed } from "../../input/keyboard";
 import { overrideLastOperation } from "../../operations/undo";
 import { gameSettingsStore } from "../../settings";
 
@@ -412,7 +413,7 @@ export default class DrawTool extends Tool implements ToolBasics {
                     target: TriangulationTarget.VISION,
                     shape: this.shape.uuid,
                 });
-            this.shape.resizeToGrid(this.shape.getPointIndex(endPoint, l2gz(5)), event.ctrlKey);
+            this.shape.resizeToGrid(this.shape.getPointIndex(endPoint, l2gz(5)), ctrlOrCmdPressed(event));
             if (this.shape.visionObstruction) {
                 visibilityStore.addToTriag({ target: TriangulationTarget.VISION, shape: this.shape.uuid });
                 visibilityStore.recalculateVision(this.shape.floor.id);

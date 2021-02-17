@@ -18,6 +18,7 @@ import { TriangulationTarget } from "@/game/visibility/te/pa";
 
 import { InvalidationMode, SyncMode, SyncTo } from "../../../core/models/types";
 import { sendShapePositionUpdate, sendShapeSizeUpdate } from "../../api/emits/shape/core";
+import { ctrlOrCmdPressed } from "../../input/keyboard";
 import { Operation } from "../../operations/model";
 import { moveShapes } from "../../operations/movement";
 import { resizeShape } from "../../operations/resize";
@@ -221,7 +222,7 @@ export default class SelectTool extends Tool implements ToolBasics {
             }
             if (shape.contains(gp)) {
                 if (layerSelection.indexOf(shape) === -1) {
-                    if (event.ctrlKey) {
+                    if (ctrlOrCmdPressed(event)) {
                         layer.pushSelection(shape);
                     } else {
                         layer.setSelection(shape);
@@ -270,7 +271,7 @@ export default class SelectTool extends Tool implements ToolBasics {
                 this.selectionHelper.h = 0;
             }
 
-            if (!event.ctrlKey) {
+            if (!ctrlOrCmdPressed(event)) {
                 layer.setSelection();
             }
 
@@ -358,7 +359,7 @@ export default class SelectTool extends Tool implements ToolBasics {
                     [targetPoint, this.snappedToPoint] = snapToPoint(floorStore.currentLayer!, gp, ignorePoint);
                 else this.snappedToPoint = false;
 
-                this.resizePoint = resizeShape(shape, targetPoint, this.resizePoint, event.ctrlKey, true);
+                this.resizePoint = resizeShape(shape, targetPoint, this.resizePoint, ctrlOrCmdPressed(event), true);
                 this.updateCursor(layer, gp);
             } else if (this.mode === SelectOperations.Rotate) {
                 const center = this.rotationBox!.center();
@@ -395,7 +396,7 @@ export default class SelectTool extends Tool implements ToolBasics {
         if (layerSelection.some((s) => s.isLocked)) return;
 
         if (this.mode === SelectOperations.GroupSelect) {
-            if (event.ctrlKey) {
+            if (ctrlOrCmdPressed(event)) {
                 // If either control or shift are pressed, do not remove selection
             } else {
                 layer.clearSelection();
@@ -515,7 +516,7 @@ export default class SelectTool extends Tool implements ToolBasics {
                                 target: TriangulationTarget.MOVEMENT,
                                 shape: sel.uuid,
                             });
-                        sel.resizeToGrid(this.resizePoint, event.ctrlKey);
+                        sel.resizeToGrid(this.resizePoint, ctrlOrCmdPressed(event));
                         if (sel.visionObstruction) {
                             visibilityStore.addToTriag({ target: TriangulationTarget.VISION, shape: sel.uuid });
                             recalcVision = true;
@@ -532,7 +533,7 @@ export default class SelectTool extends Tool implements ToolBasics {
                     if (this.operationList?.type === "resize") {
                         this.operationList.toPoint = l2g(lp).asArray();
                         this.operationList.resizePoint = this.resizePoint;
-                        this.operationList.retainAspectRatio = event.ctrlKey;
+                        this.operationList.retainAspectRatio = ctrlOrCmdPressed(event);
                         this.operationReady = true;
                     }
 

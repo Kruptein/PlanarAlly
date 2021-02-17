@@ -24,7 +24,7 @@ export function onKeyUp(event: KeyboardEvent): void {
             const selection = l.getSelection({ includeComposites: true });
             deleteShapes(selection, SyncMode.FULL_SYNC);
         }
-        if (event.key === " " || (event.code === "Numpad0" && !event.ctrlKey)) {
+        if (event.key === " " || (event.code === "Numpad0" && !ctrlOrCmdPressed(event))) {
             // Spacebar or numpad-zero: cycle through own tokens
             // numpad-zero only if Ctrl is not pressed, as this would otherwise conflict with Ctrl + 0
             const tokens = gameStore.ownedtokens.map((o) => layerManager.UUIDMap.get(o)!);
@@ -43,10 +43,10 @@ export function onKeyUp(event: KeyboardEvent): void {
     }
 }
 
-export async function onKeyDown(event: KeyboardEvent): Promise<void> {
+export function onKeyDown(event: KeyboardEvent): void {
     if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement) {
         // Ctrl-a with a HTMLInputElement or a HTMLTextAreaElement selected - select all the text
-        if (event.key === "a" && event.ctrlKey) event.target.select();
+        if (event.key === "a" && ctrlOrCmdPressed(event)) event.target.select();
     } else {
         const navKeys = [
             "ArrowLeft",
@@ -122,7 +122,7 @@ export async function onKeyDown(event: KeyboardEvent): Promise<void> {
         } else if (event.key === "d") {
             // d - Deselect all
             layerManager.clearSelection();
-        } else if (event.key === "l" && event.ctrlKey) {
+        } else if (event.key === "l" && ctrlOrCmdPressed(event)) {
             const selection = layerManager.getSelection({ includeComposites: true });
             for (const shape of selection) {
                 // This and GroupSettings are the only places currently where we would need to update both UI and Server.
@@ -135,12 +135,12 @@ export async function onKeyDown(event: KeyboardEvent): Promise<void> {
             }
             event.preventDefault();
             event.stopPropagation();
-        } else if (event.key === "u" && event.ctrlKey) {
+        } else if (event.key === "u" && ctrlOrCmdPressed(event)) {
             // Ctrl-u - disable and reenable the Interface
             event.preventDefault();
             event.stopPropagation();
             gameStore.toggleUI();
-        } else if (event.key === "0" && event.ctrlKey) {
+        } else if (event.key === "0" && ctrlOrCmdPressed(event)) {
             // Ctrl-0 or numpad 0 - Re-center/reset the viewport
             gameManager.setCenterPosition(new GlobalPoint(0, 0));
             sendClientLocationOptions();
@@ -161,18 +161,18 @@ export async function onKeyDown(event: KeyboardEvent): Promise<void> {
             gameManager.setCenterPosition(new GlobalPoint(targetX, targetY));
             sendClientLocationOptions();
             layerManager.invalidateAllFloors();
-        } else if (event.key === "c" && event.ctrlKey) {
+        } else if (event.key === "c" && ctrlOrCmdPressed(event)) {
             // Ctrl-c - Copy
             copyShapes();
-        } else if (event.key === "v" && event.ctrlKey) {
+        } else if (event.key === "v" && ctrlOrCmdPressed(event)) {
             // Ctrl-v - Paste
-            await pasteShapes();
-        } else if (event.key === "z" && event.ctrlKey) {
-            await undoOperation();
+            pasteShapes();
+        } else if (event.key === "z" && ctrlOrCmdPressed(event)) {
+            undoOperation();
             event.preventDefault();
             event.stopPropagation();
-        } else if (event.key === "Z" && event.ctrlKey) {
-            await redoOperation();
+        } else if (event.key === "Z" && ctrlOrCmdPressed(event)) {
+            redoOperation();
             event.preventDefault();
             event.stopPropagation();
         } else if (event.key === "PageUp" && floorStore.currentFloorindex < floorStore.floors.length - 1) {
@@ -222,4 +222,9 @@ function changeFloor(event: KeyboardEvent, targetFloor: number): void {
         floorStore.selectFloor({ targetFloor, sync: true });
     }
     if (event.shiftKey) for (const shape of selection) newLayer.pushSelection(shape);
+}
+
+export function ctrlOrCmdPressed(event: KeyboardEvent | MouseEvent | TouchEvent): boolean {
+    if (navigator.platform.includes("Mac")) return event.metaKey;
+    return event.ctrlKey;
 }

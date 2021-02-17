@@ -6,9 +6,18 @@ import { Prop, Watch } from "vue-property-decorator";
 import AssetPicker from "@/core/components/modals/AssetPicker.vue";
 import LabelManager from "@/game/ui/labels.vue";
 
-import { SyncTo } from "../../../../core/models/types";
-import { baseAdjustedFetch } from "../../../../core/utils";
+import { InvalidationMode, SyncMode, SyncTo } from "../../../../core/models/types";
+import { baseAdjustedFetch, uuidv4 } from "../../../../core/utils";
+import { GlobalPoint } from "../../../geom";
+import { layerManager } from "../../../layers/manager";
+import { floorStore } from "../../../layers/store";
+import { DDraftData } from "../../../models/ddraft";
+import { Aura } from "../../../shapes/interfaces";
+import { Asset } from "../../../shapes/variants/asset";
+import { Circle } from "../../../shapes/variants/circle";
+import { Polygon } from "../../../shapes/variants/polygon";
 import { gameStore } from "../../../store";
+import { l2gz } from "../../../units";
 import { visibilityStore } from "../../../visibility/store";
 import { ActiveShapeState, activeShapeStore } from "../../ActiveShapeStore";
 
@@ -34,6 +43,10 @@ export default class AccessSettings extends Vue {
 
     get showSvgSection(): boolean {
         return gameStore.IS_DM && this.shape.type === "assetrect";
+    }
+
+    get hasDDraftInfo(): boolean {
+        return "ddraft_format" in (this.shape.options ?? {});
     }
 
     @Watch("active")
@@ -109,6 +122,83 @@ export default class AccessSettings extends Vue {
         visibilityStore.recalculateVision(this.shape.floor!);
         this.hasPath = false;
     }
+
+    applyDDraft(): void {
+        const dDraftData = this.shape.options! as DDraftData;
+        const size = dDraftData.ddraft_resolution.pixels_per_grid;
+
+        const realShape = layerManager.UUIDMap.get(this.shape.uuid!)! as Asset;
+
+        const targetRP = realShape.refPoint;
+        const w = realShape.w;
+        const h = realShape.h;
+
+        const dW = w / (dDraftData.ddraft_resolution.map_size.x * size);
+        const dH = h / (dDraftData.ddraft_resolution.map_size.y * size);
+
+        console.log(dW, dH);
+        console.log(w, h, dDraftData.ddraft_resolution.map_size.x * size);
+
+        const fowLayer = layerManager.getLayer(floorStore.currentFloor, "fow")!;
+
+        for (const wall of dDraftData.ddraft_line_of_sight) {
+            const points = wall.map((w) => new GlobalPoint(targetRP.x + w.x * size * dW, targetRP.y + w.y * size * dH));
+            const shape = new Polygon(points[0], points.slice(1), { openPolygon: true, strokeColour: "red" });
+            shape.addOwner({ user: gameStore.username, access: { edit: true } }, SyncTo.UI);
+
+            shape.setVisionBlock(true, SyncTo.UI, false);
+            shape.setMovementBlock(true, SyncTo.UI, false);
+            fowLayer.addShape(shape, SyncMode.FULL_SYNC, InvalidationMode.NO);
+        }
+
+        for (const portal of dDraftData.ddraft_portals) {
+            const points = portal.bounds.map(
+                (w) => new GlobalPoint(targetRP.x + w.x * size * dW, targetRP.y + w.y * size * dH),
+            );
+            const shape = new Polygon(points[0], points.slice(1), { openPolygon: true, strokeColour: "blue" });
+            shape.addOwner({ user: gameStore.username, access: { edit: true } }, SyncTo.UI);
+
+            if (portal.closed) {
+                shape.setVisionBlock(true, SyncTo.UI, false);
+                shape.setMovementBlock(true, SyncTo.UI, false);
+            }
+            fowLayer.addShape(shape, SyncMode.FULL_SYNC, InvalidationMode.NO);
+        }
+
+        for (const light of dDraftData.ddraft_lights) {
+            const refPoint = new GlobalPoint(
+                targetRP.x + light.position.x * size * dW,
+                targetRP.y + light.position.y * size * dH,
+            );
+
+            const shape = new Circle(refPoint, l2gz(10));
+            shape.isInvisible = true;
+
+            const aura: Aura = {
+                uuid: uuidv4(),
+                active: true,
+                visionSource: true,
+                visible: true,
+                name: "ddraft light source",
+                value: size * light.range,
+                dim: 0,
+                colour: light.color,
+                borderColour: "rgba(0, 0, 0, 0)",
+                angle: 360,
+                direction: 0,
+            };
+
+            shape.pushAura(aura, SyncTo.UI);
+            shape.addOwner({ user: gameStore.username, access: { edit: true } }, SyncTo.UI);
+
+            realShape.layer.addShape(shape, SyncMode.FULL_SYNC, InvalidationMode.NO);
+        }
+
+        visibilityStore.recalculateVision(realShape.floor.id);
+        visibilityStore.recalculateMovement(realShape.floor.id);
+        fowLayer.invalidate(false);
+        realShape.layer.invalidate(false);
+    }
 }
 </script>
 
@@ -161,6 +251,10 @@ export default class AccessSettings extends Vue {
             <template v-else>
                 <label for="edit_dialog-extra-upload_walls">Remove walls (svg)</label>
                 <button id="edit_dialog-extra-upload_walls" @click="removeSvg">Remove</button>
+            </template>
+            <template v-if="hasDDraftInfo">
+                <label for="edit_dialog-extra-upload_walls">Apply ddraft info</label>
+                <button id="edit_dialog-extra-upload_walls" @click="applyDDraft">Apply</button>
             </template>
         </template>
     </div>

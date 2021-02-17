@@ -166,13 +166,11 @@ export async function onKeyDown(event: KeyboardEvent): Promise<void> {
             copyShapes();
         } else if (event.key === "v" && event.ctrlKey) {
             // Ctrl-v - Paste
-            await pasteShapes();
-        } else if (event.key === "z" && event.ctrlKey) {
-            await undoOperation();
+            pasteShapes();
+            undoOperation();
             event.preventDefault();
             event.stopPropagation();
-        } else if (event.key === "Z" && event.ctrlKey) {
-            await redoOperation();
+            redoOperation();
             event.preventDefault();
             event.stopPropagation();
         } else if (event.key === "PageUp" && floorStore.currentFloorindex < floorStore.floors.length - 1) {

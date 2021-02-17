@@ -47,15 +47,15 @@ export function clearUndoStacks(): void {
     redoStack = [];
 }
 
-export async function undoOperation(): Promise<void> {
-    await handleOperation("undo");
+export function undoOperation(): void {
+    handleOperation("undo");
 }
 
-export async function redoOperation(): Promise<void> {
-    await handleOperation("redo");
+export function redoOperation(): void {
+    handleOperation("redo");
 }
 
-async function handleOperation(direction: "undo" | "redo"): Promise<void> {
+function handleOperation(direction: "undo" | "redo"): void {
     operationInProgress = true;
     const op = direction === "undo" ? undoStack.pop() : redoStack.pop();
     if (op !== undefined) {
@@ -73,9 +73,9 @@ async function handleOperation(direction: "undo" | "redo"): Promise<void> {
         } else if (op.type === "layermovement") {
             handleLayerMove(op.shapes, op.from, op.to, direction);
         } else if (op.type === "shaperemove") {
-            await handleShapeRemove(op.shapes, direction);
+            handleShapeRemove(op.shapes, direction);
         } else if (op.type === "shapeadd") {
-            await handleShapeRemove(op.shapes, direction === "redo" ? "undo" : "redo");
+            handleShapeRemove(op.shapes, direction === "redo" ? "undo" : "redo");
         }
     }
     operationInProgress = false;
@@ -127,9 +127,9 @@ function handleLayerMove(shapes: string[], from: string, to: string, direction: 
     moveLayer(fullShapes, layer, true);
 }
 
-async function handleShapeRemove(shapes: ServerShape[], direction: "undo" | "redo"): Promise<void> {
+function handleShapeRemove(shapes: ServerShape[], direction: "undo" | "redo"): void {
     if (direction === "undo") {
-        for (const shape of shapes) await gameManager.addShape(shape, SyncMode.FULL_SYNC);
+        for (const shape of shapes) gameManager.addShape(shape, SyncMode.FULL_SYNC);
     } else {
         deleteShapes(
             shapes.map((s) => layerManager.UUIDMap.get(s.uuid)!),

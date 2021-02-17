@@ -131,14 +131,9 @@ export default class AccessSettings extends Vue {
         const realShape = layerManager.UUIDMap.get(this.shape.uuid!)! as Asset;
 
         const targetRP = realShape.refPoint;
-        const w = realShape.w;
-        const h = realShape.h;
 
-        const dW = w / (dDraftData.ddraft_resolution.map_size.x * size);
-        const dH = h / (dDraftData.ddraft_resolution.map_size.y * size);
-
-        console.log(dW, dH);
-        console.log(w, h, dDraftData.ddraft_resolution.map_size.x * size);
+        const dW = realShape.w / (dDraftData.ddraft_resolution.map_size.x * size);
+        const dH = realShape.h / (dDraftData.ddraft_resolution.map_size.y * size);
 
         const fowLayer = layerManager.getLayer(floorStore.currentFloor, "fow")!;
 

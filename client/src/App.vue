@@ -31,7 +31,10 @@ export default class App extends Vue {
 </template>
 
 <style>
-@import url("https://fonts.googleapis.com/css?family=Open+Sans");
+@font-face {
+    font-family: "Open Sans";
+    src: local("OpenSans"), url("./core/fonts/OpenSans-Regular.ttf") format("truetype");
+}
 
 body {
     overscroll-behavior: contain;

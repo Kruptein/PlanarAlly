@@ -12,11 +12,12 @@ import { GlobalPoint } from "../../../geom";
 import { layerManager } from "../../../layers/manager";
 import { floorStore } from "../../../layers/store";
 import { DDraftData } from "../../../models/ddraft";
+import { gameSettingsStore } from "../../../settings";
 import { Aura } from "../../../shapes/interfaces";
 import { Asset } from "../../../shapes/variants/asset";
 import { Circle } from "../../../shapes/variants/circle";
 import { Polygon } from "../../../shapes/variants/polygon";
-import { gameStore } from "../../../store";
+import { DEFAULT_GRID_SIZE, gameStore } from "../../../store";
 import { l2gz } from "../../../units";
 import { visibilityStore } from "../../../visibility/store";
 import { ActiveShapeState, activeShapeStore } from "../../ActiveShapeStore";
@@ -180,9 +181,9 @@ export default class AccessSettings extends Vue {
                 visionSource: true,
                 visible: true,
                 name: "ddraft light source",
-                value: size * light.range,
+                value: light.range * gameSettingsStore.unitSize * (DEFAULT_GRID_SIZE / size),
                 dim: 0,
-                colour: light.color,
+                colour: `#${light.color}`,
                 borderColour: "rgba(0, 0, 0, 0)",
                 angle: 360,
                 direction: 0,

@@ -16,6 +16,8 @@ These usually have no immediately visible impact on regular users
 -   Big red border when disconnected
 -   Option to make other players (co-)DM
 -   Show a small info popup when trying to join a locked session
+-   Support for dungeondraft dd2vtt files
+    -   When placed on the board, a special 'apply ddraft' button is available in the extra settings to load the walls/portals/lights
 
 ### Changed
 

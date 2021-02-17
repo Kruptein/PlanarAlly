@@ -27,7 +27,7 @@ import { DEFAULT_GRID_SIZE } from "../store";
 import { Floor } from "./floor";
 import { floorStore, getFloorId, newFloorId } from "./store";
 
-export async function addFloor(serverFloor: ServerFloor): Promise<void> {
+export function addFloor(serverFloor: ServerFloor): void {
     const floor: Floor = {
         id: newFloorId(),
         name: serverFloor.name,
@@ -35,7 +35,7 @@ export async function addFloor(serverFloor: ServerFloor): Promise<void> {
     };
     floorStore.addFloor({ floor, targetIndex: serverFloor.index });
     addCDT(getFloorId(serverFloor.name));
-    for (const layer of serverFloor.layers) await createLayer(layer, floor);
+    for (const layer of serverFloor.layers) createLayer(layer, floor);
     visibilityStore.recalculateVision(getFloorId(floor.name));
     visibilityStore.recalculateMovement(getFloorId(floor.name));
 
@@ -71,7 +71,7 @@ export function removeFloor(floorId: number): void {
     floorStore.removeFloor(floor);
 }
 
-async function createLayer(layerInfo: ServerLayer, floor: Floor): Promise<void> {
+function createLayer(layerInfo: ServerLayer, floor: Floor): void {
     // Create canvas element
     const canvas = document.createElement("canvas");
     canvas.width = window.innerWidth;
@@ -106,7 +106,7 @@ async function createLayer(layerInfo: ServerLayer, floor: Floor): Promise<void> 
     }
 
     // Load layer shapes
-    await layer.setServerShapes(layerInfo.shapes);
+    layer.setServerShapes(layerInfo.shapes);
 }
 
 export async function dropAsset(

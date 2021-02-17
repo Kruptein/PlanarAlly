@@ -13,11 +13,15 @@ import { gameSettingsStore } from "../settings";
 
 import { createEmptyAura, createEmptyTracker } from "./trackers/empty";
 
-export function applyTemplate<T extends ServerShape>(shape: T, template: BaseTemplate): T {
+export function applyTemplate<T extends ServerShape>(shape: T, template: BaseTemplate & { options?: string }): T {
     // should be shape[key], but this is something that TS cannot correctly infer (issue #31445)
     for (const key of BaseTemplateStrings) {
         if (key in template) (shape as any)[key] = template[key];
     }
+
+    // Options are not to be copied to a template by default, which is why they're not part of BaseTemplate
+    // Some custom things do add options to a template and they should be set accordingly
+    if ("options" in template) shape.options = template.options;
 
     for (const trackerTemplate of template.trackers ?? []) {
         const defaultTracker = createEmptyTracker();

@@ -9,6 +9,12 @@ These usually have no immediately visible impact on regular users
 ## Unreleased
 
 ### Added
+-   Code to set a public hostname to be used when updating the invitation url by reading from server_config.cfg 
+    "general -> publicName".  If the publicName is empty or does not exists it falls back to normal operation.
+-   Added code to planarally.py to display the warning about the template directory if not running in 
+    dev mode.
+
+### Added
 
 -   Client setting to disable zoom behaviour on scroll
 -   Erase option to draw tool

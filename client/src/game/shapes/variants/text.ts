@@ -8,12 +8,10 @@ import { SHAPE_TYPE } from "../types";
 
 export class Text extends Shape {
     type: SHAPE_TYPE = "text";
-    text: string;
-    font: string;
     constructor(
         position: GlobalPoint,
-        text: string,
-        font: string,
+        public text: string,
+        public fontSize: number,
         options?: {
             fillColour?: string;
             strokeColour?: string;
@@ -21,14 +19,12 @@ export class Text extends Shape {
         },
     ) {
         super(position, options);
-        this.text = text;
-        this.font = font;
     }
 
     asDict(): ServerText {
         return Object.assign(this.getBaseDict(), {
             text: this.text,
-            font: this.font,
+            font: "",
             angle: this.angle,
         });
     }

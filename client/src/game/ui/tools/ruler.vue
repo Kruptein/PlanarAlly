@@ -101,7 +101,7 @@ export default class RulerTool extends Tool implements ToolBasics {
         }
         this.active = true;
         this.createNewRuler(this.startPoint.clone(), this.startPoint.clone());
-        this.text = new Text(this.startPoint.clone(), "", "bold 20px serif", {
+        this.text = new Text(this.startPoint.clone(), "", 20, {
             fillColour: "#000",
             strokeColour: "#fff",
         });

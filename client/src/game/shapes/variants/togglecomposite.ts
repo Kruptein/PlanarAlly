@@ -94,7 +94,8 @@ export class ToggleComposite extends Shape {
         this.active_variant = variant;
         const newVariant = layerManager.UUIDMap.get(this.active_variant)!;
 
-        if (newVariant.isToken) gameStore.addOwnedToken(newVariant.uuid);
+        if (newVariant.isToken && newVariant.ownedBy(false, { visionAccess: true }))
+            gameStore.addOwnedToken(newVariant.uuid);
         if (newVariant.movementObstruction)
             addBlocker(TriangulationTarget.MOVEMENT, newVariant.uuid, newVariant.floor.id, true);
         if (newVariant.visionObstruction)

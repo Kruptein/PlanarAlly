@@ -19,6 +19,8 @@ These usually have no immediately visible impact on regular users
 -   Option to load wall info from an accompanying svg file
 -   Support for dungeondraft dd2vtt files
     -   When placed on the board, a special 'apply ddraft' button is available in the extra settings to load the walls/portals/lights
+-   Text shape to the draw tool
+    -   When you click somewhere, a modal will appear to ask for the text
 
 ### Changed
 

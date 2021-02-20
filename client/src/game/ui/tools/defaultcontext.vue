@@ -43,7 +43,15 @@ export default class DefaultContext extends Vue {
         this.visible = true;
         this.x = event.pageX;
         this.y = event.pageY;
-        this.$nextTick(() => (this.$children[0].$el as HTMLElement).focus());
+        this.$nextTick(() => {
+            if (this.y + this.$el.clientHeight > window.innerHeight) {
+                this.y -= this.$el.clientHeight;
+            }
+            if (this.x + this.$el.clientWidth > window.innerWidth) {
+                this.x -= this.$el.clientWidth;
+            }
+            (this.$children[0].$el as HTMLElement).focus();
+        });
     }
 
     close(): void {

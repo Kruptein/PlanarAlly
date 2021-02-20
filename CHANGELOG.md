@@ -38,6 +38,7 @@ These usually have no immediately visible impact on regular users
 -   Cause of slow session loading times
     -   shape group info is now sent along during initial load
 -   Shapes with a variant always appearing to other players
+-   Context menus going offscreen
 
 ## [0.25.0] - 2021-02-07
 

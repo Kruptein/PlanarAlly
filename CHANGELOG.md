@@ -19,11 +19,12 @@ These usually have no immediately visible impact on regular users
 -   Option to load wall info from an accompanying svg file
 -   Support for dungeondraft dd2vtt files
     -   When placed on the board, a special 'apply ddraft' button is available in the extra settings to load the walls/portals/lights
+-   Text shape to the draw tool
+    -   When you click somewhere, a modal will appear to ask for the text
 -   Code to set a public hostname to be used when updating the invitation url by reading from server_config.cfg 
     "general -> public_name".  If the public_name is empty or does not exists it falls back to normal operation.
 -   Added code to planarally.py to display the warning about the template directory if not running in 
     dev mode.
-
 
 ### Changed
 

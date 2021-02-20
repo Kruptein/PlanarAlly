@@ -4,6 +4,7 @@ import { Watch } from "vue-property-decorator";
 import { mapGetters } from "vuex";
 
 import ColorPicker from "@/core/components/colorpicker.vue";
+import Prompt from "@/core/components/modals/prompt.vue";
 import { SyncMode, InvalidationMode, SyncTo } from "@/core/models/types";
 import { sendShapeSizeUpdate } from "@/game/api/emits/shape/core";
 import { GlobalPoint, LocalPoint } from "@/game/geom";
@@ -27,6 +28,7 @@ import { EventBus } from "../../event-bus";
 import { ctrlOrCmdPressed } from "../../input/keyboard";
 import { overrideLastOperation } from "../../operations/undo";
 import { gameSettingsStore } from "../../settings";
+import { Text } from "../../shapes/variants/text";
 
 import Tool from "./tool.vue";
 import { ToolBasics } from "./ToolBasics";
@@ -36,6 +38,7 @@ import { ToolName } from "./utils";
 @Component({
     components: {
         "color-picker": ColorPicker,
+        Prompt,
     },
     computed: {
         ...mapGetters("floor", ["currentFloor", "currentLayer"]),
@@ -43,6 +46,9 @@ import { ToolName } from "./utils";
 })
 export default class DrawTool extends Tool implements ToolBasics {
     $parent!: Tools;
+    $refs!: {
+        prompt: Prompt;
+    };
 
     name = ToolName.Draw;
     active = false;
@@ -56,13 +62,19 @@ export default class DrawTool extends Tool implements ToolBasics {
     borderColour = "rgba(255, 255, 255, 0)";
 
     shapeSelect = "square";
-    shapes = ["square", "circle", "draw-polygon", "paint-brush"];
+    shapes = ["square", "circle", "draw-polygon", "paint-brush", "font"];
     modeSelect = "normal";
     modes = ["normal", "reveal", "hide", "erase"];
+
+    // Polygon specific
 
     brushSize = 5;
     closedPolygon = false;
     activeTool = false;
+
+    // Text specific
+
+    fontSize = 20;
 
     snappedToPoint = false;
 
@@ -205,7 +217,8 @@ export default class DrawTool extends Tool implements ToolBasics {
         return layerManager.getLayer(floorStore.currentFloor, "fow");
     }
 
-    onDown(lp: LocalPoint, event: MouseEvent | TouchEvent): void {
+    // eslint-disable-next-line
+    async onDown(lp: LocalPoint, event: MouseEvent | TouchEvent): Promise<void> {
         const startPoint = l2g(lp);
         const layer = this.getLayer();
         if (layer === undefined) {
@@ -213,6 +226,7 @@ export default class DrawTool extends Tool implements ToolBasics {
             return;
         }
         if (this.brushHelper === undefined) return;
+
         if (!this.active) {
             this.startPoint = startPoint;
             this.active = true;
@@ -257,6 +271,19 @@ export default class DrawTool extends Tool implements ToolBasics {
                     });
                     break;
                 }
+                case "font": {
+                    event.preventDefault();
+                    const text = await this.$refs.prompt.prompt("What should the text say?", "New text");
+                    if (text === undefined) {
+                        this.active = false;
+                        return;
+                    }
+                    this.shape = new Text(this.brushHelper.refPoint.clone(), text, this.fontSize, {
+                        fillColour: this.fillColour,
+                        strokeColour: this.borderColour,
+                    });
+                    break;
+                }
                 default:
                     return;
             }
@@ -283,12 +310,15 @@ export default class DrawTool extends Tool implements ToolBasics {
             // Push brushhelper to back
             this.pushBrushBack();
         } else if (this.shape !== undefined && this.shapeSelect === "draw-polygon" && this.shape instanceof Polygon) {
-            // For polygon draw
+            // draw tool already active in polygon mode, add a new point to the polygon
+
             if (useSnapping(event) && !this.snappedToPoint)
                 this.brushHelper.refPoint = new GlobalPoint(clampGridLine(startPoint.x), clampGridLine(startPoint.y));
             this.shape._vertices.push(this.brushHelper.refPoint.clone());
             this.shape.updatePoints();
         }
+
+        // Start a ruler in polygon mode from the last point
         if (this.shape !== undefined && this.shapeSelect === "draw-polygon" && this.shape instanceof Polygon) {
             const lastPoint = this.brushHelper.refPoint;
             if (this.ruler === undefined) {
@@ -317,6 +347,11 @@ export default class DrawTool extends Tool implements ToolBasics {
                 );
             layer.invalidate(false);
             if (!this.shape!.preventSync) sendShapeSizeUpdate({ shape: this.shape!, temporary: true });
+        }
+
+        // Finalize the text shape
+        if (this.shape !== undefined && this.shapeSelect === "font") {
+            this.finaliseShape();
         }
     }
 
@@ -375,7 +410,7 @@ export default class DrawTool extends Tool implements ToolBasics {
             }
         }
 
-        if (!(this.shapeSelect === "draw-polygon" && this.shape instanceof Polygon)) {
+        if (this.shapeSelect !== "draw-polygon") {
             if (!this.shape!.preventSync) sendShapeSizeUpdate({ shape: this.shape!, temporary: true });
             if (this.shape.visionObstruction) {
                 if (
@@ -401,6 +436,7 @@ export default class DrawTool extends Tool implements ToolBasics {
         ) {
             return;
         }
+
         let endPoint = l2g(lp);
         if (useSnapping(event))
             [endPoint, this.snappedToPoint] = snapToPoint(this.getLayer()!, endPoint, this.ruler?.refPoint);
@@ -423,6 +459,7 @@ export default class DrawTool extends Tool implements ToolBasics {
                 visibilityStore.recalculateMovement(this.shape.floor.id);
             }
         }
+
         this.finaliseShape();
     }
 
@@ -463,6 +500,7 @@ export default class DrawTool extends Tool implements ToolBasics {
     }
 
     private finaliseShape(): void {
+        console.log("Finalizing shape");
         if (this.shape === undefined) return;
         this.shape.updatePoints();
         if (this.shape.points.length <= 1) {
@@ -596,6 +634,7 @@ export default class DrawTool extends Tool implements ToolBasics {
 
 <template>
     <div class="tool-detail" v-if="selected" :style="{ '--detailRight': detailRight(), '--detailArrow': detailArrow }">
+        <Prompt ref="prompt" />
         <div v-show="IS_DM" v-t="'game.ui.tools.draw.mode'"></div>
         <div v-show="IS_DM" class="selectgroup">
             <div
@@ -639,6 +678,10 @@ export default class DrawTool extends Tool implements ToolBasics {
         <div v-show="shapeSelect === 'draw-polygon'" style="display: flex">
             <label for="polygon-close" style="flex: 5" v-t="'game.ui.tools.draw.closed_polygon'"></label>
             <input type="checkbox" id="polygon-close" style="flex: 1; align-self: center" v-model="closedPolygon" />
+        </div>
+        <div v-show="shapeSelect === 'font'" style="display: flex">
+            <label for="font-size" style="flex: 5" v-t="'game.ui.tools.draw.font_size'"></label>
+            <input type="number" id="font-size" style="flex: 1; align-self: center" v-model="fontSize" />
         </div>
         <div v-show="hasBrushSize()" style="display: flex">
             <label for="brush-size" style="flex: 5" v-t="'game.ui.tools.draw.brush_size'"></label>

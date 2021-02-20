@@ -48,7 +48,8 @@ export default class PingTool extends Tool implements ToolBasics {
         this.cleanup();
     }
 
-    onDown(lp: LocalPoint): void {
+    // eslint-disable-next-line @typescript-eslint/require-await
+    async onDown(lp: LocalPoint): Promise<void> {
         this.cleanup();
         this.startPoint = l2g(lp);
         const layer = layerManager.getLayer(floorStore.currentFloor, "draw");

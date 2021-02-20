@@ -151,6 +151,12 @@ class CircleSizeData(TypedDict):
     temporary: bool
 
 
+class TextSizeData(TypedDict):
+    uuid: str
+    font_size: int
+    temporary: bool
+
+
 class OptionUpdate(TypedDict):
     uuid: str
     option: str

@@ -76,8 +76,7 @@ export interface ServerPolygon extends ServerShape {
 }
 export interface ServerText extends ServerShape {
     text: string;
-    font: string;
-    angle: number;
+    font_size: number;
 }
 
 export interface ServerToggleComposite extends ServerShape {

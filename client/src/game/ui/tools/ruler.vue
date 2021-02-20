@@ -88,7 +88,8 @@ export default class RulerTool extends Tool implements ToolBasics {
         this.cleanup();
     }
 
-    onDown(lp: LocalPoint, event: MouseEvent | TouchEvent): void {
+    // eslint-disable-next-line @typescript-eslint/require-await
+    async onDown(lp: LocalPoint, event: MouseEvent | TouchEvent): Promise<void> {
         this.cleanup();
         this.startPoint = l2g(lp);
 
@@ -101,10 +102,11 @@ export default class RulerTool extends Tool implements ToolBasics {
         }
         this.active = true;
         this.createNewRuler(this.startPoint.clone(), this.startPoint.clone());
-        this.text = new Text(this.startPoint.clone(), "", "bold 20px serif", {
+        this.text = new Text(this.startPoint.clone(), "", 20, {
             fillColour: "#000",
             strokeColour: "#fff",
         });
+        this.text.ignoreZoomSize = true;
         this.text.addOwner({ user: gameStore.username, access: { edit: true } }, SyncTo.SHAPE);
         layer.addShape(this.text, this.syncMode, InvalidationMode.NORMAL);
     }

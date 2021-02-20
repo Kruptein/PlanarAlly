@@ -1,19 +1,22 @@
-import { GlobalPoint } from "@/game/geom";
+import { GlobalPoint, Vector } from "@/game/geom";
 import { Shape } from "@/game/shapes/shape";
 import { BoundingRect } from "@/game/shapes/variants/boundingrect";
 
 import { ServerText } from "../../models/shapes";
+import { g2lz, l2gz } from "../../units";
 import { rotateAroundPoint } from "../../utils";
 import { SHAPE_TYPE } from "../types";
 
 export class Text extends Shape {
     type: SHAPE_TYPE = "text";
-    text: string;
-    font: string;
+
+    private width = 5;
+    private height = 5;
+
     constructor(
         position: GlobalPoint,
-        text: string,
-        font: string,
+        public text: string,
+        public fontSize: number,
         options?: {
             fillColour?: string;
             strokeColour?: string;
@@ -21,45 +24,64 @@ export class Text extends Shape {
         },
     ) {
         super(position, options);
-        this.text = text;
-        this.font = font;
     }
 
     asDict(): ServerText {
         return Object.assign(this.getBaseDict(), {
             text: this.text,
-            font: this.font,
+            font_size: this.fontSize,
             angle: this.angle,
         });
     }
 
     get points(): number[][] {
-        return [[...rotateAroundPoint(this.refPoint, this.center(), this.angle)]];
+        return this.getBoundingBox().points;
     }
 
     getBoundingBox(): BoundingRect {
-        return new BoundingRect(this.refPoint, 5, 5); // TODO: fix this bounding box
+        const bbox = new BoundingRect(
+            this.refPoint.add(new Vector(-this.width / 2, -this.height / 2)),
+            this.width,
+            this.height,
+        ); // TODO: fix this bounding box
+        bbox.angle = this.angle;
+        return bbox;
     }
 
     draw(ctx: CanvasRenderingContext2D): void {
         super.draw(ctx);
-        ctx.font = this.font;
+
+        const size = this.ignoreZoomSize ? this.fontSize : g2lz(this.fontSize);
+
+        ctx.font = `${size}px serif`;
         ctx.fillStyle = this.fillColour;
         ctx.textAlign = "center";
 
+        this.width = 0;
+        this.height = 0;
+
         for (const line of this.getLines(ctx)) {
+            const textInfo = ctx.measureText(line.text);
+            if (textInfo.width > this.width) this.width = textInfo.width;
+            this.height += textInfo.actualBoundingBoxAscent + textInfo.actualBoundingBoxDescent;
+
             if (this.strokeColour !== "rgba(0,0,0,0)") {
                 ctx.strokeStyle = this.strokeColour;
                 ctx.strokeText(line.text, line.x, line.y);
             }
             ctx.fillText(line.text, line.x, line.y);
         }
-        // ctx.restore();
+
+        if (this.width === 0) this.width = 5;
+        else this.width = l2gz(this.width);
+        if (this.height === 0) this.height = 5;
+        else this.height = l2gz(this.height);
+
         super.drawPost(ctx);
     }
 
-    contains(_point: GlobalPoint): boolean {
-        return false; // TODO
+    contains(point: GlobalPoint): boolean {
+        return this.getBoundingBox().contains(point);
     }
 
     center(): GlobalPoint;
@@ -78,8 +100,40 @@ export class Text extends Shape {
     // eslint-disable-next-line @typescript-eslint/no-empty-function
     resizeToGrid(): void {}
     // eslint-disable-next-line @typescript-eslint/no-empty-function
-    resize(resizePoint: number, _point: GlobalPoint): number {
-        return resizePoint;
+    resize(resizePoint: number, point: GlobalPoint): number {
+        point = rotateAroundPoint(point, this.center(), -this.angle);
+
+        const oldPoints = this.points;
+
+        let newWidth;
+
+        switch (resizePoint) {
+            case 0:
+            case 1: {
+                newWidth = this.refPoint.x + this.width / 2 - point.x;
+                break;
+            }
+            case 2:
+            case 3: {
+                newWidth = point.x - (this.refPoint.x - this.width / 2);
+                break;
+            }
+            default:
+                newWidth = this.width;
+        }
+
+        this.fontSize *= newWidth / this.width;
+
+        const newResizePoint = (resizePoint + 4) % 4;
+        const oppositeNRP = (newResizePoint + 2) % 4;
+
+        const vec = Vector.fromPoints(
+            GlobalPoint.fromArray(this.points[oppositeNRP]),
+            GlobalPoint.fromArray(oldPoints[oppositeNRP]),
+        );
+        this.refPoint = this.refPoint.add(vec);
+
+        return newResizePoint;
     }
 
     getMaxHeight(ctx: CanvasRenderingContext2D): number {

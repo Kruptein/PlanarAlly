@@ -13,7 +13,7 @@ When writing migrations make sure that these things are respected:
     - e.g. a column added to Circle also needs to be added to CircularToken
 """
 
-SAVE_VERSION = 55
+SAVE_VERSION = 56
 
 import json
 import logging
@@ -851,6 +851,17 @@ def upgrade(version):
         with db.atomic():
             db.execute_sql(
                 "ALTER TABLE shape ADD COLUMN ignore_zoom_size INTEGER DEFAULT 0"
+            )
+    elif version == 55:
+        # Remove Text.font and add Text.font_size
+        with db.atomic():
+            db.execute_sql("CREATE TEMPORARY TABLE _text_55 AS SELECT * FROM text")
+            db.execute_sql("DROP TABLE text")
+            db.execute_sql(
+                'CREATE TABLE IF NOT EXISTS "text" ("shape_id" TEXT NOT NULL PRIMARY KEY, "text" TEXT NOT NULL, "font_size" INTEGER NOT NULL, FOREIGN KEY ("shape_id") REFERENCES "shape" ("uuid") ON DELETE CASCADE);'
+            )
+            db.execute_sql(
+                "INSERT INTO text (shape_id, text, font_size) SELECT shape_id, text, 20 FROM _text_55"
             )
     else:
         raise UnknownVersionException(

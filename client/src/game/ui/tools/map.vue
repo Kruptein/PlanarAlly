@@ -157,7 +157,8 @@ export default class MapTool extends Tool implements ToolBasics {
         this.removeRect();
     }
 
-    onDown(lp: LocalPoint): void {
+    // eslint-disable-next-line @typescript-eslint/require-await
+    async onDown(lp: LocalPoint): Promise<void> {
         if (!this.manualDrag) return;
         if (this.rect !== undefined || !layerManager.hasSelection()) return;
 

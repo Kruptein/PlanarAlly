@@ -55,8 +55,8 @@ export default class Tool extends Vue implements ToolBasics {
         this.defaultKeyUp(event);
     }
 
-    onMouseDown(event: MouseEvent | TouchEvent, features: ToolFeatures): void {
-        this.onDown(getLocalPointFromEvent(event), event, features);
+    async onMouseDown(event: MouseEvent | TouchEvent, features: ToolFeatures): Promise<void> {
+        await this.onDown(getLocalPointFromEvent(event), event, features);
     }
     onMouseUp(event: MouseEvent, features: ToolFeatures): void {
         this.onUp(getLocalPointFromEvent(event), event, features);
@@ -81,7 +81,7 @@ export default class Tool extends Vue implements ToolBasics {
 
     onSelect(): void {}
     onDeselect(): void {}
-    onDown(_lp: LocalPoint, _event: MouseEvent | TouchEvent, _features: ToolFeatures): void {}
+    async onDown(_lp: LocalPoint, _event: MouseEvent | TouchEvent, _features: ToolFeatures): Promise<void> {}
     onUp(_lp: LocalPoint, _event: MouseEvent | TouchEvent, _features: ToolFeatures): void {}
     onMove(_lp: LocalPoint, _event: MouseEvent | TouchEvent, _features: ToolFeatures): void {}
     onToolsModeChange(mode: "Build" | "Play", _features: ToolFeatures): void {

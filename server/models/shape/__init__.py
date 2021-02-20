@@ -270,7 +270,7 @@ class Rect(BaseRect):
 
 class Text(ShapeType):
     text = TextField()
-    font = TextField()
+    font_size = IntegerField()
 
 
 class ToggleComposite(ShapeType):

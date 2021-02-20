@@ -85,6 +85,9 @@ export abstract class Shape {
     fillColour: string;
     strokeColour: string;
     strokeWidth = 5;
+    // When set to true this shape should not use g2lz converting logic for its sizing
+    // This is used for things like the ruler, which should always have the same size irregardles of zoom state
+    ignoreZoomSize = false;
     // The optional name associated with the shape
     name = "Unknown shape";
     nameVisible = true;
@@ -337,6 +340,7 @@ export abstract class Shape {
             default_vision_access: this.defaultAccess.vision,
             asset: this.assetId,
             group: this.groupId,
+            ignore_zoom_size: this.ignoreZoomSize,
         };
     }
     fromDict(data: ServerShape): void {
@@ -359,6 +363,9 @@ export abstract class Shape {
         this.showBadge = data.show_badge;
         this.isLocked = data.is_locked;
         this.annotationVisible = data.annotation_visible;
+
+        this.ignoreZoomSize = data.ignore_zoom_size;
+
         if (data.annotation) {
             this.annotation = data.annotation;
         }

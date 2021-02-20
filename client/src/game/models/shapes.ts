@@ -35,6 +35,7 @@ export interface ServerShape {
     default_vision_access: boolean;
     asset?: number;
     group?: string;
+    ignore_zoom_size: boolean;
 }
 
 interface ServerShapeAccess {

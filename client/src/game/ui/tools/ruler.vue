@@ -9,7 +9,7 @@ import { snapToGridPoint } from "@/game/layers/utils";
 import { Line } from "@/game/shapes/variants/line";
 import { gameStore, DEFAULT_GRID_SIZE } from "@/game/store";
 import Tool from "@/game/ui/tools/tool.vue";
-import { l2g, l2gz } from "@/game/units";
+import { l2g } from "@/game/units";
 import { useSnapping } from "@/game/utils";
 
 import { SyncMode, InvalidationMode, SyncTo } from "../../../core/models/types";
@@ -161,9 +161,10 @@ export default class RulerTool extends Tool implements ToolBasics {
 
     createNewRuler(start: GlobalPoint, end: GlobalPoint): void {
         const ruler = new Line(start, end, {
-            lineWidth: l2gz(3),
+            lineWidth: 5,
             strokeColour: gameStore.rulerColour,
         });
+        ruler.ignoreZoomSize = true;
 
         const layer = layerManager.getLayer(floorStore.currentFloor, "draw");
         if (layer === undefined) {

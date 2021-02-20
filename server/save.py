@@ -13,7 +13,7 @@ When writing migrations make sure that these things are respected:
     - e.g. a column added to Circle also needs to be added to CircularToken
 """
 
-SAVE_VERSION = 54
+SAVE_VERSION = 55
 
 import json
 import logging
@@ -845,6 +845,12 @@ def upgrade(version):
             )
             data = db.execute_sql(
                 "UPDATE user_options SET disable_scroll_to_zoom = NULL WHERE id NOT IN (SELECT default_options_id FROM user)"
+            )
+    elif version == 54:
+        # Add Shape.ignore_zoom_size
+        with db.atomic():
+            db.execute_sql(
+                "ALTER TABLE shape ADD COLUMN ignore_zoom_size INTEGER DEFAULT 0"
             )
     else:
         raise UnknownVersionException(

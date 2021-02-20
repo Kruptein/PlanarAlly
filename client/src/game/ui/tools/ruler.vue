@@ -161,9 +161,10 @@ export default class RulerTool extends Tool implements ToolBasics {
 
     createNewRuler(start: GlobalPoint, end: GlobalPoint): void {
         const ruler = new Line(start, end, {
-            lineWidth: l2gz(3),
+            lineWidth: 5,
             strokeColour: gameStore.rulerColour,
         });
+        ruler.ignoreZoomSize = true;
 
         const layer = layerManager.getLayer(floorStore.currentFloor, "draw");
         if (layer === undefined) {

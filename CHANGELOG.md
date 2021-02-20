@@ -28,6 +28,7 @@ These usually have no immediately visible impact on regular users
 -   Spell cone icon is now filled
 -   Ctrl keybindings now use Cmd on mac
 -   OpenSans font is now loaded from the server itself instead of google fonts
+-   Ruler size is now always fixed in regards to the zoom scale
 
 ### Fixed
 

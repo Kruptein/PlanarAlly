@@ -62,6 +62,8 @@ class GameStore extends VuexModule implements GameState {
     roomName = "";
     roomCreator = "";
     invitationCode = "";
+    publicName = window.location.host;
+
     players: Player[] = [];
 
     defaultClientOptions: UserOptions = {
@@ -245,6 +247,12 @@ class GameStore extends VuexModule implements GameState {
     @Mutation
     setInvitationCode(code: string): void {
         this.invitationCode = code;
+    }
+
+    @Mutation
+    setPublicName(name: string): void {
+        if (!name.length) return;
+        this.publicName = name;
     }
 
     @Mutation

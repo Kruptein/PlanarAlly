@@ -34,7 +34,7 @@ export default class AdminSettings extends Vue {
     }
 
     get invitationUrl(): string {
-        return window.location.protocol + "//" + window.location.host + "/invite/" + gameStore.invitationCode;
+        return window.location.protocol + "//" + gameStore.publicName + "/invite/" + gameStore.invitationCode;
     }
     get locked(): boolean {
         return gameStore.isLocked;
@@ -53,6 +53,7 @@ export default class AdminSettings extends Vue {
         this.refreshState = "pending";
         this.showRefreshState = true;
     }
+
     kickPlayer(id: number): void {
         gameStore.kickPlayer(id);
     }

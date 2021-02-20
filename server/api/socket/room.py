@@ -28,7 +28,6 @@ async def refresh_invite_code(sid: str):
         namespace=GAME_NS,
     )
 
-
 @sio.on("Room.Info.Players.Kick", namespace=GAME_NS)
 @auth.login_required(app, sio)
 async def kick_player(sid: str, player_id: int):

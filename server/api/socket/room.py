@@ -17,7 +17,7 @@ async def refresh_invite_code(sid: str):
     if pr.role != Role.DM:
         logger.warning(f"{pr.player.name} attempted to refresh the invitation code.")
         return
-    #
+
     pr.room.invitation_code = uuid.uuid4()
     pr.room.save()
 

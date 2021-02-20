@@ -9,12 +9,6 @@ These usually have no immediately visible impact on regular users
 ## Unreleased
 
 ### Added
--   Code to set a public hostname to be used when updating the invitation url by reading from server_config.cfg 
-    "general -> publicName".  If the publicName is empty or does not exists it falls back to normal operation.
--   Added code to planarally.py to display the warning about the template directory if not running in 
-    dev mode.
-
-### Added
 
 -   Client setting to disable zoom behaviour on scroll
 -   Erase option to draw tool
@@ -24,6 +18,11 @@ These usually have no immediately visible impact on regular users
 -   Show a small info popup when trying to join a locked session
 -   Support for dungeondraft dd2vtt files
     -   When placed on the board, a special 'apply ddraft' button is available in the extra settings to load the walls/portals/lights
+-   Code to set a public hostname to be used when updating the invitation url by reading from server_config.cfg 
+    "general -> public_name".  If the public_name is empty or does not exists it falls back to normal operation.
+-   Added code to planarally.py to display the warning about the template directory if not running in 
+    dev mode.
+
 
 ### Changed
 

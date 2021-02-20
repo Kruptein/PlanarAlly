@@ -3,7 +3,7 @@ import { Shape } from "@/game/shapes/shape";
 import { BoundingRect } from "@/game/shapes/variants/boundingrect";
 
 import { ServerText } from "../../models/shapes";
-import { rotateAroundPoint } from "../../utils";
+import { g2lz } from "../../units";
 import { SHAPE_TYPE } from "../types";
 
 export class Text extends Shape {
@@ -39,7 +39,10 @@ export class Text extends Shape {
 
     draw(ctx: CanvasRenderingContext2D): void {
         super.draw(ctx);
-        ctx.font = this.font;
+
+        const size = this.ignoreZoomSize ? this.fontSize : g2lz(this.fontSize);
+
+        ctx.font = `${size}px serif`;
         ctx.fillStyle = this.fillColour;
         ctx.textAlign = "center";
 
@@ -50,7 +53,7 @@ export class Text extends Shape {
             }
             ctx.fillText(line.text, line.x, line.y);
         }
-        // ctx.restore();
+
         super.drawPost(ctx);
     }
 

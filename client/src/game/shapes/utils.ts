@@ -96,7 +96,7 @@ export function createShapeFromDict(shape: ServerShape): Shape | undefined {
         );
     } else if (shape.type_ === "text") {
         const text = shape as ServerText;
-        sh = new Text(refPoint, text.text, text.font, {
+        sh = new Text(refPoint, text.text, text.font_size, {
             fillColour: text.fill_colour,
             strokeColour: text.stroke_colour,
             uuid: text.uuid,

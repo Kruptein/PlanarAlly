@@ -92,7 +92,8 @@ export default class SpellTool extends Tool implements ToolBasics {
         }
     }
 
-    onDown(): void {
+    // eslint-disable-next-line @typescript-eslint/require-await
+    async onDown(): Promise<void> {
         if (this.shape === undefined) return;
         const layer = this.getLayer();
         if (layer === undefined) {

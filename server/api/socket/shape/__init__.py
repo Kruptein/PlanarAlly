@@ -441,6 +441,26 @@ async def update_circle_size(sid: str, data: CircleSizeData):
     )
 
 
+@sio.on("Shape.Text.Size.Update", namespace=GAME_NS)
+@auth.login_required(app, sio)
+async def update_text_size(sid: str, data: TextSizeData):
+    pr: PlayerRoom = game_state.get(sid)
+
+    if not data["temporary"]:
+        shape = Text.get_by_id(data["uuid"])
+
+        shape.font_size = data["font_size"]
+        shape.save()
+
+    await sio.emit(
+        "Shape.Text.Size.Update",
+        data,
+        room=pr.active_location.get_path(),
+        skip_sid=sid,
+        namespace=GAME_NS,
+    )
+
+
 @sio.on("Shapes.Options.Update", namespace=GAME_NS)
 @auth.login_required(app, sio)
 async def update_shape_options(sid: str, data: OptionUpdateList):

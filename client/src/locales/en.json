@@ -325,7 +325,8 @@
                     "background_color": "Background colour",
                     "mode": "Mode",
                     "closed_polygon": "Closed polygon?",
-                    "brush_size": "Brush size"
+                    "brush_size": "Brush size",
+                    "font_size": "Font size"
                 },
                 "filter": {
                     "no_category": "no category"

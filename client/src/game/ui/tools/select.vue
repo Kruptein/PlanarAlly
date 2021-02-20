@@ -147,7 +147,12 @@ export default class SelectTool extends Tool implements ToolBasics {
         this.$forceUpdate();
     }
 
-    onDown(lp: LocalPoint, event: MouseEvent | TouchEvent, features: ToolFeatures<SelectFeatures>): void {
+    // eslint-disable-next-line @typescript-eslint/require-await
+    async onDown(
+        lp: LocalPoint,
+        event: MouseEvent | TouchEvent,
+        features: ToolFeatures<SelectFeatures>,
+    ): Promise<void> {
         // if we only have context capabilities, immediately skip
         if (features.enabled?.length === 1 && features.enabled[0] === SelectFeatures.Context) return;
 

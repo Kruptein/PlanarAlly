@@ -9,7 +9,7 @@ import { snapToGridPoint } from "@/game/layers/utils";
 import { Line } from "@/game/shapes/variants/line";
 import { gameStore, DEFAULT_GRID_SIZE } from "@/game/store";
 import Tool from "@/game/ui/tools/tool.vue";
-import { l2g, l2gz } from "@/game/units";
+import { l2g } from "@/game/units";
 import { useSnapping } from "@/game/utils";
 
 import { SyncMode, InvalidationMode, SyncTo } from "../../../core/models/types";

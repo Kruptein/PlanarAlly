@@ -88,7 +88,8 @@ export default class RulerTool extends Tool implements ToolBasics {
         this.cleanup();
     }
 
-    onDown(lp: LocalPoint, event: MouseEvent | TouchEvent): void {
+    // eslint-disable-next-line @typescript-eslint/require-await
+    async onDown(lp: LocalPoint, event: MouseEvent | TouchEvent): Promise<void> {
         this.cleanup();
         this.startPoint = l2g(lp);
 

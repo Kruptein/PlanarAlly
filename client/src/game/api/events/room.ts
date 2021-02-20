@@ -16,6 +16,7 @@ socket.on(
         isLocked: boolean;
         default_options: ServerLocationOptions;
         players: { id: number; name: string; location: number; role: number }[];
+        publicName: string;
     }) => {
         let found = false;
         for (const player of data.players) {
@@ -34,6 +35,7 @@ socket.on(
         gameStore.setInvitationCode(data.invitationCode);
         gameStore.setIsLocked({ isLocked: data.isLocked, sync: false });
         gameStore.setPlayers(data.players);
+        gameStore.setPublicName(data.publicName);
         gameSettingsStore.setDefaultLocationOptions(optionsToClient(data.default_options));
         setLocationOptions(null, data.default_options);
     },
@@ -41,11 +43,6 @@ socket.on(
 
 socket.on("Room.Info.InvitationCode.Set", (invitationCode: string) => {
     gameStore.setInvitationCode(invitationCode);
-    EventBus.$emit("DmSettings.RefreshedInviteCode");
-});
-
-socket.on("Room.Info.PublicName.Set", (publicName: string) => {
-    gameStore.setPublicName(publicName);
     EventBus.$emit("DmSettings.RefreshedInviteCode");
 });
 

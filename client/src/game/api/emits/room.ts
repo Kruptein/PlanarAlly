@@ -10,7 +10,3 @@ export const sendRefreshInviteCode = (): void => {
 export const sendDeleteRoom = (): void => {
     socket.emit("Room.Delete");
 };
-
-export const sendRefreshPublicName = (): void => {
-    socket.emit("Room.Info.PublicName.Refresh");
-};

@@ -4,7 +4,7 @@ import Component from "vue-class-component";
 
 import InputCopyElement from "@/core/components/inputCopy.vue";
 import Prompt from "@/core/components/modals/prompt.vue";
-import { sendDeleteRoom, sendRefreshInviteCode, sendRefreshPublicName } from "@/game/api/emits/room";
+import { sendDeleteRoom, sendRefreshInviteCode } from "@/game/api/emits/room";
 import { EventBus } from "@/game/event-bus";
 import { getRoles } from "@/game/models/role";
 import { gameStore, Player } from "@/game/store";
@@ -24,7 +24,6 @@ export default class AdminSettings extends Vue {
     refreshState = "pending";
 
     mounted(): void {
-        this.refreshPublicName();
         EventBus.$on("DmSettings.RefreshedInviteCode", () => {
             this.showRefreshState = false;
         });
@@ -51,12 +50,6 @@ export default class AdminSettings extends Vue {
 
     refreshInviteCode(): void {
         sendRefreshInviteCode();
-        this.refreshState = "pending";
-        this.showRefreshState = true;
-    }
-
-    refreshPublicName(): void {
-        sendRefreshPublicName();
         this.refreshState = "pending";
         this.showRefreshState = true;
     }

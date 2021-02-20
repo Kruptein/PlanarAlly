@@ -7,7 +7,6 @@ from models import PlayerRoom
 from models.role import Role
 from state.game import game_state
 from utils import logger
-from config import config
 
 
 @sio.on("Room.Info.InviteCode.Refresh", namespace=GAME_NS)
@@ -28,26 +27,6 @@ async def refresh_invite_code(sid: str):
         room=sid,
         namespace=GAME_NS,
     )
-
-
-@sio.on("Room.Info.PublicName.Refresh", namespace=GAME_NS)
-@auth.login_required(app, sio)
-async def refresh_public_name (sid: str):
-    pr: PlayerRoom = game_state.get(sid)
-
-    if pr.role != Role.DM:
-        logger.warning(f"{pr.player.name} attempted to refresh the public name.")
-        return
-
-    #
-    publicName = config.get("General", "publicName", fallback = "")
-    if len (publicName) == 0:
-        logger.warning("refresh_invite_code : publicName not set")
-
-    #
-    await sio.emit ( "Room.Info.PublicName.Set", str(publicName), room=sid, namespace=GAME_NS )
-
-
 
 @sio.on("Room.Info.Players.Kick", namespace=GAME_NS)
 @auth.login_required(app, sio)

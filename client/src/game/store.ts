@@ -252,8 +252,6 @@ class GameStore extends VuexModule implements GameState {
     @Mutation
     setPublicName(name: string): void {
         if (!name.length) return;
-        console.log(name.length);
-        console.log(name);
         this.publicName = name;
     }
 

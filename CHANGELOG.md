@@ -22,6 +22,7 @@ These usually have no immediately visible impact on regular users
 -   Big red border when disconnected
 -   Option to make other players (co-)DM
 -   Show a small info popup when trying to join a locked session
+-   Option to load wall info from an accompanying svg file
 -   Support for dungeondraft dd2vtt files
     -   When placed on the board, a special 'apply ddraft' button is available in the extra settings to load the walls/portals/lights
 
@@ -33,6 +34,7 @@ These usually have no immediately visible impact on regular users
 -   Spell cone icon is now filled
 -   Ctrl keybindings now use Cmd on mac
 -   OpenSans font is now loaded from the server itself instead of google fonts
+-   Ruler size is now always fixed in regards to the zoom scale
 
 ### Fixed
 
@@ -42,6 +44,8 @@ These usually have no immediately visible impact on regular users
 -   Some cases where a disconnect would happen without reconnect attempts
 -   Cause of slow session loading times
     -   shape group info is now sent along during initial load
+-   Shapes with a variant always appearing to other players
+-   Context menus going offscreen
 
 ## [0.25.0] - 2021-02-07
 

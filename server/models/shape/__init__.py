@@ -58,6 +58,7 @@ class Shape(BaseModel):
     asset = ForeignKeyField(Asset, backref="shapes", null=True, default=None)
     group = ForeignKeyField(Group, backref="members", null=True, default=None)
     annotation_visible = BooleanField(default=False)
+    ignore_zoom_size = BooleanField(default=False)
 
     def __repr__(self):
         return f"<Shape {self.get_path()}>"

@@ -68,7 +68,7 @@ export class Line extends Shape {
         ctx.beginPath();
         ctx.moveTo(g2lx(this.refPoint.x) - center.x, g2ly(this.refPoint.y) - center.y);
         ctx.lineTo(g2lx(this.endPoint.x) - center.x, g2ly(this.endPoint.y) - center.y);
-        ctx.lineWidth = g2lz(this.lineWidth);
+        ctx.lineWidth = this.ignoreZoomSize ? this.lineWidth : g2lz(this.lineWidth);
         ctx.stroke();
         super.drawPost(ctx);
     }

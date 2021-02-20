@@ -105,6 +105,7 @@ export default class RulerTool extends Tool implements ToolBasics {
             fillColour: "#000",
             strokeColour: "#fff",
         });
+        this.text.ignoreZoomSize = true;
         this.text.addOwner({ user: gameStore.username, access: { edit: true } }, SyncTo.SHAPE);
         layer.addShape(this.text, this.syncMode, InvalidationMode.NORMAL);
     }

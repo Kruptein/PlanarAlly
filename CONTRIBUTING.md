@@ -8,6 +8,11 @@ PlanarAlly consists of a client and a server component. If you want to run a dev
 
 This project uses the gitflow branching strategy. This means that the master branch is intended for releases only. All pull requests should be done on the development branch.
 
+When making a pull request, make sure the code is formatted properly.
+
+For the server you can run `black .` in the server folder,
+for the client you can run `npm run lint` in the client folder.
+
 ## Server
 
 All code of the server is located in the `server` folder at the root level of the git repository.
@@ -35,6 +40,8 @@ To use the server together with a development version of the client instead use:
 `python planarserver.py dev`
 
 If both server and client are running you can launch PA by visiting http://localhost:8000
+
+It is strongly recommended to also install the devdependencies ('requirements-dev.txt) as this contains the formatter that is used for PA.
 
 ## Client
 

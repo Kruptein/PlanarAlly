@@ -25,8 +25,6 @@ socket.on("Shape.Options.VisionBlock.Set", wrapCall(Shape.prototype.setVisionBlo
 socket.on("Shape.Options.MovementBlock.Set", wrapCall(Shape.prototype.setMovementBlock));
 socket.on("Shape.Options.Locked.Set", wrapCall(Shape.prototype.setLocked));
 socket.on("Shape.Options.ShowBadge.Set", wrapCall(Shape.prototype.setShowBadge));
-socket.on("Shape.Options.Invisible.Set", wrapCall(Shape.prototype.setInvisible));
-socket.on("Shape.Options.Defeated.Set", wrapCall(Shape.prototype.setDefeated));
 
 socket.on("Shape.Options.Annotation.Set", wrapCall(Shape.prototype.setAnnotation));
 socket.on("Shape.Options.Label.Add", wrapCall(Shape.prototype.addLabel));

@@ -13,7 +13,7 @@ When writing migrations make sure that these things are respected:
     - e.g. a column added to Circle also needs to be added to CircularToken
 """
 
-SAVE_VERSION = 56
+SAVE_VERSION = 57
 
 import json
 import logging
@@ -862,6 +862,13 @@ def upgrade(version):
             )
             db.execute_sql(
                 "INSERT INTO text (shape_id, text, font_size) SELECT shape_id, text, 20 FROM _text_55"
+            )
+
+    elif version == 56:
+        # Add defeated toggle to shapes
+        with db.atomic():
+            db.execute_sql(
+                "ALTER TABLE shape ADD COLUMN is_defeated INTEGER NOT NULL DEFAULT 0"
             )
     else:
         raise UnknownVersionException(

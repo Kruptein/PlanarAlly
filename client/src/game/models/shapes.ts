@@ -26,6 +26,7 @@ export interface ServerShape {
     annotation_visible: boolean;
     is_token: boolean;
     is_invisible: boolean;
+    is_defeated: boolean;
     options?: string;
     badge: number;
     show_badge: boolean;

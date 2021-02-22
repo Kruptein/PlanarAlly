@@ -85,6 +85,26 @@ async def set_invisible(sid: str, data: ShapeSetBooleanValue):
         namespace=GAME_NS,
     )
 
+@sio.on("Shape.Options.Defeated.Set", namespace=GAME_NS)
+@auth.login_required(app, sio)
+async def set_defeated(sid: str, data: ShapeSetBooleanValue):
+    pr: PlayerRoom = game_state.get(sid)
+
+    shape = get_shape_or_none(pr, data["shape"], "Defeated.Set")
+    if shape is None:
+        return
+
+    shape.is_defeated = data["value"]
+    shape.save()
+
+    await sio.emit(
+        "Shape.Options.Defeated.Set",
+        data,
+        skip_sid=sid,
+        room=pr.active_location.get_path(),
+        namespace=GAME_NS,
+    )
+
 
 @sio.on("Shape.Options.Locked.Set", namespace=GAME_NS)
 @auth.login_required(app, sio)

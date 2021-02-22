@@ -16,6 +16,7 @@ export const BaseTemplateStrings = [
     "annotation",
     "is_token",
     "is_invisible",
+    "is_defeated",
     "show_badge",
     "is_locked",
     "default_edit_access",

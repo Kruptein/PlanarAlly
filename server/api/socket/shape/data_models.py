@@ -78,6 +78,7 @@ class ShapeKeys(TypedDict):
     annotation: str
     is_token: bool
     is_invisible: bool
+    is_defeated: bool
     options: Optional[str]
     badge: int
     show_badge: bool

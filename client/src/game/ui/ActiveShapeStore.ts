@@ -44,7 +44,9 @@ export interface ActiveShapeState {
     isToken: boolean;
     setIsToken(data: { isToken: boolean; syncTo: SyncTo }): void;
     isInvisible: boolean;
+    isDefeated: boolean;
     setIsInvisible(data: { isInvisible: boolean; syncTo: SyncTo }): void;
+    setIsDefeated(data: { isDefeated: boolean; syncTo: SyncTo }): void;
     strokeColour: string | undefined;
     setStrokeColour(data: { colour: string; syncTo: SyncTo }): void;
     fillColour: string | undefined;
@@ -126,6 +128,7 @@ class ActiveShapeStore extends VuexModule implements ActiveShapeState {
     private _nameVisible = false;
     private _isToken = false;
     private _isInvisible = false;
+    private _isDefeated = false;
     private _strokeColour: string | null = null;
     private _fillColour: string | null = null;
     private _visionObstruction = false;
@@ -257,6 +260,10 @@ class ActiveShapeStore extends VuexModule implements ActiveShapeState {
         return this._isInvisible;
     }
 
+    get isDefeated(): boolean {
+        return this._isDefeated;
+    }
+
     @Mutation
     setIsInvisible(data: { isInvisible: boolean; syncTo: SyncTo }): void {
         if (this._uuid === null) return;
@@ -266,6 +273,18 @@ class ActiveShapeStore extends VuexModule implements ActiveShapeState {
         if (data.syncTo !== SyncTo.UI) {
             const shape = layerManager.UUIDMap.get(this._uuid)!;
             shape.setInvisible(data.isInvisible, data.syncTo);
+        }
+    }
+
+    @Mutation
+    setIsDefeated(data: { isDefeated: boolean; syncTo: SyncTo }): void {
+        if (this._uuid === null) return;
+
+        this._isDefeated = data.isDefeated;
+
+        if (data.syncTo !== SyncTo.UI) {
+            const shape = layerManager.UUIDMap.get(this._uuid)!;
+            shape.setDefeated(data.isDefeated, data.syncTo);
         }
     }
 
@@ -745,6 +764,7 @@ class ActiveShapeStore extends VuexModule implements ActiveShapeState {
         this._nameVisible = shape.nameVisible;
         this._isToken = shape.isToken;
         this._isInvisible = shape.isInvisible;
+        this._isDefeated = shape.isDefeated;
         this._strokeColour = shape.strokeColour;
         this._fillColour = shape.fillColour;
         this._visionObstruction = shape.visionObstruction;
@@ -795,6 +815,7 @@ class ActiveShapeStore extends VuexModule implements ActiveShapeState {
         this._nameVisible = false;
         this._isToken = false;
         this._isInvisible = false;
+        this._isDefeated = false;
         this._strokeColour = null;
         this._fillColour = null;
         this._visionObstruction = false;

@@ -184,6 +184,7 @@
                         "edit_asset": "Edit asset",
                         "is_a_token": "Is a token",
                         "is_invisible": "Is invisible",
+                        "is_defeated": "Is defeated",
                         "is_locked": "Is locked",
                         "show_badge": "Show badge",
                         "show_annotation": "Is public",

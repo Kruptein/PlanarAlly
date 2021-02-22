@@ -25,6 +25,7 @@ These usually have no immediately visible impact on regular users
     "general -> public_name".  If the public_name is empty or does not exists it falls back to normal operation.
 -   Added code to planarally.py to display the warning about the template directory if not running in 
     dev mode.
+-   Added ability to put a cross through tokens to mark them as defeated using a toggle in the token properties or by selecting them and pressing 'x'
 
 ### Changed
 

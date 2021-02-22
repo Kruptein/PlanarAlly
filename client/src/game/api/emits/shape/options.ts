@@ -11,6 +11,7 @@ function sendSimpleShapeOption<T>(event: string): (data: { shape: string; value:
 }
 
 export const sendShapeSetInvisible = sendSimpleShapeOption<boolean>("Shape.Options.Invisible.Set");
+export const sendShapeSetDefeated = sendSimpleShapeOption<boolean>("Shape.Options.Defeated.Set");
 export const sendShapeSetLocked = sendSimpleShapeOption<boolean>("Shape.Options.Locked.Set");
 export const sendShapeSetIsToken = sendSimpleShapeOption<boolean>("Shape.Options.Token.Set");
 export const sendShapeSetBlocksMovement = sendSimpleShapeOption<boolean>("Shape.Options.MovementBlock.Set");

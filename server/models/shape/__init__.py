@@ -51,6 +51,7 @@ class Shape(BaseModel):
     default_edit_access = BooleanField(default=False)
     default_vision_access = BooleanField(default=False)
     is_invisible = BooleanField(default=False)
+    is_defeated = BooleanField(default=False)
     default_movement_access = BooleanField(default=False)
     is_locked = BooleanField(default=False)
     angle = FloatField(default=0)

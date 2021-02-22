@@ -37,6 +37,11 @@ export default class PropertySettings extends Vue {
         this.shape.setIsInvisible({ isInvisible: event.target.checked, syncTo: SyncTo.SERVER });
     }
 
+    setDefeated(event: { target: HTMLInputElement }): void {
+        if (!this.owned) return;
+        this.shape.setIsDefeated({ isDefeated: event.target.checked, syncTo: SyncTo.SERVER });
+    }
+
     setLocked(event: { target: HTMLInputElement }): void {
         if (!this.owned) return;
         this.shape.setLocked({ isLocked: event.target.checked, syncTo: SyncTo.SERVER });
@@ -112,6 +117,21 @@ export default class PropertySettings extends Vue {
                 id="shapeselectiondialog-is-invisible"
                 :checked="shape.isInvisible"
                 @click="setInvisible"
+                style="grid-column-start: toggle"
+                class="styled-checkbox"
+                :disabled="!owned"
+            />
+        </div>
+        <div class="row">
+            <label
+                for="shapeselectiondialog-is-defeated"
+                v-t="'game.ui.selection.edit_dialog.dialog.is_defeated'"
+            ></label>
+            <input
+                type="checkbox"
+                id="shapeselectiondialog-is-defeated"
+                :checked="shape.isDefeated"
+                @click="setDefeated"
                 style="grid-column-start: toggle"
                 class="styled-checkbox"
                 :disabled="!owned"

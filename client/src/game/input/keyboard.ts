@@ -122,6 +122,18 @@ export function onKeyDown(event: KeyboardEvent): void {
         } else if (event.key === "d") {
             // d - Deselect all
             layerManager.clearSelection();
+        } else if (event.key === "x") {
+            // x - Mark Defeated
+            const selection = layerManager.getSelection({ includeComposites: true });
+            for (const shape of selection) {
+                const isDefeated = !shape.isDefeated;
+                shape.setDefeated(isDefeated, SyncTo.SERVER);
+                if (activeShapeStore.uuid === shape.uuid) {
+                    activeShapeStore.setIsDefeated({ isDefeated, syncTo: SyncTo.UI });
+                }
+            }
+            event.preventDefault();
+            event.stopPropagation();
         } else if (event.key === "l" && ctrlOrCmdPressed(event)) {
             const selection = layerManager.getSelection({ includeComposites: true });
             for (const shape of selection) {

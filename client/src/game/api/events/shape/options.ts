@@ -18,13 +18,13 @@ socket.on("Shape.Options.Name.Set", wrapCall(Shape.prototype.setName));
 socket.on("Shape.Options.NameVisible.Set", wrapCall(Shape.prototype.setNameVisible));
 socket.on("Shape.Options.Token.Set", wrapCall(Shape.prototype.setIsToken));
 socket.on("Shape.Options.Invisible.Set", wrapCall(Shape.prototype.setInvisible));
+socket.on("Shape.Options.Defeated.Set", wrapCall(Shape.prototype.setDefeated));
 socket.on("Shape.Options.StrokeColour.Set", wrapCall(Shape.prototype.setStrokeColour));
 socket.on("Shape.Options.FillColour.Set", wrapCall(Shape.prototype.setFillColour));
 socket.on("Shape.Options.VisionBlock.Set", wrapCall(Shape.prototype.setVisionBlock));
 socket.on("Shape.Options.MovementBlock.Set", wrapCall(Shape.prototype.setMovementBlock));
 socket.on("Shape.Options.Locked.Set", wrapCall(Shape.prototype.setLocked));
 socket.on("Shape.Options.ShowBadge.Set", wrapCall(Shape.prototype.setShowBadge));
-socket.on("Shape.Options.Invisible.Set", wrapCall(Shape.prototype.setInvisible));
 
 socket.on("Shape.Options.Annotation.Set", wrapCall(Shape.prototype.setAnnotation));
 socket.on("Shape.Options.Label.Add", wrapCall(Shape.prototype.addLabel));
@@ -83,4 +83,10 @@ socket.on("Shape.Options.Invisible.Set", (data: { shape: string; value: boolean 
     const shape = layerManager.UUIDMap.get(data.shape);
     if (shape === undefined) return;
     shape.setInvisible(data.value, SyncTo.UI);
+});
+
+socket.on("Shape.Options.Defeated.Set", (data: { shape: string; value: boolean }) => {
+    const shape = layerManager.UUIDMap.get(data.shape);
+    if (shape === undefined) return;
+    shape.setDefeated(data.value, SyncTo.UI);
 });

@@ -42,6 +42,7 @@ import {
     sendShapeSetBlocksVision,
     sendShapeSetFillColour,
     sendShapeSetInvisible,
+    sendShapeSetDefeated,
     sendShapeSetIsToken,
     sendShapeSetLocked,
     sendShapeSetName,
@@ -107,6 +108,7 @@ export abstract class Shape {
     // Does this shape represent a playable token
     isToken = false;
     isInvisible = false;
+    isDefeated = false;
     // Show a highlight box
     showHighlight = false;
 
@@ -331,6 +333,7 @@ export abstract class Shape {
             annotation_visible: this.annotationVisible,
             is_token: this.isToken,
             is_invisible: this.isInvisible,
+            is_defeated: this.isDefeated,
             options: JSON.stringify([...this.options]),
             badge: this.badge,
             show_badge: this.showBadge,
@@ -358,6 +361,7 @@ export abstract class Shape {
         this.strokeColour = data.stroke_colour;
         this.isToken = data.is_token;
         this.isInvisible = data.is_invisible;
+        this.isDefeated = data.is_defeated;
         this.nameVisible = data.name_visible;
         this.badge = data.badge;
         this.showBadge = data.show_badge;
@@ -432,6 +436,21 @@ export abstract class Shape {
             if (bbox === undefined) bbox = this.getBoundingBox();
             ctx.strokeStyle = "red";
             ctx.strokeRect(g2lx(bbox.topLeft.x) - 5, g2ly(bbox.topLeft.y) - 5, g2lz(bbox.w) + 10, g2lz(bbox.h) + 10);
+        }
+        if (this.isDefeated) {
+            bbox = this.getBoundingBox();
+            const crossTL = g2l(bbox.topLeft);
+            const crossBR = g2l(bbox.botRight);
+            const r = g2lz(10);
+            ctx.strokeStyle = "red";
+            ctx.fillStyle = this.strokeColour;
+            ctx.lineWidth = g2lz(2);
+            ctx.beginPath();
+            ctx.moveTo(crossTL.x + r, crossTL.y + r);
+            ctx.lineTo(crossBR.x - r, crossBR.y - r);
+            ctx.moveTo(crossTL.x + r, crossBR.y - r);
+            ctx.lineTo(crossBR.x - r, crossTL.y + r);
+            ctx.stroke();
         }
     }
 
@@ -558,6 +577,14 @@ export abstract class Shape {
         if (syncTo === SyncTo.UI) this._(activeShapeStore.setIsInvisible, { isInvisible, syncTo });
 
         this.isInvisible = isInvisible;
+        this.invalidate(!this.triggersVisionRecalc);
+    }
+
+    setDefeated(isDefeated: boolean, syncTo: SyncTo): void {
+        if (syncTo === SyncTo.SERVER) sendShapeSetDefeated({ shape: this.uuid, value: isDefeated });
+        if (syncTo === SyncTo.UI) this._(activeShapeStore.setIsDefeated, { isDefeated, syncTo });
+
+        this.isDefeated = isDefeated;
         this.invalidate(!this.triggersVisionRecalc);
     }
 

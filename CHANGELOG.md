@@ -21,9 +21,9 @@ These usually have no immediately visible impact on regular users
     -   When placed on the board, a special 'apply ddraft' button is available in the extra settings to load the walls/portals/lights
 -   Text shape to the draw tool
     -   When you click somewhere, a modal will appear to ask for the text
--   Code to set a public hostname to be used when updating the invitation url by reading from server_config.cfg 
-    "general -> public_name".  If the public_name is empty or does not exists it falls back to normal operation.
--   Added code to planarally.py to display the warning about the template directory if not running in 
+-   Code to set a public hostname to be used when updating the invitation url by reading from server_config.cfg
+    "general -> public_name". If the public_name is empty or does not exists it falls back to normal operation.
+-   Added code to planarally.py to display the warning about the template directory if not running in
     dev mode.
 -   Added ability to put a cross through tokens to mark them as defeated using a toggle in the token properties or by selecting them and pressing 'x'
 
@@ -35,7 +35,8 @@ These usually have no immediately visible impact on regular users
 -   Spell cone icon is now filled
 -   Ctrl keybindings now use Cmd on mac
 -   OpenSans font is now loaded from the server itself instead of google fonts
--   Ruler size is now always fixed in regards to the zoom scale
+-   Ruler size is now always the same size on your screen irregardles of zoom
+-   Ping size is now always the same size on your screen irregardles of zoom
 
 ### Fixed
 

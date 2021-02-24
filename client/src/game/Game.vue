@@ -6,7 +6,7 @@ import Vue from "vue";
 import Component from "vue-class-component";
 import { Watch } from "vue-property-decorator";
 
-import ConfirmDialog from "@/core/components/modals/confirm.vue";
+import ConfirmDialog from "@/core/components/modals/ConfirmDialog.vue";
 import SelectionBox from "@/core/components/modals/SelectionBox.vue";
 import { coreStore } from "@/core/store";
 import { createConnection, socket } from "@/game/api/socket";

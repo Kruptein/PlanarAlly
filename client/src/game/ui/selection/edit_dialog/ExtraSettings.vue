@@ -4,7 +4,7 @@ import Component from "vue-class-component";
 import { Prop, Watch } from "vue-property-decorator";
 
 import AssetPicker from "@/core/components/modals/AssetPicker.vue";
-import LabelManager from "@/game/ui/labels.vue";
+import LabelManager from "@/game/ui/LabelManager.vue";
 
 import { InvalidationMode, SyncMode, SyncTo } from "../../../../core/models/types";
 import { baseAdjustedFetch, uuidv4 } from "../../../../core/utils";
@@ -23,7 +23,7 @@ import { visibilityStore } from "../../../visibility/store";
 import { ActiveShapeState, activeShapeStore } from "../../ActiveShapeStore";
 
 @Component({ components: { AssetPicker, LabelManager } })
-export default class AccessSettings extends Vue {
+export default class ExtraSettings extends Vue {
     @Prop() active!: boolean;
     hasPath = false;
 

@@ -8,13 +8,13 @@ import { layerManager } from "@/game/layers/manager";
 import { floorStore } from "@/game/layers/store";
 import { Shape } from "@/game/shapes/shape";
 import { Rect } from "@/game/shapes/variants/rect";
-import Tool from "@/game/ui/tools/tool.vue";
+import Tool from "@/game/ui/tools/dTool.vue";
 import { l2g } from "@/game/units";
 
 import { SyncMode, InvalidationMode } from "../../../core/models/types";
 import { DEFAULT_GRID_SIZE } from "../../store";
 
-import { SelectFeatures } from "./select.vue";
+import { SelectFeatures } from "./SelectTool.vue";
 import { ToolBasics } from "./ToolBasics";
 import { ToolName, ToolPermission } from "./utils";
 
@@ -280,7 +280,7 @@ export default class MapTool extends Tool implements ToolBasics {
             <div class="row">{{ error }}</div>
             <template v-if="!hasRect && manualDrag === true">
                 <div id="map-selection-choice">
-                    <div>{{ $t("game.ui.tools.map.drag_to_resize") }}</div>
+                    <div>{{ $t("game.ui.tools.MapTool.drag_to_resize") }}</div>
                     <div id="next" @click="skipManualDrag">
                         Scale full image instead
                         <font-awesome-icon icon="arrow-right" />
@@ -289,14 +289,14 @@ export default class MapTool extends Tool implements ToolBasics {
             </template>
             <template v-else>
                 <div id="map-grid">
-                    <div class="explanation" v-t="'game.ui.tools.map.set_target_grid_cells'"></div>
+                    <div class="explanation" v-t="'game.ui.tools.MapTool.set_target_grid_cells'"></div>
                     <div class="map-lock" @click="toggleLock" title="(Un)lock aspect ratio">
                         <font-awesome-icon v-show="lock" icon="link" />
                         <font-awesome-icon v-show="!lock" icon="unlink" />
                     </div>
-                    <label for="map-g-x" v-t="'game.ui.tools.map.horizontal'"></label>
+                    <label for="map-g-x" v-t="'game.ui.tools.MapTool.horizontal'"></label>
                     <input id="map-g-x" type="number" @input="updateGridX" v-model.number="gridX" class="hinput" />
-                    <label for="map-g-y" v-t="'game.ui.tools.map.vertical'"></label>
+                    <label for="map-g-y" v-t="'game.ui.tools.MapTool.vertical'"></label>
                     <input id="map-g-y" type="number" @input="updateGridY" v-model.number="gridY" class="vinput" />
                 </div>
                 <div id="map-separator"></div>
@@ -307,19 +307,19 @@ export default class MapTool extends Tool implements ToolBasics {
                         <font-awesome-icon v-show="lock" icon="link" />
                         <font-awesome-icon v-show="!lock" icon="unlink" />
                     </div>
-                    <label for="map-s-x" v-t="'game.ui.tools.map.horizontal'"></label>
+                    <label for="map-s-x" v-t="'game.ui.tools.MapTool.horizontal'"></label>
                     <input id="map-s-x" type="number" @input="updateSizeX" v-model.number="sizeX" class="hinput" />
-                    <label for="map-s-y" v-t="'game.ui.tools.map.vertical'"></label>
+                    <label for="map-s-y" v-t="'game.ui.tools.MapTool.vertical'"></label>
                     <input id="map-s-y" type="number" @input="updateSizeY" v-model.number="sizeY" class="vinput" />
                 </div>
                 <div id="map-buttons">
-                    <div class="button apply" @click="apply" v-t="'game.ui.tools.map.apply'"></div>
+                    <div class="button apply" @click="apply" v-t="'game.ui.tools.MapTool.apply'"></div>
                     <div style="width: 25px"></div>
-                    <div class="button cancel" @click="removeRect" v-t="'game.ui.tools.map.cancel'"></div>
+                    <div class="button cancel" @click="removeRect" v-t="'game.ui.tools.MapTool.cancel'"></div>
                 </div>
             </template>
         </template>
-        <template v-else>{{ $t("game.ui.tools.map.select_shape_msg") }}</template>
+        <template v-else>{{ $t("game.ui.tools.MapTool.select_shape_msg") }}</template>
     </div>
 </template>
 

@@ -6,24 +6,24 @@ import { EventBus } from "@/game/event-bus";
 import { layerManager } from "@/game/layers/manager";
 import { floorStore } from "@/game/layers/store";
 import { gameStore } from "@/game/store";
-import ShapeContext from "@/game/ui/selection/shapecontext.vue";
-import DefaultContext from "@/game/ui/tools/defaultcontext.vue";
-import DrawTool from "@/game/ui/tools/draw.vue";
-import FilterTool from "@/game/ui/tools/filter.vue";
-import MapTool from "@/game/ui/tools/map.vue";
-import PanTool from "@/game/ui/tools/pan.vue";
-import PingTool from "@/game/ui/tools/ping.vue";
-import RulerTool from "@/game/ui/tools/ruler.vue";
-import SelectTool, { SelectFeatures } from "@/game/ui/tools/select.vue";
-import VisionTool from "@/game/ui/tools/vision.vue";
+import ShapeContext from "@/game/ui/selection/dShapeContext.vue";
+import DefaultContext from "@/game/ui/tools/dDefaultContext.vue";
+import DrawTool from "@/game/ui/tools/DrawTool.vue";
+import FilterTool from "@/game/ui/tools/FilterTool.vue";
+import MapTool from "@/game/ui/tools/MapTool.vue";
+import PanTool from "@/game/ui/tools/PanTool.vue";
+import PingTool from "@/game/ui/tools/PingTool.vue";
+import RulerTool from "@/game/ui/tools/RulerTool.vue";
+import SelectTool, { SelectFeatures } from "@/game/ui/tools/SelectTool.vue";
+import VisionTool from "@/game/ui/tools/VisionTool.vue";
 import { l2g } from "@/game/units";
 import { getLocalPointFromEvent } from "@/game/utils";
 
 import Annotation from "../Annotation.vue";
 import UI from "../ui.vue";
 
-import SpellTool from "./Spell.vue";
-import Tool from "./tool.vue";
+import SpellTool from "./SpellTool.vue";
+import Tool from "./dTool.vue";
 import { ToolName, ToolFeatures } from "./utils";
 
 @Component({

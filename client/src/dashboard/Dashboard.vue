@@ -3,7 +3,7 @@ import Vue from "vue";
 import Component from "vue-class-component";
 import { Route, NavigationGuard } from "vue-router";
 
-import ConfirmDialog from "@/core/components/modals/confirm.vue";
+import ConfirmDialog from "@/core/components/modals/ConfirmDialog.vue";
 import { coreStore } from "@/core/store";
 
 import { baseAdjustedFetch, getErrorReason, postFetch } from "../core/utils";
@@ -79,7 +79,7 @@ export default class Dashboard extends Vue {
         <div id="formcontainer">
             <form>
                 <fieldset>
-                    <legend class="legend" v-t="'dashboard.main.your_sessions'"></legend>
+                    <legend class="legend" v-t="'dashboard.Dashboard.your_sessions'"></legend>
                     <div class="input">
                         <router-link
                             v-for="(room, i) in owned"
@@ -99,7 +99,7 @@ export default class Dashboard extends Vue {
                     <div
                         class="input"
                         v-if="owned.length === 0 && joined.length === 0"
-                        v-t="'dashboard.main.no_sessions'"
+                        v-t="'dashboard.Dashboard.no_sessions'"
                     ></div>
                 </fieldset>
             </form>
@@ -108,14 +108,14 @@ export default class Dashboard extends Vue {
             </h4>
             <form @submit.prevent="createRoom">
                 <fieldset>
-                    <legend v-if="!owned && !joined" class="legend" v-t="'dashboard.main.create_session'"></legend>
-                    <div v-else class="input" v-t="'dashboard.main.create_new_session'"></div>
+                    <legend v-if="!owned && !joined" class="legend" v-t="'dashboard.Dashboard.create_session'"></legend>
+                    <div v-else class="input" v-t="'dashboard.Dashboard.create_new_session'"></div>
                     <div class="input">
                         <input
                             type="text"
                             v-model="newSessionName"
                             name="room_name"
-                            :placeholder="$t('dashboard.main.session_name')"
+                            :placeholder="$t('dashboard.Dashboard.session_name')"
                         />
                         <span>
                             <font-awesome-icon :icon="['fab', 'd-and-d']" />
@@ -131,14 +131,19 @@ export default class Dashboard extends Vue {
                     <router-link
                         tag="button"
                         class="submit"
-                        :title="$t('dashboard.main.account_settings')"
+                        :title="$t('dashboard.Dashboard.account_settings')"
                         to="/settings"
                     >
                         <font-awesome-icon icon="cog" />
                     </router-link>
                 </form>
                 <form @submit.prevent>
-                    <router-link tag="button" class="submit" :title="$t('dashboard.main.logout')" to="/auth/logout">
+                    <router-link
+                        tag="button"
+                        class="submit"
+                        :title="$t('dashboard.Dashboard.logout')"
+                        to="/auth/logout"
+                    >
                         <font-awesome-icon icon="sign-out-alt" />
                     </router-link>
                 </form>

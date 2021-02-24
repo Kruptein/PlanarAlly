@@ -3,12 +3,12 @@ import Component from "vue-class-component";
 
 import { layerManager } from "@/game/layers/manager";
 import { gameStore } from "@/game/store";
-import Tool from "@/game/ui/tools/tool.vue";
+import Tool from "@/game/ui/tools/dTool.vue";
 
 import { Shape } from "../../shapes/shape";
 import { Asset } from "../../shapes/variants/asset";
 
-import { SelectFeatures } from "./select.vue";
+import { SelectFeatures } from "./SelectTool.vue";
 import { ToolName, ToolPermission } from "./utils";
 
 @Component

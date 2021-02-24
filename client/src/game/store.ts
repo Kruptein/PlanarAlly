@@ -93,7 +93,6 @@ class GameStore extends VuexModule implements GameState {
     panY = 0;
 
     zoomDisplay = 0.5;
-    // zoomFactor = 1;
 
     annotations: string[] = [];
     private _ownedtokens: string[] = [];
@@ -179,7 +178,6 @@ class GameStore extends VuexModule implements GameState {
         if (zoom === this.zoomDisplay) return;
         if (zoom < 0) zoom = 0;
         if (zoom > 1) zoom = 1;
-        // const gf = this.gridSize / DEFAULT_GRID_SIZE;
         this.zoomDisplay = zoom;
         layerManager.invalidateAllFloors();
     }

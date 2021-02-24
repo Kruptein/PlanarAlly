@@ -4,7 +4,7 @@ import Component from "vue-class-component";
 import draggable from "vuedraggable";
 Vue.component("draggable", draggable);
 
-import ConfirmDialog from "@/core/components/modals/confirm.vue";
+import ConfirmDialog from "@/core/components/modals/ConfirmDialog.vue";
 import Modal from "@/core/components/modals/modal.vue";
 import { uuidv4 } from "@/core/utils";
 import {

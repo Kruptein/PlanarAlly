@@ -8,7 +8,7 @@ import { LocalPoint } from "../../geom";
 import { onKeyUp } from "../../input/keyboard";
 
 import { ToolBasics } from "./ToolBasics";
-import Tools from "./tools.vue";
+import Tools from "./dTools.vue";
 import { ToolName, ToolPermission, ToolFeatures } from "./utils";
 
 @Component

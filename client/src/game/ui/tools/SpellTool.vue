@@ -18,9 +18,9 @@ import { Rect } from "../../shapes/variants/rect";
 import { gameStore } from "../../store";
 import { g2l, getUnitDistance, l2g, toRadians } from "../../units";
 
-import Tool from "./tool.vue";
+import Tool from "./dTool.vue";
 import { ToolBasics } from "./ToolBasics";
-import Tools from "./tools.vue";
+import Tools from "./dTools.vue";
 import { ToolName } from "./utils";
 
 type ShapeChoice = "square" | "circle" | "cone";
@@ -267,12 +267,12 @@ export default class SpellTool extends Tool implements ToolBasics {
             </div>
         </div>
         <div id="grid">
-            <label for="size" style="flex: 5" v-t="'game.ui.tools.spell.size'"></label>
+            <label for="size" style="flex: 5" v-t="'game.ui.tools.SpellTool.size'"></label>
             <input type="number" id="size" style="flex: 1; align-self: center" v-model.number="size" min="0" step="5" />
             <label
                 for="range"
                 style="flex: 5"
-                v-t="'game.ui.tools.spell.range'"
+                v-t="'game.ui.tools.SpellTool.range'"
                 :class="{ disabled: getSelectedShape() === undefined }"
             ></label>
             <input
@@ -286,7 +286,7 @@ export default class SpellTool extends Tool implements ToolBasics {
                 :class="{ disabled: getSelectedShape() === undefined }"
             />
             <label for="colour" style="flex: 5" v-t="'common.fill_color'"></label>
-            <color-picker class="option" :color.sync="colour" :title="$t('game.ui.tools.draw.background_color')" />
+            <color-picker class="option" :color.sync="colour" :title="$t('game.ui.tools.DrawTool.background_color')" />
             <label for="range" style="flex: 5" v-t="'game.ui.selection.edit_dialog.dialog.show_annotation'"></label>
             <button class="slider-checkbox" :aria-pressed="showPublic" @click="showPublic = !showPublic"></button>
         </div>

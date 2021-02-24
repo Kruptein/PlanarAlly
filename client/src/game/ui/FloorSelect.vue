@@ -3,7 +3,7 @@ import Vue from "vue";
 import Component from "vue-class-component";
 import draggable from "vuedraggable";
 
-import ConfirmDialog from "@/core/components/modals/confirm.vue";
+import ConfirmDialog from "@/core/components/modals/ConfirmDialog.vue";
 import Prompt from "@/core/components/modals/prompt.vue";
 import { layerManager } from "@/game/layers/manager";
 import { removeFloor } from "@/game/layers/utils";
@@ -69,8 +69,8 @@ export default class FloorSelect extends Vue {
 
     async addFloor(): Promise<void> {
         const value = await this.$refs.prompt.prompt(
-            this.$t("game.ui.floors.new_name").toString(),
-            this.$t("game.ui.floors.creation").toString(),
+            this.$t("game.ui.FloorSelect.new_name").toString(),
+            this.$t("game.ui.FloorSelect.creation").toString(),
             (value) => {
                 if (floorStore.floors.some((f) => f.name === value)) {
                     return { valid: false, reason: "This name is already in use!" };
@@ -88,8 +88,8 @@ export default class FloorSelect extends Vue {
 
     async renameFloor(index: number): Promise<void> {
         const value = await this.$refs.prompt.prompt(
-            this.$t("game.ui.floors.new_name").toString(),
-            this.$t("game.ui.floors.rename_header_title").toString(),
+            this.$t("game.ui.FloorSelect.new_name").toString(),
+            this.$t("game.ui.FloorSelect.rename_header_title").toString(),
         );
         if (value === undefined || getFloorId(value) !== -1) return;
         floorStore.renameFloor({ index, name: value, sync: true });
@@ -100,7 +100,7 @@ export default class FloorSelect extends Vue {
         if (
             !(await this.$refs.confirm.open(
                 this.$t("common.warning").toString(),
-                this.$t("game.ui.floors.warning_msg_Z", { z: floor.name }).toString(),
+                this.$t("game.ui.FloorSelect.warning_msg_Z", { z: floor.name }).toString(),
             ))
         )
             return;
@@ -152,27 +152,27 @@ export default class FloorSelect extends Vue {
                     </div>
                     <div class="floor-name">{{ floor.name }}</div>
                     <div class="floor-actions" v-show="IS_DM">
-                        <div @click.stop="renameFloor(revIndex)" :title="$t('game.ui.floors.rename_icon_hover')">
+                        <div @click.stop="renameFloor(revIndex)" :title="$t('game.ui.FloorSelect.rename_icon_hover')">
                             <font-awesome-icon icon="pencil-alt" />
                         </div>
                         <div
                             @click.stop="toggleVisible(floor)"
                             :style="{ opacity: floor.playerVisible ? 1.0 : 0.3, marginRight: '5px' }"
-                            :title="$t('game.ui.floors.toggle_visibility')"
+                            :title="$t('game.ui.FloorSelect.toggle_visibility')"
                         >
                             <font-awesome-icon icon="eye" />
                         </div>
                         <div
                             @click.stop="removeFloor(floor)"
                             v-show="floors.length > 1"
-                            :title="$t('game.ui.floors.delete_floor')"
+                            :title="$t('game.ui.FloorSelect.delete_floor')"
                         >
                             <font-awesome-icon icon="trash-alt" />
                         </div>
                     </div>
                 </div>
             </template>
-            <div class="floor-add" @click="addFloor" v-if="IS_DM" v-t="'game.ui.floors.add_new_floor'"></div>
+            <div class="floor-add" @click="addFloor" v-if="IS_DM" v-t="'game.ui.FloorSelect.add_new_floor'"></div>
         </draggable>
         <div style="display: contents" v-show="layers.length > 1">
             <div

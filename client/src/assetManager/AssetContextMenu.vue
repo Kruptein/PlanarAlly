@@ -5,10 +5,10 @@ import Component from "vue-class-component";
 import { socket } from "@/assetManager/socket";
 import { assetStore } from "@/assetManager/store";
 import ContextMenu from "@/core/components/contextmenu.vue";
-import ConfirmDialog from "@/core/components/modals/confirm.vue";
+import ConfirmDialog from "@/core/components/modals/ConfirmDialog.vue";
 import Prompt from "@/core/components/modals/prompt.vue";
 
-import AssetManager from "./manager.vue";
+import AssetManager from "./AssetManager.vue";
 
 @Component({
     components: {
@@ -47,8 +47,8 @@ export default class AssetContextMenu extends Vue {
         const asset = assetStore.idMap.get(assetStore.selected[0])!;
 
         const name = await this.$refs.prompt.prompt(
-            this.$t("assetManager.contextMenu.new_name").toString(),
-            this.$t("assetManager.contextMenu.renaming_NAME", { name: asset.name }).toString(),
+            this.$t("assetManager.AssetContextMenu.new_name").toString(),
+            this.$t("assetManager.AssetContextMenu.renaming_NAME", { name: asset.name }).toString(),
         );
         if (name !== undefined) {
             socket.emit("Asset.Rename", {
@@ -62,7 +62,7 @@ export default class AssetContextMenu extends Vue {
     }
     async remove(): Promise<void> {
         if (assetStore.selected.length === 0) return;
-        const result = await this.$refs.confirm.open(this.$t("assetManager.contextMenu.ask_remove").toString());
+        const result = await this.$refs.confirm.open(this.$t("assetManager.AssetContextMenu.ask_remove").toString());
         if (result) {
             for (const sel of assetStore.selected) {
                 socket.emit("Asset.Remove", sel);

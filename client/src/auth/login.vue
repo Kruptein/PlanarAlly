@@ -226,7 +226,7 @@ export default class Login extends Vue {
                             type="email"
                             name="email"
                             v-model="email"
-                            :placeholder="$t('settings.account.email')"
+                            :placeholder="$t('settings.AccountSettings.email')"
                             autocomplete="email"
                         />
                         <span>

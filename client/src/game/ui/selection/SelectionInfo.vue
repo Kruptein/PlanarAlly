@@ -40,12 +40,11 @@ export default class SelectionInfo extends Vue {
         if (this.shape.uuid === undefined) return;
 
         const input = await this.$refs.prompt.prompt(
-            this.$t("game.ui.selection.select_info.new_value_NAME", { name: tracker.name }).toString(),
-            this.$t("game.ui.selection.select_info.updating_NAME", { name: tracker.name }).toString(),
+            this.$t("game.ui.selection.SelectionInfo.new_value_NAME", { name: tracker.name }).toString(),
+            this.$t("game.ui.selection.SelectionInfo.updating_NAME", { name: tracker.name }).toString(),
         );
 
         if (input === undefined || this.shape.uuid === undefined) return;
-        const _type = isAura ? "aura" : "tracker";
 
         let value = parseInt(input, 10);
         if (isNaN(value)) {
@@ -58,7 +57,7 @@ export default class SelectionInfo extends Vue {
 
         if (isAura) {
             activeShapeStore.updateAura({ aura: tracker.uuid, delta: { value }, syncTo: SyncTo.SERVER });
-            const shape = layerManager.UUIDMap.get(this.shape.uuid!)!;
+            const shape = layerManager.UUIDMap.get(this.shape.uuid)!;
             shape.invalidate(false);
         } else {
             activeShapeStore.updateTracker({ tracker: tracker.uuid, delta: { value }, syncTo: SyncTo.SERVER });
@@ -73,14 +72,14 @@ export default class SelectionInfo extends Vue {
         <Prompt ref="prompt"></Prompt>
         <template v-if="shape.uuid !== undefined">
             <div id="selection-menu">
-                <div id="selection-lock-button" @click="setLocked" :title="$t('game.ui.selection.select_info.lock')">
+                <div id="selection-lock-button" @click="setLocked" :title="$t('game.ui.selection.SelectionInfo.lock')">
                     <font-awesome-icon v-if="shape.isLocked" icon="lock" />
                     <font-awesome-icon v-else icon="unlock" />
                 </div>
                 <div
                     id="selection-edit-button"
                     @click="openEditDialog"
-                    :title="$t('game.ui.selection.select_info.open_shape_props')"
+                    :title="$t('game.ui.selection.SelectionInfo.open_shape_props')"
                 >
                     <font-awesome-icon icon="edit" />
                 </div>
@@ -92,7 +91,7 @@ export default class SelectionInfo extends Vue {
                             class="selection-tracker-value"
                             :key="'value-' + tracker.uuid"
                             @click="changeValue(tracker, false)"
-                            :title="$t('game.ui.selection.select_info.quick_edit_tracker')"
+                            :title="$t('game.ui.selection.SelectionInfo.quick_edit_tracker')"
                         >
                             <template v-if="tracker.maxvalue === 0">
                                 {{ tracker.value }}
@@ -108,7 +107,7 @@ export default class SelectionInfo extends Vue {
                             class="selection-tracker-value"
                             :key="'value-' + aura.uuid"
                             @click="changeValue(aura, true)"
-                            :title="$t('game.ui.selection.select_info.quick_edit_aura')"
+                            :title="$t('game.ui.selection.SelectionInfo.quick_edit_aura')"
                         >
                             <template v-if="aura.dim === 0">
                                 {{ aura.value }}

@@ -30,9 +30,9 @@ import { overrideLastOperation } from "../../operations/undo";
 import { gameSettingsStore } from "../../settings";
 import { Text } from "../../shapes/variants/text";
 
-import Tool from "./tool.vue";
+import Tool from "./dTool.vue";
 import { ToolBasics } from "./ToolBasics";
-import Tools from "./tools.vue";
+import Tools from "./dTools.vue";
 import { ToolName } from "./utils";
 
 @Component({
@@ -346,7 +346,7 @@ export default class DrawTool extends Tool implements ToolBasics {
                     this.shape.points[this.shape.points.length - 1],
                 );
             layer.invalidate(false);
-            if (!this.shape!.preventSync) sendShapeSizeUpdate({ shape: this.shape!, temporary: true });
+            if (!this.shape.preventSync) sendShapeSizeUpdate({ shape: this.shape, temporary: true });
         }
 
         // Finalize the text shape
@@ -411,7 +411,7 @@ export default class DrawTool extends Tool implements ToolBasics {
         }
 
         if (this.shapeSelect !== "draw-polygon") {
-            if (!this.shape!.preventSync) sendShapeSizeUpdate({ shape: this.shape!, temporary: true });
+            if (!this.shape.preventSync) sendShapeSizeUpdate({ shape: this.shape, temporary: true });
             if (this.shape.visionObstruction) {
                 if (
                     getCDT(TriangulationTarget.VISION, this.shape.floor.id).tds.getTriagVertices(this.shape.uuid)
@@ -513,7 +513,7 @@ export default class DrawTool extends Tool implements ToolBasics {
         } else {
             if (this.shape.visionObstruction) visibilityStore.recalculateVision(this.shape.floor.id);
             if (this.shape.movementObstruction) visibilityStore.recalculateMovement(this.shape.floor.id);
-            if (!this.shape!.preventSync) sendShapeSizeUpdate({ shape: this.shape!, temporary: false });
+            if (!this.shape.preventSync) sendShapeSizeUpdate({ shape: this.shape, temporary: false });
         }
         this.active = false;
         const layer = this.getLayer();
@@ -635,7 +635,7 @@ export default class DrawTool extends Tool implements ToolBasics {
 <template>
     <div class="tool-detail" v-if="selected" :style="{ '--detailRight': detailRight(), '--detailArrow': detailArrow }">
         <Prompt ref="prompt" />
-        <div v-show="IS_DM" v-t="'game.ui.tools.draw.mode'"></div>
+        <div v-show="IS_DM" v-t="'game.ui.tools.DrawTool.mode'"></div>
         <div v-show="IS_DM" class="selectgroup">
             <div
                 v-for="mode in modes"
@@ -666,25 +666,25 @@ export default class DrawTool extends Tool implements ToolBasics {
                 class="option"
                 :class="{ 'radius-right': !showBorderColour() }"
                 :color.sync="fillColour"
-                :title="$t('game.ui.tools.draw.foreground_color')"
+                :title="$t('game.ui.tools.DrawTool.foreground_color')"
             />
             <color-picker
                 class="option"
                 :color.sync="borderColour"
                 v-show="showBorderColour()"
-                :title="$t('game.ui.tools.draw.background_color')"
+                :title="$t('game.ui.tools.DrawTool.background_color')"
             />
         </div>
         <div v-show="shapeSelect === 'draw-polygon'" style="display: flex">
-            <label for="polygon-close" style="flex: 5" v-t="'game.ui.tools.draw.closed_polygon'"></label>
+            <label for="polygon-close" style="flex: 5" v-t="'game.ui.tools.DrawTool.closed_polygon'"></label>
             <input type="checkbox" id="polygon-close" style="flex: 1; align-self: center" v-model="closedPolygon" />
         </div>
         <div v-show="shapeSelect === 'font'" style="display: flex">
-            <label for="font-size" style="flex: 5" v-t="'game.ui.tools.draw.font_size'"></label>
+            <label for="font-size" style="flex: 5" v-t="'game.ui.tools.DrawTool.font_size'"></label>
             <input type="number" id="font-size" style="flex: 1; align-self: center" v-model="fontSize" />
         </div>
         <div v-show="hasBrushSize()" style="display: flex">
-            <label for="brush-size" style="flex: 5" v-t="'game.ui.tools.draw.brush_size'"></label>
+            <label for="brush-size" style="flex: 5" v-t="'game.ui.tools.DrawTool.brush_size'"></label>
             <input
                 type="input"
                 id="brush-size"

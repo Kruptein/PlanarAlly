@@ -1,4 +1,3 @@
-// import Vuex from "vuex";
 import { getModule, Module, Mutation, VuexModule } from "vuex-module-decorators";
 
 import { Asset } from "@/core/models/types";

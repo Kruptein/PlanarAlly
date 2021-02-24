@@ -3,7 +3,7 @@ import Vue from "vue";
 import Component from "vue-class-component";
 
 import AssetPicker from "@/core/components/modals/AssetPicker.vue";
-import ConfirmDialog from "@/core/components/modals/confirm.vue";
+import ConfirmDialog from "@/core/components/modals/ConfirmDialog.vue";
 import Prompt from "@/core/components/modals/prompt.vue";
 import SelectionBox from "@/core/components/modals/SelectionBox.vue";
 

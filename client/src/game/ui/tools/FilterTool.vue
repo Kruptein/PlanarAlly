@@ -5,7 +5,7 @@ import Accordion from "@/core/components/accordion.vue";
 import { socket } from "@/game/api/socket";
 import { layerManager } from "@/game/layers/manager";
 import { gameStore } from "@/game/store";
-import Tool from "@/game/ui/tools/dTool.vue";
+import Tool from "@/game/ui/tools/Tool.vue";
 
 import { SelectFeatures } from "./SelectTool.vue";
 import { ToolBasics } from "./ToolBasics";

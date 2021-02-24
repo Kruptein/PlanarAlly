@@ -93,8 +93,8 @@
         }
     },
     "game": {
-        "FloorSelect": {
-            "floors": {
+        "ui": {
+            "FloorSelect": {
                 "new_name": "Ny etage navn",
                 "creation": "Etageoprettelse",
                 "warning_msg_Z": "Er du sikker på at du vil fjerne d. {z} etage?",
@@ -286,7 +286,14 @@
                     "background_color": "Baggrundsfarve",
                     "mode": "Tilstand",
                     "closed_polygon": "Lukket polygon?",
-                    "brush_size": "Pensel størelse"
+                    "brush_size": "Pensel størelse",
+                    "square": "kvadrat",
+                    "circle": "cirkel",
+                    "draw-polygon": "polygon",
+                    "paint-brush": "malerpensel",
+                    "normal": "normal",
+                    "reveal": "afslør",
+                    "hide": "gem"
                 },
                 "FilterTool": {
                     "no_category": "ingen kategori"
@@ -307,7 +314,7 @@
                     "change_mode": "Skift tilstand"
                 }
             },
-            "FloorSelect": {
+            "ui": {
                 "github_msg": "Find koden på github!",
                 "discord_msg": "Bliv en del af fælleskabet på discord!",
                 "patreon_msg": "Bidrag ved hjælp af patreon!",
@@ -323,15 +330,6 @@
         "tokens": "poletter",
         "dm": "dm",
         "fow": "fow"
-    },
-    "DrawTool": {
-        "square": "kvadrat",
-        "circle": "cirkel",
-        "draw-polygon": "polygon",
-        "paint-brush": "malerpensel",
-        "normal": "normal",
-        "reveal": "afslør",
-        "hide": "gem"
     },
     "tool": {
         "Build": "Byg",

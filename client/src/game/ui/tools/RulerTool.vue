@@ -8,7 +8,7 @@ import { floorStore } from "@/game/layers/store";
 import { snapToGridPoint } from "@/game/layers/utils";
 import { Line } from "@/game/shapes/variants/line";
 import { gameStore, DEFAULT_GRID_SIZE } from "@/game/store";
-import Tool from "@/game/ui/tools/dTool.vue";
+import Tool from "@/game/ui/tools/Tool.vue";
 import { l2g } from "@/game/units";
 import { useSnapping } from "@/game/utils";
 

@@ -30,9 +30,9 @@ import { overrideLastOperation } from "../../operations/undo";
 import { gameSettingsStore } from "../../settings";
 import { Text } from "../../shapes/variants/text";
 
-import Tool from "./dTool.vue";
+import Tool from "./Tool.vue";
 import { ToolBasics } from "./ToolBasics";
-import Tools from "./dTools.vue";
+import Tools from "./Tools.vue";
 import { ToolName } from "./utils";
 
 @Component({
@@ -595,16 +595,16 @@ export default class DrawTool extends Tool implements ToolBasics {
     getShapeWord(shape: string): string {
         switch (shape) {
             case "square":
-                return this.$t("draw.square").toString();
+                return this.$t("game.ui.tools.DrawTool.square").toString();
 
             case "circle":
-                return this.$t("draw.circle").toString();
+                return this.$t("game.ui.tools.DrawTool.circle").toString();
 
             case "draw-polygon":
-                return this.$t("draw.draw-polygon").toString();
+                return this.$t("game.ui.tools.DrawTool.draw-polygon").toString();
 
             case "paint-brush":
-                return this.$t("draw.paint-brush").toString();
+                return this.$t("game.ui.tools.DrawTool.paint-brush").toString();
 
             default:
                 return "";
@@ -614,16 +614,16 @@ export default class DrawTool extends Tool implements ToolBasics {
     getModeWord(mode: string): string {
         switch (mode) {
             case "normal":
-                return this.$t("draw.normal").toString();
+                return this.$t("game.ui.tools.DrawTool.normal").toString();
 
             case "reveal":
-                return this.$t("draw.reveal").toString();
+                return this.$t("game.ui.tools.DrawTool.reveal").toString();
 
             case "hide":
-                return this.$t("draw.hide").toString();
+                return this.$t("game.ui.tools.DrawTool.hide").toString();
 
             case "erase":
-                return this.$t("draw.erase").toString();
+                return this.$t("game.ui.tools.DrawTool.erase").toString();
 
             default:
                 return "";

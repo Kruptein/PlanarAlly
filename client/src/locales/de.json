@@ -96,8 +96,8 @@
         }
     },
     "game": {
-        "FloorSelect": {
-            "floors": {
+        "ui": {
+            "FloorSelect": {
                 "new_name": "Name des neuen Stockwerks",
                 "creation": "Stockwerkerstellung",
                 "warning_msg_Z": "Bist Du sicher, dass Du das Stockwerk {z} löschen willst?",
@@ -300,7 +300,14 @@
                     "background_color": "Hintergrundfarbe",
                     "mode": "Modus",
                     "closed_polygon": "Geschlossenes Vieleck?",
-                    "brush_size": "Pinselgröße"
+                    "brush_size": "Pinselgröße",
+                    "square": "Quadrat",
+                    "circle": "Kreis",
+                    "draw-polygon": "Vieleck",
+                    "paint-brush": "Freihand",
+                    "normal": "normal",
+                    "reveal": "enthüllen",
+                    "hide": "verstecken"
                 },
                 "FilterTool": {
                     "no_category": "keine Kategorie"
@@ -321,7 +328,7 @@
                     "change_mode": "Modus ändern"
                 }
             },
-            "FloorSelect": {
+            "ui": {
                 "github_msg": "Finde den Quelltext auf github!",
                 "discord_msg": "Tritt der Community auf discord bei!",
                 "patreon_msg": "Leiste einen Beitrag über patreon!",
@@ -337,15 +344,6 @@
         "tokens": "Spielbrett",
         "dm": "SL",
         "fow": "Kriegsnebel"
-    },
-    "DrawTool": {
-        "square": "Quadrat",
-        "circle": "Kreis",
-        "draw-polygon": "Vieleck",
-        "paint-brush": "Freihand",
-        "normal": "normal",
-        "reveal": "enthüllen",
-        "hide": "verstecken"
     },
     "tool": {
         "Build": "Planen",

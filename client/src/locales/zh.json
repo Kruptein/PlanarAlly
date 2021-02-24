@@ -102,8 +102,8 @@
         }
     },
     "game": {
-        "FloorSelect": {
-            "floors": {
+        "ui": {
+            "FloorSelect": {
                 "new_name": "新楼层名称",
                 "creation": "楼层创建",
                 "warning_msg_Z": "你确定要移除楼层 {z} 吗？",
@@ -320,7 +320,14 @@
                     "background_color": "背景色",
                     "mode": "模式",
                     "closed_polygon": "闭合多边形？",
-                    "brush_size": "笔刷尺寸"
+                    "brush_size": "笔刷尺寸",
+                    "square": "方块",
+                    "circle": "圆圈",
+                    "draw-polygon": "多边形",
+                    "paint-brush": "笔刷",
+                    "normal": "普通",
+                    "reveal": "揭示",
+                    "hide": "隐藏"
                 },
                 "FilterTool": {
                     "no_category": "无分类"
@@ -341,7 +348,7 @@
                     "change_mode": "改变模式"
                 }
             },
-            "FloorSelect": {
+            "ui": {
                 "github_msg": "在GitHub上阅读代码！",
                 "discord_msg": "加入Discord社群！",
                 "patreon_msg": "使用Patreon捐助！",
@@ -357,15 +364,6 @@
         "tokens": "指示物",
         "dm": "DM",
         "fow": "迷雾"
-    },
-    "DrawTool": {
-        "square": "方块",
-        "circle": "圆圈",
-        "draw-polygon": "多边形",
-        "paint-brush": "笔刷",
-        "normal": "普通",
-        "reveal": "揭示",
-        "hide": "隐藏"
     },
     "tool": {
         "Build": "构建",

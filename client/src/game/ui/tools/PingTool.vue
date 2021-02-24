@@ -6,7 +6,7 @@ import { GlobalPoint, LocalPoint } from "@/game/geom";
 import { layerManager } from "@/game/layers/manager";
 import { Circle } from "@/game/shapes/variants/circle";
 import { gameStore } from "@/game/store";
-import Tool from "@/game/ui/tools/dTool.vue";
+import Tool from "@/game/ui/tools/Tool.vue";
 import { l2g } from "@/game/units";
 
 import { sendShapePositionUpdate } from "../../api/emits/shape/core";

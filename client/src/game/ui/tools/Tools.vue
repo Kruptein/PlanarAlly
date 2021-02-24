@@ -6,8 +6,8 @@ import { EventBus } from "@/game/event-bus";
 import { layerManager } from "@/game/layers/manager";
 import { floorStore } from "@/game/layers/store";
 import { gameStore } from "@/game/store";
-import ShapeContext from "@/game/ui/selection/dShapeContext.vue";
-import DefaultContext from "@/game/ui/tools/dDefaultContext.vue";
+import ShapeContext from "@/game/ui/selection/ShapeContext.vue";
+import DefaultContext from "@/game/ui/tools/DefaultContext.vue";
 import DrawTool from "@/game/ui/tools/DrawTool.vue";
 import FilterTool from "@/game/ui/tools/FilterTool.vue";
 import MapTool from "@/game/ui/tools/MapTool.vue";
@@ -23,7 +23,7 @@ import Annotation from "../Annotation.vue";
 import UI from "../ui.vue";
 
 import SpellTool from "./SpellTool.vue";
-import Tool from "./dTool.vue";
+import Tool from "./Tool.vue";
 import { ToolName, ToolFeatures } from "./utils";
 
 @Component({

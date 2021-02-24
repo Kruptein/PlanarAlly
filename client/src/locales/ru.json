@@ -93,8 +93,8 @@
         }
     },
     "game": {
-        "FloorSelect": {
-            "floors": {
+        "ui": {
+            "FloorSelect": {
                 "new_name": "Имя нового этажа",
                 "creation": "Создание этажа",
                 "warning_msg_Z": "Вы уверены, что хотите удалить этаж {z}?",
@@ -286,7 +286,14 @@
                     "background_color": "Цвет фона",
                     "mode": "Режим",
                     "closed_polygon": "Замкнутый полигон?",
-                    "brush_size": "Размер кисти"
+                    "brush_size": "Размер кисти",
+                    "square": "прямоугольник",
+                    "circle": "круг",
+                    "draw-polygon": "многоугольник",
+                    "paint-brush": "кисть-карандаш",
+                    "normal": "нормальный",
+                    "reveal": "показывать",
+                    "hide": "скрывать"
                 },
                 "FilterTool": {
                     "no_category": "без категории"
@@ -307,7 +314,7 @@
                     "change_mode": "Изменить режим"
                 }
             },
-            "FloorSelect": {
+            "ui": {
                 "github_msg": "Прочитать код на github!",
                 "discord_msg": "Вступить в сообщество в discord!",
                 "patreon_msg": "Учавствовать в компании на patreon!",
@@ -323,15 +330,6 @@
         "tokens": "токены",
         "dm": "дм",
         "fow": "туман войны"
-    },
-    "DrawTool": {
-        "square": "прямоугольник",
-        "circle": "круг",
-        "draw-polygon": "многоугольник",
-        "paint-brush": "кисть-карандаш",
-        "normal": "нормальный",
-        "reveal": "показывать",
-        "hide": "скрывать"
     },
     "tool": {
         "Build": "Стройка",

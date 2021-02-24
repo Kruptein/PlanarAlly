@@ -102,8 +102,8 @@
         }
     },
     "game": {
-        "FloorSelect": {
-            "floors": {
+        "ui": {
+            "FloorSelect": {
                 "new_name": "Nuovo nome del piano",
                 "creation": "Creazione del piano",
                 "warning_msg_Z": "Sei sicuro di voler rimuovere il piano {z}?",
@@ -315,7 +315,14 @@
                     "background_color": "Colore di sfondo",
                     "mode": "Modalità",
                     "closed_polygon": "Poligono chiuso?",
-                    "brush_size": "Dimensione del pennello"
+                    "brush_size": "Dimensione del pennello",
+                    "square": "quadrato",
+                    "circle": "cerchio",
+                    "draw-polygon": "disegna-poligono",
+                    "paint-brush": "pennello",
+                    "normal": "normale",
+                    "reveal": "rivela",
+                    "hide": "nascondi"
                 },
                 "FilterTool": {
                     "no_category": "nessuna categoria"
@@ -336,7 +343,7 @@
                     "change_mode": "Cambia modalità"
                 }
             },
-            "FloorSelect": {
+            "ui": {
                 "github_msg": "Scopri il codice su GitHub!",
                 "discord_msg": "Unisciti alla community su Discord!",
                 "patreon_msg": "Contribuisci usando Patreon!",
@@ -352,15 +359,6 @@
         "tokens": "segnalini",
         "dm": "dm",
         "fow": "fow"
-    },
-    "DrawTool": {
-        "square": "quadrato",
-        "circle": "cerchio",
-        "draw-polygon": "disegna-poligono",
-        "paint-brush": "pennello",
-        "normal": "normale",
-        "reveal": "rivela",
-        "hide": "nascondi"
     },
     "tool": {
         "Build": "Costruisci",

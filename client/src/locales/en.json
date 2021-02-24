@@ -104,8 +104,8 @@
         }
     },
     "game": {
-        "FloorSelect": {
-            "floors": {
+        "ui": {
+            "FloorSelect": {
                 "new_name": "New floor name",
                 "creation": "Floor Creation",
                 "warning_msg_Z": "Are you sure you wish to remove the {z} floor?",
@@ -327,7 +327,16 @@
                     "mode": "Mode",
                     "closed_polygon": "Closed polygon?",
                     "brush_size": "Brush size",
-                    "font_size": "Font size"
+                    "font_size": "Font size",
+                    "square": "square",
+                    "circle": "circle",
+                    "draw-polygon": "draw-polygon",
+                    "paint-brush": "paint-brush",
+                    "normal": "normal",
+                    "reveal": "reveal",
+                    "hide": "hide",
+                    "erase": "erase",
+                    "cone": "cone"
                 },
                 "FilterTool": {
                     "no_category": "no category"
@@ -352,7 +361,7 @@
                     "change_mode": "Change mode"
                 }
             },
-            "FloorSelect": {
+            "ui": {
                 "github_msg": "Find the code on github!",
                 "discord_msg": "Join the community on discord!",
                 "patreon_msg": "Contribute using patreon!",
@@ -368,17 +377,6 @@
         "tokens": "tokens",
         "dm": "dm",
         "fow": "fow"
-    },
-    "DrawTool": {
-        "square": "square",
-        "circle": "circle",
-        "draw-polygon": "draw-polygon",
-        "paint-brush": "paint-brush",
-        "normal": "normal",
-        "reveal": "reveal",
-        "hide": "hide",
-        "erase": "erase",
-        "cone": "cone"
     },
     "tool": {
         "Build": "Build",

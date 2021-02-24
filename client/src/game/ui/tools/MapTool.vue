@@ -8,7 +8,7 @@ import { layerManager } from "@/game/layers/manager";
 import { floorStore } from "@/game/layers/store";
 import { Shape } from "@/game/shapes/shape";
 import { Rect } from "@/game/shapes/variants/rect";
-import Tool from "@/game/ui/tools/dTool.vue";
+import Tool from "@/game/ui/tools/Tool.vue";
 import { l2g } from "@/game/units";
 
 import { SyncMode, InvalidationMode } from "../../../core/models/types";

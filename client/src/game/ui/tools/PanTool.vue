@@ -4,7 +4,7 @@ import Component from "vue-class-component";
 import { LocalPoint } from "@/game/geom";
 import { layerManager } from "@/game/layers/manager";
 import { gameStore } from "@/game/store";
-import Tool from "@/game/ui/tools/dTool.vue";
+import Tool from "@/game/ui/tools/Tool.vue";
 
 import { sendClientLocationOptions } from "../../api/emits/client";
 

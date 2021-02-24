@@ -96,8 +96,8 @@
         }
     },
     "game": {
-        "FloorSelect": {
-            "floors": {
+        "ui": {
+            "FloorSelect": {
                 "new_name": "新樓層名稱",
                 "creation": "新增樓層",
                 "warning_msg_Z": "你確定要移除樓層 {z} 嗎？",
@@ -298,7 +298,14 @@
                     "background_color": "背景色",
                     "mode": "模式",
                     "closed_polygon": "關閉多邊形？",
-                    "brush_size": "筆刷尺寸"
+                    "brush_size": "筆刷尺寸",
+                    "square": "方塊",
+                    "circle": "圓圈",
+                    "draw-polygon": "多邊形",
+                    "paint-brush": "筆刷",
+                    "normal": "普通",
+                    "reveal": "揭示",
+                    "hide": "隱藏"
                 },
                 "FilterTool": {
                     "no_category": "無分類"
@@ -319,7 +326,7 @@
                     "change_mode": "改變模式"
                 }
             },
-            "FloorSelect": {
+            "ui": {
                 "github_msg": "在GitHub上閱讀代碼！",
                 "discord_msg": "加入Discord社群！",
                 "patreon_msg": "使用Patreon捐助！",
@@ -335,15 +342,6 @@
         "tokens": "指示物",
         "dm": "DM",
         "fow": "迷霧"
-    },
-    "DrawTool": {
-        "square": "方塊",
-        "circle": "圓圈",
-        "draw-polygon": "多邊形",
-        "paint-brush": "筆刷",
-        "normal": "普通",
-        "reveal": "揭示",
-        "hide": "隱藏"
     },
     "tool": {
         "Build": "構建",

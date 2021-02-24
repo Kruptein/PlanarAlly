@@ -12,7 +12,7 @@ import SelectionInfo from "@/game/ui/selection/SelectionInfo.vue";
 import ClientSettings from "@/game/ui/settings/client/ClientSettings.vue";
 import DmSettings from "@/game/ui/settings/dm/DmSettings.vue";
 import LocationSettings from "@/game/ui/settings/location/LocationSettings.vue";
-import Tools from "@/game/ui/tools/dTools.vue";
+import Tools from "@/game/ui/tools/Tools.vue";
 
 import { coreStore } from "../../core/store";
 import { baseAdjust } from "../../core/utils";

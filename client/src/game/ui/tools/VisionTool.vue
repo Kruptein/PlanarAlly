@@ -3,7 +3,7 @@ import Component from "vue-class-component";
 
 import { layerManager } from "@/game/layers/manager";
 import { gameStore } from "@/game/store";
-import Tool from "@/game/ui/tools/dTool.vue";
+import Tool from "@/game/ui/tools/Tool.vue";
 
 import { Shape } from "../../shapes/shape";
 import { Asset } from "../../shapes/variants/asset";

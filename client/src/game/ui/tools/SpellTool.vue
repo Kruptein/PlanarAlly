@@ -18,9 +18,9 @@ import { Rect } from "../../shapes/variants/rect";
 import { gameStore } from "../../store";
 import { g2l, getUnitDistance, l2g, toRadians } from "../../units";
 
-import Tool from "./dTool.vue";
+import Tool from "./Tool.vue";
 import { ToolBasics } from "./ToolBasics";
-import Tools from "./dTools.vue";
+import Tools from "./Tools.vue";
 import { ToolName } from "./utils";
 
 type ShapeChoice = "square" | "circle" | "cone";
@@ -150,13 +150,13 @@ export default class SpellTool extends Tool implements ToolBasics {
     getShapeWord(shape: string): string {
         switch (shape) {
             case "square":
-                return this.$t("draw.square").toString();
+                return this.$t("game.ui.tools.DrawTool.square").toString();
 
             case "circle":
-                return this.$t("draw.circle").toString();
+                return this.$t("game.ui.tools.DrawTool.circle").toString();
 
             case "cone":
-                return this.$t("draw.cone").toString();
+                return this.$t("game.ui.tools.DrawTool.cone").toString();
 
             default:
                 return "";

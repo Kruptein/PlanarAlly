@@ -102,8 +102,8 @@
         }
     },
     "game": {
-        "FloorSelect": {
-            "floors": {
+        "ui": {
+            "FloorSelect": {
                 "new_name": "Nombre del nuevo piso",
                 "creation": "Crear piso",
                 "warning_msg_Z": "¿Estás seguro de que quieres remover el piso {z}?",
@@ -320,7 +320,14 @@
                     "background_color": "Color de fondo",
                     "mode": "Modo",
                     "closed_polygon": "¿Polígono Cerrado?",
-                    "brush_size": "Tamaño de pincel"
+                    "brush_size": "Tamaño de pincel",
+                    "square": "cuadrado",
+                    "circle": "círculo",
+                    "draw-polygon": "Dibujar Polígono",
+                    "paint-brush": "Mano Alzada",
+                    "normal": "normal",
+                    "reveal": "revelar",
+                    "hide": "esconder"
                 },
                 "FilterTool": {
                     "no_category": "ninguna categoría"
@@ -341,7 +348,7 @@
                     "change_mode": "Cambiar modo"
                 }
             },
-            "FloorSelect": {
+            "ui": {
                 "github_msg": "¡Encuentre el código en Github!",
                 "discord_msg": "¡Únase a la comunidad en Discord!",
                 "patreon_msg": "¡Contribuya usando Patreon!",
@@ -357,15 +364,6 @@
         "tokens": "tokens",
         "dm": "dm",
         "fow": "niebla de guerra"
-    },
-    "DrawTool": {
-        "square": "cuadrado",
-        "circle": "círculo",
-        "draw-polygon": "Dibujar Polígono",
-        "paint-brush": "Mano Alzada",
-        "normal": "normal",
-        "reveal": "revelar",
-        "hide": "esconder"
     },
     "tool": {
         "Build": "Construir",

@@ -111,7 +111,7 @@ export default class LocationBar extends Vue {
         }
         const idx = this.expanded.findIndex((x) => x === fromLocation);
         if (idx >= 0) {
-            this.expanded.slice(idx, 1);
+            this.expanded.splice(idx, 1);
             this.expanded.push(toLocation);
         }
         sendLocationChange({ location: toLocation, users: players });

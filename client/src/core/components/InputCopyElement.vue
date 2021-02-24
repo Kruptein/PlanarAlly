@@ -14,7 +14,7 @@ export default class InputCopyElement extends Vue {
     async copy(): Promise<void> {
         try {
             await navigator.clipboard.writeText(this.value);
-            this.popupString = this.$t("core.components.inputCopy.copied").toString();
+            this.popupString = this.$t("core.components.InputCopyElement.copied").toString();
         } catch {
             console.log("Could not copy to clipboard :(");
             this.popupString = this.$t("common.error_msg").toString();
@@ -28,7 +28,7 @@ export default class InputCopyElement extends Vue {
     <div id="input-copy" @mouseleave="showPopup = false">
         <input type="text" disabled="disabled" :value="value" id="input-element" />
         <div v-show="showPopup" id="show-popup">{{ popupString }}</div>
-        <div id="copy-button" @click="copy" :title="$t('core.components.inputCopy.copy')">
+        <div id="copy-button" @click="copy" :title="$t('core.components.InputCopyElement.copy')">
             <font-awesome-icon :icon="['far', 'copy']" />
         </div>
     </div>

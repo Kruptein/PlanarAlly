@@ -2,7 +2,7 @@
 import Vue from "vue";
 import Component from "vue-class-component";
 
-import ConfirmDialog from "@/core/components/modals/confirm.vue";
+import ConfirmDialog from "@/core/components/modals/ConfirmDialog.vue";
 import Modal from "@/core/components/modals/modal.vue";
 import { Note } from "@/game/models/general";
 import { gameStore } from "@/game/store";
@@ -41,7 +41,7 @@ export default class NoteDialog extends Vue {
         if (this.note) gameStore.updateNote({ note: this.note, sync: true });
     }
     async removeNote(): Promise<void> {
-        const result = await this.$refs.confirm.open(this.$t("game.ui.note.warning_msg").toString());
+        const result = await this.$refs.confirm.open(this.$t("game.ui.NoteDialog.warning_msg").toString());
         if (result && this.note) {
             gameStore.removeNote({ note: this.note, sync: true });
             this.visible = false;
@@ -61,7 +61,7 @@ export default class NoteDialog extends Vue {
             @dragstart="m.dragStart"
             @dragend="m.dragEnd"
         >
-            <span @click="$refs.title.select()" :title="$t('game.ui.note.edit_title')">
+            <span @click="$refs.title.select()" :title="$t('game.ui.NoteDialog.edit_title')">
                 <font-awesome-icon icon="pencil-alt" />
             </span>
             <input v-model="note.title" ref="title" @change="updateNote" />
@@ -73,9 +73,9 @@ export default class NoteDialog extends Vue {
             <textarea ref="textarea" v-model="note.text" @input="calcHeight" @change="updateNote"></textarea>
         </div>
         <div class="modal-footer">
-            <button @click="removeNote" :title="$t('game.ui.note.remove_note')">
+            <button @click="removeNote" :title="$t('game.ui.NoteDialog.remove_note')">
                 <font-awesome-icon icon="trash-alt" />
-                {{ $t("game.ui.note.remove_note") }}
+                {{ $t("game.ui.NoteDialog.remove_note") }}
             </button>
         </div>
     </modal>

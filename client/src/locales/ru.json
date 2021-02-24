@@ -11,12 +11,12 @@
         "it": "Italiano"
     },
     "assetManager": {
-        "contextMenu": {
+        "AssetContextMenu": {
             "new_name": "Новое имя:",
             "renaming_NAME": "Переименовать {name}",
             "ask_remove": "Вы уверены, что хотите удалить это?"
         },
-        "manager": {
+        "AssetManager": {
             "new_folder_name": "Имя нового каталога",
             "uploading": "Загружаем файлы",
             "create_folder": "Создать каталог",
@@ -52,7 +52,7 @@
         "fill_color": "Цвет заполнения",
         "trackers": "Отслеживание",
         "auras": "Ауры",
-        "labels": "Метки",
+        "LabelManager": "Метки",
         "annotation": "Аннотация",
         "floor": "Этаж",
         "layer": "Слой",
@@ -75,14 +75,14 @@
     },
     "core": {
         "components": {
-            "inputCopy": {
+            "InputCopyElement": {
                 "copied": "Скопировано!",
                 "copy": "Копировать"
             }
         }
     },
     "dashboard": {
-        "main": {
+        "Dashboard": {
             "session_name": "Имя компании",
             "account_settings": "Настройки учётной записи",
             "logout": "Выход",
@@ -94,7 +94,7 @@
     },
     "game": {
         "ui": {
-            "floors": {
+            "FloorSelect": {
                 "new_name": "Имя нового этажа",
                 "creation": "Создание этажа",
                 "warning_msg_Z": "Вы уверены, что хотите удалить этаж {z}?",
@@ -114,7 +114,7 @@
                     "next": "Следующий"
                 }
             },
-            "labels": {
+            "LabelManager": {
                 "category": "Категория",
                 "visible": "Видимость",
                 "delete": "Удалить",
@@ -132,7 +132,7 @@
                     "add_new_location": "Добавить новый регион",
                     "show_specific_pl": "Показывать определённых игроков"
                 },
-                "menu": {
+                "MenuBar": {
                     "new_note": "Новая заметка",
                     "open_asset_manager": "Открыть управление объектами",
                     "no_assets": "Нет объектов",
@@ -144,7 +144,7 @@
                     "client_options": "Опции клиента"
                 }
             },
-            "note": {
+            "NoteDialog": {
                 "warning_msg": "Вы уверены, что хотите удалить это?",
                 "edit_title": "Редактировать заголовок",
                 "remove_note": "Удалить заметку"
@@ -175,12 +175,12 @@
                         "block_movement": "Блокирует передвижение"
                     }
                 },
-                "select_info": {
+                "SelectionInfo": {
                     "open_shape_props": "Открыть свойства фигуры",
                     "quick_edit_tracker": "Быстро изменить отслеживание",
                     "quick_edit_aura": "Быстро изменить ауру"
                 },
-                "shapecontext": {
+                "ShapeContext": {
                     "show_initiative": "Показать инициативу",
                     "add_initiative": "Добавить инициативу",
                     "add_all_initiative": "Добавить всё в инициативу",
@@ -237,7 +237,7 @@
                     "use_grid": "Использовать сетку",
                     "size_unit": "Единица измерения"
                 },
-                "location": {
+                "LocationBar": {
                     "LocationAdminSettings": {
                         "remove_location_msg_NAME": "Вы уверены, что нужно удалить регион {name}",
                         "remove_location_yes": "Да, удалить этот регион",
@@ -270,28 +270,35 @@
                 }
             },
             "tools": {
-                "createtoken_modal": {
+                "CreateTokenModal": {
                     "create_basic_token": "Создать базовый токен",
                     "text": "Текст",
                     "fill": "Заполнение:",
                     "border": "Граница:"
                 },
-                "defaultcontext": {
+                "DefaultContext": {
                     "bring_pl": "Привести игроков",
                     "create_basic_token": "Создать базовый токен",
                     "show_initiative": "Показать инициативу"
                 },
-                "draw": {
+                "DrawTool": {
                     "foreground_color": "Цвет переднего плана",
                     "background_color": "Цвет фона",
                     "mode": "Режим",
                     "closed_polygon": "Замкнутый полигон?",
-                    "brush_size": "Размер кисти"
+                    "brush_size": "Размер кисти",
+                    "square": "прямоугольник",
+                    "circle": "круг",
+                    "draw-polygon": "многоугольник",
+                    "paint-brush": "кисть-карандаш",
+                    "normal": "нормальный",
+                    "reveal": "показывать",
+                    "hide": "скрывать"
                 },
-                "filter": {
+                "FilterTool": {
                     "no_category": "без категории"
                 },
-                "map": {
+                "MapTool": {
                     "drag_to_resize": "Потяните область, размер которой хотите изменить",
                     "select_shape_msg": "Установить целевые клетки сетки",
                     "set_target_grid_cells": "Выберите фигуру сначала.",
@@ -300,7 +307,7 @@
                     "apply": "ПРИМЕНИТЬ",
                     "cancel": "ОТМЕНА"
                 },
-                "ruler": {
+                "RulerTool": {
                     "share": "Показывать остальным"
                 },
                 "tools": {
@@ -324,15 +331,6 @@
         "dm": "дм",
         "fow": "туман войны"
     },
-    "draw": {
-        "square": "прямоугольник",
-        "circle": "круг",
-        "draw-polygon": "многоугольник",
-        "paint-brush": "кисть-карандаш",
-        "normal": "нормальный",
-        "reveal": "показывать",
-        "hide": "скрывать"
-    },
     "tool": {
         "Build": "Стройка",
         "Play": "Игра",
@@ -346,7 +344,7 @@
         "Vision": "Видимость"
     },
     "settings": {
-        "account": {
+        "AccountSettings": {
             "no_pwd_msg": "Не указан новый пароль!",
             "pwd_not_match": "Пароли не совпадают!",
             "server_request_error": "Что-то пошло не так во время запроса на сервер",
@@ -365,7 +363,7 @@
         },
         "settings": {
             "account_settings": "Настройки учётной записи",
-            "account": "Учётная запись"
+            "AccountSettings": "Учётная запись"
         }
     }
 }

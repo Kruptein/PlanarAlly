@@ -2,7 +2,7 @@
 import Vue from "vue";
 import Component from "vue-class-component";
 
-import InputCopyElement from "@/core/components/inputCopy.vue";
+import InputCopyElement from "@/core/components/InputCopyElement.vue";
 import Prompt from "@/core/components/modals/prompt.vue";
 import { sendDeleteRoom, sendRefreshInviteCode } from "@/game/api/emits/room";
 import { EventBus } from "@/game/event-bus";

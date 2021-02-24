@@ -5,9 +5,9 @@ import Accordion from "@/core/components/accordion.vue";
 import { socket } from "@/game/api/socket";
 import { layerManager } from "@/game/layers/manager";
 import { gameStore } from "@/game/store";
-import Tool from "@/game/ui/tools/tool.vue";
+import Tool from "@/game/ui/tools/Tool.vue";
 
-import { SelectFeatures } from "./select.vue";
+import { SelectFeatures } from "./SelectTool.vue";
 import { ToolBasics } from "./ToolBasics";
 import { ToolName, ToolPermission } from "./utils";
 
@@ -90,7 +90,7 @@ export default class FilterTool extends Tool implements ToolBasics {
             <accordion
                 v-for="category in categories"
                 :key="category"
-                :title="category === '' ? $t('game.ui.tools.filter.no_category') : category"
+                :title="category === '' ? $t('game.ui.tools.FilterTool.no_category') : category"
                 :showArrow="false"
                 :items="labels[category]"
                 :initialValues="initalValues[category]"

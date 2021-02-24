@@ -20,5 +20,5 @@ export const sendLocationUnarchive = wrapSocket<number>("Location.Unarchive");
 
 export async function requestSpawnInfo(location: number): Promise<ServerAsset[]> {
     socket.emit("Location.Spawn.Info.Get", location);
-    return await new Promise((resolve: (value: ServerAsset[]) => void) => socket.once("Location.Spawn.Info", resolve));
+    return new Promise((resolve: (value: ServerAsset[]) => void) => socket.once("Location.Spawn.Info", resolve));
 }

@@ -26,7 +26,6 @@ export default class LocationBar extends Vue {
     IS_DM!: boolean;
 
     $refs!: {
-        // archived: ArchivedLocations;
         locations: InstanceType<typeof draggable>;
         prompt: Prompt;
         selectionbox: SelectionBox;
@@ -77,8 +76,8 @@ export default class LocationBar extends Vue {
 
     async createLocation(): Promise<void> {
         const value = await this.$refs.prompt.prompt(
-            this.$t("game.ui.menu.locations.new_location_name").toString(),
-            this.$t("game.ui.menu.locations.create_new_location").toString(),
+            this.$t("game.ui.menu.LocationBars.new_location_name").toString(),
+            this.$t("game.ui.menu.LocationBars.create_new_location").toString(),
         );
         if (value !== undefined) sendNewLocation(value);
     }
@@ -111,7 +110,7 @@ export default class LocationBar extends Vue {
         }
         const idx = this.expanded.findIndex((x) => x === fromLocation);
         if (idx >= 0) {
-            this.expanded.slice(idx, 1);
+            this.expanded.splice(idx, 1);
             this.expanded.push(toLocation);
         }
         sendLocationChange({ location: toLocation, users: players });
@@ -189,11 +188,10 @@ export default class LocationBar extends Vue {
 
 <template>
     <div id="location-bar" v-if="IS_DM">
-        <!-- <ArchivedLocations ref="archived" /> -->
         <SelectionBox ref="selectionbox" />
         <Prompt ref="prompt" />
         <div id="location-actions">
-            <div id="create-location" :title="$t('game.ui.menu.locations.add_new_location')" @click="createLocation">
+            <div id="create-location" :title="$t('game.ui.menu.LocationBars.add_new_location')" @click="createLocation">
                 +
             </div>
             <div
@@ -235,7 +233,7 @@ export default class LocationBar extends Vue {
                     <div class="player-collapse-header">
                         {{ $t("common.players") }}
                         <div
-                            :title="$t('game.ui.menu.locations.show_specific_pl')"
+                            :title="$t('game.ui.menu.LocationBars.show_specific_pl')"
                             @click="toggleExpanded(location.id)"
                         >
                             <span v-show="expanded.includes(location.id)">

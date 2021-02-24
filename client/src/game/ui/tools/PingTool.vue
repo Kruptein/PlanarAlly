@@ -6,14 +6,14 @@ import { GlobalPoint, LocalPoint } from "@/game/geom";
 import { layerManager } from "@/game/layers/manager";
 import { Circle } from "@/game/shapes/variants/circle";
 import { gameStore } from "@/game/store";
-import Tool from "@/game/ui/tools/tool.vue";
+import Tool from "@/game/ui/tools/Tool.vue";
 import { l2g } from "@/game/units";
 
 import { sendShapePositionUpdate } from "../../api/emits/shape/core";
 import { floorStore } from "../../layers/store";
 import { deleteShapes } from "../../shapes/utils";
 
-import { SelectFeatures } from "./select.vue";
+import { SelectFeatures } from "./SelectTool.vue";
 import { ToolBasics } from "./ToolBasics";
 import { ToolName, ToolPermission } from "./utils";
 

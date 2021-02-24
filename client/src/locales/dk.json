@@ -11,12 +11,12 @@
         "it": "Italiano"
     },
     "assetManager": {
-        "contextMenu": {
+        "AssetContextMenu": {
             "new_name": "Nyt navn:",
             "renaming_NAME": "Omdøb {name}",
             "ask_remove": "Er du sikker på, at du vil fjerne dette?"
         },
-        "manager": {
+        "AssetManager": {
             "new_folder_name": "Ny mappes navn",
             "uploading": "Uploader fil",
             "create_folder": "Opret mappe",
@@ -52,7 +52,7 @@
         "fill_color": "Fyldfarve",
         "trackers": "Trackers",
         "auras": "Auraer",
-        "labels": "Mærkater",
+        "LabelManager": "Mærkater",
         "annotation": "Anmærkning",
         "floor": "Etage",
         "layer": "Lag",
@@ -75,14 +75,14 @@
     },
     "core": {
         "components": {
-            "inputCopy": {
+            "InputCopyElement": {
                 "copied": "Kopieret!",
                 "copy": "Kopier"
             }
         }
     },
     "dashboard": {
-        "main": {
+        "Dashboard": {
             "session_name": "Kampagne navn",
             "account_settings": "Konto instillinger",
             "logout": "Log ud",
@@ -94,7 +94,7 @@
     },
     "game": {
         "ui": {
-            "floors": {
+            "FloorSelect": {
                 "new_name": "Ny etage navn",
                 "creation": "Etageoprettelse",
                 "warning_msg_Z": "Er du sikker på at du vil fjerne d. {z} etage?",
@@ -114,7 +114,7 @@
                     "next": "Næste"
                 }
             },
-            "labels": {
+            "LabelManager": {
                 "category": "Kategori",
                 "visible": "Synlig",
                 "delete": "Slet",
@@ -132,7 +132,7 @@
                     "add_new_location": "Tilføj ny placering",
                     "show_specific_pl": "Vis specifik spiller"
                 },
-                "menu": {
+                "MenuBar": {
                     "new_note": "Ny note",
                     "open_asset_manager": "Åben materiale håndtering",
                     "no_assets": "Ingen materialer",
@@ -144,7 +144,7 @@
                     "client_options": "Klient instillinger"
                 }
             },
-            "note": {
+            "NoteDialog": {
                 "warning_msg": "Er du sikker på at du vil fjerne dette?",
                 "edit_title": "Ændrer titel",
                 "remove_note": "Fjern note"
@@ -175,12 +175,12 @@
                         "block_movement": "Blokerer bevægelse"
                     }
                 },
-                "select_info": {
+                "SelectionInfo": {
                     "open_shape_props": "Åben form egenskaber",
                     "quick_edit_tracker": "Hurtig rediger tracker",
                     "quick_edit_aura": "Hurtig rediger aura"
                 },
-                "shapecontext": {
+                "ShapeContext": {
                     "show_initiative": "Vis initiativ",
                     "add_initiative": "Tilføj initiative",
                     "add_all_initiative": "Tilføj alt til initiativ",
@@ -237,7 +237,7 @@
                     "use_grid": "Brug gitter",
                     "size_unit": "Længdeenhed"
                 },
-                "location": {
+                "LocationBar": {
                     "LocationAdminSettings": {
                         "remove_location_msg_NAME": "Er du sikker på at du vil fjerne placeringen {name}",
                         "remove_location_yes": "Ja, slet placeringen",
@@ -270,28 +270,35 @@
                 }
             },
             "tools": {
-                "createtoken_modal": {
+                "CreateTokenModal": {
                     "create_basic_token": "Skab basal polet",
                     "text": "Tekst",
                     "fill": "Fyld:",
                     "border": "Kant:"
                 },
-                "defaultcontext": {
+                "DefaultContext": {
                     "bring_pl": "Bring spillere",
                     "create_basic_token": "Skab basal polet",
                     "show_initiative": "Vis initiativ"
                 },
-                "draw": {
+                "DrawTool": {
                     "foreground_color": "Forgrundsfarve",
                     "background_color": "Baggrundsfarve",
                     "mode": "Tilstand",
                     "closed_polygon": "Lukket polygon?",
-                    "brush_size": "Pensel størelse"
+                    "brush_size": "Pensel størelse",
+                    "square": "kvadrat",
+                    "circle": "cirkel",
+                    "draw-polygon": "polygon",
+                    "paint-brush": "malerpensel",
+                    "normal": "normal",
+                    "reveal": "afslør",
+                    "hide": "gem"
                 },
-                "filter": {
+                "FilterTool": {
                     "no_category": "ingen kategori"
                 },
-                "map": {
+                "MapTool": {
                     "drag_to_resize": "Træk et område du ænsker at ændrer størelsen på",
                     "select_shape_msg": "Vælg venligst en form først.",
                     "set_target_grid_cells": "Indstil målet for feltstørrelsen",
@@ -300,7 +307,7 @@
                     "apply": "ANVEND",
                     "cancel": "CANCEL"
                 },
-                "ruler": {
+                "RulerTool": {
                     "share": "Del med andre"
                 },
                 "tools": {
@@ -324,15 +331,6 @@
         "dm": "dm",
         "fow": "fow"
     },
-    "draw": {
-        "square": "kvadrat",
-        "circle": "cirkel",
-        "draw-polygon": "polygon",
-        "paint-brush": "malerpensel",
-        "normal": "normal",
-        "reveal": "afslør",
-        "hide": "gem"
-    },
     "tool": {
         "Build": "Byg",
         "Play": "Spil",
@@ -346,7 +344,7 @@
         "Vision": "Syn"
     },
     "settings": {
-        "account": {
+        "AccountSettings": {
             "no_pwd_msg": "Ingen ny adgangskode givet!",
             "pwd_not_match": "Adgangskodefelterne er ikke ens!",
             "server_request_error": "Noget gik galt med server anmodningen",
@@ -365,7 +363,7 @@
         },
         "settings": {
             "account_settings": "Konto instillinger",
-            "account": "Konto"
+            "AccountSettings": "Konto"
         }
     }
 }

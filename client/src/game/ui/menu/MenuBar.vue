@@ -8,8 +8,8 @@ import { baseAdjust, uuidv4 } from "@/core/utils";
 import { layerManager } from "@/game/layers/manager";
 import { Note } from "@/game/models/general";
 import { gameStore } from "@/game/store";
-import AssetNode from "@/game/ui/menu/asset_node.vue";
-import NoteDialog from "@/game/ui/note.vue";
+import AssetNode from "@/game/ui/menu/AssetNode.vue";
+import NoteDialog from "@/game/ui/NoteDialog.vue";
 
 import { AssetList } from "../../../core/models/types";
 import UI from "../ui.vue";
@@ -53,7 +53,7 @@ export default class MenuBar extends Vue {
         }
     }
     createNote(): void {
-        const note = { title: this.$t("game.ui.menu.menu.new_note").toString(), text: "", uuid: uuidv4() };
+        const note = { title: this.$t("game.ui.menu.MenuBar.new_note").toString(), text: "", uuid: uuidv4() };
         gameStore.newNote({ note, sync: true });
         this.openNote(note);
     }
@@ -102,14 +102,14 @@ export default class MenuBar extends Vue {
                         class="actionButton"
                         :href="baseAdjust('/assets')"
                         target="blank"
-                        :title="$t('game.ui.menu.menu.open_asset_manager')"
+                        :title="$t('game.ui.menu.MenuBar.open_asset_manager')"
                     >
                         <font-awesome-icon icon="external-link-alt" />
                     </a>
                     <div class="directory" id="menu-tokens">
                         <asset-node :asset="assets" :search="assetSearch"></asset-node>
                         <div v-if="Object.keys(assets).length === 1 && assets['__files'].length <= 0">
-                            {{ $t("game.ui.menu.menu.no_assets") }}
+                            {{ $t("game.ui.menu.MenuBar.no_assets") }}
                         </div>
                     </div>
                 </div>
@@ -117,17 +117,17 @@ export default class MenuBar extends Vue {
                 <button class="menu-accordion" v-t="'common.notes'"></button>
                 <div class="menu-accordion-panel">
                     <div class="menu-accordion-subpanel" id="menu-notes">
-                        <a class="actionButton" @click="createNote" :title="$t('game.ui.menu.menu.create_note')">
+                        <a class="actionButton" @click="createNote" :title="$t('game.ui.menu.MenuBar.create_note')">
                             <font-awesome-icon icon="plus-square" />
                         </a>
                         <div v-for="note in notes" :key="note.uuid" @click="openNote(note)" style="cursor: pointer">
                             {{ note.title || "[?]" }}
                         </div>
-                        <div v-if="!notes.length" v-t="'game.ui.menu.menu.no_notes'"></div>
+                        <div v-if="!notes.length" v-t="'game.ui.menu.MenuBar.no_notes'"></div>
                     </div>
                 </div>
                 <!-- DM OPTIONS -->
-                <button class="menu-accordion" @click="openDmSettings" v-t="'game.ui.menu.menu.dm_options'"></button>
+                <button class="menu-accordion" @click="openDmSettings" v-t="'game.ui.menu.MenuBar.dm_options'"></button>
             </template>
             <!-- MARKERS -->
             <button class="menu-accordion" v-t="'common.markers'"></button>
@@ -137,15 +137,19 @@ export default class MenuBar extends Vue {
                         <div @click="jumpToMarker(marker)" class="menu-accordion-subpanel-text">
                             {{ nameMarker(marker) || "[?]" }}
                         </div>
-                        <div @click="delMarker(marker)" :title="$t('game.ui.menu.menu.delete_marker')">
+                        <div @click="delMarker(marker)" :title="$t('game.ui.menu.MenuBar.delete_marker')">
                             <font-awesome-icon icon="minus-square" />
                         </div>
                     </div>
-                    <div v-if="!markers.length" v-t="'game.ui.menu.menu.no_markers'"></div>
+                    <div v-if="!markers.length" v-t="'game.ui.menu.MenuBar.no_markers'"></div>
                 </div>
             </div>
             <!-- CLIENT OPTIONS -->
-            <button class="menu-accordion" @click="openUserSettings" v-t="'game.ui.menu.menu.client_options'"></button>
+            <button
+                class="menu-accordion"
+                @click="openUserSettings"
+                v-t="'game.ui.menu.MenuBar.client_options'"
+            ></button>
         </div>
         <router-link
             to="/dashboard"

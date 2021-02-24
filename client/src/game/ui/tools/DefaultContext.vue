@@ -16,7 +16,7 @@ import { Asset } from "@/game/shapes/variants/asset";
 import { gameStore } from "@/game/store";
 import { l2gx, l2gy, l2g } from "@/game/units";
 
-import CreateTokenModal from "./createtoken_modal.vue";
+import CreateTokenModal from "./CreateTokenModal.vue";
 
 @Component({
     components: {
@@ -78,8 +78,8 @@ export default class DefaultContext extends Vue {
         if (!gameStore.IS_DM) return;
         const spawnLocations = gameSettingsStore.spawnLocations;
         const spawnName = await this.$refs.prompt.prompt(
-            this.$t("game.ui.tools.defaultcontext.new_spawn_question").toString(),
-            this.$t("game.ui.tools.defaultcontext.new_spawn_title").toString(),
+            this.$t("game.ui.tools.DefaultContext.new_spawn_question").toString(),
+            this.$t("game.ui.tools.DefaultContext.new_spawn_title").toString(),
             (value: string) => {
                 if (value === "") return { valid: false, reason: this.$t("common.insert_one_character").toString() };
                 const spawnNames = spawnLocations.map((uuid) => layerManager.UUIDMap.get(uuid)?.name ?? "");
@@ -125,10 +125,10 @@ export default class DefaultContext extends Vue {
         <CreateTokenModal ref="createtokendialog" @close="close"></CreateTokenModal>
         <Prompt ref="prompt" @close="close"></Prompt>
 
-        <li @click="bringPlayers" v-if="IS_DM" v-t="'game.ui.tools.defaultcontext.bring_pl'"></li>
-        <li @click="createToken" v-t="'game.ui.tools.defaultcontext.create_basic_token'"></li>
-        <li @click="showInitiative" v-t="'game.ui.tools.defaultcontext.show_initiative'"></li>
-        <li @click="createSpawnLocation" v-if="IS_DM" v-t="'game.ui.tools.defaultcontext.create_spawn_location'"></li>
+        <li @click="bringPlayers" v-if="IS_DM" v-t="'game.ui.tools.DefaultContext.bring_pl'"></li>
+        <li @click="createToken" v-t="'game.ui.tools.DefaultContext.create_basic_token'"></li>
+        <li @click="showInitiative" v-t="'game.ui.tools.DefaultContext.show_initiative'"></li>
+        <li @click="createSpawnLocation" v-if="IS_DM" v-t="'game.ui.tools.DefaultContext.create_spawn_location'"></li>
     </ContextMenu>
 </template>
 

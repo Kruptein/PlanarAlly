@@ -11,12 +11,12 @@
         "it": "Italiano"
     },
     "assetManager": {
-        "contextMenu": {
+        "AssetContextMenu": {
             "new_name": "新名称：",
             "renaming_NAME": "重命名 {name}",
             "ask_remove": "你确定要移除这个吗？"
         },
-        "manager": {
+        "AssetManager": {
             "new_folder_name": "新文件夹名",
             "uploading": "文件上传中",
             "create_folder": "创建文件夹",
@@ -52,7 +52,7 @@
         "fill_color": "填充色",
         "trackers": "追踪值",
         "auras": "光晕",
-        "labels": "标签",
+        "LabelManager": "标签",
         "annotation": "注释",
         "floor": "楼层",
         "layer": "图层",
@@ -80,7 +80,7 @@
     },
     "core": {
         "components": {
-            "inputCopy": {
+            "InputCopyElement": {
                 "copied": "已复制！",
                 "copy": "复制"
             },
@@ -91,7 +91,7 @@
         }
     },
     "dashboard": {
-        "main": {
+        "Dashboard": {
             "session_name": "战局名称",
             "account_settings": "账号设置",
             "logout": "注销",
@@ -103,7 +103,7 @@
     },
     "game": {
         "ui": {
-            "floors": {
+            "FloorSelect": {
                 "new_name": "新楼层名称",
                 "creation": "楼层创建",
                 "warning_msg_Z": "你确定要移除楼层 {z} 吗？",
@@ -127,7 +127,7 @@
                     "next": "下一个"
                 }
             },
-            "labels": {
+            "LabelManager": {
                 "category": "分类",
                 "visible": "可见",
                 "delete": "删除",
@@ -145,7 +145,7 @@
                     "add_new_location": "添加新地点",
                     "show_specific_pl": "显示特定玩家"
                 },
-                "menu": {
+                "MenuBar": {
                     "new_note": "新便签",
                     "open_asset_manager": "打开素材管理器",
                     "no_assets": "暂无素材",
@@ -157,7 +157,7 @@
                     "client_options": "客户端选项"
                 }
             },
-            "note": {
+            "NoteDialog": {
                 "warning_msg": "你确认要移除这个吗？",
                 "edit_title": "编辑标题",
                 "remove_note": "移除便签"
@@ -188,7 +188,7 @@
                         "block_movement": "阻挡移动"
                     }
                 },
-                "select_info": {
+                "SelectionInfo": {
                     "open_shape_props": "打开图形属性",
                     "quick_edit_tracker": "快速编辑追踪值",
                     "quick_edit_aura": "快速编辑光晕",
@@ -196,7 +196,7 @@
                     "updating_NAME": "更新 {name}",
                     "lock": "切换锁定状态"
                 },
-                "shapecontext": {
+                "ShapeContext": {
                     "show_initiative": "显示先攻",
                     "add_initiative": "添加先攻",
                     "add_all_initiative": "全部添加先攻",
@@ -259,7 +259,7 @@
                     "POINTY_HEX": "水平六边形",
                     "FLAT_HEX": "垂直六边形"
                 },
-                "location": {
+                "LocationBar": {
                     "LocationAdminSettings": {
                         "remove_location_msg_NAME": "你确定要移除地点 {name} 吗？",
                         "remove_location_yes": "确认，移除该地点",
@@ -301,13 +301,13 @@
                 "create_new": "创建新模板"
             },
             "tools": {
-                "createtoken_modal": {
+                "CreateTokenModal": {
                     "create_basic_token": "创建基础指示物",
                     "text": "文本",
                     "fill": "填充：",
                     "border": "描边："
                 },
-                "defaultcontext": {
+                "DefaultContext": {
                     "bring_pl": "玩家视角至此",
                     "create_basic_token": "创建基础指示物",
                     "show_initiative": "显示先攻",
@@ -315,17 +315,24 @@
                     "new_spawn_question": "该刷新点的名称是?",
                     "new_spawn_title": "创建新的刷新点"
                 },
-                "draw": {
+                "DrawTool": {
                     "foreground_color": "前景色",
                     "background_color": "背景色",
                     "mode": "模式",
                     "closed_polygon": "闭合多边形？",
-                    "brush_size": "笔刷尺寸"
+                    "brush_size": "笔刷尺寸",
+                    "square": "方块",
+                    "circle": "圆圈",
+                    "draw-polygon": "多边形",
+                    "paint-brush": "笔刷",
+                    "normal": "普通",
+                    "reveal": "揭示",
+                    "hide": "隐藏"
                 },
-                "filter": {
+                "FilterTool": {
                     "no_category": "无分类"
                 },
-                "map": {
+                "MapTool": {
                     "drag_to_resize": "拖动出你想要作为缩放基准的区域",
                     "select_shape_msg": "请先选择一个图形。",
                     "set_target_grid_cells": "设定目标区域网格数",
@@ -334,7 +341,7 @@
                     "apply": "确认",
                     "cancel": "取消"
                 },
-                "ruler": {
+                "RulerTool": {
                     "share": "公开"
                 },
                 "tools": {
@@ -358,15 +365,6 @@
         "dm": "DM",
         "fow": "迷雾"
     },
-    "draw": {
-        "square": "方块",
-        "circle": "圆圈",
-        "draw-polygon": "多边形",
-        "paint-brush": "笔刷",
-        "normal": "普通",
-        "reveal": "揭示",
-        "hide": "隐藏"
-    },
     "tool": {
         "Build": "构建",
         "Play": "游玩",
@@ -380,7 +378,7 @@
         "Vision": "视野"
     },
     "settings": {
-        "account": {
+        "AccountSettings": {
             "no_pwd_msg": "没有设置新密码！",
             "pwd_not_match": "输入的密码不匹配！",
             "server_request_error": "服务器请求发生错误",
@@ -399,7 +397,7 @@
         },
         "settings": {
             "account_settings": "账号设置",
-            "account": "账号"
+            "AccountSettings": "账号"
         }
     }
 }

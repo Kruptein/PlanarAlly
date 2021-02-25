@@ -152,7 +152,10 @@ export default class AssetManager extends Vue {
                 await new Promise((resolve) => {
                     const fr = new FileReader();
                     fr.readAsArrayBuffer(
-                        file.slice(slice * CHUNK_SIZE, slice * CHUNK_SIZE + Math.min(CHUNK_SIZE, file.size - slice * CHUNK_SIZE)),
+                        file.slice(
+                            slice * CHUNK_SIZE,
+                            slice * CHUNK_SIZE + Math.min(CHUNK_SIZE, file.size - slice * CHUNK_SIZE),
+                        ),
                     );
                     fr.onload = (_e) => {
                         socket.emit(

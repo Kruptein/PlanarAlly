@@ -49,6 +49,7 @@ These usually have no immediately visible impact on regular users
 -   Shapes with a variant always appearing to other players
 -   Context menus going offscreen
 -   Navigating backwards (by mouse or with browser controls) not working
+-   Large uploads using the asset manager no longer fail part way through
 
 ## [0.25.0] - 2021-02-07
 

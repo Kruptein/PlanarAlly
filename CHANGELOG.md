@@ -48,6 +48,7 @@ These usually have no immediately visible impact on regular users
     -   shape group info is now sent along during initial load
 -   Shapes with a variant always appearing to other players
 -   Context menus going offscreen
+-   Navigating backwards (by mouse or with browser controls) not working
 
 ## [0.25.0] - 2021-02-07
 

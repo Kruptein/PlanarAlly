@@ -132,7 +132,7 @@ export default class AssetManager extends Vue {
     prepareUpload(): void {
         document.getElementById("files")!.click();
     }
-    upload(fls?: FileList, target?: number): void {
+    async upload(fls?: FileList, target?: number): Promise<void> {
         const files = (document.getElementById("files")! as HTMLInputElement).files;
         if (fls === undefined) {
             if (files) fls = files;
@@ -146,23 +146,29 @@ export default class AssetManager extends Vue {
             const slices = Math.ceil(file.size / CHUNK_SIZE);
             assetStore._pendingUploads.push(file.name);
             for (let slice = 0; slice < slices; slice++) {
-                const fr = new FileReader();
-                fr.readAsArrayBuffer(
-                    file.slice(
-                        slice * CHUNK_SIZE,
-                        slice * CHUNK_SIZE + Math.min(CHUNK_SIZE, file.size - slice * CHUNK_SIZE),
-                    ),
-                );
-                fr.onload = (_e) => {
-                    socket.emit("Asset.Upload", {
-                        name: file.name,
-                        directory: target,
-                        data: fr.result,
-                        slice,
-                        totalSlices: slices,
-                        uuid,
-                    });
-                };
+                await new Promise((resolve) => {
+                    const fr = new FileReader();
+                    fr.readAsArrayBuffer(
+                        file.slice(
+                            slice * CHUNK_SIZE,
+                            slice * CHUNK_SIZE + Math.min(CHUNK_SIZE, file.size - slice * CHUNK_SIZE),
+                        ),
+                    );
+                    fr.onload = (_e) => {
+                        socket.emit(
+                            "Asset.Upload",
+                            {
+                                name: file.name,
+                                directory: target,
+                                data: fr.result,
+                                slice,
+                                totalSlices: slices,
+                                uuid,
+                            },
+                            resolve,
+                        );
+                    };
+                });
             }
         }
     }

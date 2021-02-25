@@ -27,7 +27,7 @@ export default class Dashboard extends Vue {
         { text: "manage", type: "action", fn: this.openAssetManager },
         { text: "create", type: "action", fn: this.setActiveNavigation },
         { text: "", type: "separator" },
-        { text: "Settings", type: "action", fn: this.setActiveNavigation },
+        { text: "Settings", type: "action", fn: this.openSettings },
         { text: "", type: "separator" },
         { text: "Logout", type: "action", fn: this.logout },
     ];
@@ -66,6 +66,10 @@ export default class Dashboard extends Vue {
 
     async openAssetManager(): Promise<void> {
         await this.$router.push("/assets");
+    }
+
+    async openSettings(): Promise<void> {
+        await this.$router.push("/settings");
     }
 
     async logout(): Promise<void> {

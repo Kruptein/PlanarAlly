@@ -56,16 +56,17 @@ export class Circle extends Shape {
         if (this.fillColour === "fog") ctx.fillStyle = getFogColour();
         else ctx.fillStyle = this.fillColour;
 
-        this.drawArc(ctx, g2lz(this.r));
+        this.drawArc(ctx, this.ignoreZoomSize ? this.r : g2lz(this.r));
         ctx.fill();
 
         if (this.strokeColour !== "rgba(0, 0, 0, 0)") {
             const borderWidth = 5;
             ctx.beginPath();
-            ctx.lineWidth = g2lz(borderWidth);
+            ctx.lineWidth = this.ignoreZoomSize ? borderWidth : g2lz(borderWidth);
             ctx.strokeStyle = this.strokeColour;
             // Inset the border with - borderWidth / 2
-            this.drawArc(ctx, Math.max(borderWidth / 2, g2lz(this.r - borderWidth / 2)));
+            const r = this.r - borderWidth / 2;
+            this.drawArc(ctx, Math.max(borderWidth / 2, this.ignoreZoomSize ? r : g2lz(r)));
             ctx.stroke();
         }
         super.drawPost(ctx);

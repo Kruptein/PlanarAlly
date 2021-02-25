@@ -4,11 +4,11 @@ import Component from "vue-class-component";
 import { LocalPoint } from "@/game/geom";
 import { layerManager } from "@/game/layers/manager";
 import { gameStore } from "@/game/store";
-import Tool from "@/game/ui/tools/tool.vue";
+import Tool from "@/game/ui/tools/Tool.vue";
 
 import { sendClientLocationOptions } from "../../api/emits/client";
 
-import { SelectFeatures } from "./select.vue";
+import { SelectFeatures } from "./SelectTool.vue";
 import { ToolBasics } from "./ToolBasics";
 import { ToolName, ToolPermission } from "./utils";
 

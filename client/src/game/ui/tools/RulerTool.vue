@@ -8,7 +8,7 @@ import { floorStore } from "@/game/layers/store";
 import { snapToGridPoint } from "@/game/layers/utils";
 import { Line } from "@/game/shapes/variants/line";
 import { gameStore, DEFAULT_GRID_SIZE } from "@/game/store";
-import Tool from "@/game/ui/tools/tool.vue";
+import Tool from "@/game/ui/tools/Tool.vue";
 import { l2g } from "@/game/units";
 import { useSnapping } from "@/game/utils";
 
@@ -16,7 +16,7 @@ import { SyncMode, InvalidationMode, SyncTo } from "../../../core/models/types";
 import { gameSettingsStore } from "../../settings";
 import { Text } from "../../shapes/variants/text";
 
-import { SelectFeatures } from "./select.vue";
+import { SelectFeatures } from "./SelectTool.vue";
 import { ToolBasics } from "./ToolBasics";
 import { ToolName, ToolPermission } from "./utils";
 
@@ -188,7 +188,7 @@ export default class RulerTool extends Tool implements ToolBasics {
         v-if="selected"
         :style="{ '--detailRight': detailRight(), '--detailArrow': detailArrow }"
     >
-        <button @click="toggle" :aria-pressed="showPublic" v-t="'game.ui.tools.ruler.share'"></button>
+        <button @click="toggle" :aria-pressed="showPublic" v-t="'game.ui.tools.RulerTool.share'"></button>
     </div>
 </template>
 

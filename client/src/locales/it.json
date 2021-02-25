@@ -11,12 +11,12 @@
         "it": "Italiano"
     },
     "assetManager": {
-        "contextMenu": {
+        "AssetContextMenu": {
             "new_name": "Nuovo nome:",
             "renaming_NAME": "Rinomina {name}",
             "ask_remove": "Sei sicuro di volerlo rinominare?"
         },
-        "manager": {
+        "AssetManager": {
             "new_folder_name": "Nome della nuova cartella",
             "uploading": "Sto caricando i file",
             "create_folder": "Crea cartella",
@@ -52,7 +52,7 @@
         "fill_color": "Colore di riempimento",
         "trackers": "Tracker",
         "auras": "Aure",
-        "labels": "Etichette",
+        "LabelManager": "Etichette",
         "annotation": "Annotazione",
         "floor": "Piano",
         "layer": "Livello",
@@ -80,7 +80,7 @@
     },
     "core": {
         "components": {
-            "inputCopy": {
+            "InputCopyElement": {
                 "copied": "Copiato!",
                 "copy": "Copia"
             },
@@ -91,7 +91,7 @@
         }
     },
     "dashboard": {
-        "main": {
+        "Dashboard": {
             "session_name": "Nome della campagna",
             "account_settings": "Impostazioni account",
             "logout": "Logout",
@@ -103,7 +103,7 @@
     },
     "game": {
         "ui": {
-            "floors": {
+            "FloorSelect": {
                 "new_name": "Nuovo nome del piano",
                 "creation": "Creazione del piano",
                 "warning_msg_Z": "Sei sicuro di voler rimuovere il piano {z}?",
@@ -126,7 +126,7 @@
                     "next": "Prossimo"
                 }
             },
-            "labels": {
+            "LabelManager": {
                 "category": "Categoria",
                 "visible": "Visibile",
                 "delete": "Elimina",
@@ -144,7 +144,7 @@
                     "add_new_location": "Aggiungi location",
                     "show_specific_pl": "Mostra giocatore specifico"
                 },
-                "menu": {
+                "MenuBar": {
                     "new_note": "Nuova nota",
                     "open_asset_manager": "Apri il gestore degli asset",
                     "no_assets": "Nessun asset",
@@ -156,7 +156,7 @@
                     "client_options": "Opzioni client"
                 }
             },
-            "note": {
+            "NoteDialog": {
                 "warning_msg": "Sicuro di volerlo eliminare?",
                 "edit_title": "Modifica titolo",
                 "remove_note": "Rimuovi nota"
@@ -187,7 +187,7 @@
                         "block_movement": "Blocca movimento"
                     }
                 },
-                "select_info": {
+                "SelectionInfo": {
                     "open_shape_props": "Apri le proprietà della forma",
                     "quick_edit_tracker": "Modifica velocemente il tracker",
                     "quick_edit_aura": "Modifica velocemente l'aura",
@@ -195,7 +195,7 @@
                     "new_value_NAME": "Nuovo valore {name}:",
                     "updating_NAME": "Sto aggiornando {name}"
                 },
-                "shapecontext": {
+                "ShapeContext": {
                     "show_initiative": "Mostra iniziativa",
                     "add_initiative": "Aggiungi iniziativa",
                     "add_all_initiative": "Aggiungi tutti all'iniziativa",
@@ -257,7 +257,7 @@
                 "VariaSettings": {
                     "movePlayerOnTokenChange": "Sposta i giocatori quando un loro token viene spostato in un'altra location"
                 },
-                "location": {
+                "LocationBar": {
                     "LocationAdminSettings": {
                         "remove_location_msg_NAME": "Sei sicuro di voler rimuovere la location {name}",
                         "remove_location_yes": "Sì, rimuovi questa location",
@@ -296,13 +296,13 @@
                 "create_new": "Crea nuovo"
             },
             "tools": {
-                "createtoken_modal": {
+                "CreateTokenModal": {
                     "create_basic_token": "Crea un segnalino base",
                     "text": "Testo",
                     "fill": "Riempimento:",
                     "border": "Bordo:"
                 },
-                "defaultcontext": {
+                "DefaultContext": {
                     "bring_pl": "Porta giocatori",
                     "create_basic_token": "Crea un segnalino base",
                     "show_initiative": "Mostra iniziativa",
@@ -310,17 +310,24 @@
                     "new_spawn_question": "Come si chiama questa spawn location?",
                     "new_spawn_title": "Sto creando una nuova spawn location"
                 },
-                "draw": {
+                "DrawTool": {
                     "foreground_color": "Colore in primo piano",
                     "background_color": "Colore di sfondo",
                     "mode": "Modalità",
                     "closed_polygon": "Poligono chiuso?",
-                    "brush_size": "Dimensione del pennello"
+                    "brush_size": "Dimensione del pennello",
+                    "square": "quadrato",
+                    "circle": "cerchio",
+                    "draw-polygon": "disegna-poligono",
+                    "paint-brush": "pennello",
+                    "normal": "normale",
+                    "reveal": "rivela",
+                    "hide": "nascondi"
                 },
-                "filter": {
+                "FilterTool": {
                     "no_category": "nessuna categoria"
                 },
-                "map": {
+                "MapTool": {
                     "drag_to_resize": "Trascina l'area che vuoi ridimensionare",
                     "select_shape_msg": "Scegli prima la forma, per favore.",
                     "set_target_grid_cells": "Imposta le celle del bersaglio sulla griglia",
@@ -329,7 +336,7 @@
                     "apply": "APPLICA",
                     "cancel": "CANCELLA"
                 },
-                "ruler": {
+                "RulerTool": {
                     "share": "Condividi con gli altri"
                 },
                 "tools": {
@@ -353,15 +360,6 @@
         "dm": "dm",
         "fow": "fow"
     },
-    "draw": {
-        "square": "quadrato",
-        "circle": "cerchio",
-        "draw-polygon": "disegna-poligono",
-        "paint-brush": "pennello",
-        "normal": "normale",
-        "reveal": "rivela",
-        "hide": "nascondi"
-    },
     "tool": {
         "Build": "Costruisci",
         "Play": "Gioca",
@@ -375,7 +373,7 @@
         "Vision": "Visione"
     },
     "settings": {
-        "account": {
+        "AccountSettings": {
             "no_pwd_msg": "Nessuna password fornita!",
             "pwd_not_match": "I campi password non coincidono!",
             "server_request_error": "Qualcosa è andato storto con la richiesta al server",
@@ -394,7 +392,7 @@
         },
         "settings": {
             "account_settings": "Impostazioni Account",
-            "account": "Account"
+            "AccountSettings": "Account"
         }
     }
 }

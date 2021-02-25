@@ -9,7 +9,7 @@ import { snapToPoint } from "@/game/layers/utils";
 import { Shape } from "@/game/shapes/shape";
 import { Rect } from "@/game/shapes/variants/rect";
 import { DEFAULT_GRID_SIZE, gameStore } from "@/game/store";
-import Tool from "@/game/ui/tools/tool.vue";
+import Tool from "@/game/ui/tools/Tool.vue";
 import { calculateDelta, ToolFeatures, ToolName, ToolPermission } from "@/game/ui/tools/utils";
 import { g2l, g2lx, g2ly, l2g, l2gz } from "@/game/units";
 import { equalPoints, getLocalPointFromEvent, useSnapping } from "@/game/utils";
@@ -29,9 +29,9 @@ import { BoundingRect } from "../../shapes/variants/boundingrect";
 import { Circle } from "../../shapes/variants/circle";
 import { Line } from "../../shapes/variants/line";
 
-import { RulerFeatures } from "./ruler.vue";
+import { RulerFeatures } from "./RulerTool.vue";
 import { ToolBasics } from "./ToolBasics";
-import Tools from "./tools.vue";
+import Tools from "./Tools.vue";
 
 enum SelectOperations {
     Noop,

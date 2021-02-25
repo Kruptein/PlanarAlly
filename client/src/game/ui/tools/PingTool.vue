@@ -6,14 +6,14 @@ import { GlobalPoint, LocalPoint } from "@/game/geom";
 import { layerManager } from "@/game/layers/manager";
 import { Circle } from "@/game/shapes/variants/circle";
 import { gameStore } from "@/game/store";
-import Tool from "@/game/ui/tools/tool.vue";
+import Tool from "@/game/ui/tools/Tool.vue";
 import { l2g } from "@/game/units";
 
 import { sendShapePositionUpdate } from "../../api/emits/shape/core";
 import { floorStore } from "../../layers/store";
 import { deleteShapes } from "../../shapes/utils";
 
-import { SelectFeatures } from "./select.vue";
+import { SelectFeatures } from "./SelectTool.vue";
 import { ToolBasics } from "./ToolBasics";
 import { ToolName, ToolPermission } from "./utils";
 
@@ -62,6 +62,8 @@ export default class PingTool extends Tool implements ToolBasics {
         this.active = true;
         this.ping = new Circle(this.startPoint, 20, { fillColour: gameStore.rulerColour });
         this.border = new Circle(this.startPoint, 40, { fillColour: "#0000", strokeColour: gameStore.rulerColour });
+        this.ping.ignoreZoomSize = true;
+        this.border.ignoreZoomSize = true;
         this.ping.addOwner({ user: gameStore.username, access: { edit: true } }, SyncTo.SHAPE);
         this.border.addOwner({ user: gameStore.username, access: { edit: true } }, SyncTo.SHAPE);
         layer.addShape(this.ping, SyncMode.TEMP_SYNC, InvalidationMode.NORMAL);

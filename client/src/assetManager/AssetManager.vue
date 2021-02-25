@@ -4,7 +4,7 @@ import Component from "vue-class-component";
 import { Route, NavigationGuard } from "vue-router";
 import { mapGetters } from "vuex";
 
-import AssetContextMenu from "@/assetManager/contextMenu.vue";
+import AssetContextMenu from "@/assetManager/AssetContextMenu.vue";
 import { socket } from "@/assetManager/socket";
 import { assetStore } from "@/assetManager/store";
 import Prompt from "@/core/components/modals/prompt.vue";
@@ -71,7 +71,10 @@ export default class AssetManager extends Vue {
         socket.emit("Folder.Get", this.currentFolder);
     }
     async createDirectory(): Promise<void> {
-        const name = await this.$refs.prompt.prompt(this.$t("assetManager.manager.new_folder_name").toString(), "?");
+        const name = await this.$refs.prompt.prompt(
+            this.$t("assetManager.AssetManager.new_folder_name").toString(),
+            "?",
+        );
         if (name !== undefined) {
             socket.emit("Folder.Create", { name, parent: this.currentFolder });
         }
@@ -189,10 +192,10 @@ export default class AssetManager extends Vue {
 
 <template>
     <div id="AssetManager" v-cloak>
-        <div id="titlebar" v-t="'assetManager.manager.title'"></div>
+        <div id="titlebar" v-t="'assetManager.AssetManager.title'"></div>
         <div id="progressbar" v-show="expectedUploads > 0 && expectedUploads !== resolvedUploads">
             <div id="progressbar-label">
-                {{ $t("assetManager.manager.uploading") }} {{ resolvedUploads }} / {{ expectedUploads }}
+                {{ $t("assetManager.AssetManager.uploading") }} {{ resolvedUploads }} / {{ expectedUploads }}
             </div>
             <div id="progressbar-meter">
                 <span :style="{ width: (resolvedUploads / expectedUploads) * 100 + '%' }"></span>
@@ -205,13 +208,13 @@ export default class AssetManager extends Vue {
             </div>
             <div id="actionbar">
                 <input id="files" type="file" multiple hidden @change="upload()" />
-                <div @click="createDirectory" :title="$t('assetManager.manager.create_folder')">
+                <div @click="createDirectory" :title="$t('assetManager.AssetManager.create_folder')">
                     <font-awesome-icon icon="plus-square" />
                 </div>
-                <div @click="prepareUpload" :title="$t('assetManager.manager.upload_files')">
+                <div @click="prepareUpload" :title="$t('assetManager.AssetManager.upload_files')">
                     <font-awesome-icon icon="upload" />
                 </div>
-                <div @click="exportData" :title="$t('assetManager.manager.download_files')">
+                <div @click="exportData" :title="$t('assetManager.AssetManager.download_files')">
                     <font-awesome-icon icon="download" />
                 </div>
             </div>

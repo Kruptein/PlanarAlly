@@ -11,12 +11,12 @@
         "it": "Italiano"
     },
     "assetManager": {
-        "contextMenu": {
+        "AssetContextMenu": {
             "new_name": "新名稱：",
             "renaming_NAME": "重新命名 {name}",
             "ask_remove": "你確定要移除這個嗎？"
         },
-        "manager": {
+        "AssetManager": {
             "new_folder_name": "新文件夾名",
             "uploading": "文件上傳中",
             "create_folder": "新增文件夾",
@@ -52,7 +52,7 @@
         "fill_color": "填滿顏色",
         "trackers": "追踪值",
         "auras": "光暈",
-        "labels": "標籤",
+        "LabelManager": "標籤",
         "annotation": "註釋",
         "floor": "樓層",
         "layer": "圖層",
@@ -78,14 +78,14 @@
     },
     "core": {
         "components": {
-            "inputCopy": {
+            "InputCopyElement": {
                 "copied": "已複製！",
                 "copy": "複製"
             }
         }
     },
     "dashboard": {
-        "main": {
+        "Dashboard": {
             "session_name": "戰役名稱",
             "account_settings": "賬號設定",
             "logout": "登出",
@@ -97,7 +97,7 @@
     },
     "game": {
         "ui": {
-            "floors": {
+            "FloorSelect": {
                 "new_name": "新樓層名稱",
                 "creation": "新增樓層",
                 "warning_msg_Z": "你確定要移除樓層 {z} 嗎？",
@@ -120,7 +120,7 @@
                     "next": "下一個"
                 }
             },
-            "labels": {
+            "LabelManager": {
                 "category": "分類",
                 "visible": "可見",
                 "delete": "刪除",
@@ -138,7 +138,7 @@
                     "add_new_location": "添加新地點",
                     "show_specific_pl": "顯示特定玩家"
                 },
-                "menu": {
+                "MenuBar": {
                     "new_note": "新筆記",
                     "open_asset_manager": "打開素材管理器",
                     "no_assets": "暫無素材",
@@ -150,7 +150,7 @@
                     "client_options": "客戶端選項"
                 }
             },
-            "note": {
+            "NoteDialog": {
                 "warning_msg": "你確認要移除這個嗎？",
                 "edit_title": "編輯標題",
                 "remove_note": "移除筆記"
@@ -181,7 +181,7 @@
                         "block_movement": "阻擋移動"
                     }
                 },
-                "select_info": {
+                "SelectionInfo": {
                     "open_shape_props": "打開圖形屬性",
                     "quick_edit_tracker": "快速編輯追踪值",
                     "quick_edit_aura": "快速編輯光暈",
@@ -189,7 +189,7 @@
                     "updating_NAME": "更新 {name}",
                     "lock": "切換鎖定狀態"
                 },
-                "shapecontext": {
+                "ShapeContext": {
                     "show_initiative": "顯示先攻",
                     "add_initiative": "添加先攻",
                     "add_all_initiative": "全部添加先攻",
@@ -249,7 +249,7 @@
                 "VariaSettings": {
                     "movePlayerOnTokenChange": "移動玩家(們) 當指示物在轉換地點"
                 },
-                "location": {
+                "LocationBar": {
                     "LocationAdminSettings": {
                         "remove_location_msg_NAME": "你確定要移除地點 {name} 嗎？",
                         "remove_location_yes": "確認，移除該地點",
@@ -282,28 +282,35 @@
                 }
             },
             "tools": {
-                "createtoken_modal": {
+                "CreateTokenModal": {
                     "create_basic_token": "新增基礎指示物",
                     "text": "內容",
                     "fill": "填滿：",
                     "border": "格線："
                 },
-                "defaultcontext": {
+                "DefaultContext": {
                     "bring_pl": "玩家視角至此",
                     "create_basic_token": "新增基礎指示物",
                     "show_initiative": "顯示先攻"
                 },
-                "draw": {
+                "DrawTool": {
                     "foreground_color": "前景色",
                     "background_color": "背景色",
                     "mode": "模式",
                     "closed_polygon": "關閉多邊形？",
-                    "brush_size": "筆刷尺寸"
+                    "brush_size": "筆刷尺寸",
+                    "square": "方塊",
+                    "circle": "圓圈",
+                    "draw-polygon": "多邊形",
+                    "paint-brush": "筆刷",
+                    "normal": "普通",
+                    "reveal": "揭示",
+                    "hide": "隱藏"
                 },
-                "filter": {
+                "FilterTool": {
                     "no_category": "無分類"
                 },
-                "map": {
+                "MapTool": {
                     "drag_to_resize": "拖動出你想要作為縮放基準的區域",
                     "select_shape_msg": "請先選擇一個圖形。",
                     "set_target_grid_cells": "設定目標區域的網格數",
@@ -312,7 +319,7 @@
                     "apply": "確認",
                     "cancel": "取消"
                 },
-                "ruler": {
+                "RulerTool": {
                     "share": "公開"
                 },
                 "tools": {
@@ -336,15 +343,6 @@
         "dm": "DM",
         "fow": "迷霧"
     },
-    "draw": {
-        "square": "方塊",
-        "circle": "圓圈",
-        "draw-polygon": "多邊形",
-        "paint-brush": "筆刷",
-        "normal": "普通",
-        "reveal": "揭示",
-        "hide": "隱藏"
-    },
     "tool": {
         "Build": "構建",
         "Play": "遊玩",
@@ -358,7 +356,7 @@
         "Vision": "視野"
     },
     "settings": {
-        "account": {
+        "AccountSettings": {
             "no_pwd_msg": "沒有設定密碼！",
             "pwd_not_match": "輸入的密碼不匹配！",
             "server_request_error": "伺服器請求發生錯誤",
@@ -377,7 +375,7 @@
         },
         "settings": {
             "account_settings": "賬號設定",
-            "account": "賬號"
+            "AccountSettings": "賬號"
         }
     }
 }

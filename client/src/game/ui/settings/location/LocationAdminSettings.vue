@@ -3,8 +3,8 @@ import Vue from "vue";
 import Component from "vue-class-component";
 import { Prop } from "vue-property-decorator";
 
-import InputCopyElement from "@/core/components/inputCopy.vue";
-import ConfirmDialog from "@/core/components/modals/confirm.vue";
+import InputCopyElement from "@/core/components/InputCopyElement.vue";
+import ConfirmDialog from "@/core/components/modals/ConfirmDialog.vue";
 import { gameStore } from "@/game/store";
 
 @Component({

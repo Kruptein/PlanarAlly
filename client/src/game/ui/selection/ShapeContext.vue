@@ -3,7 +3,7 @@ import Vue from "vue";
 import Component from "vue-class-component";
 
 import ContextMenu from "@/core/components/contextmenu.vue";
-import ConfirmDialog from "@/core/components/modals/confirm.vue";
+import ConfirmDialog from "@/core/components/modals/ConfirmDialog.vue";
 import Prompt from "@/core/components/modals/prompt.vue";
 import SelectionBox from "@/core/components/modals/SelectionBox.vue";
 import { requestAssetOptions, sendAssetOptions } from "@/game/api/emits/asset";
@@ -121,12 +121,12 @@ export default class ShapeContext extends Vue {
         const selection = this.getSelection(false);
         if (selection.length === 1) {
             return inInitiative(selection[0].uuid)
-                ? this.$t("game.ui.selection.shapecontext.show_initiative").toString()
-                : this.$t("game.ui.selection.shapecontext.add_initiative").toString();
+                ? this.$t("game.ui.selection.ShapeContext.show_initiative").toString()
+                : this.$t("game.ui.selection.ShapeContext.add_initiative").toString();
         } else {
             return selection.every((shape) => inInitiative(shape.uuid))
-                ? this.$t("game.ui.selection.shapecontext.show_initiative").toString()
-                : this.$t("game.ui.selection.shapecontext.add_all_initiative").toString();
+                ? this.$t("game.ui.selection.ShapeContext.show_initiative").toString()
+                : this.$t("game.ui.selection.ShapeContext.add_all_initiative").toString();
         }
     }
     hasSingleShape(): boolean {
@@ -158,8 +158,8 @@ export default class ShapeContext extends Vue {
         switch (spawnInfo.length) {
             case 0:
                 await this.$refs.confirmDialog.open(
-                    this.$t("game.ui.selection.shapecontext.no_spawn_set_title").toString(),
-                    this.$t("game.ui.selection.shapecontext.no_spawn_set_text").toString(),
+                    this.$t("game.ui.selection.ShapeContext.no_spawn_set_title").toString(),
+                    this.$t("game.ui.selection.ShapeContext.no_spawn_set_text").toString(),
                     { showNo: false, yes: "Ok" },
                 );
                 this.close();
@@ -466,13 +466,13 @@ export default class ShapeContext extends Vue {
                 </li>
             </ul>
         </li>
-        <li @click="moveToBack" v-if="isOwned()" v-t="'game.ui.selection.shapecontext.move_back'"></li>
-        <li @click="moveToFront" v-if="isOwned()" v-t="'game.ui.selection.shapecontext.move_front'"></li>
+        <li @click="moveToBack" v-if="isOwned()" v-t="'game.ui.selection.ShapeContext.move_back'"></li>
+        <li @click="moveToFront" v-if="isOwned()" v-t="'game.ui.selection.ShapeContext.move_front'"></li>
         <li @click="addInitiative" v-if="showInitiative()">{{ getInitiativeWord() }}</li>
-        <li @click="deleteSelection" v-if="showDelete()" v-t="'game.ui.selection.shapecontext.delete_shapes'"></li>
+        <li @click="deleteSelection" v-if="showDelete()" v-t="'game.ui.selection.ShapeContext.delete_shapes'"></li>
         <template v-if="hasSingleShape()">
-            <li v-if="isMarker" @click="deleteMarker" v-t="'game.ui.selection.shapecontext.remove_marker'"></li>
-            <li v-else @click="setMarker" v-t="'game.ui.selection.shapecontext.set_marker'"></li>
+            <li v-if="isMarker" @click="deleteMarker" v-t="'game.ui.selection.ShapeContext.remove_marker'"></li>
+            <li v-else @click="setMarker" v-t="'game.ui.selection.ShapeContext.set_marker'"></li>
             <li @click="saveTemplate" v-if="showDmNonSpawnItem() && canBeSaved()" v-t="'game.ui.templates.save'"></li>
         </template>
         <template v-else>
@@ -491,7 +491,7 @@ export default class ShapeContext extends Vue {
                 </ul>
             </li>
         </template>
-        <li v-if="hasSingleShape()" @click="openEditDialog" v-t="'game.ui.selection.shapecontext.show_props'"></li>
+        <li v-if="hasSingleShape()" @click="openEditDialog" v-t="'game.ui.selection.ShapeContext.show_props'"></li>
     </ContextMenu>
 </template>
 

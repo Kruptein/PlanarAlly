@@ -13,8 +13,9 @@ When writing migrations make sure that these things are respected:
     - e.g. a column added to Circle also needs to be added to CircularToken
 """
 
-SAVE_VERSION = 57
+SAVE_VERSION = 58
 
+import datetime
 import json
 import logging
 import os
@@ -870,6 +871,22 @@ def upgrade(version):
             db.execute_sql(
                 "ALTER TABLE shape ADD COLUMN is_defeated INTEGER NOT NULL DEFAULT 0"
             )
+    elif version == 57:
+        # Add Room.logo, PlayerRoom.notes and PlayerRoom.last_played
+        with db.atomic():
+            db.execute_sql("CREATE TEMPORARY TABLE _room_57 AS SELECT * FROM room")
+            db.execute_sql("DROP TABLE room")
+            db.execute_sql(
+                'CREATE TABLE "room" ("id" INTEGER NOT NULL PRIMARY KEY, "name" TEXT NOT NULL, "creator_id" INTEGER NOT NULL, "invitation_code" TEXT NOT NULL, "is_locked" INTEGER NOT NULL, "default_options_id" INTEGER NOT NULL, "logo_id" INTEGER, FOREIGN KEY ("creator_id") REFERENCES "user" ("id") ON DELETE CASCADE, FOREIGN KEY ("default_options_id") REFERENCES "location_options" ("id") ON DELETE CASCADE, FOREIGN KEY ("logo_id") REFERENCES "asset" ("id") ON DELETE CASCADE)'
+            )
+            db.execute_sql(
+                'INSERT INTO "room" ("id", name, creator_id, invitation_code, is_locked, default_options_id) SELECT "id", name, creator_id, invitation_code, is_locked, default_options_id FROM _room_57'
+            )
+
+            db.execute_sql(
+                'ALTER TABLE player_room ADD COLUMN notes TEXT NOT NULL DEFAULT ""'
+            )
+            db.execute_sql("ALTER TABLE player_room ADD COLUMN last_played TEXT")
     else:
         raise UnknownVersionException(
             f"No upgrade code for save format {version} was found."

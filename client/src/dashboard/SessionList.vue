@@ -1,68 +1,152 @@
 <script lang="ts">
 import Vue from "vue";
 import Component from "vue-class-component";
-import { Prop } from "vue-property-decorator";
+import { Prop, Watch } from "vue-property-decorator";
 
-import { baseAdjust } from "../core/utils";
+import AssetPicker from "@/core/components/modals/AssetPicker.vue";
+import Prompt from "@/core/components/modals/prompt.vue";
 
-@Component
+import { baseAdjust, baseAdjustedFetch, patchFetch } from "../core/utils";
+
+import { RoomInfo } from "./types";
+
+@Component({ components: { AssetPicker, Prompt } })
 export default class SessionList extends Vue {
-    @Prop() sessions!: [string, string][];
+    @Prop() sessions!: RoomInfo[];
+    @Prop() dmMode!: boolean;
+    $refs!: {
+        assetPicker: AssetPicker;
+        prompt: Prompt;
+    };
 
+    notes = "";
+    last_played?: string = "";
     private selectedIndex = 0;
 
-    get selected(): string[] {
-        if (this.sessions.length <= this.selectedIndex) return [];
+    @Watch("selected")
+    async onSelectedChange(): Promise<void> {
+        await this.updateInfo();
+    }
+
+    get selected(): RoomInfo | undefined {
+        if (this.sessions.length <= this.selectedIndex) return undefined;
         return this.sessions[this.selectedIndex];
+    }
+
+    async select(index: number): Promise<void> {
+        this.selectedIndex = index;
+        await this.updateInfo();
+    }
+
+    private async updateInfo(): Promise<void> {
+        const response = await baseAdjustedFetch(`/api/rooms/${this.selected!.creator}/${this.selected!.name}/info`);
+        const data = await response.json();
+        this.notes = data.notes;
+        this.last_played = data.last_played;
     }
 
     baseAdjust(src: string): string {
         return baseAdjust(src);
+    }
+
+    async rename(): Promise<void> {
+        if (this.selected === undefined) return;
+
+        const name = await this.$refs.prompt.prompt(
+            "What should the new name be for this session?",
+            this.$t("common.rename").toString(),
+            (val) => ({
+                valid: !this.sessions.some((s) => s.name === val),
+                reason: this.$t("common.name_already_in_use").toString(),
+            }),
+        );
+        if (name === undefined) return;
+        const success = await patchFetch(`/api/rooms/${this.selected.creator}/${this.selected.name}`, { name });
+        if (success.ok) {
+            this.$emit("rename", this.selectedIndex, name);
+        }
+    }
+
+    async setLogo(): Promise<void> {
+        if (this.selected === undefined) return;
+
+        const data = await this.$refs.assetPicker.open();
+        if (data === undefined) return;
+        const success = await patchFetch(`/api/rooms/${this.selected.creator}/${this.selected.name}`, {
+            logo: data.id,
+        });
+        if (success.ok) {
+            this.$emit("update-logo", this.selectedIndex, data.file_hash);
+        }
+    }
+
+    async setNotes(event: { target: HTMLTextAreaElement }): Promise<void> {
+        const text = event.target.value;
+        const success = await patchFetch(`/api/rooms/${this.selected!.creator}/${this.selected!.name}/info`, {
+            notes: text,
+        });
+        if (success.ok) {
+            this.notes = text;
+        }
     }
 }
 </script>
 
 <template>
     <div id="content">
+        <AssetPicker ref="assetPicker" />
+        <Prompt ref="prompt" />
         <div id="sessions">
-            <div
-                v-for="(room, i) in sessions"
-                :key="i"
-                :class="{ selected: i === selectedIndex }"
-                @click="selectedIndex = i"
-            >
+            <div v-if="sessions.length === 0" id="empty">
+                <h1>Welcome to PlanarAlly!</h1>
+                <div>You're not part of any active campaigns.</div>
+                <div>
+                    If you're a DM you can go to run to see all your sessions or go to create to start a new session!
+                </div>
+                <div>If you're a player you'll have to wait on an invite link from your DM.</div>
+            </div>
+
+            <div v-for="(room, i) in sessions" :key="i" :class="{ selected: i === selectedIndex }" @click="select(i)">
                 <div class="logo">
-                    <img :src="baseAdjust('/static/img/d20.svg')" />
+                    <img :src="baseAdjust(room.logo ? `/static/assets/${room.logo}` : '/static/img/d20.svg')" />
                     <router-link
+                        v-if="dmMode || !room.is_locked"
                         class="launch"
-                        :to="'/game/' + encodeURIComponent(room[1]) + '/' + encodeURIComponent(room[0])"
+                        :to="'/game/' + encodeURIComponent(room.creator) + '/' + encodeURIComponent(room.name)"
                     >
                         <font-awesome-icon icon="play" />
                     </router-link>
+                    <div v-else class="launch"><font-awesome-icon icon="lock" /></div>
                 </div>
-                <div class="name">{{ room[0] }}</div>
+                <div class="name">{{ room.name }}</div>
             </div>
         </div>
-        <div id="details">
-            <div class="logo">
-                <img :src="baseAdjust('/static/img/d20.svg')" />
+        <div id="details" v-if="selected">
+            <div class="logo" :class="{ dmMode }">
+                <img :src="baseAdjust(selected.logo ? `/static/assets/${selected.logo}` : '/static/img/d20.svg')" />
+                <div class="edit" v-if="dmMode" @click="setLogo"><font-awesome-icon icon="pencil-alt" /></div>
             </div>
-            <div class="name">{{ selected[0] }}</div>
-            <div class="creator">by {{ selected[1] }}</div>
+            <div class="name">
+                {{ selected.name }}
+                <font-awesome-icon v-if="dmMode" @click="rename" icon="pencil-alt" />
+            </div>
+            <div class="creator">by {{ selected.creator }}</div>
             <router-link
+                v-if="dmMode || !selected.is_locked"
                 class="launch"
-                :to="'/game/' + encodeURIComponent(selected[1]) + '/' + encodeURIComponent(selected[0])"
+                :to="'/game/' + encodeURIComponent(selected.creator) + '/' + encodeURIComponent(selected.name)"
             >
                 LAUNCH!
             </router-link>
+            <div v-else class="launch">ROOM LOCKED</div>
             <div style="flex-grow: 1"></div>
             <div class="header">Last playtime</div>
-            <div>2020/5/2</div>
+            <div>{{ last_played ? last_played : "unknown" }}</div>
             <div style="flex-grow: 1"></div>
             <div class="header">Notes</div>
-            <textarea style="flex-grow: 1"></textarea>
+            <textarea style="flex-grow: 1" :value="notes" @change="setNotes"></textarea>
             <div style="flex-grow: 2"></div>
-            <div class="leave">LEAVE</div>
+            <div class="leave">{{ dmMode ? "DELETE" : "LEAVE" }}</div>
         </div>
     </div>
 </template>
@@ -72,6 +156,13 @@ export default class SessionList extends Vue {
     grid-area: content;
     display: flex;
     overflow-y: auto;
+
+    #empty {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+    }
 
     #sessions {
         display: grid;
@@ -133,7 +224,7 @@ export default class SessionList extends Vue {
             > .logo {
                 width: 7em;
                 height: 7em;
-                border: solid 1px #7c253e;
+                border: solid 3px #7c253e;
                 border-radius: 7em;
                 color: rgb(43, 43, 43);
 
@@ -143,6 +234,12 @@ export default class SessionList extends Vue {
 
                 background-color: white;
                 z-index: 5;
+
+                img {
+                    width: 7em;
+                    height: 7em;
+                    border-radius: 7em;
+                }
 
                 > .launch {
                     display: none;
@@ -176,8 +273,14 @@ export default class SessionList extends Vue {
             position: relative;
 
             img {
-                height: 10vw;
-                position: relative;
+                // top: -1vw;
+                // height: 12vw;
+                left: calc(50% - 6.1vw);
+                top: calc(50% - 7vw);
+                width: 12vw;
+                height: 12vw;
+                position: absolute;
+                border-radius: 6vw;
             }
 
             &::before {
@@ -190,6 +293,31 @@ export default class SessionList extends Vue {
                 height: 12vw;
                 border-radius: 6vw;
             }
+
+            > .edit {
+                display: none;
+            }
+
+            &:hover > .edit {
+                position: absolute;
+                left: calc(50% - 6.1vw);
+                top: calc(50% - 7vw);
+
+                background-color: rgba(43, 43, 43, 0.6);
+                height: 12vw;
+                width: 12vw;
+                border-radius: 6vw;
+
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                font-size: 3vw;
+
+                cursor: pointer;
+            }
+
+            // &.dmMode:hover {
+            // }
         }
 
         .name {

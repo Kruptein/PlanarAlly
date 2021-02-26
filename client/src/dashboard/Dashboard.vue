@@ -4,16 +4,22 @@ import Component from "vue-class-component";
 import { NavigationGuard, Route } from "vue-router";
 
 import LanguageDropdown from "@/core/components/languageDropdown.vue";
+import ConfirmDialog from "@/core/components/modals/ConfirmDialog.vue";
 
 import { baseAdjust, baseAdjustedFetch, getErrorReason } from "../core/utils";
 
 import SessionList from "./SessionList.vue";
+import { RoomInfo } from "./types";
 
-@Component({ components: { LanguageDropdown, SessionList } })
+@Component({ components: { ConfirmDialog, LanguageDropdown, SessionList } })
 export default class Dashboard extends Vue {
+    $refs!: {
+        confirm: ConfirmDialog;
+    };
+
     showLanguageDropdown = false;
-    owned = [];
-    joined = [];
+    owned: RoomInfo[] = [];
+    joined: RoomInfo[] = [];
     error = "";
 
     activeNavigation = 1;
@@ -33,6 +39,7 @@ export default class Dashboard extends Vue {
     ];
 
     setActiveNavigation(navigation: number): void {
+        if (navigation === 2 && this.owned.length === 0) navigation = 3;
         this.activeNavigation = navigation;
     }
 
@@ -40,7 +47,7 @@ export default class Dashboard extends Vue {
         const response = await baseAdjustedFetch("/api/rooms");
         next(async (vm: Vue) => {
             if (response.ok) {
-                const data = await response.json();
+                const data: { owned: RoomInfo[]; joined: RoomInfo[] } = await response.json();
                 console.log(data);
                 (vm as this).owned = data.owned;
                 (vm as this).joined = data.joined;
@@ -51,13 +58,13 @@ export default class Dashboard extends Vue {
     }
 
     async mounted(): Promise<void> {
-        // if (this.$route.params?.error === "join_game") {
-        //     await this.$refs.confirm.open(
-        //         "Failed to join session",
-        //         "It was not possible to join the game session. This might be because the DM has locked the session.",
-        //         { showNo: false, yes: "Ok" },
-        //     );
-        // }
+        if (this.$route.params?.error === "join_game") {
+            await this.$refs.confirm.open(
+                "Failed to join session",
+                "It was not possible to join the game session. This might be because the DM has locked the session.",
+                { showNo: false, yes: "Ok" },
+            );
+        }
     }
 
     baseAdjust(src: string): string {
@@ -75,13 +82,28 @@ export default class Dashboard extends Vue {
     async logout(): Promise<void> {
         await this.$router.push("/auth/logout");
     }
+
+    rename(index: number, name: string): void {
+        this.owned[index].name = name;
+    }
+
+    updateLogo(index: number, logo: string): void {
+        this.owned[index].logo = logo;
+    }
 }
 </script>
 
 <template>
     <div id="page">
-        <SessionList v-if="activeNavigation === 1" :sessions="joined" />
-        <SessionList v-else-if="activeNavigation === 2" :sessions="owned" />
+        <ConfirmDialog ref="confirm" />
+        <SessionList v-if="activeNavigation === 1" :sessions="joined" :dmMode="false" />
+        <SessionList
+            v-else-if="activeNavigation === 2"
+            :sessions="owned"
+            :dmMode="true"
+            @rename="rename"
+            @update-logo="updateLogo"
+        />
         <div v-else style="display: flex; justify-content: center; align-items: center; text-align: center">
             Not yet implemented
             <br />

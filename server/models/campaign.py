@@ -1,5 +1,6 @@
 import uuid
 from peewee import (
+    DateField,
     fn,
     BooleanField,
     FloatField,
@@ -10,6 +11,7 @@ from peewee import (
 from playhouse.shortcuts import model_to_dict
 from typing import Set
 
+from .asset import Asset
 from .base import BaseModel
 from .groups import Group
 from .user import User, UserOptions
@@ -57,12 +59,24 @@ class Room(BaseModel):
     invitation_code = TextField(default=uuid.uuid4, unique=True)
     is_locked = BooleanField(default=False)
     default_options = ForeignKeyField(LocationOptions, on_delete="CASCADE")
+    logo = ForeignKeyField(Asset, on_delete="CASCADE")
 
     def __repr__(self):
         return f"<Room {self.get_path()}>"
 
     def get_path(self):
         return f"{self.creator.name}/{self.name}"
+
+    def as_dashboard_dict(self):
+        logo = None
+        if self.logo_id is not None:
+            logo = self.logo.file_hash
+        return {
+            "name": self.name,
+            "creator": self.creator.name,
+            "is_locked": self.is_locked,
+            "logo": logo,
+        }
 
     class Meta:
         indexes = ((("name", "creator"), True),)
@@ -166,6 +180,8 @@ class PlayerRoom(BaseModel):
     room = ForeignKeyField(Room, backref="players", on_delete="CASCADE")
     active_location = ForeignKeyField(Location, backref="players", on_delete="CASCADE")
     user_options = ForeignKeyField(UserOptions, on_delete="CASCADE", null=True)
+    notes = TextField()
+    last_played = DateField(null=True)
 
     def __repr__(self):
         return f"<PlayerRoom {self.room.get_path()} - {self.player.name}>"

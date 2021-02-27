@@ -104,10 +104,11 @@ export default class Dashboard extends Vue {
             @rename="rename"
             @update-logo="updateLogo"
         />
-        <div v-else style="display: flex; justify-content: center; align-items: center; text-align: center">
-            Not yet implemented
-            <br />
-            sorry :c
+        <div v-else id="not-implemented">
+            <img :src="baseAdjust('/static/img/d20-fail.svg')" />
+            <div class="padding bold">OOF, That's a critical one!</div>
+            <div>This feature is still in development,</div>
+            <div>come back later!</div>
         </div>
 
         <div id="nav-panel">
@@ -151,6 +152,35 @@ export default class Dashboard extends Vue {
     background-color: var(--secondaryBG);
     grid-template-columns: 20vw minmax(0, 1fr);
     width: 100%;
+}
+
+#not-implemented {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+
+    background-color: #7c253e;
+    color: white;
+
+    margin: auto;
+    padding: 50px;
+
+    font-size: 20px;
+
+    .bold {
+        font-weight: bold;
+    }
+
+    .padding {
+        padding-bottom: 10px;
+    }
+
+    img {
+        filter: invert(100%) sepia(0%) saturate(6492%) hue-rotate(348deg) brightness(107%) contrast(99%);
+        width: 10vw;
+    }
 }
 
 #nav-panel {

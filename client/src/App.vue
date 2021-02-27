@@ -85,7 +85,7 @@ body .toasted-container.top-left {
 
 .slide-right-leave-active,
 .slide-left-leave-active {
-    transition: 0.5s;
+    transition: 0.5s ease-in-out;
 }
 
 .slide-left-leave-to {

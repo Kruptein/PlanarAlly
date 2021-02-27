@@ -96,16 +96,19 @@ export default class SessionList extends Vue {
     <div id="content">
         <AssetPicker ref="assetPicker" />
         <Prompt ref="prompt" />
-        <div id="sessions">
-            <div v-if="sessions.length === 0" id="empty">
-                <h1>Welcome to PlanarAlly!</h1>
-                <div>You're not part of any active campaigns.</div>
-                <div>
-                    If you're a DM you can go to run to see all your sessions or go to create to start a new session!
-                </div>
-                <div>If you're a player you'll have to wait on an invite link from your DM.</div>
-            </div>
 
+        <div v-if="sessions.length === 0" id="empty">
+            <img :src="baseAdjust('/static/img/d20-fail.svg')" />
+            <div class="padding bold">OOF, That's a critical one!</div>
+            <div class="padding">No active campaigns found!</div>
+            <div class="bold">Are you a DM?</div>
+            <div>See all your sessions in the run menu!</div>
+            <div class="padding">OR start a new campaign with create!</div>
+            <div class="bold">A player instead?</div>
+            <div>Wait on an invite link from your DM!</div>
+        </div>
+
+        <div v-else id="sessions">
             <div v-for="(room, i) in sessions" :key="i" :class="{ selected: i === selectedIndex }" @click="select(i)">
                 <div class="logo">
                     <img :src="baseAdjust(room.logo ? `/static/assets/${room.logo}` : '/static/img/d20.svg')" />
@@ -162,6 +165,27 @@ export default class SessionList extends Vue {
         flex-direction: column;
         align-items: center;
         justify-content: center;
+
+        margin: auto;
+        padding: 50px;
+
+        background-color: #7c253e;
+        color: white;
+
+        font-size: 20px;
+
+        .bold {
+            font-weight: bold;
+        }
+
+        .padding {
+            padding-bottom: 10px;
+        }
+
+        img {
+            filter: invert(100%) sepia(0%) saturate(6492%) hue-rotate(348deg) brightness(107%) contrast(99%);
+            width: 10vw;
+        }
     }
 
     #sessions {

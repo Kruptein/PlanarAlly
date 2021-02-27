@@ -85,14 +85,25 @@ async def create(request: web.Request):
     user: User = await check_authorized(request)
     data = await request.json()
     roomname = data["name"]
+    logo = data["logo"]
     if not roomname:
         return web.HTTPBadRequest()
     else:
+
+        if Room.get_or_none(name=roomname, creator=user):
+            return web.HTTPConflict()
+
         with db.atomic():
             default_options = LocationOptions.create()
             room = Room.create(
-                name=roomname, creator=user, default_options=default_options
+                name=roomname,
+                creator=user,
+                default_options=default_options,
             )
+
+            if logo >= 0:
+                room.logo_id = logo
+
             loc = Location.create(room=room, name="start", index=1)
             loc.create_floor()
             PlayerRoom.create(player=user, room=room, role=Role.DM, active_location=loc)

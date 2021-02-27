@@ -8,10 +8,11 @@ import ConfirmDialog from "@/core/components/modals/ConfirmDialog.vue";
 
 import { baseAdjust, baseAdjustedFetch, getErrorReason } from "../core/utils";
 
+import CreateCampaign from "./CreateCampaign.vue";
 import SessionList from "./SessionList.vue";
 import { RoomInfo } from "./types";
 
-@Component({ components: { ConfirmDialog, LanguageDropdown, SessionList } })
+@Component({ components: { ConfirmDialog, CreateCampaign, LanguageDropdown, SessionList } })
 export default class Dashboard extends Vue {
     $refs!: {
         confirm: ConfirmDialog;
@@ -104,6 +105,7 @@ export default class Dashboard extends Vue {
             @rename="rename"
             @update-logo="updateLogo"
         />
+        <CreateCampaign v-else-if="activeNavigation === 3" />
         <div v-else id="not-implemented">
             <img :src="baseAdjust('/static/img/d20-fail.svg')" />
             <div class="padding bold">OOF, That's a critical one!</div>

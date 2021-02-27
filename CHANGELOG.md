@@ -37,6 +37,13 @@ These usually have no immediately visible impact on regular users
 -   OpenSans font is now loaded from the server itself instead of google fonts
 -   Ruler size is now always the same size on your screen irregardles of zoom
 -   Ping size is now always the same size on your screen irregardles of zoom
+-   Dashboard redesign (page after login)
+    -   general UI overhaul
+    -   option to set a logo for a session
+    -   option to put personal notes
+    -   shows last playtime for your account
+    -   direct access to the asset manager
+    -   (asset manager and settings will at a later time be integrated)
 
 ### Fixed
 
@@ -49,7 +56,6 @@ These usually have no immediately visible impact on regular users
 -   Shapes with a variant always appearing to other players
 -   Context menus going offscreen
 -   Navigating backwards (by mouse or with browser controls) not working
--   Large uploads using the asset manager no longer fail part way through
 
 ## [0.25.0] - 2021-02-07
 

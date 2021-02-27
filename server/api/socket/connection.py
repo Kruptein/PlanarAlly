@@ -1,3 +1,4 @@
+from datetime import date
 from urllib.parse import unquote
 
 from aiohttp_security import authorized_userid
@@ -39,7 +40,9 @@ async def connect(sid, environ):
         else:
             return False
 
-    pr = PlayerRoom.get(room=room, player=user)
+    pr: PlayerRoom = PlayerRoom.get(room=room, player=user)
+    pr.last_played = date.today()
+    pr.save()
     await game_state.add_sid(sid, pr)
 
     logger.info(f"User {user.name} connected with identifier {sid}")

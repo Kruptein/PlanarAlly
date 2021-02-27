@@ -184,7 +184,7 @@ export default class Login extends Vue {
             </div>
             <LanguageDropdown id="language-dropdown" v-if="showLanguageDropdown" />
             <div id="logo">
-                <img :src="baseAdjust('/static/favicon.png')" id="logo" alt="PA logo" />
+                <img :src="baseAdjust('/static/favicon.png')" alt="PA logo" />
             </div>
             <form @focusin="focusin" @focusout="focusout" @submit.prevent="submit">
                 <label>Username</label>
@@ -264,7 +264,7 @@ export default class Login extends Vue {
     --primaryBG: rgb(43, 43, 43);
     --secondaryBG: #c4c4c4;
     background-color: var(--secondaryBG);
-    grid-template-columns: minmax(0, 1fr) 30vw;
+    grid-template-columns: minmax(0, 1fr) 20vw;
     grid-template-rows: auto 1fr 3em;
     width: 100%;
 }
@@ -283,7 +283,7 @@ main {
 
 .swiper {
     margin-top: 60px;
-    width: calc(70vw - 10em);
+    width: calc(80vw - 20em);
     min-width: 0;
 
     video {
@@ -292,7 +292,7 @@ main {
 
     .swiper-slide {
         min-width: 0;
-        width: calc(70vw - 10em);
+        width: calc(80vw - 20em);
         display: flex;
         flex-direction: column;
         align-items: center;
@@ -352,7 +352,7 @@ footer {
 #language-selector {
     position: absolute;
     top: 0;
-    right: calc(29vw - 45px);
+    right: calc(19vw - 45px);
     font-size: 40px;
     color: white;
 }
@@ -360,7 +360,7 @@ footer {
 #language-dropdown {
     position: absolute;
     top: 50px;
-    right: calc(29vw - 40px);
+    right: calc(19vw - 40px);
     margin-right: -20px;
 }
 
@@ -369,6 +369,7 @@ footer {
     position: relative;
 
     img {
+        position: relative;
         height: 10vw;
     }
 

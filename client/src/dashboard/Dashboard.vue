@@ -1,32 +1,55 @@
 <script lang="ts">
 import Vue from "vue";
 import Component from "vue-class-component";
-import { Route, NavigationGuard } from "vue-router";
+import { NavigationGuard, Route } from "vue-router";
 
+import LanguageDropdown from "@/core/components/languageDropdown.vue";
 import ConfirmDialog from "@/core/components/modals/ConfirmDialog.vue";
-import { coreStore } from "@/core/store";
 
-import { baseAdjustedFetch, getErrorReason, postFetch } from "../core/utils";
+import { baseAdjust, baseAdjustedFetch, getErrorReason } from "../core/utils";
 
-Component.registerHooks(["beforeRouteEnter"]);
+import CreateCampaign from "./CreateCampaign.vue";
+import SessionList from "./SessionList.vue";
+import { RoomInfo } from "./types";
 
-@Component({ components: { ConfirmDialog } })
+@Component({ components: { ConfirmDialog, CreateCampaign, LanguageDropdown, SessionList } })
 export default class Dashboard extends Vue {
     $refs!: {
         confirm: ConfirmDialog;
     };
 
-    owned = [];
-    joined = [];
+    showLanguageDropdown = false;
+    owned: RoomInfo[] = [];
+    joined: RoomInfo[] = [];
     error = "";
 
-    newSessionName = "";
+    activeNavigation = 1;
+    navigation: { text: string; type: "header" | "separator" | "action"; fn?: (navigation: number) => void }[] = [
+        { text: "game", type: "header" },
+        { text: "play", type: "action", fn: this.setActiveNavigation },
+        { text: "run", type: "action", fn: this.setActiveNavigation },
+        { text: "create", type: "action", fn: this.setActiveNavigation },
+        { text: "", type: "separator" },
+        { text: "assets", type: "header" },
+        { text: "manage", type: "action", fn: this.openAssetManager },
+        { text: "create", type: "action", fn: this.setActiveNavigation },
+        { text: "", type: "separator" },
+        { text: "Settings", type: "action", fn: this.openSettings },
+        { text: "", type: "separator" },
+        { text: "Logout", type: "action", fn: this.logout },
+    ];
+
+    setActiveNavigation(navigation: number): void {
+        if (navigation === 2 && this.owned.length === 0) navigation = 3;
+        this.activeNavigation = navigation;
+    }
 
     async beforeRouteEnter(to: Route, from: Route, next: Parameters<NavigationGuard>[2]): Promise<void> {
         const response = await baseAdjustedFetch("/api/rooms");
         next(async (vm: Vue) => {
             if (response.ok) {
-                const data = await response.json();
+                const data: { owned: RoomInfo[]; joined: RoomInfo[] } = await response.json();
+                console.log(data);
                 (vm as this).owned = data.owned;
                 (vm as this).joined = data.joined;
             } else {
@@ -45,302 +68,218 @@ export default class Dashboard extends Vue {
         }
     }
 
-    async createRoom(_event: Event): Promise<void> {
-        const response = await postFetch("/api/rooms", {
-            name: this.newSessionName,
-        });
-        if (response.ok) {
-            this.$router.push(
-                `/game/${encodeURIComponent(coreStore.username)}/${encodeURIComponent(this.newSessionName)}`,
-            );
-        } else {
-            this.error = await getErrorReason(response);
-        }
+    baseAdjust(src: string): string {
+        return baseAdjust(src);
     }
 
-    get version(): string {
-        return coreStore.version.env;
+    async openAssetManager(): Promise<void> {
+        await this.$router.push("/assets");
     }
 
-    get githubUrl(): string {
-        const spl = this.version.split("-");
-        if (spl.length > 1) {
-            return "https://github.com/Kruptein/PlanarAlly/commit/" + spl[spl.length - 1].slice(1);
-        } else {
-            return "https://github.com/Kruptein/PlanarAlly/releases/tag/" + this.version;
-        }
+    async openSettings(): Promise<void> {
+        await this.$router.push("/settings");
+    }
+
+    async logout(): Promise<void> {
+        await this.$router.push("/auth/logout");
+    }
+
+    rename(index: number, name: string): void {
+        this.owned[index].name = name;
+    }
+
+    updateLogo(index: number, logo: string): void {
+        this.owned[index].logo = logo;
     }
 }
 </script>
 
 <template>
-    <div style="display: contents">
-        <ConfirmDialog ref="confirm"></ConfirmDialog>
-        <div id="formcontainer">
-            <form>
-                <fieldset>
-                    <legend class="legend" v-t="'dashboard.Dashboard.your_sessions'"></legend>
-                    <div class="input">
-                        <router-link
-                            v-for="(room, i) in owned"
-                            :key="'o-' + i"
-                            :to="'/game/' + encodeURIComponent(room[1]) + '/' + encodeURIComponent(room[0])"
-                        >
-                            {{ room[0] }}
-                        </router-link>
-                        <router-link
-                            v-for="(room, i) in joined"
-                            :key="'j-' + i"
-                            :to="'/game/' + encodeURIComponent(room[1]) + '/' + encodeURIComponent(room[0])"
-                        >
-                            {{ room[1] }}/{{ room[0] }}
-                        </router-link>
-                    </div>
-                    <div
-                        class="input"
-                        v-if="owned.length === 0 && joined.length === 0"
-                        v-t="'dashboard.Dashboard.no_sessions'"
-                    ></div>
-                </fieldset>
-            </form>
-            <h4>
-                <span>OR</span>
-            </h4>
-            <form @submit.prevent="createRoom">
-                <fieldset>
-                    <legend v-if="!owned && !joined" class="legend" v-t="'dashboard.Dashboard.create_session'"></legend>
-                    <div v-else class="input" v-t="'dashboard.Dashboard.create_new_session'"></div>
-                    <div class="input">
-                        <input
-                            type="text"
-                            v-model="newSessionName"
-                            name="room_name"
-                            :placeholder="$t('dashboard.Dashboard.session_name')"
-                        />
-                        <span>
-                            <font-awesome-icon :icon="['fab', 'd-and-d']" />
-                        </span>
-                    </div>
-                    <button type="submit" class="submit" :title="$t('common.create')">
-                        <font-awesome-icon icon="arrow-right" />
-                    </button>
-                </fieldset>
-            </form>
-            <div id="account-options">
-                <form @submit.prevent>
-                    <router-link
-                        tag="button"
-                        class="submit"
-                        :title="$t('dashboard.Dashboard.account_settings')"
-                        to="/settings"
-                    >
-                        <font-awesome-icon icon="cog" />
-                    </router-link>
-                </form>
-                <form @submit.prevent>
-                    <router-link
-                        tag="button"
-                        class="submit"
-                        :title="$t('dashboard.Dashboard.logout')"
-                        to="/auth/logout"
-                    >
-                        <font-awesome-icon icon="sign-out-alt" />
-                    </router-link>
-                </form>
-            </div>
+    <div id="page">
+        <ConfirmDialog ref="confirm" />
+        <SessionList v-if="activeNavigation === 1" :sessions="joined" :dmMode="false" />
+        <SessionList
+            v-else-if="activeNavigation === 2"
+            :sessions="owned"
+            :dmMode="true"
+            @rename="rename"
+            @update-logo="updateLogo"
+        />
+        <CreateCampaign v-else-if="activeNavigation === 3" />
+        <div v-else id="not-implemented">
+            <img :src="baseAdjust('/static/img/d20-fail.svg')" />
+            <div class="padding bold">OOF, That's a critical one!</div>
+            <div>This feature is still in development,</div>
+            <div>come back later!</div>
         </div>
-        <div id="version">
-            {{ $t("common.server_ver_prefix") }}
-            <a :href="githubUrl">{{ version }}</a>
+
+        <div id="nav-panel">
+            <div id="language-selector">
+                <font-awesome-icon icon="language" @click="showLanguageDropdown = !showLanguageDropdown" />
+            </div>
+            <LanguageDropdown id="language-dropdown" v-if="showLanguageDropdown" />
+            <div id="logo">
+                <img :src="baseAdjust('/static/favicon.png')" alt="PA logo" />
+            </div>
+            <nav>
+                <div
+                    v-for="[i, nav] of navigation.entries()"
+                    :class="{
+                        header: nav.type === 'header',
+                        separator: nav.type === 'separator',
+                        selected: activeNavigation === i,
+                    }"
+                    @click="nav.fn(i)"
+                    :key="i"
+                >
+                    {{ nav.text }}
+                </div>
+            </nav>
         </div>
     </div>
 </template>
 
 <style scoped lang="scss">
 * {
-    -ms-box-sizing: border-box;
-    -moz-box-sizing: border-box;
-    -webkit-box-sizing: border-box;
     box-sizing: border-box;
-    margin: 0;
-    padding: 0;
-    border: 0;
 }
 
-#formcontainer {
-    margin: auto;
-
-    a {
-        text-decoration: inherit;
-        color: inherit;
-        width: 100%;
-        display: block;
-        text-align: center;
-        border: 1px solid #ff7052;
-
-        &:hover {
-            background-color: #ff7052;
-            color: white;
-        }
-
-        &:first-child {
-            border-radius: 10px 10px 0 0;
-        }
-
-        &:last-child {
-            border-radius: 0 0 10px 10px;
-        }
-
-        &:only-child {
-            border-radius: 10px;
-        }
-    }
-}
-
-form {
-    background: #fff;
-    border-radius: 4px;
-}
-
-.legend {
-    position: relative;
-    text-align: center;
+#page {
+    display: grid;
+    grid-template-areas: "nav content";
+    --primary: #7c253e;
+    --secondary: #9c455e;
+    --primaryBG: rgb(43, 43, 43);
+    --secondaryBG: #c4c4c4;
+    background-color: var(--secondaryBG);
+    grid-template-columns: 20vw minmax(0, 1fr);
     width: 100%;
-    display: block;
-    background: #ff7052;
-    padding: 15px;
-    color: #fff;
+}
+
+#not-implemented {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+
+    background-color: #7c253e;
+    color: white;
+
+    margin: auto;
+    padding: 50px;
+
     font-size: 20px;
 
-    &:after {
-        content: "";
-        opacity: 0.06;
-        top: 0;
-        left: 0;
-        bottom: 0;
-        right: 0;
-        position: absolute;
+    .bold {
+        font-weight: bold;
+    }
+
+    .padding {
+        padding-bottom: 10px;
+    }
+
+    img {
+        filter: invert(100%) sepia(0%) saturate(6492%) hue-rotate(348deg) brightness(107%) contrast(99%);
+        width: 10vw;
     }
 }
 
-#account-options {
+#nav-panel {
+    grid-area: nav;
+    background-color: rgb(43, 43, 43);
+
     display: flex;
-    background: #fff;
-    border-radius: 4px;
-    margin-top: 50px;
-    height: 45px;
+    flex-direction: column;
+    align-items: center;
+    padding-top: 5em;
 
-    form {
-        background: none;
-        border-radius: 0px;
-        width: 50%;
+    box-shadow: -10px 0 50px rgb(43, 43, 43);
+}
+
+#logo {
+    height: 12vw;
+    position: relative;
+
+    img {
+        height: 10vw;
+        position: relative;
+    }
+
+    &::before {
+        content: "";
+        background-color: white;
+        position: absolute;
+        left: calc(50% - 6.1vw);
+        top: calc(50% - 7vw);
+        width: 12vw;
+        height: 12vw;
+        border-radius: 6vw;
     }
 }
 
-.input {
-    position: relative;
-    width: 90%;
-    margin: 15px auto;
+#language-selector {
+    position: absolute;
+    top: 0;
+    left: calc(19vw - 45px);
+    font-size: 40px;
+    color: white;
+}
 
-    span {
-        position: absolute;
-        display: block;
-        color: #d4d4d4;
-        left: 10px;
-        top: 8px;
-        font-size: 20px;
-    }
+#language-dropdown {
+    position: absolute;
+    top: 50px;
+    left: calc(19vw - 58px);
+    margin-right: -20px;
+}
 
-    input {
-        width: 100%;
-        padding: 10px 5px 10px 40px;
-        display: block;
-        border: 1px solid #ededed;
-        border-radius: 4px;
-        transition: 0.2s ease-out;
-        color: #a1a1a1;
+nav {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
 
-        &:focus {
-            /* padding: 10px 5px 10px 10px; */
-            outline: 0;
-            border-color: #ff7052;
+    // align-self: flex-end;
+    margin-top: 2em;
+    align-items: center;
+
+    color: white;
+    font-weight: bold;
+    font-size: 25px;
+
+    div {
+        text-align: center;
+        width: 20vw;
+        // padding-left: 2em;
+        // padding-right: 3em;
+        padding-top: 5px;
+        padding-bottom: 5px;
+
+        text-transform: capitalize;
+
+        &:hover:not(.header):not(.separator) {
+            cursor: pointer;
+            color: black;
+            background-color: white;
         }
     }
-}
 
-.submit {
-    width: 45px;
-    height: 45px;
-    display: block;
-    margin: 0 auto -15px auto;
-    background: #fff;
-    border-radius: 100%;
-    border: 1px solid #ff7052;
-    color: #ff7052;
-    font-size: 24px;
-    cursor: pointer;
-    box-shadow: 0px 0px 0px 7px #fff;
-    transition: 0.2s ease-out;
+    .header {
+        // padding-left: 0;
+        font-style: italic;
+        text-transform: uppercase;
+    }
 
-    &:hover,
-    &:focus {
-        background: #ff7052;
-        color: #fff;
-        outline: 0;
+    .separator {
+        margin-bottom: 25px;
+    }
+
+    .selected {
+        color: black;
+        background-color: white;
     }
 }
 
-.feedback {
-    position: absolute;
-    bottom: -70px;
-    width: 100%;
-    text-align: center;
-    color: #fff;
-    background: mediumvioletred;
-    padding: 10px 0;
-    font-size: 12px;
-    /*display: none;*/
-    /*opacity: 0;*/
-
-    &:before {
-        bottom: 100%;
-        left: 50%;
-        border: solid transparent;
-        content: "";
-        height: 0;
-        width: 0;
-        position: absolute;
-        pointer-events: none;
-        border-color: rgba(46, 204, 113, 0);
-        border-bottom-color: mediumvioletred;
-        border-width: 10px;
-        margin-left: -10px;
-    }
-}
-
-h4 {
-    background-color: white;
-    width: 100%;
-    text-align: center;
-    border-bottom: 1px solid #000;
-    line-height: 0.1em;
-
-    span {
-        background: #fff;
-        padding: 0 10px;
-    }
-}
-
-#version {
-    position: absolute;
-    bottom: 15px;
-    color: #a1a1a1;
-    display: flex;
-    justify-content: center;
-    width: 100%;
-
-    > a {
-        margin-left: 10px;
-    }
+.black {
+    color: rgb(43, 43, 43);
 }
 </style>

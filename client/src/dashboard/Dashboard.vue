@@ -130,7 +130,7 @@ export default class Dashboard extends Vue {
                     @click="nav.fn(i)"
                     :key="i"
                 >
-                    {{ nav.type === "header" ? nav.text.toLocaleUpperCase() : nav.text }}
+                    {{ nav.text }}
                 </div>
             </nav>
         </div>
@@ -252,6 +252,8 @@ nav {
         padding-top: 5px;
         padding-bottom: 5px;
 
+        text-transform: capitalize;
+
         &:hover:not(.header):not(.separator) {
             cursor: pointer;
             color: black;
@@ -262,6 +264,7 @@ nav {
     .header {
         // padding-left: 0;
         font-style: italic;
+        text-transform: uppercase;
     }
 
     .separator {

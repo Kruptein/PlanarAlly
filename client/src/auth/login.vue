@@ -187,7 +187,7 @@ export default class Login extends Vue {
                 <img :src="baseAdjust('/static/favicon.png')" alt="PA logo" />
             </div>
             <form @focusin="focusin" @focusout="focusout" @submit.prevent="submit">
-                <label>Username</label>
+                <label v-t="'common.username'"></label>
                 <div class="input">
                     <input
                         id="username"
@@ -203,7 +203,7 @@ export default class Login extends Vue {
                         <font-awesome-icon icon="user-circle" />
                     </span>
                 </div>
-                <label>Password</label>
+                <label v-t="'common.password'"></label>
                 <div class="input">
                     <input
                         id="password"

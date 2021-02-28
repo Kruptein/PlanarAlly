@@ -105,15 +105,20 @@ export default class Initiative extends Vue {
         const d = initiativeStore.data.findIndex((a) => a.uuid === uuid);
         if (d < 0) return;
         if (initiativeStore.data[d].group) {
-            const continueRemoval = await this.$refs.confirmDialog.open(
-                "Removing initiative",
-                "Are you sure you wish to remove this group from the initiative order?",
-            );
-            if (!continueRemoval) {
-                return;
+            if (sync) {
+                const continueRemoval = await this.$refs.confirmDialog.open(
+                    "Removing initiative",
+                    "Are you sure you wish to remove this group from the initiative order?",
+                );
+                if (!continueRemoval) {
+                    return;
+                }
+                // Only remove from initiative if explicitly done
+                initiativeStore.data.splice(d, 1);
             }
+        } else {
+            initiativeStore.data.splice(d, 1);
         }
-        initiativeStore.data.splice(d, 1);
         if (sync) sendInitiativeRemove(uuid);
         // Remove highlight
         const shape = layerManager.UUIDMap.get(uuid);

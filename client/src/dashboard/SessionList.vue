@@ -20,7 +20,7 @@ export default class SessionList extends Vue {
     };
 
     notes = "";
-    last_played?: string = "";
+    lastPlayed?: string = "";
     private selectedIndex = 0;
 
     @Watch("selected")
@@ -42,7 +42,7 @@ export default class SessionList extends Vue {
         const response = await baseAdjustedFetch(`/api/rooms/${this.selected!.creator}/${this.selected!.name}/info`);
         const data = await response.json();
         this.notes = data.notes;
-        this.last_played = data.last_played;
+        this.lastPlayed = data.last_played;
     }
 
     baseAdjust(src: string): string {
@@ -144,7 +144,7 @@ export default class SessionList extends Vue {
             <div v-else class="launch">ROOM LOCKED</div>
             <div style="flex-grow: 1"></div>
             <div class="header">Last playtime</div>
-            <div>{{ last_played ? last_played : "unknown" }}</div>
+            <div>{{ lastPlayed ? lastPlayed : "unknown" }}</div>
             <div style="flex-grow: 1"></div>
             <div class="header">Notes</div>
             <textarea style="flex-grow: 1" :value="notes" @change="setNotes"></textarea>
@@ -203,22 +203,23 @@ export default class SessionList extends Vue {
             align-items: center;
             min-height: 0;
 
-            &.selected,
-            &:hover {
+            &:hover,
+            &.selected {
                 cursor: pointer;
 
                 > .name {
                     background-color: #7c253e;
                 }
+            }
 
-                > .logo {
-                    > img {
-                        display: none;
-                    }
+            &.selected > .logo,
+            .logo:hover {
+                > img {
+                    display: none;
+                }
 
-                    > .launch {
-                        display: block;
-                    }
+                > .launch {
+                    display: block;
                 }
             }
 

@@ -52,7 +52,7 @@
         "fill_color": "Цвет заполнения",
         "trackers": "Отслеживание",
         "auras": "Ауры",
-        "LabelManager": "Метки",
+        "labels": "Метки",
         "annotation": "Аннотация",
         "floor": "Этаж",
         "layer": "Слой",
@@ -126,7 +126,7 @@
                 "no_exist_msg": "Меток пока нет"
             },
             "menu": {
-                "locations": {
+                "LocationBar": {
                     "new_location_name": "Новое имя региона:",
                     "create_new_location": "Создать новый регион",
                     "add_new_location": "Добавить новый регион",

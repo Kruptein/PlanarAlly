@@ -53,7 +53,7 @@
         "fill_color": "Fill colour",
         "trackers": "Trackers",
         "auras": "Auras",
-        "LabelManager": "Labels",
+        "labels": "Labels",
         "annotation": "Annotation",
         "floor": "Floor",
         "layer": "Layer",
@@ -141,7 +141,7 @@
                 "no_exist_msg": "No labels exist yet"
             },
             "menu": {
-                "locations": {
+                "LocationBar": {
                     "new_location_name": "New location name:",
                     "create_new_location": "Create new location",
                     "add_new_location": "Add new location",

@@ -52,7 +52,7 @@
         "fill_color": "Füllfarbe",
         "trackers": "Trackers",
         "auras": "Auren",
-        "LabelManager": "Schlagwort",
+        "labels": "Schlagwort",
         "annotation": "Anmerkungen",
         "floor": "Stockwerk",
         "layer": "Ebene",
@@ -132,7 +132,7 @@
                 "no_exist_msg": "Bislang existieren keine Schlagworte"
             },
             "menu": {
-                "locations": {
+                "LocationBar": {
                     "new_location_name": "Name des neuen Ortes:",
                     "create_new_location": "Neuen Ort erstellen",
                     "add_new_location": "Neuen Ort hinzufügen",

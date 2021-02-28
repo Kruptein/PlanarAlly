@@ -52,7 +52,7 @@
         "fill_color": "填滿顏色",
         "trackers": "追踪值",
         "auras": "光暈",
-        "LabelManager": "標籤",
+        "labels": "標籤",
         "annotation": "註釋",
         "floor": "樓層",
         "layer": "圖層",
@@ -132,7 +132,7 @@
                 "no_exist_msg": "暫無標籤"
             },
             "menu": {
-                "locations": {
+                "LocationBar": {
                     "new_location_name": "新地點名稱",
                     "create_new_location": "新增新地點",
                     "add_new_location": "添加新地點",

@@ -52,7 +52,7 @@
         "fill_color": "Colore di riempimento",
         "trackers": "Tracker",
         "auras": "Aure",
-        "LabelManager": "Etichette",
+        "labels": "Etichette",
         "annotation": "Annotazione",
         "floor": "Piano",
         "layer": "Livello",
@@ -138,7 +138,7 @@
                 "no_exist_msg": "Non esiste alcuna etichetta"
             },
             "menu": {
-                "locations": {
+                "LocationBar": {
                     "new_location_name": "Nuova location:",
                     "create_new_location": "Crea una nuova location",
                     "add_new_location": "Aggiungi location",

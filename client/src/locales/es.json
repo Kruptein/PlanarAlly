@@ -52,7 +52,7 @@
         "fill_color": "Color de Relleno",
         "trackers": "Trackers",
         "auras": "Auras",
-        "LabelManager": "Etiquetas",
+        "labels": "Etiquetas",
         "annotation": "Anotación",
         "floor": "Piso",
         "layer": "Capa",
@@ -139,7 +139,7 @@
                 "no_exist_msg": "Aún no existen etiquetas"
             },
             "menu": {
-                "locations": {
+                "LocationBar": {
                     "new_location_name": "Nombre de la nueva ubicación:",
                     "create_new_location": "Crear nueva ubicación",
                     "add_new_location": "Añadir nueva ubicación",

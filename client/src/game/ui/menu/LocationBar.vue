@@ -76,8 +76,8 @@ export default class LocationBar extends Vue {
 
     async createLocation(): Promise<void> {
         const value = await this.$refs.prompt.prompt(
-            this.$t("game.ui.menu.LocationBars.new_location_name").toString(),
-            this.$t("game.ui.menu.LocationBars.create_new_location").toString(),
+            this.$t("game.ui.menu.LocationBar.new_location_name").toString(),
+            this.$t("game.ui.menu.LocationBar.create_new_location").toString(),
         );
         if (value !== undefined) sendNewLocation(value);
     }
@@ -191,7 +191,7 @@ export default class LocationBar extends Vue {
         <SelectionBox ref="selectionbox" />
         <Prompt ref="prompt" />
         <div id="location-actions">
-            <div id="create-location" :title="$t('game.ui.menu.LocationBars.add_new_location')" @click="createLocation">
+            <div id="create-location" :title="$t('game.ui.menu.LocationBar.add_new_location')" @click="createLocation">
                 +
             </div>
             <div
@@ -233,7 +233,7 @@ export default class LocationBar extends Vue {
                     <div class="player-collapse-header">
                         {{ $t("common.players") }}
                         <div
-                            :title="$t('game.ui.menu.LocationBars.show_specific_pl')"
+                            :title="$t('game.ui.menu.LocationBar.show_specific_pl')"
                             @click="toggleExpanded(location.id)"
                         >
                             <span v-show="expanded.includes(location.id)">

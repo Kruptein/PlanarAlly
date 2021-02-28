@@ -55,7 +55,6 @@ export default class AppearanceSettings extends Vue {
 
 <template>
     <div class="panel restore-panel">
-        <div class="spanrow header">Grid</div>
         <div class="row">
             <label for="languageSelect" v-t="'locale.select'"></label>
             <div>

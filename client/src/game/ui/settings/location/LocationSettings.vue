@@ -56,7 +56,7 @@ export default class LocationSettings extends Vue {
 <template>
     <PanelModal :visible.sync="visible" :categories="categoryNames">
         <template v-slot:title>
-            {{ $t("game.ui.settings.location.LocationSettings.location_settings") }} {{ locationName }}
+            {{ $t("game.ui.settings.LocationBar.LocationSettings.location_settings") }} {{ locationName }}
         </template>
         <template v-slot:default="{ selection }">
             <LocationAdminSettings

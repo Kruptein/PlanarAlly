@@ -52,7 +52,7 @@
         "fill_color": "Fyldfarve",
         "trackers": "Trackers",
         "auras": "Auraer",
-        "LabelManager": "Mærkater",
+        "labels": "Mærkater",
         "annotation": "Anmærkning",
         "floor": "Etage",
         "layer": "Lag",
@@ -126,7 +126,7 @@
                 "no_exist_msg": "Der er ingen mærkater"
             },
             "menu": {
-                "locations": {
+                "LocationBar": {
                     "new_location_name": "Navn på den nye placering:",
                     "create_new_location": "Lav en ny placering",
                     "add_new_location": "Tilføj ny placering",

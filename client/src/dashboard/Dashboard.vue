@@ -221,7 +221,7 @@ export default class Dashboard extends Vue {
 #language-selector {
     position: absolute;
     top: 0;
-    left: calc(19vw - 45px);
+    left: 25px;
     font-size: 40px;
     color: white;
 }
@@ -229,7 +229,7 @@ export default class Dashboard extends Vue {
 #language-dropdown {
     position: absolute;
     top: 50px;
-    left: calc(19vw - 58px);
+    left: 20px;
     margin-right: -20px;
 }
 

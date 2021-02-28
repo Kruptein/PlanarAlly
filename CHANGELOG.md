@@ -44,6 +44,7 @@ These usually have no immediately visible impact on regular users
     -   shows last playtime for your account
     -   direct access to the asset manager
     -   (asset manager and settings will at a later time be integrated)
+    -   Direct access to leave/delete campaigns
 
 ### Fixed
 

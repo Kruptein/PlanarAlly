@@ -174,12 +174,16 @@ export default class SessionList extends Vue {
 
         font-size: 20px;
 
+        > div {
+            padding-bottom: 10px;
+        }
+
         .bold {
             font-weight: bold;
         }
 
         .padding {
-            padding-bottom: 10px;
+            padding-bottom: 20px;
         }
 
         img {

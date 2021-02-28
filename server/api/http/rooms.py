@@ -142,3 +142,31 @@ async def patch(request: web.Request):
 
     room.save()
     return web.HTTPOk()
+
+
+async def delete(request: web.Request):
+    user: User = await check_authorized(request)
+
+    creator = request.match_info["creator"]
+    roomname = request.match_info["roomname"]
+
+    if creator == user.name:
+        room: Room = Room.get_or_none(name=roomname, creator=user)
+        if room is None:
+            return web.HTTPBadRequest()
+
+        room.delete_instance(True)
+        return web.HTTPOk()
+    else:
+        pr = (
+            PlayerRoom.select()
+            .join(Room)
+            .join(User)
+            .filter(player=user)
+            .where((User.name == creator) & (Room.name == roomname))
+        )
+        if len(pr) == 1:
+            pr[0].delete_instance(True)
+            return web.HTTPOk()
+
+    return web.HTTPUnauthorized()

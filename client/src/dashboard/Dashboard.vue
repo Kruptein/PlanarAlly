@@ -49,7 +49,7 @@ export default class Dashboard extends Vue {
         next(async (vm: Vue) => {
             if (response.ok) {
                 const data: { owned: RoomInfo[]; joined: RoomInfo[] } = await response.json();
-                console.log(data);
+
                 (vm as this).owned = data.owned;
                 (vm as this).joined = data.joined;
             } else {
@@ -91,18 +91,27 @@ export default class Dashboard extends Vue {
     updateLogo(index: number, logo: string): void {
         this.owned[index].logo = logo;
     }
+
+    leaveRoom(index: number): void {
+        Vue.delete(this.joined, index);
+    }
+
+    removeRoom(index: number): void {
+        Vue.delete(this.owned, index);
+    }
 }
 </script>
 
 <template>
     <div id="page">
         <ConfirmDialog ref="confirm" />
-        <SessionList v-if="activeNavigation === 1" :sessions="joined" :dmMode="false" />
+        <SessionList v-if="activeNavigation === 1" :sessions="joined" :dmMode="false" @remove-room="leaveRoom" />
         <SessionList
             v-else-if="activeNavigation === 2"
             :sessions="owned"
             :dmMode="true"
             @rename="rename"
+            @remove-room="removeRoom"
             @update-logo="updateLogo"
         />
         <CreateCampaign v-else-if="activeNavigation === 3" />

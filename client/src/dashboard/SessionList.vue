@@ -4,18 +4,20 @@ import Component from "vue-class-component";
 import { Prop, Watch } from "vue-property-decorator";
 
 import AssetPicker from "@/core/components/modals/AssetPicker.vue";
+import ConfirmDialog from "@/core/components/modals/ConfirmDialog.vue";
 import Prompt from "@/core/components/modals/prompt.vue";
 
-import { baseAdjust, baseAdjustedFetch, patchFetch } from "../core/utils";
+import { baseAdjust, baseAdjustedFetch, deleteFetch, patchFetch } from "../core/utils";
 
 import { RoomInfo } from "./types";
 
-@Component({ components: { AssetPicker, Prompt } })
+@Component({ components: { AssetPicker, ConfirmDialog, Prompt } })
 export default class SessionList extends Vue {
     @Prop() sessions!: RoomInfo[];
     @Prop() dmMode!: boolean;
     $refs!: {
         assetPicker: AssetPicker;
+        confirm: ConfirmDialog;
         prompt: Prompt;
     };
 
@@ -89,12 +91,27 @@ export default class SessionList extends Vue {
             this.notes = text;
         }
     }
+
+    async leaveOrDelete(): Promise<void> {
+        if (this.selected === undefined) return;
+
+        const actionWord = this.dmMode ? "Removing" : "Leaving";
+        const answer = await this.$refs.confirm.open(`${actionWord} ${this.selected.name}!`, "Are you sure?", {
+            showNo: false,
+        });
+        if (answer === undefined) return;
+        const response = await deleteFetch(`/api/rooms/${this.selected.creator}/${this.selected.name}`);
+        if (response.ok) {
+            this.$emit("remove-room", this.selectedIndex);
+        }
+    }
 }
 </script>
 
 <template>
     <div id="content">
         <AssetPicker ref="assetPicker" />
+        <ConfirmDialog ref="confirm" />
         <Prompt ref="prompt" />
 
         <div v-if="sessions.length === 0" id="empty">
@@ -149,7 +166,7 @@ export default class SessionList extends Vue {
             <div class="header">Notes</div>
             <textarea style="flex-grow: 1" :value="notes" @change="setNotes"></textarea>
             <div style="flex-grow: 2"></div>
-            <div class="leave">{{ dmMode ? "DELETE" : "LEAVE" }}</div>
+            <div class="leave" @click="leaveOrDelete">{{ dmMode ? "DELETE" : "LEAVE" }}</div>
         </div>
     </div>
 </template>

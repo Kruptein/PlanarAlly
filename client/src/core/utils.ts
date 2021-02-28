@@ -53,6 +53,14 @@ export async function patchFetch(url: string, data?: any): Promise<Response> {
     });
 }
 
+// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
+export async function deleteFetch(url: string): Promise<Response> {
+    if (url.startsWith("/")) url = url.slice(1);
+    return fetch(BASE_PATH + url, {
+        method: "DELETE",
+    });
+}
+
 export function baseAdjust(url: string): string {
     if (url.startsWith("/")) url = url.slice(1);
     return BASE_PATH + url;

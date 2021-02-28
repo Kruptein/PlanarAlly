@@ -78,6 +78,9 @@ main_app.router.add_post(f"{subpath}api/rooms", api.http.rooms.create)
 main_app.router.add_patch(
     f"{subpath}api/rooms/{{creator}}/{{roomname}}", api.http.rooms.patch
 )
+main_app.router.add_delete(
+    f"{subpath}api/rooms/{{creator}}/{{roomname}}", api.http.rooms.delete
+)
 main_app.router.add_get(
     f"{subpath}api/rooms/{{creator}}/{{roomname}}/info", api.http.rooms.get_info
 )

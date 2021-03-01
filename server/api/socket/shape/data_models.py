@@ -24,8 +24,8 @@ class ServerTracker(TypedDict):
     value: int
     maxvalue: int
     draw: bool
-    primary_color: str
-    secondary_color: str
+    primaryColor: str
+    secondaryColor: str
 
 
 class ServerLabel(TypedDict):

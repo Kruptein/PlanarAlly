@@ -23,6 +23,7 @@ export default class TrackerSettings extends Vue {
     // Tracker
 
     updateTracker(tracker: string, delta: Partial<Tracker>, syncTo = true): void {
+        console.log(syncTo);
         if (!this.owned) return;
         if (this.shape.uuid)
             this.shape.updateTracker({ tracker, delta, syncTo: syncTo === true ? SyncTo.SERVER : SyncTo.SHAPE });
@@ -106,7 +107,7 @@ export default class TrackerSettings extends Vue {
                     @click="removeTracker(tracker.uuid)"
                     :disabled="!owned"
                     :style="{ opacity: owned ? 1.0 : 0.3, textAlign: 'center' }"
-                    :title="$t('game.ui.selection.edit_dialog.dialog.delete_tracker')"
+                    :title="$t('game.ui.selection.edit_dialog.dialog.remove_tracker')"
                 >
                     <font-awesome-icon icon="trash-alt" />
                 </div>
@@ -169,20 +170,21 @@ export default class TrackerSettings extends Vue {
                         :title="$t('common.toggle_draw')"
                     />
                 </div>
-                <div v-if="tracker.draw">Colours</div>
-                <div v-if="tracker.draw" class="colour">
-                    Primary:
+                <div v-if="tracker.draw">Primary Colour</div>
+                <div v-if="tracker.draw">
                     <color-picker
-                        :color="tracker.primary_color"
-                        @input="updateTracker(tracker.uuid, { primary_color: $event }, 2)"
-                        @change="updateTracker(tracker.uuid, { primary_color: $event })"
+                        :color="tracker.primaryColor"
+                        @input="updateTracker(tracker.uuid, { primaryColor: $event }, false)"
+                        @change="updateTracker(tracker.uuid, { primaryColor: $event })"
                         :disabled="!owned"
                     />
-                    Secondary:
+                </div>
+                <div v-if="tracker.draw">Secondary Colour</div>
+                <div v-if="tracker.draw">
                     <color-picker
-                        :color="tracker.secondary_color"
-                        @input="updateTracker(tracker.uuid, { secondary_color: $event }, 2)"
-                        @change="updateTracker(tracker.uuid, { secondary_color: $event })"
+                        :color="tracker.secondaryColor"
+                        @input="updateTracker(tracker.uuid, { secondaryColor: $event }, false)"
+                        @change="updateTracker(tracker.uuid, { secondaryColor: $event })"
                         :disabled="!owned"
                     />
                 </div>

@@ -453,7 +453,7 @@ export abstract class Shape {
             ctx.stroke();
         }
         // Draw tracker bars
-        let bar_offset = 0;
+        let barOffset = 0;
         for (const tracker of this._trackers) {
             if (tracker.draw && (tracker.visible || this.ownedBy(false, { visionAccess: true }))) {
                 if (bbox === undefined) bbox = this.getBoundingBox();
@@ -462,19 +462,19 @@ export abstract class Shape {
                 const topLeft = g2l(bbox.topLeft);
                 const botRight = g2l(bbox.botRight);
                 const rectX = topLeft.x + 5;
-                const rectY = topLeft.y + 5 + bar_offset;
+                const rectY = topLeft.y + 5 + barOffset;
                 const rectWidth = botRight.x - topLeft.x - 10;
                 const rectHeight = (botRight.y - topLeft.y) * 0.05;
                 const maxVal = tracker.maxvalue;
                 const curVal = tracker.value > tracker.maxvalue ? tracker.maxvalue : tracker.value;
                 ctx.beginPath();
-                ctx.fillStyle = tracker.secondary_color;
+                ctx.fillStyle = tracker.secondaryColor;
                 ctx.fillRect(rectX, rectY, rectWidth, rectHeight);
-                ctx.fillStyle = tracker.primary_color;
+                ctx.fillStyle = tracker.primaryColor;
                 ctx.fillRect(rectX, rectY, rectWidth * (curVal / maxVal), rectHeight);
                 ctx.rect(rectX, rectY, rectWidth, rectHeight);
                 ctx.stroke();
-                bar_offset += rectHeight + rectHeight * 0.4;
+                barOffset += rectHeight + rectHeight * 0.4;
             }
         }
     }

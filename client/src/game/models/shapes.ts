@@ -96,8 +96,8 @@ export interface ServerTracker {
     value: number;
     maxvalue: number;
     draw: boolean;
-    primary_color: string;
-    secondary_color: string;
+    primaryColor: string;
+    secondaryColor: string;
 }
 
 export interface ServerAura {

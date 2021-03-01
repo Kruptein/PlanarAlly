@@ -19,8 +19,8 @@ export function createEmptyTracker(): Tracker {
         maxvalue: 0,
         visible: false,
         draw: false,
-        primary_color: "#00FF00",
-        secondary_color: "#888888",
+        primaryColor: "#00FF00",
+        secondaryColor: "#888888",
     };
 }
 

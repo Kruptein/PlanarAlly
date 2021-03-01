@@ -95,6 +95,9 @@ export interface ServerTracker {
     name: string;
     value: number;
     maxvalue: number;
+    draw: boolean;
+    primary_color: string;
+    secondary_color: string;
 }
 
 export interface ServerAura {

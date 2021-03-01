@@ -7,6 +7,7 @@ export function createEmptyUiTracker(shape: string): UiTracker {
         shape,
         temporary: true,
         ...createEmptyTracker(),
+        name: "New tracker",
     };
 }
 
@@ -17,6 +18,9 @@ export function createEmptyTracker(): Tracker {
         value: 0,
         maxvalue: 0,
         visible: false,
+        draw: false,
+        primary_color: "#00FF00",
+        secondary_color: "#888888",
     };
 }
 

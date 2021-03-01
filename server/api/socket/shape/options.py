@@ -37,6 +37,9 @@ class TrackerDelta(TrackerData, total=False):
     name: str
     value: int
     maxvalue: int
+    draw: bool
+    primary_color: str
+    secondary_color: str
 
 
 class TrackerMove(TypedDict):

@@ -438,7 +438,7 @@ export abstract class Shape {
             ctx.strokeRect(g2lx(bbox.topLeft.x) - 5, g2ly(bbox.topLeft.y) - 5, g2lz(bbox.w) + 10, g2lz(bbox.h) + 10);
         }
         if (this.isDefeated) {
-            bbox = this.getBoundingBox();
+            if (bbox === undefined) bbox = this.getBoundingBox();
             const crossTL = g2l(bbox.topLeft);
             const crossBR = g2l(bbox.botRight);
             const r = g2lz(10);
@@ -451,6 +451,31 @@ export abstract class Shape {
             ctx.moveTo(crossTL.x + r, crossBR.y - r);
             ctx.lineTo(crossBR.x - r, crossTL.y + r);
             ctx.stroke();
+        }
+        // Draw tracker bars
+        let bar_offset = 0;
+        for (const tracker of this._trackers) {
+            if (tracker.draw && (tracker.visible || this.ownedBy(false, { visionAccess: true }))) {
+                if (bbox === undefined) bbox = this.getBoundingBox();
+                ctx.strokeStyle = "black";
+                ctx.lineWidth = g2lz(0.5);
+                const topLeft = g2l(bbox.topLeft);
+                const botRight = g2l(bbox.botRight);
+                const rectX = topLeft.x + 5;
+                const rectY = topLeft.y + 5 + bar_offset;
+                const rectWidth = botRight.x - topLeft.x - 10;
+                const rectHeight = (botRight.y - topLeft.y) * 0.05;
+                const maxVal = tracker.maxvalue;
+                const curVal = tracker.value > tracker.maxvalue ? tracker.maxvalue : tracker.value;
+                ctx.beginPath();
+                ctx.fillStyle = tracker.secondary_color;
+                ctx.fillRect(rectX, rectY, rectWidth, rectHeight);
+                ctx.fillStyle = tracker.primary_color;
+                ctx.fillRect(rectX, rectY, rectWidth * (curVal / maxVal), rectHeight);
+                ctx.rect(rectX, rectY, rectWidth, rectHeight);
+                ctx.stroke();
+                bar_offset += rectHeight + rectHeight * 0.4;
+            }
         }
     }
 
@@ -818,6 +843,7 @@ export abstract class Shape {
         else if (syncTo === SyncTo.UI) this._(activeShapeStore.pushTracker, { tracker, shape: this.uuid, syncTo });
 
         this._trackers.push(tracker);
+        this.invalidate(false);
     }
 
     updateTracker(trackerId: string, delta: Partial<Tracker>, syncTo: SyncTo): void {
@@ -828,6 +854,7 @@ export abstract class Shape {
         else if (syncTo === SyncTo.UI) this._(activeShapeStore.updateTracker, { tracker: trackerId, delta, syncTo });
 
         Object.assign(tracker, delta);
+        this.invalidate(false);
     }
 
     removeTracker(tracker: string, syncTo: SyncTo): void {
@@ -835,6 +862,7 @@ export abstract class Shape {
         else if (syncTo === SyncTo.UI) this._(activeShapeStore.removeTracker, { tracker, syncTo });
 
         this._trackers = this._trackers.filter((tr) => tr.uuid !== tracker);
+        this.invalidate(false);
     }
 
     // AURAS

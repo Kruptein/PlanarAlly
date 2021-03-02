@@ -95,7 +95,7 @@ export default class TrackerSettings extends Vue {
         <div id="trackers-panel">
             <div class="spanrow header" v-t="'common.trackers'"></div>
             <div class="aura" v-for="tracker in shape.trackers" :key="tracker.uuid">
-                <div class="summary" @click="updateTracker(tracker.uuid, {})">
+                <div class="summary">
                     <label class="name" :for="'check-' + tracker.uuid">{{ tracker.name }}</label>
                     <div
                         v-if="!tracker.temporary"

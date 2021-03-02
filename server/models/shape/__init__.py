@@ -135,8 +135,8 @@ class Tracker(BaseModel):
     value = IntegerField()
     maxvalue = IntegerField()
     draw = BooleanField()
-    primaryColor = TextField()
-    secondaryColor = TextField()
+    primary_color = TextField()
+    secondary_color = TextField()
 
     def __repr__(self):
         return f"<Tracker {self.name} {self.shape.get_path()}>"

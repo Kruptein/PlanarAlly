@@ -4,6 +4,7 @@ import { uuidv4 } from "@/core/utils";
 import { GlobalPoint, LocalPoint, Vector } from "@/game/geom";
 import { layerManager } from "@/game/layers/manager";
 import { aurasFromServer, aurasToServer, partialAuraToServer } from "@/game/models/conversion/aura";
+import { trackersFromServer, trackersToServer, partialTrackerToServer } from "@/game/models/conversion/tracker";
 import { InitiativeData } from "@/game/models/general";
 import { accessToServer, ownerToClient, ownerToServer, ServerShape } from "@/game/models/shapes";
 import { gameStore } from "@/game/store";
@@ -321,7 +322,7 @@ export abstract class Shape {
             movement_obstruction: this.movementObstruction,
             vision_obstruction: this.visionObstruction,
             auras: aurasToServer(this.uuid, this._auras),
-            trackers: this._trackers,
+            trackers: trackersToServer(this.uuid, this._trackers),
             labels: this.labels,
             owners: this._owners.map((owner) => ownerToServer(owner)),
             fill_colour: this.fillColour,
@@ -354,7 +355,7 @@ export abstract class Shape {
         this.movementObstruction = data.movement_obstruction;
         this.visionObstruction = data.vision_obstruction;
         this._auras = aurasFromServer(...data.auras);
-        this._trackers = data.trackers;
+        this._trackers = trackersFromServer(...data.trackers);
         this.labels = data.labels;
         this._owners = data.owners.map((owner) => ownerToClient(owner));
         this.fillColour = data.fill_colour;
@@ -839,7 +840,7 @@ export abstract class Shape {
     }
 
     pushTracker(tracker: Tracker, syncTo: SyncTo): void {
-        if (syncTo === SyncTo.SERVER) sendShapeCreateTracker({ shape: this.uuid, ...tracker });
+        if (syncTo === SyncTo.SERVER) sendShapeCreateTracker(trackersToServer(this.uuid, [tracker])[0]);
         else if (syncTo === SyncTo.UI) this._(activeShapeStore.pushTracker, { tracker, shape: this.uuid, syncTo });
 
         this._trackers.push(tracker);
@@ -850,8 +851,17 @@ export abstract class Shape {
         const tracker = this._trackers.find((t) => t.uuid === trackerId);
         if (tracker === undefined) return;
 
-        if (syncTo === SyncTo.SERVER) sendShapeUpdateTracker({ shape: this.uuid, uuid: trackerId, ...delta });
-        else if (syncTo === SyncTo.UI) this._(activeShapeStore.updateTracker, { tracker: trackerId, delta, syncTo });
+        if (syncTo === SyncTo.SERVER) {
+            sendShapeUpdateTracker({
+                ...partialTrackerToServer({
+                    ...delta,
+                }),
+                shape: this.uuid,
+                uuid: trackerId,
+            });
+        } else if (syncTo === SyncTo.UI) {
+            this._(activeShapeStore.updateTracker, { tracker: trackerId, delta, syncTo });
+        }
 
         Object.assign(tracker, delta);
         this.invalidate(false);

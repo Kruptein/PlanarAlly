@@ -23,7 +23,6 @@ export default class TrackerSettings extends Vue {
     // Tracker
 
     updateTracker(tracker: string, delta: Partial<Tracker>, syncTo = true): void {
-        console.log(syncTo);
         if (!this.owned) return;
         if (this.shape.uuid)
             this.shape.updateTracker({ tracker, delta, syncTo: syncTo === true ? SyncTo.SERVER : SyncTo.SHAPE });

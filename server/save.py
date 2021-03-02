@@ -891,8 +891,8 @@ def upgrade(version):
         # Add additional fields to trackers for drawing bars on tokens
         with db.atomic():
             db.execute_sql("ALTER TABLE tracker ADD COLUMN draw Boolean DEFAULT FALSE")
-            db.execute_sql("ALTER TABLE tracker ADD COLUMN primaryColor TEXT DEFAULT '#00FF00'")
-            db.execute_sql("ALTER TABLE tracker ADD COLUMN secondaryColor TEXT DEFAULT '#888888'")
+            db.execute_sql("ALTER TABLE tracker ADD COLUMN primary_color TEXT DEFAULT '#00FF00'")
+            db.execute_sql("ALTER TABLE tracker ADD COLUMN secondary_color TEXT DEFAULT '#888888'")
     else:
         raise UnknownVersionException(
             f"No upgrade code for save format {version} was found."

@@ -97,230 +97,227 @@ export default class TrackerSettings extends Vue {
 
 <template>
     <div style="display: contents">
-        <div class="spanrow header" v-t="'common.trackers'"></div>
-        <div class="aura" v-for="tracker in shape.trackers" :key="tracker.uuid">
-            <div class="summary" @click="updateTracker(tracker.uuid, {})">
-                <label class="name" :for="'check-' + tracker.uuid">{{ tracker.name }}</label>
-                <div
-                    v-if="!tracker.temporary"
-                    @click="removeTracker(tracker.uuid)"
-                    :disabled="!owned"
-                    :style="{ opacity: owned ? 1.0 : 0.3, textAlign: 'center' }"
-                    :title="$t('game.ui.selection.edit_dialog.dialog.remove_tracker')"
-                >
-                    <font-awesome-icon icon="trash-alt" />
-                </div>
-            </div>
-            <input type="checkbox" :id="'check-' + tracker.uuid" style="display: none" />
-            <div class="details">
-                <div>Name</div>
-                <div>
-                    <input
-                        type="text"
-                        :value="tracker.name"
-                        @change="updateTracker(tracker.uuid, { name: $event.target.value })"
+        <div id="trackers-panel">
+            <div class="spanrow header" v-t="'common.trackers'"></div>
+            <div class="aura" v-for="tracker in shape.trackers" :key="tracker.uuid">
+                <div class="summary" @click="updateTracker(tracker.uuid, {})">
+                    <label class="name" :for="'check-' + tracker.uuid">{{ tracker.name }}</label>
+                    <div
+                        v-if="!tracker.temporary"
+                        @click="removeTracker(tracker.uuid)"
                         :disabled="!owned"
-                    />
+                        :style="{ opacity: owned ? 1.0 : 0.3, textAlign: 'center' }"
+                        :title="$t('game.ui.selection.edit_dialog.dialog.remove_tracker')"
+                    >
+                        <font-awesome-icon icon="trash-alt" />
+                    </div>
                 </div>
-                <div>Value</div>
-                <div class="range">
-                    <input
-                        type="number"
-                        :value="tracker.value"
-                        @change="updateTracker(tracker.uuid, { value: parseFloat($event.target.value) })"
-                        :title="$t('game.ui.selection.edit_dialog.dialog.current_value')"
-                        :disabled="!owned"
-                    />
-                    <span style="padding: 5px; 5px;">/</span>
-                    <input
-                        type="number"
-                        :value="tracker.maxvalue"
-                        min=""
-                        @change="updateTracker(tracker.uuid, { maxvalue: parseFloat($event.target.value) })"
-                        :title="$t('game.ui.selection.edit_dialog.dialog.current_value')"
-                        :disabled="!owned"
-                    />
-                </div>
-                <div>Public</div>
-                <div>
-                    <input
-                        type="checkbox"
-                        :checked="tracker.visible"
-                        @click="updateTracker(tracker.uuid, { visible: !tracker.visible })"
-                        :disabled="!owned"
-                        :title="$t('common.toggle_public_private')"
-                    />
-                </div>
-                <div v-show="shape.isComposite">Shared for all variants</div>
-                <input
-                    v-show="shape.isComposite"
-                    type="checkbox"
-                    @click="toggleCompositeTracker(tracker.uuid)"
-                    :disabled="!owned"
-                    :title="$t('common.toggle_public_private')"
-                />
-                <div>Display on token</div>
-                <div>
-                    <input
-                        type="checkbox"
-                        :checked="tracker.draw"
-                        @click="updateTracker(tracker.uuid, { draw: !tracker.draw })"
-                        :disabled="!owned"
-                        :title="$t('common.toggle_draw')"
-                    />
-                </div>
-                <div v-if="tracker.draw">Primary Colour</div>
-                <div v-if="tracker.draw">
-                    <color-picker
-                        :color="tracker.primaryColor"
-                        @input="updateTracker(tracker.uuid, { primaryColor: $event }, false)"
-                        @change="updateTracker(tracker.uuid, { primaryColor: $event })"
-                        :disabled="!owned"
-                    />
-                </div>
-                <div v-if="tracker.draw">Secondary Colour</div>
-                <div v-if="tracker.draw">
-                    <color-picker
-                        :color="tracker.secondaryColor"
-                        @input="updateTracker(tracker.uuid, { secondaryColor: $event }, false)"
-                        @change="updateTracker(tracker.uuid, { secondaryColor: $event })"
-                        :disabled="!owned"
-                    />
-                </div>
-            </div>
-        </div>
-        <div class="spanrow header" v-t="'common.auras'"></div>
-        <div class="aura" v-for="aura of shape.auras" :key="aura.uuid">
-            <div class="summary">
-                <label class="name" :for="'check-' + aura.uuid">{{ aura.name }}</label>
-                <div
-                    v-if="!aura.temporary"
-                    @click="removeAura(aura.uuid)"
-                    :disabled="!owned"
-                    :style="{ opacity: owned ? 1.0 : 0.3, textAlign: 'center' }"
-                    :title="$t('game.ui.selection.edit_dialog.dialog.delete_aura')"
-                >
-                    <font-awesome-icon icon="trash-alt" />
-                </div>
-                <button
-                    class="slider-checkbox"
-                    @click="updateAura(aura.uuid, { active: !aura.active })"
-                    :aria-pressed="aura.active"
-                ></button>
-            </div>
-            <input type="checkbox" :id="'check-' + aura.uuid" style="display: none" />
-            <div class="details">
-                <div>Name</div>
-                <div>
-                    <input
-                        type="text"
-                        :value="aura.name"
-                        @change="updateAura(aura.uuid, { name: $event.target.value })"
-                        :disabled="!owned"
-                    />
-                </div>
-                <div>Range</div>
-                <div class="range">
-                    <input
-                        type="number"
-                        :value="aura.value"
-                        @input="updateAura(aura.uuid, { value: parseFloat($event.target.value) }, false)"
-                        @change="updateAura(aura.uuid, { value: parseFloat($event.target.value) })"
-                        :title="$t('game.ui.selection.edit_dialog.dialog.current_value')"
-                        :disabled="!owned"
-                    />
-                    <span>/</span>
-                    <input
-                        type="number"
-                        :value="aura.dim"
-                        min="0"
-                        @input="updateAura(aura.uuid, { dim: parseFloat($event.target.value) }, false)"
-                        @change="updateAura(aura.uuid, { dim: parseFloat($event.target.value) })"
-                        :title="$t('game.ui.selection.edit_dialog.dialog.dim_value')"
-                        :disabled="!owned"
-                    />
-                </div>
-                <div>Angle</div>
-                <div class="angle">
-                    <input
-                        type="number"
-                        :value="aura.angle"
-                        @change="updateAura(aura.uuid, { angle: parseFloat($event.target.value) })"
-                        min="1"
-                        max="360"
-                    />
-                    <RotationSlider
-                        :angle="aura.direction"
-                        @input="
-                            (direction) => {
-                                updateAura(aura.uuid, { direction }, false);
-                            }
-                        "
-                        @change="
-                            (direction) => {
-                                updateAura(aura.uuid, { direction });
-                            }
-                        "
-                    />
-                </div>
-                <div>Colour</div>
-                <div class="colour">
-                    Aura:
-                    <color-picker
-                        :color="aura.colour"
-                        @input="updateAura(aura.uuid, { colour: $event }, false)"
-                        @change="updateAura(aura.uuid, { colour: $event })"
-                        :disabled="!owned"
-                    />
-                    Border:
-                    <color-picker
-                        :color="aura.borderColour"
-                        @input="updateAura(aura.uuid, { borderColour: $event }, false)"
-                        @change="updateAura(aura.uuid, { borderColour: $event })"
-                        :disabled="!owned"
-                    />
-                </div>
-                <div class="option">
+                <input type="checkbox" :id="'check-' + tracker.uuid" style="display: none" />
+                <div class="details">
+                    <div>Name</div>
+                    <div>
+                        <input
+                            type="text"
+                            :value="tracker.name"
+                            @change="updateTracker(tracker.uuid, { name: $event.target.value })"
+                            :disabled="!owned"
+                        />
+                    </div>
+                    <div>Value</div>
+                    <div class="range">
+                        <input
+                            type="number"
+                            :value="tracker.value"
+                            @change="updateTracker(tracker.uuid, { value: parseFloat($event.target.value) })"
+                            :title="$t('game.ui.selection.edit_dialog.dialog.current_value')"
+                            :disabled="!owned"
+                        />
+                        <span style="padding: 5px; 5px;">/</span>
+                        <input
+                            type="number"
+                            :value="tracker.maxvalue"
+                            min=""
+                            @change="updateTracker(tracker.uuid, { maxvalue: parseFloat($event.target.value) })"
+                            :title="$t('game.ui.selection.edit_dialog.dialog.current_value')"
+                            :disabled="!owned"
+                        />
+                    </div>
                     <div>Public</div>
+                    <div>
+                        <input
+                            type="checkbox"
+                            :checked="tracker.visible"
+                            @click="updateTracker(tracker.uuid, { visible: !tracker.visible })"
+                            :disabled="!owned"
+                            :title="$t('common.toggle_public_private')"
+                        />
+                    </div>
+                    <div v-show="shape.isComposite">Shared for all variants</div>
                     <input
+                        v-show="shape.isComposite"
                         type="checkbox"
-                        :checked="aura.visible"
-                        @click="updateAura(aura.uuid, { visible: !aura.visible })"
+                        @click="toggleCompositeTracker(tracker.uuid)"
+                        :disabled="!owned"
+                        :title="$t('common.toggle_public_private')"
+                    />
+                    <div>Display on token</div>
+                    <div>
+                        <input
+                            type="checkbox"
+                            :checked="tracker.draw"
+                            @click="updateTracker(tracker.uuid, { draw: !tracker.draw })"
+                            :disabled="!owned"
+                            :title="$t('common.toggle_draw')"
+                        />
+                    </div>
+                    <div v-if="tracker.draw">Primary Colour</div>
+                    <div v-if="tracker.draw">
+                        <color-picker
+                            :color="tracker.primaryColor"
+                            @input="updateTracker(tracker.uuid, { primaryColor: $event }, false)"
+                            @change="updateTracker(tracker.uuid, { primaryColor: $event })"
+                            :disabled="!owned"
+                        />
+                    </div>
+                    <div v-if="tracker.draw">Secondary Colour</div>
+                    <div v-if="tracker.draw">
+                        <color-picker
+                            :color="tracker.secondaryColor"
+                            @input="updateTracker(tracker.uuid, { secondaryColor: $event }, false)"
+                            @change="updateTracker(tracker.uuid, { secondaryColor: $event })"
+                            :disabled="!owned"
+                        />
+                    </div>
+                </div>
+            </div>
+            <div class="spanrow header" v-t="'common.auras'"></div>
+            <div class="aura" v-for="aura of shape.auras" :key="aura.uuid">
+                <div class="summary">
+                    <label class="name" :for="'check-' + aura.uuid">{{ aura.name }}</label>
+                    <div
+                        v-if="!aura.temporary"
+                        @click="removeAura(aura.uuid)"
+                        :disabled="!owned"
+                        :style="{ opacity: owned ? 1.0 : 0.3, textAlign: 'center' }"
+                        :title="$t('game.ui.selection.edit_dialog.dialog.delete_aura')"
+                    >
+                        <font-awesome-icon icon="trash-alt" />
+                    </div>
+                    <button
+                        class="slider-checkbox"
+                        @click="updateAura(aura.uuid, { active: !aura.active })"
+                        :aria-pressed="aura.active"
+                    ></button>
+                </div>
+                <input type="checkbox" :id="'check-' + aura.uuid" style="display: none" />
+                <div class="details">
+                    <div>Name</div>
+                    <div>
+                        <input
+                            type="text"
+                            :value="aura.name"
+                            @change="updateAura(aura.uuid, { name: $event.target.value })"
+                            :disabled="!owned"
+                        />
+                    </div>
+                    <div>Range</div>
+                    <div class="range">
+                        <input
+                            type="number"
+                            :value="aura.value"
+                            @input="updateAura(aura.uuid, { value: parseFloat($event.target.value) }, false)"
+                            @change="updateAura(aura.uuid, { value: parseFloat($event.target.value) })"
+                            :title="$t('game.ui.selection.edit_dialog.dialog.current_value')"
+                            :disabled="!owned"
+                        />
+                        <span>/</span>
+                        <input
+                            type="number"
+                            :value="aura.dim"
+                            min="0"
+                            @input="updateAura(aura.uuid, { dim: parseFloat($event.target.value) }, false)"
+                            @change="updateAura(aura.uuid, { dim: parseFloat($event.target.value) })"
+                            :title="$t('game.ui.selection.edit_dialog.dialog.dim_value')"
+                            :disabled="!owned"
+                        />
+                    </div>
+                    <div>Angle</div>
+                    <div class="angle">
+                        <input
+                            type="number"
+                            :value="aura.angle"
+                            @change="updateAura(aura.uuid, { angle: parseFloat($event.target.value) })"
+                            min="1"
+                            max="360"
+                        />
+                        <RotationSlider
+                            :angle="aura.direction"
+                            @input="
+                                (direction) => {
+                                    updateAura(aura.uuid, { direction }, false);
+                                }
+                            "
+                            @change="
+                                (direction) => {
+                                    updateAura(aura.uuid, { direction });
+                                }
+                            "
+                        />
+                    </div>
+                    <div>Colour</div>
+                    <div class="colour">
+                        Aura:
+                        <color-picker
+                            :color="aura.colour"
+                            @input="updateAura(aura.uuid, { colour: $event }, false)"
+                            @change="updateAura(aura.uuid, { colour: $event })"
+                            :disabled="!owned"
+                        />
+                        Border:
+                        <color-picker
+                            :color="aura.borderColour"
+                            @input="updateAura(aura.uuid, { borderColour: $event }, false)"
+                            @change="updateAura(aura.uuid, { borderColour: $event })"
+                            :disabled="!owned"
+                        />
+                    </div>
+                    <div class="option">
+                        <div>Public</div>
+                        <input
+                            type="checkbox"
+                            :checked="aura.visible"
+                            @click="updateAura(aura.uuid, { visible: !aura.visible })"
+                            :disabled="!owned"
+                            :title="$t('common.toggle_public_private')"
+                        />
+                    </div>
+                    <div class="option">
+                        <div>Light source</div>
+                        <input
+                            type="checkbox"
+                            :checked="aura.visionSource"
+                            @click="updateAura(aura.uuid, { visionSource: !aura.visionSource })"
+                            :disabled="!owned"
+                            :title="$t('game.ui.selection.edit_dialog.dialog.toggle_light_source')"
+                        />
+                    </div>
+                    <div v-show="shape.isComposite">Shared for all variants {{ shape.isComposite }}</div>
+                    <input
+                        v-show="shape.isComposite"
+                        type="checkbox"
+                        @click="toggleCompositeAura(aura.uuid)"
                         :disabled="!owned"
                         :title="$t('common.toggle_public_private')"
                     />
                 </div>
-                <div class="option">
-                    <div>Light source</div>
-                    <input
-                        type="checkbox"
-                        :checked="aura.visionSource"
-                        @click="updateAura(aura.uuid, { visionSource: !aura.visionSource })"
-                        :disabled="!owned"
-                        :title="$t('game.ui.selection.edit_dialog.dialog.toggle_light_source')"
-                    />
-                </div>
-                <div v-show="shape.isComposite">Shared for all variants {{ shape.isComposite }}</div>
-                <input
-                    v-show="shape.isComposite"
-                    type="checkbox"
-                    @click="toggleCompositeAura(aura.uuid)"
-                    :disabled="!owned"
-                    :title="$t('common.toggle_public_private')"
-                />
             </div>
         </div>
     </div>
 </template>
 
 <style scoped lang="scss">
-.panel {
-    grid-template-columns: [name] 1fr [numerator] 25px [slash] 5px [denominator] 25px [colour] auto [lock] auto [visible] auto [light] auto [remove] auto [end];
-    grid-column-gap: 10px;
-    align-items: center;
-    justify-items: center;
-    min-height: 0;
-    padding-bottom: 0;
+#trackers-panel {
+    background-color: white;
 }
 
 input[type="text"] {

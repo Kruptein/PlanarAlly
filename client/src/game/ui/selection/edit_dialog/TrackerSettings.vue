@@ -87,11 +87,6 @@ export default class TrackerSettings extends Vue {
         this.shape.pushAura({ aura, shape: aura.shape, syncTo: SyncTo.SHAPE });
         sendShapeMoveAura({ shape: oldShape, new_shape: aura.shape, aura: aura.uuid });
     }
-
-    showAura = false;
-    toggleAura(): void {
-        this.showAura = !this.showAura;
-    }
 }
 </script>
 

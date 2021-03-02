@@ -318,6 +318,7 @@ export default class TrackerSettings extends Vue {
 <style scoped lang="scss">
 #trackers-panel {
     background-color: white;
+    min-width: 15vw;
 }
 
 input[type="text"] {

@@ -1,4 +1,4 @@
-import { Label, Tracker } from "../shapes/interfaces";
+import { Label } from "../shapes/interfaces";
 import { ShapeAccess, ShapeOwner } from "../shapes/owners";
 import { SHAPE_TYPE } from "../shapes/types";
 
@@ -13,7 +13,7 @@ export interface ServerShape {
     movement_obstruction: boolean;
     vision_obstruction: boolean;
     draw_operator: string;
-    trackers: Tracker[];
+    trackers: ServerTracker[];
     auras: ServerAura[];
     labels: Label[];
     owners: ServerShapeOwner[];
@@ -95,6 +95,9 @@ export interface ServerTracker {
     name: string;
     value: number;
     maxvalue: number;
+    draw: boolean;
+    primary_color: string;
+    secondary_color: string;
 }
 
 export interface ServerAura {

@@ -1,6 +1,7 @@
 import { SyncTo } from "../../../../core/models/types";
 import { layerManager } from "../../../layers/manager";
 import { aurasFromServer, partialAuraFromServer } from "../../../models/conversion/aura";
+import { trackersFromServer, partialTrackerFromServer } from "../../../models/conversion/tracker";
 import { ServerAura, ServerTracker } from "../../../models/shapes";
 import { Aura, Tracker } from "../../../shapes/interfaces";
 import { Shape } from "../../../shapes/shape";
@@ -36,13 +37,13 @@ socket.on("Shape.Options.Label.Remove", wrapCall(Shape.prototype.removeLabel));
 socket.on("Shape.Options.Tracker.Create", (data: ServerTracker): void => {
     const shape = layerManager.UUIDMap.get(data.shape);
     if (shape === undefined) return;
-    shape.pushTracker(data, SyncTo.UI);
+    shape.pushTracker(trackersFromServer(data)[0], SyncTo.UI);
 });
 
 socket.on("Shape.Options.Tracker.Update", (data: { uuid: string; shape: string } & Partial<Tracker>): void => {
     const shape = layerManager.UUIDMap.get(data.shape);
     if (shape === undefined) return;
-    shape.updateTracker(data.uuid, data, SyncTo.UI);
+    shape.updateTracker(data.uuid, partialTrackerFromServer(data), SyncTo.UI);
 });
 
 socket.on("Shape.Options.Tracker.Move", (data: { shape: string; tracker: string; new_shape: string }): void => {

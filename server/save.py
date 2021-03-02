@@ -13,7 +13,7 @@ When writing migrations make sure that these things are respected:
     - e.g. a column added to Circle also needs to be added to CircularToken
 """
 
-SAVE_VERSION = 58
+SAVE_VERSION = 59
 
 import datetime
 import json
@@ -887,6 +887,12 @@ def upgrade(version):
                 'ALTER TABLE player_room ADD COLUMN notes TEXT NOT NULL DEFAULT ""'
             )
             db.execute_sql("ALTER TABLE player_room ADD COLUMN last_played TEXT")
+    elif version == 58:
+        # Add additional fields to trackers for drawing bars on tokens
+        with db.atomic():
+            db.execute_sql("ALTER TABLE tracker ADD COLUMN draw Boolean DEFAULT FALSE")
+            db.execute_sql("ALTER TABLE tracker ADD COLUMN primary_color TEXT DEFAULT '#00FF00'")
+            db.execute_sql("ALTER TABLE tracker ADD COLUMN secondary_color TEXT DEFAULT '#888888'")
     else:
         raise UnknownVersionException(
             f"No upgrade code for save format {version} was found."

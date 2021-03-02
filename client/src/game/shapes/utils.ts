@@ -5,6 +5,7 @@ import { layerManager } from "@/game/layers/manager";
 import {
     ServerAsset,
     ServerAura,
+    ServerTracker,
     ServerCircle,
     ServerCircularToken,
     ServerLine,
@@ -31,7 +32,6 @@ import { gameStore } from "../store";
 import { VisibilityMode, visibilityStore } from "../visibility/store";
 import { TriangulationTarget } from "../visibility/te/pa";
 
-import { Tracker } from "./interfaces";
 import { Polygon } from "./variants/polygon";
 import { ToggleComposite } from "./variants/togglecomposite";
 
@@ -176,7 +176,7 @@ export function pasteShapes(targetLayer?: string): readonly Shape[] {
         const oldTrackers = clip.trackers;
         clip.trackers = [];
         for (const tracker of oldTrackers) {
-            const newTracker: Tracker = {
+            const newTracker: ServerTracker = {
                 ...tracker,
                 uuid: uuidv4(),
             };

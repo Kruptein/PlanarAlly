@@ -40,6 +40,7 @@
         "warning": "Warning",
         "value": "Value",
         "toggle_public_private": "Toggle public / private",
+        "toggle_draw": "Draw on token",
         "initiative": "Initiative",
         "search": "Search",
         "name": "Name",

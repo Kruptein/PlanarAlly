@@ -1,4 +1,5 @@
 import { aurasToServer } from "../models/conversion/aura";
+import { trackersToServer } from "../models/conversion/tracker";
 import { ServerRect, ServerShape } from "../models/shapes";
 import {
     BaseAuraStrings,
@@ -24,7 +25,7 @@ export function applyTemplate<T extends ServerShape>(shape: T, template: BaseTem
     if ("options" in template) shape.options = template.options;
 
     for (const trackerTemplate of template.trackers ?? []) {
-        const defaultTracker = createEmptyTracker();
+        const defaultTracker = trackersToServer(shape.uuid, [createEmptyTracker()])[0];
         shape.trackers.push({ ...defaultTracker, ...trackerTemplate });
     }
 

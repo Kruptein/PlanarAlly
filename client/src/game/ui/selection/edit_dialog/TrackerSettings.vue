@@ -22,9 +22,10 @@ export default class TrackerSettings extends Vue {
 
     // Tracker
 
-    updateTracker(tracker: string, delta: Partial<Tracker>): void {
+    updateTracker(tracker: string, delta: Partial<Tracker>, syncTo = true): void {
         if (!this.owned) return;
-        if (this.shape.uuid) this.shape.updateTracker({ tracker, delta, syncTo: SyncTo.SERVER });
+        if (this.shape.uuid)
+            this.shape.updateTracker({ tracker, delta, syncTo: syncTo === true ? SyncTo.SERVER : SyncTo.SHAPE });
     }
 
     removeTracker(tracker: string): void {
@@ -96,59 +97,12 @@ export default class TrackerSettings extends Vue {
 
 <template>
     <div style="display: contents">
-        <div class="panel restore-panel">
-            <div class="spanrow header" v-t="'common.trackers'"></div>
-            <template v-for="tracker in shape.trackers">
-                <input
-                    :key="'name-' + tracker.uuid"
-                    :value="tracker.name"
-                    @change="updateTracker(tracker.uuid, { name: $event.target.value })"
-                    type="text"
-                    :placeholder="$t('common.name')"
-                    style="grid-column-start: name"
-                    :disabled="!owned"
-                />
-                <input
-                    :key="'value-' + tracker.uuid"
-                    :value="tracker.value"
-                    @change="updateTracker(tracker.uuid, { value: parseFloat($event.target.value) })"
-                    type="text"
-                    :title="$t('game.ui.selection.edit_dialog.dialog.current_value')"
-                    :disabled="!owned"
-                />
-                <span :key="'fspan-' + tracker.uuid">/</span>
-                <input
-                    :key="'maxvalue-' + tracker.uuid"
-                    :value="tracker.maxvalue"
-                    @change="updateTracker(tracker.uuid, { maxvalue: $event.target.value })"
-                    type="text"
-                    :title="$t('game.ui.selection.edit_dialog.dialog.current_value')"
-                    :disabled="!owned"
-                />
-                <span :key="'sspan-' + tracker.uuid"></span>
-                <div
-                    v-show="shape.isComposite"
-                    :key="'lock-' + tracker.uuid"
-                    :style="{ opacity: tracker.shape !== shape.uuid ? 1.0 : 0.3, textAlign: 'center' }"
-                    @click="toggleCompositeTracker(tracker.uuid)"
-                    :disabled="!owned"
-                    :title="$t('common.toggle_public_private')"
-                >
-                    <font-awesome-icon icon="lock" />
-                </div>
-                <div
-                    :key="'visibility-' + tracker.uuid"
-                    :style="{ opacity: tracker.visible ? 1.0 : 0.3, textAlign: 'center' }"
-                    @click="updateTracker(tracker.uuid, { visible: !tracker.visible })"
-                    :disabled="!owned"
-                    :title="$t('common.toggle_public_private')"
-                >
-                    <font-awesome-icon icon="eye" />
-                </div>
-                <span :key="'tspan-' + tracker.uuid"></span>
+        <div class="spanrow header" v-t="'common.trackers'"></div>
+        <div class="aura" v-for="tracker in shape.trackers" :key="tracker.uuid">
+            <div class="summary" @click="updateTracker(tracker.uuid, {})">
+                <label class="name" :for="'check-' + tracker.uuid">{{ tracker.name }}</label>
                 <div
                     v-if="!tracker.temporary"
-                    :key="'remove-' + tracker.uuid"
                     @click="removeTracker(tracker.uuid)"
                     :disabled="!owned"
                     :style="{ opacity: owned ? 1.0 : 0.3, textAlign: 'center' }"
@@ -156,9 +110,86 @@ export default class TrackerSettings extends Vue {
                 >
                     <font-awesome-icon icon="trash-alt" />
                 </div>
-            </template>
-            <div class="spanrow header" v-t="'common.auras'"></div>
+            </div>
+            <input type="checkbox" :id="'check-' + tracker.uuid" style="display: none" />
+            <div class="details">
+                <div>Name</div>
+                <div>
+                    <input
+                        type="text"
+                        :value="tracker.name"
+                        @change="updateTracker(tracker.uuid, { name: $event.target.value })"
+                        :disabled="!owned"
+                    />
+                </div>
+                <div>Value</div>
+                <div class="range">
+                    <input
+                        type="number"
+                        :value="tracker.value"
+                        @change="updateTracker(tracker.uuid, { value: parseFloat($event.target.value) })"
+                        :title="$t('game.ui.selection.edit_dialog.dialog.current_value')"
+                        :disabled="!owned"
+                    />
+                    <span style="padding: 5px; 5px;">/</span>
+                    <input
+                        type="number"
+                        :value="tracker.maxvalue"
+                        min=""
+                        @change="updateTracker(tracker.uuid, { maxvalue: parseFloat($event.target.value) })"
+                        :title="$t('game.ui.selection.edit_dialog.dialog.current_value')"
+                        :disabled="!owned"
+                    />
+                </div>
+                <div>Public</div>
+                <div>
+                    <input
+                        type="checkbox"
+                        :checked="tracker.visible"
+                        @click="updateTracker(tracker.uuid, { visible: !tracker.visible })"
+                        :disabled="!owned"
+                        :title="$t('common.toggle_public_private')"
+                    />
+                </div>
+                <div v-show="shape.isComposite">Shared for all variants</div>
+                <input
+                    v-show="shape.isComposite"
+                    type="checkbox"
+                    @click="toggleCompositeTracker(tracker.uuid)"
+                    :disabled="!owned"
+                    :title="$t('common.toggle_public_private')"
+                />
+                <div>Display on token</div>
+                <div>
+                    <input
+                        type="checkbox"
+                        :checked="tracker.draw"
+                        @click="updateTracker(tracker.uuid, { draw: !tracker.draw })"
+                        :disabled="!owned"
+                        :title="$t('common.toggle_draw')"
+                    />
+                </div>
+                <div v-if="tracker.draw">Primary Colour</div>
+                <div v-if="tracker.draw">
+                    <color-picker
+                        :color="tracker.primaryColor"
+                        @input="updateTracker(tracker.uuid, { primaryColor: $event }, false)"
+                        @change="updateTracker(tracker.uuid, { primaryColor: $event })"
+                        :disabled="!owned"
+                    />
+                </div>
+                <div v-if="tracker.draw">Secondary Colour</div>
+                <div v-if="tracker.draw">
+                    <color-picker
+                        :color="tracker.secondaryColor"
+                        @input="updateTracker(tracker.uuid, { secondaryColor: $event }, false)"
+                        @change="updateTracker(tracker.uuid, { secondaryColor: $event })"
+                        :disabled="!owned"
+                    />
+                </div>
+            </div>
         </div>
+        <div class="spanrow header" v-t="'common.auras'"></div>
         <div class="aura" v-for="aura of shape.auras" :key="aura.uuid">
             <div class="summary">
                 <label class="name" :for="'check-' + aura.uuid">{{ aura.name }}</label>

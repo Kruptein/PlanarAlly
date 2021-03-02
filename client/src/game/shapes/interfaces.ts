@@ -4,6 +4,9 @@ export interface Tracker {
     name: string;
     value: number;
     maxvalue: number;
+    draw: boolean;
+    primaryColor: string;
+    secondaryColor: string;
 }
 
 export interface Aura {

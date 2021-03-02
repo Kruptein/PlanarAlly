@@ -26,7 +26,6 @@ export function applyTemplate<T extends ServerShape>(shape: T, template: BaseTem
 
     for (const trackerTemplate of template.trackers ?? []) {
         const defaultTracker = trackersToServer(shape.uuid, [createEmptyTracker()])[0];
-        console.log(defaultTracker);
         shape.trackers.push({ ...defaultTracker, ...trackerTemplate });
     }
 

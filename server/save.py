@@ -13,7 +13,7 @@ When writing migrations make sure that these things are respected:
     - e.g. a column added to Circle also needs to be added to CircularToken
 """
 
-SAVE_VERSION = 59
+SAVE_VERSION = 60
 
 import datetime
 import json
@@ -891,8 +891,25 @@ def upgrade(version):
         # Add additional fields to trackers for drawing bars on tokens
         with db.atomic():
             db.execute_sql("ALTER TABLE tracker ADD COLUMN draw Boolean DEFAULT FALSE")
-            db.execute_sql("ALTER TABLE tracker ADD COLUMN primary_color TEXT DEFAULT '#00FF00'")
-            db.execute_sql("ALTER TABLE tracker ADD COLUMN secondary_color TEXT DEFAULT '#888888'")
+            db.execute_sql(
+                "ALTER TABLE tracker ADD COLUMN primary_color TEXT DEFAULT '#00FF00'"
+            )
+            db.execute_sql(
+                "ALTER TABLE tracker ADD COLUMN secondary_color TEXT DEFAULT '#888888'"
+            )
+    elif version == 59:
+        # Fix Trackers.draw type
+        with db.atomic():
+            db.execute_sql(
+                "CREATE TEMPORARY TABLE _tracker_59 AS SELECT * FROM tracker"
+            )
+            db.execute_sql("DROP TABLE tracker")
+            db.execute_sql(
+                'CREATE TABLE IF NOT EXISTS "tracker" ("uuid" TEXT NOT NULL PRIMARY KEY, "shape_id" TEXT NOT NULL, "visible" INTEGER NOT NULL, "name" TEXT NOT NULL, "value" INTEGER NOT NULL, "maxvalue" INTEGER NOT NULL, draw INTEGER NOT NULL DEFAULT 0, primary_color TEXT DEFAULT \'#00FF00\', secondary_color TEXT DEFAULT \'#888888\', FOREIGN KEY ("shape_id") REFERENCES "shape" ("uuid") ON DELETE CASCADE)'
+            )
+            db.execute_sql(
+                'INSERT INTO "tracker" ("uuid", shape_id, visible, name, value, maxvalue, draw, primary_color, secondary_color) SELECT "uuid", shape_id, visible, name, value, maxvalue, 0, primary_color, secondary_color FROM _tracker_59'
+            )
     else:
         raise UnknownVersionException(
             f"No upgrade code for save format {version} was found."

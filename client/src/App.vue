@@ -6,6 +6,7 @@ import { Route } from "vue-router";
 import "vue-loading-overlay/dist/vue-loading.css";
 import { coreStore } from "@/core/store";
 
+import { baseAdjust } from "./core/utils";
 import { BASE_PATH } from "./utils";
 
 @Component({
@@ -16,12 +17,19 @@ import { BASE_PATH } from "./utils";
 export default class App extends Vue {
     transitionName = "";
 
+    webmError = false;
+    webmStart = 2 * Math.floor(Math.random() * 5);
+
     get loading(): boolean {
         return coreStore.loading;
     }
 
     get backgroundImage(): string {
         return `url('${BASE_PATH}static/img/login_background.png')`;
+    }
+
+    baseAdjust(src: string): string {
+        return baseAdjust(src);
     }
 
     @Watch("$route")
@@ -39,7 +47,19 @@ export default class App extends Vue {
 
 <template>
     <div id="app" :style="{ backgroundImage }">
-        <loading v-if="transitionName === ''" :active.sync="loading" :is-full-page="true"></loading>
+        <loading v-if="transitionName === ''" :active.sync="loading" :is-full-page="true">
+            <video
+                v-if="!webmError"
+                autoplay
+                loop
+                muted
+                playsinline
+                style="height: 20vh"
+                :src="baseAdjust('/static/img/loading.webm#t=' + webmStart)"
+                @error="webmError = true"
+            />
+            <img v-else :src="baseAdjust('/static/img/loading.gif')" style="height: 20vh" />
+        </loading>
         <transition :name="transitionName" mode="out-in">
             <router-view ref="activeComponent"></router-view>
         </transition>

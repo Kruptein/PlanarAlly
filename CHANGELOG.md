@@ -45,6 +45,7 @@ These usually have no immediately visible impact on regular users
     -   direct access to the asset manager
     -   (asset manager and settings will at a later time be integrated)
     -   Direct access to leave/delete campaigns
+-   Loading animation is now dice related and 3d
 
 ### Fixed
 

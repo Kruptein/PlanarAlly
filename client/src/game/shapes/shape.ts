@@ -462,10 +462,10 @@ export abstract class Shape {
                 ctx.lineWidth = g2lz(0.5);
                 const topLeft = g2l(bbox.topLeft);
                 const botRight = g2l(bbox.botRight);
-                const rectX = topLeft.x + 5;
-                const rectY = topLeft.y + 5 + barOffset;
-                const rectWidth = botRight.x - topLeft.x - 10;
-                const rectHeight = (botRight.y - topLeft.y) * 0.05;
+                const rectX = topLeft.x;
+                const rectY = topLeft.y - g2lz(10 + barOffset);
+                const rectWidth = botRight.x - topLeft.x; // - g2lz(10);
+                const rectHeight = g2lz(5);
                 const maxVal = tracker.maxvalue;
                 const curVal = tracker.value > tracker.maxvalue ? tracker.maxvalue : tracker.value;
                 ctx.beginPath();
@@ -475,7 +475,7 @@ export abstract class Shape {
                 ctx.fillRect(rectX, rectY, rectWidth * (curVal / maxVal), rectHeight);
                 ctx.rect(rectX, rectY, rectWidth, rectHeight);
                 ctx.stroke();
-                barOffset += rectHeight + rectHeight * 0.4;
+                barOffset += 10;
             }
         }
     }

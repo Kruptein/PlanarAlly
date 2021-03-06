@@ -1,5 +1,6 @@
-import { aurasToServer } from "../comm/conversion/aura";
-import { ServerShape } from "../comm/types/shapes";
+import { aurasToServer } from "../models/conversion/aura";
+import { trackersToServer } from "../models/conversion/tracker";
+import { ServerRect, ServerShape } from "../models/shapes";
 import {
     BaseAuraStrings,
     BaseAuraTemplate,
@@ -8,18 +9,23 @@ import {
     BaseTrackerStrings,
     BaseTrackerTemplate,
     getTemplateKeys,
-} from "../comm/types/templates";
+} from "../models/templates";
+import { gameSettingsStore } from "../settings";
 
 import { createEmptyAura, createEmptyTracker } from "./trackers/empty";
 
-export function applyTemplate<T extends ServerShape>(shape: T, template: BaseTemplate): T {
+export function applyTemplate<T extends ServerShape>(shape: T, template: BaseTemplate & { options?: string }): T {
     // should be shape[key], but this is something that TS cannot correctly infer (issue #31445)
     for (const key of BaseTemplateStrings) {
         if (key in template) (shape as any)[key] = template[key];
     }
 
+    // Options are not to be copied to a template by default, which is why they're not part of BaseTemplate
+    // Some custom things do add options to a template and they should be set accordingly
+    if ("options" in template) shape.options = template.options;
+
     for (const trackerTemplate of template.trackers ?? []) {
-        const defaultTracker = createEmptyTracker();
+        const defaultTracker = trackersToServer(shape.uuid, [createEmptyTracker()])[0];
         shape.trackers.push({ ...defaultTracker, ...trackerTemplate });
     }
 
@@ -28,9 +34,22 @@ export function applyTemplate<T extends ServerShape>(shape: T, template: BaseTem
         shape.auras.push({ ...defaultAura, ...auraTemplate });
     }
 
+    const gridRescale = 5 / gameSettingsStore.unitSize;
+
     // Shape specific keys
     for (const key of getTemplateKeys(shape.type_)) {
-        if (key in template) (shape as any)[key] = (template as any)[key];
+        if (["assetrect", "rect"].includes(shape.type_)) {
+            const rect = (shape as any) as ServerRect;
+            const rectTemplate = (template as any) as ServerRect;
+
+            if (key === "width") {
+                rect.width = rectTemplate.width * gridRescale;
+            } else if (key === "height") {
+                rect.height = rectTemplate.height * gridRescale;
+            }
+        } else {
+            if (key in template) (shape as any)[key] = (template as any)[key];
+        }
     }
 
     return shape;

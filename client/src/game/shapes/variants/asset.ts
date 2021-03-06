@@ -1,6 +1,6 @@
-import { InitiativeData } from "@/game/comm/types/general";
-import { ServerAsset } from "@/game/comm/types/shapes";
 import { GlobalPoint } from "@/game/geom";
+import { InitiativeData } from "@/game/models/general";
+import { ServerAsset } from "@/game/models/shapes";
 import { BaseRect } from "@/game/shapes/variants/baserect";
 import { gameStore } from "@/game/store";
 import { g2l, g2lx, g2ly, g2lz } from "@/game/units";

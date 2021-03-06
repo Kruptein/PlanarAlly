@@ -28,7 +28,6 @@ async def refresh_invite_code(sid: str):
         namespace=GAME_NS,
     )
 
-
 @sio.on("Room.Info.Players.Kick", namespace=GAME_NS)
 @auth.login_required(app, sio)
 async def kick_player(sid: str, player_id: int):
@@ -68,6 +67,6 @@ async def set_locked_game_state(sid: str, is_locked: bool):
 
     pr.room.is_locked = is_locked
     pr.room.save()
-    for psid, player in game_state.get_users(room=pr.room):
-        if player != pr.room.creator:
+    for psid in game_state.get_sids(room=pr.room):
+        if game_state.get(psid).role != Role.DM:
             await sio.disconnect(psid, namespace=GAME_NS)

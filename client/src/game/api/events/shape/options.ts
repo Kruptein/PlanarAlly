@@ -1,7 +1,8 @@
-import { SyncTo } from "../../../../core/comm/types";
-import { aurasFromServer, partialAuraFromServer } from "../../../comm/conversion/aura";
-import { ServerAura, ServerTracker } from "../../../comm/types/shapes";
+import { SyncTo } from "../../../../core/models/types";
 import { layerManager } from "../../../layers/manager";
+import { aurasFromServer, partialAuraFromServer } from "../../../models/conversion/aura";
+import { trackersFromServer, partialTrackerFromServer } from "../../../models/conversion/tracker";
+import { ServerAura, ServerTracker } from "../../../models/shapes";
 import { Aura, Tracker } from "../../../shapes/interfaces";
 import { Shape } from "../../../shapes/shape";
 import { socket } from "../../socket";
@@ -18,13 +19,13 @@ socket.on("Shape.Options.Name.Set", wrapCall(Shape.prototype.setName));
 socket.on("Shape.Options.NameVisible.Set", wrapCall(Shape.prototype.setNameVisible));
 socket.on("Shape.Options.Token.Set", wrapCall(Shape.prototype.setIsToken));
 socket.on("Shape.Options.Invisible.Set", wrapCall(Shape.prototype.setInvisible));
+socket.on("Shape.Options.Defeated.Set", wrapCall(Shape.prototype.setDefeated));
 socket.on("Shape.Options.StrokeColour.Set", wrapCall(Shape.prototype.setStrokeColour));
 socket.on("Shape.Options.FillColour.Set", wrapCall(Shape.prototype.setFillColour));
 socket.on("Shape.Options.VisionBlock.Set", wrapCall(Shape.prototype.setVisionBlock));
 socket.on("Shape.Options.MovementBlock.Set", wrapCall(Shape.prototype.setMovementBlock));
 socket.on("Shape.Options.Locked.Set", wrapCall(Shape.prototype.setLocked));
 socket.on("Shape.Options.ShowBadge.Set", wrapCall(Shape.prototype.setShowBadge));
-socket.on("Shape.Options.Invisible.Set", wrapCall(Shape.prototype.setInvisible));
 
 socket.on("Shape.Options.Annotation.Set", wrapCall(Shape.prototype.setAnnotation));
 socket.on("Shape.Options.Label.Add", wrapCall(Shape.prototype.addLabel));
@@ -36,13 +37,13 @@ socket.on("Shape.Options.Label.Remove", wrapCall(Shape.prototype.removeLabel));
 socket.on("Shape.Options.Tracker.Create", (data: ServerTracker): void => {
     const shape = layerManager.UUIDMap.get(data.shape);
     if (shape === undefined) return;
-    shape.pushTracker(data, SyncTo.UI);
+    shape.pushTracker(trackersFromServer(data)[0], SyncTo.UI);
 });
 
 socket.on("Shape.Options.Tracker.Update", (data: { uuid: string; shape: string } & Partial<Tracker>): void => {
     const shape = layerManager.UUIDMap.get(data.shape);
     if (shape === undefined) return;
-    shape.updateTracker(data.uuid, data, SyncTo.UI);
+    shape.updateTracker(data.uuid, partialTrackerFromServer(data), SyncTo.UI);
 });
 
 socket.on("Shape.Options.Tracker.Move", (data: { shape: string; tracker: string; new_shape: string }): void => {
@@ -83,4 +84,10 @@ socket.on("Shape.Options.Invisible.Set", (data: { shape: string; value: boolean 
     const shape = layerManager.UUIDMap.get(data.shape);
     if (shape === undefined) return;
     shape.setInvisible(data.value, SyncTo.UI);
+});
+
+socket.on("Shape.Options.Defeated.Set", (data: { shape: string; value: boolean }) => {
+    const shape = layerManager.UUIDMap.get(data.shape);
+    if (shape === undefined) return;
+    shape.setDefeated(data.value, SyncTo.UI);
 });

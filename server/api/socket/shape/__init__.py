@@ -1,9 +1,6 @@
-from copy import deepcopy
-from datetime import datetime
-from typing import Any, Dict, Generic, List, Tuple, Union
+from typing import Any, Dict, List, Tuple, Union
 
 from peewee import Case
-from playhouse.shortcuts import update_model_from_dict
 
 import auth
 from api.socket.constants import GAME_NS
@@ -16,13 +13,10 @@ from models import (
     Circle,
     CircularToken,
     Floor,
-    Label,
     Layer,
     PlayerRoom,
     Rect,
-    Room,
     Shape,
-    ShapeLabel,
     ShapeOwner,
     Text,
     Tracker,
@@ -256,7 +250,10 @@ async def change_shape_layer(sid: str, data: Dict[str, Any]):
                 skip_sid=sid,
             ):
                 await sio.emit(
-                    "Shapes.Remove", data["uuids"], room=psid, namespace=GAME_NS,
+                    "Shapes.Remove",
+                    data["uuids"],
+                    room=psid,
+                    namespace=GAME_NS,
                 )
 
     for shape in shapes:
@@ -372,7 +369,7 @@ async def move_shapes(sid: str, data: ServerShapeLocationMove):
     for psid, player in game_state.get_users(active_location=location):
         await sio.emit(
             "Shapes.Add",
-            [sh.as_dict(player, player == pr.room.creator) for sh in shapes],
+            [sh.as_dict(player, game_state.get(psid).role == Role.DM) for sh in shapes],
             room=psid,
             namespace=GAME_NS,
         )
@@ -437,6 +434,26 @@ async def update_circle_size(sid: str, data: CircleSizeData):
 
     await sio.emit(
         "Shape.Circle.Size.Update",
+        data,
+        room=pr.active_location.get_path(),
+        skip_sid=sid,
+        namespace=GAME_NS,
+    )
+
+
+@sio.on("Shape.Text.Size.Update", namespace=GAME_NS)
+@auth.login_required(app, sio)
+async def update_text_size(sid: str, data: TextSizeData):
+    pr: PlayerRoom = game_state.get(sid)
+
+    if not data["temporary"]:
+        shape = Text.get_by_id(data["uuid"])
+
+        shape.font_size = data["font_size"]
+        shape.save()
+
+    await sio.emit(
+        "Shape.Text.Size.Update",
         data,
         room=pr.active_location.get_path(),
         skip_sid=sid,

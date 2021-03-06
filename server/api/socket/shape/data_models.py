@@ -23,6 +23,9 @@ class ServerTracker(TypedDict):
     name: str
     value: int
     maxvalue: int
+    draw: bool
+    primaryColor: str
+    secondaryColor: str
 
 
 class ServerLabel(TypedDict):
@@ -78,6 +81,7 @@ class ShapeKeys(TypedDict):
     annotation: str
     is_token: bool
     is_invisible: bool
+    is_defeated: bool
     options: Optional[str]
     badge: int
     show_badge: bool
@@ -148,6 +152,12 @@ class RectSizeData(TypedDict):
 class CircleSizeData(TypedDict):
     uuid: str
     r: int
+    temporary: bool
+
+
+class TextSizeData(TypedDict):
+    uuid: str
+    font_size: int
     temporary: bool
 
 

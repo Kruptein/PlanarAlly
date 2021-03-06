@@ -1,9 +1,9 @@
 import * as tinycolor from "tinycolor2";
 
 import { calcFontScale } from "@/core/utils";
-import { InitiativeData } from "@/game/comm/types/general";
-import { ServerCircularToken } from "@/game/comm/types/shapes";
 import { GlobalPoint } from "@/game/geom";
+import { InitiativeData } from "@/game/models/general";
+import { ServerCircularToken } from "@/game/models/shapes";
 import { Circle } from "@/game/shapes/variants/circle";
 import { gameStore } from "@/game/store";
 import { g2l, g2lz } from "@/game/units";

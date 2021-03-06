@@ -1,4 +1,4 @@
-import { InitiativeData } from "../../comm/types/general";
+import { InitiativeData } from "../../models/general";
 import { initiativeStore } from "../../ui/initiative/store";
 import { socket } from "../socket";
 

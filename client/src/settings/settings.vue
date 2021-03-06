@@ -3,7 +3,7 @@ import Vue from "vue";
 import Component from "vue-class-component";
 import { Route, NavigationGuard } from "vue-router";
 
-import AccountSettings from "./account.vue";
+import AccountSettings from "./AccountSettings.vue";
 
 interface ActiveComponent {
     title: string;

@@ -1,7 +1,8 @@
-import { ServerShape } from "../../../comm/types/shapes";
+import { ServerShape } from "../../../models/shapes";
 import { Shape } from "../../../shapes/shape";
 import { Circle } from "../../../shapes/variants/circle";
 import { Rect } from "../../../shapes/variants/rect";
+import { Text } from "../../../shapes/variants/text";
 import { wrapSocket } from "../../helpers";
 import { socket } from "../../socket";
 
@@ -18,7 +19,9 @@ export const sendShapesMove = wrapSocket<{
 export const sendTextUpdate = wrapSocket<{ uuid: string; text: string; temporary: boolean }>("Shape.Text.Value.Set");
 
 export function sendShapeOptionsUpdate(shapes: readonly Shape[], temporary: boolean): void {
-    const options = shapes.filter((s) => !s.preventSync).map((s) => ({ uuid: s.uuid, option: s.getOptions() }));
+    const options = shapes
+        .filter((s) => !s.preventSync)
+        .map((s) => ({ uuid: s.uuid, option: JSON.stringify([...s.options]) }));
     if (options.length > 0) {
         socket.emit("Shapes.Options.Update", {
             options,
@@ -54,6 +57,10 @@ export function sendShapeSizeUpdate(data: { shape: Shape; temporary: boolean }):
             sendShapePositionUpdate([data.shape], data.temporary);
             break;
         }
+        case "text": {
+            const shape = data.shape as Text;
+            _sendTextSizeUpdate({ uuid: shape.uuid, font_size: shape.fontSize, temporary: data.temporary });
+        }
     }
 }
 
@@ -63,6 +70,10 @@ const _sendRectSizeUpdate = wrapSocket<{ uuid: string; w: number; h: number; tem
     "Shape.Rect.Size.Update",
 );
 const _sendCircleSizeUpdate = wrapSocket<{ uuid: string; r: number; temporary: boolean }>("Shape.Circle.Size.Update");
+
+const _sendTextSizeUpdate = wrapSocket<{ uuid: string; font_size: number; temporary: boolean }>(
+    "Shape.Text.Size.Update",
+);
 
 function _sendShapePositionUpdate(
     shapes: { uuid: string; position: { angle: number; points: number[][] } }[],

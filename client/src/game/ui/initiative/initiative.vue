@@ -4,7 +4,7 @@ import Component from "vue-class-component";
 import draggable from "vuedraggable";
 Vue.component("draggable", draggable);
 
-import ConfirmDialog from "@/core/components/modals/confirm.vue";
+import ConfirmDialog from "@/core/components/modals/ConfirmDialog.vue";
 import Modal from "@/core/components/modals/modal.vue";
 import { uuidv4 } from "@/core/utils";
 import {
@@ -18,9 +18,9 @@ import {
     sendInitiativeRemoveEffect,
 } from "@/game/api/emits/initiative";
 import { socket } from "@/game/api/socket";
-import { InitiativeData, InitiativeEffect } from "@/game/comm/types/general";
 import { EventBus } from "@/game/event-bus";
 import { layerManager } from "@/game/layers/manager";
+import { InitiativeData, InitiativeEffect } from "@/game/models/general";
 import { gameStore } from "@/game/store";
 
 import { getGroupMembers } from "../../groups";
@@ -105,15 +105,20 @@ export default class Initiative extends Vue {
         const d = initiativeStore.data.findIndex((a) => a.uuid === uuid);
         if (d < 0) return;
         if (initiativeStore.data[d].group) {
-            const continueRemoval = await this.$refs.confirmDialog.open(
-                "Removing initiative",
-                "Are you sure you wish to remove this group from the initiative order?",
-            );
-            if (!continueRemoval) {
-                return;
+            if (sync) {
+                const continueRemoval = await this.$refs.confirmDialog.open(
+                    "Removing initiative",
+                    "Are you sure you wish to remove this group from the initiative order?",
+                );
+                if (!continueRemoval) {
+                    return;
+                }
+                // Only remove from initiative if explicitly done
+                initiativeStore.data.splice(d, 1);
             }
+        } else {
+            initiativeStore.data.splice(d, 1);
         }
-        initiativeStore.data.splice(d, 1);
         if (sync) sendInitiativeRemove(uuid);
         // Remove highlight
         const shape = layerManager.UUIDMap.get(uuid);

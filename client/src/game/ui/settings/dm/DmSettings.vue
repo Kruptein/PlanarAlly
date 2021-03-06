@@ -2,8 +2,6 @@
 import Vue from "vue";
 import Component from "vue-class-component";
 
-import { EventBus } from "@/game/event-bus";
-
 import PanelModal from "../../../../core/components/modals/PanelModal.vue";
 import GridSettings from "../GridSettings.vue";
 import VariaSettings from "../VariaSettings.vue";
@@ -23,14 +21,8 @@ import AdminSettings from "./AdminSettings.vue";
 export default class DmSettings extends Vue {
     visible = false;
 
-    mounted(): void {
-        EventBus.$on("DmSettings.Open", () => {
-            this.visible = true;
-        });
-    }
-
-    beforeDestroy(): void {
-        EventBus.$off("DmSettings.Open");
+    open(): void {
+        this.visible = true;
     }
 
     get categoryNames(): string[] {

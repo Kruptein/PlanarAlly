@@ -1,7 +1,7 @@
-import { InvalidationMode, SyncMode, SyncTo } from "@/core/comm/types";
-import { ServerShape } from "@/game/comm/types/shapes";
+import { InvalidationMode, SyncMode, SyncTo } from "@/core/models/types";
 import { EventBus } from "@/game/event-bus";
 import { layerManager } from "@/game/layers/manager";
+import { ServerShape } from "@/game/models/shapes";
 import { Shape } from "@/game/shapes/shape";
 import { createShapeFromDict } from "@/game/shapes/utils";
 import { gameStore } from "@/game/store";
@@ -158,22 +158,22 @@ export class Layer {
         }
     }
 
-    async setServerShapes(shapes: ServerShape[]): Promise<void> {
+    setServerShapes(shapes: ServerShape[]): void {
         // We need to ensure composites are added after all their variants have been added
         const composites = [];
         for (const serverShape of shapes) {
             if (serverShape.type_ === "togglecomposite") {
                 composites.push(serverShape);
             } else {
-                await this.setServerShape(serverShape);
+                this.setServerShape(serverShape);
             }
         }
-        for (const composite of composites) await this.setServerShape(composite);
+        for (const composite of composites) this.setServerShape(composite);
         this.clearSelection(); // TODO: Fix keeping selection on those items that are not moved.
     }
 
-    private async setServerShape(serverShape: ServerShape): Promise<void> {
-        const shape = await createShapeFromDict(serverShape);
+    private setServerShape(serverShape: ServerShape): void {
+        const shape = createShapeFromDict(serverShape);
         if (shape === undefined) {
             console.log(`Shape with unknown type ${serverShape.type_} could not be added`);
             return;
@@ -269,6 +269,7 @@ export class Layer {
             // To optimize things slightly, we keep track of the shapes that passed the first round
             const visibleShapes: Shape[] = [];
 
+            // Aura draw loop
             for (const shape of this.shapes) {
                 if (shape.options.has("skipDraw") && shape.options.get("skipDraw")) continue;
                 if (!shape.visibleInCanvas(this.canvas, { includeAuras: true })) continue;
@@ -276,6 +277,7 @@ export class Layer {
                 drawAuras(shape, ctx);
                 visibleShapes.push(shape);
             }
+            // Normal shape draw loop
             for (const shape of visibleShapes) {
                 if (shape.isInvisible && !shape.ownedBy(true, { visionAccess: true })) continue;
                 if (shape.labels.length === 0 && gameStore.filterNoLabel) continue;

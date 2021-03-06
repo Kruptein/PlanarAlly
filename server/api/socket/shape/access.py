@@ -1,11 +1,9 @@
-from typing import Any, Dict
-
 import auth
 from api.socket.constants import GAME_NS
 from api.socket.initiative import send_client_initiatives
 from api.socket.shape.data_models import ServerShapeDefaultOwner, ServerShapeOwner
 from app import app, sio
-from models import Floor, Layer, Location, PlayerRoom, Room, Shape, ShapeOwner, User
+from models import PlayerRoom, Shape, ShapeOwner, User
 from models.role import Role
 from models.shape.access import has_ownership
 from state.game import game_state
@@ -39,7 +37,7 @@ async def add_shape_owner(sid: str, data: ServerShapeOwner):
         return
 
     # Adding the DM as user is redundant and can only lead to confusion
-    if target_user == pr.room.creator:
+    if PlayerRoom.get(room=pr.room, player=target_user).role == Role.DM:
         return
 
     if not ShapeOwner.get_or_none(shape=shape, user=target_user):
@@ -102,6 +100,7 @@ async def update_shape_owner(sid: str, data: ServerShapeOwner):
         logger.warning(
             f"Attempt to update unknown shape-owner relation by {pr.player.name}"
         )
+        return
 
     so.shape = shape
     so.user = target_user
@@ -198,7 +197,7 @@ async def update_default_shape_owner(sid: str, data: ServerShapeDefaultOwner):
     ):
         await sio.emit(
             "Shape.Set",
-            shape.as_dict(player, player.name == pr.room.creator),
+            shape.as_dict(player, game_state.get(sid).role == Role.DM),
             room=sid,
             namespace=GAME_NS,
         )

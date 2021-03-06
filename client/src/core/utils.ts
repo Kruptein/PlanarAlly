@@ -30,16 +30,34 @@ export function calcFontScale(ctx: CanvasRenderingContext2D, text: string, r: nu
 
 export async function baseAdjustedFetch(url: string): Promise<Response> {
     if (url.startsWith("/")) url = url.slice(1);
-    return await fetch(BASE_PATH + url);
+    return fetch(BASE_PATH + url);
 }
 
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export async function postFetch(url: string, data?: any): Promise<Response> {
     if (url.startsWith("/")) url = url.slice(1);
-    return await fetch(BASE_PATH + url, {
+    return fetch(BASE_PATH + url, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data ?? {}),
+    });
+}
+
+// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
+export async function patchFetch(url: string, data?: any): Promise<Response> {
+    if (url.startsWith("/")) url = url.slice(1);
+    return fetch(BASE_PATH + url, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data ?? {}),
+    });
+}
+
+// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
+export async function deleteFetch(url: string): Promise<Response> {
+    if (url.startsWith("/")) url = url.slice(1);
+    return fetch(BASE_PATH + url, {
+        method: "DELETE",
     });
 }
 

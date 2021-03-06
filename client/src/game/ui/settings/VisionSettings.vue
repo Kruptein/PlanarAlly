@@ -3,8 +3,8 @@ import Vue from "vue";
 import Component from "vue-class-component";
 import { Prop } from "vue-property-decorator";
 
-import { LocationOptions } from "@/game/comm/types/settings";
 import { layerManager } from "@/game/layers/manager";
+import { LocationOptions } from "@/game/models/settings";
 import { gameStore } from "@/game/store";
 import { VisibilityMode, visibilityStore } from "@/game/visibility/store";
 

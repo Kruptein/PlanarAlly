@@ -4,7 +4,7 @@ import { gameStore } from "@/game/store";
 import { g2l } from "@/game/units";
 import { getFogColour } from "@/game/utils";
 
-import { ServerRect } from "../../comm/types/shapes";
+import { ServerRect } from "../../models/shapes";
 import { SHAPE_TYPE } from "../types";
 
 export class Rect extends BaseRect {

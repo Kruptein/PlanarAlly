@@ -1,5 +1,5 @@
 import json
-import math
+
 from peewee import BooleanField, FloatField, ForeignKeyField, IntegerField, TextField
 from playhouse.shortcuts import model_to_dict, update_model_from_dict
 from typing import Any, Dict, List, Tuple
@@ -51,6 +51,7 @@ class Shape(BaseModel):
     default_edit_access = BooleanField(default=False)
     default_vision_access = BooleanField(default=False)
     is_invisible = BooleanField(default=False)
+    is_defeated = BooleanField(default=False)
     default_movement_access = BooleanField(default=False)
     is_locked = BooleanField(default=False)
     angle = FloatField(default=0)
@@ -58,6 +59,7 @@ class Shape(BaseModel):
     asset = ForeignKeyField(Asset, backref="shapes", null=True, default=None)
     group = ForeignKeyField(Group, backref="members", null=True, default=None)
     annotation_visible = BooleanField(default=False)
+    ignore_zoom_size = BooleanField(default=False)
 
     def __repr__(self):
         return f"<Shape {self.get_path()}>"
@@ -132,6 +134,9 @@ class Tracker(BaseModel):
     name = TextField()
     value = IntegerField()
     maxvalue = IntegerField()
+    draw = BooleanField()
+    primary_color = TextField()
+    secondary_color = TextField()
 
     def __repr__(self):
         return f"<Tracker {self.name} {self.shape.get_path()}>"
@@ -269,7 +274,7 @@ class Rect(BaseRect):
 
 class Text(ShapeType):
     text = TextField()
-    font = TextField()
+    font_size = IntegerField()
 
 
 class ToggleComposite(ShapeType):

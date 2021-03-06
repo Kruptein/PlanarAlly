@@ -1,10 +1,10 @@
-import { SyncMode } from "../../../../core/comm/types";
-import { ServerShape } from "../../../comm/types/shapes";
+import { SyncMode, SyncTo } from "../../../../core/models/types";
 import { EventBus } from "../../../event-bus";
 import { layerManager } from "../../../layers/manager";
 import { floorStore, getFloorId } from "../../../layers/store";
 import { moveFloor, moveLayer } from "../../../layers/utils";
 import { gameManager } from "../../../manager";
+import { ServerShape } from "../../../models/shapes";
 import { Shape } from "../../../shapes/shape";
 import { deleteShapes } from "../../../shapes/utils";
 import { Circle } from "../../../shapes/variants/circle";
@@ -12,21 +12,21 @@ import { Rect } from "../../../shapes/variants/rect";
 import { Text } from "../../../shapes/variants/text";
 import { socket } from "../../socket";
 
-socket.on("Shape.Set", async (data: ServerShape) => {
+socket.on("Shape.Set", (data: ServerShape) => {
     // hard reset a shape
     const old = layerManager.UUIDMap.get(data.uuid);
     if (old) old.layer.removeShape(old, SyncMode.NO_SYNC, true);
-    const shape = await gameManager.addShape(data, SyncMode.NO_SYNC);
+    const shape = gameManager.addShape(data, SyncMode.NO_SYNC);
     if (shape) EventBus.$emit("Shape.Set", shape);
 });
 
-socket.on("Shape.Add", async (shape: ServerShape) => {
-    await gameManager.addShape(shape, SyncMode.NO_SYNC);
+socket.on("Shape.Add", (shape: ServerShape) => {
+    gameManager.addShape(shape, SyncMode.NO_SYNC);
 });
 
-socket.on("Shapes.Add", async (shapes: ServerShape[]) => {
+socket.on("Shapes.Add", (shapes: ServerShape[]) => {
     for (const shape of shapes) {
-        await gameManager.addShape(shape, SyncMode.NO_SYNC);
+        gameManager.addShape(shape, SyncMode.NO_SYNC);
     }
 });
 
@@ -52,7 +52,7 @@ socket.on("Shapes.Options.Update", (data: { uuid: string; option: string }[]) =>
         if (shape === undefined) {
             continue;
         }
-        shape.setOptions(sh.option);
+        shape.setOptions(new Map(JSON.parse(sh.option)), SyncTo.UI);
     }
 });
 

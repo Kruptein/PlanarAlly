@@ -3,16 +3,16 @@
 import Vue from "vue";
 import Router from "vue-router";
 
-import AssetManager from "@/assetManager/manager.vue";
+import AssetManager from "@/assetManager/AssetManager.vue";
 import Login from "@/auth/login.vue";
 import Logout from "@/auth/logout";
 import { coreStore } from "@/core/store";
-import Dashboard from "@/dashboard/main.vue";
 import Game from "@/game/Game.vue";
 import Invitation from "@/invitation/invitation";
 import Settings from "@/settings/settings.vue";
 
 import { baseAdjustedFetch } from "./core/utils";
+import Dashboard from "./dashboard/Dashboard.vue";
 import { handleNotifications } from "./notifications";
 import { BASE_PATH } from "./utils";
 
@@ -41,7 +41,7 @@ export const router = new Router({
             path: "/auth",
             component: { template: "<router-view></router-view>" },
             children: [
-                { path: "login", component: Login },
+                { path: "login", name: "login", component: Login },
                 { path: "logout", component: Logout },
             ],
         },
@@ -54,6 +54,7 @@ export const router = new Router({
         },
         {
             path: "/dashboard",
+            name: "dashboard",
             component: Dashboard,
             meta: {
                 auth: true,
@@ -79,7 +80,8 @@ export const router = new Router({
 });
 
 router.beforeEach(async (to, _from, next) => {
-    coreStore.setLoading(true);
+    // disable for now as it gives a flicker on transition between login and dashboard.
+    // coreStore.setLoading(true);
     if (!coreStore.initialized) {
         // Launch core requests
         const promiseArray = [baseAdjustedFetch("/api/auth"), baseAdjustedFetch("/api/version")];
@@ -107,6 +109,7 @@ router.beforeEach(async (to, _from, next) => {
             coreStore.setVersion(versionData);
             coreStore.setInitialized(true);
             router.push(to.path);
+            next();
         } else {
             console.error("Authentication check could not be fulfilled.");
         }

@@ -1,6 +1,5 @@
 import logging
 from functools import wraps
-from typing import Coroutine
 
 from aiohttp import web
 from aiohttp_security.abc import AbstractAuthorizationPolicy

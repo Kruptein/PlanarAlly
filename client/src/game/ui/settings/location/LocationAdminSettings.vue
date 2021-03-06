@@ -3,8 +3,8 @@ import Vue from "vue";
 import Component from "vue-class-component";
 import { Prop } from "vue-property-decorator";
 
-import InputCopyElement from "@/core/components/inputCopy.vue";
-import ConfirmDialog from "@/core/components/modals/confirm.vue";
+import InputCopyElement from "@/core/components/InputCopyElement.vue";
+import ConfirmDialog from "@/core/components/modals/ConfirmDialog.vue";
 import { gameStore } from "@/game/store";
 
 @Component({
@@ -40,12 +40,12 @@ export default class LocationAdminSettings extends Vue {
     async deleteLocation(): Promise<void> {
         const remove = await this.$refs.confirm.open(
             this.$t("common.warning").toString(),
-            this.$t("game.ui.settings.location.LocationAdminSettings.remove_location_msg_NAME", {
+            this.$t("game.ui.settings.LocationBar.LocationAdminSettings.remove_location_msg_NAME", {
                 name: this.name,
             }).toString(),
             {
-                yes: this.$t("game.ui.settings.location.LocationAdminSettings.remove_location_yes").toString(),
-                no: this.$t("game.ui.settings.location.LocationAdminSettings.remove_location_no").toString(),
+                yes: this.$t("game.ui.settings.LocationBar.LocationAdminSettings.remove_location_yes").toString(),
+                no: this.$t("game.ui.settings.LocationBar.LocationAdminSettings.remove_location_no").toString(),
             },
         );
         if (!remove) return;
@@ -75,10 +75,10 @@ export default class LocationAdminSettings extends Vue {
                     :disabled="hasPlayers"
                     :title="
                         hasPlayers
-                            ? $t('game.ui.settings.location.LocationAdminSettings.move_existing_pl')
-                            : $t('game.ui.settings.location.LocationAdminSettings.archive_this_location')
+                            ? $t('game.ui.settings.LocationBar.LocationAdminSettings.move_existing_pl')
+                            : $t('game.ui.settings.LocationBar.LocationAdminSettings.archive_this_location')
                     "
-                    v-t="'game.ui.settings.location.LocationAdminSettings.archive_this_location'"
+                    v-t="'game.ui.settings.LocationBar.LocationAdminSettings.archive_this_location'"
                 ></button>
             </div>
             <div>
@@ -88,10 +88,10 @@ export default class LocationAdminSettings extends Vue {
                     :disabled="hasPlayers"
                     :title="
                         hasPlayers
-                            ? $t('game.ui.settings.location.LocationAdminSettings.move_existing_pl')
-                            : $t('game.ui.settings.location.LocationAdminSettings.delete_this_location')
+                            ? $t('game.ui.settings.LocationBar.LocationAdminSettings.move_existing_pl')
+                            : $t('game.ui.settings.LocationBar.LocationAdminSettings.delete_this_location')
                     "
-                    v-t="'game.ui.settings.location.LocationAdminSettings.delete_this_location'"
+                    v-t="'game.ui.settings.LocationBar.LocationAdminSettings.delete_this_location'"
                 ></button>
             </div>
         </div>

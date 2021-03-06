@@ -7,9 +7,8 @@ from api.socket.constants import GAME_NS
 from app import app, sio
 from models import Floor, Layer, LocationUserOption, PlayerRoom
 from models.db import db
-from models.role import Role
+from models.user import UserOptions
 from state.game import game_state
-from utils import logger
 
 from . import (
     asset,
@@ -22,10 +21,10 @@ from . import (
     location,
     marker,
     note,
+    player,
     room,
     shape,
 )
-
 
 # DATA CLASSES FOR TYPE CHECKING
 class LocationOptions(TypedDict):
@@ -40,36 +39,45 @@ class ClientOptions(TypedDict, total=False):
     ruler_colour: str
     invert_alt: bool
     grid_size: int
-    location_options: LocationOptions
+    disable_scroll_to_zoom: bool
 
 
-class BringPlayersData(TypedDict):
-    floor: str
-    x: int
-    y: int
-    zoom: int
-
-
-@sio.on("Client.Options.Set", namespace=GAME_NS)
+@sio.on("Client.Options.Default.Set", namespace=GAME_NS)
 @auth.login_required(app, sio)
-async def set_client(sid: str, data: ClientOptions):
+async def set_client_default_options(sid: str, data: ClientOptions):
+    pr: PlayerRoom = game_state.get(sid)
+
+    UserOptions.update(**data).where(
+        UserOptions.id == pr.player.default_options
+    ).execute()
+
+
+@sio.on("Client.Options.Room.Set", namespace=GAME_NS)
+@auth.login_required(app, sio)
+async def set_client_room_options(sid: str, data: ClientOptions):
     pr: PlayerRoom = game_state.get(sid)
 
     with db.atomic():
-        for option, value in data.items():
-            if option != "location_options":
-                setattr(pr.player, option, value)
-        pr.player.save()
+        if pr.user_options is None:
+            pr.user_options = UserOptions.create_empty()
+            pr.save()
 
-    if "location_options" in data:
-        LocationUserOption.update(
-            pan_x=data["location_options"]["pan_x"],
-            pan_y=data["location_options"]["pan_y"],
-            zoom_factor=data["location_options"]["zoom_factor"],
-        ).where(
-            (LocationUserOption.location == pr.active_location)
-            & (LocationUserOption.user == pr.player)
-        ).execute()
+        UserOptions.update(**data).where(UserOptions.id == pr.user_options).execute()
+
+
+@sio.on("Client.Options.Location.Set", namespace=GAME_NS)
+@auth.login_required(app, sio)
+async def set_client_location_options(sid: str, data: LocationOptions):
+    pr: PlayerRoom = game_state.get(sid)
+
+    LocationUserOption.update(
+        pan_x=data["pan_x"],
+        pan_y=data["pan_y"],
+        zoom_factor=data["zoom_factor"],
+    ).where(
+        (LocationUserOption.location == pr.active_location)
+        & (LocationUserOption.user == pr.player)
+    ).execute()
 
 
 @sio.on("Client.ActiveLayer.Set", namespace=GAME_NS)
@@ -86,17 +94,3 @@ async def set_layer(sid: str, data: Dict[str, Any]):
         luo = LocationUserOption.get(user=pr.player, location=pr.active_location)
         luo.active_layer = layer
         luo.save()
-
-
-@sio.on("Players.Bring", namespace=GAME_NS)
-@auth.login_required(app, sio)
-async def bring_players(sid: str, data: BringPlayersData):
-    pr: PlayerRoom = game_state.get(sid)
-
-    await sio.emit(
-        "Position.Set",
-        data,
-        room=pr.active_location.get_path(),
-        skip_sid=sid,
-        namespace=GAME_NS,
-    )

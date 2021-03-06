@@ -8,8 +8,7 @@ from aiohttp_security import authorized_userid, check_authorized, forget, rememb
 
 import api.http
 from app import api_app, app as main_app
-from models import Location, PlayerRoom, Room, User
-from models.db import db
+from models import Room, User
 from models.role import Role
 from utils import logger
 
@@ -76,6 +75,18 @@ main_app.router.add_post(f"{subpath}api/register", api.http.auth.register)
 main_app.router.add_post(f"{subpath}api/logout", api.http.auth.logout)
 main_app.router.add_get(f"{subpath}api/rooms", api.http.rooms.get_list)
 main_app.router.add_post(f"{subpath}api/rooms", api.http.rooms.create)
+main_app.router.add_patch(
+    f"{subpath}api/rooms/{{creator}}/{{roomname}}", api.http.rooms.patch
+)
+main_app.router.add_delete(
+    f"{subpath}api/rooms/{{creator}}/{{roomname}}", api.http.rooms.delete
+)
+main_app.router.add_get(
+    f"{subpath}api/rooms/{{creator}}/{{roomname}}/info", api.http.rooms.get_info
+)
+main_app.router.add_patch(
+    f"{subpath}api/rooms/{{creator}}/{{roomname}}/info", api.http.rooms.set_info
+)
 main_app.router.add_post(f"{subpath}api/invite", api.http.claim_invite)
 main_app.router.add_get(f"{subpath}api/version", api.http.version.get_version)
 main_app.router.add_get(f"{subpath}api/changelog", api.http.version.get_changelog)

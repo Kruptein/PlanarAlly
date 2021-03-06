@@ -1,12 +1,8 @@
-from typing import Any, Dict
-
 import auth
 from api.socket.constants import GAME_NS
 from app import app, sio
 from models import Marker, PlayerRoom
-from models.db import db
 from state.game import game_state
-from utils import logger
 
 
 @sio.on("Marker.New", namespace=GAME_NS)

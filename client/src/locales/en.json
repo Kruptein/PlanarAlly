@@ -11,17 +11,18 @@
         "it": "Italiano"
     },
     "assetManager": {
-        "contextMenu": {
+        "AssetContextMenu": {
             "new_name": "New name:",
             "renaming_NAME": "Renaming {name}",
             "ask_remove": "Are you sure you wish to remove this?"
         },
-        "manager": {
+        "AssetManager": {
             "new_folder_name": "New folder name",
             "uploading": "Uploading files",
             "create_folder": "Create folder",
             "upload_files": "Upload files",
-            "title": "Asset manager"
+            "title": "Asset manager",
+            "download_files": "Download files"
         }
     },
     "common": {
@@ -39,6 +40,7 @@
         "warning": "Warning",
         "value": "Value",
         "toggle_public_private": "Toggle public / private",
+        "toggle_draw": "Draw on token",
         "initiative": "Initiative",
         "search": "Search",
         "name": "Name",
@@ -62,7 +64,8 @@
         "vision": "Vision",
         "tokens": "Tokens",
         "shape": "Shape",
-        "colors": "Colours",
+        "colour": "Colour",
+        "colours": "Colours",
         "version": "version",
         "confirm": "Confirm",
         "cancel": "Cancel",
@@ -80,7 +83,7 @@
     },
     "core": {
         "components": {
-            "inputCopy": {
+            "InputCopyElement": {
                 "copied": "Copied!",
                 "copy": "Copy"
             },
@@ -91,7 +94,7 @@
         }
     },
     "dashboard": {
-        "main": {
+        "Dashboard": {
             "session_name": "Campaign Name",
             "account_settings": "Account Settings",
             "logout": "Logout",
@@ -103,7 +106,7 @@
     },
     "game": {
         "ui": {
-            "floors": {
+            "FloorSelect": {
                 "new_name": "New floor name",
                 "creation": "Floor Creation",
                 "warning_msg_Z": "Are you sure you wish to remove the {z} floor?",
@@ -127,7 +130,7 @@
                     "next": "Next"
                 }
             },
-            "labels": {
+            "LabelManager": {
                 "category": "Category",
                 "visible": "Visible",
                 "delete": "Delete",
@@ -139,13 +142,13 @@
                 "no_exist_msg": "No labels exist yet"
             },
             "menu": {
-                "locations": {
+                "LocationBar": {
                     "new_location_name": "New location name:",
                     "create_new_location": "Create new location",
                     "add_new_location": "Add new location",
                     "show_specific_pl": "Show specific players"
                 },
-                "menu": {
+                "MenuBar": {
                     "new_note": "New note",
                     "open_asset_manager": "Open asset manager",
                     "no_assets": "No assets",
@@ -154,15 +157,10 @@
                     "no_notes": "No notes",
                     "dm_options": "DM Options",
                     "no_markers": "No markers",
-                    "client_options": "Client Options",
-                    "grid_size_in_pixels": "Grid Size (in pixels):",
-                    "grid_color_set": "Grid Colour:",
-                    "fow_color_set": "FOW Colour:",
-                    "ruler_color_set": "Ruler Colour:",
-                    "invert_alt_set": "Invert ALT behaviour"
+                    "client_options": "Client Options"
                 }
             },
-            "note": {
+            "NoteDialog": {
                 "warning_msg": "Are you sure you wish to remove this?",
                 "edit_title": "Edit title",
                 "remove_note": "Remove note"
@@ -187,6 +185,7 @@
                         "edit_asset": "Edit asset",
                         "is_a_token": "Is a token",
                         "is_invisible": "Is invisible",
+                        "is_defeated": "Is defeated",
                         "is_locked": "Is locked",
                         "show_badge": "Show badge",
                         "show_annotation": "Is public",
@@ -194,7 +193,7 @@
                         "block_movement": "Blocks movement"
                     }
                 },
-                "select_info": {
+                "SelectionInfo": {
                     "open_shape_props": "Open shape properties",
                     "quick_edit_tracker": "Quick edit tracker",
                     "quick_edit_aura": "Quick edit aura",
@@ -202,7 +201,7 @@
                     "new_value_NAME": "New {name} value:",
                     "updating_NAME": "Updating {name}"
                 },
-                "shapecontext": {
+                "ShapeContext": {
                     "show_initiative": "Show initiative",
                     "add_initiative": "Add initiative",
                     "add_all_initiative": "Add all to initiative",
@@ -217,6 +216,18 @@
                 }
             },
             "settings": {
+                "client": {
+                    "ClientSettings": {
+                        "client_settings": "Client Settings"
+                    },
+                    "AppearanceSettings": {
+                        "grid_size_in_pixels": "Size (in pixels):"
+                    },
+                    "BehaviourSettings": {
+                        "invert_alt_set": "Invert ALT behaviour",
+                        "disable_scroll_to_zoom": "Disable scroll to zoom"
+                    }
+                },
                 "dm": {
                     "AdminSettings": {
                         "delete_session_msg_CREATOR_ROOM": "ENTER {creator}/{room} TO CONFIRM CAMPAIGN REMOVAL.",
@@ -242,7 +253,8 @@
                 "common": {
                     "overridden_msg": "Some of these settings can be overriden by location specific settings",
                     "overridden_highlight": "highlighted",
-                    "reset_default": "Reset to the campaign default",
+                    "reset_default": "Reset to the default",
+                    "sync_default": "Make this the new default",
                     "overridden_highlight_path": "Settings that override the campaign defaults are {0}"
                 },
                 "GridSettings": {
@@ -257,7 +269,7 @@
                 "VariaSettings": {
                     "movePlayerOnTokenChange": "Move player(s) when a token they own changes location"
                 },
-                "location": {
+                "LocationBar": {
                     "LocationAdminSettings": {
                         "remove_location_msg_NAME": "Are you sure you wish to remove location {name}",
                         "remove_location_yes": "Yes, delete this location",
@@ -296,13 +308,13 @@
                 "create_new": "Create new"
             },
             "tools": {
-                "createtoken_modal": {
+                "CreateTokenModal": {
                     "create_basic_token": "Create basic token",
                     "text": "Text",
                     "fill": "Fill:",
                     "border": "Border:"
                 },
-                "defaultcontext": {
+                "DefaultContext": {
                     "bring_pl": "Bring players",
                     "create_basic_token": "Create basic token",
                     "show_initiative": "Show initiative",
@@ -310,17 +322,27 @@
                     "new_spawn_question": "What should this spawn location be named?",
                     "new_spawn_title": "Creating new spawn location"
                 },
-                "draw": {
+                "DrawTool": {
                     "foreground_color": "Foreground colour",
                     "background_color": "Background colour",
                     "mode": "Mode",
                     "closed_polygon": "Closed polygon?",
-                    "brush_size": "Brush size"
+                    "brush_size": "Brush size",
+                    "font_size": "Font size",
+                    "square": "square",
+                    "circle": "circle",
+                    "draw-polygon": "draw-polygon",
+                    "paint-brush": "paint-brush",
+                    "normal": "normal",
+                    "reveal": "reveal",
+                    "hide": "hide",
+                    "erase": "erase",
+                    "cone": "cone"
                 },
-                "filter": {
+                "FilterTool": {
                     "no_category": "no category"
                 },
-                "map": {
+                "MapTool": {
                     "drag_to_resize": "Drag an area you wish to resize",
                     "select_shape_msg": "Please select a shape first.",
                     "set_target_grid_cells": "Set target grid cells",
@@ -329,10 +351,10 @@
                     "apply": "APPLY",
                     "cancel": "CANCEL"
                 },
-                "ruler": {
+                "RulerTool": {
                     "share": "Share with others"
                 },
-                "spell": {
+                "SpellTool": {
                     "size": "Size",
                     "range": "Range (radius)"
                 },
@@ -357,15 +379,6 @@
         "dm": "dm",
         "fow": "fow"
     },
-    "draw": {
-        "square": "square",
-        "circle": "circle",
-        "draw-polygon": "draw-polygon",
-        "paint-brush": "paint-brush",
-        "normal": "normal",
-        "reveal": "reveal",
-        "hide": "hide"
-    },
     "tool": {
         "Build": "Build",
         "Play": "Play",
@@ -380,7 +393,7 @@
         "Spell": "Spell"
     },
     "settings": {
-        "account": {
+        "AccountSettings": {
             "no_pwd_msg": "No new password given!",
             "pwd_not_match": "The password fields don't match!",
             "server_request_error": "Something went wrong during the server request",
@@ -399,7 +412,7 @@
         },
         "settings": {
             "account_settings": "Account Settings",
-            "account": "Account"
+            "AccountSettings": "Account"
         }
     }
 }

@@ -58,8 +58,8 @@ export default class Modal extends Vue {
         let left = event.clientX - this.offsetX;
         let top = event.clientY - this.offsetY;
         if (event.clientX === 0 && event.clientY === 0 && event.pageX === 0 && event.pageY === 0) {
-            left = parseInt(this.$refs.container.style.left!, 10) - (this.screenX - event.screenX);
-            top = parseInt(this.$refs.container.style.top!, 10) - (this.screenY - event.screenY);
+            left = parseInt(this.$refs.container.style.left, 10) - (this.screenX - event.screenX);
+            top = parseInt(this.$refs.container.style.top, 10) - (this.screenY - event.screenY);
         }
         if (left < 0) left = 0;
         if (left > window.innerWidth - 100) left = window.innerWidth - 100;

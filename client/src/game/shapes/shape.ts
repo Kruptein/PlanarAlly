@@ -1,11 +1,12 @@
 import tinycolor from "tinycolor2";
 
 import { uuidv4 } from "@/core/utils";
-import { aurasFromServer, aurasToServer, partialAuraToServer } from "@/game/comm/conversion/aura";
-import { InitiativeData } from "@/game/comm/types/general";
-import { accessToServer, ownerToClient, ownerToServer, ServerShape } from "@/game/comm/types/shapes";
 import { GlobalPoint, LocalPoint, Vector } from "@/game/geom";
 import { layerManager } from "@/game/layers/manager";
+import { aurasFromServer, aurasToServer, partialAuraToServer } from "@/game/models/conversion/aura";
+import { trackersFromServer, trackersToServer, partialTrackerToServer } from "@/game/models/conversion/tracker";
+import { InitiativeData } from "@/game/models/general";
+import { accessToServer, ownerToClient, ownerToServer, ServerShape } from "@/game/models/shapes";
 import { gameStore } from "@/game/store";
 import { g2l, g2lx, g2ly, g2lz, getUnitDistance } from "@/game/units";
 import { visibilityStore } from "@/game/visibility/store";
@@ -20,7 +21,7 @@ import {
     sliceVisionSources,
 } from "@/game/visibility/utils";
 
-import { SyncTo } from "../../core/comm/types";
+import { SyncTo } from "../../core/models/types";
 import { PartialBy } from "../../core/types";
 import {
     sendShapeAddOwner,
@@ -28,6 +29,7 @@ import {
     sendShapeUpdateDefaultOwner,
     sendShapeUpdateOwner,
 } from "../api/emits/access";
+import { sendShapeOptionsUpdate } from "../api/emits/shape/core";
 import {
     sendShapeAddLabel,
     sendShapeCreateAura,
@@ -41,6 +43,7 @@ import {
     sendShapeSetBlocksVision,
     sendShapeSetFillColour,
     sendShapeSetInvisible,
+    sendShapeSetDefeated,
     sendShapeSetIsToken,
     sendShapeSetLocked,
     sendShapeSetName,
@@ -84,6 +87,9 @@ export abstract class Shape {
     fillColour: string;
     strokeColour: string;
     strokeWidth = 5;
+    // When set to true this shape should not use g2lz converting logic for its sizing
+    // This is used for things like the ruler, which should always have the same size irregardles of zoom state
+    ignoreZoomSize = false;
     // The optional name associated with the shape
     name = "Unknown shape";
     nameVisible = true;
@@ -103,6 +109,7 @@ export abstract class Shape {
     // Does this shape represent a playable token
     isToken = false;
     isInvisible = false;
+    isDefeated = false;
     // Show a highlight box
     showHighlight = false;
 
@@ -315,7 +322,7 @@ export abstract class Shape {
             movement_obstruction: this.movementObstruction,
             vision_obstruction: this.visionObstruction,
             auras: aurasToServer(this.uuid, this._auras),
-            trackers: this._trackers,
+            trackers: trackersToServer(this.uuid, this._trackers),
             labels: this.labels,
             owners: this._owners.map((owner) => ownerToServer(owner)),
             fill_colour: this.fillColour,
@@ -327,7 +334,8 @@ export abstract class Shape {
             annotation_visible: this.annotationVisible,
             is_token: this.isToken,
             is_invisible: this.isInvisible,
-            options: this.getOptions(),
+            is_defeated: this.isDefeated,
+            options: JSON.stringify([...this.options]),
             badge: this.badge,
             show_badge: this.showBadge,
             is_locked: this.isLocked,
@@ -336,6 +344,7 @@ export abstract class Shape {
             default_vision_access: this.defaultAccess.vision,
             asset: this.assetId,
             group: this.groupId,
+            ignore_zoom_size: this.ignoreZoomSize,
         };
     }
     fromDict(data: ServerShape): void {
@@ -346,23 +355,27 @@ export abstract class Shape {
         this.movementObstruction = data.movement_obstruction;
         this.visionObstruction = data.vision_obstruction;
         this._auras = aurasFromServer(...data.auras);
-        this._trackers = data.trackers;
+        this._trackers = trackersFromServer(...data.trackers);
         this.labels = data.labels;
         this._owners = data.owners.map((owner) => ownerToClient(owner));
         this.fillColour = data.fill_colour;
         this.strokeColour = data.stroke_colour;
         this.isToken = data.is_token;
         this.isInvisible = data.is_invisible;
+        this.isDefeated = data.is_defeated;
         this.nameVisible = data.name_visible;
         this.badge = data.badge;
         this.showBadge = data.show_badge;
         this.isLocked = data.is_locked;
         this.annotationVisible = data.annotation_visible;
+
+        this.ignoreZoomSize = data.ignore_zoom_size;
+
         if (data.annotation) {
             this.annotation = data.annotation;
         }
         if (data.name) this.name = data.name;
-        if (data.options) this.setOptions(data.options);
+        if (data.options) this.options = new Map(JSON.parse(data.options));
         if (data.asset) this.assetId = data.asset;
         if (data.group) this.groupId = data.group;
         // retain reactivity
@@ -374,14 +387,6 @@ export abstract class Shape {
             },
             SyncTo.UI,
         );
-    }
-
-    getOptions(): string {
-        return JSON.stringify([...this.options]);
-    }
-
-    setOptions(options: string): void {
-        this.options = new Map(JSON.parse(options));
     }
 
     getPositionRepresentation(): { angle: number; points: number[][] } {
@@ -432,6 +437,46 @@ export abstract class Shape {
             if (bbox === undefined) bbox = this.getBoundingBox();
             ctx.strokeStyle = "red";
             ctx.strokeRect(g2lx(bbox.topLeft.x) - 5, g2ly(bbox.topLeft.y) - 5, g2lz(bbox.w) + 10, g2lz(bbox.h) + 10);
+        }
+        if (this.isDefeated) {
+            if (bbox === undefined) bbox = this.getBoundingBox();
+            const crossTL = g2l(bbox.topLeft);
+            const crossBR = g2l(bbox.botRight);
+            const r = g2lz(10);
+            ctx.strokeStyle = "red";
+            ctx.fillStyle = this.strokeColour;
+            ctx.lineWidth = g2lz(2);
+            ctx.beginPath();
+            ctx.moveTo(crossTL.x + r, crossTL.y + r);
+            ctx.lineTo(crossBR.x - r, crossBR.y - r);
+            ctx.moveTo(crossTL.x + r, crossBR.y - r);
+            ctx.lineTo(crossBR.x - r, crossTL.y + r);
+            ctx.stroke();
+        }
+        // Draw tracker bars
+        let barOffset = 0;
+        for (const tracker of this._trackers) {
+            if (tracker.draw && (tracker.visible || this.ownedBy(false, { visionAccess: true }))) {
+                if (bbox === undefined) bbox = this.getBoundingBox();
+                ctx.strokeStyle = "black";
+                ctx.lineWidth = g2lz(0.5);
+                const topLeft = g2l(bbox.topLeft);
+                const botRight = g2l(bbox.botRight);
+                const rectX = topLeft.x;
+                const rectY = topLeft.y - g2lz(10 + barOffset);
+                const rectWidth = botRight.x - topLeft.x; // - g2lz(10);
+                const rectHeight = g2lz(5);
+                const maxVal = tracker.maxvalue;
+                const curVal = tracker.value > tracker.maxvalue ? tracker.maxvalue : tracker.value;
+                ctx.beginPath();
+                ctx.fillStyle = tracker.secondaryColor;
+                ctx.fillRect(rectX, rectY, rectWidth, rectHeight);
+                ctx.fillStyle = tracker.primaryColor;
+                ctx.fillRect(rectX, rectY, rectWidth * (curVal / maxVal), rectHeight);
+                ctx.rect(rectX, rectY, rectWidth, rectHeight);
+                ctx.stroke();
+                barOffset += 10;
+            }
         }
     }
 
@@ -561,6 +606,14 @@ export abstract class Shape {
         this.invalidate(!this.triggersVisionRecalc);
     }
 
+    setDefeated(isDefeated: boolean, syncTo: SyncTo): void {
+        if (syncTo === SyncTo.SERVER) sendShapeSetDefeated({ shape: this.uuid, value: isDefeated });
+        if (syncTo === SyncTo.UI) this._(activeShapeStore.setIsDefeated, { isDefeated, syncTo });
+
+        this.isDefeated = isDefeated;
+        this.invalidate(!this.triggersVisionRecalc);
+    }
+
     setStrokeColour(colour: string, syncTo: SyncTo): void {
         if (syncTo === SyncTo.SERVER) sendShapeSetStrokeColour({ shape: this.uuid, value: colour });
         if (syncTo === SyncTo.UI) this._(activeShapeStore.setStrokeColour, { colour, syncTo });
@@ -624,6 +677,16 @@ export abstract class Shape {
         this.showBadge = showBadge;
         this.invalidate(!this.triggersVisionRecalc);
         EventBus.$emit("EditDialog.Group.Update");
+    }
+
+    // OPTIONS
+
+    setOptions(options: Map<string, any>, syncTo: SyncTo): void {
+        this.options = options;
+
+        if (syncTo === SyncTo.SERVER) sendShapeOptionsUpdate([this], false);
+        if (syncTo === SyncTo.UI)
+            this._(activeShapeStore.setOptions, { options: Object.fromEntries(this.options), syncTo });
     }
 
     // ACCESS
@@ -777,20 +840,31 @@ export abstract class Shape {
     }
 
     pushTracker(tracker: Tracker, syncTo: SyncTo): void {
-        if (syncTo === SyncTo.SERVER) sendShapeCreateTracker({ shape: this.uuid, ...tracker });
+        if (syncTo === SyncTo.SERVER) sendShapeCreateTracker(trackersToServer(this.uuid, [tracker])[0]);
         else if (syncTo === SyncTo.UI) this._(activeShapeStore.pushTracker, { tracker, shape: this.uuid, syncTo });
 
         this._trackers.push(tracker);
+        this.invalidate(false);
     }
 
     updateTracker(trackerId: string, delta: Partial<Tracker>, syncTo: SyncTo): void {
         const tracker = this._trackers.find((t) => t.uuid === trackerId);
         if (tracker === undefined) return;
 
-        if (syncTo === SyncTo.SERVER) sendShapeUpdateTracker({ shape: this.uuid, uuid: trackerId, ...delta });
-        else if (syncTo === SyncTo.UI) this._(activeShapeStore.updateTracker, { tracker: trackerId, delta, syncTo });
+        if (syncTo === SyncTo.SERVER) {
+            sendShapeUpdateTracker({
+                ...partialTrackerToServer({
+                    ...delta,
+                }),
+                shape: this.uuid,
+                uuid: trackerId,
+            });
+        } else if (syncTo === SyncTo.UI) {
+            this._(activeShapeStore.updateTracker, { tracker: trackerId, delta, syncTo });
+        }
 
         Object.assign(tracker, delta);
+        this.invalidate(false);
     }
 
     removeTracker(tracker: string, syncTo: SyncTo): void {
@@ -798,6 +872,7 @@ export abstract class Shape {
         else if (syncTo === SyncTo.UI) this._(activeShapeStore.removeTracker, { tracker, syncTo });
 
         this._trackers = this._trackers.filter((tr) => tr.uuid !== tracker);
+        this.invalidate(false);
     }
 
     // AURAS

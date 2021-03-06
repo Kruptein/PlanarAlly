@@ -1,5 +1,6 @@
 import uuid
 from peewee import (
+    DateField,
     fn,
     BooleanField,
     FloatField,
@@ -8,10 +9,12 @@ from peewee import (
     TextField,
 )
 from playhouse.shortcuts import model_to_dict
+from typing import Set
 
+from .asset import Asset
 from .base import BaseModel
-from .user import User
-from .utils import get_table
+from .groups import Group
+from .user import User, UserOptions
 
 __all__ = [
     "Floor",
@@ -56,12 +59,24 @@ class Room(BaseModel):
     invitation_code = TextField(default=uuid.uuid4, unique=True)
     is_locked = BooleanField(default=False)
     default_options = ForeignKeyField(LocationOptions, on_delete="CASCADE")
+    logo = ForeignKeyField(Asset, on_delete="CASCADE")
 
     def __repr__(self):
         return f"<Room {self.get_path()}>"
 
     def get_path(self):
         return f"{self.creator.name}/{self.name}"
+
+    def as_dashboard_dict(self):
+        logo = None
+        if self.logo_id is not None:
+            logo = self.logo.file_hash
+        return {
+            "name": self.name,
+            "creator": self.creator.name,
+            "is_locked": self.is_locked,
+            "logo": logo,
+        }
 
     class Meta:
         indexes = ((("name", "creator"), True),)
@@ -164,6 +179,9 @@ class PlayerRoom(BaseModel):
     player = ForeignKeyField(User, backref="rooms_joined", on_delete="CASCADE")
     room = ForeignKeyField(Room, backref="players", on_delete="CASCADE")
     active_location = ForeignKeyField(Location, backref="players", on_delete="CASCADE")
+    user_options = ForeignKeyField(UserOptions, on_delete="CASCADE", null=True)
+    notes = TextField()
+    last_played = DateField(null=True)
 
     def __repr__(self):
         return f"<PlayerRoom {self.room.get_path()} - {self.player.name}>"
@@ -236,9 +254,13 @@ class Layer(BaseModel):
             backrefs=False,
             exclude=[Layer.id, Layer.player_visible],
         )
-        data["shapes"] = [
-            shape.as_dict(user, dm) for shape in self.shapes.order_by(Shape.index)
-        ]
+        groups_added: Set[Group] = set()
+        data["groups"] = []
+        data["shapes"] = []
+        for shape in self.shapes.order_by(Shape.index):
+            data["shapes"].append(shape.as_dict(user, dm))
+            if shape.group and not shape.group.uuid in groups_added:
+                data["groups"].append(model_to_dict(shape.group))
         return data
 
     class Meta:

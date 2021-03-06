@@ -1,4 +1,4 @@
-import { Asset } from "@/core/comm/types";
+import { Asset } from "@/core/models/types";
 
 import { socketManager } from "../core/socket";
 import { baseAdjust } from "../core/utils";
@@ -9,7 +9,6 @@ export const socket = socketManager.socket("/pa_assetmgmt");
 
 let disConnected = false;
 
-// export const socket = io.connect(location.protocol + "//" + location.host + "/pa_assetmgmt");
 socket.on("connect", () => {
     console.log("Connected");
     if (disConnected) socket.emit("Folder.Get", assetStore.currentFolder);

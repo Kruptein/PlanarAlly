@@ -1,8 +1,11 @@
-import { InvalidationMode, SyncMode } from "@/core/comm/types";
+import { InvalidationMode, SyncMode } from "@/core/models/types";
 import { baseAdjust, uuidv4 } from "@/core/utils";
+import { GlobalPoint, Vector } from "@/game/geom";
+import { layerManager } from "@/game/layers/manager";
 import {
     ServerAsset,
     ServerAura,
+    ServerTracker,
     ServerCircle,
     ServerCircularToken,
     ServerLine,
@@ -11,9 +14,7 @@ import {
     ServerShape,
     ServerText,
     ServerToggleComposite,
-} from "@/game/comm/types/shapes";
-import { GlobalPoint, Vector } from "@/game/geom";
-import { layerManager } from "@/game/layers/manager";
+} from "@/game/models/shapes";
 import { Shape } from "@/game/shapes/shape";
 import { Asset } from "@/game/shapes/variants/asset";
 import { Circle } from "@/game/shapes/variants/circle";
@@ -24,29 +25,29 @@ import { Text } from "@/game/shapes/variants/text";
 
 import { sendRemoveShapes } from "../api/emits/shape/core";
 import { EventBus } from "../event-bus";
-import { addGroupMembers, createNewGroupForShapes, fetchGroup, generateNewBadge, getGroup } from "../groups";
+import { addGroupMembers, createNewGroupForShapes, generateNewBadge, getGroup } from "../groups";
 import { floorStore, getFloorId } from "../layers/store";
 import { addOperation } from "../operations/undo";
 import { gameStore } from "../store";
 import { VisibilityMode, visibilityStore } from "../visibility/store";
 import { TriangulationTarget } from "../visibility/te/pa";
 
-import { Tracker } from "./interfaces";
 import { Polygon } from "./variants/polygon";
 import { ToggleComposite } from "./variants/togglecomposite";
 
-export async function createShapeFromDict(shape: ServerShape): Promise<Shape | undefined> {
+// eslint-disable-next-line
+export function createShapeFromDict(shape: ServerShape): Shape | undefined {
     let sh: Shape;
 
     // A fromJSON and toJSON on Shape would be cleaner but ts does not allow for static abstracts so yeah.
 
-    // Fetch group info if required
     if (shape.group) {
-        let group = getGroup(shape.group);
+        const group = getGroup(shape.group);
         if (group === undefined) {
-            group = await fetchGroup(shape.group);
+            console.log("Missing group info detected");
+        } else {
+            addGroupMembers(group.uuid, [{ uuid: shape.uuid, badge: shape.badge }], false);
         }
-        addGroupMembers(group.uuid, [{ uuid: shape.uuid, badge: shape.badge }], false);
     }
 
     // Shape Type specifics
@@ -95,7 +96,7 @@ export async function createShapeFromDict(shape: ServerShape): Promise<Shape | u
         );
     } else if (shape.type_ === "text") {
         const text = shape as ServerText;
-        sh = new Text(refPoint, text.text, text.font, {
+        sh = new Text(refPoint, text.text, text.font_size, {
             fillColour: text.fill_colour,
             strokeColour: text.stroke_colour,
             uuid: text.uuid,
@@ -139,7 +140,7 @@ export function copyShapes(): void {
     gameStore.setClipboardPosition(gameStore.screenCenter);
 }
 
-export async function pasteShapes(targetLayer?: string): Promise<readonly Shape[]> {
+export function pasteShapes(targetLayer?: string): readonly Shape[] {
     const layer = layerManager.getLayer(floorStore.currentFloor, targetLayer);
     if (!layer) return [];
     if (!gameStore.clipboard) return [];
@@ -175,7 +176,7 @@ export async function pasteShapes(targetLayer?: string): Promise<readonly Shape[
         const oldTrackers = clip.trackers;
         clip.trackers = [];
         for (const tracker of oldTrackers) {
-            const newTracker: Tracker = {
+            const newTracker: ServerTracker = {
                 ...tracker,
                 uuid: uuidv4(),
             };
@@ -212,7 +213,7 @@ export async function pasteShapes(targetLayer?: string): Promise<readonly Shape[
 
     // Finalize
     for (const serverShape of serverShapes) {
-        const shape = await createShapeFromDict(serverShape);
+        const shape = createShapeFromDict(serverShape);
         if (shape === undefined) continue;
 
         layer.addShape(shape, SyncMode.FULL_SYNC, InvalidationMode.WITH_LIGHT);

@@ -1,10 +1,12 @@
 <script lang="ts">
 import Loading from "vue-loading-overlay";
-import { Component, Vue } from "vue-property-decorator";
+import { Component, Vue, Watch } from "vue-property-decorator";
+import { Route } from "vue-router";
 
 import "vue-loading-overlay/dist/vue-loading.css";
 import { coreStore } from "@/core/store";
 
+import { baseAdjust } from "./core/utils";
 import { BASE_PATH } from "./utils";
 
 @Component({
@@ -13,6 +15,11 @@ import { BASE_PATH } from "./utils";
     },
 })
 export default class App extends Vue {
+    transitionName = "";
+
+    webmError = false;
+    webmStart = 2 * Math.floor(Math.random() * 5);
+
     get loading(): boolean {
         return coreStore.loading;
     }
@@ -20,18 +27,50 @@ export default class App extends Vue {
     get backgroundImage(): string {
         return `url('${BASE_PATH}static/img/login_background.png')`;
     }
+
+    baseAdjust(src: string): string {
+        return baseAdjust(src);
+    }
+
+    @Watch("$route")
+    onRouteChange(toRoute: Route, fromRoute: Route): void {
+        if (fromRoute.name === "login" && toRoute.name === "dashboard") {
+            this.transitionName = "slide-left";
+        } else if (fromRoute.name === "dashboard" && toRoute.name === "login") {
+            this.transitionName = "slide-right";
+        } else {
+            this.transitionName = "";
+        }
+    }
 }
 </script>
 
 <template>
     <div id="app" :style="{ backgroundImage }">
-        <loading :active.sync="loading" :is-full-page="true"></loading>
-        <router-view ref="activeComponent"></router-view>
+        <loading v-if="transitionName === ''" :active.sync="loading" :is-full-page="true">
+            <video
+                v-if="!webmError"
+                autoplay
+                loop
+                muted
+                playsinline
+                style="height: 20vh"
+                :src="baseAdjust('/static/img/loading.webm#t=' + webmStart)"
+                @error="webmError = true"
+            />
+            <img v-else :src="baseAdjust('/static/img/loading.gif')" style="height: 20vh" />
+        </loading>
+        <transition :name="transitionName" mode="out-in">
+            <router-view ref="activeComponent"></router-view>
+        </transition>
     </div>
 </template>
 
 <style>
-@import url("https://fonts.googleapis.com/css?family=Open+Sans");
+@font-face {
+    font-family: "Open Sans";
+    src: local("OpenSans"), url("./core/fonts/OpenSans-Regular.ttf") format("truetype");
+}
 
 body {
     overscroll-behavior: contain;
@@ -62,5 +101,18 @@ body,
 body .toasted-container.top-left {
     top: 1%;
     left: 3%;
+}
+
+.slide-right-leave-active,
+.slide-left-leave-active {
+    transition: 0.5s ease-in-out;
+}
+
+.slide-left-leave-to {
+    transform: translateX(-80vw);
+}
+
+.slide-right-leave-to {
+    transform: translateX(80vw);
 }
 </style>

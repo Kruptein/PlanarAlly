@@ -2,15 +2,15 @@ import { GlobalPoint } from "@/game/geom";
 import { Shape } from "@/game/shapes/shape";
 import { BoundingRect } from "@/game/shapes/variants/boundingrect";
 
-import { SyncMode, SyncTo } from "../../../core/comm/types";
+import { SyncMode, SyncTo } from "../../../core/models/types";
 import { sendShapeOptionsUpdate, sendShapePositionUpdate } from "../../api/emits/shape/core";
 import {
     sendToggleCompositeActiveVariant,
     sendToggleCompositeRemoveVariant,
     sendToggleCompositeRenameVariant,
 } from "../../api/emits/shape/togglecomposite";
-import { ServerToggleComposite } from "../../comm/types/shapes";
 import { layerManager } from "../../layers/manager";
+import { ServerToggleComposite } from "../../models/shapes";
 import { gameStore } from "../../store";
 import { activeShapeStore } from "../../ui/ActiveShapeStore";
 import { TriangulationTarget } from "../../visibility/te/pa";
@@ -94,7 +94,8 @@ export class ToggleComposite extends Shape {
         this.active_variant = variant;
         const newVariant = layerManager.UUIDMap.get(this.active_variant)!;
 
-        if (newVariant.isToken) gameStore.addOwnedToken(newVariant.uuid);
+        if (newVariant.isToken && newVariant.ownedBy(false, { visionAccess: true }))
+            gameStore.addOwnedToken(newVariant.uuid);
         if (newVariant.movementObstruction)
             addBlocker(TriangulationTarget.MOVEMENT, newVariant.uuid, newVariant.floor.id, true);
         if (newVariant.visionObstruction)

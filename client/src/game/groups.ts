@@ -1,8 +1,7 @@
-import { SyncTo } from "../core/comm/types";
+import { SyncTo } from "../core/models/types";
 import { uuidv4 } from "../core/utils";
 
 import {
-    requestGroupInfo,
     sendCreateGroup,
     sendGroupJoin,
     sendGroupLeave,
@@ -10,8 +9,8 @@ import {
     sendMemberBadgeUpdate,
     sendRemoveGroup,
 } from "./api/emits/groups";
-import { CREATION_ORDER_TYPES, Group, groupToClient, groupToServer, ServerGroup } from "./comm/types/groups";
 import { layerManager } from "./layers/manager";
+import { CREATION_ORDER_TYPES, Group, groupToClient, groupToServer, ServerGroup } from "./models/groups";
 import { Shape } from "./shapes/shape";
 
 const numberCharacterSet = "0123456789".split("");
@@ -27,6 +26,10 @@ export function addNewGroup(group: Group, sync: boolean): void {
     if (sync) {
         sendCreateGroup(groupToServer(group));
     }
+}
+
+export function hasGroup(groupId: string): boolean {
+    return groupMap.has(groupId);
 }
 
 export function removeGroup(groupId: string, sync: boolean): void {
@@ -60,12 +63,6 @@ export function updateGroupFromServer(serverGroup: ServerGroup): void {
     for (const layer of new Set(getGroupMembers(group.uuid).map((s) => s.layer))) {
         layer.invalidate(true);
     }
-}
-
-export async function fetchGroup(groupId: string): Promise<Group> {
-    const groupInfo = groupToClient(await requestGroupInfo(groupId));
-    addNewGroup(groupInfo, false);
-    return groupInfo;
 }
 
 export function getGroupSize(groupId: string): number {

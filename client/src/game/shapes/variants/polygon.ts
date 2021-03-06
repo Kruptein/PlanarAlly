@@ -1,5 +1,5 @@
-import { ServerPolygon } from "../../comm/types/shapes";
 import { getDistanceToSegment, GlobalPoint } from "../../geom";
+import { ServerPolygon } from "../../models/shapes";
 import { g2l, g2lx, g2ly, g2lz } from "../../units";
 import { filterEqualPoints, getFogColour, getPointsCenter, rotateAroundPoint } from "../../utils";
 import { Shape } from "../shape";

@@ -1,10 +1,10 @@
-from typing import Any, Dict, List
+from typing import List
 from typing_extensions import TypedDict
 
 import auth
 from api.socket.constants import GAME_NS
 from app import app, sio
-from models import Floor, Room, PlayerRoom
+from models import Floor, PlayerRoom
 from models.db import db
 from models.role import Role
 from state.game import game_state
@@ -36,7 +36,7 @@ async def create_floor(sid: str, data: str):
         await sio.emit(
             "Floor.Create",
             {
-                "floor": floor.as_dict(player, player == pr.room.creator),
+                "floor": floor.as_dict(player, game_state.get(psid).role == Role.DM),
                 "creator": pr.player.name,
             },
             room=psid,

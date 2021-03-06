@@ -3,7 +3,7 @@
         "select": "Seleccionar Idioma:",
         "en": "English",
         "zh": "简体中文",
-        "tw":"繁體中文",
+        "tw": "繁體中文",
         "de": "Deutsch",
         "ru": "Русский",
         "dk": "Dansk",
@@ -11,12 +11,12 @@
         "it": "Italiano"
     },
     "assetManager": {
-        "contextMenu": {
+        "AssetContextMenu": {
             "new_name": "Nuevo Nombre:",
             "renaming_NAME": "Renombrando {name}",
             "ask_remove": "¿Estas seguro de querer remover esto?"
         },
-        "manager": {
+        "AssetManager": {
             "new_folder_name": "Nombre de la Nueva Carpeta",
             "uploading": "Subiendo Archivos",
             "create_folder": "Crear Carpeta",
@@ -62,7 +62,7 @@
         "vision": "Visión",
         "tokens": "Tokens",
         "shape": "Forma",
-        "colors": "Colores",
+        "colours": "Colores",
         "version": "versión",
         "confirm": "Confirmar",
         "cancel": "Cancelar",
@@ -80,7 +80,7 @@
     },
     "core": {
         "components": {
-            "inputCopy": {
+            "InputCopyElement": {
                 "copied": "Copiado!",
                 "copy": "Copiar"
             },
@@ -91,7 +91,7 @@
         }
     },
     "dashboard": {
-        "main": {
+        "Dashboard": {
             "session_name": "Nombre de la Campaña",
             "account_settings": "Preferencias de Cuenta",
             "logout": "Cerrar Sesión",
@@ -103,7 +103,7 @@
     },
     "game": {
         "ui": {
-            "floors": {
+            "FloorSelect": {
                 "new_name": "Nombre del nuevo piso",
                 "creation": "Crear piso",
                 "warning_msg_Z": "¿Estás seguro de que quieres remover el piso {z}?",
@@ -127,7 +127,7 @@
                     "next": "Siguiente"
                 }
             },
-            "labels": {
+            "LabelManager": {
                 "category": "Categoría",
                 "visible": "Visible",
                 "delete": "Borrar",
@@ -139,13 +139,13 @@
                 "no_exist_msg": "Aún no existen etiquetas"
             },
             "menu": {
-                "locations": {
+                "LocationBar": {
                     "new_location_name": "Nombre de la nueva ubicación:",
                     "create_new_location": "Crear nueva ubicación",
                     "add_new_location": "Añadir nueva ubicación",
                     "show_specific_pl": "Mostrar jugadores específicos"
                 },
-                "menu": {
+                "MenuBar": {
                     "new_note": "Nueva Nota",
                     "open_asset_manager": "Abrir administrador de materiales",
                     "no_assets": "No hay materiales",
@@ -154,15 +154,10 @@
                     "no_notes": "No hay notas",
                     "dm_options": "Opciones de DM",
                     "no_markers": "No hay etiquetas",
-                    "client_options": "Opciones de cliente",
-                    "grid_size_in_pixels": "Tamaño de la Grilla (en pixeles):",
-                    "grid_color_set": "Color de la grilla:",
-                    "fow_color_set": "Color de la niebla de guerra:",
-                    "ruler_color_set": "Color de la regla:",
-                    "invert_alt_set": "Invertir funcionalidad de ALT"
+                    "client_options": "Opciones de cliente"
                 }
             },
-            "note": {
+            "NoteDialog": {
                 "warning_msg": "¿Estás seguro de querer remover esto?",
                 "edit_title": "Editar título",
                 "remove_note": "Remover nota"
@@ -193,7 +188,7 @@
                         "block_movement": "Bloquea movimiento"
                     }
                 },
-                "select_info": {
+                "SelectionInfo": {
                     "open_shape_props": "Abrir propiedades de la figura",
                     "quick_edit_tracker": "Editar rápido tracker",
                     "quick_edit_aura": "Editar rápido aura",
@@ -201,7 +196,7 @@
                     "new_value_NAME": "Nuevo valor de {name}:",
                     "updating_NAME": "Actualizando {name}"
                 },
-                "shapecontext": {
+                "ShapeContext": {
                     "show_initiative": "Mostrar Iniciativa",
                     "add_initiative": "Añadir a la iniciativa",
                     "add_all_initiative": "Añadir todos a la iniciativa",
@@ -216,6 +211,17 @@
                 }
             },
             "settings": {
+                "client": {
+                    "ClientSettings": {
+                        "client_settings": "Client Settings"
+                    },
+                    "AppearanceSettings": {
+                        "grid_size_in_pixels": "Tamaño de la Grilla (en pixeles):"
+                    },
+                    "BehaviourSettings": {
+                        "invert_alt_set": "Invertir funcionalidad de ALT"
+                    }
+                },
                 "dm": {
                     "AdminSettings": {
                         "delete_session_msg_CREATOR_ROOM": "ESCRIBA {creator}/{room} PARA CONFIRMAR EL BORRADO DE LA CAMPAÑA.",
@@ -247,7 +253,7 @@
                 "GridSettings": {
                     "unit_size_in_UNIT": "Tamaño de Unidad (en {unit})",
                     "use_grid": "Usar Grilla",
-                    "size_unit": "Unidad de longitud",       
+                    "size_unit": "Unidad de longitud",
                     "grid_type": "Tipo de Grilla",
                     "SQUARE": "Cuadrados",
                     "POINTY_HEX": "Hexágonos Puntiagúdos",
@@ -256,7 +262,7 @@
                 "VariaSettings": {
                     "movePlayerOnTokenChange": "Mover a los jugadores cuando un token suyo cambia de ubicación."
                 },
-                "location": {
+                "LocationBar": {
                     "LocationAdminSettings": {
                         "remove_location_msg_NAME": "Estas seguro de querer remover la ubicación {name}",
                         "remove_location_yes": "Sí, borrar esta ubicación",
@@ -295,13 +301,13 @@
                 "create_new": "Crear nueva"
             },
             "tools": {
-                "createtoken_modal": {
+                "CreateTokenModal": {
                     "create_basic_token": "Crear token básico",
                     "text": "Texto",
                     "fill": "Cuerpo:",
                     "border": "Borde:"
                 },
-                "defaultcontext": {
+                "DefaultContext": {
                     "bring_pl": "Traer Jugadores",
                     "create_basic_token": "Crear token básico",
                     "show_initiative": "Mostrar iniciativa",
@@ -309,17 +315,24 @@
                     "new_spawn_question": "¿Cómo se debería llamar esta ubicación inicial?",
                     "new_spawn_title": "Creando nueva ubicación inicial"
                 },
-                "draw": {
+                "DrawTool": {
                     "foreground_color": "Color del primer plano",
                     "background_color": "Color de fondo",
                     "mode": "Modo",
                     "closed_polygon": "¿Polígono Cerrado?",
-                    "brush_size": "Tamaño de pincel"
+                    "brush_size": "Tamaño de pincel",
+                    "square": "cuadrado",
+                    "circle": "círculo",
+                    "draw-polygon": "Dibujar Polígono",
+                    "paint-brush": "Mano Alzada",
+                    "normal": "normal",
+                    "reveal": "revelar",
+                    "hide": "esconder"
                 },
-                "filter": {
+                "FilterTool": {
                     "no_category": "ninguna categoría"
                 },
-                "map": {
+                "MapTool": {
                     "drag_to_resize": "Dibuje un area que quiera redimensionar",
                     "select_shape_msg": "Por favor seleccione una figura primero.",
                     "set_target_grid_cells": "Ponga el numero de casillas objetivo",
@@ -328,7 +341,7 @@
                     "apply": "APLICAR",
                     "cancel": "CANCELAR"
                 },
-                "ruler": {
+                "RulerTool": {
                     "share": "Compartir con otros"
                 },
                 "tools": {
@@ -352,15 +365,6 @@
         "dm": "dm",
         "fow": "niebla de guerra"
     },
-    "draw": {
-        "square": "cuadrado",
-        "circle": "círculo",
-        "draw-polygon": "Dibujar Polígono",
-        "paint-brush": "Mano Alzada",
-        "normal": "normal",
-        "reveal": "revelar",
-        "hide": "esconder"
-    },
     "tool": {
         "Build": "Construir",
         "Play": "Jugar",
@@ -374,7 +378,7 @@
         "Vision": "Visión"
     },
     "settings": {
-        "account": {
+        "AccountSettings": {
             "no_pwd_msg": "¡No se dio una nueva contraseña!",
             "pwd_not_match": "¡Los campos de contraseña no coinciden!",
             "server_request_error": "Algo salio mal en el pedido al servidor",
@@ -393,7 +397,7 @@
         },
         "settings": {
             "account_settings": "Opciones de Cuenta",
-            "account": "Cuenta"
+            "AccountSettings": "Cuenta"
         }
     }
 }

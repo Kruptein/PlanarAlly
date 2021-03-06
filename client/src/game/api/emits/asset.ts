@@ -1,4 +1,4 @@
-import { AssetOptions } from "../../comm/types/asset";
+import { AssetOptions } from "../../models/asset";
 import { socket } from "../socket";
 
 type AssetOptionsRequest<T extends AssetOptions | string> =
@@ -6,7 +6,7 @@ type AssetOptionsRequest<T extends AssetOptions | string> =
     | { success: false; error: string };
 export async function requestAssetOptions(assetId: number): Promise<AssetOptionsRequest<AssetOptions>> {
     socket.emit("Asset.Options.Get", assetId);
-    return await new Promise((resolve: (value: AssetOptionsRequest<AssetOptions>) => void) =>
+    return new Promise((resolve: (value: AssetOptionsRequest<AssetOptions>) => void) =>
         socket.once("Asset.Options.Info", (value: AssetOptionsRequest<string>) => {
             if (value.success) {
                 if (value.options === null) return resolve({ ...value, options: null });

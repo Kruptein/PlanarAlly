@@ -11,13 +11,14 @@
 
 import { getModule, Module, Mutation, VuexModule } from "vuex-module-decorators";
 
-import { SyncTo } from "../../core/comm/types";
+import { SyncTo } from "../../core/models/types";
 import { rootStore } from "../../store";
 import { layerManager } from "../layers/manager";
 import { Aura, Label, Tracker } from "../shapes/interfaces";
 import { ShapeAccess, ShapeOwner } from "../shapes/owners";
 import { Shape } from "../shapes/shape";
 import { createEmptyUiAura, createEmptyUiTracker } from "../shapes/trackers/empty";
+import { SHAPE_TYPE } from "../shapes/types";
 import { ToggleComposite } from "../shapes/variants/togglecomposite";
 import { gameStore } from "../store";
 
@@ -30,6 +31,11 @@ export interface ActiveShapeState {
     parentUuid: string | undefined;
     isComposite: boolean;
     showEditDialog: boolean;
+    type: SHAPE_TYPE | undefined;
+
+    floor: number | undefined;
+    options: Record<string, any> | undefined;
+    setOptions(data: { options: Record<string, any>; syncTo: SyncTo }): void;
 
     name: string | undefined;
     setName(data: { name: string; syncTo: SyncTo }): void;
@@ -38,7 +44,9 @@ export interface ActiveShapeState {
     isToken: boolean;
     setIsToken(data: { isToken: boolean; syncTo: SyncTo }): void;
     isInvisible: boolean;
+    isDefeated: boolean;
     setIsInvisible(data: { isInvisible: boolean; syncTo: SyncTo }): void;
+    setIsDefeated(data: { isDefeated: boolean; syncTo: SyncTo }): void;
     strokeColour: string | undefined;
     setStrokeColour(data: { colour: string; syncTo: SyncTo }): void;
     fillColour: string | undefined;
@@ -112,11 +120,15 @@ class ActiveShapeStore extends VuexModule implements ActiveShapeState {
     // The last Uuid is used to make sure that the UI remains open when a shape is removed and re-added
     private _lastUuid: string | null = null;
     private _showEditDialog = false;
+    private _type: SHAPE_TYPE | null = null;
+
+    private _options: Record<string, any> | null = null;
 
     private _name: string | null = null;
     private _nameVisible = false;
     private _isToken = false;
     private _isInvisible = false;
+    private _isDefeated = false;
     private _strokeColour: string | null = null;
     private _fillColour: string | null = null;
     private _visionObstruction = false;
@@ -166,6 +178,32 @@ class ActiveShapeStore extends VuexModule implements ActiveShapeState {
     @Mutation
     setShowEditDialog(visible: boolean): void {
         this._showEditDialog = visible;
+    }
+
+    get type(): SHAPE_TYPE | undefined {
+        return this._type ?? undefined;
+    }
+
+    // OPTIONS
+
+    get floor(): number | undefined {
+        return this._uuid ? layerManager.UUIDMap.get(this._uuid)?.floor.id : undefined;
+    }
+
+    get options(): Record<string, any> | undefined {
+        return this._options ?? undefined;
+    }
+
+    @Mutation
+    setOptions(data: { options: Record<string, any>; syncTo: SyncTo }): void {
+        if (this._uuid === null) return;
+
+        this._options = data.options;
+
+        if (data.syncTo !== SyncTo.UI) {
+            const shape = layerManager.UUIDMap.get(this._uuid)!;
+            shape.setOptions(new Map(Object.entries(this._options)), SyncTo.SERVER);
+        }
     }
 
     // PROPERTIES
@@ -222,6 +260,10 @@ class ActiveShapeStore extends VuexModule implements ActiveShapeState {
         return this._isInvisible;
     }
 
+    get isDefeated(): boolean {
+        return this._isDefeated;
+    }
+
     @Mutation
     setIsInvisible(data: { isInvisible: boolean; syncTo: SyncTo }): void {
         if (this._uuid === null) return;
@@ -231,6 +273,18 @@ class ActiveShapeStore extends VuexModule implements ActiveShapeState {
         if (data.syncTo !== SyncTo.UI) {
             const shape = layerManager.UUIDMap.get(this._uuid)!;
             shape.setInvisible(data.isInvisible, data.syncTo);
+        }
+    }
+
+    @Mutation
+    setIsDefeated(data: { isDefeated: boolean; syncTo: SyncTo }): void {
+        if (this._uuid === null) return;
+
+        this._isDefeated = data.isDefeated;
+
+        if (data.syncTo !== SyncTo.UI) {
+            const shape = layerManager.UUIDMap.get(this._uuid)!;
+            shape.setDefeated(data.isDefeated, data.syncTo);
         }
     }
 
@@ -702,11 +756,15 @@ class ActiveShapeStore extends VuexModule implements ActiveShapeState {
         this._uuid = shape.uuid;
         const parent = layerManager.getCompositeParent(shape.uuid);
         this._parentUuid = parent?.uuid ?? null;
+        this._type = shape.type;
+
+        this._options = Object.fromEntries(shape.options);
 
         this._name = shape.name;
         this._nameVisible = shape.nameVisible;
         this._isToken = shape.isToken;
         this._isInvisible = shape.isInvisible;
+        this._isDefeated = shape.isDefeated;
         this._strokeColour = shape.strokeColour;
         this._fillColour = shape.fillColour;
         this._visionObstruction = shape.visionObstruction;
@@ -749,11 +807,15 @@ class ActiveShapeStore extends VuexModule implements ActiveShapeState {
 
         this._uuid = null;
         this._parentUuid = null;
+        this._type = null;
+
+        this._options = null;
 
         this._name = null;
         this._nameVisible = false;
         this._isToken = false;
         this._isInvisible = false;
+        this._isDefeated = false;
         this._strokeColour = null;
         this._fillColour = null;
         this._visionObstruction = false;

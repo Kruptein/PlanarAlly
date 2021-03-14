@@ -385,8 +385,6 @@ async def clone_location(sid: str, data: LocationCloneData):
         return
 
     src_location = Location.get_by_id(data["location"])
-    logger.warning("destination_room: " + str(room))
-
     new_location = Location.create(
         room=room, name=src_location.name, index=room.locations.count()
     )
@@ -394,43 +392,9 @@ async def clone_location(sid: str, data: LocationCloneData):
     for prev_floor in src_location.floors.order_by(Floor.index):
         new_floor = new_location.create_floor(prev_floor.name)
         for prev_layer in prev_floor.layers:
-            new_layer = new_floor.layers.where(Layer.name == prev_layer.name)
+            new_layer = new_floor.layers.where(Layer.name == prev_layer.name).get()
             for src_shape in prev_layer.shapes:
-                new_shape = Shape.create(
-                    uuid=str(uuid4()),
-                    layer=new_layer,
-                    type_=src_shape.type_,
-                    x=src_shape.x,
-                    y=src_shape.y,
-                    name=src_shape.name,
-                    name_visible=src_shape.name_visible,
-                    fill_colour=src_shape.fill_colour,
-                    stroke_colour=src_shape.stroke_colour,
-                    vision_obstruction=src_shape.vision_obstruction,
-                    movement_obstruction=src_shape.movement_obstruction,
-                    is_token=src_shape.is_token,
-                    annotation=src_shape.annotation,
-                    draw_operator=src_shape.draw_operator,
-                    index=src_shape.index,
-                    options=src_shape.options,
-                    badge=src_shape.badge,
-                    show_badge=src_shape.show_badge,
-                    default_edit_access=src_shape.default_edit_access,
-                    default_vision_access=src_shape.default_vision_access,
-                    is_invisible=src_shape.is_invisible,
-                    default_movement_access=src_shape.default_movement_access,
-                    is_locked=src_shape.is_locked,
-                    angle=src_shape.angle,
-                    stroke_width=src_shape.stroke_width,
-                    asset=src_shape.asset,
-                    group=src_shape.group,
-                    annotation_visible=src_shape.annotation_visible,
-                    ignore_zoom_size=src_shape.ignore_zoom_size,
-                    )
-                # TODO: still need to
-
-
-
+                src_shape.make_copy(new_layer)
 
 
 @sio.on("Locations.Order.Set", namespace=GAME_NS)

@@ -13,6 +13,7 @@ These usually have no immediately visible impact on regular users
 ### Fixed
 
 -   A couple of database errors related to completely new servers
+-   Markers context menu not working correctly after change
 
 ## [0.26.0] - 2021-03-06
 

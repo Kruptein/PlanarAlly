@@ -59,7 +59,7 @@ class Room(BaseModel):
     invitation_code = TextField(default=uuid.uuid4, unique=True)
     is_locked = BooleanField(default=False)
     default_options = ForeignKeyField(LocationOptions, on_delete="CASCADE")
-    logo = ForeignKeyField(Asset, on_delete="CASCADE")
+    logo = ForeignKeyField(Asset, null=True, on_delete="CASCADE")
 
     def __repr__(self):
         return f"<Room {self.get_path()}>"
@@ -175,12 +175,12 @@ class Location(BaseModel):
 
 
 class PlayerRoom(BaseModel):
-    role = IntegerField()
+    role = IntegerField(default=0)
     player = ForeignKeyField(User, backref="rooms_joined", on_delete="CASCADE")
     room = ForeignKeyField(Room, backref="players", on_delete="CASCADE")
     active_location = ForeignKeyField(Location, backref="players", on_delete="CASCADE")
     user_options = ForeignKeyField(UserOptions, on_delete="CASCADE", null=True)
-    notes = TextField()
+    notes = TextField(null=True)
     last_played = DateField(null=True)
 
     def __repr__(self):

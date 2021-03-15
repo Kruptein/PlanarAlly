@@ -8,6 +8,12 @@ These usually have no immediately visible impact on regular users
 
 ## Unreleased
 
+## [0.26.1] - 2021-03-15
+
+### Fixed
+
+-   A couple of database errors related to completely new servers
+
 ## [0.26.0] - 2021-03-06
 
 ### Added

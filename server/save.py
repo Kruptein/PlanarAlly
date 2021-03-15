@@ -13,7 +13,7 @@ When writing migrations make sure that these things are respected:
     - e.g. a column added to Circle also needs to be added to CircularToken
 """
 
-SAVE_VERSION = 60
+SAVE_VERSION = 61
 
 import datetime
 import json
@@ -909,6 +909,29 @@ def upgrade(version):
             )
             db.execute_sql(
                 'INSERT INTO "tracker" ("uuid", shape_id, visible, name, value, maxvalue, draw, primary_color, secondary_color) SELECT "uuid", shape_id, visible, name, value, maxvalue, 0, primary_color, secondary_color FROM _tracker_59'
+            )
+    elif version == 60:
+        # Fix Room.logo NOT NULL error
+        # Fix PlayerRoom.notes having no default value
+        with db.atomic():
+            db.execute_sql("CREATE TEMPORARY TABLE _room_60 AS SELECT * FROM room")
+            db.execute_sql("DROP TABLE room")
+            db.execute_sql(
+                'CREATE TABLE "room" ("id" INTEGER NOT NULL PRIMARY KEY, "name" TEXT NOT NULL, "creator_id" INTEGER NOT NULL, "invitation_code" TEXT NOT NULL, "is_locked" INTEGER NOT NULL, "default_options_id" INTEGER NOT NULL, "logo_id" INTEGER, FOREIGN KEY ("creator_id") REFERENCES "user" ("id") ON DELETE CASCADE, FOREIGN KEY ("default_options_id") REFERENCES "location_options" ("id") ON DELETE CASCADE, FOREIGN KEY ("logo_id") REFERENCES "asset" ("id") ON DELETE CASCADE)'
+            )
+            db.execute_sql(
+                'INSERT INTO "room" ("id", name, creator_id, invitation_code, is_locked, default_options_id, logo_id) SELECT "id", name, creator_id, invitation_code, is_locked, default_options_id, logo_id FROM _room_60'
+            )
+
+            db.execute_sql(
+                "CREATE TEMPORARY TABLE _player_room_60 AS SELECT * FROM player_room"
+            )
+            db.execute_sql("DROP TABLE player_room")
+            db.execute_sql(
+                'CREATE TABLE IF NOT EXISTS "player_room" ("id" INTEGER NOT NULL PRIMARY KEY, "role" INTEGER DEFAULT 0, "player_id" INTEGER NOT NULL, "room_id" INTEGER NOT NULL, "active_location_id" INTEGER NOT NULL, "user_options_id" INTEGER, "notes" TEXT, "last_played" TEXT, FOREIGN KEY ("player_id") REFERENCES "user" ("id") ON DELETE CASCADE, FOREIGN KEY ("room_id") REFERENCES "room" ("id") ON DELETE CASCADE, FOREIGN KEY ("active_location_id") REFERENCES "location" ("id") ON DELETE CASCADE, FOREIGN KEY ("user_options_id") REFERENCES "user_options" ("id") ON DELETE CASCADE)'
+            )
+            db.execute_sql(
+                "INSERT INTO player_room (id, role, player_id, room_id, active_location_id, notes, last_played) SELECT id, role, player_id, room_id, active_location_id, notes, last_played FROM _player_room_60"
             )
     else:
         raise UnknownVersionException(

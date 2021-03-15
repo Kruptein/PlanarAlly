@@ -1,4 +1,11 @@
-0.26.0
+0.26.1
+
+### Fixed
+
+-   A couple of database errors related to completely new servers
+-   Markers context menu not working correctly after change
+
+# 0.26.0
 
 ### Added
 

@@ -153,6 +153,13 @@ class Shape(BaseModel):
         )
 
         self.subtype.make_copy(new_shape)
+
+        for aura in self.auras:
+            aura.make_copy(new_shape)
+
+        for tracker in self.trackers:
+            tracker.make_copy(new_shape)
+
         return new_shape
 
 
@@ -181,6 +188,11 @@ class Tracker(BaseModel):
     def as_dict(self):
         return model_to_dict(self, recurse=False, exclude=[Tracker.shape])
 
+    def make_copy(self, new_shape):
+        dict = self.as_dict()
+        dict['uuid'] = str(uuid4())
+        copy = type(self).create(shape=new_shape, **dict)
+
 
 class Aura(BaseModel):
     uuid = TextField(primary_key=True)
@@ -201,6 +213,11 @@ class Aura(BaseModel):
 
     def as_dict(self):
         return model_to_dict(self, recurse=False, exclude=[Aura.shape])
+
+    def make_copy(self, new_shape):
+        dict = self.as_dict()
+        dict['uuid'] = str(uuid4())
+        copy = type(self).create(shape=new_shape, **dict)
 
 
 class ShapeOwner(BaseModel):
@@ -250,9 +267,9 @@ class ShapeType(BaseModel):
         logger.error("Attempt to set location on shape without location info")
 
     def make_copy(self, new_shape):
-        dict = self.as_dict()
-        dict.pop('shape')
-        copy = type(self).create(shape=new_shape, **dict)
+        table = type(self)
+        dict = self.as_dict(exclude=[table.shape])
+        copy = table.create(shape=new_shape, **dict)
 
 
 class BaseRect(ShapeType):

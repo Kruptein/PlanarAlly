@@ -56,7 +56,7 @@ export default class ShapeContext extends Vue {
         return gameStore.markers;
     }
 
-    get isMarker(): boolean {
+    isMarker(): boolean {
         const selection = this.getSelection(false);
         if (selection.length !== 1) return false;
         return this.markers.includes(selection[0].uuid);
@@ -471,7 +471,7 @@ export default class ShapeContext extends Vue {
         <li @click="addInitiative" v-if="showInitiative()">{{ getInitiativeWord() }}</li>
         <li @click="deleteSelection" v-if="showDelete()" v-t="'game.ui.selection.ShapeContext.delete_shapes'"></li>
         <template v-if="hasSingleShape()">
-            <li v-if="isMarker" @click="deleteMarker" v-t="'game.ui.selection.ShapeContext.remove_marker'"></li>
+            <li v-if="isMarker()" @click="deleteMarker" v-t="'game.ui.selection.ShapeContext.remove_marker'"></li>
             <li v-else @click="setMarker" v-t="'game.ui.selection.ShapeContext.set_marker'"></li>
             <li @click="saveTemplate" v-if="showDmNonSpawnItem() && canBeSaved()" v-t="'game.ui.templates.save'"></li>
         </template>

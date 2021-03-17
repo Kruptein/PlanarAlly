@@ -124,7 +124,7 @@
                     "delete_init": "Delete initiative",
                     "delete_effect": "Delete effect",
                     "round_N": "Round {n}",
-                    "vision_log_msg": "Auto lock vision (only show vision active token)",
+                    "vision_log_msg": "Auto lock vision (only show vision of active token)",
                     "camera_log_msg": "Auto camera lock on active token",
                     "reset_round": "Reset rounds/turns",
                     "next": "Next"

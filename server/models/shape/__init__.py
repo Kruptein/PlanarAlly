@@ -147,7 +147,7 @@ class Shape(BaseModel):
             angle=self.angle,
             stroke_width=self.stroke_width,
             asset=self.asset,
-            group=self.group,
+            group=None if self.group is None else self.group.make_copy(),
             annotation_visible=self.annotation_visible,
             ignore_zoom_size=self.ignore_zoom_size,
         )
@@ -160,6 +160,9 @@ class Shape(BaseModel):
         for tracker in self.trackers:
             tracker.make_copy(new_shape)
 
+        for label in self.labels:
+            label.make_copy(new_shape)
+
         return new_shape
 
 
@@ -169,6 +172,11 @@ class ShapeLabel(BaseModel):
 
     def as_dict(self):
         return self.label.as_dict()
+
+    def make_copy(self, shape):
+        ShapeLabel.create(shape=shape, label=self.label.make_copy())
+
+
 
 
 class Tracker(BaseModel):

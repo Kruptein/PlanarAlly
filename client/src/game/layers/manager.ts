@@ -193,9 +193,11 @@ class LayerManager {
 
     invalidateVisibleFloors(): void {
         const current = floorStore.currentFloor;
+        let floorFound = false;
         for (const floor of floorStore.floors) {
-            this.invalidate(floor);
-            if (floor === current) break;
+            if (floorFound) this.invalidateLight(floor);
+            else this.invalidate(floor);
+            if (floor === current) floorFound = true;
         }
     }
 
@@ -204,7 +206,8 @@ class LayerManager {
     // as you typically require the allFloor variant
     invalidateLight(floor: Floor): void {
         const layers = this.getLayers(floor);
-        for (let i = layers.length - 1; i >= 0; i--) if (layers[i].isVisionLayer) layers[i].invalidate(true);
+        for (let i = layers.length - 1; i >= 0; i--)
+            if (layers[i].isVisionLayer || layers[i].name === "map") layers[i].invalidate(true);
     }
 
     invalidateLightAllFloors(): void {

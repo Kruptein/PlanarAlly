@@ -8,6 +8,10 @@ These usually have no immediately visible impact on regular users
 
 ## Unreleased
 
+### Fixed
+
+-   A bug related to floors and lighting on higher up floors not updating
+
 ## [0.26.1] - 2021-03-15
 
 ### Fixed

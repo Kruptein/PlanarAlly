@@ -95,6 +95,7 @@ class FloorStore extends VuexModule implements FloorState {
         this._floors.splice(index, 1);
         layerManager.removeFloor(floor.id);
         if (this.floorIndex === index) this.context.commit("selectFloor", { targetFloor: index - 1, sync: true });
+        if (this.floorIndex > index) (this.context.state as any).floorIndex--;
     }
 
     @Mutation

@@ -103,7 +103,7 @@ class FloorStore extends VuexModule implements FloorState {
         if (typeof data.targetFloor === "string") {
             targetFloorIndex = floorStore.floors.findIndex((f) => f.name === data.targetFloor);
         } else if (typeof data.targetFloor === "number") {
-            targetFloorIndex = data.targetFloor;
+            targetFloorIndex = Math.max(0, data.targetFloor);
         } else {
             targetFloorIndex = floorStore.floors.findIndex((f) => f === data.targetFloor);
         }

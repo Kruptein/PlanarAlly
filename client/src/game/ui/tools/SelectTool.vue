@@ -17,8 +17,8 @@ import { visibilityStore } from "@/game/visibility/store";
 import { TriangulationTarget } from "@/game/visibility/te/pa";
 
 import { InvalidationMode, SyncMode, SyncTo } from "../../../core/models/types";
+import { ctrlOrCmdPressed } from "../../../core/utils";
 import { sendShapePositionUpdate, sendShapeSizeUpdate } from "../../api/emits/shape/core";
-import { ctrlOrCmdPressed } from "../../input/keyboard";
 import { Operation } from "../../operations/model";
 import { moveShapes } from "../../operations/movement";
 import { resizeShape } from "../../operations/resize";

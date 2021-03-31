@@ -24,8 +24,8 @@ import { equalPoints, useSnapping } from "@/game/utils";
 import { visibilityStore } from "@/game/visibility/store";
 import { TriangulationTarget, insertConstraint, getCDT } from "@/game/visibility/te/pa";
 
+import { ctrlOrCmdPressed } from "../../../core/utils";
 import { EventBus } from "../../event-bus";
-import { ctrlOrCmdPressed } from "../../input/keyboard";
 import { overrideLastOperation } from "../../operations/undo";
 import { gameSettingsStore } from "../../settings";
 import { Text } from "../../shapes/variants/text";

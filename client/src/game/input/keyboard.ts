@@ -5,11 +5,11 @@ import { DEFAULT_GRID_SIZE, gameStore } from "@/game/store";
 import { calculateDelta } from "@/game/ui/tools/utils";
 
 import { SyncMode, SyncTo } from "../../core/models/types";
+import { ctrlOrCmdPressed } from "../../core/utils";
 import { sendClientLocationOptions } from "../api/emits/client";
 import { EventBus } from "../event-bus";
 import { floorStore } from "../layers/store";
 import { moveFloor } from "../layers/utils";
-import { gameManager } from "../manager";
 import { moveShapes } from "../operations/movement";
 import { redoOperation, undoOperation } from "../operations/undo";
 import { gameSettingsStore } from "../settings";
@@ -234,9 +234,4 @@ function changeFloor(event: KeyboardEvent, targetFloor: number): void {
         floorStore.selectFloor({ targetFloor, sync: true });
     }
     if (event.shiftKey) for (const shape of selection) newLayer.pushSelection(shape);
-}
-
-export function ctrlOrCmdPressed(event: KeyboardEvent | MouseEvent | TouchEvent): boolean {
-    if (navigator.platform.includes("Mac")) return event.metaKey;
-    return event.ctrlKey;
 }

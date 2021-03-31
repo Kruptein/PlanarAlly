@@ -76,3 +76,8 @@ export async function getErrorReason(response: Response): Promise<string> {
     }
     return responseText;
 }
+
+export function ctrlOrCmdPressed(event: KeyboardEvent | MouseEvent | TouchEvent): boolean {
+    if (navigator.platform.includes("Mac")) return event.metaKey;
+    return event.ctrlKey;
+}

@@ -120,7 +120,10 @@ async def start_servers():
     print()
     await start_server("Webserver")
     print()
-    await start_server("APIserver")
+    if config.getboolean("APIserver", "enabled"):
+        await start_server("APIserver")
+    else:
+        print("API Server disabled")
     print()
     print("(Press CTRL+C to quit)")
     print()

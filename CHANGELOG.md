@@ -8,6 +8,10 @@ These usually have no immediately visible impact on regular users
 
 ## Unreleased
 
+### Added
+
+-   [tech] API Server is now disabled by default and can be enabled through the server_config
+
 ### Fixed
 
 -   A bug related to floors and lighting on higher up floors not updating

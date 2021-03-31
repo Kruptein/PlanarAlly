@@ -11,7 +11,6 @@ from models import (
     Initiative,
     InitiativeEffect,
     InitiativeLocationData,
-    Location,
     PlayerRoom,
     Shape,
     ShapeOwner,
@@ -314,12 +313,12 @@ async def remove_initiative_effect(sid: str, data: ServerInitiativeEffectActor):
     )
 
 
-def get_client_initiatives(user: User, location: Location):
-    location_data = InitiativeLocationData.get_or_none(location=location)
+def get_client_initiatives(user: User, pr: PlayerRoom):
+    location_data = InitiativeLocationData.get_or_none(location=pr.active_location)
     if location_data is None:
         return []
     initiatives = Initiative.select().where(Initiative.location_data == location_data)
-    if location.room.creator != user:
+    if pr.role != Role.DM:
         initiatives = (
             initiatives.join(
                 ShapeOwner, JOIN.LEFT_OUTER, on=Initiative.uuid == ShapeOwner.shape
@@ -347,7 +346,7 @@ async def send_client_initiatives(
                     continue
                 await sio.emit(
                     "Initiative.Set",
-                    get_client_initiatives(room_player.player, pr.active_location),
+                    get_client_initiatives(room_player.player, pr),
                     room=psid,
                     namespace=GAME_NS,
                 )

@@ -2,8 +2,11 @@ import tinycolor from "tinycolor2";
 
 import { GlobalPoint, LocalPoint, Vector } from "@/game/geom";
 
+import { sendClientLocationOptions } from "./api/emits/client";
+import { layerManager } from "./layers/manager";
 import { gameSettingsStore } from "./settings";
 import { gameStore } from "./store";
+import { g2l } from "./units";
 
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export function getLocalPointFromEvent(e: any): LocalPoint {
@@ -67,4 +70,12 @@ export function getPointsCenter(points: GlobalPoint[]): GlobalPoint {
         .reduce((acc: Vector, val: GlobalPoint) => acc.add(new Vector(val.x, val.y)), new Vector(0, 0))
         .multiply(1 / points.length);
     return GlobalPoint.fromArray([...vertexAvg]);
+}
+
+export function setCenterPosition(position: GlobalPoint): void {
+    const localPos = g2l(position);
+    gameStore.increasePanX((window.innerWidth / 2 - localPos.x) / gameStore.zoomFactor);
+    gameStore.increasePanY((window.innerHeight / 2 - localPos.y) / gameStore.zoomFactor);
+    layerManager.invalidateAllFloors();
+    sendClientLocationOptions();
 }

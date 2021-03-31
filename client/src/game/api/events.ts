@@ -17,7 +17,6 @@ import { EventBus } from "@/game/event-bus";
 import { GlobalPoint } from "@/game/geom";
 import { layerManager } from "@/game/layers/manager";
 import { addFloor } from "@/game/layers/utils";
-import { gameManager } from "@/game/manager";
 import { Note, ServerFloor } from "@/game/models/general";
 import { gameStore } from "@/game/store";
 import { router } from "@/router";
@@ -26,6 +25,7 @@ import { coreStore } from "../../core/store";
 import { floorStore } from "../layers/store";
 import { Location } from "../models/settings";
 import { deleteShapes } from "../shapes/utils";
+import { setCenterPosition } from "../utils";
 import { visibilityStore } from "../visibility/store";
 
 // Core WS events
@@ -89,7 +89,7 @@ socket.on("Board.Floor.Set", (floor: ServerFloor) => {
 socket.on("Position.Set", (data: { floor?: string; x: number; y: number; zoom?: number }) => {
     if (data.floor) floorStore.selectFloor({ targetFloor: data.floor, sync: false });
     if (data.zoom) gameStore.setZoomDisplay(data.zoom);
-    gameManager.setCenterPosition(new GlobalPoint(data.x, data.y));
+    setCenterPosition(new GlobalPoint(data.x, data.y));
 });
 
 socket.on("Notes.Set", (notes: Note[]) => {

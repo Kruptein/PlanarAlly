@@ -24,8 +24,8 @@ import { InitiativeData, InitiativeEffect } from "@/game/models/general";
 import { gameStore } from "@/game/store";
 
 import { getGroupMembers } from "../../groups";
-import { gameManager } from "../../manager";
 import { Shape } from "../../shapes/shape";
+import { setCenterPosition } from "../../utils";
 
 import { initiativeStore } from "./store";
 
@@ -153,7 +153,7 @@ export default class Initiative extends Vue {
             if (actorId !== null) {
                 const shape = layerManager.UUIDMap.get(actorId);
                 if (shape?.ownedBy(false, { visionAccess: true })) {
-                    gameManager.setCenterPosition(shape.center());
+                    setCenterPosition(shape.center());
                 }
             }
         }

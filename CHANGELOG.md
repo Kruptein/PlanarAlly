@@ -17,6 +17,7 @@ These usually have no immediately visible impact on regular users
 -   A bug related to floors and lighting on higher up floors not updating
 -   Reordering floors being rendered wrong until a refresh
 -   [DM] Co-DM not seeing private initiatives
+-   [DM] Removing last floor giving a blank screen
 
 ## [0.26.1] - 2021-03-15
 

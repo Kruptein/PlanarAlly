@@ -18,6 +18,7 @@ These usually have no immediately visible impact on regular users
 -   Reordering floors being rendered wrong until a refresh
 -   [DM] Co-DM not seeing private initiatives
 -   [DM] Removing last floor giving a blank screen
+-   [DM] Removing floors below the active floor giving a blank screen
 
 ## [0.26.1] - 2021-03-15
 

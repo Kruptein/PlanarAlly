@@ -14,6 +14,7 @@ import { moveShapes } from "../operations/movement";
 import { redoOperation, undoOperation } from "../operations/undo";
 import { gameSettingsStore } from "../settings";
 import { activeShapeStore } from "../ui/ActiveShapeStore";
+import { setCenterPosition } from "../utils";
 
 export function onKeyUp(event: KeyboardEvent): void {
     if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement) {
@@ -31,7 +32,7 @@ export function onKeyUp(event: KeyboardEvent): void {
             if (tokens.length === 0) return;
             const i = tokens.findIndex((o) => o.center().equals(gameStore.screenCenter));
             const token = tokens[(i + 1) % tokens.length];
-            gameManager.setCenterPosition(token.center());
+            setCenterPosition(token.center());
             floorStore.selectFloor({ targetFloor: token.floor.name, sync: true });
         }
         if (event.key === "Enter") {
@@ -154,7 +155,7 @@ export function onKeyDown(event: KeyboardEvent): void {
             gameStore.toggleUI();
         } else if (event.key === "0" && ctrlOrCmdPressed(event)) {
             // Ctrl-0 or numpad 0 - Re-center/reset the viewport
-            gameManager.setCenterPosition(new GlobalPoint(0, 0));
+            setCenterPosition(new GlobalPoint(0, 0));
             sendClientLocationOptions();
             layerManager.invalidateAllFloors();
         } else if (event.code === "Numpad5") {
@@ -170,7 +171,7 @@ export function onKeyDown(event: KeyboardEvent): void {
                 targetX /= selection.length;
                 targetY /= selection.length;
             }
-            gameManager.setCenterPosition(new GlobalPoint(targetX, targetY));
+            setCenterPosition(new GlobalPoint(targetX, targetY));
             sendClientLocationOptions();
             layerManager.invalidateAllFloors();
         } else if (event.key === "c" && ctrlOrCmdPressed(event)) {

@@ -12,6 +12,10 @@ These usually have no immediately visible impact on regular users
 
 -   [tech] API Server is now disabled by default and can be enabled through the server_config
 
+### Changed
+
+-   [tech] server_config variable `public_name` is now commented by default
+
 ### Fixed
 
 -   A bug related to floors and lighting on higher up floors not updating

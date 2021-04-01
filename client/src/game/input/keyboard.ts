@@ -5,15 +5,16 @@ import { DEFAULT_GRID_SIZE, gameStore } from "@/game/store";
 import { calculateDelta } from "@/game/ui/tools/utils";
 
 import { SyncMode, SyncTo } from "../../core/models/types";
+import { ctrlOrCmdPressed } from "../../core/utils";
 import { sendClientLocationOptions } from "../api/emits/client";
 import { EventBus } from "../event-bus";
 import { floorStore } from "../layers/store";
 import { moveFloor } from "../layers/utils";
-import { gameManager } from "../manager";
 import { moveShapes } from "../operations/movement";
 import { redoOperation, undoOperation } from "../operations/undo";
 import { gameSettingsStore } from "../settings";
 import { activeShapeStore } from "../ui/ActiveShapeStore";
+import { setCenterPosition } from "../utils";
 
 export function onKeyUp(event: KeyboardEvent): void {
     if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement) {
@@ -31,7 +32,7 @@ export function onKeyUp(event: KeyboardEvent): void {
             if (tokens.length === 0) return;
             const i = tokens.findIndex((o) => o.center().equals(gameStore.screenCenter));
             const token = tokens[(i + 1) % tokens.length];
-            gameManager.setCenterPosition(token.center());
+            setCenterPosition(token.center());
             floorStore.selectFloor({ targetFloor: token.floor.name, sync: true });
         }
         if (event.key === "Enter") {
@@ -154,7 +155,7 @@ export function onKeyDown(event: KeyboardEvent): void {
             gameStore.toggleUI();
         } else if (event.key === "0" && ctrlOrCmdPressed(event)) {
             // Ctrl-0 or numpad 0 - Re-center/reset the viewport
-            gameManager.setCenterPosition(new GlobalPoint(0, 0));
+            setCenterPosition(new GlobalPoint(0, 0));
             sendClientLocationOptions();
             layerManager.invalidateAllFloors();
         } else if (event.code === "Numpad5") {
@@ -170,7 +171,7 @@ export function onKeyDown(event: KeyboardEvent): void {
                 targetX /= selection.length;
                 targetY /= selection.length;
             }
-            gameManager.setCenterPosition(new GlobalPoint(targetX, targetY));
+            setCenterPosition(new GlobalPoint(targetX, targetY));
             sendClientLocationOptions();
             layerManager.invalidateAllFloors();
         } else if (event.key === "c" && ctrlOrCmdPressed(event)) {
@@ -234,9 +235,4 @@ function changeFloor(event: KeyboardEvent, targetFloor: number): void {
         floorStore.selectFloor({ targetFloor, sync: true });
     }
     if (event.shiftKey) for (const shape of selection) newLayer.pushSelection(shape);
-}
-
-export function ctrlOrCmdPressed(event: KeyboardEvent | MouseEvent | TouchEvent): boolean {
-    if (navigator.platform.includes("Mac")) return event.metaKey;
-    return event.ctrlKey;
 }

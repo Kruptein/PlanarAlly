@@ -42,7 +42,7 @@ export function addFloor(serverFloor: ServerFloor): void {
     recalculateZIndices();
 }
 
-function recalculateZIndices(): void {
+export function recalculateZIndices(): void {
     let i = 0;
     for (const floor of floorStore.floors) {
         for (const layer of layerManager.getLayers(floor)) {

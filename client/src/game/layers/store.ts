@@ -6,6 +6,7 @@ import { sendFloorReorder, sendRenameFloor } from "../api/emits/floor";
 import { Floor } from "./floor";
 import { Layer } from "./layer";
 import { layerManager } from "./manager";
+import { recalculateZIndices } from "./utils";
 
 let FLOOR_ID = 0;
 
@@ -94,6 +95,7 @@ class FloorStore extends VuexModule implements FloorState {
         this._floors.splice(index, 1);
         layerManager.removeFloor(floor.id);
         if (this.floorIndex === index) this.context.commit("selectFloor", { targetFloor: index - 1, sync: true });
+        if (this.floorIndex > index) (this.context.state as any).floorIndex--;
     }
 
     @Mutation
@@ -102,7 +104,7 @@ class FloorStore extends VuexModule implements FloorState {
         if (typeof data.targetFloor === "string") {
             targetFloorIndex = floorStore.floors.findIndex((f) => f.name === data.targetFloor);
         } else if (typeof data.targetFloor === "number") {
-            targetFloorIndex = data.targetFloor;
+            targetFloorIndex = Math.max(0, data.targetFloor);
         } else {
             targetFloorIndex = floorStore.floors.findIndex((f) => f === data.targetFloor);
         }
@@ -123,6 +125,7 @@ class FloorStore extends VuexModule implements FloorState {
         const activeFloorName = this._floors[this.floorIndex].name;
         this._floors = data.floors.map((name) => this._floors.find((f) => f.name === name)!);
         this.floorIndex = this._floors.findIndex((f) => f.name === activeFloorName);
+        recalculateZIndices();
         if (data.sync) sendFloorReorder(data.floors);
     }
 }

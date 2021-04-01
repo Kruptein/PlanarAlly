@@ -9,9 +9,7 @@ import { socket } from "@/assetManager/socket";
 import { assetStore } from "@/assetManager/store";
 import Prompt from "@/core/components/modals/prompt.vue";
 import { Asset } from "@/core/models/types";
-import { baseAdjust, uuidv4 } from "@/core/utils";
-
-import { ctrlOrCmdPressed } from "../game/input/keyboard";
+import { baseAdjust, ctrlOrCmdPressed, uuidv4 } from "@/core/utils";
 
 Component.registerHooks(["beforeRouteEnter"]);
 

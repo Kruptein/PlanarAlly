@@ -23,10 +23,10 @@ import {
 import { sendChangePlayerRole } from "./api/emits/players";
 import { sendRoomKickPlayer, sendRoomLock } from "./api/emits/room";
 import { floorStore } from "./layers/store";
-import { gameManager } from "./manager";
 import { UserOptions, Location } from "./models/settings";
 import { gameSettingsStore } from "./settings";
 import { Label } from "./shapes/interfaces";
+import { setCenterPosition } from "./utils";
 
 export const DEFAULT_GRID_SIZE = 50;
 
@@ -280,7 +280,7 @@ class GameStore extends VuexModule implements GameState {
     jumpToMarker(marker: string): void {
         const shape = layerManager.UUIDMap.get(marker);
         if (shape == undefined) return;
-        gameManager.setCenterPosition(shape.center());
+        setCenterPosition(shape.center());
         sendClientLocationOptions();
         layerManager.invalidateAllFloors();
     }

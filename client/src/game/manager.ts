@@ -1,12 +1,8 @@
 import { InvalidationMode, SyncMode } from "@/core/models/types";
-import { GlobalPoint } from "@/game/geom";
 import { layerManager } from "@/game/layers/manager";
 import { ServerShape } from "@/game/models/shapes";
 import { createShapeFromDict } from "@/game/shapes/utils";
-import { gameStore } from "@/game/store";
-import { g2l } from "@/game/units";
 
-import { sendClientLocationOptions } from "./api/emits/client";
 import { getFloorId } from "./layers/store";
 import { Shape } from "./shapes/shape";
 
@@ -25,14 +21,6 @@ class GameManager {
         layer.addShape(sh, sync, InvalidationMode.NORMAL);
         layer.invalidate(false);
         return sh;
-    }
-
-    setCenterPosition(position: GlobalPoint): void {
-        const localPos = g2l(position);
-        gameStore.increasePanX((window.innerWidth / 2 - localPos.x) / gameStore.zoomFactor);
-        gameStore.increasePanY((window.innerHeight / 2 - localPos.y) / gameStore.zoomFactor);
-        layerManager.invalidateAllFloors();
-        sendClientLocationOptions();
     }
 }
 

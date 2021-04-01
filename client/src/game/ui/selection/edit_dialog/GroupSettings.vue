@@ -19,8 +19,8 @@ import {
     setCreationOrder,
 } from "../../../groups";
 import { layerManager } from "../../../layers/manager";
-import { gameManager } from "../../../manager";
 import { CREATION_ORDER_OPTIONS, CREATION_ORDER_TYPES, Group } from "../../../models/groups";
+import { setCenterPosition } from "../../../utils";
 import { ActiveShapeState, activeShapeStore } from "../../ActiveShapeStore";
 
 @Component({ components: { ConfirmDialog } })
@@ -176,7 +176,7 @@ export default class GroupSettings extends Vue {
 
     centerMember(member: Shape): void {
         if (!this.owned) return;
-        gameManager.setCenterPosition(member.center());
+        setCenterPosition(member.center());
     }
 
     toggleHighlight(member: Shape, show: boolean): void {

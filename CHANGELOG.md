@@ -8,6 +8,18 @@ These usually have no immediately visible impact on regular users
 
 ## Unreleased
 
+### Added
+
+-   [tech] API Server is now disabled by default and can be enabled through the server_config
+
+### Fixed
+
+-   A bug related to floors and lighting on higher up floors not updating
+-   Reordering floors being rendered wrong until a refresh
+-   [DM] Co-DM not seeing private initiatives
+-   [DM] Removing last floor giving a blank screen
+-   [DM] Removing floors below the active floor giving a blank screen
+
 ## [0.26.1] - 2021-03-15
 
 ### Fixed

@@ -346,7 +346,7 @@ class GameStore extends VuexModule implements GameState {
     cloneLocation(data: { location: number; room: string; sync: boolean }): void {
         const location = this.locations.find((l) => l.id === data.location);
         if (location === undefined) {
-            throw new Error("unknown location rename attempt");
+            throw new Error("unknown location clone attempt");
         }
         if (data.sync) sendLocationClone({ location: data.location, room: data.room });
     }

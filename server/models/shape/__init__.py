@@ -142,6 +142,7 @@ class Shape(BaseModel):
             default_edit_access=self.default_edit_access,
             default_vision_access=self.default_vision_access,
             is_invisible=self.is_invisible,
+            is_defeated=self.is_defeated,
             default_movement_access=self.default_movement_access,
             is_locked=self.is_locked,
             angle=self.angle,
@@ -199,7 +200,7 @@ class Tracker(BaseModel):
     def make_copy(self, new_shape):
         dict = self.as_dict()
         dict['uuid'] = str(uuid4())
-        copy = type(self).create(shape=new_shape, **dict)
+        type(self).create(shape=new_shape, **dict)
 
 
 class Aura(BaseModel):
@@ -225,7 +226,7 @@ class Aura(BaseModel):
     def make_copy(self, new_shape):
         dict = self.as_dict()
         dict['uuid'] = str(uuid4())
-        copy = type(self).create(shape=new_shape, **dict)
+        type(self).create(shape=new_shape, **dict)
 
 
 class ShapeOwner(BaseModel):
@@ -277,7 +278,7 @@ class ShapeType(BaseModel):
     def make_copy(self, new_shape):
         table = type(self)
         dict = self.as_dict(exclude=[table.shape])
-        copy = table.create(shape=new_shape, **dict)
+        table.create(shape=new_shape, **dict)
 
 
 class BaseRect(ShapeType):

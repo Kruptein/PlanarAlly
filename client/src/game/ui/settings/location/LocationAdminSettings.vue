@@ -85,7 +85,7 @@ export default class LocationAdminSettings extends Vue {
 
             this.$emit("close");
         } else {
-            // TODO: Handle error codes. Don't see any type of Notification modal. Should it just console.log?
+            console.log("Recieved a non-ok status code while fetching rooms.");
         }
     }
 }

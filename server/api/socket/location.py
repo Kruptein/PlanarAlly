@@ -381,7 +381,7 @@ async def clone_location(sid: str, data: LocationCloneData):
             )[0]
         )
     except IndexError:
-        logger.warning(f"Destination room %s not found.", data["room"])
+        logger.warning(f"Destination room {data['room']} not found.")
         return
 
     src_location = Location.get_by_id(data["location"])

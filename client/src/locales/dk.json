@@ -139,9 +139,9 @@
                     "create_note": "Lav note",
                     "delete_marker": "Slet markør",
                     "no_notes": "Ingen noter",
-                    "dm_options": "DM Instillinger",
+                    "dm_settings": "DM Instillinger",
                     "no_markers": "Ingen markører",
-                    "client_options": "Klient instillinger"
+                    "client_settings": "Klient instillinger"
                 }
             },
             "NoteDialog": {

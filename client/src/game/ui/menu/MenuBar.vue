@@ -126,8 +126,12 @@ export default class MenuBar extends Vue {
                         <div v-if="!notes.length" v-t="'game.ui.menu.MenuBar.no_notes'"></div>
                     </div>
                 </div>
-                <!-- DM OPTIONS -->
-                <button class="menu-accordion" @click="openDmSettings" v-t="'game.ui.menu.MenuBar.dm_options'"></button>
+                <!-- DM SETTINGS -->
+                <button
+                    class="menu-accordion"
+                    @click="openDmSettings"
+                    v-t="'game.ui.menu.MenuBar.dm_settings'"
+                ></button>
             </template>
             <!-- MARKERS -->
             <button class="menu-accordion" v-t="'common.markers'"></button>
@@ -144,11 +148,11 @@ export default class MenuBar extends Vue {
                     <div v-if="!markers.length" v-t="'game.ui.menu.MenuBar.no_markers'"></div>
                 </div>
             </div>
-            <!-- CLIENT OPTIONS -->
+            <!-- CLIENT SETTINGS -->
             <button
                 class="menu-accordion"
                 @click="openUserSettings"
-                v-t="'game.ui.menu.MenuBar.client_options'"
+                v-t="'game.ui.menu.MenuBar.client_settings'"
             ></button>
         </div>
         <router-link

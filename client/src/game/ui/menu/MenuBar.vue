@@ -126,7 +126,7 @@ export default class MenuBar extends Vue {
                         <div v-if="!notes.length" v-t="'game.ui.menu.MenuBar.no_notes'"></div>
                     </div>
                 </div>
-                <!-- DM OPTIONS -->
+                <!-- DM SETTINGS -->
                 <button
                     class="menu-accordion"
                     @click="openDmSettings"

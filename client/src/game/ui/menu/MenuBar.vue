@@ -127,7 +127,11 @@ export default class MenuBar extends Vue {
                     </div>
                 </div>
                 <!-- DM OPTIONS -->
-                <button class="menu-accordion" @click="openDmSettings" v-t="'game.ui.menu.MenuBar.dm_settings'"></button>
+                <button
+                    class="menu-accordion"
+                    @click="openDmSettings"
+                    v-t="'game.ui.menu.MenuBar.dm_settings'"
+                ></button>
             </template>
             <!-- MARKERS -->
             <button class="menu-accordion" v-t="'common.markers'"></button>

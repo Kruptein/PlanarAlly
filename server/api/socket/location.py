@@ -389,12 +389,21 @@ async def clone_location(sid: str, data: LocationCloneData):
         room=room, name=src_location.name, index=room.locations.count()
     )
 
+    new_groups = {}
+
     for prev_floor in src_location.floors.order_by(Floor.index):
         new_floor = new_location.create_floor(prev_floor.name)
         for prev_layer in prev_floor.layers:
             new_layer = new_floor.layers.where(Layer.name == prev_layer.name).get()
             for src_shape in prev_layer.shapes:
-                src_shape.make_copy(new_layer)
+                new_group = None
+                if src_shape.group:
+                    group_id = src_shape.group.uuid
+                    if group_id not in new_groups:
+                        new_groups[group_id] = src_shape.group.make_copy()
+                    new_group = new_groups[group_id]
+
+                src_shape.make_copy(new_layer, new_group)
 
 
 @sio.on("Locations.Order.Set", namespace=GAME_NS)

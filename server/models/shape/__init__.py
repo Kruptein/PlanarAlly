@@ -119,7 +119,7 @@ class Shape(BaseModel):
     def subtype(self):
         return getattr(self, f"{self.type_}_set").get()
 
-    def make_copy(self, dst_layer):
+    def make_copy(self, dst_layer, new_group):
         new_shape = Shape.create(
             uuid=str(uuid4()),
             layer=dst_layer,
@@ -148,7 +148,7 @@ class Shape(BaseModel):
             angle=self.angle,
             stroke_width=self.stroke_width,
             asset=self.asset,
-            group=None if self.group is None else self.group.make_copy(),
+            group=new_group,
             annotation_visible=self.annotation_visible,
             ignore_zoom_size=self.ignore_zoom_size,
         )

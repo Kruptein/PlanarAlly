@@ -4,6 +4,10 @@
 FROM node:12-alpine as BUILDER
 
 WORKDIR /usr/src/client
+
+# Install additional dependencies
+RUN apk add --no-cache python3 make g++
+
 # Copy first package.json so changes in code dont require to reinstall all npm modules
 COPY client/package.json client/package-lock.json ./
 RUN npm i

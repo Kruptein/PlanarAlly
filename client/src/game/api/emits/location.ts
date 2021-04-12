@@ -17,6 +17,7 @@ export const sendLocationRename = wrapSocket<{ location: number; name: string }>
 export const sendLocationRemove = wrapSocket<number>("Location.Delete");
 export const sendLocationArchive = wrapSocket<number>("Location.Archive");
 export const sendLocationUnarchive = wrapSocket<number>("Location.Unarchive");
+export const sendLocationClone = wrapSocket<{ location: number; room: string }>("Location.Clone");
 
 export async function requestSpawnInfo(location: number): Promise<ServerAsset[]> {
     socket.emit("Location.Spawn.Info.Get", location);

@@ -15,6 +15,7 @@ import { toSnakeCase } from "../core/utils";
 import { sendClientLocationOptions, sendDefaultClientOptions, sendRoomClientOptions } from "./api/emits/client";
 import {
     sendLocationArchive,
+    sendLocationClone,
     sendLocationOrder,
     sendLocationRemove,
     sendLocationRename,
@@ -81,7 +82,7 @@ class GameStore extends VuexModule implements GameState {
     invertAlt = false;
     /**
      *  The desired size of a grid cell in pixels
-     
+
      *  !! This variable must only be used for UI purposes !!
      *  For core distance logic use DEFAULT_GRID_SIZE
      *  The zoom code will take care of proper conversions.
@@ -339,6 +340,15 @@ class GameStore extends VuexModule implements GameState {
         }
         location.archived = false;
         if (data.sync) sendLocationUnarchive(data.id);
+    }
+
+    @Mutation
+    cloneLocation(data: { location: number; room: string; sync: boolean }): void {
+        const location = this.locations.find((l) => l.id === data.location);
+        if (location === undefined) {
+            throw new Error("unknown location clone attempt");
+        }
+        if (data.sync) sendLocationClone({ location: data.location, room: data.room });
     }
 
     @Mutation

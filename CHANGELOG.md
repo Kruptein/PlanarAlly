@@ -11,6 +11,7 @@ These usually have no immediately visible impact on regular users
 ### Added
 
 -   [tech] API Server is now disabled by default and can be enabled through the server_config
+-   [DM] Added ability to copy a location into another game session.
 
 ### Changed
 

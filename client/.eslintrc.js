@@ -4,10 +4,11 @@ module.exports = {
         node: true,
     },
     extends: [
-        "plugin:@typescript-eslint/recommended",
-        "plugin:vue/essential",
-        "@vue/typescript",
+        "plugin:vue/vue3-essential",
+        "eslint:recommended",
+        "@vue/typescript/recommended",
         "@vue/prettier",
+        "@vue/prettier/@typescript-eslint",
         "plugin:import/typescript",
     ],
     rules: {
@@ -25,7 +26,8 @@ module.exports = {
         ],
         "@typescript-eslint/no-use-before-define": 0,
         "@typescript-eslint/require-await": "error",
-        "import/no-unused-modules": [process.env.GITHUB_ACTION === undefined ? 1 : 2, { unusedExports: true }],
+        "@typescript-eslint/strict-boolean-expressions": 2,
+        "import/no-unused-modules": [process.env.GITHUB_ACTION === undefined ? 0 : 2, { unusedExports: true }],
         "import/order": [
             process.env.GITHUB_ACTION === undefined ? 1 : 2,
             {
@@ -34,6 +36,7 @@ module.exports = {
                 pathGroups: [{ pattern: "@/**", group: "parent", position: "before" }],
             },
         ],
+        "vue/no-unused-components": [process.env.GITHUB_ACTION === undefined ? 1 : 2],
         // "no-console": process.env.NODE_ENV === "production" ? "error" : "off",
         "no-console": "off",
         "no-constant-condition": "off",
@@ -43,14 +46,14 @@ module.exports = {
         "no-unused-vars": "off",
         "prettier/prettier": [process.env.GITHUB_ACTION === undefined ? 1 : 2],
     },
-    parserOptions: {
-        parser: "@typescript-eslint/parser",
-        ecmaFeatures: {
-            jsx: false,
+    overrides: [
+        {
+            files: ["**/__tests__/*.{j,t}s?(x)", "**/tests/unit/**/*.spec.{j,t}s?(x)"],
+            env: {
+                jest: true,
+            },
         },
-        project: "./tsconfig.json",
-        tsconfigRootDir: __dirname,
-    },
+    ],
     plugins: ["import"],
     settings: {
         "import/resolver": {
@@ -59,5 +62,13 @@ module.exports = {
             },
         },
         "import/extensions": [".ts", ".vue"],
+    },
+    parserOptions: {
+        parser: "@typescript-eslint/parser",
+        ecmaFeatures: {
+            jsx: false,
+        },
+        project: "./tsconfig.json",
+        tsconfigRootDir: __dirname,
     },
 };

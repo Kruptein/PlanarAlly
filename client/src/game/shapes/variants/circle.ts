@@ -1,13 +1,13 @@
-import { GlobalPoint, Vector } from "@/game/geom";
-import { ServerCircle } from "@/game/models/shapes";
-import { Shape } from "@/game/shapes/shape";
-import { BoundingRect } from "@/game/shapes/variants/boundingrect";
-import { calculateDelta } from "@/game/ui/tools/utils";
-import { clampGridLine, g2lz } from "@/game/units";
-import { getFogColour } from "@/game/utils";
-
-import { DEFAULT_GRID_SIZE } from "../../store";
+import { g2lz, clampGridLine } from "../../../core/conversions";
+import { GlobalPoint, Vector } from "../../../core/geometry";
+import { DEFAULT_GRID_SIZE } from "../../../store/client";
+import { getFogColour } from "../../colour";
+import { calculateDelta } from "../../drag";
+import { ServerCircle } from "../../models/shapes";
+import { Shape } from "../shape";
 import { SHAPE_TYPE } from "../types";
+
+import { BoundingRect } from "./boundingRect";
 
 export class Circle extends Shape {
     type: SHAPE_TYPE = "circle";
@@ -23,6 +23,10 @@ export class Circle extends Shape {
         super(center, options);
         this.r = r || 1;
         this.viewingAngle = options?.viewingAngle ?? null;
+    }
+
+    get isClosed(): boolean {
+        return true;
     }
 
     asDict(): ServerCircle {

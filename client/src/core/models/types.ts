@@ -1,3 +1,5 @@
+export type AssetListMap = Map<string, AssetListMap | AssetFile[]>;
+
 export interface AssetList {
     [inode: string]: AssetList | AssetFile[];
 }

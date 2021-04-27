@@ -1,86 +1,95 @@
 <script lang="ts">
-import Vue from "vue";
-import Component from "vue-class-component";
-import { Prop, Watch } from "vue-property-decorator";
+import { computed, defineComponent, PropType, reactive, toRefs } from "vue";
 
-import { AssetFile, AssetList } from "@/core/models/types";
-import { alphSort, baseAdjust } from "@/core/utils";
+import { AssetFile, AssetListMap } from "../../../core/models/types";
+import { alphSort, baseAdjust } from "../../../core/utils";
 
-@Component({
-    name: "asset-node",
-})
-export default class AssetNode extends Vue {
-    @Prop() asset!: AssetList;
-    @Prop() search!: string;
-    @Prop() name!: string;
-
-    empty = false;
-    emptyFolders: string[] = [];
-
-    @Watch("search")
-    test(_val: string): void {
-        this.checkVisibility();
-    }
-
-    checkVisibility(): void {
-        const newEmpty = this.files.length === 0 && this.folders.length <= this.emptyFolders.length;
-        if (!this.empty && newEmpty) {
-            this.empty = true;
-            this.$emit("folderEmpty", this.name);
-        } else if (this.empty && !newEmpty) {
-            this.empty = false;
-            this.$emit("folderShow", this.name);
-        }
-    }
-
-    showImage = null;
-    get folders(): string[] {
-        return Object.keys(this.asset)
-            .filter((el) => "__files" !== el)
-            .sort(alphSort);
-    }
-
-    get files(): AssetFile[] {
-        if (this.asset.__files)
-            return (this.asset.__files as AssetFile[])
-                .concat()
-                .filter((f) => f.name.toLowerCase().includes(this.search.toLowerCase()))
-                .sort((a, b) => (a.name.toLowerCase() > b.name.toLowerCase() ? 1 : -1));
-        return [];
-    }
-
-    folderEmpty(name: string): void {
-        this.emptyFolders.push(name);
-        this.checkVisibility();
-    }
-
-    folderShow(name: string): void {
-        this.emptyFolders.splice(
-            this.emptyFolders.findIndex((x) => x === name),
-            1,
-        );
-        this.checkVisibility();
-    }
-
-    toggle(event: { target: HTMLElement }): void {
-        for (let i = 0; i < event.target.children.length; i++) {
-            const el = event.target.children[i] as HTMLElement;
-            el.style.display = el.style.display === "" ? "block" : "";
-        }
-    }
-
-    dragStart(event: DragEvent, imageSource: string, assetId: number): void {
-        this.showImage = null;
-        if (event === null || event.dataTransfer === null) return;
-        const img = (event.target as HTMLElement).querySelector(".preview")!;
-        event.dataTransfer.setDragImage(img, 0, 0);
-        event.dataTransfer.setData("text/plain", JSON.stringify({ imageSource, assetId }));
-    }
-
-    baseAdjust(path: string): string {
-        return baseAdjust(path);
-    }
+interface State {
+    empty: boolean;
+    emptyFolders: string[];
+    hoveredHash: string;
 }
+
+export default defineComponent({
+    name: "AssetNode",
+    props: {
+        asset: { type: Object as PropType<AssetListMap>, required: true },
+        name: String,
+        search: { type: String, required: true },
+    },
+    setup(props, { emit }) {
+        const state: State = reactive({
+            empty: false,
+            emptyFolders: [],
+            hoveredHash: "",
+        });
+
+        // watch(
+        //     () => props.search,
+        //     () => {
+        //         console.log(props.search);
+        //         checkVisibility();
+        //     },
+        // );
+
+        const files = computed(() => {
+            const assetFiles = props.asset.get("__files") as AssetFile[] | undefined;
+            return assetFiles?.concat() ?? [];
+        });
+
+        const filteredFiles = computed(() =>
+            files.value
+                .filter((f) => f.name.toLowerCase().includes(props.search.toLowerCase()))
+                .sort((a, b) => (a.name.toLowerCase() > b.name.toLowerCase() ? 1 : -1)),
+        );
+
+        const folders = computed(() => {
+            return [...props.asset.keys()].filter((el) => "__files" !== el).sort(alphSort);
+        });
+
+        function checkVisibility(): void {
+            const newEmpty = files.value.length === 0 && folders.value.length <= state.emptyFolders.length;
+            if (!state.empty && newEmpty) {
+                state.empty = true;
+                emit("folderEmpty", props.name);
+            } else if (state.empty && !newEmpty) {
+                state.empty = false;
+                emit("folderShow", props.name);
+            }
+        }
+
+        function folderEmpty(name: string): void {
+            state.emptyFolders.push(name);
+            checkVisibility();
+        }
+
+        function folderShow(name: string): void {
+            state.emptyFolders.splice(
+                state.emptyFolders.findIndex((x) => x === name),
+                1,
+            );
+            checkVisibility();
+        }
+
+        function toggle(event: { target: HTMLElement }): void {
+            for (let i = 0; i < event.target.children.length; i++) {
+                const el = event.target.children[i] as HTMLElement;
+                el.style.display = el.style.display === "" ? "block" : "";
+            }
+        }
+
+        function dragStart(event: DragEvent, imageSource: string, assetId: number): void {
+            state.hoveredHash = "";
+            if (event === null || event.dataTransfer === null) return;
+
+            const img = (event.target as HTMLElement).querySelector(".preview")!;
+            event.dataTransfer.setDragImage(img, 0, 0);
+            event.dataTransfer.setData("text/plain", JSON.stringify({ imageSource, assetId }));
+        }
+
+        return { ...toRefs(state), baseAdjust, dragStart, filteredFiles, folders, folderEmpty, folderShow, toggle };
+    },
+});
 </script>
 
 <template>
@@ -93,25 +102,19 @@ export default class AssetNode extends Vue {
             v-show="!emptyFolders.includes(folder)"
         >
             {{ folder }}
-            <asset-node
-                :asset="asset[folder]"
-                :name="folder"
-                :search="search"
-                @folderShow="folderShow"
-                @folderEmpty="folderEmpty"
-            ></asset-node>
+            <asset-node :asset="asset.get(folder)" :name="folder" :search="search"></asset-node>
         </li>
         <li
-            v-for="file in files"
+            v-for="file in filteredFiles"
             :key="file.id"
             class="file draggable token"
             draggable="true"
-            @mouseover="showImage = file.hash"
-            @mouseout="showImage = null"
+            @mouseover="hoveredHash = file.hash"
+            @mouseout="hoveredHash = ''"
             @dragstart="dragStart($event, '/static/assets/' + file.hash, file.id)"
         >
             {{ file.name }}
-            <div v-if="showImage == file.hash" class="preview">
+            <div v-if="hoveredHash == file.hash" class="preview">
                 <img class="asset-preview-image" :src="baseAdjust('/static/assets/' + file.hash)" alt="" />
             </div>
         </li>
@@ -121,7 +124,6 @@ export default class AssetNode extends Vue {
 <style scoped lang="scss">
 .preview {
     position: fixed;
-    z-index: 50;
     left: 200px;
     top: 0;
 }

@@ -1,6 +1,5 @@
-import { ServerAura } from "@/game/models/shapes";
-
 import { Aura } from "../../shapes/interfaces";
+import { ServerAura } from "../shapes";
 
 export const aurasFromServer = (...auras: ServerAura[]): Aura[] => {
     const result = [];

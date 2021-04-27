@@ -1,72 +1,63 @@
 <script lang="ts">
-import Vue from "vue";
-import Component from "vue-class-component";
-
-import { EventBus } from "@/game/event-bus";
-import { gameStore } from "@/game/store";
+import { computed, defineComponent, toRef } from "vue";
+import { useI18n } from "vue-i18n";
 
 import PanelModal from "../../../../core/components/modals/PanelModal.vue";
-import GridSettings from "../GridSettings.vue";
-// import PermissionsDmSettings from "./permissions.vue";
-import VariaSettings from "../VariaSettings.vue";
-import VisionSettings from "../VisionSettings.vue";
+import { locationStore } from "../../../../store/location";
+import { uiStore } from "../../../../store/ui";
+import GridSettings from "../location/GridSettings.vue";
+import VariaSettings from "../location/VariaSettings.vue";
+import VisionSettings from "../location/VisionSettings.vue";
 
-import LocationAdminSettings from "./LocationAdminSettings.vue";
+import AdminSettings from "./AdminSettings.vue";
+import { LocationSettingCategory } from "./categories";
 
-@Component({
-    components: {
-        GridSettings,
-        // PermissionsDmSettings,
-        LocationAdminSettings,
-        PanelModal,
-        VariaSettings,
-        VisionSettings,
-    },
-})
-export default class LocationSettings extends Vue {
-    location = 0;
-    visible = false;
+export default defineComponent({
+    components: { AdminSettings, GridSettings, PanelModal, VariaSettings, VisionSettings },
+    setup() {
+        const { t } = useI18n();
 
-    get locationName(): string {
-        return gameStore.activeLocations.find((l) => l.id === this.location)?.name ?? "";
-    }
+        const location = toRef(uiStore.state, "openedLocationSettings");
 
-    mounted(): void {
-        EventBus.$on("LocationSettings.Open", (location: number) => {
-            this.visible = true;
-            this.location = location;
+        const visible = computed({
+            get() {
+                return location.value >= 0;
+            },
+            set(visible: boolean) {
+                if (!visible) uiStore.showLocationSettings(-1);
+            },
         });
-    }
 
-    beforeDestroy(): void {
-        EventBus.$off("LocationSettings.Open");
-    }
+        const locationName = computed(
+            () => locationStore.activeLocations.value.find((l) => l.id === location.value)?.name ?? "",
+        );
 
-    get categoryNames(): string[] {
-        return [
-            this.$t("common.admin").toString(),
-            this.$t("common.grid").toString(),
-            this.$t("common.vision").toString(),
-            this.$t("common.varia").toString(),
+        const categoryNames = [
+            LocationSettingCategory.Admin,
+            LocationSettingCategory.Grid,
+            LocationSettingCategory.Vision,
+            LocationSettingCategory.Varia,
         ];
-    }
-}
+
+        return { LocationSettingCategory, location, locationName, categoryNames, visible, t };
+    },
+});
 </script>
 
 <template>
-    <PanelModal :visible.sync="visible" :categories="categoryNames">
+    <PanelModal v-if="location >= 0" v-model:visible="visible" :categories="categoryNames" :applyTranslation="true">
         <template v-slot:title>
-            {{ $t("game.ui.settings.LocationBar.LocationSettings.location_settings") }} {{ locationName }}
+            {{ t("game.ui.settings.LocationBar.LocationSettings.location_settings") }} {{ locationName }}
         </template>
         <template v-slot:default="{ selection }">
-            <LocationAdminSettings
-                :location.sync="location"
-                v-show="selection === 0"
+            <AdminSettings
+                :location="location"
+                v-show="selection === LocationSettingCategory.Admin"
                 @close="visible = false"
-            ></LocationAdminSettings>
-            <GridSettings :location="location" v-show="selection === 1"></GridSettings>
-            <VisionSettings :location="location" v-show="selection === 2"></VisionSettings>
-            <VariaSettings :location="location" v-show="selection === 3"></VariaSettings>
+            />
+            <GridSettings :location="location" v-show="selection === LocationSettingCategory.Grid" />
+            <VisionSettings :location="location" v-show="selection === LocationSettingCategory.Vision" />
+            <VariaSettings :location="location" v-show="selection === LocationSettingCategory.Varia" />
         </template>
     </PanelModal>
 </template>

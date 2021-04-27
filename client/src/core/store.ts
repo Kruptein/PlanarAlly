@@ -1,60 +1,14 @@
-import { getModule, Module, Mutation, VuexModule } from "vuex-module-decorators";
+import { DeepReadonly, reactive, readonly } from "vue";
 
-import { rootStore } from "@/store";
+// eslint-disable-next-line @typescript-eslint/ban-types
+export abstract class Store<T extends object> {
+    protected _state: T;
+    state: DeepReadonly<T>;
 
-export interface CoreState {
-    authenticated: boolean;
-    initialized: boolean;
-    username: string;
-    email?: string;
-    version: { release: string; env: string };
-    changelog: string;
+    constructor() {
+        this._state = reactive(this.data()) as T;
+        this.state = readonly(this._state) as DeepReadonly<T>;
+    }
+
+    protected abstract data(): T;
 }
-
-@Module({ dynamic: true, store: rootStore, name: "core" })
-class CoreStore extends VuexModule implements CoreState {
-    authenticated = false;
-    initialized = false;
-    username = "";
-    email: string | undefined = undefined;
-    loading = false;
-    version = { release: "", env: "" };
-    changelog = "";
-
-    @Mutation
-    setAuthenticated(auth: boolean): void {
-        this.authenticated = auth;
-    }
-
-    @Mutation
-    setInitialized(init: boolean): void {
-        this.initialized = init;
-    }
-
-    @Mutation
-    setUsername(username: string): void {
-        this.username = username;
-    }
-
-    @Mutation
-    setEmail(email: string): void {
-        this.email = email;
-    }
-
-    @Mutation
-    setLoading(loading: boolean): void {
-        this.loading = loading;
-    }
-
-    @Mutation
-    setVersion(version: { release: string; env: string }): void {
-        this.version = version;
-    }
-
-    @Mutation
-    setChangelog(changelog: string): void {
-        this.changelog = changelog;
-    }
-}
-
-export const coreStore = getModule(CoreStore);

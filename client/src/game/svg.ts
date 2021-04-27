@@ -1,6 +1,6 @@
 import "path-data-polyfill";
+import { GlobalPoint, Vector } from "../core/geometry";
 
-import { GlobalPoint, Vector } from "./geom";
 import { Asset } from "./shapes/variants/asset";
 
 export function pathToArray(shape: Asset, path: SVGPathElement): number[][][] {

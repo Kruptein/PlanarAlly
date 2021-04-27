@@ -1,100 +1,84 @@
 <script lang="ts">
-import Component from "vue-class-component";
+import { computed, defineComponent, onMounted, reactive, toRefs } from "vue";
+import { useI18n } from "vue-i18n";
 
-import Accordion from "@/core/components/accordion.vue";
-import { socket } from "@/game/api/socket";
-import { layerManager } from "@/game/layers/manager";
-import { gameStore } from "@/game/store";
-import Tool from "@/game/ui/tools/Tool.vue";
+import Accordion from "../../../core/components/Accordion.vue";
+import { gameStore } from "../../../store/game";
+import { Label } from "../../shapes/interfaces";
+import { filterTool } from "../../tools/variants/filter";
 
-import { SelectFeatures } from "./SelectTool.vue";
-import { ToolBasics } from "./ToolBasics";
-import { ToolName, ToolPermission } from "./utils";
+import { useToolPosition } from "./toolPosition";
 
-@Component({
-    components: {
-        accordion: Accordion,
+export default defineComponent({
+    components: { Accordion },
+    setup() {
+        const { t } = useI18n();
+
+        const state = reactive({
+            arrow: "0px",
+            right: "0px",
+        });
+
+        onMounted(() => {
+            ({ right: state.right, arrow: state.arrow } = useToolPosition(filterTool.toolName));
+        });
+
+        const categories = computed(() => {
+            const cat: Map<string, Label[]> = new Map();
+            cat.set("", []);
+            for (const label of gameStore.state.labels.values()) {
+                if (!label.category) {
+                    cat.get("")!.push(label);
+                } else {
+                    if (!cat.has(label.category)) {
+                        cat.set(label.category, []);
+                    }
+                    cat.get(label.category)!.push(label);
+                    cat.get(label.category)!.sort((a, b) => a.name.localeCompare(b.name));
+                }
+            }
+            return cat;
+        });
+
+        const initialValues = computed(() => {
+            const values: Map<string, string[]> = new Map();
+            for (const [category, labels] of categories.value) {
+                values.set(
+                    category,
+                    gameStore.state.labelFilters.filter((f) => labels.map((l) => l.uuid).includes(f)),
+                );
+            }
+            return values;
+        });
+
+        function updateSelection(category: string, selection: string[]): void {
+            for (const label of categories.value.get(category)!) {
+                const inSelection = selection.includes(label.uuid);
+                const activeFilter = gameStore.state.labelFilters.includes(label.uuid);
+
+                if (activeFilter && !inSelection) {
+                    gameStore.removeLabelFilter(label.uuid, true);
+                } else if (!activeFilter && inSelection) {
+                    gameStore.addLabelFilter(label.uuid, true);
+                }
+            }
+        }
+
+        return { ...toRefs(state), t, selected: filterTool.isActiveTool, categories, initialValues, updateSelection };
     },
-})
-export default class FilterTool extends Tool implements ToolBasics {
-    name = ToolName.Filter;
-    active = false;
-
-    get permittedTools(): ToolPermission[] {
-        return [{ name: ToolName.Select, features: { disabled: [SelectFeatures.Resize, SelectFeatures.Rotate] } }];
-    }
-
-    get labels(): { [category: string]: [string, string][] } {
-        const cat: { [category: string]: [string, string][] } = { "": [] };
-        for (const uuid of Object.keys(gameStore.labels)) {
-            const label = gameStore.labels[uuid];
-            if (!label.category) cat[""].push([label.uuid, label.name]);
-            else {
-                if (!(label.category in cat)) cat[label.category] = [];
-                cat[label.category].push([label.uuid, label.name]);
-                cat[label.category].sort((a, b) => a[1].localeCompare(b[1]));
-            }
-        }
-        return cat;
-    }
-
-    get initalValues(): { [category: string]: string[] } {
-        const values: { [category: string]: string[] } = {};
-        for (const cat of Object.keys(this.labels)) {
-            values[cat] = gameStore.labelFilters.filter((f) => this.labels[cat].map((l) => l[0]).includes(f));
-        }
-        return values;
-    }
-
-    get categories(): string[] {
-        return Object.keys(this.labels).sort();
-    }
-
-    isFilter(uuid: string): boolean {
-        return gameStore.labelFilters.includes(uuid);
-    }
-
-    toggleFilter(uuid: string): void {
-        const i = gameStore.labelFilters.indexOf(uuid);
-        if (i >= 0) gameStore.labelFilters.splice(i, 1);
-        else gameStore.labelFilters.push(uuid);
-        layerManager.invalidateAllFloors();
-    }
-
-    toggleUnlabeled(): void {
-        gameStore.toggleUnlabeledFilter();
-        layerManager.invalidateAllFloors();
-    }
-
-    updateSelection(data: { title: string; selection: string[] }): void {
-        if (!(data.title in this.labels)) return;
-        for (const [uuid] of this.labels[data.title]) {
-            const idx = gameStore.labelFilters.indexOf(uuid);
-            const selected = data.selection.includes(uuid);
-            if (idx >= 0 && !selected) {
-                gameStore.labelFilters.splice(idx, 1);
-                socket.emit("Labels.Filter.Remove", uuid);
-            } else if (idx < 0 && selected) {
-                gameStore.labelFilters.push(uuid);
-                socket.emit("Labels.Filter.Add", uuid);
-            }
-        }
-        layerManager.invalidateAllFloors();
-    }
-}
+});
 </script>
 
 <template>
-    <div class="tool-detail" v-if="selected" :style="{ '--detailRight': detailRight(), '--detailArrow': detailArrow }">
+    <div class="tool-detail" v-if="selected" :style="{ '--detailRight': right, '--detailArrow': arrow }">
         <div id="accordion-container">
-            <accordion
-                v-for="category in categories"
+            <Accordion
+                v-for="[category, labels] of categories"
                 :key="category"
-                :title="category === '' ? $t('game.ui.tools.FilterTool.no_category') : category"
-                :showArrow="false"
-                :items="labels[category]"
-                :initialValues="initalValues[category]"
-                @selectionupdate="updateSelection"
+                :title="category === '' ? t('game.ui.tools.FilterTool.no_category') : category"
+                :items="labels"
+                :initialValues="initialValues.get(category)"
+                @selectionupdate="updateSelection(category, $event)"
             />
         </div>
     </div>

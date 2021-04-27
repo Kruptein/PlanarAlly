@@ -10,6 +10,4 @@ export const sendInitiativeNewEffect = wrapSocket<{ actor: string; effect: Initi
 export const sendInitiativeUpdateEffect = wrapSocket<{ actor: string; effect: InitiativeEffect }>(
     "Initiative.Effect.Update",
 );
-export const sendInitiativeRemoveEffect = wrapSocket<{ actor: string; effect: InitiativeEffect }>(
-    "Initiative.Effect.Remove",
-);
+export const sendInitiativeRemoveEffect = wrapSocket<{ actor: string; effect: string }>("Initiative.Effect.Remove");

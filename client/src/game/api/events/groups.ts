@@ -1,6 +1,5 @@
-import { EventBus } from "../../event-bus";
+import { UuidMap } from "../../../store/shapeMap";
 import { addGroupMembers, addNewGroup, removeGroup, removeGroupMember, updateGroupFromServer } from "../../groups";
-import { layerManager } from "../../layers/manager";
 import { GroupJoinPayload, groupToClient, ServerGroup } from "../../models/groups";
 import { socket } from "../socket";
 
@@ -14,7 +13,7 @@ socket.on("Group.Create", (data: ServerGroup) => {
 
 socket.on("Group.Join", (data: GroupJoinPayload) => {
     addGroupMembers(data.group_id, data.members, false);
-    EventBus.$emit("EditDialog.Group.Update");
+    // EventBus.$emit("EditDialog.Group.Update");
 });
 
 socket.on("Group.Leave", (data: { uuid: string; group_id: string }[]) => {
@@ -29,10 +28,10 @@ socket.on("Group.Remove", (data: string) => {
 
 socket.on("Group.Members.Update", (data: { uuid: string; badge: number }[]) => {
     for (const { uuid, badge } of data) {
-        const shape = layerManager.UUIDMap.get(uuid);
+        const shape = UuidMap.get(uuid);
         if (shape === undefined) return;
         shape.badge = badge;
         shape.invalidate(true);
     }
-    EventBus.$emit("EditDialog.Group.Update");
+    // EventBus.$emit("EditDialog.Group.Update");
 });

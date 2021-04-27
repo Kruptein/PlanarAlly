@@ -1,47 +1,39 @@
 <script lang="ts">
-import Vue from "vue";
-import Component from "vue-class-component";
-import VueMarkdown from "vue-markdown";
-import { Prop } from "vue-property-decorator";
+import { defineComponent, ref } from "vue";
+import { useI18n } from "vue-i18n";
+import VueMarkdownIt from "vue3-markdown-it";
 
-import Modal from "@/core/components/modals/modal.vue";
+import Modal from "./Modal.vue";
 
-@Component({
-    components: {
-        Modal,
-        VueMarkdown,
+export default defineComponent({
+    components: { Modal, VueMarkdownIt },
+    props: { title: { type: String, required: true }, source: { type: String, required: true } },
+    setup() {
+        const { t } = useI18n();
+
+        const visible = ref(true);
+
+        function close(): void {
+            visible.value = false;
+        }
+
+        return { close, t, visible };
     },
-})
-export default class MarkdownModal extends Vue {
-    @Prop(String) title!: string;
-
-    visible = true;
-
-    close(): void {
-        this.visible = false;
-    }
-}
+});
 </script>
 
 <template>
     <Modal :visible="visible" @close="close">
-        <div
-            class="modal-header"
-            slot="header"
-            slot-scope="m"
-            draggable="true"
-            @dragstart="m.dragStart"
-            @dragend="m.dragEnd"
-        >
-            <div>{{ title }}</div>
-            <div class="header-close" @click="close" :title="$t('common.close')">
-                <font-awesome-icon :icon="['far', 'window-close']" />
+        <template v-slot:header="m">
+            <div class="modal-header" draggable="true" @dragstart="m.dragStart" @dragend="m.dragEnd">
+                <div>{{ title }}</div>
+                <div class="header-close" @click="close" :title="t('common.close')">
+                    <font-awesome-icon :icon="['far', 'window-close']" />
+                </div>
             </div>
-        </div>
+        </template>
         <div class="modal-body">
-            <vue-markdown>
-                <slot></slot>
-            </vue-markdown>
+            <VueMarkdownIt :source="source" />
         </div>
     </Modal>
 </template>

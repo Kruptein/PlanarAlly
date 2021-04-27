@@ -1,60 +1,52 @@
 <script lang="ts">
-import Vue from "vue";
-import Component from "vue-class-component";
-import { Prop } from "vue-property-decorator";
+import { defineComponent, PropType, ref } from "vue";
+import { useI18n } from "vue-i18n";
 
-import Modal from "@/core/components/modals/modal.vue";
+import Modal from "./Modal.vue";
 
-@Component({
-    components: {
-        Modal,
+export default defineComponent({
+    components: { Modal },
+    props: {
+        visible: { type: Boolean, required: true },
+        categories: { type: Object as PropType<string[]>, required: true },
+        applyTranslation: { type: Boolean, default: false },
     },
-})
-export default class PanelModal extends Vue {
-    @Prop() panelName!: string;
-    @Prop() categories!: string[];
-    @Prop() visible!: boolean;
+    setup(props, { emit }) {
+        const { t } = useI18n();
 
-    selection = 0;
+        const selection = ref(props.categories[0]);
 
-    handleClick(event: { target: HTMLElement }): void {
-        const child = event.target.firstElementChild;
-        if (child instanceof HTMLInputElement) {
-            child.click();
+        function hideModal(): void {
+            emit("update:visible", false);
         }
-    }
 
-    hideModal(): void {
-        this.$emit("update:visible", false);
-    }
-}
+        function handleClick(): void {}
+
+        return { handleClick, hideModal, selection, t };
+    },
+});
 </script>
 
 <template>
     <Modal :visible="visible" :colour="'rgba(255, 255, 255, 0.8)'" :mask="false">
-        <div
-            class="modal-header"
-            slot="header"
-            slot-scope="m"
-            draggable="true"
-            @dragstart="m.dragStart"
-            @dragend="m.dragEnd"
-        >
-            <div><slot name="title"></slot></div>
-            <div class="header-close" @click="hideModal" :title="$t('common.close')">
-                <font-awesome-icon :icon="['far', 'window-close']" />
+        <template v-slot:header="m">
+            <div class="modal-header" draggable="true" @dragstart="m.dragStart" @dragend="m.dragEnd">
+                <div><slot name="title"></slot></div>
+                <div class="header-close" @click="hideModal" :title="t('common.close')">
+                    <font-awesome-icon :icon="['far', 'window-close']" />
+                </div>
             </div>
-        </div>
+        </template>
         <div class="modal-body" @click="handleClick">
             <div id="categories">
                 <div
                     class="category"
-                    :class="{ selected: selection === c }"
-                    v-for="(category, c) in categories"
+                    :class="{ selected: selection === category }"
+                    v-for="category in categories"
                     :key="category"
-                    @click="selection = c"
+                    @click="selection = category"
                 >
-                    {{ category }}
+                    {{ applyTranslation ? t(category) : category }}
                 </div>
             </div>
             <slot :selection="selection"></slot>

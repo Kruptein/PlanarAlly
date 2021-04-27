@@ -1,4 +1,5 @@
-import { GlobalPoint } from "../geom";
+import { GlobalPoint } from "../../core/geometry";
+import { LayerName } from "../models/floor";
 import { ServerShape } from "../models/shapes";
 
 export type Operation =
@@ -60,8 +61,8 @@ interface FloorMoveOperation {
 
 interface LayerMoveOperation {
     type: "layermovement";
-    from: string;
-    to: string;
+    from: LayerName;
+    to: LayerName;
     shapes: string[];
 }
 

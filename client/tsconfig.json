@@ -1,14 +1,14 @@
 {
     "compilerOptions": {
-        "target": "es6",
+        "target": "esnext",
         "module": "esnext",
         "strict": true,
         "jsx": "preserve",
         "importHelpers": true,
         "moduleResolution": "node",
-        "experimentalDecorators": true,
         "esModuleInterop": true,
         "allowSyntheticDefaultImports": true,
+        "useDefineForClassFields": true,
         "sourceMap": true,
         "baseUrl": ".",
         "outDir": "dist",
@@ -16,7 +16,7 @@
         "paths": {
             "@/*": ["src/*"]
         },
-        "lib": ["es6", "dom", "dom.iterable", "scripthost", "es2016.array.include", "es2019"]
+        "lib": ["esnext", "dom", "dom.iterable", "scripthost"]
     },
     "include": ["src/**/*.ts", "src/**/*.vue", "tests/**/*.ts"],
     "exclude": ["node_modules"]

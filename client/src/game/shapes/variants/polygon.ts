@@ -1,11 +1,12 @@
-import { getDistanceToSegment, GlobalPoint } from "../../geom";
+import { g2l, g2lz, g2lx, g2ly } from "../../../core/conversions";
+import { GlobalPoint, getDistanceToSegment } from "../../../core/geometry";
+import { filterEqualPoints, getPointsCenter, rotateAroundPoint } from "../../../core/math";
+import { getFogColour } from "../../colour";
 import { ServerPolygon } from "../../models/shapes";
-import { g2l, g2lx, g2ly, g2lz } from "../../units";
-import { filterEqualPoints, getFogColour, getPointsCenter, rotateAroundPoint } from "../../utils";
 import { Shape } from "../shape";
 import { SHAPE_TYPE } from "../types";
 
-import { BoundingRect } from "./boundingrect";
+import { BoundingRect } from "./boundingRect";
 
 export class Polygon extends Shape {
     type: SHAPE_TYPE = "polygon";

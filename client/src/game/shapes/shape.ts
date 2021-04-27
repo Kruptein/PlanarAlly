@@ -1,28 +1,16 @@
 import tinycolor from "tinycolor2";
 
-import { uuidv4 } from "@/core/utils";
-import { GlobalPoint, LocalPoint, Vector } from "@/game/geom";
-import { layerManager } from "@/game/layers/manager";
-import { aurasFromServer, aurasToServer, partialAuraToServer } from "@/game/models/conversion/aura";
-import { trackersFromServer, trackersToServer, partialTrackerToServer } from "@/game/models/conversion/tracker";
-import { InitiativeData } from "@/game/models/general";
-import { accessToServer, ownerToClient, ownerToServer, ServerShape } from "@/game/models/shapes";
-import { gameStore } from "@/game/store";
-import { g2l, g2lx, g2ly, g2lz, getUnitDistance } from "@/game/units";
-import { visibilityStore } from "@/game/visibility/store";
-import { TriangulationTarget } from "@/game/visibility/te/pa";
-import {
-    addBlocker,
-    addVisionSource,
-    getBlockers,
-    getVisionSources,
-    setVisionSources,
-    sliceBlockers,
-    sliceVisionSources,
-} from "@/game/visibility/utils";
-
+import { g2l, g2lx, g2ly, g2lz, getUnitDistance } from "../../core/conversions";
+import { GlobalPoint, Vector } from "../../core/geometry";
+import { rotateAroundPoint } from "../../core/math";
 import { SyncTo } from "../../core/models/types";
-import { PartialBy } from "../../core/types";
+import { FunctionPropertyNames, PartialBy } from "../../core/types";
+import { uuidv4 } from "../../core/utils";
+import { ActiveShapeStore, activeShapeStore } from "../../store/activeShape";
+import { clientStore } from "../../store/client";
+import { floorStore } from "../../store/floor";
+import { gameStore } from "../../store/game";
+import { settingsStore } from "../../store/settings";
 import {
     sendShapeAddOwner,
     sendShapeDeleteOwner,
@@ -41,9 +29,9 @@ import {
     sendShapeSetAnnotationVisible,
     sendShapeSetBlocksMovement,
     sendShapeSetBlocksVision,
+    sendShapeSetDefeated,
     sendShapeSetFillColour,
     sendShapeSetInvisible,
-    sendShapeSetDefeated,
     sendShapeSetIsToken,
     sendShapeSetLocked,
     sendShapeSetName,
@@ -53,19 +41,20 @@ import {
     sendShapeUpdateAura,
     sendShapeUpdateTracker,
 } from "../api/emits/shape/options";
-import { EventBus } from "../event-bus";
 import { getBadgeCharacters } from "../groups";
-import { Floor } from "../layers/floor";
-import { Layer } from "../layers/layer";
-import { floorStore, getFloorId } from "../layers/store";
-import { gameSettingsStore } from "../settings";
-import { activeShapeStore } from "../ui/ActiveShapeStore";
-import { rotateAroundPoint } from "../utils";
+import { compositeState } from "../layers/state";
+import { Layer } from "../layers/variants/layer";
+import { aurasFromServer, aurasToServer, partialAuraToServer } from "../models/conversion/aura";
+import { partialTrackerToServer, trackersFromServer, trackersToServer } from "../models/conversion/tracker";
+import { Floor, LayerName } from "../models/floor";
+import { InitiativeData } from "../models/general";
+import { accessToServer, ownerToClient, ownerToServer, ServerShape } from "../models/shapes";
+import { TriangulationTarget, visionState } from "../vision/state";
 
 import { Aura, Label, Tracker } from "./interfaces";
 import { PartialShapeOwner, ShapeAccess, ShapeOwner } from "./owners";
 import { SHAPE_TYPE } from "./types";
-import { BoundingRect } from "./variants/boundingrect";
+import { BoundingRect } from "./variants/boundingRect";
 
 export abstract class Shape {
     // Used to create class instance from server shape data
@@ -73,64 +62,73 @@ export abstract class Shape {
     // The unique ID of this shape
     readonly uuid: string;
     // The layer the shape is currently on
-    private _floor!: number | undefined;
-    private _layer!: string;
-
-    // Explicitly prevent any sync to the server
-    preventSync = false;
+    protected _floor!: number | undefined;
+    protected _layer!: LayerName;
 
     // A reference point regarding that specific shape's structure
     protected _refPoint: GlobalPoint;
     protected _angle = 0;
 
-    // Fill colour of the shape
-    fillColour: string;
-    strokeColour: string;
-    strokeWidth = 5;
-    // When set to true this shape should not use g2lz converting logic for its sizing
-    // This is used for things like the ruler, which should always have the same size irregardles of zoom state
-    ignoreZoomSize = false;
+    abstract get points(): number[][];
+
+    abstract contains(point: GlobalPoint, nearbyThreshold?: number): boolean;
+
+    abstract snapToGrid(): void;
+    abstract resizeToGrid(resizePoint: number, retainAspectRatio: boolean): void;
+    abstract resize(resizePoint: number, point: GlobalPoint, retainAspectRatio: boolean): number;
+
     // The optional name associated with the shape
     name = "Unknown shape";
     nameVisible = true;
 
-    assetId?: number;
-    groupId?: string;
-
-    // Associated trackers/auras
-    private _trackers: Tracker[] = [];
-    private _auras: Aura[] = [];
-    labels: Label[] = [];
-
-    // Block light sources
-    visionObstruction = false;
-    // Prevent shapes from overlapping with this shape
-    movementObstruction = false;
-    // Does this shape represent a playable token
     isToken = false;
     isInvisible = false;
     isDefeated = false;
-    // Show a highlight box
-    showHighlight = false;
+    isLocked = false;
+
+    // Fill colour of the shape
+    fillColour: string;
+    strokeColour: string;
+    strokeWidth = 5;
+
+    assetId?: number;
+    groupId?: string;
+
+    // Block vision sources
+    blocksVision = false;
+    // Prevent shapes from overlapping with this shape
+    blocksMovement = false;
+
+    // Draw mode to use
+    globalCompositeOperation = "source-over";
+
+    // Associated trackers/auras
+    protected _trackers: Tracker[] = [];
+    protected _auras: Aura[] = [];
+    labels: Label[] = [];
+
+    // Access
+    defaultAccess: ShapeAccess = { vision: false, movement: false, edit: false };
+    protected _owners: ShapeOwner[] = [];
 
     // Mouseover annotation
     annotation = "";
     annotationVisible = false;
 
-    // Draw modus to use
-    globalCompositeOperation = "source-over";
-
-    // Additional options for specialized uses
-    options: Map<string, any> = new Map();
-
     badge = 0;
     showBadge = false;
 
-    isLocked = false;
+    showHighlight = false;
 
-    // Access
-    defaultAccess: ShapeAccess = { vision: false, movement: false, edit: false };
-    protected _owners: ShapeOwner[] = [];
+    // When set to true this shape should not use g2lz converting logic for its sizing
+    // This is used for things like the ruler, which should always have the same size irregardles of zoom state
+    ignoreZoomSize = false;
+
+    // Explicitly prevent any sync to the server
+    preventSync = false;
+
+    // Additional options for specialized uses
+    options: Map<string, any> = new Map();
 
     constructor(
         refPoint: GlobalPoint,
@@ -143,13 +141,44 @@ export abstract class Shape {
         this.assetId = options?.assetId;
     }
 
-    // Are the last and first point connected
-    get isClosed(): boolean {
-        return true;
+    abstract center(): GlobalPoint;
+    abstract center(centerPoint: GlobalPoint): void;
+
+    // Informs whether `points` forms a close loop
+    abstract isClosed: boolean;
+
+    /**
+     * Returns true if this shape should trigger a vision recalculation when it moves or otherwise mutates.
+     * This is the case when it is a token, has an aura that is a vision source or if it blocks vision.
+     */
+    get triggersVisionRecalc(): boolean {
+        return this.isToken || this.getAuras(true).some((a) => a.visionSource) || this.blocksMovement;
+    }
+
+    getInitiativeRepr(): InitiativeData {
+        return {
+            uuid: this.uuid,
+            visible: !gameStore.state.isDm,
+            group: false,
+            source: this.name,
+            has_img: false,
+            effects: [],
+            index: Infinity,
+        };
+    }
+
+    // POSITION
+
+    get floor(): Floor {
+        return floorStore.getFloor({ id: this._floor! })!;
+    }
+
+    get layer(): Layer {
+        return floorStore.getLayer(this.floor, this._layer)!;
     }
 
     get refPoint(): GlobalPoint {
-        return this._refPoint;
+        return this._refPoint.clone();
     }
     set refPoint(point: GlobalPoint) {
         this._refPoint = point;
@@ -164,87 +193,50 @@ export abstract class Shape {
         this.updatePoints();
     }
 
-    get floor(): Floor {
-        return layerManager.getFloor(this._floor)!;
-    }
-
-    get layer(): Layer {
-        return layerManager.getLayer(this.floor, this._layer)!;
-    }
-
-    /**
-     * Returns true if this shape should trigger a vision recalculation when it moves or otherwise mutates.
-     * This is the case when it is a token, has an aura that is a vision source or if it blocks vision.
-     */
-    get triggersVisionRecalc(): boolean {
-        return this.isToken || this.getAuras(true).some((a) => a.visionSource) || this.movementObstruction;
-    }
-
-    setLayer(floor: number, layer: string): void {
+    setLayer(floor: number, layer: LayerName): void {
         this._floor = floor;
         this._layer = layer;
     }
 
-    getAABB(delta = 0): BoundingRect {
-        let minx = this.points[0][0];
-        let maxx = this.points[0][0];
-        let miny = this.points[0][1];
-        let maxy = this.points[0][1];
-        for (const p of this.points.slice(1)) {
-            if (p[0] < minx) minx = p[0];
-            if (p[0] > maxx) maxx = p[0];
-            if (p[1] < miny) miny = p[1];
-            if (p[1] > maxy) maxy = p[1];
-        }
-        return new BoundingRect(
-            new GlobalPoint(minx - delta, miny - delta),
-            maxx - minx + 2 * delta,
-            maxy - miny + 2 * delta,
-        );
+    getPositionRepresentation(): { angle: number; points: number[][] } {
+        return { angle: this.angle, points: [this.refPoint.asArray()] };
     }
 
-    getBoundingBox(delta = 0): BoundingRect {
-        return this.getAABB(delta);
+    setPositionRepresentation(position: { angle: number; points: number[][] }): void {
+        this._refPoint = GlobalPoint.fromArray(position.points[0]);
+        this.angle = position.angle;
+        this.updateShapeVision(false, false);
     }
 
-    abstract contains(point: GlobalPoint, nearbyThreshold?: number): boolean;
+    invalidate(skipLightUpdate: boolean): void {
+        this.layer.invalidate(skipLightUpdate);
+    }
 
-    abstract center(): GlobalPoint;
-    abstract center(centerPoint: GlobalPoint): void;
-    visibleInCanvas(canvas: HTMLCanvasElement, options: { includeAuras: boolean }): boolean {
-        if (options.includeAuras) {
-            for (const aura of this.getAuras(true)) {
-                if (aura.value > 0 || aura.dim > 0) {
-                    const r = getUnitDistance(aura.value + aura.dim);
-                    const center = this.center();
-                    const auraArea = new BoundingRect(new GlobalPoint(center.x - r, center.y - r), r * 2, r * 2);
-                    if (auraArea.visibleInCanvas(canvas)) {
-                        return true;
-                    }
-                }
+    updatePoints(): void {
+        for (const point of this.layer.points) {
+            if (point[1].has(this.uuid)) {
+                if (point[1].size === 1) this.layer.points.delete(point[0]);
+                else point[1].delete(this.uuid);
             }
         }
-        return false;
+        for (const point of this.points) {
+            const strp = JSON.stringify(point);
+            if (this.layer.points.has(strp) && !this.layer.points.get(strp)!.has(this.uuid))
+                this.layer.points.get(strp)!.add(this.uuid);
+            else if (!this.layer.points.has(strp)) this.layer.points.set(strp, new Set([this.uuid]));
+        }
     }
 
-    // Code to snap a shape to the grid
-    // This is shape dependent as the shape refPoints are shape specific in
-    abstract snapToGrid(): void;
-    abstract resizeToGrid(resizePoint: number, retainAspectRatio: boolean): void;
-    abstract resize(resizePoint: number, point: GlobalPoint, retainAspectRatio: boolean): number;
-
-    // abstract rotateAround(point: GlobalPoint, angle: number): void;
     rotateAround(point: GlobalPoint, angle: number): void {
         const center = this.center();
         if (!point.equals(center)) this.center(rotateAroundPoint(center, point, angle));
         this.angle += angle;
         this.updatePoints();
     }
+
     rotateAroundAbsolute(point: GlobalPoint, angle: number): void {
         this.rotateAround(point, angle - this.angle);
     }
-
-    abstract get points(): number[][];
 
     getPointIndex(p: GlobalPoint, delta = 0): number {
         for (const [idx, point] of this.points.entries()) {
@@ -262,142 +254,7 @@ export abstract class Shape {
         return point.subtract(mid).normalize();
     }
 
-    invalidate(skipLightUpdate: boolean): void {
-        this.layer.invalidate(skipLightUpdate);
-    }
-
-    private checkVisionSources(recalculate = true): boolean {
-        let alteredVision = false;
-        const visionBlockers = getBlockers(TriangulationTarget.VISION, this._floor ?? floorStore.currentFloor.id);
-        const obstructionIndex = visionBlockers.indexOf(this.uuid);
-        if (this.visionObstruction && obstructionIndex === -1) {
-            addBlocker(TriangulationTarget.VISION, this.uuid, this._floor ?? floorStore.currentFloor.id, recalculate);
-            alteredVision = true;
-        } else if (!this.visionObstruction && obstructionIndex >= 0) {
-            sliceBlockers(
-                TriangulationTarget.VISION,
-                obstructionIndex,
-                this._floor ?? floorStore.currentFloor.id,
-                recalculate,
-            );
-            alteredVision = true;
-        }
-
-        // Check if the visionsource auras are in the gameManager
-        const visionSources: { shape: string; aura: string }[] = [
-            ...getVisionSources(this._floor ?? floorStore.currentFloor.id),
-        ];
-        for (const au of this.getAuras(true)) {
-            const i = visionSources.findIndex((o) => o.aura === au.uuid);
-            const isVisionSource = au.visionSource && au.active;
-            if (isVisionSource && i === -1) {
-                visionSources.push({ shape: this.uuid, aura: au.uuid });
-            } else if (!isVisionSource && i >= 0) {
-                visionSources.splice(i, 1);
-            }
-        }
-        // Check if anything in the gameManager referencing this shape is in fact still a visionsource
-        for (let i = visionSources.length - 1; i >= 0; i--) {
-            const ls = visionSources[i];
-            if (ls.shape === this.uuid) {
-                if (!this.getAuras(true).some((a) => a.uuid === ls.aura && a.visionSource && a.active))
-                    visionSources.splice(i, 1);
-            }
-        }
-        setVisionSources(visionSources, this._floor ?? floorStore.currentFloor.id);
-        return alteredVision;
-    }
-
-    abstract asDict(): ServerShape;
-    getBaseDict(): ServerShape {
-        return {
-            type_: this.type,
-            uuid: this.uuid,
-            x: this.refPoint.x,
-            y: this.refPoint.y,
-            angle: this.angle,
-            floor: layerManager.getFloor(this._floor)!.name,
-            layer: this._layer,
-            draw_operator: this.globalCompositeOperation,
-            movement_obstruction: this.movementObstruction,
-            vision_obstruction: this.visionObstruction,
-            auras: aurasToServer(this.uuid, this._auras),
-            trackers: trackersToServer(this.uuid, this._trackers),
-            labels: this.labels,
-            owners: this._owners.map((owner) => ownerToServer(owner)),
-            fill_colour: this.fillColour,
-            stroke_colour: this.strokeColour,
-            stroke_width: this.strokeWidth,
-            name: this.name,
-            name_visible: this.nameVisible,
-            annotation: this.annotation,
-            annotation_visible: this.annotationVisible,
-            is_token: this.isToken,
-            is_invisible: this.isInvisible,
-            is_defeated: this.isDefeated,
-            options: JSON.stringify([...this.options]),
-            badge: this.badge,
-            show_badge: this.showBadge,
-            is_locked: this.isLocked,
-            default_edit_access: this.defaultAccess.edit,
-            default_movement_access: this.defaultAccess.movement,
-            default_vision_access: this.defaultAccess.vision,
-            asset: this.assetId,
-            group: this.groupId,
-            ignore_zoom_size: this.ignoreZoomSize,
-        };
-    }
-    fromDict(data: ServerShape): void {
-        this._layer = data.layer;
-        this._floor = getFloorId(data.floor);
-        this.angle = data.angle;
-        this.globalCompositeOperation = data.draw_operator;
-        this.movementObstruction = data.movement_obstruction;
-        this.visionObstruction = data.vision_obstruction;
-        this._auras = aurasFromServer(...data.auras);
-        this._trackers = trackersFromServer(...data.trackers);
-        this.labels = data.labels;
-        this._owners = data.owners.map((owner) => ownerToClient(owner));
-        this.fillColour = data.fill_colour;
-        this.strokeColour = data.stroke_colour;
-        this.isToken = data.is_token;
-        this.isInvisible = data.is_invisible;
-        this.isDefeated = data.is_defeated;
-        this.nameVisible = data.name_visible;
-        this.badge = data.badge;
-        this.showBadge = data.show_badge;
-        this.isLocked = data.is_locked;
-        this.annotationVisible = data.annotation_visible;
-
-        this.ignoreZoomSize = data.ignore_zoom_size;
-
-        if (data.annotation) {
-            this.annotation = data.annotation;
-        }
-        if (data.name) this.name = data.name;
-        if (data.options) this.options = new Map(JSON.parse(data.options));
-        if (data.asset) this.assetId = data.asset;
-        if (data.group) this.groupId = data.group;
-        // retain reactivity
-        this.updateDefaultOwner(
-            {
-                edit: data.default_edit_access,
-                vision: data.default_vision_access,
-                movement: data.default_movement_access,
-            },
-            SyncTo.UI,
-        );
-    }
-
-    getPositionRepresentation(): { angle: number; points: number[][] } {
-        return { angle: this.angle, points: [this.refPoint.asArray()] };
-    }
-
-    setPositionRepresentation(position: { angle: number; points: number[][] }): void {
-        this._refPoint = GlobalPoint.fromArray(position.points[0]);
-        this.angle = position.angle;
-        this.updateShapeVision(false, false);
-    }
+    // DRAWING
 
     draw(ctx: CanvasRenderingContext2D): void {
         if (this.globalCompositeOperation !== undefined) ctx.globalCompositeOperation = this.globalCompositeOperation;
@@ -508,87 +365,189 @@ export abstract class Shape {
         ctx.stroke();
     }
 
-    getAnchorLocation(): LocalPoint {
-        const center = g2l(this.center());
-        const bb = this.getBoundingBox();
-        const z = gameStore.zoomFactor;
-        return new LocalPoint(center.x, center.y - 100 * z - (bb.h * z) / 2);
-    }
-
-    getInitiativeRepr(): InitiativeData {
-        return {
-            uuid: this.uuid,
-            visible: !gameStore.IS_DM,
-            group: false,
-            source: this.name,
-            has_img: false,
-            effects: [],
-            index: Infinity,
-        };
-    }
-
-    updatePoints(): void {
-        this.layer.updateShapePoints(this);
-    }
+    // VISION
 
     updateShapeVision(alteredMovement: boolean, alteredVision: boolean): void {
-        if (this.visionObstruction && !alteredVision) {
-            visibilityStore.deleteFromTriag({
+        if (this.blocksVision && !alteredVision) {
+            visionState.deleteFromTriangulation({
                 target: TriangulationTarget.VISION,
                 shape: this.uuid,
             });
-            visibilityStore.addToTriag({ target: TriangulationTarget.VISION, shape: this.uuid });
-            visibilityStore.recalculateVision(this.floor.id);
+            visionState.addToTriangulation({ target: TriangulationTarget.VISION, shape: this.uuid });
+            visionState.recalculateVision(this.floor.id);
         }
         this.invalidate(false);
-        layerManager.invalidateLightAllFloors();
-        if (this.movementObstruction && !alteredMovement) {
-            visibilityStore.deleteFromTriag({
+        floorStore.invalidateLightAllFloors();
+        if (this.blocksMovement && !alteredMovement) {
+            visionState.deleteFromTriangulation({
                 target: TriangulationTarget.MOVEMENT,
                 shape: this.uuid,
             });
-            visibilityStore.addToTriag({ target: TriangulationTarget.MOVEMENT, shape: this.uuid });
-            visibilityStore.recalculateMovement(this.floor.id);
+            visionState.addToTriangulation({ target: TriangulationTarget.MOVEMENT, shape: this.uuid });
+            visionState.recalculateMovement(this.floor.id);
         }
+    }
+
+    // BOUNDING BOX
+
+    getAABB(delta = 0): BoundingRect {
+        let minx = this.points[0][0];
+        let maxx = this.points[0][0];
+        let miny = this.points[0][1];
+        let maxy = this.points[0][1];
+        for (const p of this.points.slice(1)) {
+            if (p[0] < minx) minx = p[0];
+            if (p[0] > maxx) maxx = p[0];
+            if (p[1] < miny) miny = p[1];
+            if (p[1] > maxy) maxy = p[1];
+        }
+        return new BoundingRect(
+            new GlobalPoint(minx - delta, miny - delta),
+            maxx - minx + 2 * delta,
+            maxy - miny + 2 * delta,
+        );
+    }
+
+    getBoundingBox(delta = 0): BoundingRect {
+        return this.getAABB(delta);
+    }
+
+    // STATE
+    abstract asDict(): ServerShape;
+    getBaseDict(): ServerShape {
+        return {
+            type_: this.type,
+            uuid: this.uuid,
+            x: this.refPoint.x,
+            y: this.refPoint.y,
+            angle: this.angle,
+            floor: floorStore.getFloor({ id: this._floor! })!.name,
+            layer: this._layer,
+            draw_operator: this.globalCompositeOperation,
+            movement_obstruction: this.blocksMovement,
+            vision_obstruction: this.blocksVision,
+            auras: aurasToServer(this.uuid, this._auras),
+            trackers: trackersToServer(this.uuid, this._trackers),
+            labels: this.labels,
+            owners: this._owners.map((owner) => ownerToServer(owner)),
+            fill_colour: this.fillColour,
+            stroke_colour: this.strokeColour,
+            stroke_width: this.strokeWidth,
+            name: this.name,
+            name_visible: this.nameVisible,
+            annotation: this.annotation,
+            annotation_visible: this.annotationVisible,
+            is_token: this.isToken,
+            is_invisible: this.isInvisible,
+            is_defeated: this.isDefeated,
+            options: JSON.stringify([...this.options]),
+            badge: this.badge,
+            show_badge: this.showBadge,
+            is_locked: this.isLocked,
+            default_edit_access: this.defaultAccess.edit,
+            default_movement_access: this.defaultAccess.movement,
+            default_vision_access: this.defaultAccess.vision,
+            asset: this.assetId,
+            group: this.groupId,
+            ignore_zoom_size: this.ignoreZoomSize,
+        };
+    }
+    fromDict(data: ServerShape): void {
+        this._layer = data.layer;
+        this._floor = floorStore.getFloor({ name: data.floor })!.id;
+        this.angle = data.angle;
+        this.globalCompositeOperation = data.draw_operator;
+        this.blocksMovement = data.movement_obstruction;
+        this.blocksVision = data.vision_obstruction;
+        this._auras = aurasFromServer(...data.auras);
+        this._trackers = trackersFromServer(...data.trackers);
+        this.labels = data.labels;
+        this._owners = data.owners.map((owner) => ownerToClient(owner));
+        this.fillColour = data.fill_colour;
+        this.strokeColour = data.stroke_colour;
+        this.isToken = data.is_token;
+        this.isInvisible = data.is_invisible;
+        this.isDefeated = data.is_defeated;
+        this.nameVisible = data.name_visible;
+        this.badge = data.badge;
+        this.showBadge = data.show_badge;
+        this.isLocked = data.is_locked;
+        this.annotationVisible = data.annotation_visible;
+
+        this.ignoreZoomSize = data.ignore_zoom_size;
+
+        if (data.annotation) {
+            this.annotation = data.annotation;
+        }
+        this.name = data.name;
+        if (data.options !== undefined) this.options = new Map(JSON.parse(data.options));
+        if (data.asset !== undefined) this.assetId = data.asset;
+        if (data.group !== undefined) this.groupId = data.group;
+        // retain reactivity
+        this.updateDefaultOwner(
+            {
+                edit: data.default_edit_access,
+                vision: data.default_vision_access,
+                movement: data.default_movement_access,
+            },
+            SyncTo.UI,
+        );
     }
 
     // UTILITY
 
+    visibleInCanvas(canvas: HTMLCanvasElement, options: { includeAuras: boolean }): boolean {
+        if (options.includeAuras) {
+            for (const aura of this.getAuras(true)) {
+                if (aura.value > 0 || aura.dim > 0) {
+                    const r = getUnitDistance(aura.value + aura.dim);
+                    const center = this.center();
+                    const auraArea = new BoundingRect(new GlobalPoint(center.x - r, center.y - r), r * 2, r * 2);
+                    if (auraArea.visibleInCanvas(canvas)) {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
     /**
      * This utility function is used to avoid repetitive if checks.
-     * It calls the given function, if the current active shape is this shape.
+     * It returns a proper activeShapeStore function, if the current active shape is this shape.
+     * Otherwise it returns an empty function doing nothing.
      *
      * Its primary intended use is to update the UI if the current shape is being displayed.
      *
-     * @param f A function that should be called if the current shape is the active shape
-     * @param args the args of the above function
+     * @param f A funtion name that exists on ActiveShapeStore
      */
-    protected _<T extends unknown[], R = unknown>(f: (...args: T) => R, ...args: T): void {
-        if (this.uuid === activeShapeStore.uuid) f(...args);
+    protected _<F extends FunctionPropertyNames<ActiveShapeStore>>(f: F): ActiveShapeStore[F] {
+        if (this.uuid === activeShapeStore.state.uuid) return activeShapeStore[f].bind(activeShapeStore);
+        return (..._: unknown[]) => {};
     }
 
     // PROPERTIES
 
     setName(name: string, syncTo: SyncTo): void {
         if (syncTo === SyncTo.SERVER) sendShapeSetName({ shape: this.uuid, value: name });
-        if (syncTo === SyncTo.UI) this._(activeShapeStore.setName, { name, syncTo });
+        if (syncTo === SyncTo.UI) this._("setName")(name, syncTo);
 
         this.name = name;
         // Initiative names are not always updated when renaming shapes
         // This is due to these shapes not yet being reactive
-        EventBus.$emit("Initiative.ForceUpdate");
+        // EventBus.$emit("Initiative.ForceUpdate");
     }
 
     setNameVisible(visible: boolean, syncTo: SyncTo): void {
         if (syncTo === SyncTo.SERVER) sendShapeSetNameVisible({ shape: this.uuid, value: visible });
-        if (syncTo === SyncTo.UI) this._(activeShapeStore.setNameVisible, { visible, syncTo });
+        if (syncTo === SyncTo.UI) this._("setNameVisible")(visible, syncTo);
 
         this.nameVisible = visible;
     }
 
     setIsToken(isToken: boolean, syncTo: SyncTo): void {
         if (syncTo === SyncTo.SERVER) sendShapeSetIsToken({ shape: this.uuid, value: isToken });
-        if (syncTo === SyncTo.UI) this._(activeShapeStore.setIsToken, { isToken, syncTo });
+        if (syncTo === SyncTo.UI) this._("setIsToken")(isToken, syncTo);
 
         this.isToken = isToken;
         if (this.ownedBy(false, { visionAccess: true })) {
@@ -600,23 +559,15 @@ export abstract class Shape {
 
     setInvisible(isInvisible: boolean, syncTo: SyncTo): void {
         if (syncTo === SyncTo.SERVER) sendShapeSetInvisible({ shape: this.uuid, value: isInvisible });
-        if (syncTo === SyncTo.UI) this._(activeShapeStore.setIsInvisible, { isInvisible, syncTo });
+        if (syncTo === SyncTo.UI) this._("setIsInvisible")(isInvisible, syncTo);
 
         this.isInvisible = isInvisible;
         this.invalidate(!this.triggersVisionRecalc);
     }
 
-    setDefeated(isDefeated: boolean, syncTo: SyncTo): void {
-        if (syncTo === SyncTo.SERVER) sendShapeSetDefeated({ shape: this.uuid, value: isDefeated });
-        if (syncTo === SyncTo.UI) this._(activeShapeStore.setIsDefeated, { isDefeated, syncTo });
-
-        this.isDefeated = isDefeated;
-        this.invalidate(!this.triggersVisionRecalc);
-    }
-
     setStrokeColour(colour: string, syncTo: SyncTo): void {
         if (syncTo === SyncTo.SERVER) sendShapeSetStrokeColour({ shape: this.uuid, value: colour });
-        if (syncTo === SyncTo.UI) this._(activeShapeStore.setStrokeColour, { colour, syncTo });
+        if (syncTo === SyncTo.UI) this._("setStrokeColour")(colour, syncTo);
 
         this.strokeColour = colour;
         this.invalidate(true);
@@ -624,37 +575,45 @@ export abstract class Shape {
 
     setFillColour(colour: string, syncTo: SyncTo): void {
         if (syncTo === SyncTo.SERVER) sendShapeSetFillColour({ shape: this.uuid, value: colour });
-        if (syncTo === SyncTo.UI) this._(activeShapeStore.setFillColour, { colour, syncTo });
+        if (syncTo === SyncTo.UI) this._("setFillColour")(colour, syncTo);
 
         this.fillColour = colour;
         this.invalidate(true);
     }
 
-    setVisionBlock(blocksVision: boolean, syncTo: SyncTo, recalculate = true): void {
+    setBlocksVision(blocksVision: boolean, syncTo: SyncTo, recalculate = true): void {
         if (syncTo === SyncTo.SERVER) sendShapeSetBlocksVision({ shape: this.uuid, value: blocksVision });
-        if (syncTo === SyncTo.UI) this._(activeShapeStore.setVisionObstruction, { blocksVision, syncTo });
+        if (syncTo === SyncTo.UI) this._("setBlocksVision")(blocksVision, syncTo);
 
-        this.visionObstruction = blocksVision;
+        this.blocksVision = blocksVision;
         const alteredVision = this.checkVisionSources(recalculate);
         if (alteredVision && recalculate) this.invalidate(false);
     }
 
-    setMovementBlock(blocksMovement: boolean, syncTo: SyncTo, recalculate = true): boolean {
+    setBlocksMovement(blocksMovement: boolean, syncTo: SyncTo, recalculate = true): boolean {
         if (syncTo === SyncTo.SERVER) sendShapeSetBlocksMovement({ shape: this.uuid, value: blocksMovement });
-        if (syncTo === SyncTo.UI) this._(activeShapeStore.setMovementObstruction, { blocksMovement, syncTo });
+        if (syncTo === SyncTo.UI) this._("setBlocksMovement")(blocksMovement, syncTo);
 
         let alteredMovement = false;
-        this.movementObstruction = blocksMovement;
-        const movementBlockers = getBlockers(TriangulationTarget.MOVEMENT, this._floor ?? floorStore.currentFloor.id);
+        this.blocksMovement = blocksMovement;
+        const movementBlockers = visionState.getBlockers(
+            TriangulationTarget.MOVEMENT,
+            this._floor ?? floorStore.currentFloor.value.id,
+        );
         const obstructionIndex = movementBlockers.indexOf(this.uuid);
-        if (this.movementObstruction && obstructionIndex === -1) {
-            addBlocker(TriangulationTarget.MOVEMENT, this.uuid, this._floor ?? floorStore.currentFloor.id, recalculate);
+        if (this.blocksMovement && obstructionIndex === -1) {
+            visionState.addBlocker(
+                TriangulationTarget.MOVEMENT,
+                this.uuid,
+                this._floor ?? floorStore.currentFloor.value.id,
+                recalculate,
+            );
             alteredMovement = true;
-        } else if (!this.movementObstruction && obstructionIndex >= 0) {
-            sliceBlockers(
+        } else if (!this.blocksMovement && obstructionIndex >= 0) {
+            visionState.sliceBlockers(
                 TriangulationTarget.MOVEMENT,
                 obstructionIndex,
-                this._floor ?? floorStore.currentFloor.id,
+                this._floor ?? floorStore.currentFloor.value.id,
                 recalculate,
             );
             alteredMovement = true;
@@ -663,20 +622,28 @@ export abstract class Shape {
         return alteredMovement;
     }
 
-    setLocked(isLocked: boolean, syncTo: SyncTo): void {
-        if (syncTo === SyncTo.SERVER) sendShapeSetLocked({ shape: this.uuid, value: isLocked });
-        if (syncTo === SyncTo.UI) this._(activeShapeStore.setLocked, { isLocked, syncTo });
-
-        this.isLocked = isLocked;
-    }
-
     setShowBadge(showBadge: boolean, syncTo: SyncTo): void {
         if (syncTo === SyncTo.SERVER) sendShapeSetShowBadge({ shape: this.uuid, value: showBadge });
-        if (syncTo === SyncTo.UI) this._(activeShapeStore.setShowBadge, { showBadge, syncTo });
+        if (syncTo === SyncTo.UI) this._("setShowBadge")(showBadge, syncTo);
 
         this.showBadge = showBadge;
         this.invalidate(!this.triggersVisionRecalc);
-        EventBus.$emit("EditDialog.Group.Update");
+        // EventBus.$emit("EditDialog.Group.Update");
+    }
+
+    setDefeated(isDefeated: boolean, syncTo: SyncTo): void {
+        if (syncTo === SyncTo.SERVER) sendShapeSetDefeated({ shape: this.uuid, value: isDefeated });
+        if (syncTo === SyncTo.UI) this._("setIsDefeated")(isDefeated, syncTo);
+
+        this.isDefeated = isDefeated;
+        this.invalidate(!this.triggersVisionRecalc);
+    }
+
+    setLocked(isLocked: boolean, syncTo: SyncTo): void {
+        if (syncTo === SyncTo.SERVER) sendShapeSetLocked({ shape: this.uuid, value: isLocked });
+        if (syncTo === SyncTo.UI) this._("setLocked")(isLocked, syncTo);
+
+        this.isLocked = isLocked;
     }
 
     // OPTIONS
@@ -685,8 +652,7 @@ export abstract class Shape {
         this.options = options;
 
         if (syncTo === SyncTo.SERVER) sendShapeOptionsUpdate([this], false);
-        if (syncTo === SyncTo.UI)
-            this._(activeShapeStore.setOptions, { options: Object.fromEntries(this.options), syncTo });
+        if (syncTo === SyncTo.UI) this._("setOptions")(Object.fromEntries(this.options), syncTo);
     }
 
     // ACCESS
@@ -707,23 +673,24 @@ export abstract class Shape {
         limitToActiveTokens: boolean,
         options: Partial<{ editAccess: boolean; visionAccess: boolean; movementAccess: boolean }>,
     ): boolean {
-        if (gameStore.IS_DM) return true;
+        const state = gameStore.state;
+        if (state.isDm) return true;
 
-        const isActiveToken = gameStore.activeTokens.includes(this.uuid);
+        const isActiveToken = gameStore.activeTokens.value.has(this.uuid);
 
         if (this.isToken && limitToActiveTokens && !isActiveToken) return false;
 
         return (
-            gameStore.FAKE_PLAYER ||
-            (options.editAccess && this.defaultAccess.edit) ||
-            (options.movementAccess && this.defaultAccess.movement) ||
-            (options.visionAccess && this.defaultAccess.vision) ||
+            state.isFakePlayer ||
+            ((options.editAccess ?? false) && this.defaultAccess.edit) ||
+            ((options.movementAccess ?? false) && this.defaultAccess.movement) ||
+            ((options.visionAccess ?? false) && this.defaultAccess.vision) ||
             this._owners.some(
                 (u) =>
-                    u.user === gameStore.username &&
-                    (options.editAccess ? u.access.edit === true : true) &&
-                    (options.movementAccess ? u.access.movement === true : true) &&
-                    (options.visionAccess ? u.access.vision === true : true),
+                    u.user === clientStore.state.username &&
+                    (options.editAccess ?? false ? u.access.edit === true : true) &&
+                    (options.movementAccess ?? false ? u.access.movement === true : true) &&
+                    (options.visionAccess ?? false ? u.access.vision === true : true),
             )
         );
     }
@@ -742,14 +709,14 @@ export abstract class Shape {
 
         if (syncTo === SyncTo.SERVER)
             sendShapeUpdateDefaultOwner({ ...accessToServer(this.defaultAccess), shape: this.uuid });
-        if (syncTo === SyncTo.UI) this._(activeShapeStore.setDefaultAccess, { access: this.defaultAccess, syncTo });
+        if (syncTo === SyncTo.UI) this._("setDefaultAccess")(this.defaultAccess, syncTo);
 
         if (this.defaultAccess.vision) {
             if (this.ownedBy(false, { visionAccess: true })) gameStore.addOwnedToken(this.uuid);
         } else {
             if (!this.ownedBy(false, { visionAccess: true })) gameStore.removeOwnedToken(this.uuid);
         }
-        if (gameSettingsStore.fowLos) layerManager.invalidateLightAllFloors();
+        if (settingsStore.fowLos.value) floorStore.invalidateLightAllFloors();
     }
 
     hasOwner(username: string): boolean {
@@ -758,7 +725,7 @@ export abstract class Shape {
 
     addOwner(owner: PartialBy<PartialShapeOwner, "shape">, syncTo: SyncTo): void {
         // Force other permissions to true if edit access is granted
-        if (owner.access.edit) {
+        if (owner.access.edit ?? false) {
             owner.access.movement = true;
             owner.access.vision = true;
         }
@@ -770,12 +737,12 @@ export abstract class Shape {
         if (fullOwner.shape !== this.uuid) return;
         if (!this.hasOwner(owner.user)) {
             if (syncTo === SyncTo.SERVER) sendShapeAddOwner(ownerToServer(fullOwner));
-            if (syncTo === SyncTo.UI) this._(activeShapeStore.addOwner, { owner: fullOwner, syncTo });
+            if (syncTo === SyncTo.UI) this._("addOwner")(fullOwner, syncTo);
 
             this._owners.push(fullOwner);
-            if (owner.access.vision && this.isToken && owner.user === gameStore.username)
+            if ((owner.access.vision ?? false) && this.isToken && owner.user === clientStore.state.username)
                 gameStore.addOwnedToken(this.uuid);
-            if (gameSettingsStore.fowLos) layerManager.invalidateLightAllFloors();
+            if (settingsStore.fowLos.value) floorStore.invalidateLightAllFloors();
         }
     }
 
@@ -790,16 +757,16 @@ export abstract class Shape {
             fullOwner.access.movement = true;
             fullOwner.access.vision = true;
         }
-        if (targetOwner.access.edit && Object.values(fullOwner.access).some((a) => !a)) {
+        if (targetOwner.access.edit && Object.values(fullOwner.access).some((a: boolean) => !a)) {
             // Force remove edit permission if a specific permission is toggled off
             fullOwner.access.edit = false;
         }
 
         if (syncTo === SyncTo.SERVER) sendShapeUpdateOwner(ownerToServer(fullOwner));
-        if (syncTo === SyncTo.UI) this._(activeShapeStore.updateOwner, { owner: fullOwner, syncTo });
+        if (syncTo === SyncTo.UI) this._("updateOwner")(fullOwner, syncTo);
 
         if (targetOwner.access.vision !== fullOwner.access.vision) {
-            if (targetOwner.user === gameStore.username) {
+            if (targetOwner.user === clientStore.state.username) {
                 if (fullOwner.access.vision) {
                     gameStore.addOwnedToken(this.uuid);
                 } else {
@@ -808,7 +775,7 @@ export abstract class Shape {
             }
         }
         targetOwner.access = fullOwner.access;
-        if (gameSettingsStore.fowLos) layerManager.invalidateLightAllFloors();
+        if (settingsStore.fowLos.value) floorStore.invalidateLightAllFloors();
     }
 
     removeOwner(owner: string, syncTo: SyncTo): void {
@@ -817,12 +784,12 @@ export abstract class Shape {
         const removed = this._owners.splice(ownerIndex, 1)[0];
 
         if (syncTo === SyncTo.SERVER) sendShapeDeleteOwner(ownerToServer(removed));
-        if (syncTo === SyncTo.UI) this._(activeShapeStore.removeOwner, { owner, syncTo });
+        if (syncTo === SyncTo.UI) this._("removeOwner")(owner, syncTo);
 
-        if (owner === gameStore.username) {
+        if (owner === clientStore.state.username) {
             gameStore.removeOwnedToken(owner);
         }
-        if (gameSettingsStore.fowLos) layerManager.invalidateLightAllFloors();
+        if (settingsStore.fowLos.value) floorStore.invalidateLightAllFloors();
     }
 
     // TRACKERS
@@ -830,7 +797,7 @@ export abstract class Shape {
     getTrackers(includeParent: boolean): readonly Tracker[] {
         const tr: Tracker[] = [];
         if (includeParent) {
-            const parent = layerManager.getCompositeParent(this.uuid);
+            const parent = compositeState.getCompositeParent(this.uuid);
             if (parent !== undefined) {
                 tr.push(...parent.getTrackers(false));
             }
@@ -841,7 +808,7 @@ export abstract class Shape {
 
     pushTracker(tracker: Tracker, syncTo: SyncTo): void {
         if (syncTo === SyncTo.SERVER) sendShapeCreateTracker(trackersToServer(this.uuid, [tracker])[0]);
-        else if (syncTo === SyncTo.UI) this._(activeShapeStore.pushTracker, { tracker, shape: this.uuid, syncTo });
+        else if (syncTo === SyncTo.UI) this._("pushTracker")(tracker, this.uuid, syncTo);
 
         this._trackers.push(tracker);
         this.invalidate(false);
@@ -860,7 +827,7 @@ export abstract class Shape {
                 uuid: trackerId,
             });
         } else if (syncTo === SyncTo.UI) {
-            this._(activeShapeStore.updateTracker, { tracker: trackerId, delta, syncTo });
+            this._("updateTracker")(trackerId, delta, syncTo);
         }
 
         Object.assign(tracker, delta);
@@ -869,7 +836,7 @@ export abstract class Shape {
 
     removeTracker(tracker: string, syncTo: SyncTo): void {
         if (syncTo === SyncTo.SERVER) sendShapeRemoveTracker({ shape: this.uuid, value: tracker });
-        else if (syncTo === SyncTo.UI) this._(activeShapeStore.removeTracker, { tracker, syncTo });
+        else if (syncTo === SyncTo.UI) this._("removeTracker")(tracker, syncTo);
 
         this._trackers = this._trackers.filter((tr) => tr.uuid !== tracker);
         this.invalidate(false);
@@ -880,7 +847,7 @@ export abstract class Shape {
     getAuras(includeParent: boolean): readonly Aura[] {
         const au: Aura[] = [];
         if (includeParent) {
-            const parent = layerManager.getCompositeParent(this.uuid);
+            const parent = compositeState.getCompositeParent(this.uuid);
             if (parent !== undefined) {
                 au.push(...parent.getAuras(false));
             }
@@ -891,7 +858,7 @@ export abstract class Shape {
 
     pushAura(aura: Aura, syncTo: SyncTo): void {
         if (syncTo === SyncTo.SERVER) sendShapeCreateAura(aurasToServer(this.uuid, [aura])[0]);
-        else if (syncTo === SyncTo.UI) this._(activeShapeStore.pushAura, { aura, shape: this.uuid, syncTo });
+        else if (syncTo === SyncTo.UI) this._("pushAura")(aura, this.uuid, syncTo);
 
         this._auras.push(aura);
         this.checkVisionSources();
@@ -911,25 +878,25 @@ export abstract class Shape {
                 uuid: auraId,
             });
         } else if (syncTo === SyncTo.UI) {
-            this._(activeShapeStore.updateAura, { aura: auraId, delta, syncTo });
+            this._("updateAura")(auraId, delta, syncTo);
         }
 
-        const visionSources = getVisionSources(this.floor.id);
+        const visionSources = visionState.getVisionSources(this.floor.id);
         const i = visionSources.findIndex((ls) => ls.aura === aura.uuid);
 
         Object.assign(aura, delta);
 
         const showsVision = aura.active && aura.visionSource;
 
-        if (showsVision && i === -1) addVisionSource({ shape: this.uuid, aura: aura.uuid }, this.floor.id);
-        else if (!showsVision && i >= 0) sliceVisionSources(i, this.floor.id);
+        if (showsVision && i === -1) visionState.addVisionSource({ shape: this.uuid, aura: aura.uuid }, this.floor.id);
+        else if (!showsVision && i >= 0) visionState.sliceVisionSources(i, this.floor.id);
 
         this.invalidate(false);
     }
 
     removeAura(aura: string, syncTo: SyncTo): void {
         if (syncTo === SyncTo.SERVER) sendShapeRemoveAura({ shape: this.uuid, value: aura });
-        else if (syncTo === SyncTo.UI) this._(activeShapeStore.removeAura, { aura, syncTo });
+        else if (syncTo === SyncTo.UI) this._("removeAura")(aura, syncTo);
 
         this._auras = this._auras.filter((au) => au.uuid !== aura);
         this.checkVisionSources();
@@ -940,36 +907,88 @@ export abstract class Shape {
 
     setAnnotation(text: string, syncTo: SyncTo): void {
         if (syncTo === SyncTo.SERVER) sendShapeSetAnnotation({ shape: this.uuid, value: text });
-        if (syncTo === SyncTo.UI) this._(activeShapeStore.setAnnotation, { annotation: text, syncTo });
+        if (syncTo === SyncTo.UI) this._("setAnnotation")(text, syncTo);
 
         const hadAnnotation = this.annotation !== "";
         this.annotation = text;
         if (this.annotation !== "" && !hadAnnotation) {
-            gameStore.annotations.push(this.uuid);
+            gameStore.addAnnotation(this.uuid);
         } else if (this.annotation === "" && hadAnnotation) {
-            gameStore.annotations.splice(gameStore.annotations.findIndex((an) => an === this.uuid));
+            gameStore.removeAnnotation(this.uuid);
         }
     }
 
     setAnnotationVisible(visible: boolean, syncTo: SyncTo): void {
         if (syncTo === SyncTo.SERVER) sendShapeSetAnnotationVisible({ shape: this.uuid, value: visible });
-        if (syncTo === SyncTo.UI) this._(activeShapeStore.setAnnotationVisible, { visible, syncTo });
+        if (syncTo === SyncTo.UI) this._("setAnnotationVisible")(visible, syncTo);
 
         this.annotationVisible = visible;
     }
 
     addLabel(label: string, syncTo: SyncTo): void {
-        const l = gameStore.labels[label];
         if (syncTo === SyncTo.SERVER) sendShapeAddLabel({ shape: this.uuid, value: label });
-        if (syncTo === SyncTo.UI) this._(activeShapeStore.addLabel, { label, syncTo });
+        if (syncTo === SyncTo.UI) this._("addLabel")(label, syncTo);
 
+        const l = gameStore.state.labels.get(label)!;
         this.labels.push(l);
     }
 
     removeLabel(label: string, syncTo: SyncTo): void {
         if (syncTo === SyncTo.SERVER) sendShapeRemoveLabel({ shape: this.uuid, value: label });
-        if (syncTo === SyncTo.UI) this._(activeShapeStore.removeLabel, { label, syncTo });
+        if (syncTo === SyncTo.UI) this._("removeLabel")(label, syncTo);
 
         this.labels = this.labels.filter((l) => l.uuid !== label);
+    }
+
+    // Extra Utilities
+
+    private checkVisionSources(recalculate = true): boolean {
+        let alteredVision = false;
+        const visionBlockers = visionState.getBlockers(
+            TriangulationTarget.VISION,
+            this._floor ?? floorStore.currentFloor.value.id,
+        );
+        const obstructionIndex = visionBlockers.indexOf(this.uuid);
+        if (this.blocksVision && obstructionIndex === -1) {
+            visionState.addBlocker(
+                TriangulationTarget.VISION,
+                this.uuid,
+                this._floor ?? floorStore.currentFloor.value.id,
+                recalculate,
+            );
+            alteredVision = true;
+        } else if (!this.blocksVision && obstructionIndex >= 0) {
+            visionState.sliceBlockers(
+                TriangulationTarget.VISION,
+                obstructionIndex,
+                this._floor ?? floorStore.currentFloor.value.id,
+                recalculate,
+            );
+            alteredVision = true;
+        }
+
+        // Check if the visionsource auras are in the gameManager
+        const visionSources: { shape: string; aura: string }[] = [
+            ...visionState.getVisionSources(this._floor ?? floorStore.currentFloor.value.id),
+        ];
+        for (const au of this.getAuras(true)) {
+            const i = visionSources.findIndex((o) => o.aura === au.uuid);
+            const isVisionSource = au.visionSource && au.active;
+            if (isVisionSource && i === -1) {
+                visionSources.push({ shape: this.uuid, aura: au.uuid });
+            } else if (!isVisionSource && i >= 0) {
+                visionSources.splice(i, 1);
+            }
+        }
+        // Check if anything in the gameManager referencing this shape is in fact still a visionsource
+        for (let i = visionSources.length - 1; i >= 0; i--) {
+            const ls = visionSources[i];
+            if (ls.shape === this.uuid) {
+                if (!this.getAuras(true).some((a) => a.uuid === ls.aura && a.visionSource && a.active))
+                    visionSources.splice(i, 1);
+            }
+        }
+        visionState.setVisionSources(visionSources, this._floor ?? floorStore.currentFloor.value.id);
+        return alteredVision;
     }
 }

@@ -155,9 +155,9 @@
                     "create_note": "Create note",
                     "delete_marker": "Delete marker",
                     "no_notes": "No notes",
-                    "dm_settings": "DM Options",
+                    "dm_options": "DM Options",
                     "no_markers": "No markers",
-                    "client_settings": "Client Settings"
+                    "client_options": "Client Options"
                 }
             },
             "NoteDialog": {
@@ -276,9 +276,7 @@
                         "remove_location_no": "please no",
                         "move_existing_pl": "Move existing players on this location",
                         "delete_this_location": "Delete this location",
-                        "archive_this_location": "Archive this location",
-                        "clone_this_location": "Clone this location",
-                        "choose_room": "Choose a room"
+                        "archive_this_location": "Archive this location"
                     },
                     "LocationSettings": {
                         "location_settings": "Location Settings:"
@@ -339,7 +337,8 @@
                     "reveal": "reveal",
                     "hide": "hide",
                     "erase": "erase",
-                    "cone": "cone"
+                    "cone": "cone",
+                    "text": "text"
                 },
                 "FilterTool": {
                     "no_category": "no category"

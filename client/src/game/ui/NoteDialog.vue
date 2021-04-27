@@ -1,84 +1,80 @@
 <script lang="ts">
-import Vue from "vue";
-import Component from "vue-class-component";
+import { defineComponent, ref, toRef } from "vue";
+import { useI18n } from "vue-i18n";
 
-import ConfirmDialog from "@/core/components/modals/ConfirmDialog.vue";
-import Modal from "@/core/components/modals/modal.vue";
-import { Note } from "@/game/models/general";
-import { gameStore } from "@/game/store";
+import Modal from "../../core/components/modals/Modal.vue";
+import { useModal } from "../../core/plugins/modals/plugin";
+import { gameStore } from "../../store/game";
+import { uiStore } from "../../store/ui";
 
-@Component({
-    components: {
-        ConfirmDialog,
-        Modal,
+export default defineComponent({
+    name: "NoteDialog",
+    components: { Modal },
+    props: { visible: { type: Boolean, required: true } },
+    setup(_, { emit }) {
+        const textarea = ref<HTMLTextAreaElement | null>(null);
+        const title = ref<HTMLInputElement | null>(null);
+
+        const { t } = useI18n();
+        const modals = useModal();
+
+        const note = toRef(uiStore.state, "activeNote");
+
+        function calcHeight(): void {
+            if (textarea.value !== null) {
+                textarea.value.style.height = "auto";
+                textarea.value.style.height = textarea.value.scrollHeight + "px";
+            }
+        }
+
+        function setText(event: { target: HTMLTextAreaElement }): void {
+            gameStore.updateNote({ ...note.value, text: event.target.value }, true);
+        }
+
+        function setTitle(event: { target: HTMLInputElement }): void {
+            gameStore.updateNote({ ...note.value, title: event.target.value }, true);
+        }
+
+        async function removeNote(): Promise<void> {
+            const doRemove = await modals.confirm(t("game.ui.NoteDialog.warning_msg"));
+            if (doRemove === true) {
+                gameStore.removeNote(note.value, true);
+                close();
+            }
+        }
+
+        function close(): void {
+            emit("update:visible", false);
+        }
+
+        return { calcHeight, close, note, removeNote, setText, setTitle, t, textarea, title };
     },
-})
-export default class NoteDialog extends Vue {
-    $refs!: {
-        confirm: ConfirmDialog;
-        textarea: HTMLTextAreaElement;
-        title: HTMLInputElement;
-    };
-
-    visible = false;
-    note: Note | null = null;
-
-    open(note: Note): void {
-        this.visible = true;
-        this.note = note;
-        this.$nextTick(() => {
-            this.calcHeight();
-        });
-    }
-    calcHeight(): void {
-        if (this.$refs.textarea) {
-            const el = this.$refs.textarea;
-            el.style.height = "auto";
-            el.style.height = el.scrollHeight + "px";
-        }
-    }
-    updateNote(): void {
-        if (this.note) gameStore.updateNote({ note: this.note, sync: true });
-    }
-    async removeNote(): Promise<void> {
-        const result = await this.$refs.confirm.open(this.$t("game.ui.NoteDialog.warning_msg").toString());
-        if (result && this.note) {
-            gameStore.removeNote({ note: this.note, sync: true });
-            this.visible = false;
-        }
-    }
-}
+});
 </script>
 
 <template>
-    <modal v-if="note !== null" :visible="visible" @close="visible = false" :mask="false">
-        <ConfirmDialog ref="confirm"></ConfirmDialog>
-        <div
-            class="modal-header"
-            slot="header"
-            slot-scope="m"
-            draggable="true"
-            @dragstart="m.dragStart"
-            @dragend="m.dragEnd"
-        >
-            <span @click="$refs.title.select()" :title="$t('game.ui.NoteDialog.edit_title')">
-                <font-awesome-icon icon="pencil-alt" />
-            </span>
-            <input v-model="note.title" ref="title" @change="updateNote" />
-            <div class="header-close" @click="visible = false" :title="$t('common.close')">
-                <font-awesome-icon :icon="['far', 'window-close']" />
+    <Modal v-if="note !== undefined" :visible="visible" @close="close" :mask="false">
+        <template v-slot:header="m">
+            <div class="modal-header" draggable="true" @dragstart="m.dragStart" @dragend="m.dragEnd">
+                <span @click="title?.select()" :title="t('game.ui.NoteDialog.edit_title')">
+                    <font-awesome-icon icon="pencil-alt" />
+                </span>
+                <input :value="note.title" ref="title" @change="setTitle" />
+                <div class="header-close" @click="close" :title="t('common.close')">
+                    <font-awesome-icon :icon="['far', 'window-close']" />
+                </div>
             </div>
-        </div>
+        </template>
         <div class="modal-body">
-            <textarea ref="textarea" v-model="note.text" @input="calcHeight" @change="updateNote"></textarea>
+            <textarea ref="textarea" :value="note.text" @input="calcHeight" @change="setText"></textarea>
         </div>
         <div class="modal-footer">
-            <button @click="removeNote" :title="$t('game.ui.NoteDialog.remove_note')">
+            <button @click="removeNote" :title="t('game.ui.NoteDialog.remove_note')">
                 <font-awesome-icon icon="trash-alt" />
-                {{ $t("game.ui.NoteDialog.remove_note") }}
+                {{ t("game.ui.NoteDialog.remove_note") }}
             </button>
         </div>
-    </modal>
+    </Modal>
 </template>
 
 <style scoped lang="scss">

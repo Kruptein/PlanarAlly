@@ -3,9 +3,10 @@ import { ServerAsset } from "../../models/shapes";
 import { wrapSocket } from "../helpers";
 import { socket } from "../socket";
 
-export const sendLocationOptions = wrapSocket<{ options: Partial<ServerLocationOptions>; location: number | null }>(
-    "Location.Options.Set",
-);
+export const sendLocationOptions = wrapSocket<{
+    options: Partial<ServerLocationOptions>;
+    location: number | undefined;
+}>("Location.Options.Set");
 export const sendLocationOrder = wrapSocket<number[]>("Locations.Order.Set");
 export const sendLocationChange = wrapSocket<{
     location: number;

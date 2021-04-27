@@ -46,6 +46,11 @@ class ServerInitiativeEffectActor(TypedDict):
     effect: ServerInitiativeEffect
 
 
+class ServerRemoveInitiativeEffectActor(TypedDict):
+    actor: str
+    effect: str
+
+
 @sio.on("Initiative.Update", namespace=GAME_NS)
 @auth.login_required(app, sio)
 async def update_initiative(sid: str, data: ServerInitiativeData):
@@ -293,7 +298,7 @@ async def update_initiative_effect(sid: str, data: ServerInitiativeEffectActor):
 
 @sio.on("Initiative.Effect.Remove", namespace=GAME_NS)
 @auth.login_required(app, sio)
-async def remove_initiative_effect(sid: str, data: ServerInitiativeEffectActor):
+async def remove_initiative_effect(sid: str, data: ServerRemoveInitiativeEffectActor):
     pr: PlayerRoom = game_state.get(sid)
 
     if not has_ownership(Shape.get_or_none(uuid=data["actor"]), pr):
@@ -301,7 +306,7 @@ async def remove_initiative_effect(sid: str, data: ServerInitiativeEffectActor):
         return
 
     with db.atomic():
-        effect = InitiativeEffect.get(uuid=data["effect"]["uuid"])
+        effect = InitiativeEffect.get(uuid=data["effect"])
         effect.delete_instance()
 
     await sio.emit(

@@ -151,9 +151,9 @@
                     "create_note": "Crea nota",
                     "delete_marker": "Elimina indicatore",
                     "no_notes": "Nessuna nota",
-                    "dm_settings": "Opzioni DM",
+                    "dm_options": "Opzioni DM",
                     "no_markers": "Nessun indicatore",
-                    "client_settings": "Opzioni client"
+                    "client_options": "Opzioni client"
                 }
             },
             "NoteDialog": {

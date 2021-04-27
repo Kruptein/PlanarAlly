@@ -1,38 +1,41 @@
 <script lang="ts">
-import Vue from "vue";
-import Component from "vue-class-component";
+import { computed, defineComponent } from "vue";
+import { useI18n } from "vue-i18n";
 
 import PanelModal from "../../../../core/components/modals/PanelModal.vue";
+import { uiStore } from "../../../../store/ui";
 
 import AppearanceSettings from "./AppearanceSettings.vue";
 import BehaviourSettings from "./BehaviourSettings.vue";
+import { ClientSettingCategory } from "./categories";
 
-@Component({
-    components: {
-        AppearanceSettings,
-        BehaviourSettings,
-        PanelModal,
+export default defineComponent({
+    components: { AppearanceSettings, BehaviourSettings, PanelModal },
+    setup() {
+        const { t } = useI18n();
+
+        const visible = computed({
+            get() {
+                return uiStore.state.showClientSettings;
+            },
+            set(visible: boolean) {
+                uiStore.showClientSettings(visible);
+            },
+        });
+
+        const categoryNames = [ClientSettingCategory.Appearance, ClientSettingCategory.Behaviour];
+
+        return { ClientSettingCategory, categoryNames, visible, t };
     },
-})
-export default class ClientSettings extends Vue {
-    visible = false;
-
-    open(): void {
-        this.visible = true;
-    }
-
-    get categoryNames(): string[] {
-        return ["Appearance", "Behaviour"];
-    }
-}
+});
 </script>
 
 <template>
-    <PanelModal :visible.sync="visible" :categories="categoryNames">
-        <template v-slot:title>{{ $t("game.ui.settings.client.ClientSettings.client_settings") }}</template>
+    <PanelModal v-model:visible="visible" :categories="categoryNames">
+        <template v-slot:title>{{ t("game.ui.settings.client.ClientSettings.client_settings") }}</template>
         <template v-slot:default="{ selection }">
-            <AppearanceSettings v-show="selection === 0" />
-            <BehaviourSettings v-show="selection === 1" />
+            <AppearanceSettings v-show="selection === ClientSettingCategory.Appearance" />
+            <BehaviourSettings v-show="selection === ClientSettingCategory.Behaviour" />
         </template>
     </PanelModal>
 </template>

@@ -145,9 +145,9 @@
                     "create_note": "新增筆記",
                     "delete_marker": "刪除記號",
                     "no_notes": "暫無筆記",
-                    "dm_settings": "DM選項",
+                    "dm_options": "DM選項",
                     "no_markers": "暫無記號",
-                    "client_settings": "客戶端選項"
+                    "client_options": "客戶端選項"
                 }
             },
             "NoteDialog": {

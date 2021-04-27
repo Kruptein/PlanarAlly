@@ -155,9 +155,9 @@
                     "create_note": "Notiz erstellen",
                     "delete_marker": "Markierung löschen",
                     "no_notes": "Keine Notizen",
-                    "dm_settings": "SL Einstellungen",
+                    "dm_options": "SL Optionen",
                     "no_markers": "Keine Markierungen",
-                    "client_settings": "Einstellungen"
+                    "client_options": "Client Optionen"
                 }
             },
             "NoteDialog": {

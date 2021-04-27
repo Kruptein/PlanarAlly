@@ -1,11 +1,11 @@
-import { GlobalPoint, Vector } from "@/game/geom";
-import { Shape } from "@/game/shapes/shape";
-import { BoundingRect } from "@/game/shapes/variants/boundingrect";
-
+import { g2lz, l2gz } from "../../../core/conversions";
+import { GlobalPoint, Vector } from "../../../core/geometry";
+import { rotateAroundPoint } from "../../../core/math";
 import { ServerText } from "../../models/shapes";
-import { g2lz, l2gz } from "../../units";
-import { rotateAroundPoint } from "../../utils";
+import { Shape } from "../shape";
 import { SHAPE_TYPE } from "../types";
+
+import { BoundingRect } from "./boundingRect";
 
 export class Text extends Shape {
     type: SHAPE_TYPE = "text";
@@ -24,6 +24,10 @@ export class Text extends Shape {
         },
     ) {
         super(position, options);
+    }
+
+    get isClosed(): boolean {
+        return true;
     }
 
     asDict(): ServerText {

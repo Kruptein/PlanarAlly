@@ -12,6 +12,7 @@ import { ServerShape } from "../../models/shapes";
 import { addOperation } from "../../operations/undo";
 import { Shape } from "../../shapes/shape";
 import { createShapeFromDict } from "../../shapes/utils";
+import { initiativeStore } from "../../ui/initiative/state";
 import { TriangulationTarget, visionState } from "../../vision/state";
 import { selectionState } from "../selection";
 import { compositeState } from "../state";
@@ -202,8 +203,7 @@ export class Layer {
 
         if (this.isActiveLayer) selectionState.remove(shape.uuid);
 
-        // EventBus.$emit("Initiative.Remove", shape.uuid);
-        // EventBus.$emit("Initiative.ForceUpdate");
+        initiativeStore.removeInitiative(shape.uuid, false);
         this.invalidate(!shape.triggersVisionRecalc);
         return true;
     }

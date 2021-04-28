@@ -15,8 +15,7 @@ socket.on("Shape.Set", (data: ServerShape) => {
     // hard reset a shape
     const old = UuidMap.get(data.uuid);
     if (old) old.layer.removeShape(old, SyncMode.NO_SYNC, true);
-    const _shape = addShape(data, SyncMode.NO_SYNC);
-    // if (shape) EventBus.$emit("Shape.Set", shape);
+    addShape(data, SyncMode.NO_SYNC);
 });
 
 socket.on("Shape.Add", (shape: ServerShape) => {
